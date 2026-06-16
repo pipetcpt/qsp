@@ -120,6 +120,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**COPD**](#copd-chronic-obstructive-pulmonary-disease) | 만성질환 / 호흡기 | CS/AP → ROS + NRF2↓ → Macrophage(M1)+NE/MMP-12 → Protease-antiprotease imbalance → Emphysema(ECM elastin↓) + Small airway fibrosis (TGF-β/SMAD2/3) → FEV1↓; CD8+Tc1/Th17 adaptive; PH-COPD(HPV→ET-1↑); LAMA(UPLIFT) + LABA/LAMA(FLAME) + Triple(IMPACT/ETHOS) + PDE4i(EINSTEIN/Roflumilast) | [![COPD](copd/copd_qsp.png)](copd/copd_qsp.svg) | [R](copd/copd_mrgsolve_model.R) | [refs](copd/copd_references.md) | [Shiny](copd/copd_shiny_app.R) |
 | 2026-06-16 | [**Crohn's Disease**](#crohns-disease-cd) | 자가면역질환 / 소화기 | Gut dysbiosis + NOD2/TLR → Macrophage M1 + DC → Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21/IL-23) → NF-κB → mucosal barrier loss + NLRP3/IL-1β + fibrosis (TGF-β/MMP); Anti-TNF (IFX/ADA, ACCENT/CHARM) + Anti-IL-12/23 (UST, UNIFI) + Anti-α4β7 (VDZ, GEMINI) + JAK1i (Upadacitinib, U-ACHIEVE) + AZA/6-TGN (SONIC) | [![CD](crohn-disease/cd_qsp_model.png)](crohn-disease/cd_qsp_model.svg) | [R](crohn-disease/cd_mrgsolve_model.R) | [refs](crohn-disease/cd_references.md) | [Shiny](crohn-disease/cd_shiny_app.R) |
 | 2026-06-16 | [**Ankylosing Spondylitis**](#ankylosing-spondylitis-as) | 자가면역질환 / 척추관절염 | HLA-B27 misfolding (UPR → IL-23) + enthesis microdamage → DAMP/TLR → DC/Macrophage IL-23 → Th17 IL-17A/IL-17F ★ + RANKL↑/OPG↓ → dual bone pathology: erosion (osteoclast) + ankylosis (BMP/Wnt/DKK1 ↓ new bone); Gut–joint axis (dysbiosis/ILC3); TNFi (ATLAS/GO-RAISE) + IL-17Ai (MEASURE 1/2, COAST-V) + JAKi (SELECT-AXIS 1/2) + IL-23i (GUIDE) | [![AS](ankylosing-spondylitis/as_qsp_model.png)](ankylosing-spondylitis/as_qsp_model.svg) | [R](ankylosing-spondylitis/as_mrgsolve_model.R) | [refs](ankylosing-spondylitis/as_references.md) | [Shiny](ankylosing-spondylitis/as_shiny_app.R) |
+| 2026-06-16 | [**Atrial Fibrillation**](#atrial-fibrillation-af) | 만성질환 / 심혈관 | Electrical remodeling (Nav1.5/Cav1.2/Kv1.5/IKACh/ERP↓) + Ca²⁺ mishandling (RyR2/CaMKII/SOICR→DADs) + structural fibrosis (AngII/TGF-β1/SMAD2/3) + NLRP3 inflammation + ANS remodeling → wavelength shortening → reentry + focal PV triggers; Thromboembolism (Virchow's triad, TF/FXa/thrombin/fibrin); Amiodarone (class I/II/III/IV) + Metoprolol (rate control) + Apixaban (ARISTOTLE: RRR 21%) — calibrated to AFFIRM, RACE, ARISTOTLE, RE-LY, EAST-AFNET 4 | [![AF](atrial-fibrillation/af_qsp_model.png)](atrial-fibrillation/af_qsp_model.svg) | [R](atrial-fibrillation/af_mrgsolve_model.R) | [refs](atrial-fibrillation/af_references.md) | [Shiny](atrial-fibrillation/af_shiny_app.R) |
 
 
 ---
@@ -1132,3 +1133,93 @@ Chronic Kidney Disease (CKD) affects ~850 million people worldwide and is define
 | [`as_references.md`](ankylosing-spondylitis/as_references.md) | 56 curated references, 13 sections, all PubMed-linked |
 | [`as_mrgsolve_model.R`](ankylosing-spondylitis/as_mrgsolve_model.R) | 22-state mrgsolve ODE model + 7 treatment scenarios + ATLAS/MEASURE/SELECT-AXIS calibration |
 | [`as_shiny_app.R`](ankylosing-spondylitis/as_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard, plotly interactive) |
+
+---
+
+### Atrial Fibrillation (AF)
+
+> Directory: [`atrial-fibrillation/`](atrial-fibrillation/)
+
+**Disease Summary**
+
+Atrial fibrillation is the most common sustained cardiac arrhythmia, affecting >37 million people worldwide. AF arises from complex interactions among electrical remodeling (shortened ERP, conduction slowing), Ca²⁺ handling disturbances (RyR2 leak → DADs), structural fibrosis (AngII/TGF-β1/SMAD), inflammation (NLRP3/IL-1β/ROS), and autonomic nervous system dysregulation. The resulting wavelength shortening allows reentry circuits and focal pulmonary vein triggers to maintain AF ("AF begets AF"). Atrial stasis creates a prothrombotic state (Virchow's triad: stasis + endothelial dysfunction + hypercoagulability) that drives stroke risk. Management involves rate control (beta-blockers), rhythm control (antiarrhythmics), anticoagulation (DOACs), and upstream RAAS therapy.
+
+**Key Pathways Modeled**
+
+| Cluster | Key Nodes |
+|---------|-----------|
+| Risk Factors | HTN, HF, obesity, OSA, T2DM, genetic variants (PITX2, ZFHX3), atrial stretch |
+| Electrical Remodeling | Nav1.5 (INa), Cav1.2 (ICaL), Kv1.5 (IKur), IKACh (Kir3.1/3.4), hERG (IKr), Cx40/43 gap junctions, ERP shortening, wavelength shortening, reentry circuits, focal PV triggers |
+| Ca²⁺ Handling | SERCA2a/PLN, RyR2 leak, NCX1, CaMKII oxidation, SR Ca²⁺ overload, SOICR → DADs/EADs |
+| Structural Remodeling | AngII/AT1R/ACE, TGF-β1/TGFβR/SMAD2/3, myofibroblast, collagen I/III, MMP/TIMP, LAA enlargement, atrial fibrosis |
+| Inflammation & ROS | NLRP3/caspase-1/IL-1β, NF-κB, NOX2/mitochondrial ROS, superoxide/peroxynitrite, eNOS uncoupling, CRP |
+| Autonomic NS | β1AR/cAMP/PKA, M2R/IKACh, ganglionated plexi, NE/ACh, sympatho-vagal remodeling |
+| Thromboembolism | LAA stasis, TF/FVIIa/FXa/thrombin/fibrin cascade, platelet activation, protein C/AT-III, stroke |
+| Drug PK | Amiodarone (3-cmt, t½ ~40-55d, fat depot V2=4200L), Apixaban (2-cmt, t½ 12h), Metoprolol (2-cmt, t½ 3.5h), Flecainide, Rivaroxaban, Dabigatran, Warfarin, Digoxin |
+| Drug PD | Class I–IV antiarrhythmics, IKur/IKACh blockade (atrial-selective), FXa/FIIa/VKA inhibition, ERP prolongation, QTc monitoring |
+| Clinical Endpoints | AF burden (%), ERP (ms), QTc (ms), HR (bpm), NT-proBNP, CRP, LA diameter, stroke risk (%/year), fibrosis score |
+
+**Drug PK/PD (Treatment Landscape)**
+
+| Drug Class | Agent | Mechanism | Key Trial / Calibration |
+|-----------|-------|-----------|------------------------|
+| Class III Antiarrhythmic | Amiodarone 200mg/day (after loading) | IKr + ICaL + INa + IKACh block → ERP↑ + rate ↓ | Roy et al. NEJM 2000; AFFIRM arm |
+| Class II (Rate Control) | Metoprolol 50mg BID | β1AR blockade → HR↓ | AFFIRM (NEJM 2002; PMID:12466506); RACE (NEJM 2002; PMID:12466507) |
+| Direct FXa Inhibitor | Apixaban 5mg BID | Competitive FXa inhibition → ↓thrombin generation | ARISTOTLE (NEJM 2011; PMID:21870978); RRR 21% vs warfarin |
+| Direct Thrombin Inhibitor | Dabigatran 150mg BID | Direct FIIa inhibition | RE-LY (NEJM 2009; PMID:19717844) |
+| Direct FXa Inhibitor | Rivaroxaban 20mg QD | Competitive FXa inhibition | ROCKET-AF (NEJM 2011; PMID:21830957) |
+| Vitamin K Antagonist | Warfarin (INR 2–3) | VKORC1 inhibition → ↓F II/VII/IX/X synthesis | AVERROES (NEJM 2011; PMID:21309657) |
+| Early Rhythm Control | Multiple agents | Earlier sinus rhythm → structural prevention | EAST-AFNET 4 (NEJM 2020; PMID:32865375) |
+
+**Mechanistic Map** (184 nodes, 10 pathway subgraphs, fdp layout)
+
+[![AF QSP Map](atrial-fibrillation/af_qsp_model.png)](atrial-fibrillation/af_qsp_model.svg)
+
+*Click image to open interactive SVG. Clusters: Risk Factors · Electrical Remodeling · Ca²⁺ Handling · Structural Remodeling · Inflammation & Oxidative Stress · Autonomic NS · Thromboembolism · Drug PK · Drug PD · Clinical Endpoints*
+
+**ODE Model Summary** (20 ODE states: 7 Drug PK + 13 Disease PD)
+
+| State Group | Variables |
+|-------------|-----------|
+| Drug PK — Amiodarone (3-cmt) | GI_AMIO, C1_AMIO (central, V1=40L), C2_AMIO (fat depot, V2=4200L) |
+| Drug PK — Apixaban (2-cmt) | GI_APIX, C1_APIX |
+| Drug PK — Metoprolol (2-cmt) | GI_METRO, C1_METRO |
+| Electrophysiology (3) | AF_BURDEN (0–1), ERP (ms), QTc (ms) |
+| Rate / Hemodynamics (1) | HR_AF (bpm) |
+| Structural / RAAS (3) | Fibrosis (0–1), AngII (rel), SMAD23 (rel) |
+| Inflammation / Redox (2) | ROS (rel), IL6 (rel) |
+| Coagulation (2) | FXa (rel), Thrombin (rel) |
+| Risk Outcomes (2) | STROKE_RISK (%/year), NE (sympathetic tone) |
+
+**Treatment Scenarios (6)**
+
+| Scenario | Regimen | AF Burden at 1yr | Stroke Risk (%/yr) | Heart Rate |
+|----------|---------|------------------|--------------------|-----------|
+| S1 | Natural history (no treatment) | ~62% | ~3.5%/yr | ~140 bpm |
+| S2 | Rate control — Metoprolol 50mg BID | ~59% | ~3.2%/yr | ~85 bpm |
+| S3 | Rhythm control — Amiodarone 200mg/day | ~32% | ~2.8%/yr | ~75 bpm |
+| S4 | Anticoagulation only — Apixaban 5mg BID | ~60% | ~1.2%/yr | ~138 bpm |
+| S5 | Rate + anticoag — Metoprolol + Apixaban | ~58% | ~1.1%/yr | ~84 bpm |
+| S6 | Rhythm + anticoag — Amiodarone + Apixaban (SoC) | ~30% | ~1.0%/yr | ~74 bpm |
+
+**Shiny Dashboard** (6 interactive tabs)
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | Age, sex, AF type, LVEF, LA diameter, eGFR; comorbidity checkboxes; CHA₂DS₂-VASc score calculator; HAS-BLED score; anticoagulation recommendation; renal dose guidance |
+| 2. Drug PK | Amiodarone/Apixaban/Metoprolol dose sliders; concentration-time plots with therapeutic range shading; PK summary table |
+| 3. Electrophysiology PD | AF burden (%), ERP (ms), heart rate (bpm), QTc (ms) over time; AF zone color bands (paroxysmal/persistent/long-standing); ERP vs AF burden phase plot |
+| 4. Thromboembolism Risk | FXa activity, thrombin generation, annual stroke risk plots; absolute risk reduction pie chart; NNT calculator (ARISTOTLE data) |
+| 5. Scenario Comparison | All 6 scenarios side-by-side: AF burden, stroke risk, HR, QTc, fibrosis; scenario highlighting; summary table; downloadable CSV |
+| 6. Biomarker Dashboard | NT-proBNP, CRP, fibrosis score, LA diameter, AngII, NE, ROS time-series; traffic-light status indicators (green/yellow/red); downloadable report |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`af_qsp_model.dot`](atrial-fibrillation/af_qsp_model.dot) | Graphviz source (184 nodes, 10 clusters, fdp layout) |
+| [`af_qsp_model.svg`](atrial-fibrillation/af_qsp_model.svg) | Vector mechanistic map |
+| [`af_qsp_model.png`](atrial-fibrillation/af_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`af_references.md`](atrial-fibrillation/af_references.md) | 56 curated references, 10 sections, all PubMed-linked |
+| [`af_mrgsolve_model.R`](atrial-fibrillation/af_mrgsolve_model.R) | 20-state mrgsolve ODE model + 6 treatment scenarios + AFFIRM/ARISTOTLE calibration |
+| [`af_shiny_app.R`](atrial-fibrillation/af_shiny_app.R) | 6-tab Shiny dashboard (shinydashboard, ggplot2, mrgsolve) |
