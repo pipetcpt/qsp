@@ -111,6 +111,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Pulmonary Arterial Hypertension**](#pulmonary-arterial-hypertension-pah) | 만성질환 / 폐혈관 | EC dysfunction → ET-1↑/NO↓/PGI₂↓ → vasoconstriction + PASMC remodelling; BMPR2 loss; RV failure; ERA + PDE5i + PGI₂ | [![PAH](pulmonary-arterial-hypertension/pah_qsp_model.png)](pulmonary-arterial-hypertension/pah_qsp_model.svg) | [R](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | [refs](pulmonary-arterial-hypertension/pah_references.md) | [Shiny](pulmonary-arterial-hypertension/pah_shiny_app.R) |
 | 2026-06-16 | [**Systemic Lupus Erythematosus**](#systemic-lupus-erythematosus-sle) | 자가면역질환 | NETs/cGAS-STING/TLR7/9 → pDC → IFN-α → BAFF↑ → B cell hyperactivation → anti-dsDNA → IC → complement consumption + lupus nephritis; HCQ + belimumab + anifrolumab + MMF + voclosporin | [![SLE](systemic-lupus-erythematosus/sle_qsp.png)](systemic-lupus-erythematosus/sle_qsp.svg) | [R](systemic-lupus-erythematosus/sle_model.R) | [refs](systemic-lupus-erythematosus/sle_references.md) | [Shiny](systemic-lupus-erythematosus/shiny_app/app.R) |
 | 2026-06-16 | [**IgA Nephropathy**](#iga-nephropathy-igan) | 자가면역질환 / 신장 | Four-hit: Gd-IgA1↑ (C1GalT1/Cosmc↓) → anti-Gd-IgA1 IgG → IC mesangial deposition → complement AP + MAC → podocyte injury + TIF; Budesonide TRF / Sparsentan / Iptacopan / Sibeprenlimab | [![IgAN](iga-nephropathy/igan_qsp_model.png)](iga-nephropathy/igan_qsp_model.svg) | [R](iga-nephropathy/igan_mrgsolve_model.R) | [refs](iga-nephropathy/igan_references.md) | [Shiny](iga-nephropathy/igan_shiny_app.R) |
+| 2026-06-16 | [**Multiple Sclerosis**](#multiple-sclerosis-ms) | 자가면역질환 / 신경계 | CD4+ Th1/Th17 → VLA-4/VCAM-1 → BBB breach → CNS infiltration → microglia activation → oligodendrocyte death → demyelination + axonal injury (NfL↑); IFN-β / Natalizumab / Ocrelizumab / Siponimod / DMF / Cladribine | [![MS](multiple-sclerosis/ms_qsp.png)](multiple-sclerosis/ms_qsp.svg) | [R](multiple-sclerosis/ms_mrgsolve_model.R) | [refs](multiple-sclerosis/ms_references.md) | [Shiny](multiple-sclerosis/ms_shiny_app.R) |
 
 ---
 
@@ -346,3 +347,76 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | [`igan_references.md`](iga-nephropathy/igan_references.md) | 47 annotated references with PubMed links |
 | [`igan_mrgsolve_model.R`](iga-nephropathy/igan_mrgsolve_model.R) | mrgsolve ODE model + 7 treatment scenarios + dose-response |
 | [`igan_shiny_app.R`](iga-nephropathy/igan_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, UPCR, eGFR, MEST-C, biomarkers) |
+
+---
+
+### Multiple Sclerosis (MS)
+
+> Directory: [`multiple-sclerosis/`](multiple-sclerosis/)  
+> Disease category: **자가면역질환 / 신경계 (Autoimmune — CNS)**  
+> Date added: **2026-06-16**
+
+**Pathophysiology Summary:**  
+Multiple sclerosis is a chronic autoimmune demyelinating disease of the CNS affecting ~2.8 million people worldwide. The immunopathology begins in peripheral lymphoid organs where myelin antigens (MOG, MBP, PLP) are presented by dendritic cells to naïve CD4⁺ T cells, driving Th1 (IFN-γ+) and Th17 (IL-17A+) differentiation. These effector T cells up-regulate VLA-4 (α4β1 integrin) to engage VCAM-1 on blood-brain barrier (BBB) endothelium, triggering diapedesis into the CNS. Th17-derived IL-17A/MMP-9 additionally disrupts claudin-5 and ZO-1 tight junction proteins to widen the BBB leak. Once inside the CNS, infiltrating T cells together with activated microglia release TNF-α, IL-1β, NO, and ROS that are directly cytotoxic to oligodendrocytes, leading to demyelination. Loss of myelin trophic support results in NaV channel redistribution, Ca²⁺ overload, mitochondrial dysfunction, and axonal transection — the substrate of irreversible disability. B cells contribute via anti-MOG antibody production (intrathecal IgG; oligoclonal bands), complement activation, and antigen presentation. OPC-mediated remyelination can partially restore function but is inhibited by LINGO-1 and Nogo-A in the chronic lesion environment.
+
+**Mechanistic Map:**
+
+[![MS QSP Map](multiple-sclerosis/ms_qsp.png)](multiple-sclerosis/ms_qsp.svg)
+
+*12 subgraph clusters · 160+ nodes · 7 drug PK/PD arms including TMDD (natalizumab)*
+
+**mrgsolve Model Summary:**
+
+| Compartment | States | Description |
+|-------------|--------|-------------|
+| IFN-β PK | A1_ifnb, C1_ifnb, C2_ifnb | 2-compartment SC/IM; F=40%; JAK-STAT PD |
+| Natalizumab PK | C1_nat, C2_nat, RC_nat, R_nat | 2-comp IV + TMDD; kon/koff/kint |
+| Ocrelizumab PK | C1_ocre, C2_ocre | 2-comp IV; Emax B cell depletion |
+| Siponimod PK | C1_sip, C2_sip | 2-comp oral; S1PR1/5 antagonism |
+| DMF/MMF PK | C1_dmf | 1-comp oral; Nrf2/NF-κB dual PD |
+| Cladribine PK | C1_clad | 1-comp oral; dATP-mediated lymphodepletion |
+| Peripheral immunity | Th1, Th17, Treg, Bcell | Normalized cell levels; drug inhibition terms |
+| BBB | BBB | Integrity 0–1; IL-17A/MMP-9 disruption; natalizumab/IFNb protection |
+| CNS infiltration | cTh1, cTh17 | BBB-gated infiltration; natalizumab blocks |
+| Neuroinflammation | Micro | Microglia activation; Treg dampening |
+| Myelination | Oligo, OPC, Myelin | OPC differentiation → remyelination; LINGO-1 inhibition |
+| Axonal integrity | Axon | Loss from demyelination + smouldering inflammation |
+| Biomarkers | NfL, GFAP | Serum biomarkers; axon and astrocyte damage |
+
+**Key ODE relationships:**
+- `dMyelin/dt = k_remyelin × OPC × (1−Myelin) − kdmyelin × Micro × Myelin × (1−E_Nrf2) + kin_myelin × (1−Myelin)`
+- `dAxon/dt = k_repair × Myelin − k_loss × (1−Myelin) − k_loss×0.5 × Micro × Axon`
+- `dRC_nat/dt = kon × Cnat × R − (koff + kint) × RC_nat`  *(TMDD natalizumab)*
+- `EDSS = 10 × (1−Axon) × 0.8 + 10 × (1−Myelin) × 0.2`
+- Simulates 7 arms (untreated, IFN-β, natalizumab, ocrelizumab, siponimod, DMF, cladribine) over 2 years
+
+**Calibration landmarks (Phase III trial data):**
+- AFFIRM (Polman 2006): Natalizumab → ARR −68%, T2 −83% ✓
+- OPERA I/II (Hauser 2017): Ocrelizumab → ARR −46–47%, B cell depletion >95% ✓
+- EXPAND (Kappos 2018): Siponimod → 3m-CDP −21% in SPMS ✓
+- DEFINE (Gold 2012): DMF 240 mg BID → ARR −49% ✓
+- CLARITY (Giovannoni 2010): Cladribine 3.5 mg/kg → ARR −58% ✓
+- MSCRG (Jacobs 1996): IFN-β-1a IM → ARR −18%, T2 −37% ✓
+
+**Shiny Dashboard Tabs (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | MS phenotype (RRMS/SPMS/PPMS), baseline EDSS, disease severity radar |
+| 2. Drug PK | PK curves for all 6 drugs; TMDD receptor occupancy (natalizumab); B cell depletion (ocrelizumab) |
+| 3. Immunology | Peripheral Th1/Th17/Treg/B cell dynamics; CNS infiltration; BBB integrity over time |
+| 4. Disease Progression | Myelin/OPC/oligodendrocyte dynamics; T2 lesion volume; axonal integrity trajectory |
+| 5. Clinical Endpoints | EDSS progression; annualized relapse rate; NEDA-3 achievement rate |
+| 6. Scenario Comparison | Multi-drug overlay for any endpoint; sortable 2-year summary table with ARR reduction % |
+| 7. Biomarkers & Safety | Serum NfL & GFAP trajectories; siponimod lymphocyte safety monitoring; receptor occupancy |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`ms_qsp.dot`](multiple-sclerosis/ms_qsp.dot) | Graphviz DOT source (160+ nodes, 12 subgraph clusters) |
+| [`ms_qsp.svg`](multiple-sclerosis/ms_qsp.svg) | Vector mechanistic map (sfdp layout) |
+| [`ms_qsp.png`](multiple-sclerosis/ms_qsp.png) | Raster mechanistic map (150 dpi, sfdp layout) |
+| [`ms_references.md`](multiple-sclerosis/ms_references.md) | 40 annotated references with PubMed links |
+| [`ms_mrgsolve_model.R`](multiple-sclerosis/ms_mrgsolve_model.R) | mrgsolve ODE model + 7 treatment scenarios + dose-response |
+| [`ms_shiny_app.R`](multiple-sclerosis/ms_shiny_app.R) | 7-tab Shiny dashboard (patient profile, PK, immunology, MRI, EDSS, scenario comparison, biomarkers) |
