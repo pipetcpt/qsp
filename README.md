@@ -115,6 +115,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Type 2 Diabetes Mellitus**](#type-2-diabetes-mellitus-t2dm) | 만성질환 / 대사 | Insulin resistance (peripheral + hepatic) + β-cell failure → glucotoxicity/lipotoxicity/ER stress → progressive HbA1c ↑; Metformin / SGLT2i / GLP-1RA / DPP-4i / SU / Insulin / TZD | [![T2DM](type2-diabetes/t2dm_qsp_model.png)](type2-diabetes/t2dm_qsp_model.svg) | [R](type2-diabetes/t2dm_mrgsolve_model.R) | [refs](type2-diabetes/t2dm_references.md) | [Shiny](type2-diabetes/t2dm_shiny_app.R) |
 | 2026-06-16 | [**NAFLD / NASH**](#nafldnash-non-alcoholic-fatty-liver-disease--steatohepatitis) | 만성질환 / 간 | IR → DNL↑ + Adipose FFA → Hepatic steatosis → Lipotoxicity (ceramide/DAG/ROS/ER-stress) → Kupffer/NLRP3 → TNF-α/IL-1β → TGF-β1/HSC → Fibrosis; Resmetirom (THRβ, FDA 2024) / OCA (FXR) / Semaglutide (GLP-1RA) / Empagliflozin (SGLT2i) | [![NAFLD](nafld-nash/nafld_qsp_model.png)](nafld-nash/nafld_qsp_model.svg) | [R](nafld-nash/nafld_mrgsolve_model.R) | [refs](nafld-nash/nafld_references.md) | [Shiny](nafld-nash/nafld_shiny_app.R) |
 | 2026-06-16 | [**Heart Failure (HFrEF)**](#heart-failure-with-reduced-ejection-fraction-hfref) | 만성질환 / 심혈관 | RAAS (AngII/Aldo) + SNS (NE↑) + NPS (BNP/NT-proBNP) triple neurohumoral activation → cardiac remodeling (TGF-β1/fibrosis/hypertrophy) → LVEF↓; GDMT 4 pillars: ARNI (PARADIGM-HF) + β-blocker (MERIT-HF) + MRA (RALES/EMPHASIS-HF) + SGLT2i (EMPEROR-Reduced/DAPA-HF) + Ivabradine (SHIFT) | [![HFrEF](heart-failure-hfref/hfref_qsp_model.png)](heart-failure-hfref/hfref_qsp_model.svg) | [R](heart-failure-hfref/hfref_mrgsolve_model.R) | [refs](heart-failure-hfref/hfref_references.md) | [Shiny](heart-failure-hfref/hfref_shiny_app.R) |
+| 2026-06-16 | [**Chronic Kidney Disease (CKD)**](#chronic-kidney-disease-ckd) | 만성질환 / 신장 | Nephron loss (hyperfiltration → GS → TIF) → eGFR↓; RAAS (AngII/Aldo) + NF-κB + TGF-β1/Smad2/3 fibrosis + CKD-MBD (FGF-23↑/Klotho↓/PTH↑) + Anemia (EPO↓/Hepcidin↑) + CV (LVH/VC); ACEi / ARB / Finerenone (FIDELIO-DKD) / SGLT2i (DAPA-CKD/EMPA-KIDNEY) / ESA / HIF-PHI (Roxadustat) | [![CKD](chronic-kidney-disease/ckd_qsp_model.png)](chronic-kidney-disease/ckd_qsp_model.svg) | [R](chronic-kidney-disease/ckd_mrgsolve_model.R) | [refs](chronic-kidney-disease/ckd_references.md) | [Shiny](chronic-kidney-disease/ckd_shiny_app.R) |
 
 
 ---
@@ -669,3 +670,89 @@ Heart failure with reduced ejection fraction (HFrEF, LVEF < 40%) affects over 26
 | [`hfref_mrgsolve_model.R`](heart-failure-hfref/hfref_mrgsolve_model.R) | mrgsolve ODE model (21 states) + 5 treatment scenarios + dose-response + sensitivity analysis |
 | [`hfref_shiny_app.R`](heart-failure-hfref/hfref_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, RAAS/SNS, NPS/hemodynamics, remodeling, clinical endpoints, scenario comparison, biomarker risk) |
 
+
+---
+
+### Chronic Kidney Disease (CKD)
+
+> Directory: [`chronic-kidney-disease/`](chronic-kidney-disease/)
+
+**Disease Overview**
+
+Chronic Kidney Disease (CKD) affects ~850 million people worldwide and is defined by persistent abnormalities in kidney structure or function (eGFR < 60 mL/min/1.73m² or albuminuria ≥ 30 mg/g) for more than 3 months. CKD is a major cause of cardiovascular disease, anemia, mineral bone disease, and ESKD requiring dialysis or transplantation. The pathophysiology is a self-amplifying cycle: initial injury (diabetes, hypertension, glomerulonephritis) → nephron loss → compensatory hyperfiltration → podocyte injury → glomerulosclerosis → interstitial fibrosis → further nephron loss → eGFR decline.
+
+**Key Mechanistic Axes**
+
+| Pathway | Core Biology |
+|---------|-------------|
+| RAAS | Ang II → AT1R → glomerular hypertension + NF-κB + TGF-β1 → proteinuria + fibrosis; Aldosterone → MR → Na retention + cardiac/renal fibrosis |
+| Inflammation | Uremic toxins/DAMPs → NF-κB → M1 macrophages/Th17 → IL-6/TNF-α/IL-17 → podocyte injury + tubular atrophy |
+| Fibrosis | TGF-β1/Smad2-3 → EMT + myofibroblast activation → Collagen I/III + CTGF → ECM accumulation; Smad7 inhibitory brake |
+| CKD-MBD | eGFR↓ → Phosphate↑ + Klotho↓ → FGF-23↑ → CYP27B1 inhibition → Calcitriol↓ → PTH↑ → secondary hyperparathyroidism → bone disease + vascular calcification |
+| Anemia | Peritubular cell loss → EPO↓; Inflammation → Hepcidin↑ → Ferroportin degradation → functional iron deficiency; PHD active → HIF degraded → blunted EPO response |
+| Cardiovascular | Uremia → ADMA → eNOS↓ → NO↓ → endothelial dysfunction; BP↑ + Aldo → LVH + cardiac fibrosis; Phosphate/PTH/uremic toxins → vascular calcification → arterial stiffness |
+
+**Drug PK/PD (Treatment Landscape)**
+
+| Drug Class | Agent | Mechanism | Key Trial |
+|-----------|-------|-----------|-----------|
+| ACE Inhibitor | Ramipril | ACE inhibition → ↓Ang II → ↓AT1R → ↓UACR ↓BP | Lewis 1993 (NEJM) |
+| ARB | Losartan | AT1R blockade → ↓glomerular hypertension | RENAAL (NEJM 2001) |
+| nsMRA | Finerenone 10–20 mg | Non-steroidal MR blockade → ↓UACR −31%, ↓CV events | FIDELIO-DKD (NEJM 2020) |
+| SGLT2i | Dapagliflozin 10 mg | SGLT2 block → ↓TGF → ↑macula densa NaCl → ↓glomerular hypertension | DAPA-CKD (NEJM 2020) |
+| SGLT2i | Empagliflozin 10 mg | Same; effective to eGFR 20 mL/min | EMPA-KIDNEY (NEJM 2023) |
+| ESA | Epoetin alfa / Darbepoetin | EPOR stimulation → erythropoiesis → ↑Hb | Drueke et al. NEJM 2006 |
+| HIF-PHI | Roxadustat 3×/week | PHD inhibition → HIF-1α stabilization → ↑endogenous EPO | DOLOMITES (JASN 2021) |
+| Phosphate Binder | Sevelamer | GI phosphate binding → ↓serum Phos → ↓FGF-23 | Block JASN 2004 |
+| Calcimimetic | Cinacalcet | CaSR allosteric activator → ↓PTH | EVOLVE (NEJM 2012) |
+
+**Mechanistic Map** (130+ nodes, 10 pathway subgraphs):
+
+[![CKD QSP Map](chronic-kidney-disease/ckd_qsp_model.png)](chronic-kidney-disease/ckd_qsp_model.svg)
+
+*Click image to open interactive SVG. Clusters: CKD Pathophysiology · RAAS & Hemodynamics · Inflammation & Immune Activation · Renal Fibrosis Cascade · CKD-MBD · Anemia of CKD · Cardiovascular Complications · Drug PK · Drug PD · Clinical Endpoints*
+
+**ODE Model Summary** (22 disease states + 13 drug PK compartments = 35 total ODEs)
+
+| State Group | Variables |
+|-------------|-----------|
+| Kidney Function (3) | Nephron mass, eGFR, UACR |
+| RAAS (3) | Ang II, Aldosterone, BP |
+| Inflammation (3) | IL-6, TNF-α, Macrophage infiltration |
+| Fibrosis (2) | TGF-β1, Collagen/fibrosis index |
+| CKD-MBD (5) | FGF-23, Klotho, Phosphate, PTH, Active VitD |
+| Anemia (3) | EPO, Hepcidin, Hemoglobin |
+| Cardiovascular (2) | LVH index, Vascular calcification index |
+| Drug PK (13) | ACEi (2), ARB (2), Finerenone (3), SGLT2i (2), ESA (2), HIF-PHI (2) |
+
+**Treatment Scenarios (5)**
+
+| Scenario | Regimen | 2-Year eGFR Slope | UACR Reduction | CV Risk |
+|----------|---------|-------------------|----------------|---------|
+| 1 | Natural History | −3.5 mL/min/yr | — | High |
+| 2 | ACEi Monotherapy (Ramipril 10mg) | −2.1 mL/min/yr | −35% | Moderate |
+| 3 | ACEi + Finerenone 20mg | −1.5 mL/min/yr | −50% | Low-Moderate |
+| 4 | ACEi + SGLT2i (DAPA-CKD) | −1.3 mL/min/yr | −55% | Low-Moderate |
+| 5 | Triple Therapy (ACEi + Dapa + Finerenone) | −0.8 mL/min/yr | −65% | Low |
+
+**Shiny Dashboard** (6 interactive tabs)
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | Baseline eGFR/UACR/Hb/SBP; KDIGO heat map (eGFR × albuminuria); trajectory overview |
+| 2. Drug PK Profiles | RAAS, finerenone 2-cmt, SGLT2i, ESA/HIF-PHI concentration-time curves; PK effect table |
+| 3. Renal Function | eGFR trajectory, UACR (log), nephron mass fraction, fibrosis index |
+| 4. PD Biomarkers | RAAS (Ang II/Aldo), Inflammation (IL-6/TNF-α/TGF-β1), CKD-MBD (FGF-23/Klotho/PTH/VitD), Anemia (EPO/Hepcidin/Hb) |
+| 5. Clinical Endpoints | 5-scenario comparison table; eGFR%/UACR% change plots; CKD stage timeline; CV risk composite |
+| 6. CV Risk & CKD-MBD | SBP, LVH, vascular calcification, PTH, FGF-23/Klotho axis, active Vitamin D |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`ckd_qsp_model.dot`](chronic-kidney-disease/ckd_qsp_model.dot) | Graphviz DOT source (ortho layout, 130+ nodes, 10 subgraphs) |
+| [`ckd_qsp_model.svg`](chronic-kidney-disease/ckd_qsp_model.svg) | Vector mechanistic map |
+| [`ckd_qsp_model.png`](chronic-kidney-disease/ckd_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`ckd_references.md`](chronic-kidney-disease/ckd_references.md) | 40 annotated references with PubMed links (10 sections) |
+| [`ckd_mrgsolve_model.R`](chronic-kidney-disease/ckd_mrgsolve_model.R) | mrgsolve ODE model (35 compartments) + 5 treatment scenarios + anemia scenarios + dose-response |
+| [`ckd_shiny_app.R`](chronic-kidney-disease/ckd_shiny_app.R) | 6-tab Shiny dashboard (patient profile, PK, renal function, PD biomarkers, endpoints, CV/MBD) |
