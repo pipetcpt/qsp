@@ -112,6 +112,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Systemic Lupus Erythematosus**](#systemic-lupus-erythematosus-sle) | 자가면역질환 | NETs/cGAS-STING/TLR7/9 → pDC → IFN-α → BAFF↑ → B cell hyperactivation → anti-dsDNA → IC → complement consumption + lupus nephritis; HCQ + belimumab + anifrolumab + MMF + voclosporin | [![SLE](systemic-lupus-erythematosus/sle_qsp.png)](systemic-lupus-erythematosus/sle_qsp.svg) | [R](systemic-lupus-erythematosus/sle_model.R) | [refs](systemic-lupus-erythematosus/sle_references.md) | [Shiny](systemic-lupus-erythematosus/shiny_app/app.R) |
 | 2026-06-16 | [**IgA Nephropathy**](#iga-nephropathy-igan) | 자가면역질환 / 신장 | Four-hit: Gd-IgA1↑ (C1GalT1/Cosmc↓) → anti-Gd-IgA1 IgG → IC mesangial deposition → complement AP + MAC → podocyte injury + TIF; Budesonide TRF / Sparsentan / Iptacopan / Sibeprenlimab | [![IgAN](iga-nephropathy/igan_qsp_model.png)](iga-nephropathy/igan_qsp_model.svg) | [R](iga-nephropathy/igan_mrgsolve_model.R) | [refs](iga-nephropathy/igan_references.md) | [Shiny](iga-nephropathy/igan_shiny_app.R) |
 | 2026-06-16 | [**Multiple Sclerosis**](#multiple-sclerosis-ms) | 자가면역질환 / 신경계 | CD4+ Th1/Th17 → VLA-4/VCAM-1 → BBB breach → CNS infiltration → microglia activation → oligodendrocyte death → demyelination + axonal injury (NfL↑); IFN-β / Natalizumab / Ocrelizumab / Siponimod / DMF / Cladribine | [![MS](multiple-sclerosis/ms_qsp.png)](multiple-sclerosis/ms_qsp.svg) | [R](multiple-sclerosis/ms_mrgsolve_model.R) | [refs](multiple-sclerosis/ms_references.md) | [Shiny](multiple-sclerosis/ms_shiny_app.R) |
+| 2026-06-16 | [**Type 2 Diabetes Mellitus**](#type-2-diabetes-mellitus-t2dm) | 만성질환 / 대사 | Insulin resistance (peripheral + hepatic) + β-cell failure → glucotoxicity/lipotoxicity/ER stress → progressive HbA1c ↑; Metformin / SGLT2i / GLP-1RA / DPP-4i / SU / Insulin / TZD | [![T2DM](type2-diabetes/t2dm_qsp_model.png)](type2-diabetes/t2dm_qsp_model.svg) | [R](type2-diabetes/t2dm_mrgsolve_model.R) | [refs](type2-diabetes/t2dm_references.md) | [Shiny](type2-diabetes/t2dm_shiny_app.R) |
 
 ---
 
@@ -420,3 +421,83 @@ Multiple sclerosis is a chronic autoimmune demyelinating disease of the CNS affe
 | [`ms_references.md`](multiple-sclerosis/ms_references.md) | 40 annotated references with PubMed links |
 | [`ms_mrgsolve_model.R`](multiple-sclerosis/ms_mrgsolve_model.R) | mrgsolve ODE model + 7 treatment scenarios + dose-response |
 | [`ms_shiny_app.R`](multiple-sclerosis/ms_shiny_app.R) | 7-tab Shiny dashboard (patient profile, PK, immunology, MRI, EDSS, scenario comparison, biomarkers) |
+
+---
+
+### Type 2 Diabetes Mellitus (T2DM)
+
+> Directory: [`type2-diabetes/`](type2-diabetes/)
+
+**Mechanistic Map** (165+ nodes, 11 pathway clusters):
+
+[![T2DM QSP Map](type2-diabetes/t2dm_qsp_model.png)](type2-diabetes/t2dm_qsp_model.svg)
+
+| Cluster | Coverage |
+|---------|----------|
+| Drug PK | Metformin (2-cmpt oral), Empagliflozin (1-cmpt), Semaglutide (SC depot, t½~168h), Sitagliptin, Glimepiride, Insulin Degludec (SC hexamer depot), Pioglitazone |
+| Incretin System | L-cell GLP-1 / K-cell GIP secretion; DPP-4 plasma degradation; GLP-1R on β-cell/α-cell/brainstem; vagal-gut axis |
+| Pancreatic Islet | β-cell mass & function (Topp model); KATP/Ca²⁺ GSIS; SUR1 (SU target); GLP-1R/GIP-R→cAMP; ER stress/UPR; NLRP3/IL-1β; β-cell proliferation vs apoptosis |
+| Insulin Signaling | IR→IRS-1→PI3K→Akt→AS160→GLUT4 translocation; GSK-3β/glycogen synthesis; FOXO1 nuclear/cytoplasmic; PTP1B; mTORC1/S6K1→IRS-1 pSer feedback; PKCθ/ceramide/TLR4 |
+| Hepatic Glucose | HGP = glycogenolysis + gluconeogenesis (PEPCK/G6Pase/PGC-1α/FOXO1); Metformin→Complex I→AMPK→↓gluconeo; glucagon receptor→PKA→glycogenolysis |
+| Peripheral Tissues | Muscle/adipose GLUT4 translocation; AMPK (exercise/metformin); ceramide lipotoxicity; PPARγ (TZD); adiponectin/leptin/TNF-α/IL-6/resistin |
+| Glucose Compartments | Bergman extended: Gp, Gt, EGP, Rd; SGLT2 renal handling: Tmax, UGE, renal threshold; SGLT1 gut absorption; osmotic diuresis; ketogenesis |
+| Diabetic Complications | AGE/RAGE, PKC, hexosamine, polyol pathways → vascular oxidative stress → endothelial dysfunction → ASCVD; TGF-β → mesangial expansion → UACR/eGFR; VEGF-retina; peripheral neuropathy |
+| CNS Regulation | Hypothalamic NPY/AgRP vs POMC/CART; GLP-1R brainstem; leptin/ghrelin; circadian clock; HPA cortisol; sympathetic tone |
+| Systemic Inflammation | ATM macrophage M1; NF-κB→IL-6/MCP-1/PAI-1; FFA→TLR4; NLRP3 inflammasome; ox-LDL; foam cells |
+| Body Weight / Lipids | VAT/SAT; lipolysis; FFA→TG→LDL→sdLDL→ox-LDL; CETP; ketone bodies; caloric deficit from UGE |
+
+**ODE System (25 state variables):**
+
+| Module | States | Key Equations |
+|--------|--------|---------------|
+| Drug PK | MET_C, MET_P, EMPA_C, SEMA_SC, SEMA_C, DPP4I_C, SU_C, INS_SC, INS_C, PIOG_C | 2-cmpt metformin; SC depot for sema/insulin; 1-cmpt for rest |
+| Glucose | Gp, Gt | `dGp/dt = (EGP−Rd)/(Vg×BW) − Sg×(Gp−90) − UGE_loss/(Vg×BW)` |
+| Insulin | Ip, X_action | `dIp/dt = (GSIS−CL×Ip)/Vi/BW`; `dX/dt = −p2×X + p2×SI×Ip` |
+| Glucagon | Gc | `dGc/dt = kout×(Gc_ss − Gc)`; Gc_ss = f(Gp, Ip, GLP-1RA) |
+| GLP-1 | GLP1 | `dGLP1/dt = kin + kGp×(Gp−90) − (kDPP4×(1−DPP4i) + kout)×GLP1` |
+| β-cell | beta_mass | `dM/dt = (k_prolif×f(Gp) − k_apop×f(FFA,Gp,GLP1)) / 24×365` |
+| IR | IR_H, IR_P | FFA/glucose-driven increase; metformin/pioglitazone recovery |
+| Lipid/Weight | FFA, BW_t | Anti-lipolytic insulin effect; UGE caloric loss; GLP-1RA weight |
+| Endpoints | HbA1c_cmpt, eGFR_cmpt, UACR_cmpt | First-order equilibration; eGFR protected by SGLT2i |
+
+**Treatment Scenarios (7 arms, 1-year simulation):**
+
+| # | Regimen | Expected ΔHbA1c | ΔWeight | CV Protection |
+|---|---------|-----------------|---------|---------------|
+| 1 | No treatment (baseline) | 0 | 0 kg | None |
+| 2 | Metformin 1g BID | −1.4% | −2 kg | Moderate |
+| 3 | Metformin + Empagliflozin 10mg QD | −2.1% | −4 kg | High (EMPA-REG) |
+| 4 | Metformin + Semaglutide 1mg QW | −2.8% | −6 kg | High (SUSTAIN-6) |
+| 5 | Triple: Met + Empa + Sema | −3.2% | −7 kg | Very High |
+| 6 | Metformin + Insulin Degludec 20U | −3.0% | +2 kg | Moderate |
+| 7 | Metformin + Sitagliptin 100mg QD | −1.6% | 0 kg | Neutral (TECOS) |
+
+**Calibration landmarks:**
+- UKPDS-34 (1998): Metformin → HbA1c −1.4%, CV death −36% ✓
+- EMPA-REG OUTCOME (Zinman 2015): Empagliflozin → CV death −38%, eGFR preservation ✓
+- SUSTAIN-6 (Marso 2016): Semaglutide → HbA1c −1.4%, weight −4.5 kg, MACE −26% ✓
+- DECLARE-TIMI 58 (Wiviott 2019): Dapagliflozin → HHF −27%, renal composite −47% ✓
+- TECOS (Green 2015): Sitagliptin → CV safety confirmed, HbA1c −0.7% ✓
+
+**Shiny Dashboard Tabs (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | BMI/HbA1c/eGFR classification; glycemic staging; CV risk factors; drug radar chart |
+| 2. Drug PK | All 7 drug concentration-time profiles; insulin endogenous+exogenous; GLP-1 with DPP-4i |
+| 3. Glucose & Insulin | Gp, Ip, EGP, Rd, Glucagon dynamics; hepatic + peripheral IR indices |
+| 4. β-cell Dynamics | β-cell mass/function; proliferation vs apoptosis rates; phase portrait (β-cell mass × HbA1c); FFA lipotoxicity |
+| 5. Clinical Endpoints | HbA1c trajectory; body weight; eGFR renal protection; UACR albuminuria; UGE (SGLT2i) |
+| 6. Scenario Comparison | 4-arm user-defined comparison; ΔHbA1c / ΔBW bar charts; sortable summary table |
+| 7. Biomarkers & Safety | Active GLP-1; FFA; SGLT2 inhibition fraction; IR trajectory; SGLT2i & GLP-1RA safety notes |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`t2dm_qsp_model.dot`](type2-diabetes/t2dm_qsp_model.dot) | Graphviz DOT source (165+ nodes, 11 subgraph clusters) |
+| [`t2dm_qsp_model.svg`](type2-diabetes/t2dm_qsp_model.svg) | Vector mechanistic map (sfdp layout) |
+| [`t2dm_qsp_model.png`](type2-diabetes/t2dm_qsp_model.png) | Raster mechanistic map (150 dpi, sfdp layout) |
+| [`t2dm_references.md`](type2-diabetes/t2dm_references.md) | 40 annotated references with PubMed links |
+| [`t2dm_mrgsolve_model.R`](type2-diabetes/t2dm_mrgsolve_model.R) | mrgsolve ODE model (25 states) + 7 treatment scenarios + calibration table |
+| [`t2dm_shiny_app.R`](type2-diabetes/t2dm_shiny_app.R) | 7-tab Shiny dashboard (patient profile, PK, glucose/insulin, β-cell, endpoints, comparison, biomarkers) |
