@@ -118,6 +118,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Chronic Kidney Disease (CKD)**](#chronic-kidney-disease-ckd) | 만성질환 / 신장 | Nephron loss (hyperfiltration → GS → TIF) → eGFR↓; RAAS (AngII/Aldo) + NF-κB + TGF-β1/Smad2/3 fibrosis + CKD-MBD (FGF-23↑/Klotho↓/PTH↑) + Anemia (EPO↓/Hepcidin↑) + CV (LVH/VC); ACEi / ARB / Finerenone (FIDELIO-DKD) / SGLT2i (DAPA-CKD/EMPA-KIDNEY) / ESA / HIF-PHI (Roxadustat) | [![CKD](chronic-kidney-disease/ckd_qsp_model.png)](chronic-kidney-disease/ckd_qsp_model.svg) | [R](chronic-kidney-disease/ckd_mrgsolve_model.R) | [refs](chronic-kidney-disease/ckd_references.md) | [Shiny](chronic-kidney-disease/ckd_shiny_app.R) |
 | 2026-06-16 | [**Bronchial Asthma**](#bronchial-asthma) | 만성질환 / 호흡기 | TSLP/IL-25/IL-33 (epithelial alarmins) → ILC2/DC → Th2 → IL-4/IL-5/IL-13 → IgE:FcεRI (mast cell) + Eos recruitment + ASM contraction + goblet metaplasia + airway remodeling (TGF-β1); Biologics: Omalizumab / Mepolizumab (MENSA) / Benralizumab (CALIMA) / Dupilumab (LIBERTY AIR) / Tezepelumab (NAVIGATOR) | [![Asthma](bronchial-asthma/ba_qsp_model.png)](bronchial-asthma/ba_qsp_model.svg) | [R](bronchial-asthma/ba_mrgsolve_model.R) | [refs](bronchial-asthma/ba_references.md) | [Shiny](bronchial-asthma/ba_shiny_app.R) |
 | 2026-06-16 | [**COPD**](#copd-chronic-obstructive-pulmonary-disease) | 만성질환 / 호흡기 | CS/AP → ROS + NRF2↓ → Macrophage(M1)+NE/MMP-12 → Protease-antiprotease imbalance → Emphysema(ECM elastin↓) + Small airway fibrosis (TGF-β/SMAD2/3) → FEV1↓; CD8+Tc1/Th17 adaptive; PH-COPD(HPV→ET-1↑); LAMA(UPLIFT) + LABA/LAMA(FLAME) + Triple(IMPACT/ETHOS) + PDE4i(EINSTEIN/Roflumilast) | [![COPD](copd/copd_qsp.png)](copd/copd_qsp.svg) | [R](copd/copd_mrgsolve_model.R) | [refs](copd/copd_references.md) | [Shiny](copd/copd_shiny_app.R) |
+| 2026-06-16 | [**Crohn's Disease**](#crohns-disease-cd) | 자가면역질환 / 소화기 | Gut dysbiosis + NOD2/TLR → Macrophage M1 + DC → Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21/IL-23) → NF-κB → mucosal barrier loss + NLRP3/IL-1β + fibrosis (TGF-β/MMP); Anti-TNF (IFX/ADA, ACCENT/CHARM) + Anti-IL-12/23 (UST, UNIFI) + Anti-α4β7 (VDZ, GEMINI) + JAK1i (Upadacitinib, U-ACHIEVE) + AZA/6-TGN (SONIC) | [![CD](crohn-disease/cd_qsp_model.png)](crohn-disease/cd_qsp_model.svg) | [R](crohn-disease/cd_mrgsolve_model.R) | [refs](crohn-disease/cd_references.md) | [Shiny](crohn-disease/cd_shiny_app.R) |
 
 
 ---
@@ -942,3 +943,100 @@ Chronic Kidney Disease (CKD) affects ~850 million people worldwide and is define
 | [`copd_references.md`](copd/copd_references.md) | 52 annotated references with PubMed links (12 sections) |
 | [`copd_mrgsolve_model.R`](copd/copd_mrgsolve_model.R) | mrgsolve ODE model (26 states) + 6 treatment scenarios + dose-response |
 | [`copd_shiny_app.R`](copd/copd_shiny_app.R) | 7-tab interactive Shiny dashboard |
+
+---
+
+### Crohn's Disease (CD)
+
+**Disease Overview:** Crohn's disease is a chronic, transmural inflammatory bowel disease affecting any segment of the GI tract (most commonly terminal ileum and colon). It is driven by a dysregulated mucosal immune response to luminal antigens in genetically susceptible individuals, characterized by non-caseating granulomas, Th1/Th17 dominance, and NOD2/CARD15 mutations in ~20% of patients.
+
+**Mechanistic Map (134 nodes, 10 clusters):**
+
+[![Crohn's Disease QSP Map](crohn-disease/cd_qsp_model.png)](crohn-disease/cd_qsp_model.svg)
+
+| Cluster | Key Nodes |
+|---------|-----------|
+| Luminal / Microbiome | Dysbiosis (↑Proteobacteria, ↓Firmicutes), PAMPs (LPS/Flagellin), SCFAs, Secretory IgA, Bile acids, FMT |
+| Epithelial Barrier | Enterocyte, Goblet cell (MUC2), Paneth cell (Defensins), M-cell (antigen sampling), Tight junctions (Claudin/Occludin/ZO-1), MLCK, NOD2 |
+| Innate Immunity | Macrophage M1/M2, DC (CD103+), Neutrophil, ILC1/ILC3, NETs, TLR2/4/9, NOD2, NLRP3 inflammasome, Complement (C3/C5a), Mast cell |
+| T Cells (Adaptive) | Naïve CD4+, Th1 (IFN-γ/TNF-α, T-bet), Th17 (IL-17A/F/21, RORγt), Th2, Treg (FoxP3+), CD8+ CTL, Memory T, JAK1/2–STAT signaling |
+| B Cells (Adaptive) | B cell activation (CD40L/CD40), Germinal center, Plasma cell, pANCA, Mucosal IgA, Memory B |
+| Cytokine Network | TNF-α, IL-1β, IL-6, IL-12, IL-23, IL-17A/F, IL-21, IL-10, IL-22, TGF-β, IFN-γ, IL-18, IL-33, CXCL8/10, CCL2, NF-κB |
+| Tissue Remodeling | Myofibroblast, Fibrocyte, Collagen I/III, MMP-3/9, TIMP-1, VEGF, Intestinal stricture, Non-caseating granuloma |
+| Drug PK/PD | IFX (2-cpt IV), ADA (SC depot), UST (2-cpt), VDZ (1-cpt), 6-TGN (AZA metabolite), Upadacitinib, Prednisone, Budesonide, MTX |
+| Clinical Endpoints | CDAI, HBI, SES-CD, CDEIS, CRP, Fecal calprotectin, Clinical remission, Mucosal healing, Deep remission |
+| Systemic Complications | Anemia, Malnutrition, Bone loss (BMD), PSC, Skin/Eye/Joint EIM, VTE risk, Growth failure (pediatric) |
+
+**mrgsolve ODE Model (22 states):**
+
+| Compartment Group | States | Description |
+|-------------------|--------|-------------|
+| IFX PK | A1_IFX, A2_IFX | 2-compartment IV; Vc=4.0 L, Vp=3.5 L, CL=0.55 L/day, Q=1.40 L/day (Fasanmade 2011, Ordas 2012) |
+| ADA PK | ADA_dep, A_ADA | SC depot→central; V=7.8 L, CL=0.35 L/day, ka=0.38/day, F=0.64 (Ternant 2008) |
+| UST PK | A1_UST, A2_UST | 2-compartment; Vc=3.5 L, Vp=7.3 L, CL=0.19 L/day; IV induction→SC maintenance (Adedokun 2018) |
+| VDZ PK | A_VDZ | 1-compartment IV; Vc=3.3 L, CL=0.49 L/day (Rosario 2017) |
+| 6-TGN from AZA | A_TGN | RBC-distributed; therapeutic range 235–450 pmol/8×10⁸ RBC (Osterman 2006) |
+| Prednisone | A_PRED | 1-compartment; V=45 L, CL=7.2 L/day, t½≈4.4 h |
+| Upadacitinib (JAK1i) | A_UPA | 1-compartment oral; V=85 L, CL=24 L/day, F=0.79 |
+| TNF-α | TNF | pg/mL; SS=100 (active CD); kprod feedback on MI; Emax IFX/ADA 93–90% |
+| IL-12/23 composite | IL1223 | pg/mL; SS=80; UST Emax=88%; UPA partial suppression |
+| IL-17A | IL17 | pg/mL; SS=60; Th17- and IL-23-driven; JAKi-sensitive |
+| Th17 / Th1 cells | Th17, Th1 | Normalized; IL-23-driven expansion; Treg-mediated suppression; VDZ/TGN/JAKi block |
+| Treg | Treg | Normalized; TGF-β/SCFA-dependent; mild expansion with treatment |
+| Mucosal neutrophils | Neut | Normalized; IL-17A + TNF-α recruitment; disease driver |
+| Mucosal Inflammation | MI | 0–100 score; composite of TNF/IL-17/Neut/Treg signals; maps to CDAI/SES-CD |
+| CRP | CRP | mg/L; SS=25 (active); IL-6 proxy; target <5 mg/L (STRIDE-II) |
+| Fecal Calprotectin | FC | μg/g; SS=800; neutrophil + mucosal inflammation driven; target <150 μg/g |
+| Bone Mineral Density | BMD | Normalized; TNF-α + steroid accelerated loss |
+| Hemoglobin | Hgb | g/dL; SS=10.5 (mild ACD); suppressed by hepcidin/IL-6 via MI |
+
+**Key ODE Equations:**
+- `dxdt_TNF = kprod_TNF × (1 + 0.4×(MI/MI₀−1)) × (1−E_antiTNF) − kdeg_TNF × TNF`
+- `dxdt_IL17 = kprod_IL17 × (1 + kIL23_IL17×(IL1223/IL12230−1)) × (Th17/Th17₀) × (1−E_JAKi) − kdeg_IL17 × IL17`
+- `dxdt_Th17 = kprol_Th17 × Th17 × (1 + kIL23_Th17×(IL1223/IL12230−1)) × (1−kTreg_Th17×(Treg/Treg₀)) × (1−E_VDZ) − kdeg_Th17 × Th17`
+- `dxdt_MI = kprod_MI × (1 + MI_stim − MI_supp) × (1−E_combined) − kdeg_MI × MI`
+- `dxdt_CRP = kprod_CRP × MI − kdeg_CRP × CRP`
+- `dxdt_BMD = kform_BMD × BMD − (kresorb_BMD + kTNF_BMD×TNF/TNF₀ + kPRED_BMD×C_PRED) × BMD`
+
+**Clinical Trial Calibration:**
+
+| Trial | Treatment | n | Key Result | Model Calibrated Parameter |
+|-------|-----------|---|------------|---------------------------|
+| ACCENT I (Hanauer 2002) | IFX 5 mg/kg | 573 | Remission 39% w54 | CL_IFX, Emax_IFX_TNF |
+| CHARM (Colombel 2007) | ADA 40 mg q2w | 854 | Remission 36% w26 | CL_ADA, Emax_ADA_TNF |
+| UNIFI (Feagan 2016) | UST 6 mg/kg IV | 741 | Remission 21% w8 (IV) | CL_UST, Emax_UST |
+| GEMINI II (Sandborn 2013) | VDZ 300 mg | 814 | Remission 39% w52 | CL_VDZ, Emax_VDZ_MI |
+| U-ACHIEVE (Loftus 2023) | UPA 45 mg QD | 526 | Remission 39.5% w12 | CL_UPA, Emax_UPA |
+| SONIC (Colombel 2010) | IFX+AZA combo | 508 | Remission 56.8% w26 | 6-TGN synergy, ATI suppression |
+
+**Treatment Scenarios (7 arms, 78-week simulation):**
+1. No Treatment — Natural history; CDAI ~280, CRP ~25 mg/L, FC ~800 μg/g
+2. Infliximab 5 mg/kg IV — w0/2/6 induction → q8w maintenance
+3. Adalimumab 160/80/40 mg SC — q2w maintenance
+4. Ustekinumab 6 mg/kg IV → 90 mg SC q8w
+5. Vedolizumab 300 mg IV — w0/2/6 → q8w (gut-selective)
+6. Upadacitinib 45 mg QD → 30 mg QD maintenance (oral JAK1i)
+7. IFX + Azathioprine 150 mg/day — combination (anti-immunogenicity)
+
+**Shiny App (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | Demographics, disease location/behaviour, baseline CDAI/CRP/FC, prior biologic history, disease severity radar |
+| 2. Pharmacokinetics | IFX/ADA/UST/VDZ Cp-time curves, VDZ α4β7 receptor occupancy, 6-TGN RBC levels with therapeutic range annotation, PK summary table |
+| 3. Cytokines & PD | TNF-α, IL-17A, IL-12/23, Th17/Treg ratio, Mucosal Inflammation Score, CRP & Fecal Calprotectin time courses |
+| 4. Clinical Endpoints | CDAI, SES-CD endoscopic score, Hemoglobin, BMD, Remission timeline (STRIDE-II targets) |
+| 5. Scenario Comparison | All 7 arms overlay (CDAI/CRP/FC/MI); Week 52 DT summary table with response/remission/mucosal healing rates |
+| 6. Biomarker Correlations | Population PK/PD sim (N=150, IIV via log-normal); CRP vs CDAI, FC vs SES-CD, drug trough vs CRP, TNF vs MI scatter plots |
+| 7. Dosing Optimizer | Dose–response curves (CRP/CDAI at Week 52 vs dose); optimal trough concentration analysis; drug comparison |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`cd_qsp_model.dot`](crohn-disease/cd_qsp_model.dot) | Graphviz source (134 nodes, 10 clusters, 200+ edges) |
+| [`cd_qsp_model.svg`](crohn-disease/cd_qsp_model.svg) | Vector mechanistic map |
+| [`cd_qsp_model.png`](crohn-disease/cd_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`cd_references.md`](crohn-disease/cd_references.md) | 62 curated references, 17 sections, all PubMed-linked |
+| [`cd_mrgsolve_model.R`](crohn-disease/cd_mrgsolve_model.R) | 22-state mrgsolve ODE model + 7 treatment scenarios + population PK/PD (N=200) |
+| [`cd_shiny_app.R`](crohn-disease/cd_shiny_app.R) | 7-tab interactive Shiny dashboard (bslib flatly theme) |
