@@ -30,6 +30,7 @@ Each model lives in its own subdirectory (lowercase with dashes). Every director
 |------|---------|----------|-------------------|-----|-------|------|-----|
 | 2026-06-16 | [**Rheumatoid Arthritis**](#rheumatoid-arthritis) | 자가면역질환 | T/B cell–driven synovitis; TNF-α / IL-6 / JAK-STAT; bone erosion (RANKL/OPG); cDMARDs + biologics (TNFi, IL-6Ri, JAKi) | [![RA](rheumatoid-arthritis/ra_qsp.png)](rheumatoid-arthritis/ra_qsp.svg) | [R](rheumatoid-arthritis/ra_model.R) | [refs](rheumatoid-arthritis/references.md) | [Shiny](rheumatoid-arthritis/shiny_app/app.R) |
 | 2026-06-16 | [**Pulmonary Arterial Hypertension**](#pulmonary-arterial-hypertension-pah) | 만성질환 / 폐혈관 | EC dysfunction → ET-1↑/NO↓/PGI₂↓ → vasoconstriction + PASMC remodelling; BMPR2 loss; RV failure; ERA + PDE5i + PGI₂ | [![PAH](pulmonary-arterial-hypertension/pah_qsp_model.png)](pulmonary-arterial-hypertension/pah_qsp_model.svg) | [R](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | [refs](pulmonary-arterial-hypertension/pah_references.md) | [Shiny](pulmonary-arterial-hypertension/pah_shiny_app.R) |
+| 2026-06-16 | [**IgA Nephropathy**](#iga-nephropathy-igan) | 자가면역질환 / 신장 | Four-hit: Gd-IgA1↑ (C1GalT1/Cosmc↓) → anti-Gd-IgA1 IgG → IC mesangial deposition → complement AP + MAC → podocyte injury + TIF; Budesonide TRF / Sparsentan / Iptacopan / Sibeprenlimab | [![IgAN](iga-nephropathy/igan_qsp_model.png)](iga-nephropathy/igan_qsp_model.svg) | [R](iga-nephropathy/igan_mrgsolve_model.R) | [refs](iga-nephropathy/igan_references.md) | [Shiny](iga-nephropathy/igan_shiny_app.R) |
 
 ---
 
@@ -139,3 +140,71 @@ Each model lives in its own subdirectory (lowercase with dashes). Every director
 | [`pah_references.md`](pulmonary-arterial-hypertension/pah_references.md) | 40 annotated references with PubMed links |
 | [`pah_mrgsolve_model.R`](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | mrgsolve ODE model + 6 treatment scenarios + dose-response |
 | [`pah_shiny_app.R`](pulmonary-arterial-hypertension/pah_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, DR, ESC/ERS risk) |
+
+---
+
+### IgA Nephropathy (IgAN)
+
+> Directory: [`iga-nephropathy/`](iga-nephropathy/)
+
+> 비정상적으로 당화된 IgA1(Gd-IgA1) 면역복합체가 사구체 메산지움에 침착되어 보체를 활성화시켜 족세포 손상 및 심한 단백뇨를 유발하는 면역 매개 사구체신염. **사중 타격 가설(four-hit hypothesis)** 기반 QSP 모델.
+
+**Mechanistic Map** (155+ nodes, 12 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| Genetic/Environmental Risk | HLA-DQB1, TNFSF13/TNFSF13B (APRIL/BAFF genes), C1GALT1/Cosmc mutations, ST6GalNAc-II, DEFA1A3, gut dysbiosis, mucosal infection |
+| Mucosal Immunity | Naive B → Peyer's patch GC / tonsillar MALT, Tfh, IL-21/IL-4/IL-6/IL-10/TGF-β class switching, AID, APRIL/BAFF, pIgR, sIgA |
+| Hit 1 – Gd-IgA1 | IgA1 hinge O-glycosylation; C1GalT1↓/Cosmc↓ → exposed GalNAc → Gd-IgA1 serum elevation; ST6GalNAc-II competition; ASGPR hepatic clearance |
+| Hit 2 – Autoantibody | BCR (GalNAc epitope), GC reaction, SHM, class-switch → anti-Gd-IgA1 IgG/IgA; CD4+ Tfh, IL-21, IL-17A |
+| Hit 3+4 – IC Deposition | Gd-IgA1 × IgG IC formation, IC polymerization/hexamerization, FcαRI (CD89)/TfR1 mesangial receptors, mesangial deposition ↑↑↑ |
+| Complement System | Lectin (MBL/Ficolins/MASP-1/2), Classical (C1q), AP amplification (Factor B/D/P), C3 convertases CP+AP, C3 cleavage → C3a/C3b, C5 convertase → C5a/MAC (C5b-9), CD46/CD55 regulators |
+| Mesangial Signaling | MC quiescent→activated; NF-κB, ERK, PI3K/AKT, PDGFR-β/PDGF-BB; TGF-β1/SMAD2-3/CTGF; IL-6/TNF-α/MCP-1; MC proliferation, mesangial matrix expansion; ROS/NOX4; HIF-1α |
+| Glomerular Injury | Podocyte (healthy→injured); Nephrin/Podocin/Synaptopodin/TRPC6; foot process effacement; GBM thickening; ↑glomerular permeability; proteinuria; hematuria; crescents; VEGF/Ang-2 |
+| Tubular/Interstitial Fibrosis | PTC protein overload, TEC-EMT, interstitial macrophage/T cell, TGF-β1 TIF, myofibroblast, Collagen I/III, MMP-2/9, TIMP-1/2, tubulointerstitial fibrosis, tubular atrophy |
+| RAAS | Renin/AGT/AngI/ACE/AngII/AT1R–AT2R, aldosterone, Na⁺ retention, intraglomerular hypertension, SNS, ET-1, ACE2/Ang(1-7)/MasR |
+| Drug PK/PD | ACEi/ARB, Sparsentan (dual AT1R+ETB), Budesonide TRF/Nefecon (mucosal APRIL suppression), Iptacopan (Factor B), Sibeprenlimab (anti-APRIL), Zigakibart (anti-C5), SGLT2i (dapagliflozin), Prednisolone, MMF, Atrasentan, Belimumab |
+| Clinical Endpoints | eGFR, UPCR, 24-h proteinuria, serum Gd-IgA1/IgA, serum C3, creatinine, BP, Oxford MEST-C score (M/E/S/T/C), ESKD, CR50, complete remission, eGFR slope |
+
+**Mechanistic Map Preview:**
+
+[![IgAN QSP Map](iga-nephropathy/igan_qsp_model.png)](iga-nephropathy/igan_qsp_model.svg)
+
+**mrgsolve Model Summary:**
+
+| Compartment | States | Description |
+|-------------|--------|-------------|
+| Budesonide TRF PK | BUD_gut, BUD_central | 1-compartment oral; F=15% (high hepatic extraction) |
+| Sparsentan PK | SPA_gut, SPA_central | 1-compartment oral; F=85% |
+| Iptacopan PK | IPT_gut, IPT_central | 1-compartment oral; BID dosing |
+| Sibeprenlimab PK | SIB_depot, SIB_central, SIB_periph | SC 2-compartment; Q4W dosing |
+| Four-hit PD | GdIgA1, AutoAb, IC_mes, CompAP | Hit 1–4 cascade with Emax drug effects |
+| Glomerular | Podocyte, UPCR | Injury/repair ODE; proteinuria driven by podocyte loss |
+| Fibrosis | TIF | Slow logistic fibrosis; protein-overload amplification |
+| Renal function | eGFR | Continuous GFR loss from TIF + podocyte depletion |
+| Hemodynamics | BP_sys | AngII-driven setpoint model |
+
+**Key ODE relationships:**
+- `dGdIgA1/dt = k_syn × (1 − E_mucosal) − k_deg × GdIgA1`  (budesonide + sibeprenlimab reduce synthesis)
+- `dCompAP/dt = k_syn_CP × IC_mes × (1 − E_iptacopan) − k_deg × CompAP`  (AP pathway; Factor B blocked by iptacopan)
+- `dUPCR/dt = k_syn_UPCR × (1−Podocyte) × (1+0.4×Mesangial) × (1−E_spa) × (1−E_RAAS) − k_deg × UPCR`
+- `deGFR/dt = −[k_loss_GFR × TIF + k_RAAS_GFR × (1−E_RAAS) × (1−Podocyte)] × eGFR`
+- Simulates 7 scenarios (untreated → triple Budesonide+Sparsentan+Iptacopan) over 2 years
+
+**Calibration landmarks (trial data):**
+- NefIgArd (Barratt 2023): Budesonide TRF → UPCR −22% at 9 months ✓
+- PROTECT (Heerspink 2023/2024): Sparsentan → UPCR −49% at week 36 vs. irbesartan ✓
+- APPLAUSE-IgAN (Rovin 2024): Iptacopan → UPCR −38% vs. placebo ✓
+- AFFINITY (Barratt 2023): Sibeprenlimab 700 mg → UPCR −47% at 9 months ✓
+- DAPA-CKD IgAN sub-analysis: dapagliflozin → 71% RR reduction in composite ESKD ✓
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`igan_qsp_model.dot`](iga-nephropathy/igan_qsp_model.dot) | Graphviz DOT source (155+ nodes, 12 subgraphs) |
+| [`igan_qsp_model.svg`](iga-nephropathy/igan_qsp_model.svg) | Vector mechanistic map |
+| [`igan_qsp_model.png`](iga-nephropathy/igan_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`igan_references.md`](iga-nephropathy/igan_references.md) | 47 annotated references with PubMed links |
+| [`igan_mrgsolve_model.R`](iga-nephropathy/igan_mrgsolve_model.R) | mrgsolve ODE model + 7 treatment scenarios + dose-response |
+| [`igan_shiny_app.R`](iga-nephropathy/igan_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, UPCR, eGFR, MEST-C, biomarkers) |
