@@ -117,6 +117,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Heart Failure (HFrEF)**](#heart-failure-with-reduced-ejection-fraction-hfref) | 만성질환 / 심혈관 | RAAS (AngII/Aldo) + SNS (NE↑) + NPS (BNP/NT-proBNP) triple neurohumoral activation → cardiac remodeling (TGF-β1/fibrosis/hypertrophy) → LVEF↓; GDMT 4 pillars: ARNI (PARADIGM-HF) + β-blocker (MERIT-HF) + MRA (RALES/EMPHASIS-HF) + SGLT2i (EMPEROR-Reduced/DAPA-HF) + Ivabradine (SHIFT) | [![HFrEF](heart-failure-hfref/hfref_qsp_model.png)](heart-failure-hfref/hfref_qsp_model.svg) | [R](heart-failure-hfref/hfref_mrgsolve_model.R) | [refs](heart-failure-hfref/hfref_references.md) | [Shiny](heart-failure-hfref/hfref_shiny_app.R) |
 | 2026-06-16 | [**Chronic Kidney Disease (CKD)**](#chronic-kidney-disease-ckd) | 만성질환 / 신장 | Nephron loss (hyperfiltration → GS → TIF) → eGFR↓; RAAS (AngII/Aldo) + NF-κB + TGF-β1/Smad2/3 fibrosis + CKD-MBD (FGF-23↑/Klotho↓/PTH↑) + Anemia (EPO↓/Hepcidin↑) + CV (LVH/VC); ACEi / ARB / Finerenone (FIDELIO-DKD) / SGLT2i (DAPA-CKD/EMPA-KIDNEY) / ESA / HIF-PHI (Roxadustat) | [![CKD](chronic-kidney-disease/ckd_qsp_model.png)](chronic-kidney-disease/ckd_qsp_model.svg) | [R](chronic-kidney-disease/ckd_mrgsolve_model.R) | [refs](chronic-kidney-disease/ckd_references.md) | [Shiny](chronic-kidney-disease/ckd_shiny_app.R) |
 | 2026-06-16 | [**Bronchial Asthma**](#bronchial-asthma) | 만성질환 / 호흡기 | TSLP/IL-25/IL-33 (epithelial alarmins) → ILC2/DC → Th2 → IL-4/IL-5/IL-13 → IgE:FcεRI (mast cell) + Eos recruitment + ASM contraction + goblet metaplasia + airway remodeling (TGF-β1); Biologics: Omalizumab / Mepolizumab (MENSA) / Benralizumab (CALIMA) / Dupilumab (LIBERTY AIR) / Tezepelumab (NAVIGATOR) | [![Asthma](bronchial-asthma/ba_qsp_model.png)](bronchial-asthma/ba_qsp_model.svg) | [R](bronchial-asthma/ba_mrgsolve_model.R) | [refs](bronchial-asthma/ba_references.md) | [Shiny](bronchial-asthma/ba_shiny_app.R) |
+| 2026-06-16 | [**COPD**](#copd-chronic-obstructive-pulmonary-disease) | 만성질환 / 호흡기 | CS/AP → ROS + NRF2↓ → Macrophage(M1)+NE/MMP-12 → Protease-antiprotease imbalance → Emphysema(ECM elastin↓) + Small airway fibrosis (TGF-β/SMAD2/3) → FEV1↓; CD8+Tc1/Th17 adaptive; PH-COPD(HPV→ET-1↑); LAMA(UPLIFT) + LABA/LAMA(FLAME) + Triple(IMPACT/ETHOS) + PDE4i(EINSTEIN/Roflumilast) | [![COPD](copd/copd_qsp.png)](copd/copd_qsp.svg) | [R](copd/copd_mrgsolve_model.R) | [refs](copd/copd_references.md) | [Shiny](copd/copd_shiny_app.R) |
 
 
 ---
@@ -849,3 +850,95 @@ Chronic Kidney Disease (CKD) affects ~850 million people worldwide and is define
 | [`ba_mrgsolve_model.R`](bronchial-asthma/ba_mrgsolve_model.R) | mrgsolve ODE model (22 compartments) + 5 treatment scenarios + dose-response |
 | [`ba_shiny_app.R`](bronchial-asthma/ba_shiny_app.R) | 7-tab interactive Shiny dashboard |
 
+
+---
+
+### COPD (Chronic Obstructive Pulmonary Disease)
+
+> Directory: [`copd/`](copd/)
+
+> 흡연 등 유해 가스에 의한 만성적 기도 염증 및 폐포 융합(폐기종)으로 비가역적 기류 제한이 발생하는 질환. 전 세계 약 3억 8천만 명 이환, 사망 원인 3위(2019 GBD).
+
+**Mechanistic Map** (110+ nodes, 12 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| Environmental Triggers & Oxidative Stress | CS, AP, biomass; ROS/RNS; NRF2/HO-1/GSH; SIRT1/HDAC2↓; oxidative inactivation of α1-AT |
+| Airway Epithelium & Mucociliary Clearance | Ciliated/goblet/club cells; tight junction loss; EMT; MUC5AC/MUC5B↑; PCL↓; DAMPs (HMGB1, S100A8/9); TLR2/4/7/9; NLRP3 |
+| Innate Immunity — Macrophage & Neutrophil | Alveolar macrophage M1; NF-κB / AP-1; IL-8/IL-1β/IL-6/TNF-α; MMP-12/MMP-9; NLRP3 inflammasome; Neutrophil/CXCR1-2; NE / PR3 / MPO / NETs |
+| Adaptive Immunity | CD8+ Tc1 (dominant in COPD); Th1/Th17/Treg; IL-17A → neutrophil amplification; B cells / lymphoid follicles; GM-CSF |
+| Protease-Antiprotease Imbalance & ECM | NE / MMP-12/9 / Cathepsins vs α1-AT / SLPI / TIMP; Elastin/collagen degradation → Emphysema; Air trapping; FEV1↓ |
+| Small Airway Disease & Fibrotic Remodeling | TGF-β1/SMAD2/3; myofibroblast; collagen I/III; ASM hypertrophy; EGFR; airway wall thickening; FEV1/FVC↓ |
+| Pulmonary Vasculature, RV & Comorbidities | HPV → ET-1↑/NO↓ → PVR↑ → PH (WHO Group 3) → RV hypertrophy/cor pulmonale; V/Q mismatch; systemic inflammation/sarcopenia/CV/T2DM/osteoporosis |
+| Clinical Endpoints & GOLD Classification | FEV1/FVC (GOLD 1-4); mMRC; CAT; BODE; 6MWT; SGRQ; AECOPD; GOLD ABE group |
+| Drug PK — LAMA/LABA/ICS/PDE4i | Tiotropium / Umeclidinium / Glycopyrrolate; Salmeterol / Formoterol / Indacaterol; Budesonide / Fluticasone; Roflumilast N-oxide; NAC; Azithromycin |
+| Drug PD Mechanisms | M3 mAChR → ACh/IP3/Ca2+/ROCK → broncho; β2-AR → cAMP/PKA → relaxation; GR → NF-κB/AP-1 transrepression; PDE4 → cAMP↑ → NF-κB↓ |
+| AECOPD Pathophysiology & Biomarkers | RV/Flu/RSV viral; H.flu/S.pneumo/P.aerug bacterial; CRP/PCT/Eos; SpO2↓; AE treatment (SABA+SAMA+CS+AB+NIV) |
+| Biomarkers (Multi-compartment) | Blood: CRP/IL-6/IL-8/NE/Eos/CC16/SP-D/fibrinogen; Sputum: neutrophil%/IL-8/NE/MUC5AC; Exhaled: FeNO/8-isoprostane/CO; Imaging: HRCT LAA-950/Pi10 |
+
+**Mechanistic Map Preview:**
+
+[![COPD QSP Map](copd/copd_qsp.png)](copd/copd_qsp.svg)
+
+**mrgsolve Model Summary (26 ODE states):**
+
+| Compartment Group | States | Description |
+|-------------------|--------|-------------|
+| LAMA PK (Tiotropium) | LAMA_LUNG, LAMA_C, LAMA_P | Inhaled 2-compartment; lung depot → systemic (F_sys 3%); CL 3.92 L/h; t½ 5-6 days |
+| LABA PK (Salmeterol) | LABA_LUNG, LABA_C, LABA_P | Lung depot; CYP3A4/2D6; CL 23 L/h |
+| ICS PK (Budesonide) | ICS_LUNG, ICS_C, ICS_P | Lung F=22%; first-pass extraction 90%; CL 78 L/h; t½ 2.8h |
+| PDE4i PK (Roflumilast) | PDE4i_C | Oral F=80%; CL 9.1 L/h; t½ 17h (N-oxide 30h) |
+| Inflammation PD | IL8, NE_sput, CRP, Eos | Turnover ODEs; ICS/PDE4i Emax suppression; Eos-gated ICS response |
+| Lung Function | FEV1, Emph | FEV1: natural decline + BD gain + inflam penalty + AE step-loss; Emphysema: NE-driven irreversible |
+| Pulmonary Vascular | PVR | HPV-driven PVR increase with FEV1 decline |
+| Exacerbation | AE_cum, AE_rate_ann | Poisson rate; ICS/PDE4i reduction; post-AE amplification |
+
+**Key ODE Equations:**
+- `dFEV1/dt = 0.05×(FEV1_target − FEV1) − k_dec×FEV1 − k_inflam×(IL8/IL8₀−1)×FEV1 − k_AE×λ_AE×FEV1`
+- `dEmph/dt = k_prog×(NE_sput/NE₀)×(1−E_ICS×0.05)×(100−Emph)` — irreversible, NE-driven
+- `dPVR/dt = k_PVR×(FEV1₀/FEV1−1)×PVR₀ − k_PVR×0.1×(PVR−PVR₀)` — hypoxia-driven remodeling
+- `E_LAMA = Emax_LAMA×C_lung/(EC50_LAMA + C_lung)` — Emax bronchodilation model
+
+**Clinical Trial Calibration:**
+
+| Trial | Treatment | n | Key Result | Model Calibrated Parameter |
+|-------|-----------|---|------------|---------------------------|
+| UPLIFT 2008 | Tio 18µg qd | 5,993 | FEV1 +87 mL, AE RR 0.86 | k_FEV1_dec, Emax_LAMA |
+| TORCH 2007 | SFC 50/500µg bid | 6,112 | AE RR 0.75, Pneumonia↑ | Emax_ICS, lambda_AE |
+| FLAME 2016 | IND/GLY vs SFC | 3,362 | LABA/LAMA > ICS/LABA for AE | E_LAMA+E_LABA > E_ICS |
+| IMPACT 2018 | FF/UMEC/VI triple | 10,355 | AE RR↓ 25% vs LABA/LAMA | Triple interaction terms |
+| ETHOS 2020 | BUD/GLY/FORM | 8,509 | Eos≥300 → strongest ICS effect | Eos_thresh, Eos_factor |
+| EINSTEIN 2009 | Roflumilast 500µg | 3,091 | AE rate↓ 15-17% | Emax_PDE4i, EC50_PDE4i |
+| HIACE 2013 | NAC 600mg bid | 120 | AE rate↓ 24% | NAC antioxidant pathway |
+| Albert 2011 | Azithromycin 250mg/d | 1,142 | AE rate↓ 27% | Azithro NF-κB pathway |
+
+**Treatment Scenarios (6 arms, 1-year simulation):**
+1. Placebo — Natural history (FEV1 decline ~50 mL/yr in GOLD 2-3)
+2. LAMA monotherapy — Tiotropium 18µg qd (UPLIFT calibrated)
+3. LABA/LAMA dual — Salmeterol 50µg bid + Tiotropium (FLAME/POET-COPD)
+4. ICS/LABA dual — Budesonide 400µg bid + Salmeterol (TORCH; Eos-gated)
+5. Triple therapy — LAMA+LABA+ICS (IMPACT/ETHOS)
+6. Triple + Roflumilast — Severe COPD + chronic bronchitis (EINSTEIN)
+
+**Shiny App (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | GOLD stage gauge, FEV1/Eos/CAT value boxes, GOLD ABE framework table |
+| 2. Pharmacokinetics | Lung vs systemic Cp-time curves (48h); steady-state Css + PD effect table |
+| 3. Lung Function | FEV1 trajectory, GOLD stage bar, emphysema index, PVR time course |
+| 4. Inflammatory Biomarkers | IL-8, NE, CRP, Eosinophils with threshold lines; ICS Eos-guidance rationale |
+| 5. Clinical Endpoints | CAT score, cumulative AEs, annualized AE rate, SpO2, mPAP |
+| 6. Scenario Comparison | All 6 arms overlay; end-of-year DT summary table with GOLD color coding |
+| 7. Exacerbation Risk | Risk calculator (FEV1/Eos/history → rate); pathogen guide (PCT); RR waterfall chart |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`copd_qsp.dot`](copd/copd_qsp.dot) | Graphviz source (dot layout, 110+ nodes, 12 clusters) |
+| [`copd_qsp.svg`](copd/copd_qsp.svg) | Vector mechanistic map |
+| [`copd_qsp.png`](copd/copd_qsp.png) | Raster mechanistic map (150 dpi) |
+| [`copd_references.md`](copd/copd_references.md) | 52 annotated references with PubMed links (12 sections) |
+| [`copd_mrgsolve_model.R`](copd/copd_mrgsolve_model.R) | mrgsolve ODE model (26 states) + 6 treatment scenarios + dose-response |
+| [`copd_shiny_app.R`](copd/copd_shiny_app.R) | 7-tab interactive Shiny dashboard |
