@@ -1,0 +1,675 @@
+/* ============================================================
+   Pulmonary Arterial Hypertension (PAH) — QSP Mechanistic Map
+   Nodes: 130+   Edges: 160+
+   Pathways: ET-1 · NO/sGC/cGMP · PGI2/cAMP · Serotonin
+             Growth factors · TGF-β/BMP · Inflammation · ROS
+             RhoA/ROCK · RAAS · Vascular remodeling
+             Hemodynamics · RV mechanics · Clinical endpoints
+   Drugs:    ERA (bosentan/ambrisentan/macitentan)
+             PDE5i (sildenafil/tadalafil)
+             sGC stimulator (riociguat)
+             Prostacyclin analogues (epoprostenol/treprostinil/iloprost)
+             IP-receptor agonist (selexipag/MRE-269)
+   ============================================================ */
+
+digraph PAH_QSP_Model {
+
+  graph [
+    label="Pulmonary Arterial Hypertension (PAH)\nQuantitative Systems Pharmacology (QSP) Model",
+    labelloc=t, labeljust=c,
+    fontname="Helvetica Neue,Helvetica,Arial,sans-serif", fontsize=20,
+    compound=true,
+    splines=true, nodesep=0.30, ranksep=0.60,
+    bgcolor="#F8F9FA", pad=0.5
+  ];
+  node [fontname="Helvetica Neue,Helvetica,Arial,sans-serif", fontsize=8,
+        style="filled,rounded", margin="0.08,0.04", height=0.35];
+  edge [fontname="Helvetica Neue,Helvetica,Arial,sans-serif", fontsize=7,
+        arrowsize=0.55, penwidth=1.1];
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 1 · PHARMACOLOGICAL AGENTS
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_drugs {
+    label="Pharmacological Agents";
+    style="filled,rounded"; fillcolor="#EBF5FB"; color="#1F618D";
+    fontcolor="#1F618D"; fontsize=12;
+
+    /* ERAs */
+    Bosentan    [label="Bosentan\n(ERA dual)", shape=box,
+                 fillcolor="#2980B9", fontcolor=white];
+    Ambrisentan [label="Ambrisentan\n(ERA‑ETₐ selec.)", shape=box,
+                 fillcolor="#2980B9", fontcolor=white];
+    Macitentan  [label="Macitentan\n(ERA dual / tissue)", shape=box,
+                 fillcolor="#2980B9", fontcolor=white];
+    /* PDE5i */
+    Sildenafil  [label="Sildenafil\n(PDE5i, t½≈4h)", shape=box,
+                 fillcolor="#1ABC9C", fontcolor=white];
+    Tadalafil   [label="Tadalafil\n(PDE5i, t½≈35h)", shape=box,
+                 fillcolor="#1ABC9C", fontcolor=white];
+    /* sGC stimulator */
+    Riociguat   [label="Riociguat\n(sGC stimulator)", shape=box,
+                 fillcolor="#16A085", fontcolor=white];
+    /* Prostacyclin drugs */
+    Epoprostenol [label="Epoprostenol\n(IV PGI₂, t½<6min)", shape=box,
+                  fillcolor="#8E44AD", fontcolor=white];
+    Treprostinil [label="Treprostinil\n(SC/IV/inh)", shape=box,
+                  fillcolor="#8E44AD", fontcolor=white];
+    Iloprost     [label="Iloprost\n(inh PGI₂ analogue)", shape=box,
+                  fillcolor="#8E44AD", fontcolor=white];
+    Selexipag    [label="Selexipag\n(IP prodrug, oral)", shape=box,
+                  fillcolor="#7D3C98", fontcolor=white];
+    MRE269       [label="MRE‑269\n(active metabolite)", shape=box,
+                  fillcolor="#6C3483", fontcolor=white];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 2 · ENDOTHELIN PATHWAY
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_ET1 {
+    label="Endothelin Pathway (Vasoconstrictor)";
+    style="filled,rounded"; fillcolor="#FDEBD0"; color="#E67E22";
+    fontcolor="#E67E22"; fontsize=12;
+
+    ET1_stim         [label="ET-1 synthesis stimuli\n(hypoxia · Ang-II · thrombin\nTGF-β · NF-κB · shear↓)",
+                       shape=note, fillcolor="#FDEBD0"];
+    PreproET1        [label="Preproendothelin-1\n(gene product)", fillcolor="#FAD7A0"];
+    ET1_mRNA         [label="ET-1 mRNA", fillcolor="#FAD7A0"];
+    BigET1           [label="Big ET-1\n(precursor)", fillcolor="#F0B27A"];
+    ECE1             [label="ECE-1\n(endothelin-converting\nenzyme 1)", shape=diamond, fillcolor="#E59866"];
+    ECE2             [label="ECE-2", shape=diamond, fillcolor="#E59866"];
+    ET1              [label="Endothelin-1\n(ET-1)", fillcolor="#E67E22", fontcolor=white];
+    NEP              [label="NEP / ECE-2\n(degradation)", shape=diamond, fillcolor="#CA6F1E", fontcolor=white];
+    ETA_R            [label="ETₐ receptor\n(PASMC, cardiac,\nfibroblast)", shape=hexagon,
+                       fillcolor="#D35400", fontcolor=white];
+    ETB_R_EC         [label="ET_B receptor\n(endothelial — clearance,\nNO & PGI₂ release)", shape=hexagon,
+                       fillcolor="#F39C12"];
+    ETB_R_SMC        [label="ET_B receptor\n(PASMC — minor\nvasoconstriction)", shape=hexagon,
+                       fillcolor="#E67E22", fontcolor=white];
+    ET1_degrad       [label="ET-1 plasma\nclearance\n(ETB / NEP)", shape=note, fillcolor="#FAD7A0"];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 3 · NO / sGC / cGMP PATHWAY
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_NO {
+    label="NO / sGC / cGMP Pathway (Vasodilator)";
+    style="filled,rounded"; fillcolor="#E8F8F5"; color="#1ABC9C";
+    fontcolor="#1ABC9C"; fontsize=12;
+
+    L_arg         [label="L-Arginine\n(substrate)", fillcolor="#A9DFBF"];
+    BH4           [label="BH4\n(tetrahydrobiopterin\ncofactor)", fillcolor="#A9DFBF"];
+    eNOS          [label="eNOS\n(NOS3)", shape=diamond, fillcolor="#27AE60", fontcolor=white];
+    eNOS_phos     [label="eNOS-Ser1177-P\n(fully active)", shape=diamond, fillcolor="#1E8449", fontcolor=white];
+    eNOS_uncouple [label="eNOS uncoupled\n(BH4-depleted,\nmakes O₂•⁻)", shape=diamond, fillcolor="#F5B7B1"];
+    NO            [label="Nitric Oxide\n(NO•)", fillcolor="#1ABC9C", fontcolor=white];
+    sGC_inactive  [label="sGC inactive\n(heme oxidised)", shape=diamond, fillcolor="#AED6F1"];
+    sGC_active    [label="sGC active\n(ferrous-NO complex)", shape=diamond, fillcolor="#2ECC71", fontcolor=white];
+    GTP           [label="GTP", fillcolor="#A9DFBF"];
+    cGMP          [label="cGMP", fillcolor="#52BE80", fontcolor=white];
+    PDE5          [label="PDE5\n(phosphodiesterase-5)", shape=diamond, fillcolor="#117A65", fontcolor=white];
+    PDE5_act      [label="PDE5-Ser92-P\n(PKG-feedback,\nactive)", shape=diamond, fillcolor="#0E6655", fontcolor=white];
+    PKG           [label="PKG (cGKI)\n(protein kinase G)", shape=diamond, fillcolor="#0E6655", fontcolor=white];
+    GMP_no        [label="5′-GMP\n(inactive)", fillcolor="#D5F5E3"];
+    Shear_NO      [label="Laminar shear stress\n→ AKT → eNOS↑", shape=note, fillcolor="#E8F8F5"];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 4 · PROSTACYCLIN / cAMP PATHWAY
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_PGI2 {
+    label="Prostacyclin / cAMP Pathway (Vasodilator)";
+    style="filled,rounded"; fillcolor="#F5EEF8"; color="#8E44AD";
+    fontcolor="#8E44AD"; fontsize=12;
+
+    Phospholipids [label="Membrane\nPhospholipids", fillcolor="#D2B4DE"];
+    PLA2          [label="PLA2\n(phospholipase A2)", shape=diamond, fillcolor="#9B59B6", fontcolor=white];
+    AA            [label="Arachidonic Acid\n(AA)", fillcolor="#C39BD3"];
+    COX1          [label="COX-1\n(constitutive)", shape=diamond, fillcolor="#7D3C98", fontcolor=white];
+    COX2          [label="COX-2\n(inducible,\nNF-κB target)", shape=diamond, fillcolor="#7D3C98", fontcolor=white];
+    PGH2          [label="PGH2\n(unstable intermediate)", fillcolor="#BB8FCE"];
+    PGIS          [label="PGIS\n(PGI2 synthase,\nROS-sensitive)", shape=diamond, fillcolor="#6C3483", fontcolor=white];
+    TXS           [label="TXA2 synthase\n(TXS)", shape=diamond, fillcolor="#922B21", fontcolor=white];
+    PGI2          [label="Prostacyclin\n(PGI2, t½<2min)", fillcolor="#8E44AD", fontcolor=white];
+    TXA2          [label="TXA2\n(vasoconstrictor\nplatelet activator)", fillcolor="#C0392B", fontcolor=white];
+    IP_R          [label="IP receptor\n(PTGIR / IP₂R\nGα_s coupled)", shape=hexagon, fillcolor="#6C3483", fontcolor=white];
+    TP_R          [label="TP receptor\n(TXA2 / PGH2,\nGα_q coupled)", shape=hexagon, fillcolor="#A93226", fontcolor=white];
+    AC_enzyme     [label="Adenylyl\nCyclase (AC)", shape=diamond, fillcolor="#5B2C6F", fontcolor=white];
+    ATP_pool      [label="ATP", fillcolor="#D2B4DE"];
+    cAMP          [label="cAMP", fillcolor="#884EA0", fontcolor=white];
+    PDE3          [label="PDE3", shape=diamond, fillcolor="#4A235A", fontcolor=white];
+    PDE4          [label="PDE4", shape=diamond, fillcolor="#4A235A", fontcolor=white];
+    PKA           [label="PKA\n(protein kinase A)", shape=diamond, fillcolor="#4A235A", fontcolor=white];
+    AMP_pgi       [label="5′-AMP\n(inactive)", fillcolor="#E8DAEF"];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 5 · SEROTONIN PATHWAY
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_5HT {
+    label="Serotonin (5-HT) Pathway";
+    style="filled,rounded"; fillcolor="#FEF9E7"; color="#D4AC0D";
+    fontcolor="#D4AC0D"; fontsize=12;
+
+    Tryptophan [label="Tryptophan", fillcolor="#FCF3CF"];
+    TPH1       [label="TPH1\n(tryptophan hydroxylase 1)", shape=diamond, fillcolor="#F4D03F"];
+    serotonin  [label="5-HT (Serotonin)\n(released by platelets,\nmast cells)", fillcolor="#F0B429"];
+    SERT       [label="SERT\n(5-HT transporter,\nuptake into PASMC)", shape=diamond, fillcolor="#D4AC0D", fontcolor=white];
+    MAO_B      [label="MAO-B\n(degradation)", shape=diamond, fillcolor="#B7950B", fontcolor=white];
+    r5HT1B     [label="5-HT₁B receptor\n(vasoconstriction)", shape=hexagon, fillcolor="#F0B429"];
+    r5HT2A     [label="5-HT₂A receptor\n(proliferation\nvasoconstriction)", shape=hexagon, fillcolor="#F39C12"];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 6 · GROWTH FACTORS & PROLIFERATION
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_GF {
+    label="Growth Factors & Proliferative Signaling";
+    style="filled,rounded"; fillcolor="#FDEDEC"; color="#C0392B";
+    fontcolor="#C0392B"; fontsize=12;
+
+    PDGF_BB  [label="PDGF-BB", fillcolor="#F5B7B1"];
+    PDGFR    [label="PDGFRβ", shape=hexagon, fillcolor="#E74C3C", fontcolor=white];
+    VEGF_A   [label="VEGF-A", fillcolor="#F5B7B1"];
+    VEGFR2   [label="VEGFR2 (KDR)", shape=hexagon, fillcolor="#E74C3C", fontcolor=white];
+    FGF2     [label="FGF-2 (bFGF)", fillcolor="#F5B7B1"];
+    FGFR1    [label="FGFR1", shape=hexagon, fillcolor="#C0392B", fontcolor=white];
+    EGF_lig  [label="EGF / HB-EGF", fillcolor="#F5B7B1"];
+    EGFR     [label="EGFR (ErbB1)", shape=hexagon, fillcolor="#C0392B", fontcolor=white];
+    ERK12    [label="ERK1/2\n(MAPK cascade)", shape=diamond, fillcolor="#922B21", fontcolor=white];
+    PI3K_AKT [label="PI3K / AKT", shape=diamond, fillcolor="#922B21", fontcolor=white];
+    mTOR_c1  [label="mTORC1", shape=diamond, fillcolor="#7B241C", fontcolor=white];
+    CyclinD1 [label="Cyclin D1\n(G₁/S checkpoint)", fillcolor="#F1948A"];
+    PASMC_prolif [label="PASMC\nProliferation ↑",
+                   fillcolor="#E74C3C", fontcolor=white, shape=parallelogram];
+    PASMC_apop   [label="PASMC\nApoptosis ↓",
+                   fillcolor="#C0392B", fontcolor=white, shape=parallelogram];
+    EC_apop      [label="EC Apoptosis ↑\n(endothelial injury)",
+                   fillcolor="#C0392B", fontcolor=white, shape=parallelogram];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 7 · TGF-β / BMP SIGNALING
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_TGFBMP {
+    label="TGF-β / BMP Signaling";
+    style="filled,rounded"; fillcolor="#EAF2FF"; color="#2980B9";
+    fontcolor="#2980B9"; fontsize=12;
+
+    TGFb1    [label="TGF-β1", fillcolor="#AED6F1"];
+    TGFBR    [label="TGF-βR (ALK5 / TβRII)", shape=hexagon, fillcolor="#2980B9", fontcolor=white];
+    pSMAD23  [label="pSMAD2/3\n(pro-fibrotic,\nanti-apoptotic)", shape=diamond, fillcolor="#1F618D", fontcolor=white];
+    SMAD4    [label="SMAD4\n(co-SMAD)", fillcolor="#AED6F1"];
+    BMP9     [label="BMP-9 / GDF-2\n(circulating ligand)", fillcolor="#AED6F1"];
+    BMPR2_wt [label="BMPR2 (WT)\n(anti-proliferative\naxis)", shape=hexagon, fillcolor="#2E86C1", fontcolor=white];
+    BMPR2_mut[label="BMPR2 mutant\n(haploinsufficiency\nhPAH ~80% fam.)", shape=hexagon,
+               fillcolor="#C0392B", fontcolor=white];
+    BMPR1A   [label="BMPR1A / ALK3\n(type I receptor)", shape=hexagon, fillcolor="#2980B9", fontcolor=white];
+    pSMAD158 [label="pSMAD1/5/8\n(anti-proliferative\ngrowth arrest)", shape=diamond, fillcolor="#1A5276", fontcolor=white];
+    ID1_ID3  [label="ID1 / ID3\n(BMP target genes)", fillcolor="#AED6F1"];
+    Fibrosis_col [label="Collagen I/III\ndeposition / Fibrosis",
+                   fillcolor="#85C1E9", shape=parallelogram];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 8 · INFLAMMATION & IMMUNE CELLS
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_inflam {
+    label="Perivascular Inflammation & Immune Cells";
+    style="filled,rounded"; fillcolor="#F0FFF0"; color="#1E8449";
+    fontcolor="#1E8449"; fontsize=12;
+
+    Macrophage [label="Perivascular\nMacrophage (M1)", shape=ellipse, fillcolor="#A9DFBF"];
+    CD4_T      [label="CD4+ T cell\n(Treg↓ / Th17↑)", shape=ellipse, fillcolor="#A9DFBF"];
+    CD8_T      [label="CD8+ Tc cell", shape=ellipse, fillcolor="#A9DFBF"];
+    NK_cell    [label="NK cell", shape=ellipse, fillcolor="#A9DFBF"];
+    MastCell   [label="Mast Cell\n(5-HT source)", shape=ellipse, fillcolor="#A9DFBF"];
+    IL6        [label="IL-6", fillcolor="#58D68D"];
+    IL1b       [label="IL-1β", fillcolor="#58D68D"];
+    TNFa       [label="TNF-α", fillcolor="#58D68D"];
+    IL17       [label="IL-17A\n(Th17 product)", fillcolor="#58D68D"];
+    CXCL12     [label="CXCL12 / SDF-1", fillcolor="#58D68D"];
+    CXCR4      [label="CXCR4 receptor", shape=hexagon, fillcolor="#27AE60", fontcolor=white];
+    NF_kB      [label="NF-κB\n(master inflammatory\ntranscription factor)", shape=diamond,
+                 fillcolor="#1E8449", fontcolor=white];
+    MMP9       [label="MMP-9\n(matrix metalloprotease)", shape=diamond, fillcolor="#196F3D", fontcolor=white];
+    ECM_remod  [label="ECM Remodeling\n(MMP-driven)", fillcolor="#ABEBC6", shape=parallelogram];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 9 · OXIDATIVE STRESS
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_ox {
+    label="Oxidative / Nitrosative Stress";
+    style="filled,rounded"; fillcolor="#FFF3E0"; color="#E67E22";
+    fontcolor="#E67E22"; fontsize=12;
+
+    NOX2       [label="NADPH Oxidase 2\n(NOX2)", shape=diamond, fillcolor="#F0B27A"];
+    SOD12      [label="SOD1 / SOD2\n(scavenger)", shape=diamond, fillcolor="#76B041", fontcolor=white];
+    Superoxide [label="O₂•⁻ (superoxide)", fillcolor="#F5CBA7"];
+    H2O2       [label="H₂O₂", fillcolor="#F5CBA7"];
+    Peroxyn    [label="ONOO⁻\n(peroxynitrite)", fillcolor="#E74C3C", fontcolor=white];
+    NRF2       [label="NRF2\n(antioxidant response)", shape=diamond, fillcolor="#58D68D", fontcolor=white];
+    OxStress   [label="Oxidative Stress\nIndex (OSI)", fillcolor="#F0B27A", shape=parallelogram];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 10 · RHO/ROCK & Ca²⁺ SENSITIZATION
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_rho {
+    label="RhoA / ROCK & Ca²⁺ Sensitization";
+    style="filled,rounded"; fillcolor="#FDF2F8"; color="#9B59B6";
+    fontcolor="#9B59B6"; fontsize=12;
+
+    RhoA  [label="RhoA (GTPase)\n(GDP→GTP, GEF-act.)", shape=diamond, fillcolor="#D7BDE2"];
+    ROCK  [label="ROCK1 / ROCK2\n(Rho kinase)", shape=diamond, fillcolor="#C39BD3"];
+    MLCP  [label="MLCP\n(myosin-light-chain\nphosphatase)", shape=diamond, fillcolor="#BB8FCE"];
+    MLCK  [label="MLCK\n(myosin-light-chain\nkinase)", shape=diamond, fillcolor="#BB8FCE"];
+    pMLC  [label="pMLC (Ser19)\n(actomyosin cross-bridge\nformation)", fillcolor="#A569BD", fontcolor=white];
+    CaCaM [label="Ca²⁺-CaM complex\n(calmodulin)", fillcolor="#D2B4DE"];
+    IP3   [label="IP3 / DAG\n(from PLC)", fillcolor="#D7BDE2"];
+    Vasoconst [label="Vasoconstriction\n(↑ vascular tone)",
+               fillcolor="#7D3C98", fontcolor=white, shape=parallelogram];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 11 · RAAS & COAGULATION
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_raas {
+    label="RAAS & Coagulation";
+    style="filled,rounded"; fillcolor="#EBF5FB"; color="#5DADE2";
+    fontcolor="#2E86C1"; fontsize=12;
+
+    Ang2      [label="Angiotensin II\n(Ang-II)", fillcolor="#85C1E9"];
+    AT1R      [label="AT1 receptor\n(VSMC, EC)", shape=hexagon, fillcolor="#2E86C1", fontcolor=white];
+    Bradykinin [label="Bradykinin\n(vasodilator)", fillcolor="#AED6F1"];
+    ACE       [label="ACE\n(also degrades BK)", shape=diamond, fillcolor="#1A5276", fontcolor=white];
+    Thrombin  [label="Thrombin", fillcolor="#85C1E9"];
+    vWF       [label="vWF↑\n(EC activation marker)", fillcolor="#AED6F1"];
+    Fibrin    [label="Fibrin / In-situ\nthrombosis",
+               fillcolor="#5DADE2", fontcolor=white, shape=parallelogram];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 12 · VASCULAR REMODELING (COMPOSITE)
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_remodel {
+    label="Vascular Remodeling (Structural Changes)";
+    style="filled,rounded"; fillcolor="#FDFEFE"; color="#717D7E";
+    fontcolor="#424949"; fontsize=12;
+
+    Intima_thick [label="Intimal Thickening\n(EC proliferation,\nSMC migration)", shape=parallelogram, fillcolor="#BFC9CA"];
+    Media_hyp    [label="Medial Hypertrophy\n(PASMC hypertrophy\n& hyperplasia)", shape=parallelogram, fillcolor="#BFC9CA"];
+    Adventitia_r [label="Adventitial\nRemodeling\n(fibroblast activation)", shape=parallelogram, fillcolor="#BFC9CA"];
+    Plexiform    [label="Plexiform Lesion\n(end-stage,\ndisordered EC growth)", shape=parallelogram,
+                  fillcolor="#717D7E", fontcolor=white];
+    VRI          [label="Vascular Remodeling\nIndex (VRI)", shape=ellipse, fillcolor="#99A3A4"];
+    Lumen_narrow [label="Luminal Narrowing\n(↑ PVR)", shape=ellipse, fillcolor="#717D7E", fontcolor=white];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 13 · HEMODYNAMICS & RIGHT HEART
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_hemo {
+    label="Hemodynamics & Right Heart Mechanics";
+    style="filled,rounded"; fillcolor="#EBF5FB"; color="#2471A3";
+    fontcolor="#1A5276"; fontsize=12;
+
+    PVR      [label="PVR\n(pulm. vasc. resistance\ndyne·s·cm⁻⁵)", fillcolor="#AED6F1"];
+    mPAP     [label="mPAP\n(mean PA pressure\nmmHg)", fillcolor="#5DADE2", fontcolor=white];
+    CO       [label="CO\n(cardiac output\nL/min)", fillcolor="#AED6F1"];
+    PAWP     [label="PAWP\n(wedge pressure\nmmHg)", fillcolor="#D6EAF8"];
+    HR       [label="HR\n(heart rate bpm)", fillcolor="#D6EAF8"];
+    SV       [label="SV (stroke volume\nmL)", fillcolor="#D6EAF8"];
+    RAP      [label="RAP\n(right atrial\npressure mmHg)", fillcolor="#D6EAF8"];
+    RVSP     [label="RVSP\n(RV systolic pressure)", fillcolor="#D6EAF8"];
+    RV_Ees   [label="RV Ees\n(end-systolic elastance\nmmHg/mL)", fillcolor="#AED6F1"];
+    RV_Ea    [label="RV Ea\n(effective arterial\nelastance mmHg/mL)", fillcolor="#AED6F1"];
+    RV_coup  [label="Ees/Ea ratio\n(RV-PA coupling\nnormal ≥1.0)", fillcolor="#5DADE2", fontcolor=white];
+    RV_hyp   [label="RV Hypertrophy\n(compensatory\nadaptive)", shape=parallelogram, fillcolor="#85C1E9"];
+    RV_dil   [label="RV Dilatation\n(decompensated\nfailure phase)", shape=parallelogram,
+               fillcolor="#2E86C1", fontcolor=white];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     CLUSTER 14 · CLINICAL ENDPOINTS & BIOMARKERS
+     ────────────────────────────────────────────────────────── */
+  subgraph cluster_endpoints {
+    label="Clinical Endpoints & Biomarkers";
+    style="filled,rounded"; fillcolor="#FDEDEC"; color="#922B21";
+    fontcolor="#922B21"; fontsize=12;
+
+    BNP_prod    [label="BNP synthesis\n(RV cardiomyocytes\nwall stress)", fillcolor="#F5B7B1"];
+    NT_proBNP   [label="NT-proBNP\n(plasma biomarker\npg/mL)", fillcolor="#F1948A"];
+    walk6       [label="6-Minute Walk\nDistance (6MWD, m)", fillcolor="#E74C3C", fontcolor=white];
+    WHO_FC      [label="WHO Functional\nClass (I–IV)", fillcolor="#C0392B", fontcolor=white];
+    Dyspnea_s   [label="Dyspnea / Borg scale", fillcolor="#F1948A"];
+    DLCO        [label="DLCO\n(diffusing capacity %)", fillcolor="#F1948A"];
+    Hemoptysis  [label="Hemoptysis\n(vascular fragility)", fillcolor="#F5B7B1"];
+    Echo_TAPSE  [label="Echo: TAPSE / RVEF\n(non-invasive RV fn)", fillcolor="#F5B7B1"];
+    Syncope     [label="Syncope\n(↓CO on exertion)", fillcolor="#F5B7B1"];
+    TTCW        [label="Time to Clinical\nWorsening (TTCW)",
+                  fillcolor="#922B21", fontcolor=white, shape=house];
+    Death       [label="Death\n(RV failure endpoint)",
+                  fillcolor="#7B241C", fontcolor=white, shape=house];
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     ISOLATED NODES
+     ────────────────────────────────────────────────────────── */
+  Hypoxia   [label="Chronic Hypoxia\n(HPV, HIF-1α)",
+              shape=note, fillcolor="#F1948A"];
+  HIF1a     [label="HIF-1α\n(hypoxia-inducible\nfactor 1α)", shape=diamond, fillcolor="#E74C3C", fontcolor=white];
+
+  /* ──────────────────────────────────────────────────────────
+     EDGES
+     ────────────────────────────────────────────────────────── */
+
+  /* ── Drug → molecular target interactions ── */
+  Bosentan    -> ETA_R       [label="antagonist", color="#2980B9", style=dashed, arrowhead=tee];
+  Bosentan    -> ETB_R_EC    [label="antagonist", color="#2980B9", style=dashed, arrowhead=tee];
+  Bosentan    -> ETB_R_SMC   [label="antagonist", color="#2980B9", style=dashed, arrowhead=tee];
+  Ambrisentan -> ETA_R       [label="selective\nantagonist", color="#2980B9", style=dashed, arrowhead=tee];
+  Macitentan  -> ETA_R       [label="tissue\nantagonist", color="#2980B9", style=dashed, arrowhead=tee];
+  Macitentan  -> ETB_R_EC    [label="antagonist", color="#2980B9", style=dashed, arrowhead=tee];
+  Macitentan  -> ETB_R_SMC   [label="antagonist", color="#2980B9", style=dashed, arrowhead=tee];
+
+  Sildenafil  -> PDE5        [label="IC₅₀≈4nM", color="#1ABC9C", style=dashed, arrowhead=tee];
+  Tadalafil   -> PDE5        [label="IC₅₀≈5nM", color="#1ABC9C", style=dashed, arrowhead=tee];
+  Sildenafil  -> PDE5_act    [label="inhibits", color="#1ABC9C", style=dashed, arrowhead=tee];
+  Tadalafil   -> PDE5_act    [label="inhibits", color="#1ABC9C", style=dashed, arrowhead=tee];
+  Riociguat   -> sGC_inactive [label="stimulates\n(heme-indep.)", color="#16A085", style=dashed, arrowhead=dot];
+  Riociguat   -> sGC_active  [label="synergistic\nNO potentiation", color="#16A085", style=dashed, arrowhead=dot];
+
+  Epoprostenol -> IP_R       [label="full agonist", color="#8E44AD", style=dashed, arrowhead=dot];
+  Treprostinil -> IP_R       [label="agonist", color="#8E44AD", style=dashed, arrowhead=dot];
+  Iloprost     -> IP_R       [label="agonist", color="#8E44AD", style=dashed, arrowhead=dot];
+  Selexipag    -> MRE269     [label="CES1\nhydrolysis\nprodrug→active", color="#7D3C98"];
+  MRE269       -> IP_R       [label="selective\nagonist\n(IP vs EP)", color="#7D3C98", style=dashed, arrowhead=dot];
+
+  /* ── ET-1 synthesis ── */
+  Hypoxia   -> HIF1a   [color="#E74C3C"];
+  HIF1a     -> ET1_stim [label="↑ preproET-1\ntranscription", color="#E74C3C"];
+  ET1_stim  -> ET1_mRNA [color="#E67E22"];
+  ET1_mRNA  -> PreproET1 [color="#E67E22"];
+  PreproET1 -> BigET1   [label="furin protease", color="#E67E22"];
+  BigET1    -> ET1      [label="ECE-1", color="#E59866"];
+  ECE1      -> ET1      [color="#E59866"];
+  ECE2      -> ET1      [color="#E59866"];
+  ET1       -> NEP      [label="degradation\npathway", color="#CA6F1E", style=dotted];
+  ET1       -> ET1_degrad [style=dotted, color="#CA6F1E"];
+
+  /* ET-1 stimuli sources */
+  Ang2    -> ET1_stim [color="#5DADE2"];
+  Thrombin -> ET1_stim [color="#5DADE2"];
+  TGFb1   -> ET1_stim [color="#2980B9"];
+  NF_kB   -> ET1_mRNA [label="κB sites on\npreproET-1", color="#1E8449"];
+  OxStress -> ET1_mRNA [label="oxidative stress\n→ ET-1↑", color="#E67E22"];
+
+  /* ET-1 receptor signaling */
+  ET1 -> ETA_R    [color="#D35400"];
+  ET1 -> ETB_R_EC [color="#F39C12"];
+  ET1 -> ETB_R_SMC [color="#E67E22"];
+
+  ETA_R    -> RhoA    [label="G₁₂/₁₃-GEF\nactivation", color="#D35400"];
+  ETA_R    -> IP3     [label="Gq → PLC\n→ IP3/DAG", color="#D35400"];
+  ETA_R    -> ERK12   [label="β-arr / GRK", color="#D35400"];
+  ETA_R    -> PI3K_AKT [color="#D35400"];
+  ETA_R    -> NF_kB   [label="IKK pathway", color="#D35400"];
+  ETA_R    -> PDGF_BB [label="transactivation\nparacrine loop", color="#D35400", style=dotted];
+  ETB_R_EC -> eNOS_phos [label="Ca²⁺ signal\n→ eNOS-Ser1177", color="#F39C12"];
+  ETB_R_EC -> PGIS    [label="→ PGI2\nsynthesis↑", color="#F39C12"];
+  ETB_R_EC -> ET1_degrad [label="ET-1\nclearance", color="#F39C12"];
+  ETB_R_SMC -> IP3    [color="#E67E22"];
+  ETB_R_SMC -> RhoA   [color="#E67E22"];
+
+  /* ── NO / sGC / cGMP pathway ── */
+  Shear_NO  -> eNOS_phos [label="AKT →\nSer1177P", color="#1ABC9C"];
+  L_arg     -> eNOS      [label="substrate", color="#27AE60"];
+  BH4       -> eNOS      [label="essential\ncofactor", color="#27AE60"];
+  eNOS      -> NO        [label="BH4 sufficient\nnormal coupling", color="#27AE60"];
+  eNOS_phos -> NO        [label="active form\n↑NO flux", color="#1E8449"];
+  BH4       -> eNOS_uncouple [label="BH4↓ →\nuncoupling", color="#F5B7B1", style=dashed, arrowhead=tee];
+  eNOS_uncouple -> Superoxide [label="makes O₂•⁻\ninstead of NO", color="#F5B7B1"];
+
+  NO        -> sGC_active  [label="NO+ferrous-\nheme→active", color="#1ABC9C"];
+  Riociguat -> sGC_active  [style=dashed, arrowhead=dot, color="#16A085"];
+  sGC_active -> cGMP       [label="GTP → cGMP\nVmax↑", color="#27AE60"];
+  GTP       -> sGC_active  [label="substrate", color="#27AE60"];
+  cGMP      -> PKG         [label="allosteric\nactivation", color="#52BE80"];
+  cGMP      -> PDE5        [label="substrate", color="#117A65"];
+  cGMP      -> PDE5_act    [label="PKG feeds back\n→ PDE5-S92P", color="#0E6655", style=dotted];
+  PDE5      -> GMP_no      [label="hydrolysis", color="#117A65"];
+  PDE5_act  -> GMP_no      [label="hydrolysis\n(accelerated)", color="#0E6655"];
+
+  PKG -> MLCP    [label="activates\n(↓pMLC)", color="#0E6655"];
+  PKG -> RhoA    [label="GEF inhibition\n(↓RhoA-GTP)", color="#0E6655", arrowhead=tee];
+  PKG -> PASMC_apop   [label="promotes\napoptosis", color="#0E6655"];
+  PKG -> PASMC_prolif [label="inhibits\nproliferation", color="#0E6655", arrowhead=tee];
+  PKG -> eNOS_phos    [label="positive\nfeedback", color="#0E6655", style=dotted];
+
+  /* peroxynitrite */
+  Superoxide -> Peroxyn   [label="+ NO•\n(diffusion-limited)", color="#E74C3C"];
+  NO         -> Peroxyn   [style=dotted, color="#E74C3C"];
+  Peroxyn    -> eNOS_uncouple [label="oxidises BH4\n→ uncoupling", color="#E74C3C"];
+  Peroxyn    -> sGC_inactive  [label="oxidises heme\n→ inactive", color="#E74C3C"];
+  Peroxyn    -> OxStress      [color="#E74C3C"];
+
+  /* ── Prostacyclin / cAMP pathway ── */
+  Phospholipids -> AA    [label="PLA2", color="#9B59B6"];
+  PLA2          -> AA    [color="#9B59B6"];
+  AA    -> PGH2          [label="COX-1/2", color="#9B59B6"];
+  COX1  -> PGH2          [color="#9B59B6"];
+  COX2  -> PGH2          [color="#9B59B6"];
+  PGH2  -> PGI2          [label="PGIS", color="#8E44AD"];
+  PGH2  -> TXA2          [label="TXS", color="#922B21"];
+  PGIS  -> PGI2          [color="#8E44AD"];
+  TXS   -> TXA2          [color="#922B21"];
+  PGI2  -> IP_R          [color="#8E44AD"];
+  TXA2  -> TP_R          [color="#C0392B"];
+  IP_R  -> AC_enzyme     [label="Gα_s\ncoupling", color="#6C3483"];
+  TP_R  -> RhoA          [label="Gα_q/₁₂", color="#A93226"];
+  TP_R  -> Vasoconst     [label="direct\neffect", color="#A93226"];
+  AC_enzyme -> cAMP      [label="ATP → cAMP", color="#5B2C6F"];
+  ATP_pool  -> AC_enzyme [label="substrate", color="#5B2C6F"];
+  cAMP  -> PKA           [label="allosteric\nactivation", color="#884EA0"];
+  cAMP  -> PDE3          [label="substrate", color="#4A235A"];
+  cAMP  -> PDE4          [label="substrate", color="#4A235A"];
+  PDE3  -> AMP_pgi       [label="hydrolysis", color="#4A235A"];
+  PDE4  -> AMP_pgi       [label="hydrolysis", color="#4A235A"];
+  PKA   -> MLCK          [label="Ser → Thr\nphospho\n→ inactivate", color="#4A235A", arrowhead=tee];
+  PKA   -> RhoA          [label="p116RhoGEF\ninhibition", color="#4A235A", arrowhead=tee];
+  PKA   -> PASMC_prolif  [label="inhibits\nvia Cdc42/Rac", color="#4A235A", arrowhead=tee];
+  PKA   -> PASMC_apop    [label="promotes", color="#4A235A"];
+  PKA   -> eNOS_phos     [label="Ser1177P\ncross-activation", color="#4A235A", style=dotted];
+
+  /* OxStress inactivates PGIS */
+  OxStress -> PGIS [label="tyrosine\nnitration\n→ PGIS↓", color="#E67E22", arrowhead=tee];
+
+  /* ── Serotonin pathway ── */
+  MastCell   -> serotonin [label="degranulation\nreleases 5-HT", color="#F0B429"];
+  Tryptophan -> serotonin [label="TPH1", color="#F0B429"];
+  TPH1       -> serotonin [color="#F4D03F"];
+  serotonin  -> r5HT1B   [color="#F0B429"];
+  serotonin  -> r5HT2A   [color="#F0B429"];
+  serotonin  -> SERT     [label="SERT-mediated\nuptake into PASMC", color="#D4AC0D"];
+  SERT       -> ERK12    [label="intracellular\n5-HT → MAPK", color="#D4AC0D"];
+  r5HT1B     -> Vasoconst [color="#F0B429"];
+  r5HT2A     -> RhoA     [label="Gα_q", color="#F39C12"];
+  r5HT2A     -> PASMC_prolif [color="#F39C12"];
+  serotonin  -> MAO_B    [label="degradation", color="#B7950B", style=dotted];
+
+  /* ── Growth factor pathway ── */
+  PDGF_BB  -> PDGFR    [color="#E74C3C"];
+  VEGF_A   -> VEGFR2   [color="#E74C3C"];
+  FGF2     -> FGFR1    [color="#C0392B"];
+  EGF_lig  -> EGFR     [color="#C0392B"];
+  PDGFR    -> ERK12    [color="#E74C3C"];
+  PDGFR    -> PI3K_AKT [color="#E74C3C"];
+  VEGFR2   -> ERK12    [color="#E74C3C"];
+  VEGFR2   -> PI3K_AKT [color="#E74C3C"];
+  VEGFR2   -> eNOS_phos [label="AKT→\neNOS-Ser1177P", color="#E74C3C"];
+  FGFR1    -> ERK12    [color="#C0392B"];
+  EGFR     -> ERK12    [color="#C0392B"];
+  ERK12    -> CyclinD1  [color="#922B21"];
+  ERK12    -> PASMC_prolif [color="#922B21"];
+  PI3K_AKT -> mTOR_c1  [label="PDK1→AKT\n→mTORC1", color="#922B21"];
+  PI3K_AKT -> eNOS_phos [label="AKT→eNOS", color="#922B21"];
+  mTOR_c1  -> CyclinD1 [color="#7B241C"];
+  mTOR_c1  -> PASMC_prolif [color="#7B241C"];
+  CyclinD1 -> PASMC_prolif [color="#E74C3C"];
+
+  /* ── TGF-β / BMP signaling ── */
+  TGFb1    -> TGFBR    [color="#2980B9"];
+  TGFBR    -> pSMAD23  [label="ALK5\nphosphorylation", color="#1F618D"];
+  pSMAD23  -> SMAD4    [label="heteromeric\ncomplex", color="#1F618D"];
+  pSMAD23  -> Fibrosis_col [color="#1F618D"];
+  SMAD4    -> Fibrosis_col [label="target gene\ntranscription", color="#1F618D"];
+  pSMAD23  -> PASMC_prolif [label="context-dependent\npro-proliferative\nin PAH", color="#1F618D"];
+  BMP9     -> BMPR2_wt [color="#2E86C1"];
+  BMP9     -> BMPR1A   [color="#2E86C1"];
+  BMPR2_wt -> pSMAD158 [label="type II→type I\ntrans-phosphoryl.", color="#1A5276"];
+  BMPR1A   -> pSMAD158 [color="#1A5276"];
+  pSMAD158 -> ID1_ID3  [label="gene activation", color="#1A5276"];
+  ID1_ID3  -> PASMC_prolif [label="antiproliferative\neffect (inhibits)", arrowhead=tee, color="#1A5276"];
+  ID1_ID3  -> EC_apop  [label="survival\nsignal (inhibits)", arrowhead=tee, color="#1A5276"];
+  BMPR2_mut -> pSMAD158 [label="haploinsufficiency\nreduced BMP\nsignaling", color="#C0392B", style=dashed, arrowhead=tee];
+  BMPR2_mut -> PASMC_prolif [label="loss of\nantiproliferative\nbrake", color="#C0392B"];
+  TGFb1   -> BMPR2_wt  [label="cross-talk\ndownregulates", color="#C0392B", style=dotted, arrowhead=tee];
+
+  /* ── Inflammation ── */
+  Macrophage -> IL6   [color="#27AE60"];
+  Macrophage -> IL1b  [color="#27AE60"];
+  Macrophage -> TNFa  [color="#27AE60"];
+  Macrophage -> MMP9  [color="#27AE60"];
+  Macrophage -> PDGF_BB [label="paracrine\nto PASMC", color="#27AE60"];
+  CD4_T    -> IL6     [label="Th17 → IL-17/\nIL-6 axis", color="#27AE60"];
+  CD4_T    -> IL17    [color="#27AE60"];
+  CD8_T    -> EC_apop [label="perforin/\ngranzyme B", color="#27AE60"];
+  NK_cell  -> EC_apop [label="ADCC-like", color="#27AE60"];
+  MastCell -> serotonin [color="#F0B429"];
+  IL6      -> NF_kB   [label="JAK/STAT\ncross-talk", color="#58D68D"];
+  IL1b     -> NF_kB   [color="#58D68D"];
+  TNFa     -> NF_kB   [color="#58D68D"];
+  IL17     -> NF_kB   [color="#58D68D"];
+  NF_kB    -> COX2    [label="COX-2\ninduction", color="#1E8449"];
+  NF_kB    -> PDGF_BB [label="transcription\nupregulation", color="#1E8449"];
+  NF_kB    -> ET1_mRNA [label="preproET-1\ngene", color="#1E8449"];
+  NF_kB    -> NOX2    [label="NOX2 subunit\ntranscription", color="#1E8449"];
+  NF_kB    -> VEGF_A  [color="#1E8449"];
+  MMP9     -> ECM_remod [color="#196F3D"];
+  CXCL12   -> CXCR4  [color="#27AE60"];
+  CXCR4    -> Macrophage [label="chemotaxis\n& recruitment", color="#27AE60"];
+  IL6      -> PASMC_prolif [label="JAK2/STAT3\nroute", color="#58D68D"];
+
+  /* ── Oxidative stress ── */
+  NOX2     -> Superoxide [color="#F0B27A"];
+  eNOS_uncouple -> Superoxide [color="#F1948A"];
+  Superoxide -> SOD12  [label="substrate", color="#F5CBA7"];
+  SOD12    -> H2O2     [label="O₂•⁻ + H⁺\n→ H₂O₂", color="#76B041"];
+  Superoxide -> Peroxyn [color="#E74C3C"];
+  H2O2     -> OxStress  [color="#F5CBA7"];
+  Superoxide -> OxStress [color="#F0B27A"];
+  NRF2     -> SOD12    [label="ARE activation", color="#58D68D"];
+  NRF2     -> OxStress [arrowhead=tee, color="#58D68D"];
+  OxStress -> eNOS_uncouple [label="BH4 oxidation\n↑uncoupling", color="#E67E22"];
+  OxStress -> NF_kB   [label="IKK\nactivation", color="#E67E22"];
+  OxStress -> PASMC_prolif [label="↑ redox\nproliferative\nsignaling", color="#E67E22"];
+  OxStress -> BH4     [label="BH4\ndegradation", color="#E74C3C", arrowhead=tee];
+
+  /* ── RhoA/ROCK / Ca²⁺ ── */
+  RhoA     -> ROCK    [label="GTP-RhoA\nactivation", color="#C39BD3"];
+  ROCK     -> MLCP    [label="Thr696 phospho\n→ inhibits", color="#C39BD3", arrowhead=tee];
+  MLCK     -> pMLC    [label="phosphorylates\nMLC-Ser19", color="#BB8FCE"];
+  MLCP     -> pMLC    [label="dephosphorylates\n→ relaxation", color="#BB8FCE", arrowhead=tee];
+  CaCaM    -> MLCK    [label="Ca²⁺-CaM\nactivates MLCK", color="#D2B4DE"];
+  IP3      -> CaCaM   [label="SR Ca²⁺\nrelease", color="#D7BDE2"];
+  pMLC     -> Vasoconst [label="actomyosin\ncontraction", color="#A569BD"];
+  ROCK     -> PASMC_prolif [label="↑ cell\ncycle entry", color="#C39BD3"];
+
+  /* cross-inhibitions on RhoA */
+  PKG  -> RhoA [arrowhead=tee, color="#0E6655", style=dashed];
+  PKA  -> RhoA [arrowhead=tee, color="#4A235A", style=dashed];
+
+  /* ── RAAS / Coagulation ── */
+  Ang2     -> AT1R    [color="#5DADE2"];
+  AT1R     -> RhoA    [label="Gα₁₂ coupling", color="#2E86C1"];
+  AT1R     -> NOX2    [label="PKC→NOX2\nactivation", color="#2E86C1"];
+  AT1R     -> ET1_stim [color="#2E86C1"];
+  AT1R     -> NF_kB   [color="#2E86C1"];
+  Bradykinin -> eNOS_phos [label="B2R → Ca²⁺\n→ eNOS-Ser1177", color="#AED6F1"];
+  ACE      -> Bradykinin [label="degrades BK\n→ ↓vasodilation", color="#1A5276", arrowhead=tee];
+  Thrombin -> vWF    [label="EC\nactivation", color="#5DADE2"];
+  Thrombin -> Fibrin [label="fibrinogen\n→ fibrin", color="#5DADE2"];
+  Thrombin -> ET1_stim [color="#5DADE2"];
+  vWF      -> Fibrin  [color="#AED6F1"];
+
+  /* ── Vascular remodeling assembly ── */
+  PASMC_prolif  -> Media_hyp   [color="#717D7E"];
+  PASMC_apop    -> Media_hyp   [arrowhead=tee, color="#717D7E"];
+  EC_apop       -> Intima_thick [color="#717D7E"];
+  EC_apop       -> Plexiform   [label="disordered\nEC regrowth", color="#717D7E"];
+  Fibrosis_col  -> Adventitia_r [color="#717D7E"];
+  ECM_remod     -> Adventitia_r [color="#717D7E"];
+  Media_hyp     -> VRI         [color="#717D7E"];
+  Intima_thick  -> VRI         [color="#717D7E"];
+  Adventitia_r  -> VRI         [color="#717D7E"];
+  Plexiform     -> VRI         [color="#717D7E"];
+  VRI           -> Lumen_narrow [color="#717D7E"];
+
+  /* ── Hemodynamics ── */
+  Vasoconst  -> PVR  [label="↑ vascular tone", color="#2471A3"];
+  Lumen_narrow -> PVR [label="structural\nnarrowing", color="#2471A3"];
+  VRI        -> PVR  [color="#2471A3"];
+  Fibrin     -> PVR  [label="in-situ\nthrombosis", color="#2471A3"];
+  PVR        -> mPAP [label="mPAP = PAWP\n+ PVR × CO\n(Ohm's law)", color="#1A5276"];
+  PAWP       -> mPAP [color="#1A5276"];
+  CO         -> mPAP [style=dotted, color="#1A5276"];
+  mPAP       -> RV_Ea [label="afterload\nto RV", color="#2471A3"];
+  RV_Ea      -> RV_coup [color="#2471A3"];
+  RV_Ees     -> RV_coup [color="#2471A3"];
+  SV         -> CO   [label="CO=SV×HR", color="#5DADE2"];
+  HR         -> CO   [color="#5DADE2"];
+  RV_coup    -> RV_hyp  [label="Ees/Ea>1\ncompensatory", color="#85C1E9"];
+  RV_hyp     -> RV_Ees  [label="hypertrophy\nincreases\ncontractility", color="#85C1E9"];
+  RV_hyp     -> CO      [label="maintained CO\n(compensated)", color="#85C1E9"];
+  RV_coup    -> RV_dil  [label="Ees/Ea<0.8\ndecompensation", color="#2E86C1"];
+  RV_dil     -> CO      [label="↓CO (RV\nfailure)", color="#2E86C1", arrowhead=tee];
+  RAP        -> RVSP [color="#5DADE2"];
+  mPAP       -> RVSP [color="#5DADE2"];
+
+  /* ── Hypoxia global effects ── */
+  Hypoxia -> eNOS    [label="hypoxia ↓\neNOS expr.", color="#E74C3C", arrowhead=tee];
+  Hypoxia -> Vasoconst [label="HPV (hypoxic\npulm. vasoconstr.)", color="#E74C3C"];
+  Hypoxia -> ET1_stim  [color="#E74C3C"];
+  Hypoxia -> NOX2      [label="HIF-1α→NOX2↑", color="#E74C3C"];
+  Hypoxia -> PASMC_prolif [label="HIF-1α\nroute", color="#E74C3C"];
+
+  /* ── Clinical endpoints ── */
+  RV_hyp   -> BNP_prod  [label="wall stress\n→ BNP↑", color="#E74C3C"];
+  RV_dil   -> BNP_prod  [label="chamber\nstress↑", color="#E74C3C"];
+  BNP_prod -> NT_proBNP [label="cleaved\nN-terminal\nfragment", color="#E74C3C"];
+  RVSP     -> NT_proBNP [color="#C0392B"];
+  CO       -> walk6     [label="↓CO → ↓O₂\ndelivery → ↓6MWD", color="#922B21"];
+  mPAP     -> walk6     [label="↑mPAP →\nexertion\nlimitation", color="#922B21", arrowhead=tee];
+  Dyspnea_s -> WHO_FC   [color="#C0392B"];
+  walk6     -> WHO_FC   [color="#C0392B"];
+  NT_proBNP -> WHO_FC   [color="#C0392B"];
+  DLCO      -> walk6    [color="#C0392B"];
+  mPAP      -> Dyspnea_s [label="↑PA pressure →\ndyspnea", color="#922B21"];
+  PVR       -> Dyspnea_s [color="#922B21"];
+  Echo_TAPSE -> RV_coup [label="clinical proxy\nfor RV coupling", color="#F5B7B1", style=dotted];
+  Syncope   -> WHO_FC   [color="#C0392B"];
+  CO        -> Syncope  [label="↓CO →\nexertional\nsyncope", color="#922B21", arrowhead=tee];
+  NT_proBNP -> TTCW    [label="prognostic\nbiomarker", color="#922B21"];
+  WHO_FC    -> TTCW    [color="#922B21"];
+  walk6     -> TTCW    [color="#922B21"];
+  RV_dil   -> Death    [label="progressive\nRV failure", color="#7B241C"];
+  TTCW     -> Death    [label="terminal\nevent", color="#7B241C"];
+
+  /* ── ET-1 / PGI2 cross-pathway ── */
+  ET1 -> PGIS  [label="ETₐ → ↓PGIS\nexpression", color="#E67E22", style=dashed, arrowhead=tee];
+  ET1 -> eNOS  [label="ETB_EC →\n↑eNOS (feedback)", color="#F39C12", style=dotted];
+  PGI2 -> eNOS_phos [label="IP→cAMP→\nPKA→eNOS", color="#8E44AD", style=dotted];
+
+}
