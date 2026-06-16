@@ -30,6 +30,7 @@ Each model lives in its own subdirectory (lowercase with dashes). Every director
 |------|---------|----------|-------------------|-----|-------|------|-----|
 | 2026-06-16 | [**Rheumatoid Arthritis**](#rheumatoid-arthritis) | 자가면역질환 | T/B cell–driven synovitis; TNF-α / IL-6 / JAK-STAT; bone erosion (RANKL/OPG); cDMARDs + biologics (TNFi, IL-6Ri, JAKi) | [![RA](rheumatoid-arthritis/ra_qsp.png)](rheumatoid-arthritis/ra_qsp.svg) | [R](rheumatoid-arthritis/ra_model.R) | [refs](rheumatoid-arthritis/references.md) | [Shiny](rheumatoid-arthritis/shiny_app/app.R) |
 | 2026-06-16 | [**Pulmonary Arterial Hypertension**](#pulmonary-arterial-hypertension-pah) | 만성질환 / 폐혈관 | EC dysfunction → ET-1↑/NO↓/PGI₂↓ → vasoconstriction + PASMC remodelling; BMPR2 loss; RV failure; ERA + PDE5i + PGI₂ | [![PAH](pulmonary-arterial-hypertension/pah_qsp_model.png)](pulmonary-arterial-hypertension/pah_qsp_model.svg) | [R](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | [refs](pulmonary-arterial-hypertension/pah_references.md) | [Shiny](pulmonary-arterial-hypertension/pah_shiny_app.R) |
+| 2026-06-16 | [**Systemic Lupus Erythematosus**](#systemic-lupus-erythematosus-sle) | 자가면역질환 | NETs/cGAS-STING/TLR7/9 → pDC → IFN-α → BAFF↑ → B cell hyperactivation → anti-dsDNA → IC → complement consumption + lupus nephritis; HCQ + belimumab + anifrolumab + MMF + voclosporin | [![SLE](systemic-lupus-erythematosus/sle_qsp.png)](systemic-lupus-erythematosus/sle_qsp.svg) | [R](systemic-lupus-erythematosus/sle_model.R) | [refs](systemic-lupus-erythematosus/sle_references.md) | [Shiny](systemic-lupus-erythematosus/shiny_app/app.R) |
 
 ---
 
@@ -139,3 +140,61 @@ Each model lives in its own subdirectory (lowercase with dashes). Every director
 | [`pah_references.md`](pulmonary-arterial-hypertension/pah_references.md) | 40 annotated references with PubMed links |
 | [`pah_mrgsolve_model.R`](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | mrgsolve ODE model + 6 treatment scenarios + dose-response |
 | [`pah_shiny_app.R`](pulmonary-arterial-hypertension/pah_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, DR, ESC/ERS risk) |
+
+---
+
+### Systemic Lupus Erythematosus (SLE)
+
+> Directory: [`systemic-lupus-erythematosus/`](systemic-lupus-erythematosus/)
+
+> NETs/cGAS-STING/TLR7/9 → pDC → IFN-α 과다 → BAFF↑ → B세포 과활성화 → 자가항체(anti-dsDNA) → 면역복합체 → 보체 소모 + 루푸스 신염을 유발하는 복잡한 다장기 자가면역질환.
+
+**Mechanistic Map** (161 nodes, 9 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| Cell Death & Antigen Release | UV → apoptosis, NETosis/PAD4 citrullination, secondary necrosis, HMGB1, mitochondrial DNA, defective phagocytosis, TREX1 deficiency |
+| Innate Immunity & Type I IFN | pDC/mDC/monocytes, TLR7/TLR9/TLR4, cGAS-STING → cGAMP, IRF3/IRF5/IRF7/MyD88/TRIF, NF-κB, IFN-α/β, IFNAR1/2 → JAK1/TYK2 → ISGF3(STAT1/STAT2/IRF9) → ISGs (MX1/IFIT1/OAS/ISG15), DNase I, IL-1β/NLRP3/TNF-α/IL-12/IL-18 |
+| B Cell Activation & Autoantibodies | Naïve B → GC → LLPC; BAFF/APRIL → BAFF-R/TACI/BCMA; BCR/SYK/BTK/PI3Kδ; CD40-CD40L; IL-21; anti-dsDNA/anti-Sm/anti-Ro/anti-La/anti-C1q/anti-nucleosome/ANA; IgG immune complexes |
+| T Cell Dysregulation | Th1/Th2/Th17/Tfh/Treg/DN T cells/CD8+CTL; T-bet/RORγt/FoxP3; IFN-γ/IL-17A/IL-4/IL-6/IL-2/TGF-β; calcineurin/NFAT; mTOR; JAK3/STAT3/STAT5; CTLA-4/PD-1/PDL-1/ICOS |
+| Complement System | Classical (C1q/C1r-C1s/C4/C2/C3), Alternative (Factor B/H/Properdin/C3 tick-over), Lectin (MBL); C3a/C5a anaphylatoxins; MAC (C5b-9); FcγRIIA/III; CR1; C4d deposition; C1q/C2/C4 gene deficiency |
+| Lupus Nephritis | IC deposition → mesangial/endothelial/podocyte injury → GBM damage → proteinuria; eGFR decline → ESRD; TGF-β fibrosis; ISN/RPS Class I–VI; VEGF; IL-6; neutrophil infiltration; hematuria; hypertension |
+| Multi-Organ Involvement | Malar rash/discoid lupus/SCLE/photosensitivity; BBB disruption → anti-NMDAR → NPSLE; accelerated atherosclerosis; endothelial dysfunction; aPL antibodies → APS/thrombosis; serositis; arthritis; alopecia; cytopenias |
+| Drug PK/PD | HCQ (lysosomotropic TLR7/9 block; Vd ~5000 L, t½ ~50 days); Belimumab (anti-BAFF TMDD; t½ ~19 days; FcRn); Anifrolumab (anti-IFNAR1; 300 mg q4w); MMF/MPA (IMPDH inhibition; TMDD not applicable); Voclosporin/Tacrolimus (calcineurin-NFAT); Cyclophosphamide (DNA alkylation); Azathioprine (6-MP/PRPP); Corticosteroids (GR transrepression); Obinutuzumab (anti-CD20 B depletion) |
+| Biomarkers & Clinical Endpoints | SLEDAI-2K; BILAG; SLICC damage index; anti-dsDNA titer; C3/C4 serum; ESR/CRP; lymphopenia; thrombocytopenia; UPCR; IFN score; BAFF level; SRI-4; BICLA; complete/partial renal response; LLDAS; DORIS remission; flare rate |
+
+**Mechanistic Map Preview:**
+
+[![SLE QSP Map](systemic-lupus-erythematosus/sle_qsp.png)](systemic-lupus-erythematosus/sle_qsp.svg)
+
+**mrgsolve Model Summary:**
+
+| Compartment | States | Description |
+|-------------|--------|-------------|
+| HCQ PK | HCQ_gut, HCQ_cent | 1-compartment oral; Vd ~5200 L, t½ ~50 days |
+| Belimumab PK+TMDD | BELI_cent, BELI_periph, BAFF_free, BELI_cmplx | 2-compartment IV + TMDD for free BAFF |
+| Anifrolumab PK | ANIF_cent | 1-compartment IV (300 mg q4w); IFNAR occupancy |
+| MMF/MPA PK | MMF_gut, MPA_cent | 1-compartment oral; active metabolite MPA |
+| Voclosporin PK | VOC_gut, VOC_cent | 1-compartment oral; IC50 ~0.8 ng/mL calcineurin |
+| IFN pathway PD | TLR_act, IFNa_conc, IFNscore | TLR→pDC→IFN-α→ISG cascade; HCQ/anifrolumab effects |
+| B cell axis | Bcell, PBlast, LLPC | BAFF-driven survival; MMF/CS/Cycloph suppression |
+| Autoantibodies | AntiDsDNA, IC_burden | LLPC→anti-dsDNA→IC turnover |
+| Complement | C3_serum, C4_serum | IC-driven consumption; liver synthesis |
+| Kidney | Proteinuria, eGFR_ode | IC→glomerular injury→UPCR; voclosporin podocyte protection |
+
+**Key ODE relationships:**
+- `dIFNa/dt = k_pDC × TLR_act × (1 − E_ANIF) − k_IFNA × IFNa` (anifrolumab blocks downstream signaling via IFNAR1 occupancy)
+- `dBAFF/dt = Rin_BAFF − kout_BAFF × BAFF − kon × (BELI/V1) × BAFF + koff × complex + k_IFN_BAFF × IFNa` (TMDD + IFN→BAFF upregulation feedback)
+- `dProteinuria/dt = k_IC_prot × IC_burden − kout_prot × Prot × (1 + 1.5×E_VOC + 0.5×E_CS)` (voclosporin podocyte stabilization)
+- Simulates 7 scenarios (no Tx → HCQ → +MMF → +Belimumab → +Anifrolumab → LN regimen → triple LN) over 52 weeks
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`sle_qsp.dot`](systemic-lupus-erythematosus/sle_qsp.dot) | Graphviz DOT source (fdp layout, 161 nodes, 9 subgraphs) |
+| [`sle_qsp.svg`](systemic-lupus-erythematosus/sle_qsp.svg) | Vector mechanistic map (218 KB) |
+| [`sle_qsp.png`](systemic-lupus-erythematosus/sle_qsp.png) | Raster mechanistic map (150 dpi) |
+| [`sle_references.md`](systemic-lupus-erythematosus/sle_references.md) | 66 annotated references with PubMed links |
+| [`sle_model.R`](systemic-lupus-erythematosus/sle_model.R) | mrgsolve ODE model + 7 treatment scenarios + population simulation (N=200) |
+| [`shiny_app/app.R`](systemic-lupus-erythematosus/shiny_app/app.R) | 9-tab Shiny dashboard (patient profile, PK, IFN axis, anti-dsDNA, LN monitor, SLEDAI, population variability, map viewer) |
