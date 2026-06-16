@@ -121,6 +121,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Crohn's Disease**](#crohns-disease-cd) | 자가면역질환 / 소화기 | Gut dysbiosis + NOD2/TLR → Macrophage M1 + DC → Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21/IL-23) → NF-κB → mucosal barrier loss + NLRP3/IL-1β + fibrosis (TGF-β/MMP); Anti-TNF (IFX/ADA, ACCENT/CHARM) + Anti-IL-12/23 (UST, UNIFI) + Anti-α4β7 (VDZ, GEMINI) + JAK1i (Upadacitinib, U-ACHIEVE) + AZA/6-TGN (SONIC) | [![CD](crohn-disease/cd_qsp_model.png)](crohn-disease/cd_qsp_model.svg) | [R](crohn-disease/cd_mrgsolve_model.R) | [refs](crohn-disease/cd_references.md) | [Shiny](crohn-disease/cd_shiny_app.R) |
 | 2026-06-16 | [**Ankylosing Spondylitis**](#ankylosing-spondylitis-as) | 자가면역질환 / 척추관절염 | HLA-B27 misfolding (UPR → IL-23) + enthesis microdamage → DAMP/TLR → DC/Macrophage IL-23 → Th17 IL-17A/IL-17F ★ + RANKL↑/OPG↓ → dual bone pathology: erosion (osteoclast) + ankylosis (BMP/Wnt/DKK1 ↓ new bone); Gut–joint axis (dysbiosis/ILC3); TNFi (ATLAS/GO-RAISE) + IL-17Ai (MEASURE 1/2, COAST-V) + JAKi (SELECT-AXIS 1/2) + IL-23i (GUIDE) | [![AS](ankylosing-spondylitis/as_qsp_model.png)](ankylosing-spondylitis/as_qsp_model.svg) | [R](ankylosing-spondylitis/as_mrgsolve_model.R) | [refs](ankylosing-spondylitis/as_references.md) | [Shiny](ankylosing-spondylitis/as_shiny_app.R) |
 | 2026-06-16 | [**Atrial Fibrillation**](#atrial-fibrillation-af) | 만성질환 / 심혈관 | Electrical remodeling (Nav1.5/Cav1.2/Kv1.5/IKACh/ERP↓) + Ca²⁺ mishandling (RyR2/CaMKII/SOICR→DADs) + structural fibrosis (AngII/TGF-β1/SMAD2/3) + NLRP3 inflammation + ANS remodeling → wavelength shortening → reentry + focal PV triggers; Thromboembolism (Virchow's triad, TF/FXa/thrombin/fibrin); Amiodarone (class I/II/III/IV) + Metoprolol (rate control) + Apixaban (ARISTOTLE: RRR 21%) — calibrated to AFFIRM, RACE, ARISTOTLE, RE-LY, EAST-AFNET 4 | [![AF](atrial-fibrillation/af_qsp_model.png)](atrial-fibrillation/af_qsp_model.svg) | [R](atrial-fibrillation/af_mrgsolve_model.R) | [refs](atrial-fibrillation/af_references.md) | [Shiny](atrial-fibrillation/af_shiny_app.R) |
+| 2026-06-16 | [**Myasthenia Gravis**](#myasthenia-gravis-mg) | 자가면역질환 / 신경근육 | Anti-AChR IgG (85%) → NMJ: Ab crosslinking (AChR internalization↑) + Classical complement → MAC (C5b-9) → junctional fold loss → AChR density↓ → NMJ safety factor↓ → EPP subthreshold → muscle weakness; Anti-MuSK (5–8%) disrupts AChR clustering; FcRn recycles pathogenic IgG; Pyridostigmine (AChEI, AChE IC50~10nM) / Prednisolone + AZA/MMF / Eculizumab (REGAIN: −4.2 QMG) / Ravulizumab (CHAMPION-MG) / Zilucoplan (RAISE) / Efgartigimod (ADAPT: ~75% IgG↓) / Rituximab (MuSK-MG) / Thymectomy (MGTX) | [![MG](myasthenia-gravis/mg_qsp_model.png)](myasthenia-gravis/mg_qsp_model.svg) | [R](myasthenia-gravis/mg_mrgsolve_model.R) | [refs](myasthenia-gravis/mg_references.md) | [Shiny](myasthenia-gravis/mg_shiny_app.R) |
 
 
 ---
@@ -1223,3 +1224,97 @@ Atrial fibrillation is the most common sustained cardiac arrhythmia, affecting >
 | [`af_references.md`](atrial-fibrillation/af_references.md) | 56 curated references, 10 sections, all PubMed-linked |
 | [`af_mrgsolve_model.R`](atrial-fibrillation/af_mrgsolve_model.R) | 20-state mrgsolve ODE model + 6 treatment scenarios + AFFIRM/ARISTOTLE calibration |
 | [`af_shiny_app.R`](atrial-fibrillation/af_shiny_app.R) | 6-tab Shiny dashboard (shinydashboard, ggplot2, mrgsolve) |
+
+---
+
+### Myasthenia Gravis (MG)
+
+**중증 근무력증** | Autoimmune / Neuromuscular Junction
+
+**Mechanistic Map**
+
+[![MG QSP Map](myasthenia-gravis/mg_qsp_model.png)](myasthenia-gravis/mg_qsp_model.svg)
+
+*Click image to open interactive SVG. 16 pathway clusters: Thymus & Immune Priming · B Cell & Plasma Cells · Autoantibody (AChR/MuSK/LRP4) · FcRn-IgG Homeostasis · NMJ Structure · ACh Neurotransmission · Complement Cascade · NMJ Damage · Pyridostigmine PK/PD · Corticosteroid/IS PK · Biologic Drug PK · Drug PD on Immune System · Non-drug Interventions (PLEX/IVIG/Thymectomy) · Muscle Physiology · Clinical Endpoints · Biomarker Panel*
+
+**Key Pathways Modeled**
+
+| Cluster | Key Nodes |
+|---------|-----------|
+| Thymus & Immune Priming | Thymoma, Thymic Hyperplasia, Myoid Cells (AChR+), Thymic DC, AIRE dysfunction, Naive T, Tfh (CXCR5+), Th1/Th17, Treg failure, Thymic GC reaction, HLA-DR3 |
+| B Cell & Plasma Cells | Naive B, GC-B (affinity maturation/CSR), Memory B, SL-PC, LL-PC (BM niche), CD20+ B (Rituximab target), BCR specificity, CD40L-CD40, IL-21 signaling |
+| Autoantibodies | Anti-AChR IgG (~85%, IgG1/3), Anti-MuSK IgG (~5-8%, IgG4), Anti-LRP4 (~1-3%), Titin/RyR Ab, IGG pool, NMJ-bound Ab |
+| FcRn & IgG Homeostasis | FcRn (FCGRT/β2m), endosome pH cycling, IgG recycling vs lysosomal degradation; Efgartigimod + Rozanolixizumab block FcRn → 75% IgG reduction |
+| NMJ Structure | α-motor neuron, axon terminal, presynaptic/postsynaptic membranes, junctional folds, AChR clusters (~10^7/NMJ, ε-subunit adult), MuSK, LRP4, Agrin, Rapsyn, ColQ, Dystrophin complex |
+| ACh Neurotransmission | CHT1/choline uptake, ChAT, VAChT, synaptic vesicles, Nav1.6 AP, VGCC (P/Q-type Cav2.1), SNARE complex, exocytosis, ACh-AChR binding (2 sites, α-subunit), AChE hydrolysis (kcat~1.4×10⁴/s); Pyridostigmine reversible carbamylation |
+| Classical Complement | C1q recognition → C1r/C1s → C4b/C2a (C3 convertase) → C3a/C3b → C5 convertase → C5 cleavage (eculizumab/ravulizumab/zilucoplan target) → C5a (inflammation) + C5b → C6-C9 → MAC (C5b-9) → NMJ pore |
+| NMJ Damage | Ab crosslinking → AChR internalization, complement MAC → junctional fold destruction, ACh binding blockade (MuSK-Ab), AChR density ↓, NMJ safety factor ↓ (normal 3-5×), EPP amplitude ↓ → subthreshold → muscle AP failure → fatigable weakness |
+| Drug PK | Pyridostigmine (1-cmt oral, F~18%, Vd=1.3L/kg, ke=0.37/h); Prednisolone (2-cmt, F=82%, CL=0.3L/h/kg, CYP3A4); AZA→6-MP→6-TGN (TPMT/HGPRT, t½(TGN)~5d); Eculizumab (2-cmt IV, Vss=7.7L, t½=11d); Efgartigimod (2-cmt + FcRn binding, CL=0.15L/h) |
+| Non-drug Interventions | Plasmapheresis (PLEX): acute IgG removal (days); IVIG: FcRn saturation → ↓IgG t½; Thymectomy: removes intrathymic GC source (MGTX: +5-year CSR benefit) |
+| Muscle EC Coupling | Nicotinic ion channel opening → muscle AP (Nav1.4) → DHPR (T-tubule) → RyR1 (SR Ca²⁺ release) → Troponin-C → Tropomyosin shift → Myosin-Actin crossbridge → Contraction; SERCA Ca²⁺ reuptake |
+| Clinical Endpoints | QMG (0-39), MG-ADL (0-24), MGAS, MGFA class I-V, Myasthenic Crisis (FVC<50%), Ptosis, Diplopia, Dysphagia, Dysarthria, Respiratory failure; CSR, MMS |
+| Biomarkers | Anti-AChR titer (nmol/L, RIA), Anti-MuSK (CBA/ELISA), Total IgG, SFEMG jitter (µs), RNS decrement (>10%), sC5b-9, Blood Tfh %, CH50, Thymus CT |
+
+**Drug PK/PD Summary**
+
+| Drug | Class | Mechanism | Calibration Trial |
+|------|-------|-----------|-------------------|
+| Pyridostigmine 60mg q6h | AChEI (symptomatic) | Reversible AChE carbamylation → ↑cleft ACh → ↑NMJ safety factor | Huang et al. 2017 (PopPK); Breyer-Pfaff 1990 |
+| Prednisolone 0.5–1.5mg/kg/d | Corticosteroid | GR nuclear → ↓NF-κB/IL-2/IL-17 → ↓Tfh/GC-B/SLPC | Palace et al. Neurology 1998 |
+| Azathioprine 2–3mg/kg/d | Antimetabolite (IMPDH/DNA) | 6-TGN → IMPDH inhibition + DNA incorporation → ↓lymphocyte proliferation | TPMT pharmacogenomics |
+| Eculizumab 900mg q2w IV | Anti-C5 (complement) | Blocks C5 cleavage → ↓C5a + ↓MAC → NMJ protection | REGAIN (Howard et al. Lancet Neurol 2017; −4.2 QMG vs placebo) |
+| Ravulizumab 3000mg q8w IV | Anti-C5 (long-acting) | Same as eculizumab; recycled by FcRn → t½~49d | CHAMPION-MG (Vu et al. NEJM Evid 2022) |
+| Zilucoplan 0.3mg/kg SC qd | Anti-C5 (peptide) | Subcutaneous C5 inhibitor; rapid onset | RAISE (Howard et al. JAMA Neurol 2023) |
+| Efgartigimod 10mg/kg IV qw | Anti-FcRn | Competes for FcRn → ↓IgG recycling → ~75% total IgG ↓ in 4 wk | ADAPT (Howard et al. Lancet Neurol 2021) |
+| Rozanolixizumab 1mg/kg SC qw | Anti-FcRn (mAb) | FcRn blockade → IgG catabolism ↑ | MycarinG (Bril et al. Lancet Neurol 2023) |
+| Rituximab 375mg/m² IV ×4 | Anti-CD20 | ADCC + CDC + apoptosis → B cell depletion; esp. effective in MuSK-MG | Tandan et al. Muscle Nerve 2017 (systematic review) |
+| Thymectomy (VATS/robot) | Surgery | Removes intrathymic GC; long-term ↓SL-PC/LL-PC source | MGTX (Wolfe et al. NEJM 2016): QMG −2.85, CSR↑ at 5yr |
+
+**ODE Model Summary** (20 compartments)
+
+| State Group | Variables |
+|-------------|-----------|
+| Pyridostigmine PK (2) | GUT\_PYR, CENT\_PYR → C\_PYR → AChE\_INH (Emax, EC50=50ng/mL, γ=1.5) |
+| Prednisolone PK (3) | GUT\_PRED, CENT\_PRED, PERIPH\_PRED → GR activation → immunosuppression |
+| Azathioprine/6-TGN (3) | GUT\_AZA → SIXMP (TPMT/HGPRT) → SIXTGN (t½~5d) → IMPDH inh |
+| Eculizumab PK (2) | CENT\_ECUL, PERIPH\_ECUL → C5 inhibition (EMAX=0.99, EC50=100ng/mL) |
+| Efgartigimod PK (2) | CENT\_EFGAR (free) + FCRN\_EFGAR (bound) → FcRn occupancy → ↑IgG degradation |
+| Immune compartment (4) | TFH, GCB (logistic growth × Tfh), SLPC (t½~17h), LLPC (t½ years) → suppressed by GR/6-TGN |
+| AChR-Ab pool (1) | ACHR\_AB\_C: secreted by SL+LL PC, degraded via FcRn (K\_AB\_EFF = f[FcRn\_OCC]) |
+| NMJ AChR density (1) | ACHR\_DEN: synthesized (K\_ACHR\_IN) − degraded (K\_ACHR\_D) − Ab-mediated downregulation |
+| Complement activity (1) | COMP\_ACT: driven by ACHR\_AB\_C, decays, inhibited by eculizumab |
+| NMJ Safety Factor (1) | NMJ\_SF = f(AChR\_DEN × 0.8 + ACh\_Avail × 0.2) → drives QMG/MG-ADL |
+
+**Treatment Scenarios (7)**
+
+| Scenario | Regimen | QMG at 52wk | AChR-Ab | NMJ Safety Factor |
+|----------|---------|:-----------:|:-------:|:-----------------:|
+| S1 | Natural history (untreated) | ~30 (severe) | High (↑) | <0.5 (severely↓) |
+| S2 | Pyridostigmine 60mg q6h | ~22 (moderate) | Unchanged | ~0.85 (↑AChE inh) |
+| S3 | Pyridostigmine + Prednisolone | ~15 (mild-mod) | Moderate ↓ | ~0.80 |
+| S4 | Pyridostigmine + Pred + AZA | ~10 (mild) | Substantial ↓ | ~0.90 |
+| S5 | Eculizumab + Pyridostigmine | ~8 (mild) | Unchanged | ~0.95 (MAC↓) |
+| S6 | Efgartigimod + Pyridostigmine | ~8 (mild) | ~75% ↓ | ~0.92 |
+| S7 | Rituximab + Pyridostigmine | ~9 (mild) | GCB/SL-PC ↓↓ | ~0.88 |
+
+**Shiny Dashboard** (6 interactive tabs)
+
+| Tab | Content |
+|-----|---------|
+| 1. 환자 프로파일 | Disease overview (MGFA I-V), epidemiology, treatment goals (QMG/CSR/MMS), MGFA classification table, natural history simulation plot, 4 value-box KPIs (QMG, MG-ADL, AChR-Ab, NMJ SF) |
+| 2. 약동학 (PK) | Pyridostigmine 24h profile, Prednisolone long-term, Eculizumab trough/peak, Efgartigimod; PK parameter summary table (Vd, t½, route, dose, CYP/metabolism) |
+| 3. PD 주요 지표 | AChE inhibition (%), AChR density (%), Complement activity, NMJ Safety Factor; Immune cell dynamics (Tfh/GCB/SL-PC/LL-PC) |
+| 4. 임상 엔드포인트 | QMG (0-39) + threshold bands, MG-ADL (0-24), AChR-Ab titer + ULN reference, IgG reduction %; key timepoint summary table (Wk 0/4/12/26/52) |
+| 5. 시나리오 비교 | All 7 scenarios; endpoint selector (QMG/MG-ADL/AChR-Ab/AChR-Den/NMJ-SF/Complement/IgG-Red); 52-wk final results table |
+| 6. 바이오마커 패널 | Biomarker status panel (9 markers with normal ranges), AChR-Ab time-series, SFEMG jitter proxy, SL-PC vs LL-PC dynamics; clinical interpretation guide table (10 biomarkers) |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`mg_qsp_model.dot`](myasthenia-gravis/mg_qsp_model.dot) | Graphviz source (160+ nodes, 16 clusters, LR layout) |
+| [`mg_qsp_model.svg`](myasthenia-gravis/mg_qsp_model.svg) | Vector mechanistic map |
+| [`mg_qsp_model.png`](myasthenia-gravis/mg_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`mg_references.md`](myasthenia-gravis/mg_references.md) | 43 curated references, 13 sections, all PubMed-linked; includes REGAIN/CHAMPION-MG/RAISE/ADAPT/MycarinG/MGTX pivotal trials |
+| [`mg_mrgsolve_model.R`](myasthenia-gravis/mg_mrgsolve_model.R) | 20-state mrgsolve ODE model; 7 treatment scenarios; pyridostigmine dose-response; calibrated to REGAIN/ADAPT/MGTX |
+| [`mg_shiny_app.R`](myasthenia-gravis/mg_shiny_app.R) | 6-tab shinydashboard (shinydashboard, plotly, mrgsolve, DT) |

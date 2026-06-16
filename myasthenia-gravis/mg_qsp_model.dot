@@ -1,0 +1,709 @@
+digraph MG_QSP {
+  graph [
+    label="Myasthenia Gravis: Quantitative Systems Pharmacology Model\n신경근육 접합부 자가면역 기전 및 치료 약물 PK/PD\n(QSP Model — All Rights Reserved)"
+    labelloc="t"
+    fontsize=22
+    fontname="Helvetica-Bold"
+    rankdir=LR
+    splines=ortho
+    overlap=false
+    nodesep=0.30
+    ranksep=0.75
+    bgcolor="#F8F9FA"
+    style=filled
+    fillcolor="#F8F9FA"
+  ]
+
+  node [fontsize=9 fontname="Helvetica" style="filled,rounded" shape=box]
+  edge [fontsize=7 fontname="Helvetica"]
+
+  // ======================================================
+  // Subgraph 1: Thymus & Immune Priming
+  // ======================================================
+  subgraph cluster_thymus {
+    label="胸腺 / Thymus & Immune Priming"
+    style=filled
+    fillcolor="#FFE4E1"
+    color="#CC4444"
+    fontsize=13
+    fontcolor="#CC4444"
+    fontname="Helvetica-Bold"
+
+    THYMOMA         [label="Thymoma\n(흉선종)" fillcolor="#FF9999" color="#CC0000"]
+    THYMIC_HYPER    [label="Thymic Hyperplasia\n(흉선 과증식)" fillcolor="#FFAAAA"]
+    MYOID_CELLS     [label="Myoid Cells\n(근양세포, AChR 발현)" fillcolor="#FFBBBB"]
+    THYMIC_DC       [label="Thymic DCs\n(흉선 수지상세포)" fillcolor="#FFCCCC"]
+    AIRE_FAIL       [label="AIRE Dysfunction\n(자가관용 붕괴)" fillcolor="#FF8888" color="#AA0000"]
+    NAIVE_T         [label="Naive T Cells\n(미성숙 T세포)" fillcolor="#FFDDDD"]
+    TFH             [label="T Follicular Helper\n(Tfh, CD4+CXCR5+)" fillcolor="#FFCCCC"]
+    TH1             [label="Th1 Cells\n(IFN-γ↑)" fillcolor="#FFBBBB"]
+    TH17            [label="Th17 Cells\n(IL-17↑)" fillcolor="#FFBBBB"]
+    TREG_FAIL       [label="Treg Dysfunction\n(FoxP3+, 기능 저하)" fillcolor="#FF9999"]
+    THYMUS_GC       [label="Thymic Germinal\nCenter Reaction" fillcolor="#FFAAAA"]
+    THYMUS_EPITHELIAL [label="Thymic Epithelial\nCells (TECs)" fillcolor="#FFD0D0"]
+    HLA_DR3         [label="HLA-DR3/DQ2\n(유전 감수성 MHC)" fillcolor="#FFBBBB"]
+
+    THYMOMA       -> MYOID_CELLS     [label="expresses AChR"]
+    THYMOMA       -> THYMIC_HYPER   [label="induces"]
+    MYOID_CELLS   -> THYMIC_DC      [label="AChR\npresentation"]
+    THYMIC_DC     -> NAIVE_T        [label="antigen\npresentation"]
+    THYMIC_EPITHELIAL -> NAIVE_T    [label="positive\nselection"]
+    AIRE_FAIL     -> NAIVE_T        [label="autoreactive\nT escape"]
+    HLA_DR3       -> THYMIC_DC      [label="peptide\nbinding"]
+    NAIVE_T       -> TFH            [label="activation →\ndifferentiation"]
+    NAIVE_T       -> TH1
+    NAIVE_T       -> TH17
+    TREG_FAIL     -> TFH            [label="fails to\nsuppress" style=dashed color=red]
+    TFH           -> THYMUS_GC      [label="GC formation"]
+  }
+
+  // ======================================================
+  // Subgraph 2: B Cell & Plasma Cells
+  // ======================================================
+  subgraph cluster_bcell {
+    label="B 세포 & 형질세포 / B Cell & Plasma Cell Compartment"
+    style=filled
+    fillcolor="#E8F4FD"
+    color="#1A6EA8"
+    fontsize=13
+    fontcolor="#1A6EA8"
+    fontname="Helvetica-Bold"
+
+    NAIVE_B         [label="Naive B Cells\n(미분화 B세포)" fillcolor="#AED6F1"]
+    GC_B            [label="Germinal Center\nB Cells (GC-B)" fillcolor="#85C1E9"]
+    MEMORY_B        [label="Memory B Cells\n(기억 B세포)" fillcolor="#5DADE2"]
+    SL_PC           [label="Short-lived\nPlasma Cells\n(SL-PC)" fillcolor="#3498DB" fontcolor="white"]
+    LL_PC           [label="Long-lived\nPlasma Cells\n(LL-PC, BM niche)" fillcolor="#2E86C1" fontcolor="white"]
+    B_REG           [label="Regulatory B Cells\n(Breg, IL-10+)" fillcolor="#AED6F1"]
+    SOMATIC_HM      [label="Somatic Hyper-\nmutation (SHM)" fillcolor="#7FB3D3"]
+    CLASS_SWITCH    [label="Class Switch\nRecombination\n(CSR, IgG1/3)" fillcolor="#7FB3D3"]
+    CD20_B          [label="CD20+ B Cells\n[Rituximab target]" fillcolor="#A9CCE3" color="#1A6EA8" style="filled,bold,rounded"]
+    BCELL_RECEPTOR  [label="BCR (Anti-AChR\nspecificity)" fillcolor="#85C1E9"]
+    IL21_SIGNAL     [label="IL-21 Signaling\n(Tfh→B)" fillcolor="#AED6F1"]
+    CD40L_CD40      [label="CD40L-CD40\n(T-B interaction)" fillcolor="#85C1E9"]
+
+    NAIVE_B      -> CD20_B        [label="express CD20"]
+    NAIVE_B      -> BCELL_RECEPTOR
+    CD20_B       -> GC_B          [label="GC entry\n(T cell help)"]
+    IL21_SIGNAL  -> GC_B          [label="drives\nproliferation"]
+    CD40L_CD40   -> GC_B          [label="survival\nsignal"]
+    GC_B         -> SOMATIC_HM    [label="affinity\nmaturation"]
+    GC_B         -> CLASS_SWITCH
+    SOMATIC_HM   -> MEMORY_B
+    CLASS_SWITCH -> SL_PC         [label="IgG secretion"]
+    CLASS_SWITCH -> LL_PC         [label="BM migration"]
+    MEMORY_B     -> SL_PC         [label="re-stimulation"]
+    BCELL_RECEPTOR -> GC_B        [label="antigen\nbinding"]
+  }
+
+  // ======================================================
+  // Subgraph 3: Autoantibody Compartment
+  // ======================================================
+  subgraph cluster_antibody {
+    label="자가항체 / Autoantibody Compartment"
+    style=filled
+    fillcolor="#FEF9E7"
+    color="#D4AC0D"
+    fontsize=13
+    fontcolor="#D4AC0D"
+    fontname="Helvetica-Bold"
+
+    ACHR_AB       [label="Anti-AChR IgG\n(AChR 항체, ~85%)\nAChRα-subunit 결합" fillcolor="#F9E79F" color="#B7950B" style="filled,bold,rounded"]
+    MUSK_AB       [label="Anti-MuSK IgG\n(MuSK 항체, ~5-8%)\n주로 IgG4 subclass" fillcolor="#F7DC6F"]
+    LRP4_AB       [label="Anti-LRP4 IgG\n(LRP4 항체, ~1-3%)" fillcolor="#F4D03F"]
+    TITIN_AB      [label="Anti-Titin Ab\n(흉선종 관련)" fillcolor="#F0D9FF"]
+    RYANR_AB      [label="Anti-RyR Ab\n(중증 흉선종 관련)" fillcolor="#F0D9FF"]
+    SERONEG       [label="Seronegative MG\n(항체 음성 ~10%)" fillcolor="#E8DAEF"]
+    IGG_POOL      [label="Circulating IgG\nPool (g/L)\n[FcRn 조절]" fillcolor="#FAD7A0" color="#A04000"]
+    IGG_SUBCLASS  [label="IgG Subclass\n(IgG1, IgG3 dominant\nin AChR-MG)" fillcolor="#F0C27F"]
+    AB_NMJ_BOUND  [label="NMJ-bound Ab\n(AChR에 결합한 Ab)" fillcolor="#E8A000" color="#8B4000" style="filled,bold,rounded"]
+    IDIOTYPE_NET  [label="Anti-idiotype\nNetwork" fillcolor="#FAE5A0"]
+
+    SL_PC     -> ACHR_AB    [label="secretes IgG1/3"]
+    LL_PC     -> ACHR_AB    [label="secretes\n(persistent)"]
+    SL_PC     -> MUSK_AB
+    LL_PC     -> LRP4_AB
+    ACHR_AB   -> IGG_POOL
+    MUSK_AB   -> IGG_POOL
+    LRP4_AB   -> IGG_POOL
+    IGG_POOL  -> IGG_SUBCLASS
+    IGG_POOL  -> AB_NMJ_BOUND  [label="binds NMJ\nAChR/MuSK"]
+  }
+
+  // ======================================================
+  // Subgraph 4: FcRn & IgG Homeostasis
+  // ======================================================
+  subgraph cluster_fcrn {
+    label="FcRn 경로 / FcRn-Mediated IgG Homeostasis"
+    style=filled
+    fillcolor="#F0FFF0"
+    color="#228B22"
+    fontsize=13
+    fontcolor="#228B22"
+    fontname="Helvetica-Bold"
+
+    FCRN          [label="FcRn Receptor\n(신생아 Fc 수용체\nFCGRT/β2m)" fillcolor="#90EE90" color="#006400"]
+    ENDOSOME      [label="Early Endosome\n(pH 6.0 → binding)" fillcolor="#98FB98"]
+    RECYCLED_IGG  [label="Recycled IgG\n(혈중 IgG 유지)" fillcolor="#7FFF00"]
+    DEGRADED_IGG  [label="Degraded IgG\n(라이소좀 분해)" fillcolor="#98FB98"]
+    TRANSCYTOSIS  [label="Transcytosis\n(세포 횡단 수송)" fillcolor="#ADFF2F"]
+    SATURATION    [label="FcRn Saturation\n(high IgG → ↑degradation)" fillcolor="#90EE90"]
+
+    EFGARTIGIMOD  [label="Efgartigimod\n(efgartigimod alfa\n10mg/kg IV qw)\n[FcRn blocker]" fillcolor="#006400" fontcolor="white" style="filled,bold,rounded"]
+    ROZANOLIXIZ   [label="Rozanolixizumab\n(1mg/kg SC qw)\n[FcRn blocker]" fillcolor="#228B22" fontcolor="white" style="filled,bold,rounded"]
+
+    IGG_POOL    -> ENDOSOME       [label="pinocytosis\ninto endothelium"]
+    ENDOSOME    -> FCRN           [label="pH-dependent\nbinding Kd~0.5μM"]
+    FCRN        -> RECYCLED_IGG   [label="pH 7.4\nrelease"]
+    FCRN        -> TRANSCYTOSIS
+    ENDOSOME    -> DEGRADED_IGG   [label="unbound →\nlysosomal path"]
+    RECYCLED_IGG -> IGG_POOL      [label="IgG t1/2~21d"]
+    SATURATION  -> DEGRADED_IGG   [label="excess IgG\ndegradation"]
+    EFGARTIGIMOD -> FCRN          [label="competes\nblocks recycling" color="darkgreen" style="bold"]
+    ROZANOLIXIZ  -> FCRN          [label="blocks\nrecycling" color="darkgreen" style="bold"]
+  }
+
+  // ======================================================
+  // Subgraph 5: NMJ Structural Components
+  // ======================================================
+  subgraph cluster_nmj {
+    label="신경근육 접합부 구조 / NMJ Structural Architecture"
+    style=filled
+    fillcolor="#FFF8DC"
+    color="#8B6914"
+    fontsize=13
+    fontcolor="#8B6914"
+    fontname="Helvetica-Bold"
+
+    MOTOR_NEURON  [label="α-Motor Neuron\n(α-운동신경세포)" fillcolor="#DEB887"]
+    AXON_TERMINAL [label="Axon Terminal\n(축삭 말단)" fillcolor="#D2B48C"]
+    PRESYNAPTIC   [label="Presynaptic Membrane\n(시냅스 전막)" fillcolor="#BC8F5F"]
+    SYN_CLEFT     [label="Synaptic Cleft\n(간극 50nm)" fillcolor="#F5DEB3"]
+    POSTSYNAPTIC  [label="Postsynaptic Membrane\n(시냅스 후막)" fillcolor="#DEB887"]
+    JUNC_FOLDS    [label="Junctional Folds\n(접합 주름)" fillcolor="#D2B48C"]
+    ACHR_CLUSTER  [label="AChR Clusters\n(~10^7/NMJ)\nε-subunit (adult)" fillcolor="#CD853F" color="#8B4513" style="filled,bold,rounded"]
+    MUSK_PROT     [label="MuSK\n(근특이 키나아제\nRTK)" fillcolor="#C4A882"]
+    LRP4_PROT     [label="LRP4\n(Agrin co-receptor)" fillcolor="#C4A882"]
+    AGRIN         [label="Agrin (neural)\n(NMJ 조직화 신호)" fillcolor="#DEB887"]
+    RAPSYN        [label="Rapsyn\n(AChR 군집화,43kDa)" fillcolor="#D2B48C"]
+    DYSTROPHIN    [label="Dystrophin-\nAssociated Complex" fillcolor="#C4A882"]
+    BASAL_LAMINA  [label="Basal Lamina\n(기저막)" fillcolor="#F5DEB3"]
+    COLLAG_Q      [label="ColQ\n(AChE 기저막 고정)" fillcolor="#D2B48C"]
+    ACHR_GAMMA    [label="Fetal AChR (γ-subunit)\n(재생 AChR)" fillcolor="#DEB887"]
+
+    MOTOR_NEURON  -> AXON_TERMINAL  [label="AP propagation"]
+    AXON_TERMINAL -> PRESYNAPTIC
+    PRESYNAPTIC   -> SYN_CLEFT      [label="ACh quanta\nrelease"]
+    SYN_CLEFT     -> POSTSYNAPTIC
+    POSTSYNAPTIC  -> JUNC_FOLDS
+    JUNC_FOLDS    -> ACHR_CLUSTER   [label="concentrated\nAChRs (10,000/μm²)"]
+    AGRIN         -> LRP4_PROT      [label="binds LRP4"]
+    LRP4_PROT     -> MUSK_PROT      [label="co-activates"]
+    MUSK_PROT     -> RAPSYN         [label="phosphorylates\nDok-7"]
+    RAPSYN        -> ACHR_CLUSTER   [label="anchors\nAChRs"]
+    COLLAG_Q      -> BASAL_LAMINA   [label="anchors AChE"]
+    DYSTROPHIN    -> POSTSYNAPTIC   [label="structural\nintegrity"]
+    ACHR_GAMMA    -> ACHR_CLUSTER   [label="compensatory\n↑ after damage"]
+  }
+
+  // ======================================================
+  // Subgraph 6: ACh Synthesis, Release & Degradation
+  // ======================================================
+  subgraph cluster_ach {
+    label="ACh 합성·방출·분해 / ACh Neurotransmission Cycle"
+    style=filled
+    fillcolor="#F8F0FF"
+    color="#6A0DAD"
+    fontsize=13
+    fontcolor="#6A0DAD"
+    fontname="Helvetica-Bold"
+
+    CHOLINE_UP    [label="Choline Uptake\n(CHT1, high-affinity)" fillcolor="#DDA0DD"]
+    CHOLINE       [label="Choline\n(콜린)" fillcolor="#D8BFD8"]
+    ACETYL_COA    [label="Acetyl-CoA\n(미토콘드리아 공급)" fillcolor="#DDA0DD"]
+    CHAT          [label="ChAT\n(Choline Acetyltransferase)" fillcolor="#DA70D6"]
+    ACH_SYNTH     [label="ACh Synthesis\n(아세틸콜린)" fillcolor="#EE82EE"]
+    ACH_VESICLE   [label="Synaptic Vesicle\n(~10,000 ACh mol/vesicle)" fillcolor="#FF69B4"]
+    VACHT         [label="VAChT\n(소포 ACh 수송체\nSLC18A3)" fillcolor="#FFB6C1"]
+    NERVE_AP      [label="Nerve Action\nPotential (Nav1.6)" fillcolor="#BA55D3"]
+    CA_INFLUX     [label="Ca²⁺ Influx\n(VGCC, P/Q-type\nCav2.1)" fillcolor="#9370DB"]
+    SNARE_COMP    [label="SNARE Complex\n(Synaptobrevin/\nSyntaxin/SNAP-25)" fillcolor="#8A2BE2"]
+    EXOCYTOSIS    [label="Vesicle Exocytosis\n(quantal release)" fillcolor="#7B68EE"]
+    ACH_RELEASED  [label="Released ACh\n(cleft concentration)" fillcolor="#9400D3"]
+    ACHE          [label="AChE\n(AChE, BuChE)\n[Pyridostigmine target]" fillcolor="#8B008B" fontcolor="white" style="filled,bold,rounded"]
+    ACHR_BIND     [label="ACh-AChR Binding\n(α1α1βδε subunit\n2 ACh sites)" fillcolor="#800080" fontcolor="white"]
+    ACH_HYDRO     [label="ACh → Choline\n+ Acetate (fast, ms)" fillcolor="#663399" fontcolor="white"]
+    NICOTINIC_ION [label="Nicotinic Ion Channel\nOpening (Na+/K+\nEPP generation)" fillcolor="#4B0082" fontcolor="white"]
+
+    PYRIDOSTIGMINE [label="Pyridostigmine\n(피리도스티그민\n60mg PO q6h)\n[AChEI]" fillcolor="#4B0082" fontcolor="white" style="filled,bold,rounded"]
+    AMBENONIUM     [label="Ambenonium\n[AChEI, alt]" fillcolor="#5B009B" fontcolor="white" style="filled,rounded"]
+
+    CHOLINE_UP  -> CHOLINE
+    ACETYL_COA  -> CHAT
+    CHOLINE     -> CHAT       [label="substrate"]
+    CHAT        -> ACH_SYNTH  [label="catalyzes"]
+    ACH_SYNTH   -> VACHT
+    VACHT       -> ACH_VESICLE [label="transports"]
+    NERVE_AP    -> CA_INFLUX  [label="depolarization"]
+    CA_INFLUX   -> SNARE_COMP [label="triggers\nvesicle fusion"]
+    SNARE_COMP  -> EXOCYTOSIS
+    ACH_VESICLE -> EXOCYTOSIS [label="exocytosed"]
+    EXOCYTOSIS  -> ACH_RELEASED
+    ACH_RELEASED -> ACHR_BIND [label="diffuses\nacross cleft"]
+    ACH_RELEASED -> ACHE      [label="substrate"]
+    ACHE        -> ACH_HYDRO  [label="hydrolysis\nkcat~1.4×10⁴/s"]
+    ACH_HYDRO   -> CHOLINE    [label="choline recycled"]
+    ACHR_BIND   -> NICOTINIC_ION [label="channel opening\nτ~1ms"]
+    PYRIDOSTIGMINE -> ACHE    [label="reversible\ninhibition\nIC50~10nM" color="purple" style="bold"]
+    AMBENONIUM  -> ACHE       [label="inhibits" color="purple"]
+  }
+
+  // ======================================================
+  // Subgraph 7: Complement Cascade
+  // ======================================================
+  subgraph cluster_complement {
+    label="보체 경로 / Classical Complement Cascade"
+    style=filled
+    fillcolor="#FFE4B5"
+    color="#FF8C00"
+    fontsize=13
+    fontcolor="#FF8C00"
+    fontname="Helvetica-Bold"
+
+    IgG_NMJ     [label="IgG-AChR Complex\nat NMJ" fillcolor="#FFA500"]
+    C1Q         [label="C1q\n(Pattern recognition)" fillcolor="#FFB347"]
+    C1R_C1S     [label="C1r/C1s\n(Serine proteases)" fillcolor="#FFC87F"]
+    C4_C2       [label="C4b/C2a\n(C3 convertase)" fillcolor="#FFDAA5"]
+    C3          [label="C3\n(Central complement)" fillcolor="#FFD700"]
+    C3A         [label="C3a\n(Anaphylatoxin)" fillcolor="#FFA07A"]
+    C3B         [label="C3b\n(Opsonin)" fillcolor="#FF8C00"]
+    C5_CONV     [label="C5 Convertase\n(C4b2a3b)" fillcolor="#FF7000"]
+    C5          [label="C5\n(MAC precursor)" fillcolor="#FF6347"]
+    C5A         [label="C5a\n(강력 염증 매개체\nC5aR1/R2)" fillcolor="#FF4500"]
+    C5B         [label="C5b\n(MAC initiation)" fillcolor="#FF6347"]
+    C6C9        [label="C6-C9\n(MAC assembly)" fillcolor="#FF7F50"]
+    MAC         [label="MAC (C5b-9)\n막공격 복합체\n→ NMJ 파괴" fillcolor="#FF0000" fontcolor="white" color="#8B0000" style="filled,bold,rounded"]
+    MAST_CELL   [label="Mast Cell Activation\n(C3a/C5a → degranulation)" fillcolor="#FFB347"]
+    NEUTROPHIL  [label="Neutrophil Recruitment\n(C5a chemotaxis)" fillcolor="#FFA500"]
+    MBL         [label="MBL Pathway\n(Lectin pathway)" fillcolor="#FFD0A0"]
+
+    ECULIZUMAB  [label="Eculizumab\n(에쿨리주맙\n900mg IV q2w)\n[anti-C5]" fillcolor="#8B4513" fontcolor="white" style="filled,bold,rounded"]
+    RAVULIZUMAB [label="Ravulizumab\n(라불리주맙\n3000mg IV q8w)\n[anti-C5, long-acting]" fillcolor="#A0522D" fontcolor="white" style="filled,bold,rounded"]
+    ZILUCOPLAN  [label="Zilucoplan\n(질루코플란\n0.3mg/kg SC qd)\n[C5 inhibitor]" fillcolor="#CD853F" fontcolor="white" style="filled,bold,rounded"]
+
+    IgG_NMJ   -> C1Q        [label="Fc-C1q\nbinding"]
+    C1Q        -> C1R_C1S   [label="activates"]
+    C1R_C1S   -> C4_C2      [label="cleaves C4/C2"]
+    C4_C2      -> C3         [label="C3 convertase\nkcat"]
+    MBL        -> C4_C2      [label="MASP1/2"]
+    C3         -> C3A
+    C3         -> C3B
+    C3B        -> C5_CONV    [label="C5 convertase"]
+    C5_CONV    -> C5         [label="cleaves"]
+    C5         -> C5A
+    C5         -> C5B
+    C5B        -> C6C9       [label="sequential\nassembly"]
+    C6C9       -> MAC        [label="pore formation\n(10nm)" ]
+    C3A        -> MAST_CELL
+    C5A        -> NEUTROPHIL
+    ECULIZUMAB  -> C5        [label="blocks C5\ncleavage\nKd<1nM" color="orange" style="bold"]
+    RAVULIZUMAB -> C5        [label="blocks C5\ncleavage\n(longer t1/2)" color="orange" style="bold"]
+    ZILUCOPLAN  -> C5        [label="blocks\nC5 cleavage" color="orange" style="bold"]
+  }
+
+  // ======================================================
+  // Subgraph 8: NMJ Damage & Pathophysiology
+  // ======================================================
+  subgraph cluster_damage {
+    label="NMJ 손상 기전 / NMJ Damage & Transmission Failure"
+    style=filled
+    fillcolor="#FFF0F5"
+    color="#DC143C"
+    fontsize=13
+    fontcolor="#DC143C"
+    fontname="Helvetica-Bold"
+
+    ACHR_DOWNREG  [label="↓AChR Density\n(NMJ AChR 밀도 감소)" fillcolor="#FFB6C1" color="#DC143C" style="filled,bold,rounded"]
+    COMPL_DAMAGE  [label="Complement-mediated\nNMJ Structural Damage" fillcolor="#FF69B4"]
+    CROSSLINK     [label="Ab Crosslinking\n→ AChR Internalization\n(endocytosis ↑)" fillcolor="#FF1493"]
+    BIND_BLOCK    [label="ACh Binding Site\nBlockade (MuSK-Ab)" fillcolor="#FF69B4"]
+    JUNC_LOSS     [label="Loss of Junctional\nFolds (구조 손실)" fillcolor="#FFB6C1"]
+    SAFE_FACTOR   [label="↓NMJ Safety Factor\n(EPP/threshold ratio\nnormal: ~3-5×)" fillcolor="#DC143C" fontcolor="white" style="filled,bold,rounded"]
+    EPP_AMP       [label="↓EPP Amplitude\n(종판전위 감소\nnormal: ~50mV)" fillcolor="#FF6B8A"]
+    AP_FAILURE    [label="Muscle AP Failure\n(역치 미달, 근섬유\n활성화 실패)" fillcolor="#C71585" fontcolor="white"]
+    FATIGUE_DECR  [label="↑Fatigue with\nRepetitive Activity\n(반복 자극 악화)" fillcolor="#DB7093"]
+    AXON_SPROUT   [label="Collateral Axon\nSprouting (보상 기전)" fillcolor="#FFD0E0"]
+    ACHR_UPREGUL  [label="Compensatory ↑AChR\nExpression (γ-type)" fillcolor="#FFB0C8"]
+
+    MAC           -> COMPL_DAMAGE
+    ACHR_AB       -> CROSSLINK     [label="crosslinks\nAChRs"]
+    ACHR_AB       -> BIND_BLOCK    [label="blocks\nbinding site"]
+    MUSK_AB       -> BIND_BLOCK    [label="disrupts\nMuSK signaling"]
+    LRP4_AB       -> AGRIN         [label="blocks Agrin\nbinding"]
+    CROSSLINK     -> ACHR_DOWNREG  [label="internalization\n& degradation\n↑ from normal"]
+    COMPL_DAMAGE  -> JUNC_LOSS
+    JUNC_LOSS     -> ACHR_DOWNREG
+    ACHR_DOWNREG  -> SAFE_FACTOR   [label="↓AChR\navailability"]
+    BIND_BLOCK    -> SAFE_FACTOR
+    SAFE_FACTOR   -> EPP_AMP       [label="EPP ∝ AChR×ACh"]
+    EPP_AMP       -> AP_FAILURE    [label="subthreshold\nEPP"]
+    AP_FAILURE    -> FATIGUE_DECR
+    AP_FAILURE    -> AXON_SPROUT   [label="adaptive\nresponse"]
+    AXON_SPROUT   -> ACHR_UPREGUL  [label="drives fetal\nγ-AChR"]
+  }
+
+  // ======================================================
+  // Subgraph 9: Pyridostigmine PK/PD
+  // ======================================================
+  subgraph cluster_pyrido {
+    label="피리도스티그민 PK/PD / Pyridostigmine Pharmacokinetics"
+    style=filled
+    fillcolor="#EEFFEE"
+    color="#006600"
+    fontsize=13
+    fontcolor="#006600"
+    fontname="Helvetica-Bold"
+
+    PYR_DOSE    [label="Pyridostigmine\nDose (60mg PO q6h)" fillcolor="#228B22" fontcolor="white"]
+    PYR_GUT     [label="Gut Compartment\n(F=0.13-0.25)" fillcolor="#32CD32"]
+    PYR_CENTRAL [label="Central Compartment\n(Vd=1.26 L/kg\nCmax~90ng/mL)" fillcolor="#3CB371" fontcolor="white"]
+    PYR_RENAL   [label="Renal Elimination\n(80% unchanged\nt1/2=1.9h)" fillcolor="#90EE90"]
+    PYR_HYDRO   [label="Plasma Hydrolysis\n(cholinesterase)" fillcolor="#98FB98"]
+    PYR_EFF     [label="AChE Inhibition\n(% inhibition\nEC50~50ng/mL)" fillcolor="#00AA00" fontcolor="white"]
+    CHOLINERGIC [label="Cholinergic Side\nEffects (muscarinic:\nnausea, diarrhea)" fillcolor="#66BB66"]
+
+    PYR_DOSE    -> PYR_GUT      [label="ka=1.2/h"]
+    PYR_GUT     -> PYR_CENTRAL  [label="bioavailability\n~0.18"]
+    PYR_CENTRAL -> PYR_RENAL    [label="ke=0.37/h\n(GFR dependent)"]
+    PYR_CENTRAL -> PYR_HYDRO    [label="hydrolysis"]
+    PYR_CENTRAL -> PYR_EFF      [label="Emax model"]
+    PYR_EFF     -> ACHE         [label="inhibits\n(reversible\ncarbamylation)" color="darkgreen" style="bold"]
+    PYR_EFF     -> CHOLINERGIC  [label="excess ACh\n(muscarinic)"]
+  }
+
+  // ======================================================
+  // Subgraph 10: Corticosteroid & Immunosuppressive PK
+  // ======================================================
+  subgraph cluster_cs_pk {
+    label="면역억제제 PK / Immunosuppressive Drug PK"
+    style=filled
+    fillcolor="#E6F3FF"
+    color="#003399"
+    fontsize=13
+    fontcolor="#003399"
+    fontname="Helvetica-Bold"
+
+    PRED_DOSE   [label="Prednisolone\n(0.5-1.5 mg/kg/d PO)" fillcolor="#4169E1" fontcolor="white"]
+    PRED_GUT    [label="Pred Gut\n(F=0.82)" fillcolor="#6495ED"]
+    PRED_CENT   [label="Pred Central\n(Vd=0.5 L/kg\nfu=0.2)" fillcolor="#4682B4" fontcolor="white"]
+    PRED_PERIPH [label="Pred Peripheral\n(fat, muscle)" fillcolor="#87CEEB"]
+    PRED_CL     [label="Pred CL\n(CL=0.3 L/h/kg\nCYP3A4)" fillcolor="#B0C4DE"]
+    GR_NUCLEAR  [label="GR-Nuclear\nTranslocation\n(GRα→nucleus)" fillcolor="#1A3A9C" fontcolor="white"]
+
+    AZA_DOSE    [label="Azathioprine\n(2-3 mg/kg/d PO)" fillcolor="#1C3A8C" fontcolor="white"]
+    SIXMP       [label="6-Mercaptopurine\n(6-MP)" fillcolor="#3A5FCC"]
+    TPMT        [label="TPMT\n(thiopurine\nmethyltransferase)" fillcolor="#5577DD"]
+    SIXTGN      [label="6-TGN\n(active metabolite\nDNA incorporation)" fillcolor="#2244BB" fontcolor="white"]
+    SIXMMP      [label="6-MMP\n(hepatotoxic\nmetabolite)" fillcolor="#7799EE"]
+
+    MMF_DOSE    [label="Mycophenolate\nMofetil (1-1.5g bid)" fillcolor="#003399" fontcolor="white"]
+    MPA         [label="MPA\n(mycophenolic acid\nIMPDH inhibitor)" fillcolor="#1A4499" fontcolor="white"]
+    IMPDH       [label="IMPDH Inhibition\n(↓GTP → ↓B/T prolif)" fillcolor="#4477AA"]
+    EHC_MPA     [label="Enterohepatic\nRecirculation (MPA)" fillcolor="#336699"]
+
+    PRED_DOSE   -> PRED_GUT     [label="dissolution"]
+    PRED_GUT    -> PRED_CENT    [label="ka=1.5/h"]
+    PRED_CENT   -> PRED_PERIPH  [label="distribution"]
+    PRED_CENT   -> PRED_CL      [label="elimination"]
+    PRED_CENT   -> GR_NUCLEAR   [label="GR activation\nKd~10nM"]
+    AZA_DOSE    -> SIXMP        [label="non-enzymatic\nhydrolysis"]
+    SIXMP       -> TPMT
+    SIXMP       -> SIXTGN       [label="HGPRT\npathway"]
+    TPMT        -> SIXMMP       [label="inactivation"]
+    MMF_DOSE    -> MPA          [label="hydrolysis\nF=0.72"]
+    MPA         -> IMPDH        [label="inhibits\nKi=23nM"]
+    MPA         -> EHC_MPA      [label="UDPGT\nglucuronide"]
+    EHC_MPA     -> MPA          [label="enterohepatic\nrecirculation"]
+  }
+
+  // ======================================================
+  // Subgraph 11: Biological Drugs PK
+  // ======================================================
+  subgraph cluster_bio_pk {
+    label="생물학적 제제 PK / Biologic Drug Pharmacokinetics"
+    style=filled
+    fillcolor="#F0E6FF"
+    color="#6600CC"
+    fontsize=13
+    fontcolor="#6600CC"
+    fontname="Helvetica-Bold"
+
+    RITUX_DOSE  [label="Rituximab\n(375mg/m² IV ×4\nq6m)" fillcolor="#9933FF" fontcolor="white"]
+    RITUX_CENT  [label="Rituximab Central\n(Vss=8.1 L)" fillcolor="#AA44FF" fontcolor="white"]
+    RITUX_PERIPH [label="Rituximab\nPeripheral" fillcolor="#BB66FF"]
+    RITUX_TMDD  [label="CD20-mediated\nElimination (TMDD)" fillcolor="#CC77FF"]
+    RITUX_LIN   [label="Linear CL\n(0.014 L/h)" fillcolor="#DD99FF"]
+
+    ECUL_DOSE   [label="Eculizumab\n(900mg IV q2w)" fillcolor="#550099" fontcolor="white"]
+    ECUL_CENT   [label="Eculizumab Central\n(Vss=7.7 L)" fillcolor="#6600AA" fontcolor="white"]
+    ECUL_C5     [label="Ecul-C5\nComplex" fillcolor="#7711BB" fontcolor="white"]
+
+    EFGAR_DOSE  [label="Efgartigimod\n(10mg/kg IV qw)" fillcolor="#7711BB" fontcolor="white"]
+    EFGAR_CENT  [label="Efgartigimod\nCentral" fillcolor="#8822CC" fontcolor="white"]
+    EFGAR_FCRN  [label="FcRn-bound\nEfgartigimod" fillcolor="#9933DD" fontcolor="white"]
+
+    RITUX_DOSE  -> RITUX_CENT   [label="IV bolus"]
+    RITUX_CENT  -> RITUX_PERIPH [label="Q=0.7 L/h"]
+    RITUX_CENT  -> RITUX_TMDD   [label="CD20 binding"]
+    RITUX_CENT  -> RITUX_LIN    [label="linear CL"]
+    RITUX_TMDD  -> RITUX_LIN    [label="internalized"]
+    ECUL_DOSE   -> ECUL_CENT    [label="IV infusion"]
+    ECUL_CENT   -> ECUL_C5      [label="C5 binding\nKd~0.1nM"]
+    ECUL_C5     -> ECUL_LIN_EL  [label="complex\nclearance"]
+    EFGAR_DOSE  -> EFGAR_CENT   [label="IV infusion"]
+    EFGAR_CENT  -> EFGAR_FCRN   [label="FcRn binding\n(endosomes)"]
+  }
+
+  ECUL_LIN_EL [label="Eculizumab\nClearance" fillcolor="#8800BB" fontcolor="white"]
+
+  // ======================================================
+  // Subgraph 12: Drug PD on Immune System
+  // ======================================================
+  subgraph cluster_imm_pd {
+    label="면역 조절 PD / Drug PD on Immune Compartment"
+    style=filled
+    fillcolor="#FFFFF0"
+    color="#808000"
+    fontsize=13
+    fontcolor="#808000"
+    fontname="Helvetica-Bold"
+
+    PRED_PD     [label="Prednisolone PD\n↓NF-κB, ↓IL-2/6/17\n↑IκB synthesis" fillcolor="#BDB76B"]
+    AZA_PD      [label="6-TGN PD\n↓Lymphocyte\nproliferation\n(DNA incorporation)" fillcolor="#8B8B00" fontcolor="white"]
+    MMF_PD      [label="MMF/MPA PD\n↓B cell activation\n(IMPDH selective)" fillcolor="#6B8E23"]
+    CYCLO_PD    [label="Cyclosporine PD\n↓Calcineurin\n↓IL-2 (CsA-CyP)" fillcolor="#556B2F" fontcolor="white"]
+    TACRO_PD    [label="Tacrolimus PD\n↓Calcineurin\n↓IL-2 (FK506-FKBP12)" fillcolor="#808000"]
+    RITUX_PD    [label="Rituximab PD\nB cell depletion\n(ADCC + CDC\n+ apoptosis)" fillcolor="#556B2F" fontcolor="white"]
+    CYCLOPHOS_PD [label="Cyclophosphamide\nPD (alkylating agent\nPC depletion)" fillcolor="#4A6000" fontcolor="white"]
+    ECUL_PD     [label="Eculizumab PD\n↓C5 cleavage\n↓MAC, ↓C5a" fillcolor="#6B8E23"]
+    EFGAR_PD    [label="Efgartigimod PD\n↓IgG recycling\n→ ↓Ab levels ~75%\n(4wk tx)" fillcolor="#808000"]
+
+    GR_NUCLEAR  -> PRED_PD      [label="transcription\nmodulation"]
+    SIXTGN      -> AZA_PD       [label="IMPDH inh\nDNA block"]
+    MPA         -> MMF_PD       [label="drives"]
+    RITUX_CENT  -> RITUX_PD     [label="drives"]
+    ECUL_CENT   -> ECUL_PD      [label="drives"]
+    EFGAR_CENT  -> EFGAR_PD     [label="drives"]
+
+    PRED_PD     -> TFH          [label="suppresses\nIL-2" color="darkgreen" style="dashed"]
+    PRED_PD     -> TH17         [label="suppresses\nIL-17" color="darkgreen" style="dashed"]
+    AZA_PD      -> SL_PC        [label="inhibits\nproliferation" color="darkgreen" style="dashed"]
+    MMF_PD      -> NAIVE_B      [label="inhibits\nB prolif" color="darkgreen" style="dashed"]
+    RITUX_PD    -> CD20_B       [label="depletes\nCD20+ cells" color="darkgreen" style="bold"]
+    ECUL_PD     -> MAC          [label="prevents\nformation" color="darkgreen" style="bold"]
+    EFGAR_PD    -> IGG_POOL     [label="↓IgG ~75%\nin 4 weeks" color="darkgreen" style="bold"]
+    CYCLOPHOS_PD -> LL_PC       [label="depletes LL-PC\n(BM niche)" color="darkgreen" style="dashed"]
+  }
+
+  // ======================================================
+  // Subgraph 13: Non-Drug Interventions
+  // ======================================================
+  subgraph cluster_nondrug {
+    label="비약물 치료 / Non-Pharmacological Interventions"
+    style=filled
+    fillcolor="#F0F8FF"
+    color="#4682B4"
+    fontsize=13
+    fontcolor="#4682B4"
+    fontname="Helvetica-Bold"
+
+    PLEX_RX     [label="Plasmapheresis\n(PLEX, 5 exchanges)\n[혈장 교환술]" fillcolor="#B8860B" fontcolor="white" style="filled,bold,rounded"]
+    IVIG_RX     [label="IVIG\n(2g/kg over 5d)\n[면역글로불린]" fillcolor="#DAA520" fontcolor="white" style="filled,bold,rounded"]
+    SCIG_RX     [label="SCIG\n(Subcutaneous IVIg\n1g/kg/m)" fillcolor="#DEB887" style="filled,bold,rounded"]
+    THYMECTOMY  [label="Thymectomy\n(흉선 절제술\nROBOT/VATS)" fillcolor="#483D8B" fontcolor="white" style="filled,bold,rounded"]
+    SUPPORTIVE  [label="Supportive Care\n(BiPAP, intubation\n흡인 예방)" fillcolor="#708090" fontcolor="white"]
+
+    PLEX_RX     -> IGG_POOL     [label="removes IgG\nrapidly (days)" color="#8B6914" style="bold"]
+    IVIG_RX     -> FCRN         [label="saturates FcRn\n→ ↓IgG t1/2" color="#8B6914" style="bold"]
+    IVIG_RX     -> ACHR_AB      [label="anti-idiotypic\nneutralization" color="#8B6914" style="dashed"]
+    SCIG_RX     -> FCRN         [label="sustained\nFcRn saturation"]
+    THYMECTOMY  -> THYMOMA      [label="removes source\n(MGTX trial)" color="darkblue" style="bold"]
+    THYMECTOMY  -> THYMIC_HYPER [label="removes\nhyperplastic\nthymus" color="darkblue" style="bold"]
+    THYMECTOMY  -> TFH          [label="reduces Tfh\nprimary site" color="darkblue" style="dashed"]
+    THYMECTOMY  -> SL_PC        [label="↓intrathymic\nPC long-term" color="darkblue" style="dashed"]
+  }
+
+  // ======================================================
+  // Subgraph 14: Muscle Physiology
+  // ======================================================
+  subgraph cluster_muscle {
+    label="근섬유 생리 / Skeletal Muscle Excitation-Contraction Coupling"
+    style=filled
+    fillcolor="#FFF5E6"
+    color="#8B4513"
+    fontsize=13
+    fontcolor="#8B4513"
+    fontname="Helvetica-Bold"
+
+    MUSCLE_AP   [label="Muscle Action\nPotential\n(Nav1.4 driven)" fillcolor="#DEB887"]
+    DHPR        [label="DHPR (L-type Ca²⁺\nchannel, Cav1.1)" fillcolor="#D2B48C"]
+    RYR1        [label="RyR1\n(Ryanodine Receptor\nSR Ca²⁺ release)" fillcolor="#BC8F5F"]
+    CA_SR       [label="SR Ca²⁺ Release\n([Ca²⁺]i ↑ → µM)" fillcolor="#CD853F"]
+    TROPONIN_C  [label="Troponin-C\n(Ca²⁺ binding site)" fillcolor="#C4A882"]
+    TROPOMYOSIN [label="Tropomyosin shift\n(actin site exposure)" fillcolor="#A0785A"]
+    CROSSBRIDGE [label="Myosin-Actin\nCross-bridge\n(power stroke)" fillcolor="#8B4513" fontcolor="white"]
+    CONTRACTION [label="Muscle Contraction\n(force generation)" fillcolor="#7B3F1A" fontcolor="white"]
+    SERCA       [label="SERCA\n(Ca²⁺-ATPase\nSR pump)" fillcolor="#D2B48C"]
+    ATP_USE     [label="ATP Consumption\n(myosin ATPase)" fillcolor="#DEB887"]
+    MITO_ENERGY [label="Mitochondrial\nEnergy (oxidative)" fillcolor="#C4A882"]
+
+    NICOTINIC_ION -> MUSCLE_AP  [label="Na+ entry →\ndepolarization"]
+    AP_FAILURE  -> MUSCLE_AP    [label="prevented by" style=dashed color=red]
+    MUSCLE_AP   -> DHPR         [label="T-tubule\ndepolarization"]
+    DHPR        -> RYR1         [label="mechanical\ncoupling"]
+    RYR1        -> CA_SR        [label="Ca²⁺ spark"]
+    CA_SR       -> TROPONIN_C   [label="binds 4 Ca²⁺"]
+    TROPONIN_C  -> TROPOMYOSIN  [label="conformational\nchange"]
+    TROPOMYOSIN -> CROSSBRIDGE  [label="permits\nmyosin binding"]
+    CROSSBRIDGE -> CONTRACTION  [label="force"]
+    CROSSBRIDGE -> ATP_USE      [label="ATPase activity"]
+    CONTRACTION -> SERCA        [label="ATP-driven\nCa²⁺ reuptake"]
+    SERCA       -> RYR1         [label="SR refilling"]
+    MITO_ENERGY -> ATP_USE      [label="supplies ATP"]
+    ATP_USE     -> MITO_ENERGY  [label="ADP signal"]
+  }
+
+  // ======================================================
+  // Subgraph 15: Clinical Endpoints & Outcomes
+  // ======================================================
+  subgraph cluster_clinical {
+    label="임상 엔드포인트 / Clinical Outcomes & Disease Burden"
+    style=filled
+    fillcolor="#F0F0FF"
+    color="#0000CC"
+    fontsize=13
+    fontcolor="#0000CC"
+    fontname="Helvetica-Bold"
+
+    QMG_SCORE   [label="QMG Score\n(0-39 points)\nPrimary trial endpoint" fillcolor="#9999FF" color="#0000AA" style="filled,bold,rounded"]
+    MGADL       [label="MG-ADL Score\n(Activities of\nDaily Living 0-24)" fillcolor="#AAAAFF" style="filled,bold,rounded"]
+    MGAS        [label="MGAS\n(MG Activity Scale)" fillcolor="#BBBBFF"]
+    MGFA_CLASS  [label="MGFA Classification\n(I~V)" fillcolor="#CCCCFF"]
+    MG_CRISIS   [label="Myasthenic Crisis\n(호흡 근육 마비\n→ ICU, ventilation)" fillcolor="#FF4444" fontcolor="white" color="#CC0000" style="filled,bold,rounded"]
+    PTOSIS      [label="Ptosis\n(안검하수)" fillcolor="#8888FF"]
+    DIPLOPIA    [label="Diplopia\n(복시)" fillcolor="#9999FF"]
+    DYSPHAG     [label="Dysphagia\n(연하곤란)" fillcolor="#AAAAFF"]
+    DYSARTH     [label="Dysarthria\n(구음장애)" fillcolor="#BBBBFF"]
+    NECK_FLEX   [label="Neck Flexion\nWeakness" fillcolor="#CCCCFF"]
+    LIMB_WEAK   [label="Limb Proximal\nWeakness (arm/leg)" fillcolor="#DDDDFF"]
+    RESP_FAIL   [label="Respiratory Muscle\nWeakness (FVC%,\nNIF, PEF)" fillcolor="#EE8888"]
+    STEROID_SE  [label="Corticosteroid\nSide Effects\n(骨密度↓, 血糖↑)" fillcolor="#99AAFF"]
+    CSR         [label="Complete Stable\nRemission (CSR)" fillcolor="#0000AA" fontcolor="white"]
+    MM_STATUS   [label="Minimal Manifestation\nStatus (MMS)" fillcolor="#2222CC" fontcolor="white"]
+
+    FATIGUE_DECR -> PTOSIS     [label="ocular MG"]
+    FATIGUE_DECR -> DIPLOPIA   [label="ocular MG"]
+    FATIGUE_DECR -> DYSPHAG    [label="bulbar MG"]
+    FATIGUE_DECR -> DYSARTH    [label="bulbar MG"]
+    FATIGUE_DECR -> NECK_FLEX
+    FATIGUE_DECR -> LIMB_WEAK
+    FATIGUE_DECR -> RESP_FAIL  [label="generalized\nsevere"]
+    RESP_FAIL   -> MG_CRISIS   [label="FVC<50%"]
+    PTOSIS      -> MGADL       [label="item 1-2"]
+    DIPLOPIA    -> MGADL       [label="item 3"]
+    DYSPHAG     -> MGADL       [label="item 4-5"]
+    DYSARTH     -> MGADL       [label="item 6"]
+    LIMB_WEAK   -> QMG_SCORE   [label="assessed"]
+    NECK_FLEX   -> QMG_SCORE   [label="assessed"]
+    RESP_FAIL   -> QMG_SCORE   [label="assessed"]
+    MGADL       -> MGAS        [label="part of"]
+    QMG_SCORE   -> MGFA_CLASS  [label="severity\nclassification"]
+    PRED_PD     -> STEROID_SE  [label="chronic use\nside effects"]
+    QMG_SCORE   -> CSR         [label="QMG=0\n(off meds 12m)"]
+    MGADL       -> MM_STATUS   [label="MGADL≤0\n(on min meds)"]
+  }
+
+  // ======================================================
+  // Subgraph 16: Disease Biomarkers
+  // ======================================================
+  subgraph cluster_biomarker {
+    label="바이오마커 패널 / Disease Activity Biomarkers"
+    style=filled
+    fillcolor="#F5FFFA"
+    color="#006400"
+    fontsize=13
+    fontcolor="#006400"
+    fontname="Helvetica-Bold"
+
+    ACHR_TITER  [label="Anti-AChR Titer\n(nmol/L, RIA)\nNormal: <0.4" fillcolor="#90EE90" color="#006400" style="filled,bold,rounded"]
+    MUSK_TITER  [label="Anti-MuSK Titer\n(CBA/ELISA, U/mL)" fillcolor="#98FB98"]
+    TOTAL_IGG   [label="Total IgG Level\n(g/L serum)" fillcolor="#7FFF00"]
+    SFEMG       [label="SFEMG Jitter\n(µs; single fiber EMG\nNormal: <55µs)" fillcolor="#ADFF2F"]
+    RNS_DECR    [label="RNS Decrement\n(3Hz/5Hz >10%\n반복 신경 자극)" fillcolor="#7CFC00"]
+    IL6_SER     [label="IL-6 Serum\n(pg/mL)" fillcolor="#00FA9A"]
+    TFH_COUNT   [label="Blood Tfh Count\n(CXCR5+CD4+, %)" fillcolor="#00FF7F"]
+    CH50        [label="CH50 / C3 / C4\n(보체 활성도)" fillcolor="#3CB371"]
+    SC5B9       [label="sC5b-9\n(Soluble MAC marker\nng/mL)" fillcolor="#2E8B57"]
+    THYMUS_CT   [label="Thymus CT/MRI\n(size, enhancement)" fillcolor="#006400" fontcolor="white"]
+    AUTOAB_PANEL [label="Full Ab Panel\n(AChR/MuSK/LRP4\nTitin/RyR)" fillcolor="#228B22" fontcolor="white"]
+    LYMPHO_COUNT [label="Lymphocyte Count\n(CD4+, CD19+)" fillcolor="#3CB371"]
+    IGG4_SUBCLASS [label="IgG4 Subclass\n(MuSK-MG dominant)" fillcolor="#2E8B57"]
+
+    ACHR_AB     -> ACHR_TITER   [label="measured as"]
+    MUSK_AB     -> MUSK_TITER   [label="measured as"]
+    IGG_POOL    -> TOTAL_IGG    [label="reflects"]
+    SAFE_FACTOR -> SFEMG        [label="↑jitter when\n↓safety factor"]
+    SAFE_FACTOR -> RNS_DECR     [label=">10% at\n3Hz/5Hz"]
+    C3A         -> CH50         [label="↓consumed\nin active MG"]
+    MAC         -> SC5B9        [label="measured as\nsystemic MAC"]
+    TFH         -> TFH_COUNT    [label="measured as\n% in blood"]
+    THYMIC_HYPER -> THYMUS_CT   [label="imaging"]
+    THYMOMA     -> THYMUS_CT    [label="imaging"]
+    GC_B        -> LYMPHO_COUNT [label="contributes"]
+    MUSK_AB     -> IGG4_SUBCLASS [label="predominantly\nIgG4 subtype"]
+  }
+
+  // ======================================================
+  // Key cross-cluster connections
+  // ======================================================
+  THYMUS_GC   -> NAIVE_B      [label="autoreactive\nB activation"]
+  TFH         -> GC_B         [label="T cell help\n(CD40L + IL-21)"]
+  TH17        -> NAIVE_B      [label="pro-inflammatory\ncytokines"]
+  IL21_SIGNAL -> TFH          [label="amplifies Tfh"]
+  CD40L_CD40  -> TFH          [label="T-B crosstalk"]
+  AB_NMJ_BOUND -> IgG_NMJ    [label="activates\ncomplement"]
+  MUSK_AB     -> MUSK_PROT   [label="disrupts MuSK\nclustering signal"]
+  LRP4_AB     -> LRP4_PROT   [label="blocks Agrin\nco-receptor"]
+  ACHR_TITER  -> QMG_SCORE   [label="correlates (partial)"]
+  RNS_DECR    -> MGFA_CLASS  [label="diagnostic\ncriteria"]
+  ACHR_DOWNREG -> QMG_SCORE  [label="drives ↑"]
+  SAFE_FACTOR -> QMG_SCORE   [label="drives ↑"]
+  FATIGUE_DECR -> MGADL      [label="drives ↑"]
+  CONTRACTION -> QMG_SCORE   [label="assessed via\nfatigue testing"]
+
+  // ======================================================
+  // IVIG/PLEX connections (cross-cluster)
+  // ======================================================
+  IVIG_RX     -> IDIOTYPE_NET [label="anti-idiotypic\nAb effects"]
+  PLEX_RX     -> ACHR_AB      [label="removes\nAb (acute)"]
+
+  // ======================================================
+  // Legend nodes (treatment grouping)
+  // ======================================================
+  subgraph cluster_legend {
+    label="치료 전략 / Treatment Categories"
+    style=filled
+    fillcolor="#EFEFEF"
+    color="#666666"
+    fontsize=12
+    fontcolor="#333333"
+    fontname="Helvetica-Bold"
+
+    LEG1 [label="Symptomatic\n(AChEI)" fillcolor="#4B0082" fontcolor="white"]
+    LEG2 [label="Rapid Immunotherapy\n(PLEX/IVIG)" fillcolor="#DAA520" fontcolor="white"]
+    LEG3 [label="Chronic Immunosuppression\n(CS/AZA/MMF/CNI)" fillcolor="#003399" fontcolor="white"]
+    LEG4 [label="Biologic Targets\n(anti-CD20/C5/FcRn)" fillcolor="#660099" fontcolor="white"]
+    LEG5 [label="Surgery\n(Thymectomy)" fillcolor="#483D8B" fontcolor="white"]
+    LEG6 [label="Clinical Endpoints\n(QMG/MG-ADL/CSR)" fillcolor="#0000AA" fontcolor="white"]
+  }
+}
