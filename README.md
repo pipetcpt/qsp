@@ -114,6 +114,8 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Multiple Sclerosis**](#multiple-sclerosis-ms) | 자가면역질환 / 신경계 | CD4+ Th1/Th17 → VLA-4/VCAM-1 → BBB breach → CNS infiltration → microglia activation → oligodendrocyte death → demyelination + axonal injury (NfL↑); IFN-β / Natalizumab / Ocrelizumab / Siponimod / DMF / Cladribine | [![MS](multiple-sclerosis/ms_qsp.png)](multiple-sclerosis/ms_qsp.svg) | [R](multiple-sclerosis/ms_mrgsolve_model.R) | [refs](multiple-sclerosis/ms_references.md) | [Shiny](multiple-sclerosis/ms_shiny_app.R) |
 | 2026-06-16 | [**Type 2 Diabetes Mellitus**](#type-2-diabetes-mellitus-t2dm) | 만성질환 / 대사 | Insulin resistance (peripheral + hepatic) + β-cell failure → glucotoxicity/lipotoxicity/ER stress → progressive HbA1c ↑; Metformin / SGLT2i / GLP-1RA / DPP-4i / SU / Insulin / TZD | [![T2DM](type2-diabetes/t2dm_qsp_model.png)](type2-diabetes/t2dm_qsp_model.svg) | [R](type2-diabetes/t2dm_mrgsolve_model.R) | [refs](type2-diabetes/t2dm_references.md) | [Shiny](type2-diabetes/t2dm_shiny_app.R) |
 | 2026-06-16 | [**NAFLD / NASH**](#nafldnash-non-alcoholic-fatty-liver-disease--steatohepatitis) | 만성질환 / 간 | IR → DNL↑ + Adipose FFA → Hepatic steatosis → Lipotoxicity (ceramide/DAG/ROS/ER-stress) → Kupffer/NLRP3 → TNF-α/IL-1β → TGF-β1/HSC → Fibrosis; Resmetirom (THRβ, FDA 2024) / OCA (FXR) / Semaglutide (GLP-1RA) / Empagliflozin (SGLT2i) | [![NAFLD](nafld-nash/nafld_qsp_model.png)](nafld-nash/nafld_qsp_model.svg) | [R](nafld-nash/nafld_mrgsolve_model.R) | [refs](nafld-nash/nafld_references.md) | [Shiny](nafld-nash/nafld_shiny_app.R) |
+| 2026-06-16 | [**Heart Failure (HFrEF)**](#heart-failure-with-reduced-ejection-fraction-hfref) | 만성질환 / 심혈관 | RAAS (AngII/Aldo) + SNS (NE↑) + NPS (BNP/NT-proBNP) triple neurohumoral activation → cardiac remodeling (TGF-β1/fibrosis/hypertrophy) → LVEF↓; GDMT 4 pillars: ARNI (PARADIGM-HF) + β-blocker (MERIT-HF) + MRA (RALES/EMPHASIS-HF) + SGLT2i (EMPEROR-Reduced/DAPA-HF) + Ivabradine (SHIFT) | [![HFrEF](heart-failure-hfref/hfref_qsp_model.png)](heart-failure-hfref/hfref_qsp_model.svg) | [R](heart-failure-hfref/hfref_mrgsolve_model.R) | [refs](heart-failure-hfref/hfref_references.md) | [Shiny](heart-failure-hfref/hfref_shiny_app.R) |
+
 
 ---
 
@@ -582,3 +584,88 @@ Multiple sclerosis is a chronic autoimmune demyelinating disease of the CNS affe
 | [`nafld_references.md`](nafld-nash/nafld_references.md) | 47 annotated references with PubMed links |
 | [`nafld_mrgsolve_model.R`](nafld-nash/nafld_mrgsolve_model.R) | mrgsolve ODE model (21 states) + 6 treatment scenarios + dose-response analysis |
 | [`nafld_shiny_app.R`](nafld-nash/nafld_shiny_app.R) | 7-tab Shiny dashboard (patient profile, PK, hepatic endpoints, fibrosis/inflammation, metabolic biomarkers, scenario comparison, biomarker tracker) |
+
+---
+
+### Heart Failure with Reduced Ejection Fraction (HFrEF)
+
+> Directory: [`heart-failure-hfref/`](heart-failure-hfref/)
+
+**Disease Overview**
+
+Heart failure with reduced ejection fraction (HFrEF, LVEF < 40%) affects over 26 million people worldwide and carries a 5-year mortality of ~50%. The cardinal feature is neurohumoral activation — a vicious cycle in which impaired cardiac output triggers compensatory but ultimately maladaptive RAAS and SNS up-regulation, driving progressive ventricular remodeling, fibrosis, and further pump failure.
+
+**Key Mechanistic Axes**
+
+| Pathway | Core Biology |
+|---------|-------------|
+| RAAS | Reduced MAP → renin release → AngI → ACE → AngII → AT1R → vasoconstriction, aldosterone, Na retention, TGF-β1, hypertrophy |
+| ACE2 / Ang(1-7) axis | Counter-regulatory: ACE2 converts AngI→Ang1-7 → MasR → NO↑, vasodilation, anti-fibrotic |
+| SNS | Low CO → baroreceptor blunting → CNS → NE↑ → β1AR → cAMP/PKA → acute inotropy (short-term) → β1AR downregulation, apoptosis, RAAS stimulation (long-term) |
+| NPS | Wall stress → BNP/ANP → NPR-A → cGMP → PKG → vasodilation, natriuresis, anti-fibrotic |
+| Cardiac Remodeling | AngII + Aldo + TNF-α → TGF-β1 → fibroblast → myofibroblast → ColI/ColIII + TIMP↑ → ECM fibrosis; wall stress → MAPK/NFAT/PI3K → CM hypertrophy; CM apoptosis via ROS/caspase |
+| Inflammation | NF-κB → TNF-α/IL-6/IL-1β ↑ (cardiodepressant cytokines); NLRP3 inflammasome; NOX2-ROS; iNOS peroxynitrite |
+| Hemodynamics | LVEDV↑, SV↓, CO↓, SVR↑, PCWP↑ → congestion (dyspnea, edema) + forward failure (fatigue, exercise intolerance) |
+
+**Drug PK/PD (GDMT 4+1 Pillars)**
+
+| Drug Class | Agent | Mechanism | Key Trial |
+|-----------|-------|-----------|-----------|
+| ARNI | Sacubitril/Valsartan (Entresto) | NEP inhibition (↑BNP/Ang1-7/ANP plasma) + AT1R block | PARADIGM-HF: CV death/HF-hosp ↓20% vs enalapril |
+| β-Blocker | Metoprolol succinate / Carvedilol | β1AR competitive antagonism → ↓HR, ↓cAMP/PKA, reverse remodeling | MERIT-HF: all-cause mortality ↓34% |
+| MRA | Spironolactone / Eplerenone / Finerenone | MR competitive block → ↓Na retention, ↓TGF-β1/fibrosis, ↑K+ | RALES: mortality ↓30%; EMPHASIS-HF: CV death/HF-hosp ↓37% |
+| SGLT2i | Dapagliflozin / Empagliflozin | Osmotic diuresis (↓preload) + direct cardiac effects (NHE1↓, mitochondria↑, AMPK↑) | EMPEROR-Reduced: primary endpoint ↓25%; DAPA-HF: ↓26% |
+| Ivabradine | Ivabradine | HCN/If channel block → ↓HR (no inotropy) | SHIFT: CV death/HF-hosp ↓18% in HR ≥70 bpm |
+
+**Mechanistic Map** (126 nodes, 9 pathway subgraphs):
+
+[![HFrEF QSP Map](heart-failure-hfref/hfref_qsp_model.png)](heart-failure-hfref/hfref_qsp_model.svg)
+
+*Click image to open interactive SVG. Clusters: RAAS · SNS · NPS · Cardiac Remodeling · Inflammation/ROS · Hemodynamics · Drug PK/PD · Clinical Endpoints · Comorbidities*
+
+**ODE Model Summary** (21 states)
+
+| State Group | Variables |
+|-------------|-----------|
+| RAAS (4) | AngI, AngII, Ang(1-7), Aldosterone |
+| SNS (1) | Plasma NE |
+| NPS (3) | BNP, NT-proBNP, cGMP |
+| Hemodynamics (4) | LVEDV, Heart Rate, SVR, LVEF |
+| Remodeling (3) | Fibrosis score, TGF-β1, Hypertrophy index |
+| Inflammation (2) | TNF-α, IL-6 |
+| Drug PK (6) | LBQ657, Valsartan, β-blocker, MRA, SGLT2i, Ivabradine |
+
+**Treatment Scenarios (5)**
+
+| Scenario | Regimen | 12-Month LVEF Change | NT-proBNP Reduction |
+|----------|---------|---------------------|---------------------|
+| 1 | No Therapy | +0% (progressive worsening) | — |
+| 2 | ACEi + BB | ~+5–7% | ~30% |
+| 3 | ARNI + BB + MRA | ~+8–10% | ~37–40% |
+| 4 | ARNI + BB + MRA + SGLT2i | ~+10–13% | ~45–50% |
+| 5 | ARNI + BB + MRA + SGLT2i + IVA | ~+11–14% | ~48–53% |
+
+**Shiny Dashboard** (8 interactive tabs)
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | Baseline LVEF/NYHA/BNP/NT-proBNP/CO; GDMT pillar status; hemodynamic & neurohormonal radar |
+| 2. Drug Pharmacokinetics | LBQ657/Valsartan/BB/MRA/SGLT2i/IVA concentration–time profiles; Emax summary; steady-state PK table |
+| 3. RAAS & SNS | AngII, Aldosterone, Plasma NE, Ang(1-7) trajectories with interactive drug effect sliders |
+| 4. NPS & Hemodynamics | BNP/NT-proBNP (log), cGMP, CO/SV, PCWP/SVR — including PARADIGM-HF BNP paradox visualization |
+| 5. Cardiac Remodeling | LVEF trajectory, LVEDV reverse remodeling, fibrosis score, TGF-β1, hypertrophy index |
+| 6. Clinical Endpoints | NYHA class, HR, eGFR, TNF-α/IL-6 inflammatory burden |
+| 7. Scenario Comparison | 5-arm LVEF/NT-proBNP/CO comparison; 12-month summary table with DT |
+| 8. Biomarker Risk | ESC 2021 response criteria table; risk zone scatter (BNP vs. EF trajectory); relative risk reduction bar chart |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`hfref_qsp_model.dot`](heart-failure-hfref/hfref_qsp_model.dot) | Graphviz DOT source (fdp layout, 126 nodes, 9 subgraphs) |
+| [`hfref_qsp_model.svg`](heart-failure-hfref/hfref_qsp_model.svg) | Vector mechanistic map (213 KB) |
+| [`hfref_qsp_model.png`](heart-failure-hfref/hfref_qsp_model.png) | Raster mechanistic map (11 MB, 150 dpi) |
+| [`hfref_references.md`](heart-failure-hfref/hfref_references.md) | 62 annotated references with PubMed links (15 sections) |
+| [`hfref_mrgsolve_model.R`](heart-failure-hfref/hfref_mrgsolve_model.R) | mrgsolve ODE model (21 states) + 5 treatment scenarios + dose-response + sensitivity analysis |
+| [`hfref_shiny_app.R`](heart-failure-hfref/hfref_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, RAAS/SNS, NPS/hemodynamics, remodeling, clinical endpoints, scenario comparison, biomarker risk) |
+
