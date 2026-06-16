@@ -113,6 +113,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**IgA Nephropathy**](#iga-nephropathy-igan) | 자가면역질환 / 신장 | Four-hit: Gd-IgA1↑ (C1GalT1/Cosmc↓) → anti-Gd-IgA1 IgG → IC mesangial deposition → complement AP + MAC → podocyte injury + TIF; Budesonide TRF / Sparsentan / Iptacopan / Sibeprenlimab | [![IgAN](iga-nephropathy/igan_qsp_model.png)](iga-nephropathy/igan_qsp_model.svg) | [R](iga-nephropathy/igan_mrgsolve_model.R) | [refs](iga-nephropathy/igan_references.md) | [Shiny](iga-nephropathy/igan_shiny_app.R) |
 | 2026-06-16 | [**Multiple Sclerosis**](#multiple-sclerosis-ms) | 자가면역질환 / 신경계 | CD4+ Th1/Th17 → VLA-4/VCAM-1 → BBB breach → CNS infiltration → microglia activation → oligodendrocyte death → demyelination + axonal injury (NfL↑); IFN-β / Natalizumab / Ocrelizumab / Siponimod / DMF / Cladribine | [![MS](multiple-sclerosis/ms_qsp.png)](multiple-sclerosis/ms_qsp.svg) | [R](multiple-sclerosis/ms_mrgsolve_model.R) | [refs](multiple-sclerosis/ms_references.md) | [Shiny](multiple-sclerosis/ms_shiny_app.R) |
 | 2026-06-16 | [**Type 2 Diabetes Mellitus**](#type-2-diabetes-mellitus-t2dm) | 만성질환 / 대사 | Insulin resistance (peripheral + hepatic) + β-cell failure → glucotoxicity/lipotoxicity/ER stress → progressive HbA1c ↑; Metformin / SGLT2i / GLP-1RA / DPP-4i / SU / Insulin / TZD | [![T2DM](type2-diabetes/t2dm_qsp_model.png)](type2-diabetes/t2dm_qsp_model.svg) | [R](type2-diabetes/t2dm_mrgsolve_model.R) | [refs](type2-diabetes/t2dm_references.md) | [Shiny](type2-diabetes/t2dm_shiny_app.R) |
+| 2026-06-16 | [**NAFLD / NASH**](#nafldnash-non-alcoholic-fatty-liver-disease--steatohepatitis) | 만성질환 / 간 | IR → DNL↑ + Adipose FFA → Hepatic steatosis → Lipotoxicity (ceramide/DAG/ROS/ER-stress) → Kupffer/NLRP3 → TNF-α/IL-1β → TGF-β1/HSC → Fibrosis; Resmetirom (THRβ, FDA 2024) / OCA (FXR) / Semaglutide (GLP-1RA) / Empagliflozin (SGLT2i) | [![NAFLD](nafld-nash/nafld_qsp_model.png)](nafld-nash/nafld_qsp_model.svg) | [R](nafld-nash/nafld_mrgsolve_model.R) | [refs](nafld-nash/nafld_references.md) | [Shiny](nafld-nash/nafld_shiny_app.R) |
 
 ---
 
@@ -501,3 +502,83 @@ Multiple sclerosis is a chronic autoimmune demyelinating disease of the CNS affe
 | [`t2dm_references.md`](type2-diabetes/t2dm_references.md) | 40 annotated references with PubMed links |
 | [`t2dm_mrgsolve_model.R`](type2-diabetes/t2dm_mrgsolve_model.R) | mrgsolve ODE model (25 states) + 7 treatment scenarios + calibration table |
 | [`t2dm_shiny_app.R`](type2-diabetes/t2dm_shiny_app.R) | 7-tab Shiny dashboard (patient profile, PK, glucose/insulin, β-cell, endpoints, comparison, biomarkers) |
+
+---
+
+### NAFLD/NASH — Non-Alcoholic Fatty Liver Disease / Steatohepatitis
+
+> Directory: [`nafld-nash/`](nafld-nash/)
+
+**Mechanistic Map** (120+ nodes, 10 pathway clusters):
+
+[![NAFLD QSP Map](nafld-nash/nafld_qsp_model.png)](nafld-nash/nafld_qsp_model.svg)
+
+| Cluster | Coverage |
+|---------|----------|
+| Dietary Input & Gut-Liver Axis | Dietary fat/fructose/CHO → intestinal absorption → chylomicron → portal FFA/TG; fructolysis → DNL; enterohepatic circulation; LPS translocation |
+| Gut Microbiome | Dysbiosis (Firmicutes:Bacteroidetes ↑); SCFA/LPS/TMAO/ETOH production; tight junction loss; bile acid transformation (BSH) |
+| Hepatic Lipid Metabolism | DNL (SREBP-1c/ChREBP/FASN); FAO (PPARα/CPT1A); TG accumulation; VLDL assembly/secretion; ceramide/DAG lipotoxicity; steatosis (NAS) |
+| Mitochondrial & Oxidative Stress | ETC leak → ROS; lipid peroxidation (4-HNE/MDA); ER stress (ATF6/IRE1/PERK/UPR); Nrf2/antioxidant; mPTP → apoptosis |
+| Inflammatory Signaling (NASH) | TLR4/TLR2/NF-κB; NLRP3 inflammasome → IL-1β/IL-18; Kupffer cell M1/M2; TNF-α/IL-6/IL-8/IL-10; neutrophil/macrophage recruitment; hepatocyte ballooning (NAS) |
+| Fibrosis Pathway | TGF-β1 → ALK5/SMAD2/3 → COL1A1/COL3A1/CTGF; HSC activation (quiescent→myofibroblast); PDGF proliferation; MMP-2/TIMP-1 balance; ECM accumulation → F0→F4 |
+| Insulin Resistance & Adipose-Liver Axis | VAT lipolysis → portal FFA; adiponectin/leptin; IR (HOMA-IR) → SREBP-1c↑/FOXO1→gluconeogenesis; PI3K/Akt; AMPK/SIRT1; DAG-PKCε-IR |
+| Drug PK/PD | Resmetirom (2-cmpt+OATP1B hepatic uptake, THRβ Ki=0.9nM, ↓DNL/↑FAO); OCA (1-cmpt, FXR/SHP/CYP7A1↓, anti-fibrotic); Semaglutide (SC depot QW, GLP-1R appetite+IR); Empagliflozin (oral, SGLT2 inhibition → UGE → weight loss) |
+| Biomarkers & Clinical Endpoints | ALT/AST, MRI-PDFF, FibroScan LSM, NAS (0–8), FIB-4, ELF score, PRO-C3, LDL-C/TG/HDL-C, HbA1c, HOMA-IR, hs-CRP; NASH resolution, cirrhosis, HCC |
+| Systemic Metabolic Context | BMI/obesity; hyperglycemia; dyslipidemia; hypertension; MetS; PCOS association; T2DM comorbidity; CVD risk; weight loss/fibrosis regression |
+
+**ODE System (21 state variables):**
+
+| Module | States | Key Equations |
+|--------|--------|---------------|
+| Resmetirom PK | RSM_GUT, RSM_CENT, RSM_PERI, RSM_LIVER | 2-cmpt oral + OATP1B hepatic uptake; Cl_liver = 0.7×CL×Cp/V |
+| OCA PK | OCA_GUT, OCA_CENT | 1-cmpt high-hepatic-clearance; E_OCA = Emax×Cp/(EC50+Cp) |
+| Semaglutide PK | SEM_SC, SEM_CENT | SC depot (ka=0.0045 h⁻¹, t½≈7d); E_SEM drives weight loss + IR |
+| Empagliflozin PK | EMP_GUT, EMP_CENT | 1-cmpt oral; SGLT2 inhibition → urinary glucose excretion |
+| Liver fat | LIVER_FAT | `dLF/dt = KLIN×DNL×(BW/BW₀) − KOUT×LF×(1+0.6×E_RSM)(1+0.15×E_SEM)` |
+| Insulin resistance | INS_RES | IR_ss = IR₀×(1 + FFA-effect + TNF-effect − adiponectin-protection)×(1 − drug-effect) |
+| Kupffer cell | KUPFFER | `dKUP/dt = (KOUT×KUP₀ + KLIP×Lipotox)/(1 + drug-inh) − KOUT×KUP` |
+| Cytokines | TNFA, IL6C, TGFB | First-order; production ∝ Kupffer activation + lipotoxicity; drug inhibition of TGF-β |
+| Fibrosis | HSC, COLLAGEN | `dHSC/dt = (KOUT×HSC₀ + KTGF×TGFB)/(1+OCA/RSM-inh) − KOUT×HSC` |
+| ALT | ALT_CMT | `dALT/dt = KREL + KAPOP×TNF×Lipotox − KOUT×ALT` |
+| Adipokines/Weight | ADIPONECTIN, BODY_WT | Weight ↓ with semaglutide (KOUT×(WT_target − WT)); adiponectin ↑ with weight loss |
+
+**Treatment Scenarios (6 arms, 72-week simulation):**
+
+| # | Regimen | Expected ΔLiver Fat | ΔFIB Score | ΔALT |
+|---|---------|---------------------|------------|------|
+| 1 | Placebo | 0% | 0 | 0 U/L |
+| 2 | Resmetirom 100 mg QD | −37% (MAESTRO-NASH) | −0.3 stage | −25 U/L |
+| 3 | OCA 25 mg QD | −22% | −0.4 stage | −15 U/L |
+| 4 | Semaglutide 2.4 mg QW | −31% (ESSENCE) | −0.25 stage | −20 U/L |
+| 5 | Resmetirom + Semaglutide | −52% (est.) | −0.55 stage | −35 U/L |
+| 6 | Triple (RSM + OCA + Sema) | −60% (est.) | −0.7 stage | −42 U/L |
+
+**Calibration landmarks:**
+- MAESTRO-NASH Phase 3 (Harrison 2024, *NEJM*): Resmetirom → 25.9% NASH resolution, −37% liver fat, −24% LDL-C ✓
+- REGENERATE (Friedman 2023, *Lancet*): OCA 25mg → 23% ≥1 fibrosis stage improvement ✓
+- ESSENCE Phase 3 (Newsome 2021, *NEJM*): Semaglutide → 59% histological response, −31% liver fat ✓
+- EMPA-NAFLD (Sattar 2021): Empagliflozin → −22% liver fat, ALT normalization in T2DM+NAFLD ✓
+- FLINT trial (Neuschwander-Tetri 2015): OCA → NAS improvement at Wk 72 ✓
+
+**Shiny Dashboard Tabs (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | BMI/age/T2DM/fibrosis staging; disease overview; treatment landscape (2024–2025) |
+| 2. Drug PK Profiles | Resmetirom/OCA/Semaglutide/Empagliflozin concentration-time curves; PK parameter table; customizable PK parameters |
+| 3. Hepatic Endpoints | Liver fat %, MRI-PDFF, NAS, ALT trajectories; user-selectable treatment arm; responder threshold |
+| 4. Fibrosis & Inflammation | Fibrosis score, HSC activation, TGF-β1, TNF-α, IL-6, Kupffer cell — all interactive with parameter sliders |
+| 5. Metabolic Biomarkers | HOMA-IR, body weight, serum TG, LDL-C, adiponectin, FIB-4 — adjustable baseline metabolic profile |
+| 6. Scenario Comparison | Up to 6 arms simultaneously; metric-selectable plot; Week-72 summary table |
+| 7. Biomarker Tracker | Spider/radar plot (normalized to baseline); biomarker panel selection; change-from-baseline table at Wk 12/24/48/72 |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`nafld_qsp_model.dot`](nafld-nash/nafld_qsp_model.dot) | Graphviz DOT source (120+ nodes, 10 subgraph clusters; fdp layout) |
+| [`nafld_qsp_model.svg`](nafld-nash/nafld_qsp_model.svg) | Vector mechanistic map (163 KB) |
+| [`nafld_qsp_model.png`](nafld-nash/nafld_qsp_model.png) | Raster mechanistic map (3.6 MB, 150 dpi) |
+| [`nafld_references.md`](nafld-nash/nafld_references.md) | 47 annotated references with PubMed links |
+| [`nafld_mrgsolve_model.R`](nafld-nash/nafld_mrgsolve_model.R) | mrgsolve ODE model (21 states) + 6 treatment scenarios + dose-response analysis |
+| [`nafld_shiny_app.R`](nafld-nash/nafld_shiny_app.R) | 7-tab Shiny dashboard (patient profile, PK, hepatic endpoints, fibrosis/inflammation, metabolic biomarkers, scenario comparison, biomarker tracker) |
