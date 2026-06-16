@@ -119,6 +119,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Bronchial Asthma**](#bronchial-asthma) | 만성질환 / 호흡기 | TSLP/IL-25/IL-33 (epithelial alarmins) → ILC2/DC → Th2 → IL-4/IL-5/IL-13 → IgE:FcεRI (mast cell) + Eos recruitment + ASM contraction + goblet metaplasia + airway remodeling (TGF-β1); Biologics: Omalizumab / Mepolizumab (MENSA) / Benralizumab (CALIMA) / Dupilumab (LIBERTY AIR) / Tezepelumab (NAVIGATOR) | [![Asthma](bronchial-asthma/ba_qsp_model.png)](bronchial-asthma/ba_qsp_model.svg) | [R](bronchial-asthma/ba_mrgsolve_model.R) | [refs](bronchial-asthma/ba_references.md) | [Shiny](bronchial-asthma/ba_shiny_app.R) |
 | 2026-06-16 | [**COPD**](#copd-chronic-obstructive-pulmonary-disease) | 만성질환 / 호흡기 | CS/AP → ROS + NRF2↓ → Macrophage(M1)+NE/MMP-12 → Protease-antiprotease imbalance → Emphysema(ECM elastin↓) + Small airway fibrosis (TGF-β/SMAD2/3) → FEV1↓; CD8+Tc1/Th17 adaptive; PH-COPD(HPV→ET-1↑); LAMA(UPLIFT) + LABA/LAMA(FLAME) + Triple(IMPACT/ETHOS) + PDE4i(EINSTEIN/Roflumilast) | [![COPD](copd/copd_qsp.png)](copd/copd_qsp.svg) | [R](copd/copd_mrgsolve_model.R) | [refs](copd/copd_references.md) | [Shiny](copd/copd_shiny_app.R) |
 | 2026-06-16 | [**Crohn's Disease**](#crohns-disease-cd) | 자가면역질환 / 소화기 | Gut dysbiosis + NOD2/TLR → Macrophage M1 + DC → Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21/IL-23) → NF-κB → mucosal barrier loss + NLRP3/IL-1β + fibrosis (TGF-β/MMP); Anti-TNF (IFX/ADA, ACCENT/CHARM) + Anti-IL-12/23 (UST, UNIFI) + Anti-α4β7 (VDZ, GEMINI) + JAK1i (Upadacitinib, U-ACHIEVE) + AZA/6-TGN (SONIC) | [![CD](crohn-disease/cd_qsp_model.png)](crohn-disease/cd_qsp_model.svg) | [R](crohn-disease/cd_mrgsolve_model.R) | [refs](crohn-disease/cd_references.md) | [Shiny](crohn-disease/cd_shiny_app.R) |
+| 2026-06-16 | [**Ankylosing Spondylitis**](#ankylosing-spondylitis-as) | 자가면역질환 / 척추관절염 | HLA-B27 misfolding (UPR → IL-23) + enthesis microdamage → DAMP/TLR → DC/Macrophage IL-23 → Th17 IL-17A/IL-17F ★ + RANKL↑/OPG↓ → dual bone pathology: erosion (osteoclast) + ankylosis (BMP/Wnt/DKK1 ↓ new bone); Gut–joint axis (dysbiosis/ILC3); TNFi (ATLAS/GO-RAISE) + IL-17Ai (MEASURE 1/2, COAST-V) + JAKi (SELECT-AXIS 1/2) + IL-23i (GUIDE) | [![AS](ankylosing-spondylitis/as_qsp_model.png)](ankylosing-spondylitis/as_qsp_model.svg) | [R](ankylosing-spondylitis/as_mrgsolve_model.R) | [refs](ankylosing-spondylitis/as_references.md) | [Shiny](ankylosing-spondylitis/as_shiny_app.R) |
 
 
 ---
@@ -1040,3 +1041,94 @@ Chronic Kidney Disease (CKD) affects ~850 million people worldwide and is define
 | [`cd_references.md`](crohn-disease/cd_references.md) | 62 curated references, 17 sections, all PubMed-linked |
 | [`cd_mrgsolve_model.R`](crohn-disease/cd_mrgsolve_model.R) | 22-state mrgsolve ODE model + 7 treatment scenarios + population PK/PD (N=200) |
 | [`cd_shiny_app.R`](crohn-disease/cd_shiny_app.R) | 7-tab interactive Shiny dashboard (bslib flatly theme) |
+
+---
+
+### Ankylosing Spondylitis (AS)
+
+**Disease Overview:** Ankylosing Spondylitis (AS) is a chronic, progressive inflammatory arthritis affecting primarily the axial skeleton (sacroiliac joints and spine). It is strongly associated with HLA-B27 (>90% positive). The hallmark pathology is dual: inflammatory bone erosion at entheses AND pathological new bone formation (syndesmophytes → ankylosis). The gut–joint axis (subclinical IBD in ~60%, ILC3-driven IL-17 amplification) and IL-17/IL-23/TNF cytokine network are central to pathogenesis.
+
+**Mechanistic Map (162 nodes, 10 clusters):**
+
+[![Ankylosing Spondylitis QSP Map](ankylosing-spondylitis/as_qsp_model.png)](ankylosing-spondylitis/as_qsp_model.svg)
+
+| Cluster | Key Nodes |
+|---------|-----------|
+| 1. Genetic & Environmental | HLA-B27 (misfolding → UPR → IL-23), ERAP1, IL-23R variant, CARD9, ER stress, HLA-B27 homodimers (KIR3DL2), Mechanical stress, Microbial trigger |
+| 2. Innate Immunity & Enthesis | Enthesis (primary lesion), Fibrocartilage, DAMPs (HSP60/HMGB1/S100), TLR2/4/9, NF-κB, Macrophage M1, DC (pDC/cDC), Neutrophil, Mast cell, ILC3, γδ/MAIT T cells, NLRP3/IL-1β/IL-18, ROS/NET |
+| 3. Adaptive Immunity | Naive CD4+, Th17 (RORγt/IL-17A ★/IL-17F/IL-22), Th1 (IFN-γ/TNF), Treg, CD8+ T (HLA-B27), NK, JAK-STAT3, RORC/T-bet, STAT4 |
+| 4. Inflammatory Signaling | TNF-α (total), TNFR1/R2, NF-κB hub, MAPK/p38, AP-1, JAK1/2/3, STAT1/3, IL-6 (total), gp130, CRP, SAA, MMP-3/9, COX-2/PGE2 |
+| 5. Bone Remodeling | Osteoclast (erosion), Osteoblast (new bone), RANKL/RANK/OPG ratio ★, M-CSF, Wnt/LRP5-6 pathway, DKK1, Sclerostin (SOST), BMP-2/4/7, Smad1/5/8, Hedgehog, TGF-β1, Syndesmophyte, mSASSS |
+| 6. Target Organs & Clinical | SIJ (primary), Spine (thoracolumbar), Uveitis (EIM 27%), IBD (EIM), Hip, BASDAI, ASDAS-CRP, BASFI, BASMI, ASAS 20/40 |
+| 7. Drug PK | ADA (40mg SC q2w), ETA (50mg SC qw), IFX (5mg/kg IV), CZP, GLM, SEC (150/300mg SC), IXE, Bimekizumab, GUS, RIS, TOF (5mg BID), UPA (15mg QD), NSAIDs |
+| 8. Drug PD | TNFi (TNF neutralization), IL-17Ai (IL-17A ± F block), Bimekizumab (IL-17A+F dual), IL-23i (p19 subunit), JAKi (JAK1-selective), NSAID/COX-2 inhibition |
+| 9. Gut–Joint Axis | Gut microbiome dysbiosis (↓Lachnospiraceae, ↑Prevotella), gut ILC3, Gut DC IL-23 production, Subclinical IBD (60%), Portal circulation, Molecular mimicry |
+| 10. PK/PD Outputs | Free TNF/IL-17/IL-23, Disease activity (composite), BASDAI/ASDAS-CRP simulated, mSASSS progression, ASAS20/40, Trial calibration (ATLAS/MEASURE/COAST-V/SELECT-AXIS/GUIDE) |
+
+**mrgsolve ODE Model (22 states):**
+
+| Compartment Group | States | Description |
+|-------------------|--------|-------------|
+| Adalimumab PK | ADA_SC, ADA_C | 1-cmpt SC; ka=0.019/h, F=0.64, CL=9.6 mL/h, V=7600 mL, t½≈14 d |
+| Etanercept PK | ETA_SC, ETA_C | 1-cmpt SC; ka=0.048/h, F=0.76, t½≈4 d |
+| Secukinumab PK | SEC_SC, SEC_C, SEC_P | 2-cmpt SC; ka=0.015/h, F=0.73, CL=4.8 mL/h, Vc=3600, Vp=2800, Q=1.2 mL/h, t½≈27 d |
+| Tofacitinib PK | TOF_C | 1-cmpt oral; ka=1.5/h, F=0.74, CL=3500 mL/h, V=87000 mL, t½≈3 h |
+| Upadacitinib PK | UPA_C | 1-cmpt oral; ka=1.2/h, F=0.79, CL=8500 mL/h, V=96000 mL, t½≈15 h |
+| NSAID PK | NSAID_C | 1-cmpt oral; naproxen proxy, t½≈12–14 h |
+| Cytokine PD | TNF, IL17A, IL23, IL6 | pg/mL; IL-17/IL-23 cross-drive; JAKi partial suppression of all; TNFi Emax=85%, IL-17Ai Emax=90% |
+| Acute Phase | CRP | mg/L; IL-6-driven hepatic production; t½≈19 h; ASDAS component |
+| Bone remodeling | RANKL, OPG | AU; TNF upregulates RANKL, downregulates OPG; TNFi partially reverses |
+| Osteoclast | OC | Activity (AU); driven by RANKL/OPG ratio × TNF; TNFi inhibits |
+| Bone formation | BF | Syndesmophyte index; IL-17A + Wnt/BMP driven; TNF-DKK1 paradox modeled |
+| Structural outcome | Erosion, mSASSS | Cumulative scores; mSASSS rate: IL-17Ai > TNFi inhibition |
+| Composite disease | DiseaseAct | 0–1 continuous; Kout model; maps to BASDAI/ASDAS |
+
+**Key ODE Equations:**
+- `dxdt_TNF = kprod_TNF × TNF_base × IL17_amp × HLA_factor − kdeg_TNF × TNF × (1 + Inh_TNFi + 0.3×Inh_JAKi)`
+- `dxdt_IL17A = kprod_IL17 × IL17_base × (1 + 0.6×IL23_drv) × HLA_factor − kdeg_IL17 × IL17A × (1 + Inh_IL17i + 0.2×Inh_JAKi)`
+- `dxdt_BF = kform_BF × (1 + 0.5×IL17A/IL17_base) × (1 − 0.4×Inh_TNFi) − kdeg_BF × BF` ← TNF-DKK1 paradox
+- `dxdt_mSASSS = 0.00015 × BF × (1 − 0.5×Inh_IL17i − 0.3×Inh_TNFi)` ← IL-17Ai > TNFi for bone
+- `BASDAI_sim = BASDAI_ss × DiseaseAct / 0.68`
+
+**Clinical Trial Calibration:**
+
+| Trial | Drug | n | Primary Endpoint | Observed | Model |
+|-------|------|---|-----------------|---------|-------|
+| ATLAS wk 24 | Adalimumab 40mg q2w | 208 | ASAS20 | 59% vs 22% PBO | ✓ |
+| MEASURE 1 wk 16 | Secukinumab 150mg | 371 | ASAS20 | 61% vs 29% PBO | ✓ |
+| GO-RAISE wk 24 | Golimumab 50mg q4w | 356 | ASAS20 | 59% vs 22% PBO | ✓ (ADA proxy) |
+| COAST-V wk 16 | Ixekizumab 80mg q4w | 341 | ASAS20 | 52% vs 18% PBO | ✓ (SEC proxy) |
+| SELECT-AXIS 1 wk 14 | Upadacitinib 15mg QD | 187 | ASAS40 | 52% vs 26% PBO | ✓ |
+| GUIDE | Guselkumab 100mg q8w | 474 | ASAS20 | active vs PBO | ✓ (IL-23i class) |
+
+**Treatment Scenarios (7 arms, 52-week simulation):**
+1. Placebo — Natural history; BASDAI ~6.8, ASDAS ~3.9, CRP ~15 mg/L
+2. Adalimumab 40mg SC q2w — TNFi; Inh_TNFi Emax=0.85
+3. Etanercept 50mg SC qw — TNFi (shorter t½=4d); similar efficacy
+4. Secukinumab 150mg SC (loading wk0–4 then q4w) — IL-17Ai; superior mSASSS suppression
+5. Tofacitinib 5mg BID oral — JAK1/3; ASAS40 ~40%; rapid onset (t½ 3h)
+6. Upadacitinib 15mg QD oral — JAK1-selective; superior vs tofacitinib on bone
+7. NSAID (naproxen equivalent) — Symptom relief only; partial CRP reduction
+
+**Shiny App (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | Demographics (WT, sex, HLA-B27), BASDAI/CRP/IL-17A baseline, prior TNFi history, disease severity classification, drug suitability radar chart |
+| 2. Drug PK | Concentration–time profiles (μg/mL for biologics, ng/mL for JAKi), 2-cmpt SEC peripheral compartment, PK parameter table, Cmax/Tmax/AUC summary |
+| 3. Disease Activity | BASDAI & ASDAS-CRP dual-axis plot, threshold annotations (BASDAI<4, ASDAS<2.1), CRP dynamics, TNF-α and IL-17A suppression side-by-side |
+| 4. Structural Progression | mSASSS cumulative plot, bone formation vs erosion trajectories, RANKL:OPG ratio, TNF-DKK1 paradox bone interpretation |
+| 5. Clinical Endpoints | ASAS20/40 probability over time, BASDAI50 milestone, response table at wk 4/12/16/24/52, trial benchmark comparison (ATLAS/MEASURE) |
+| 6. Scenario Comparison | All 7 drugs overlay (BASDAI, TNF, mSASSS), Week-24 DT summary with BASDAI/ASDAS/CRP/ASAS20/40 by scenario |
+| 7. Biomarker Dashboard | Selectable biomarkers (TNF, IL-17A, IL-23, IL-6, CRP, RANKL, OPG), drug efficacy inhibition % plot, osteoclast & bone formation time course |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`as_qsp_model.dot`](ankylosing-spondylitis/as_qsp_model.dot) | Graphviz source (162 nodes, 10 clusters, 200+ edges; sfdp layout) |
+| [`as_qsp_model.svg`](ankylosing-spondylitis/as_qsp_model.svg) | Vector mechanistic map |
+| [`as_qsp_model.png`](ankylosing-spondylitis/as_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`as_references.md`](ankylosing-spondylitis/as_references.md) | 56 curated references, 13 sections, all PubMed-linked |
+| [`as_mrgsolve_model.R`](ankylosing-spondylitis/as_mrgsolve_model.R) | 22-state mrgsolve ODE model + 7 treatment scenarios + ATLAS/MEASURE/SELECT-AXIS calibration |
+| [`as_shiny_app.R`](ankylosing-spondylitis/as_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard, plotly interactive) |
