@@ -116,6 +116,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**NAFLD / NASH**](#nafldnash-non-alcoholic-fatty-liver-disease--steatohepatitis) | 만성질환 / 간 | IR → DNL↑ + Adipose FFA → Hepatic steatosis → Lipotoxicity (ceramide/DAG/ROS/ER-stress) → Kupffer/NLRP3 → TNF-α/IL-1β → TGF-β1/HSC → Fibrosis; Resmetirom (THRβ, FDA 2024) / OCA (FXR) / Semaglutide (GLP-1RA) / Empagliflozin (SGLT2i) | [![NAFLD](nafld-nash/nafld_qsp_model.png)](nafld-nash/nafld_qsp_model.svg) | [R](nafld-nash/nafld_mrgsolve_model.R) | [refs](nafld-nash/nafld_references.md) | [Shiny](nafld-nash/nafld_shiny_app.R) |
 | 2026-06-16 | [**Heart Failure (HFrEF)**](#heart-failure-with-reduced-ejection-fraction-hfref) | 만성질환 / 심혈관 | RAAS (AngII/Aldo) + SNS (NE↑) + NPS (BNP/NT-proBNP) triple neurohumoral activation → cardiac remodeling (TGF-β1/fibrosis/hypertrophy) → LVEF↓; GDMT 4 pillars: ARNI (PARADIGM-HF) + β-blocker (MERIT-HF) + MRA (RALES/EMPHASIS-HF) + SGLT2i (EMPEROR-Reduced/DAPA-HF) + Ivabradine (SHIFT) | [![HFrEF](heart-failure-hfref/hfref_qsp_model.png)](heart-failure-hfref/hfref_qsp_model.svg) | [R](heart-failure-hfref/hfref_mrgsolve_model.R) | [refs](heart-failure-hfref/hfref_references.md) | [Shiny](heart-failure-hfref/hfref_shiny_app.R) |
 | 2026-06-16 | [**Chronic Kidney Disease (CKD)**](#chronic-kidney-disease-ckd) | 만성질환 / 신장 | Nephron loss (hyperfiltration → GS → TIF) → eGFR↓; RAAS (AngII/Aldo) + NF-κB + TGF-β1/Smad2/3 fibrosis + CKD-MBD (FGF-23↑/Klotho↓/PTH↑) + Anemia (EPO↓/Hepcidin↑) + CV (LVH/VC); ACEi / ARB / Finerenone (FIDELIO-DKD) / SGLT2i (DAPA-CKD/EMPA-KIDNEY) / ESA / HIF-PHI (Roxadustat) | [![CKD](chronic-kidney-disease/ckd_qsp_model.png)](chronic-kidney-disease/ckd_qsp_model.svg) | [R](chronic-kidney-disease/ckd_mrgsolve_model.R) | [refs](chronic-kidney-disease/ckd_references.md) | [Shiny](chronic-kidney-disease/ckd_shiny_app.R) |
+| 2026-06-16 | [**Bronchial Asthma**](#bronchial-asthma) | 만성질환 / 호흡기 | TSLP/IL-25/IL-33 (epithelial alarmins) → ILC2/DC → Th2 → IL-4/IL-5/IL-13 → IgE:FcεRI (mast cell) + Eos recruitment + ASM contraction + goblet metaplasia + airway remodeling (TGF-β1); Biologics: Omalizumab / Mepolizumab (MENSA) / Benralizumab (CALIMA) / Dupilumab (LIBERTY AIR) / Tezepelumab (NAVIGATOR) | [![Asthma](bronchial-asthma/ba_qsp_model.png)](bronchial-asthma/ba_qsp_model.svg) | [R](bronchial-asthma/ba_mrgsolve_model.R) | [refs](bronchial-asthma/ba_references.md) | [Shiny](bronchial-asthma/ba_shiny_app.R) |
 
 
 ---
@@ -756,3 +757,95 @@ Chronic Kidney Disease (CKD) affects ~850 million people worldwide and is define
 | [`ckd_references.md`](chronic-kidney-disease/ckd_references.md) | 40 annotated references with PubMed links (10 sections) |
 | [`ckd_mrgsolve_model.R`](chronic-kidney-disease/ckd_mrgsolve_model.R) | mrgsolve ODE model (35 compartments) + 5 treatment scenarios + anemia scenarios + dose-response |
 | [`ckd_shiny_app.R`](chronic-kidney-disease/ckd_shiny_app.R) | 6-tab Shiny dashboard (patient profile, PK, renal function, PD biomarkers, endpoints, CV/MBD) |
+
+
+---
+
+### Bronchial Asthma
+
+> Directory: [`bronchial-asthma/`](bronchial-asthma/)
+
+> 알레르겐 등 환경 자극에 의해 기도 상피에서 분비되는 알라민(TSLP/IL-25/IL-33)이 ILC2·수지상세포를 활성화하고, Th2 분화(IL-4/IL-5/IL-13)·IgE 생성·비만세포 탈과립·호산구 침윤·기도평활근 수축·점액 과분비·기도 리모델링으로 이어지는 Type-2 염증 중심의 만성 기도 질환.
+
+**Mechanistic Map** (110+ nodes, 16 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| Environmental Triggers | Allergen (HDM/pollen/cat/mold), RV/RSV, PM2.5/O3, cold air, NSAID, tobacco |
+| Airway Epithelium & Innate Barrier | TSLP, IL-25, IL-33/ST2, EGFR, TJ barrier disruption, IFN-λ, ROS |
+| ILC2 & Innate Lymphoid | ILC2 activation, GATA3, PGD2/CRTH2, KLRG1 inhibition; IL-4/IL-5/IL-13 (ILC2-derived) |
+| Dendritic Cells | DC maturation, OX40L, MHC-II presentation, Th2 polarization |
+| Th2 / Adaptive Immunity | Th2/Th1/Th17/Treg; GATA3/T-bet/RORγt; IL-4/IL-5/IL-13/IL-9/IL-17A; STAT6/STAT5 |
+| B Cell & IgE | GC reaction, plasma cell, IgE class-switch (AID), FcεRI/CD23, total/free IgE |
+| Mast Cell & Basophil | FcεRI cross-linking, Syk/PLCγ/PI3K, histamine/PGD2/LTC4/tryptase release |
+| Eosinophil Biology | BM → blood → tissue; IL-5Rα; CCR3/eotaxin; MBP/ECP granule; Siglec-8 apoptosis |
+| Airway Smooth Muscle | Ca2+/MLCK/MLC, RhoA/ROCK, cAMP/PKA, β2AR, M3R, H1R, CysLT1/2, TRPA1 |
+| Mucus & Goblet Cell | IL-13 → SPDEF → MUC5AC/MUC5B; CLCA1; submucosal gland hypertrophy |
+| Airway Remodeling | TGF-β1/SMAD2/3 → fibroblast→myofibroblast → collagen; VEGF; FGF-2; periostin; MMP-2/9 |
+| Neurogenic Inflammation | SP/CGRP/NK1R, vagal reflex, ACh/M3, NGF → sensory nerve plasticity |
+| Lung Function & Clinical | FEV1, FVC, PEF, AHR, exacerbation rate, ACQ-5/7, AQLQ, symptom score, FeNO, PC20 |
+| Biomarkers | Blood/tissue Eos, FeNO (ppb), serum IgE, periostin, tryptase, T2-high vs T2-low endotype |
+| Drug PK | 2-compartment SC model for 5 biologics; ICS lung/systemic; LABA/LAMA; Omalizumab TMDD |
+| Drug Mechanisms | Omalizumab (anti-IgE TMDD), Mepolizumab (IL-5↓), Benralizumab (IL-5Rα ADCC), Dupilumab (IL-4Rα), Tezepelumab (TSLP), ICS/LABA/LAMA/Montelukast |
+
+**Mechanistic Map Preview:**
+
+[![Bronchial Asthma QSP Map](bronchial-asthma/ba_qsp_model.png)](bronchial-asthma/ba_qsp_model.svg)
+
+**mrgsolve Model Summary:**
+
+| Compartment Group | ODE States | Description |
+|-------------------|-----------|-------------|
+| Mepolizumab PK | MEPO_SC, MEPO_C1, MEPO_C2 | 2-cmt SC; ka=0.0067/h, F=77% |
+| Benralizumab PK | BENZ_SC, BENZ_C1, BENZ_C2 | 2-cmt SC; q4w×3 → q8w; F=59% |
+| Dupilumab PK | DUPIL_SC, DUPIL_C1, DUPIL_C2 | 2-cmt SC; ka=0.0042/h; t½≈21 d |
+| Tezepelumab PK | TEZE_SC, TEZE_C1, TEZE_C2 | 2-cmt SC; ka=0.0072/h; t½≈26 d |
+| Omalizumab + TMDD | OMAL_SC, OMAL_C1, IgE_FREE, IgE_RC | TMDD: kon/koff/kdeg; IgE_ss=2.25 nM |
+| ICS / LABA | ICS_LUNG, ICS_SYS, LABA_C | GR-mediated cytokine suppression |
+| TSLP | TSLP_PD | Alarmin hub; Tezepelumab neutralisation |
+| IL-5 | IL5_PD | Eos growth/survival; Mepolizumab |
+| IL-13 | IL13_PD | Goblet/ASM/remodeling; Dupilumab |
+| Blood Eosinophil | EOS_B | IL-5-driven BM production/release |
+| Tissue Eosinophil | EOS_T | Blood → airway influx (IL-13/eotaxin) |
+| ASM Tone | ASM_TONE | IL-13 + EOS_T driven; LABA relaxation |
+| Mucus | MUCUS | IL-13 → goblet → MUC5AC |
+| FEV1 | FEV1_ODE | Target driven by ASM/Mucus/EOS_T |
+
+**Key ODE relationships:**
+- `dIL5/dt = ksyn_IL5 × (1 + 0.5 × TSLP_rel) × (1 − E_ICS) × (1 − E_Mepo) − kdeg_IL5 × IL5`
+- `dEOS_B/dt = kprod × IL5_rel × (1 − E_Mepo) × (1 − E_Benz) − kin × EOS_B`
+- `dFEV1/dt = kFEV1 × (FEV1_target − FEV1)` where `FEV1_target = 78 − 30 × (0.5·f_ASM + 0.3·f_Mucus + 0.2·f_EOS_T)`
+
+**Treatment Scenarios (5):**
+
+| # | Scenario | FEV1 Δ (wk 52) | Blood Eos Δ | AER Δ |
+|---|----------|-----------------|------------|-------|
+| 1 | ICS/LABA only | +10–12% | −10% | baseline |
+| 2 | + Mepolizumab 100 mg q4w | +16–18% | −70–80% | −50% |
+| 3 | + Benralizumab 30 mg q4w→q8w | +17–19% | −90–97% | −51% |
+| 4 | + Dupilumab 300 mg q2w | +18–20% | transient ↑ then ↓ | −48% |
+| 5 | + Tezepelumab 210 mg q4w | +19–21% | −65–75% | −56% |
+
+**Shiny App – 7 Tabs:**
+
+| Tab | Content |
+|-----|---------|
+| 1. Patient Profile | Baseline eos/FEV1/IL-13; T2 endotype radar; mechanistic map preview |
+| 2. Drug PK | Biologic concentration-time; PK parameter table |
+| 3. PD Biomarkers | Blood/tissue eosinophils; IL-5/IL-13; TSLP |
+| 4. Lung Function | FEV1 with GINA zone lines; ASM tone; mucus; FEV1 timepoint table |
+| 5. Clinical Endpoints | Exacerbation hazard; ACQ proxy; rescue SABA use; week-52 summary |
+| 6. Scenario Comparison | All 5 scenarios FEV1/Eos plots; week-52 comparison table |
+| 7. Dose–Response | Biologic dose–response (FEV1 + Eos at wk 52); biomarker threshold analysis |
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`ba_qsp_model.dot`](bronchial-asthma/ba_qsp_model.dot) | Graphviz DOT source (ortho layout, 110+ nodes, 16 subgraph clusters) |
+| [`ba_qsp_model.svg`](bronchial-asthma/ba_qsp_model.svg) | Vector mechanistic map |
+| [`ba_qsp_model.png`](bronchial-asthma/ba_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`ba_references.md`](bronchial-asthma/ba_references.md) | 42 annotated references with PubMed links (10 sections) |
+| [`ba_mrgsolve_model.R`](bronchial-asthma/ba_mrgsolve_model.R) | mrgsolve ODE model (22 compartments) + 5 treatment scenarios + dose-response |
+| [`ba_shiny_app.R`](bronchial-asthma/ba_shiny_app.R) | 7-tab interactive Shiny dashboard |
+
