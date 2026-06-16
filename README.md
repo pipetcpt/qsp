@@ -10,6 +10,7 @@
 
 
 
+
 ## iqrtools
 
 - <https://www.intiquan.com/acop2019_qsp/>
@@ -19,15 +20,16 @@
 ## QSP Disease Models
 
 Each model lives in its own subdirectory (lowercase with dashes). Every directory contains:
-- `*.dot` — Mechanistic map source (Graphviz DOT format)
+- `*.dot` — Mechanistic map source (Graphviz DOT format, >100 nodes)
 - `*.svg` / `*.png` — Rendered mechanistic map
-- `references.md` — Key literature (PubMed links)
-- `*_model.R` — mrgsolve ODE model (compilable R code)
-- `shiny_app/app.R` — Interactive Shiny PK/PD simulator
+- `*references.md` — Curated PubMed literature
+- `*_model.R` / `*_mrgsolve_model.R` — mrgsolve ODE model + simulation scenarios
+- `shiny_app/app.R` / `*_shiny_app.R` — Interactive Shiny PK/PD dashboard
 
-| Date | Disease | Category | Mechanism Summary | Map | Model | App |
-|------|---------|----------|-------------------|-----|-------|-----|
-| 2026-06-16 | [Rheumatoid Arthritis](#rheumatoid-arthritis) | 자가면역질환 | T/B cell–driven synovitis; TNF-α / IL-6 / JAK-STAT; bone erosion (RANKL/OPG); cDMARDs + biologics (TNFi, IL-6Ri, JAKi) | [DOT](rheumatoid-arthritis/ra_qsp.dot) · [SVG](rheumatoid-arthritis/ra_qsp.svg) | [R](rheumatoid-arthritis/ra_model.R) | [Shiny](rheumatoid-arthritis/shiny_app/app.R) |
+| Date | Disease | Category | Mechanism Summary | Map | Model | Refs | App |
+|------|---------|----------|-------------------|-----|-------|------|-----|
+| 2026-06-16 | [**Rheumatoid Arthritis**](#rheumatoid-arthritis) | 자가면역질환 | T/B cell–driven synovitis; TNF-α / IL-6 / JAK-STAT; bone erosion (RANKL/OPG); cDMARDs + biologics (TNFi, IL-6Ri, JAKi) | [![RA](rheumatoid-arthritis/ra_qsp.png)](rheumatoid-arthritis/ra_qsp.svg) | [R](rheumatoid-arthritis/ra_model.R) | [refs](rheumatoid-arthritis/references.md) | [Shiny](rheumatoid-arthritis/shiny_app/app.R) |
+| 2026-06-16 | [**Pulmonary Arterial Hypertension**](#pulmonary-arterial-hypertension-pah) | 만성질환 / 폐혈관 | EC dysfunction → ET-1↑/NO↓/PGI₂↓ → vasoconstriction + PASMC remodelling; BMPR2 loss; RV failure; ERA + PDE5i + PGI₂ | [![PAH](pulmonary-arterial-hypertension/pah_qsp_model.png)](pulmonary-arterial-hypertension/pah_qsp_model.svg) | [R](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | [refs](pulmonary-arterial-hypertension/pah_references.md) | [Shiny](pulmonary-arterial-hypertension/pah_shiny_app.R) |
 
 ---
 
@@ -81,3 +83,59 @@ Each model lives in its own subdirectory (lowercase with dashes). Every director
 | [`references.md`](rheumatoid-arthritis/references.md) | 66 annotated references (PubMed links) |
 | [`ra_model.R`](rheumatoid-arthritis/ra_model.R) | mrgsolve ODE model + 4 dosing scenarios |
 | [`shiny_app/app.R`](rheumatoid-arthritis/shiny_app/app.R) | Interactive Shiny simulator |
+
+---
+
+### Pulmonary Arterial Hypertension (PAH)
+
+> Directory: [`pulmonary-arterial-hypertension/`](pulmonary-arterial-hypertension/)
+
+> 폐동맥 내피세포 기능 부전 및 혈관 평활근 비대로 폐혈관 저항이 상승하여 우심실 부전을 유발하는 희귀 진행성 질환.
+
+**Mechanistic Map** (130+ nodes, 10 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| ET-1 Vasoconstriction | ET-1 → ETA/ETB → Gq/G12 → PLC/RhoA → IP₃/Ca²⁺/ROCK → MLCK/MLCP → vasoconstriction |
+| NO-cGMP Vasodilation | eNOS/BH4/L-Arg → NO → sGC → cGMP → PKG → Kv-channel opening → vasodilation; PDE5 degradation |
+| PGI₂-cAMP Vasodilation | AA → COX → PGIS → PGI₂ → IP-receptor → Gs → AC → cAMP → PKA → vasodilation |
+| Growth Factor Signalling | BMPR2/ALK1/BMP9 → SMAD1/5/8 → ID1; TGF-β → SMAD2/3; PDGFR/VEGFR/FGFR → RAS-ERK/PI3K-AKT-mTOR/STAT3 |
+| Vascular Remodelling | PASMC proliferation, EC dysfunction, EndMT, collagen synthesis, MMP-2/9, ECM remodelling, plexiform lesion |
+| Inflammation & Immune | Th1/Th2/Th17/Treg, M1/M2 macrophage, mast cells, B cells, NK/CD8+, IL-6/IL-1β/TNF-α → NF-κB |
+| Hypoxia & Metabolism | HIF-1α/2α, VHL/PHD axis, Warburg glycolysis, mitochondrial fission (DRP1/OPA1), Kv1.5↓, ROS/NOX4/SOD2 |
+| RV-PA Haemodynamics | PVR → mPAP (Ohm's law); Ees/Ea coupling; Frank-Starling; RV hypertrophy → failure; TR; IVS bowing; RAAS/SNS |
+| Biomarkers | BNP/NT-proBNP, hs-TnI, TAPSE, RVEF, RAP, ET-1, DLCO |
+| Drug PK/PD | ERA (bosentan/ambrisentan/macitentan, IC₅₀ Emax Hill); PDE5i (sildenafil/tadalafil); sGC stimulator (riociguat); PGI₂ analogues (epoprostenol/treprostinil/selexipag) |
+
+**Mechanistic Map Preview:**
+
+[![PAH QSP Map](pulmonary-arterial-hypertension/pah_qsp_model.png)](pulmonary-arterial-hypertension/pah_qsp_model.svg)
+
+**mrgsolve Model Summary:**
+
+| Compartment | States | Description |
+|-------------|--------|-------------|
+| ERA PK | ERA_gut, ERA_central, ERA_periph, ERA_effect | 2-compartment oral + effect-site equilibration |
+| PDE5i PK | PDE5_gut, PDE5_central, PDE5_effect | 1-compartment oral + effect-site |
+| PGI₂ PK | PGI2_central, PGI2_effect | IV infusion (t½ ~3 min) |
+| PD — Mediators | ET1, cGMP, cAMP | Turnover ODE for each second messenger |
+| PD — Structure | VRI | Vascular Remodelling Index (logistic growth, drug reversal) |
+| RV Function | Ees_RV | Adaptive hypertrophy → maladaptive decompensation |
+| Biomarker | BNP_conc | Wall-stress–driven BNP production |
+
+**Key ODE relationships:**
+- `dVRI/dt = k_growth × VRI × (1 − VRI/VRI_max) − (k_ERA×ERA_Inh + k_PDE×ΔcGMP + k_PGI×PGI₂_Act) × VRI`
+- `PVR = PVR_normal + (PVR_PAH0 − PVR_normal) × [tone_frac × ET1/ET1_PAH × (1−ERA_Inh) × cGMP₀/cGMP × cAMP₀/cAMP + remod_frac × VRI/VRI₀]`
+- `mPAP = CO × PVR/80 + PAWP`
+- Simulates 6 scenarios (no treatment → triple ERA+PDE5i+PGI₂) over 12 weeks
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`pah_qsp_model.dot`](pulmonary-arterial-hypertension/pah_qsp_model.dot) | Graphviz DOT source (736 lines, 130+ nodes, 8 subgraphs) |
+| [`pah_qsp_model.svg`](pulmonary-arterial-hypertension/pah_qsp_model.svg) | Vector mechanistic map (256 KB) |
+| [`pah_qsp_model.png`](pulmonary-arterial-hypertension/pah_qsp_model.png) | Raster mechanistic map (7.3 MB, 150 dpi) |
+| [`pah_references.md`](pulmonary-arterial-hypertension/pah_references.md) | 40 annotated references with PubMed links |
+| [`pah_mrgsolve_model.R`](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | mrgsolve ODE model + 6 treatment scenarios + dose-response |
+| [`pah_shiny_app.R`](pulmonary-arterial-hypertension/pah_shiny_app.R) | 8-tab Shiny dashboard (patient profile, PK, DR, ESC/ERS risk) |
