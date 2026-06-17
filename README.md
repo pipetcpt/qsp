@@ -141,6 +141,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Sarcoidosis**](#sarcoidosis) | 만성질환 / 면역·호흡기 | Unknown antigen (mycobacterial mKatG/ESAT6, Propionibacterium, organic/inorganic particles) + HLA-DRB1 susceptibility → Alveolar macrophage/DC → TLR2/4/9 → MHC-II antigen presentation → Th1 polarization (IL-12↑/IFN-γ↑) + Treg deficiency → TNF-α/IFN-γ/CCL2 → Non-caseating granuloma (epithelioid macrophage + Langhans giant cell + lymphocyte mantle); CYP27B1↑ in granuloma → 1,25-VitD3↑ → Hypercalcemia/Hypercalciuria; ACE production (biomarker); Granuloma → Scadding Stage I→II→III→IV → Pulmonary fibrosis (FVC↓/DLCO↓); Extrapulmonary: Cardiac (AV block/SCD), Neuro (cranial nerve palsy), Ocular (uveitis), Cutaneous (lupus pernio/EN), Hepatic, Hypercalcemia; Biomarkers: Serum ACE (sens 60%) + sIL-2R (sens 75%) + chitotriosidase; Prednisone (GR/NF-κB, ACE-25 Trial) + MTX steroid-sparing + AZA + HCQ (hypercalcemia/skin) + Infliximab (FIRST Trial, FVC +2.5% vs PBO) + JAKi (Ruxolitinib, investigational) | [![Sarc](sarcoidosis/sarc_qsp_model.png)](sarcoidosis/sarc_qsp_model.svg) | [R](sarcoidosis/sarc_mrgsolve_model.R) | [refs](sarcoidosis/sarc_references.md) | [Shiny](sarcoidosis/sarc_shiny_app.R) |
 | 2026-06-17 | [**Membranous Nephropathy**](#membranous-nephropathy-mn) | 만성질환 / 신장·사구체 | Anti-PLA2R1 IgG4 (~75%) / THSD7A (~3%) / NELL1 / EXT1-EXT2 / Sema3B auto-Ab → subepithelial IC deposition → Classical complement (C1q/C4/C2) + Alternative amplification (Factor B/D) → C5b-9 MAC → Podocyte foot process effacement (Nephrin/Podocin/CD2AP↓) + NADPH-ROS → GBM spike formation → Massive proteinuria ≥3.5 g/day (Nephrotic syndrome); RAAS (AngII/Aldo) → intraglomerular hypertension → eGFR↓; Rituximab (anti-CD20 TMDD; MENTOR 2019 NEJM: 60% CR+PR at 24 mo vs 20% CsA) + Tacrolimus (CNI; STARMEN 2021: 60% CR+PR RTX-seq arm) + Cyclophosphamide + alternating-day steroids (Ponticelli regimen; RI-CYCLO) + ACEi/ARB (renoprotection; −35% proteinuria) + Belimumab (anti-BAFF) + Obinutuzumab + Avacopan (C5aR1 inhibitor, investigational); Biomarkers: Anti-PLA2R1 titer (immunological remission predictor), sC5b-9, CD19/CD20 count, uPCR, serum IgG4 | [![MN](membranous-nephropathy/mn_qsp_model.png)](membranous-nephropathy/mn_qsp_model.svg) | [R](membranous-nephropathy/mn_mrgsolve_model.R) | [refs](membranous-nephropathy/mn_references.md) | [Shiny](membranous-nephropathy/mn_shiny_app.R) |
 | 2026-06-17 | [**Hashimoto's Thyroiditis**](#hashimotos-thyroiditis-ht) | 자가면역질환 / 갑상선 | pDC(IFN-α) + mDC(IL-12) → APC → MHC-II → CD4+ Th1/Th17 (FOXP3+ Treg ↓) + Tfh → B-cell GC → Anti-TPO IgG★ + Anti-Tg IgG★ + Anti-TSHR blocking Ab → ADCC(NK) + Complement(C5b-9 MAC) + CD8+CTL → Thyrocyte apoptosis (Fas/FasL) → Lymphocytic infiltration → Thyroid damage → T4/T3 ↓ → TSH↑ → Subclinical → Overt hypothyroidism; HPT axis: TRH→TSH→T4/T3 synthesis (NIS/TPO/Tg/DIT+DIT); DIO1/DIO2 (selenocysteine) T4→T3; TRα1/TRβ1 genomic actions (BMR/cardiac/lipid/bone genes); Selenium (GPx↑ → ROS↓/NF-κB↓ → Anti-TPO ↓~50%, Gärtner 2002 RCT) + Levothyroxine (LT4 2-cpt PK, F=75%, t½=7d; TSH normalization → symptom relief/LDL↓) + Liothyronine (T4+T3 combo) + Methimazole (TPO block); Comorbidities: dyslipidemia/CV risk/depression/infertility/MALT lymphoma(3×); Biomarkers: TSH(0.4–4.0 mIU/L)/fT4(9–23 pmol/L)/fT3(3.5–6.5 pmol/L)/Anti-TPO(<34 IU/mL)/Anti-Tg/thyroid vol US | [![HT](hashimoto-thyroiditis/ht_qsp_model.png)](hashimoto-thyroiditis/ht_qsp_model.svg) | [R](hashimoto-thyroiditis/ht_mrgsolve_model.R) | [refs](hashimoto-thyroiditis/ht_references.md) | [Shiny](hashimoto-thyroiditis/ht_shiny_app.R) |
+| 2026-06-17 | [**Neuromyelitis Optica Spectrum Disorder**](#neuromyelitis-optica-spectrum-disorder-nmosd) | 자가면역질환 / 신경계 | HLA-DRB1*03:01 + EBV mimicry → Plasma cell → AQP4-IgG1 (complement-fixing) → FcRn transcytosis across BBB → AQP4-M23 OAP binding → C1q/C3 → C5 cleavage → C5b-9 MAC → Astrocyte necrosis (GFAP↓/AQP4↓) → LETM (≥3 vert seg) + Optic Neuritis + Area Postrema Synd; Secondary Glu-excitotoxicity (EAAT2↓) → oligodendrocyte death (secondary demyelination); IL-6↑/Th17↑ → neutrophil/eosinophil infiltrate (prominent in NMOSD unlike MS); Biomarkers: AQP4-IgG titer (diagnostic) + serum GFAP★ + NfL (axonal damage) + OCT-RNFL; Eculizumab Anti-C5 (PREVENT NEJM 2019: ARR↓94.2%) + Inebilizumab Anti-CD19 (N-MOmentum Lancet 2019: ARR↓77.5%) + Satralizumab Anti-IL-6R (SAkuraSky NEJM 2019: ARR↓62%) + Ublituximab Anti-CD20 (ULTIMATE I/II Lancet 2024) + Rituximab (off-label, Real-world ~80% ARR reduction) + MMF + AZA; Rescue: IV methylprednisolone + Plasma Exchange; EDSS endpoint (F:M=9:1, median untreated ARR=1.8) | [![NMOSD](neuromyelitis-optica/nmo_qsp_model.png)](neuromyelitis-optica/nmo_qsp_model.svg) | [R](neuromyelitis-optica/nmo_mrgsolve_model.R) | [refs](neuromyelitis-optica/nmo_references.md) | [Shiny](neuromyelitis-optica/shiny_app/app.R) |
 
 
 ---
@@ -2746,3 +2747,78 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`ht_mrgsolve_model.R`](hashimoto-thyroiditis/ht_mrgsolve_model.R) | mrgsolve ODE model (18 compartments, 7 treatment scenarios); calibrated to Gärtner 2002 (selenium ~50% Ab reduction), Jonklaas 2014 (LT4 dosing), Bianco 2019 (deiodinase kinetics), Eisenberg 2008 (TSH-T4 model); includes LT4 dose-response table, Se dose-response curve, population variability (n=50), Gärtner RCT replication |
 | [`ht_shiny_app.R`](hashimoto-thyroiditis/ht_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + plotly + DT); inline mrgsolve model via mcode(); 7-scenario comparison with checkbox selection; LT4 dose-response DT table (TSH color-coded); value boxes for TSH/fT4/Anti-TPO/damage |
 | [`ht_references.md`](hashimoto-thyroiditis/ht_references.md) | 47 curated PubMed-linked references (11 sections): pathogenesis/epidemiology, T-cell/B-cell mechanisms, HPT mathematical models, thyroid hormone synthesis/deiodination, levothyroxine PK/treatment (ATA 2014 guidelines), liothyronine combination therapy, selenium RCTs (Gärtner 2002/Duntas 2003/Toulis 2010 meta-analysis), clinical endpoints/biomarkers, pregnancy, cardiovascular/bone/neuropsychiatric complications, QSP/PK-PD modeling tools |
+
+---
+
+### Neuromyelitis Optica Spectrum Disorder (NMOSD)
+
+> Directory: [`neuromyelitis-optica/`](neuromyelitis-optica/)
+
+**Mechanistic Map** (130+ nodes, 14 pathway clusters):
+
+[![NMOSD QSP Mechanistic Map](neuromyelitis-optica/nmo_qsp_model.png)](neuromyelitis-optica/nmo_qsp_model.svg)
+
+| Cluster | Key Components |
+|---------|---------------|
+| Genetic & Environmental Triggers | HLA-DRB1*03:01, HLA-DPB1*05:01, EBV molecular mimicry, gut dysbiosis, female sex hormones (F:M=9:1), AIRE dysfunction |
+| B-Cell & AQP4-IgG Biology | Naive B → GC reaction (SHM/CSR) → Plasmablast/Plasma cell → AQP4-IgG1 (complement-fixing) + IgG4; BAFF, APRIL, Tfh, IL-21, CD40L |
+| Blood-Brain Barrier | ZO-1/Claudin-5 tight junctions; FcRn-mediated IgG transcytosis; MMP-9/VEGF → BBB breach; AQP4-M23 OAP aggregates on astrocyte endfeet |
+| Complement Cascade (Primary) | Classical C1q/C1r-C1s/C4b2a/C3 → C5 → C5a + C5b-9 MAC; Alternative pathway (Properdin); Lectin (MBL-MASP2); Regulators: CD59, CD46, Factor H, C1-INH |
+| Astrocyte Pathology | MAC → Astrocyte necrosis; GFAP↓, AQP4↓, EAAT2↓, Glutamate release ↑↑, IL-6, CCL-2/CXCL-1 → cell recruitment, ROS, lipid peroxidation |
+| Neuroinflammation | Neutrophil/eosinophil infiltration (prominent in NMOSD); MPO, NE, NLRP3-IL-1β; M1 macrophage → TNF-α, IL-1β, GM-CSF; NK cell ADCC; mast cell histamine |
+| T-Cell Pathways | Th17 (RORγt, IL-17A, IL-22) + Th1 (T-bet, IFN-γ); Treg (Foxp3+, IL-10/TGF-β) dysfunction; mDC → AQP4 peptide MHC-II presentation |
+| Oligodendrocyte & Myelin | Secondary demyelination from Glu excitotoxicity (NMDA-R/Ca²⁺/Caspase-3); OPC-mediated remyelination (incomplete); MBP/MAG loss; NfL release |
+| CNS Lesion Pathology | Spinal cord lesion (LETM ≥3 vertebral segments); Optic nerve (Optic Neuritis); Area Postrema (hiccup/vomiting); Vasogenic edema → cavitation/necrosis |
+| Clinical Endpoints | EDSS (0–10); ARR (untreated ~1.8/yr); Visual acuity (LogMAR); Pain NRS; Bladder dysfunction; TTP; QoL (NMOSD-QoL) |
+| Disease Biomarkers | AQP4-IgG titer (diagnostic); serum GFAP (astrocyte damage); NfL (axonal injury); C3/C4 consumption; IL-6 serum; MRI T2 lesion; OCT-RNFL; VEP latency |
+| Drug PK — Biologics | Eculizumab (2-cpt IV, CL=0.53 L/day, C5 binding Kd~2 pM); Inebilizumab (2-cpt IV); Satralizumab (SC depot→2-cpt, ka=0.18/day, recycling mAb); Ublituximab (1-cpt IV) |
+| Drug PK — Conventional | Rituximab (2-cpt IV); Prednisolone (1-cpt oral, CYP3A4); MMF/MPA (hydrolysis→IMPDH binding); AZA→6-MP→6-TGN (TPMT pharmacogenomics); IVIG; Plasma Exchange |
+| Drug PD Mechanisms | C5 inhibition (Eculizumab → ↓MAC); CD19 B-cell depletion (Inebilizumab → plasmablast+memory B); CD20 depletion (RTX/Ubli → ADCC/CDC); IL-6R blockade (Satralizumab → ↓Th17/plasmablast); GR activation (steroid → ↓NF-κB/BBB stabilize); FcRn saturation (IVIG → ↑IgG clearance); Ab removal (PE → rapid AQP4-IgG ↓) |
+
+**ODE Model Summary** (35 state variables):
+
+| Variable Group | Compartments | Key Dynamics |
+|----------------|-------------|--------------|
+| B-cell & Antibody | Bnaive, Bact, PB, PC, Ab | GC → plasmablast → plasma cell → AQP4-IgG continuous secretion |
+| Complement | C5, EC_C5cx, MAC | MAC = f(Ab × C5_free); Eculizumab occupancy model |
+| CNS / Tissue | Ast, Oligo, Lesion, EDSS, NfL | Astrocyte viability Hill function (MAC_EC50=5 nmol/L, H=2); LETM formation |
+| Cytokines | IL-6, TNF-α | Astrocyte-driven IL-6; TNF from M1 macrophage; steroid suppression |
+| Eculizumab PK | Eculi_C1, Eculi_C2, EC_C5cx | 2-cpt IV; C5 TMDD (kon=0.5, koff=0.001/day) |
+| Inebilizumab PK | Ineb_C1, Ineb_C2 | 2-cpt IV; CD19+ B-cell kill rate constant |
+| Satralizumab PK | Satra_dep, Satra_C1, Satra_C2, Satra_cx | SC depot (F=79%); IL-6R recycling binding (pH-dependent) |
+| Rituximab PK | Ritu_C1, Ritu_C2 | 2-cpt IV; CD20 B-cell + ADCC |
+| Prednisolone PK | Pred_gut, Pred_C1, GR complex | Oral 1-cpt; Emax GR activation (EC50=50 ng/mL) |
+| MMF/MPA PK | MPA_gut, MPA_C1, IMPDH cx | 1-cpt oral; IMPDH inhibition (EC50=1.5 mg/L) |
+
+**Treatment Scenarios Simulated:**
+
+| # | Scenario | Drug / Dose | Calibration Trial |
+|---|----------|------------|-------------------|
+| 1 | No treatment | — | Natural history (ARR=1.8) |
+| 2 | Eculizumab | 900 mg IV q2w | PREVENT (NEJM 2019): ARR reduction 94.2% |
+| 3 | Inebilizumab | 300 mg IV d1,d15 → q6m | N-MOmentum (Lancet 2019): ARR reduction 77.5% |
+| 4 | Satralizumab | 120 mg SC q4w×3 → q8w | SAkuraSky (NEJM 2019): ARR reduction 62% (AQP4+) |
+| 5 | Rituximab + MMF | RTX 1000 mg q6m + MMF 2g/day | Real-world cohorts: ~80% ARR reduction |
+| 6 | Prednisolone pulse | 60 mg/day PO × 5d (acute attack) | Standard acute attack management |
+
+**Shiny App (6 Tabs):**
+
+| Tab | Content |
+|-----|---------|
+| Patient Profile | Baseline EDSS/AQP4-IgG/Disease Activity sliders; 4 value boxes (EDSS/AQP4-IgG/NfL/ARR at simulation end); clinical context (IPND 2015 criteria); treatment goals panel |
+| Drug PK | Concentration-time profiles for all 6 drugs; PK parameter reference table (t½, Vd, CL, target); Mechanism of Action table for all 10 therapies |
+| Disease Biomarkers | AQP4-IgG titer; Complement (MAC + C5); B-cell count (% baseline); IL-6 + TNF-α cytokines; serum NfL; serum GFAP — all plotly interactive |
+| Clinical Endpoints | EDSS trajectory (0–10 scale, baseline reference line); Astrocyte + oligodendrocyte viability (%); Active lesion burden; Rolling ARR estimate; Endpoint summary DT table |
+| Scenario Comparison | 5 fixed scenarios + user's current selection; EDSS / AQP4-IgG / NfL comparison plots; Final timepoint comparison table (EDSS/ΔChange/AQP4-IgG/Ast/NfL/Lesion) |
+| Mechanistic Map | PNG thumbnail + SVG link; Key pathogenic steps narrative (6 steps from AQP4-IgG → LETM → disability) |
+
+**File Inventory:**
+
+| File | Description |
+|------|-------------|
+| [`nmo_qsp_model.dot`](neuromyelitis-optica/nmo_qsp_model.dot) | Graphviz DOT source (14 subgraph clusters, 130+ named nodes, 180+ directed edges; disease pathophysiology + drug PK/PD) |
+| [`nmo_qsp_model.svg`](neuromyelitis-optica/nmo_qsp_model.svg) | Vector mechanistic map (~234 KB) |
+| [`nmo_qsp_model.png`](neuromyelitis-optica/nmo_qsp_model.png) | Raster mechanistic map (150 dpi, ~3.0 MB) |
+| [`nmo_mrgsolve_model.R`](neuromyelitis-optica/nmo_mrgsolve_model.R) | mrgsolve ODE model (35 compartments, 6 treatment scenarios); calibrated to PREVENT (eculizumab), N-MOmentum (inebilizumab), SAkuraSky/SAkuraStar (satralizumab), ULTIMATE I/II (ublituximab), rituximab real-world cohorts; includes PK profiles, endpoint table, ARR estimates |
+| [`shiny_app/app.R`](neuromyelitis-optica/shiny_app/app.R) | 6-tab Shiny dashboard (shinydashboard + plotly + DT); inline mrgsolve via mcode(); interactive patient parameters; 6-scenario comparison; all key biomarkers and clinical endpoints |
+| [`nmo_references.md`](neuromyelitis-optica/nmo_references.md) | 44 curated PubMed-linked references (8 sections): AQP4-IgG/complement, astrocyte/BBB, B-cell/T-cell immunology, diagnostic criteria, eculizumab/inebilizumab/satralizumab/ublituximab/rituximab trials, biomarkers (GFAP/NfL/OCT-RNFL), QSP/PK-PD modeling, conventional therapies, epidemiology |
