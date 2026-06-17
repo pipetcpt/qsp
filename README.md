@@ -136,6 +136,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Polycystic Ovary Syndrome**](#polycystic-ovary-syndrome-pcos) | 만성질환 / 생식내분비 | KNDy neuron → GnRH pulse freq ↑↑ → LH:FSH↑ (>2-3) → Theca CYP17A1 ↑↑ → androstenedione/T ↑↑; Hyperinsulinemia (MAPK-ERK → CYP17A1↑, IRS1 serine phos → IR) + IGFBP1↓ → free IGF-1↑ → LHR potentiation; AMH ↑↑ (granulosa) → follicle arrest → PCOM (AFC>12, volume>10 mL); SHBG↓ → free T↑ → SRD5A → DHT → hirsutism/acne; Low-grade inflammation (TNF-α → NF-κB/IRS1-Ser, adiponectin↓, CRP↑); Anovulation → oligomenorrhea + infertility; Metformin (AMPK/FOXO1/CYP17↓, PPCOS I) + Letrozole (CYP19A1 inh → E2↓ → FSH ↑transient → dominant follicle, PPCOS II: 61.7% ovulation vs 48.3% CC) + OCP (SHBG↑2-4×/LH↓/T↓) + Spironolactone (AR block → FG score↓30-40%) + Clomiphene (central ER block → GnRH pulse↑) + GnRH agonist/antagonist (IVF) | [![PCOS](polycystic-ovary-syndrome/pcos_qsp_model.png)](polycystic-ovary-syndrome/pcos_qsp_model.svg) | [R](polycystic-ovary-syndrome/pcos_mrgsolve_model.R) | [refs](polycystic-ovary-syndrome/pcos_references.md) | [Shiny](polycystic-ovary-syndrome/pcos_shiny_app.R) |
 | 2026-06-17 | [**Dyslipidemia**](#dyslipidemia) | 만성질환 / 대사 | Hepatic cholesterol over-synthesis (HMG-CoA reductase↑, SREBP-2) + LDL receptor downregulation (PCSK9-mediated LDLR degradation) → LDL-C↑↑; VLDL overproduction (ApoB100/MTP/DGAT, insulin resistance/SREBP-1c→TG↑) → IDL→LDL; Reverse cholesterol transport deficit (ABCA1/G1↓, CETP↑, HDL-C↓); Foam cell formation (oxLDL→SR-A/CD36→macrophage) → atherosclerotic plaque → MACE; Statin (HMG-CoA Ri → LDLR↑2.5×, −50% LDL-C; ASCOT-LLA/TNT) + Ezetimibe (NPC1L1 inh, −20% additional; IMPROVE-IT PMID 25405393) + PCSK9i Evolocumab (LDLR rescue, −60% additional; FOURIER PMID 28304224) + Inclisiran siRNA (PCSK9 mRNA silencing, −50%, ORION-1/3) + Bempedoic acid (ATP-citrate lyase inh, −18%, CLEAR Harmony) + Fibrate/PPARα (TG↓40%, HDL↑10%) + Niacin/GPR109A + Bile acid sequestrants | [![Dyslip](dyslipidemia/dyslip_qsp_model.png)](dyslipidemia/dyslip_qsp_model.svg) | [R](dyslipidemia/dyslip_mrgsolve_model.R) | [refs](dyslipidemia/dyslip_references.md) | [Shiny](dyslipidemia/dyslip_shiny_app.R) |
 | 2026-06-17 | [**Behcet's Disease**](#behcets-disease-bd) | 자가면역질환 / 혈관염 | HLA-B51(OR 5-6x)/ERAP1 + Streptococcus molecular mimicry + gut dysbiosis → Innate: Neutrophil hyperactivation (NETs/ROS/MPO) + NLRP3 inflammasome(IL-1β↑) → Adaptive: Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-17F) dominance + Treg dysfunction → Endothelial activation (ICAM-1↑/VCAM-1↑/TF↑/NO↓) → multi-organ: Oral aphthae + genital ulcers + retinal vasculitis(vision loss 25%) + skin(pseudofolliculitis/EN) + vascular thrombosis/aneurysm + neuro-Behcet; Colchicine (tubulin/NLRP3↓, YURDAKUL 2001) + Prednisolone + Adalimumab anti-TNF (ADABT) + Apremilast PDE4i (NEJM 2015/2019) + Canakinumab anti-IL-1β + Cyclophosphamide (refractory vascular/neuro); BDCAF 0-12 composite activity index | [![BD](behcet-disease/bd_qsp_model.png)](behcet-disease/bd_qsp_model.svg) | [R](behcet-disease/bd_mrgsolve_model.R) | [refs](behcet-disease/bd_references.md) | [Shiny](behcet-disease/bd_shiny_app.R) |
+| 2026-06-17 | [**Liver Cirrhosis**](#liver-cirrhosis) | 만성질환 / 간 | Chronic liver injury (EtOH/HBV/HCV/NASH) → DAMPs + Kupffer/NLRP3 → TGF-β1/Smad2/3 + PDGF-BB → HSC activation (qHSC→aHSC) → LOXL2 crosslinking → Collagen I/III ↑ / TIMP↑/MMP↓ → Fibrosis (F0→F4/METAVIR) → eNOS↓/ET-1↑/RhoA-ROCK → HVPG↑ (>10 ascites, >12 varices) → Splanchnic vasodilation → RAAS/SNS/AVP → Ascites/HypoNa; Portosystemic bypass → NH3↑ → HE (West Haven 0–IV); Renal vasoconstriction → HRS-1/2 (GFR↓, Creat↑); ACLF + HCC risk; MELD/MELD-Na/Child-Pugh scoring; Propranolol (NSBB, 2-cpt: β1/β2 → HR↓/HVPG↓20%) + Spironolactone (1-cpt: MR block → Aldo↓/Na excretion↑/Ascites↓) + Terlipressin (effect-cpt IV: V1R → splanchnic↓/HRS reversal) + Rifaximin 550mg BID (gut-lumen: microbiome/NH3↓/HE prevention); Investigational antifibrotics: FXR agonist (OCA) / Resmetirom (THRβ) / Semaglutide (GLP-1RA) / ASK1i / CCR2/CCR5i; Calibrated to Fattovich 2004 (fibrosis rate), Groszmann 2005 (HVPG threshold), Kim 2008 NEJM (MELD-Na), Bass 2010 NEJM (Rifaximin-HE) | [![LC](liver-cirrhosis/lc_qsp_model_thumb.png)](liver-cirrhosis/lc_qsp_model.svg) | [R](liver-cirrhosis/lc_mrgsolve_model.R) | [refs](liver-cirrhosis/lc_references.md) | [Shiny](liver-cirrhosis/lc_shiny_app.R) |
 
 
 ---
@@ -2383,3 +2384,63 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`bd_mrgsolve_model.R`](behcet-disease/bd_mrgsolve_model.R) | mrgsolve ODE model (22 states); 8 treatment scenarios (untreated/colchicine/prednisolone/adalimumab/apremilast/canakinumab/combo×2); BDCAF/oral ulcer/ocular/endothelial endpoints; HLA-B51 virtual patient stratification; adalimumab dose-response analysis; calibrated to YURDAKUL 2001/ADABT/NEJM 2015-2019 apremilast trials |
 | [`bd_shiny_app.R`](behcet-disease/bd_shiny_app.R) | 7-tab shinydashboard; patient profile (ISG criteria + BDCAF scale), drug PK (5-agent selector with Cmax/AUC), cytokine dynamics (TNF/IL-1B/IL-6/IL-17A + Th17/Treg balance), clinical endpoints (BDCAF/OUL/OCI/EA), 8-scenario comparison, HLA-B51 stratification, dose-response optimization |
 | [`bd_references.md`](behcet-disease/bd_references.md) | 42 curated PubMed references (11 sections): disease overview/epidemiology, genetics/HLA-B51, innate immunity/neutrophil pathology, adaptive Th1/Th17 axis, cytokine network/inflammasome, vascular pathology/thrombosis, clinical trials/treatment, colchicine pharmacology, biologic therapies (anti-TNF/anti-IL-1/IL-6), ocular BD, PK/pharmacokinetics/modeling |
+
+---
+
+### Liver Cirrhosis
+
+> Directory: [`liver-cirrhosis/`](liver-cirrhosis/)
+
+**Mechanistic Map** (17 subgraph clusters, 130+ nodes, 200+ edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| Hepatic Injury & Triggers | Ethanol/acetaldehyde, HBV, HCV, NASH/NAFLD, ALD, PBC/PSC/AIH, hemochromatosis, drug toxicity, ROS |
+| Hepatocyte Damage & Apoptosis | Caspase 3/7, mitochondrial dysfunction, ER stress/UPR, lipid accumulation/steatosis, DAMP release (HMGB1/mtDNA), ballooning |
+| Innate Immunity | Kupffer cell activation, TLR4/TLR9, NLRP3 inflammasome, IL-1β, IL-6, TNF-α, NF-κB, STAT3, Neutrophil/NKT infiltration, CXCL2, ROS |
+| HSC Activation | TGF-β1/Smad2/3 (key fibrogenic axis), PDGF-BB, CTGF/CCN2, α-SMA, Wnt/β-catenin, Hedgehog/Shh, YAP/TAZ mechanotransduction, LOXL2, Smad7 negative feedback, HSC senescence (p21/p53) |
+| ECM & Fibrosis | Collagen I/III, fibronectin, laminin/collagen IV, sinusoidal capillarization, fibrous septa, regenerative nodules, fibrosis index (METAVIR F0–F4), FibroScan kPa, ELF score (PIIINP/HA/TIMP-1) |
+| Portal Hypertension | HVPG (mmHg), intrahepatic resistance, eNOS/NO deficit, endothelin-1, RhoA/ROCK, VEGF/angiogenesis, portosystemic collaterals, splenic congestion, esophageal/gastric varices, variceal hemorrhage, hyperdynamic circulation, splanchnic vasodilation |
+| Hepatic Synthetic Function | Albumin synthesis, clotting factors (II/V/VII/IX/X), INR/PT, bilirubin conjugation, ammonia detoxification (urea cycle/glutamine), CYP450 drug metabolism, Child-Pugh score (A/B/C), MELD score (6–40), MELD-Na |
+| Ascites & Fluid | Portal pressure–Starling forces, hepatic lymph formation, RAAS (renin→AngII→Aldosterone), SNS, ADH/AVP, Na+/water retention, hyponatremia, low oncotic pressure |
+| Renal Complications | GFR decline (eGFR), renal vasoconstriction, HRS type 1/2, ATN, oliguria, creatinine/BUN rise |
+| Hepatic Encephalopathy | Serum ammonia, gut flora/bacterial translocation, portosystemic bypass, BBB permeability, astrocyte swelling, GABA/benzodiazepine enhancement, neuroinflammation, HE grade (West Haven 0–IV), covert HE |
+| Systemic Complications | HPS, portopulmonary HTN, HCC, ACLF, coagulopathy/thrombocytopenia, sarcopenia/malnutrition, cirrhotic cardiomyopathy, QTc prolongation, adrenal insufficiency, portal vein thrombosis, SIRS/sepsis |
+| NSBB PK/PD | Propranolol 2-compartment (F=25%, CL=30 L/h), β1/β2-blockade → HR↓/HVPG↓; Carvedilol α1 component |
+| Diuretic PK/PD | Spironolactone 1-compartment (F=90%, active canrenone), MR blockade → Na excretion↑; Furosemide Na-K-2Cl blockade → ascites mobilization |
+| Vasoconstrictor PK/PD | Terlipressin effect-compartment (KE0=0.4/h), V1-receptor → splanchnic vasoconstriction → HVPG↓; Somatostatin/octreotide infusion (SSTR2) |
+| Rifaximin PK/PD | Gut-lumen restricted (F<0.4%), microbiome modulation → gut NH3↓ → serum NH3↓ → HE prevention; Lactulose colonic pH↓ mechanism |
+| Antifibrotic Therapy | FXR agonists (OCA/Tropifexor → SHP → TGF-β↓); CCR2/CCR5 inhibitor (Cenicriviroc → monocyte↓); LOXL2 inhibitor; TGF-β inhibitor; ASK1 inhibitor (Selonsertib); GLP-1RA (Semaglutide); THRβ agonist (Resmetirom); VAP-1 inhibitor |
+| Clinical Endpoints | Decompensation events (ascites/VB/HE/SBP), transplant listing (MELD≥15), 6-month/1-year survival, 30-day readmission, QoL (SF-36/CLDQ), post-transplant fibrosis recurrence |
+
+**Mechanistic Map Preview:**
+
+[![Liver Cirrhosis QSP Map](liver-cirrhosis/lc_qsp_model_thumb.png)](liver-cirrhosis/lc_qsp_model.svg)
+
+**mrgsolve ODE Model (21 compartments):**
+
+| Compartment Group | States | Key Dynamics |
+|-------------------|--------|--------------|
+| Propranolol PK | PROP_GUT, PROP_C1, PROP_C2 | 2-cpt oral absorption/distribution; CL=30 L/h (cirrhosis-adjusted) |
+| Spironolactone PK | SPIRO_GUT, SPIRO_C1 | 1-cpt; active metabolite canrenone; CL=3.5 L/h |
+| Terlipressin PK | TERL_C, TERL_CE | IV bolus + effect-compartment (KE0=0.4/h) |
+| Rifaximin | RIFAX_GUT | Gut-lumen pseudo-compartment; KOUT=0.15/h |
+| Fibrosis Dynamics | FIBRO, HSC_ACT | TGF-β Hill kinetics; HSC activation/deactivation; antifibrotic Emax |
+| Portal Hemodynamics | HVPG | Fibrosis-driven + ET1/eNOS + drug modulation (propranolol/terlipressin) |
+| Hepatic Markers | ALB, BILIRUBIN, INR_val | Algebraic from fibrosis index; Child-Pugh/MELD derived |
+| Ascites | ASCITES | Portal pressure × oncotic pressure × aldosterone–diuretic balance |
+| Renal Function | GFR_est, CREAT | HVPG-driven vasoconstriction; terlipressin reversal of HRS |
+| Ammonia & HE | NH3_blood, HE_GRADE | Liver failure + portosystemic shunting; rifaximin/lactulose reduction |
+| RAAS | ALDO_ACT | Fibrosis + HVPG driven RAAS activation; spironolactone blockade |
+
+**File Inventory:**
+
+| File | Description |
+|------|-------------|
+| [`lc_qsp_model.dot`](liver-cirrhosis/lc_qsp_model.dot) | Graphviz DOT (17 subgraph clusters, 130+ nodes, 200+ edges) — injury triggers · hepatocyte damage · innate immunity · HSC activation (TGF-β/Smad/PDGF/Wnt/Hedgehog/YAP) · ECM/fibrosis (collagen/LOXL2/TIMP/MMP) · portal hypertension · hepatic synthetic function · ascites/RAAS · HRS/renal · hepatic encephalopathy (ammonia/BBB) · systemic complications · NSBB PK/PD · diuretic PK/PD · vasoconstrictor PK/PD · rifaximin PK/PD · antifibrotic drugs · clinical endpoints/scoring |
+| [`lc_qsp_model.svg`](liver-cirrhosis/lc_qsp_model.svg) | Vector mechanistic map (255 KB) |
+| [`lc_qsp_model.png`](liver-cirrhosis/lc_qsp_model.png) | Raster mechanistic map (150 dpi, 2.7 MB) |
+| [`lc_qsp_model_thumb.png`](liver-cirrhosis/lc_qsp_model_thumb.png) | Thumbnail preview (50 dpi, 667 KB) |
+| [`lc_mrgsolve_model.R`](liver-cirrhosis/lc_mrgsolve_model.R) | mrgsolve ODE model (21 states); 6 scenarios (natural history/propranolol/spironolactone/combination/antifibrotic/acute terlipressin); MELD/MELD-Na/Child-Pugh/HVPG/variceal bleeding risk/1yr mortality endpoints; calibrated to Fattovich 2004/Groszmann 2005/Kim 2008 NEJM/Bass 2010 NEJM |
+| [`lc_shiny_app.R`](liver-cirrhosis/lc_shiny_app.R) | 8-tab shinydashboard; patient profile (MELD gauge/Child-Pugh/risk assessment), drug PK (propranolol/spiro/rifaximin concentration + HR PD), portal hypertension (HVPG trajectory/variceal risk/hemodynamics), hepatic function (MELD-Na/CP/albumin/bilirubin/INR), complications (ascites/renal/HE/risk timeline), 6-scenario comparison, antifibrotic kinetics (HSC/fibrosis/recovery), biomarker heatmap (MELD–HVPG correlation) |
+| [`lc_references.md`](liver-cirrhosis/lc_references.md) | 50 curated PubMed references (10 sections): fibrogenesis/HSC biology, portal hypertension, propranolol PK in cirrhosis, diuretic therapy, terlipressin/HRS, rifaximin/HE treatment, MELD score/prognosis, antifibrotic trials (OCA/Resmetirom/Semaglutide/ASK1i), ACLF/systemic complications, QSP modeling methods |
