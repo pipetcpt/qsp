@@ -141,6 +141,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Sarcoidosis**](#sarcoidosis) | 만성질환 / 면역·호흡기 | Unknown antigen (mycobacterial mKatG/ESAT6, Propionibacterium, organic/inorganic particles) + HLA-DRB1 susceptibility → Alveolar macrophage/DC → TLR2/4/9 → MHC-II antigen presentation → Th1 polarization (IL-12↑/IFN-γ↑) + Treg deficiency → TNF-α/IFN-γ/CCL2 → Non-caseating granuloma (epithelioid macrophage + Langhans giant cell + lymphocyte mantle); CYP27B1↑ in granuloma → 1,25-VitD3↑ → Hypercalcemia/Hypercalciuria; ACE production (biomarker); Granuloma → Scadding Stage I→II→III→IV → Pulmonary fibrosis (FVC↓/DLCO↓); Extrapulmonary: Cardiac (AV block/SCD), Neuro (cranial nerve palsy), Ocular (uveitis), Cutaneous (lupus pernio/EN), Hepatic, Hypercalcemia; Biomarkers: Serum ACE (sens 60%) + sIL-2R (sens 75%) + chitotriosidase; Prednisone (GR/NF-κB, ACE-25 Trial) + MTX steroid-sparing + AZA + HCQ (hypercalcemia/skin) + Infliximab (FIRST Trial, FVC +2.5% vs PBO) + JAKi (Ruxolitinib, investigational) | [![Sarc](sarcoidosis/sarc_qsp_model.png)](sarcoidosis/sarc_qsp_model.svg) | [R](sarcoidosis/sarc_mrgsolve_model.R) | [refs](sarcoidosis/sarc_references.md) | [Shiny](sarcoidosis/sarc_shiny_app.R) |
 | 2026-06-17 | [**Membranous Nephropathy**](#membranous-nephropathy-mn) | 만성질환 / 신장·사구체 | Anti-PLA2R1 IgG4 (~75%) / THSD7A (~3%) / NELL1 / EXT1-EXT2 / Sema3B auto-Ab → subepithelial IC deposition → Classical complement (C1q/C4/C2) + Alternative amplification (Factor B/D) → C5b-9 MAC → Podocyte foot process effacement (Nephrin/Podocin/CD2AP↓) + NADPH-ROS → GBM spike formation → Massive proteinuria ≥3.5 g/day (Nephrotic syndrome); RAAS (AngII/Aldo) → intraglomerular hypertension → eGFR↓; Rituximab (anti-CD20 TMDD; MENTOR 2019 NEJM: 60% CR+PR at 24 mo vs 20% CsA) + Tacrolimus (CNI; STARMEN 2021: 60% CR+PR RTX-seq arm) + Cyclophosphamide + alternating-day steroids (Ponticelli regimen; RI-CYCLO) + ACEi/ARB (renoprotection; −35% proteinuria) + Belimumab (anti-BAFF) + Obinutuzumab + Avacopan (C5aR1 inhibitor, investigational); Biomarkers: Anti-PLA2R1 titer (immunological remission predictor), sC5b-9, CD19/CD20 count, uPCR, serum IgG4 | [![MN](membranous-nephropathy/mn_qsp_model.png)](membranous-nephropathy/mn_qsp_model.svg) | [R](membranous-nephropathy/mn_mrgsolve_model.R) | [refs](membranous-nephropathy/mn_references.md) | [Shiny](membranous-nephropathy/mn_shiny_app.R) |
 | 2026-06-17 | [**Hashimoto's Thyroiditis**](#hashimotos-thyroiditis-ht) | 자가면역질환 / 갑상선 | pDC(IFN-α) + mDC(IL-12) → APC → MHC-II → CD4+ Th1/Th17 (FOXP3+ Treg ↓) + Tfh → B-cell GC → Anti-TPO IgG★ + Anti-Tg IgG★ + Anti-TSHR blocking Ab → ADCC(NK) + Complement(C5b-9 MAC) + CD8+CTL → Thyrocyte apoptosis (Fas/FasL) → Lymphocytic infiltration → Thyroid damage → T4/T3 ↓ → TSH↑ → Subclinical → Overt hypothyroidism; HPT axis: TRH→TSH→T4/T3 synthesis (NIS/TPO/Tg/DIT+DIT); DIO1/DIO2 (selenocysteine) T4→T3; TRα1/TRβ1 genomic actions (BMR/cardiac/lipid/bone genes); Selenium (GPx↑ → ROS↓/NF-κB↓ → Anti-TPO ↓~50%, Gärtner 2002 RCT) + Levothyroxine (LT4 2-cpt PK, F=75%, t½=7d; TSH normalization → symptom relief/LDL↓) + Liothyronine (T4+T3 combo) + Methimazole (TPO block); Comorbidities: dyslipidemia/CV risk/depression/infertility/MALT lymphoma(3×); Biomarkers: TSH(0.4–4.0 mIU/L)/fT4(9–23 pmol/L)/fT3(3.5–6.5 pmol/L)/Anti-TPO(<34 IU/mL)/Anti-Tg/thyroid vol US | [![HT](hashimoto-thyroiditis/ht_qsp_model.png)](hashimoto-thyroiditis/ht_qsp_model.svg) | [R](hashimoto-thyroiditis/ht_mrgsolve_model.R) | [refs](hashimoto-thyroiditis/ht_references.md) | [Shiny](hashimoto-thyroiditis/ht_shiny_app.R) |
+| 2026-06-17 | [**Giant Cell Arteritis**](#giant-cell-arteritis-gca) | 자가면역질환 / 대혈관 혈관염 | Unknown trigger → Vascular DC activation → IL-12/IL-23 → Th1(IFN-γ) + Th17(IL-17A) → Macrophage activation + Giant cell formation → MMP9/PDGF/VEGF → Temporal artery intimal hyperplasia + luminal stenosis → AION/blindness/PMR; IL-6★ → CRP/ESR↑; GC (prednisone 60mg) + Tocilizumab (IL-6R, GiACTA NEJM2017: 56% vs 14% sustained remission) + Abatacept (CTLA4-Ig) + Upadacitinib (JAK1i, SELECT-GCA) | [![GCA](giant-cell-arteritis/gca_qsp_model.png)](giant-cell-arteritis/gca_qsp_model.svg) | [R](giant-cell-arteritis/gca_mrgsolve_model.R) | [refs](giant-cell-arteritis/gca_references.md) | [Shiny](giant-cell-arteritis/gca_shiny_app.R) |
 | 2026-06-17 | [**Neuromyelitis Optica Spectrum Disorder**](#neuromyelitis-optica-spectrum-disorder-nmosd) | 자가면역질환 / 신경계 | HLA-DRB1*03:01 + EBV mimicry → Plasma cell → AQP4-IgG1 (complement-fixing) → FcRn transcytosis across BBB → AQP4-M23 OAP binding → C1q/C3 → C5 cleavage → C5b-9 MAC → Astrocyte necrosis (GFAP↓/AQP4↓) → LETM (≥3 vert seg) + Optic Neuritis + Area Postrema Synd; Secondary Glu-excitotoxicity (EAAT2↓) → oligodendrocyte death (secondary demyelination); IL-6↑/Th17↑ → neutrophil/eosinophil infiltrate (prominent in NMOSD unlike MS); Biomarkers: AQP4-IgG titer (diagnostic) + serum GFAP★ + NfL (axonal damage) + OCT-RNFL; Eculizumab Anti-C5 (PREVENT NEJM 2019: ARR↓94.2%) + Inebilizumab Anti-CD19 (N-MOmentum Lancet 2019: ARR↓77.5%) + Satralizumab Anti-IL-6R (SAkuraSky NEJM 2019: ARR↓62%) + Ublituximab Anti-CD20 (ULTIMATE I/II Lancet 2024) + Rituximab (off-label, Real-world ~80% ARR reduction) + MMF + AZA; Rescue: IV methylprednisolone + Plasma Exchange; EDSS endpoint (F:M=9:1, median untreated ARR=1.8) | [![NMOSD](neuromyelitis-optica/nmo_qsp_model.png)](neuromyelitis-optica/nmo_qsp_model.svg) | [R](neuromyelitis-optica/nmo_mrgsolve_model.R) | [refs](neuromyelitis-optica/nmo_references.md) | [Shiny](neuromyelitis-optica/shiny_app/app.R) |
 
 
@@ -2822,3 +2823,68 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`nmo_mrgsolve_model.R`](neuromyelitis-optica/nmo_mrgsolve_model.R) | mrgsolve ODE model (35 compartments, 6 treatment scenarios); calibrated to PREVENT (eculizumab), N-MOmentum (inebilizumab), SAkuraSky/SAkuraStar (satralizumab), ULTIMATE I/II (ublituximab), rituximab real-world cohorts; includes PK profiles, endpoint table, ARR estimates |
 | [`shiny_app/app.R`](neuromyelitis-optica/shiny_app/app.R) | 6-tab Shiny dashboard (shinydashboard + plotly + DT); inline mrgsolve via mcode(); interactive patient parameters; 6-scenario comparison; all key biomarkers and clinical endpoints |
 | [`nmo_references.md`](neuromyelitis-optica/nmo_references.md) | 44 curated PubMed-linked references (8 sections): AQP4-IgG/complement, astrocyte/BBB, B-cell/T-cell immunology, diagnostic criteria, eculizumab/inebilizumab/satralizumab/ublituximab/rituximab trials, biomarkers (GFAP/NfL/OCT-RNFL), QSP/PK-PD modeling, conventional therapies, epidemiology |
+
+---
+
+## Giant Cell Arteritis (GCA) — 거대세포 동맥염
+
+> **Category:** 자가면역질환 / 대혈관 혈관염 (Large Vessel Vasculitis)  
+> **Added:** 2026-06-17 | **Directory:** [`giant-cell-arteritis/`](giant-cell-arteritis/)
+
+### Overview
+
+Giant Cell Arteritis (GCA, 거대세포 동맥염) is the most common primary vasculitis in adults over 50 years, disproportionately affecting women (3:1 ratio) of Northern European ancestry. It is a granulomatous large-vessel vasculitis primarily targeting the temporal artery, external carotid branches, and aorta. GCA is a rheumatological emergency — untreated, it causes permanent visual loss in 15–20% of patients via anterior ischemic optic neuropathy (AION). The gold standard diagnosis remains temporal artery biopsy (TAB), though ultrasound halo sign and ¹⁸F-FDG PET/CT are increasingly used per 2021 ACR/EULAR criteria.
+
+**Key pathophysiology:**  
+Vascular dendritic cells in the adventitia are activated by an unknown trigger (possibly Varicella Zoster Virus reactivation). Mature DCs recruit CD4+ T cells (Th1 via IL-12; Th17 via IL-23), monocytes (via CCL2/CCR2), and NK cells. IFN-γ from Th1 cells classically activates macrophages → MMP-9/MMP-1 release → internal elastic lamina fragmentation. Giant cells form by macrophage fusion (OC-STAMP, DC-STAMP). IL-17A from Th17 cells drives VEGF production → neovascularization. PDGF-BB promotes SMC proliferation → intimal hyperplasia → luminal stenosis → ischemia. IL-6, the principal acute-phase cytokine, drives CRP/ESR elevation and systemic symptoms.
+
+**Approved treatments:**
+- **Glucocorticoids (prednisone 40–60 mg/day)** — first-line; rapid symptom relief; prevents visual loss; requires 12–24 month taper; significant cumulative toxicity
+- **Tocilizumab (Actemra®)** — FDA/EMA approved 2017 for GCA (GiACTA trial); IL-6R blockade; SC 162 mg qw achieves 56% sustained remission at 52 weeks vs 14% (fast-taper GC) and 30% (slow-taper GC); permits steroid-sparing
+
+**Investigational:**  
+Abatacept (CTLA4-Ig; 48% remission vs 31%), Upadacitinib 15 mg QD (SELECT-GCA, JAK1 inhibitor), Satralizumab (anti-IL-6R, SARC-GCA trial), Ixekizumab (anti-IL-17A), Baricitinib (JAK1/2)
+
+### QSP Model Features
+
+| Component | Details |
+|-----------|---------|
+| **Mechanistic Map** | 10 subgraph clusters; 130+ nodes; Vascular DCs → Innate (Macrophage/DC activation, NALP3, giant cell formation) → Adaptive (Th1/Th17/Treg, IL-12/IL-23 axes, CTLA-4) → Cytokine network (IL-6, IFN-γ, IL-17A, VEGF, PDGF) → Vascular pathology (temporal artery layers, intimal hyperplasia, stenosis, granuloma) → Clinical (headache, AION, PMR, stroke risk, aortic aneurysm) → Biomarkers (CRP, ESR, IL-6, VEGF, sIL-6R, PET/CT, ultrasound halo) → Drug PK (Prednisone/Prednisolone, TCZ IV/SC TMDD, Abatacept, Upadacitinib) → Drug PD (GR/NFκB/GILZ, JAK1-STAT3 blockade, IL-6R saturation) → GC Side Effects (BMD loss, HPA suppression, DM, infection risk) |
+| **ODE Model** | 18 state variables: Prednisone→Prednisolone PK (4-cpt oral), Tocilizumab 2-cpt TMDD (IV or SC), sIL-6R binding kinetics, IL-6 turnover, CRP indirect response, ESR, GCA disease activity, macrophage activation, Th17 relative population, VEGF, bone mineral density, cumulative GC dose |
+| **Treatment Scenarios** | 5 regimens: (1) GC slow taper monotherapy, (2) GC fast taper [GiACTA placebo], (3) TCZ IV 8 mg/kg q4w + slow GC taper [GiACTA Arm 1], (4) TCZ SC 162 mg qw + slow GC taper [GiACTA Arm 2], (5) TCZ SC 162 mg q2w + slow GC taper [GiACTA Arm 3] |
+| **Calibration** | GiACTA trial (NEJM 2017): sustained remission rates — TCZ SC qw 56%, TCZ IV 53%, GC slow 30%, GC fast 14%; CRP normalization kinetics; IL-6 paradox on TCZ (serum IL-6 ↑ but signaling ↓) |
+| **Shiny App** | 7 tabs: Patient Profile (ACR/EULAR 2022 classification score calculator) · PK Profiles · PD Biomarkers (CRP, ESR, IL-6, VEGF, sIL-6R) · Disease Activity (GCA-DAS, macrophage/Th17 dynamics, relapse gauge) · Treatment Comparison (5-scenario head-to-head, 52-wk endpoint DT table) · Safety Monitoring (cumulative GC, BMD, infection risk, prophylaxis checklist) · Mechanistic Map viewer |
+| **References** | 42 curated PubMed-linked papers (7 sections): Immunopathogenesis (Weyand/Goronzy landmark papers) · IL-6 Biology & TCZ MOA · Drug PK/PD Parameters (GiACTA PK, TMDD, CRP kinetics) · Clinical Trials (GiACTA, abatacept, upadacitinib SELECT-GCA) · Biomarkers & Diagnosis (TAB, ultrasound halo, PET/CT, sIL-6R) · ACR/EULAR 2022 Criteria · QSP Modeling |
+
+### Mechanistic Map
+
+[![GCA QSP Model](giant-cell-arteritis/gca_qsp_model.png)](giant-cell-arteritis/gca_qsp_model.svg)
+
+*Click image to open full-resolution SVG. Map shows 10 subgraph clusters: genetic risk/trigger, innate immunity (VDC/macrophage/giant cells), adaptive immunity (Th1/Th17/Treg), cytokine network (IL-6/IFN-γ/IL-17A/VEGF), vascular pathology (temporal artery layers, intimal hyperplasia, aortic involvement), clinical manifestations (AION/visual loss/PMR/stroke risk), biomarkers (CRP/ESR/PET-CT/halo sign), drug PK (prednisone 4-cpt + TCZ TMDD), drug PD mechanisms (GR/NFκB/JAK-STAT3), and GC side-effect compartments.*
+
+### Key Clinical & PK/PD Parameters
+
+| Parameter | Value | Source |
+|-----------|-------|---------|
+| GiACTA: TCZ SC qw sustained remission | 56% vs 14% (fast GC) | Stone NEJM 2017 |
+| GiACTA: TCZ IV q4w sustained remission | 53% vs 30% (slow GC) | Stone NEJM 2017 |
+| TCZ SC bioavailability | 80% | GiACTA PK substudy |
+| TCZ T½ (SC qw steady-state) | ~13–26 days (dose-dependent) | Rau 2014 |
+| Prednisolone CL | 1.67 L/h | Rose 1981 |
+| Prednisolone Vd | 32 L (70 kg) | Rose 1981 |
+| CRP T½ | ~19 hours | Pepys 2003 |
+| Temporal artery biopsy sensitivity | 75–80% | Meta-analysis |
+| Visual loss risk (untreated) | 15–20% | Hayreh 1998 |
+| Aortic aneurysm risk vs controls | 17-fold increased | Evans 1995 |
+| Abatacept remission rate | 48% vs 31% placebo | Villiger 2016 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`gca_qsp_model.dot`](giant-cell-arteritis/gca_qsp_model.dot) | Graphviz DOT source (10 subgraph clusters, 130+ named nodes; vascular dendritic cells, innate/adaptive immunity, IL-6/IFN-γ/IL-17A/VEGF cytokine axes, vascular pathology, clinical complications, biomarkers, drug PK/PD, GC side effects) |
+| [`gca_qsp_model.svg`](giant-cell-arteritis/gca_qsp_model.svg) | Vector mechanistic map (~269 KB) |
+| [`gca_qsp_model.png`](giant-cell-arteritis/gca_qsp_model.png) | Raster mechanistic map (150 dpi, ~8.6 MB) |
+| [`gca_mrgsolve_model.R`](giant-cell-arteritis/gca_mrgsolve_model.R) | mrgsolve ODE model (18 compartments); Prednisone→Prednisolone 4-cpt PK, Tocilizumab 2-cpt TMDD (IV + SC), IL-6 turnover, CRP indirect response, ESR, GCA disease activity, macrophage/Th17/VEGF dynamics, BMD loss, cumulative GC dose; 5 treatment scenarios calibrated to GiACTA trial (Stone NEJM 2017) |
+| [`gca_shiny_app.R`](giant-cell-arteritis/gca_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + plotly + DT); ACR/EULAR 2022 GCA classification score calculator; interactive patient parameters; PK/biomarker/disease activity/safety monitoring panels; 5-scenario comparison with 52-wk endpoint DT table; GC cumulative dose & BMD tracking; relapse risk gauge; mechanistic map viewer |
+| [`gca_references.md`](giant-cell-arteritis/gca_references.md) | 42 curated PubMed-linked references (7 sections): immunopathogenesis · IL-6/TCZ mechanism · drug PK/PD parameters · clinical trials (GiACTA/abatacept/upadacitinib) · biomarkers & diagnosis · ACR/EULAR criteria · QSP modeling |
