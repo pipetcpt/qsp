@@ -126,6 +126,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Primary Biliary Cholangitis**](#primary-biliary-cholangitis-pbc) | 자가면역질환 / 간·담도 | AMA (anti-PDC-E2, ≥95% sens) → pDC/TLR9 → IFN-α → Th1/CTL → biliary epithelial cell (BEC) apoptosis + senescence (SASP) → ductopenia; Glutathione defect (GSH↓ in BEC) → apotope persistence; FXR/TGR5/FGF19 axis → CYP7A1↓/BSEP↑; Hydrophobic BA toxicity → NLRP3 → HSC activation → TGF-β1 → fibrosis; UDCA (SOC, BSEP↑/EHC) + OCA (FXR, POISE: ALP↓38%) + Elafibranor (PPARα/δ, ELATIVE 2024: 51% norm) + Seladelpar (PPARδ, RESPONSE 2024: 25% norm) + Bezafibrate (BEZURSO: 67% norm) | [![PBC](primary-biliary-cholangitis/pbc_qsp_model.png)](primary-biliary-cholangitis/pbc_qsp_model.svg) | [R](primary-biliary-cholangitis/pbc_mrgsolve_model.R) | [refs](primary-biliary-cholangitis/pbc_references.md) | [Shiny](primary-biliary-cholangitis/pbc_shiny_app.R) |
 | 2026-06-17 | [**Hypertrophic Cardiomyopathy**](#hypertrophic-cardiomyopathy-hcm) | 만성질환 / 심혈관 | Sarcomere gene mutations (MYH7/MYBPC3 ~80%) → ↑DRX myosin fraction → Duty ratio↑ → Hypercontractility + Venturi-SAM → LVOT obstruction; Calcineurin-NFAT + ERK → asymmetric LVH (IVS↑↑); TGF-β1/SMAD → interstitial fibrosis (ECV↑, LGE); Ca²⁺ mishandling (RyR2 leak→DADs) + scar substrate → VT/VF → SCD; AF (LA dilation/pressure); Mavacamten (MYK-461, EXPLORER-HCM: LVOT↓36mmHg) + Aficamten (SEQUOIA-HCM: LVOT↓36mmHg) + Beta-blocker (HR/contractility↓) + Disopyramide (SAM↓) + SRT (Myectomy/ASA); CYP2C19-guided dosing | [![HCM](hypertrophic-cardiomyopathy/hcm_qsp_model.png)](hypertrophic-cardiomyopathy/hcm_qsp_model.svg) | [R](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) | [refs](hypertrophic-cardiomyopathy/hcm_references.md) | [Shiny](hypertrophic-cardiomyopathy/hcm_shiny_app.R) |
 | 2026-06-17 | [**Graves' Disease**](#graves-disease) | 자가면역질환 / 내분비 | TRAb (TSAb) constitutively activates TSHR → cAMP/PKA → T3/T4 hypersecretion; HPT negative feedback disrupted; B-cell germinal center (CD40/IL-4) → TSAb/TBAb/TBII; Wolff–Chaikoff/escape; orbital fibroblast (TSHR+IGF-1R) → HA synthesis + adipogenesis → GO; MMI/PTU (TPO inhibition) + ¹³¹I (β-radiation ablation) + Propranolol (β1-blocker/D1↓) + Rituximab (B-cell depletion) + Teprotumumab (IGF-1R, OPTIC trial) | [![GD](graves-disease/gd_qsp_model.png)](graves-disease/gd_qsp_model.svg) | [R](graves-disease/gd_mrgsolve_model.R) | [refs](graves-disease/gd_references.md) | [Shiny](graves-disease/gd_shiny_app.R) |
+| 2026-06-17 | [**Idiopathic Pulmonary Fibrosis**](#idiopathic-pulmonary-fibrosis-ipf) | 만성질환 / 호흡기 | Repetitive AEC-II injury (smoking/GERD/viral/MUC5B/TERT) → ER stress + ROS → senescence/apoptosis → DAMP release → TGFb1 (SMAD2/3-4 complex) + NOX4-ROS feedback → fibroblast→myofibroblast (αSMA+) → collagen I/III ↑ + TIMP↑/MMP↓ → ECM stiffness → mechanotransduction (YAP/TAZ → more TGFβ); M2 macrophage (IL-4/IL-13) amplifies TGFβ/CTGF; PDGF/FGF/VEGF drive fibrocyte recruitment; Pirfenidone (TGF-β/TNF-α/PDGF/ROS↓, ASCEND: −47.9% FVC decline) + Nintedanib (FGFR/VEGFR/PDGFRα/β TKI, INPULSIS: −50.1% FVC decline); Biomarkers: MMP-7↑, KL-6↑, Periostin↑; Endpoints: FVC%, DLCO%, 6MWD, AE-IPF | [![IPF](idiopathic-pulmonary-fibrosis/ipf_qsp_model.png)](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg) | [R](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) | [refs](idiopathic-pulmonary-fibrosis/ipf_references.md) | [Shiny](idiopathic-pulmonary-fibrosis/ipf_shiny_app.R) |
 
 
 ---
@@ -1583,4 +1584,89 @@ dGO/dt    = kGO_TRAb × TRAb × (1 − GCS) − kGO_kel × GO
 | [`gd_shiny_app.R`](graves-disease/gd_shiny_app.R) | 6-tab shinydashboard: Patient Profile · Drug PK · Thyroid Hormone PD · Cardiovascular & Bone · Immune & Ophthalmopathy · Scenario Comparison |
 
 [![Graves' Disease QSP Map](graves-disease/gd_qsp_model.png)](graves-disease/gd_qsp_model.svg)
+
+---
+
+## Idiopathic Pulmonary Fibrosis (IPF)
+
+> **Directory:** [`idiopathic-pulmonary-fibrosis/`](idiopathic-pulmonary-fibrosis/)
+
+**ICD-10:** J84.112 · **Category:** 만성질환 / 호흡기 섬유화 · **Prevalence:** 13–20 per 100,000; incidence rising with age (peak 60–70 yrs)
+
+### Pathophysiology
+
+Idiopathic pulmonary fibrosis is a progressive, irreversible, and fatal fibrotic interstitial lung disease characterized by the **usual interstitial pneumonia (UIP)** histological pattern. The prevailing hypothesis centers on **repetitive alveolar epithelial injury** followed by aberrant wound healing driven by TGF-β1.
+
+[![IPF QSP Model](idiopathic-pulmonary-fibrosis/ipf_qsp_model.png)](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg)
+
+| Module | Key Components |
+|--------|---------------|
+| **Alveolar Epithelium (AEC I/II)** | AEC-II injury/senescence (ROS, ER stress, telomere shortening, MUC5B variant, TERT/SFTPC mutations) → DAMP release → αvβ6 integrin + TSP-1 activate latent TGF-β1; KL-6 and SP-D biomarkers; Wnt/β-catenin blocks AEC-II repair; EGF/HGF support regeneration (reduced in IPF) |
+| **TGF-β1/SMAD Signaling** | TGFβ1 (central driver): TGFβRI/II → pSMAD2/3 → SMAD4 nuclear complex → CTGF/PAI-1/fibronectin/Col1A1/TIMP-1 transcription; SMAD7 (negative feedback); non-SMAD (PI3K/AKT/MAPK/Rho) → fibroblast proliferation/migration; LOX (collagen crosslinking) → matrix stiffness → mechanotransduction → more TGF-β |
+| **Macrophage Biology** | DAMP → TLR4/TLR9 → NLRP3 inflammasome → IL-1β/IL-18; AM → M1 (TNF-α/IL-6/MMP-12) or M2 (IL-4/IL-13/IL-10) polarization; M2 → TGF-β1/CTGF/osteopontin; CCL-18 as M2 biomarker |
+| **Fibroblast/Myofibroblast** | Quiescent → activated (TGF-β/PDGF) → myofibroblast (α-SMA+); IPF fibroblasts epigenetically reprogrammed (bcl-2↑, apoptosis-resistant); YAP/TAZ/FAK/Rho-ROCK; CXCL12/SDF-1 recruits circulating fibrocytes (CD45+/Collagen+); senescent fibroblasts (SASP) amplify TGF-β |
+| **ECM Remodeling** | Collagen I/III overproduction; MMP-1/-2/-7/-9/-13 (degradation) vs TIMP-1/-2 (inhibition) — TGF-β tips balance toward TIMP↑ → fibrosis; MMP-7 serum biomarker; periostin stabilizes collagen; HA activates TLR4; matrix stiffness → YAP/TAZ mechanotransduction feedback loop |
+| **Growth Factors & Angiogenesis** | PDGF-AA/BB → PDGFRα/β → fibroblast proliferation; FGF-2 → FGFR1/2 → fibroblast survival; VEGF-A → VEGFR2 → abnormal neovascularization; ET-1 → ETA/ETB → myofibroblast differentiation; platelet activation → TGF-β release |
+| **Oxidative Stress** | NOX4 (TGF-β-induced) + mitochondrial ROS → AEC-II damage + TGF-β activation; Nrf2/GSH/SOD defense; mTOR↑ → fibroblast proliferation; mtDNA damage → NLRP3; autophagy impairment |
+| **Drug PK — Pirfenidone** | F=81%, ka=1.74/h, t½=2.4h, CL=8.4 L/h, V1=20.4 L; food delays Tmax (3h fed vs 1h fasted); CYP1A2 (85%) + CYP2C9/3A4 (15%); renal elimination (80%); EC50 ~30 µg/mL (TGF-β inhibition) |
+| **Drug PK — Nintedanib** | F=4.7% (P-gp/BCRP efflux limits absorption), ka=0.8/h, t½=10h, CL=22 L/h, V1=730 L; CYP3A4 + UGT glucuronidation; biliary elimination (93%); IC50 ~20 nM (FGFR1); BIBF1202 active metabolite |
+| **Drug PD Targets** | Pirfenidone: TGF-β1↓ / TNF-α↓ / PDGF↓ / FGF↓ / ROS↓; Nintedanib: VEGFR-1/2/3 / PDGFRα/β / FGFR-1/2/3 / Src/Lck/RET competitive TKI |
+| **Clinical Endpoints** | FVC% predicted (primary), DLCO%, TLC%, 6MWD, AE-IPF, HRCT honeycombing/GGO score, GAP index (Gender-Age-Physiology), all-cause mortality |
+| **Comorbidities** | GERD/microaspiration, OSA, pulmonary hypertension, emphysema (CPFE), lung cancer (2–3× risk), smoking (major risk) |
+
+### Drug Mechanisms
+
+| Drug | Dose | Mechanism | Key Trial | Primary Outcome |
+|------|------|-----------|-----------|-----------------|
+| **Pirfenidone** | 801 mg TID oral | Anti-fibrotic/anti-inflammatory: ↓TGF-β1 secretion, ↓PDGF, ↓TNF-α, antioxidant (↑GSH) | ASCEND (NEJM 2014) | −47.9% FVC decline reduction vs placebo (p<0.001) |
+| **Nintedanib** | 150 mg BID oral | Triple tyrosine kinase inhibitor: FGFR-1/2/3, VEGFR-1/2/3, PDGFRα/β | INPULSIS-1/2 (NEJM 2014) | −50.1% FVC decline reduction vs placebo (p<0.001) |
+| **Combination** | Both agents | Additive/complementary mechanisms (different targets) | INJOURNEY (2018) | Numerically greater FVC preservation vs monotherapy |
+| **N-Acetylcysteine** | 600 mg TID | GSH precursor → antioxidant | PANTHER-IPF (NEJM 2012) | No benefit over placebo (monotherapy) |
+| **Nintedanib (SSc-ILD)** | 150 mg BID | FGFR/VEGFR/PDGFR inhibition in systemic sclerosis-ILD | SENSCIS (NEJM 2019) | FVC decline reduced −44% |
+
+### Model Specifications
+
+| Feature | Detail |
+|---------|--------|
+| ODE Compartments | **17** (Pirfenidone PK ×3 + Nintedanib PK ×3 + AEC2 + TGF-β + M2 + ROS + Fibroblast + Myofibroblast + Collagen + MMP + TIMP + FVC + DLCO) |
+| Treatment Scenarios | **5**: Placebo · Pirfenidone 801 mg TID · Nintedanib 150 mg BID · Combination · Pirfenidone Low Dose (267 mg TID) |
+| Clinical Calibration | ASCEND: −47.9% FVC decline reduction; INPULSIS: −50.1% FVC decline reduction; Natural history ~200 mL/yr |
+| PK Sources | Pirfenidone: Rubino 2009 (J Clin Pharmacol); Nintedanib: Stopfer 2011 (Clin Pharmacokinet) |
+| Biomarkers Tracked | MMP-7 (serum, proxy), KL-6 (proxy, U/mL scale), Periostin (proxy), TGF-β1, collagen, MMP:TIMP ratio |
+| Dose-Response | 4-dose pirfenidone (267–1068 mg TID) × 4-dose nintedanib (50–200 mg BID) |
+
+### Key Equations
+
+```
+dAEC2/dt   = k_rep × (1 − AEC2) − k_AEC × ROS × AEC2
+dTGFb/dt   = [kprod + kact×(1−AEC2) + 0.06×M2 + 0.04×Myofib] × (1−inh_P) − kdeg×TGFb
+inh_P      = Emax_P × Cp / (EC50_P + Cp)          // Pirfenidone Hill inhibition
+inh_N      = Emax_N × Cn_nM / (EC50_N + Cn_nM)    // Nintedanib Hill inhibition
+dMYOFIB/dt = kdiff × FIBRO × TGFb × (1 − 0.5×inh_N) − 0.006×MYOFIB
+dCOL/dt    = kprod_col × MYOFIB − kdeg_col × MMP/(TIMP+0.1) × COL
+dFVC/dt    = −k_FVC × (COL−1)₊ × FVC              // FVC loss from collagen excess
+GAP Score  = G(sex) + A(age) + P(FVC%) + P(DLCO%)  // O'Mahony 2014
+```
+
+### Shiny App (6 Interactive Tabs)
+
+| Tab | Content |
+|-----|---------|
+| ① Patient Profile | Patient FVC/DLCO input; GAP score calculator (O'Mahony 2014 formula); natural history FVC trajectory; severity classification table |
+| ② Drug PK | Pirfenidone 72h plasma Cp (µg/mL) vs EC50; Nintedanib 72h Cn (nM) vs IC50; PK parameter table; population PK variability (n=50 Monte Carlo, CV~30%) |
+| ③ Lung Function | FVC% and DLCO% time-course; real-time value boxes (52-wk FVC, DLCO, decline, treatment response %); spirometry severity zones; annualized decline rate |
+| ④ Biomarkers | TGF-β1 & myofibroblast trajectories; ECM collagen/MMP/TIMP dynamics; serum MMP-7/KL-6/Periostin proxies; ROS & AEC-II integrity; biomarker correlation heatmap |
+| ⑤ Scenario Comparison | 5-scenario head-to-head FVC plot; summary datatable (Week 0/13/26/39/52); treatment effect bar chart vs placebo; pirfenidone & nintedanib dose-response curves |
+| ⑥ Mechanistic Map | Full IPF mechanistic map PNG (130+ nodes, 12 clusters); pathway interaction table; drug mechanism target summary |
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`ipf_qsp_model.dot`](idiopathic-pulmonary-fibrosis/ipf_qsp_model.dot) | Graphviz DOT source (130+ nodes, 12 clusters, fdp layout) |
+| [`ipf_qsp_model.svg`](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg) | Vector mechanistic map |
+| [`ipf_qsp_model.png`](idiopathic-pulmonary-fibrosis/ipf_qsp_model.png) | Raster mechanistic map (150 dpi, 4.1 MB) |
+| [`ipf_references.md`](idiopathic-pulmonary-fibrosis/ipf_references.md) | 50 curated references (12 sections); ASCEND/INPULSIS/CAPACITY/PANTHER-IPF pivotal trials; PK/PD/biomarker/QSP methodology |
+| [`ipf_mrgsolve_model.R`](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) | 17-state mrgsolve ODE; 5 treatment scenarios; dose-response; calibrated to ASCEND/INPULSIS; GAP calculator |
+| [`ipf_shiny_app.R`](idiopathic-pulmonary-fibrosis/ipf_shiny_app.R) | 6-tab shinydashboard; pirfenidone/nintedanib PK simulation; population variability; GAP score; scenario comparison; mechanistic map viewer |
 
