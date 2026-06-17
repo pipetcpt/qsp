@@ -122,6 +122,8 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Ankylosing Spondylitis**](#ankylosing-spondylitis-as) | 자가면역질환 / 척추관절염 | HLA-B27 misfolding (UPR → IL-23) + enthesis microdamage → DAMP/TLR → DC/Macrophage IL-23 → Th17 IL-17A/IL-17F ★ + RANKL↑/OPG↓ → dual bone pathology: erosion (osteoclast) + ankylosis (BMP/Wnt/DKK1 ↓ new bone); Gut–joint axis (dysbiosis/ILC3); TNFi (ATLAS/GO-RAISE) + IL-17Ai (MEASURE 1/2, COAST-V) + JAKi (SELECT-AXIS 1/2) + IL-23i (GUIDE) | [![AS](ankylosing-spondylitis/as_qsp_model.png)](ankylosing-spondylitis/as_qsp_model.svg) | [R](ankylosing-spondylitis/as_mrgsolve_model.R) | [refs](ankylosing-spondylitis/as_references.md) | [Shiny](ankylosing-spondylitis/as_shiny_app.R) |
 | 2026-06-16 | [**Atrial Fibrillation**](#atrial-fibrillation-af) | 만성질환 / 심혈관 | Electrical remodeling (Nav1.5/Cav1.2/Kv1.5/IKACh/ERP↓) + Ca²⁺ mishandling (RyR2/CaMKII/SOICR→DADs) + structural fibrosis (AngII/TGF-β1/SMAD2/3) + NLRP3 inflammation + ANS remodeling → wavelength shortening → reentry + focal PV triggers; Thromboembolism (Virchow's triad, TF/FXa/thrombin/fibrin); Amiodarone (class I/II/III/IV) + Metoprolol (rate control) + Apixaban (ARISTOTLE: RRR 21%) — calibrated to AFFIRM, RACE, ARISTOTLE, RE-LY, EAST-AFNET 4 | [![AF](atrial-fibrillation/af_qsp_model.png)](atrial-fibrillation/af_qsp_model.svg) | [R](atrial-fibrillation/af_mrgsolve_model.R) | [refs](atrial-fibrillation/af_references.md) | [Shiny](atrial-fibrillation/af_shiny_app.R) |
 | 2026-06-16 | [**Myasthenia Gravis**](#myasthenia-gravis-mg) | 자가면역질환 / 신경근육 | Anti-AChR IgG (85%) → NMJ: Ab crosslinking (AChR internalization↑) + Classical complement → MAC (C5b-9) → junctional fold loss → AChR density↓ → NMJ safety factor↓ → EPP subthreshold → muscle weakness; Anti-MuSK (5–8%) disrupts AChR clustering; FcRn recycles pathogenic IgG; Pyridostigmine (AChEI, AChE IC50~10nM) / Prednisolone + AZA/MMF / Eculizumab (REGAIN: −4.2 QMG) / Ravulizumab (CHAMPION-MG) / Zilucoplan (RAISE) / Efgartigimod (ADAPT: ~75% IgG↓) / Rituximab (MuSK-MG) / Thymectomy (MGTX) | [![MG](myasthenia-gravis/mg_qsp_model.png)](myasthenia-gravis/mg_qsp_model.svg) | [R](myasthenia-gravis/mg_mrgsolve_model.R) | [refs](myasthenia-gravis/mg_references.md) | [Shiny](myasthenia-gravis/mg_shiny_app.R) |
+| 2026-06-16 | [**Osteoporosis**](#osteoporosis) | 만성질환 / 골대사 | Osteoclast/osteoblast coupling dysregulation: RANK/RANKL/OPG axis imbalance → bone resorption > formation → BMD↓; estrogen deficiency (↑T-bet/Th17/IL-17/RANKL), glucocorticoid (Wnt↓/GR-mediated osteoblast apoptosis), aging (FGF-23↑/IGF-1↓/sclerostin↑); Bisphosphonate (APPase inhibition/FPPS) + Denosumab (anti-RANKL mAb; FREEDOM) + Romosozumab (anti-sclerostin; ARCH) + Teriparatide (PTH1R; NEER) | [![OP](osteoporosis/op_qsp_model.png)](osteoporosis/op_qsp_model.svg) | [R](osteoporosis/op_mrgsolve_model.R) | [refs](osteoporosis/op_references.md) | [Shiny](osteoporosis/op_shiny_app.R) |
+| 2026-06-17 | [**Primary Biliary Cholangitis**](#primary-biliary-cholangitis-pbc) | 자가면역질환 / 간·담도 | AMA (anti-PDC-E2, ≥95% sens) → pDC/TLR9 → IFN-α → Th1/CTL → biliary epithelial cell (BEC) apoptosis + senescence (SASP) → ductopenia; Glutathione defect (GSH↓ in BEC) → apotope persistence; FXR/TGR5/FGF19 axis → CYP7A1↓/BSEP↑; Hydrophobic BA toxicity → NLRP3 → HSC activation → TGF-β1 → fibrosis; UDCA (SOC, BSEP↑/EHC) + OCA (FXR, POISE: ALP↓38%) + Elafibranor (PPARα/δ, ELATIVE 2024: 51% norm) + Seladelpar (PPARδ, RESPONSE 2024: 25% norm) + Bezafibrate (BEZURSO: 67% norm) | [![PBC](primary-biliary-cholangitis/pbc_qsp_model.png)](primary-biliary-cholangitis/pbc_qsp_model.svg) | [R](primary-biliary-cholangitis/pbc_mrgsolve_model.R) | [refs](primary-biliary-cholangitis/pbc_references.md) | [Shiny](primary-biliary-cholangitis/pbc_shiny_app.R) |
 
 
 ---
@@ -1318,3 +1320,103 @@ Atrial fibrillation is the most common sustained cardiac arrhythmia, affecting >
 | [`mg_references.md`](myasthenia-gravis/mg_references.md) | 43 curated references, 13 sections, all PubMed-linked; includes REGAIN/CHAMPION-MG/RAISE/ADAPT/MycarinG/MGTX pivotal trials |
 | [`mg_mrgsolve_model.R`](myasthenia-gravis/mg_mrgsolve_model.R) | 20-state mrgsolve ODE model; 7 treatment scenarios; pyridostigmine dose-response; calibrated to REGAIN/ADAPT/MGTX |
 | [`mg_shiny_app.R`](myasthenia-gravis/mg_shiny_app.R) | 6-tab shinydashboard (shinydashboard, plotly, mrgsolve, DT) |
+
+---
+
+## Primary Biliary Cholangitis (PBC)
+
+**Date added:** 2026-06-17 | **Directory:** [`primary-biliary-cholangitis/`](primary-biliary-cholangitis/)
+
+[![PBC Mechanistic Map](primary-biliary-cholangitis/pbc_qsp_model.png)](primary-biliary-cholangitis/pbc_qsp_model.svg)
+
+### Disease Overview
+
+Primary Biliary Cholangitis (PBC) is a chronic, autoimmune, cholestatic liver disease characterized by progressive destruction of small intrahepatic bile ducts. It predominantly affects women (9:1 F:M ratio) and is hallmarked by anti-mitochondrial antibodies (AMA ≥1:40; ≥95% sensitivity) directed against the pyruvate dehydrogenase complex E2 subunit (PDC-E2). Without treatment, PBC progresses from bile duct inflammation (florid duct lesion) through ductopenia to biliary fibrosis, cirrhosis, and liver failure requiring transplantation.
+
+### Key Pathophysiological Cascade
+
+```
+Genetic susceptibility (HLA-DRB1, IL12A/IL12RB2, STAT4)
++ Environmental triggers (xenobiotics, infection/molecular mimicry)
+         ↓
+pDC → TLR7/9 → IFN-α → Type I IFN signaling
+         ↓
+CD4+ Th1 → IFN-γ · CD8+ CTL → Perforin/Granzyme B
+         ↓
+BEC apoptosis (FasL/TRAIL/CTL) + Impaired GSH secretion → PDC-E2 apotope
+         ↓
+AMA (IgM → IgG class switch) · BEC senescence → SASP
+         ↓
+Ductopenia (vanishing bile duct syndrome) → ALP↑↑
+         ↓
+Cholestasis: Hydrophobic BA pool↑ → NLRP3/IL-1β → Hepatocyte damage
+         ↓
+TGF-β1 / HSC activation → Collagen I/III → Fibrosis (Metavir F0→F4)
+         ↓
+Portal hypertension · Cirrhosis · HCC (>15× risk)
+```
+
+### Drug Mechanisms Modeled
+
+| Drug | Target | Mechanism | Key Trial | ALP Response |
+|------|--------|-----------|-----------|:------------:|
+| **UDCA** 13-15 mg/kg/d | FXR (partial) / BSEP / AE2 | Enriches hydrophilic BA pool; bicarbonate umbrella; BSEP/MRP2 induction; hepatoprotection | Lindor 1994, NEJM | 30-40% ↓ |
+| **Obeticholic acid (OCA)** 5-10 mg/d | FXR agonist (100× vs UDCA) | FXR → FGF19↑ → CYP7A1↓; BSEP↑ → BA export↑; ASBT↓ → BA reabsorption↓ | POISE (Nevens 2016, NEJM) | 38% ↓ |
+| **Elafibranor** 80 mg/d | PPARα/δ dual agonist | BA detoxification (UGT1A3↑ glucuronidation; SULT2A1↑ sulfation; CYP4A11↑ ω-oxidation); anti-inflammatory; ABCG5/8↑ | ELATIVE (Kowdley 2024, Lancet) — **FDA Jun 2024** | **51% ALP normalization** |
+| **Seladelpar** 10 mg/d | PPARδ selective | BA sulfation↑; GGT↓; pruritus↓ (autotaxin↓); HMGCR↓ | RESPONSE (Bowlus 2024, Lancet) — **FDA Aug 2024** | **25% ALP normalization** |
+| **Bezafibrate** 400 mg/d | pan-PPAR (α>δ>γ) | Broad BA detoxification; anti-fibrotic | BEZURSO (Corpechot 2018, NEJM) | **67% ALP normalization** |
+
+### Clinical Endpoints
+
+| Endpoint | Definition | Clinical Significance |
+|----------|-----------|----------------------|
+| ALP response | ALP <1.67×ULN + Bilirubin ≤ULN at 12m | Primary endpoint POISE; GLOBE-derived threshold |
+| ALP normalization | ALP ≤ULN | Primary endpoint ELATIVE/RESPONSE |
+| Paris II criteria | ALP <1.5×ULN + AST ≤2×ULN + Bilirubin ≤ULN | Best validated biochemical surrogate |
+| GLOBE score | 5-year transplant-free survival | Validated in 4,800 patients |
+| UK-PBC score | 5/10-year liver-related mortality | Complementary to GLOBE |
+| Pruritus NRS | 0-10 numeric rating scale | Key symptom endpoint; OCA limits |
+
+### ODE Model Architecture (20 states)
+
+| State Group | Variables | Biological Meaning |
+|-------------|-----------|-------------------|
+| Drug PK (10) | UDCA/OCA/ELF/SEL/BEZ (gut + central) | 1-compartment with EHC for UDCA |
+| Immunology (3) | AMA, Th1, BEC_dmg | Core disease drivers |
+| Bile acid axis (2) | BA_toxic, FGF19 | FXR-FGF19-CYP7A1 feedback loop |
+| Biomarkers (4) | ALP, BILI, GGT, IgM | Primary clinical endpoints |
+| Disease state (1) | Fibrosis (Metavir 0-4) | Long-term progression |
+
+### Treatment Scenarios (7)
+
+| Scenario | Regimen | ALP at M12 | ALP Normalization | Pruritus Effect |
+|----------|---------|:----------:|:-----------------:|:---------------:|
+| S1 | No treatment | ~3.5×ULN | 0% | Moderate |
+| S2 | UDCA monotherapy | ~2.1×ULN | ~15% | Mild benefit |
+| S3 | UDCA + OCA 5mg | ~1.5×ULN | ~30% | Worsened (dose-limiting) |
+| S4 | UDCA + OCA 10mg | ~1.3×ULN | ~38% | Severely worsened |
+| S5 | UDCA + Elafibranor 80mg | ~1.1×ULN | **~51%** | Improved |
+| S6 | UDCA + Seladelpar 10mg | ~1.4×ULN | **~25%** | Improved |
+| S7 | UDCA + Bezafibrate 400mg | ~1.0×ULN | **~55%** | Neutral |
+
+### Shiny Dashboard (6 Interactive Tabs)
+
+| Tab | Content |
+|-----|---------|
+| ① Patient Profile | Baseline ALP/Bilirubin/GGT/fibrosis stage; disease overview; drug information table; 4 KPI value boxes |
+| ② PK Profiles | 72h drug concentration profiles (all 5 drugs); steady-state Css and PD parameter summary table |
+| ③ PD Biomarkers | ALP/Bilirubin/GGT (all ×ULN); IgM; FGF19 induction by OCA; Pruritus NRS (with OCA warning) |
+| ④ Disease Biology | AMA titer; Th1 cell activity; BEC damage index (0-1); Toxic BA pool; Metavir fibrosis score |
+| ⑤ Clinical Endpoints | Paris II response; ALP normalization flag; GLOBE surrogate score; 12-month summary table |
+| ⑥ Scenario Comparison | 7-scenario ALP/fibrosis/pruritus comparison plots; month-12 results DataTable |
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`pbc_qsp_model.dot`](primary-biliary-cholangitis/pbc_qsp_model.dot) | Graphviz DOT source (130+ nodes, 10 clusters, fdp layout) |
+| [`pbc_qsp_model.svg`](primary-biliary-cholangitis/pbc_qsp_model.svg) | Vector mechanistic map |
+| [`pbc_qsp_model.png`](primary-biliary-cholangitis/pbc_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`pbc_references.md`](primary-biliary-cholangitis/pbc_references.md) | 57 curated references (11 sections); POISE/ELATIVE/RESPONSE/BEZURSO pivotal trials |
+| [`pbc_mrgsolve_model.R`](primary-biliary-cholangitis/pbc_mrgsolve_model.R) | 20-state mrgsolve ODE; 7 treatment scenarios; FXR/PPAR/FGF19/fibrosis axis |
+| [`pbc_shiny_app.R`](primary-biliary-cholangitis/pbc_shiny_app.R) | 6-tab shinydashboard (plotly, DT); patient parameter sliders; scenario comparison |
