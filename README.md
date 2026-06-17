@@ -143,6 +143,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Hashimoto's Thyroiditis**](#hashimotos-thyroiditis-ht) | 자가면역질환 / 갑상선 | pDC(IFN-α) + mDC(IL-12) → APC → MHC-II → CD4+ Th1/Th17 (FOXP3+ Treg ↓) + Tfh → B-cell GC → Anti-TPO IgG★ + Anti-Tg IgG★ + Anti-TSHR blocking Ab → ADCC(NK) + Complement(C5b-9 MAC) + CD8+CTL → Thyrocyte apoptosis (Fas/FasL) → Lymphocytic infiltration → Thyroid damage → T4/T3 ↓ → TSH↑ → Subclinical → Overt hypothyroidism; HPT axis: TRH→TSH→T4/T3 synthesis (NIS/TPO/Tg/DIT+DIT); DIO1/DIO2 (selenocysteine) T4→T3; TRα1/TRβ1 genomic actions (BMR/cardiac/lipid/bone genes); Selenium (GPx↑ → ROS↓/NF-κB↓ → Anti-TPO ↓~50%, Gärtner 2002 RCT) + Levothyroxine (LT4 2-cpt PK, F=75%, t½=7d; TSH normalization → symptom relief/LDL↓) + Liothyronine (T4+T3 combo) + Methimazole (TPO block); Comorbidities: dyslipidemia/CV risk/depression/infertility/MALT lymphoma(3×); Biomarkers: TSH(0.4–4.0 mIU/L)/fT4(9–23 pmol/L)/fT3(3.5–6.5 pmol/L)/Anti-TPO(<34 IU/mL)/Anti-Tg/thyroid vol US | [![HT](hashimoto-thyroiditis/ht_qsp_model.png)](hashimoto-thyroiditis/ht_qsp_model.svg) | [R](hashimoto-thyroiditis/ht_mrgsolve_model.R) | [refs](hashimoto-thyroiditis/ht_references.md) | [Shiny](hashimoto-thyroiditis/ht_shiny_app.R) |
 | 2026-06-17 | [**Giant Cell Arteritis**](#giant-cell-arteritis-gca) | 자가면역질환 / 대혈관 혈관염 | Unknown trigger → Vascular DC activation → IL-12/IL-23 → Th1(IFN-γ) + Th17(IL-17A) → Macrophage activation + Giant cell formation → MMP9/PDGF/VEGF → Temporal artery intimal hyperplasia + luminal stenosis → AION/blindness/PMR; IL-6★ → CRP/ESR↑; GC (prednisone 60mg) + Tocilizumab (IL-6R, GiACTA NEJM2017: 56% vs 14% sustained remission) + Abatacept (CTLA4-Ig) + Upadacitinib (JAK1i, SELECT-GCA) | [![GCA](giant-cell-arteritis/gca_qsp_model.png)](giant-cell-arteritis/gca_qsp_model.svg) | [R](giant-cell-arteritis/gca_mrgsolve_model.R) | [refs](giant-cell-arteritis/gca_references.md) | [Shiny](giant-cell-arteritis/gca_shiny_app.R) |
 | 2026-06-17 | [**Neuromyelitis Optica Spectrum Disorder**](#neuromyelitis-optica-spectrum-disorder-nmosd) | 자가면역질환 / 신경계 | HLA-DRB1*03:01 + EBV mimicry → Plasma cell → AQP4-IgG1 (complement-fixing) → FcRn transcytosis across BBB → AQP4-M23 OAP binding → C1q/C3 → C5 cleavage → C5b-9 MAC → Astrocyte necrosis (GFAP↓/AQP4↓) → LETM (≥3 vert seg) + Optic Neuritis + Area Postrema Synd; Secondary Glu-excitotoxicity (EAAT2↓) → oligodendrocyte death (secondary demyelination); IL-6↑/Th17↑ → neutrophil/eosinophil infiltrate (prominent in NMOSD unlike MS); Biomarkers: AQP4-IgG titer (diagnostic) + serum GFAP★ + NfL (axonal damage) + OCT-RNFL; Eculizumab Anti-C5 (PREVENT NEJM 2019: ARR↓94.2%) + Inebilizumab Anti-CD19 (N-MOmentum Lancet 2019: ARR↓77.5%) + Satralizumab Anti-IL-6R (SAkuraSky NEJM 2019: ARR↓62%) + Ublituximab Anti-CD20 (ULTIMATE I/II Lancet 2024) + Rituximab (off-label, Real-world ~80% ARR reduction) + MMF + AZA; Rescue: IV methylprednisolone + Plasma Exchange; EDSS endpoint (F:M=9:1, median untreated ARR=1.8) | [![NMOSD](neuromyelitis-optica/nmo_qsp_model.png)](neuromyelitis-optica/nmo_qsp_model.svg) | [R](neuromyelitis-optica/nmo_mrgsolve_model.R) | [refs](neuromyelitis-optica/nmo_references.md) | [Shiny](neuromyelitis-optica/shiny_app/app.R) |
+| 2026-06-17 | [**Guillain-Barré Syndrome**](#guillain-barré-syndrome-gbs) | 자가면역질환 / 말초신경 | C. jejuni/CMV/EBV/SARS-CoV-2 → LOS 분자 모방(Molecular Mimicry) → Anti-GM1/GD1a/GQ1b IgG → B세포 형질세포 분화 → 항강글리오사이드 항체 → 고전경로 보체(C1q→C3→MAC C5b-9) → 랑비에 결절(AMAN: GM1/GD1a/node binding) 또는 슈반세포(AIDP: 수초 탈락) 공격 → Calcium influx + Calpain → 축삭 손상 / 탈수초; Th1/Th17(IL-6/TNF-α↑)/Treg↓; GBS Disability Score 0-6(Hughes grade); FVC↓→호흡 부전; IVIG 2 g/kg 5일(5일형 2-구획 PK, T½~21d; van der Meché NEJM 1992: 동등효과 PE) + 혈장교환 5회(IgG 60% 제거/session) + Eculizumab C5i (Misawa Lancet Neurol 2018: pilot 7/8 improvement; ADHERE phase 3 2023); Subtypes: AIDP(90%, 유럽/북미) / AMAN(아시아/C.jejuni) / MFS(anti-GQ1b, 안근마비+실조) | [![GBS](guillain-barre-syndrome/gbs_qsp_model.png)](guillain-barre-syndrome/gbs_qsp_model.svg) | [R](guillain-barre-syndrome/gbs_mrgsolve_model.R) | [refs](guillain-barre-syndrome/gbs_references.md) | [Shiny](guillain-barre-syndrome/gbs_shiny_app.R) |
 
 
 ---
@@ -2888,3 +2889,79 @@ Abatacept (CTLA4-Ig; 48% remission vs 31%), Upadacitinib 15 mg QD (SELECT-GCA, J
 | [`gca_mrgsolve_model.R`](giant-cell-arteritis/gca_mrgsolve_model.R) | mrgsolve ODE model (18 compartments); Prednisone→Prednisolone 4-cpt PK, Tocilizumab 2-cpt TMDD (IV + SC), IL-6 turnover, CRP indirect response, ESR, GCA disease activity, macrophage/Th17/VEGF dynamics, BMD loss, cumulative GC dose; 5 treatment scenarios calibrated to GiACTA trial (Stone NEJM 2017) |
 | [`gca_shiny_app.R`](giant-cell-arteritis/gca_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + plotly + DT); ACR/EULAR 2022 GCA classification score calculator; interactive patient parameters; PK/biomarker/disease activity/safety monitoring panels; 5-scenario comparison with 52-wk endpoint DT table; GC cumulative dose & BMD tracking; relapse risk gauge; mechanistic map viewer |
 | [`gca_references.md`](giant-cell-arteritis/gca_references.md) | 42 curated PubMed-linked references (7 sections): immunopathogenesis · IL-6/TCZ mechanism · drug PK/PD parameters · clinical trials (GiACTA/abatacept/upadacitinib) · biomarkers & diagnosis · ACR/EULAR criteria · QSP modeling |
+
+---
+
+## Guillain-Barré Syndrome (GBS) — 길랭-바레 증후군
+
+> **Category:** 자가면역질환 / 말초신경 (Peripheral Nerve Autoimmune)  
+> **Added:** 2026-06-17 | **Directory:** [`guillain-barre-syndrome/`](guillain-barre-syndrome/)
+
+### Overview
+
+Guillain-Barré Syndrome (GBS, 길랭-바레 증후군) is an acute immune-mediated polyradiculoneuropathy with an annual incidence of 1–2 per 100,000 worldwide. It is the most common cause of acute flaccid paralysis in post-polio era settings. The hallmark is rapidly progressive ascending weakness with areflexia, typically reaching nadir within 2–4 weeks of onset. Respiratory failure requiring mechanical ventilation occurs in 25–30% of hospitalized cases. Despite treatment, ~5% of patients die, ~15% are left with severe disability at 1 year, and fatigue or neuropathic pain persists in 30–50% at long-term follow-up.
+
+**Core pathophysiology:**  
+Most GBS cases follow a preceding infection (1–4 weeks prior). *Campylobacter jejuni* (most common, ~30%) is the archetypal trigger: its lipooligosaccharide (LOS) outer coat mimics peripheral nerve gangliosides (molecular mimicry). B cells activated by LOS → plasma cells → IgG/IgM anti-ganglioside antibodies (anti-GM1, anti-GD1a, anti-GQ1b) bind to specific nerve targets. These antibodies engage the classical complement pathway (C1q → C3b opsonization → C5 cleavage → MAC C5b-9 assembly), causing either:
+- **AIDP** (Acute Inflammatory Demyelinating Polyneuropathy): Schwann cell/myelin sheath attack → conduction block → demyelination → slowed NCV; most common subtype in Europe/North America (~90%).
+- **AMAN** (Acute Motor Axonal Neuropathy): MAC deposits directly at nodes of Ranvier on motor axons (GM1/GD1a at paranodal membrane) → Ca²⁺ influx → calpain activation → spectrin degradation → axon retraction; common in China/Japan after *C. jejuni*.
+- **MFS** (Miller Fisher Syndrome): anti-GQ1b IgG → oculomotor nerve/cerebellum attack → ophthalmoplegia + ataxia + areflexia (Fisher triad, ~5% of GBS).
+
+**CD4+ T-cell involvement** (Th1/Th17 skewed, Treg deficiency) amplifies nerve inflammation via IFN-γ, IL-17, and macrophage-mediated myelin phagocytosis.
+
+**Approved treatments:**
+- **IVIG 2 g/kg over 5 days** — equivalent efficacy to PE (van der Meché NEJM 1992); 2-compartment IgG PK: Vc=0.05 L/kg, Vp=0.09 L/kg, CL=0.0033 L/h/kg, T½~21 days; mechanism: Fc-γR blockade + anti-idiotype antibodies + complement scavenging + Treg expansion
+- **Plasma Exchange (PE, 5 sessions)** — removes pathogenic antibodies, complement, cytokines; ~60% IgG reduction per session; no benefit over IVIG, and combination (IVIG + PE) does not improve over either alone (Dutch GBS trial)
+- **Corticosteroids** — repeatedly shown to be ineffective and potentially harmful (van Koningsveld NEJM 2004)
+
+**Investigational:**
+- **Eculizumab (C5 inhibitor)** — Misawa pilot RCT (Lancet Neurol 2018): 7/8 IVIG-non-responsive severe GBS improved with eculizumab (900 mg loading → 900 mg q7d); MAC prevention; ADHERE phase 3 trial (2023)
+- **Ravulizumab (long-acting anti-C5)** — IGOS registry-powered phase 3 ongoing
+- **Efgartigimod (FcRn blocker)** — reduces total IgG ~75%, including pathogenic anti-ganglioside IgG (ADHERE sub-study)
+
+### QSP Model Features
+
+| Component | Details |
+|-----------|---------|
+| **Mechanistic Map** | 12 subgraph clusters; 159 nodes; 221 directed edges. Clusters: (1) Antecedent Infection/LOS/Molecular Mimicry → (2) Innate Immune (DC/Macrophage/NK/complement innate) → (3) B Cell/Plasma Cell/anti-ganglioside Ab → (4) T Cell (Th1/Th17/Treg) → (5) Cytokine Network (IL-6/TNF-α/IFN-γ/IL-10/IL-17/TGF-β) → (6) Complement Cascade (C1q→C3b→MAC C5b-9) → (7) AIDP Pathology (Schwann cell/myelin) → (8) AMAN Pathology (axon/node of Ranvier) → (9) Clinical Endpoints (Hughes grade/FVC/MRC/NCV) → (10) IVIG PK (2-cpt) → (11) PE PK → (12) Treatment PD (IVIG Fc-block/anti-idiotype/eculizumab C5i) |
+| **ODE Model** | 26 state variables: Pathogen·DC·Mac·Bcell·Plasma·Ab_GM1·Ab_GD1a·Ab_GQ1b·Th1·Th17·Treg·IL6·TNFa·IL10·C3b·MAC·C5a·Myelin_dmg·Axon_dmg·Nerve_func·GBS_score·FVC_pct·IVIG_C·IVIG_P·PE_effect·ECU_C; subtype-specific AIDP/AMAN/MFS damage drivers; IVIG 2-compartment PK calibrated to Gelfand (2012) |
+| **Treatment Scenarios** | 8 scenarios: (1) Untreated natural history AIDP · (2) IVIG 2 g/kg day 7 (early) · (3) IVIG 2 g/kg day 14 (late) · (4) Plasma Exchange 5 sessions · (5) IVIG + Eculizumab (investigational) · (6a) AMAN untreated · (6b) AMAN + IVIG · (7) MFS + IVIG |
+| **Calibration** | van der Meché NEJM 1992 (IVIG=PE equivalence); Misawa Lancet Neurol 2018 (eculizumab pilot); Gelfand 2012 (IVIG 2-cpt PK: CL=0.0033 L/h/kg, T½~21d); Dutch GBS study group disability scale; Brighton criteria severity classification |
+| **Shiny App (7 tabs)** | (1) Patient Profile: demographics/subtype/mEGOS severity score calculator · (2) PK Profile: IVIG 2-cpt concentration / PE sessions / eculizumab · (3) Immunology: antibody titers (anti-GM1/GD1a/GQ1b), complement (MAC/C3b/C5a), T cell populations, cytokines · (4) Nerve Pathology: myelin vs axon damage index, NCV simulation, innate immune dynamics · (5) Clinical Endpoints: GBS disability score (0–6), FVC%, MRC sum, ventilation risk, milestone table · (6) Treatment Comparison: all 8 scenarios head-to-head, endpoint summary table · (7) Biomarkers: CSF protein, NfL proxy, anti-ganglioside Ab panel, complement biomarker reference ranges |
+| **References** | 55 curated PubMed-linked papers (10 sections): epidemiology/clinical · pathophysiology/molecular mimicry · anti-ganglioside antibodies · complement in GBS · AIDP vs AMAN subtypes · IVIG trials · plasma exchange · novel therapies (eculizumab/efgartigimod) · prognosis & recovery · QSP/modeling |
+
+### Mechanistic Map
+
+[![GBS QSP Model](guillain-barre-syndrome/gbs_qsp_model.png)](guillain-barre-syndrome/gbs_qsp_model.svg)
+
+*Click image to open full-resolution SVG. Map shows 12 subgraph clusters: infection triggers (C. jejuni/CMV/EBV/SARS-CoV-2) and molecular mimicry (LOS→ganglioside epitopes), innate immunity (DC maturation, macrophage M1/M2, NK cells, PRR/TLR signaling), B cell compartment (GC reaction, plasma cell differentiation, anti-GM1/GD1a/GQ1b IgG production), T cell populations (Th1/Th17 pro-inflammatory, Treg regulatory), cytokine network (IL-6/TNF-α/IFN-γ/IL-17/IL-10/TGF-β), complement cascade (classical C1q→C3→C5→MAC C5b-9 + alternative + lectin pathways), AIDP pathology (Schwann cell damage, myelin stripping, macrophage phagocytosis, remyelination), AMAN/AMSAN axonal pathology (anti-GM1/GD1a binding at nodes of Ranvier, Ca²⁺ influx, calpain activation, Wallerian degeneration), clinical endpoints (Hughes grade 0–6, FVC%, MRC score, NCV, CSF protein), IVIG 2-compartment PK (central/peripheral/FcRn recycling), plasma exchange (IgG removal kinetics, rebound), and treatment PD mechanisms (IVIG Fc-block + anti-idiotype + complement scavenging + Treg expansion; eculizumab C5 inhibition; rituximab B-cell depletion).*
+
+### Key Clinical & PK/PD Parameters
+
+| Parameter | Value | Source |
+|-----------|-------|---------|
+| Annual incidence | 1–2 per 100,000 | Sejvar 2011 (PMID 21766462) |
+| % requiring mechanical ventilation | 25–30% | van den Berg 2014 (PMID 24995695) |
+| Mortality rate | ~5% (hospital) | Willison 2016 (PMID 27217253) |
+| AIDP frequency (Europe/NA) | ~90% | Willison 2016 |
+| Anti-GQ1b positivity in MFS | ~90% | Yuki 2012 (PMID 22694882) |
+| IVIG CL (L/h/kg) | 0.0033 | Gelfand 2012 (PMID 22621419) |
+| IVIG Vc / Vp (L/kg) | 0.05 / 0.09 | Bhatt 2012 (PMID 22160427) |
+| IVIG T½ | ~21 days | Gelfand 2012 |
+| PE IgG removal per session | ~60% | Haupt 1996 (PMID 8922951) |
+| Eculizumab C5 IC50 | ~100 µg/mL | Rother 2007 (PMID 17565567) |
+| Peak GBS score untreated | ~4–5 (Hughes) | Natural history cohorts |
+| % walking independently at 6 mo (IVIG) | ~80% | van der Meché 1992 (PMID 1350178) |
+| Time to nadir | 2–4 weeks (median 12 days) | Willison 2016 |
+| IVIG = PE equivalence | Non-inferior | van der Meché NEJM 1992 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`gbs_qsp_model.dot`](guillain-barre-syndrome/gbs_qsp_model.dot) | Graphviz DOT source (12 subgraph clusters, 159 nodes, 221 directed edges; infection/molecular mimicry, innate/adaptive immunity, anti-ganglioside antibodies, complement cascade, AIDP/AMAN/MFS nerve damage, clinical endpoints, IVIG 2-cpt PK, PE kinetics, treatment PD) |
+| [`gbs_qsp_model.svg`](guillain-barre-syndrome/gbs_qsp_model.svg) | Vector mechanistic map (~194 KB) |
+| [`gbs_qsp_model.png`](guillain-barre-syndrome/gbs_qsp_model.png) | Raster mechanistic map (150 dpi, ~3.1 MB) |
+| [`gbs_mrgsolve_model.R`](guillain-barre-syndrome/gbs_mrgsolve_model.R) | mrgsolve ODE model (26 state variables); subtype-specific AIDP/AMAN/MFS damage drivers; IVIG 2-compartment PK (CL=0.0033 L/h/kg, T½~21d); eculizumab 1-compartment PK (C5 IC50=100 µg/mL); 8 treatment scenarios; 8 figures + clinical milestone table; sensitivity analysis (tornado plot) |
+| [`gbs_shiny_app.R`](guillain-barre-syndrome/gbs_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + deSolve ODE + ggplot2); Patient Profile with mEGOS score calculator; PK/Immunology/Nerve Pathology/Clinical Endpoints/Treatment Comparison/Biomarkers panels; all reactive on input changes |
+| [`gbs_references.md`](guillain-barre-syndrome/gbs_references.md) | 55 curated PubMed-linked references (10 sections): epidemiology · pathophysiology/molecular mimicry · anti-ganglioside antibodies · complement · AIDP vs AMAN · IVIG · plasma exchange · novel therapies · prognosis · QSP/modeling |
