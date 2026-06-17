@@ -129,6 +129,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Idiopathic Pulmonary Fibrosis**](#idiopathic-pulmonary-fibrosis-ipf) | 만성질환 / 호흡기 | Repetitive AEC-II injury (smoking/GERD/viral/MUC5B/TERT) → ER stress + ROS → senescence/apoptosis → DAMP release → TGFb1 (SMAD2/3-4 complex) + NOX4-ROS feedback → fibroblast→myofibroblast (αSMA+) → collagen I/III ↑ + TIMP↑/MMP↓ → ECM stiffness → mechanotransduction (YAP/TAZ → more TGFβ); M2 macrophage (IL-4/IL-13) amplifies TGFβ/CTGF; PDGF/FGF/VEGF drive fibrocyte recruitment; Pirfenidone (TGF-β/TNF-α/PDGF/ROS↓, ASCEND: −47.9% FVC decline) + Nintedanib (FGFR/VEGFR/PDGFRα/β TKI, INPULSIS: −50.1% FVC decline); Biomarkers: MMP-7↑, KL-6↑, Periostin↑; Endpoints: FVC%, DLCO%, 6MWD, AE-IPF | [![IPF](idiopathic-pulmonary-fibrosis/ipf_qsp_model.png)](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg) | [R](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) | [refs](idiopathic-pulmonary-fibrosis/ipf_references.md) | [Shiny](idiopathic-pulmonary-fibrosis/ipf_shiny_app.R) |
 | 2026-06-17 | [**Systemic Sclerosis (SSc)**](#systemic-sclerosis-ssc) | 자가면역질환 / 결합조직 | Autoimmunity (anti-Scl-70/ACA/RNA Pol III) + Vasculopathy (ET-1↑/NO↓/PGI₂↓/Raynaud) + Fibrosis (TGF-β/SMAD2-3 → FAct → Myo → Col1/3↑ → mRSS↑); SSc-ILD (FVC↓) + SSc-PAH (PVR↑/6MWD↓); Nintedanib (SENSCIS: −41% FVC decline) + Tocilizumab (focuSSced) + MMF (SLS II) + Bosentan (RAPIDS-2: −48% DU) + Iloprost (PGI₂ analog) | [![SSc](systemic-sclerosis/ssc_qsp_model.png)](systemic-sclerosis/ssc_qsp_model.svg) | [R](systemic-sclerosis/ssc_mrgsolve_model.R) | [refs](systemic-sclerosis/ssc_references.md) | [Shiny](systemic-sclerosis/ssc_shiny_app.R) |
 | 2026-06-17 | [**Gout**](#gout) | 만성질환 / 대사 | 혈중 요산 과다 → 단요산나트륨(MSU) 결정 침착 → NLRP3 인플라마좀(Caspase-1) → 성숙 IL-1β/IL-18 방출 → 호중구 유입 → 급성 관절염; URAT1/OAT/ABCG2 수송체 다형성; XO억제제(알로퓨리놀/옥시퓨리놀·페북소스타트) + 요산배설제(프로베네시드·레시뉴라드) + 항염증(콜히친·NSAID·코르티코이드) + 생물학제제(아나킨라·카나키누맙); 통풍 결절(tophus) 퇴행 및 신기능 보호; CONFIRMS / CLEAR 1&2 / AGREE / CARES 임상시험 보정 | [![Gout](gout/gout_qsp_model.png)](gout/gout_qsp_model.svg) | [R](gout/gout_mrgsolve_model.R) | [refs](gout/gout_references.md) | [Shiny](gout/gout_shiny_app.R) |
+| 2026-06-17 | [**Sjögren's Syndrome**](#sjögrens-syndrome-pss) | 자가면역질환 / 외분비선 | pDC(Bst-2+) → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(ISG↑) → mDC maturation → Th1/Th17/Tfh → BAFF↑(BEC/IFN-driven) → B-cell hyperactivation + ectopic GC → Anti-SSA/Ro52/Ro60(>95%) + Anti-M3R → AQP5↓ + Ca²⁺/cAMP↓ → UWSF↓/Schirmer↓; MALT lymphoma(40-50× risk; FFS score); HCQ(JOQUER) + Pilocarpine/Cevimeline(M3R agonist) + Rituximab(TEARS; 2×1g) + Ianalumab(TWINSS 2022; anti-BAFF-R; ΔESSDAI≥3) + Baricitinib(JAK1/2) | [![pSS](sjogrens-syndrome/ss_qsp_model.png)](sjogrens-syndrome/ss_qsp_model.svg) | [R](sjogrens-syndrome/ss_mrgsolve_model.R) | [refs](sjogrens-syndrome/ss_references.md) | [Shiny](sjogrens-syndrome/ss_shiny_app.R) |
 
 
 ---
@@ -1832,3 +1833,111 @@ Dietary purines + Fructose + Endogenous synthesis
 | [`gout_mrgsolve_model.R`](gout/gout_mrgsolve_model.R) | mrgsolve ODE model (33 states) + 8 treatment scenarios + sensitivity analysis; calibrated to CONFIRMS/CLEAR/AGREE/CARES |
 | [`gout_shiny_app.R`](gout/gout_shiny_app.R) | 7-tab shinydashboard; patient profile, sUA trajectory, inflammation, endpoints, scenario comparison, biomarkers/genetics, references |
 | [`gout_references.md`](gout/gout_references.md) | 45 curated PubMed references (8 sections): pathophysiology, transport genetics, PK, clinical trials, guidelines, comorbidities, QSP |
+
+---
+
+## Sjögren's Syndrome (pSS)
+
+> **자가면역질환 / 외분비선 (Autoimmune / Exocrine Glands)**  
+> 두 번째로 흔한 전신 자가면역질환 (F:M = 9:1; 유병률 ~0.1–0.4%)
+
+### Mechanistic Map
+
+[![pSS QSP Map](sjogrens-syndrome/ss_qsp_model.png)](sjogrens-syndrome/ss_qsp_model.svg)
+
+> **12 subgraph clusters · 180+ nodes · 200+ edges**  
+> Genetic Triggers · Innate Immune Activation (pDC/TLR7/9/cGAS-STING/NETs/NLRP3) · T-cell Compartment (Th1/Th17/Tfh/Treg) · B-cell Activation & Autoantibody (Anti-SSA/SSB/M3R/AQP5 + BAFF/APRIL/GC) · Salivary Gland Pathology (AQP5/M3R/Ca²⁺/UWSF) · Lacrimal/Ocular Surface · Systemic Extraglandular Manifestations · Lymphoproliferation & MALT Lymphoma (FFS score) · Intracellular Signaling (JAK-STAT/NF-κB/PI3K/BTK) · Drug PK Compartments · Drug PD Mechanisms · Biomarkers & Clinical Outcomes
+
+### Pathophysiology Summary
+
+```
+Genetic susceptibility (HLA-DR3, IRF5, STAT4, BLK, TNFAIP3)
++ Environmental trigger (EBV/UV/oxidative stress)
+         ↓
+Apotope release (Ro52/Ro60 on apoptotic blebs)
+         ↓
+pDC: TLR7/9 + cGAS-STING → IRF7/IRF3 → Type I IFN (IFN-α/β)
+         ↓ [ISG signature in 75% of pSS patients]
+IFN-I → BAFF↑ (BEC/macrophage) + mDC maturation
+         ↓
+T-cell priming: Th1 (IFN-γ/TNF-α) + Th17 (IL-17A/IL-21) + Tfh
+         ↓                                        ↓
+Glandular infiltration ←────────── B-cell activation
+(CD4+ periductal foci)              BAFF-R + CD40/CD40L + BCR
+(focus score ≥1/4mm²)              ↓
+         ↓              GC formation → Anti-SSA/Ro52(>95%) + Anti-SSB/La
+Acinar apoptosis (FasL)  + Anti-M3R → M3R blockade → cAMP/Ca²⁺ ↓
+AQP5 downregulation                 → AQP5 internalization ↓
+         ↓                                    ↓
+UWSF ↓ (<1.5 mL/15 min)     Lacrimal: Schirmer ≤5 mm/5 min
+Xerostomia (dental caries,    Keratoconjunctivitis sicca
+dysphagia, oral candida)      MMP-9↑, tear osmolarity↑
+         ↓ [chronic course; 40–50× lymphoma risk]
+Ectopic GC (CXCL13/CXCL12) → B-cell clonal expansion
+         ↓
+MALT lymphoma → DLBCL (MYC rearrangement)
+FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
+```
+
+### Drug Mechanisms Modeled
+
+| Drug | Target | Mechanism | Key Trial |
+|------|--------|-----------|-----------|
+| Hydroxychloroquine (HCQ) | TLR7/9 (lysosomal) | pH↑ → pDC inhibition → IFN-I↓ | JOQUER (Ann Rheum Dis 2014) |
+| Pilocarpine (Salagen 5 mg QID) | M3-muscarinic receptor | Cholinergic agonist → Ca²⁺/cAMP↑ → UWSF/tear↑ | Papas 2004 (J Rheumatol) |
+| Cevimeline (Evoxac 30 mg TID) | M3R (selective) | Selective M3R agonist | Fife 2002 (J Rheumatol) |
+| Rituximab (2×1g IV) | CD20 (B cells) | CDC/ADCC → B-cell depletion | TEARS trial (Devauchelle-Pensec 2014) |
+| Ianalumab (300 mg SC q4w) | BAFF-R | B-cell depletion via BAFF-R blockade | TWINSS Phase 3 (Bowman 2022, Lancet) |
+| Iscalimab (anti-CD40) | CD40 (B cell) | T–B interaction↓ → GC disruption | Fisher 2020 (Ann Rheum Dis) |
+| Baricitinib (2–4 mg QD) | JAK1/2 | IFN-I/IL-6 signaling↓ → ESSDAI↓ | Bowman 2023 (Arthritis Rheumatol) |
+| Topical CsA 0.05% | Calcineurin | NFAT↓ → corneal T-cell↓ | Sall 2000 (Ophthalmology) |
+| Lifitegrast 5% drops | LFA-1/ICAM-1 | T-cell corneal adhesion↓ | OPUS-3 (Holland 2017) |
+
+### ODE Model Architecture (19 state variables)
+
+| Compartment Group | States | Key Equations |
+|-------------------|--------|---------------|
+| HCQ PK (3-cmt) | DEPOT_HCQ, C1_HCQ, C2_HCQ | F=0.74, Ka=0.05/h, Vd=750 L/kg; t½≈40 d (tissue accumulation) |
+| Pilocarpine PK | DEPOT_PIL, C_PIL | 1-cmt oral; EC50_PIL=80 ng/mL → UWSF increase |
+| Rituximab PK | C1_RTX, C2_RTX | 2-cmt; CL=0.20 L/h; Hill: E=(Cⁿ)/(EC50ⁿ+Cⁿ); EMAX=90% |
+| Ianalumab PK | C1_IAN, C2_IAN | IgG1 mAb; CL=0.18 L/h; EC50=8 mcg/mL; EMAX=88% |
+| Prednisolone PK | DEPOT_PRD, C_PRD | 1-cmt; GR→NF-κB↓; max 50% cytokine suppression |
+| Type I IFN (PD) | IFN | KIN_IFN × STIM × (1−HCQ_inh) − KOUT × IFN |
+| BAFF (PD) | BAFF_pd | KIN × (1+(STIM_BAF−1)×IFN) × (1−PRD) − KOUT×BAFF |
+| B cells (PD) | BCELL | KIN × (1+(STIM_BC−1)×BAFF) × (1−RTX_dep−IAN_dep) − KOUT×BC |
+| Plasma cells | PLASMA_C | Input from BC × (1−0.3×RTX) − KOUT_PC × PC |
+| Anti-SSA titer | AB_SSA | KIN × (1+(STIM_AB−1)×PC) − KOUT_AB × AB; t½≈96 d |
+| Salivary function | SAL | KIN × SAL_tgt × (1+PIL_stim) − KOUT × SAL |
+| Lacrimal function | LAC | KIN × LAC_tgt × (1+0.4×PIL_stim) − KOUT × LAC |
+| ESSDAI (proxy) | ESSDAI_pd | Driven by BCELL+IFN+AB; scaled to clinical 0–123 |
+| Lymphoma risk | LYMPHOMA | dLR/dt = k_LR × BCELL × BAFF (cumulative integrator) |
+
+### Treatment Scenarios (5)
+
+| # | Scenario | Key Effect | Clinical Reference |
+|---|----------|-----------|-------------------|
+| 1 | No treatment | Progressive glandular loss, lymphoma risk ↑ | Natural history |
+| 2 | HCQ 400 mg/day | IFN-I↓ via TLR7/9 block; modest ESSDAI↓ | JOQUER 2014 |
+| 3 | HCQ + Pilocarpine 5 mg QID | Symptomatic UWSF↑ + Schirmer↑; no systemic effect | Papas 2004 |
+| 4 | HCQ + Rituximab 2×1g | B-cell depletion → BAFF↓ + Anti-SSA↓ + ESSDAI↓ | TEARS 2014 |
+| 5 | HCQ + Ianalumab 300 mg q4w | BAFF-R–mediated B-cell depletion; ESSDAI response ≥3 | TWINSS 2022 (Lancet) |
+
+### Shiny Dashboard (6 Interactive Tabs)
+
+1. **Patient Profile** — ESSDAI/ESSPRI info boxes; Schirmer & UWSF; ACR/EULAR classification criteria table
+2. **Drug PK Profiles** — HCQ steady-state, pilocarpine single-dose, rituximab 2-dose, ianalumab q4w concentration-time plots
+3. **Disease Biomarkers** — IFN-I index, BAFF pg/mL, B-cell pool %, Anti-SSA EU; biomarker summary table at weeks 24/52
+4. **Glandular Function** — UWSF, Schirmer, pilocarpine on/off comparison, glandular function table
+5. **Scenario Comparison** — ESSDAI, B cells, Anti-SSA, UWSF for all 5 scenarios; endpoint comparison table at week 24
+6. **Lymphoma Risk** — FFS score calculator, cumulative risk plot, CXCL13/B-cell ectopic GC dynamics, FFS component table
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`ss_qsp_model.dot`](sjogrens-syndrome/ss_qsp_model.dot) | Graphviz DOT source (12 clusters, 180+ nodes) |
+| [`ss_qsp_model.svg`](sjogrens-syndrome/ss_qsp_model.svg) | Vector mechanistic map (fdp layout) |
+| [`ss_qsp_model.png`](sjogrens-syndrome/ss_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`ss_mrgsolve_model.R`](sjogrens-syndrome/ss_mrgsolve_model.R) | mrgsolve ODE model (19 states) + 5 treatment scenarios + dose-response + FFS lymphoma risk; calibrated to TEARS/TWINSS |
+| [`ss_shiny_app.R`](sjogrens-syndrome/ss_shiny_app.R) | 6-tab shinydashboard; patient profile, PK, biomarkers, glandular function, scenario comparison, lymphoma risk |
+| [`ss_references.md`](sjogrens-syndrome/ss_references.md) | 45 curated PubMed references (8 sections): pathogenesis, genetics, clinical tools, lymphoma, treatment (symptomatic + systemic), PK/PD, biomarkers |
