@@ -125,6 +125,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Osteoporosis**](#osteoporosis) | 만성질환 / 골대사 | Osteoclast/osteoblast coupling dysregulation: RANK/RANKL/OPG axis imbalance → bone resorption > formation → BMD↓; estrogen deficiency (↑T-bet/Th17/IL-17/RANKL), glucocorticoid (Wnt↓/GR-mediated osteoblast apoptosis), aging (FGF-23↑/IGF-1↓/sclerostin↑); Bisphosphonate (APPase inhibition/FPPS) + Denosumab (anti-RANKL mAb; FREEDOM) + Romosozumab (anti-sclerostin; ARCH) + Teriparatide (PTH1R; NEER) | [![OP](osteoporosis/op_qsp_model.png)](osteoporosis/op_qsp_model.svg) | [R](osteoporosis/op_mrgsolve_model.R) | [refs](osteoporosis/op_references.md) | [Shiny](osteoporosis/op_shiny_app.R) |
 | 2026-06-17 | [**Primary Biliary Cholangitis**](#primary-biliary-cholangitis-pbc) | 자가면역질환 / 간·담도 | AMA (anti-PDC-E2, ≥95% sens) → pDC/TLR9 → IFN-α → Th1/CTL → biliary epithelial cell (BEC) apoptosis + senescence (SASP) → ductopenia; Glutathione defect (GSH↓ in BEC) → apotope persistence; FXR/TGR5/FGF19 axis → CYP7A1↓/BSEP↑; Hydrophobic BA toxicity → NLRP3 → HSC activation → TGF-β1 → fibrosis; UDCA (SOC, BSEP↑/EHC) + OCA (FXR, POISE: ALP↓38%) + Elafibranor (PPARα/δ, ELATIVE 2024: 51% norm) + Seladelpar (PPARδ, RESPONSE 2024: 25% norm) + Bezafibrate (BEZURSO: 67% norm) | [![PBC](primary-biliary-cholangitis/pbc_qsp_model.png)](primary-biliary-cholangitis/pbc_qsp_model.svg) | [R](primary-biliary-cholangitis/pbc_mrgsolve_model.R) | [refs](primary-biliary-cholangitis/pbc_references.md) | [Shiny](primary-biliary-cholangitis/pbc_shiny_app.R) |
 | 2026-06-17 | [**Hypertrophic Cardiomyopathy**](#hypertrophic-cardiomyopathy-hcm) | 만성질환 / 심혈관 | Sarcomere gene mutations (MYH7/MYBPC3 ~80%) → ↑DRX myosin fraction → Duty ratio↑ → Hypercontractility + Venturi-SAM → LVOT obstruction; Calcineurin-NFAT + ERK → asymmetric LVH (IVS↑↑); TGF-β1/SMAD → interstitial fibrosis (ECV↑, LGE); Ca²⁺ mishandling (RyR2 leak→DADs) + scar substrate → VT/VF → SCD; AF (LA dilation/pressure); Mavacamten (MYK-461, EXPLORER-HCM: LVOT↓36mmHg) + Aficamten (SEQUOIA-HCM: LVOT↓36mmHg) + Beta-blocker (HR/contractility↓) + Disopyramide (SAM↓) + SRT (Myectomy/ASA); CYP2C19-guided dosing | [![HCM](hypertrophic-cardiomyopathy/hcm_qsp_model.png)](hypertrophic-cardiomyopathy/hcm_qsp_model.svg) | [R](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) | [refs](hypertrophic-cardiomyopathy/hcm_references.md) | [Shiny](hypertrophic-cardiomyopathy/hcm_shiny_app.R) |
+| 2026-06-17 | [**Graves' Disease**](#graves-disease) | 자가면역질환 / 내분비 | TRAb (TSAb) constitutively activates TSHR → cAMP/PKA → T3/T4 hypersecretion; HPT negative feedback disrupted; B-cell germinal center (CD40/IL-4) → TSAb/TBAb/TBII; Wolff–Chaikoff/escape; orbital fibroblast (TSHR+IGF-1R) → HA synthesis + adipogenesis → GO; MMI/PTU (TPO inhibition) + ¹³¹I (β-radiation ablation) + Propranolol (β1-blocker/D1↓) + Rituximab (B-cell depletion) + Teprotumumab (IGF-1R, OPTIC trial) | [![GD](graves-disease/gd_qsp_model.png)](graves-disease/gd_qsp_model.svg) | [R](graves-disease/gd_mrgsolve_model.R) | [refs](graves-disease/gd_references.md) | [Shiny](graves-disease/gd_shiny_app.R) |
 
 
 ---
@@ -1526,3 +1527,60 @@ VT → VF → Sudden Cardiac Death (SCD, 0.5–1%/yr; ≥6% 5-yr = ICD)
 | [`hcm_references.md`](hypertrophic-cardiomyopathy/hcm_references.md) | 56 curated references (13 sections); EXPLORER-HCM/SEQUOIA-HCM/VALOR-HCM pivotal trials |
 | [`hcm_mrgsolve_model.R`](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) | 18-state mrgsolve ODE; 7 treatment scenarios; CYP2C19 PGx; mavacamten PK/PD calibrated to EXPLORER-HCM |
 | [`hcm_shiny_app.R`](hypertrophic-cardiomyopathy/hcm_shiny_app.R) | 7-tab shinydashboard; deSolve ODE engine; HCM Risk-SCD calculator; scenario comparison |
+---
+
+## Graves' Disease
+
+> **Directory:** [`graves-disease/`](graves-disease/)
+
+**ICD-10:** E05.0 · **Category:** Autoimmune Endocrine Disease · **Prevalence:** ~0.5% (F:M = 7–10:1)
+
+### Pathophysiology
+
+Graves' disease is the most common cause of hyperthyroidism (~80% of cases). Thyroid-stimulating autoantibodies (TSAb) bind and constitutively activate the TSH receptor (TSHR) on thyroid follicular cells, bypassing normal HPT axis regulation.
+
+| Module | Key Components |
+|--------|---------------|
+| **HPT Axis** | Hypothalamus → TRH → Pituitary → TSH; dual T4/T3 Hill-kinetics negative feedback; circadian pulsatility; TSH suppression by high fT4/fT3 |
+| **Autoimmune Pathogenesis** | CD4+/CD8+ T cells; Th1/Th2/Th17/Treg polarization; B-cell germinal center reaction; plasma cells → TSAb (stimulating) / TBAb (blocking) / TBII; CTLA-4/HLA-DR3 genetic risk; CD40–CD40L costimulation |
+| **Thyroid Follicular Cell** | TSHR/Gs-α/cAMP/PKA/CREB signaling; NIS-mediated iodide uptake; DUOX2/H₂O₂; TPO organification; MIT+DIT coupling → T3/T4 synthesis; colloid storage; Wolff–Chaikoff effect + escape; goiter (VEGF/bFGF) |
+| **Hormone PK/PD** | TBG/albumin/transthyretin binding; D1 (T4→T3 ~60%), D2 (local brain T3), D3 (T4→rT3 inactivation); TR-α/TR-β nuclear signaling; enterohepatic recirculation (~20%) |
+| **Drug PK** | MMI (F=93%, t½=4-6h, high thyroid concentration); PTU (F=75%, t½=1-2h, 75% protein-bound); ¹³¹I (F≈100%, NIS-mediated thyroid uptake ~60-80%); Propranolol (F=26%, first-pass, t½=4h); LT4 replacement |
+| **Drug PD** | MMI → irreversible TPO inhibition + immunosuppression (TRAb↓); PTU → TPO + D1 inhibition; ¹³¹I → β-radiation thyroid cell death → atrophy → hypothyroidism; Propranolol → β₁-blocker (HR↓) + D1 inhibition; Rituximab → anti-CD20 B-cell depletion → TRAb↓ (delayed); Teprotumumab → IGF-1R blockade → GO↓ |
+| **Graves' Ophthalmopathy** | TSHR+IGF-1R on orbital fibroblasts; TRAb activation → HAS1/HAS2 (hyaluronan↑) + PPAR-γ adipogenesis; orbital inflammation (TNF-α/IL-6/Th1); EOM fibrosis → proptosis + diplopia; CAS score; optic nerve compression |
+| **Target Organ Effects** | Cardiovascular: tachycardia (HR↑20-40 bpm), AF risk (5-15%), ↑cardiac output, ↓SVR; Bone: osteoclast↑ → BMD loss (cortical > trabecular) → fracture risk↑; CNS: anxiety/tremor/insomnia/hyperreflexia; Metabolic: BMR↑20-60%, weight loss, heat intolerance |
+| **Clinical Endpoints** | TSH (suppressed <0.01), fT4↑, fT3↑, TRAb (>1.75 IU/L diagnostic), RAIU↑; Burch-Wartofsky score (thyroid storm); CAS score (GO); Hertel exophthalmometry; BMD Z-score |
+
+### Model Specifications
+
+| Feature | Detail |
+|---------|--------|
+| ODE Compartments | **18** (HPT axis + thyroid mass + T4/T3/fT4/fT3/rT3 pools + TRAb + B cells + bone resorption + heart rate + GO score + TPO inhibition) |
+| Treatment Scenarios | **6**: Untreated · MMI 30mg/day · Radioiodine 15 mCi · MMI+Propranolol · Block-and-Replace (MMI+LT4) · Rituximab+MMI |
+| Virtual Population | n=200 with lognormal TRAb₀ and IC₅₀_MMI variability |
+| Calibration | MMI PK: Walter 2012 (J Clin Pharmacol); TRAb dynamics: Eisenberg 2008; HPT feedback: Leow 2007 |
+| Key Trials | CATS trial (MMI vs PTU safety); MINGO trial (rituximab+MP vs MP); OPTIC trial (teprotumumab) |
+
+### Key Equations
+
+```
+TSHR_act  = E_TSH × TSH/(EC50_TSH + TSH) + E_TRAb × TRAb/(EC50_TRAb + TRAb)
+T4_synth  = ksyn_T4 × ThyMass × TSHR_act × (1 − TPO_inh)
+TSH_prod  = ksyn_TSH / mean[(fT4/fT4_norm)^n, (fT3/fT3_norm)^n]
+dTRAb/dt  = kprod_TRAb × Bcell − kel_TRAb × TRAb
+dGO/dt    = kGO_TRAb × TRAb × (1 − GCS) − kGO_kel × GO
+```
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`gd_qsp_model.dot`](graves-disease/gd_qsp_model.dot) | Graphviz DOT source (9 clusters: HPT axis · autoimmune · thyroid follicular cell · hormone PK · drug PK · drug PD · ophthalmopathy · target organs · clinical endpoints) |
+| [`gd_qsp_model.svg`](graves-disease/gd_qsp_model.svg) | Vector mechanistic map |
+| [`gd_qsp_model.png`](graves-disease/gd_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`gd_references.md`](graves-disease/gd_references.md) | 43 curated references (10 sections); Morshed 2015 (Endocr Rev) · Smith 2016 (NEJM) · Douglas 2020 (NEJM teprotumumab) · Ross 2016 (ATA guidelines) |
+| [`gd_mrgsolve_model.R`](graves-disease/gd_mrgsolve_model.R) | 18-state mrgsolve ODE; 6 treatment scenarios; VPop n=200; sensitivity analysis; calibrated to Walter 2012 / Eisenberg 2008 |
+| [`gd_shiny_app.R`](graves-disease/gd_shiny_app.R) | 6-tab shinydashboard: Patient Profile · Drug PK · Thyroid Hormone PD · Cardiovascular & Bone · Immune & Ophthalmopathy · Scenario Comparison |
+
+[![Graves' Disease QSP Map](graves-disease/gd_qsp_model.png)](graves-disease/gd_qsp_model.svg)
+
