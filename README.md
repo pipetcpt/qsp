@@ -139,6 +139,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Liver Cirrhosis**](#liver-cirrhosis) | 만성질환 / 간 | Chronic liver injury (EtOH/HBV/HCV/NASH) → DAMPs + Kupffer/NLRP3 → TGF-β1/Smad2/3 + PDGF-BB → HSC activation (qHSC→aHSC) → LOXL2 crosslinking → Collagen I/III ↑ / TIMP↑/MMP↓ → Fibrosis (F0→F4/METAVIR) → eNOS↓/ET-1↑/RhoA-ROCK → HVPG↑ (>10 ascites, >12 varices) → Splanchnic vasodilation → RAAS/SNS/AVP → Ascites/HypoNa; Portosystemic bypass → NH3↑ → HE (West Haven 0–IV); Renal vasoconstriction → HRS-1/2 (GFR↓, Creat↑); ACLF + HCC risk; MELD/MELD-Na/Child-Pugh scoring; Propranolol (NSBB, 2-cpt: β1/β2 → HR↓/HVPG↓20%) + Spironolactone (1-cpt: MR block → Aldo↓/Na excretion↑/Ascites↓) + Terlipressin (effect-cpt IV: V1R → splanchnic↓/HRS reversal) + Rifaximin 550mg BID (gut-lumen: microbiome/NH3↓/HE prevention); Investigational antifibrotics: FXR agonist (OCA) / Resmetirom (THRβ) / Semaglutide (GLP-1RA) / ASK1i / CCR2/CCR5i; Calibrated to Fattovich 2004 (fibrosis rate), Groszmann 2005 (HVPG threshold), Kim 2008 NEJM (MELD-Na), Bass 2010 NEJM (Rifaximin-HE) | [![LC](liver-cirrhosis/lc_qsp_model_thumb.png)](liver-cirrhosis/lc_qsp_model.svg) | [R](liver-cirrhosis/lc_mrgsolve_model.R) | [refs](liver-cirrhosis/lc_references.md) | [Shiny](liver-cirrhosis/lc_shiny_app.R) |
 | 2026-06-17 | [**Adult-Onset Still's Disease**](#adult-onset-stills-disease-aosd) | 자가면역질환 / 자가염증 | DAMP/PAMP → TLR2/4/7/9 → MyD88/NF-κB → NLRP3 inflammasome (Signal1+2) → Caspase-1 → mature IL-1β★ + IL-18★ (≫10,000 pg/mL) + Pyroptosis; Macrophage M1-activation → IL-6/TNF-α → JAK1/2-STAT3 → Hyperferritinemia (★<20% glycosylated ferritin) + CRP↑ + SAA↑; IL-18 → NK/Th1 → IFN-γ → amplify macrophage activation; MAS: NK-CTL dysfunction (Perforin↓/PRF1 mutation) + IFN-γ storm → Hemophagocytosis → Pancytopenia + Multi-organ failure (HScore); Quotidian fever >39°C + Salmon rash + Polyarthritis + Lymphadenopathy (Yamaguchi/Fautrel criteria); NSAIDs + Prednisolone + Anakinra (IL-1Ra, SC QD; CONSIDER-AOSD) + Canakinumab (anti-IL-1β, 4mg/kg q4w) + Tocilizumab (IL-6R block, 8mg/kg q2w) + Tofacitinib (JAK1/3i; refractory) + CsA/Etoposide (MAS salvage) | [![AOSD](adult-onset-stills-disease/aosd_qsp_model.png)](adult-onset-stills-disease/aosd_qsp_model.svg) | [R](adult-onset-stills-disease/aosd_mrgsolve_model.R) | [refs](adult-onset-stills-disease/aosd_references.md) | [Shiny](adult-onset-stills-disease/aosd_shiny_app.R) |
 | 2026-06-17 | [**Sarcoidosis**](#sarcoidosis) | 만성질환 / 면역·호흡기 | Unknown antigen (mycobacterial mKatG/ESAT6, Propionibacterium, organic/inorganic particles) + HLA-DRB1 susceptibility → Alveolar macrophage/DC → TLR2/4/9 → MHC-II antigen presentation → Th1 polarization (IL-12↑/IFN-γ↑) + Treg deficiency → TNF-α/IFN-γ/CCL2 → Non-caseating granuloma (epithelioid macrophage + Langhans giant cell + lymphocyte mantle); CYP27B1↑ in granuloma → 1,25-VitD3↑ → Hypercalcemia/Hypercalciuria; ACE production (biomarker); Granuloma → Scadding Stage I→II→III→IV → Pulmonary fibrosis (FVC↓/DLCO↓); Extrapulmonary: Cardiac (AV block/SCD), Neuro (cranial nerve palsy), Ocular (uveitis), Cutaneous (lupus pernio/EN), Hepatic, Hypercalcemia; Biomarkers: Serum ACE (sens 60%) + sIL-2R (sens 75%) + chitotriosidase; Prednisone (GR/NF-κB, ACE-25 Trial) + MTX steroid-sparing + AZA + HCQ (hypercalcemia/skin) + Infliximab (FIRST Trial, FVC +2.5% vs PBO) + JAKi (Ruxolitinib, investigational) | [![Sarc](sarcoidosis/sarc_qsp_model.png)](sarcoidosis/sarc_qsp_model.svg) | [R](sarcoidosis/sarc_mrgsolve_model.R) | [refs](sarcoidosis/sarc_references.md) | [Shiny](sarcoidosis/sarc_shiny_app.R) |
+| 2026-06-17 | [**Membranous Nephropathy**](#membranous-nephropathy-mn) | 만성질환 / 신장·사구체 | Anti-PLA2R1 IgG4 (~75%) / THSD7A (~3%) / NELL1 / EXT1-EXT2 / Sema3B auto-Ab → subepithelial IC deposition → Classical complement (C1q/C4/C2) + Alternative amplification (Factor B/D) → C5b-9 MAC → Podocyte foot process effacement (Nephrin/Podocin/CD2AP↓) + NADPH-ROS → GBM spike formation → Massive proteinuria ≥3.5 g/day (Nephrotic syndrome); RAAS (AngII/Aldo) → intraglomerular hypertension → eGFR↓; Rituximab (anti-CD20 TMDD; MENTOR 2019 NEJM: 60% CR+PR at 24 mo vs 20% CsA) + Tacrolimus (CNI; STARMEN 2021: 60% CR+PR RTX-seq arm) + Cyclophosphamide + alternating-day steroids (Ponticelli regimen; RI-CYCLO) + ACEi/ARB (renoprotection; −35% proteinuria) + Belimumab (anti-BAFF) + Obinutuzumab + Avacopan (C5aR1 inhibitor, investigational); Biomarkers: Anti-PLA2R1 titer (immunological remission predictor), sC5b-9, CD19/CD20 count, uPCR, serum IgG4 | [![MN](membranous-nephropathy/mn_qsp_model.png)](membranous-nephropathy/mn_qsp_model.svg) | [R](membranous-nephropathy/mn_mrgsolve_model.R) | [refs](membranous-nephropathy/mn_references.md) | [Shiny](membranous-nephropathy/mn_shiny_app.R) |
 
 
 ---
@@ -2596,3 +2597,78 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`sarc_mrgsolve_model.R`](sarcoidosis/sarc_mrgsolve_model.R) | mrgsolve ODE model (20 compartments, 6 treatment scenarios); calibrated to FIRST Trial (Baughman 2006), ACE-25 Trial (Gibson 1996), Vorselaars 2013; includes PK validation plots, scenario comparison, sensitivity outputs |
 | [`sarc_shiny_app.R`](sarcoidosis/sarc_shiny_app.R) | 7-tab Shiny dashboard; inline mrgsolve model via mcode(); Plotly interactive plots; DT tables; tryCatch error handling |
 | [`sarc_references.md`](sarcoidosis/sarc_references.md) | 50 curated PubMed-linked references (7 sections): pathophysiology/reviews, granuloma biology/cytokines, biomarkers, clinical trials & treatment, PK/PD modeling, calcium metabolism, outcomes/epidemiology |
+
+---
+
+## Membranous Nephropathy (MN)
+
+> Directory: [`membranous-nephropathy/`](membranous-nephropathy/)
+
+**Mechanistic Map** (13 subgraph clusters, 212 named nodes, 285 directed edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| Antigen Presentation | PLA2R1 (M-type PLA2 receptor, dominant ~75%), THSD7A (~3–5%), NELL1 (~15% PLA2R1-neg), EXT1/EXT2 (assoc. SLE/lupus-MN), PCDH7, Sema3B, antigen processing by APCs, MHC-II presentation, TCR activation |
+| T Cell Activation | CD4+ Th helper, Tfh (follicular helper), IL-4, IL-13, IL-21, ICOS-ICOSL, CD40-CD40L co-stimulation, IL-10 regulatory axis, Treg dysfunction, CTLA-4/PD-1 checkpoint |
+| B Cell Biology | Naive B cells, germinal center B cells (GCB), memory B cells, plasma cells (Ab-secreting), CD20+ B cells, IgG4 class-switch recombination (IL-4/IL-13-driven), anti-PLA2R1 IgG4★, anti-PLA2R1 IgG1, BCR signaling (BTK/PI3K-AKT), BAFF (BLyS)/APRIL survival signals, FcγRIIb inhibitory receptor |
+| Complement System | Classical: C1q/C1r/C1s → C4/C2 → C3 convertase; Lectin: MBL/MASP1/MASP2; Alternative: C3b/Factor B/Factor D/Properdin loop; C5 convertase → C5a (anaphylatoxin) + C5b → C5b-9 MAC★; regulatory: CD59 (protectin), Factor H, FI, C1-inhibitor, C4BP; sC5b-9 as soluble biomarker |
+| Podocyte Biology | Foot processes, slit diaphragm, Nephrin/Podocin/CD2AP complex, WT1 transcription factor, Synaptopodin, actin cytoskeleton remodeling, VEGF production, NADPH oxidase (Nox)/ROS generation, mTOR signaling, Caspase-3 apoptosis cascade, podocyte detachment/loss, FGF23 production |
+| Glomerular Basement Membrane | Laminin-521, Collagen IV (α3/α4/α5), Agrin, subepithelial immune deposits★, GBM thickening, "spike" formation (Ehrenreich-Churg Stage II→III), tuft area reduction, GFR autoregulation |
+| Tubular Compartment | Megalin (LRP2) / Cubilin albumin reabsorption, lipid droplet accumulation (lipotoxicity), tubular injury cascade, TGF-β1 tubular expression, NGAL↑ / KIM-1↑ biomarkers, NAG enzyme, tubular fibrosis progression |
+| Rituximab PK | RTX central/peripheral 2-cpt model, TMDD (CD20 target-mediated drug disposition), CD20-RTX bound complex, FcRn recycling (IgG half-life extension), Cmax, half-life ~14 days, RTX clearance |
+| Immunosuppressant PK | Tacrolimus: GI absorption → whole blood (CYP3A4 metabolism) → peripheral; Cyclosporine central; Cyclophosphamide → active 4-OH metabolite (acrolein side-product); MMF → MPA (mycophenolic acid) → MPAG (glucuronide) |
+| Drug PD Mechanisms | CD20 occupancy → B cell depletion → reconstitution (6–12 mo); Calcineurin inhibition (TAC/CsA) → NFAT dephosphorylation → IL-2↓; Cyclophosphamide → alkylation → purine synthesis block; ACEi → ACE inhibition → AngII↓ → efferent dilatation → intraglomerular pressure↓; ARB → AT1R blockade; ACTH → cortisol↑; Belimumab → BAFF neutralization; Obinutuzumab (type II anti-CD20); Avacopan → C5aR1 blockade → MAC↓; Sparsentan (dual AT1R/endothelin) |
+| RAAS | Renin → angiotensinogen → AngI → ACE → AngII → AT1R (vasoconstriction/aldosterone) + AT2R (vasodilation); Aldosterone → MR → Na retention; sympathetic efferent; bradykinin/NO vasoprotective axis |
+| Clinical Outcomes | Proteinuria 24h (g/day), complete remission (CR: <0.3 g/day), partial remission (PR: >50% reduction + <3.5 g/day), serum albumin, eGFR, serum creatinine, ESRD risk (Toronto formula), nephrotic syndrome (edema/hyperlipidemia/thrombosis), nephrotic-range dyslipidemia (LDL↑/HDL↓) |
+| Biomarkers | Anti-PLA2R1 IgG4 titer (immunological remission predictor), anti-THSD7A, sC5b-9, serum C3/C4, CD19+/CD20+ count, uPCR, serum IgG4, serum IgG, Factor H, BUN, cystatin C, serum LDL, fibrinogen (thrombosis risk) |
+
+**Mechanistic Map Preview:**
+
+[![Membranous Nephropathy QSP Map](membranous-nephropathy/mn_qsp_model.png)](membranous-nephropathy/mn_qsp_model.svg)
+
+**mrgsolve ODE Model (18 compartments, 8 treatment scenarios):**
+
+| Compartment Group | States | Key Dynamics |
+|-------------------|--------|--------------|
+| Rituximab PK | RTX_cent, RTX_peri, RTX_CD20_bound | 2-cpt TMDD model; CL=0.35 L/day, Vc=3.1 L, Vp=2.8 L; kon=0.005/(µg/mL·day); MENTOR trial calibration (Fervenza NEJM 2019) |
+| Tacrolimus PK | TAC_blood | 1-cpt whole-blood model; CL/F=25 L/h, Vd=900 L; target C0=5–10 ng/mL; STARMEN trial dosing |
+| Cyclophosphamide PK | CPx_cent, CPx_metab | Prodrug activation to 4-OH-CPx; CL=4.5 L/h, Vd=35 L; km=0.15/h; Ponticelli/RI-CYCLO regimen |
+| Immune Biology | CD20_B, Plasma_cells, Anti_PLA2R1, IgG_deposit | B cell logistic growth/depletion (RTX EC50=2 µg/mL); anti-PLA2R1 IgG4 t½≈28 days (kdeg=0.025/day); plasma cell production from B cell pool; deposit clearance rate kclr=0.005/day |
+| Complement & Podocyte | Complement_MAC, Podocyte_inj, GBM_thick | MAC Hill activation (nH=2.5, K50=50 RU); podocyte injury feedback loop (kinjury=0.4, krepair=0.05); GBM thickening accumulates over months; partial reversal with treatment |
+| Clinical Endpoints | Proteinuria, Serum_alb, eGFR | Proteinuria driven by Podocyte_inj × GBM_thick (target-tracking ODE); albumin inverse relation (4.5 − 0.35×Prot); eGFR decline via GBM_thick^0.6 factor |
+| RAAS | AngII, Aldosterone | ACEi → 70% AngII suppression → glomerular pressure relief → −35% proteinuria; aldosterone drives Na retention |
+
+**8 Treatment Scenarios:**
+
+| # | Scenario | Regimen | Key Clinical Reference |
+|---|----------|---------|----------------------|
+| 1 | No treatment | Natural history — progressive |  — |
+| 2 | Rituximab 1g×2 (MENTOR) | 1 g IV at D1 + D181 | Fervenza FC et al., NEJM 2019 (MENTOR); 60% CR+PR at 24 mo |
+| 3 | Rituximab 375 mg/m²×2 (GEMRITUX) | 375 mg/m² at D1 + D8 | Dahan K et al., JASN 2017 (GEMRITUX) |
+| 4 | Tacrolimus monotherapy | 0.05 mg/kg/day (target C0 5–10 ng/mL) | van den Brand JASN 2021 (STARMEN control arm) |
+| 5 | Ponticelli regimen (CPx+steroids) | CPx 2.5 g/month × 6 months alternating steroids | Ponticelli C et al., NEJM 1989; Scolari JASN 2021 (RI-CYCLO) |
+| 6 | RTX + TAC sequential (STARMEN) | TAC → RTX combo (superior arm) | van den Brand JASN 2021 (STARMEN); 60% CR+PR |
+| 7 | ACE inhibitor (conservative) | ACEi targeting proteinuria < 0.5 g/day before immunosuppression | KDIGO Glomerular 2021 guidelines |
+| 8 | Avacopan (C5aR1 inhibitor) | C5aR1 blockade — investigational phase II | Complement-directed glomerulonephritis studies |
+
+**Shiny Dashboard (6 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| Patient Profile | Age/weight/eGFR/proteinuria/albumin/anti-PLA2R1 sliders; MN stage & antigen selector; nephrotic syndrome status badge; ESRD risk score (Toronto formula approximation); disease burden bar chart |
+| Drug PK | Rituximab / Tacrolimus / Cyclophosphamide selector; dose inputs; PK concentration-time plots with therapeutic window annotations; PK parameter table (Cmax, AUC, trough, t½) |
+| Immune PD | CD20+ B cell depletion/reconstitution; anti-PLA2R1 IgG4 titer decline; complement MAC activity; podocyte injury score — 4 dynamic ODE plots |
+| Clinical Endpoints | Proteinuria with CR/PR threshold lines; serum albumin with normal limit; eGFR with CKD stage thresholds; remission status color-coded trajectory plot |
+| Scenario Comparison | 6 treatment scenarios overlaid; proteinuria + eGFR comparison plots; summary table with CR/PR status at months 6/12/24 and eGFR at M24 |
+| Biomarker Dashboard | Anti-PLA2R1 titer trajectory; CD20+ B cell count; complement panel (C3/C4/sC5b-9 relative); biomarker status traffic-light tiles at Month 12 |
+
+**File Inventory:**
+
+| File | Description |
+|------|-------------|
+| [`mn_qsp_model.dot`](membranous-nephropathy/mn_qsp_model.dot) | Graphviz DOT source (13 subgraph clusters, 212 named nodes, 285 directed edges; sfdp layout; drug inhibitory edges: red dashed; activation: blue; complement cascade: orange) |
+| [`mn_qsp_model.svg`](membranous-nephropathy/mn_qsp_model.svg) | Vector mechanistic map (~232 KB) |
+| [`mn_qsp_model.png`](membranous-nephropathy/mn_qsp_model.png) | Raster mechanistic map (150 dpi, ~3.4 MB) |
+| [`mn_mrgsolve_model.R`](membranous-nephropathy/mn_mrgsolve_model.R) | mrgsolve ODE model (18 compartments, 8 treatment scenarios); calibrated to MENTOR (Fervenza 2019), GEMRITUX (Dahan 2017), STARMEN (van den Brand 2021), RI-CYCLO (Scolari 2021); includes PK validation, scenario comparison, remission rate bar charts; saves PNG outputs |
+| [`mn_shiny_app.R`](membranous-nephropathy/mn_shiny_app.R) | 6-tab Shiny dashboard; deSolve ODE engine with mrgsolve/analytical fallback; ggplot2 visualization; patient risk calculator; 6-scenario comparison; biomarker traffic-light dashboard |
+| [`mn_references.md`](membranous-nephropathy/mn_references.md) | 45 curated PubMed-linked references (10 sections): target antigens/pathophysiology, epidemiology/natural history, biomarkers, immunosuppressive trials (MENTOR/GEMRITUX/STARMEN/RI-CYCLO/Ponticelli), RAAS/renoprotection, complement therapeutics, QSP/PK-PD modeling, genetics, diagnosis/guidelines, secondary MN |
