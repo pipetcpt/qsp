@@ -134,6 +134,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Psoriatic Arthritis**](#psoriatic-arthritis-psa) | 자가면역질환 / 근골격·피부 | HLA-C*06:02/HLA-B27 + LCE3B/C barrier defect → Koebner/Strep trigger → pDC/mDC → IL-23(p19/p40) → Th17/ILC3/γδT → IL-17A/F + IL-22 → keratinocyte hyperproliferation (PASI) + FLS activation + enthesitis (IL-17/BMP/Wnt → periostitis) + RANKL↑/DKK1↑ → dual bone pathology (erosion + ankylosis); Gut-joint axis (dysbiosis/ILC3); Calprotectin/CRP biomarkers; CASPAR classification; TNFi (ADA, ADEPT: ACR20 57%) + IL-17Ai (IXE/SEC, SPIRIT-P1: ACR20 62%) + IL-23i (GUS, DISCOVER-2: ACR20 64%) + JAKi (UPA, SELECT-PsA 1: ACR20 71%) + PDE4i (APR, PALACE 1: ACR20 38%) | [![PsA](psoriatic-arthritis/psa_qsp_model.png)](psoriatic-arthritis/psa_qsp_model.svg) | [R](psoriatic-arthritis/psa_mrgsolve_model.R) | [refs](psoriatic-arthritis/psa_references.md) | [Shiny](psoriatic-arthritis/psa_shiny_app.R) |
 | 2026-06-17 | [**Ulcerative Colitis**](#ulcerative-colitis-uc) | 자가면역질환 / 소화기 | Gut dysbiosis (F. prausnitzii↓/AIEC↑) + TSLP/IL-25/IL-33 alarmins → ILC2/Th2 (GATA3↑, IL-4/IL-5/IL-13, UC-dominant Th2 skew) + TNF-α/IL-6 → JAK1/3–STAT3/6 → tight junction disruption (ZO-1/Occludin↓) + MUC2↓ + goblet cell depletion → cryptitis + crypt abscesses → Mayo score↑; S1PR1 lymphocyte egress; NLRP3/IL-1β cascade; α4β7–MAdCAM-1 gut homing axis; gut-selective anti-integrin (VDZ, GEMINI1: 47% remission wk52) + anti-TNF (IFX, ACT1: 69% response wk8) + tofacitinib JAK1/3i (OCTAVE: 59% remission wk8) + ozanimod S1P1 (TRUE NORTH: 37% remission wk52) + ustekinumab IL-12/23p40 (UNIFI: 53% response wk8); Colorectal cancer risk (APC/β-catenin, chronic inflammation) | [![UC](ulcerative-colitis/uc_qsp_model.png)](ulcerative-colitis/uc_qsp_model.svg) | [R](ulcerative-colitis/uc_mrgsolve_model.R) | [refs](ulcerative-colitis/uc_references.md) | [Shiny](ulcerative-colitis/uc_shiny_app.R) |
 | 2026-06-17 | [**Polycystic Ovary Syndrome**](#polycystic-ovary-syndrome-pcos) | 만성질환 / 생식내분비 | KNDy neuron → GnRH pulse freq ↑↑ → LH:FSH↑ (>2-3) → Theca CYP17A1 ↑↑ → androstenedione/T ↑↑; Hyperinsulinemia (MAPK-ERK → CYP17A1↑, IRS1 serine phos → IR) + IGFBP1↓ → free IGF-1↑ → LHR potentiation; AMH ↑↑ (granulosa) → follicle arrest → PCOM (AFC>12, volume>10 mL); SHBG↓ → free T↑ → SRD5A → DHT → hirsutism/acne; Low-grade inflammation (TNF-α → NF-κB/IRS1-Ser, adiponectin↓, CRP↑); Anovulation → oligomenorrhea + infertility; Metformin (AMPK/FOXO1/CYP17↓, PPCOS I) + Letrozole (CYP19A1 inh → E2↓ → FSH ↑transient → dominant follicle, PPCOS II: 61.7% ovulation vs 48.3% CC) + OCP (SHBG↑2-4×/LH↓/T↓) + Spironolactone (AR block → FG score↓30-40%) + Clomiphene (central ER block → GnRH pulse↑) + GnRH agonist/antagonist (IVF) | [![PCOS](polycystic-ovary-syndrome/pcos_qsp_model.png)](polycystic-ovary-syndrome/pcos_qsp_model.svg) | [R](polycystic-ovary-syndrome/pcos_mrgsolve_model.R) | [refs](polycystic-ovary-syndrome/pcos_references.md) | [Shiny](polycystic-ovary-syndrome/pcos_shiny_app.R) |
+| 2026-06-17 | [**Dyslipidemia**](#dyslipidemia) | 만성질환 / 대사 | Hepatic cholesterol over-synthesis (HMG-CoA reductase↑, SREBP-2) + LDL receptor downregulation (PCSK9-mediated LDLR degradation) → LDL-C↑↑; VLDL overproduction (ApoB100/MTP/DGAT, insulin resistance/SREBP-1c→TG↑) → IDL→LDL; Reverse cholesterol transport deficit (ABCA1/G1↓, CETP↑, HDL-C↓); Foam cell formation (oxLDL→SR-A/CD36→macrophage) → atherosclerotic plaque → MACE; Statin (HMG-CoA Ri → LDLR↑2.5×, −50% LDL-C; ASCOT-LLA/TNT) + Ezetimibe (NPC1L1 inh, −20% additional; IMPROVE-IT PMID 25405393) + PCSK9i Evolocumab (LDLR rescue, −60% additional; FOURIER PMID 28304224) + Inclisiran siRNA (PCSK9 mRNA silencing, −50%, ORION-1/3) + Bempedoic acid (ATP-citrate lyase inh, −18%, CLEAR Harmony) + Fibrate/PPARα (TG↓40%, HDL↑10%) + Niacin/GPR109A + Bile acid sequestrants | [![Dyslip](dyslipidemia/dyslip_qsp_model.png)](dyslipidemia/dyslip_qsp_model.svg) | [R](dyslipidemia/dyslip_mrgsolve_model.R) | [refs](dyslipidemia/dyslip_references.md) | [Shiny](dyslipidemia/dyslip_shiny_app.R) |
 
 
 ---
@@ -2234,3 +2235,78 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`pcos_mrgsolve_model.R`](polycystic-ovary-syndrome/pcos_mrgsolve_model.R) | mrgsolve ODE model (24 states); 6 treatment scenarios; HOMA-IR / FAI / LH:FSH / ovulation probability / FG score endpoints; dose–response + sensitivity analysis; calibrated to PPCOS I/II (Legro 2007/2014), Tang 2010 meta-analysis, van Zuuren 2015 Cochrane, Zimmermann 2014, Rotterdam 2004 |
 | [`pcos_shiny_app.R`](polycystic-ovary-syndrome/pcos_shiny_app.R) | 6-tab shinydashboard; patient profile (BMI/IR/AMH/AFC inputs), hormone kinetics, metabolic endpoints, clinical endpoints, scenario comparison table, biomarker dashboard (value boxes + radar plot + drug PK) |
 | [`pcos_references.md`](polycystic-ovary-syndrome/pcos_references.md) | 43 curated PubMed references (12 sections): pathophysiology & HPO axis, GnRH/KNDy neurons, ovarian steroidogenesis & CYP17A1, folliculogenesis & AMH, insulin resistance, metformin treatment, letrozole & clomiphene, OCP & spironolactone, long-term complications, genetics & biomarkers, QSP/mathematical modeling, Thessaloniki consensus & ESHRE guidelines |
+
+---
+
+## Dyslipidemia
+
+> Directory: [`dyslipidemia/`](dyslipidemia/)
+
+**Mechanistic Map** (13 subgraph clusters, 211 nodes, 274 edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| Hepatic Cholesterol Synthesis | Acetyl-CoA → HMG-CoA (HMGCR, rate-limiting) → Mevalonate → IPP/GPP/FPP → Squalene → Lanosterol → Desmosterol → Cholesterol; Side branches: CoQ10, Dolichol, Geranylgeranyl-PP (protein prenylation); ACAT/SOAT1/2 → Cholesteryl ester storage |
+| LDLR / PCSK9 Regulation | LDLR gene → mRNA → protein → surface receptor → LDL endocytosis → lysosomal degradation → LDLR recycling; PCSK9 gene/mRNA → proprotein → secretion → plasma PCSK9 + LDLR complex → lysosomal co-degradation; SREBP-2/SCAP/Insig-1 sterol-sensing loop (ER membrane → Golgi → nuclear SRE activation → LDLR + PCSK9 co-upregulation by statins) |
+| Lipoprotein Metabolism | Hepatic ApoB100 synthesis/MTP → VLDL1/VLDL2 secretion; LPL (ApoC-II stimulated, ApoC-III inhibited) → VLDL→IDL; HL → IDL→LDL; sdLDL formation; oxLDL (ROS); Lp(a) = LDL + Apo(a)/LPA gene; CETP (CE transfer: HDL→VLDL/LDL); Chylomicron remnant uptake |
+| Reverse Cholesterol Transport (RCT) | Macrophage cholesterol efflux → ABCA1→Pre-β HDL; ABCG1→HDL3; LCAT (ApoA-I cofactor) → HDL3→HDL2; SR-BI hepatic selective CE uptake; FXR/LXR/PPARα transcriptional regulation; ApoA-I synthesis; ApoA-II |
+| Intestinal Cholesterol Absorption | Dietary cholesterol + biliary cholesterol → Micellar solubilization → Enterocyte NPC1L1 uptake; Ezetimibe blocks NPC1L1; ACAT2 → CE; ApoB48/MTP → Chylomicron assembly; ABCG5/G8 → sterol efflux back to lumen |
+| Bile Acid Metabolism | CYP7A1 (rate-limiting, FXR-SHP negative feedback); CYP8B1 (CA:CDCA ratio); CYP27A1; FGF19/FGFR4 (intestinal FXR→hepatic CYP7A1↓); TGR5/GLP-1 axis; BSEP export; Enterohepatic circulation; Bile acid sequestrants bind lumenal BA → CYP7A1 upregulation → LDLR↑ |
+| Drug Mechanisms | Statin → HMGCR inhibition → Mevalonate↓ → SREBP-2 activation → LDLR↑2.5× + PCSK9 paradox↑; Ezetimibe → NPC1L1 block; Evolocumab/Alirocumab → PCSK9 neutralization → LDLR rescue; Inclisiran → PCSK9 mRNA silencing (siRNA/RISC); Bempedoic acid → ATP-citrate lyase (ACL) inhibition → Acetyl-CoA↓ → HMG-CoA↓; Fibrate/PPARα → LPL↑/ApoC-III↓/TG↓/HDL↑; Niacin/GPR109A → HSL inhibition → FFA↓ → hepatic TG↓ → VLDL↓; Omega-3 FA → SREBP-1c↓/DGAT2↓ → TG↓; BAS → BA sequestration → CYP7A1↑ → cholesterol diversion |
+| Statin PK | Oral dose → GI absorption; Hepatic first-pass (OATP1B1/1B3 uptake transporter); CYP3A4 (atorvastatin/lovastatin/simvastatin) / CYP2C9 (rosuvastatin/fluvastatin) metabolism; Biliary excretion; Active acid form vs lactone form; Myopathy risk (plasma CK, CYP3A4 DDI, hypothyroidism, age >75) |
+| Atherosclerosis | Endothelial dysfunction (oxLDL → eNOS↓/ROS↑/ICAM-1/VCAM-1); Monocyte recruitment (MCP-1/CCR2); Monocyte→Macrophage differentiation; Foam cell formation (SR-A/CD36 oxLDL uptake); NLRP3/IL-1β/IL-18 → hsCRP; Vulnerable plaque (thin cap, lipid core, macrophage-rich); Stable plaque (thick cap, smooth muscle cells, collagen); Plaque regression (statin/PCSK9i → cholesterol crystal dissolution) |
+| Adipose Tissue | Catecholamine/cAMP/PKA → HSL + ATGL → TG lipolysis → FFA + glycerol; Insulin → HSL inhibition → FFA suppression; Niacin/GPR109A → anti-lipolytic; FFA flux to liver → hepatic TG synthesis; Adipokines (adiponectin, leptin) |
+| Hepatic TG Synthesis | Citrate → Acetyl-CoA (ACL); GPAT → LPA → PA → DAG (Lipin-1); DGAT1/2 → TG; VLDL1 (TG-rich, insulin resistance) vs VLDL2 (CE-rich, normal); SREBP-1c/ChREBP/Insulin → lipogenic gene upregulation; Glucagon → opposing effects |
+| Biomarkers | LDL-C · HDL-C · TG · ApoB · ApoA-I · Non-HDL-C · Lp(a) · hsCRP · PCSK9 plasma · FFA · VLDL-C · sdLDL · LDL particle number · LDL particle size |
+| Clinical Endpoints | MACE (MI · stroke · CVD death · unstable angina · revascularization); Plaque regression (REVERSAL/ASTEROID/GLAGOV IVUS trials); CIMT progression; Coronary Artery Calcium (CAC) score; ASCVD 10-year risk (PCE); LDL-C goal attainment; NNT for 5-year MACE prevention |
+
+**Mechanistic Map Preview:**
+
+[![Dyslipidemia QSP Map](dyslipidemia/dyslip_qsp_model.png)](dyslipidemia/dyslip_qsp_model.svg)
+
+### ODE Compartments (26 states)
+
+| Group | States | Description |
+|-------|--------|-------------|
+| Atorvastatin PK | AT_gut, AT_central, AT_peripheral | 2-cmt with GI absorption (ka=1.2/h); hepatic first-pass via OATP1B1; CL=78 L/h; V1=381 L; t½=14h; F=12% (Lau 2006); HMGCR inhibition Imax model |
+| Evolocumab PK | EVO_depot, EVO_central, EVO_peripheral | SC depot + 2-cmt; ka_SC=0.29/day; CL=0.27 L/day; V1=3.0 L; t½=11.5 days (Gibbs 2017 Clin PK); PCSK9 target-mediated binding |
+| Ezetimibe PK | EZE_intestinal, EZE_central | Intestinal compartment (NPC1L1 local exposure) + plasma; ka=2.1/h; CL=15 L/h; NPC1L1 inhibition IC50=1.2 nM (Altmann 2004) |
+| Inclisiran PK | INC_depot | Single SC depot with mRNA silencing kinetics; dose on days 0, 90, 270, 450; effect t½≈10 days from ORION-1 |
+| Cholesterol Synthesis | HMGCoA_R, Mevalonate, Hep_Chol | HMG-CoA reductase activity (Emax inhibition by statin); mevalonate pool; hepatic free cholesterol (ACAT equilibrium with CE) |
+| Lipoprotein Dynamics | VLDL, IDL, LDL_c, LDL_p, HDL | VLDL production rate (basal 0.32 mmol/L/day); IDL transit (t½=2h); LDL central + peripheral; HDL turnover (t½=5.5 days) |
+| LDL Receptor | LDLR_surface, LDLR_internal | LDLR surface density (baseline ~50,000/cell); PCSK9-mediated lysosomal degradation; statin → LDLR upregulation (2.5× via SREBP-2); LDL clearance proportional to LDLR × LDL |
+| PCSK9 | PCSK9_liver, PCSK9_plasma, PCSK9_complex | Hepatic PCSK9 synthesis (SREBP-2 co-upregulated by statin +180%); plasma PCSK9 t½=5 days; evolocumab complex (Kd=0.1 nM; tmax-binding 11 days); inclisiran silences PCSK9_liver mRNA |
+| Intestinal Absorption | Chol_intestinal | NPC1L1-mediated uptake (baseline ~50% efficiency); ezetimibe reduces by 54% (Altmann 2004) |
+| Bile Acid Pool | BA_pool | Enterohepatic circulation with CYP7A1 rate; BAS reduces BA recirculation → CYP7A1↑ → hepatic cholesterol diversion → LDLR↑ |
+| Atherosclerosis | Foam_cells, Plaque_burden | Foam cell accumulation driven by oxLDL × macrophage recruitment; plaque regression when LDL-C < 70 mg/dL sustained; calibrated to REVERSAL/ASTEROID IVUS data |
+
+### Treatment Scenarios (6)
+
+| # | Scenario | Dose Regimen | Primary Target | Clinical Reference |
+|---|----------|-------------|----------------|-------------------|
+| 1 | No treatment | — | — | Framingham/UKPDS natural history; LDL-C 160 mg/dL baseline |
+| 2 | Atorvastatin 40 mg QD | 40 mg oral once daily | HMG-CoA reductase | ASCOT-LLA (Sever 2003): −46% LDL-C; TNT (LaRosa 2005): intensive statin reduces MACE 22% |
+| 3 | Atorvastatin 40 mg + Ezetimibe 10 mg | Dual oral daily | HMGCR + NPC1L1 | IMPROVE-IT (Cannon 2015, PMID 25405393): additional −15 mg/dL LDL-C; CV benefit additive |
+| 4 | Atorvastatin 40 mg + Evolocumab 140 mg Q2W | Statin + SC biologic Q2W | HMGCR + PCSK9 | FOURIER (Sabatine 2017, PMID 28304224): −59% LDL-C from statin baseline; 15% MACE RRR |
+| 5 | Triple: Statin + Ezetimibe + Evolocumab | Three-drug combination | HMGCR + NPC1L1 + PCSK9 | Combination guideline-recommended; LDL-C reduction >80%; FH management |
+| 6 | Atorvastatin 40 mg + Inclisiran 284 mg SC | Statin + siRNA (day 0/90 then Q6M) | HMGCR + PCSK9 mRNA | ORION-1 (Ray 2017): −51% PCSK9; ORION-3 LTE (2022): sustained −45% LDL-C |
+
+### Shiny Dashboard (6 Interactive Tabs)
+
+1. **Patient Profile** — Sliders: age, sex, BMI, baseline LDL-C/HDL-C/TG, diabetes, smoking, blood pressure; Pooled Cohort Equations 10-year ASCVD risk calculator; ACC/AHA and ESC risk category display; LDL-C target based on risk (very high <55 mg/dL, high <70, intermediate <100); Lipid classification table; Risk factor radar chart
+2. **Drug PK** — 14-drug selector (atorvastatin 10/20/40/80 mg, rosuvastatin 10/20/40 mg, evolocumab 140/420 mg, alirocumab 75/150 mg, inclisiran 284 mg, ezetimibe, bempedoic acid); Multi-dose accumulation PK curves over 26 weeks; Hepatic active metabolite panel; Half-life comparison bar chart; OATP1B1/CYP3A4 transporter note
+3. **PD – Lipid Biomarkers** — LDL-C, HDL-C, TG, ApoB, non-HDL-C time-courses (52 weeks); PCSK9 plasma dynamics (statin reactive upregulation ↑180% vs PCSK9i suppression ↓85%); LDL receptor density trend; % change from baseline toggle; ACC/AHA/ESC target lines; Lp(a) note
+4. **Clinical Endpoints** — CTT RRR model (22% relative risk reduction per 1 mmol/L LDL-C decrease); Cumulative 5-year MACE curves under each treatment; Atherosclerotic plaque regression/progression simulation (IVUS calibrated); NNT vs adherence chart; ARR and NNT summary table
+5. **Scenario Comparison** — 6-arm simultaneous comparison; Grouped bar chart (LDL-C at wk 12/26/52); DataTable with conditional formatting (green = at goal, red = not at goal); Multi-dimension radar: LDL-C reduction / HDL-C change / TG change / MACE risk reduction / cost-effectiveness score
+6. **Biomarker Dashboard** — PCSK9 genetic variant slider (GOF → higher LDL; LOF → lower baseline); Statin myopathy risk gauge (0–14 pt score: age, CK, hypothyroid, DDI, renal function, statin dose); CYP3A4 DDI checker (13 interacting drugs: amiodarone, diltiazem, amlodipine, cyclosporine, erythromycin, fluconazole, itraconazole, clarithromycin, HIV PIs, grapefruit); Guideline LDL-C target reference lines; Real-time NNT calculation
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`dyslip_qsp_model.dot`](dyslipidemia/dyslip_qsp_model.dot) | Graphviz DOT source (13 subgraph clusters, 211 nodes, 274 edges) — cholesterol synthesis · LDLR/PCSK9 · lipoprotein metabolism · RCT · intestinal absorption · bile acids · drug mechanisms · statin PK · atherosclerosis · adipose · TG synthesis · biomarkers · clinical endpoints |
+| [`dyslip_qsp_model.svg`](dyslipidemia/dyslip_qsp_model.svg) | Vector mechanistic map (366 KB) |
+| [`dyslip_qsp_model.png`](dyslipidemia/dyslip_qsp_model.png) | Raster mechanistic map (150 dpi, 11 MB) |
+| [`dyslip_mrgsolve_model.R`](dyslipidemia/dyslip_mrgsolve_model.R) | mrgsolve ODE model (26 states); 6 treatment scenarios; LDL-C / HDL-C / TG / PCSK9 / plaque burden endpoints; dose–response + clinical trial calibration (FOURIER/ODYSSEY/IMPROVE-IT/ASCOT-LLA/TNT/ORION/CLEAR); statin PCSK9 paradox upregulation modeled |
+| [`dyslip_shiny_app.R`](dyslipidemia/dyslip_shiny_app.R) | 6-tab Shiny app with bslib/plotly; patient profile (PCE ASCVD risk), drug PK (14 agents), lipid biomarkers, clinical endpoints (CTT meta-analysis MACE model), scenario comparison (radar + datatable), biomarker dashboard (PCSK9 genetics + myopathy risk + CYP3A4 DDI checker) |
+| [`dyslip_references.md`](dyslipidemia/dyslip_references.md) | 60 curated PubMed references (6 sections): pathophysiology & mechanisms (PCSK9 discovery, LDL receptor Nobel, CETP/RCT, foam cell), biomarkers, drug mechanisms & PK/PD (statin/ezetimibe/PCSK9i/inclisiran/bempedoic acid/fibrate PK), major clinical trials (FOURIER/ODYSSEY/IMPROVE-IT/CLEAR/ORION/HPS/ASCOT-LLA/TNT/4S/WOSCOPS), guidelines (ACC/AHA 2018/ESC 2019/2021/FH consensus), QSP/PBPK modeling |
