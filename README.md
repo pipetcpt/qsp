@@ -140,6 +140,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Adult-Onset Still's Disease**](#adult-onset-stills-disease-aosd) | 자가면역질환 / 자가염증 | DAMP/PAMP → TLR2/4/7/9 → MyD88/NF-κB → NLRP3 inflammasome (Signal1+2) → Caspase-1 → mature IL-1β★ + IL-18★ (≫10,000 pg/mL) + Pyroptosis; Macrophage M1-activation → IL-6/TNF-α → JAK1/2-STAT3 → Hyperferritinemia (★<20% glycosylated ferritin) + CRP↑ + SAA↑; IL-18 → NK/Th1 → IFN-γ → amplify macrophage activation; MAS: NK-CTL dysfunction (Perforin↓/PRF1 mutation) + IFN-γ storm → Hemophagocytosis → Pancytopenia + Multi-organ failure (HScore); Quotidian fever >39°C + Salmon rash + Polyarthritis + Lymphadenopathy (Yamaguchi/Fautrel criteria); NSAIDs + Prednisolone + Anakinra (IL-1Ra, SC QD; CONSIDER-AOSD) + Canakinumab (anti-IL-1β, 4mg/kg q4w) + Tocilizumab (IL-6R block, 8mg/kg q2w) + Tofacitinib (JAK1/3i; refractory) + CsA/Etoposide (MAS salvage) | [![AOSD](adult-onset-stills-disease/aosd_qsp_model.png)](adult-onset-stills-disease/aosd_qsp_model.svg) | [R](adult-onset-stills-disease/aosd_mrgsolve_model.R) | [refs](adult-onset-stills-disease/aosd_references.md) | [Shiny](adult-onset-stills-disease/aosd_shiny_app.R) |
 | 2026-06-17 | [**Sarcoidosis**](#sarcoidosis) | 만성질환 / 면역·호흡기 | Unknown antigen (mycobacterial mKatG/ESAT6, Propionibacterium, organic/inorganic particles) + HLA-DRB1 susceptibility → Alveolar macrophage/DC → TLR2/4/9 → MHC-II antigen presentation → Th1 polarization (IL-12↑/IFN-γ↑) + Treg deficiency → TNF-α/IFN-γ/CCL2 → Non-caseating granuloma (epithelioid macrophage + Langhans giant cell + lymphocyte mantle); CYP27B1↑ in granuloma → 1,25-VitD3↑ → Hypercalcemia/Hypercalciuria; ACE production (biomarker); Granuloma → Scadding Stage I→II→III→IV → Pulmonary fibrosis (FVC↓/DLCO↓); Extrapulmonary: Cardiac (AV block/SCD), Neuro (cranial nerve palsy), Ocular (uveitis), Cutaneous (lupus pernio/EN), Hepatic, Hypercalcemia; Biomarkers: Serum ACE (sens 60%) + sIL-2R (sens 75%) + chitotriosidase; Prednisone (GR/NF-κB, ACE-25 Trial) + MTX steroid-sparing + AZA + HCQ (hypercalcemia/skin) + Infliximab (FIRST Trial, FVC +2.5% vs PBO) + JAKi (Ruxolitinib, investigational) | [![Sarc](sarcoidosis/sarc_qsp_model.png)](sarcoidosis/sarc_qsp_model.svg) | [R](sarcoidosis/sarc_mrgsolve_model.R) | [refs](sarcoidosis/sarc_references.md) | [Shiny](sarcoidosis/sarc_shiny_app.R) |
 | 2026-06-17 | [**Membranous Nephropathy**](#membranous-nephropathy-mn) | 만성질환 / 신장·사구체 | Anti-PLA2R1 IgG4 (~75%) / THSD7A (~3%) / NELL1 / EXT1-EXT2 / Sema3B auto-Ab → subepithelial IC deposition → Classical complement (C1q/C4/C2) + Alternative amplification (Factor B/D) → C5b-9 MAC → Podocyte foot process effacement (Nephrin/Podocin/CD2AP↓) + NADPH-ROS → GBM spike formation → Massive proteinuria ≥3.5 g/day (Nephrotic syndrome); RAAS (AngII/Aldo) → intraglomerular hypertension → eGFR↓; Rituximab (anti-CD20 TMDD; MENTOR 2019 NEJM: 60% CR+PR at 24 mo vs 20% CsA) + Tacrolimus (CNI; STARMEN 2021: 60% CR+PR RTX-seq arm) + Cyclophosphamide + alternating-day steroids (Ponticelli regimen; RI-CYCLO) + ACEi/ARB (renoprotection; −35% proteinuria) + Belimumab (anti-BAFF) + Obinutuzumab + Avacopan (C5aR1 inhibitor, investigational); Biomarkers: Anti-PLA2R1 titer (immunological remission predictor), sC5b-9, CD19/CD20 count, uPCR, serum IgG4 | [![MN](membranous-nephropathy/mn_qsp_model.png)](membranous-nephropathy/mn_qsp_model.svg) | [R](membranous-nephropathy/mn_mrgsolve_model.R) | [refs](membranous-nephropathy/mn_references.md) | [Shiny](membranous-nephropathy/mn_shiny_app.R) |
+| 2026-06-17 | [**Hashimoto's Thyroiditis**](#hashimotos-thyroiditis-ht) | 자가면역질환 / 갑상선 | pDC(IFN-α) + mDC(IL-12) → APC → MHC-II → CD4+ Th1/Th17 (FOXP3+ Treg ↓) + Tfh → B-cell GC → Anti-TPO IgG★ + Anti-Tg IgG★ + Anti-TSHR blocking Ab → ADCC(NK) + Complement(C5b-9 MAC) + CD8+CTL → Thyrocyte apoptosis (Fas/FasL) → Lymphocytic infiltration → Thyroid damage → T4/T3 ↓ → TSH↑ → Subclinical → Overt hypothyroidism; HPT axis: TRH→TSH→T4/T3 synthesis (NIS/TPO/Tg/DIT+DIT); DIO1/DIO2 (selenocysteine) T4→T3; TRα1/TRβ1 genomic actions (BMR/cardiac/lipid/bone genes); Selenium (GPx↑ → ROS↓/NF-κB↓ → Anti-TPO ↓~50%, Gärtner 2002 RCT) + Levothyroxine (LT4 2-cpt PK, F=75%, t½=7d; TSH normalization → symptom relief/LDL↓) + Liothyronine (T4+T3 combo) + Methimazole (TPO block); Comorbidities: dyslipidemia/CV risk/depression/infertility/MALT lymphoma(3×); Biomarkers: TSH(0.4–4.0 mIU/L)/fT4(9–23 pmol/L)/fT3(3.5–6.5 pmol/L)/Anti-TPO(<34 IU/mL)/Anti-Tg/thyroid vol US | [![HT](hashimoto-thyroiditis/ht_qsp_model.png)](hashimoto-thyroiditis/ht_qsp_model.svg) | [R](hashimoto-thyroiditis/ht_mrgsolve_model.R) | [refs](hashimoto-thyroiditis/ht_references.md) | [Shiny](hashimoto-thyroiditis/ht_shiny_app.R) |
 
 
 ---
@@ -2672,3 +2673,76 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`mn_mrgsolve_model.R`](membranous-nephropathy/mn_mrgsolve_model.R) | mrgsolve ODE model (18 compartments, 8 treatment scenarios); calibrated to MENTOR (Fervenza 2019), GEMRITUX (Dahan 2017), STARMEN (van den Brand 2021), RI-CYCLO (Scolari 2021); includes PK validation, scenario comparison, remission rate bar charts; saves PNG outputs |
 | [`mn_shiny_app.R`](membranous-nephropathy/mn_shiny_app.R) | 6-tab Shiny dashboard; deSolve ODE engine with mrgsolve/analytical fallback; ggplot2 visualization; patient risk calculator; 6-scenario comparison; biomarker traffic-light dashboard |
 | [`mn_references.md`](membranous-nephropathy/mn_references.md) | 45 curated PubMed-linked references (10 sections): target antigens/pathophysiology, epidemiology/natural history, biomarkers, immunosuppressive trials (MENTOR/GEMRITUX/STARMEN/RI-CYCLO/Ponticelli), RAAS/renoprotection, complement therapeutics, QSP/PK-PD modeling, genetics, diagnosis/guidelines, secondary MN |
+
+---
+
+## Hashimoto's Thyroiditis (HT)
+
+> Directory: [`hashimoto-thyroiditis/`](hashimoto-thyroiditis/)
+
+**Mechanistic Map** (10 subgraph clusters, 170+ named nodes, 200+ directed edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| HPT Axis | Hypothalamus (PVN neurons) → TRH secretion into hypophyseal portal blood → TRH-R (Gq/PLC-β) → IP3/DAG → Ca²⁺ mobilization → TSH synthesis/secretion (anterior pituitary thyrotroph cells); Negative feedback: T3/T4 → hypothalamus + pituitary DIO2-derived T3 → TSH suppression; Somatostatin/Dopamine/Cortisol inhibitory inputs; Circadian TSH pulsatility |
+| Thyroid Follicular Biology | Thyrocyte TSHR (Gs-cAMP/PKA + Gq-PI3K/Akt); NIS (SLC5A5, basolateral I⁻ uptake) → Pendrin (SLC26A4, apical efflux); DUOX1/DUOX2 (H₂O₂ generation); TPO-catalyzed organification → MIT + DIT; Coupling reaction → T3 (MIT+DIT) + T4 (DIT+DIT); Tg colloid storage → endocytosis → lysosomal proteolysis → T4/T3 secretion (~80 μg/day T4, ~5 μg/day T3); Wolff-Chaikoff autoregulation |
+| Peripheral T4/T3 Metabolism | Free T4 (fT4 ~12 pmol/L) + Free T3 (fT3 ~5 pmol/L); Plasma protein binding: TBG (75%) + TBPA/TTR (15%) + Albumin (10%); Type I/II/III Deiodinase (DIO1/DIO2/DIO3) — all require selenocysteine; T4→T3 (DIO1 ~60%, DIO2 ~20%); rT3 (inactive, via DIO3); Hepatic glucuronidation/sulfation; Biliary + urinary excretion; DIO2 in pituitary (local T3 for feedback) |
+| Thyroid Hormone Action | TRα1/TRα2 (cardiac, bone, CNS); TRβ1/TRβ2 (liver, pituitary, cochlea); RXR heterodimer → TRE binding → coactivator recruitment (SRC-1/CBP/p300) → gene transcription; Target genes: UCP1/SERCA/Na-K-ATPase (BMR), MHC-α/SERCA2a/HCN4 (cardiac), LDLr/FAS/HMGCR (lipid), OPG/RANKL/collagen (bone), SHBG (liver); Non-genomic (MAPK/PI3K/AMPK); Mitochondrial biogenesis (PGC-1α) |
+| Adaptive Immune — T Cells | CD4+ Th0 → Th1 (IL-12/STAT4, IFN-γ/TNF-α) + Th17 (IL-23/IL-6/STAT3, IL-17A/IL-21) + Treg (TGF-β/FOXP3, IL-10); FOXP3+ Treg deficiency (Hashimoto hallmark); Tfh (CXCR5, IL-21) → B cell help; IL-12/IL-23 polarization axes; CD8+ CTL (MHC-I↑ by IFN-γ → perforin/granzyme-mediated thyrocyte killing) |
+| Adaptive Immune — B Cells | B cell activation (Tfh/IL-21/CD40L) → Germinal center reaction → Intrathyroidal GC formation; Plasma cells → Anti-TPO IgG (>95% positivity in HT) + Anti-Tg IgG + Anti-TSHR blocking Ab (disrupts cAMP signaling); ADCC (NK cell + Anti-TPO Ab → thyrocyte destruction); Classical complement: C1q → C3/C5 convertase → C5b-9 MAC → lytic killing; Thyrocyte apoptosis (Fas/FasL, TRAIL) → Hürthle cell metaplasia |
+| Innate Immunity | pDC → Type I IFN (IFN-α/β) → macrophage priming + MHC-II upregulation; mDC → IL-12 + TLR3/4/7/9 signaling → NF-κB → IL-6/TNF-α/CXCL10/CCL5/CXCL9-11; NLRP3 inflammasome (ROS-activated) → IL-1β; iNOS/NO → peroxynitrite; GPx (selenoprotein, H₂O₂ scavenger); Selenoprotein P (Se transport to thyroid); Chemokines → lymphocytic infiltration |
+| Drug PK | Levothyroxine (LT4): oral absorption F=75%, 2-cpt model (Vc=10L, Vp=22L, t½=7 days, k12=0.25/day, k21=0.11/day); Food/Ca²⁺/Fe/PPI → ↓ absorption; Liothyronine (LiT3): F=95%, 1-cpt (Vd=40L, t½=1.1 days); Selenium: F=85%, tissue depot → Selenoprotein P; Methimazole: F=95%, t½=6h (thyroid-concentrated), dose-dependent TPO inhibition; PTU: t½=1-2h, blocks TPO + DIO1 |
+| Drug PD | LT4 → fT4↑ → pituitary DIO2-T3 → TSH suppression (Hill Emax model); TSH normalization → symptom relief (fatigue/depression/cognition/cold intolerance); LT4→BMR↑/LDL↓/HR normalization; Selenium → GPx↑ (Emax=0.6, EC50=90 μg/L) → ROS↓/NF-κB↓ → Anti-TPO ↓~50% (Gärtner 2002 RCT) + thyrocyte apoptosis ↓; LT4 excess → BMD↓ (RANKL↑) + AF risk↑; T4+T3 combination → stable tissue T3 (selected patients); MMI → TPO irreversible inhibition → organification block; PTU → TPO + DIO1 (T4→T3 ↓, useful in thyroid storm) |
+| Clinical Endpoints & Comorbidities | TSH (0.4–4.0 mIU/L), fT4 (9–23 pmol/L), fT3 (3.5–6.5 pmol/L), Anti-TPO Ab (<34 IU/mL), Anti-Tg Ab (<40 IU/mL), thyroid volume (US), BMD (T-score), heart rate, LDL-C, BMI, fatigue (FSS), depression (PHQ-9), QoL (SF-36/ThyPRO); Progression: Subclinical HypoT → Overt HypoT → dyslipidemia/CV risk/diastolic HTN/HFpEF risk; Depression/anxiety; Infertility/menstrual disorders; Pregnancy complications (pre-eclampsia/loss); Fetal neurodevelopment impairment; Osteoporosis (LT4 over-treatment); MALT lymphoma (~3× risk); Hashimoto encephalopathy (rare) |
+
+**Mechanistic Map Preview:**
+
+[![Hashimoto's Thyroiditis QSP Map](hashimoto-thyroiditis/ht_qsp_model.png)](hashimoto-thyroiditis/ht_qsp_model.svg)
+
+**mrgsolve ODE Model (18 compartments, 7 treatment scenarios):**
+
+| Compartment Group | States | Key Dynamics |
+|-------------------|--------|--------------|
+| HPT Axis | TRH, TSH | TRH: k_prod=0.5 nmol/L/day, T3/T4 sigmoidal feedback (Hill n=2.5, EC50=0.005 nmol/L); TSH: k_stim=4.0, k_deg=6.0/day (t½~2.8h); Pituitary DIO2-enriched T3 for tight TSH suppression |
+| Thyroid Gland | T4thy, T3thy | TSH-stimulated synthesis (sigmoidal Emax, EC50_TSH=2.0 mIU/L, n=1.5); Thyrocyte integrity factor (1−DmgThy); TPO block by methimazole; T4:T3 synthesis ratio 15:1 |
+| Plasma/Tissue T4/T3 | T4p, T3p, T4t, T3t | T4 plasma t½=7 days (ke=0.099/day); T3 plasma t½=1 day (ke=0.693/day); DIO1+DIO2 T4→T3 (Se-dependent, +30% enhancement); DIO3→rT3 (inactivation); 2-tissue model for peripheral T3 action |
+| Autoimmune Compartments | Th1, Treg, Bcell, AntiTPOAb, AntiTgAb | Th1 driven by antigen (Ag_drive = 0.1+0.9×DmgThy); Treg suppressed (FOXP3 defect, Treg_base=0.75); B cell logistic growth driven by Th1; Anti-TPO production ∝ Bcell×1000 IU/mL; Antibody degradation t½=14 days (k_deg=0.05/day) |
+| Thyroid Damage | DmgThy | dmg_drive = k_dmg × Th1 × (AntiTPOAb/500) × (1−Se×0.4); Repair by Treg (k_repair=0.2/day); Sigmoid (1−DmgThy) prevents >100% damage |
+| Levothyroxine PK (2-cpt) | LT4g, LT4c, LT4p | ka=0.48/day; CL=1.3 L/day; Vc=10 L; Vp=22 L; k12=0.25, k21=0.11, kel=0.13/day; F=75%; t½≈7 days; LT4c→fT4 pool contribution |
+| Liothyronine PK | LiT3c | ka=5.0/day; kel=0.625/day (t½=1.1 day); 95% bioavailability; Direct T3 pool contribution |
+| Selenium | Se | F=85%; Vd=50 L; k_elim=0.15/day; Se_0=80 μg/L (Hashimoto patients tend low-normal); Emax_GPx=0.6, EC50=90 μg/L; Emax_Ab=0.55 (Anti-TPO reduction), EC50=95 μg/L |
+
+**7 Treatment Scenarios:**
+
+| # | Scenario | Regimen | Key Clinical Reference |
+|---|----------|---------|----------------------|
+| 1 | Untreated | Natural Hashimoto's progression (no treatment) | Vanderpump MPJ, *Clin Endocrinol* 1995 (natural history) |
+| 2 | Standard LT4 | Levothyroxine 100 μg/day (typical 1.6 μg/kg/day) | Jonklaas J et al., *Thyroid* 2014 (ATA guidelines) |
+| 3 | Selenium | Selenium 200 μg/day (selenomethionine) | Gärtner R et al., *JCEM* 2002 (~50% Anti-TPO reduction) |
+| 4 | LT4 + Selenium | 100 μg/day LT4 + 200 μg/day Se (combination) | Duntas LH et al., *Eur J Endocrinol* 2003 |
+| 5 | LT4 + Liothyronine | LT4 100 μg/day + LiT3 7.5 μg/day (T4:T3 combo) | Bunevicius R et al., *NEJM* 1999; Idrees T et al., *J Endocr Soc* 2020 |
+| 6 | High-dose LT4 | Levothyroxine 175 μg/day (TSH-suppressive, lymphoma surveillance) | Biondi B et al., *JAMA* 2019 |
+| 7 | Early LT4 + Se | LT4 75 μg/day + Se 200 μg/day (early intervention, Se-positive titer) | Pearce EN et al., *Eur Thyroid J* 2013 (subclinical HypoT) |
+
+**Shiny Dashboard (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| Patient Profile | Disease overview; LT4/Se/LiT3/MMI dose sliders + patient parameters (initial damage, baseline Anti-TPO, Treg level); 4 value boxes (TSH/fT4/Anti-TPO/thyroid damage at simulation end); patient parameter table + 1-year endpoint table with normal ranges |
+| HPT Axis Dynamics | TSH (log scale, normal range band 0.4–4.0 mIU/L); Free T4 (normal range 9–23 pmol/L); Free T3 (normal range 3.5–6.5 pmol/L); TRH (normalized); Dual-axis plasma T4/T3 panel (fT3×10 for scale) |
+| Autoimmune Markers | Anti-TPO Ab (IU/mL, upper-normal 34 IU/mL line); Anti-Tg Ab (upper-normal 40 IU/mL); Th1 vs Treg overlaid dynamics; B cell activation + Th1/Treg ratio; Thyroid damage progression (area fill, 50% threshold line) |
+| Drug PK | LT4 central compartment concentration; LT4 gut + peripheral 2-cpt; Selenium plasma (normal Se ~90 μg/L line); Liothyronine plasma; LT4 dose-response table (DT, TSH color-coded: green = normal range) |
+| Clinical Endpoints | Hypothyroid symptom score (0–10); Heart rate (60–80 bpm reference); LDL-C (relative, <3.0 mmol/L threshold); Thyroid volume (relative); Fatigue score + BMD risk panel |
+| Scenario Comparison | Checkbox selection of 7 scenarios; TSH dynamics overlay (green band); Anti-TPO Ab comparison; Thyroid damage comparison; Summary table at 1-year (TSH/fT4/Anti-TPO/DmgThy/HypoScore) with TSH color-coding |
+| Mechanistic Map | Full-size PNG display; link to SVG vector version; model structure bullet summary |
+
+**File Inventory:**
+
+| File | Description |
+|------|-------------|
+| [`ht_qsp_model.dot`](hashimoto-thyroiditis/ht_qsp_model.dot) | Graphviz DOT source (10 subgraph clusters, 170+ named nodes, 200+ directed edges; rankdir=LR; splines=curved; feedback edges: constraint=false; inhibitory edges: red dashed; drug mechanism edges: dark blue) |
+| [`ht_qsp_model.svg`](hashimoto-thyroiditis/ht_qsp_model.svg) | Vector mechanistic map (~224 KB) |
+| [`ht_qsp_model.png`](hashimoto-thyroiditis/ht_qsp_model.png) | Raster mechanistic map (150 dpi, ~2.9 MB) |
+| [`ht_mrgsolve_model.R`](hashimoto-thyroiditis/ht_mrgsolve_model.R) | mrgsolve ODE model (18 compartments, 7 treatment scenarios); calibrated to Gärtner 2002 (selenium ~50% Ab reduction), Jonklaas 2014 (LT4 dosing), Bianco 2019 (deiodinase kinetics), Eisenberg 2008 (TSH-T4 model); includes LT4 dose-response table, Se dose-response curve, population variability (n=50), Gärtner RCT replication |
+| [`ht_shiny_app.R`](hashimoto-thyroiditis/ht_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + plotly + DT); inline mrgsolve model via mcode(); 7-scenario comparison with checkbox selection; LT4 dose-response DT table (TSH color-coded); value boxes for TSH/fT4/Anti-TPO/damage |
+| [`ht_references.md`](hashimoto-thyroiditis/ht_references.md) | 47 curated PubMed-linked references (11 sections): pathogenesis/epidemiology, T-cell/B-cell mechanisms, HPT mathematical models, thyroid hormone synthesis/deiodination, levothyroxine PK/treatment (ATA 2014 guidelines), liothyronine combination therapy, selenium RCTs (Gärtner 2002/Duntas 2003/Toulis 2010 meta-analysis), clinical endpoints/biomarkers, pregnancy, cardiovascular/bone/neuropsychiatric complications, QSP/PK-PD modeling tools |
