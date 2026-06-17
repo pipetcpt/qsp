@@ -131,6 +131,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Gout**](#gout) | 만성질환 / 대사 | 혈중 요산 과다 → 단요산나트륨(MSU) 결정 침착 → NLRP3 인플라마좀(Caspase-1) → 성숙 IL-1β/IL-18 방출 → 호중구 유입 → 급성 관절염; URAT1/OAT/ABCG2 수송체 다형성; XO억제제(알로퓨리놀/옥시퓨리놀·페북소스타트) + 요산배설제(프로베네시드·레시뉴라드) + 항염증(콜히친·NSAID·코르티코이드) + 생물학제제(아나킨라·카나키누맙); 통풍 결절(tophus) 퇴행 및 신기능 보호; CONFIRMS / CLEAR 1&2 / AGREE / CARES 임상시험 보정 | [![Gout](gout/gout_qsp_model.png)](gout/gout_qsp_model.svg) | [R](gout/gout_mrgsolve_model.R) | [refs](gout/gout_references.md) | [Shiny](gout/gout_shiny_app.R) |
 | 2026-06-17 | [**Sjögren's Syndrome**](#sjögrens-syndrome-pss) | 자가면역질환 / 외분비선 | pDC(Bst-2+) → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(ISG↑) → mDC maturation → Th1/Th17/Tfh → BAFF↑(BEC/IFN-driven) → B-cell hyperactivation + ectopic GC → Anti-SSA/Ro52/Ro60(>95%) + Anti-M3R → AQP5↓ + Ca²⁺/cAMP↓ → UWSF↓/Schirmer↓; MALT lymphoma(40-50× risk; FFS score); HCQ(JOQUER) + Pilocarpine/Cevimeline(M3R agonist) + Rituximab(TEARS; 2×1g) + Ianalumab(TWINSS 2022; anti-BAFF-R; ΔESSDAI≥3) + Baricitinib(JAK1/2) | [![pSS](sjogrens-syndrome/ss_qsp_model.png)](sjogrens-syndrome/ss_qsp_model.svg) | [R](sjogrens-syndrome/ss_mrgsolve_model.R) | [refs](sjogrens-syndrome/ss_references.md) | [Shiny](sjogrens-syndrome/ss_shiny_app.R) |
 | 2026-06-17 | [**Type 1 Diabetes Mellitus**](#type-1-diabetes-mellitus-t1dm) | 자가면역질환 / 내분비 | HLA-DR3/DR4 + PTPN22/CTLA4/IL2RA → viral(CVB)/gut dysbiosis trigger → pDC(IFN-α) + mDC → CD8+CTL (GAD65/IA-2/ZnT8/proinsulin) → Insulitis → MHC-I↑/ER stress/ROS → beta-cell apoptosis → Bm↓ (Stage 1→2→3); Treg failure; Multi-Ab (IAA+GADA+IA-2A+ZnT8A) → C-peptide↓ → absolute insulin deficiency → HbA1c↑/DKA; Teplizumab (TN-10: ~3yr delay, FDA 2022) + Abatacept (CTLA4-Ig) + Baricitinib (BANDIT 2024) + MDI/CSII/HCL-APC (CGM: TIR>70%) + SGLT2i (EASE/inTANDEM3) + GLP-1RA | [![T1DM](type1-diabetes/t1dm_qsp_model.png)](type1-diabetes/t1dm_qsp_model.svg) | [R](type1-diabetes/t1dm_mrgsolve_model.R) | [refs](type1-diabetes/t1dm_references.md) | [Shiny](type1-diabetes/t1dm_shiny_app.R) |
+| 2026-06-17 | [**Psoriatic Arthritis**](#psoriatic-arthritis-psa) | 자가면역질환 / 근골격·피부 | HLA-C*06:02/HLA-B27 + LCE3B/C barrier defect → Koebner/Strep trigger → pDC/mDC → IL-23(p19/p40) → Th17/ILC3/γδT → IL-17A/F + IL-22 → keratinocyte hyperproliferation (PASI) + FLS activation + enthesitis (IL-17/BMP/Wnt → periostitis) + RANKL↑/DKK1↑ → dual bone pathology (erosion + ankylosis); Gut-joint axis (dysbiosis/ILC3); Calprotectin/CRP biomarkers; CASPAR classification; TNFi (ADA, ADEPT: ACR20 57%) + IL-17Ai (IXE/SEC, SPIRIT-P1: ACR20 62%) + IL-23i (GUS, DISCOVER-2: ACR20 64%) + JAKi (UPA, SELECT-PsA 1: ACR20 71%) + PDE4i (APR, PALACE 1: ACR20 38%) | [![PsA](psoriatic-arthritis/psa_qsp_model.png)](psoriatic-arthritis/psa_qsp_model.svg) | [R](psoriatic-arthritis/psa_mrgsolve_model.R) | [refs](psoriatic-arthritis/psa_references.md) | [Shiny](psoriatic-arthritis/psa_shiny_app.R) |
 
 
 ---
@@ -2017,3 +2018,78 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`t1dm_mrgsolve_model.R`](type1-diabetes/t1dm_mrgsolve_model.R) | mrgsolve ODE (20 states); 6 scenarios; CGM metrics; sensitivity analysis; calibrated to TN-10/TREAT/DCCT |
 | [`t1dm_shiny_app.R`](type1-diabetes/t1dm_shiny_app.R) | 7-tab shinydashboard; patient profile, PK, glucose/CGM, beta-cell/immunity, scenario comparison, complications, about |
 | [`t1dm_references.md`](type1-diabetes/t1dm_references.md) | 52 curated PubMed references (13 sections): epidemiology, immunopathogenesis, autoantibodies, GSIS, PK/PD models, closed-loop, immunotherapy, SGLT2i/GLP-1RA, complications, cell therapy |
+
+---
+
+## Psoriatic Arthritis (PsA)
+
+> Directory: [`psoriatic-arthritis/`](psoriatic-arthritis/)
+
+**Mechanistic Map** (14 clusters, 130+ nodes):
+
+| Cluster | Coverage |
+|---------|----------|
+| Genetic & Environmental Risk | HLA-C*06:02 (PSORS1), HLA-B27 (axial/enthesitis), IL23R, TNFAIP3 (A20), PTPN22, LCE3B/C (barrier), Koebner phenomenon, Strep guttate trigger |
+| Innate Immune Activation | pDC → IFN-α; mDC (cDC1); Macrophage M1/M2; Neutrophil (CXCL1/8-driven, Munro microabscess); Mast cell; ILC2/ILC3; NK cell (KIR3DL2/HLA-B27); DAMP (HMGB1/S100A8/9); TLR2/4/7/9; NLRP3/Caspase-1/IL-1β/IL-18 |
+| Adaptive Immunity | Th17 (RORγt/STAT3), Th1 (T-bet/STAT4), Th22, Treg, CD8+ CTL, Tfh/B cell/Plasma cell, MAIT, γδ T; IL-23 → STAT3 → RORγt → Th17; IL-12 → STAT4 → T-bet → Th1 |
+| Cytokine Network | IL-17A/F · IL-22 (KC hyperplasia) · TNF-α · IL-1β · IL-6 · IL-8/CXCL8 · IL-18 · IL-10 · IL-36α/β/γ · IFN-γ · TGF-β1 · VEGF · MMP-3 · S100A8/9 · CXCL10 · CCL20 (CCR6→Th17) · OSM |
+| JAK-STAT / NF-κB / cAMP | JAK1/2/3/TYK2 → STAT3/4/6/1; NF-κB/IKK/AP-1/p38 MAPK/ERK; PDE4 → cAMP → PKA → NF-κB↓; PI3K/Akt → mTOR (Th17 metabolics) |
+| Skin Pathology | Keratinocyte → KC activated (IL-17/IL-22/TNF/IL-36); LL-37/β-defensin AMPs → TLR7/9 auto-DNA loop; Acanthosis + parakeratosis → PASI; Neutrophil Munro microabscess; VEGF angiogenesis; Hair follicle pDC reservoir |
+| Enthesis Pathology | Fibrocartilage + mechanical stress → Bone marrow ILC3/γδT → IL-17 local; IL-23 DAMP; Enthesophyte (new bone)/erosion; Dactylitis (sausage digit); Axial disease (sacroiliitis; HLA-B27 UPR → IL-23) |
+| Synovium & Joint | FLS quiescent → activated (invasive pannus); RANKL → osteoclast → erosion; COX-2/PGE2 vasodilation/edema; SJC66/TJC68/DAPSA/MDA/PsARC endpoints; RF-/ACPA- seronegative ~65% |
+| Bone Remodeling | RANKL/RANK/OPG; M-CSF; DKK1 (Wnt inhibitor, TNF/IL-17 ↑); BMP2/4/6 + Wnt/β-catenin → osteoblast + periostitis; dual pathology: erosion + new bone; mTSS/SHS structural damage |
+| Gut–Skin–Joint Axis | Dysbiosis (Akkermansia↓/Firmicutes↑) → barrier permeability → LPS → TLR4 → Macrophage M1; ILC3 gut trafficking; sIgA; IBD association (~7%); CRP/fibrinogen acute phase |
+| Nail Disease & Comorbidities | NAPSI score (nail matrix enthesis); Uveitis (~7%); MetSyn; CV risk ↑1.3×; Depression/Anxiety 37%; Obesity → Leptin↑/Adiponectin↓; NAFLD ~47% |
+| Drug PK | ADA 2-cmt SC+TMDD; IXE/GUS 1-cmt SC+TMDD; UPA/APR oral 1-cmt; FcRn recycling (IgG); ka/CL/Vd/F parameters from population PK analyses |
+| Drug Mechanisms | TNFi (ADA/ETN/IFX/CZP/GOL) · IL-17Ai (IXE/SEC/BIM) · IL-23i (GUS/RIS/TIL) · IL-12/23i (UST/p40) · JAKi (UPA/TOF/BAR/FIL: JAK1/2/3/TYK2) · PDE4i (Apremilast: cAMP↑→NF-κB↓) · CTLA4-Ig · NSAIDs · MTX · SSZ |
+| Biomarkers & Endpoints | CRP · ESR · IL-17A/IL-6 serum · Calprotectin (S100A8/9) · MMP-3 · VEGF; ACR20/50/70 · PASI75/90/100 · DAPSA (remission ≤4/LDA ≤14) · MDA (5/7 criteria) · VLDA · CASPAR · HAQ-DI · SF-36/PsAID · mTSS/SHS |
+
+**Mechanistic Map Preview:**
+
+[![PsA QSP Map](psoriatic-arthritis/psa_qsp_model.png)](psoriatic-arthritis/psa_qsp_model.svg)
+
+### ODE Compartments (22 states)
+
+| Group | States | Description |
+|-------|--------|-------------|
+| Adalimumab PK | ADA_DEPOT, ADA_C1, ADA_C2, ADA_RC | 2-cmt SC + TMDD (TNFα bound complex) |
+| Ixekizumab PK | IXE_DEPOT, IXE_C1, IXE_RC | 1-cmt SC + TMDD (IL-17A bound) |
+| Guselkumab PK | GUS_DEPOT, GUS_C1, GUS_RC | 1-cmt SC + TMDD (IL-23p19 bound) |
+| Upadacitinib PK | UPA_GI, UPA_C1 | Oral 1-cmt; CL/F = 50.5 L/h; t½ ~12h |
+| Apremilast PK | APR_GI, APR_C1 | Oral 1-cmt; CL/F = 13.8 L/h; t½ ~9h |
+| Cytokines / immune | IL17, TNFa, IL23, TH17, RANKL | Turn-over ODEs with cytokine cross-talk (fb coefficients) and combined drug Emax inhibition |
+| Biomarkers | CRP_ratio, S100 | Inflammation-driven, calibrated to clinical trial data |
+| Clinical scores | PASI, DAPSA | Continuous proxy for PASI and DAPSA score dynamics |
+| Structural damage | MTSS | Slow bone damage accumulation (mTSS proxy); RANKL-driven |
+
+### Treatment Scenarios (6)
+
+| # | Scenario | Dose Regimen | Primary Target | Clinical Reference |
+|---|----------|-------------|----------------|-------------------|
+| 1 | Placebo | — | — | ADEPT/SPIRIT/DISCOVER placebo arms |
+| 2 | Adalimumab | 40 mg SC Q2W | TNF-α | ADEPT (2005): ACR20 57% wk12 |
+| 3 | Ixekizumab | 160mg wk0 → 80mg Q2W→Q4W SC | IL-17A/F | SPIRIT-P1 (2017): ACR20 62% wk24 |
+| 4 | Guselkumab | 100mg SC wk0, wk4, then Q8W | IL-23p19 | DISCOVER-2 (2020): ACR20 64% wk24 |
+| 5 | Upadacitinib | 15 mg QD oral | JAK1 (+ JAK2/TYK2) | SELECT-PsA 1 (2021): ACR20 71% wk12 |
+| 6 | Apremilast | 30 mg BID oral | PDE4 | PALACE 1-3 (2014): ACR20 38% wk16 |
+
+### Shiny Dashboard (7 Interactive Tabs)
+
+1. **Patient Profile** — CASPAR scoring widget; baseline PASI/DAPSA/CRP inputs; comorbidity checklist; value boxes (PASI · DAPSA · CRP at simulation end)
+2. **Drug PK** — Drug selector (ADA/IXE/GUS/UPA/APR); concentration–time plot with log-Y toggle; trough line overlay; PK parameters table (route/dose/t½/Vd/F/target/trial)
+3. **Cytokine Dynamics** — Four-panel layout: IL-17A · TNF-α · IL-23 · Th17 cells over time; baseline reference line
+4. **Skin (PASI)** — PASI time-course with PASI75/90 threshold lines; response summary at wk12/24/52; PASI75/90 achievement over time plot
+5. **Joint (DAPSA)** — DAPSA time-course with remission/LDA thresholds; RANKL + mTSS mini-panels; ACR20/50/70 achievement over time
+6. **Scenario Comparison** — Multi-scenario toggle; endpoint selector (PASI/DAPSA/IL17/CRP/mTSS); comparative plot; Week-24 efficacy summary table (PASI75%/ACR20/50/70/DAPSA-REM%)
+7. **Biomarkers** — CRP (mg/L) · Calprotectin (µg/mL) · RANKL ratio plots; biomarker table at wk 0/4/12/24/52
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`psa_qsp_model.dot`](psoriatic-arthritis/psa_qsp_model.dot) | Graphviz DOT source (14 subgraph clusters, 130+ nodes, ortho layout) |
+| [`psa_qsp_model.svg`](psoriatic-arthritis/psa_qsp_model.svg) | Vector mechanistic map (191 KB) |
+| [`psa_qsp_model.png`](psoriatic-arthritis/psa_qsp_model.png) | Raster mechanistic map (150 dpi, 3.3 MB) |
+| [`psa_mrgsolve_model.R`](psoriatic-arthritis/psa_mrgsolve_model.R) | mrgsolve ODE model (22 states); 6 scenarios; PASI75/90/DAPSA-remission/ACR20/50/70 endpoints; calibrated to ADEPT/SPIRIT-P1/DISCOVER-2/SELECT-PsA 1/PALACE 1-3 |
+| [`psa_shiny_app.R`](psoriatic-arthritis/psa_shiny_app.R) | 7-tab shinydashboard; CASPAR scoring, drug PK, cytokine dynamics, PASI, DAPSA, scenario comparison, biomarkers |
+| [`psa_references.md`](psoriatic-arthritis/psa_references.md) | 40 curated PubMed references (11 sections): pathogenesis, IL-17/IL-23 axis, enthesis/bone, ADEPT, SPIRIT, DISCOVER, KEEPsAKE, SELECT-PsA, PALACE, disease activity measures, QSP modeling |
