@@ -133,6 +133,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Type 1 Diabetes Mellitus**](#type-1-diabetes-mellitus-t1dm) | 자가면역질환 / 내분비 | HLA-DR3/DR4 + PTPN22/CTLA4/IL2RA → viral(CVB)/gut dysbiosis trigger → pDC(IFN-α) + mDC → CD8+CTL (GAD65/IA-2/ZnT8/proinsulin) → Insulitis → MHC-I↑/ER stress/ROS → beta-cell apoptosis → Bm↓ (Stage 1→2→3); Treg failure; Multi-Ab (IAA+GADA+IA-2A+ZnT8A) → C-peptide↓ → absolute insulin deficiency → HbA1c↑/DKA; Teplizumab (TN-10: ~3yr delay, FDA 2022) + Abatacept (CTLA4-Ig) + Baricitinib (BANDIT 2024) + MDI/CSII/HCL-APC (CGM: TIR>70%) + SGLT2i (EASE/inTANDEM3) + GLP-1RA | [![T1DM](type1-diabetes/t1dm_qsp_model.png)](type1-diabetes/t1dm_qsp_model.svg) | [R](type1-diabetes/t1dm_mrgsolve_model.R) | [refs](type1-diabetes/t1dm_references.md) | [Shiny](type1-diabetes/t1dm_shiny_app.R) |
 | 2026-06-17 | [**Psoriatic Arthritis**](#psoriatic-arthritis-psa) | 자가면역질환 / 근골격·피부 | HLA-C*06:02/HLA-B27 + LCE3B/C barrier defect → Koebner/Strep trigger → pDC/mDC → IL-23(p19/p40) → Th17/ILC3/γδT → IL-17A/F + IL-22 → keratinocyte hyperproliferation (PASI) + FLS activation + enthesitis (IL-17/BMP/Wnt → periostitis) + RANKL↑/DKK1↑ → dual bone pathology (erosion + ankylosis); Gut-joint axis (dysbiosis/ILC3); Calprotectin/CRP biomarkers; CASPAR classification; TNFi (ADA, ADEPT: ACR20 57%) + IL-17Ai (IXE/SEC, SPIRIT-P1: ACR20 62%) + IL-23i (GUS, DISCOVER-2: ACR20 64%) + JAKi (UPA, SELECT-PsA 1: ACR20 71%) + PDE4i (APR, PALACE 1: ACR20 38%) | [![PsA](psoriatic-arthritis/psa_qsp_model.png)](psoriatic-arthritis/psa_qsp_model.svg) | [R](psoriatic-arthritis/psa_mrgsolve_model.R) | [refs](psoriatic-arthritis/psa_references.md) | [Shiny](psoriatic-arthritis/psa_shiny_app.R) |
 | 2026-06-17 | [**Ulcerative Colitis**](#ulcerative-colitis-uc) | 자가면역질환 / 소화기 | Gut dysbiosis (F. prausnitzii↓/AIEC↑) + TSLP/IL-25/IL-33 alarmins → ILC2/Th2 (GATA3↑, IL-4/IL-5/IL-13, UC-dominant Th2 skew) + TNF-α/IL-6 → JAK1/3–STAT3/6 → tight junction disruption (ZO-1/Occludin↓) + MUC2↓ + goblet cell depletion → cryptitis + crypt abscesses → Mayo score↑; S1PR1 lymphocyte egress; NLRP3/IL-1β cascade; α4β7–MAdCAM-1 gut homing axis; gut-selective anti-integrin (VDZ, GEMINI1: 47% remission wk52) + anti-TNF (IFX, ACT1: 69% response wk8) + tofacitinib JAK1/3i (OCTAVE: 59% remission wk8) + ozanimod S1P1 (TRUE NORTH: 37% remission wk52) + ustekinumab IL-12/23p40 (UNIFI: 53% response wk8); Colorectal cancer risk (APC/β-catenin, chronic inflammation) | [![UC](ulcerative-colitis/uc_qsp_model.png)](ulcerative-colitis/uc_qsp_model.svg) | [R](ulcerative-colitis/uc_mrgsolve_model.R) | [refs](ulcerative-colitis/uc_references.md) | [Shiny](ulcerative-colitis/uc_shiny_app.R) |
+| 2026-06-17 | [**Polycystic Ovary Syndrome**](#polycystic-ovary-syndrome-pcos) | 만성질환 / 생식내분비 | KNDy neuron → GnRH pulse freq ↑↑ → LH:FSH↑ (>2-3) → Theca CYP17A1 ↑↑ → androstenedione/T ↑↑; Hyperinsulinemia (MAPK-ERK → CYP17A1↑, IRS1 serine phos → IR) + IGFBP1↓ → free IGF-1↑ → LHR potentiation; AMH ↑↑ (granulosa) → follicle arrest → PCOM (AFC>12, volume>10 mL); SHBG↓ → free T↑ → SRD5A → DHT → hirsutism/acne; Low-grade inflammation (TNF-α → NF-κB/IRS1-Ser, adiponectin↓, CRP↑); Anovulation → oligomenorrhea + infertility; Metformin (AMPK/FOXO1/CYP17↓, PPCOS I) + Letrozole (CYP19A1 inh → E2↓ → FSH ↑transient → dominant follicle, PPCOS II: 61.7% ovulation vs 48.3% CC) + OCP (SHBG↑2-4×/LH↓/T↓) + Spironolactone (AR block → FG score↓30-40%) + Clomiphene (central ER block → GnRH pulse↑) + GnRH agonist/antagonist (IVF) | [![PCOS](polycystic-ovary-syndrome/pcos_qsp_model.png)](polycystic-ovary-syndrome/pcos_qsp_model.svg) | [R](polycystic-ovary-syndrome/pcos_mrgsolve_model.R) | [refs](polycystic-ovary-syndrome/pcos_references.md) | [Shiny](polycystic-ovary-syndrome/pcos_shiny_app.R) |
 
 
 ---
@@ -2166,3 +2167,70 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`uc_mrgsolve_model.R`](ulcerative-colitis/uc_mrgsolve_model.R) | mrgsolve ODE model (24 states); 6 scenarios; Mayo/MH/CRP/FC/clinical remission endpoints; calibrated to ACT1/GEMINI1/OCTAVE/UNIFI/TRUE NORTH |
 | [`uc_shiny_app.R`](ulcerative-colitis/uc_shiny_app.R) | 7-tab shinydashboard; patient profile, drug PK, cytokine dynamics, disease activity, mucosal healing, scenario comparison, biomarkers & safety |
 | [`uc_references.md`](ulcerative-colitis/uc_references.md) | 48 curated PubMed references (13 sections): epidemiology, immunopathogenesis, epithelial barrier, microbiome, ACT1/2, GEMINI, OCTAVE, UNIFI, TRUE NORTH, disease activity measures, QSP/PK-PD modeling, biomarkers, colorectal cancer risk |
+
+---
+
+## Polycystic Ovary Syndrome (PCOS)
+
+> Directory: [`polycystic-ovary-syndrome/`](polycystic-ovary-syndrome/)
+
+**Mechanistic Map** (9 clusters + 6 drug subgraphs, 175+ nodes, 200+ edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| HPO Axis | KNDy neurons (Kisspeptin/NKB/Dynorphin) → GnRH pulse frequency ↑↑; GnRHR → LH ↑↑ / FSH (normal-low); LH:FSH ratio >2–3; Inhibin B / Inhibin A / Activin A feedback; E2 negative feedback (impaired); P4 negative feedback (absent, anovulatory); Prolactin; GH |
+| Ovarian Steroidogenesis | Theca cells (↑LH → cAMP/PKA → StAR/CYP11A1/CYP17A1 ↑↑ → Δ4/Δ5 androgens); Granulosa cells (FSH → cAMP/PKA → CYP19A1 ↓ per follicle); DHEA/Androstenedione/Testosterone (ovarian ↑↑); Estradiol E2 (tonic moderate ↑); Estrone E1; Progesterone P4 (↓↓ anovulatory); AMH ↑↑ (3–8× normal); HSD17B1/3; INSL3 theca marker |
+| Folliculogenesis | Primordial → Primary → Secondary → Small antral (2–5 mm, excess ↑↑) → arrested large antral (6–9 mm) → dominant follicle selection failure; AMH-mediated arrest → FSHR desensitization + CYP19A1 inhibition; AFC >12 per ovary; Ovarian volume >10 mL → PCOM criterion; Follicle atresia ↑; Anovulation → absent corpus luteum → P4 deficiency; Endometrial hyperplasia risk |
+| Insulin Signaling | β-cell compensatory hyperinsulinemia; IR: IRS1 serine phos (JNK/PKC) ↑, IRS1 tyrosine phos ↓; PI3K-AKT ↓ (metabolic); GLUT4 translocation ↓; FOXO1 active → HGP ↑; MAPK-ERK preserved → CYP17A1 ↑↑ (key IR-androgen link); mTOR-S6K feedback; IGF1R potentiates LHR; IGFBP1 ↓ (insulin-suppressed); SHBG ↓ (hepatic); HOMA-IR ↑ (≥2.5); T2DM risk 6–10× |
+| Adrenal Androgen | HPA axis/ACTH → Adrenal zona reticularis CYP17A1 ↑ (50% of PCOS) → DHEA/DHEAS ↑ + adrenal androstenedione; Insulin upregulates adrenal CYP17A1; Cortisol (normal/mild ↑) |
+| Peripheral Androgen | Total T ↑ / Free T ↑↑ (SHBG ↓); SRD5A1 (skin) + SRD5A2 (scalp) → DHT ↑; AR in sebaceous glands → sebum ↑ → acne; AR in terminal hair follicle → hirsutism (FG ≥8); Scalp miniaturization → androgenic alopecia; Hepatic CYP1A2 / UGT → 3α-androstanediol glucuronide (5α-RA activity marker); Clinical hyperandrogenism (PCOS criterion 2) |
+| Inflammation / Adipokines | Visceral adiposity → M1 macrophage → TNF-α/IL-6/IL-1β → NF-κB; TNF-α → IRS1-Ser (inflammation-IR loop); ROS/MDA/NO↓ → endothelial dysfunction; Leptin ↑ / Adiponectin ↓ / Resistin/Visfatin/Chemerin ↑; IL-6 → CRP ↑ (>3 mg/L); IL-18 → CVD predictor; AMPK↓ in adipose |
+| Drug PK/PD | Metformin (2-cmt oral, F=50%, OCT1 liver → AMPK → PEPCK/G6Pase↓ / CYP17A1↓ / GLP-1↑); Letrozole (1-cmt oral, F=99%, t½=48h → CYP19A1 Ki=11nM → E2↓97% → FSH ↑ → dominant follicle); Clomiphene (central ER block → GnRH ↑ → LH+FSH ↑, adverse: cervical mucus↓ / endometrium↓); Spironolactone (AR competitive block + SRD5A ↓ → FG↓30–40%); Combined OCP (EE → SHBG ↑2–4× + LH/FSH ↓ → T ↓); GnRH agonist/antagonist (IVF protocol, pituitary downregulation) |
+| Clinical Endpoints | Oligo/amenorrhea (cycle >35 days) · Anovulation · Infertility (40–80%) · Pregnancy/Live birth rate · Metabolic syndrome (2–3× risk) · CVD risk (4×) · T2DM risk · NASH risk · Gestational DM (3×) · Preeclampsia (2×) · Sleep apnea · Depression/anxiety (30–40%) · Endometrial hyperplasia · Rotterdam criteria (2/3: OA + HA + PCOM) |
+
+**Mechanistic Map Preview:**
+
+[![PCOS QSP Map](polycystic-ovary-syndrome/pcos_qsp_model.png)](polycystic-ovary-syndrome/pcos_qsp_model.svg)
+
+### ODE Compartments (24 states)
+
+| Group | States | Description |
+|-------|--------|-------------|
+| HPO Axis | GnRH_drive, LH, FSH | GnRH drive state (elevated baseline in PCOS); LH t½≈20 min (k_deg=0.85/day); FSH t½≈4 h (k_deg=0.38/day); Inhibin B proxy via AMH×0.55+1 suppresses FSH |
+| Steroidogenesis | T_total, E2, P4, AMH | Testosterone: LH × CYP17A1 activity (up-regulated by insulin, down by metformin) × (1−SPR inhibition); E2: FSH + aromatization of T, suppressed by letrozole (EC50_AI=0.012 mg/L); P4: corpus luteum (DF_state²); AMH: auto-regulated quadratic decay |
+| Follicle Dynamics | AFC_state, DF_state | AFC approaches steady-state 19 (PCOS) via first-order regulation; Dominant follicle driven by FSH above threshold (4.8 mIU/mL), inhibited by AMH (k=0.28) |
+| Insulin/Metabolic | Insulin, Glucose, IGFBP1 | Glucose-stimulated insulin secretion; Peripheral glucose utilization reduced by k_IR×(1−metformin effect); Hepatic glucose production reduced by metformin 85%; IGFBP1 suppressed by insulin |
+| SHBG & Free T | SHBG, FreeT | Hepatic SHBG synthesis: suppressed by insulin, induced by EE (2–4×); FreeT approximated as T × (22/SHBG) × 0.19 × (1−spiro blockade) |
+| Inflammation | CRP, BMI, HirsScore | CRP driven by T and excess BMI; BMI slow drift + metformin reduction; Hirsutism: free T drives FG score increase (blocked by spironolactone AR occupancy) |
+| Drug PK | MET_gut, MET_central, MET_periph, LET_plasma, EE_plasma, SPR_plasma, CC_plasma | Metformin 2-compartment (V1=80L, V2=155L, CL=45 L/h, Q=12 L/h, F=50%); Letrozole 1-cmt (V=145L, CL=2.1 L/h, t½=48h); EE 1-cmt (V=250L, CL=38 L/h); Spiro 1-cmt (V=65L, CL=40 L/h); CC 1-cmt (V=105L, CL=1 L/h, t½≈5–7 days) |
+
+### Treatment Scenarios (6)
+
+| # | Scenario | Dose Regimen | Primary Target | Key Trial / Effect |
+|---|----------|-------------|----------------|-------------------|
+| 1 | Untreated PCOS | — | — | Rotterdam ESHRE 2004 baseline; LH=12.5, AMH=10, HOMA-IR=5.2 |
+| 2 | Metformin | 500 mg TID (1500 mg/day) | AMPK / CYP17A1 / IR | PPCOS I (Legro 2007): ↓androgens ~26%, ↓HOMA-IR ~35%; Graham 2011 PK |
+| 3 | Letrozole | 2.5 mg/day day 3–7, q28 days | CYP19A1 (aromatase) | PPCOS II (Legro 2014 NEJM): ovulation 61.7% vs CC 48.3%; live birth 27.5% |
+| 4 | Combined OCP | EE 30 μg/day × 21 days (21/7 cycle) | HPO axis / SHBG | SHBG ↑2–4× (Zimmermann 2014); Free T ↓>70% (Odlind 2002) |
+| 5 | Metformin + Letrozole | MET 500 mg TID + LET 2.5 mg d3–7 | AMPK + Aromatase | Additive: ↓IR + ↑ovulation; meta-analysis (Palomba 2005); first-line infertility |
+| 6 | Spironolactone | 100 mg/day | AR competitive block | FG score ↓30–40% at 6 months (van Zuuren 2015 Cochrane); AR Ki=150 nM |
+
+### Shiny Dashboard (6 Interactive Tabs)
+
+1. **Patient Profile** — slider inputs (BMI, insulin resistance k_IR, AMH multiplier, AFC); PCOS phenotype classification table (Rotterdam A/B/C/D); baseline biomarker table (LH/FSH/T/E2/SHBG/FAI/AMH/HOMA-IR/CRP/BMI/FG score vs normal ranges)
+2. **Hormone Kinetics** — LH & FSH dynamics (color-coded, dashed threshold); Testosterone & Estradiol (dual-axis); Progesterone (P4, corpus luteum); AMH level; SHBG & Free Testosterone
+3. **Metabolic Endpoints** — HOMA-IR (IR threshold 2.5); Fasting glucose & insulin (dual); BMI trajectory; IGFBP-1; hsCRP (inflammation)
+4. **Clinical Endpoints** — Dominant follicle / ovulation probability (0–1); Antral follicle count (AFC, threshold 12); Hirsutism FG score (threshold 8); Free Androgen Index (FAI, threshold 4.5%)
+5. **Scenario Comparison** — 6-arm comparison table (DT, conditional color formatting); all-scenario plots for T / HOMA-IR / ovulation probability / FG score
+6. **Biomarker Dashboard** — 8 value boxes (LH, T, HOMA-IR, AMH, FAI, SHBG, CRP, FG score — green/red status); LH:FSH ratio time-course; risk radar (normalized 6-axis: LH:FSH / T / HOMA-IR / FAI / hsCRP / FG); drug plasma concentration panel
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`pcos_qsp_model.dot`](polycystic-ovary-syndrome/pcos_qsp_model.dot) | Graphviz DOT source (9 pathway clusters + 6 drug subgraphs, 175+ nodes, 200+ edges, fdp layout) |
+| [`pcos_qsp_model.svg`](polycystic-ovary-syndrome/pcos_qsp_model.svg) | Vector mechanistic map (246 KB) |
+| [`pcos_qsp_model.png`](polycystic-ovary-syndrome/pcos_qsp_model.png) | Raster mechanistic map (150 dpi, 2.9 MB) |
+| [`pcos_mrgsolve_model.R`](polycystic-ovary-syndrome/pcos_mrgsolve_model.R) | mrgsolve ODE model (24 states); 6 treatment scenarios; HOMA-IR / FAI / LH:FSH / ovulation probability / FG score endpoints; dose–response + sensitivity analysis; calibrated to PPCOS I/II (Legro 2007/2014), Tang 2010 meta-analysis, van Zuuren 2015 Cochrane, Zimmermann 2014, Rotterdam 2004 |
+| [`pcos_shiny_app.R`](polycystic-ovary-syndrome/pcos_shiny_app.R) | 6-tab shinydashboard; patient profile (BMI/IR/AMH/AFC inputs), hormone kinetics, metabolic endpoints, clinical endpoints, scenario comparison table, biomarker dashboard (value boxes + radar plot + drug PK) |
+| [`pcos_references.md`](polycystic-ovary-syndrome/pcos_references.md) | 43 curated PubMed references (12 sections): pathophysiology & HPO axis, GnRH/KNDy neurons, ovarian steroidogenesis & CYP17A1, folliculogenesis & AMH, insulin resistance, metformin treatment, letrozole & clomiphene, OCP & spironolactone, long-term complications, genetics & biomarkers, QSP/mathematical modeling, Thessaloniki consensus & ESHRE guidelines |
