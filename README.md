@@ -130,6 +130,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Systemic Sclerosis (SSc)**](#systemic-sclerosis-ssc) | 자가면역질환 / 결합조직 | Autoimmunity (anti-Scl-70/ACA/RNA Pol III) + Vasculopathy (ET-1↑/NO↓/PGI₂↓/Raynaud) + Fibrosis (TGF-β/SMAD2-3 → FAct → Myo → Col1/3↑ → mRSS↑); SSc-ILD (FVC↓) + SSc-PAH (PVR↑/6MWD↓); Nintedanib (SENSCIS: −41% FVC decline) + Tocilizumab (focuSSced) + MMF (SLS II) + Bosentan (RAPIDS-2: −48% DU) + Iloprost (PGI₂ analog) | [![SSc](systemic-sclerosis/ssc_qsp_model.png)](systemic-sclerosis/ssc_qsp_model.svg) | [R](systemic-sclerosis/ssc_mrgsolve_model.R) | [refs](systemic-sclerosis/ssc_references.md) | [Shiny](systemic-sclerosis/ssc_shiny_app.R) |
 | 2026-06-17 | [**Gout**](#gout) | 만성질환 / 대사 | 혈중 요산 과다 → 단요산나트륨(MSU) 결정 침착 → NLRP3 인플라마좀(Caspase-1) → 성숙 IL-1β/IL-18 방출 → 호중구 유입 → 급성 관절염; URAT1/OAT/ABCG2 수송체 다형성; XO억제제(알로퓨리놀/옥시퓨리놀·페북소스타트) + 요산배설제(프로베네시드·레시뉴라드) + 항염증(콜히친·NSAID·코르티코이드) + 생물학제제(아나킨라·카나키누맙); 통풍 결절(tophus) 퇴행 및 신기능 보호; CONFIRMS / CLEAR 1&2 / AGREE / CARES 임상시험 보정 | [![Gout](gout/gout_qsp_model.png)](gout/gout_qsp_model.svg) | [R](gout/gout_mrgsolve_model.R) | [refs](gout/gout_references.md) | [Shiny](gout/gout_shiny_app.R) |
 | 2026-06-17 | [**Sjögren's Syndrome**](#sjögrens-syndrome-pss) | 자가면역질환 / 외분비선 | pDC(Bst-2+) → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(ISG↑) → mDC maturation → Th1/Th17/Tfh → BAFF↑(BEC/IFN-driven) → B-cell hyperactivation + ectopic GC → Anti-SSA/Ro52/Ro60(>95%) + Anti-M3R → AQP5↓ + Ca²⁺/cAMP↓ → UWSF↓/Schirmer↓; MALT lymphoma(40-50× risk; FFS score); HCQ(JOQUER) + Pilocarpine/Cevimeline(M3R agonist) + Rituximab(TEARS; 2×1g) + Ianalumab(TWINSS 2022; anti-BAFF-R; ΔESSDAI≥3) + Baricitinib(JAK1/2) | [![pSS](sjogrens-syndrome/ss_qsp_model.png)](sjogrens-syndrome/ss_qsp_model.svg) | [R](sjogrens-syndrome/ss_mrgsolve_model.R) | [refs](sjogrens-syndrome/ss_references.md) | [Shiny](sjogrens-syndrome/ss_shiny_app.R) |
+| 2026-06-17 | [**Type 1 Diabetes Mellitus**](#type-1-diabetes-mellitus-t1dm) | 자가면역질환 / 내분비 | HLA-DR3/DR4 + PTPN22/CTLA4/IL2RA → viral(CVB)/gut dysbiosis trigger → pDC(IFN-α) + mDC → CD8+CTL (GAD65/IA-2/ZnT8/proinsulin) → Insulitis → MHC-I↑/ER stress/ROS → beta-cell apoptosis → Bm↓ (Stage 1→2→3); Treg failure; Multi-Ab (IAA+GADA+IA-2A+ZnT8A) → C-peptide↓ → absolute insulin deficiency → HbA1c↑/DKA; Teplizumab (TN-10: ~3yr delay, FDA 2022) + Abatacept (CTLA4-Ig) + Baricitinib (BANDIT 2024) + MDI/CSII/HCL-APC (CGM: TIR>70%) + SGLT2i (EASE/inTANDEM3) + GLP-1RA | [![T1DM](type1-diabetes/t1dm_qsp_model.png)](type1-diabetes/t1dm_qsp_model.svg) | [R](type1-diabetes/t1dm_mrgsolve_model.R) | [refs](type1-diabetes/t1dm_references.md) | [Shiny](type1-diabetes/t1dm_shiny_app.R) |
 
 
 ---
@@ -1941,3 +1942,78 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`ss_mrgsolve_model.R`](sjogrens-syndrome/ss_mrgsolve_model.R) | mrgsolve ODE model (19 states) + 5 treatment scenarios + dose-response + FFS lymphoma risk; calibrated to TEARS/TWINSS |
 | [`ss_shiny_app.R`](sjogrens-syndrome/ss_shiny_app.R) | 6-tab shinydashboard; patient profile, PK, biomarkers, glandular function, scenario comparison, lymphoma risk |
 | [`ss_references.md`](sjogrens-syndrome/ss_references.md) | 45 curated PubMed references (8 sections): pathogenesis, genetics, clinical tools, lymphoma, treatment (symptomatic + systemic), PK/PD, biomarkers |
+
+---
+
+## Type 1 Diabetes Mellitus (T1DM)
+
+> Directory: [`type1-diabetes/`](type1-diabetes/)
+
+**Mechanistic Map** (12 clusters, 130+ nodes):
+
+| Cluster | Coverage |
+|---------|----------|
+| Genetic & Environmental Susceptibility | HLA-DR3/DR4, PTPN22, CTLA4, IL2RA, INS-VNTR, IFIH1/MDA5; enterovirus/CVB, gut dysbiosis, early nutrition, vitamin D |
+| Innate Immunity | pDC → IFN-α/β (Type I IFN); mDC maturation; macrophage M1; NK; NLRP3/IL-1β; TLR3/7; RIG-I/MDA5/cGAS-STING; CXCL10 |
+| Adaptive Immunity (T cells) | Naive CD4+→Th1/Tfh; Naive CD8+→CTL→Memory; TCR activation; IFN-γ/TNF-α/IL-2; Perforin/GrB; FasL/TRAIL; CTLA-4/PD-1 coinhibition; Treg (FoxP3+) |
+| B Cells & Autoantibodies | Naive B→GC B→Plasma cell; BAFF/APRIL; IAA (1st Ab) + GADA + IA-2A + ZnT8A; multi-Ab staging (Stage 1–3) |
+| Beta-cell Insulitis & Destruction | Islet infiltration; MHC-I upregulation (IFN-γ); ER stress (BiP/IRE1α/PERK); ROS/RNS; mitochondrial dysfunction; Caspase-3 apoptosis; Bm decline |
+| Beta-cell Biology & GSIS | GLUT2/GCK → ATP/ADP → KATP closure → depolarisation → VGCC → Ca²⁺ → exocytosis; GLP-1R/GIP-R → cAMP → amplification; proinsulin → C-peptide |
+| Glucose Homeostasis | Gut Ra; plasma glucose [G]; hepatic EGP + GU + glycogen; muscle/adipose GLUT4; brain; renal SGLT2; glucagon (α-cell); IR signalling (IRS1/PI3K/Akt); HbA1c; AGEs |
+| Insulin PK (Therapeutic) | SC depot (hexamer→monomer); central + peripheral compartments; hepatic/renal clearance; basal (Glargine/Degludec) + bolus (Aspart/Lispro/Fiasp); CSII pump; CGM → APC/HCL |
+| Disease-Modifying Immunotherapy | Teplizumab (anti-CD3, TN-10); Abatacept (CTLA4-Ig); Rituximab (anti-CD20); ATG+G-CSF; Baricitinib (JAK1/2, BANDIT); Low-dose IL-2; CAR-Treg; Islet Tx; SC-islets (VX-880) |
+| Adjunctive Pharmacotherapy | SGLT2i (sotagliflozin/empagliflozin); GLP-1RA (semaglutide); Pramlintide (amylin); Metformin; ACEi; Statin |
+| Chronic Complications | AGE/RAGE → PKC/polyol/hexosamine → ROS; Nephropathy (TGF-β1/SMAD); Retinopathy (VEGF/pericyte loss); Neuropathy (axonal); CVD; Hypoglycaemia unawareness |
+| Clinical Endpoints & Biomarkers | HbA1c (<7%); TIR 70–180 (>70%); TBR <70 (<4%); TAR >180 (<25%); C-peptide AUC (MMTT); insulin TDD; eGFR/UACR; LDL-C; DQOL/PAID |
+
+**Mechanistic Map Preview:**
+
+[![T1DM QSP Map](type1-diabetes/t1dm_qsp_model.png)](type1-diabetes/t1dm_qsp_model.svg)
+
+### ODE Compartments (20 states)
+
+| Compartment | State | Description |
+|-------------|-------|-------------|
+| Beta-cell & Immune | Bm, CTL, Treg | Normalised beta-cell mass; pathogenic CTL; regulatory T cells |
+| C-Peptide | Cpep | Endogenous secretion marker (pmol/L) |
+| Glucose kinetics | Gp, Gt | Plasma and tissue glucose (mg/dL) |
+| Insulin PK | SC1, SC2, Ic, Ip | SC hexamer, monomer depots; central + peripheral plasma |
+| Insulin action | X_ins | Remote effect compartment (Akt/GLUT4 proxy) |
+| Glucagon | Gcg | α-cell glucagon (pg/mL); EGP counter-regulation |
+| HbA1c | HbA1c | Running-mean glycation proxy (ADAG equation) |
+| Teplizumab PK | Ctep | IV anti-CD3 mAb (μg/mL); CTL↓/Treg↑ MOA |
+| CGM / APC | CGM_comp, APC_integral | Interstitial glucose (10-min lag); PID integral state |
+| Meal absorption | Qsto1, Qsto2, Qgut | Dalla Man 3-compartment gut model |
+| Mean glucose | MG_avg | 30-day running average for HbA1c / complication risk |
+
+### Treatment Scenarios (6)
+
+| # | Scenario | Key Modelled Effect | Clinical Reference |
+|---|----------|---------------------|-------------------|
+| 1 | Untreated T1DM | Progressive Bm↓, HbA1c↑ >10%, DKA risk | Natural history |
+| 2 | MDI (Basal + Bolus) | HbA1c target ~7%; TIR ~50–60% | DCCT 1993 (intensive arm) |
+| 3 | CSII (Insulin Pump) | HbA1c −0.3% vs. MDI; TIR +8% | TREAT trial 2019 |
+| 4 | Hybrid Closed-Loop (HCL/APC) | TIR +11%, TBR −1%, HbA1c −0.5% | NEJM Breton 2020 |
+| 5 | Teplizumab (Stage 2 prevention) | Bm stabilised, T1DM onset delayed ~3 yrs | TN-10 (Herold NEJM 2019) |
+| 6 | Teplizumab + MDI (Stage 3 onset) | C-peptide preserved; insulin TDD ↓ ~30% | AT-RISK 2023, Sims 2021 |
+
+### Shiny Dashboard (7 Interactive Tabs)
+
+1. **Patient Profile** — Disease stage value boxes (HbA1c/C-peptide/Bm); autoantibody prevalence bar chart; T1DM natural history curve (β-cell + glucose)
+2. **Insulin PK** — Insulin type selector (5 types); SC concentration–time plot; PK parameter table (Tmax, duration, CL, ka)
+3. **Glucose & CGM** — Full glucose trace with TIR band; Ambulatory Glucose Profile (percentiles); CGM metric table; glucose zone histogram
+4. **Beta-cell & Immunity** — Beta-cell mass trajectory; CTL & Treg dynamic panels; C-peptide AUC plot; kDest sensitivity analysis
+5. **Scenario Comparison** — 6-scenario HbA1c + Bm traces; CGM metric comparison table (TIR/TBR/TAR/GMI)
+6. **Biomarkers & Complications** — Cumulative complication risk (nephropathy/retinopathy/neuropathy); 10-yr risk table; HbA1c vs. complication probability curves
+7. **About** — Model description, clinical trial calibration table, technical references
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`t1dm_qsp_model.dot`](type1-diabetes/t1dm_qsp_model.dot) | Graphviz DOT source (12 clusters, 130+ nodes, ortho layout) |
+| [`t1dm_qsp_model.svg`](type1-diabetes/t1dm_qsp_model.svg) | Vector mechanistic map |
+| [`t1dm_qsp_model.png`](type1-diabetes/t1dm_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`t1dm_mrgsolve_model.R`](type1-diabetes/t1dm_mrgsolve_model.R) | mrgsolve ODE (20 states); 6 scenarios; CGM metrics; sensitivity analysis; calibrated to TN-10/TREAT/DCCT |
+| [`t1dm_shiny_app.R`](type1-diabetes/t1dm_shiny_app.R) | 7-tab shinydashboard; patient profile, PK, glucose/CGM, beta-cell/immunity, scenario comparison, complications, about |
+| [`t1dm_references.md`](type1-diabetes/t1dm_references.md) | 52 curated PubMed references (13 sections): epidemiology, immunopathogenesis, autoantibodies, GSIS, PK/PD models, closed-loop, immunotherapy, SGLT2i/GLP-1RA, complications, cell therapy |
