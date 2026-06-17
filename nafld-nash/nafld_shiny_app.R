@@ -121,30 +121,77 @@ double Cp_RSM_out=RSM_CENT/V1_RSM;
 double Cp_OCA_out=OCA_CENT/V1_OCA;
 double Cp_SEM_out=SEM_CENT/V1_SEM;
 double Cp_EMP_out=EMP_CENT/V1_EMP;
-double Week=time/168;
+double Week=TIME/168;   // use TIME (uppercase); lowercase time collides with the C library time function
 
 $CAPTURE
-LF_PCT PDFF FIB_SCORE NAS ALT_CMT TNFA IL6C TGFB HSC COLLAGEN
-KUPFFER INS_RES BODY_WT ADIPONECTIN TG_SERUM LDL_C FIB4
+// NOTE: compartments (ALT_CMT, TNFA, IL6C, TGFB, HSC, COLLAGEN, KUPFFER,
+// INS_RES, BODY_WT, ADIPONECTIN) are returned automatically and must NOT be
+// listed here — mrgsolve >=1.0 rejects compartments in $CAPTURE.
+LF_PCT PDFF FIB_SCORE NAS TG_SERUM LDL_C FIB4
 Cp_RSM_out Cp_OCA_out Cp_SEM_out Cp_EMP_out Week
 '
 
 ## Compile once at startup
 mod_global <- mcode("NAFLD_Shiny", nafld_code)
 
+## ── UI helper (defined BEFORE the ui object, which uses it at build time) ──
+valueBox_shiny <- function(title, value, color, icon_tag) {
+  div(
+    class = "card mb-3",
+    style = paste0("background:", color, "; color:white; border-radius:8px; padding:12px;"),
+    div(style = "font-size:13px; opacity:0.85;", title),
+    div(style = "font-size:20px; font-weight:bold;", value),
+    div(style = "font-size:28px; opacity:0.5; float:right; margin-top:-40px;", icon_tag)
+  )
+}
+
 ## ── UI ─────────────────────────────────────────────────────
 ui <- page_navbar(
   title = div(
-    span("NAFLD/NASH", style = "font-weight:bold; color:#880E4F;"),
-    span(" QSP Dashboard", style = "color:#333;")
+    span("NAFLD/NASH", style = "font-weight:bold; color:#FFFFFF;"),
+    span(" QSP Dashboard", style = "color:#F4C6DC;")
   ),
-  theme = bs_theme(
-    bootswatch  = "flatly",
-    primary     = "#880E4F",
-    success     = "#388E3C",
-    info        = "#1565C0"
+  theme = bs_add_rules(
+    bs_theme(
+      bootswatch  = "flatly",
+      primary     = "#880E4F",
+      success     = "#388E3C",
+      info        = "#1565C0"
+    ),
+    "
+    /* ── High-contrast navbar tab labels ───────────────────── */
+    .navbar { background-color: #880E4F !important;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+    .navbar .navbar-brand { color: #ffffff !important; font-size: 1.15rem; }
+
+    /* inactive tabs: bright, legible text on the maroon bar */
+    .navbar-nav .nav-link {
+      color: rgba(255,255,255,0.88) !important;
+      font-weight: 600;
+      font-size: 0.97rem;
+      letter-spacing: 0.2px;
+      padding: 0.45rem 0.85rem;
+      margin: 0 2px;
+      border-radius: 7px;
+      transition: all 0.15s ease-in-out;
+    }
+    /* hover/focus: white text on a translucent highlight */
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link:focus {
+      color: #ffffff !important;
+      background-color: rgba(255,255,255,0.18);
+    }
+    /* active tab: white pill with maroon text — pops out clearly */
+    .navbar-nav .nav-link.active,
+    .navbar-nav .show > .nav-link {
+      color: #880E4F !important;
+      background-color: #ffffff !important;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.30);
+    }
+    "
   ),
-  bg = "#F8F9FA",
+  navbar_options = navbar_options(bg = "#880E4F", theme = "dark"),  # dark bar, light text
 
   ## ── Sidebar (shared across tabs) ─────────────────────────
   nav_panel(
@@ -422,15 +469,7 @@ ui <- page_navbar(
 )
 
 ## ── Helper functions ───────────────────────────────────────
-valueBox_shiny <- function(title, value, color, icon_tag) {
-  div(
-    class = "card mb-3",
-    style = paste0("background:", color, "; color:white; border-radius:8px; padding:12px;"),
-    div(style = "font-size:13px; opacity:0.85;", title),
-    div(style = "font-size:20px; font-weight:bold;", value),
-    div(style = "font-size:28px; opacity:0.5; float:right; margin-top:-40px;", icon_tag)
-  )
-}
+## (valueBox_shiny is defined above the UI block, since the UI uses it at build time)
 
 ## Build event schedule for a scenario
 get_events <- function(arm, weeks) {
