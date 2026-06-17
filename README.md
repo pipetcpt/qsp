@@ -132,6 +132,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Sjögren's Syndrome**](#sjögrens-syndrome-pss) | 자가면역질환 / 외분비선 | pDC(Bst-2+) → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(ISG↑) → mDC maturation → Th1/Th17/Tfh → BAFF↑(BEC/IFN-driven) → B-cell hyperactivation + ectopic GC → Anti-SSA/Ro52/Ro60(>95%) + Anti-M3R → AQP5↓ + Ca²⁺/cAMP↓ → UWSF↓/Schirmer↓; MALT lymphoma(40-50× risk; FFS score); HCQ(JOQUER) + Pilocarpine/Cevimeline(M3R agonist) + Rituximab(TEARS; 2×1g) + Ianalumab(TWINSS 2022; anti-BAFF-R; ΔESSDAI≥3) + Baricitinib(JAK1/2) | [![pSS](sjogrens-syndrome/ss_qsp_model.png)](sjogrens-syndrome/ss_qsp_model.svg) | [R](sjogrens-syndrome/ss_mrgsolve_model.R) | [refs](sjogrens-syndrome/ss_references.md) | [Shiny](sjogrens-syndrome/ss_shiny_app.R) |
 | 2026-06-17 | [**Type 1 Diabetes Mellitus**](#type-1-diabetes-mellitus-t1dm) | 자가면역질환 / 내분비 | HLA-DR3/DR4 + PTPN22/CTLA4/IL2RA → viral(CVB)/gut dysbiosis trigger → pDC(IFN-α) + mDC → CD8+CTL (GAD65/IA-2/ZnT8/proinsulin) → Insulitis → MHC-I↑/ER stress/ROS → beta-cell apoptosis → Bm↓ (Stage 1→2→3); Treg failure; Multi-Ab (IAA+GADA+IA-2A+ZnT8A) → C-peptide↓ → absolute insulin deficiency → HbA1c↑/DKA; Teplizumab (TN-10: ~3yr delay, FDA 2022) + Abatacept (CTLA4-Ig) + Baricitinib (BANDIT 2024) + MDI/CSII/HCL-APC (CGM: TIR>70%) + SGLT2i (EASE/inTANDEM3) + GLP-1RA | [![T1DM](type1-diabetes/t1dm_qsp_model.png)](type1-diabetes/t1dm_qsp_model.svg) | [R](type1-diabetes/t1dm_mrgsolve_model.R) | [refs](type1-diabetes/t1dm_references.md) | [Shiny](type1-diabetes/t1dm_shiny_app.R) |
 | 2026-06-17 | [**Psoriatic Arthritis**](#psoriatic-arthritis-psa) | 자가면역질환 / 근골격·피부 | HLA-C*06:02/HLA-B27 + LCE3B/C barrier defect → Koebner/Strep trigger → pDC/mDC → IL-23(p19/p40) → Th17/ILC3/γδT → IL-17A/F + IL-22 → keratinocyte hyperproliferation (PASI) + FLS activation + enthesitis (IL-17/BMP/Wnt → periostitis) + RANKL↑/DKK1↑ → dual bone pathology (erosion + ankylosis); Gut-joint axis (dysbiosis/ILC3); Calprotectin/CRP biomarkers; CASPAR classification; TNFi (ADA, ADEPT: ACR20 57%) + IL-17Ai (IXE/SEC, SPIRIT-P1: ACR20 62%) + IL-23i (GUS, DISCOVER-2: ACR20 64%) + JAKi (UPA, SELECT-PsA 1: ACR20 71%) + PDE4i (APR, PALACE 1: ACR20 38%) | [![PsA](psoriatic-arthritis/psa_qsp_model.png)](psoriatic-arthritis/psa_qsp_model.svg) | [R](psoriatic-arthritis/psa_mrgsolve_model.R) | [refs](psoriatic-arthritis/psa_references.md) | [Shiny](psoriatic-arthritis/psa_shiny_app.R) |
+| 2026-06-17 | [**Ulcerative Colitis**](#ulcerative-colitis-uc) | 자가면역질환 / 소화기 | Gut dysbiosis (F. prausnitzii↓/AIEC↑) + TSLP/IL-25/IL-33 alarmins → ILC2/Th2 (GATA3↑, IL-4/IL-5/IL-13, UC-dominant Th2 skew) + TNF-α/IL-6 → JAK1/3–STAT3/6 → tight junction disruption (ZO-1/Occludin↓) + MUC2↓ + goblet cell depletion → cryptitis + crypt abscesses → Mayo score↑; S1PR1 lymphocyte egress; NLRP3/IL-1β cascade; α4β7–MAdCAM-1 gut homing axis; gut-selective anti-integrin (VDZ, GEMINI1: 47% remission wk52) + anti-TNF (IFX, ACT1: 69% response wk8) + tofacitinib JAK1/3i (OCTAVE: 59% remission wk8) + ozanimod S1P1 (TRUE NORTH: 37% remission wk52) + ustekinumab IL-12/23p40 (UNIFI: 53% response wk8); Colorectal cancer risk (APC/β-catenin, chronic inflammation) | [![UC](ulcerative-colitis/uc_qsp_model.png)](ulcerative-colitis/uc_qsp_model.svg) | [R](ulcerative-colitis/uc_mrgsolve_model.R) | [refs](ulcerative-colitis/uc_references.md) | [Shiny](ulcerative-colitis/uc_shiny_app.R) |
 
 
 ---
@@ -2093,3 +2094,75 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`psa_mrgsolve_model.R`](psoriatic-arthritis/psa_mrgsolve_model.R) | mrgsolve ODE model (22 states); 6 scenarios; PASI75/90/DAPSA-remission/ACR20/50/70 endpoints; calibrated to ADEPT/SPIRIT-P1/DISCOVER-2/SELECT-PsA 1/PALACE 1-3 |
 | [`psa_shiny_app.R`](psoriatic-arthritis/psa_shiny_app.R) | 7-tab shinydashboard; CASPAR scoring, drug PK, cytokine dynamics, PASI, DAPSA, scenario comparison, biomarkers |
 | [`psa_references.md`](psoriatic-arthritis/psa_references.md) | 40 curated PubMed references (11 sections): pathogenesis, IL-17/IL-23 axis, enthesis/bone, ADEPT, SPIRIT, DISCOVER, KEEPsAKE, SELECT-PsA, PALACE, disease activity measures, QSP modeling |
+
+---
+
+## Ulcerative Colitis (UC)
+
+> Directory: [`ulcerative-colitis/`](ulcerative-colitis/)
+
+**Mechanistic Map** (12 clusters, 204 nodes, 222 edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| Genetic & Environmental Risk | HLA-DQ, IL10 locus, IL23R, NOD2, TNFSF15, JAK2 variant, HNF4A, CDH1, IBD loci; Smoking (protective in UC), NSAIDs risk, antibiotics in early life, Western diet, HPA stress axis |
+| Epithelial Barrier | Colonocyte, goblet cell (MUC2/MUC5AC), tight junctions (ZO-1, Occludin, Claudin-1), HBD-2 defensin, IEC apoptosis, ER stress/UPR, EGF/IGF-1 receptors, LGR5 crypt stem cell, Paneth cell metaplasia, tuft cell–IL-25 axis, MLCK activation |
+| Gut Microbiome & Dysbiosis | F. prausnitzii↓, Bifidobacterium↓, Roseburia↓, E. coli AIEC↑, C. difficile; butyrate/SCFA; LPS/MAMPs → TLR4; secretory IgA; mucus penetration; dysbiosis index; TLR2/NOD2–MDP sensing |
+| Innate Immune Activation | Resident macrophage M1/M2, recruited monocyte, neutrophil influx (CXCL8 gradient), mDC, pDC–IFN-α, ILC1/2/3, NKT cell, mast cell, NLRP3 inflammasome → Caspase-1 → mature IL-1β/IL-18; complement C3/C5a; ROS/NOX2; MPO |
+| Adaptive Immunity | CD4 naive → Th1/Th2 (UC Th2-dominant)/Th17/Treg/CD8 CTL; B cell → plasma cell → IgG/sIgA; mesenteric LN; Peyer's patches; α4β7–MAdCAM-1 gut-homing axis; CCR9/CCL25; LPAM-1; Tfh; memory T cells |
+| Cytokine Network | TNF-α · IL-6 · IL-1β · IL-17A/F · IL-22 · IL-12/IL-23 · IL-4 · IL-5 · IL-13 (Th2-skewed) · IL-10 · TGF-β1 · CXCL8 · CCL2 · IFN-γ · TSLP · IL-25/IL-33 alarmins · OSM · VEGF · MMP-1/3/9 |
+| JAK-STAT / NF-κB / S1P Signaling | JAK1/2/3/TYK2 → STAT1/3/4/6; NF-κB/IκBα/IKKβ; AP-1/p38 MAPK/ERK; mTOR/PI3K-Akt; S1PR1 lymphocyte egress ↔ S1P gradient; PDE4/cAMP/PKA; RORγt → Th17; T-bet → Th1; GATA3 → Th2; Foxp3 → Treg |
+| Colon Pathology | Cryptitis; crypt abscesses; goblet cell depletion; ulceration/erosion; pseudopolyps; submucosal edema; crypt distortion; muscularis propria; toxic megacolon risk; basal plasmacytosis; colorectal cancer risk (APC/Wnt/β-catenin; p53; MSI) |
+| Extraintestinal Manifestations | Primary sclerosing cholangitis (PSC); peripheral arthropathy; axial spondyloarthropathy; uveitis; episcleritis; erythema nodosum; pyoderma gangrenosum; thromboembolic disease; chronic anemia; steroid-induced osteopenia; oral aphthous ulcer |
+| Drug PK | IFX (2-cmt IV + TMDD / TNF-α); VDZ (1-cmt IV + TMDD / α4β7); TOF oral (1-cmt); OZA oral (1-cmt + CC112273 active metabolite); UST IV induction + SC maintenance; Mesalamine (oral/rectal local); Prednisolone (oral) |
+| Drug Mechanisms | Anti-TNF (IFX/ADA/GOL/CZP) → TNF-α neutralization; Anti-α4β7 (VDZ) → gut-selective lymphocyte trafficking blockade; Anti-IL-12/23p40 (UST) → Th1/Th17 suppression; JAKi (TOF: JAK1/3) → STAT3/6↓; S1P1 modulator (OZA) → lymphocyte retention; 5-ASA (COX-2/NF-κB↓, local); Steroids (GR → NF-κB↓); AZA/6-TGN (purine synthesis inhibition); FMT (microbiome restoration) |
+| Biomarkers & Clinical Endpoints | CRP · ESR · Fecal calprotectin (FC) · albumin · hemoglobin · Mayo total (0–12) · partial Mayo (0–9) · UCEIS endoscopic score · Geboes histological score · Mucosal healing · Deep remission (clinical + endoscopic) · Steroid-free remission · Colectomy rate · EIM activity |
+
+**Mechanistic Map Preview:**
+
+[![UC QSP Map](ulcerative-colitis/uc_qsp_model.png)](ulcerative-colitis/uc_qsp_model.svg)
+
+### ODE Compartments (24 states)
+
+| Group | States | Description |
+|-------|--------|-------------|
+| Infliximab PK | IFX_C1, IFX_C2, IFX_RC | 2-cmt IV + TMDD (TNF-α bound); CL=0.407 L/day; V1=3.28 L; Q=0.484 L/day (Fasanmade 2010) |
+| Vedolizumab PK | VDZ_C1, VDZ_RC | 1-cmt IV + TMDD (α4β7 bound); CL=0.271 L/day; V=5.24 L (Rosario 2015) |
+| Tofacitinib PK | TOF_GI, TOF_C1 | Oral 1-cmt; ka=3.47/h; CL=42.8 L/h; F=74% (Dowty 2014) |
+| Ozanimod + metabolite | OZA_GI, OZA_C1, OZA_M1 | Oral + CC112273 active metabolite; CL=44 L/h; t½~20h (D'Ambrosio 2021) |
+| Ustekinumab PK | UST_DEPOT, UST_C1 | SC depot + central; ka=0.44/day; CL=0.192 L/day; F_SC=61.5% (Xu 2017) |
+| Cytokines | TNFa, IL17, IL13, IL10 | Turn-over ODEs with Emax drug inhibition; Th2-skewed IL-13 dominant |
+| Immune cells | Th2, Th17, Treg, Neutrophil | Cell population dynamics; VDZ reduces gut-homing Th2/Th17; OZA retains lymphocytes |
+| Disease state | MayoScore, MucosalHealing, CRP, FC | Continuous disease activity proxies; Mayo (0–12); MH (0=none, 1=healed); CRP ratio; FC (µg/g) |
+
+### Treatment Scenarios (6)
+
+| # | Scenario | Dose Regimen | Primary Target | Clinical Reference |
+|---|----------|-------------|----------------|-------------------|
+| 1 | Placebo | — | — | ACT1/GEMINI1/OCTAVE placebo arms |
+| 2 | Infliximab | 5 mg/kg IV wk0, wk2, wk6, then Q8W | TNF-α | ACT1 (2005): 69% response wk8, 45% remission wk8 |
+| 3 | Vedolizumab | 300 mg IV wk0, wk2, wk6, then Q8W | α4β7 integrin (gut-selective) | GEMINI 1 (2013): 47% remission wk52 vs 17% placebo |
+| 4 | Tofacitinib | 10 mg BID × 8 wk (induction) → 5 mg BID | JAK1 / JAK3 | OCTAVE Induct 1 (2017): 59% response wk8 |
+| 5 | Ustekinumab | IV ~520 mg single induction, then 90 mg SC Q8W | IL-12/IL-23 p40 | UNIFI (2019): 53% response wk8; 44% remission wk52 |
+| 6 | Ozanimod | 0.92 mg QD oral | S1PR1 (lymphocyte retention) | TRUE NORTH (2021): 37% remission wk52 vs 19% placebo |
+
+### Shiny Dashboard (7 Interactive Tabs)
+
+1. **Patient Profile** — numeric inputs (baseline Mayo 0–12, CRP mg/L, FC µg/g, disease duration, prior biologic failure); comorbidity checklist (PSC, arthropathy, osteopenia); action button "Run Simulation"; value boxes (Mayo · CRP · FC at week 52)
+2. **Drug PK** — drug selector (IFX/VDZ/TOF/OZA/UST); log-Y concentration–time plot; trough concentration line; DT table of PK parameters (route/dose/Cmax/trough/t½/target/trial)
+3. **Cytokine & Immune Dynamics** — 4-panel: TNF-α · IL-13 (Th2) · IL-17 · IL-10 over 52 weeks; lower panel: Th2/Th17/Treg/Neutrophil cell count dynamics
+4. **Disease Activity** — Mayo score time-course with remission threshold (≤2); partial Mayo panel; CRP and FC panels; response table (wk 8/16/52: % clinical remission, % mucosal healing)
+5. **Mucosal Healing** — mucosal healing index (0–1) time-course with 0.7 threshold; endoscopic subscore proxy; histological activity proxy (Geboes); deep remission rate vs week
+6. **Scenario Comparison** — multi-scenario toggle; endpoint selector (Mayo/MH/CRP/FC/TNF/IL13); comparative 52-week plot; response summary table at wk8 and wk52 (% clinical remission, % mucosal healing, % deep remission, % steroid-free remission)
+7. **Biomarkers & Safety** — CRP/FC time-courses for each drug; anemia risk (hemoglobin proxy); infection risk (neutrophil change vs baseline); thromboembolic risk flag for tofacitinib (JAKi class effect); lipid change note; PSC progression note
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`uc_qsp_model.dot`](ulcerative-colitis/uc_qsp_model.dot) | Graphviz DOT source (12 subgraph clusters, 204 nodes, 222 edges, ortho layout) |
+| [`uc_qsp_model.svg`](ulcerative-colitis/uc_qsp_model.svg) | Vector mechanistic map (178 KB) |
+| [`uc_qsp_model.png`](ulcerative-colitis/uc_qsp_model.png) | Raster mechanistic map (150 dpi, 1.8 MB) |
+| [`uc_mrgsolve_model.R`](ulcerative-colitis/uc_mrgsolve_model.R) | mrgsolve ODE model (24 states); 6 scenarios; Mayo/MH/CRP/FC/clinical remission endpoints; calibrated to ACT1/GEMINI1/OCTAVE/UNIFI/TRUE NORTH |
+| [`uc_shiny_app.R`](ulcerative-colitis/uc_shiny_app.R) | 7-tab shinydashboard; patient profile, drug PK, cytokine dynamics, disease activity, mucosal healing, scenario comparison, biomarkers & safety |
+| [`uc_references.md`](ulcerative-colitis/uc_references.md) | 48 curated PubMed references (13 sections): epidemiology, immunopathogenesis, epithelial barrier, microbiome, ACT1/2, GEMINI, OCTAVE, UNIFI, TRUE NORTH, disease activity measures, QSP/PK-PD modeling, biomarkers, colorectal cancer risk |
