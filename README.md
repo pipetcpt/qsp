@@ -127,6 +127,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Hypertrophic Cardiomyopathy**](#hypertrophic-cardiomyopathy-hcm) | 만성질환 / 심혈관 | Sarcomere gene mutations (MYH7/MYBPC3 ~80%) → ↑DRX myosin fraction → Duty ratio↑ → Hypercontractility + Venturi-SAM → LVOT obstruction; Calcineurin-NFAT + ERK → asymmetric LVH (IVS↑↑); TGF-β1/SMAD → interstitial fibrosis (ECV↑, LGE); Ca²⁺ mishandling (RyR2 leak→DADs) + scar substrate → VT/VF → SCD; AF (LA dilation/pressure); Mavacamten (MYK-461, EXPLORER-HCM: LVOT↓36mmHg) + Aficamten (SEQUOIA-HCM: LVOT↓36mmHg) + Beta-blocker (HR/contractility↓) + Disopyramide (SAM↓) + SRT (Myectomy/ASA); CYP2C19-guided dosing | [![HCM](hypertrophic-cardiomyopathy/hcm_qsp_model.png)](hypertrophic-cardiomyopathy/hcm_qsp_model.svg) | [R](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) | [refs](hypertrophic-cardiomyopathy/hcm_references.md) | [Shiny](hypertrophic-cardiomyopathy/hcm_shiny_app.R) |
 | 2026-06-17 | [**Graves' Disease**](#graves-disease) | 자가면역질환 / 내분비 | TRAb (TSAb) constitutively activates TSHR → cAMP/PKA → T3/T4 hypersecretion; HPT negative feedback disrupted; B-cell germinal center (CD40/IL-4) → TSAb/TBAb/TBII; Wolff–Chaikoff/escape; orbital fibroblast (TSHR+IGF-1R) → HA synthesis + adipogenesis → GO; MMI/PTU (TPO inhibition) + ¹³¹I (β-radiation ablation) + Propranolol (β1-blocker/D1↓) + Rituximab (B-cell depletion) + Teprotumumab (IGF-1R, OPTIC trial) | [![GD](graves-disease/gd_qsp_model.png)](graves-disease/gd_qsp_model.svg) | [R](graves-disease/gd_mrgsolve_model.R) | [refs](graves-disease/gd_references.md) | [Shiny](graves-disease/gd_shiny_app.R) |
 | 2026-06-17 | [**Idiopathic Pulmonary Fibrosis**](#idiopathic-pulmonary-fibrosis-ipf) | 만성질환 / 호흡기 | Repetitive AEC-II injury (smoking/GERD/viral/MUC5B/TERT) → ER stress + ROS → senescence/apoptosis → DAMP release → TGFb1 (SMAD2/3-4 complex) + NOX4-ROS feedback → fibroblast→myofibroblast (αSMA+) → collagen I/III ↑ + TIMP↑/MMP↓ → ECM stiffness → mechanotransduction (YAP/TAZ → more TGFβ); M2 macrophage (IL-4/IL-13) amplifies TGFβ/CTGF; PDGF/FGF/VEGF drive fibrocyte recruitment; Pirfenidone (TGF-β/TNF-α/PDGF/ROS↓, ASCEND: −47.9% FVC decline) + Nintedanib (FGFR/VEGFR/PDGFRα/β TKI, INPULSIS: −50.1% FVC decline); Biomarkers: MMP-7↑, KL-6↑, Periostin↑; Endpoints: FVC%, DLCO%, 6MWD, AE-IPF | [![IPF](idiopathic-pulmonary-fibrosis/ipf_qsp_model.png)](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg) | [R](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) | [refs](idiopathic-pulmonary-fibrosis/ipf_references.md) | [Shiny](idiopathic-pulmonary-fibrosis/ipf_shiny_app.R) |
+| 2026-06-17 | [**Systemic Sclerosis (SSc)**](#systemic-sclerosis-ssc) | 자가면역질환 / 결합조직 | Autoimmunity (anti-Scl-70/ACA/RNA Pol III) + Vasculopathy (ET-1↑/NO↓/PGI₂↓/Raynaud) + Fibrosis (TGF-β/SMAD2-3 → FAct → Myo → Col1/3↑ → mRSS↑); SSc-ILD (FVC↓) + SSc-PAH (PVR↑/6MWD↓); Nintedanib (SENSCIS: −41% FVC decline) + Tocilizumab (focuSSced) + MMF (SLS II) + Bosentan (RAPIDS-2: −48% DU) + Iloprost (PGI₂ analog) | [![SSc](systemic-sclerosis/ssc_qsp_model.png)](systemic-sclerosis/ssc_qsp_model.svg) | [R](systemic-sclerosis/ssc_mrgsolve_model.R) | [refs](systemic-sclerosis/ssc_references.md) | [Shiny](systemic-sclerosis/ssc_shiny_app.R) |
 
 
 ---
@@ -1669,4 +1670,57 @@ GAP Score  = G(sex) + A(age) + P(FVC%) + P(DLCO%)  // O'Mahony 2014
 | [`ipf_references.md`](idiopathic-pulmonary-fibrosis/ipf_references.md) | 50 curated references (12 sections); ASCEND/INPULSIS/CAPACITY/PANTHER-IPF pivotal trials; PK/PD/biomarker/QSP methodology |
 | [`ipf_mrgsolve_model.R`](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) | 17-state mrgsolve ODE; 5 treatment scenarios; dose-response; calibrated to ASCEND/INPULSIS; GAP calculator |
 | [`ipf_shiny_app.R`](idiopathic-pulmonary-fibrosis/ipf_shiny_app.R) | 6-tab shinydashboard; pirfenidone/nintedanib PK simulation; population variability; GAP score; scenario comparison; mechanistic map viewer |
+
+
+---
+
+### Systemic Sclerosis (SSc)
+
+> Directory: [`systemic-sclerosis/`](systemic-sclerosis/)
+
+**Date added:** 2026-06-17  
+**Category:** 자가면역질환 / 결합조직 (Autoimmune / Connective Tissue Disease)
+
+**Disease Overview:**  
+Systemic sclerosis (SSc) is a rare systemic autoimmune disease defined by three hallmark pathological processes: **(1) autoimmunity** — T/B cell dysregulation producing disease-specific autoantibodies (anti-Scl-70, anti-centromere, anti-RNA Pol III); **(2) vasculopathy** — Raynaud's phenomenon, endothelial injury, ET-1 overproduction, digital ulcers, SSc-associated PAH; **(3) fibrosis** — TGF-β/SMAD2-3-driven myofibroblast activation, ECM accumulation causing skin (mRSS↑), lung (ILD/FVC↓), kidney (SRC), and GI tract fibrosis.
+
+| Subtype | Skin | Key Ab | Organ Risk |
+|---------|------|--------|------------|
+| dcSSc (diffuse) | Proximal limbs + trunk | Anti-Scl-70 | ILD, SRC, cardiac |
+| lcSSc (limited/CREST) | Hands + face | Anti-centromere | PAH, GAVE |
+| SSc sine scleroderma | None | Variable | Internal organs only |
+
+**Mechanistic Map** (15 clusters, >100 nodes):
+
+[![SSc QSP Map](systemic-sclerosis/ssc_qsp_model.png)](systemic-sclerosis/ssc_qsp_model.svg)
+
+**mrgsolve Model Summary:**
+
+| Layer | State Variables | Key Equations |
+|-------|----------------|---------------|
+| Drug PK | 5 drugs: Nintedanib (2-cpt), TCZ (2-cpt IV), MPA/MMF (1-cpt), Bosentan (1-cpt), Iloprost (inhaled 1-cpt) | Multi-compartment ODEs with Hill PD effects |
+| Cytokines | TGF-β1, IL-6, Th17, Bnv | Production/degradation + drug inhibition |
+| Fibrosis | FAct, Myo, Col1, Col3, ECM | Sequential activation cascade |
+| Skin | mRSS (0-51) | ECM-driven logistic growth |
+| Lung ILD | FVC %, DLCO % | FVC loss rate = kFVC × ECM × (1 − E_NINT) |
+| Vascular | ET-1, NO, PGI2, Endo, PVR, 6MWD | Bosentan: ⊣ ETAR; Iloprost: ↑ PGI2 analog |
+
+**Treatment Scenarios (6):**
+1. Untreated (natural history)
+2. Nintedanib 150 mg BID — SENSCIS (NEJM 2019; −41% FVC decline)
+3. Tocilizumab 8 mg/kg IV q4w — focuSSced (Lancet RM 2020)
+4. MMF 3000 mg/day — SLS II (Lancet RM 2016)
+5. Bosentan 125 mg BID — ERA for PAH (RAPIDS-2: −48% digital ulcers)
+6. Full combination: Nintedanib + Tocilizumab + MMF
+
+**Files:**
+
+| File | Description |
+|------|-------------|
+| [`ssc_qsp_model.dot`](systemic-sclerosis/ssc_qsp_model.dot) | Graphviz mechanistic map (>100 nodes, 15 subgraph clusters) |
+| [`ssc_qsp_model.svg`](systemic-sclerosis/ssc_qsp_model.svg) | Vector image |
+| [`ssc_qsp_model.png`](systemic-sclerosis/ssc_qsp_model.png) | Raster image (150 dpi) |
+| [`ssc_mrgsolve_model.R`](systemic-sclerosis/ssc_mrgsolve_model.R) | mrgsolve ODE model + 5 scenarios + virtual population (N=200) |
+| [`ssc_shiny_app.R`](systemic-sclerosis/ssc_shiny_app.R) | 6-tab Shiny dashboard (PK, fibrosis, ILD, vascular, comparison) |
+| [`ssc_references.md`](systemic-sclerosis/ssc_references.md) | 50 PubMed references (10 sections) |
 
