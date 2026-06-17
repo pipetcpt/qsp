@@ -137,6 +137,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Dyslipidemia**](#dyslipidemia) | 만성질환 / 대사 | Hepatic cholesterol over-synthesis (HMG-CoA reductase↑, SREBP-2) + LDL receptor downregulation (PCSK9-mediated LDLR degradation) → LDL-C↑↑; VLDL overproduction (ApoB100/MTP/DGAT, insulin resistance/SREBP-1c→TG↑) → IDL→LDL; Reverse cholesterol transport deficit (ABCA1/G1↓, CETP↑, HDL-C↓); Foam cell formation (oxLDL→SR-A/CD36→macrophage) → atherosclerotic plaque → MACE; Statin (HMG-CoA Ri → LDLR↑2.5×, −50% LDL-C; ASCOT-LLA/TNT) + Ezetimibe (NPC1L1 inh, −20% additional; IMPROVE-IT PMID 25405393) + PCSK9i Evolocumab (LDLR rescue, −60% additional; FOURIER PMID 28304224) + Inclisiran siRNA (PCSK9 mRNA silencing, −50%, ORION-1/3) + Bempedoic acid (ATP-citrate lyase inh, −18%, CLEAR Harmony) + Fibrate/PPARα (TG↓40%, HDL↑10%) + Niacin/GPR109A + Bile acid sequestrants | [![Dyslip](dyslipidemia/dyslip_qsp_model.png)](dyslipidemia/dyslip_qsp_model.svg) | [R](dyslipidemia/dyslip_mrgsolve_model.R) | [refs](dyslipidemia/dyslip_references.md) | [Shiny](dyslipidemia/dyslip_shiny_app.R) |
 | 2026-06-17 | [**Behcet's Disease**](#behcets-disease-bd) | 자가면역질환 / 혈관염 | HLA-B51(OR 5-6x)/ERAP1 + Streptococcus molecular mimicry + gut dysbiosis → Innate: Neutrophil hyperactivation (NETs/ROS/MPO) + NLRP3 inflammasome(IL-1β↑) → Adaptive: Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-17F) dominance + Treg dysfunction → Endothelial activation (ICAM-1↑/VCAM-1↑/TF↑/NO↓) → multi-organ: Oral aphthae + genital ulcers + retinal vasculitis(vision loss 25%) + skin(pseudofolliculitis/EN) + vascular thrombosis/aneurysm + neuro-Behcet; Colchicine (tubulin/NLRP3↓, YURDAKUL 2001) + Prednisolone + Adalimumab anti-TNF (ADABT) + Apremilast PDE4i (NEJM 2015/2019) + Canakinumab anti-IL-1β + Cyclophosphamide (refractory vascular/neuro); BDCAF 0-12 composite activity index | [![BD](behcet-disease/bd_qsp_model.png)](behcet-disease/bd_qsp_model.svg) | [R](behcet-disease/bd_mrgsolve_model.R) | [refs](behcet-disease/bd_references.md) | [Shiny](behcet-disease/bd_shiny_app.R) |
 | 2026-06-17 | [**Liver Cirrhosis**](#liver-cirrhosis) | 만성질환 / 간 | Chronic liver injury (EtOH/HBV/HCV/NASH) → DAMPs + Kupffer/NLRP3 → TGF-β1/Smad2/3 + PDGF-BB → HSC activation (qHSC→aHSC) → LOXL2 crosslinking → Collagen I/III ↑ / TIMP↑/MMP↓ → Fibrosis (F0→F4/METAVIR) → eNOS↓/ET-1↑/RhoA-ROCK → HVPG↑ (>10 ascites, >12 varices) → Splanchnic vasodilation → RAAS/SNS/AVP → Ascites/HypoNa; Portosystemic bypass → NH3↑ → HE (West Haven 0–IV); Renal vasoconstriction → HRS-1/2 (GFR↓, Creat↑); ACLF + HCC risk; MELD/MELD-Na/Child-Pugh scoring; Propranolol (NSBB, 2-cpt: β1/β2 → HR↓/HVPG↓20%) + Spironolactone (1-cpt: MR block → Aldo↓/Na excretion↑/Ascites↓) + Terlipressin (effect-cpt IV: V1R → splanchnic↓/HRS reversal) + Rifaximin 550mg BID (gut-lumen: microbiome/NH3↓/HE prevention); Investigational antifibrotics: FXR agonist (OCA) / Resmetirom (THRβ) / Semaglutide (GLP-1RA) / ASK1i / CCR2/CCR5i; Calibrated to Fattovich 2004 (fibrosis rate), Groszmann 2005 (HVPG threshold), Kim 2008 NEJM (MELD-Na), Bass 2010 NEJM (Rifaximin-HE) | [![LC](liver-cirrhosis/lc_qsp_model_thumb.png)](liver-cirrhosis/lc_qsp_model.svg) | [R](liver-cirrhosis/lc_mrgsolve_model.R) | [refs](liver-cirrhosis/lc_references.md) | [Shiny](liver-cirrhosis/lc_shiny_app.R) |
+| 2026-06-17 | [**Adult-Onset Still's Disease**](#adult-onset-stills-disease-aosd) | 자가면역질환 / 자가염증 | DAMP/PAMP → TLR2/4/7/9 → MyD88/NF-κB → NLRP3 inflammasome (Signal1+2) → Caspase-1 → mature IL-1β★ + IL-18★ (≫10,000 pg/mL) + Pyroptosis; Macrophage M1-activation → IL-6/TNF-α → JAK1/2-STAT3 → Hyperferritinemia (★<20% glycosylated ferritin) + CRP↑ + SAA↑; IL-18 → NK/Th1 → IFN-γ → amplify macrophage activation; MAS: NK-CTL dysfunction (Perforin↓/PRF1 mutation) + IFN-γ storm → Hemophagocytosis → Pancytopenia + Multi-organ failure (HScore); Quotidian fever >39°C + Salmon rash + Polyarthritis + Lymphadenopathy (Yamaguchi/Fautrel criteria); NSAIDs + Prednisolone + Anakinra (IL-1Ra, SC QD; CONSIDER-AOSD) + Canakinumab (anti-IL-1β, 4mg/kg q4w) + Tocilizumab (IL-6R block, 8mg/kg q2w) + Tofacitinib (JAK1/3i; refractory) + CsA/Etoposide (MAS salvage) | [![AOSD](adult-onset-stills-disease/aosd_qsp_model.png)](adult-onset-stills-disease/aosd_qsp_model.svg) | [R](adult-onset-stills-disease/aosd_mrgsolve_model.R) | [refs](adult-onset-stills-disease/aosd_references.md) | [Shiny](adult-onset-stills-disease/aosd_shiny_app.R) |
 
 
 ---
@@ -2444,3 +2445,80 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`lc_mrgsolve_model.R`](liver-cirrhosis/lc_mrgsolve_model.R) | mrgsolve ODE model (21 states); 6 scenarios (natural history/propranolol/spironolactone/combination/antifibrotic/acute terlipressin); MELD/MELD-Na/Child-Pugh/HVPG/variceal bleeding risk/1yr mortality endpoints; calibrated to Fattovich 2004/Groszmann 2005/Kim 2008 NEJM/Bass 2010 NEJM |
 | [`lc_shiny_app.R`](liver-cirrhosis/lc_shiny_app.R) | 8-tab shinydashboard; patient profile (MELD gauge/Child-Pugh/risk assessment), drug PK (propranolol/spiro/rifaximin concentration + HR PD), portal hypertension (HVPG trajectory/variceal risk/hemodynamics), hepatic function (MELD-Na/CP/albumin/bilirubin/INR), complications (ascites/renal/HE/risk timeline), 6-scenario comparison, antifibrotic kinetics (HSC/fibrosis/recovery), biomarker heatmap (MELD–HVPG correlation) |
 | [`lc_references.md`](liver-cirrhosis/lc_references.md) | 50 curated PubMed references (10 sections): fibrogenesis/HSC biology, portal hypertension, propranolol PK in cirrhosis, diuretic therapy, terlipressin/HRS, rifaximin/HE treatment, MELD score/prognosis, antifibrotic trials (OCA/Resmetirom/Semaglutide/ASK1i), ACLF/systemic complications, QSP modeling methods |
+
+---
+
+### Adult-Onset Still's Disease (AOSD)
+
+> Directory: [`adult-onset-stills-disease/`](adult-onset-stills-disease/)
+
+**Mechanistic Map** (13 subgraph clusters, 154 named nodes, 200+ edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| Innate Immune Triggers | PAMP/DAMP, TLR2/4/7/9, RAGE receptor, S100A8/A9/A12 (calprotectin), HMGB1, MyD88/TRIF adapters, NF-κB, AP-1, IRF3/7, pro-IL-1β/IL-18 priming |
+| NLRP3 Inflammasome | NLRP3 sensor, ASC adaptor, Caspase-1 effector, Signal 1 (NF-κB priming) + Signal 2 (ATP/crystals/ROS/K⁺-efflux activation), NEK7, Gasdermin D/pyroptosis, mature IL-1β★ + IL-18★ cleavage |
+| Macrophage/Monocyte Biology | Classical/non-classical monocytes, M1/M2 polarization, AOSD-phenotype activated macrophage, ferritin secretion (H-chain dominant), hemophagocyte differentiation, M-CSF/GM-CSF, pDC/mDC |
+| Cytokine Network | IL-1β★, IL-6★, IL-18★, IFN-γ★, TNF-α, IL-12, IL-23, IL-17A, IL-15, IL-10 (anti-inflam), IL-18BP (natural inhibitor), CXCL8/MCP-1/CXCL9/CXCL10 chemokines |
+| JAK-STAT Signaling | IL-6Rα/gp130 complex, sIL-6R trans-signaling, JAK1/2/TYK2/JAK3, STAT1/3/4/5, SOCS1/3 negative feedback, PIAS, IL-1R1/IL-1RAcP, IRAK4/TRAF6 → NF-κB, p38 MAPK, PI3K/AKT/mTOR |
+| Adaptive Immunity | Naïve Th0 → Th1 (IL-12/IL-18→IFN-γ) / Th17 (IL-6/TGF-β→IL-17A) / Treg (TGF-β/IL-10) / CD8+CTL; NK cell activation (IL-15/IL-18→IFN-γ); B cells; APC/DC, MHC-II, CD28/CTLA-4 co-stimulation |
+| Acute Phase Response | Hepatocyte APP induction (IL-6/IL-1β/TNF-α), CRP★, SAA, fibrinogen, albumin↓, glycosylated ferritin (<20% = AOSD-specific), hepcidin, LDH, ALT/AST |
+| Hyperferritinemia | Serum ferritin★ (5,000→10,000→>50,000 ng/mL), ferritin H-chain as immunomodulator, macrophage ferritin secretion vs hepatic synthesis, ferritin >10,000 ng/mL MAS threshold |
+| Clinical Manifestations | Quotidian fever >39°C★ (PGE2-mediated), salmon-coloured evanescent rash★, polyarthritis (DAS28/Pouchot), lymphadenopathy, hepatosplenomegaly, serositis (pleuritis/pericarditis), leukocytosis/neutrophilia; AOSD activity score (Pouchot 0-12 / Rau scoring) |
+| MAS (Macrophage Activation Syndrome) | IFN-γ★ MAS driver, NK/CTL dysfunction (CD107a↓, perforin↓), PRF1/STX11/XLP genetic variants, cytokine storm (IL-1β/IL-6/IL-18/IFN-γ/TNF-α), hemophagocytosis (bone marrow), bicytopenia, coagulopathy/DIC, multi-organ failure, CXCL9 biomarker, HScore (2016 Ravelli criteria) |
+| NSAIDs & Corticosteroids | Naproxen/Ibuprofen → COX-1/2 inhibition → PGE2↓; Prednisolone/Dexamethasone → GR-α → GILZ/MKP-1 transactivation → NF-κB/AP-1 suppression → IL-1β/IL-6/TNF-α↓; HPA axis feedback |
+| Biologics — Anti-IL-1/IL-6 | Anakinra (IL-1Ra, SC QD: ka=2/d, kel=3/d, EC50=0.5 μg/mL, competitive IL-1R1 blockade) + Canakinumab (anti-IL-1β mAb, 4mg/kg q4w: t½=26d, EC50=0.1 μg/mL) + Rilonacept (IL-1 trap) + Tocilizumab (anti-IL-6Rα: 8mg/kg q2w, t½=11d, mIL-6R+sIL-6R dual blockade, EC50=1 μg/mL) + Sarilumab + Siltuximab |
+| JAK Inhibitors | Tofacitinib (JAK1/3: 5mg BID, Vd=87L, t½=3h; STAT3/STAT5↓); Baricitinib (JAK1/2); Ruxolitinib (MAS rescue: IFN-γ signaling↓); Upadacitinib (selective JAK1); Cyclosporine A (calcineurin-NFAT → IFN-γ/NK↓); Etoposide (topoisomerase II → macrophage/hemophagocyte↓) |
+
+**Mechanistic Map Preview:**
+
+[![AOSD QSP Map](adult-onset-stills-disease/aosd_qsp_model.png)](adult-onset-stills-disease/aosd_qsp_model.svg)
+
+**mrgsolve ODE Model (20 compartments, 21 ODEs):**
+
+| Compartment Group | States | Key Dynamics |
+|-------------------|--------|--------------|
+| Anakinra PK | ANAP (depot SC), ANAC (central) | ka=2/d, CL=21 L/d, Vd=7L; EC50=0.5 μg/mL IL-1R competitive inhibition |
+| Canakinumab PK | CANAP (periph), CANAC (central) | t½=26d, Vd=3.8 L/kg; EC50=0.1 μg/mL; IL-1β neutralization (free→bound) |
+| Tocilizumab PK | TCZP (periph), TCZC (central) | t½=11d, Vd=3.7 L/kg; EC50=1 μg/mL; mIL-6R + sIL-6R dual blockade |
+| Corticosteroid PK | CORT | kel=1.5/d; GR transactivation → NF-κB/AP-1 suppression |
+| Tofacitinib PK | TOFP (depot), TOFC (central) | kel=4/d, Vd=87L; JAK1/3 → STAT3/STAT5↓ |
+| Cytokines | IL1B, IL6, IL18, IFNG, TNFA | Production–degradation ODEs with positive cross-stimulation, drug inhibition (Hill equations, Imax=0.9) |
+| Macrophage/NK | MACACT, NK_ACT | MACACT driven by cytokine storm; NK_ACT inversely correlated with MAS |
+| Biomarkers | FERT, CRP | FERT: dual hepatic+macrophage synthesis (IL-6/IL-18 driven); CRP: hepatic IL-6 response |
+| Composite Scores | AOSD_ACT, MAS_RISK | Pouchot-inspired (0-20); MAS logistic probability (0-1: IL-18, ferritin, NK_ACT) |
+
+**6 Treatment Scenarios:**
+
+| Scenario | Regimen | Key Clinical Trial Reference |
+|----------|---------|------------------------------|
+| 1 Untreated | Natural history (severity-dependent progression) | — |
+| 2 Corticosteroids | Prednisolone 0.5 mg/kg/day PO | Standard of care; Pouchot 1991 |
+| 3 Anakinra | 100 mg SC QD (IL-1Ra) | CONSIDER-AOSD (Feist 2018); Nordstrom 2012 RCT |
+| 4 Canakinumab | 4 mg/kg q4w IV (anti-IL-1β) | Ruperto 2012 (PMID 23252526); Quartuccio 2020 |
+| 5 Tocilizumab | 8 mg/kg q2w IV (anti-IL-6R) | Matsumoto 2018 case series; Ortiz-Sanjuan 2015 |
+| 6 Tofacitinib | 5 mg BID PO (JAK1/3i) | Hu 2019; Kedor 2021 (refractory AOSD) |
+
+**Shiny Dashboard (8 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| Patient Profile | Sliders (age/weight/severity/MAS risk), Yamaguchi criteria checklist, Pouchot score, disease summary |
+| Drug PK | Concentration–time curves for all 5 agents; EC50 threshold lines; PK parameter table |
+| Cytokine Dynamics | Time-course for IL-1β/IL-6/IL-18/IFN-γ/TNF-α; log/linear scale toggle; Week-12 bar chart |
+| Biomarkers | Ferritin (log + threshold lines 500/5000/10000 ng/mL); CRP; Macrophage activation + NK activity dual-axis |
+| Clinical Endpoints | AOSD activity score (all treatments); response table (remission/partial response); cumulative flare days; component bar chart |
+| Scenario Comparison | 6-panel: AOSD score / Ferritin / IL-18 / CRP / MAS risk / IFN-γ across all 6 scenarios; efficacy summary table |
+| MAS Risk | MAS probability over time with risk zones; HScore calculator (ferritin/Plt/AST/WBC/fibrinogen); MAS factor plots; warning sign checklist |
+| Mechanistic Map | Embedded SVG/PNG; 4-column pathway summary (Innate/Cytokines/MAS/Drug targets) |
+
+**File Inventory:**
+
+| File | Description |
+|------|-------------|
+| [`aosd_qsp_model.dot`](adult-onset-stills-disease/aosd_qsp_model.dot) | Graphviz DOT (13 subgraph clusters, 154 named nodes, 200+ edges) |
+| [`aosd_qsp_model.svg`](adult-onset-stills-disease/aosd_qsp_model.svg) | Vector mechanistic map |
+| [`aosd_qsp_model.png`](adult-onset-stills-disease/aosd_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`aosd_mrgsolve_model.R`](adult-onset-stills-disease/aosd_mrgsolve_model.R) | mrgsolve ODE model (20 states, 6 treatment scenarios); calibrated to CONSIDER-AOSD/Nordstrom 2012/Matsumoto 2018/Ravelli 2016 MAS criteria |
+| [`aosd_shiny_app.R`](adult-onset-stills-disease/aosd_shiny_app.R) | 8-tab shinydashboard; includes HScore calculator, MAS probability, scenario comparison, cytokine kinetics |
+| [`aosd_references.md`](adult-onset-stills-disease/aosd_references.md) | 67 curated PubMed references (11 sections): epidemiology/diagnosis, NLRP3/IL-1β/IL-18 pathophysiology, anakinra/canakinumab trials, tocilizumab, MAS/IL-18, IFN-γ, JAK-STAT/tofacitinib, biomarkers (ferritin/S100), clinical trials, guidelines, PK/PD modeling |
