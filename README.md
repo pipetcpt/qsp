@@ -146,6 +146,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Guillain-Barré Syndrome**](#guillain-barré-syndrome-gbs) | 자가면역질환 / 말초신경 | C. jejuni/CMV/EBV/SARS-CoV-2 → LOS 분자 모방(Molecular Mimicry) → Anti-GM1/GD1a/GQ1b IgG → B세포 형질세포 분화 → 항강글리오사이드 항체 → 고전경로 보체(C1q→C3→MAC C5b-9) → 랑비에 결절(AMAN: GM1/GD1a/node binding) 또는 슈반세포(AIDP: 수초 탈락) 공격 → Calcium influx + Calpain → 축삭 손상 / 탈수초; Th1/Th17(IL-6/TNF-α↑)/Treg↓; GBS Disability Score 0-6(Hughes grade); FVC↓→호흡 부전; IVIG 2 g/kg 5일(5일형 2-구획 PK, T½~21d; van der Meché NEJM 1992: 동등효과 PE) + 혈장교환 5회(IgG 60% 제거/session) + Eculizumab C5i (Misawa Lancet Neurol 2018: pilot 7/8 improvement; ADHERE phase 3 2023); Subtypes: AIDP(90%, 유럽/북미) / AMAN(아시아/C.jejuni) / MFS(anti-GQ1b, 안근마비+실조) | [![GBS](guillain-barre-syndrome/gbs_qsp_model.png)](guillain-barre-syndrome/gbs_qsp_model.svg) | [R](guillain-barre-syndrome/gbs_mrgsolve_model.R) | [refs](guillain-barre-syndrome/gbs_references.md) | [Shiny](guillain-barre-syndrome/gbs_shiny_app.R) |
 | 2026-06-17 | [**Heart Failure with Preserved EF (HFpEF)**](#heart-failure-with-preserved-ejection-fraction-hfpef) | 만성질환 / 심혈관 | Comorbidity cascade (Obesity/HTN/T2DM/CKD) → Systemic inflammation (TNF-α/IL-6/NF-κB) → Coronary microvascular endothelial dysfunction → ↓cGMP-PKG → Titin hypophosphorylation → ↑LV passive stiffness + Myocardial fibrosis (TGF-β1/Aldo/RAAS) → ↑LVEDP/PCWP (Diastolic dysfunction) + ↓Exercise capacity; EF≥50%; Empagliflozin SGLT2i (EMPEROR-Preserved NEJM 2021: −21% HFH/CVD) + Dapagliflozin (DELIVER NEJM 2022: −18% HFH/CVD) + Sacubitril/Valsartan ARNI (PARAGON-HF NEJM 2019) + Finerenone MRA + Furosemide; 4-drug PK + 22-cmt ODE model | [![HFpEF](heart-failure-hfpef/hfpef_qsp_model.png)](heart-failure-hfpef/hfpef_qsp_model.svg) | [R](heart-failure-hfpef/hfpef_mrgsolve_model.R) | [refs](heart-failure-hfpef/hfpef_references.md) | [Shiny](heart-failure-hfpef/hfpef_shiny_app.R) |
 | 2026-06-17 | [**Granulomatosis with Polyangiitis (GPA)**](#granulomatosis-with-polyangiitis-gpa) | 자가면역질환 / ANCA 혈관염 | HLA-DPB1*04:01 + PRTN3 + S. aureus trigger → B-cell GC → Anti-PR3 ANCA (IgG, cANCA) → TNF-α/IL-8/C5a priming → FcγRIIa-mediated neutrophil activation → NETosis (NET=DNA+PR3+MPO) → Classical complement (C1q→C3→C5a) + Alternative pathway (C5a:C5aR1 feedback) → Endothelial fibrinoid necrosis → Pauci-immune crescentic GN (RPGN) + Pulmonary capillaritis (DAH) + Upper airway necrotizing granuloma; Th1/Th17 → Macrophage epithelioid transformation → Multinucleated giant cell → Necrobiotic granuloma; BVAS score endpoint; Rituximab (RAVE NEJM 2010: non-inferior to CYC) + Cyclophosphamide (CYCLOPS: IV pulse) + Prednisolone taper + Avacopan (C5aR1 blockade; ADVOCATE NEJM 2021: non-inferior + superior sustained remission) + RTX maintenance (MAINRITSAN3 NEJM 2023: 500 mg q6m: 4% vs 20% relapse); 22-CMT ODE; 5 scenarios | [![GPA](granulomatosis-with-polyangiitis/gpa_qsp_model.png)](granulomatosis-with-polyangiitis/gpa_qsp_model.svg) | [R](granulomatosis-with-polyangiitis/gpa_mrgsolve_model.R) | [refs](granulomatosis-with-polyangiitis/gpa_references.md) | [Shiny](granulomatosis-with-polyangiitis/gpa_shiny_app.R) |
+| 2026-06-17 | [**Peripheral Arterial Disease (PAD)**](#peripheral-arterial-disease-pad) | 만성질환 / 심혈관 | Atherosclerosis (eNOS uncoupling/oxLDL/LOX-1 → EC activation/ICAM-1/VCAM-1/MCP-1 → Monocyte → M1 Macrophage/Foam cell → Lipid core + Fibrous cap → Plaque volume↑) → MMP-1/9/13 → Cap thinning → Plaque rupture → Thrombus (P2Y12/COX-1-TXA2/PAR-1/FXa) → Blood flow↓ → ABI↓ → Claudication → CLI (Rutherford III–VI); HIF-1α/VEGF/SDF-1 → Collateral arteriogenesis + EPC mobilization; Clopidogrel (P2Y12 block, CAPRIE: RRR 23.8% PAD) + Aspirin 100 mg (COX-1/TXA2↓) + Ticagrelor (EUCLID: P2Y12 = Clopi in PAD) + Rivaroxaban 2.5 mg BID + ASA (COMPASS 2018: MACE↓28%, MALE↓46%) + Cilostazol 100 mg BID (PDE3→cAMP↑→vasodilation; CASTLE: walking +40%) + Atorvastatin (HMG-CoA→LDL↓50%, pleiotropic EC/plaque stabilization); 20-CMT ODE model; 7 treatment scenarios | [![PAD](peripheral-arterial-disease/pad_qsp_model.png)](peripheral-arterial-disease/pad_qsp_model.svg) | [R](peripheral-arterial-disease/pad_mrgsolve_model.R) | [refs](peripheral-arterial-disease/pad_references.md) | [Shiny](peripheral-arterial-disease/pad_shiny_app.R) |
 
 
 ---
@@ -3055,3 +3056,80 @@ Granulomatosis with Polyangiitis (GPA, formerly Wegener's Granulomatosis) is a r
 | [`gpa_mrgsolve_model.R`](granulomatosis-with-polyangiitis/gpa_mrgsolve_model.R) | mrgsolve ODE model (22 state variables); RTX 2-CMT + TMDD (CD20 binding, ADCC/CDC); CYC 3-CMT prodrug (CYP activation → active metabolite alkylation); GC 1-CMT (Emax NF-κB repression, IC50=0.08 mg/L); Avacopan 1-CMT (C5aR1 EC50=0.15 mg/L); B cell 3-cmt (naïve/memory/LLPC); PR3-ANCA ODE; C5a complement; neutrophil activation/NETs; EC injury; granuloma index; GFR; BVAS; 5 treatment scenarios (untreated/RTX+GC/CYC+GC/avacopan+RTX/relapse); GFR sensitivity analysis by baseline renal function; calibrated to RAVE/RITUXVAS/ADVOCATE/MAINRITSAN3 |
 | [`gpa_shiny_app.R`](granulomatosis-with-polyangiitis/gpa_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + plotly + DT); Patient Profile with disease overview, BVAS/eGFR/ANCA valueBoxes, Berden renal classification · Drug PK (RTX/GC/avacopan effectiveness, GC taper profile, MoA table) · Biomarkers (PR3-ANCA · B cell CD19+ · neutrophil · C5a) · Organ Damage (eGFR CKD staging · EC injury · granuloma · BVAS) · 5-Scenario Comparison (all endpoints, head-to-head table) · Clinical Endpoints (remission probability · ESRD risk · RAVE/RITUXVAS/ADVOCATE/MAINRITSAN3/PEXIVAS trial DT table · treatment decision guide) · Model Reference (ODE structure · parameters · 9 key references) |
 | [`gpa_references.md`](granulomatosis-with-polyangiitis/gpa_references.md) | 52 curated PubMed-linked references (10 sections): Clinical trials (RAVE/RITUXVAS/MAINRITSAN3/ADVOCATE/CYCLOPS/PEXIVAS) · Pathogenesis/ANCA biology · Neutrophil/NETosis · Complement/avacopan · B cell/plasma cell · Granuloma/T cells · Renal/ANCA-GN · Drug PK/PD · Biomarkers/BVAS · Reviews/EULAR-ACR guidelines |
+
+---
+
+## Peripheral Arterial Disease (PAD)
+
+**분류:** 만성질환 / 심혈관·혈관  
+**디렉토리:** [`peripheral-arterial-disease/`](peripheral-arterial-disease/)
+
+### 병태생리 개요
+
+말초동맥질환(PAD)은 주로 하지 동맥의 죽상동맥경화성 협착으로 인해 하지 혈류가 감소하는 만성 허혈성 질환입니다. 전세계 2억 명 이상이 이환되어 있으며, 심근경색·뇌졸중·하지절단의 위험이 현저히 높습니다.
+
+**핵심 병태생리 경로:**
+1. **내피세포 기능 이상** — HTN/흡연/DM → NADPH 산화효소 → ROS → eNOS 기능 장애(BH4↓) → NO↓ → ICAM-1/VCAM-1/MCP-1 → 단핵구 부착
+2. **죽상경화반 형성** — oxLDL → LOX-1 → M1 대식세포 → 포말세포 → 지질핵 + 섬유성 피막 → 플라크 부피 증가
+3. **플라크 파열 및 혈전 형성** — MMP-1/9/13 → 피막 얇아짐 → 파열 → TF/콜라겐 노출 → 혈소판 활성화(P2Y12/TP/PAR-1) + 응고 캐스케이드(FXa/Thrombin/Fibrin)
+4. **허혈성 근병증** — 혈류↓ → 미토콘드리아 기능 이상 → ATP↓ → 유형 I 섬유 소실 → 간헐성 파행 → CLI
+5. **측부혈관 형성** — HIF-1α → VEGF-A/SDF-1/FGF-2 → EPC 동원 → 측부혈관 → 부분적 보상
+
+### 약물 PK/PD
+
+| 약물 | 기전 | 주요 PK | 주요 임상시험 결과 |
+|------|------|---------|------------------|
+| **Clopidogrel 75 mg QD** | P2Y12 차단 (CYP2C19 전구약물) | t½~6h (부모), AM t½~0.5h | CAPRIE: PAD subgroup RRR 23.8% |
+| **Aspirin 100 mg QD** | COX-1 비가역적 억제 → TXA2↓ | ka=6/h, t½~20 min | CAPRIE: clopidogrel 우위 확인 |
+| **Ticagrelor 90 mg BID** | P2Y12 가역적 직접 억제제 | ka=1.4/h, t½~7h | EUCLID: ticagrelor = clopidogrel |
+| **Rivaroxaban 2.5 mg BID** | 직접 FXa 억제제 | ka=1.5/h, t½~9h, Vc=47 L | COMPASS PAD: MACE↓28%, MALE↓46%, 절단↓67% |
+| **Cilostazol 100 mg BID** | PDE3 억제 → cAMP↑ → 혈관확장+항혈소판 | ka=0.7/h, t½~11h | CASTLE: MWD +40%, PFWD +40% |
+| **Atorvastatin 40 mg QD** | HMG-CoA 환원효소 억제 → LDL↓ + 다면발현(EC 기능, 플라크 안정화) | ka=1.2/h, t½~14h, Vd=340 L | LDL-C↓40-55%; MACE↓25%; hs-CRP↓37% |
+
+### QSP 모델 구성
+
+| 구성 요소 | 세부 내용 |
+|-----------|---------|
+| **기계론적 지도** | 12개 서브그래프 클러스터, 156개 노드, 220+ 방향 엣지: 위험인자 (HTN/흡연/DM/고지혈증/비만) · 내피세포 기능 이상 (eNOS 탈짝/ROS/BH4↓/ICAM-1/VCAM-1/MCP-1) · 죽상경화증 (LDL 침윤/oxLDL/포말세포/M1/VSMC 이동·증식/플라크 부피) · 플라크 취약성 (MMP-1/9/13/피막 얇아짐/파열/조직인자) · 혈소판 활성화 (vWF/GPIb/GPVI/P2Y12/P2Y1/TXA2/TP/PAR-1/GPIIb-IIIa) · 응고 캐스케이드 (TF·FVIIa/FXa/FVa/프로트롬빈/트롬빈/피브린/FXIII) · 허혈성 근병증 (혈류↓/ABI/미토콘드리아/ATP/젖산/파행/CLI/절단 위험) · 측부혈관 (HIF-1α/VEGF-A/SDF-1/FGF-2/EPC/동맥신생) · 항혈소판 약물 PK/PD (클로피도그렐/아스피린/티카그렐러/보라팍사르) · 항응고/혈관확장제/스타틴 PK/PD (리바록사반/실로스타졸/아토르바스타틴) · 바이오마커 (hs-CRP/피브리노겐/D-이량체/호모시스테인/Lp(a)/ABI측정) · 임상 엔드포인트 (MACE/MALE/CV사망/MI/뇌졸중/사지 재관류/주요 절단/보행거리/VascuQol) |
+| **ODE 모델** | 20개 상태변수: Clopidogrel 3-cmt (gut/plasma/AM) · Aspirin 2-cmt · Ticagrelor 2-cmt · Rivaroxaban 2-cmt · Cilostazol 2-cmt · Atorvastatin 2-cmt · 혈소판 응집 지수 · 트롬빈 생성 지수 · LDL-C · ABI · 보행거리 · 측부혈관 지수 · 내피세포 기능 · 플라크 부피 · hs-CRP |
+| **치료 시나리오** | 7가지: (1) 무치료 · (2) Aspirin 100 mg QD · (3) Clopidogrel 75 mg QD · (4) DAPT (Clopi+ASA) · (5) COMPASS (Riva 2.5 mg BID + ASA) · (6) Cilostazol 100 mg BID + ASA · (7) Optimal (Clopi+ASA+Riva+Statin) |
+| **보정 근거** | CAPRIE 1996 (PMID:8918275) / EUCLID 2016 (PMID:27321198) / COMPASS 2018 (PMID:28844192) / CASTLE 2000 (PMID:11063952) / REACH Registry 2007 (PMID:17563020) |
+| **Shiny 앱 (6탭)** | (1) Patient Profile: 위험인자 입력, 기저 ABI/보행거리/LDL-C, 치료 선택, 주요 임상시험 표 · (2) Drug PK: CYP2C19 상태별 Clopidogrel AM / Rivaroxaban / Cilostazol / Atorvastatin 농도-시간 곡선 + 표적 결합률 + MoA 표 · (3) PD Biomarkers: 혈소판 응집/트롬빈 생성/LDL-C/hs-CRP/내피기능 FMD/측부혈관 지수 · (4) Clinical Endpoints: ABI 추적/보행거리/MACE 위험지수/MALE 위험지수/Rutherford 분류 · (5) Scenario Comparison: 7개 시나리오 일제 비교, 12개월 요약 표 · (6) Risk Stratification: Rutherford/MACE/MALE 값박스, 바이오마커 레이더 차트, 플라크 부피 추이, Fontaine 병기 표 |
+| **참고문헌** | 55개 PubMed 링크 논문 (12개 섹션): 역학·자연경과 · 죽상경화증·내피기능 · 근골격 허혈 · 혈소판 생물학·응고 · 항혈소판 임상시험 (CAPRIE/CHARISMA/EUCLID) · 항응고 임상시험 (COMPASS) · Cilostazol 임상시험 (CASTLE) · 스타틴 PK/PD · 바이오마커·진단 · 측부혈관·혈관신생 · QSP 모델링 방법론 · 임상 가이드라인 (ESC 2017/AHA-ACC 2016/SVS 2019) |
+
+### Mechanistic Map
+
+[![PAD QSP Model](peripheral-arterial-disease/pad_qsp_model.png)](peripheral-arterial-disease/pad_qsp_model.svg)
+
+*Click image to open full-resolution SVG. Map shows 12 subgraph clusters: Risk Factors (HTN/smoking/DM/dyslipidemia/CKD/age/hyperhomocysteinemia/obesity) · Endothelial Dysfunction & Oxidative Stress (eNOS uncoupling, BH4 depletion, NADPH oxidase, ROS/superoxide, oxLDL/LOX-1, ICAM-1/VCAM-1/MCP-1/E-selectin, peroxynitrite, ET-1↑/PGI₂↓) · Atherosclerosis Progression (LDL infiltration/oxidation, CD36/SR-A scavenger receptors, foam cells, M1/M2 macrophages, IL-6/TNF-α/PDGF-BB, VSMC migration/proliferation, lipid core/fibrous cap/necrotic core/calcification/plaque volume) · Plaque Vulnerability & Rupture (MMP-1/9/13, collagen degradation, cap thinning, TF, PAI-1, TIMP-1/2, NETosis, plaque rupture/erosion) · Platelet Activation & Thrombosis (vWF/GPIb, GPVI/collagen, ADP/P2Y12/P2Y1, TXA2/TP receptor, PAR-1/PAR-4 thrombin receptors, GPIIb/IIIa, fibrinogen, thrombus) · Coagulation Cascade (TF-FVIIa, FXa/FVa, prothrombinase, thrombin/FIIa, fibrin/FXIII, antithrombin/TFPI/Protein C) · Lower Limb Ischemia & Skeletal Muscle (blood flow reduction, ABI, mitochondrial dysfunction, ATP depletion, lactate, type I fiber loss, claudication, CLI, rest pain, tissue loss, amputation, Rutherford/Fontaine classification) · Collateral Formation & Angiogenesis (HIF-1α, VEGF-A/VEGFR2, angiopoietins, FGF-2, SDF-1/CXCR4, EPC mobilization, arteriogenesis) · Antiplatelet Drug PK/PD (clopidogrel 3-cmt prodrug/CYP2C19/AM; aspirin/COX-1; ticagrelor; vorapaxar/PAR-1) · Anticoagulant/Vasodilator/Statin PK/PD (rivaroxaban/FXa; cilostazol/PDE3/cAMP/vasodilation; atorvastatin/HMG-CoA/LDL/pleiotropic) · Biomarkers (hs-CRP, fibrinogen, D-dimer, homocysteine, Lp(a), ABI/TBI, MMP-9, IL-6, sVCAM-1, PAI-1, urinary TXB2) · Clinical Endpoints (MACE, MALE, CV death, MI, stroke, limb revascularization, major amputation, walking distance, VascuQol, ABI improvement).*
+
+### Key Clinical & PK/PD Parameters
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Global PAD prevalence (2010) | ~202 million | Fowkes 2013 (PMID:23915883) |
+| ABI diagnostic threshold (PAD) | < 0.9 | AHA/ACC 2016 (PMID:27840333) |
+| ABI CLI threshold | < 0.4 | ESC 2017 (PMID:28886620) |
+| CAPRIE clopidogrel PAD RRR | 23.8% | CAPRIE 1996 (PMID:8918275) |
+| EUCLID: ticagrelor vs clopidogrel | No superiority | EUCLID 2016 (PMID:27321198) |
+| COMPASS MACE reduction | HR 0.76 (MACE↓24%) | Eikelboom NEJM 2017 (PMID:28844192) |
+| COMPASS MALE reduction | HR 0.54 (MALE↓46%) | Anand Circulation 2018 (PMID:29129742) |
+| COMPASS amputation reduction | HR 0.33 (amputation↓67%) | COMPASS PAD 2018 |
+| CASTLE cilostazol MWD improvement | +40% (PFWD +40%) | Dawson CASTLE 2000 (PMID:11063952) |
+| Clopidogrel AM EC50 (P2Y12) | ~6 ng/mL | Kazui 2010 (PMID:19812348) |
+| Rivaroxaban PK: CL / Vc | 4.8 L/h / 47 L | Kubitza 2005 (PMID:16328038) |
+| Cilostazol PDE3 IC50 | ~350 ng/mL | Bramer 1999 (PMID:10690580) |
+| Atorvastatin LDL-C reduction | ~40–55% (40 mg QD) | Lins 2003 (PMID:13680187) |
+| Statin hs-CRP reduction | ~37% | Ridker JUPITER 2008 (PMID:18997196) |
+| 5-year MACE rate (PAD, no Rx) | ~21% | REACH Registry 2007 (PMID:17563020) |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`pad_qsp_model.dot`](peripheral-arterial-disease/pad_qsp_model.dot) | Graphviz DOT source (12 subgraph clusters, 156 nodes, 220+ directed edges; risk factors, endothelial dysfunction/oxidative stress, atherosclerosis progression, plaque vulnerability/rupture, platelet activation/thrombosis, coagulation cascade, limb ischemia/skeletal muscle, collateral/angiogenesis, antiplatelet PK/PD, anticoagulant/vasodilator/statin PK/PD, biomarkers, clinical endpoints) |
+| [`pad_qsp_model.svg`](peripheral-arterial-disease/pad_qsp_model.svg) | Vector mechanistic map (~170 KB) |
+| [`pad_qsp_model.png`](peripheral-arterial-disease/pad_qsp_model.png) | Raster mechanistic map (150 dpi, ~1.5 MB) |
+| [`pad_mrgsolve_model.R`](peripheral-arterial-disease/pad_mrgsolve_model.R) | mrgsolve ODE model (20 state variables); Clopidogrel 3-cmt prodrug PK (CYP2C19 activation, EC50_P2Y12=6 ng/mL); Aspirin 2-cmt (COX-1 Emax=0.99); Ticagrelor 2-cmt (reversible P2Y12, Emax=0.90); Rivaroxaban 2-cmt (FXa IC50=50 ng/mL); Cilostazol 2-cmt (PDE3 IC50=350 ng/mL, Emax_walk=0.82); Atorvastatin 2-cmt (HMG-CoA IC50=2 ng/mL, Emax=0.55); 9 PD ODEs (platelet aggregation, thrombin index, LDL-C, ABI, walking distance, collateral index, endothelial function, plaque volume, hs-CRP); 7 treatment scenarios (Untreated/ASA/Clopi/DAPT/COMPASS/Cilo+ASA/Optimal); 8 figures; dose-response (rivaroxaban dose vs MACE risk); sensitivity analysis (5-parameter tornado); calibrated to CAPRIE/COMPASS/CASTLE/EUCLID/REACH |
+| [`pad_shiny_app.R`](peripheral-arterial-disease/pad_shiny_app.R) | 6-tab Shiny dashboard (shinydashboard + plotly + DT + deSolve); Patient Profile (risk factors, disease staging, treatment selection, clinical trial reference table, value boxes) · Drug PK (CYP2C19-status-adjusted clopidogrel AM, rivaroxaban 2.5 mg BID, cilostazol 100 mg BID, atorvastatin PK profiles; target engagement plot; MoA DT table) · PD Biomarkers (platelet aggregation, thrombin generation, LDL-C, hs-CRP, endothelial FMD, collateral index — all reactive plotly) · Clinical Endpoints (ABI trajectory with CLI threshold, walking distance, MACE risk index, MALE risk index, Rutherford area chart) · Scenario Comparison (7 scenarios, user-selectable endpoint, head-to-head plotly + 12-month summary DT table) · Risk Stratification (Rutherford/MACE/MALE value boxes, radar chart, risk trend, plaque progression, Fontaine staging table) |
+| [`pad_references.md`](peripheral-arterial-disease/pad_references.md) | 55 curated PubMed-linked references (12 sections): Epidemiology/natural history · Atherosclerosis/endothelial dysfunction · Skeletal muscle ischemia · Platelet biology/coagulation · Antiplatelet trials (CAPRIE/CHARISMA/EUCLID) · Anticoagulation trials (COMPASS) · Cilostazol trials (CASTLE) · Statin PK/PD · Biomarkers/diagnosis · Collateral/angiogenesis · QSP/PK modeling · Guidelines (ESC 2017/AHA-ACC 2016/SVS 2019) |
