@@ -124,6 +124,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-16 | [**Myasthenia Gravis**](#myasthenia-gravis-mg) | 자가면역질환 / 신경근육 | Anti-AChR IgG (85%) → NMJ: Ab crosslinking (AChR internalization↑) + Classical complement → MAC (C5b-9) → junctional fold loss → AChR density↓ → NMJ safety factor↓ → EPP subthreshold → muscle weakness; Anti-MuSK (5–8%) disrupts AChR clustering; FcRn recycles pathogenic IgG; Pyridostigmine (AChEI, AChE IC50~10nM) / Prednisolone + AZA/MMF / Eculizumab (REGAIN: −4.2 QMG) / Ravulizumab (CHAMPION-MG) / Zilucoplan (RAISE) / Efgartigimod (ADAPT: ~75% IgG↓) / Rituximab (MuSK-MG) / Thymectomy (MGTX) | [![MG](myasthenia-gravis/mg_qsp_model.png)](myasthenia-gravis/mg_qsp_model.svg) | [R](myasthenia-gravis/mg_mrgsolve_model.R) | [refs](myasthenia-gravis/mg_references.md) | [Shiny](myasthenia-gravis/mg_shiny_app.R) |
 | 2026-06-16 | [**Osteoporosis**](#osteoporosis) | 만성질환 / 골대사 | Osteoclast/osteoblast coupling dysregulation: RANK/RANKL/OPG axis imbalance → bone resorption > formation → BMD↓; estrogen deficiency (↑T-bet/Th17/IL-17/RANKL), glucocorticoid (Wnt↓/GR-mediated osteoblast apoptosis), aging (FGF-23↑/IGF-1↓/sclerostin↑); Bisphosphonate (APPase inhibition/FPPS) + Denosumab (anti-RANKL mAb; FREEDOM) + Romosozumab (anti-sclerostin; ARCH) + Teriparatide (PTH1R; NEER) | [![OP](osteoporosis/op_qsp_model.png)](osteoporosis/op_qsp_model.svg) | [R](osteoporosis/op_mrgsolve_model.R) | [refs](osteoporosis/op_references.md) | [Shiny](osteoporosis/op_shiny_app.R) |
 | 2026-06-17 | [**Primary Biliary Cholangitis**](#primary-biliary-cholangitis-pbc) | 자가면역질환 / 간·담도 | AMA (anti-PDC-E2, ≥95% sens) → pDC/TLR9 → IFN-α → Th1/CTL → biliary epithelial cell (BEC) apoptosis + senescence (SASP) → ductopenia; Glutathione defect (GSH↓ in BEC) → apotope persistence; FXR/TGR5/FGF19 axis → CYP7A1↓/BSEP↑; Hydrophobic BA toxicity → NLRP3 → HSC activation → TGF-β1 → fibrosis; UDCA (SOC, BSEP↑/EHC) + OCA (FXR, POISE: ALP↓38%) + Elafibranor (PPARα/δ, ELATIVE 2024: 51% norm) + Seladelpar (PPARδ, RESPONSE 2024: 25% norm) + Bezafibrate (BEZURSO: 67% norm) | [![PBC](primary-biliary-cholangitis/pbc_qsp_model.png)](primary-biliary-cholangitis/pbc_qsp_model.svg) | [R](primary-biliary-cholangitis/pbc_mrgsolve_model.R) | [refs](primary-biliary-cholangitis/pbc_references.md) | [Shiny](primary-biliary-cholangitis/pbc_shiny_app.R) |
+| 2026-06-17 | [**Hypertrophic Cardiomyopathy**](#hypertrophic-cardiomyopathy-hcm) | 만성질환 / 심혈관 | Sarcomere gene mutations (MYH7/MYBPC3 ~80%) → ↑DRX myosin fraction → Duty ratio↑ → Hypercontractility + Venturi-SAM → LVOT obstruction; Calcineurin-NFAT + ERK → asymmetric LVH (IVS↑↑); TGF-β1/SMAD → interstitial fibrosis (ECV↑, LGE); Ca²⁺ mishandling (RyR2 leak→DADs) + scar substrate → VT/VF → SCD; AF (LA dilation/pressure); Mavacamten (MYK-461, EXPLORER-HCM: LVOT↓36mmHg) + Aficamten (SEQUOIA-HCM: LVOT↓36mmHg) + Beta-blocker (HR/contractility↓) + Disopyramide (SAM↓) + SRT (Myectomy/ASA); CYP2C19-guided dosing | [![HCM](hypertrophic-cardiomyopathy/hcm_qsp_model.png)](hypertrophic-cardiomyopathy/hcm_qsp_model.svg) | [R](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) | [refs](hypertrophic-cardiomyopathy/hcm_references.md) | [Shiny](hypertrophic-cardiomyopathy/hcm_shiny_app.R) |
 
 
 ---
@@ -1420,3 +1421,108 @@ Portal hypertension · Cirrhosis · HCC (>15× risk)
 | [`pbc_references.md`](primary-biliary-cholangitis/pbc_references.md) | 57 curated references (11 sections); POISE/ELATIVE/RESPONSE/BEZURSO pivotal trials |
 | [`pbc_mrgsolve_model.R`](primary-biliary-cholangitis/pbc_mrgsolve_model.R) | 20-state mrgsolve ODE; 7 treatment scenarios; FXR/PPAR/FGF19/fibrosis axis |
 | [`pbc_shiny_app.R`](primary-biliary-cholangitis/pbc_shiny_app.R) | 6-tab shinydashboard (plotly, DT); patient parameter sliders; scenario comparison |
+
+---
+
+## Hypertrophic Cardiomyopathy (HCM)
+
+> **Category:** 만성질환 / 심혈관 · Chronic Disease / Cardiovascular
+> **Directory:** [`hypertrophic-cardiomyopathy/`](hypertrophic-cardiomyopathy/)
+> **Date added:** 2026-06-17
+
+### Disease Overview
+
+Hypertrophic cardiomyopathy (HCM) is the most prevalent inherited cardiac disease (~1:500 globally), caused primarily by pathogenic variants in sarcomere protein genes — most commonly **MYH7** (β-myosin heavy chain) and **MYBPC3** (cardiac myosin-binding protein C), together accounting for ~80% of genotype-positive cases. The hallmark pathology is unexplained left ventricular hypertrophy with non-dilated ventricle, typically asymmetric septal hypertrophy (ASH).
+
+### Mechanistic Map
+
+[![HCM QSP Model](hypertrophic-cardiomyopathy/hcm_qsp_model.png)](hypertrophic-cardiomyopathy/hcm_qsp_model.svg)
+
+*Click image to open the full-resolution SVG. 200+ nodes, 12 subgraph clusters.*
+
+### Pathophysiology Summary
+
+```
+Sarcomere Gene Mutations (MYH7/MYBPC3/TNNT2/TNNI3/TPM1/MYL2)
+         ↓
+↓ SRX fraction (MYBPC3 stabilizes SRX) + ↑ DRX fraction
+         ↓
+↑ Duty Ratio (myosin heads in power stroke)
+    → Hypercontractility → Venturi effect → SAM → LVOT obstruction
+    → ↑ ATP hydrolysis / MVO₂ → Microvascular ischemia
+         ↓
+Calcineurin-NFAT + CaMKII/HDAC4/MEF2 + ERK1/2 (mechano-signaling)
+         ↓
+Fetal gene reactivation → Asymmetric LVH (IVS↑↑, LV mass↑)
+         ↓
+TGF-β1/SMAD2/3 → Fibroblast→Myofibroblast → Collagen I/III↑
+         ↓
+Interstitial fibrosis (ECV↑) + Replacement fibrosis (LGE+)
+         ↓
+↓ LV compliance → LVEDP↑ → LA pressure↑ → AF (25–30% lifetime)
+         ↓
+RyR2 diastolic leak (DADs) + Myocyte disarray (reentry) + Scar substrate
+         ↓
+VT → VF → Sudden Cardiac Death (SCD, 0.5–1%/yr; ≥6% 5-yr = ICD)
+```
+
+### Drug Mechanisms Modeled
+
+| Drug | Class | Mechanism | Key Trial | Primary Effect |
+|------|-------|-----------|-----------|:-------------:|
+| **Mavacamten** 2.5–15 mg QD | Cardiac myosin inhibitor | Shifts myosin from DRX → SRX state (stabilizes super-relaxed); ↓ duty ratio; ↓ ATPase activity; CYP2C19-metabolized | EXPLORER-HCM (NEJM 2020) | LVOT ↓36 mmHg |
+| **Aficamten** | Next-gen cardiac myosin inhibitor | Competitive cardiac myosin ATPase inhibitor; shorter t½ (~7h vs 6–9d); more titratable | SEQUOIA-HCM (Lancet 2024) | LVOT ↓36 mmHg |
+| **Metoprolol / Bisoprolol** | β₁-Blocker | ↓ HR → ↓ dynamic LVOT obstruction + ↓ contractility; ↓ Ca²⁺ leak (PKA/PLB pathway) | Empirical use (no RCT) | HR↓, symptom↓ |
+| **Verapamil** | Non-DHP CCB | ICaL blockade → HR↓ + contractility↓ + LVOT gradient↓ | Small RCTs | Symptom↓ |
+| **Disopyramide** | Class Ia antiarrhythmic | Na⁺ channel blockade → ↓ SAM → ↓ LVOT gradient; negative inotrope | Sherrid 2005 (JACC) | LVOT ↓40% |
+| **Furosemide/Torsemide** | Loop diuretic | Volume reduction → ↓ LVEDP → ↓ LA pressure → ↓ congestion | Supportive | Symptom↓ |
+| **Surgical Myectomy / ASA** | Septal Reduction Therapy (SRT) | Direct removal/ablation of obstructing septum → LVOT↓↓↓ | Ommen 2005 (JACC) | LVOT ↓↓↓ |
+| **NOAC / Warfarin** | Anticoagulation | Thrombin/FXa inhibition → stroke prevention in AF | ARISTOTLE, RE-LY | Stroke risk↓ |
+
+### ODE Model Architecture (18 State Variables)
+
+| Compartment Group | Variables | Biology |
+|-------------------|-----------|---------|
+| Mavacamten PK (3) | A_gut_m, A_c_m, A_p_m | 3-compartment PK; CYP2C19 EM/PM/UM adjustment |
+| Beta-blocker PK (1) | A_bb | 1-compartment; metoprolol equivalents |
+| Calcium dynamics (2) | Ca_cyt, Ca_SR | Cytosolic Ca²⁺ (nM); SR Ca²⁺ load (μM) |
+| Signaling (3) | Calcineurin, NFAT_nuc, ERK_act | Calcineurin-NFAT hypertrophy axis; ERK1/2 stress |
+| Structural remodeling (4) | IVS, LVmass_rel, TGFb1, Collagen | IVS (mm); LV mass (relative); fibrosis drivers |
+| Hemodynamics (3) | LVOT, LVEDP, HR_state | Key clinical hemodynamic endpoints |
+| Biomarkers (2) | NT_proBNP, TroponinI | Wall stress biomarker; myocardial injury |
+| AF risk (1) | AF_hazard | Cumulative AF incidence hazard |
+
+### Treatment Scenarios (7)
+
+| Scenario | Regimen | Key Effect at 52 Weeks |
+|----------|---------|------------------------|
+| S1 | Untreated HCM | Progressive LVOT↑, NT-proBNP↑, IVS↑ |
+| S2 | Mavacamten 5 mg QD (CYP2C19 EM) | LVOT ↓~18 mmHg, NT-proBNP ↓~35%, NYHA improved |
+| S3 | Mavacamten 10 mg QD (EM) | LVOT ↓~26 mmHg, NT-proBNP ↓~50% |
+| S4 | Mavacamten 2.5 mg QD (CYP2C19 PM) | Similar exposure to 10mg EM (↑exposure due to ↓CL) |
+| S5 | Beta-blocker 200 mg QD (metoprolol) | HR↓~28%, LVOT ↓~12 mmHg (rate-dependent) |
+| S6 | Mavacamten 5 mg + BB 100 mg | Additive: LVOT ↓~22 mmHg, HR↓, symptom improvement |
+| S7 | Post-SRT (Myectomy, IVS reset=11mm) | LVOT normalises (<10 mmHg), long-term fibrosis persists |
+
+### Shiny Dashboard (7 Interactive Tabs)
+
+| Tab | Content |
+|-----|---------|
+| ① Patient Profile | Patient demographics, genotype, HCM phenotype, baseline hemodynamic parameters; mechanistic map thumbnail |
+| ② Drug PK | Mavacamten/BB plasma concentration-time curves; CYP2C19 genotype comparison (EM/PM/UM); PD effect (duty ratio suppression) |
+| ③ Cardiac Mechanics | LVOT gradient, LVEDP, LVEF, cardiac output, HR — all over simulation period; 4 real-time value boxes |
+| ④ Hypertrophy & Fibrosis | IVS thickness, collagen content, TGF-β1, NFAT nuclear fraction, estimated CMR ECV (%) |
+| ⑤ Clinical Endpoints | NT-proBNP, Troponin I, NYHA class, peak VO₂; monthly results datatable |
+| ⑥ Scenario Comparison | 7-scenario head-to-head comparison; primary outcome selector; 52-week summary table |
+| ⑦ Risk Assessment | HCM Risk-SCD calculator (O'Mahony 2014 formula); AF cumulative hazard; ICD indication tracker; risk factor contribution chart |
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`hcm_qsp_model.dot`](hypertrophic-cardiomyopathy/hcm_qsp_model.dot) | Graphviz DOT source (200+ nodes, 12 clusters, fdp layout) |
+| [`hcm_qsp_model.svg`](hypertrophic-cardiomyopathy/hcm_qsp_model.svg) | Vector mechanistic map |
+| [`hcm_qsp_model.png`](hypertrophic-cardiomyopathy/hcm_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`hcm_references.md`](hypertrophic-cardiomyopathy/hcm_references.md) | 56 curated references (13 sections); EXPLORER-HCM/SEQUOIA-HCM/VALOR-HCM pivotal trials |
+| [`hcm_mrgsolve_model.R`](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) | 18-state mrgsolve ODE; 7 treatment scenarios; CYP2C19 PGx; mavacamten PK/PD calibrated to EXPLORER-HCM |
+| [`hcm_shiny_app.R`](hypertrophic-cardiomyopathy/hcm_shiny_app.R) | 7-tab shinydashboard; deSolve ODE engine; HCM Risk-SCD calculator; scenario comparison |
