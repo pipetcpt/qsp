@@ -128,6 +128,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Graves' Disease**](#graves-disease) | 자가면역질환 / 내분비 | TRAb (TSAb) constitutively activates TSHR → cAMP/PKA → T3/T4 hypersecretion; HPT negative feedback disrupted; B-cell germinal center (CD40/IL-4) → TSAb/TBAb/TBII; Wolff–Chaikoff/escape; orbital fibroblast (TSHR+IGF-1R) → HA synthesis + adipogenesis → GO; MMI/PTU (TPO inhibition) + ¹³¹I (β-radiation ablation) + Propranolol (β1-blocker/D1↓) + Rituximab (B-cell depletion) + Teprotumumab (IGF-1R, OPTIC trial) | [![GD](graves-disease/gd_qsp_model.png)](graves-disease/gd_qsp_model.svg) | [R](graves-disease/gd_mrgsolve_model.R) | [refs](graves-disease/gd_references.md) | [Shiny](graves-disease/gd_shiny_app.R) |
 | 2026-06-17 | [**Idiopathic Pulmonary Fibrosis**](#idiopathic-pulmonary-fibrosis-ipf) | 만성질환 / 호흡기 | Repetitive AEC-II injury (smoking/GERD/viral/MUC5B/TERT) → ER stress + ROS → senescence/apoptosis → DAMP release → TGFb1 (SMAD2/3-4 complex) + NOX4-ROS feedback → fibroblast→myofibroblast (αSMA+) → collagen I/III ↑ + TIMP↑/MMP↓ → ECM stiffness → mechanotransduction (YAP/TAZ → more TGFβ); M2 macrophage (IL-4/IL-13) amplifies TGFβ/CTGF; PDGF/FGF/VEGF drive fibrocyte recruitment; Pirfenidone (TGF-β/TNF-α/PDGF/ROS↓, ASCEND: −47.9% FVC decline) + Nintedanib (FGFR/VEGFR/PDGFRα/β TKI, INPULSIS: −50.1% FVC decline); Biomarkers: MMP-7↑, KL-6↑, Periostin↑; Endpoints: FVC%, DLCO%, 6MWD, AE-IPF | [![IPF](idiopathic-pulmonary-fibrosis/ipf_qsp_model.png)](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg) | [R](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) | [refs](idiopathic-pulmonary-fibrosis/ipf_references.md) | [Shiny](idiopathic-pulmonary-fibrosis/ipf_shiny_app.R) |
 | 2026-06-17 | [**Systemic Sclerosis (SSc)**](#systemic-sclerosis-ssc) | 자가면역질환 / 결합조직 | Autoimmunity (anti-Scl-70/ACA/RNA Pol III) + Vasculopathy (ET-1↑/NO↓/PGI₂↓/Raynaud) + Fibrosis (TGF-β/SMAD2-3 → FAct → Myo → Col1/3↑ → mRSS↑); SSc-ILD (FVC↓) + SSc-PAH (PVR↑/6MWD↓); Nintedanib (SENSCIS: −41% FVC decline) + Tocilizumab (focuSSced) + MMF (SLS II) + Bosentan (RAPIDS-2: −48% DU) + Iloprost (PGI₂ analog) | [![SSc](systemic-sclerosis/ssc_qsp_model.png)](systemic-sclerosis/ssc_qsp_model.svg) | [R](systemic-sclerosis/ssc_mrgsolve_model.R) | [refs](systemic-sclerosis/ssc_references.md) | [Shiny](systemic-sclerosis/ssc_shiny_app.R) |
+| 2026-06-17 | [**Gout**](#gout) | 만성질환 / 대사 | 혈중 요산 과다 → 단요산나트륨(MSU) 결정 침착 → NLRP3 인플라마좀(Caspase-1) → 성숙 IL-1β/IL-18 방출 → 호중구 유입 → 급성 관절염; URAT1/OAT/ABCG2 수송체 다형성; XO억제제(알로퓨리놀/옥시퓨리놀·페북소스타트) + 요산배설제(프로베네시드·레시뉴라드) + 항염증(콜히친·NSAID·코르티코이드) + 생물학제제(아나킨라·카나키누맙); 통풍 결절(tophus) 퇴행 및 신기능 보호; CONFIRMS / CLEAR 1&2 / AGREE / CARES 임상시험 보정 | [![Gout](gout/gout_qsp_model.png)](gout/gout_qsp_model.svg) | [R](gout/gout_mrgsolve_model.R) | [refs](gout/gout_references.md) | [Shiny](gout/gout_shiny_app.R) |
 
 
 ---
@@ -1724,3 +1725,110 @@ Systemic sclerosis (SSc) is a rare systemic autoimmune disease defined by three 
 | [`ssc_shiny_app.R`](systemic-sclerosis/ssc_shiny_app.R) | 6-tab Shiny dashboard (PK, fibrosis, ILD, vascular, comparison) |
 | [`ssc_references.md`](systemic-sclerosis/ssc_references.md) | 50 PubMed references (10 sections) |
 
+
+---
+
+## Gout
+
+> Directory: [`gout/`](gout/)
+
+**Date added:** 2026-06-17  
+**Category:** 만성질환 / 대사 (Chronic Disease / Metabolic)
+
+**Disease Overview:**  
+Gout is the most prevalent inflammatory arthritis worldwide, caused by chronic hyperuricemia (serum urate >6.8 mg/dL) leading to monosodium urate (MSU) crystal deposition in joints and periarticular tissues. The disease progresses through four stages: **(1) asymptomatic hyperuricemia**, **(2) acute gouty arthritis flares** (NLRP3-driven IL-1β release), **(3) intercritical gout**, and **(4) chronic tophaceous gout** (visible crystal deposits, joint destruction). Gout is strongly associated with metabolic syndrome, CKD, cardiovascular disease, and hypertension.
+
+### Key Pathophysiological Cascade
+
+```
+Dietary purines + Fructose + Endogenous synthesis
+         ↓  [Xanthine Oxidase (XO)]
+    Hypoxanthine → Xanthine → Uric Acid
+         ↓
+   Serum Urate Pool  ←→  URAT1 (reabsorption, 88%)
+                          OAT1/OAT3 (secretion)
+                          ABCG2 (gut + renal secretion)
+         ↓ [>6.8 mg/dL in synovial fluid]
+    MSU Crystal Nucleation & Growth
+         ↓ [Phagocytosis by macrophages/neutrophils]
+   NLRP3 Inflammasome Assembly (Signal 1: NF-κB; Signal 2: cathepsin B)
+         ↓ [Caspase-1 activation]
+    Pro-IL-1β → Mature IL-1β (+ IL-18, Gasdermin D/pyroptosis)
+         ↓
+   Neutrophil recruitment → NETosis → Joint inflammation
+         ↓
+    Acute Flare (pain NRS↑, swelling, warmth, CRP↑)
+         ↓ [chronic course]
+    Tophus formation → Cartilage/bone erosion
+```
+
+### Drug Mechanisms Modeled
+
+| Drug Class | Agents | Target | Clinical Evidence |
+|-----------|--------|--------|-------------------|
+| XO Inhibitors | Allopurinol (oxypurinol) | XO competitive inhibition | CONFIRMS trial (Becker 2005/2010) |
+| XO Inhibitors | Febuxostat | XO non-purine selective | CONFIRMS: 80mg →~70% sUA↓ |
+| Uricosurics | Probenecid | URAT1 blockade | Classical agent |
+| Uricosurics | Lesinurad | URAT1 + OAT4 | CLEAR 1&2: +add-on 37% target |
+| Colchicine | Low-dose colchicine | Tubulin / NLRP3 assembly | AGREE trial (Terkeltaub 2010) |
+| NSAIDs | Indomethacin | COX-1/COX-2 | Acute flare standard |
+| IL-1 biologics | Anakinra (IL-1Ra) | IL-1 receptor | Refractory flares |
+| IL-1 biologics | Canakinumab (anti-IL-1β) | Neutralizes IL-1β | CANTOS / So 2010 |
+
+### Mechanistic Map
+
+[![Gout QSP Map](gout/gout_qsp_model.png)](gout/gout_qsp_model.svg)
+
+> **13 subgraph clusters · 120+ nodes · 100+ edges**  
+> Purine Metabolism · XO-Inhibitor PK · Uricosuric PK · Renal Transport (URAT1/OAT/ABCG2) · Systemic Urate Distribution · Crystal Formation & Synovial Compartment · NLRP3 Inflammasome · Inflammatory Mediators · Cellular Response · Anti-inflammatory Drug PK · IL-1 Biologic PK · Clinical Endpoints · Comorbidities & Genetics
+
+### ODE Model Architecture (33 state variables)
+
+| Compartment | States | Key Equations |
+|-------------|--------|---------------|
+| Urate Distribution | A_UA_cent, A_UA_peri, A_UA_syn | Production (XO) − Renal CLr − Gut ABCG2 − Distribution |
+| Crystal & Tophus | A_Crystal, A_Tophus | Crystal = k_form·(sUA−sat)⁺ − k_diss − PMN clearance |
+| Inflammasome | A_IL1b, A_TNFa, A_PMN, A_Pain | NLRP3 activation → Caspase-1 → IL-1β; Neutrophil influx |
+| Disease Outcomes | A_JointDmg, A_eGFR | Linear damage accumulation; Urate-nephropathy eGFR decline |
+| Allopurinol/Oxypurinol | A_Allo_gut, A_Allo_cent, A_Oxy_cent, A_Oxy_peri | 2-cpt + metabolite; XO inhibition: I=C/(C+Ki) |
+| Febuxostat | A_Febu_gut, A_Febu_cent, A_Febu_peri | 2-cpt; Ki=1 nM (potent non-purine XO inhibitor) |
+| Probenecid | A_Prob_gut, A_Prob_cent, A_Prob_peri | 2-cpt; URAT1 IC50=5 mg/L |
+| Lesinurad | A_Lesi_gut, A_Lesi_cent | 1-cpt; URAT1/OAT4 IC50=0.1 mg/L |
+| Colchicine | A_Colch_gut, A_Colch_cent, A_Colch_peri | 2-cpt; NLRP3 assembly ⊣ Emax=85% |
+| Indomethacin | A_Indo_gut, A_Indo_cent, A_Indo_tiss | 2-cpt; COX inhibition |
+| Anakinra | A_Ana_SC, A_Ana_cent, A_Ana_peri | SC 2-cpt; IL-1Ra receptor blockade |
+| Canakinumab | A_Cana_SC, A_Cana_cent, A_Cana_peri, A_IL1b_Cana | SC TMDD; IL-1β neutralization + catabolism |
+
+### Treatment Scenarios (8)
+
+| # | Scenario | Rationale |
+|---|----------|-----------|
+| 1 | Untreated hyperuricemia | Natural history baseline |
+| 2 | Allopurinol 300 mg/day | Standard first-line ULT |
+| 3 | Febuxostat 80 mg/day | Potent XO inhibitor (non-purine) |
+| 4 | Allopurinol 300mg + Lesinurad 200mg | Dual mechanism combo (CLEAR studies) |
+| 5 | Colchicine 1.2mg + 0.6mg (low-dose) | Acute flare: AGREE regimen |
+| 6 | Indomethacin 50mg TID | Acute flare: NSAID regimen |
+| 7 | Canakinumab 150mg SC | Refractory flares / biologic |
+| 8 | Febuxostat 80mg + Colchicine prophylaxis 0.5mg/day | ULT + flare prevention |
+
+### Shiny Dashboard (7 Interactive Tabs)
+
+1. **Patient Profile** — Demographics, diet/alcohol, CKD, ABCG2 Q141K polymorphism, drug dose sliders
+2. **Serum Urate (sUA)** — sUA trajectory, target attainment, XO inhibition %, crystal burden, tophus volume
+3. **Inflammation & Pain** — IL-1β dynamics, neutrophil influx, NRS pain score, flare duration
+4. **Clinical Endpoints** — eGFR trajectory, joint damage accumulation, flare risk, outcomes table
+5. **Scenario Comparison** — Up to 5 pre-defined treatment scenarios plotted side by side
+6. **Biomarkers & Genetics** — CRP proxy, ABCG2/URAT1/GLUT9 genetics, NLRP3 pathway summary, HLA-B*58:01
+7. **References** — Pivotal trials, guidelines, CPIC pharmacogenomics
+
+### Files
+
+| File | Description |
+|------|-------------|
+| [`gout_qsp_model.dot`](gout/gout_qsp_model.dot) | Graphviz DOT source (13 clusters, 120+ nodes, 100+ edges) |
+| [`gout_qsp_model.svg`](gout/gout_qsp_model.svg) | Vector mechanistic map |
+| [`gout_qsp_model.png`](gout/gout_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`gout_mrgsolve_model.R`](gout/gout_mrgsolve_model.R) | mrgsolve ODE model (33 states) + 8 treatment scenarios + sensitivity analysis; calibrated to CONFIRMS/CLEAR/AGREE/CARES |
+| [`gout_shiny_app.R`](gout/gout_shiny_app.R) | 7-tab shinydashboard; patient profile, sUA trajectory, inflammation, endpoints, scenario comparison, biomarkers/genetics, references |
+| [`gout_references.md`](gout/gout_references.md) | 45 curated PubMed references (8 sections): pathophysiology, transport genetics, PK, clinical trials, guidelines, comorbidities, QSP |
