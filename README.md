@@ -145,6 +145,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Neuromyelitis Optica Spectrum Disorder**](#neuromyelitis-optica-spectrum-disorder-nmosd) | 자가면역질환 / 신경계 | HLA-DRB1*03:01 + EBV mimicry → Plasma cell → AQP4-IgG1 (complement-fixing) → FcRn transcytosis across BBB → AQP4-M23 OAP binding → C1q/C3 → C5 cleavage → C5b-9 MAC → Astrocyte necrosis (GFAP↓/AQP4↓) → LETM (≥3 vert seg) + Optic Neuritis + Area Postrema Synd; Secondary Glu-excitotoxicity (EAAT2↓) → oligodendrocyte death (secondary demyelination); IL-6↑/Th17↑ → neutrophil/eosinophil infiltrate (prominent in NMOSD unlike MS); Biomarkers: AQP4-IgG titer (diagnostic) + serum GFAP★ + NfL (axonal damage) + OCT-RNFL; Eculizumab Anti-C5 (PREVENT NEJM 2019: ARR↓94.2%) + Inebilizumab Anti-CD19 (N-MOmentum Lancet 2019: ARR↓77.5%) + Satralizumab Anti-IL-6R (SAkuraSky NEJM 2019: ARR↓62%) + Ublituximab Anti-CD20 (ULTIMATE I/II Lancet 2024) + Rituximab (off-label, Real-world ~80% ARR reduction) + MMF + AZA; Rescue: IV methylprednisolone + Plasma Exchange; EDSS endpoint (F:M=9:1, median untreated ARR=1.8) | [![NMOSD](neuromyelitis-optica/nmo_qsp_model.png)](neuromyelitis-optica/nmo_qsp_model.svg) | [R](neuromyelitis-optica/nmo_mrgsolve_model.R) | [refs](neuromyelitis-optica/nmo_references.md) | [Shiny](neuromyelitis-optica/shiny_app/app.R) |
 | 2026-06-17 | [**Guillain-Barré Syndrome**](#guillain-barré-syndrome-gbs) | 자가면역질환 / 말초신경 | C. jejuni/CMV/EBV/SARS-CoV-2 → LOS 분자 모방(Molecular Mimicry) → Anti-GM1/GD1a/GQ1b IgG → B세포 형질세포 분화 → 항강글리오사이드 항체 → 고전경로 보체(C1q→C3→MAC C5b-9) → 랑비에 결절(AMAN: GM1/GD1a/node binding) 또는 슈반세포(AIDP: 수초 탈락) 공격 → Calcium influx + Calpain → 축삭 손상 / 탈수초; Th1/Th17(IL-6/TNF-α↑)/Treg↓; GBS Disability Score 0-6(Hughes grade); FVC↓→호흡 부전; IVIG 2 g/kg 5일(5일형 2-구획 PK, T½~21d; van der Meché NEJM 1992: 동등효과 PE) + 혈장교환 5회(IgG 60% 제거/session) + Eculizumab C5i (Misawa Lancet Neurol 2018: pilot 7/8 improvement; ADHERE phase 3 2023); Subtypes: AIDP(90%, 유럽/북미) / AMAN(아시아/C.jejuni) / MFS(anti-GQ1b, 안근마비+실조) | [![GBS](guillain-barre-syndrome/gbs_qsp_model.png)](guillain-barre-syndrome/gbs_qsp_model.svg) | [R](guillain-barre-syndrome/gbs_mrgsolve_model.R) | [refs](guillain-barre-syndrome/gbs_references.md) | [Shiny](guillain-barre-syndrome/gbs_shiny_app.R) |
 | 2026-06-17 | [**Heart Failure with Preserved EF (HFpEF)**](#heart-failure-with-preserved-ejection-fraction-hfpef) | 만성질환 / 심혈관 | Comorbidity cascade (Obesity/HTN/T2DM/CKD) → Systemic inflammation (TNF-α/IL-6/NF-κB) → Coronary microvascular endothelial dysfunction → ↓cGMP-PKG → Titin hypophosphorylation → ↑LV passive stiffness + Myocardial fibrosis (TGF-β1/Aldo/RAAS) → ↑LVEDP/PCWP (Diastolic dysfunction) + ↓Exercise capacity; EF≥50%; Empagliflozin SGLT2i (EMPEROR-Preserved NEJM 2021: −21% HFH/CVD) + Dapagliflozin (DELIVER NEJM 2022: −18% HFH/CVD) + Sacubitril/Valsartan ARNI (PARAGON-HF NEJM 2019) + Finerenone MRA + Furosemide; 4-drug PK + 22-cmt ODE model | [![HFpEF](heart-failure-hfpef/hfpef_qsp_model.png)](heart-failure-hfpef/hfpef_qsp_model.svg) | [R](heart-failure-hfpef/hfpef_mrgsolve_model.R) | [refs](heart-failure-hfpef/hfpef_references.md) | [Shiny](heart-failure-hfpef/hfpef_shiny_app.R) |
+| 2026-06-17 | [**Granulomatosis with Polyangiitis (GPA)**](#granulomatosis-with-polyangiitis-gpa) | 자가면역질환 / ANCA 혈관염 | HLA-DPB1*04:01 + PRTN3 + S. aureus trigger → B-cell GC → Anti-PR3 ANCA (IgG, cANCA) → TNF-α/IL-8/C5a priming → FcγRIIa-mediated neutrophil activation → NETosis (NET=DNA+PR3+MPO) → Classical complement (C1q→C3→C5a) + Alternative pathway (C5a:C5aR1 feedback) → Endothelial fibrinoid necrosis → Pauci-immune crescentic GN (RPGN) + Pulmonary capillaritis (DAH) + Upper airway necrotizing granuloma; Th1/Th17 → Macrophage epithelioid transformation → Multinucleated giant cell → Necrobiotic granuloma; BVAS score endpoint; Rituximab (RAVE NEJM 2010: non-inferior to CYC) + Cyclophosphamide (CYCLOPS: IV pulse) + Prednisolone taper + Avacopan (C5aR1 blockade; ADVOCATE NEJM 2021: non-inferior + superior sustained remission) + RTX maintenance (MAINRITSAN3 NEJM 2023: 500 mg q6m: 4% vs 20% relapse); 22-CMT ODE; 5 scenarios | [![GPA](granulomatosis-with-polyangiitis/gpa_qsp_model.png)](granulomatosis-with-polyangiitis/gpa_qsp_model.svg) | [R](granulomatosis-with-polyangiitis/gpa_mrgsolve_model.R) | [refs](granulomatosis-with-polyangiitis/gpa_references.md) | [Shiny](granulomatosis-with-polyangiitis/gpa_shiny_app.R) |
 
 
 ---
@@ -2984,3 +2985,73 @@ HFpEF (~50% of all HF cases) is characterized by preserved LVEF (≥50%) with im
 | [`hfpef_mrgsolve_model.R`](heart-failure-hfpef/hfpef_mrgsolve_model.R) | mrgsolve ODE model (22 state variables); 4-drug PK: Empagliflozin 2-cpt (ka=1.5/h, CL=9.4 L/h, EC50=5 ng/mL), Sacubitrilat (NEP IC50=5 ng/mL), Valsartan (AT1R IC50=0.1 ng/mL), Finerenone (MR Ki=0.9 ng/mL), Furosemide (NKCC2 EC50=2 μg/mL); 5 treatment scenarios (Placebo, Empagliflozin, ARNI, Finerenone, Combo); virtual population n=500; dose-response analysis; calibrated to EMPEROR-Preserved, DELIVER, PARAGON-HF |
 | [`hfpef_shiny_app.R`](heart-failure-hfpef/hfpef_shiny_app.R) | 6-tab Shiny dashboard: Patient Profile & Treatment Selection · Drug PK Profiles & Target Engagement · PD Biomarkers (neurohumoral/cGMP/cardiac structure/inflammation) · Clinical Endpoints (LVEDP/NT-proBNP/eGFR/Risk Score) · 5-Scenario Comparison Table · Biomarker Panel with radar chart & dose-response |
 | [`hfpef_references.md`](heart-failure-hfpef/hfpef_references.md) | 44 curated PubMed-linked references (10 sections): Pathophysiology · RAAS/SNS/Natriuretic · cGMP-PKG · SGLT2i Trials · ARNI · MRA · Cardiorenal · Guidelines/Biomarkers · Inflammation/Adipose · QSP/PK |
+
+---
+
+### Granulomatosis with Polyangiitis (GPA)
+
+> **Added:** 2026-06-17 | **Directory:** [`granulomatosis-with-polyangiitis/`](granulomatosis-with-polyangiitis/)
+
+**Disease Overview:**
+Granulomatosis with Polyangiitis (GPA, formerly Wegener's Granulomatosis) is a rare ANCA-associated vasculitis characterized by the triad of: **(1)** necrotizing granulomatous inflammation of the upper and lower respiratory tracts, **(2)** systemic small-to-medium vessel necrotizing vasculitis, and **(3)** pauci-immune crescentic glomerulonephritis. It affects ~3/100,000 per year, peaks at age 45–65, and prior to modern immunosuppression had <20% 5-year survival. Anti-PR3 (cANCA) is positive in ~85–90% of active GPA. Without treatment, death from renal failure or respiratory compromise occurs within months; with RAVE-era rituximab + GC, 5-year survival exceeds 80%.
+
+**Key Pathogenic Mechanism:**
+- **ANCA production:** HLA-DPB1*04:01 + *PRTN3*/*SERPINA1* variants + *S. aureus* nasal carriage → aberrant B-cell activation → GC reaction → Anti-PR3 IgG plasma cells (LLPC persist in bone marrow, resistant to RTX)
+- **Neutrophil priming:** TNF-α/IL-8/C5a sub-threshold priming → surface PR3 upregulation → ANCA:PR3 cross-linking + FcγRIIa co-stimulation → full NADPH oxidase activation
+- **NETosis:** Activated neutrophils → NET formation (DNA + PR3 + MPO) → complement classical pathway re-activation (C1q) → C5a feedback → amplification loop
+- **Granuloma:** Th1/IFN-γ + macrophage → epithelioid transformation → multinucleated giant cells → **necrobiotic necrotizing granulomata** in sinuses/lung (hallmark distinguishing GPA from MPA)
+- **Organ damage:** Endothelial fibrinoid necrosis → pauci-immune RPGN (Berden class: focal/crescentic/mixed/sclerotic) + DAH (pulmonary capillaritis) + saddle-nose deformity + subglottic stenosis
+
+**Approved treatments:**
+- **Rituximab (RTX):** Anti-CD20 mAb; B-cell depletion → ↓ANCA production; RAVE (Stone NEJM 2010) and RITUXVAS (Jones NEJM 2010) showed non-inferiority to CYC for induction; MAINRITSAN3 (Charles NEJM 2023): RTX 500 mg q6m superior to q18m maintenance (4% vs 20% relapse at 24m)
+- **Cyclophosphamide (CYC):** DNA alkylation, pan-lymphocyte apoptosis; IV pulse (CYCLOPS trial) preferred over daily oral; switch to AZA/MTX for maintenance after 3–6 months
+- **Avacopan (Tavneos):** Selective oral C5aR1 antagonist (30 mg BID); ADVOCATE (Jayne NEJM 2021): non-inferior BVAS remission at 26 weeks + superior sustained remission at 52 weeks; enables GC-sparing; FDA approved 2021
+- **Glucocorticoids:** 1 mg/kg/d pred → rapid taper; avacopan now supports GC-free strategy in selected patients
+- **TMP-SMX:** Reduces *S. aureus* nasal carriage, halving relapse rate (Stegeman NEJM 1996)
+
+**QSP Model Features:**
+
+| Component | Details |
+|-----------|---------|
+| **Mechanistic Map** | 13 subgraph clusters, 130+ nodes, 200+ directed edges: Genetic/Environmental Risk · Innate Immunity (DC/macrophage/TLR/NLRP3/IL-1β) · T Cell Responses (Th1/Th17/Tfh/Treg) · B Cell Axis & Anti-PR3 ANCA (naïve/GC/memory/LLPC; BAFF/APRIL) · Neutrophil Activation & NETosis (priming/NADPH-ROS/NETosis/PAD4/degranulation) · Complement System (classical/alternative/lectin; C3/C5/C5a/MAC; Factor H) · Vascular Injury (EC activation→fibrinoid necrosis→thrombosis) · Granuloma Formation (epithelioid/giant cell/necrobiotic granuloma; IFN-γ/TNF-α) · Organ Damage ENT (nasal granuloma/sinusitis/subglottic stenosis) · Organ Damage Lung (nodule/DAH/capillaritis/FVC) · Organ Damage Kidney (pauci-immune GN/crescents/GFR/ESRD) · Drug PK/PD Induction (RTX 2-CMT+TMDD / CYC prodrug 3-CMT) · Drug PK/PD GC+Avacopan (Pred 1-CMT / Avacopan C5aR1 blockade) · Maintenance & Monitoring (RTX/AZA/MTX/TMP-SMX; BVAS/ANCA/eGFR) |
+| **ODE Model** | 22 state variables: RTX1/RTX2/RTX_bound (TMDD) · CYC_gut/c/act (prodrug) · GC_gut/c · AVA_gut/c · B_naive/B_mem/PC_LL · ANCA · C5a · N_rest/N_act/NETs · EC_injury · Gran_idx · GFR · BVAS |
+| **Treatment Scenarios** | 5 scenarios: (1) Untreated natural history · (2) RTX+GC induction + RTX maintenance (RAVE) · (3) CYC+GC induction → AZA maintenance · (4) Avacopan+RTX GC-sparing (ADVOCATE) · (5) Relapse & rituximab re-induction |
+| **Calibration** | RAVE (Stone NEJM 2010): 64% sustained remission at 18m with RTX; ADVOCATE (Jayne NEJM 2021): avacopan non-inferior at 26w + superior at 52w sustained remission; MAINRITSAN3 (Charles NEJM 2023): RTX 500 mg q6m → 4% relapse vs 20% for q18m |
+| **Shiny App (7 tabs)** | (1) Patient Profile: GPA triad overview, BVAS/eGFR/ANCA value boxes, Berden renal class · (2) Drug PK: RTX/GC/Avacopan effectiveness index + GC taper profile + drug MoA table · (3) Biomarkers: PR3-ANCA titer · B cell CD19+ · Neutrophil activation · C5a complement panel · (4) Organ Damage: eGFR trajectory (CKD staging) · EC injury index · Granuloma burden · BVAS time-series · (5) Scenario Comparison: all 5 scenarios head-to-head across 4 outcomes + summary table · (6) Clinical Endpoints: remission probability · cumulative ESRD risk · key trial results DT table · treatment decision guide · (7) Model Reference: ODE compartments · key parameters · 9 selected references |
+| **References** | 52 curated PubMed-linked papers (10 sections): Clinical Trials (RAVE/RITUXVAS/MAINRITSAN3/ADVOCATE/PEXIVAS/CYCLOPS) · ANCA Biology (HLA-DPB1/PRTN3/S.aureus) · Neutrophil/NETosis · Complement (C5a/C5aR1/avacopan) · B Cell/LLPC · Granuloma/T Cells · Renal (ANCA-GN/Berden class) · Drug PK/PD · Biomarkers (BVAS/VDI/PR3-ANCA) · Guidelines (EULAR/ACR-EULAR 2022) |
+
+### Mechanistic Map
+
+[![GPA QSP Model](granulomatosis-with-polyangiitis/gpa_qsp_model.png)](granulomatosis-with-polyangiitis/gpa_qsp_model.svg)
+
+*Click image to open full-resolution SVG. Map shows 13 subgraph clusters: genetic/environmental risk (HLA-DPB1\*04:01, PRTN3, S. aureus), innate immunity (DC/macrophage/NLRP3/IL-1β/IL-12/IL-23), T cell responses (Th1/Th17/Tfh/Treg + IFN-γ/IL-17/IL-21), B cell axis & anti-PR3 ANCA production (naïve→GC→memory→LLPC; BAFF/APRIL survival signals; CD20 rituximab target), neutrophil activation & NETosis (priming by TNF-α/IL-8/C5a; FcγRIIa/ANCA binding; ROS burst; NETosis with PAD4 citrullination; PR3/MPO/elastase/MMP-9 release), complement cascade (classical/alternative/lectin pathways; C3/C5/C5a/MAC; Factor H regulation; C5aR1 avacopan target), vascular injury & endothelial dysfunction (ICAM-1/VCAM-1; fibrinoid necrosis; thrombosis; VEGF repair), granuloma formation (epithelioid cells → multinucleated giant cells → necrobiotic granuloma; IFN-γ/TNF-α axis), organ damage ENT (nasal granuloma/sinusitis/otitis/subglottic stenosis), organ damage lung (pulmonary nodules/DAH/capillaritis), organ damage kidney (pauci-immune crescentic GN/Berden classification/GFR decline/ESRD), drug PK/PD induction (RTX 2-CMT+TMDD with ADCC/CDC; CYC 3-CMT prodrug with gonadotoxicity/hemorrhagic cystitis; TPMT pharmacogenomics), and drug PK/PD GC+maintenance+avacopan (GC:GRα transrepression/NF-κB; avacopan C5aR1 blockade; RTX/AZA/MTX maintenance; BVAS/ANCA/eGFR monitoring).*
+
+### Key Clinical & PK/PD Parameters
+
+| Parameter | Value | Source |
+|-----------|-------|---------|
+| Annual incidence (GPA) | ~3 / 100,000 | ACR/EULAR 2022 criteria |
+| PR3-ANCA positivity in active GPA | ~85–90% | Finkielman 2007 (PMID:17602939) |
+| RTX induction remission at 6m (RAVE) | 64% | Stone NEJM 2010 (PMID:20647199) |
+| CYC induction remission at 6m (RAVE) | 53% | Stone NEJM 2010 |
+| Avacopan sustained remission at 52w | 65.7% vs 54.9% (GC) | Jayne NEJM 2021 (PMID:34597417) |
+| RTX maintenance q6m relapse (MAINRITSAN3) | 4% vs 20% (q18m) | Charles NEJM 2023 (PMID:36546673) |
+| RTX CL (L/day) | 0.38 (TMDD-modulated) | Girard 2011 PK model |
+| RTX V1 / V2 (L) | 3.5 / 3.2 | 2-CMT structural model |
+| RTX t½β | ~22 days | PopPK analysis |
+| CYC activation (CYP2B6/3A4) | kmet = 1.5/day | Hepatic metabolism model |
+| GC IC50 (TNF-α suppression) | 0.08 mg/L pred | In vitro GR model |
+| Avacopan C5aR1 EC50 | 0.15 mg/L | Jones 2017 (PMID:28370302) |
+| B cell repopulation after RTX | 9–12 months median | RAVE long-term follow-up |
+| PR3-ANCA half-life (IgG) | ~21 days (kdeg=0.033/d) | IgG catabolism model |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`gpa_qsp_model.dot`](granulomatosis-with-polyangiitis/gpa_qsp_model.dot) | Graphviz DOT source (13 subgraph clusters, 130+ nodes, 200+ directed edges; genetic/environmental, innate immunity, T/B cell adaptive, neutrophil/NETosis, complement cascade, vascular injury, granuloma, ENT/lung/kidney organ damage, RTX/CYC/GC/avacopan PK/PD, maintenance/monitoring) |
+| [`gpa_qsp_model.svg`](granulomatosis-with-polyangiitis/gpa_qsp_model.svg) | Vector mechanistic map (~243 KB) |
+| [`gpa_qsp_model.png`](granulomatosis-with-polyangiitis/gpa_qsp_model.png) | Raster mechanistic map (150 dpi, ~2.7 MB) |
+| [`gpa_mrgsolve_model.R`](granulomatosis-with-polyangiitis/gpa_mrgsolve_model.R) | mrgsolve ODE model (22 state variables); RTX 2-CMT + TMDD (CD20 binding, ADCC/CDC); CYC 3-CMT prodrug (CYP activation → active metabolite alkylation); GC 1-CMT (Emax NF-κB repression, IC50=0.08 mg/L); Avacopan 1-CMT (C5aR1 EC50=0.15 mg/L); B cell 3-cmt (naïve/memory/LLPC); PR3-ANCA ODE; C5a complement; neutrophil activation/NETs; EC injury; granuloma index; GFR; BVAS; 5 treatment scenarios (untreated/RTX+GC/CYC+GC/avacopan+RTX/relapse); GFR sensitivity analysis by baseline renal function; calibrated to RAVE/RITUXVAS/ADVOCATE/MAINRITSAN3 |
+| [`gpa_shiny_app.R`](granulomatosis-with-polyangiitis/gpa_shiny_app.R) | 7-tab Shiny dashboard (shinydashboard + plotly + DT); Patient Profile with disease overview, BVAS/eGFR/ANCA valueBoxes, Berden renal classification · Drug PK (RTX/GC/avacopan effectiveness, GC taper profile, MoA table) · Biomarkers (PR3-ANCA · B cell CD19+ · neutrophil · C5a) · Organ Damage (eGFR CKD staging · EC injury · granuloma · BVAS) · 5-Scenario Comparison (all endpoints, head-to-head table) · Clinical Endpoints (remission probability · ESRD risk · RAVE/RITUXVAS/ADVOCATE/MAINRITSAN3/PEXIVAS trial DT table · treatment decision guide) · Model Reference (ODE structure · parameters · 9 key references) |
+| [`gpa_references.md`](granulomatosis-with-polyangiitis/gpa_references.md) | 52 curated PubMed-linked references (10 sections): Clinical trials (RAVE/RITUXVAS/MAINRITSAN3/ADVOCATE/CYCLOPS/PEXIVAS) · Pathogenesis/ANCA biology · Neutrophil/NETosis · Complement/avacopan · B cell/plasma cell · Granuloma/T cells · Renal/ANCA-GN · Drug PK/PD · Biomarkers/BVAS · Reviews/EULAR-ACR guidelines |
