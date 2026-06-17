@@ -138,6 +138,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Behcet's Disease**](#behcets-disease-bd) | 자가면역질환 / 혈관염 | HLA-B51(OR 5-6x)/ERAP1 + Streptococcus molecular mimicry + gut dysbiosis → Innate: Neutrophil hyperactivation (NETs/ROS/MPO) + NLRP3 inflammasome(IL-1β↑) → Adaptive: Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-17F) dominance + Treg dysfunction → Endothelial activation (ICAM-1↑/VCAM-1↑/TF↑/NO↓) → multi-organ: Oral aphthae + genital ulcers + retinal vasculitis(vision loss 25%) + skin(pseudofolliculitis/EN) + vascular thrombosis/aneurysm + neuro-Behcet; Colchicine (tubulin/NLRP3↓, YURDAKUL 2001) + Prednisolone + Adalimumab anti-TNF (ADABT) + Apremilast PDE4i (NEJM 2015/2019) + Canakinumab anti-IL-1β + Cyclophosphamide (refractory vascular/neuro); BDCAF 0-12 composite activity index | [![BD](behcet-disease/bd_qsp_model.png)](behcet-disease/bd_qsp_model.svg) | [R](behcet-disease/bd_mrgsolve_model.R) | [refs](behcet-disease/bd_references.md) | [Shiny](behcet-disease/bd_shiny_app.R) |
 | 2026-06-17 | [**Liver Cirrhosis**](#liver-cirrhosis) | 만성질환 / 간 | Chronic liver injury (EtOH/HBV/HCV/NASH) → DAMPs + Kupffer/NLRP3 → TGF-β1/Smad2/3 + PDGF-BB → HSC activation (qHSC→aHSC) → LOXL2 crosslinking → Collagen I/III ↑ / TIMP↑/MMP↓ → Fibrosis (F0→F4/METAVIR) → eNOS↓/ET-1↑/RhoA-ROCK → HVPG↑ (>10 ascites, >12 varices) → Splanchnic vasodilation → RAAS/SNS/AVP → Ascites/HypoNa; Portosystemic bypass → NH3↑ → HE (West Haven 0–IV); Renal vasoconstriction → HRS-1/2 (GFR↓, Creat↑); ACLF + HCC risk; MELD/MELD-Na/Child-Pugh scoring; Propranolol (NSBB, 2-cpt: β1/β2 → HR↓/HVPG↓20%) + Spironolactone (1-cpt: MR block → Aldo↓/Na excretion↑/Ascites↓) + Terlipressin (effect-cpt IV: V1R → splanchnic↓/HRS reversal) + Rifaximin 550mg BID (gut-lumen: microbiome/NH3↓/HE prevention); Investigational antifibrotics: FXR agonist (OCA) / Resmetirom (THRβ) / Semaglutide (GLP-1RA) / ASK1i / CCR2/CCR5i; Calibrated to Fattovich 2004 (fibrosis rate), Groszmann 2005 (HVPG threshold), Kim 2008 NEJM (MELD-Na), Bass 2010 NEJM (Rifaximin-HE) | [![LC](liver-cirrhosis/lc_qsp_model_thumb.png)](liver-cirrhosis/lc_qsp_model.svg) | [R](liver-cirrhosis/lc_mrgsolve_model.R) | [refs](liver-cirrhosis/lc_references.md) | [Shiny](liver-cirrhosis/lc_shiny_app.R) |
 | 2026-06-17 | [**Adult-Onset Still's Disease**](#adult-onset-stills-disease-aosd) | 자가면역질환 / 자가염증 | DAMP/PAMP → TLR2/4/7/9 → MyD88/NF-κB → NLRP3 inflammasome (Signal1+2) → Caspase-1 → mature IL-1β★ + IL-18★ (≫10,000 pg/mL) + Pyroptosis; Macrophage M1-activation → IL-6/TNF-α → JAK1/2-STAT3 → Hyperferritinemia (★<20% glycosylated ferritin) + CRP↑ + SAA↑; IL-18 → NK/Th1 → IFN-γ → amplify macrophage activation; MAS: NK-CTL dysfunction (Perforin↓/PRF1 mutation) + IFN-γ storm → Hemophagocytosis → Pancytopenia + Multi-organ failure (HScore); Quotidian fever >39°C + Salmon rash + Polyarthritis + Lymphadenopathy (Yamaguchi/Fautrel criteria); NSAIDs + Prednisolone + Anakinra (IL-1Ra, SC QD; CONSIDER-AOSD) + Canakinumab (anti-IL-1β, 4mg/kg q4w) + Tocilizumab (IL-6R block, 8mg/kg q2w) + Tofacitinib (JAK1/3i; refractory) + CsA/Etoposide (MAS salvage) | [![AOSD](adult-onset-stills-disease/aosd_qsp_model.png)](adult-onset-stills-disease/aosd_qsp_model.svg) | [R](adult-onset-stills-disease/aosd_mrgsolve_model.R) | [refs](adult-onset-stills-disease/aosd_references.md) | [Shiny](adult-onset-stills-disease/aosd_shiny_app.R) |
+| 2026-06-17 | [**Sarcoidosis**](#sarcoidosis) | 만성질환 / 면역·호흡기 | Unknown antigen (mycobacterial mKatG/ESAT6, Propionibacterium, organic/inorganic particles) + HLA-DRB1 susceptibility → Alveolar macrophage/DC → TLR2/4/9 → MHC-II antigen presentation → Th1 polarization (IL-12↑/IFN-γ↑) + Treg deficiency → TNF-α/IFN-γ/CCL2 → Non-caseating granuloma (epithelioid macrophage + Langhans giant cell + lymphocyte mantle); CYP27B1↑ in granuloma → 1,25-VitD3↑ → Hypercalcemia/Hypercalciuria; ACE production (biomarker); Granuloma → Scadding Stage I→II→III→IV → Pulmonary fibrosis (FVC↓/DLCO↓); Extrapulmonary: Cardiac (AV block/SCD), Neuro (cranial nerve palsy), Ocular (uveitis), Cutaneous (lupus pernio/EN), Hepatic, Hypercalcemia; Biomarkers: Serum ACE (sens 60%) + sIL-2R (sens 75%) + chitotriosidase; Prednisone (GR/NF-κB, ACE-25 Trial) + MTX steroid-sparing + AZA + HCQ (hypercalcemia/skin) + Infliximab (FIRST Trial, FVC +2.5% vs PBO) + JAKi (Ruxolitinib, investigational) | [![Sarc](sarcoidosis/sarc_qsp_model.png)](sarcoidosis/sarc_qsp_model.svg) | [R](sarcoidosis/sarc_mrgsolve_model.R) | [refs](sarcoidosis/sarc_references.md) | [Shiny](sarcoidosis/sarc_shiny_app.R) |
 
 
 ---
@@ -2522,3 +2523,76 @@ FFS score: low C4 + β₂-MG↑ + cryos + parotid enlargement
 | [`aosd_mrgsolve_model.R`](adult-onset-stills-disease/aosd_mrgsolve_model.R) | mrgsolve ODE model (20 states, 6 treatment scenarios); calibrated to CONSIDER-AOSD/Nordstrom 2012/Matsumoto 2018/Ravelli 2016 MAS criteria |
 | [`aosd_shiny_app.R`](adult-onset-stills-disease/aosd_shiny_app.R) | 8-tab shinydashboard; includes HScore calculator, MAS probability, scenario comparison, cytokine kinetics |
 | [`aosd_references.md`](adult-onset-stills-disease/aosd_references.md) | 67 curated PubMed references (11 sections): epidemiology/diagnosis, NLRP3/IL-1β/IL-18 pathophysiology, anakinra/canakinumab trials, tocilizumab, MAS/IL-18, IFN-γ, JAK-STAT/tofacitinib, biomarkers (ferritin/S100), clinical trials, guidelines, PK/PD modeling |
+
+---
+
+## Sarcoidosis
+
+> Directory: [`sarcoidosis/`](sarcoidosis/)
+
+**Mechanistic Map** (12 subgraph clusters, 101+ nodes, 168 edges):
+
+| Cluster | Coverage |
+|---------|----------|
+| Trigger / Antigen | Unknown antigen; mycobacterial antigens (mKatG, ESAT6); Propionibacterium acnes antigens; organic dust/mold; inorganic particles (beryllium, silica); vimentin self-antigen; HSP70; genetic susceptibility (HLA-DRB1, BTNL2) |
+| Innate Immune Response | Alveolar macrophage; dendritic cells (mDC/pDC); blood monocyte; TLR2/4/9; NOD2; NLRP3 inflammasome; pattern recognition; phagocytosis & antigen processing; ROS production; MHC-II expression; HLA-DRB1 restriction; M1 macrophage polarization |
+| Adaptive Immune Response | Naive CD4+ T cell; Th1 (dominant); Th17; Treg (suppressed); CD8+ T cell; B cell; plasma cell (hypergammaglobulinemia); TCR activation; CD28/CD80/CD86 costimulation; CTLA-4 checkpoint; IL-2/JAK signaling; T cell proliferation & memory; Th1/Treg imbalance |
+| Cytokine / Chemokine Network | TNF-α (key driver); IL-12 (p70/p40); IL-18; IFN-γ (Th1 signature); IL-6; IL-17A; IL-2; IL-10 (regulatory); TGF-β1 (fibrosis); CCL2/MCP-1 (macrophage recruitment); CXCL10/IP-10; CXCL9/MIG; IL-1β; IL-23 (Th17 sustaining); GM-CSF; osteopontin; VEGF |
+| Granuloma Formation & Metabolism | Epithelioid macrophage; Langhans/foreign giant cell; lymphocyte mantle; non-caseating granuloma (core node); granuloma resolution; fibroblast activation; collagen deposition; ACE production (biomarker); lysozyme production; CYP27B1 (1α-hydroxylase); calcitriol synthesis; MMP production; sIL-2R release |
+| Pulmonary System | Pulmonary infiltrates; perilymphatic nodules; mediastinal lymphadenopathy; bilateral hilar LAD (Stage I); parenchymal involvement (Stage II-III); pulmonary fibrosis (Stage IV); FVC %pred decline; DLCO %pred decline; FEV1/FVC restriction; BAL CD4/CD8 ratio (>3.5) |
+| Extrapulmonary Organs | Cardiac granuloma; arrhythmia/conduction block; complete AV block; sudden cardiac death risk; neurosarcoidosis; cranial nerve palsy (VII); leptomeningeal involvement; hepatic granuloma; elevated LFTs; anterior/posterior uveitis; erythema nodosum; lupus pernio; splenomegaly |
+| Calcium Metabolism | 25-OH-VitD3 → calcitriol elevation (CYP27B1 in granulomas); hypercalcemia (>10.5 mg/dL); hypercalciuria (>250 mg/d); nephrocalcinosis/renal stones; PTH suppression; ↑GI calcium absorption; ↑bone resorption |
+| Clinical Biomarkers | Serum ACE (sensitivity 60%, specificity 80%); sIL-2R (sensitivity 75%); serum lysozyme; CRP/ESR; LDH; serum Ca²⁺; 24h urine Ca²⁺; ferritin; chitotriosidase; CC16/Clara cell protein |
+| Drug Pharmacokinetics | Prednisone: gut→plasma→hepatic conversion→prednisolone (active, t½≈2h, two-compartment); MTX: oral→plasma (t½≈8h)→polyglutamates (cellular retention, t½≈86h); AZA: oral→6-TGN (active); HCQ: oral→plasma (t½≈50d)→lysosomal accumulation; Infliximab: IV→central (t½≈14d)→peripheral |
+| Drug PD / MoA | Prednisone: GR binding → NF-κB/AP-1 inhibition + GRE transactivation; MTX-PG: DHFR + AICAR-Tf inhibition → adenosine release → lymphocyte suppression; AZA/TGN: purine synthesis inhibition; HCQ: TLR/endosomal inhibition → IL-12/IL-1β↓; Infliximab: direct TNF-α neutralization; JAKi (Ruxolitinib): JAK1/2 → STAT1/3↓ |
+| Clinical Endpoints | Scadding Stage (0-IV); KL-6 pulmonary marker; mMRC dyspnea score; SGRQ quality of life; extrapulmonary organ score; King's Sarcoidosis QSC; spontaneous remission (~70% Stage I); chronic progressive disease (~30%); treatment response; mortality risk (respiratory failure/cardiac) |
+
+**Mechanistic Map Preview:**
+
+[![Sarcoidosis QSP Map](sarcoidosis/sarc_qsp_model.png)](sarcoidosis/sarc_qsp_model.svg)
+
+**mrgsolve ODE Model (20 compartments, 6 treatment scenarios):**
+
+| Compartment Group | States | Key Dynamics |
+|-------------------|--------|--------------|
+| Prednisone PK | PRED_GUT, PRED_C, PREDL_C, PREDL_P | Prodrug absorption (F=85%); hepatic conversion k_conv=0.89; prednisolone 2-cpt (CL=4.2 L/h, Vd=105 L); EC50=80 ng/mL for NF-κB inhibition (Emax=0.82) |
+| Methotrexate PK | MTX_GUT, MTX_C, MTX_POLY | Oral absorption ka=1.2/h; plasma CL=6 L/h; slow polyglutamate formation (k=0.04/h) → long-acting intracellular accumulation (t½≈86h); EC50=6 nmol/L |
+| Macrophage/Th1 Biology | MAC_ACT, TH1, TREG | Macrophage activation driven by granuloma milieu; Th1 expanded by IL-12; Treg suppressed in active disease; drug inhibition via Hill Emax models (Hill n=2) |
+| Cytokine Network | TNF_SIM, IFNG_SIM, IL12_SIM | Production–clearance ODEs; TNF from macrophages (k=0.3 pg/mL/AU/h); IFN-γ from Th1; IL-12 from macrophages; drug inhibition: NF-κB (pred), adenosine (MTX), TLR (HCQ), direct neutralization (IFX) |
+| Granuloma Dynamics | GRAN | Formation driven by MAC_ACT × TNF × IFN-γ product; Scadding Stage derived from GRAN: Stage I <15, Stage II 15-40, Stage III 40-70, Stage IV >70; spontaneous resolution k=0.004/h |
+| Fibrosis & Lung Function | FIBR, FVC_P | Fibrosis from granuloma burden (largely irreversible); FVC decline 0.002×fibrosis; partial recovery possible with anti-inflammatory therapy |
+| Biomarkers | ACE_BM, CALIT, SERUM_CA, SIL2R | ACE steady-state from granuloma (normal <52 U/L); calcitriol from CYP27B1 in granulomas → hypercalcemia cascade; sIL-2R from T cells + macrophages |
+
+**6 Treatment Scenarios:**
+
+| # | Scenario | Regimen | Key Clinical Reference |
+|---|----------|---------|----------------------|
+| 1 | Untreated | Natural history — progressive granulomatous disease | — |
+| 2 | Prednisone taper | 40 mg/d × 12wk → 20 mg/d × 8wk → 10 mg/d × 8wk | Gibson et al. Thorax 1996 (ACE-25 Trial) |
+| 3 | Pred + MTX | Prednisone 20 mg/d + MTX 10 mg/wk (steroid-sparing) | Vorselaars et al. Chest 2013; Lower EE 1995 |
+| 4 | Infliximab | 3 mg/kg q8wk IV (refractory pulmonary) | Baughman et al. Ann Intern Med 2006 (FIRST Trial: FVC +2.5%) |
+| 5 | HCQ | 400 mg/d (mild disease, cutaneous/hypercalcemia) | Baughman et al. Sarcoidosis 1995 |
+| 6 | Spontaneous remission | Stage I low burden; higher k_gran_res = 0.015/h | Iannuzzi et al. NEJM 2007 |
+
+**Shiny Dashboard (7 tabs):**
+
+| Tab | Content |
+|-----|---------|
+| Patient Profile | Weight, Scadding stage, disease activity, organ involvement, baseline ACE/FVC; reactive summary table |
+| Treatment Selection | Steroid / steroid-sparing / biologic / antimalarial dropdowns; taper checkbox; duration sliders; treatment schedule table |
+| PK Profiles | Prednisolone Cmax/t½ curve (first 2 weeks); MTX plasma + polyglutamate dual-axis plot; PK parameter info box |
+| Disease PD — Biomarkers | Granuloma burden; serum ACE (ULN band); sIL-2R; calcitriol (1,25-VitD3); serum calcium (hypercalcemia threshold at 10.5 mg/dL); all via Plotly |
+| Pulmonary Function | FVC %pred (significant-decline threshold at -10%); DLCO %pred; Scadding stage progression; mMRC dyspnea score |
+| Scenario Comparison | Up to 6 scenarios: granuloma burden + ACE side-by-side; final-week comparison table; color-coded response assessment (Remission/Partial/Stable/Progressive) |
+| Biomarker Correlation | Scatter: granuloma vs ACE; granuloma vs FVC; calcitriol vs serum calcium; Pearson correlation matrix |
+
+**File Inventory:**
+
+| File | Description |
+|------|-------------|
+| [`sarc_qsp_model.dot`](sarcoidosis/sarc_qsp_model.dot) | Graphviz DOT source (12 subgraph clusters, 101+ nodes, 168 directed edges; rankdir=LR; inhibitory edges: red dashed tee-arrows; drug mechanism edges: dark green bold) |
+| [`sarc_qsp_model.svg`](sarcoidosis/sarc_qsp_model.svg) | Vector mechanistic map (~190 KB) |
+| [`sarc_qsp_model.png`](sarcoidosis/sarc_qsp_model.png) | Raster mechanistic map (150 dpi, ~1.2 MB) |
+| [`sarc_mrgsolve_model.R`](sarcoidosis/sarc_mrgsolve_model.R) | mrgsolve ODE model (20 compartments, 6 treatment scenarios); calibrated to FIRST Trial (Baughman 2006), ACE-25 Trial (Gibson 1996), Vorselaars 2013; includes PK validation plots, scenario comparison, sensitivity outputs |
+| [`sarc_shiny_app.R`](sarcoidosis/sarc_shiny_app.R) | 7-tab Shiny dashboard; inline mrgsolve model via mcode(); Plotly interactive plots; DT tables; tryCatch error handling |
+| [`sarc_references.md`](sarcoidosis/sarc_references.md) | 50 curated PubMed-linked references (7 sections): pathophysiology/reviews, granuloma biology/cytokines, biomarkers, clinical trials & treatment, PK/PD modeling, calcium metabolism, outcomes/epidemiology |
