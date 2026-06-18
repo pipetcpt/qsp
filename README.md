@@ -159,6 +159,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Alopecia Areata (원형 탈모증)**](#alopecia-areata-aa) | 자가면역질환 / 피부 | HLA-DRB1*04:01 · CTLA4 · PTPN22 · ULBP3 유전 소인 + 스트레스/바이러스 유발 → 모낭 면역 특권(Immune Privilege) 소실: CD200↓ / PD-L1↓ / TGF-β↓ / MICA↑ → NKG2D 수용체 → NK/NKT 세포 활성화 → IFN-γ(선천 분비) → JAK1/JAK2-STAT1 / JAK3-STAT5 → MHC-I 발현 상승(IRF1/CIITA) → 구근부(bulb) 자기항원 노출 → CD8+ NKG2D+ CTL 모낭 침윤("벌떼 모양" peribulbar infiltrate) → Granzyme B / Perforin / Fas-FasL → 멜라노사이트 파괴 + 이형성 성장기 모발 → 조기 성장기→퇴행기 전환 강제 → 모낭 소형화 + SALT 점수↑; IL-15 → CD8+ CTL 생존 증폭; CXCL9/10/11(IFN-γ 유발) → CXCR3 → 피부 모낭으로 CTL 유인; IFN 시그니처 바이오마커(CXCL10/IP-10) 혈청 상승; 치료: Baricitinib 4 mg QD(JAK1/2 가역 억제, BRAVE-AA1: SALT50 35.9%, BRAVE-AA2: 32.6%, FDA 2022 승인) + Baricitinib 2 mg QD + Ritlecitinib 50 mg QD(JAK3/TEC 비가역 공유결합, ALLEGRO 2023, FDA 승인) + Tofacitinib 5 mg BID(JAK1/3, 적응외) + Dupilumab(IL-4Rα, 아토피 동반 시); 20-CMT ODE (PK 3개·면역세포 4개·사이토카인 3개·JAK/STAT 2개·모낭 3개·SALT/염증/NKG2DL/JAK3B/DUPIL); 5 치료 시나리오; King 2022 NEJM(BRAVE-AA1/2) · Asakawa 2023 JID(ALLEGRO) · Xing 2014 Nat Med · Mackay-Wiggan 2016 JCI Insight 보정 | [![AA](alopecia-areata/aa_qsp_model.png)](alopecia-areata/aa_qsp_model.svg) | [R](alopecia-areata/aa_mrgsolve_model.R) | [refs](alopecia-areata/aa_references.md) | [Shiny](alopecia-areata/aa_shiny_app.R) |
 | 2026-06-18 | [**Vitiligo (백반증)**](#vitiligo-백반증) | 자가면역질환 / 피부·색소 | HLA-A*02:01 · PTPN22 · CTLA4 · NLRP1 · BACH2 유전 소인 + 산화 스트레스(Catalase 결핍 → H₂O₂↑ → ROS → ER stress/DAMP) → 멜라노사이트 취약성↑ + MICA/MICB↑ → NKG2D(NK/CD8+) → IFN-γ(마스터 조절자) → JAK1/JAK2-STAT1-IRF1 → CXCL9/CXCL10(IP-10)/CXCL11 → CXCR3 → CD8+ TRM 피부 침윤(peribulbar/perilesional) → Granzyme B/Perforin/FasL → 멜라노사이트 파괴 → 탈색; 멜라노사이트 생존 경로(MITF/SCF-cKIT/α-MSH-MC1R-cAMP/Wnt3a-β-catenin) 손상; PD-L1 멜라노사이트 소실 → 면역관용 붕괴; 혈청 CXCL10(★ 질병활성도 바이오마커: 활성 ~80 pg/mL); 치료: Ruxolitinib cream 1.5% BID(JAK1/2 억제, TRuE-V1/V2: F-VASI50 49.9% vs vehicle 16.8%, FDA 2023) + Ruxolitinib cream QD + Ruxolitinib oral 10 mg BID(전신) + Afamelanotide 16 mg SC q60d(MC1R 작용 → cAMP↑ → MITF↑ → 멜라닌 합성↑) + NB-UVB 311 nm(Treg 유도·모낭 멜라노사이트 줄기세포 동원); 20-CMT mrgsolve ODE(RUXO_GUT·RUXO_C·RUXO_SK·AFAM_D·AFAM_C·MEL·NKGL·CD8E·TREG·IFNG·CXCL10·PSTAT1·MITF·MELANIN·HAIRFOL·NKGD·TREG_SKIN·INFLAM·VASI·REPIG); 5 시나리오; Rosmarin 2022 NEJM Evid(TRuE-V) · Lim 2022 JAMA Derm(Afamelanotide) · Liu 2019 JAAD(CXCL10) · Rashighi 2014 Sci TrMed(CXCL10/CXCR3) · Harris 2012 JID(IFN-γ/CD8) 보정 | [![Vitiligo](vitiligo/vit_qsp_model.png)](vitiligo/vit_qsp_model.svg) | [R](vitiligo/vit_mrgsolve_model.R) | [refs](vitiligo/vit_references.md) | [Shiny](vitiligo/vit_shiny_app.R) |
 | 2026-06-18 | [**Obesity (비만)**](#obesity-비만) | 만성질환 / 대사·심혈관 | 에너지 섭취 > 지출의 만성 불균형 → 지방 조직 비대(WAT 비대·내장 지방↑) + 에너지 조절 장애; 시상하부 회로: ARC NPY/AgRP(orexigenic) vs POMC/CART(anorexigenic) 균형 파괴 → MC4R 신호 약화 → 식욕 증가·에너지소비 감소; 장-뇌 축: L세포 GLP-1/PYY↓ · K세포 GIP↑ · 위 X/A세포 Ghrelin↑ → 식욕 항진 + 미주신경·NTS 포만감 신호 약화; 지방 조직 염증: WAT 비대 → 지방세포 저산소증/사멸 → 관상 구조(Crown-like Structure) → ATM 침윤 → M1 극화 → TNF-α/IL-6/IL-1β/MCP-1 분비 → TLR4/NF-κB/JNK1 → IRS-1 Ser307 인산화 → 골격근·간 인슐린 저항성; PPARγ/C/EBPα 억제 → 아디포넥틴↓ · 렙틴 저항성; FFA 과잉 → 간 이소성 지방 + VLDL 분비↑ + 췌장 지방독성(β세포 자멸증); 치료 PK/PD: Semaglutide 2.4 mg SC QW(GLP-1RA, ka=0.0177/h, F=89%, EC50 GLP-1R=0.016 nM, STEP1: 체중−14.9% 68주) + Tirzepatide 15 mg SC QW(이중 GIP/GLP-1RA, ka=0.0187/h, EC50 GLP-1R=0.05 nM/GIPR=0.013 nM, SURMOUNT-1: 체중−20.9% 72주) + Orlistat 120 mg TID(위장관 리파아제 공유결합 억제, 지방 흡수↓30%, XENDOS: 체중−5.7%) + Phentermine/Topiramate 15/92 mg QD(NE/DA 방출+GABA-A 증강+탄산탈수효소 억제, CONQUER: 체중−9.3%); 20-CMT deSolve/mrgsolve ODE (SEMA_GUT·SEMA_C·TIRZ_GUT·TIRZ_C·ORL_GUT·CNS_C·GLP1R_OCC·GIPR_OCC·FOOD_R·GASTRIC·GHRELIN_R·INSULIN_P·GLUCOSE_P·ADIP·BWT_C·LEPTIN_P·TRIG_P·HBA1C_C·INFLAM_I·HOMA_IR_C); 5 치료 시나리오; Wilding 2021 NEJM(STEP1) · Jastreboff 2022 NEJM(SURMOUNT-1) · Torgerson 2004 Diabetes Care(XENDOS) · Garvey 2011 Lancet(CONQUER) · Lincoff 2023 NEJM(SELECT 심혈관) 보정 | [![Obesity](obesity/ob_qsp_model.png)](obesity/ob_qsp_model.svg) | [R](obesity/ob_mrgsolve_model.R) | [refs](obesity/ob_references.md) | [Shiny](obesity/ob_shiny_app.R) |
+| 2026-06-18 | [**Acromegaly (말단비대증)**](#acromegaly-말단비대증) | 만성질환 / 내분비 | GNAS 돌연변이(~40%)·AIP·MEN1 → cAMP 항진 → PKA→CREB→GH 유전자 과발현; GH 과잉 → 간 GHR → JAK2→pSTAT5b 이합체→IGF1 전사↑; IGF-1 축(IGFBP3-ALS 3중 복합체·Free IGF-1·IGF1R→IRS/PI3K/AKT/mTOR); 전신 효과: 골막 확대(말단비대)·LVH→심근병증·수면무호흡(50-80%)·대장 용종(2-3×)·인슐린저항성·T2DM(30-56%); 치료 PK/PD: Octreotide LAR(SSTR2 IC₅₀~0.2 nM·Gi→cAMP↓·VGCC↓·GH50-70%↓·25-35% IGF-1 정상화) + Lanreotide AG(SSTR2>5·27-38%) + Pasireotide LAR(SSTR1/2/3/5·38-48%·당뇨58%↑) + Pegvisomant(GHR 경쟁적 길항→STAT5b 차단·90-95%) + Cabergoline(D2R·~30%) + 경접형동수술(미세선종85%/거대선종50%); 17-CMT mrgsolve ODE(DEPOT_SSA·CENT_SSA·PERI_SSA·CENT_PEG·PERI_PEG·GH_ADENOM·GH_PLASMA·SSTR_BOUND·GHR_FREE·GHR_BLOCKED·STAT5b_ACT·IGF1_LIVER·IGF1_PLASMA·ADENOM_VOL·LVH_IDX·GLUCOSE·ARTH_SCORE); 8 시나리오; Trainer 2000 NEJM(pegvisomant) · Colao 2014 JCEM(pasireotide vs oct) · Gatto 2015 Pituitary(SSA PK) · Katznelson 2014 JCEM(Endocrine Society) 보정 | [![Acromegaly](acromegaly/acro_qsp_model.png)](acromegaly/acro_qsp_model.svg) | [R](acromegaly/acro_mrgsolve_model.R) | [refs](acromegaly/acro_references.md) | [Shiny](acromegaly/acro_shiny_app.R) |
 
 
 ---
@@ -4141,3 +4142,76 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`ob_mrgsolve_model.R`](obesity/ob_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 treatment scenarios, dose–response analysis, calibration table) |
 | [`ob_shiny_app.R`](obesity/ob_shiny_app.R) | 6-tab interactive Shiny dashboard (bslib + plotly + DT + deSolve) |
 | [`ob_references.md`](obesity/ob_references.md) | 45 curated PubMed-linked references (10 sections) |
+
+
+---
+
+### Acromegaly (말단비대증)
+
+> Directory: [`acromegaly/`](acromegaly/)
+
+**분류:** 만성질환 / 내분비 — GH-분비 뇌하수체 선종 (Somatotropinoma)
+
+**병태생리 (Pathophysiology)**
+
+| 단계 | 기전 |
+|------|------|
+| 선종 형성 | GNAS 돌연변이(R201H/C ~40%), AIP·MEN1·PRKACA 이상 → cAMP 항진 → PKA→CREB 인산화 → GH1 유전자 과발현; Cyclin D1↑/p27↓ → 세포 주기 항진 |
+| GH 과잉 분비 | 박동성 GH 분비(울트라디안 ~3 h 주기) → 간 GHR 이합체화 → JAK2 전이인산화 → STAT5b(Y699) → 핵 전좌 → IGF1·IGFBP3·ALS 전사 |
+| IGF-1 축 | IGF1_plasma ~73% IGFBP3 결합 → ALS 3중 복합체(150 kDa, t½~15 h) · Free IGF-1 ~1% → IGF1R → IRS1/2→PI3K→AKT→mTOR + ERK1/2 |
+| 전신 효과 | 골막 확대(손발/두개골), 관절병증, 정중신경압박(수근관); LVH → 심근병증 → 부정맥(AF/VT); 상기도 연부 비대 → OSA+CSA (50-80%); 대장 선종 폴립 (2-3×); 신장 과여과(GFR↑) |
+| 대사 | GH 직접 항인슐린 효과(IRS-1 Ser 인산화) + FFA↑(HSL 활성화) → 인슐린저항성 → T2DM(30-56%); Pasireotide → GLP-1/GIP 분비↓ → 당뇨 58% |
+
+**약물 기전 (Drug Mechanisms)**
+
+| 약물 | 표적 / 기전 | IGF-1 정상화 | 주요 이상반응 |
+|------|------------|-------------|--------------|
+| Octreotide LAR 10-30 mg IM q28d | SSTR2(IC₅₀~0.2 nM)·Gi→cAMP↓·VGCC↓·GH 50-70%↓ | 25-35% | 담석, GI 불편 |
+| Lanreotide Autogel 60-120 mg SC q28d | SSTR2>5; 나노튜브 자기조립 데포 | 27-38% | 동일 |
+| Pasireotide LAR 40-60 mg IM q28d | SSTR1/2/3/5 다중 결합(SSTR5 더 강) | 38-48% | **고혈당 58%** |
+| Pegvisomant 10-30 mg SC/d | GHR 경쟁적 길항제(PEG화 GH 유사체) → STAT5b 차단 → IGF-1 90-95%↓ | 63-95% | LFT↑ 2-5% |
+| Cabergoline 0.5-3.5 mg/wk | D2R 작용→Gi→cAMP↓ (효과 제한적) | ~30% | 구역, 심장 판막증 |
+| 경접형동 수술 | 선종 직접 제거; 미세선종 85%/거대선종 50% 완치 | 수술 의존 | 뇨붕증, 뇌하수체 기능저하 |
+
+**mrgsolve ODE 모델 구조**
+
+- **구획 수:** 17개 (약물 PK 5 + 수용체 3 + GH/IGF-1 축 4 + 장기/합병증 5)
+- **CMT:** `DEPOT_SSA` · `CENT_SSA` · `PERI_SSA` · `CENT_PEG` · `PERI_PEG` · `GH_ADENOM` · `GH_PLASMA` · `SSTR_BOUND` · `GHR_FREE` · `GHR_BLOCKED` · `STAT5b_ACT` · `IGF1_LIVER` · `IGF1_PLASMA` · `ADENOM_VOL` · `LVH_IDX` · `GLUCOSE` · `ARTH_SCORE`
+- **파라미터 보정:** Gatto 2015 (SSA PK), Trainer 2000 NEJM (pegvisomant), Colao 2014 JCEM (pasireotide), Katznelson 2014 JCEM (가이드라인)
+
+**치료 시나리오 (8개)**
+
+| # | 시나리오 | 핵심 설정 |
+|---|---------|---------|
+| 1 | 미치료 (자연경과) | GH_BASE=15 ng/mL/h, 선종 성장 |
+| 2 | 수술 성공 (미세선종) | GH 70% 즉시 감소, ADENOM_VOL×0.3 |
+| 3 | Octreotide LAR 30 mg q28d | SSTR2 점유 → GH 50-70%↓ |
+| 4 | Lanreotide AG 120 mg q28d | ka 느림(나노튜브 데포) |
+| 5 | Pasireotide LAR 60 mg q28d | SSTR5↑ + PAS_GLUC=15 |
+| 6 | Pegvisomant 15 mg/d SC | GHR 길항 → IGF-1 90-95%↓ |
+| 7 | SSA + Pegvisomant 병용 | Oct 20 mg q28d + Peg 10 mg/d |
+| 8 | 수술 실패 + SSA 구제 | 수술 40% 감소 후 SSA 개시 |
+
+**Shiny 대시보드 구조 (7탭)**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 환자 특성·질환 파라미터·치료 선택; 인포박스(GH/IGF-1/LVMI/Glucose) |
+| ② Drug PK | SSA / Pegvisomant 혈중 농도-시간 곡선; PK 파라미터 표 |
+| ③ GH & IGF-1 PD | GH·IGF-1 반응; SSTR2/GHR 점유율; 생화학적 조절 달성률 |
+| ④ CV & Metabolic | LV 질량 지수 추이; 공복혈당·Pasireotide 고혈당 효과 |
+| ⑤ Scenario Comparison | 8개 시나리오 GH/IGF-1 비교 plotly; 12개월 요약표 |
+| ⑥ Biomarker Dashboard | 정규화 히트맵; 목표 달성 게이지; 관절병증 진행 |
+| ⑦ Tumor Progression | 선종 부피 logistic 성장 모델; 임상 수축률 vs 시뮬레이션 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`acro_qsp_model.dot`](acromegaly/acro_qsp_model.dot) | Graphviz DOT source (10 clusters, 120+ nodes, 150+ directed edges) |
+| [`acro_qsp_model.svg`](acromegaly/acro_qsp_model.svg) | Vector mechanistic map |
+| [`acro_qsp_model.png`](acromegaly/acro_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`acro_mrgsolve_model.R`](acromegaly/acro_mrgsolve_model.R) | mrgsolve ODE model (17 CMT, 8 treatment scenarios, dose–response, calibration) |
+| [`acro_shiny_app.R`](acromegaly/acro_shiny_app.R) | 7-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
+| [`acro_references.md`](acromegaly/acro_references.md) | 40 curated PubMed-linked references (11 sections) |
+
