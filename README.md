@@ -161,6 +161,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Obesity (비만)**](#obesity-비만) | 만성질환 / 대사·심혈관 | 에너지 섭취 > 지출의 만성 불균형 → 지방 조직 비대(WAT 비대·내장 지방↑) + 에너지 조절 장애; 시상하부 회로: ARC NPY/AgRP(orexigenic) vs POMC/CART(anorexigenic) 균형 파괴 → MC4R 신호 약화 → 식욕 증가·에너지소비 감소; 장-뇌 축: L세포 GLP-1/PYY↓ · K세포 GIP↑ · 위 X/A세포 Ghrelin↑ → 식욕 항진 + 미주신경·NTS 포만감 신호 약화; 지방 조직 염증: WAT 비대 → 지방세포 저산소증/사멸 → 관상 구조(Crown-like Structure) → ATM 침윤 → M1 극화 → TNF-α/IL-6/IL-1β/MCP-1 분비 → TLR4/NF-κB/JNK1 → IRS-1 Ser307 인산화 → 골격근·간 인슐린 저항성; PPARγ/C/EBPα 억제 → 아디포넥틴↓ · 렙틴 저항성; FFA 과잉 → 간 이소성 지방 + VLDL 분비↑ + 췌장 지방독성(β세포 자멸증); 치료 PK/PD: Semaglutide 2.4 mg SC QW(GLP-1RA, ka=0.0177/h, F=89%, EC50 GLP-1R=0.016 nM, STEP1: 체중−14.9% 68주) + Tirzepatide 15 mg SC QW(이중 GIP/GLP-1RA, ka=0.0187/h, EC50 GLP-1R=0.05 nM/GIPR=0.013 nM, SURMOUNT-1: 체중−20.9% 72주) + Orlistat 120 mg TID(위장관 리파아제 공유결합 억제, 지방 흡수↓30%, XENDOS: 체중−5.7%) + Phentermine/Topiramate 15/92 mg QD(NE/DA 방출+GABA-A 증강+탄산탈수효소 억제, CONQUER: 체중−9.3%); 20-CMT deSolve/mrgsolve ODE (SEMA_GUT·SEMA_C·TIRZ_GUT·TIRZ_C·ORL_GUT·CNS_C·GLP1R_OCC·GIPR_OCC·FOOD_R·GASTRIC·GHRELIN_R·INSULIN_P·GLUCOSE_P·ADIP·BWT_C·LEPTIN_P·TRIG_P·HBA1C_C·INFLAM_I·HOMA_IR_C); 5 치료 시나리오; Wilding 2021 NEJM(STEP1) · Jastreboff 2022 NEJM(SURMOUNT-1) · Torgerson 2004 Diabetes Care(XENDOS) · Garvey 2011 Lancet(CONQUER) · Lincoff 2023 NEJM(SELECT 심혈관) 보정 | [![Obesity](obesity/ob_qsp_model.png)](obesity/ob_qsp_model.svg) | [R](obesity/ob_mrgsolve_model.R) | [refs](obesity/ob_references.md) | [Shiny](obesity/ob_shiny_app.R) |
 | 2026-06-18 | [**Acromegaly (말단비대증)**](#acromegaly-말단비대증) | 만성질환 / 내분비 | GNAS 돌연변이(~40%)·AIP·MEN1 → cAMP 항진 → PKA→CREB→GH 유전자 과발현; GH 과잉 → 간 GHR → JAK2→pSTAT5b 이합체→IGF1 전사↑; IGF-1 축(IGFBP3-ALS 3중 복합체·Free IGF-1·IGF1R→IRS/PI3K/AKT/mTOR); 전신 효과: 골막 확대(말단비대)·LVH→심근병증·수면무호흡(50-80%)·대장 용종(2-3×)·인슐린저항성·T2DM(30-56%); 치료 PK/PD: Octreotide LAR(SSTR2 IC₅₀~0.2 nM·Gi→cAMP↓·VGCC↓·GH50-70%↓·25-35% IGF-1 정상화) + Lanreotide AG(SSTR2>5·27-38%) + Pasireotide LAR(SSTR1/2/3/5·38-48%·당뇨58%↑) + Pegvisomant(GHR 경쟁적 길항→STAT5b 차단·90-95%) + Cabergoline(D2R·~30%) + 경접형동수술(미세선종85%/거대선종50%); 17-CMT mrgsolve ODE(DEPOT_SSA·CENT_SSA·PERI_SSA·CENT_PEG·PERI_PEG·GH_ADENOM·GH_PLASMA·SSTR_BOUND·GHR_FREE·GHR_BLOCKED·STAT5b_ACT·IGF1_LIVER·IGF1_PLASMA·ADENOM_VOL·LVH_IDX·GLUCOSE·ARTH_SCORE); 8 시나리오; Trainer 2000 NEJM(pegvisomant) · Colao 2014 JCEM(pasireotide vs oct) · Gatto 2015 Pituitary(SSA PK) · Katznelson 2014 JCEM(Endocrine Society) 보정 | [![Acromegaly](acromegaly/acro_qsp_model.png)](acromegaly/acro_qsp_model.svg) | [R](acromegaly/acro_mrgsolve_model.R) | [refs](acromegaly/acro_references.md) | [Shiny](acromegaly/acro_shiny_app.R) |
 | 2026-06-18 | [**Benign Prostatic Hyperplasia (양성 전립선 비대증)**](#benign-prostatic-hyperplasia-bph) | 만성질환 / 비뇨기 | 노화+DHT(5α-reductase SRD5A2 → T→DHT) → AR 핵 전좌 → AR 표적 유전자(KGF/IGF-1/EGF/Bcl-2/Cyclin D1) → 전립선 간질·상피 증식 + 세포자사 억제 → 이행대(Transition Zone) 결절 형성 → 정적 폐색(Static Obstruction); SNS → α1A-AR(ADRA1A, 전립선 우세) → Gq/PLC → IP3 → Ca²⁺↑ → MLCK → MLC 인산화 → 평활근 수축 → 동적 폐색(Dynamic Obstruction); PDE5/cGMP 경로: eNOS/nNOS → NO → sGC → cGMP↑ → PKG → MLCP → MLC 탈인산화 → 이완 (PDE5i 표적); LUTS(Lower Urinary Tract Symptoms): IPSS 자극증상(빈뇨·야간뇨·요절박) + 폐색증상(불완전 배뇨·잔뇨·약뇨); 치료 PK/PD: Tamsulosin 0.4 mg QD(α1A/D-AR 선택 차단, Cmax~9.5 ng/mL, t½~10h, CYP2D6/3A4 대사, IC50 α1A~0.41 ng/mL → IPSS −4.2 pts/Qmax +2.2 mL/s @2yr, McConnell MTOPS 2003) + Finasteride 5 mg QD(5AR2 공유결합 억제, DHT↓70%, IC50~0.065 ng/mL, PV −25%/PSA −50% @24mo, PLESS 1996) + Dutasteride 0.5 mg QD(이중 5AR1+2 억제, t½~5wk 지방 조직 축적, DHT↓94%, PV −27%, CombAT 2010) + Tadalafil 5 mg QD(PDE5 IC50~2.8 ng/mL, cGMP↑ → 방광/전립선 평활근 이완, IPSS −5.6 pts NEPTUNE 2014) + CombAT 병용(Dutasteride+Tamsulosin, IPSS −6.2 pts > 단독요법); 20-CMT ODE model(TAMS_GUT·TAMS_C·TAMS_P·FINA_GUT·FINA_C·FINA_P·TAD_GUT·TAD_C·TAD_P·TEST_P·DHT_P·DHT_PROST·AR_ACT·PV·CGMP·ALPHA1_OCC·IPSS·QMAX·PVR·PSA·INFLAM); 6 치료 시나리오; MTOPS(McConnell 2003 NEJM)·CombAT(Roehrborn 2010 BJU Int)·NEPTUNE(Chapple 2014 Eur Urol)·PLESS(Roehrborn 1996 NEJM) 보정 | [![BPH](benign-prostatic-hyperplasia/bph_qsp_model.png)](benign-prostatic-hyperplasia/bph_qsp_model.svg) | [R](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | [refs](benign-prostatic-hyperplasia/bph_references.md) | [Shiny](benign-prostatic-hyperplasia/bph_shiny_app.R) |
+| 2026-06-18 | [**Stable Angina (안정형 협심증)**](#stable-angina-chronic-coronary-syndrome) | 만성질환 / 심혈관 | 관상동맥 죽상경화성 고정 협착(FFR<0.80) → 심근 O₂ 공급-수요 불균형(RPP>20,000) → 심근허혈 → 협심증; 내피기능부전(eNOS↓/ET-1↑/ROS↑) + 산화스트레스 → NO 감소 → 혈관확장 장애; 베타차단제(β₁차단→HR↓/RPP↓: Bisoprolol t½11h, TIBBS study) + 칼슘채널차단제(CCB, 혈관확장+후부하 감소: Amlodipine t½35–50h, CAPE study) + 라놀라진(Late I_Na 억제→Na⁺↓→Ca²⁺ 과부하↓→이완기능개선, CARISA/MARISA) + 이바브라딘(HCN/I_f 채널 차단→순수 HR감소→이완기 관류시간↑, BEAUTIFUL/SIGNIFY) + 유기질산염(ISMN BA~100%, ALDH2 경유 NO 방출→전부하↓/관상동맥확장, 내성주의: 편심적 투여) + 항혈소판(Aspirin COX-1 비가역 억제/Clopidogrel P2Y12 억제) + 스타틴(HMG-CoA 환원효소 억제→LDL-C↓30–60%→플라크 안정화 + 다면발현효과: eNOS↑/ROS↓/IL-6↓); 20-CMT mrgsolve ODE(Bisoprolol-2CMT·Amlodipine-2CMT·Ranolazine-1CMT·Ivabradine-1CMT·ISMN-1CMT+내성상태·HR/SBP/CBF상태변수·O₂불균형·허혈부담·협심증점수·운동능력·플라크); 6 치료 시나리오(무치료→베타차단제→BB+CCB→BB+CCB+라놀라진→BB+이바브라딘→BB+CCB+ISMN+스타틴); 보정: TIBBS(von Arnim 1995)·CARISA(Chaitman 2004 JAMA)·BEAUTIFUL(Fox 2008 Lancet)·SIGNIFY(Fox 2014 NEJM)·COURAGE(Boden 2007 NEJM); 이완기 관류시간-관상동맥혈류 결합 모델; RPP 허혈 역치 모델; 질산염 내성(ALDH2 불활성화) 동역학 | [![SA](stable-angina/sa_qsp_model.png)](stable-angina/sa_qsp_model.svg) | [R](stable-angina/sa_mrgsolve_model.R) | [refs](stable-angina/sa_references.md) | [Shiny](stable-angina/sa_shiny_app.R) |
 
 
 ---
@@ -4288,3 +4289,74 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`bph_mrgsolve_model.R`](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | mrgsolve ODE model (20+ CMT, 6 treatment scenarios, calibration table) |
 | [`bph_shiny_app.R`](benign-prostatic-hyperplasia/bph_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + DT + deSolve) |
 | [`bph_references.md`](benign-prostatic-hyperplasia/bph_references.md) | 46 curated PubMed-linked references (4 sections) |
+
+---
+
+## Stable Angina (Chronic Coronary Syndrome)
+
+[![Stable Angina Mechanistic Map](stable-angina/sa_qsp_model.png)](stable-angina/sa_qsp_model.svg)
+
+> *Figure: QSP mechanistic map for stable angina — 15 subgraph clusters covering coronary physiology, endothelial biology, autonomic regulation, RAAS, five drug classes (nitrates · beta-blockers · CCBs · ranolazine · ivabradine), antiplatelet/statin therapy, clinical endpoints, and biomarker monitoring.*
+
+### Disease Overview (병태생리)
+
+안정형 협심증(Stable Angina, Chronic Coronary Syndrome)은 관상동맥 죽상경화성 고정 협착으로 인해 심근 산소 공급이 수요를 충족하지 못할 때 발생하는 흉통 증후군이다. 핵심 병태생리는 다음과 같다:
+
+| 단계 | 기전 |
+|------|------|
+| 죽상경화 | ox-LDL → 대식세포 포식 → 거품세포 → 지방 핵(Necrotic Core) + 섬유성 피막; MMP-9 → 피막 분해; VSMC 이동 → 피막 안정화; IL-6/CRP 상승 |
+| 협착 생성 | 내막 비후 → 관강 단면적 감소; FFR<0.80 = 혈역학적 유의 협착; 미세혈관 저항↑ → 관상동맥 혈류 예비능(CFR)↓ |
+| 산소 수요 | 심박수(HR)·수축력·심실벽 스트레스의 함수; RPP(Rate-Pressure Product = HR×SBP) > 20,000 → 허혈 역치 초과 |
+| 내피 기능 | eNOS → NO → sGC → cGMP → PKG → 혈관 이완; ROS/O₂⁻ → NO 소거 → 내피 기능 저하; BH4 결핍 → eNOS 탈결합 |
+| 자율신경 | 운동/스트레스 → SNS → 카테콜아민 → β₁-AR → cAMP/PKA → HR↑/수축력↑; 미주신경 → HR↓ |
+| 임상 결과 | 협심증(CCS Class I-IV), ST 하강, 운동 내인성 감소(METmax), 무증상 허혈 |
+
+**Drug PK/PD (약물 기전)**
+
+| 약물 | 표적 / 기전 | HR 변화 | SBP 변화 | 허혈 지표 |
+|------|------------|---------|---------|---------|
+| Bisoprolol 5–10 mg QD | β₁-AR 차단 → HR↓·수축력↓ → RPP↓; t½ 11h; BA 85% | −15–25% | −10–15 mmHg | RPP↓ ~25% |
+| Amlodipine 5–10 mg QD | L-type Ca²⁺ 채널 → VSMC 이완 → 후부하↓ + 관상동맥 확장; t½ 35–50h | 0 (DHP) | −8–15 mmHg | CBF↑ 20–30% |
+| Ranolazine ER 500–1000 mg BID | Late I_Na 억제 → [Na⁺]ᵢ↓ → NCX → [Ca²⁺]ᵢ↓ → 이완기 이완↑; t½ 7h; BA 76% | 0 | 0 | 허혈 역치↑, 협심증 −2/wk |
+| Ivabradine 5–7.5 mg BID | SA결절 HCN/I_f 채널 차단 → 순수 HR 감소 → 이완기↑ → 관상동맥 관류 시간↑; t½ 2h; BA 40% | −10–15 bpm | 0 | 관상동맥 관류↑ |
+| ISMN 20–40 mg BID | ALDH2 매개 NO 방출 → cGMP → 전신 정맥 확장(전부하↓) + 관상동맥 확장; t½ 4–5h; BA ~100% | 반사성↑ | −5–10 mmHg | 전부하↓ → MVO₂↓ |
+
+**mrgsolve ODE 모델 구조**
+
+- **구획 수:** 22개 (PK 13 + 질산염 내성 1 + PD 상태변수 8)
+- **CMT:** `GUT_BB·CENTRAL_BB·PERIPH_BB` (Bisoprolol 2-CMT) · `GUT_CCB·CENTRAL_CCB·PERIPH_CCB` (Amlodipine 2-CMT) · `GUT_RAN·CENTRAL_RAN` · `GUT_IVA·CENTRAL_IVA` · `GUT_NIT·CENTRAL_NIT·NIT_TOL` · `HR_STATE·SBP_STATE·CBF_STATE·O2IMBAL·ISCHEMIA·ANGINA_SCORE·EX_CAP·PLAQUE`
+- **파라미터 보정:** TIBBS (von Arnim 1995), CARISA (Chaitman 2004 JAMA), MARISA (Chaitman 2004 JACC), BEAUTIFUL (Fox 2008 Lancet), SIGNIFY (Fox 2014 NEJM), COURAGE (Boden 2007 NEJM)
+- **Emax 모델:** Hill equation for all 5 drug classes; tolerance kinetics for nitrates (TOL_K1/K2 ALDH2)
+
+**치료 시나리오 (6개)**
+
+| # | 시나리오 | 핵심 설정 |
+|---|---------|---------|
+| 1 | 무치료 (Untreated) | 기저 HR 80 bpm, SBP 145 mmHg, 협착 70% |
+| 2 | Bisoprolol 5 mg QD | β₁ 차단 → HR↓15% → RPP↓ → 협심증 주당 −2 |
+| 3 | BB + Amlodipine 5 mg QD | 이중 기전: RPP↓ + CBF↑ (CAPE study) |
+| 4 | BB + CCB + Ranolazine 1000 mg BID | CARISA 기반 삼중 요법; 운동 내인성 +1.2 METs |
+| 5 | BB + Ivabradine 5 mg BID | 순수 HR 감소; 이완기 관류 시간↑; BEAUTIFUL/SIGNIFY |
+| 6 | BB + CCB + ISMN 40 mg BID + Statin | 포괄적 심혈관 요법; 질산염 편심 투여; 플라크 안정화 |
+
+**Shiny 대시보드 구조 (6탭)**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 기저 HR·SBP·협착%·연령 설정; CCS Class 실시간 분류; 가치 박스(HR/SBP/RPP/협심증) |
+| ② Drug PK | 5개 약물 혈장 농도 프로파일(plotly); PK 파라미터 표(BA/t½/Vd/대사) |
+| ③ Hemodynamics | HR·SBP 추이; RPP(허혈 역치 선); 관상동맥 혈류; O₂ 공급-수요 불균형 |
+| ④ Ischemia & Angina | 허혈 부담 지수; 협심증 에피소드(/주); 운동 내인성(METs); 질산염 내성 상태 |
+| ⑤ Scenario Comparison | 6 시나리오 RPP 비교; 정상 상태 요약표(DT, CCS 분류 포함) |
+| ⑥ Biomarkers & Risk | 2년 플라크 진행(스타틴 유무); Bisoprolol 용량-반응; 심혈관 위험 지표 표 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`sa_qsp_model.dot`](stable-angina/sa_qsp_model.dot) | Graphviz DOT source (15 clusters, 162+ nodes) |
+| [`sa_qsp_model.svg`](stable-angina/sa_qsp_model.svg) | Vector mechanistic map |
+| [`sa_qsp_model.png`](stable-angina/sa_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`sa_mrgsolve_model.R`](stable-angina/sa_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, dose-response analysis) |
+| [`sa_shiny_app.R`](stable-angina/sa_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT) |
+| [`sa_references.md`](stable-angina/sa_references.md) | 50 curated PubMed-linked references (12 sections) |
