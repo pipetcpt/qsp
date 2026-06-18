@@ -149,6 +149,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-17 | [**Peripheral Arterial Disease (PAD)**](#peripheral-arterial-disease-pad) | 만성질환 / 심혈관 | Atherosclerosis (eNOS uncoupling/oxLDL/LOX-1 → EC activation/ICAM-1/VCAM-1/MCP-1 → Monocyte → M1 Macrophage/Foam cell → Lipid core + Fibrous cap → Plaque volume↑) → MMP-1/9/13 → Cap thinning → Plaque rupture → Thrombus (P2Y12/COX-1-TXA2/PAR-1/FXa) → Blood flow↓ → ABI↓ → Claudication → CLI (Rutherford III–VI); HIF-1α/VEGF/SDF-1 → Collateral arteriogenesis + EPC mobilization; Clopidogrel (P2Y12 block, CAPRIE: RRR 23.8% PAD) + Aspirin 100 mg (COX-1/TXA2↓) + Ticagrelor (EUCLID: P2Y12 = Clopi in PAD) + Rivaroxaban 2.5 mg BID + ASA (COMPASS 2018: MACE↓28%, MALE↓46%) + Cilostazol 100 mg BID (PDE3→cAMP↑→vasodilation; CASTLE: walking +40%) + Atorvastatin (HMG-CoA→LDL↓50%, pleiotropic EC/plaque stabilization); 20-CMT ODE model; 7 treatment scenarios | [![PAD](peripheral-arterial-disease/pad_qsp_model.png)](peripheral-arterial-disease/pad_qsp_model.svg) | [R](peripheral-arterial-disease/pad_mrgsolve_model.R) | [refs](peripheral-arterial-disease/pad_references.md) | [Shiny](peripheral-arterial-disease/pad_shiny_app.R) |
 | 2026-06-18 | [**Pemphigus Vulgaris (PV)**](#pemphigus-vulgaris-pv) | 자가면역질환 / 수포성 피부 | HLA-DRB1*04:02/DQB1*05:03 + UV/약물 유발 → Dsg3 펩타이드 (EC1-EC2) APC 제시 → Th2/Tfh 편향 → GC 반응 (IL-21/IL-4/CD40L) → B세포 SHM/CSR → anti-Dsg3 IgG4 우세 분비 (SLPC+LLPC) + IGHV3-23 사용; anti-Dsg3 IgG → EC1 입체 차단 + p38 MAPK/EGFR/Src/PKCα 신호 → Dsg3 내재화 + 세포골격 붕괴 → 표피내 극세포 분리(acantholysis) → 구강 미란(Dsg3>>Dsg1) + 피부 수포(Nikolsky 양성); 보체 C1q(IgG1)/C3b/MAC + 중성구 uPA/NET → 수포 확장; Treg 결핍이 GC 반응 억제 실패 유발; PDAI(>2=질병활성)/ABSIS 엔드포인트; Rituximab anti-CD20 (RITUX3 NEJM 2017: RTX+저용량 pred > 고용량 pred, PDAI CR 89% vs 34% at 24개월) + Prednisolone (GR-α→NF-κB/AP-1/p38↓, 최대 2 mg/kg/day taper) + MMF 2g/day (IMPDH 억제→GC B세포↓) + IVIg 2g/kg (FcRn 포화→IgG 이화 4×↑) + Efgartigimod (FcRn 차단→anti-Dsg3 IgG 급격 감소; PEMPHIX phase2); 23-CMT ODE model (약물PK 10 + 면역 7 + 항체 2 + 질환 4); 6 치료 시나리오 | [![PV](pemphigus-vulgaris/pv_qsp_model.png)](pemphigus-vulgaris/pv_qsp_model.svg) | [R](pemphigus-vulgaris/pv_mrgsolve_model.R) | [refs](pemphigus-vulgaris/pv_references.md) | [Shiny](pemphigus-vulgaris/pv_shiny_app.R) |
 | 2026-06-18 | [**Antiphospholipid Syndrome (APS)**](#antiphospholipid-syndrome-aps) | 자가면역질환 / 혈전·산과 | aPL Ab (anti-β2GPI IgG/aCL/LA) → TLR4/ApoER2' → NF-κB + mTOR (EC) → TF↑/PAI-1↑/PGI₂↓/Annexin A5 displacement → Platelet activation (GPIbα/P2Y12/PAR-1/GPIIb-IIIa) + Thrombin burst (FXa/FVa/FIIa/Fibrin) → DVT/PE/Stroke/Arterial thrombosis; Complement (C1q classical/lectin/alternative → C3a/C5a/C5b-9 MAC) → Trophoblast apoptosis + Spiral artery failure → RPL/OAPS; NETs amplify; mTOR → APS nephropathy; CAPS (≥3 organs <1 wk, mortality 37-50%); Triple positivity (aCL+LA+aβ2GPI) RR ≥10×; Warfarin (VKORC1/CYP2C9 PK; INR 2–3) + LMWH (ATIII potentiation; obstetric SOC, Rai 1997) + HCQ (TLR block + aPL titer↓50%; PROMISSE) + Rivaroxaban (TRAPS 2018: inferior in triple+ APS) + ASA 100 mg (COX-1/TXA2↓) + Rituximab (anti-CD20; B-cell depletion) + Eculizumab (anti-C5; CAPS rescue); 22-CMT ODE model; 7 treatment scenarios | [![APS](antiphospholipid-syndrome/aps_qsp_model.png)](antiphospholipid-syndrome/aps_qsp_model.svg) | [R](antiphospholipid-syndrome/aps_mrgsolve_model.R) | [refs](antiphospholipid-syndrome/aps_references.md) | [Shiny](antiphospholipid-syndrome/aps_shiny_app.R) |
+| 2026-06-18 | [**Metabolic Syndrome (MetS)**](#metabolic-syndrome-mets) | 만성질환 / 대사 | 중심성 비만(VAT↑ 5–12 kg) → 내장 지방 M1 대식세포 침윤(MCP-1/TLR4/FFA) → TNF-α/IL-6/IL-1β/MCP-1↑ → IKKβ/JNK1 → IRS-1 Ser307 인산화 → PI3K-Akt 차단 → 말초 인슐린 저항(GLUT4 전위↓) + 간 인슐린 저항(FoxO1 핵 복귀→PEPCK↑→HGP↑); Resistin↑/Adiponectin↓(AdipoR1/R2) → AMPK 억제 + SREBP-1c→DNL↑→VLDL 과분비→TG↑·sdLDL↑·CETP→HDL↓; AngII-AT1R → NAD(P)H 산화효소→ROS + eNOS 탈인산화→NO↓→내피세포 기능 부전→SVR↑→MAP↑; 렙틴 저항(시상하부 NPY↑/POMC↓) → 식욕 억제 실패 → 에너지 불균형 지속; Ceramide/DAG→PKCε/θ → 골격근 IRS-1 Ser↑ → 근육 인슐린 저항; β세포 글루코독성+IL-1β 매개 아폽토시스 → HOMA-β↓ → T2DM 이행; NCEP-ATP III 기준 3/5 충족; Metformin (미토콘드리아 Complex I 억제→AMPK↑→HGP↓30%·FPG↓3mmol/L; UKPDS 34) + Semaglutide/Liraglutide (GLP-1R→cAMP↑→인슐린↑·글루카곤↓ + 시상하부 satiety→체중 −9%; LEADER/SUSTAIN-6 MACE↓) + Empagliflozin/Dapagliflozin (SGLT2 경쟁적 억제→UGE 70 g/day→HbA1c↓·체중↓3 kg·MAP↓4 mmHg; EMPA-REG HospHF↓35%+CKD 보호) + Rosuvastatin (HMG-CoA 억제→LDL↓50%·LDLr↑; CTT 메타분석) + Losartan/Enalapril (AT1R 차단/ACE 억제→AngII↓→MAP↓10 mmHg·Alb뇨↓·신장 보호; HOPE/IDNT); 22-CMT ODE model (글루코스 항상성 8 + 지질 4 + 지방조직 4 + 염증 4 + RAAS/BP 2 + AMPK 1 + PK 각 2–3); 5 치료 시나리오 + BMI 민감도 분석 | [![MetS](metabolic-syndrome/ms_qsp_model.png)](metabolic-syndrome/ms_qsp_model.svg) | [R](metabolic-syndrome/ms_mrgsolve_model.R) | [refs](metabolic-syndrome/ms_references.md) | [Shiny](metabolic-syndrome/ms_shiny_app.R) |
 
 
 ---
@@ -3293,3 +3294,82 @@ Granulomatosis with Polyangiitis (GPA, formerly Wegener's Granulomatosis) is a r
 | [`pv_mrgsolve_model.R`](pemphigus-vulgaris/pv_mrgsolve_model.R) | mrgsolve ODE model (23 state variables, 6 treatment scenarios, dose-response analysis) |
 | [`pv_shiny_app.R`](pemphigus-vulgaris/pv_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
 | [`pv_references.md`](pemphigus-vulgaris/pv_references.md) | 40 curated PubMed-linked references (10 sections) |
+
+---
+
+## Metabolic Syndrome (MetS)
+
+**디렉토리:** [`metabolic-syndrome/`](metabolic-syndrome/)
+
+**날짜:** 2026-06-18 | **분류:** 만성질환 / 대사 클러스터
+
+### 정의 및 역학
+
+대사 증후군은 **NCEP-ATP III 기준 5가지 중 3가지 이상** (중심성 비만, 고중성지방혈증, 저HDL, 고혈압, 공복혈당 장애)을 충족하는 상태로, 전 세계 성인의 20–25%가 이환되며, 제2형 당뇨병 위험을 5배, 심혈관질환 위험을 2배 증가시킵니다.
+
+### 핵심 발병기전
+
+| 축 | 핵심 경로 |
+|----|----------|
+| **VAT 팽창 → 인슐린 저항** | M1 대식세포(MCP-1/TLR4/FFA) → TNF-α/IL-6/IKKβ/JNK1 → IRS-1 Ser307 → PI3K-Akt↓ → GLUT4↓ + HGP↑ |
+| **이상지질혈증** | 간 인슐린 저항 → SREBP-1c/ChREBP → DNL↑ → VLDL과분비 → TG↑·sdLDL↑·CETP→HDL↓ |
+| **고혈압** | 비만RAAS(AngII-AT1R) + 교감신경 항진 + eNOS↓ → SVR↑ → MAP↑ |
+| **만성 염증** | NLRP3 inflammasome(FFA→IL-1β) + TNF-α/IL-6→CRP↑ → 심혈관 위험 |
+| **β세포 소진** | 글루코독성 + IL-1β 아폽토시스 → HOMA-β↓ → T2DM 이행 |
+
+### 약물 기전
+
+| 약물 | 작용 기전 | 핵심 임상 근거 |
+|------|-----------|--------------|
+| Metformin 1000 mg BID | 미토콘드리아 Complex I↓ → AMPK↑ → HGP↓30% + FPG↓3 mmol/L | UKPDS 34 (PMID:9742977) |
+| Semaglutide 1 mg SC qw | GLP-1R → cAMP↑ → 인슐린↑·글루카곤↓ + 시상하부 satiety → 체중 −9% | SUSTAIN-6 (PMID:27633186) |
+| Empagliflozin 10 mg QD | SGLT2 경쟁적 억제 → UGE 70 g/day → HbA1c↓·체중↓3 kg·MAP↓4 mmHg | EMPA-REG (PMID:26378978) |
+| Rosuvastatin 10 mg QD | HMG-CoA 억제 → Chol 합성↓ → LDLr↑ → LDL-C↓50% | CTT 메타분석 (PMID:21067804) |
+| Losartan 50 mg QD | AT1R 차단 → AngII 효과 차단 → MAP↓10 mmHg + 신장 보호 | IDNT (PMID:11565517) |
+
+### QSP 모델 구성
+
+| 구성 요소 | 세부 내용 |
+|-----------|---------|
+| **기계론적 지도** | 12개 서브그래프 클러스터, 130개 이상 노드, 200개 이상 방향 엣지: Drug PK (Metformin 2-CMT / GLP-1 RA SC / SGLT2i / Statin FPE / ARB) · Adipose Tissue & Adipokines (VAT/SAT/FFA/Leptin/Adiponectin/Resistin/Visfatin/HSL/LPL/Fat hypertrophy) · Pancreatic Islet Biology (β-cell/α-cell/Insulin/Glucagon/GLP-1e/GIP/C-peptide/Amylin) · Glucose Metabolism (GGUT/GPLAS/HGP/PEPCK/G6Pase/Rd/SGLT2 UGE/Brain/Glycogen) · Liver Hub (Hepatic IR/VLDL/ApoB/SREBP-1c/ChREBP/DNL/HMG-CoA/PCSK9/LDLr/NAFLD/ALT) · Circulating Lipids (LDL-C/HDL-C/TG/CETP/ApoA1/OxLDL/sdLDL/Lp(a)) · Insulin Signaling Cascade (IR→IRS-1→PI3K→PIP3→Akt→GLUT4/GSK3/FoxO1/mTORC1/PTEN/IRS-1 Ser) · AMPK & Energy Sensing (AMPK/LKB1/ACC/CPT1/SIRT1/PGC-1α/NRF2/ROS/UCP2) · Inflammation (TNF-α/IL-6/IL-1β/IL-10/CRP/MCP-1/M1·M2 Macrophages/NF-κB/IKKβ/JNK/NLRP3/Treg) · RAAS & BP (Renin→AngI→AngII/ACE/AT1R/AT2R/Aldo/Bradykinin/SNS/MAP/SBP/DBP/CO/SVR) · Endothelial Function & CVD Risk (eNOS/NO/ET-1/VCAM-1/PAI-1/Fibrinogen/OxLDL/IMT/CVD-risk) · Clinical Endpoints (HbA1c/HOMA-IR/HOMA-β/MetS Z-score/NCEP criteria/MACE/T2DM risk/HF risk/CKD risk) |
+| **ODE 모델** | 22개 CMT 구획: 글루코스 7 (GGUT/GPLAS/BETA/IPLAS/GLUCPLAS/GLP1E/HGP-derived) + 지질 4 (VLDLC/LDLC/HDLC/TRIGLY) + 지방조직/아디포카인 4 (VAT/SAT/LEP/ADIPON) + 염증 4 (TNFA/IL6C/IL1BC/CRPC) + RAAS/BP 3 (ANGII/MAPC/AMPKC) + 약물 PK 13 (MET 3-CMT / GLP 2-CMT / SGI 2-CMT / STA 2-CMT / ARB 2-CMT); 주요 파라미터: Metformin CL=28 L/h Vc=380 L; Semaglutide CL=0.056 L/h Vc=8 L t½=168h; Empagliflozin SGi_EC50=15 ng/mL Emax=90% TmG 감소; Rosuvastatin ST_F=20% ST_EC50=0.05 μg/mL; Losartan ARB_F=33% ARB_Emax=85% AT1R 차단; Hill 함수로 모든 PD 효과 계산 |
+| **치료 시나리오** | 5가지: (1) 무치료 — MetS 자연 경과 · (2) Metformin 1000 mg BID · (3) GLP-1 RA (Semaglutide 1 mg SC qw) + Metformin · (4) SGLT2i (Empagliflozin 10 mg QD) + Metformin · (5) 4중 치료 (Met + GLP-1 RA + Statin + ARB) |
+| **민감도 분석** | BMI 25–45 kg/m² 범위에서 HbA1c·HOMA-IR 시뮬레이션; 5가지 약물 용량-반응 분석 (10개 HbA1c·LDL·SBP 엔드포인트) |
+| **임상 보정** | Bergman minimal model (Sg=0.021, Si=4.5×10⁻⁴); UKPDS 34 Metformin 효과; SUSTAIN-6 GLP-1 RA 체중 감소; EMPA-REG UGE 70g/day + MAP −4 mmHg; CTT 메타분석 Statin LDL↓50%; NCEP-ATP III 5가지 기준 복합 지수 |
+| **Shiny 앱 (6탭)** | (1) Patient Profile: 체중/VAT/SAT 슬라이더 + NCEP-ATP III 기준 5항목 실시간 평가 표 + 바이오마커 레이더 차트 + 병태생리 요약 · (2) PK Profiles: 5가지 약물 혈중농도 시계열 (plotly interactive) + PK 파라미터 DT 표 · (3) PD Biomarkers: 글루코스/인슐린·β세포/아디포카인/염증 사이토카인/RAAS·BP/AMPK·VAT 6개 이중축 플롯 · (4) Clinical Endpoints: HbA1c/지질 패널/혈압/MetS Z-score 시계열 + 목표값 달성 여부 표 · (5) Scenario Comparison: 5가지 치료 시나리오 자동 실행 + HbA1c·LDL·SBP·VAT 비교 + 52주 요약 DT · (6) Sensitivity Analysis: BMI vs HbA1c·HOMA-IR 반응 곡선 + 약물 선택형 용량-반응 분석 |
+| **참고문헌** | 50개 PubMed 링크 논문 (10개 섹션): 정의·역학 · 인슐린 저항 · 글루코스 모델링 · 지질 대사 · 염증·NLRP3 · RAAS·고혈압·내피 기능 · AMPK·에너지 센서 · 약물 약리학 (Metformin·GLP-1 RA·SGLT2i·Statin·ARB/ACEi) · QSP·수학적 모델링 · 임상 엔드포인트·바이오마커 |
+
+### Mechanistic Map
+
+[![MetS QSP Model](metabolic-syndrome/ms_qsp_model.png)](metabolic-syndrome/ms_qsp_model.svg)
+
+*Click image to open full-resolution SVG. Map shows 12 subgraph clusters covering adipose tissue expansion (VAT/SAT/FFA/adipokine signaling), pancreatic islet biology (β-cell GSIS/GLP-1 potentiation/glucagon), glucose metabolism (HGP/PEPCK/GLUT4/SGLT2-UGE), liver metabolism hub (VLDL/SREBP-1c/DNL/HMG-CoA/PCSK9/LDLr), circulating lipids (LDL-C/HDL-C/TG/CETP/OxLDL/sdLDL), insulin signaling cascade (IR→IRS-1→PI3K→Akt→GLUT4/FoxO1/mTORC1), AMPK & energy sensing (LKB1/ACC/CPT1/SIRT1/PGC-1α/NRF2/ROS), chronic inflammation (M1 macrophages/TNF-α/IL-6/IL-1β/NLRP3/NF-κB/JNK/Treg), RAAS & blood pressure (Renin→AngI→AngII/AT1R/AT2R/Aldosterone/MAP/SBP), endothelial function (eNOS/NO/ET-1/VCAM-1/PAI-1/OxLDL/IMT/CVD-risk), CNS/neuroendocrine (hypothalamus ARC/NPY/POMC/MC4R/HPA/Cortisol), and drug PD mechanisms (Metformin-AMPK/GLP-1 RA-cAMP/SGLT2i-UGE/Statin-HMG-CoA/ARB-AT1R). Blue bold edges highlight drug target interactions.*
+
+### Key Clinical & PK/PD Parameters
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Metformin oral bioavailability | 55% | Graham 2011 (PMID:21241070) |
+| Metformin CL | 28 L/h | Graham 2011 |
+| Metformin HGP reduction (Emax) | 30% | Foretz 2014 (PMID:25456737) |
+| Semaglutide t½ | ~168 h (7 days) | SUSTAIN-6 (PMID:27633186) |
+| GLP-1 RA weight loss (Emax) | 12% body weight | SCALE trial 2015 |
+| Empagliflozin UGE | ~70 g/day | EMPA-REG (PMID:26378978) |
+| SGLT2i MAP reduction | −4 mmHg | EMPA-REG |
+| SGLT2i HospHF reduction | 35% | EMPA-REG |
+| Rosuvastatin LDL-C reduction | −50% (Emax) | CTT 2010 (PMID:21067804) |
+| ARB MAP reduction (Emax) | −10 mmHg | HOPE 2000 (PMID:10639539) |
+| MetS prevalence (global) | 20–25% adults | Kaur 2014 (PMID:24711954) |
+| 10-year CVD risk increase | ×2.0 | Gami 2007 (PMID:17258085) |
+| T2DM risk increase | ×5.0 | Lorenzo 2007 (PMID:17192326) |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`ms_qsp_model.dot`](metabolic-syndrome/ms_qsp_model.dot) | Graphviz DOT source (12 subgraph clusters, 130+ nodes, 200+ directed edges) |
+| [`ms_qsp_model.svg`](metabolic-syndrome/ms_qsp_model.svg) | Vector mechanistic map (~260 KB) |
+| [`ms_qsp_model.png`](metabolic-syndrome/ms_qsp_model.png) | Raster mechanistic map (150 dpi, ~7.4 MB) |
+| [`ms_mrgsolve_model.R`](metabolic-syndrome/ms_mrgsolve_model.R) | mrgsolve ODE model (22 CMT state variables, 5 treatment scenarios, BMI sensitivity analysis) |
+| [`ms_shiny_app.R`](metabolic-syndrome/ms_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
+| [`ms_references.md`](metabolic-syndrome/ms_references.md) | 50 curated PubMed-linked references (10 sections) |
