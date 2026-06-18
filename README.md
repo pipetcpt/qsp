@@ -153,6 +153,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Essential Hypertension (본태성 고혈압)**](#essential-hypertension) | 만성질환 / 심혈관 | RAAS 과활성(AngII-AT1R → 혈관수축+알도스테론↑+Na저류) + SNS 항진(NE→α1R/β1R→CO↑+TPR↑) + 내피기능 장애(eNOS↓→NO↓, NADPH산화효소→ROS↑) + 신장 나트륨 저류(NCC/ENaC→PV↑) + 혈관 구조 리모델링(TGF-β/MAPK→IMT↑+동맥경직↑); 22-CMT ODE model (ACEI 라미프릴 + ARB 로사르탄 + CCB 암로디핀 + BB 비소프롤롤 + HCTZ, 6 치료 시나리오, SBP/DBP/LVM/eGFR 엔드포인트; SPRINT·ESH/ESC 2018·ALLHAT·HOPE 임상 보정) | [![EH](essential-hypertension/eh_qsp_model.png)](essential-hypertension/eh_qsp_model.svg) | [R](essential-hypertension/eh_mrgsolve_model.R) | [refs](essential-hypertension/eh_references.md) | [Shiny](essential-hypertension/eh_shiny_app.R) |
 | 2026-06-18 | [**Chronic Hepatitis B (CHB)**](#chronic-hepatitis-b-chb) | 만성질환 / 간·바이러스 | HBV NTCP(SLC10A1) 수용체 침입 → 핵내 cccDNA 미니염색체 형성(t½~수십 년) → pgRNA→역전사→rcDNA→바이러스 증식; HBx 단백질→IRF3 분해→IFN-β 회피; HBsAg 과잉 SVP→T세포 탈진(PD-1/TIM-3/LAG-3↑); CTL 매개 세포용해 + IFN-γ 비세포용해 청소 경쟁; HSC 활성화→TGF-β1/Smad2-3→섬유화→HCC 위험↑; Entecavir ETV (RT 프리밍·역전사·DNA pol 3단계 억제, IC50=0.004 µM, 1년 DNA <300 cp/mL 67%) + TDF 300 mg (chain terminator, IC50=0.5 µM, 1년 DNA 76%) + Peg-IFN-α2a 180 µg QW×48wks (JAK-STAT→ISGs + NK/CTL 증폭 + cccDNA 직접 감소, HBsAg 소실 3%/yr) + GalNAc-siRNA (HBsAg >90% knockdown) + Bulevirtide NTCP 억제제; 20-CMT ODE (PK 8개 + 바이러스 5개 + 면역 3개 + 간 4개); 6 치료 시나리오; HBV DNA 역학(Neumann/Dahari 框架), Chang 2006·Marcellin 2008·Lau 2005 임상 보정 | [![CHB](chronic-hepatitis-b/chb_qsp_model.png)](chronic-hepatitis-b/chb_qsp_model.svg) | [R](chronic-hepatitis-b/chb_mrgsolve_model.R) | [refs](chronic-hepatitis-b/chb_references.md) | [Shiny](chronic-hepatitis-b/chb_shiny_app.R) |
 | 2026-06-18 | [**Celiac Disease (셀리악병)**](#celiac-disease-cd) | 자가면역질환 / 소화기 | HLA-DQ2.5/DQ8 유전 소인 + 글루텐 섭취 → 장내 부분 소화 → p31-43 gliadin → 장내 IL-15↑(선천면역) + Zonulin 방출 → 장 투과성↑ → gliadin 고유판(LP) 유입 → tTG2(TG2) 탈아미드화(Gln→Glu) → HLA-DQ2/DQ8에 고친화 결합 → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 → IEL(NK-유사) 세포독성 → 소장 융모 위축(Marsh 분류 0→3c) + 융모:크럽트 비율(V:C) 급감 → 철분/칼슘/엽산 흡수 장애 → IDA·골다공증·거적아구성 빈혈; B세포→항-tTG IgA(진단 금표준)·항-DGP IgG 자가항체; GFD(표준) + Larazotide AT-1001(Zonulin 차단, Phase III) + ZED1227(TG2 공유결합 억제제, Phase II) + AMG714(anti-IL-15 mAb, 난치성 셀리악) + TIMP-GLIA/TAK-101(나노입자 내성 유도); 21-CMT ODE model (글루텐·DGP·tTG2·IP·IL15·IEL·CD4T·IFNg·IL17·IL21·Bcell·AntiTTG·VH·CrD·AbsArea·Iron·BMD·PK 2); 6 치료 시나리오 (Shan 2002 Science, Schuppan NEJM 2021, Leffler 2015 Gastroenterology 보정) | [![CD](celiac-disease/cd_qsp_model.png)](celiac-disease/cd_qsp_model.svg) | [R](celiac-disease/cd_mrgsolve_model.R) | [refs](celiac-disease/cd_references.md) | [Shiny](celiac-disease/cd_shiny_app.R) |
+| 2026-06-18 | [**Autoimmune Hepatitis (자가면역 간염)**](#autoimmune-hepatitis-aih) | 자가면역질환 / 간 | HLA-DR3/DR4(Type 1) · HLA-DR7(Type 2) 유전 소인 + 분자 모방(HCV CYP2D6 교차반응/EBV/약물 유발 신항원) → 중추·말초 면역관용 소실 → Kupffer/DC/Hepatocyte-MHC-II → 자가항원(CYP2D6/SepSecS/F-Actin/dsDNA) → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 + FoxP3+ Treg 수·기능 저하(AIH 핵심 병태) + CD8+ CTL(Perforin/GrB/FasL) → 경계면 간염(Interface hepatitis · Rosette · Emperipolesis · 형질세포 침윤) + 자가항체 생성(ANA/ASMA/LKM-1/SLA-LP) + IgG 고감마글로불린혈증 → ALT·AST·IgG↑ → 반복 손상 시 TGF-β1/HSC 활성화 → F0→F4 간섬유화 → 문맥고혈압·간세포암·간이식; 치료: Prednisolone(GR/NF-κB 억제) + AZA(6-TGN TPMT/NUDT15 의존) · MMF(IMPDH 억제) · Budesonide(간 초회통과 >90%) · Rituximab(CD20 TMDD B세포 고갈); 22-CMT mrgsolve ODE (22 상태, 6 치료 시나리오, IAIHG 관해 기준 엔드포인트, TPMT 표현형 감도 분석); Manns 2010 NEJM · Manns 2010 Gastroenterology(Budesonide) · Zachou 2011 J Hepatol(MMF) · Burak 2013 Liver Int(RTX) 보정 | [![AIH](autoimmune-hepatitis/aih_qsp_model.png)](autoimmune-hepatitis/aih_qsp_model.svg) | [R](autoimmune-hepatitis/aih_mrgsolve_model.R) | [refs](autoimmune-hepatitis/aih_references.md) | [Shiny](autoimmune-hepatitis/aih_shiny_app.R) |
 
 
 ---
@@ -3609,3 +3610,101 @@ Celiac disease (CD) is a systemic immune-mediated disorder triggered by dietary 
 | [`cd_mrgsolve_model.R`](celiac-disease/cd_mrgsolve_model.R) | mrgsolve ODE model (21 CMT, 6 treatment scenarios, Marsh scoring, nutritional endpoints) |
 | [`cd_shiny_app.R`](celiac-disease/cd_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
 | [`cd_references.md`](celiac-disease/cd_references.md) | 50 curated PubMed-linked references (12 sections) |
+
+---
+
+## Autoimmune Hepatitis (AIH)
+
+**Date added:** 2026-06-18 | **Directory:** [`autoimmune-hepatitis/`](autoimmune-hepatitis/)
+
+[![AIH Mechanistic Map](autoimmune-hepatitis/aih_qsp_model.png)](autoimmune-hepatitis/aih_qsp_model.svg)
+
+### 병태생리 요약 (Pathophysiology)
+
+Autoimmune Hepatitis (AIH) is a chronic, immune-mediated liver disease caused by a breakdown in self-tolerance to hepatocyte autoantigens, leading to progressive interface hepatitis, autoantibody production, IgG hypergammaglobulinemia, and — if untreated — hepatic cirrhosis and liver failure. It affects approximately 10–20 per 100,000 in Western populations, predominantly women (70–80%), with a bimodal age distribution peaking in early childhood and the fifth decade.
+
+**Key pathophysiological axes modeled:**
+
+1. **Genetic Predisposition** — HLA-DR3 (DRB1\*03:01) confers susceptibility in Type 1 AIH in Northern Europeans; HLA-DR4 (DRB1\*04:01) in Japanese/South American Type 1; HLA-DR7 (DRB1\*07:01) in Type 2; Non-HLA susceptibility genes include PTPN22 (↑T cell activation), CTLA4 (↓checkpoint inhibition), STAT4 (↑Th1 polarization), IL-10 promoter variants (↓anti-inflammatory signaling), and AIRE (↓central tolerance)
+
+2. **Triggers & Loss of Tolerance** — Molecular mimicry between CYP2D6 epitopes and HCV polyprotein (Type 2 AIH), EBV EBNA-1 and SLA, drug-induced neoantigen formation (nitrofurantoin, minocycline, statins, methyldopa), and gut dysbiosis/leaky gut → portal LPS → TLR4 → Kupffer cell activation collectively drive initial immune activation
+
+3. **Antigen Presentation** — Kupffer cells, plasmacytoid DCs (pDC, IFN-α producer), and IFN-γ–upregulated MHC-II on hepatocytes present autoantigens: **Type 1**: F-actin (ASMA), SepSecS/SLA-LP, dsDNA/histones (ANA); **Type 2**: CYP2D6 (LKM-1 target), FTCD/LC-1; **Type 3**: SepSecS/SLA-LP exclusively
+
+4. **T Cell Immunopathology** — Loss of central thymic tolerance (AIRE defects) + peripheral Treg failure (numerical ↓ + functional ↓ of FoxP3+ Tregs) → unopposed autoreactive Th1 (IFN-γ, TNF-α, T-bet) and Th17 (IL-17A, IL-21, IL-23, RORγt) expansion; Tfh (BCL6, IL-21) drive B cell class switching; CD8+ CTL (perforin/GranzB + FasL/Fas) execute direct hepatocyte killing — **Treg numerical and functional deficiency is the hallmark immunological lesion of AIH**
+
+5. **B Cells & Autoantibodies** — Germinal center maturation → long-lived plasma cells → ANA, ASMA (F-actin IgG ≥1:80), anti-LKM-1, anti-SLA/LP, anti-LC-1 → IgG hypergammaglobulinemia (>2×ULN); autoantibodies form immune complexes → classical complement activation (C1q/C3/C4 consumption) → membrane attack complex → hepatocyte death amplification; BAFF/APRIL sustain B cell survival
+
+6. **Interface Hepatitis** — Hallmark histological pattern: dense periportal mononuclear infiltrate with plasma cells (diagnostic); rosette formation; emperipolesis (lymphocyte penetrating hepatocyte); piecemeal necrosis → bridging necrosis (severe/acute AIH) → massive necrosis (ALF requiring LT); ALT/AST reflect hepatocellular release; INR/bilirubin reflect synthetic function decline (MELD score)
+
+7. **Fibrosis Progression** — Chronic inflammation → TGF-β1 (Treg-derived + macrophage) → hepatic stellate cell (HSC) activation → myofibroblast differentiation (α-SMA+) → PDGF-driven proliferation → collagen I/III deposition → TIMP-1 suppresses MMP-1 → ECM accumulation → F0→F4 (METAVIR) → portal hypertension → varices, ascites, HCC risk, LT
+
+8. **Drug PK/PD (5 agents modeled):**
+   - **Prednisolone** (2-CMT oral, F~85%, t½~2.5h, CL~7.5 L/h): GR binding → NF-κB trans-repression → cytokine suppression (IL-1β, IL-6, TNF-α, IFN-γ) + GR transactivation (GILZ, MKP-1) → Treg restoration
+   - **Azathioprine** (AZA→6-MP→6-TGN cascade): TPMT/NUDT15 pharmacogenomics; 6-TGN IC50 ~200 pmol/8×10⁸ RBC; therapeutic range 235–450 pmol; myelosuppression risk (NUDT15\*2 Asian)
+   - **Mycophenolate mofetil** (MMF→MPA; IMPDH inhibition; GMP depletion preferentially in lymphocytes; t½ MPA ~17h; EC50 ~1.5 μg/mL)
+   - **Rituximab** (anti-CD20, 2-CMT TMDD; Kd ~0.3 nM; nadir 4 wks; B cell recovery ~12 months; ADCC + CDC + direct apoptosis)
+   - **Budesonide** (15× higher GR affinity vs. prednisolone; >90% hepatic first-pass; lower systemic side effects; preferred in non-cirrhotic AIH per EASL 2015)
+
+### Mechanistic Map Summary
+
+| Cluster | Key Components |
+|---------|---------------|
+| ① Genetic Predisposition | HLA-DR3/DR4/DR7/DQ2, PTPN22, CTLA4, STAT4, IL10 promoter, AIRE, SH2B3, TNF-α -308G/A, FcγR variants |
+| ② Environmental Triggers | HCV/EBV/HAV/CMV molecular mimicry, drug-induced AIH, gut dysbiosis → leaky gut → portal LPS/DAMPs → TLR4; loss of central/peripheral tolerance |
+| ③ Antigen Presentation | Kupffer cells (liver APC), pDC/mDC, IFN-γ–upregulated hepatocyte MHC-II, CD80/86 costimulation; autoantigens: CYP2D6, FTCD, SepSecS, F-Actin, dsDNA, ASGPR |
+| ④ CD4⁺ T Effector | NaïveCD4 → TCR-MHC-II signal → CD28/B7 costimulation → Th1 (T-bet, IFN-γ) / Th17 (RORγt, IL-17A) / Tfh (BCL6, IL-21); CTLA4 inhibitory checkpoint |
+| ⑤ Regulatory T Cells | Natural Treg + iTreg (FoxP3⁺); IL-10, TGF-β, CTLA4 effector mechanisms; Treg deficiency (↓ number + ↓ function); Treg→Th17 plasticity (TGF-β + IL-6); Breg (IL-10⁺) |
+| ⑥ CD8⁺ Cytotoxic T | Activated CTL → Perforin/GrB degranulation + FasL/Fas apoptosis → direct hepatocyte killing; NKT, NK cells (ADCC via FcγRIII) |
+| ⑦ B Cells & Autoantibodies | NaïveB → Germinal center → Long-lived plasma cells → ANA, ASMA, LKM-1, SLA/LP, LC-1; IgG hypergammaglobulinemia; Complement (classical pathway); ADCC; BAFF/APRIL |
+| ⑧ Cytokine Network | IL-1β (NLRP3), IL-2 (T prolif.), IL-6 (Th17/acute phase), IL-10 (Treg), IL-12 (Th1), IL-17A, IL-21 (Tfh→B), IL-23, IFN-γ, TNF-α, TGF-β1, CXCL9/10 (T recruitment), CCL2, IL-33 |
+| ⑨ Interface Hepatitis | Interface hepatitis (periportal infiltrate), periportal/lobular inflammation, rosettes, emperipolesis, plasma cell infiltration, bridging necrosis, massive necrosis; ALT/AST/ALP/GGT/bilirubin/INR/albumin/MELD biomarkers |
+| ⑩ Hepatic Fibrosis | HSC quiescent → activated (TGF-β/PDGF) → myofibroblast → Collagen I/III; MMP-1/9 vs. TIMP-1/2; F0→F1→F2→F3→F4 (METAVIR); portal HTN → varices/ascites; HCC risk; LT endpoint; FibroScan (kPa); ELF score |
+| ⑪ Drug Pharmacokinetics | Prednisolone (2-CMT oral), Budesonide (high first-pass), AZA→6-MP→TPMT/NUDT15→6-TGN→DNA, MMF→MPA (IMPDH inhib.), Rituximab (2-CMT TMDD/CD20), Cyclosporine (CN inhibition) |
+| ⑫ Clinical Endpoints | GR occupancy, NF-κB suppression, GR transactivation; IAIHG remission criteria (ALT <ULN + IgG normal + HAI <4); Complete/Partial/Drug-free remission; Simplified Score (Hennes 2008); Steroid/AZA/MMF side effects; LT evaluation |
+
+**Total: 12 clusters, 192 nodes, 260 directed edges**
+
+### ODE Model Summary
+
+| Parameter | Value |
+|-----------|-------|
+| ODE states | 22: PRED_GI · PRED_CP · PRED_T · AZA_GI · MP6_CELL · TGN_CELL · MMF_GI · MPA_CP · RTX_CP · RTX_T · RTX_BOUND · CD20_FREE · GR_OCC · TH1 · TREG · BCELL · AUTOAB · IFNG · TGFB · IL6 · HEPATO_DMG · ALT_SERUM |
+| Treatment scenarios | 6: ① Untreated (natural history) · ② Prednisolone monotherapy (60 mg/day taper) · ③ Prednisolone + Azathioprine (IAIHG standard SoC) · ④ Budesonide + AZA (non-cirrhotic) · ⑤ Prednisolone + MMF (AZA-intolerant) · ⑥ Rituximab + Prednisolone (refractory AIH) |
+| Simulation duration | 2 years (730 days) |
+| Key biomarkers | ALT (U/L, ULN=40) · IgG (g/L) · Th1/Treg ratio · Autoantibody titer · IFN-γ · TGF-β · Hepatocellular damage index · GR occupancy (%) |
+| Clinical endpoints | IAIHG complete remission (ALT <ULN + IgG <16 g/L + HAI <4) · Partial response · Treatment failure · Drug-free remission · MELD score · Liver transplant evaluation |
+| Calibration sources | Manns et al. 2010 (NEJM; Pred±AZA Phase III) · Manns et al. 2010 (Gastroenterology; Budesonide Phase III) · Zachou et al. 2011 (J Hepatol; MMF Phase II) · Burak et al. 2013 (Liver Int; Rituximab) · EASL CPG 2015 |
+| Sensitivity analysis | TPMT activity (0.1/0.5/1.0/1.5) → 6-TGN exposure (therapeutic range 235–450 pmol/8×10⁸ RBC) |
+
+### Key Drug PK Parameters
+
+| Drug | Mechanism | Dose | Bioavail | t½ | Key PK/PD parameter |
+|------|-----------|------|----------|----|---------------------|
+| Prednisolone | GR/NF-κB trans-repression | 60 mg/day taper | 85% | ~2.5h | GR Kd ~0.7 μg/mL; Emax ~95% |
+| Budesonide | GR (15× Pred affinity), hepatic 1st pass | 9 mg/day (3 mg TID) | ~20% systemic | ~2.5h | Hepatic F >90%; preferred in non-cirrhotic |
+| Azathioprine | 6-TGN DNA incorporation (TPMT/NUDT15) | 1–2.5 mg/kg/day | ~47% (→6-MP) | 6-TGN t½ ~5 days | Therapeutic 6-TGN: 235–450 pmol/8×10⁸ RBC |
+| MMF/MPA | IMPDH inhibition → GMP depletion | 1–3 g/day | ~94% (MPA) | MPA ~17h | EC50 ~1.5 μg/mL; target AUC 30–60 mg·h/L |
+| Rituximab | Anti-CD20 ADCC/CDC/apoptosis (TMDD) | 1000 mg × 2 (q2wk) or 375 mg/m² × 4 | IV | t½ ~21 days | CD20 depletion nadir ~4 wks; recovery ~12 mo |
+
+### Shiny App Tabs
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | Disease overview (Type 1/2/3 AIH), Simplified Score calculator, IAIHG remission criteria, baseline value boxes (ALT/IgG/HAI/Remission), natural history vs. treatment ALT curve |
+| ② Drug PK | GR occupancy over time, 6-TGN intracellular level (vs. therapeutic/toxic thresholds), MPA plasma level, Rituximab CD20 B cell depletion kinetics (bi-exponential) |
+| ③ Immune Dynamics | Th1/Treg balance, B cell + autoantibody dynamics, IFN-γ/TGF-β cytokine profiles, combined immunosuppression decomposition (GR + 6-TGN + MPA additive) |
+| ④ Hepatic Endpoints | Serum ALT vs. ULN (treated vs. untreated), IgG time-course, HAI score proxy, response classification table (Complete/Partial/Failure) |
+| ⑤ Scenario Comparison | All 6 scenarios overlaid ALT curves, summary table at Days 0/30/90/180/365/730 |
+| ⑥ Biomarker Tracker | 6-panel biomarker dashboard (ALT, AutoAb, IgG, Th1/Treg, IFN-γ, Damage index) + downloadable simulation CSV |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`aih_qsp_model.dot`](autoimmune-hepatitis/aih_qsp_model.dot) | Graphviz DOT source (12 clusters, 192 nodes, 260 directed edges) |
+| [`aih_qsp_model.svg`](autoimmune-hepatitis/aih_qsp_model.svg) | Vector mechanistic map (fdp layout, 355 KB) |
+| [`aih_qsp_model.png`](autoimmune-hepatitis/aih_qsp_model.png) | Raster mechanistic map (150 dpi, ~4 MB) |
+| [`aih_mrgsolve_model.R`](autoimmune-hepatitis/aih_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, TPMT sensitivity analysis) |
+| [`aih_shiny_app.R`](autoimmune-hepatitis/aih_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT + deSolve) |
+| [`aih_references.md`](autoimmune-hepatitis/aih_references.md) | 52 curated PubMed-linked references (12 sections) |
