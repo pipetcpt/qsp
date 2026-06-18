@@ -164,6 +164,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Immune Thrombocytopenic Purpura (ITP)**](#immune-thrombocytopenic-purpura-itp) | 자가면역질환 / 혈액 | 항혈소판 자가항체(anti-GPIIb/IIIa IgG ≥60%, anti-GPIb/IX IgG) → FcγRIIA/IIA ITAM → SYK → PI3K/MAPK → 비장 적수 대식세포 포식(×3–10 정상) + 보체 C1q/C3b 공동 옵소닌화 → PLT 파괴; anti-GPIb/IX Ab → 노이라미니다제 유사 효과 → 혈소판 탈시알산화 → 간 Ashwell-Morell 수용체 간 청소; anti-GPIIb/IIIa Ab 골수 투과 → 거핵구(MK) 성숙 및 전혈소판(Proplatelet) 형성 억제; Treg(FoxP3+) 결핍(50–70%) + Th17↑(RORγt+, IL-17↑) + Tfh↑(IL-21→GC→B세포 활성화) → 항체 생성 지속; BAFF/APRIL→B세포·형질세포 생존; ITP 위상: 신규 진단(<3개월)·지속성(3–12개월)·만성(>12개월); 1차: 프레드니솔론 1 mg/kg/d + IVIG 1 g/kg(FcRn 포화·FcγR 경쟁 차단, 48h 내 PLT↑) 2차: Romiplostim 1–10 μg/kg SC 주1회(c-Mpl 펩티바디, RAISE Lancet 2008: PLT≥50 69% vs 9%) + Eltrombopag 25–75 mg PO QD(비펩타이드 TPO-RA, RAISE Lancet 2011) + Rituximab 375 mg/m²×4주(anti-CD20 B세포 제거, 장기 CR 20–25%) + Fostamatinib 100–150 mg BID(SYK 억제제→FcγRIIA ITAM 차단→포식↓, FIT 1+2 AJH 2018: OR 17% vs 4%) + Efgartigimod 10 mg/kg IV q1w(FcRn 차단→anti-PLT IgG 이화↑80%, ADVANCE IV Lancet Haematol 2022) + Splenectomy(CR ~66%); 20-CMT ODE(PLT 혈중·비장 풀 2 + TPO + MKP + MK + Ab + Bc + Treg + Th17 + Mac + 약물 PK 10개: PRED/IVIG/ROMI_sc/ROMI_c/RTX_c/RTX_p/FOSTA_gut/R788_c/EFGAR_c/ELTP_c); 6 치료 시나리오; RAISE(2008/2011)·FIT(2018)·ADVANCE IV(2022)·RITP(2015) 임상 보정 | [![ITP](immune-thrombocytopenic-purpura/itp_qsp_model.png)](immune-thrombocytopenic-purpura/itp_qsp_model.svg) | [R](immune-thrombocytopenic-purpura/itp_mrgsolve_model.R) | [refs](immune-thrombocytopenic-purpura/itp_references.md) | [Shiny](immune-thrombocytopenic-purpura/itp_shiny_app.R) |
 | 2026-06-18 | [**Stable Angina (안정형 협심증)**](#stable-angina-chronic-coronary-syndrome) | 만성질환 / 심혈관 | 관상동맥 죽상경화성 고정 협착(FFR<0.80) → 심근 O₂ 공급-수요 불균형(RPP>20,000) → 심근허혈 → 협심증; 내피기능부전(eNOS↓/ET-1↑/ROS↑) + 산화스트레스 → NO 감소 → 혈관확장 장애; 베타차단제(β₁차단→HR↓/RPP↓: Bisoprolol t½11h, TIBBS study) + 칼슘채널차단제(CCB, 혈관확장+후부하 감소: Amlodipine t½35–50h, CAPE study) + 라놀라진(Late I_Na 억제→Na⁺↓→Ca²⁺ 과부하↓→이완기능개선, CARISA/MARISA) + 이바브라딘(HCN/I_f 채널 차단→순수 HR감소→이완기 관류시간↑, BEAUTIFUL/SIGNIFY) + 유기질산염(ISMN BA~100%, ALDH2 경유 NO 방출→전부하↓/관상동맥확장, 내성주의: 편심적 투여) + 항혈소판(Aspirin COX-1 비가역 억제/Clopidogrel P2Y12 억제) + 스타틴(HMG-CoA 환원효소 억제→LDL-C↓30–60%→플라크 안정화 + 다면발현효과: eNOS↑/ROS↓/IL-6↓); 20-CMT mrgsolve ODE(Bisoprolol-2CMT·Amlodipine-2CMT·Ranolazine-1CMT·Ivabradine-1CMT·ISMN-1CMT+내성상태·HR/SBP/CBF상태변수·O₂불균형·허혈부담·협심증점수·운동능력·플라크); 6 치료 시나리오(무치료→베타차단제→BB+CCB→BB+CCB+라놀라진→BB+이바브라딘→BB+CCB+ISMN+스타틴); 보정: TIBBS(von Arnim 1995)·CARISA(Chaitman 2004 JAMA)·BEAUTIFUL(Fox 2008 Lancet)·SIGNIFY(Fox 2014 NEJM)·COURAGE(Boden 2007 NEJM); 이완기 관류시간-관상동맥혈류 결합 모델; RPP 허혈 역치 모델; 질산염 내성(ALDH2 불활성화) 동역학 | [![SA](stable-angina/sa_qsp_model.png)](stable-angina/sa_qsp_model.svg) | [R](stable-angina/sa_mrgsolve_model.R) | [refs](stable-angina/sa_references.md) | [Shiny](stable-angina/sa_shiny_app.R) |
 | 2026-06-18 | [**Dermatomyositis (피부근염)**](#dermatomyositis-피부근염) | 자가면역질환 / 염증성 근육병증 | pDC → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(Type I IFN★) → JAK1/TYK2-STAT1/2-ISGF3 → ISG 발현 증폭; 자가항체(Anti-MDA5/Mi-2/TIF1γ/NXP2/SAE/Jo-1/SRP/HMGCR) → 보체 고전경로(C1q→C3→MAC C5b-9) → 근육 모세혈관 내피 MAC 침착 → 모세혈관 소실 → 근육 허혈 → 근주위(Perifascicular) 근섬유 위축; CD8+CTL(Granzyme B) + 비정상 CD4+Tfh/Th17 + Treg 결핍 → 자가항체 생산 지속; 피부 병변(자외선→각질세포 IFN-κ→pDC 모집) → Gottron 구진/헬리오트로프 발진/V-Sign/역공학자 손; 간질성 폐질환(ILD): anti-MDA5 동반 시 급속진행형(RP-ILD) DAD 패턴; 치료 PK/PD: Prednisolone(GR/NF-κB 억제, 1 mg/kg/d 표준) + IVIG 2 g/kg(FcRn 포화→Ab 이화↑; 보체 스캐빈징, Dalakas NEJM 1993) + Methotrexate 15 mg/wk(DHFR/IMPDH 억제→Th1/Th17 증식↓) + Rituximab 1000 mg×2(anti-CD20 TMDD B세포 제거, RIM study 2013 Arthritis Rheum: TIS≥40 83% RTX군) + Baricitinib 4 mg QD(JAK1/2 억제, IC50 5.7/8.7 nM→STAT1/2 차단→IFN score↓47%, CLEAR trial 2022 Lancet Rheumatol); 22-CMT mrgsolve ODE(PK 11개: PRED·IVIG·MTX·RTX·JAKI 각 2-CMT + CD20_BOUND; PD 13개: IFN_SCORE·COMPLEMENT·B_CELL·AUTO_AB·MUSCLE_INJ·CK·MMT8·CDASI·FVC·TREG·TH17·CD8_ACT·CAPILLARY); 7 치료 시나리오; TIS(Total Improvement Score, 0-100) 복합 엔드포인트; Benveniste 2022(CLEAR)·Oddis 2013(RIM)·Dalakas 1993(IVIG NEJM)·Aggarwal 2021(anti-MDA5) 보정 | [![DM](dermatomyositis/dm_qsp_model.png)](dermatomyositis/dm_qsp_model.svg) | [R](dermatomyositis/dm_mrgsolve_model.R) | [refs](dermatomyositis/dm_references.md) | [Shiny](dermatomyositis/dm_shiny_app.R) |
+| 2026-06-18 | [**CIDP (만성 염증성 탈수초성 다발신경병증)**](#cidp-chronic-inflammatory-demyelinating-polyneuropathy) | 자가면역질환 / 말초신경 | 자가반응성 T세포(Th1/Th17) + B세포 → 혈액-신경 장벽(BNB) 투과 → 항결절/측결절 자가항체 생성: IgG4(Anti-NF155·Anti-CNTN1·Anti-CASPR1) → 편측결절 단백질 차단 → 편측결절 분열 → 분절성 탈수초; IgG1/IgG3(Anti-NF186·Anti-CASPR1) → 보체 C1q→C5b-9 MAC → Schwann 세포 손상; M1 대식세포 편식 탈수초; 만성 NCV 저하·전도 차단 → 이차 축삭 손상(NfL↑); 치료: IVIG 2 g/kg q4w(FcRn 포화→이화↑×3.5+항이디오타입 Ab+보체 스캐빈징+FcγR 차단+Treg 확장; PATH NEJM 2023·ADHERE NEJM 2023) + SCIG(IgPro20, 0.2 g/kg/wk, PATH subcutaneous arm) + Prednisolone 1 mg/kg/d(NF-κB/AP-1 전사 억제→IL-6/TNF-α↓; ICE trial) + Plasma Exchange 5×(직접 IgG+보체 60%/session 제거) + Rituximab 1000 mg×2(anti-CD20 TMDD→B세포 고갈≥6개월; NF155+/CNTN1+ CIDP 우선 적응) + Efgartigimod 10 mg/kg IV q1w×4(FcRn α-chain 차단→IgG 이화↑80%→자가항체 ↓75%; ADHERE 67% 반응 vs 36% 위약, NEJM 2023) + Rozanolixizumab/Batoclimab(SC FcRn 억제제) + Avacopan(C5aR 차단); 22-CMT mrgsolve ODE(PK 8: IVIG_C1/C2·CS_GUT/PLASMA·RTX_C/CD20·EFC_C·PLEX_COUP; PD 14: Th1·Th17·Treg·Bc·PC·Mac·Comp·Ab_path·Demyelin·Axon_dens·NfL·INCAT·NCV_norm·Remyel); 6 치료 시나리오; ADHERE(van den Berg 2023)·PATH(van Schaik 2018)·ICE(Merkies 2010)·ADVANCE-CIDP1(Bril 2023) 보정; 용량-반응 IVIG | [![CIDP](cidp/cidp_qsp_model.png)](cidp/cidp_qsp_model.svg) | [R](cidp/cidp_mrgsolve_model.R) | [refs](cidp/cidp_references.md) | [Shiny](cidp/cidp_shiny_app.R) |
 
 
 ---
@@ -4520,3 +4521,90 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`dm_mrgsolve_model.R`](dermatomyositis/dm_mrgsolve_model.R) | mrgsolve ODE model (24 CMT, 7 treatment scenarios, dose-response analysis, calibration table) |
 | [`dm_shiny_app.R`](dermatomyositis/dm_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT + deSolve) |
 | [`dm_references.md`](dermatomyositis/dm_references.md) | 55 curated PubMed-linked references (10 sections) |
+
+---
+
+## CIDP (Chronic Inflammatory Demyelinating Polyneuropathy)
+
+> Directory: [`cidp/`](cidp/)
+
+[![CIDP Mechanistic Map](cidp/cidp_qsp_model.png)](cidp/cidp_qsp_model.svg)
+
+> *Figure: QSP mechanistic map for CIDP — 12 subgraph clusters covering genetic/environmental risk factors, innate immunity (M1/M2 macrophage, pDC, TLR, NLRP3 inflammasome), adaptive T-cell immunity (Th1/Th17/Tfh/Treg/CD8 CTL), B-cell & autoantibody production (IgG4 anti-NF155/CNTN1; IgG1 anti-CASPR1/NF186), complement cascade (classical→C3→MAC C5b-9), blood–nerve barrier disruption (MMP-9/MMP-2/VCAM-1/ICAM-1/selectins), peripheral nerve anatomy (Node of Ranvier/paranode/Kv1.1/Nav1.6), demyelination & axonal injury (segmental demyelination/conduction block/Wallerian/SARM1/NfL), electrophysiology & biomarkers (NCV/CMAP/INCAT/I-RODS/serum NfL), and 5-drug PK/PD (IVIG/SCIG · Prednisolone · Plasma Exchange · Rituximab · Efgartigimod/FcRn inhibitors).*
+
+### Disease Overview (병태생리)
+
+CIDP(만성 염증성 탈수초성 다발신경병증)은 진행성 또는 재발–완화성 근위부·원위부 근력 저하와 감각 이상을 특징으로 하는 면역 매개 말초신경병증으로, 증상이 8주 이상 지속된다.
+
+| 병태생리 단계 | 기전 |
+|-------------|------|
+| 항원 제시 & T세포 활성화 | 환경적 유발 인자(Campylobacter, CMV/EBV, 수술) → MHC-II + TCR/CD28 공동자극 → CD4+ T세포 활성화; HLA-DRB1*15·PTPN22 변이 위험 증가 |
+| Th1/Th17 분극화 | IL-12 → Th1(IFN-γ/TNF-α); IL-6+TGF-β → Th17(IL-17A/F); Treg 결핍 → 면역 관용 붕괴 |
+| B세포·자가항체 생성 | GC 반응 → 형질세포 → IgG4(Anti-NF155/CNTN1, 약 5–10%) + IgG1(Anti-CASPR1/NF186) 분비; FcRn 재순환 유지 |
+| 혈액–신경 장벽(BNB) 붕괴 | TNF-α/IL-1β → MMP-9/MMP-2 → 밀착 연접 분해 → 투과성 ↑ → IgG·T세포 말초신경 침투 |
+| 결절 단백질 손상 | Anti-NF155 → 편측결절 NF155 차단 → 편측결절 분열 → 탈수초; MAC → Schwann 세포 용해 |
+| 전도 차단 & 축삭 손상 | NCV 감소·전도 차단 → 이차 축삭 변성 → NfL 혈청 상승; SARM1 경로 활성화 |
+| 재수초화 | TGF-β + M2 대식세포 → Schwann 세포 → 재수초화(양파껍질 형성 반복) |
+
+### Nodal Antibody Subtypes (결절항체 아형)
+
+| 항체 | IgG 서브클래스 | 표적 | 임상적 특징 | 치료 반응 |
+|------|----------------|------|------------|-----------|
+| Anti-NF155 | IgG4 | 편측결절 뉴로파신-155(Schwann) | 진전, 고유감각 소실, 운동실조, 젊은 발병 | IVIG 저항; RTX 우수 반응 |
+| Anti-CNTN1 | IgG4 | 편측결절 콘택틴-1(축삭) | 감각 운동 실조, 중증, 급성 발병 | IVIG 저항; RTX·스테로이드 반응 |
+| Anti-CASPR1 | IgG1 | 편측결절 CASPR1(축삭) | 신경병증 통증, 중증 감각 이상 | 스테로이드·RTX 반응 |
+| Anti-NF186 | IgG | 결절 뉴로파신-186(축삭) | 드물고 이질적 표현형 | 데이터 제한적 |
+| 항체 음성 (Classic) | — | 알 수 없음 (일부 항-MBP/P0?) | 가장 흔함(~85%); 전형적 CIDP | IVIG/CS/PLEX 표준 반응 |
+
+### Drug PK/PD (약물 기전)
+
+| 약물 | 기전 | 용량 | 핵심 임상 데이터 |
+|------|------|------|----------------|
+| IVIG | FcRn 포화(IgG 이화↑×3.5) + 항이디오타입 Ab + 보체 스캐빈징 + FcγR 차단 + 시알화 IgG → Treg 확장 | 2 g/kg IV q4w | ICE trial(Mendell 2001): 54% 반응 vs 21% 위약; ADHERE(van den Berg NEJM 2023): 67% 반응 |
+| SCIG (IgPro20) | IVIG와 동일 기전; 피하 지속 주입으로 Css 안정; 峰-谷 변동 최소화 | 0.2 g/kg/wk SC | PATH trial(van Schaik Lancet Neurol 2018): 6개월 재발 없음 61% vs 위약 31% |
+| Prednisolone | GR-NF-κB/AP-1 전사 억제 → IL-6/TNF-α/IL-1β ↓; Treg 확장; Annexin-1 | 1 mg/kg/d 4–6주 후 테이퍼 | 메타분석: ~60–65% 반응; 근육병증·골다공증·당뇨 부작용 |
+| 혈장교환술(PLEX) | 직접 IgG·보체 제거(60%/session) | 5×200 mL q2wk | 급성 악화 구제; IVIG와 유사 효과; 효과 일시적→유지 치료 필요 |
+| Rituximab | Anti-CD20 TMDD → ADCC/CDC → B세포 고갈 ≥6개월; 기억 B세포·형질세포(CD20+) 제거; 형질모세포 일부 내성 | 1000 mg×2 IV, q6mo | 체계적 리뷰(Keddie 2020): 반응률 ~50–60%; NF155+/CNTN1+ CIDP 특히 효과적 |
+| Efgartigimod | FcRn α-chain 결합 → IgG 재순환 차단 → 전체 IgG 이화 ↑80% → 자가항체 ↓70–80% @4wk | 10 mg/kg IV q1w×4 사이클 | ADHERE(van den Berg NEJM 2023): I-RODS 1점 이상 개선 67% vs 36% 위약; 세룸 NfL ↓45% @24wk |
+| Rozanolixizumab / Batoclimab | SC 투여 FcRn 억제제; 에프가르티기모드와 같은 기전, 피하 편의성 | 7 mg/kg SC qwk / 680 mg SC q4w | CIDP Phase 2/3 진행 중(2024–2025) |
+
+### mrgsolve ODE 모델 구조
+
+- **구획 수:** 22개 ODE 상태변수
+- **PK CMT (8개):** `IVIG_C1` · `IVIG_C2` · `CS_GUT` · `CS_PLASMA` · `RTX_C` · `RTX_CD20` · `EFC_C` · `PLEX_COUP`
+- **면역 PD CMT (7개):** `Th1` · `Th17` · `Treg` · `Bc` · `PC` · `Mac` · `Comp`
+- **병태생리 PD CMT (7개):** `Ab_path` · `Demyelin` · `Axon_dens` · `NfL` · `INCAT_dyn` · `NCV_norm` · `Remyel`
+- **파라미터 보정:** ADHERE(van den Berg 2023 NEJM)·PATH(van Schaik 2018 Lancet Neurol)·ICE(Merkies 2010 Neurology)·ADVANCE-CIDP1(Bril 2023 Neurology); NfL 참조값 Mariotto 2018 JNNP; INCAT MCID Bril & Merkies 2004
+
+**치료 시나리오 (6개)**
+
+| # | 시나리오 | 핵심 설정 |
+|---|---------|---------|
+| 1 | 무치료 CIDP | CIDP_SEVERITY=1.5, INCAT~3, NfL~28 pg/mL, NCV~68% |
+| 2 | IVIG 2 g/kg q4w | FcRn 포화→IgG 이화↑3.5×; 보체 스캐빈징; 항이디오타입 Ab; Treg 확장 |
+| 3 | Prednisolone 1 mg/kg/d 테이퍼 | NF-κB/AP-1 억제→IL-6/TNF↓; 8주 고용량 후 16주 테이퍼 |
+| 4 | 혈장교환술 ×5 + IVIG 유지 | 급성 IgG/보체 제거(60%) → 이후 IVIG 유지 요법 |
+| 5 | 리툭시맙 1000 mg ×2 | B세포 고갈 >6개월; NF155+/CNTN1+ 아형에 특히 우선 |
+| 6 | 에프가르티기모드 10 mg/kg ×2 사이클 | FcRn 차단→IgG ↓80%; ADHERE NEJM 2023: 67% I-RODS 개선 |
+
+**Shiny 대시보드 구조 (6탭)**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 나이·체중·중증도·아형 입력; 진단 기준 표(EFNS/PNS 2021); 가치 박스(INCAT/NCV/NfL/Ab) |
+| ② Drug PK | IVIG·CS·Rituximab·Efgartigimod 혈중 농도 시간 프로파일(plotly); PK 파라미터 비교 표(8개 약물) |
+| ③ Immune Pathways | 병원성 자가항체 동역학; 보체 활성화; T세포(Th1/Th17/Treg); B세포·형질세포·대식세포 |
+| ④ Nerve Pathology & Electrophysiology | 탈수초/재수초화 지수; 축삭 밀도; 정규화 NCV; INCAT 장애 점수 추이; 전기생리 참조값 표 |
+| ⑤ Scenario Comparison | 6개 시나리오 INCAT·NfL·Ab 비교(plotly); 24주 요약 표(INCAT/NCV/NfL/Ab 감소율) |
+| ⑥ Biomarkers | 혈청 NfL 추이; IVIG 용량-반응(INCAT @24wk); NfL vs 축삭 손실 산점도; 바이오마커 해석 기준 표 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`cidp_qsp_model.dot`](cidp/cidp_qsp_model.dot) | Graphviz DOT source (12 clusters, 150+ nodes, 200+ directed edges) |
+| [`cidp_qsp_model.svg`](cidp/cidp_qsp_model.svg) | Vector mechanistic map |
+| [`cidp_qsp_model.png`](cidp/cidp_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`cidp_mrgsolve_model.R`](cidp/cidp_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, dose–response analysis, calibration notes) |
+| [`cidp_shiny_app.R`](cidp/cidp_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT + deSolve) |
+| [`cidp_references.md`](cidp/cidp_references.md) | 55 curated PubMed-linked references (10 sections) |
