@@ -156,6 +156,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Autoimmune Hepatitis (자가면역 간염)**](#autoimmune-hepatitis-aih) | 자가면역질환 / 간 | HLA-DR3/DR4(Type 1) · HLA-DR7(Type 2) 유전 소인 + 분자 모방(HCV CYP2D6 교차반응/EBV/약물 유발 신항원) → 중추·말초 면역관용 소실 → Kupffer/DC/Hepatocyte-MHC-II → 자가항원(CYP2D6/SepSecS/F-Actin/dsDNA) → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 + FoxP3+ Treg 수·기능 저하(AIH 핵심 병태) + CD8+ CTL(Perforin/GrB/FasL) → 경계면 간염(Interface hepatitis · Rosette · Emperipolesis · 형질세포 침윤) + 자가항체 생성(ANA/ASMA/LKM-1/SLA-LP) + IgG 고감마글로불린혈증 → ALT·AST·IgG↑ → 반복 손상 시 TGF-β1/HSC 활성화 → F0→F4 간섬유화 → 문맥고혈압·간세포암·간이식; 치료: Prednisolone(GR/NF-κB 억제) + AZA(6-TGN TPMT/NUDT15 의존) · MMF(IMPDH 억제) · Budesonide(간 초회통과 >90%) · Rituximab(CD20 TMDD B세포 고갈); 22-CMT mrgsolve ODE (22 상태, 6 치료 시나리오, IAIHG 관해 기준 엔드포인트, TPMT 표현형 감도 분석); Manns 2010 NEJM · Manns 2010 Gastroenterology(Budesonide) · Zachou 2011 J Hepatol(MMF) · Burak 2013 Liver Int(RTX) 보정 | [![AIH](autoimmune-hepatitis/aih_qsp_model.png)](autoimmune-hepatitis/aih_qsp_model.svg) | [R](autoimmune-hepatitis/aih_mrgsolve_model.R) | [refs](autoimmune-hepatitis/aih_references.md) | [Shiny](autoimmune-hepatitis/aih_shiny_app.R) |
 | 2026-06-18 | [**Irritable Bowel Syndrome (과민성 장증후군)**](#irritable-bowel-syndrome-ibs) | 만성질환 / 기능성위장관 | 뇌-장 축(Brain-Gut Axis) 이상: 심리적 스트레스 → HPA축(CRF→ACTH→코르티솔) + 자율신경계 불균형 → 장내 비만세포 활성화(CRF-R2/IgE 교차/LPS-TLR4) + 장 투과성↑(Zonulin/MLCK/claudin 감소) → LPS 전좌 → 점막 저도 염증(TNF-α/IL-1β/IL-6↑, IL-10↓); 세로토닌(5-HT) 신호 이상: EC세포 TPH1 발현 이상 → IBS-D(5-HT 과잉/SERT↓) vs IBS-C(5-HT 결핍) → 5-HT3R(내장 구심성 활성화) + 5-HT4R(연동운동) 불균형 → 내장 과민성↑ · 대장통과시간 이상; 장내 미생물 불균형(Dysbiosis): Firmicutes↑/Bacteroidetes 비율 변화 · SIBO · 메탄 생성균(변비) · H2/H2S 생산균(팽만) · SCFA↓(Butyrate↓ → 장벽 약화 + IL-10↓) · 담즙산 대사 이상(FXR/TGR5) → EC세포 5-HT 합성 조절; 내장 과민성: 비만세포 Tryptase → PAR-2 → TRPV1/TRPA1 활성화 → DRG → 척수 후각 → 중추 감작(Wind-up · NMDA수용체 · BDNF) → 하행 통증 억제 약화; 치료 PK/PD: Alosetron(5-HT3 길항, 2-CMT, IC50 1.2 ng/mL) · Prucalopride(5-HT4 작용, 1-CMT, EC50 2.5 ng/mL) · 항콜린제(Hyoscine/Mebeverine) · TCA/SNRI(Amitriptyline, 하행 NE/5-HT 강화) · Rifaximin(SIBO 제거, 팽만 감소) · Linaclotide/Plecanatide(GC-C → cGMP → CFTR Cl⁻ 분비 + TRPV1 감작 억제) · Eluxadoline(μ/κ 작용제/δ 길항제) · 프로바이오틱스; 20-CMT deSolve ODE (STRESS·CRF·CORT·GUT_5HT·SERT_OCC·MAST_ACT·INFLAM·BARRIER·MICROB·SCFA·VIS_SENS·MOTIL·PAIN·BLOAT·STOOL·IBS_SSS·DRG_ACT·Cp1·Cp2·Cp3); 5 치료 시나리오; Camilleri 2001(Lancet) · Pimentel 2011(NEJM) · Ford 2014(Gut) · Chey 2012(Am J Gastroenterol) 보정 | [![IBS](irritable-bowel-syndrome/ibs_qsp_model.png)](irritable-bowel-syndrome/ibs_qsp_model.svg) | [R](irritable-bowel-syndrome/ibs_mrgsolve_model.R) | [refs](irritable-bowel-syndrome/ibs_references.md) | [Shiny](irritable-bowel-syndrome/ibs_shiny_app.R) |
 | 2026-06-18 | [**ADPKD — Autosomal Dominant Polycystic Kidney Disease (상염색체 우성 다낭성 신종)**](#adpkd-autosomal-dominant-polycystic-kidney-disease) | 만성질환 / 신장유전질환 | PKD1(16p13, ~85%) · PKD2(4q22, ~15%) 유전자 돌연변이 → Two-hit model(체세포 2차 타격) → Polycystin-1/PC2 기능 소실 → 일차 섬모(Primary Cilium) 기계 감지 결함 → 세포내 Ca²⁺↓ → cAMP 역의존적 과활성화(AC5/AC6 탈억제); cAMP↑ → PKA 활성화 → CFTR Cl⁻ 채널 개방 + NKCC1 → 낭종 내강으로 유체 분비↑; cAMP→PKA→B-Raf→MEK→ERK1/2↑ + PI3K→Akt→mTORC1 활성화(PC1-CTF 소실로 TSC 해제) → 낭종 상피세포 비정상 증식 + 극성 역전(Na⁺/K⁺-ATPase 첨단 이동); 낭종 확장 → 정상 네프론 압박 → 신원 소실 → eGFR 감소(3–5 mL/min/yr); 낭종 확대 → 신장 내 압력↑ → 방사 기관(JGA) 레닌 분비↑ → RAAS 과활성화(Ang II↑ → AT1R → 알도스테론/내피소수축/혈압↑) → 사구체 고혈압 → 신원 추가 손상; 만성 염증·섬유화: 대식세포 M2 침윤(MCP-1/IL-6/TNF-α) + TGF-β1/CTGF → 근섬유모세포 활성화 → 간질 섬유화; 치료 PK/PD: Tolvaptan(V2R 경쟁적 길항제, F=0.56, t½=8h, CL=4L/h, EC50 V2R=50 ng/mL, 요삼투압↓ PD biomarker) · Everolimus(mTOR 억제제, FKBP12 복합체, EC50=5 ng/mL) · Octreotide LAR(SSTR2/5 작용→Gi→cAMP↓, 30mg/28days depot) · ACEi/ARB(RAAS 차단, 혈압 목표 110/75–130/80); 20-CMT mrgsolve ODE (AGUT·ACENT·APERI·EGUT·ECENT·EPERI·OCTDEP·OCTCENT·ACEI_GUT·ACEI_CENT·AVP·cAMP·mTOR·ANGII·BP·TKV·eGFR·Uosm·NEPH·); 5 치료 시나리오; Torres 2012 NEJM(TEMPO 3:4) · Torres 2017 NEJM(REPRISE) · Serra/Walz 2010 NEJM(Everolimus SIRENA) · Schrier 2014 NEJM(HALT-PKD) · Caroli 2013 Lancet(ALADIN) · Irazabal 2015 JASN(Mayo 분류) · Cornec-Le Gall 2016 JASN(PROPKD 점수) 보정 | [![ADPKD](adpkd/adpkd_qsp_model.png)](adpkd/adpkd_qsp_model.svg) | [R](adpkd/adpkd_mrgsolve_model.R) | [refs](adpkd/adpkd_references.md) | [Shiny](adpkd/adpkd_shiny_app.R) |
+| 2026-06-18 | [**Alopecia Areata (원형 탈모증)**](#alopecia-areata-aa) | 자가면역질환 / 피부 | HLA-DRB1*04:01 · CTLA4 · PTPN22 · ULBP3 유전 소인 + 스트레스/바이러스 유발 → 모낭 면역 특권(Immune Privilege) 소실: CD200↓ / PD-L1↓ / TGF-β↓ / MICA↑ → NKG2D 수용체 → NK/NKT 세포 활성화 → IFN-γ(선천 분비) → JAK1/JAK2-STAT1 / JAK3-STAT5 → MHC-I 발현 상승(IRF1/CIITA) → 구근부(bulb) 자기항원 노출 → CD8+ NKG2D+ CTL 모낭 침윤("벌떼 모양" peribulbar infiltrate) → Granzyme B / Perforin / Fas-FasL → 멜라노사이트 파괴 + 이형성 성장기 모발 → 조기 성장기→퇴행기 전환 강제 → 모낭 소형화 + SALT 점수↑; IL-15 → CD8+ CTL 생존 증폭; CXCL9/10/11(IFN-γ 유발) → CXCR3 → 피부 모낭으로 CTL 유인; IFN 시그니처 바이오마커(CXCL10/IP-10) 혈청 상승; 치료: Baricitinib 4 mg QD(JAK1/2 가역 억제, BRAVE-AA1: SALT50 35.9%, BRAVE-AA2: 32.6%, FDA 2022 승인) + Baricitinib 2 mg QD + Ritlecitinib 50 mg QD(JAK3/TEC 비가역 공유결합, ALLEGRO 2023, FDA 승인) + Tofacitinib 5 mg BID(JAK1/3, 적응외) + Dupilumab(IL-4Rα, 아토피 동반 시); 20-CMT ODE (PK 3개·면역세포 4개·사이토카인 3개·JAK/STAT 2개·모낭 3개·SALT/염증/NKG2DL/JAK3B/DUPIL); 5 치료 시나리오; King 2022 NEJM(BRAVE-AA1/2) · Asakawa 2023 JID(ALLEGRO) · Xing 2014 Nat Med · Mackay-Wiggan 2016 JCI Insight 보정 | [![AA](alopecia-areata/aa_qsp_model.png)](alopecia-areata/aa_qsp_model.svg) | [R](alopecia-areata/aa_mrgsolve_model.R) | [refs](alopecia-areata/aa_references.md) | [Shiny](alopecia-areata/aa_shiny_app.R) |
 
 
 ---
@@ -3856,3 +3857,84 @@ Autosomal Dominant Polycystic Kidney Disease (ADPKD) is the most common heredita
 | [`adpkd_mrgsolve_model.R`](adpkd/adpkd_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 scenarios, virtual patient analysis, dose-response) |
 | [`adpkd_shiny_app.R`](adpkd/adpkd_shiny_app.R) | 6-tab Shiny dashboard (bslib + plotly + DT) |
 | [`adpkd_references.md`](adpkd/adpkd_references.md) | 53 PubMed-linked references (14 sections) |
+
+---
+
+## Alopecia Areata (AA)
+
+> Directory: [`alopecia-areata/`](alopecia-areata/)
+
+[![Alopecia Areata QSP Mechanistic Map](alopecia-areata/aa_qsp_model.png)](alopecia-areata/aa_qsp_model.svg)
+
+### Overview
+
+Alopecia Areata (AA, 원형 탈모증) is the most common immune-mediated hair loss disorder, affecting approximately **2% of the lifetime population** globally. It is characterised by non-scarring, reversible hair loss ranging from patchy scalp involvement to complete loss of all body hair (Alopecia Universalis, AU).
+
+The pathophysiology centers on **collapse of hair follicle immune privilege (IP)**: healthy anagen follicles suppress local immunity via CD200, PD-L1, TGF-β, and α-MSH; in AA, IFN-γ–driven MICA/MICB upregulation activates NKG2D+ NK/NKT cells and, critically, CD8+ cytotoxic T lymphocytes that form a characteristic *peribulbar lymphocytic infiltrate ("swarm of bees" pattern)* → granule-mediated (Granzyme B/Perforin) and receptor-mediated (Fas/FasL) killing of melanocytes and matrix cells → forced catagen entry → hair miniaturisation → SALT score rise.
+
+The **JAK/STAT cascade** is the master amplification axis: IFN-γ activates JAK1/JAK2 → p-STAT1 → IRF1/CIITA → MHC-I upregulation (completing the IP collapse feedback), and IL-15/IL-2 activate JAK1/JAK3 → p-STAT5 → CD8+ T cell and NK cell survival/proliferation. This makes JAK inhibitors the current standard of care.
+
+**FDA-approved treatments (AA):**
+- **Baricitinib** (Olumiant® 2 mg / 4 mg QD) — JAK1/2 reversible inhibitor; BRAVE-AA1/2 Phase 3 (2022)
+- **Ritlecitinib** (Litfulo® 50 mg QD) — JAK3/TEC covalent inhibitor; ALLEGRO Phase 2b/3 (2023)
+
+### Pathophysiological Mechanisms (11 Clusters, 142 Nodes)
+
+| Cluster | Key Components |
+|---------|----------------|
+| ① Genetic & Environmental Risk | HLA-DRB1*04:01, HLA-DQB1*03:02, HLA-A*02:01, CTLA4+49G>A, PTPN22 R620W, IL-2Rα polymorphism, ULBP3/6 locus, SH2B3/LNK, AIRE, environmental stress, viral triggers; polygenic risk score |
+| ② Hair Follicle Biology & Immune Privilege | Anagen/Catagen/Telogen/Exogen cycle; bulge stem cells (CD34+K15+); dermal papilla; matrix cells; melanocytes; IP components: CD200/CD200R, PD-L1, TGF-β1/β2, α-MSH/POMC, IDO/TDO; MICA/MICB upregulation; IP Loss node |
+| ③ Innate Immunity | NK cells (CD56+NKG2D+), NKT cells, pDC (type I IFN), mDC (Ag presentation), M1 macrophages, mast cells, ILC1/ILC2, NKG2D receptor–ligand axis (MICA/MICB/ULBP3/6), complement (C3/C5a), DAMPs/HSPs |
+| ④ Adaptive Immunity — T Cells | CD8+ naïve/effector/memory TRM, CD4+ Th1/Th2/Th17/Treg/Tfh, TCR activation, CD28 co-stimulation, CTLA-4/PD-1 checkpoints, Granzyme B, Perforin, Fas/FasL |
+| ⑤ Cytokine & Chemokine Network | IFN-γ (master), IL-15, IL-2, IL-21, IL-4, IL-13, IL-17A, TNF-α, IL-6, IL-10, TGF-β, IL-33/TSLP; CXCL9/10/11 (MIG/IP-10/I-TAC) – CXCR3 axis (CD8+ follicle recruitment) |
+| ⑥ JAK/STAT Signaling | JAK1/JAK2/JAK3/TYK2; STAT1/3/4/5/6; IRF1/IRF7; NF-κB; SOCS1/SOCS3 (feedback); CIITA/NLRC5 (MHC-I/II); PI3K/Akt; MAPK/ERK |
+| ⑦ Drug Pharmacokinetics | Baricitinib 2-CMT (ka=1.35/h, F=79%, Vc=19.3 L, CL=6.2 L/h, t½=12h); Ritlecitinib 1-CMT (F=70%, Vc=110 L, CL=66 L/h, t½≈2h, covalent JAK3 binding); Tofacitinib 1-CMT (F=74%, Vc=29 L, CL=30 L/h, t½=3h); Dupilumab SC 1-CMT (Fsc=64%, t½=22d) |
+| ⑧ Drug PD / Target Engagement | Baricitinib JAK1 IC50=5.9 nM / JAK2 IC50=5.7 nM / TYK2 IC50=53 nM; Ritlecitinib JAK3 covalent (Cys909) + TEC/BTK/BMX; Tofacitinib JAK1 IC50=3.2 nM / JAK3 IC50=1.6 nM; Hill Emax model; p-STAT1 / p-STAT5 inhibition % outputs |
+| ⑨ Hair Loss Pathology | Peribulbar infiltrate; cytotoxic T cell attack; melanocyte depletion; dystrophic anagen hairs; premature telogen entry; follicle miniaturisation; perifollicular fibrosis (chronic); alopecia patch formation; regrowth/relapse dynamics |
+| ⑩ Clinical Endpoints & Classification | SALT score (0–100); SALT20/50/90 responder thresholds; OLSS (eyebrow/lash); Alopecia Totalis (AT) / Universalis (AU); S1–S5 patchy classification; nail dystrophy; DLQI/Skindex; psychiatric comorbidity; thyroid/atopic comorbidities; dermoscopy signs |
+| ⑪ B Cell & Humoral Immunity | B cell naïve/activated; germinal center; somatic hypermutation; plasma cells; anti-follicle IgG (role debated); IgE (atopic overlap); anti-melanocyte antibodies (TYRP1/TYRP2) |
+
+**Total: 11 clusters · 142 nodes · 200+ directed edges**
+
+### ODE Model Summary
+
+| Parameter | Value |
+|-----------|-------|
+| ODE states | 20: AGUT · ACENT · APERI · CD8N · CD8E · TREG · NKC · IFNG · IL15C · CXCL10 · PSTAT1 · PSTAT5 · IPIDX · ANAGEN · HAIRDEN · SALT · INFLAM · NKG2DL · JAK3B · DUPIL |
+| Treatment scenarios | 5: ① Placebo · ② Baricitinib 4 mg QD · ③ Baricitinib 2 mg QD · ④ Ritlecitinib 50 mg QD · ⑤ Tofacitinib 5 mg BID |
+| Simulation duration | 36 weeks (default) — matches BRAVE-AA and ALLEGRO trial duration |
+| Key biomarkers | SALT score · Hair density (%) · IFN-γ (rel.) · Serum CXCL10/IP-10 · p-STAT1 inhibition (%) · p-STAT5 inhibition (%) · Immune privilege index · Perifollicular CD8+ T cells |
+| Primary endpoint | SALT ≤25 (SALT50 responder): Baricitinib 4 mg ~36% vs Placebo ~6% (calibrated to BRAVE-AA1) |
+| Secondary endpoint | SALT ≤5 (SALT90); OLSS eyebrow/lash regrowth; hair density % |
+| Calibration sources | King B et al. NEJM 2022 (BRAVE-AA1: bari 4mg SALT50=35.9%, bari 2mg=22.8%, placebo=6.2%) · Asakawa M et al. JID 2023 (ALLEGRO: ritlecitinib 50mg SALT50=23.1%) · Mackay-Wiggan J et al. JCI Insight 2016 (ruxolitinib IFN-γ reversal) · Xing L et al. Nat Med 2014 (JAK inh murine AA model) |
+
+### Key Drug PK/PD Parameters
+
+| Drug | JAK Targets | Mechanism | Dose (AA) | F_oral | t½ | IC50 (JAK1/JAK2/JAK3) | Primary PD Effect |
+|------|-------------|-----------|-----------|--------|-----|------------------------|-------------------|
+| Baricitinib | JAK1/JAK2 > TYK2 | Reversible competitive | 4 mg QD | 79% | 12 h | 5.9 / 5.7 / — nM | ↓p-STAT1 → ↓IFN-γ loop → ↓CD8+ infiltrate |
+| Ritlecitinib | JAK3 = TEC/BTK/BMX | Covalent (Cys909) | 50 mg QD | 70% | ~2 h | — / — / covalent | ↓p-STAT5 → ↓NKG2D+ T cell survival; irreversible |
+| Tofacitinib | JAK1/JAK3 > JAK2 | Reversible competitive | 5 mg BID | 74% | 3 h | 3.2 / — / 1.6 nM | ↓p-STAT1 + ↓p-STAT5 → broad JAK1/3 block |
+| Dupilumab | IL-4Rα (mAb) | IL-4/IL-13 blockade | 300 mg SC Q2W | 64% (SC) | 22 d | — | IL-4/IL-13 → STAT6 block; atopic AA subgroup |
+
+### Shiny App Tabs
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | Age/sex/BMI input; AA subtype selector (Patchy/AT/AU); baseline SALT and hair density; untreated natural history plot; AA classification reference table |
+| ② Drug PK | Drug selector + dose slider; plasma Cp vs. time (plotly); Cmax, Cmin (SS), AUCtotal value boxes; full PK parameter reference table |
+| ③ PD Biomarkers | p-STAT1 inhibition %; p-STAT5 inhibition %; IFN-γ; CXCL10/IP-10; NKG2D ligand; CD8+ effector T cells; Immune Privilege Index — all interactive plotly time-series |
+| ④ Clinical Endpoints | SALT score trajectory with SALT50/90 reference lines; SALT at Week 24 value box; SALT50/SALT90 responder status; hair density %; anagen fraction; OLSS proxy; inflammation index |
+| ⑤ Scenario Comparison | All 5 arms overlaid SALT/IFN-γ/hair density plots; summary DT table at user-selected week; downloadable CSV |
+| ⑥ Risk & Biomarker | Baricitinib dose–response plot (1–8 mg); CXCL10 vs SALT scatter (colorized by week); AA risk calculator (SALT + duration + subtype → Low/Moderate/High); biomarker reference ranges; weekly biomarker download table |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`aa_qsp_model.dot`](alopecia-areata/aa_qsp_model.dot) | Graphviz DOT source (11 clusters, 142 nodes, 200+ directed edges) |
+| [`aa_qsp_model.svg`](alopecia-areata/aa_qsp_model.svg) | Vector mechanistic map |
+| [`aa_qsp_model.png`](alopecia-areata/aa_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`aa_mrgsolve_model.R`](alopecia-areata/aa_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 treatment scenarios, dose–response analysis) |
+| [`aa_shiny_app.R`](alopecia-areata/aa_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT + deSolve) |
+| [`aa_references.md`](alopecia-areata/aa_references.md) | 55 curated PubMed-linked references (13 sections) |
