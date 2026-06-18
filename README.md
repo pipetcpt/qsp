@@ -155,6 +155,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Celiac Disease (셀리악병)**](#celiac-disease-cd) | 자가면역질환 / 소화기 | HLA-DQ2.5/DQ8 유전 소인 + 글루텐 섭취 → 장내 부분 소화 → p31-43 gliadin → 장내 IL-15↑(선천면역) + Zonulin 방출 → 장 투과성↑ → gliadin 고유판(LP) 유입 → tTG2(TG2) 탈아미드화(Gln→Glu) → HLA-DQ2/DQ8에 고친화 결합 → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 → IEL(NK-유사) 세포독성 → 소장 융모 위축(Marsh 분류 0→3c) + 융모:크럽트 비율(V:C) 급감 → 철분/칼슘/엽산 흡수 장애 → IDA·골다공증·거적아구성 빈혈; B세포→항-tTG IgA(진단 금표준)·항-DGP IgG 자가항체; GFD(표준) + Larazotide AT-1001(Zonulin 차단, Phase III) + ZED1227(TG2 공유결합 억제제, Phase II) + AMG714(anti-IL-15 mAb, 난치성 셀리악) + TIMP-GLIA/TAK-101(나노입자 내성 유도); 21-CMT ODE model (글루텐·DGP·tTG2·IP·IL15·IEL·CD4T·IFNg·IL17·IL21·Bcell·AntiTTG·VH·CrD·AbsArea·Iron·BMD·PK 2); 6 치료 시나리오 (Shan 2002 Science, Schuppan NEJM 2021, Leffler 2015 Gastroenterology 보정) | [![CD](celiac-disease/cd_qsp_model.png)](celiac-disease/cd_qsp_model.svg) | [R](celiac-disease/cd_mrgsolve_model.R) | [refs](celiac-disease/cd_references.md) | [Shiny](celiac-disease/cd_shiny_app.R) |
 | 2026-06-18 | [**Autoimmune Hepatitis (자가면역 간염)**](#autoimmune-hepatitis-aih) | 자가면역질환 / 간 | HLA-DR3/DR4(Type 1) · HLA-DR7(Type 2) 유전 소인 + 분자 모방(HCV CYP2D6 교차반응/EBV/약물 유발 신항원) → 중추·말초 면역관용 소실 → Kupffer/DC/Hepatocyte-MHC-II → 자가항원(CYP2D6/SepSecS/F-Actin/dsDNA) → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 + FoxP3+ Treg 수·기능 저하(AIH 핵심 병태) + CD8+ CTL(Perforin/GrB/FasL) → 경계면 간염(Interface hepatitis · Rosette · Emperipolesis · 형질세포 침윤) + 자가항체 생성(ANA/ASMA/LKM-1/SLA-LP) + IgG 고감마글로불린혈증 → ALT·AST·IgG↑ → 반복 손상 시 TGF-β1/HSC 활성화 → F0→F4 간섬유화 → 문맥고혈압·간세포암·간이식; 치료: Prednisolone(GR/NF-κB 억제) + AZA(6-TGN TPMT/NUDT15 의존) · MMF(IMPDH 억제) · Budesonide(간 초회통과 >90%) · Rituximab(CD20 TMDD B세포 고갈); 22-CMT mrgsolve ODE (22 상태, 6 치료 시나리오, IAIHG 관해 기준 엔드포인트, TPMT 표현형 감도 분석); Manns 2010 NEJM · Manns 2010 Gastroenterology(Budesonide) · Zachou 2011 J Hepatol(MMF) · Burak 2013 Liver Int(RTX) 보정 | [![AIH](autoimmune-hepatitis/aih_qsp_model.png)](autoimmune-hepatitis/aih_qsp_model.svg) | [R](autoimmune-hepatitis/aih_mrgsolve_model.R) | [refs](autoimmune-hepatitis/aih_references.md) | [Shiny](autoimmune-hepatitis/aih_shiny_app.R) |
 | 2026-06-18 | [**Irritable Bowel Syndrome (과민성 장증후군)**](#irritable-bowel-syndrome-ibs) | 만성질환 / 기능성위장관 | 뇌-장 축(Brain-Gut Axis) 이상: 심리적 스트레스 → HPA축(CRF→ACTH→코르티솔) + 자율신경계 불균형 → 장내 비만세포 활성화(CRF-R2/IgE 교차/LPS-TLR4) + 장 투과성↑(Zonulin/MLCK/claudin 감소) → LPS 전좌 → 점막 저도 염증(TNF-α/IL-1β/IL-6↑, IL-10↓); 세로토닌(5-HT) 신호 이상: EC세포 TPH1 발현 이상 → IBS-D(5-HT 과잉/SERT↓) vs IBS-C(5-HT 결핍) → 5-HT3R(내장 구심성 활성화) + 5-HT4R(연동운동) 불균형 → 내장 과민성↑ · 대장통과시간 이상; 장내 미생물 불균형(Dysbiosis): Firmicutes↑/Bacteroidetes 비율 변화 · SIBO · 메탄 생성균(변비) · H2/H2S 생산균(팽만) · SCFA↓(Butyrate↓ → 장벽 약화 + IL-10↓) · 담즙산 대사 이상(FXR/TGR5) → EC세포 5-HT 합성 조절; 내장 과민성: 비만세포 Tryptase → PAR-2 → TRPV1/TRPA1 활성화 → DRG → 척수 후각 → 중추 감작(Wind-up · NMDA수용체 · BDNF) → 하행 통증 억제 약화; 치료 PK/PD: Alosetron(5-HT3 길항, 2-CMT, IC50 1.2 ng/mL) · Prucalopride(5-HT4 작용, 1-CMT, EC50 2.5 ng/mL) · 항콜린제(Hyoscine/Mebeverine) · TCA/SNRI(Amitriptyline, 하행 NE/5-HT 강화) · Rifaximin(SIBO 제거, 팽만 감소) · Linaclotide/Plecanatide(GC-C → cGMP → CFTR Cl⁻ 분비 + TRPV1 감작 억제) · Eluxadoline(μ/κ 작용제/δ 길항제) · 프로바이오틱스; 20-CMT deSolve ODE (STRESS·CRF·CORT·GUT_5HT·SERT_OCC·MAST_ACT·INFLAM·BARRIER·MICROB·SCFA·VIS_SENS·MOTIL·PAIN·BLOAT·STOOL·IBS_SSS·DRG_ACT·Cp1·Cp2·Cp3); 5 치료 시나리오; Camilleri 2001(Lancet) · Pimentel 2011(NEJM) · Ford 2014(Gut) · Chey 2012(Am J Gastroenterol) 보정 | [![IBS](irritable-bowel-syndrome/ibs_qsp_model.png)](irritable-bowel-syndrome/ibs_qsp_model.svg) | [R](irritable-bowel-syndrome/ibs_mrgsolve_model.R) | [refs](irritable-bowel-syndrome/ibs_references.md) | [Shiny](irritable-bowel-syndrome/ibs_shiny_app.R) |
+| 2026-06-18 | [**ADPKD — Autosomal Dominant Polycystic Kidney Disease (상염색체 우성 다낭성 신종)**](#adpkd-autosomal-dominant-polycystic-kidney-disease) | 만성질환 / 신장유전질환 | PKD1(16p13, ~85%) · PKD2(4q22, ~15%) 유전자 돌연변이 → Two-hit model(체세포 2차 타격) → Polycystin-1/PC2 기능 소실 → 일차 섬모(Primary Cilium) 기계 감지 결함 → 세포내 Ca²⁺↓ → cAMP 역의존적 과활성화(AC5/AC6 탈억제); cAMP↑ → PKA 활성화 → CFTR Cl⁻ 채널 개방 + NKCC1 → 낭종 내강으로 유체 분비↑; cAMP→PKA→B-Raf→MEK→ERK1/2↑ + PI3K→Akt→mTORC1 활성화(PC1-CTF 소실로 TSC 해제) → 낭종 상피세포 비정상 증식 + 극성 역전(Na⁺/K⁺-ATPase 첨단 이동); 낭종 확장 → 정상 네프론 압박 → 신원 소실 → eGFR 감소(3–5 mL/min/yr); 낭종 확대 → 신장 내 압력↑ → 방사 기관(JGA) 레닌 분비↑ → RAAS 과활성화(Ang II↑ → AT1R → 알도스테론/내피소수축/혈압↑) → 사구체 고혈압 → 신원 추가 손상; 만성 염증·섬유화: 대식세포 M2 침윤(MCP-1/IL-6/TNF-α) + TGF-β1/CTGF → 근섬유모세포 활성화 → 간질 섬유화; 치료 PK/PD: Tolvaptan(V2R 경쟁적 길항제, F=0.56, t½=8h, CL=4L/h, EC50 V2R=50 ng/mL, 요삼투압↓ PD biomarker) · Everolimus(mTOR 억제제, FKBP12 복합체, EC50=5 ng/mL) · Octreotide LAR(SSTR2/5 작용→Gi→cAMP↓, 30mg/28days depot) · ACEi/ARB(RAAS 차단, 혈압 목표 110/75–130/80); 20-CMT mrgsolve ODE (AGUT·ACENT·APERI·EGUT·ECENT·EPERI·OCTDEP·OCTCENT·ACEI_GUT·ACEI_CENT·AVP·cAMP·mTOR·ANGII·BP·TKV·eGFR·Uosm·NEPH·); 5 치료 시나리오; Torres 2012 NEJM(TEMPO 3:4) · Torres 2017 NEJM(REPRISE) · Serra/Walz 2010 NEJM(Everolimus SIRENA) · Schrier 2014 NEJM(HALT-PKD) · Caroli 2013 Lancet(ALADIN) · Irazabal 2015 JASN(Mayo 분류) · Cornec-Le Gall 2016 JASN(PROPKD 점수) 보정 | [![ADPKD](adpkd/adpkd_qsp_model.png)](adpkd/adpkd_qsp_model.svg) | [R](adpkd/adpkd_mrgsolve_model.R) | [refs](adpkd/adpkd_references.md) | [Shiny](adpkd/adpkd_shiny_app.R) |
 
 
 ---
@@ -3780,3 +3781,78 @@ Irritable Bowel Syndrome (IBS) is a functional gastrointestinal disorder affecti
 | [`ibs_mrgsolve_model.R`](irritable-bowel-syndrome/ibs_mrgsolve_model.R) | mrgsolve/deSolve ODE model (20 CMT, 5 treatment scenarios, sensitivity analysis) |
 | [`ibs_shiny_app.R`](irritable-bowel-syndrome/ibs_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT + deSolve) |
 | [`ibs_references.md`](irritable-bowel-syndrome/ibs_references.md) | 55 curated PubMed-linked references (12 sections) |
+
+---
+
+## ADPKD — Autosomal Dominant Polycystic Kidney Disease
+
+> Directory: [`adpkd/`](adpkd/)
+
+[![ADPKD QSP Mechanistic Map](adpkd/adpkd_qsp_model.png)](adpkd/adpkd_qsp_model.svg)
+
+### Overview
+
+Autosomal Dominant Polycystic Kidney Disease (ADPKD) is the most common hereditary kidney disorder (~1 in 400–1000 live births), caused by loss-of-function mutations in **PKD1** (Chr 16p13.3, ~85%) or **PKD2** (Chr 4q22.1, ~15%). It is characterised by progressive bilateral renal cyst formation, total kidney volume (TKV) enlargement, and gradual eGFR decline culminating in ESRD (median age ~54 yr PKD1, ~74 yr PKD2).
+
+**Key cellular mechanism:** PKD1/PKD2 mutations (two-hit model) → loss of polycystin-1/2 complex at the primary cilium → ↓intracellular Ca²⁺ → ↑cAMP (AC5/AC6 released from Ca²⁺ inhibition) → PKA activation → CFTR-mediated fluid secretion + ERK-mediated proliferation → cyst expansion → TKV↑ → nephron compression → eGFR↓.
+
+### Pathophysiological Mechanisms (10 Clusters)
+
+| Cluster | Key Components |
+|---------|----------------|
+| ① Genetic Layer | PKD1/PKD2 mutations; two-hit somatic model; Loss of heterozygosity; PC1 (3,074 aa, 11-TM) and PC2 (TRPP2, Ca²⁺ channel); haploinsufficiency; ciliary localization |
+| ② Polycystin / Ca²⁺ Signaling | Primary cilium (mechanosensor); fluid-flow bending; PC1 GPS cleavage → NTF/CTF; PC2 channel gating; [Ca²⁺]i ↓ in ADPKD; IP3R/RyR/SERCA; STIM1/Orai1 SOCE; CaM/CaMKII/calcineurin/NFAT |
+| ③ cAMP / PKA / Vasopressin | AVPR2 (V2R) – AVP; Gs → AC5/AC6 → cAMP↑↑; PKA activation (RII-β dissociation); CREB/CRE transcription; PDE4 degradation; Epac1/Rap1; SSTR2/5 (Gi, inhibitory); AQP2 expression |
+| ④ PI3K / Akt / mTOR | EGF/EGFR (apical mislocation); PI3K/PIP3/PDK1; Akt Thr308+Ser473; TSC1/TSC2 complex; Rheb-GTP; mTORC1 (Raptor) and mTORC2 (Rictor); S6K1/4E-BP1; AMPK/LKB1; FKBP12-everolimus-mTOR |
+| ⑤ MAPK / ERK / Proliferation | Ras/Raf/MEK/ERK1/2; RSK2; Cyclin D1/CDK4/CDK6/Rb; E2F (S-phase); Bcl-2/Mcl-1 (anti-apoptosis); JAK2/STAT3; HIF-1α/VEGF; TGF-β1/Smad2/3; CTGF; Wnt/β-catenin |
+| ⑥ Cyst Formation & Growth | Tubular epithelial dedifferentiation; polarity reversal; Na⁺/K⁺-ATPase mislocalization; CFTR Cl⁻ channel (PKA-activated); NKCC1; fluid secretion → lumen pressure → expansion; TKV (primary endpoint); interstitial fibrosis; macrophage infiltration; IL-6/MCP-1; ROS |
+| ⑦ RAAS / Cardiovascular | JGA → renin ↑ (intrarenal pressure); Ang I → ACE → Ang II; AT1R (vasoconstriction); aldosterone/MR/ENaC (Na⁺ retention); sympathetic NS; endothelin-1; systemic BP↑; glomerular hypertension; functional nephron loss |
+| ⑧ Drug PK | Tolvaptan 2-CMT (F=0.56, t½=8h, CL=4 L/h); CYP3A4 metabolism/hepatotoxicity risk; Everolimus 2-CMT (F=0.16, t½=30h); Octreotide LAR depot (krel=0.002/h); ACEi/ARB 1-CMT |
+| ⑨ Drug PD / Biomarkers | V2R occupancy (Hill Emax, EC50=50 ng/mL); urine osmolality ↓ (<300 mOsm/kg); urinary AQP2 ↓; cAMP reduction (collecting duct); mTOR inhibition (↓phospho-S6K1); RAAS inhibition (BP reduction); renoprotection (eGFR preservation) |
+| ⑩ Clinical Outcomes | TKV (L, MRI primary endpoint); htTKV + Mayo Classification (1A-1E); annual TKV growth (%/yr); eGFR + CKD staging; PROPKD score (0-9); ESRD prediction; pain/hematuria/UTI; QoL (SF-36, ADPKD-IS) |
+
+**Total: 10 clusters, 174 nodes, 200+ directed edges**
+
+### ODE Model Summary
+
+| Parameter | Value |
+|-----------|-------|
+| ODE states | 20: AGUT · ACENT · APERI · EGUT · ECENT · EPERI · OCTDEP · OCTCENT · ACEI_GUT · ACEI_CENT · AVP_ST · CAMP_ST · MTOR_ST · ANGII_ST · BP_ST · TKV_ST · EGFR_ST · UOSM_ST · NEPH_ST (×2 for placebo) |
+| Treatment scenarios | 5: ① Placebo · ② Tolvaptan 60 mg/day (45+15 AM/PM split) · ③ Tolvaptan 120 mg/day (90+30 AM/PM) · ④ Everolimus 2.5 mg/day · ⑤ Tolvaptan 60 mg/day + ACEi |
+| Simulation duration | 3 years (26,280 hours) — disease progression + PK steady-state |
+| Key biomarkers | TKV (L, annual % growth) · eGFR (mL/min/1.73m²) · V2R occupancy (%) · Urine osmolality (mOsm/kg) · Relative cAMP · Relative mTOR · Ang II (rel) · BP (mmHg) |
+| Primary endpoint | TKV annual growth rate: Placebo ~5.5%/yr → Tolvaptan 120 mg ~3.0%/yr |
+| eGFR endpoint | eGFR decline: Placebo –3.5 mL/min/yr → Tolvaptan 60 mg –2.5 mL/min/yr |
+| Calibration sources | Torres VE et al. NEJM 2012 (TEMPO 3:4: TKV +4.4% vs +8.0%) · Torres VE et al. NEJM 2017 (REPRISE: eGFR –2.3 vs –3.6) · Serra AL/Walz G NEJM 2010 (Everolimus: SIRENA) · Schrier RW et al. NEJM 2014 (HALT-PKD, ARBs) · Caroli A et al. Lancet 2013 (ALADIN, octreotide) |
+
+### Key Drug PK/PD Parameters
+
+| Drug | Mechanism | Dose | F_oral | t½ | EC50 / Target | Primary Effect |
+|------|-----------|------|--------|----|---------------|----------------|
+| Tolvaptan | V2R competitive antagonist | 45+15 or 90+30 mg split | 56% | ~8 h | EC50 V2R = 50 ng/mL | ↓cAMP → ↓cyst growth, urine Osm <300 |
+| Everolimus | mTOR inhibitor (FKBP12-complex) | 2.5 mg QD | 16% | ~30 h | EC50 mTOR = 5 ng/mL, TDM 3–8 ng/mL | ↓S6K1 phospho → ↓proliferation |
+| Octreotide LAR | SSTR2/5 agonist (Gi-coupled) | 30 mg/28 days IM | ~80% (depot) | ~28 days | EC50 SSTR2 = 1 ng/mL | ↓AC → ↓cAMP → liver cyst reduction |
+| Ramipril (ACEi) | ACE inhibitor | 10 mg QD | 60% | 13 h | RAAS inhibition 70% | ↓Ang II → ↓BP → renoprotection |
+| Losartan (ARB) | AT1R antagonist | 50–100 mg QD | 33% | 6–9 h | AT1R block | ↓Ang II effects → ↓BP, HALT-PKD |
+
+### Shiny App Tabs
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | Age/sex/BMI input; htTKV + Mayo Class (1A-1E bar chart); PROPKD score calculation; CKD stage; monitoring schedule table |
+| ② Drug PK | Select Tolvaptan / Everolimus / Octreotide LAR; dose slider; Cp vs. time plot (plotly); PK metrics (Cmax, Cmin, AUC); target range reference table |
+| ③ PD Biomarkers | V2R occupancy %; Urine osmolality; cAMP relative level; mTOR inhibition % — all as interactive plotly time-series; PD summary table at selected timepoint |
+| ④ Disease Progression | TKV (L) + eGFR + BP + CKD stage — all plotly; toggleable treatment arms; ca2_scale and kgrow sliders for disease severity |
+| ⑤ Scenario Comparison | 5 arms overlay (TKV + eGFR plots); outcome table (DT) at user-selected time horizon; forest plot of TKV growth vs. placebo |
+| ⑥ Biomarker & Risk | PROPKD score calculator; Mayo class auto-calculation; 10-year eGFR trajectory by risk; ESRD prediction; treatment recommendation panel; biomarker reference table |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`adpkd_qsp_model.dot`](adpkd/adpkd_qsp_model.dot) | Graphviz DOT source (10 clusters, 174 nodes, 200+ directed edges) |
+| [`adpkd_qsp_model.svg`](adpkd/adpkd_qsp_model.svg) | Vector mechanistic map |
+| [`adpkd_qsp_model.png`](adpkd/adpkd_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`adpkd_mrgsolve_model.R`](adpkd/adpkd_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 scenarios, virtual patient analysis, dose-response) |
+| [`adpkd_shiny_app.R`](adpkd/adpkd_shiny_app.R) | 6-tab Shiny dashboard (bslib + plotly + DT) |
+| [`adpkd_references.md`](adpkd/adpkd_references.md) | 53 PubMed-linked references (14 sections) |
