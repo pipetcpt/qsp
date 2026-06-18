@@ -152,6 +152,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Metabolic Syndrome (MetS)**](#metabolic-syndrome-mets) | 만성질환 / 대사 | 중심성 비만(VAT↑ 5–12 kg) → 내장 지방 M1 대식세포 침윤(MCP-1/TLR4/FFA) → TNF-α/IL-6/IL-1β/MCP-1↑ → IKKβ/JNK1 → IRS-1 Ser307 인산화 → PI3K-Akt 차단 → 말초 인슐린 저항(GLUT4 전위↓) + 간 인슐린 저항(FoxO1 핵 복귀→PEPCK↑→HGP↑); Resistin↑/Adiponectin↓(AdipoR1/R2) → AMPK 억제 + SREBP-1c→DNL↑→VLDL 과분비→TG↑·sdLDL↑·CETP→HDL↓; AngII-AT1R → NAD(P)H 산화효소→ROS + eNOS 탈인산화→NO↓→내피세포 기능 부전→SVR↑→MAP↑; 렙틴 저항(시상하부 NPY↑/POMC↓) → 식욕 억제 실패 → 에너지 불균형 지속; Ceramide/DAG→PKCε/θ → 골격근 IRS-1 Ser↑ → 근육 인슐린 저항; β세포 글루코독성+IL-1β 매개 아폽토시스 → HOMA-β↓ → T2DM 이행; NCEP-ATP III 기준 3/5 충족; Metformin (미토콘드리아 Complex I 억제→AMPK↑→HGP↓30%·FPG↓3mmol/L; UKPDS 34) + Semaglutide/Liraglutide (GLP-1R→cAMP↑→인슐린↑·글루카곤↓ + 시상하부 satiety→체중 −9%; LEADER/SUSTAIN-6 MACE↓) + Empagliflozin/Dapagliflozin (SGLT2 경쟁적 억제→UGE 70 g/day→HbA1c↓·체중↓3 kg·MAP↓4 mmHg; EMPA-REG HospHF↓35%+CKD 보호) + Rosuvastatin (HMG-CoA 억제→LDL↓50%·LDLr↑; CTT 메타분석) + Losartan/Enalapril (AT1R 차단/ACE 억제→AngII↓→MAP↓10 mmHg·Alb뇨↓·신장 보호; HOPE/IDNT); 22-CMT ODE model (글루코스 항상성 8 + 지질 4 + 지방조직 4 + 염증 4 + RAAS/BP 2 + AMPK 1 + PK 각 2–3); 5 치료 시나리오 + BMI 민감도 분석 | [![MetS](metabolic-syndrome/ms_qsp_model.png)](metabolic-syndrome/ms_qsp_model.svg) | [R](metabolic-syndrome/ms_mrgsolve_model.R) | [refs](metabolic-syndrome/ms_references.md) | [Shiny](metabolic-syndrome/ms_shiny_app.R) |
 | 2026-06-18 | [**Essential Hypertension (본태성 고혈압)**](#essential-hypertension) | 만성질환 / 심혈관 | RAAS 과활성(AngII-AT1R → 혈관수축+알도스테론↑+Na저류) + SNS 항진(NE→α1R/β1R→CO↑+TPR↑) + 내피기능 장애(eNOS↓→NO↓, NADPH산화효소→ROS↑) + 신장 나트륨 저류(NCC/ENaC→PV↑) + 혈관 구조 리모델링(TGF-β/MAPK→IMT↑+동맥경직↑); 22-CMT ODE model (ACEI 라미프릴 + ARB 로사르탄 + CCB 암로디핀 + BB 비소프롤롤 + HCTZ, 6 치료 시나리오, SBP/DBP/LVM/eGFR 엔드포인트; SPRINT·ESH/ESC 2018·ALLHAT·HOPE 임상 보정) | [![EH](essential-hypertension/eh_qsp_model.png)](essential-hypertension/eh_qsp_model.svg) | [R](essential-hypertension/eh_mrgsolve_model.R) | [refs](essential-hypertension/eh_references.md) | [Shiny](essential-hypertension/eh_shiny_app.R) |
 | 2026-06-18 | [**Chronic Hepatitis B (CHB)**](#chronic-hepatitis-b-chb) | 만성질환 / 간·바이러스 | HBV NTCP(SLC10A1) 수용체 침입 → 핵내 cccDNA 미니염색체 형성(t½~수십 년) → pgRNA→역전사→rcDNA→바이러스 증식; HBx 단백질→IRF3 분해→IFN-β 회피; HBsAg 과잉 SVP→T세포 탈진(PD-1/TIM-3/LAG-3↑); CTL 매개 세포용해 + IFN-γ 비세포용해 청소 경쟁; HSC 활성화→TGF-β1/Smad2-3→섬유화→HCC 위험↑; Entecavir ETV (RT 프리밍·역전사·DNA pol 3단계 억제, IC50=0.004 µM, 1년 DNA <300 cp/mL 67%) + TDF 300 mg (chain terminator, IC50=0.5 µM, 1년 DNA 76%) + Peg-IFN-α2a 180 µg QW×48wks (JAK-STAT→ISGs + NK/CTL 증폭 + cccDNA 직접 감소, HBsAg 소실 3%/yr) + GalNAc-siRNA (HBsAg >90% knockdown) + Bulevirtide NTCP 억제제; 20-CMT ODE (PK 8개 + 바이러스 5개 + 면역 3개 + 간 4개); 6 치료 시나리오; HBV DNA 역학(Neumann/Dahari 框架), Chang 2006·Marcellin 2008·Lau 2005 임상 보정 | [![CHB](chronic-hepatitis-b/chb_qsp_model.png)](chronic-hepatitis-b/chb_qsp_model.svg) | [R](chronic-hepatitis-b/chb_mrgsolve_model.R) | [refs](chronic-hepatitis-b/chb_references.md) | [Shiny](chronic-hepatitis-b/chb_shiny_app.R) |
+| 2026-06-18 | [**Celiac Disease (셀리악병)**](#celiac-disease-cd) | 자가면역질환 / 소화기 | HLA-DQ2.5/DQ8 유전 소인 + 글루텐 섭취 → 장내 부분 소화 → p31-43 gliadin → 장내 IL-15↑(선천면역) + Zonulin 방출 → 장 투과성↑ → gliadin 고유판(LP) 유입 → tTG2(TG2) 탈아미드화(Gln→Glu) → HLA-DQ2/DQ8에 고친화 결합 → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 → IEL(NK-유사) 세포독성 → 소장 융모 위축(Marsh 분류 0→3c) + 융모:크럽트 비율(V:C) 급감 → 철분/칼슘/엽산 흡수 장애 → IDA·골다공증·거적아구성 빈혈; B세포→항-tTG IgA(진단 금표준)·항-DGP IgG 자가항체; GFD(표준) + Larazotide AT-1001(Zonulin 차단, Phase III) + ZED1227(TG2 공유결합 억제제, Phase II) + AMG714(anti-IL-15 mAb, 난치성 셀리악) + TIMP-GLIA/TAK-101(나노입자 내성 유도); 21-CMT ODE model (글루텐·DGP·tTG2·IP·IL15·IEL·CD4T·IFNg·IL17·IL21·Bcell·AntiTTG·VH·CrD·AbsArea·Iron·BMD·PK 2); 6 치료 시나리오 (Shan 2002 Science, Schuppan NEJM 2021, Leffler 2015 Gastroenterology 보정) | [![CD](celiac-disease/cd_qsp_model.png)](celiac-disease/cd_qsp_model.svg) | [R](celiac-disease/cd_mrgsolve_model.R) | [refs](celiac-disease/cd_references.md) | [Shiny](celiac-disease/cd_shiny_app.R) |
 
 
 ---
@@ -3513,3 +3514,98 @@ Chronic Hepatitis B (CHB) is a persistent infection with the Hepatitis B Virus (
 | [`chb_mrgsolve_model.R`](chronic-hepatitis-b/chb_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 6 treatment scenarios, sensitivity analysis) |
 | [`chb_shiny_app.R`](chronic-hepatitis-b/chb_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
 | [`chb_references.md`](chronic-hepatitis-b/chb_references.md) | 55 curated PubMed-linked references (12 sections) |
+
+---
+
+## Celiac Disease (CD)
+
+**Date added:** 2026-06-18 | **Directory:** [`celiac-disease/`](celiac-disease/)
+
+[![Celiac Disease Mechanistic Map](celiac-disease/cd_qsp_model.png)](celiac-disease/cd_qsp_model.svg)
+
+### 병태생리 요약 (Pathophysiology)
+
+Celiac disease (CD) is a systemic immune-mediated disorder triggered by dietary gluten (wheat/barley/rye) in genetically susceptible individuals (HLA-DQ2.5/DQ8), affecting approximately 1% of the world population. The hallmark is small intestinal villous atrophy causing malabsorption of iron, calcium, folate, fat-soluble vitamins, and protein.
+
+**Key pathophysiological axes modeled:**
+
+1. **Genetic Predisposition** — HLA-DQ2.5 (DQA1*05:DQB1*02, ~95% of CD patients) and HLA-DQ8 (DQA1*03:DQB1*03:02, ~5%) are required but not sufficient; non-HLA genes (IL2/IL21, CTLA4, PTPN22, RGS1/CCR3, SH2B3) increase risk additively
+2. **Gluten Processing & tTG2 Deamidation** — Luminal gliadin peptides (33-mer from α-gliadin, resistant to proteolysis) reach the lamina propria; tissue transglutaminase 2 (tTG2/TG2) deamidates glutamine→glutamate residues, generating negatively-charged DGP with 100-fold higher affinity for HLA-DQ2; IFN-γ and TGF-β upregulate tTG2 expression (positive feedback loop)
+3. **Innate Immune Activation (IL-15 Axis)** — Gliadin p31-43 peptide directly stresses enterocytes → IL-15 production → NK cell and IEL expansion; MICA/MICB on stressed epithelium activates NKG2D on IEL → cytotoxic killing of enterocytes → villous loss; IL-15 also upregulates NKG2C+ IEL (T cell phenotype)
+4. **Adaptive Immunity (Th1/Th17)** — CD103+ DCs present DGP on HLA-DQ2/DQ8 to antigen-specific CD4+ T cells → Th1 (IFN-γ/TNF-α dominant in CD) + Th17 (IL-17A/IL-21/IL-22) differentiation; IL-21 provides B-cell help and amplifies IL-15 signaling; Treg cells are insufficient to maintain tolerance
+5. **B Cell Response & Serology** — Plasma cells secrete anti-tTG IgA (diagnostic gold standard; sensitivity ≥95%, specificity ≥97%), anti-DGP IgG, AGA, and endomysial antibodies (EMA); anti-tTG IgA forms immune complexes that activate complement; IgA deficiency (1 in 500) causes false-negative serology
+6. **Intestinal Histopathology (Marsh Classification)** — Progressive damage from Marsh 0 (normal) → Marsh 1 (>25 IEL/100 enterocytes) → Marsh 2 (+crypt hyperplasia) → Marsh 3a/b/c (partial/subtotal/total villous atrophy); V:C ratio falls from normal >3:1 to <0.3:1; MMP-9 and IFN-γ directly mediate villous destruction
+7. **Malabsorption & Complications** — Iron (duodenum/jejunum) → IDA; calcium/vitamin D → osteoporosis; folate/B12 → megaloblastic anemia; fat-soluble vitamins (A/D/E/K); protein → hypoalbuminemia, edema; associated conditions: dermatitis herpetiformis (IgA skin deposits), gluten ataxia, EATL lymphoma (RCD-II progression), T1DM, AITD
+
+### Mechanistic Map Summary
+
+| Cluster | Key Components |
+|---------|---------------|
+| ① Genetic & Environmental | HLA-DQ2.5/DQ8, IL2/IL21/CTLA4/PTPN22/RGS1/SH2B3 genes, gluten intake, rotavirus, gut dysbiosis |
+| ② Gluten Processing & tTG2 | α-Gliadin (33-mer), glutenin, hordein, secalin, partial luminal digestion, tTG2, deamidation (Gln→Glu), DGP |
+| ③ Intestinal Barrier | Tight junctions (claudin-3/4, occludin, ZO-1), zonulin, intestinal permeability index, MLCK, SIgA, retrotranscytosis |
+| ④ Innate Immunity | Epithelial IL-15, NK cells, IEL (CD8+/γδT), NKG2D/MICA-MICB, DC (CD103+), macrophages (M1), TNF-α/IL-1β/IL-6, MMP-1/3/9, NLRP3 |
+| ⑤ Adaptive T Cells | CD4+ T helper, Th1 (IFN-γ/TNF-α), Th17 (IL-17A/IL-21/IL-22), Treg (IL-10/TGF-β/CTLA4), PD-1/PD-L1 |
+| ⑥ B Cells & Serology | B cells, plasma cells, anti-tTG IgA, anti-DGP IgG, AGA, EMA, IgA deficiency, germinal center, Tfh |
+| ⑦ Marsh Histopathology | Marsh 0–3c, villous height, crypt depth, IEL count, V:C ratio, epithelial loss, absorption surface area |
+| ⑧ Malabsorption | Iron, Ca/Vit D, folate/B12, fat-soluble vitamins, protein; IDA, megaloblastic anemia, osteoporosis, hypoalbuminemia, steatorrhea, diarrhea |
+| ⑨ Complications | Dermatitis herpetiformis, gluten neuropathy/ataxia, EATL, RCD-I/II, T1DM association, AITD, growth failure, infertility |
+| ⑩ Drug Treatments & PK | GFD, Larazotide AT-1001 (Phase III), ZED1227 TG2i (Phase II), AMG714 anti-IL-15 (Phase II), TIMP-GLIA/TAK-101, budesonide/prednisolone/azathioprine (RCD), bortezomib/cladribine (EATL/RCD-II) |
+
+**Total:** 10 clusters, 113 nodes, 150+ directed edges
+
+### ODE Model Summary
+
+| Parameter | Value |
+|-----------|-------|
+| ODE states | 21 (GlutenLumen · GlutenLP · DGP · tTG2 · IP · IL15 · IEL · CD4T · IFNg · IL17 · IL21 · Bcell · AntiTTG · VH · CrD · AbsArea · IronStores · BMD · DrugGut · DrugPlasma + 20 captured outputs) |
+| Treatment scenarios | 6: ① Untreated normal diet · ② Strict GFD · ③ Partial GFD (5% leak) · ④ GFD+Larazotide (2 mg TID) · ⑤ GFD+ZED1227 (300 mg QD) · ⑥ GFD+AMG714 SC weekly (RCD) |
+| Simulation duration | 1 year (365 days), 24-h sampling interval |
+| Key biomarkers | Anti-tTG IgA (U/mL) · Marsh score (0–3) · V:C ratio · IFN-γ (ng/mL) · IL-15 (ng/mL) · IEL count (/100 enterocytes) · Hgb (g/dL) · BMD · AbsArea |
+| Clinical endpoints | Serology positivity (>10 ULN) · Histological remission (Marsh <2) · Hematological recovery (Hgb >12 g/dL) · Bone preservation (BMD >0.9) |
+| Calibration sources | Shan et al. 2002 (Science; 33-mer) · Leffler et al. 2015 (Gastroenterology; Larazotide Phase III) · Schuppan et al. 2021 (NEJM; ZED1227 Phase II) · Mention et al. 2003 (Gastroenterology; IL-15) · Marsh 1992 (Gastroenterology; histopathology) |
+
+### Key Drug PK Parameters
+
+| Drug | Mechanism | Dose | Route | t½ | EC50 |
+|------|-----------|------|-------|-----|------|
+| Larazotide AT-1001 | Zonulin antagonist → TJ restoration | 0.5–4 mg TID | Oral (gut-local) | ~2 h | ~50 ng/mL (IP ↓) |
+| ZED1227 | Covalent TG2 inhibitor | 300 mg QD | Oral | ~8 h | ~80 ng/mL (deamid ↓) |
+| AMG714 | Anti-IL-15 mAb | 150 mg SC | Subcutaneous | ~2 wks | ~15 ng/mL (IL-15 ↓) |
+| Budesonide | Glucocorticoid (local) | 9 mg QD | Oral (enteric) | ~3.6 h | — |
+| Azathioprine | IMPDH inhibitor | 2 mg/kg/day | Oral | — | — |
+| Bortezomib | Proteasome inhibitor | 1.3 mg/m² | IV | ~76 h | — |
+
+### Model Simulation Results (1 Year)
+
+| Endpoint at 1 Year | Untreated | Strict GFD | GFD+Larazotide | GFD+ZED1227 | GFD+AMG714 |
+|-------------------|-----------|------------|-----------------|-------------|------------|
+| Anti-tTG IgA (U/mL) | ~38–50 ↑ | ~2–5 ↓ | ~3–8 ↓ | ~4–10 ↓ | ~15–25 (partial, RCD) |
+| Marsh Score | 2–3 | 0–1 | 0–1 | 0–1 | 1–2 (partial) |
+| V:C Ratio | <0.5 | →3 | →3 | →3 | ~1–2 |
+| IFN-γ (ng/mL) | ~8–15 ↑ | ~0.1 | ~0.2 | ~0.3 | ~3–5 ↓ |
+| IEL Count | 60–90 ↑ | ~20 | ~22 | ~22 | ~40–60 ↓ |
+| Hgb (g/dL) | ~8–10 ↓ | ~13–14 | ~13 | ~13 | ~10–12 |
+| BMD (normalized) | ~0.85–0.90 ↓ | ~0.99 | ~0.99 | ~0.99 | ~0.92–0.95 |
+
+### Shiny App Tabs
+
+| Tab | Key Visualizations |
+|-----|-------------------|
+| ① Patient Profile | HLA type selector · disease severity radar chart · Marsh classification guide · drug MOA table |
+| ② Drug PK | Plasma Cp–time profile · PK parameter table (F, ka, CL, Vd, t½, Cmax, AUC0–24) |
+| ③ Immune Biomarkers | IL-15 · IEL count (vs Marsh 1 threshold=25) · IFN-γ · IL-17A · CD4+ T cells · B cells |
+| ④ Histopathology | Villous height · Crypt depth · V:C ratio · Marsh score trajectory · Intestinal permeability index |
+| ⑤ Clinical Endpoints | Anti-tTG IgA (vs ULN=10) · Hemoglobin (anemia threshold) · BMD · Absorption surface · 1-year endpoint table |
+| ⑥ Scenario Comparison | 6-scenario overlaid plots (anti-tTG, V:C, Hgb) · summary table at 1 year |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`cd_qsp_model.dot`](celiac-disease/cd_qsp_model.dot) | Graphviz DOT source (10 subgraph clusters, 113 nodes, 150+ directed edges) |
+| [`cd_qsp_model.svg`](celiac-disease/cd_qsp_model.svg) | Vector mechanistic map (fdp layout) |
+| [`cd_qsp_model.png`](celiac-disease/cd_qsp_model.png) | Raster mechanistic map (150 dpi, ~5 MB) |
+| [`cd_mrgsolve_model.R`](celiac-disease/cd_mrgsolve_model.R) | mrgsolve ODE model (21 CMT, 6 treatment scenarios, Marsh scoring, nutritional endpoints) |
+| [`cd_shiny_app.R`](celiac-disease/cd_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
+| [`cd_references.md`](celiac-disease/cd_references.md) | 50 curated PubMed-linked references (12 sections) |
