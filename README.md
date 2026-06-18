@@ -163,6 +163,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Benign Prostatic Hyperplasia (양성 전립선 비대증)**](#benign-prostatic-hyperplasia-bph) | 만성질환 / 비뇨기 | 노화+DHT(5α-reductase SRD5A2 → T→DHT) → AR 핵 전좌 → AR 표적 유전자(KGF/IGF-1/EGF/Bcl-2/Cyclin D1) → 전립선 간질·상피 증식 + 세포자사 억제 → 이행대(Transition Zone) 결절 형성 → 정적 폐색(Static Obstruction); SNS → α1A-AR(ADRA1A, 전립선 우세) → Gq/PLC → IP3 → Ca²⁺↑ → MLCK → MLC 인산화 → 평활근 수축 → 동적 폐색(Dynamic Obstruction); PDE5/cGMP 경로: eNOS/nNOS → NO → sGC → cGMP↑ → PKG → MLCP → MLC 탈인산화 → 이완 (PDE5i 표적); LUTS(Lower Urinary Tract Symptoms): IPSS 자극증상(빈뇨·야간뇨·요절박) + 폐색증상(불완전 배뇨·잔뇨·약뇨); 치료 PK/PD: Tamsulosin 0.4 mg QD(α1A/D-AR 선택 차단, Cmax~9.5 ng/mL, t½~10h, CYP2D6/3A4 대사, IC50 α1A~0.41 ng/mL → IPSS −4.2 pts/Qmax +2.2 mL/s @2yr, McConnell MTOPS 2003) + Finasteride 5 mg QD(5AR2 공유결합 억제, DHT↓70%, IC50~0.065 ng/mL, PV −25%/PSA −50% @24mo, PLESS 1996) + Dutasteride 0.5 mg QD(이중 5AR1+2 억제, t½~5wk 지방 조직 축적, DHT↓94%, PV −27%, CombAT 2010) + Tadalafil 5 mg QD(PDE5 IC50~2.8 ng/mL, cGMP↑ → 방광/전립선 평활근 이완, IPSS −5.6 pts NEPTUNE 2014) + CombAT 병용(Dutasteride+Tamsulosin, IPSS −6.2 pts > 단독요법); 20-CMT ODE model(TAMS_GUT·TAMS_C·TAMS_P·FINA_GUT·FINA_C·FINA_P·TAD_GUT·TAD_C·TAD_P·TEST_P·DHT_P·DHT_PROST·AR_ACT·PV·CGMP·ALPHA1_OCC·IPSS·QMAX·PVR·PSA·INFLAM); 6 치료 시나리오; MTOPS(McConnell 2003 NEJM)·CombAT(Roehrborn 2010 BJU Int)·NEPTUNE(Chapple 2014 Eur Urol)·PLESS(Roehrborn 1996 NEJM) 보정 | [![BPH](benign-prostatic-hyperplasia/bph_qsp_model.png)](benign-prostatic-hyperplasia/bph_qsp_model.svg) | [R](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | [refs](benign-prostatic-hyperplasia/bph_references.md) | [Shiny](benign-prostatic-hyperplasia/bph_shiny_app.R) |
 | 2026-06-18 | [**Immune Thrombocytopenic Purpura (ITP)**](#immune-thrombocytopenic-purpura-itp) | 자가면역질환 / 혈액 | 항혈소판 자가항체(anti-GPIIb/IIIa IgG ≥60%, anti-GPIb/IX IgG) → FcγRIIA/IIA ITAM → SYK → PI3K/MAPK → 비장 적수 대식세포 포식(×3–10 정상) + 보체 C1q/C3b 공동 옵소닌화 → PLT 파괴; anti-GPIb/IX Ab → 노이라미니다제 유사 효과 → 혈소판 탈시알산화 → 간 Ashwell-Morell 수용체 간 청소; anti-GPIIb/IIIa Ab 골수 투과 → 거핵구(MK) 성숙 및 전혈소판(Proplatelet) 형성 억제; Treg(FoxP3+) 결핍(50–70%) + Th17↑(RORγt+, IL-17↑) + Tfh↑(IL-21→GC→B세포 활성화) → 항체 생성 지속; BAFF/APRIL→B세포·형질세포 생존; ITP 위상: 신규 진단(<3개월)·지속성(3–12개월)·만성(>12개월); 1차: 프레드니솔론 1 mg/kg/d + IVIG 1 g/kg(FcRn 포화·FcγR 경쟁 차단, 48h 내 PLT↑) 2차: Romiplostim 1–10 μg/kg SC 주1회(c-Mpl 펩티바디, RAISE Lancet 2008: PLT≥50 69% vs 9%) + Eltrombopag 25–75 mg PO QD(비펩타이드 TPO-RA, RAISE Lancet 2011) + Rituximab 375 mg/m²×4주(anti-CD20 B세포 제거, 장기 CR 20–25%) + Fostamatinib 100–150 mg BID(SYK 억제제→FcγRIIA ITAM 차단→포식↓, FIT 1+2 AJH 2018: OR 17% vs 4%) + Efgartigimod 10 mg/kg IV q1w(FcRn 차단→anti-PLT IgG 이화↑80%, ADVANCE IV Lancet Haematol 2022) + Splenectomy(CR ~66%); 20-CMT ODE(PLT 혈중·비장 풀 2 + TPO + MKP + MK + Ab + Bc + Treg + Th17 + Mac + 약물 PK 10개: PRED/IVIG/ROMI_sc/ROMI_c/RTX_c/RTX_p/FOSTA_gut/R788_c/EFGAR_c/ELTP_c); 6 치료 시나리오; RAISE(2008/2011)·FIT(2018)·ADVANCE IV(2022)·RITP(2015) 임상 보정 | [![ITP](immune-thrombocytopenic-purpura/itp_qsp_model.png)](immune-thrombocytopenic-purpura/itp_qsp_model.svg) | [R](immune-thrombocytopenic-purpura/itp_mrgsolve_model.R) | [refs](immune-thrombocytopenic-purpura/itp_references.md) | [Shiny](immune-thrombocytopenic-purpura/itp_shiny_app.R) |
 | 2026-06-18 | [**Stable Angina (안정형 협심증)**](#stable-angina-chronic-coronary-syndrome) | 만성질환 / 심혈관 | 관상동맥 죽상경화성 고정 협착(FFR<0.80) → 심근 O₂ 공급-수요 불균형(RPP>20,000) → 심근허혈 → 협심증; 내피기능부전(eNOS↓/ET-1↑/ROS↑) + 산화스트레스 → NO 감소 → 혈관확장 장애; 베타차단제(β₁차단→HR↓/RPP↓: Bisoprolol t½11h, TIBBS study) + 칼슘채널차단제(CCB, 혈관확장+후부하 감소: Amlodipine t½35–50h, CAPE study) + 라놀라진(Late I_Na 억제→Na⁺↓→Ca²⁺ 과부하↓→이완기능개선, CARISA/MARISA) + 이바브라딘(HCN/I_f 채널 차단→순수 HR감소→이완기 관류시간↑, BEAUTIFUL/SIGNIFY) + 유기질산염(ISMN BA~100%, ALDH2 경유 NO 방출→전부하↓/관상동맥확장, 내성주의: 편심적 투여) + 항혈소판(Aspirin COX-1 비가역 억제/Clopidogrel P2Y12 억제) + 스타틴(HMG-CoA 환원효소 억제→LDL-C↓30–60%→플라크 안정화 + 다면발현효과: eNOS↑/ROS↓/IL-6↓); 20-CMT mrgsolve ODE(Bisoprolol-2CMT·Amlodipine-2CMT·Ranolazine-1CMT·Ivabradine-1CMT·ISMN-1CMT+내성상태·HR/SBP/CBF상태변수·O₂불균형·허혈부담·협심증점수·운동능력·플라크); 6 치료 시나리오(무치료→베타차단제→BB+CCB→BB+CCB+라놀라진→BB+이바브라딘→BB+CCB+ISMN+스타틴); 보정: TIBBS(von Arnim 1995)·CARISA(Chaitman 2004 JAMA)·BEAUTIFUL(Fox 2008 Lancet)·SIGNIFY(Fox 2014 NEJM)·COURAGE(Boden 2007 NEJM); 이완기 관류시간-관상동맥혈류 결합 모델; RPP 허혈 역치 모델; 질산염 내성(ALDH2 불활성화) 동역학 | [![SA](stable-angina/sa_qsp_model.png)](stable-angina/sa_qsp_model.svg) | [R](stable-angina/sa_mrgsolve_model.R) | [refs](stable-angina/sa_references.md) | [Shiny](stable-angina/sa_shiny_app.R) |
+| 2026-06-18 | [**Dermatomyositis (피부근염)**](#dermatomyositis-피부근염) | 자가면역질환 / 염증성 근육병증 | pDC → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(Type I IFN★) → JAK1/TYK2-STAT1/2-ISGF3 → ISG 발현 증폭; 자가항체(Anti-MDA5/Mi-2/TIF1γ/NXP2/SAE/Jo-1/SRP/HMGCR) → 보체 고전경로(C1q→C3→MAC C5b-9) → 근육 모세혈관 내피 MAC 침착 → 모세혈관 소실 → 근육 허혈 → 근주위(Perifascicular) 근섬유 위축; CD8+CTL(Granzyme B) + 비정상 CD4+Tfh/Th17 + Treg 결핍 → 자가항체 생산 지속; 피부 병변(자외선→각질세포 IFN-κ→pDC 모집) → Gottron 구진/헬리오트로프 발진/V-Sign/역공학자 손; 간질성 폐질환(ILD): anti-MDA5 동반 시 급속진행형(RP-ILD) DAD 패턴; 치료 PK/PD: Prednisolone(GR/NF-κB 억제, 1 mg/kg/d 표준) + IVIG 2 g/kg(FcRn 포화→Ab 이화↑; 보체 스캐빈징, Dalakas NEJM 1993) + Methotrexate 15 mg/wk(DHFR/IMPDH 억제→Th1/Th17 증식↓) + Rituximab 1000 mg×2(anti-CD20 TMDD B세포 제거, RIM study 2013 Arthritis Rheum: TIS≥40 83% RTX군) + Baricitinib 4 mg QD(JAK1/2 억제, IC50 5.7/8.7 nM→STAT1/2 차단→IFN score↓47%, CLEAR trial 2022 Lancet Rheumatol); 22-CMT mrgsolve ODE(PK 11개: PRED·IVIG·MTX·RTX·JAKI 각 2-CMT + CD20_BOUND; PD 13개: IFN_SCORE·COMPLEMENT·B_CELL·AUTO_AB·MUSCLE_INJ·CK·MMT8·CDASI·FVC·TREG·TH17·CD8_ACT·CAPILLARY); 7 치료 시나리오; TIS(Total Improvement Score, 0-100) 복합 엔드포인트; Benveniste 2022(CLEAR)·Oddis 2013(RIM)·Dalakas 1993(IVIG NEJM)·Aggarwal 2021(anti-MDA5) 보정 | [![DM](dermatomyositis/dm_qsp_model.png)](dermatomyositis/dm_qsp_model.svg) | [R](dermatomyositis/dm_mrgsolve_model.R) | [refs](dermatomyositis/dm_references.md) | [Shiny](dermatomyositis/dm_shiny_app.R) |
 
 
 ---
@@ -4447,3 +4448,75 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`itp_mrgsolve_model.R`](immune-thrombocytopenic-purpura/itp_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 6 treatment scenarios, dose-response analysis) |
 | [`itp_shiny_app.R`](immune-thrombocytopenic-purpura/itp_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT + deSolve) |
 | [`itp_references.md`](immune-thrombocytopenic-purpura/itp_references.md) | 51 curated PubMed-linked references (14 sections) |
+
+---
+
+## Dermatomyositis (피부근염)
+
+[![Dermatomyositis Mechanistic Map](dermatomyositis/dm_qsp_model.png)](dermatomyositis/dm_qsp_model.svg)
+
+> *Figure: QSP mechanistic map for Dermatomyositis — 12 subgraph clusters covering Type I IFN signaling (pDC/JAK1/TYK2/STAT1-2/ISG), complement cascade (C1q→MAC), muscle microvasculature, MSA autoantibodies (anti-MDA5/Mi-2/TIF1γ/NXP2/Jo-1), adaptive immunity (CD4/Tfh/Treg/CD8 CTL), skin pathology (CDASI), muscle pathology (CK/MMT-8), cytokine network (IL-6/TNF/IL-17/TGF-β), ILD (FVC/DLCO), and 5-drug PK/PD (Prednisolone · IVIG · MTX · Rituximab · Baricitinib).*
+
+### Disease Overview (병태생리)
+
+피부근염(Dermatomyositis, DM)은 피부 및 골격근을 침범하는 자가면역 염증성 근육병증으로, 핵심 병태생리는 다음과 같다:
+
+| 단계 | 기전 |
+|------|------|
+| Type I IFN 과잉 | pDC(Bst-2+) → TLR7/9 + cGAS-STING → IRF7 인산화 → IFN-α/β 대량 분비; IFNAR1/2 → JAK1/TYK2 → STAT1/2 → ISGF3(+IRF9) → ISRE 결합 → ISG15/OAS1/MxA/IFIT1 발현; IFN score ≥10× 정상 (DM 진단 보조) |
+| 보체 매개 근육 미세혈관 손상 | MSA 자가항체 → 보체 고전경로 C1q/C4/C2 → C3b 내피 침착 + C5b-9 MAC 형성 → 모세혈관 내피 파괴 → 근육 허혈 → 근주위 근섬유 위축(Perifascicular Atrophy) |
+| MSA별 임상표현형 | Anti-Mi-2(NuRD complex): 전형적 피부근염, 스테로이드 반응 양호; Anti-MDA5: 피부 궤양성 Gottron + 역공학자 손 + 급속진행형 ILD(RP-ILD) → 높은 사망률; Anti-TIF1γ(p155/140): 성인 약 20%, 난소암·유방암·대장암 연관 → 6개월 간격 악성종양 검색; Anti-NXP2(MJ): 석회화증(calcinosis) 다발; Anti-Jo-1: 항합성효소 증후군(ILD + 역공학자 손 + 관절염) |
+| 피부 병변 | UV 자극 → 각질세포 IFN-κ 방출 → pDC 추가 모집 → Gottron 구진(MCP/PIP/DIP 관절 등면) + 헬리오트로프(안와주위) + V-sign(목·가슴) + 숄 징후(어깨) + 역공학자 손(손끝 균열); CDASI 0–100으로 정량화 |
+| 근육 손상 지표 | 근섬유 괴사 → CK(CK-MM/MB) · LDH · Aldolase · 미오글로빈 혈청 상승; MMT-8(0–80) 근력 저하; 근육 MRI STIR 고신호(water edema) |
+| ILD 합병증 | Anti-MDA5: DAD(Diffuse Alveolar Damage) 패턴, FVC 급격 감소(>8%/month); Anti-Jo-1: NSIP 패턴; KL-6 · SP-D 혈청 바이오마커; 생존 영향 인자 |
+
+### Drug PK/PD (약물 기전)
+
+| 약물 | 기전 | 용량 | 핵심 임상 데이터 |
+|------|------|------|----------------|
+| Prednisolone 1 mg/kg/d | GR 결합 → NF-κB/AP-1 전사억제(IL-6↓/TNF-α↓) + Treg 확장; F=82%, t½=3h | 70 mg/d × 4–6주 후 테이퍼 | 1차 표준; 단기 CR 70–80%, 장기 CR 20–30% |
+| IVIG 2 g/kg q4w | FcRn 포화 → 전체 IgG 이화 ↑4× → anti-MSA Ab↓; 보체 스캐빈징 → MAC↓ | 2 g/kg × 2일 IV | Dalakas NEJM 1993: DB RCT — CDASI·MMT8 유의 개선 |
+| Methotrexate 15 mg/wk | DHFR 억제 → 엽산 대사 차단 → Th1/Th17 증식↓; 다중글루타밀화(polyglutamate) 세포 내 축적 | PO 주1회 | ACTSTAR, Vencovsky 2000: 스테로이드 절약 효과 |
+| Rituximab 1000 mg × 2 | Anti-CD20 TMDD → ADCC/CDC → B세포 고갈 → Ab 생산↓ (형질세포는 부분 보존); t½~20일 | IV 2주 간격, 6개월 반복 | RIM 2013 Arthritis Rheum: TIS≥40 83% vs 83% (RTX vs PBO → 연구결과 복잡하나 실제진료 효과 확인) |
+| Baricitinib 4 mg QD | JAK1(IC50 5.7 nM)/JAK2(8.7 nM) 가역 억제 → STAT1/2 인산화 차단 → IFN score↓47% @12주; F=79%, t½=12h | PO 1일 1회 | CLEAR trial 2022 Lancet Rheumatol: IFN score ↓47% baricitinib vs ↑7% PBO |
+
+**mrgsolve ODE 모델 구조**
+
+- **구획 수:** 24개 (PK 11 + PD 13)
+- **PK CMT:** `PRED_GUT` · `PRED_C` · `PRED_P` · `IVIG_C` · `IVIG_P` · `MTX_GUT` · `MTX_C` · `MTX_POLY` · `RTX_C` · `RTX_P` · `CD20_BOUND` · `JAKI_C` · `JAKI_P`
+- **PD CMT:** `IFN_SCORE` · `COMPLEMENT` · `B_CELL` · `AUTO_AB` · `MUSCLE_INJ` · `CK` · `MMT8` · `CDASI` · `FVC` · `TREG` · `TH17` · `CD8_ACT` · `CAPILLARY`
+- **파라미터 보정:** CLEAR trial(Benveniste 2022 Lancet Rheumatol), RIM trial(Oddis 2013 Arthritis Rheum), Dalakas IVIG trial(NEJM 1993), anti-MDA5 ILD cohort(Aggarwal 2021 Chest), TIS validation(Rider 2004 Ann Rheum Dis)
+
+**치료 시나리오 (7개)**
+
+| # | 시나리오 | 핵심 설정 |
+|---|---------|---------|
+| 1 | 무치료 (Untreated DM) | IFN score 1.8, MMT8 38/80, CDASI 28, CK 1200 U/L |
+| 2 | 고용량 Prednisolone 1 mg/kg/d | GR 억제 → IFN score/NF-κB↓; 스테로이드 부작용 모니터 |
+| 3 | Pred + MTX 15 mg/wk (스테로이드 절약) | DHFR 억제 → T세포 증식↓ + B세포↓; GI 내성 모니터 |
+| 4 | Pred + MTX + IVIG 2 g/kg q4w (난치성) | 보체 스캐빈징 + FcRn 포화 → Ab 급속 제거; 가장 강력한 3제 요법 |
+| 5 | Pred + Rituximab 1000 mg × 2 (항CD20) | 비장 B세포/기억B세포 고갈 → 자가항체 서서히↓; 6개월 후 재투여 |
+| 6 | Pred + Baricitinib 4 mg QD (IFN 표적) | JAK1/2 억제 → IFN score↓47% @12wk → 피부·근육 동시 개선 |
+| 7 | Anti-MDA5 DM + Pred + IVIG (급속진행형 ILD) | MDA5_FLAG=1 → FVC 감소 3× 가속 → 조기 집중 치료 필요 |
+
+**Shiny 대시보드 구조 (6탭)**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 나이·체중·MSA 유형·기저 MMT8/CDASI/FVC/CK 입력; 질병활성도 분류(Mild/Moderate/Severe); MSA별 임상연관성 표; 가치 박스(MMT8/CK/CDASI/FVC) |
+| ② Drug PK | Prednisolone·IVIG·MTX·Rituximab·Baricitinib 혈중 농도 시간 프로파일(plotly); PK 파라미터 표(F/t½/Vd/CL/PD 표적/임상시험) |
+| ③ IFN & Immune | IFN 시그니처 스코어 추이; 자가항체·B세포 동역학; 보체 활성화·모세혈관 밀도; Treg/Th17 균형 |
+| ④ Muscle & Skin | CK 추이(ULN 참조선); MMT-8 추이(72 목표선); CDASI 추이(4 관해선); TIS 복합 점수(40/60 기준선) |
+| ⑤ Scenario Comparison | 5개 표준 시나리오 24주 비교 막대; IFN score/CK 비교; 요약표(TIS/MMT8/CDASI/FVC/IFN_score) |
+| ⑥ ILD & Biomarkers | FVC(%pred) 추이; 근손상 지표; Baricitinib 용량-반응 곡선(IFN score vs dose); 바이오마커 해석 기준 표 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`dm_qsp_model.dot`](dermatomyositis/dm_qsp_model.dot) | Graphviz DOT source (12 clusters, 100+ nodes, 150+ directed edges) |
+| [`dm_qsp_model.svg`](dermatomyositis/dm_qsp_model.svg) | Vector mechanistic map |
+| [`dm_qsp_model.png`](dermatomyositis/dm_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`dm_mrgsolve_model.R`](dermatomyositis/dm_mrgsolve_model.R) | mrgsolve ODE model (24 CMT, 7 treatment scenarios, dose-response analysis, calibration table) |
+| [`dm_shiny_app.R`](dermatomyositis/dm_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT + deSolve) |
+| [`dm_references.md`](dermatomyositis/dm_references.md) | 55 curated PubMed-linked references (10 sections) |
