@@ -158,6 +158,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**ADPKD — Autosomal Dominant Polycystic Kidney Disease (상염색체 우성 다낭성 신종)**](#adpkd-autosomal-dominant-polycystic-kidney-disease) | 만성질환 / 신장유전질환 | PKD1(16p13, ~85%) · PKD2(4q22, ~15%) 유전자 돌연변이 → Two-hit model(체세포 2차 타격) → Polycystin-1/PC2 기능 소실 → 일차 섬모(Primary Cilium) 기계 감지 결함 → 세포내 Ca²⁺↓ → cAMP 역의존적 과활성화(AC5/AC6 탈억제); cAMP↑ → PKA 활성화 → CFTR Cl⁻ 채널 개방 + NKCC1 → 낭종 내강으로 유체 분비↑; cAMP→PKA→B-Raf→MEK→ERK1/2↑ + PI3K→Akt→mTORC1 활성화(PC1-CTF 소실로 TSC 해제) → 낭종 상피세포 비정상 증식 + 극성 역전(Na⁺/K⁺-ATPase 첨단 이동); 낭종 확장 → 정상 네프론 압박 → 신원 소실 → eGFR 감소(3–5 mL/min/yr); 낭종 확대 → 신장 내 압력↑ → 방사 기관(JGA) 레닌 분비↑ → RAAS 과활성화(Ang II↑ → AT1R → 알도스테론/내피소수축/혈압↑) → 사구체 고혈압 → 신원 추가 손상; 만성 염증·섬유화: 대식세포 M2 침윤(MCP-1/IL-6/TNF-α) + TGF-β1/CTGF → 근섬유모세포 활성화 → 간질 섬유화; 치료 PK/PD: Tolvaptan(V2R 경쟁적 길항제, F=0.56, t½=8h, CL=4L/h, EC50 V2R=50 ng/mL, 요삼투압↓ PD biomarker) · Everolimus(mTOR 억제제, FKBP12 복합체, EC50=5 ng/mL) · Octreotide LAR(SSTR2/5 작용→Gi→cAMP↓, 30mg/28days depot) · ACEi/ARB(RAAS 차단, 혈압 목표 110/75–130/80); 20-CMT mrgsolve ODE (AGUT·ACENT·APERI·EGUT·ECENT·EPERI·OCTDEP·OCTCENT·ACEI_GUT·ACEI_CENT·AVP·cAMP·mTOR·ANGII·BP·TKV·eGFR·Uosm·NEPH·); 5 치료 시나리오; Torres 2012 NEJM(TEMPO 3:4) · Torres 2017 NEJM(REPRISE) · Serra/Walz 2010 NEJM(Everolimus SIRENA) · Schrier 2014 NEJM(HALT-PKD) · Caroli 2013 Lancet(ALADIN) · Irazabal 2015 JASN(Mayo 분류) · Cornec-Le Gall 2016 JASN(PROPKD 점수) 보정 | [![ADPKD](adpkd/adpkd_qsp_model.png)](adpkd/adpkd_qsp_model.svg) | [R](adpkd/adpkd_mrgsolve_model.R) | [refs](adpkd/adpkd_references.md) | [Shiny](adpkd/adpkd_shiny_app.R) |
 | 2026-06-18 | [**Alopecia Areata (원형 탈모증)**](#alopecia-areata-aa) | 자가면역질환 / 피부 | HLA-DRB1*04:01 · CTLA4 · PTPN22 · ULBP3 유전 소인 + 스트레스/바이러스 유발 → 모낭 면역 특권(Immune Privilege) 소실: CD200↓ / PD-L1↓ / TGF-β↓ / MICA↑ → NKG2D 수용체 → NK/NKT 세포 활성화 → IFN-γ(선천 분비) → JAK1/JAK2-STAT1 / JAK3-STAT5 → MHC-I 발현 상승(IRF1/CIITA) → 구근부(bulb) 자기항원 노출 → CD8+ NKG2D+ CTL 모낭 침윤("벌떼 모양" peribulbar infiltrate) → Granzyme B / Perforin / Fas-FasL → 멜라노사이트 파괴 + 이형성 성장기 모발 → 조기 성장기→퇴행기 전환 강제 → 모낭 소형화 + SALT 점수↑; IL-15 → CD8+ CTL 생존 증폭; CXCL9/10/11(IFN-γ 유발) → CXCR3 → 피부 모낭으로 CTL 유인; IFN 시그니처 바이오마커(CXCL10/IP-10) 혈청 상승; 치료: Baricitinib 4 mg QD(JAK1/2 가역 억제, BRAVE-AA1: SALT50 35.9%, BRAVE-AA2: 32.6%, FDA 2022 승인) + Baricitinib 2 mg QD + Ritlecitinib 50 mg QD(JAK3/TEC 비가역 공유결합, ALLEGRO 2023, FDA 승인) + Tofacitinib 5 mg BID(JAK1/3, 적응외) + Dupilumab(IL-4Rα, 아토피 동반 시); 20-CMT ODE (PK 3개·면역세포 4개·사이토카인 3개·JAK/STAT 2개·모낭 3개·SALT/염증/NKG2DL/JAK3B/DUPIL); 5 치료 시나리오; King 2022 NEJM(BRAVE-AA1/2) · Asakawa 2023 JID(ALLEGRO) · Xing 2014 Nat Med · Mackay-Wiggan 2016 JCI Insight 보정 | [![AA](alopecia-areata/aa_qsp_model.png)](alopecia-areata/aa_qsp_model.svg) | [R](alopecia-areata/aa_mrgsolve_model.R) | [refs](alopecia-areata/aa_references.md) | [Shiny](alopecia-areata/aa_shiny_app.R) |
 | 2026-06-18 | [**Vitiligo (백반증)**](#vitiligo-백반증) | 자가면역질환 / 피부·색소 | HLA-A*02:01 · PTPN22 · CTLA4 · NLRP1 · BACH2 유전 소인 + 산화 스트레스(Catalase 결핍 → H₂O₂↑ → ROS → ER stress/DAMP) → 멜라노사이트 취약성↑ + MICA/MICB↑ → NKG2D(NK/CD8+) → IFN-γ(마스터 조절자) → JAK1/JAK2-STAT1-IRF1 → CXCL9/CXCL10(IP-10)/CXCL11 → CXCR3 → CD8+ TRM 피부 침윤(peribulbar/perilesional) → Granzyme B/Perforin/FasL → 멜라노사이트 파괴 → 탈색; 멜라노사이트 생존 경로(MITF/SCF-cKIT/α-MSH-MC1R-cAMP/Wnt3a-β-catenin) 손상; PD-L1 멜라노사이트 소실 → 면역관용 붕괴; 혈청 CXCL10(★ 질병활성도 바이오마커: 활성 ~80 pg/mL); 치료: Ruxolitinib cream 1.5% BID(JAK1/2 억제, TRuE-V1/V2: F-VASI50 49.9% vs vehicle 16.8%, FDA 2023) + Ruxolitinib cream QD + Ruxolitinib oral 10 mg BID(전신) + Afamelanotide 16 mg SC q60d(MC1R 작용 → cAMP↑ → MITF↑ → 멜라닌 합성↑) + NB-UVB 311 nm(Treg 유도·모낭 멜라노사이트 줄기세포 동원); 20-CMT mrgsolve ODE(RUXO_GUT·RUXO_C·RUXO_SK·AFAM_D·AFAM_C·MEL·NKGL·CD8E·TREG·IFNG·CXCL10·PSTAT1·MITF·MELANIN·HAIRFOL·NKGD·TREG_SKIN·INFLAM·VASI·REPIG); 5 시나리오; Rosmarin 2022 NEJM Evid(TRuE-V) · Lim 2022 JAMA Derm(Afamelanotide) · Liu 2019 JAAD(CXCL10) · Rashighi 2014 Sci TrMed(CXCL10/CXCR3) · Harris 2012 JID(IFN-γ/CD8) 보정 | [![Vitiligo](vitiligo/vit_qsp_model.png)](vitiligo/vit_qsp_model.svg) | [R](vitiligo/vit_mrgsolve_model.R) | [refs](vitiligo/vit_references.md) | [Shiny](vitiligo/vit_shiny_app.R) |
+| 2026-06-18 | [**Obesity (비만)**](#obesity-비만) | 만성질환 / 대사·심혈관 | 에너지 섭취 > 지출의 만성 불균형 → 지방 조직 비대(WAT 비대·내장 지방↑) + 에너지 조절 장애; 시상하부 회로: ARC NPY/AgRP(orexigenic) vs POMC/CART(anorexigenic) 균형 파괴 → MC4R 신호 약화 → 식욕 증가·에너지소비 감소; 장-뇌 축: L세포 GLP-1/PYY↓ · K세포 GIP↑ · 위 X/A세포 Ghrelin↑ → 식욕 항진 + 미주신경·NTS 포만감 신호 약화; 지방 조직 염증: WAT 비대 → 지방세포 저산소증/사멸 → 관상 구조(Crown-like Structure) → ATM 침윤 → M1 극화 → TNF-α/IL-6/IL-1β/MCP-1 분비 → TLR4/NF-κB/JNK1 → IRS-1 Ser307 인산화 → 골격근·간 인슐린 저항성; PPARγ/C/EBPα 억제 → 아디포넥틴↓ · 렙틴 저항성; FFA 과잉 → 간 이소성 지방 + VLDL 분비↑ + 췌장 지방독성(β세포 자멸증); 치료 PK/PD: Semaglutide 2.4 mg SC QW(GLP-1RA, ka=0.0177/h, F=89%, EC50 GLP-1R=0.016 nM, STEP1: 체중−14.9% 68주) + Tirzepatide 15 mg SC QW(이중 GIP/GLP-1RA, ka=0.0187/h, EC50 GLP-1R=0.05 nM/GIPR=0.013 nM, SURMOUNT-1: 체중−20.9% 72주) + Orlistat 120 mg TID(위장관 리파아제 공유결합 억제, 지방 흡수↓30%, XENDOS: 체중−5.7%) + Phentermine/Topiramate 15/92 mg QD(NE/DA 방출+GABA-A 증강+탄산탈수효소 억제, CONQUER: 체중−9.3%); 20-CMT deSolve/mrgsolve ODE (SEMA_GUT·SEMA_C·TIRZ_GUT·TIRZ_C·ORL_GUT·CNS_C·GLP1R_OCC·GIPR_OCC·FOOD_R·GASTRIC·GHRELIN_R·INSULIN_P·GLUCOSE_P·ADIP·BWT_C·LEPTIN_P·TRIG_P·HBA1C_C·INFLAM_I·HOMA_IR_C); 5 치료 시나리오; Wilding 2021 NEJM(STEP1) · Jastreboff 2022 NEJM(SURMOUNT-1) · Torgerson 2004 Diabetes Care(XENDOS) · Garvey 2011 Lancet(CONQUER) · Lincoff 2023 NEJM(SELECT 심혈관) 보정 | [![Obesity](obesity/ob_qsp_model.png)](obesity/ob_qsp_model.svg) | [R](obesity/ob_mrgsolve_model.R) | [refs](obesity/ob_references.md) | [Shiny](obesity/ob_shiny_app.R) |
 
 
 ---
@@ -4033,3 +4034,110 @@ Serum CXCL10 (IP-10) is the validated pharmacodynamic and disease-activity bioma
 | [`vit_mrgsolve_model.R`](vitiligo/vit_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 scenarios, virtual patient analysis, dose–response) |
 | [`vit_shiny_app.R`](vitiligo/vit_shiny_app.R) | 6-tab interactive Shiny dashboard (bslib + plotly + DT) |
 | [`vit_references.md`](vitiligo/vit_references.md) | 38 curated PubMed-linked references (11 sections) |
+
+---
+
+## Obesity (비만)
+
+[![Obesity QSP Mechanistic Map](obesity/ob_qsp_model.png)](obesity/ob_qsp_model.svg)
+
+**Obesity (비만)** is a chronic, multifactorial metabolic disorder defined by excess adiposity (BMI ≥ 30 kg/m²) and is the leading driver of cardiometabolic morbidity worldwide, affecting over **650 million adults** globally (WHO 2022). It is now recognised not simply as a lifestyle imbalance but as a **neuroendocrine, inflammatory, and genetic disease** characterised by dysregulated energy homeostasis, hypothalamic leptin/insulin resistance, gut-hormone dysfunction, and adipose tissue inflammation.
+
+The approval of **semaglutide 2.4 mg SC QW (Wegovy)** in 2021 (STEP 1: −14.9% body weight at 68 wk) and **tirzepatide 15 mg SC QW (Zepbound)** in 2023 (SURMOUNT-1: −20.9% at 72 wk) represent the most significant advances in obesity pharmacotherapy in decades, providing strong clinical validation for GLP-1 and dual GIP/GLP-1 receptor agonism as mechanistic targets.
+
+### Pathophysiology: The Energy Balance–Neuroendocrine–Inflammatory Triad
+
+```
+Genetic susceptibility (MC4R, FTO, LEP, LEPR, POMC, PCSK1 variants)
+     ↓
+Hypothalamic dysfunction:
+  ARC NPY/AgRP neurons ↑ (orexigenic)  ←──── Leptin resistance
+  ARC POMC/CART neurons ↓ (anorexigenic)  ←── Insulin resistance (brain)
+  MC4R signaling ↓ → food intake ↑ + energy expenditure ↓
+     ↓
+Gut-Brain Axis disruption:
+  GLP-1 (L-cells) ↓ · PYY (L-cells) ↓ · Ghrelin (X/A-cells) ↑
+  Vagal afferent → NTS → ARC satiety signaling impaired
+     ↓
+Energy surplus → Adipocyte hypertrophy / hyperplasia (WAT > BAT)
+     ↓
+Adipose Tissue Inflammation:
+  Hypoxia → Crown-like structures → ATM recruitment (MCP-1/CCL2)
+  M1 macrophage polarization → TNF-α / IL-6 / IL-1β (NLRP3) / MCP-1
+  TLR4 (FFA/LPS) → NF-κB + JNK1 → IRS-1 Ser307 phosphorylation
+     ↓
+Peripheral Insulin Resistance:
+  Skeletal muscle: DAG/Ceramide → PKCε/θ → IRS-1 ↓ → GLUT4 ↓
+  Liver: FFA overflow → DNL↑ + VLDL secretion↑ + hepatic steatosis
+  Pancreas: β-cell lipotoxicity → apoptosis ↑ → β-cell mass ↓
+     ↓
+Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
+                       Hypertension (RAAS/SNS) · MACE · OSA · OA
+```
+
+### Drug Mechanisms Modeled
+
+| Drug | Class | Target | Dose | Weight Loss (pivotal) | Trial |
+|------|-------|--------|------|-----------------------|-------|
+| **Semaglutide 2.4 mg** | GLP-1RA | GLP-1R (EC50 0.016 nM) | SC QW | −14.9% (68 wk) | STEP 1 (Wilding 2021 NEJM) |
+| **Tirzepatide 15 mg** | GIP/GLP-1 dual RA | GLP-1R + GIPR (EC50 0.05/0.013 nM) | SC QW | −20.9% (72 wk) | SURMOUNT-1 (Jastreboff 2022 NEJM) |
+| **Orlistat 120 mg** | Lipase inhibitor | Gastric/pancreatic lipase (covalent) | PO TID | −5.7% (4 yr) | XENDOS (Torgerson 2004) |
+| **Phentermine/Topiramate** | CNS agent | NE/DA release + GABA-A + CA inhibition | PO QD | −9.3% (56 wk) | CONQUER (Garvey 2011 Lancet) |
+| **Naltrexone/Bupropion** | CNS agent | μ-opioid blockade + DAT/NET inhibition | PO BID | ~8% (52 wk) | COR-II (Apovian 2013) |
+
+### ODE Model: 20 Compartments
+
+| Group | State Variables | Description |
+|-------|----------------|-------------|
+| **Drug PK** | SEMA_GUT, SEMA_C, TIRZ_GUT, TIRZ_C, ORL_GUT, CNS_C | SC depot + plasma for GLP-1RA/dual RA; gut lumen for orlistat; CNS drug conc. |
+| **Receptor Occupancy** | GLP1R_OCC, GIPR_OCC | Indirect-response occupancy mediators (0–1) |
+| **PD Mediators** | FOOD_R, GASTRIC, GHRELIN_R | Food intake (rel.), gastric emptying rate, ghrelin (all relative to baseline) |
+| **Metabolic** | INSULIN_P, GLUCOSE_P | Plasma insulin (µU/mL), fasting plasma glucose (mg/dL) |
+| **Body Composition** | ADIP, BWT_C, LEPTIN_P | Adipose mass (kg), body weight (kg), plasma leptin (ng/mL) |
+| **Biomarkers** | TRIG_P, HBA1C_C, INFLAM_I, HOMA_IR_C | TG (mg/dL), HbA1c (%), inflammation index, HOMA-IR |
+
+### Key PK Parameters
+
+| Parameter | Semaglutide | Tirzepatide |
+|-----------|-------------|-------------|
+| MW (g/mol) | 4,113.6 | 4,813.5 |
+| Route | SC QW | SC QW |
+| F (%) | 89 | 80 |
+| ka (/h) | 0.0177 (t_max ~72 h) | 0.0187 (t_max ~48 h) |
+| CL (L/h) | 0.0403 | 0.0500 |
+| Vd (L) | 12.4 | 9.2 |
+| t½ (h) | ~168 (7 d) | ~120 (5 d) |
+| EC50 GLP-1R (nM) | 0.016 | 0.050 |
+| EC50 GIPR (nM) | — | 0.013 |
+
+### Clinical Calibration
+
+| Trial | Drug | N | Duration | Primary Endpoint | Observed | Model |
+|-------|------|---|----------|-----------------|----------|-------|
+| STEP 1 (Wilding 2021 NEJM) | Semaglutide 2.4 mg | 1,961 | 68 wk | Wt loss ≥5% | −14.9% | ~−14.5% |
+| SURMOUNT-1 (Jastreboff 2022 NEJM) | Tirzepatide 15 mg | 630 | 72 wk | Wt loss ≥5% | −20.9% | ~−20.1% |
+| XENDOS (Torgerson 2004) | Orlistat 120 mg | 3,305 | 4 yr | Wt loss + T2DM prev. | −5.7% | ~−5.4% |
+| CONQUER (Garvey 2011 Lancet) | Qsymia 15/92 mg | 2,487 | 56 wk | Wt loss ≥10% | −9.3% | ~−8.8% |
+| SELECT (Lincoff 2023 NEJM) | Semaglutide 2.4 mg | 17,604 | ~3.3 yr | MACE | −20% MACE RRR | Supported |
+
+### Shiny Dashboard (6 Tabs)
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | BMI/obesity class calculator; HOMA-IR baseline; metabolic risk badge; natural history (placebo trajectory); patient summary table |
+| ② Drug PK | Drug selector (semaglutide/tirzepatide/orlistat/CNS); plasma Cp vs time (plotly, log-optional); GLP-1R & GIPR occupancy during dose escalation; PK reference table |
+| ③ PD Biomarkers | Plasma insulin; fasting glucose; food intake (rel.); ghrelin (rel.); plasma leptin; inflammation index — all 5-arm interactive plotly time-series |
+| ④ Clinical Endpoints | Body weight %Δ (5/10/15% reference lines); BMI trajectory; HbA1c (pre-diabetes/DM thresholds); triglycerides (150/200 mg/dL lines); HOMA-IR; estimated waist circumference |
+| ⑤ Scenario Comparison | Bar chart of ΔVariable at user-selected week; radar (spider) chart for multi-dimensional comparison; downloadable DT summary table |
+| ⑥ Cardiometabolic Risk | Weight loss vs HOMA-IR scatter; 10-yr ASCVD risk calculation (Pooled Cohort Eq.); value boxes (Wt loss%, ASCVD Δ, ΔHbA1c, ΔTG); dose-response curve (sema/tirz); full risk change table |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`ob_qsp_model.dot`](obesity/ob_qsp_model.dot) | Graphviz DOT source (11 clusters, 164+ nodes, 271 directed edges) |
+| [`ob_qsp_model.svg`](obesity/ob_qsp_model.svg) | Vector mechanistic map |
+| [`ob_qsp_model.png`](obesity/ob_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`ob_mrgsolve_model.R`](obesity/ob_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 treatment scenarios, dose–response analysis, calibration table) |
+| [`ob_shiny_app.R`](obesity/ob_shiny_app.R) | 6-tab interactive Shiny dashboard (bslib + plotly + DT + deSolve) |
+| [`ob_references.md`](obesity/ob_references.md) | 45 curated PubMed-linked references (10 sections) |
