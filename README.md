@@ -168,6 +168,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Dilated Cardiomyopathy — DCM (확장성 심근병증)**](#dilated-cardiomyopathy-dcm) | 만성질환 / 심혈관·심근 | 유전(TTN 절단 ~25%·LMNA ~6%·MYH7 ~4%·SCN5A/RBM20/PLN/BAG3·FLNC/DSP)→ 이차성(심근염·독소·주산기·빈맥) 원인 → 사코메어 기능 이상 + Ca²⁺ 처리 결함(SERCA2a↓·RyR2 누출·NCX1 역방향) + 미토콘드리아 기능 장애(ROS↑·ATP 감소·mPTP 개방) → 심근세포 비대·세포자멸사·괴사 → LVEF↓·LVEDV↑; 신경호르몬 활성화: RAAS(AngII/AT1R → 알도스테론 → Na 저류·섬유화) + SNS(NE 과잉 → 베타 수용체 하향조절·심장독성) + NPS(BNP/NT-proBNP 상승); 심근 섬유화: TGF-β → 근섬유모세포 → Collagen I/III + LOX → 심근 강직도↑ → 이완 기능 장애 + 재진입 회로(SCD 위험); 염증: M1 대식세포 → TNF-α/IL-6/IL-1β(음성 변력) + NLRP3 인플라마솜; 치료 GDMT 4기둥: ACEi(Enalapril, CONSENSUS: CV사망↓16%) + β차단제(Carvedilol, COPERNICUS: CV사망↓34%) + MRA(Spironolactone, RALES: CV사망↓30%) + SGLT2i(Dapagliflozin, DAPA-HF: HHF/CV사망↓25%) + ARNI(Sacubitril/Valsartan, PARADIGM-HF: CV사망↓20%, 네프릴리신 억제→BNP 역설적 상승↑/NT-proBNP↓) + 이바브라딘(HCN4 If 채널 차단→순수 HR 감소, SHIFT: HHF↓26%) + Levosimendan(Ca²⁺ 감작·K-ATP 개방); 23-CMT mrgsolve ODE(PK 10개: ENA_GUT·ENA_CENT·CAR_GUT·CAR_CENT·SPR_GUT·SPR_CENT·SAC_GUT·SAC_CENT·DAPA_GUT·DAPA_CENT; PD 13개: AngII·Aldo·NE·LVEF·LVEDV·BNP·Fib·TGFb·IL6·GFR·Vol·SixMWT); 5 치료 시나리오(위약→ACEi+BB→ACEi+BB+MRA→ARNI+BB+MRA→ARNI+BB+MRA+SGLT2i); CONSENSUS(1987)·COPERNICUS(2001)·RALES(1999)·PARADIGM-HF(2014)·DAPA-HF(2019)·SHIFT(2010) 파라미터 보정 | [![DCM](dilated-cardiomyopathy/dcm_qsp_model.png)](dilated-cardiomyopathy/dcm_qsp_model.svg) | [R](dilated-cardiomyopathy/dcm_mrgsolve_model.R) | [refs](dilated-cardiomyopathy/dcm_references.md) | [Shiny](dilated-cardiomyopathy/dcm_shiny_app.R) |
 | 2026-06-18 | [**Overactive Bladder — OAB (과민성 방광)**](#overactive-bladder-oab) | 만성질환 / 비뇨기 | 요로상피 기계감각(PIEZO2) → ATP 과분비(P2X3/P2Y2) + urothelial ACh → C섬유/Aδ섬유 과활성(TRPV1/TRPA1/TRPM8) → DRG(S2-S4) → 척수배측각 → 척수시상로 → PAG-PMC 배뇨회로 → 구심성 신호 과활성; 방광 평활근: M3→Gq→PLC→IP3→[Ca²⁺]i→CaM→MLCK→수축(involuntary DO); β3-AR→cAMP→PKA→MLCP→이완; NGF 과발현→신경 발아(sprouting)→감각 과민; 방광 요로상피 장벽 손상→suburothelial inflammation→mast cell → PGE2/IL-6→P2X3 감작화; 치료: Antimuscarinic(Oxybutynin IR: F=6%, t½=2h, CYP3A4→NDEO 활성 t½=8h; Tolterodine ER: F=65%, t½=12h, CYP2D6→5-HM; Solifenacin: F=90%, t½=45-68h, M3>>>M1 선택; Darifenacin: M3 고선택성) + β3-AR Agonist(Mirabegron: F=32%, t½=50h, EC50=22 ng/mL, SCORPIO UUI↓48%; Vibegron: F=60%, t½=31h, VIBRATO 2019) + Combo(Solifenacin 5mg+Mirabegron 25mg, BESIDE trial: UUI↓3.23 vs Sol10 ↓2.86, EurUrol 2016) + OnaBotulinumtoxinA 100 IU 방광내주입(SNAP25 절단→ACh 분비↓+요로상피 P2X3/NGF↓, EMBARK/ROSETTA 2012 NEJM); 22-CMT mrgsolve ODE(PK 10: OXY/TOL/SOL/MIR/SOL2 각 GUT+CENT; PD 12: RO_M3·RO_B3·DetAct·BladCap·VoidFreq·Urgency·UUI·NGF·ATP_bm·ContScore·Nocturia·OABq); 6 치료 시나리오(무치료→Oxybutynin IR TID→Tolterodine ER QD→Solifenacin 10mg QD→Mirabegron 50mg QD→Sol5+Mir25 병용); 보정: OBJECT(2001)·ACET/STAR(Chapple 2005)·SCORPIO(2013)·BESIDE(Drake 2016)·EMBARK(2017) | [![OAB](overactive-bladder/oab_qsp_model.png)](overactive-bladder/oab_qsp_model.svg) | [R](overactive-bladder/oab_mrgsolve_model.R) | [refs](overactive-bladder/oab_references.md) | [Shiny](overactive-bladder/oab_shiny_app.R) |
 | 2026-06-18 | [**Gastroesophageal Reflux Disease — GERD (위식도 역류질환)**](#gerd) | 만성질환 / 소화기 | 위식도 역류질환: 하부식도 괄약근(LES) 일과성 이완(TLESR, 미주신경 GABA-B 경로, 6–8회/h GERD vs 4회/h 정상) → 위산·담즙 역류 → 식도 점막 접촉; H⁺/K⁺-ATPase(벽세포 활성 펌프 30units) Histamine/Gastrin/ACh 자극 → cAMP/PKA·IP3/Ca²⁺ 경로 → 산 분비(3.5–12 mmol/h); 식도 점막 방어: TJ단백질(Claudin/Occludin/E-Cad)·점액·중탄산염·EGF·PGE2; 산 노출 시 NF-κB → IL-8/IL-1β/TNF-α → 호산구/비만세포/중성구 침윤; TRPV1/ASIC 이온채널 → C섬유 → DRG → 흉통/역류 증상; 장기: 바렛식도 CDX2 전사 → 장형 화생 → HGD → EAC; 치료 PK/PD: PPI(오메프라졸 CYP2C19 의존, EM t½ 1.5h, covalent H+K-ATPase Cys813 결합, IC50 0.15 mg/L, Hill=1.5, 2–5일 완전효과) vs P-CAB(보노프라잔 이온결합·비산활성화 필요, t½ 7–9h, 야간 산 억제 우수, VOYAGE 2016·PHALCON-EE 2023) vs H2RA(파모티딘 경쟁길항, 72h 내 내성) vs 도메페리돈(5-HT4/D2→LES압↑5 mmHg·위배출↑); 20-CMT mrgsolve ODE(PPI/H2RA/PCAB/PROK PK 8개; PUMP_INACT/ACT/INH 펌프풀; ACID_RATE·GAS_pH·AET·MUC_DMG·MUC_HEAL·SYM_SCORE·BE_RISK); 6 치료시나리오(무치료·Ome20 QD·Eso40 QD·Vono20 QD·Famo40 BID·Eso40+돔페리돈TID); Lyon 2.0 AET 6% 기준 보정(Gyawali 2018)·Ashida 2016(VOYAGE)·Laine 2023(PHALCON-EE)·Furuta 2010(CYP2C19 PM vs EM AUC 5×) | [![GERD](gerd/gerd_qsp_model.png)](gerd/gerd_qsp_model.svg) | [R](gerd/gerd_mrgsolve_model.R) | [refs](gerd/gerd_references.md) | [Shiny](gerd/gerd_shiny_app.R) |
+| 2026-06-18 | [**Autoimmune Encephalitis — AIE (자가면역 뇌염)**](#autoimmune-encephalitis-aie) | 자가면역질환 / 신경계 | Anti-NMDAR 뇌염: 난소 기형종(NMDAR 발현) 또는 HSV 감염 후 분자 모방 → NMDAR 펩타이드 항원 → APC/MHC-II → CD4+ Tfh 활성 → GC 반응(AID/SHM/ClassSwitch) → 형질모세포/LLPC → Anti-GluN1 IgG1/IgG4 → BBB 투과(MMP-9/VEGF/IL-6→TJ 분해→BBB_perm↑) → CSF IgG 상승; CSF IgG가 NR1 에피토프(aa346–375)에 결합 → NMDAR bivalent crosslinking → Clathrin-매개 내재화↑ → NMDAR 표면 밀도↓(70% 소실 가능); NMDAR↓ → PV 인터뉴런 저기능(NMDAR 의존성) → GABAergic 억제↓ → 시냅스 글루타메이트↑↑(E/I 불균형) + 도파민 탈억제 → 정신증/환각; 해마 CA1 LTP 손상 → 기억 상실; 기저핵 NMDAR↓ → 구강안면 이상운동; 시상 과활성 → 수면 장애; 소뇌/자율신경 → 체온/혈압 조절 장애; 치료 PK/PD: IVIG 2g/kg×5d(FcRn 포화→자가항체 이화 4.5배↑, Vc=3.7L, t½=21d→가속이화로 5-8d) + IV 메틸프레드니솔론 1g×5d(GR Transrepression→NF-κB/AP-1↓→IL-6/TNF↓+BBB 안정화; EC50=0.25mcg/mL) + 혈장교환(IgG 60-80%/회 직접 제거×5) + Rituximab 375mg/m²×4(Anti-CD20 ADCC/CDC→GCB/Memory B 고갈>99%; EC50=8mcg/mL, t½=21d) + Cyclophosphamide 750mg/m²×6(CYP2B6→4-OH-CPX DNA 알킬화→LLPC/GCB 세포사; eff_CPX=92%) + Tocilizumab 8mg/kg q4w(sIL-6R/mIL-6R 차단→JAK/STAT3 신호↓→CNS IL-6↓+BBB 안정화; EC50=2.5mcg/mL); 22-CMT mrgsolve ODE(면역 6개: GCB·PB·LLPC·MB·AB_SERUM·AB_CSF; CNS 6개: BBB·MG·NMDAR·GLU·IL6_CNS·GFAP; 임상 4개: CRS·SZ·COG·PSY; PK 6개: IVIG×2·MP×2·RTX×2+TCZ+CPX_ACT); 6 치료 시나리오(무치료→IVIG+MP→IVIG+MP+PE→2차 Rituximab→2차 Cyclophosphamide→3차 Tocilizumab); 보정: Titulaer 2013(Lancet Neurol, n=577: 1차요법 81% 반응, NMDAR회복 70% @8wk)·Gresa-Arribas 2014(Ab titer 추적)·Rojas 2015(IVIG PK, FcRn 포화)·Nosadini 2015(Rituximab 79% refractory)·Bost 2021(CNS IL-6/BBB/미세아교세포) | [![AIE](autoimmune-encephalitis/aie_qsp_model.png)](autoimmune-encephalitis/aie_qsp_model.svg) | [R](autoimmune-encephalitis/aie_mrgsolve_model.R) | [refs](autoimmune-encephalitis/aie_references.md) | [Shiny](autoimmune-encephalitis/aie_shiny_app.R) |
 
 
 ---
@@ -4914,3 +4915,90 @@ RO_B3 = Cp_MIR / (Cp_MIR + EC50_B3)                        [simple Emax]
 | [`oab_mrgsolve_model.R`](overactive-bladder/oab_mrgsolve_model.R) | mrgsolve ODE 모델 (22 CMT, 6 치료 시나리오, 소화도 분석, 임상시험 보정) |
 | [`oab_shiny_app.R`](overactive-bladder/oab_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 (deSolve ODE + plotly + DT) |
 | [`oab_references.md`](overactive-bladder/oab_references.md) | 47개 PubMed 링크 참고문헌 (12섹션) |
+
+---
+
+## Autoimmune Encephalitis (AIE)
+
+> Directory: [`autoimmune-encephalitis/`](autoimmune-encephalitis/)
+
+Anti-NMDA receptor encephalitis는 2007년 Dalmau 등이 처음 기술한 가장 흔한 자가면역 뇌염으로, NMDA 수용체의 GluN1(NR1) 서브유닛에 대한 IgG 항체가 병인입니다. 주로 젊은 여성(80%)에서 발생하며, 18-45세 여성의 40%에서 난소 기형종이 동반됩니다. 임상 양상은 전구기(발열/두통) → 정신 증상(정신증/환각) → 경련 → 이상운동(구강안면 이상운동증) → 의식 저하 및 자율신경 이상의 단계적 진행을 보입니다. 뇌척수액 항체 검사가 진단의 핵심이며, 혈청 항체만으로는 위음성이 많습니다.
+
+**Mechanistic Map** (171+ 노드, 12 경로 클러스터):
+
+| Cluster | Coverage |
+|---------|----------|
+| ① Peripheral Immune Initiation | 난소 기형종/HSV 분자 모방 → NMDAR 항원 → APC/MHC-II → CD4+ Tfh/Th17/Treg; CXCL13/IL-21 |
+| ② B Cell Differentiation & GC | Naive B → GCB → Dark/Light Zone → AID/SHM/ClassSwitch → Plasmablast/LLPC/MemoryB; BAFF/APRIL |
+| ③ Anti-NMDAR Antibody Dynamics | Anti-NR1/NR2B IgG → 혈청/CSF IgG; FcRn 재순환; 보체 활성화; Ab crosslinking |
+| ④ Blood-Brain Barrier Dynamics | TJ 단백질(Claudin-5/Occludin/ZO-1); MMP-9/VEGF → BBB 투과↑; T세포 CNS 침윤 |
+| ⑤ CNS Neuroinflammation | M1/M2 미세아교세포; A1/A2 반응성 성상교세포; TNF-α/IL-6/IL-1β/IFN-γ; NLRP3/C1q; 시냅스 박탈 |
+| ⑥ Synaptic NMDA-R Pathophysiology | NMDAR NR1/NR2B/NR2A; EphB2/PSD-95; Ab-결합→Clathrin 내재화→분해; nNOS 탈결합; AMPAR 이차 감소 |
+| ⑦ E/I Imbalance | PV+ 인터뉴런 저기능→GABA↓; 시냅스 글루타메이트↑↑; 도파민 탈억제 D2R↑; D-Serine/Glycine 조절 |
+| ⑧ Neural Circuits & Clinical | 해마 LTP↓; PFC/편도체/시상/기저핵 회로; 경련/정신증/인지/운동/자율신경/의식 저하 → mRS |
+| ⑨ Drug PK: First-Line | IVIG 2-CMT; MP 2-CMT; 혈장교환(PE IgG 직접 제거); 경구 프레드니솔론 유지 |
+| ⑩ Drug PK: Second-Line | Rituximab 2-CMT(CSF<0.1%); 사이클로포스파마이드→4-OH-CPX; Tocilizumab 2-CMT; AZA/MMF/보르테조밉 |
+| ⑪ Drug PD Mechanisms | RTX CD20 ADCC/CDC; IVIG FcRn 포화→이화↑; GR 전사억제(NF-κB↓)/전사활성; TCZ→IL-6 JAK/STAT3 차단 |
+| ⑫ Biomarkers & Diagnostics | CSF 세포증가증; IgG 지수; NMDAR Ab 역가; EEG(Delta Brush★); MRI FLAIR; NfL/GFAP; FDG-PET |
+
+**mrgsolve ODE 모델 (22 CMT, 6 시나리오):**
+
+**구획 분류 (22 CMT):**
+```
+면역 (6): GCB · PB · LLPC · MB · AB_SERUM · AB_CSF
+CNS  (6): BBB · MG · NMDAR · GLU · IL6_CNS · GFAP
+임상 (4): CRS · SZ · COG · PSY
+PK   (6): IVIG1/2 · MP1/2 · RTX1/2 + TCZ1 · CPX_ACT
+```
+
+**핵심 ODE 구조:**
+```
+dNMDAR/dt = k_base×(1-NMDAR) - k_intern×AB_CSF×NMDAR + k_recov×(1-NMDAR)×[AB_CSF<0.05]
+dGLU/dt   = k_exc×(1-NMDAR) - k_cl×(GLU-1)              [PV 인터뉴런 저기능 → Glu↑]
+dBBB/dt   = k_repair×(1-BBB)×(1+eff_MP_BBB) - k_dmgMG×MG_excess×BBB - k_dmgIL6×IL6×BBB
+dCRS/dt   = [k_CRS_N×(1-NMDAR) + k_CRS_G×(GLU-1) + 0.5×MG + 0.3×(AB_CSF/0.1)] - k_rec×CRS
+dAB_SERUM/dt = k_prod×(LLPC+2×PB) - k_cl×(1+eff_IVIG_FcRn)×AB_SERUM
+```
+
+**치료 시나리오 (6개):**
+
+| # | 시나리오 | 핵심 기전 |
+|---|---------|---------|
+| 1 | 무치료 | 자연 경과; NMDAR 70% 소실 @30d; mRS↑; 인지↓ |
+| 2 | IVIG + MP (1차) | FcRn 포화→Ab 이화↑ + NF-κB↓; NMDAR 회복 @8wk 81% |
+| 3 | IVIG + MP + 혈장교환 | IgG 직접 60-80%/회 제거×5; NMDAR 회복 가속 |
+| 4 | + Rituximab (2차) | CD20 B세포 >99% 고갈; GCB/Memory B↓; Ab 생성↓↓ |
+| 5 | + Cyclophosphamide (2차) | 4-OH-CPX DNA 알킬화; LLPC/GCB 세포사↑ |
+| 6 | + Tocilizumab (3차) | IL-6R 차단 → IL-6↓ → BBB 안정화 + CNS 염증↓ |
+
+**임상시험 파라미터 보정:**
+
+| 임상시험 | 결과 | 모델 보정 |
+|---------|------|---------|
+| Titulaer et al. 2013 (Lancet Neurol, n=577) | 1차요법 81% 반응; 97% 최종 회복 | k_NMDAR_recov; k_CRS_recover |
+| Gresa-Arribas et al. 2014 (J Neurol) | CSF Ab titer 진단시 최고; 회복과 상관 | k_Ab_transport; Ab_CSF threshold |
+| Nosadini et al. 2015 (J Neurol Neurosurg) | Rituximab 79% 불응성 개선 | EC50_RTX=8mcg/mL; Emax_RTX=0.98 |
+| Rojas et al. 2015 (Clin Pharmacokinet) | IVIG FcRn 포화 → IgG t½ 21d→5-8d | Emax_IVIG_cat=4.5; EC50=12mg/mL |
+| Bost et al. 2021 (J Neuroinflammation) | CSF IL-6↑ 활성기; TCZ 유효 | k_IL6_MG; EC50_TCZ=2.5mcg/mL |
+
+**Shiny 대시보드 구조 (6탭):**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 진단 기준 표 · 임상 단계 진행 그래프 · 치료 알고리즘 · 역학 통계 |
+| ② Antibody PK | 혈청/CSF IgG · 약물 PK 프로파일(IVIG/MP/RTX/TCZ) · Rituximab CD20 수용체 점유율 |
+| ③ CNS Pathophysiology | NMDAR 밀도(%) · BBB 완전성(%) · 미세아교세포 활성 · IL-6/GFAP · 글루타메이트 |
+| ④ Clinical Endpoints | mRS 추이 · 경련 빈도 · 인지 지수(%) · 정신과 증상 점수 · 시간별 요약표 |
+| ⑤ Scenario Comparison | 6개 시나리오 NMDAR/인지/mRS 비교 막대그래프 + 시계열 · Day 90/180 비교표 |
+| ⑥ Biomarkers | CSF IL-6 · GFAP · B세포 동역학(GCB/PB/LLPC/MB) · RTX 용량-반응 · 바이오마커 기준값 표 |
+
+### File Inventory
+
+| 파일 | 설명 |
+|------|------|
+| [`aie_qsp_model.dot`](autoimmune-encephalitis/aie_qsp_model.dot) | Graphviz DOT 소스 (12 클러스터, 171+ 노드, 200+ 엣지) |
+| [`aie_qsp_model.svg`](autoimmune-encephalitis/aie_qsp_model.svg) | 벡터 기계론적 지도 |
+| [`aie_qsp_model.png`](autoimmune-encephalitis/aie_qsp_model.png) | 래스터 기계론적 지도 (150 dpi) |
+| [`aie_mrgsolve_model.R`](autoimmune-encephalitis/aie_mrgsolve_model.R) | mrgsolve ODE 모델 (22 CMT, 6 치료 시나리오, 임상시험 보정) |
+| [`aie_shiny_app.R`](autoimmune-encephalitis/aie_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 (deSolve ODE + plotly + DT) |
+| [`aie_references.md`](autoimmune-encephalitis/aie_references.md) | 65개 PubMed 링크 참고문헌 (12섹션) |
