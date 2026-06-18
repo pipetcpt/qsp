@@ -154,6 +154,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Chronic Hepatitis B (CHB)**](#chronic-hepatitis-b-chb) | 만성질환 / 간·바이러스 | HBV NTCP(SLC10A1) 수용체 침입 → 핵내 cccDNA 미니염색체 형성(t½~수십 년) → pgRNA→역전사→rcDNA→바이러스 증식; HBx 단백질→IRF3 분해→IFN-β 회피; HBsAg 과잉 SVP→T세포 탈진(PD-1/TIM-3/LAG-3↑); CTL 매개 세포용해 + IFN-γ 비세포용해 청소 경쟁; HSC 활성화→TGF-β1/Smad2-3→섬유화→HCC 위험↑; Entecavir ETV (RT 프리밍·역전사·DNA pol 3단계 억제, IC50=0.004 µM, 1년 DNA <300 cp/mL 67%) + TDF 300 mg (chain terminator, IC50=0.5 µM, 1년 DNA 76%) + Peg-IFN-α2a 180 µg QW×48wks (JAK-STAT→ISGs + NK/CTL 증폭 + cccDNA 직접 감소, HBsAg 소실 3%/yr) + GalNAc-siRNA (HBsAg >90% knockdown) + Bulevirtide NTCP 억제제; 20-CMT ODE (PK 8개 + 바이러스 5개 + 면역 3개 + 간 4개); 6 치료 시나리오; HBV DNA 역학(Neumann/Dahari 框架), Chang 2006·Marcellin 2008·Lau 2005 임상 보정 | [![CHB](chronic-hepatitis-b/chb_qsp_model.png)](chronic-hepatitis-b/chb_qsp_model.svg) | [R](chronic-hepatitis-b/chb_mrgsolve_model.R) | [refs](chronic-hepatitis-b/chb_references.md) | [Shiny](chronic-hepatitis-b/chb_shiny_app.R) |
 | 2026-06-18 | [**Celiac Disease (셀리악병)**](#celiac-disease-cd) | 자가면역질환 / 소화기 | HLA-DQ2.5/DQ8 유전 소인 + 글루텐 섭취 → 장내 부분 소화 → p31-43 gliadin → 장내 IL-15↑(선천면역) + Zonulin 방출 → 장 투과성↑ → gliadin 고유판(LP) 유입 → tTG2(TG2) 탈아미드화(Gln→Glu) → HLA-DQ2/DQ8에 고친화 결합 → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 → IEL(NK-유사) 세포독성 → 소장 융모 위축(Marsh 분류 0→3c) + 융모:크럽트 비율(V:C) 급감 → 철분/칼슘/엽산 흡수 장애 → IDA·골다공증·거적아구성 빈혈; B세포→항-tTG IgA(진단 금표준)·항-DGP IgG 자가항체; GFD(표준) + Larazotide AT-1001(Zonulin 차단, Phase III) + ZED1227(TG2 공유결합 억제제, Phase II) + AMG714(anti-IL-15 mAb, 난치성 셀리악) + TIMP-GLIA/TAK-101(나노입자 내성 유도); 21-CMT ODE model (글루텐·DGP·tTG2·IP·IL15·IEL·CD4T·IFNg·IL17·IL21·Bcell·AntiTTG·VH·CrD·AbsArea·Iron·BMD·PK 2); 6 치료 시나리오 (Shan 2002 Science, Schuppan NEJM 2021, Leffler 2015 Gastroenterology 보정) | [![CD](celiac-disease/cd_qsp_model.png)](celiac-disease/cd_qsp_model.svg) | [R](celiac-disease/cd_mrgsolve_model.R) | [refs](celiac-disease/cd_references.md) | [Shiny](celiac-disease/cd_shiny_app.R) |
 | 2026-06-18 | [**Autoimmune Hepatitis (자가면역 간염)**](#autoimmune-hepatitis-aih) | 자가면역질환 / 간 | HLA-DR3/DR4(Type 1) · HLA-DR7(Type 2) 유전 소인 + 분자 모방(HCV CYP2D6 교차반응/EBV/약물 유발 신항원) → 중추·말초 면역관용 소실 → Kupffer/DC/Hepatocyte-MHC-II → 자가항원(CYP2D6/SepSecS/F-Actin/dsDNA) → CD4+ Th1(IFN-γ/TNF-α) + Th17(IL-17A/IL-21) 활성화 + FoxP3+ Treg 수·기능 저하(AIH 핵심 병태) + CD8+ CTL(Perforin/GrB/FasL) → 경계면 간염(Interface hepatitis · Rosette · Emperipolesis · 형질세포 침윤) + 자가항체 생성(ANA/ASMA/LKM-1/SLA-LP) + IgG 고감마글로불린혈증 → ALT·AST·IgG↑ → 반복 손상 시 TGF-β1/HSC 활성화 → F0→F4 간섬유화 → 문맥고혈압·간세포암·간이식; 치료: Prednisolone(GR/NF-κB 억제) + AZA(6-TGN TPMT/NUDT15 의존) · MMF(IMPDH 억제) · Budesonide(간 초회통과 >90%) · Rituximab(CD20 TMDD B세포 고갈); 22-CMT mrgsolve ODE (22 상태, 6 치료 시나리오, IAIHG 관해 기준 엔드포인트, TPMT 표현형 감도 분석); Manns 2010 NEJM · Manns 2010 Gastroenterology(Budesonide) · Zachou 2011 J Hepatol(MMF) · Burak 2013 Liver Int(RTX) 보정 | [![AIH](autoimmune-hepatitis/aih_qsp_model.png)](autoimmune-hepatitis/aih_qsp_model.svg) | [R](autoimmune-hepatitis/aih_mrgsolve_model.R) | [refs](autoimmune-hepatitis/aih_references.md) | [Shiny](autoimmune-hepatitis/aih_shiny_app.R) |
+| 2026-06-18 | [**Irritable Bowel Syndrome (과민성 장증후군)**](#irritable-bowel-syndrome-ibs) | 만성질환 / 기능성위장관 | 뇌-장 축(Brain-Gut Axis) 이상: 심리적 스트레스 → HPA축(CRF→ACTH→코르티솔) + 자율신경계 불균형 → 장내 비만세포 활성화(CRF-R2/IgE 교차/LPS-TLR4) + 장 투과성↑(Zonulin/MLCK/claudin 감소) → LPS 전좌 → 점막 저도 염증(TNF-α/IL-1β/IL-6↑, IL-10↓); 세로토닌(5-HT) 신호 이상: EC세포 TPH1 발현 이상 → IBS-D(5-HT 과잉/SERT↓) vs IBS-C(5-HT 결핍) → 5-HT3R(내장 구심성 활성화) + 5-HT4R(연동운동) 불균형 → 내장 과민성↑ · 대장통과시간 이상; 장내 미생물 불균형(Dysbiosis): Firmicutes↑/Bacteroidetes 비율 변화 · SIBO · 메탄 생성균(변비) · H2/H2S 생산균(팽만) · SCFA↓(Butyrate↓ → 장벽 약화 + IL-10↓) · 담즙산 대사 이상(FXR/TGR5) → EC세포 5-HT 합성 조절; 내장 과민성: 비만세포 Tryptase → PAR-2 → TRPV1/TRPA1 활성화 → DRG → 척수 후각 → 중추 감작(Wind-up · NMDA수용체 · BDNF) → 하행 통증 억제 약화; 치료 PK/PD: Alosetron(5-HT3 길항, 2-CMT, IC50 1.2 ng/mL) · Prucalopride(5-HT4 작용, 1-CMT, EC50 2.5 ng/mL) · 항콜린제(Hyoscine/Mebeverine) · TCA/SNRI(Amitriptyline, 하행 NE/5-HT 강화) · Rifaximin(SIBO 제거, 팽만 감소) · Linaclotide/Plecanatide(GC-C → cGMP → CFTR Cl⁻ 분비 + TRPV1 감작 억제) · Eluxadoline(μ/κ 작용제/δ 길항제) · 프로바이오틱스; 20-CMT deSolve ODE (STRESS·CRF·CORT·GUT_5HT·SERT_OCC·MAST_ACT·INFLAM·BARRIER·MICROB·SCFA·VIS_SENS·MOTIL·PAIN·BLOAT·STOOL·IBS_SSS·DRG_ACT·Cp1·Cp2·Cp3); 5 치료 시나리오; Camilleri 2001(Lancet) · Pimentel 2011(NEJM) · Ford 2014(Gut) · Chey 2012(Am J Gastroenterol) 보정 | [![IBS](irritable-bowel-syndrome/ibs_qsp_model.png)](irritable-bowel-syndrome/ibs_qsp_model.svg) | [R](irritable-bowel-syndrome/ibs_mrgsolve_model.R) | [refs](irritable-bowel-syndrome/ibs_references.md) | [Shiny](irritable-bowel-syndrome/ibs_shiny_app.R) |
 
 
 ---
@@ -3708,3 +3709,74 @@ Autoimmune Hepatitis (AIH) is a chronic, immune-mediated liver disease caused by
 | [`aih_mrgsolve_model.R`](autoimmune-hepatitis/aih_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, TPMT sensitivity analysis) |
 | [`aih_shiny_app.R`](autoimmune-hepatitis/aih_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT + deSolve) |
 | [`aih_references.md`](autoimmune-hepatitis/aih_references.md) | 52 curated PubMed-linked references (12 sections) |
+
+---
+
+## Irritable Bowel Syndrome (IBS)
+
+> Directory: [`irritable-bowel-syndrome/`](irritable-bowel-syndrome/)
+
+[![IBS QSP Mechanistic Map](irritable-bowel-syndrome/ibs_qsp_model.png)](irritable-bowel-syndrome/ibs_qsp_model.svg)
+
+Irritable Bowel Syndrome (IBS) is a functional gastrointestinal disorder affecting approximately 11% of the global population (>600 million people), characterized by chronic recurrent abdominal pain, altered bowel habits (diarrhea, constipation, or mixed), and bloating without identifiable structural pathology. It is the most common diagnosis in gastroenterology and a major cause of healthcare utilization and reduced quality of life. The Rome IV diagnostic criteria classify IBS into four subtypes: IBS-D (diarrhea-predominant), IBS-C (constipation-predominant), IBS-M (mixed), and IBS-U (unclassified).
+
+### Pathophysiological Mechanisms (9 Clusters)
+
+| Cluster | Key Components |
+|---------|----------------|
+| ① CNS / Brain-Gut Axis / HPA Axis | Psychological stress → Amygdala/PFC → Hypothalamus → CRF → ACTH → Cortisol (barrier disruption, mast activation); Autonomic NS (sympathetic↑/vagal↓); Descending pain inhibition (NE/5-HT); BDNF neuroplasticity; Pain processing (Insula/ACC/Thalamus) |
+| ② Enteric Nervous System (ENS) | Myenteric plexus (Auerbach) + Submucosal plexus (Meissner); IPANs (intrinsic primary afferent neurons); Ascending excitatory / Descending inhibitory pathways; ACh, VIP, NO motor neurons; Peristaltic reflex coordination |
+| ③ Serotonin (5-HT) Signaling | EC cells (95% of body 5-HT); TPH1 enzyme; SERT reuptake transporter; 5-HT3R (visceral afferent, secretion); 5-HT4R (peristalsis, prokinetic); 5-HT1AR (inhibitory); IBS-D: 5-HT overflow↑; IBS-C: 5-HT deficit; Platelet 5-HT; MAO-A degradation → 5-HIAA |
+| ④ Gut Epithelial Barrier | Enterocytes + Goblet cells + Mucus layer; Tight junctions (Claudin/Occludin/ZO-1); Zonulin (TJ opener); MLCK (TJ phosphorylation → permeability↑); IFN-γ barrier disruption; GC-C receptor → cGMP → CFTR Cl⁻ secretion (linaclotide mechanism); LPS translocation → TLR4 |
+| ⑤ Immune & Mucosal Inflammation | Mast cell hyperactivation (key IBS effector) by CRF-R2/IgE/LPS; Tryptase → PAR-2 → TRPV1 sensitization; Histamine → 5-HT3R sensitization; TNF-α/IL-1β/IL-6↑; IL-10↓; IL-17A (barrier disruption); Mucosal T cells (Th1/Th17); PGE2 (COX-2); Low-grade inflammation (fecal calprotectin) |
+| ⑥ Gut Microbiome & Metabolites | Firmicutes/Bacteroidetes ratio alteration; Lactobacillus/Bifidobacterium↓; SIBO (hydrogen/methane producers); SCFAs (butyrate/propionate/acetate — barrier support, IL-10 induction); Bile acid dysmetabolism (FXR/TGR5 → EC cell 5-HT); Tryptophan metabolism competition; H₂S (visceral sensitizer); Methane gas (transit↓, constipation) |
+| ⑦ Visceral Hypersensitivity | TRPV1/TRPA1 channels; Bradykinin (B2R/PKA sensitization); Substance P → NK1R; CGRP; Aδ/C fiber afferents → DRG → Spinal cord; Wind-up phenomenon; Central sensitization (NMDA-LTP); Spinal 5-HT3R facilitation; Descending inhibition failure |
+| ⑧ Clinical Endpoints & PROs | Abdominal Pain NRS (0–10); Bristol Stool Form Scale (1–7); IBS Symptom Severity Score (0–500, Francis 1997); QoL-IBS; Bloating/distension; Defecation frequency; Fecal water content; Urgency; Global adequate relief; Serum Chromogranin A (EC cell biomarker); Rectal sensitivity threshold (barostat) |
+| ⑨ Drug PK/PD | 5-HT3 antagonists (Alosetron 2-CMT IC50=1.2 ng/mL; Ondansetron); 5-HT4 agonists (Prucalopride EC50=2.5 ng/mL; Tegaserod); Antispasmodics (Hyoscine M3 block; Mebeverine; Peppermint oil TRPM8); TCA/SNRI (Amitriptyline: SERT inhib + descending NE; Duloxetine); Rifaximin (SIBO antibiotic); GC-C agonists (Linaclotide/Plecanatide → cGMP→CFTR); Lubiprostone (ClC-2); Eluxadoline (μ/κ agonist); Probiotics (VSL#3/LGG) |
+
+**Total: 9 clusters, 110+ nodes, 180+ directed edges**
+
+### ODE Model Summary
+
+| Parameter | Value |
+|-----------|-------|
+| ODE states | 20: STRESS · CRF · CORT · GUT_5HT · SERT_OCC · MAST_ACT · INFLAM · BARRIER · MICROB · SCFA · VIS_SENS · MOTIL · PAIN · BLOAT · STOOL · IBS_SSS · DRG_ACT · Cp1 · Cp2 · Cp3 |
+| Treatment scenarios | 5: ① Untreated (IBS-D natural history) · ② Alosetron 0.5 mg BID (5-HT3 antagonist, IBS-D) · ③ Prucalopride 2 mg QD (5-HT4 agonist, IBS-C) · ④ Amitriptyline 10–25 mg QN (TCA neuromodulator) · ⑤ Rifaximin 550 mg TID × 14d + Probiotics |
+| Simulation duration | 26 weeks (182 days) |
+| Key biomarkers | Abdominal Pain (NRS 0–10) · IBS-SSS (0–500) · Bristol Stool Form (1–7) · Visceral Hypersensitivity Index · Mast Cell Activation · Barrier Integrity · Dysbiosis Index · SCFA · QoL (0–100%) |
+| Clinical endpoints | IBS-SSS Responder (≥50 pt reduction or <175) · Adequate Relief (global) · Stool form normalization · Pain responder (≥30% reduction) · Rectal sensitivity threshold |
+| Calibration sources | Camilleri et al. 2000/2001 (Lancet, Alosetron Phase III) · Pimentel et al. 2011 (NEJM, Rifaximin TARGET 1&2) · Ford et al. 2014 (Gut, Amitriptyline meta-analysis) · Chey et al. 2012 (Am J Gastroenterol, Linaclotide) · Garsed et al. 2014 (Gut, Ondansetron) |
+
+### Key Drug PK/PD Parameters
+
+| Drug | Mechanism | Dose | F_oral | t½ | IC50/EC50 | Indication |
+|------|-----------|------|--------|----|-----------|------------|
+| Alosetron | 5-HT3 antagonist | 0.5 mg BID | 60% | 1.5h | IC50 1.2 ng/mL | IBS-D (female, severe) |
+| Ondansetron | 5-HT3 antagonist | 4 mg TID | 60% | 3.5h | IC50 0.5 ng/mL | IBS-D |
+| Prucalopride | 5-HT4 agonist | 2 mg QD | 90% | 24h | EC50 2.5 ng/mL | IBS-C |
+| Amitriptyline | TCA / SERT inhib | 10–50 mg QN | 45% | 20h | SERT Ki ~25 nM | IBS (all subtypes) |
+| Rifaximin | Non-absorbable antibiotic | 550 mg TID×14d | <0.4% | 6h | MIC90 <0.1 mg/L | IBS-D/IBS-M (SIBO) |
+| Linaclotide | GC-C agonist | 290 μg QD | minimal | <1h | cGMP↑ | IBS-C (pain + constipation) |
+| Eluxadoline | μ/κ agonist, δ antagonist | 100 mg BID | ~65% | 3.7h | Ki μ=0.43 nM | IBS-D |
+
+### Shiny App Tabs
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | IBS subtype overview (D/C/M), Rome IV criteria, IBS-SSS severity categories, baseline value boxes (Pain/SSS/BSFS/QoL), natural history vs. treatment IBS-SSS curve |
+| ② Drug PK | Alosetron plasma concentration (Cp1, 2-CMT), 5-HT3 receptor occupancy vs. time, 5-HT4 receptor occupancy (prucalopride), PK parameter reference table |
+| ③ Biomarkers | Gut 5-HT dynamics, Mast cell activation index, Mucosal inflammatory index, Epithelial barrier integrity, Dysbiosis index, SCFA levels — all treated vs. untreated |
+| ④ Symptom Scores | Abdominal pain (NRS), Bloating score, Bristol Stool Form (1–7), IBS-SSS composite, Visceral hypersensitivity index, Gut motility index |
+| ⑤ Scenario Comparison | All 5 treatment scenarios overlaid IBS-SSS curves (with responder threshold line), pain trajectories, dysbiosis dynamics, summary table at Week 12 |
+| ⑥ Biomarker Tracker | QoL trajectory (0–100%), DRG activation index, Serum Chromogranin A proxy (EC cell marker), Rectal sensitivity threshold (barostat mmHg), weekly biomarker summary table, downloadable simulation CSV |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`ibs_qsp_model.dot`](irritable-bowel-syndrome/ibs_qsp_model.dot) | Graphviz DOT source (9 clusters, 110+ nodes, 180+ directed edges) |
+| [`ibs_qsp_model.svg`](irritable-bowel-syndrome/ibs_qsp_model.svg) | Vector mechanistic map (fdp layout) |
+| [`ibs_qsp_model.png`](irritable-bowel-syndrome/ibs_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`ibs_mrgsolve_model.R`](irritable-bowel-syndrome/ibs_mrgsolve_model.R) | mrgsolve/deSolve ODE model (20 CMT, 5 treatment scenarios, sensitivity analysis) |
+| [`ibs_shiny_app.R`](irritable-bowel-syndrome/ibs_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT + deSolve) |
+| [`ibs_references.md`](irritable-bowel-syndrome/ibs_references.md) | 55 curated PubMed-linked references (12 sections) |
