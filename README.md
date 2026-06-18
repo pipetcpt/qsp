@@ -160,6 +160,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Vitiligo (백반증)**](#vitiligo-백반증) | 자가면역질환 / 피부·색소 | HLA-A*02:01 · PTPN22 · CTLA4 · NLRP1 · BACH2 유전 소인 + 산화 스트레스(Catalase 결핍 → H₂O₂↑ → ROS → ER stress/DAMP) → 멜라노사이트 취약성↑ + MICA/MICB↑ → NKG2D(NK/CD8+) → IFN-γ(마스터 조절자) → JAK1/JAK2-STAT1-IRF1 → CXCL9/CXCL10(IP-10)/CXCL11 → CXCR3 → CD8+ TRM 피부 침윤(peribulbar/perilesional) → Granzyme B/Perforin/FasL → 멜라노사이트 파괴 → 탈색; 멜라노사이트 생존 경로(MITF/SCF-cKIT/α-MSH-MC1R-cAMP/Wnt3a-β-catenin) 손상; PD-L1 멜라노사이트 소실 → 면역관용 붕괴; 혈청 CXCL10(★ 질병활성도 바이오마커: 활성 ~80 pg/mL); 치료: Ruxolitinib cream 1.5% BID(JAK1/2 억제, TRuE-V1/V2: F-VASI50 49.9% vs vehicle 16.8%, FDA 2023) + Ruxolitinib cream QD + Ruxolitinib oral 10 mg BID(전신) + Afamelanotide 16 mg SC q60d(MC1R 작용 → cAMP↑ → MITF↑ → 멜라닌 합성↑) + NB-UVB 311 nm(Treg 유도·모낭 멜라노사이트 줄기세포 동원); 20-CMT mrgsolve ODE(RUXO_GUT·RUXO_C·RUXO_SK·AFAM_D·AFAM_C·MEL·NKGL·CD8E·TREG·IFNG·CXCL10·PSTAT1·MITF·MELANIN·HAIRFOL·NKGD·TREG_SKIN·INFLAM·VASI·REPIG); 5 시나리오; Rosmarin 2022 NEJM Evid(TRuE-V) · Lim 2022 JAMA Derm(Afamelanotide) · Liu 2019 JAAD(CXCL10) · Rashighi 2014 Sci TrMed(CXCL10/CXCR3) · Harris 2012 JID(IFN-γ/CD8) 보정 | [![Vitiligo](vitiligo/vit_qsp_model.png)](vitiligo/vit_qsp_model.svg) | [R](vitiligo/vit_mrgsolve_model.R) | [refs](vitiligo/vit_references.md) | [Shiny](vitiligo/vit_shiny_app.R) |
 | 2026-06-18 | [**Obesity (비만)**](#obesity-비만) | 만성질환 / 대사·심혈관 | 에너지 섭취 > 지출의 만성 불균형 → 지방 조직 비대(WAT 비대·내장 지방↑) + 에너지 조절 장애; 시상하부 회로: ARC NPY/AgRP(orexigenic) vs POMC/CART(anorexigenic) 균형 파괴 → MC4R 신호 약화 → 식욕 증가·에너지소비 감소; 장-뇌 축: L세포 GLP-1/PYY↓ · K세포 GIP↑ · 위 X/A세포 Ghrelin↑ → 식욕 항진 + 미주신경·NTS 포만감 신호 약화; 지방 조직 염증: WAT 비대 → 지방세포 저산소증/사멸 → 관상 구조(Crown-like Structure) → ATM 침윤 → M1 극화 → TNF-α/IL-6/IL-1β/MCP-1 분비 → TLR4/NF-κB/JNK1 → IRS-1 Ser307 인산화 → 골격근·간 인슐린 저항성; PPARγ/C/EBPα 억제 → 아디포넥틴↓ · 렙틴 저항성; FFA 과잉 → 간 이소성 지방 + VLDL 분비↑ + 췌장 지방독성(β세포 자멸증); 치료 PK/PD: Semaglutide 2.4 mg SC QW(GLP-1RA, ka=0.0177/h, F=89%, EC50 GLP-1R=0.016 nM, STEP1: 체중−14.9% 68주) + Tirzepatide 15 mg SC QW(이중 GIP/GLP-1RA, ka=0.0187/h, EC50 GLP-1R=0.05 nM/GIPR=0.013 nM, SURMOUNT-1: 체중−20.9% 72주) + Orlistat 120 mg TID(위장관 리파아제 공유결합 억제, 지방 흡수↓30%, XENDOS: 체중−5.7%) + Phentermine/Topiramate 15/92 mg QD(NE/DA 방출+GABA-A 증강+탄산탈수효소 억제, CONQUER: 체중−9.3%); 20-CMT deSolve/mrgsolve ODE (SEMA_GUT·SEMA_C·TIRZ_GUT·TIRZ_C·ORL_GUT·CNS_C·GLP1R_OCC·GIPR_OCC·FOOD_R·GASTRIC·GHRELIN_R·INSULIN_P·GLUCOSE_P·ADIP·BWT_C·LEPTIN_P·TRIG_P·HBA1C_C·INFLAM_I·HOMA_IR_C); 5 치료 시나리오; Wilding 2021 NEJM(STEP1) · Jastreboff 2022 NEJM(SURMOUNT-1) · Torgerson 2004 Diabetes Care(XENDOS) · Garvey 2011 Lancet(CONQUER) · Lincoff 2023 NEJM(SELECT 심혈관) 보정 | [![Obesity](obesity/ob_qsp_model.png)](obesity/ob_qsp_model.svg) | [R](obesity/ob_mrgsolve_model.R) | [refs](obesity/ob_references.md) | [Shiny](obesity/ob_shiny_app.R) |
 | 2026-06-18 | [**Acromegaly (말단비대증)**](#acromegaly-말단비대증) | 만성질환 / 내분비 | GNAS 돌연변이(~40%)·AIP·MEN1 → cAMP 항진 → PKA→CREB→GH 유전자 과발현; GH 과잉 → 간 GHR → JAK2→pSTAT5b 이합체→IGF1 전사↑; IGF-1 축(IGFBP3-ALS 3중 복합체·Free IGF-1·IGF1R→IRS/PI3K/AKT/mTOR); 전신 효과: 골막 확대(말단비대)·LVH→심근병증·수면무호흡(50-80%)·대장 용종(2-3×)·인슐린저항성·T2DM(30-56%); 치료 PK/PD: Octreotide LAR(SSTR2 IC₅₀~0.2 nM·Gi→cAMP↓·VGCC↓·GH50-70%↓·25-35% IGF-1 정상화) + Lanreotide AG(SSTR2>5·27-38%) + Pasireotide LAR(SSTR1/2/3/5·38-48%·당뇨58%↑) + Pegvisomant(GHR 경쟁적 길항→STAT5b 차단·90-95%) + Cabergoline(D2R·~30%) + 경접형동수술(미세선종85%/거대선종50%); 17-CMT mrgsolve ODE(DEPOT_SSA·CENT_SSA·PERI_SSA·CENT_PEG·PERI_PEG·GH_ADENOM·GH_PLASMA·SSTR_BOUND·GHR_FREE·GHR_BLOCKED·STAT5b_ACT·IGF1_LIVER·IGF1_PLASMA·ADENOM_VOL·LVH_IDX·GLUCOSE·ARTH_SCORE); 8 시나리오; Trainer 2000 NEJM(pegvisomant) · Colao 2014 JCEM(pasireotide vs oct) · Gatto 2015 Pituitary(SSA PK) · Katznelson 2014 JCEM(Endocrine Society) 보정 | [![Acromegaly](acromegaly/acro_qsp_model.png)](acromegaly/acro_qsp_model.svg) | [R](acromegaly/acro_mrgsolve_model.R) | [refs](acromegaly/acro_references.md) | [Shiny](acromegaly/acro_shiny_app.R) |
+| 2026-06-18 | [**Benign Prostatic Hyperplasia (양성 전립선 비대증)**](#benign-prostatic-hyperplasia-bph) | 만성질환 / 비뇨기 | 노화+DHT(5α-reductase SRD5A2 → T→DHT) → AR 핵 전좌 → AR 표적 유전자(KGF/IGF-1/EGF/Bcl-2/Cyclin D1) → 전립선 간질·상피 증식 + 세포자사 억제 → 이행대(Transition Zone) 결절 형성 → 정적 폐색(Static Obstruction); SNS → α1A-AR(ADRA1A, 전립선 우세) → Gq/PLC → IP3 → Ca²⁺↑ → MLCK → MLC 인산화 → 평활근 수축 → 동적 폐색(Dynamic Obstruction); PDE5/cGMP 경로: eNOS/nNOS → NO → sGC → cGMP↑ → PKG → MLCP → MLC 탈인산화 → 이완 (PDE5i 표적); LUTS(Lower Urinary Tract Symptoms): IPSS 자극증상(빈뇨·야간뇨·요절박) + 폐색증상(불완전 배뇨·잔뇨·약뇨); 치료 PK/PD: Tamsulosin 0.4 mg QD(α1A/D-AR 선택 차단, Cmax~9.5 ng/mL, t½~10h, CYP2D6/3A4 대사, IC50 α1A~0.41 ng/mL → IPSS −4.2 pts/Qmax +2.2 mL/s @2yr, McConnell MTOPS 2003) + Finasteride 5 mg QD(5AR2 공유결합 억제, DHT↓70%, IC50~0.065 ng/mL, PV −25%/PSA −50% @24mo, PLESS 1996) + Dutasteride 0.5 mg QD(이중 5AR1+2 억제, t½~5wk 지방 조직 축적, DHT↓94%, PV −27%, CombAT 2010) + Tadalafil 5 mg QD(PDE5 IC50~2.8 ng/mL, cGMP↑ → 방광/전립선 평활근 이완, IPSS −5.6 pts NEPTUNE 2014) + CombAT 병용(Dutasteride+Tamsulosin, IPSS −6.2 pts > 단독요법); 20-CMT ODE model(TAMS_GUT·TAMS_C·TAMS_P·FINA_GUT·FINA_C·FINA_P·TAD_GUT·TAD_C·TAD_P·TEST_P·DHT_P·DHT_PROST·AR_ACT·PV·CGMP·ALPHA1_OCC·IPSS·QMAX·PVR·PSA·INFLAM); 6 치료 시나리오; MTOPS(McConnell 2003 NEJM)·CombAT(Roehrborn 2010 BJU Int)·NEPTUNE(Chapple 2014 Eur Urol)·PLESS(Roehrborn 1996 NEJM) 보정 | [![BPH](benign-prostatic-hyperplasia/bph_qsp_model.png)](benign-prostatic-hyperplasia/bph_qsp_model.svg) | [R](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | [refs](benign-prostatic-hyperplasia/bph_references.md) | [Shiny](benign-prostatic-hyperplasia/bph_shiny_app.R) |
 
 
 ---
@@ -4215,3 +4216,75 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`acro_shiny_app.R`](acromegaly/acro_shiny_app.R) | 7-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
 | [`acro_references.md`](acromegaly/acro_references.md) | 40 curated PubMed-linked references (11 sections) |
 
+
+
+---
+
+### Benign Prostatic Hyperplasia (BPH)
+
+> Directory: [`benign-prostatic-hyperplasia/`](benign-prostatic-hyperplasia/)
+
+**분류:** 만성질환 / 비뇨기과 — 양성 전립선 비대증 (LUTS/BPO)
+
+**병태생리 (Pathophysiology)**
+
+| 단계 | 기전 |
+|------|------|
+| 호르몬 축 | LH → Leydig 세포 → Testosterone → 전립선 내 SRD5A2 (type 2 5α-reductase) → DHT; SRD5A1 (type 1, 피부/간) 이차 기여; SHBG 결합 → 유리 Testosterone 조절 |
+| DHT-AR 신호 | DHT → AR (Hsp90 복합체 해리) → AR-DHT 이합체 → 핵 전좌 → ARE (Androgen Response Element) → PSA/KLK3·KGF·IGF-1·EGF·Bcl-2·Cyclin D1 전사 활성화 |
+| 정적 폐색 | 증식 신호(EGF-EGFR·FGF7-FGFR2IIIb·IGF-1-IGF1R → MAPK/Akt/mTORC1) + 항세포사멸(Bcl-2↑·p27↓) → 이행대 결절 형성 → 방광출구 기계적 압박 |
+| 동적 폐색 | SNS 과활성 → Norepinephrine → α1A-AR (ADRA1A, 전립선 평활근 우세) → Gq → PLC → IP3/DAG → Ca²⁺↑ → MLCK → MLC 인산화 → 수축 → 요도 저항↑ |
+| cGMP/NO 경로 | eNOS (내피)/nNOS (신경) → NO → sGC → cGMP↑ → PKG-I → MLCP → MLC 탈인산화 → 이완; PDE5 cGMP 분해 → tadalafil 표적 |
+| 염증 | 전립선 내 T세포·대식세포·비만세포 침윤 → NF-κB/IL-1β/TNF-α/IL-8/COX-2/PGE2 → 기질 섬유화 촉진 + 증식 신호 증폭 |
+
+**약물 기전 (Drug Mechanisms)**
+
+| 약물 | 표적 / 기전 | IPSS 개선 | Qmax 개선 |
+|------|------------|-----------|-----------|
+| Tamsulosin 0.4 mg QD | α1A/α1D-AR 선택 차단; CYP2D6/3A4; Cmax~9.5 ng/mL; t½~10 h | −4.2 pts (2yr) | +2.2 mL/s |
+| Silodosin 8 mg QD | α1A-AR 극선택 (α1A:α1B = 162:1); 사정 장애↑ | −5.3 pts | +2.6 mL/s |
+| Finasteride 5 mg QD | SRD5A2 공유결합 억제; DHT↓70%; PSA↓50%; PV↓25% @2yr | −3.1 pts | +1.5 mL/s |
+| Dutasteride 0.5 mg QD | SRD5A1+2 이중 억제; t½~5주; DHT↓94%; PV↓27% @2yr | −3.8 pts | +1.5 mL/s |
+| Dutasteride + Tamsulosin (CombAT) | 정적+동적 폐색 동시 차단 | −6.2 pts★ | +3.0 mL/s |
+| Tadalafil 5 mg QD | PDE5 억제 → cGMP↑ → 방광·전립선·요도 이완; IC50~2.8 ng/mL | −5.6 pts | +2.4 mL/s |
+
+★ CombAT 4년 추적 결과 (Roehrborn 2010, BJU Int)
+
+**mrgsolve ODE 모델 구조**
+
+- **구획 수:** 20개 (PK 9 + 호르몬/AR 4 + 구조 PD 3 + 임상 엔드포인트 4)
+- **CMT:** `TAMS_GUT` · `TAMS_C` · `TAMS_P` · `FINA_GUT` · `FINA_C` · `FINA_P` · `TAD_GUT` · `TAD_C` · `TAD_P` · `TEST_P` · `DHT_P` · `DHT_PROST` · `AR_ACT` · `PV` · `CGMP` · `ALPHA1_OCC` · `IPSS` · `QMAX` · `PVR` · `PSA` · `INFLAM`
+- **파라미터 보정:** MTOPS (McConnell 2003 NEJM), CombAT (Roehrborn 2010 BJU Int), NEPTUNE (Chapple 2014 Eur Urol), PLESS (Roehrborn 1996 NEJM)
+
+**치료 시나리오 (6개)**
+
+| # | 시나리오 | 핵심 설정 |
+|---|---------|---------|
+| 1 | Watchful Waiting (경과 관찰) | 무치료; 전립선 자연 성장 ~1.6%/yr |
+| 2 | Tamsulosin 0.4 mg QD | α1A-AR 차단 → 동적 폐색↓; 4주 내 빠른 IPSS 개선 |
+| 3 | Finasteride 5 mg QD | DHT↓70%; PSA↓50% @6mo; PV↓25% @2yr; 효과 발현 느림 |
+| 4 | Dutasteride 0.5 mg QD | DHT↓94%; 반감기 5주; PV↓27% @2yr |
+| 5 | Dutasteride + Tamsulosin (CombAT) | 빠른 증상 개선(α1-block) + 지속 PV 감소(5-ARI); AUR↓66% vs 단독 |
+| 6 | Tadalafil 5 mg QD | cGMP 경로; ED 동반 환자에 특히 선호; NEPTUNE IPSS −5.6 |
+
+**Shiny 대시보드 구조 (6탭)**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 나이·기저 전립선용적·기저 IPSS·Qmax·PSA·동반질환 입력; 위험도 분류(Low/Moderate/High); IPSS 분류표; 진료 인포박스 |
+| ② Drug PK | 약물 선택; 24h SS 또는 1년 축적 곡선; Cmax/AUC/t½ PK 파라미터 표 |
+| ③ Hormonal Biomarkers | DHT 혈장·전립선 조직·Testosterone·PSA 궤적 비교; 시간별 % 변화표; 5-ARI PSA 교정 안내 |
+| ④ Urodynamic Endpoints | IPSS / Qmax / PVR / 전립선용적 4개 지표 104주 추이; 임상 참조선 오버레이 |
+| ⑤ Treatment Scenarios | 6시나리오 × 엔드포인트 막대+점 비교; MTOPS/CombAT/NEPTUNE 임상 데이터 오버레이; DT 요약표 |
+| ⑥ Disease Progression & Risk | 5년 누적 AUR/TURP 위험 시뮬레이션; IPSS 중증도 영역 음영; 위험 계층화 표; 수술 필요성 예측 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`bph_qsp_model.dot`](benign-prostatic-hyperplasia/bph_qsp_model.dot) | Graphviz DOT source (11 clusters, 167 nodes, 206 directed edges) |
+| [`bph_qsp_model.svg`](benign-prostatic-hyperplasia/bph_qsp_model.svg) | Vector mechanistic map |
+| [`bph_qsp_model.png`](benign-prostatic-hyperplasia/bph_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`bph_mrgsolve_model.R`](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | mrgsolve ODE model (20+ CMT, 6 treatment scenarios, calibration table) |
+| [`bph_shiny_app.R`](benign-prostatic-hyperplasia/bph_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + DT + deSolve) |
+| [`bph_references.md`](benign-prostatic-hyperplasia/bph_references.md) | 46 curated PubMed-linked references (4 sections) |
