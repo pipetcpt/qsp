@@ -157,6 +157,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Irritable Bowel Syndrome (과민성 장증후군)**](#irritable-bowel-syndrome-ibs) | 만성질환 / 기능성위장관 | 뇌-장 축(Brain-Gut Axis) 이상: 심리적 스트레스 → HPA축(CRF→ACTH→코르티솔) + 자율신경계 불균형 → 장내 비만세포 활성화(CRF-R2/IgE 교차/LPS-TLR4) + 장 투과성↑(Zonulin/MLCK/claudin 감소) → LPS 전좌 → 점막 저도 염증(TNF-α/IL-1β/IL-6↑, IL-10↓); 세로토닌(5-HT) 신호 이상: EC세포 TPH1 발현 이상 → IBS-D(5-HT 과잉/SERT↓) vs IBS-C(5-HT 결핍) → 5-HT3R(내장 구심성 활성화) + 5-HT4R(연동운동) 불균형 → 내장 과민성↑ · 대장통과시간 이상; 장내 미생물 불균형(Dysbiosis): Firmicutes↑/Bacteroidetes 비율 변화 · SIBO · 메탄 생성균(변비) · H2/H2S 생산균(팽만) · SCFA↓(Butyrate↓ → 장벽 약화 + IL-10↓) · 담즙산 대사 이상(FXR/TGR5) → EC세포 5-HT 합성 조절; 내장 과민성: 비만세포 Tryptase → PAR-2 → TRPV1/TRPA1 활성화 → DRG → 척수 후각 → 중추 감작(Wind-up · NMDA수용체 · BDNF) → 하행 통증 억제 약화; 치료 PK/PD: Alosetron(5-HT3 길항, 2-CMT, IC50 1.2 ng/mL) · Prucalopride(5-HT4 작용, 1-CMT, EC50 2.5 ng/mL) · 항콜린제(Hyoscine/Mebeverine) · TCA/SNRI(Amitriptyline, 하행 NE/5-HT 강화) · Rifaximin(SIBO 제거, 팽만 감소) · Linaclotide/Plecanatide(GC-C → cGMP → CFTR Cl⁻ 분비 + TRPV1 감작 억제) · Eluxadoline(μ/κ 작용제/δ 길항제) · 프로바이오틱스; 20-CMT deSolve ODE (STRESS·CRF·CORT·GUT_5HT·SERT_OCC·MAST_ACT·INFLAM·BARRIER·MICROB·SCFA·VIS_SENS·MOTIL·PAIN·BLOAT·STOOL·IBS_SSS·DRG_ACT·Cp1·Cp2·Cp3); 5 치료 시나리오; Camilleri 2001(Lancet) · Pimentel 2011(NEJM) · Ford 2014(Gut) · Chey 2012(Am J Gastroenterol) 보정 | [![IBS](irritable-bowel-syndrome/ibs_qsp_model.png)](irritable-bowel-syndrome/ibs_qsp_model.svg) | [R](irritable-bowel-syndrome/ibs_mrgsolve_model.R) | [refs](irritable-bowel-syndrome/ibs_references.md) | [Shiny](irritable-bowel-syndrome/ibs_shiny_app.R) |
 | 2026-06-18 | [**ADPKD — Autosomal Dominant Polycystic Kidney Disease (상염색체 우성 다낭성 신종)**](#adpkd-autosomal-dominant-polycystic-kidney-disease) | 만성질환 / 신장유전질환 | PKD1(16p13, ~85%) · PKD2(4q22, ~15%) 유전자 돌연변이 → Two-hit model(체세포 2차 타격) → Polycystin-1/PC2 기능 소실 → 일차 섬모(Primary Cilium) 기계 감지 결함 → 세포내 Ca²⁺↓ → cAMP 역의존적 과활성화(AC5/AC6 탈억제); cAMP↑ → PKA 활성화 → CFTR Cl⁻ 채널 개방 + NKCC1 → 낭종 내강으로 유체 분비↑; cAMP→PKA→B-Raf→MEK→ERK1/2↑ + PI3K→Akt→mTORC1 활성화(PC1-CTF 소실로 TSC 해제) → 낭종 상피세포 비정상 증식 + 극성 역전(Na⁺/K⁺-ATPase 첨단 이동); 낭종 확장 → 정상 네프론 압박 → 신원 소실 → eGFR 감소(3–5 mL/min/yr); 낭종 확대 → 신장 내 압력↑ → 방사 기관(JGA) 레닌 분비↑ → RAAS 과활성화(Ang II↑ → AT1R → 알도스테론/내피소수축/혈압↑) → 사구체 고혈압 → 신원 추가 손상; 만성 염증·섬유화: 대식세포 M2 침윤(MCP-1/IL-6/TNF-α) + TGF-β1/CTGF → 근섬유모세포 활성화 → 간질 섬유화; 치료 PK/PD: Tolvaptan(V2R 경쟁적 길항제, F=0.56, t½=8h, CL=4L/h, EC50 V2R=50 ng/mL, 요삼투압↓ PD biomarker) · Everolimus(mTOR 억제제, FKBP12 복합체, EC50=5 ng/mL) · Octreotide LAR(SSTR2/5 작용→Gi→cAMP↓, 30mg/28days depot) · ACEi/ARB(RAAS 차단, 혈압 목표 110/75–130/80); 20-CMT mrgsolve ODE (AGUT·ACENT·APERI·EGUT·ECENT·EPERI·OCTDEP·OCTCENT·ACEI_GUT·ACEI_CENT·AVP·cAMP·mTOR·ANGII·BP·TKV·eGFR·Uosm·NEPH·); 5 치료 시나리오; Torres 2012 NEJM(TEMPO 3:4) · Torres 2017 NEJM(REPRISE) · Serra/Walz 2010 NEJM(Everolimus SIRENA) · Schrier 2014 NEJM(HALT-PKD) · Caroli 2013 Lancet(ALADIN) · Irazabal 2015 JASN(Mayo 분류) · Cornec-Le Gall 2016 JASN(PROPKD 점수) 보정 | [![ADPKD](adpkd/adpkd_qsp_model.png)](adpkd/adpkd_qsp_model.svg) | [R](adpkd/adpkd_mrgsolve_model.R) | [refs](adpkd/adpkd_references.md) | [Shiny](adpkd/adpkd_shiny_app.R) |
 | 2026-06-18 | [**Alopecia Areata (원형 탈모증)**](#alopecia-areata-aa) | 자가면역질환 / 피부 | HLA-DRB1*04:01 · CTLA4 · PTPN22 · ULBP3 유전 소인 + 스트레스/바이러스 유발 → 모낭 면역 특권(Immune Privilege) 소실: CD200↓ / PD-L1↓ / TGF-β↓ / MICA↑ → NKG2D 수용체 → NK/NKT 세포 활성화 → IFN-γ(선천 분비) → JAK1/JAK2-STAT1 / JAK3-STAT5 → MHC-I 발현 상승(IRF1/CIITA) → 구근부(bulb) 자기항원 노출 → CD8+ NKG2D+ CTL 모낭 침윤("벌떼 모양" peribulbar infiltrate) → Granzyme B / Perforin / Fas-FasL → 멜라노사이트 파괴 + 이형성 성장기 모발 → 조기 성장기→퇴행기 전환 강제 → 모낭 소형화 + SALT 점수↑; IL-15 → CD8+ CTL 생존 증폭; CXCL9/10/11(IFN-γ 유발) → CXCR3 → 피부 모낭으로 CTL 유인; IFN 시그니처 바이오마커(CXCL10/IP-10) 혈청 상승; 치료: Baricitinib 4 mg QD(JAK1/2 가역 억제, BRAVE-AA1: SALT50 35.9%, BRAVE-AA2: 32.6%, FDA 2022 승인) + Baricitinib 2 mg QD + Ritlecitinib 50 mg QD(JAK3/TEC 비가역 공유결합, ALLEGRO 2023, FDA 승인) + Tofacitinib 5 mg BID(JAK1/3, 적응외) + Dupilumab(IL-4Rα, 아토피 동반 시); 20-CMT ODE (PK 3개·면역세포 4개·사이토카인 3개·JAK/STAT 2개·모낭 3개·SALT/염증/NKG2DL/JAK3B/DUPIL); 5 치료 시나리오; King 2022 NEJM(BRAVE-AA1/2) · Asakawa 2023 JID(ALLEGRO) · Xing 2014 Nat Med · Mackay-Wiggan 2016 JCI Insight 보정 | [![AA](alopecia-areata/aa_qsp_model.png)](alopecia-areata/aa_qsp_model.svg) | [R](alopecia-areata/aa_mrgsolve_model.R) | [refs](alopecia-areata/aa_references.md) | [Shiny](alopecia-areata/aa_shiny_app.R) |
+| 2026-06-18 | [**Vitiligo (백반증)**](#vitiligo-백반증) | 자가면역질환 / 피부·색소 | HLA-A*02:01 · PTPN22 · CTLA4 · NLRP1 · BACH2 유전 소인 + 산화 스트레스(Catalase 결핍 → H₂O₂↑ → ROS → ER stress/DAMP) → 멜라노사이트 취약성↑ + MICA/MICB↑ → NKG2D(NK/CD8+) → IFN-γ(마스터 조절자) → JAK1/JAK2-STAT1-IRF1 → CXCL9/CXCL10(IP-10)/CXCL11 → CXCR3 → CD8+ TRM 피부 침윤(peribulbar/perilesional) → Granzyme B/Perforin/FasL → 멜라노사이트 파괴 → 탈색; 멜라노사이트 생존 경로(MITF/SCF-cKIT/α-MSH-MC1R-cAMP/Wnt3a-β-catenin) 손상; PD-L1 멜라노사이트 소실 → 면역관용 붕괴; 혈청 CXCL10(★ 질병활성도 바이오마커: 활성 ~80 pg/mL); 치료: Ruxolitinib cream 1.5% BID(JAK1/2 억제, TRuE-V1/V2: F-VASI50 49.9% vs vehicle 16.8%, FDA 2023) + Ruxolitinib cream QD + Ruxolitinib oral 10 mg BID(전신) + Afamelanotide 16 mg SC q60d(MC1R 작용 → cAMP↑ → MITF↑ → 멜라닌 합성↑) + NB-UVB 311 nm(Treg 유도·모낭 멜라노사이트 줄기세포 동원); 20-CMT mrgsolve ODE(RUXO_GUT·RUXO_C·RUXO_SK·AFAM_D·AFAM_C·MEL·NKGL·CD8E·TREG·IFNG·CXCL10·PSTAT1·MITF·MELANIN·HAIRFOL·NKGD·TREG_SKIN·INFLAM·VASI·REPIG); 5 시나리오; Rosmarin 2022 NEJM Evid(TRuE-V) · Lim 2022 JAMA Derm(Afamelanotide) · Liu 2019 JAAD(CXCL10) · Rashighi 2014 Sci TrMed(CXCL10/CXCR3) · Harris 2012 JID(IFN-γ/CD8) 보정 | [![Vitiligo](vitiligo/vit_qsp_model.png)](vitiligo/vit_qsp_model.svg) | [R](vitiligo/vit_mrgsolve_model.R) | [refs](vitiligo/vit_references.md) | [Shiny](vitiligo/vit_shiny_app.R) |
 
 
 ---
@@ -3938,3 +3939,97 @@ The **JAK/STAT cascade** is the master amplification axis: IFN-γ activates JAK1
 | [`aa_mrgsolve_model.R`](alopecia-areata/aa_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 treatment scenarios, dose–response analysis) |
 | [`aa_shiny_app.R`](alopecia-areata/aa_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT + deSolve) |
 | [`aa_references.md`](alopecia-areata/aa_references.md) | 55 curated PubMed-linked references (13 sections) |
+
+---
+
+## Vitiligo (백반증)
+
+[![Vitiligo QSP Mechanistic Map](vitiligo/vit_qsp_model.png)](vitiligo/vit_qsp_model.svg)
+
+*Click the image to open the full-resolution SVG mechanistic map.*
+
+### Overview
+
+**Vitiligo (백반증)** is the most common acquired depigmentation disorder, affecting approximately **1–2% of the global population** (~80 million people). It is characterised by the progressive, immune-mediated destruction of melanocytes in the skin, resulting in well-demarcated depigmented macules. Non-segmental vitiligo (NSV), the most prevalent form, is driven by a self-sustaining CD8⁺ T cell–IFN-γ–CXCR3 feedback loop in perilesional skin.
+
+The 2022 FDA approval of **ruxolitinib cream 1.5% (Opzelura)** — the first topical JAK inhibitor approved specifically for vitiligo — provided strong clinical validation for the mechanistic model implemented here, with the TRuE-V1/V2 phase-3 trials demonstrating **F-VASI50 ~50% (BID) vs ~17% (vehicle) at 24 weeks**.
+
+### Pathophysiology: The IFN-γ/CXCL10/CD8⁺ Triad
+
+```
+Genetic Risk (HLA-A*02:01 / PTPN22 / CTLA4 / NLRP1)
+     ↓
+Oxidative Stress (Catalase↓ → H₂O₂↑ → ROS → ER stress/DAMP)
+     ↓
+Melanocyte Vulnerability + MICA/MICB ↑ on stressed melanocytes
+     ↓
+NKG2D (NK + CD8⁺) Activation → IFN-γ ↑
+     ↓
+JAK1/JAK2 → STAT1 → IRF1 → CXCL9/CXCL10/CXCL11 gene expression
+     ↓
+CXCR3 → CD8⁺ TRM Recruitment to Perilesional Skin
+     ↓
+Granzyme B / Perforin / FasL → Melanocyte Destruction
+     ↓
+     Depigmentation (VASI score ↑, CXCL10 serum ↑)
+```
+
+The loop is self-amplifying: destroyed melanocytes release more DAMPs, attracting further CD8⁺ cells and sustaining IFN-γ production.
+
+### Drug Mechanisms Modeled
+
+| Drug | Target | Mechanism | Key PD Effect |
+|------|--------|-----------|---------------|
+| **Ruxolitinib cream 1.5% BID** | JAK1/JAK2 | IC50 3.3/2.8 nM; skin-local | ↓pSTAT1 → ↓CXCL10 → ↓CD8+ skin recruitment |
+| **Ruxolitinib oral 10mg BID** | JAK1/JAK2 | Systemic inhibition | Same pathway, systemic exposure |
+| **Afamelanotide 16mg SC q60d** | MC1R | Agonist → cAMP↑ | ↑MITF → ↑TYR/TYRP1 → ↑Melanin synthesis |
+| **Tacrolimus 0.1% topical** | Calcineurin | NFAT block | ↓IL-2 / ↓IFN-γ in T cells |
+| **NB-UVB 311nm 3×/week** | Multiple | Treg induction + MSC mobilisation | ↑Follicular melanocyte reservoir + Treg expand |
+
+### ODE Model: 20 Compartments
+
+| Group | States | Description |
+|-------|--------|-------------|
+| **Drug PK** | RUXO_GUT, RUXO_C, RUXO_SK, AFAM_D, AFAM_C | Ruxolitinib (oral + topical skin) + Afamelanotide SC depot |
+| **Melanocyte** | MEL, NKGL, MELANIN, MITF_C, HAIRFOL | Density, NKG2D ligand, melanin synthesis, follicular reservoir |
+| **Immune** | CD8E, TREG, TREG_SKIN, NKGD_ACT | CD8+ effectors, Tregs, NKG2D cytotoxic activity |
+| **Cytokines** | IFNG, CXCL10, PSTAT1 | IFN-γ, CXCL10/IP-10, phospho-STAT1 |
+| **Clinical** | VASI, REPIG, INFLAM | VASI score, cumulative repigmentation %, inflammatory index |
+
+### Clinical Calibration (TRuE-V Trials)
+
+| Outcome | Ruxo Cream BID | Ruxo Cream QD | Vehicle | Source |
+|---------|----------------|---------------|---------|--------|
+| F-VASI50 at wk 24 | **49.9%** | 30.1% | 16.8% | TRuE-V1 (Rosmarin 2022 NEJM Evid) |
+| F-VASI75 at wk 24 | **30.9%** | 19.4% | 7.4%  | TRuE-V1 |
+| Serum CXCL10 ↓ | ~50% | ~35% | ~5%   | Liu et al. JAAD 2019 |
+
+### Key Biomarker: Serum CXCL10
+
+Serum CXCL10 (IP-10) is the validated pharmacodynamic and disease-activity biomarker for vitiligo:
+- **Baseline active NSV**: ~80 pg/mL (vs. ~30 pg/mL normal)
+- **After ruxolitinib BID** (wk 24): ~40–45 pg/mL (−50%)
+- **Correlation with VASI**: r = −0.61 (Liu et al. JAAD 2019)
+- Reflects IFN-γ → JAK1/2 → STAT1 → IRF1 → CXCL10 pathway activity
+
+### Shiny Dashboard (6 Tabs)
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | Age/sex/BSA input; VASI baseline; disease activity (Koebner); CXCL10 baseline; gauge charts for VASI & CXCL10 |
+| ② Drug PK | Drug selector (cream BID/QD/oral/afamelanotide); skin nM or plasma Cp vs time (plotly); Cmax/Cmin/t½ table; dose–response JAK inhibition curve |
+| ③ PD Biomarkers | IFN-γ; CXCL10 ★ biomarker; p-STAT1 inhibition %; CD8+ effectors — all multi-arm interactive plotly time-series |
+| ④ Clinical Endpoints | VASI trajectory + VASI50/75 reference lines; melanocyte density + melanin content; endpoint value boxes (VASI, VASI50, VASI75, repig%) |
+| ⑤ Scenario Comparison | All 5 arms VASI/CXCL10/melanocyte/repig plots; DT summary table at user-selected week |
+| ⑥ Biomarker & Risk | CXCL10 vs VASI scatter; disease activity risk calculator (CXCL10 + VASI + duration → Low/Moderate/High); literature summary table |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`vit_qsp_model.dot`](vitiligo/vit_qsp_model.dot) | Graphviz DOT source (11 clusters, 160 nodes, 200+ directed edges) |
+| [`vit_qsp_model.svg`](vitiligo/vit_qsp_model.svg) | Vector mechanistic map |
+| [`vit_qsp_model.png`](vitiligo/vit_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`vit_mrgsolve_model.R`](vitiligo/vit_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 5 scenarios, virtual patient analysis, dose–response) |
+| [`vit_shiny_app.R`](vitiligo/vit_shiny_app.R) | 6-tab interactive Shiny dashboard (bslib + plotly + DT) |
+| [`vit_references.md`](vitiligo/vit_references.md) | 38 curated PubMed-linked references (11 sections) |
