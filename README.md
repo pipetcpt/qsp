@@ -161,6 +161,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Obesity (비만)**](#obesity-비만) | 만성질환 / 대사·심혈관 | 에너지 섭취 > 지출의 만성 불균형 → 지방 조직 비대(WAT 비대·내장 지방↑) + 에너지 조절 장애; 시상하부 회로: ARC NPY/AgRP(orexigenic) vs POMC/CART(anorexigenic) 균형 파괴 → MC4R 신호 약화 → 식욕 증가·에너지소비 감소; 장-뇌 축: L세포 GLP-1/PYY↓ · K세포 GIP↑ · 위 X/A세포 Ghrelin↑ → 식욕 항진 + 미주신경·NTS 포만감 신호 약화; 지방 조직 염증: WAT 비대 → 지방세포 저산소증/사멸 → 관상 구조(Crown-like Structure) → ATM 침윤 → M1 극화 → TNF-α/IL-6/IL-1β/MCP-1 분비 → TLR4/NF-κB/JNK1 → IRS-1 Ser307 인산화 → 골격근·간 인슐린 저항성; PPARγ/C/EBPα 억제 → 아디포넥틴↓ · 렙틴 저항성; FFA 과잉 → 간 이소성 지방 + VLDL 분비↑ + 췌장 지방독성(β세포 자멸증); 치료 PK/PD: Semaglutide 2.4 mg SC QW(GLP-1RA, ka=0.0177/h, F=89%, EC50 GLP-1R=0.016 nM, STEP1: 체중−14.9% 68주) + Tirzepatide 15 mg SC QW(이중 GIP/GLP-1RA, ka=0.0187/h, EC50 GLP-1R=0.05 nM/GIPR=0.013 nM, SURMOUNT-1: 체중−20.9% 72주) + Orlistat 120 mg TID(위장관 리파아제 공유결합 억제, 지방 흡수↓30%, XENDOS: 체중−5.7%) + Phentermine/Topiramate 15/92 mg QD(NE/DA 방출+GABA-A 증강+탄산탈수효소 억제, CONQUER: 체중−9.3%); 20-CMT deSolve/mrgsolve ODE (SEMA_GUT·SEMA_C·TIRZ_GUT·TIRZ_C·ORL_GUT·CNS_C·GLP1R_OCC·GIPR_OCC·FOOD_R·GASTRIC·GHRELIN_R·INSULIN_P·GLUCOSE_P·ADIP·BWT_C·LEPTIN_P·TRIG_P·HBA1C_C·INFLAM_I·HOMA_IR_C); 5 치료 시나리오; Wilding 2021 NEJM(STEP1) · Jastreboff 2022 NEJM(SURMOUNT-1) · Torgerson 2004 Diabetes Care(XENDOS) · Garvey 2011 Lancet(CONQUER) · Lincoff 2023 NEJM(SELECT 심혈관) 보정 | [![Obesity](obesity/ob_qsp_model.png)](obesity/ob_qsp_model.svg) | [R](obesity/ob_mrgsolve_model.R) | [refs](obesity/ob_references.md) | [Shiny](obesity/ob_shiny_app.R) |
 | 2026-06-18 | [**Acromegaly (말단비대증)**](#acromegaly-말단비대증) | 만성질환 / 내분비 | GNAS 돌연변이(~40%)·AIP·MEN1 → cAMP 항진 → PKA→CREB→GH 유전자 과발현; GH 과잉 → 간 GHR → JAK2→pSTAT5b 이합체→IGF1 전사↑; IGF-1 축(IGFBP3-ALS 3중 복합체·Free IGF-1·IGF1R→IRS/PI3K/AKT/mTOR); 전신 효과: 골막 확대(말단비대)·LVH→심근병증·수면무호흡(50-80%)·대장 용종(2-3×)·인슐린저항성·T2DM(30-56%); 치료 PK/PD: Octreotide LAR(SSTR2 IC₅₀~0.2 nM·Gi→cAMP↓·VGCC↓·GH50-70%↓·25-35% IGF-1 정상화) + Lanreotide AG(SSTR2>5·27-38%) + Pasireotide LAR(SSTR1/2/3/5·38-48%·당뇨58%↑) + Pegvisomant(GHR 경쟁적 길항→STAT5b 차단·90-95%) + Cabergoline(D2R·~30%) + 경접형동수술(미세선종85%/거대선종50%); 17-CMT mrgsolve ODE(DEPOT_SSA·CENT_SSA·PERI_SSA·CENT_PEG·PERI_PEG·GH_ADENOM·GH_PLASMA·SSTR_BOUND·GHR_FREE·GHR_BLOCKED·STAT5b_ACT·IGF1_LIVER·IGF1_PLASMA·ADENOM_VOL·LVH_IDX·GLUCOSE·ARTH_SCORE); 8 시나리오; Trainer 2000 NEJM(pegvisomant) · Colao 2014 JCEM(pasireotide vs oct) · Gatto 2015 Pituitary(SSA PK) · Katznelson 2014 JCEM(Endocrine Society) 보정 | [![Acromegaly](acromegaly/acro_qsp_model.png)](acromegaly/acro_qsp_model.svg) | [R](acromegaly/acro_mrgsolve_model.R) | [refs](acromegaly/acro_references.md) | [Shiny](acromegaly/acro_shiny_app.R) |
 | 2026-06-18 | [**Benign Prostatic Hyperplasia (양성 전립선 비대증)**](#benign-prostatic-hyperplasia-bph) | 만성질환 / 비뇨기 | 노화+DHT(5α-reductase SRD5A2 → T→DHT) → AR 핵 전좌 → AR 표적 유전자(KGF/IGF-1/EGF/Bcl-2/Cyclin D1) → 전립선 간질·상피 증식 + 세포자사 억제 → 이행대(Transition Zone) 결절 형성 → 정적 폐색(Static Obstruction); SNS → α1A-AR(ADRA1A, 전립선 우세) → Gq/PLC → IP3 → Ca²⁺↑ → MLCK → MLC 인산화 → 평활근 수축 → 동적 폐색(Dynamic Obstruction); PDE5/cGMP 경로: eNOS/nNOS → NO → sGC → cGMP↑ → PKG → MLCP → MLC 탈인산화 → 이완 (PDE5i 표적); LUTS(Lower Urinary Tract Symptoms): IPSS 자극증상(빈뇨·야간뇨·요절박) + 폐색증상(불완전 배뇨·잔뇨·약뇨); 치료 PK/PD: Tamsulosin 0.4 mg QD(α1A/D-AR 선택 차단, Cmax~9.5 ng/mL, t½~10h, CYP2D6/3A4 대사, IC50 α1A~0.41 ng/mL → IPSS −4.2 pts/Qmax +2.2 mL/s @2yr, McConnell MTOPS 2003) + Finasteride 5 mg QD(5AR2 공유결합 억제, DHT↓70%, IC50~0.065 ng/mL, PV −25%/PSA −50% @24mo, PLESS 1996) + Dutasteride 0.5 mg QD(이중 5AR1+2 억제, t½~5wk 지방 조직 축적, DHT↓94%, PV −27%, CombAT 2010) + Tadalafil 5 mg QD(PDE5 IC50~2.8 ng/mL, cGMP↑ → 방광/전립선 평활근 이완, IPSS −5.6 pts NEPTUNE 2014) + CombAT 병용(Dutasteride+Tamsulosin, IPSS −6.2 pts > 단독요법); 20-CMT ODE model(TAMS_GUT·TAMS_C·TAMS_P·FINA_GUT·FINA_C·FINA_P·TAD_GUT·TAD_C·TAD_P·TEST_P·DHT_P·DHT_PROST·AR_ACT·PV·CGMP·ALPHA1_OCC·IPSS·QMAX·PVR·PSA·INFLAM); 6 치료 시나리오; MTOPS(McConnell 2003 NEJM)·CombAT(Roehrborn 2010 BJU Int)·NEPTUNE(Chapple 2014 Eur Urol)·PLESS(Roehrborn 1996 NEJM) 보정 | [![BPH](benign-prostatic-hyperplasia/bph_qsp_model.png)](benign-prostatic-hyperplasia/bph_qsp_model.svg) | [R](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | [refs](benign-prostatic-hyperplasia/bph_references.md) | [Shiny](benign-prostatic-hyperplasia/bph_shiny_app.R) |
+| 2026-06-18 | [**Immune Thrombocytopenic Purpura (ITP)**](#immune-thrombocytopenic-purpura-itp) | 자가면역질환 / 혈액 | 항혈소판 자가항체(anti-GPIIb/IIIa IgG ≥60%, anti-GPIb/IX IgG) → FcγRIIA/IIA ITAM → SYK → PI3K/MAPK → 비장 적수 대식세포 포식(×3–10 정상) + 보체 C1q/C3b 공동 옵소닌화 → PLT 파괴; anti-GPIb/IX Ab → 노이라미니다제 유사 효과 → 혈소판 탈시알산화 → 간 Ashwell-Morell 수용체 간 청소; anti-GPIIb/IIIa Ab 골수 투과 → 거핵구(MK) 성숙 및 전혈소판(Proplatelet) 형성 억제; Treg(FoxP3+) 결핍(50–70%) + Th17↑(RORγt+, IL-17↑) + Tfh↑(IL-21→GC→B세포 활성화) → 항체 생성 지속; BAFF/APRIL→B세포·형질세포 생존; ITP 위상: 신규 진단(<3개월)·지속성(3–12개월)·만성(>12개월); 1차: 프레드니솔론 1 mg/kg/d + IVIG 1 g/kg(FcRn 포화·FcγR 경쟁 차단, 48h 내 PLT↑) 2차: Romiplostim 1–10 μg/kg SC 주1회(c-Mpl 펩티바디, RAISE Lancet 2008: PLT≥50 69% vs 9%) + Eltrombopag 25–75 mg PO QD(비펩타이드 TPO-RA, RAISE Lancet 2011) + Rituximab 375 mg/m²×4주(anti-CD20 B세포 제거, 장기 CR 20–25%) + Fostamatinib 100–150 mg BID(SYK 억제제→FcγRIIA ITAM 차단→포식↓, FIT 1+2 AJH 2018: OR 17% vs 4%) + Efgartigimod 10 mg/kg IV q1w(FcRn 차단→anti-PLT IgG 이화↑80%, ADVANCE IV Lancet Haematol 2022) + Splenectomy(CR ~66%); 20-CMT ODE(PLT 혈중·비장 풀 2 + TPO + MKP + MK + Ab + Bc + Treg + Th17 + Mac + 약물 PK 10개: PRED/IVIG/ROMI_sc/ROMI_c/RTX_c/RTX_p/FOSTA_gut/R788_c/EFGAR_c/ELTP_c); 6 치료 시나리오; RAISE(2008/2011)·FIT(2018)·ADVANCE IV(2022)·RITP(2015) 임상 보정 | [![ITP](immune-thrombocytopenic-purpura/itp_qsp_model.png)](immune-thrombocytopenic-purpura/itp_qsp_model.svg) | [R](immune-thrombocytopenic-purpura/itp_mrgsolve_model.R) | [refs](immune-thrombocytopenic-purpura/itp_references.md) | [Shiny](immune-thrombocytopenic-purpura/itp_shiny_app.R) |
 | 2026-06-18 | [**Stable Angina (안정형 협심증)**](#stable-angina-chronic-coronary-syndrome) | 만성질환 / 심혈관 | 관상동맥 죽상경화성 고정 협착(FFR<0.80) → 심근 O₂ 공급-수요 불균형(RPP>20,000) → 심근허혈 → 협심증; 내피기능부전(eNOS↓/ET-1↑/ROS↑) + 산화스트레스 → NO 감소 → 혈관확장 장애; 베타차단제(β₁차단→HR↓/RPP↓: Bisoprolol t½11h, TIBBS study) + 칼슘채널차단제(CCB, 혈관확장+후부하 감소: Amlodipine t½35–50h, CAPE study) + 라놀라진(Late I_Na 억제→Na⁺↓→Ca²⁺ 과부하↓→이완기능개선, CARISA/MARISA) + 이바브라딘(HCN/I_f 채널 차단→순수 HR감소→이완기 관류시간↑, BEAUTIFUL/SIGNIFY) + 유기질산염(ISMN BA~100%, ALDH2 경유 NO 방출→전부하↓/관상동맥확장, 내성주의: 편심적 투여) + 항혈소판(Aspirin COX-1 비가역 억제/Clopidogrel P2Y12 억제) + 스타틴(HMG-CoA 환원효소 억제→LDL-C↓30–60%→플라크 안정화 + 다면발현효과: eNOS↑/ROS↓/IL-6↓); 20-CMT mrgsolve ODE(Bisoprolol-2CMT·Amlodipine-2CMT·Ranolazine-1CMT·Ivabradine-1CMT·ISMN-1CMT+내성상태·HR/SBP/CBF상태변수·O₂불균형·허혈부담·협심증점수·운동능력·플라크); 6 치료 시나리오(무치료→베타차단제→BB+CCB→BB+CCB+라놀라진→BB+이바브라딘→BB+CCB+ISMN+스타틴); 보정: TIBBS(von Arnim 1995)·CARISA(Chaitman 2004 JAMA)·BEAUTIFUL(Fox 2008 Lancet)·SIGNIFY(Fox 2014 NEJM)·COURAGE(Boden 2007 NEJM); 이완기 관류시간-관상동맥혈류 결합 모델; RPP 허혈 역치 모델; 질산염 내성(ALDH2 불활성화) 동역학 | [![SA](stable-angina/sa_qsp_model.png)](stable-angina/sa_qsp_model.svg) | [R](stable-angina/sa_mrgsolve_model.R) | [refs](stable-angina/sa_references.md) | [Shiny](stable-angina/sa_shiny_app.R) |
 
 
@@ -4360,3 +4361,89 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`sa_mrgsolve_model.R`](stable-angina/sa_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, dose-response analysis) |
 | [`sa_shiny_app.R`](stable-angina/sa_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT) |
 | [`sa_references.md`](stable-angina/sa_references.md) | 50 curated PubMed-linked references (12 sections) |
+
+---
+
+## Immune Thrombocytopenic Purpura (ITP)
+
+[![ITP Mechanistic Map](immune-thrombocytopenic-purpura/itp_qsp_model.png)](immune-thrombocytopenic-purpura/itp_qsp_model.svg)
+
+면역성 혈소판 감소증(Immune Thrombocytopenic Purpura, ITP)은 혈소판(PLT) 수 < 100 × 10⁹/L를 특징으로 하는 후천성 자가면역 질환으로, 항혈소판 자가항체에 의한 비장의 FcγR 매개 혈소판 과파괴 및 골수 거핵구 생성 억제가 핵심 병태생리이다.
+
+### 핵심 병태생리 (ITP Pathophysiology)
+
+| 단계 | 기전 |
+|------|------|
+| 자가항체 생성 | GC B세포(Tfh/IL-21 도움) → anti-GPIIb/IIIa IgG (60–80%) + anti-GPIb/IX IgG (20–40%) → Short-lived 및 Long-lived 형질세포 → 지속 항체 생성 |
+| Treg/Th17 불균형 | Treg(FoxP3+) ↓50–70%; Th17(RORγt+, IL-17↑) ↑2–3×; Tfh ↑; 결과: GC 반응 억제 실패 → B세포 과활성 지속 |
+| 비장 파괴 | anti-PLT IgG → FcγRIIA(CD32a) ITAM → SYK → PI3Kδ/γ → 포식컵 → 포식용해소체 → 혈소판 분해; 보체 C3b 공동 옵소닌화 → CR3 매개 포식 증폭 |
+| 탈시알산화 경로 | anti-GPIb/IX Ab → 혈소판 탈시알산화(Sialic acid↓) → 간 Ashwell-Morell 수용체(AMR) → 간 청소 증가 → PLT 수명 < 1일 |
+| 거핵구 억제 | anti-GPIIb/IIIa Ab 골수 투과 → MK 표면 GPIIb/IIIa 결합 → 전혈소판(Proplatelet) 형성 ↓; CD8+ CTL 직접 MK 세포독성 |
+| TPO 역동학 | PLT ↓ → TPO 스캐빈징 ↓ → 혈중 TPO ↑ → c-Mpl(CD110) → JAK2 → STAT5 → MKP/MK 생산 증가 (부분 보상) |
+
+### 치료 전략 (Treatment Approach)
+
+| 라인 | 약물 | 기전 | 핵심 임상 데이터 |
+|------|------|------|----------------|
+| 1차 | 프레드니솔론 1 mg/kg/d × 4–6주 | B세포 억제, FcγR↓, Treg↑ | CR 70–80% (단기); 장기 CR 10–30% |
+| 1차 응급 | IVIG 1 g/kg × 1–2일 | FcRn 포화→IgG 이화↑; FcγR 경쟁 차단 | 48h 내 PLT > 50 (70–80%) |
+| 2차 | **Romiplostim** 1–10 μg/kg SC 주1회 | c-Mpl 펩티바디 → JAK2/STAT → MK↑ | RAISE(2008): PLT≥50 69% vs 9% (p<0.001) |
+| 2차 | **Eltrombopag** 25–75 mg PO QD | 비펩타이드 TPO-RA → c-Mpl 비경쟁적 자극 | RAISE(2011): OR 59% vs 16% |
+| 2차 | **Rituximab** 375 mg/m² × 4주 | anti-CD20 → B세포/GC세포/기억B세포 제거 | 장기 CR 20–25%; RITP(2015 Lancet) |
+| 2차 | **Fostamatinib** 100–150 mg BID | SYK 억제제(R788 활성대사체) → FcγRIIA ITAM 차단 → 비장 포식↓ | FIT 1+2(2018 AJH): OR 17% vs 4% |
+| 신규 | **Efgartigimod** 10 mg/kg IV q1w | FcRn 차단 → 전체 IgG 이화 ↑80% → anti-PLT Ab↓ | ADVANCE IV(2022 Lancet Haematol) |
+| 신규 | **Rozanolixizumab** 7–10 mg/kg SC | FcRn 억제 → IgG 반감기 ↓ | Phase 3 2023 AJH |
+| 수술 | 비장절제술 | FcγR 대식세포 제거 + 항체 생성 조직 제거 | CR ~66%; 재발 ~30% |
+
+**약물 PK/PD (Drug PK/PD)**
+
+| 약물 | 투여 경로 | t½ | 핵심 PD 기전 |
+|------|---------|-----|------------|
+| 프레드니솔론 | PO | 2–3h | GR-α → NF-κB↓/AP-1↓ → B세포 억제, FcγRI/IIA 발현↓, Treg↑ |
+| IVIG | IV infusion | 21d (정상 FcRn 균형 시) | FcRn 포화 → IgG 이화 2–4×↑; FcγRIIA 경쟁 차단; IL-10↑; Treg↑ |
+| Romiplostim | SC (주1회) | 약 1–4일 | c-Mpl (펩티바디) → JAK2/STAT3/STAT5 → MKP 증식 → MK 다배성화 → PLT 방출 3×↑ |
+| Eltrombopag | PO QD | 16–35h | JAK2/TpoR TM도메인 결합 (비경쟁적) → MAPK/AKT → MK 성숙; 추가 면역 조절(Treg↑?) |
+| Rituximab | IV (×4주) | 22d (terminal) | Anti-CD20 ADCC/CDC/직접 아폽토시스 → CD20+B세포 제거 → 6–12개월 B세포 감소 |
+| Fostamatinib→R788 | PO BID | ~13h (R788) | SYK ATP-competitive 억제(IC₅₀=0.12 μM) → FcγRIIA ITAM 인산화 차단 → PI3Kδ/γ/MAPK↓ → 포식 ↓65% |
+| Efgartigimod | IV q1w | ~34h | FcRn 알파체인 결합 → IgG 재순환 차단 → 전체 IgG 이화 ↑80% → anti-PLT IgG ↓75–80% (4주) |
+
+**mrgsolve ODE 모델 구조**
+
+- **구획 수:** 20개 CMT (생물학 10 + 약물 PK 10)
+- **생물학 CMT:** `PLT` (혈중) · `PLT_SP` (비장) · `TPO` · `MKP` · `MK` · `Ab` (anti-PLT IgG) · `Bc` (병원성 B세포) · `Treg` · `Th17` · `Mac` (대식세포 활성화)
+- **PK CMT:** `PRED_c` · `IVIG_c` · `ROMI_sc/ROMI_c` (2-CMT sc) · `RTX_c/RTX_p` (2-CMT IV) · `FOSTA_gut/R788_c` (전구약물) · `EFGAR_c` · `ELTP_c`
+- **파라미터 보정:** RAISE(Lancet 2008: Kuter, 2011: Cheng) · FIT 1+2(AJH 2018: Bussel) · ADVANCE IV(Lancet Haematol 2022: Bussel) · RITP(Lancet 2015: Ghanima)
+- **핵심 피드백 고리:** PLT ↓ → TPO ↑ → MKP/MK ↑ (보상적 증가); Ab×Mac → 혈소판 파괴 ↑ (악순환); Treg ↓ → Th17 ↑ → Bc 자극 → Ab ↑
+
+**치료 시나리오 (6개)**
+
+| # | 시나리오 | 핵심 설정 |
+|---|---------|---------|
+| 1 | 무치료 ITP | ITP_sev=4, PLT ~15–25 ×10⁹/L, Ab×4 기저치 |
+| 2 | 프레드니솔론 1 mg/kg/d (1차) | 70 mg/day × 56일 테이퍼; Treg↑, FcγR↓, Ab↓ |
+| 3 | 프레드니솔론 + Rituximab (2차) | CS 28일 후 RTX 700 mg × 4주; B세포 제거 → Ab 서서히↓ |
+| 4 | Romiplostim 3 μg/kg/wk | TPO-RA → MK↑ → PLT 생산 ×3; 비장 파괴 극복 전략 |
+| 5 | Fostamatinib 150 mg BID | SYK→비장 포식 차단; 항체 수준 유지 (면역 비변화) |
+| 6 | IVIG + Efgartigimod | 응급 IVIG + FcRn 억제제 병용 → Ab 급속 감소 + FcγR 차단 |
+
+**Shiny 대시보드 구조 (6탭)**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 질환 개요·진단 기준; 가치 박스(PLT/Ab/TPO/Treg:Th17); 진단 요약 테이블 |
+| ② Pharmacokinetics | 약물별 혈중 농도-시간 프로파일(plotly); PK 파라미터 비교표(7개 약물) |
+| ③ PD Biomarkers | 치료별 PLT/Ab/MK/TPO/Treg_Th17 다중 패널; 맞춤형 용량 입력 |
+| ④ Clinical Endpoints | 반응률 분류(CR/R/NR); 12·24주 요약표(DT); 출혈 위험 gauge |
+| ⑤ Scenario Comparison | 8개 시나리오 PLT 추이 비교(plotly); Ab/Treg_Th17/Mac 패널 |
+| ⑥ Mechanistic Panel | PLT+TPO+MK+MKP 동시 표시; Ab/Bc/Treg/Th17/Mac 면역 변수; MK 억제(Ab) 상관도 |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`itp_qsp_model.dot`](immune-thrombocytopenic-purpura/itp_qsp_model.dot) | Graphviz DOT source (10 clusters, 107 nodes) |
+| [`itp_qsp_model.svg`](immune-thrombocytopenic-purpura/itp_qsp_model.svg) | Vector mechanistic map |
+| [`itp_qsp_model.png`](immune-thrombocytopenic-purpura/itp_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`itp_mrgsolve_model.R`](immune-thrombocytopenic-purpura/itp_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 6 treatment scenarios, dose-response analysis) |
+| [`itp_shiny_app.R`](immune-thrombocytopenic-purpura/itp_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT + deSolve) |
+| [`itp_references.md`](immune-thrombocytopenic-purpura/itp_references.md) | 51 curated PubMed-linked references (14 sections) |
