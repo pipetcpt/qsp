@@ -162,6 +162,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Acromegaly (말단비대증)**](#acromegaly-말단비대증) | 만성질환 / 내분비 | GNAS 돌연변이(~40%)·AIP·MEN1 → cAMP 항진 → PKA→CREB→GH 유전자 과발현; GH 과잉 → 간 GHR → JAK2→pSTAT5b 이합체→IGF1 전사↑; IGF-1 축(IGFBP3-ALS 3중 복합체·Free IGF-1·IGF1R→IRS/PI3K/AKT/mTOR); 전신 효과: 골막 확대(말단비대)·LVH→심근병증·수면무호흡(50-80%)·대장 용종(2-3×)·인슐린저항성·T2DM(30-56%); 치료 PK/PD: Octreotide LAR(SSTR2 IC₅₀~0.2 nM·Gi→cAMP↓·VGCC↓·GH50-70%↓·25-35% IGF-1 정상화) + Lanreotide AG(SSTR2>5·27-38%) + Pasireotide LAR(SSTR1/2/3/5·38-48%·당뇨58%↑) + Pegvisomant(GHR 경쟁적 길항→STAT5b 차단·90-95%) + Cabergoline(D2R·~30%) + 경접형동수술(미세선종85%/거대선종50%); 17-CMT mrgsolve ODE(DEPOT_SSA·CENT_SSA·PERI_SSA·CENT_PEG·PERI_PEG·GH_ADENOM·GH_PLASMA·SSTR_BOUND·GHR_FREE·GHR_BLOCKED·STAT5b_ACT·IGF1_LIVER·IGF1_PLASMA·ADENOM_VOL·LVH_IDX·GLUCOSE·ARTH_SCORE); 8 시나리오; Trainer 2000 NEJM(pegvisomant) · Colao 2014 JCEM(pasireotide vs oct) · Gatto 2015 Pituitary(SSA PK) · Katznelson 2014 JCEM(Endocrine Society) 보정 | [![Acromegaly](acromegaly/acro_qsp_model.png)](acromegaly/acro_qsp_model.svg) | [R](acromegaly/acro_mrgsolve_model.R) | [refs](acromegaly/acro_references.md) | [Shiny](acromegaly/acro_shiny_app.R) |
 | 2026-06-18 | [**Benign Prostatic Hyperplasia (양성 전립선 비대증)**](#benign-prostatic-hyperplasia-bph) | 만성질환 / 비뇨기 | 노화+DHT(5α-reductase SRD5A2 → T→DHT) → AR 핵 전좌 → AR 표적 유전자(KGF/IGF-1/EGF/Bcl-2/Cyclin D1) → 전립선 간질·상피 증식 + 세포자사 억제 → 이행대(Transition Zone) 결절 형성 → 정적 폐색(Static Obstruction); SNS → α1A-AR(ADRA1A, 전립선 우세) → Gq/PLC → IP3 → Ca²⁺↑ → MLCK → MLC 인산화 → 평활근 수축 → 동적 폐색(Dynamic Obstruction); PDE5/cGMP 경로: eNOS/nNOS → NO → sGC → cGMP↑ → PKG → MLCP → MLC 탈인산화 → 이완 (PDE5i 표적); LUTS(Lower Urinary Tract Symptoms): IPSS 자극증상(빈뇨·야간뇨·요절박) + 폐색증상(불완전 배뇨·잔뇨·약뇨); 치료 PK/PD: Tamsulosin 0.4 mg QD(α1A/D-AR 선택 차단, Cmax~9.5 ng/mL, t½~10h, CYP2D6/3A4 대사, IC50 α1A~0.41 ng/mL → IPSS −4.2 pts/Qmax +2.2 mL/s @2yr, McConnell MTOPS 2003) + Finasteride 5 mg QD(5AR2 공유결합 억제, DHT↓70%, IC50~0.065 ng/mL, PV −25%/PSA −50% @24mo, PLESS 1996) + Dutasteride 0.5 mg QD(이중 5AR1+2 억제, t½~5wk 지방 조직 축적, DHT↓94%, PV −27%, CombAT 2010) + Tadalafil 5 mg QD(PDE5 IC50~2.8 ng/mL, cGMP↑ → 방광/전립선 평활근 이완, IPSS −5.6 pts NEPTUNE 2014) + CombAT 병용(Dutasteride+Tamsulosin, IPSS −6.2 pts > 단독요법); 20-CMT ODE model(TAMS_GUT·TAMS_C·TAMS_P·FINA_GUT·FINA_C·FINA_P·TAD_GUT·TAD_C·TAD_P·TEST_P·DHT_P·DHT_PROST·AR_ACT·PV·CGMP·ALPHA1_OCC·IPSS·QMAX·PVR·PSA·INFLAM); 6 치료 시나리오; MTOPS(McConnell 2003 NEJM)·CombAT(Roehrborn 2010 BJU Int)·NEPTUNE(Chapple 2014 Eur Urol)·PLESS(Roehrborn 1996 NEJM) 보정 | [![BPH](benign-prostatic-hyperplasia/bph_qsp_model.png)](benign-prostatic-hyperplasia/bph_qsp_model.svg) | [R](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) | [refs](benign-prostatic-hyperplasia/bph_references.md) | [Shiny](benign-prostatic-hyperplasia/bph_shiny_app.R) |
 | 2026-06-18 | [**Stable Angina (안정형 협심증)**](#stable-angina-chronic-coronary-syndrome) | 만성질환 / 심혈관 | 관상동맥 죽상경화성 고정 협착(FFR<0.80) → 심근 O₂ 공급-수요 불균형(RPP>20,000) → 심근허혈 → 협심증; 내피기능부전(eNOS↓/ET-1↑/ROS↑) + 산화스트레스 → NO 감소 → 혈관확장 장애; 베타차단제(β₁차단→HR↓/RPP↓: Bisoprolol t½11h, TIBBS study) + 칼슘채널차단제(CCB, 혈관확장+후부하 감소: Amlodipine t½35–50h, CAPE study) + 라놀라진(Late I_Na 억제→Na⁺↓→Ca²⁺ 과부하↓→이완기능개선, CARISA/MARISA) + 이바브라딘(HCN/I_f 채널 차단→순수 HR감소→이완기 관류시간↑, BEAUTIFUL/SIGNIFY) + 유기질산염(ISMN BA~100%, ALDH2 경유 NO 방출→전부하↓/관상동맥확장, 내성주의: 편심적 투여) + 항혈소판(Aspirin COX-1 비가역 억제/Clopidogrel P2Y12 억제) + 스타틴(HMG-CoA 환원효소 억제→LDL-C↓30–60%→플라크 안정화 + 다면발현효과: eNOS↑/ROS↓/IL-6↓); 20-CMT mrgsolve ODE(Bisoprolol-2CMT·Amlodipine-2CMT·Ranolazine-1CMT·Ivabradine-1CMT·ISMN-1CMT+내성상태·HR/SBP/CBF상태변수·O₂불균형·허혈부담·협심증점수·운동능력·플라크); 6 치료 시나리오(무치료→베타차단제→BB+CCB→BB+CCB+라놀라진→BB+이바브라딘→BB+CCB+ISMN+스타틴); 보정: TIBBS(von Arnim 1995)·CARISA(Chaitman 2004 JAMA)·BEAUTIFUL(Fox 2008 Lancet)·SIGNIFY(Fox 2014 NEJM)·COURAGE(Boden 2007 NEJM); 이완기 관류시간-관상동맥혈류 결합 모델; RPP 허혈 역치 모델; 질산염 내성(ALDH2 불활성화) 동역학 | [![SA](stable-angina/sa_qsp_model.png)](stable-angina/sa_qsp_model.svg) | [R](stable-angina/sa_mrgsolve_model.R) | [refs](stable-angina/sa_references.md) | [Shiny](stable-angina/sa_shiny_app.R) |
+| 2026-06-18 | [**Takayasu Arteritis (다카야스 동맥염)**](#takayasu-arteritis) | 자가면역질환 / 대혈관 혈관염 | HLA-B*52:01(OR ~8)·RNF213 유전 소인 + 결핵균 HSP65 분자 모방(MtbHSP65↔혈관 자기항원) → DC 성숙(MICA/MICB↑) → Th1(IFN-γ/TNF-α) + Th17(IL-17A★) + Treg 기능 저하(Th17/Treg 불균형) → IL-6★/TNF-α/MMP-9/12 → 대동맥 외막 육아종(Giant cell/거대세포) → 내막 비후(SMC 증식/PDGF-BB/TGF-β↑) → 협착·폐색; 동시에 탄성섬유 분해(MMP-12) → 동맥류 형성; VEGF-A → 신생혈관화; 신장동맥 협착→혈관신성 고혈압; 20-CMT mrgsolve ODE(Prednisolone 2-CMT PK: Vc=17L·CL=6.6L/h·Rohatagi 1997 + Tocilizumab 2-CMT+TMDD IL-6R PK: Frey 2010 + 면역세포 5개(TH1·TH17·TREG·MACRO·CD8T) + 사이토카인 5개(IL6·TNFA·IFNG·IL17·VEGFS) + 바이오마커 2개(CRP·ESR) + 혈관 3개(WALL mm·STEN 0-1·NIH_S)); 7 치료 시나리오(무치료·Prednisolone 단독·Pred+MTX·Tocilizumab IV q4w·Pred+TCZ·Pred+AZA·Infliximab); 보정: TAKT RCT(Nakaoka 2018 AnnRheumDis: TCZ 50.5% 관해)·Keser 2014(MTX+Pred)·Valsakumar 2003(AZA RCT)·Rohatagi 1997·Frey 2010; NIH Activity Score + ITAS-2010 엔드포인트; CRP·IL-6·VEGF 바이오마커; 36 PubMed 참고문헌 | [![TA](takayasu-arteritis/taka_qsp_model.png)](takayasu-arteritis/taka_qsp_model.svg) | [R](takayasu-arteritis/taka_mrgsolve_model.R) | [refs](takayasu-arteritis/taka_references.md) | [Shiny](takayasu-arteritis/taka_shiny_app.R) |
 
 
 ---
@@ -4360,3 +4361,107 @@ Clinical Consequences: T2DM · NAFLD/NASH · Dyslipidemia (TG↑/HDL↓)
 | [`sa_mrgsolve_model.R`](stable-angina/sa_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, dose-response analysis) |
 | [`sa_shiny_app.R`](stable-angina/sa_shiny_app.R) | 6-tab interactive Shiny dashboard (plotly + shinydashboard + DT) |
 | [`sa_references.md`](stable-angina/sa_references.md) | 50 curated PubMed-linked references (12 sections) |
+
+---
+
+### Takayasu Arteritis
+
+> Directory: [`takayasu-arteritis/`](takayasu-arteritis/)
+
+**Mechanistic Map** (150+ nodes, 10 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| Genetic & Environmental Triggers | HLA-B*52:01, RNF213, MtbHSP65 molecular mimicry, ESAT6, environmental stressors |
+| Innate Immunity | Dendritic cell (DC_mature), MICA/MICB, NK cells, Macrophages (M0→M1/M2), Neutrophils, Pattern recognition (TLR2/4/9, NOD2) |
+| Adaptive Immunity | Th1 (IFN-γ), Th17 (IL-17A/F), Treg (FoxP3), CD8+ CTL, B cells, Plasma cells; Th17/Treg imbalance axis |
+| Cytokine Network | IL-6★, TNF-α, IFN-γ, IL-17A, IL-12, IL-23, IL-10, VEGF-A, MCP-1, IL-18, IL-1β |
+| Intracellular Signaling | NF-κB, JAK1/2-STAT3, MAPK/ERK, mTOR, AP-1, IRF3, SOCS3 |
+| Vascular Wall Pathology | Adventitial granuloma (Giant cell), Intimal hyperplasia (SMC/PDGF-BB), Medial destruction (MMP-9/12), Elastic fiber degradation, Stenosis progression, Aneurysm formation |
+| End-Organ Damage | Renal artery stenosis → Renovascular hypertension, Aortic regurgitation, Coronary artery involvement, Stroke/TIA risk |
+| Biomarkers | CRP, ESR, IL-6, VEGF, Pentraxin-3 (PTX3), aortic wall thickness, stenosis score, NIH Activity Score (0–4), ITAS-2010 (0–57) |
+| Prednisolone PK/PD | 2-CMT oral PK (Vc=17L, CL=6.6L/h, Rohatagi 1997), GR nuclear translocation, AP-1/NF-κB inhibition, Th1/Th17 suppression |
+| Biologics & csDMARDs | Tocilizumab (2-CMT + TMDD IL-6R; TAKT RCT), Infliximab (anti-TNF), Adalimumab, Methotrexate, Azathioprine, Abatacept (CTLA4-Ig) |
+
+[![Takayasu Arteritis Mechanistic Map](takayasu-arteritis/taka_qsp_model.png)](takayasu-arteritis/taka_qsp_model.svg)
+
+---
+
+**ODE Model Summary** — [`taka_mrgsolve_model.R`](takayasu-arteritis/taka_mrgsolve_model.R)
+
+| Block | State Variables |
+|-------|----------------|
+| Prednisolone PK | `PRED_C` (central, mg/L), `PRED_P` (peripheral) |
+| Tocilizumab PK+TMDD | `TCZ_C` (central, µg/mL), `TCZ_P` (peripheral), `TCZ_B` (IL-6R bound complex) |
+| Immune Cells | `TH1`, `TH17`, `TREG`, `MACRO`, `CD8T` (all fold over baseline) |
+| Cytokines | `IL6` (pg/mL), `TNFA`, `IFNG`, `IL17`, `VEGFS` |
+| Biomarkers | `CRP` (mg/L), `ESR_P` (mm/h proxy) |
+| Vascular | `WALL` (mm aortic wall thickness), `STEN` (stenosis 0–1 score) |
+| Disease Activity | `NIH_S` (continuous 0–4 NIH Activity Score) |
+
+**Treatment Scenarios (7)**
+
+| # | Scenario | Key Parameters |
+|---|----------|----------------|
+| 1 | Untreated | Baseline disease progression, no drug |
+| 2 | Prednisolone mono | 1 mg/kg/d → 6-month taper |
+| 3 | Pred + Methotrexate | Pred taper + MTX 15 mg/wk (Keser 2014) |
+| 4 | Tocilizumab IV q4w | 8 mg/kg IV every 4 weeks (TAKT trial) |
+| 5 | Pred + Tocilizumab | Combination (TAKT + Nakaoka 2018) |
+| 6 | Pred + Azathioprine | Pred taper + AZA 2 mg/kg/d (Valsakumar 2003) |
+| 7 | Infliximab | Anti-TNF 5 mg/kg IV q8w (Comarmond 2012) |
+
+**Key Clinical Trial Calibration**
+
+| Trial | Reference | Outcome Used |
+|-------|-----------|--------------|
+| TAKT (Tocilizumab) | Nakaoka 2018, *Ann Rheum Dis* | Time to relapse; 50.5% sustained remission at 52w |
+| Pred+MTX RCT | Keser 2014, *Rheumatology* | Remission rate and relapse reduction |
+| AZA RCT | Valsakumar 2003, *J Rheumatol* | AZA+pred vs pred alone; remission rates |
+| Prednisolone PK | Rohatagi 1997, *J Clin Pharmacol* | Vc=17L, CL=6.6L/h, t½=3.5h, fu=23% |
+| Tocilizumab PK | Frey 2010, *J Clin Pharmacol* | 2-CMT + TMDD IL-6R population PK |
+
+---
+
+**Shiny Dashboard** — [`taka_shiny_app.R`](takayasu-arteritis/taka_shiny_app.R) · 7 tabs
+
+| Tab | Key Visualizations |
+|-----|--------------------|
+| ① Patient Profile | Body weight, IL-6/CRP/stenosis at baseline; ACR 1990 criteria display; value boxes (CRP/IL-6/NIH Score/Wall Thickness) |
+| ② Drug PK | Prednisolone and tocilizumab plasma concentration profiles (plotly); PK parameter table |
+| ③ Cytokine Biomarkers | IL-6, TNF-α, IFN-γ, IL-17A, VEGF time courses; CRP and ESR trajectories; heatmap of Th1/Th17/Treg |
+| ④ Vascular Remodeling | Aortic wall thickness (mm); stenosis score (0–1); granuloma burden; vascular damage index trajectory |
+| ⑤ Disease Activity | NIH Activity Score (0–4) and ITAS-2010 trajectory; relapse probability curve |
+| ⑥ Scenario Comparison | Side-by-side comparison of all 7 scenarios for NIH Score, CRP, Wall Thickness; DT summary table |
+| ⑦ Risk Assessment | Renovascular hypertension risk; stroke risk; aortic regurgitation risk at 1–5 year horizon |
+
+---
+
+**References** — [`taka_references.md`](takayasu-arteritis/taka_references.md)
+
+36 curated PubMed-linked references across 9 sections:
+
+| Section | # Refs | Key Papers |
+|---------|--------|------------|
+| Disease Pathophysiology & Epidemiology | 5 | Kerr 1994, Grayson 2020 (NEJM), Seyahi 2017 |
+| Genetics & Molecular Pathogenesis | 4 | Saruhan-Direskeneli 2013 (GWAS), Terao 2018 (Nat Genet), Kimura 2000 (HLA-B*52:01) |
+| Immunopathology: T-cell, Macrophage, Cytokine | 6 | Arnaud 2011 (IL-6/Th17), de Souza 2017 (cytokine profiling), Misra 2013 (biomarkers) |
+| Vascular Biology & Remodeling | 5 | Alibaz-Oner 2012/2019 (VEGF/VDI), Sato 2017 (PDGF/MMP-9/TGF-β), Dagna 2010 (PTX3) |
+| Disease Activity Measurement | 4 | Misra 2013 (ITAS-2010), Aydin 2013 (PET-CT imaging), Tombetti 2018 |
+| GC/csDMARDs | 4 | Mukhtyar 2009 (EULAR), Valsakumar 2003 (AZA RCT), Keser 2014 (MTX RCT), Rohatagi 1997 (Pred PK) |
+| Biologics | 4 | Nakaoka 2018 (TAKT), Comarmond 2012 (Anti-TNF), Mekinian 2012 (RTX), Tombetti 2020 (Abatacept) |
+| Tocilizumab & IL-6 Pharmacology | 3 | Frey 2010 (TCZ PK/TMDD), Nishimoto 2008, Tanaka 2014 (JAK-STAT3) |
+| QSP Modeling | 1 | Sager 2015 (CPT PSP, anti-IL-6 QSP framework) |
+
+---
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`taka_qsp_model.dot`](takayasu-arteritis/taka_qsp_model.dot) | Graphviz DOT source (10 clusters, 150+ nodes, drug PK/PD included) |
+| [`taka_qsp_model.svg`](takayasu-arteritis/taka_qsp_model.svg) | Vector mechanistic map |
+| [`taka_qsp_model.png`](takayasu-arteritis/taka_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`taka_mrgsolve_model.R`](takayasu-arteritis/taka_mrgsolve_model.R) | mrgsolve ODE model (20 CMT, 7 treatment scenarios, TMDD tocilizumab PK) |
+| [`taka_shiny_app.R`](takayasu-arteritis/taka_shiny_app.R) | 7-tab interactive Shiny dashboard (plotly + shinydashboard + DT) |
+| [`taka_references.md`](takayasu-arteritis/taka_references.md) | 36 curated PubMed-linked references (9 sections) |
