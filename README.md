@@ -169,6 +169,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Overactive Bladder — OAB (과민성 방광)**](#overactive-bladder-oab) | 만성질환 / 비뇨기 | 요로상피 기계감각(PIEZO2) → ATP 과분비(P2X3/P2Y2) + urothelial ACh → C섬유/Aδ섬유 과활성(TRPV1/TRPA1/TRPM8) → DRG(S2-S4) → 척수배측각 → 척수시상로 → PAG-PMC 배뇨회로 → 구심성 신호 과활성; 방광 평활근: M3→Gq→PLC→IP3→[Ca²⁺]i→CaM→MLCK→수축(involuntary DO); β3-AR→cAMP→PKA→MLCP→이완; NGF 과발현→신경 발아(sprouting)→감각 과민; 방광 요로상피 장벽 손상→suburothelial inflammation→mast cell → PGE2/IL-6→P2X3 감작화; 치료: Antimuscarinic(Oxybutynin IR: F=6%, t½=2h, CYP3A4→NDEO 활성 t½=8h; Tolterodine ER: F=65%, t½=12h, CYP2D6→5-HM; Solifenacin: F=90%, t½=45-68h, M3>>>M1 선택; Darifenacin: M3 고선택성) + β3-AR Agonist(Mirabegron: F=32%, t½=50h, EC50=22 ng/mL, SCORPIO UUI↓48%; Vibegron: F=60%, t½=31h, VIBRATO 2019) + Combo(Solifenacin 5mg+Mirabegron 25mg, BESIDE trial: UUI↓3.23 vs Sol10 ↓2.86, EurUrol 2016) + OnaBotulinumtoxinA 100 IU 방광내주입(SNAP25 절단→ACh 분비↓+요로상피 P2X3/NGF↓, EMBARK/ROSETTA 2012 NEJM); 22-CMT mrgsolve ODE(PK 10: OXY/TOL/SOL/MIR/SOL2 각 GUT+CENT; PD 12: RO_M3·RO_B3·DetAct·BladCap·VoidFreq·Urgency·UUI·NGF·ATP_bm·ContScore·Nocturia·OABq); 6 치료 시나리오(무치료→Oxybutynin IR TID→Tolterodine ER QD→Solifenacin 10mg QD→Mirabegron 50mg QD→Sol5+Mir25 병용); 보정: OBJECT(2001)·ACET/STAR(Chapple 2005)·SCORPIO(2013)·BESIDE(Drake 2016)·EMBARK(2017) | [![OAB](overactive-bladder/oab_qsp_model.png)](overactive-bladder/oab_qsp_model.svg) | [R](overactive-bladder/oab_mrgsolve_model.R) | [refs](overactive-bladder/oab_references.md) | [Shiny](overactive-bladder/oab_shiny_app.R) |
 | 2026-06-18 | [**Gastroesophageal Reflux Disease — GERD (위식도 역류질환)**](#gerd) | 만성질환 / 소화기 | 위식도 역류질환: 하부식도 괄약근(LES) 일과성 이완(TLESR, 미주신경 GABA-B 경로, 6–8회/h GERD vs 4회/h 정상) → 위산·담즙 역류 → 식도 점막 접촉; H⁺/K⁺-ATPase(벽세포 활성 펌프 30units) Histamine/Gastrin/ACh 자극 → cAMP/PKA·IP3/Ca²⁺ 경로 → 산 분비(3.5–12 mmol/h); 식도 점막 방어: TJ단백질(Claudin/Occludin/E-Cad)·점액·중탄산염·EGF·PGE2; 산 노출 시 NF-κB → IL-8/IL-1β/TNF-α → 호산구/비만세포/중성구 침윤; TRPV1/ASIC 이온채널 → C섬유 → DRG → 흉통/역류 증상; 장기: 바렛식도 CDX2 전사 → 장형 화생 → HGD → EAC; 치료 PK/PD: PPI(오메프라졸 CYP2C19 의존, EM t½ 1.5h, covalent H+K-ATPase Cys813 결합, IC50 0.15 mg/L, Hill=1.5, 2–5일 완전효과) vs P-CAB(보노프라잔 이온결합·비산활성화 필요, t½ 7–9h, 야간 산 억제 우수, VOYAGE 2016·PHALCON-EE 2023) vs H2RA(파모티딘 경쟁길항, 72h 내 내성) vs 도메페리돈(5-HT4/D2→LES압↑5 mmHg·위배출↑); 20-CMT mrgsolve ODE(PPI/H2RA/PCAB/PROK PK 8개; PUMP_INACT/ACT/INH 펌프풀; ACID_RATE·GAS_pH·AET·MUC_DMG·MUC_HEAL·SYM_SCORE·BE_RISK); 6 치료시나리오(무치료·Ome20 QD·Eso40 QD·Vono20 QD·Famo40 BID·Eso40+돔페리돈TID); Lyon 2.0 AET 6% 기준 보정(Gyawali 2018)·Ashida 2016(VOYAGE)·Laine 2023(PHALCON-EE)·Furuta 2010(CYP2C19 PM vs EM AUC 5×) | [![GERD](gerd/gerd_qsp_model.png)](gerd/gerd_qsp_model.svg) | [R](gerd/gerd_mrgsolve_model.R) | [refs](gerd/gerd_references.md) | [Shiny](gerd/gerd_shiny_app.R) |
 | 2026-06-18 | [**Autoimmune Encephalitis — AIE (자가면역 뇌염)**](#autoimmune-encephalitis-aie) | 자가면역질환 / 신경계 | Anti-NMDAR 뇌염: 난소 기형종(NMDAR 발현) 또는 HSV 감염 후 분자 모방 → NMDAR 펩타이드 항원 → APC/MHC-II → CD4+ Tfh 활성 → GC 반응(AID/SHM/ClassSwitch) → 형질모세포/LLPC → Anti-GluN1 IgG1/IgG4 → BBB 투과(MMP-9/VEGF/IL-6→TJ 분해→BBB_perm↑) → CSF IgG 상승; CSF IgG가 NR1 에피토프(aa346–375)에 결합 → NMDAR bivalent crosslinking → Clathrin-매개 내재화↑ → NMDAR 표면 밀도↓(70% 소실 가능); NMDAR↓ → PV 인터뉴런 저기능(NMDAR 의존성) → GABAergic 억제↓ → 시냅스 글루타메이트↑↑(E/I 불균형) + 도파민 탈억제 → 정신증/환각; 해마 CA1 LTP 손상 → 기억 상실; 기저핵 NMDAR↓ → 구강안면 이상운동; 시상 과활성 → 수면 장애; 소뇌/자율신경 → 체온/혈압 조절 장애; 치료 PK/PD: IVIG 2g/kg×5d(FcRn 포화→자가항체 이화 4.5배↑, Vc=3.7L, t½=21d→가속이화로 5-8d) + IV 메틸프레드니솔론 1g×5d(GR Transrepression→NF-κB/AP-1↓→IL-6/TNF↓+BBB 안정화; EC50=0.25mcg/mL) + 혈장교환(IgG 60-80%/회 직접 제거×5) + Rituximab 375mg/m²×4(Anti-CD20 ADCC/CDC→GCB/Memory B 고갈>99%; EC50=8mcg/mL, t½=21d) + Cyclophosphamide 750mg/m²×6(CYP2B6→4-OH-CPX DNA 알킬화→LLPC/GCB 세포사; eff_CPX=92%) + Tocilizumab 8mg/kg q4w(sIL-6R/mIL-6R 차단→JAK/STAT3 신호↓→CNS IL-6↓+BBB 안정화; EC50=2.5mcg/mL); 22-CMT mrgsolve ODE(면역 6개: GCB·PB·LLPC·MB·AB_SERUM·AB_CSF; CNS 6개: BBB·MG·NMDAR·GLU·IL6_CNS·GFAP; 임상 4개: CRS·SZ·COG·PSY; PK 6개: IVIG×2·MP×2·RTX×2+TCZ+CPX_ACT); 6 치료 시나리오(무치료→IVIG+MP→IVIG+MP+PE→2차 Rituximab→2차 Cyclophosphamide→3차 Tocilizumab); 보정: Titulaer 2013(Lancet Neurol, n=577: 1차요법 81% 반응, NMDAR회복 70% @8wk)·Gresa-Arribas 2014(Ab titer 추적)·Rojas 2015(IVIG PK, FcRn 포화)·Nosadini 2015(Rituximab 79% refractory)·Bost 2021(CNS IL-6/BBB/미세아교세포) | [![AIE](autoimmune-encephalitis/aie_qsp_model.png)](autoimmune-encephalitis/aie_qsp_model.svg) | [R](autoimmune-encephalitis/aie_mrgsolve_model.R) | [refs](autoimmune-encephalitis/aie_references.md) | [Shiny](autoimmune-encephalitis/aie_shiny_app.R) |
+| 2026-06-18 | [**Focal Segmental Glomerulosclerosis — FSGS (국소분절사구체경화증)**](#fsgs) | 만성질환 / 신장·사구체 | 국소분절사구체경화증: 원발성(CLCF1·anti-CD40·suPAR 등 순환 투과인자 → 사구체 내 포도세포 αvβ3 인테그린 활성화) / 이차성(과여과·네프론 소실·약물독성) / 유전성(NPHS1/NPHS2/APOL1-G1G2/INF2/TRPC6 변이) → 포도세포 액틴 세포골격 재배열 → 족돌기 소실(FPE) → 슬릿막(slit diaphragm) 파괴 → 알부민 누출·단백뇨(>3.5g/d 신증후군); 포도세포 손상 + Clathrin-매개 내재화 ↑ → 포도세포 이탈·감소(재생 극히 제한); RAAS 활성화: Ang II→AT1R→수출세동맥 수축→사구체내 고혈압→TGF-β1 유도; TGF-β1→SMAD2/3→SMAD4→ECM(피브로넥틴/CollagenIV)↑+TIMP-1↑/MMP↓→사구체 경화(비가역적 섬유화); C3 보체→C5b-9(MAC) 아치사 손상→포도세포 세포사; mTORC1 과활성→autophagy↓→미토콘드리아 기능장애→ATP 결핍→포도세포 사멸; APOL1 G1/G2 위험변이→독성 올리고머→리소좀 기능장애→포도세포독성; 치료 PK/PD: 프레드니솔론(GR transrepression→NF-κB·AP-1↓+직접 포도세포 GR→synaptopodin↑+액틴 안정화; CL=12 L/h, EC50=150 ng/mL, n=1.5) + 타크로리무스(FK506-FKBP12→칼시뉴린 억제→NFAT 핵이동 차단→synaptopodin 안정화→FPE 역전; CL=2.5 L/h, EC50=8 ng/mL) + 리툭시맙(anti-CD20 ADCC/CDC→B세포 고갈→CLCF1·anti-CD40 순환인자↓; Vc=3.1L, CL=0.014 L/h) + 스파르센탄(AT1R+ET-A/B 이중 길항→사구체내 고혈압 정상화+ET-1 섬유화↓; DUPLEX 2023 NEJM: 완전/부분 관해 42% vs 26%, CL=8.5 L/h, EC50=200 ng/mL) + Acthar Gel(MC1R/MC5R→직접 포도세포 보호+Nrf2 활성화); 22-CMT mrgsolve ODE(질환 11개: CLCF·POD·FPE·PROT·GFR_c·SCAR·TGFb·COMP·INFLAM·RAAS·BCELL; PK 11개: PRED_DEP·PRED1·PRED2·TAC_DEP·TAC1·TAC2·RTX1·RTX2·SPARS_DEP·SPARS1·SPARS2); 6 치료 시나리오(무치료·프레드니솔론 단독·Pred+타크로리무스·Pred+TAC+Rituximab·Sparsentan 단독·완전병용); 보정: Gipson 2011(Kidney Int, Pred 25% 완전관해)·Cattran 1999(CsA 70% 부분관해)·Kronbichler 2014(RTX 57% 반응)·Rheault 2023(DUPLEX NEJM, Sparsentan 완전관해 18% vs 9%)·PLANET-I(Sparsentan UPCR -46%) | [![FSGS](fsgs/fsgs_qsp_model.png)](fsgs/fsgs_qsp_model.svg) | [R](fsgs/fsgs_mrgsolve_model.R) | [refs](fsgs/fsgs_references.md) | [Shiny](fsgs/fsgs_shiny_app.R) |
 
 
 ---
@@ -5002,3 +5003,95 @@ dAB_SERUM/dt = k_prod×(LLPC+2×PB) - k_cl×(1+eff_IVIG_FcRn)×AB_SERUM
 | [`aie_mrgsolve_model.R`](autoimmune-encephalitis/aie_mrgsolve_model.R) | mrgsolve ODE 모델 (22 CMT, 6 치료 시나리오, 임상시험 보정) |
 | [`aie_shiny_app.R`](autoimmune-encephalitis/aie_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 (deSolve ODE + plotly + DT) |
 | [`aie_references.md`](autoimmune-encephalitis/aie_references.md) | 65개 PubMed 링크 참고문헌 (12섹션) |
+
+---
+
+## FSGS — 국소분절사구체경화증 (Focal Segmental Glomerulosclerosis) {#fsgs}
+
+국소분절사구체경화증(FSGS)은 사구체의 일부 분절에 경화 병변이 발생하는 신장 질환으로, 성인 신증후군의 가장 흔한 원인입니다. 발병기전은 원발성(순환 투과인자), 이차성(과여과/적응형), 유전성(NPHS1/NPHS2/APOL1 등) 세 가지 주요 유형으로 분류되며, 모든 유형에서 **포도세포(podocyte) 손상**이 핵심입니다.
+
+[![FSGS QSP map](fsgs/fsgs_qsp_model.png)](fsgs/fsgs_qsp_model.svg)
+
+### 기계론적 지도 구조 (12 클러스터)
+
+| 클러스터 | 주요 노드 |
+|---------|---------|
+| ① 병인·발병 유발인자 | Primary/Secondary/Genetic FSGS; CLCF1·anti-CD40·suPAR 순환인자; Hyperfiltration·Drug/Toxin |
+| ② 유전적·분자 기전 | NPHS1·NPHS2·INF2·WT1·TRPC6·CD2AP·APOL1 G1/G2 변이; APOL1 독성 올리고머; miR-193a |
+| ③ 포도세포 생물학·손상 | Podocyte·Nephrin·Podocin·Synaptopodin·α-Actinin-4; FPE·β3 인테그린; 포도세포 이탈·감소 |
+| ④ 사구체 여과 장벽 | Slit Diaphragm·GBM·내피세포·당겹질; 단백뇨(g/d)·신증후군·GFR·ESRD |
+| ⑤ TGF-β·섬유화 경로 | TGF-β1·TGFβR·SMAD2/3·SMAD4·SMAD7; ECM·TIMP-1; 사구체 경화·세관 위축 |
+| ⑥ 보체·사구체 염증 | C3→C3b→C5b-9(MAC); C5a; 대식세포·중성구; IL-6·TNF-α·IL-1β·NF-κB; ROS |
+| ⑦ mTOR·자가포식·미토콘드리아 | mTORC1/2·S6K1·4E-BP1; Autophagy·Mitophagy; AMPK·PI3K/AKT·Nrf2 |
+| ⑧ RAAS·사구체 혈역학 | Renin→AngI→AngII→AT1R; 사구체내 고혈압·수출세동맥 수축; ET-1·ET-A; VEGF-A |
+| ⑨ 1차 약물 PK | 프레드니솔론 2-CMT(ka=2/h, CL=12 L/h); 타크로리무스 2-CMT(ka=0.4/h, CL=2.5 L/h); MMF |
+| ⑩ 2차·신규 약물 PK | 리툭시맙 2-CMT(CL=0.014 L/h); 스파르센탄 2-CMT(ka=1.2/h, 이중 AT1R+ETR 길항, FDA 2023); Voclosporin; Acthar |
+| ⑪ 약물 PD 기전 | GR transrepression·직접 포도세포 GR; 칼시뉴린 억제·NFAT 차단→synaptopodin↑; B세포 고갈→순환인자↓; AT1R+ETR 차단 |
+| ⑫ 임상 엔드포인트·바이오마커 | UPCR·완전관해(UPCR<0.3)·부분관해(≥50% UPCR↓); eGFR·Cystatin C; suPAR·요중 podocalyxin·nephrin; Columbia 분류 생검 |
+
+### ODE 모델 구조 (22 구획)
+
+| 구획 그룹 | 구획 목록 | 초기값 |
+|---------|---------|------|
+| 질환 상태 (11) | CLCF·POD·FPE·PROT·GFR_c·SCAR·TGFb·COMP·INFLAM·RAAS·BCELL | CLCF=1, POD=1, FPE=0, PROT=0.15, GFR_c=100, SCAR=0, TGFb=1, COMP=1, INFLAM=1, RAAS=1, BCELL=1 |
+| 약물 PK (11) | PRED_DEP·PRED1·PRED2·TAC_DEP·TAC1·TAC2·RTX1·RTX2·SPARS_DEP·SPARS1·SPARS2 | 0 |
+
+**핵심 ODE 방정식:**
+
+```
+dPOD/dt = k_renew×(1-SCAR)×(1-POD) - k_CLCF×(CLCF-1)×POD - k_COMP×(COMP-1)×POD
+         - k_RAAS×(RAAS-1)×POD + eff_PRED×k_protect×(1-POD)
+
+dFPE/dt = k_form×(CLCF-1) + k_COMP×(COMP-1) - [k_spont + k_repair×(eff_PRED×1.5 + eff_TAC×2.0)]×FPE
+
+dSCAR/dt = k_POD×(1-POD)² + k_TGFb×(TGFb-1) + k_spon  (비가역적; 소실 거의 없음)
+
+dRTX1/dt = -(CL+Q)/V1×RTX1 + Q/V2×RTX2  [IV 투여]
+dBCELL/dt = k_regen×(1-BCELL) - k_kill×C_RTX/(EC50_RTX+C_RTX)×BCELL
+
+dSPARS1/dt = -(CL+Q)/V1×SPARS1 + Q/V2×SPARS2  [경구]
+dRAAS/dt = k_prod - k_clear×RAAS - eff_SPARS×k_clear×0.7×RAAS  (스파르센탄 AT1R+ETR 이중 차단)
+```
+
+### 6 치료 시나리오
+
+| 시나리오 | 치료 프로토콜 | 임상 근거 |
+|---------|------------|---------|
+| NatHist | 무치료 자연경과 (Primary FSGS) | 무치료 FSGS: 10-50% ESRD (5년) |
+| PRED_mono | 프레드니솔론 1mg/kg/d×8wk → 서서히 감량 | Gipson 2011: 완전관해 25%, 부분관해 39% |
+| PRED_TAC | 프레드니솔론 0.5mg/kg/d + 타크로리무스 (목표 트로프 5-8ng/mL) | Cattran 1999: CsA 70% 부분관해 |
+| PRED_TAC_RTX | 위+Rituximab 375mg/m²×4 (주 1회 × 4주) | Kronbichler 2014: RTX 57% 반응 |
+| SPARS_mono | 스파르센탄 800mg QD × 52주 | Rheault 2023 DUPLEX NEJM: 완전관해 18% vs 9% |
+| FULL | 프레드니솔론 + 타크로리무스 + 스파르센탄 병용 | 조합 프로토콜 (최적화 시뮬레이션) |
+
+### 임상시험 보정 데이터
+
+| 임상시험 | 결과 | 모델 보정 |
+|---------|------|---------|
+| Gipson et al. 2011 (Kidney Int) | Pred+MMF vs CsA: 관해율 36% vs 33% @12mo | k_FPE_repair; EC50_PRED=150 ng/mL |
+| Cattran et al. 1999 (Kidney Int) | CsA 70% 부분관해 vs 4% 위약 | EC50_TAC=8 ng/mL; Emax_TAC=0.92 |
+| Kronbichler 2014 (Am J Nephrol) | RTX 57% 반응 (n=42 난치성) | k_BCELL_kill=5.0 L/mg/d |
+| Rheault et al. 2023 (NEJM DUPLEX) | 완전관해 18%(스파르센탄) vs 9%(이르베사르탄) @1yr | EC50_SPARS=200 ng/mL; RAAS억제효율=70% |
+| PLANET-I (UPCR 서브그룹) | UPCR -46% (스파르센탄 800mg) vs -19% @36wk | k_PROT_in 정규화; eff_SPARS×40% 감소 |
+
+**Shiny 대시보드 구조 (6탭):**
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | 연령·체중·기저 eGFR·단백뇨 슬라이더; 질환 유형 선택(원발성/이차성/유전성); 치료 시나리오 선택; 환자 특성 요약표 |
+| ② Proteinuria & Biomarkers | 단백뇨(g/d) 시계열 + 완전/부분관해 역치선; CLCF 동역학; B세포 고갈(RTX); 관해 도달 시간표 |
+| ③ Glomerular Pathophysiology | 포도세포 분획(%); FPE(%); 보체 활성; 염증 지수; TGF-β 신호 + 사구체 경화(%) 오버레이 |
+| ④ Clinical Endpoints | eGFR 궤적 + CKD 단계 기준선; 관해 확률 곡선; ESRD 위험 추정; 3/6/12개월 임상 결과표 |
+| ⑤ Scenario Comparison | 6개 시나리오 PROT/GFR/POD/SCAR 2×2 패널; 6개월 완전관해율 막대그래프; eGFR 변화 막대그래프 |
+| ⑥ Drug PK & Biomarkers | 약물 농도-시간 프로파일(Pred ng/mL·TAC ng/mL·RTX mg/L·SPARS ng/mL); 바이오마커 패널(suPAR·요중 Podocalyxin·Nephrin); 타크로리무스 치료범위 달성률 |
+
+### File Inventory
+
+| 파일 | 설명 |
+|------|------|
+| [`fsgs_qsp_model.dot`](fsgs/fsgs_qsp_model.dot) | Graphviz DOT 소스 (12 클러스터, 138+ 노드, 180+ 엣지) |
+| [`fsgs_qsp_model.svg`](fsgs/fsgs_qsp_model.svg) | 벡터 기계론적 지도 |
+| [`fsgs_qsp_model.png`](fsgs/fsgs_qsp_model.png) | 래스터 기계론적 지도 (150 dpi) |
+| [`fsgs_mrgsolve_model.R`](fsgs/fsgs_mrgsolve_model.R) | mrgsolve ODE 모델 (22 CMT, 6 치료 시나리오, 임상시험 보정) |
+| [`fsgs_shiny_app.R`](fsgs/fsgs_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 (deSolve ODE + plotly + DT) |
+| [`fsgs_references.md`](fsgs/fsgs_references.md) | 66개 PubMed 링크 참고문헌 (18섹션) |
