@@ -150,6 +150,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Pemphigus Vulgaris (PV)**](#pemphigus-vulgaris-pv) | 자가면역질환 / 수포성 피부 | HLA-DRB1*04:02/DQB1*05:03 + UV/약물 유발 → Dsg3 펩타이드 (EC1-EC2) APC 제시 → Th2/Tfh 편향 → GC 반응 (IL-21/IL-4/CD40L) → B세포 SHM/CSR → anti-Dsg3 IgG4 우세 분비 (SLPC+LLPC) + IGHV3-23 사용; anti-Dsg3 IgG → EC1 입체 차단 + p38 MAPK/EGFR/Src/PKCα 신호 → Dsg3 내재화 + 세포골격 붕괴 → 표피내 극세포 분리(acantholysis) → 구강 미란(Dsg3>>Dsg1) + 피부 수포(Nikolsky 양성); 보체 C1q(IgG1)/C3b/MAC + 중성구 uPA/NET → 수포 확장; Treg 결핍이 GC 반응 억제 실패 유발; PDAI(>2=질병활성)/ABSIS 엔드포인트; Rituximab anti-CD20 (RITUX3 NEJM 2017: RTX+저용량 pred > 고용량 pred, PDAI CR 89% vs 34% at 24개월) + Prednisolone (GR-α→NF-κB/AP-1/p38↓, 최대 2 mg/kg/day taper) + MMF 2g/day (IMPDH 억제→GC B세포↓) + IVIg 2g/kg (FcRn 포화→IgG 이화 4×↑) + Efgartigimod (FcRn 차단→anti-Dsg3 IgG 급격 감소; PEMPHIX phase2); 23-CMT ODE model (약물PK 10 + 면역 7 + 항체 2 + 질환 4); 6 치료 시나리오 | [![PV](pemphigus-vulgaris/pv_qsp_model.png)](pemphigus-vulgaris/pv_qsp_model.svg) | [R](pemphigus-vulgaris/pv_mrgsolve_model.R) | [refs](pemphigus-vulgaris/pv_references.md) | [Shiny](pemphigus-vulgaris/pv_shiny_app.R) |
 | 2026-06-18 | [**Antiphospholipid Syndrome (APS)**](#antiphospholipid-syndrome-aps) | 자가면역질환 / 혈전·산과 | aPL Ab (anti-β2GPI IgG/aCL/LA) → TLR4/ApoER2' → NF-κB + mTOR (EC) → TF↑/PAI-1↑/PGI₂↓/Annexin A5 displacement → Platelet activation (GPIbα/P2Y12/PAR-1/GPIIb-IIIa) + Thrombin burst (FXa/FVa/FIIa/Fibrin) → DVT/PE/Stroke/Arterial thrombosis; Complement (C1q classical/lectin/alternative → C3a/C5a/C5b-9 MAC) → Trophoblast apoptosis + Spiral artery failure → RPL/OAPS; NETs amplify; mTOR → APS nephropathy; CAPS (≥3 organs <1 wk, mortality 37-50%); Triple positivity (aCL+LA+aβ2GPI) RR ≥10×; Warfarin (VKORC1/CYP2C9 PK; INR 2–3) + LMWH (ATIII potentiation; obstetric SOC, Rai 1997) + HCQ (TLR block + aPL titer↓50%; PROMISSE) + Rivaroxaban (TRAPS 2018: inferior in triple+ APS) + ASA 100 mg (COX-1/TXA2↓) + Rituximab (anti-CD20; B-cell depletion) + Eculizumab (anti-C5; CAPS rescue); 22-CMT ODE model; 7 treatment scenarios | [![APS](antiphospholipid-syndrome/aps_qsp_model.png)](antiphospholipid-syndrome/aps_qsp_model.svg) | [R](antiphospholipid-syndrome/aps_mrgsolve_model.R) | [refs](antiphospholipid-syndrome/aps_references.md) | [Shiny](antiphospholipid-syndrome/aps_shiny_app.R) |
 | 2026-06-18 | [**Metabolic Syndrome (MetS)**](#metabolic-syndrome-mets) | 만성질환 / 대사 | 중심성 비만(VAT↑ 5–12 kg) → 내장 지방 M1 대식세포 침윤(MCP-1/TLR4/FFA) → TNF-α/IL-6/IL-1β/MCP-1↑ → IKKβ/JNK1 → IRS-1 Ser307 인산화 → PI3K-Akt 차단 → 말초 인슐린 저항(GLUT4 전위↓) + 간 인슐린 저항(FoxO1 핵 복귀→PEPCK↑→HGP↑); Resistin↑/Adiponectin↓(AdipoR1/R2) → AMPK 억제 + SREBP-1c→DNL↑→VLDL 과분비→TG↑·sdLDL↑·CETP→HDL↓; AngII-AT1R → NAD(P)H 산화효소→ROS + eNOS 탈인산화→NO↓→내피세포 기능 부전→SVR↑→MAP↑; 렙틴 저항(시상하부 NPY↑/POMC↓) → 식욕 억제 실패 → 에너지 불균형 지속; Ceramide/DAG→PKCε/θ → 골격근 IRS-1 Ser↑ → 근육 인슐린 저항; β세포 글루코독성+IL-1β 매개 아폽토시스 → HOMA-β↓ → T2DM 이행; NCEP-ATP III 기준 3/5 충족; Metformin (미토콘드리아 Complex I 억제→AMPK↑→HGP↓30%·FPG↓3mmol/L; UKPDS 34) + Semaglutide/Liraglutide (GLP-1R→cAMP↑→인슐린↑·글루카곤↓ + 시상하부 satiety→체중 −9%; LEADER/SUSTAIN-6 MACE↓) + Empagliflozin/Dapagliflozin (SGLT2 경쟁적 억제→UGE 70 g/day→HbA1c↓·체중↓3 kg·MAP↓4 mmHg; EMPA-REG HospHF↓35%+CKD 보호) + Rosuvastatin (HMG-CoA 억제→LDL↓50%·LDLr↑; CTT 메타분석) + Losartan/Enalapril (AT1R 차단/ACE 억제→AngII↓→MAP↓10 mmHg·Alb뇨↓·신장 보호; HOPE/IDNT); 22-CMT ODE model (글루코스 항상성 8 + 지질 4 + 지방조직 4 + 염증 4 + RAAS/BP 2 + AMPK 1 + PK 각 2–3); 5 치료 시나리오 + BMI 민감도 분석 | [![MetS](metabolic-syndrome/ms_qsp_model.png)](metabolic-syndrome/ms_qsp_model.svg) | [R](metabolic-syndrome/ms_mrgsolve_model.R) | [refs](metabolic-syndrome/ms_references.md) | [Shiny](metabolic-syndrome/ms_shiny_app.R) |
+| 2026-06-18 | [**Essential Hypertension (본태성 고혈압)**](#essential-hypertension) | 만성질환 / 심혈관 | RAAS 과활성(AngII-AT1R → 혈관수축+알도스테론↑+Na저류) + SNS 항진(NE→α1R/β1R→CO↑+TPR↑) + 내피기능 장애(eNOS↓→NO↓, NADPH산화효소→ROS↑) + 신장 나트륨 저류(NCC/ENaC→PV↑) + 혈관 구조 리모델링(TGF-β/MAPK→IMT↑+동맥경직↑); 22-CMT ODE model (ACEI 라미프릴 + ARB 로사르탄 + CCB 암로디핀 + BB 비소프롤롤 + HCTZ, 6 치료 시나리오, SBP/DBP/LVM/eGFR 엔드포인트; SPRINT·ESH/ESC 2018·ALLHAT·HOPE 임상 보정) | [![EH](essential-hypertension/eh_qsp_model.png)](essential-hypertension/eh_qsp_model.svg) | [R](essential-hypertension/eh_mrgsolve_model.R) | [refs](essential-hypertension/eh_references.md) | [Shiny](essential-hypertension/eh_shiny_app.R) |
 
 
 ---
@@ -3373,3 +3374,61 @@ Granulomatosis with Polyangiitis (GPA, formerly Wegener's Granulomatosis) is a r
 | [`ms_mrgsolve_model.R`](metabolic-syndrome/ms_mrgsolve_model.R) | mrgsolve ODE model (22 CMT state variables, 5 treatment scenarios, BMI sensitivity analysis) |
 | [`ms_shiny_app.R`](metabolic-syndrome/ms_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
 | [`ms_references.md`](metabolic-syndrome/ms_references.md) | 50 curated PubMed-linked references (10 sections) |
+
+---
+
+### Essential Hypertension
+
+> Directory: [`essential-hypertension/`](essential-hypertension/)
+
+**병태생리 요약 (Pathophysiology)**:  
+RAAS 과활성 → AngII-AT1R → 혈관수축/알도스테론↑/신장 나트륨 저류; 교감신경 항진 → NE/EPI → α1R(혈관수축)/β1R(HR↑·레닌↑); 내피기능 장애 → eNOS↓·ROS↑ → NO 생체이용률 감소; 혈관 구조적 리모델링 → TGF-β/MAPK → IMT↑·동맥경직↑·맥박파속도↑.
+
+**Mechanistic Map** (140+ nodes, 10 pathway clusters):
+
+| Cluster | Coverage |
+|---------|----------|
+| Risk Factors | Aging, obesity, genetics (ACE I/D, AGT M235T), salt intake, stress, smoking, sleep apnea, diabetes |
+| RAAS | Angiotensinogen → Renin → AngI → ACE → AngII → AT1R/AT2R; Ang(1-7)/ACE2/Mas; chymase bypass; aldosterone/MR |
+| Sympathetic NS | CNS RVLM; NE/EPI; α1/α2/β1/β2-AR; baroreceptors; renal sympathetic nerves |
+| Endothelial Function | eNOS/BH4/NO/sGC/cGMP; ET-1/ETA/ETB; PGI₂/TXA₂/COX-1/COX-2; bradykinin/B2R; NADPH oxidase/ROS/peroxynitrite |
+| Renal Mechanisms | PCT/LOH/DCT/CD; NHE3/NKCC2/NCC/ENaC; AQP2/ADH; JGA/macula densa; SGLT2 |
+| Cardiac Function | HR/SV/CO; L-VGCC/Ca²⁺/contractility; ANP/BNP/NPR-A; LV mass/fibrosis |
+| Vascular Remodeling | TPR/VSM tone; IMT; arterial stiffness/PWV; TGF-β/MMP/PDGF/FGF; MAPK/PKC/ROCK |
+| Inflammation | NLRP3/IL-1β/TNF-α/IL-6; NF-κB; ICAM-1/VCAM-1; foam cells |
+| Drug PK/PD | ACEI (ramipril→ramiprilat); ARB (losartan→EXP3174); CCB (amlodipine); BB (bisoprolol); HCTZ |
+| Clinical Endpoints | SBP/DBP/MAP/PP; LVH; CKD/UACR/eGFR; stroke/MI risk; SCORE/Framingham |
+
+[![Essential Hypertension QSP Model](essential-hypertension/eh_qsp_model.png)](essential-hypertension/eh_qsp_model.svg)
+
+**ODE Model Summary**:
+
+| Parameter | Value |
+|-----------|-------|
+| ODE states | 22 (9 drug PK + 2 RAAS + 5 CV/hemo + 2 chronic remodeling + 4 others) |
+| Drug classes | ACEI (ramiprilat), ARB (EXP3174), CCB (amlodipine), BB (bisoprolol), HCTZ |
+| Treatment scenarios | 6: Untreated · ACEI monotherapy · ARB monotherapy · CCB monotherapy · BB monotherapy · Triple (ACEI+CCB+HCTZ) |
+| Simulation | 24 weeks; daily oral dosing; endpoints at weeks 0/12/24 |
+| PD endpoints | SBP, DBP, MAP, HR, CO, PV, AngII, Aldo, NO index, LVM, eGFR |
+| Calibration | SPRINT (2015), ALLHAT (2002), HOPE (2000), ESH/ESC Guidelines (2018) |
+
+**Key PK Parameters**:
+
+| Drug | t½ | F | Vc | CL | Target |
+|------|----|----|----|----|--------|
+| Ramiprilat (ACEI) | 9–18 h | 28% | 8 L | 6.5 L/h | ACE (IC₅₀ 0.002 nM) |
+| EXP3174 (ARB) | 6–9 h | 33% | 14 L | 5.2 L/h | AT1R (Ki 18 nM) |
+| Amlodipine (CCB) | 30–50 h | 64% | 21 L | 3.5 L/h | L-VGCC (IC₅₀ ~2 nM) |
+| Bisoprolol (BB) | 9–12 h | 80% | 12 L | 9.0 L/h | β1-AR (Ki 9 nM) |
+| HCTZ (diuretic) | 5–15 h | 70% | 4 L | 18 L/h | NCC (IC₅₀ ~25 µM) |
+
+### File Inventory
+
+| File | Description |
+|------|-------------|
+| [`eh_qsp_model.dot`](essential-hypertension/eh_qsp_model.dot) | Graphviz DOT source (10 subgraph clusters, 140+ nodes, 180+ directed edges) |
+| [`eh_qsp_model.svg`](essential-hypertension/eh_qsp_model.svg) | Vector mechanistic map |
+| [`eh_qsp_model.png`](essential-hypertension/eh_qsp_model.png) | Raster mechanistic map (150 dpi) |
+| [`eh_mrgsolve_model.R`](essential-hypertension/eh_mrgsolve_model.R) | mrgsolve ODE model (22 CMT, 6 treatment scenarios, dose-response analysis) |
+| [`eh_shiny_app.R`](essential-hypertension/eh_shiny_app.R) | 6-tab interactive Shiny dashboard (shinydashboard + plotly + DT) |
+| [`eh_references.md`](essential-hypertension/eh_references.md) | 41 curated PubMed-linked references (7 sections) |
