@@ -166,6 +166,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Dermatomyositis (피부근염)**](#dermatomyositis-피부근염) | 자가면역질환 / 염증성 근육병증 | pDC → TLR7/9/cGAS-STING → IRF7 → IFN-α/β(Type I IFN★) → JAK1/TYK2-STAT1/2-ISGF3 → ISG 발현 증폭; 자가항체(Anti-MDA5/Mi-2/TIF1γ/NXP2/SAE/Jo-1/SRP/HMGCR) → 보체 고전경로(C1q→C3→MAC C5b-9) → 근육 모세혈관 내피 MAC 침착 → 모세혈관 소실 → 근육 허혈 → 근주위(Perifascicular) 근섬유 위축; CD8+CTL(Granzyme B) + 비정상 CD4+Tfh/Th17 + Treg 결핍 → 자가항체 생산 지속; 피부 병변(자외선→각질세포 IFN-κ→pDC 모집) → Gottron 구진/헬리오트로프 발진/V-Sign/역공학자 손; 간질성 폐질환(ILD): anti-MDA5 동반 시 급속진행형(RP-ILD) DAD 패턴; 치료 PK/PD: Prednisolone(GR/NF-κB 억제, 1 mg/kg/d 표준) + IVIG 2 g/kg(FcRn 포화→Ab 이화↑; 보체 스캐빈징, Dalakas NEJM 1993) + Methotrexate 15 mg/wk(DHFR/IMPDH 억제→Th1/Th17 증식↓) + Rituximab 1000 mg×2(anti-CD20 TMDD B세포 제거, RIM study 2013 Arthritis Rheum: TIS≥40 83% RTX군) + Baricitinib 4 mg QD(JAK1/2 억제, IC50 5.7/8.7 nM→STAT1/2 차단→IFN score↓47%, CLEAR trial 2022 Lancet Rheumatol); 22-CMT mrgsolve ODE(PK 11개: PRED·IVIG·MTX·RTX·JAKI 각 2-CMT + CD20_BOUND; PD 13개: IFN_SCORE·COMPLEMENT·B_CELL·AUTO_AB·MUSCLE_INJ·CK·MMT8·CDASI·FVC·TREG·TH17·CD8_ACT·CAPILLARY); 7 치료 시나리오; TIS(Total Improvement Score, 0-100) 복합 엔드포인트; Benveniste 2022(CLEAR)·Oddis 2013(RIM)·Dalakas 1993(IVIG NEJM)·Aggarwal 2021(anti-MDA5) 보정 | [![DM](dermatomyositis/dm_qsp_model.png)](dermatomyositis/dm_qsp_model.svg) | [R](dermatomyositis/dm_mrgsolve_model.R) | [refs](dermatomyositis/dm_references.md) | [Shiny](dermatomyositis/dm_shiny_app.R) |
 | 2026-06-18 | [**CIDP (만성 염증성 탈수초성 다발신경병증)**](#cidp-chronic-inflammatory-demyelinating-polyneuropathy) | 자가면역질환 / 말초신경 | 자가반응성 T세포(Th1/Th17) + B세포 → 혈액-신경 장벽(BNB) 투과 → 항결절/측결절 자가항체 생성: IgG4(Anti-NF155·Anti-CNTN1·Anti-CASPR1) → 편측결절 단백질 차단 → 편측결절 분열 → 분절성 탈수초; IgG1/IgG3(Anti-NF186·Anti-CASPR1) → 보체 C1q→C5b-9 MAC → Schwann 세포 손상; M1 대식세포 편식 탈수초; 만성 NCV 저하·전도 차단 → 이차 축삭 손상(NfL↑); 치료: IVIG 2 g/kg q4w(FcRn 포화→이화↑×3.5+항이디오타입 Ab+보체 스캐빈징+FcγR 차단+Treg 확장; PATH NEJM 2023·ADHERE NEJM 2023) + SCIG(IgPro20, 0.2 g/kg/wk, PATH subcutaneous arm) + Prednisolone 1 mg/kg/d(NF-κB/AP-1 전사 억제→IL-6/TNF-α↓; ICE trial) + Plasma Exchange 5×(직접 IgG+보체 60%/session 제거) + Rituximab 1000 mg×2(anti-CD20 TMDD→B세포 고갈≥6개월; NF155+/CNTN1+ CIDP 우선 적응) + Efgartigimod 10 mg/kg IV q1w×4(FcRn α-chain 차단→IgG 이화↑80%→자가항체 ↓75%; ADHERE 67% 반응 vs 36% 위약, NEJM 2023) + Rozanolixizumab/Batoclimab(SC FcRn 억제제) + Avacopan(C5aR 차단); 22-CMT mrgsolve ODE(PK 8: IVIG_C1/C2·CS_GUT/PLASMA·RTX_C/CD20·EFC_C·PLEX_COUP; PD 14: Th1·Th17·Treg·Bc·PC·Mac·Comp·Ab_path·Demyelin·Axon_dens·NfL·INCAT·NCV_norm·Remyel); 6 치료 시나리오; ADHERE(van den Berg 2023)·PATH(van Schaik 2018)·ICE(Merkies 2010)·ADVANCE-CIDP1(Bril 2023) 보정; 용량-반응 IVIG | [![CIDP](cidp/cidp_qsp_model.png)](cidp/cidp_qsp_model.svg) | [R](cidp/cidp_mrgsolve_model.R) | [refs](cidp/cidp_references.md) | [Shiny](cidp/cidp_shiny_app.R) |
 | 2026-06-18 | [**Dilated Cardiomyopathy — DCM (확장성 심근병증)**](#dilated-cardiomyopathy-dcm) | 만성질환 / 심혈관·심근 | 유전(TTN 절단 ~25%·LMNA ~6%·MYH7 ~4%·SCN5A/RBM20/PLN/BAG3·FLNC/DSP)→ 이차성(심근염·독소·주산기·빈맥) 원인 → 사코메어 기능 이상 + Ca²⁺ 처리 결함(SERCA2a↓·RyR2 누출·NCX1 역방향) + 미토콘드리아 기능 장애(ROS↑·ATP 감소·mPTP 개방) → 심근세포 비대·세포자멸사·괴사 → LVEF↓·LVEDV↑; 신경호르몬 활성화: RAAS(AngII/AT1R → 알도스테론 → Na 저류·섬유화) + SNS(NE 과잉 → 베타 수용체 하향조절·심장독성) + NPS(BNP/NT-proBNP 상승); 심근 섬유화: TGF-β → 근섬유모세포 → Collagen I/III + LOX → 심근 강직도↑ → 이완 기능 장애 + 재진입 회로(SCD 위험); 염증: M1 대식세포 → TNF-α/IL-6/IL-1β(음성 변력) + NLRP3 인플라마솜; 치료 GDMT 4기둥: ACEi(Enalapril, CONSENSUS: CV사망↓16%) + β차단제(Carvedilol, COPERNICUS: CV사망↓34%) + MRA(Spironolactone, RALES: CV사망↓30%) + SGLT2i(Dapagliflozin, DAPA-HF: HHF/CV사망↓25%) + ARNI(Sacubitril/Valsartan, PARADIGM-HF: CV사망↓20%, 네프릴리신 억제→BNP 역설적 상승↑/NT-proBNP↓) + 이바브라딘(HCN4 If 채널 차단→순수 HR 감소, SHIFT: HHF↓26%) + Levosimendan(Ca²⁺ 감작·K-ATP 개방); 23-CMT mrgsolve ODE(PK 10개: ENA_GUT·ENA_CENT·CAR_GUT·CAR_CENT·SPR_GUT·SPR_CENT·SAC_GUT·SAC_CENT·DAPA_GUT·DAPA_CENT; PD 13개: AngII·Aldo·NE·LVEF·LVEDV·BNP·Fib·TGFb·IL6·GFR·Vol·SixMWT); 5 치료 시나리오(위약→ACEi+BB→ACEi+BB+MRA→ARNI+BB+MRA→ARNI+BB+MRA+SGLT2i); CONSENSUS(1987)·COPERNICUS(2001)·RALES(1999)·PARADIGM-HF(2014)·DAPA-HF(2019)·SHIFT(2010) 파라미터 보정 | [![DCM](dilated-cardiomyopathy/dcm_qsp_model.png)](dilated-cardiomyopathy/dcm_qsp_model.svg) | [R](dilated-cardiomyopathy/dcm_mrgsolve_model.R) | [refs](dilated-cardiomyopathy/dcm_references.md) | [Shiny](dilated-cardiomyopathy/dcm_shiny_app.R) |
+| 2026-06-18 | [**Gastroesophageal Reflux Disease — GERD (위식도 역류질환)**](#gerd) | 만성질환 / 소화기 | 위식도 역류질환: 하부식도 괄약근(LES) 일과성 이완(TLESR, 미주신경 GABA-B 경로, 6–8회/h GERD vs 4회/h 정상) → 위산·담즙 역류 → 식도 점막 접촉; H⁺/K⁺-ATPase(벽세포 활성 펌프 30units) Histamine/Gastrin/ACh 자극 → cAMP/PKA·IP3/Ca²⁺ 경로 → 산 분비(3.5–12 mmol/h); 식도 점막 방어: TJ단백질(Claudin/Occludin/E-Cad)·점액·중탄산염·EGF·PGE2; 산 노출 시 NF-κB → IL-8/IL-1β/TNF-α → 호산구/비만세포/중성구 침윤; TRPV1/ASIC 이온채널 → C섬유 → DRG → 흉통/역류 증상; 장기: 바렛식도 CDX2 전사 → 장형 화생 → HGD → EAC; 치료 PK/PD: PPI(오메프라졸 CYP2C19 의존, EM t½ 1.5h, covalent H+K-ATPase Cys813 결합, IC50 0.15 mg/L, Hill=1.5, 2–5일 완전효과) vs P-CAB(보노프라잔 이온결합·비산활성화 필요, t½ 7–9h, 야간 산 억제 우수, VOYAGE 2016·PHALCON-EE 2023) vs H2RA(파모티딘 경쟁길항, 72h 내 내성) vs 도메페리돈(5-HT4/D2→LES압↑5 mmHg·위배출↑); 20-CMT mrgsolve ODE(PPI/H2RA/PCAB/PROK PK 8개; PUMP_INACT/ACT/INH 펌프풀; ACID_RATE·GAS_pH·AET·MUC_DMG·MUC_HEAL·SYM_SCORE·BE_RISK); 6 치료시나리오(무치료·Ome20 QD·Eso40 QD·Vono20 QD·Famo40 BID·Eso40+돔페리돈TID); Lyon 2.0 AET 6% 기준 보정(Gyawali 2018)·Ashida 2016(VOYAGE)·Laine 2023(PHALCON-EE)·Furuta 2010(CYP2C19 PM vs EM AUC 5×) | [![GERD](gerd/gerd_qsp_model.png)](gerd/gerd_qsp_model.svg) | [R](gerd/gerd_mrgsolve_model.R) | [refs](gerd/gerd_references.md) | [Shiny](gerd/gerd_shiny_app.R) |
 
 
 ---
@@ -4722,3 +4723,58 @@ Low CO → Baroreceptor reflex
 | [`dcm_mrgsolve_model.R`](dilated-cardiomyopathy/dcm_mrgsolve_model.R) | mrgsolve ODE 모델 (23 CMT, 5 치료 시나리오, 임상시험 보정) |
 | [`dcm_shiny_app.R`](dilated-cardiomyopathy/dcm_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 |
 | [`dcm_references.md`](dilated-cardiomyopathy/dcm_references.md) | 52개 PubMed 링크 참고문헌 (13섹션) |
+
+---
+
+## GERD — 위식도 역류질환 (Gastroesophageal Reflux Disease) {#gerd}
+
+### 병태생리 (Pathophysiology)
+
+위식도 역류질환(GERD)은 하부식도 괄약근(LES)의 일과성 이완(TLESR)을 통해 위산·담즙이 식도 점막과 접촉함으로써 발생하는 만성 소화기 질환입니다. 서구 성인의 약 20%에서 발생하며, 장기적으로 바렛식도(Barrett's esophagus) 및 식도선암(EAC) 진행 위험이 있습니다.
+
+**주요 병태생리 기전:**
+- **TLESR:** 미주신경 반사 및 위장 팽창으로 유발되는 비삼킴성 LES 이완 → 역류의 주된 경로
+- **위산 과다 분비:** 벽세포 H⁺/K⁺-ATPase 과활성, 가스트린·히스타민·아세틸콜린 과자극
+- **식도 점막 방어 저하:** 꽉이음(tight junction) 단백질 손상, 세포간 간격 확대
+- **신경감각 과민:** TRPV1·ASIC 이온채널 활성화 → C섬유 → 흉통/역류 증상
+- **바렛식도:** CDX2 전사인자 → 장형 상피화생 → HGD → EAC
+
+### QSP 기계론적 지도
+
+[![GERD QSP map](gerd/gerd_qsp_model.png)](gerd/gerd_qsp_model.svg)
+
+**11개 클러스터, 130+ 노드:** Gastric Acid Secretion · LES & TLESR · Reflux Events · Esophageal Mucosal Defense · Inflammatory Signaling · Symptom Generation · Complications (Barrett's/EAC) · Neural/Brain-Gut · Drug PK · Drug PD · Clinical Endpoints
+
+### mrgsolve ODE 모델 (20-CMT)
+
+**파일:** [`gerd/gerd_mrgsolve_model.R`](gerd/gerd_mrgsolve_model.R)
+
+**PK 구획:** PPI (CYP2C19 의존) · H2RA (신장 배설) · P-CAB/vonoprazan · 도메페리돈 (prokinetic)
+
+**PD 구획:** H⁺/K⁺-ATPase 풀 3상태 (비활성/활성/불가역억제) · 위산 분비율 · 위내 pH · AET (Lyon 2.0 ≥6%) · 점막 손상/회복 · 증상 점수(GERD-Q) · 바렛식도 위험 지수
+
+**치료 시나리오 (6개):** 무치료 · Omeprazole 20 mg QD · Esomeprazole 40 mg QD · Vonoprazan 20 mg QD · Famotidine 40 mg BID · Eso 40 mg + Domperidone 10 mg TID
+
+**보정:** Miner 2003 (PPI pH) · Ashida 2016 VOYAGE · Laine 2023 PHALCON-EE · Furuta 2010 (CYP2C19)
+
+### Shiny 대시보드 (6탭)
+
+| 탭 | 주요 시각화 |
+|----|-----------|
+| ① Patient Profile | GERD 병태생리 레이더 차트 · 위험인자별 TLESR 영향 막대 |
+| ② Drug PK | Day-1 혈장 농도-시간 곡선 · CYP2C19 표현형 효과 (EM/IM/PM/UM) |
+| ③ Gastric PD | 위내 pH 24h 프로파일 · H+K-ATPase 풀 동역학 · LES 압력/TLESR 변화 |
+| ④ Clinical Endpoints | AET (%) 궤적 · 점막 손상/회복 · GERD-Q 증상 점수 · 주별 치유율 |
+| ⑤ Scenario Comparison | 6개 치료군 AET 비교 · 주요 효능 지표 비교표 (pH/AET/손상/증상) |
+| ⑥ Biomarker & Risk | 바렛식도 위험 누적 · 용량-반응 (PPI vs P-CAB) · 바이오마커 분류표 |
+
+### File Inventory
+
+| 파일 | 설명 |
+|------|------|
+| [`gerd_qsp_model.dot`](gerd/gerd_qsp_model.dot) | Graphviz DOT 소스 (11 클러스터, 130+ 노드) |
+| [`gerd_qsp_model.svg`](gerd/gerd_qsp_model.svg) | 벡터 기계론적 지도 |
+| [`gerd_qsp_model.png`](gerd/gerd_qsp_model.png) | 래스터 기계론적 지도 (150 dpi) |
+| [`gerd_mrgsolve_model.R`](gerd/gerd_mrgsolve_model.R) | mrgsolve ODE 모델 (20 CMT, 6 치료 시나리오, CYP2C19 민감도 분석) |
+| [`gerd_shiny_app.R`](gerd/gerd_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 |
+| [`gerd_references.md`](gerd/gerd_references.md) | 41개 PubMed 링크 참고문헌 (12섹션) |
