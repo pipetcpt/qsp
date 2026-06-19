@@ -5608,3 +5608,87 @@ primary-sclerosing-cholangitis/
 ├── psc_shiny_app.R           # Shiny 대시보드 (8 탭, plotly 인터랙티브)
 └── psc_references.md         # 참고문헌 45개 (PubMed 링크, 10 섹션)
 ```
+
+| 2026-06-19 | [**Addison's Disease — PAI (애디슨병 / 원발성 부신피질기능저하증)**](#addisons-disease) | 자가면역질환 / 내분비 | 애디슨병(원발성 부신피질기능저하증): HLA-DR3/DR4·CTLA-4·PTPN22 유전 소인 → AIRE 중추 관용 붕괴 → 21-하이드록실라제(CYP21A2) 항원 자가인식 → DC 항원 제시 → CD4+ Th1/Th17 + CD8+ CTL 부신피질 침윤; B세포 → 항21-OH IgG 자가항체(+80%) → 보체(C5b-9 MAC) + ADCC → 부신피질 세포자멸사; Treg 기능 결함 → 자가반응 T세포 제어 실패; 3개 피질 영역 점진적 파괴: 사구대(aldosterone↓·RAAS↑·ENaC↓→Na+소실·K+축적) + 속상대(cortisol↓·HPA음성피드백소실→CRH↑·ACTH↑↑→MSH↑→과색소침착) + 망상대(DHEA/DHEA-S↓→성기능저하·근력감소); HPA 축 탈억제: ACTH > 80–500 pg/mL → α-MSH 과잉 → MC1R 자극 → 멜라닌 합성 → 특징적 피부/점막 과색소; 당질코르티코이드 결핍: 간 당신생(PEPCK/G6Pase)↓ + 말초 인슐린 감수성↑ → 저혈당; 면역억제 소실 → 호산구증가·림프구증가; 광물코르티코이드 결핍: ENaC·NaK-ATPase·ROMK 발현↓ → 저나트륨혈증(<135)·고칼륨혈증(>5.5)·저혈압·기립성 저혈압; 부신 위기 발생 기전: 감염/수술/구토 등 스트레스 시 코르티솔 요구 급증 → 심박출량↓·혈관 긴장도↓(카테콜아민 저항) → 분배성 쇼크·혼수·사망(위기 사망률 6–17%, 연간 발생 5.2/100환자년); 치료 PK/PD: 하이드로코르티손(HC) 20 mg/day(IR 분할 또는 MR Plenadren; Ka=1.2 h⁻¹, CL=90 L/h, t½=1.7h, F=96%) + 플루드로코르티손(FC) 100 μg/day(MR α활성 → ENaC↑·Na 재흡수; t½=18–36h) + DHEA 25–50 mg/day(QOL·성기능 개선; Arlt 1999 NEJM); GR 시그널링: HC-free → GR-HSP90 해리 → GR:GRE → IκBα·MKP-1↑(항염) + PEPCK↑(당신생) + OPG↓·RANKL↑(골밀도 과잉 시 감소위험); 20-CMT mrgsolve ODE(HC·FC·DHEA PK 6구획 + CRH·ACTH·내인성코르티솔 3구획 + GR 3구획 + Na/K/MAP 3구획 + 혈당·BMD·ACTH신호·부신저장·위기위험 5구획); 5 치료 시나리오(무치료·표준HC IR+FC·수정방출HC+FC·삼중대체요법·스트레스용량); 보정: Johannsson 2009(HC PK)·Forss 2012(Plenadren)·Bleicken 2010(QOL)·Rushworth 2019(위기역학)·Arlt 1999(DHEA 대체) | [![ADD](addisons-disease/add_qsp_model.png)](addisons-disease/add_qsp_model.svg) | [R](addisons-disease/add_mrgsolve_model.R) | [refs](addisons-disease/add_references.md) | [Shiny](addisons-disease/add_shiny_app.R) |
+
+---
+
+## Addison's Disease — 애디슨병 (원발성 부신피질기능저하증) {#addisons-disease}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`addisons-disease/`](addisons-disease/)
+
+[![Addison's Disease QSP Map](addisons-disease/add_qsp_model.png)](addisons-disease/add_qsp_model.svg)
+
+애디슨병(Addison's Disease, Primary Adrenal Insufficiency, PAI)은 부신피질이 자가면역 기전에 의해 점진적으로 파괴되어 코르티솔·알도스테론·DHEA가 모두 결핍되는 희귀 내분비 질환입니다. 유병률은 약 100–140/백만명이며, 진단 후 적절히 치료받지 못하면 부신 위기(adrenal crisis)로 사망(위기당 사망률 6–17%)할 수 있습니다.
+
+### 핵심 병인 기전
+
+**PAI의 병태생리는 5가지 핵심 축으로 구성됩니다:**
+
+1. **자가면역 파괴 (Autoimmune Adrenalitis)**: HLA-DR3/DR4·CTLA-4·PTPN22 유전 소인 → AIRE 유전자 기능 저하 → 21-하이드록실라제(CYP21A2) 자가항원 T세포 탈출 → CD4+ Th1/Th17·CD8+ CTL 부신피질 침윤 → 항21-OH IgG 보체 활성화·ADCC → 부신피질 세포 점진적 소실
+
+2. **HPA 축 탈억제 (HPA Axis Disinhibition)**: 코르티솔↓ → 시상하부-뇌하수체 음성 피드백 소실 → CRH↑·ACTH↑↑(>80 pg/mL) → α-MSH 과다 생성 → 피부·점막 과색소침착(Addisonian hyperpigmentation)
+
+3. **광물코르티코이드 결핍 (Mineralocorticoid Deficiency)**: 알도스테론↓ → 신장 ENaC·NaK-ATPase 발현↓ → Na+ 소실(저나트륨혈증) + K+ 축적(고칼륨혈증) + 혈장용적↓ → 저혈압·기립성 저혈압 → 부신 위기 취약성 ↑
+
+4. **당질코르티코이드 결핍 (Glucocorticoid Deficiency)**: 코르티솔↓ → 간 당신생(PEPCK/G6Pase)↓ → 저혈당; 면역 억제 소실 → 호산구·림프구 증가; 심혈관 긴장도↓(카테콜아민 보조인자 역할 소실) → 스트레스 반응 불가
+
+5. **부신 위기 (Adrenal Crisis)**: 감염·수술·구토 등 스트레스 → 코르티솔 요구 급증 + 보충 불가 → 분배성 쇼크 + 저혈당 + 혼수 → 연간 5.2회/100환자년 발생, 사망률 6–17%
+
+### QSP 모델 구조
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 180+ 노드, 10개 서브그래프 클러스터: 약물 PK(HC/FC/DHEA) · HPA 축&일주기리듬 · 부신피질 스테로이드합성 · 자가면역 파괴 기전 · GR 신호(GR/NR3C1) · MR 신호(MR/NR3C2)&신장 · 임상 증상&검사 · 부신 위기 · 장기 합병증 · 치료 모니터링 |
+| mrgsolve ODE | 20 구획: HC·FC·DHEA PK 6구획 + HPA(CRH·ACTH·내인성코르티솔) 3구획 + GR(유리/결합/mRNA) 3구획 + 전해질(Na/K/MAP) 3구획 + 임상지표(혈당·BMD·ACTH신호·부신저장·위기위험) 5구획 |
+| Shiny 앱 | 8 탭: 환자 프로파일 · 약동학 · HPA 축&코르티솔 · 전해질&혈압 · 임상 종말점 · 시나리오 비교 · 부신 위기 위험 · 용량 최적화 |
+| 참고문헌 | 50개 PubMed 링크, 10개 주제 섹션 |
+
+### 5가지 치료 시나리오
+
+| # | 시나리오 | HC | FC | DHEA | 근거 |
+|---|---------|-----|-----|------|------|
+| 1 | 무치료 자연 경과 | — | — | — | 자연 경과 기준선 |
+| 2 | 표준 HC IR + FC | 10+5+5 mg/day | 100 μg | — | Bornstein 2016 (ES Guideline) |
+| 3 | 수정방출 HC + FC | Plenadren 20 mg/day | 100 μg | — | Johannsson 2012 (JCEM) |
+| 4 | 삼중 대체요법 | 10+5+5 mg/day | 100 μg | 25 mg | Arlt 1999 (NEJM) |
+| 5 | 스트레스 용량 프로토콜 | 2× 용량 (질병 7일) | 100 μg | — | Allolio 2015 (Eur J Endocrinol) |
+
+### 핵심 파라미터 및 임상시험 보정
+
+| 임상시험/논문 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Johannsson 2009 (*Eur J Endocrinol* 161:725) | HC 20mg/day IR: Cmax≈22 μg/dL, t½=1.7h, CL=90 L/h | Ka_HC=1.2/h, CL_HC=90 L/h, Vc_HC=15 L |
+| Johannsson 2012 (*JCEM* 97:473) | Plenadren MR vs IR: AUC 유사, Tmax 지연(4–6h), Cmax↓ | Ka_HC_MR=0.3/h (MR formulation) |
+| Rushworth 2019 (*NEJM* 381:852) | 위기 발생 5.2/100환자년, 사망률 6–17% | k_crisis=0.001, cortisol_safe=5 μg/dL |
+| Hahner 2015 (*JCEM* 100:407) | 교육받은 환자도 연간 5% 위기 경험 | k_crisis 보정 |
+| Arlt 1999 (*NEJM* 341:1013) | DHEA → 정신적 웰빙·성기능 개선 | DHEA_CENT 구획 추가 |
+| Bleicken 2010 (*Eur J Endocrinol* 163:507) | SF-36 전반적으로 건강인 대비 유의하게 낮음 | QOL 종말점 모델 |
+| Charmandari 2014 (*Lancet* 383:2152) | ACTH 지속 상승 → 과색소침착 기전 | ACTH_SIG 구획 |
+| Lightman 2020 (*Endocr Rev* 41:470) | GC 피드백 IC50 = 15 nmol/L (자유 코르티솔) | GC_IC50=15 nmol/L |
+
+### 임상 종말점
+
+| 종말점 | 정의 | 모델 변수 | 정상 범위 |
+|--------|------|---------|---------|
+| 오전 8시 코르티솔 | 진단 기준 | `Total_Cort` | 5–20 μg/dL |
+| 혈장 ACTH | HPA 축 억제 확인 | `ACTH_CMT` | 10–46 pg/mL |
+| 혈청 Na+ | 광물코르티코이드 충분성 | `Na_CMT` | 135–145 mEq/L |
+| 혈청 K+ | 광물코르티코이드 충분성 | `K_CMT` | 3.5–5.0 mEq/L |
+| 평균 동맥압 | 혈압 조절 | `MAP_CMT` | 70–100 mmHg |
+| 혈당 | 당질코르티코이드 충분성 | `Gluc_CMT` | 70–110 mg/dL |
+| 골밀도(정규화) | 장기 GC 과잉 영향 | `BMD_CMT` | ≥0.90 |
+| 부신 위기 위험 | 누적 위험 지수 | `Crisis_risk` | <5% |
+| 부신 저장 기능 | 잔존 피질 기능 | `AR_CMT` | 진단 시 ~5% |
+
+### 파일 목록
+
+```
+addisons-disease/
+├── add_qsp_model.dot         # Graphviz 기계론적 지도 (180+ 노드, 10 클러스터)
+├── add_qsp_model.svg         # SVG 벡터 이미지
+├── add_qsp_model.png         # PNG 이미지 (150 dpi)
+├── add_mrgsolve_model.R      # mrgsolve ODE 모델 (20 구획, 5 치료 시나리오)
+├── add_shiny_app.R           # Shiny 대시보드 (8 탭, plotly 인터랙티브)
+└── add_references.md         # 참고문헌 50개 (PubMed 링크, 10 섹션)
+```
