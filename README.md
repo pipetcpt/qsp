@@ -5444,3 +5444,84 @@ cholelithiasis/
 ├── chol_shiny_app.R          # Shiny 대시보드 (6 탭, plotly 인터랙티브)
 └── chol_references.md        # 참고문헌 46개 (PubMed 링크, 12 섹션)
 ```
+
+| 2026-06-19 | [**Bullous Pemphigoid — BP (수포성 유천포창)**](#bullous-pemphigoid) | 자가면역질환 / 피부·수포성 | 수포성 유천포창: HLA-DQB1*03:01/HLA-DQ7 유전 소인 + 노화(>65세 inflammaging) + 신경계 동반 질환(다발성 경화증·파킨슨·치매·뇌졸중) + 약물 유발(체크포인트 억제제/글립틴/푸로세미드) + 피부 외상/UV → 표피 기저 각화세포의 BP180(Collagen XVII, BPAG2) NC16A 도메인·BP230(BPAG1-e) 반데스모좀 단백질 항원 노출 → 수지상세포(pDC/mDC·랑거한스세포) 항원 제시 → MHC-II/HLA-DQ-TCR 활성화; TSLP·IL-33·IL-25(알라민) → DC의 Th2 라이선싱 → naive CD4+→Th2 분극화(IL-4·IL-13·IL-5·IL-31 분비); Th2 IL-4→JAK1/STAT6→IgE 클래스 전환 + IgG4 클래스 전환; Tfh→CD40-CD40L B세포 도움 → GC B세포→기억B세포·단기형질세포(SLPC)·장기형질세포(LLPC, 골수) → 항BP180 IgG 및 항BP180 IgE 자가항체 분비; IgG→C1q→C3a·C5a·MAC(고전 경로) + IgE-FcεRI 교차결합(비만세포·호염기구 탈과립: 히스타민·트립타제·LTB4) + FcγRIII-ADCC(호중구); C5a→호중구·비만세포 모집; Eotaxin-1/CCL11+IL-5→호산구(혈중↑·피부 침윤); MBP·ECP·MMP-9·NE·ROS → 진피표피경계부(DEJ) 헤미데스모좀 단백분해·산화 손상 → DEJ 분리 → 표피하 수포(tense bullae) + 두드러기성/홍반성 전구 병변; IL-31→IL31RA/OSMR→JAK1/TYK2→STAT3 → 소양증(itch NRS 7–9/10: 전체 BP의 92%); 피부 각화세포 TSLP/periostin 증폭 루프; 약물 PK/PD: 프레드니솔론 0.5-1 mg/kg/d 경구 테이퍼(F=82%·t½=3.5h·GRα→NF-κB 억제·AP-1 억제→IL-4/IL-5/Eotaxin↓; Joly NEJM 2002: 완전 관해 91% 1년) + 독시사이클린 200 mg/d(MMP-9·NF-κB 억제; Williams Lancet 2017 비열등성; 스테로이드 절감) + 두필루맙 600 mg loading→300 mg Q2W SC(IL-4Rα 차단→STAT6↓→Th2↓·IgE 전환↓·IL-31↓; EC50=0.008 mg/L) + 오말리주맙 300 mg Q4W SC(항IgE→FcεRI 하향조절→비만세포/호염기구 억제; EC50=0.030 mg/L) + 리투시맙 1g IV×2(Q2W) 후 Q6M(CD20+ B세포 고갈>95%→항BP180 IgG 생산↓; 완전 관해 67–85%); 23-CMT mrgsolve ODE(Pred 3구획+Dup 1구획+Oma 1구획+Ritu 1구획+Doxy 1구획; B세포 5구획+Th2+IgG+IgE+혈중Eos+피부Eos+비만세포+C5a+DEJ); 6 치료 시나리오(무치료·고용량Pred 테이퍼·저용량Pred+독시사이클린·두필루맙+저용량Pred·오말리주맙+저용량Pred·리투시맙+단기Pred); 보정: Joly 2002(NEJM Pred; CR 91%)·Williams 2017(Lancet Doxy; 비열등)·Le Jan 2022(JACI Pract 두필루맙)·Fairley 2009(JAAD 리투시맙)·Moriuchi 2020(J Dermatol 오말리주맙); BPDAI·Itch NRS·Anti-BP180 AU·혈중 호산구·DEJ 완전성·완전관해율 임상 종말점 | [![BP](bullous-pemphigoid/bp_qsp_model.png)](bullous-pemphigoid/bp_qsp_model.svg) | [R](bullous-pemphigoid/bp_mrgsolve_model.R) | [refs](bullous-pemphigoid/bp_references.md) | [Shiny](bullous-pemphigoid/bp_shiny_app.R) |
+
+---
+
+## Bullous Pemphigoid — 수포성 유천포창 {#bullous-pemphigoid}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`bullous-pemphigoid/`](bullous-pemphigoid/)
+
+[![BP QSP Map](bullous-pemphigoid/bp_qsp_model.png)](bullous-pemphigoid/bp_qsp_model.svg)
+
+수포성 유천포창(Bullous Pemphigoid, BP)은 가장 흔한 자가면역 수포성 피부 질환으로, 주로 70세 이상 노인에서 발생합니다. 연간 발생률은 인구 100만 명당 21–66명이며, 1년 사망률이 10–30%에 달하는 중증 자가면역질환입니다.
+
+### 핵심 병인 기전
+
+**BP의 병태생리는 4가지 핵심 축으로 구성됩니다:**
+
+1. **Th2/IgE 면역 편향 축**: TSLP·IL-33 알라민 → DC의 Th2 분극화 → IL-4(IgE 클래스 전환 유도)·IL-13·IL-5(호산구 증식)·IL-31(소양증) 과다 분비
+
+2. **자가항체 생성 축**: Th2 → B세포 GC 반응 → 항BP180 NC16A IgG(경계부 손상) + 항BP180 IgE(비만세포 활성화) 자가항체 분비
+
+3. **보체/호산구/MMP 효과기 축**: IgG → 고전 보체(C1q→C5a·MAC) → 호중구·비만세포 모집 + 피부 호산구(MBP·ECP·MMP-9 방출) → DEJ 단백분해 → 표피하 수포 형성
+
+4. **IL-31 소양증 축**: IL-31 → IL-31RA/OSMR → JAK1/TYK2 → STAT3 → C섬유 활성화 → 심한 소양증(NRS 7–9)
+
+### QSP 모델 구조
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 125+ 노드, 13개 서브그래프 클러스터: 유전자·환경 유발인자 · 선천면역 · 표적 항원(DEJ) · Th2 면역 · B세포·자가항체 · 보체계 · 효과세포·염증매개체 · 피부 병리 · 소양증 신호 · 코르티코스테로이드 PK/PD · 두필루맙 PK/PD · 오말리주맙·리투시맙 · 임상 종말점 |
+| mrgsolve ODE | 23 구획: 약물 PK 10구획(Pred 3·Dup 1·Oma 1·Ritu 1·Doxy 1+소화관 3) + 질환 PD 13구획(B세포 5단계·Th2·IgG·IgE·혈중Eos·피부Eos·비만세포·C5a·DEJ 완전성) |
+| Shiny 앱 | 6 탭: 환자 프로파일 · 약동학(5종) · PD 바이오마커 · 임상 종말점(BPDAI·Itch·BSA·수포수) · 시나리오 비교 · 바이오마커 탐색기(히트맵·상관 분석) |
+| 참고문헌 | 65개 PubMed 링크, 14개 주제 섹션 |
+
+### 6가지 치료 시나리오
+
+| # | 시나리오 | 주요 약물 | 근거 |
+|---|---------|---------|------|
+| 1 | 무치료 | — | 자연 경과 기준선 |
+| 2 | 고용량 Pred 테이퍼 | 프레드니솔론 0.75 mg/kg/d → 4주마다 50% 감량 | Joly NEJM 2002 |
+| 3 | 저용량 Pred + 독시사이클린 | Pred 0.3 mg/kg + 독시사이클린 200 mg/d | Williams Lancet 2017 |
+| 4 | 두필루맙 + 저용량 Pred | Dupilumab 300 mg SC Q2W + Pred 0.25 mg/kg | Le Jan JACI 2022 |
+| 5 | 오말리주맙 + 저용량 Pred | Omalizumab 300 mg SC Q4W + Pred 0.3 mg/kg | Moriuchi J Dermatol 2020 |
+| 6 | 리투시맙 + 단기 Pred | Rituximab 1g IV×2 → Q6M + Pred 0.5 mg/kg(단기) | Fairley JAAD 2009 |
+
+### 핵심 파라미터 및 임상시험 보정
+
+| 임상시험/논문 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Joly et al. 2002 (*NEJM* 346:321) | 프레드니솔론 0.5 mg/kg: 1년 완전 관해 91%; 1차 치료 표준 | kDEJ_dam=0.0015, E_pred_IL4 EC50=0.015 mg/L |
+| Williams et al. 2017 (*Lancet* 389:1630) | 독시사이클린 200 mg/d: 프레드니솔론 비열등; 부작용 유의하게 적음 | E_doxy_MMP EC50=2.00 mg/L, MMP 억제 효과 |
+| Le Jan et al. 2022 (*JACI Pract* 10:1561) | 두필루맙: IL-4/IL-13/IL-31 유의↓, BPDAI 개선 | EC50_dup_IL4=0.008 mg/L, STAT6 경로 차단 모델 |
+| Fairley et al. 2009 (*JAAD* 60:254) | 리투시맙 케이스 시리즈: 완전 관해 67–85% | EC50_ritu_B=0.015 mg/L, B세포 고갈>95% |
+| Moriuchi et al. 2020 (*J Dermatol* 47:1135) | 오말리주맙: 증례 다수에서 소양증↓·수포↓ | EC50_oma_IgE=0.030 mg/L, FcεRI 하향조절 |
+| Lew et al. 1993 (*Br J Clin Pharmacol* 35:141) | Pred PK: F=82%, t½≈3.5h, Vd=45 L | ka_pred=2.4/h, CL_pred=6.5 L/h |
+| Zhao et al. 2012 (*Br J Dermatol* 166:649) | 항BP180 NC16A IgG ELISA: 질환 활성도와 상관 r=0.82 | anti_BP180_AU — BPDAI_act 결합 모델 |
+| Hashimoto et al. 2020 (*J Dermatol Sci* 97:90) | IL-31↑: BP 92%에서 심한 소양증과 연관 | IL_31_Th2→Itch NRS 경로 보정 |
+
+### 임상 종말점
+
+| 종말점 | 정의 | 모델 변수 |
+|--------|------|---------|
+| BPDAI Activity | 수포·미란·두드러기·홍반 BSA 가중합 (0–90) | `BPDAI_act` |
+| Itch NRS | 소양증 숫자 평가척도 0–10 | `Itch` |
+| Anti-BP180 IgG | NC16A 도메인 ELISA (AU/mL; >9 = 진단) | `IGG_BP180` |
+| Blood Eosinophils | 호산구 절대수 (×10⁹/L; >0.5 = 활성) | `EOS_BLOOD` |
+| DEJ Integrity | 진피표피경계부 완전성 (0–1; 1=정상) | `DEJ` |
+| Complete Remission | 수포 신규 발생 없음 ≥8주(치료 없이) | `in_remission` |
+| BSA Affected | 병변 체표면적 (%) | `BSA` |
+
+### 파일 목록
+
+```
+bullous-pemphigoid/
+├── bp_qsp_model.dot          # Graphviz 기계론적 지도 (125+ 노드, 13 클러스터)
+├── bp_qsp_model.svg          # SVG 벡터 이미지
+├── bp_qsp_model.png          # PNG 이미지 (150 dpi)
+├── bp_mrgsolve_model.R       # mrgsolve ODE 모델 (23 구획, 6 치료 시나리오)
+├── bp_shiny_app.R            # Shiny 대시보드 (6 탭, plotly 인터랙티브)
+└── bp_references.md          # 참고문헌 65개 (PubMed 링크, 14 섹션)
+```
