@@ -172,6 +172,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-19 | [**Obstructive Sleep Apnea — OSA (폐쇄성 수면 무호흡증)**](#obstructive-sleep-apnea-osa) | 만성질환 / 호흡기·수면의학 | 인두 폐쇄 임계압(Pcrit)↑(비만/해부학) + 루프 이득(LG)>1(호흡 불안정) + 낮은 각성 역치(AT) + 근육 반응성↓ → 반복적 상기도 폐쇄 → 간헐적 저산소증(HIF-1α↑/ROS↑/NF-κB↑) → 교감신경↑(SNS→NE↑→SBP↑) + RAAS 활성화 + 내피세포 기능장애; 대사: 인슐린 저항성↑/렙틴 저항성/HPA(코르티솔) + 지방조직 염증(IL-6/TNF-α/CRP↑); 신경·인지: 수면 분절→EDS→ESS↑+해마 위축+BDNF↓+우울; 치료: CPAP(Pcrit→<0) / MAD / 모다피닐(Orexin/H1, F=40%, t½=15h) / 솔리암페톨(DAT/NET; TONES3 ESS↓4.5) / 피톨리산트(H3 역 효능제; HARMONY-III) / 티르제파타이드(GLP-1/GIP sc t½=5d → AHI↓55 ev/hr; SURMOUNT-OSA 2024 NEJM) / 에스조피클론(AT↑50%) / 아세타졸아미드(LG↓); 18-CMT mrgsolve ODE; 6 시나리오(Eckert 2013·Wellman 2011·SURMOUNT-OSA 2024 보정) | [![OSA](obstructive-sleep-apnea/osa_qsp_model.png)](obstructive-sleep-apnea/osa_qsp_model.svg) | [R](obstructive-sleep-apnea/osa_mrgsolve_model.R) | [refs](obstructive-sleep-apnea/osa_references.md) | [Shiny](obstructive-sleep-apnea/osa_shiny_app.R) |
 | 2026-06-18 | [**Focal Segmental Glomerulosclerosis — FSGS (국소분절사구체경화증)**](#fsgs) | 만성질환 / 신장·사구체 | 국소분절사구체경화증: 원발성(CLCF1·anti-CD40·suPAR 등 순환 투과인자 → 사구체 내 포도세포 αvβ3 인테그린 활성화) / 이차성(과여과·네프론 소실·약물독성) / 유전성(NPHS1/NPHS2/APOL1-G1G2/INF2/TRPC6 변이) → 포도세포 액틴 세포골격 재배열 → 족돌기 소실(FPE) → 슬릿막(slit diaphragm) 파괴 → 알부민 누출·단백뇨(>3.5g/d 신증후군); 포도세포 손상 + Clathrin-매개 내재화 ↑ → 포도세포 이탈·감소(재생 극히 제한); RAAS 활성화: Ang II→AT1R→수출세동맥 수축→사구체내 고혈압→TGF-β1 유도; TGF-β1→SMAD2/3→SMAD4→ECM(피브로넥틴/CollagenIV)↑+TIMP-1↑/MMP↓→사구체 경화(비가역적 섬유화); C3 보체→C5b-9(MAC) 아치사 손상→포도세포 세포사; mTORC1 과활성→autophagy↓→미토콘드리아 기능장애→ATP 결핍→포도세포 사멸; APOL1 G1/G2 위험변이→독성 올리고머→리소좀 기능장애→포도세포독성; 치료 PK/PD: 프레드니솔론(GR transrepression→NF-κB·AP-1↓+직접 포도세포 GR→synaptopodin↑+액틴 안정화; CL=12 L/h, EC50=150 ng/mL, n=1.5) + 타크로리무스(FK506-FKBP12→칼시뉴린 억제→NFAT 핵이동 차단→synaptopodin 안정화→FPE 역전; CL=2.5 L/h, EC50=8 ng/mL) + 리툭시맙(anti-CD20 ADCC/CDC→B세포 고갈→CLCF1·anti-CD40 순환인자↓; Vc=3.1L, CL=0.014 L/h) + 스파르센탄(AT1R+ET-A/B 이중 길항→사구체내 고혈압 정상화+ET-1 섬유화↓; DUPLEX 2023 NEJM: 완전/부분 관해 42% vs 26%, CL=8.5 L/h, EC50=200 ng/mL) + Acthar Gel(MC1R/MC5R→직접 포도세포 보호+Nrf2 활성화); 22-CMT mrgsolve ODE(질환 11개: CLCF·POD·FPE·PROT·GFR_c·SCAR·TGFb·COMP·INFLAM·RAAS·BCELL; PK 11개: PRED_DEP·PRED1·PRED2·TAC_DEP·TAC1·TAC2·RTX1·RTX2·SPARS_DEP·SPARS1·SPARS2); 6 치료 시나리오(무치료·프레드니솔론 단독·Pred+타크로리무스·Pred+TAC+Rituximab·Sparsentan 단독·완전병용); 보정: Gipson 2011(Kidney Int, Pred 25% 완전관해)·Cattran 1999(CsA 70% 부분관해)·Kronbichler 2014(RTX 57% 반응)·Rheault 2023(DUPLEX NEJM, Sparsentan 완전관해 18% vs 9%)·PLANET-I(Sparsentan UPCR -46%) | [![FSGS](fsgs/fsgs_qsp_model.png)](fsgs/fsgs_qsp_model.svg) | [R](fsgs/fsgs_mrgsolve_model.R) | [refs](fsgs/fsgs_references.md) | [Shiny](fsgs/fsgs_shiny_app.R) |
 | 2026-06-19 | [**Chronic Pancreatitis — CP (만성 췌장염)**](#chronic-pancreatitis) | 만성질환 / 소화기·췌장 | 만성 췌장염: 알코올/흡연/유전(PRSS1·SPINK1·CFTR·CTRC)·폐쇄 등 원인 → 선포세포 Ca²⁺ 과부하+ER 스트레스+산화 스트레스(ROS↑) → 트립시노겐 조기 활성화 → 선포세포 괴사/사멸 → DAMP 방출 → 대식세포/호중구 모집 → NF-κB 활성화 → TNF-α·IL-1β·IL-6·IL-8 분비; TGF-β1(↑) → 췌장 성상세포(PSC) 활성화(α-SMA 발현) → 콜라겐 I/III 침착+CTGF+TIMP-1 → 세포외기질 축적 → 췌장 섬유화(비가역); CFTR 기능 저하 → 중탄산염 분비↓ → 췌관액 감소 → 단백질 플러그/석회화 → 췌관 폐색·협착·고혈압; 섬유화 → 선포세포 위축(외분비 기능 저하: 리파제·아밀라제·프로테아제 분비↓ → 지방변·단백질/탄수화물 흡수장애 → 영양실조·지용성 비타민 결핍); 섬유화 → 베타세포/알파세포/PP세포 소실 → 인슐린↓/글루카곤 조절장애/인슐린 저항성 → 췌장성 당뇨병(T3cDM: 취약한 혈당·저혈당 위험↑); 통증: 선포세포 손상+췌관 고압 → 말초 신경 감작(NGF·SP/CGRP·TRPV1) → 척수 후각(C섬유) → NMDAR 활성화 → 중추 감작(Wind-up) → 만성 복통(NRS 6–8/10); 신경 재형성(perineural invasion)+심리적 요인(불안/우울) 악화; 치료 PK/PD: PERT 40 000 lipase U/식사(십이지장 효소 활성 Emax=90%·PPI 병용으로 코팅 안정화) + 오피오이드(트라마돌 3-구획 PK: CL=15L/h·V₁=50L·F=70% → μ/κ/δ 수용체 억제 → 말초·중추 감작↓; IC50_pS=0.3μg/mL) + 가바펜틴(α2δ 칼슘채널 차단 → 말초+중추 감작↓, E=0.35) + 피르페니돈(TGF-β 억제·PSC 활성 억제·ROS↓; IC50=1.5μg/mL) + 로사르탄(AT1R 차단→AngII·PSC 활성↓; IC50=0.8μg/mL) + 인슐린(T3cDM 혈당 관리) + 옥트레오타이드(소마토스타틴 유사체→CCK↓·췌관압↓); 합병증: 가성낭종·누공·문맥고혈압·담관 압박·PDAC 위험(RR 14배)·췌장 복수; 20-CMT mrgsolve ODE(오피오이드 PK 3구획+PERT 2구획+TNFa·IL6·TGFb·ROS·PSC·FIB·EXO·BETA·GLUC·pSENS·cSENS); 5 치료 시나리오(무치료·PERT·오피오이드+가바펜틴·항섬유화·완전병용); 보정: Steer 1995(NEJM 섬유화)·Olesen 2011(Gastroenterology 통증 NRS)·Dominguez-Munoz 2011(PERT EPI 기준)·Hart 2016(Lancet GH T3cDM 25%)·Grond 2004(트라마돌 PK) | [![CP](chronic-pancreatitis/cp_qsp_model.png)](chronic-pancreatitis/cp_qsp_model.svg) | [R](chronic-pancreatitis/cp_mrgsolve_model.R) | [refs](chronic-pancreatitis/cp_references.md) | [Shiny](chronic-pancreatitis/cp_shiny_app.R) |
+| 2026-06-19 | [**Peptic Ulcer Disease — PUD (소화성 궤양)**](#peptic-ulcer-disease-pud) | 만성질환 / 소화기 | 위산(H⁺/K⁺-ATPase·Gastrin-ECL-H2R cascade)과 *H. pylori* 독력인자(CagA·VacA·UreaseHP→NH₃→pH↑) + NSAIDs(COX-1↓→PGE₂↓→점막 방어↓)가 방어 기전(Mucus·HCO₃⁻·PGE₂/PGI₂·EGF·Trefoil factor)을 압도 → 미란→궤양; PPI 비가역적 양성자펌프 공유결합 억제(CYP2C19 다형성) + H2RA 경쟁적 H2R 차단 + 삼제요법(PPI+AMX+CLR, CLR 내성 15%) → H. pylori 박멸; NSAID 위장관 출혈 예방(PPI 병용); 임상 종말점: 궤양 면적(mm²)·Lanza 내시경점수·VAS 통증·HP 박멸율·출혈 위험; 20-CMT 통합 모델(PPI/H2RA/AMX/CLR/NSAID 5개 PK 모듈 + HP dynamics·펌프활성·pH·Mucus·PG·염증·궤양면적) | [![PUD](peptic-ulcer/pud_qsp_model.png)](peptic-ulcer/pud_qsp_model.svg) | [R](peptic-ulcer/pud_mrgsolve_model.R) | [refs](peptic-ulcer/pud_references.md) | [Shiny](peptic-ulcer/pud_shiny_app.R) |
 
 
 ---
@@ -5254,4 +5255,66 @@ chronic-pancreatitis/
 ├── cp_mrgsolve_model.R       # mrgsolve ODE 모델 (20 구획, 5 시나리오)
 ├── cp_shiny_app.R            # Shiny 대시보드 (6 탭)
 └── cp_references.md          # 참고문헌 55개 (PubMed 링크 포함)
+```
+
+---
+
+## Peptic Ulcer Disease — PUD (소화성 궤양) {#peptic-ulcer-disease-pud}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`peptic-ulcer/`](peptic-ulcer/)
+
+[![PUD QSP Map](peptic-ulcer/pud_qsp_model.png)](peptic-ulcer/pud_qsp_model.svg)
+
+### 병태생리 요약 (Pathophysiology Summary)
+
+소화성 궤양은 **공격 인자**(위산·펩신·*Helicobacter pylori*·NSAIDs)와 **방어 기전**(점액층·중탄산염·프로스타글란딘·상피 재생·점막혈류)의 불균형으로 발생하는 만성 소화기 질환입니다. 위점막 손상이 점막근층을 넘어 점막하층까지 침범하면 궤양이 형성됩니다.
+
+**핵심 기전:**
+- **H. pylori 독력인자**: CagA(T4SS→NF-κB 활성화) + VacA(미토콘드리아 손상·상피 apoptosis) + UreaseHP(NH₃ 생성→점막 pH 교란) + BabA(LeB 혈액형 항원 접착) → IL-8↑/CXCL1↑ → 호중구 침윤 → ROS·MPO → 점막 손상
+- **위산 분비 cascade**: G세포(Gastrin) → ECL세포(Histamine) → H2R → cAMP/PKA → H⁺/K⁺-ATPase 활성화 → HCl 분비; M3R(ACh) + CCK2R(Gastrin) 동시 자극; somatostatin(D세포) 억제 피드백
+- **점막 방어**: COX-1 → PGE₂/PGI₂ → EP2R/EP4R → 점액층·중탄산염·점막혈류 유지; Trefoil factor(TFF1/2) 빠른 재상피화; 단단한 결합(tight junction) 보전
+- **NSAID 위병증**: COX-1 가역적 억제 → PGE₂/PGI₂ 고갈 → 점막 방어 붕괴; COX-2 억제 → 염증 감소 반면 PPI 병용으로 산 억제 보완
+- **PPI 약물역학**: 산성 분비소세관에서 활성화 → H⁺/K⁺-ATPase Cys813/Cys822 공유결합 → 비가역적 억제 → de novo 펌프 합성만이 회복 경로; CYP2C19 다형성(PM: CL↓70%, F↑40%) → 혈중 농도 3-5배 차이
+
+### QSP 모델 구조 (Model Structure)
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 174 노드, 9개 서브그래프 클러스터: HP 병인·위산 분비·점막 방어·염증 및 면역·궤양 형성/치유·신경호르몬 조절·약물 PK·약물 PD·임상 종말점 |
+| mrgsolve ODE | 20 구획: PPI PK (3구획) + H2RA PK (2구획) + 아목시실린 PK (2구획) + 클래리스로마이신 PK (2구획) + NSAID PK (2구획) + HP dynamics + 양성자펌프 활성도 + 위내 pH + 점액층 + 프로스타글란딘 + 염증점수 + 궤양면적 |
+| Shiny 앱 | 6 탭: 환자 프로파일·약동학·PD 주요지표·임상 종말점·시나리오 비교·바이오마커 |
+| 참고문헌 | 58개 PubMed 링크, 12개 주제 섹션 |
+
+### 6가지 치료 시나리오
+
+| 시나리오 | 치료 | 주요 목표 |
+|---------|------|----------|
+| 1. 무치료 | — | 자연 경과 관찰 |
+| 2. PPI 단독 | 오메프라졸 20mg BID | 위내 pH>4 유지, 궤양 치유 |
+| 3. H2RA 단독 | 파모티딘 20mg BID | H2R 차단, 산분비↓ |
+| 4. H. pylori 삼제요법 | PPI + 아목시실린 1000mg BID + 클래리스로마이신 500mg BID × 14일 | HP 박멸 → 궤양 재발↓ |
+| 5. NSAID 위병증 | 이부프로펜 400mg TID (보호 없음) | 위장관 위험 관찰 |
+| 6. NSAID + PPI | 이부프로펜 + 오메프라졸 (위장관 보호) | 궤양 예방 효과 |
+
+### 핵심 임상시험 보정 데이터
+
+| 임상시험 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Graham 1992 (Ann Intern Med) | HP 박멸 시 재발율 < 2% vs 미치료 70% | k_recur, HP eradication threshold |
+| Hawkey 1998 (NEJM, OMNIUM) | 오메프라졸 > 미소프로스톨, NSAID 궤양 치유율 80% | Emax_PPI=0.98, EC50_PPI=0.3 mg/L |
+| Yeomans 1998 (NEJM, ASTRONAUT) | 오메프라졸 > 라니티딘 NSAID 궤양 치유 | k_heal × PG_LEVEL 파라미터 |
+| Furuta 1998 (Ann Intern Med) | CYP2C19 PM phenotype: PPI Cmax 3.5배↑ | CL_PPI (PM=8, IM=18, NM=28 L/hr) |
+| Malfertheiner 2022 (Gut, Maastricht VI) | CLR 내성율 지역별 15–40% | ResistanceCLR=0.15 (기본값) |
+| Ford 2016 (Cochrane) | HP 박멸 삼제요법 RR 0.56 재발 감소 | kill_combo × HP_LOAD ODE 항 |
+
+### 파일 목록
+
+```
+peptic-ulcer/
+├── pud_qsp_model.dot          # Graphviz 기계론적 지도 (174 노드, 9 클러스터)
+├── pud_qsp_model.svg          # SVG 벡터 이미지
+├── pud_qsp_model.png          # PNG 이미지 (150 dpi)
+├── pud_mrgsolve_model.R       # mrgsolve ODE 모델 (20 구획, 6 시나리오, CYP2C19 집단 시뮬레이션)
+├── pud_shiny_app.R            # Shiny 대시보드 (6 탭)
+└── pud_references.md          # 참고문헌 58개 (PubMed 링크 포함)
 ```
