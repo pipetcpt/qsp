@@ -5776,3 +5776,54 @@ autoimmune-pancreatitis/
 ├── aip_shiny_app.R           # Shiny 대시보드 (6 탭)
 └── aip_references.md         # 참고문헌 45개 (PubMed 링크, 8 섹션)
 ```
+
+| 2026-06-19 | [**Mixed Connective Tissue Disease — MCTD (혼합결합조직병)**](#mctd) | 자가면역질환 / 중복 증후군 | 혼합결합조직병(MCTD): HLA-DR4/DR1·STAT4·IRF5 유전 소인 + EBV·파보바이러스 감염 → U1-snRNP(70K·A·C 단백) 세포자멸사 노출·2차 괴사 → HMGB1·DAMP 방출 → pDC TLR7/8 활성화 → IFN-α 폭발(IFN 시그니처 ISG15·MX1·OAS1) → mDC MHC-II 항원 제시 → CD4+ Th1/Th2/Th17/Tfh 분극화 + CD8+ CTL; B세포 GC 반응·AID 효소 → IgG1/IgG3 항-U1-RNP 자가항체(MCTD 표지인자, 100–1000 AU/mL); 장기 침범 3축: ①SSc 중복: 내피세포 손상 → ET-1↑·NO↓·PGI2↓ → 레이노 현상·손가락 부종; 폐동맥 평활근세포 BMPR2↓·PDGF↑ → 폐동맥 고혈압(PAH, PVR↑·RVSP↑) + TGF-β·IL-13 → 폐섬유아세포 → ILD(FVC↓·DLCO↓) ②PM 중복: CD8+ T세포 근육 침윤·IFN-γ → MHC-I↑ → 근섬유 세포독성 → CK↑(200–5000 U/L) ③SLE 중복: 면역복합체 보체(C3·C4↓)·막성 GN·저혈소판·AIHA; 치료 PK/PD: HCQ(400 mg/day, F=79%, t½=40–56일, WBC 농도 2000:1, TLR7/8 IC50=0.8 μg/mL) + MMF→MPA(t½=17h, EHC 30%, IMPDH 억제) + Prednisolone(t½=2–4h, NF-κB/AP-1 억제) + Rituximab(1000 mg×2, TMDD CD20, t½=22일, B세포 99% 고갈) + Bosentan ERA(125 mg BID, F=50%, t½=5h, ETA 차단, PVR↓); 35-CMT mrgsolve ODE(5 치료 시나리오); MCTD 활동 지수(Yamanaka) 복합 스코어; 보정: Yaniv 2016·Hajas 2013·Ruaro 2021·Channick 2001 BREATHE-1·Peng 2020(RTX PK) | [![MCTD](mixed-connective-tissue-disease/mctd_qsp_model.png)](mixed-connective-tissue-disease/mctd_qsp_model.svg) | [R](mixed-connective-tissue-disease/mctd_mrgsolve_model.R) | [refs](mixed-connective-tissue-disease/mctd_references.md) | [Shiny](mixed-connective-tissue-disease/mctd_shiny_app.R) |
+
+---
+
+## Mixed Connective Tissue Disease — 혼합결합조직병 (MCTD) {#mctd}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`mixed-connective-tissue-disease/`](mixed-connective-tissue-disease/)
+
+[![MCTD QSP Map](mixed-connective-tissue-disease/mctd_qsp_model.png)](mixed-connective-tissue-disease/mctd_qsp_model.svg)
+
+혼합결합조직병(Mixed Connective Tissue Disease, MCTD)은 **고역가 항-U1-RNP 자가항체**를 특징으로 하며, 전신 홍반 루푸스(SLE)·전신경화증(SSc)·다발성 근염(PM)의 임상 특징이 중복되는 자가면역 결합조직 질환입니다. 유병률은 약 3.8/100,000명이며, 여성:남성 비 약 9:1로 여성에서 압도적으로 많습니다.
+
+### 핵심 병인 기전
+
+1. **항-U1-RNP 자가항체 생성 (SLE-like)**: U1-snRNP 자가항원 노출 → TLR7/8 → IFN-α 폭발 → Tfh-B세포 GC 반응 → 고역가 IgG1/IgG3 항-U1-RNP 자가항체 → 면역복합체 → C3·C4 소비
+
+2. **혈관 내피 손상 & 섬유화 (SSc-like)**: ET-1↑·NO↓ → 레이노 현상·손가락 부종; 폐동맥 BMPR2 손실 → **PAH** (10–45%, 주요 사망 원인); TGF-β·IL-13 → **ILD** (FVC↓·DLCO↓)
+
+3. **근육 침윤 (PM-like)**: IFN-γ → MHC-I 과발현 → CD8+ CTL 근육 침윤 → **근위부 근병증** (CK↑·LDH↑, EMG 근병증)
+
+### QSP 모델 구조
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 130+ 노드, 15개 서브그래프 클러스터 |
+| mrgsolve ODE | 35+ 구획: HCQ/MPA/PRED/RTX/BOS PK + 면역세포 + 사이토카인 + 혈관 + 폐 + 근육 + 관절 + 보체 |
+| Shiny 앱 | 6 탭: 환자 프로파일 / 약동학 / 면역학적 PD / 장기 기능 / 시나리오 비교 / 바이오마커 위험 분류 |
+| 참고문헌 | 35개 PubMed 링크, 9개 주제 섹션 |
+
+### 5가지 치료 시나리오
+
+| # | 시나리오 | HCQ | Pred | MMF | RTX | Bosentan |
+|---|---------|-----|------|-----|-----|---------|
+| 1 | 무치료 | — | — | — | — | — |
+| 2 | HCQ 단독 | 400 mg | — | — | — | — |
+| 3 | HCQ + Pred + MMF | 400 mg | 20 mg | 2 g | — | — |
+| 4 | HCQ + Pred + MMF + RTX | 400 mg | 20 mg | 2 g | 1000 mg×2 | — |
+| 5 | HCQ + Pred + MMF + Bosentan | 400 mg | 20 mg | 2 g | — | 250 mg |
+
+### 파일 목록
+
+```
+mixed-connective-tissue-disease/
+├── mctd_qsp_model.dot        # Graphviz 기계론적 지도 (130+ 노드, 15 클러스터)
+├── mctd_qsp_model.svg        # SVG 벡터 이미지
+├── mctd_qsp_model.png        # PNG 이미지 (150 dpi)
+├── mctd_mrgsolve_model.R     # mrgsolve ODE 모델 (35+ 구획, 5 치료 시나리오)
+├── mctd_shiny_app.R          # Shiny 대시보드 (6 탭, plotly 인터랙티브)
+└── mctd_references.md        # 참고문헌 35개 (PubMed 링크, 9 섹션)
+```
