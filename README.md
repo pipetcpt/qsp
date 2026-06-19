@@ -5382,3 +5382,65 @@ takayasu-arteritis/
 ├── ta_shiny_app.R            # Shiny 대시보드 (6 탭, plotly 인터랙티브)
 └── ta_references.md          # 참고문헌 58개 (PubMed 링크, 10 섹션)
 ```
+| 2026-06-19 | [**Cholelithiasis — Gallstone Disease (담석증)**](#cholelithiasis-gallstone-disease) | 만성질환 / 소화기·담도 | 담석증: 간세포의 콜레스테롤 과다 분비(ABCG5/ABCG8↑·HMGCR↑·LDLR↓·LXR 과활성) + 담즙산 합성 감소(CYP7A1↓: FXR-SHP-HNF4α 억제·FGF19-FGFR4-β-Klotho 피드백) + 인지질 분비 감소(MDR3/ABCB4 돌연변이) → 담즙 내 콜레스테롤 과포화(CSI>1); ASBT(SLC10A2)·IBABP·OSTα/β 경로로 장간 순환 6–10회/일; 담낭 담즙 농축(10배) + CCK 저하성 담낭 정체(CCK-A 수용체 저감응·프로게스테론/옥트레오타이드) + 점액소 분비(MUC5B/MUC5AC) 핵형성 촉진 → 콜레스테롤 단수화물 결정 핵형성 → 결정 성장·응집(점액소 기질) → 담석 형성; 핵형성 억제인자(ApoAI·ApoAII) vs 촉진인자(뮤신·IgG·페투인) 불균형; 담석 위험: 여성(에스트로겐→ABCG5/G8↑+CYP7A1↓·프로게스테론→담낭 운동↓) + 비만·인슐린 저항성(CYP7A1↓·콜레스테롤↑) + 급격한 체중감소 + TPN(CCK 자극 없음) + 크론병(ASBT↓) + 유전변이(ABCG8 D19H rs11887534·CYP7A1·ABCB4 MDR3); 담석 합병증: 담도 산통→급성 담낭염(COX-1/2·NF-κB·IL-1β·IL-6·CRP↑)→총담관 담석→담관염·담도 췌장염; 치료 PK/PD: UDCA 750 mg/day TID(NTCP/OATP1B1 흡수·간 초회 통과 70%·담즙산 풀의 30-40%로 치환→CSI↓→결석 용해 0.5–2 mm/month; 방사선 투과성 담석 5mm 이하 50% 6개월 내 용해·재발률 30–50%/5년; FXR 부분효능제·TGR5 활성화→담낭 운동 개선; Jazrawi 1992·Ward 1984 PK 파라미터 보정) + Simvastatin 40 mg(OATP1B1/1B3 간 흡수→HMGCR 경쟁적 억제 IC50~0.1 nM→간 콜레스테롤↓25%→담즙 콜레스테롤↓) + Ezetimibe 10 mg(NPC1L1 솔경계 억제→장 콜레스테롤 흡수↓50%); 18-CMT mrgsolve ODE(UDCA PK 5구획·Statin PK 2·Ezetimibe PK 2·담즙산 풀·간 콜레스테롤·담즙 콜레스테롤·담즙 인지질·담낭 부피·결정 질량·담석 부피·IL-6·CRP) + 6 치료 시나리오(무치료·UDCA 750 mg·UDCA 1050 mg·UDCA+Simvastatin·Ezetimibe·UDCA+체중감소); Bachrach&Hofmann 1982·Admirand&Small 1968·Lammert 2016 보정; 46개 PubMed 참고문헌 | [![CHOL](cholelithiasis/chol_qsp_model.png)](cholelithiasis/chol_qsp_model.svg) | [R](cholelithiasis/chol_mrgsolve_model.R) | [refs](cholelithiasis/chol_references.md) | [Shiny](cholelithiasis/chol_shiny_app.R) |
+
+---
+
+## Cholelithiasis — Gallstone Disease (담석증) {#cholelithiasis-gallstone-disease}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`cholelithiasis/`](cholelithiasis/)
+
+[![CHOL QSP Map](cholelithiasis/chol_qsp_model.png)](cholelithiasis/chol_qsp_model.svg)
+
+담석증(胆石症, Cholelithiasis)은 담즙 내 콜레스테롤·빌리루빈 등의 성분이 과포화 상태로 결정화되어 담낭·총담관에 결석이 형성되는 질환입니다. 서양 성인의 10–15%에서 발생하며, 미국에서는 연간 약 70만 건의 담낭절제술이 시행됩니다.
+
+**핵심 병인 기전:**
+- **간 콜레스테롤 과분비**: ABCG5/ABCG8 과활성 + HMGCR↑(콜레스테롤 합성↑) + LDLR↓ → 담즙 콜레스테롤 과다 분비
+- **담즙산 합성 감소**: FXR-SHP-HNF4α 억제 회로 + FGF19-FGFR4-β-Klotho 피드백 → CYP7A1↓ → 담즙산 풀 감소
+- **담낭 정체**: CCK(콜레시스토키닌) 저감응(비만·당뇨) + 프로게스테론(임신) + 옥트레오타이드 → 담낭 운동성↓ → 담즙 농도↑
+- **핵형성**: 콜레스테롤 과포화(CSI>1) → 단층소포(unilamellar vesicle) → 액정 → **콜레스테롤 단수화물 결정** → 점액소 기질에 의한 결정 성장·응집 → 담석
+- **CSI(콜레스테롤 포화도 지수)**: Admirand-Small 삼각상 다이어그램 기반; CSI = CHOL/(0.1875×[BA]+0.1429×[PL])
+- **장간 순환**: ASBT(SLC10A2)-IBABP-OSTα/β 경로로 담즙산 6–10회/일 순환; 말단 회장 재흡수 감소(크론병) → 담즙산 풀↓ → CSI↑
+
+### QSP 모델 구조 (Model Structure)
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 100+ 노드, 10개 서브그래프 클러스터: 간 콜레스테롤 대사 · 담즙산 합성 · 간담도 수송 · 담낭 생리 · 핵형성·결정화 · 장간 순환 · 위험인자 · 약물 PK/PD · 염증 cascade · 임상 종말점 |
+| mrgsolve ODE | 18 구획: UDCA PK (5) + Statin PK (2) + Ezetimibe PK (2) + 담즙산 풀 + 간 콜레스테롤 + 담즙 콜레스테롤/인지질 + 담낭 부피 + 결정 질량 + 담석 부피 + IL-6 + CRP |
+| Shiny 앱 | 6 탭: 환자 프로파일 · 약동학 · 담즙산/CSI 역학 · 담석 역학 · 시나리오 비교 · 바이오마커·임상 종말점 |
+| 참고문헌 | 46개 PubMed 링크, 12개 주제 섹션 |
+
+### 6가지 치료 시나리오
+
+| 시나리오 | 치료 | 주요 목표 |
+|---------|------|----------|
+| 1. 무치료 | — | 자연 경과 (담석 성장) |
+| 2. UDCA 750 mg/day | UDCA TID 표준 용량 | CSI↓→결석 용해 |
+| 3. UDCA 1050 mg/day | UDCA 고용량 | 결석 용해 가속 |
+| 4. UDCA + Simvastatin 40 mg | 병용요법 | 콜레스테롤 합성 추가 억제 |
+| 5. Ezetimibe 10 mg | 장 콜레스테롤 흡수 억제 | 담석 예방 |
+| 6. UDCA + 체중감소 | 생활습관 + 약물 | 복합 위험인자 교정 |
+
+### 핵심 임상시험 보정 데이터
+
+| 임상시험/논문 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Bachrach & Hofmann 1982 (Dig Dis Sci) | UDCA: 방사선 투과성 담석 5mm 이하 50% 6개월 용해 | k_dissol_eff, E_UDCA_dis |
+| Jazrawi et al. 1992 (Gut 33:381) | TID 투약이 QD보다 담즙 UDCA 농도↑; 식후 담낭 회전율 측정 | kEHC_UDCA, GB 충전/배출 파라미터 |
+| Ward et al. 1984 (Drugs 27:95) | UDCA PK: F=50%, t½=~3.5h, 담즙산 풀 치환율 30–40% | ka_UDCA, F_UDCA, Vd_UDCA |
+| Admirand & Small 1968 (JCI) | CSI 삼각상 다이어그램; 담즙 포화도 공식 정립 | CSI 계산식, CHOL_bil0, BA_bil0 |
+| Buch et al. 2007 (Nat Genet) | ABCG8 D19H (rs11887534): 담석 위험 OR 2.0 | Gene_ABCG5 → ABCG5_hep 효과 |
+| Lammert et al. 2016 (Nat Rev Dis Primers) | 서양 유병률 10–15%; 연간 1–2% 새 증상 발생 | BA_pool0, CHOL_bil0 baseline |
+
+### 파일 목록
+
+```
+cholelithiasis/
+├── chol_qsp_model.dot        # Graphviz 기계론적 지도 (100+ 노드, 10 클러스터)
+├── chol_qsp_model.svg        # SVG 벡터 이미지
+├── chol_qsp_model.png        # PNG 이미지 (150 dpi)
+├── chol_mrgsolve_model.R     # mrgsolve ODE 모델 (18 구획, 6 시나리오, 용량-반응)
+├── chol_shiny_app.R          # Shiny 대시보드 (6 탭, plotly 인터랙티브)
+└── chol_references.md        # 참고문헌 46개 (PubMed 링크, 12 섹션)
+```
