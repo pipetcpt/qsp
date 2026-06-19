@@ -172,6 +172,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-19 | [**Obstructive Sleep Apnea — OSA (폐쇄성 수면 무호흡증)**](#obstructive-sleep-apnea-osa) | 만성질환 / 호흡기·수면의학 | 인두 폐쇄 임계압(Pcrit)↑(비만/해부학) + 루프 이득(LG)>1(호흡 불안정) + 낮은 각성 역치(AT) + 근육 반응성↓ → 반복적 상기도 폐쇄 → 간헐적 저산소증(HIF-1α↑/ROS↑/NF-κB↑) → 교감신경↑(SNS→NE↑→SBP↑) + RAAS 활성화 + 내피세포 기능장애; 대사: 인슐린 저항성↑/렙틴 저항성/HPA(코르티솔) + 지방조직 염증(IL-6/TNF-α/CRP↑); 신경·인지: 수면 분절→EDS→ESS↑+해마 위축+BDNF↓+우울; 치료: CPAP(Pcrit→<0) / MAD / 모다피닐(Orexin/H1, F=40%, t½=15h) / 솔리암페톨(DAT/NET; TONES3 ESS↓4.5) / 피톨리산트(H3 역 효능제; HARMONY-III) / 티르제파타이드(GLP-1/GIP sc t½=5d → AHI↓55 ev/hr; SURMOUNT-OSA 2024 NEJM) / 에스조피클론(AT↑50%) / 아세타졸아미드(LG↓); 18-CMT mrgsolve ODE; 6 시나리오(Eckert 2013·Wellman 2011·SURMOUNT-OSA 2024 보정) | [![OSA](obstructive-sleep-apnea/osa_qsp_model.png)](obstructive-sleep-apnea/osa_qsp_model.svg) | [R](obstructive-sleep-apnea/osa_mrgsolve_model.R) | [refs](obstructive-sleep-apnea/osa_references.md) | [Shiny](obstructive-sleep-apnea/osa_shiny_app.R) |
 | 2026-06-18 | [**Focal Segmental Glomerulosclerosis — FSGS (국소분절사구체경화증)**](#fsgs) | 만성질환 / 신장·사구체 | 국소분절사구체경화증: 원발성(CLCF1·anti-CD40·suPAR 등 순환 투과인자 → 사구체 내 포도세포 αvβ3 인테그린 활성화) / 이차성(과여과·네프론 소실·약물독성) / 유전성(NPHS1/NPHS2/APOL1-G1G2/INF2/TRPC6 변이) → 포도세포 액틴 세포골격 재배열 → 족돌기 소실(FPE) → 슬릿막(slit diaphragm) 파괴 → 알부민 누출·단백뇨(>3.5g/d 신증후군); 포도세포 손상 + Clathrin-매개 내재화 ↑ → 포도세포 이탈·감소(재생 극히 제한); RAAS 활성화: Ang II→AT1R→수출세동맥 수축→사구체내 고혈압→TGF-β1 유도; TGF-β1→SMAD2/3→SMAD4→ECM(피브로넥틴/CollagenIV)↑+TIMP-1↑/MMP↓→사구체 경화(비가역적 섬유화); C3 보체→C5b-9(MAC) 아치사 손상→포도세포 세포사; mTORC1 과활성→autophagy↓→미토콘드리아 기능장애→ATP 결핍→포도세포 사멸; APOL1 G1/G2 위험변이→독성 올리고머→리소좀 기능장애→포도세포독성; 치료 PK/PD: 프레드니솔론(GR transrepression→NF-κB·AP-1↓+직접 포도세포 GR→synaptopodin↑+액틴 안정화; CL=12 L/h, EC50=150 ng/mL, n=1.5) + 타크로리무스(FK506-FKBP12→칼시뉴린 억제→NFAT 핵이동 차단→synaptopodin 안정화→FPE 역전; CL=2.5 L/h, EC50=8 ng/mL) + 리툭시맙(anti-CD20 ADCC/CDC→B세포 고갈→CLCF1·anti-CD40 순환인자↓; Vc=3.1L, CL=0.014 L/h) + 스파르센탄(AT1R+ET-A/B 이중 길항→사구체내 고혈압 정상화+ET-1 섬유화↓; DUPLEX 2023 NEJM: 완전/부분 관해 42% vs 26%, CL=8.5 L/h, EC50=200 ng/mL) + Acthar Gel(MC1R/MC5R→직접 포도세포 보호+Nrf2 활성화); 22-CMT mrgsolve ODE(질환 11개: CLCF·POD·FPE·PROT·GFR_c·SCAR·TGFb·COMP·INFLAM·RAAS·BCELL; PK 11개: PRED_DEP·PRED1·PRED2·TAC_DEP·TAC1·TAC2·RTX1·RTX2·SPARS_DEP·SPARS1·SPARS2); 6 치료 시나리오(무치료·프레드니솔론 단독·Pred+타크로리무스·Pred+TAC+Rituximab·Sparsentan 단독·완전병용); 보정: Gipson 2011(Kidney Int, Pred 25% 완전관해)·Cattran 1999(CsA 70% 부분관해)·Kronbichler 2014(RTX 57% 반응)·Rheault 2023(DUPLEX NEJM, Sparsentan 완전관해 18% vs 9%)·PLANET-I(Sparsentan UPCR -46%) | [![FSGS](fsgs/fsgs_qsp_model.png)](fsgs/fsgs_qsp_model.svg) | [R](fsgs/fsgs_mrgsolve_model.R) | [refs](fsgs/fsgs_references.md) | [Shiny](fsgs/fsgs_shiny_app.R) |
 | 2026-06-19 | [**Chronic Pancreatitis — CP (만성 췌장염)**](#chronic-pancreatitis) | 만성질환 / 소화기·췌장 | 만성 췌장염: 알코올/흡연/유전(PRSS1·SPINK1·CFTR·CTRC)·폐쇄 등 원인 → 선포세포 Ca²⁺ 과부하+ER 스트레스+산화 스트레스(ROS↑) → 트립시노겐 조기 활성화 → 선포세포 괴사/사멸 → DAMP 방출 → 대식세포/호중구 모집 → NF-κB 활성화 → TNF-α·IL-1β·IL-6·IL-8 분비; TGF-β1(↑) → 췌장 성상세포(PSC) 활성화(α-SMA 발현) → 콜라겐 I/III 침착+CTGF+TIMP-1 → 세포외기질 축적 → 췌장 섬유화(비가역); CFTR 기능 저하 → 중탄산염 분비↓ → 췌관액 감소 → 단백질 플러그/석회화 → 췌관 폐색·협착·고혈압; 섬유화 → 선포세포 위축(외분비 기능 저하: 리파제·아밀라제·프로테아제 분비↓ → 지방변·단백질/탄수화물 흡수장애 → 영양실조·지용성 비타민 결핍); 섬유화 → 베타세포/알파세포/PP세포 소실 → 인슐린↓/글루카곤 조절장애/인슐린 저항성 → 췌장성 당뇨병(T3cDM: 취약한 혈당·저혈당 위험↑); 통증: 선포세포 손상+췌관 고압 → 말초 신경 감작(NGF·SP/CGRP·TRPV1) → 척수 후각(C섬유) → NMDAR 활성화 → 중추 감작(Wind-up) → 만성 복통(NRS 6–8/10); 신경 재형성(perineural invasion)+심리적 요인(불안/우울) 악화; 치료 PK/PD: PERT 40 000 lipase U/식사(십이지장 효소 활성 Emax=90%·PPI 병용으로 코팅 안정화) + 오피오이드(트라마돌 3-구획 PK: CL=15L/h·V₁=50L·F=70% → μ/κ/δ 수용체 억제 → 말초·중추 감작↓; IC50_pS=0.3μg/mL) + 가바펜틴(α2δ 칼슘채널 차단 → 말초+중추 감작↓, E=0.35) + 피르페니돈(TGF-β 억제·PSC 활성 억제·ROS↓; IC50=1.5μg/mL) + 로사르탄(AT1R 차단→AngII·PSC 활성↓; IC50=0.8μg/mL) + 인슐린(T3cDM 혈당 관리) + 옥트레오타이드(소마토스타틴 유사체→CCK↓·췌관압↓); 합병증: 가성낭종·누공·문맥고혈압·담관 압박·PDAC 위험(RR 14배)·췌장 복수; 20-CMT mrgsolve ODE(오피오이드 PK 3구획+PERT 2구획+TNFa·IL6·TGFb·ROS·PSC·FIB·EXO·BETA·GLUC·pSENS·cSENS); 5 치료 시나리오(무치료·PERT·오피오이드+가바펜틴·항섬유화·완전병용); 보정: Steer 1995(NEJM 섬유화)·Olesen 2011(Gastroenterology 통증 NRS)·Dominguez-Munoz 2011(PERT EPI 기준)·Hart 2016(Lancet GH T3cDM 25%)·Grond 2004(트라마돌 PK) | [![CP](chronic-pancreatitis/cp_qsp_model.png)](chronic-pancreatitis/cp_qsp_model.svg) | [R](chronic-pancreatitis/cp_mrgsolve_model.R) | [refs](chronic-pancreatitis/cp_references.md) | [Shiny](chronic-pancreatitis/cp_shiny_app.R) |
+| 2026-06-19 | [**Takayasu Arteritis — TA (다카야스 동맥염)**](#takayasu-arteritis) | 자가면역질환 / 대혈관 혈관염 | 다카야스 동맥염: HLA-B52/B39 유전적 소인 + 환경 자극(MTB 분자 모방·HSP70/65 항원) → 외막 수지상세포 활성화 + TLR2/4-NOD-NLRP3 inflammasome → IL-1β·IL-12·IL-18 분비 → CD4+ Th1(IFN-γ·TNF-α)/Th17(IL-17A/F) 분극화 + CD8+ CTL·NK세포(perforin/granzyme-B) 혈관벽 세포독성; IL-6-STAT3 축이 핵심: IL-6→sIL6R trans-signaling→JAK1/JAK3→STAT3→Th17 유지+VEGF↑+CRP/SAA; TNF-α→NF-κB→ICAM-1/VCAM-1/E-selectin 발현 → 백혈구 부착·침윤; AECA(항내피세포항체)+Anti-HSP 항체→보체 활성화(C3/C4/MAC)→내피 손상; 혈관벽 생물학: ROS↑+ET-1↑+NO↓(내피 기능장애) + MMP-2/9 활성화 → 내막 증식·중막 비후·외막 섬유화 → 관강 협착(Numano I-V형); 신생혈관화(vasa vasorum) → FDG-PET 고섭취; 대동맥궁·쇄골하동맥·총경동맥·신동맥·상장간막동맥 협착 → 팔 파행·BP 차이(≥10 mmHg)·경동맥 잡음·신혈관성 고혈압·뇌허혈; 동맥류(MMP↑·벽 약화) + 대동맥 역류; 약물 PK/PD: 프레드니솔론(GR→NF-κB transrepression·MAPK↓·사이토카인 mRNA 억제, EC50=0.10 mg/L Emax=85%) + 토실리주맙 SC(IL-6R 점령 Occ 95%·sIL-6R 역설적 상승·CRP 99%↓, EC50=0.50 mg/L) + 메토트렉세이트(DHFR 억제+아데노신 경로→T세포 증식↓, EC50=0.05 µmol/L PG, Emax=55%) + 인플릭시맙(TNF-α 중화 Emax=90%, EC50=0.80 mg/L); 5 치료 시나리오(무치료·Pred 단독·Pred+MTX·Pred+TCZ·Pred+IFX); 20-CMT mrgsolve ODE(Pred-3·TCZ-3·MTX-3·IFX-2 PK 구획 + IL6·sIL6R·IL6cmpx·TNF·Th1·Th17·Treg·VWI·ST·CRP·PET·VWT); 보정: Nakaoka 2018(Lancet TAKT HR 0.41)·Hoffman 1994(MTX 72% 관해)·Comarmond 2012(TNFi 67% 반응)·Kerr 1994(NIH score)·Mekinian 2012(PET-CT SUVmax>2.5) | [![TA](takayasu-arteritis/ta_qsp_model.png)](takayasu-arteritis/ta_qsp_model.svg) | [R](takayasu-arteritis/ta_mrgsolve_model.R) | [refs](takayasu-arteritis/ta_references.md) | [Shiny](takayasu-arteritis/ta_shiny_app.R) |
 | 2026-06-19 | [**Peptic Ulcer Disease — PUD (소화성 궤양)**](#peptic-ulcer-disease-pud) | 만성질환 / 소화기 | 위산(H⁺/K⁺-ATPase·Gastrin-ECL-H2R cascade)과 *H. pylori* 독력인자(CagA·VacA·UreaseHP→NH₃→pH↑) + NSAIDs(COX-1↓→PGE₂↓→점막 방어↓)가 방어 기전(Mucus·HCO₃⁻·PGE₂/PGI₂·EGF·Trefoil factor)을 압도 → 미란→궤양; PPI 비가역적 양성자펌프 공유결합 억제(CYP2C19 다형성) + H2RA 경쟁적 H2R 차단 + 삼제요법(PPI+AMX+CLR, CLR 내성 15%) → H. pylori 박멸; NSAID 위장관 출혈 예방(PPI 병용); 임상 종말점: 궤양 면적(mm²)·Lanza 내시경점수·VAS 통증·HP 박멸율·출혈 위험; 20-CMT 통합 모델(PPI/H2RA/AMX/CLR/NSAID 5개 PK 모듈 + HP dynamics·펌프활성·pH·Mucus·PG·염증·궤양면적) | [![PUD](peptic-ulcer/pud_qsp_model.png)](peptic-ulcer/pud_qsp_model.svg) | [R](peptic-ulcer/pud_mrgsolve_model.R) | [refs](peptic-ulcer/pud_references.md) | [Shiny](peptic-ulcer/pud_shiny_app.R) |
 
 
@@ -5317,4 +5318,67 @@ peptic-ulcer/
 ├── pud_mrgsolve_model.R       # mrgsolve ODE 모델 (20 구획, 6 시나리오, CYP2C19 집단 시뮬레이션)
 ├── pud_shiny_app.R            # Shiny 대시보드 (6 탭)
 └── pud_references.md          # 참고문헌 58개 (PubMed 링크 포함)
+```
+
+---
+
+## Takayasu Arteritis — TA (다카야스 동맥염) {#takayasu-arteritis}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`takayasu-arteritis/`](takayasu-arteritis/)
+
+[![TA QSP Map](takayasu-arteritis/ta_qsp_model.png)](takayasu-arteritis/ta_qsp_model.svg)
+
+### 병태생리 요약 (Pathophysiology Summary)
+
+다카야스 동맥염(TA)은 대동맥과 주요 분지에 발생하는 **육아종성 대혈관 혈관염**으로, 50세 미만 여성에서 호발합니다. 두 단계로 진행됩니다: (1) **염증기** — 전신 증상 + 혈관 벽 활성 염증; (2) **섬유화/폐쇄기** — 혈관 협착·동맥류 형성.
+
+**핵심 병인 기전:**
+- **유전-환경 상호작용**: HLA-B52/B39 유전자 소인 + 환경 자극(결핵균 분자 모방·HSP70/65 자가항원) → 외막 수지상세포 PAMP 인식(TLR2/4·NOD-NLRP3) → IL-1β·IL-12·IL-18 분비
+- **IL-6-STAT3 축 (핵심)**: IL-6/sIL6R trans-signaling → JAK1/JAK3 → STAT3 → Th17 분극화 유지 + VEGF·CRP·SAA 과생산; 토실리주맙 차단 시 역설적 혈청 IL-6·sIL-6R 상승
+- **CD4+ T세포 분극**: Th1(IFN-γ·TNF-α) + Th17(IL-17A/F·IL-21) → 혈관 벽 지속적 염증; Treg 감소로 면역관용 손상
+- **CD8+ CTL & NK 세포**: 퍼포린/그랜자임-B → 혈관 평활근세포(VSMC) 직접 세포독성
+- **항내피세포항체(AECA)**: 보체 C3/C4/MAC 활성화 → 내피 손상 + FcγR 매개 ADCC
+- **혈관 벽 리모델링**: TNF-α/IL-17A → NF-κB → ICAM-1/VCAM-1/E-selectin → 백혈구 부착; MMP-2/9 활성 → 기저막 분해 → 내막 증식·중막 비후·외막 섬유화; ET-1↑/NO↓ → 혈관 내피 기능 부전; VEGF → 신생 vasa vasorum → FDG-PET 고섭취
+- **동맥 합병증**: Numano I-V형 협착(대동맥궁·쇄골하·총경동맥·신동맥·상장간막동맥) + 동맥류 형성(MMP 벽 약화) + 대동맥 역류(근위 대동맥 침범)
+
+### QSP 모델 구조 (Model Structure)
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 181 노드, 11개 서브그래프 클러스터: 유전·환경 자극/선천면역 · T세포 적응면역 · B세포/체액면역 · 사이토카인 네트워크 · 혈관 벽 생물학 · 동맥 병변·합병증 · 임상 증상/종말점 · 약물 PK · 약물 PD · 바이오마커 · 범례 |
+| mrgsolve ODE | 25 구획: Pred PK (4) + TCZ PK (3) + MTX PK (3) + IFX PK (2) + IL-6·sIL6R·IL6cmplx·TNF·Th1·Th17·Treg·VWI·Stenosis·CRP·PET·VWT (13 질환) |
+| Shiny 앱 | 6 탭: 환자 프로파일 · 약동학 · PD 주요지표 · 임상 종말점 · 시나리오 비교 · 바이오마커 |
+| 참고문헌 | 58개 PubMed 링크, 10개 주제 섹션 |
+
+### 5가지 치료 시나리오
+
+| 시나리오 | 치료 | 주요 목표 |
+|---------|------|----------|
+| 1. 무치료 | — | 자연 경과 관찰 (VWI·협착 진행) |
+| 2. 프레드니솔론 단독 | Pred 1 mg/kg/day → 10 mg/day 테이퍼 (60일) | 초기 관해 70%, 재발 위험↑ |
+| 3. 프레드니솔론 + 메토트렉세이트 | Pred + MTX 15 mg/week | 스테로이드 절감 + Th1/Th17↓ |
+| 4. 프레드니솔론 + 토실리주맙 (TAKT) | Pred (테이퍼 7.5 mg) + TCZ 162 mg SC q2w | IL-6R 차단 → CRP 99%↓, HR 0.41 |
+| 5. 프레드니솔론 + 인플릭시맙 (불응성) | Pred + IFX 5 mg/kg 0/2/6주 → q6w | TNF-α 중화, 불응성 TA 67% 반응 |
+
+### 핵심 임상시험 보정 데이터
+
+| 임상시험 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Nakaoka 2018 (Ann Rheum Dis, TAKT) | TCZ vs. Pred: 재발 HR 0.41; CRP 99%↓ | Emax_TCZ=0.95, EC50_TCZ=0.50 mg/L |
+| Hoffman 1994 (Arthritis Rheum) | MTX+Pred: 72% 관해; 스테로이드 절감 | Emax_MTX=0.55, EC50_MTX=0.05 µmol/L MTX-PG |
+| Comarmond 2012 (Autoimmun Rev) | TNFi (IFX/ADA): 67% 반응 (불응성) | Emax_IFX=0.90, EC50_IFX=0.80 mg/L |
+| Hellmich 2020 EULAR Update | Pred 1 mg/kg 테이퍼; 초기 관해 70% | Emax_PRED=0.85, EC50_PRED=0.10 mg/L |
+| Kerr 1994 (Ann Intern Med) | NIH 점수 5요소 타당성 | NIH = 가중합산 복합수식 (0-20 범위) |
+| Mekinian 2012 (Ann Rheum Dis) | PET SUVmax > 2.5 = 활성 질환 | PET_base=1.5, ksyn_PET 조정 |
+
+### 파일 목록
+
+```
+takayasu-arteritis/
+├── ta_qsp_model.dot          # Graphviz 기계론적 지도 (181 노드, 11 클러스터)
+├── ta_qsp_model.svg          # SVG 벡터 이미지
+├── ta_qsp_model.png          # PNG 이미지 (150 dpi)
+├── ta_mrgsolve_model.R       # mrgsolve ODE 모델 (25 구획, 5 시나리오, IL-6 감수성 분석)
+├── ta_shiny_app.R            # Shiny 대시보드 (6 탭, plotly 인터랙티브)
+└── ta_references.md          # 참고문헌 58개 (PubMed 링크, 10 섹션)
 ```
