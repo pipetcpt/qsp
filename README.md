@@ -5609,6 +5609,8 @@ primary-sclerosing-cholangitis/
 └── psc_references.md         # 참고문헌 45개 (PubMed 링크, 10 섹션)
 ```
 
+| 2026-06-19 | [**Autoimmune Pancreatitis — AIP (자가면역 췌장염)**](#autoimmune-pancreatitis) | 자가면역질환 / 소화기 | 자가면역 췌장염(AIP, Type 1 IgG4-관련 췌장염): HLA-DRB1 유전 소인 → 분자 모방(Lactoferrin, CA-II, PSTI 자가항원) → DC/pDC TLR7/9 활성화 → IL-4/IL-10/IL-33 주도 Th2 분극화 + Tfh-GC B세포 상호작용 → AID 효소 → IgG4 클래스 전환 재조합 → BAFF/APRIL 생존 신호 → IgG4+ 장수형 형질세포 축적; IgG4 Fab arm exchange(비염증성 이중특이성) + IgG4 비보체-결합 특성으로 조직 침착 증가; 스토리폼 섬유화: TGF-β → 췌장 성상세포(PSC) 활성화 → 근섬유아세포 → 콜라겐 I/III 침착 → 폐쇄성 정맥염; 췌장 외분비 손상: 도관 주위 섬유화 → 도관 협착 → 췌장 외분비 불충분(FE-1↓, 지방변) + 내분비 손상(베타세포 감소 → AIP 관련 당뇨, HbA1c↑); 혈청 IgG4 > 135 mg/dL(민감도 76%, 특이도 93%); 췌장 외 침범: IgG4-경화성 담관염(50%) + 악하선 비대 + 후복막 섬유화 + 신세뇨관간질 신염 + 안와 가성종양; 치료 PK/PD: Prednisolone(0.6 mg/kg/day × 4주 유도, 1–2주마다 5 mg 감량, 유지 5 mg; Ka=1.2/h, CL=5.7 L/h, GR IC50=25 ng/mL) → NF-κB/AP-1 억제 → Th2·IgG4+ PC 감소; Rituximab(1000 mg × 2회 2주 간격; TMDD CD20 결합, Vc=3.1 L, CL=0.14 L/h) → B세포 고갈 → IgG4 생산 억제; Azathioprine(100 mg/day → 6-MP → TPMT → 6-TGN, TGN 치료범위 235–450 pmol/8×10⁸ RBC) → 퓨린 합성 억제 → 림프구 증식 억제; 24-CMT mrgsolve ODE(Prednisolone 3구획·RTX 2구획+TMDD·AZA/6TGN 4구획 + Th2/Treg/BN/BCG/PB_IgG4/IgG4 6구획 + IL4/IL10/TGFβ/TNFα 사이토카인 4구획 + PSC/aPSC/Collagen 3구획 + EXO/BETA 2구획); 7 치료 시나리오(무치료·Pred 유도+감량·유지요법·Pred+AZA·RTX 단독·재발 시 RTX·RTX 6개월마다 유지); 보정: Yoshida 2002(스테로이드 합의안)·Hart 2013(RTX in AIP)·Shimosegawa 2011(ICDC)·Sandanayake 2009(IgG4 혈청 기준) | [![AIP](autoimmune-pancreatitis/aip_qsp_model.png)](autoimmune-pancreatitis/aip_qsp_model.svg) | [R](autoimmune-pancreatitis/aip_mrgsolve_model.R) | [refs](autoimmune-pancreatitis/aip_references.md) | [Shiny](autoimmune-pancreatitis/aip_shiny_app.R) |
+
 | 2026-06-19 | [**Addison's Disease — PAI (애디슨병 / 원발성 부신피질기능저하증)**](#addisons-disease) | 자가면역질환 / 내분비 | 애디슨병(원발성 부신피질기능저하증): HLA-DR3/DR4·CTLA-4·PTPN22 유전 소인 → AIRE 중추 관용 붕괴 → 21-하이드록실라제(CYP21A2) 항원 자가인식 → DC 항원 제시 → CD4+ Th1/Th17 + CD8+ CTL 부신피질 침윤; B세포 → 항21-OH IgG 자가항체(+80%) → 보체(C5b-9 MAC) + ADCC → 부신피질 세포자멸사; Treg 기능 결함 → 자가반응 T세포 제어 실패; 3개 피질 영역 점진적 파괴: 사구대(aldosterone↓·RAAS↑·ENaC↓→Na+소실·K+축적) + 속상대(cortisol↓·HPA음성피드백소실→CRH↑·ACTH↑↑→MSH↑→과색소침착) + 망상대(DHEA/DHEA-S↓→성기능저하·근력감소); HPA 축 탈억제: ACTH > 80–500 pg/mL → α-MSH 과잉 → MC1R 자극 → 멜라닌 합성 → 특징적 피부/점막 과색소; 당질코르티코이드 결핍: 간 당신생(PEPCK/G6Pase)↓ + 말초 인슐린 감수성↑ → 저혈당; 면역억제 소실 → 호산구증가·림프구증가; 광물코르티코이드 결핍: ENaC·NaK-ATPase·ROMK 발현↓ → 저나트륨혈증(<135)·고칼륨혈증(>5.5)·저혈압·기립성 저혈압; 부신 위기 발생 기전: 감염/수술/구토 등 스트레스 시 코르티솔 요구 급증 → 심박출량↓·혈관 긴장도↓(카테콜아민 저항) → 분배성 쇼크·혼수·사망(위기 사망률 6–17%, 연간 발생 5.2/100환자년); 치료 PK/PD: 하이드로코르티손(HC) 20 mg/day(IR 분할 또는 MR Plenadren; Ka=1.2 h⁻¹, CL=90 L/h, t½=1.7h, F=96%) + 플루드로코르티손(FC) 100 μg/day(MR α활성 → ENaC↑·Na 재흡수; t½=18–36h) + DHEA 25–50 mg/day(QOL·성기능 개선; Arlt 1999 NEJM); GR 시그널링: HC-free → GR-HSP90 해리 → GR:GRE → IκBα·MKP-1↑(항염) + PEPCK↑(당신생) + OPG↓·RANKL↑(골밀도 과잉 시 감소위험); 20-CMT mrgsolve ODE(HC·FC·DHEA PK 6구획 + CRH·ACTH·내인성코르티솔 3구획 + GR 3구획 + Na/K/MAP 3구획 + 혈당·BMD·ACTH신호·부신저장·위기위험 5구획); 5 치료 시나리오(무치료·표준HC IR+FC·수정방출HC+FC·삼중대체요법·스트레스용량); 보정: Johannsson 2009(HC PK)·Forss 2012(Plenadren)·Bleicken 2010(QOL)·Rushworth 2019(위기역학)·Arlt 1999(DHEA 대체) | [![ADD](addisons-disease/add_qsp_model.png)](addisons-disease/add_qsp_model.svg) | [R](addisons-disease/add_mrgsolve_model.R) | [refs](addisons-disease/add_references.md) | [Shiny](addisons-disease/add_shiny_app.R) |
 
 ---
@@ -5691,4 +5693,86 @@ addisons-disease/
 ├── add_mrgsolve_model.R      # mrgsolve ODE 모델 (20 구획, 5 치료 시나리오)
 ├── add_shiny_app.R           # Shiny 대시보드 (8 탭, plotly 인터랙티브)
 └── add_references.md         # 참고문헌 50개 (PubMed 링크, 10 섹션)
+```
+
+---
+
+## Autoimmune Pancreatitis — 자가면역 췌장염 {#autoimmune-pancreatitis}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`autoimmune-pancreatitis/`](autoimmune-pancreatitis/)
+
+[![AIP QSP Map](autoimmune-pancreatitis/aip_qsp_model.png)](autoimmune-pancreatitis/aip_qsp_model.svg)
+
+자가면역 췌장염(Autoimmune Pancreatitis, AIP)은 자가면역 기전에 의해 췌장에 만성 염증 및 섬유화가 발생하는 희귀 질환으로, 제1형(IgG4 관련)과 제2형(특발성 도관중심성 췌장염)으로 구분됩니다. 전체 만성 췌장염의 약 5–6%를 차지하며, 고령 남성에서 호발합니다. 스테로이드 치료에 대한 劇的 반응이 특징적이며, 재발률은 약 30–40%입니다.
+
+### 핵심 병인 기전
+
+**AIP Type 1의 병태생리는 5가지 핵심 축으로 구성됩니다:**
+
+1. **IgG4 면역학 (IgG4 Immunology)**: TLR7/9 → pDC 활성화 → IL-4/IL-10/IL-33 → Th2/Tfh 분극화 → germinal center B세포 → AID(활성화 유도 사이티딘 탈아미노효소) → IgG4 클래스 전환 재조합 → BAFF/APRIL 생존 신호 → IgG4+ 장수형 형질세포; IgG4는 비보체 결합, Fab arm exchange(이중특이성) → 면역복합체 형성보다 조직 직접 침착 유도
+
+2. **T세포 균형 이상 (T-cell Imbalance)**: CD4+ Th2 우세(IL-4↑, IL-13↑) + Treg 기능 과활성(IL-10↑, TGF-β↑) → 정상 면역억제 기전이 역설적으로 IgG4 클래스 전환을 촉진; Th17도 일부 기여(IL-17, IL-21)
+
+3. **췌장 섬유화 (Pancreatic Fibrosis)**: TGF-β → 췌장 성상세포(PSC) 활성화 → 근섬유아세포 분화 → 콜라겐 I/III 과잉 생산 → 스토리폼(소용돌이형) 섬유화 + 폐쇄성 정맥염(obliterative phlebitis) → 도관 협착 → 폐쇄성 황달 의사(췌장암 감별 필요)
+
+4. **췌장 기능 손상 (Pancreatic Dysfunction)**: 외분비 기능 손상 → 췌장 지방 외분비 불충분(FE-1 < 200 μg/g, 지방변, 흡수불량); 내분비 기능 손상(베타세포 침범) → AIP 관련 당뇨(AIP-DM, 치료 후 일부 회복 가능)
+
+5. **췌장 외 침범 (Extra-pancreatic Manifestations)**: IgG4-경화성 담관염(IgG4-SC, 50–60%) → CA 19-9↑·빌리루빈↑; 악하선(Küttner 종양) + 안와 가성종양; 후복막 섬유화; 신세뇨관간질 신염(eGFR↓); 대동맥주위염
+
+### QSP 모델 구조
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 164+ 노드, 11개 서브그래프 클러스터: 선천면역(TLR/NLRP3/DC/MΦ) · T세포 분화(Th1/Th2/Th17/Treg/Tfh) · B세포-IgG4 축 · IgG4 효과기 기전(보체·FcRn) · 췌장 병리(도관·외분비·내분비) · 섬유화 cascade · 췌장 외 침범 · 스테로이드 PK/PD · 리툭시맙 PK/PD · AZA/MMF PK/PD · 임상 종말점 |
+| mrgsolve ODE | 24 구획: 약물 PK(Pred 3구획·RTX 2구획+TMDD·AZA/6TGN 4구획) + 면역세포(TN·TH2·TREG·BN·BCG·PB_IgG4·IgG4 7구획) + 사이토카인(IL4·IL10·TGFβ·TNFα 4구획) + 췌장 병리(PSC/aPSC/Collagen·EXO/BETA 5구획) |
+| Shiny 앱 | 6 탭: 환자 프로파일 · 치료 PK · IgG4 및 면역반응 · 췌장 기능 · 시나리오 비교 · 바이오마커 모니터링 |
+| 참고문헌 | 45개 PubMed 링크, 8개 주제 섹션 |
+
+### 7가지 치료 시나리오
+
+| # | 시나리오 | 약물 | 용량/일정 | 근거 |
+|---|---------|------|---------|------|
+| 1 | 무치료 자연 경과 | — | — | 자연 경과 기준선 |
+| 2 | Prednisolone 유도+감량 | 프레드니솔론 | 40 mg/day × 4주, 5 mg/2주 감량 | Yoshida 2002 consensus |
+| 3 | Prednisolone 유도+유지 | 프레드니솔론 | 유도 후 5 mg/day 유지 2년 | Kamisawa 2009 |
+| 4 | Prednisolone + Azathioprine | Pred + AZA | 유도 후 AZA 100 mg/day | Buijs 2015 |
+| 5 | Rituximab 단독 | 리툭시맙 | 1000 mg × 2 (2주 간격) | Hart 2013 |
+| 6 | 재발 시 Rituximab | Pred 유도 → RTX | 재발(6개월) 시 RTX 1000 mg × 2 | Khosroshahi 2015 |
+| 7 | RTX 6개월 유지요법 | 리툭시맙 | 500 mg × q6m | Carruthers 2015 |
+
+### 핵심 파라미터 및 임상시험 보정
+
+| 임상시험/논문 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Yoshida 2002 (*J Gastroenterol* 37:371) | 스테로이드 초기 반응률 98%; 재발률 3년 30% | PRED 유도 효과, RELAPSE_k 보정 |
+| Hart 2013 (*JCI* 123:3490) | RTX 후 IgG4+ PC 고갈, 혈청 IgG4 70% 감소 6개월 | RTX_Bmax=0.95, RTX_BC50=5 nM |
+| Shimosegawa 2011 (*Pancreas* 40:352) | ICDC 기준: IgG4 > 135 mg/dL 민감도 76%, 특이도 93% | IgG4_0=450 mg/dL (활성기) |
+| Sandanayake 2009 (*Gut* 58:1741) | IgG4/IgG 비율 > 8% 추가 진단가치 | 혈청 IgG4 역학 모수 보정 |
+| Buijs 2015 (*Am J Gastroenterol* 110:1364) | AZA 유지: 재발률 28% vs. 스테로이드 단독 43% | AZA → 6-TGN 3단계 PK 보정 |
+| Khosroshahi 2015 (*Arthritis Rheumatol* 67:1688) | RTX 2차 치료: 완전 반응 90% | RTX TMDD 파라미터 |
+| Kamisawa 2009 (*Gut* 58:1504) | 유지요법: 3년 재발률 무유지 47% vs. 유지 23% | RELAPSE_k, 치료 시나리오 비교 |
+
+### 임상 종말점
+
+| 종말점 | 정의 | 모델 변수 | 정상/반응 기준 |
+|--------|------|---------|-------------|
+| 혈청 IgG4 | 진단·반응 주요지표 | `IgG4_SER` | < 135 mg/dL (정상) |
+| CA 19-9 | 담관 침범·악성도 감별 | 임상 보조 | < 37 U/mL |
+| FE-1 (분변 엘라스타제) | 외분비 기능 | `FE1` | > 200 μg/g |
+| HbA1c | AIP 관련 당뇨 | `HbA1c` | < 6.5% |
+| CT 반응 스코어 | 영상 반응 | `CT_score` | 1.0 = 완전 반응 |
+| 재발 위험 지수 | 누적 재발 위험 | `RELAPSE_RISK` | < 0.30 |
+| 베타세포 보존율 | 내분비 기능 | `BETA_MASS` | > 80% |
+| 췌장 외분비 기능 | 소화 기능 | `EXO_FUNC` | > 85% |
+
+### 파일 목록
+
+```
+autoimmune-pancreatitis/
+├── aip_qsp_model.dot         # Graphviz 기계론적 지도 (164+ 노드, 11 클러스터)
+├── aip_qsp_model.svg         # SVG 벡터 이미지
+├── aip_qsp_model.png         # PNG 이미지 (150 dpi)
+├── aip_mrgsolve_model.R      # mrgsolve ODE 모델 (24 구획, 7 치료 시나리오)
+├── aip_shiny_app.R           # Shiny 대시보드 (6 탭)
+└── aip_references.md         # 참고문헌 45개 (PubMed 링크, 8 섹션)
 ```
