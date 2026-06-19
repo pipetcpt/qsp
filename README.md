@@ -5525,3 +5525,86 @@ bullous-pemphigoid/
 ├── bp_shiny_app.R            # Shiny 대시보드 (6 탭, plotly 인터랙티브)
 └── bp_references.md          # 참고문헌 65개 (PubMed 링크, 14 섹션)
 ```
+
+| 2026-06-19 | [**Primary Sclerosing Cholangitis — PSC (원발성 경화성 담관염)**](#primary-sclerosing-cholangitis) | 자가면역질환 / 간담도 | 원발성 경화성 담관염: HLA-B8/DR3/DR4 유전 소인 + 장내 미생물 불균형(Fusobacterium↑·Akkermansia↓·BSH 효소→2차 담즙산 DCA/LCA 증가) → 장 누출 증가·LPS 문맥 내 유입 → Kupffer세포 TLR4 활성화 → NF-κB → TNF-α·IL-6·IL-12 분비; 문맥혈 T림프구(CD4+ Th17·CD8+ CTL·NKT) + CCL25/CCR9·CCL28/CCR10 gut-homing 축 → 담관주위 침윤; Th17(IL-17A·IL-17F·IL-21) → 담관세포(cholangiocyte) 손상 + CXCL10/IP-10 → 추가 T세포 모집; NK세포 TRAIL 매개 담관세포 세포사; 담관세포 노화(senescence): N-RAS 활성화 → p21/p16↑ → SASP(TGF-β1·PDGF-BB·ROS) 분비 → 문맥 섬유아세포(portal fibroblast)·HSC 활성화 → α-SMA+·콜라겐 I/III 침착; LOXL2 → 콜라겐 가교결합 → 양파껍질형 담관주위 섬유화 → 담관 협착·담즙 정체; 담관 보호 장벽: AE2/CFTR → HCO₃⁻ 우산 형성(glycocalyx 보호) → 손상 시 소수성 담즙산(DCA) 직접 독성; FXR(NR1H4) 조절 장애: FXR↓ → CYP7A1↑(담즙산 과다 합성) + BSEP/MDR3↓(담즙 분비 불량) + FGF19↓ → 담즙 정체 심화; 임상: 담즙 정체(ALP↑·GGT↑)·담관 협착·우상복부 통증·황달·피로·소양감; IBD 동반(UC 70%): 장벽 파괴 가속; 합병증: 세균성 담관염·담관암(CCA; 연간 위험 1.5%·10-20년 누적 10-20%) → FGFR2 융합·IDH1/2·KRAS·TP53 돌연변이 → 조기 사망; 말기: 담즙성 간경변→문맥 고혈압(HVPG↑)→식도정맥류·복수·자발성 복막염·간신증후군; 치료 PK/PD: UDCA 15 mg/kg/d(담즙산 소수성↓·ALP 17-21%↓; F=50%·t½≈3.5h) + OCA 10-25 mg/d(FXR 효능제 IC50=0.1 μmol/L → CYP7A1 억제·BSEP↑·ALP 유의하게↓; F=60%) + norUDCA(담도내 HCO₃⁻ 분비↑ → 보호막 강화) + 베자피브레이트 400 mg/d(PPARα → FGF21·↓TGF-β → 항섬유화·ALP↓24%) + 심투주맙(anti-LOXL2 → 콜라겐 가교↓) + 베돌리주맙(anti-α4β7 → 장-간 T세포 귀소↓); 24-CMT mrgsolve ODE(UDCA/OCA/BEZ PK 7구획 + LPS·장벽·FXR·담즙산풀·소수성지수·IL-17A·TNFa·IL-6·Treg·담관세포건강·노화·HSC·Col1a1·LOXL2·ALP·빌리루빈·간경직도·문맥압·CCA위험 17구획); 5 치료 시나리오(무치료·UDCA·OCA·UDCA+OCA·베자피브레이트); 보정: Lindor 2009(NEJM UDCA 고용량 부작용)·Fickert 2017(JH norUDCA Phase2)·Nevens 2016(NEJM OCA PBC 데이터)·Barry 2019(Hepatology 심투주맙)·Alvarado-Tapias 2021(CGH 베자피브레이트) | [![PSC](primary-sclerosing-cholangitis/psc_qsp_model.png)](primary-sclerosing-cholangitis/psc_qsp_model.svg) | [R](primary-sclerosing-cholangitis/psc_mrgsolve_model.R) | [refs](primary-sclerosing-cholangitis/psc_references.md) | [Shiny](primary-sclerosing-cholangitis/psc_shiny_app.R) |
+
+---
+
+## Primary Sclerosing Cholangitis — 원발성 경화성 담관염 {#primary-sclerosing-cholangitis}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`primary-sclerosing-cholangitis/`](primary-sclerosing-cholangitis/)
+
+[![PSC QSP Map](primary-sclerosing-cholangitis/psc_qsp_model.png)](primary-sclerosing-cholangitis/psc_qsp_model.svg)
+
+원발성 경화성 담관염(Primary Sclerosing Cholangitis, PSC)은 간내외 담관 전반에 걸쳐 만성 염증과 섬유화가 진행되는 희귀 담즙 정체성 간질환입니다. 중앙 이식 비의존 생존기간은 진단 후 12-21년이며, 담관암(CCA) 평생 위험이 10-20%에 달합니다.
+
+### 핵심 병인 기전
+
+**PSC의 병태생리는 5가지 핵심 축으로 구성됩니다:**
+
+1. **장-간 축 (Gut-Liver Axis)**: 장내 미생물 불균형(Fusobacterium↑·Akkermansia↓) → 2차 담즙산(DCA/LCA) 증가 + 장 누출 → LPS 문맥혈 유입 → Kupffer세포 TLR4 → NF-κB → 전염증성 사이토카인
+
+2. **T세포 매개 담관 손상**: CD4+ Th17(IL-17A↑)·CD8+ CTL·NKT 세포 담관 주위 침윤 → TRAIL 매개 담관세포 세포사 + IL-17A → CXC 케모카인 피드백
+
+3. **담관세포 노화 (Cholangiocyte Senescence)**: N-RAS 활성화 → p21/p16↑ → SASP(TGF-β1·PDGF-BB·ROS) → 문맥 섬유아세포·HSC 활성화
+
+4. **FXR 신호 장애**: FXR 활성↓ → CYP7A1↑(담즙산 과합성) + BSEP/MDR3↓(담즙 배출 불량) → 담즙 정체·소수성 담즙산 독성
+
+5. **콜라겐 가교결합 (LOXL2)**: 활성화 HSC/문맥 섬유아세포 → 콜라겐 I/III 침착 → LOXL2 → 양파껍질형 담관주위 섬유화 → 담관 협착 → 담즙성 간경변
+
+### QSP 모델 구조
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 130+ 노드, 10개 서브그래프 클러스터: 약물 PK · 장-간 축&미생물 · 담즙산/FXR 신호 · 담관세포 생물학 · 간 면역세포 · 간 섬유화 · 문맥 고혈압 · 담관암 위험 · 간 합성기능/바이오마커 · 임상 종말점 |
+| mrgsolve ODE | 24 구획: 약물 PK 8구획(UDCA plasma/gut/bile·OCA plasma/gut/bile·BEZ·norUDCA) + 질환 PD 16구획(LPS·장벽·FXR·담즙산풀·소수성지수·IL-17A·TNFa·IL-6·Treg·담관세포건강·노화·HSC·Col1a1·LOXL2·ALP·빌리루빈·간경직도·문맥압·CCA 위험) |
+| Shiny 앱 | 8 탭: 환자 프로파일 · 약동학 · 담즙산/FXR 신호 · 면역 동태 · 섬유화/바이오마커 · 치료 성과 · CCA 위험/바이오마커 · 용량-반응 분석 |
+| 참고문헌 | 45개 PubMed 링크, 10개 주제 섹션 |
+
+### 5가지 치료 시나리오
+
+| # | 시나리오 | 주요 약물 | 근거 |
+|---|---------|---------|------|
+| 1 | 무치료 자연 경과 | — | 자연 경과 기준선 |
+| 2 | UDCA 15 mg/kg/day | 표준 담즙산 치료 | Lindor 2009 (Hepatology) |
+| 3 | OCA 10 mg/day | FXR 효능제 | Nevens 2016 (NEJM PBC data) |
+| 4 | UDCA + OCA 병용 | 이중 작용 | Trauner 2019 (Lancet GH) |
+| 5 | 베자피브레이트 400 mg/day | PPARα → 항섬유화 | Alvarado-Tapias 2021 (CGH) |
+
+### 핵심 파라미터 및 임상시험 보정
+
+| 임상시험/논문 | 결과 | 모델 보정 파라미터 |
+|---------|------|-----------------|
+| Lindor 2009 (*Hepatology* 50:808) | 고용량 UDCA(28–30 mg/kg) 해로움; 표준 15 mg/kg ALP ↓17–21% | UDCA_ALP_eff EC50=5 AU |
+| Fickert 2017 (*J Hepatol* 67:549) | norUDCA 300 mg Phase 2: ALP ↓12%, 담관 보호 | norUDCA → HCO₃⁻ 분비 ↑ 모델 |
+| Nevens 2016 (*NEJM* 375:631) | OCA 10 mg: ALP 유의하게↓ (PBC), FXR 효능 확인 | IC50_OCA_FXR=0.10 μmol/L |
+| Barry 2019 (*Hepatology* 69:2321) | 심투주맙 anti-LOXL2: PSC Phase 2 안전성·효능 탐색 | SIMTU_LOXL2=0.70 (70% 억제) |
+| Alvarado-Tapias 2021 (*CGH* 19:2335) | 베자피브레이트 400 mg: ALP ↓24%, 안전성 양호 | BEZ_ALP_eff EC50=10 mg |
+| Sabino 2016 (*Gut* 65:1681) | 미생물 불균형: Fusobacterium↑, 다양성↓ | k_LPS_prod·LPS_max 파라미터 |
+| Tabibian 2014 (*Hepatology* 59:2263) | 담관세포 노화: N-RAS, p21/p16 활성, 30–40% 세포 | Senescence ODE 파라미터 |
+| Boonstra 2013 (*Hepatology* 58:2045) | CCA 연간 발생 1.5%, 10년 누적 10–15% | k_CCA_chol·k_CCA_senesc |
+
+### 임상 종말점
+
+| 종말점 | 정의 | 모델 변수 |
+|--------|------|---------|
+| ALP (IU/L) | 1차 PSC 치료 반응 지표 (목표: <1.5× ULN = 225 IU/L) | `ALP` |
+| 총 빌리루빈 (mg/dL) | 담즙 정체 중증도 | `Bilirubin` |
+| 간경직도 (kPa) | FibroScan·MRE 측정; F2 임계값 ≈9.5 kPa | `Fibroscan` |
+| 문맥압 (mmHg) | HVPG >12 mmHg = 정맥류 위험 | `PortalPressure` |
+| 콜라겐 지수 | 섬유화 부담 정량 (AU) | `Col1a1` |
+| LOXL2 활성 | 콜라겐 가교결합 효소 (AU) | `LOXL2` |
+| CCA 위험 지수 | 누적 위험 (0–1) | `CCA_risk` |
+| 이식 비의존 생존율 | Mayo 점수 기반 | (Mayo_score 파라미터 세트) |
+
+### 파일 목록
+
+```
+primary-sclerosing-cholangitis/
+├── psc_qsp_model.dot         # Graphviz 기계론적 지도 (130+ 노드, 10 클러스터)
+├── psc_qsp_model.svg         # SVG 벡터 이미지
+├── psc_qsp_model.png         # PNG 이미지 (150 dpi)
+├── psc_mrgsolve_model.R      # mrgsolve ODE 모델 (24 구획, 5 치료 시나리오)
+├── psc_shiny_app.R           # Shiny 대시보드 (8 탭, plotly 인터랙티브)
+└── psc_references.md         # 참고문헌 45개 (PubMed 링크, 10 섹션)
+```
