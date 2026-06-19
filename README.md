@@ -5779,6 +5779,7 @@ autoimmune-pancreatitis/
 ```
 
 | 2026-06-19 | [**Mixed Connective Tissue Disease — MCTD (혼합결합조직병)**](#mctd) | 자가면역질환 / 중복 증후군 | 혼합결합조직병(MCTD): HLA-DR4/DR1·STAT4·IRF5 유전 소인 + EBV·파보바이러스 감염 → U1-snRNP(70K·A·C 단백) 세포자멸사 노출·2차 괴사 → HMGB1·DAMP 방출 → pDC TLR7/8 활성화 → IFN-α 폭발(IFN 시그니처 ISG15·MX1·OAS1) → mDC MHC-II 항원 제시 → CD4+ Th1/Th2/Th17/Tfh 분극화 + CD8+ CTL; B세포 GC 반응·AID 효소 → IgG1/IgG3 항-U1-RNP 자가항체(MCTD 표지인자, 100–1000 AU/mL); 장기 침범 3축: ①SSc 중복: 내피세포 손상 → ET-1↑·NO↓·PGI2↓ → 레이노 현상·손가락 부종; 폐동맥 평활근세포 BMPR2↓·PDGF↑ → 폐동맥 고혈압(PAH, PVR↑·RVSP↑) + TGF-β·IL-13 → 폐섬유아세포 → ILD(FVC↓·DLCO↓) ②PM 중복: CD8+ T세포 근육 침윤·IFN-γ → MHC-I↑ → 근섬유 세포독성 → CK↑(200–5000 U/L) ③SLE 중복: 면역복합체 보체(C3·C4↓)·막성 GN·저혈소판·AIHA; 치료 PK/PD: HCQ(400 mg/day, F=79%, t½=40–56일, WBC 농도 2000:1, TLR7/8 IC50=0.8 μg/mL) + MMF→MPA(t½=17h, EHC 30%, IMPDH 억제) + Prednisolone(t½=2–4h, NF-κB/AP-1 억제) + Rituximab(1000 mg×2, TMDD CD20, t½=22일, B세포 99% 고갈) + Bosentan ERA(125 mg BID, F=50%, t½=5h, ETA 차단, PVR↓); 35-CMT mrgsolve ODE(5 치료 시나리오); MCTD 활동 지수(Yamanaka) 복합 스코어; 보정: Yaniv 2016·Hajas 2013·Ruaro 2021·Channick 2001 BREATHE-1·Peng 2020(RTX PK) | [![MCTD](mixed-connective-tissue-disease/mctd_qsp_model.png)](mixed-connective-tissue-disease/mctd_qsp_model.svg) | [R](mixed-connective-tissue-disease/mctd_mrgsolve_model.R) | [refs](mixed-connective-tissue-disease/mctd_references.md) | [Shiny](mixed-connective-tissue-disease/mctd_shiny_app.R) |
+| 2026-06-19 | [**Bronchiectasis — BEX (기관지 확장증)**](#bronchiectasis) | 만성질환 / 호흡기 | 기관지 확장증(비CF): 감염 후 기도 손상(TB·백일해·소아폐렴)·PCD(섬유모세포 이상·CBF=0)·면역결핍(CVID·IgG 부족)·ABPA·GERD 등 유발인자 → 점액섬모청소(MCC) 기능 부전(ASL 고갈·점도↑) → Pseudomonas aeruginosa/H. influenzae 지속 집락 → 바이오필름 형성(Alginate/Pel/Psl·쿼럼 센싱 las/rhl/pqs) + 항생제 내성; LPS·Flagellin → TLR4/5 → NF-κB → IL-8(CXCL8)↑·TNF-α↑ → 호중구 대량 동원 → 호중구탄력소(NE)·MPO·MMP-8/9·ROS 방출; NE > α1-AT/SLPI(Protease–Antiprotease 불균형) → 기도 탄성조직·연골·섬유결합소 분해 → 기도 비가역적 확장(CORE 병변) + MCC 추가 손상 → 재감염 가속(Cole 악순환 완성); NLRP3 인플라마좀 → IL-1β·IL-18 방출; Th17 → IL-17A → IL-8 증폭; CD4+ Th17/CD8+ CTL 침윤; NETs → eDNA → 바이오필름 안정화; TGF-β → 폐포주위 섬유화·기도벽 비후; 임상: FEV1↓(폐쇄성), 흡배 고름 가래, 반복 급성악화(연간 ≥3회=중증), 객혈, QOL↓(SGRQ·QOL-B); BSI 점수(0-26): 경증 0–4/중등 5–8/중증 ≥9; 치료 PK/PD: 아지트로마이신(250 mg 3×/wk 또는 500 mg QD; F=37%·Vd=31 L/kg·t½=68h·중성구 내 100× 혈장 농도·IL-8 Emax 50%↓·쿼럼센싱 억제; EMBRACE Lancet 2012: 급성악화율 RR 0.38) + 흡입 토브라마이신(TIP 300 mg BID 28일on/off; 폐 >1000 µg/mL·전신흡수 10%; MIC PA/Emax 85%; RESPIRE 시험) + 시프로플록사신(500 mg BID 경구; F=70%·ELF 비율 0.60·AUC/MIC≥125 목표; PA 살균) + 도르나제알파(rhDNase 2.5 mg 흡입; eDNA 분해→점도↓→MCC↑; HINT 시험) + CFTR 조절제(CF형: ETI 3제요법; 엘렉사카프토르t½=19h·테자카프토르t½=15h·이바카프토르t½=12h → CFTR 표면발현·활성↑→ ASL 회복·MCC 정상화); 신규: 브렌소카팁(DPP-1 억제제→NE 전구체 차단; ASPEN Phase3 NEJM 2024) + 알벨레스타트(NE 직접 억제); 23-CMT mrgsolve ODE(AZM 3구획·흡입Tobra 2구획·Cipro 2구획·DNase 1구획 + BACT·BIOFILM·NEUT·IL8·NE·MCC·AD·EXAC 8구획); 6 치료 시나리오(무치료·AZM 유지·흡입TIP 사이클·AZM+TIP·AZM+TIP+DNase·급성악화 Cipro); 보정: EMBRACE 2012(AZM exac RR 0.38)·BLESS 2013(에리트로마이신)·AZISAST 2013·RESPIRE 2014·Chalmers 2017(NE↑→악화·FEV1↓)·ASPEN 2024(Brensocatib); BSI·FACED 예후점수·FEV1·sputum IL-8·NE·24h 가래량·균배양·HRCT 구조 변화 임상 종말점 | [![BEX](bronchiectasis/bex_qsp_model.png)](bronchiectasis/bex_qsp_model.svg) | [R](bronchiectasis/bex_mrgsolve_model.R) | [refs](bronchiectasis/bex_references.md) | [Shiny](bronchiectasis/bex_shiny_app.R) |
 
 ---
 
@@ -5912,4 +5913,83 @@ abdominal-aortic-aneurysm/
 ├── aaa_mrgsolve_model.R   # mrgsolve ODE 모델 (20 구획, 6 치료 시나리오)
 ├── aaa_shiny_app.R        # Shiny 대시보드 (6 탭, plotly 인터랙티브)
 └── aaa_references.md      # 참고문헌 50개 (PubMed 링크, 14 섹션)
+```
+
+---
+
+## Bronchiectasis — 기관지 확장증 (BEX) {#bronchiectasis}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`bronchiectasis/`](bronchiectasis/)
+
+[![BEX QSP Map](bronchiectasis/bex_qsp_model.png)](bronchiectasis/bex_qsp_model.svg)
+
+### 질환 개요 (Disease Overview)
+
+기관지 확장증은 기도의 비가역적 확장과 구조 손상이 특징인 만성 화농성 폐질환으로, **감염-염증-구조 손상의 악순환(Cole's Vicious Cycle)**을 통해 진행합니다. 비CF 기관지 확장증은 전 세계적으로 유병률이 증가하는 추세이며, 중증 환자(BSI ≥9)는 연간 사망률이 15–20%에 달합니다.
+
+### 병태생리 핵심 경로
+
+| 경로 | 핵심 분자 | 결과 |
+|------|----------|------|
+| MCC 기능 부전 | ASL 고갈, CFTR 이상, 섬모 기능 장애 | 점액 정체 → 균 집락 |
+| 세균 집락 | PA/HI 바이오필름, 쿼럼 센싱 | 지속 감염, 항생제 내성 |
+| 호중구 동원 | IL-8, LTB4, C5a | 산화 폭발, NE·MMP 방출 |
+| Protease-Antiprotease 불균형 | NE > α1-AT, MMP9 > TIMP | 기도 탄성조직 파괴 |
+| 구조 리모델링 | TGF-β, 콜라겐 침착 | 기도 확장, 벽 비후 |
+
+### 약물 PK/PD (Drug PK/PD Mechanisms)
+
+| 약물 | 기전 | 주요 파라미터 | 임상 근거 |
+|------|------|--------------|-----------|
+| **아지트로마이신** | NF-κB↓·IL-8↓·쿼럼센싱↓·바이오필름 억제 (비항균 항염) | Vd=31 L/kg, t½=68h, F=37%, ELF=10× | EMBRACE (Lancet 2012), AZISAST (JAMA 2013) |
+| **흡입 토브라마이신** | PA 직접 살균(Emax 85%), 전신 흡수 최소 | 폐 ELF >1000 µg/mL, 전신 10% | RESPIRE (Eur Respir J 2014) |
+| **시프로플록사신** | AUC/MIC≥125(농도 의존형), PA 살균 | F=70%, Vd=2.5 L/kg, ELF=0.6× | Multiple RCTs |
+| **도르나제알파** | eDNA 소화 → 점도↓ → MCC↑ | 폐 국소, Kd=0.3 h⁻¹ | HINT (Respir Med 2011) |
+| **브렌소카팁** | DPP-1 억제 → NE 전구체 차단 | Phase 3 완료 | ASPEN (NEJM 2024) |
+
+### mrgsolve ODE 모델 구조
+
+- **총 23개 ODE 구획** (PK 8개 + PD 8개 + 연계 상태 7개)
+  - AZM: GUT → CENTRAL → PERIPHERAL (3구획)
+  - 흡입 Tobramycin: LUNG → SYSTEMIC (2구획)
+  - Ciprofloxacin: GUT → PLASMA (2구획)
+  - Dornase Alfa: LUNG (1구획)
+  - 질환 상태: BACT · BIOFILM · NEUT · IL8 · NE · MCC · AD · EXAC (8구획)
+- **6가지 치료 시나리오**:
+  1. 무치료 (자연 경과 — 악순환 진행)
+  2. 아지트로마이신 250 mg 3×/week (EMBRACE 프로토콜)
+  3. 흡입 토브라마이신 300 mg BID 28일 on/off 사이클
+  4. 아지트로마이신 + 흡입 토브라마이신 병용
+  5. AZM + TIP + 도르나제알파 (집중 유지요법)
+  6. 급성악화 치료: 시프로플록사신 500 mg BID × 14일
+
+### Shiny 앱 탭 구성
+
+| # | 탭 | 주요 내용 |
+|---|---|---------|
+| 1 | Patient Profile | BSI 중증도, 기저 상태, 악순환 요약 |
+| 2 | Drug PK | AZM·TIP·Cipro·DNase 폐/혈장 농도 시뮬레이션 |
+| 3 | PD Biomarkers | IL-8·NE·세균 부하·바이오필름·MCC·호중구 |
+| 4 | Lung Function | FEV1 추세, 기도 손상 지수, 구조 변화 |
+| 5 | Scenario Comparison | 6개 치료 시나리오 직접 비교 |
+| 6 | Exacerbation & Prognosis | 급성악화 역학, 5년 FEV1 궤적, 예후 요약 |
+
+### 핵심 임상시험 (Key Clinical Trials)
+
+- **EMBRACE** (Wong 2012, *Lancet*): AZM 250mg 3×/wk → 급성악화율 RR 0.38 (0.26–0.54), 가래량 47%↓
+- **AZISAST** (Altenburg 2013, *JAMA*): AZM 250mg/day → 비화농성 악화 빈도 의미있게 감소
+- **BLESS** (Serisier 2013, *JAMA*): 에리트로마이신 400mg BID → 악화 빈도 감소, PA 집락 주의
+- **RESPIRE 1/2** (Haworth/Barker 2014): 흡입 시프로플록사신 DPI → PA 세균 부하↓, 일부 악화 감소
+- **ASPEN** (Chalmers 2024, *NEJM*): 브렌소카팁(DPP-1 억제제) → NE 억제·악화율 유의하게 감소
+
+### 파일 목록
+
+```
+bronchiectasis/
+├── bex_qsp_model.dot      # Graphviz 기계론적 지도 (120+ 노드, 15 클러스터)
+├── bex_qsp_model.svg      # SVG 벡터 이미지
+├── bex_qsp_model.png      # PNG 이미지 (150 dpi)
+├── bex_mrgsolve_model.R   # mrgsolve ODE 모델 (23 구획, 6 치료 시나리오)
+├── bex_shiny_app.R        # Shiny 대시보드 (6 탭, plotly 인터랙티브)
+└── bex_references.md      # 참고문헌 51개 (PubMed 링크, 12 섹션)
 ```
