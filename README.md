@@ -107,7 +107,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 
 | Date | Disease | Category | Mechanism Summary | Map | Model | Refs | App |
 |------|---------|----------|-------------------|-----|-------|------|-----|
-| 2026-06-16 | [**Rheumatoid Arthritis**](#rheumatoid-arthritis) | 자가면역질환 | T/B cell–driven synovitis; TNF-α / IL-6 / JAK-STAT; bone erosion (RANKL/OPG); cDMARDs + biologics (TNFi, IL-6Ri, JAKi) | [![RA](rheumatoid-arthritis/ra_qsp.png)](rheumatoid-arthritis/ra_qsp.svg) | [R](rheumatoid-arthritis/ra_model.R) | [refs](rheumatoid-arthritis/references.md) | [Shiny](rheumatoid-arthritis/shiny_app/app.R) |
+| 2026-06-16 | [**Rheumatoid Arthritis**](#rheumatoid-arthritis) | 자가면역질환 | T/B cell–driven synovitis; TNF-α / IL-6 / JAK-STAT; bone erosion (RANKL/OPG); cDMARDs + biologics (TNFi, IL-6Ri, JAKi) | [![RA](rheumatoid-arthritis/ra_qsp_model.png)](rheumatoid-arthritis/ra_qsp_model.svg) | [R](rheumatoid-arthritis/ra_mrgsolve_model.R) | [refs](rheumatoid-arthritis/ra_references.md) | [Shiny](rheumatoid-arthritis/ra_shiny_app.R) |
 | 2026-06-16 | [**Pulmonary Arterial Hypertension**](#pulmonary-arterial-hypertension-pah) | 만성질환 / 폐혈관 | EC dysfunction → ET-1↑/NO↓/PGI₂↓ → vasoconstriction + PASMC remodelling; BMPR2 loss; RV failure; ERA + PDE5i + PGI₂ | [![PAH](pulmonary-arterial-hypertension/pah_qsp_model.png)](pulmonary-arterial-hypertension/pah_qsp_model.svg) | [R](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) | [refs](pulmonary-arterial-hypertension/pah_references.md) | [Shiny](pulmonary-arterial-hypertension/pah_shiny_app.R) |
 | 2026-06-16 | [**Systemic Lupus Erythematosus**](#systemic-lupus-erythematosus-sle) | 자가면역질환 | NETs/cGAS-STING/TLR7/9 → pDC → IFN-α → BAFF↑ → B cell hyperactivation → anti-dsDNA → IC → complement consumption + lupus nephritis; HCQ + belimumab + anifrolumab + MMF + voclosporin | [![SLE](systemic-lupus-erythematosus/sle_qsp.png)](systemic-lupus-erythematosus/sle_qsp.svg) | [R](systemic-lupus-erythematosus/sle_model.R) | [refs](systemic-lupus-erythematosus/sle_references.md) | [Shiny](systemic-lupus-erythematosus/shiny_app/app.R) |
 | 2026-06-16 | [**IgA Nephropathy**](#iga-nephropathy-igan) | 자가면역질환 / 신장 | Four-hit: Gd-IgA1↑ (C1GalT1/Cosmc↓) → anti-Gd-IgA1 IgG → IC mesangial deposition → complement AP + MAC → podocyte injury + TIF; Budesonide TRF / Sparsentan / Iptacopan / Sibeprenlimab | [![IgAN](iga-nephropathy/igan_qsp_model.png)](iga-nephropathy/igan_qsp_model.svg) | [R](iga-nephropathy/igan_mrgsolve_model.R) | [refs](iga-nephropathy/igan_references.md) | [Shiny](iga-nephropathy/igan_shiny_app.R) |
@@ -203,7 +203,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 
 **Mechanistic Map Preview:**
 
-[![RA QSP Map](rheumatoid-arthritis/ra_qsp.png)](rheumatoid-arthritis/ra_qsp.svg)
+[![RA QSP Map](rheumatoid-arthritis/ra_qsp_model.png)](rheumatoid-arthritis/ra_qsp_model.svg)
 
 **mrgsolve Model Summary:**
 
@@ -223,12 +223,12 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 
 | File | Description |
 |------|-------------|
-| [`ra_qsp.dot`](rheumatoid-arthritis/ra_qsp.dot) | Graphviz source (fdp layout, 130+ nodes) |
-| [`ra_qsp.svg`](rheumatoid-arthritis/ra_qsp.svg) | Vector mechanistic map (511 KB) |
-| [`ra_qsp.png`](rheumatoid-arthritis/ra_qsp.png) | Raster mechanistic map (3.3 MB, 150 dpi) |
-| [`references.md`](rheumatoid-arthritis/references.md) | 66 annotated references (PubMed links) |
-| [`ra_model.R`](rheumatoid-arthritis/ra_model.R) | mrgsolve ODE model + 4 dosing scenarios |
-| [`shiny_app/app.R`](rheumatoid-arthritis/shiny_app/app.R) | Interactive Shiny simulator |
+| [`ra_qsp.dot`](rheumatoid-arthritis/ra_qsp_model.dot) | Graphviz source (fdp layout, 130+ nodes) |
+| [`ra_qsp.svg`](rheumatoid-arthritis/ra_qsp_model.svg) | Vector mechanistic map (511 KB) |
+| [`ra_qsp.png`](rheumatoid-arthritis/ra_qsp_model.png) | Raster mechanistic map (3.3 MB, 150 dpi) |
+| [`references.md`](rheumatoid-arthritis/ra_references.md) | 66 annotated references (PubMed links) |
+| [`ra_model.R`](rheumatoid-arthritis/ra_mrgsolve_model.R) | mrgsolve ODE model + 4 dosing scenarios |
+| [`shiny_app/app.R`](rheumatoid-arthritis/ra_shiny_app.R) | Interactive Shiny simulator |
 
 ---
 
