@@ -28,7 +28,7 @@ KA_RSM=0.8, CL_RSM=4.5, V1_RSM=25, Q_RSM=8.0, V2_RSM=60,
 FTUP_RSM=0.70, EC50_RSM=0.08, EMAX_RSM=0.85,
 KA_OCA=1.2, CL_OCA=15, V1_OCA=20, EC50_OCA=0.05, EMAX_OCA=0.75,
 KA_SEM=0.0045, CL_SEM=0.034, V1_SEM=3.2, EC50_SEM=0.025, EMAX_SEM=0.80,
-KA_EMP=1.5, CL_EMP=10, V1_EMP=70, EC50_EMP=0.15, EMAX_EMP=0.90,
+KA_EMP=1.5, CL_EMP=10, V1_EMP=70, EC50_EMP=0.015, EMAX_EMP=0.90, WEMP_LF=0.47,
 // SS-consistent turnover (kin=KOUT*baseline) + fold-change drivers; see model file / design brief
 KOUT_LF=0.003, LF0=0.20, WDNL=0.4, WUPT=0.6,
 DNL0=1.0, KDNL_IR=0.4,
@@ -93,10 +93,10 @@ IR_ss=(IR_ss<0.5)?0.5:IR_ss;
 dxdt_INS_RES=KOUT_IR*(IR_ss-INS_RES);
 
 // Liver fat: turnover kin=KOUT_LF*LF0; influx = DNL (normalized) + adipose-NEFA (weight)
-double DNL_n=DNL0*(1+KDNL_IR*(INS_RES/IR0-1))*(1-0.4*E_RSM-0.25*E_OCA);
+double DNL_n=DNL0*(1+KDNL_IR*(INS_RES/IR0-1))*(1-0.30*E_RSM-0.25*E_OCA);  // RSM 0.4->0.30 recal (MAESTRO -33.9%)
 double WT_n=BODY_WT/WT0;
 double LF_kin=KOUT_LF*LF0*(WDNL*DNL_n+WUPT*WT_n);
-double LF_efflux=KOUT_LF*(1+0.6*E_RSM)*(1+0.15*E_SEM);
+double LF_efflux=KOUT_LF*(1+0.48*E_RSM)*(1+0.15*E_SEM)*(1+WEMP_LF*E_EMP);  // RSM 0.6->0.48; +empa term (E-LIFT)
 dxdt_LIVER_FAT=LF_kin-LF_efflux*LIVER_FAT;
 
 // Fold-change lipotoxicity (=1 at baseline); SS-consistent inflammation/fibrosis pools

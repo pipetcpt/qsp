@@ -73,8 +73,39 @@ Canonical: `dxdt_X = KOUT_X·X0·(1 + Σ gᵢ·(driverᵢ/driver0ᵢ − 1))/INH
 - Angeli D, Ferrell JE, Sontag ED (2004). Positive-feedback bistability. *PNAS* 101:1822–1827.
 - Goentoro L, et al. (2009). Fold-change detection. *Mol Cell* 36:894–899.
 - Mager DE, Wyska E, Jusko WJ (2003). Mechanism-based PD models. *Drug Metab Dispos* 31:510–518.
-- Maldonado EM, et al. (2022). QSP model of liver lipid metabolism for NAFLD. *CPT Pharmacometrics Syst Pharmacol* (PMC9343875).
+- Rieger TR, Allen RJ, Musante CJ (2022). A quantitative systems pharmacology model of liver lipid metabolism for investigation of non-alcoholic fatty liver disease. *Front Pharmacol* 13 (PMC9343875).
 - Decaris ML, et al. (2015). Turnover of hepatic collagen in humans. *PLOS ONE*.
 - Harrison SA, et al. (2023). Resmetirom MAESTRO-NAFLD-1. *Nat Med* 29:2919–2928.
-- Newsome PN, et al. (2021). Semaglutide in NASH. *N Engl J Med* 384:1113–1124.
-- Sanyal AJ, et al. (2023). Obeticholic acid, REGENERATE. *J Hepatol*.
+- Newsome PN, et al. (2021). Semaglutide in NASH (Ph2). *N Engl J Med* 384:1113–1124.
+- Sanyal AJ, et al. (2023). Obeticholic acid, REGENERATE final analysis. *J Hepatol* 79:1110–1120.
+- Sanyal AJ, et al. (2025). Semaglutide in MASH, ESSENCE Ph3. *N Engl J Med* 392:2089–2099.
+- Donnelly KL, et al. (2005). Sources of hepatic TAG in NAFLD. *J Clin Invest* 115:1343–1351.
+- Kuchay MS, et al. (2018). Empagliflozin on liver fat (E-LIFT). *Diabetes Care* 41:1801–1808.
+
+## v4 recalibration & adversarial-review notes (2026-06-19)
+
+Effect sizes are **calibrated to PLACEBO-CORRECTED (between-group) trial endpoints**, because the QSP
+placebo arm is flat by construction (kin = KOUT·X0).
+
+- **Resmetirom**: LF efflux gain 0.6→0.48 and DNL inhibition 0.4→0.30 → 100 mg monotherapy MRI-PDFF
+  **−34.0% @wk52**, matching MAESTRO-NAFLD-1 wk52 placebo-adjusted −33.9% (Harrison, Nat Med 2023, Table 3).
+  The steady-state model is flat from <wk16, so it maps to the wk52 plateau and does **not** reproduce the
+  trial's wk16 −38.6% → wk52 −33.9% within-study decline.
+- **Empagliflozin**: EC50_EMP 0.15→0.015 (10 mg was near-inert, E_EMP 0.15→0.60) + new phenomenological
+  `WEMP_LF = 0.47` hepatic-fat efflux term → monotherapy liver fat **−24.6%**, matching the E-LIFT
+  **placebo-corrected** between-group effect (~−24.7%; empa 16.2→11.3 minus control 16.4→15.5), **not** the
+  raw within-arm −30%. Single 20-wk n=50 trial anchor → treat WEMP_LF as uncertain; sensitivity-analyse.
+
+**Documented limitations (from adversarial QSP review):**
+- Empagliflozin weight (0.05·E_EMP≈3.3%) and direct HOMA-IR (0.20·E_EMP≈13%) coefficients were *not*
+  re-tuned after the EC50 change; the IR term lacks an empagliflozin-paper anchor. Revisit before reporting
+  any empagliflozin-containing scenario.
+- `WDNL = 0.4` lumps DNL (26%) + dietary (15%) per Donnelly; drug DNL-suppression also acts on the dietary
+  fraction (modest over-credit). Future: split WDNL=0.25 + constant WDIET=0.15.
+- NAS sub-scores for inflammation (ALT>40) and ballooning (TNFA>1.5×) are crude binary proxies (cap NAS at 5/8);
+  use NAS **deltas**, not absolute values.
+- OCA activity-pathway coefficients are non-trivial although REGENERATE's NASH-resolution co-primary failed
+  (final 6.5% vs 3.5%); realized OCA-monotherapy NAS shows zero net change, so it does not manifest at the
+  endpoint. OCA FXR safety liabilities (pruritus, LDL rise) are unrepresented.
+- The per-pool IDR/turnover form is a standard Dayneka/Jusko-Ko construct, **not** Rieger's mass-action
+  structure; "Rieger" is cited only as QSP precedent + steady-state-initialization rationale.

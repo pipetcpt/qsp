@@ -10,11 +10,18 @@
 ##  - ≥18 ODE compartments
 ##  - ≥5 treatment scenarios
 ##
-## Parameters calibrated from:
-##  - MAESTRO-NASH Phase 3 (Harrison et al., NEJM 2024)
-##  - REGENERATE (obeticholic acid, Friedman et al., Lancet 2023)
-##  - ESSENCE Phase 3 (semaglutide; Newsome et al., NEJM 2021)
-##  - EMPA-REG / EMPACTA (empagliflozin; Chakraborty et al., 2023)
+## Parameters INFORMED BY (effect sizes qualitatively consistent with; NOT formally fitted):
+##  - Resmetirom : MAESTRO-NASH Ph3 (Harrison SA et al., NEJM 2024;390:497-509);
+##                 MAESTRO-NAFLD-1 (Harrison SA et al., Nat Med 2023;29:2919-2928)
+##  - Obeticholic acid : REGENERATE Ph3 (Younossi ZM et al., Lancet 2019;394:2184-2196;
+##                 final analysis Sanyal AJ et al., J Hepatol 2023;79:1110-1120)
+##  - Semaglutide : Ph2 (Newsome PN et al., NEJM 2021;384:1113-1124);
+##                 ESSENCE Ph3 (Sanyal AJ et al., NEJM 2025;392:2089-2099)
+##  - Empagliflozin : E-LIFT (Kuchay MS et al., Diabetes Care 2018;41:1801-1808);
+##                 EMPA-REG OUTCOME (Zinman B et al., NEJM 2015) for CV/safety context only
+## NOTE: disease-side parameters are phenomenological — chosen for steady-state stability
+##       (kin = KOUT*baseline) and loop gain < 1, NOT individually fitted to trial data.
+##       See nafld_model_design_brief.md.
 ## ============================================================
 
 library(mrgsolve)
@@ -56,8 +63,13 @@ EMAX_SEM  = 0.80     // max weight/IR reduction
 KA_EMP    = 1.5      // (1/h)
 CL_EMP    = 10       // (L/h)
 V1_EMP    = 70       // (L)
-EC50_EMP  = 0.15     // EC50 for SGLT2 inhibition (µg/L)
+EC50_EMP  = 0.015    // EC50 SGLT2 (same conc. units as Cp_EMP) — recal: was 0.15 (10 mg gave E_EMP~0.15, near-inert)
 EMAX_EMP  = 0.90     // max glycosuric effect
+WEMP_LF   = 0.47     // empagliflozin hepatic-fat efflux gain (NEW; phenomenological surrogate for SGLT2i-
+                     // induced hepatic FAO). Calibrated to E-LIFT PLACEBO-CORRECTED (between-group) PDFF
+                     // effect ~ -24.7% (empa 16.2->11.3 minus control 16.4->15.5 = -4.0 abs), NOT the raw
+                     // within-arm -30%, because the QSP placebo arm is flat by construction. Single 20-wk
+                     // n=50 trial anchor -> treat as uncertain; sensitivity-analyse WEMP_LF.
 
 // ── Disease biology parameters ───────────────────────────
 // Every disease pool uses a steady-state-consistent turnover (indirect-response)
@@ -70,8 +82,10 @@ EMAX_EMP  = 0.90     // max glycosuric effect
 // Hepatic fat / steatosis (influx split: DNL + adipose-NEFA uptake)
 KOUT_LF   = 0.003    // liver fat turnover (1/h; t½~10 d). kin = KOUT_LF*LF0
 LF0       = 0.20     // baseline hepatic fat fraction (20%, NASH)
-WDNL      = 0.4      // fraction of fat influx from de novo lipogenesis
-WUPT      = 0.6      // fraction from adipose NEFA uptake (∝ body weight)
+WDNL      = 0.4      // fraction of fat influx from ENDOGENOUS+DIETARY (DNL 26% + diet 15% per Donnelly 2005;
+                     // lumped because both are small/IR-linked). NOTE: drug DNL-suppression also acts on the
+                     // ~15% dietary part -> modest over-credit; future: split WDNL=0.25 (DNL) + WDIET=0.15 const.
+WUPT      = 0.6      // fraction from systemic NEFA uptake (∝ body weight) — Donnelly 2005 NEFA 59%
 
 // De novo lipogenesis
 DNL0      = 1.0      // baseline DNL (relative, =1)
@@ -249,7 +263,7 @@ dxdt_INS_RES = KOUT_IR * (IR_ss - INS_RES);
 // De novo lipogenesis (normalized; DNL_n = 1 at baseline)
 // ─────────────────────────────────────────────────────────
 double DNL_n = DNL0 * (1 + KDNL_IR * (INS_RES / IR0 - 1));
-DNL_n = DNL_n * (1 - (0.4 * E_RSM + 0.25 * E_OCA));   // THRβ/FXR inhibit DNL
+DNL_n = DNL_n * (1 - (0.30 * E_RSM + 0.25 * E_OCA));  // THRβ/FXR inhibit DNL (RSM 0.4->0.30: recalibrate PDFF toward MAESTRO -34/-39%)
 
 // ─────────────────────────────────────────────────────────
 // Liver fat (turnover; kin = KOUT_LF*LF0, influx = DNL + adipose-NEFA)
@@ -257,8 +271,9 @@ DNL_n = DNL_n * (1 - (0.4 * E_RSM + 0.25 * E_OCA));   // THRβ/FXR inhibit DNL
 double WT_n      = BODY_WT / WT0;                       // adipose NEFA flux (dominant)
 double LF_kin    = KOUT_LF * LF0 * (WDNL * DNL_n + WUPT * WT_n);
 double LF_efflux = KOUT_LF
-                 * (1 + 0.6 * E_RSM)    // THRβ → FAO ↑
-                 * (1 + 0.15 * E_SEM);  // GLP-1 → hepatic fat ↓
+                 * (1 + 0.48 * E_RSM)   // THRβ → FAO ↑ (recal 0.6->0.48: model PDFF -40% -> ~-36%)
+                 * (1 + 0.15 * E_SEM)   // GLP-1 → hepatic fat ↓
+                 * (1 + WEMP_LF * E_EMP); // SGLT2i → hepatic fat ↓ (NEW; E-LIFT MRI-PDFF 16.2->11.3%)
 dxdt_LIVER_FAT = LF_kin - LF_efflux * LIVER_FAT;
 
 // ─────────────────────────────────────────────────────────
@@ -554,7 +569,7 @@ combined <- (p_lf | p_fib) / (p_alt | p_nas) / (p_homa | p_tg) / (p_tnf | p_wt) 
   plot_annotation(
     title    = "NAFLD/NASH QSP Model — Treatment Scenario Comparison",
     subtitle = "72-week simulation · Resmetirom · OCA · Semaglutide · Combination",
-    caption  = "Parameters calibrated to MAESTRO-NASH, REGENERATE, ESSENCE clinical trial data",
+    caption  = "Effect sizes qualitatively consistent with MAESTRO-NASH, REGENERATE, ESSENCE; disease parameters phenomenological (not formally fitted)",
     theme    = theme(plot.title = element_text(size = 16, face = "bold"),
                      plot.subtitle = element_text(size = 12))
   )
