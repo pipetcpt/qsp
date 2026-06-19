@@ -169,6 +169,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Overactive Bladder — OAB (과민성 방광)**](#overactive-bladder-oab) | 만성질환 / 비뇨기 | 요로상피 기계감각(PIEZO2) → ATP 과분비(P2X3/P2Y2) + urothelial ACh → C섬유/Aδ섬유 과활성(TRPV1/TRPA1/TRPM8) → DRG(S2-S4) → 척수배측각 → 척수시상로 → PAG-PMC 배뇨회로 → 구심성 신호 과활성; 방광 평활근: M3→Gq→PLC→IP3→[Ca²⁺]i→CaM→MLCK→수축(involuntary DO); β3-AR→cAMP→PKA→MLCP→이완; NGF 과발현→신경 발아(sprouting)→감각 과민; 방광 요로상피 장벽 손상→suburothelial inflammation→mast cell → PGE2/IL-6→P2X3 감작화; 치료: Antimuscarinic(Oxybutynin IR: F=6%, t½=2h, CYP3A4→NDEO 활성 t½=8h; Tolterodine ER: F=65%, t½=12h, CYP2D6→5-HM; Solifenacin: F=90%, t½=45-68h, M3>>>M1 선택; Darifenacin: M3 고선택성) + β3-AR Agonist(Mirabegron: F=32%, t½=50h, EC50=22 ng/mL, SCORPIO UUI↓48%; Vibegron: F=60%, t½=31h, VIBRATO 2019) + Combo(Solifenacin 5mg+Mirabegron 25mg, BESIDE trial: UUI↓3.23 vs Sol10 ↓2.86, EurUrol 2016) + OnaBotulinumtoxinA 100 IU 방광내주입(SNAP25 절단→ACh 분비↓+요로상피 P2X3/NGF↓, EMBARK/ROSETTA 2012 NEJM); 22-CMT mrgsolve ODE(PK 10: OXY/TOL/SOL/MIR/SOL2 각 GUT+CENT; PD 12: RO_M3·RO_B3·DetAct·BladCap·VoidFreq·Urgency·UUI·NGF·ATP_bm·ContScore·Nocturia·OABq); 6 치료 시나리오(무치료→Oxybutynin IR TID→Tolterodine ER QD→Solifenacin 10mg QD→Mirabegron 50mg QD→Sol5+Mir25 병용); 보정: OBJECT(2001)·ACET/STAR(Chapple 2005)·SCORPIO(2013)·BESIDE(Drake 2016)·EMBARK(2017) | [![OAB](overactive-bladder/oab_qsp_model.png)](overactive-bladder/oab_qsp_model.svg) | [R](overactive-bladder/oab_mrgsolve_model.R) | [refs](overactive-bladder/oab_references.md) | [Shiny](overactive-bladder/oab_shiny_app.R) |
 | 2026-06-18 | [**Gastroesophageal Reflux Disease — GERD (위식도 역류질환)**](#gerd) | 만성질환 / 소화기 | 위식도 역류질환: 하부식도 괄약근(LES) 일과성 이완(TLESR, 미주신경 GABA-B 경로, 6–8회/h GERD vs 4회/h 정상) → 위산·담즙 역류 → 식도 점막 접촉; H⁺/K⁺-ATPase(벽세포 활성 펌프 30units) Histamine/Gastrin/ACh 자극 → cAMP/PKA·IP3/Ca²⁺ 경로 → 산 분비(3.5–12 mmol/h); 식도 점막 방어: TJ단백질(Claudin/Occludin/E-Cad)·점액·중탄산염·EGF·PGE2; 산 노출 시 NF-κB → IL-8/IL-1β/TNF-α → 호산구/비만세포/중성구 침윤; TRPV1/ASIC 이온채널 → C섬유 → DRG → 흉통/역류 증상; 장기: 바렛식도 CDX2 전사 → 장형 화생 → HGD → EAC; 치료 PK/PD: PPI(오메프라졸 CYP2C19 의존, EM t½ 1.5h, covalent H+K-ATPase Cys813 결합, IC50 0.15 mg/L, Hill=1.5, 2–5일 완전효과) vs P-CAB(보노프라잔 이온결합·비산활성화 필요, t½ 7–9h, 야간 산 억제 우수, VOYAGE 2016·PHALCON-EE 2023) vs H2RA(파모티딘 경쟁길항, 72h 내 내성) vs 도메페리돈(5-HT4/D2→LES압↑5 mmHg·위배출↑); 20-CMT mrgsolve ODE(PPI/H2RA/PCAB/PROK PK 8개; PUMP_INACT/ACT/INH 펌프풀; ACID_RATE·GAS_pH·AET·MUC_DMG·MUC_HEAL·SYM_SCORE·BE_RISK); 6 치료시나리오(무치료·Ome20 QD·Eso40 QD·Vono20 QD·Famo40 BID·Eso40+돔페리돈TID); Lyon 2.0 AET 6% 기준 보정(Gyawali 2018)·Ashida 2016(VOYAGE)·Laine 2023(PHALCON-EE)·Furuta 2010(CYP2C19 PM vs EM AUC 5×) | [![GERD](gerd/gerd_qsp_model.png)](gerd/gerd_qsp_model.svg) | [R](gerd/gerd_mrgsolve_model.R) | [refs](gerd/gerd_references.md) | [Shiny](gerd/gerd_shiny_app.R) |
 | 2026-06-18 | [**Autoimmune Encephalitis — AIE (자가면역 뇌염)**](#autoimmune-encephalitis-aie) | 자가면역질환 / 신경계 | Anti-NMDAR 뇌염: 난소 기형종(NMDAR 발현) 또는 HSV 감염 후 분자 모방 → NMDAR 펩타이드 항원 → APC/MHC-II → CD4+ Tfh 활성 → GC 반응(AID/SHM/ClassSwitch) → 형질모세포/LLPC → Anti-GluN1 IgG1/IgG4 → BBB 투과(MMP-9/VEGF/IL-6→TJ 분해→BBB_perm↑) → CSF IgG 상승; CSF IgG가 NR1 에피토프(aa346–375)에 결합 → NMDAR bivalent crosslinking → Clathrin-매개 내재화↑ → NMDAR 표면 밀도↓(70% 소실 가능); NMDAR↓ → PV 인터뉴런 저기능(NMDAR 의존성) → GABAergic 억제↓ → 시냅스 글루타메이트↑↑(E/I 불균형) + 도파민 탈억제 → 정신증/환각; 해마 CA1 LTP 손상 → 기억 상실; 기저핵 NMDAR↓ → 구강안면 이상운동; 시상 과활성 → 수면 장애; 소뇌/자율신경 → 체온/혈압 조절 장애; 치료 PK/PD: IVIG 2g/kg×5d(FcRn 포화→자가항체 이화 4.5배↑, Vc=3.7L, t½=21d→가속이화로 5-8d) + IV 메틸프레드니솔론 1g×5d(GR Transrepression→NF-κB/AP-1↓→IL-6/TNF↓+BBB 안정화; EC50=0.25mcg/mL) + 혈장교환(IgG 60-80%/회 직접 제거×5) + Rituximab 375mg/m²×4(Anti-CD20 ADCC/CDC→GCB/Memory B 고갈>99%; EC50=8mcg/mL, t½=21d) + Cyclophosphamide 750mg/m²×6(CYP2B6→4-OH-CPX DNA 알킬화→LLPC/GCB 세포사; eff_CPX=92%) + Tocilizumab 8mg/kg q4w(sIL-6R/mIL-6R 차단→JAK/STAT3 신호↓→CNS IL-6↓+BBB 안정화; EC50=2.5mcg/mL); 22-CMT mrgsolve ODE(면역 6개: GCB·PB·LLPC·MB·AB_SERUM·AB_CSF; CNS 6개: BBB·MG·NMDAR·GLU·IL6_CNS·GFAP; 임상 4개: CRS·SZ·COG·PSY; PK 6개: IVIG×2·MP×2·RTX×2+TCZ+CPX_ACT); 6 치료 시나리오(무치료→IVIG+MP→IVIG+MP+PE→2차 Rituximab→2차 Cyclophosphamide→3차 Tocilizumab); 보정: Titulaer 2013(Lancet Neurol, n=577: 1차요법 81% 반응, NMDAR회복 70% @8wk)·Gresa-Arribas 2014(Ab titer 추적)·Rojas 2015(IVIG PK, FcRn 포화)·Nosadini 2015(Rituximab 79% refractory)·Bost 2021(CNS IL-6/BBB/미세아교세포) | [![AIE](autoimmune-encephalitis/aie_qsp_model.png)](autoimmune-encephalitis/aie_qsp_model.svg) | [R](autoimmune-encephalitis/aie_mrgsolve_model.R) | [refs](autoimmune-encephalitis/aie_references.md) | [Shiny](autoimmune-encephalitis/aie_shiny_app.R) |
+| 2026-06-19 | [**Obstructive Sleep Apnea — OSA (폐쇄성 수면 무호흡증)**](#obstructive-sleep-apnea-osa) | 만성질환 / 호흡기·수면의학 | 인두 폐쇄 임계압(Pcrit)↑(비만/해부학) + 루프 이득(LG)>1(호흡 불안정) + 낮은 각성 역치(AT) + 근육 반응성↓ → 반복적 상기도 폐쇄 → 간헐적 저산소증(HIF-1α↑/ROS↑/NF-κB↑) → 교감신경↑(SNS→NE↑→SBP↑) + RAAS 활성화 + 내피세포 기능장애; 대사: 인슐린 저항성↑/렙틴 저항성/HPA(코르티솔) + 지방조직 염증(IL-6/TNF-α/CRP↑); 신경·인지: 수면 분절→EDS→ESS↑+해마 위축+BDNF↓+우울; 치료: CPAP(Pcrit→<0) / MAD / 모다피닐(Orexin/H1, F=40%, t½=15h) / 솔리암페톨(DAT/NET; TONES3 ESS↓4.5) / 피톨리산트(H3 역 효능제; HARMONY-III) / 티르제파타이드(GLP-1/GIP sc t½=5d → AHI↓55 ev/hr; SURMOUNT-OSA 2024 NEJM) / 에스조피클론(AT↑50%) / 아세타졸아미드(LG↓); 18-CMT mrgsolve ODE; 6 시나리오(Eckert 2013·Wellman 2011·SURMOUNT-OSA 2024 보정) | [![OSA](obstructive-sleep-apnea/osa_qsp_model.png)](obstructive-sleep-apnea/osa_qsp_model.svg) | [R](obstructive-sleep-apnea/osa_mrgsolve_model.R) | [refs](obstructive-sleep-apnea/osa_references.md) | [Shiny](obstructive-sleep-apnea/osa_shiny_app.R) |
 | 2026-06-18 | [**Focal Segmental Glomerulosclerosis — FSGS (국소분절사구체경화증)**](#fsgs) | 만성질환 / 신장·사구체 | 국소분절사구체경화증: 원발성(CLCF1·anti-CD40·suPAR 등 순환 투과인자 → 사구체 내 포도세포 αvβ3 인테그린 활성화) / 이차성(과여과·네프론 소실·약물독성) / 유전성(NPHS1/NPHS2/APOL1-G1G2/INF2/TRPC6 변이) → 포도세포 액틴 세포골격 재배열 → 족돌기 소실(FPE) → 슬릿막(slit diaphragm) 파괴 → 알부민 누출·단백뇨(>3.5g/d 신증후군); 포도세포 손상 + Clathrin-매개 내재화 ↑ → 포도세포 이탈·감소(재생 극히 제한); RAAS 활성화: Ang II→AT1R→수출세동맥 수축→사구체내 고혈압→TGF-β1 유도; TGF-β1→SMAD2/3→SMAD4→ECM(피브로넥틴/CollagenIV)↑+TIMP-1↑/MMP↓→사구체 경화(비가역적 섬유화); C3 보체→C5b-9(MAC) 아치사 손상→포도세포 세포사; mTORC1 과활성→autophagy↓→미토콘드리아 기능장애→ATP 결핍→포도세포 사멸; APOL1 G1/G2 위험변이→독성 올리고머→리소좀 기능장애→포도세포독성; 치료 PK/PD: 프레드니솔론(GR transrepression→NF-κB·AP-1↓+직접 포도세포 GR→synaptopodin↑+액틴 안정화; CL=12 L/h, EC50=150 ng/mL, n=1.5) + 타크로리무스(FK506-FKBP12→칼시뉴린 억제→NFAT 핵이동 차단→synaptopodin 안정화→FPE 역전; CL=2.5 L/h, EC50=8 ng/mL) + 리툭시맙(anti-CD20 ADCC/CDC→B세포 고갈→CLCF1·anti-CD40 순환인자↓; Vc=3.1L, CL=0.014 L/h) + 스파르센탄(AT1R+ET-A/B 이중 길항→사구체내 고혈압 정상화+ET-1 섬유화↓; DUPLEX 2023 NEJM: 완전/부분 관해 42% vs 26%, CL=8.5 L/h, EC50=200 ng/mL) + Acthar Gel(MC1R/MC5R→직접 포도세포 보호+Nrf2 활성화); 22-CMT mrgsolve ODE(질환 11개: CLCF·POD·FPE·PROT·GFR_c·SCAR·TGFb·COMP·INFLAM·RAAS·BCELL; PK 11개: PRED_DEP·PRED1·PRED2·TAC_DEP·TAC1·TAC2·RTX1·RTX2·SPARS_DEP·SPARS1·SPARS2); 6 치료 시나리오(무치료·프레드니솔론 단독·Pred+타크로리무스·Pred+TAC+Rituximab·Sparsentan 단독·완전병용); 보정: Gipson 2011(Kidney Int, Pred 25% 완전관해)·Cattran 1999(CsA 70% 부분관해)·Kronbichler 2014(RTX 57% 반응)·Rheault 2023(DUPLEX NEJM, Sparsentan 완전관해 18% vs 9%)·PLANET-I(Sparsentan UPCR -46%) | [![FSGS](fsgs/fsgs_qsp_model.png)](fsgs/fsgs_qsp_model.svg) | [R](fsgs/fsgs_mrgsolve_model.R) | [refs](fsgs/fsgs_references.md) | [Shiny](fsgs/fsgs_shiny_app.R) |
 
 
@@ -5095,3 +5096,100 @@ dRAAS/dt = k_prod - k_clear×RAAS - eff_SPARS×k_clear×0.7×RAAS  (스파르센
 | [`fsgs_mrgsolve_model.R`](fsgs/fsgs_mrgsolve_model.R) | mrgsolve ODE 모델 (22 CMT, 6 치료 시나리오, 임상시험 보정) |
 | [`fsgs_shiny_app.R`](fsgs/fsgs_shiny_app.R) | 6탭 인터랙티브 Shiny 대시보드 (deSolve ODE + plotly + DT) |
 | [`fsgs_references.md`](fsgs/fsgs_references.md) | 66개 PubMed 링크 참고문헌 (18섹션) |
+## QSP Disease Model Library — 질환별 QSP 모델 목록
+
+각 세션에서 Claude가 질환 하나를 선택하여 기계론적 지도·mrgsolve 모델·Shiny 앱·참고문헌을 작성합니다.
+
+| # | Date | Disease (질환) | Category | Directory | Mechanistic Map | Files |
+|---|------|---------------|----------|-----------|-----------------|-------|
+| 1 | 2026-06-19 | Obstructive Sleep Apnea (폐쇄성 수면 무호흡증) | Chronic | [obstructive-sleep-apnea/](obstructive-sleep-apnea/) | [![OSA QSP Map](obstructive-sleep-apnea/osa_qsp_model.png)](obstructive-sleep-apnea/osa_qsp_model.svg) | [DOT](obstructive-sleep-apnea/osa_qsp_model.dot) · [SVG](obstructive-sleep-apnea/osa_qsp_model.svg) · [PNG](obstructive-sleep-apnea/osa_qsp_model.png) · [mrgsolve R](obstructive-sleep-apnea/osa_mrgsolve_model.R) · [Shiny](obstructive-sleep-apnea/osa_shiny_app.R) · [Refs](obstructive-sleep-apnea/osa_references.md) |
+
+---
+
+## Obstructive Sleep Apnea (OSA) — 폐쇄성 수면 무호흡증
+
+### 개요
+
+폐쇄성 수면 무호흡증은 수면 중 반복적인 상기도 폐쇄로 무호흡/저호흡 사건이 발생하여 간헐적 저산소증·수면 분절·교감신경 항진을 유발하는 만성 질환입니다. 전 세계 성인의 약 17%에서 중등도 이상 OSA가 있으며(AHI ≥15), 심혈관질환·당뇨병·인지 저하의 중요한 위험 인자입니다.
+
+### 병태생리 4대 내표형 (Endotypes, Eckert et al. 2013)
+
+| 내표형 | 설명 | 치료 표적 |
+|-------|------|----------|
+| **높은 인두 폐쇄 압력 (Pcrit)** | 해부학적 협착(비만, 소하악증) | CPAP, MAD, 체중 감량 |
+| **높은 루프 이득 (Loop Gain >1)** | 호흡 조절 불안정 | 아세타졸아미드, 산소 요법 |
+| **낮은 각성 역치 (Arousal Threshold)** | 낮은 자극에도 쉽게 각성 | 에스조피클론, 조합 요법 |
+| **불충분한 근육 반응성** | 설근 및 인두 개대근 기능 저하 | 설하신경 자극술, AD109 |
+
+### QSP 모델 구성
+
+**기계론적 지도 (.dot)**
+- 10개 서브그래프: 위험 인자 / 상기도 역학 / 호흡 조절 / 수면 구조 / 간헐적 저산소증 / 심혈관 / 대사·내분비 / 신경·인지 / 약물 PK/PD / 임상 종말점
+- 140+ 노드, 200+ 연결
+
+**mrgsolve ODE 모델 (18개 구획)**
+
+| 구획 | 변수 | 설명 |
+|------|------|------|
+| `Pcrit` | 유효 폐쇄 임계압 (cmH2O) | Pcrit > 0 → 기도 붕괴 |
+| `LG` | 루프 이득 | >1 = 불안정 |
+| `AT` | 각성 역치 (cmH2O) | 에스조피클론에 의해 증가 |
+| `AHI` | 무호흡-저호흡 지수 (events/hr) | 핵심 임상 종말점 |
+| `SpO2` | 평균 야간 산소포화도 (%) | 간헐적 저산소증 지표 |
+| `HIF1a` | HIF-1α (정규화) | 산화 스트레스/VEGF/ET-1 |
+| `SNA` | 교감신경 활성도 | 혈압·심박수 조절 |
+| `SBP` | 수축기 혈압 (mmHg) | 심혈관 결과 |
+| `HR` | 심박수 (bpm) | |
+| `CRP` | hsCRP (mg/L) | 전신 염증 |
+| `HOMA` | HOMA-IR | 인슐린 저항성 |
+| `ESS` | 엡워스 졸음척도 | 주간 졸음 |
+| `Weight` | 체중 (kg) | 티르제파타이드 표적 |
+| `MODA_depot/central` | 모다피닐 PK | 1구획 경구 |
+| `SOLRI_depot/central` | 솔리암페톨 PK | 1구획 경구 |
+| `TIRZ_depot/c1/c2` | 티르제파타이드 PK | 2구획 피하 |
+| `ESZOP_depot/central` | 에스조피클론 PK | |
+| `ACETZ_depot/central` | 아세타졸아미드 PK | |
+
+**5개 치료 시나리오**
+
+1. **무치료** — AHI 35 ev/hr 기저값 자연 경과
+2. **CPAP 10 cmH2O** — Pcrit을 음압으로 낮춰 사건 예방
+3. **CPAP + 모다피닐 200mg QD** — 잔존 주간 졸음 치료
+4. **CPAP + 솔리암페톨 150mg QD** — DAT/NET 억제 각성 촉진
+5. **티르제파타이드 10mg QW** — GLP-1/GIP 체중 감량 → AHI 감소 (SURMOUNT-OSA 재현)
+6. **아세타졸아미드 + 에스조피클론** — 비CPAP 표현형 조합 요법
+
+**Shiny 앱 (8개 탭)**
+
+| 탭 | 내용 |
+|----|------|
+| Patient Profile | 환자 프로파일, 내표형 레이더, OSA 중증도 |
+| PK Profiles | 모다피닐/솔리암페톨/에스조피클론/티르제파타이드 PK |
+| Airway Mechanics | Pcrit, 루프 이득, 각성 역치, AHI 궤적 |
+| Cardiovascular | 혈압, 심박수, SNS 활성도 |
+| Metabolic Effects | HOMA-IR, hsCRP, 체중/BMI |
+| Clinical Endpoints | ESS, SpO2, 다중 종말점 |
+| Scenario Comparison | 6개 치료 시나리오 비교 |
+| Biomarker Heatmap | 시간별 바이오마커 정규화 히트맵 |
+
+### 핵심 임상시험 요약
+
+| 임상시험 | 약물 | 주요 결과 |
+|---------|------|----------|
+| TONES 3 (2019) | 솔리암페톨 150mg | ESS ↓4.5 (위약 대비) |
+| HARMONY III (2020) | 피톨리산트 35.6mg | ESS ↓3.0 (p<0.001) |
+| AD109 Phase 2 (2019) | 아토목세틴+옥시부티닌 | AHI ↓63% |
+| **SURMOUNT-OSA (2024)** | **티르제파타이드 10-15mg QW** | **AHI ↓55 events/hr** (비CPAP군, NEJM) |
+| CPAP 메타분석 | CPAP | SBP ↓2-4 mmHg |
+
+### 파일 목록
+
+```
+obstructive-sleep-apnea/
+├── osa_qsp_model.dot          # Graphviz 기계론적 지도 (140+ 노드)
+├── osa_qsp_model.svg          # SVG 벡터 이미지
+├── osa_qsp_model.png          # PNG 이미지 (150 dpi)
+├── osa_mrgsolve_model.R       # mrgsolve ODE 모델 (18 구획, 6 시나리오)
+├── osa_shiny_app.R            # Shiny 대시보드 (8 탭)
+└── osa_references.md          # 참고문헌 66개 (PubMed 링크 포함)
+```
