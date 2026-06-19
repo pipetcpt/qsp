@@ -5778,6 +5778,7 @@ autoimmune-pancreatitis/
 ```
 
 | 2026-06-19 | [**Mixed Connective Tissue Disease — MCTD (혼합결합조직병)**](#mctd) | 자가면역질환 / 중복 증후군 | 혼합결합조직병(MCTD): HLA-DR4/DR1·STAT4·IRF5 유전 소인 + EBV·파보바이러스 감염 → U1-snRNP(70K·A·C 단백) 세포자멸사 노출·2차 괴사 → HMGB1·DAMP 방출 → pDC TLR7/8 활성화 → IFN-α 폭발(IFN 시그니처 ISG15·MX1·OAS1) → mDC MHC-II 항원 제시 → CD4+ Th1/Th2/Th17/Tfh 분극화 + CD8+ CTL; B세포 GC 반응·AID 효소 → IgG1/IgG3 항-U1-RNP 자가항체(MCTD 표지인자, 100–1000 AU/mL); 장기 침범 3축: ①SSc 중복: 내피세포 손상 → ET-1↑·NO↓·PGI2↓ → 레이노 현상·손가락 부종; 폐동맥 평활근세포 BMPR2↓·PDGF↑ → 폐동맥 고혈압(PAH, PVR↑·RVSP↑) + TGF-β·IL-13 → 폐섬유아세포 → ILD(FVC↓·DLCO↓) ②PM 중복: CD8+ T세포 근육 침윤·IFN-γ → MHC-I↑ → 근섬유 세포독성 → CK↑(200–5000 U/L) ③SLE 중복: 면역복합체 보체(C3·C4↓)·막성 GN·저혈소판·AIHA; 치료 PK/PD: HCQ(400 mg/day, F=79%, t½=40–56일, WBC 농도 2000:1, TLR7/8 IC50=0.8 μg/mL) + MMF→MPA(t½=17h, EHC 30%, IMPDH 억제) + Prednisolone(t½=2–4h, NF-κB/AP-1 억제) + Rituximab(1000 mg×2, TMDD CD20, t½=22일, B세포 99% 고갈) + Bosentan ERA(125 mg BID, F=50%, t½=5h, ETA 차단, PVR↓); 35-CMT mrgsolve ODE(5 치료 시나리오); MCTD 활동 지수(Yamanaka) 복합 스코어; 보정: Yaniv 2016·Hajas 2013·Ruaro 2021·Channick 2001 BREATHE-1·Peng 2020(RTX PK) | [![MCTD](mixed-connective-tissue-disease/mctd_qsp_model.png)](mixed-connective-tissue-disease/mctd_qsp_model.svg) | [R](mixed-connective-tissue-disease/mctd_mrgsolve_model.R) | [refs](mixed-connective-tissue-disease/mctd_references.md) | [Shiny](mixed-connective-tissue-disease/mctd_shiny_app.R) |
+| 2026-06-19 | [**Paget's Disease of Bone — PBD (파젯병)**](#pagets-disease) | 만성질환 / 대사성 골질환 | 파젯병(PBD): 파라믹소바이러스(홍역·CDV) 핵단백 봉입체 → OC 전구세포 비정상 활성화; SQSTM1/p62 돌연변이 → NF-κB 과활성 → NFATc1·c-Fos → Giant OC(100+ 핵) 형성; RANKL/OPG 비율 3–6× 상승 → 파골세포 과증식·거대화; RANK–RANKL → TRAF6 → IKK → NF-κB → NFATc1 → CathepsinK·MMP-9·TRAP·HCl → 골흡수 급증(CTx·NTx·DPD↑); OC–OB 커플링: TGF-β1·IGF-1·BMP-2 기질 방출 + EphrinB2/EphB4 → Wnt/β-catenin·BMP/Smad1/5/8·Runx2/Osterix → 조골세포 반응적 과형성; 결과: 무질서한 woven bone → mosaic cement-line pattern → 골부피↑·BMD↑이나 역학적 강도↓; Bone ALP 2–100× (주요 바이오마커); CTx·NTx·P1NP·TRAP5b 동시 상승; 합병증: 골통증·변형(보우레그)·병적 골절·신경압박(청각소실·방사통)·고출력 심부전·골육종(<1%); 치료 PK/PD: 비스포스포네이트(Zoledronate 5 mg IV — FPP 합성효소 억제 → Rab/Rho GTPase 프레닐화 차단 → OC 세포사멸 → ALP 6개월 내 정상화 90%; Pamidronate 60 mg IV×3; Alendronate 40 mg PO·F~0.6%; Risedronate) + Denosumab(60 mg SC Q6M; 항-RANKL mAb, KD ~0.001 nM → RANKL 즉각 중화 → CTx 수 일 내 급감; 반동 위험); 20-CMT mrgsolve ODE(5 치료 시나리오); 보정: Reid 2005(NEJM·Zoledronate vs Risedronate)·Siris 1996(Alendronate)·Russell 2008(BP 기전)·Lin 1996(BP PK) | [![PBD](pagets-disease/pbd_qsp_model.png)](pagets-disease/pbd_qsp_model.svg) | [R](pagets-disease/pbd_mrgsolve_model.R) | [refs](pagets-disease/pbd_references.md) | [Shiny](pagets-disease/pbd_shiny_app.R) |
 
 ---
 
@@ -5826,4 +5827,69 @@ mixed-connective-tissue-disease/
 ├── mctd_mrgsolve_model.R     # mrgsolve ODE 모델 (35+ 구획, 5 치료 시나리오)
 ├── mctd_shiny_app.R          # Shiny 대시보드 (6 탭, plotly 인터랙티브)
 └── mctd_references.md        # 참고문헌 35개 (PubMed 링크, 9 섹션)
+```
+
+---
+
+## Paget's Disease of Bone — 파젯병 (PBD) {#pagets-disease}
+
+> **추가일:** 2026-06-19 | **디렉토리:** [`pagets-disease/`](pagets-disease/)
+
+[![PBD QSP Map](pagets-disease/pbd_qsp_model.png)](pagets-disease/pbd_qsp_model.svg)
+
+파젯병(Paget's Disease of Bone, PBD)은 **골다공증 다음으로 흔한 대사성 골질환**으로, 골 리모델링이 국소적으로 크게 가속화되는 것이 특징입니다. 비정상적으로 거대해진 파골세포(최대 100개 이상의 핵)가 골을 급속히 흡수하고, 이에 반응하여 조골세포가 과도하지만 무질서한 골을 형성합니다. 그 결과 모자이크 시멘트선 패턴의 woven bone이 형성되어 골 부피는 증가하지만 역학적 강도는 크게 저하됩니다.
+
+### 핵심 병인 기전
+
+1. **바이러스·유전 복합 촉발**: 홍역(MV)·개 디스템퍼 바이러스(CDV) 핵단백이 OC 전구세포에 봉입체 형성 → DC-STAMP/OC-STAMP 과발현 → Giant OC 형성. SQSTM1/p62 돌연변이(가족성 PBD 25–40%)가 NF-κB 스캐폴딩 기능을 강화하여 파골세포 분화를 더욱 촉진.
+
+2. **RANKL/OPG 비율 3–6× 상승**: 조골세포·T세포로부터 막결합형·가용성 RANKL 과분비; OPG 기능 저하(OPG 유전자 돌연변이 일부). RANK–RANKL 결합 → TRAF6 → IKK → IκBα 분해 → NF-κB 핵 이행 → NFATc1 (파골세포 master TF) 활성화.
+
+3. **파골세포 과증식·과활성**: NFATc1 → CathepsinK·MMP-9·TRAP·H⁺-ATPase 발현↑ → 산성화 흡수강 → 콜라겐 분해(CTx·NTx·DPD 혈중 급증). Giant OC는 일반 성숙 파골세포보다 10–100배 빠른 골흡수.
+
+4. **OC–OB 커플링 (교란된 균형)**: 골기질에서 TGF-β1·IGF-1·BMP-2 방출; EphrinB2(OC)–EphB4(OB) 직접 접촉 → Wnt/β-catenin + BMP/Smad1/5/8 → Runx2/Osterix → 조골세포 과형성. 그러나 형성된 골은 무질서한 woven bone → mosaic pattern.
+
+5. **생화학적 결과**: Bone ALP 정상의 2–100배 상승(가장 민감한 표지자); CTx·P1NP·TRAP5b 동시 상승; 골 부위 혈관분포 증가(VEGF↑) → 고출력 심부전 위험(중증 다골격 PBD에서).
+
+### QSP 모델 구조
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 148+ 노드, 15개 서브그래프 클러스터 |
+| mrgsolve ODE | 20 구획: BP/Denosumab PK + OC/OB 동역학 + RANKL/OPG + CTx/P1NP/ALP/TRAP5b/BMD/PAIN |
+| Shiny 앱 | 6 탭: 환자 프로파일 / PK 프로파일 / 바이오마커 / 임상 종말점 / 시나리오 비교 / 기전 탐색기 |
+| 참고문헌 | 50개 PubMed 링크, 11개 주제 섹션 |
+
+### 5가지 치료 시나리오
+
+| # | 시나리오 | 투여 방법 | 1차 작용 기전 | 예상 ALP 정상화 |
+|---|---------|----------|-------------|--------------|
+| 1 | 무치료 | — | — | 정상화 없음 |
+| 2 | **Zoledronate 5 mg IV** | 단회 15분 주입 | FPP 합성효소 억제 → Rab/Rho 프레닐화 차단 → OC 세포사멸 | ~90% (6개월) |
+| 3 | **Pamidronate 60 mg IV × 3일** | 1회/일 × 3 | 동상 (2세대 N-BP) | ~60–70% (3개월) |
+| 4 | **Alendronate 40 mg PO 매일** | 6개월 지속 경구 | 동상 (F~0.6%) | ~50–60% (6개월) |
+| 5 | **Denosumab 60 mg SC Q6M** | 6개월 간격 피하주사 | 항-RANKL mAb → RANKL 즉각 중화 → OC 억제 | CTx 수 일 내 ↓↓; ALP 수 주 내 정상화 |
+
+### 임상 종말점
+
+| 종말점 | 정의 | 모델 변수 | 정상 기준 |
+|--------|------|---------|----------|
+| Bone ALP | 골형성 지표 (주 표지자) | `ALP_b` | < 120 IU/L |
+| 혈청 CTx | 골흡수 지표 | `CTX` | < 0.6 ng/mL |
+| 혈청 P1NP | 골형성 지표 | `P1NP` | < 40 ng/mL |
+| TRAP5b | 파골세포 활성도 | `TRAP_s` | < 3.0 U/L |
+| BMD (pagetic site) | 골밀도 (병소 부위) | `BMD` | > 1.4 g/cm² |
+| 통증 VAS | 골통증 점수 | `PAIN` | ≤ 2 |
+| 골절 위험 분류 | BMD 기반 골절 위험 | `FractureRisk` | Low (1) |
+
+### 파일 목록
+
+```
+pagets-disease/
+├── pbd_qsp_model.dot         # Graphviz 기계론적 지도 (148+ 노드, 15 클러스터)
+├── pbd_qsp_model.svg         # SVG 벡터 이미지
+├── pbd_qsp_model.png         # PNG 이미지 (150 dpi)
+├── pbd_mrgsolve_model.R      # mrgsolve ODE 모델 (20 구획, 5 치료 시나리오)
+├── pbd_shiny_app.R           # Shiny 대시보드 (6 탭, plotly 인터랙티브)
+└── pbd_references.md         # 참고문헌 50개 (PubMed 링크, 11 섹션)
 ```
