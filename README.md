@@ -24,6 +24,7 @@
 | 날짜 | 분류 | 질환명 | 디렉토리 | 모델 미리보기 |
 |------|------|--------|----------|--------------|
 | 2026-06-19 | 만성질환 | 요로결석 (만성 재발성) | [urolithiasis/](urolithiasis/) | [![URI QSP](urolithiasis/uri_qsp_model.png)](urolithiasis/uri_qsp_model.svg) |
+| 2026-06-19 | 자가면역/혈관염 | 호산구 육아종증 다발혈관염 (EGPA) | [egpa/](egpa/) | [![EGPA QSP](egpa/egpa_qsp_model.png)](egpa/egpa_qsp_model.svg) |
 
 ---
 
@@ -74,3 +75,81 @@
 5. **Lumasiran (PH1)**: 원발성 고수산뇨증에서 요중 OX 53% 감소
 6. **생활습관 + HCTZ + K-Citrate 병용**: 종합 치료에서 결석 성장 억제
 7. **MetSyn + UA 결석 + Allopurinol + K-Citrate**: 복합 요산 결석 관리
+
+---
+
+## 호산구 육아종증 다발혈관염 (EGPA, Eosinophilic Granulomatosis with Polyangiitis)
+
+### 개요
+
+EGPA(구 Churg-Strauss 증후군)는 유병률 약 1-3/백만명/년의 희귀 ANCA 연관 혈관염으로, 3단계 특징적 경과를 보입니다:
+- **전구기 (Prodromal)**: 성인 발병 천식 + 알레르기 비염/비용종 (수년 지속)
+- **호산구기 (Eosinophilic)**: 혈중 호산구 >10% (>1.5×10⁹/L) + 폐/심장/위장관 침윤
+- **혈관염기 (Vasculitic)**: 소-중형 혈관 괴사성 혈관염 (단발신경염, 심장, 신장, 피부)
+
+ANCA(항MPO)는 약 40%에서 양성이며 신장/신경 침범 위험이 높고, ANCA 음성에서는 심장·폐 호산구 침윤이 두드러집니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 분자 | 임상 결과 |
+|------|----------|---------|
+| Th2 분극화 | TSLP/IL-33 → ILC2 → IL-5/IL-13/IL-4 | 호산구증가, IgE 상승, 기도 과반응 |
+| 호산구 생산 | IL-5 → 골수 생산 → 혈중 이동 (CCR3/Eotaxin) | 혈중 호산구 3,000-15,000/µL |
+| 호산구 과립단백 | MBP/ECP/EPX/EDN 방출 | 심근염, 신경독성, 혈관 손상 |
+| ANCA 경로 | 항MPO → FcγRIIa → 호중구 활성화 → NETs/ROS | 괴사성 혈관염, RPGN |
+| 육아종 형성 | Th1/M1 대식세포 → 상피양 세포 → 거대세포 | 폐 침윤, 조직 섬유화 |
+| 혈관 손상 | 내피 세포 손상 → 투과성↑ → 미세혈전 → 허혈 | 단발신경염, GI 경색, 신장 손상 |
+
+### Five-Factor Score (FFS) — 예후
+
+| 항목 | 점수 |
+|------|------|
+| Creatinine > 150 µmol/L | +1 |
+| 단백뇨 > 1g/일 | +1 |
+| GI 침범 (출혈/천공) | +1 |
+| 심근병증 | +1 |
+| CNS 침범 | +1 |
+
+FFS 0: 5년 사망률 ~11% | FFS ≥2: ~26%
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 용량/경로 | 반감기 | 표적 | 주요 효과 |
+|------|---------|--------|------|---------|
+| Prednisolone | 50mg/일 경구 → 테이퍼 | ~2.5h | GR (광범위) | 호산구 60-80%↓, 혈관염 억제 |
+| Mepolizumab | 300mg SC q4w | ~16-22일 | IL-5 (TMDD) | 호산구 90%↓, 재발률 50%↓ |
+| Benralizumab | 30mg SC q4w→q8w | ~15일 | IL-5Rα (ADCC) | 호산구 근제로 감소 |
+| Cyclophosphamide | 15mg/kg IV ×6 | ~7h (활성대사체) | DNA 알킬화 | ANCA 80%↓, B세포 소멸 |
+| Rituximab | 1000mg IV ×2 | ~22일 | CD20 (ADCC/CDC) | B세포/형질세포 제거, ANCA↓ |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [egpa_qsp_model.dot](egpa/egpa_qsp_model.dot) | Graphviz 기계론적 지도 (150+ 노드, 10 클러스터) |
+| [egpa_qsp_model.svg](egpa/egpa_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [egpa_qsp_model.png](egpa/egpa_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [egpa_mrgsolve_model.R](egpa/egpa_mrgsolve_model.R) | mrgsolve ODE 모델 (22 구획, 6 시나리오) |
+| [egpa_shiny_app.R](egpa/egpa_shiny_app.R) | Shiny 대시보드 (7탭) |
+| [egpa_references.md](egpa/egpa_references.md) | 참고문헌 60편 (PubMed 링크 포함) |
+
+### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
+
+1. **무치료 (자연 경과)**: 혈관염 악화 및 장기 손상 누적
+2. **Prednisolone 단독**: 초기 50mg/일 → 26주 테이퍼 (표준 1차)
+3. **Mepolizumab + Prednisolone**: MIRRA 임상시험 기반, 항IL-5 + 스테로이드 절감
+4. **Benralizumab + Prednisolone**: 항IL-5Rα ADCC 매개 호산구 근제로 감소
+5. **Cyclophosphamide + Prednisolone (중증 ANCA+)**: FFS ≥2 환자의 유도 치료
+6. **Rituximab + Prednisolone (불응성 ANCA+)**: CD20 표적 B세포 소멸로 ANCA 억제
+
+### Shiny 앱 탭 구성
+
+| 탭 | 내용 |
+|----|------|
+| 1. 환자 프로파일 | EGPA 개요, ACR/EULAR 2022 분류기준, FFS, 치료 알고리즘 |
+| 2. 약물 PK | 혈청 약물 농도 추적 (Mepo/Benra/Pred/Cyclo/Ritu) |
+| 3. 호산구/IL-5 | 혈중·조직 호산구, 유리 IL-5, 총IgE 동태 |
+| 4. 혈관염/장기 | 혈관염 활성, ANCA, 심장 손상, 신경 손상 점수 |
+| 5. 임상 엔드포인트 | BVAS, FEV1%, LVEF%, eGFR, Week 52 요약 |
+| 6. 시나리오 비교 | 4개 표준 치료 시나리오 동시 비교 |
+| 7. 바이오마커 | 호산구 억제율, 관해 상태, 바이오마커 히트맵 |
