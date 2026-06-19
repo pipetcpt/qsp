@@ -171,6 +171,7 @@ See [`CLAUDE.md`](CLAUDE.md) for the complete disease list and model-building gu
 | 2026-06-18 | [**Autoimmune Encephalitis — AIE (자가면역 뇌염)**](#autoimmune-encephalitis-aie) | 자가면역질환 / 신경계 | Anti-NMDAR 뇌염: 난소 기형종(NMDAR 발현) 또는 HSV 감염 후 분자 모방 → NMDAR 펩타이드 항원 → APC/MHC-II → CD4+ Tfh 활성 → GC 반응(AID/SHM/ClassSwitch) → 형질모세포/LLPC → Anti-GluN1 IgG1/IgG4 → BBB 투과(MMP-9/VEGF/IL-6→TJ 분해→BBB_perm↑) → CSF IgG 상승; CSF IgG가 NR1 에피토프(aa346–375)에 결합 → NMDAR bivalent crosslinking → Clathrin-매개 내재화↑ → NMDAR 표면 밀도↓(70% 소실 가능); NMDAR↓ → PV 인터뉴런 저기능(NMDAR 의존성) → GABAergic 억제↓ → 시냅스 글루타메이트↑↑(E/I 불균형) + 도파민 탈억제 → 정신증/환각; 해마 CA1 LTP 손상 → 기억 상실; 기저핵 NMDAR↓ → 구강안면 이상운동; 시상 과활성 → 수면 장애; 소뇌/자율신경 → 체온/혈압 조절 장애; 치료 PK/PD: IVIG 2g/kg×5d(FcRn 포화→자가항체 이화 4.5배↑, Vc=3.7L, t½=21d→가속이화로 5-8d) + IV 메틸프레드니솔론 1g×5d(GR Transrepression→NF-κB/AP-1↓→IL-6/TNF↓+BBB 안정화; EC50=0.25mcg/mL) + 혈장교환(IgG 60-80%/회 직접 제거×5) + Rituximab 375mg/m²×4(Anti-CD20 ADCC/CDC→GCB/Memory B 고갈>99%; EC50=8mcg/mL, t½=21d) + Cyclophosphamide 750mg/m²×6(CYP2B6→4-OH-CPX DNA 알킬화→LLPC/GCB 세포사; eff_CPX=92%) + Tocilizumab 8mg/kg q4w(sIL-6R/mIL-6R 차단→JAK/STAT3 신호↓→CNS IL-6↓+BBB 안정화; EC50=2.5mcg/mL); 22-CMT mrgsolve ODE(면역 6개: GCB·PB·LLPC·MB·AB_SERUM·AB_CSF; CNS 6개: BBB·MG·NMDAR·GLU·IL6_CNS·GFAP; 임상 4개: CRS·SZ·COG·PSY; PK 6개: IVIG×2·MP×2·RTX×2+TCZ+CPX_ACT); 6 치료 시나리오(무치료→IVIG+MP→IVIG+MP+PE→2차 Rituximab→2차 Cyclophosphamide→3차 Tocilizumab); 보정: Titulaer 2013(Lancet Neurol, n=577: 1차요법 81% 반응, NMDAR회복 70% @8wk)·Gresa-Arribas 2014(Ab titer 추적)·Rojas 2015(IVIG PK, FcRn 포화)·Nosadini 2015(Rituximab 79% refractory)·Bost 2021(CNS IL-6/BBB/미세아교세포) | [![AIE](autoimmune-encephalitis/aie_qsp_model.png)](autoimmune-encephalitis/aie_qsp_model.svg) | [R](autoimmune-encephalitis/aie_mrgsolve_model.R) | [refs](autoimmune-encephalitis/aie_references.md) | [Shiny](autoimmune-encephalitis/aie_shiny_app.R) |
 | 2026-06-19 | [**Obstructive Sleep Apnea — OSA (폐쇄성 수면 무호흡증)**](#obstructive-sleep-apnea-osa) | 만성질환 / 호흡기·수면의학 | 인두 폐쇄 임계압(Pcrit)↑(비만/해부학) + 루프 이득(LG)>1(호흡 불안정) + 낮은 각성 역치(AT) + 근육 반응성↓ → 반복적 상기도 폐쇄 → 간헐적 저산소증(HIF-1α↑/ROS↑/NF-κB↑) → 교감신경↑(SNS→NE↑→SBP↑) + RAAS 활성화 + 내피세포 기능장애; 대사: 인슐린 저항성↑/렙틴 저항성/HPA(코르티솔) + 지방조직 염증(IL-6/TNF-α/CRP↑); 신경·인지: 수면 분절→EDS→ESS↑+해마 위축+BDNF↓+우울; 치료: CPAP(Pcrit→<0) / MAD / 모다피닐(Orexin/H1, F=40%, t½=15h) / 솔리암페톨(DAT/NET; TONES3 ESS↓4.5) / 피톨리산트(H3 역 효능제; HARMONY-III) / 티르제파타이드(GLP-1/GIP sc t½=5d → AHI↓55 ev/hr; SURMOUNT-OSA 2024 NEJM) / 에스조피클론(AT↑50%) / 아세타졸아미드(LG↓); 18-CMT mrgsolve ODE; 6 시나리오(Eckert 2013·Wellman 2011·SURMOUNT-OSA 2024 보정) | [![OSA](obstructive-sleep-apnea/osa_qsp_model.png)](obstructive-sleep-apnea/osa_qsp_model.svg) | [R](obstructive-sleep-apnea/osa_mrgsolve_model.R) | [refs](obstructive-sleep-apnea/osa_references.md) | [Shiny](obstructive-sleep-apnea/osa_shiny_app.R) |
 | 2026-06-18 | [**Focal Segmental Glomerulosclerosis — FSGS (국소분절사구체경화증)**](#fsgs) | 만성질환 / 신장·사구체 | 국소분절사구체경화증: 원발성(CLCF1·anti-CD40·suPAR 등 순환 투과인자 → 사구체 내 포도세포 αvβ3 인테그린 활성화) / 이차성(과여과·네프론 소실·약물독성) / 유전성(NPHS1/NPHS2/APOL1-G1G2/INF2/TRPC6 변이) → 포도세포 액틴 세포골격 재배열 → 족돌기 소실(FPE) → 슬릿막(slit diaphragm) 파괴 → 알부민 누출·단백뇨(>3.5g/d 신증후군); 포도세포 손상 + Clathrin-매개 내재화 ↑ → 포도세포 이탈·감소(재생 극히 제한); RAAS 활성화: Ang II→AT1R→수출세동맥 수축→사구체내 고혈압→TGF-β1 유도; TGF-β1→SMAD2/3→SMAD4→ECM(피브로넥틴/CollagenIV)↑+TIMP-1↑/MMP↓→사구체 경화(비가역적 섬유화); C3 보체→C5b-9(MAC) 아치사 손상→포도세포 세포사; mTORC1 과활성→autophagy↓→미토콘드리아 기능장애→ATP 결핍→포도세포 사멸; APOL1 G1/G2 위험변이→독성 올리고머→리소좀 기능장애→포도세포독성; 치료 PK/PD: 프레드니솔론(GR transrepression→NF-κB·AP-1↓+직접 포도세포 GR→synaptopodin↑+액틴 안정화; CL=12 L/h, EC50=150 ng/mL, n=1.5) + 타크로리무스(FK506-FKBP12→칼시뉴린 억제→NFAT 핵이동 차단→synaptopodin 안정화→FPE 역전; CL=2.5 L/h, EC50=8 ng/mL) + 리툭시맙(anti-CD20 ADCC/CDC→B세포 고갈→CLCF1·anti-CD40 순환인자↓; Vc=3.1L, CL=0.014 L/h) + 스파르센탄(AT1R+ET-A/B 이중 길항→사구체내 고혈압 정상화+ET-1 섬유화↓; DUPLEX 2023 NEJM: 완전/부분 관해 42% vs 26%, CL=8.5 L/h, EC50=200 ng/mL) + Acthar Gel(MC1R/MC5R→직접 포도세포 보호+Nrf2 활성화); 22-CMT mrgsolve ODE(질환 11개: CLCF·POD·FPE·PROT·GFR_c·SCAR·TGFb·COMP·INFLAM·RAAS·BCELL; PK 11개: PRED_DEP·PRED1·PRED2·TAC_DEP·TAC1·TAC2·RTX1·RTX2·SPARS_DEP·SPARS1·SPARS2); 6 치료 시나리오(무치료·프레드니솔론 단독·Pred+타크로리무스·Pred+TAC+Rituximab·Sparsentan 단독·완전병용); 보정: Gipson 2011(Kidney Int, Pred 25% 완전관해)·Cattran 1999(CsA 70% 부분관해)·Kronbichler 2014(RTX 57% 반응)·Rheault 2023(DUPLEX NEJM, Sparsentan 완전관해 18% vs 9%)·PLANET-I(Sparsentan UPCR -46%) | [![FSGS](fsgs/fsgs_qsp_model.png)](fsgs/fsgs_qsp_model.svg) | [R](fsgs/fsgs_mrgsolve_model.R) | [refs](fsgs/fsgs_references.md) | [Shiny](fsgs/fsgs_shiny_app.R) |
+| 2026-06-19 | [**Chronic Pancreatitis — CP (만성 췌장염)**](#chronic-pancreatitis) | 만성질환 / 소화기·췌장 | 만성 췌장염: 알코올/흡연/유전(PRSS1·SPINK1·CFTR·CTRC)·폐쇄 등 원인 → 선포세포 Ca²⁺ 과부하+ER 스트레스+산화 스트레스(ROS↑) → 트립시노겐 조기 활성화 → 선포세포 괴사/사멸 → DAMP 방출 → 대식세포/호중구 모집 → NF-κB 활성화 → TNF-α·IL-1β·IL-6·IL-8 분비; TGF-β1(↑) → 췌장 성상세포(PSC) 활성화(α-SMA 발현) → 콜라겐 I/III 침착+CTGF+TIMP-1 → 세포외기질 축적 → 췌장 섬유화(비가역); CFTR 기능 저하 → 중탄산염 분비↓ → 췌관액 감소 → 단백질 플러그/석회화 → 췌관 폐색·협착·고혈압; 섬유화 → 선포세포 위축(외분비 기능 저하: 리파제·아밀라제·프로테아제 분비↓ → 지방변·단백질/탄수화물 흡수장애 → 영양실조·지용성 비타민 결핍); 섬유화 → 베타세포/알파세포/PP세포 소실 → 인슐린↓/글루카곤 조절장애/인슐린 저항성 → 췌장성 당뇨병(T3cDM: 취약한 혈당·저혈당 위험↑); 통증: 선포세포 손상+췌관 고압 → 말초 신경 감작(NGF·SP/CGRP·TRPV1) → 척수 후각(C섬유) → NMDAR 활성화 → 중추 감작(Wind-up) → 만성 복통(NRS 6–8/10); 신경 재형성(perineural invasion)+심리적 요인(불안/우울) 악화; 치료 PK/PD: PERT 40 000 lipase U/식사(십이지장 효소 활성 Emax=90%·PPI 병용으로 코팅 안정화) + 오피오이드(트라마돌 3-구획 PK: CL=15L/h·V₁=50L·F=70% → μ/κ/δ 수용체 억제 → 말초·중추 감작↓; IC50_pS=0.3μg/mL) + 가바펜틴(α2δ 칼슘채널 차단 → 말초+중추 감작↓, E=0.35) + 피르페니돈(TGF-β 억제·PSC 활성 억제·ROS↓; IC50=1.5μg/mL) + 로사르탄(AT1R 차단→AngII·PSC 활성↓; IC50=0.8μg/mL) + 인슐린(T3cDM 혈당 관리) + 옥트레오타이드(소마토스타틴 유사체→CCK↓·췌관압↓); 합병증: 가성낭종·누공·문맥고혈압·담관 압박·PDAC 위험(RR 14배)·췌장 복수; 20-CMT mrgsolve ODE(오피오이드 PK 3구획+PERT 2구획+TNFa·IL6·TGFb·ROS·PSC·FIB·EXO·BETA·GLUC·pSENS·cSENS); 5 치료 시나리오(무치료·PERT·오피오이드+가바펜틴·항섬유화·완전병용); 보정: Steer 1995(NEJM 섬유화)·Olesen 2011(Gastroenterology 통증 NRS)·Dominguez-Munoz 2011(PERT EPI 기준)·Hart 2016(Lancet GH T3cDM 25%)·Grond 2004(트라마돌 PK) | [![CP](chronic-pancreatitis/cp_qsp_model.png)](chronic-pancreatitis/cp_qsp_model.svg) | [R](chronic-pancreatitis/cp_mrgsolve_model.R) | [refs](chronic-pancreatitis/cp_references.md) | [Shiny](chronic-pancreatitis/cp_shiny_app.R) |
 
 
 ---
@@ -5192,4 +5193,65 @@ obstructive-sleep-apnea/
 ├── osa_mrgsolve_model.R       # mrgsolve ODE 모델 (18 구획, 6 시나리오)
 ├── osa_shiny_app.R            # Shiny 대시보드 (8 탭)
 └── osa_references.md          # 참고문헌 66개 (PubMed 링크 포함)
+```
+
+---
+
+## Chronic Pancreatitis (CP) — 만성 췌장염
+
+> Directory: [`chronic-pancreatitis/`](chronic-pancreatitis/)
+
+[![Chronic Pancreatitis QSP Map](chronic-pancreatitis/cp_qsp_model.png)](chronic-pancreatitis/cp_qsp_model.svg)
+
+### 병태생리 요약 (Pathophysiology Summary)
+
+만성 췌장염은 반복적이거나 지속적인 췌장 손상으로 인해 **비가역적인 섬유화**가 진행되는 만성 소화기 질환입니다. 알코올, 흡연, 유전적 요인(PRSS1, SPINK1, CFTR, CTRC 변이), 자가면역, 췌관 폐쇄 등이 주요 원인입니다.
+
+**핵심 기전:**
+- **선포세포 손상**: 세포내 Ca²⁺ 과부하 → ER 스트레스 → 트립시노겐 조기 활성화 → 자가 소화 → 선포세포 사멸
+- **췌장 성상세포(PSC) 활성화**: TGF-β1/PDGF/AngII에 의해 정지 상태에서 근섬유아세포로 활성화 → 콜라겐 I/III 과분비 → 섬유화
+- **외분비 기능 부전(EPI)**: 선포세포 위축·섬유화 → 리파제·아밀라제·프로테아제 분비↓ → 지방변·영양실조
+- **췌장성 당뇨병(T3cDM)**: 섬세포 소실(베타/알파/PP세포) → 인슐린 결핍 + 글루카곤 조절장애 → 취성 당뇨
+- **만성 복통**: 신경 감작(말초+중추) + 신경 재형성(퍼리뉴럴 침범) → NRS 6–8/10 심각한 통증
+
+### QSP 모델 구조 (Model Structure)
+
+| 구성 요소 | 내용 |
+|-----------|------|
+| 기계론적 지도 | 100+ 노드, 12개 서브그래프 클러스터: 원인·선포세포 병리·췌관 병리·염증 cascade·PSC/섬유화·외분비 기능·내분비 기능·통증 경로·약물 PK/PD·임상 종말점·바이오마커·합병증 |
+| mrgsolve ODE | 20 구획: 오피오이드 PK (3-구획) + PERT (2-구획) + TNF-α·IL-6·TGF-β·ROS·PSC·섬유화·외분비·베타세포·혈당·말초 감작·중추 감작 |
+| Shiny 앱 | 6 탭: 환자 프로파일·PK(오피오이드/PERT)·염증&섬유화·임상 종말점·시나리오 비교·바이오마커 |
+| 참고문헌 | 55개 PubMed 링크, 12개 주제 섹션 |
+
+### 5가지 치료 시나리오
+
+| 시나리오 | 치료 | 주요 목표 |
+|---------|------|----------|
+| 1. 무치료 | — | 자연 경과 관찰 |
+| 2. PERT 단독 | 리파제 40 000 U/식사 + PPI | 외분비 기능 보상 |
+| 3. 통증 관리 | 트라마돌 50mg q8h + 가바펜틴 | NRS ↓, 중추 감작 억제 |
+| 4. 항섬유화 | 피르페니돈 + 로사르탄 | TGF-β↓, PSC 활성↓, 섬유화 지연 |
+| 5. 완전 병용 | PERT + 오피오이드 + 가바펜틴 + 항섬유화 + 인슐린 | 다중 표적 통합 관리 |
+
+### 핵심 임상시험 보정 데이터
+
+| 임상시험 / 연구 | 결과 | 모델 보정 파라미터 |
+|----------------|------|-----------------|
+| Steer 1995 (NEJM) | 섬유화 5–7년 내 50% 진행 | k_fibrosis, kf_PSC |
+| Olesen 2011 (Gastroenterology) | 프레가발린 통증 NRS ↓2.9 | k_pS_prod, Imax_gabapenin |
+| Dominguez-Munoz 2011 (Pancreatology) | PERT 40 000U 흡수 정상화 ~80% | Emax_pert=0.90 |
+| Hart 2016 (Lancet GH) | T3cDM 10년 누적 발생률 25–30% | k_beta_loss |
+| Cho 2018 (Gut) | 피르페니돈 TGF-β 억제 65% | Imax_pirf_TGFb=0.65 |
+| Grond & Sablotzki 2004 (Clin Pharmacokinet) | 트라마돌 CL 13–18 L/h | CL_opioid=15 |
+
+### 파일 목록
+
+```
+chronic-pancreatitis/
+├── cp_qsp_model.dot          # Graphviz 기계론적 지도 (100+ 노드, 12 클러스터)
+├── cp_qsp_model.svg          # SVG 벡터 이미지
+├── cp_qsp_model.png          # PNG 이미지 (150 dpi)
+├── cp_mrgsolve_model.R       # mrgsolve ODE 모델 (20 구획, 5 시나리오)
+├── cp_shiny_app.R            # Shiny 대시보드 (6 탭)
+└── cp_references.md          # 참고문헌 55개 (PubMed 링크 포함)
 ```
