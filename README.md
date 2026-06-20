@@ -50,6 +50,7 @@
 | 2026-06-20 | 만성질환/피부/알레르기 | 아토피 피부염 (Atopic Dermatitis, AD) | [atopic-dermatitis/](atopic-dermatitis/) | [![ATAD QSP](atopic-dermatitis/ad_qsp_model.png)](atopic-dermatitis/ad_qsp_model.svg) |
 | 2026-06-20 | 신경퇴행성질환 | 파킨슨병 (Parkinson's Disease, PD) | [parkinsons-disease/](parkinsons-disease/) | [![PD QSP](parkinsons-disease/pd_qsp_model.png)](parkinsons-disease/pd_qsp_model.svg) |
 | 2026-06-20 | 신경정신질환 | 주요우울장애 (Major Depressive Disorder, MDD) | [major-depressive-disorder/](major-depressive-disorder/) | [![MDD QSP](major-depressive-disorder/mdd_qsp_model.png)](major-depressive-disorder/mdd_qsp_model.svg) |
+| 2026-06-20 | 종양혈액학 | 만성 골수성 백혈병 (Chronic Myeloid Leukemia, CML) — 첫 번째 종양 모델 | [chronic-myeloid-leukemia/](chronic-myeloid-leukemia/) | [![CML QSP](chronic-myeloid-leukemia/cml_qsp_model.png)](chronic-myeloid-leukemia/cml_qsp_model.svg) |
 
 ---
 
@@ -1877,3 +1878,54 @@ Major Depressive Disorder (MDD) is the world's leading cause of disability, affe
 3. Cipriani A et al. "Comparative efficacy of 21 antidepressants." *Lancet* 2018;391:1357. [PMID 29477251](https://pubmed.ncbi.nlm.nih.gov/29477251/)
 4. Duman RS & Monteggia LM. "A neurotrophic model for stress-related mood disorders." *Biol Psychiatry* 2006;59:1116. [PMID 16631126](https://pubmed.ncbi.nlm.nih.gov/16631126/)
 5. Dowlati Y et al. "A meta-analysis of cytokines in major depression." *Biol Psychiatry* 2010;67:446. [PMID 20015486](https://pubmed.ncbi.nlm.nih.gov/20015486/)
+
+---
+
+## 만성 골수성 백혈병 (Chronic Myeloid Leukemia, CML) — 첫 번째 종양 모델
+
+[![CML QSP Model](chronic-myeloid-leukemia/cml_qsp_model.png)](chronic-myeloid-leukemia/cml_qsp_model.svg)
+
+### 개요
+
+만성 골수성 백혈병(CML)은 t(9;22)(q34;q11) 전좌에 의해 형성된 **필라델피아(Ph) 염색체**와 그 산물인 **BCR-ABL1 융합 단백질(p210)**에 의해 구동되는 클론성 골수증식 종양입니다. BCR-ABL 티로신 키나아제의 구성적 활성화가 RAS-MAPK, PI3K-AKT-mTOR, JAK-STAT 경로를 통해 골수 세포의 무제한 증식과 아폽토시스 억제를 일으킵니다. TKI(티로신 키나아제 억제제) 시대에 10년 생존율은 약 85%로 개선되었으며, 지속적 깊은 분자반응(DMR) 달성 시 치료 없는 관해(TFR) 시도가 가능합니다.
+
+### 병기 및 주요 병태생리 경로
+
+| 병기 | 아세포 % | 특징 |
+|------|---------|------|
+| 만성기 (CP) | <10% | BCR-ABL IS% 높음, 치료 반응 우수 |
+| 가속기 (AP) | 10-19% | 클론 진화, 호염기구 ≥20% |
+| 급성전환기 (BC) | ≥20% | 골수성/림프구성, 예후 불량 |
+
+### TKI 약물 파라미터
+
+| TKI | 세대 | 용량 | IC50 | T315I | 주요 임상시험 |
+|-----|------|------|------|-------|------------|
+| 이마티닙 | 1세대 | 400mg/day | 0.25 µM | 내성 | IRIS (O'Brien 2003) |
+| 다사티닙 | 2세대 | 100mg/day | 0.025 µM | 내성 | DASISION (Kantarjian 2010) |
+| 닐로티닙 | 2세대 | 300mg BID | 0.020 µM | 내성 | ENESTnd (Saglio 2010) |
+| 포나티닙 | 3세대 | 15-45mg/day | 0.37 nM | 감수성 | OPTIC (Cortes 2022) |
+| 아시미닙 | STAMP | 40mg BID | 0.5 nM | 200mg BID | ASCEMBL (Réa 2021) |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`cml_qsp_model.dot`](chronic-myeloid-leukemia/cml_qsp_model.dot) | 기계론적 지도: 12 클러스터, 174 노드 |
+| [`cml_qsp_model.svg`](chronic-myeloid-leukemia/cml_qsp_model.svg) | 기계론적 지도 (SVG, 벡터) |
+| [`cml_qsp_model.png`](chronic-myeloid-leukemia/cml_qsp_model.png) | 기계론적 지도 (PNG, 150 dpi) |
+| [`cml_mrgsolve_model.R`](chronic-myeloid-leukemia/cml_mrgsolve_model.R) | mrgsolve ODE 모델: 22 구획, 7 치료 시나리오 (Michor 2005 기반) |
+| [`cml_shiny_app.R`](chronic-myeloid-leukemia/cml_shiny_app.R) | Shiny 대시보드 6탭: 환자프로파일 · PK · 분자반응 · 세포역학 · 시나리오비교 · 내성/TFR |
+| [`cml_references.md`](chronic-myeloid-leukemia/cml_references.md) | 참고문헌 60편 (PubMed 링크, 9개 섹션) |
+| [`README.md`](chronic-myeloid-leukemia/README.md) | 질환 및 모델 상세 설명 |
+
+### 핵심 참고문헌
+
+1. Michor F et al. "Dynamics of chronic myeloid leukaemia." *Nature* 2005;435:1267. [PMID 15988530](https://pubmed.ncbi.nlm.nih.gov/15988530/)
+2. O'Brien SG et al. (IRIS) "Imatinib vs interferon for CML." *NEJM* 2003;348:994. [PMID 12637609](https://pubmed.ncbi.nlm.nih.gov/12637609/)
+3. Saglio G et al. (ENESTnd) "Nilotinib vs imatinib for CML." *NEJM* 2010;362:2251. [PMID 20525993](https://pubmed.ncbi.nlm.nih.gov/20525993/)
+4. Kantarjian H et al. (DASISION) "Dasatinib vs imatinib for CML." *NEJM* 2010;362:2260. [PMID 20525994](https://pubmed.ncbi.nlm.nih.gov/20525994/)
+5. Réa D et al. (ASCEMBL) "Asciminib vs bosutinib in CML." *Blood* 2021;138:2031. [PMID 34407542](https://pubmed.ncbi.nlm.nih.gov/34407542/)
+6. Wylie AA et al. "The allosteric inhibitor ABL001 (asciminib)." *Nature* 2017;543:733. [PMID 28329763](https://pubmed.ncbi.nlm.nih.gov/28329763/)
+7. Mahon FX et al. (STIM) "TKI discontinuation in CML." *Lancet Oncol* 2010;11:1029. [PMID 20965785](https://pubmed.ncbi.nlm.nih.gov/20965785/)
+8. Hochhaus A et al. (ELN 2020) "ELN 2020 recommendations for CML." *Leukemia* 2020;34:966. [PMID 32127639](https://pubmed.ncbi.nlm.nih.gov/32127639/)
