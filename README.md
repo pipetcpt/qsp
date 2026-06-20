@@ -41,6 +41,7 @@
 | 2026-06-20 | 자가면역질환/반응성관절염 | 반응성 관절염 (Reactive Arthritis, ReA) | [reactive-arthritis/](reactive-arthritis/) | [![ReA QSP](reactive-arthritis/rea_qsp_model.png)](reactive-arthritis/rea_qsp_model.svg) |
 | 2026-06-20 | 만성질환/직업성폐질환 | 진폐증 (Pneumoconiosis – Silicosis / CWP / Asbestosis) | [pneumoconiosis/](pneumoconiosis/) | [![PNM QSP](pneumoconiosis/pnm_qsp_model.png)](pneumoconiosis/pnm_qsp_model.svg) | 
 | 2026-06-20 | 자가면역질환 / 혈액학 | 에반스 증후군 (Evans Syndrome – AIHA+ITP) | [evans-syndrome/](evans-syndrome/) | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
+| 2026-06-20 | 만성질환/소화기 | 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis) | [diverticular-disease/](diverticular-disease/) | [![DIV QSP](diverticular-disease/div_qsp_model.png)](diverticular-disease/div_qsp_model.svg) |
 
 ---
 
@@ -1309,3 +1310,54 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 4. **면역학적 지표** — Anti-RBC IgG, Anti-Plt IgG, Treg, 자가반응 B세포, C3b 보체 동태
 5. **시나리오 비교** — 6개 치료 전략 동시 비교; Day 180/365 반응 요약 표
 6. **바이오마커 대시보드** — DAT, PAIgG, LDH, Haptoglobin, Treg%, B cell% 실시간 평가 + 치료 권고
+
+
+---
+
+## 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis)
+
+### 개요
+
+게실병은 서양 성인 인구의 약 35–50%에서 발생하는 만성 소화기 질환으로, 대장 점막이 근육층 약화 부위를 통해 탈출하여 게실(diverticulum)을 형성하는 질환입니다. 대부분은 무증상(게실증)으로 지내지만, 약 4–15%에서 급성 게실염(acute diverticulitis)이 발생하며, 복잡성 합병증(천공, 농양, 누공, 출혈)으로 진행할 수 있습니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 이상 |
+|------|------------|---------|
+| 대장 생역학 | 저섬유질 식이 → 소변량 감소 → 분절 수축↑ → 장내강 압력↑ | 게실 형성 (La Place 법칙) |
+| ECM 리모델링 | 노화/TNF-α → MMP-1/9↑, TIMP-1↓ → 콜라겐 분해 → 근육층 약화 | 대장벽 취약화 |
+| 장내 미생물 교란 | 저섬유질 → Faecalibacterium↓, E.coli↑ → LPS↑ | 만성 저강도 염증 |
+| NF-κB 경로 | LPS → TLR4 → IKKβ → NF-κB → TNF-α, IL-6, IL-1β, COX-2 | 급성 게실염 |
+| 급성 게실염 | 미세천공 → 주변 지방 염증 → 국소 농양 | Hinchey I–IV 분류 |
+| 만성 염증/섬유화 | M1→M2 전환, TGF-β → 근섬유아세포 → 콜라겐 침착 | 협착, 누공 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 작용기전 | 주요 PK | 임상 효과 |
+|------|---------|---------|---------|
+| Rifaximin 400mg TID × 7d/월 | RNA 중합효소 억제 (장관 내 작용, F<0.4%) | GI t½≈1h, 최소 전신 흡수 | 미생물 다양성↑, LPS↓, 재발↓ 40% |
+| Mesalamine (5-ASA) 1.6g/day | NF-κB, COX-2 억제 | pH 방출형, t½≈0.5–2h | CRP↓, 재발↓ 32% |
+| Ciprofloxacin 500mg BID × 10d | DNA 회전효소 억제 (그람음성) | F=70%, t½=4–6h | 급성 게실염 해소율 93% |
+| Metronidazole 500mg TID × 10d | 혐기성균 DNA 손상 | F=99%, t½=6–8h | 혐기성균 제거 |
+| Psyllium 15g/day | 부피형성 완하제, 단쇄지방산 전구체 | 발효 → 부티레이트 | 장내강 압력↓, 게실 형성↓ |
+
+### Hinchey 분류 및 치료 원칙
+
+| Hinchey | 소견 | 1차 치료 |
+|---------|------|---------|
+| Stage 0 | SUDD (증상성 합병증 없는 게실병) | 식이 조절 + Rifaximin ± Mesalamine |
+| Stage I | 국소 농양 (pericolic) | 항생제 ± 경피적 배액 |
+| Stage II | 골반 농양 | 항생제 + 경피적 배액 |
+| Stage III | 화농성 복막염 | 응급수술 (Hartmann's procedure) |
+| Stage IV | 대변성 복막염 | 응급수술 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [div_qsp_model.dot](diverticular-disease/div_qsp_model.dot) | Graphviz 기계론적 지도 소스 (140+ 노드, 10 클러스터) |
+| [div_qsp_model.svg](diverticular-disease/div_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [div_qsp_model.png](diverticular-disease/div_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [div_mrgsolve_model.R](diverticular-disease/div_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 6 시나리오) |
+| [div_shiny_app.R](diverticular-disease/div_shiny_app.R) | Shiny 대시보드 (6 탭) |
+| [div_references.md](diverticular-disease/div_references.md) | 참고문헌 (66개 PubMed 링크, 섹션별 분류) |
