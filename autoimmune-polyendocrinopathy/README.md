@@ -1,6 +1,9 @@
 # 자가면역 다발성 내분비병증 (APS / APECED)
 ## Autoimmune Polyendocrinopathy Syndrome Type 1 — QSP Model
 
+> **QSP 질환 모델 라이브러리** · Claude Code Routine으로 자동 생성된 정량적 시스템 약리학(QSP) 모델입니다.
+> 상위 라이브러리 → [../README.md](../README.md) · 분류: 내분비·대사
+
 [![APS QSP Model](aps_qsp_model.png)](aps_qsp_model.svg)
 
 ---
