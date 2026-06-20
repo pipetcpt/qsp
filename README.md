@@ -44,6 +44,7 @@
 | 2026-06-20 | 자가면역질환/다발내분비 | 자가면역 다발성 내분비병증 (APS Type 1 / APECED — AIRE Mutation) | [autoimmune-polyendocrinopathy/](autoimmune-polyendocrinopathy/) | [![APS QSP](autoimmune-polyendocrinopathy/aps_qsp_model.png)](autoimmune-polyendocrinopathy/aps_qsp_model.svg) |
 | 2026-06-20 | 자가면역질환/뇌하수체 | 림프구성 뇌하수체염 (Lymphocytic Hypophysitis, LyH) | [lymphocytic-hypophysitis/](lymphocytic-hypophysitis/) | [![LyH QSP](lymphocytic-hypophysitis/lhyp_qsp_model.png)](lymphocytic-hypophysitis/lhyp_qsp_model.svg) |
 | 2026-06-20 | 만성질환/신장-요로계 | 만성 신우신염 (Chronic Pyelonephritis, CPN) | [chronic-pyelonephritis/](chronic-pyelonephritis/) | [![CPN QSP](chronic-pyelonephritis/cpn_qsp_model.png)](chronic-pyelonephritis/cpn_qsp_model.svg) |
+| 2026-06-20 | 만성질환/대사 | 무증상 고요산혈증 (Asymptomatic Hyperuricemia, AHY) | [asymptomatic-hyperuricemia/](asymptomatic-hyperuricemia/) | [![AHY QSP](asymptomatic-hyperuricemia/ahy_qsp_model.png)](asymptomatic-hyperuricemia/ahy_qsp_model.svg) |
 
 ---
 
@@ -1547,3 +1548,65 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 | ⑤ 시나리오 비교 | 5가지 항생제 전략 동시 비교 |
 | ⑥ 바이오마커 | IL-6, TGF-β1, 콜라겐, 요로패혈증 위험 |
 | ⑦ 참고문헌 | 섹션별 분류 PubMed 링크 |
+
+---
+
+## 무증상 고요산혈증 (Asymptomatic Hyperuricemia, AHY)
+
+### 개요
+
+무증상 고요산혈증(AHY)은 혈청 요산(SUA) ≥7.0mg/dL (남성) / ≥6.0mg/dL (여성)이면서 통풍 발작·토파이·요산 신석증이 없는 상태입니다. 전 세계 성인의 15-25%에서 발생하며, 아시아인에서 더 높은 빈도를 보입니다. 장기적으로 통풍, 만성 신부전(CKD), 고혈압, 심혈관 질환의 중요한 위험인자입니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 이상 |
+|------|-------------|---------|
+| 퓨린 이화 | XO/XDH: Hypoxanthine → Xanthine → UA (+ H₂O₂/ROS) | 과생성형 고요산혈증 (~10-15%) |
+| 신장 재흡수 | URAT1(SLC22A12), GLUT9(SLC2A9) 과다 재흡수 | 배설 감소형 (~85%) |
+| 장관 분비 | ABCG2 Q141K 변이: 장관+신장 분비 50%↓ | 유전성 고요산혈증 |
+| MSU 결정 형성 | SUA > 6.8mg/dL → 핵화·성장·NLRP3 활성 | 통풍 전단계 |
+| 심혈관 영향 | UA → eNOS↓ → NO↓ → 혈압↑ → 죽상경화↑ | 고혈압, 심혈관 이벤트 +27% |
+| 신장 영향 | UA 직접독성 + ROS → 세뇨관 손상 → GFR↓ | CKD 가속 진행 |
+| 대사 영향 | UA → 인슐린 저항성↑ → HOMA-IR↑ | 대사증후군, NAFLD |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 기전 | 주요 PK | 임상 효과 |
+|------|------|---------|---------|
+| 알로퓨리놀 300mg/day | XO 경쟁적/비가역 억제 (옥시퓨리놀) | F=90%, t½(oxypurinol)=18-30h | SUA↓ 30-40% |
+| 페북소스타트 80mg/day | XO 비퓨린 선택적 억제 (IC50=0.6nM) | F=84%, t½=5-8h | SUA↓ 40-53% |
+| 레시누라드 200mg/day | URAT1+OAT4 이중 억제 | F≈100%, t½=5h | SUA↓ +15-30% (병용) |
+| 도티누라드 4mg/day | URAT1 선택적 억제 | F≈100%, t½=14-17h | SUA↓ 15-20% |
+| 페글로티카제 8mg IV q2주 | UA→알란토인 (uricase, 용해도 10배↑) | t½=6-14일 (PEG화) | SUA↓ >80% (24h 내) |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [ahy_qsp_model.dot](asymptomatic-hyperuricemia/ahy_qsp_model.dot) | Graphviz 기계론적 지도 소스 (15 클러스터, 100+ 노드) |
+| [ahy_qsp_model.svg](asymptomatic-hyperuricemia/ahy_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [ahy_qsp_model.png](asymptomatic-hyperuricemia/ahy_qsp_model.png) | PNG 이미지 (150 dpi) |
+| [ahy_mrgsolve_model.R](asymptomatic-hyperuricemia/ahy_mrgsolve_model.R) | mrgsolve ODE 모델 (19 구획, 7 시나리오, 용량-반응 분석) |
+| [ahy_shiny_app.R](asymptomatic-hyperuricemia/ahy_shiny_app.R) | Shiny 대시보드 (6탭 인터랙티브 시뮬레이터) |
+| [ahy_references.md](asymptomatic-hyperuricemia/ahy_references.md) | 참고문헌 45편 (PubMed 링크, 11개 섹션) |
+
+### 주요 치료 시나리오 (mrgsolve 시뮬레이션, 19 ODE 구획)
+
+1. **미치료 AHY (SUA=7.5)**: 2년간 SUA 점진적 상승, GFR 감소, MSU 결정 누적, 심혈관 위험 악화
+2. **알로퓨리놀 300mg/day**: XO 억제 → SUA 5.2mg/dL (치료 목표 달성), GFR 안정
+3. **페북소스타트 80mg/day**: 고선택적 XO 억제 → SUA 4.5mg/dL (더 강력한 효과)
+4. **알로퓨리놀 + 요산배설촉진제 병용**: 이중 기전 → SUA 4.0mg/dL (적극적 treat-to-target)
+5. **고과당식이 + 알코올**: SUA 9.5mg/dL 급격 상승, 통풍 발작 위험 10배 증가
+6. **ABCG2 Q141K 변이 + 페북소스타트 120mg**: 유전적 고위험군 최대용량 치료
+7. **적극적 치료목표 SUA<6mg/dL**: 알로퓨리놀 600mg + 생활습관 → 심혈관/신장 보호 극대화
+
+### Shiny 대시보드 6탭 구성
+
+| 탭 | 내용 |
+|----|------|
+| ① 환자 프로파일 | 질환 개요, 위험 평가, SUA 시계열, 초기 value boxes |
+| ② 약물 PK | 혈중 농도-시간 곡선 (알로·페북소·요산배설촉진제), XO 억제율 |
+| ③ 요산 역학 | SUA, 요중 UA, MSU 결정 침착량, 통풍 발작 위험 지수 |
+| ④ 심혈관·신장 영향 | eGFR, MAP, 누적 CV 위험, 내피기능/NO 수준 |
+| ⑤ 시나리오 비교 | 7개 치료 시나리오 SUA 동시 비교, 2년 결과표 (DT) |
+| ⑥ 바이오마커 | IL-1β, hs-CRP, HOMA-IR, SUA-CRP 산점도, 최종 바이오마커 요약 |
