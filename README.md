@@ -43,6 +43,7 @@
 | 2026-06-20 | 만성질환/소화기 | 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis) | [diverticular-disease/](diverticular-disease/) | [![DIV QSP](diverticular-disease/div_qsp_model.png)](diverticular-disease/div_qsp_model.svg) |
 | 2026-06-20 | 자가면역질환/다발내분비 | 자가면역 다발성 내분비병증 (APS Type 1 / APECED — AIRE Mutation) | [autoimmune-polyendocrinopathy/](autoimmune-polyendocrinopathy/) | [![APS QSP](autoimmune-polyendocrinopathy/aps_qsp_model.png)](autoimmune-polyendocrinopathy/aps_qsp_model.svg) |
 | 2026-06-20 | 자가면역질환/뇌하수체 | 림프구성 뇌하수체염 (Lymphocytic Hypophysitis, LyH) | [lymphocytic-hypophysitis/](lymphocytic-hypophysitis/) | [![LyH QSP](lymphocytic-hypophysitis/lhyp_qsp_model.png)](lymphocytic-hypophysitis/lhyp_qsp_model.svg) |
+| 2026-06-20 | 만성질환/신장-요로계 | 만성 신우신염 (Chronic Pyelonephritis, CPN) | [chronic-pyelonephritis/](chronic-pyelonephritis/) | [![CPN QSP](chronic-pyelonephritis/cpn_qsp_model.png)](chronic-pyelonephritis/cpn_qsp_model.svg) |
 
 ---
 
@@ -1484,3 +1485,65 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 | 5. 면역 역학 | T세포·B세포·APA 동태, 면역-뇌하수체 위상도 |
 | 6. 임상 끝점 | 방사형 차트, 부신 위기 위험, 핵심 시점 요약표 |
 | 7. 바이오마커 | 선택 바이오마커 추적, 정상 참조 범위 표시 |
+
+---
+
+## 만성 신우신염 (Chronic Pyelonephritis, CPN)
+
+### 개요
+
+만성 신우신염은 반복적인 상부 요로 세균 감염 또는 방광요관역류(VUR)로 인해 신장 실질에 영구적인 반흔(scar)이 형성되는 만성 신장 질환입니다. 미국에서 매년 약 100만 건의 입원 관련 신우신염이 발생하며, 소아에서 CKD 원인의 10–20%를 차지합니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 이상 |
+|------|------------|---------|
+| UPEC 병원성 | FimH/PapG 부착 → HlyA 독소 → 조직 침입 | 신우 감염 → 실질 손상 |
+| VUR 매개 역류 | VUR Grade I–V → 신내 역류 → 복합 유두 취약 | 반복 감염 → 신장 반흔 |
+| TLR4/NFκB | LPS → TLR4 → MyD88 → NFκB | IL-6/IL-8/TNF-α 과다 생성 |
+| NLRP3 인플라마좀 | HlyA → NLRP3 → Caspase-1 → IL-1β | 세뇨관 세포 사멸 (pyroptosis) |
+| TGF-β1 섬유화 | TGF-β1 → EMT → 근섬유모세포 → Collagen I/III | DMSA 흡수 결손, GFR 저하 |
+| RAAS 활성화 | Scar → RAAS → Ang II → TGF-β1 | 이차성 고혈압, 진행 CKD |
+
+### 항생제 PK/PD 파라미터
+
+| 약물 | 작용기전 | 주요 PK | PK/PD 목표 |
+|------|---------|---------|----------|
+| Ciprofloxacin 500 mg BID | DNA Gyrase/TopoisIV 억제 (AUC-dep.) | F=70%, t½=4h, CL=25 L/h | fAUC/MIC > 125 |
+| TMP-SMX 160/800 mg BID | DHFR 억제 (시간-의존형) | F=95%/85%, t½=10h | T>MIC > 40% |
+| Nitrofurantoin 100 mg QD | DNA/단백 손상 (요중 농도 의존) | F=75%, t½<1h | Cmax/MIC(요중) > 4 |
+| Fosfomycin 3g 단회 | 세포벽 합성 억제 (MurA) | 요중 30–40% 회수 | Cmax > 4× MIC (요중) |
+| Gentamicin 5 mg/kg IV QD | 30S 리보솜 억제 (농도-의존형) | Vd=0.3 L/kg, t½=2h | Cmax/MIC > 10 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [cpn_qsp_model.dot](chronic-pyelonephritis/cpn_qsp_model.dot) | Graphviz 기계론적 지도 소스 (10 클러스터, 140+ 노드) |
+| [cpn_qsp_model.svg](chronic-pyelonephritis/cpn_qsp_model.svg) | SVG 벡터 이미지 |
+| [cpn_qsp_model.png](chronic-pyelonephritis/cpn_qsp_model.png) | PNG 이미지 (150 dpi) |
+| [cpn_mrgsolve_model.R](chronic-pyelonephritis/cpn_mrgsolve_model.R) | mrgsolve ODE 모델 (18 구획, 7 시나리오) |
+| [cpn_shiny_app.R](chronic-pyelonephritis/cpn_shiny_app.R) | Shiny 대시보드 (7탭) |
+| [cpn_references.md](chronic-pyelonephritis/cpn_references.md) | 참고문헌 38편 (PubMed 링크 포함) |
+
+### 주요 치료 시나리오 (mrgsolve 시뮬레이션, 18 ODE 구획)
+
+1. **미치료**: 세균 부하 지속 → 빠른 GFR 저하 및 신장 반흔 형성
+2. **Ciprofloxacin 14일**: fAUC/MIC > 125 달성 → 7–10일 내 세균 청소, GFR 보존
+3. **TMP-SMX 14일**: 감수성 균주에서 동등한 효과 (내성률 증가 시 주의)
+4. **Ciprofloxacin 7일**: 14일 대비 약간 열등하나 내성 선택압 감소
+5. **Nitrofurantoin 6개월 예방**: 재발률 60% 감소, 장기 GFR 보존 효과
+6. **Cipro 14일 + Nitrofurantoin 6개월**: 최우수 전략 — 급성 치료 후 재발 예방
+7. **TMP-SMX + 내성균 (MIC × 4)**: 치료 실패 시뮬레이션 → 빠른 섬유화 진행
+
+### Shiny 대시보드 7탭 구성
+
+| 탭 | 내용 |
+|----|------|
+| ① 환자 프로파일 | GFR, VUR 등급, 동반질환, 항생제 선택 |
+| ② PK 모니터링 | Cipro/TMP/NIT 혈중 농도, fAUC/MIC |
+| ③ 세균 동태 | log₁₀ CFU, 생물막, Kill Rate, 면역세포 |
+| ④ 신기능 (GFR) | GFR 추이, 크레아티닌, 반흔, CKD 단계 전환 |
+| ⑤ 시나리오 비교 | 5가지 항생제 전략 동시 비교 |
+| ⑥ 바이오마커 | IL-6, TGF-β1, 콜라겐, 요로패혈증 위험 |
+| ⑦ 참고문헌 | 섹션별 분류 PubMed 링크 |
