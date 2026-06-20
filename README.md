@@ -46,6 +46,7 @@
 | 2026-06-20 | 만성질환/신장-요로계 | 만성 신우신염 (Chronic Pyelonephritis, CPN) | [chronic-pyelonephritis/](chronic-pyelonephritis/) | [![CPN QSP](chronic-pyelonephritis/cpn_qsp_model.png)](chronic-pyelonephritis/cpn_qsp_model.svg) |
 | 2026-06-20 | 만성질환/대사 | 무증상 고요산혈증 (Asymptomatic Hyperuricemia, AHY) | [asymptomatic-hyperuricemia/](asymptomatic-hyperuricemia/) | [![AHY QSP](asymptomatic-hyperuricemia/ahy_qsp_model.png)](asymptomatic-hyperuricemia/ahy_qsp_model.svg) |
 | 2026-06-20 | 만성질환/부인과 | 자궁내막증 (Endometriosis) | [endometriosis/](endometriosis/) | [![ENDO QSP](endometriosis/endo_qsp_model.png)](endometriosis/endo_qsp_model.svg) |
+| 2026-06-20 | 신경퇴행성질환 | 알츠하이머병 (Alzheimer's Disease, AD) | [alzheimers-disease/](alzheimers-disease/) | [![AD QSP](alzheimers-disease/ad_qsp_model.png)](alzheimers-disease/ad_qsp_model.svg) |
 
 ---
 
@@ -1678,3 +1679,61 @@ Endometriosis affects ~10% of reproductive-age women (190 million globally). Ect
 3. Taylor HS et al. "Treatment of Endometriosis-Associated Pain with Elagolix." *N Engl J Med* 2017;377:28–40. [PMID 28985706](https://pubmed.ncbi.nlm.nih.gov/28985706/)
 4. Bulun SE et al. "Aromatase in endometriosis." *Semin Reprod Med* 2004;22:45–50. [PMID 15083381](https://pubmed.ncbi.nlm.nih.gov/15083381/)
 5. Strowitzki T et al. "Dienogest is as effective as leuprolide acetate in treating the painful symptoms of endometriosis." *Hum Reprod* 2010;25:633–41. [PMID 20027944](https://pubmed.ncbi.nlm.nih.gov/20027944/)
+
+---
+
+## 알츠하이머병 (Alzheimer's Disease, AD)
+
+### 개요 / Overview
+
+알츠하이머병은 전 세계 치매 원인의 약 60–70%를 차지하는 가장 흔한 신경퇴행성 질환입니다.  
+전 세계 약 5,500만 명의 치매 환자 중 다수가 AD 환자이며, 2050년까지 3배 증가 예상.  
+아밀로이드 폭포 가설(Amyloid Cascade Hypothesis), 타우 병리(NFT), 신경염증, 콜린성 결핍이 주요 병인입니다.
+
+Alzheimer's disease accounts for 60–70% of all dementia cases globally. Core pathological mechanisms: amyloid cascade (APP→BACE1→Aβ42 overproduction/aggregation), tau hyperphosphorylation/NFT formation, microglial neuroinflammation (M1/DAM activation, NLRP3 inflammasome), and loss of basal forebrain cholinergic neurons (BFCN).
+
+### 병태생리 핵심 경로
+
+| 경로 | 핵심 분자 | 임상 결과 |
+|------|----------|---------|
+| APP 가공/아밀로이드 생성 | BACE1, γ-세크레타제(PSEN1/2), Aβ42 | 노인반(Senile Plaque) 형성 |
+| 아밀로이드 응집/독성 | Aβ 올리고머 → 프로토피브릴 → 섬유 → 플라크 | 시냅스 손상, LTP 억제, AMPAR 소실 |
+| 아밀로이드 소거 | IDE, NEP, LRP1(efflux), RAGE(influx), ApoE4(↓clearance) | CSF Aβ42 감소, Amyloid PET SUVr↑ |
+| 타우 과인산화 | CDK5/p25, GSK-3β, PP2A↓, pTau181/217/231 | NFT 형성, Braak stage 진행 |
+| 타우 확산(prion-like) | tau oligomer 세포간 전달, BIN1 | 피질 전반 확산 |
+| 신경염증 | 소교세포 M1/DAM, TREM2, NLRP3, TNF-α, IL-1β | 시냅스 제거 (C1q/C3), NeuroCellDeath |
+| 콜린성 기능 저하 | ChAT↓, ACh↓, BFCN 손실, nAChR/mAChR↓ | 인지·기억 기능 저하 |
+| 시냅스 소실 | Dendritic spine↓, LTP↓, CaMKII, BDNF/TrkB↓ | MMSE↓, ADAS-Cog↑ |
+| 미토콘드리아 기능 이상 | Complex I 손상, ROS, mPTP, Caspase-3 | ATP 결핍, 신경세포 사멸 |
+| 혈뇌장벽 이상 | BBB 투과성↑, LRP1↓, CAA, 글림프계 이상 | ISF Aβ 축적, ARIA 위험 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 작용기전 | 주요 PK | 임상 효과 |
+|------|---------|---------|---------|
+| Donepezil 10 mg QD | AChE 가역 억제 (Ki≈6.7 nM) | F≈100%, t½≈70h, Vd=594L, Kp_brain=0.18 | ADAS-Cog −3.1점, MMSE +2–3점 (24주) |
+| Rivastigmine 9.5 mg/24h 패치 | AChE + BuChE 유사비가역 억제 | 패치 F=36%, t½≈1h | ADAS-Cog −2.6점 |
+| Galantamine 24 mg | AChE 경쟁적 억제 + α7-nAChR 알로스테릭 조절 | F≈100%, t½≈7h | ADAS-Cog −3.0점 |
+| Memantine 20 mg QD | NMDA 수용체 개방채널 차단 (IC50≈0.8 mg/L) | t½≈60–80h, Vd=520L | SIB +5.7점, 중등-중증 AD |
+| Lecanemab 10 mg/kg Q2W IV | Aβ 프로토피브릴 고친화 결합 (Kd≈1 nM) | t½≈5일, CNS/plasma≈0.1% | CDR-SB −27%, Amyloid PET −59.1 CL (CLARITY-AD, 2023) |
+| Donanemab Q4W IV | 피로글루타메이트-Aβ(pE3-Aβ) 플라크 표적 | t½≈7일 (mAb) | CDR-SB −35% (TRAILBLAZER-ALZ2, 2023) |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`ad_qsp_model.dot`](alzheimers-disease/ad_qsp_model.dot) | 기계론적 지도: 12 클러스터, 140+ 노드, fdp 레이아웃 |
+| [`ad_qsp_model.svg`](alzheimers-disease/ad_qsp_model.svg) | 기계론적 지도 (SVG, 벡터) |
+| [`ad_qsp_model.png`](alzheimers-disease/ad_qsp_model.png) | 기계론적 지도 (PNG, 150 dpi) |
+| [`ad_mrgsolve_model.R`](alzheimers-disease/ad_mrgsolve_model.R) | mrgsolve ODE 모델: 21 구획, 7 시나리오 (대조군/donepezil/memantine/병용/lecanemab/APOE4/FAD) |
+| [`ad_shiny_app.R`](alzheimers-disease/ad_shiny_app.R) | Shiny 대시보드 6탭: 환자 프로파일 · 약물 PK · 아밀로이드/타우 바이오마커 · 신경염증/시냅스 · 인지 엔드포인트 · 시나리오 비교 |
+| [`ad_references.md`](alzheimers-disease/ad_references.md) | 참고문헌 41편 (PubMed PMID): 아밀로이드 폭포 · 타우 병리 · 신경염증 · 콜린성계 · 약물 PK/PD · 임상시험 · 유전위험인자 · QSP 모델링 · 바이오마커 |
+| [`README.md`](alzheimers-disease/README.md) | 질환 및 모델 상세 설명 |
+
+### 핵심 참고문헌
+
+1. Hardy J & Selkoe DJ. "The amyloid hypothesis of Alzheimer's disease." *Science* 2002;297:353–6. [PMID 12130773](https://pubmed.ncbi.nlm.nih.gov/12130773/)
+2. Heneka MT et al. "Neuroinflammation in Alzheimer's disease." *Lancet Neurol* 2015;14:388–405. [PMID 25792098](https://pubmed.ncbi.nlm.nih.gov/25792098/)
+3. van Dyck CH et al. "Lecanemab in Early Alzheimer's Disease." *N Engl J Med* 2023;388:9–21. [PMID 36449413](https://pubmed.ncbi.nlm.nih.gov/36449413/)
+4. Sims JR et al. "Donanemab in Early Symptomatic Alzheimer's Disease." *N Engl J Med* 2023;389:1919–31. [PMID 37459141](https://pubmed.ncbi.nlm.nih.gov/37459141/)
+5. Iqbal K et al. "Tau and neurodegenerative disease: the story so far." *Nat Rev Neurol* 2016;12:15–27. [PMID 26635538](https://pubmed.ncbi.nlm.nih.gov/26635538/)
