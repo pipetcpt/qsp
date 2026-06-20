@@ -13,7 +13,6 @@
 ## iqrtools
 
 - <https://www.intiquan.com/acop2019_qsp/>
-
 ---
 
 ## QSP Disease Model Library
@@ -42,6 +41,7 @@
 | 2026-06-20 | 만성질환/직업성폐질환 | 진폐증 (Pneumoconiosis – Silicosis / CWP / Asbestosis) | [pneumoconiosis/](pneumoconiosis/) | [![PNM QSP](pneumoconiosis/pnm_qsp_model.png)](pneumoconiosis/pnm_qsp_model.svg) | 
 | 2026-06-20 | 자가면역질환 / 혈액학 | 에반스 증후군 (Evans Syndrome – AIHA+ITP) | [evans-syndrome/](evans-syndrome/) | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
 | 2026-06-20 | 만성질환/소화기 | 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis) | [diverticular-disease/](diverticular-disease/) | [![DIV QSP](diverticular-disease/div_qsp_model.png)](diverticular-disease/div_qsp_model.svg) |
+| 2026-06-20 | 자가면역질환/다발내분비 | 자가면역 다발성 내분비병증 (APS Type 1 / APECED — AIRE Mutation) | [autoimmune-polyendocrinopathy/](autoimmune-polyendocrinopathy/) | [![APS QSP](autoimmune-polyendocrinopathy/aps_qsp_model.png)](autoimmune-polyendocrinopathy/aps_qsp_model.svg) |
 
 ---
 
@@ -1361,3 +1361,59 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 | [div_mrgsolve_model.R](diverticular-disease/div_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 6 시나리오) |
 | [div_shiny_app.R](diverticular-disease/div_shiny_app.R) | Shiny 대시보드 (6 탭) |
 | [div_references.md](diverticular-disease/div_references.md) | 참고문헌 (66개 PubMed 링크, 섹션별 분류) |
+| [div_references.md](diverticular-disease/div_references.md) | 참고문헌 (66개 PubMed 링크, 섹션별 분류) |
+
+---
+
+## 자가면역 다발성 내분비병증 (APS Type 1 / APECED)
+
+### 개요
+
+자가면역 다발성 내분비병증(APS, Autoimmune Polyendocrinopathy Syndrome)은 두 개 이상의 내분비선이 자가면역 기전에 의해 손상되는 증후군입니다. APS Type 1(APECED)은 **AIRE 유전자 돌연변이**로 인한 중추 면역관용 파괴가 원인이며, 핀란드 1/25,000의 유병률을 보이는 희귀 단일 유전자 질환입니다. 3대 주요 구성 요소는 만성 피부칸디다증(CMC), 부갑상선기능저하증, 부신기능저하증(애디슨병)입니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 기전 | 임상 결과 |
+|------|---------|---------|
+| AIRE 소실 → 흉선 | mTEC에서 TSA 발현 불능 → 자가반응 T세포 음성선택 실패 | 자가반응 T세포 말초 방출 |
+| 자가항체 생성 | 항21-OH(부신), 항NALP5(부갑상선), 항GAD65(췌장), 항TPO(갑상선) | 다장기 자가면역 |
+| 항IFN-α 중화항체 | APS1 병리표지 항체 (>95% 양성) | CMC 위험 증가 |
+| 부신 파괴 | CTL + 자가항체 → 부신피질 위축 | 코르티솔/알도스테론 결핍 |
+| 부갑상선 파괴 | 항NALP5 Ab → PTG 기능 소실 | 저칼슘혈증, 경련, QTc 연장 |
+| 췌장 베타세포 파괴 | 항GAD65/IA-2 Ab + CD8+ CTL | T1DM (APS1 환자 20%) |
+| 갑상선 파괴 | 항TPO Ab + Th1 매개 염증 | 하시모토 갑상선염, 기능저하증 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 기전 | 주요 PK | 임상 효과 |
+|------|------|---------|---------|
+| 히드로코르티손 20mg/day | GR 작용제 (부신 대체) | F=0.96, t½=1.5h, CL=1.1L/min | AM 코르티솔 정상화 (8-20 µg/dL) |
+| 플루드로코르티손 100µg/day | MR 작용제 (광물질코르티코이드) | F=0.99, t½=3.5h | Na+/K+ 균형, 기립성 저혈압 방지 |
+| 칼시트리올 0.5µg/day | VDR 작용제 | t½=5-8h | 장관 Ca²⁺ 흡수 증가 → 저칼슘 교정 |
+| 레보티록신 75-100µg/day | 갑상선호르몬 대체 | F=0.75-0.80, t½=9일 | TSH 정상화 (0.4-4.0 mIU/L) |
+| 사이클로스포린 A 3.5mg/kg | 칼시뉴린 억제 → NFAT 차단 | F=0.30(가변), t½=8-24h, IC50=150ng/mL | AutoT 억제 ~50% |
+| 아바타셉트 125mg SC/주 | CD28/B7 공자극 차단 | F=0.79, t½=13일, IC50=2µg/mL | Treg 기능 강화, AutoT 억제 |
+| 리툭시맙 375mg/m² q6mo | 항CD20 → B세포 고갈 | IV, t½=21일, IC50=5µg/mL | 자가항체 ~85% 감소 |
+| 토파시티닙 10mg/day | JAK1/3 억제 → STAT1/3/5 차단 | F=0.74, t½=3h, IC50=8ng/mL | IFN-γ/IL-17 신호 70% 차단 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [aps_qsp_model.dot](autoimmune-polyendocrinopathy/aps_qsp_model.dot) | Graphviz 기계론적 지도 소스 (140+ 노드, 11 클러스터) |
+| [aps_qsp_model.svg](autoimmune-polyendocrinopathy/aps_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [aps_qsp_model.png](autoimmune-polyendocrinopathy/aps_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [aps_mrgsolve_model.R](autoimmune-polyendocrinopathy/aps_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 7 시나리오) |
+| [aps_shiny_app.R](autoimmune-polyendocrinopathy/aps_shiny_app.R) | Shiny 대시보드 (7탭: 환자/면역/PK/내분비/끝점/시나리오/바이오마커) |
+| [aps_references.md](autoimmune-polyendocrinopathy/aps_references.md) | 참고문헌 60편 (PubMed 링크, 14 섹션 분류) |
+
+### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
+
+1. **자연경과 (중증 AIRE 돌연변이)**: 치료 없이 5년간 4개 장기 기능 상실 추적
+2. **HRT 단독**: 히드로코르티손 20mg/day → 코르티솔 보충, 질병 진행은 지속
+3. **HRT + 사이클로스포린 A**: T세포 억제로 자가반응 T세포 감소
+4. **HRT + 아바타셉트**: CD28 공자극 차단 → Treg 기능 회복 + 장기 파괴 감소 (최선)
+5. **HRT + 리툭시맙**: B세포 고갈로 자가항체 85% 감소 (6개월마다 투여)
+6. **HRT + 토파시티닙**: JAK 억제로 IFN-γ/IL-17 신호 차단 → 염증 감소
+7. **조기 개입 (경증 돌연변이)**: AIRE 30% 기능 소실 + 조기 HRT → 5년 후 장기 기능 유지
+
