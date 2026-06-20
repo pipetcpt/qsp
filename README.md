@@ -39,7 +39,8 @@
 | 2026-06-20 | 자가면역질환/혈관염 | 결절성 다발동맥염 (Polyarteritis Nodosa, PAN) | [polyarteritis-nodosa/](polyarteritis-nodosa/) | [![PAN QSP](polyarteritis-nodosa/pan_qsp_model.png)](polyarteritis-nodosa/pan_qsp_model.svg) |
 | 2026-06-20 | 자가면역질환/혈액 | 악성 빈혈 (Pernicious Anemia, PA) | [pernicious-anemia/](pernicious-anemia/) | [![PA QSP](pernicious-anemia/pna_qsp_model.png)](pernicious-anemia/pna_qsp_model.svg) |
 | 2026-06-20 | 자가면역질환/반응성관절염 | 반응성 관절염 (Reactive Arthritis, ReA) | [reactive-arthritis/](reactive-arthritis/) | [![ReA QSP](reactive-arthritis/rea_qsp_model.png)](reactive-arthritis/rea_qsp_model.svg) |
-| 2026-06-20 | 만성질환/직업성폐질환 | 진폐증 (Pneumoconiosis – Silicosis / CWP / Asbestosis) | [pneumoconiosis/](pneumoconiosis/) | [![PNM QSP](pneumoconiosis/pnm_qsp_model.png)](pneumoconiosis/pnm_qsp_model.svg) |
+| 2026-06-20 | 만성질환/직업성폐질환 | 진폐증 (Pneumoconiosis – Silicosis / CWP / Asbestosis) | [pneumoconiosis/](pneumoconiosis/) | [![PNM QSP](pneumoconiosis/pnm_qsp_model.png)](pneumoconiosis/pnm_qsp_model.svg) | 
+| 2026-06-20 | 자가면역질환 / 혈액학 | 에반스 증후군 (Evans Syndrome – AIHA+ITP) | [evans-syndrome/](evans-syndrome/) | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
 
 ---
 
@@ -1240,3 +1241,71 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 4. **임상 엔드포인트** — FVC, DLCO, mPAP, KL-6, 호흡곤란 점수 시계열 추이
 5. **시나리오 비교** — 6개 치료 전략 동시 비교
 6. **가상환자 집단** — 몬테카를로 시뮬레이션 (n=20~200), VP 분포 및 반응자 분석
+
+---
+
+## Evans Syndrome (에반스 증후군) QSP Model
+
+| 항목 | 내용 |
+|------|------|
+| **날짜** | 2026-06-20 |
+| **분류** | 자가면역질환 / 혈액학 |
+| **디렉토리** | [evans-syndrome/](evans-syndrome/) |
+| **기계론적 지도** | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
+
+### 질환 개요
+
+에반스 증후군(Evans Syndrome, ES)은 **자가면역 용혈성 빈혈(AIHA)과 면역성 혈소판 감소증(ITP)이 동시에 또는 순차적으로 발생**하는 희귀 자가면역 혈액 질환입니다. Robert Evans가 1951년 최초로 기술하였으며, 다클론 IgG 자가항체가 적혈구 표면(Rh, Glycophorin A, Band 3)과 혈소판 표면(GPIbα, GPIIb/IIIa)을 동시에 표적으로 합니다.
+
+### 핵심 병태생리 경로
+
+| 경로 | 핵심 분자 | 임상 결과 |
+|------|----------|---------|
+| 자가항체 생성 (Anti-RBC) | Treg 결핍 → GC 과활성화 → IgG class-switch | DAT 양성, 온난자가항체, 혈관외 용혈 |
+| 자가항체 생성 (Anti-Plt) | FcγRIIB 결핍 → B세포 억제 감소 → anti-GPIbα/GPIIbIIIa IgG | PAIgG 상승, 비장 혈소판 탐식 |
+| 보체 활성화 | C1q → Classical Pathway → C3b opsonization → C3d (DAT C3d+) | 혈관내 용혈(MAC), C3d+ AIHA |
+| Treg/Tfh 불균형 | mTOR↑ → Treg↓; IL-21↑ → GC Tfh 과활성화 | 면역관용 붕괴, 자가항체 지속 |
+| 골수 보상 | EPO↑ → BFU-E 증가 → 망상적혈구↑; TPO↑ → 거핵구 생성↑ | 망상적혈구증가, 골수 고증식 |
+| 비장 기능 | FcγRI/III 큰포식세포 → 적혈구·혈소판 탐식 | 비장비대, 세망내피계 파괴 증가 |
+
+### 치료 시나리오 (6개)
+
+| 시나리오 | 약물 | 주요 기전 | 예상 CR률 |
+|---------|------|---------|---------|
+| 무치료 (Natural Course) | — | — | — |
+| 1차: Prednisone 단독 | 1–2 mg/kg/day | GR→B세포 사멸, FcγR↓ | ~40–60% (초기) |
+| 2차: Pred + Rituximab | 0.5 mg/kg + 375mg/m² ×4 | B세포 CD20 표적 탈진 (6–12개월) | ~60–70% |
+| 3차: Pred + MMF | 0.25mg/kg + 2g/day | IMPDH 억제 → 림프구 증식↓ | ~50–65% |
+| 불응성: Sirolimus + Eltrombopag | 4mg/day + 50mg/day | mTOR↓→Treg↑; TPO-R 자극→Plt↑ | ~55–70% (Plt 우선) |
+| 외과: 비장절제 | 수술 | 비장 FcγR 대식세포 제거 | ~60–80% (Plt) |
+
+### 약물 PK 요약
+
+| 약물 | 용량/경로 | Bioavailability | t½ | 표적 | 주요 PD 효과 |
+|------|---------|---------|------|------|---------|
+| Prednisolone | 1–2 mg/kg/day PO | 82% | 2.5 h | GR (NR3C1) | B세포 사멸 70%, FcγR 60%↓ |
+| IVIg | 1–2 g/kg IV ×2일 | 100% | 3–4주 | FcRn / FcγR | FcγR blockade 75%, IgG 이화↑ |
+| Rituximab | 375 mg/m² IV ×4주 | 100% | 22일 | CD20 | B세포 탈진 95% (6–12개월) |
+| MMF/MPA | 1–3 g/day PO | 94% | 17 h | IMPDH | 림프구 항증식 65% |
+| Eltrombopag | 50 mg/day PO | 52% | 26 h | c-Mpl (TPO-R) | 거핵구 2.5× 자극 → Plt↑ |
+| Sirolimus | 2–6 mg/day PO | 14% | 62 h | mTORC1 | Treg 2×↑, T효과세포↓ |
+
+### 모델 파일
+
+| 파일 | 설명 |
+|------|------|
+| [es_qsp_model.dot](evans-syndrome/es_qsp_model.dot) | Graphviz 기계론적 지도 소스 (10개 클러스터, 138+ 노드) |
+| [es_qsp_model.svg](evans-syndrome/es_qsp_model.svg) | SVG 벡터 이미지 |
+| [es_qsp_model.png](evans-syndrome/es_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [es_mrgsolve_model.R](evans-syndrome/es_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 6 치료 시나리오) |
+| [es_shiny_app.R](evans-syndrome/es_shiny_app.R) | Shiny 대시보드 (6탭) |
+| [es_references.md](evans-syndrome/es_references.md) | 참고문헌 57편 (PubMed 링크 포함) |
+
+### Shiny 앱 탭 구성
+
+1. **환자 프로파일** — 인구통계, 기저 혈액 수치, 면역 지표, 이전 치료력
+2. **약물 PK** — Prednisolone·Rituximab·MPA·Eltrombopag·Sirolimus·IVIg 혈장 농도 프로파일
+3. **혈액학적 반응** — Hgb, 혈소판, 망상적혈구, 거핵구 풀 시계열 + CR 기준 시각화
+4. **면역학적 지표** — Anti-RBC IgG, Anti-Plt IgG, Treg, 자가반응 B세포, C3b 보체 동태
+5. **시나리오 비교** — 6개 치료 전략 동시 비교; Day 180/365 반응 요약 표
+6. **바이오마커 대시보드** — DAT, PAIgG, LDH, Haptoglobin, Treg%, B cell% 실시간 평가 + 치료 권고
