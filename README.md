@@ -42,6 +42,7 @@
 | 2026-06-20 | 자가면역질환 / 혈액학 | 에반스 증후군 (Evans Syndrome – AIHA+ITP) | [evans-syndrome/](evans-syndrome/) | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
 | 2026-06-20 | 만성질환/소화기 | 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis) | [diverticular-disease/](diverticular-disease/) | [![DIV QSP](diverticular-disease/div_qsp_model.png)](diverticular-disease/div_qsp_model.svg) |
 | 2026-06-20 | 자가면역질환/다발내분비 | 자가면역 다발성 내분비병증 (APS Type 1 / APECED — AIRE Mutation) | [autoimmune-polyendocrinopathy/](autoimmune-polyendocrinopathy/) | [![APS QSP](autoimmune-polyendocrinopathy/aps_qsp_model.png)](autoimmune-polyendocrinopathy/aps_qsp_model.svg) |
+| 2026-06-20 | 자가면역질환/뇌하수체 | 림프구성 뇌하수체염 (Lymphocytic Hypophysitis, LyH) | [lymphocytic-hypophysitis/](lymphocytic-hypophysitis/) | [![LyH QSP](lymphocytic-hypophysitis/lhyp_qsp_model.png)](lymphocytic-hypophysitis/lhyp_qsp_model.svg) |
 
 ---
 
@@ -1417,3 +1418,69 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 6. **HRT + 토파시티닙**: JAK 억제로 IFN-γ/IL-17 신호 차단 → 염증 감소
 7. **조기 개입 (경증 돌연변이)**: AIRE 30% 기능 소실 + 조기 HRT → 5년 후 장기 기능 유지
 
+
+
+---
+
+## 림프구성 뇌하수체염 (Lymphocytic Hypophysitis, LyH)
+
+### 개요
+
+림프구성 뇌하수체염(LyH)은 뇌하수체에 림프구가 침윤하여 뇌하수체 세포를 파괴하는 희귀 자가면역 질환으로, **다축 뇌하수체 기능 저하증**을 초래합니다. 주로 임신 주산기 여성에서 발생하며, 면역관문억제제(anti-CTLA4, anti-PD1) 투여 시에도 발생할 수 있습니다. 이 QSP 모델은 T세포·B세포·항뇌하수체 항체 매개 면역 반응과 다축 내분비 피드백(HPA·HPT·HPG·GH·PRL·ADH)을 포함한 복합 시스템을 구현합니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 기전 | 임상 결과 |
+|------|---------|---------|
+| 자가항원 제시 | PIT-1, RABPHILIN-3L 항원 → MHC-II → CD4+ T세포 활성화 | 뇌하수체 특이적 자가면역 |
+| Th1/Th17 극성화 | IL-12(→Th1), IL-23(→Th17) → IFN-γ, IL-17 분비 | CD8+ CTL 매개 뇌하수체세포 파괴 |
+| B세포 활성화 | Tfh 도움 → 형질세포 → 항뇌하수체 항체(APA) | ADCC·보체 매개 추가 파괴 |
+| HPA 축 손상 | 부신피질자극세포(Corticotrophs) 파괴 | ACTH 결핍 → 이차성 부신부전 (~70%) |
+| HPT 축 손상 | 갑상선자극세포(Thyrotrophs) 파괴 | 중추성 갑상선기능저하증 (~40%) |
+| HPG 축 손상 | 생식선자극세포(Gonadotrophs) 파괴 | 중추성 성선기능저하증 (~40%) |
+| GH 축 손상 | 성장호르몬세포(Somatotrophs) 파괴 | 성인형 GH 결핍 (~30%) |
+| 줄기 압박 효과 | 뇌하수체 줄기(인두돌기) 도파민 차단 | 고프로락틴혈증 (~50%) |
+| 뇌하수체 후엽 침범 | AVP 신경세포 파괴 | 요붕증 (DI, ~25%) |
+| 면역관문억제제 LyH | CTLA-4 차단 → 뇌하수체 CTLA-4 발현 표적 | ICI 치료 후 LyH (~10%) |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 기전 | 주요 PK | 임상 효과 |
+|------|------|---------|---------|
+| 프레드니솔론 60mg/day → taper | GR 활성화 → NF-κB 억제, 림프구 아폽토시스 | F=0.82, Vc=45L, CL=8.5L/h, t½=3h | 뇌하수체 용적 감소, 면역 억제 ~85% |
+| 아자티오프린 150mg/day | 6-TGN → 퓨린 합성 억제 → T/B 증식 억제 | F=0.50, ka=0.80/h, CL=12L/h | T/B 증식 70% 억제 (steroid-sparing) |
+| 리툭시맙 1000mg IV ×2 | 항CD20 → ADCC/CDC → B세포 고갈 | Vc=3.1L, CL=0.015L/h, t½=21일 | APA 생성 90% 억제 |
+| 히드로코르티손 (대체) | 부신부전 호르몬 대체 | AM 20mg / PM 10mg | 코르티솔 정상화 (200-700nmol/L) |
+| 데스모프레신 (DDAVP) | V2R 작용제 → AQP2 → 수분 재흡수 | IN 0.1mg, t½=75min | 요붕증 교정, 소변삼투압↑ |
+| 레보티록신 (T4 대체) | T4 보충 → 갑상선 자극 호르몬 수용체 | F=0.75-0.80, t½=7일 | fT4 정상화 (12-22 pmol/L) |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [lhyp_qsp_model.dot](lymphocytic-hypophysitis/lhyp_qsp_model.dot) | Graphviz 기계론적 지도 소스 (154+ 노드, 14 클러스터) |
+| [lhyp_qsp_model.svg](lymphocytic-hypophysitis/lhyp_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [lhyp_qsp_model.png](lymphocytic-hypophysitis/lhyp_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [lhyp_mrgsolve_model.R](lymphocytic-hypophysitis/lhyp_mrgsolve_model.R) | mrgsolve ODE 모델 (22 구획, 5 시나리오) |
+| [lhyp_shiny_app.R](lymphocytic-hypophysitis/lhyp_shiny_app.R) | Shiny 대시보드 (7탭) |
+| [lhyp_references.md](lymphocytic-hypophysitis/lhyp_references.md) | 참고문헌 60편 (PubMed 링크, 9 섹션 분류) |
+
+### 주요 치료 시나리오 (mrgsolve 시뮬레이션, 22 ODE 구획)
+
+1. **자연경과**: 치료 없이 2년간 다축 기능 저하 진행 추적
+2. **고용량 프레드니솔론 taper**: 60→40→30→20→10→5 mg/day 점감 — 최적 치료
+3. **프레드니솔론 + 아자티오프린**: 스테로이드 절약 병합 요법 — 장기 부작용↓
+4. **리툭시맙**: ICI 연관 LyH에서 항CD20 B세포 고갈 — APA 90% 감소
+5. **저용량 프레드니솔론 유지**: 10mg/day 유지 요법 — 준최적 치료
+
+### Shiny 대시보드 7탭 구성
+
+| 탭 | 내용 |
+|----|------|
+| 1. 환자 프로파일 | 질환 중증도, 치료 선택, LyH 아형 설정 |
+| 2. 약물 PK | 프레드니솔론·아자티오프린·리툭시맙 혈중 농도 |
+| 3. 뇌하수체 기능 | 기능점수, 염증 용적, 호르몬 결핍 히트맵 |
+| 4. 호르몬 축 | HPA(ACTH/코르티솔), HPT(TSH/fT4), GH/IGF-1, HPG(FSH/LH/E2) |
+| 5. 면역 역학 | T세포·B세포·APA 동태, 면역-뇌하수체 위상도 |
+| 6. 임상 끝점 | 방사형 차트, 부신 위기 위험, 핵심 시점 요약표 |
+| 7. 바이오마커 | 선택 바이오마커 추적, 정상 참조 범위 표시 |
