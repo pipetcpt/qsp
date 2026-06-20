@@ -53,6 +53,7 @@
 | 2026-06-20 | 종양혈액학 | 만성 골수성 백혈병 (Chronic Myeloid Leukemia, CML) — 첫 번째 종양 모델 | [chronic-myeloid-leukemia/](chronic-myeloid-leukemia/) | [![CML QSP](chronic-myeloid-leukemia/cml_qsp_model.png)](chronic-myeloid-leukemia/cml_qsp_model.svg) |
 | 2026-06-20 | 신경학 / 두통 | 편두통 (Migraine — Trigeminovascular, CGRP, CSD, Triptans/mAbs/Gepants) | [migraine/](migraine/) | [![MGR QSP](migraine/mgr_qsp_model.png)](migraine/mgr_qsp_model.svg) |
 | 2026-06-20 | 만성 자가면역 피부질환 | 건선 (Psoriasis — IL-23/IL-17 Axis · TNF · Biologics/JAKi/PDE4i) | [psoriasis/](psoriasis/) | [![PSO QSP](psoriasis/pso_qsp_model.png)](psoriasis/pso_qsp_model.svg) |
+| 2026-06-20 | 신경정신질환 | 조현병 (Schizophrenia — DA·Glu·GABA·5-HT + Antipsychotic PK/PD, 10 clusters) | [schizophrenia/](schizophrenia/) | [![SCH QSP](schizophrenia/sch_qsp_model.png)](schizophrenia/sch_qsp_model.svg) |
 
 ---
 
@@ -2039,3 +2040,64 @@ Major Depressive Disorder (MDD) is the world's leading cause of disability, affe
 3. Gordon KB et al. "Risankizumab in moderate-to-severe plaque psoriasis (UltIMMa)." *Lancet* 2018;392:650. [PMID 30097359](https://pubmed.ncbi.nlm.nih.gov/30097359/)
 4. Papp K et al. "Apremilast in moderate-to-severe psoriasis (ESTEEM-1)." *J Am Acad Dermatol* 2015;73:37. [PMID 26089047](https://pubmed.ncbi.nlm.nih.gov/26089047/)
 5. Armstrong AW, Read C. "Psoriasis: a review." *JAMA* 2020;323:1945. [PMID 32427307](https://pubmed.ncbi.nlm.nih.gov/32427307/)
+
+---
+
+## 조현병 (Schizophrenia)
+
+### 개요
+
+조현병은 전 세계 인구의 약 0.5–1%에서 발생하는 만성 신경정신질환으로, 양성증상(환각·망상·사고 해체), 음성증상(무감동·무언증·사회적 위축), 인지결핍(작업기억·주의·처리속도 저하)의 세 가지 증상군을 특징으로 합니다. 초발 연령은 남성 18–25세, 여성 25–35세이며, 조기 집중 치료가 장기 예후에 결정적입니다.
+
+### 핵심 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 결과 |
+|------|------------|---------|
+| 도파민 메솔림빅 (↑) | VTA→NAc DA 과활성 → 비정상적 현저성 처리 | 양성증상 (환각, 망상) |
+| 도파민 메소코티컬 (↓) | VTA→DLPFC DA 저활성 → D1R 자극 부족 | 음성증상, 인지결핍 |
+| NMDA 수용체 기능저하 | PV 인터뉴런 NMDAR 저하 → 피질 탈억제 | 양성증상, 인지결핍 |
+| GABAergic 결핍 | GAD67 ↓25-50%, PV+ 세포 감소 → 감마 진동 소실 | 인지결핍, 작업기억 저하 |
+| 세로토닌/5-HT2A | SGA의 5-HT2A 차단 → 메소코티컬 DA 회복 | 음성증상 개선 (SGA 특이) |
+| C4A 보체/시냅스 과잉제거 | 청소년기 시냅스 제거 과잉 → PV 세포 손실 | 초발 조현병 (15-25세) |
+| 신경염증 | IL-6, IL-1β, TNF-α ↑; BDNF ↓ | 신경보호 기전 손상 |
+| 키누레닌 경로 | IDO1(IL-1β 유도) → KYNA ↑ → NMDA 길항 | NMDA 기능저하 심화 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 분류 | F (%) | t½ | Ki D2 (nM) | Ki 5-HT2A (nM) | 임상시험 |
+|------|------|--------|-----|-----------|----------------|--------|
+| Haloperidol 5–20mg/d | FGA (D2 길항제) | 65 | 18-24h | 1.0 | 53 (약함) | CATIE 2005 |
+| Risperidone 2–6mg/d | SGA | 74 | 3h(→21h PALI) | 3.0 | 0.16 | EUFEST 2008 |
+| Clozapine 150-600mg/d | SGA (TRS) | 55 | 12h | 160 (낮음) | 5.3 | Kane 1988 |
+| Aripiprazole 10-30mg/d | 부분 D2 효능제 | 87 | 75h | 0.34 | 3.4 | CATIE |
+| Paliperidone ER 3-12mg/d | SGA (RIS 대사체) | 28 | 23h | 3.0 | 0.16 | Davidson 2007 |
+| Olanzapine 5-20mg/d | SGA | 60 | 30h | 11 | 4.0 | CATIE |
+
+### D2 수용체 점유와 임상 효과의 관계 (PET 데이터)
+
+| D2 점유율 | 임상 상태 | 비고 |
+|-----------|----------|------|
+| < 65% | 항정신병 효과 불충분 | 용량 증량 필요 |
+| 65–80% | **치료 윈도우** (권장) | EPS 최소화, 효능 최적 |
+| > 80% | EPS 위험 증가 | FGA에서 흔함 |
+| > 90% | 심각한 EPS / 지연성 운동장애 | 고용량 FGA |
+| (CLZ) ~45% | 치료 저항성에 효과적 | 높은 5-HT2A 점유로 보완 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`sch_qsp_model.dot`](schizophrenia/sch_qsp_model.dot) | Graphviz 기계론적 지도 (160+ 노드, 10 클러스터) |
+| [`sch_qsp_model.svg`](schizophrenia/sch_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [`sch_qsp_model.png`](schizophrenia/sch_qsp_model.png) | PNG 이미지 (150 dpi) |
+| [`sch_mrgsolve_model.R`](schizophrenia/sch_mrgsolve_model.R) | mrgsolve ODE 모델 (22 구획, 7 치료 시나리오) |
+| [`sch_shiny_app.R`](schizophrenia/sch_shiny_app.R) | Shiny 대시보드 (6탭: 환자/PK/수용체점유/PANSS/시나리오비교/바이오마커) |
+| [`sch_references.md`](schizophrenia/sch_references.md) | 참고문헌 45편 (PubMed 링크 포함) |
+
+### 핵심 참고문헌
+
+1. Lieberman JA et al. "Effectiveness of antipsychotic drugs in patients with chronic schizophrenia (CATIE)." *N Engl J Med* 2005;353:1209. [PMID 16172203](https://pubmed.ncbi.nlm.nih.gov/16172203/)
+2. Kapur S, Mamo D. "Half a century of antipsychotics and still a central role for dopamine D2 receptors." *Prog Neuropsychopharmacol Biol Psychiatry* 2003;27:1081. [PMID 14642966](https://pubmed.ncbi.nlm.nih.gov/14642966/)
+3. Howes OD, Kapur S. "The dopamine hypothesis of schizophrenia: Version III." *Schizophr Bull* 2009;35:549. [PMID 19325164](https://pubmed.ncbi.nlm.nih.gov/19325164/)
+4. Lewis DA et al. "Cortical inhibitory neurons and schizophrenia." *Nat Rev Neurosci* 2005;6:312. [PMID 15803162](https://pubmed.ncbi.nlm.nih.gov/15803162/)
+5. Sekar A et al. "Schizophrenia risk from complex variation of complement component 4." *Nature* 2016;530:177. [PMID 26814963](https://pubmed.ncbi.nlm.nih.gov/26814963/)
