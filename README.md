@@ -48,6 +48,7 @@
 | 2026-06-20 | 만성질환/부인과 | 자궁내막증 (Endometriosis) | [endometriosis/](endometriosis/) | [![ENDO QSP](endometriosis/endo_qsp_model.png)](endometriosis/endo_qsp_model.svg) |
 | 2026-06-20 | 신경퇴행성질환 | 알츠하이머병 (Alzheimer's Disease, AD) | [alzheimers-disease/](alzheimers-disease/) | [![AD QSP](alzheimers-disease/ad_qsp_model.png)](alzheimers-disease/ad_qsp_model.svg) |
 | 2026-06-20 | 만성질환/피부/알레르기 | 아토피 피부염 (Atopic Dermatitis, AD) | [atopic-dermatitis/](atopic-dermatitis/) | [![ATAD QSP](atopic-dermatitis/ad_qsp_model.png)](atopic-dermatitis/ad_qsp_model.svg) |
+| 2026-06-20 | 신경퇴행성질환 | 파킨슨병 (Parkinson's Disease, PD) | [parkinsons-disease/](parkinsons-disease/) | [![PD QSP](parkinsons-disease/pd_qsp_model.png)](parkinsons-disease/pd_qsp_model.svg) |
 
 ---
 
@@ -1794,3 +1795,56 @@ Atopic dermatitis is driven by a Th2/ILC2-polarized immune response with IL-4 an
 3. Guttman-Yassky E et al. (Rising Up). "Upadacitinib in adults with moderate-to-severe atopic dermatitis." *Lancet* 2020;395:1754–68. [PMID 32416769](https://pubmed.ncbi.nlm.nih.gov/32416769/)
 4. Palmer CN et al. "Common loss-of-function variants of filaggrin are a major predisposing factor for atopic dermatitis." *Nat Genet* 2006;38:441–6. [PMID 16550169](https://pubmed.ncbi.nlm.nih.gov/16550169/)
 5. Cevikbas F et al. "A sensory neuron-expressed IL-31 receptor mediates T helper cell-dependent itch." *J Allergy Clin Immunol* 2014;133:448–60. [PMID 24373349](https://pubmed.ncbi.nlm.nih.gov/24373349/)
+
+
+---
+
+## 파킨슨병 (Parkinson's Disease) — 2026-06-20
+
+파킨슨병(PD)은 흑질(substantia nigra pars compacta, SNpc)의 도파민 신경세포가 진행성으로 소실되고, 남은 신경세포에 루이소체(Lewy body, α-시누클레인 응집체)가 형성되는 신경퇴행성 질환입니다.
+
+Parkinson's disease is a progressive neurodegenerative disorder characterized by dopaminergic neuron loss in the SNpc (~60% at motor symptom onset) and Lewy body pathology driven by α-synuclein aggregation. Key drug targets: dopamine replacement (levodopa), dopamine agonists (D2/D3: pramipexole, ropinirole), MAO-B inhibitors (rasagiline, safinamide), COMT inhibitors (entacapone, opicapone), and DBS (STN/GPi).
+
+### 병태생리 핵심 경로
+
+| 경로 | 핵심 분자 | 임상 결과 |
+|------|----------|---------|
+| α-시누클레인 응집 | SNCA, LRRK2, pS129-aSyn, 루이소체 | 뉴런 독성, Braak 병기 진행 |
+| 미토콘드리아 기능장애 | Complex I 억제, ROS, PINK1/Parkin, mPTP | 산화 스트레스, 세포자멸사 |
+| 단백질 품질 관리 붕괴 | UPS 장애, CMA 차단(LAMP-2A), 자가포식 | aSyn 축적 가속화 |
+| 신경염증 | 미세아교세포 M1 활성화, NLRP3, TNF-α, IL-1β | 도파민 뉴런 추가 손상 |
+| 도파민 합성 감소 | TH 활성↓, AADC↓, DAT↓, VMAT2↓ | 선조체 DA 결핍 |
+| 기저핵 회로 불균형 | GPi 과활성, STN 과흥분, 직접/간접 경로 불균형 | 떨림, 경직, 서동증 |
+| 루이소체 전파 | 분비된 aSyn, 프리온 유사 전파, 미주신경 | Braak 단계 1→6 |
+| 장-뇌 축 | 장내 미생물 불균형, ENS, 미주신경 역행 전파 | 비운동 증상, 자율신경 장애 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 작용기전 | 주요 PK | 임상 효과 |
+|------|---------|---------|---------|
+| 레보도파/카르비도파 250mg TID | AADC → DA 전환, D1/D2 자극 | Ka=1.2 h⁻¹, t½≈1.5h, BBB: LAT1 | UPDRS-III −20pts; wearing-off/LID 위험 |
+| 프라미펙솔 0.75mg TID | D3>D2 수용체 완전효현제 | Ka=0.8 h⁻¹, Vd=490L, t½=8–12h | UPDRS-III −11pts; LID 발생 지연 |
+| 로피니롤 2mg TID | D3>D2 수용체 효현제 | t½=6h, CYP1A2 대사 | 초기 단독요법 또는 병용 |
+| 라사질린 1mg QD | MAO-B 비가역적 억제 (~98%) | t½=1.3h, 효소회복 t½≈7d | UPDRS-III −3.6pts (ADAGIO) |
+| 엔타카폰 200mg (각 LD와 함께) | COMT 가역적 억제 (~65%) | t½=0.4h, 단기 Imax 작용 | LD t½ 연장, wearing-off 감소 |
+| 오피카폰 50mg QD | COMT 강력/지속 억제 (~70%) | t½=0.7h, 24h COMT 억제 유지 | 1일 1회 복용, LD 안정화 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`pd_qsp_model.dot`](parkinsons-disease/pd_qsp_model.dot) | 기계론적 지도: 16 클러스터, 140+ 노드 |
+| [`pd_qsp_model.svg`](parkinsons-disease/pd_qsp_model.svg) | 기계론적 지도 (SVG, 벡터) |
+| [`pd_qsp_model.png`](parkinsons-disease/pd_qsp_model.png) | 기계론적 지도 (PNG, 150 dpi) |
+| [`pd_mrgsolve_model.R`](parkinsons-disease/pd_mrgsolve_model.R) | mrgsolve ODE 모델: 22 구획, 7 치료 시나리오 |
+| [`pd_shiny_app.R`](parkinsons-disease/pd_shiny_app.R) | Shiny 대시보드 6탭: 환자프로파일 · PK · PD바이오마커 · 운동엔드포인트 · 시나리오비교 · 신경보호 |
+| [`pd_references.md`](parkinsons-disease/pd_references.md) | 참고문헌 50편 (PubMed 링크, 14개 섹션) |
+| [`README.md`](parkinsons-disease/README.md) | 질환 및 모델 상세 설명 |
+
+### 핵심 참고문헌
+
+1. Braak H et al. "Staging of brain pathology related to sporadic Parkinson's disease." *Neurobiol Aging* 2003;24:197–211. [PMID 12498954](https://pubmed.ncbi.nlm.nih.gov/12498954/)
+2. Spillantini MG et al. "Alpha-synuclein in Lewy bodies." *Nature* 1997;388:839–40. [PMID 9278044](https://pubmed.ncbi.nlm.nih.gov/9278044/)
+3. Luk KC et al. "Pathological α-synuclein transmission initiates Parkinson-like neurodegeneration." *Science* 2012;338:949–53. [PMID 23161999](https://pubmed.ncbi.nlm.nih.gov/23161999/)
+4. Rascol O et al. "A five-year study of the incidence of dyskinesia: ropinirole or levodopa." *N Engl J Med* 2000;342:1484–91. [PMID 10816186](https://pubmed.ncbi.nlm.nih.gov/10816186/)
+5. Athauda D et al. "Exenatide once weekly versus placebo in Parkinson's disease." *Lancet* 2017;390:1664–75. [PMID 28781108](https://pubmed.ncbi.nlm.nih.gov/28781108/)
