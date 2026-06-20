@@ -45,6 +45,7 @@
 | 2026-06-20 | 자가면역질환/뇌하수체 | 림프구성 뇌하수체염 (Lymphocytic Hypophysitis, LyH) | [lymphocytic-hypophysitis/](lymphocytic-hypophysitis/) | [![LyH QSP](lymphocytic-hypophysitis/lhyp_qsp_model.png)](lymphocytic-hypophysitis/lhyp_qsp_model.svg) |
 | 2026-06-20 | 만성질환/신장-요로계 | 만성 신우신염 (Chronic Pyelonephritis, CPN) | [chronic-pyelonephritis/](chronic-pyelonephritis/) | [![CPN QSP](chronic-pyelonephritis/cpn_qsp_model.png)](chronic-pyelonephritis/cpn_qsp_model.svg) |
 | 2026-06-20 | 만성질환/대사 | 무증상 고요산혈증 (Asymptomatic Hyperuricemia, AHY) | [asymptomatic-hyperuricemia/](asymptomatic-hyperuricemia/) | [![AHY QSP](asymptomatic-hyperuricemia/ahy_qsp_model.png)](asymptomatic-hyperuricemia/ahy_qsp_model.svg) |
+| 2026-06-20 | 만성질환/부인과 | 자궁내막증 (Endometriosis) | [endometriosis/](endometriosis/) | [![ENDO QSP](endometriosis/endo_qsp_model.png)](endometriosis/endo_qsp_model.svg) |
 
 ---
 
@@ -1610,3 +1611,70 @@ DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유
 | ④ 심혈관·신장 영향 | eGFR, MAP, 누적 CV 위험, 내피기능/NO 수준 |
 | ⑤ 시나리오 비교 | 7개 치료 시나리오 SUA 동시 비교, 2년 결과표 (DT) |
 | ⑥ 바이오마커 | IL-1β, hs-CRP, HOMA-IR, SUA-CRP 산점도, 최종 바이오마커 요약 |
+
+---
+
+## 자궁내막증 (Endometriosis)
+
+### 개요
+
+자궁내막증은 전 세계 가임기 여성의 약 10%(약 1억 9천만 명)에서 발생하는 만성 에스트로겐 의존성 질환입니다. 자궁내막 조직이 자궁 밖(복막, 난소, 더글라스와)에 이소성으로 착상하여 월경 주기에 반응하고, 만성 골반통 · 월경통 · 성교통 · 불임을 유발합니다. 평균 진단까지 7–10년이 소요되는 진단 지연이 큰 문제입니다.
+
+Endometriosis affects ~10% of reproductive-age women (190 million globally). Ectopic endometrial tissue implants outside the uterus, driven by estrogen, inflammation, and immune dysregulation, causing chronic pelvic pain and infertility.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 이상 |
+|------|------------|---------|
+| HPO 축 이상 | GnRH 펄스 → FSH/LH → E2 과잉 자극 이소성 내막 | 고에스트로겐 환경 유지 |
+| 역행성 월경 | 자궁내막 세포 복강 내 착상 → 이소성 병소 형성 | rAFS Stage I–IV |
+| 아로마타제 과발현 | PGE2 → SF-1 → CYP19A1↑ → 국소 E2 자가증폭 | 병소 내 E2 300–3000 pmol/L |
+| 프로게스테론 저항성 | PR-B↓, PR-A 우위 → HOXA10 발현 억제 | 내막 분화 불능, 불임 |
+| PGE2 양성 피드백 | COX-2↑ → PGE2↑ → cAMP → 아로마타제↑ → E2↑ | 통증·병소 동시 악화 |
+| NK세포 기능 저하 | E2·복강액 → NK 세포독성↓ → 이소성 세포 생존 | 병소 제거 실패 |
+| NGF/통증 경로 | 병소 → NGF↑ → TrkA → TRPV1 → 중추감작 | 중증 월경통 · 만성골반통 |
+| 산화 스트레스 | 역행 혈액 → 철분 과부하 → Fenton → ROS↑ | DNA 손상, 병소 성장 촉진 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 기전 | 주요 PK | 임상 효과 |
+|------|------|---------|---------|
+| Leuprolide Depot 3.75mg/4wk | GnRH 수용체 탈감작(desensitization) | ka_dep=0.005/h, t½_depot≈14d | E2 <20 pg/mL, 병소 ↓40–60% |
+| Elagolix 150mg/d | GnRH 경쟁적 길항 (저용량 부분 억제) | ka=1.2/h, t½=4–6h, F=57% | E2 ~70 pg/mL, 월경통 ↓45% |
+| Elagolix 200mg BID | GnRH 경쟁적 길항 (고용량 완전 억제) | AUC 2× 저용량, ka=1.2/h | E2 <12 pg/mL, 월경통 ↓76% |
+| Dienogest 2mg/d | PR 작용 (항증식, 항염증, 항혈관신생) | ka=1.5/h, t½=11h, F=91% | 병소 부피 ↓50–70%, IL-8↓ |
+| Letrozole 2.5mg/d + 노르에티스테론 add-back | 아로마타제 비가역 억제 + 에스트로겐 보충 | ka_let=1.8/h, t½=34h | 국소 E2↓90%, BMD 보호 |
+| Combined OCP (EE+progestin) | 혈중 E2 억제 + 탈락막화 | EE 30mcg/d 주기적/연속적 | 월경통↓ 40–50% |
+| NSAID (Ibuprofen 400–800mg TID) | COX-1/2 억제 → PGE2↓ | ka=1.5/h, t½=2h | 통증 NRS↓ 2–3점 (일시적) |
+
+### 치료 시나리오 (mrgsolve 시뮬레이션)
+
+| 시나리오 | 약물 | 목표 | 12개월 예측 효과 |
+|---------|------|------|----------------|
+| 0 | 미치료 | 자연 경과 | 병소 2→6cm³, 통증 NRS 4→7 |
+| 1 | Leuprolide Depot 3.75mg q28d | E2<20 pg/mL, 무배란 | 병소↓55%, 통증↓65%, BMD↓2.5% |
+| 2 | Elagolix 150mg/d | 부분 억제, 월경 유지 | 병소↓30%, 통증↓45%, BMD↓1% |
+| 3 | Elagolix 200mg BID | 완전 억제, 무월경 | 병소↓50%, 통증↓75%, BMD↓2% |
+| 4 | Dienogest 2mg/d | 항증식·항염증 | 병소↓40%, 통증↓55%, BMD 변화 미미 |
+| 5 | Letrozole 2.5mg/d + 노르에티스테론 5mg/d | 국소 E2↓, 전신 E2 보호 | 병소↓60%, 통증↓70%, BMD 보호 |
+| 6 | Leuprolide Depot + 노르에티스테론 Add-back | E2 억제 + BMD 보호 | 병소↓55%, 통증↓65%, BMD↓0.5% |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [endo_qsp_model.dot](endometriosis/endo_qsp_model.dot) | Graphviz DOT 소스 (176노드, 9클러스터, 267엣지) |
+| [endo_qsp_model.svg](endometriosis/endo_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [endo_qsp_model.png](endometriosis/endo_qsp_model.png) | PNG 이미지 (150 dpi) |
+| [endo_mrgsolve_model.R](endometriosis/endo_mrgsolve_model.R) | mrgsolve ODE 모델 (22구획, 7시나리오) |
+| [endo_shiny_app.R](endometriosis/endo_shiny_app.R) | Shiny 대시보드 (6탭: 환자프로파일·PK·HPO호르몬·통증임상·병소역학·시나리오비교) |
+| [endo_references.md](endometriosis/endo_references.md) | 참고문헌 44편 (PubMed 링크, 10개 섹션) |
+| [README.md](endometriosis/README.md) | 디렉토리 상세 문서 |
+
+### 핵심 참고문헌
+
+1. Giudice LC & Kao LC. "Endometriosis." *Lancet* 2004;364:1789–99. [PMID 15488215](https://pubmed.ncbi.nlm.nih.gov/15488215/)
+2. Zondervan KT et al. "Endometriosis." *N Engl J Med* 2020;382:1244–56. [PMID 31777792](https://pubmed.ncbi.nlm.nih.gov/31777792/)
+3. Taylor HS et al. "Treatment of Endometriosis-Associated Pain with Elagolix." *N Engl J Med* 2017;377:28–40. [PMID 28985706](https://pubmed.ncbi.nlm.nih.gov/28985706/)
+4. Bulun SE et al. "Aromatase in endometriosis." *Semin Reprod Med* 2004;22:45–50. [PMID 15083381](https://pubmed.ncbi.nlm.nih.gov/15083381/)
+5. Strowitzki T et al. "Dienogest is as effective as leuprolide acetate in treating the painful symptoms of endometriosis." *Hum Reprod* 2010;25:633–41. [PMID 20027944](https://pubmed.ncbi.nlm.nih.gov/20027944/)
