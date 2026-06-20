@@ -49,6 +49,7 @@
 | 2026-06-20 | 신경퇴행성질환 | 알츠하이머병 (Alzheimer's Disease, AD) | [alzheimers-disease/](alzheimers-disease/) | [![AD QSP](alzheimers-disease/ad_qsp_model.png)](alzheimers-disease/ad_qsp_model.svg) |
 | 2026-06-20 | 만성질환/피부/알레르기 | 아토피 피부염 (Atopic Dermatitis, AD) | [atopic-dermatitis/](atopic-dermatitis/) | [![ATAD QSP](atopic-dermatitis/ad_qsp_model.png)](atopic-dermatitis/ad_qsp_model.svg) |
 | 2026-06-20 | 신경퇴행성질환 | 파킨슨병 (Parkinson's Disease, PD) | [parkinsons-disease/](parkinsons-disease/) | [![PD QSP](parkinsons-disease/pd_qsp_model.png)](parkinsons-disease/pd_qsp_model.svg) |
+| 2026-06-20 | 신경정신질환 | 주요우울장애 (Major Depressive Disorder, MDD) | [major-depressive-disorder/](major-depressive-disorder/) | [![MDD QSP](major-depressive-disorder/mdd_qsp_model.png)](major-depressive-disorder/mdd_qsp_model.svg) |
 
 ---
 
@@ -1848,3 +1849,31 @@ Parkinson's disease is a progressive neurodegenerative disorder characterized by
 3. Luk KC et al. "Pathological α-synuclein transmission initiates Parkinson-like neurodegeneration." *Science* 2012;338:949–53. [PMID 23161999](https://pubmed.ncbi.nlm.nih.gov/23161999/)
 4. Rascol O et al. "A five-year study of the incidence of dyskinesia: ropinirole or levodopa." *N Engl J Med* 2000;342:1484–91. [PMID 10816186](https://pubmed.ncbi.nlm.nih.gov/10816186/)
 5. Athauda D et al. "Exenatide once weekly versus placebo in Parkinson's disease." *Lancet* 2017;390:1664–75. [PMID 28781108](https://pubmed.ncbi.nlm.nih.gov/28781108/)
+
+---
+
+## 주요우울장애 (Major Depressive Disorder, MDD) — 2026-06-20
+
+[![MDD QSP Mechanistic Map](major-depressive-disorder/mdd_qsp_model.png)](major-depressive-disorder/mdd_qsp_model.svg)
+
+Major Depressive Disorder (MDD) is the world's leading cause of disability, affecting ~280 million people. The QSP model integrates 10 mechanistic subsystems: serotonergic, noradrenergic, dopaminergic, HPA axis, BDNF/neuroplasticity, neuroinflammation/kynurenine, glutamate/NMDA, circadian rhythm, mTOR/neurogenesis, and clinical endpoints. Drug classes modelled include SSRIs (escitalopram), SNRIs (venlafaxine), NRDIs (bupropion), NMDA antagonists (ketamine/esketamine), lithium, TCAs, MAOIs, and atypical antipsychotic augmentation.
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`mdd_qsp_model.dot`](major-depressive-disorder/mdd_qsp_model.dot) | 기계론적 지도: 10 클러스터, 100+ 노드 |
+| [`mdd_qsp_model.svg`](major-depressive-disorder/mdd_qsp_model.svg) | 기계론적 지도 (SVG, 벡터) |
+| [`mdd_qsp_model.png`](major-depressive-disorder/mdd_qsp_model.png) | 기계론적 지도 (PNG, 150 dpi) |
+| [`mdd_mrgsolve_model.R`](major-depressive-disorder/mdd_mrgsolve_model.R) | mrgsolve ODE 모델: 18 구획, 6 치료 시나리오 |
+| [`mdd_shiny_app.R`](major-depressive-disorder/mdd_shiny_app.R) | Shiny 대시보드 6탭: 환자프로파일 · Drug PK · 신경전달물질 · HPA/신경염증 · 임상엔드포인트 · 시나리오비교 |
+| [`mdd_references.md`](major-depressive-disorder/mdd_references.md) | 참고문헌 60편 (PubMed 링크, 10개 섹션) |
+| [`README.md`](major-depressive-disorder/README.md) | 질환 및 모델 상세 설명 |
+
+### 핵심 참고문헌
+
+1. Rush AJ et al. "STAR*D outcomes in depressed outpatients." *Am J Psychiatry* 2006;163:1905. [PMID 17074942](https://pubmed.ncbi.nlm.nih.gov/17074942/)
+2. Zarate CA et al. "A randomized trial of ketamine in treatment-resistant depression." *Arch Gen Psychiatry* 2006;63:856. [PMID 16894061](https://pubmed.ncbi.nlm.nih.gov/16894061/)
+3. Cipriani A et al. "Comparative efficacy of 21 antidepressants." *Lancet* 2018;391:1357. [PMID 29477251](https://pubmed.ncbi.nlm.nih.gov/29477251/)
+4. Duman RS & Monteggia LM. "A neurotrophic model for stress-related mood disorders." *Biol Psychiatry* 2006;59:1116. [PMID 16631126](https://pubmed.ncbi.nlm.nih.gov/16631126/)
+5. Dowlati Y et al. "A meta-analysis of cytokines in major depression." *Biol Psychiatry* 2010;67:446. [PMID 20015486](https://pubmed.ncbi.nlm.nih.gov/20015486/)
