@@ -1,1419 +1,240 @@
-# qsp
+# QSP 질환 모델 라이브러리 (QSP Disease Model Library)
 
-## mrgsolve
+> 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-- <https://vantage-research.net/qsp-in-r/>
-- gPKPDviz: A flexible R shiny tool for pharmacokinetic/pharmacodynamic simulations using mrgsolve
-    - <https://pmc.ncbi.nlm.nih.gov/articles/PMC10941578/>
-    - <https://github.com/Genentech/gPKPDviz/>
-    
+![models](https://img.shields.io/badge/models-97-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-
-
-## iqrtools
-
-- <https://www.intiquan.com/acop2019_qsp/>
----
-
-## QSP Disease Model Library
-
-매일 Claude Code Routine이 추가하는 질환별 QSP 모델 라이브러리입니다.  
-각 모델은 기계론적 지도(.dot/.svg/.png) · mrgsolve ODE 모델(.R) · Shiny 앱(.R) · 참고문헌(.md)으로 구성됩니다.
-
-| 날짜 | 분류 | 질환명 | 디렉토리 | 모델 미리보기 |
-|------|------|--------|----------|--------------|
-| 2026-06-19 | 만성질환 | 요로결석 (만성 재발성) | [urolithiasis/](urolithiasis/) | [![URI QSP](urolithiasis/uri_qsp_model.png)](urolithiasis/uri_qsp_model.svg) |
-| 2026-06-19 | 자가면역/혈관염 | 호산구 육아종증 다발혈관염 (EGPA) | [egpa/](egpa/) | [![EGPA QSP](egpa/egpa_qsp_model.png)](egpa/egpa_qsp_model.svg) |
-| 2026-06-19 | 만성질환 | 원발성 부갑상선 기능 항진증 (PHPT) | [primary-hyperparathyroidism/](primary-hyperparathyroidism/) | [![PHPT QSP](primary-hyperparathyroidism/phpt_qsp_model.png)](primary-hyperparathyroidism/phpt_qsp_model.svg) |
-| 2026-06-19 | 만성질환 | 만성 정맥 부전 (CVI) | [chronic-venous-insufficiency/](chronic-venous-insufficiency/) | [![CVI QSP](chronic-venous-insufficiency/cvi_qsp_model.png)](chronic-venous-insufficiency/cvi_qsp_model.svg) |
-| 2026-06-19 | 자가면역질환/혈관염 | IgA 혈관염 (헤녹-쇤라인 자반증, IgAV/HSP) | [iga-vasculitis/](iga-vasculitis/) | [![IgAV QSP](iga-vasculitis/igav_qsp_model.png)](iga-vasculitis/igav_qsp_model.svg) |
-| 2026-06-19 | 자가면역질환/혈액 | 자가면역 용혈성 빈혈 (AIHA) | [autoimmune-hemolytic-anemia/](autoimmune-hemolytic-anemia/) | [![AIHA QSP](autoimmune-hemolytic-anemia/aiha_qsp_model.png)](autoimmune-hemolytic-anemia/aiha_qsp_model.svg) |
-| 2026-06-19 | 자가면역질환/신장 | 굿파스처 증후군 (GPS) | [goodpasture-syndrome/](goodpasture-syndrome/) | [![GPS QSP](goodpasture-syndrome/gps_qsp_model.png)](goodpasture-syndrome/gps_qsp_model.svg) |
-| 2026-06-19 | 만성질환 | 파젯병 (Paget's Disease of Bone, PBD) | [pagets-disease/](pagets-disease/) | [![PBD QSP](pagets-disease/pbd_qsp_model.png)](pagets-disease/pbd_qsp_model.svg) |
-| 2026-06-20 | 자가면역/혈관염 | 현미경적 다발혈관염 (MPA) | [microscopic-polyangiitis/](microscopic-polyangiitis/) | [![MPA QSP](microscopic-polyangiitis/mpa_qsp_model.png)](microscopic-polyangiitis/mpa_qsp_model.svg) |
-| 2026-06-20 | 자가면역질환/연골 | 재발성 다발연골염 (RP) | [relapsing-polychondritis/](relapsing-polychondritis/) | [![RPC QSP](relapsing-polychondritis/rpc_qsp_model.png)](relapsing-polychondritis/rpc_qsp_model.svg) |
-| 2026-06-20 | 만성질환/결정관절염 | 가성통풍 (Pseudogout / CPPD Crystal Deposition Disease) | [pseudogout/](pseudogout/) | [![CPPD QSP](pseudogout/cppd_qsp_model.png)](pseudogout/cppd_qsp_model.svg) |
-| 2026-06-20 | 만성질환/내분비 | 만성 갑상선 기능 저하증 (Chronic Hypothyroidism) | [chronic-hypothyroidism/](chronic-hypothyroidism/) | [![HYPO QSP](chronic-hypothyroidism/hypo_qsp_model.png)](chronic-hypothyroidism/hypo_qsp_model.svg) |
-| 2026-06-20 | 만성질환/소화기 | 만성 위염 (Chronic Gastritis – H. pylori & Correa Cascade) | [chronic-gastritis/](chronic-gastritis/) | [![CGAST QSP](chronic-gastritis/cgast_qsp_model.png)](chronic-gastritis/cgast_qsp_model.svg) |
-| 2026-06-20 | 자가면역질환/혈관염 | 결절성 다발동맥염 (Polyarteritis Nodosa, PAN) | [polyarteritis-nodosa/](polyarteritis-nodosa/) | [![PAN QSP](polyarteritis-nodosa/pan_qsp_model.png)](polyarteritis-nodosa/pan_qsp_model.svg) |
-| 2026-06-20 | 자가면역질환/혈액 | 악성 빈혈 (Pernicious Anemia, PA) | [pernicious-anemia/](pernicious-anemia/) | [![PA QSP](pernicious-anemia/pna_qsp_model.png)](pernicious-anemia/pna_qsp_model.svg) |
-| 2026-06-20 | 자가면역질환/반응성관절염 | 반응성 관절염 (Reactive Arthritis, ReA) | [reactive-arthritis/](reactive-arthritis/) | [![ReA QSP](reactive-arthritis/rea_qsp_model.png)](reactive-arthritis/rea_qsp_model.svg) |
-| 2026-06-20 | 만성질환/직업성폐질환 | 진폐증 (Pneumoconiosis – Silicosis / CWP / Asbestosis) | [pneumoconiosis/](pneumoconiosis/) | [![PNM QSP](pneumoconiosis/pnm_qsp_model.png)](pneumoconiosis/pnm_qsp_model.svg) | 
-| 2026-06-20 | 자가면역질환 / 혈액학 | 에반스 증후군 (Evans Syndrome – AIHA+ITP) | [evans-syndrome/](evans-syndrome/) | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
-| 2026-06-20 | 만성질환/소화기 | 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis) | [diverticular-disease/](diverticular-disease/) | [![DIV QSP](diverticular-disease/div_qsp_model.png)](diverticular-disease/div_qsp_model.svg) |
-| 2026-06-20 | 자가면역질환/다발내분비 | 자가면역 다발성 내분비병증 (APS Type 1 / APECED — AIRE Mutation) | [autoimmune-polyendocrinopathy/](autoimmune-polyendocrinopathy/) | [![APS QSP](autoimmune-polyendocrinopathy/aps_qsp_model.png)](autoimmune-polyendocrinopathy/aps_qsp_model.svg) |
+현재 **97개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
-## 요로결석 (만성 재발성, Chronic Recurrent Urolithiasis)
+## 1. 프로젝트 소개 (Overview)
 
-### 개요
+이 저장소는 사람이 한 번에 설계한 정적인 모델 모음이 아니라, **자동화된 AI 에이전트가 매일 한 편씩 새로운 질환 모델을 추가하며 성장하는 라이브러리**입니다. 각 세션에서 Claude Code는 다음을 수행합니다.
 
-요로결석은 미국 성인 인구의 약 8.8%(남성 10.6%, 여성 7.1%)에서 발생하며, 5년 재발률은 50%에 달하는 만성 재발성 질환입니다. 발병기전은 소변 내 결석 형성 물질(칼슘, 수산염, 요산)의 과포화(supersaturation)와 결석 형성 억제 물질(구연산, 마그네슘, THP)의 부족이 복합적으로 작용합니다.
+1. 아직 다루지 않은 질환을 선택한다.
+2. 최신 문헌과 임상시험 데이터를 바탕으로 질환의 **기계론적 병태생리 지도**를 그린다.
+3. 약물 PK/PD와 질환 진행을 연결하는 **mrgsolve 기반 ODE 모델**을 작성한다.
+4. 파라미터를 탐색·비교할 수 있는 **Shiny 대시보드**를 만든다.
+5. 모든 가정과 파라미터의 근거가 되는 **참고문헌**을 정리한다.
+6. 위 산출물을 커밋·푸시한다.
 
-### 주요 병태생리 경로
+목표는 다양한 치료 영역에 걸쳐 **재현 가능하고, 투명하며, 교육적으로 활용 가능한 QSP 모델의 참조 컬렉션**을 구축하는 것입니다.
 
-| 경로 | 핵심 메커니즘 | 임상 이상 |
-|------|------------|---------|
-| 칼슘 항상성 | PTH↑ → 1,25(OH)₂D↑ → 장관 Ca²⁺ 흡수↑ | 고칼슘뇨증 (>300mg/day) |
-| 수산염 대사 | AGXT 결핍(PH1) / 지방 흡수장애 → 장관 OX↑ | 고수산뇨증 (>45mg/day) |
-| 요산 대사 | XO 과활성 / URAT1 변이 → UA↑ | 고요산뇨증 (>800mg/day) |
-| 구연산 처리 | 대사산증 / RTA → 신세뇨관 구연산 재흡수↑ | 저구연산뇨증 (<320mg/day) |
-| 소변 과포화 | Ca × OX / Ksp > 1 → 핵화(nucleation) | CaOx SS > 1.0 |
-| Randall's 플라크 | 상피하 인회석 침착 → 결석 핵 형성 nidus | 결석 성장 |
+## 2. QSP란 무엇인가 (What is QSP?)
 
-### 약물 PK/PD 파라미터
+**정량적 시스템 약리학(QSP)** 은 시스템 생물학과 약동/약력학(PK/PD)을 결합하여, **약물–표적–경로–질환–환자**로 이어지는 인과 사슬을 수학적(주로 상미분방정식, ODE)으로 표현하는 모델링 분야입니다. 단순한 통계적 용량–반응 곡선을 넘어, **"왜 그리고 어떻게" 약효와 독성이 나타나는지**를 기전 수준에서 기술합니다.
 
-| 약물 | 작용기전 | 주요 PK | 임상 효과 |
-|------|---------|---------|---------|
-| HCTZ 25mg/day | NCC 억제 → 원위세뇨관 Ca²⁺ 재흡수↑ | F=0.65, t½=6-15h, CL=18L/h | 요중 Ca 30-45% 감소 |
-| Allopurinol 300mg/day | XO 기전불활성화(mechanism-based) | F=0.90, Oxypurinol t½=18-30h | UA 생성 40-60% 감소 |
-| K-Citrate 60mEq/day | 요중 구연산↑ + 요 pH 알칼리화 | F=0.95, CL=15L/h | CaOx SS 50% 감소 |
-| Tamsulosin 0.4mg/day | α₁A/D-수용체 차단 → 요관 이완 | F=0.90, t½=9-16h | 자연 배출율 28% 증가 |
-| Lumasiran (siRNA) | GalNAc-간 표적 → HAGO1 억제 | 월 1회 피하주사 | 요중 OX 53% 감소 (PH1) |
+QSP 모델은 다음과 같은 질문에 답하려 합니다.
 
-### 모델 파일 목록
+- 이 표적을 조절하면 하류 경로와 임상 바이오마커가 어떻게 움직이는가?
+- 작용기전이 다른 약물을 병용하면 어떤 시너지/상쇄가 나타나는가?
+- 어떤 환자 아형(유전형·중증도·동반질환)에서 반응이 달라지는가?
+- 어떤 용량·투여 간격이 효능과 안전성의 균형을 최적화하는가?
 
-| 파일 | 설명 |
+## 3. 신약개발에서의 중요성 (Why QSP Matters in Drug Development)
+
+QSP는 규제기관이 권장하는 **모델 기반 신약개발(Model-Informed Drug Development, MIDD)** 패러다임의 핵심 도구로 자리 잡았습니다. 신약개발 전 주기에서 다음과 같은 가치를 제공합니다.
+
+| 단계 | QSP의 기여 |
+|------|------------|
+| **표적 발굴·검증** | 경로 수준 시뮬레이션으로 표적 조절이 질환 표현형에 미치는 영향을 사전 평가하고, 우회 경로·내성 기전을 예측 |
+| **작용기전(MoA) 규명** | in vitro/in vivo 데이터를 통합해 약효의 인과 구조를 정량화하고 바이오마커 전략을 수립 |
+| **용량·용법 선택** | First-in-human 용량, 적정 용법, 치료 범위를 기전 기반으로 예측하여 임상 1상 설계를 합리화 |
+| **임상시험 설계** | 환자 아집단별 반응을 시뮬레이션해 환자 선정·계층화·엔드포인트·샘플 크기 최적화 |
+| **중개연구(Translation)** | 동물–인간, 성인–소아, 건강인–환자 간 외삽으로 종간/집단간 차이를 정량화 |
+| **병용요법 전략** | 서로 다른 표적의 조합 효과(시너지/상쇄)를 가상 환자군에서 탐색 |
+| **규제 소통** | FDA·EMA의 MIDD 프레임워크에서 근거 패키지로 활용되어 임상시험 면제·라벨 확장을 뒷받침 |
+
+신약개발 실패의 상당수는 **효능 부족**과 **예상치 못한 안전성 문제**에서 비롯됩니다. QSP는 후보물질이 임상에 진입하기 전에 *in silico* 로 가설을 검증하여 **개발 후기 실패(late-stage attrition)를 줄이고**, 실패할 프로그램은 더 일찍·더 싸게 중단(fail fast)하도록 돕습니다. 본 라이브러리는 이러한 QSP 워크플로를 다양한 질환에 적용한 **재현 가능한 교육·연구용 예제**를 제공합니다.
+
+## 4. 각 모델의 구성 (Four Deliverables per Model)
+
+모든 질환 디렉토리는 동일한 4종 산출물 체계를 따릅니다.
+
+| 산출물 | 파일 | 설명 |
+|--------|------|------|
+| 🗺️ **기계론적 지도** | `*_qsp_model.dot` / `.svg` / `.png` | Graphviz로 그린 병태생리·약물 작용 네트워크 (100+ 노드, 8+ 클러스터) |
+| ⚙️ **mrgsolve 모델** | `*_mrgsolve_model.R` | 약물 PK + 질환 PD를 연결하는 ODE 모델 (15+ 구획, 5+ 치료 시나리오, 임상시험 보정 메모) |
+| 📊 **Shiny 대시보드** | `*_shiny_app.R` | 환자 프로파일·PK·PD·임상 엔드포인트·시나리오 비교·바이오마커를 탐색하는 인터랙티브 앱 (6+ 탭) |
+| 📚 **참고문헌** | `*_references.md` | 섹션별로 분류된 30+ PubMed 인용 |
+
+각 디렉토리에는 위 산출물을 요약한 **개별 `README.md`** 가 포함되어, 해당 질환의 개요·핵심 경로·모델 사양·실행 방법을 한눈에 볼 수 있습니다.
+
+## 5. 작업 방식 (How It Is Built)
+
+- **자동 생성**: Claude Code Routine이 매일 1개 질환을 선택하여 4종 산출물과 디렉토리 README를 작성한 뒤 커밋·푸시합니다.
+- **중복 방지**: 이미 존재하는 질환/디렉토리는 건너뛰고, 카테고리를 번갈아 선택합니다.
+- **품질 기준**: 기계론적 지도(100+ 노드/8+ 클러스터), mrgsolve(15+ 구획/5+ 시나리오), Shiny(6+ 탭), 참고문헌(30+편)을 최소 기준으로 합니다.
+- **명명 규칙**: 디렉토리는 소문자-하이픈 영문명, 파일은 `<약어>_qsp_model.*`, `<약어>_mrgsolve_model.R`, `<약어>_shiny_app.R`, `<약어>_references.md` 형식을 따릅니다.
+
+## 6. 기술 스택 (Technology Stack)
+
+| 도구 | 용도 |
 |------|------|
-| [uri_qsp_model.dot](urolithiasis/uri_qsp_model.dot) | Graphviz 기계론적 지도 소스 (100+ 노드, 10 클러스터) |
-| [uri_qsp_model.svg](urolithiasis/uri_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [uri_qsp_model.png](urolithiasis/uri_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [uri_mrgsolve_model.R](urolithiasis/uri_mrgsolve_model.R) | mrgsolve ODE 모델 (17 구획, 7 시나리오) |
-| [uri_shiny_app.R](urolithiasis/uri_shiny_app.R) | Shiny 대시보드 (6탭: 환자/PK/요화학/결석위험/시나리오비교/바이오마커) |
-| [uri_references.md](urolithiasis/uri_references.md) | 참고문헌 38편 (PubMed 링크 포함) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 CaOx 결석 형성자**: 5년간 결석 성장 및 GFR 저하 추적
-2. **HCTZ 25mg/day**: 고칼슘뇨증 환자에서 요중 Ca 30-45% 감소
-3. **K-Citrate 60mEq/day**: 저구연산뇨증/UA 결석에서 CaOx SS 50% 감소
-4. **Allopurinol 300mg/day**: 대사증후군/고요산뇨증에서 UA 생성 억제
-5. **Lumasiran (PH1)**: 원발성 고수산뇨증에서 요중 OX 53% 감소
-6. **생활습관 + HCTZ + K-Citrate 병용**: 종합 치료에서 결석 성장 억제
-7. **MetSyn + UA 결석 + Allopurinol + K-Citrate**: 복합 요산 결석 관리
-
----
-
-## 호산구 육아종증 다발혈관염 (EGPA, Eosinophilic Granulomatosis with Polyangiitis)
-
-### 개요
-
-EGPA(구 Churg-Strauss 증후군)는 유병률 약 1-3/백만명/년의 희귀 ANCA 연관 혈관염으로, 3단계 특징적 경과를 보입니다:
-- **전구기 (Prodromal)**: 성인 발병 천식 + 알레르기 비염/비용종 (수년 지속)
-- **호산구기 (Eosinophilic)**: 혈중 호산구 >10% (>1.5×10⁹/L) + 폐/심장/위장관 침윤
-- **혈관염기 (Vasculitic)**: 소-중형 혈관 괴사성 혈관염 (단발신경염, 심장, 신장, 피부)
-
-ANCA(항MPO)는 약 40%에서 양성이며 신장/신경 침범 위험이 높고, ANCA 음성에서는 심장·폐 호산구 침윤이 두드러집니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| Th2 분극화 | TSLP/IL-33 → ILC2 → IL-5/IL-13/IL-4 | 호산구증가, IgE 상승, 기도 과반응 |
-| 호산구 생산 | IL-5 → 골수 생산 → 혈중 이동 (CCR3/Eotaxin) | 혈중 호산구 3,000-15,000/µL |
-| 호산구 과립단백 | MBP/ECP/EPX/EDN 방출 | 심근염, 신경독성, 혈관 손상 |
-| ANCA 경로 | 항MPO → FcγRIIa → 호중구 활성화 → NETs/ROS | 괴사성 혈관염, RPGN |
-| 육아종 형성 | Th1/M1 대식세포 → 상피양 세포 → 거대세포 | 폐 침윤, 조직 섬유화 |
-| 혈관 손상 | 내피 세포 손상 → 투과성↑ → 미세혈전 → 허혈 | 단발신경염, GI 경색, 신장 손상 |
-
-### Five-Factor Score (FFS) — 예후
-
-| 항목 | 점수 |
-|------|------|
-| Creatinine > 150 µmol/L | +1 |
-| 단백뇨 > 1g/일 | +1 |
-| GI 침범 (출혈/천공) | +1 |
-| 심근병증 | +1 |
-| CNS 침범 | +1 |
-
-FFS 0: 5년 사망률 ~11% | FFS ≥2: ~26%
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 용량/경로 | 반감기 | 표적 | 주요 효과 |
-|------|---------|--------|------|---------|
-| Prednisolone | 50mg/일 경구 → 테이퍼 | ~2.5h | GR (광범위) | 호산구 60-80%↓, 혈관염 억제 |
-| Mepolizumab | 300mg SC q4w | ~16-22일 | IL-5 (TMDD) | 호산구 90%↓, 재발률 50%↓ |
-| Benralizumab | 30mg SC q4w→q8w | ~15일 | IL-5Rα (ADCC) | 호산구 근제로 감소 |
-| Cyclophosphamide | 15mg/kg IV ×6 | ~7h (활성대사체) | DNA 알킬화 | ANCA 80%↓, B세포 소멸 |
-| Rituximab | 1000mg IV ×2 | ~22일 | CD20 (ADCC/CDC) | B세포/형질세포 제거, ANCA↓ |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [egpa_qsp_model.dot](egpa/egpa_qsp_model.dot) | Graphviz 기계론적 지도 (150+ 노드, 10 클러스터) |
-| [egpa_qsp_model.svg](egpa/egpa_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [egpa_qsp_model.png](egpa/egpa_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [egpa_mrgsolve_model.R](egpa/egpa_mrgsolve_model.R) | mrgsolve ODE 모델 (22 구획, 6 시나리오) |
-| [egpa_shiny_app.R](egpa/egpa_shiny_app.R) | Shiny 대시보드 (7탭) |
-| [egpa_references.md](egpa/egpa_references.md) | 참고문헌 60편 (PubMed 링크 포함) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **무치료 (자연 경과)**: 혈관염 악화 및 장기 손상 누적
-2. **Prednisolone 단독**: 초기 50mg/일 → 26주 테이퍼 (표준 1차)
-3. **Mepolizumab + Prednisolone**: MIRRA 임상시험 기반, 항IL-5 + 스테로이드 절감
-4. **Benralizumab + Prednisolone**: 항IL-5Rα ADCC 매개 호산구 근제로 감소
-5. **Cyclophosphamide + Prednisolone (중증 ANCA+)**: FFS ≥2 환자의 유도 치료
-6. **Rituximab + Prednisolone (불응성 ANCA+)**: CD20 표적 B세포 소멸로 ANCA 억제
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | EGPA 개요, ACR/EULAR 2022 분류기준, FFS, 치료 알고리즘 |
-| 2. 약물 PK | 혈청 약물 농도 추적 (Mepo/Benra/Pred/Cyclo/Ritu) |
-| 3. 호산구/IL-5 | 혈중·조직 호산구, 유리 IL-5, 총IgE 동태 |
-| 4. 혈관염/장기 | 혈관염 활성, ANCA, 심장 손상, 신경 손상 점수 |
-| 5. 임상 엔드포인트 | BVAS, FEV1%, LVEF%, eGFR, Week 52 요약 |
-| 6. 시나리오 비교 | 4개 표준 치료 시나리오 동시 비교 |
-| 7. 바이오마커 | 호산구 억제율, 관해 상태, 바이오마커 히트맵 |
-
----
-
-## 원발성 부갑상선 기능 항진증 (Primary Hyperparathyroidism, PHPT)
-
-### 개요
-
-PHPT는 부갑상선 선종(85%), 다발성 선종(3%), 증식(12%), 암종(1%)에 의한 PTH 자율과다분비로 유발되는 질환입니다. 미국 성인 인구의 약 0.3-1%에서 발생하며, 폐경 후 여성에서 유병률이 높습니다 (약 0.5%). 현재 대부분(약 75-80%)은 무증상으로 발견되며, "Bones, Groans, Moans, Stones"로 요약되는 고전적 임상 증후군은 드물어졌습니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| CaSR-PTH 피드백 상실 | 선종 → CaSR 발현↓ → PTH 자율분비 | iPTH > 65 pg/mL (정상: 15-65) |
-| 뼈 칼슘 동원 | PTH → RANKL↑/OPG↓ → OC 활성↑ | 혈청 Ca > 2.6 mM, CTX↑, P1NP↑ |
-| 신장 Ca 재흡수 | PTH → TRPV5↑ → DCT Ca 재흡수↑ | 요중 Ca > 300 mg/day (역설적 고칼슘뇨) |
-| 1,25D 합성 | PTH → CYP27B1↑ → Calcitriol↑ | 장관 Ca 흡수↑ → 고칼슘혈증 악화 |
-| 인산뇨 | PTH → NaPi2a 내재화 → FEPi↑ | 저인산혈증 (PO4 < 0.8 mM) |
-| FGF23-Klotho | PTH↑ → FGF23↑ (음성 피드백 손상) | 1,25D 자기조절 부전 |
-| BMD 감소 | OC > OB 불균형 → 피질골 우선 손실 | 전완골(요골) T-score ≤ -2.5 조기 |
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 용량 | 기전 | 주요 PK | 임상 효과 |
-|------|------|------|---------|---------|
-| Cinacalcet | 30-180 mg/day po | CaSR allosteric potentiator | F=22%, Vc=55L, CL=125L/d, t½=6-8h | Ca↓ ~0.5 mg/dL, PTH↓ 30-50%; BMD 변화 없음 |
-| Denosumab | 60 mg SC q6mo | 항RANKL mAb (TMDD) | F=62%, Vd=3.1L, t½=28일 | CTX↓ 70-80%, BMD LS↑ 5%/yr; PTH/Ca 영향 없음 |
-| Alendronate | 70 mg/wk po | Farnesyl-PP synthase 억제 | F=0.6%, 골 반감기 ~10년 | CTX↓ 50-70%, BMD 안정화; Ca 변화 없음 |
-| Zoledronate | 5 mg IV/year | 동상 | F=100% (IV), t½=146h | 골절 위험 감소; PHPT 데이터 제한 |
-| Calcitriol | 0.25-1 µg/day | VDR 직접 활성화 | F~100%, t½=5-8h | CKD-PHPT에서 Ca/PO4 보정 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [phpt_qsp_model.dot](primary-hyperparathyroidism/phpt_qsp_model.dot) | Graphviz 기계론적 지도 (110+ 노드, 12 클러스터) |
-| [phpt_qsp_model.svg](primary-hyperparathyroidism/phpt_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [phpt_qsp_model.png](primary-hyperparathyroidism/phpt_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [phpt_mrgsolve_model.R](primary-hyperparathyroidism/phpt_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 7+1 시나리오) |
-| [phpt_shiny_app.R](primary-hyperparathyroidism/phpt_shiny_app.R) | Shiny 대시보드 (6탭: 프로파일/PK/Ca·PTH·VitD/골리모델링/시나리오비교/바이오마커) |
-| [phpt_references.md](primary-hyperparathyroidism/phpt_references.md) | 참고문헌 65편 (PubMed 링크 포함) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **정상 (healthy baseline)**: Ca 1.20 mM, iPTH 52 pg/mL, BMD LS 0.960 g/cm²
-2. **미치료 PHPT (경증, 5년 추적)**: Ca ~2.8 mM, PTH ~250 pg/mL, BMD 감소 1-2%/yr
-3. **미치료 PHPT (중증, 5년 추적)**: Ca ~3.2 mM, PTH ~2800 pg/mL, Hungry-bone 위험
-4. **Cinacalcet 60 mg/day**: 1년 후 Ca 정상화, PTH 40% 감소; BMD는 보전 효과 없음
-5. **Denosumab 60 mg q6mo**: BMD LS +5%/yr; Ca/PTH 직접 효과 없음 (간접 OC 억제)
-6. **부갑상선절제술 (day 90)**: 수술 후 72h 내 Ca 정상화, 장기 BMD 회복
-7. **Cinacalcet + Denosumab 병용**: Ca 정상화 + BMD 보전 최적 조합 (수술 거부 환자)
-8. **CKD-PHPT (eGFR 30) + Cinacalcet 90 mg**: 이차성 HPT와 동반 시 용량 증가 필요
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | PHPT 개요, NIH 2022 수술 기준, CaSR-PTH 시그모이드 곡선, 약물 요약 |
-| 2. 약물 PK | Cinacalcet 혈중 농도, Denosumab TMDD PK, EC50 dose-response, PK 파라미터 표 |
-| 3. Ca/PTH/VitD 동태 | iPTH·혈청 Ca·PO4·Calcitriol·요중 Ca·eGFR 시계열 |
-| 4. 골 리모델링 & BMD | 요추/대퇴경부 BMD, T-score, OB/OC 역학, CTX/P1NP 마커 |
-| 5. 시나리오 비교 | 7개 표준 치료 시나리오 선택 비교, Year-1 요약 테이블 |
-| 6. 바이오마커 대시보드 | 실시간 valueBox (PTH/Ca/BMD/GFR), 전체 마커 테이블, Z-score 히트맵 |
-
----
-
-## 만성 정맥 부전 (Chronic Venous Insufficiency, CVI)
-
-### 개요
-
-만성 정맥 부전은 전 세계 성인 인구의 약 35%가 경험하는 매우 흔한 만성 혈관 질환으로, 여성(55%)이 남성(45%)보다 유병률이 높습니다. 정맥 판막의 기능 부전으로 인한 역류(reflux)와 보행 시 정맥압 상승(elevated ambulatory venous pressure, AVP)이 핵심 발병기전이며, 장기 방치 시 정맥성 하지 궤양(venous leg ulcer, VLU)으로 진행할 수 있습니다. CVI는 CEAP 분류(C0-C6)에 따라 임상 중증도를 구분하며, C6는 활동성 궤양을 의미합니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 메커니즘 | 임상 결과 |
-|------|------------|---------|
-| 정맥 판막 기능 부전 | 판막 무능증 → 역류 → AVP↑ (정상 <45 mmHg) | 정맥류, 하지 무거움 |
-| 내피세포 기능 이상 | 비정상 전단 응력 → eNOS↓, ROS↑, ET-1↑ | ICAM-1/VCAM-1 발현↑ |
-| 백혈구 트래핑 | ICAM-1 → PMN 포착 → 탈과립 → MBP·elastase | 모세혈관 손상, 조직 괴사 |
-| 피리빈 섬유소 커프 | 피리빈 삼출 → 모세혈관 주위 섬유소 침착 | O₂/영양소 확산 장벽 |
-| 부종 & 피부 변화 | 모세혈관 고혈압 → 혈장 삼출 → 림프 과부하 | 발목 부종, 지방피부경화증 |
-| 궤양 형성 | 지방피부경화증 → 피부 장벽 파괴 → VLU | C6 분류, 삶의 질 저하 |
-
-### CEAP 분류 체계
-
-| CEAP 등급 | 임상 소견 | 유병률(성인) |
-|----------|---------|-----------|
-| C0 | 증상은 있으나 가시적 이상 없음 | 14% |
-| C1 | 모세혈관 확장증/망상 정맥류 | 30% |
-| C2 | 정맥류 | 23% |
-| C3 | 부종 (피부 변화 없음) | 7% |
-| C4 | 피부 변화 (색소침착, 습진, 지방피부경화증) | 4% |
-| C5 | 치유된 궤양 + 피부 변화 | 1% |
-| C6 | 활동성 정맥성 궤양 | 0.5% |
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 작용기전 | 주요 PK | 임상 효과 |
-|------|---------|---------|---------|
-| MPFF 1000mg/day (Daflon) | 정맥 긴장도↑, 백혈구 부착↓, 혈관 투과성↓ | ka=1.5/h, CL=20L/h, V=80L, F=90% | VCSS 3.7점↓, 부종↓ (RELIEF meta-analysis) |
-| Pentoxifylline 400mg TID | 혈액 점도↓, 피브리노겐↓, PAI-1↓, TNF-α↓ | ka=2.0/h, CL=45L/h, V=55L, F=25% | 궤양 치유율 1.7배↑ (Cochrane NNT=5) |
-| Enoxaparin 40mg SC qd | 항Xa → 트롬빈↓, 피브린↓, DVT 예방 | ka=0.5/h, CL=1.2L/h, V=6L, F=90% | DVT 재발 50%↓, PTS 위험↓ |
-| Rutosides 1000mg/day | 모세혈관 투과성↓, 산화 스트레스↓ | ka=1.0/h, 생체이용률 ~30% | 부종 23%↓, 다리 무거움 개선 |
-| 압박 요법 20-40 mmHg | AVP 40-50%↓, VRT↑, 림프 배액↑ | 비약리적 기계적 효과 | 궤양 치유율 2배↑ (ESCHAR trial) |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [cvi_qsp_model.dot](chronic-venous-insufficiency/cvi_qsp_model.dot) | Graphviz 기계론적 지도 (146+ 노드, 11 클러스터) |
-| [cvi_qsp_model.svg](chronic-venous-insufficiency/cvi_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [cvi_qsp_model.png](chronic-venous-insufficiency/cvi_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [cvi_mrgsolve_model.R](chronic-venous-insufficiency/cvi_mrgsolve_model.R) | mrgsolve ODE 모델 (16 구획, 7 시나리오) |
-| [cvi_shiny_app.R](chronic-venous-insufficiency/cvi_shiny_app.R) | Shiny 대시보드 (6탭: 환자프로파일/PK/정맥혈역학/염증바이오마커/임상엔드포인트/시나리오비교) |
-| [cvi_references.md](chronic-venous-insufficiency/cvi_references.md) | 참고문헌 54편 (PubMed 링크 포함) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 CVI (자연 경과, 5년)**: 판막 기능 저하 → AVP 점진적 상승 → 궤양 발생 위험 증가
-2. **MPFF 1000mg/day 단독**: VCSS 3.7점↓, 부종↓, 삶의 질↑ (RELIEF meta-analysis 기준)
-3. **Pentoxifylline + 압박 요법**: 활동성 궤양 환자에서 치유율 1.7배↑ (Cochrane 2012)
-4. **LMWH + 압박**: DVT 후 PTS 예방, 피브린 커프↓
-5. **삼중 병용 (MPFF + PTX + 압박)**: 중증 CVI/활동성 궤양 최적 조합
-6. **압박 요법 단독**: ESCHAR trial 표준 치료
-7. **MPFF + 압박 (중등도 CVI)**: 증상 개선 + 피부 변화 억제
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | CEAP 등급 입력, 위험인자 설정, 기저 질환 특성 요약 |
-| 2. 약물 PK | MPFF/PTX/LMWH/루토사이드 혈중 농도 시계열, Cmax/AUC/t½ 표 |
-| 3. 정맥 혈역학 | AVP·부종·VRT 시계열 (압박 유무 비교) |
-| 4. 염증 바이오마커 | 백혈구 활성화·내피 기능·혈관 투과성·피브린 커프 추적 |
-| 5. 임상 엔드포인트 | VCSS·CIVIQ-20 QoL·궤양 면적 시계열, 치료 시나리오별 개선율 |
-| 6. 시나리오 비교 | 8개 치료군 레이더 차트·막대 그래프·요약 테이블 |
-
----
-
-## IgA 혈관염 (IgA Vasculitis / Henoch-Schönlein Purpura, IgAV)
-
-### 개요
-
-IgA 혈관염(IgAV, 구칭: 헤녹-쇤라인 자반증/HSP)은 IgA 면역복합체가 소혈관(피부·신장·위장관·관절)에 침착되어 발생하는 전신 소혈관 혈관염입니다. 소아에서 가장 흔한 전신 혈관염이며(연간 발생률 10-20/100,000), 성인에서는 더 심한 신장 침범(IgAV 신염)을 보입니다. 병태생리는 "다중 타격(multi-hit)" 모델로 설명됩니다:
-
-1. **Gd-IgA1 과잉 생산**: IgA1 힌지 영역의 비정상 O-당화 → 갈락토스 결핍 IgA1(Gd-IgA1) 과잉
-2. **자가항체 형성**: 항-Gd-IgA1 IgG 자가항체 생성 → Gd-IgA1 면역복합체(IC) 형성
-3. **IC 침착**: 피부 진피 혈관, 신장 메산지움, 위장관 점막, 활막에 침착
-4. **보체 활성화**: 주로 렉틴 경로(MBL/MASP-2) → C3/C5/MAC 활성화
-5. **혈관 염증**: 호중구·단핵구 동원, 내피 활성화, 백혈구 파괴성 혈관염(LCV)
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| Gd-IgA1 생산 | C1GalT1 결핍/ST6GalNAc II 과발현 → 힌지 갈락토스 결핍 | 혈청 Gd-IgA1 >2.0 mg/L |
-| 면역복합체 형성 | Gd-IgA1 + 항-Gd-IgA1 IgG → 대형/소형 IC | 혈청 IC 상승 |
-| 렉틴 보체 경로 | MBL-MASP-2 → C4/C2 → C3b → C5a/MAC | sC5b-9 상승, 사구체 손상 |
-| 메산지움 침착 | FcαRI → NF-κB → PDGF-B/TGF-β → 메산지움 증식 | 단백뇨/혈뇨 |
-| 족세포 손상 | TGF-β → nephrin/podocin↓ → 여과 장벽 파괴 | 신증후군 범위 단백뇨 |
-| 피부 혈관 침착 | 진피 IgA 침착 → LCV → 자반 | 촉지성 자반 (하지) |
-| 위장관 침착 | GI 점막 IgA 침착 → 복통/장중첩 위험 | 복통, GI 출혈 |
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 용량 | 기전 | 주요 PK | 임상 효과 |
-|------|------|------|---------|---------|
-| Prednisolone | 1 mg/kg/day → 테이퍼 | GR 작용제 → NF-κB↓ | F=80%, t½=2.5h, CL=15L/h | 자반·GI 증상 호전, 신염 예방 불확실 |
-| Mycophenolate mofetil (MMF) | 1000mg BID | IMPDH 억제 → 림프구 증식↓ | F=94%, MPA t½=18h | 단백뇨 40-55%↓ (Ren et al. 2012) |
-| Rituximab | 375 mg/m² ×4 | 항CD20 → B세포 고갈 → Gd-IgA1↓ | t½=22일, TMDD 동역학 | B세포 소멸 → Gd-IgA1↓, 관해 유도 |
-| Sparsentan | 400 mg QD | 이중 AT1R/ETA-R 길항 → TGF-β↓ | F=70%, t½=12h | 단백뇨 65%↓ (PROTECT 임상시험) |
-| Dapagliflozin | 10 mg QD | SGLT2 억제 → TGF-β↓, GFR 보호 | F=78%, t½=12.9h | eGFR 저하율 50%↓ (DAPA-CKD) |
-| ACEi/ARB | 에날라프릴 10mg/일 | 안지오텐신 II↓ → 수입세동맥 이완 | F=55%, t½=11h | 단백뇨 15-25%↓, TGF-β↓ |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [igav_qsp_model.dot](iga-vasculitis/igav_qsp_model.dot) | Graphviz 기계론적 지도 (200 노드, 10 클러스터) |
-| [igav_qsp_model.svg](iga-vasculitis/igav_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [igav_qsp_model.png](iga-vasculitis/igav_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [igav_mrgsolve_model.R](iga-vasculitis/igav_mrgsolve_model.R) | mrgsolve ODE 모델 (25 구획, 8 시나리오) |
-| [igav_shiny_app.R](iga-vasculitis/igav_shiny_app.R) | Shiny 대시보드 (7탭: 환자프로파일/PK/PD지표/임상엔드포인트/시나리오비교/바이오마커/About) |
-| [igav_references.md](iga-vasculitis/igav_references.md) | 참고문헌 70편 (PubMed 링크 포함) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 (자연 경과)**: 52주간 단백뇨 진행, eGFR 저하, CKD 위험 누적
-2. **Prednisolone 단독 (1 mg/kg/day × 4주 테이퍼)**: 자반·GI·관절 호전, 신염 예방 불확실
-3. **Prednisolone + MMF 1000mg BID**: 단백뇨 55%↓, 면역복합체 억제
-4. **Rituximab 375mg/m² × 4회**: B세포 고갈, Gd-IgA1↓, 관해 유도
-5. **Prednisolone + Rituximab 병용**: 강력 면역억제 (중증 IgAV 신염)
-6. **Sparsentan 400mg QD (PROTECT 기반)**: 단백뇨 65%↓, eGFR 보호
-7. **ACEi/ARB (신보호 단독)**: 단백뇨 20%↓, 진행 억제
-8. **Sparsentan + SGLT2 억제제 + 스테로이드 (병용 최적)**: 복합 신보호 + 면역억제
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 인구통계, 기저 IgAV 중증도 설정, 치료 선택, 질환 활성도 요약 |
-| 2. 약물 PK | Prednisolone/MMF/Rituximab 혈중 농도 시계열 및 PK 파라미터 표 |
-| 3. PD 핵심 지표 | 면역복합체·보체 동태, BAFF/IL-6/TNF-α 사이토카인 추적 |
-| 4. 임상 엔드포인트 | 단백뇨·eGFR·혈뇨·자반점수·GI 점수, CKD 단계 위험 |
-| 5. 시나리오 비교 | 8개 치료군 단백뇨/eGFR/IC 동시 비교, 최종 아웃컴 요약 테이블 |
-| 6. 바이오마커 | Gd-IgA1·anti-Gd-IgA1·sC5b-9 기준범위, 바이오마커 추적 차트 |
-| 7. About | IgAV 질환 개요, 병태생리 설명, QSP 모델 요약, 핵심 참고문헌 |
-
----
-
-## 자가면역 용혈성 빈혈 (Autoimmune Hemolytic Anemia, AIHA)
-
-### 개요
-
-자가면역 용혈성 빈혈(AIHA)은 자가항체가 적혈구(RBC) 표면 항원에 결합하여 조기 파괴를 유발하는 후천성 혈액 질환입니다. 연간 발생률 약 1-3/100,000명이며, 여성에서 약간 많습니다. 크게 두 가지 주요 아형으로 나뉩니다:
-
-1. **온형 AIHA (Warm AIHA, wAIHA, ~70%)**: IgG 자가항체가 37°C에서 Rh·Band3·CD47 항원에 결합 → FcγR 매개 비장 대식세포의 식세포 작용(체외 용혈)
-2. **한랭 응집소 질환 (Cold Agglutinin Disease, CAD, ~15–20%)**: IgM 단클론 항체가 <15°C에서 I/i 항원에 결합 → 고전 보체 경로 활성화 (C1q→C3b→C5b-9 MAC) → 혈관내 용혈 + C3b 옵소닌화
-
-병태생리 핵심: 면역관용 소실 → B세포/형질세포 자가항체 생산 → RBC 표면 항원 결합 → 식세포/보체 매개 용혈 → 보상적 적혈구생성(EPO↑, 망상적혈구↑)
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| IgG 생산 (warm) | GC반응 → SHM → 형질세포 → IgG1/IgG3 | DAT IgG+ |
-| FcγR 매개 식세포 작용 | FcγRI/IIA/IIIA → Syk → 탐식 | 구상 적혈구, 비장 비대 |
-| 보체 고전 경로 (cold) | IgM → C1q/C1r/C1s → C3b → MAC | DAT C3d+, 혈관내 용혈 |
-| 보상 적혈구생성 | 저산소 → HIF-1α → EPO↑ → CFU-E↑ | 망상적혈구증가증 |
-| 헤모글로빈 분해 (체외) | HO-1 → 비리베르딘 → 비결합 빌리루빈 | 황달, 빌리루빈↑ |
-| 자유 헤모글로빈 (혈관내) | Hb → 합토글로빈 고갈 → NO 소거 | 혈색소뇨, 혈관수축 |
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 용량 | 기전 | 주요 PK | 임상 효과 |
-|------|------|------|---------|---------|
-| Prednisolone | 1~1.5 mg/kg/day → 테이퍼 | GR → FcγR↓, Ab↓ | F=80%, t½=2.5h, CL=15L/h | CR ~55-70% at 3 weeks |
-| Rituximab | 375 mg/m² IV ×4 주간 | 항CD20 → B세포 고갈 | t½=22일, TMDD 동역학 | CR ~65% at 1 year (Barcellini 2018) |
-| Sutimlimab (Enjaymo) | 6.5-7.5g IV q2w | 항C1s → 고전 보체 경로 차단 | t½=20일, Cmax~1300μg/mL | Hb +1.5-2.3 g/dL (CADENZA trial) |
-| Fostamatinib (Tavalia) | 150mg PO BID | Syk 억제 → FcγR 신호↓ | R406 t½=14h, IC50=41nM | 38% OR (Phase 3 trial 2023) |
-| Dexamethasone | 40mg/day ×4d 사이클 | GR (Kd=1nM) → 강력 면역억제 | F=78%, t½=36-72h | 단기 신속 반응 (CR 60%) |
-| MMF | 1000mg PO BID | IMPDH 억제 → B세포 증식↓ | MPA t½=18h, F=94% | 재발 방지 유지요법 |
-| IVIG | 1 g/kg IV ×2일 | FcRn 포화→ Ab 분해↑ + FcγR 차단 | t½=21일, Vd=3.5L | 급성 구제 (단기 효과) |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [aiha_qsp_model.dot](autoimmune-hemolytic-anemia/aiha_qsp_model.dot) | Graphviz 기계론적 지도 (15 클러스터, 100+ 노드) |
-| [aiha_qsp_model.svg](autoimmune-hemolytic-anemia/aiha_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [aiha_qsp_model.png](autoimmune-hemolytic-anemia/aiha_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [aiha_mrgsolve_model.R](autoimmune-hemolytic-anemia/aiha_mrgsolve_model.R) | mrgsolve ODE 모델 (26 구획, 8 시나리오) |
-| [aiha_shiny_app.R](autoimmune-hemolytic-anemia/aiha_shiny_app.R) | Shiny 대시보드 (7탭: 환자프로파일/PK/PD지표/임상엔드포인트/시나리오비교/바이오마커/About) |
-| [aiha_references.md](autoimmune-hemolytic-anemia/aiha_references.md) | 참고문헌 76편 (PubMed 링크 포함) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 (자연 경과)**: 1년간 hemoglobin 지속 저하, LDH↑, 빌리루빈↑, 망상적혈구증가증
-2. **Prednisolone 1 mg/kg/day → 테이퍼**: 3주내 빠른 반응, 4주차 테이퍼, CR ~55-70%
-3. **Prednisolone + Rituximab**: 복합 면역억제, 1년 CR ~68%, 재발률 감소 (Birgens 2013)
-4. **Dexamethasone 펄스 + Rituximab**: 강력 초기 반응 + 지속 B세포 고갈
-5. **Fostamatinib 150mg BID (불응성 wAIHA)**: Syk 경로 억제, OR ~38% (Phase 3)
-6. **Prednisolone + MMF (유지요법)**: 스테로이드 감량 후 MMF 유지, 재발 방지
-7. **IVIG 1 g/kg ×2d (급성 구제)**: 즉각적 FcγR 차단, 단기 효과, 수혈 회피
-8. **Sutimlimab 6.5g q2w (CAD)**: 고전 보체 경로 완전 차단, Hb +2.3 g/dL (CADENZA)
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 인구통계, 기저 AIHA 아형(온형/한랭) 설정, 치료 선택, 기저치 요약 표 |
-| 2. 약물 PK | Prednisolone/Rituximab/Sutimlimab/Fostamatinib/MMF/IVIG 혈중 농도 시계열 |
-| 3. PD 핵심 지표 | B세포·형질세포·자가항체 동태, C3b 보체, EPO·망상적혈구 반응 |
-| 4. 임상 엔드포인트 | 헤모글로빈 궤적, 완전반응(CR≥10g/dL)/부분반응/수혈 필요 시점 |
-| 5. 시나리오 비교 | A/B/C/D 4개 치료군 동시 비교 (Hb, LDH, 자가항체 그래프 + 결과 테이블) |
-| 6. 바이오마커 | LDH·합토글로빈·빌리루빈·DAT 점수 추적 및 기준 범위 참고표 |
-| 7. About | AIHA 질환 개요, 모델 구조 설명, 참고문헌, 모델 한계 |
-
----
-
-## 굿파스처 증후군 (Goodpasture Syndrome, GPS)
-
-### 개요
-
-굿파스처 증후군은 제4형 콜라겐 α3 사슬의 NC1 도메인(Goodpasture 항원)에 대한 자가항체(anti-GBM IgG)가 사구체 기저막(GBM)과 폐포 기저막을 공격하여 급속진행성 사구체신염(RPGN) 및 폐포 출혈(DAH)을 유발하는 희귀 자가면역 질환입니다. 연간 발생률은 100만 명당 0.5–1명으로 매우 드물며, 치료받지 않으면 수 주 내 신부전·호흡부전으로 사망에 이릅니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 메커니즘 | 임상 이상 |
-|------|------------|---------|
-| 자가항원 노출 | 흡연·감염·용매 → GBM α3(IV)NC1 노출 | 면역 반응 개시 |
-| B세포 활성화 | 항원 제시 → B세포 → 형질세포 분화 | anti-GBM IgG 생산 |
-| 보체 활성화 | IgG → C1q → 고전경로 → C5a 생성 | 호중구 유입·조직 파괴 |
-| 신장 손상 | 반월형 사구체신염 → GFR 급감 | RPGN (혈청 Cr ↑↑) |
-| 폐 손상 | 폐포 기저막 IgG → 폐포 출혈 | DAH (DLCO ↓, 객혈) |
-| 염증 증폭 | 호중구 → ROS·MMP → 기저막 파괴 | 단백뇨·혈뇨·폐섬유화 |
-
-### 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 (자연 경과)**: anti-GBM 항체 지속, GFR 급속 저하, 폐출혈 지속
-2. **혈장교환(Plex) + 사이클로포스파미드(CY) + 프레드니솔론(표준요법)**: 혈중 항체 신속 제거, B세포 억제, 3개월 내 anti-GBM 음전율 ~85%
-3. **Plex + 리툭시맙(RTX) + 프레드니솔론**: CD20+ B세포 고갈, 재발성/불응성 환자에 적용
-4. **Plex + 아바코판(Avacopan) + 프레드니솔론**: C5aR 차단으로 호중구 매개 손상 억제
-5. **CY + 프레드니솔론 (혈장교환 없음)**: 혈장교환 불가 시 대안
-6. **프레드니솔론 단독**: 증등증 폐 침범만 있는 경우 또는 대안
-
-### 모델 구조 (mrgsolve ODE)
-
-| 구획 | 상태변수 | 생물학적 의미 |
-|------|---------|------------|
-| Drug PK | CY_C, OHCY_C | 사이클로포스파미드 + 활성대사체 4-OH-CY (간 활성화) |
-| Drug PK | PRED_C | 프레드니솔론 (1구획 경구 PK) |
-| Drug PK | RTX_C, RTX_P | 리툭시맙 2구획 PK (중심/말초) |
-| Drug PK | AVA_C | 아바코판 (C5aR1 저해제) |
-| 면역 | AntiGBM | 혈중 anti-GBM IgG 항체 농도 |
-| 면역 | B_cells, Plasma_cells | B세포·형질세포 동태 |
-| 보체 | C5a | C5a 아나필라톡신 농도 |
-| 염증 | Neutrophil_kidney | 사구체 호중구 침윤 |
-| 신장 | GBM_damage, GFR_c | GBM 손상 지수, GFR (정규화) |
-| 신장 | Proteinuria_c, Hematuria_c | 단백뇨·혈뇨 |
-| 폐 | Lung_damage, DLCO_c | 폐포 손상, DLCO (정규화) |
-| 염증 | CRP_c, T_regs | CRP, 조절T세포 |
-
-### 기계론적 지도 파일
-
-| 파일 | 설명 |
-|------|------|
-| [gps_qsp_model.dot](goodpasture-syndrome/gps_qsp_model.dot) | Graphviz 기계론적 지도 (9 클러스터, 100+ 노드) |
-| [gps_qsp_model.svg](goodpasture-syndrome/gps_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [gps_qsp_model.png](goodpasture-syndrome/gps_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [gps_mrgsolve_model.R](goodpasture-syndrome/gps_mrgsolve_model.R) | mrgsolve ODE 모델 (19 구획, 6 시나리오) |
-| [gps_shiny_app.R](goodpasture-syndrome/gps_shiny_app.R) | Shiny 대시보드 (7탭: 환자프로파일/PK/항체·보체/신장/폐/시나리오비교/참고문헌) |
-| [gps_references.md](goodpasture-syndrome/gps_references.md) | 참고문헌 60편 (13 섹션, PubMed 링크 포함) |
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 질환 개요, 진단 기준, 치료 알고리즘, 예후 지표 설정 |
-| 2. 약물 PK | 혈장교환 일정, CY/PRED/RTX/아바코판 혈중 농도 시계열 |
-| 3. 항체 & 보체 | anti-GBM IgG 역가, B세포·형질세포 동태, C5a, 호중구 침윤 |
-| 4. 신장 엔드포인트 | GFR 궤적, GBM 손상 지수, 단백뇨, 투석 위험도 |
-| 5. 폐 엔드포인트 | DLCO 궤적, 폐포 손상 지수, 폐 완해율 |
-| 6. 시나리오 비교 | 6개 치료군 동시 비교 (anti-GBM, GFR, DLCO, CRP 그래프 + 결과 테이블) |
-| 7. 참고문헌 | 역학/항원/유전학/자가항체/보체/신장/폐/혈장교환/CY/RTX/아바코판/PK/PD/예후 별 분류 |
-
----
-
-## 파젯병 (Paget's Disease of Bone, PBD)
-
-### 개요
-
-파젯병(Paget's Disease of Bone)은 국소적으로 비정상적으로 가속화된 골 개조(bone remodeling)를 특징으로 하는 만성 대사성 골질환입니다. 파젯 파골세포는 비정상적으로 크고(핵 최대 100개), 과활성 상태로 기계적 강도가 낮은 woven/mosaic bone을 생성합니다. SQSTM1/p62 돌연변이(가족성 사례의 30–50%), RANK 경로 조절장애, paramyxovirus 가설이 병인에 관여합니다.
-
-### 병태생리 핵심 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| RANKL-OPG 불균형 | RANKL↑ / OPG↓ → NFATc1 과활성 | 파골세포 과형성, 골흡수↑↑ |
-| SQSTM1/p62 돌연변이 | UBA 도메인 손상 → NF-κB 과활성 → 파골세포 과민화 | 가족성 PBD (30-50%) |
-| 파골세포 형태 이상 | DC-STAMP↑, 핵 100개 이상, TRAP↑↑ | 국소 골용해 → 병적 골절 |
-| 골형성 결합 과잉 | TGF-β1/IGF-1 방출 → OBpre 과자극 | Woven/mosaic bone 형성 |
-| 혈관 합병증 | VEGF↑ → AV shunting → 심박출량↑ | 고박출 심부전 |
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 용량/경로 | 반감기 | 표적 | 주요 효과 |
-|------|---------|--------|------|---------|
-| Zoledronic acid | 5mg IV 1회 | 골 결합 t½ ~10년 | FPPS (mevalonate 경로) | bsALP 정상화 89% (6개월) |
-| Alendronate | 40mg/일 경구 × 6개월 | 골 결합 t½ ~10년 | FPPS | bsALP 정상화 ~70% |
-| Calcitonin | 100IU SC 매일 | ~1h | CALCR (Gs/cAMP/PKA) | OC 억제 ~25-30% |
-| Denosumab | 60mg SC Q6M | ~25-30일 | RANKL 중화 (IgG2) | NTX ~65-70%↓ |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [pbd_qsp_model.dot](pagets-disease/pbd_qsp_model.dot) | Graphviz 기계론적 지도 (154 노드, 12 클러스터, 201 엣지) |
-| [pbd_qsp_model.svg](pagets-disease/pbd_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [pbd_qsp_model.png](pagets-disease/pbd_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [pbd_mrgsolve_model.R](pagets-disease/pbd_mrgsolve_model.R) | mrgsolve ODE 모델 (22 구획, 7 시나리오) |
-| [pbd_shiny_app.R](pagets-disease/pbd_shiny_app.R) | Shiny 대시보드 (6탭: 환자프로파일/PK/PD지표/임상엔드포인트/시나리오비교/바이오마커) |
-| [pbd_references.md](pagets-disease/pbd_references.md) | 참고문헌 53편 (PubMed 링크, 9섹션) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 (자연 경과)**: 2년간 bsALP·NTX·CTX 상승 및 BMD 변화 추적
-2. **Zoledronic acid 5mg IV 1회**: HORIZON 임상시험 기반, 6개월 bsALP 정상화 89%
-3. **Alendronate 40mg/일 × 6개월**: 경구 비스포스포네이트 표준 치료
-4. **Calcitonin 100IU SC 매일 × 6개월**: CALCR 매개 파골세포 억제
-5. **Denosumab 60mg SC Q6M**: RANKL 중화, 강력한 NTX 억제
-6. **ZA 5mg IV + 통증 관리**: 증상 중심 병용 치료
-7. **순차 치료**: Alendronate 6개월 → ZA 전환
-
-### 주요 보정 기준 (Calibration Target)
-
-- HORIZON 임상시험: ZA 투여 6개월 후 bsALP 정상화 89% (PMID: 21434807)
-- Siris et al. 역학: 55세 이상 0.5-3% 유병률, 남성 다발
-
----
-
-## 현미경적 다발혈관염 (Microscopic Polyangiitis, MPA)
-
-### 개요
-
-현미경적 다발혈관염(MPA)은 소혈관(arterioles, venules, capillaries)을 주로 침범하는 ANCA 연관 혈관염(AAV)입니다. 주요 ANCA는 항MPO IgG(pANCA, ~75%)이며, 면역복합체 침착이 거의 없는 **pauci-immune** 괴사성 사구체신염과 **미만성 폐포출혈(DAH)**이 대표적 합병증입니다. 육아종은 형성되지 않아 GPA와 구별됩니다. 연간 발생률은 유럽에서 100만 명당 2-10명이며, 일본에서 더 높습니다.
-
-### 병태생리 핵심 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| ANCA 생성 | B세포 내성 소실 → 형질세포 → anti-MPO IgG (pANCA) | ANCA 역가↑ (>100 EU) |
-| 호중구 프라이밍 | TNF-α/GM-CSF → MPO 세포표면 발현 | ANCA 결합 가능 상태 |
-| ANCA-호중구 활성화 | FcγRIIa 교차결합 → NADPH oxidase → ROS/NETosis | 혈관벽 파괴 |
-| 보체 대체경로 | C5a 생성 → C5aR1 → 호중구 추가 프라이밍 | 양성 피드백 증폭 |
-| 사구체 모세혈관염 | pauci-immune 괴사 → RPGN → 초승달(crescent) 형성 | GFR↓, ESRD 위험 |
-| 폐 모세혈관염 | 폐포 모세혈관 파열 → DAH | 객혈, DLCO↓ |
-
-### 약물 PK/PD 핵심 파라미터
-
-| 약물 | 용량/경로 | 반감기 | 표적 | 주요 효과 |
-|------|---------|--------|------|---------|
-| Cyclophosphamide | 2mg/kg/d oral 또는 15mg/kg IV Q3W | 3-10시간 (4-OH-CY t½~4h) | DNA 알킬화 | B/T세포 독성, 완전관해 ~53% (RAVE) |
-| Rituximab | 375mg/m²×4 or 1000mg×2 IV | ~350시간 (3주 반감기) | CD20 (ADCC/CDC) | B세포 고갈, 완전관해 ~64% (RAVE) |
-| Prednisolone | 1mg/kg/day → taper | 2-4시간 | GR (transrepression) | 염증 억제, 관해 유도 보조 |
-| Azathioprine | 2mg/kg/day oral | ~1시간 (6-TGN t½ 3-13일) | HGPRT/퓨린 합성 | B/T세포 증식 억제 (유지) |
-| Mycophenolate | 3g/day oral | ~12-17시간 (MPA) | IMPDH (IMP→GMP) | 형질세포 억제 (유지, 2선) |
-| Avacopan | 30mg BID oral | ~16시간 | C5aR1 역작용제 | BVAS 관해: 비열등 vs PRED (ADVOCATE) |
-| Plasma Exchange | 7회/2주 | 즉각 | ANCA/complement 제거 | ANCA 50-70%↓/1회, ESRD 영향 미미 (PEXIVAS) |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![MPA QSP](microscopic-polyangiitis/mpa_qsp_model.png)](microscopic-polyangiitis/mpa_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [mpa_qsp_model.dot](microscopic-polyangiitis/mpa_qsp_model.dot) | Graphviz 기계론적 지도 (160+ 노드, 11 클러스터) |
-| [mpa_qsp_model.svg](microscopic-polyangiitis/mpa_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [mpa_qsp_model.png](microscopic-polyangiitis/mpa_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [mpa_mrgsolve_model.R](microscopic-polyangiitis/mpa_mrgsolve_model.R) | mrgsolve ODE 모델 (21 구획, 7 시나리오) |
-| [mpa_shiny_app.R](microscopic-polyangiitis/mpa_shiny_app.R) | Shiny 대시보드 (7탭) |
-| [mpa_references.md](microscopic-polyangiitis/mpa_references.md) | 참고문헌 64편 (14섹션, PubMed 링크) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 (자연 경과)**: ANCA 지속, GFR 급속 저하, DAH 지속, ESRD 진행
-2. **CY 경구 + Prednisolone (CYCLOPS 프로토콜)**: 경구 CY 2mg/kg/d + PRED 1mg/kg/d → 완전관해 ~53% (6개월)
-3. **Rituximab + Prednisolone (RAVE 프로토콜)**: RTX 375mg/m²×4 + PRED → 완전관해 ~64% (6개월), 특히 재발 MPA에 우월
-4. **CY + Prednisolone + 혈장교환 (PEXIVAS)**: PLEX 7회 추가 → ANCA 신속 제거, 그러나 ESRD/사망률 개선 미확인
-5. **Rituximab + Avacopan (GC-free, ADVOCATE)**: 스테로이드 없이 C5aR1 차단 + B세포 고갈 → BVAS 비열등, 52주 지속 관해 우월
-6. **AZA 유지 (post-induction, IMPROVE)**: 유도 후 AZA 2mg/kg/d → 재발률 ~35%(5년) — RTX 유지보다 열등
-7. **RTX 유지 500mg Q6M (MAINRITSAN)**: 고정 간격 RTX 유지 → 재발률 대폭 감소 (AZA 대비 HR 0.36)
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 질환 개요, BVAS 구성, 바이오마커 기준치, 치료 알고리즘, 예후 |
-| 2. 약물 PK | CY/4-OH-CY, RTX, Prednisolone, Avacopan 혈중농도 시계열 |
-| 3. 면역학·ANCA | anti-MPO ANCA 역가, B세포·형질세포, C5a, 호중구 활성화, 혈관내피 손상 |
-| 4. 신장 엔드포인트 | GFR 궤적, 혈청 크레아티닌, 사구체 염증 지수, 신장 섬유화 |
-| 5. 폐 엔드포인트 | DAH 지수, DLCO, CRP (전신 염증) |
-| 6. 시나리오 비교 | 7개 치료군 동시 비교 (BVAS, GFR, ANCA, DLCO 그래프 + 결과표) |
-| 7. 참고문헌 | 핵심 임상시험(RAVE/RITUXVAS/PEXIVAS/ADVOCATE/MAINRITSAN) + 기전 문헌 |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- RAVE 임상시험: RTX 완전관해 64% vs CY 53% (6개월) — PMID 20647198
-- PEXIVAS: 혈장교환이 ESRD/사망률에 추가 이득 없음 — PMID 32053298
-- ADVOCATE: 아바코판이 BVAS 관해에서 Pred 비열등, 52주 지속 관해 우월 — PMID 33596356
-- MAINRITSAN: RTX 유지 시 재발률 HR 0.36 vs AZA — PMID 25372085
-
----
-
-## 재발성 다발연골염 (Relapsing Polychondritis, RP)
-
-### 개요
-
-재발성 다발연골염(RP)은 귀·코·기관기관지 연골, 관절, 눈, 심혈관계, 내이를 반복적으로 침범하는 희귀 자가면역질환입니다. 유병률은 약 100만 명당 3.5명이며, 주요 자가항원은 **제2형 콜라겐(Type II collagen)**, Matrilin-1, 제9형·11형 콜라겐, COMP입니다. CD4+ Th1/Th17 세포 및 항-CII IgG가 연골에 침착되어 보체를 활성화시키고, MMPs/ADAMTS가 연골 ECM을 파괴합니다. 기도 허탈(tracheomalacia)과 심혈관 침범이 주요 사망 원인입니다.
-
-### 병태생리 핵심 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| 자가항원 노출 | Type II 콜라겐/Matrilin-1 → DC 항원제시 | 자가반응 T세포·B세포 활성화 |
-| Th1/Th17 분화 | IL-12/IL-23 → Th1(IFN-γ) / IL-6+TGF-β → Th17(IL-17A/F) | 연골 침윤 |
-| 항-CII IgG 생성 | 형질세포 → Anti-CII IgG → IC 형성 | 연골 내 면역복합체 침착 |
-| 보체 활성화 | IC → C1q → C3a/C5a anaphylatoxin → MAC | 연골세포 용해 |
-| MMP/ADAMTS 활성화 | TNF-α, IL-17A → MMP-1/3/9/13, ADAMTS-4/5↑ | 콜라겐/프로테오글리칸 분해 |
-| 연골세포 소실 | ROS, 퍼포린/그란자임 B, MAC → apoptosis | 섬유연골 대체 → 석회화 |
-| 기도 합병증 | 기관기관지 연골 소실 → tracheomalacia | 기도 허탈·협착·호흡부전 |
-
-### 약물 PK/PD 핵심 파라미터
-
-| 약물 | 용량/경로 | 반감기 | 표적 | 주요 효과 |
-|------|---------|--------|------|---------|
-| Prednisolone | 40-60mg/d PO (유도) → 10mg/d (유지) | 2.5-4h (MW 360.4) | GR-α (NF-κB transrepression) | TNF/IL-6/IL-1β↓, 관해 유도 1선 |
-| Dapsone | 100mg/d PO | 20-30h | MPO 억제 / ROS↓ | 경증 RP 1선, 호중구 기능 억제 |
-| Methotrexate | 7.5-25mg/wk PO/SC | 3-10h (MTX-PG 수일) | DHFR/ATIC 억제 → adenosine↑ | Th1/Th17↓, B세포↓, steroid sparer |
-| Tocilizumab | 8mg/kg q4w IV | ~240h (t½ ~10d) | IL-6R 차단 → JAK-STAT3↓ | CRP 정상화, 재발 빈도↓, 기도 안정 |
-| Abatacept | 750mg q4w IV | ~400h (t½ ~17d) | CTLA4-Ig → CD28-B7 차단 | T세포 활성화↓, 연골 파괴 속도↓ |
-| TNF 억제제 | 표준 용량 | 주 특성에 따라 | TNF-α 중화 | 재발 빈도↓, 일부 불응 |
-| Rituximab | 375mg/m²×4 IV | ~350h | CD20 → B세포 고갈 | Anti-CII Ab↓, 불응 RP에 유용 |
-| Colchicine | 0.5-1.5mg/d | 9-30h | 튜불린 중합/NLRP3↓ | 급성 발작 예방, 보조 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![RP QSP](relapsing-polychondritis/rpc_qsp_model.png)](relapsing-polychondritis/rpc_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [rpc_qsp_model.dot](relapsing-polychondritis/rpc_qsp_model.dot) | Graphviz 기계론적 지도 (154 노드, 10 클러스터) |
-| [rpc_qsp_model.svg](relapsing-polychondritis/rpc_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [rpc_qsp_model.png](relapsing-polychondritis/rpc_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [rpc_mrgsolve_model.R](relapsing-polychondritis/rpc_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 7 치료 시나리오) |
-| [rpc_shiny_app.R](relapsing-polychondritis/rpc_shiny_app.R) | Shiny 대시보드 (7탭) |
-| [rpc_references.md](relapsing-polychondritis/rpc_references.md) | 참고문헌 64편 (12섹션, PubMed 링크) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 (자연경과)**: Anti-CII IgG 지속 축적, 보체 활성화, MMP 과발현, 연골 무결성 점진적 감소
-2. **Prednisone 유도 → 유지 (60→10mg/d)**: GR 점유율 상승, NF-κB 억제, TNF/IL-6↓, 연골 안정화
-3. **Prednisone + Methotrexate**: Th17 및 B세포 추가 억제, IL-17A↓, 스테로이드 절감 효과
-4. **Tocilizumab 8mg/kg q4w**: IL-6R 완전 차단, JAK-STAT3 억제, CRP 정상화, 기도 합병증↓
-5. **Abatacept**: CD28-B7 공동자극 차단, Tact/Th17↓, 연골 파괴 속도 감소
-6. **Dapsone 100mg/d**: 경증-중등도 RP, MPO/ROS 억제, 호중구 매개 조직 손상↓
-7. **Prednisone + Tocilizumab 병용**: 가장 강력한 항염 효과, RPDAI 최저
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 질환 개요, RPDAI 구성, 역학, 기관 침범 패턴, 예후인자 |
-| 2. 약물 PK | Prednisolone 2CMT, GR 점유율, Tocilizumab 2CMT 혈중농도 시계열 |
-| 3. 면역학·사이토카인 | T세포(Th1/Th17/Treg), B세포·Anti-CII Ab, 사이토카인(TNF/IL-6/IL-17/IL-1β), 보체 |
-| 4. 연골 & RPDAI | 연골 무결성 (0-100%), RPDAI 대리지표, MMP 활성도, 기관별 위험 점수 |
-| 5. 시나리오 비교 | 7개 치료군 동시 비교 (CartPct, RPDAI, CRP, Anti-CII Ab 등 선택 가능) |
-| 6. 바이오마커 | CRP, Anti-CII Ab, IL-6/TNF/IL-17/IL-1β, IC, 보체, MMP 시계열 + 주요 시점 표 |
-| 7. 민감도 분석 | 10개 파라미터에 대한 단변량 민감도 (연골무결성/RPDAI/Anti-CII Ab 평가) |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Mathian et al. 2019: Tocilizumab 치료 9예, 관해 유지 중앙값 24개월 (PMID: 30642828)
-- Arnaud et al. 2012: RPDAI 타당성 검증, 5점 이상 활성 질환 — PMID 22072555
-- Shimizu et al. 2019: TCZ 투여 후 CRP 정상화 및 재발 빈도 감소 (PMID: 30620291)
-- Dion et al. 2007: 예후인자: 기도 침범, 심혈관 침범이 사망률과 연관
-
-
----
-
-## 가성통풍 (Pseudogout / CPPD Crystal Deposition Disease)
-
-### 개요
-
-가성통풍(CPPD 결정 침착 질환)은 칼슘 피로인산염(Ca₂P₂O₇, CPPD) 결정이 관절 연골·섬유연골·활막에 침착되어 반복성 급성 관절염과 만성 관절병증을 유발하는 결정성 관절염입니다. 유병률은 60세 이상 성인의 4-7%, 80세 이상 사망 후 부검에서 최대 35%에서 발견됩니다. 핵심 병태생리는 **세포외 무기 피로인산염(PPi) 과다 축적** → CPPD 결정 핵형성 → 결정 탈락(shedding) → **NLRP3 인플라마솜 활성화** → IL-1β 과다 분비 → 급성 관절염입니다.
-
-### 병태생리 핵심 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| PPi 생성 | ENPP1/NPP1 (ATP→AMP+PPi) | 세포외 PPi ↑ (>6 µM) |
-| PPi 유출 | ANKH 채널 (세포내→세포외) | 관절 내 PPi 축적 |
-| PPi 가수분해 부전 | TNAP/ALPL↓ (PPi→2Pi 차단) | Fe²⁺/Cu²⁺/ALPL 돌연변이 |
-| 결정 핵형성 | PPi + Ca²⁺ + Mg²⁺↓ → CPPD | 섬유연골 석회화 |
-| 결정 탈락 | 외상/수술 → SF 내 결정 방출 | 급성 발작 유발 |
-| NLRP3 활성화 | 카텝신 B 유출 → NLRP3-ASC-Casp-1 | IL-1β 성숙·분비 |
-| 호중구 동원 | IL-8/CXCL8, C5a, LTB4 → SF 내 WBC↑ | SF WBC >50,000/µL |
-| MMP/ADAMTS | IL-1β → MMP-1/3/13, ADAMTS-4/5 | 연골 기질 파괴 |
-
-### 약물 PK/PD 핵심 파라미터
-
-| 약물 | 용량/경로 | 반감기 | 표적 | 주요 효과 |
-|------|---------|--------|------|---------|
-| Colchicine | 0.5mg BID PO (급성/예방) | 26-31h (F=45%) | 튜불린 중합·NLRP3-ASC | 호중구 이동↓, IL-1β 분비↓ |
-| Indomethacin | 50mg TID PO × 7일 | 4.5h (F=98%) | COX-1/2 비선택적 억제 | PGE2↓, 통증·부종 개선 |
-| Naproxen | 500mg BID PO | 12-17h | COX-1/2 | GI 부작용 적음, NSAID 대안 |
-| Prednisolone | 30-40mg/d PO → 테이퍼 | 2.5-4h (F=82%) | GR-α (NF-κB transrepression) | 다중 사이토카인↓, 신기능 저하 환자 선택 |
-| IA Triamcinolone | 40mg 관절강 내 주사 | 국소 효과 지속 2-4주 | 국소 GR | 1개 관절 침범 시 1차 선택 |
-| Anakinra | 100mg/d SC × 3-5일 | 4-6h (SC F=95%) | IL-1R 경쟁적 길항 | 불응성 또는 NSAIDs 금기 시 |
-| Canakinumab | 150mg SC q3m | 26일 (항IL-1β mAb) | IL-1β 중화 | 반복 발작 예방, 고비용 |
-| Hydroxychloroquine | 200-400mg/d PO (만성 예방) | 40-50일 | 리소솜 pH↑ → NLRP3↓ | 제한적 증거 |
-| Methotrexate | 7.5-15mg/wk PO/SC (만성) | 3-10h (MTX-PG 수일) | ATIC/DHFR → adenosine↑ | 만성 CPPD 관절병증 예방 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![CPPD QSP](pseudogout/cppd_qsp_model.png)](pseudogout/cppd_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [cppd_qsp_model.dot](pseudogout/cppd_qsp_model.dot) | Graphviz 기계론적 지도 (12 클러스터, 140+ 노드) |
-| [cppd_qsp_model.svg](pseudogout/cppd_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [cppd_qsp_model.png](pseudogout/cppd_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [cppd_mrgsolve_model.R](pseudogout/cppd_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 7 치료 시나리오) |
-| [cppd_shiny_app.R](pseudogout/cppd_shiny_app.R) | Shiny 대시보드 (7탭) |
-| [cppd_references.md](pseudogout/cppd_references.md) | 참고문헌 62편 (12섹션, PubMed 링크) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **미치료 급성 발작**: CPPD 결정 탈락 → NLRP3 최대 활성 → IL-1β 급등 → SF WBC 50,000/µL → 자연 소실 7-10일
-2. **Colchicine 0.5mg BID**: NLRP3-ASC speck 억제 + 호중구 이동 차단 → 3일 내 통증 VAS 50% 감소
-3. **Indomethacin 50mg TID**: COX-2 90% 억제 → PGE2↓ → 통증·발열 신속 개선
-4. **Prednisolone 30mg/d (테이퍼)**: GR 점유율 88%+ → NF-κB transrepression → 모든 사이토카인 동반 감소
-5. **Anakinra 100mg/d SC**: IL-1R 차단(KD≈0.5µg/mL) → IL-1β 증폭 루프 차단 → 불응성 CPPD에 유효
-6. **Colchicine + Indomethacin 병용**: NLRP3·호중구(Colch) + PGE2·통증(Indo) 이중 표적
-7. **Colchicine 0.5mg/day 장기 예방 (180일)**: 연간 발작 빈도↓, 연골 무결성 보전, 결정 부담 안정화
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 역학, 위험인자, 임상 양상, EULAR 진단기준, PPi 대사 요약표 |
-| 2. 약물 PK | 콜히친/인도메타신/프레드니솔론/아나킨라 혈중농도 · GR/NLRP3/COX/IL-1R 점유율 |
-| 3. 염증 패널 | IL-1β, NLRP3 활성, IL-6, PGE2, SF 호중구, Lipoxin A4 시계열 |
-| 4. 결정 동역학 | PPi 세포외 농도, 연골 내 CPPD 부담, SF 내 CPPD 결정, 핵형성 해설 |
-| 5. 임상 엔드포인트 | 통증 VAS, CRP, 연골 무결성(%), 주요 시점 요약 표 |
-| 6. 시나리오 비교 | 6개 치료군 동시 비교 (IL-1β/통증/CRP/NLRP3 선택) |
-| 7. 바이오마커 & 민감도 | 시점별 바이오마커 표, 10개 파라미터 단변량 민감도 분석 (Day 7 IL-1β) |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Martinon et al. 2006 (*Nature*): CPPD 결정이 NLRP3 인플라마솜 활성화 → IL-1β 분비 — PMID 16407889
-- Announ et al. 2009: 말기 신기능 저하 환자에서 아나킨라로 가성통풍 발작 관해 — PMID 19345128
-- Nuki 2008: 콜히친 0.5mg BID로 3일 내 통증 50% 이상 감소 — PMID 18638431
-- Zhang et al. 2011 (EULAR Part I/II): CPPD 진단 및 치료 권고 — PMID 21216756/21216757
-- Pascart & Richette 2019: CPPD 관리 업데이트, HCQ/MTX 만성 예방 근거 — PMID 31621572
-
----
-
-## 만성 갑상선 기능 저하증 (Chronic Hypothyroidism)
-
-### 개요
-
-만성 갑상선 기능 저하증은 전 세계 성인의 약 2–4%(여성 5–7%, 남성 1–2%)에서 발생하는 흔한 내분비 질환입니다. 갑상선에서 티록신(T4) 및 트리요오드티로닌(T3) 합성·분비가 지속적으로 부족하여 다장기 대사 저하, 심혈관 효과, 신경정신계 증상이 나타납니다. 주요 원인은 하시모토 갑상선염(자가면역), 갑상선 절제술 후, 방사성 요오드(I-131) 치료 후, 약물 유발(아미오다론·리튬·IFN-α) 등입니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 메커니즘 | 임상 이상 |
-|------|------------|---------|
-| HPT 축 피드백 | fT4/fT3 음성 피드백 소실 → TSH ↑↑ | 혈청 TSH >4.5 mIU/L (오현성 갑저: >10) |
-| T4 합성 장애 | NIS/TPO 결핍, Tg 파괴 → T4 분비 ↓ | 총 T4 <58 nmol/L, fT4 <12 pmol/L |
-| 말초 대사 이상 | D1·D2 활성↓ → T4→T3 변환↓ | fT3 <3.5 pmol/L, rT3 상대적 ↑ |
-| 심혈관 효과 | T3 ↓ → β-AR 발현↓, MHC-β 전환 | 서맥, 심박출량↓, LDL↑, 이완기 고혈압 |
-| 대사 저하 | UCP 발현↓ → BMR ↓15-30% | 체중 증가 2-10 kg, 추위 불내성 |
-| 신경정신계 | 세로토닌·도파민 대사 ↓ | 피로, 우울증, 인지 저하, 건반사 이완 지연 |
-| 점액수종 | GAG(글리코사미노글리칸) 피하 축적 | 비함요부종, 안주위 부종, 거대 혀 |
-| 생식 이상 | TRH↑ → 프로락틴↑ → 무배란 | 월경 이상, 불임, 습관성 유산 |
-
-### 약물 PK/PD 핵심 파라미터
-
-| 약물 | 용량/경로 | PK 파라미터 | 임상 효과 |
-|------|---------|------------|---------|
-| 레보티록신 (LT4) | 25–200 μg/일 경구 (표준: 1.6 μg/kg/day) | F=0.65–0.80(공복), Ka=0.35 h⁻¹, Vss=700L, t½=7일 | TSH 정상화 6-8주, T4 풀 보충 |
-| 리오티로닌 (LT3) | 5–25 μg/일 (2회 분할) | F=0.95, Ka=0.80 h⁻¹, V1=15L, t½=24h | 즉각적 T3 상승, 증상 잔존 환자 보조 |
-| 탄산칼슘 (병용) | — | LT4 흡수 20–40% 감소 | 복용 간격 ≥4시간 필요 |
-| 황산철 (병용) | — | LT4 흡수 30–40% 감소 | 복용 간격 ≥4시간 필요 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![HYPO QSP](chronic-hypothyroidism/hypo_qsp_model.png)](chronic-hypothyroidism/hypo_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [hypo_qsp_model.dot](chronic-hypothyroidism/hypo_qsp_model.dot) | Graphviz 기계론적 지도 (13 클러스터, 148+ 노드) |
-| [hypo_qsp_model.svg](chronic-hypothyroidism/hypo_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [hypo_qsp_model.png](chronic-hypothyroidism/hypo_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [hypo_mrgsolve_model.R](chronic-hypothyroidism/hypo_mrgsolve_model.R) | mrgsolve ODE 모델 (15 구획, 7 치료 시나리오) |
-| [hypo_shiny_app.R](chronic-hypothyroidism/hypo_shiny_app.R) | Shiny 대시보드 (6탭) |
-| [hypo_references.md](chronic-hypothyroidism/hypo_references.md) | 참고문헌 40편 (10섹션, PubMed 링크) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **정상 갑상선 (Euthyroid 기준)**: HPT 축 정상 상태 — TSH 2.0 mIU/L, fT4 20 pmol/L, fT3 5.4 pmol/L
-2. **미치료 갑저 (갑상선 전절제)**: TSH 급등 >30 mIU/L, T4/T3 소진, 모든 PD 효과 최악 (LDL↑, BMR↓, 증상↑)
-3. **LT4 100 μg/day 표준 치료**: 6-8주 후 TSH 정상화, fT4 목표 범위 달성
-4. **LT4 50 μg/day (준임상적 갑저)**: 갑상선 잔존 30% + 저용량 LT4 → TSH 정상 상단, FT4 낮은 정상
-5. **LT4 175 μg/day 과치료 (TSH 억제)**: TSH <0.1 mIU/L, fT4 과잉 → 심방세동·골밀도 감소 위험
-6. **T4+T3 병용 (LT4 100 μg + LT3 10 μg/day)**: LT3의 즉각적 T3 상승, 증상 잔존 환자 추가 이점
-7. **갑상선 전절제 후 LT4 125 μg/day**: 체중 기반(1.8 μg/kg, 70 kg) 완전 대체 시뮬레이션
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 질환 유형(6종), 초기 검사 결과 입력, 병태생리 요약, 초기 TSH/FT4/FT3 신호등 |
-| 2. HPT 축 | TRH·TSH·FT4·FT3·rT3 시계열, TSH 목표 달성 시점 예측, HPT 정상화 표 |
-| 3. 약물 PK | LT4·LT3 PK 프로파일, 72시간 초기 흡수, 약물 상호작용 테이블 |
-| 4. 장기 효과 | 심박수, LDL, BMR, 증상 점수, 체중 변화, 골밀도 변화 추적 |
-| 5. 시나리오 비교 | 7가지 치료 시나리오 동시 비교 (TSH/FT4) + 정상상태 요약 표 |
-| 6. 바이오마커·용량 최적화 | 용량-TSH 반응 곡선, 목표 TSH 기반 최적 용량 계산기, 모니터링 일정 |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Berberich et al. 2017 (*Thyroid*): 수학 모델 — Hill 피드백 계수 및 HPT 축 SS 조건 보정 — PMID 29095128
-- Jonklaas et al. 2014 (*Thyroid*, ATA 가이드라인): LT4 표준 용량 1.6 μg/kg/day, SS 달성 6-8주 — PMID 25266247
-- Bianco & Kim 2006 (*J Clin Invest*): D1/D2/D3 탈요오드화효소 상대 활성 비율 — PMID 17016550
-- Klein & Ojamaa 2001 (*NEJM*): 갑저 심혈관 효과 — 심박수·심박출량·LDL 보정 기준 — PMID 11172193
-- Pearce et al. 2013 (ETA 가이드라인): 준임상적 갑저 치료 결정 및 TSH 목표 범위 — PMID 24783053
-
----
-
-## 만성 위염 (Chronic Gastritis – H. pylori Pathogenesis & Correa Cascade)
-
-### 개요
-
-만성 위염은 *Helicobacter pylori* (Hp) 감염을 주원인으로 하며, 전 세계 성인의 약 44%가 감염되어 있습니다. 감염자의 10–15%는 소화성 궤양, 1–3%는 위암으로 진행하며, Correa cascade 개념에 따라 **정상 점막 → 표재성 위염 → 위축성 위염 → 장상피화생 → 이형성 → 위선암**의 단계적 경로를 밟습니다. 본 QSP 모델은 Hp 세균 역학, 독성인자(CagA/VacA/OipA), 면역 반응 cascade, 위산 분비 생리, Correa 진행 스코어, 제균요법 PK/PD를 통합 시뮬레이션합니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 메커니즘 | 임상 이상 |
-|------|------------|---------|
-| Hp 점막 집락 | 요소분해효소(암모니아) → pH 완충 + 편모 운동 → 점액층 침투 → BabA/HopQ 접착 | 점막 밀도 10³–10⁸ CFU/생검 |
-| CagA 독성 | T4SS 주입 → EPIYA 인산화 → SHP2-CagA 복합체 → MAPK/ERK → 세포 극성 소실 | 위선암 위험 2-3배 ↑ |
-| VacA 독성 | s1/m1 균주 → 공포화 + 미토콘드리아 손상 → ROS 생성 + NLRP3 인플라마솜 → IL-1β | 상피세포 아폽토시스 |
-| 선천면역 활성화 | TLR4/5/9, NOD1 → NF-κB → IL-8(호중구 모집), IL-1β, TNF-α, IL-6 | 급성 위염 → 만성화 |
-| 적응면역 | Th1(IFN-γ) 우세 → 위산 분비 억제 (IL-1β 가장 강력); Treg ↓ 시 Th17 증가 | 위축성 진행 가속 |
-| 위산 분비 이상 | G세포(가스트린)↑, D세포(소마토스타틴)↓ → H⁺/K⁺-ATPase 과활성 → 위산↑(초기) → 위축 시↓ | 십이지장궤양(초기) vs. 위암(말기) |
-| Correa cascade | IL-1β/TNF-α/IFN-γ → OLGA 위축 + E-cadherin 소실 + TP53 변이 → 선암 | OLGA III-IV: 1.2-2.5%/년 |
-
-### 약물 PK/PD 핵심 파라미터
-
-| 약물 | 용량/경로 | PK 파라미터 | 임상 효과 |
-|------|---------|------------|---------|
-| 오메프라졸 (PPI) | 20 mg BID 경구 | F=0.65, Ka=0.50/h, t½=1.5h | 3-5일 후 최대 산분비 억제, 위내 pH↑ |
-| 아목시실린 | 1000 mg BID 경구 | F=0.90, Ka=1.0/h, t½=1.2h | MIC 0.016-0.5 mg/L vs Hp, pH 의존성 낮음 |
-| 클래리스로마이신 | 500 mg BID 경구 | F=0.55, Ka=0.6/h, t½=7h | MIC 0.016-64 mg/L, 23S rRNA 결합, 내성률 상승 중 |
-| 메트로니다졸 | 500 mg TID 경구 | F=0.99, Ka=0.8/h, t½=6h | rdxA nitroreduction → DNA 이중가닥 절단 |
-| 비스무스 (BSS) | 525 mg QID 경구 | 국소 작용 | Hp 접착 차단 + 세포막 손상 |
-| 보노프라잔 (VPZ) | 20 mg QD 경구 | F=0.80, Ka=1.2/h, t½=7h | K⁺-경쟁적 산분비 차단, 첫날부터 완전 억제 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![CGAST QSP](chronic-gastritis/cgast_qsp_model.png)](chronic-gastritis/cgast_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [cgast_qsp_model.dot](chronic-gastritis/cgast_qsp_model.dot) | Graphviz 기계론적 지도 (10 클러스터, 153+ 노드) |
-| [cgast_qsp_model.svg](chronic-gastritis/cgast_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [cgast_qsp_model.png](chronic-gastritis/cgast_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [cgast_mrgsolve_model.R](chronic-gastritis/cgast_mrgsolve_model.R) | mrgsolve ODE 모델 (22 구획, 7 치료 시나리오) |
-| [cgast_shiny_app.R](chronic-gastritis/cgast_shiny_app.R) | Shiny 대시보드 (7탭) |
-| [cgast_references.md](chronic-gastritis/cgast_references.md) | 참고문헌 60편 (12섹션, PubMed 링크) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **무치료 (자연경과)**: Hp 지속 집락 → NF-κB/IL-8 만성 상승 → 위축 점진 진행
-2. **PPI 단독 (오메프라졸 20mg BID × 8주)**: 산분비 억제 → 증상 완화 but Hp 지속
-3. **표준 삼제 요법 (PPI+AMX+CLR × 14일)**: ITT 제균율 80-85%, CLR 내성 시 급격히 감소
-4. **비스무스 사제 요법 (PPI+AMX+CLR+BSS × 14일)**: ITT 85-92%, CLR 내성 지역 우선
-5. **메트로니다졸 사제 요법 (PPI+AMX+MTZ+BSS × 14일)**: CLR 내성 지역 대안
-6. **보노프라잔 삼제 (VPZ+AMX+CLR × 14일)**: 첫날부터 완전 산억제 → AMX 안정성↑, ITT 88-94%
-7. **제균 후 5년 추적 (Correa cascade 역행)**: 위축 점수 서서히 감소, IM은 부분 역행, 위암 위험 감소
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 질환 개요, Correa 단계 표, 독성인자 설명, 치료 추천, 위암 위험도 평가 |
-| 2. H. pylori 역학 | Hp 점막 밀도 시계열, 제균 임계치 표시, 제균율 표, 약물 농도 그래프 |
-| 3. 염증 반응 | IL-8·IL-1β·TNF-α·IFN-γ·IL-10 사이토카인 동태, 면역세포(호중구·Th1·Treg) |
-| 4. 위산 생리 | 위산 출력(mmol/h), 혈청 가스트린(G17), 점액층 두께(μm), PPI PD |
-| 5. Correa Cascade | 위축·장상피화생 점수 시계열, OLGA 단계, PGI/PGII 비율 추적 |
-| 6. 치료 비교 | 5가지 요법 동시 비교 (Hp 제균, 증상 점수), 요약 표 |
-| 7. 바이오마커 & 임상 지표 | GastroPanel®(PGI+PGII+G17+IgG), 제균 검사(¹³C-UBT/HpSA), 기준치 표 |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Malfertheiner et al. 2022 (*Gut*, Maastricht VI): 표준 삼제 ITT 80-85%, 비스무스 사제 85-92% — PMID 35469816
-- Graham & Dore 2020 (*Expert Rev Gastroenterol Hepatol*): VPZ 삼제 ITT 88-94% — PMID 32356979
-- El-Omar et al. 2000 (*Nature*): IL-1β 다형성 → 위산 억제 + 위암 위험 → IL-1β 용량반응 보정 — PMID 10746728
-- Correa 1992 (*Cancer Res*): Correa cascade 단계별 진행 속도 — PMID 1612357
-- Rugge et al. 2010 (*Aliment Pharmacol Ther*): OLGA III-IV: 1.2-2.5%/년 위암 위험 — PMID 20199491
-
----
-
-## 결절성 다발동맥염 (Polyarteritis Nodosa, PAN)
-
-### 개요
-
-결절성 다발동맥염(PAN)은 중간 크기 동맥의 전층에 걸친 괴사성 염증으로 특징지어지는 전신 혈관염입니다. 연간 발생률은 100만 명당 약 2–9명이며, 30–40%는 B형 간염 바이러스(HBV)와 연관됩니다. 핵심 병태생리는 면역복합체(HBV 항원–항체 복합체 등)의 혈관벽 침착 → 보체 활성화 → 호중구 동원 → 혈관 전층 괴사성 염증 → 미세동맥류 형성 → 장기 허혈의 연쇄 반응입니다. 주요 침범 장기는 신장(신동맥 미세동맥류), 말초신경(단발신경염), 위장관(장간막 허혈), 피부(그물 모양 청피증, 결절), 고환(고환통) 등입니다. ANCA는 일반적으로 음성이며, 이것이 ANCA 연관 혈관염(GPA, MPA, EGPA)과의 핵심 감별 포인트입니다.
-
-### 주요 병태생리 경로
-
-| 경로 | 핵심 메커니즘 | 임상 결과 |
-|------|------------|---------|
-| 면역복합체 형성 | HBV 표면항원 + IgG/IgM → 면역복합체 → 혈관벽 침착 | 보체 활성화, 혈관 염증 유발 |
-| 보체 고전경로 | C1q/C4/C3 활성화 → C5a(강력한 화학유인물질) + MAC | 호중구 대량 동원 |
-| 호중구 침윤 | C5a → 호중구 혈관벽 이동 → MPO/elastase/ROS 방출 → NET 형성 | 혈관내피 괴사(fibrinoid necrosis) |
-| 전층 동맥 염증 | Th1/CD4+ T세포 + 대식세포 → TNF-α/IL-6/IL-1β | 혈관 전층(transmural) 파괴 |
-| 미세동맥류 | 혈관벽 약화 → 국소 확장 → 파열 위험 | 내장 출혈, 신장 경색 |
-| 혈전 형성 | 내피세포 손상 → vWF↑/TF↑/TXA₂↑ → 혈소판 활성화 | 허혈성 장기 손상 |
-| 섬유화 | TGF-β1 + 섬유아세포 → 콜라겐 침착 → 동맥 협착 | 만성 허혈, 신동맥 협착성 고혈압 |
-| HBV-PAN 특이 | HBV 표면항원(HBsAg) 지속 → 면역복합체 지속 생성 | 항바이러스 치료로 관해 유도 가능 |
-
-### 약물 PK/PD 핵심 파라미터
-
-| 약물 | 용량/경로 | PK 파라미터 | 임상 효과 |
-|------|---------|------------|---------|
-| 프레드니솔론 (Prednisolone) | 1 mg/kg/day PO 4주 후 감량 | F=0.82, t½=3–4h, Vd=45L, CL=10.5L/h | NF-κB 억제 → 사이토카인↓ (EMAX=85%) |
-| 사이클로포스파미드 정맥 펄스 (CYC IV) | 750 mg/m² q3w × 6회 (CYCLOPS 기반) | Vd=38L, CL=5.8L/h; 활성화: CYP2B6 → 4-OH-CYC | B세포/T세포 고갈, 면역억제 |
-| 아자티오프린 (AZA) | 2 mg/kg/day PO (유지요법) | F=~0.88, Ka=0.9/h, CL=8.2L/h | 6-MP → 퓨린 합성 억제 → T세포↓ |
-| 엔테카비어/테노포비어 (HBV-PAN) | 표준 항바이러스 용량 | 간 표적, 경구 | HBV DNA↓ → 면역복합체 생성↓ → 관해 |
-| 혈장교환 (PE) | 3–4L × 6회 (HBV-PAN 초기) | 면역복합체 직접 제거 | 급성 관해 유도, 항바이러스와 병용 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![PAN QSP](polyarteritis-nodosa/pan_qsp_model.png)](polyarteritis-nodosa/pan_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [pan_qsp_model.dot](polyarteritis-nodosa/pan_qsp_model.dot) | Graphviz 기계론적 지도 (13 클러스터, 234+ 노드, 329 엣지) |
-| [pan_qsp_model.svg](polyarteritis-nodosa/pan_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [pan_qsp_model.png](polyarteritis-nodosa/pan_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [pan_mrgsolve_model.R](polyarteritis-nodosa/pan_mrgsolve_model.R) | mrgsolve ODE 모델 (19 구획, 6 치료 시나리오) |
-| [pan_shiny_app.R](polyarteritis-nodosa/pan_shiny_app.R) | Shiny 대시보드 (6탭: 환자프로파일·약물PK·PD바이오마커·임상엔드포인트·시나리오비교·바이오마커상관) |
-| [pan_references.md](polyarteritis-nodosa/pan_references.md) | 참고문헌 44편 (9섹션, PubMed 링크) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **무치료 (자연경과)**: 면역복합체 지속 → 보체 활성화 → 혈관 염증 진행 → 장기 손상 축적
-2. **고용량 프레드니솔론 단독 (1 mg/kg/day × 4주 후 감량)**: NF-κB 억제 → 사이토카인↓, 혈관 염증 완화; 2년 생존율 약 55% (1950~1960년대 데이터)
-3. **프레드니솔론 + CYC IV 펄스 (CYCLOPS 기반)**: 림프구 고갈 → BVAS 급속 저하, 18개월 관해율 ~90%; CYCLOPS 시험 (de Groot 2009)
-4. **프레드니솔론 + 아자티오프린 유지 (Pagnoux 2008 프로토콜)**: 관해 유도 후 AZA로 전환, 재발율 감소
-5. **HBV-PAN: 항바이러스 + 저용량 프레드니솔론 + 혈장교환**: Guillevin 1995/2005 프로토콜 — HBsAg 소실율 50–67%, 면역억제제 최소화
-6. **관해 유도 → 유지 순차 치료 (EULAR 2016 지침 기반)**: 고용량 Pred+CYC 유도 → 관해 후 AZA/MTX 유지, 24개월 추적
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 나이/성별/체중/HBV 상태/기저 BVAS/CRP/eGFR 입력, 장기 침범 체크박스, Five Factor Score 자동 계산, 위험 계층화 (저/중/고, 5년 사망률 추정) |
-| 2. 약물 PK | 치료 선택(4가지 레짐), 용량/빈도/기간 슬라이더, 프레드니솔론·CYC·AZA 혈중 농도 시계열, 치료/독성 범위 표시, Cmax/Tmax/AUC 요약 |
-| 3. PD 바이오마커 | EC50/Emax 민감도 슬라이더, 면역복합체·C3 보체·사이토카인(IL-6/CRP/ESR)·호중구/B세포/T세포 동태 시계열 |
-| 4. 임상 엔드포인트 | BVAS(0–63, 색상 구역 표시), 혈관 염증 지수, eGFR(CKD 단계 구역), 신경 손상 점수(단발신경염), 미세동맥류 부담 지수 |
-| 5. 시나리오 비교 | 5가지 치료군 동시 비교(무치료/Pred단독/Pred+CYC/Pred+AZA/HBV+Pred), BVAS·CRP·eGFR 시계열, 관해율 포레스트 플롯, 결과 요약 DT 표 |
-| 6. 바이오마커 상관 | BVAS vs CRP 산점도, eGFR vs 면역복합체 산점도, 상관행렬 히트맵, 기저 대비 변화율 폭포 차트, 아형별 BVAS 궤적 |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Guillevin et al. 1995 (*Medicine*): HBV-PAN 항바이러스+혈장교환 전략 — HBsAg 소실율 50–67%, 사망률 14% → 6% — PMID 7776987
-- de Groot et al. 2009 (*Ann Intern Med*, CYCLOPS): CYC IV 펄스 vs. 경구 — 관해율 동등(88% vs 82%), 백혈구감소증 부작용 감소 — PMID 19246992
-- Guillevin et al. 2011 (*Arthritis Rheum*): 개정 Five Factor Score — 심각한 위장관·심근·중추신경 침범 시 FFS≥2 예측 인자 — PMID 21200183
-- Samson et al. 2014 (*J Rheumatol*): PAN 장기 추적(10년) — 재발율 31%, 장기 손상 57%, 표준화 사망비 2.7 — PMID 24429165
-- Pagnoux et al. 2008 (*NEJM*): 관해 후 MTX vs AZA 유지 — 18개월 재발율 동등(36% vs 33%) — PMID 19052126
-
----
-
-## 악성 빈혈 (Pernicious Anemia, PA)
-
-### 개요
-
-악성 빈혈(PA)은 위 벽세포(parietal cell)와 내인성 인자(intrinsic factor, IF)에 대한 자가면역 공격으로 인해 코발라민(비타민 B12) 흡수가 차단되어 발생하는 자가면역 질환입니다. 진행된 위체부 위축(corpus gastric atrophy)으로 인해 거대아세포 빈혈(megaloblastic anemia)과 아급성 복합 변성(subacute combined degeneration, SCD) 등 신경학적 합병증이 유발됩니다.
-
-| 항목 | 내용 |
-|------|------|
-| **병인** | 항위벽세포항체(Anti-PC Ab, ~90%) 및 항내인성인자항체(Anti-IF Ab Type I 70%, Type II 35%) |
-| **유병률** | 일반인구의 ~0.1%; 60세 이상 여성에서 높음 |
-| **주요 발현** | 거대아세포 빈혈 · 무위산증 · 신경병증 · SCD |
-| **진단 바이오마커** | 혈청 B12 <200 pg/mL, HoloTC <35 pmol/L, MMA >0.4 µmol/L, Hcy >15 µmol/L |
-| **치료** | 시아노코발라민/하이드록소코발라민 IM 주사 또는 고용량 경구 보충 |
-
-### 기계론적 지도 (Mechanistic Map)
-
-[![PA QSP Map](pernicious-anemia/pna_qsp_model.png)](pernicious-anemia/pna_qsp_model.svg)
-
-- **10개 서브그래프 클러스터**: 유전/환경 위험인자 · 위자가면역 · 식이 B12 처리 · 회장 흡수 · 혈장 수송 · 세포내 대사 · 조혈 및 거대아세포 빈혈 · 신경계 합병증 · 약물 PK/PD · 임상 지표
-- **105+ 노드**: 항체(Anti-PC, Anti-IF T1/T2), CD4/CD8 T세포, 큐빌린/암니오니스 수용체, 트랜스코발라민 I/II/III, 메틸코발라민, 아데노실코발라민, 메치오닌 합성효소, MMA, Hcy 등
-- **시아노코발라민/하이드록소코발라민 PK**: IM depot → 혈장 분포 → 간 저장 → 골수/신경계 전달
-
-### mrgsolve 모델 구성
-
-| 구획 (Compartment) | 역할 |
-|--------------------|------|
-| DEPOT | IM 주사 depot (µg) |
-| ORAL_GI | 경구 투여 B12 (GI 내) |
-| IF_POOL | 기능적 내인성 인자 (0-1) |
-| CBA_PORT | 문맥혈 코발라민 (µg) |
-| PLASMA | 혈장 총 코발라민 (pg/mL) |
-| HOLOTC | 홀로트랜스코발라민 II (pmol/L) |
-| LIVER | 간 코발라민 저장 (µg) |
-| BONE_MRW | 골수 코발라민 풀 |
-| NERVE | 신경계 코발라민 풀 |
-| AUTO_AB | 자가항체 부담 (0-1) |
-| PARIETAL | 위 벽세포 기능 지수 (0-1) |
-| HGB | 헤모글로빈 (g/dL) |
-| MCV | 평균 적혈구 용적 (fL) |
-| RETIC | 망상적혈구 (×10⁹/L) |
-| NEURO | 신경학적 장애 점수 (0-10) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **무치료 (S1)**: 자가면역 진행 → IF 지속 감소 → B12 흡수 차단 → Hb 저하, MCV 상승, 신경 손상 누적
-2. **IM 표준 (S2 — 시아노코발라민 1000 µg/day × 7일 후 월 1회 유지)**: 4–10일 내 망상적혈구 위기 → 6–8주 내 Hb 회복 → MCV 2–3개월 내 정상화
-3. **IM 유지만 (S3 — 월 1회 1000 µg, 로딩 없음)**: Hb 회복 지연 (~10–12주); 로딩 없이도 1년 내 완전 관해 가능
-4. **고용량 경구 B12 (S4 — 1000 µg/day, 수동흡수 1%)**: Kuzminski 1998 임상시험 보정; 90일 내 IM 동등 효과; 경구 순응도 우수
-5. **적극적 IM (S5 — 2000 µg/day × 14일 → 격주 유지)**: 빠른 신경계 회복 목표; 심각한 SCD 환자에 권장
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 기저 Hb·MCV·신경 점수·벽세포 기능(PA 중증도) 입력, 위 흡수 효율 다이어그램 |
-| 2. 약물 PK | 혈장 B12 시계열, HoloTC, 간 저장량; IM/경구 경로 선택, 용량/빈도 슬라이더 |
-| 3. 혈액 PD | Hb, MCV 시계열; 망상적혈구 위기 (첫 30일 확대); 혈액학적 이정표 테이블 |
-| 4. 신경계 PD | 신경학적 장애 점수 (0-10), SCD 단계 표시; 신경 B12 풀 플롯; 회복 평가 테이블 |
-| 5. 바이오마커 | MMA·Hcy 동태; 벽세포 기능 및 자가항체 부담; 바이오마커 요약 DT 표 |
-| 6. 시나리오 비교 | 5가지 치료군 동시 비교; 엔드포인트 선택; 6개월·12개월 결과 요약 |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Kuzminski et al. 1998 (*Blood*): 고용량 경구(2000 µg/day) vs. IM 1000 µg — 90일 MMA·Hcy·Hb 회복 동등 — PMID 9694707
-- Andrès et al. 2004 (*Am J Med*): 망상적혈구 위기 Day 4–7(범위 3–10일), Hb 주당 ~1–2 g/dL 상승 — PMID 15235333
-- Wolffenbuttel et al. 2019 (*Mayo Clin Proc*): HoloTC <35 pmol/L = 가장 조기 결핍 마커; 총 B12 <200 pg/mL = 후기 고갈 — PMID 31193809
-- Healton et al. 1991 (*Medicine*): SCD 임상 특성; 신경학적 악화/회복 시간경과 — PMID 2072028
-- Stabler 2013 (*NEJM*): MMA >0.4 µmol/L 및 tHcy >15 µmol/L를 기능적 결핍의 진단 기준으로 사용 — PMID 23301732
-
-### 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [pna_qsp_model.dot](pernicious-anemia/pna_qsp_model.dot) | Graphviz 기계론적 지도 (105+ 노드, 10개 클러스터) |
-| [pna_qsp_model.svg](pernicious-anemia/pna_qsp_model.svg) | SVG 벡터 이미지 |
-| [pna_qsp_model.png](pernicious-anemia/pna_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [pna_mrgsolve_model.R](pernicious-anemia/pna_mrgsolve_model.R) | mrgsolve ODE 모델 (15 구획, 5 시나리오) |
-| [pna_shiny_app.R](pernicious-anemia/pna_shiny_app.R) | Shiny 대시보드 (6탭: 환자프로파일·약물PK·혈액PD·신경PD·바이오마커·시나리오비교) |
-| [pna_references.md](pernicious-anemia/pna_references.md) | 참고문헌 35편 (9섹션, PubMed 링크) |
-
----
-
-## 반응성 관절염 (Reactive Arthritis, ReA)
-
-### 개요
-
-반응성 관절염(ReA)은 비뇨생식기(Chlamydia trachomatis) 또는 위장관(Salmonella, Campylobacter, Yersinia, Shigella) 감염 후 발생하는 무균성 염증성 관절염입니다. 감염 병원체가 관절 자체에 존재하지 않음에도 불구하고 분자 모방(molecular mimicry), HLA-B27 연관 T세포 활성화, Th17 축 과활성화에 의해 주로 하지 대관절을 침범하는 비대칭 올리고관절염이 발생합니다.
-
-| 항목 | 내용 |
-|------|------|
-| **병인** | 감염 후 HLA-B27 연관 면역 반응; Chlamydia 활막 지속성; Th17/IL-17 축 |
-| **삼징후(고전 트라이어드)** | 요도염 · 관절염 · 결막염 (Reiter 증후군) |
-| **HLA-B27 양성률** | 환자의 ~75% (일반인 8%) |
-| **유병률** | GI 감염 후 약 1–4%, GU Chlamydia 감염 후 약 1–3% |
-| **만성화** | 약 15–30%에서 6개월 이상 지속 |
-| **주요 치료** | NSAIDs → 항생제(Chlamydia) → DMARDs (SSZ, MTX) → 생물학적 제제 (ETN, SECU) |
-
-### 기계론적 지도 (Mechanistic Map)
-
-[![ReA QSP Map](reactive-arthritis/rea_qsp_model.png)](reactive-arthritis/rea_qsp_model.svg)
-
-- **10개 서브그래프 클러스터**: 유발 감염 · 선천면역 · HLA-B27/분자모방 · 적응면역(T·B세포) · 활막관절 병리 · 관절외 증상 · 골/연골 개조 · NSAID PK/PD · DMARD/생물학적제제 PK/PD · 임상지표
-- **145+ 노드**: LPS·TLR4/2/9·NLRP3·NF-κB·Th17·IL-17A·TNF-α·RANKL·OPG·MMP-3/9/13·VEGF·PGE2·Etanercept·Secukinumab 등
-- **치료 경로**: NSAIDs(COX-2 억제), 설파살라진(NF-κB·IL-6 억제), MTX(AICAR·DHFR 경로), ETN(TNF-α 중화), Secukinumab(IL-17A 중화), 독시사이클린(Chlamydia 박멸)
-
-### mrgsolve 모델 구성
-
-| 구획 (Compartment) | 역할 |
-|--------------------|------|
-| PATH | 급성 병원균 부하 (정규화, 0–1) |
-| CHRON_PATH | Chlamydia 활막 지속성 (만성화 인자) |
-| INNATE | 선천면역 활성화 점수 |
-| NEUT | 호중구 활성화 |
-| MACRO | 대식세포 활성화 (M1) |
-| TH1 | Th1 세포 (IFN-γ, TNF-α 생산) |
-| TH17 | Th17 세포 (IL-17A, IL-22 생산) |
-| TREG | 조절 T세포 (IL-10, TGF-β) |
-| TNF_c | TNF-α (pg/mL) |
-| IL17_c | IL-17A (pg/mL) |
-| IL6_c | IL-6 (pg/mL) |
-| IL10_c | IL-10 (pg/mL) |
-| IFNg_c | IFN-γ (pg/mL) |
-| SYNOV | 활막 염증 점수 (0–10) |
-| CARTDMG | 누적 연골 손상 (0–1, 비가역적) |
-| PAIN | VAS 통증 (0–100) |
-| CRP_c | CRP (mg/L) |
-| JCOUNT | 종창 관절 수 (0–28) |
-| NSAID_DEPOT / NSAID_C | 나프록센 PK (Vd 0.12 L/kg, t½ 2.1h) |
-| SSZ_DEPOT / SSZ_C | 설파살라진 PK (F 10%, t½ 21h) |
-| MTX_DEPOT / MTX_C | 메토트렉세이트 PK (SC F 78%, t½ 10h) |
-| TNFi_DEPOT / TNFi_C | 에타너셉트 PK (SC F 76%, t½ 125h) |
-| IL17i_DEPOT / IL17i_C | 세쿠키누맙 PK (SC F 73%, t½ 27d) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **무치료 (S1)**: HLA-B27(+) Chlamydia ReA 자연 경과 → 12주 만성화 위험 예측; CRP·활막염 지속, 연골 손상 누적
-2. **NSAIDs 단독 (S2 — 나프록센 500mg BID × 12주)**: 통증·활막 염증 부분 억제, CRP 부분 감소; 근본 면역 기전 미해결
-3. **항생제 + NSAIDs (S3 — 독시사이클린 12주 + 나프록센)**: Carter 2010 임상시험 보정; Chlamydia 지속성 억제 → 관해율 향상
-4. **NSAIDs + 설파살라진 (S4 — SSZ 2–3 g/day)**: Clegg 1996 RCT 보정; 만성 관절 증상에서 관절지수 26% 개선
-5. **NSAIDs + SSZ → 에타너셉트 (S5 — 12주 후 ETN 50mg/wk)**: Braun 2014 근거; BASDAI·VAS 50% 이상 감소, 12주 ETN 시작 후 빠른 반응
-
-### Shiny 앱 탭 구성
-
-| 탭 | 내용 |
-|----|------|
-| 1. 환자 프로파일 | 나이/성별/체중/HLA-B27 상태/유발 감염 종류/기저 CRP·VAS·관절 수 입력, 만성화 위험 점수 자동 계산, 예후 예측 그래프 |
-| 2. 약물 PK | NSAID·SSZ·MTX·에타너셉트·세쿠키누맙 용량/기간 슬라이더, 혈장 농도 시계열, IC50 기준선 표시, PK 지표 테이블 |
-| 3. 질환 역학 | 면역세포(Th1/Th17/Treg/호중구) 동태, 사이토카인(TNF·IL-17·IL-6·IL-10·IFN-γ) 시계열, 병원균 제거 및 활막 염증 |
-| 4. 임상 엔드포인트 | VAS 통증·CRP·종창 관절 수 시계열, 정상화 시점 자동 계산, 연골 손상 누적 그래프, 임상 결과 요약 테이블 |
-| 5. 시나리오 비교 | 5가지 치료군 동시 비교, 엔드포인트 선택, 지정 주차 결과 막대 그래프, 주요 시점(4·12·24·52주) 결과 테이블 |
-| 6. 바이오마커 패널 | HLA-B27 배율 민감도 분석, 사이토카인 상관관계 히트맵, IC50 민감도 분석(NSAID·SSZ·ETN), 만성화 위험 지표 |
-
-### 주요 보정 기준 (Calibration Targets)
-
-- Carter JD 2010 (*Ann Intern Med*): 항생제 병합(Doxy+Azithro) 6개월 후 관해율 ~40% vs. 위약 ~11% — PMID 20957185
-- Clegg DO 1996 (*Arthritis Rheum*): SSZ 6개월 관절지수 개선 26% vs. 위약 9% (n=134) — PMID 8961909
-- Braun J 2014 (*J Rheumatol*): ETN 12주 후 BASDAI <4 달성 ~60%, VAS 50% 감소 — PMID 25128038
-- Baeten D 2015 (*NEJM*): Secukinumab AS ASAS20: 61% vs. 위약 28% (wk 16) — PMID 26699169
-
-### 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [![ReA QSP](reactive-arthritis/rea_qsp_model.png)](reactive-arthritis/rea_qsp_model.svg) | 기계론적 지도 미리보기 (클릭 시 SVG 확대) |
-| [rea_qsp_model.dot](reactive-arthritis/rea_qsp_model.dot) | Graphviz 기계론적 지도 (10 클러스터, 145+ 노드) |
-| [rea_qsp_model.svg](reactive-arthritis/rea_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [rea_qsp_model.png](reactive-arthritis/rea_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [rea_mrgsolve_model.R](reactive-arthritis/rea_mrgsolve_model.R) | mrgsolve ODE 모델 (26 구획, 5 치료 시나리오) |
-| [rea_shiny_app.R](reactive-arthritis/rea_shiny_app.R) | Shiny 대시보드 (6탭: 환자프로파일·약물PK·질환역학·임상엔드포인트·시나리오비교·바이오마커패널) |
-| [rea_references.md](reactive-arthritis/rea_references.md) | 참고문헌 51편 (11섹션, PubMed 링크) |
----
-
-## 진폐증 (Pneumoconiosis) — 상세 설명
-
-### 질환 개요
-
-진폐증(Pneumoconiosis)은 규소(silica), 석탄 분진, 석면(asbestos) 등 무기 광물성 분진의 장기 흡입으로 인해 폐 대식세포가 분진을 탐식하는 과정에서 만성 염증이 유발되고, 이것이 TGF-β1 매개 섬유화 경로를 활성화하여 폐 조직에 결절성·미만성 섬유화가 발생하는 직업성 만성 폐질환입니다.
-
-주요 아형:
-- **규폐증(Silicosis)**: 결정형 이산화규소(SiO₂) 흡입 → NLRP3 인플라마솜 활성화 → 규폐성 결절 → 진행성 대규모 섬유증(PMF)
-- **탄광부 진폐증(CWP, Coal Workers' Pneumoconiosis)**: 석탄 분진 흡입 → 단순 탄광부 진폐증 → PMF 진행 가능
-- **석면증(Asbestosis)**: 석면 섬유 → 좌절된 식세포 작용 → 광범위한 간질 섬유화 → 악성중피종 위험 증가
-
-### 발병 기전 핵심 경로
-
-```
-분진 흡입 → 폐포 침착
-    ↓
-폐포 대식세포 탐식 → 용해소체 파열 → Cathepsin B 방출
-    ↓
-NLRP3 인플라마솜 활성화 (K⁺ 유출, ROS 자극)
-    ↓
-Caspase-1 → IL-1β, IL-18 성숙 → 파이롭토시스
-    ↓
-TNF-α, TGF-β1, IL-6 방출 (NF-κB 경로)
-    ↓                        ↓
-산화 스트레스 (ROS ↑)    TGF-β1 → Smad2/3 → 섬유아세포 증식
-    ↓                        ↓
-GSH 고갈               근섬유아세포 분화 (α-SMA+) → 콜라겐 과다 침착
-    ↓                        ↓
-DNA 손상, 세포사       규폐성 결절 → PMF (진행성 대규모 섬유증)
-                             ↓
-                    FVC↓, DLCO↓, TLC↓ → 폐동맥 고혈압 → 폐심장증 → 사망
+| **Graphviz** (`dot`) | 기계론적 지도 렌더링 (`.dot` → `.svg`/`.png`) |
+| **mrgsolve** (R) | ODE 기반 PK/PD/QSP 시뮬레이션 |
+| **Shiny** (R) | 인터랙티브 시뮬레이션 대시보드 |
+| **Claude Code Routine** | 매일 자동 모델 생성·문서화·커밋 |
+
+## 7. 사용 방법 (Usage)
+
+```bash
+# 1) 기계론적 지도 렌더링 (Graphviz 필요)
+dot -Tsvg <disease>/<abbr>_qsp_model.dot -o <abbr>_qsp_model.svg
+dot -Tpng -Gdpi=150 <disease>/<abbr>_qsp_model.dot -o <abbr>_qsp_model.png
 ```
 
-### QSP 모델 특징
+```r
+# 2) mrgsolve 모델 실행 (R)
+install.packages(c("mrgsolve", "dplyr", "ggplot2"))
+library(mrgsolve)
+mod <- mread("<disease>/<abbr>_mrgsolve_model.R")
+out <- mrgsim(mod, end = 365)
+plot(out)
 
-| 항목 | 내용 |
-|------|------|
-| **기계론적 지도** | 11개 서브그래프 클러스터, 120+ 노드 |
-| **ODE 구획 수** | 20개 (약물 PK 4종 + 질환 PD 16개) |
-| **치료 시나리오** | 6개 (자연경과, NAC, 피르페니돈, 닌테다닙, 분진 제거+NAC, 병합요법) |
-| **바이오마커** | KL-6, SP-D, FVC, DLCO, mPAP, PVR |
-| **참고문헌** | 52편 (PubMed 링크 포함) |
+# 3) Shiny 대시보드 실행
+install.packages("shiny")
+shiny::runApp("<disease>/<abbr>_shiny_app.R")
+```
 
-### 치료 목표 및 약물 PK/PD
+## 8. 디렉토리 구조 (Repository Layout)
 
-| 약물 | 기전 | 용량 | ka (/h) | CL (L/h) | Vd (L) | Emax |
-|------|------|------|---------|---------|--------|------|
-| N-Acetylcysteine (NAC) | 항산화 (GSH 보충) | 600 mg TID | 1.5 | 15.0 | 25 | 0.80 |
-| Pirfenidone (피르페니돈) | TGF-β1↓, 콜라겐↓ | 2403 mg/d | 2.0 | 3.5 | 70 | 0.75 |
-| Nintedanib (닌테다닙) | PDGFR/FGFR/VEGFR 억제 | 300 mg/d | 0.8 | 1.3 | 640 | 0.70 |
-| Tetrandrine (테트란드린) | NF-κB↓, NLRP3↓ | 120 mg/d | 1.2 | 8.0 | 120 | 0.65 |
-
-### Shiny 앱 탭 구성
-
-1. **환자 프로파일** — 나이, 직업 노출력, 흡연력, 기저 FVC, 질환 아형 설정
-2. **약물 PK** — NAC·피르페니돈·닌테다닙·테트란드린 혈장 농도 프로파일
-3. **PD 바이오마커** — 사이토카인(IL-1β, TNF-α, TGF-β), ROS/GSH, 대식세포 동태
-4. **임상 엔드포인트** — FVC, DLCO, mPAP, KL-6, 호흡곤란 점수 시계열 추이
-5. **시나리오 비교** — 6개 치료 전략 동시 비교
-6. **가상환자 집단** — 몬테카를로 시뮬레이션 (n=20~200), VP 분포 및 반응자 분석
-
----
-
-## Evans Syndrome (에반스 증후군) QSP Model
-
-| 항목 | 내용 |
-|------|------|
-| **날짜** | 2026-06-20 |
-| **분류** | 자가면역질환 / 혈액학 |
-| **디렉토리** | [evans-syndrome/](evans-syndrome/) |
-| **기계론적 지도** | [![ES QSP](evans-syndrome/es_qsp_model.png)](evans-syndrome/es_qsp_model.svg) |
-
-### 질환 개요
-
-에반스 증후군(Evans Syndrome, ES)은 **자가면역 용혈성 빈혈(AIHA)과 면역성 혈소판 감소증(ITP)이 동시에 또는 순차적으로 발생**하는 희귀 자가면역 혈액 질환입니다. Robert Evans가 1951년 최초로 기술하였으며, 다클론 IgG 자가항체가 적혈구 표면(Rh, Glycophorin A, Band 3)과 혈소판 표면(GPIbα, GPIIb/IIIa)을 동시에 표적으로 합니다.
-
-### 핵심 병태생리 경로
-
-| 경로 | 핵심 분자 | 임상 결과 |
-|------|----------|---------|
-| 자가항체 생성 (Anti-RBC) | Treg 결핍 → GC 과활성화 → IgG class-switch | DAT 양성, 온난자가항체, 혈관외 용혈 |
-| 자가항체 생성 (Anti-Plt) | FcγRIIB 결핍 → B세포 억제 감소 → anti-GPIbα/GPIIbIIIa IgG | PAIgG 상승, 비장 혈소판 탐식 |
-| 보체 활성화 | C1q → Classical Pathway → C3b opsonization → C3d (DAT C3d+) | 혈관내 용혈(MAC), C3d+ AIHA |
-| Treg/Tfh 불균형 | mTOR↑ → Treg↓; IL-21↑ → GC Tfh 과활성화 | 면역관용 붕괴, 자가항체 지속 |
-| 골수 보상 | EPO↑ → BFU-E 증가 → 망상적혈구↑; TPO↑ → 거핵구 생성↑ | 망상적혈구증가, 골수 고증식 |
-| 비장 기능 | FcγRI/III 큰포식세포 → 적혈구·혈소판 탐식 | 비장비대, 세망내피계 파괴 증가 |
-
-### 치료 시나리오 (6개)
-
-| 시나리오 | 약물 | 주요 기전 | 예상 CR률 |
-|---------|------|---------|---------|
-| 무치료 (Natural Course) | — | — | — |
-| 1차: Prednisone 단독 | 1–2 mg/kg/day | GR→B세포 사멸, FcγR↓ | ~40–60% (초기) |
-| 2차: Pred + Rituximab | 0.5 mg/kg + 375mg/m² ×4 | B세포 CD20 표적 탈진 (6–12개월) | ~60–70% |
-| 3차: Pred + MMF | 0.25mg/kg + 2g/day | IMPDH 억제 → 림프구 증식↓ | ~50–65% |
-| 불응성: Sirolimus + Eltrombopag | 4mg/day + 50mg/day | mTOR↓→Treg↑; TPO-R 자극→Plt↑ | ~55–70% (Plt 우선) |
-| 외과: 비장절제 | 수술 | 비장 FcγR 대식세포 제거 | ~60–80% (Plt) |
-
-### 약물 PK 요약
-
-| 약물 | 용량/경로 | Bioavailability | t½ | 표적 | 주요 PD 효과 |
-|------|---------|---------|------|------|---------|
-| Prednisolone | 1–2 mg/kg/day PO | 82% | 2.5 h | GR (NR3C1) | B세포 사멸 70%, FcγR 60%↓ |
-| IVIg | 1–2 g/kg IV ×2일 | 100% | 3–4주 | FcRn / FcγR | FcγR blockade 75%, IgG 이화↑ |
-| Rituximab | 375 mg/m² IV ×4주 | 100% | 22일 | CD20 | B세포 탈진 95% (6–12개월) |
-| MMF/MPA | 1–3 g/day PO | 94% | 17 h | IMPDH | 림프구 항증식 65% |
-| Eltrombopag | 50 mg/day PO | 52% | 26 h | c-Mpl (TPO-R) | 거핵구 2.5× 자극 → Plt↑ |
-| Sirolimus | 2–6 mg/day PO | 14% | 62 h | mTORC1 | Treg 2×↑, T효과세포↓ |
-
-### 모델 파일
-
-| 파일 | 설명 |
-|------|------|
-| [es_qsp_model.dot](evans-syndrome/es_qsp_model.dot) | Graphviz 기계론적 지도 소스 (10개 클러스터, 138+ 노드) |
-| [es_qsp_model.svg](evans-syndrome/es_qsp_model.svg) | SVG 벡터 이미지 |
-| [es_qsp_model.png](evans-syndrome/es_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [es_mrgsolve_model.R](evans-syndrome/es_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 6 치료 시나리오) |
-| [es_shiny_app.R](evans-syndrome/es_shiny_app.R) | Shiny 대시보드 (6탭) |
-| [es_references.md](evans-syndrome/es_references.md) | 참고문헌 57편 (PubMed 링크 포함) |
-
-### Shiny 앱 탭 구성
-
-1. **환자 프로파일** — 인구통계, 기저 혈액 수치, 면역 지표, 이전 치료력
-2. **약물 PK** — Prednisolone·Rituximab·MPA·Eltrombopag·Sirolimus·IVIg 혈장 농도 프로파일
-3. **혈액학적 반응** — Hgb, 혈소판, 망상적혈구, 거핵구 풀 시계열 + CR 기준 시각화
-4. **면역학적 지표** — Anti-RBC IgG, Anti-Plt IgG, Treg, 자가반응 B세포, C3b 보체 동태
-5. **시나리오 비교** — 6개 치료 전략 동시 비교; Day 180/365 반응 요약 표
-6. **바이오마커 대시보드** — DAT, PAIgG, LDH, Haptoglobin, Treg%, B cell% 실시간 평가 + 치료 권고
-
+```
+qsp/
+├── README.md                     # 본 문서 (전체 모델 갤러리)
+├── CLAUDE.md                     # 라이브러리 운영·생성 지침
+├── <disease>/                    # 질환별 디렉토리 (총 97개)
+│   ├── README.md                 # 질환별 요약 문서
+│   ├── <abbr>_qsp_model.dot      # 기계론적 지도 소스
+│   ├── <abbr>_qsp_model.svg/.png # 렌더링 이미지
+│   ├── <abbr>_mrgsolve_model.R   # mrgsolve ODE 모델
+│   ├── <abbr>_shiny_app.R        # Shiny 대시보드
+│   └── <abbr>_references.md      # 참고문헌
+└── ...
+```
 
 ---
 
-## 게실병 (Diverticular Disease — Diverticulosis / Diverticulitis)
+## 📚 모델 갤러리 (Model Gallery)
 
-### 개요
+전체 **97개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-게실병은 서양 성인 인구의 약 35–50%에서 발생하는 만성 소화기 질환으로, 대장 점막이 근육층 약화 부위를 통해 탈출하여 게실(diverticulum)을 형성하는 질환입니다. 대부분은 무증상(게실증)으로 지내지만, 약 4–15%에서 급성 게실염(acute diverticulitis)이 발생하며, 복잡성 합병증(천공, 농양, 누공, 출혈)으로 진행할 수 있습니다.
+**분류별 모델 수**: 소화기·간담도 17 · 내분비·대사 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 10 · 혈관염 8 · 호흡기 7 · 신경 6 · 혈액 4 · 피부 4
 
-### 주요 병태생리 경로
-
-| 경로 | 핵심 메커니즘 | 임상 이상 |
-|------|------------|---------|
-| 대장 생역학 | 저섬유질 식이 → 소변량 감소 → 분절 수축↑ → 장내강 압력↑ | 게실 형성 (La Place 법칙) |
-| ECM 리모델링 | 노화/TNF-α → MMP-1/9↑, TIMP-1↓ → 콜라겐 분해 → 근육층 약화 | 대장벽 취약화 |
-| 장내 미생물 교란 | 저섬유질 → Faecalibacterium↓, E.coli↑ → LPS↑ | 만성 저강도 염증 |
-| NF-κB 경로 | LPS → TLR4 → IKKβ → NF-κB → TNF-α, IL-6, IL-1β, COX-2 | 급성 게실염 |
-| 급성 게실염 | 미세천공 → 주변 지방 염증 → 국소 농양 | Hinchey I–IV 분류 |
-| 만성 염증/섬유화 | M1→M2 전환, TGF-β → 근섬유아세포 → 콜라겐 침착 | 협착, 누공 |
-
-### 약물 PK/PD 파라미터
-
-| 약물 | 작용기전 | 주요 PK | 임상 효과 |
-|------|---------|---------|---------|
-| Rifaximin 400mg TID × 7d/월 | RNA 중합효소 억제 (장관 내 작용, F<0.4%) | GI t½≈1h, 최소 전신 흡수 | 미생물 다양성↑, LPS↓, 재발↓ 40% |
-| Mesalamine (5-ASA) 1.6g/day | NF-κB, COX-2 억제 | pH 방출형, t½≈0.5–2h | CRP↓, 재발↓ 32% |
-| Ciprofloxacin 500mg BID × 10d | DNA 회전효소 억제 (그람음성) | F=70%, t½=4–6h | 급성 게실염 해소율 93% |
-| Metronidazole 500mg TID × 10d | 혐기성균 DNA 손상 | F=99%, t½=6–8h | 혐기성균 제거 |
-| Psyllium 15g/day | 부피형성 완하제, 단쇄지방산 전구체 | 발효 → 부티레이트 | 장내강 압력↓, 게실 형성↓ |
-
-### Hinchey 분류 및 치료 원칙
-
-| Hinchey | 소견 | 1차 치료 |
-|---------|------|---------|
-| Stage 0 | SUDD (증상성 합병증 없는 게실병) | 식이 조절 + Rifaximin ± Mesalamine |
-| Stage I | 국소 농양 (pericolic) | 항생제 ± 경피적 배액 |
-| Stage II | 골반 농양 | 항생제 + 경피적 배액 |
-| Stage III | 화농성 복막염 | 응급수술 (Hartmann's procedure) |
-| Stage IV | 대변성 복막염 | 응급수술 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [div_qsp_model.dot](diverticular-disease/div_qsp_model.dot) | Graphviz 기계론적 지도 소스 (140+ 노드, 10 클러스터) |
-| [div_qsp_model.svg](diverticular-disease/div_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [div_qsp_model.png](diverticular-disease/div_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [div_mrgsolve_model.R](diverticular-disease/div_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 6 시나리오) |
-| [div_shiny_app.R](diverticular-disease/div_shiny_app.R) | Shiny 대시보드 (6 탭) |
-| [div_references.md](diverticular-disease/div_references.md) | 참고문헌 (66개 PubMed 링크, 섹션별 분류) |
-| [div_references.md](diverticular-disease/div_references.md) | 참고문헌 (66개 PubMed 링크, 섹션별 분류) |
+| # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
+|---|------|------|----------|--------------|
+| 1 | 심혈관 | [**복부 대동맥류**<br><sub>Abdominal Aortic Aneurysm · AAA</sub>](abdominal-aortic-aneurysm/) | <a href="abdominal-aortic-aneurysm/aaa_qsp_model.svg"><img src="abdominal-aortic-aneurysm/aaa_qsp_model.png" width="190" alt="AAA"></a> | 대동맥 중막 ECM 분해(MMP)·만성 염증으로 인한 진행성 확장과 파열 위험. 베타차단·독시사이클린·항염증 표적을 모델링.<br>[🗺️ 지도](abdominal-aortic-aneurysm/aaa_qsp_model.svg) · [⚙️ mrgsolve](abdominal-aortic-aneurysm/aaa_mrgsolve_model.R) · [📚 문헌](abdominal-aortic-aneurysm/aaa_references.md) · [📄 README](abdominal-aortic-aneurysm/README.md) |
+| 2 | 내분비·대사 | [**말단비대증**<br><sub>Acromegaly · ACRO</sub>](acromegaly/) | <a href="acromegaly/acro_qsp_model.svg"><img src="acromegaly/acro_qsp_model.png" width="190" alt="ACRO"></a> | 뇌하수체 선종의 GH 과다분비 → IGF-1 상승. 소마토스타틴 유사체·페그비소만트·도파민작용제 PK/PD.<br>[🗺️ 지도](acromegaly/acro_qsp_model.svg) · [⚙️ mrgsolve](acromegaly/acro_mrgsolve_model.R) · [📚 문헌](acromegaly/acro_references.md) · [📄 README](acromegaly/README.md) |
+| 3 | 내분비·대사 | [**애디슨병 (원발성 부신부전)**<br><sub>Addison's Disease · ADD</sub>](addisons-disease/) | <a href="addisons-disease/add_qsp_model.svg"><img src="addisons-disease/add_qsp_model.png" width="190" alt="ADD"></a> | 부신피질 자가면역 파괴로 코르티솔·알도스테론 결핍. HPA축·히드로코르티손/플루드로코르티손 보충 시뮬레이션.<br>[🗺️ 지도](addisons-disease/add_qsp_model.svg) · [⚙️ mrgsolve](addisons-disease/add_mrgsolve_model.R) · [📚 문헌](addisons-disease/add_references.md) · [📄 README](addisons-disease/README.md) |
+| 4 | 신장·비뇨 | [**상염색체 우성 다낭신 (ADPKD)**<br><sub>Autosomal Dominant PKD · ADPKD</sub>](adpkd/) | <a href="adpkd/adpkd_qsp_model.svg"><img src="adpkd/adpkd_qsp_model.png" width="190" alt="ADPKD"></a> | PKD1/2 변이 → cAMP 증가로 낭종 성장·신기능 저하. 톨밥탄(V2 수용체 길항)의 TKV/eGFR 효과.<br>[🗺️ 지도](adpkd/adpkd_qsp_model.svg) · [⚙️ mrgsolve](adpkd/adpkd_mrgsolve_model.R) · [📚 문헌](adpkd/adpkd_references.md) · [📄 README](adpkd/README.md) |
+| 5 | 자가면역·류마티스 | [**성인형 스틸병**<br><sub>Adult-Onset Still's Disease · AOSD</sub>](adult-onset-stills-disease/) | <a href="adult-onset-stills-disease/aosd_qsp_model.svg"><img src="adult-onset-stills-disease/aosd_qsp_model.png" width="190" alt="AOSD"></a> | IL-1/IL-6/IL-18 매개 자가염증, 발열·관절염·페리틴 급상승. 아나킨라·카나키누맙·토실리주맙 표적.<br>[🗺️ 지도](adult-onset-stills-disease/aosd_qsp_model.svg) · [⚙️ mrgsolve](adult-onset-stills-disease/aosd_mrgsolve_model.R) · [📚 문헌](adult-onset-stills-disease/aosd_references.md) · [📄 README](adult-onset-stills-disease/README.md) |
+| 6 | 피부 | [**원형 탈모증**<br><sub>Alopecia Areata · AA</sub>](alopecia-areata/) | <a href="alopecia-areata/aa_qsp_model.svg"><img src="alopecia-areata/aa_qsp_model.png" width="190" alt="AA"></a> | 모낭 면역특권 붕괴, IFN-γ/IL-15 JAK-STAT 신호로 모발 손실. 바리시티닙 등 JAK 억제제 반응.<br>[🗺️ 지도](alopecia-areata/aa_qsp_model.svg) · [⚙️ mrgsolve](alopecia-areata/aa_mrgsolve_model.R) · [📚 문헌](alopecia-areata/aa_references.md) · [📄 README](alopecia-areata/README.md) |
+| 7 | 자가면역·류마티스 | [**강직성 척추염**<br><sub>Ankylosing Spondylitis · AS</sub>](ankylosing-spondylitis/) | <a href="ankylosing-spondylitis/as_qsp_model.svg"><img src="ankylosing-spondylitis/as_qsp_model.png" width="190" alt="AS"></a> | HLA-B27·IL-23/IL-17·TNF 축의 부착부염·골증식. TNF/IL-17 억제제의 BASDAI 효과.<br>[🗺️ 지도](ankylosing-spondylitis/as_qsp_model.svg) · [⚙️ mrgsolve](ankylosing-spondylitis/as_mrgsolve_model.R) · [📚 문헌](ankylosing-spondylitis/as_references.md) · [📄 README](ankylosing-spondylitis/README.md) |
+| 8 | 자가면역·류마티스 | [**항인지질항체 증후군**<br><sub>Antiphospholipid Syndrome · APS</sub>](antiphospholipid-syndrome/) | <a href="antiphospholipid-syndrome/aps_qsp_model.svg"><img src="antiphospholipid-syndrome/aps_qsp_model.png" width="190" alt="APS"></a> | 항인지질항체에 의한 동·정맥 혈전 및 임신 합병증. 항응고(와파린/헤파린)·히드록시클로로퀸.<br>[🗺️ 지도](antiphospholipid-syndrome/aps_qsp_model.svg) · [⚙️ mrgsolve](antiphospholipid-syndrome/aps_mrgsolve_model.R) · [📚 문헌](antiphospholipid-syndrome/aps_references.md) · [📄 README](antiphospholipid-syndrome/README.md) |
+| 9 | 심혈관 | [**심방세동**<br><sub>Atrial Fibrillation · AF</sub>](atrial-fibrillation/) | <a href="atrial-fibrillation/af_qsp_model.svg"><img src="atrial-fibrillation/af_qsp_model.png" width="190" alt="AF"></a> | 심방 전기적·구조적 리모델링과 재진입 회로. 율동/심박수 조절 및 NOAC 항응고 전략.<br>[🗺️ 지도](atrial-fibrillation/af_qsp_model.svg) · [⚙️ mrgsolve](atrial-fibrillation/af_mrgsolve_model.R) · [📚 문헌](atrial-fibrillation/af_references.md) · [📄 README](atrial-fibrillation/README.md) |
+| 10 | 신경 | [**자가면역 뇌염**<br><sub>Autoimmune Encephalitis · AIE</sub>](autoimmune-encephalitis/) | <a href="autoimmune-encephalitis/aie_qsp_model.svg"><img src="autoimmune-encephalitis/aie_qsp_model.png" width="190" alt="AIE"></a> | 항NMDAR 등 신경표면 항체에 의한 뇌염. 스테로이드·IVIG·혈장교환·리툭시맙 면역치료.<br>[🗺️ 지도](autoimmune-encephalitis/aie_qsp_model.svg) · [⚙️ mrgsolve](autoimmune-encephalitis/aie_mrgsolve_model.R) · [📚 문헌](autoimmune-encephalitis/aie_references.md) · [📄 README](autoimmune-encephalitis/README.md) |
+| 11 | 혈액 | [**자가면역 용혈성 빈혈**<br><sub>Autoimmune Hemolytic Anemia · AIHA</sub>](autoimmune-hemolytic-anemia/) | <a href="autoimmune-hemolytic-anemia/aiha_qsp_model.svg"><img src="autoimmune-hemolytic-anemia/aiha_qsp_model.png" width="190" alt="AIHA"></a> | 온형 IgG·한랭 IgM 자가항체에 의한 적혈구 파괴. 스테로이드·리툭시맙·수티림맙(항C1s).<br>[🗺️ 지도](autoimmune-hemolytic-anemia/aiha_qsp_model.svg) · [⚙️ mrgsolve](autoimmune-hemolytic-anemia/aiha_mrgsolve_model.R) · [📚 문헌](autoimmune-hemolytic-anemia/aiha_references.md) · [📄 README](autoimmune-hemolytic-anemia/README.md) |
+| 12 | 소화기·간담도 | [**자가면역 간염**<br><sub>Autoimmune Hepatitis · AIH</sub>](autoimmune-hepatitis/) | <a href="autoimmune-hepatitis/aih_qsp_model.svg"><img src="autoimmune-hepatitis/aih_qsp_model.png" width="190" alt="AIH"></a> | T세포 매개 간세포 손상과 자가항체·고감마글로불린혈증. 스테로이드·아자티오프린 유도/유지.<br>[🗺️ 지도](autoimmune-hepatitis/aih_qsp_model.svg) · [⚙️ mrgsolve](autoimmune-hepatitis/aih_mrgsolve_model.R) · [📚 문헌](autoimmune-hepatitis/aih_references.md) · [📄 README](autoimmune-hepatitis/README.md) |
+| 13 | 소화기·간담도 | [**자가면역 췌장염**<br><sub>Autoimmune Pancreatitis · AIP</sub>](autoimmune-pancreatitis/) | <a href="autoimmune-pancreatitis/aip_qsp_model.svg"><img src="autoimmune-pancreatitis/aip_qsp_model.png" width="190" alt="AIP"></a> | IgG4 관련 림프형질세포 침윤·섬유염증. 스테로이드 관해유도·리툭시맙 재발관리.<br>[🗺️ 지도](autoimmune-pancreatitis/aip_qsp_model.svg) · [⚙️ mrgsolve](autoimmune-pancreatitis/aip_mrgsolve_model.R) · [📚 문헌](autoimmune-pancreatitis/aip_references.md) · [📄 README](autoimmune-pancreatitis/README.md) |
+| 14 | 내분비·대사 | [**자가면역 다발내분비병증 (APECED)**<br><sub>Autoimmune Polyendocrinopathy (APS-1) · APS-1</sub>](autoimmune-polyendocrinopathy/) | <a href="autoimmune-polyendocrinopathy/aps_qsp_model.svg"><img src="autoimmune-polyendocrinopathy/aps_qsp_model.png" width="190" alt="APS-1"></a> | AIRE 변이로 중추관용 소실 → 다장기 내분비 자가면역. 호르몬 보충 및 면역조절 모델.<br>[🗺️ 지도](autoimmune-polyendocrinopathy/aps_qsp_model.svg) · [⚙️ mrgsolve](autoimmune-polyendocrinopathy/aps_mrgsolve_model.R) · [📚 문헌](autoimmune-polyendocrinopathy/aps_references.md) · [📄 README](autoimmune-polyendocrinopathy/README.md) |
+| 15 | 혈관염 | [**베체트병**<br><sub>Behçet's Disease · BD</sub>](behcet-disease/) | <a href="behcet-disease/bd_qsp_model.svg"><img src="behcet-disease/bd_qsp_model.png" width="190" alt="BD"></a> | 구강/생식기 궤양·포도막염, 호중구·IL-1 매개 가변혈관 염증. 콜히친·TNF 억제·아프레밀라스트.<br>[🗺️ 지도](behcet-disease/bd_qsp_model.svg) · [⚙️ mrgsolve](behcet-disease/bd_mrgsolve_model.R) · [📚 문헌](behcet-disease/bd_references.md) · [📄 README](behcet-disease/README.md) |
+| 16 | 신장·비뇨 | [**양성 전립선 비대증**<br><sub>Benign Prostatic Hyperplasia · BPH</sub>](benign-prostatic-hyperplasia/) | <a href="benign-prostatic-hyperplasia/bph_qsp_model.svg"><img src="benign-prostatic-hyperplasia/bph_qsp_model.png" width="190" alt="BPH"></a> | DHT 매개 전립선 증식과 평활근 긴장에 의한 하부요로증상. α차단제·5α환원효소 억제제.<br>[🗺️ 지도](benign-prostatic-hyperplasia/bph_qsp_model.svg) · [⚙️ mrgsolve](benign-prostatic-hyperplasia/bph_mrgsolve_model.R) · [📚 문헌](benign-prostatic-hyperplasia/bph_references.md) · [📄 README](benign-prostatic-hyperplasia/README.md) |
+| 17 | 호흡기 | [**기관지 천식**<br><sub>Bronchial Asthma · BA</sub>](bronchial-asthma/) | <a href="bronchial-asthma/ba_qsp_model.svg"><img src="bronchial-asthma/ba_qsp_model.png" width="190" alt="BA"></a> | Th2/호산구 기도 염증과 기관지 과민성. ICS·LABA 및 항IL-5/IL-4Rα 생물학제제.<br>[🗺️ 지도](bronchial-asthma/ba_qsp_model.svg) · [⚙️ mrgsolve](bronchial-asthma/ba_mrgsolve_model.R) · [📚 문헌](bronchial-asthma/ba_references.md) · [📄 README](bronchial-asthma/README.md) |
+| 18 | 호흡기 | [**기관지 확장증**<br><sub>Bronchiectasis · BEX</sub>](bronchiectasis/) | <a href="bronchiectasis/bex_qsp_model.svg"><img src="bronchiectasis/bex_qsp_model.png" width="190" alt="BEX"></a> | 감염-염증 악순환(Cole vicious cycle)과 호중구 엘라스타제 기도 파괴. 기도청결·항생제·항염.<br>[🗺️ 지도](bronchiectasis/bex_qsp_model.svg) · [⚙️ mrgsolve](bronchiectasis/bex_mrgsolve_model.R) · [📚 문헌](bronchiectasis/bex_references.md) · [📄 README](bronchiectasis/README.md) |
+| 19 | 피부 | [**수포성 유천포창**<br><sub>Bullous Pemphigoid · BP</sub>](bullous-pemphigoid/) | <a href="bullous-pemphigoid/bp_qsp_model.svg"><img src="bullous-pemphigoid/bp_qsp_model.png" width="190" alt="BP"></a> | 항BP180/BP230 항체에 의한 표피하 수포 형성. 스테로이드·리툭시맙·오말리주맙.<br>[🗺️ 지도](bullous-pemphigoid/bp_qsp_model.svg) · [⚙️ mrgsolve](bullous-pemphigoid/bp_mrgsolve_model.R) · [📚 문헌](bullous-pemphigoid/bp_references.md) · [📄 README](bullous-pemphigoid/README.md) |
+| 20 | 소화기·간담도 | [**셀리악병**<br><sub>Celiac Disease · CD</sub>](celiac-disease/) | <a href="celiac-disease/cd_qsp_model.svg"><img src="celiac-disease/cd_qsp_model.png" width="190" alt="CD"></a> | 글루텐-tTG 면역반응(HLA-DQ2/8)으로 융모 위축. 글루텐 제거식 및 글루텐분해효소 신약.<br>[🗺️ 지도](celiac-disease/cd_qsp_model.svg) · [⚙️ mrgsolve](celiac-disease/cd_mrgsolve_model.R) · [📚 문헌](celiac-disease/cd_references.md) · [📄 README](celiac-disease/README.md) |
+| 21 | 소화기·간담도 | [**담석증**<br><sub>Cholelithiasis · CHOL</sub>](cholelithiasis/) | <a href="cholelithiasis/chol_qsp_model.svg"><img src="cholelithiasis/chol_qsp_model.png" width="190" alt="CHOL"></a> | 담즙 콜레스테롤 과포화·담낭 정체에 의한 결석 형성. 우르소데옥시콜산 용해 요법.<br>[🗺️ 지도](cholelithiasis/chol_qsp_model.svg) · [⚙️ mrgsolve](cholelithiasis/chol_mrgsolve_model.R) · [📚 문헌](cholelithiasis/chol_references.md) · [📄 README](cholelithiasis/README.md) |
+| 22 | 소화기·간담도 | [**만성 위염**<br><sub>Chronic Gastritis · CGAST</sub>](chronic-gastritis/) | <a href="chronic-gastritis/cgast_qsp_model.svg"><img src="chronic-gastritis/cgast_qsp_model.png" width="190" alt="CGAST"></a> | H. pylori-Correa 연쇄(위축→장상피화생→이형성). 제균요법·PPI의 점막 회복 효과.<br>[🗺️ 지도](chronic-gastritis/cgast_qsp_model.svg) · [⚙️ mrgsolve](chronic-gastritis/cgast_mrgsolve_model.R) · [📚 문헌](chronic-gastritis/cgast_references.md) · [📄 README](chronic-gastritis/README.md) |
+| 23 | 소화기·간담도 | [**만성 B형 간염**<br><sub>Chronic Hepatitis B · CHB</sub>](chronic-hepatitis-b/) | <a href="chronic-hepatitis-b/chb_qsp_model.svg"><img src="chronic-hepatitis-b/chb_qsp_model.png" width="190" alt="CHB"></a> | HBV cccDNA 지속과 면역 매개 간손상. 뉴클레오시드유사체·페그IFN의 바이러스 억제.<br>[🗺️ 지도](chronic-hepatitis-b/chb_qsp_model.svg) · [⚙️ mrgsolve](chronic-hepatitis-b/chb_mrgsolve_model.R) · [📚 문헌](chronic-hepatitis-b/chb_references.md) · [📄 README](chronic-hepatitis-b/README.md) |
+| 24 | 내분비·대사 | [**만성 갑상선 기능 저하증**<br><sub>Chronic Hypothyroidism · HYPO</sub>](chronic-hypothyroidism/) | <a href="chronic-hypothyroidism/hypo_qsp_model.svg"><img src="chronic-hypothyroidism/hypo_qsp_model.png" width="190" alt="HYPO"></a> | 시상하부-뇌하수체-갑상선 축 저하(TSH↑/FT4↓). 레보티록신 보충의 용량-반응.<br>[🗺️ 지도](chronic-hypothyroidism/hypo_qsp_model.svg) · [⚙️ mrgsolve](chronic-hypothyroidism/hypo_mrgsolve_model.R) · [📚 문헌](chronic-hypothyroidism/hypo_references.md) · [📄 README](chronic-hypothyroidism/README.md) |
+| 25 | 신장·비뇨 | [**만성 신부전**<br><sub>Chronic Kidney Disease · CKD</sub>](chronic-kidney-disease/) | <a href="chronic-kidney-disease/ckd_qsp_model.svg"><img src="chronic-kidney-disease/ckd_qsp_model.png" width="190" alt="CKD"></a> | 사구체 과여과·섬유화로 eGFR 진행성 저하. RAAS 억제·SGLT2i·피네레논 신보호.<br>[🗺️ 지도](chronic-kidney-disease/ckd_qsp_model.svg) · [⚙️ mrgsolve](chronic-kidney-disease/ckd_mrgsolve_model.R) · [📚 문헌](chronic-kidney-disease/ckd_references.md) · [📄 README](chronic-kidney-disease/README.md) |
+| 26 | 소화기·간담도 | [**만성 췌장염**<br><sub>Chronic Pancreatitis · CP</sub>](chronic-pancreatitis/) | <a href="chronic-pancreatitis/cp_qsp_model.svg"><img src="chronic-pancreatitis/cp_qsp_model.png" width="190" alt="CP"></a> | 반복 손상 → 췌성상세포 활성·섬유화·외분비 부전. 효소보충·통증관리 전략.<br>[🗺️ 지도](chronic-pancreatitis/cp_qsp_model.svg) · [⚙️ mrgsolve](chronic-pancreatitis/cp_mrgsolve_model.R) · [📚 문헌](chronic-pancreatitis/cp_references.md) · [📄 README](chronic-pancreatitis/README.md) |
+| 27 | 심혈관 | [**만성 정맥 부전**<br><sub>Chronic Venous Insufficiency · CVI</sub>](chronic-venous-insufficiency/) | <a href="chronic-venous-insufficiency/cvi_qsp_model.svg"><img src="chronic-venous-insufficiency/cvi_qsp_model.png" width="190" alt="CVI"></a> | 판막 부전·정맥압 상승·백혈구 트래핑에 의한 부종·궤양. 정맥활성약(MPFF)·압박요법.<br>[🗺️ 지도](chronic-venous-insufficiency/cvi_qsp_model.svg) · [⚙️ mrgsolve](chronic-venous-insufficiency/cvi_mrgsolve_model.R) · [📚 문헌](chronic-venous-insufficiency/cvi_references.md) · [📄 README](chronic-venous-insufficiency/README.md) |
+| 28 | 신경 | [**만성 염증성 탈수초성 다발신경병증 (CIDP)**<br><sub>Chronic Inflammatory Demyelinating Polyneuropathy · CIDP</sub>](cidp/) | <a href="cidp/cidp_qsp_model.svg"><img src="cidp/cidp_qsp_model.png" width="190" alt="CIDP"></a> | 자가면역 말이집 파괴에 의한 진행/재발성 신경병증. IVIG·스테로이드·혈장교환.<br>[🗺️ 지도](cidp/cidp_qsp_model.svg) · [⚙️ mrgsolve](cidp/cidp_mrgsolve_model.R) · [📚 문헌](cidp/cidp_references.md) · [📄 README](cidp/README.md) |
+| 29 | 호흡기 | [**만성 폐쇄성 폐질환 (COPD)**<br><sub>Chronic Obstructive Pulmonary Disease · COPD</sub>](copd/) | <a href="copd/copd_qsp.svg"><img src="copd/copd_qsp.png" width="190" alt="COPD"></a> | 흡연-산화스트레스·단백분해효소 불균형에 의한 기도/폐포 파괴. LABA/LAMA·ICS 기관지확장.<br>[🗺️ 지도](copd/copd_qsp.svg) · [⚙️ mrgsolve](copd/copd_mrgsolve_model.R) · [📚 문헌](copd/copd_references.md) · [📄 README](copd/README.md) |
+| 30 | 소화기·간담도 | [**크론병**<br><sub>Crohn's Disease · CD</sub>](crohn-disease/) | <a href="crohn-disease/cd_qsp_model.svg"><img src="crohn-disease/cd_qsp_model.png" width="190" alt="CD"></a> | Th1/Th17 경유 전층성 장 염증과 장벽 투과성. 항TNF·항IL-12/23·항인테그린 생물학제제.<br>[🗺️ 지도](crohn-disease/cd_qsp_model.svg) · [⚙️ mrgsolve](crohn-disease/cd_mrgsolve_model.R) · [📚 문헌](crohn-disease/cd_references.md) · [📄 README](crohn-disease/README.md) |
+| 31 | 자가면역·류마티스 | [**피부근염**<br><sub>Dermatomyositis · DM</sub>](dermatomyositis/) | <a href="dermatomyositis/dm_qsp_model.svg"><img src="dermatomyositis/dm_qsp_model.png" width="190" alt="DM"></a> | I형 IFN·보체 매개 근육·피부 미세혈관병증. 스테로이드·IVIG·리툭시맙.<br>[🗺️ 지도](dermatomyositis/dm_qsp_model.svg) · [⚙️ mrgsolve](dermatomyositis/dm_mrgsolve_model.R) · [📚 문헌](dermatomyositis/dm_references.md) · [📄 README](dermatomyositis/README.md) |
+| 32 | 심혈관 | [**확장성 심근병증**<br><sub>Dilated Cardiomyopathy · DCM</sub>](dilated-cardiomyopathy/) | <a href="dilated-cardiomyopathy/dcm_qsp_model.svg"><img src="dilated-cardiomyopathy/dcm_qsp_model.png" width="190" alt="DCM"></a> | 심실 확장·수축기능 저하·신경호르몬 활성화. GDMT(ARNI/BB/MRA/SGLT2i) 역리모델링.<br>[🗺️ 지도](dilated-cardiomyopathy/dcm_qsp_model.svg) · [⚙️ mrgsolve](dilated-cardiomyopathy/dcm_mrgsolve_model.R) · [📚 문헌](dilated-cardiomyopathy/dcm_references.md) · [📄 README](dilated-cardiomyopathy/README.md) |
+| 33 | 소화기·간담도 | [**게실병**<br><sub>Diverticular Disease · DIV</sub>](diverticular-disease/) | <a href="diverticular-disease/div_qsp_model.svg"><img src="diverticular-disease/div_qsp_model.png" width="190" alt="DIV"></a> | 장벽 구조·미생물·저섬유식에 의한 게실/게실염. 섬유·항생제·항염 치료.<br>[🗺️ 지도](diverticular-disease/div_qsp_model.svg) · [⚙️ mrgsolve](diverticular-disease/div_mrgsolve_model.R) · [📚 문헌](diverticular-disease/div_references.md) · [📄 README](diverticular-disease/README.md) |
+| 34 | 내분비·대사 | [**이상지질혈증**<br><sub>Dyslipidemia · DYSLIP</sub>](dyslipidemia/) | <a href="dyslipidemia/dyslip_qsp_model.svg"><img src="dyslipidemia/dyslip_qsp_model.png" width="190" alt="DYSLIP"></a> | 간 콜레스테롤 합성·LDL 수용체·역수송 항상성. 스타틴·에제티미브·PCSK9 억제제.<br>[🗺️ 지도](dyslipidemia/dyslip_qsp_model.svg) · [⚙️ mrgsolve](dyslipidemia/dyslip_mrgsolve_model.R) · [📚 문헌](dyslipidemia/dyslip_references.md) · [📄 README](dyslipidemia/README.md) |
+| 35 | 혈관염 | [**호산구 육아종증 다발혈관염 (EGPA)**<br><sub>Eosinophilic GPA · EGPA</sub>](egpa/) | <a href="egpa/egpa_qsp_model.svg"><img src="egpa/egpa_qsp_model.png" width="190" alt="EGPA"></a> | IL-5 매개 호산구증가와 ANCA 연관 소혈관염. 스테로이드·메폴리주맙·벤랄리주맙.<br>[🗺️ 지도](egpa/egpa_qsp_model.svg) · [⚙️ mrgsolve](egpa/egpa_mrgsolve_model.R) · [📚 문헌](egpa/egpa_references.md) · [📄 README](egpa/README.md) |
+| 36 | 심혈관 | [**본태성 고혈압**<br><sub>Essential Hypertension · EH</sub>](essential-hypertension/) | <a href="essential-hypertension/eh_qsp_model.svg"><img src="essential-hypertension/eh_qsp_model.png" width="190" alt="EH"></a> | RAAS·교감신경·나트륨/체액 항상성에 의한 혈압 조절. ACEi/ARB·CCB·이뇨제.<br>[🗺️ 지도](essential-hypertension/eh_qsp_model.svg) · [⚙️ mrgsolve](essential-hypertension/eh_mrgsolve_model.R) · [📚 문헌](essential-hypertension/eh_references.md) · [📄 README](essential-hypertension/README.md) |
+| 37 | 혈액 | [**에반스 증후군**<br><sub>Evans Syndrome · ES</sub>](evans-syndrome/) | <a href="evans-syndrome/es_qsp_model.svg"><img src="evans-syndrome/es_qsp_model.png" width="190" alt="ES"></a> | AIHA와 ITP가 동반된 다계열 자가면역 혈구감소. 스테로이드·리툭시맙·TPO-RA.<br>[🗺️ 지도](evans-syndrome/es_qsp_model.svg) · [⚙️ mrgsolve](evans-syndrome/es_mrgsolve_model.R) · [📚 문헌](evans-syndrome/es_references.md) · [📄 README](evans-syndrome/README.md) |
+| 38 | 신장·비뇨 | [**국소분절사구체경화증 (FSGS)**<br><sub>Focal Segmental Glomerulosclerosis · FSGS</sub>](fsgs/) | <a href="fsgs/fsgs_qsp_model.svg"><img src="fsgs/fsgs_qsp_model.png" width="190" alt="FSGS"></a> | 순환 투과인자·족세포 손상에 의한 신증후군 단백뇨. RAAS 억제·스테로이드·칼시뉴린억제제.<br>[🗺️ 지도](fsgs/fsgs_qsp_model.svg) · [⚙️ mrgsolve](fsgs/fsgs_mrgsolve_model.R) · [📚 문헌](fsgs/fsgs_references.md) · [📄 README](fsgs/README.md) |
+| 39 | 소화기·간담도 | [**위식도 역류질환 (GERD)**<br><sub>Gastroesophageal Reflux Disease · GERD</sub>](gerd/) | <a href="gerd/gerd_qsp_model.svg"><img src="gerd/gerd_qsp_model.png" width="190" alt="GERD"></a> | 하부식도괄약근 이완·산 역류에 의한 식도 점막 손상. PPI·P-CAB 위산 억제.<br>[🗺️ 지도](gerd/gerd_qsp_model.svg) · [⚙️ mrgsolve](gerd/gerd_mrgsolve_model.R) · [📚 문헌](gerd/gerd_references.md) · [📄 README](gerd/README.md) |
+| 40 | 혈관염 | [**거대세포 동맥염**<br><sub>Giant Cell Arteritis · GCA</sub>](giant-cell-arteritis/) | <a href="giant-cell-arteritis/gca_qsp_model.svg"><img src="giant-cell-arteritis/gca_qsp_model.png" width="190" alt="GCA"></a> | 대혈관의 IL-6/Th17 육아종성 동맥염과 실명 위험. 스테로이드·토실리주맙(항IL-6R).<br>[🗺️ 지도](giant-cell-arteritis/gca_qsp_model.svg) · [⚙️ mrgsolve](giant-cell-arteritis/gca_mrgsolve_model.R) · [📚 문헌](giant-cell-arteritis/gca_references.md) · [📄 README](giant-cell-arteritis/README.md) |
+| 41 | 신장·비뇨 | [**굿파스처 증후군**<br><sub>Goodpasture Syndrome · GPS</sub>](goodpasture-syndrome/) | <a href="goodpasture-syndrome/gps_qsp_model.svg"><img src="goodpasture-syndrome/gps_qsp_model.png" width="190" alt="GPS"></a> | 항GBM 항체에 의한 급속진행성 사구체신염·폐포출혈. 혈장교환·CY·리툭시맙.<br>[🗺️ 지도](goodpasture-syndrome/gps_qsp_model.svg) · [⚙️ mrgsolve](goodpasture-syndrome/gps_mrgsolve_model.R) · [📚 문헌](goodpasture-syndrome/gps_references.md) · [📄 README](goodpasture-syndrome/README.md) |
+| 42 | 내분비·대사 | [**통풍**<br><sub>Gout · GOUT</sub>](gout/) | <a href="gout/gout_qsp_model.svg"><img src="gout/gout_qsp_model.png" width="190" alt="GOUT"></a> | 요산 과포화·MSU 결정·NLRP3-IL-1β 염증성 관절염. 요산저하제(알로푸리놀/페북소스타트)·콜히친.<br>[🗺️ 지도](gout/gout_qsp_model.svg) · [⚙️ mrgsolve](gout/gout_mrgsolve_model.R) · [📚 문헌](gout/gout_references.md) · [📄 README](gout/README.md) |
+| 43 | 혈관염 | [**육아종증 다발혈관염 (GPA)**<br><sub>Granulomatosis with Polyangiitis · GPA</sub>](granulomatosis-with-polyangiitis/) | <a href="granulomatosis-with-polyangiitis/gpa_qsp_model.svg"><img src="granulomatosis-with-polyangiitis/gpa_qsp_model.png" width="190" alt="GPA"></a> | PR3-ANCA 호중구 활성·육아종성 소혈관염. 리툭시맙·아바코판(C5aR 차단).<br>[🗺️ 지도](granulomatosis-with-polyangiitis/gpa_qsp_model.svg) · [⚙️ mrgsolve](granulomatosis-with-polyangiitis/gpa_mrgsolve_model.R) · [📚 문헌](granulomatosis-with-polyangiitis/gpa_references.md) · [📄 README](granulomatosis-with-polyangiitis/README.md) |
+| 44 | 내분비·대사 | [**그레이브스병**<br><sub>Graves' Disease · GD</sub>](graves-disease/) | <a href="graves-disease/gd_qsp_model.svg"><img src="graves-disease/gd_qsp_model.png" width="190" alt="GD"></a> | TSH 수용체 자극항체에 의한 갑상선기능항진. 항갑상선제·방사성요오드·수술.<br>[🗺️ 지도](graves-disease/gd_qsp_model.svg) · [⚙️ mrgsolve](graves-disease/gd_mrgsolve_model.R) · [📚 문헌](graves-disease/gd_references.md) · [📄 README](graves-disease/README.md) |
+| 45 | 신경 | [**길랭-바레 증후군**<br><sub>Guillain-Barré Syndrome · GBS</sub>](guillain-barre-syndrome/) | <a href="guillain-barre-syndrome/gbs_qsp_model.svg"><img src="guillain-barre-syndrome/gbs_qsp_model.png" width="190" alt="GBS"></a> | 분자모방 항강글리오시드 항체·보체 매개 급성 신경병증. IVIG·혈장교환.<br>[🗺️ 지도](guillain-barre-syndrome/gbs_qsp_model.svg) · [⚙️ mrgsolve](guillain-barre-syndrome/gbs_mrgsolve_model.R) · [📚 문헌](guillain-barre-syndrome/gbs_references.md) · [📄 README](guillain-barre-syndrome/README.md) |
+| 46 | 내분비·대사 | [**하시모토 갑상선염**<br><sub>Hashimoto's Thyroiditis · HT</sub>](hashimoto-thyroiditis/) | <a href="hashimoto-thyroiditis/ht_qsp_model.svg"><img src="hashimoto-thyroiditis/ht_qsp_model.png" width="190" alt="HT"></a> | 항TPO/Tg 항체·T세포 매개 갑상선 파괴와 기능저하. 레보티록신 보충.<br>[🗺️ 지도](hashimoto-thyroiditis/ht_qsp_model.svg) · [⚙️ mrgsolve](hashimoto-thyroiditis/ht_mrgsolve_model.R) · [📚 문헌](hashimoto-thyroiditis/ht_references.md) · [📄 README](hashimoto-thyroiditis/README.md) |
+| 47 | 심혈관 | [**심부전 (보존 박출률, HFpEF)**<br><sub>Heart Failure with Preserved EF · HFpEF</sub>](heart-failure-hfpef/) | <a href="heart-failure-hfpef/hfpef_qsp_model.svg"><img src="heart-failure-hfpef/hfpef_qsp_model.png" width="190" alt="HFpEF"></a> | 심근 경직·전신 염증·미세혈관 기능부전에 의한 확장기 부전. SGLT2i·MRA·이뇨제.<br>[🗺️ 지도](heart-failure-hfpef/hfpef_qsp_model.svg) · [⚙️ mrgsolve](heart-failure-hfpef/hfpef_mrgsolve_model.R) · [📚 문헌](heart-failure-hfpef/hfpef_references.md) · [📄 README](heart-failure-hfpef/README.md) |
+| 48 | 심혈관 | [**심부전 (감소 박출률, HFrEF)**<br><sub>Heart Failure with Reduced EF · HFrEF</sub>](heart-failure-hfref/) | <a href="heart-failure-hfref/hfref_qsp_model.svg"><img src="heart-failure-hfref/hfref_qsp_model.png" width="190" alt="HFrEF"></a> | 신경호르몬(RAAS/SNS) 과활성과 심실 리모델링. ARNI·BB·MRA·SGLT2i 4대 요법.<br>[🗺️ 지도](heart-failure-hfref/hfref_qsp_model.svg) · [⚙️ mrgsolve](heart-failure-hfref/hfref_mrgsolve_model.R) · [📚 문헌](heart-failure-hfref/hfref_references.md) · [📄 README](heart-failure-hfref/README.md) |
+| 49 | 심혈관 | [**비후성 심근병증**<br><sub>Hypertrophic Cardiomyopathy · HCM</sub>](hypertrophic-cardiomyopathy/) | <a href="hypertrophic-cardiomyopathy/hcm_qsp_model.svg"><img src="hypertrophic-cardiomyopathy/hcm_qsp_model.png" width="190" alt="HCM"></a> | 근절 변이에 의한 과수축·좌심실유출로 폐쇄. 마바캄텐(마이오신 억제)·베타차단제.<br>[🗺️ 지도](hypertrophic-cardiomyopathy/hcm_qsp_model.svg) · [⚙️ mrgsolve](hypertrophic-cardiomyopathy/hcm_mrgsolve_model.R) · [📚 문헌](hypertrophic-cardiomyopathy/hcm_references.md) · [📄 README](hypertrophic-cardiomyopathy/README.md) |
+| 50 | 호흡기 | [**특발성 폐섬유화증 (IPF)**<br><sub>Idiopathic Pulmonary Fibrosis · IPF</sub>](idiopathic-pulmonary-fibrosis/) | <a href="idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg"><img src="idiopathic-pulmonary-fibrosis/ipf_qsp_model.png" width="190" alt="IPF"></a> | 상피손상-섬유아세포 활성·ECM 침착에 의한 진행성 섬유화. 닌테다닙·피르페니돈.<br>[🗺️ 지도](idiopathic-pulmonary-fibrosis/ipf_qsp_model.svg) · [⚙️ mrgsolve](idiopathic-pulmonary-fibrosis/ipf_mrgsolve_model.R) · [📚 문헌](idiopathic-pulmonary-fibrosis/ipf_references.md) · [📄 README](idiopathic-pulmonary-fibrosis/README.md) |
+| 51 | 신장·비뇨 | [**IgA 신병증**<br><sub>IgA Nephropathy · IgAN</sub>](iga-nephropathy/) | <a href="iga-nephropathy/igan_qsp_model.svg"><img src="iga-nephropathy/igan_qsp_model.png" width="190" alt="IgAN"></a> | Gd-IgA1 면역복합체 메산지움 침착·보체 활성. 스테로이드·스파르센탄·보체억제제(이프타코판).<br>[🗺️ 지도](iga-nephropathy/igan_qsp_model.svg) · [⚙️ mrgsolve](iga-nephropathy/igan_mrgsolve_model.R) · [📚 문헌](iga-nephropathy/igan_references.md) · [📄 README](iga-nephropathy/README.md) |
+| 52 | 혈관염 | [**IgA 혈관염 (HSP)**<br><sub>IgA Vasculitis · IgAV</sub>](iga-vasculitis/) | <a href="iga-vasculitis/igav_qsp_model.svg"><img src="iga-vasculitis/igav_qsp_model.png" width="190" alt="IgAV"></a> | Gd-IgA1 면역복합체 소혈관 침착에 의한 촉지성 자반·신염. 스테로이드·면역억제.<br>[🗺️ 지도](iga-vasculitis/igav_qsp_model.svg) · [⚙️ mrgsolve](iga-vasculitis/igav_mrgsolve_model.R) · [📚 문헌](iga-vasculitis/igav_references.md) · [📄 README](iga-vasculitis/README.md) |
+| 53 | 혈액 | [**면역혈소판감소자반증 (ITP)**<br><sub>Immune Thrombocytopenic Purpura · ITP</sub>](immune-thrombocytopenic-purpura/) | <a href="immune-thrombocytopenic-purpura/itp_qsp_model.svg"><img src="immune-thrombocytopenic-purpura/itp_qsp_model.png" width="190" alt="ITP"></a> | 항혈소판 항체 매개 파괴와 생성 저하. 스테로이드·TPO 수용체작용제·리툭시맙.<br>[🗺️ 지도](immune-thrombocytopenic-purpura/itp_qsp_model.svg) · [⚙️ mrgsolve](immune-thrombocytopenic-purpura/itp_mrgsolve_model.R) · [📚 문헌](immune-thrombocytopenic-purpura/itp_references.md) · [📄 README](immune-thrombocytopenic-purpura/README.md) |
+| 54 | 소화기·간담도 | [**과민성 장증후군 (IBS)**<br><sub>Irritable Bowel Syndrome · IBS</sub>](irritable-bowel-syndrome/) | <a href="irritable-bowel-syndrome/ibs_qsp_model.svg"><img src="irritable-bowel-syndrome/ibs_qsp_model.png" width="190" alt="IBS"></a> | 뇌-장축 이상·내장과민·미생물 변화. 식이·신경조절·장특이 약물(리나클로타이드 등).<br>[🗺️ 지도](irritable-bowel-syndrome/ibs_qsp_model.svg) · [⚙️ mrgsolve](irritable-bowel-syndrome/ibs_mrgsolve_model.R) · [📚 문헌](irritable-bowel-syndrome/ibs_references.md) · [📄 README](irritable-bowel-syndrome/README.md) |
+| 55 | 소화기·간담도 | [**간경변증**<br><sub>Liver Cirrhosis · LC</sub>](liver-cirrhosis/) | <a href="liver-cirrhosis/lc_qsp_model.svg"><img src="liver-cirrhosis/lc_qsp_model.png" width="190" alt="LC"></a> | 만성 손상 → 성상세포 섬유화·문맥압항진·합병증. 원인치료 및 합병증 관리.<br>[🗺️ 지도](liver-cirrhosis/lc_qsp_model.svg) · [⚙️ mrgsolve](liver-cirrhosis/lc_mrgsolve_model.R) · [📚 문헌](liver-cirrhosis/lc_references.md) · [📄 README](liver-cirrhosis/README.md) |
+| 56 | 신장·비뇨 | [**막성 신병증**<br><sub>Membranous Nephropathy · MN</sub>](membranous-nephropathy/) | <a href="membranous-nephropathy/mn_qsp_model.svg"><img src="membranous-nephropathy/mn_qsp_model.png" width="190" alt="MN"></a> | 항PLA2R 항체에 의한 상피하 면역침착·신증후군. 리툭시맙 B세포 고갈.<br>[🗺️ 지도](membranous-nephropathy/mn_qsp_model.svg) · [⚙️ mrgsolve](membranous-nephropathy/mn_mrgsolve_model.R) · [📚 문헌](membranous-nephropathy/mn_references.md) · [📄 README](membranous-nephropathy/README.md) |
+| 57 | 내분비·대사 | [**대사 증후군**<br><sub>Metabolic Syndrome · MS</sub>](metabolic-syndrome/) | <a href="metabolic-syndrome/ms_qsp_model.svg"><img src="metabolic-syndrome/ms_qsp_model.png" width="190" alt="MS"></a> | 인슐린 저항성·내장지방·이상지질·고혈압 군집. 생활습관 및 대사 표적 약물.<br>[🗺️ 지도](metabolic-syndrome/ms_qsp_model.svg) · [⚙️ mrgsolve](metabolic-syndrome/ms_mrgsolve_model.R) · [📚 문헌](metabolic-syndrome/ms_references.md) · [📄 README](metabolic-syndrome/README.md) |
+| 58 | 혈관염 | [**현미경적 다발혈관염 (MPA)**<br><sub>Microscopic Polyangiitis · MPA</sub>](microscopic-polyangiitis/) | <a href="microscopic-polyangiitis/mpa_qsp_model.svg"><img src="microscopic-polyangiitis/mpa_qsp_model.png" width="190" alt="MPA"></a> | MPO-ANCA 매개 소혈관염·급속진행성 사구체신염. 리툭시맙·아바코판.<br>[🗺️ 지도](microscopic-polyangiitis/mpa_qsp_model.svg) · [⚙️ mrgsolve](microscopic-polyangiitis/mpa_mrgsolve_model.R) · [📚 문헌](microscopic-polyangiitis/mpa_references.md) · [📄 README](microscopic-polyangiitis/README.md) |
+| 59 | 신장·비뇨 | [**미세변화 신증후군**<br><sub>Minimal Change Disease · MCD</sub>](minimal-change-disease/) | <a href="minimal-change-disease/mcd_qsp_model.svg"><img src="minimal-change-disease/mcd_qsp_model.png" width="190" alt="MCD"></a> | T세포 매개 순환인자에 의한 족세포 손상·대량 단백뇨. 스테로이드·칼시뉴린억제제.<br>[🗺️ 지도](minimal-change-disease/mcd_qsp_model.svg) · [⚙️ mrgsolve](minimal-change-disease/mcd_mrgsolve_model.R) · [📚 문헌](minimal-change-disease/mcd_references.md) · [📄 README](minimal-change-disease/README.md) |
+| 60 | 자가면역·류마티스 | [**혼합결합조직병 (MCTD)**<br><sub>Mixed Connective Tissue Disease · MCTD</sub>](mixed-connective-tissue-disease/) | <a href="mixed-connective-tissue-disease/mctd_qsp_model.svg"><img src="mixed-connective-tissue-disease/mctd_qsp_model.png" width="190" alt="MCTD"></a> | 항U1-RNP 항체 양성, SLE/SSc/PM 중복 양상. 스테로이드·면역억제.<br>[🗺️ 지도](mixed-connective-tissue-disease/mctd_qsp_model.svg) · [⚙️ mrgsolve](mixed-connective-tissue-disease/mctd_mrgsolve_model.R) · [📚 문헌](mixed-connective-tissue-disease/mctd_references.md) · [📄 README](mixed-connective-tissue-disease/README.md) |
+| 61 | 신경 | [**다발성 경화증**<br><sub>Multiple Sclerosis · MS</sub>](multiple-sclerosis/) | <a href="multiple-sclerosis/ms_qsp.svg"><img src="multiple-sclerosis/ms_qsp.png" width="190" alt="MS"></a> | 자가반응 T/B세포에 의한 중추신경 탈수초·축삭 손상. 질병조절치료(항CD20·S1P 조절제).<br>[🗺️ 지도](multiple-sclerosis/ms_qsp.svg) · [⚙️ mrgsolve](multiple-sclerosis/ms_mrgsolve_model.R) · [📚 문헌](multiple-sclerosis/ms_references.md) · [📄 README](multiple-sclerosis/README.md) |
+| 62 | 신경 | [**중증 근무력증**<br><sub>Myasthenia Gravis · MG</sub>](myasthenia-gravis/) | <a href="myasthenia-gravis/mg_qsp_model.svg"><img src="myasthenia-gravis/mg_qsp_model.png" width="190" alt="MG"></a> | 항AChR 항체·보체 매개 신경근접합 차단. 콜린에스터분해효소 억제·FcRn/보체 억제제.<br>[🗺️ 지도](myasthenia-gravis/mg_qsp_model.svg) · [⚙️ mrgsolve](myasthenia-gravis/mg_mrgsolve_model.R) · [📚 문헌](myasthenia-gravis/mg_references.md) · [📄 README](myasthenia-gravis/README.md) |
+| 63 | 소화기·간담도 | [**비알코올 지방간/지방간염 (NAFLD/NASH)**<br><sub>NAFLD/NASH · NAFLD</sub>](nafld-nash/) | <a href="nafld-nash/nafld_qsp_model.svg"><img src="nafld-nash/nafld_qsp_model.png" width="190" alt="NAFLD"></a> | 지방독성·염증·섬유화 진행(지방간→지방간염). 레스메티롬(THR-β)·GLP-1 작용제.<br>[🗺️ 지도](nafld-nash/nafld_qsp_model.svg) · [⚙️ mrgsolve](nafld-nash/nafld_mrgsolve_model.R) · [📚 문헌](nafld-nash/nafld_references.md) · [📄 README](nafld-nash/README.md) |
+| 64 | 신경 | [**시신경척수염 (NMOSD)**<br><sub>Neuromyelitis Optica · NMO</sub>](neuromyelitis-optica/) | <a href="neuromyelitis-optica/nmo_qsp_model.svg"><img src="neuromyelitis-optica/nmo_qsp_model.png" width="190" alt="NMO"></a> | 항AQP4 항체·보체 매개 성상세포 손상. 에쿨리주맙·항IL-6R(사트랄리주맙)·항CD19(이네빌리주맙).<br>[🗺️ 지도](neuromyelitis-optica/nmo_qsp_model.svg) · [⚙️ mrgsolve](neuromyelitis-optica/nmo_mrgsolve_model.R) · [📚 문헌](neuromyelitis-optica/nmo_references.md) · [📄 README](neuromyelitis-optica/README.md) |
+| 65 | 내분비·대사 | [**비만**<br><sub>Obesity · OB</sub>](obesity/) | <a href="obesity/ob_qsp_model.svg"><img src="obesity/ob_qsp_model.png" width="190" alt="OB"></a> | 에너지 항상성·식욕조절(렙틴/GLP-1/멜라노코르틴) 조절이상. GLP-1/GIP 작용제 체중감량.<br>[🗺️ 지도](obesity/ob_qsp_model.svg) · [⚙️ mrgsolve](obesity/ob_mrgsolve_model.R) · [📚 문헌](obesity/ob_references.md) · [📄 README](obesity/README.md) |
+| 66 | 호흡기 | [**폐쇄성 수면 무호흡 (OSA)**<br><sub>Obstructive Sleep Apnea · OSA</sub>](obstructive-sleep-apnea/) | <a href="obstructive-sleep-apnea/osa_qsp_model.svg"><img src="obstructive-sleep-apnea/osa_qsp_model.png" width="190" alt="OSA"></a> | 상기도 허탈·간헐적 저산소·교감신경 활성. CPAP·체중감량·약물 보조.<br>[🗺️ 지도](obstructive-sleep-apnea/osa_qsp_model.svg) · [⚙️ mrgsolve](obstructive-sleep-apnea/osa_mrgsolve_model.R) · [📚 문헌](obstructive-sleep-apnea/osa_references.md) · [📄 README](obstructive-sleep-apnea/README.md) |
+| 67 | 내분비·대사 | [**골다공증**<br><sub>Osteoporosis · OP</sub>](osteoporosis/) | <a href="osteoporosis/op_qsp_model.svg"><img src="osteoporosis/op_qsp_model.png" width="190" alt="OP"></a> | RANKL-OPG 불균형으로 골흡수↑/형성↓. 비스포스포네이트·데노수맙·로모소주맙.<br>[🗺️ 지도](osteoporosis/op_qsp_model.svg) · [⚙️ mrgsolve](osteoporosis/op_mrgsolve_model.R) · [📚 문헌](osteoporosis/op_references.md) · [📄 README](osteoporosis/README.md) |
+| 68 | 신장·비뇨 | [**과민성 방광 (OAB)**<br><sub>Overactive Bladder · OAB</sub>](overactive-bladder/) | <a href="overactive-bladder/oab_qsp_model.svg"><img src="overactive-bladder/oab_qsp_model.png" width="190" alt="OAB"></a> | 배뇨근 과활동(무스카린/β3 수용체 불균형). 항무스카린제·미라베그론(β3 작용제).<br>[🗺️ 지도](overactive-bladder/oab_qsp_model.svg) · [⚙️ mrgsolve](overactive-bladder/oab_mrgsolve_model.R) · [📚 문헌](overactive-bladder/oab_references.md) · [📄 README](overactive-bladder/README.md) |
+| 69 | 내분비·대사 | [**파젯병 (골)**<br><sub>Paget's Disease of Bone · PBD</sub>](pagets-disease/) | <a href="pagets-disease/pbd_qsp_model.svg"><img src="pagets-disease/pbd_qsp_model.png" width="190" alt="PBD"></a> | SQSTM1/RANKL 과활성에 의한 비정상 골개조. 졸레드론산 등 비스포스포네이트.<br>[🗺️ 지도](pagets-disease/pbd_qsp_model.svg) · [⚙️ mrgsolve](pagets-disease/pbd_mrgsolve_model.R) · [📚 문헌](pagets-disease/pbd_references.md) · [📄 README](pagets-disease/README.md) |
+| 70 | 피부 | [**심상성 천포창**<br><sub>Pemphigus Vulgaris · PV</sub>](pemphigus-vulgaris/) | <a href="pemphigus-vulgaris/pv_qsp_model.svg"><img src="pemphigus-vulgaris/pv_qsp_model.png" width="190" alt="PV"></a> | 항데스모글레인 항체에 의한 표피내 수포(천포창). 리툭시맙·스테로이드.<br>[🗺️ 지도](pemphigus-vulgaris/pv_qsp_model.svg) · [⚙️ mrgsolve](pemphigus-vulgaris/pv_mrgsolve_model.R) · [📚 문헌](pemphigus-vulgaris/pv_references.md) · [📄 README](pemphigus-vulgaris/README.md) |
+| 71 | 소화기·간담도 | [**소화성 궤양**<br><sub>Peptic Ulcer Disease · PUD</sub>](peptic-ulcer/) | <a href="peptic-ulcer/pud_qsp_model.svg"><img src="peptic-ulcer/pud_qsp_model.png" width="190" alt="PUD"></a> | H. pylori·NSAID에 의한 점막 방어-공격 불균형. PPI·제균요법 점막 치유.<br>[🗺️ 지도](peptic-ulcer/pud_qsp_model.svg) · [⚙️ mrgsolve](peptic-ulcer/pud_mrgsolve_model.R) · [📚 문헌](peptic-ulcer/pud_references.md) · [📄 README](peptic-ulcer/README.md) |
+| 72 | 심혈관 | [**말초동맥질환 (PAD)**<br><sub>Peripheral Arterial Disease · PAD</sub>](peripheral-arterial-disease/) | <a href="peripheral-arterial-disease/pad_qsp_model.svg"><img src="peripheral-arterial-disease/pad_qsp_model.png" width="190" alt="PAD"></a> | 죽상경화에 의한 하지 허혈·파행. 항혈소판·스타틴·실로스타졸.<br>[🗺️ 지도](peripheral-arterial-disease/pad_qsp_model.svg) · [⚙️ mrgsolve](peripheral-arterial-disease/pad_mrgsolve_model.R) · [📚 문헌](peripheral-arterial-disease/pad_references.md) · [📄 README](peripheral-arterial-disease/README.md) |
+| 73 | 혈액 | [**악성 빈혈**<br><sub>Pernicious Anemia · PNA</sub>](pernicious-anemia/) | <a href="pernicious-anemia/pna_qsp_model.svg"><img src="pernicious-anemia/pna_qsp_model.png" width="190" alt="PNA"></a> | 항내인자/벽세포 항체에 의한 비타민 B12 흡수장애. B12 보충요법.<br>[🗺️ 지도](pernicious-anemia/pna_qsp_model.svg) · [⚙️ mrgsolve](pernicious-anemia/pna_mrgsolve_model.R) · [📚 문헌](pernicious-anemia/pna_references.md) · [📄 README](pernicious-anemia/README.md) |
+| 74 | 호흡기 | [**진폐증**<br><sub>Pneumoconiosis · PNM</sub>](pneumoconiosis/) | <a href="pneumoconiosis/pnm_qsp_model.svg"><img src="pneumoconiosis/pnm_qsp_model.png" width="190" alt="PNM"></a> | 분진(실리카/석탄/석면) 대식세포 활성·진행성 폐섬유화. 노출차단·대증치료.<br>[🗺️ 지도](pneumoconiosis/pnm_qsp_model.svg) · [⚙️ mrgsolve](pneumoconiosis/pnm_mrgsolve_model.R) · [📚 문헌](pneumoconiosis/pnm_references.md) · [📄 README](pneumoconiosis/README.md) |
+| 75 | 혈관염 | [**결절성 다발동맥염 (PAN)**<br><sub>Polyarteritis Nodosa · PAN</sub>](polyarteritis-nodosa/) | <a href="polyarteritis-nodosa/pan_qsp_model.svg"><img src="polyarteritis-nodosa/pan_qsp_model.png" width="190" alt="PAN"></a> | 중형 동맥의 괴사성 염증(HBV 연관 포함). 스테로이드·CY·항바이러스.<br>[🗺️ 지도](polyarteritis-nodosa/pan_qsp_model.svg) · [⚙️ mrgsolve](polyarteritis-nodosa/pan_mrgsolve_model.R) · [📚 문헌](polyarteritis-nodosa/pan_references.md) · [📄 README](polyarteritis-nodosa/README.md) |
+| 76 | 내분비·대사 | [**다낭성 난소 증후군 (PCOS)**<br><sub>Polycystic Ovary Syndrome · PCOS</sub>](polycystic-ovary-syndrome/) | <a href="polycystic-ovary-syndrome/pcos_qsp_model.svg"><img src="polycystic-ovary-syndrome/pcos_qsp_model.png" width="190" alt="PCOS"></a> | 고안드로겐·인슐린저항·LH/FSH 이상. 메트포르민·항안드로겐·배란유도.<br>[🗺️ 지도](polycystic-ovary-syndrome/pcos_qsp_model.svg) · [⚙️ mrgsolve](polycystic-ovary-syndrome/pcos_mrgsolve_model.R) · [📚 문헌](polycystic-ovary-syndrome/pcos_references.md) · [📄 README](polycystic-ovary-syndrome/README.md) |
+| 77 | 자가면역·류마티스 | [**다발성 근염**<br><sub>Polymyositis · PM</sub>](polymyositis/) | <a href="polymyositis/pm_qsp_model.svg"><img src="polymyositis/pm_qsp_model.png" width="190" alt="PM"></a> | CD8 T세포 매개 근섬유 침습·근력저하. 스테로이드·면역억제제.<br>[🗺️ 지도](polymyositis/pm_qsp_model.svg) · [⚙️ mrgsolve](polymyositis/pm_mrgsolve_model.R) · [📚 문헌](polymyositis/pm_references.md) · [📄 README](polymyositis/README.md) |
+| 78 | 소화기·간담도 | [**원발성 담즙성 담관염 (PBC)**<br><sub>Primary Biliary Cholangitis · PBC</sub>](primary-biliary-cholangitis/) | <a href="primary-biliary-cholangitis/pbc_qsp_model.svg"><img src="primary-biliary-cholangitis/pbc_qsp_model.png" width="190" alt="PBC"></a> | 항미토콘드리아항체에 의한 담관 파괴·담즙정체. UDCA·오베티콜산.<br>[🗺️ 지도](primary-biliary-cholangitis/pbc_qsp_model.svg) · [⚙️ mrgsolve](primary-biliary-cholangitis/pbc_mrgsolve_model.R) · [📚 문헌](primary-biliary-cholangitis/pbc_references.md) · [📄 README](primary-biliary-cholangitis/README.md) |
+| 79 | 내분비·대사 | [**원발성 부갑상선 기능 항진증 (PHPT)**<br><sub>Primary Hyperparathyroidism · PHPT</sub>](primary-hyperparathyroidism/) | <a href="primary-hyperparathyroidism/phpt_qsp_model.svg"><img src="primary-hyperparathyroidism/phpt_qsp_model.png" width="190" alt="PHPT"></a> | 부갑상선 선종의 PTH 자율과다·고칼슘혈증·골소실. 시나칼셋·부갑상선절제술.<br>[🗺️ 지도](primary-hyperparathyroidism/phpt_qsp_model.svg) · [⚙️ mrgsolve](primary-hyperparathyroidism/phpt_mrgsolve_model.R) · [📚 문헌](primary-hyperparathyroidism/phpt_references.md) · [📄 README](primary-hyperparathyroidism/README.md) |
+| 80 | 소화기·간담도 | [**원발성 경화성 담관염 (PSC)**<br><sub>Primary Sclerosing Cholangitis · PSC</sub>](primary-sclerosing-cholangitis/) | <a href="primary-sclerosing-cholangitis/psc_qsp_model.svg"><img src="primary-sclerosing-cholangitis/psc_qsp_model.png" width="190" alt="PSC"></a> | 담관 섬유화·다발 협착(IBD 연관)·담관암 위험. 대증치료·간이식.<br>[🗺️ 지도](primary-sclerosing-cholangitis/psc_qsp_model.svg) · [⚙️ mrgsolve](primary-sclerosing-cholangitis/psc_mrgsolve_model.R) · [📚 문헌](primary-sclerosing-cholangitis/psc_references.md) · [📄 README](primary-sclerosing-cholangitis/README.md) |
+| 81 | 내분비·대사 | [**가성통풍 (CPPD)**<br><sub>Pseudogout (CPPD) · CPPD</sub>](pseudogout/) | <a href="pseudogout/cppd_qsp_model.svg"><img src="pseudogout/cppd_qsp_model.png" width="190" alt="CPPD"></a> | 칼슘피로인산 결정 침착·NLRP3 염증성 관절염. 콜히친·NSAID·스테로이드.<br>[🗺️ 지도](pseudogout/cppd_qsp_model.svg) · [⚙️ mrgsolve](pseudogout/cppd_mrgsolve_model.R) · [📚 문헌](pseudogout/cppd_references.md) · [📄 README](pseudogout/README.md) |
+| 82 | 자가면역·류마티스 | [**건선성 관절염**<br><sub>Psoriatic Arthritis · PsA</sub>](psoriatic-arthritis/) | <a href="psoriatic-arthritis/psa_qsp_model.svg"><img src="psoriatic-arthritis/psa_qsp_model.png" width="190" alt="PsA"></a> | TNF·IL-23/IL-17 매개 부착부염·관절염·피부 건선. 생물학제제·JAK 억제제.<br>[🗺️ 지도](psoriatic-arthritis/psa_qsp_model.svg) · [⚙️ mrgsolve](psoriatic-arthritis/psa_mrgsolve_model.R) · [📚 문헌](psoriatic-arthritis/psa_references.md) · [📄 README](psoriatic-arthritis/README.md) |
+| 83 | 심혈관 | [**폐동맥 고혈압 (PAH)**<br><sub>Pulmonary Arterial Hypertension · PAH</sub>](pulmonary-arterial-hypertension/) | <a href="pulmonary-arterial-hypertension/pah_qsp_model.svg"><img src="pulmonary-arterial-hypertension/pah_qsp_model.png" width="190" alt="PAH"></a> | 폐혈관 리모델링(엔도텔린·NO·프로스타사이클린 경로). ERA·PDE5i·프로스타사이클린.<br>[🗺️ 지도](pulmonary-arterial-hypertension/pah_qsp_model.svg) · [⚙️ mrgsolve](pulmonary-arterial-hypertension/pah_mrgsolve_model.R) · [📚 문헌](pulmonary-arterial-hypertension/pah_references.md) · [📄 README](pulmonary-arterial-hypertension/README.md) |
+| 84 | 자가면역·류마티스 | [**반응성 관절염**<br><sub>Reactive Arthritis · ReA</sub>](reactive-arthritis/) | <a href="reactive-arthritis/rea_qsp_model.svg"><img src="reactive-arthritis/rea_qsp_model.png" width="190" alt="ReA"></a> | 감염 후 HLA-B27 연관 무균성 관절염. NSAID·설파살라진·생물학제제.<br>[🗺️ 지도](reactive-arthritis/rea_qsp_model.svg) · [⚙️ mrgsolve](reactive-arthritis/rea_mrgsolve_model.R) · [📚 문헌](reactive-arthritis/rea_references.md) · [📄 README](reactive-arthritis/README.md) |
+| 85 | 자가면역·류마티스 | [**재발성 다발연골염**<br><sub>Relapsing Polychondritis · RPC</sub>](relapsing-polychondritis/) | <a href="relapsing-polychondritis/rpc_qsp_model.svg"><img src="relapsing-polychondritis/rpc_qsp_model.png" width="190" alt="RPC"></a> | 연골(II형 콜라겐) 자가면역 염증(귀·코·기도). 스테로이드·면역억제·생물학제제.<br>[🗺️ 지도](relapsing-polychondritis/rpc_qsp_model.svg) · [⚙️ mrgsolve](relapsing-polychondritis/rpc_mrgsolve_model.R) · [📚 문헌](relapsing-polychondritis/rpc_references.md) · [📄 README](relapsing-polychondritis/README.md) |
+| 86 | 자가면역·류마티스 | [**류마티스 관절염**<br><sub>Rheumatoid Arthritis · RA</sub>](rheumatoid-arthritis/) | <a href="rheumatoid-arthritis/ra_qsp_model.svg"><img src="rheumatoid-arthritis/ra_qsp_model.png" width="190" alt="RA"></a> | TNF/IL-6 매개 활막 판누스·골미란. 항TNF·항IL-6·JAK 억제제·CTLA-4-Ig.<br>[🗺️ 지도](rheumatoid-arthritis/ra_qsp_model.svg) · [⚙️ mrgsolve](rheumatoid-arthritis/ra_mrgsolve_model.R) · [📚 문헌](rheumatoid-arthritis/ra_references.md) · [📄 README](rheumatoid-arthritis/README.md) |
+| 87 | 호흡기 | [**사르코이드증**<br><sub>Sarcoidosis · SARC</sub>](sarcoidosis/) | <a href="sarcoidosis/sarc_qsp_model.svg"><img src="sarcoidosis/sarc_qsp_model.png" width="190" alt="SARC"></a> | Th1/IFN-γ 매개 비건락성 육아종(폐 우세 다장기). 스테로이드·메토트렉세이트·항TNF.<br>[🗺️ 지도](sarcoidosis/sarc_qsp_model.svg) · [⚙️ mrgsolve](sarcoidosis/sarc_mrgsolve_model.R) · [📚 문헌](sarcoidosis/sarc_references.md) · [📄 README](sarcoidosis/README.md) |
+| 88 | 자가면역·류마티스 | [**쇼그렌 증후군**<br><sub>Sjögren's Syndrome · SS</sub>](sjogrens-syndrome/) | <a href="sjogrens-syndrome/ss_qsp_model.svg"><img src="sjogrens-syndrome/ss_qsp_model.png" width="190" alt="SS"></a> | 외분비선 림프구 침윤·I형 IFN에 의한 건조증. 대증치료·전신 면역조절.<br>[🗺️ 지도](sjogrens-syndrome/ss_qsp_model.svg) · [⚙️ mrgsolve](sjogrens-syndrome/ss_mrgsolve_model.R) · [📚 문헌](sjogrens-syndrome/ss_references.md) · [📄 README](sjogrens-syndrome/README.md) |
+| 89 | 심혈관 | [**안정형 협심증**<br><sub>Stable Angina · SA</sub>](stable-angina/) | <a href="stable-angina/sa_qsp_model.svg"><img src="stable-angina/sa_qsp_model.png" width="190" alt="SA"></a> | 죽상경화 관상동맥의 산소 수급 불균형. 항허혈제·항혈소판·스타틴.<br>[🗺️ 지도](stable-angina/sa_qsp_model.svg) · [⚙️ mrgsolve](stable-angina/sa_mrgsolve_model.R) · [📚 문헌](stable-angina/sa_references.md) · [📄 README](stable-angina/README.md) |
+| 90 | 자가면역·류마티스 | [**전신 홍반 루푸스 (SLE)**<br><sub>Systemic Lupus Erythematosus · SLE</sub>](systemic-lupus-erythematosus/) | <a href="systemic-lupus-erythematosus/sle_qsp.svg"><img src="systemic-lupus-erythematosus/sle_qsp.png" width="190" alt="SLE"></a> | I형 IFN·항dsDNA 면역복합체에 의한 다장기 손상. 항말라리아·벨리무맙·아니프롤루맙.<br>[🗺️ 지도](systemic-lupus-erythematosus/sle_qsp.svg) · [⚙️ mrgsolve](systemic-lupus-erythematosus/sle_model.R) · [📚 문헌](systemic-lupus-erythematosus/sle_references.md) · [📄 README](systemic-lupus-erythematosus/README.md) |
+| 91 | 자가면역·류마티스 | [**전신경화증**<br><sub>Systemic Sclerosis · SSc</sub>](systemic-sclerosis/) | <a href="systemic-sclerosis/ssc_qsp_model.svg"><img src="systemic-sclerosis/ssc_qsp_model.png" width="190" alt="SSc"></a> | 혈관병증·자가면역·섬유화의 삼중 병태. 면역억제·항섬유화·혈관확장제.<br>[🗺️ 지도](systemic-sclerosis/ssc_qsp_model.svg) · [⚙️ mrgsolve](systemic-sclerosis/ssc_mrgsolve_model.R) · [📚 문헌](systemic-sclerosis/ssc_references.md) · [📄 README](systemic-sclerosis/README.md) |
+| 92 | 혈관염 | [**다카야스 동맥염**<br><sub>Takayasu Arteritis · TA</sub>](takayasu-arteritis/) | <a href="takayasu-arteritis/ta_qsp_model.svg"><img src="takayasu-arteritis/ta_qsp_model.png" width="190" alt="TA"></a> | 대동맥/주요 분지의 육아종성 대혈관염·협착. 스테로이드·토실리주맙.<br>[🗺️ 지도](takayasu-arteritis/ta_qsp_model.svg) · [⚙️ mrgsolve](takayasu-arteritis/ta_mrgsolve_model.R) · [📚 문헌](takayasu-arteritis/ta_references.md) · [📄 README](takayasu-arteritis/README.md) |
+| 93 | 내분비·대사 | [**제1형 당뇨병**<br><sub>Type 1 Diabetes · T1DM</sub>](type1-diabetes/) | <a href="type1-diabetes/t1dm_qsp_model.svg"><img src="type1-diabetes/t1dm_qsp_model.png" width="190" alt="T1DM"></a> | 자가면역 베타세포 파괴에 의한 인슐린 결핍. 인슐린 요법·테플리주맙(발병 지연).<br>[🗺️ 지도](type1-diabetes/t1dm_qsp_model.svg) · [⚙️ mrgsolve](type1-diabetes/t1dm_mrgsolve_model.R) · [📚 문헌](type1-diabetes/t1dm_references.md) · [📄 README](type1-diabetes/README.md) |
+| 94 | 내분비·대사 | [**제2형 당뇨병**<br><sub>Type 2 Diabetes · T2DM</sub>](type2-diabetes/) | <a href="type2-diabetes/t2dm_qsp_model.svg"><img src="type2-diabetes/t2dm_qsp_model.png" width="190" alt="T2DM"></a> | 인슐린 저항성·베타세포 기능부전. 메트포르민·GLP-1·SGLT2i.<br>[🗺️ 지도](type2-diabetes/t2dm_qsp_model.svg) · [⚙️ mrgsolve](type2-diabetes/t2dm_mrgsolve_model.R) · [📚 문헌](type2-diabetes/t2dm_references.md) · [📄 README](type2-diabetes/README.md) |
+| 95 | 소화기·간담도 | [**궤양성 대장염**<br><sub>Ulcerative Colitis · UC</sub>](ulcerative-colitis/) | <a href="ulcerative-colitis/uc_qsp_model.svg"><img src="ulcerative-colitis/uc_qsp_model.png" width="190" alt="UC"></a> | 대장 점막의 Th2/장벽 염증. 5-ASA·항TNF·항인테그린·JAK 억제제.<br>[🗺️ 지도](ulcerative-colitis/uc_qsp_model.svg) · [⚙️ mrgsolve](ulcerative-colitis/uc_mrgsolve_model.R) · [📚 문헌](ulcerative-colitis/uc_references.md) · [📄 README](ulcerative-colitis/README.md) |
+| 96 | 신장·비뇨 | [**요로결석 (만성 재발성)**<br><sub>Urolithiasis · URI</sub>](urolithiasis/) | <a href="urolithiasis/uri_qsp_model.svg"><img src="urolithiasis/uri_qsp_model.png" width="190" alt="URI"></a> | 소변 과포화·결정화·Randall 플라크에 의한 결석. 티아지드·구연산칼륨·알로푸리놀.<br>[🗺️ 지도](urolithiasis/uri_qsp_model.svg) · [⚙️ mrgsolve](urolithiasis/uri_mrgsolve_model.R) · [📚 문헌](urolithiasis/uri_references.md) · [📄 README](urolithiasis/README.md) |
+| 97 | 피부 | [**백반증**<br><sub>Vitiligo · VIT</sub>](vitiligo/) | <a href="vitiligo/vit_qsp_model.svg"><img src="vitiligo/vit_qsp_model.png" width="190" alt="VIT"></a> | CD8 T세포·IFN-γ-CXCL10 축에 의한 멜라닌세포 파괴. JAK 억제제(룩솔리티닙) 색소 재침착.<br>[🗺️ 지도](vitiligo/vit_qsp_model.svg) · [⚙️ mrgsolve](vitiligo/vit_mrgsolve_model.R) · [📚 문헌](vitiligo/vit_references.md) · [📄 README](vitiligo/README.md) |
 
 ---
 
-## 자가면역 다발성 내분비병증 (APS Type 1 / APECED)
+## ⚠️ 면책 조항 (Disclaimer)
 
-### 개요
+본 라이브러리의 모든 모델은 **교육 및 연구 목적의 정성적·반정량적 QSP 모델**입니다. 공개 문헌과 임상시험 데이터를 바탕으로 구성되었으나 독립적으로 검증·인증되지 않았으며, **실제 임상 의사결정, 처방, 또는 규제 제출에 직접 사용해서는 안 됩니다.** 파라미터와 가정은 설명을 위한 근사치이며, 실제 환자 데이터에 대한 적합·검증이 별도로 필요합니다.
 
-자가면역 다발성 내분비병증(APS, Autoimmune Polyendocrinopathy Syndrome)은 두 개 이상의 내분비선이 자가면역 기전에 의해 손상되는 증후군입니다. APS Type 1(APECED)은 **AIRE 유전자 돌연변이**로 인한 중추 면역관용 파괴가 원인이며, 핀란드 1/25,000의 유병률을 보이는 희귀 단일 유전자 질환입니다. 3대 주요 구성 요소는 만성 피부칸디다증(CMC), 부갑상선기능저하증, 부신기능저하증(애디슨병)입니다.
+## 📖 참고 자료 (References & Tools)
 
-### 주요 병태생리 경로
+- mrgsolve를 이용한 R 기반 QSP: <https://vantage-research.net/qsp-in-r/>
+- gPKPDviz — mrgsolve 기반 PK/PD 시뮬레이션 Shiny 도구
+  - 논문: <https://pmc.ncbi.nlm.nih.gov/articles/PMC10941578/>
+  - 코드: <https://github.com/Genentech/gPKPDviz/>
 
-| 경로 | 핵심 기전 | 임상 결과 |
-|------|---------|---------|
-| AIRE 소실 → 흉선 | mTEC에서 TSA 발현 불능 → 자가반응 T세포 음성선택 실패 | 자가반응 T세포 말초 방출 |
-| 자가항체 생성 | 항21-OH(부신), 항NALP5(부갑상선), 항GAD65(췌장), 항TPO(갑상선) | 다장기 자가면역 |
-| 항IFN-α 중화항체 | APS1 병리표지 항체 (>95% 양성) | CMC 위험 증가 |
-| 부신 파괴 | CTL + 자가항체 → 부신피질 위축 | 코르티솔/알도스테론 결핍 |
-| 부갑상선 파괴 | 항NALP5 Ab → PTG 기능 소실 | 저칼슘혈증, 경련, QTc 연장 |
-| 췌장 베타세포 파괴 | 항GAD65/IA-2 Ab + CD8+ CTL | T1DM (APS1 환자 20%) |
-| 갑상선 파괴 | 항TPO Ab + Th1 매개 염증 | 하시모토 갑상선염, 기능저하증 |
+## 📄 라이선스 (License)
 
-### 약물 PK/PD 파라미터
-
-| 약물 | 기전 | 주요 PK | 임상 효과 |
-|------|------|---------|---------|
-| 히드로코르티손 20mg/day | GR 작용제 (부신 대체) | F=0.96, t½=1.5h, CL=1.1L/min | AM 코르티솔 정상화 (8-20 µg/dL) |
-| 플루드로코르티손 100µg/day | MR 작용제 (광물질코르티코이드) | F=0.99, t½=3.5h | Na+/K+ 균형, 기립성 저혈압 방지 |
-| 칼시트리올 0.5µg/day | VDR 작용제 | t½=5-8h | 장관 Ca²⁺ 흡수 증가 → 저칼슘 교정 |
-| 레보티록신 75-100µg/day | 갑상선호르몬 대체 | F=0.75-0.80, t½=9일 | TSH 정상화 (0.4-4.0 mIU/L) |
-| 사이클로스포린 A 3.5mg/kg | 칼시뉴린 억제 → NFAT 차단 | F=0.30(가변), t½=8-24h, IC50=150ng/mL | AutoT 억제 ~50% |
-| 아바타셉트 125mg SC/주 | CD28/B7 공자극 차단 | F=0.79, t½=13일, IC50=2µg/mL | Treg 기능 강화, AutoT 억제 |
-| 리툭시맙 375mg/m² q6mo | 항CD20 → B세포 고갈 | IV, t½=21일, IC50=5µg/mL | 자가항체 ~85% 감소 |
-| 토파시티닙 10mg/day | JAK1/3 억제 → STAT1/3/5 차단 | F=0.74, t½=3h, IC50=8ng/mL | IFN-γ/IL-17 신호 70% 차단 |
-
-### 모델 파일 목록
-
-| 파일 | 설명 |
-|------|------|
-| [aps_qsp_model.dot](autoimmune-polyendocrinopathy/aps_qsp_model.dot) | Graphviz 기계론적 지도 소스 (140+ 노드, 11 클러스터) |
-| [aps_qsp_model.svg](autoimmune-polyendocrinopathy/aps_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
-| [aps_qsp_model.png](autoimmune-polyendocrinopathy/aps_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
-| [aps_mrgsolve_model.R](autoimmune-polyendocrinopathy/aps_mrgsolve_model.R) | mrgsolve ODE 모델 (20 구획, 7 시나리오) |
-| [aps_shiny_app.R](autoimmune-polyendocrinopathy/aps_shiny_app.R) | Shiny 대시보드 (7탭: 환자/면역/PK/내분비/끝점/시나리오/바이오마커) |
-| [aps_references.md](autoimmune-polyendocrinopathy/aps_references.md) | 참고문헌 60편 (PubMed 링크, 14 섹션 분류) |
-
-### 주요 치료 시나리오 (mrgsolve 시뮬레이션)
-
-1. **자연경과 (중증 AIRE 돌연변이)**: 치료 없이 5년간 4개 장기 기능 상실 추적
-2. **HRT 단독**: 히드로코르티손 20mg/day → 코르티솔 보충, 질병 진행은 지속
-3. **HRT + 사이클로스포린 A**: T세포 억제로 자가반응 T세포 감소
-4. **HRT + 아바타셉트**: CD28 공자극 차단 → Treg 기능 회복 + 장기 파괴 감소 (최선)
-5. **HRT + 리툭시맙**: B세포 고갈로 자가항체 85% 감소 (6개월마다 투여)
-6. **HRT + 토파시티닙**: JAK 억제로 IFN-γ/IL-17 신호 차단 → 염증 감소
-7. **조기 개입 (경증 돌연변이)**: AIRE 30% 기능 소실 + 조기 HRT → 5년 후 장기 기능 유지
-
+본 저장소의 라이선스는 [LICENSE](LICENSE) 파일을 참조하세요.
