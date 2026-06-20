@@ -52,6 +52,7 @@
 | 2026-06-20 | 신경정신질환 | 주요우울장애 (Major Depressive Disorder, MDD) | [major-depressive-disorder/](major-depressive-disorder/) | [![MDD QSP](major-depressive-disorder/mdd_qsp_model.png)](major-depressive-disorder/mdd_qsp_model.svg) |
 | 2026-06-20 | 종양혈액학 | 만성 골수성 백혈병 (Chronic Myeloid Leukemia, CML) — 첫 번째 종양 모델 | [chronic-myeloid-leukemia/](chronic-myeloid-leukemia/) | [![CML QSP](chronic-myeloid-leukemia/cml_qsp_model.png)](chronic-myeloid-leukemia/cml_qsp_model.svg) |
 | 2026-06-20 | 신경학 / 두통 | 편두통 (Migraine — Trigeminovascular, CGRP, CSD, Triptans/mAbs/Gepants) | [migraine/](migraine/) | [![MGR QSP](migraine/mgr_qsp_model.png)](migraine/mgr_qsp_model.svg) |
+| 2026-06-20 | 만성 자가면역 피부질환 | 건선 (Psoriasis — IL-23/IL-17 Axis · TNF · Biologics/JAKi/PDE4i) | [psoriasis/](psoriasis/) | [![PSO QSP](psoriasis/pso_qsp_model.png)](psoriasis/pso_qsp_model.svg) |
 
 ---
 
@@ -1983,3 +1984,58 @@ Major Depressive Disorder (MDD) is the world's leading cause of disability, affe
 4. Kuca B et al. (SAMURAI) "Lasmiditan for migraine." *Neurology* 2018;91:e2222. [PMID 30446598](https://pubmed.ncbi.nlm.nih.gov/30446598/)
 5. Croop R et al. (ARTISAN-EM) "Rimegepant for migraine prevention." *Lancet* 2021;397:51. [PMID 33340483](https://pubmed.ncbi.nlm.nih.gov/33340483/)
 6. Ashina M. "Migraine." *NEJM* 2020;383:1866. [PMID 33211930](https://pubmed.ncbi.nlm.nih.gov/33211930/)
+
+---
+
+## 건선 (Psoriasis — IL-23/IL-17 Axis · TNF · Biologic & Small-Molecule Therapies)
+
+### 개요
+
+건선은 전 세계 인구의 약 2–3%, 한국 약 1.5%에서 발생하는 만성 면역 매개 피부 질환으로,
+수지상세포-Th17-IL-17A 축이 각질형성세포를 과다증식시켜 특징적인 인설성 홍반 판(plaque)을 형성합니다.
+중등도–중증 기준(PASI≥10 또는 BSA≥10%)은 전체 환자의 약 20–30%를 차지하며,
+생물학적 제제(IL-17A/IL-23 억제제)로 PASI90 달성률이 75% 이상에 이릅니다.
+
+[![Psoriasis QSP Model](psoriasis/pso_qsp_model.png)](psoriasis/pso_qsp_model.svg)
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 결과 |
+|------|------------|---------|
+| IL-23/Th17 축 | mDC→IL-23→STAT3/RORγt→Th17→IL-17A | 각질세포 NF-κB 활성화, 과증식 |
+| IL-17A/NF-κB | IL-17RA/RC→NF-κB→KC 과증식, CXCL8, β-defensin | acanthosis, parakeratosis, PASI↑ |
+| TNF-α 경로 | 대식세포/Th1→TNF-α→내피세포 활성화, 면역세포 유출 | 혈관 확장, 피부 홍반 |
+| IL-22 경로 | Th17/Th22→IL-22→STAT3→KC Bcl-2↑, 세포사멸↓ | 과증식 유지 |
+| 피부 장벽 결함 | Loricrin/Filaggrin↓, TJ 결함 | 항원 진입, 재발 촉진 |
+| 건선관절염 | IL-17A/TNF-α → 건·부착부위 염증 | 30%에서 PsA 동반 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 작용기전 | 생체이용률 | t½ | PASI75 Wk16 | 임상시험 |
+|------|---------|---------|-----|------------|--------|
+| 아달리무맙 40mg q2w SC | anti-TNF-α mAb | F=0.64 | 14일 | 71% | CHAMPION |
+| 세쿠키누맙 300mg q4w SC | anti-IL-17A mAb | F=0.73 | 27일 | 77-80% | FIXTURE |
+| 리산키주맙 150mg q12w SC | anti-IL-23p19 mAb | F=0.89 | 28일 | 88-91% | UltIMMa |
+| 우스테키누맙 45mg q12w SC | anti-IL-12/23 p40 | F=0.57 | 21일 | 67-71% | PHOENIX-1 |
+| 아프레밀라스트 30mg BID PO | PDE4 억제제 | F=0.73 | 9h | 33-40% | ESTEEM-1 |
+| 토파시티닙 10mg BID PO | JAK1/3 억제제 | F=0.74 | 3h | 39-46% | OPT Pivotal |
+| 메토트렉세이트 20mg qw PO | DHFR 억제제 | F=0.70 | 3-10h | 26-36% | Heydendael 2003 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`pso_qsp_model.dot`](psoriasis/pso_qsp_model.dot) | Graphviz 기계론적 지도 소스 (100+ 노드, 11 클러스터) |
+| [`pso_qsp_model.svg`](psoriasis/pso_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [`pso_qsp_model.png`](psoriasis/pso_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [`pso_mrgsolve_model.R`](psoriasis/pso_mrgsolve_model.R) | mrgsolve ODE 모델 (25 구획, 7 치료 시나리오) |
+| [`pso_shiny_app.R`](psoriasis/pso_shiny_app.R) | Shiny 대시보드 6탭 |
+| [`pso_references.md`](psoriasis/pso_references.md) | 참고문헌 42편 (PubMed 링크) |
+
+### 핵심 참고문헌
+
+1. Griffiths CEM et al. "Psoriasis." *Lancet* 2021;397:1301. [PMID 33812489](https://pubmed.ncbi.nlm.nih.gov/33812489/)
+2. Langley RG et al. "Secukinumab in plaque psoriasis." *N Engl J Med* 2014;371:326. [PMID 25007392](https://pubmed.ncbi.nlm.nih.gov/25007392/)
+3. Gordon KB et al. "Risankizumab in moderate-to-severe plaque psoriasis (UltIMMa)." *Lancet* 2018;392:650. [PMID 30097359](https://pubmed.ncbi.nlm.nih.gov/30097359/)
+4. Papp K et al. "Apremilast in moderate-to-severe psoriasis (ESTEEM-1)." *J Am Acad Dermatol* 2015;73:37. [PMID 26089047](https://pubmed.ncbi.nlm.nih.gov/26089047/)
+5. Armstrong AW, Read C. "Psoriasis: a review." *JAMA* 2020;323:1945. [PMID 32427307](https://pubmed.ncbi.nlm.nih.gov/32427307/)
