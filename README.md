@@ -51,6 +51,7 @@
 | 2026-06-20 | 신경퇴행성질환 | 파킨슨병 (Parkinson's Disease, PD) | [parkinsons-disease/](parkinsons-disease/) | [![PD QSP](parkinsons-disease/pd_qsp_model.png)](parkinsons-disease/pd_qsp_model.svg) |
 | 2026-06-20 | 신경정신질환 | 주요우울장애 (Major Depressive Disorder, MDD) | [major-depressive-disorder/](major-depressive-disorder/) | [![MDD QSP](major-depressive-disorder/mdd_qsp_model.png)](major-depressive-disorder/mdd_qsp_model.svg) |
 | 2026-06-20 | 종양혈액학 | 만성 골수성 백혈병 (Chronic Myeloid Leukemia, CML) — 첫 번째 종양 모델 | [chronic-myeloid-leukemia/](chronic-myeloid-leukemia/) | [![CML QSP](chronic-myeloid-leukemia/cml_qsp_model.png)](chronic-myeloid-leukemia/cml_qsp_model.svg) |
+| 2026-06-20 | 신경학 / 두통 | 편두통 (Migraine — Trigeminovascular, CGRP, CSD, Triptans/mAbs/Gepants) | [migraine/](migraine/) | [![MGR QSP](migraine/mgr_qsp_model.png)](migraine/mgr_qsp_model.svg) |
 
 ---
 
@@ -1929,3 +1930,56 @@ Major Depressive Disorder (MDD) is the world's leading cause of disability, affe
 6. Wylie AA et al. "The allosteric inhibitor ABL001 (asciminib)." *Nature* 2017;543:733. [PMID 28329763](https://pubmed.ncbi.nlm.nih.gov/28329763/)
 7. Mahon FX et al. (STIM) "TKI discontinuation in CML." *Lancet Oncol* 2010;11:1029. [PMID 20965785](https://pubmed.ncbi.nlm.nih.gov/20965785/)
 8. Hochhaus A et al. (ELN 2020) "ELN 2020 recommendations for CML." *Leukemia* 2020;34:966. [PMID 32127639](https://pubmed.ncbi.nlm.nih.gov/32127639/)
+
+---
+
+## 편두통 (Migraine — Trigeminovascular, CGRP, CSD)
+
+[![Migraine QSP Model](migraine/mgr_qsp_model.png)](migraine/mgr_qsp_model.svg)
+
+편두통은 전 세계 인구의 약 15%(약 10억 명)에 영향을 미치는 신경학적 질환으로, GBD 2016에서 두 번째로 높은 YLD 원인입니다. 삼차신경혈관 경로(TGV)와 CGRP(Calcitonin Gene-Related Peptide) 신호 경로가 핵심 발병기전이며, 피질 확산 억제(CSD)가 아우라를 설명합니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 표현 |
+|------|------------|---------|
+| CSD (피질 확산 억제) | K⁺ 유출 → NMDA 활성화 → 신경세포 탈분극 파동 (3–5 mm/min) | 시각 아우라(편두통 전조) |
+| 삼차신경혈관 | TG 뉴런 → CGRP/SP/PACAP 방출 → 경막 혈관 확장 | 박동성 편두통 통증 |
+| CGRP 신호 | CLR/RAMP1 수용체 → cAMP↑ → KATP → 혈관 확장 + 비만세포 탈과립 | 두개내압↑, 통증 강화 |
+| 중추감작 | TNC wind-up → PKCε → MAPK/ERK → BDNF | 피부 이질통, 광·음과민증 |
+| PGE2/COX-2 | PLA2 → AA → COX-2 → PGE2 → EP1/TRPV1 | 말초 감작, 열통증 |
+| 산화질소 | NOS → NO → sGC → cGMP → KATP | 혈관확장, TG 감작 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 작용기전 | 주요 PK | 임상 효과 |
+|------|---------|---------|---------|
+| 수마트립탄 SC 6 mg | 5-HT1B/1D 작용제 | F=97%, t½=2h, CL=72 L/h | 2h 통증소실 ~35% |
+| 라스미디탄 200 mg | 5-HT1F 작용제 (혈관수축 無) | F=38%, t½=5h | 2h 통증소실 ~32% |
+| 리메게판트 75 mg | CGRP-R 길항제 (게판트) | F=64%, t½=11h, Ki=0.027 nM | 2h 통증소실 ~21%; 예방 MMD -1.75일 |
+| 에레누맙 140 mg SC | 항-CGRP 수용체 mAb | Tmax≈6일, t½=28일, Vd=3.86 L | MMD -3.7일, 50% 반응률 47% |
+| 프레마네주맙 225 mg | 항-CGRP 리간드 mAb | t½=31일 | MMD -3.7일 |
+| 갈카네주맙 120 mg | 항-CGRP 리간드 mAb | t½=27일 | MMD -4.7일 (50% 반응률 52%) |
+| 토피라메이트 100 mg/d | AMPA 차단 + CA 억제 + GABA↑ | F=80%, t½=21h | MMD -2.1일, CSD 억제 60% |
+| 프로프라놀롤 160 mg/d | β1/β2 차단 + 5-HT2A 차단 | F=26%, t½=4h | MMD -1.8일 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`mgr_qsp_model.dot`](migraine/mgr_qsp_model.dot) | Graphviz 기계론적 지도 소스 (100+ 노드, 12 클러스터) |
+| [`mgr_qsp_model.svg`](migraine/mgr_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [`mgr_qsp_model.png`](migraine/mgr_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [`mgr_mrgsolve_model.R`](migraine/mgr_mrgsolve_model.R) | mrgsolve ODE 모델 (18 구획, 7 치료 시나리오) |
+| [`mgr_shiny_app.R`](migraine/mgr_shiny_app.R) | Shiny 대시보드 6탭: 환자프로파일 · PK · CGRP/PD · 임상엔드포인트 · 시나리오비교 · 바이오마커 |
+| [`mgr_references.md`](migraine/mgr_references.md) | 참고문헌 50편 (PubMed 링크, 5개 섹션) |
+| [`README.md`](migraine/README.md) | 질환 및 모델 상세 설명 |
+
+### 핵심 참고문헌
+
+1. Edvinsson L et al. "CGRP as the target of new migraine therapies." *Nat Rev Neurol* 2018;14:338. [PMID 29691490](https://pubmed.ncbi.nlm.nih.gov/29691490/)
+2. Goadsby PJ et al. "Pathophysiology of migraine: a disorder of sensory processing." *Physiol Rev* 2017;97:553. [PMID 28179394](https://pubmed.ncbi.nlm.nih.gov/28179394/)
+3. Goadsby PJ et al. (STRIVE) "Erenumab for episodic migraine." *NEJM* 2017;377:2123. [PMID 29171821](https://pubmed.ncbi.nlm.nih.gov/29171821/)
+4. Kuca B et al. (SAMURAI) "Lasmiditan for migraine." *Neurology* 2018;91:e2222. [PMID 30446598](https://pubmed.ncbi.nlm.nih.gov/30446598/)
+5. Croop R et al. (ARTISAN-EM) "Rimegepant for migraine prevention." *Lancet* 2021;397:51. [PMID 33340483](https://pubmed.ncbi.nlm.nih.gov/33340483/)
+6. Ashina M. "Migraine." *NEJM* 2020;383:1866. [PMID 33211930](https://pubmed.ncbi.nlm.nih.gov/33211930/)
