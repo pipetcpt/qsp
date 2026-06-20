@@ -47,6 +47,7 @@
 | 2026-06-20 | 만성질환/대사 | 무증상 고요산혈증 (Asymptomatic Hyperuricemia, AHY) | [asymptomatic-hyperuricemia/](asymptomatic-hyperuricemia/) | [![AHY QSP](asymptomatic-hyperuricemia/ahy_qsp_model.png)](asymptomatic-hyperuricemia/ahy_qsp_model.svg) |
 | 2026-06-20 | 만성질환/부인과 | 자궁내막증 (Endometriosis) | [endometriosis/](endometriosis/) | [![ENDO QSP](endometriosis/endo_qsp_model.png)](endometriosis/endo_qsp_model.svg) |
 | 2026-06-20 | 신경퇴행성질환 | 알츠하이머병 (Alzheimer's Disease, AD) | [alzheimers-disease/](alzheimers-disease/) | [![AD QSP](alzheimers-disease/ad_qsp_model.png)](alzheimers-disease/ad_qsp_model.svg) |
+| 2026-06-20 | 만성질환/피부/알레르기 | 아토피 피부염 (Atopic Dermatitis, AD) | [atopic-dermatitis/](atopic-dermatitis/) | [![ATAD QSP](atopic-dermatitis/ad_qsp_model.png)](atopic-dermatitis/ad_qsp_model.svg) |
 
 ---
 
@@ -1737,3 +1738,59 @@ Alzheimer's disease accounts for 60–70% of all dementia cases globally. Core p
 3. van Dyck CH et al. "Lecanemab in Early Alzheimer's Disease." *N Engl J Med* 2023;388:9–21. [PMID 36449413](https://pubmed.ncbi.nlm.nih.gov/36449413/)
 4. Sims JR et al. "Donanemab in Early Symptomatic Alzheimer's Disease." *N Engl J Med* 2023;389:1919–31. [PMID 37459141](https://pubmed.ncbi.nlm.nih.gov/37459141/)
 5. Iqbal K et al. "Tau and neurodegenerative disease: the story so far." *Nat Rev Neurol* 2016;12:15–27. [PMID 26635538](https://pubmed.ncbi.nlm.nih.gov/26635538/)
+
+---
+
+## 아토피 피부염 (Atopic Dermatitis, AD)
+
+### 개요 / Overview
+
+아토피 피부염(AD)은 전 세계 소아의 15–20%, 성인의 5–10%에서 발생하는 가장 흔한 만성 염증성 피부질환입니다.
+주요 병태생리: FLG 유전자 변이에 의한 표피 장벽 손상 → TSLP/IL-33/IL-25 알라민 분비 → ILC2 및 Th2 세포 활성화 → IL-4/IL-13/IL-31 과다 분비 → STAT6 신호전달 → FLG 추가 억제(악순환), IgE 상승, 가려움증(IL-31→DRG 뉴런→TRPV1/TRPA1).
+
+Atopic dermatitis is driven by a Th2/ILC2-polarized immune response with IL-4 and IL-13 as the core pathogenic cytokines acting through the shared IL-4Rα chain. JAK1/TYK2 downstream STAT6 phosphorylation suppresses filaggrin expression creating an itch-barrier vicious cycle. Key clinical targets: dupilumab (IL-4Rα), tralokinumab/lebrikizumab (IL-13), nemolizumab (IL-31Ra), upadacitinib/abrocitinib (JAK1), baricitinib (JAK1/2).
+
+### 병태생리 핵심 경로
+
+| 경로 | 핵심 분자 | 임상 결과 |
+|------|----------|---------|
+| 표피 장벽 손상 | FLG↓, 세라마이드↓, CLDN1↓, TEWL↑, pH↑, KLK5↑ | 알레르겐 침투 촉진, S. aureus 집락화 |
+| 알라민 분비 (KC) | TSLP, IL-33/ST2, IL-25 | ILC2, DC, 비만세포 활성화 |
+| Th2 분화 | GATA-3, OX40L, IL-4, IL-13 | STAT6 인산화, IgE 생산 |
+| JAK-STAT 신호 | JAK1/TYK2→pSTAT6 | FLG 발현↓, TARC↑, IgE↑ |
+| 가려움 신호 | IL-31→IL-31Ra(DRG)→TRPV1/TRPA1 | NRS 가려움↑, 긁기-장벽 악순환 |
+| 호산구 활성화 | IL-5, Eotaxin-3(CCL26), ECP, MBP | 조직 손상, 혈중 호산구↑ |
+| IgE/비만세포 | IgE→FcεRI→비만세포 탈과립, PGD2, LTC4 | 즉시형 알레르기 반응 |
+| 만성화 | IL-22(Th22)→표피 증식, TGF-β→태선화 | EASI 악화, 삶의 질↓ |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 작용기전 | 주요 PK | 임상 효과 (wk16) |
+|------|---------|---------|-----------------|
+| Dupilumab 300mg Q2W SC | IL-4Rα 차단 (IL-4+IL-13 동시 억제) | t½≈21일, F_SC=64%, CL=0.21 L/d | EASI-75: 44%, IGA0/1: 38% (SOLO-1/2) |
+| Tralokinumab 300mg Q2W SC | 항-IL-13 단일 차단 | t½≈22일, F_SC=72% | EASI-75: 38%, IGA0/1: 25% (ECZTRA-1/2) |
+| Lebrikizumab 250mg Q2W SC | 항-IL-13 (느린 해리, KD<0.1 nM) | t½≈25일 | EASI-75: 43%, IGA0/1: 31% (ADvocate 1/2) |
+| Nemolizumab 60mg Q4W SC | 항-IL-31Ra (가려움 선택적) | t½≈22일, RO>80% | NRS -49%, EASI-75: 26% (AD-301) |
+| Upadacitinib 30mg QD oral | JAK1 선택적 억제 (IC50=0.045 ng/mL) | t½≈8시간, Vd=166 L | EASI-75: 62%, NRS -55% (Rising Up) |
+| Abrocitinib 200mg QD oral | JAK1 선택적 억제 (IC50~0.07 ng/mL) | t½≈3–5시간 | EASI-75: 63%, IGA0/1: 44% (JADE MONO-1/2) |
+| Baricitinib 4mg QD oral | JAK1/JAK2 억제 | t½≈12시간 | EASI-75: 48%, IGA0/1: 31% (BREEZE-AD) |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`ad_qsp_model.dot`](atopic-dermatitis/ad_qsp_model.dot) | 기계론적 지도: 13 클러스터, 130+ 노드, ortho 레이아웃 |
+| [`ad_qsp_model.svg`](atopic-dermatitis/ad_qsp_model.svg) | 기계론적 지도 (SVG, 벡터) |
+| [`ad_qsp_model.png`](atopic-dermatitis/ad_qsp_model.png) | 기계론적 지도 (PNG, 150 dpi) |
+| [`ad_mrgsolve_model.R`](atopic-dermatitis/ad_mrgsolve_model.R) | mrgsolve ODE 모델: 20 구획 (dupilumab 2-cmt, upadacitinib 1-cmt, nemolizumab), 6 시나리오 |
+| [`ad_shiny_app.R`](atopic-dermatitis/ad_shiny_app.R) | Shiny 대시보드 6탭: 환자프로파일 · 약물PK/RO · PD바이오마커 · 임상엔드포인트 · 시나리오비교 · 장벽&가려움 |
+| [`ad_references.md`](atopic-dermatitis/ad_references.md) | 참고문헌 52편 (PubMed 링크, 15개 섹션) |
+| [`README.md`](atopic-dermatitis/README.md) | 질환 및 모델 상세 설명 |
+
+### 핵심 참고문헌
+
+1. Langan SM, Irvine AD, Weidinger S. "Atopic dermatitis." *Lancet* 2020;396:345–60. [PMID 32738956](https://pubmed.ncbi.nlm.nih.gov/32738956/)
+2. Simpson EL et al. (SOLO 1&2). "Two phase 3 trials of dupilumab versus placebo in atopic dermatitis." *N Engl J Med* 2016;375:2335–48. [PMID 27690741](https://pubmed.ncbi.nlm.nih.gov/27690741/)
+3. Guttman-Yassky E et al. (Rising Up). "Upadacitinib in adults with moderate-to-severe atopic dermatitis." *Lancet* 2020;395:1754–68. [PMID 32416769](https://pubmed.ncbi.nlm.nih.gov/32416769/)
+4. Palmer CN et al. "Common loss-of-function variants of filaggrin are a major predisposing factor for atopic dermatitis." *Nat Genet* 2006;38:441–6. [PMID 16550169](https://pubmed.ncbi.nlm.nih.gov/16550169/)
+5. Cevikbas F et al. "A sensory neuron-expressed IL-31 receptor mediates T helper cell-dependent itch." *J Allergy Clin Immunol* 2014;133:448–60. [PMID 24373349](https://pubmed.ncbi.nlm.nih.gov/24373349/)
