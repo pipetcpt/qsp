@@ -55,6 +55,7 @@
 | 2026-06-20 | 만성 자가면역 피부질환 | 건선 (Psoriasis — IL-23/IL-17 Axis · TNF · Biologics/JAKi/PDE4i) | [psoriasis/](psoriasis/) | [![PSO QSP](psoriasis/pso_qsp_model.png)](psoriasis/pso_qsp_model.svg) |
 | 2026-06-20 | 신경정신질환 | 조현병 (Schizophrenia — DA·Glu·GABA·5-HT + Antipsychotic PK/PD, 10 clusters) | [schizophrenia/](schizophrenia/) | [![SCH QSP](schizophrenia/sch_qsp_model.png)](schizophrenia/sch_qsp_model.svg) |
 | 2026-06-21 | 신경학 / 만성 신경계 | 뇌전증 (Epilepsy — Ion Channel Biology · Seizure Network · AED PK/PD · Drug Resistance) | [epilepsy/](epilepsy/) | [![EPI QSP](epilepsy/epi_qsp_model.png)](epilepsy/epi_qsp_model.svg) |
+| 2026-06-21 | 감염병 / 레트로바이러스 | HIV/AIDS (Viral Dynamics · CD4/CTL · ART PK/PD · Latent Reservoir · Drug Resistance) | [hiv-aids/](hiv-aids/) | [![HIV QSP](hiv-aids/hiv_qsp_model.png)](hiv-aids/hiv_qsp_model.svg) |
 
 ---
 
@@ -2178,3 +2179,74 @@ Major Depressive Disorder (MDD) is the world's leading cause of disability, affe
 3. Lynch BA et al. "The synaptic vesicle protein SV2A is the binding site for the antiepileptic drug levetiracetam." *Proc Natl Acad Sci USA* 2004;101(26):9861–9866. [PMID 15210974](https://pubmed.ncbi.nlm.nih.gov/15210974/)
 4. Kwan P, Brodie MJ. "Early identification of refractory epilepsy." *N Engl J Med* 2000;342(5):314–319. [PMID 10660394](https://pubmed.ncbi.nlm.nih.gov/10660394/)
 5. Trinka E et al. "A definition and classification of status epilepticus." *Epilepsia* 2015;56(10):1515–1523. [PMID 26336950](https://pubmed.ncbi.nlm.nih.gov/26336950/)
+
+---
+
+## HIV/AIDS (Viral Dynamics · CD4/CTL · ART PK/PD · Latent Reservoir)
+
+### 개요
+
+HIV/AIDS는 HIV-1 또는 HIV-2에 의한 레트로바이러스 감염으로, 전 세계 약 3,900만 명이 감염된 주요 감염병입니다.
+치료하지 않을 경우 CD4⁺ T세포가 지속적으로 감소하여 중위 10년 내 AIDS로 진행됩니다.
+현대의 통합효소억제제(INSTI) 기반 ART(TDF/FTC/DTG 또는 TAF/FTC/BIC)는 48주 바이러스 억제율이 90% 이상이며,
+적절한 치료를 받으면 기대수명이 일반인에 가깝게 향상됩니다.
+
+이 QSP 모델은 Perelson(1996, 1997) 바이러스 동역학 프레임워크에 기반하여 TDF/FTC/DTG, TAF/FTC/BIC,
+TDF/FTC/EFV, DRV/r+DTG, PrEP, 장기지속형 CAB-LA/RPV-LA 등 8가지 치료 시나리오를 모의합니다.
+
+### 기계론적 지도
+
+[![HIV QSP Model](hiv-aids/hiv_qsp_model.png)](hiv-aids/hiv_qsp_model.svg)
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 기전 | 임상 연관성 |
+|------|---------|-----------|
+| 바이러스 침입 | gp120-CD4 결합 → CCR5/CXCR4 공수용체 → 막 융합 | Maraviroc 표적 (CCR5 차단) |
+| 역전사 | RT p51/p66 → RNA→dsDNA (오류율 3×10⁻⁵/bp) | 준종 다양성 → 내성 돌연변이 |
+| 통합 | 통합효소 strand transfer → 숙주 염색체 삽입 | INSTI 표적 (DTG/BIC) |
+| 바이러스 생산 | 하루 최대 10⁹개 비리온 생성 | 면역 소진 → CD4 감소 |
+| 잠복 저장소 | 휴지 CD4 기억세포 (t½ ~44년) | 완치의 주요 장벽 |
+| CD4 고갈 | 세포자멸사, CTL 살해, 바이러스 직접 세포독성 | CD4 <200 → AIDS 정의 질환 |
+| 만성 염증 | 미생물 전위 → IL-6/TNF-α 지속 → 심혈관·신경인지 위험 | ART 중에도 지속 |
+
+### ART 약물 클래스 및 PK/PD 파라미터
+
+| 약물 | 클래스 | CL (L/h) | Vc (L) | t½ (h) | IC50 (nM) | 내성 돌연변이 |
+|------|--------|---------|--------|--------|---------|------------|
+| TFV (TDF) | NRTI | 16 | 45 | 2 (plasma); TFV-DP t½=150h | TFV-DP ~100 | K65R |
+| FTC | NRTI | 13.7 | 213 | 10; FTC-TP t½=39h | FTC-TP ~1000 | M184V |
+| DTG | INSTI | 1.0 | 17.4 | 12 | 2 nM | R263K (매우 높은 장벽) |
+| BIC | INSTI | 0.41 | 25 | 42 | 1.7 nM | Q148H (높은 장벽) |
+| EFV | NNRTI | 4.5 | 270 | 40–55 | 3000 | K103N |
+| DRV/r | PI | 1.0 | 88.4 | 15 (RTV boost) | 0.5 | V82A/I50V |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [hiv_qsp_model.dot](hiv-aids/hiv_qsp_model.dot) | Graphviz 기계론적 지도 소스 (11 클러스터, 128 노드) |
+| [hiv_qsp_model.svg](hiv-aids/hiv_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [hiv_qsp_model.png](hiv-aids/hiv_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [hiv_mrgsolve_model.R](hiv-aids/hiv_mrgsolve_model.R) | mrgsolve ODE 모델 (18구획, 8 시나리오) |
+| [hiv_shiny_app.R](hiv-aids/hiv_shiny_app.R) | Shiny 대시보드 (6탭 인터랙티브 앱) |
+| [hiv_references.md](hiv-aids/hiv_references.md) | 참고문헌 62편 (16 섹션, PubMed 링크 포함) |
+
+### 주요 임상시험 근거
+
+| 임상시험 | 비교군 | N | VL <50 (Week 48) | CD4 상승 |
+|---------|-------|---|------------------|---------|
+| SINGLE (2013) | DTG/ABC/3TC vs EFV/TDF/FTC | 833 | 88% vs 81% (p=0.003) | +267 vs +208 |
+| GEMINI-1/2 (2019) | DTG+3TC vs DTG+TDF/FTC | 1433 | 93% vs 93% | +259 |
+| GS-US-380-1489 (2017) | TAF/FTC/BIC vs DTG/ABC/3TC | 629 | 89% vs 93% | +237 |
+| ATLAS-2M (2020) | CAB-LA+RPV-LA q8w vs q4w | 1045 | 94% vs 93% | 유지 |
+| iPrEx (2010) | TDF/FTC PrEP | 2499 | HIV 감염 44% 감소 | N/A |
+| START (2015) | 조기 vs 지연 ART | 4685 | AIDS/중증 질환 57% 감소 | +215 |
+
+### 핵심 참고문헌
+
+1. Perelson AS et al. "HIV-1 dynamics in vivo." *Science* 1996;271:1582–1586. [PMID 8599114](https://pubmed.ncbi.nlm.nih.gov/8599114/)
+2. Perelson AS et al. "Decay characteristics of HIV-1-infected compartments during combination therapy." *Nature* 1997;387:188–191. [PMID 9144290](https://pubmed.ncbi.nlm.nih.gov/9144290/)
+3. INSIGHT START Study Group. "Initiation of antiretroviral therapy in early asymptomatic HIV infection." *N Engl J Med* 2015;373:795–807. [PMID 26192873](https://pubmed.ncbi.nlm.nih.gov/26192873/)
+4. Gallant JE et al. "Bictegravir, emtricitabine, and tenofovir alafenamide versus dolutegravir, abacavir, and lamivudine." *Lancet* 2017;390:2063–2072. [PMID 28936695](https://pubmed.ncbi.nlm.nih.gov/28936695/)
+5. Siliciano RF, Greene WC. "HIV latency." *Cold Spring Harb Perspect Med* 2011;1:a007096. [PMID 22229121](https://pubmed.ncbi.nlm.nih.gov/22229121/)
