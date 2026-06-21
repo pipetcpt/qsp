@@ -60,6 +60,7 @@
 | 2026-06-21 | 종양학 / 유방암 | 유방암 (Breast Cancer — ER+/HER2+/TNBC · CDK4/6 · HER2 · PD-1/PD-L1 · PARP · Resistance · 14 Drugs) | [breast-cancer/](breast-cancer/) | [![BC QSP](breast-cancer/bc_qsp_model.png)](breast-cancer/bc_qsp_model.svg) |
 | 2026-06-21 | 신경퇴행성 / 운동신경원 | 근위축성 측삭경화증 (ALS — SOD1/TDP-43/C9orf72 · 글루탐산 독성 · 신경염증 · Riluzole/Edaravone/Tofersen/AMX0035) | [amyotrophic-lateral-sclerosis/](amyotrophic-lateral-sclerosis/) | [![ALS QSP](amyotrophic-lateral-sclerosis/als_qsp_model.png)](amyotrophic-lateral-sclerosis/als_qsp_model.svg) |
 | 2026-06-21 | 희귀유전질환 / 호흡기 | 낭성 섬유증 (Cystic Fibrosis — CFTR Biology · ΔF508 ERAD · ASL Dynamics · ETI/Trikafta PK/PD · P. aeruginosa Biofilm · 165 Nodes) | [cystic-fibrosis/](cystic-fibrosis/) | [![CF QSP](cystic-fibrosis/cf_qsp_model.png)](cystic-fibrosis/cf_qsp_model.svg) |
+| 2026-06-21 | 유전성 혈액질환 / 혈색소병증 | 겸상적혈구병 (Sickle Cell Disease — HbS 중합 · RBC Sickling · 혈관폐색 · NO 생물학 · HU/Voxelotor/Crizanlizumab/L-Glu PK/PD · 24 ODEs) | [sickle-cell-disease/](sickle-cell-disease/) | [![SCD QSP](sickle-cell-disease/scd_qsp_model.png)](sickle-cell-disease/scd_qsp_model.svg) |
 
 ---
 
@@ -2489,3 +2490,90 @@ ALS는 상위 운동신경원(UMN, 피질척수로)과 하위 운동신경원(LM
 | [cf_mrgsolve_model.R](cystic-fibrosis/cf_mrgsolve_model.R) | mrgsolve ODE 모델 (25 구획, 7 시나리오: IVA/LUM-IVA/TEZ-IVA/Trikafta/ETI+Tobra) |
 | [cf_shiny_app.R](cystic-fibrosis/cf_shiny_app.R) | Shiny 대시보드 (6탭: Patient Profile · PK · CFTR Function · Lung Function · Scenario Comparison · ASL & Infection) |
 | [cf_references.md](cystic-fibrosis/cf_references.md) | 참고문헌 53편 (13 섹션, PubMed 링크) |
+
+---
+
+## 겸상적혈구병 (Sickle Cell Disease, SCD)
+
+[![Sickle Cell Disease QSP Model](sickle-cell-disease/scd_qsp_model.png)](sickle-cell-disease/scd_qsp_model.svg)
+
+### 개요
+
+겸상적혈구병(SCD)은 **HBB 유전자** 6번 코돈의 단일 염기 치환(GAG→GTG, Glu→Val)으로 발생하는 상염색체 열성 유전성 혈색소병증입니다. 전 세계적으로 매년 약 30만 명의 신생아가 SCD를 가지고 태어나며, 약 80%는 사하라 이남 아프리카에서 발생합니다.
+
+**핵심 병태생리 경로:**
+- **HbS 중합(Polymerization):** 탈산소화된 HbS가 14가닥 중합체 섬유를 형성 (MCHC >25 g/dL, pO₂ <5 kPa)
+- **겸상화(Sickling):** 반복적 산소화/탈산소화 주기 → RBC 막 손상, 탈수 → 수명 단축 (10–20일 vs 정상 120일)
+- **혈관내/외 용혈:** 유리 Hb가 NO를 소거 (k=6.4×10⁷ M⁻¹s⁻¹) → NO 부족 → 혈관 수축, LDH·빌리루빈 상승
+- **혈관폐색(VOC):** P-셀렉틴 매개 겸상 RBC·호중구·혈소판 접착 → 미세혈관 정체 → 동통 위기
+- **말기 장기 손상:** 폐동맥 고혈압, 뇌졸중, 겸상 신병증, 고환 외상, AVN, 망막병증
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 결과 |
+|------|------------|---------|
+| HbS 중합 | MCHC 초과 → 핵형성 → 지수적 섬유 성장 | 적혈구 겸상화 |
+| 용혈 | 혈관내(유리 Hb↑) + 혈관외(비장) 파괴 | Hgb 6–9 g/dL, LDH↑, 빌리루빈↑ |
+| NO 결핍 | 유리 Hb + NO → HbNO (10⁷ M⁻¹s⁻¹); 아르기나제↑ | 혈관수축, 폐동맥 고혈압, 하지 궤양 |
+| P-셀렉틴 활성화 | TNF-α/IL-1β → P-셀렉틴 → PSGL-1 결합 | 백혈구-RBC-내피세포 교량 → VOC |
+| HbF 보호 | γ-글로빈 함유 HbF가 HbS 중합 억제 | HbF↑ → VOC 빈도↓, 수명↑ |
+| 응고 항진 | PS+ 겸상 RBC → TF 노출 → 트롬빈 생성 | 미세혈전, 뇌졸중 위험↑ |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 용량 | F(%) | t½ | Vd | 작용기전 | 주요 임상시험 |
+|-----|------|------|----|----|----------|------------|
+| 하이드록시우레아 (HU) | 15–35 mg/kg/d PO | 80–100 | 2–4 h | 0.5 L/kg | RNR 억제 → HbF↑ (스트레스 조혈) | MSH (Charache 1995): VOC −44%, 사망률↓ |
+| Voxelotor (GBT440) | 1500 mg/d PO | ~100 | 16–25 h | 97 L | HbS α-체인 결합 → O₂ 친화도↑ → 중합 억제 | HOPE (Vichinsky 2019): Hgb +1.0 g/dL |
+| Crizanlizumab (SEG101) | 5 mg/kg IV q4w | N/A | ~10 d | 3.5 L (Vc) | 항-P-셀렉틴 mAb → 접착 차단 | SUSTAIN (Ataga 2017): VOC −45% |
+| L-글루타민 | 5g BID PO | ~100 | 빠름 | 18 L | NAD⁺ 재생 → 산화 스트레스↓ | Phase III (Niihara 2018): 위기 −25% |
+
+### mrgsolve ODE 모델 구획 (24개)
+
+| 모듈 | 구획 |
+|------|------|
+| Hydroxyurea PK | `HU_gut`, `HU_plasma` |
+| Voxelotor PK | `VOX_plasma`, `VOX_RBC` (RBC 결합) |
+| Crizanlizumab PK | `CRIZ_C`, `CRIZ_P` (2-구획 mAb) |
+| L-글루타민 PK | `LG` |
+| 조혈 | `CFU_E`, `RET` |
+| RBC 역학 | `RBC_S` (겸상), `RBC_N` (정상/HbF), `HbF_frac`, `Hgb`, `free_Hb` |
+| 용혈 지표 | `Haptoglobin`, `LDH`, `Bilirubin` |
+| 혈관 생물학 | `NO`, `P_selectin`, `VOC` |
+| 대사/산화 스트레스 | `NADH`, `Iron` |
+| 말기 장기 | `TRV` (폐동맥압), `eGFR` (신기능) |
+
+### 치료 시나리오 (7개)
+
+| 시나리오 | 구성 | 핵심 PD 효과 |
+|---------|------|-------------|
+| 1. 무치료 (기준) | — | HbSS 자연경과 |
+| 2. 하이드록시우레아 | HU 20 mg/kg/d | HbF↑15–20%, VOC↓44% |
+| 3. Voxelotor | VOX 1500 mg/d | Hgb↑1.0 g/dL, 겸상화↓ |
+| 4. Crizanlizumab | CRIZ 5 mg/kg q4w | P-셀렉틴 차단 → VOC↓45% |
+| 5. L-글루타민 | LG 5g BID | 산화 스트레스↓, 위기↓25% |
+| 6. HU + Voxelotor | 병합 | HbF↑ + 겸상화↓ 상가 효과 |
+| 7. HU + VOX + CRIZ | 삼중 요법 | 최대 효능 — 연구 단계 |
+
+### Shiny 앱 탭 구성 (6탭)
+
+| 탭 | 내용 |
+|----|------|
+| 1. 환자 프로파일 | 발병 기전, QSP 모델 구조, 치료 MoA 표, ValueBox KPI |
+| 2. 약물 PK 프로파일 | HU/VOX/CRIZ 혈중 농도-시간 곡선; PK 파라미터 표 |
+| 3. 혈액학적 반응 | Hgb, HbF%, 망상적혈구%, LDH 추이; 요약 테이블 |
+| 4. 혈관폐색·바이오마커 | 연간 VOC 빈도, P-셀렉틴, NO 지수, 빌리루빈 |
+| 5. 치료 시나리오 비교 | 다중 시나리오 오버레이; 1년 효능 비교 테이블 |
+| 6. 말기 장기 대시보드 | TRV(폐동맥압), eGFR, 페리틴, 합토글로빈; KPI ValueBox |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [scd_qsp_model.dot](sickle-cell-disease/scd_qsp_model.dot) | Graphviz 기계론적 지도 (~150 노드, 12 클러스터, ~170 엣지) |
+| [scd_qsp_model.svg](sickle-cell-disease/scd_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [scd_qsp_model.png](sickle-cell-disease/scd_qsp_model.png) | PNG 150 dpi |
+| [scd_mrgsolve_model.R](sickle-cell-disease/scd_mrgsolve_model.R) | mrgsolve ODE 모델 (24 구획, 7 치료 시나리오, 50+ 파라미터) |
+| [scd_shiny_app.R](sickle-cell-disease/scd_shiny_app.R) | Shiny 대시보드 (6탭: Patient Profile · PK · Hematology · VOC/Biomarkers · Scenarios · End-Organ) |
+| [scd_references.md](sickle-cell-disease/scd_references.md) | 참고문헌 50편 (10 섹션, PubMed 링크) |
+| [README.md](sickle-cell-disease/README.md) | 디렉토리 상세 설명 |
