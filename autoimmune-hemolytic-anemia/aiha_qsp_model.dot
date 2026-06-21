@@ -1,0 +1,709 @@
+digraph AIHA_QSP {
+    // =====================================================
+    // AIHA (Autoimmune Hemolytic Anemia) QSP Mechanistic Map
+    // Warm AIHA + Cold AIHA + Drug PK/PD
+    // =====================================================
+    graph [
+        rankdir=TB
+        fontname="Helvetica"
+        fontsize=11
+        bgcolor="#FAFAFA"
+        splines=ortho
+        nodesep=0.4
+        ranksep=0.6
+        label="Autoimmune Hemolytic Anemia (AIHA)\nQSP Mechanistic Map — Warm & Cold Subtypes"
+        labelloc=t
+        labeljust=c
+    ]
+    node [fontname="Helvetica" fontsize=9 style="filled,rounded" shape=box]
+    edge [fontname="Helvetica" fontsize=8 arrowsize=0.7]
+
+    // =====================================================
+    // CLUSTER 1: Immune Dysregulation / B-cell Activation
+    // =====================================================
+    subgraph cluster_immune {
+        label="1. Immune Dysregulation & B-cell Activation"
+        style=filled
+        color="#E8F4FD"
+        fontcolor="#1A5276"
+        fontsize=10
+
+        node [fillcolor="#AED6F1" color="#1A5276"]
+
+        Bcell [label="Mature B Cell\n(CD20+, CD19+)"]
+        Bprecursor [label="B Cell Precursor\n(Bone Marrow)"]
+        Bmemory [label="Memory B Cell\n(CD27+)"]
+        Bplasma [label="Plasma Cell\n(CD138+, CD20-)"]
+        Bplasmablast [label="Plasmablast\n(Short-lived)"]
+
+        Th1 [label="Th1 Cell\n(IFN-γ producer)"]
+        Th2 [label="Th2 Cell\n(IL-4/IL-13)"]
+        Treg [label="Regulatory T Cell\n(FoxP3+, CD25+)"]
+        Tfh [label="Follicular Helper T\n(CXCR5+, PD-1hi)"]
+        CD8T [label="Cytotoxic T Cell\n(CD8+)"]
+
+        GC [label="Germinal Center\n(Lymph Node)"]
+        SHM [label="Somatic Hypermutation\n(AID enzyme)"]
+        CSR [label="Class Switch\nRecombination"]
+
+        BAFF [label="BAFF/BLyS\n(B-cell survival)"]
+        APRIL [label="APRIL\n(Plasma cell survival)"]
+        IL4 [label="IL-4\n(Th2 cytokine)"]
+        IL21 [label="IL-21\n(Tfh cytokine)"]
+        IL10 [label="IL-10\n(B-cell stimulation)"]
+        IFNg [label="IFN-γ\n(Macrophage activation)"]
+
+        BCR [label="BCR Signaling\n(Syk/BTK/PLC-γ)"]
+        CD40L [label="CD40L\n(T-B interaction)"]
+        CD40 [label="CD40 Signaling\n(B cell activation)"]
+        NFkB_B [label="NF-κB\n(B-cell transcription)"]
+
+        Bprecursor -> Bcell [label="maturation"]
+        Bcell -> GC [label="antigen activation"]
+        Tfh -> GC [label="T-B interaction\n(CD40L-CD40)"]
+        GC -> SHM [label="drives"]
+        GC -> CSR [label="drives"]
+        SHM -> Bplasma [label="high-affinity\nselection"]
+        CSR -> Bmemory [label="IgG/IgM switch"]
+        Bmemory -> Bplasmablast [label="re-activation"]
+        Bplasmablast -> Bplasma [label="differentiation"]
+
+        BCR -> NFkB_B [label="Syk/BTK signaling"]
+        CD40L -> CD40 [label="binds"]
+        CD40 -> NFkB_B [label="activates"]
+        NFkB_B -> Bplasma [label="drives differentiation"]
+
+        BAFF -> Bcell [label="survival signal"]
+        APRIL -> Bplasma [label="survival signal"]
+        IL4 -> CSR [label="IgG1/IgE switch"]
+        IL21 -> GC [label="GC reaction"]
+        IL10 -> Bplasma [label="promotes"]
+        IFNg -> Th1 [label="autocrine"]
+
+        Treg -> Bcell [label="suppresses\n(IL-10, TGF-β)" style=dashed color=green]
+        Treg -> Th1 [label="suppresses" style=dashed color=green]
+    }
+
+    // =====================================================
+    // CLUSTER 2: Autoantibody Production (Warm IgG)
+    // =====================================================
+    subgraph cluster_autoAb_warm {
+        label="2. Warm Autoantibody Production (IgG, 37°C)"
+        style=filled
+        color="#FDEDEC"
+        fontcolor="#922B21"
+        fontsize=10
+
+        node [fillcolor="#F1948A" color="#922B21"]
+
+        IgG_anti_RBC [label="Anti-RBC IgG\n(Warm Autoantibody)"]
+        IgG1 [label="IgG1 Subclass\n(FcγRIII binding)"]
+        IgG3 [label="IgG3 Subclass\n(Complement activating)"]
+        RhD_Ag [label="Rh Antigen\n(D, C, E, c, e)"]
+        Band3_Ag [label="Band 3 / Glycophorin\n(RBC surface antigens)"]
+        CD47_Ag [label="CD47\n(\"Don't-eat-me\" signal)"]
+        Opsonin [label="IgG-Opsonized RBC\n(C3b/iC3b coated)"]
+
+        Bplasma -> IgG_anti_RBC [label="secretes IgG\n(>100 mg/dL titer)"]
+        IgG_anti_RBC -> IgG1 [label="isotype"]
+        IgG_anti_RBC -> IgG3 [label="isotype"]
+        IgG1 -> RhD_Ag [label="binds (high affinity)"]
+        IgG3 -> Band3_Ag [label="binds"]
+        RhD_Ag -> Opsonin [label="opsonization"]
+        Band3_Ag -> Opsonin [label="opsonization"]
+        CD47_Ag -> Opsonin [label="phagocytosis\nregulation" style=dashed]
+    }
+
+    // =====================================================
+    // CLUSTER 3: Cold Autoantibody (IgM, Cold Agglutinin)
+    // =====================================================
+    subgraph cluster_autoAb_cold {
+        label="3. Cold Autoantibody Production (IgM, <37°C)"
+        style=filled
+        color="#EAF2FF"
+        fontcolor="#1A4B8C"
+        fontsize=10
+
+        node [fillcolor="#85C1E9" color="#1A4B8C"]
+
+        IgM_CAD [label="Anti-I/i IgG or IgM\n(Cold Agglutinin)"]
+        IgM_clonal [label="Clonal IgM\n(MYD88 L265P mutant B)"]
+        I_antigen [label="I/i Antigen\n(Poly-N-acetyllactosamine)"]
+        Complement_RBC [label="Complement-coated RBC\n(C3b/C3d opsonized)"]
+        Agglut [label="RBC Agglutination\n(at cold temps <30°C)"]
+        I_Ag_binding [label="Cold IgM binds RBC\n(Peripheral cold temp)"]
+        Complement_act [label="Complement Cascade\nActivation (C1q/C4/C2)"]
+
+        IgM_clonal -> IgM_CAD [label="monoclonal\nproduction"]
+        IgM_CAD -> I_antigen [label="cold-reactive\nbinding (<15°C)"]
+        I_antigen -> I_Ag_binding [label="temperature-dependent"]
+        I_Ag_binding -> Agglut [label="agglutination"]
+        I_Ag_binding -> Complement_act [label="classical pathway\nactivation"]
+        Complement_act -> Complement_RBC [label="C3b deposition"]
+    }
+
+    // =====================================================
+    // CLUSTER 4: Complement Cascade
+    // =====================================================
+    subgraph cluster_complement {
+        label="4. Complement System Cascade"
+        style=filled
+        color="#E8F8F5"
+        fontcolor="#1B5E4A"
+        fontsize=10
+
+        node [fillcolor="#82E0AA" color="#1B5E4A"]
+
+        C1q [label="C1q\n(Classical pathway sensor)"]
+        C1r_C1s [label="C1r/C1s\n(Serine proteases)"]
+        C4 [label="C4\n(Classical C3 convertase)"]
+        C4b [label="C4b\n(Opsonin, forms C3 conv.)"]
+        C2 [label="C2\n(Classical C3 convertase)"]
+        C3_protein [label="C3\n(Central complement)"]
+        C3b [label="C3b\n(Opsonin, phagocytosis)"]
+        iC3b [label="iC3b\n(CR3 ligand)"]
+        C3d [label="C3d\n(CR2 ligand, DAT+)"]
+        C3_conv_class [label="C3 Convertase\n(C4bC2a)"]
+        C5 [label="C5\n(Terminal pathway)"]
+        C5a [label="C5a\n(Anaphylatoxin)"]
+        C5b [label="C5b\n(MAC initiation)"]
+        C6_C7 [label="C6/C7\n(MAC assembly)"]
+        C8 [label="C8\n(MAC pore formation)"]
+        C9 [label="C9\n(MAC polymerization)"]
+        MAC [label="Membrane Attack Complex\n(C5b-9, lysis)"]
+
+        CR1 [label="CR1 (CD35)\n(C3b receptor on RBC)"]
+        CR3 [label="CR3 (CD11b/18)\n(iC3b receptor on monocyte)"]
+        CR2 [label="CR2 (CD21)\n(C3d receptor)"]
+
+        FH [label="Factor H\n(Complement inhibitor)"]
+        FI [label="Factor I\n(C3b inactivation)"]
+        CD55 [label="CD55 (DAF)\n(Complement decay)"]
+        CD59 [label="CD59 (Protectin)\n(MAC inhibitor)"]
+        C1inh [label="C1-Inhibitor\n(C1r/C1s inhibitor)"]
+
+        C1q -> C1r_C1s [label="activates"]
+        C1r_C1s -> C4 [label="cleaves"]
+        C4 -> C4b [label="deposit on RBC"]
+        C4b -> C3_conv_class [label="+ C2a forms\nC3 convertase"]
+        C2 -> C3_conv_class [label="incorporated"]
+        C3_conv_class -> C3b [label="C3 cleavage"]
+        C3b -> iC3b [label="FI-mediated\ninactivation"]
+        iC3b -> C3d [label="further cleavage"]
+        C3b -> C5 [label="C5 convertase"]
+        C5 -> C5a [label="cleavage"]
+        C5 -> C5b [label="cleavage"]
+        C5b -> C6_C7 [label="recruits"]
+        C6_C7 -> C8 [label="recruits"]
+        C8 -> C9 [label="polymerizes"]
+        C9 -> MAC [label="forms"]
+
+        C3b -> CR1 [label="binds (RBC CR1)"]
+        iC3b -> CR3 [label="binds (macrophage)"]
+        C3d -> CR2 [label="binds (DAT antigen)"]
+
+        FH -> C3b [label="cofactor for FI\ndeactivation" style=dashed color=green]
+        FI -> C3b [label="cleaves to iC3b" style=dashed color=green]
+        CD55 -> C3_conv_class [label="accelerates decay" style=dashed color=green]
+        CD59 -> MAC [label="inhibits assembly" style=dashed color=green]
+        C1inh -> C1r_C1s [label="inhibits" style=dashed color=green]
+    }
+
+    // =====================================================
+    // CLUSTER 5: RBC Destruction — Extravascular (Splenic)
+    // =====================================================
+    subgraph cluster_extravascular {
+        label="5. Extravascular Hemolysis (Spleen/Liver)"
+        style=filled
+        color="#FDF2E9"
+        fontcolor="#784212"
+        fontsize=10
+
+        node [fillcolor="#F0B27A" color="#784212"]
+
+        IgG_RBC [label="IgG-opsonized RBC\n(in spleen/liver sinusoids)"]
+        FcgR_I [label="FcγRI (CD64)\n(Monocyte/Macrophage, IgG1/3)"]
+        FcgR_II [label="FcγRIIA (CD32)\n(Macrophage, IgG1-4)"]
+        FcgR_III [label="FcγRIIIA (CD16)\n(NK cell, monocyte)"]
+        SIRP_alpha [label="SIRPα\n(CD47-don't eat me)"]
+        Macrophage_sp [label="Splenic Red Pulp\nMacrophage"]
+        Macrophage_lv [label="Kupffer Cell\n(Liver macrophage)"]
+        Phagocytosis [label="Phagocytosis\n(RBC engulfment)"]
+        Partial_phago [label="Partial Phagocytosis\n(Spherocyte formation)"]
+        Spherocyte [label="Spherocyte\n(Decreased deformability)"]
+        Hemoglobin_deg [label="Hemoglobin Catabolism\n(inside macrophage)"]
+        Bilirubin_u [label="Unconjugated Bilirubin\n(jaundice)"]
+        Heme_ox [label="Heme Oxygenase-1\n(HO-1 induction)"]
+        CO_prod [label="CO Production\n(vasodilator)"]
+        Iron_rec [label="Iron Recycling\n(Ferroportin/TfR)"]
+
+        NADPH_ox [label="NADPH Oxidase\n(Reactive oxygen species)"]
+        ROS_mac [label="ROS\n(Oxidative burst)"]
+
+        IgG_RBC -> FcgR_I [label="IgG Fc binds\n(Kd~10nM)"]
+        IgG_RBC -> FcgR_II [label="IgG Fc binds"]
+        IgG_RBC -> FcgR_III [label="IgG Fc binds\n(ADCC)"]
+        FcgR_I -> Macrophage_sp [label="on"]
+        FcgR_II -> Macrophage_sp [label="on"]
+        FcgR_III -> Macrophage_sp [label="on"]
+        Macrophage_sp -> Phagocytosis [label="engulfs"]
+        Macrophage_lv -> Phagocytosis [label="engulfs"]
+        SIRP_alpha -> Phagocytosis [label="inhibits via\nCD47" style=dashed color=green]
+        Phagocytosis -> Hemoglobin_deg [label="inside phagolysosome"]
+        Phagocytosis -> Partial_phago [label="partial bite"]
+        Partial_phago -> Spherocyte [label="forms"]
+        Hemoglobin_deg -> Heme_ox [label="heme catabolism"]
+        Heme_ox -> Bilirubin_u [label="biliverdin→bilirubin"]
+        Heme_ox -> CO_prod [label="CO byproduct"]
+        Hemoglobin_deg -> Iron_rec [label="iron recycling"]
+        NADPH_ox -> ROS_mac [label="generates"]
+        Macrophage_sp -> NADPH_ox [label="activates"]
+    }
+
+    // =====================================================
+    // CLUSTER 6: RBC Destruction — Intravascular
+    // =====================================================
+    subgraph cluster_intravascular {
+        label="6. Intravascular Hemolysis"
+        style=filled
+        color="#F5EEF8"
+        fontcolor="#6C3483"
+        fontsize=10
+
+        node [fillcolor="#C39BD3" color="#6C3483"]
+
+        MAC_RBC [label="MAC on RBC\n(C5b-9 insertion)"]
+        RBC_lysis [label="RBC Lysis\n(Osmotic rupture)"]
+        Hb_plasma [label="Free Hemoglobin\n(Plasma, >100 mg/dL)"]
+        Haptoglobin [label="Haptoglobin\n(Hb scavenger, depleted)"]
+        Hp_Hb [label="Haptoglobin-Hb Complex\n(CD163 receptor)"]
+        Hemopexin [label="Hemopexin\n(Heme scavenger)"]
+        Hp_Heme [label="Hemopexin-Heme Complex\n(CD91 receptor)"]
+        Hemoglobinuria [label="Hemoglobinuria\n(Hb overflow to urine)"]
+        LDH_release [label="LDH Release\n(Cell necrosis marker)"]
+        NO_scavenge [label="NO Scavenging\n(by free Hb)"]
+        Vasoconstrict [label="Vasoconstriction\n(↓NO, ↑endothelin)"]
+        Platelet_activ [label="Platelet Activation\n(thrombosis risk)"]
+        TF_exposure [label="Tissue Factor Exposure\n(Thrombin generation)"]
+
+        MAC -> MAC_RBC [label="deposits on RBC"]
+        MAC_RBC -> RBC_lysis [label="lyses RBC"]
+        RBC_lysis -> Hb_plasma [label="releases"]
+        Hb_plasma -> Haptoglobin [label="binds (scavenging)"]
+        Haptoglobin -> Hp_Hb [label="complex forms"]
+        Hb_plasma -> Hemopexin [label="heme binds"]
+        Hemopexin -> Hp_Heme [label="complex"]
+        Hb_plasma -> Hemoglobinuria [label="overflow\n(Hp depleted)"]
+        RBC_lysis -> LDH_release [label="releases"]
+        Hb_plasma -> NO_scavenge [label="scavenges NO"]
+        NO_scavenge -> Vasoconstrict [label="causes"]
+        RBC_lysis -> Platelet_activ [label="ADP/phospholipid"]
+        Platelet_activ -> TF_exposure [label="procoagulant"]
+    }
+
+    // =====================================================
+    // CLUSTER 7: Compensatory Erythropoiesis
+    // =====================================================
+    subgraph cluster_erythropoiesis {
+        label="7. Compensatory Erythropoiesis & Bone Marrow"
+        style=filled
+        color="#EAFAF1"
+        fontcolor="#145A32"
+        fontsize=10
+
+        node [fillcolor="#58D68D" color="#145A32"]
+
+        RBC_count [label="RBC Count\n(Normal: 4.5-5.5 M/μL)"]
+        Hemoglobin [label="Hemoglobin\n(g/dL, target >10)"]
+        Hematocrit [label="Hematocrit\n(%)"]
+        Reticulocyte [label="Reticulocyte Count\n(Compensatory ↑)"]
+        BFU_E [label="BFU-E\n(Erythroid Burst-Forming)"]
+        CFU_E [label="CFU-E\n(Erythroid Colony-Forming)"]
+        ProE [label="Proerythroblast\n(Bone Marrow)"]
+        NormE [label="Normoblast\n(Enucleating)"]
+        EPO [label="Erythropoietin (EPO)\n(Kidney, hypoxia)"]
+        EPO_R [label="EPO Receptor\n(JAK2/STAT5 signaling)"]
+        HIF1a [label="HIF-1α\n(Hypoxia-Inducible Factor)"]
+        SCF_kit [label="SCF/c-Kit\n(Erythroid proliferation)"]
+        Transferrin [label="Transferrin\n(Iron transport)"]
+        TfR1 [label="TfR1 (CD71)\n(Iron uptake)"]
+        RBC_new [label="New RBC\n(120 day lifespan)"]
+        Stress_erythro [label="Stress Erythropoiesis\n(EMH: spleen/liver)"]
+
+        Hypoxia [label="Tissue Hypoxia\n(↓O2 delivery)"]
+
+        Hemoglobin -> Hypoxia [label="when < 8 g/dL"]
+        Hypoxia -> HIF1a [label="stabilizes"]
+        HIF1a -> EPO [label="transcription"]
+        EPO -> EPO_R [label="binds"]
+        EPO_R -> BFU_E [label="JAK2/STAT5\nproliferation"]
+        BFU_E -> CFU_E [label="differentiates"]
+        CFU_E -> ProE [label="differentiates"]
+        ProE -> NormE [label="maturation"]
+        NormE -> Reticulocyte [label="enucleation"]
+        Reticulocyte -> RBC_new [label="maturation\n(~1 day)"]
+        RBC_new -> RBC_count [label="enters circulation"]
+        SCF_kit -> BFU_E [label="co-stimulates"]
+        Transferrin -> TfR1 [label="iron delivery"]
+        TfR1 -> ProE [label="hemoglobin\nsynthesis"]
+        Hemoglobin -> RBC_count [label="from"]
+        Hemoglobin -> Hematocrit [label="determines"]
+        Hypoxia -> Stress_erythro [label="triggers\n(severe anemia)"]
+    }
+
+    // =====================================================
+    // CLUSTER 8: Spleen Physiology
+    // =====================================================
+    subgraph cluster_spleen {
+        label="8. Spleen — Filtration & Immune Functions"
+        style=filled
+        color="#FEF9E7"
+        fontcolor="#7D6608"
+        fontsize=10
+
+        node [fillcolor="#F9E79F" color="#7D6608"]
+
+        Spleen [label="Spleen\n(Marginal zone, red pulp)"]
+        RedPulp [label="Red Pulp Sinusoids\n(RBC filtration)"]
+        WhitePulp [label="White Pulp\n(Immune follicles)"]
+        Splenomegaly [label="Splenomegaly\n(Enlarged due to hemolysis)"]
+        Splenic_seq [label="Splenic Sequestration\n(Spherocyte trapping)"]
+        NK_cell [label="NK Cell\n(FcγRIII ADCC)"]
+        Monocyte_sp [label="Splenic Monocyte\n(CD14+ CD16+)"]
+
+        Spleen -> RedPulp [label="contains"]
+        Spleen -> WhitePulp [label="contains"]
+        RedPulp -> Splenic_seq [label="traps spherocytes\n(deformability test)"]
+        Spherocyte -> Splenic_seq [label="trapped"]
+        Macrophage_sp -> RedPulp [label="resides in"]
+        NK_cell -> FcgR_III [label="expresses"]
+        Monocyte_sp -> FcgR_I [label="expresses"]
+        Splenomegaly -> Splenic_seq [label="worsens"]
+        Phagocytosis -> Splenomegaly [label="increased workload\ncauses"]
+    }
+
+    // =====================================================
+    // CLUSTER 9: Clinical Biomarkers & Diagnosis
+    // =====================================================
+    subgraph cluster_biomarkers {
+        label="9. Clinical Biomarkers & Diagnosis"
+        style=filled
+        color="#F0F3F4"
+        fontcolor="#212F3D"
+        fontsize=10
+
+        node [fillcolor="#BDC3C7" color="#212F3D"]
+
+        DAT [label="Direct Antiglobulin Test\n(DAT / Coombs+)"]
+        IAT [label="Indirect Antiglobulin Test\n(IAT)"]
+        DAT_IgG [label="DAT IgG+\n(Warm AIHA)"]
+        DAT_C3d [label="DAT C3d+\n(Cold AIHA)"]
+        Hb_level [label="Hemoglobin\n(<10 g/dL diagnostic)"]
+        Reticulocyte_pct [label="Reticulocyte %\n(>2%, compensatory)"]
+        LDH_serum [label="Serum LDH\n(Hemolysis marker ↑)"]
+        Bilirubin_total [label="Total Bilirubin\n(↑ unconjugated)"]
+        Haptoglobin_low [label="Haptoglobin\n(↓/undetectable)"]
+        Peripheral_blood [label="Peripheral Blood Smear\n(Spherocytes, polychromasia)"]
+        MCV [label="MCV\n(Often normal or ↑)"]
+        MCH [label="MCHC\n(↑ due to spherocytes)"]
+        Cold_agglutin [label="Cold Agglutinin Titer\n(>1:64, CAD diagnostic)"]
+        Thermal_amp [label="Thermal Amplitude\n(<37°C for CAD)"]
+        Bone_marrow [label="Bone Marrow Biopsy\n(Erythroid hyperplasia)"]
+
+        Phagocytosis -> LDH_serum [label="releases"]
+        RBC_lysis -> LDH_serum [label="releases"]
+        RBC_lysis -> Haptoglobin_low [label="consumes Hb"]
+        Bilirubin_u -> Bilirubin_total [label="contributes"]
+        Hemoglobin -> Hb_level [label="measured as"]
+        Reticulocyte -> Reticulocyte_pct [label="measured as"]
+        Opsonin -> DAT_IgG [label="IgG on RBC\nCoombs test"]
+        Complement_RBC -> DAT_C3d [label="C3d on RBC\nCoombs test"]
+        DAT_IgG -> DAT [label="positive"]
+        DAT_C3d -> DAT [label="positive"]
+        Spherocyte -> Peripheral_blood [label="seen on"]
+        Agglut -> Cold_agglutin [label="detects"]
+        I_Ag_binding -> Thermal_amp [label="measured by"]
+        NormE -> Bone_marrow [label="hyperplastic"]
+    }
+
+    // =====================================================
+    // CLUSTER 10: Drug PK/PD — Rituximab
+    // =====================================================
+    subgraph cluster_rituximab {
+        label="10. Drug PK/PD — Rituximab (Anti-CD20)"
+        style=filled
+        color="#FDEDEC"
+        fontcolor="#78281F"
+        fontsize=10
+
+        node [fillcolor="#F1948A" color="#78281F"]
+
+        RTX [label="Rituximab\n(IV 375 mg/m², Biweekly)"]
+        RTX_plasma [label="Rituximab (Plasma)\n(TMDD: target-mediated)"]
+        RTX_CD20 [label="RTX-CD20 Complex\n(B-cell surface)"]
+        CD20 [label="CD20 Antigen\n(B-cell marker)"]
+        ADCC_RTX [label="ADCC\n(NK cell + FcγRIII)"]
+        CDC_RTX [label="CDC\n(Complement activation)"]
+        ADCP_RTX [label="ADCP\n(Macrophage phagocytosis)"]
+        B_depletion [label="B Cell Depletion\n(>99% CD20+ cells)"]
+        Ab_reduction [label="Anti-RBC Ab Reduction\n(↓ IgG/IgM over weeks)"]
+
+        RTX_dose [label="Dose 375 mg/m²\n(Infusion, x1-4)"]
+        RTX_kel [label="Elimination Rate\n(CL=0.33 L/day, Vd=4.4L)"]
+        RTX_thalf [label="Half-life\n(~22 days, TMDD)"]
+        RTX_Css [label="Trough Concentration\n(~20 μg/mL effective)"]
+
+        RTX_dose -> RTX_plasma [label="IV infusion"]
+        RTX_plasma -> RTX_CD20 [label="target binding\n(TMDD)"]
+        RTX_CD20 -> B_depletion [label="ADCC/CDC\nmechanisms"]
+        CD20 -> RTX_CD20 [label="target antigen"]
+        RTX_CD20 -> ADCC_RTX [label="triggers"]
+        RTX_CD20 -> CDC_RTX [label="activates\ncomplement"]
+        RTX_CD20 -> ADCP_RTX [label="opsonizes for\nmacrophage"]
+        ADCC_RTX -> B_depletion [label="kills B cells"]
+        CDC_RTX -> B_depletion [label="kills B cells"]
+        ADCP_RTX -> B_depletion [label="phagocytoses\nB cells"]
+        B_depletion -> Ab_reduction [label="stops IgG/IgM\nproduction"]
+        Ab_reduction -> Opsonin [label="reduces\nopsonization" style=dashed color=green]
+        RTX_kel -> RTX_thalf [label="determines"]
+        RTX_plasma -> RTX_Css [label="at steady state"]
+    }
+
+    // =====================================================
+    // CLUSTER 11: Drug PK/PD — Sutimlimab (Anti-C1s)
+    // =====================================================
+    subgraph cluster_sutimlimab {
+        label="11. Drug PK/PD — Sutimlimab (Anti-C1s, Enjaymo)"
+        style=filled
+        color="#EBF5FB"
+        fontcolor="#154360"
+        fontsize=10
+
+        node [fillcolor="#7FB3D3" color="#154360"]
+
+        SUTI [label="Sutimlimab\n(IV 6.5-7.5g q2w)"]
+        SUTI_plasma [label="Sutimlimab (Plasma)\n(IgG4 mAb)"]
+        SUTI_C1s [label="SUTI-C1s Complex\n(Blocks C4 cleavage)"]
+        C1s_target [label="C1s\n(Target of sutimlimab)"]
+        CP_block [label="Classical Pathway Block\n(C4/C2/C3b inhibited)"]
+        C3b_reduction [label="C3b Reduction\n(on RBC surface)"]
+        Hb_increase [label="Hemoglobin Increase\n(+1.5-2.3 g/dL, CADENZA)"]
+        LDH_decrease [label="LDH Decrease\n(~50% reduction)"]
+        SUTI_t12 [label="Sutimlimab Half-life\n(~20 days)"]
+        SUTI_Cmax [label="Cmax ~1300 μg/mL\n(after 7.5g dose)"]
+
+        SUTI -> SUTI_plasma [label="IV q2w"]
+        SUTI_plasma -> SUTI_C1s [label="binds C1s"]
+        C1s_target -> SUTI_C1s [label="target antigen"]
+        SUTI_C1s -> CP_block [label="inhibits C1s\nprotease activity"]
+        CP_block -> C3b_reduction [label="no C3b deposition"]
+        C3b_reduction -> Complement_RBC [label="reduces\nopsonization" style=dashed color=green]
+        C3b_reduction -> MAC [label="reduces\nMAC formation" style=dashed color=green]
+        CP_block -> Hb_increase [label="less hemolysis"]
+        CP_block -> LDH_decrease [label="less hemolysis"]
+        SUTI_plasma -> SUTI_t12 [label="determines"]
+        SUTI_plasma -> SUTI_Cmax [label="peak"]
+    }
+
+    // =====================================================
+    // CLUSTER 12: Drug PK/PD — Corticosteroids
+    // =====================================================
+    subgraph cluster_steroids {
+        label="12. Drug PK/PD — Corticosteroids (First-line Warm AIHA)"
+        style=filled
+        color="#FEF9E7"
+        fontcolor="#7D6608"
+        fontsize=10
+
+        node [fillcolor="#F9E79F" color="#7D6608"]
+
+        PRED [label="Prednisolone\n(1-1.5 mg/kg/day PO)"]
+        PRED_plasma [label="Prednisolone (Plasma)\n(F=80%, t½=2.5h)"]
+        GR [label="Glucocorticoid Receptor\n(NR3C1)"]
+        GRE [label="GRE Transactivation\n(Anti-inflammatory genes)"]
+        nGRE [label="nGRE Transrepression\n(NF-κB, AP-1 inhibition)"]
+        PRED_FcR [label="FcγR Downregulation\n(↓ RBC opsonization)"]
+        PRED_Ab [label="Anti-RBC Ab ↓\n(Immunosuppression)"]
+        PRED_Vd [label="Vd = 0.5-1.0 L/kg\n(Protein binding 90%)"]
+        PRED_CL [label="CL = 15 L/h\n(Hepatic metabolism)"]
+
+        DEXM [label="Dexamethasone\n(40 mg/day ×4 days pulses)"]
+        DEX_plasma [label="Dexamethasone (Plasma)\n(t½=36-72h, F=78%)"]
+
+        PRED -> PRED_plasma [label="oral absorption"]
+        PRED_plasma -> GR [label="binds (Kd 5-10 nM)"]
+        GR -> GRE [label="nucleus\ntransactivation"]
+        GR -> nGRE [label="transrepression\n(NF-κB↓)"]
+        nGRE -> NFkB_B [label="inhibits" style=dashed color=green]
+        GRE -> PRED_FcR [label="downregulates\nFcγR expression"]
+        GRE -> PRED_Ab [label="reduces\nautoantibody production"]
+        PRED_FcR -> Phagocytosis [label="reduces" style=dashed color=green]
+        PRED_Ab -> Opsonin [label="reduces" style=dashed color=green]
+        PRED_plasma -> PRED_Vd [label="distributed into"]
+        PRED_plasma -> PRED_CL [label="cleared by"]
+
+        DEXM -> DEX_plasma [label="oral absorption"]
+        DEX_plasma -> GR [label="binds (Kd 1 nM)"]
+    }
+
+    // =====================================================
+    // CLUSTER 13: Drug PK/PD — Fostamatinib (FcγR/Syk Inhibitor)
+    // =====================================================
+    subgraph cluster_fostamatinib {
+        label="13. Drug PK/PD — Fostamatinib (Syk Inhibitor)"
+        style=filled
+        color="#F9EBEA"
+        fontcolor="#7B241C"
+        fontsize=10
+
+        node [fillcolor="#E59866" color="#7B241C"]
+
+        FOSTA [label="Fostamatinib\n(100-150 mg BID PO)"]
+        R788 [label="R406 (Active metabolite)\n(Prodrug conversion)"]
+        Syk [label="Syk Kinase\n(FcγR signaling)"]
+        Syk_inhib [label="Syk Inhibition\n(IC50=41nM for R406)"]
+        FcR_signal [label="FcγR Downstream\nSignaling Inhibition"]
+        Phago_inhib [label="Phagocytosis Inhibition\n(↓ RBC destruction)"]
+        FOSTA_t12 [label="R406 Half-life\n(~14h)"]
+        FOSTA_Cmax [label="R406 Cmax ~2.5 μM\n(150mg BID)"]
+        FLT3_inhib [label="FLT3/CSF1R Inhibition\n(Off-target: ↓ macrophage)"]
+
+        FOSTA -> R788 [label="intestinal/hepatic\nconversion"]
+        R788 -> Syk [label="inhibits (ATP\ncompetitive)"]
+        Syk -> Syk_inhib [label="inhibited"]
+        Syk_inhib -> FcR_signal [label="blocks ITAM\nsignaling"]
+        FcR_signal -> Phago_inhib [label="reduces\nphagocytosis"]
+        Phago_inhib -> Phagocytosis [label="reduces" style=dashed color=green]
+        R788 -> FOSTA_t12 [label="determines"]
+        R788 -> FOSTA_Cmax [label="peak"]
+        R788 -> FLT3_inhib [label="also inhibits"]
+        FLT3_inhib -> Macrophage_sp [label="reduces\nmacrophage pool" style=dashed color=green]
+    }
+
+    // =====================================================
+    // CLUSTER 14: Drug PK/PD — Other Therapies
+    // =====================================================
+    subgraph cluster_other_drugs {
+        label="14. Other Therapies (IVIG, Splenectomy, Danazol)"
+        style=filled
+        color="#F4ECF7"
+        fontcolor="#6C3483"
+        fontsize=10
+
+        node [fillcolor="#C39BD3" color="#6C3483"]
+
+        IVIG [label="IVIG\n(0.4-1 g/kg IV)"]
+        IVIG_FcRn [label="FcRn Saturation\n(Antibody clearance ↑)"]
+        IVIG_FcgR [label="FcγR Blockade\n(Inhibitory FcγRIIB)"]
+        IVIG_Ab_clear [label="Anti-RBC Ab Clearance\n(Enhanced catabolism)"]
+
+        Splenectomy [label="Splenectomy\n(Remove phagocytic organ)"]
+        Splenect_eff [label="Splenic Hemolysis\nEliminated"]
+        Splenect_infect [label="Post-splenectomy\nInfection Risk ↑"]
+
+        Danazol [label="Danazol\n(Androgen: 200-600mg/day)"]
+        Danazol_FcgR [label="FcγR Modulation\n(↓ expression on macrophages)"]
+        Danazol_immune [label="Immunomodulation\n(T-reg ↑, B-cell ↓)"]
+
+        MMF_AIHA [label="Mycophenolate Mofetil\n(IMPDH inhibitor)"]
+        MMF_Bcell [label="B-cell Proliferation ↓\n(MPA active metabolite)"]
+        MMF_t12 [label="MPA Half-life ~18h\n(Enterohepatic recirculation)"]
+
+        IVIG -> IVIG_FcRn [label="saturates FcRn\n→ IgG catabolism"]
+        IVIG -> IVIG_FcgR [label="blocks activating\nFcγR on macrophage"]
+        IVIG_FcRn -> IVIG_Ab_clear [label="clears\nautoantibody"]
+        IVIG_FcgR -> Phagocytosis [label="inhibits" style=dashed color=green]
+        IVIG_Ab_clear -> Opsonin [label="reduces" style=dashed color=green]
+
+        Splenectomy -> Splenect_eff [label="removes spleen"]
+        Splenect_eff -> Macrophage_sp [label="eliminates\nsplenic macrophages" style=dashed color=green]
+        Splenectomy -> Splenect_infect [label="risk"]
+
+        Danazol -> Danazol_FcgR [label="modulates"]
+        Danazol_FcgR -> FcgR_I [label="reduces\nexpression" style=dashed color=green]
+        Danazol -> Danazol_immune [label="immunomodulation"]
+        Danazol_immune -> Bcell [label="reduces\nactivation" style=dashed color=green]
+
+        MMF_AIHA -> MMF_Bcell [label="via MPA\nmetabolite"]
+        MMF_Bcell -> Bplasma [label="reduces\nproliferation" style=dashed color=green]
+        MMF_AIHA -> MMF_t12 [label="determines PK"]
+    }
+
+    // =====================================================
+    // CLUSTER 15: Clinical Outcomes & Endpoints
+    // =====================================================
+    subgraph cluster_outcomes {
+        label="15. Clinical Outcomes & Endpoints"
+        style=filled
+        color="#D5F5E3"
+        fontcolor="#145A32"
+        fontsize=10
+
+        node [fillcolor="#A9DFBF" color="#145A32"]
+
+        Anemia_severity [label="Anemia Severity\n(AIHA scoring: mild/mod/severe)"]
+        QoL [label="Quality of Life\n(FACT-An score)"]
+        Fatigue [label="Fatigue\n(Primary patient complaint)"]
+        Dyspnea [label="Dyspnea\n(Cardiovascular compensation)"]
+        Tachycardia [label="Tachycardia\n(Compensatory ↑HR)"]
+        Complete_remission [label="Complete Response\n(Hb ≥10 g/dL + no symptoms)"]
+        Partial_response [label="Partial Response\n(Hb ≥10 g/dL)"]
+        Relapse [label="Relapse\n(Hb <10 after CR)"]
+        Thrombosis_risk [label="Thromboembolism Risk\n(VTE/arterial, DAT+)"]
+        Renal_risk [label="Hemoglobin Nephropathy\n(free Hb tubular toxicity)"]
+        Transfusion_need [label="Transfusion Requirement\n(Hb <7-8 g/dL)"]
+        AE_steroids [label="Steroid Side Effects\n(DM, osteoporosis, HTN)"]
+        AE_RTX [label="Rituximab AE\n(Infection risk, PML)"]
+        OS [label="Overall Survival\n(5-year ~75-85%)"]
+
+        Hemoglobin -> Anemia_severity [label="determines"]
+        Anemia_severity -> QoL [label="impacts"]
+        Anemia_severity -> Fatigue [label="causes"]
+        Hemoglobin -> Dyspnea [label="< 8 g/dL causes"]
+        Hemoglobin -> Tachycardia [label="compensatory\nwhen < 8 g/dL"]
+        Hemoglobin -> Complete_remission [label="≥10 g/dL → CR"]
+        Hemoglobin -> Partial_response [label="≥10 g/dL"]
+        Complete_remission -> Relapse [label="may occur\n(~40% at 1yr)"]
+        TF_exposure -> Thrombosis_risk [label="contributes"]
+        NO_scavenge -> Thrombosis_risk [label="contributes"]
+        Hb_plasma -> Renal_risk [label="tubular toxicity"]
+        Hemoglobin -> Transfusion_need [label="< 7 g/dL trigger"]
+        PRED -> AE_steroids [label="chronic use\ncauses"]
+        RTX -> AE_RTX [label="immunosuppression\ncauses"]
+        Anemia_severity -> OS [label="impacts"]
+    }
+
+    // =====================================================
+    // CROSS-CLUSTER CONNECTIONS
+    // =====================================================
+
+    // Warm AIHA flow
+    IgG_anti_RBC -> Opsonin [label="opsonizes RBC"]
+    Opsonin -> IgG_RBC [label="opsonized RBC\nto spleen"]
+    IgG_RBC -> Phagocytosis [label="macrophage\nrecognizes Fc"]
+
+    // Cold AIHA / complement flow
+    Complement_act -> C1q [label="classical pathway\ninitiates at"]
+    IgM_CAD -> C1q [label="pentameric IgM\nactivates C1q"]
+    C1q -> C1r_C1s [label="conformational\nchange"]
+    C3b -> Opsonin [label="C3b-opsonized\nRBC"]
+
+    // Hemolysis outcomes
+    RBC_lysis -> Hemoglobin [label="reduces"]
+    Phagocytosis -> Hemoglobin [label="reduces"]
+    Reticulocyte -> Hemoglobin [label="partial\ncompensation"]
+
+    // DAT connections
+    IgG_anti_RBC -> DAT_IgG [label="coats RBC"]
+    C3d -> DAT_C3d [label="coats RBC"]
+
+    // RTX connections to immune cells
+    B_depletion -> Bcell [label="depletes" style=dashed color=red]
+    B_depletion -> Bmemory [label="depletes" style=dashed color=red]
+    B_depletion -> Bplasma [label="partially\ndepletes" style=dashed color=red]
+    Ab_reduction -> IgG_anti_RBC [label="reduces over\n3-6 months" style=dashed color=green]
+    Ab_reduction -> IgM_CAD [label="reduces" style=dashed color=green]
+
+    // Spleen to macrophage
+    Splenic_seq -> Phagocytosis [label="presents to\nmacrophages"]
+}
