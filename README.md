@@ -59,6 +59,7 @@
 | 2026-06-21 | 만성질환 / 심혈관 | 심방세동 (Atrial Fibrillation — Ion Channels · Electrical/Structural Remodeling · Anticoagulation · Antiarrhythmics) | [atrial-fibrillation/](atrial-fibrillation/) | [![AF QSP](atrial-fibrillation/af_qsp_model.png)](atrial-fibrillation/af_qsp_model.svg) |
 | 2026-06-21 | 종양학 / 유방암 | 유방암 (Breast Cancer — ER+/HER2+/TNBC · CDK4/6 · HER2 · PD-1/PD-L1 · PARP · Resistance · 14 Drugs) | [breast-cancer/](breast-cancer/) | [![BC QSP](breast-cancer/bc_qsp_model.png)](breast-cancer/bc_qsp_model.svg) |
 | 2026-06-21 | 신경퇴행성 / 운동신경원 | 근위축성 측삭경화증 (ALS — SOD1/TDP-43/C9orf72 · 글루탐산 독성 · 신경염증 · Riluzole/Edaravone/Tofersen/AMX0035) | [amyotrophic-lateral-sclerosis/](amyotrophic-lateral-sclerosis/) | [![ALS QSP](amyotrophic-lateral-sclerosis/als_qsp_model.png)](amyotrophic-lateral-sclerosis/als_qsp_model.svg) |
+| 2026-06-21 | 희귀유전질환 / 호흡기 | 낭성 섬유증 (Cystic Fibrosis — CFTR Biology · ΔF508 ERAD · ASL Dynamics · ETI/Trikafta PK/PD · P. aeruginosa Biofilm · 165 Nodes) | [cystic-fibrosis/](cystic-fibrosis/) | [![CF QSP](cystic-fibrosis/cf_qsp_model.png)](cystic-fibrosis/cf_qsp_model.svg) |
 
 ---
 
@@ -2446,3 +2447,45 @@ ALS는 상위 운동신경원(UMN, 피질척수로)과 하위 운동신경원(LM
 | [als_mrgsolve_model.R](amyotrophic-lateral-sclerosis/als_mrgsolve_model.R) | mrgsolve ODE 모델 (26 구획, 60+ 파라미터, 7 시나리오) |
 | [als_shiny_app.R](amyotrophic-lateral-sclerosis/als_shiny_app.R) | Shiny 대시보드 (6탭: Patient Profile · Drug PK · Biomarkers · Clinical Endpoints · Scenario Comparison · Mechanistic Pathways) |
 | [als_references.md](amyotrophic-lateral-sclerosis/als_references.md) | 참고문헌 40편 (PubMed 링크 포함, 10 섹션) |
+
+---
+
+## 낭성 섬유증 (Cystic Fibrosis, CF)
+
+### 개요
+
+낭성 섬유증은 **CFTR(Cystic Fibrosis Transmembrane conductance Regulator)** 유전자 돌연변이로 인한 상염색체 열성 희귀유전질환입니다. 전 세계 약 10만 명이 이환되며, 유럽계 인종에서 1/2,500~1/3,300의 빈도로 발생합니다. CFTR 단백질 기능 이상 → 기도 표면 액체(ASL) 탈수 → 만성 P. aeruginosa 감염 → 중성구 염증 → FEV1 감소 → 호흡 부전의 경로가 핵심 기전입니다.
+
+최근 Elexacaftor/Tezacaftor/Ivacaftor (Trikafta)는 ΔF508 동형접합 환자에서 ppFEV1 +14.3 pp, 땀 염소 -41.8 mmol/L, 악화 63% 감소를 달성하며 치료 패러다임을 혁신적으로 바꾸었습니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 결과 |
+|------|------------|---------|
+| ΔF508 Class II | ER 품질 관리 → ERAD (~99% 분해) | 막 CFTR <1% WT |
+| ASL 탈수 | ENaC 과활성 + CFTR Cl⁻/HCO₃⁻ 분비↓ | 점액섬모이동 붕괴 |
+| Biofilm 형성 | P. aeruginosa 알긴산 → MCC 내성 증가 | 만성 기도 감염 |
+| 중성구 염증 | IL-8↑ → PMN↑ → NE/MPO/ROS → 탄성섬유 파괴 | FEV1 연간 1.5–2%↓ |
+| CFTR 교정 | ELX(NBD1 결합) + TEZ(MSD1) → ΔF508 CFTR 구조 교정 | 막 CFTR 40–60% WT |
+| CFTR 증강 | IVA → 개방확률(Po) 0.02→0.40 | Cl⁻ 분비 정상화 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 용량 | F(%) | Vc (L) | t½ (h) | 작용기전 | 주요 임상시험 |
+|-----|------|------|--------|--------|----------|------------|
+| Ivacaftor (VX-770) | 150mg q12h PO | 67 | 97 | 12 | CFTR 채널 개방확률↑ | STRIVE (NEJM 2011): +10.6 pp |
+| Lumacaftor (VX-809) | 200mg q12h PO | 65 | ~300 | 26 | MSD1 결합 교정 | TRAFFIC (NEJM 2015): +2.6 pp |
+| Tezacaftor (VX-661) | 100mg q24h PO | 70 | 271 | 14 | MSD1 결합 교정 | EVOLENT (NEJM 2017): +3.4 pp |
+| Elexacaftor (VX-445) | 200mg q24h PO | 80 | 193 | 27 | NBD1 결합 교정 | VX-445-102 (NEJM 2019): **+14.3 pp** |
+| ELX/TEZ/IVA (Trikafta) | 3제 복합 | — | — | — | 삼중 시너지 교정/증강 | Middleton NEJM 2019 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [cf_qsp_model.dot](cystic-fibrosis/cf_qsp_model.dot) | Graphviz 기계론적 지도 (165 노드, 12 클러스터, 247 엣지) |
+| [cf_qsp_model.svg](cystic-fibrosis/cf_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [cf_qsp_model.png](cystic-fibrosis/cf_qsp_model.png) | PNG 150 dpi |
+| [cf_mrgsolve_model.R](cystic-fibrosis/cf_mrgsolve_model.R) | mrgsolve ODE 모델 (25 구획, 7 시나리오: IVA/LUM-IVA/TEZ-IVA/Trikafta/ETI+Tobra) |
+| [cf_shiny_app.R](cystic-fibrosis/cf_shiny_app.R) | Shiny 대시보드 (6탭: Patient Profile · PK · CFTR Function · Lung Function · Scenario Comparison · ASL & Infection) |
+| [cf_references.md](cystic-fibrosis/cf_references.md) | 참고문헌 53편 (13 섹션, PubMed 링크) |
