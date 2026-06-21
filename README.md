@@ -58,6 +58,7 @@
 | 2026-06-21 | 감염병 / 레트로바이러스 | HIV/AIDS (Viral Dynamics · CD4/CTL · ART PK/PD · Latent Reservoir · Drug Resistance) | [hiv-aids/](hiv-aids/) | [![HIV QSP](hiv-aids/hiv_qsp_model.png)](hiv-aids/hiv_qsp_model.svg) |
 | 2026-06-21 | 만성질환 / 심혈관 | 심방세동 (Atrial Fibrillation — Ion Channels · Electrical/Structural Remodeling · Anticoagulation · Antiarrhythmics) | [atrial-fibrillation/](atrial-fibrillation/) | [![AF QSP](atrial-fibrillation/af_qsp_model.png)](atrial-fibrillation/af_qsp_model.svg) |
 | 2026-06-21 | 종양학 / 유방암 | 유방암 (Breast Cancer — ER+/HER2+/TNBC · CDK4/6 · HER2 · PD-1/PD-L1 · PARP · Resistance · 14 Drugs) | [breast-cancer/](breast-cancer/) | [![BC QSP](breast-cancer/bc_qsp_model.png)](breast-cancer/bc_qsp_model.svg) |
+| 2026-06-21 | 신경퇴행성 / 운동신경원 | 근위축성 측삭경화증 (ALS — SOD1/TDP-43/C9orf72 · 글루탐산 독성 · 신경염증 · Riluzole/Edaravone/Tofersen/AMX0035) | [amyotrophic-lateral-sclerosis/](amyotrophic-lateral-sclerosis/) | [![ALS QSP](amyotrophic-lateral-sclerosis/als_qsp_model.png)](amyotrophic-lateral-sclerosis/als_qsp_model.svg) |
 
 ---
 
@@ -2404,3 +2405,44 @@ Breast cancer is the most common malignancy in women globally with ~2.3 million 
 6. Cortés J et al. (DESTINY-Breast03). "Trastuzumab Deruxtecan vs Ado-Trastuzumab Emtansine in HER2-Positive Metastatic Breast Cancer." *N Engl J Med* 2022;386:1143–1154. [PMID 35303772](https://pubmed.ncbi.nlm.nih.gov/35303772/)
 7. André F et al. (SOLAR-1). "Alpelisib for PIK3CA-Mutated, Hormone Receptor–Positive Advanced Breast Cancer." *N Engl J Med* 2019;380:1929–1940. [PMID 31091374](https://pubmed.ncbi.nlm.nih.gov/31091374/)
 8. Baselga J et al. (BOLERO-2). "Everolimus in postmenopausal hormone-receptor-positive advanced breast cancer." *N Engl J Med* 2012;366:520–529. [PMID 22149876](https://pubmed.ncbi.nlm.nih.gov/22149876/)
+
+
+---
+
+## 근위축성 측삭경화증 (Amyotrophic Lateral Sclerosis, ALS)
+
+### 개요
+
+ALS는 상위 운동신경원(UMN, 피질척수로)과 하위 운동신경원(LMN, 척수/연수)이 점진적으로 소실되는 치명적 신경퇴행성 질환입니다. 연간 발생률 약 2/100,000명, 중앙값 생존기간 2–5년. 전체의 ~90%가 산발성, ~10%가 가족성이며 SOD1(2%), C9orf72(5–10%), TDP-43/FUS 등의 유전자 돌연변이가 원인입니다. 병태생리의 핵심은 **글루탐산 독성, TDP-43/SOD1 단백질 응집, 산화 스트레스, 신경염증, 축삭수송 장애**의 다중 병인입니다.
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 메커니즘 | 임상 결과 |
+|------|------------|---------|
+| 글루탐산 독성 | EAAT2↓ → 시냅스 [Glu]↑ → AMPA(GluR2−)/NMDA 과활성 → Ca²⁺↑ | 운동신경원 사망 |
+| 단백질 응집 | TDP-43 핵→세포질 이탈 → cytoplasmic aggregates; SOD1 misfolding | UPS/autophagy 붕괴 |
+| 산화 스트레스 | SOD1 기능↓ → O₂•⁻ 축적 → H₂O₂/ONOO⁻ → 미토콘드리아 ΔΨm 감소 | Caspase-3 활성화 |
+| 신경염증 | 미세아교세포 M1 편향 → TNF-α/IL-1β/IL-18↑ → EAAT2↓ → 더욱 Glu↑ | 악성 순환 |
+| 축삭수송 장애 | Kinesin/Dynein 기능↓ → NF 축적 → 미토콘드리아 에너지 공급 차단 | Distal weakness |
+| 영양인자 결핍 | BDNF/TrkB, GDNF/RET, IGF-1/Akt↓ → 생존신호 감소 | MN 취약성 증가 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 용법 | F(%) | t½ | CL | 작용기전 | 임상 근거 |
+|-----|-----|------|----|----|----------|---------|
+| Riluzole | 50 mg PO BID | 60 | 12 h | 28 L/h | ↓ Glu release (Na⁺ channel) | Bensimon 1994: +3 mo survival |
+| Edaravone | 60 mg IV/day (cycle) | ~100 IV | 4.5 h | 18 L/h | Free-radical scavenger | Abe 2017: ALSFRS-R ↓33% less decline |
+| Tofersen | 100 mg SC q4w | — | 7 days | 0.5 L/h | SOD1 mRNA knockdown (ASO) | Miller 2022: SOD1↓50%, NfL↓60% |
+| AMX0035 | PB 3g + TUDCA 1g PO BID | 85 | 3 h | 12 L/h | ↓ ER stress / mito protection | Paganoni 2020: +2.32 pts/yr ALSFRS-R |
+| Masitinib | 4.5 mg/kg/day PO | 58 | 40 h | 25 L/h | c-Kit/PDGFR-β → microglia ↓ | Phase 3 진행 중 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [als_qsp_model.dot](amyotrophic-lateral-sclerosis/als_qsp_model.dot) | Graphviz 기계론적 지도 소스 (196+ 노드, 10 클러스터) |
+| [als_qsp_model.svg](amyotrophic-lateral-sclerosis/als_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [als_qsp_model.png](amyotrophic-lateral-sclerosis/als_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [als_mrgsolve_model.R](amyotrophic-lateral-sclerosis/als_mrgsolve_model.R) | mrgsolve ODE 모델 (26 구획, 60+ 파라미터, 7 시나리오) |
+| [als_shiny_app.R](amyotrophic-lateral-sclerosis/als_shiny_app.R) | Shiny 대시보드 (6탭: Patient Profile · Drug PK · Biomarkers · Clinical Endpoints · Scenario Comparison · Mechanistic Pathways) |
+| [als_references.md](amyotrophic-lateral-sclerosis/als_references.md) | 참고문헌 40편 (PubMed 링크 포함, 10 섹션) |
