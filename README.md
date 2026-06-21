@@ -54,6 +54,7 @@
 | 2026-06-20 | 신경학 / 두통 | 편두통 (Migraine — Trigeminovascular, CGRP, CSD, Triptans/mAbs/Gepants) | [migraine/](migraine/) | [![MGR QSP](migraine/mgr_qsp_model.png)](migraine/mgr_qsp_model.svg) |
 | 2026-06-20 | 만성 자가면역 피부질환 | 건선 (Psoriasis — IL-23/IL-17 Axis · TNF · Biologics/JAKi/PDE4i) | [psoriasis/](psoriasis/) | [![PSO QSP](psoriasis/pso_qsp_model.png)](psoriasis/pso_qsp_model.svg) |
 | 2026-06-20 | 신경정신질환 | 조현병 (Schizophrenia — DA·Glu·GABA·5-HT + Antipsychotic PK/PD, 10 clusters) | [schizophrenia/](schizophrenia/) | [![SCH QSP](schizophrenia/sch_qsp_model.png)](schizophrenia/sch_qsp_model.svg) |
+| 2026-06-21 | 신경학 / 만성 신경계 | 뇌전증 (Epilepsy — Ion Channel Biology · Seizure Network · AED PK/PD · Drug Resistance) | [epilepsy/](epilepsy/) | [![EPI QSP](epilepsy/epi_qsp_model.png)](epilepsy/epi_qsp_model.svg) |
 
 ---
 
@@ -2101,3 +2102,79 @@ Major Depressive Disorder (MDD) is the world's leading cause of disability, affe
 3. Howes OD, Kapur S. "The dopamine hypothesis of schizophrenia: Version III." *Schizophr Bull* 2009;35:549. [PMID 19325164](https://pubmed.ncbi.nlm.nih.gov/19325164/)
 4. Lewis DA et al. "Cortical inhibitory neurons and schizophrenia." *Nat Rev Neurosci* 2005;6:312. [PMID 15803162](https://pubmed.ncbi.nlm.nih.gov/15803162/)
 5. Sekar A et al. "Schizophrenia risk from complex variation of complement component 4." *Nature* 2016;530:177. [PMID 26814963](https://pubmed.ncbi.nlm.nih.gov/26814963/)
+
+---
+
+## 뇌전증 (Epilepsy — Focal & Generalized)
+
+### 개요
+
+뇌전증(간질)은 전 세계 약 5천만 명에게 영향을 미치는 가장 흔한 만성 신경계 질환 중 하나입니다.
+두 번 이상의 비유발성 발작 또는 한 번의 발작 이후 10년 재발 위험이 60% 이상인 경우로 정의됩니다(ILAE 2014).
+연간 발생률은 약 50/100,000명, 전 세계 유병률은 0.5–1%이며 환자의 약 30%가 약물 내성 뇌전증(DRE)으로 진행됩니다.
+
+이 QSP 모델은 유전적·후천적 원인에서 이온채널 병태생리, GABA/글루타메이트 시스템, 발작 네트워크 역학,
+항뇌전증약물(AED) PK/PD, 혈뇌장벽 약물 내성, 뇌전증지속증(SE)까지를 정량적으로 연결합니다.
+
+### 기계론적 지도
+
+[![Epilepsy QSP Model](epilepsy/epi_qsp_model.png)](epilepsy/epi_qsp_model.svg)
+
+### 주요 병태생리 경로
+
+| 경로 | 핵심 기전 | 임상 연관성 |
+|------|---------|-----------|
+| SCN1A LOF → Dravet | Nav1.1 소실 → PV+ 사이신경세포 억제 저하 | 열성발작, 약물 내성 |
+| E/I 불균형 | GABA-A 활성↓ / NMDA-AMPA 활성↑ | 발작역치 감소 → 발작 발생 |
+| MTS 회로 재형성 | 이끼섬유 발아 → 이상 CA3 재귀 회로 | 측두엽 뇌전증(TLE) |
+| SE → GABA-A 내재화 | 발작 지속 → 수용체 수 감소 → BZD 내성 | 불응성 뇌전증지속증 |
+| P-gp 과발현 | NF-κB → ABCB1↑ → 혈뇌장벽 AED 배출↑ | 약물 내성 뇌전증(DRE) |
+| TSC/mTOR 과활성 | TSC1/2 LOF → mTORC1↑ → 피질 이형성 | TSC/FCD 관련 뇌전증 |
+
+### AED PK/PD 파라미터
+
+| 약물 | 기전 | Vc (L) | CL (L/h) | t½ | 치료범위 (mcg/mL) |
+|------|------|--------|----------|----|-----------------|
+| VPA | GABA-T 억제 + Nav 부분 차단 | 9.1 | 0.47 | 9–17h | 50–100 |
+| LEV | SV2A 결합 → 시냅스 소포 방출↓ | 42 | 3.8 (신장) | 7h | 12–46 |
+| CBZ | Nav 서서히 불활성화 (자가유도) | 51 | 3→6.5 | 8→5h | 4–12 |
+| LTG | Nav 상태의존 차단 + 지속전류I_NaP↓ | 77 | 1.5 (UGT1A4) | 25–36h | 3–14 |
+| PHT | Nav 불활성화 안정화 (비선형 PK) | 50 | 비선형 | 22h | 10–20 |
+
+### 주요 DDI
+
+| 상호작용 | 기전 | 임상 영향 |
+|---------|------|---------|
+| VPA + LTG | VPA → UGT1A4 억제 | LTG t½ 2배 증가 → 낮은 용량으로 유지 |
+| CBZ + LTG | CBZ → CYP3A4 유도 | LTG 청소율 2배 → 높은 용량 필요 |
+| CBZ 자가유도 | CBZ → 자신의 CYP3A4 유도 | 2–4주 후 CL 3→6.5 L/h, 용량 조절 필요 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [epi_qsp_model.dot](epilepsy/epi_qsp_model.dot) | Graphviz 기계론적 지도 소스 (136 노드, 10 클러스터) |
+| [epi_qsp_model.svg](epilepsy/epi_qsp_model.svg) | SVG 벡터 이미지 (확대 가능) |
+| [epi_qsp_model.png](epilepsy/epi_qsp_model.png) | PNG 래스터 이미지 (150 dpi) |
+| [epi_mrgsolve_model.R](epilepsy/epi_mrgsolve_model.R) | mrgsolve ODE 모델 (16구획, 10 시나리오) |
+| [epi_shiny_app.R](epilepsy/epi_shiny_app.R) | Shiny 대시보드 (6탭 인터랙티브 앱) |
+| [epi_references.md](epilepsy/epi_references.md) | 참고문헌 62편 (PubMed 링크 포함) |
+
+### 주요 임상시험 근거
+
+| 약물 | 임상시험 | 결과 |
+|------|---------|------|
+| LEV | KEEPER (Cereghino 2000) | 발작 빈도 26% 감소, 반응률 33% |
+| CBZ | Mattson 1985 (NINCDS) | 단순부분·GTCS에서 우수한 효과 |
+| LTG | 교차 임상시험 (Matsuo 1993) | 위약 대비 발작 빈도 25% 감소 |
+| VPA | Chadwick 1999 | 전신 발작에서 CBZ와 동등 |
+| 에버롤리무스 (TSC) | EXIST-3 (Curatolo 2016) | 발작 빈도 41% 감소 |
+| 펜플루라민 (Dravet) | PHENOMENON 2019 | 발작 빈도 71% 감소 |
+
+### 핵심 참고문헌
+
+1. Thijs RD et al. "Epilepsy in adults." *Lancet* 2019;393(10172):689–701. [PMID 30686584](https://pubmed.ncbi.nlm.nih.gov/30686584/)
+2. Loscher W et al. "Drug resistance in epilepsy: clinical impact, potential mechanisms, and new innovative treatment options." *Pharmacol Rev* 2020;72(3):606–638. [PMID 32540959](https://pubmed.ncbi.nlm.nih.gov/32540959/)
+3. Lynch BA et al. "The synaptic vesicle protein SV2A is the binding site for the antiepileptic drug levetiracetam." *Proc Natl Acad Sci USA* 2004;101(26):9861–9866. [PMID 15210974](https://pubmed.ncbi.nlm.nih.gov/15210974/)
+4. Kwan P, Brodie MJ. "Early identification of refractory epilepsy." *N Engl J Med* 2000;342(5):314–319. [PMID 10660394](https://pubmed.ncbi.nlm.nih.gov/10660394/)
+5. Trinka E et al. "A definition and classification of status epilepticus." *Epilepsia* 2015;56(10):1515–1523. [PMID 26336950](https://pubmed.ncbi.nlm.nih.gov/26336950/)
