@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-127-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-129-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **127개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **129개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -118,9 +118,9 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **122개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **129개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2
+**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양·혈액 5 · 근골격·신경 1 · 정신·신경 2 · 감염 2
 
 | # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
 |---|------|------|----------|--------------|
@@ -253,6 +253,7 @@ qsp/
 | 126 | 종양·소화기 | [**췌장 선암**<br><sub>Pancreatic Ductal Adenocarcinoma · PDAC</sub>](pancreatic-cancer/) | <a href="pancreatic-cancer/pdac_qsp_model.svg"><img src="pancreatic-cancer/pdac_qsp_model.png" width="190" alt="PDAC"></a> | KRAS G12D/V/R(~95%)·TP53(~75%)·CDKN2A(~90%)·SMAD4(~55%) 드라이버 돌연변이, RAS/MAPK/PI3K/AKT/mTOR 신호, TGF-β/SMAD/EMT 축, 치밀 섬유화 기질(PSC·CAF·HA·IFP↑→약물침투↓), 고면역억제 TME(PD-L1·Treg·MDSC·TAM-M2), HIF-1α/VEGF 혈관신생, BRCA1/2/PALB2 HRD. 젬시타빈/nab-파클리탁셀·FOLFIRINOX/mFOLFIRINOX·KRAS G12D 억제제(MRTX1133)·올라파립 PK/PD. 264노드 10클러스터, 7치료 시나리오(MPACT·PRODIGE4·POLO 임상 보정), CA19-9·ctDNA·Friberg 골수억제 바이오마커.<br>[🗺️ 지도](pancreatic-cancer/pdac_qsp_model.svg) · [⚙️ mrgsolve](pancreatic-cancer/pdac_mrgsolve_model.R) · [📊 Shiny](pancreatic-cancer/pdac_shiny_app.R) · [📚 문헌](pancreatic-cancer/pdac_references.md) · [📄 README](pancreatic-cancer/README.md) |
 | 127 | 종양·혈액 | [**골수이형성 증후군**<br><sub>Myelodysplastic Syndrome · MDS</sub>](myelodysplastic-syndrome/) | <a href="myelodysplastic-syndrome/mds_qsp_model.svg"><img src="myelodysplastic-syndrome/mds_qsp_model.png" width="190" alt="MDS"></a> | CHIP→MDS 클론 진화; SF3B1/SRSF2/U2AF1/ZRSR2 스플라이싱 돌연변이(고리 철아세포 형성·ABCB7 소실); TET2/DNMT3A/IDH1·2/ASXL1/EZH2 후성유전학 이상; del(5q)→RPS14 반수부족·miR-145/146a 소실·TIRAP↑; TP53 복잡핵형; 골수 미세환경 (CXCL12·SCF·TPO·EPO·GCSF 니치); GDF11/TGF-β1 상승→비효율 적혈구생성; 헵시딘↑/철과부하. 아자시티딘(2구획 SC/IV PK)·데시타빈(IV/oral ASTX727)·레날리도마이드(CRBN→CK1α 분해→RPS14 복원)·루스파터셉트(ActRIIB-Fc TGF-β 포획→Smad2/3↓)·다르베포에틴·베네토클락스(BCL-2 BH3 모방체) PK/PD. 324노드 10클러스터, 18구획 ODE, 7치료 시나리오(COMMANDS·MEDALIST·MDS-003/004·ASTX727·VIALE-A 임상 보정), Hgb/PLT/ANC/수혈 의존성·GDF11·Hepcidin·IronStore·IPSS-R/IPSS-M 바이오마커.<br>[🗺️ 지도](myelodysplastic-syndrome/mds_qsp_model.svg) · [⚙️ mrgsolve](myelodysplastic-syndrome/mds_mrgsolve_model.R) · [📊 Shiny](myelodysplastic-syndrome/mds_shiny_app.R) · [📚 문헌](myelodysplastic-syndrome/mds_references.md) · [📄 README](myelodysplastic-syndrome/README.md) |
 | 128 | 근골격·신경 | [**섬유근통**<br><sub>Fibromyalgia · FM</sub>](fibromyalgia/) | <a href="fibromyalgia/fm_qsp_model.svg"><img src="fibromyalgia/fm_qsp_model.png" width="190" alt="FM"></a> | 중추감작(척수 WDR뉴런 LTP·wind-up·NMDA 수용체 탈억제); 하행성 통증조절계 결함(PAG-RVM-LC/Raphe 축, DPMS↓, DNIC 소실); 신경전달물질 불균형(CSF substance P↑·NE↓·5-HT↓); 신경염증(척수 미세아교세포 활성화·IL-1β/TNF-α·NLRP3 인플라마좀·KCC2↓→GABA 탈억제); HPA 축 이상(저코르티솔혈증·GH/IGF-1 결핍); 자율신경계 불균형(교감항진·HRV↓); 비회복성 수면(α파-δ파 침범·SWS↓); 섬유근통 뇌회로(ACC·섬엽·PFC 과활성화·기본모드네트워크). 둘록세틴(2구획 PK·SERT/NET IC50)·프레가발린(α2δ-1 Ca채널 차단·Emax 모델)·밀나시프란(SERT/NET)·아미트립틸린(H1 차단→수면 개선) PK/PD. 100+ 노드 10클러스터, **30구획 ODE**, 6치료 시나리오, Pain NRS·FIQR·CSF SP·미세아교세포·SWS·코르티솔·SNS tone 바이오마커.<br>[🗺️ 지도](fibromyalgia/fm_qsp_model.svg) · [⚙️ mrgsolve](fibromyalgia/fm_mrgsolve_model.R) · [📊 Shiny](fibromyalgia/fm_shiny_app.R) · [📚 문헌](fibromyalgia/fm_references.md) · [📄 README](fibromyalgia/README.md) |
+| 129 | 종양·혈액 | [**미만성 거대 B세포 림프종**<br><sub>Diffuse Large B-Cell Lymphoma · DLBCL</sub>](diffuse-large-b-cell-lymphoma/) | <a href="diffuse-large-b-cell-lymphoma/dlbcl_qsp_model.svg"><img src="diffuse-large-b-cell-lymphoma/dlbcl_qsp_model.png" width="190" alt="DLBCL"></a> | 가장 흔한 공격적 비호지킨 림프종(NHL의 25–30%). GCB(EZH2 돌연변이·BCL2 전위) vs ABC(MYD88 L265P·CD79B·구성적 NF-κB) 세포기원 아형. BCR→SYK→BTK→PLCγ2→PKCβ→CARMA1/BCL10/MALT1→IKK→NF-κB→IRF4/BLIMP1 신호축; PI3Kδ→AKT→mTORC1/2→S6K/4E-BP1; BCL2/BCL-XL/MCL1 대 BAX/BAK 아포토시스 균형; BCL6/MYC/IRF4 배중심 생물학; TME(PD-1/PD-L1·LAG-3·TIM-3·TAM M1/2·Treg·NK/CTL·ADCC). 리투시맙(2구획 PK)·폴라투주맙 베도틴(ADC+MMAE 페이로드 PK)·베네토클락스(2구획)·이브루티닙(BTK 차단·ABC 선택) PK/PD. **183노드 10클러스터** 기계론적 지도, **18구획 ODE**, 6치료 시나리오(R-CHOP·Pola-R-CHP·R-CHOP+Ven·Ibr+R-CHOP·CAR-T·무치료, POLARIX·GOYA·TRANSCEND 보정), 6탭 Shiny 앱, 43개 참고문헌.<br>[🗺️ 지도](diffuse-large-b-cell-lymphoma/dlbcl_qsp_model.svg) · [⚙️ mrgsolve](diffuse-large-b-cell-lymphoma/dlbcl_mrgsolve_model.R) · [📊 Shiny](diffuse-large-b-cell-lymphoma/dlbcl_shiny_app.R) · [📚 문헌](diffuse-large-b-cell-lymphoma/dlbcl_references.md) · [📄 README](diffuse-large-b-cell-lymphoma/README.md) |
 
 
 ---
@@ -730,3 +731,33 @@ qsp/
 | 아미트립틸린 25 mg QHS | Nishishinya 2008 (Rheumatology) | 통증·수면·FIQ 개선(위약 대비); 단기 효과 강함 | 오프라벨 |
 | 둘록세틴 + 프레가발린 병용 | 모델 시뮬레이션 | 상보적 기전(SERT/NET + α2δ-1)으로 추가 효과 예측 | 임상 가이드라인 미확립 |
 | 아미트립틸린 수면 표적 | Moldofsky 1975 이후 연구 | SWS 회복 → 통증·피로 개선 선행 | 수면 장애 동반 시 |
+
+---
+
+## 129. 미만성 거대 B세포 림프종 (Diffuse Large B-Cell Lymphoma · DLBCL)
+
+> **디렉토리**: [`diffuse-large-b-cell-lymphoma/`](diffuse-large-b-cell-lymphoma/) | **날짜**: 2026-06-23
+
+[![DLBCL QSP Map](diffuse-large-b-cell-lymphoma/dlbcl_qsp_model.png)](diffuse-large-b-cell-lymphoma/dlbcl_qsp_model.svg)
+
+DLBCL은 NHL의 25–30%를 차지하는 가장 흔한 공격적 B세포 림프종으로, GCB(배중심 B세포형)와 ABC(활성화 B세포형)의 두 분자 아형에 따라 예후와 치료 반응이 크게 다릅니다. R-CHOP으로 약 60–65%가 완치되며, 나머지 30–40%는 재발·불응성 DLBCL(R/R DLBCL)로 CAR-T 세포치료 등 구제 요법의 대상이 됩니다.
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`dlbcl_qsp_model.dot/.svg/.png`](diffuse-large-b-cell-lymphoma/) | **431 labeled nodes, 10개 클러스터** (BCR/NF-κB·PI3K-AKT-mTOR·아포토시스·GC 생물학·TME·약물 PK·DNA 손상·임상지표·사이토카인·후성유전학) |
+| ⚙️ mrgsolve ODE | [`dlbcl_mrgsolve_model.R`](diffuse-large-b-cell-lymphoma/dlbcl_mrgsolve_model.R) | **18구획 ODE** (5 약물 PK: 리투시맙 2구획·폴라투주맙 ADC+MMAE·베네토클락스 2구획·이브루티닙·R-CHOP + 13 질환 PD: TUMOR_GCB·TUMOR_ABC·BCR·NF-κB·BCL2·APOP·NK·CTL·PDL1·LDH), **6치료 시나리오** (무치료·R-CHOP·Pola-R-CHP·R-CHOP+Ven·Ibr+R-CHOP·CAR-T), POLARIX·GOYA·ZUMA-1·TRANSCEND 임상 보정 |
+| 📊 Shiny 앱 | [`dlbcl_shiny_app.R`](diffuse-large-b-cell-lymphoma/dlbcl_shiny_app.R) | **6탭** (환자 프로파일·Drug PK·PD 핵심지표·임상 엔드포인트·시나리오 비교·바이오마커 탐색기), bslib darkly 테마, 1,357줄 |
+| 📚 참고문헌 | [`dlbcl_references.md`](diffuse-large-b-cell-lymphoma/dlbcl_references.md) | **35개 PubMed 인용** (질환 생물학·GCB/ABC 기전·BCR 신호·BCL2·TME·R-CHOP·폴라투주맙·CAR-T·신규 병용요법·PK-PD 모델링) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 적응 |
+|------|----------|----------|------|
+| R-CHOP (6주기) | GOYA (Vitolo 2017, JCO) | 3yr PFS 67%; OS 5yr ~78% | 1차 표준요법 |
+| Pola-R-CHP vs R-CHOP | POLARIX (Tilly 2022, NEJM) | 2yr PFS **76.7% vs 70.2%** (HR 0.73, p=0.02) | IPI 2-5의 미치료 DLBCL |
+| Ibrutinib+R-CHOP vs R-CHOP | PHOENIX (Younes 2019, JCO) | EFS 개선: 60세 미만 non-GCB에서만 유의 | ABC DLBCL |
+| Axi-cel (CAR-T) | ZUMA-1 (Neelapu 2017, NEJM) | ORR 82%, CR 54%, 5yr OS 42% | 3차 이상 R/R DLBCL |
+| Liso-cel (CAR-T) | TRANSCEND (Abramson 2020, Lancet) | ORR 73%, CR 53%, 12mo PFS 44% | R/R DLBCL |
+| Tafasitamab+Lenalidomide | L-MIND (Salles 2020, Lancet Oncol) | ORR 60%, CR 43%, DoR 21.7개월 | 2차 이상 이식 불가 R/R DLBCL |
