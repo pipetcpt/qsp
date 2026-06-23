@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-127-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-129-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **127개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
@@ -253,6 +253,7 @@ qsp/
 | 126 | 종양·소화기 | [**췌장 선암**<br><sub>Pancreatic Ductal Adenocarcinoma · PDAC</sub>](pancreatic-cancer/) | <a href="pancreatic-cancer/pdac_qsp_model.svg"><img src="pancreatic-cancer/pdac_qsp_model.png" width="190" alt="PDAC"></a> | KRAS G12D/V/R(~95%)·TP53(~75%)·CDKN2A(~90%)·SMAD4(~55%) 드라이버 돌연변이, RAS/MAPK/PI3K/AKT/mTOR 신호, TGF-β/SMAD/EMT 축, 치밀 섬유화 기질(PSC·CAF·HA·IFP↑→약물침투↓), 고면역억제 TME(PD-L1·Treg·MDSC·TAM-M2), HIF-1α/VEGF 혈관신생, BRCA1/2/PALB2 HRD. 젬시타빈/nab-파클리탁셀·FOLFIRINOX/mFOLFIRINOX·KRAS G12D 억제제(MRTX1133)·올라파립 PK/PD. 264노드 10클러스터, 7치료 시나리오(MPACT·PRODIGE4·POLO 임상 보정), CA19-9·ctDNA·Friberg 골수억제 바이오마커.<br>[🗺️ 지도](pancreatic-cancer/pdac_qsp_model.svg) · [⚙️ mrgsolve](pancreatic-cancer/pdac_mrgsolve_model.R) · [📊 Shiny](pancreatic-cancer/pdac_shiny_app.R) · [📚 문헌](pancreatic-cancer/pdac_references.md) · [📄 README](pancreatic-cancer/README.md) |
 | 127 | 종양·혈액 | [**골수이형성 증후군**<br><sub>Myelodysplastic Syndrome · MDS</sub>](myelodysplastic-syndrome/) | <a href="myelodysplastic-syndrome/mds_qsp_model.svg"><img src="myelodysplastic-syndrome/mds_qsp_model.png" width="190" alt="MDS"></a> | CHIP→MDS 클론 진화; SF3B1/SRSF2/U2AF1/ZRSR2 스플라이싱 돌연변이(고리 철아세포 형성·ABCB7 소실); TET2/DNMT3A/IDH1·2/ASXL1/EZH2 후성유전학 이상; del(5q)→RPS14 반수부족·miR-145/146a 소실·TIRAP↑; TP53 복잡핵형; 골수 미세환경 (CXCL12·SCF·TPO·EPO·GCSF 니치); GDF11/TGF-β1 상승→비효율 적혈구생성; 헵시딘↑/철과부하. 아자시티딘(2구획 SC/IV PK)·데시타빈(IV/oral ASTX727)·레날리도마이드(CRBN→CK1α 분해→RPS14 복원)·루스파터셉트(ActRIIB-Fc TGF-β 포획→Smad2/3↓)·다르베포에틴·베네토클락스(BCL-2 BH3 모방체) PK/PD. 324노드 10클러스터, 18구획 ODE, 7치료 시나리오(COMMANDS·MEDALIST·MDS-003/004·ASTX727·VIALE-A 임상 보정), Hgb/PLT/ANC/수혈 의존성·GDF11·Hepcidin·IronStore·IPSS-R/IPSS-M 바이오마커.<br>[🗺️ 지도](myelodysplastic-syndrome/mds_qsp_model.svg) · [⚙️ mrgsolve](myelodysplastic-syndrome/mds_mrgsolve_model.R) · [📊 Shiny](myelodysplastic-syndrome/mds_shiny_app.R) · [📚 문헌](myelodysplastic-syndrome/mds_references.md) · [📄 README](myelodysplastic-syndrome/README.md) |
 | 128 | 근골격·신경 | [**섬유근통**<br><sub>Fibromyalgia · FM</sub>](fibromyalgia/) | <a href="fibromyalgia/fm_qsp_model.svg"><img src="fibromyalgia/fm_qsp_model.png" width="190" alt="FM"></a> | 중추감작(척수 WDR뉴런 LTP·wind-up·NMDA 수용체 탈억제); 하행성 통증조절계 결함(PAG-RVM-LC/Raphe 축, DPMS↓, DNIC 소실); 신경전달물질 불균형(CSF substance P↑·NE↓·5-HT↓); 신경염증(척수 미세아교세포 활성화·IL-1β/TNF-α·NLRP3 인플라마좀·KCC2↓→GABA 탈억제); HPA 축 이상(저코르티솔혈증·GH/IGF-1 결핍); 자율신경계 불균형(교감항진·HRV↓); 비회복성 수면(α파-δ파 침범·SWS↓); 섬유근통 뇌회로(ACC·섬엽·PFC 과활성화·기본모드네트워크). 둘록세틴(2구획 PK·SERT/NET IC50)·프레가발린(α2δ-1 Ca채널 차단·Emax 모델)·밀나시프란(SERT/NET)·아미트립틸린(H1 차단→수면 개선) PK/PD. 100+ 노드 10클러스터, **30구획 ODE**, 6치료 시나리오, Pain NRS·FIQR·CSF SP·미세아교세포·SWS·코르티솔·SNS tone 바이오마커.<br>[🗺️ 지도](fibromyalgia/fm_qsp_model.svg) · [⚙️ mrgsolve](fibromyalgia/fm_mrgsolve_model.R) · [📊 Shiny](fibromyalgia/fm_shiny_app.R) · [📚 문헌](fibromyalgia/fm_references.md) · [📄 README](fibromyalgia/README.md) |
+| 129 | 혈액·응고 | [**혈우병 A**<br><sub>Hemophilia A · HA</sub>](hemophilia-a/) | <a href="hemophilia-a/ha_qsp_model.svg"><img src="hemophilia-a/ha_qsp_model.png" width="190" alt="HA"></a> | X염색체 연관 FVIII 결핍(F8 유전자 돌연변이) → 내인성 Xase 복합체(FIXa·FVIIIa) 형성 불능 → 트롬빈 생성 급감 → 불안정 피브린 클롯. 중증(<1 IU/dL) ABR ~30/년; 억제항체(30% 중증) 발생으로 대체치료 실패. 에미시주맙(HAVEN 1/3/4: FIXa–FX 이중특이항체·FVIII 모방; ABR 1.5/년)·피투시란(ATLAS-INH: siRNA·항트롬빈 mRNA 녹다운·AT 감소→트롬빈↑; ABR ~0)·마스타시맙(항TFPI·외인성경로 증폭)·유전자치료(AAV5-FVIII·valoctocogene roxaparvovec). SHL/EHL FVIII PK(2구획)·에미시주맙 SC PK(3구획·t½ 4–5주)·피투시란 PK/AT 간접반응 모델(mRNA/단백질 2단계 녹다운). **167 노드 10클러스터**, **16구획 ODE**, **7 치료 시나리오**(무예방·SHL-FVIII 3×/wk·EHL Q3-4d·에미시주맙 Q1W/Q4W·피투시란 Q1M·FVIII+에미시주맙 병용), ETP·ABR·Pettersson 관절점수·QoL·억제항체 역가 바이오마커. 55개 PubMed 인용(Manco-Johnson 2007·HAVEN·ATLAS·A-LONG·HOPE-B·WFH Guidelines 포함).<br>[🗺️ 지도](hemophilia-a/ha_qsp_model.svg) · [⚙️ mrgsolve](hemophilia-a/ha_mrgsolve_model.R) · [📊 Shiny](hemophilia-a/ha_shiny_app.R) · [📚 문헌](hemophilia-a/ha_references.md) · [📄 README](hemophilia-a/README.md) |
 
 
 ---
@@ -730,3 +731,47 @@ qsp/
 | 아미트립틸린 25 mg QHS | Nishishinya 2008 (Rheumatology) | 통증·수면·FIQ 개선(위약 대비); 단기 효과 강함 | 오프라벨 |
 | 둘록세틴 + 프레가발린 병용 | 모델 시뮬레이션 | 상보적 기전(SERT/NET + α2δ-1)으로 추가 효과 예측 | 임상 가이드라인 미확립 |
 | 아미트립틸린 수면 표적 | Moldofsky 1975 이후 연구 | SWS 회복 → 통증·피로 개선 선행 | 수면 장애 동반 시 |
+
+---
+
+## 모델 #129 상세: 혈우병 A (Hemophilia A)
+
+> **디렉토리:** [`hemophilia-a/`](hemophilia-a/) | **약어:** HA | **날짜:** 2026-06-23
+
+혈우병 A는 F8 유전자 돌연변이로 인한 응고인자 VIII 결핍이 주원인인 X염색체 연관 출혈 질환이다. FVIII는 내인성 응고경로에서 FIXa와 결합해 Xase 복합체를 형성하고 FX→FXa 전환을 증폭시키는 핵심 보조인자다. FVIII 결핍 시 트롬빈 생성이 심각히 감소하여 중증 환자에서 연간 약 30회 자연 출혈이 발생하고, 반복적인 혈관절증이 불가역적 관절 손상으로 이어진다.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|---------|---------|---------|
+| **혈관 손상·혈소판** | TF 노출·vWF·GPIb·GPIIbIIIa·TXA2·ADP | 혈소판 초기 지혈 플러그 |
+| **외인성 경로(TF/FVIIa)** | TF·FVIIa·TFPI 억제·FIX/FX 활성화 | 마스타시맙(항TFPI·외인성 경로 증폭) |
+| **FVIII 생물학·내인성 경로** | FVIIIa·FIXa·Xase 복합체·VWF 보호 | SHL/EHL FVIII 대체·에미시주맙 모방 |
+| **공통 경로·트롬빈 생성** | FXa·Prothrombinase·Thrombin burst·FXIIIa | Thrombin ETP 임상 지표 |
+| **자연 항응고 기전** | AT·Protein C/S·EPCR·tPA/Plasmin | 피투시란(siRNA→AT 감소) |
+| **억제항체 면역학** | TH세포·B세포·항FVIII IgG·BU 역가 | ITI·리투시맙·에미시주맙 우회 |
+| **약물 PK/PD** | SHL/EHL FVIII(2구획)·에미시주맙(SC, t½ 4–5주)·피투시란(siRNA 간접반응) | HAVEN 1/3/4·ATLAS-INH 임상 보정 |
+| **출혈 표현형** | 혈관절증·근육 혈종·두개내출혈·GI 출혈·ABR | 예방요법 목표 ABR <3 |
+| **혈우병성 관절병증** | 활막 철 침착·ROS·연골파괴·Pettersson 점수 | 관절 보호 예방요법·물리치료 |
+| **임상 엔드포인트** | FVIII trough ≥1%·ETP·ABR·QoL(EQ-5D) | Zero-bleed 표현형 달성 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`ha_qsp_model.dot/.svg/.png`](hemophilia-a/) | **167 노드, 10개 클러스터** (혈관손상·외인성경로·FVIII/내인성경로·공통경로·항응고기전·억제항체면역학·약물PK/PD·출혈표현형·관절병증·임상엔드포인트) |
+| ⚙️ mrgsolve ODE | [`ha_mrgsolve_model.R`](hemophilia-a/ha_mrgsolve_model.R) | **16구획 ODE** (FVIII 2구획·에미시주맙 3구획·피투시란 2구획·AT mRNA/단백질·억제항체·ETP·CumBleeds·관절점수·QoL·Synovitis·FVIII_eff), **7 치료 시나리오** (무예방·SHL-FVIII·EHL-FVIII·에미시주맙 Q1W/Q4W·피투시란·병용) |
+| 📊 Shiny 앱 | [`ha_shiny_app.R`](hemophilia-a/ha_shiny_app.R) | **6탭** (환자 프로파일·FVIII PK·PD 핵심지표·출혈 위험/ABR·시나리오 비교·바이오마커), bslib darkly 테마, plotly 인터랙티브, 내장 ODE 시뮬레이터 |
+| 📚 참고문헌 | [`ha_references.md`](hemophilia-a/ha_references.md) | **55개 PubMed 인용** (HAVEN 1/3/4·ATLAS-INH·A-LONG·HOPE-B·Manco-Johnson 2007 NEJM·WFH Guidelines 2020) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 비고 |
+|------|----------|----------|------|
+| SHL-FVIII 25 IU/kg 3×/주 | Manco-Johnson 2007 (NEJM) | ABR ~3.0 vs 32.4 (on-demand) | 소아 예방요법 표준 |
+| EHL-FVIII Fc 50 IU/kg Q3-4d | A-LONG (Mahlangu 2014 Blood) | ABR 1.6 (개인화 예방) | t½ ~18–19 h |
+| 에미시주맙 1.5 mg/kg Q1W | HAVEN 3 (Mahlangu 2018 NEJM) | ABR 1.5 vs 38.2 (미치료); 96% 감소 | 비억제항체 HA |
+| 에미시주맙 6 mg/kg Q4W | HAVEN 4 (Pipe 2019 Blood Adv) | ABR 2.4; Q4W 투여 편의성 ↑ | 월 1회 피하주사 |
+| 에미시주맙 3 mg/kg Q1W | HAVEN 1 (Oldenburg 2017 NEJM) | ABR 2.9 vs 23.3; 87% 감소 | 억제항체 HA |
+| 피투시란 80 mg SC Q1M | ATLAS-INH (Young 2023 NEJM) | ABR 0.0 vs 17.8; 99% 감소 | siRNA; AT ↓~75% |
+| valoctocogene roxaparvovec | HOPE-B (Ozelo 2022 NEJM) | FVIII 수준 23 IU/dL 달성; ABR 근접 zero | AAV5 유전자 치료 |
