@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-130-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-131-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **130개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
@@ -118,7 +118,7 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **122개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **131개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
 **분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2
 
@@ -255,6 +255,7 @@ qsp/
 | 128 | 근골격·신경 | [**섬유근통**<br><sub>Fibromyalgia · FM</sub>](fibromyalgia/) | <a href="fibromyalgia/fm_qsp_model.svg"><img src="fibromyalgia/fm_qsp_model.png" width="190" alt="FM"></a> | 중추감작(척수 WDR뉴런 LTP·wind-up·NMDA 수용체 탈억제); 하행성 통증조절계 결함(PAG-RVM-LC/Raphe 축, DPMS↓, DNIC 소실); 신경전달물질 불균형(CSF substance P↑·NE↓·5-HT↓); 신경염증(척수 미세아교세포 활성화·IL-1β/TNF-α·NLRP3 인플라마좀·KCC2↓→GABA 탈억제); HPA 축 이상(저코르티솔혈증·GH/IGF-1 결핍); 자율신경계 불균형(교감항진·HRV↓); 비회복성 수면(α파-δ파 침범·SWS↓); 섬유근통 뇌회로(ACC·섬엽·PFC 과활성화·기본모드네트워크). 둘록세틴(2구획 PK·SERT/NET IC50)·프레가발린(α2δ-1 Ca채널 차단·Emax 모델)·밀나시프란(SERT/NET)·아미트립틸린(H1 차단→수면 개선) PK/PD. 100+ 노드 10클러스터, **30구획 ODE**, 6치료 시나리오, Pain NRS·FIQR·CSF SP·미세아교세포·SWS·코르티솔·SNS tone 바이오마커.<br>[🗺️ 지도](fibromyalgia/fm_qsp_model.svg) · [⚙️ mrgsolve](fibromyalgia/fm_mrgsolve_model.R) · [📊 Shiny](fibromyalgia/fm_shiny_app.R) · [📚 문헌](fibromyalgia/fm_references.md) · [📄 README](fibromyalgia/README.md) |
 | 129 | 혈액·응고 | [**혈우병 A**<br><sub>Hemophilia A · HA</sub>](hemophilia-a/) | <a href="hemophilia-a/ha_qsp_model.svg"><img src="hemophilia-a/ha_qsp_model.png" width="190" alt="HA"></a> | X염색체 연관 FVIII 결핍(F8 유전자 돌연변이) → 내인성 Xase 복합체(FIXa·FVIIIa) 형성 불능 → 트롬빈 생성 급감 → 불안정 피브린 클롯. 중증(<1 IU/dL) ABR ~30/년; 억제항체(30% 중증) 발생으로 대체치료 실패. 에미시주맙(HAVEN 1/3/4: FIXa–FX 이중특이항체·FVIII 모방; ABR 1.5/년)·피투시란(ATLAS-INH: siRNA·항트롬빈 mRNA 녹다운·AT 감소→트롬빈↑; ABR ~0)·마스타시맙(항TFPI·외인성경로 증폭)·유전자치료(AAV5-FVIII·valoctocogene roxaparvovec). SHL/EHL FVIII PK(2구획)·에미시주맙 SC PK(3구획·t½ 4–5주)·피투시란 PK/AT 간접반응 모델(mRNA/단백질 2단계 녹다운). **167 노드 10클러스터**, **16구획 ODE**, **7 치료 시나리오**(무예방·SHL-FVIII 3×/wk·EHL Q3-4d·에미시주맙 Q1W/Q4W·피투시란 Q1M·FVIII+에미시주맙 병용), ETP·ABR·Pettersson 관절점수·QoL·억제항체 역가 바이오마커. 55개 PubMed 인용(Manco-Johnson 2007·HAVEN·ATLAS·A-LONG·HOPE-B·WFH Guidelines 포함).<br>[🗺️ 지도](hemophilia-a/ha_qsp_model.svg) · [⚙️ mrgsolve](hemophilia-a/ha_mrgsolve_model.R) · [📊 Shiny](hemophilia-a/ha_shiny_app.R) · [📚 문헌](hemophilia-a/ha_references.md) · [📄 README](hemophilia-a/README.md) |
 | 130 | 혈액·종양 | [**만성 림프구성 백혈병**<br><sub>Chronic Lymphocytic Leukemia · CLL</sub>](chronic-lymphocytic-leukemia/) | <a href="chronic-lymphocytic-leukemia/cll_qsp_model.svg"><img src="chronic-lymphocytic-leukemia/cll_qsp_model.png" width="190" alt="CLL"></a> | CD19⁺CD5⁺CD23⁺ 단클론 B세포 축적(서구권 성인 가장 흔한 백혈병). BCR 자율 신호전달(IGHV 비변이형·항원 자극)→LYN/SYK/BTK/PLCγ2→NF-κB/PI3Kδ/MAPK 경로 활성화; BCL-2 과발현(del13q→miR-15a/16-1 소실); 미세환경 의존(CXCL12/CXCR4 골수 억류·CXCL13/CXCR5 림프절 귀소·CD40L·BAFF·IL-4·NK 억제). CLL-IPI 예후(del(17p)/TP53·del(11q)/ATM·IGHV·β2M·임상병기). 이브루티닙(BTK Cys481 공유결합·420mg QD·RESONATE-2: ORR 86%·2yr PFS 74%)·아칼라브루티닙·자누브루티닙(선택성↑); 베네토클락스(BCL-2 BH3 모방·Ki~0.01nM·CLL14: uMRD 76%·2yr PFS 88%)·오비누투주맙(Type II 항CD20·ADCC↑·CDC↓·PCD). **146 노드 10클러스터**, **18구획 ODE**(이브루티닙 1구획·BTK 공유결합 모델·베네토클락스 2구획·BCL-2 준정상상태·오비누투주맙 TMDD·ALC/BM/LN 질환 구획·MCL-1 내성·NK 활성), **6치료 시나리오**(이브루티닙·베네토클락스·오비누투주맙·VEN+OBI CLL14·IB+VEN·삼중 병용). RESONATE-2·CLL14·MURANO·SEQUOIA·ALPINE 보정. 44개 PubMed 인용.<br>[🗺️ 지도](chronic-lymphocytic-leukemia/cll_qsp_model.svg) · [⚙️ mrgsolve](chronic-lymphocytic-leukemia/cll_mrgsolve_model.R) · [📊 Shiny](chronic-lymphocytic-leukemia/cll_shiny_app.R) · [📚 문헌](chronic-lymphocytic-leukemia/cll_references.md) · [📄 README](chronic-lymphocytic-leukemia/README.md) |
+| 131 | 혈액·응고 | [**정맥 혈전색전증 (DVT/PE)**<br><sub>Venous Thromboembolism · VTE</sub>](venous-thromboembolism/) | <a href="venous-thromboembolism/vte_qsp_model.svg"><img src="venous-thromboembolism/vte_qsp_model.png" width="190" alt="VTE"></a> | 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통합한 QSP 모델. Virchow's Triad(혈류정체·내피 손상·과응고), 외인성 경로(TF-FVIIa-TFPI), 내인성 경로(접촉활성화-FXIIa-FIXa-FVIIIa), 공통 경로(Prothrombinase-트롬빈-피브린 가교), 혈소판 활성화(GPIb/GPVI/PAR1/4·GPIIb/IIIa), 자연 항응고(AT-III·단백C/S·TFPI), 섬유용해(tPA/uPA·플라스민·PAI-1·TAFI·D-이량체). 리바록사반(2구획 PK·FXa EC50=12 ng/mL)·아픽사반(EC50=5 ng/mL)·다비가트란(직접트롬빈억제·EC50=35 ng/mL)·와파린(VK 사이클 간접반응·FVII/FX/FII 풀 반감기)·에녹사파린(AT-III 활성화·항Xa) 5종 약물 PK/PD. **140+ 노드 12클러스터**, **19구획 ODE**(PK 7·FXa/FIIa·피브린·혈전크기·플라스민·D-이량체·VK산화/환원·FVII/FX/FII풀), **6치료 시나리오**(DVT:리바록사반 15→20mg·PE:아픽사반 10→5mg BID·와파린+LMWH 브리지·수술예방:에녹사파린 40mg QD·확장예방:리바록사반 10mg QD·신부전:다비가트란 110mg BID GFR30 vs 90). EINSTEIN/AMPLIFY/RE-COVER/ROCKET-AF/Mueck 2011/Frost 2015 임상 파라미터 보정. INR·Anti-Xa·aPTT·D-이량체·혈전잔여% 바이오마커. Wells 점수(DVT/PE) 사전확률 계산기, 금기사항별 약물 추천 로직. 57개 PubMed 인용.<br>[🗺️ 지도](venous-thromboembolism/vte_qsp_model.svg) · [⚙️ mrgsolve](venous-thromboembolism/vte_mrgsolve_model.R) · [📊 Shiny](venous-thromboembolism/vte_shiny_app.R) · [📚 문헌](venous-thromboembolism/vte_references.md) · [📄 README](venous-thromboembolism/README.md) |
 
 
 ---
@@ -821,3 +822,48 @@ qsp/
 | **VEN+OBI (CLL14)** | Fischer 2019 NEJM | 2yr PFS 88.2% vs 64.1%; uMRD 혈액 76%, 골수 57% | 1차, 동반질환 노인 표준 |
 | 이브루티닙+베네토클락스 | CLARITY (Hillmen 2019 JCO) | R/R CLL MRD-neg 53%(골수); 2yr PFS 89% | MRD 가이드 고정기간 |
 | 자누브루티닙 vs 이브루티닙 | ALPINE (Brown 2023 NEJM) | PFS NI 달성; AF 2.5% vs 10.1% | 선택성 개선 |
+
+---
+
+## 모델 #131 상세: 정맥 혈전색전증 (Venous Thromboembolism, VTE)
+
+> **디렉토리:** [`venous-thromboembolism/`](venous-thromboembolism/) | **약어:** VTE | **날짜:** 2026-06-23
+
+정맥 혈전색전증(VTE)은 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통칭하는 질환으로, 연간 1-2명/1,000명에서 발생하는 제3위 심혈관 질환이다. Virchow's Triad(혈류정체·내피손상·과응고 상태)가 병리기전의 핵심이며, FV Leiden·PT G20210A·단백C/S 결핍 등 유전 위험인자와 수술·악성종양·경구피임약 등 후천적 위험인자가 복합된다. 응고 연쇄 반응(Coagulation Cascade), 혈소판 활성화, 자연 항응고 시스템(AT-III/단백C-S/TFPI), 섬유용해(플라스민-D-이량체 축)가 혈전 생성과 분해의 균형을 결정한다.
+
+[![VTE QSP Map](venous-thromboembolism/vte_qsp_model.png)](venous-thromboembolism/vte_qsp_model.svg)
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자/세포 | 치료 표적 |
+|---------|--------------|---------|
+| Virchow's Triad | 혈류정체·내피손상·과응고 | 위험 인자 제거/예방 |
+| 내피세포 | TF 발현·vWF 방출·PGI2/NO·TM/EPCR·tPA/PAI-1 | 항혈전 내피 기능 보존 |
+| 외인성 경로 | TF-FVIIa tenase → FXa/FIXa | TFPI |
+| 내인성 경로 | FXIIa→FXIa→FIXa-FVIIIa Intrinsic Tenase | 접촉인자 억제 |
+| 공통 경로 | FXa-FVa Prothrombinase → FIIa(트롬빈) → 피브린 | FXa 억제제·DTI |
+| 혈소판 | GPIb/GPVI/PAR1·ADP/P2Y12·GPIIb/IIIa·PS 노출 | P2Y12 억제제(PE 방지) |
+| 자연 항응고 | AT-III·APC-단백S·TFPI | 결핍 시 보충/치료 |
+| 섬유용해 | tPA/uPA → 플라스민 → FDP/D-이량체 | 혈전용해제(알테플라제) |
+| 약물 PK | 리바록사반·아픽사반·다비가트란·와파린·에녹사파린 | 5종 항응고제 PK/PD |
+| 임상 결과 | 근위부 DVT → PE → 만성 혈전색전성 폐고혈압(CTEPH) | 기간별 항응고 전략 |
+
+### QSP 모델 구성
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`vte_qsp_model.dot`](venous-thromboembolism/vte_qsp_model.dot) | **140+ 노드, 12클러스터** |
+| ⚙️ mrgsolve ODE | [`vte_mrgsolve_model.R`](venous-thromboembolism/vte_mrgsolve_model.R) | **19구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`vte_shiny_app.R`](venous-thromboembolism/vte_shiny_app.R) | **6탭** (환자 프로파일·PK·응고 PD·혈전 동태·시나리오 비교·바이오마커) |
+| 📚 참고문헌 | [`vte_references.md`](venous-thromboembolism/vte_references.md) | **57개 PubMed 인용** (15개 섹션) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 비고 |
+|------|----------|----------|------|
+| 리바록사반 15mg BID×21d → 20mg QD | EINSTEIN-DVT/PE (NEJM 2010/2012) | DVT재발/PE 방지 비열등성 NNT ~30 | 브리지 불필요 |
+| 아픽사반 10mg BID×7d → 5mg BID | AMPLIFY (Agnelli 2013 NEJM) | 재발 위험 RR 0.84; 주요 출혈 ↓ 69% | 신장 친화적 |
+| 다비가트란 150mg BID (LMWH 이후) | RE-COVER (Schulman 2009 NEJM) | 재발 VTE 비열등성 HR 1.10; 출혈 유사 | 신기능 의존 |
+| 와파린 INR 2-3 + 에녹사파린 브리지 | 역사적 표준 | DVT 재발 3개월 2-3% | INR 모니터링 필수 |
+| 에녹사파린 40mg QD (수술예방) | MEDENOX (Samama 1999 NEJM) | 증상 VTE↓ 63% vs 위약 | 입원 내과 환자 |
+| 리바록사반 10mg QD (연장예방) | EINSTEIN-EXT (Bauersachs 2010 NEJM) | 재발 82% 감소 vs 위약 | 출혈 위험 주의 |
