@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-129-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-130-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **127개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **130개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -254,6 +254,7 @@ qsp/
 | 127 | 종양·혈액 | [**골수이형성 증후군**<br><sub>Myelodysplastic Syndrome · MDS</sub>](myelodysplastic-syndrome/) | <a href="myelodysplastic-syndrome/mds_qsp_model.svg"><img src="myelodysplastic-syndrome/mds_qsp_model.png" width="190" alt="MDS"></a> | CHIP→MDS 클론 진화; SF3B1/SRSF2/U2AF1/ZRSR2 스플라이싱 돌연변이(고리 철아세포 형성·ABCB7 소실); TET2/DNMT3A/IDH1·2/ASXL1/EZH2 후성유전학 이상; del(5q)→RPS14 반수부족·miR-145/146a 소실·TIRAP↑; TP53 복잡핵형; 골수 미세환경 (CXCL12·SCF·TPO·EPO·GCSF 니치); GDF11/TGF-β1 상승→비효율 적혈구생성; 헵시딘↑/철과부하. 아자시티딘(2구획 SC/IV PK)·데시타빈(IV/oral ASTX727)·레날리도마이드(CRBN→CK1α 분해→RPS14 복원)·루스파터셉트(ActRIIB-Fc TGF-β 포획→Smad2/3↓)·다르베포에틴·베네토클락스(BCL-2 BH3 모방체) PK/PD. 324노드 10클러스터, 18구획 ODE, 7치료 시나리오(COMMANDS·MEDALIST·MDS-003/004·ASTX727·VIALE-A 임상 보정), Hgb/PLT/ANC/수혈 의존성·GDF11·Hepcidin·IronStore·IPSS-R/IPSS-M 바이오마커.<br>[🗺️ 지도](myelodysplastic-syndrome/mds_qsp_model.svg) · [⚙️ mrgsolve](myelodysplastic-syndrome/mds_mrgsolve_model.R) · [📊 Shiny](myelodysplastic-syndrome/mds_shiny_app.R) · [📚 문헌](myelodysplastic-syndrome/mds_references.md) · [📄 README](myelodysplastic-syndrome/README.md) |
 | 128 | 근골격·신경 | [**섬유근통**<br><sub>Fibromyalgia · FM</sub>](fibromyalgia/) | <a href="fibromyalgia/fm_qsp_model.svg"><img src="fibromyalgia/fm_qsp_model.png" width="190" alt="FM"></a> | 중추감작(척수 WDR뉴런 LTP·wind-up·NMDA 수용체 탈억제); 하행성 통증조절계 결함(PAG-RVM-LC/Raphe 축, DPMS↓, DNIC 소실); 신경전달물질 불균형(CSF substance P↑·NE↓·5-HT↓); 신경염증(척수 미세아교세포 활성화·IL-1β/TNF-α·NLRP3 인플라마좀·KCC2↓→GABA 탈억제); HPA 축 이상(저코르티솔혈증·GH/IGF-1 결핍); 자율신경계 불균형(교감항진·HRV↓); 비회복성 수면(α파-δ파 침범·SWS↓); 섬유근통 뇌회로(ACC·섬엽·PFC 과활성화·기본모드네트워크). 둘록세틴(2구획 PK·SERT/NET IC50)·프레가발린(α2δ-1 Ca채널 차단·Emax 모델)·밀나시프란(SERT/NET)·아미트립틸린(H1 차단→수면 개선) PK/PD. 100+ 노드 10클러스터, **30구획 ODE**, 6치료 시나리오, Pain NRS·FIQR·CSF SP·미세아교세포·SWS·코르티솔·SNS tone 바이오마커.<br>[🗺️ 지도](fibromyalgia/fm_qsp_model.svg) · [⚙️ mrgsolve](fibromyalgia/fm_mrgsolve_model.R) · [📊 Shiny](fibromyalgia/fm_shiny_app.R) · [📚 문헌](fibromyalgia/fm_references.md) · [📄 README](fibromyalgia/README.md) |
 | 129 | 혈액·응고 | [**혈우병 A**<br><sub>Hemophilia A · HA</sub>](hemophilia-a/) | <a href="hemophilia-a/ha_qsp_model.svg"><img src="hemophilia-a/ha_qsp_model.png" width="190" alt="HA"></a> | X염색체 연관 FVIII 결핍(F8 유전자 돌연변이) → 내인성 Xase 복합체(FIXa·FVIIIa) 형성 불능 → 트롬빈 생성 급감 → 불안정 피브린 클롯. 중증(<1 IU/dL) ABR ~30/년; 억제항체(30% 중증) 발생으로 대체치료 실패. 에미시주맙(HAVEN 1/3/4: FIXa–FX 이중특이항체·FVIII 모방; ABR 1.5/년)·피투시란(ATLAS-INH: siRNA·항트롬빈 mRNA 녹다운·AT 감소→트롬빈↑; ABR ~0)·마스타시맙(항TFPI·외인성경로 증폭)·유전자치료(AAV5-FVIII·valoctocogene roxaparvovec). SHL/EHL FVIII PK(2구획)·에미시주맙 SC PK(3구획·t½ 4–5주)·피투시란 PK/AT 간접반응 모델(mRNA/단백질 2단계 녹다운). **167 노드 10클러스터**, **16구획 ODE**, **7 치료 시나리오**(무예방·SHL-FVIII 3×/wk·EHL Q3-4d·에미시주맙 Q1W/Q4W·피투시란 Q1M·FVIII+에미시주맙 병용), ETP·ABR·Pettersson 관절점수·QoL·억제항체 역가 바이오마커. 55개 PubMed 인용(Manco-Johnson 2007·HAVEN·ATLAS·A-LONG·HOPE-B·WFH Guidelines 포함).<br>[🗺️ 지도](hemophilia-a/ha_qsp_model.svg) · [⚙️ mrgsolve](hemophilia-a/ha_mrgsolve_model.R) · [📊 Shiny](hemophilia-a/ha_shiny_app.R) · [📚 문헌](hemophilia-a/ha_references.md) · [📄 README](hemophilia-a/README.md) |
+| 130 | 혈액·종양 | [**만성 림프구성 백혈병**<br><sub>Chronic Lymphocytic Leukemia · CLL</sub>](chronic-lymphocytic-leukemia/) | <a href="chronic-lymphocytic-leukemia/cll_qsp_model.svg"><img src="chronic-lymphocytic-leukemia/cll_qsp_model.png" width="190" alt="CLL"></a> | CD19⁺CD5⁺CD23⁺ 단클론 B세포 축적(서구권 성인 가장 흔한 백혈병). BCR 자율 신호전달(IGHV 비변이형·항원 자극)→LYN/SYK/BTK/PLCγ2→NF-κB/PI3Kδ/MAPK 경로 활성화; BCL-2 과발현(del13q→miR-15a/16-1 소실); 미세환경 의존(CXCL12/CXCR4 골수 억류·CXCL13/CXCR5 림프절 귀소·CD40L·BAFF·IL-4·NK 억제). CLL-IPI 예후(del(17p)/TP53·del(11q)/ATM·IGHV·β2M·임상병기). 이브루티닙(BTK Cys481 공유결합·420mg QD·RESONATE-2: ORR 86%·2yr PFS 74%)·아칼라브루티닙·자누브루티닙(선택성↑); 베네토클락스(BCL-2 BH3 모방·Ki~0.01nM·CLL14: uMRD 76%·2yr PFS 88%)·오비누투주맙(Type II 항CD20·ADCC↑·CDC↓·PCD). **146 노드 10클러스터**, **18구획 ODE**(이브루티닙 1구획·BTK 공유결합 모델·베네토클락스 2구획·BCL-2 준정상상태·오비누투주맙 TMDD·ALC/BM/LN 질환 구획·MCL-1 내성·NK 활성), **6치료 시나리오**(이브루티닙·베네토클락스·오비누투주맙·VEN+OBI CLL14·IB+VEN·삼중 병용). RESONATE-2·CLL14·MURANO·SEQUOIA·ALPINE 보정. 44개 PubMed 인용.<br>[🗺️ 지도](chronic-lymphocytic-leukemia/cll_qsp_model.svg) · [⚙️ mrgsolve](chronic-lymphocytic-leukemia/cll_mrgsolve_model.R) · [📊 Shiny](chronic-lymphocytic-leukemia/cll_shiny_app.R) · [📚 문헌](chronic-lymphocytic-leukemia/cll_references.md) · [📄 README](chronic-lymphocytic-leukemia/README.md) |
 
 
 ---
@@ -775,3 +776,48 @@ qsp/
 | 에미시주맙 3 mg/kg Q1W | HAVEN 1 (Oldenburg 2017 NEJM) | ABR 2.9 vs 23.3; 87% 감소 | 억제항체 HA |
 | 피투시란 80 mg SC Q1M | ATLAS-INH (Young 2023 NEJM) | ABR 0.0 vs 17.8; 99% 감소 | siRNA; AT ↓~75% |
 | valoctocogene roxaparvovec | HOPE-B (Ozelo 2022 NEJM) | FVIII 수준 23 IU/dL 달성; ABR 근접 zero | AAV5 유전자 치료 |
+
+---
+
+## 모델 #130 상세: 만성 림프구성 백혈병 (Chronic Lymphocytic Leukemia, CLL)
+
+> **디렉토리:** [`chronic-lymphocytic-leukemia/`](chronic-lymphocytic-leukemia/) | **약어:** CLL | **날짜:** 2026-06-23
+
+만성 림프구성 백혈병(CLL)은 CD19⁺CD5⁺CD23⁺ 단클론 B세포가 혈액·골수·림프절에 축적되는, 서구권 성인에서 가장 흔한 백혈병이다. BCR 자율 신호전달, BCL-2 과발현, 종양 미세환경 의존성이 핵심 병리이며, BTK 억제제(이브루티닙/아칼라브루티닙/자누브루티닙), BCL-2 억제제(베네토클락스), 항CD20 항체(오비누투주맙/리툭시맙) 3종 계열의 표적치료로 패러다임이 완전히 바뀐 질환이다.
+
+[![CLL QSP Map](chronic-lymphocytic-leukemia/cll_qsp_model.png)](chronic-lymphocytic-leukemia/cll_qsp_model.svg)
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|---------|---------|---------|
+| **정상 B세포 발생** | HSC→CLP→Pro-B→Pre-B→미성숙→나이브 B세포→GC | 악성 전환 이전 단계 |
+| **CLL 세포 생물학·병기** | CD19+CD5+CD23+; ALC; LDT; Rai 0-IV; Binet A-C; CD38; ZAP-70; CD49d | 병기·예후 지표 |
+| **BCR 신호전달 경로** | LYN→SYK→BLNK→BTK→PLCγ2→IP₃/DAG→Ca²⁺/NFAT·PKCβ/NF-κB; PI3Kδ→PIP₃→AKT→mTOR; RAS/RAF→MEK/ERK | 이브루티닙(BTK)·이델라리십(PI3Kδ) |
+| **세포사멸 조절 (BCL-2 패밀리)** | BCL-2·BCL-XL·MCL-1·A1 대 BAX/BAK; BIM·PUMA·NOXA·BAD·HRK BH3-only; MOMP→사이토크롬C→카스파제 3/7 | 베네토클락스(BCL-2) |
+| **종양 미세환경** | CXCL12/CXCR4 골수 억류; CXCL13/CXCR5 림프절 귀소; CD40L·BAFF·IL-4·IL-21 생존 신호; NK 세포 ADCC; T조절세포 면역억제 | 신호전달 차단 |
+| **유전·분자 예후** | IGHV 변이/비변이; del(13q14)·del(11q22)·del(17p13)·Trisomy 12; TP53/ATM/NOTCH1/SF3B1/BIRC3 돌연변이; miR-15a/16-1; CLL-IPI | 치료 선택 지도 |
+| **BTK 억제제 PK/PD** | 이브루티닙 420mg QD(1구획 PK; Cys481 공유결합·t½~7h); BTK 단백질 재합성(t½~2.9일); 림프구 재분포(골수/림프절→말초혈액); off-target(ITK/TEC/EGFR)→AF·출혈 위험; C481S/PLCγ2 획득내성 | BTK 95% 이상 점유 필요 |
+| **베네토클락스 PK/PD** | 400mg QD 서서히 증량(20→50→100→200→400mg); 2구획 PK(t½~26h); BCL-2 Ki~0.01nM; BH3 결합홈 차단→BIM/BAX/BAK 유리; TLS 위험(ALC·LN·신기능); MCL-1 보상 상향 내성; BCL-2 G101V 획득내성 | BCL-2 점유·TLS 예방 |
+| **항CD20 mAb PK/PD** | 오비누투주맙(Type II·당화공학·ADCC↑·PCD↑·CDC↓·낮은 내재화); TMDD 2구획 PK; NK 세포 FcγRIIIA 활성화; C1q→C3d 보체 경로; CD20 항원 shedding(내성) | ADCC·PCD 세포 사멸 |
+| **임상 엔드포인트** | IWCLL 2018 CR/PR/SD/PD; MRD 미검출(<10⁻⁴); PFS·OS; Richter 전환(DLBCL/HL ~5%/5년); TTNT; QoL(FACT-G) | 반응 지표 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`cll_qsp_model.dot/.svg/.png`](chronic-lymphocytic-leukemia/) | **146 노드, 10개 클러스터** |
+| ⚙️ mrgsolve ODE | [`cll_mrgsolve_model.R`](chronic-lymphocytic-leukemia/cll_mrgsolve_model.R) | **18구획 ODE**, 6치료 시나리오, 4대 임상시험 보정 |
+| 📊 Shiny 앱 | [`cll_shiny_app.R`](chronic-lymphocytic-leukemia/cll_shiny_app.R) | **6탭** (환자 프로파일·PK·PD 바이오마커·임상 엔드포인트·시나리오 비교·유전 위험) |
+| 📚 참고문헌 | [`cll_references.md`](chronic-lymphocytic-leukemia/cll_references.md) | **44개 PubMed 인용** (9개 섹션) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 비고 |
+|------|----------|----------|------|
+| 이브루티닙 420mg QD | RESONATE-2 (Burger 2015 NEJM) | ORR 86%, 2yr PFS 74% vs 클로람부실 43% | 1차 치료 기준 |
+| 베네토클락스 단독 | Roberts 2016 NEJM | R/R CLL ORR 79%, MRD-neg 5% | 서서히 증량 프로토콜 |
+| 오비누투주맙 6사이클 | CLL11 (Goede 2014 NEJM) | ORR 75%, PFS HR 0.16 vs chlorambucil mono | 동반질환 노인 |
+| **VEN+OBI (CLL14)** | Fischer 2019 NEJM | 2yr PFS 88.2% vs 64.1%; uMRD 혈액 76%, 골수 57% | 1차, 동반질환 노인 표준 |
+| 이브루티닙+베네토클락스 | CLARITY (Hillmen 2019 JCO) | R/R CLL MRD-neg 53%(골수); 2yr PFS 89% | MRD 가이드 고정기간 |
+| 자누브루티닙 vs 이브루티닙 | ALPINE (Brown 2023 NEJM) | PFS NI 달성; AF 2.5% vs 10.1% | 선택성 개선 |
