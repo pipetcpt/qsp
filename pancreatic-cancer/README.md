@@ -2,122 +2,106 @@
 
 ## Disease Overview
 
-Pancreatic ductal adenocarcinoma (PDAC) is the most lethal solid malignancy, with a 5-year survival rate of ~12% (all stages combined). It accounts for ~3% of all cancer diagnoses but ~7% of cancer deaths. Key characteristics:
-- **KRAS mutations**: ~95% (G12D 44%, G12V 26%, G12R 14%)
-- **TP53 loss**: ~75%
-- **CDKN2A loss**: ~90%
-- **SMAD4 loss**: ~55%
-- **HRD (BRCA1/2/PALB2)**: ~15–20% germline + somatic
-- Dense desmoplastic stroma: 80–90% of tumor volume
-- Profound immunosuppression (TME)
+Pancreatic ductal adenocarcinoma (PDAC) is the most lethal solid malignancy, with a 5-year survival rate of ~12% (all stages combined). It accounts for ~3% of all cancer diagnoses but ~7% of cancer deaths in the United States. Approximately 80% of patients present with locally advanced or metastatic disease, making curative resection impossible.
 
----
+**Key molecular characteristics:**
+- **KRAS mutations**: ~95% (G12D ~44%, G12V ~26%, G12R ~14%, G12C ~2%)
+- **TP53 loss/mutation**: ~75%
+- **CDKN2A (p16) loss**: ~90%
+- **SMAD4 loss**: ~55%
+- **HRD (BRCA1/2 germline + somatic, PALB2, ATM)**: ~15-20%
+- **MSI-H**: ~1%
+- Dense desmoplastic stroma: 80–90% of tumor volume
+- Profound immunosuppression (PD-L1 upregulation, MDSC, Treg)
 
 ## Mechanistic Map Preview
 
 [![PDAC QSP Mechanistic Map](pdac_qsp_model.png)](pdac_qsp_model.svg)
 
-*Click image to view full SVG*
-
----
+*Click image to view full interactive SVG. Map contains 179 nodes across 10 biological clusters.*
 
 ## Deliverables
 
 | File | Description | Format |
 |------|-------------|--------|
-| `pdac_qsp_model.dot` | Graphviz mechanistic map | DOT |
+| `pdac_qsp_model.dot` | Graphviz mechanistic map (179 nodes, 10 clusters) | DOT |
 | `pdac_qsp_model.svg` | Vector mechanistic map | SVG |
 | `pdac_qsp_model.png` | Raster mechanistic map (150 dpi) | PNG |
-| `pdac_mrgsolve_model.R` | ODE PK/PD model | R/mrgsolve |
-| `pdac_shiny_app.R` | Interactive dashboard | R/Shiny |
-| `pdac_references.md` | Annotated bibliography (40 refs) | Markdown |
-
----
+| `pdac_mrgsolve_model.R` | ODE PK/PD model (26 compartments, 7 scenarios) | R/mrgsolve |
+| `pdac_shiny_app.R` | Interactive 6-tab dashboard | R/Shiny |
+| `pdac_references.md` | Annotated bibliography (35+ references) | Markdown |
 
 ## Key Biological Pathways Modeled
 
 | Pathway | Key Nodes | Drug Targets |
 |---------|-----------|--------------|
-| KRAS/MAPK | KRAS→BRAF→MEK→ERK→MYC | MRTX1133 (G12D), Adagrasib (G12C), SOS1-i |
-| PI3K/AKT/mTOR | PI3K→PIP3→AKT→mTORC1→S6K1 | Copanlisib, Everolimus |
-| TGF-β/SMAD/EMT | TGFβ→SMAD4→SNAIL→E-Cad loss | Galunisertib (TGFβR1-i) |
-| Desmoplastic Stroma | PSC→CAF→Collagen/HA→IFP↑→Drug↓ | PEGPH20, Pirfenidone |
-| Immune TME | PD-L1↑, Treg↑, MDSC↑, CD8↓ | Pembrolizumab, Ipilimumab |
-| Angiogenesis | HIF1α→VEGF→VEGFR2→Neovascularization | Bevacizumab, Ramucirumab |
-| DNA Damage/HRD | BRCA1/2 loss→HRD→PARP dependency | Olaparib, Rucaparib |
-
----
+| KRAS/MAPK | KRAS→BRAF→MEK1/2→ERK1/2→c-MYC | MRTX1133 (G12D), Adagrasib (G12C), SOS1-i |
+| PI3K/AKT/mTOR | PI3K→PIP3→AKT(pT308)→mTORC1→S6K1/4EBP1 | Copanlisib, Everolimus |
+| TGF-β/SMAD/EMT | TGFβ→SMAD2/3→SMAD4→SNAIL/ZEB→E-Cad loss | Galunisertib (TGFβR1-i) |
+| Desmoplastic Stroma | PSC→myoCAF/iCAF→Collagen/HA→IFP↑→Drug penetration↓ | PEGPH20 (hyaluronidase), Pirfenidone |
+| Immune TME | PD-L1↑, Treg↑, PMN-MDSC↑, TAM-M2↑, CD8↓ | Pembrolizumab, Ipilimumab, Relatlimab |
+| Angiogenesis | HIF-1α→VEGF-A→VEGFR-2→Neovascularization | Bevacizumab, Ramucirumab |
+| DNA Damage/HRD | BRCA1/2 loss→HRD→PARP dependency→Synthetic lethality | Olaparib, Rucaparib |
+| Cell Cycle | CDK4/6-CyclinD1→pRb→E2F; CDKN2A loss→CDK4↑ | Abemaciclib (CDK4/6-i) |
+| p53 Pathway | MDM2→p53 degradation; TP53 mut (GoF) | APR-246 (p53 reactivation) |
+| Wnt/Notch/Hh | Wnt/β-Catenin, Hedgehog, NOTCH → stemness | Vismodegib (Hh-i) |
 
 ## Treatment Scenarios & Clinical Trial Reference Data
 
-| Scenario | Regimen | mPFS (mo) | mOS (mo) | ORR | Trial |
-|----------|---------|-----------|----------|-----|-------|
-| 1 | Untreated Control | 1.5 | 3.0 | 0% | — |
-| 2 | Gemcitabine mono | 3.7 | 6.7 | 7% | MPACT control arm |
-| 3 | Gem + nab-Paclitaxel | 5.5 | 8.5 | 23% | MPACT (Von Hoff 2013) |
-| 4 | FOLFIRINOX | 6.4 | 11.1 | 31.6% | PRODIGE4 (Conroy 2011) |
-| 5 | mFOLFIRINOX | 6.0 | 10.5 | 28% | Adapted from PRODIGE24 |
-| 6 | MRTX1133 (KRAS G12D) | 4.0 | ~8.0 | ~40% | Phase I/II ongoing |
-| 7 | Olaparib (BRCA+) | 7.4 | NS | — | POLO (Golan 2019) |
+| # | Regimen | Doses | mPFS (mo) | mOS (mo) | ORR (%) | Key Trial |
+|---|---------|-------|-----------|----------|---------|-----------|
+| 1 | Untreated Control | — | 1.5 | 3.0 | 0 | — |
+| 2 | Gemcitabine mono | 1000 mg/m² IV days 1,8,15 q28d | 3.7 | 6.7 | 7 | MPACT control arm |
+| 3 | Gem + nab-Paclitaxel | Gem 1000 + nab-Pac 125 mg/m² days 1,8,15 q28d | 5.5 | 8.5 | 23 | MPACT (Von Hoff 2013, PMID: 24131140) |
+| 4 | FOLFIRINOX | OHP 85 + CPT11 180 + 5-FU 400 bolus + 5-FU 2400 CI q14d | 6.4 | 11.1 | 31.6 | PRODIGE4 (Conroy 2011, PMID: 21561347) |
+| 5 | mFOLFIRINOX | OHP 65 + CPT11 150 + 5-FU 2400 CI q14d (no bolus) | 6.0 | 10.5 | 28 | Clinical adaptation |
+| 6 | MRTX1133 (KRAS G12D) | 100 mg BID oral | ~4.0 | ~8.0 | ~40 | Phase I/II ongoing |
+| 7 | Olaparib (BRCA+) | 300 mg BID oral | 7.4 | NS | — | POLO (Golan 2019, PMID: 30945893) |
 
----
+*mPFS = median PFS; mOS = median OS; ORR = objective response rate; NS = not significant; CI = continuous infusion*
 
 ## Model Architecture
 
-### PK Components (mrgsolve)
+### PK Components (mrgsolve ODE Model)
 
-| Drug | Model | Route | Active Metabolite |
-|------|-------|-------|-------------------|
-| Gemcitabine | 2-compartment IV | IV infusion | dFdCTP (intracellular) |
-| nab-Paclitaxel | 2-compartment IV | IV infusion | Paclitaxel (free) |
-| Oxaliplatin | 1-compartment | IV infusion | Platinum-DNA adducts |
-| Irinotecan/SN-38 | Sequential 1-cmt | IV infusion | SN-38 → SN-38G |
-| 5-FU | 1-compartment | IV bolus/infusion | FdUMP |
-| MRTX1133 | 1-compartment oral | PO | Parent compound |
-| Olaparib | 1-compartment oral | PO | Parent compound |
+**Drug PK (12 compartments):**
+- **Gemcitabine**: 2-compartment IV model (GEM_C1, GEM_C2) → intracellular dFdCTP (active)
+- **nab-Paclitaxel**: 2-compartment IV model (NPAC_C1, NPAC_C2)
+- **Oxaliplatin**: 1-compartment free plasma (OHP_FREE) → DNA adduct compartment (OHP_DNA)
+- **Irinotecan/SN-38**: CPT11 plasma → SN38 (active) → SN38G (glucuronide)
+- **5-FU**: 1-compartment plasma (FU5) → FdUMP (active metabolite)
+- **MRTX1133**: oral 1-compartment (KRAS G12D inhibitor, F=45%)
+- **Olaparib**: oral 1-compartment (PARP inhibitor, F=73%)
 
-### PD Components
+**Disease PD (14 compartments):**
+- **Simeoni TGI model**: Proliferating cells (x0) → Transit compartments x1→x2→x3 → Tumor volume
+- **KRAS signaling**: Normalized KRAS activity (0–1), inhibited by MRTX1133
+- **Stroma resistance**: Dynamic stromal factor modulating effective drug penetration
+- **CA19-9 biomarker**: Proportional to total tumor burden (x0 + TUMOR)
+- **Friberg myelosuppression**: Prol → Tr1 → Tr2 → Tr3 → Circ (ANC, driven by Gem + SN-38)
 
-- **Simeoni TGI model**: x0→x1→x2→x3→Tumor (transit damage compartments for cytotoxic effect)
-- **KRAS signaling**: normalized ERK/RSK activity with Hill-type inhibition by MRTX1133
-- **Stroma resistance factor**: modulates effective intratumoral drug penetration (k_pen × [1 − σ × Stroma])
-- **CA19-9 biomarker**: linked to tumor burden via first-order kinetics
-- **Friberg myelosuppression**: Prol→Tr1→Tr2→Tr3→Circ for neutrophils (ANC)
-
-### ODE System Summary
-
-| Compartment Block | # ODEs | Description |
-|-------------------|--------|-------------|
-| Drug PK | 14 | Plasma/tissue for 7 drugs |
-| Active metabolites | 5 | dFdCTP, Pt-adduct, SN-38, FdUMP, free paclitaxel |
-| TGI transit | 4 | x1–x4 damage compartments |
-| Tumor volume | 1 | Net growth minus kill |
-| KRAS/MAPK signaling | 3 | RAS-GTP, pERK, pRSK |
-| Stroma (PSC/CAF) | 3 | Quiescent PSC, activated PSC, CAF pool |
-| Immune TME | 4 | CD8+ T cells, Treg, MDSC, NK cells |
-| Myelosuppression | 5 | Prol, Tr1, Tr2, Tr3, Circ (ANC) |
-| Biomarkers | 2 | CA19-9, CEA |
-| **Total** | **41** | |
-
----
+### PD Model Features
+- Bliss independence for drug combination effects
+- Stroma-mediated drug penetration reduction (up to 60% at maximum stroma)
+- KRAS G12D-specific enhancement by MRTX1133 on tumor growth rate
+- Grade 3/4 neutropenia prediction via Friberg model nadir
 
 ## How to Run
 
 ### Prerequisites
 
 ```r
-install.packages(c("mrgsolve", "dplyr", "ggplot2", "tidyr",
-                   "shiny", "bslib", "plotly", "DT"))
+install.packages(c("mrgsolve", "dplyr", "ggplot2", "tidyr", "shiny", "bslib", "plotly"))
 ```
 
 ### Run mrgsolve Simulations
 
 ```r
 source("pdac_mrgsolve_model.R")
-# Produces simulation outputs for all 7 treatment scenarios
+# Outputs: tumor_volume_plot, ca199_plot, anc_plot, kras_signaling_plot
 ```
 
-### Launch Shiny App
+### Launch Shiny Dashboard
 
 ```r
 shiny::runApp("pdac_shiny_app.R")
@@ -126,45 +110,42 @@ shiny::runApp("pdac_shiny_app.R")
 ### Render Mechanistic Map
 
 ```bash
+# From within pancreatic-cancer/ directory:
 dot -Tsvg pdac_qsp_model.dot -o pdac_qsp_model.svg
 dot -Tpng -Gdpi=150 pdac_qsp_model.dot -o pdac_qsp_model.png
 ```
 
----
-
-## Shiny App Tab Overview
+## Shiny Dashboard Tabs
 
 | Tab | Content |
 |-----|---------|
-| 1. Patient Profile | ECOG status, mutation panel (KRAS/TP53/SMAD4/HRD), stage |
-| 2. PK Profiles | Plasma concentration-time curves per drug, Css/AUC summary |
-| 3. PD Key Metrics | KRAS inhibition %, stroma permeability, immune score |
-| 4. Clinical Endpoints | Tumor volume trajectory, TTP, OS KM curves |
-| 5. Scenario Comparison | Side-by-side overlay of all treatment arms |
-| 6. Biomarkers | CA19-9 and ANC (neutrophils) time courses |
+| **Patient Profile** | Disease stage, molecular subtype (Classical/Basal-like/QM/Exocrine), KRAS mutation, HRD/MSI status, ECOG, BSA, risk radar chart |
+| **Drug PK** | Plasma concentration-time profiles for all 7 drugs; log/linear scale; PK parameter table |
+| **Tumor Dynamics** | Tumor volume over time (Simeoni TGI), CA19-9 trajectory, waterfall plot (best % change) |
+| **Biomarkers** | CA19-9 kinetics, ctDNA VAF, ANC myelosuppression; toxicity risk table |
+| **Clinical Endpoints** | OS/PFS parametric curves, ORR bar chart, G3/4 toxicity summary table |
+| **Scenario Comparison** | Forest plot (HR for OS), comprehensive comparison table, sensitivity tornado plot |
 
----
+## Clinical Context & Unmet Need
 
-## Clinical Context
+PDAC is primarily diagnosed at advanced/metastatic stage (~80% at diagnosis), with median OS of 3–4 months without treatment. Key challenges and emerging solutions:
 
-PDAC is primarily diagnosed at advanced/metastatic stage (~80% at diagnosis). Key challenges:
-
-1. **Late diagnosis**: CA19-9 not specific for early-stage disease; no approved population screening
-2. **Chemoresistance**: Dense desmoplastic stroma (80–90% of tumor volume) reduces drug penetration; KRAS drives intrinsic and acquired resistance
-3. **Immune desert phenotype**: Low mutational burden (MSI-H ~1%), high immunosuppressive signaling (PD-L1, TGF-β, IL-10), abundant Tregs and MDSCs
-4. **Metabolic reprogramming**: Macropinocytosis and autophagy support KRAS-driven metabolic needs under nutrient-poor conditions
-5. **Emerging therapies**: KRAS G12D inhibitors (MRTX1133 Phase I/II), bispecific antibodies (anti-CEA × anti-CD3), mRNA neoantigen vaccines, CAR-T targeting mesothelin/MSLN
-
----
+1. **Late diagnosis**: No validated screening biomarker; CA19-9 is Lewis antigen–dependent (absent in 5–10% of patients)
+2. **Chemoresistance**: Dense stroma (IFP > 40 mmHg) impedes drug delivery; KRAS drives intrinsic resistance via PI3K/AKT/mTOR survival signals
+3. **Immune desert phenotype**: Low mutational burden (TMB ~1 mut/Mb); MDSC/Treg infiltration; CXCL1/5-driven exclusion of CD8+ T cells
+4. **Metabolic reprogramming**: KRAS-driven macropinocytosis recycles amino acids; autophagy sustains survival under nutrient stress
+5. **Emerging targeted therapies**:
+   - **KRAS G12D inhibitors**: MRTX1133 (Phase I/II, Mirati), RMC-9805 (Revolution Medicines)
+   - **SOS1 inhibitors**: BI-3406 (synergistic with MEK-i)
+   - **PARP inhibitors + DDR**: Olaparib maintenance in BRCA+ (POLO trial)
+   - **mRNA vaccines**: Personalized neoantigen vaccines (Moderna mRNA-4157 + pembrolizumab)
+   - **Bispecific antibodies**: Anti-EGFR × anti-CD3 (KN026 + KN046)
+   - **CAR-T cell therapy**: Anti-mesothelin, anti-MSLN
 
 ## References
 
-See [`pdac_references.md`](pdac_references.md) for complete annotated bibliography (40 references).
+See [`pdac_references.md`](pdac_references.md) for complete bibliography with 35+ annotated references organized by topic.
 
-Key citations:
-- Conroy 2011 PRODIGE4 NEJM (PMID: 21561347) — FOLFIRINOX pivotal trial
-- Von Hoff 2013 MPACT NEJM (PMID: 24131140) — nab-paclitaxel + gemcitabine
-- Golan 2019 POLO NEJM (PMID: 30945893) — olaparib maintenance in BRCA+ PDAC
-- Bailey 2016 Nature (PMID: 26909576) — molecular subtypes of PDAC
-- Hallin 2020 Cancer Discov (PMID: 31998128) — MRTX849 KRAS G12C inhibitor
-- Wang 2022 J Med Chem (PMID: 35505711) — MRTX1133 KRAS G12D inhibitor
+---
+
+*Model created: 2026-06-23 | QSP Disease Model Library*
