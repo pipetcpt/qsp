@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-126-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-127-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **126개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **127개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -251,6 +251,7 @@ qsp/
 | 124 | 종양·소화기 | [**위선암**<br><sub>Gastric Cancer · GC</sub>](gastric-cancer/) | <a href="gastric-cancer/gc_qsp_model.svg"><img src="gastric-cancer/gc_qsp_model.png" width="190" alt="GC"></a> | H. pylori CagA/VacA·HER2/FGFR2/MET·VEGF 혈관신생·CLDN18.2·PD-L1/PD-1 면역관문·TCGA 아형(EBV/MSI-H/GS/CIN)·TME. 트라스투주맙(TMDD)·라무시루맙(VEGFR2)·니볼루맙(PD-1)·T-DXd(HER2 ADC)·졸베툭시맙(CLDN18.2 ADCC)·FLOT/FOLFOX PK/PD. 28구획 ODE, Simeoni TGI, 6치료 시나리오(ToGA·RAINBOW·CheckMate649·SPOTLIGHT·DESTINY-Gastric01·FLOT4 임상 보정), CEA/CA19-9/ctDNA 바이오마커.<br>[🗺️ 지도](gastric-cancer/gc_qsp_model.svg) · [⚙️ mrgsolve](gastric-cancer/gc_mrgsolve_model.R) · [📊 Shiny](gastric-cancer/gc_shiny_app.R) · [📚 문헌](gastric-cancer/gc_references.md) · [📄 README](gastric-cancer/README.md) |
 | 125 | 종양·혈액 | [**골수섬유증**<br><sub>Myelofibrosis · MF</sub>](myelofibrosis/) | <a href="myelofibrosis/mf_qsp_model.svg"><img src="myelofibrosis/mf_qsp_model.png" width="190" alt="MF"></a> | JAK2V617F/CALR/MPL 돌연변이·JAK/STAT3/5 신호·HSC 니치·골수 섬유화(TGF-β/PDGF/bFGF)·수외조혈(비장종대)·사이토카인 폭풍(IL-6/TNF-α)·혈전/출혈 위험. Ruxolitinib(2구획 PK)·Fedratinib·Pacritinib·Momelotinib·Pelabresib 병용 PK/PD. 23구획 ODE, 6치료 시나리오(COMFORT-I·JAKARTA·PERSIST-2·MANIFEST-2 임상 보정), SVR35/TSS50/VAF/pSTAT3·5 바이오마커.<br>[🗺️ 지도](myelofibrosis/mf_qsp_model.svg) · [⚙️ mrgsolve](myelofibrosis/mf_mrgsolve_model.R) · [📊 Shiny](myelofibrosis/mf_shiny_app.R) · [📚 문헌](myelofibrosis/mf_references.md) · [📄 README](myelofibrosis/README.md) |
 | 126 | 종양·소화기 | [**췌장 선암**<br><sub>Pancreatic Ductal Adenocarcinoma · PDAC</sub>](pancreatic-cancer/) | <a href="pancreatic-cancer/pdac_qsp_model.svg"><img src="pancreatic-cancer/pdac_qsp_model.png" width="190" alt="PDAC"></a> | KRAS G12D/V/R(~95%)·TP53(~75%)·CDKN2A(~90%)·SMAD4(~55%) 드라이버 돌연변이, RAS/MAPK/PI3K/AKT/mTOR 신호, TGF-β/SMAD/EMT 축, 치밀 섬유화 기질(PSC·CAF·HA·IFP↑→약물침투↓), 고면역억제 TME(PD-L1·Treg·MDSC·TAM-M2), HIF-1α/VEGF 혈관신생, BRCA1/2/PALB2 HRD. 젬시타빈/nab-파클리탁셀·FOLFIRINOX/mFOLFIRINOX·KRAS G12D 억제제(MRTX1133)·올라파립 PK/PD. 264노드 10클러스터, 7치료 시나리오(MPACT·PRODIGE4·POLO 임상 보정), CA19-9·ctDNA·Friberg 골수억제 바이오마커.<br>[🗺️ 지도](pancreatic-cancer/pdac_qsp_model.svg) · [⚙️ mrgsolve](pancreatic-cancer/pdac_mrgsolve_model.R) · [📊 Shiny](pancreatic-cancer/pdac_shiny_app.R) · [📚 문헌](pancreatic-cancer/pdac_references.md) · [📄 README](pancreatic-cancer/README.md) |
+| 127 | 종양·혈액 | [**골수이형성 증후군**<br><sub>Myelodysplastic Syndrome · MDS</sub>](myelodysplastic-syndrome/) | <a href="myelodysplastic-syndrome/mds_qsp_model.svg"><img src="myelodysplastic-syndrome/mds_qsp_model.png" width="190" alt="MDS"></a> | CHIP→MDS 클론 진화; SF3B1/SRSF2/U2AF1/ZRSR2 스플라이싱 돌연변이(고리 철아세포 형성·ABCB7 소실); TET2/DNMT3A/IDH1·2/ASXL1/EZH2 후성유전학 이상; del(5q)→RPS14 반수부족·miR-145/146a 소실·TIRAP↑; TP53 복잡핵형; 골수 미세환경 (CXCL12·SCF·TPO·EPO·GCSF 니치); GDF11/TGF-β1 상승→비효율 적혈구생성; 헵시딘↑/철과부하. 아자시티딘(2구획 SC/IV PK)·데시타빈(IV/oral ASTX727)·레날리도마이드(CRBN→CK1α 분해→RPS14 복원)·루스파터셉트(ActRIIB-Fc TGF-β 포획→Smad2/3↓)·다르베포에틴·베네토클락스(BCL-2 BH3 모방체) PK/PD. 324노드 10클러스터, 18구획 ODE, 7치료 시나리오(COMMANDS·MEDALIST·MDS-003/004·ASTX727·VIALE-A 임상 보정), Hgb/PLT/ANC/수혈 의존성·GDF11·Hepcidin·IronStore·IPSS-R/IPSS-M 바이오마커.<br>[🗺️ 지도](myelodysplastic-syndrome/mds_qsp_model.svg) · [⚙️ mrgsolve](myelodysplastic-syndrome/mds_mrgsolve_model.R) · [📊 Shiny](myelodysplastic-syndrome/mds_shiny_app.R) · [📚 문헌](myelodysplastic-syndrome/mds_references.md) · [📄 README](myelodysplastic-syndrome/README.md) |
 
 
 ---
@@ -632,3 +633,52 @@ qsp/
 | mFOLFIRINOX | PRODIGE24 (Conroy 2018, adjuvant) | 28% | 6.0개월 | 10.5개월 | 1차 또는 수술 후 보조 |
 | MRTX1133 (KRAS G12D) | Phase I/II (NCT05737706, 진행 중) | ~40% (예측) | ~4개월 | ~8개월 | G12D+ 2차 이상 |
 | 올라파립 유지 | POLO (Golan 2019, NEJM) | — | **7.4 vs 3.8개월** (HR 0.53) | NS (OS) | gBRCA+ 1차 후 유지 |
+
+---
+
+## 127. 골수이형성 증후군 (Myelodysplastic Syndrome · MDS)
+
+> **디렉토리**: [`myelodysplastic-syndrome/`](myelodysplastic-syndrome/) | **날짜**: 2026-06-23
+
+[![MDS QSP Map](myelodysplastic-syndrome/mds_qsp_model.png)](myelodysplastic-syndrome/mds_qsp_model.svg)
+
+### 병태생리 요약
+
+골수이형성 증후군(MDS)은 조혈 줄기세포(HSC)의 클론성 이상 증식으로 인해 골수에서 하나 이상의 혈구 계열에 이형성(dysplasia)이 나타나고 비효율적 조혈(ineffective hematopoiesis)이 발생하는 혈액 종양입니다. 서구 기준 연 발생률은 10만 명당 약 4–5명이며, 65세 이상에서 발생률이 급격히 높아져 중앙 연령은 약 70세입니다. 전체 MDS의 약 30%는 급성 골수성 백혈병(AML)으로 진행합니다.
+
+**핵심 병태생리:** (1) CHIP(Clonal Hematopoiesis of Indeterminate Potential) 상태의 초기 돌연변이(TET2, DNMT3A, ASXL1)가 클론성 이점을 제공 → (2) 스플라이싱 인자 돌연변이(SF3B1 고리 철아세포·SRSF2 CMML·U2AF1·ZRSR2), 후성유전 이상(IDH1/2 → 2-HG → TET2 억제, EZH2 H3K27me3↑), 전사인자 돌연변이(RUNX1, TP53), del(5q)·단염색체 7번 등 세포유전학 이상이 중첩되어 조혈 분화가 왜곡 → (3) GDF11/TGF-β1 상승으로 적혈구 성숙이 차단(Smad2/3 과활성화)되어 비효율 적혈구생성 → (4) 헵시딘↑/페로포틴↓에 의한 철 이용 장애 + 수혈 의존성에 의한 이차 철과부하 → (5) 사이토카인 과활성(TNF-α, IFN-γ, IL-6)에 의한 정상 HSC 억제.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **스플라이싱 인자** | SF3B1(~30% MDS-RS)·SRSF2·U2AF1·ZRSR2 → 비정상 인트론 스플라이싱·mRNA 이형체·NMD | SF3B1 mut → ABCB7 소실 → 고리 철아세포; H3B-8800(스플라이싱 조절제, 연구 중) |
+| **후성유전학** | TET2(5mC→5hmC)·DNMT3A·IDH1/2(2-HG)·ASXL1/EZH2(H3K27me3↑) | 아자시티딘·데시타빈(DNMT1 포획→탈메틸화); 이보시데닙(IDH1), 에나시데닙(IDH2) |
+| **클론 진화** | CHIP→MDS clone: TP53(복잡핵형)·RUNX1·NPM1/FLT3(AML 전환) | IPSS-R/IPSS-M 위험 분층; allo-SCT |
+| **GDF11/TGF-β** | MDS 골수 GDF11/ActB/GDF8 상승 → Smad2/3↑ → 적혈구 성숙 차단 | **루스파터셉트**(ActRIIB-Fc TGF-β 리간드 포획 → Smad2/3↓ → 후기 적혈구 성숙 회복) |
+| **del(5q) 기전** | RPS14 반수부족→리보솜 스트레스→p53 활성화; miR-145/146a 소실→TIRAP·TRAF6↑→NF-κB·IL-6 | **레날리도마이드**(CRBN→CK1α 분해→MDM2 억제→p53 재활성화 + RPS14 복원) |
+| **BM 미세환경** | CXCL12/CXCR4(HSC 유착)·TNF-α/IFN-γ(정상 HSC 억제)·MDSC·Treg·NK세포 기능 저하 | CXCR4 길항제(플레릭사포): 클론 동원 |
+| **철 항상성** | 헵시딘↑(IL-6→STAT3→BMP/SMAD)→페로포틴↓→철 이용 감소; 수혈의존성→이차 철과부하 | 데페록사민·데페라시록스(철 킬레이트); 다르베포에틴(헵시딘 억제) |
+| **임상 지표** | Hgb <10 g/dL·PLT <50K·ANC <0.5K·BM 아세포%·IPSS-R(Very Low~Very High)·IPSS-M(분자) | 수혈 독립성(TI), HI-E/HI-P/HI-N, CR/mCR, AML 전환 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`mds_qsp_model.dot/.svg/.png`](myelodysplastic-syndrome/) | **324 노드, 10개 클러스터** (정상 조혈·클론 진화·후성유전학·스플라이싱·BM 미세환경·사이토카인·이형성·임상 지표·약물 PK/PD·AlloSCT) |
+| ⚙️ mrgsolve ODE | [`mds_mrgsolve_model.R`](myelodysplastic-syndrome/mds_mrgsolve_model.R) | **18구획 ODE** (6 약물 PK: AZA 2구획·DEC·LEN·LUSP·Darbe + 12 질환 PD: Blast·VAF·DNAmeth·IneffErythro·EryProg·Hgb·PLT·ANC·GDF11·Hepcidin·IronStore·TGFb_signal), **7치료 시나리오** (BSC·AZA SC·DEC IV·Oral-DEC/CED·Lenalidomide·Luspatercept·VEN+AZA), COMMANDS·MEDALIST·MDS-003·ASTX727·VIALE-A 임상 보정 |
+| 📊 Shiny 앱 | [`mds_shiny_app.R`](myelodysplastic-syndrome/mds_shiny_app.R) | **6탭** (환자 프로파일·IPSS-R 계산기·Drug PK·Disease Dynamics·Hematologic Endpoints·Scenario Comparison·Biomarker Tracker), plotly 인터랙티브, bslib darkly 테마, 1,074줄 |
+| 📚 참고문헌 | [`mds_references.md`](myelodysplastic-syndrome/mds_references.md) | **30+ PubMed 인용** (COMMANDS·MEDALIST·MDS-003·MDS-004·ASTX727·QUAZAR·VIALE-A·SF3B1/TET2 발견·IPSS-R·IPSS-M 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 적응 단계 |
+|------|----------|----------|---------|
+| 아자시티딘 75 mg/m² SC d1-7 q28d | CALGB 9221 (Silverman 2002) | CR 7%·PR 16%·HI 37%; OS 혜택(고위험 MDS) | 중등도~고위험 MDS 1차 |
+| 아자시티딘 vs CCR | AZA-001 (Fenaux 2009, Lancet Oncol) | OS **24.5 vs 15.0개월** (HR 0.58) | IPSS High/Int-2 |
+| 데시타빈 20 mg/m² IV d1-5 q28d | D-0007 (Kantarjian 2006) | ORR 17%; MRD CR 9% | 중등도~고위험 MDS |
+| Oral-DEC/cedazuridine (ASTX727) | ASCERTAIN (Garcia-Manero 2020, JCO) | 5d AUC 노출 IV 동등; ORR 25% | 중등도~고위험 MDS |
+| 레날리도마이드 10 mg QD 21d q28d | MDS-003 (List 2006, NEJM) | TI 67%·세포유전학 CR 45% | del(5q) 저위험 MDS |
+| 루스파터셉트 1.0 mg/kg q3w | COMMANDS (Platzbecker 2023, NEJM) | **TI ≥12주 58.5% vs 31.1%** (vs ESA); Hgb ↑1.5 g/dL 이상 | 저~중등도위험 MDS-RS (1차) |
+| 루스파터셉트 1.0 mg/kg q3w | MEDALIST (Fenaux 2020, NEJM) | TI ≥8주 **38% vs 13%** (vs 위약); HR-QoL 개선 | ESA 실패 MDS-RS 수혈의존성 |
+| 베네토클락스 + 아자시티딘 | VIALE-A 하위군/고위험 MDS 외삽 | CR ~15-20% (MDS 추정); MDS TP53 반응 제한적 | 고위험/집중 요법 불가 MDS |
