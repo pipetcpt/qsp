@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-121-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-122-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **120개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **122개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -118,7 +118,7 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **118개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **122개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
 **분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2
 
@@ -246,6 +246,7 @@ qsp/
 
 | 120 | 신경계·유전 | [**헌팅턴병 (Huntington's Disease)**<br><sub>Huntington's Disease · HD</sub>](huntingtons-disease/) | <a href="huntingtons-disease/hd_qsp_model.svg"><img src="huntingtons-disease/hd_qsp_model.png" width="190" alt="HD"></a> | CAG 반복 확장(≥36) → mHTT 생성·집적 → 선조체 중간가시신경세포(MSN) 변성. mHTT 집적 폭포(단량체→올리고머→섬유)·BDNF-TrkB 결핍(REST/NRSF·HAP1 축)·흥분독성(eNMDAR/Ca²⁺/calpain)·미토콘드리아 기능부전(PGC-1α·Complex I/II/III)·신경염증(NLRP3/IL-1β)·아포토시스(Casp-3/6). VMAT2 억제제(TBZ·DTBZ·VBZ)·ASO(토미너센, CSF mHTT ↓74%)·스플라이싱 조절제(브라나플람·PTC518) PK/PD. 20구획 ODE, 7치료시나리오(TETRA-HD·FIRST-HD·KINECT-HD·GENERATION-HD1 임상 보정), UHDRS-TMS·TFC·cUHDRS·CAP score·CSF NfL/mHTT 바이오마커.<br>[🗺️ 지도](huntingtons-disease/hd_qsp_model.svg) · [⚙️ mrgsolve](huntingtons-disease/hd_mrgsolve_model.R) · [📊 Shiny](huntingtons-disease/hd_shiny_app.R) · [📚 문헌](huntingtons-disease/hd_references.md) · [📄 README](huntingtons-disease/README.md) |
 | 121 | 종양·소화기 | [**대장암**<br><sub>Colorectal Cancer · CRC</sub>](colorectal-cancer/) | <a href="colorectal-cancer/crc_qsp_model.svg"><img src="colorectal-cancer/crc_qsp_model.png" width="190" alt="CRC"></a> | APC/Wnt·KRAS/MAPK·PI3K/TP53 경로 통합, MSI-H/CMS 아형, 종양 미세환경(CD8/Treg/MDSC/TAM), 혈관신생(VEGF/VEGFR). 5-FU/옥살리플라틴/이리노테칸(UGT1A1)·베바시주맙(TMDD)·세툭시맙·펨브롤리주맙(MSI-H) PK/PD. 20구획 ODE, 7치료시나리오(MOSAIC·CRYSTAL·NO16966·TRIBE·KEYNOTE-177 임상 보정), CEA·ctDNA·VEGF·EGFR/PD-1 점유율 바이오마커.<br>[🗺️ 지도](colorectal-cancer/crc_qsp_model.svg) · [⚙️ mrgsolve](colorectal-cancer/crc_mrgsolve_model.R) · [📊 Shiny](colorectal-cancer/crc_shiny_app.R) · [📚 문헌](colorectal-cancer/crc_references.md) · [📄 README](colorectal-cancer/README.md) |
+| 122 | 종양·비뇨기 | [**전립선암**<br><sub>Prostate Cancer · PC</sub>](prostate-cancer/) | <a href="prostate-cancer/pc_qsp_model.svg"><img src="prostate-cancer/pc_qsp_model.png" width="190" alt="PC"></a> | HPG 축·AR 신호·PI3K/AKT·골전이(RANKL 악순환)와 CRPC/ARv7 내성. GnRH 제제·ARPI·도세탁셀·PARP 억제제·Lu-PSMA.<br>[🗺️ 지도](prostate-cancer/pc_qsp_model.svg) · [⚙️ mrgsolve](prostate-cancer/pc_mrgsolve_model.R) · [📚 문헌](prostate-cancer/pc_references.md) · [📄 README](prostate-cancer/README.md) |
 
 
 ---
@@ -396,3 +397,52 @@ qsp/
 | FOLFIRI + Bevacizumab | TRIBE (Falcone 2013, JCO) | mPFS 9.7개월 | 전이성 1차 |
 | Pembrolizumab | KEYNOTE-177 (André 2020, NEJM) | mPFS 16.5개월, PFS HR 0.60 | MSI-H/dMMR 1차 |
 | Regorafenib | CORRECT (Grothey 2013, Lancet) | mOS 6.4개월 vs 5.0개월 | 3차 이상 |
+
+---
+
+## 122. 전립선암 (Prostate Cancer · PC)
+
+> **디렉토리**: [`prostate-cancer/`](prostate-cancer/) | **날짜**: 2026-06-23
+
+[![Prostate Cancer QSP Map](prostate-cancer/pc_qsp_model.png)](prostate-cancer/pc_qsp_model.svg)
+
+### 병태생리 요약
+
+전립선암은 남성에서 가장 흔한 악성종양(전 세계 2위 암 사망원인)으로, **안드로겐 수용체(AR) 신호**가 종양 증식의 핵심 구동력입니다. 시상하부-뇌하수체-고환 축(HPG축)으로 생성된 테스토스테론은 5α-환원효소에 의해 더 강력한 DHT로 변환되어 AR을 활성화하고 PSA 발현·세포 증식을 촉진합니다. 안드로겐 박탈요법(ADT)이 표준 치료이나, 대부분 12~24개월 내에 거세저항성(CRPC)으로 진행하며, 이 시점에서 AR 증폭·돌연변이·스플라이스 변이체(ARv7), PI3K/AKT 활성화(PTEN 소실 ~70%), 골전이 악순환(RANKL-RANK-OPG)이 주요 내성 기전으로 작동합니다.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **HPG 축** | KiSS1→GnRH→LH→테스토스테론 | GnRH 작용제(루프롤라이드)/길항제(데가렐릭스·렐루골릭스) |
+| **안드로겐 생합성** | CYP17A1(17α-hydroxylase/C17,20-lyase), DHT, SRD5A1/2 | 아비라테론(CYP17A1 억제) |
+| **AR 신호** | AR-DHT 복합체→핵 전좌→ARE→PSA | 엔잘루타마이드·아팔루타마이드·다로루타마이드 (2세대 ARPI) |
+| **AR 내성** | AR 증폭, AR-V7 스플라이스 변이체, F876L/T878A 돌연변이 | 예후 바이오마커(cfDNA·ctRNA) |
+| **PI3K/AKT/mTOR** | PTEN 소실(~70%) → PIP3 → AKT → mTORC1/2 | AKT 억제제·mTOR 억제제(연구 중) |
+| **RAS/MAPK** | EGFR/HER2 → GRB2/SOS → ERK → ETS 전사인자 | EGFR/MEK 억제제(후기 연구) |
+| **세포 주기·아포토시스** | CDK4/6·Cyclin D1·pRb/E2F, BCL-2/BAX, p53, PARP/BRCA1/2 | PARP 억제제(올라파립·루카파립; BRCA2 변이체) |
+| **골전이 악순환** | RANKL/RANK/OPG, PTHrP, ET-1(경화성), DKK1, CXCL12/CXCR4 | 데노수맙(항RANKL), 졸레드론산, 라듐-223(α방사선) |
+| **종양 면역 미세환경** | PD-1/PD-L1, CTLA-4, TAM-M2, MDSC, Treg | 펨브롤리주맙, 이필리무맙, 시풀루셀-T |
+| **임상 지표** | PSA, 테스토스테론, 골스캔(BSI), PSMA PET, rPFS, OS | 진단·모니터링·치료 반응 평가 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`pc_qsp_model.dot/.svg/.png`](prostate-cancer/) | 130+ 노드, 10개 클러스터 (HPG축·생합성·AR·종양·PI3K·MAPK·골전이·약물·면역·임상지표) |
+| ⚙️ mrgsolve ODE | [`pc_mrgsolve_model.R`](prostate-cancer/pc_mrgsolve_model.R) | 33구획 ODE — HPG/AR/종양운동/PI3K-AKT/골전이 + 8가지 약물군 PK; 7치료 시나리오 |
+| 📊 Shiny 앱 | [`pc_shiny_app.R`](prostate-cancer/pc_shiny_app.R) | 8탭 (환자 프로파일·약물PK·HPG축·AR/PSA·종양·골전이·시나리오 비교·민감도 분석) |
+| 📚 참고문헌 | [`pc_references.md`](prostate-cancer/pc_references.md) | 63개 PubMed 인용 (AFFIRM·PREVAIL·COU-AA·CHAARTED·TAX327·PROfound·ALSYMPCA·VISION 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | OS/PFS 혜택 | PSA50 반응 | 적응 단계 |
+|------|----------|------------|-----------|---------|
+| 루프롤라이드 (ADT) | — | 표준 기준 | ~90% (초기) | mHSPC 1차 |
+| 엔잘루타마이드 160 mg QD | AFFIRM (Scher 2012, NEJM) | OS +4개월 | 54% | mCRPC (화학요법 후) |
+| 엔잘루타마이드 160 mg QD | PREVAIL (Beer 2014, NEJM) | OS +2.2개월 | 78% | mCRPC (화학요법 전) |
+| 아비라테론+프레드니손 | COU-AA-301 (de Bono 2011) | OS +3.9개월 | 29% | mCRPC (화학요법 후) |
+| 도세탁셀 75 mg/m² q3w×6 | TAX 327 (Tannock 2004) | OS +3.0개월 | 45% | mCRPC 1차 |
+| 올라파립 300 mg BID | PROfound (de Bono 2020) | rPFS HR=0.34 | 33%(BRCA1/2) | mCRPC HRR변이 |
+| 라듐-223 55 kBq/kg q4w×6 | ALSYMPCA (Parker 2013) | OS +3.6개월 | — | 증상성 골전이 mCRPC |
+| Lu-PSMA-617 7.4 GBq q6w | VISION (Sartor 2021) | OS +4.0개월 | 46% | PSMA+ mCRPC ≥2L |
