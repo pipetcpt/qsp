@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-131-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-132-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **130개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **132개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -118,9 +118,9 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **131개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **132개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2
+**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
 
 | # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
 |---|------|------|----------|--------------|
@@ -255,6 +255,7 @@ qsp/
 | 128 | 근골격·신경 | [**섬유근통**<br><sub>Fibromyalgia · FM</sub>](fibromyalgia/) | <a href="fibromyalgia/fm_qsp_model.svg"><img src="fibromyalgia/fm_qsp_model.png" width="190" alt="FM"></a> | 중추감작(척수 WDR뉴런 LTP·wind-up·NMDA 수용체 탈억제); 하행성 통증조절계 결함(PAG-RVM-LC/Raphe 축, DPMS↓, DNIC 소실); 신경전달물질 불균형(CSF substance P↑·NE↓·5-HT↓); 신경염증(척수 미세아교세포 활성화·IL-1β/TNF-α·NLRP3 인플라마좀·KCC2↓→GABA 탈억제); HPA 축 이상(저코르티솔혈증·GH/IGF-1 결핍); 자율신경계 불균형(교감항진·HRV↓); 비회복성 수면(α파-δ파 침범·SWS↓); 섬유근통 뇌회로(ACC·섬엽·PFC 과활성화·기본모드네트워크). 둘록세틴(2구획 PK·SERT/NET IC50)·프레가발린(α2δ-1 Ca채널 차단·Emax 모델)·밀나시프란(SERT/NET)·아미트립틸린(H1 차단→수면 개선) PK/PD. 100+ 노드 10클러스터, **30구획 ODE**, 6치료 시나리오, Pain NRS·FIQR·CSF SP·미세아교세포·SWS·코르티솔·SNS tone 바이오마커.<br>[🗺️ 지도](fibromyalgia/fm_qsp_model.svg) · [⚙️ mrgsolve](fibromyalgia/fm_mrgsolve_model.R) · [📊 Shiny](fibromyalgia/fm_shiny_app.R) · [📚 문헌](fibromyalgia/fm_references.md) · [📄 README](fibromyalgia/README.md) |
 | 129 | 혈액·응고 | [**혈우병 A**<br><sub>Hemophilia A · HA</sub>](hemophilia-a/) | <a href="hemophilia-a/ha_qsp_model.svg"><img src="hemophilia-a/ha_qsp_model.png" width="190" alt="HA"></a> | X염색체 연관 FVIII 결핍(F8 유전자 돌연변이) → 내인성 Xase 복합체(FIXa·FVIIIa) 형성 불능 → 트롬빈 생성 급감 → 불안정 피브린 클롯. 중증(<1 IU/dL) ABR ~30/년; 억제항체(30% 중증) 발생으로 대체치료 실패. 에미시주맙(HAVEN 1/3/4: FIXa–FX 이중특이항체·FVIII 모방; ABR 1.5/년)·피투시란(ATLAS-INH: siRNA·항트롬빈 mRNA 녹다운·AT 감소→트롬빈↑; ABR ~0)·마스타시맙(항TFPI·외인성경로 증폭)·유전자치료(AAV5-FVIII·valoctocogene roxaparvovec). SHL/EHL FVIII PK(2구획)·에미시주맙 SC PK(3구획·t½ 4–5주)·피투시란 PK/AT 간접반응 모델(mRNA/단백질 2단계 녹다운). **167 노드 10클러스터**, **16구획 ODE**, **7 치료 시나리오**(무예방·SHL-FVIII 3×/wk·EHL Q3-4d·에미시주맙 Q1W/Q4W·피투시란 Q1M·FVIII+에미시주맙 병용), ETP·ABR·Pettersson 관절점수·QoL·억제항체 역가 바이오마커. 55개 PubMed 인용(Manco-Johnson 2007·HAVEN·ATLAS·A-LONG·HOPE-B·WFH Guidelines 포함).<br>[🗺️ 지도](hemophilia-a/ha_qsp_model.svg) · [⚙️ mrgsolve](hemophilia-a/ha_mrgsolve_model.R) · [📊 Shiny](hemophilia-a/ha_shiny_app.R) · [📚 문헌](hemophilia-a/ha_references.md) · [📄 README](hemophilia-a/README.md) |
 | 130 | 혈액·종양 | [**만성 림프구성 백혈병**<br><sub>Chronic Lymphocytic Leukemia · CLL</sub>](chronic-lymphocytic-leukemia/) | <a href="chronic-lymphocytic-leukemia/cll_qsp_model.svg"><img src="chronic-lymphocytic-leukemia/cll_qsp_model.png" width="190" alt="CLL"></a> | CD19⁺CD5⁺CD23⁺ 단클론 B세포 축적(서구권 성인 가장 흔한 백혈병). BCR 자율 신호전달(IGHV 비변이형·항원 자극)→LYN/SYK/BTK/PLCγ2→NF-κB/PI3Kδ/MAPK 경로 활성화; BCL-2 과발현(del13q→miR-15a/16-1 소실); 미세환경 의존(CXCL12/CXCR4 골수 억류·CXCL13/CXCR5 림프절 귀소·CD40L·BAFF·IL-4·NK 억제). CLL-IPI 예후(del(17p)/TP53·del(11q)/ATM·IGHV·β2M·임상병기). 이브루티닙(BTK Cys481 공유결합·420mg QD·RESONATE-2: ORR 86%·2yr PFS 74%)·아칼라브루티닙·자누브루티닙(선택성↑); 베네토클락스(BCL-2 BH3 모방·Ki~0.01nM·CLL14: uMRD 76%·2yr PFS 88%)·오비누투주맙(Type II 항CD20·ADCC↑·CDC↓·PCD). **146 노드 10클러스터**, **18구획 ODE**(이브루티닙 1구획·BTK 공유결합 모델·베네토클락스 2구획·BCL-2 준정상상태·오비누투주맙 TMDD·ALC/BM/LN 질환 구획·MCL-1 내성·NK 활성), **6치료 시나리오**(이브루티닙·베네토클락스·오비누투주맙·VEN+OBI CLL14·IB+VEN·삼중 병용). RESONATE-2·CLL14·MURANO·SEQUOIA·ALPINE 보정. 44개 PubMed 인용.<br>[🗺️ 지도](chronic-lymphocytic-leukemia/cll_qsp_model.svg) · [⚙️ mrgsolve](chronic-lymphocytic-leukemia/cll_mrgsolve_model.R) · [📊 Shiny](chronic-lymphocytic-leukemia/cll_shiny_app.R) · [📚 문헌](chronic-lymphocytic-leukemia/cll_references.md) · [📄 README](chronic-lymphocytic-leukemia/README.md) |
+| 132 | 신경근육 | [**척수성 근위축증 (SMA)**<br><sub>Spinal Muscular Atrophy · SMA</sub>](spinal-muscular-atrophy/) | <a href="spinal-muscular-atrophy/sma_qsp_model.svg"><img src="spinal-muscular-atrophy/sma_qsp_model.png" width="190" alt="SMA"></a> | *SMN1* 5q13.2 결손→SMN 단백질 소실→알파 운동신경세포 진행성 사멸·NMJ 미성숙·신경원성 근위축. SMN2 대체 스플라이싱(엑손7 포함율 10%→90%)·SMN 단백질 역치·MN pool·NMJ 성숙도·근육량 ODE. 누시너센(IT ASO·ISS-N1 차단)·리스디플람(경구 스플라이싱 조절제)·오나셈노진(AAV9 유전자치료) 3종 PK/PD. **130+ 노드 12클러스터**, **20구획 ODE**, **6치료 시나리오**(ENDEAR·CHERISH·FIREFISH·SPR1NT 임상 보정). CHOP-INTEND·HFMSE·CMAP·FVC·혈청 NF-L 바이오마커. 50개 PubMed 인용.<br>[🗺️ 지도](spinal-muscular-atrophy/sma_qsp_model.svg) · [⚙️ mrgsolve](spinal-muscular-atrophy/sma_mrgsolve_model.R) · [📊 Shiny](spinal-muscular-atrophy/sma_shiny_app.R) · [📚 문헌](spinal-muscular-atrophy/sma_references.md) · [📄 README](spinal-muscular-atrophy/README.md) |
 | 131 | 혈액·응고 | [**정맥 혈전색전증 (DVT/PE)**<br><sub>Venous Thromboembolism · VTE</sub>](venous-thromboembolism/) | <a href="venous-thromboembolism/vte_qsp_model.svg"><img src="venous-thromboembolism/vte_qsp_model.png" width="190" alt="VTE"></a> | 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통합한 QSP 모델. Virchow's Triad(혈류정체·내피 손상·과응고), 외인성 경로(TF-FVIIa-TFPI), 내인성 경로(접촉활성화-FXIIa-FIXa-FVIIIa), 공통 경로(Prothrombinase-트롬빈-피브린 가교), 혈소판 활성화(GPIb/GPVI/PAR1/4·GPIIb/IIIa), 자연 항응고(AT-III·단백C/S·TFPI), 섬유용해(tPA/uPA·플라스민·PAI-1·TAFI·D-이량체). 리바록사반(2구획 PK·FXa EC50=12 ng/mL)·아픽사반(EC50=5 ng/mL)·다비가트란(직접트롬빈억제·EC50=35 ng/mL)·와파린(VK 사이클 간접반응·FVII/FX/FII 풀 반감기)·에녹사파린(AT-III 활성화·항Xa) 5종 약물 PK/PD. **140+ 노드 12클러스터**, **19구획 ODE**(PK 7·FXa/FIIa·피브린·혈전크기·플라스민·D-이량체·VK산화/환원·FVII/FX/FII풀), **6치료 시나리오**(DVT:리바록사반 15→20mg·PE:아픽사반 10→5mg BID·와파린+LMWH 브리지·수술예방:에녹사파린 40mg QD·확장예방:리바록사반 10mg QD·신부전:다비가트란 110mg BID GFR30 vs 90). EINSTEIN/AMPLIFY/RE-COVER/ROCKET-AF/Mueck 2011/Frost 2015 임상 파라미터 보정. INR·Anti-Xa·aPTT·D-이량체·혈전잔여% 바이오마커. Wells 점수(DVT/PE) 사전확률 계산기, 금기사항별 약물 추천 로직. 57개 PubMed 인용.<br>[🗺️ 지도](venous-thromboembolism/vte_qsp_model.svg) · [⚙️ mrgsolve](venous-thromboembolism/vte_mrgsolve_model.R) · [📊 Shiny](venous-thromboembolism/vte_shiny_app.R) · [📚 문헌](venous-thromboembolism/vte_references.md) · [📄 README](venous-thromboembolism/README.md) |
 
 
@@ -867,3 +868,59 @@ qsp/
 | 와파린 INR 2-3 + 에녹사파린 브리지 | 역사적 표준 | DVT 재발 3개월 2-3% | INR 모니터링 필수 |
 | 에녹사파린 40mg QD (수술예방) | MEDENOX (Samama 1999 NEJM) | 증상 VTE↓ 63% vs 위약 | 입원 내과 환자 |
 | 리바록사반 10mg QD (연장예방) | EINSTEIN-EXT (Bauersachs 2010 NEJM) | 재발 82% 감소 vs 위약 | 출혈 위험 주의 |
+
+---
+
+## 🧬 척수성 근위축증 (Spinal Muscular Atrophy) — 최신 모델 상세 (2026-06-23)
+
+[![SMA QSP 기계론적 지도](spinal-muscular-atrophy/sma_qsp_model.png)](spinal-muscular-atrophy/sma_qsp_model.svg)
+
+**질환**: 척수성 근위축증(SMA) | **유전자**: *SMN1* (5q13.2 동형접합 결손) | **OMIM**: [253300](https://omim.org/entry/253300) | **유병률**: 1/6,000–1/10,000 출생
+
+### 주요 경로 클러스터 (12개)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 유전적 기반 | SMN1 결손, SMN2 복사수(1–4), C840T 전환변이, 5q13.2 위치 |
+| 2. SMN2 스플라이싱 | 엑손7 ESE/ESS/ISS-N1, hnRNP A1/A2, SRSF1/Tra2β, 10% 기저 FL-SMN |
+| 3. SMN 단백질·복합체 | FL-SMN 올리고머, Gemin2–8, Sm 단백질, snRNP 조립, 스플라이소좀 |
+| 4. 운동신경세포 생물학 | α-MN pool, BCL-2/BAX/Casp-3 아포토시스, BDNF/VEGF 생존 신호 |
+| 5. 신경근육접합부 | AChR 클러스터링(MuSK·Agrin·Lrp4), SNAP-25, 종판 전위 |
+| 6. 골격근 | Type I/II 섬유, 신경원성 위축, UPS/자가포식, IGF-1/mTORC1 |
+| 7. 임상 지표 | CMAP, CHOP-INTEND, HFMSE, RULM, MFM-32, FVC, 운동 마일스톤 |
+| 8. 누시너센 PK/PD | IT 주사 → CSF 허리/경추 → CNS 조직, ISS-N1 차단, 엑손7 포함율 ↑ |
+| 9. 리스디플람 PK/PD | 경구 흡수 → 혈장/CNS, SRSF1/Tra2β 향상, 전신적 FL-SMN ↑ |
+| 10. 오나셈노진 PK/PD | IV → AAV9 BBB 통과 → MN 형질도입 → SMN1 트랜스진 지속 발현 |
+| 11. 질환 유형·자연경과 | Type 0–IV (SMN2 복사수 역비례), 신생아 선별검사, 호흡/척추측만 |
+| 12. 전신 효과 | 심장 기형, 대사 이상, 골다공증, 삼킴 장애, 삶의 질 |
+
+### mrgsolve ODE 모델 (20구획)
+
+| 모듈 | 구획 | 핵심 방정식 |
+|------|------|------------|
+| 누시너센 PK | A_CSF_L, A_CSF_C, A_CNS_NUS | CSF bulk flow(619 mL/day) + 비선형 CNS 흡수(Michaelis-Menten) |
+| 리스디플람 PK | A_gut_RIS, A_plasma_RIS, A_CNS_RIS | 1차 흡수(ka=1.5/h), Kp_brain=0.5 |
+| 오나셈노진 PK | A_plasma_ZOL, A_MN_ZOL, A_tg_mRNA | 빠른 소거(t½~7h) + MN 형질도입 + 트랜스진 mRNA 동역학 |
+| SMN 생물학 | FL_SMN_mRNA, dSMN_mRNA, SMN_prot | dSMN/dt = k_syn×E7I − k_deg×SMN |
+| 운동신경·NMJ·근육 | MN_pool, NMJ_score, Muscle_mass | MN 사멸(SMN 역치 이하 Emax), NMJ 성숙도, 신경원성 위축 |
+| 누적 지표 | AUC_SMN, MN_lost | 시간 적분 |
+
+### 치료 시나리오 임상 데이터
+
+| 시나리오 | 약물 | 임상시험 | 주요 결과 |
+|---------|------|----------|----------|
+| SMA Type I 자연경과 | 없음 | 역사적 대조 | 2세 이전 사망/영구환기 ~100% |
+| SMA Type I — 누시너센 | 누시너센 IT 12mg | ENDEAR (2017 NEJM) | 운동 마일스톤 반응 51% vs 0% |
+| SMA Type II — 리스디플람 | 리스디플람 5mg/day | SUNFISH (2022 Lancet Neurol) | MFM32 +1.36 vs −0.19 |
+| 무증상 SMA — 오나셈노진 | Zolgensma 1.1×10¹⁴ vg/kg | SPR1NT (2022 Nat Med) | 독립 보행 달성률 77%(3복사수) |
+| Type II 늦은 시작(1년 후) | 누시너센 | CHERISH 후속 | HFMSE 개선 지연·약화 |
+| 소아 체중 기반 | 리스디플람 0.2mg/kg | FIREFISH (2021 NEJM) | 좌위 유지 ≥5초: 61%(12개월) |
+
+### QSP 모델 구성
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`sma_qsp_model.dot`](spinal-muscular-atrophy/sma_qsp_model.dot) | **130+ 노드, 12클러스터** |
+| ⚙️ mrgsolve ODE | [`sma_mrgsolve_model.R`](spinal-muscular-atrophy/sma_mrgsolve_model.R) | **20구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`sma_shiny_app.R`](spinal-muscular-atrophy/sma_shiny_app.R) | **8탭** (환자 프로파일·PK·SMN 생물학·운동신경/NMJ·임상 지표·시나리오 비교·바이오마커·가상 집단) |
+| 📚 참고문헌 | [`sma_references.md`](spinal-muscular-atrophy/sma_references.md) | **50개 PubMed 인용** (10개 섹션) |
