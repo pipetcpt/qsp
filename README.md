@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-127-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-128-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **127개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **128개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -252,6 +252,7 @@ qsp/
 | 125 | 종양·혈액 | [**골수섬유증**<br><sub>Myelofibrosis · MF</sub>](myelofibrosis/) | <a href="myelofibrosis/mf_qsp_model.svg"><img src="myelofibrosis/mf_qsp_model.png" width="190" alt="MF"></a> | JAK2V617F/CALR/MPL 돌연변이·JAK/STAT3/5 신호·HSC 니치·골수 섬유화(TGF-β/PDGF/bFGF)·수외조혈(비장종대)·사이토카인 폭풍(IL-6/TNF-α)·혈전/출혈 위험. Ruxolitinib(2구획 PK)·Fedratinib·Pacritinib·Momelotinib·Pelabresib 병용 PK/PD. 23구획 ODE, 6치료 시나리오(COMFORT-I·JAKARTA·PERSIST-2·MANIFEST-2 임상 보정), SVR35/TSS50/VAF/pSTAT3·5 바이오마커.<br>[🗺️ 지도](myelofibrosis/mf_qsp_model.svg) · [⚙️ mrgsolve](myelofibrosis/mf_mrgsolve_model.R) · [📊 Shiny](myelofibrosis/mf_shiny_app.R) · [📚 문헌](myelofibrosis/mf_references.md) · [📄 README](myelofibrosis/README.md) |
 | 126 | 종양·소화기 | [**췌장 선암**<br><sub>Pancreatic Ductal Adenocarcinoma · PDAC</sub>](pancreatic-cancer/) | <a href="pancreatic-cancer/pdac_qsp_model.svg"><img src="pancreatic-cancer/pdac_qsp_model.png" width="190" alt="PDAC"></a> | KRAS G12D/V/R(~95%)·TP53(~75%)·CDKN2A(~90%)·SMAD4(~55%) 드라이버 돌연변이, RAS/MAPK/PI3K/AKT/mTOR 신호, TGF-β/SMAD/EMT 축, 치밀 섬유화 기질(PSC·CAF·HA·IFP↑→약물침투↓), 고면역억제 TME(PD-L1·Treg·MDSC·TAM-M2), HIF-1α/VEGF 혈관신생, BRCA1/2/PALB2 HRD. 젬시타빈/nab-파클리탁셀·FOLFIRINOX/mFOLFIRINOX·KRAS G12D 억제제(MRTX1133)·올라파립 PK/PD. 264노드 10클러스터, 7치료 시나리오(MPACT·PRODIGE4·POLO 임상 보정), CA19-9·ctDNA·Friberg 골수억제 바이오마커.<br>[🗺️ 지도](pancreatic-cancer/pdac_qsp_model.svg) · [⚙️ mrgsolve](pancreatic-cancer/pdac_mrgsolve_model.R) · [📊 Shiny](pancreatic-cancer/pdac_shiny_app.R) · [📚 문헌](pancreatic-cancer/pdac_references.md) · [📄 README](pancreatic-cancer/README.md) |
 | 127 | 종양·혈액 | [**골수이형성 증후군**<br><sub>Myelodysplastic Syndrome · MDS</sub>](myelodysplastic-syndrome/) | <a href="myelodysplastic-syndrome/mds_qsp_model.svg"><img src="myelodysplastic-syndrome/mds_qsp_model.png" width="190" alt="MDS"></a> | CHIP→MDS 클론 진화; SF3B1/SRSF2/U2AF1/ZRSR2 스플라이싱 돌연변이(고리 철아세포 형성·ABCB7 소실); TET2/DNMT3A/IDH1·2/ASXL1/EZH2 후성유전학 이상; del(5q)→RPS14 반수부족·miR-145/146a 소실·TIRAP↑; TP53 복잡핵형; 골수 미세환경 (CXCL12·SCF·TPO·EPO·GCSF 니치); GDF11/TGF-β1 상승→비효율 적혈구생성; 헵시딘↑/철과부하. 아자시티딘(2구획 SC/IV PK)·데시타빈(IV/oral ASTX727)·레날리도마이드(CRBN→CK1α 분해→RPS14 복원)·루스파터셉트(ActRIIB-Fc TGF-β 포획→Smad2/3↓)·다르베포에틴·베네토클락스(BCL-2 BH3 모방체) PK/PD. 324노드 10클러스터, 18구획 ODE, 7치료 시나리오(COMMANDS·MEDALIST·MDS-003/004·ASTX727·VIALE-A 임상 보정), Hgb/PLT/ANC/수혈 의존성·GDF11·Hepcidin·IronStore·IPSS-R/IPSS-M 바이오마커.<br>[🗺️ 지도](myelodysplastic-syndrome/mds_qsp_model.svg) · [⚙️ mrgsolve](myelodysplastic-syndrome/mds_mrgsolve_model.R) · [📊 Shiny](myelodysplastic-syndrome/mds_shiny_app.R) · [📚 문헌](myelodysplastic-syndrome/mds_references.md) · [📄 README](myelodysplastic-syndrome/README.md) |
+| 128 | 신경근육·유전 | [**뒤센 근이영양증**<br><sub>Duchenne Muscular Dystrophy · DMD</sub>](duchenne-muscular-dystrophy/) | <a href="duchenne-muscular-dystrophy/dmd_qsp_model.svg"><img src="duchenne-muscular-dystrophy/dmd_qsp_model.png" width="190" alt="DMD"></a> | X-연관 열성 DMD 유전자(Xp21.2) 돌연변이→디스트로핀 완전 결손→DAPC 붕괴→근섬유막 취약성·Ca²⁺ 유입(TRPC1/6·TRPV2·mPTP)·칼파인/ROS 괴사→NF-κB/TNF-α 염증→TGF-β1/SMAD2·3 섬유화→위성세포 풀 소진(~50분열)→보행 소실(중앙 12–13세)·DCM·호흡부전(FVC 2–4%/yr↓). 에텔플러센·카시머센(PMO-ASO 엑손 스키핑·30 mg/kg/wk IV)·델란디스트로진/Elevidys(AAVrh74·1×10¹⁴ vg/kg 단회 IV)·디플라자코트·프레드니손(GR 전사억제)·바모롤론(분리형 GR 조절제) PK/PD. 160+노드 10클러스터, 18구획 ODE(PK 6+PD 12), 7치료 시나리오(ESSENCE·Mendell 2016·EMBARK Phase 3·VISION-DMD 임상 보정), 6MWD·NSAA·FVC%·LVEF·CK·디스트로핀 IHC 바이오마커.<br>[🗺️ 지도](duchenne-muscular-dystrophy/dmd_qsp_model.svg) · [⚙️ mrgsolve](duchenne-muscular-dystrophy/dmd_mrgsolve_model.R) · [📊 Shiny](duchenne-muscular-dystrophy/dmd_shiny_app.R) · [📚 문헌](duchenne-muscular-dystrophy/dmd_references.md) · [📄 README](duchenne-muscular-dystrophy/README.md) |
 
 
 ---
@@ -303,6 +304,52 @@ qsp/
 | [`hd_mrgsolve_model.R`](huntingtons-disease/hd_mrgsolve_model.R) | 20구획 ODE (7 치료 시나리오) |
 | [`hd_shiny_app.R`](huntingtons-disease/hd_shiny_app.R) | 6탭 Shiny 대시보드 |
 | [`hd_references.md`](huntingtons-disease/hd_references.md) | 53개 PubMed 참고문헌 |
+
+---
+
+## 💪 뒤센 근이영양증 (Duchenne Muscular Dystrophy) — 최신 모델 상세 (2026-06-23)
+
+[![DMD QSP 기계론적 지도](duchenne-muscular-dystrophy/dmd_qsp_model.png)](duchenne-muscular-dystrophy/dmd_qsp_model.svg)
+
+**질환**: 뒤센 근이영양증(DMD) | **유전자**: *DMD* (Xp21.2, 2.4 Mb) | **OMIM**: [310200](https://omim.org/entry/310200)
+
+### 주요 경로 클러스터 (10개)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 유전적 기반 | 엑손 결실·중복·넌센스 PTC 돌연변이 → 독해틀 파괴 → 디스트로핀 완전 결손 |
+| 2. DAPC 복합체 | α/β-디스트로글리칸·사르코글리칸·신트로핀·nNOS · 라미닌-211 연결 붕괴 |
+| 3. 근섬유막 Ca²⁺ | TRPC1/6·TRPV2 채널 → mPTP 개방 → 칼파인-1/2·ROS → 근섬유 괴사 |
+| 4. 염증 | NF-κB/TNF-α·IL-1β/6 · NLRP3 인플라마솜 · M1/M2 대식세포 분극 |
+| 5. 근육 재생 | 위성세포(Pax7)·MyoD/Myogenin·IGF-1/mTORC1·Notch/Wnt 축 |
+| 6. 섬유화/ECM | TGF-β1/SMAD2·3 → FAP/근섬유아세포 → 콜라겐 I/III·MMP-9 |
+| 7. 심장·호흡 | DCM(LVIDd↑·LVEF↓)·NT-proBNP · 횡격막 약화·FVC 2–4%/yr↓ |
+| 8. 약물 PK | PMO-ASO(에텔플러센·카시머센 IV)·디플라자코트(GI흡수·대사체)·AAV유전자치료 |
+| 9. 약물 PD/MoA | 엑손 스키핑 효율(Emax)→디스트로핀 복원·GR 전사억제→염증·섬유화 감소 |
+| 10. 임상 지표 | 6MWD·NSAA(0-34)·TLA·FVC%·LVEF·CK·디스트로핀 IHC |
+
+### 치료 시나리오 (7종)
+
+| # | 시나리오 | 약물·용법 | 임상 근거 |
+|---|---------|----------|----------|
+| 1 | 자연경과 | — | 역사적 대조군 |
+| 2 | 디플라자코트 | 0.9 mg/kg/일 PO | ESSENCE (Griggs 2016, Neurology) |
+| 3 | 프레드니손 | 0.75 mg/kg/일 PO | CINRG (McDonald 2018) |
+| 4 | 에텔플러센+DFZ | 30 mg/kg/wk IV + DFZ | Mendell 2016, Ann Neurol |
+| 5 | 카시머센+DFZ | 30 mg/kg/wk IV + DFZ | ESSENCE-DMD45 |
+| 6 | Elevidys (유전자치료) | 1×10¹⁴ vg/kg IV, 단회 | EMBARK Phase 3 (2023) |
+| 7 | 바모롤론 | 6 mg/kg/일 PO | VISION-DMD (Servais 2022) |
+
+### 산출물
+
+| 파일 | 내용 |
+|------|------|
+| [`dmd_qsp_model.dot`](duchenne-muscular-dystrophy/dmd_qsp_model.dot) | Graphviz 소스 (10 클러스터, 160+ 노드) |
+| [`dmd_qsp_model.svg`](duchenne-muscular-dystrophy/dmd_qsp_model.svg) | 벡터 기계론적 지도 |
+| [`dmd_qsp_model.png`](duchenne-muscular-dystrophy/dmd_qsp_model.png) | 래스터 지도 (150 dpi) |
+| [`dmd_mrgsolve_model.R`](duchenne-muscular-dystrophy/dmd_mrgsolve_model.R) | 18구획 ODE (PK 6 + PD 12, 7 치료 시나리오) |
+| [`dmd_shiny_app.R`](duchenne-muscular-dystrophy/dmd_shiny_app.R) | 7탭 Shiny 대시보드 |
+| [`dmd_references.md`](duchenne-muscular-dystrophy/dmd_references.md) | 61개 PubMed 참고문헌 (13 섹션) |
 
 ---
 
