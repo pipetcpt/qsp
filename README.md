@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-118-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-119-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **118개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **119개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -242,6 +242,7 @@ qsp/
 | 116 | 피부 | [**백반증**<br><sub>Vitiligo · VIT</sub>](vitiligo/) | <a href="vitiligo/vit_qsp_model.svg"><img src="vitiligo/vit_qsp_model.png" width="190" alt="VIT"></a> | CD8 T세포·IFN-γ-CXCL10 축에 의한 멜라닌세포 파괴. JAK 억제제(룩솔리티닙) 색소 재침착.<br>[🗺️ 지도](vitiligo/vit_qsp_model.svg) · [⚙️ mrgsolve](vitiligo/vit_mrgsolve_model.R) · [📚 문헌](vitiligo/vit_references.md) · [📄 README](vitiligo/README.md) |
 | 117 | 종양·호흡기 | [**비소세포 폐암 (NSCLC)**<br><sub>Non-Small Cell Lung Cancer · NSCLC</sub>](non-small-cell-lung-cancer/) | <a href="non-small-cell-lung-cancer/nsclc_qsp_model.svg"><img src="non-small-cell-lung-cancer/nsclc_qsp_model.png" width="190" alt="NSCLC"></a> | EGFR/KRAS/ALK 드라이버 돌연변이 → oncogenic signaling. TKI(오시머티닙·알렉티닙·소토라십)·면역관문억제제(펨브롤리주맙)·항암화학요법 PK/PD. FLAURA·ALEX·KEYNOTE-189 보정.<br>[🗺️ 지도](non-small-cell-lung-cancer/nsclc_qsp_model.svg) · [⚙️ mrgsolve](non-small-cell-lung-cancer/nsclc_mrgsolve_model.R) · [📚 문헌](non-small-cell-lung-cancer/nsclc_references.md) · [📄 README](non-small-cell-lung-cancer/README.md) |
 | 118 | 감염/간담도 | [**만성 C형 간염**<br><sub>Chronic Hepatitis C · CHC/HCV</sub>](chronic-hepatitis-c/) | <a href="chronic-hepatitis-c/HCV_qsp_model.svg"><img src="chronic-hepatitis-c/HCV_qsp_model.png" width="190" alt="HCV"></a> | Perelson 표적세포 제한 바이러스 동역학(T/I/V ODE)에 DAA PK/PD 통합. SOF/LED·SOF/VEL·GLE/PIB·PEG-IFN/RBV 7개 시나리오. NS5B·NS5A·NS3 억제 효능(εp/εi), CTL 소진, 간섬유화(Metavir F-score), HCC 위험 모델링. ION·ASTRAL·ENDURANCE 임상시험 보정.<br>[🗺️ 지도](chronic-hepatitis-c/HCV_qsp_model.svg) · [⚙️ mrgsolve](chronic-hepatitis-c/HCV_mrgsolve_model.R) · [📚 문헌](chronic-hepatitis-c/HCV_references.md) · [📄 README](chronic-hepatitis-c/README.md) |
+| 119 | 종양·간담도 | [**간세포암종 (HCC)**<br><sub>Hepatocellular Carcinoma · HCC</sub>](hepatocellular-carcinoma/) | <a href="hepatocellular-carcinoma/hcc_qsp_model.svg"><img src="hepatocellular-carcinoma/hcc_qsp_model.png" width="190" alt="HCC"></a> | HBV/HCV·NAFLD 기반 간암. RAS/RAF/MEK/ERK·PI3K/AKT/mTOR·Wnt/β-catenin·VEGF/혈관신생·종양면역 미세환경(PD-L1/CD8/Treg/TAM) 통합. 소라페닙·렌바티닙·아테조리주맙+베바시주맙(IMbrave150)·레고라페닙 PK/PD. 20구획 ODE, 5치료시나리오, AFP/간기능 바이오마커.<br>[🗺️ 지도](hepatocellular-carcinoma/hcc_qsp_model.svg) · [⚙️ mrgsolve](hepatocellular-carcinoma/hcc_mrgsolve_model.R) · [📊 Shiny](hepatocellular-carcinoma/hcc_shiny_app.R) · [📚 문헌](hepatocellular-carcinoma/hcc_references.md) · [📄 README](hepatocellular-carcinoma/README.md) |
 
 ---
 
@@ -259,3 +260,38 @@ qsp/
 ## 📄 라이선스 (License)
 
 본 저장소의 라이선스는 [LICENSE](LICENSE) 파일을 참조하세요.
+
+---
+
+## 🧬 119. 간세포암종 (Hepatocellular Carcinoma, HCC)
+
+**간세포암종(HCC)** 은 전 세계 원발성 간암의 약 90%를 차지하며, 만성 간질환(HBV·HCV·알코올성 간경변·NAFLD/NASH)이 있는 조직에서 발생한다. 연간 약 80만 명이 사망하는 세계 4위 암 사망 원인이다.
+
+### 핵심 병태생리 경로
+
+| 경로 | 주요 구성요소 | 치료 표적 |
+|------|-------------|----------|
+| **MAPK 신호** | RAS→RAF→MEK→ERK | 소라페닙, 레고라페닙 (RAF 억제) |
+| **PI3K/AKT/mTOR** | EGFR/MET/IGF-1R 하류 | 내성 우회 경로 (병용 필요) |
+| **Wnt/β-catenin** | CTNNB1 돌연변이, APC 파괴복합체 | ~30% 간암에서 활성 |
+| **VEGF/혈관신생** | HIF-1α→VEGF-A/VEGFR2, PDGF-BB/PDGFRβ | 렌바티닙, 베바시주맙 |
+| **종양면역 미세환경** | PD-1/PD-L1, CD8+ CTL 소진, TAM-M2, MDSC, Treg | 아테조리주맙 (IMbrave150) |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`hcc_qsp_model.dot/.svg/.png`](hepatocellular-carcinoma/) | 120+ 노드, 9개 클러스터 (위험인자·발암·신호전달·혈관신생·종양·면역·PK·PD·임상지표) |
+| ⚙️ mrgsolve ODE | [`hcc_mrgsolve_model.R`](hepatocellular-carcinoma/hcc_mrgsolve_model.R) | 20구획 (5약물 PK + 종양/면역/VEGF/AFP/간기능), 5치료 시나리오 |
+| 📊 Shiny 앱 | [`hcc_shiny_app.R`](hepatocellular-carcinoma/hcc_shiny_app.R) | 6탭 (환자 프로파일·PK·종양·PD/바이오마커·시나리오 비교·면역/안전성) |
+| 📚 참고문헌 | [`hcc_references.md`](hepatocellular-carcinoma/hcc_references.md) | 43개 PubMed 인용 (SHARP·REFLECT·IMbrave150·RESORCE·CELESTIAL·REACH-2 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 중앙 OS | ORR | 비고 |
+|------|----------|---------|-----|------|
+| 소라페닙 400mg BID | SHARP 2008 (Llovet NEJM) | 10.7개월 | 2% | 최초 승인 전신요법 |
+| 렌바티닙 8/12mg QD | REFLECT 2018 (Kudo Lancet) | 13.6개월 | 24% | REFLECT: non-inferior to sora |
+| 아테조+베바 q3w | IMbrave150 2020 (Finn NEJM) | 19.2개월 | 30% | 현 1차 표준요법 |
+| 레고라페닙 160mg QD | RESORCE 2017 (Bruix Lancet) | 10.6개월 | 11% | 소라페닙 진행 후 2차 |
+| 최적 지지요법(BSC) | 역사적 대조군 | ~7개월 | — | 무치료 자연경과 |
