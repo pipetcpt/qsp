@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-120-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-121-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **120개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
@@ -245,6 +245,7 @@ qsp/
 | 119 | 종양·간담도 | [**간세포암종 (HCC)**<br><sub>Hepatocellular Carcinoma · HCC</sub>](hepatocellular-carcinoma/) | <a href="hepatocellular-carcinoma/hcc_qsp_model.svg"><img src="hepatocellular-carcinoma/hcc_qsp_model.png" width="190" alt="HCC"></a> | HBV/HCV·NAFLD 기반 간암. RAS/RAF/MEK/ERK·PI3K/AKT/mTOR·Wnt/β-catenin·VEGF/혈관신생·종양면역 미세환경(PD-L1/CD8/Treg/TAM) 통합. 소라페닙·렌바티닙·아테조리주맙+베바시주맙(IMbrave150)·레고라페닙 PK/PD. 20구획 ODE, 5치료시나리오, AFP/간기능 바이오마커.<br>[🗺️ 지도](hepatocellular-carcinoma/hcc_qsp_model.svg) · [⚙️ mrgsolve](hepatocellular-carcinoma/hcc_mrgsolve_model.R) · [📊 Shiny](hepatocellular-carcinoma/hcc_shiny_app.R) · [📚 문헌](hepatocellular-carcinoma/hcc_references.md) · [📄 README](hepatocellular-carcinoma/README.md) |
 
 | 120 | 신경계·유전 | [**헌팅턴병 (Huntington's Disease)**<br><sub>Huntington's Disease · HD</sub>](huntingtons-disease/) | <a href="huntingtons-disease/hd_qsp_model.svg"><img src="huntingtons-disease/hd_qsp_model.png" width="190" alt="HD"></a> | CAG 반복 확장(≥36) → mHTT 생성·집적 → 선조체 중간가시신경세포(MSN) 변성. mHTT 집적 폭포(단량체→올리고머→섬유)·BDNF-TrkB 결핍(REST/NRSF·HAP1 축)·흥분독성(eNMDAR/Ca²⁺/calpain)·미토콘드리아 기능부전(PGC-1α·Complex I/II/III)·신경염증(NLRP3/IL-1β)·아포토시스(Casp-3/6). VMAT2 억제제(TBZ·DTBZ·VBZ)·ASO(토미너센, CSF mHTT ↓74%)·스플라이싱 조절제(브라나플람·PTC518) PK/PD. 20구획 ODE, 7치료시나리오(TETRA-HD·FIRST-HD·KINECT-HD·GENERATION-HD1 임상 보정), UHDRS-TMS·TFC·cUHDRS·CAP score·CSF NfL/mHTT 바이오마커.<br>[🗺️ 지도](huntingtons-disease/hd_qsp_model.svg) · [⚙️ mrgsolve](huntingtons-disease/hd_mrgsolve_model.R) · [📊 Shiny](huntingtons-disease/hd_shiny_app.R) · [📚 문헌](huntingtons-disease/hd_references.md) · [📄 README](huntingtons-disease/README.md) |
+| 121 | 종양·소화기 | [**대장암**<br><sub>Colorectal Cancer · CRC</sub>](colorectal-cancer/) | <a href="colorectal-cancer/crc_qsp_model.svg"><img src="colorectal-cancer/crc_qsp_model.png" width="190" alt="CRC"></a> | APC/Wnt·KRAS/MAPK·PI3K/TP53 경로 통합, MSI-H/CMS 아형, 종양 미세환경(CD8/Treg/MDSC/TAM), 혈관신생(VEGF/VEGFR). 5-FU/옥살리플라틴/이리노테칸(UGT1A1)·베바시주맙(TMDD)·세툭시맙·펨브롤리주맙(MSI-H) PK/PD. 20구획 ODE, 7치료시나리오(MOSAIC·CRYSTAL·NO16966·TRIBE·KEYNOTE-177 임상 보정), CEA·ctDNA·VEGF·EGFR/PD-1 점유율 바이오마커.<br>[🗺️ 지도](colorectal-cancer/crc_qsp_model.svg) · [⚙️ mrgsolve](colorectal-cancer/crc_mrgsolve_model.R) · [📊 Shiny](colorectal-cancer/crc_shiny_app.R) · [📚 문헌](colorectal-cancer/crc_references.md) · [📄 README](colorectal-cancer/README.md) |
 
 
 ---
@@ -348,3 +349,50 @@ qsp/
 | 아테조+베바 q3w | IMbrave150 2020 (Finn NEJM) | 19.2개월 | 30% | 현 1차 표준요법 |
 | 레고라페닙 160mg QD | RESORCE 2017 (Bruix Lancet) | 10.6개월 | 11% | 소라페닙 진행 후 2차 |
 | 최적 지지요법(BSC) | 역사적 대조군 | ~7개월 | — | 무치료 자연경과 |
+---
+
+## 121. 대장암 (Colorectal Cancer · CRC)
+
+> **디렉토리**: [`colorectal-cancer/`](colorectal-cancer/) | **날짜**: 2026-06-23
+
+[![CRC QSP Map](colorectal-cancer/crc_qsp_model.png)](colorectal-cancer/crc_qsp_model.svg)
+
+### 병태생리 요약
+
+대장암은 **Vogelstein 순차 돌연변이 모델**(APC→KRAS→SMAD4→TP53)에 따라 정상 상피에서 선종을 거쳐 침윤암으로 진행됩니다. 약 40%는 KRAS 돌연변이로 항-EGFR 치료에 내성이 있으며, 약 15%는 MMR 결손(dMMR/MSI-H)으로 높은 신항원 부담을 보여 면역관문억제제에 우수한 반응을 나타냅니다. **CMS(Consensus Molecular Subtypes) 1~4**로 분류되며 각 아형은 상이한 치료 전략을 요구합니다.
+
+### 핵심 경로
+
+| 클러스터 | 주요 분자 |
+|----------|-----------|
+| Wnt/β-catenin | APC, β-catenin, TCF/LEF, RSPO/LGRS5 |
+| RAS/MAPK | KRAS, BRAF V600E, MEK1/2, ERK1/2 |
+| PI3K/AKT/mTOR | PIK3CA, PTEN, AKT, mTORC1/2, S6K |
+| TP53/Apoptosis | TP53 hotspot, MDM2, BAX/BCL2, Casp-3/7 |
+| Cell Cycle | CDK4/6, Cyclin D/E, RB1, E2F, p21/p27 |
+| TGF-β/EMT | SMAD4, SNAIL/ZEB1/TWIST, E-cadherin↓, MMP-2/9 |
+| TME | CD8+ T, Treg, MDSC, M1/M2-TAM, CAF, NK |
+| Immune Checkpoints | PD-1/PD-L1, CTLA-4, TIM-3/LAG-3/TIGIT |
+| Angiogenesis | HIF-1α, VEGF-A, VEGFR1/2, Ang/Tie2 |
+| MSI/MMR | MLH1/MSH2/MSH6/PMS2, MSI-H/TMB-H |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`crc_qsp_model.dot/.svg/.png`](colorectal-cancer/) | 130+ 노드, 12개 클러스터 |
+| ⚙️ mrgsolve ODE | [`crc_mrgsolve_model.R`](colorectal-cancer/crc_mrgsolve_model.R) | 20구획 ODE, 7치료 시나리오 |
+| 📊 Shiny 앱 | [`crc_shiny_app.R`](colorectal-cancer/crc_shiny_app.R) | 6탭 대화형 대시보드 |
+| 📚 참고문헌 | [`crc_references.md`](colorectal-cancer/crc_references.md) | 40개 PubMed 인용 |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 적응 대상 |
+|------|----------|-----------|-----------|
+| FOLFOX6 | MOSAIC (André 2004, NEJM) | mOS 17.9개월, adjuvant DFS ↑ | 3기 보조·전이성 |
+| FOLFIRI | GERCOR (Tournigand 2004, JCO) | mPFS 8.5개월 | FOLFOX 대안 1차 |
+| FOLFOX + Bevacizumab | NO16966 (Saltz 2008, JCO) | mPFS 9.4개월 | 전이성 1차 |
+| FOLFIRI + Cetuximab | CRYSTAL (Van Cutsem 2009, NEJM) | RAS-WT ORR 57%, mPFS 9.9개월 | RAS-WT 전이성 |
+| FOLFIRI + Bevacizumab | TRIBE (Falcone 2013, JCO) | mPFS 9.7개월 | 전이성 1차 |
+| Pembrolizumab | KEYNOTE-177 (André 2020, NEJM) | mPFS 16.5개월, PFS HR 0.60 | MSI-H/dMMR 1차 |
+| Regorafenib | CORRECT (Grothey 2013, Lancet) | mOS 6.4개월 vs 5.0개월 | 3차 이상 |
