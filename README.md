@@ -252,6 +252,7 @@ qsp/
 | 125 | 종양·혈액 | [**골수섬유증**<br><sub>Myelofibrosis · MF</sub>](myelofibrosis/) | <a href="myelofibrosis/mf_qsp_model.svg"><img src="myelofibrosis/mf_qsp_model.png" width="190" alt="MF"></a> | JAK2V617F/CALR/MPL 돌연변이·JAK/STAT3/5 신호·HSC 니치·골수 섬유화(TGF-β/PDGF/bFGF)·수외조혈(비장종대)·사이토카인 폭풍(IL-6/TNF-α)·혈전/출혈 위험. Ruxolitinib(2구획 PK)·Fedratinib·Pacritinib·Momelotinib·Pelabresib 병용 PK/PD. 23구획 ODE, 6치료 시나리오(COMFORT-I·JAKARTA·PERSIST-2·MANIFEST-2 임상 보정), SVR35/TSS50/VAF/pSTAT3·5 바이오마커.<br>[🗺️ 지도](myelofibrosis/mf_qsp_model.svg) · [⚙️ mrgsolve](myelofibrosis/mf_mrgsolve_model.R) · [📊 Shiny](myelofibrosis/mf_shiny_app.R) · [📚 문헌](myelofibrosis/mf_references.md) · [📄 README](myelofibrosis/README.md) |
 | 126 | 종양·소화기 | [**췌장 선암**<br><sub>Pancreatic Ductal Adenocarcinoma · PDAC</sub>](pancreatic-cancer/) | <a href="pancreatic-cancer/pdac_qsp_model.svg"><img src="pancreatic-cancer/pdac_qsp_model.png" width="190" alt="PDAC"></a> | KRAS G12D/V/R(~95%)·TP53(~75%)·CDKN2A(~90%)·SMAD4(~55%) 드라이버 돌연변이, RAS/MAPK/PI3K/AKT/mTOR 신호, TGF-β/SMAD/EMT 축, 치밀 섬유화 기질(PSC·CAF·HA·IFP↑→약물침투↓), 고면역억제 TME(PD-L1·Treg·MDSC·TAM-M2), HIF-1α/VEGF 혈관신생, BRCA1/2/PALB2 HRD. 젬시타빈/nab-파클리탁셀·FOLFIRINOX/mFOLFIRINOX·KRAS G12D 억제제(MRTX1133)·올라파립 PK/PD. 264노드 10클러스터, 7치료 시나리오(MPACT·PRODIGE4·POLO 임상 보정), CA19-9·ctDNA·Friberg 골수억제 바이오마커.<br>[🗺️ 지도](pancreatic-cancer/pdac_qsp_model.svg) · [⚙️ mrgsolve](pancreatic-cancer/pdac_mrgsolve_model.R) · [📊 Shiny](pancreatic-cancer/pdac_shiny_app.R) · [📚 문헌](pancreatic-cancer/pdac_references.md) · [📄 README](pancreatic-cancer/README.md) |
 | 127 | 종양·혈액 | [**골수이형성 증후군**<br><sub>Myelodysplastic Syndrome · MDS</sub>](myelodysplastic-syndrome/) | <a href="myelodysplastic-syndrome/mds_qsp_model.svg"><img src="myelodysplastic-syndrome/mds_qsp_model.png" width="190" alt="MDS"></a> | CHIP→MDS 클론 진화; SF3B1/SRSF2/U2AF1/ZRSR2 스플라이싱 돌연변이(고리 철아세포 형성·ABCB7 소실); TET2/DNMT3A/IDH1·2/ASXL1/EZH2 후성유전학 이상; del(5q)→RPS14 반수부족·miR-145/146a 소실·TIRAP↑; TP53 복잡핵형; 골수 미세환경 (CXCL12·SCF·TPO·EPO·GCSF 니치); GDF11/TGF-β1 상승→비효율 적혈구생성; 헵시딘↑/철과부하. 아자시티딘(2구획 SC/IV PK)·데시타빈(IV/oral ASTX727)·레날리도마이드(CRBN→CK1α 분해→RPS14 복원)·루스파터셉트(ActRIIB-Fc TGF-β 포획→Smad2/3↓)·다르베포에틴·베네토클락스(BCL-2 BH3 모방체) PK/PD. 324노드 10클러스터, 18구획 ODE, 7치료 시나리오(COMMANDS·MEDALIST·MDS-003/004·ASTX727·VIALE-A 임상 보정), Hgb/PLT/ANC/수혈 의존성·GDF11·Hepcidin·IronStore·IPSS-R/IPSS-M 바이오마커.<br>[🗺️ 지도](myelodysplastic-syndrome/mds_qsp_model.svg) · [⚙️ mrgsolve](myelodysplastic-syndrome/mds_mrgsolve_model.R) · [📊 Shiny](myelodysplastic-syndrome/mds_shiny_app.R) · [📚 문헌](myelodysplastic-syndrome/mds_references.md) · [📄 README](myelodysplastic-syndrome/README.md) |
+| 128 | 근골격·신경 | [**섬유근통**<br><sub>Fibromyalgia · FM</sub>](fibromyalgia/) | <a href="fibromyalgia/fm_qsp_model.svg"><img src="fibromyalgia/fm_qsp_model.png" width="190" alt="FM"></a> | 중추감작(척수 WDR뉴런 LTP·wind-up·NMDA 수용체 탈억제); 하행성 통증조절계 결함(PAG-RVM-LC/Raphe 축, DPMS↓, DNIC 소실); 신경전달물질 불균형(CSF substance P↑·NE↓·5-HT↓); 신경염증(척수 미세아교세포 활성화·IL-1β/TNF-α·NLRP3 인플라마좀·KCC2↓→GABA 탈억제); HPA 축 이상(저코르티솔혈증·GH/IGF-1 결핍); 자율신경계 불균형(교감항진·HRV↓); 비회복성 수면(α파-δ파 침범·SWS↓); 섬유근통 뇌회로(ACC·섬엽·PFC 과활성화·기본모드네트워크). 둘록세틴(2구획 PK·SERT/NET IC50)·프레가발린(α2δ-1 Ca채널 차단·Emax 모델)·밀나시프란(SERT/NET)·아미트립틸린(H1 차단→수면 개선) PK/PD. 100+ 노드 10클러스터, **30구획 ODE**, 6치료 시나리오, Pain NRS·FIQR·CSF SP·미세아교세포·SWS·코르티솔·SNS tone 바이오마커.<br>[🗺️ 지도](fibromyalgia/fm_qsp_model.svg) · [⚙️ mrgsolve](fibromyalgia/fm_mrgsolve_model.R) · [📊 Shiny](fibromyalgia/fm_shiny_app.R) · [📚 문헌](fibromyalgia/fm_references.md) · [📄 README](fibromyalgia/README.md) |
 
 
 ---
@@ -682,3 +683,50 @@ qsp/
 | 루스파터셉트 1.0 mg/kg q3w | COMMANDS (Platzbecker 2023, NEJM) | **TI ≥12주 58.5% vs 31.1%** (vs ESA); Hgb ↑1.5 g/dL 이상 | 저~중등도위험 MDS-RS (1차) |
 | 루스파터셉트 1.0 mg/kg q3w | MEDALIST (Fenaux 2020, NEJM) | TI ≥8주 **38% vs 13%** (vs 위약); HR-QoL 개선 | ESA 실패 MDS-RS 수혈의존성 |
 | 베네토클락스 + 아자시티딘 | VIALE-A 하위군/고위험 MDS 외삽 | CR ~15-20% (MDS 추정); MDS TP53 반응 제한적 | 고위험/집중 요법 불가 MDS |
+
+---
+
+## 128. 섬유근통 (Fibromyalgia · FM)
+
+> **디렉토리**: [`fibromyalgia/`](fibromyalgia/) | **날짜**: 2026-06-23
+
+[![FM QSP Map](fibromyalgia/fm_qsp_model.png)](fibromyalgia/fm_qsp_model.svg)
+
+### 병태생리 요약
+
+섬유근통(FM)은 전신 만성 통증과 피로, 수면 장애, 인지 기능 저하를 특징으로 하는 복합적 중추신경계 통증 장애입니다. 유병률은 약 2–5%로 여성에서 더 흔하며(여:남 = 7:1), 2016년 ACR 기준으로 진단합니다(WPI ≥ 7 + SS ≥ 5, 또는 WPI 4–6 + SS ≥ 9). 섬유근통의 핵심 기전은 **중추감작(central sensitization)** — 척수 후각에서 정상 자극에 대해 비정상적으로 증폭된 통증 신호 처리입니다.
+
+**핵심 병태생리:** (1) 말초 조직의 미세손상 및 NGF/PGE2 상승으로 C-섬유/Aδ 구심 활동 증가 → (2) 척수 후각 WDR 뉴런에서 substance P/CGRP 분비 증가 → NMDA 수용체 활성화 및 Mg²⁺ 차단 해제 → wind-up(시간적 합산) → 척수 장기강화(LTP)로 중추감작 확립 → (3) 하행성 통증조절계(PAG-RVM-LC) 기능 저하(NE↓·5-HT↓)로 내인성 통증억제 소실(DNIC 결함) → (4) 척수 미세아교세포 활성화(IL-1β/TNF-α/BDNF 분비) → NMDA 수용체 인산화 강화·KCC2↓→GABA 탈억제 → (5) HPA 축 이상(저코르티솔혈증 → 항염증 제동 소실) + GH/IGF-1 결핍(조직 회복 저하) → (6) 교감신경 과항진·HRV↓(부교감 저하) → (7) α파-δ파 수면 침범으로 서파수면(SWS) 결손 → 수면-통증 악순환.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **말초 감작** | NGF↑·PGE2·TRPV1·NaV1.7/1.8·DRG C/Aδ 섬유 | 말초 TRPV1 길항제(연구 중) |
+| **척수 중추감작** | SP(CSF↑3배)·Glu·NMDA·AMPA·NK1R·PKCε·ERK1/2·wind-up·LTP | 프레가발린(α2δ-1 차단→Ca²+↓→Glu/SP 방출↓) |
+| **하행성 통증조절** | PAG-RVM axis·LC(NE)·Raphe(5-HT)·DPMS·DNIC 소실 | 둘록세틴/밀나시프란(SERT+NET 억제→NE/5-HT↑→하행억제↑) |
+| **신경염증** | 척수 미세아교세포·BDNF/TrkB·IL-1β·TNF-α·CX3CR1/fractalkine·NLRP3·KCC2↓ | 미세아교세포 조절 연구(저용량 날트렉손 등) |
+| **HPA 축** | CRH-ACTH-코르티솔 음성피드백 약화·저코르티솔혈증·GH/IGF-1 결핍 | 운동 요법(HPA 정상화 효과) |
+| **자율신경** | 교감신경 과항진·HRV↓·기립성 이상·발한 기능 이상 | 자율신경 훈련; HRV 바이오피드백 |
+| **수면** | 아데노신·서파수면(SWS)·α-δ 침범·비회복성 수면·수면GH 분비↓ | 아미트립틸린 25 mg QHS(H1 차단→진정→SWS↑) |
+| **임상 지표** | Pain NRS·FIQR(0–100)·Fatigue VAS·PHQ-9·GAD-7·PPT·PGIC·SF-36 | 30% 통증 감소 = 임상적 의미 있는 반응 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`fm_qsp_model.dot/.svg/.png`](fibromyalgia/) | **100+ 노드, 10개 클러스터** (말초감작·척수후각·뇌통증회로·하행조절·HPA 축·자율신경계·수면·신경염증·약물 PK/PD·임상 지표) |
+| ⚙️ mrgsolve ODE | [`fm_mrgsolve_model.R`](fibromyalgia/fm_mrgsolve_model.R) | **30구획 ODE** (4 약물 PK: 둘록세틴 2구획·프레가발린·밀나시프란·아미트립틸린 + 26 질환 PD), **6치료 시나리오** (미치료·DUL·PRE·MIL·DUL+PRE 병용·TCA) |
+| 📊 Shiny 앱 | [`fm_shiny_app.R`](fibromyalgia/fm_shiny_app.R) | **6탭** (환자 프로파일·Drug PK·PD 핵심지표·임상 엔드포인트·시나리오 비교·바이오마커), shinydashboard purple 테마 |
+| 📚 참고문헌 | [`fm_references.md`](fibromyalgia/fm_references.md) | **60개 PubMed 인용** (중추감작·하행조절·HPA·자율신경·수면·신경염증·4대 약물 임상시험) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | 주요 결과 | 적응 |
+|------|----------|----------|------|
+| 둘록세틴 60 mg QD | Arnold 2004 (Arthritis Rheum) | Pain ≥30% 개선 55% vs 33% (위약); FIQR ↓26% | FDA 승인 FM |
+| 프레가발린 300–450 mg/d | Crofford 2005 (Arthritis Rheum) | Pain ≥50% 개선 29% vs 13% (위약); 수면 개선 | FDA 승인 FM |
+| 밀나시프란 100–200 mg/d | Clauw 2008 (Arch Intern Med) | Pain ≥50% 24% vs 10% (위약); NRS ↓33% | FDA 승인 FM |
+| 아미트립틸린 25 mg QHS | Nishishinya 2008 (Rheumatology) | 통증·수면·FIQ 개선(위약 대비); 단기 효과 강함 | 오프라벨 |
+| 둘록세틴 + 프레가발린 병용 | 모델 시뮬레이션 | 상보적 기전(SERT/NET + α2δ-1)으로 추가 효과 예측 | 임상 가이드라인 미확립 |
+| 아미트립틸린 수면 표적 | Moldofsky 1975 이후 연구 | SWS 회복 → 통증·피로 개선 선행 | 수면 장애 동반 시 |
