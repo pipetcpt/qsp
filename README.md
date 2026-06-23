@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-125-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-126-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **125개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **126개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -250,6 +250,7 @@ qsp/
 | 123 | 종양·혈액 | [**급성 골수성 백혈병**<br><sub>Acute Myeloid Leukemia · AML</sub>](acute-myeloid-leukemia/) | <a href="acute-myeloid-leukemia/aml_qsp_model.svg"><img src="acute-myeloid-leukemia/aml_qsp_model.png" width="190" alt="AML"></a> | FLT3/NPM1/IDH/DNMT3A 돌연변이·BCL-2 패밀리·백혈병 줄기세포·골수 미세환경·후성유전학 이상. 베네토클락스(BCL-2)·아자시티딘·길테리티닙(FLT3)·에나시데닙(IDH2)·시타라빈 PK/PD. 21구획 ODE, Friberg 골수억제, 7치료 시나리오(VIALE-A·ADMIRAL·QuANTUM-R·RATIFY 임상 보정).<br>[🗺️ 지도](acute-myeloid-leukemia/aml_qsp_model.svg) · [⚙️ mrgsolve](acute-myeloid-leukemia/aml_mrgsolve_model.R) · [📊 Shiny](acute-myeloid-leukemia/aml_shiny_app.R) · [📚 문헌](acute-myeloid-leukemia/aml_references.md) · [📄 README](acute-myeloid-leukemia/README.md) |
 | 124 | 종양·소화기 | [**위선암**<br><sub>Gastric Cancer · GC</sub>](gastric-cancer/) | <a href="gastric-cancer/gc_qsp_model.svg"><img src="gastric-cancer/gc_qsp_model.png" width="190" alt="GC"></a> | H. pylori CagA/VacA·HER2/FGFR2/MET·VEGF 혈관신생·CLDN18.2·PD-L1/PD-1 면역관문·TCGA 아형(EBV/MSI-H/GS/CIN)·TME. 트라스투주맙(TMDD)·라무시루맙(VEGFR2)·니볼루맙(PD-1)·T-DXd(HER2 ADC)·졸베툭시맙(CLDN18.2 ADCC)·FLOT/FOLFOX PK/PD. 28구획 ODE, Simeoni TGI, 6치료 시나리오(ToGA·RAINBOW·CheckMate649·SPOTLIGHT·DESTINY-Gastric01·FLOT4 임상 보정), CEA/CA19-9/ctDNA 바이오마커.<br>[🗺️ 지도](gastric-cancer/gc_qsp_model.svg) · [⚙️ mrgsolve](gastric-cancer/gc_mrgsolve_model.R) · [📊 Shiny](gastric-cancer/gc_shiny_app.R) · [📚 문헌](gastric-cancer/gc_references.md) · [📄 README](gastric-cancer/README.md) |
 | 125 | 종양·혈액 | [**골수섬유증**<br><sub>Myelofibrosis · MF</sub>](myelofibrosis/) | <a href="myelofibrosis/mf_qsp_model.svg"><img src="myelofibrosis/mf_qsp_model.png" width="190" alt="MF"></a> | JAK2V617F/CALR/MPL 돌연변이·JAK/STAT3/5 신호·HSC 니치·골수 섬유화(TGF-β/PDGF/bFGF)·수외조혈(비장종대)·사이토카인 폭풍(IL-6/TNF-α)·혈전/출혈 위험. Ruxolitinib(2구획 PK)·Fedratinib·Pacritinib·Momelotinib·Pelabresib 병용 PK/PD. 23구획 ODE, 6치료 시나리오(COMFORT-I·JAKARTA·PERSIST-2·MANIFEST-2 임상 보정), SVR35/TSS50/VAF/pSTAT3·5 바이오마커.<br>[🗺️ 지도](myelofibrosis/mf_qsp_model.svg) · [⚙️ mrgsolve](myelofibrosis/mf_mrgsolve_model.R) · [📊 Shiny](myelofibrosis/mf_shiny_app.R) · [📚 문헌](myelofibrosis/mf_references.md) · [📄 README](myelofibrosis/README.md) |
+| 126 | 종양·소화기 | [**췌장 선암**<br><sub>Pancreatic Ductal Adenocarcinoma · PDAC</sub>](pancreatic-cancer/) | <a href="pancreatic-cancer/pdac_qsp_model.svg"><img src="pancreatic-cancer/pdac_qsp_model.png" width="190" alt="PDAC"></a> | KRAS G12D/V/R(~95%)·TP53(~75%)·CDKN2A(~90%)·SMAD4(~55%) 드라이버 돌연변이, RAS/MAPK/PI3K/AKT/mTOR 신호, TGF-β/SMAD/EMT 축, 치밀 섬유화 기질(PSC·CAF·HA·IFP↑→약물침투↓), 고면역억제 TME(PD-L1·Treg·MDSC·TAM-M2), HIF-1α/VEGF 혈관신생, BRCA1/2/PALB2 HRD. 젬시타빈/nab-파클리탁셀·FOLFIRINOX/mFOLFIRINOX·KRAS G12D 억제제(MRTX1133)·올라파립 PK/PD. 264노드 10클러스터, 7치료 시나리오(MPACT·PRODIGE4·POLO 임상 보정), CA19-9·ctDNA·Friberg 골수억제 바이오마커.<br>[🗺️ 지도](pancreatic-cancer/pdac_qsp_model.svg) · [⚙️ mrgsolve](pancreatic-cancer/pdac_mrgsolve_model.R) · [📊 Shiny](pancreatic-cancer/pdac_shiny_app.R) · [📚 문헌](pancreatic-cancer/pdac_references.md) · [📄 README](pancreatic-cancer/README.md) |
 
 
 ---
@@ -586,3 +587,48 @@ qsp/
 | 파크리티닙 200mg BID | PERSIST-2 (Mesa 2017) | 18% vs 3% | — | — | [29049469](https://pubmed.ncbi.nlm.nih.gov/29049469/) |
 | 모멜로티닙 200mg QD | SIMPLIFY-1 (Mesa 2017) | 26.5% vs 29% | 28% vs 42% | — | [28930484](https://pubmed.ncbi.nlm.nih.gov/28930484/) |
 | Pelabresib + Rux | MANIFEST-2 (Pemmaraju 2024) | **65.9% vs 35.2%** | 52.3% vs 37.5% | NR | [39504566](https://pubmed.ncbi.nlm.nih.gov/39504566/) |
+
+---
+
+## 126. 췌장 선암 (Pancreatic Ductal Adenocarcinoma · PDAC)
+
+> **디렉토리**: [`pancreatic-cancer/`](pancreatic-cancer/) | **날짜**: 2026-06-23
+
+[![PDAC QSP Map](pancreatic-cancer/pdac_qsp_model.png)](pancreatic-cancer/pdac_qsp_model.svg)
+
+### 병태생리 요약
+
+췌장 선암(PDAC)은 고형 악성종양 중 가장 치명적인 암으로, 전 병기 합산 5년 생존율이 약 12%에 불과합니다. 전 세계적으로 연간 약 50만 명이 진단받으며, 암 사망 원인 7위를 차지합니다. 대부분(~80%)이 절제 불가능한 국소 진행성 또는 전이성 상태로 진단됩니다. **KRAS 돌연변이**(~95%, G12D 44%·G12V 26%·G12R 14%)가 핵심 발암 구동인자이며, **TP53 소실**(~75%), **CDKN2A/p16 소실**(~90%), **SMAD4 소실**(~55%)이 동반됩니다. 종양 부피의 80~90%를 차지하는 **치밀 섬유화 기질(desmoplastic stroma)**이 약물 침투를 차단하고 면역억제 미세환경을 형성하는 독특한 병태생리를 보입니다.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **KRAS/MAPK 신호** | KRAS G12D→BRAF→MEK→ERK→MYC·ETS | MRTX1133(KRAS G12D), Adagrasib(G12C), SOS1 억제제(BI-3406) |
+| **PI3K/AKT/mTOR** | PI3K→PIP3→AKT→mTORC1/2→S6K·4EBP1 | 에베롤리무스, 코판리십(연구 중) |
+| **TGF-β/SMAD/EMT** | TGFβ→SMAD2/3→SMAD4→SNAIL/ZEB1→E-Cad소실·MMP2/9→침윤·전이 | 갈루니서팁(TGFβRI 억제), SMAD4 biomarker |
+| **섬유화 기질** | PSC→myoCAF/iCAF→콜라겐·히알루론산→IFP↑→약물침투↓ | PEGPH20(히알루로니다제), 피르페니돈, FAP CAR-T |
+| **면역억제 TME** | PD-L1·CTLA-4·LAG-3·TIM-3, Treg·MDSC·TAM-M2, IL-10·TGF-β | 펨브롤리주맙(MSI-H), 이필리무맙, 렐라틀리맙 |
+| **혈관신생** | HIF-1α→VEGF-A→VEGFR2·Ang-2→신생혈관(미성숙) | 베바시주맙(제한적 효과), 라무시루맙 |
+| **DNA 손상·HRD** | BRCA1/2·PALB2·ATM 돌연변이→HRD→PARP 의존성 | 올라파립(POLO 승인), 루카파립, 니라파립 |
+| **임상 지표** | CA 19-9·CEA·ctDNA(KRAS VAF)·CA 19-9 응답, RECIST, PFS/OS | 치료 반응 조기 예측·내성 감시 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`pdac_qsp_model.dot/.svg/.png`](pancreatic-cancer/) | **264노드, 10개 클러스터** (정상 췌장·드라이버 돌연변이·KRAS 신호·TGF-β/EMT·섬유화 기질·면역 TME·혈관신생·약물 PK·종양 생물학·임상 지표) |
+| ⚙️ mrgsolve ODE | [`pdac_mrgsolve_model.R`](pancreatic-cancer/pdac_mrgsolve_model.R) | 젬시타빈(2구획)·nab-파클리탁셀(2구획)·옥살리플라틴·이리노테칸/SN-38·5-FU·MRTX1133·올라파립 PK + Simeoni TGI(4-전이구획) + CA19-9 + Friberg 골수억제 + 기질저항; **7치료 시나리오**(무치료·Gem mono·Gem+nab-Pac·FOLFIRINOX·mFOLFIRINOX·MRTX1133·올라파립), MPACT·PRODIGE4·POLO 임상 보정 |
+| 📊 Shiny 앱 | [`pdac_shiny_app.R`](pancreatic-cancer/pdac_shiny_app.R) | **6탭** (환자 프로파일·약물 PK·종양 역학·바이오마커·임상 엔드포인트·시나리오 비교), plotly 인터랙티브, bslib darkly 테마, 1,357줄 |
+| 📚 참고문헌 | [`pdac_references.md`](pancreatic-cancer/pdac_references.md) | **51개 PubMed 인용** (MPACT·PRODIGE4/ACCORD11·POLO·CodeBreak·MRTX1133 Phase I·PEGPH20·ICI in PDAC 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | ORR | 중앙 PFS | 중앙 OS | 적응 |
+|------|----------|-----|---------|---------|------|
+| 젬시타빈 mono | Burris 1997 (NEJM) | 7% | 3.7개월 | 6.7개월 | 1차 표준 기준 |
+| Gem + nab-Paclitaxel | MPACT (Von Hoff 2013, NEJM) | 23% | 5.5개월 | **8.5개월** | 1차 전이성 |
+| FOLFIRINOX | PRODIGE4/ACCORD11 (Conroy 2011) | 31.6% | 6.4개월 | **11.1개월** | 1차 PS 0–1 |
+| mFOLFIRINOX | PRODIGE24 (Conroy 2018, adjuvant) | 28% | 6.0개월 | 10.5개월 | 1차 또는 수술 후 보조 |
+| MRTX1133 (KRAS G12D) | Phase I/II (NCT05737706, 진행 중) | ~40% (예측) | ~4개월 | ~8개월 | G12D+ 2차 이상 |
+| 올라파립 유지 | POLO (Golan 2019, NEJM) | — | **7.4 vs 3.8개월** (HR 0.53) | NS (OS) | gBRCA+ 1차 후 유지 |
