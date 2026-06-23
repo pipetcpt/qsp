@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-122-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-123-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **122개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **123개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -247,6 +247,7 @@ qsp/
 | 120 | 신경계·유전 | [**헌팅턴병 (Huntington's Disease)**<br><sub>Huntington's Disease · HD</sub>](huntingtons-disease/) | <a href="huntingtons-disease/hd_qsp_model.svg"><img src="huntingtons-disease/hd_qsp_model.png" width="190" alt="HD"></a> | CAG 반복 확장(≥36) → mHTT 생성·집적 → 선조체 중간가시신경세포(MSN) 변성. mHTT 집적 폭포(단량체→올리고머→섬유)·BDNF-TrkB 결핍(REST/NRSF·HAP1 축)·흥분독성(eNMDAR/Ca²⁺/calpain)·미토콘드리아 기능부전(PGC-1α·Complex I/II/III)·신경염증(NLRP3/IL-1β)·아포토시스(Casp-3/6). VMAT2 억제제(TBZ·DTBZ·VBZ)·ASO(토미너센, CSF mHTT ↓74%)·스플라이싱 조절제(브라나플람·PTC518) PK/PD. 20구획 ODE, 7치료시나리오(TETRA-HD·FIRST-HD·KINECT-HD·GENERATION-HD1 임상 보정), UHDRS-TMS·TFC·cUHDRS·CAP score·CSF NfL/mHTT 바이오마커.<br>[🗺️ 지도](huntingtons-disease/hd_qsp_model.svg) · [⚙️ mrgsolve](huntingtons-disease/hd_mrgsolve_model.R) · [📊 Shiny](huntingtons-disease/hd_shiny_app.R) · [📚 문헌](huntingtons-disease/hd_references.md) · [📄 README](huntingtons-disease/README.md) |
 | 121 | 종양·소화기 | [**대장암**<br><sub>Colorectal Cancer · CRC</sub>](colorectal-cancer/) | <a href="colorectal-cancer/crc_qsp_model.svg"><img src="colorectal-cancer/crc_qsp_model.png" width="190" alt="CRC"></a> | APC/Wnt·KRAS/MAPK·PI3K/TP53 경로 통합, MSI-H/CMS 아형, 종양 미세환경(CD8/Treg/MDSC/TAM), 혈관신생(VEGF/VEGFR). 5-FU/옥살리플라틴/이리노테칸(UGT1A1)·베바시주맙(TMDD)·세툭시맙·펨브롤리주맙(MSI-H) PK/PD. 20구획 ODE, 7치료시나리오(MOSAIC·CRYSTAL·NO16966·TRIBE·KEYNOTE-177 임상 보정), CEA·ctDNA·VEGF·EGFR/PD-1 점유율 바이오마커.<br>[🗺️ 지도](colorectal-cancer/crc_qsp_model.svg) · [⚙️ mrgsolve](colorectal-cancer/crc_mrgsolve_model.R) · [📊 Shiny](colorectal-cancer/crc_shiny_app.R) · [📚 문헌](colorectal-cancer/crc_references.md) · [📄 README](colorectal-cancer/README.md) |
 | 122 | 종양·비뇨기 | [**전립선암**<br><sub>Prostate Cancer · PC</sub>](prostate-cancer/) | <a href="prostate-cancer/pc_qsp_model.svg"><img src="prostate-cancer/pc_qsp_model.png" width="190" alt="PC"></a> | HPG 축·AR 신호·PI3K/AKT·골전이(RANKL 악순환)와 CRPC/ARv7 내성. GnRH 제제·ARPI·도세탁셀·PARP 억제제·Lu-PSMA.<br>[🗺️ 지도](prostate-cancer/pc_qsp_model.svg) · [⚙️ mrgsolve](prostate-cancer/pc_mrgsolve_model.R) · [📚 문헌](prostate-cancer/pc_references.md) · [📄 README](prostate-cancer/README.md) |
+| 123 | 종양·혈액 | [**급성 골수성 백혈병**<br><sub>Acute Myeloid Leukemia · AML</sub>](acute-myeloid-leukemia/) | <a href="acute-myeloid-leukemia/aml_qsp_model.svg"><img src="acute-myeloid-leukemia/aml_qsp_model.png" width="190" alt="AML"></a> | FLT3/NPM1/IDH/DNMT3A 돌연변이·BCL-2 패밀리·백혈병 줄기세포·골수 미세환경·후성유전학 이상. 베네토클락스(BCL-2)·아자시티딘·길테리티닙(FLT3)·에나시데닙(IDH2)·시타라빈 PK/PD. 21구획 ODE, Friberg 골수억제, 7치료 시나리오(VIALE-A·ADMIRAL·QuANTUM-R·RATIFY 임상 보정).<br>[🗺️ 지도](acute-myeloid-leukemia/aml_qsp_model.svg) · [⚙️ mrgsolve](acute-myeloid-leukemia/aml_mrgsolve_model.R) · [📊 Shiny](acute-myeloid-leukemia/aml_shiny_app.R) · [📚 문헌](acute-myeloid-leukemia/aml_references.md) · [📄 README](acute-myeloid-leukemia/README.md) |
 
 
 ---
@@ -446,3 +447,48 @@ qsp/
 | 올라파립 300 mg BID | PROfound (de Bono 2020) | rPFS HR=0.34 | 33%(BRCA1/2) | mCRPC HRR변이 |
 | 라듐-223 55 kBq/kg q4w×6 | ALSYMPCA (Parker 2013) | OS +3.6개월 | — | 증상성 골전이 mCRPC |
 | Lu-PSMA-617 7.4 GBq q6w | VISION (Sartor 2021) | OS +4.0개월 | 46% | PSMA+ mCRPC ≥2L |
+
+---
+
+## 123. 급성 골수성 백혈병 (Acute Myeloid Leukemia · AML)
+
+> **디렉토리**: [`acute-myeloid-leukemia/`](acute-myeloid-leukemia/) | **날짜**: 2026-06-23
+
+[![AML QSP Map](acute-myeloid-leukemia/aml_qsp_model.png)](acute-myeloid-leukemia/aml_qsp_model.svg)
+
+### 병태생리 요약
+
+급성 골수성 백혈병(AML)은 조혈 줄기세포 또는 전구세포에서 발생하는 클론성 악성 증식 질환으로, 미성숙 골수 아세포가 골수 내에 축적되어 정상 조혈을 억제합니다. 성인 급성 백혈병 중 가장 흔하며(미국 기준 연 ~2만 명), 중앙 연령은 68세, 5년 생존율은 30% 미만입니다. **FLT3-ITD/TKD**(~30%), **NPM1**(~30%), **DNMT3A**(~20%), **IDH1/2**(~20%), **TP53**(~8%) 등 다수의 재발성 돌연변이가 병태생리를 구동하며, ELN 2022 위험군 분류에 따라 치료 전략이 결정됩니다. 베네토클락스·FLT3 억제제·IDH 억제제 등 표적 치료제의 연이은 승인으로 치료 패러다임이 급격히 변화하고 있습니다.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **정상 조혈** | HSC→CMP/GMP/MEP→성숙 혈구, SCF/TPO/EPO/G-CSF | 골수억제 모니터링 (Friberg 모델) |
+| **AML 분자 병인** | FLT3-ITD→RAS/RAF→MAPK 증식; FLT3-TKD→JAK/STAT5→BCL-2 항아포프토시스 | 길테리티닙(FLT3/AXL), 퀴자르티닙(FLT3-ITD), 미도스타우린 |
+| **PI3K/AKT/mTOR** | FLT3/KIT→PI3K→AKT→FOXO 비활성화→생존 | 연구 중인 AKT·mTOR 억제제 |
+| **BCL-2 패밀리** | BCL-2·BCL-xL·MCL-1 대 BAX·BAK·BIM·PUMA·NOXA | 베네토클락스(BH3 모방체·BCL-2 선택적) |
+| **후성유전학** | IDH1/2→2-HG→TET2 억제→과메틸화; DNMT3A 소실 | 에나시데닙(IDH2), 이보시데닙(IDH1), 아자시티딘(DNMT 억제) |
+| **골수 미세환경** | CXCL12-CXCR4(LSC 유지), VLA-4-피브로넥틴(CAMDR), HIF-1α(저산소 적응) | 플레릭사포(CXCR4), 키잘리(Hedgehog) |
+| **면역 회피** | CD47("don't eat me")→SIRPα; PD-L1→PD-1 T세포 고갈 | 마그롤리맙(CD47), 펨브롤리주맙 |
+| **임상 지표** | 골수 아세포 %, MRD(NPM1 PCR·FLT3 VAF), ANC/PLT, TLS 위험 | CR<5%, MRD음성, 골수 억제 모니터링 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`aml_qsp_model.dot/.svg/.png`](acute-myeloid-leukemia/) | 281 노드, 10개 클러스터, 211 엣지 |
+| ⚙️ mrgsolve ODE | [`aml_mrgsolve_model.R`](acute-myeloid-leukemia/aml_mrgsolve_model.R) | 21구획 ODE — 9 약물 PK + 12 질환 PD, Friberg 골수억제, 7치료 시나리오 |
+| 📊 Shiny 앱 | [`aml_shiny_app.R`](acute-myeloid-leukemia/aml_shiny_app.R) | 6탭 (환자 프로파일·약물PK·백혈병 역학·임상 엔드포인트·시나리오 비교·바이오마커) |
+| 📚 참고문헌 | [`aml_references.md`](acute-myeloid-leukemia/aml_references.md) | 38개 PubMed 인용 (VIALE-A·ADMIRAL·QuANTUM-R·RATIFY·APL ATO 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | CR 율 | 중앙 OS | 적응 단계 |
+|------|----------|-------|---------|---------|
+| 7+3 (Ara-C+Ida) | 표준 기준 | ~65–75% | ~1–2년 | 신규 집중 요법 가능 |
+| 베네토클락스+아자시티딘 | VIALE-A (DiNardo 2020) | 66.4% | 14.7개월 | 신규 집중 요법 불가 |
+| 길테리티닙 120 mg/일 | ADMIRAL (Perl 2019) | 21% | 9.3개월 | 재발/불응 FLT3+ |
+| 퀴자르티닙 | QuANTUM-R (Cortes 2019) | 4.3% CRc | 6.2개월 | 재발/불응 FLT3-ITD+ |
+| 에나시데닙 100 mg/일 | Stein 2017 | 19.3% | 9.3개월 | 재발/불응 IDH2+ |
+| ATRA + 삼산화비소 | APL0406 (Lo-Coco 2013) | ~95% | >90% 2년 | APL (PML-RARA) |
