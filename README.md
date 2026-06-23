@@ -248,6 +248,7 @@ qsp/
 | 121 | 종양·소화기 | [**대장암**<br><sub>Colorectal Cancer · CRC</sub>](colorectal-cancer/) | <a href="colorectal-cancer/crc_qsp_model.svg"><img src="colorectal-cancer/crc_qsp_model.png" width="190" alt="CRC"></a> | APC/Wnt·KRAS/MAPK·PI3K/TP53 경로 통합, MSI-H/CMS 아형, 종양 미세환경(CD8/Treg/MDSC/TAM), 혈관신생(VEGF/VEGFR). 5-FU/옥살리플라틴/이리노테칸(UGT1A1)·베바시주맙(TMDD)·세툭시맙·펨브롤리주맙(MSI-H) PK/PD. 20구획 ODE, 7치료시나리오(MOSAIC·CRYSTAL·NO16966·TRIBE·KEYNOTE-177 임상 보정), CEA·ctDNA·VEGF·EGFR/PD-1 점유율 바이오마커.<br>[🗺️ 지도](colorectal-cancer/crc_qsp_model.svg) · [⚙️ mrgsolve](colorectal-cancer/crc_mrgsolve_model.R) · [📊 Shiny](colorectal-cancer/crc_shiny_app.R) · [📚 문헌](colorectal-cancer/crc_references.md) · [📄 README](colorectal-cancer/README.md) |
 | 122 | 종양·비뇨기 | [**전립선암**<br><sub>Prostate Cancer · PC</sub>](prostate-cancer/) | <a href="prostate-cancer/pc_qsp_model.svg"><img src="prostate-cancer/pc_qsp_model.png" width="190" alt="PC"></a> | HPG 축·AR 신호·PI3K/AKT·골전이(RANKL 악순환)와 CRPC/ARv7 내성. GnRH 제제·ARPI·도세탁셀·PARP 억제제·Lu-PSMA.<br>[🗺️ 지도](prostate-cancer/pc_qsp_model.svg) · [⚙️ mrgsolve](prostate-cancer/pc_mrgsolve_model.R) · [📚 문헌](prostate-cancer/pc_references.md) · [📄 README](prostate-cancer/README.md) |
 | 123 | 종양·혈액 | [**급성 골수성 백혈병**<br><sub>Acute Myeloid Leukemia · AML</sub>](acute-myeloid-leukemia/) | <a href="acute-myeloid-leukemia/aml_qsp_model.svg"><img src="acute-myeloid-leukemia/aml_qsp_model.png" width="190" alt="AML"></a> | FLT3/NPM1/IDH/DNMT3A 돌연변이·BCL-2 패밀리·백혈병 줄기세포·골수 미세환경·후성유전학 이상. 베네토클락스(BCL-2)·아자시티딘·길테리티닙(FLT3)·에나시데닙(IDH2)·시타라빈 PK/PD. 21구획 ODE, Friberg 골수억제, 7치료 시나리오(VIALE-A·ADMIRAL·QuANTUM-R·RATIFY 임상 보정).<br>[🗺️ 지도](acute-myeloid-leukemia/aml_qsp_model.svg) · [⚙️ mrgsolve](acute-myeloid-leukemia/aml_mrgsolve_model.R) · [📊 Shiny](acute-myeloid-leukemia/aml_shiny_app.R) · [📚 문헌](acute-myeloid-leukemia/aml_references.md) · [📄 README](acute-myeloid-leukemia/README.md) |
+| 124 | 종양·소화기 | [**위선암**<br><sub>Gastric Cancer · GC</sub>](gastric-cancer/) | <a href="gastric-cancer/gc_qsp_model.svg"><img src="gastric-cancer/gc_qsp_model.png" width="190" alt="GC"></a> | H. pylori CagA/VacA·HER2/FGFR2/MET·VEGF 혈관신생·CLDN18.2·PD-L1/PD-1 면역관문·TCGA 아형(EBV/MSI-H/GS/CIN)·TME. 트라스투주맙(TMDD)·라무시루맙(VEGFR2)·니볼루맙(PD-1)·T-DXd(HER2 ADC)·졸베툭시맙(CLDN18.2 ADCC)·FLOT/FOLFOX PK/PD. 28구획 ODE, Simeoni TGI, 6치료 시나리오(ToGA·RAINBOW·CheckMate649·SPOTLIGHT·DESTINY-Gastric01·FLOT4 임상 보정), CEA/CA19-9/ctDNA 바이오마커.<br>[🗺️ 지도](gastric-cancer/gc_qsp_model.svg) · [⚙️ mrgsolve](gastric-cancer/gc_mrgsolve_model.R) · [📊 Shiny](gastric-cancer/gc_shiny_app.R) · [📚 문헌](gastric-cancer/gc_references.md) · [📄 README](gastric-cancer/README.md) |
 
 
 ---
@@ -492,3 +493,49 @@ qsp/
 | 퀴자르티닙 | QuANTUM-R (Cortes 2019) | 4.3% CRc | 6.2개월 | 재발/불응 FLT3-ITD+ |
 | 에나시데닙 100 mg/일 | Stein 2017 | 19.3% | 9.3개월 | 재발/불응 IDH2+ |
 | ATRA + 삼산화비소 | APL0406 (Lo-Coco 2013) | ~95% | >90% 2년 | APL (PML-RARA) |
+
+---
+
+## 124. 위선암 (Gastric Cancer · GC)
+
+> **디렉토리**: [`gastric-cancer/`](gastric-cancer/) | **날짜**: 2026-06-23
+
+[![GC QSP Map](gastric-cancer/gc_qsp_model.png)](gastric-cancer/gc_qsp_model.svg)
+
+### 병태생리 요약
+
+위선암(Gastric Adenocarcinoma)은 전 세계 5번째로 흔한 암이자 암 사망 원인 3위로, 연간 약 109만 명의 신규 환자와 77만 명의 사망이 발생합니다(GLOBOCAN 2020). 한국·일본·중국 등 동아시아에서 발생률이 가장 높으며, **헬리코박터 파일로리(H. pylori)** 감염이 가장 중요한 위험 인자입니다. Correa 폭포(정상 위 점막 → 만성 위염 → 위축성 위염 → 장상피화생 → 이형성증 → 위선암)가 장형 위암의 발생기전을 설명합니다. **TCGA 분자 아형**은 EBV 양성(9%), MSI-H(22%), 유전체 안정(GS, 20%), 염색체 불안정(CIN, 50%)으로 분류되며, 각 아형별 치료 전략이 상이합니다.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **H. pylori 염증** | CagA→NF-κB/STAT3/PI3K; VacA→ROS; IL-8/IL-6/TNF-α | H. pylori 제균(아목시실린+클래리스로마이신+PPI) |
+| **수용체 티로신키나제** | HER2(IHC3+, ~15%)·FGFR2 amp·MET amp·VEGFR2 | 트라스투주맙·라무시루맙·아파티닙·졸베툭시맙 |
+| **신호전달** | PI3K/AKT/mTOR·RAS/RAF/MEK/ERK·JAK1/2/STAT3 | mTOR 억제제(연구 중), MEK 억제제 |
+| **세포주기/아포프토시스** | TP53 mut·CDK4/6·BCL-2·BAX·Caspase-3/9 | CDK4/6i(연구 중), 베네토클락스(연구 중) |
+| **후성유전학·EMT** | EBV 과메틸화·MLH1 소실·EZH2·TGF-β/SMAD·SNAIL/ZEB1 | EZH2i(연구 중), HDAC 억제제 |
+| **종양 미세환경(TME)** | CAF·TAM M2·MDSC·Treg·IL-10·TGF-β | TME 재형성 병용요법 |
+| **면역관문** | PD-L1/PD-1(CPS ≥5)·CTLA-4·LAG-3·TIM-3·CD47 | 니볼루맙·펨브롤리주맙(CPS ≥5/MSI-H) |
+| **혈관신생** | VEGF-A→VEGFR2·HIF-1α·Ang-2/Tie2 | 라무시루맙(VEGFR2 mAb) |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`gc_qsp_model.dot/.svg/.png`](gastric-cancer/) | 212 노드, 10개 클러스터, 250 엣지 |
+| ⚙️ mrgsolve ODE | [`gc_mrgsolve_model.R`](gastric-cancer/gc_mrgsolve_model.R) | 28구획 ODE (12 약물 PK + 16 질환 PD), Simeoni TGI, TMDD, 6치료 시나리오 |
+| 📊 Shiny 앱 | [`gc_shiny_app.R`](gastric-cancer/gc_shiny_app.R) | 6탭 (환자 프로파일·약물PK·종양 동태·임상 엔드포인트·시나리오 비교·바이오마커) |
+| 📚 참고문헌 | [`gc_references.md`](gastric-cancer/gc_references.md) | 60개 PubMed 인용 (ToGA·RAINBOW·CheckMate649·SPOTLIGHT·DESTINY-Gastric01·FLOT4·KEYNOTE-811 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | ORR | 중앙 OS | 적응 단계 |
+|------|----------|-----|---------|---------|
+| FLOT × 4 pre/post-op | FLOT4 (Al-Batran 2019) | — | 50개월 | 절제 가능 국소 진행성 |
+| 트라스투주맙 + FOLFOX/XELOX | ToGA (Bang 2010) | 47% | 13.8개월 | HER2+ 1차 |
+| 펨브롤리주맙 + 트라스투주맙 + 화학요법 | KEYNOTE-811 (2024) | 74.4% | 20.0개월 | HER2+ CPS≥1 1차 |
+| 라무시루맙 + 파클리탁셀 | RAINBOW (Wilke 2014) | 28% | 9.6개월 | 2차 |
+| 니볼루맙 + FOLFOX/XELOX | CheckMate 649 (CPS≥5) | 60% | 14.4개월 | CPS≥5 1차 |
+| T-DXd 6.4 mg/kg Q3W | DESTINY-Gastric01 | 51.3% | 12.5개월 | HER2+ 2차 |
+| 졸베툭시맙 + mFOLFOX6 | SPOTLIGHT (Shitara 2023) | — | 18.2개월 | CLDN18.2+ HER2- 1차 |
