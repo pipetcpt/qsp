@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-123-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-125-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **123개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **125개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -249,6 +249,7 @@ qsp/
 | 122 | 종양·비뇨기 | [**전립선암**<br><sub>Prostate Cancer · PC</sub>](prostate-cancer/) | <a href="prostate-cancer/pc_qsp_model.svg"><img src="prostate-cancer/pc_qsp_model.png" width="190" alt="PC"></a> | HPG 축·AR 신호·PI3K/AKT·골전이(RANKL 악순환)와 CRPC/ARv7 내성. GnRH 제제·ARPI·도세탁셀·PARP 억제제·Lu-PSMA.<br>[🗺️ 지도](prostate-cancer/pc_qsp_model.svg) · [⚙️ mrgsolve](prostate-cancer/pc_mrgsolve_model.R) · [📚 문헌](prostate-cancer/pc_references.md) · [📄 README](prostate-cancer/README.md) |
 | 123 | 종양·혈액 | [**급성 골수성 백혈병**<br><sub>Acute Myeloid Leukemia · AML</sub>](acute-myeloid-leukemia/) | <a href="acute-myeloid-leukemia/aml_qsp_model.svg"><img src="acute-myeloid-leukemia/aml_qsp_model.png" width="190" alt="AML"></a> | FLT3/NPM1/IDH/DNMT3A 돌연변이·BCL-2 패밀리·백혈병 줄기세포·골수 미세환경·후성유전학 이상. 베네토클락스(BCL-2)·아자시티딘·길테리티닙(FLT3)·에나시데닙(IDH2)·시타라빈 PK/PD. 21구획 ODE, Friberg 골수억제, 7치료 시나리오(VIALE-A·ADMIRAL·QuANTUM-R·RATIFY 임상 보정).<br>[🗺️ 지도](acute-myeloid-leukemia/aml_qsp_model.svg) · [⚙️ mrgsolve](acute-myeloid-leukemia/aml_mrgsolve_model.R) · [📊 Shiny](acute-myeloid-leukemia/aml_shiny_app.R) · [📚 문헌](acute-myeloid-leukemia/aml_references.md) · [📄 README](acute-myeloid-leukemia/README.md) |
 | 124 | 종양·소화기 | [**위선암**<br><sub>Gastric Cancer · GC</sub>](gastric-cancer/) | <a href="gastric-cancer/gc_qsp_model.svg"><img src="gastric-cancer/gc_qsp_model.png" width="190" alt="GC"></a> | H. pylori CagA/VacA·HER2/FGFR2/MET·VEGF 혈관신생·CLDN18.2·PD-L1/PD-1 면역관문·TCGA 아형(EBV/MSI-H/GS/CIN)·TME. 트라스투주맙(TMDD)·라무시루맙(VEGFR2)·니볼루맙(PD-1)·T-DXd(HER2 ADC)·졸베툭시맙(CLDN18.2 ADCC)·FLOT/FOLFOX PK/PD. 28구획 ODE, Simeoni TGI, 6치료 시나리오(ToGA·RAINBOW·CheckMate649·SPOTLIGHT·DESTINY-Gastric01·FLOT4 임상 보정), CEA/CA19-9/ctDNA 바이오마커.<br>[🗺️ 지도](gastric-cancer/gc_qsp_model.svg) · [⚙️ mrgsolve](gastric-cancer/gc_mrgsolve_model.R) · [📊 Shiny](gastric-cancer/gc_shiny_app.R) · [📚 문헌](gastric-cancer/gc_references.md) · [📄 README](gastric-cancer/README.md) |
+| 125 | 종양·혈액 | [**골수섬유증**<br><sub>Myelofibrosis · MF</sub>](myelofibrosis/) | <a href="myelofibrosis/mf_qsp_model.svg"><img src="myelofibrosis/mf_qsp_model.png" width="190" alt="MF"></a> | JAK2V617F/CALR/MPL 돌연변이·JAK/STAT3/5 신호·HSC 니치·골수 섬유화(TGF-β/PDGF/bFGF)·수외조혈(비장종대)·사이토카인 폭풍(IL-6/TNF-α)·혈전/출혈 위험. Ruxolitinib(2구획 PK)·Fedratinib·Pacritinib·Momelotinib·Pelabresib 병용 PK/PD. 23구획 ODE, 6치료 시나리오(COMFORT-I·JAKARTA·PERSIST-2·MANIFEST-2 임상 보정), SVR35/TSS50/VAF/pSTAT3·5 바이오마커.<br>[🗺️ 지도](myelofibrosis/mf_qsp_model.svg) · [⚙️ mrgsolve](myelofibrosis/mf_mrgsolve_model.R) · [📊 Shiny](myelofibrosis/mf_shiny_app.R) · [📚 문헌](myelofibrosis/mf_references.md) · [📄 README](myelofibrosis/README.md) |
 
 
 ---
@@ -539,3 +540,49 @@ qsp/
 | 니볼루맙 + FOLFOX/XELOX | CheckMate 649 (CPS≥5) | 60% | 14.4개월 | CPS≥5 1차 |
 | T-DXd 6.4 mg/kg Q3W | DESTINY-Gastric01 | 51.3% | 12.5개월 | HER2+ 2차 |
 | 졸베툭시맙 + mFOLFOX6 | SPOTLIGHT (Shitara 2023) | — | 18.2개월 | CLDN18.2+ HER2- 1차 |
+
+---
+
+## 125. 골수섬유증 (Myelofibrosis · MF)
+
+> **디렉토리**: [`myelofibrosis/`](myelofibrosis/) | **날짜**: 2026-06-23
+
+[![MF QSP Map](myelofibrosis/mf_qsp_model.png)](myelofibrosis/mf_qsp_model.svg)
+
+### 병태생리 요약
+
+골수섬유증(Myelofibrosis, MF)은 조혈 줄기세포(HSC)에서 발생하는 만성 골수증식성 종양(MPN)으로, 골수 내 레티큘린·콜라겐 섬유화, 비정상적 거핵구 증식, 비장·간을 중심으로 하는 수외 조혈(EMH)을 특징으로 합니다. 일차성(PMF)과 다혈증성·본태성 혈소판증가증 후 이행성(Post-PV/ET MF)으로 구분되며, 미국 기준 연 약 3,000~4,000명이 발생하고 중앙 연령은 67세입니다. **JAK2 V617F**(~55–60%), **CALR exon 9 mutations**(~25–30%), **MPL W515L/K**(~5–10%)이 주요 드라이버 돌연변이이며, 모두 JAK/STAT 신호 경로를 구성적으로 활성화합니다. **ASXL1, EZH2, SRSF2, IDH1/2, TP53** 등 고위험 분자 이상(HMR)이 동반되면 AML 전환 위험이 현저히 증가합니다. JAK 억제제(루소리티닙, 페드라티닙, 파크리티닙, 모멜로티닙)와 BET 억제제 병용(pelabresib + ruxolitinib, MANIFEST-2)이 현재 치료 패러다임을 형성하고 있습니다.
+
+### 핵심 병태생리 경로
+
+| 클러스터 | 핵심 분자 | 치료 표적 |
+|----------|----------|----------|
+| **분자 드라이버** | JAK2V617F·CALR T1/T2·MPL W515L/K·ASXL1·EZH2·SRSF2·IDH1/2 | DIPSS-Plus/MIPSS70 위험도 분류 |
+| **JAK/STAT 신호** | JAK1/2→STAT3/5 인산화→BCL-2/MCL-1/MYC/PIM1 표적 유전자 | 루소리티닙(JAK1/2), 페드라티닙(JAK2/FLT3), 파크리티닙(JAK2/FLT3/IRAK1/CSF1R) |
+| **HSC 니치** | LT-HSC→ST-HSC→CMP/GMP/MEP; CXCL12/CXCR4, SCF/c-KIT, TPO | CXCR4 축, c-KIT 신호 |
+| **골수 섬유화** | 비정상 거핵구→TGF-β1/PDGF/bFGF/CTGF 분비→MSC 활성화→콜라겐 과침착 | TGF-β 억제제(연구 중), 갈루니서팁 |
+| **사이토카인 폭풍** | IL-1β/6/8/10, TNF-α, IFN-γ, CXCL10, NF-κB, mTOR | BET 억제제(펠라브레십): BRD4→c-MYC/IL-6/TNF-α 억제 |
+| **수외 조혈** | 순환 CD34+→비장/간 EMH; 비장 종대(비장 부피 >450 mL) | 비장용적 축소(SVR35) 치료 목표 |
+| **혈액학적 결과** | 빈혈(Hgb <10 g/dL), 혈소판감소증, 순환 아세포, 수혈 의존성 | 모멜로티닙(ACVR1 억제→빈혈 개선), EPO 제제 |
+| **혈전·출혈** | 혈소판 활성화, 트롬빈 생성, PAI-1, 내피 기능 이상 | 혈전 예방(저용량 아스피린), JAK 억제제 |
+| **임상 엔드포인트** | SVR35(비장 35% 축소), TSS50(증상 50% 개선), 골수 조직 반응, AML 전환, OS | IWG-MRT 2013 / ELN 2023 반응 기준 |
+
+### QSP 모델 구성 (4종 산출물)
+
+| 산출물 | 파일 | 내용 |
+|--------|------|------|
+| 🗺️ 기계론적 지도 | [`mf_qsp_model.dot/.svg/.png`](myelofibrosis/) | **204 노드, 12 클러스터, 224 엣지** |
+| ⚙️ mrgsolve ODE | [`mf_mrgsolve_model.R`](myelofibrosis/mf_mrgsolve_model.R) | **23구획 ODE** (Ruxolitinib 2구획 PK + Fedratinib/Pacritinib/Pelabresib PK + JAK/STAT PD + 적혈·거핵계 + 비장·섬유화 + 사이토카인 + TSS), **6 치료 시나리오** (무치료·Rux 20mg·Rux 15mg·Fedratinib·Rux+Pelabresib·Pacritinib), COMFORT-I·JAKARTA·PERSIST-2·MANIFEST-2 임상 보정 |
+| 📊 Shiny 앱 | [`mf_shiny_app.R`](myelofibrosis/mf_shiny_app.R) | **6탭** (환자 프로파일·DIPSS Plus·PK 프로파일·PD 바이오마커·임상 엔드포인트·치료 비교·바이오마커 역학), plotly 인터랙티브, bslib 다크 테마 |
+| 📚 참고문헌 | [`mf_references.md`](myelofibrosis/mf_references.md) | **36개 PubMed 인용** (COMFORT-I/II·JAKARTA·PERSIST-2·SIMPLIFY-1·MANIFEST-2·JAK2V617F 발견·CALR 돌연변이·QSP 모델링 포함) |
+
+### 치료 시나리오 임상 데이터
+
+| 요법 | 임상시험 | SVR35 | TSS50 | 중앙 OS | PMID |
+|------|----------|-------|-------|---------|------|
+| 루소리티닙 20mg BID | COMFORT-I (Verstovsek 2012) | 41.9% vs 0.7% | 45.9% vs 5.3% | NR vs 27.4개월 | [22375971](https://pubmed.ncbi.nlm.nih.gov/22375971/) |
+| 루소리티닙 vs BAT | COMFORT-II (Harrison 2012) | 28.5% vs 0% | — | — | [22375970](https://pubmed.ncbi.nlm.nih.gov/22375970/) |
+| 페드라티닙 400mg QD | JAKARTA (Pardanani 2015) | 36% vs 1% | 36% vs 6% | — | [26003172](https://pubmed.ncbi.nlm.nih.gov/26003172/) |
+| 파크리티닙 200mg BID | PERSIST-2 (Mesa 2017) | 18% vs 3% | — | — | [29049469](https://pubmed.ncbi.nlm.nih.gov/29049469/) |
+| 모멜로티닙 200mg QD | SIMPLIFY-1 (Mesa 2017) | 26.5% vs 29% | 28% vs 42% | — | [28930484](https://pubmed.ncbi.nlm.nih.gov/28930484/) |
+| Pelabresib + Rux | MANIFEST-2 (Pemmaraju 2024) | **65.9% vs 35.2%** | 52.3% vs 37.5% | NR | [39504566](https://pubmed.ncbi.nlm.nih.gov/39504566/) |
