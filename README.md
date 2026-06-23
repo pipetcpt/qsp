@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-119-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-120-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **119개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **120개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -243,6 +243,59 @@ qsp/
 | 117 | 종양·호흡기 | [**비소세포 폐암 (NSCLC)**<br><sub>Non-Small Cell Lung Cancer · NSCLC</sub>](non-small-cell-lung-cancer/) | <a href="non-small-cell-lung-cancer/nsclc_qsp_model.svg"><img src="non-small-cell-lung-cancer/nsclc_qsp_model.png" width="190" alt="NSCLC"></a> | EGFR/KRAS/ALK 드라이버 돌연변이 → oncogenic signaling. TKI(오시머티닙·알렉티닙·소토라십)·면역관문억제제(펨브롤리주맙)·항암화학요법 PK/PD. FLAURA·ALEX·KEYNOTE-189 보정.<br>[🗺️ 지도](non-small-cell-lung-cancer/nsclc_qsp_model.svg) · [⚙️ mrgsolve](non-small-cell-lung-cancer/nsclc_mrgsolve_model.R) · [📚 문헌](non-small-cell-lung-cancer/nsclc_references.md) · [📄 README](non-small-cell-lung-cancer/README.md) |
 | 118 | 감염/간담도 | [**만성 C형 간염**<br><sub>Chronic Hepatitis C · CHC/HCV</sub>](chronic-hepatitis-c/) | <a href="chronic-hepatitis-c/HCV_qsp_model.svg"><img src="chronic-hepatitis-c/HCV_qsp_model.png" width="190" alt="HCV"></a> | Perelson 표적세포 제한 바이러스 동역학(T/I/V ODE)에 DAA PK/PD 통합. SOF/LED·SOF/VEL·GLE/PIB·PEG-IFN/RBV 7개 시나리오. NS5B·NS5A·NS3 억제 효능(εp/εi), CTL 소진, 간섬유화(Metavir F-score), HCC 위험 모델링. ION·ASTRAL·ENDURANCE 임상시험 보정.<br>[🗺️ 지도](chronic-hepatitis-c/HCV_qsp_model.svg) · [⚙️ mrgsolve](chronic-hepatitis-c/HCV_mrgsolve_model.R) · [📚 문헌](chronic-hepatitis-c/HCV_references.md) · [📄 README](chronic-hepatitis-c/README.md) |
 | 119 | 종양·간담도 | [**간세포암종 (HCC)**<br><sub>Hepatocellular Carcinoma · HCC</sub>](hepatocellular-carcinoma/) | <a href="hepatocellular-carcinoma/hcc_qsp_model.svg"><img src="hepatocellular-carcinoma/hcc_qsp_model.png" width="190" alt="HCC"></a> | HBV/HCV·NAFLD 기반 간암. RAS/RAF/MEK/ERK·PI3K/AKT/mTOR·Wnt/β-catenin·VEGF/혈관신생·종양면역 미세환경(PD-L1/CD8/Treg/TAM) 통합. 소라페닙·렌바티닙·아테조리주맙+베바시주맙(IMbrave150)·레고라페닙 PK/PD. 20구획 ODE, 5치료시나리오, AFP/간기능 바이오마커.<br>[🗺️ 지도](hepatocellular-carcinoma/hcc_qsp_model.svg) · [⚙️ mrgsolve](hepatocellular-carcinoma/hcc_mrgsolve_model.R) · [📊 Shiny](hepatocellular-carcinoma/hcc_shiny_app.R) · [📚 문헌](hepatocellular-carcinoma/hcc_references.md) · [📄 README](hepatocellular-carcinoma/README.md) |
+
+| 120 | 신경계·유전 | [**헌팅턴병 (Huntington's Disease)**<br><sub>Huntington's Disease · HD</sub>](huntingtons-disease/) | <a href="huntingtons-disease/hd_qsp_model.svg"><img src="huntingtons-disease/hd_qsp_model.png" width="190" alt="HD"></a> | CAG 반복 확장(≥36) → mHTT 생성·집적 → 선조체 중간가시신경세포(MSN) 변성. mHTT 집적 폭포(단량체→올리고머→섬유)·BDNF-TrkB 결핍(REST/NRSF·HAP1 축)·흥분독성(eNMDAR/Ca²⁺/calpain)·미토콘드리아 기능부전(PGC-1α·Complex I/II/III)·신경염증(NLRP3/IL-1β)·아포토시스(Casp-3/6). VMAT2 억제제(TBZ·DTBZ·VBZ)·ASO(토미너센, CSF mHTT ↓74%)·스플라이싱 조절제(브라나플람·PTC518) PK/PD. 20구획 ODE, 7치료시나리오(TETRA-HD·FIRST-HD·KINECT-HD·GENERATION-HD1 임상 보정), UHDRS-TMS·TFC·cUHDRS·CAP score·CSF NfL/mHTT 바이오마커.<br>[🗺️ 지도](huntingtons-disease/hd_qsp_model.svg) · [⚙️ mrgsolve](huntingtons-disease/hd_mrgsolve_model.R) · [📊 Shiny](huntingtons-disease/hd_shiny_app.R) · [📚 문헌](huntingtons-disease/hd_references.md) · [📄 README](huntingtons-disease/README.md) |
+
+
+---
+
+## 🧬 헌팅턴병 (Huntington's Disease) — 최신 모델 상세 (2026-06-23)
+
+[![헌팅턴병 QSP 기계론적 지도](huntingtons-disease/hd_qsp_model.png)](huntingtons-disease/hd_qsp_model.svg)
+
+**질환**: 헌팅턴병(HD) | **유전자**: *HTT* (CAG 반복 ≥36) | **OMIM**: [143100](https://omim.org/entry/143100)
+
+### 주요 경로 클러스터 (14개)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 유전적 기반 | CAG 길이 의존적 mHTT mRNA 생성, polyQ 번역 |
+| 2. mHTT 집적 폭포 | 단량체 → 올리고머(독성) → 원섬유 → 핵내 포함체 |
+| 3. 단백질 품질관리 | UPS(포화), 자가포식(LC3/Beclin-1/p62), 리소솜/TFEB |
+| 4. 전사 조절이상 | REST/NRSF, CBP/HDAC, PGC-1α, BDNF 유전자 억제 |
+| 5. BDNF-TrkB 신경영양 신호 | HAP1 매개 축삭 수송, TrkB/PI3K/Akt 생존 경로 |
+| 6. 미토콘드리아 기능부전 | Complex I/II/III 손상, ROS, ΔΨm 저하, 사이토크롬 c 방출 |
+| 7. 흥분독성 | 시냅스외 NMDAR 과민화, Ca²⁺/calpain/nNOS 연쇄 |
+| 8. 선조체 회로 | D1/D2-MSN 도파민·GABA 회로 파괴 |
+| 9. 신경염증 | 미세아교세포 M1 TLR4/NF-κB → IL-1β/TNF-α → NLRP3 인플라마솜 |
+| 10. 아포토시스 | BAX/Casp-3/6, p53/PUMA, AIF → 선조체 용적 소실 |
+| 11. 약물 PK | TBZ/DTBZ/VBZ(VMAT2), 토미너센(IT-ASO), 브라나플람, 리루졸 |
+| 12. 증상 완화 PD | VMAT2 억제 → DA 고갈 → 무도증 감소 |
+| 13. 질환 수정 치료 | HTT 발현 저하: ASO(mRNA ↓74%), 스플라이싱(mRNA ↓50%) |
+| 14. 임상 지표 | UHDRS-TMS, TFC, cUHDRS, CAP score, CSF NfL/mHTT, MRI 위축 |
+
+### 치료 시나리오 (7종)
+
+| # | 시나리오 | 약물·용법 | 기전 | 임상 근거 |
+|---|---------|----------|------|----------|
+| 1 | 자연경과 | — | — | ENROLL-HD · TRACK-HD |
+| 2 | TBZ 25 mg/일 | 테트라베나진 TID | VMAT2 억제 → 도파민 고갈 | TETRA-HD (NEJM 2008) |
+| 3 | DTBZ 30 mg/일 | 도이테트라베나진 BID | d-KIE 중간대사체 → VMAT2 억제 | FIRST-HD (JAMA 2016) |
+| 4 | VBZ 80 mg QD | 발베나진 | VMAT2 억제 (1일 1회) | KINECT-HD (NEJM 2023) |
+| 5 | 토미너센 120 mg Q8W | 척수강내 ASO | RNase H1 → mHTT mRNA ↓74% | GENERATION-HD1 (NEJM 2022) |
+| 6 | 브라나플람 50 mg QW | 경구 스플라이싱 조절제 | Exon 49 스킵 → NMD → mHTT ↓50% | NCT04000594 (진행 중) |
+| 7 | 병용: DTBZ + 토미너센 | 두 약물 병용 | 증상 완화 + 질환 수정 | 모델 시뮬레이션 |
+
+### 산출물
+
+| 파일 | 내용 |
+|------|------|
+| [`hd_qsp_model.dot`](huntingtons-disease/hd_qsp_model.dot) | Graphviz 소스 (14 클러스터, 110+ 노드) |
+| [`hd_qsp_model.svg`](huntingtons-disease/hd_qsp_model.svg) | 벡터 기계론적 지도 |
+| [`hd_qsp_model.png`](huntingtons-disease/hd_qsp_model.png) | 래스터 지도 (150 dpi) |
+| [`hd_mrgsolve_model.R`](huntingtons-disease/hd_mrgsolve_model.R) | 20구획 ODE (7 치료 시나리오) |
+| [`hd_shiny_app.R`](huntingtons-disease/hd_shiny_app.R) | 6탭 Shiny 대시보드 |
+| [`hd_references.md`](huntingtons-disease/hd_references.md) | 53개 PubMed 참고문헌 |
 
 ---
 
