@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-140-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-141-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **140개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **141개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -264,6 +264,7 @@ qsp/
 | 138 | 희귀·유전질환 | [**고셔병**<br><sub>Gaucher Disease · GCD</sub>](gaucher-disease/) | <a href="gaucher-disease/gcd_qsp_model.svg"><img src="gaucher-disease/gcd_qsp_model.png" width="190" alt="GCD"></a> | *GBA1* 이중대립변이 → 리소솜 β-글루코세레브로시다제(GBA) 결핍 → 글루코세레브로사이드(GC) 및 고독성 탈아실화 유도체 lyso-GL1 조직대식세포 축적 → 고셔세포 형성. GBA합성(ER→Golgi·M6P수용체·ERAD)·GCS 기질합성·M6P수용체 매개 ERT 리소솜 전달; GC→비장/간/골수/CNS 구획 이동; NF-κB→IL-1β·IL-6·TNF-α·MIP-1α·RANKL; 비장비대·간비대·빈혈·혈소판감소·골밀도감소. GBA-파킨슨 연계(α-시누클레인 축적). 이미글루세라제(60U/kg Q2W·2구획·CL=1.4L/h/kg·EMAX=85%)·벨라글루세라제α; 엘리글루스타트(84mg BID·GCS IC50=10nM·CYP2D6·EM/PM)·미글루스타트(IC50=50μM); 암브록솔(샤페론). **115+ 노드 10클러스터**, **26구획 ODE**(약물PK 8+효소/기질 5+바이오마커 4+장기용적 2+혈액 2+골 3+염증 2), **6치료 시나리오**(자연경과·이미글루세라제·벨라글루세라제α·엘리글루스타트EM·엘리글루스타트PM·저용량ERT+엘리글루스타트). Barton 1991 NEJM·Mistry 2015 JAMA·Zimran 2010 Blood·Balwani 2021 AJH 보정. GL-1·lyso-GL1·키토트리오시다제·페리틴·SV·LV·Hb·PLT·BMD 바이오마커. 9탭 Shiny 대시보드. 62개 PubMed 인용.<br>[🗺️ 지도](gaucher-disease/gcd_qsp_model.svg) · [⚙️ mrgsolve](gaucher-disease/gcd_mrgsolve_model.R) · [📊 Shiny](gaucher-disease/gcd_shiny_app.R) · [📚 문헌](gaucher-disease/gcd_references.md) · [📄 README](gaucher-disease/README.md) |
 | 139 | 내분비·대사 | [**원발성 알도스테론증**<br><sub>Primary Aldosteronism · PA</sub>](primary-aldosteronism/) | <a href="primary-aldosteronism/pa_qsp_model.svg"><img src="primary-aldosteronism/pa_qsp_model.png" width="190" alt="PA"></a> | **Conn 증후군** — 부신 피질에서의 자율적 알도스테론 과분비(APA·BAH) → 레닌 억제·ARR 상승·Na⁺ 저류·K⁺ 소실·대사성 알칼리증. KCNJ5/CACNA1D/ATP1A1/ATP2B3 체성 돌연변이 → Ca²⁺ 내유 → CYP11B2(알도스테론 합성효소) 과발현 → 자율적 알도스테론 생성; RAAS 캐스케이드(레닌→AngI→AngII→알도스테론) + APA 자율분비. MR→SGK1→Nedd4-2 인산화 → ENaC 세포표면 발현↑ → Na⁺ 재흡수·ROMK K⁺ 분비·H⁺ 분비 → 저칼륨혈증·대사성 알칼리증. 부피팽창→MAP↑, 심근/혈관 MR 직접 활성→심근섬유화·LVH. 진단: ARR(≥30)·PAC(>15 ng/dL)·부신정맥 채혈(AVS). 복강경 부신절제술(APA 단측); 스피로노락톤(IC50=1.2 μg/L·활성대사체 카렌오논 t½≈20h)·에플레레논(IC50=2.5 μg/L)·파이네레논(IC50=0.65 μg/L·비스테로이드성·심장보호 우월) MR 길항; ACEi·CCB 병용. **120+ 노드 10클러스터**, **23구획 ODE**(약물PK 6+RAAS 3+신장/이온 5+심혈관 2+신기능 1+장기손상 2+부신 2+바이오마커 2), **8치료 시나리오**(무치료 APA 2년 진행·부신절제술·스피로노락톤 100mg·에플레레논 100mg·파이네레논 20mg·스피로+암로디핀·정상 대조·ACEi). Choi 2011 Science(KCNJ5)·Rossi 2006 JACC·Milliez 2005 JACC·Pitt 1999 NEJM(RALES)·Bakris 2020 NEJM(FIDELIO) 보정. ARR·PAC·PRA·K⁺·HCO₃⁻·MAP·LVMi·심근섬유화·GFR·HOMA proxy 바이오마커. 7탭 Shiny 대시보드(환자프로파일·RAAS/PK·알도스테론 패널·이온 항상성·심혈관/장기손상·시나리오 비교·바이오마커 탐색기). 48개 PubMed 인용.<br>[🗺️ 지도](primary-aldosteronism/pa_qsp_model.svg) · [⚙️ mrgsolve](primary-aldosteronism/pa_mrgsolve_model.R) · [📊 Shiny](primary-aldosteronism/pa_shiny_app.R) · [📚 문헌](primary-aldosteronism/pa_references.md) · [📄 README](primary-aldosteronism/README.md) |
 | 140 | 희귀·유전질환 | [**트랜스티레틴 아밀로이드증**<br><sub>Transthyretin Amyloidosis · ATTR</sub>](transthyretin-amyloidosis/) | <a href="transthyretin-amyloidosis/attr_qsp_model.svg"><img src="transthyretin-amyloidosis/attr_qsp_model.png" width="190" alt="ATTR"></a> | 간 헤파토사이트 분비 TTR 사량체 해리(rate-limiting) → 잘못 접힌 단량체 → 독성 올리고머 → 아밀로이드 섬유 → 심장(ATTRwt: 간질 침착·LV 비후·HFpEF→HFrEF) / 말초신경(ATTRv: 길이 의존적 축삭 퇴화·자율신경 기능부전) 다장기 손상. ATTRv 변이(V30M·T60A·V122I) 구조 불안정화; 세포독성 올리고머 → NLRP3 인플라마좀·IL-1β·TNF-α → 심근세포 아포토시스; TGF-β → 심장 섬유화; SAP·GAG 섬유 안정화; 프로테오스타시스(HSP70/UPS/자가포식) 실패. 타파미디스(61mg PO QD·T4 결합부위 점유·사량체 안정화 Emax=80%·EC50=0.8μg/mL·ATTR-ACT CV사망+입원 30%↓)·아코라미디스(800mg BID·고선택 안정제·ATTRiBUTE-CM); 파티시란(0.3mg/kg IV Q3W·LNP-ApoE-LDLR-Ago2-RISC·mRNA 80%↓·APOLLO mNIS+7 34점 차이)·부트리시란(25mg SC Q3M·GalNAc-ASGR1·83%↓·HELIOS-A NIS 17점 개선); 이노테르센(300mg SC QW·2'-MOE ASO·RNaseH1·72%↓·NEURO-TTR mNIS+7 19점 차이)·엡론테르센(45mg SC QM·GalNAc-ASO). **116 노드 10클러스터**, **25구획 ODE**(약물PK 9+TTR 경로 4+조직 섬유 3+심장 PD 4+신경 PD 3+신장 1+증상 1), **7치료 시나리오**(ATTRwt 자연경과·ATTRv 자연경과·타파미디스·파티시란·부트리시란·이노테르센·타파미디스+부트리시란 병용). ⁹⁹ᵐTc-PYP/CMR LGE-ECV·NT-proBNP·hsTnT·LVEF·NIS·mBMI·eGFR 바이오마커. 8탭 Shiny 대시보드. 60개 PubMed 인용 (11섹션).<br>[🗺️ 지도](transthyretin-amyloidosis/attr_qsp_model.svg) · [⚙️ mrgsolve](transthyretin-amyloidosis/attr_mrgsolve_model.R) · [📊 Shiny](transthyretin-amyloidosis/attr_shiny_app.R) · [📚 문헌](transthyretin-amyloidosis/attr_references.md) · [📄 README](transthyretin-amyloidosis/README.md) |
+| 141 | 희귀·유전질환 | [**윌슨병**<br><sub>Wilson's Disease · WD</sub>](wilsons-disease/) | <a href="wilsons-disease/wd_qsp_model.svg"><img src="wilsons-disease/wd_qsp_model.png" width="190" alt="WD"></a> | **ATP7B 기능 소실 → 구리 대사 장애** — *ATP7B*(P형 Cu-ATPase) 돌연변이(p.His1069Gln 유럽 35%·p.Arg778Leu 아시아 20%)로 담즙 구리 배출↓·아포세룰로플라스민 구리 적재 실패 → 간세포 구리 축적(>250 μg/g dw) → MT 포화 → NCBC(Non-Ceruloplasmin Bound Copper) 급증 → 전신 독성. 간: Fenton 반응(Cu¹⁺+H₂O₂→OH•) → ROS 급증 → 미토콘드리아 기능이상·지질 과산화·Kupffer 활성화 → TNF-α/IL-6/TGF-β → 간성상세포(HSC) 활성 → 콜라겐 침착 → Metavir F0→F4 섬유화 → 간경변 → 급성 간부전(ALF-WD, Coombs음성 용혈동반). 뇌: NCBC → BBB 통과 → 기저핵(피각·흑질) 선택적 구리 축적 → 도파민신경 손상 → 진전·근긴장이상증·구음장애; NMDA 수용체 Cu²⁺ 조절 이상 → 정신증·우울증; UWDRS 점수; MRI 'giant panda face'. 각막: Descemet막 Cu → Kayser-Fleischer Ring(KF, 신경형 95%). 신장: 근위세뇨관 Cu 독성 → Fanconi 증후군(아미노산뇨·인뇨). D-페니실라민(F=55%·t½=1.7h·Cu 킬레이션·요중 배설 ↑·신경악화 역설 ~50%); Zinc 아세테이트(50mg TID·장관 MT 유도→Cu 흡수 차단·유지/임신 선호); 트리엔틴(TETA·DPA 부작용 2nd-line); **ALXN1840(TTM·bis-choline TTM·15mg QD·TTM-Cu-Albumin 삼중복합체·분변 배설·NCBC↓98%·ATLAS 2022 NEJM)**. **119 노드 11클러스터**, **24구획 ODE**(약물PK 8+구리동역학 7+장기분포 3+간병태 3+신경퇴행 1+기타 2), **8치료 시나리오**(무치료·DPA 500mg TID·Zinc 50mg TID·Trientine·ALXN1840·DPA→Zinc 전환·ALXN1840+Trientine 병용·정상 WT 대조). Leipzig 점수·NCBC·Cp·24h 요중 Cu·간 Cu·ALT·섬유화·UWDRS·KF Ring 바이오마커. 8탭 Shiny 대시보드(환자프로파일·약물PK·구리동역학·간결과·신경/안과·시나리오비교·바이오마커탐색기·모델정보). 60개 PubMed 인용(13섹션).<br>[🗺️ 지도](wilsons-disease/wd_qsp_model.svg) · [⚙️ mrgsolve](wilsons-disease/wd_mrgsolve_model.R) · [📊 Shiny](wilsons-disease/wd_shiny_app.R) · [📚 문헌](wilsons-disease/wd_references.md) · [📄 README](wilsons-disease/README.md) |
 
 ---
 
@@ -533,3 +534,53 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`attr_mrgsolve_model.R`](transthyretin-amyloidosis/attr_mrgsolve_model.R) | **25구획 ODE** (PK 9 + PD 16), **7치료 시나리오** |
 | 📊 Shiny 앱 | [`attr_shiny_app.R`](transthyretin-amyloidosis/attr_shiny_app.R) | **8탭** (환자프로파일·약물PK·TTR접힘이상·심장결과·신경결과·시나리오비교·바이오마커대시보드·모델정보) |
 | 📚 참고문헌 | [`attr_references.md`](transthyretin-amyloidosis/attr_references.md) | **60개 PubMed 인용** (11개 섹션) |
+
+---
+
+## 🧬 윌슨병 (Wilson's Disease) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`wilsons-disease/`](wilsons-disease/) | **약어:** WD | **날짜:** 2026-06-24
+
+[![WD QSP 기계론적 지도](wilsons-disease/wd_qsp_model.png)](wilsons-disease/wd_qsp_model.svg)
+
+**질환**: 윌슨병(Wilson's Disease, WD) | **분류**: 희귀·유전질환 / 구리 대사 장애 / 상염색체 열성 | **유전자**: *ATP7B* (13q14.3, 21개 엑손) | **유병률**: 1/30,000 (보인자 1/90)
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. ATP7B 기능 소실** | p.His1069Gln 등 돌연변이 → P형 Cu-ATPase 기능↓ → 담즙 Cu 배출 실패 | ATP7B_mut, k_bil_eff ↓ |
+| **2. 간 구리 축적** | 담즙 배출 안 되는 Cu가 간세포에 축적(>250 μg/g dw) → MT 포화 | CU_HEP ↑↑, MT_HEP 포화 |
+| **3. 세룰로플라스민 감소** | ATP7B 결손 → 아포-Cp에 Cu 적재 못함 → 기능성 Cp 분비↓ | CP_SERUM <20 mg/dL |
+| **4. NCBC 증가** | MT 포화 후 자유 구리(NCBC)가 혈류로 누출 → 전신 독성 | CU_NCBC >20 μg/dL |
+| **5. 간 산화 손상** | Fenton 반응(Cu¹⁺+H₂O₂→OH•) → ROS → 미토콘드리아 손상·세포 사멸 | ROS_HEP, ALT↑, 섬유화 |
+| **6. 신경 독성** | NCBC → BBB 통과 → 기저핵 축적 → 도파민신경 손상 → 진전·근긴장이상증 | CU_BRAIN, UWDRS↑ |
+| **7. Kayser-Fleischer Ring** | 각막 Descemet막 Cu 축적 → KF Ring (신경형 WD의 95%에서 양성) | CU_CORNEA, KF_rings |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S1** | 무치료 WD | 자연경과 | 자연경과 코호트 | 간 Cu ↑↑, 섬유화 F0→F4, 신경퇴행 지속 |
+| **S2** | D-Penicillamine 500mg TID | Cu 킬레이션 → 요중 배설↑ | Walshe 1956 *Lancet* | NCBC ↓60%, 초기 신경악화 ~50% |
+| **S3** | Zinc Acetate 50mg TID | 장관 MT 유도 → Cu 흡수 차단 | Brewer 1998 *J Lab Clin Med* | Cu 흡수 ↓70%, 유지/임신 선호 |
+| **S4** | Trientine 500mg TID | Cu 킬레이션 (DPA 2nd-line) | Weiss 2013 *Gastroenterology* | NCBC ↓50%, 부작용 ↓ |
+| **S5** | ALXN1840 15mg QD | TTM-Cu-Albumin 삼중복합체 → 분변 배설 | **ATLAS 2022 *NEJM Evid*** | **NCBC ↓98%** (p<0.001) |
+| **S6** | DPA→Zinc 전환 (1년) | DPA 초기 킬레이션 후 Zinc 유지 | AASLD 가이드라인 2023 | 초기 강력 킬레이션 + 장기 유지 |
+| **S7** | ALXN1840 + Trientine 병용 | 이중 기전 | 가상 탐색 | NCBC 극대 억제 |
+| **S8** | 정상 WT 대조 | ATP7B 정상 기능 | 참조 | Cp 정상, NCBC <10, 섬유화 없음 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`wd_qsp_model.dot`](wilsons-disease/wd_qsp_model.dot) | **119 노드, 11 클러스터** |
+| ⚙️ mrgsolve ODE | [`wd_mrgsolve_model.R`](wilsons-disease/wd_mrgsolve_model.R) | **24구획 ODE**, **8치료 시나리오** |
+| 📊 Shiny 앱 | [`wd_shiny_app.R`](wilsons-disease/wd_shiny_app.R) | **8탭** (환자프로파일·약물PK·구리동역학·간결과·신경/안과·시나리오비교·바이오마커탐색기·모델정보) |
+| 📚 참고문헌 | [`wd_references.md`](wilsons-disease/wd_references.md) | **60개 PubMed 인용** (13개 섹션) |
