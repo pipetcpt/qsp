@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-134-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-135-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **134개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **135개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -118,7 +118,7 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **134개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **135개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
 **분류별 모델 수**: 내분비·대사 21 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 소아 혈관염 1 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
 
@@ -259,6 +259,7 @@ qsp/
 | 131 | 혈액·응고 | [**정맥 혈전색전증 (DVT/PE)**<br><sub>Venous Thromboembolism · VTE</sub>](venous-thromboembolism/) | <a href="venous-thromboembolism/vte_qsp_model.svg"><img src="venous-thromboembolism/vte_qsp_model.png" width="190" alt="VTE"></a> | 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통합한 QSP 모델. Virchow's Triad(혈류정체·내피 손상·과응고), 외인성 경로(TF-FVIIa-TFPI), 내인성 경로(접촉활성화-FXIIa-FIXa-FVIIIa), 공통 경로(Prothrombinase-트롬빈-피브린 가교), 혈소판 활성화(GPIb/GPVI/PAR1/4·GPIIb/IIIa), 자연 항응고(AT-III·단백C/S·TFPI), 섬유용해(tPA/uPA·플라스민·PAI-1·TAFI·D-이량체). 리바록사반(2구획 PK·FXa EC50=12 ng/mL)·아픽사반(EC50=5 ng/mL)·다비가트란(직접트롬빈억제·EC50=35 ng/mL)·와파린(VK 사이클 간접반응·FVII/FX/FII 풀 반감기)·에녹사파린(AT-III 활성화·항Xa) 5종 약물 PK/PD. **140+ 노드 12클러스터**, **19구획 ODE**(PK 7·FXa/FIIa·피브린·혈전크기·플라스민·D-이량체·VK산화/환원·FVII/FX/FII풀), **6치료 시나리오**(DVT:리바록사반 15→20mg·PE:아픽사반 10→5mg BID·와파린+LMWH 브리지·수술예방:에녹사파린 40mg QD·확장예방:리바록사반 10mg QD·신부전:다비가트란 110mg BID GFR30 vs 90). EINSTEIN/AMPLIFY/RE-COVER/ROCKET-AF/Mueck 2011/Frost 2015 임상 파라미터 보정. INR·Anti-Xa·aPTT·D-이량체·혈전잔여% 바이오마커. Wells 점수(DVT/PE) 사전확률 계산기, 금기사항별 약물 추천 로직. 57개 PubMed 인용.<br>[🗺️ 지도](venous-thromboembolism/vte_qsp_model.svg) · [⚙️ mrgsolve](venous-thromboembolism/vte_mrgsolve_model.R) · [📊 Shiny](venous-thromboembolism/vte_shiny_app.R) · [📚 문헌](venous-thromboembolism/vte_references.md) · [📄 README](venous-thromboembolism/README.md) |
 | 133 | 소아 혈관염 | [**가와사키병**<br><sub>Kawasaki Disease · KD</sub>](kawasaki-disease/) | <a href="kawasaki-disease/kd_qsp_model.svg"><img src="kawasaki-disease/kd_qsp_model.png" width="190" alt="KD"></a> | 원인 불명 트리거 → TLR/NLR 선천 면역 활성화 → NLRP3 인플라마좀(Caspase-1·IL-1β 성숙) → 사이토카인 폭풍(IL-1β·IL-6·TNF-α) → 혈관 내피 활성화(VCAM-1·ICAM-1·TF↑) → 관상동맥 중막 파괴·동맥류(AHA Z-점수 분류: small z≥2.5, medium z≥5, giant z≥10) → 혈소판 증가증(2주 피크) → 혈전위험. IVIG 2 g/kg(2구획+FcRn 재순환·Emax NF-κB 억제)·고용량 아스피린→저용량(COX-1/2 비가역)·메틸프레드니솔론(NF-κB 억제·GR 경로)·인플릭시맙 5 mg/kg(TNF-α 중화·n=1.8)·아나킨라 4 mg/kg/day(IL-1R 경쟁차단) 5종 PK/PD. **134 노드 14클러스터**, **21구획 ODE**(PK 11·IL1β·IL6·TNFα·대식세포·내피세포·발열·CRP·혈소판·관상동맥 Z-점수), **5치료 시나리오**(S1 표준IVIG·S2 고위험+스테로이드·S3 IVIG저항-2차IVIG·S4 인플릭시맙구제·S5 아나킨라구제). Kobayashi/Egami 위험점수 계산기·관상동맥 Z-점수 추적·IVIG 저항성 확률 모델. McCrindle/Kobayashi/KIDCARE Trial 보정. 60개 PubMed 인용.<br>[🗺️ 지도](kawasaki-disease/kd_qsp_model.svg) · [⚙️ mrgsolve](kawasaki-disease/kd_mrgsolve_model.R) · [📊 Shiny](kawasaki-disease/kd_shiny_app.R) · [📚 문헌](kawasaki-disease/kd_references.md) · [📄 README](kawasaki-disease/README.md) |
 | 134 | 내분비·대사 | [**쿠싱 증후군**<br><sub>Cushing's Syndrome · CS</sub>](cushings-syndrome/) | <a href="cushings-syndrome/cs_qsp_model.svg"><img src="cushings-syndrome/cs_qsp_model.png" width="190" alt="CS"></a> | 뇌하수체 ACTH 선종(쿠싱병 70%)·이소성 ACTH(10%)·부신 선종(15%) 등에 의한 만성 고코르티솔혈증. 시상하부 일주기 CRH 리듬·CRHR1-PKA-CREB-POMC-ACTH 경로; USP8 탈유비퀴틴화(~50% 쿠싱병)·CDK4/6 세포증식; CYP11A1→CYP17A1→CYP21A2→CYP11B1 스테로이드 생합성; GR-α/HSP90/FKBP51·핵이동·GRE/nGRE·AP1/NF-κB 접촉억제·GILZ·SGK1; PEPCK/G6Pase↑·인슐린저항성·내장지방·근육위축·골다공증(RANKL↑/OPG↓)·RAAS 고혈압. **140+ 노드 13클러스터**, **21구획 ODE**(HPA 3+부신코르티솔 2+GR 3+대사 6+임상출력 1+약물PK 6), **6치료 시나리오**(자연경과·파시레오티드 0.6mg BID·케토코나졸 400mg BID·오실로드로스탯 5mg BID·미페프리스톤 600mg QD·수술 후 관해). PASPORT-CUSHINGS(Colao 2012 NEJM)·LINC 3/4(Feelders 2019/Pivonello 2020)·SEISMIC(Fleseriu 2012 JCEM) 임상 보정. UFC·LNSC·1mg DST·덱사메타손억제검사·BMD·HDRS-17. 8탭 Shiny 대시보드(환자프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단). 55개 PubMed 인용.<br>[🗺️ 지도](cushings-syndrome/cs_qsp_model.svg) · [⚙️ mrgsolve](cushings-syndrome/cs_mrgsolve_model.R) · [📊 Shiny](cushings-syndrome/cs_shiny_app.R) · [📚 문헌](cushings-syndrome/cs_references.md) · [📄 README](cushings-syndrome/README.md) |
+| 135 | 단백질 미스폴딩 | [**트랜스티레틴 아밀로이드증**<br><sub>Transthyretin Amyloidosis · ATTR</sub>](transthyretin-amyloidosis/) | <a href="transthyretin-amyloidosis/attr_qsp_model.svg"><img src="transthyretin-amyloidosis/attr_qsp_model.png" width="190" alt="ATTR"></a> | TTR 사량체 해리→단량체 미스폴딩→올리고머(독성)→피브릴→아밀로이드 침착. ATTRwt(야생형 심근병증, 75세↑ HFpEF 환자 ~13%)·ATTRv(유전성 V30M 다발신경병증·V122I 아프리카계 3.4%). 타파미디스(T4 결합부위 Emax 80%, EC50 2nM 사량체 안정화, ATTR-ACT 사망률↓30%)·파티시란(LNP siRNA TTR↓80%, APOLLO)·뷔트리시란(GalNAc-siRNA TTR↓87%, HELIOS-A)·이노테르센(ASO TTR↓75%, NEURO-TTR) 4종 PK/PD. NAC/Mayo 병기(NT-proBNP·TnT 역치) 및 DFM FAP 병기. **120+ 노드 10클러스터**, **20구획 ODE**(TTR PK 2+응집 2+아밀로이드 3+심장 4+신경 2+약물 5+복합결과 2), **6치료 시나리오**. 45개 PubMed 인용.<br>[🗺️ 지도](transthyretin-amyloidosis/attr_qsp_model.svg) · [⚙️ mrgsolve](transthyretin-amyloidosis/attr_mrgsolve_model.R) · [📊 Shiny](transthyretin-amyloidosis/attr_shiny_app.R) · [📚 문헌](transthyretin-amyloidosis/attr_references.md) · [📄 README](transthyretin-amyloidosis/README.md) |
 
 
 ---
@@ -1046,3 +1047,58 @@ qsp/
 | ⚙️ mrgsolve ODE | [`cs_mrgsolve_model.R`](cushings-syndrome/cs_mrgsolve_model.R) | **21구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`cs_shiny_app.R`](cushings-syndrome/cs_shiny_app.R) | **8탭** (환자 프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단) |
 | 📚 참고문헌 | [`cs_references.md`](cushings-syndrome/cs_references.md) | **55개 PubMed 인용** (10개 섹션) |
+
+---
+
+## 🧬 트랜스티레틴 아밀로이드증 (Transthyretin Amyloidosis, ATTR) — 최신 모델 상세 (2026-06-24)
+
+[![ATTR QSP 기계론적 지도](transthyretin-amyloidosis/attr_qsp_model.png)](transthyretin-amyloidosis/attr_qsp_model.svg)
+
+**질환**: 트랜스티레틴 아밀로이드증(ATTR) | **분류**: 단백질 미스폴딩 질환 | **유병률**: ATTRwt — 75세↑ HFpEF 환자의 ~13% / ATTRv — V122I 아프리카계 3.4% | **주요 표현형**: 심근병증(ATTRwt/v) · 다발신경병증(ATTRv FAP)
+
+### 핵심 기전 (10개 클러스터)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. TTR 유전학·간 생산 | 야생형/V30M/V122I 유전자 → TTR mRNA → 리보솜 번역 → 신생 단량체 → 사량체 조립 → 간 분비; 맥락막총 CNS TTR 분비; siRNA/ASO 표적 |
+| 2. TTR 응집 연쇄 | 사량체 해리(rate-limiting) → 단량체 미스폴딩(구조 중간체) → 올리고머(독성, Ca²⁺↑·세포막 손상) → 아밀로이드 피브릴 핵형성 → 피브릴 성장·분지 → 성숙 아밀로이드 |
+| 3. 심장 ATTR 병리 | 아밀로이드 침착→LV 벽두께↑(비대칭적)→이완기장애 → HFpEF/HFrEF 이행; NT-proBNP·TnT 상승; 전도 장애(AV block·BBB)·심방세동 |
+| 4. 신경 ATTR 병리 | 말초신경(DRG·후근) 아밀로이드 침착→소섬유(통증·온도) → 대섬유(위치감각·운동) 손상; NIS 상승·mNIS+7; 자율신경 장애(기립성 저혈압·위장) |
+| 5. 다장기 침범 | 신장(사구체·세관), 위장관(상피하층), 연조직·건(손목터널증후군, 이두근건 파열), 안구(초자체 혼탁), 연수막 |
+| 6. 타파미디스 PK/PD | 경구 흡수(1구획)→T4 결합부위 점유(4개 부위 2개 독립 결합)→사량체 kinetic 안정화(Emax 80%, EC50 2nM); 해리속도 억제; TTR mRNA는 영향 없음 |
+| 7. siRNA/ASO 치료 | 파티시란(LNP+GalNAc→간세포 RISC 로딩→TTR mRNA 분해, TTR↓80%); 뷔트리시란(GalNAc-siRNA SC, TTR↓87%, 분기 1회); 이노테르센(2'-MOE ASO, TTR↓75%, 주 1회 SC) |
+| 8. 임상 병기·결과 | NAC/Mayo 병기(I: NT-proBNP<3000+TnT<0.05; II: 둘 중 하나↑; III: 둘 다↑); DFM FAP 병기; 6MWT·KCCQ·mNIS+7; 입원·생존율 |
+| 9. 세포 스트레스 | 올리고머 독성→Ca²⁺·ROS↑→NLRP3 인플라마좀(IL-1β·IL-18 성숙)→심근세포 아포토시스; ER 스트레스(UPR 활성화); 미토콘드리아 기능 장애 |
+| 10. 진단 워크업 | Tc-99m DPD/PYP 신티그래피(Perugini 0–3등급); 심초음파(LV두께·GLS·E/e'·"반짝임" 패턴); CMR(T1 mapping·ECV·LGE); 유전자 검사(DNARREG) |
+
+### mrgsolve ODE 모델 (20구획)
+
+| 모듈 | 구획 | 핵심 방정식 |
+|------|------|------------|
+| TTR PK | TTR_C, TTR_P | 2구획; `kprod×(1−Inh_siRNA)−kel×TTR_C−kdiss_eff×TTR_C` |
+| 응집 | TTR_MF, TTR_OL | `dTTR_MF/dt = kconf×kdiss_eff×TTR_C − kolig×TTR_MF` |
+| 아밀로이드 | AMY_H, AMY_N, AMY_GI | `dAMY_H/dt = frac_heart×kfib×TTR_OL − kclear×AMY_H` |
+| 심장 | LV_THICK, BNP_C, TROP_C, CARD_FUNC | LV비후 누적·BNP 동역학·심기능지수 감소 |
+| 신경 | NIS_TOT, AUTO_NP | NIS 누적 속도 = f(AMY_N); 자율신경 장애 지수 |
+| 약물 PK | TAF_GUT, TAF_C, PAT_EFF, VUT_EFF, INO_EFF | 타파미디스 흡수+1구획; siRNA/ASO 효과구획(반감기 기반) |
+| 복합 결과 | SixMWT, KCCQ_IDX | 기능 저하 함수 |
+
+### 치료 시나리오 임상 데이터
+
+| 시나리오 | 약물 | 임상시험 | 주요 결과 |
+|---------|------|----------|----------|
+| 자연경과 (ATTRwt 무치료) | — | Ruberg 2019 JACC | 중앙 생존 2.5–5년; NT-proBNP·LV 두께 진행 |
+| 타파미디스 61mg QD | 타파미디스 경구 | ATTR-ACT (Maurer 2018 NEJM) | 사망률↓30%, CV입원↓32%, 6MWT·KCCQ 보존 |
+| 파티시란 0.3mg/kg Q3W IV | 파티시란 LNP | APOLLO (Adams 2018 NEJM) | TTR↓80%, mNIS+7 개선, 심장 파라미터 유익 |
+| 뷔트리시란 25mg Q3M SC | 뷔트리시란 GalNAc-siRNA | HELIOS-A (Solomon 2022 NEJM) | TTR↓87%, mNIS+7 개선, 분기 1회 편의성 |
+| 이노테르센 284mg QW SC | 이노테르센 ASO | NEURO-TTR (Benson 2018 NEJM) | TTR↓75%, mNIS+7 개선, 혈소판감소증 주의 |
+| 타파미디스 + HF 적극 관리 | 타파미디스 + 이뇨제/SGLT2i | 임상 실무 | 심장기능 보존 극대화 병용 전략 |
+
+### QSP 모델 구성
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`attr_qsp_model.dot`](transthyretin-amyloidosis/attr_qsp_model.dot) | **120+ 노드, 10클러스터** |
+| ⚙️ mrgsolve ODE | [`attr_mrgsolve_model.R`](transthyretin-amyloidosis/attr_mrgsolve_model.R) | **20구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`attr_shiny_app.R`](transthyretin-amyloidosis/attr_shiny_app.R) | **8탭** (환자 프로파일·TTR PK/응집·심장 ATTR·신경 ATTR·시나리오 비교·바이오마커·민감도 분석·가상집단) |
+| 📚 참고문헌 | [`attr_references.md`](transthyretin-amyloidosis/attr_references.md) | **45개 PubMed 인용** (9개 섹션) |
