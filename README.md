@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-137-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-138-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **137개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **138개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -261,6 +261,7 @@ qsp/
 | 135 | 희귀·유전질환 | [**유전성 혈관부종**<br><sub>Hereditary Angioedema · HAE</sub>](hereditary-angioedema/) | <a href="hereditary-angioedema/hae_qsp_model.svg"><img src="hereditary-angioedema/hae_qsp_model.png" width="190" alt="HAE"></a> | *SERPING1* 돌연변이 → C1-INH 결핍/기능이상(Type I/II) 또는 *F12* Thr328Lys 이득기능돌연변이(Type III) → 칼리크레인-키닌계(KKS) 무제한 활성화 → 브라디키닌(BK) 과잉 → B2R-Gq/IP3/Ca²⁺/eNOS/NO 경로 → VE-cadherin 소실·혈장삼출 → 피하/후두 혈관부종. FXII→FXIIa 접촉활성화, FXIIa→Prekal→Kal→HMWK 절단, BK→B2R/B1R 이중수용체 신호, C1-INH:FXIIa/Kal 복합체, 보체C4 소진, IL-1β·B1R 상향조절 염증 증폭. 이카티반트(B2R Ki=0.47nM)·C1-INH IV(Berinert 20 IU/kg)·에칼란티드·재조합 C1-INH 급성치료; 베로트랄스탓(IC50=3.7nM 칼리크레인 경구)·라나델루맙(KD<100pM prekallikrein SC)·C1-INH SC(Haegarda 60IU/kg 2×/wk) 예방치료. **120+ 노드 12클러스터**, **20구획 ODE**(PK 11+생물학적 9), **6치료 시나리오**(무치료·이카티반트·C1-INH IV·베로트랄스탓·라나델루맙·C1-INH SC). FAST-1/3(Cicardi 2010·Lumry 2011)·HELP OLE(Banerji 2020 87% 감소)·BELO(Farkas 2020 44% 감소)·CONFIDENT(Craig 2017 95% 감소) 보정. BK 농도·B2R 점유율·VP 지수·부종점수·C4·C1-INH% 바이오마커. 58개 PubMed 인용.<br>[🗺️ 지도](hereditary-angioedema/hae_qsp_model.svg) · [⚙️ mrgsolve](hereditary-angioedema/hae_mrgsolve_model.R) · [📊 Shiny](hereditary-angioedema/hae_shiny_app.R) · [📚 문헌](hereditary-angioedema/hae_references.md) · [📄 README](hereditary-angioedema/README.md) |
 | 136 | 희귀·유전질환 | [**파브리병**<br><sub>Fabry Disease · FBR</sub>](fabry-disease/) | <a href="fabry-disease/fbr_qsp_model.svg"><img src="fabry-disease/fbr_qsp_model.png" width="190" alt="FBR"></a> | X-연관 리소소말 저장 질환. *GLA* 변이 → α-갈락토시다제 A(α-Gal A) 결핍 → 글로보트리아오실세라미드(Gb3)·lyso-Gb3 조직축적 → 신세뇨관·심근·신경·혈관내피 손상. Gb3 합성(UGCG·B4GALT5)·M6PR/리소솜 가수분해·GCS 억제(SRT). 신장(eGFR↓·UPCR↑·FSGS)·심장(LVH·HCM→DCM·부정맥)·신경(신경병성 통증·뇌졸중)·피부(혈관각화종) 다장기 병증. 아갈시다제 베타(1 mg/kg Q2W·ERT 표준)·아갈시다제 알파(0.2 mg/kg Q2W)·페구니알시다제 알파(1 mg/kg Q4W)·미갈라스타트(150 mg QOD·적합 변이 전용 경구 샤페론)·루세라스탓(1000 mg TID·GCS억제제 SRT) 5종 PK/PD. **138 노드 14클러스터**, **22구획 ODE**, **6치료 시나리오**(자연경과·아갈시다제 베타·알파·미갈라스타트·페구니알시다제 알파·ERT+루세라스탓). FABRY-001(Eng 2001 NEJM)·ATTRACT(Germain 2016 NEJM)·BRIGHT(Schiffmann 2021 JAMA)·MODIFY(Lenders 2022) 보정. eGFR·UPCR·LVMi·lyso-Gb3·통증 바이오마커. 60개 PubMed 인용.<br>[🗺️ 지도](fabry-disease/fbr_qsp_model.svg) · [⚙️ mrgsolve](fabry-disease/fbr_mrgsolve_model.R) · [📊 Shiny](fabry-disease/fbr_shiny_app.R) · [📚 문헌](fabry-disease/fbr_references.md) · [📄 README](fabry-disease/README.md) |
 | 137 | 심혈관 | [**심근염**<br><sub>Myocarditis · MYO</sub>](myocarditis/) | <a href="myocarditis/myo_qsp_model.svg"><img src="myocarditis/myo_qsp_model.png" width="190" alt="MYO"></a> | 바이러스(CVB3·SARS-CoV-2·아데노바이러스·HHV-6) 심근세포 감염 → CAR/ACE2 수용체 진입 → 바이러스 복제·TLR3/7/9·RIG-I·MDA5·cGAS-STING 선천면역 활성화 → NF-κB·IRF3/7·NLRP3 인플라마좀 → IFN-α/β/γ·TNF-α·IL-1β·IL-6 사이토카인 폭풍 → NK세포·M1대식세포 심근 손상. CD4+ Th1/Th17 및 CD8+ CTL 적응 면역; 분자 유사성(molecular mimicry) → 항심근미오신·항β1-AR·항ANT·항TnI 자가항체 → ADCC·보체 활성화. TGF-β→근섬유아세포→콜라겐 침착→LV 확장·DCM. IVIG 2g/kg(IV 주입·2구획 PK·t½=21일·Fc-R 차단)·프레드니솔론(경구 F=80%·t½=2-3h·GR 억제)·아자티오프린→6-MP(전구약물 F=47%·HPRT/TPMT경로)·사이클로스포린(F=35%·칼시뉴린억제·t½=8-12h)·콜히친(F=45%·NLRP3/튜불린억제·Vd=250 L/kg) 5종 PK/PD. **170+ 노드 10클러스터**, **35구획 ODE**(심근세포 3+바이러스 1+선천면역 3+사이토카인 7+적응면역 9+섬유화 3+바이오마커 3+약물PK 6), **5치료 시나리오**(자연경과·IVIG 단독·프레드니솔론+아자티오프린 TIMIC·IVIG+Pred+Aza+CsA 거대세포·IVIG+콜히친). TIMIC(Frustaci 2009)·IMAC-2(McNamara 2001)·Cooper 2007 거대세포 프로토콜 보정. 트로포닌 I·BNP·LVEF·CMR-LGE·부정맥 위험 바이오마커. 7탭 Shiny 대시보드. 60개 PubMed 인용.<br>[🗺️ 지도](myocarditis/myo_qsp_model.svg) · [⚙️ mrgsolve](myocarditis/myo_mrgsolve_model.R) · [📊 Shiny](myocarditis/myo_shiny_app.R) · [📚 문헌](myocarditis/myo_references.md) · [📄 README](myocarditis/README.md) |
+| 138 | 희귀·유전질환 | [**고셔병**<br><sub>Gaucher Disease · GCD</sub>](gaucher-disease/) | <a href="gaucher-disease/gcd_qsp_model.svg"><img src="gaucher-disease/gcd_qsp_model.png" width="190" alt="GCD"></a> | *GBA1* 이중대립변이 → 리소솜 β-글루코세레브로시다제(GBA) 결핍 → 글루코세레브로사이드(GC) 및 고독성 탈아실화 유도체 lyso-GL1 조직대식세포 축적 → 고셔세포 형성. GBA합성(ER→Golgi·M6P수용체·ERAD)·GCS 기질합성·M6P수용체 매개 ERT 리소솜 전달; GC→비장/간/골수/CNS 구획 이동; NF-κB→IL-1β·IL-6·TNF-α·MIP-1α·RANKL; 비장비대·간비대·빈혈·혈소판감소·골밀도감소. GBA-파킨슨 연계(α-시누클레인 축적). 이미글루세라제(60U/kg Q2W·2구획·CL=1.4L/h/kg·EMAX=85%)·벨라글루세라제α; 엘리글루스타트(84mg BID·GCS IC50=10nM·CYP2D6·EM/PM)·미글루스타트(IC50=50μM); 암브록솔(샤페론). **115+ 노드 10클러스터**, **26구획 ODE**(약물PK 8+효소/기질 5+바이오마커 4+장기용적 2+혈액 2+골 3+염증 2), **6치료 시나리오**(자연경과·이미글루세라제·벨라글루세라제α·엘리글루스타트EM·엘리글루스타트PM·저용량ERT+엘리글루스타트). Barton 1991 NEJM·Mistry 2015 JAMA·Zimran 2010 Blood·Balwani 2021 AJH 보정. GL-1·lyso-GL1·키토트리오시다제·페리틴·SV·LV·Hb·PLT·BMD 바이오마커. 9탭 Shiny 대시보드. 62개 PubMed 인용.<br>[🗺️ 지도](gaucher-disease/gcd_qsp_model.svg) · [⚙️ mrgsolve](gaucher-disease/gcd_mrgsolve_model.R) · [📊 Shiny](gaucher-disease/gcd_shiny_app.R) · [📚 문헌](gaucher-disease/gcd_references.md) · [📄 README](gaucher-disease/README.md) |
 
 ---
 
@@ -389,3 +390,50 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`myo_mrgsolve_model.R`](myocarditis/myo_mrgsolve_model.R) | **35구획 ODE**, **5치료 시나리오** |
 | 📊 Shiny 앱 | [`myo_shiny_app.R`](myocarditis/myo_shiny_app.R) | **7탭** (개요·PK 프로파일·바이러스/선천면역·PD 바이오마커·임상 엔드포인트·시나리오 비교·섬유화/리모델링) |
 | 📚 참고문헌 | [`myo_references.md`](myocarditis/myo_references.md) | **60개 PubMed 인용** (14개 섹션) |
+
+---
+
+## 🧬 고셔병 (Gaucher Disease) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`gaucher-disease/`](gaucher-disease/) | **약어:** GCD | **날짜:** 2026-06-24
+
+[![GCD QSP 기계론적 지도](gaucher-disease/gcd_qsp_model.png)](gaucher-disease/gcd_qsp_model.svg)
+
+**질환**: 고셔병(Gaucher Disease) | **분류**: 희귀·유전질환(리소솜 축적 질환) | **유병률**: 1/40,000 (일반); 1/800 (아슈케나지 유대인) | **원인유전자**: *GBA1* (1q22)
+
+---
+
+### 핵심 발병기전
+
+| 단계 | 기전 | 핵심 매개자 |
+|------|------|------------|
+| **1. 효소 결핍** | GBA1 변이 → 미스폴딩 → ERAD 분해 or M6P 리소솜 전달 감소 | UGGT, 칼넥신, ERAD, M6PR |
+| **2. 기질 축적** | GCS 합성 > GBA 분해 → GC·lyso-GL1 리소솜 축적 | GC_MAC, GC_SP, GC_LV, GC_BM |
+| **3. 고셔세포 형성** | 조직 대식세포 GC 불완전 소화 → NF-κB 활성화 | TGF-β, M2 편극 |
+| **4. 전신 염증** | IL-1β·IL-6·TNF-α·MIP-1α·RANKL 분비 | 키토트리오시다제, 페리틴 |
+| **5. 장기 손상** | 비장/간 비대, 골수 조혈 억제, RANKL→OC→골밀도↓ | SV, LV, Hb, PLT, BMD |
+| **6. GBA-PD 연계** | GBA↓ → α-syn 클리어런스↓ → 루이체 | α-Synuclein, Lewy Body |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물 | 임상시험 | 주요 결과 |
+|---------|------|---------|---------|
+| **S1** | 자연경과 | Charrow 2000 | 비장비대·빈혈·골파괴 진행 |
+| **S2** | 이미글루세라제 60U/kg Q2W | Barton 1991 NEJM | GL-1 -70%, SV -30–50%, Hb +2 g/dL |
+| **S3** | 벨라글루세라제α 60U/kg Q2W | Zimran 2010 Blood | 유사 효능, 천연형 만노스 |
+| **S4** | 엘리글루스타트 84mg BID (CYP2D6 EM) | Mistry 2015 JAMA | SV -28%, Hb +1.2, PLT +32% |
+| **S5** | 엘리글루스타트 84mg QD (CYP2D6 PM) | Balwani 2021 AJH | AUC 4–5×↑, 효능 유사 |
+| **S6** | 저용량 ERT 30U/kg + 엘리글루스타트 BID | 병용 전략 | 이중 억제, 주사 빈도 절감 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`gcd_qsp_model.dot`](gaucher-disease/gcd_qsp_model.dot) | **115+ 노드, 10클러스터** |
+| ⚙️ mrgsolve ODE | [`gcd_mrgsolve_model.R`](gaucher-disease/gcd_mrgsolve_model.R) | **26구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`gcd_shiny_app.R`](gaucher-disease/gcd_shiny_app.R) | **9탭** (개요·환자프로파일·PK·효소/기질·장기/혈액·골·시나리오비교·바이오마커·가상집단) |
+| 📚 참고문헌 | [`gcd_references.md`](gaucher-disease/gcd_references.md) | **62개 PubMed 인용** (14개 섹션) |
