@@ -273,6 +273,7 @@ qsp/
 | 148 | 만성질환 / 안과 | [**당뇨병성 망막병증**<br><sub>Diabetic Retinopathy · DR</sub>](diabetic-retinopathy/) | <a href="diabetic-retinopathy/dr_qsp_model.svg"><img src="diabetic-retinopathy/dr_qsp_model.png" width="190" alt="DR"></a> | **고혈당 → 4가지 생화학 경로(폴리올·헥소사민·PKC·AGE-RAGE) → 산화스트레스/VEGF/신경염증 → 망막 혈관 구조 병변 → DME/PDR → 시력 소실** — 알도스환원효소(AR) → 소르비톨↑·NADPH 고갈; GFAT → O-GlcNAc → TGF-β/PAI-1↑; PKCβ2 → VEGF↑·NF-κB↑·eNOS↓·ET-1↑; 메틸글리옥살/글리옥살 → AGE → RAGE → NF-κB/VEGF 증폭. 미토콘드리아 ETC 과부하 → O₂•⁻ → PARP → GAPDH 억제 → 경로 증폭 피드백. HIF-1α(저산소) + NF-κB(염증) → VEGF-A165 과발현 → VEGFR2 → PI3K/AKT(혈관투과성↑)+ERK(내피 증식). Ang2 증가/Tie-2 탈안정화 → 주피세포 지지 소실. NLRP3 인플라마좀(IL-1β·IL-18)·TNF-α·IL-6·ICAM-1→ 백혈구 정체(leukostasis) → 내피세포 아포토시스 → BRB 파괴 → 미세동맥류·경성 삼출물·면화반·IRMA → 모세혈관 비관류 → 망막 저산소증(피드백) → 신생혈관(NVE/NVD) → 유리체 출혈·견인성 망막박리. DME: BRB 파괴 → 액체 누출 → CRT↑ → 시력↓. 아플리버셉트(2mg IVT q4→8w·VEGF-A/B+PlGF 포획·Kd~0.5pM·PROTOCOL T 2015 NEJM·PANORAMA 2019)·라니비주맙(0.5mg q4w·RISE/RIDE 2013)·파리시맙(6mg q4→16w·VEGF-A+Ang2 이중 차단·TENAYA/LUCERNE 2022 Lancet)·베바시주맙·덱사메타손 임플란트 완전 PK/PD 모델링. 혈당 조절(메트포르민·GLP-1RA·SGLT2i)·RAAS 차단·페노피브레이트(ACCORD-Eye) 병용. **210+ 노드 9클러스터**, **18구획 ODE**(약물PK 4+혈당 2+VEGF 3+ROS/AGE 2+염증 2+세포 2+구조 3+시력 1), **6치료 시나리오**(S0 무치료·S1 혈당조절·S2 아플리버셉트·S3 라니비주맙·S4 파리시맙·S5 아플리버셉트+혈당조절). PROTOCOL T NEJM 2015(AFL +13.3글자·RBZ +11.2·Bev +9.7)·RISE/RIDE·CLARITY·PANORAMA·TENAYA/LUCERNE·DCCT NEJM 1993(혈당집중치료 76% 감소) 보정. ETDRS BCVA·CRT(OCT)·유리체 VEGF·NV지수·DR중증도·OCTA-FAZ·주피세포%. **8탭 Shiny 대시보드**(환자프로파일·약물PK·VEGF/혈관신생·산화스트레스/염증·망막구조·시각결과·시나리오비교·바이오마커). **57개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](diabetic-retinopathy/dr_qsp_model.svg) · [⚙️ mrgsolve](diabetic-retinopathy/dr_mrgsolve_model.R) · [📊 Shiny](diabetic-retinopathy/dr_shiny_app.R) · [📚 문헌](diabetic-retinopathy/dr_references.md) · [📄 README](diabetic-retinopathy/README.md) |
 | 144 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 | 149 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
+| 150 | 혈액·MPN | [**진성 적혈구증가증 (PV)**<br><sub>Polycythemia Vera · PV</sub>](polycythemia-vera/) | <a href="polycythemia-vera/pv_qsp_model.svg"><img src="polycythemia-vera/pv_qsp_model.png" width="190" alt="PV"></a> | **JAK2 V617F → 구성적 JAK-STAT5 활성화 → EPO 비의존적 적혈구 증가증·혈전증·비장비대·MF 이행 위험**. 클론 HSC 경쟁(돌연변이 vs 야생형) · 혈소판/WBC 증가 · TGF-β1 골수 섬유화. 루소리티닙(JAK1/2 IC50~3nM·RESPONSE NEJM 2015·SVR35 38%)·하이드록시우레아·로페그인터페론α-2b(클론 선택적 소멸·PROUD-PV·분자관해 41%)·아스피린·페드라티닙·아나그렐리드 완전 PK/PD 모델링. HCT <45% 목표(CYTOREDUCE NEJM 2013·HR 0.25). **146 노드 11클러스터**, **22구획 ODE**(클론HSC 3+JAK-STAT 1+BFU-E 2+혈액세포 4+장기/증상 4+루소리티닙PK 3+HU PK 1+IFN-α PK 2+아스피린/페드라티닙 2), **6치료 시나리오**(무치료·정맥천자+아스피린·HU+천자+아스피린·루소리티닙 10mg BID·로페그IFN 100mcg q2w·페드라티닙 400mg). MPN-SAF-TSS·SVR35·JAK2 대립유전자 부담·HCT control·CHR·분자관해 임상 엔드포인트. 8탭 Shiny 대시보드(환자프로파일·약물PK·혈액반응·비장/증상·질환진행·시나리오비교·바이오마커·About). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polycythemia-vera/pv_qsp_model.svg) · [⚙️ mrgsolve](polycythemia-vera/pv_mrgsolve_model.R) · [📊 Shiny](polycythemia-vera/pv_shiny_app.R) · [📚 문헌](polycythemia-vera/pv_references.md) · [📄 README](polycythemia-vera/README.md) |
 
 ---
 
@@ -996,3 +997,63 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`eoe_mrgsolve_model.R`](eosinophilic-esophagitis/eoe_mrgsolve_model.R) | **18구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`eoe_shiny_app.R`](eosinophilic-esophagitis/eoe_shiny_app.R) | **7탭** (환자프로파일·약물PK·사이토카인·호산구·임상엔드포인트·시나리오비교·바이오마커) |
 | 📚 참고문헌 | [`eoe_references.md`](eosinophilic-esophagitis/eoe_references.md) | **46개 PubMed 인용** (12개 섹션) |
+
+---
+
+## 🩸 진성 적혈구증가증 (Polycythemia Vera) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`polycythemia-vera/`](polycythemia-vera/) | **약어:** PV | **날짜:** 2026-06-24
+
+[![PV QSP 기계론적 지도](polycythemia-vera/pv_qsp_model.png)](polycythemia-vera/pv_qsp_model.svg)
+
+**질환**: 진성 적혈구증가증(Polycythemia Vera, PV) | **분류**: 만성 골수증식성 종양(MPN) | **유병률**: ~44/100,000 | **핵심 돌연변이**: JAK2 V617F (>95%)
+
+### 핵심 기전 (11개 클러스터)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 유전적 기반 | JAK2 V617F / 엑손12 → 구성적 키나제 활성화; 공동돌연변이(TET2, ASXL1, IDH) |
+| 2. JAK-STAT 신호전달 | 지속적 p-STAT5 → 항아포토시스(BCL-2·MCL-1)·PI3K/AKT/mTOR·CDK4/6 세포주기 |
+| 3. 적혈구 조혈 | EPO 비의존적 BFU-E→CFU-E→RBC 증가; 내인성 EPO 억제 |
+| 4. 골수/거핵세포 | TPO 비의존적 거핵세포생성; 혈소판 활성화/TXA2; NETs |
+| 5. 골수 미세환경 | 비정상 MK의 TGF-β1·PDGF 분비 → 그물섬유증 → 콜라겐 침착 |
+| 6. 비장/EMH | CD34+ 동원 → 수질 외 조혈 → 비장비대 |
+| 7. 혈관/혈전 | 혈액점도↑(HCT>45%) → 내피활성화 → DVT/뇌졸중/심근경색 |
+| 8. 염증 사이토카인 | IL-6·IL-1β·TNF-α·히스타민(호염기구)·IL-13 → MPN-SAF TSS·소양감·피로 |
+| 9. 질환 진행 | 대립유전자 부담↑+추가 돌연변이(ASXL1/IDH) → Post-PV MF → AML |
+| 10. 임상 엔드포인트 | HCT <45%·SVR35·TSS50·대립유전자 부담·CHR·분자관해 |
+| 11. 약물 PK/PD | 8가지 약물: 루소리티닙·HU·로페그-IFN·아스피린·정맥천자·페드라티닙·아나그렐리드·부설판 |
+
+### mrgsolve ODE 모델 (22구획)
+
+| 모듈 | 구획 | 핵심 동역학 |
+|------|------|------------|
+| 클론 HSC | `mut_clone`, `wt_clone`, `allele_burden` | 로지스틱 경쟁; IFN 매개 클론 소멸 |
+| JAK-STAT | `STAT5` | 대립유전자 부담 기반 활성화; JAK 억제제 억압 |
+| 적혈구 전구체 | `BFU_E_mut`, `BFU_E_wt` | EPO 비의존적(돌연변이) vs EPO 의존적(야생형) |
+| 성숙 혈액세포 | `RBC`, `HCT`, `PLT`, `WBC` | 전구체 기반 생산; HU/정맥천자 감소 |
+| 장기/증상 | `Spleen_vol`, `MPN_SAF`, `MF_score`, `Thromb_hazard` | EMH 기반 비장 성장; TGF-β 섬유화 축 |
+| 루소리티닙 PK | `RUX_gut`, `RUX_cent`, `RUX_periph` | 2구획 경구; ka=2.16/h, CL=17.7L/h |
+| HU PK | `HU_cent` | 1구획; EC50=8.5mg/L, t½~3.5h |
+| 로페그-IFN PK | `IFN_sc`, `IFN_cent` | SC 데포; ka=0.15/일, t½~80–130h |
+
+### 치료 시나리오 (6개 시나리오, 5년 시뮬레이션)
+
+| 시나리오 | 요법 | 기전 | 주요 보정 |
+|---------|------|------|---------|
+| S0 | 자연경과 | 없음 | 기저 PV 궤적 |
+| S1 | 정맥천자(8회/yr) + 아스피린 100mg/일 | RBC 제거 + COX-1 억제 | ECLAP 시험 |
+| S2 | 하이드록시우레아 1500mg/일 + 정맥천자 + 아스피린 | 리보뉴클레오티드 환원효소 억제 | PVSG 세포감소 시험 |
+| S3 | 루소리티닙 10mg BID + 정맥천자 + 아스피린 | JAK1/2 억제(IC50~3nM) | **RESPONSE (NEJM 2015)** |
+| S4 | 루소리티닙 20mg BID + 아스피린 | 고용량 JAK1/2 억제 | MAJIC-PV (Lancet Haematol 2017) |
+| S5 | 로페그인터페론α-2b 100mcg q2w + 정맥천자 + 아스피린 | 클론 선택적 소멸 | **PROUD-PV / CONTINUATION-PV** |
+| S6 | 페드라티닙 400mg/일 + 정맥천자 + 아스피린 | JAK2/FLT3 억제 | JAKARTA-2 연구 |
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`pv_qsp_model.dot`](polycythemia-vera/pv_qsp_model.dot) | **146 노드, 11클러스터** (fdp 레이아웃) |
+| ⚙️ mrgsolve ODE | [`pv_mrgsolve_model.R`](polycythemia-vera/pv_mrgsolve_model.R) | **22구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`pv_shiny_app.R`](polycythemia-vera/pv_shiny_app.R) | **8탭** (환자프로파일·약물PK·혈액반응·비장/증상·질환진행·시나리오비교·바이오마커·About) |
+| 📚 참고문헌 | [`pv_references.md`](polycythemia-vera/pv_references.md) | **55개 PubMed 인용** (12개 섹션) |
