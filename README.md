@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-136-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-137-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **136개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **137개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -259,6 +259,8 @@ qsp/
 | 133 | 소아 혈관염 | [**가와사키병**<br><sub>Kawasaki Disease · KD</sub>](kawasaki-disease/) | <a href="kawasaki-disease/kd_qsp_model.svg"><img src="kawasaki-disease/kd_qsp_model.png" width="190" alt="KD"></a> | 원인 불명 트리거 → TLR/NLR 선천 면역 활성화 → NLRP3 인플라마좀(Caspase-1·IL-1β 성숙) → 사이토카인 폭풍(IL-1β·IL-6·TNF-α) → 혈관 내피 활성화(VCAM-1·ICAM-1·TF↑) → 관상동맥 중막 파괴·동맥류(AHA Z-점수 분류: small z≥2.5, medium z≥5, giant z≥10) → 혈소판 증가증(2주 피크) → 혈전위험. IVIG 2 g/kg(2구획+FcRn 재순환·Emax NF-κB 억제)·고용량 아스피린→저용량(COX-1/2 비가역)·메틸프레드니솔론(NF-κB 억제·GR 경로)·인플릭시맙 5 mg/kg(TNF-α 중화·n=1.8)·아나킨라 4 mg/kg/day(IL-1R 경쟁차단) 5종 PK/PD. **134 노드 14클러스터**, **21구획 ODE**(PK 11·IL1β·IL6·TNFα·대식세포·내피세포·발열·CRP·혈소판·관상동맥 Z-점수), **5치료 시나리오**(S1 표준IVIG·S2 고위험+스테로이드·S3 IVIG저항-2차IVIG·S4 인플릭시맙구제·S5 아나킨라구제). Kobayashi/Egami 위험점수 계산기·관상동맥 Z-점수 추적·IVIG 저항성 확률 모델. McCrindle/Kobayashi/KIDCARE Trial 보정. 60개 PubMed 인용.<br>[🗺️ 지도](kawasaki-disease/kd_qsp_model.svg) · [⚙️ mrgsolve](kawasaki-disease/kd_mrgsolve_model.R) · [📊 Shiny](kawasaki-disease/kd_shiny_app.R) · [📚 문헌](kawasaki-disease/kd_references.md) · [📄 README](kawasaki-disease/README.md) |
 | 134 | 내분비·대사 | [**쿠싱 증후군**<br><sub>Cushing's Syndrome · CS</sub>](cushings-syndrome/) | <a href="cushings-syndrome/cs_qsp_model.svg"><img src="cushings-syndrome/cs_qsp_model.png" width="190" alt="CS"></a> | 뇌하수체 ACTH 선종(쿠싱병 70%)·이소성 ACTH(10%)·부신 선종(15%) 등에 의한 만성 고코르티솔혈증. 시상하부 일주기 CRH 리듬·CRHR1-PKA-CREB-POMC-ACTH 경로; USP8 탈유비퀴틴화(~50% 쿠싱병)·CDK4/6 세포증식; CYP11A1→CYP17A1→CYP21A2→CYP11B1 스테로이드 생합성; GR-α/HSP90/FKBP51·핵이동·GRE/nGRE·AP1/NF-κB 접촉억제·GILZ·SGK1; PEPCK/G6Pase↑·인슐린저항성·내장지방·근육위축·골다공증(RANKL↑/OPG↓)·RAAS 고혈압. **140+ 노드 13클러스터**, **21구획 ODE**(HPA 3+부신코르티솔 2+GR 3+대사 6+임상출력 1+약물PK 6), **6치료 시나리오**(자연경과·파시레오티드 0.6mg BID·케토코나졸 400mg BID·오실로드로스탯 5mg BID·미페프리스톤 600mg QD·수술 후 관해). PASPORT-CUSHINGS(Colao 2012 NEJM)·LINC 3/4(Feelders 2019/Pivonello 2020)·SEISMIC(Fleseriu 2012 JCEM) 임상 보정. UFC·LNSC·1mg DST·덱사메타손억제검사·BMD·HDRS-17. 8탭 Shiny 대시보드(환자프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단). 55개 PubMed 인용.<br>[🗺️ 지도](cushings-syndrome/cs_qsp_model.svg) · [⚙️ mrgsolve](cushings-syndrome/cs_mrgsolve_model.R) · [📊 Shiny](cushings-syndrome/cs_shiny_app.R) · [📚 문헌](cushings-syndrome/cs_references.md) · [📄 README](cushings-syndrome/README.md) |
 | 135 | 희귀·유전질환 | [**유전성 혈관부종**<br><sub>Hereditary Angioedema · HAE</sub>](hereditary-angioedema/) | <a href="hereditary-angioedema/hae_qsp_model.svg"><img src="hereditary-angioedema/hae_qsp_model.png" width="190" alt="HAE"></a> | *SERPING1* 돌연변이 → C1-INH 결핍/기능이상(Type I/II) 또는 *F12* Thr328Lys 이득기능돌연변이(Type III) → 칼리크레인-키닌계(KKS) 무제한 활성화 → 브라디키닌(BK) 과잉 → B2R-Gq/IP3/Ca²⁺/eNOS/NO 경로 → VE-cadherin 소실·혈장삼출 → 피하/후두 혈관부종. FXII→FXIIa 접촉활성화, FXIIa→Prekal→Kal→HMWK 절단, BK→B2R/B1R 이중수용체 신호, C1-INH:FXIIa/Kal 복합체, 보체C4 소진, IL-1β·B1R 상향조절 염증 증폭. 이카티반트(B2R Ki=0.47nM)·C1-INH IV(Berinert 20 IU/kg)·에칼란티드·재조합 C1-INH 급성치료; 베로트랄스탓(IC50=3.7nM 칼리크레인 경구)·라나델루맙(KD<100pM prekallikrein SC)·C1-INH SC(Haegarda 60IU/kg 2×/wk) 예방치료. **120+ 노드 12클러스터**, **20구획 ODE**(PK 11+생물학적 9), **6치료 시나리오**(무치료·이카티반트·C1-INH IV·베로트랄스탓·라나델루맙·C1-INH SC). FAST-1/3(Cicardi 2010·Lumry 2011)·HELP OLE(Banerji 2020 87% 감소)·BELO(Farkas 2020 44% 감소)·CONFIDENT(Craig 2017 95% 감소) 보정. BK 농도·B2R 점유율·VP 지수·부종점수·C4·C1-INH% 바이오마커. 58개 PubMed 인용.<br>[🗺️ 지도](hereditary-angioedema/hae_qsp_model.svg) · [⚙️ mrgsolve](hereditary-angioedema/hae_mrgsolve_model.R) · [📊 Shiny](hereditary-angioedema/hae_shiny_app.R) · [📚 문헌](hereditary-angioedema/hae_references.md) · [📄 README](hereditary-angioedema/README.md) |
+| 136 | 희귀·유전질환 | [**파브리병**<br><sub>Fabry Disease · FBR</sub>](fabry-disease/) | <a href="fabry-disease/fbr_qsp_model.svg"><img src="fabry-disease/fbr_qsp_model.png" width="190" alt="FBR"></a> | X-연관 리소소말 저장 질환. *GLA* 변이 → α-갈락토시다제 A(α-Gal A) 결핍 → 글로보트리아오실세라미드(Gb3)·lyso-Gb3 조직축적 → 신세뇨관·심근·신경·혈관내피 손상. Gb3 합성(UGCG·B4GALT5)·M6PR/리소솜 가수분해·GCS 억제(SRT). 신장(eGFR↓·UPCR↑·FSGS)·심장(LVH·HCM→DCM·부정맥)·신경(신경병성 통증·뇌졸중)·피부(혈관각화종) 다장기 병증. 아갈시다제 베타(1 mg/kg Q2W·ERT 표준)·아갈시다제 알파(0.2 mg/kg Q2W)·페구니알시다제 알파(1 mg/kg Q4W)·미갈라스타트(150 mg QOD·적합 변이 전용 경구 샤페론)·루세라스탓(1000 mg TID·GCS억제제 SRT) 5종 PK/PD. **138 노드 14클러스터**, **22구획 ODE**, **6치료 시나리오**(자연경과·아갈시다제 베타·알파·미갈라스타트·페구니알시다제 알파·ERT+루세라스탓). FABRY-001(Eng 2001 NEJM)·ATTRACT(Germain 2016 NEJM)·BRIGHT(Schiffmann 2021 JAMA)·MODIFY(Lenders 2022) 보정. eGFR·UPCR·LVMi·lyso-Gb3·통증 바이오마커. 60개 PubMed 인용.<br>[🗺️ 지도](fabry-disease/fbr_qsp_model.svg) · [⚙️ mrgsolve](fabry-disease/fbr_mrgsolve_model.R) · [📊 Shiny](fabry-disease/fbr_shiny_app.R) · [📚 문헌](fabry-disease/fbr_references.md) · [📄 README](fabry-disease/README.md) |
+| 137 | 심혈관 | [**심근염**<br><sub>Myocarditis · MYO</sub>](myocarditis/) | <a href="myocarditis/myo_qsp_model.svg"><img src="myocarditis/myo_qsp_model.png" width="190" alt="MYO"></a> | 바이러스(CVB3·SARS-CoV-2·아데노바이러스·HHV-6) 심근세포 감염 → CAR/ACE2 수용체 진입 → 바이러스 복제·TLR3/7/9·RIG-I·MDA5·cGAS-STING 선천면역 활성화 → NF-κB·IRF3/7·NLRP3 인플라마좀 → IFN-α/β/γ·TNF-α·IL-1β·IL-6 사이토카인 폭풍 → NK세포·M1대식세포 심근 손상. CD4+ Th1/Th17 및 CD8+ CTL 적응 면역; 분자 유사성(molecular mimicry) → 항심근미오신·항β1-AR·항ANT·항TnI 자가항체 → ADCC·보체 활성화. TGF-β→근섬유아세포→콜라겐 침착→LV 확장·DCM. IVIG 2g/kg(IV 주입·2구획 PK·t½=21일·Fc-R 차단)·프레드니솔론(경구 F=80%·t½=2-3h·GR 억제)·아자티오프린→6-MP(전구약물 F=47%·HPRT/TPMT경로)·사이클로스포린(F=35%·칼시뉴린억제·t½=8-12h)·콜히친(F=45%·NLRP3/튜불린억제·Vd=250 L/kg) 5종 PK/PD. **170+ 노드 10클러스터**, **35구획 ODE**(심근세포 3+바이러스 1+선천면역 3+사이토카인 7+적응면역 9+섬유화 3+바이오마커 3+약물PK 6), **5치료 시나리오**(자연경과·IVIG 단독·프레드니솔론+아자티오프린 TIMIC·IVIG+Pred+Aza+CsA 거대세포·IVIG+콜히친). TIMIC(Frustaci 2009)·IMAC-2(McNamara 2001)·Cooper 2007 거대세포 프로토콜 보정. 트로포닌 I·BNP·LVEF·CMR-LGE·부정맥 위험 바이오마커. 7탭 Shiny 대시보드. 60개 PubMed 인용.<br>[🗺️ 지도](myocarditis/myo_qsp_model.svg) · [⚙️ mrgsolve](myocarditis/myo_mrgsolve_model.R) · [📊 Shiny](myocarditis/myo_shiny_app.R) · [📚 문헌](myocarditis/myo_references.md) · [📄 README](myocarditis/README.md) |
 
 ---
 
@@ -321,3 +323,69 @@ qsp/
 | ⚙️ mrgsolve ODE | [`fbr_mrgsolve_model.R`](fabry-disease/fbr_mrgsolve_model.R) | **22구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`fbr_shiny_app.R`](fabry-disease/fbr_shiny_app.R) | **8탭** (환자 프로파일·PK/효소·Gb3 동역학·신장·심장·시나리오 비교·바이오마커·가상 집단) |
 | 📚 참고문헌 | [`fbr_references.md`](fabry-disease/fbr_references.md) | **60개 PubMed 인용** (14개 섹션) |
+---
+
+## 🫀 심근염 (Myocarditis) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`myocarditis/`](myocarditis/) | **약어:** MYO | **날짜:** 2026-06-24
+
+[![MYO QSP 기계론적 지도](myocarditis/myo_qsp_model.png)](myocarditis/myo_qsp_model.svg)
+
+**질환**: 심근염(Myocarditis, MYO) | **분류**: 심근의 염증성 질환 | **발병률**: 1–10/100,000인년 | **주요 원인**: 바이러스(CVB3·SARS-CoV-2·아데노바이러스·HHV-6·파보바이러스 B19)
+
+---
+
+### 기전 개요 — 3단계 병태생리
+
+| 단계 | 기전 | 핵심 매개자 |
+|------|------|------------|
+| **1. 바이러스 단계** (1–7일) | CAR/ACE2 수용체 진입 → 복제 → 심근세포 직접 손상 | CVB3 프로테아제 2A/3C, dsRNA, 트로포닌 유출 |
+| **2. 면역 단계** (1–4주) | PRR 활성화 → 선천면역·적응면역 폭주 → 분자 유사성 자가항체 | IFN-β/γ, TNF-α, IL-1β, IL-6, NK세포, M1, CTL |
+| **3. 리모델링 단계** (4주+) | TGF-β → 근섬유아세포 활성화 → 콜라겐 침착 → LV 확장 | TGF-β, MMP/TIMP, RAAS, 피브로넥틴, DCM |
+
+---
+
+### ODE 구획 구조 (35개)
+
+| 범주 | 구획 | 핵심 동역학 |
+|------|------|------------|
+| 심근세포 (3) | H(정상)·I(감염)·D(사망) | 바이러스 감염률·CTL 용해·허용 세포 재생 |
+| 바이러스 (1) | V (copies/mL) | 복제(p_V·I) – 제거(IFN-β·NK 살상) |
+| 선천면역 (3) | NK·M1·M2 | V/IFN-γ 구동 팽창; M2→TGF-β |
+| 사이토카인 (7) | IFN-β·IFN-γ·TNF-α·IL-6·IL-1β·TGF-β·IL-10 | 생성(면역세포)–분해(1차 동역학) |
+| 적응면역 (9) | 나이브 CD4·Th1·Th17·Treg·나이브 CD8·CTL·나이브 B·형질세포·항체 | Th1→IFN-γ; CTL→직접 세포 용해; B→자가항체 |
+| 섬유화 (3) | 심장 섬유아세포·근섬유아세포·콜라겐 | TGF-β→MF 전환 →콜라겐 합성 |
+| 바이오마커 (3) | 트로포닌 I·BNP·LVEF | 세포 손상 유출; 압력 과부하; EF 회복 |
+| 약물 PK (6) | IVIG·PRED_A/C·AZA_A/C·MP6_C·CSA_A/C·COLC_A/C | 2구획/경구 1구획; 전구약물 변환 |
+
+### 핵심 기계론적 방정식
+
+```
+dV/dt  = p_V·I − c_V·V·(1 + kIFN·IFNβ/(IFNβ50+IFNβ)) − NK_kill·NK·V
+dH/dt  = r_H·H·(1−(H+I)/Hmax) − d_H·H − βV·V·H − CTL_bys·CTL·H·(1−E_IS)
+dTnI/dt = kLeak·(δI·I + kNec·IS·H) − dTn·TnI
+dEF/dt = krec·(EF_target − EF)
+```
+
+---
+
+### 5가지 치료 시나리오 임상 근거
+
+| 시나리오 | 약물 | 임상시험 | 주요 결과 |
+|---------|------|---------|---------|
+| S1: 자연경과 | 없음 | Bozkurt 2021 JACC | 완전 회복 40–50%, DCM 진행 20–30% |
+| S2: IVIG 단독 | 2 g/kg IV 1회 | IMAC-2 (McNamara 2001) | 바이러스성·급성 심부전; Fc-R 차단 |
+| S3: 프레드니솔론+아자티오프린 | PRED 1 mg/kg/d + AZA 2 mg/kg/d | TIMIC (Frustaci 2009) | 바이러스 음성 염증성 CM; EF +8.5% |
+| S4: 삼중 면역억제 | IVIG+PRED+AZA+CsA | Cooper 2007 (거대세포) | 거대세포 심근염; 생존 연장 |
+| S5: IVIG+콜히친 | IVIG 2g/kg + 콜히친 0.5mg BID | 심근심낭염 프로토콜 | NLRP3·인플라마좀 억제; 재발 감소 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`myo_qsp_model.dot`](myocarditis/myo_qsp_model.dot) | **170+ 노드, 10클러스터** |
+| ⚙️ mrgsolve ODE | [`myo_mrgsolve_model.R`](myocarditis/myo_mrgsolve_model.R) | **35구획 ODE**, **5치료 시나리오** |
+| 📊 Shiny 앱 | [`myo_shiny_app.R`](myocarditis/myo_shiny_app.R) | **7탭** (개요·PK 프로파일·바이러스/선천면역·PD 바이오마커·임상 엔드포인트·시나리오 비교·섬유화/리모델링) |
+| 📚 참고문헌 | [`myo_references.md`](myocarditis/myo_references.md) | **60개 PubMed 인용** (14개 섹션) |
