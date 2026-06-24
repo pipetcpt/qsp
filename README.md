@@ -267,6 +267,7 @@ qsp/
 | 142 | 피부·자가면역 | [**화농성 한선염**<br><sub>Hidradenitis Suppurativa · HS</sub>](hidradenitis-suppurativa/) | <a href="hidradenitis-suppurativa/hs_qsp_model.svg"><img src="hidradenitis-suppurativa/hs_qsp_model.png" width="190" alt="HS"></a> | **모낭 파열 → 복합 면역 활성화 → 만성 피부 염증** — γ-Secretase 결함(NCSTN/PSEN1/2 변이)·과각화증·모낭 폐쇄 → 피지모낭단위 파열 → NLRP3 인플라마좀(IL-1β)·TLR2/4 NF-κB(TNF-α·IL-6)·Th17(IL-17A/F) 복합 활성화. S. aureus/혐기균 바이오필름·마이크로비옴 불균형이 염증 증폭. TGF-β → 근섬유아세포 → 콜라겐 침착 → 누공·흉터. 안드로겐(DHT)·비만(인슐린저항성·아디포카인·mTOR) 호르몬 대사 인자 포함. 아달리무맙(PIONEER I/II·TNF 억제)·세쿠키누맙(SUNSHINE/SUNRISE·IL-17A)·비메키주맙(BE HEARD I/II·IL-17A/F) 완전 PK/PD 모델링. HiSCR(AN 50% 감소), IHS4, Hurley 병기, DLQI, VAS 통증 임상 엔드포인트. **160+ 노드 10클러스터**, **20구획 ODE**(PK 6+사이토카인 5+세포 3+임상엔드포인트 3+기타), **5치료 시나리오**(무치료·아달리무맙·세쿠키누맙·비메키주맙·병용). 6탭 Shiny(환자프로파일·약물PK·사이토카인PD·임상엔드포인트·시나리오비교·바이오마커/가상환자). 37개 PubMed 인용(11섹션).<br>[🗺️ 지도](hidradenitis-suppurativa/hs_qsp_model.svg) · [⚙️ mrgsolve](hidradenitis-suppurativa/hs_mrgsolve_model.R) · [📊 Shiny](hidradenitis-suppurativa/hs_shiny_app.R) · [📚 문헌](hidradenitis-suppurativa/hs_references.md) · [📄 README](hidradenitis-suppurativa/README.md) |
 | 141 | 희귀·유전질환 | [**윌슨병**<br><sub>Wilson's Disease · WD</sub>](wilsons-disease/) | <a href="wilsons-disease/wd_qsp_model.svg"><img src="wilsons-disease/wd_qsp_model.png" width="190" alt="WD"></a> | **ATP7B 기능 소실 → 구리 대사 장애** — *ATP7B*(P형 Cu-ATPase) 돌연변이(p.His1069Gln 유럽 35%·p.Arg778Leu 아시아 20%)로 담즙 구리 배출↓·아포세룰로플라스민 구리 적재 실패 → 간세포 구리 축적(>250 μg/g dw) → MT 포화 → NCBC(Non-Ceruloplasmin Bound Copper) 급증 → 전신 독성. 간: Fenton 반응(Cu¹⁺+H₂O₂→OH•) → ROS 급증 → 미토콘드리아 기능이상·지질 과산화·Kupffer 활성화 → TNF-α/IL-6/TGF-β → 간성상세포(HSC) 활성 → 콜라겐 침착 → Metavir F0→F4 섬유화 → 간경변 → 급성 간부전(ALF-WD, Coombs음성 용혈동반). 뇌: NCBC → BBB 통과 → 기저핵(피각·흑질) 선택적 구리 축적 → 도파민신경 손상 → 진전·근긴장이상증·구음장애; NMDA 수용체 Cu²⁺ 조절 이상 → 정신증·우울증; UWDRS 점수; MRI 'giant panda face'. 각막: Descemet막 Cu → Kayser-Fleischer Ring(KF, 신경형 95%). 신장: 근위세뇨관 Cu 독성 → Fanconi 증후군(아미노산뇨·인뇨). D-페니실라민(F=55%·t½=1.7h·Cu 킬레이션·요중 배설 ↑·신경악화 역설 ~50%); Zinc 아세테이트(50mg TID·장관 MT 유도→Cu 흡수 차단·유지/임신 선호); 트리엔틴(TETA·DPA 부작용 2nd-line); **ALXN1840(TTM·bis-choline TTM·15mg QD·TTM-Cu-Albumin 삼중복합체·분변 배설·NCBC↓98%·ATLAS 2022 NEJM)**. **119 노드 11클러스터**, **24구획 ODE**(약물PK 8+구리동역학 7+장기분포 3+간병태 3+신경퇴행 1+기타 2), **8치료 시나리오**(무치료·DPA 500mg TID·Zinc 50mg TID·Trientine·ALXN1840·DPA→Zinc 전환·ALXN1840+Trientine 병용·정상 WT 대조). Leipzig 점수·NCBC·Cp·24h 요중 Cu·간 Cu·ALT·섬유화·UWDRS·KF Ring 바이오마커. 8탭 Shiny 대시보드(환자프로파일·약물PK·구리동역학·간결과·신경/안과·시나리오비교·바이오마커탐색기·모델정보). 60개 PubMed 인용(13섹션).<br>[🗺️ 지도](wilsons-disease/wd_qsp_model.svg) · [⚙️ mrgsolve](wilsons-disease/wd_mrgsolve_model.R) · [📊 Shiny](wilsons-disease/wd_shiny_app.R) · [📚 문헌](wilsons-disease/wd_references.md) · [📄 README](wilsons-disease/README.md) |
 | 144 | 내분비·대사 | [**당뇨병성 신병증**<br><sub>Diabetic Nephropathy · DN</sub>](diabetic-nephropathy/) | <a href="diabetic-nephropathy/dn_qsp_model.svg"><img src="diabetic-nephropathy/dn_qsp_model.png" width="190" alt="DN"></a> | **당뇨병 미세혈관 합병증 → 진행성 CKD** — 고혈당(AGE·PKC·헥소사민·폴리올 경로) → 산화스트레스(Nox4·ROS) + RAAS 활성화(AngII→인사구체 고혈압) + TGF-β1(Smad2/3·CTGF·ECM 축적·사구체경화) + NF-κB 염증(TNF-α·IL-1β·MCP-1·NLRP3) → 족세포 손상(네프린·포도신·족돌기 소실·단백뇨) → 세관 손상(SGLT2·저산소증·EMT·간질 섬유화) → eGFR 감소 → ESKD. ACEi(에나라프릴 10mg BID·Emax 90%)·ARB(로살탄 100mg QD·Emax 85%)·SGLT2i(엠파글리플로진 25mg QD·Emax 85%)·파이네레논(20mg QD·비스테로이드 MRA·Emax 88%) 4종 완전 PK/PD 모델링. 7가지 치료 시나리오(무치료·ACEi·ARB·SGLT2i·ACEi+SGLT2i·SGLT2i+Fine·삼중병용). **100+ 노드 9클러스터**, **19구획 ODE**(약물PK 8+혈당·AGE·AngII·TGF-β·ROS·ECM·족세포·UACR·세관·섬유화·eGFR), **7치료 시나리오**. Lewis 1993 NEJM(ACEi)·RENAAL/IDNT 2001(ARB)·CREDENCE 2019(SGLT2i)·DAPA-CKD 2020·FIDELIO-DKD 2020 NEJM(파이네레논)·CONFIDENCE 2023(병용) 보정. eGFR·UACR·SBP·HbA1c·TGF-β·섬유화·족세포·CKD병기. 6탭 Shiny 대시보드(환자프로파일·약물PK·PD/바이오마커·임상엔드포인트·시나리오비교·GFR기울기&ESKD). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](diabetic-nephropathy/dn_qsp_model.svg) · [⚙️ mrgsolve](diabetic-nephropathy/dn_mrgsolve_model.R) · [📊 Shiny](diabetic-nephropathy/dn_shiny_app.R) · [📚 문헌](diabetic-nephropathy/dn_references.md) · [📄 README](diabetic-nephropathy/README.md) |
+| 145 | 알레르기·면역 | [**만성 자발성 두드러기**<br><sub>Chronic Spontaneous Urticaria · CSU</sub>](chronic-urticaria/) | <a href="chronic-urticaria/csu_qsp_model.svg"><img src="chronic-urticaria/csu_qsp_model.png" width="190" alt="CSU"></a> | **IgE/FcεRI-비만세포 축 → 팽진·홍반·소양감** — 자가항체(anti-FcεRIα·anti-IgE) 또는 자가항원-IgE → FcεRI 교차결합 → 비만세포 탈과립(히스타민·PGD2·LTC4) + IL-31·IL-33·TSLP Type-2 사이토카인 망 → 지속적 두드러기. BTK(PLCγ→IP3/DAG→Ca²⁺) 및 PI3K/Akt 경유 MC 활성화 신호. 오말리주맙(항-IgE·유리IgE↓→FcεRI 발현↓)·두필루맙(항-IL-4Rα·IL-4/IL-13 공통 차단)·리미브루티닙(BTKi)·H1R 역효현제(세티리진·빌라스틴) PK/PD 완전 모델링. **110+ 노드 9클러스터**, **18구획 ODE**(항히스타민PK+오말리주맙2구획PK+두필루맙2구획PK+BTKi+IgE유리/결합+MC priming/활성+피부/혈장히스타민+IL-31/IL-33), **7치료 시나리오**. ASTERIA I·II NEJM 2013·GLACIAL JACI 2013(오말리주맙)·LIBERTY-CSU CUPID A·B NEJM 2023(두필루맙)·Lowe 2014(오말리주맙 PopPK) 보정. UAS7·WCU(≤6)·IgE 억제율·MC 활성지표·IL-31. 8탭 Shiny 대시보드(환자프로파일·약물PK·IgE&비만세포·사이토카인·임상엔드포인트·시나리오비교·바이오마커·참고). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](chronic-urticaria/csu_qsp_model.svg) · [⚙️ mrgsolve](chronic-urticaria/csu_mrgsolve_model.R) · [📊 Shiny](chronic-urticaria/csu_shiny_app.R) · [📚 문헌](chronic-urticaria/csu_references.md) · [📄 README](chronic-urticaria/README.md) |
 | 143 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 
 ---
@@ -732,3 +733,52 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`dn_mrgsolve_model.R`](diabetic-nephropathy/dn_mrgsolve_model.R) | **19구획 ODE**, **7치료 시나리오** |
 | 📊 Shiny 앱 | [`dn_shiny_app.R`](diabetic-nephropathy/dn_shiny_app.R) | **6탭** (환자프로파일·약물PK·PD/바이오마커·임상엔드포인트·시나리오비교·GFR기울기&ESKD) |
 | 📚 참고문헌 | [`dn_references.md`](diabetic-nephropathy/dn_references.md) | **45개 PubMed 인용** (10개 섹션) |
+
+---
+
+## 🧬 만성 자발성 두드러기 (Chronic Spontaneous Urticaria) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`chronic-urticaria/`](chronic-urticaria/) | **약어:** CSU | **날짜:** 2026-06-24
+
+[![CSU QSP 기계론적 지도](chronic-urticaria/csu_qsp_model.png)](chronic-urticaria/csu_qsp_model.svg)
+
+**질환**: 만성 자발성 두드러기(Chronic Spontaneous Urticaria, CSU) | **분류**: 알레르기·면역 | **유병률**: 전 세계 성인 약 1–2% | **여성 우세(2:1)**
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. 트리거** | 자가항원(IL-24·TPO·TG)·IgE 자가반응성·Anti-FcεRIα IgG | AutoAg, AntiTPO_IgE, Anti_FcεRI_IgG |
+| **2. IgE/FcεRI 축** | 유리IgE + FcεRI → MC 무장 → 교차결합 탈과립 | IgE_free, FcεRI_armed, CrossLink |
+| **3. BTK 신호** | FcεRI → Syk→BTK→PLCγ→IP3/DAG→Ca²⁺→PKC | BTK, PLCγ, IP3, DAG, PKC_MC |
+| **4. 비만세포 매개체** | 히스타민·PGD2·LTC4·트립타제·PAF | Histamine, PGD2, LTC4, Tryptase |
+| **5. Type-2 사이토카인** | IL-4·IL-13·IL-31·IL-33·TSLP → ILC2·Th2 | IL31_skin, IL33_skin, TSLP, ILC2 |
+| **6. 피부 혈관·신경** | H1R→혈관확장·혈관투과성↑·C 신경섬유·CGRP·SP | H1R_skin, CGRP, SubP, Edema |
+| **7. 임상 엔드포인트** | UAS7 = ISS7 + HSS7 · WCU · CU-Q2oL | UAS7, ISS7, HSS7, AAS7 |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S1** | 무치료 (자연경과) | — | 관찰 코호트 | UAS7 유지·만성화 |
+| **S2** | 세티리진 10 mg QD | H1R 역효현제 | ACR/EAACI 1차 치료 | UAS7 ~20–25% 감소 |
+| **S3** | 고용량 항히스타민제 40 mg/day | H1R × 4배 용량 | EAACI 가이드라인 2022 | UAS7 ~30–40% 감소 |
+| **S4** | 오말리주맙 300 mg q4wk | 항-IgE → FcεRI 발현↓ | **ASTERIA II NEJM 2013** | UAS7 WCU 달성 ~52% |
+| **S5** | 오말리주맙 300 mg + AH | IgE 차단 + H1R 차단 | **GLACIAL JACI 2013** | WCU ~53%, IgE ↓ ~95% |
+| **S6** | 두필루맙 300 mg q2wk | 항-IL-4Rα·IL-4/IL-13 차단 | **LIBERTY-CSU CUPID A·B NEJM 2023** | UAS7 LS mean −8.6 |
+| **S7** | BTKi 25 mg QD | BTK 억제→PLCγ·MC 탈과립↓ | **리미브루티닙 Phase IIb 2023** | UAS7 ~40–50% 감소 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`csu_qsp_model.dot`](chronic-urticaria/csu_qsp_model.dot) | **110+ 노드, 9 클러스터** |
+| ⚙️ mrgsolve ODE | [`csu_mrgsolve_model.R`](chronic-urticaria/csu_mrgsolve_model.R) | **18구획 ODE**, **7치료 시나리오** |
+| 📊 Shiny 앱 | [`csu_shiny_app.R`](chronic-urticaria/csu_shiny_app.R) | **8탭** (환자프로파일·약물PK·IgE&비만세포·사이토카인·임상엔드포인트·시나리오비교·바이오마커·About) |
+| 📚 참고문헌 | [`csu_references.md`](chronic-urticaria/csu_references.md) | **45개 PubMed 인용** (10개 섹션) |
