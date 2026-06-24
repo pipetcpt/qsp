@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-139-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-140-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **139개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **140개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -263,6 +263,7 @@ qsp/
 | 137 | 심혈관 | [**심근염**<br><sub>Myocarditis · MYO</sub>](myocarditis/) | <a href="myocarditis/myo_qsp_model.svg"><img src="myocarditis/myo_qsp_model.png" width="190" alt="MYO"></a> | 바이러스(CVB3·SARS-CoV-2·아데노바이러스·HHV-6) 심근세포 감염 → CAR/ACE2 수용체 진입 → 바이러스 복제·TLR3/7/9·RIG-I·MDA5·cGAS-STING 선천면역 활성화 → NF-κB·IRF3/7·NLRP3 인플라마좀 → IFN-α/β/γ·TNF-α·IL-1β·IL-6 사이토카인 폭풍 → NK세포·M1대식세포 심근 손상. CD4+ Th1/Th17 및 CD8+ CTL 적응 면역; 분자 유사성(molecular mimicry) → 항심근미오신·항β1-AR·항ANT·항TnI 자가항체 → ADCC·보체 활성화. TGF-β→근섬유아세포→콜라겐 침착→LV 확장·DCM. IVIG 2g/kg(IV 주입·2구획 PK·t½=21일·Fc-R 차단)·프레드니솔론(경구 F=80%·t½=2-3h·GR 억제)·아자티오프린→6-MP(전구약물 F=47%·HPRT/TPMT경로)·사이클로스포린(F=35%·칼시뉴린억제·t½=8-12h)·콜히친(F=45%·NLRP3/튜불린억제·Vd=250 L/kg) 5종 PK/PD. **170+ 노드 10클러스터**, **35구획 ODE**(심근세포 3+바이러스 1+선천면역 3+사이토카인 7+적응면역 9+섬유화 3+바이오마커 3+약물PK 6), **5치료 시나리오**(자연경과·IVIG 단독·프레드니솔론+아자티오프린 TIMIC·IVIG+Pred+Aza+CsA 거대세포·IVIG+콜히친). TIMIC(Frustaci 2009)·IMAC-2(McNamara 2001)·Cooper 2007 거대세포 프로토콜 보정. 트로포닌 I·BNP·LVEF·CMR-LGE·부정맥 위험 바이오마커. 7탭 Shiny 대시보드. 60개 PubMed 인용.<br>[🗺️ 지도](myocarditis/myo_qsp_model.svg) · [⚙️ mrgsolve](myocarditis/myo_mrgsolve_model.R) · [📊 Shiny](myocarditis/myo_shiny_app.R) · [📚 문헌](myocarditis/myo_references.md) · [📄 README](myocarditis/README.md) |
 | 138 | 희귀·유전질환 | [**고셔병**<br><sub>Gaucher Disease · GCD</sub>](gaucher-disease/) | <a href="gaucher-disease/gcd_qsp_model.svg"><img src="gaucher-disease/gcd_qsp_model.png" width="190" alt="GCD"></a> | *GBA1* 이중대립변이 → 리소솜 β-글루코세레브로시다제(GBA) 결핍 → 글루코세레브로사이드(GC) 및 고독성 탈아실화 유도체 lyso-GL1 조직대식세포 축적 → 고셔세포 형성. GBA합성(ER→Golgi·M6P수용체·ERAD)·GCS 기질합성·M6P수용체 매개 ERT 리소솜 전달; GC→비장/간/골수/CNS 구획 이동; NF-κB→IL-1β·IL-6·TNF-α·MIP-1α·RANKL; 비장비대·간비대·빈혈·혈소판감소·골밀도감소. GBA-파킨슨 연계(α-시누클레인 축적). 이미글루세라제(60U/kg Q2W·2구획·CL=1.4L/h/kg·EMAX=85%)·벨라글루세라제α; 엘리글루스타트(84mg BID·GCS IC50=10nM·CYP2D6·EM/PM)·미글루스타트(IC50=50μM); 암브록솔(샤페론). **115+ 노드 10클러스터**, **26구획 ODE**(약물PK 8+효소/기질 5+바이오마커 4+장기용적 2+혈액 2+골 3+염증 2), **6치료 시나리오**(자연경과·이미글루세라제·벨라글루세라제α·엘리글루스타트EM·엘리글루스타트PM·저용량ERT+엘리글루스타트). Barton 1991 NEJM·Mistry 2015 JAMA·Zimran 2010 Blood·Balwani 2021 AJH 보정. GL-1·lyso-GL1·키토트리오시다제·페리틴·SV·LV·Hb·PLT·BMD 바이오마커. 9탭 Shiny 대시보드. 62개 PubMed 인용.<br>[🗺️ 지도](gaucher-disease/gcd_qsp_model.svg) · [⚙️ mrgsolve](gaucher-disease/gcd_mrgsolve_model.R) · [📊 Shiny](gaucher-disease/gcd_shiny_app.R) · [📚 문헌](gaucher-disease/gcd_references.md) · [📄 README](gaucher-disease/README.md) |
 | 139 | 내분비·대사 | [**원발성 알도스테론증**<br><sub>Primary Aldosteronism · PA</sub>](primary-aldosteronism/) | <a href="primary-aldosteronism/pa_qsp_model.svg"><img src="primary-aldosteronism/pa_qsp_model.png" width="190" alt="PA"></a> | **Conn 증후군** — 부신 피질에서의 자율적 알도스테론 과분비(APA·BAH) → 레닌 억제·ARR 상승·Na⁺ 저류·K⁺ 소실·대사성 알칼리증. KCNJ5/CACNA1D/ATP1A1/ATP2B3 체성 돌연변이 → Ca²⁺ 내유 → CYP11B2(알도스테론 합성효소) 과발현 → 자율적 알도스테론 생성; RAAS 캐스케이드(레닌→AngI→AngII→알도스테론) + APA 자율분비. MR→SGK1→Nedd4-2 인산화 → ENaC 세포표면 발현↑ → Na⁺ 재흡수·ROMK K⁺ 분비·H⁺ 분비 → 저칼륨혈증·대사성 알칼리증. 부피팽창→MAP↑, 심근/혈관 MR 직접 활성→심근섬유화·LVH. 진단: ARR(≥30)·PAC(>15 ng/dL)·부신정맥 채혈(AVS). 복강경 부신절제술(APA 단측); 스피로노락톤(IC50=1.2 μg/L·활성대사체 카렌오논 t½≈20h)·에플레레논(IC50=2.5 μg/L)·파이네레논(IC50=0.65 μg/L·비스테로이드성·심장보호 우월) MR 길항; ACEi·CCB 병용. **120+ 노드 10클러스터**, **23구획 ODE**(약물PK 6+RAAS 3+신장/이온 5+심혈관 2+신기능 1+장기손상 2+부신 2+바이오마커 2), **8치료 시나리오**(무치료 APA 2년 진행·부신절제술·스피로노락톤 100mg·에플레레논 100mg·파이네레논 20mg·스피로+암로디핀·정상 대조·ACEi). Choi 2011 Science(KCNJ5)·Rossi 2006 JACC·Milliez 2005 JACC·Pitt 1999 NEJM(RALES)·Bakris 2020 NEJM(FIDELIO) 보정. ARR·PAC·PRA·K⁺·HCO₃⁻·MAP·LVMi·심근섬유화·GFR·HOMA proxy 바이오마커. 7탭 Shiny 대시보드(환자프로파일·RAAS/PK·알도스테론 패널·이온 항상성·심혈관/장기손상·시나리오 비교·바이오마커 탐색기). 48개 PubMed 인용.<br>[🗺️ 지도](primary-aldosteronism/pa_qsp_model.svg) · [⚙️ mrgsolve](primary-aldosteronism/pa_mrgsolve_model.R) · [📊 Shiny](primary-aldosteronism/pa_shiny_app.R) · [📚 문헌](primary-aldosteronism/pa_references.md) · [📄 README](primary-aldosteronism/README.md) |
+| 140 | 희귀·유전질환 | [**트랜스티레틴 아밀로이드증**<br><sub>Transthyretin Amyloidosis · ATTR</sub>](transthyretin-amyloidosis/) | <a href="transthyretin-amyloidosis/attr_qsp_model.svg"><img src="transthyretin-amyloidosis/attr_qsp_model.png" width="190" alt="ATTR"></a> | 간 헤파토사이트 분비 TTR 사량체 해리(rate-limiting) → 잘못 접힌 단량체 → 독성 올리고머 → 아밀로이드 섬유 → 심장(ATTRwt: 간질 침착·LV 비후·HFpEF→HFrEF) / 말초신경(ATTRv: 길이 의존적 축삭 퇴화·자율신경 기능부전) 다장기 손상. ATTRv 변이(V30M·T60A·V122I) 구조 불안정화; 세포독성 올리고머 → NLRP3 인플라마좀·IL-1β·TNF-α → 심근세포 아포토시스; TGF-β → 심장 섬유화; SAP·GAG 섬유 안정화; 프로테오스타시스(HSP70/UPS/자가포식) 실패. 타파미디스(61mg PO QD·T4 결합부위 점유·사량체 안정화 Emax=80%·EC50=0.8μg/mL·ATTR-ACT CV사망+입원 30%↓)·아코라미디스(800mg BID·고선택 안정제·ATTRiBUTE-CM); 파티시란(0.3mg/kg IV Q3W·LNP-ApoE-LDLR-Ago2-RISC·mRNA 80%↓·APOLLO mNIS+7 34점 차이)·부트리시란(25mg SC Q3M·GalNAc-ASGR1·83%↓·HELIOS-A NIS 17점 개선); 이노테르센(300mg SC QW·2'-MOE ASO·RNaseH1·72%↓·NEURO-TTR mNIS+7 19점 차이)·엡론테르센(45mg SC QM·GalNAc-ASO). **116 노드 10클러스터**, **25구획 ODE**(약물PK 9+TTR 경로 4+조직 섬유 3+심장 PD 4+신경 PD 3+신장 1+증상 1), **7치료 시나리오**(ATTRwt 자연경과·ATTRv 자연경과·타파미디스·파티시란·부트리시란·이노테르센·타파미디스+부트리시란 병용). ⁹⁹ᵐTc-PYP/CMR LGE-ECV·NT-proBNP·hsTnT·LVEF·NIS·mBMI·eGFR 바이오마커. 8탭 Shiny 대시보드. 60개 PubMed 인용 (11섹션).<br>[🗺️ 지도](transthyretin-amyloidosis/attr_qsp_model.svg) · [⚙️ mrgsolve](transthyretin-amyloidosis/attr_mrgsolve_model.R) · [📊 Shiny](transthyretin-amyloidosis/attr_shiny_app.R) · [📚 문헌](transthyretin-amyloidosis/attr_references.md) · [📄 README](transthyretin-amyloidosis/README.md) |
 
 ---
 
@@ -486,3 +487,49 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`pa_mrgsolve_model.R`](primary-aldosteronism/pa_mrgsolve_model.R) | **23구획 ODE**, **8치료 시나리오** |
 | 📊 Shiny 앱 | [`pa_shiny_app.R`](primary-aldosteronism/pa_shiny_app.R) | **7탭** (환자프로파일·RAAS/PK·알도스테론패널·이온항상성·심혈관/TOD·시나리오비교·바이오마커탐색기) |
 | 📚 참고문헌 | [`pa_references.md`](primary-aldosteronism/pa_references.md) | **48개 PubMed 인용** (12개 섹션) |
+
+---
+
+## 🧬 트랜스티레틴 아밀로이드증 (Transthyretin Amyloidosis) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`transthyretin-amyloidosis/`](transthyretin-amyloidosis/) | **약어:** ATTR | **날짜:** 2026-06-24
+
+[![ATTR QSP 기계론적 지도](transthyretin-amyloidosis/attr_qsp_model.png)](transthyretin-amyloidosis/attr_qsp_model.svg)
+
+**질환**: 트랜스티레틴 아밀로이드증(Transthyretin Amyloidosis, ATTR) | **분류**: 희귀·유전질환 / 단백질 접힘 이상 / 아밀로이드증 | **유형**: ATTRwt (야생형·심근병증) / ATTRv (유전성·신경병증+심장) | **유병률**: ATTRv ~50,000명(전 세계), ATTRwt ~10–13% 고령 HF 부검
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. TTR 합성** | 간 헤파토사이트에서 TTR 단량체 합성 → β-시트 접힘 → 동형사량체 조립(55 kDa) → 혈장 분비 | TTR_mRNA, TTR_pre, TTR_tetramer |
+| **2. 사량체 해리** | 열·pH 스트레스 또는 ATTRv 변이에 의한 사량체 해리 (rate-limiting step) → 잘못 접힌 단량체 | kdis, TTR_misfolded, TTR_oligomer |
+| **3. 아밀로이드 침착** | 성숙 섬유가 심장(ATTRwt≫), 말초신경(ATTRv≫), 신장·비장·GI에 선택적 침착 | FIB_HRT, FIB_NRV, FIB_SYS |
+| **4. 장기 손상** | NLRP3·IL-1β·TNF-α 세포독성 → 심근세포 아포토시스 → 심실 비후·이완 장애 / 슈반세포 압박 → 축삭 퇴화 | LVEF↓, NT-proBNP↑, NIS↑, mBMI↓ |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S1** | 무치료 ATTRwt | 자연경과 | Maurer 2018 (위약군) | LVEF↓, FIB_HRT↑, 18개월 생존↓ |
+| **S2** | 무치료 ATTRv | 자연경과 | Adams 2018 (위약군) | NIS↑, mBMI↓, FIB_NRV↑ |
+| **S3** | 타파미디스 61mg PO QD | T4결합부위→사량체 안정화 (Emax 80%) | **ATTR-ACT** (Maurer 2018 NEJM) | CV사망+HF입원 HR 0.70 (95%CI 0.51–0.96) |
+| **S4** | 파티시란 0.3mg/kg IV Q3W | LNP-siRNA → TTR mRNA 절단 (↓80%) | **APOLLO** (Adams 2018 NEJM) | mNIS+7 -34점 vs 위약 (p<0.001) |
+| **S5** | 부트리시란 25mg SC Q3M | GalNAc-siRNA → mRNA 분해 (↓83%) | **HELIOS-A** (Gillmore 2021 NEJM) | NIS -17점 vs 위약 적응적비교 |
+| **S6** | 이노테르센 300mg SC QW | 2'-MOE ASO → RNase H1 → mRNA 절단 (↓72%) | **NEURO-TTR** (Benson 2018 Lancet) | mNIS+7 -19점 vs 위약 (p<0.001) |
+| **S7** | 타파미디스+부트리시란 병용 | 이중 기전 (안정화+siRNA) | 가상 탐색 | 추가 FIB_HRT↓, LVEF 보존 극대화 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`attr_qsp_model.dot`](transthyretin-amyloidosis/attr_qsp_model.dot) | **116 노드, 10클러스터** |
+| ⚙️ mrgsolve ODE | [`attr_mrgsolve_model.R`](transthyretin-amyloidosis/attr_mrgsolve_model.R) | **25구획 ODE** (PK 9 + PD 16), **7치료 시나리오** |
+| 📊 Shiny 앱 | [`attr_shiny_app.R`](transthyretin-amyloidosis/attr_shiny_app.R) | **8탭** (환자프로파일·약물PK·TTR접힘이상·심장결과·신경결과·시나리오비교·바이오마커대시보드·모델정보) |
+| 📚 참고문헌 | [`attr_references.md`](transthyretin-amyloidosis/attr_references.md) | **60개 PubMed 인용** (11개 섹션) |
