@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-146-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-148-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **146개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **148개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -271,6 +271,7 @@ qsp/
 | 146 | 급성 감염·중환자 | [**패혈증 / 패혈성 쇼크**<br><sub>Sepsis & Septic Shock · SEP</sub>](sepsis/) | <a href="sepsis/sep_qsp_model.svg"><img src="sepsis/sep_qsp_model.png" width="190" alt="SEP"></a> | **감염 → 조절 장애 숙주 반응 → 다장기부전(MODS)** — 패혈증(Sepsis-3, Singer 2016 JAMA): 감염에 대한 숙주 조절 장애 반응(dysregulated host response)으로 생명을 위협하는 장기부전. 패혈성 쇼크: MAP<65 mmHg + 젖산>2 mmol/L, 28일 사망률 ~40%. 병원체(LPS·PGN·β-glucan)→ TLR4/TLR2/TLR3/TLR9·NLRP3 인플라마좀·cGAS-STING → MyD88/TRIF → NF-κB 활성화 → 사이토카인 폭풍(TNFα·IL-1β·IL-6·IL-8·HMGB1). 보체(C3→C5a→혈관·면역 반응). 응고(TF 발현↑→트롬빈↑→피브린·PAI-1↑→DIC). 내피세포 장애(VE-cadherin 분리·ICAM-1↑·NO↑→혈관확장쇼크·부종). 다장기부전(ARDS·AKI·간부전·SAE·심혈관쇼크·DIC). 후기 면역억제(CARS: T세포아포토시스·PD-1↑·MDSC↑). 치료: 메로페넴(2구획 PK·fT>MIC·fT>MIC 지연 효과 임계)·노르에피네프린(α1→MAP 회복)·하이드로코티손 200mg/day(GR→NF-κB 억제·혈관수축제 민감도↑·ADRENAL/APROCCHSS 2018 NEJM)·토실리주맙 8mg/kg(IL-6R 차단·REMAP-CAP 2021 NEJM). **130+ 노드 11클러스터**(병원체인식·선천면역·사이토카인·보체·응고/DIC·내피세포·다장기부전·약물PK/PD·임상바이오마커·대사/미토콘드리아·적응면역/CARS). **24구획 ODE**(BACT+ABX1/2+TNF/IL6/IL10/IL1B+NEUT_B/T+MACS+C5A+THROMBIN/FIBRIN/PAI1+ENDOT+PF_RATIO/CREATININE/BILIRUBIN/LACTATE/MAP/PLT+NE_C/HC_C/TOCI_C), **7치료 시나리오**(S1 무치료·S2 항생제단독·S3 항생제+NE·S4 번들(항생제+NE+수액)·S5 번들+HC·S6 번들+HC+토실리주맙·S7 면역저하환자). SOFA 6도메인(폐·신장·간·순환·응고·CNS) 동적 계산·28일사망확률(logit 모델 Seymour 2017). Kumar 2006 CritCareMed(항생제 1h 지연=7% 사망↑)·Rivers 2001 NEJM(EGDT)·De Backer 2010(노르에피네프린). PCT·CRP·Lactate·SOFA·qSOFA·균혈증 바이오마커. **8탭 Shiny 대시보드**(환자프로파일·항생제PK·사이토카인/면역PD·혈역학/SOFA·장기기능·시나리오비교·바이오마커탐색기·About). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](sepsis/sep_qsp_model.svg) · [⚙️ mrgsolve](sepsis/sep_mrgsolve_model.R) · [📊 Shiny](sepsis/sep_shiny_app.R) · [📚 문헌](sepsis/sep_references.md) · [📄 README](sepsis/README.md) |
 | 147 | 만성질환 / 안과 | [**당뇨병성 망막병증**<br><sub>Diabetic Retinopathy · DR</sub>](diabetic-retinopathy/) | <a href="diabetic-retinopathy/dr_qsp_model.svg"><img src="diabetic-retinopathy/dr_qsp_model.png" width="190" alt="DR"></a> | **고혈당 → 4가지 생화학 경로(폴리올·헥소사민·PKC·AGE-RAGE) → 산화스트레스/VEGF/신경염증 → 망막 혈관 구조 병변 → DME/PDR → 시력 소실** — 알도스환원효소(AR) → 소르비톨↑·NADPH 고갈; GFAT → O-GlcNAc → TGF-β/PAI-1↑; PKCβ2 → VEGF↑·NF-κB↑·eNOS↓·ET-1↑; 메틸글리옥살/글리옥살 → AGE → RAGE → NF-κB/VEGF 증폭. 미토콘드리아 ETC 과부하 → O₂•⁻ → PARP → GAPDH 억제 → 경로 증폭 피드백. HIF-1α(저산소) + NF-κB(염증) → VEGF-A165 과발현 → VEGFR2 → PI3K/AKT(혈관투과성↑)+ERK(내피 증식). Ang2 증가/Tie-2 탈안정화 → 주피세포 지지 소실. NLRP3 인플라마좀(IL-1β·IL-18)·TNF-α·IL-6·ICAM-1→ 백혈구 정체(leukostasis) → 내피세포 아포토시스 → BRB 파괴 → 미세동맥류·경성 삼출물·면화반·IRMA → 모세혈관 비관류 → 망막 저산소증(피드백) → 신생혈관(NVE/NVD) → 유리체 출혈·견인성 망막박리. DME: BRB 파괴 → 액체 누출 → CRT↑ → 시력↓. 아플리버셉트(2mg IVT q4→8w·VEGF-A/B+PlGF 포획·Kd~0.5pM·PROTOCOL T 2015 NEJM·PANORAMA 2019)·라니비주맙(0.5mg q4w·RISE/RIDE 2013)·파리시맙(6mg q4→16w·VEGF-A+Ang2 이중 차단·TENAYA/LUCERNE 2022 Lancet)·베바시주맙·덱사메타손 임플란트 완전 PK/PD 모델링. 혈당 조절(메트포르민·GLP-1RA·SGLT2i)·RAAS 차단·페노피브레이트(ACCORD-Eye) 병용. **210+ 노드 9클러스터**, **18구획 ODE**(약물PK 4+혈당 2+VEGF 3+ROS/AGE 2+염증 2+세포 2+구조 3+시력 1), **6치료 시나리오**(S0 무치료·S1 혈당조절·S2 아플리버셉트·S3 라니비주맙·S4 파리시맙·S5 아플리버셉트+혈당조절). PROTOCOL T NEJM 2015(AFL +13.3글자·RBZ +11.2·Bev +9.7)·RISE/RIDE·CLARITY·PANORAMA·TENAYA/LUCERNE·DCCT NEJM 1993(혈당집중치료 76% 감소) 보정. ETDRS BCVA·CRT(OCT)·유리체 VEGF·NV지수·DR중증도·OCTA-FAZ·주피세포%. **8탭 Shiny 대시보드**(환자프로파일·약물PK·VEGF/혈관신생·산화스트레스/염증·망막구조·시각결과·시나리오비교·바이오마커). **57개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](diabetic-retinopathy/dr_qsp_model.svg) · [⚙️ mrgsolve](diabetic-retinopathy/dr_mrgsolve_model.R) · [📊 Shiny](diabetic-retinopathy/dr_shiny_app.R) · [📚 문헌](diabetic-retinopathy/dr_references.md) · [📄 README](diabetic-retinopathy/README.md) |
 | 143 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
+| 148 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
 
 ---
 
@@ -878,3 +879,52 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`dr_mrgsolve_model.R`](diabetic-retinopathy/dr_mrgsolve_model.R) | **18구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`dr_shiny_app.R`](diabetic-retinopathy/dr_shiny_app.R) | **8탭** (환자프로파일·약물PK·VEGF/혈관신생·산화/염증·망막구조·시각결과·시나리오비교·바이오마커) |
 | 📚 참고문헌 | [`dr_references.md`](diabetic-retinopathy/dr_references.md) | **57개 PubMed 인용** (14개 섹션) |
+
+---
+
+## 🩸 발작성 야간 혈색소뇨증 (Paroxysmal Nocturnal Hemoglobinuria) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`paroxysmal-nocturnal-hemoglobinuria/`](paroxysmal-nocturnal-hemoglobinuria/) | **약어:** PNH | **날짜:** 2026-06-24
+
+[![PNH QSP 기계론적 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png)](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg)
+
+**질환**: 발작성 야간 혈색소뇨증(Paroxysmal Nocturnal Hemoglobinuria, PNH) | **분류**: 희귀 혈액·보체 | **발병**: 조혈모세포 *PIGA* 체세포 돌연변이 | **유병률**: ~16/100만
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. PIGA 돌연변이** | X연관 PIGA 체세포 변이 → GPI-합성효소(GlcNAc-PI) 소실 → GPI 앵커 결핍 | PIGA_mut, GPI_anchor↓ |
+| **2. GPI-AP 소실** | CD55(DAF)·CD59(MIRL) PNH 세포 표면에서 소실 | CD55↓, CD59↓ |
+| **3. C3 전환효소 무제한 활성** | CD55 소실 → C3bBb(Factor B+D) 분해 안 됨 → C3b 대량 침착 | C3b_dep, EVH_rate |
+| **4. MAC 자유 형성** | CD59 소실 → C9 중합 → MAC(C5b-9) 자유 생성 → 세포막 천공 | MAC, IVH_rate |
+| **5. 혈관내 용혈(IVH)** | MAC → PNH RBC 직접 용해 → 유리 Hgb → 혈색소뇨증 | fHgb, LDH↑ |
+| **6. 혈관외 용혈(EVH)** | C3b 옵소닌화 → 비장/간 대식세포 탐식 | C3b → EVH_rate |
+| **7. NO 결핍** | 유리 Hgb + NO → Met-Hgb → NO 고갈 → 평활근 긴장이상·혈전 | NO_rel↓ |
+| **8. 혈전** | NO↓ + 혈소판 활성화 → 정맥혈전증(DVT·Budd-Chiari) | Thrombo_risk |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S0** | 무치료 (자연경과) | — | Brodsky 2014 Blood | fHgb↑, LDH↑, Hgb↓, 수혈의존 |
+| **S1** | 에쿨리주맙 900mg q2w IV | C5 차단 → IVH 억제 | **TRIUMPH NEJM 2006** | LDH 정상화, TI 49%, EVH 지속 |
+| **S2** | 라블리주맙 3300mg q8w IV | C5 차단(긴 t½ ~49일) | **ALXN1210-301 Blood 2019** | TI 73.6%, q8w 투여 편의성 |
+| **S3** | 익타코판 200mg BID PO | Factor B → AP 차단 → IVH+EVH 모두 억제 | **APPLY-PNH NEJM 2024** | TI 51.1% vs 에쿨리주맙 0% |
+| **S4** | 에쿨리주맙 + 다니코판 150mg TID | C5+Factor D → EVH 감소 add-on | GALAXY 임상 | 잔류 EVH 보완 |
+| **S5** | 익타코판 200mg BID (고클론, f_PNH=0.85) | Factor B (고부담 클론) | APPLY 고클론 서브셋 | Hgb 개선 최대 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`pnh_qsp_model.dot`](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.dot) | **130+ 노드, 13클러스터** |
+| ⚙️ mrgsolve ODE | [`pnh_mrgsolve_model.R`](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) | **24구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`pnh_shiny_app.R`](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) | **8탭** (환자프로파일·약물PK·보체·용혈마커·임상엔드포인트·시나리오비교·바이오마커·About) |
+| 📚 참고문헌 | [`pnh_references.md`](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) | **35개 PubMed 인용** (12개 섹션) |
