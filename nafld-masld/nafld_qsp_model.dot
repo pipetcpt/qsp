@@ -1,0 +1,673 @@
+digraph NAFLD_QSP_Model {
+    // =====================================================================
+    // NAFLD/MASLD QSP Mechanistic Map
+    // Non-Alcoholic Fatty Liver Disease / Metabolic-Associated Steatotic Liver Disease
+    // =====================================================================
+    graph [
+        rankdir=LR
+        fontname="Helvetica"
+        fontsize=11
+        label="NAFLD/MASLD Quantitative Systems Pharmacology Model\n(Non-Alcoholic Fatty Liver Disease / Metabolic-Associated Steatotic Liver Disease)"
+        labelloc=t
+        labeljust=c
+        overlap=false
+        splines=true
+        bgcolor="#f9f9f9"
+        pad=0.5
+    ]
+    node [fontname="Helvetica" fontsize=9 style=filled]
+    edge [fontname="Helvetica" fontsize=8]
+
+    // =========================================================
+    // SUBGRAPH 1: Adipose Tissue & Systemic Insulin Resistance
+    // =========================================================
+    subgraph cluster_adipose {
+        label="Adipose Tissue & Insulin Resistance"
+        style=filled
+        fillcolor="#FFF3E0"
+        color="#E65100"
+        fontcolor="#E65100"
+        fontsize=12
+
+        ADIPOSE_TG       [label="Adipocyte TG\nStores" shape=ellipse fillcolor="#FFCC80"]
+        ADIPOSE_LIPO     [label="Lipolysis\n(HSL/ATGL)" shape=box fillcolor="#FFB74D"]
+        FFA_PLASMA       [label="Plasma FFA\n(NEFA)" shape=ellipse fillcolor="#FF8A65"]
+        GLYCEROL         [label="Glycerol\n(gluconeogenesis)" shape=ellipse fillcolor="#FFAB40"]
+        INS_RESISTANCE   [label="Insulin\nResistance" shape=diamond fillcolor="#FF7043"]
+        HYPERINSULIN     [label="Hyperinsulinemia" shape=ellipse fillcolor="#FF8C42"]
+        ADIPONECTIN      [label="Adiponectin↓\n(anti-inflam)" shape=ellipse fillcolor="#A5D6A7"]
+        LEPTIN           [label="Leptin↑\n(pro-inflam)" shape=ellipse fillcolor="#EF9A9A"]
+        RESISTIN         [label="Resistin↑\n(IR promoter)" shape=ellipse fillcolor="#EF9A9A"]
+        VISFATIN         [label="Visfatin/NAMPT↑" shape=ellipse fillcolor="#EF9A9A"]
+        TNF_ADIPOSE      [label="TNF-α\n(adipose)" shape=ellipse fillcolor="#EF5350"]
+        IL6_ADIPOSE      [label="IL-6\n(adipose)" shape=ellipse fillcolor="#EF5350"]
+        ADIPOSE_INFLAM   [label="Adipose Tissue\nInflammation (ATM)" shape=box fillcolor="#FFCDD2"]
+        CERAMIDE         [label="Ceramide↑\n(lipotoxic)" shape=ellipse fillcolor="#B71C1C" fontcolor="white"]
+
+        ADIPOSE_TG -> ADIPOSE_LIPO [label="catecholamines\nglucagon"]
+        ADIPOSE_LIPO -> FFA_PLASMA [label="flux ↑↑"]
+        ADIPOSE_LIPO -> GLYCEROL
+        INS_RESISTANCE -> ADIPOSE_LIPO [label="disinhibition"]
+        HYPERINSULIN -> INS_RESISTANCE [label="receptor\ndownregulation"]
+        ADIPOSE_INFLAM -> ADIPONECTIN [label="suppresses"]
+        ADIPOSE_INFLAM -> LEPTIN
+        ADIPOSE_INFLAM -> RESISTIN
+        ADIPOSE_INFLAM -> TNF_ADIPOSE
+        ADIPOSE_INFLAM -> IL6_ADIPOSE
+        TNF_ADIPOSE -> INS_RESISTANCE [label="IRS-1 serine\nphosphorylation"]
+        LEPTIN -> INS_RESISTANCE
+        CERAMIDE -> INS_RESISTANCE [label="PKC/PP2A\npathway"]
+        FFA_PLASMA -> CERAMIDE [label="de novo synthesis"]
+    }
+
+    // =========================================================
+    // SUBGRAPH 2: Pancreas & Glucose Homeostasis
+    // =========================================================
+    subgraph cluster_pancreas {
+        label="Pancreas & Glucose Homeostasis"
+        style=filled
+        fillcolor="#E8F5E9"
+        color="#2E7D32"
+        fontcolor="#2E7D32"
+        fontsize=12
+
+        BETA_CELL       [label="Pancreatic β-cell\nFunction" shape=ellipse fillcolor="#A5D6A7"]
+        INSULIN_SECR    [label="Insulin\nSecretion" shape=box fillcolor="#66BB6A"]
+        PLASMA_INSULIN  [label="Plasma\nInsulin" shape=ellipse fillcolor="#43A047"]
+        PLASMA_GLUCOSE  [label="Plasma\nGlucose" shape=ellipse fillcolor="#81C784"]
+        GLUCAGON        [label="Glucagon\n(α-cell)" shape=ellipse fillcolor="#C8E6C9"]
+        GLP1            [label="GLP-1\n(L-cell)" shape=ellipse fillcolor="#A5D6A7"]
+        HOMA_IR         [label="HOMA-IR\n(clinical)" shape=parallelogram fillcolor="#E8F5E9"]
+        HBA1C           [label="HbA1c\n(endpoint)" shape=parallelogram fillcolor="#C8E6C9"]
+
+        PLASMA_GLUCOSE -> INSULIN_SECR [label="glucose-stimulated"]
+        BETA_CELL -> INSULIN_SECR
+        INSULIN_SECR -> PLASMA_INSULIN
+        PLASMA_INSULIN -> PLASMA_GLUCOSE [label="uptake↑\nproduction↓"]
+        GLP1 -> INSULIN_SECR [label="incretin\neffect"]
+        GLUCAGON -> PLASMA_GLUCOSE [label="HGP↑"]
+        PLASMA_INSULIN -> GLUCAGON [label="suppresses"]
+        PLASMA_GLUCOSE -> HOMA_IR
+        PLASMA_INSULIN -> HOMA_IR
+        PLASMA_GLUCOSE -> HBA1C
+    }
+
+    // =========================================================
+    // SUBGRAPH 3: Hepatic Lipid Metabolism
+    // =========================================================
+    subgraph cluster_liver_lipid {
+        label="Hepatic Lipid Metabolism (Steatosis)"
+        style=filled
+        fillcolor="#E3F2FD"
+        color="#1565C0"
+        fontcolor="#1565C0"
+        fontsize=12
+
+        LIVER_FFA_UPTAKE [label="Hepatic FFA\nUptake (CD36/FATP)" shape=box fillcolor="#90CAF9"]
+        DNL              [label="De Novo\nLipogenesis (DNL)" shape=box fillcolor="#42A5F5"]
+        CHREB_SREBP1c    [label="ChREBP/\nSREBP-1c↑" shape=diamond fillcolor="#1E88E5" fontcolor="white"]
+        ACC              [label="ACC\n(DNL rate-limiting)" shape=box fillcolor="#1976D2" fontcolor="white"]
+        FAS              [label="FAS\n(fatty acid synthase)" shape=box fillcolor="#1565C0" fontcolor="white"]
+        MALONYL_COA      [label="Malonyl-CoA↑\n(CPT-1 inhibitor)" shape=ellipse fillcolor="#90CAF9"]
+        LIVER_TAG        [label="Hepatic TAG\n(triglycerides)" shape=ellipse fillcolor="#64B5F6"]
+        LIVER_DAG        [label="Hepatic DAG\n(diacylglycerol)" shape=ellipse fillcolor="#42A5F5"]
+        LIVER_FFA        [label="Hepatic FFA\n(lipotoxic pool)" shape=ellipse fillcolor="#2196F3"]
+        VLDL_ASSEM       [label="VLDL Assembly\n& Secretion" shape=box fillcolor="#1E88E5" fontcolor="white"]
+        APOB             [label="ApoB-100\n(VLDL scaffold)" shape=ellipse fillcolor="#1976D2" fontcolor="white"]
+        VLDL_PLASMA      [label="Plasma VLDL\n(hypertriglycerid.)" shape=ellipse fillcolor="#90CAF9"]
+        BETA_OXID        [label="Mitochondrial\nβ-Oxidation" shape=box fillcolor="#BBDEFB"]
+        CPT1             [label="CPT-1\n(FA transport)" shape=box fillcolor="#90CAF9"]
+        PEROX_OXID       [label="Peroxisomal\nOxidation (ACOX)" shape=box fillcolor="#BBDEFB"]
+        MICR_OXID        [label="Microsomal\nω-Oxidation (CYP2E1)" shape=box fillcolor="#90CAF9"]
+        STEATOSIS_SCORE  [label="Steatosis Score\n(NAS component)" shape=parallelogram fillcolor="#E3F2FD"]
+        LXR              [label="LXR-α\n(nuclear receptor)" shape=diamond fillcolor="#1565C0" fontcolor="white"]
+        PPAR_ALPHA       [label="PPAR-α\n(FA oxidation)" shape=diamond fillcolor="#1E88E5" fontcolor="white"]
+        PPAR_DELTA       [label="PPAR-δ\n(mitochondrial)" shape=diamond fillcolor="#1E88E5" fontcolor="white"]
+
+        FFA_PLASMA -> LIVER_FFA_UPTAKE [label="~60% of hepatic\nFFA source"]
+        LIVER_FFA_UPTAKE -> LIVER_FFA
+        CHREB_SREBP1c -> DNL [label="transcriptional\nactivation"]
+        CHREB_SREBP1c -> ACC
+        CHREB_SREBP1c -> FAS
+        PLASMA_GLUCOSE -> CHREB_SREBP1c [label="ChREBP"]
+        PLASMA_INSULIN -> CHREB_SREBP1c [label="SREBP-1c\nvia mTORC1"]
+        DNL -> LIVER_FFA [label="~25% source"]
+        ACC -> MALONYL_COA
+        MALONYL_COA -> CPT1 [label="inhibits"]
+        FAS -> LIVER_FFA
+        LIVER_FFA -> LIVER_TAG [label="esterification"]
+        LIVER_FFA -> LIVER_DAG [label="incomplete\nesterification"]
+        LIVER_DAG -> INS_RESISTANCE [label="PKC-ε\nIRS-2↓"]
+        LIVER_TAG -> VLDL_ASSEM [label="MTTP-dependent"]
+        APOB -> VLDL_ASSEM
+        VLDL_ASSEM -> VLDL_PLASMA
+        CPT1 -> BETA_OXID [label="enabled when\nMalonyl-CoA↓"]
+        LIVER_FFA -> BETA_OXID
+        LIVER_FFA -> PEROX_OXID [label="overflow"]
+        LIVER_FFA -> MICR_OXID [label="overflow\n→ ROS"]
+        BETA_OXID -> LIVER_TAG [label="reduces"]
+        LIVER_TAG -> STEATOSIS_SCORE
+        LXR -> CHREB_SREBP1c [label="activates"]
+        PPAR_ALPHA -> BETA_OXID [label="transcriptional↑"]
+        PPAR_ALPHA -> CPT1 [label="↑"]
+        PPAR_DELTA -> BETA_OXID [label="↑"]
+    }
+
+    // =========================================================
+    // SUBGRAPH 4: Mitochondrial Dysfunction & Oxidative Stress
+    // =========================================================
+    subgraph cluster_oxstress {
+        label="Mitochondrial Dysfunction & Oxidative Stress"
+        style=filled
+        fillcolor="#FCE4EC"
+        color="#880E4F"
+        fontcolor="#880E4F"
+        fontsize=12
+
+        MITO_ETC        [label="Mitochondrial ETC\n(Complex I-IV)" shape=box fillcolor="#F48FB1"]
+        ROS             [label="ROS\n(superoxide, H2O2)" shape=ellipse fillcolor="#E91E63" fontcolor="white"]
+        RNS             [label="RNS\n(peroxynitrite)" shape=ellipse fillcolor="#C2185B" fontcolor="white"]
+        SOD             [label="SOD\n(antioxidant)" shape=box fillcolor="#F8BBD0"]
+        GSH             [label="GSH Pool\n(glutathione)" shape=box fillcolor="#F8BBD0"]
+        GPX             [label="GPx\n(glutathione peroxidase)" shape=box fillcolor="#F8BBD0"]
+        CAT             [label="Catalase" shape=box fillcolor="#F8BBD0"]
+        NRF2            [label="Nrf2\n(antioxidant TF)" shape=diamond fillcolor="#AD1457" fontcolor="white"]
+        KEAP1           [label="Keap1\n(Nrf2 suppressor)" shape=box fillcolor="#F48FB1"]
+        LIPID_PEROX     [label="Lipid Peroxidation\n(4-HNE, MDA)" shape=ellipse fillcolor="#E91E63" fontcolor="white"]
+        ER_STRESS       [label="ER Stress\n(UPR)" shape=box fillcolor="#F48FB1"]
+        PERK            [label="PERK\n(UPR branch)" shape=box fillcolor="#EF9A9A"]
+        IRE1            [label="IRE1α\n(UPR branch)" shape=box fillcolor="#EF9A9A"]
+        ATF6            [label="ATF6\n(UPR branch)" shape=box fillcolor="#EF9A9A"]
+        JNK_ER          [label="JNK\n(ER stress→inflam)" shape=ellipse fillcolor="#C2185B" fontcolor="white"]
+        CHOP            [label="CHOP/DDIT3\n(apoptotic TF)" shape=ellipse fillcolor="#880E4F" fontcolor="white"]
+        MITO_PERMEAB    [label="Mitochondrial\nPermeability Transition" shape=box fillcolor="#F06292"]
+        CYTC            [label="Cytochrome c\n(apoptosis signal)" shape=ellipse fillcolor="#E91E63" fontcolor="white"]
+        MITO_BIOGEN     [label="Mitochondrial\nBiogenesis (PGC-1α)" shape=box fillcolor="#F8BBD0"]
+
+        BETA_OXID -> MITO_ETC [label="NADH/FADH2\ngeneration"]
+        MITO_ETC -> ROS [label="electron leak\n(overflow)"]
+        PEROX_OXID -> ROS [label="H2O2 generation"]
+        MICR_OXID -> ROS [label="CYP2E1\nuncoupling"]
+        ROS -> SOD [label="substrate"]
+        SOD -> GSH [label="H2O2→"]
+        GPX -> GSH [label="uses/depletes"]
+        CAT -> ROS [label="scavenges H2O2"]
+        ROS -> KEAP1 [label="oxidizes\n→Nrf2 release"]
+        KEAP1 -> NRF2 [label="ubiquitinates\n(suppresses)"]
+        NRF2 -> SOD [label="↑ transcription"]
+        NRF2 -> GSH [label="GCL↑"]
+        NRF2 -> GPX
+        NRF2 -> CAT
+        ROS -> LIPID_PEROX [label="initiates"]
+        LIPID_PEROX -> ER_STRESS [label="membrane\ndamage"]
+        RNS -> LIPID_PEROX
+        LIVER_FFA -> ER_STRESS [label="lipotoxicity\nFFA overload"]
+        ER_STRESS -> PERK
+        ER_STRESS -> IRE1
+        ER_STRESS -> ATF6
+        IRE1 -> JNK_ER [label="via TRAF2"]
+        PERK -> CHOP [label="eIF2α→ATF4→"]
+        CHOP -> MITO_PERMEAB [label="Bcl-2↓"]
+        MITO_PERMEAB -> CYTC [label="releases"]
+        ROS -> MITO_ETC [label="damage\n(vicious cycle)"]
+        ROS -> MITO_BIOGEN [label="inhibits PGC-1α"]
+        MITO_BIOGEN -> MITO_ETC [label="maintains capacity"]
+    }
+
+    // =========================================================
+    // SUBGRAPH 5: Hepatic Inflammation (MASH)
+    // =========================================================
+    subgraph cluster_inflam {
+        label="Hepatic Inflammation — MASH (Metabolic-Associated Steatohepatitis)"
+        style=filled
+        fillcolor="#FFF8E1"
+        color="#E65100"
+        fontcolor="#E65100"
+        fontsize=12
+
+        KUPFFER         [label="Kupffer Cell\n(M1/M2 phenotype)" shape=box fillcolor="#FFB300"]
+        KUPFFER_ACT     [label="Kupffer Activation\nTLR4/TLR9 signaling" shape=box fillcolor="#FF8F00"]
+        NLRP3           [label="NLRP3\nInflammasome" shape=box fillcolor="#E65100" fontcolor="white"]
+        NFKB            [label="NF-κB\n(master inflam TF)" shape=diamond fillcolor="#BF360C" fontcolor="white"]
+        TNF_ALPHA       [label="TNF-α\n(hepatotoxic)" shape=ellipse fillcolor="#E53935" fontcolor="white"]
+        IL1B            [label="IL-1β\n(inflammasome)" shape=ellipse fillcolor="#E53935" fontcolor="white"]
+        IL6_LIVER       [label="IL-6\n(hepatokine)" shape=ellipse fillcolor="#E53935" fontcolor="white"]
+        IL8             [label="IL-8/CXCL8\n(neutrophil chemo)" shape=ellipse fillcolor="#EF9A9A"]
+        MCP1            [label="MCP-1/CCL2\n(monocyte recruit)" shape=ellipse fillcolor="#EF9A9A"]
+        NEUTROPHIL      [label="Neutrophil\nInfiltration" shape=box fillcolor="#FFCC02"]
+        MONOCYTE        [label="Monocyte\nRecruitment" shape=box fillcolor="#FFB300"]
+        INFLAMMATORY_MΦ [label="Inflammatory\nMacrophages" shape=box fillcolor="#E65100" fontcolor="white"]
+        IFN_GAMMA       [label="IFN-γ\n(adaptive)" shape=ellipse fillcolor="#EF9A9A"]
+        TH1_CD4         [label="CD4+ Th1\n(hepatic)" shape=box fillcolor="#FFCC80"]
+        TH17_CD4        [label="CD4+ Th17\n(hepatic)" shape=box fillcolor="#FFCC80"]
+        TREG            [label="Treg\n(anti-inflam)" shape=box fillcolor="#A5D6A7"]
+        NKT             [label="NKT Cell\n(iNKT)" shape=box fillcolor="#FFCC80"]
+        LPS             [label="LPS\n(gut-derived)" shape=ellipse fillcolor="#8D6E63"]
+        DAMPs           [label="DAMPs\n(HMGB1, mtDNA)" shape=ellipse fillcolor="#BF360C" fontcolor="white"]
+        ASK1            [label="ASK1\n(MAP3K5)" shape=box fillcolor="#E65100" fontcolor="white"]
+        P38_MAPK        [label="p38 MAPK\n(stress kinase)" shape=ellipse fillcolor="#F4511E" fontcolor="white"]
+        JNK             [label="JNK1/2\n(inflam kinase)" shape=ellipse fillcolor="#F4511E" fontcolor="white"]
+        INFLAM_SCORE    [label="Lobular Inflammation\n(NAS component)" shape=parallelogram fillcolor="#FFF8E1"]
+        CRP             [label="hsCRP\n(clinical marker)" shape=parallelogram fillcolor="#FFF3E0"]
+        ALT_MARKER      [label="ALT\n(hepatocyte injury)" shape=parallelogram fillcolor="#FFE0B2"]
+        AST_MARKER      [label="AST\n(hepatocyte injury)" shape=parallelogram fillcolor="#FFE0B2"]
+
+        LPS -> KUPFFER_ACT [label="TLR4 signaling"]
+        DAMPs -> KUPFFER_ACT [label="TLR9/TLR2"]
+        LIPID_PEROX -> DAMPs [label="4-HNE→"]
+        ROS -> DAMPs
+        KUPFFER_ACT -> KUPFFER
+        KUPFFER -> NFKB [label="activates"]
+        KUPFFER -> NLRP3 [label="activates"]
+        NLRP3 -> IL1B [label="caspase-1\ncleavage"]
+        NFKB -> TNF_ALPHA
+        NFKB -> IL6_LIVER
+        NFKB -> IL8
+        NFKB -> MCP1
+        TNF_ALPHA -> NFKB [label="amplification\nloop"]
+        IL8 -> NEUTROPHIL [label="recruitment"]
+        MCP1 -> MONOCYTE [label="CCR2"]
+        MONOCYTE -> INFLAMMATORY_MΦ [label="differentiation"]
+        INFLAMMATORY_MΦ -> TNF_ALPHA
+        INFLAMMATORY_MΦ -> IL1B
+        INFLAMMATORY_MΦ -> IL6_LIVER
+        ROS -> ASK1 [label="Trx1 release"]
+        ASK1 -> JNK [label="phosphorylation"]
+        ASK1 -> P38_MAPK
+        JNK -> NFKB
+        JNK -> HEPATOCYTE_APOPT [label="→apoptosis"]
+        JNK_ER -> JNK [label="converge"]
+        TH1_CD4 -> IFN_GAMMA
+        IFN_GAMMA -> KUPFFER [label="M1 polarization"]
+        NKT -> KUPFFER [label="FasL/TRAIL"]
+        TREG -> KUPFFER [label="IL-10 M2\npolarization"]
+        TNF_ALPHA -> ALT_MARKER [label="hepatocyte lysis"]
+        IL1B -> ALT_MARKER
+        KUPFFER -> CRP [label="via IL-6→\nliver APR"]
+        IL6_LIVER -> CRP
+        TNF_ALPHA -> INFLAM_SCORE
+        IL1B -> INFLAM_SCORE
+        NEUTROPHIL -> INFLAM_SCORE
+    }
+
+    // =========================================================
+    // SUBGRAPH 6: Hepatocyte Death (Ballooning)
+    // =========================================================
+    subgraph cluster_hepatocyte_death {
+        label="Hepatocyte Death — Ballooning & Apoptosis"
+        style=filled
+        fillcolor="#EFEBE9"
+        color="#4E342E"
+        fontcolor="#4E342E"
+        fontsize=12
+
+        HEPATOCYTE_APOPT [label="Hepatocyte\nApoptosis" shape=box fillcolor="#8D6E63"]
+        HEPATOCYTE_NECROP [label="Hepatocyte\nNecroptosis/Pyroptosis" shape=box fillcolor="#6D4C41"]
+        BALLOONING       [label="Hepatocyte\nBallooning" shape=ellipse fillcolor="#A1887F"]
+        CASPASE3         [label="Caspase-3\n(executioner)" shape=box fillcolor="#795548" fontcolor="white"]
+        CASPASE8         [label="Caspase-8\n(extrinsic)" shape=box fillcolor="#795548" fontcolor="white"]
+        BCL2_FAM         [label="BCL-2 Family\n(pro-survival)" shape=box fillcolor="#A5D6A7"]
+        BAX_BAK          [label="BAX/BAK\n(pro-apoptotic)" shape=box fillcolor="#EF5350"]
+        CYTOKERATIN18    [label="CK-18\n(apoptosis biomarker)" shape=parallelogram fillcolor="#EFEBE9"]
+        MLKL             [label="MLKL\n(necroptosis exec.)" shape=box fillcolor="#6D4C41" fontcolor="white"]
+        RIPK3            [label="RIPK3\n(necrosome)" shape=box fillcolor="#5D4037" fontcolor="white"]
+        FAS_FASL         [label="Fas/FasL\n(death receptor)" shape=box fillcolor="#EF5350"]
+        TRAIL            [label="TRAIL/DR5\n(death receptor)" shape=box fillcolor="#EF5350"]
+        BALLOON_SCORE    [label="Ballooning Score\n(NAS component)" shape=parallelogram fillcolor="#EFEBE9"]
+        NAS_SCORE        [label="NAS Score\n(0–8 total)" shape=parallelogram fillcolor="#4E342E" fontcolor="white"]
+
+        CYTC -> CASPASE3 [label="intrinsic\napoptosome"]
+        CASPASE8 -> CASPASE3
+        FAS_FASL -> CASPASE8 [label="DISC formation"]
+        TRAIL -> CASPASE8
+        BAX_BAK -> MITO_PERMEAB
+        BCL2_FAM -> BAX_BAK [label="sequesters"]
+        CHOP -> BAX_BAK [label="↑ expression"]
+        JNK -> BCL2_FAM [label="phosphorylation\n→inactivation"]
+        CASPASE3 -> BALLOONING [label="cytoskeletal\ndamage"]
+        TNF_ALPHA -> FAS_FASL
+        CASPASE3 -> CYTOKERATIN18
+        CASPASE3 -> HEPATOCYTE_APOPT
+        MLKL -> HEPATOCYTE_NECROP
+        RIPK3 -> MLKL
+        TNF_ALPHA -> RIPK3 [label="when caspase-8\nblocked"]
+        HEPATOCYTE_APOPT -> DAMPs [label="release"]
+        HEPATOCYTE_NECROP -> DAMPs
+        BALLOONING -> BALLOON_SCORE
+        STEATOSIS_SCORE -> NAS_SCORE [label="0-3"]
+        INFLAM_SCORE -> NAS_SCORE [label="0-3"]
+        BALLOON_SCORE -> NAS_SCORE [label="0-2"]
+    }
+
+    // =========================================================
+    // SUBGRAPH 7: Hepatic Fibrosis
+    // =========================================================
+    subgraph cluster_fibrosis {
+        label="Hepatic Stellate Cell Activation & Fibrogenesis"
+        style=filled
+        fillcolor="#E8EAF6"
+        color="#283593"
+        fontcolor="#283593"
+        fontsize=12
+
+        HSC_QUIES       [label="Quiescent HSC\n(Lipocyte)" shape=ellipse fillcolor="#C5CAE9"]
+        HSC_ACTIVE      [label="Activated HSC\n(Myofibroblast)" shape=box fillcolor="#3949AB" fontcolor="white"]
+        TGF_BETA        [label="TGF-β1\n(master fibrotic)" shape=diamond fillcolor="#1A237E" fontcolor="white"]
+        SMAD23          [label="SMAD2/3\n(TGF-β downstream)" shape=box fillcolor="#283593" fontcolor="white"]
+        SMAD7           [label="SMAD7\n(inhibitory)" shape=box fillcolor="#7986CB"]
+        PDGF            [label="PDGF-BB\n(HSC proliferation)" shape=ellipse fillcolor="#5C6BC0" fontcolor="white"]
+        PDGFR           [label="PDGFR-β\n(on HSC)" shape=box fillcolor="#3F51B5" fontcolor="white"]
+        CONNECTIVE_TF   [label="CTGF/CCN2\n(fibrosis amplifier)" shape=ellipse fillcolor="#3949AB" fontcolor="white"]
+        ALPHA_SMA       [label="α-SMA\n(activation marker)" shape=parallelogram fillcolor="#5C6BC0" fontcolor="white"]
+        COL1A1          [label="Type I Collagen\n(COL1A1/A2)" shape=box fillcolor="#1A237E" fontcolor="white"]
+        COL3A1          [label="Type III Collagen\n(COL3A1)" shape=box fillcolor="#283593" fontcolor="white"]
+        COL4A1          [label="Type IV Collagen\n(basement membrane)" shape=box fillcolor="#3949AB" fontcolor="white"]
+        MMP2            [label="MMP-2\n(collagen remodel)" shape=box fillcolor="#7986CB"]
+        MMP9            [label="MMP-9\n(matrix degr.)" shape=box fillcolor="#7986CB"]
+        TIMP1           [label="TIMP-1\n(MMP inhibitor)" shape=box fillcolor="#3949AB" fontcolor="white"]
+        TIMP2           [label="TIMP-2\n(MMP inhibitor)" shape=box fillcolor="#3949AB" fontcolor="white"]
+        LOXL2           [label="LOXL2\n(collagen crosslink)" shape=box fillcolor="#283593" fontcolor="white"]
+        ECM             [label="ECM Accumulation\n(net fibrosis)" shape=ellipse fillcolor="#1A237E" fontcolor="white"]
+        ANGII           [label="Angiotensin II\n(portal)" shape=ellipse fillcolor="#E8EAF6"]
+        ENDOTHELIN1     [label="Endothelin-1\n(HSC contraction)" shape=ellipse fillcolor="#C5CAE9"]
+        PORTAL_PRESSURE [label="Portal Hypertension\n(↑ sinusoidal R)" shape=parallelogram fillcolor="#283593" fontcolor="white"]
+        FIBROSIS_STAGE  [label="Fibrosis Stage\n(F0–F4, Metavir)" shape=parallelogram fillcolor="#1A237E" fontcolor="white"]
+        LIVER_STIFF     [label="Liver Stiffness\n(FibroScan kPa)" shape=parallelogram fillcolor="#283593" fontcolor="white"]
+        ELF_SCORE       [label="ELF Score\n(non-invasive)" shape=parallelogram fillcolor="#7986CB"]
+        FIB4            [label="FIB-4 Index\n(ALT/AST/platelets)" shape=parallelogram fillcolor="#7986CB"]
+        HEDGEHOG        [label="Hedgehog/Gli\n(Shh→Gli2)" shape=diamond fillcolor="#7986CB"]
+        WNT_BETA_CAT    [label="Wnt/β-catenin\n(fibrosis TF)" shape=diamond fillcolor="#7986CB"]
+        YAP_TAZ         [label="YAP/TAZ\n(mechanosensor)" shape=diamond fillcolor="#5C6BC0" fontcolor="white"]
+
+        HSC_QUIES -> HSC_ACTIVE [label="activation by\nTGF-β, ROS"]
+        TGF_BETA -> HSC_ACTIVE [label="key driver"]
+        TGF_BETA -> SMAD23 [label="canonical\npathway"]
+        SMAD23 -> COL1A1 [label="↑ transcription"]
+        SMAD23 -> COL3A1
+        SMAD23 -> TIMP1
+        SMAD23 -> SMAD7 [label="negative\nfeedback"]
+        SMAD7 -> SMAD23 [label="inhibits"]
+        HSC_ACTIVE -> TGF_BETA [label="autocrine\nloop"]
+        HSC_ACTIVE -> PDGFR
+        PDGF -> PDGFR [label="proliferation\nsignal"]
+        PDGFR -> HSC_ACTIVE [label="→proliferation"]
+        HSC_ACTIVE -> COL1A1
+        HSC_ACTIVE -> COL3A1
+        HSC_ACTIVE -> COL4A1
+        HSC_ACTIVE -> MMP2 [label="secretes"]
+        HSC_ACTIVE -> MMP9
+        HSC_ACTIVE -> TIMP1
+        HSC_ACTIVE -> TIMP2
+        HSC_ACTIVE -> LOXL2
+        HSC_ACTIVE -> CONNECTIVE_TF
+        HSC_ACTIVE -> ALPHA_SMA
+        CONNECTIVE_TF -> COL1A1 [label="amplifies"]
+        LOXL2 -> COL1A1 [label="crosslinking\nstabilizes"]
+        TIMP1 -> MMP2 [label="inhibits"]
+        TIMP2 -> MMP9 [label="inhibits"]
+        COL1A1 -> ECM
+        COL3A1 -> ECM
+        COL4A1 -> ECM
+        ECM -> MMP2 [label="partial\nremodeling"]
+        ECM -> MMP9
+        ECM -> FIBROSIS_STAGE
+        FIBROSIS_STAGE -> LIVER_STIFF [label="elastic modulus↑"]
+        FIBROSIS_STAGE -> PORTAL_PRESSURE
+        FIBROSIS_STAGE -> ELF_SCORE
+        FIBROSIS_STAGE -> FIB4
+        KUPFFER -> TGF_BETA [label="secretes"]
+        KUPFFER -> PDGF [label="secretes"]
+        INFLAMMATORY_MΦ -> TGF_BETA
+        DAMPs -> HSC_ACTIVE [label="TLR4 on HSC"]
+        ROS -> HSC_ACTIVE [label="direct\nactivation"]
+        LIPID_PEROX -> TGF_BETA [label="4-HNE→TGF-β↑"]
+        ANGII -> HSC_ACTIVE [label="AT1R\nmediated"]
+        ENDOTHELIN1 -> HSC_ACTIVE [label="contractile\nactivation"]
+        HEDGEHOG -> HSC_ACTIVE [label="Gli2 TF"]
+        WNT_BETA_CAT -> COL1A1 [label="via β-catenin"]
+        YAP_TAZ -> COL1A1 [label="stiffness\nfeedback"]
+        ECM -> YAP_TAZ [label="matrix stiffness\nactivates"]
+        PORTAL_PRESSURE -> FIB4
+        ALT_MARKER -> FIB4
+        AST_MARKER -> FIB4
+    }
+
+    // =========================================================
+    // SUBGRAPH 8: Gut-Liver Axis
+    // =========================================================
+    subgraph cluster_gut {
+        label="Gut-Liver Axis & Bile Acid Metabolism"
+        style=filled
+        fillcolor="#E8F5E9"
+        color="#1B5E20"
+        fontcolor="#1B5E20"
+        fontsize=12
+
+        GUT_MICROBIOME  [label="Gut Microbiome\nDysbiosis" shape=box fillcolor="#81C784"]
+        MUCOSAL_BARRIER [label="Intestinal\nBarrier (tight junctions)" shape=box fillcolor="#A5D6A7"]
+        LPS_GUT         [label="LPS/Endotoxin\n(Gram- bacteria)" shape=ellipse fillcolor="#4CAF50" fontcolor="white"]
+        BACTERIAL_TRANS [label="Bacterial\nTranslocation" shape=box fillcolor="#388E3C" fontcolor="white"]
+        SCFA            [label="Short-Chain FA\n(butyrate, propionate)" shape=ellipse fillcolor="#81C784"]
+        TMAO            [label="TMAO\n(trimethylamine oxide)" shape=ellipse fillcolor="#EF9A9A"]
+        BILE_ACIDS_GUT  [label="Gut Bile Acids\n(primary/secondary)" shape=ellipse fillcolor="#FFF59D"]
+        FXR_GUT         [label="FXR\n(gut enterocyte)" shape=diamond fillcolor="#2E7D32" fontcolor="white"]
+        FGF19           [label="FGF-19\n(gut→liver signal)" shape=ellipse fillcolor="#66BB6A"]
+        PORTAL_LPS      [label="Portal Vein LPS\n(CD14/MD-2 complex)" shape=ellipse fillcolor="#C62828" fontcolor="white"]
+        TLR4_KUPFFER    [label="TLR4 on Kupffer\n(LPS receptor)" shape=box fillcolor="#FF7043"]
+        BILE_ACIDS_LIVER [label="Hepatic Bile Acids\n(CDCA, CA, DCA)" shape=ellipse fillcolor="#FFF176"]
+        FXR_LIVER       [label="FXR\n(nuclear receptor)" shape=diamond fillcolor="#1B5E20" fontcolor="white"]
+        SHP             [label="SHP\n(FXR downstream)" shape=box fillcolor="#388E3C" fontcolor="white"]
+        CYP7A1          [label="CYP7A1\n(BA synthesis)" shape=box fillcolor="#2E7D32" fontcolor="white"]
+        FGFR4           [label="FGFR4\n(hepatic FGF19R)" shape=box fillcolor="#66BB6A"]
+        NTCP            [label="NTCP\n(BA uptake)" shape=box fillcolor="#81C784"]
+
+        GUT_MICROBIOME -> MUCOSAL_BARRIER [label="dysbiosis\ndamages"]
+        MUCOSAL_BARRIER -> BACTERIAL_TRANS [label="permeability↑"]
+        BACTERIAL_TRANS -> LPS_GUT
+        MUCOSAL_BARRIER -> LPS_GUT
+        GUT_MICROBIOME -> SCFA [label="fermentation"]
+        GUT_MICROBIOME -> TMAO [label="TMA→TMAO\n(liver FMO3)"]
+        GUT_MICROBIOME -> BILE_ACIDS_GUT [label="7α-dehydroxylation"]
+        BILE_ACIDS_GUT -> FXR_GUT [label="activates"]
+        FXR_GUT -> FGF19 [label="→ portal\ncirculation"]
+        FGF19 -> FGFR4 [label="hepatic\nreceptor"]
+        FGFR4 -> CYP7A1 [label="suppresses\nBA synthesis"]
+        LPS_GUT -> PORTAL_LPS
+        PORTAL_LPS -> TLR4_KUPFFER [label="activates"]
+        TLR4_KUPFFER -> KUPFFER_ACT
+        BILE_ACIDS_LIVER -> FXR_LIVER [label="activates"]
+        FXR_LIVER -> SHP [label="→"]
+        SHP -> CYP7A1 [label="negative\nfeedback"]
+        FXR_LIVER -> TGF_BETA [label="suppresses\n(protective)"]
+        SCFA -> MUCOSAL_BARRIER [label="butyrate\ntight junctions"]
+        SCFA -> ADIPONECTIN [label="GPR41/43\n→ adipokine"]
+        TMAO -> INS_RESISTANCE [label="worsens"]
+        TMAO -> KUPFFER_ACT [label="pro-inflam"]
+        FXR_LIVER -> VLDL_ASSEM [label="ApoB↓"]
+        BILE_ACIDS_LIVER -> NTCP [label="NTCP-mediated\nreuptake"]
+        NTCP -> BILE_ACIDS_LIVER
+        ADIPOSE_INFLAM -> GUT_MICROBIOME [label="systemic inflam\n→dysbiosis"]
+    }
+
+    // =========================================================
+    // SUBGRAPH 9: Drug Targets & Pharmacology
+    // =========================================================
+    subgraph cluster_drugs {
+        label="Drug Targets & Pharmacological Interventions"
+        style=filled
+        fillcolor="#F3E5F5"
+        color="#4A148C"
+        fontcolor="#4A148C"
+        fontsize=12
+
+        // FXR Agonists
+        OCA             [label="Obeticholic Acid\n(OCA; FXR agonist)" shape=box fillcolor="#CE93D8" style="filled,bold"]
+        TROPIFEXOR      [label="Tropifexor\n(FXR agonist)" shape=box fillcolor="#CE93D8" style="filled,bold"]
+
+        // THRβ Agonists
+        RESMETIROM      [label="Resmetirom\n(THR-β agonist)\n★ FDA Approved 2024" shape=box fillcolor="#AB47BC" style="filled,bold" fontcolor="white"]
+        THRB_RECEPT     [label="THR-β\n(thyroid hormone Rβ)" shape=diamond fillcolor="#7B1FA2" fontcolor="white"]
+
+        // PPAR Agonists
+        ELAFIBRANOR     [label="Elafibranor\n(PPARα/δ agonist)" shape=box fillcolor="#BA68C8" style="filled,bold"]
+        LANIFIBRANOR    [label="Lanifibranor\n(PPARα/γ/δ pan)" shape=box fillcolor="#AB47BC" style="filled,bold" fontcolor="white"]
+        SELADELPAR      [label="Seladelpar\n(PPARδ agonist)" shape=box fillcolor="#CE93D8" style="filled,bold"]
+
+        // ACC Inhibitors
+        FIRSOCOSTAT     [label="Firsocostat\n(ACC1/2 inhibitor)" shape=box fillcolor="#9C27B0" style="filled,bold" fontcolor="white"]
+
+        // ASK1 Inhibitor
+        SELONSERTIB     [label="Selonsertib\n(ASK1 inhibitor)" shape=box fillcolor="#7B1FA2" style="filled,bold" fontcolor="white"]
+
+        // CCR2/5 Antagonist
+        CENICRIVIROC    [label="Cenicriviroc\n(CCR2/CCR5 antag)" shape=box fillcolor="#9C27B0" style="filled,bold" fontcolor="white"]
+
+        // GLP-1 RAs
+        SEMAGLUTIDE     [label="Semaglutide\n(GLP-1 RA)" shape=box fillcolor="#E040FB" style="filled,bold" fontcolor="white"]
+        LIRAGLUTIDE     [label="Liraglutide\n(GLP-1 RA)" shape=box fillcolor="#EA80FC" style="filled,bold"]
+
+        // SGLT2 inhibitors
+        EMPAGLIFLOZIN   [label="Empagliflozin\n(SGLT2i)" shape=box fillcolor="#CE93D8" style="filled,bold"]
+        DAPAGLIFLOZIN   [label="Dapagliflozin\n(SGLT2i)" shape=box fillcolor="#CE93D8" style="filled,bold"]
+
+        // Statins
+        STATIN          [label="Statins\n(HMG-CoA-R inhib)" shape=box fillcolor="#BA68C8" style="filled,bold"]
+
+        // Combination
+        SEMA_OCA_COMBO  [label="Sema+OCA\n(combination)" shape=box fillcolor="#6A1B9A" style="filled,bold" fontcolor="white"]
+
+        // Pioglitazone
+        PIOGLITAZONE    [label="Pioglitazone\n(PPARγ agonist)" shape=box fillcolor="#CE93D8" style="filled,bold"]
+
+        // Vitamin E
+        VIT_E           [label="Vitamin E\n(antioxidant)" shape=box fillcolor="#E1BEE7" style="filled,bold"]
+
+        // Drug → Target connections
+        OCA -> FXR_LIVER [label="potent\nagonist"]
+        OCA -> FXR_GUT [label="agonist"]
+        TROPIFEXOR -> FXR_LIVER [label="agonist"]
+        RESMETIROM -> THRB_RECEPT [label="selective\nagonist"]
+        THRB_RECEPT -> DNL [label="↓ SREBP-1c"]
+        THRB_RECEPT -> BETA_OXID [label="↑ PGC-1α"]
+        THRB_RECEPT -> LXR [label="↓ LXR→DNL"]
+        ELAFIBRANOR -> PPAR_ALPHA [label="agonist"]
+        ELAFIBRANOR -> PPAR_DELTA [label="agonist"]
+        LANIFIBRANOR -> PPAR_ALPHA [label="pan-PPAR"]
+        LANIFIBRANOR -> PPAR_DELTA
+        LANIFIBRANOR -> PIOGLITAZONE [label="shares PPARγ\ntarget"]
+        SELADELPAR -> PPAR_DELTA [label="selective\nagonist"]
+        FIRSOCOSTAT -> ACC [label="inhibits\n→DNL↓"]
+        SELONSERTIB -> ASK1 [label="inhibits\nASK1"]
+        CENICRIVIROC -> MCP1 [label="CCR2 block\n→recruitment↓"]
+        CENICRIVIROC -> INFLAMMATORY_MΦ [label="CCR5 block"]
+        SEMAGLUTIDE -> GLP1 [label="GLP-1R\nagonist"]
+        LIRAGLUTIDE -> GLP1 [label="GLP-1R\nagonist"]
+        EMPAGLIFLOZIN -> PLASMA_GLUCOSE [label="SGLT2i\nglucosuria"]
+        DAPAGLIFLOZIN -> PLASMA_GLUCOSE [label="SGLT2i"]
+        STATIN -> LXR [label="↓ cholesterol\n→LXR less active"]
+        PIOGLITAZONE -> INS_RESISTANCE [label="PPARγ→\nIR↓"]
+        VIT_E -> ROS [label="scavenges"]
+        VIT_E -> NRF2 [label="activates"]
+        SEMA_OCA_COMBO -> SEMAGLUTIDE
+        SEMA_OCA_COMBO -> OCA
+    }
+
+    // =========================================================
+    // SUBGRAPH 10: Clinical Endpoints & Disease Progression
+    // =========================================================
+    subgraph cluster_clinical {
+        label="Clinical Endpoints & Disease Progression"
+        style=filled
+        fillcolor="#FAFAFA"
+        color="#212121"
+        fontcolor="#212121"
+        fontsize=12
+
+        MASLD_STAGE     [label="MASLD Stage\n(MASLD→MASH→Fibrosis)" shape=box fillcolor="#BDBDBD"]
+        CIRRHOSIS       [label="Cirrhosis\n(F4, end-stage)" shape=box fillcolor="#616161" fontcolor="white"]
+        HCC             [label="Hepatocellular\nCarcinoma (HCC)" shape=box fillcolor="#212121" fontcolor="white"]
+        ESLD            [label="End-Stage Liver\nDisease (ESLD)" shape=box fillcolor="#424242" fontcolor="white"]
+        LIVER_TRANSPLANT [label="Liver\nTransplantation" shape=box fillcolor="#757575" fontcolor="white"]
+        CV_RISK         [label="Cardiovascular\nMortality Risk" shape=box fillcolor="#B71C1C" fontcolor="white"]
+        T2DM_RISK       [label="T2DM\nProgression Risk" shape=box fillcolor="#1B5E20" fontcolor="white"]
+        PLATELETS       [label="Platelet Count↓\n(hypersplenism)" shape=parallelogram fillcolor="#9E9E9E"]
+        COAGULATION     [label="Coagulopathy\n(PT/INR↑)" shape=parallelogram fillcolor="#9E9E9E"]
+        LIVER_FUNCTION  [label="Liver Function\n(Child-Pugh/MELD)" shape=parallelogram fillcolor="#BDBDBD"]
+        BIOPSY_RESPONSE [label="Biopsy Response\n(NAS↓≥2, F↓≥1)" shape=parallelogram fillcolor="#616161" fontcolor="white"]
+
+        NAS_SCORE -> MASLD_STAGE
+        FIBROSIS_STAGE -> MASLD_STAGE
+        FIBROSIS_STAGE -> CIRRHOSIS [label="F4 threshold"]
+        CIRRHOSIS -> HCC [label="annual risk\n2-4%"]
+        CIRRHOSIS -> ESLD [label="decompensation"]
+        CIRRHOSIS -> PORTAL_PRESSURE [label="amplifies"]
+        PORTAL_PRESSURE -> PLATELETS [label="hypersplenism"]
+        CIRRHOSIS -> COAGULATION [label="synthetic\nfailure"]
+        ESLD -> LIVER_TRANSPLANT
+        ESLD -> LIVER_FUNCTION
+        CV_RISK -> MASLD_STAGE [label="MASLD increases\nCV risk 2×"]
+        PLASMA_INSULIN -> T2DM_RISK
+        INS_RESISTANCE -> T2DM_RISK
+        NAS_SCORE -> BIOPSY_RESPONSE
+        FIBROSIS_STAGE -> BIOPSY_RESPONSE
+        LIVER_STIFF -> LIVER_FUNCTION
+        FIB4 -> MASLD_STAGE
+        ELF_SCORE -> MASLD_STAGE
+    }
+
+    // =========================================================
+    // CROSS-CLUSTER CONNECTIONS (major inter-system links)
+    // =========================================================
+
+    // Adipose → Liver
+    FFA_PLASMA -> LIVER_FFA_UPTAKE [label="portal\ncirculation" style=bold color="#E65100"]
+    ADIPONECTIN -> PPAR_ALPHA [label="↑ FA oxidation\nAMPK pathway" style=bold color="#2E7D32"]
+    ADIPONECTIN -> NFKB [label="anti-inflammatory\nIKK inhibition" style=bold color="#2E7D32"]
+    ADIPONECTIN -> HSC_ACTIVE [label="inhibits\nHSC activation" style=bold color="#2E7D32"]
+    LEPTIN -> HSC_ACTIVE [label="pro-fibrotic\nOb-R on HSC" style=bold color="#C62828"]
+    LEPTIN -> KUPFFER [label="M1 shift" style=bold color="#C62828"]
+    RESISTIN -> NFKB [label="pro-inflam" style=bold color="#C62828"]
+    IL6_ADIPOSE -> INS_RESISTANCE [label="systemic\nIR↑" style=bold]
+    TNF_ADIPOSE -> INS_RESISTANCE [label="systemic\nIR↑" style=bold]
+
+    // Pancreas/Glucose → Liver lipid
+    PLASMA_INSULIN -> CHREB_SREBP1c [style=bold color="#1565C0"]
+    PLASMA_GLUCOSE -> CHREB_SREBP1c [style=bold color="#1565C0"]
+    PLASMA_INSULIN -> ADIPOSE_LIPO [label="suppresses\n(not in IR)" style=bold]
+    GLP1 -> LIVER_FFA [label="GLP-1R\nhepatocyte↓" style=bold color="#9C27B0"]
+    GLP1 -> KUPFFER [label="GLP-1R\nanti-inflam" style=bold color="#9C27B0"]
+    SEMAGLUTIDE -> INS_RESISTANCE [label="GLP-1R\nIR↓" color="#9C27B0"]
+
+    // Oxidative stress → Inflammation
+    ROS -> KUPFFER_ACT [style=bold color="#880E4F"]
+    LIPID_PEROX -> KUPFFER_ACT [style=bold color="#880E4F"]
+    ROS -> JNK [style=bold color="#880E4F"]
+
+    // Inflammation → Fibrosis
+    KUPFFER -> TGF_BETA [style=bold color="#283593"]
+    INFLAMMATORY_MΦ -> TGF_BETA [style=bold color="#283593"]
+    TNF_ALPHA -> HSC_ACTIVE [style=bold color="#283593"]
+    IL1B -> HSC_ACTIVE [style=bold color="#283593"]
+
+    // Cell death → Fibrosis
+    HEPATOCYTE_APOPT -> HSC_ACTIVE [label="apoptotic\nbodies" style=bold]
+    DAMPs -> TGF_BETA [label="PAMP/DAMP\nsignaling"]
+
+    // Gut → Liver inflammation
+    PORTAL_LPS -> TLR4_KUPFFER [style=bold color="#1B5E20"]
+    SCFA -> KUPFFER [label="GPR43\nanti-inflam" color="#1B5E20"]
+
+    // Drug → Clinical outcomes
+    RESMETIROM -> LIVER_TAG [label="↓ steatosis\n37%" color="#7B1FA2" style=bold]
+    RESMETIROM -> FIBROSIS_STAGE [label="↓ F≥1\n(MAESTRO trial)" color="#7B1FA2" style=bold]
+    OCA -> TGF_BETA [label="FXR→SHP→\nTGF-β↓" color="#6A1B9A" style=bold]
+    SEMAGLUTIDE -> LIVER_TAG [label="↓ steatosis\n(NASH)" color="#9C27B0" style=bold]
+    CENICRIVIROC -> FIBROSIS_STAGE [label="anti-fibrotic\n(CENTAUR)" color="#9C27B0"]
+    PIOGLITAZONE -> KUPFFER [label="M2 polarization\nPPARγ" color="#9C27B0"]
+    PIOGLITAZONE -> HSC_ACTIVE [label="PPARγ\nHSC inhibit" color="#9C27B0"]
+
+    // Clinical biomarker → Disease stage
+    ALT_MARKER -> MASLD_STAGE [label="screening\nbiomarker"]
+    AST_MARKER -> MASLD_STAGE
+    LIVER_STIFF -> FIBROSIS_STAGE [label="FibroScan\nkPa→stage"]
+}

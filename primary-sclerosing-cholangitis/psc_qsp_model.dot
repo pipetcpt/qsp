@@ -1,0 +1,666 @@
+digraph PSC_QSP_Model {
+  graph [
+    label="Primary Sclerosing Cholangitis (PSC) — Quantitative Systems Pharmacology Model\nGut-Liver Axis · Biliary Epithelium · Immune-Mediated Fibrosis · Drug PK/PD"
+    labelloc=t
+    fontsize=22
+    fontname="Helvetica-Bold"
+    rankdir=LR
+    splines=ortho
+    nodesep=0.4
+    ranksep=0.9
+    bgcolor="#FAFAFA"
+    overlap=false
+  ]
+  node [fontname="Helvetica" fontsize=10 style="filled,rounded" shape=box]
+  edge [fontname="Helvetica" fontsize=9]
+
+  //===================================================================
+  // CLUSTER 1: Drug Pharmacokinetics
+  //===================================================================
+  subgraph cluster_PK {
+    label="Drug Pharmacokinetics"
+    style="filled,rounded"
+    color="#2C3E50"
+    fontcolor="#2C3E50"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#EBF5FB"
+
+    node [fillcolor="#AED6F1" color="#1A5276"]
+
+    UDCA_dose   [label="UDCA\nDose (mg/kg)"]
+    OCA_dose    [label="Obeticholic Acid\n(OCA) Dose"]
+    VAN_dose    [label="Vancomycin\nOral Dose"]
+    NorUDCA_dose [label="norUDCA\nDose"]
+    BEZ_dose    [label="Bezafibrate\nDose"]
+    SIMTU_dose  [label="Simtuzumab\nDose (IV)"]
+    VEDO_dose   [label="Vedolizumab\nDose (IV)"]
+
+    UDCA_gut    [label="UDCA\nGut Conc"]
+    OCA_gut     [label="OCA\nGut Conc"]
+    VAN_gut     [label="Vancomycin\nGut Conc"]
+    NorUDCA_gut [label="norUDCA\nGut Conc"]
+    BEZ_gut     [label="Bezafibrate\nGut Conc"]
+
+    UDCA_plasma  [label="UDCA\nPlasma Conc\n(Cp_UDCA)"]
+    OCA_plasma   [label="OCA\nPlasma Conc\n(Cp_OCA)"]
+    BEZ_plasma   [label="Bezafibrate\nPlasma Conc"]
+    SIMTU_plasma [label="Simtuzumab\nSerum Conc"]
+    VEDO_plasma  [label="Vedolizumab\nSerum Conc"]
+
+    UDCA_bile   [label="UDCA\nBile Conc"]
+    OCA_bile    [label="OCA\nBile Conc"]
+    NorUDCA_bile [label="norUDCA\nBile Conc"]
+
+    UDCA_dose -> UDCA_gut [label="Ka_UDCA"]
+    OCA_dose -> OCA_gut [label="Ka_OCA"]
+    VAN_dose -> VAN_gut [label="No absorption"]
+    NorUDCA_dose -> NorUDCA_gut [label="Ka_norUDCA"]
+    BEZ_dose -> BEZ_gut [label="Ka_BEZ"]
+    SIMTU_dose -> SIMTU_plasma [label="IV infusion"]
+    VEDO_dose -> VEDO_plasma [label="IV infusion"]
+
+    UDCA_gut -> UDCA_plasma [label="Absorption\n(F~50%)"]
+    OCA_gut -> OCA_plasma [label="Absorption\n(F~60%)"]
+    NorUDCA_gut -> NorUDCA_bile [label="Cholehepatic\nshunting"]
+    BEZ_gut -> BEZ_plasma [label="Absorption\n(F~100%)"]
+
+    UDCA_plasma -> UDCA_bile [label="Hepatic\nuptake/secretion"]
+    OCA_plasma -> OCA_bile [label="Biliary\nconcentration"]
+  }
+
+  //===================================================================
+  // CLUSTER 2: Gut-Liver Axis & Microbiome
+  //===================================================================
+  subgraph cluster_GutLiver {
+    label="Gut-Liver Axis & Microbiome"
+    style="filled,rounded"
+    color="#1E8449"
+    fontcolor="#1E8449"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#EAFAF1"
+
+    node [fillcolor="#A9DFBF" color="#1D6A30"]
+
+    Microbiome_diversity [label="Gut Microbiome\nDiversity Index"]
+    Bacteroides [label="Bacteroides\nAbundance"]
+    Fusobacterium [label="Fusobacterium\nnucleatum"]
+    Clostridium [label="Clostridium sp.\n(dysbiosis)"]
+    Akkermansia   [label="Akkermansia\nmuciniphila"]
+    GutBa_pool    [label="Gut Bile Acid\nPool"]
+    SecBa         [label="Secondary Bile\nAcids (DCA/LCA)"]
+    PrimBa        [label="Primary Bile\nAcids (CA/CDCA)"]
+    BSH_enzyme    [label="Bile Salt\nHydrolase (BSH)"]
+    LPS           [label="LPS / PAMPs\n(Gut Lumen)"]
+    BacterialTox  [label="Bacterial\nToxins / SCFAs"]
+    Gut_barrier   [label="Intestinal\nEpithelial Barrier"]
+    Tight_junctions [label="Tight Junction\nProteins (ZO-1/occludin)"]
+    Portal_blood  [label="Portal Blood\n(LPS translocation)"]
+    IBD_activity  [label="IBD Activity\n(UC/Crohn's)"]
+    MUC2          [label="Mucin Layer\n(MUC2)"]
+
+    Microbiome_diversity -> Bacteroides [label="↑abundance"]
+    Microbiome_diversity -> Fusobacterium [dir=both label="dysbiosis"]
+    Microbiome_diversity -> Akkermansia [label="↓PSC"]
+    Clostridium -> BSH_enzyme [label="produce"]
+    BSH_enzyme -> SecBa [label="deconjugate"]
+    GutBa_pool -> PrimBa [label="composition"]
+    GutBa_pool -> SecBa [label="conversion"]
+    SecBa -> Gut_barrier [label="damage" color=red]
+    LPS -> Portal_blood [label="translocation"]
+    Gut_barrier -> Tight_junctions [label="regulated by"]
+    Tight_junctions -> Portal_blood [label="permeability ↑"]
+    IBD_activity -> Gut_barrier [label="disrupts" color=red]
+    IBD_activity -> LPS [label="↑production"]
+    MUC2 -> Gut_barrier [label="protects"]
+    Fusobacterium -> LPS [label="produce"]
+    VAN_gut -> Microbiome_diversity [label="alters" color="#6C3483" style=dashed]
+    VAN_gut -> Clostridium [label="reduces" color="#6C3483" style=dashed]
+  }
+
+  //===================================================================
+  // CLUSTER 3: Bile Acid Metabolism & FXR Signaling
+  //===================================================================
+  subgraph cluster_BileAcid {
+    label="Bile Acid Metabolism & FXR/TGR5 Signaling"
+    style="filled,rounded"
+    color="#7D6608"
+    fontcolor="#7D6608"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#FEF9E7"
+
+    node [fillcolor="#FAD7A0" color="#784212"]
+
+    CYP7A1      [label="CYP7A1\n(Rate-limiting BA synthesis)"]
+    CYP27A1     [label="CYP27A1\n(Cholesterol hydroxylation)"]
+    CYP8B1      [label="CYP8B1\n(CA pathway)"]
+    Cholesterol_liver [label="Hepatic\nCholesterol Pool"]
+    CDCA        [label="Chenodeoxycholic\nAcid (CDCA)"]
+    CA          [label="Cholic Acid\n(CA)"]
+    ConjBA      [label="Conjugated\nBile Acids (G/T)"]
+    NTCP        [label="NTCP\n(Basolateral uptake)"]
+    ASBT        [label="ASBT/SLC10A2\n(Ileal BA reabsorption)"]
+    BSEP        [label="BSEP/ABCB11\n(Canalicular BA secretion)"]
+    MRP2        [label="MRP2/ABCC2\n(Organic anion export)"]
+    MDR3        [label="MDR3/ABCB4\n(Phospholipid flippase)"]
+    FXR_liver   [label="FXR\n(Liver — NR1H4)"]
+    FXR_ileum   [label="FXR\n(Ileum)"]
+    FGF19       [label="FGF19\n(Ileal hormone)"]
+    FGFR4       [label="FGFR4/β-Klotho\n(Liver receptor)"]
+    SHP         [label="SHP\n(Repressor of CYP7A1)"]
+    TGR5        [label="TGR5/GPBAR1\n(BA receptor)"]
+    cAMP_TGR5   [label="cAMP\n(TGR5 downstream)"]
+    Hydrophobic_index [label="Hydrophobic BA\nIndex (toxicity)"]
+    BileLeak    [label="Bile Acid\nRegurgitation\n(retrograde)"]
+
+    Cholesterol_liver -> CYP7A1 [label="substrate"]
+    Cholesterol_liver -> CYP27A1 [label="substrate"]
+    CYP7A1 -> CDCA [label="→CDCA/CA\nsynthesis"]
+    CYP7A1 -> CA [label="synthesis"]
+    CYP8B1 -> CA [label="mediates CA"]
+    CDCA -> ConjBA [label="conjugate"]
+    CA -> ConjBA [label="conjugate"]
+    ConjBA -> BSEP [label="secreted via"]
+    BSEP -> BileLeak [label="defect→leak"]
+    NTCP -> ConjBA [label="uptake from blood"]
+    ASBT -> FXR_ileum [label="BA → activates"]
+    FXR_ileum -> FGF19 [label="induces"]
+    FGF19 -> FGFR4 [label="activates"]
+    FGFR4 -> SHP [label="→SHP"]
+    SHP -> CYP7A1 [label="inhibits" color=red]
+    FXR_liver -> SHP [label="induces"]
+    FXR_liver -> BSEP [label="upregulates"]
+    FXR_liver -> MDR3 [label="upregulates"]
+    FXR_liver -> MRP2 [label="upregulates"]
+    TGR5 -> cAMP_TGR5 [label="activates"]
+    SecBa -> TGR5 [label="activates\n(DCA/LCA)"]
+    Hydrophobic_index -> BileLeak [label="promotes"]
+
+    OCA_bile -> FXR_liver [label="FXR agonist\n(IC50~0.1μM)" color="#6C3483" style=dashed]
+    OCA_bile -> FXR_ileum [label="FXR agonist" color="#6C3483" style=dashed]
+    UDCA_bile -> Hydrophobic_index [label="↓hydrophobicity" color="#1A5276" style=dashed]
+    NorUDCA_bile -> BileLeak [label="bicarbonate-rich\nflux ↑" color="#1A5276" style=dashed]
+    BEZ_plasma -> CYP7A1 [label="PPAR-α\n→FGF21" color="#6C3483" style=dashed]
+  }
+
+  //===================================================================
+  // CLUSTER 4: Cholangiocytes & Biliary Pathology
+  //===================================================================
+  subgraph cluster_Cholangiocyte {
+    label="Cholangiocyte Biology & Biliary Pathology"
+    style="filled,rounded"
+    color="#6E2F1A"
+    fontcolor="#6E2F1A"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#FDEDEC"
+
+    node [fillcolor="#F1948A" color="#922B21"]
+
+    Cholangiocyte [label="Cholangiocyte\n(Biliary Epithelial Cell)"]
+    Cholangiocyte_reactive [label="Reactive\nCholangiocyte\n(Senescent)"]
+    AE2         [label="AE2/SLC4A2\n(Bicarbonate secretion)"]
+    CFTR        [label="CFTR\n(Cl⁻ channel)"]
+    BilicaryUmbrella [label="Biliary HCO₃⁻\nUmbrella"]
+    Glycocalyx  [label="Glycocalyx\n(Luminal protection)"]
+    Apoptosis_cholangio [label="Cholangiocyte\nApoptosis"]
+    Proliferation_cholangio [label="Cholangiocyte\nProliferation\n(Ductular reaction)"]
+    DR          [label="Ductular Reaction\n(Progenitor cells)"]
+    EpCAM       [label="EpCAM+ Progenitors\n(Biliary stem cells)"]
+    Cholestasis  [label="Cholestasis\n(Bile flow obstruction)"]
+    Biliary_strictures [label="Biliary Strictures\n(Dominant/multi-focal)"]
+    Biliary_dilation [label="Biliary Dilation\n(Upstream)"]
+    SASP        [label="SASP\n(Senescence-associated\nsecretory phenotype)"]
+    p21_p16     [label="p21 / p16\n(Senescence markers)"]
+    NOTCH2      [label="NOTCH2 Signaling\n(Ductular fate)"]
+    WNT_biliary [label="WNT/β-catenin\n(Biliary repair)"]
+
+    Cholangiocyte -> AE2 [label="expresses"]
+    AE2 -> BilicaryUmbrella [label="generates"]
+    CFTR -> BilicaryUmbrella [label="Cl⁻ → HCO₃⁻"]
+    BilicaryUmbrella -> Glycocalyx [label="protects"]
+    Glycocalyx -> Apoptosis_cholangio [label="↓ when disrupted" dir=back]
+    Cholangiocyte -> Cholangiocyte_reactive [label="stress →\nsenescence"]
+    Cholangiocyte_reactive -> SASP [label="secretes"]
+    Cholangiocyte_reactive -> p21_p16 [label="expresses"]
+    SASP -> Proliferation_cholangio [label="paracrine"]
+    Proliferation_cholangio -> DR [label="ductular\nreaction"]
+    DR -> EpCAM [label="EpCAM+"]
+    EpCAM -> NOTCH2 [label="activates"]
+    NOTCH2 -> WNT_biliary [label="cross-talk"]
+    Cholangiocyte -> Cholestasis [label="obstruction →"]
+    Cholestasis -> Biliary_strictures [label="fibrosis →"]
+    Biliary_strictures -> Biliary_dilation [label="causes"]
+    Apoptosis_cholangio -> Cholestasis [label="ductopenia"]
+    BileLeak -> Cholangiocyte [label="toxic injury" color=red]
+    SecBa -> Cholangiocyte [label="detergent toxicity" color=red]
+  }
+
+  //===================================================================
+  // CLUSTER 5: Hepatic Immune Cells
+  //===================================================================
+  subgraph cluster_ImmuneCell {
+    label="Hepatic Immune Cells & Inflammatory Signaling"
+    style="filled,rounded"
+    color="#1A5276"
+    fontcolor="#1A5276"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#EBF5FB"
+
+    node [fillcolor="#85C1E9" color="#1A5276"]
+
+    CD4_Th17    [label="CD4+ Th17 Cell\n(Portal tracts)"]
+    CD4_Th1     [label="CD4+ Th1 Cell"]
+    CD8_CTL     [label="CD8+ CTL\n(Cytotoxic)"]
+    Treg        [label="Regulatory T Cell\n(Treg / FOXP3+)"]
+    NK_cell     [label="NK Cell\n(TRAIL-mediated)"]
+    NKT_cell    [label="NKT Cell\n(CD1d-restricted)"]
+    Kupffer     [label="Kupffer Cell\n(Liver macrophage)"]
+    MDM         [label="Monocyte-derived\nMacrophage"]
+    pDC         [label="Plasmacytoid\nDendritic Cell"]
+    mDC         [label="Myeloid DC\n(CD103+)"]
+    B_cell      [label="B Cell / Plasma Cell"]
+    IgG4_cell   [label="IgG4+ Plasma Cell\n(IgG4-SC overlap)"]
+    CXCL10      [label="CXCL10 / IP-10\n(Chemokine)"]
+    CCL2        [label="CCL2 / MCP-1"]
+    CCL5        [label="CCL5 / RANTES"]
+    CXCR3       [label="CXCR3\n(T cell homing receptor)"]
+    CCR2        [label="CCR2\n(Macrophage recruitment)"]
+    IL17A       [label="IL-17A\n(Key PSC cytokine)"]
+    IL17F       [label="IL-17F"]
+    IL21        [label="IL-21\n(B cell activation)"]
+    IL12        [label="IL-12\n(Th1 differentiation)"]
+    IL23        [label="IL-23\n(Th17 maintenance)"]
+    IL6         [label="IL-6\n(Acute phase)"]
+    TNFa        [label="TNF-α\n(Macrophage/Th1)"]
+    IFNg        [label="IFN-γ\n(Th1 effector)"]
+    IL10        [label="IL-10\n(Anti-inflammatory)"]
+    IL4         [label="IL-4\n(Th2/Treg context)"]
+    TRAIL       [label="TRAIL\n(NK-mediated apoptosis)"]
+    NF_kB       [label="NF-κB\n(Master inflammatory TF)"]
+    STAT3       [label="STAT3\n(IL-6/IL-17 signaling)"]
+    JAK_path    [label="JAK1/2\n(Cytokine signaling)"]
+    PD1_PDL1    [label="PD-1/PD-L1\n(T cell exhaustion)"]
+
+    CD4_Th17 -> IL17A [label="secretes"]
+    CD4_Th17 -> IL17F [label="secretes"]
+    CD4_Th17 -> IL21 [label="secretes"]
+    CD4_Th1 -> IFNg [label="secretes"]
+    CD4_Th1 -> TNFa [label="co-produces"]
+    CD8_CTL -> TRAIL [label="TRAIL+\nperforin"]
+    NK_cell -> TRAIL [label="TRAIL-mediated"]
+    Kupffer -> TNFa [label="secretes"]
+    Kupffer -> IL6 [label="secretes"]
+    Kupffer -> IL12 [label="secretes"]
+    MDM -> CCL2 [label="attracts more"]
+    pDC -> IL12 [label="produces IFN"]
+    mDC -> IL23 [label="IL-23 → Th17"]
+    B_cell -> IgG4_cell [label="class switch"]
+    IL12 -> CD4_Th1 [label="differentiates"]
+    IL23 -> CD4_Th17 [label="maintains"]
+    IL6 -> STAT3 [label="activates"]
+    IL17A -> NF_kB [label="activates"]
+    IFNg -> NF_kB [label="synergizes"]
+    TNFa -> NF_kB [label="activates"]
+    NF_kB -> CXCL10 [label="induces"]
+    NF_kB -> CCL2 [label="induces"]
+    NF_kB -> CCL5 [label="induces"]
+    CXCL10 -> CXCR3 [label="ligand"]
+    CCL2 -> CCR2 [label="ligand"]
+    CXCR3 -> CD8_CTL [label="recruits"]
+    CCR2 -> MDM [label="recruits"]
+    Treg -> IL10 [label="secretes"]
+    IL10 -> CD4_Th17 [label="suppresses" color=green]
+    IL10 -> TNFa [label="inhibits" color=green]
+    JAK_path -> STAT3 [label="phosphorylates"]
+    IL6 -> JAK_path [label="activates"]
+    CD4_Th17 -> PD1_PDL1 [label="exhaustion"]
+    TRAIL -> Apoptosis_cholangio [label="induces" color=red]
+    LPS -> Kupffer [label="activates via TLR4"]
+    Portal_blood -> Kupffer [label="LPS delivery"]
+    VEDO_plasma -> CD4_Th17 [label="blocks α4β7\nGut recruitment" color="#6C3483" style=dashed]
+  }
+
+  //===================================================================
+  // CLUSTER 6: Hepatic Fibrosis Pathways
+  //===================================================================
+  subgraph cluster_Fibrosis {
+    label="Hepatic & Peribiliary Fibrosis"
+    style="filled,rounded"
+    color="#6C3483"
+    fontcolor="#6C3483"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#F5EEF8"
+
+    node [fillcolor="#D2B4DE" color="#6C3483"]
+
+    HSC         [label="Hepatic Stellate Cell\n(HSC / Ito cell)"]
+    HSC_quies   [label="Quiescent HSC\n(Lipocyte)"]
+    HSC_active  [label="Activated HSC\n(Myofibroblast)"]
+    PF          [label="Portal Fibroblast\n(Key PSC fibroblast)"]
+    PF_active   [label="Activated Portal\nFibroblast (αSMA+)"]
+    TGFb1       [label="TGF-β1\n(Master pro-fibrotic)"]
+    PDGF_BB     [label="PDGF-BB\n(Proliferation)"]
+    PDGFR_b     [label="PDGFR-β\n(HSC/PF receptor)"]
+    CTGF        [label="CTGF/CCN2\n(Matrix organization)"]
+    LOXL2       [label="LOXL2\n(Collagen cross-linking)"]
+    MMP2        [label="MMP-2\n(Matrix remodeling)"]
+    MMP9        [label="MMP-9"]
+    TIMP1       [label="TIMP-1\n(MMP inhibitor)"]
+    Col1a1      [label="Collagen I/III\n(Extracellular matrix)"]
+    aSMA        [label="α-SMA\n(Myofibroblast marker)"]
+    Fibronectin [label="Fibronectin\n(ECM component)"]
+    HGF_path    [label="HGF\n(Anti-fibrotic)"]
+    SMAD2_3     [label="SMAD2/3\n(TGF-β downstream)"]
+    SMAD7       [label="SMAD7\n(Negative feedback)"]
+    Hedgehog    [label="Hedgehog Signaling\n(SHH/IHH)"]
+    YAP_TAZ     [label="YAP/TAZ\n(Mechanosensing)"]
+    Peribiliary_fibrosis [label="Peribiliary Fibrosis\n(Onion-skin pattern)"]
+    BiliaryFib  [label="Biliary-type Fibrosis\n(Bridges)"]
+    Cirrhosis   [label="Biliary Cirrhosis\n(End-stage)"]
+
+    HSC_quies -> HSC_active [label="activation"]
+    HSC -> HSC_quies [label="resting state"]
+    HSC_active -> aSMA [label="expresses"]
+    PF -> PF_active [label="activation"]
+    PF_active -> aSMA [label="expresses"]
+    TGFb1 -> SMAD2_3 [label="phosphorylates"]
+    SMAD2_3 -> Col1a1 [label="transcribes"]
+    SMAD2_3 -> CTGF [label="transcribes"]
+    SMAD7 -> SMAD2_3 [label="blocks" color=green]
+    TGFb1 -> HSC_active [label="activates"]
+    TGFb1 -> PF_active [label="activates"]
+    PDGF_BB -> PDGFR_b [label="binds"]
+    PDGFR_b -> HSC_active [label="proliferates"]
+    PDGFR_b -> PF_active [label="proliferates"]
+    Col1a1 -> LOXL2 [label="substrate"]
+    LOXL2 -> Peribiliary_fibrosis [label="cross-links"]
+    MMP2 -> Col1a1 [label="degrades" color=green]
+    TIMP1 -> MMP2 [label="inhibits" color=red]
+    HGF_path -> HSC_active [label="inhibits" color=green]
+    Hedgehog -> YAP_TAZ [label="activates"]
+    YAP_TAZ -> Col1a1 [label="promotes"]
+    Fibronectin -> Peribiliary_fibrosis [label="ECM scaffold"]
+    CTGF -> BiliaryFib [label="promotes"]
+    Peribiliary_fibrosis -> BiliaryFib [label="progresses"]
+    BiliaryFib -> Cirrhosis [label="end-stage"]
+
+    SASP -> TGFb1 [label="paracrine\nstimulation"]
+    SASP -> PDGF_BB [label="produces"]
+    IL17A -> TGFb1 [label="upregulates"]
+    TNFa -> HSC_active [label="activates"]
+    SIMTU_plasma -> LOXL2 [label="inhibits\n(anti-LOXL2)" color="#6C3483" style=dashed]
+    DR -> TGFb1 [label="secretes"]
+  }
+
+  //===================================================================
+  // CLUSTER 7: Portal Hypertension & Vascular Changes
+  //===================================================================
+  subgraph cluster_PortalHTN {
+    label="Portal Hypertension & Vascular Pathobiology"
+    style="filled,rounded"
+    color="#7B241C"
+    fontcolor="#7B241C"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#FADBD8"
+
+    node [fillcolor="#F1948A" color="#922B21"]
+
+    Portal_pressure [label="Portal Pressure\n(mmHg)"]
+    HVPG         [label="HVPG\n(>10 mmHg = cHTN)"]
+    Sinusoidal_resistance [label="Sinusoidal\nResistance"]
+    eNOS         [label="eNOS\n(NO production)"]
+    NO           [label="Nitric Oxide\n(Vasodilator)"]
+    ET1          [label="Endothelin-1\n(Vasoconstrictor)"]
+    ET_receptor  [label="ET-A/B Receptor"]
+    Angiotensin2 [label="Angiotensin II\n(RAAS)"]
+    Splanchnic_vasodil [label="Splanchnic\nVasodilation"]
+    Hyper_dynamic [label="Hyperdynamic\nCirculation"]
+    Esophageal_varices [label="Esophageal Varices\n(Bleeding risk)"]
+    Splenomegaly [label="Splenomegaly\n(Thrombocytopenia)"]
+    Ascites      [label="Ascites\n(Fluid retention)"]
+    SBP          [label="Spontaneous\nBacterial Peritonitis"]
+    Coagulopathy [label="Coagulopathy\n(↓Factor synthesis)"]
+    HRS          [label="Hepatorenal\nSyndrome"]
+    Platelet_seq [label="Platelet\nSequestration"]
+
+    Cirrhosis -> Portal_pressure [label="↑resistance"]
+    Portal_pressure -> HVPG [label="measured as"]
+    Portal_pressure -> Sinusoidal_resistance [label="determined by"]
+    Sinusoidal_resistance -> eNOS [label="impairs" color=red]
+    eNOS -> NO [label="produces"]
+    NO -> Sinusoidal_resistance [label="↓resistance" color=green]
+    ET1 -> ET_receptor [label="binds"]
+    ET_receptor -> Sinusoidal_resistance [label="↑constriction"]
+    Angiotensin2 -> Sinusoidal_resistance [label="constricts"]
+    HVPG -> Esophageal_varices [label=">12mmHg\nvarices form"]
+    HVPG -> Ascites [label=">10mmHg"]
+    HVPG -> Splenomegaly [label="backpressure"]
+    Splenomegaly -> Platelet_seq [label="traps"]
+    Platelet_seq -> Coagulopathy [label="contributes"]
+    Ascites -> SBP [label="infection risk"]
+    SBP -> HRS [label="can trigger"]
+    Hyper_dynamic -> Splanchnic_vasodil [label="results from"]
+    Splanchnic_vasodil -> Portal_pressure [label="increases"]
+  }
+
+  //===================================================================
+  // CLUSTER 8: Cholangiocarcinoma Risk
+  //===================================================================
+  subgraph cluster_CCA {
+    label="Cholangiocarcinoma (CCA) Progression"
+    style="filled,rounded"
+    color="#212F3C"
+    fontcolor="#212F3C"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#EAECEE"
+
+    node [fillcolor="#AEB6BF" color="#212F3C"]
+
+    Chronic_inflammation_CCA [label="Chronic Biliary\nInflammation"]
+    DNA_damage   [label="DNA Damage\n(Oxidative stress)"]
+    TP53_mut     [label="TP53 Mutation\n(Tumor suppressor ↓)"]
+    KRAS_mut     [label="KRAS Mutation\n(Oncogene ↑)"]
+    FGFR2_fusion [label="FGFR2 Fusion\n(Kinase activation)"]
+    IDH1_2       [label="IDH1/2 Mutation\n(Epigenetic)"]
+    EGFR_path    [label="EGFR Pathway\n(Proliferation)"]
+    Wnt_CCA      [label="Wnt/β-catenin\n(Oncogenic)"]
+    CCA_early    [label="Early CCA\n(Dysplasia)"]
+    CCA_advanced [label="Advanced CCA\n(Intrahepatic)"]
+    CEA_CA19_9   [label="CEA / CA 19-9\n(Serum markers)"]
+    ROS          [label="Reactive Oxygen\nSpecies (ROS)"]
+    Cholestasis  [label="Cholestasis\n(Carcinogenic milieu)"]
+
+    Chronic_inflammation_CCA -> DNA_damage [label="genotoxic"]
+    Cholestasis -> ROS [label="bile acid → ROS"]
+    ROS -> DNA_damage [label="oxidative"]
+    DNA_damage -> TP53_mut [label="clonal\nselection"]
+    DNA_damage -> KRAS_mut [label="mutation"]
+    FGFR2_fusion -> EGFR_path [label="cross-activates"]
+    IDH1_2 -> Wnt_CCA [label="epigenetic\nactivation"]
+    TP53_mut -> CCA_early [label="cell escape\napoptosis"]
+    KRAS_mut -> CCA_early [label="proliferative\nadvantage"]
+    CCA_early -> CCA_advanced [label="progression"]
+    CCA_advanced -> CEA_CA19_9 [label="elevates"]
+    Biliary_strictures -> Chronic_inflammation_CCA [label="sustains"]
+    SASP -> ROS [label="oxidative burst"]
+  }
+
+  //===================================================================
+  // CLUSTER 9: Hepatic Synthetic Function & Biomarkers
+  //===================================================================
+  subgraph cluster_Biomarkers {
+    label="Liver Synthetic Function & Clinical Biomarkers"
+    style="filled,rounded"
+    color="#1C6E35"
+    fontcolor="#1C6E35"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#E9F7EF"
+
+    node [fillcolor="#A9DFBF" color="#1D6A30"]
+
+    ALP          [label="ALP\n(Alkaline Phosphatase)"]
+    GGT          [label="GGT\n(Gamma-GT)"]
+    ALT          [label="ALT\n(Hepatocellular injury)"]
+    AST          [label="AST\n(Hepatocellular injury)"]
+    Bilirubin    [label="Total Bilirubin\n(Conjugated↑)"]
+    Albumin      [label="Serum Albumin\n(Synthetic function)"]
+    INR          [label="INR / PT\n(Coagulation)"]
+    Bile_acids_serum [label="Serum Bile Acids\n(Total/FGF19)"]
+    pANCA        [label="p-ANCA\n(Autoantibody ~80%)"]
+    ANA          [label="ANA\n(Autoantibody)"]
+    CRP          [label="C-Reactive Protein\n(Systemic inflammation)"]
+    ESR          [label="ESR\n(Inflammation)"]
+    Fibroscan    [label="Liver Stiffness\n(kPa, FibroScan)"]
+    MRCP_score   [label="MRCP Biliary\nStricturing Score"]
+    Mayo_score   [label="Mayo Risk Score\n(Survival prediction)"]
+    MELD         [label="MELD Score\n(Transplant listing)"]
+    FGF19_serum  [label="FGF19\n(Serum biomarker)"]
+    Enhanced_Liver [label="Enhanced Liver\nFibrosis (ELF)"]
+    LSM_score    [label="Liver Stiffness\nMeasurement"]
+
+    Cholestasis -> ALP [label="↑canalicular"]
+    Cholestasis -> GGT [label="↑biliary"]
+    Cholestasis -> Bilirubin [label="↑conjugated"]
+    BileLeak -> ALT [label="↑hepatocellular"]
+    BileLeak -> AST [label="↑hepatocellular"]
+    Cirrhosis -> Albumin [label="↓synthesis"]
+    Cirrhosis -> INR [label="↑bleeding risk"]
+    FGF19 -> FGF19_serum [label="measurable"]
+    Bile_acids_serum -> FGF19_serum [label="correlates"]
+    Peribiliary_fibrosis -> Fibroscan [label="↑stiffness"]
+    Peribiliary_fibrosis -> LSM_score [label="↑"]
+    BiliaryFib -> MRCP_score [label="strictures"]
+    ALP -> Mayo_score [label="component"]
+    Bilirubin -> Mayo_score [label="component"]
+    Albumin -> MELD [label="component"]
+    INR -> MELD [label="component"]
+    Col1a1 -> Enhanced_Liver [label="ELF panel"]
+    CRP -> Mayo_score [label="inflammation marker"]
+    pANCA -> ANA [label="overlap possible"]
+
+    UDCA_bile -> ALP [label="ALP ↓(~20%)" color="#1A5276" style=dashed]
+    OCA_bile -> ALP [label="ALP ↓(significant)" color="#6C3483" style=dashed]
+    BEZ_plasma -> ALP [label="ALP ↓(via PPAR)" color="#6C3483" style=dashed]
+    UDCA_bile -> GGT [label="GGT ↓" color="#1A5276" style=dashed]
+  }
+
+  //===================================================================
+  // CLUSTER 10: Clinical Endpoints
+  //===================================================================
+  subgraph cluster_Endpoints {
+    label="Clinical Endpoints & Treatment Targets"
+    style="filled,rounded"
+    color="#145A32"
+    fontcolor="#145A32"
+    fontsize=14
+    fontname="Helvetica-Bold"
+    fillcolor="#D5F5E3"
+
+    node [fillcolor="#82E0AA" color="#1E8449"]
+
+    Pruritus     [label="Pruritus\n(Bile acid-mediated)"]
+    Fatigue      [label="Fatigue\n(Cholestatic)"]
+    RUQ_pain     [label="RUQ Pain\n(Biliary colic)"]
+    Jaundice     [label="Jaundice\n(Obstructive)"]
+    Weight_loss  [label="Weight Loss\n(Advanced disease)"]
+    Variceal_bleed [label="Variceal Bleeding\n(Complication)"]
+    Liver_transplant [label="Liver Transplant\n(End-stage)"]
+    PSC_recurrence [label="Post-LT PSC\nRecurrence (~25%)"]
+    Quality_life [label="Quality of Life\n(SF-36/PBC-40)"]
+    Transplant_free [label="Transplant-free\nSurvival (TFS)"]
+    Time_to_events [label="Time to Events\n(LT/Death/CCA)"]
+    Cholangitis_episode [label="Bacterial Cholangitis\nEpisode"]
+    Dominant_stricture [label="Dominant Stricture\n(ERCP dilatation)"]
+    IBD_flare    [label="IBD Flare\n(Concomitant)"]
+
+    Pruritus -> Quality_life [label="impairs"]
+    Fatigue -> Quality_life [label="impairs"]
+    RUQ_pain -> Quality_life [label="impairs"]
+    Jaundice -> Quality_life [label="impairs"]
+    Variceal_bleed -> Transplant_free [label="shortens"]
+    CCA_advanced -> Transplant_free [label="shortens"]
+    Cirrhosis -> Liver_transplant [label="indication"]
+    Liver_transplant -> PSC_recurrence [label="risk"]
+    Cholangitis_episode -> Dominant_stricture [label="precipitates"]
+    Dominant_stricture -> Cholangitis_episode [label="causes"]
+    IBD_flare -> Gut_barrier [label="worsens"]
+    IBD_flare -> Portal_blood [label="↑LPS"]
+    UDCA_bile -> Pruritus [label="modest ↓" color="#1A5276" style=dashed]
+    OCA_bile -> Pruritus [label="may ↑ initially" color="#9B2226" style=dashed]
+    VAN_gut -> Cholangitis_episode [label="reduces" color="#6C3483" style=dashed]
+  }
+
+  //===================================================================
+  // INTER-CLUSTER CONNECTIONS
+  //===================================================================
+
+  // Gut → Liver
+  Portal_blood -> Kupffer [label="LPS → TLR4\nactivation" color=red]
+  Portal_blood -> NF_kB [label="LPS signal"]
+  SecBa -> Bile_acids_serum [label="portal BA pool"]
+  GutBa_pool -> ConjBA [label="enterohepatic\nreabsorption"]
+  ASBT -> GutBa_pool [label="reabsorbs"]
+  ConjBA -> ASBT [label="ileal reabsorption"]
+
+  // Bile acid → Inflammation
+  BileLeak -> IL17A [label="stress → Th17"]
+  Cholestasis -> Chronic_inflammation_CCA [label="sustains"]
+  BilicaryUmbrella -> SecBa [label="protection from"]
+
+  // Immune → Cholangiocyte
+  IL17A -> Cholangiocyte [label="CXCL chemokines"]
+  TNFa -> Apoptosis_cholangio [label="TNF-TNFR1\napoptosis" color=red]
+  IFNg -> Cholangiocyte [label="MHC-II upregulation"]
+  IFNg -> Cholangiocyte_reactive [label="accelerates\nsenescence"]
+
+  // Immune → Fibrosis
+  Kupffer -> TGFb1 [label="major source"]
+  MDM -> PDGF_BB [label="secretes"]
+  IL17A -> PF_active [label="activates"]
+  NF_kB -> TGFb1 [label="transcription"]
+
+  // Fibrosis → Endpoints
+  Peribiliary_fibrosis -> Cholestasis [label="stricture formation"]
+  BiliaryFib -> Portal_pressure [label="↑resistance"]
+  Cirrhosis -> Variceal_bleed [label="complication"]
+  Cirrhosis -> Cholangitis_episode [label="impaired\nimmunity"]
+
+  // Biomarkers → Endpoints
+  MELD -> Liver_transplant [label="listing criterion"]
+  Mayo_score -> Transplant_free [label="predicts"]
+  CCA_advanced -> Transplant_free [label="contra-indicates LT"]
+
+  // Drug effects on endpoints
+  OCA_bile -> FXR_liver [label="FXR → ↓BA synthesis\n→ ↓ALP" color="#6C3483" style=dashed]
+  NorUDCA_bile -> BilicaryUmbrella [label="↑HCO₃⁻\nprotection" color="#1A5276" style=dashed]
+  BEZ_plasma -> TGFb1 [label="PPARα →\n↓TGF-β" color="#6C3483" style=dashed]
+  VEDO_plasma -> IBD_activity [label="↓IBD activity\n→↓gut leak" color="#6C3483" style=dashed]
+
+  // Legend
+  subgraph cluster_legend {
+    label="Legend"
+    style="filled,rounded"
+    color="#555555"
+    fontcolor="#555555"
+    fontsize=11
+    fillcolor="#FFFFFF"
+    rank=sink
+
+    node [shape=plaintext style="" fillcolor=white color=white]
+
+    L1 [label="→ Stimulates/Activates"]
+    L2 [label="→ (red) Harmful/Damages"]
+    L3 [label="→ (green) Protective/Inhibits"]
+    L4 [label="--→ Drug effect (dashed)"]
+    L5 [label="Blue nodes = Drug PK"]
+    L6 [label="ALP = Alkaline Phosphatase (primary endpoint)"]
+  }
+}
