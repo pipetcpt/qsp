@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-134-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-135-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **134개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **135개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -259,6 +259,7 @@ qsp/
 | 131 | 혈액·응고 | [**정맥 혈전색전증 (DVT/PE)**<br><sub>Venous Thromboembolism · VTE</sub>](venous-thromboembolism/) | <a href="venous-thromboembolism/vte_qsp_model.svg"><img src="venous-thromboembolism/vte_qsp_model.png" width="190" alt="VTE"></a> | 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통합한 QSP 모델. Virchow's Triad(혈류정체·내피 손상·과응고), 외인성 경로(TF-FVIIa-TFPI), 내인성 경로(접촉활성화-FXIIa-FIXa-FVIIIa), 공통 경로(Prothrombinase-트롬빈-피브린 가교), 혈소판 활성화(GPIb/GPVI/PAR1/4·GPIIb/IIIa), 자연 항응고(AT-III·단백C/S·TFPI), 섬유용해(tPA/uPA·플라스민·PAI-1·TAFI·D-이량체). 리바록사반(2구획 PK·FXa EC50=12 ng/mL)·아픽사반(EC50=5 ng/mL)·다비가트란(직접트롬빈억제·EC50=35 ng/mL)·와파린(VK 사이클 간접반응·FVII/FX/FII 풀 반감기)·에녹사파린(AT-III 활성화·항Xa) 5종 약물 PK/PD. **140+ 노드 12클러스터**, **19구획 ODE**(PK 7·FXa/FIIa·피브린·혈전크기·플라스민·D-이량체·VK산화/환원·FVII/FX/FII풀), **6치료 시나리오**(DVT:리바록사반 15→20mg·PE:아픽사반 10→5mg BID·와파린+LMWH 브리지·수술예방:에녹사파린 40mg QD·확장예방:리바록사반 10mg QD·신부전:다비가트란 110mg BID GFR30 vs 90). EINSTEIN/AMPLIFY/RE-COVER/ROCKET-AF/Mueck 2011/Frost 2015 임상 파라미터 보정. INR·Anti-Xa·aPTT·D-이량체·혈전잔여% 바이오마커. Wells 점수(DVT/PE) 사전확률 계산기, 금기사항별 약물 추천 로직. 57개 PubMed 인용.<br>[🗺️ 지도](venous-thromboembolism/vte_qsp_model.svg) · [⚙️ mrgsolve](venous-thromboembolism/vte_mrgsolve_model.R) · [📊 Shiny](venous-thromboembolism/vte_shiny_app.R) · [📚 문헌](venous-thromboembolism/vte_references.md) · [📄 README](venous-thromboembolism/README.md) |
 | 133 | 소아 혈관염 | [**가와사키병**<br><sub>Kawasaki Disease · KD</sub>](kawasaki-disease/) | <a href="kawasaki-disease/kd_qsp_model.svg"><img src="kawasaki-disease/kd_qsp_model.png" width="190" alt="KD"></a> | 원인 불명 트리거 → TLR/NLR 선천 면역 활성화 → NLRP3 인플라마좀(Caspase-1·IL-1β 성숙) → 사이토카인 폭풍(IL-1β·IL-6·TNF-α) → 혈관 내피 활성화(VCAM-1·ICAM-1·TF↑) → 관상동맥 중막 파괴·동맥류(AHA Z-점수 분류: small z≥2.5, medium z≥5, giant z≥10) → 혈소판 증가증(2주 피크) → 혈전위험. IVIG 2 g/kg(2구획+FcRn 재순환·Emax NF-κB 억제)·고용량 아스피린→저용량(COX-1/2 비가역)·메틸프레드니솔론(NF-κB 억제·GR 경로)·인플릭시맙 5 mg/kg(TNF-α 중화·n=1.8)·아나킨라 4 mg/kg/day(IL-1R 경쟁차단) 5종 PK/PD. **134 노드 14클러스터**, **21구획 ODE**(PK 11·IL1β·IL6·TNFα·대식세포·내피세포·발열·CRP·혈소판·관상동맥 Z-점수), **5치료 시나리오**(S1 표준IVIG·S2 고위험+스테로이드·S3 IVIG저항-2차IVIG·S4 인플릭시맙구제·S5 아나킨라구제). Kobayashi/Egami 위험점수 계산기·관상동맥 Z-점수 추적·IVIG 저항성 확률 모델. McCrindle/Kobayashi/KIDCARE Trial 보정. 60개 PubMed 인용.<br>[🗺️ 지도](kawasaki-disease/kd_qsp_model.svg) · [⚙️ mrgsolve](kawasaki-disease/kd_mrgsolve_model.R) · [📊 Shiny](kawasaki-disease/kd_shiny_app.R) · [📚 문헌](kawasaki-disease/kd_references.md) · [📄 README](kawasaki-disease/README.md) |
 | 134 | 내분비·대사 | [**쿠싱 증후군**<br><sub>Cushing's Syndrome · CS</sub>](cushings-syndrome/) | <a href="cushings-syndrome/cs_qsp_model.svg"><img src="cushings-syndrome/cs_qsp_model.png" width="190" alt="CS"></a> | 뇌하수체 ACTH 선종(쿠싱병 70%)·이소성 ACTH(10%)·부신 선종(15%) 등에 의한 만성 고코르티솔혈증. 시상하부 일주기 CRH 리듬·CRHR1-PKA-CREB-POMC-ACTH 경로; USP8 탈유비퀴틴화(~50% 쿠싱병)·CDK4/6 세포증식; CYP11A1→CYP17A1→CYP21A2→CYP11B1 스테로이드 생합성; GR-α/HSP90/FKBP51·핵이동·GRE/nGRE·AP1/NF-κB 접촉억제·GILZ·SGK1; PEPCK/G6Pase↑·인슐린저항성·내장지방·근육위축·골다공증(RANKL↑/OPG↓)·RAAS 고혈압. **140+ 노드 13클러스터**, **21구획 ODE**(HPA 3+부신코르티솔 2+GR 3+대사 6+임상출력 1+약물PK 6), **6치료 시나리오**(자연경과·파시레오티드 0.6mg BID·케토코나졸 400mg BID·오실로드로스탯 5mg BID·미페프리스톤 600mg QD·수술 후 관해). PASPORT-CUSHINGS(Colao 2012 NEJM)·LINC 3/4(Feelders 2019/Pivonello 2020)·SEISMIC(Fleseriu 2012 JCEM) 임상 보정. UFC·LNSC·1mg DST·덱사메타손억제검사·BMD·HDRS-17. 8탭 Shiny 대시보드(환자프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단). 55개 PubMed 인용.<br>[🗺️ 지도](cushings-syndrome/cs_qsp_model.svg) · [⚙️ mrgsolve](cushings-syndrome/cs_mrgsolve_model.R) · [📊 Shiny](cushings-syndrome/cs_shiny_app.R) · [📚 문헌](cushings-syndrome/cs_references.md) · [📄 README](cushings-syndrome/README.md) |
+| 135 | 희귀·유전질환 | [**유전성 혈관부종**<br><sub>Hereditary Angioedema · HAE</sub>](hereditary-angioedema/) | <a href="hereditary-angioedema/hae_qsp_model.svg"><img src="hereditary-angioedema/hae_qsp_model.png" width="190" alt="HAE"></a> | *SERPING1* 돌연변이 → C1-INH 결핍/기능이상(Type I/II) 또는 *F12* Thr328Lys 이득기능돌연변이(Type III) → 칼리크레인-키닌계(KKS) 무제한 활성화 → 브라디키닌(BK) 과잉 → B2R-Gq/IP3/Ca²⁺/eNOS/NO 경로 → VE-cadherin 소실·혈장삼출 → 피하/후두 혈관부종. FXII→FXIIa 접촉활성화, FXIIa→Prekal→Kal→HMWK 절단, BK→B2R/B1R 이중수용체 신호, C1-INH:FXIIa/Kal 복합체, 보체C4 소진, IL-1β·B1R 상향조절 염증 증폭. 이카티반트(B2R Ki=0.47nM)·C1-INH IV(Berinert 20 IU/kg)·에칼란티드·재조합 C1-INH 급성치료; 베로트랄스탓(IC50=3.7nM 칼리크레인 경구)·라나델루맙(KD<100pM prekallikrein SC)·C1-INH SC(Haegarda 60IU/kg 2×/wk) 예방치료. **120+ 노드 12클러스터**, **20구획 ODE**(PK 11+생물학적 9), **6치료 시나리오**(무치료·이카티반트·C1-INH IV·베로트랄스탓·라나델루맙·C1-INH SC). FAST-1/3(Cicardi 2010·Lumry 2011)·HELP OLE(Banerji 2020 87% 감소)·BELO(Farkas 2020 44% 감소)·CONFIDENT(Craig 2017 95% 감소) 보정. BK 농도·B2R 점유율·VP 지수·부종점수·C4·C1-INH% 바이오마커. 58개 PubMed 인용.<br>[🗺️ 지도](hereditary-angioedema/hae_qsp_model.svg) · [⚙️ mrgsolve](hereditary-angioedema/hae_mrgsolve_model.R) · [📊 Shiny](hereditary-angioedema/hae_shiny_app.R) · [📚 문헌](hereditary-angioedema/hae_references.md) · [📄 README](hereditary-angioedema/README.md) |
 
 
 ---
@@ -1046,3 +1047,77 @@ qsp/
 | ⚙️ mrgsolve ODE | [`cs_mrgsolve_model.R`](cushings-syndrome/cs_mrgsolve_model.R) | **21구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`cs_shiny_app.R`](cushings-syndrome/cs_shiny_app.R) | **8탭** (환자 프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단) |
 | 📚 참고문헌 | [`cs_references.md`](cushings-syndrome/cs_references.md) | **55개 PubMed 인용** (10개 섹션) |
+
+---
+
+## 🩸 유전성 혈관부종 (Hereditary Angioedema) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`hereditary-angioedema/`](hereditary-angioedema/) | **약어:** HAE | **날짜:** 2026-06-24
+
+[![HAE QSP 기계론적 지도](hereditary-angioedema/hae_qsp_model.png)](hereditary-angioedema/hae_qsp_model.svg)
+
+**질환**: 유전성 혈관부종(Hereditary Angioedema, HAE) | **분류**: 희귀·유전질환 | **유병률**: 1:50,000 | **주요 매개체**: 브라디키닌(B2R 의존성)
+
+### 핵심 기전 (12개 클러스터)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 유전적 기반 | *SERPING1* 유전자 돌연변이(>700종) → C1-INH 단백질 결핍(Type I)/기능이상(Type II); *F12* Thr328Lys 이득기능돌연변이(Type III·에스트로겐 감수성) |
+| 2. 접촉 활성화 | FXII → FXIIa (음전하 표면 자동활성화); FXIIa ↔ Prekallikrein·HMWK 증폭 루프; 아연·열쇼크 단백질 보조인자 |
+| 3. 칼리크레인-키닌계(KKS) | 혈장 칼리크레인, HMWK 절단, 브라디키닌(BK) 생성, ACE·NEP·APP 키니나아제 분해 |
+| 4. C1-INH 생물학 | SERPIN 기전, C1-INH:FXIIa·C1-INH:Kal 복합체, 보체 C1r/C1s/MASP1/2 억제, C4 소진(진단 마커) |
+| 5. BK 수용체 신호 | B2R(구성적·고친화성)·B1R(유도성·염증 시 상향조절); Gq/IP3/Ca²⁺/eNOS/NO/PGI2 경로 |
+| 6. 혈관 효과 | EC 타이트정션 파괴, VE-카데린 내재화, 혈장 삼출 → 피하/복부/후두 부종 |
+| 7. 발작 병인 | 트리거(감정적 스트레스·수술·ACEi·에스트로겐), 발작 타임라인(전구증상→피크→소실 48–72h), 후두 사망 위험 |
+| 8. 급성 치료 | 이카티반트(B2R Ki=0.47nM, 30mg SC), C1-INH IV(Berinert/Ruconest), 에칼란티드(칼리크레인) |
+| 9. 예방 치료 | 베로트랄스탓(IC50=3.7nM 칼리크레인 경구 QD), 라나델루맙(KD<100pM prekallikrein SC Q2W), C1-INH SC(Haegarda), 다나졸 |
+| 10. 염증 증폭 | IL-1β→B1R 상향조절, 응고 크로스토크(FXIa/트롬빈), vWF/P-셀렉틴, HMWK 절단 지표 |
+| 11. 임상 엔드포인트 | 발작 빈도, ACE 검사(Angioedema Control Test), AE-QoL, 후두 위험도, 바이오마커(C4/C1-INH%) |
+| 12. 진단 알고리즘 | C4 → C1-INH 항원 → C1-INH 기능 → C1q → FXII 유전자 검사 |
+
+### mrgsolve ODE 모델 (20 구획)
+
+| 모듈 | 구획 | 핵심 동역학 |
+|------|------|------------|
+| 이카티반트 PK | A_ICA_depot, A_ICA_C, A_ICA_P | SC 데포 → 2구획; ka=0.74/h, CL=15.5 L/h, Vc=29 L, t½=1.3h |
+| C1-INH IV PK | A_C1INH_IV | 1구획; CL=0.051 L/h, Vd=3.3 L, t½=45h |
+| C1-INH SC PK | A_C1INH_SC, A_C1INH_SC_C | SC 데포; F=43%, ka=0.025/h |
+| 베로트랄스탓 PK | A_BER_gut, A_BER_C | 경구 흡수 F=57%; Vd=268 L, t½=93h |
+| 라나델루맙 PK | A_LAN_depot, A_LAN_C, A_LAN_P | SC → 2구획; F=61%, t½=17d |
+| C1-INH 생물학 | C1INH_free | 간 합성 – 키니나아제 소비 – 분해 |
+| 접촉 활성화 | FXII_act | FXIIa 동역학; C1-INH 억제; 트리거 강제 |
+| KKS | Kallikrein_act | FXIIa 구동; C1-INH·베로트랄스탓·라나델루맙 억제 |
+| 브라디키닌 | BK_plasma | 칼리크레인 구동 합성; ACE 분해 |
+| B2R 동역학 | B2R_free, B2R_bound | BK 결합(kon/koff); 이카티반트 경쟁적 차단; 내재화 |
+| 혈관 투과성 | VP | B2R_bound → NO/PGI2 구동; Emax 모델(Hill=1.8) |
+| 부종 점수 | SW_score | VP 역치 구동 부종 형성; 소실 동역학 |
+
+### 약물 PK/PD 파라미터
+
+| 약물 | 투여 경로 | 용량 | t½ | 주요 PD |
+|------|---------|------|-----|--------|
+| 이카티반트 | SC | 30 mg | 1.3 h | Ki(B2R) = 0.47 nM |
+| C1-INH IV (Berinert) | IV | 20 IU/kg | 45 h | C1-INH 보충 → 억제 복원 |
+| C1-INH SC (Haegarda) | SC | 60 IU/kg 2×/wk | 45 h | 정상상태 C1-INH >40% 유지 |
+| 베로트랄스탓 | PO | 150 mg QD | 93 h | IC50(Kal) = 3.7 nM, Emax = 92% |
+| 라나델루맙 | SC | 300 mg Q2W | 17 d | KD(prekallikrein) < 100 pM, Emax = 93% |
+
+### 6가지 치료 시나리오 임상 근거
+
+| 시나리오 | 약물 | 임상시험 | 주요 결과 |
+|---------|------|----------|----------|
+| S1: 무치료 HAE | — | 역사 코호트 | BK ↑10배, 최대 부종, 후두 사망 위험 |
+| S2: 이카티반트 SC | 이카티반트 30 mg | FAST-1/3 (NEJM 2010·2011) | B2R ~98% 차단; 2–4h 내 소실 |
+| S3: C1-INH IV | Berinert 20 IU/kg | Cicardi 2012 NEJM | C1-INH 복원; BK ↓↓ |
+| S4: 베로트랄스탓 QD | 150 mg 경구 | BELO 2020 | 발작 44% 감소; Kal IC50 정상상태 |
+| S5: 라나델루맙 Q2W | 300 mg SC | HELP OLE 2020 | 발작 87% 감소; 32% 무발작 |
+| S6: C1-INH SC | Haegarda 60 IU/kg | CONFIDENT 2017 | 발작 95% 감소; C4 정상화 |
+
+### QSP 모델 구성
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`hae_qsp_model.dot`](hereditary-angioedema/hae_qsp_model.dot) | **120+ 노드, 12클러스터**, fdp 레이아웃 |
+| ⚙️ mrgsolve ODE | [`hae_mrgsolve_model.R`](hereditary-angioedema/hae_mrgsolve_model.R) | **20구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`hae_shiny_app.R`](hereditary-angioedema/hae_shiny_app.R) | **6탭** (환자 프로파일·PK·KKS 생물학·임상 엔드포인트·시나리오 비교·바이오마커) |
+| 📚 참고문헌 | [`hae_references.md`](hereditary-angioedema/hae_references.md) | **58개 PubMed 인용** (12개 섹션) |
