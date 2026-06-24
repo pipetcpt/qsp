@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-133-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-134-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **133개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **134개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -118,9 +118,9 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **133개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **134개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 소아 혈관염 1 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
+**분류별 모델 수**: 내분비·대사 21 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 소아 혈관염 1 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
 
 | # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
 |---|------|------|----------|--------------|
@@ -258,6 +258,7 @@ qsp/
 | 132 | 신경근육 | [**척수성 근위축증 (SMA)**<br><sub>Spinal Muscular Atrophy · SMA</sub>](spinal-muscular-atrophy/) | <a href="spinal-muscular-atrophy/sma_qsp_model.svg"><img src="spinal-muscular-atrophy/sma_qsp_model.png" width="190" alt="SMA"></a> | *SMN1* 5q13.2 결손→SMN 단백질 소실→알파 운동신경세포 진행성 사멸·NMJ 미성숙·신경원성 근위축. SMN2 대체 스플라이싱(엑손7 포함율 10%→90%)·SMN 단백질 역치·MN pool·NMJ 성숙도·근육량 ODE. 누시너센(IT ASO·ISS-N1 차단)·리스디플람(경구 스플라이싱 조절제)·오나셈노진(AAV9 유전자치료) 3종 PK/PD. **130+ 노드 12클러스터**, **20구획 ODE**, **6치료 시나리오**(ENDEAR·CHERISH·FIREFISH·SPR1NT 임상 보정). CHOP-INTEND·HFMSE·CMAP·FVC·혈청 NF-L 바이오마커. 50개 PubMed 인용.<br>[🗺️ 지도](spinal-muscular-atrophy/sma_qsp_model.svg) · [⚙️ mrgsolve](spinal-muscular-atrophy/sma_mrgsolve_model.R) · [📊 Shiny](spinal-muscular-atrophy/sma_shiny_app.R) · [📚 문헌](spinal-muscular-atrophy/sma_references.md) · [📄 README](spinal-muscular-atrophy/README.md) |
 | 131 | 혈액·응고 | [**정맥 혈전색전증 (DVT/PE)**<br><sub>Venous Thromboembolism · VTE</sub>](venous-thromboembolism/) | <a href="venous-thromboembolism/vte_qsp_model.svg"><img src="venous-thromboembolism/vte_qsp_model.png" width="190" alt="VTE"></a> | 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통합한 QSP 모델. Virchow's Triad(혈류정체·내피 손상·과응고), 외인성 경로(TF-FVIIa-TFPI), 내인성 경로(접촉활성화-FXIIa-FIXa-FVIIIa), 공통 경로(Prothrombinase-트롬빈-피브린 가교), 혈소판 활성화(GPIb/GPVI/PAR1/4·GPIIb/IIIa), 자연 항응고(AT-III·단백C/S·TFPI), 섬유용해(tPA/uPA·플라스민·PAI-1·TAFI·D-이량체). 리바록사반(2구획 PK·FXa EC50=12 ng/mL)·아픽사반(EC50=5 ng/mL)·다비가트란(직접트롬빈억제·EC50=35 ng/mL)·와파린(VK 사이클 간접반응·FVII/FX/FII 풀 반감기)·에녹사파린(AT-III 활성화·항Xa) 5종 약물 PK/PD. **140+ 노드 12클러스터**, **19구획 ODE**(PK 7·FXa/FIIa·피브린·혈전크기·플라스민·D-이량체·VK산화/환원·FVII/FX/FII풀), **6치료 시나리오**(DVT:리바록사반 15→20mg·PE:아픽사반 10→5mg BID·와파린+LMWH 브리지·수술예방:에녹사파린 40mg QD·확장예방:리바록사반 10mg QD·신부전:다비가트란 110mg BID GFR30 vs 90). EINSTEIN/AMPLIFY/RE-COVER/ROCKET-AF/Mueck 2011/Frost 2015 임상 파라미터 보정. INR·Anti-Xa·aPTT·D-이량체·혈전잔여% 바이오마커. Wells 점수(DVT/PE) 사전확률 계산기, 금기사항별 약물 추천 로직. 57개 PubMed 인용.<br>[🗺️ 지도](venous-thromboembolism/vte_qsp_model.svg) · [⚙️ mrgsolve](venous-thromboembolism/vte_mrgsolve_model.R) · [📊 Shiny](venous-thromboembolism/vte_shiny_app.R) · [📚 문헌](venous-thromboembolism/vte_references.md) · [📄 README](venous-thromboembolism/README.md) |
 | 133 | 소아 혈관염 | [**가와사키병**<br><sub>Kawasaki Disease · KD</sub>](kawasaki-disease/) | <a href="kawasaki-disease/kd_qsp_model.svg"><img src="kawasaki-disease/kd_qsp_model.png" width="190" alt="KD"></a> | 원인 불명 트리거 → TLR/NLR 선천 면역 활성화 → NLRP3 인플라마좀(Caspase-1·IL-1β 성숙) → 사이토카인 폭풍(IL-1β·IL-6·TNF-α) → 혈관 내피 활성화(VCAM-1·ICAM-1·TF↑) → 관상동맥 중막 파괴·동맥류(AHA Z-점수 분류: small z≥2.5, medium z≥5, giant z≥10) → 혈소판 증가증(2주 피크) → 혈전위험. IVIG 2 g/kg(2구획+FcRn 재순환·Emax NF-κB 억제)·고용량 아스피린→저용량(COX-1/2 비가역)·메틸프레드니솔론(NF-κB 억제·GR 경로)·인플릭시맙 5 mg/kg(TNF-α 중화·n=1.8)·아나킨라 4 mg/kg/day(IL-1R 경쟁차단) 5종 PK/PD. **134 노드 14클러스터**, **21구획 ODE**(PK 11·IL1β·IL6·TNFα·대식세포·내피세포·발열·CRP·혈소판·관상동맥 Z-점수), **5치료 시나리오**(S1 표준IVIG·S2 고위험+스테로이드·S3 IVIG저항-2차IVIG·S4 인플릭시맙구제·S5 아나킨라구제). Kobayashi/Egami 위험점수 계산기·관상동맥 Z-점수 추적·IVIG 저항성 확률 모델. McCrindle/Kobayashi/KIDCARE Trial 보정. 60개 PubMed 인용.<br>[🗺️ 지도](kawasaki-disease/kd_qsp_model.svg) · [⚙️ mrgsolve](kawasaki-disease/kd_mrgsolve_model.R) · [📊 Shiny](kawasaki-disease/kd_shiny_app.R) · [📚 문헌](kawasaki-disease/kd_references.md) · [📄 README](kawasaki-disease/README.md) |
+| 134 | 내분비·대사 | [**쿠싱 증후군**<br><sub>Cushing's Syndrome · CS</sub>](cushings-syndrome/) | <a href="cushings-syndrome/cs_qsp_model.svg"><img src="cushings-syndrome/cs_qsp_model.png" width="190" alt="CS"></a> | 뇌하수체 ACTH 선종(쿠싱병 70%)·이소성 ACTH(10%)·부신 선종(15%) 등에 의한 만성 고코르티솔혈증. 시상하부 일주기 CRH 리듬·CRHR1-PKA-CREB-POMC-ACTH 경로; USP8 탈유비퀴틴화(~50% 쿠싱병)·CDK4/6 세포증식; CYP11A1→CYP17A1→CYP21A2→CYP11B1 스테로이드 생합성; GR-α/HSP90/FKBP51·핵이동·GRE/nGRE·AP1/NF-κB 접촉억제·GILZ·SGK1; PEPCK/G6Pase↑·인슐린저항성·내장지방·근육위축·골다공증(RANKL↑/OPG↓)·RAAS 고혈압. **140+ 노드 13클러스터**, **21구획 ODE**(HPA 3+부신코르티솔 2+GR 3+대사 6+임상출력 1+약물PK 6), **6치료 시나리오**(자연경과·파시레오티드 0.6mg BID·케토코나졸 400mg BID·오실로드로스탯 5mg BID·미페프리스톤 600mg QD·수술 후 관해). PASPORT-CUSHINGS(Colao 2012 NEJM)·LINC 3/4(Feelders 2019/Pivonello 2020)·SEISMIC(Fleseriu 2012 JCEM) 임상 보정. UFC·LNSC·1mg DST·덱사메타손억제검사·BMD·HDRS-17. 8탭 Shiny 대시보드(환자프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단). 55개 PubMed 인용.<br>[🗺️ 지도](cushings-syndrome/cs_qsp_model.svg) · [⚙️ mrgsolve](cushings-syndrome/cs_mrgsolve_model.R) · [📊 Shiny](cushings-syndrome/cs_shiny_app.R) · [📚 문헌](cushings-syndrome/cs_references.md) · [📄 README](cushings-syndrome/README.md) |
 
 
 ---
@@ -986,3 +987,62 @@ qsp/
 | ⚙️ mrgsolve ODE | [`kd_mrgsolve_model.R`](kawasaki-disease/kd_mrgsolve_model.R) | **21구획 ODE**, **5치료 시나리오** |
 | 📊 Shiny 앱 | [`kd_shiny_app.R`](kawasaki-disease/kd_shiny_app.R) | **6탭** (환자 프로파일·PK·사이토카인/염증·임상 엔드포인트·시나리오 비교·바이오마커/위험도) |
 | 📚 참고문헌 | [`kd_references.md`](kawasaki-disease/kd_references.md) | **60개 PubMed 인용** (14개 섹션) |
+
+---
+
+## 🫀 쿠싱 증후군 (Cushing's Syndrome) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`cushings-syndrome/`](cushings-syndrome/) | **약어:** CS | **날짜:** 2026-06-24
+
+[![CS QSP 기계론적 지도](cushings-syndrome/cs_qsp_model.png)](cushings-syndrome/cs_qsp_model.svg)
+
+**질환**: 쿠싱 증후군(Cushing's Syndrome, CS) | **분류**: 내분비·부신 질환 | **유병률**: 100만 명당 10–15명/년 | **주요 합병증**: 고혈압, 당뇨, 골다공증, 우울증
+
+### 핵심 기전 (13개 클러스터)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 시상하부 | CLOCK/BMAL1 일주기 리듬, CRH/AVP 분비, 소마토스타틴·도파민 억제, 스트레스 입력(NE) |
+| 2. 뇌하수체 전엽 | CRHR1 → Gs → PKA → CREB → POMC → PC1/2 → ACTH; USP8 돌연변이(~50% 쿠싱병); CDK4/6-Rb 증식; 뇌하수체 선종 |
+| 3. 부신피질 생합성 | MC2R → cAMP → PKA → StAR; 콜레스테롤 → CYP11A1 → 프레그네놀론 → CYP17A1 → 17-OHP → CYP21A2 → CYP11B1 → 코르티솔 |
+| 4. GR 신호 | GR-α/β, HSP90, FKBP51(음성)/FKBP52(양성), 핵이동 이량체, GRE/nGRE, AP-1·NF-κB 접촉억제, GILZ, MKP1, SGK1 |
+| 5. 대사 합병증 | PEPCK/G6Pase↑(간당신생), GLUT4↓, 인슐린저항성, 내장지방↑, Atrogin-1/MuRF1 근육위축, RANKL↑/OPG↓ 골다공증 |
+| 6. 심혈관·신장 | RAAS 과활성(Ang II→AT1R→알도스테론→Na저류), 내피기능장애(NO↓/ET-1↑), 고혈압, VTE, 이상지질혈증 |
+| 7. 면역 억제 | NF-κB/AP-1 접촉억제→IL-6/TNF-α↓, 림프구감소증, NK세포↓, 호중구 탈변연화, 감염 위험↑ |
+| 8. CNS 효과 | 해마위축·BDNF↓·NMDA 흥분독성, 세로토닌계↓, 우울증(50-70%)·인지장애·불면 |
+| 9. 파시레오티드 PK/PD | 2구획 SC; SSTR5>SSTR2; Gi→cAMP↓→ACTH억제(최대 65%); 혈당상승 부작용(SSTR5) |
+| 10. 스테로이드 합성 억제제 | 케토코나졸(CYP17A1+11B1, Emax 72%), 메티라폰(CYP11B1, Emax 82%), 오실로드로스탯(CYP11B1/B2, Emax 85%, EC50=0.15 μg/mL) |
+| 11. GR 길항제·카버골린 | 미페프리스톤(GR 경쟁적 길항, Emax 82%), 카버골린(D2R→ACTH 억제), 미토탄(부신피질 세포독성) |
+| 12. 임상 진단·평가 | UFC 24h, LNSC, 1mg/8mg DST, CRH 자극 검사, IPSS, ACTH, BMD-DXA, HDRS-17 |
+| 13. 병인 분류 | 쿠싱병(USP8 변이, 뇌하수체 선종), 이소성 ACTH(소세포폐암/카르시노이드), 부신 선종/암, PBMAH, 주기성 쿠싱 |
+
+### mrgsolve ODE 모델 (21구획)
+
+| 모듈 | 구획 | 핵심 방정식 |
+|------|------|------------|
+| HPA 축 | CRH, ACTH_PIT, ACTH_PL | 일주기 CRH 합성(cos 파형) + 종양 ACTH 추가 + GR 음성 피드백(Hill n=2) |
+| 부신 스테로이드 | F_ADR, F_PL | Michaelis-Menten(ACTH→코르티솔); 약물 Bliss 결합 억제율 |
+| GR 동역학 | GR_FREE, GR_BOUND, GR_NUC | 2단계(세포질→핵) ODE; 미페프리스톤 길항 감쇠 |
+| 대사 | GLUCOSE, INSULIN, VAT, MUSCLE, BMD, BP | GR-eff 구동 대사 변화; 인슐린 피드백 루프 |
+| 임상 출력 | UFC_ACC | UFC_coef × 유리코르티솔 누적 |
+| 약물 PK | A_PAS_C/P, A_KETO, A_METY, A_OSILO, A_MIFE | 1–2구획 모델 (5종 약물) |
+
+### 치료 시나리오 임상 데이터
+
+| 시나리오 | 약물 | 임상시험 | 주요 결과 |
+|---------|------|----------|----------|
+| 자연경과 (쿠싱병 무치료) | — | 역사적 코호트 | UFC >500 μg/24h, 합병증 누적, 심혈관 사망 위험 4배 |
+| 파시레오티드 0.6mg BID | 파시레오티드 SC | PASPORT-CUSHINGS (Colao 2012 NEJM) | UFC 정상화 22–24% (6개월), 혈당상승 부작용 |
+| 케토코나졸 400mg BID | 케토코나졸 | Castinetti 2014 Eur J Endocrinol | UFC 정상화 49%, 신속 효과, 간독성 주의 |
+| 오실로드로스탯 5mg BID | 오실로드로스탯 | LINC 3 (Pivonello 2020 Lancet DE) | UFC 정상화 86%(유지기), 가장 높은 효능 |
+| 미페프리스톤 600mg QD | 미페프리스톤 | SEISMIC (Fleseriu 2012 JCEM) | 혈당/BP 임상반응 87%; 코르티솔 오히려 상승 (GR 길항) |
+| 수술 후 관해 | — | 메타분석 | 재발률 ~20% (5년 내); HPA 축 회복 수개월 소요 |
+
+### QSP 모델 구성
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`cs_qsp_model.dot`](cushings-syndrome/cs_qsp_model.dot) | **140+ 노드, 13클러스터** |
+| ⚙️ mrgsolve ODE | [`cs_mrgsolve_model.R`](cushings-syndrome/cs_mrgsolve_model.R) | **21구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`cs_shiny_app.R`](cushings-syndrome/cs_shiny_app.R) | **8탭** (환자 프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단) |
+| 📚 참고문헌 | [`cs_references.md`](cushings-syndrome/cs_references.md) | **55개 PubMed 인용** (10개 섹션) |
