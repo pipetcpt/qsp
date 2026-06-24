@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-135-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-136-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **135개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **136개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -260,6 +260,7 @@ qsp/
 | 133 | 소아 혈관염 | [**가와사키병**<br><sub>Kawasaki Disease · KD</sub>](kawasaki-disease/) | <a href="kawasaki-disease/kd_qsp_model.svg"><img src="kawasaki-disease/kd_qsp_model.png" width="190" alt="KD"></a> | 원인 불명 트리거 → TLR/NLR 선천 면역 활성화 → NLRP3 인플라마좀(Caspase-1·IL-1β 성숙) → 사이토카인 폭풍(IL-1β·IL-6·TNF-α) → 혈관 내피 활성화(VCAM-1·ICAM-1·TF↑) → 관상동맥 중막 파괴·동맥류(AHA Z-점수 분류: small z≥2.5, medium z≥5, giant z≥10) → 혈소판 증가증(2주 피크) → 혈전위험. IVIG 2 g/kg(2구획+FcRn 재순환·Emax NF-κB 억제)·고용량 아스피린→저용량(COX-1/2 비가역)·메틸프레드니솔론(NF-κB 억제·GR 경로)·인플릭시맙 5 mg/kg(TNF-α 중화·n=1.8)·아나킨라 4 mg/kg/day(IL-1R 경쟁차단) 5종 PK/PD. **134 노드 14클러스터**, **21구획 ODE**(PK 11·IL1β·IL6·TNFα·대식세포·내피세포·발열·CRP·혈소판·관상동맥 Z-점수), **5치료 시나리오**(S1 표준IVIG·S2 고위험+스테로이드·S3 IVIG저항-2차IVIG·S4 인플릭시맙구제·S5 아나킨라구제). Kobayashi/Egami 위험점수 계산기·관상동맥 Z-점수 추적·IVIG 저항성 확률 모델. McCrindle/Kobayashi/KIDCARE Trial 보정. 60개 PubMed 인용.<br>[🗺️ 지도](kawasaki-disease/kd_qsp_model.svg) · [⚙️ mrgsolve](kawasaki-disease/kd_mrgsolve_model.R) · [📊 Shiny](kawasaki-disease/kd_shiny_app.R) · [📚 문헌](kawasaki-disease/kd_references.md) · [📄 README](kawasaki-disease/README.md) |
 | 134 | 내분비·대사 | [**쿠싱 증후군**<br><sub>Cushing's Syndrome · CS</sub>](cushings-syndrome/) | <a href="cushings-syndrome/cs_qsp_model.svg"><img src="cushings-syndrome/cs_qsp_model.png" width="190" alt="CS"></a> | 뇌하수체 ACTH 선종(쿠싱병 70%)·이소성 ACTH(10%)·부신 선종(15%) 등에 의한 만성 고코르티솔혈증. 시상하부 일주기 CRH 리듬·CRHR1-PKA-CREB-POMC-ACTH 경로; USP8 탈유비퀴틴화(~50% 쿠싱병)·CDK4/6 세포증식; CYP11A1→CYP17A1→CYP21A2→CYP11B1 스테로이드 생합성; GR-α/HSP90/FKBP51·핵이동·GRE/nGRE·AP1/NF-κB 접촉억제·GILZ·SGK1; PEPCK/G6Pase↑·인슐린저항성·내장지방·근육위축·골다공증(RANKL↑/OPG↓)·RAAS 고혈압. **140+ 노드 13클러스터**, **21구획 ODE**(HPA 3+부신코르티솔 2+GR 3+대사 6+임상출력 1+약물PK 6), **6치료 시나리오**(자연경과·파시레오티드 0.6mg BID·케토코나졸 400mg BID·오실로드로스탯 5mg BID·미페프리스톤 600mg QD·수술 후 관해). PASPORT-CUSHINGS(Colao 2012 NEJM)·LINC 3/4(Feelders 2019/Pivonello 2020)·SEISMIC(Fleseriu 2012 JCEM) 임상 보정. UFC·LNSC·1mg DST·덱사메타손억제검사·BMD·HDRS-17. 8탭 Shiny 대시보드(환자프로파일·HPA/PK·스테로이드생합성·임상지표·시나리오비교·바이오마커·대사합병증·가상집단). 55개 PubMed 인용.<br>[🗺️ 지도](cushings-syndrome/cs_qsp_model.svg) · [⚙️ mrgsolve](cushings-syndrome/cs_mrgsolve_model.R) · [📊 Shiny](cushings-syndrome/cs_shiny_app.R) · [📚 문헌](cushings-syndrome/cs_references.md) · [📄 README](cushings-syndrome/README.md) |
 | 135 | 희귀·유전질환 | [**유전성 혈관부종**<br><sub>Hereditary Angioedema · HAE</sub>](hereditary-angioedema/) | <a href="hereditary-angioedema/hae_qsp_model.svg"><img src="hereditary-angioedema/hae_qsp_model.png" width="190" alt="HAE"></a> | *SERPING1* 돌연변이 → C1-INH 결핍/기능이상(Type I/II) 또는 *F12* Thr328Lys 이득기능돌연변이(Type III) → 칼리크레인-키닌계(KKS) 무제한 활성화 → 브라디키닌(BK) 과잉 → B2R-Gq/IP3/Ca²⁺/eNOS/NO 경로 → VE-cadherin 소실·혈장삼출 → 피하/후두 혈관부종. FXII→FXIIa 접촉활성화, FXIIa→Prekal→Kal→HMWK 절단, BK→B2R/B1R 이중수용체 신호, C1-INH:FXIIa/Kal 복합체, 보체C4 소진, IL-1β·B1R 상향조절 염증 증폭. 이카티반트(B2R Ki=0.47nM)·C1-INH IV(Berinert 20 IU/kg)·에칼란티드·재조합 C1-INH 급성치료; 베로트랄스탓(IC50=3.7nM 칼리크레인 경구)·라나델루맙(KD<100pM prekallikrein SC)·C1-INH SC(Haegarda 60IU/kg 2×/wk) 예방치료. **120+ 노드 12클러스터**, **20구획 ODE**(PK 11+생물학적 9), **6치료 시나리오**(무치료·이카티반트·C1-INH IV·베로트랄스탓·라나델루맙·C1-INH SC). FAST-1/3(Cicardi 2010·Lumry 2011)·HELP OLE(Banerji 2020 87% 감소)·BELO(Farkas 2020 44% 감소)·CONFIDENT(Craig 2017 95% 감소) 보정. BK 농도·B2R 점유율·VP 지수·부종점수·C4·C1-INH% 바이오마커. 58개 PubMed 인용.<br>[🗺️ 지도](hereditary-angioedema/hae_qsp_model.svg) · [⚙️ mrgsolve](hereditary-angioedema/hae_mrgsolve_model.R) · [📊 Shiny](hereditary-angioedema/hae_shiny_app.R) · [📚 문헌](hereditary-angioedema/hae_references.md) · [📄 README](hereditary-angioedema/README.md) |
+| 136 | 중환자·패혈증 | [**패혈증 / 전신 염증 반응 증후군**<br><sub>Sepsis / SIRS · SEP</sub>](sepsis/) | <a href="sepsis/sep_qsp_model.svg"><img src="sepsis/sep_qsp_model.png" width="190" alt="Sepsis"></a> | LPS/LTA→TLR4/TLR2→MyD88→IRAK1/4→TRAF6→IKK→NF-κB 활성화 → TNF-α·IL-1β·IL-6·IL-8 사이토카인 폭풍 → 보체 활성화(C3a·C5a) → TF 발현·응고 항진(Thrombin→Fibrin·DIC) → iNOS↑·NO↑·혈관 확장→MAP 감소(혈관 마비) → 내피세포 기능장애·글리코칼릭스 탈락→모세혈관 누출 → HPA 축 활성화(ACTH→Cortisol·CIRCI) → 다장기부전(심기능 저하·AKI·ARDS·간기능 장애·장 장벽 손상). 피페라실린/타조박탐(2구획 IV PK; %fT>MIC 살균)·노르에피네프린(Emax=30mmHg EC50=0.15)·하이드로코르티손(200mg/day; Imax=65% 사이토카인 억제)·바소프레신(V1a 수용체, 0.03 units/min) 4종 PK/PD. **124+ 노드 11클러스터**, **20구획 ODE**(세균·호중구·대식세포·TNF/IL-6/IL-10/IL-1β·트롬빈·피브린·혈소판·NO·장기손상·젖산·MAP·크레아티닌·항생제·승압제·스테로이드), **6치료 시나리오**(S1 무치료·S2 조기항생제·S3 항생제+NE·S4 풀번들·S5 지연항생제·S6 불응성패혈성쇼크). Rivers 2001(EGDT)·Kumar 2006(항생제 타이밍)·VASST 2008·ADRENAL 2018 임상시험 보정. SOFA 점수·젖산·프로칼시토닌·CRP·혈소판·INR·크레아티닌·MAP 바이오마커. 55개 PubMed 인용.<br>[🗺️ 지도](sepsis/sep_qsp_model.svg) · [⚙️ mrgsolve](sepsis/sep_mrgsolve_model.R) · [📊 Shiny](sepsis/sep_shiny_app.R) · [📚 문헌](sepsis/sep_references.md) · [📄 README](sepsis/README.md) |
 
 
 ---
@@ -1121,3 +1122,71 @@ qsp/
 | ⚙️ mrgsolve ODE | [`hae_mrgsolve_model.R`](hereditary-angioedema/hae_mrgsolve_model.R) | **20구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`hae_shiny_app.R`](hereditary-angioedema/hae_shiny_app.R) | **6탭** (환자 프로파일·PK·KKS 생물학·임상 엔드포인트·시나리오 비교·바이오마커) |
 | 📚 참고문헌 | [`hae_references.md`](hereditary-angioedema/hae_references.md) | **58개 PubMed 인용** (12개 섹션) |
+
+---
+
+## #136 — 패혈증 / Sepsis (SEP)
+
+> **디렉토리:** [`sepsis/`](sepsis/) | **약어:** SEP | **날짜:** 2026-06-24
+
+[![Sepsis QSP 기계론적 지도](sepsis/sep_qsp_model.png)](sepsis/sep_qsp_model.svg)
+
+**패혈증(Sepsis)**은 감염에 대한 숙주 반응의 조절 장애로 인해 생명을 위협하는 장기 기능 장애가 발생하는 증후군입니다(Sepsis-3, Singer et al. JAMA 2016). 전 세계적으로 연간 약 4,900만 명이 이환되고 1,100만 명이 사망하는 중환자 의학의 핵심 과제입니다.
+
+### 병태생리 클러스터 (10 clusters)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 감염 & PAMP | 세균(Gram⁻ LPS·Gram⁺ LTA)·진균(β-glucan)·바이러스(ssRNA/dsRNA) → PAMP/DAMP 생성 |
+| 2. 선천면역 인식 | TLR4/TLR2/TLR9 → MD2 → MyD88 → IRAK1/4 → TRAF6 → IKK → IκB 인산화 → NF-κB 핵 이동 |
+| 3. 사이토카인 네트워크 | NF-κB → TNF-α·IL-1β·IL-6·IL-8(G-CSF); 음성 피드백: IL-10·TGF-β1; HMGB1 후기 매개체 |
+| 4. 응고 & DIC | TF↑ → FVIIa → FXa → Prothrombin → Thrombin → Fibrin → D-dimer; PAI-1↑·tPA↓·Plasmin↓ → 혈소판 감소·DIC |
+| 5. 보체 활성화 | C1q/MBL·MASP → C3 분열 → C3a/C3b → C5 분열 → C5a(호중구 동원)·MAC(용균) |
+| 6. 혈관 기능 장애 | iNOS↑ → NO↑ → sGC/cGMP → 혈관 이완 → SVR↓ → MAP↓; 글리코칼릭스 탈락 → 모세혈관 누출 → 부종 |
+| 7. HPA 축 | CRH→ACTH→코르티솔 합성 → GR 활성화 → 항염증 유전자; CIRCI(30~40%에서 상대적 부신 기능 저하) |
+| 8. 다장기부전 | 심기능 저하·AKI·ARDS·간기능 장애·뇌병증·장 장벽 손상·DIC·미토콘드리아 기능 장애·MODS |
+| 9. 약물 PK | 피페라실린/타조박탐(2구획)·반코마이신·노르에피네프린·하이드로코르티손·바소프레신·인슐린 |
+| 10. 임상 엔드포인트 | SOFA 점수·qSOFA·젖산·프로칼시토닌·CRP·WBC·혈소판·INR·크레아티닌·P/F 비·패혈성 쇼크 |
+
+### mrgsolve ODE 모델 (20 구획)
+
+| 구획 | 변수 | 핵심 동역학 |
+|------|------|------------|
+| 감염 | B | 세균 부하(CFU/mL); 로지스틱 성장 kb=0.9/h; 호중구·항생제 제거 |
+| 선천면역 | N, M | 호중구(cells/µL)·활성화 대식세포; TNF 동원·IL-10 억제 |
+| 사이토카인 | TNF, IL6, IL10, IL1b | pg/mL; t½=2h~6h; 코르티솔 억제(NF-κB 경로) |
+| 응고 | Th, F, Plt | 트롬빈(nM)·피브린(µg/mL)·혈소판(×10³/µL); 트롬빈-매개 소비 |
+| 혈관 | NO | NO(µM); iNOS(대식세포·사이토카인 구동); MAP에 직접 영향 |
+| 장기 | D_tissue, Lac, MAP, Cr | 장기손상 지표(0–1)·젖산·MAP(mmHg)·크레아티닌; GFR 손상 연계 |
+| 항생제 PK | AB_C, AB_P | 피페라실린 2구획; CL=15 L/h, Vc=10 L, t½=1h |
+| 승압제 | NE_C | 노르에피네프린; CL=150 L/h, t½≈2min |
+| 스테로이드 | HC_C, Cort | 하이드로코르티손 + 내인성 코르티솔; 총 코르티솔 풀 |
+
+### 약물 PK/PD
+
+| 약물 | 경로 | 용량 | t½ | 주요 PD |
+|------|------|------|----|--------|
+| 피페라실린/타조박탐 | IV | 4.5 g q6h | 1.0 h | %fT>MIC; Emax=0.95, MIC=16 µg/mL |
+| 노르에피네프린 | IV 지속 | 0.1–0.5 µg/kg/min | ~2 min | α1-작용 → SVR↑ → MAP↑ (Emax=30 mmHg) |
+| 하이드로코르티손 | IV 지속 | 200 mg/day | 1.5 h | GR → 사이토카인 억제 (Imax=65%, IC50=5 µg/dL) |
+| 바소프레신 | IV 지속 | 0.03 units/min | ~15 min | V1a → 혈관 수축 → MAP↑ (Emax=15 mmHg) |
+
+### 6가지 치료 시나리오 임상 근거
+
+| 시나리오 | 치료 | 임상시험 | 주요 결과 |
+|---------|------|----------|----------|
+| S1: 무치료 | — | 역사 코호트 | 진행성 MAP↓, 다장기부전, 높은 사망률 |
+| S2: 조기 항생제(1h) | PipTazo 4.5g q6h | Kumar 2006 Crit Care Med | 1h 지연마다 사망률 7% 증가 |
+| S3: 항생제 + NE | PipTazo + NE 0.2 µg/kg/min | De Backer NEJM 2010 | MAP ≥65 복원; 젖산 청소 |
+| S4: 완전 번들 | AB + NE + HC 200mg/day | ADRENAL 2018 NEJM | 쇼크 역전 단축; 스테로이드 의존도 ↓ |
+| S5: 지연 항생제(6h) | PipTazo 6h 후 시작 | Kumar 2006 (지연 코호트) | 6h 지연 → 사망률 +14% 추정 |
+| S6: 불응성 패혈성 쇼크 | NE 0.5 + VP 0.03 + HC | VASST 2008 NEJM | 바소프레신이 NE 절약; 스테로이드로 승압제 이탈 가속 |
+
+### QSP 모델 구성
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`sep_qsp_model.dot`](sepsis/sep_qsp_model.dot) | **124+ 노드, 11클러스터**, 211 엣지 |
+| ⚙️ mrgsolve ODE | [`sep_mrgsolve_model.R`](sepsis/sep_mrgsolve_model.R) | **20구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`sep_shiny_app.R`](sepsis/sep_shiny_app.R) | **6탭** (환자 프로파일·PK·사이토카인·혈역학·시나리오 비교·바이오마커) |
+| 📚 참고문헌 | [`sep_references.md`](sepsis/sep_references.md) | **55개 PubMed 인용** (10개 섹션) |
