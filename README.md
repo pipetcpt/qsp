@@ -269,6 +269,7 @@ qsp/
 | 144 | 내분비·대사 | [**당뇨병성 신병증**<br><sub>Diabetic Nephropathy · DN</sub>](diabetic-nephropathy/) | <a href="diabetic-nephropathy/dn_qsp_model.svg"><img src="diabetic-nephropathy/dn_qsp_model.png" width="190" alt="DN"></a> | **당뇨병 미세혈관 합병증 → 진행성 CKD** — 고혈당(AGE·PKC·헥소사민·폴리올 경로) → 산화스트레스(Nox4·ROS) + RAAS 활성화(AngII→인사구체 고혈압) + TGF-β1(Smad2/3·CTGF·ECM 축적·사구체경화) + NF-κB 염증(TNF-α·IL-1β·MCP-1·NLRP3) → 족세포 손상(네프린·포도신·족돌기 소실·단백뇨) → 세관 손상(SGLT2·저산소증·EMT·간질 섬유화) → eGFR 감소 → ESKD. ACEi(에나라프릴 10mg BID·Emax 90%)·ARB(로살탄 100mg QD·Emax 85%)·SGLT2i(엠파글리플로진 25mg QD·Emax 85%)·파이네레논(20mg QD·비스테로이드 MRA·Emax 88%) 4종 완전 PK/PD 모델링. 7가지 치료 시나리오(무치료·ACEi·ARB·SGLT2i·ACEi+SGLT2i·SGLT2i+Fine·삼중병용). **100+ 노드 9클러스터**, **19구획 ODE**(약물PK 8+혈당·AGE·AngII·TGF-β·ROS·ECM·족세포·UACR·세관·섬유화·eGFR), **7치료 시나리오**. Lewis 1993 NEJM(ACEi)·RENAAL/IDNT 2001(ARB)·CREDENCE 2019(SGLT2i)·DAPA-CKD 2020·FIDELIO-DKD 2020 NEJM(파이네레논)·CONFIDENCE 2023(병용) 보정. eGFR·UACR·SBP·HbA1c·TGF-β·섬유화·족세포·CKD병기. 6탭 Shiny 대시보드(환자프로파일·약물PK·PD/바이오마커·임상엔드포인트·시나리오비교·GFR기울기&ESKD). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](diabetic-nephropathy/dn_qsp_model.svg) · [⚙️ mrgsolve](diabetic-nephropathy/dn_mrgsolve_model.R) · [📊 Shiny](diabetic-nephropathy/dn_shiny_app.R) · [📚 문헌](diabetic-nephropathy/dn_references.md) · [📄 README](diabetic-nephropathy/README.md) |
 | 145 | 알레르기·면역 | [**만성 자발성 두드러기**<br><sub>Chronic Spontaneous Urticaria · CSU</sub>](chronic-urticaria/) | <a href="chronic-urticaria/csu_qsp_model.svg"><img src="chronic-urticaria/csu_qsp_model.png" width="190" alt="CSU"></a> | **IgE/FcεRI-비만세포 축 → 팽진·홍반·소양감** — 자가항체(anti-FcεRIα·anti-IgE) 또는 자가항원-IgE → FcεRI 교차결합 → 비만세포 탈과립(히스타민·PGD2·LTC4) + IL-31·IL-33·TSLP Type-2 사이토카인 망 → 지속적 두드러기. BTK(PLCγ→IP3/DAG→Ca²⁺) 및 PI3K/Akt 경유 MC 활성화 신호. 오말리주맙(항-IgE·유리IgE↓→FcεRI 발현↓)·두필루맙(항-IL-4Rα·IL-4/IL-13 공통 차단)·리미브루티닙(BTKi)·H1R 역효현제(세티리진·빌라스틴) PK/PD 완전 모델링. **110+ 노드 9클러스터**, **18구획 ODE**(항히스타민PK+오말리주맙2구획PK+두필루맙2구획PK+BTKi+IgE유리/결합+MC priming/활성+피부/혈장히스타민+IL-31/IL-33), **7치료 시나리오**. ASTERIA I·II NEJM 2013·GLACIAL JACI 2013(오말리주맙)·LIBERTY-CSU CUPID A·B NEJM 2023(두필루맙)·Lowe 2014(오말리주맙 PopPK) 보정. UAS7·WCU(≤6)·IgE 억제율·MC 활성지표·IL-31. 8탭 Shiny 대시보드(환자프로파일·약물PK·IgE&비만세포·사이토카인·임상엔드포인트·시나리오비교·바이오마커·참고). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](chronic-urticaria/csu_qsp_model.svg) · [⚙️ mrgsolve](chronic-urticaria/csu_mrgsolve_model.R) · [📊 Shiny](chronic-urticaria/csu_shiny_app.R) · [📚 문헌](chronic-urticaria/csu_references.md) · [📄 README](chronic-urticaria/README.md) |
 | 146 | 급성 감염·중환자 | [**패혈증 / 패혈성 쇼크**<br><sub>Sepsis & Septic Shock · SEP</sub>](sepsis/) | <a href="sepsis/sep_qsp_model.svg"><img src="sepsis/sep_qsp_model.png" width="190" alt="SEP"></a> | **감염 → 조절 장애 숙주 반응 → 다장기부전(MODS)** — 패혈증(Sepsis-3, Singer 2016 JAMA): 감염에 대한 숙주 조절 장애 반응(dysregulated host response)으로 생명을 위협하는 장기부전. 패혈성 쇼크: MAP<65 mmHg + 젖산>2 mmol/L, 28일 사망률 ~40%. 병원체(LPS·PGN·β-glucan)→ TLR4/TLR2/TLR3/TLR9·NLRP3 인플라마좀·cGAS-STING → MyD88/TRIF → NF-κB 활성화 → 사이토카인 폭풍(TNFα·IL-1β·IL-6·IL-8·HMGB1). 보체(C3→C5a→혈관·면역 반응). 응고(TF 발현↑→트롬빈↑→피브린·PAI-1↑→DIC). 내피세포 장애(VE-cadherin 분리·ICAM-1↑·NO↑→혈관확장쇼크·부종). 다장기부전(ARDS·AKI·간부전·SAE·심혈관쇼크·DIC). 후기 면역억제(CARS: T세포아포토시스·PD-1↑·MDSC↑). 치료: 메로페넴(2구획 PK·fT>MIC·fT>MIC 지연 효과 임계)·노르에피네프린(α1→MAP 회복)·하이드로코티손 200mg/day(GR→NF-κB 억제·혈관수축제 민감도↑·ADRENAL/APROCCHSS 2018 NEJM)·토실리주맙 8mg/kg(IL-6R 차단·REMAP-CAP 2021 NEJM). **130+ 노드 11클러스터**(병원체인식·선천면역·사이토카인·보체·응고/DIC·내피세포·다장기부전·약물PK/PD·임상바이오마커·대사/미토콘드리아·적응면역/CARS). **24구획 ODE**(BACT+ABX1/2+TNF/IL6/IL10/IL1B+NEUT_B/T+MACS+C5A+THROMBIN/FIBRIN/PAI1+ENDOT+PF_RATIO/CREATININE/BILIRUBIN/LACTATE/MAP/PLT+NE_C/HC_C/TOCI_C), **7치료 시나리오**(S1 무치료·S2 항생제단독·S3 항생제+NE·S4 번들(항생제+NE+수액)·S5 번들+HC·S6 번들+HC+토실리주맙·S7 면역저하환자). SOFA 6도메인(폐·신장·간·순환·응고·CNS) 동적 계산·28일사망확률(logit 모델 Seymour 2017). Kumar 2006 CritCareMed(항생제 1h 지연=7% 사망↑)·Rivers 2001 NEJM(EGDT)·De Backer 2010(노르에피네프린). PCT·CRP·Lactate·SOFA·qSOFA·균혈증 바이오마커. **8탭 Shiny 대시보드**(환자프로파일·항생제PK·사이토카인/면역PD·혈역학/SOFA·장기기능·시나리오비교·바이오마커탐색기·About). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](sepsis/sep_qsp_model.svg) · [⚙️ mrgsolve](sepsis/sep_mrgsolve_model.R) · [📊 Shiny](sepsis/sep_shiny_app.R) · [📚 문헌](sepsis/sep_references.md) · [📄 README](sepsis/README.md) |
+| 147 | 만성질환 / 안과 | [**당뇨병성 망막병증**<br><sub>Diabetic Retinopathy · DR</sub>](diabetic-retinopathy/) | <a href="diabetic-retinopathy/dr_qsp_model.svg"><img src="diabetic-retinopathy/dr_qsp_model.png" width="190" alt="DR"></a> | **고혈당 → 4가지 생화학 경로(폴리올·헥소사민·PKC·AGE-RAGE) → 산화스트레스/VEGF/신경염증 → 망막 혈관 구조 병변 → DME/PDR → 시력 소실** — 알도스환원효소(AR) → 소르비톨↑·NADPH 고갈; GFAT → O-GlcNAc → TGF-β/PAI-1↑; PKCβ2 → VEGF↑·NF-κB↑·eNOS↓·ET-1↑; 메틸글리옥살/글리옥살 → AGE → RAGE → NF-κB/VEGF 증폭. 미토콘드리아 ETC 과부하 → O₂•⁻ → PARP → GAPDH 억제 → 경로 증폭 피드백. HIF-1α(저산소) + NF-κB(염증) → VEGF-A165 과발현 → VEGFR2 → PI3K/AKT(혈관투과성↑)+ERK(내피 증식). Ang2 증가/Tie-2 탈안정화 → 주피세포 지지 소실. NLRP3 인플라마좀(IL-1β·IL-18)·TNF-α·IL-6·ICAM-1→ 백혈구 정체(leukostasis) → 내피세포 아포토시스 → BRB 파괴 → 미세동맥류·경성 삼출물·면화반·IRMA → 모세혈관 비관류 → 망막 저산소증(피드백) → 신생혈관(NVE/NVD) → 유리체 출혈·견인성 망막박리. DME: BRB 파괴 → 액체 누출 → CRT↑ → 시력↓. 아플리버셉트(2mg IVT q4→8w·VEGF-A/B+PlGF 포획·Kd~0.5pM·PROTOCOL T 2015 NEJM·PANORAMA 2019)·라니비주맙(0.5mg q4w·RISE/RIDE 2013)·파리시맙(6mg q4→16w·VEGF-A+Ang2 이중 차단·TENAYA/LUCERNE 2022 Lancet)·베바시주맙·덱사메타손 임플란트 완전 PK/PD 모델링. 혈당 조절(메트포르민·GLP-1RA·SGLT2i)·RAAS 차단·페노피브레이트(ACCORD-Eye) 병용. **210+ 노드 9클러스터**, **18구획 ODE**(약물PK 4+혈당 2+VEGF 3+ROS/AGE 2+염증 2+세포 2+구조 3+시력 1), **6치료 시나리오**(S0 무치료·S1 혈당조절·S2 아플리버셉트·S3 라니비주맙·S4 파리시맙·S5 아플리버셉트+혈당조절). PROTOCOL T NEJM 2015(AFL +13.3글자·RBZ +11.2·Bev +9.7)·RISE/RIDE·CLARITY·PANORAMA·TENAYA/LUCERNE·DCCT NEJM 1993(혈당집중치료 76% 감소) 보정. ETDRS BCVA·CRT(OCT)·유리체 VEGF·NV지수·DR중증도·OCTA-FAZ·주피세포%. **8탭 Shiny 대시보드**(환자프로파일·약물PK·VEGF/혈관신생·산화스트레스/염증·망막구조·시각결과·시나리오비교·바이오마커). **57개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](diabetic-retinopathy/dr_qsp_model.svg) · [⚙️ mrgsolve](diabetic-retinopathy/dr_mrgsolve_model.R) · [📊 Shiny](diabetic-retinopathy/dr_shiny_app.R) · [📚 문헌](diabetic-retinopathy/dr_references.md) · [📄 README](diabetic-retinopathy/README.md) |
 | 143 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 
 ---
@@ -833,3 +834,47 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`sep_mrgsolve_model.R`](sepsis/sep_mrgsolve_model.R) | **24구획 ODE**, **7치료 시나리오** |
 | 📊 Shiny 앱 | [`sep_shiny_app.R`](sepsis/sep_shiny_app.R) | **8탭** (환자프로파일·항생제PK·사이토카인/면역·혈역학/SOFA·장기기능·시나리오비교·바이오마커·About) |
 | 📚 참고문헌 | [`sep_references.md`](sepsis/sep_references.md) | **55개 PubMed 인용** (14개 섹션) |
+
+---
+
+## 🩺 당뇨병성 망막병증 (Diabetic Retinopathy) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`diabetic-retinopathy/`](diabetic-retinopathy/) | **약어:** DR | **날짜:** 2026-06-24
+
+[![DR QSP 기계론적 지도](diabetic-retinopathy/dr_qsp_model.png)](diabetic-retinopathy/dr_qsp_model.svg)
+
+**질환**: 당뇨병성 망막병증(Diabetic Retinopathy, DR) | **분류**: 만성질환 / 안과 / 당뇨합병증 | **유병률**: 전체 당뇨 환자의 ~34.6% (~1억 4,600만 명) | **실명**: 성인 노동 연령층 주요 실명 원인
+
+### 핵심 병태생리 (9개 클러스터)
+
+| 클러스터 | 핵심 기전 | 주요 구성요소 |
+|---------|---------|------------|
+| **1. 전신 위험인자** | 과혈당·고혈압·이상지질혈증·흡연 → DR 위험 가속 | BG, HbA1c, SBP, LDL |
+| **2. 과혈당 생화학 경로** | 폴리올(AR·소르비톨)·헥소사민(GFAT·O-GlcNAc)·PKC(PKCβ1/β2/δ)·AGE-RAGE | NADPH, TGF-β, ET-1, RAGE |
+| **3. 산화-니트로화 스트레스** | 미토콘드리아 ETC → O₂•⁻ → PARP → GAPDH 억제 피드백 | ROS, ONOO⁻, BH4, eNOS |
+| **4. VEGF/혈관신생** | HIF-1α+NF-κB → VEGF-A165 → VEGFR2 → PI3K/AKT+ERK → 혈관투과성+증식 | VEGF-A, VEGFR2, Ang2/Tie2 |
+| **5. 신경염증** | NLRP3(IL-1β·IL-18)·TNF-α·IL-6·ICAM-1 → leukostasis → 내피 아포토시스 | IL-1β, TNF-α, ICAM-1 |
+| **6. 망막 혈관 구조** | 주피세포 소실·BRB 파괴·미세동맥류·IRMA·신생혈관(NVE/NVD) | CRT, NV, PERM, PERICYTE |
+| **7. 신경퇴행** | GABA·글루타메이트 불균형·Müller 활성화·RNFL 감소 | RNFL, Müller, RGC |
+| **8. 약물 PK/PD** | 항-VEGF 유리체 내 주사·스테로이드 이식물 | AFL, RBZ, FAR, DEXA |
+| **9. 임상 엔드포인트** | BCVA(ETDRS)·CRT(OCT)·DR 중증도·OCTA-FAZ | VA, CRT, DR stage |
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S0** | 무치료 (불량 혈당 조절) | — | DCCT 대조군 | VA 진행성 감소, CRT↑ |
+| **S1** | 혈당 조절 (HbA1c → 7%) | 과혈당 경로 근본 차단 | DCCT/EDIC NEJM 1993 | 신규 DR 76% 감소 |
+| **S2** | 아플리버셉트 2mg IVT q4w×5→q8w | VEGF-A/B+PlGF 포획 (Kd~0.5 pM) | PROTOCOL T 2015 NEJM · PANORAMA 2019 | VA +13.3 ETDRS 글자 |
+| **S3** | 라니비주맙 0.5mg IVT q4w | VEGF-A Fab 단편 차단 | RISE/RIDE 2013 NEJM | VA +10.9 글자 |
+| **S4** | 파리시맙 6mg IVT q4w×4→q16w | VEGF-A+Ang2 이중 차단 | TENAYA/LUCERNE 2022 Lancet | VA +5.8/+6.6 글자·CRT −189/−194µm |
+| **S5** | 아플리버셉트 + 혈당 조절 병용 | PK+병태생리 근본 치료 병용 | CLARITY+DCCT 기반 | VA+CRT 복합 개선 최대 |
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`dr_qsp_model.dot`](diabetic-retinopathy/dr_qsp_model.dot) | **210+ 노드, 9 클러스터** |
+| ⚙️ mrgsolve ODE | [`dr_mrgsolve_model.R`](diabetic-retinopathy/dr_mrgsolve_model.R) | **18구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`dr_shiny_app.R`](diabetic-retinopathy/dr_shiny_app.R) | **8탭** (환자프로파일·약물PK·VEGF/혈관신생·산화/염증·망막구조·시각결과·시나리오비교·바이오마커) |
+| 📚 참고문헌 | [`dr_references.md`](diabetic-retinopathy/dr_references.md) | **57개 PubMed 인용** (14개 섹션) |
