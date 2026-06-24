@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-138-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-139-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **138개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **139개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -262,6 +262,7 @@ qsp/
 | 136 | 희귀·유전질환 | [**파브리병**<br><sub>Fabry Disease · FBR</sub>](fabry-disease/) | <a href="fabry-disease/fbr_qsp_model.svg"><img src="fabry-disease/fbr_qsp_model.png" width="190" alt="FBR"></a> | X-연관 리소소말 저장 질환. *GLA* 변이 → α-갈락토시다제 A(α-Gal A) 결핍 → 글로보트리아오실세라미드(Gb3)·lyso-Gb3 조직축적 → 신세뇨관·심근·신경·혈관내피 손상. Gb3 합성(UGCG·B4GALT5)·M6PR/리소솜 가수분해·GCS 억제(SRT). 신장(eGFR↓·UPCR↑·FSGS)·심장(LVH·HCM→DCM·부정맥)·신경(신경병성 통증·뇌졸중)·피부(혈관각화종) 다장기 병증. 아갈시다제 베타(1 mg/kg Q2W·ERT 표준)·아갈시다제 알파(0.2 mg/kg Q2W)·페구니알시다제 알파(1 mg/kg Q4W)·미갈라스타트(150 mg QOD·적합 변이 전용 경구 샤페론)·루세라스탓(1000 mg TID·GCS억제제 SRT) 5종 PK/PD. **138 노드 14클러스터**, **22구획 ODE**, **6치료 시나리오**(자연경과·아갈시다제 베타·알파·미갈라스타트·페구니알시다제 알파·ERT+루세라스탓). FABRY-001(Eng 2001 NEJM)·ATTRACT(Germain 2016 NEJM)·BRIGHT(Schiffmann 2021 JAMA)·MODIFY(Lenders 2022) 보정. eGFR·UPCR·LVMi·lyso-Gb3·통증 바이오마커. 60개 PubMed 인용.<br>[🗺️ 지도](fabry-disease/fbr_qsp_model.svg) · [⚙️ mrgsolve](fabry-disease/fbr_mrgsolve_model.R) · [📊 Shiny](fabry-disease/fbr_shiny_app.R) · [📚 문헌](fabry-disease/fbr_references.md) · [📄 README](fabry-disease/README.md) |
 | 137 | 심혈관 | [**심근염**<br><sub>Myocarditis · MYO</sub>](myocarditis/) | <a href="myocarditis/myo_qsp_model.svg"><img src="myocarditis/myo_qsp_model.png" width="190" alt="MYO"></a> | 바이러스(CVB3·SARS-CoV-2·아데노바이러스·HHV-6) 심근세포 감염 → CAR/ACE2 수용체 진입 → 바이러스 복제·TLR3/7/9·RIG-I·MDA5·cGAS-STING 선천면역 활성화 → NF-κB·IRF3/7·NLRP3 인플라마좀 → IFN-α/β/γ·TNF-α·IL-1β·IL-6 사이토카인 폭풍 → NK세포·M1대식세포 심근 손상. CD4+ Th1/Th17 및 CD8+ CTL 적응 면역; 분자 유사성(molecular mimicry) → 항심근미오신·항β1-AR·항ANT·항TnI 자가항체 → ADCC·보체 활성화. TGF-β→근섬유아세포→콜라겐 침착→LV 확장·DCM. IVIG 2g/kg(IV 주입·2구획 PK·t½=21일·Fc-R 차단)·프레드니솔론(경구 F=80%·t½=2-3h·GR 억제)·아자티오프린→6-MP(전구약물 F=47%·HPRT/TPMT경로)·사이클로스포린(F=35%·칼시뉴린억제·t½=8-12h)·콜히친(F=45%·NLRP3/튜불린억제·Vd=250 L/kg) 5종 PK/PD. **170+ 노드 10클러스터**, **35구획 ODE**(심근세포 3+바이러스 1+선천면역 3+사이토카인 7+적응면역 9+섬유화 3+바이오마커 3+약물PK 6), **5치료 시나리오**(자연경과·IVIG 단독·프레드니솔론+아자티오프린 TIMIC·IVIG+Pred+Aza+CsA 거대세포·IVIG+콜히친). TIMIC(Frustaci 2009)·IMAC-2(McNamara 2001)·Cooper 2007 거대세포 프로토콜 보정. 트로포닌 I·BNP·LVEF·CMR-LGE·부정맥 위험 바이오마커. 7탭 Shiny 대시보드. 60개 PubMed 인용.<br>[🗺️ 지도](myocarditis/myo_qsp_model.svg) · [⚙️ mrgsolve](myocarditis/myo_mrgsolve_model.R) · [📊 Shiny](myocarditis/myo_shiny_app.R) · [📚 문헌](myocarditis/myo_references.md) · [📄 README](myocarditis/README.md) |
 | 138 | 희귀·유전질환 | [**고셔병**<br><sub>Gaucher Disease · GCD</sub>](gaucher-disease/) | <a href="gaucher-disease/gcd_qsp_model.svg"><img src="gaucher-disease/gcd_qsp_model.png" width="190" alt="GCD"></a> | *GBA1* 이중대립변이 → 리소솜 β-글루코세레브로시다제(GBA) 결핍 → 글루코세레브로사이드(GC) 및 고독성 탈아실화 유도체 lyso-GL1 조직대식세포 축적 → 고셔세포 형성. GBA합성(ER→Golgi·M6P수용체·ERAD)·GCS 기질합성·M6P수용체 매개 ERT 리소솜 전달; GC→비장/간/골수/CNS 구획 이동; NF-κB→IL-1β·IL-6·TNF-α·MIP-1α·RANKL; 비장비대·간비대·빈혈·혈소판감소·골밀도감소. GBA-파킨슨 연계(α-시누클레인 축적). 이미글루세라제(60U/kg Q2W·2구획·CL=1.4L/h/kg·EMAX=85%)·벨라글루세라제α; 엘리글루스타트(84mg BID·GCS IC50=10nM·CYP2D6·EM/PM)·미글루스타트(IC50=50μM); 암브록솔(샤페론). **115+ 노드 10클러스터**, **26구획 ODE**(약물PK 8+효소/기질 5+바이오마커 4+장기용적 2+혈액 2+골 3+염증 2), **6치료 시나리오**(자연경과·이미글루세라제·벨라글루세라제α·엘리글루스타트EM·엘리글루스타트PM·저용량ERT+엘리글루스타트). Barton 1991 NEJM·Mistry 2015 JAMA·Zimran 2010 Blood·Balwani 2021 AJH 보정. GL-1·lyso-GL1·키토트리오시다제·페리틴·SV·LV·Hb·PLT·BMD 바이오마커. 9탭 Shiny 대시보드. 62개 PubMed 인용.<br>[🗺️ 지도](gaucher-disease/gcd_qsp_model.svg) · [⚙️ mrgsolve](gaucher-disease/gcd_mrgsolve_model.R) · [📊 Shiny](gaucher-disease/gcd_shiny_app.R) · [📚 문헌](gaucher-disease/gcd_references.md) · [📄 README](gaucher-disease/README.md) |
+| 139 | 내분비·대사 | [**원발성 알도스테론증**<br><sub>Primary Aldosteronism · PA</sub>](primary-aldosteronism/) | <a href="primary-aldosteronism/pa_qsp_model.svg"><img src="primary-aldosteronism/pa_qsp_model.png" width="190" alt="PA"></a> | **Conn 증후군** — 부신 피질에서의 자율적 알도스테론 과분비(APA·BAH) → 레닌 억제·ARR 상승·Na⁺ 저류·K⁺ 소실·대사성 알칼리증. KCNJ5/CACNA1D/ATP1A1/ATP2B3 체성 돌연변이 → Ca²⁺ 내유 → CYP11B2(알도스테론 합성효소) 과발현 → 자율적 알도스테론 생성; RAAS 캐스케이드(레닌→AngI→AngII→알도스테론) + APA 자율분비. MR→SGK1→Nedd4-2 인산화 → ENaC 세포표면 발현↑ → Na⁺ 재흡수·ROMK K⁺ 분비·H⁺ 분비 → 저칼륨혈증·대사성 알칼리증. 부피팽창→MAP↑, 심근/혈관 MR 직접 활성→심근섬유화·LVH. 진단: ARR(≥30)·PAC(>15 ng/dL)·부신정맥 채혈(AVS). 복강경 부신절제술(APA 단측); 스피로노락톤(IC50=1.2 μg/L·활성대사체 카렌오논 t½≈20h)·에플레레논(IC50=2.5 μg/L)·파이네레논(IC50=0.65 μg/L·비스테로이드성·심장보호 우월) MR 길항; ACEi·CCB 병용. **120+ 노드 10클러스터**, **23구획 ODE**(약물PK 6+RAAS 3+신장/이온 5+심혈관 2+신기능 1+장기손상 2+부신 2+바이오마커 2), **8치료 시나리오**(무치료 APA 2년 진행·부신절제술·스피로노락톤 100mg·에플레레논 100mg·파이네레논 20mg·스피로+암로디핀·정상 대조·ACEi). Choi 2011 Science(KCNJ5)·Rossi 2006 JACC·Milliez 2005 JACC·Pitt 1999 NEJM(RALES)·Bakris 2020 NEJM(FIDELIO) 보정. ARR·PAC·PRA·K⁺·HCO₃⁻·MAP·LVMi·심근섬유화·GFR·HOMA proxy 바이오마커. 7탭 Shiny 대시보드(환자프로파일·RAAS/PK·알도스테론 패널·이온 항상성·심혈관/장기손상·시나리오 비교·바이오마커 탐색기). 48개 PubMed 인용.<br>[🗺️ 지도](primary-aldosteronism/pa_qsp_model.svg) · [⚙️ mrgsolve](primary-aldosteronism/pa_mrgsolve_model.R) · [📊 Shiny](primary-aldosteronism/pa_shiny_app.R) · [📚 문헌](primary-aldosteronism/pa_references.md) · [📄 README](primary-aldosteronism/README.md) |
 
 ---
 
@@ -437,3 +438,51 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`gcd_mrgsolve_model.R`](gaucher-disease/gcd_mrgsolve_model.R) | **26구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`gcd_shiny_app.R`](gaucher-disease/gcd_shiny_app.R) | **9탭** (개요·환자프로파일·PK·효소/기질·장기/혈액·골·시나리오비교·바이오마커·가상집단) |
 | 📚 참고문헌 | [`gcd_references.md`](gaucher-disease/gcd_references.md) | **62개 PubMed 인용** (14개 섹션) |
+
+---
+
+## 🫀 원발성 알도스테론증 (Primary Aldosteronism) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`primary-aldosteronism/`](primary-aldosteronism/) | **약어:** PA | **날짜:** 2026-06-24
+
+[![PA QSP 기계론적 지도](primary-aldosteronism/pa_qsp_model.png)](primary-aldosteronism/pa_qsp_model.svg)
+
+**질환**: 원발성 알도스테론증(Primary Aldosteronism, PA) / Conn 증후군 | **분류**: 내분비·대사(부신) | **유병률**: 고혈압 환자의 5–10% | **원인**: APA(선종 ~35%)·BAH(양측 과형성 ~60%)
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. 체성 돌연변이** | KCNJ5/CACNA1D/ATP1A1/ATP2B3 이온 채널·펌프 변이 → Ca²⁺ 내유 → CYP11B2 과발현 | KCNJ5, CACNA1D, CYP11B2 |
+| **2. 자율 알도스테론 과분비** | APA·BAH 에서 AngII 비의존적 알도스테론 생성 → 레닌 억제 | Aldo_c, Renin_c, ARR_c |
+| **3. ENaC/ROMK 신장 효과** | MR→SGK1→Nedd4-2 인산화 → ENaC 세포표면 발현↑ → Na⁺ 재흡수·K⁺ 분비 | ENaC_act, K_c, HCO3_c |
+| **4. 심혈관 표적 장기 손상** | 알도스테론 직접 심근섬유아세포 MR 활성 → 콜라겐 침착·LVH | CardFib, LVMi_c |
+| **5. 대사 합병증** | Na⁺ 과잉·IR 악화, 심혈관 위험 4배 상승 | HOMA_proxy, MAP_c |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·중재 | 임상시험 | 주요 결과 |
+|---------|---------|---------|---------|
+| **S1** | 무치료 APA | 자연경과 | MAP↑, K⁺↓, ARR>>30, LVMi↑ |
+| **S2** | 복강경 부신절제술 | Rossi 2013 Hypertension | MAP -15 mmHg, ARR 정상화, LVMi -20% |
+| **S3** | 스피로노락톤 100 mg/d | Monticone 2015 JH | K⁺ 회복, ARR 정상화, BP -10–15 mmHg |
+| **S4** | 에플레레논 100 mg/d | Pitt 2003 NEJM | 선택적 MRA, 항안드로겐 부작용 없음 |
+| **S5** | 파이네레논 20 mg/d | Bakris 2020 NEJM(FIDELIO) | 비스테로이드성·심장섬유화 우월 억제 |
+| **S6** | 스피로노락톤 + 암로디핀 | 병용 전략 | 추가 BP 강하 (-5–8 mmHg) |
+| **S7** | 정상 대조 | 참조 | Renin=1.0, Aldo=8 ng/dL, K=4.0 |
+| **S8** | 라미프릴(ACEi) 10 mg/d | 제한적 효과 | AngII↓ but APA 알도스테론 불변 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`pa_qsp_model.dot`](primary-aldosteronism/pa_qsp_model.dot) | **120+ 노드, 10클러스터** |
+| ⚙️ mrgsolve ODE | [`pa_mrgsolve_model.R`](primary-aldosteronism/pa_mrgsolve_model.R) | **23구획 ODE**, **8치료 시나리오** |
+| 📊 Shiny 앱 | [`pa_shiny_app.R`](primary-aldosteronism/pa_shiny_app.R) | **7탭** (환자프로파일·RAAS/PK·알도스테론패널·이온항상성·심혈관/TOD·시나리오비교·바이오마커탐색기) |
+| 📚 참고문헌 | [`pa_references.md`](primary-aldosteronism/pa_references.md) | **48개 PubMed 인용** (12개 섹션) |
