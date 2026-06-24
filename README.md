@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-143-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-144-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **143개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **144개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -117,7 +117,7 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **142개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **144개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
 **분류별 모델 수**: 내분비·대사 21 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 소아 혈관염 1 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
 
@@ -266,6 +266,7 @@ qsp/
 | 140 | 희귀·유전질환 | [**트랜스티레틴 아밀로이드증**<br><sub>Transthyretin Amyloidosis · ATTR</sub>](transthyretin-amyloidosis/) | <a href="transthyretin-amyloidosis/attr_qsp_model.svg"><img src="transthyretin-amyloidosis/attr_qsp_model.png" width="190" alt="ATTR"></a> | 간 헤파토사이트 분비 TTR 사량체 해리(rate-limiting) → 잘못 접힌 단량체 → 독성 올리고머 → 아밀로이드 섬유 → 심장(ATTRwt: 간질 침착·LV 비후·HFpEF→HFrEF) / 말초신경(ATTRv: 길이 의존적 축삭 퇴화·자율신경 기능부전) 다장기 손상. ATTRv 변이(V30M·T60A·V122I) 구조 불안정화; 세포독성 올리고머 → NLRP3 인플라마좀·IL-1β·TNF-α → 심근세포 아포토시스; TGF-β → 심장 섬유화; SAP·GAG 섬유 안정화; 프로테오스타시스(HSP70/UPS/자가포식) 실패. 타파미디스(61mg PO QD·T4 결합부위 점유·사량체 안정화 Emax=80%·EC50=0.8μg/mL·ATTR-ACT CV사망+입원 30%↓)·아코라미디스(800mg BID·고선택 안정제·ATTRiBUTE-CM); 파티시란(0.3mg/kg IV Q3W·LNP-ApoE-LDLR-Ago2-RISC·mRNA 80%↓·APOLLO mNIS+7 34점 차이)·부트리시란(25mg SC Q3M·GalNAc-ASGR1·83%↓·HELIOS-A NIS 17점 개선); 이노테르센(300mg SC QW·2'-MOE ASO·RNaseH1·72%↓·NEURO-TTR mNIS+7 19점 차이)·엡론테르센(45mg SC QM·GalNAc-ASO). **116 노드 10클러스터**, **25구획 ODE**(약물PK 9+TTR 경로 4+조직 섬유 3+심장 PD 4+신경 PD 3+신장 1+증상 1), **7치료 시나리오**(ATTRwt 자연경과·ATTRv 자연경과·타파미디스·파티시란·부트리시란·이노테르센·타파미디스+부트리시란 병용). ⁹⁹ᵐTc-PYP/CMR LGE-ECV·NT-proBNP·hsTnT·LVEF·NIS·mBMI·eGFR 바이오마커. 8탭 Shiny 대시보드. 60개 PubMed 인용 (11섹션).<br>[🗺️ 지도](transthyretin-amyloidosis/attr_qsp_model.svg) · [⚙️ mrgsolve](transthyretin-amyloidosis/attr_mrgsolve_model.R) · [📊 Shiny](transthyretin-amyloidosis/attr_shiny_app.R) · [📚 문헌](transthyretin-amyloidosis/attr_references.md) · [📄 README](transthyretin-amyloidosis/README.md) |
 | 142 | 피부·자가면역 | [**화농성 한선염**<br><sub>Hidradenitis Suppurativa · HS</sub>](hidradenitis-suppurativa/) | <a href="hidradenitis-suppurativa/hs_qsp_model.svg"><img src="hidradenitis-suppurativa/hs_qsp_model.png" width="190" alt="HS"></a> | **모낭 파열 → 복합 면역 활성화 → 만성 피부 염증** — γ-Secretase 결함(NCSTN/PSEN1/2 변이)·과각화증·모낭 폐쇄 → 피지모낭단위 파열 → NLRP3 인플라마좀(IL-1β)·TLR2/4 NF-κB(TNF-α·IL-6)·Th17(IL-17A/F) 복합 활성화. S. aureus/혐기균 바이오필름·마이크로비옴 불균형이 염증 증폭. TGF-β → 근섬유아세포 → 콜라겐 침착 → 누공·흉터. 안드로겐(DHT)·비만(인슐린저항성·아디포카인·mTOR) 호르몬 대사 인자 포함. 아달리무맙(PIONEER I/II·TNF 억제)·세쿠키누맙(SUNSHINE/SUNRISE·IL-17A)·비메키주맙(BE HEARD I/II·IL-17A/F) 완전 PK/PD 모델링. HiSCR(AN 50% 감소), IHS4, Hurley 병기, DLQI, VAS 통증 임상 엔드포인트. **160+ 노드 10클러스터**, **20구획 ODE**(PK 6+사이토카인 5+세포 3+임상엔드포인트 3+기타), **5치료 시나리오**(무치료·아달리무맙·세쿠키누맙·비메키주맙·병용). 6탭 Shiny(환자프로파일·약물PK·사이토카인PD·임상엔드포인트·시나리오비교·바이오마커/가상환자). 37개 PubMed 인용(11섹션).<br>[🗺️ 지도](hidradenitis-suppurativa/hs_qsp_model.svg) · [⚙️ mrgsolve](hidradenitis-suppurativa/hs_mrgsolve_model.R) · [📊 Shiny](hidradenitis-suppurativa/hs_shiny_app.R) · [📚 문헌](hidradenitis-suppurativa/hs_references.md) · [📄 README](hidradenitis-suppurativa/README.md) |
 | 141 | 희귀·유전질환 | [**윌슨병**<br><sub>Wilson's Disease · WD</sub>](wilsons-disease/) | <a href="wilsons-disease/wd_qsp_model.svg"><img src="wilsons-disease/wd_qsp_model.png" width="190" alt="WD"></a> | **ATP7B 기능 소실 → 구리 대사 장애** — *ATP7B*(P형 Cu-ATPase) 돌연변이(p.His1069Gln 유럽 35%·p.Arg778Leu 아시아 20%)로 담즙 구리 배출↓·아포세룰로플라스민 구리 적재 실패 → 간세포 구리 축적(>250 μg/g dw) → MT 포화 → NCBC(Non-Ceruloplasmin Bound Copper) 급증 → 전신 독성. 간: Fenton 반응(Cu¹⁺+H₂O₂→OH•) → ROS 급증 → 미토콘드리아 기능이상·지질 과산화·Kupffer 활성화 → TNF-α/IL-6/TGF-β → 간성상세포(HSC) 활성 → 콜라겐 침착 → Metavir F0→F4 섬유화 → 간경변 → 급성 간부전(ALF-WD, Coombs음성 용혈동반). 뇌: NCBC → BBB 통과 → 기저핵(피각·흑질) 선택적 구리 축적 → 도파민신경 손상 → 진전·근긴장이상증·구음장애; NMDA 수용체 Cu²⁺ 조절 이상 → 정신증·우울증; UWDRS 점수; MRI 'giant panda face'. 각막: Descemet막 Cu → Kayser-Fleischer Ring(KF, 신경형 95%). 신장: 근위세뇨관 Cu 독성 → Fanconi 증후군(아미노산뇨·인뇨). D-페니실라민(F=55%·t½=1.7h·Cu 킬레이션·요중 배설 ↑·신경악화 역설 ~50%); Zinc 아세테이트(50mg TID·장관 MT 유도→Cu 흡수 차단·유지/임신 선호); 트리엔틴(TETA·DPA 부작용 2nd-line); **ALXN1840(TTM·bis-choline TTM·15mg QD·TTM-Cu-Albumin 삼중복합체·분변 배설·NCBC↓98%·ATLAS 2022 NEJM)**. **119 노드 11클러스터**, **24구획 ODE**(약물PK 8+구리동역학 7+장기분포 3+간병태 3+신경퇴행 1+기타 2), **8치료 시나리오**(무치료·DPA 500mg TID·Zinc 50mg TID·Trientine·ALXN1840·DPA→Zinc 전환·ALXN1840+Trientine 병용·정상 WT 대조). Leipzig 점수·NCBC·Cp·24h 요중 Cu·간 Cu·ALT·섬유화·UWDRS·KF Ring 바이오마커. 8탭 Shiny 대시보드(환자프로파일·약물PK·구리동역학·간결과·신경/안과·시나리오비교·바이오마커탐색기·모델정보). 60개 PubMed 인용(13섹션).<br>[🗺️ 지도](wilsons-disease/wd_qsp_model.svg) · [⚙️ mrgsolve](wilsons-disease/wd_mrgsolve_model.R) · [📊 Shiny](wilsons-disease/wd_shiny_app.R) · [📚 문헌](wilsons-disease/wd_references.md) · [📄 README](wilsons-disease/README.md) |
+| 144 | 내분비·대사 | [**당뇨병성 신병증**<br><sub>Diabetic Nephropathy · DN</sub>](diabetic-nephropathy/) | <a href="diabetic-nephropathy/dn_qsp_model.svg"><img src="diabetic-nephropathy/dn_qsp_model.png" width="190" alt="DN"></a> | **당뇨병 미세혈관 합병증 → 진행성 CKD** — 고혈당(AGE·PKC·헥소사민·폴리올 경로) → 산화스트레스(Nox4·ROS) + RAAS 활성화(AngII→인사구체 고혈압) + TGF-β1(Smad2/3·CTGF·ECM 축적·사구체경화) + NF-κB 염증(TNF-α·IL-1β·MCP-1·NLRP3) → 족세포 손상(네프린·포도신·족돌기 소실·단백뇨) → 세관 손상(SGLT2·저산소증·EMT·간질 섬유화) → eGFR 감소 → ESKD. ACEi(에나라프릴 10mg BID·Emax 90%)·ARB(로살탄 100mg QD·Emax 85%)·SGLT2i(엠파글리플로진 25mg QD·Emax 85%)·파이네레논(20mg QD·비스테로이드 MRA·Emax 88%) 4종 완전 PK/PD 모델링. 7가지 치료 시나리오(무치료·ACEi·ARB·SGLT2i·ACEi+SGLT2i·SGLT2i+Fine·삼중병용). **100+ 노드 9클러스터**, **19구획 ODE**(약물PK 8+혈당·AGE·AngII·TGF-β·ROS·ECM·족세포·UACR·세관·섬유화·eGFR), **7치료 시나리오**. Lewis 1993 NEJM(ACEi)·RENAAL/IDNT 2001(ARB)·CREDENCE 2019(SGLT2i)·DAPA-CKD 2020·FIDELIO-DKD 2020 NEJM(파이네레논)·CONFIDENCE 2023(병용) 보정. eGFR·UACR·SBP·HbA1c·TGF-β·섬유화·족세포·CKD병기. 6탭 Shiny 대시보드(환자프로파일·약물PK·PD/바이오마커·임상엔드포인트·시나리오비교·GFR기울기&ESKD). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](diabetic-nephropathy/dn_qsp_model.svg) · [⚙️ mrgsolve](diabetic-nephropathy/dn_mrgsolve_model.R) · [📊 Shiny](diabetic-nephropathy/dn_shiny_app.R) · [📚 문헌](diabetic-nephropathy/dn_references.md) · [📄 README](diabetic-nephropathy/README.md) |
 | 143 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 
 ---
@@ -683,3 +684,51 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`pmr_mrgsolve_model.R`](polymyalgia-rheumatica/pmr_mrgsolve_model.R) | **22구획 ODE**, **7치료 시나리오**, VPop 200명 |
 | 📊 Shiny 앱 | [`pmr_shiny_app.R`](polymyalgia-rheumatica/pmr_shiny_app.R) | **6탭** (환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기) |
 | 📚 참고문헌 | [`pmr_references.md`](polymyalgia-rheumatica/pmr_references.md) | **55개 PubMed 인용** (12개 섹션) |
+
+---
+
+## 🧬 당뇨병성 신병증 (Diabetic Nephropathy) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`diabetic-nephropathy/`](diabetic-nephropathy/) | **약어:** DN | **날짜:** 2026-06-24
+
+[![DN QSP 기계론적 지도](diabetic-nephropathy/dn_qsp_model.png)](diabetic-nephropathy/dn_qsp_model.svg)
+
+**질환**: 당뇨병성 신병증(Diabetic Nephropathy, DN) | **분류**: 만성질환 / 내분비·신장 합병증 | **유병률**: 제2형 당뇨 환자의 ~40% | **글로벌 ESKD의 주요 원인 (약 44%)**
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. 고혈당** | 폴리올·PKC·헥소사민·AGE·ROS 4대 경로 | BG↑, AGE_cmpt, PKC_Activation, ROS_Mitochon |
+| **2. 혈역학 이상** | RAAS 활성화·AngII→인사구체 고혈압·TGF 자가조절 소실 | AngII_cmpt, Intraglom_Press, Hyperfiltration |
+| **3. TGF-β 섬유화** | Smad2/3→CTGF·콜라겐 IV·피브로넥틴 ECM 축적 | TGF_cmpt, ECM_cmpt, Collagen_IV, Smad2_3 |
+| **4. 염증** | NF-κB·NLRP3·M1 대식세포·MCP-1 침윤 | NFkB, NLRP3, Macrophage_M1, MCP1 |
+| **5. 족세포 손상** | 네프린/포도신 소실·족돌기 이상·단백뇨 | Pod_cmpt, Slit_Diaphragm, Proteinuria |
+| **6. 세관·간질 손상** | SGLT2·저산소증·HIF-1α·EMT·간질 섬유화 | Tub_cmpt, Fib_cmpt, EMT_Tubular, Klotho |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S0** | 무치료 (자연경과) | — | 관찰 코호트 | eGFR −3–4 mL/min/yr; UACR 진행 |
+| **S1** | ACEi 에나라프릴 10mg BID | ACE 억제→AngII↓ (Emax 90%) | **Lewis 1993 NEJM** | ESKD·사망 RR 0.52, UACR −30–35% |
+| **S2** | ARB 로살탄 100mg QD | AT1R 차단 (Emax 85%) | **RENAAL/IDNT 2001 NEJM** | ESKD 16–20% 감소 |
+| **S3** | SGLT2i 엠파글리플로진 25mg QD | SGLT2 억제→당뇨 배출·저산소 완화 (Emax 85%) | **CREDENCE 2019·DAPA-CKD 2020** | 신복합 HR 0.61–0.70 |
+| **S4** | ACEi + SGLT2i 병용 | RAAS + 당뇨 배출 이중 차단 | EMPA-REG 하위 + CREDENCE | eGFR 기울기 최대 보존 |
+| **S5** | SGLT2i + 파이네레논 병용 | 당뇨 배출 + MR 차단 (Emax 88%) | **CONFIDENCE 2023 EHJ** | UACR 추가 감소 |
+| **S6** | ACEi + SGLT2i + 파이네레논 삼중 | RAAS + SGLT2 + MR 포괄 차단 | 가상 탐색 | eGFR 보존 최대화 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`dn_qsp_model.dot`](diabetic-nephropathy/dn_qsp_model.dot) | **100+ 노드, 9 클러스터** |
+| ⚙️ mrgsolve ODE | [`dn_mrgsolve_model.R`](diabetic-nephropathy/dn_mrgsolve_model.R) | **19구획 ODE**, **7치료 시나리오** |
+| 📊 Shiny 앱 | [`dn_shiny_app.R`](diabetic-nephropathy/dn_shiny_app.R) | **6탭** (환자프로파일·약물PK·PD/바이오마커·임상엔드포인트·시나리오비교·GFR기울기&ESKD) |
+| 📚 참고문헌 | [`dn_references.md`](diabetic-nephropathy/dn_references.md) | **45개 PubMed 인용** (10개 섹션) |
