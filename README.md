@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-132-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-133-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **132개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **133개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 
 ---
 
@@ -118,9 +118,9 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **132개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **133개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
+**분류별 모델 수**: 내분비·대사 20 · 소화기·간담도 17 · 자가면역·류마티스 13 · 심혈관 11 · 신장·비뇨 11 · 신경 11 · 호흡기 8 · 혈관염 8 · 소아 혈관염 1 · 피부 6 · 혈액 5 · 종양 3 · 정신·신경 2 · 감염 2 · 신경근육 1
 
 | # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
 |---|------|------|----------|--------------|
@@ -257,6 +257,7 @@ qsp/
 | 130 | 혈액·종양 | [**만성 림프구성 백혈병**<br><sub>Chronic Lymphocytic Leukemia · CLL</sub>](chronic-lymphocytic-leukemia/) | <a href="chronic-lymphocytic-leukemia/cll_qsp_model.svg"><img src="chronic-lymphocytic-leukemia/cll_qsp_model.png" width="190" alt="CLL"></a> | CD19⁺CD5⁺CD23⁺ 단클론 B세포 축적(서구권 성인 가장 흔한 백혈병). BCR 자율 신호전달(IGHV 비변이형·항원 자극)→LYN/SYK/BTK/PLCγ2→NF-κB/PI3Kδ/MAPK 경로 활성화; BCL-2 과발현(del13q→miR-15a/16-1 소실); 미세환경 의존(CXCL12/CXCR4 골수 억류·CXCL13/CXCR5 림프절 귀소·CD40L·BAFF·IL-4·NK 억제). CLL-IPI 예후(del(17p)/TP53·del(11q)/ATM·IGHV·β2M·임상병기). 이브루티닙(BTK Cys481 공유결합·420mg QD·RESONATE-2: ORR 86%·2yr PFS 74%)·아칼라브루티닙·자누브루티닙(선택성↑); 베네토클락스(BCL-2 BH3 모방·Ki~0.01nM·CLL14: uMRD 76%·2yr PFS 88%)·오비누투주맙(Type II 항CD20·ADCC↑·CDC↓·PCD). **146 노드 10클러스터**, **18구획 ODE**(이브루티닙 1구획·BTK 공유결합 모델·베네토클락스 2구획·BCL-2 준정상상태·오비누투주맙 TMDD·ALC/BM/LN 질환 구획·MCL-1 내성·NK 활성), **6치료 시나리오**(이브루티닙·베네토클락스·오비누투주맙·VEN+OBI CLL14·IB+VEN·삼중 병용). RESONATE-2·CLL14·MURANO·SEQUOIA·ALPINE 보정. 44개 PubMed 인용.<br>[🗺️ 지도](chronic-lymphocytic-leukemia/cll_qsp_model.svg) · [⚙️ mrgsolve](chronic-lymphocytic-leukemia/cll_mrgsolve_model.R) · [📊 Shiny](chronic-lymphocytic-leukemia/cll_shiny_app.R) · [📚 문헌](chronic-lymphocytic-leukemia/cll_references.md) · [📄 README](chronic-lymphocytic-leukemia/README.md) |
 | 132 | 신경근육 | [**척수성 근위축증 (SMA)**<br><sub>Spinal Muscular Atrophy · SMA</sub>](spinal-muscular-atrophy/) | <a href="spinal-muscular-atrophy/sma_qsp_model.svg"><img src="spinal-muscular-atrophy/sma_qsp_model.png" width="190" alt="SMA"></a> | *SMN1* 5q13.2 결손→SMN 단백질 소실→알파 운동신경세포 진행성 사멸·NMJ 미성숙·신경원성 근위축. SMN2 대체 스플라이싱(엑손7 포함율 10%→90%)·SMN 단백질 역치·MN pool·NMJ 성숙도·근육량 ODE. 누시너센(IT ASO·ISS-N1 차단)·리스디플람(경구 스플라이싱 조절제)·오나셈노진(AAV9 유전자치료) 3종 PK/PD. **130+ 노드 12클러스터**, **20구획 ODE**, **6치료 시나리오**(ENDEAR·CHERISH·FIREFISH·SPR1NT 임상 보정). CHOP-INTEND·HFMSE·CMAP·FVC·혈청 NF-L 바이오마커. 50개 PubMed 인용.<br>[🗺️ 지도](spinal-muscular-atrophy/sma_qsp_model.svg) · [⚙️ mrgsolve](spinal-muscular-atrophy/sma_mrgsolve_model.R) · [📊 Shiny](spinal-muscular-atrophy/sma_shiny_app.R) · [📚 문헌](spinal-muscular-atrophy/sma_references.md) · [📄 README](spinal-muscular-atrophy/README.md) |
 | 131 | 혈액·응고 | [**정맥 혈전색전증 (DVT/PE)**<br><sub>Venous Thromboembolism · VTE</sub>](venous-thromboembolism/) | <a href="venous-thromboembolism/vte_qsp_model.svg"><img src="venous-thromboembolism/vte_qsp_model.png" width="190" alt="VTE"></a> | 심부정맥 혈전증(DVT)과 폐색전증(PE)을 통합한 QSP 모델. Virchow's Triad(혈류정체·내피 손상·과응고), 외인성 경로(TF-FVIIa-TFPI), 내인성 경로(접촉활성화-FXIIa-FIXa-FVIIIa), 공통 경로(Prothrombinase-트롬빈-피브린 가교), 혈소판 활성화(GPIb/GPVI/PAR1/4·GPIIb/IIIa), 자연 항응고(AT-III·단백C/S·TFPI), 섬유용해(tPA/uPA·플라스민·PAI-1·TAFI·D-이량체). 리바록사반(2구획 PK·FXa EC50=12 ng/mL)·아픽사반(EC50=5 ng/mL)·다비가트란(직접트롬빈억제·EC50=35 ng/mL)·와파린(VK 사이클 간접반응·FVII/FX/FII 풀 반감기)·에녹사파린(AT-III 활성화·항Xa) 5종 약물 PK/PD. **140+ 노드 12클러스터**, **19구획 ODE**(PK 7·FXa/FIIa·피브린·혈전크기·플라스민·D-이량체·VK산화/환원·FVII/FX/FII풀), **6치료 시나리오**(DVT:리바록사반 15→20mg·PE:아픽사반 10→5mg BID·와파린+LMWH 브리지·수술예방:에녹사파린 40mg QD·확장예방:리바록사반 10mg QD·신부전:다비가트란 110mg BID GFR30 vs 90). EINSTEIN/AMPLIFY/RE-COVER/ROCKET-AF/Mueck 2011/Frost 2015 임상 파라미터 보정. INR·Anti-Xa·aPTT·D-이량체·혈전잔여% 바이오마커. Wells 점수(DVT/PE) 사전확률 계산기, 금기사항별 약물 추천 로직. 57개 PubMed 인용.<br>[🗺️ 지도](venous-thromboembolism/vte_qsp_model.svg) · [⚙️ mrgsolve](venous-thromboembolism/vte_mrgsolve_model.R) · [📊 Shiny](venous-thromboembolism/vte_shiny_app.R) · [📚 문헌](venous-thromboembolism/vte_references.md) · [📄 README](venous-thromboembolism/README.md) |
+| 133 | 소아 혈관염 | [**가와사키병**<br><sub>Kawasaki Disease · KD</sub>](kawasaki-disease/) | <a href="kawasaki-disease/kd_qsp_model.svg"><img src="kawasaki-disease/kd_qsp_model.png" width="190" alt="KD"></a> | 원인 불명 트리거 → TLR/NLR 선천 면역 활성화 → NLRP3 인플라마좀(Caspase-1·IL-1β 성숙) → 사이토카인 폭풍(IL-1β·IL-6·TNF-α) → 혈관 내피 활성화(VCAM-1·ICAM-1·TF↑) → 관상동맥 중막 파괴·동맥류(AHA Z-점수 분류: small z≥2.5, medium z≥5, giant z≥10) → 혈소판 증가증(2주 피크) → 혈전위험. IVIG 2 g/kg(2구획+FcRn 재순환·Emax NF-κB 억제)·고용량 아스피린→저용량(COX-1/2 비가역)·메틸프레드니솔론(NF-κB 억제·GR 경로)·인플릭시맙 5 mg/kg(TNF-α 중화·n=1.8)·아나킨라 4 mg/kg/day(IL-1R 경쟁차단) 5종 PK/PD. **134 노드 14클러스터**, **21구획 ODE**(PK 11·IL1β·IL6·TNFα·대식세포·내피세포·발열·CRP·혈소판·관상동맥 Z-점수), **5치료 시나리오**(S1 표준IVIG·S2 고위험+스테로이드·S3 IVIG저항-2차IVIG·S4 인플릭시맙구제·S5 아나킨라구제). Kobayashi/Egami 위험점수 계산기·관상동맥 Z-점수 추적·IVIG 저항성 확률 모델. McCrindle/Kobayashi/KIDCARE Trial 보정. 60개 PubMed 인용.<br>[🗺️ 지도](kawasaki-disease/kd_qsp_model.svg) · [⚙️ mrgsolve](kawasaki-disease/kd_mrgsolve_model.R) · [📊 Shiny](kawasaki-disease/kd_shiny_app.R) · [📚 문헌](kawasaki-disease/kd_references.md) · [📄 README](kawasaki-disease/README.md) |
 
 
 ---
@@ -924,3 +925,64 @@ qsp/
 | ⚙️ mrgsolve ODE | [`sma_mrgsolve_model.R`](spinal-muscular-atrophy/sma_mrgsolve_model.R) | **20구획 ODE**, **6치료 시나리오** |
 | 📊 Shiny 앱 | [`sma_shiny_app.R`](spinal-muscular-atrophy/sma_shiny_app.R) | **8탭** (환자 프로파일·PK·SMN 생물학·운동신경/NMJ·임상 지표·시나리오 비교·바이오마커·가상 집단) |
 | 📚 참고문헌 | [`sma_references.md`](spinal-muscular-atrophy/sma_references.md) | **50개 PubMed 인용** (10개 섹션) |
+
+---
+
+## 🫀 가와사키병 (Kawasaki Disease) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`kawasaki-disease/`](kawasaki-disease/) | **약어:** KD | **날짜:** 2026-06-24
+
+[![KD QSP 기계론적 지도](kawasaki-disease/kd_qsp_model.png)](kawasaki-disease/kd_qsp_model.svg)
+
+**질환**: 가와사키병(Kawasaki Disease, KD) | **분류**: 소아 전신 혈관염 | **호발 연령**: 6개월–5세 | **CAA 위험**: 미치료 시 ~25%
+
+### 핵심 기전 (14개 클러스터)
+
+| 클러스터 | 핵심 기전 |
+|---------|-----------|
+| 1. 감염·환경 트리거 | RNA/DNA 바이러스, 세균 초항원, 환경 인자, ITPKC/CASP3/HLA-B15 유전 소인 |
+| 2. 선천 면역 활성화 | TLR2/4·NLR → 대식세포·수지상세포·중성구·NK세포·보체(C3/C5/MAC) |
+| 3. NLRP3 인플라마좀 | NLRP3→ASC→Caspase-1→Pro-IL-1β 절단→성숙 IL-1β; Gasdermin D 공극형성; 파이롭토시스 |
+| 4. 사이토카인 네트워크 | IL-1β·IL-1R→NF-κB; IL-6→JAK1/2-STAT3; TNF-α→TNFR1→NF-κB; IL-8·IL-18·IFN-γ·MCP-1 |
+| 5. 적응 면역 | Th1/Th17/Treg 분화; 형질아세포→IgG·IgA; FcγR; MHC II 항원 제시 |
+| 6. 내피세포 활성화 | 정지 EC → 활성 EC; VCAM-1·ICAM-1·E-셀렉틴·조직인자 발현; eNOS↓; 혈관 투과성↑ |
+| 7. 관상동맥 병리 | 관상동맥 염증→중막 파괴→탄성막 파열→동맥류(small/medium/giant); 혈전→심근경색 |
+| 8. 혈소판 생물학 | 혈소판 활성화·TXA2·GPIIb/IIIa·vWF; 혈소판 증가증(2주 피크) |
+| 9. 발열·급성기 반응 | COX-2→PGE2→시상하부 발열 중추; CRP·ESR·페리틴·프로칼시토닌·알부민↓ |
+| 10. IVIG PK | 2구획·FcRn 재순환; t½ 21–28일; EC50=8 g/L; Emax=80% 사이토카인 억제 |
+| 11. 아스피린 PK | 고용량(80–100 mg/kg/day) → 저용량(3–5 mg/kg/day); 살리실산 대사체; COX-1/2 |
+| 12. 스테로이드 PK | 메틸프레드니솔론 2구획; GR-α → GRE 전사활성화/NF-κB 억제 |
+| 13. 생물학적 제제 PK | 인플릭시맙 2구획(TNF-α 중화); 아나킨라 SC(IL-1R 경쟁적 차단); 사이클로스포린 |
+| 14. 임상 엔드포인트 | 발열 기간; Kobayashi/Egami 위험점수; CAA Z-점수(AHA 분류); IVIG 저항성 ~15%; 재발률 3% |
+
+### mrgsolve ODE 모델 (21 구획)
+
+| 모듈 | 구획 | 핵심 동역학 |
+|------|------|------------|
+| IVIG PK | A_IVIG_c, A_IVIG_p | 2구획·FcRn 재순환(F=60%)·CL=0.0033 L/h/kg |
+| 아스피린 PK | A_ASA_gut, A_ASA_c, A_SA_c | ka=0.80/h·COX-1 비가역·살리실산 대사(CL_SA=0.01) |
+| 메틸프레드니솔론 | A_MP_c, A_MP_p | 2구획·CL=0.48 L/h/kg·t½~2h |
+| 인플릭시맙 | A_IFX_c, A_IFX_p | 2구획·EC50=2.5 μg/mL·Hill n=1.8 |
+| 아나킨라 | A_ANK_gut, A_ANK_c | SC 흡수(ka=0.30/h)·EC50=1.0 μg/mL |
+| 사이토카인 | IL1b, IL6, TNFa | 대식세포 구동 생산·약물 Emax 억제 ODE |
+| 활성화 상태 | Mac_act, EC_act | 로지스틱 성장(Mac)·사이토카인 구동(EC) |
+| 임상 지표 | Fever, CRP, PLT_c, CAL_Z | PGE2/IL-6/IL-1β 구동; IL-6 혈소판 생성; 관상동맥 Z-점수 |
+
+### 5가지 치료 시나리오 임상 근거
+
+| 시나리오 | 치료법 | 임상시험/근거 | 주요 결과 |
+|---------|--------|-------------|----------|
+| S1: 표준 | IVIG 2 g/kg + 아스피린 | Newburger 1991 (NEJM) | CAA 발생 3–5%; 발열 소실률 85% |
+| S2: 고위험 + 스테로이드 | + 메틸프레드니솔론 | RAISE Trial (Kobayashi 2012 Lancet) | CAA 위험 0% vs 3% (스테로이드) |
+| S3: IVIG 저항 → 2차 IVIG | IVIG 2 g/kg × 2회 | Burns 1998 (PIDJ) | 2차 반응률 ~50% |
+| S4: IVIG 저항 → 인플릭시맙 | 인플릭시맙 5 mg/kg | KIDCARE (Tremoulet 2019 Lancet) | 2차IVIG vs IFX: IFX 비열등; CAA 유사 |
+| S5: IVIG 저항 → 아나킨라 | 아나킨라 4 mg/kg/day | Ouldali 2019 (J Pediatr) | 발열 소실 96%; 관상동맥 안정화 |
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`kd_qsp_model.dot`](kawasaki-disease/kd_qsp_model.dot) | **134 노드, 14클러스터** |
+| ⚙️ mrgsolve ODE | [`kd_mrgsolve_model.R`](kawasaki-disease/kd_mrgsolve_model.R) | **21구획 ODE**, **5치료 시나리오** |
+| 📊 Shiny 앱 | [`kd_shiny_app.R`](kawasaki-disease/kd_shiny_app.R) | **6탭** (환자 프로파일·PK·사이토카인/염증·임상 엔드포인트·시나리오 비교·바이오마커/위험도) |
+| 📚 참고문헌 | [`kd_references.md`](kawasaki-disease/kd_references.md) | **60개 PubMed 인용** (14개 섹션) |
