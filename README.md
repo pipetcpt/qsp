@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-144-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-146-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **144개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **146개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -268,6 +268,7 @@ qsp/
 | 141 | 희귀·유전질환 | [**윌슨병**<br><sub>Wilson's Disease · WD</sub>](wilsons-disease/) | <a href="wilsons-disease/wd_qsp_model.svg"><img src="wilsons-disease/wd_qsp_model.png" width="190" alt="WD"></a> | **ATP7B 기능 소실 → 구리 대사 장애** — *ATP7B*(P형 Cu-ATPase) 돌연변이(p.His1069Gln 유럽 35%·p.Arg778Leu 아시아 20%)로 담즙 구리 배출↓·아포세룰로플라스민 구리 적재 실패 → 간세포 구리 축적(>250 μg/g dw) → MT 포화 → NCBC(Non-Ceruloplasmin Bound Copper) 급증 → 전신 독성. 간: Fenton 반응(Cu¹⁺+H₂O₂→OH•) → ROS 급증 → 미토콘드리아 기능이상·지질 과산화·Kupffer 활성화 → TNF-α/IL-6/TGF-β → 간성상세포(HSC) 활성 → 콜라겐 침착 → Metavir F0→F4 섬유화 → 간경변 → 급성 간부전(ALF-WD, Coombs음성 용혈동반). 뇌: NCBC → BBB 통과 → 기저핵(피각·흑질) 선택적 구리 축적 → 도파민신경 손상 → 진전·근긴장이상증·구음장애; NMDA 수용체 Cu²⁺ 조절 이상 → 정신증·우울증; UWDRS 점수; MRI 'giant panda face'. 각막: Descemet막 Cu → Kayser-Fleischer Ring(KF, 신경형 95%). 신장: 근위세뇨관 Cu 독성 → Fanconi 증후군(아미노산뇨·인뇨). D-페니실라민(F=55%·t½=1.7h·Cu 킬레이션·요중 배설 ↑·신경악화 역설 ~50%); Zinc 아세테이트(50mg TID·장관 MT 유도→Cu 흡수 차단·유지/임신 선호); 트리엔틴(TETA·DPA 부작용 2nd-line); **ALXN1840(TTM·bis-choline TTM·15mg QD·TTM-Cu-Albumin 삼중복합체·분변 배설·NCBC↓98%·ATLAS 2022 NEJM)**. **119 노드 11클러스터**, **24구획 ODE**(약물PK 8+구리동역학 7+장기분포 3+간병태 3+신경퇴행 1+기타 2), **8치료 시나리오**(무치료·DPA 500mg TID·Zinc 50mg TID·Trientine·ALXN1840·DPA→Zinc 전환·ALXN1840+Trientine 병용·정상 WT 대조). Leipzig 점수·NCBC·Cp·24h 요중 Cu·간 Cu·ALT·섬유화·UWDRS·KF Ring 바이오마커. 8탭 Shiny 대시보드(환자프로파일·약물PK·구리동역학·간결과·신경/안과·시나리오비교·바이오마커탐색기·모델정보). 60개 PubMed 인용(13섹션).<br>[🗺️ 지도](wilsons-disease/wd_qsp_model.svg) · [⚙️ mrgsolve](wilsons-disease/wd_mrgsolve_model.R) · [📊 Shiny](wilsons-disease/wd_shiny_app.R) · [📚 문헌](wilsons-disease/wd_references.md) · [📄 README](wilsons-disease/README.md) |
 | 144 | 내분비·대사 | [**당뇨병성 신병증**<br><sub>Diabetic Nephropathy · DN</sub>](diabetic-nephropathy/) | <a href="diabetic-nephropathy/dn_qsp_model.svg"><img src="diabetic-nephropathy/dn_qsp_model.png" width="190" alt="DN"></a> | **당뇨병 미세혈관 합병증 → 진행성 CKD** — 고혈당(AGE·PKC·헥소사민·폴리올 경로) → 산화스트레스(Nox4·ROS) + RAAS 활성화(AngII→인사구체 고혈압) + TGF-β1(Smad2/3·CTGF·ECM 축적·사구체경화) + NF-κB 염증(TNF-α·IL-1β·MCP-1·NLRP3) → 족세포 손상(네프린·포도신·족돌기 소실·단백뇨) → 세관 손상(SGLT2·저산소증·EMT·간질 섬유화) → eGFR 감소 → ESKD. ACEi(에나라프릴 10mg BID·Emax 90%)·ARB(로살탄 100mg QD·Emax 85%)·SGLT2i(엠파글리플로진 25mg QD·Emax 85%)·파이네레논(20mg QD·비스테로이드 MRA·Emax 88%) 4종 완전 PK/PD 모델링. 7가지 치료 시나리오(무치료·ACEi·ARB·SGLT2i·ACEi+SGLT2i·SGLT2i+Fine·삼중병용). **100+ 노드 9클러스터**, **19구획 ODE**(약물PK 8+혈당·AGE·AngII·TGF-β·ROS·ECM·족세포·UACR·세관·섬유화·eGFR), **7치료 시나리오**. Lewis 1993 NEJM(ACEi)·RENAAL/IDNT 2001(ARB)·CREDENCE 2019(SGLT2i)·DAPA-CKD 2020·FIDELIO-DKD 2020 NEJM(파이네레논)·CONFIDENCE 2023(병용) 보정. eGFR·UACR·SBP·HbA1c·TGF-β·섬유화·족세포·CKD병기. 6탭 Shiny 대시보드(환자프로파일·약물PK·PD/바이오마커·임상엔드포인트·시나리오비교·GFR기울기&ESKD). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](diabetic-nephropathy/dn_qsp_model.svg) · [⚙️ mrgsolve](diabetic-nephropathy/dn_mrgsolve_model.R) · [📊 Shiny](diabetic-nephropathy/dn_shiny_app.R) · [📚 문헌](diabetic-nephropathy/dn_references.md) · [📄 README](diabetic-nephropathy/README.md) |
 | 145 | 알레르기·면역 | [**만성 자발성 두드러기**<br><sub>Chronic Spontaneous Urticaria · CSU</sub>](chronic-urticaria/) | <a href="chronic-urticaria/csu_qsp_model.svg"><img src="chronic-urticaria/csu_qsp_model.png" width="190" alt="CSU"></a> | **IgE/FcεRI-비만세포 축 → 팽진·홍반·소양감** — 자가항체(anti-FcεRIα·anti-IgE) 또는 자가항원-IgE → FcεRI 교차결합 → 비만세포 탈과립(히스타민·PGD2·LTC4) + IL-31·IL-33·TSLP Type-2 사이토카인 망 → 지속적 두드러기. BTK(PLCγ→IP3/DAG→Ca²⁺) 및 PI3K/Akt 경유 MC 활성화 신호. 오말리주맙(항-IgE·유리IgE↓→FcεRI 발현↓)·두필루맙(항-IL-4Rα·IL-4/IL-13 공통 차단)·리미브루티닙(BTKi)·H1R 역효현제(세티리진·빌라스틴) PK/PD 완전 모델링. **110+ 노드 9클러스터**, **18구획 ODE**(항히스타민PK+오말리주맙2구획PK+두필루맙2구획PK+BTKi+IgE유리/결합+MC priming/활성+피부/혈장히스타민+IL-31/IL-33), **7치료 시나리오**. ASTERIA I·II NEJM 2013·GLACIAL JACI 2013(오말리주맙)·LIBERTY-CSU CUPID A·B NEJM 2023(두필루맙)·Lowe 2014(오말리주맙 PopPK) 보정. UAS7·WCU(≤6)·IgE 억제율·MC 활성지표·IL-31. 8탭 Shiny 대시보드(환자프로파일·약물PK·IgE&비만세포·사이토카인·임상엔드포인트·시나리오비교·바이오마커·참고). 45개 PubMed 인용(10섹션).<br>[🗺️ 지도](chronic-urticaria/csu_qsp_model.svg) · [⚙️ mrgsolve](chronic-urticaria/csu_mrgsolve_model.R) · [📊 Shiny](chronic-urticaria/csu_shiny_app.R) · [📚 문헌](chronic-urticaria/csu_references.md) · [📄 README](chronic-urticaria/README.md) |
+| 146 | 급성 감염·중환자 | [**패혈증 / 패혈성 쇼크**<br><sub>Sepsis & Septic Shock · SEP</sub>](sepsis/) | <a href="sepsis/sep_qsp_model.svg"><img src="sepsis/sep_qsp_model.png" width="190" alt="SEP"></a> | **감염 → 조절 장애 숙주 반응 → 다장기부전(MODS)** — 패혈증(Sepsis-3, Singer 2016 JAMA): 감염에 대한 숙주 조절 장애 반응(dysregulated host response)으로 생명을 위협하는 장기부전. 패혈성 쇼크: MAP<65 mmHg + 젖산>2 mmol/L, 28일 사망률 ~40%. 병원체(LPS·PGN·β-glucan)→ TLR4/TLR2/TLR3/TLR9·NLRP3 인플라마좀·cGAS-STING → MyD88/TRIF → NF-κB 활성화 → 사이토카인 폭풍(TNFα·IL-1β·IL-6·IL-8·HMGB1). 보체(C3→C5a→혈관·면역 반응). 응고(TF 발현↑→트롬빈↑→피브린·PAI-1↑→DIC). 내피세포 장애(VE-cadherin 분리·ICAM-1↑·NO↑→혈관확장쇼크·부종). 다장기부전(ARDS·AKI·간부전·SAE·심혈관쇼크·DIC). 후기 면역억제(CARS: T세포아포토시스·PD-1↑·MDSC↑). 치료: 메로페넴(2구획 PK·fT>MIC·fT>MIC 지연 효과 임계)·노르에피네프린(α1→MAP 회복)·하이드로코티손 200mg/day(GR→NF-κB 억제·혈관수축제 민감도↑·ADRENAL/APROCCHSS 2018 NEJM)·토실리주맙 8mg/kg(IL-6R 차단·REMAP-CAP 2021 NEJM). **130+ 노드 11클러스터**(병원체인식·선천면역·사이토카인·보체·응고/DIC·내피세포·다장기부전·약물PK/PD·임상바이오마커·대사/미토콘드리아·적응면역/CARS). **24구획 ODE**(BACT+ABX1/2+TNF/IL6/IL10/IL1B+NEUT_B/T+MACS+C5A+THROMBIN/FIBRIN/PAI1+ENDOT+PF_RATIO/CREATININE/BILIRUBIN/LACTATE/MAP/PLT+NE_C/HC_C/TOCI_C), **7치료 시나리오**(S1 무치료·S2 항생제단독·S3 항생제+NE·S4 번들(항생제+NE+수액)·S5 번들+HC·S6 번들+HC+토실리주맙·S7 면역저하환자). SOFA 6도메인(폐·신장·간·순환·응고·CNS) 동적 계산·28일사망확률(logit 모델 Seymour 2017). Kumar 2006 CritCareMed(항생제 1h 지연=7% 사망↑)·Rivers 2001 NEJM(EGDT)·De Backer 2010(노르에피네프린). PCT·CRP·Lactate·SOFA·qSOFA·균혈증 바이오마커. **8탭 Shiny 대시보드**(환자프로파일·항생제PK·사이토카인/면역PD·혈역학/SOFA·장기기능·시나리오비교·바이오마커탐색기·About). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](sepsis/sep_qsp_model.svg) · [⚙️ mrgsolve](sepsis/sep_mrgsolve_model.R) · [📊 Shiny](sepsis/sep_shiny_app.R) · [📚 문헌](sepsis/sep_references.md) · [📄 README](sepsis/README.md) |
 | 143 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 
 ---
@@ -782,3 +783,53 @@ dEF/dt = krec·(EF_target − EF)
 | ⚙️ mrgsolve ODE | [`csu_mrgsolve_model.R`](chronic-urticaria/csu_mrgsolve_model.R) | **18구획 ODE**, **7치료 시나리오** |
 | 📊 Shiny 앱 | [`csu_shiny_app.R`](chronic-urticaria/csu_shiny_app.R) | **8탭** (환자프로파일·약물PK·IgE&비만세포·사이토카인·임상엔드포인트·시나리오비교·바이오마커·About) |
 | 📚 참고문헌 | [`csu_references.md`](chronic-urticaria/csu_references.md) | **45개 PubMed 인용** (10개 섹션) |
+
+---
+
+## 🧬 패혈증 / 패혈성 쇼크 (Sepsis & Septic Shock) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`sepsis/`](sepsis/) | **약어:** SEP | **날짜:** 2026-06-24
+
+[![SEP QSP 기계론적 지도](sepsis/sep_qsp_model.png)](sepsis/sep_qsp_model.svg)
+
+**질환**: 패혈증(Sepsis) / 패혈성 쇼크(Septic Shock) | **분류**: 급성 감염 / 중환자 의학 | **유병률**: 전 세계 연간 ~4,900만 건 | **사망**: ~1,100만 명/년 (전체 사망 22%)
+
+---
+
+### 병태생리 요약
+
+| 단계 | 핵심 기전 | 주요 노드 |
+|------|----------|----------|
+| **1. 병원체 인식** | LPS·PGN·DAMP → TLR4/2/NLRP3/cGAS-STING → NF-κB | PAMPs, DAMPs, PRRs, MyD88, NFkB |
+| **2. 사이토카인 폭풍** | TNFα·IL-1β·IL-6·IL-8 과분비 → 이차 세포 활성화 | TNF, IL6, IL1B, HMGB1 |
+| **3. 선천면역 과활성** | 호중구 조직 침윤·NET·ROS·MMP-9 | Neut_T, NET, ROS |
+| **4. 보체 활성화** | C3→C5a(아나필라톡신)→혈관·면역 반응 | C5a, C5aR, MAC |
+| **5. 응고/DIC** | TF↑→트롬빈↑→피브린↑+PAI-1↑→소비성 응고장애 | Thrombin, Fibrin, PAI1 |
+| **6. 내피세포 장애** | VE-cadherin 분리·혈관 투과성↑·NO↑→혈관확장쇼크 | ENDOT, VascPerm |
+| **7. 다장기부전** | 폐(ARDS)·신장(AKI)·간·뇌·순환부전·응고 | SOFA 0–24 |
+| **8. 후기 면역억제** | T세포 아포토시스·PD-1↑·MDSC↑→CARS | Immunosuppression |
+
+---
+
+### 치료 시나리오
+
+| 시나리오 | 약물·용량 | 기전 | 임상시험 | 주요 결과 |
+|---------|---------|------|---------|---------|
+| **S1** | 무치료 (자연경과) | — | 관찰 코호트 | SOFA ↑, MAP↓, 사망 ~80% |
+| **S2** | 메로페넴 1g q8h IV | fT>MIC → 균 사멸 | Craig 1998 CID | 균혈증 48h 내 소실 |
+| **S3** | 메로페넴 + 노르에피네프린 0.1 mcg/kg/min | α1-adrenoceptor→MAP 회복 | SOAP II NEJM 2010 | MAP>65 달성 |
+| **S4** | 번들: 항생제+NE+수액 30 mL/kg | 전부하·후부하 동시 교정 | EGDT NEJM 2001 | 6h Bundle 사망률 16%↓ |
+| **S5** | 번들 + 하이드로코티손 200 mg/day | GR→사이토카인 억제·혈관수축제 민감도↑ | ADRENAL/APROCCHSS NEJM 2018 | 쇼크 역전 시간 단축 |
+| **S6** | 번들+HC + 토실리주맙 8 mg/kg IV | IL-6R 차단→STAT3 억제 | REMAP-CAP NEJM 2021 | 28일 사망 OR 0.56 |
+| **S7** | 면역저하 환자 (항생제+NE, 고균량) | 비정상 면역반응, 높은 이환 | 임상 코호트 | SOFA 악화 가속 |
+
+---
+
+### QSP 모델 파일
+
+| 구성요소 | 파일 | 사양 |
+|---------|------|-----|
+| 🗺️ 기계론적 지도 | [`sep_qsp_model.dot`](sepsis/sep_qsp_model.dot) | **130+ 노드, 11 클러스터** |
+| ⚙️ mrgsolve ODE | [`sep_mrgsolve_model.R`](sepsis/sep_mrgsolve_model.R) | **24구획 ODE**, **7치료 시나리오** |
+| 📊 Shiny 앱 | [`sep_shiny_app.R`](sepsis/sep_shiny_app.R) | **8탭** (환자프로파일·항생제PK·사이토카인/면역·혈역학/SOFA·장기기능·시나리오비교·바이오마커·About) |
+| 📚 참고문헌 | [`sep_references.md`](sepsis/sep_references.md) | **55개 PubMed 인용** (14개 섹션) |
