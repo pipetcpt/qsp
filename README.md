@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-151-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-152-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **151개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **152개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -274,6 +274,7 @@ qsp/
 | 144 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 | 150 | 만성질환·간담도 | [**비알코올 지방간질환/MASLD**<br><sub>NAFLD/MASLD · Metabolic-Associated Steatotic Liver Disease</sub>](nafld-masld/) | <a href="nafld-masld/nafld_qsp_model.svg"><img src="nafld-masld/nafld_qsp_model.png" width="190" alt="NAFLD/MASLD"></a> | **인슐린 저항성 → 간 지질 과잉축적(지방증) → 산화·ER 스트레스 → 쿠퍼세포 활성화·NLRP3 인플라마좀 → 간세포 사멸(아포토시스·풍선변성) → 간성상세포(HSC) 활성화 → TGF-β1/SMAD2/3·LOXL2·MMP/TIMP → 간섬유화 → 간경변 → HCC**. 인슐린저항성·아디포카인(아디포넥틴↓·렙틴↑) + DNL(SREBP-1c/ChREBP/ACC/FAS) + β-산화(PPARα·CPT-1) + VLDL 분비 이상; CYP2E1/ACOX 과산화 → ROS·4-HNE·MDA → Nrf2/Keap1 산화스트레스 완충; ER 스트레스(PERK/IRE1α/ATF6 UPR 삼중 경로) → JNK·CHOP → 미토콘드리아 투과성 전환 → Cytc 방출. 장-간 축: LPS/TLR4·FXR/FGF-19·SCFA·TMAO·담즙산 순환. 레스메티롬(★2024 FDA 승인·THRβ 선택적 작용제·MAESTRO-NASH NAS↓≥2 25.9%·F↓≥1 24.2%)·오베티콜산(OCA·FXR 작용·REGENERATE F↓ 23%)·세마글루티드(GLP-1RA·NATIVE MASH 소실 59%)·엘라피브라노르(PPARα/δ)·라니피브라노르(pan-PPAR)·세니크리비록(CCR2/5 길항)·셀론세르팁(ASK1 억제) 완전 PK/PD 모델링. **100+ 노드 10클러스터**(지방조직·췌장·간지질·산화스트레스/ER·쿠퍼염증·간세포사멸·HSC섬유화·장-간 축·약물PK/PD·임상 엔드포인트), **22구획 ODE**(약물PK 5+간지질 3+산화/ER 스트레스 3+염증 6+세포사 1+섬유화 3+바이오마커 1), **5치료 시나리오**(무치료·OCA·세마글루티드·OCA+Sema 병용·레스메티롬). NAS 점수(0–8: 지방증+염증+풍선변성)·섬유화 병기(F0–F4)·ALT/AST·FIB-4·ELF 점수 임상 엔드포인트. Harrison 2024 NEJM(MAESTRO)·Sanyal 2019 Lancet(REGENERATE)·Newsome 2021 Lancet(NATIVE)·Armstrong 2016 Lancet(LEAN)·Friedman 2018 Hepatol(CENTAUR) 보정. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD바이오마커·임상엔드포인트·시나리오비교·바이오마커패널). **59개 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](nafld-masld/nafld_qsp_model.svg) · [⚙️ mrgsolve](nafld-masld/nafld_mrgsolve_model.R) · [📊 Shiny](nafld-masld/nafld_shiny_app.R) · [📚 문헌](nafld-masld/nafld_references.md) · [📄 README](nafld-masld/README.md) |
 | 151 | 희귀유전·폐·간 | [**알파-1 항트립신 결핍증**<br><sub>Alpha-1 Antitrypsin Deficiency · AATD</sub>](alpha1-antitrypsin-deficiency/) | <a href="alpha1-antitrypsin-deficiency/aatd_qsp_model.svg"><img src="alpha1-antitrypsin-deficiency/aatd_qsp_model.png" width="190" alt="AATD"></a> | **SERPINA1 Glu342Lys(Z 대립유전자) → Z-AAT 소포체 내 루프-시트 중합체 축적(gain-of-function 간독성) + 혈청 AAT 부족(<11 µM ELF 임계) → 중성구 엘라스타제(NE) 무제한 활성 → 범소엽성 폐기종**. 소포체 내 Z-AAT 중합체(ERAD/UPR/자가포식 과부하) → NF-κB/TGF-β1 → 간성상세포(HSC) 활성화 → 간섬유화 → 간경변 → HCC. 폐: PMN 동원·IL-8·NE·MMP-12 → 엘라스틴 분해 → FEV1 저하 → 폐기종 지수. Prolastin-C(60mg/kg/wk IV 증강·t½=4.5일·RAPID 임상)·Fazirsiran(GalNAc-siRNA 200mg SQ q12wk·간 Z-AAT 중합체 ~88% 감소·SEQUOIA 2022 NEJM)·Alvelestat(60mg BID PO·경구 NE 억제제·McElvaney 2020 AJRCCM)·rAAV 유전자치료 5종 PK/PD 완전 모델링. **130+ 노드 10클러스터**(유전자형·ER 단백질 품질관리·간 병증·AAT 생물학·프로테아제-항프로테아제 균형·폐 병증·염증 캐스케이드·약물 개입·PD 효과·임상 엔드포인트). **20구획 ODE**(간 5+혈청AAT 2구획+폐 6+약물PK/PD 7). **6치료 시나리오**(무치료·Prolastin-C·Fazirsiran·Alvelestat·rAAV 유전자치료·증강+NE억제 병용). RAPID(Chapman 2015 Lancet·CT폐밀도 감소 연간 1.54 g/L 완화)·SEQUOIA(Strnad 2022 NEJM) 보정. AAT혈청·ELF-AAT·FEV1%·SGRQ·악화율·Z-중합체·간섬유화·NE 바이오마커. **6탭 Shiny 대시보드**(환자프로파일·약물PK/AAT·폐 PD·임상엔드포인트·시나리오비교·바이오마커). **54개 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](alpha1-antitrypsin-deficiency/aatd_qsp_model.svg) · [⚙️ mrgsolve](alpha1-antitrypsin-deficiency/aatd_mrgsolve_model.R) · [📊 Shiny](alpha1-antitrypsin-deficiency/aatd_shiny_app.R) · [📚 문헌](alpha1-antitrypsin-deficiency/aatd_references.md) · [📄 README](alpha1-antitrypsin-deficiency/README.md) |
+| 152 | 부인종양학 | [**난소암 (HGSOC)**<br><sub>Ovarian Cancer · High-Grade Serous · OC</sub>](ovarian-cancer/) | <a href="ovarian-cancer/oc_qsp_model.svg"><img src="ovarian-cancer/oc_qsp_model.png" width="190" alt="OC"></a> | **TP53 변이(>96%) + HRD(BRCA1/2·HRR 유전자) → 상동재조합 결핍 → PARP 합성 치사 · 백금 내성 · 복막 전이 → HGSOC**. DDR/HRR 경로(BRCA1/2·RAD51·PARP1/2·ATM/ATR·CHK1/2) + PI3K/AKT/mTOR + VEGF/혈관신생(HIF-1α·VEGFR1/2·DLL4/Notch) + 종양 미세환경(CAF·TAM M1/M2·MDSC·NK·CD8+ T·Treg·IL-6·TGF-β·IL-10·STAT3) + 면역회피(PD-L1/PD-1·CTLA-4·IDO1·LAG-3·TIM-3·TIGIT) + 복막 전이(EMT·CA-125/MUC16·HE4·LPA) 10클러스터. 카보플라틴(Calvert AUC6 공식·Chatelut CL·Pt-DNA 부가물·G2/M 정지)·파클리탁셀(3구획 PK·비선형·튜불린 안정화)·오라파립(300mg BID·PARP 트래핑·합성 치사)·니라파립(300mg QD·t½=36h)·베바시주맙(anti-VEGF·15mg/kg q3w) 5종 완전 PK/PD 모델링. **180+ 노드 10클러스터**, **18구획 ODE**(CAR·PAC·OLA·NIRA·BEV PK+VEGF+TV(Gompertz)+CA125+Pt_DNA+CD8T+HRD), **6치료 시나리오**(무치료·Carbo+Pacli×6·+Bev유지·→오라파립 BRCA+·→니라파립 HRD+·+Bev→Ola+Bev PAOLA-1). Moore 2018 NEJM(SOLO-1 mPFS NR, HR 0.30)·Gonzalez-Martin 2019 NEJM(PRIMA mPFS 13.8mo, HR 0.43)·Ray-Coquard 2019 NEJM(PAOLA-1 mPFS 22.1mo, HR 0.33)·ICON7/GOG218(베바시주맙) 보정. CA-125·HE4·ROMA·PFS·RECIST 1.1·ctDNA·HRD 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD바이오마커·종양반응·시나리오비교·바이오마커패널). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](ovarian-cancer/oc_qsp_model.svg) · [⚙️ mrgsolve](ovarian-cancer/oc_mrgsolve_model.R) · [📊 Shiny](ovarian-cancer/oc_shiny_app.R) · [📚 문헌](ovarian-cancer/oc_references.md) · [📄 README](ovarian-cancer/README.md) |
 | 149 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
 
 ---
@@ -1139,3 +1140,81 @@ dEF/dt = krec·(EF_target − EF)
 | 4. 임상 엔드포인트 | CT 폐밀도, FEV1 저하율, 간섬유화 지수, Z-중합체 부담 |
 | 5. 시나리오 비교 | 6가지 치료 시나리오 FEV1/간섬유화 비교 |
 | 6. 바이오마커 | 혈청 AAT, Z-중합체, NE, MMP-12, IL-8, 간 ALT/AST |
+
+---
+
+## 🔬 난소암 (Ovarian Cancer / HGSOC) — 최신 모델 상세 (2026-06-24)
+
+> **디렉토리:** [`ovarian-cancer/`](ovarian-cancer/) | **약어:** OC (HGSOC) | **날짜:** 2026-06-24
+
+[![OC QSP 기계론적 지도](ovarian-cancer/oc_qsp_model.png)](ovarian-cancer/oc_qsp_model.svg)
+
+**질환**: 고등급 장액성 난소암(HGSOC, High-Grade Serous Ovarian Carcinoma) | **분류**: 부인종양학(Gynecologic Oncology) | **연간 발생**: 전 세계 약 32만 명 | **5년 생존율**: ~47%(FIGO III/IV)
+
+### 핵심 기전 (10개 클러스터)
+
+| 클러스터 | 핵심 구성요소 |
+|---------|------------|
+| **DDR/HRR** | BRCA1/2, RAD51, PARP1/2, ATM/ATR, CHK1/2, HRD score, NER, NHEJ |
+| **PI3K/AKT/mTOR** | PIK3CA, PTEN, AKT, mTORC1/2, S6K1, ERK, RAS/RAF/MEK, CDK4/6, RB1, E2F |
+| **VEGF/혈관신생** | HIF-1α, VEGF-A/B/C, VEGFR1/2, 내피세포, DLL4/Notch, Bevacizumab |
+| **종양 미세환경** | CAF, TAM(M1/M2), MDSC, NK, CD8+ T, Treg, IL-6, TGF-β, IL-10, MMP-2/9, STAT3 |
+| **면역회피** | PD-L1/PD-1, CTLA-4, IDO1, LAG-3, TIM-3, TIGIT, FoxP3, TLS |
+| **복막 전이** | 원발 종양, 탈락, 구상체, 복막세포, 대망, CA-125/MUC16, HE4, EMT, LPA |
+| **백금계 PK/PD** | 카보플라틴(Calvert AUC), 파클리탁셀(3구획), Pt-DNA 부가물, G2/M 정지, MDR1, GST-π |
+| **PARPi PK/PD** | 오라파립(300mg BID), 니라파립(300mg QD), PARP 트래핑, 합성 치사, BRCA 역변이 내성 |
+| **종양 세포 생물학** | Gompertz 성장, CSC(ALDH1+), BCL-2/BAX, 카스파제, Wnt/Notch, c-Myc |
+| **임상 엔드포인트** | CA-125, HE4, ROMA, PFS, OS, RECIST 1.1, PFI, ctDNA, HRD 검사 |
+
+### 18구획 ODE 모델
+
+| 구획 | 설명 |
+|-----|------|
+| CAR_C1/C2 | 카보플라틴 2구획 PK (Calvert AUC6, Chatelut CL) |
+| PAC_C1/C2/C3 | 파클리탁셀 3구획 비선형 PK |
+| OLA_gut/C1/C2 | 오라파립 3구획 PK (300mg BID, t½≈11.9h) |
+| NIRA_C1/C2 | 니라파립 2구획 PK (300mg QD, t½≈36h) |
+| BEV_C1/C2 | 베바시주맙 2구획 PK (t½≈20일) |
+| VEGF | 유리 VEGF-A 농도 (ng/mL) |
+| TV | 종양 부피 (cm³, Gompertz 모델, 배가시간 ~60일) |
+| CA125 | CA-125 혈청 (U/mL, t½≈23일) |
+| Pt_DNA | 백금-DNA 부가물 (상대값) |
+| CD8T | CD8+ T세포 (상대값) |
+| HRD | PARP 억제제 HRD 손상 축적 (0–1) |
+
+### 6가지 치료 시나리오 (2년 시뮬레이션)
+
+| # | 시나리오 | 임상시험 | 적응증 |
+|---|---------|---------|--------|
+| S1 | 무치료 (자연 경과) | — | — |
+| S2 | 카보플라틴+파클리탁셀 ×6사이클 | ICON3 (Parmar 2003 Lancet) | 표준 1차 |
+| S3 | Carbo+Pacli+베바시주맙 → Bev 유지 | ICON7/GOG218 | 고위험 1차 |
+| S4 | Carbo+Pacli → 오라파립 유지 2년 | **SOLO-1** (Moore 2018 NEJM; mPFS NR, HR 0.30) | BRCA 변이 |
+| S5 | Carbo+Pacli → 니라파립 유지 | **PRIMA** (Gonzalez-Martin 2019 NEJM; HRD+ mPFS 13.8mo, HR 0.43) | HRD 양성 |
+| S6 | Carbo+Pacli+Bev → 오라파립+Bev 유지 | **PAOLA-1** (Ray-Coquard 2019 NEJM; HRD+ mPFS 22.1mo, HR 0.33) | HRD+, Bev 적합 |
+
+### 주요 파라미터 보정
+
+| 파라미터 | 값 | 출처 |
+|---------|-----|------|
+| 카보플라틴 CL | GFR×0.134+0.00571×BW (L/h) | Chatelut 1995 JNCI |
+| 파클리탁셀 CL | 13.2 L/h (비선형 PK) | Gianni 1995 JCO |
+| 오라파립 t½ | 11.9h (300mg BID) | Doherty 2014 Clin Pharmacokinet |
+| 니라파립 t½ | 36h (QD 투여) | Sandhu 2013 JCO |
+| 베바시주맙 t½ | ~20일 (IgG1) | Lu 2008 Cancer Chemother Pharmacol |
+| CA-125 t½ | ~23일 (혈청 반감기) | Rustin 1996 JCO |
+| 종양 배가시간 | ~60일 (무치료, Gompertz) | Oza 2015 Lancet Oncol |
+| SOLO-1 mPFS | NR vs 13.8mo (HR 0.30, BRCA+) | Moore 2018 NEJM |
+| PRIMA mPFS (HRD+) | 13.8mo vs 8.2mo (HR 0.43) | Gonzalez-Martin 2019 NEJM |
+| PAOLA-1 mPFS (HRD+) | 22.1mo vs 16.6mo (HR 0.33) | Ray-Coquard 2019 NEJM |
+
+### Shiny 앱 탭 구성
+
+| 탭 | 내용 |
+|----|------|
+| ① 환자 프로파일 | BRCA 상태, HRD 점수, 초기 CA-125, GFR, FIGO 병기, 치료 적합성 매트릭스 |
+| ② 약물 PK | 카보플라틴·파클리탁셀·오라파립·니라파립·베바시주맙 시간-농도 곡선 |
+| ③ PD 바이오마커 | CA-125 동역학, 백금-DNA 부가물, HRD 손상 축적, CD8+ T세포 침윤 |
+| ④ 종양 반응 | 종양 부피 Gompertz 곡선, RECIST 분류, 최선 반응%, 추정 PFS |
+| ⑤ 시나리오 비교 | 6가지 치료 시나리오 종양·CA-125 비교, 요약 테이블 |
+| ⑥ 바이오마커 패널 | 종합 바이오마커 6개 패널, BRCA/HRD 치료 결정 트리, 임상시험 참조 수치 |
