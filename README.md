@@ -291,6 +291,7 @@ qsp/
 | 167 | 종양학·피부암 | [**악성 흑색종**<br><sub>Melanoma · MEL</sub>](melanoma/) | <a href="melanoma/melanoma_qsp_model.svg"><img src="melanoma/melanoma_qsp_model.png" width="190" alt="MEL"></a> | **BRAF V600E/K 돌연변이(~50%) → 구성적 MEK1/2 활성 → ERK1/2 핵 전위 → MITF·MYC·사이클린D1 전사 → 세포증식·생존·혈관신생. NRAS Q61(~20%)·NF1 결손(~15%)·WT 드라이버**. BRAFi 2종(베무라페닙 960mg BID·다브라페닙 150mg BID): CYP3A4/UGT1A 대사·IC50 0.28 µg/mL·ERK Emax 모델·BRIM-3 ORR 48% 보정. MEKi(트라메티닙 2mg QD): CYP3A4 대사·Hill 1.5·allosteric 억제·CRAF 역설 활성화 차단·COMBI-d mPFS 9.3mo. 면역관문억제제: 펨브롤리주맙(200mg IV q3w·t½ 27d·FcRn·PD-1 IC50 12 µg/mL·KEYNOTE-006 ORR 33%)·니볼루맙+이필리무맙(CheckMate 067 mPFS 11.5mo·5yr OS 52%)·이필리무맙(CTLA-4·Treg 고갈·ipilimumab 3mg/kg). **159+ 노드 12 서브그래프 클러스터**(BRAFi PK·MEKi PK·면역관문억제제 PK·MAPK 신호 경로·전사인자&세포주기·PI3K/AKT/mTOR·내인성 세포자멸·항원 제시&T세포 프라이밍·T세포 생물학·종양 미세환경·획득 내성 기전·임상 엔드포인트), **16구획 ODE**(BRAFi/MEKi 각 2구획 경구 PK; ICI 2구획 IV PK; ERK 활성도·획득내성·종양부담·CD8+TIL·PD-1 수용체 점유율·CTLA-4 수용체 점유율·Treg 분율·TME IFN-γ·혈청 LDH·S100B 단백 PD 10구획), **6치료 시나리오**(①무치료 BRAF V600E ②베무라페닙 960mg BID BRIM-3 ③다브라페닙+트라메티닙 COMBI-d ④펨브롤리주맙 200mg q3w KEYNOTE-006 ⑤니볼루맙+이필리무맙 CheckMate 067 ⑥순차요법 BRAFi/MEKi→펨브롤리주맙 wk24). 획득 내성 모델: kR_on×약물 압력×(1-R)→BRAF 증폭·이차 NRAS 돌연변이·MEK1/2 GoF·COT1/MAP3K8·EGFR 상향; ERK 재활성화→종양 재성장. TMB·PD-L1 발현·LDH 기준치 예후 파라미터화. **6탭 Shiny 대시보드**(환자 프로파일&BRAF 상태·약물 PK·종양 반응&내성·면역 동태·시나리오 비교·바이오마커(LDH·S100B·TMB·PD-L1 민감도 분석)). **63개 PubMed 인용** (14개 섹션: 역학·BRAF 돌연변이 생물학·BRAFi 임상시험·BRAFi+MEKi 병용·PD-1 억제제·CTLA-4 억제제&병용 면역요법·획득 내성·면역요법 내성&TME·TME 면역생물학·예측 바이오마커·QSP&수학 모델링·MITF 생물학·순차 전략·임상 가이드라인).<br>[🗺️ 지도](melanoma/melanoma_qsp_model.svg) · [⚙️ mrgsolve](melanoma/melanoma_mrgsolve_model.R) · [📊 Shiny](melanoma/melanoma_shiny_app.R) · [📚 문헌](melanoma/melanoma_references.md) · [📄 README](melanoma/README.md) |
 | 165 | 자가면역·신장 | [**루푸스 신염**<br><sub>Lupus Nephritis · LN</sub>](lupus-nephritis/) | <a href="lupus-nephritis/ln_qsp_model.svg"><img src="lupus-nephritis/ln_qsp_model.png" width="190" alt="LN"></a> | **type I IFN(pDC→cGAS-STING→TLR7/9) → BAFF↑ → B세포 과활성화 → 장수 형질세포 → anti-dsDNA IgG → 면역복합체(IC) → 사구체 메산지움·내피세포 침착 → 보체(C1q→C4→C3→C5a+C5b-9) → 족세포(podocyte) 손상 → nephrin↓ → 단백뇨(UPCR↑) → TGF-β→간질 섬유화→eGFR 감소**. Voclosporin(칼시뉴린 억제·족세포 안정화·AURORA 1 CRR 41% vs 23%)·Belimumab(항BLyS·BLISS-LN CRR 43% vs 32%)·Anifrolumab(항IFNAR1·ISG score↓>75%·TULIP-LN)·MMF/MPA(IMPDH 억제·장간순환)·HCQ(TLR7/9↓·IFN-α↓)·CYC(유로-루푸스 저용량 유도) 6종 완전 PK/PD. **100+ 노드 15 서브그래프 클러스터**(선천면역/NETosis·T세포·B세포/자가항체·보체계·사구체 병리·요세관간질·신장 혈역학·HCQ PK/PD·MMF/MPA PK/PD·Voclosporin PK/PD·Belimumab PK/PD·Anifrolumab PK/PD·CYC PK/PD·GC PK/PD·사이토카인 네트워크), **20구획 ODE**(MMF/MPA 3구획+HCQ 2구획+VCS+BEL 2구획+ANI 2구획 PK; B_naive/GC/Plasma_cell/Tfh/Treg 면역 5구획; Anti_dsDNA/C3/C4 3구획; Podocyte_inj/Proteinuria/eGFR 3구획), **5치료 시나리오**(①MMF+HCQ SoC ②MMF+HCQ+Voclosporin AURORA ③MMF+HCQ+Belimumab BLISS-LN ④MMF+HCQ+Anifrolumab 고IFN ⑤CYC 유도→MMF 유지 Euro-Lupus). AURORA 1 Lancet 2021·BLISS-LN NEJM 2020·ACCESS JASN 2009·Euro-Lupus Houssiau 2002 임상 보정. CRR(UPCR<0.5+eGFR≥60)·PRR(UPCR<1.0+eGFR≥60)·anti-dsDNA 정상화·C3 회복·SLEDAI 신장 점수·족세포 손상 지수 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&LN 병기·약물 PK·면역 바이오마커·신기능·임상 엔드포인트·시나리오 비교). **45개 PubMed 인용** (8개 섹션: 역학·분류·병태생리·면역기전·사구체/족세포·임상시험·약물PK/PD·QSP모델링).<br>[🗺️ 지도](lupus-nephritis/ln_qsp_model.svg) · [⚙️ mrgsolve](lupus-nephritis/ln_mrgsolve_model.R) · [📊 Shiny](lupus-nephritis/ln_shiny_app.R) · [📚 문헌](lupus-nephritis/ln_references.md) · [📄 README](lupus-nephritis/README.md) |
 | 159 | 신경정신과 | [**양극성 장애 (Bipolar Disorder)**<br><sub>Bipolar Disorder · BD-I / BD-II</sub>](bipolar-disorder/) | <a href="bipolar-disorder/bd_qsp_model.svg"><img src="bipolar-disorder/bd_qsp_model.png" width="190" alt="BD"></a> | **도파민 과활성(조증) ↔ 세로토닌·NE 결핍(우울) 반복 삽화. GSK-3β 과활성 → mTOR/BDNF↓ → 해마 신경발생↓; IL-6/TNF-α 신경염증; CLOCK/BMAL1 일주기 리듬 교란; CACNA1C(L형 Ca²⁺ 채널) 위험 대립유전자→신경 과흥분성**. 리튬(2구획 PK·CL 1.8L/h·GSK-3β IC₅₀=0.7mEq/L·BDNF↑·BALANCE/CANMAT 2018 근거)·발프로에이트(비선형 단백결합·fu₀ 10%·GABA-T억제·HDAC억제·VPA GSK-3β 억제)·쿠에티아핀+노르쿠에티아핀(CYP3A4·F=9%·D2R 차단·NET 억제·EMBOLDEN I/II 우울증 근거)·라모트리진(Na⁺채널·Ca²⁺채널 차단·Glu 방출↓·STRIDE-BD 적정 프로토콜)·아리피프라졸(D2R 부분 효현제) 5종 완전 PK/PD 모델링. **120+ 노드 12클러스터**(신경전달물질/수용체·신호전달/GSK-3β·이온채널·HPA축/일주기·신경가소성/BDNF·신경염증·약물MOA·약물PK·임상엔드포인트·유전/후성유전·뇌회로·장-뇌축), **22구획 ODE**(리튬 2구획+발프로에이트+쿠에티아핀+노르쿠에티아핀+라모트리진 PK 10구획; DA·5HT·GSK3·BDNF·IL6·코르티솔 PD 6구획; YMRS·MADRS·GAF·체중·일주기 진동자 6구획), **6치료 시나리오**(리튬 단독 21d 조증·발프로에이트 단독 21d 조증·쿠에티아핀 56d BD우울증·리튬+쿠에티아핀 병용 56d·리튬 유지요법 1년·라모트리진 적정 112d BD-II 우울증). Bowden 1994 JAMA(발프로에이트 조증 RCT)·Calabrese 2005 AJP(쿠에티아핀 우울증 BOLDER)·Young 2010 JCP(EMBOLDEN I)·Geddes 2010 Lancet(BALANCE Li+VPA)·Cipriani 2013 Lancet 메타분석·Yatham 2018 Bipolar Disord(CANMAT 2018 가이드라인) 보정. YMRS·MADRS·HAM-D·CGI-BP·GAF·리튬 혈중농도·VPA·QTc·체중·BDNF 인덱스·GSK-3β 활성·IL-6·코르티솔 임상 바이오마커. **6탭 Shiny 대시보드**(환자프로파일&PGx·약동학·PD바이오마커·임상엔드포인트·시나리오비교·안전모니터). **46개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](bipolar-disorder/bd_qsp_model.svg) · [⚙️ mrgsolve](bipolar-disorder/bd_mrgsolve_model.R) · [📊 Shiny](bipolar-disorder/bd_shiny_app.R) · [📚 문헌](bipolar-disorder/bd_references.md) · [📄 README](bipolar-disorder/README.md) |
+| 168 | 자가면역·소아 류마티스 | [**소아특발성 관절염**<br><sub>Juvenile Idiopathic Arthritis · JIA</sub>](juvenile-idiopathic-arthritis/) | <a href="juvenile-idiopathic-arthritis/jia_qsp_model.svg"><img src="juvenile-idiopathic-arthritis/jia_qsp_model.png" width="190" alt="JIA"></a> | **T세포/B세포·사이토카인(TNF-α/IL-6/IL-1β/IL-18) 매개 활막 염증과 연골·골 파괴. 소수관절형/다관절형 RF±/전신형(sJIA)/ERA/건선성 7아형 모델링. sJIA: NLRP3→IL-1β/IL-18 자가염증 루프·MAS(대식세포 활성화 증후군) 경로 포함. 활막 섬유아세포(FLS) 활성화·NF-κB·MMP-1/13·ADAMTS-4 연골 파괴; RANKL/OPG 파골세포 활성·골미란; 성장판 손상(소아 특이). 에타네르셉트(SC 격주·TMDD 2구획·Lovell 1998 NEJM ACR30 74%)·토실리주맙(IL-6Ri·MM-CL·De Benedetti 2012 NEJM sJIA ACR30 85.7%)·카나키누맙(IL-1βi·Ruperto 2012 NEJM)·MTX(폴리글루타민화·GI/중심/말초/세포내 4구획)·바리시티닙(JAK1/2i) 5약물 완전 PK/PD. 160+ 노드 13클러스터·21구획 ODE·7치료 시나리오(무치료·MTX·MTX+에타네르셉트·토실리주맙(sJIA)·카나키누맙(sJIA)·단계적 치료·바리시티닙). JADAS-27·ACR소아30/50/70·CHAQ·CRP·ESR 임상 엔드포인트. 8탭 Shiny 대시보드(환자프로파일·PK·사이토카인PD·임상엔드포인트·시나리오비교·바이오마커패널·관절손상·MAS위험). 50개 PubMed 인용(14개 섹션)**.<br>[🗺️ 지도](juvenile-idiopathic-arthritis/jia_qsp_model.svg) · [⚙️ mrgsolve](juvenile-idiopathic-arthritis/jia_mrgsolve_model.R) · [📊 Shiny](juvenile-idiopathic-arthritis/jia_shiny_app.R) · [📚 문헌](juvenile-idiopathic-arthritis/jia_references.md) · [📄 README](juvenile-idiopathic-arthritis/README.md) |
 
 ---
 
@@ -2846,3 +2847,89 @@ NLRP3 인플라마좀 → IL-1β/TNF-α → MMP↑ → 섬유성 캡 약화
 | S6 | **다브라페닙+트라메티닙 (wk 0-24) → 펨브롤리주맙 (wk 24+)** | KEYNOTE-022 순차 전략 |
 
 ### References: 63 PubMed citations (14개 섹션: 역학·BRAF 돌연변이 생물학·BRAFi 임상시험·BRAFi+MEKi 병용·PD-1 억제제·CTLA-4 억제제&면역병용·획득 내성·면역요법 내성&TME·TME 면역생물학·예측 바이오마커·QSP&수학 모델링·MITF 생물학·순차 전략·임상 가이드라인)
+
+---
+
+## 🦴 소아특발성 관절염 (Juvenile Idiopathic Arthritis) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`juvenile-idiopathic-arthritis/`](juvenile-idiopathic-arthritis/) | **약어:** JIA | **날짜:** 2026-06-25
+
+[![JIA QSP 기계론적 지도](juvenile-idiopathic-arthritis/jia_qsp_model.png)](juvenile-idiopathic-arthritis/jia_qsp_model.svg)
+
+### 질환 개요
+
+소아특발성 관절염(JIA)은 **16세 미만**에서 발생하는 가장 흔한 소아 류마티스 질환으로, 6주 이상 지속되는 원인 불명의 관절 염증을 특징으로 합니다. ILAR 기준에 따라 7가지 아형으로 분류됩니다.
+
+| 아형 | 빈도 | 핵심 치료 |
+|------|------|-----------|
+| 소수관절형 (Oligoarticular) | ~50% | NSAIDs, 관절내 스테로이드 |
+| 다관절형 RF음성 (Poly RF-) | ~20% | MTX, 항TNF |
+| 다관절형 RF양성 (Poly RF+) | ~5% | MTX + 항TNF/토실리주맙 |
+| 전신형 (sJIA) | ~10% | IL-1i/IL-6i |
+| 부착부염 관련 (ERA) | ~7% | NSAIDs, TNFi |
+| 건선성 (Psoriatic JIA) | ~5% | MTX, 항IL-17 |
+| 미분류 | <5% | 아형별 접근 |
+
+### 병태생리 핵심 경로
+
+```
+유전적 소인 (HLA-DR4/B27, PTPN22) + 환경 트리거
+           ↓
+   선천면역 활성화 (TLR→NLRP3→Caspase-1)
+           ↓
+   IL-1β/IL-18 (sJIA) ↔ TNF-α/IL-6 (polyarticular)
+           ↓
+   활막 섬유아세포(FLS) 활성화 → MMP/ADAMTS 과다발현
+           ↓
+   연골 파괴(ADAMTS→aggrecan↓, MMP13→Coll-II↓)
+           ↓
+   골미란(RANKL↑/OPG↓ → 파골세포 과활성)
+           ↓
+   관절 공간 협소화(JSN) + 성장 장애(소아 특이)
+```
+
+#### sJIA / MAS 특이 경로
+```
+NLRP3 과활성화 → IL-1β + IL-18 ↑↑ (MAS trigger)
+NK세포 기능 저하 (Perforin 결핍 소인)
+              ↓
+대식세포 과도 활성화 → 혈구포식 + 사이토카인 폭풍
+              ↓
+초고열리틴혈증(>500 ng/mL) + 범혈구감소증
+```
+
+### QSP 모델 구성
+
+- **기계론적 지도**: 160+ 노드 · 13 서브그래프 클러스터 (유전적 위험/환경 트리거·선천면역·T세포분화·사이토카인 네트워크·B세포/자가항체·활막 병변·뼈/연골 파괴·sJIA/MAS·생물학적 PK·소분자 PK·약물 PD·임상 엔드포인트·합병증)
+- **mrgsolve ODE**: 21구획 — MTX(4구획)·에타네르셉트(3구획)·토실리주맙(3구획)·카나키누맙(2구획)·프레드니솔론·바리시티닙·사이토카인 4종·CRP·ESR·연골·BMD
+- **치료 시나리오 7가지**: 무치료·MTX 단독·MTX+에타네르셉트·토실리주맙·카나키누맙·단계적 치료·바리시티닙
+- **Shiny 대시보드**: 8탭 — 환자 프로파일·약물 PK·사이토카인 PD·임상 엔드포인트·시나리오 비교·바이오마커 패널·관절 손상·MAS 위험 (sJIA)
+
+### 24주 치료 반응 예측
+
+| 치료 | JADAS-27 | ACR소아30 | CRP |
+|------|----------|-----------|-----|
+| 무치료 | 21.4 | 0% | 38 mg/L |
+| MTX 단독 | 14.2 | 30% | 25 mg/L |
+| MTX + 에타네르셉트 | 5.8 | 75% | 8 mg/L |
+| 토실리주맙 | 7.1 | 68% | 6 mg/L |
+| 카나키누맙 | 6.4 | 72% | 10 mg/L |
+| 바리시티닙 | 9.5 | 55% | 15 mg/L |
+
+### 주요 임상시험 보정
+
+- **Lovell 1998 NEJM**: 에타네르셉트 소아 RCT — ACR30 74%
+- **De Benedetti 2012 NEJM**: 토실리주맙 sJIA — JIA ACR30 85.7%
+- **Ruperto 2012 NEJM**: 카나키누맙 sJIA — 비활성병 33%
+- **Consolaro 2009**: JADAS-27 검증 · 관해 기준 ≤1.0
+
+### 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`jia_qsp_model.dot`](juvenile-idiopathic-arthritis/jia_qsp_model.dot) | Graphviz 기계론적 지도 소스 (~15 KB) |
+| [`jia_qsp_model.svg`](juvenile-idiopathic-arthritis/jia_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`jia_qsp_model.png`](juvenile-idiopathic-arthritis/jia_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`jia_mrgsolve_model.R`](juvenile-idiopathic-arthritis/jia_mrgsolve_model.R) | mrgsolve ODE QSP 모델 |
+| [`jia_shiny_app.R`](juvenile-idiopathic-arthritis/jia_shiny_app.R) | Shiny 인터랙티브 대시보드 |
+| [`jia_references.md`](juvenile-idiopathic-arthritis/jia_references.md) | 참고문헌 50편 |
