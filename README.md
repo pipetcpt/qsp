@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-171-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-172-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **164개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **172개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -1490,6 +1490,7 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 | 2026-06-25 | Hematologic / Genetic | Beta-Thalassemia | 베타 지중해빈혈 | [![BTH](beta-thalassemia/bth_qsp_model.png)](beta-thalassemia/bth_qsp_model.svg) | [.dot](beta-thalassemia/bth_qsp_model.dot) | [.svg](beta-thalassemia/bth_qsp_model.svg) | [.R](beta-thalassemia/bth_mrgsolve_model.R) | [app](beta-thalassemia/bth_shiny_app.R) | [refs](beta-thalassemia/bth_references.md) |
 | 2026-06-25 | Endocrine / Genetic | Congenital Adrenal Hyperplasia | 선천성 부신증식증 | [![CAH](congenital-adrenal-hyperplasia/cah_qsp_model.png)](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.dot](congenital-adrenal-hyperplasia/cah_qsp_model.dot) | [.svg](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.R](congenital-adrenal-hyperplasia/cah_mrgsolve_model.R) | [app](congenital-adrenal-hyperplasia/cah_shiny_app.R) | [refs](congenital-adrenal-hyperplasia/cah_references.md) |
 | 2026-06-25 | Autoimmune / Hematology | Thrombotic Thrombocytopenic Purpura | 혈전성 혈소판감소성 자반증 | [![TTP](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.png)](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg) | [.dot](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.dot) | [.svg](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg) | [.R](thrombotic-thrombocytopenic-purpura/ttp_mrgsolve_model.R) | [app](thrombotic-thrombocytopenic-purpura/ttp_shiny_app.R) | [refs](thrombotic-thrombocytopenic-purpura/ttp_references.md) |
+| 2026-06-25 | Metabolic / Genetic | Hereditary Hemochromatosis | 유전성 혈색증 | [![HH](hereditary-hemochromatosis/hh_qsp_model.png)](hereditary-hemochromatosis/hh_qsp_model.svg) | [.dot](hereditary-hemochromatosis/hh_qsp_model.dot) | [.svg](hereditary-hemochromatosis/hh_qsp_model.svg) | [.R](hereditary-hemochromatosis/hh_mrgsolve_model.R) | [app](hereditary-hemochromatosis/hh_shiny_app.R) | [refs](hereditary-hemochromatosis/hh_references.md) |
 
 ---
 
@@ -2412,3 +2413,85 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Froissart 2012 Thromb Haemost | ADAMTS13 억제제 역가 → ADCP 기전 및 활성 손실 |
 
 ### References: 47 PubMed citations (13개 섹션: 병태생리·ADAMTS13 생물학·역학·임상 양상·억제제 역가 동태·VWF 생물학·혈소판 상호작용·혈장교환·카플라시주맙 PK/PD·리툭시맙·B세포/자가항체·PLASMIC 점수/진단·장기손상·선천 TTP·신규 치료·QSP/PK-PD 모델링)
+
+---
+
+## 🩸 유전성 혈색증 (Hereditary Hemochromatosis, HH) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`hereditary-hemochromatosis/`](hereditary-hemochromatosis/) | **약어:** HH | **날짜:** 2026-06-25
+
+[![HH QSP 기계론적 지도](hereditary-hemochromatosis/hh_qsp_model.png)](hereditary-hemochromatosis/hh_qsp_model.svg)
+
+### 질환 개요
+
+유전성 혈색증(HH)은 **HFE 유전자 돌연변이(C282Y/H63D)**로 인해 헵시딘 생성이 감소하고, 소장의 페로포르틴(FPN) 활성이 비정상적으로 높아져 **체내 철이 20–40 g**까지 축적되는 상염색체 열성 유전 대사질환입니다. 간·심장·췌장·관절·뇌하수체에 철 침착이 일어나 각각 간경변·심근병증·청동색당뇨병·관절병증·성선기능저하증을 유발합니다.
+
+| 특성 | 내용 |
+|------|------|
+| **유병률** | 북유럽계 1/200–400명 |
+| **주요 유전자** | HFE (chr 6p21.3); C282Y (~85%), H63D (~15%) |
+| **임상 침투도** | 10–50% (생화학적 이상); ~10% (임상 표현) |
+| **진단 기준** | TSAT >45% + 페리틴 상승 → HFE 유전자형 |
+| **체내 철 과부하** | 정상 3–5 g → HH 20–40 g |
+| **치료 표준** | 사혈(500 mL q2주) → 목표 페리틴 50–100 ng/mL |
+
+### 기계론적 지도 클러스터 (11개, 130+ 노드)
+
+| 클러스터 | 핵심 구성 요소 |
+|---------|------------|
+| ① 유전·분자 드라이버 | HFE C282Y/H63D, HFE-TfR1/TfR2, HJV, TMPRSS6, 4가지 HH 유형 |
+| ② 헵시딘-BMP/SMAD | BMP2/4/6/9→SMAD1/5/8→HAMP 전사; IL-6 STAT3; ERFE 억제 |
+| ③ 철 흡수·수송 | DMT1·DCYTB·FPN·헤파에스틴; Tf-TBI·NTBI·LPI·TSAT |
+| ④ 세포 철 저장 | 페리틴(H/L)·헤모시데린·IRP1/2·IRE; 미토콘드리아 철; 페리티노파지 |
+| ⑤ 적혈구 생성 | EPO·BFU-E/CFU-E·성숙 RBC·RES 대식세포 재순환 |
+| ⑥ 간 손상 | ZIP14 흡수·LIC·ROS·HSC 활성화·섬유화·간경변·HCC |
+| ⑦ 간 외 장기 | 심장 T2*·심근병증; 췌장 β세포·청동색당뇨; 관절 연골석회화; 하수체 기능저하 |
+| ⑧ 킬레이트 PK | DFO SC 2구획·DFX 구강·DFP 구강 TID; 헵시딘 작동제(실험) |
+| ⑨ 사혈·임상 관리 | 유도/유지 사혈·식이제한·목표 페리틴 50–100 ng/mL |
+| ⑩ 진단 바이오마커 | TSAT·페리틴·LIC·MRI R2*·심장 T2*·FibroScan·HbA1c |
+| ⑪ 치료 PD·결과 | 체철 부담·킬레이트 제거량·섬유화 역전·HCC 위험 감소 |
+
+### ODE 구획 (20개)
+
+| # | 구획 | 단위 | 생물학적 의미 |
+|---|------|------|------------|
+| 1 | `TBI` | mg | 혈장 트랜스페린 결합 철 |
+| 2 | `NTBI_pool` | mg | 비-트랜스페린 결합 철(독성) |
+| 3 | `FPN` | AU | 페로포르틴 상대 활성도 |
+| 4 | `HEPC` | ng/mL | 혈장 헵시딘 |
+| 5 | `FERRITIN` | ng/mL | 혈청 페리틴 |
+| 6 | `LIVER_Fe` | mg | 간 총 철 축적 |
+| 7 | `HEART_Fe` | mg | 심장 철 축적 |
+| 8 | `PANCR_Fe` | mg | 췌장 철 축적 |
+| 9 | `RBC_Fe` | mg | 적혈구 Hb 결합 철 |
+| 10 | `MACRO_Fe` | mg | RES 대식세포 철 |
+| 11 | `LIV_FIB` | 0–4 | 간 섬유화 Metavir 점수 |
+| 12 | `BCELL` | 0–1 | 췌장 β세포 기능 분율 |
+| 13 | `EF` | % | 심장 박출계수 |
+| 14–15 | `DFO_C`, `DFO_FE` | mg | 데페록사민 혈장·페리옥사민 복합체 |
+| 16–17 | `DFX_C`, `DFX_FE` | mg | 데페라시록스 혈장·복합체 |
+| 18–19 | `DFP_C`, `DFP_FE` | mg | 데페리프론 혈장·복합체 |
+| 20 | `HBA1C` | % | HbA1c (청동색당뇨 지표) |
+
+### 치료 시나리오 (6개)
+
+| 시나리오 | 요법 | 임상 보정 근거 |
+|---------|------|-------------|
+| S1 | **무치료** C282Y 동형접합 자연경과 | Allen 2008 NEJM |
+| S2 | **사혈** 500 mL q2wk → q3개월 유지 | Niederau 1996 Gastroenterology; AASLD 2011 |
+| S3 | **DFO** 40 mg/kg/day SC | Hoffbrand 2003 Blood |
+| S4 | **DFX** 20 mg/kg/day 구강 | Cappellini 2014 Blood |
+| S5 | **DFP** 75 mg/kg/day TID (심장 집중) | Anderson 2002 Lancet |
+| S6 | **DFP+DFO 병용** (셔틀 킬레이션) | Tanner 2007 Circulation |
+
+### 임상 보정 (calibration)
+
+| 임상시험 / 근거 | 보정 표적 |
+|--------------|---------|
+| Allen 2008 NEJM | C282Y 동형접합 남성 28% 임상 철과부하 |
+| Niederau 1996 Gastroenterology | 사혈 후 비간경변성 섬유화 역전; 생존 정상화 |
+| Anderson 2002 Lancet | DFP T2* +27% vs DFO +13% (1년) |
+| Tanner 2007 Circulation | DFP+DFO 페리틴 −1019 ng/mL/년 |
+| Elmberg 2003 Gastroenterology | 간경변 HH의 HCC 위험 30배 상승 |
+
+### References: 55 PubMed citations (15개 섹션: 역학·유전학·헵시딘-BMP/SMAD·철흡수·수송·세포항상성·RES재순환·간손상·심장철과부하·진단영상·사혈·DFO·DFX·DFP·신규치료·QSP 모델링)
