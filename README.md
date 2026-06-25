@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-157-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-158-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **155개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **158개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -281,6 +281,7 @@ qsp/
 | 155 | 산과·임신 | [**자간전증 (Preeclampsia)**<br><sub>Preeclampsia · Eclampsia · PE</sub>](preeclampsia/) | <a href="preeclampsia/pe_qsp_model.svg"><img src="preeclampsia/pe_qsp_model.png" width="190" alt="PE"></a> | **불완전한 영양막세포(EVT) 침윤 → 나선동맥 불완전 재형성 → 태반 허혈/저산소증 → HIF-1α → sFlt-1↑ 분비 → VEGF/PlGF 격리(sFlt-1/PlGF비율>38) + sEng↑ → VEGFR2 신호↓ → eNOS 활성↓ → NO↓/ET-1↑/ROS↑ 내피세포 기능 부전 → SVR↑ → 고혈압(SBP≥140mmHg) · 사구체 내피세포 장애→족세포손상→단백뇨(≥300mg/24h) · TXA2↑→혈소판감소·미세혈전→HELLP → 자간증**. 혈관형성 불균형(sFlt-1/PlGF/sEng) + 내피세포 기능부전(NO/ET-1/ROS) + 심혈관(SBP/DBP/SVR) + 신장(GFR/단백뇨/사구체내피세포장애) + 응고/HELLP(혈소판/LDH/용혈) + 신경(발작역치/NMDA축/자간증) + 간(허혈/AST/ALT) + 보체(C3/C5/MAC) + 태아(제대혈류/IUGR) 15클러스터. 아스피린(75mg/d·COX-1 비가역억제·TXA2~95%억제·ASPRE NEJM 2017 62% 조기자간전증 감소)·라베탈롤(200mg BID·α1+β1차단·CHIPS NEJM 2015)·니페디핀MR(30mg/d·L형Ca²⁺채널차단·CYP3A4대사)·황산마그네슘(4g IV+1g/h·NMDA수용체차단·경련예방·Magpie Lancet 2002 58%↓) 4종 완전 PK/PD 모델링. **150+ 노드 15클러스터**, **20구획 ODE**(아스피린2구획+COX1억제+라베탈롤+니페디핀+Mg+sFlt-1+PlGF+sEng+NO+ET1+ROS+SBP+DBP+GFR+단백뇨+혈소판+LDH+경련위험), **6치료 시나리오**(무치료·아스피린예방·라베탈롤·니페디핀·황산마그네슘·병용). ASPRE(Rolnik 2017 Lancet)·CHIPS(Magee 2015 NEJM)·Magpie(Altman 2002 Lancet)·Verlohren 2010(sFlt-1/PlGF비율≥38 예측, 민감도82%·특이도95%) 보정. SBP/DBP·sFlt-1/PlGF비율·단백뇨·GFR·혈소판·LDH·경련위험·Mg²⁺혈중농도(치료창 1.7-3.5mmol/L) 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·약물PK·혈관형성균형·심혈관-신장·HELLP&신경계·시나리오비교·바이오마커패널·About). **60개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](preeclampsia/pe_qsp_model.svg) · [⚙️ mrgsolve](preeclampsia/pe_mrgsolve_model.R) · [📊 Shiny](preeclampsia/pe_shiny_app.R) · [📚 문헌](preeclampsia/pe_references.md) · [📄 README](preeclampsia/README.md) |
 | 156 | 신경·뇌혈관 | [**허혈성 뇌졸중**<br><sub>Ischemic Stroke · IS</sub>](ischemic-stroke/) | <a href="ischemic-stroke/is_qsp_model.svg"><img src="ischemic-stroke/is_qsp_model.png" width="190" alt="IS"></a> | **혈전/색전성 뇌혈관 폐색 → CBF 급감 → 허혈 핵심부(Core, <10 mL/100g/min) 불가역 괴사 + 반음영부(Penumbra, 10–20 mL/100g/min) 가역적 위험 조직 → ATP 고갈 → Na⁺/K⁺-ATPase 실패·탈분극 → 흥분독성 글루타메이트(NMDA/AMPA→Ca²⁺ 과부하) → ROS/NOS 과잉→미토콘드리아 기능부전→Cytc→Caspase-3→아포토시스/괴사 → 소교세포 활성화·호중구 침윤·IL-1β/IL-6/TNF-α↑ → MMP-9→BBB 파괴→혈관성 부종→출혈성 전환**. tPA(0.9 mg/kg IV·NINDS 1995·ECASS-3 2008 4.5h 창)·EVT(기계적 혈전제거·DEFUSE-3/DAWN 최대 24h)·아스피린(81–325mg·COX-1 비가역 억제·IST 1997)·아픽사반(5mg BID·FXa 억제·ARISTOTLE 2011·심방세동 2차 예방)·스타틴(LDL 감소 + 플레이오트로픽·SPARCL 2006) 5종 완전 PK/PD 모델링. **141 노드 12 서브그래프 클러스터**(위험인자·혈관병변/혈전·급성치료PK·허혈핵심부/반음영·흥분독성/이온·산화스트레스/NO·신경염증/BBB·재관류손상·2차예방PK·신경보호/신규표적·임상결과·바이오마커), **18구획 ODE**(혈전+CBF×2+tPA×2+아스피린×2+아픽사반×3+ATP+글루타메이트+Ca²⁺+ROS+IL-6+BBB+경색부피+NIHSS), **5치료 시나리오**(표준 tPA 2h·지연 tPA 4.5h·항혈소판 단독·tPA+아픽사반(AF)·EVT 3h). Tanswell 2002(tPA PK·CL=550mL/min)·Frost 2008(아픽사반 PK)·NINDS 1995·ECASS-3 2008·DEFUSE-3 2018·IST 1997·ARISTOTLE 2011·SPARCL 2006 보정. NIHSS·mRS·경색부피(mL)·BBB 무결성·IL-6·GFAP·UCH-L1·NSE·S100β·DWI/PWI 미스매치 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·급성치료PK·허혈캐스케이드·신경염증/BBB·임상엔드포인트·2차예방PK·시나리오비교·바이오마커). **50개 PubMed 인용** (11개 섹션).<br>[🗺️ 지도](ischemic-stroke/is_qsp_model.svg) · [⚙️ mrgsolve](ischemic-stroke/is_mrgsolve_model.R) · [📊 Shiny](ischemic-stroke/is_shiny_app.R) · [📚 문헌](ischemic-stroke/is_references.md) · [📄 README](ischemic-stroke/README.md) |
 | 157 | 혈액·골수부전 | [**재생불량성 빈혈**<br><sub>Aplastic Anemia · AA</sub>](aplastic-anemia/) | <a href="aplastic-anemia/aa_qsp_model.svg"><img src="aplastic-anemia/aa_qsp_model.png" width="190" alt="AA"></a> | **자가반응 CD8+ CTL 활성화(분자 모방·HLA-DR 제시) → IFN-γ/TNF-α 사이토카인 폭풍 → HSC에 FasL·퍼포린/그랜자임 B·NF-κB/ROS/p53 경로로 직접 세포자멸 → 조혈줄기세포(HSC) 풀 고갈 → 다계열 조혈부전(범혈구감소증) → 저세포성 골수(BM cellularity <25%)**. Treg(FoxP3+) 결핍 → 면역관용 붕괴; IFN-γ → FasR 상향·CXCL9/10 → CTL 골수 모집; BM 미세환경(MSC·내피세포) 손상·지방 대체; PNH 클론(GPI-앵커 결핍·면역 도피) 확대. hATG(40mg/kg×4d·2구획 PK·CL 0.85L/h)·rATG(3.5mg/kg×5d·CL 0.50L/h)·사이클로스포린(5mg/kg/d PO·목표 트로프 150–250ng/mL·CYP3A4·DDI)·엘트롬보파그(150mg/d·c-Mpl 작용제·JAK2/STAT5→HSC 자기재생↑·van der Straaten PopPK)·다나졸(400mg/d 안드로겐·EPO↑·Bcl-2↑) 5종 완전 PK/PD 모델링 + 동종조혈모세포이식(HSCT). **130+ 노드 13클러스터**(면역유발/항원제시·T세포활성화/확장·전염증사이토카인·HSC구획/세포자멸사·BM미세환경·다계열조혈·말초혈액/임상지표·ATG PK·CsA PK·EPAG PK·약물PD기전·질환 중증도/임상결과·지지요법), **20구획 ODE**(ATG 2구획+CsA+EPAG+Danazol PK 5구획+Teff+Treg+HSC+CFU-E+망상적혈구+RBC+CFU-G+ANC+MK+PLT+BM세포성+IFN-γ+TNF-α+IL-2+PNH클론), **5치료 시나리오**(무치료·hATG+CsA·hATG+CsA+EPAG·rATG+CsA+EPAG·동종HSCT). Scheinberg 2011 NEJM(hATG vs rATG·CR 68% vs 37%)·Townsley 2017 NEJM(EPAG 추가·CR 58% vs 36% at 6mo)·Peffault 2022 NEJM(rATG+CsA+EPAG CR 68%)·Olnes 2012 NEJM(EPAG 단독 CR 17%·PR 11%) 임상 보정. Hgb·ANC·PLT·ARC·BM세포성·IFN-γ/TNF-α/IL-2·PNH클론 크기·CR/PR/NR·수혈 필요성·MDS/AML 이행 위험 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일 & 중증도·약물PK·조혈·임상엔드포인트·시나리오비교·바이오마커 & 클론진화). **41개 PubMed 인용** (8개 섹션).<br>[🗺️ 지도](aplastic-anemia/aa_qsp_model.svg) · [⚙️ mrgsolve](aplastic-anemia/aa_mrgsolve_model.R) · [📊 Shiny](aplastic-anemia/aa_shiny_app.R) · [📚 문헌](aplastic-anemia/aa_references.md) · [📄 README](aplastic-anemia/README.md) |
+| 158 | 이식면역·HSCT 합병증 | [**이식편대숙주병 (GvHD)**<br><sub>Graft-versus-Host Disease · GvHD</sub>](graft-versus-host-disease/) | <a href="graft-versus-host-disease/gvhd_qsp_model.svg"><img src="graft-versus-host-disease/gvhd_qsp_model.png" width="190" alt="GvHD"></a> | **동종 HSCT 후 공여자 T세포가 숙주 전처치(TBI/항암화학요법) 유발 조직손상(DAMP/PAMP)으로 활성화된 숙주 수지상세포(DC)에 의해 프라이밍 → TCR-MHC mismatch 직접/간접 동종반응(CD28-B7 공자극) → NFAT·NF-κB·JAK-STAT 경로 활성화 → Th1(IFN-γ·TNF-α)/Th17(IL-17A·IL-22) 극화·Treg 결핍 → 급성: 피부·장·간 장기손상(Glucksberg I-IV); 만성: Tfh-B 세포 GC반응·자가항체·TGF-β/ROCK2 섬유화 → 폐쇄성 세기관지염(BOS)·피부경화·간섬유화**. 발병기전 14클러스터(HSCT전처치·항원제시·T세포 분화·사이토카인 네트워크·피부·장·간·폐·B세포 병증·TGF-β/ROCK2 섬유화·CNI PK·룩솔리티닙 PK/PD·기타약물·임상 엔드포인트). CsA(3mg/kg/d PO·F=30%·CYP3A4·2구획·C₀목표 100–300ng/mL)·타크로리무스(0.03mg/kg/d PO·F=25%·CYP3A5·2구획·C₀ 5–15ng/mL)·프레드니손(1mg/kg/d·NF-κB억제·광범위사이토카인↓)·**룩솔리티닙(10mg BID·JAK1 Ki=3.3nM·JAK2 Ki=2.8nM·STAT3/5차단·Treg확장·REACH2/3 NEJM 2020/2021 근거)·벨루모수딜(200mg QD ROCK2 선택적 저해·IRF4/STAT3억제·Th17↓Treg↑·섬유화↓·ROCKstar Blood 2021)·MMF/MPA(1.5g BID·IMPDH억제·림프구 증식차단)** 6종 완전 PK/PD 모델링. **130+ 노드 14 서브그래프 클러스터**, **32구획 ODE**(약물PK 16구획: CsA 3+TAC 3+PRED 2+RUX 3+BELU 2+MPA 2+; 면역PD 16구획: Th1·Th17·Treg·CD8·Bcell·TNF-α·IFN-γ·IL-17A·IL-10·TGF-β·IL-6·피부손상·장손상·간손상·폐손상·섬유화), **6치료 시나리오**(무예방·CsA 단독·CsA+MMF·TAC+MMF·CsA→룩솔리티닙·CsA→벨루모수딜). Glucksberg/NIH 등급·ORR·FFS·OS·NRM 임상 엔드포인트. ST2/REG3α/sTNFR1/CXCL9 바이오마커 패널(Ann Arbor 알고리즘). **8탭 Shiny 대시보드**(환자·약물PK·면역세포·사이토카인·장기손상&엔드포인트·시나리오비교·바이오마커·기전지도). **60개 PubMed 인용** (14개 섹션·Zeiser 2020/2021 NEJM·Cutler 2021 Blood·Ferrara 2009 Lancet·Vander Lugt 2013 NEJM).<br>[🗺️ 지도](graft-versus-host-disease/gvhd_qsp_model.svg) · [⚙️ mrgsolve](graft-versus-host-disease/gvhd_mrgsolve_model.R) · [📊 Shiny](graft-versus-host-disease/gvhd_shiny_app.R) · [📚 문헌](graft-versus-host-disease/gvhd_references.md) · [📄 README](graft-versus-host-disease/README.md) | Treg(FoxP3+) 결핍 → 면역관용 붕괴; IFN-γ → FasR 상향·CXCL9/10 → CTL 골수 모집; BM 미세환경(MSC·내피세포) 손상·지방 대체; PNH 클론(GPI-앵커 결핍·면역 도피) 확대. hATG(40mg/kg×4d·2구획 PK·CL 0.85L/h)·rATG(3.5mg/kg×5d·CL 0.50L/h)·사이클로스포린(5mg/kg/d PO·목표 트로프 150–250ng/mL·CYP3A4·DDI)·엘트롬보파그(150mg/d·c-Mpl 작용제·JAK2/STAT5→HSC 자기재생↑·van der Straaten PopPK)·다나졸(400mg/d 안드로겐·EPO↑·Bcl-2↑) 5종 완전 PK/PD 모델링 + 동종조혈모세포이식(HSCT). **130+ 노드 13클러스터**(면역유발/항원제시·T세포활성화/확장·전염증사이토카인·HSC구획/세포자멸사·BM미세환경·다계열조혈·말초혈액/임상지표·ATG PK·CsA PK·EPAG PK·약물PD기전·질환 중증도/임상결과·지지요법), **20구획 ODE**(ATG 2구획+CsA+EPAG+Danazol PK 5구획+Teff+Treg+HSC+CFU-E+망상적혈구+RBC+CFU-G+ANC+MK+PLT+BM세포성+IFN-γ+TNF-α+IL-2+PNH클론), **5치료 시나리오**(무치료·hATG+CsA·hATG+CsA+EPAG·rATG+CsA+EPAG·동종HSCT). Scheinberg 2011 NEJM(hATG vs rATG·CR 68% vs 37%)·Townsley 2017 NEJM(EPAG 추가·CR 58% vs 36% at 6mo)·Peffault 2022 NEJM(rATG+CsA+EPAG CR 68%)·Olnes 2012 NEJM(EPAG 단독 CR 17%·PR 11%) 임상 보정. Hgb·ANC·PLT·ARC·BM세포성·IFN-γ/TNF-α/IL-2·PNH클론 크기·CR/PR/NR·수혈 필요성·MDS/AML 이행 위험 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일 & 중증도·약물PK·조혈·임상엔드포인트·시나리오비교·바이오마커 & 클론진화). **41개 PubMed 인용** (8개 섹션).<br>[🗺️ 지도](aplastic-anemia/aa_qsp_model.svg) · [⚙️ mrgsolve](aplastic-anemia/aa_mrgsolve_model.R) · [📊 Shiny](aplastic-anemia/aa_shiny_app.R) · [📚 문헌](aplastic-anemia/aa_references.md) · [📄 README](aplastic-anemia/README.md) |
 
 ---
 
@@ -1827,3 +1828,88 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Townsley 2016 NEJM (danazol) | 다나졸 | 텔로미어 연장·혈구 개선 | 50% 안정화 | EPO↑+Bcl-2↑ 미미한 HSC 확장 |
 
 ### References: 41 PubMed citations (병태생리 · IST 임상시험 · 엘트롬보파그 · HSCT · PNH&클론진화 · PK-PD 모델링 · 지지요법/가이드라인 · 유전학/텔로미어)
+
+---
+
+## 🧬 이식편대숙주병 (GvHD) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`graft-versus-host-disease/`](graft-versus-host-disease/) | **약어:** GVHD | **날짜:** 2026-06-25
+
+[![GvHD QSP 기계론적 지도](graft-versus-host-disease/gvhd_qsp_model.png)](graft-versus-host-disease/gvhd_qsp_model.svg)
+
+**질환**: 이식편대숙주병(GvHD) | **분류**: 이식면역·HSCT 합병증 | **유병률**: Allo-HSCT의 30-70% | **핵심 병태**: 공여자 T세포의 숙주 조직 공격 → 다장기 손상 → 비재발 사망(NRM)의 주요 원인
+
+### Pathophysiology Clusters (14)
+
+| 클러스터 | 주요 내용 |
+|----------|---------|
+| 1. HSCT 전처치 | MAC/RIC/NMA 전처치, TBI, 항암화학요법, 조직손상, DAMP/PAMP, 장벽 손상, LPS 전좌 |
+| 2. 항원제시 & 프라이밍 | 숙주 수지상세포(DC), MHC I/II mismatch, 직접/간접 동종반응, CD28-B7·CD40L-CD40 공자극, NLRP3 인플라마좀 |
+| 3. 공여자 T세포 분화 | Naive→Th1/Th17/Treg/CD8 CTL 분화; NFAT·NF-κB·STAT3/4·ROCK2·BTK·mTOR 신호전달 |
+| 4. 사이토카인 네트워크 | TNF-α, IFN-γ, IL-6, IL-17A, IL-22, IL-10, TGF-β, IL-2, BAFF, CXCL10, CCL2/5 |
+| 5. 표적 장기: 피부 | Lichenoid/sclerotic 병변, 모양세포 소양증, mLSS 점수, 색소침착이상 |
+| 6. 표적 장기: 장 | 장상피세포 아포토시스(Fas/FasL), 크립트 손상, 배상세포 소실, ST2/REG3α 바이오마커, 분비성 설사 |
+| 7. 표적 장기: 간 | 담관 손상, 담즙정체, 빌리루빈/ALP/ALT 상승, 간섬유화, Glucksberg 등급 |
+| 8. 표적 장기: 폐 | 기관지 상피세포 침윤, 기관지폐쇄증(BOS), FEV1 감소, CLAD 점수, 폐섬유화 |
+| 9. B세포 병증(cGvHD) | Tfh-B GC반응, 형질세포 분화, 자가항체(항dsDNA, 항PDGFR, 항혈소판당단백), BTK 경로 |
+| 10. 섬유화(TGF-β/ROCK2) | TGFβR1/2→SMAD2/3/4, EMT, 근섬유아세포, 콜라겐I/III, MMP/TIMP, ROCK2→IRF4 |
+| 11. 약물 PK: CNI | CsA 2구획(C₀ 목표 100-300ng/mL), TAC 2구획(C₀ 5-15ng/mL), CYP3A4/5 대사 |
+| 12. 약물 PK/PD: 룩솔리티닙 | JAK1 Ki=3.3nM, JAK2 Ki=2.8nM, STAT3/5 차단, Treg 확장(REACH2/3) |
+| 13. 기타 약물 | 스테로이드(NF-κB), 벨루모수딜(ROCK2→IRF4), MMF(IMPDH), Ibrutinib(BTK) |
+| 14. 임상 엔드포인트 & 바이오마커 | Glucksberg I-IV, NIH cGvHD, ORR, FFS, OS, NRM, GvL; ST2/REG3α/sTNFR1/CXCL9 |
+
+### ODE Model Structure (32 compartments)
+
+**약동학 PK — 16 compartments:**
+
+| 약물 | 구획 수 | 특징 |
+|------|---------|------|
+| Cyclosporine A (CsA) | 3 (Gut/Central/Peripheral) | F=30%, CYP3A4, Hill n=1.5, IC50=150ng/mL |
+| Tacrolimus (TAC) | 3 (Gut/Central/Peripheral) | F=25%, CYP3A5, IC50=10ng/mL |
+| Prednisone (PRED) | 2 (Gut/Central) | F=99%, GRα 결합 → NF-κB 억제 |
+| Ruxolitinib (RUX) | 3 (Gut/Central/Peripheral) | F=95%, T½=3h, JAK1 IC50=280nM |
+| Belumosudil (BELU) | 2 (Gut/Central) | F=80%, T½=20h, ROCK2 IC50=100nM |
+| MMF/MPA | 2 (Gut/Central) | F=94%, IMPDH IC50=1.5μg/mL |
+
+**면역/생물학 PD — 16 compartments:**
+
+| 구획 | 설명 |
+|------|------|
+| Th1 | IFN-γ·TNF-α 생성 효과 T세포 |
+| Th17 | IL-17A·IL-22 생성; ROCK2/IRF4 경로 |
+| Treg | FoxP3+ 조절 T세포; TGF-β·IL-10 생성 |
+| CD8_eff | CD8+ CTL; 장기 직접 세포독성 |
+| Bcell | B세포 풀 (GC반응·자가항체 포함) |
+| TNFa, IFNg, IL17A, IL10, TGFb, IL6 | 사이토카인 6종 |
+| Skin_dmg | 피부 손상 점수 (0-1) |
+| Gut_dmg | 장 손상 점수 (0-1) |
+| Liver_dmg | 간 손상 점수 (0-1) |
+| Lung_dmg | 폐 손상 점수 (0-1, BOS) |
+| Fibrosis | 섬유화 지수 (0-1, cGvHD) |
+
+### Treatment Scenarios (6)
+
+| 시나리오 | 치료 | 임상 근거 |
+|----------|------|----------|
+| 1 | 무예방 (historical baseline) | 재발 후 사망률 60-80% |
+| 2 | CsA 단독 예방 | Lee SJ 2007 Blood |
+| 3 | CsA + MMF 예방 | NMDP 표준 (형제 공여) |
+| 4 | TAC + MMF 예방 | 현재 표준요법 (비혈연 공여) |
+| 5 | CsA → 룩솔리티닙 (SR-cGvHD) | Zeiser 2021 NEJM (REACH3) |
+| 6 | CsA → 벨루모수딜 (cGvHD ≥2L) | Cutler 2021 Blood (ROCKstar) |
+
+### Shiny Dashboard (8 Tabs)
+
+환자 & HSCT 프로파일 (GvHD 위험도 레이더·약물 표적 설명) · 약물 PK 대시보드 (CsA/TAC/RUX/BELU 농도-시간·PK 요약·PD 효과) · 면역세포 동태 (Th1/Th17/Treg/CD8 풀·Th17/Treg 비율·B세포) · 사이토카인 네트워크 (전염증성 vs 항염증성·사이토카인 요약 테이블) · 장기손상 & 엔드포인트 (피부/장/간/폐/섬유화 점수·aGvHD 등급·cGvHD 점수·FFS) · 시나리오 비교 (6개 치료군 병렬 비교·요약 테이블) · 바이오마커 패널 (ST2·REG3α·sTNFR1·임계값 기준선 표시) · 기전 지도 (14 클러스터 PNG/SVG)
+
+### Key Calibration Data
+
+| 임상시험 | 약물 | 주요 엔드포인트 | 관찰값 |
+|----------|------|---------------|--------|
+| Zeiser 2020 NEJM (REACH2) | 룩솔리티닙 vs 최적지지요법 | 28일 ORR | 62% vs 39% |
+| Zeiser 2021 NEJM (REACH3) | 룩솔리티닙 vs 최적지지요법 (cGvHD) | 24주 ORR | 49.7% vs 25.6% |
+| Cutler 2021 Blood (ROCKstar) | 벨루모수딜 200mg QD | ORR (≥2L cGvHD) | 75% (CR 6%) |
+| Ferrara 2009 Lancet | 기준치 연구 | aGvHD 발생률 | 30-70% |
+| Vander Lugt 2013 NEJM | ST2 바이오마커 | 비재발 사망 예측 | ST2>33ng/mL → HR 3.7 |
+
+### References: 60 PubMed citations (병태생리·T세포생물학·CNI PK/PD·룩솔리티닙 임상시험·벨루모수딜·Ibrutinib·B세포병증·섬유화/TGF-β·장기특이 GvHD·NIH consensus·예방&1선치료·QSP모델링·장내미생물·바이오마커)
