@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-164-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-171-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **164개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
@@ -1489,6 +1489,7 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 | 2026-06-25 | Fibroinflammatory / Immune-Mediated | IgG4-Related Disease | IgG4 연관 질환 | [![IgG4-RD](igg4-related-disease/igg4rd_qsp_model.png)](igg4-related-disease/igg4rd_qsp_model.svg) | [.dot](igg4-related-disease/igg4rd_qsp_model.dot) | [.svg](igg4-related-disease/igg4rd_qsp_model.svg) | [.R](igg4-related-disease/igg4rd_mrgsolve_model.R) | [app](igg4-related-disease/igg4rd_shiny_app.R) | [refs](igg4-related-disease/igg4rd_references.md) |
 | 2026-06-25 | Hematologic / Genetic | Beta-Thalassemia | 베타 지중해빈혈 | [![BTH](beta-thalassemia/bth_qsp_model.png)](beta-thalassemia/bth_qsp_model.svg) | [.dot](beta-thalassemia/bth_qsp_model.dot) | [.svg](beta-thalassemia/bth_qsp_model.svg) | [.R](beta-thalassemia/bth_mrgsolve_model.R) | [app](beta-thalassemia/bth_shiny_app.R) | [refs](beta-thalassemia/bth_references.md) |
 | 2026-06-25 | Endocrine / Genetic | Congenital Adrenal Hyperplasia | 선천성 부신증식증 | [![CAH](congenital-adrenal-hyperplasia/cah_qsp_model.png)](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.dot](congenital-adrenal-hyperplasia/cah_qsp_model.dot) | [.svg](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.R](congenital-adrenal-hyperplasia/cah_mrgsolve_model.R) | [app](congenital-adrenal-hyperplasia/cah_shiny_app.R) | [refs](congenital-adrenal-hyperplasia/cah_references.md) |
+| 2026-06-25 | Autoimmune / Hematology | Thrombotic Thrombocytopenic Purpura | 혈전성 혈소판감소성 자반증 | [![TTP](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.png)](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg) | [.dot](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.dot) | [.svg](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg) | [.R](thrombotic-thrombocytopenic-purpura/ttp_mrgsolve_model.R) | [app](thrombotic-thrombocytopenic-purpura/ttp_shiny_app.R) | [refs](thrombotic-thrombocytopenic-purpura/ttp_references.md) |
 
 ---
 
@@ -2329,3 +2330,85 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Averbuch 1988 Ann Intern Med | CVD 화학요법 ORR 37%, 임상 반응률 79% |
 
 ### References: 45 PubMed citations (12개 섹션: 랜드마크 리뷰·가이드라인·역학·유전학·카테콜아민 생합성·대사·수술 전 관리·알파차단제·메티로신 PK/PD·악성 PPGL 전신 치료·심혈관·혈역학 효과·생화학 진단·바이오마커·영상·국소화·분자 병태생리·수니티닙 PK 모델링·QSP/PK-PD 모델링)
+
+---
+
+## 🩸 혈전성 혈소판감소성 자반증 (Thrombotic Thrombocytopenic Purpura, TTP) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`thrombotic-thrombocytopenic-purpura/`](thrombotic-thrombocytopenic-purpura/) | **약어:** TTP | **날짜:** 2026-06-25
+
+[![TTP QSP 기계론적 지도](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.png)](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg)
+
+### 질환 개요
+
+혈전성 혈소판감소성 자반증(TTP)은 ADAMTS13(VWF 절단 효소)에 대한 자가항체로 인한 희귀 혈전성 미세혈관병증입니다. 치료 없이 사망률 ~90%.
+
+| 특성 | 내용 |
+|------|------|
+| **발생률** | 3–7명/100만 명/년 |
+| **성별** | 여성:남성 ≈ 3:1; 30–50대 호발 |
+| **핵심 기전** | 자가항체 → ADAMTS13 억제 → ULVWF 축적 → 미세혈전 → MAHA + 다장기 허혈 |
+| **주요 증상** | 혈소판감소증 + MAHA + 신경증상(3징후) |
+| **진단** | ADAMTS13 <10 U/dL, PLASMIC score ≥5 |
+| **치료** | TPE(기본) + 카플라시주맙(Cablivi®) + 리툭시맙 + 코르티코스테로이드 |
+
+### 기계론적 지도 클러스터 (13개, 130+ 노드)
+
+| 클러스터 | 주요 구성요소 |
+|---------|------------|
+| ① ADAMTS13 생물학 | 유전자, 간 합성, 혈장 활성, 자가항체 억제, Bethesda 역가 |
+| ② VWF 생물학 | Weibel-Palade체, ULVWF, A1/A2 도메인, ADAMTS13 절단 |
+| ③ 혈소판 생물학 | GPIbα, GPIIb/IIIa, 활성화, 미세혈전 형성, 소비 |
+| ④ 내피세포 활성화 | WPB 방출, eNOS/PGI2, Ang-2, ICAM-1 |
+| ⑤ 면역·염증 | B세포, 형질세포, Tfh, 배중심, IL-6, TNF-α |
+| ⑥ 2차 응고계 | 조직인자, 트롬빈, 피브린, D-이합체 |
+| ⑦ 다장기 손상 | 신장(Cr), 뇌(신경점수), 심장(트로포닌), 망막 |
+| ⑧ MAHA | 기계적 용혈, 파편적혈구, LDH, 합토글로빈, Hgb |
+| ⑨ 혈장교환(TPE) | FFP/SD 혈장, ADAMTS13 보충, 억제제 제거 |
+| ⑩ 카플라시주맙 PK/PD | 2구획 나노항체, VWF A1 차단, IC₅₀=2 ng/mL |
+| ⑪ 리툭시맙 PK/PD | TMDD 2구획, CD20 고갈, B세포 6–12개월 고갈 |
+| ⑫ 면역억제 치료 | 프레드니솔론, MMF, 보르테조밉, IVIG |
+| ⑬ 임상 엔드포인트 | PLASMIC 점수, 반응 기준, 재발 위험, 완전 관해 |
+
+### ODE 구획 (18개)
+
+| # | 구획 | 생물학적 의미 |
+|---|------|------------|
+| 1–3 | `CAPLA_GUT`, `CAPLA_C`, `CAPLA_P` | 카플라시주맙 2구획 PK |
+| 4–5 | `RTX_C`, `RTX_P` | 리툭시맙 2구획 PK (TMDD) |
+| 6 | `A13_ACT` | ADAMTS13 활성 (U/dL = %) |
+| 7 | `INH` | 억제제 역가 (BU) |
+| 8 | `ULVWF` | ULVWF 풀 (ng/mL) |
+| 9 | `PLT` | 혈소판 수 (×10⁹/L) |
+| 10 | `MT` | 미세혈전 부하 (AU) |
+| 11 | `BC` | B세포 (% 정상) |
+| 12 | `PC` | 형질세포 (AU) |
+| 13 | `AUTOAB` | 자가항체 (BU) |
+| 14 | `LDH_AB` | LDH (IU/L) — 용혈 |
+| 15 | `CREAT` | 크레아티닌 (μmol/L) |
+| 16 | `TROP` | 트로포닌 I (ng/mL) |
+| 17 | `HGB` | 헤모글로빈 (g/dL) — MAHA |
+| 18 | `PRED_C` | 프레드니솔론 혈장 농도 (ng/mL) |
+
+### 치료 시나리오 (6개)
+
+| 시나리오 | 요법 | 임상 근거 |
+|---------|------|---------|
+| S0 | 무치료 (자연 경과) | — (사망률 ~90%) |
+| S1 | **TPE 단독** | Rock 1991 NEJM (표준 이전) |
+| S2 | **TPE + 프레드니솔론** | 현 SoC 기본 |
+| S3 | **TPE + 카플라시주맙 + Pred** | HERCULES (Scully 2019 NEJM) |
+| S4 | **TPE + 리툭시맙 + Pred** | TITAN (Peyvandi 2016 NEJM) |
+| S5 | **3제 병용** (CAPLA + RTX + Pred + TPE) | 복합 전략 |
+| S6 | **선천 TTP** (FFP q2주 예방) | Upshaw-Schulman 증후군 |
+
+### 임상 보정 (calibration)
+
+| 임상시험 | 보정 표적 |
+|---------|---------|
+| HERCULES (Scully 2019 NEJM) | 카플라시주맙: PLT 반응 2.69 vs 2.88일, 악화 3% vs 28% |
+| TITAN (Peyvandi 2016 NEJM) | 리툭시맙 ×4: 완전관해 59% vs 43% |
+| Rock 1991 NEJM | TPE vs 혈장주입: 사망률 22% vs 37% |
+| Froissart 2012 Thromb Haemost | ADAMTS13 억제제 역가 → ADCP 기전 및 활성 손실 |
+
+### References: 47 PubMed citations (13개 섹션: 병태생리·ADAMTS13 생물학·역학·임상 양상·억제제 역가 동태·VWF 생물학·혈소판 상호작용·혈장교환·카플라시주맙 PK/PD·리툭시맙·B세포/자가항체·PLASMIC 점수/진단·장기손상·선천 TTP·신규 치료·QSP/PK-PD 모델링)
