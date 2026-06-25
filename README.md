@@ -1329,6 +1329,7 @@ AUB (과다 월경출혈) + 골반통 + 골반 압박감 + 불임
 | Date | Category | Disease (EN) | 질환명 (KR) | Thumbnail | DOT | SVG | R Model | Shiny | Refs |
 |------|----------|-------------|------------|-----------|-----|-----|---------|-------|------|
 | 2026-06-25 | Myeloproliferative Neoplasm | Polycythemia Vera | 진성 다혈증 | [![PV](polycythemia-vera/pv_qsp_model.png)](polycythemia-vera/pv_qsp_model.svg) | [.dot](polycythemia-vera/pv_qsp_model.dot) | [.svg](polycythemia-vera/pv_qsp_model.svg) | [.R](polycythemia-vera/pv_mrgsolve_model.R) | [app](polycythemia-vera/pv_shiny_app.R) | [refs](polycythemia-vera/pv_references.md) |
+| 2026-06-25 | Autoinflammatory Disease | Familial Mediterranean Fever | 가족성 지중해열 | [![FMF](familial-mediterranean-fever/fmf_qsp_model.png)](familial-mediterranean-fever/fmf_qsp_model.svg) | [.dot](familial-mediterranean-fever/fmf_qsp_model.dot) | [.svg](familial-mediterranean-fever/fmf_qsp_model.svg) | [.R](familial-mediterranean-fever/fmf_mrgsolve_model.R) | [app](familial-mediterranean-fever/fmf_shiny_app.R) | [refs](familial-mediterranean-fever/fmf_references.md) |
 
 ---
 
@@ -1374,3 +1375,49 @@ Overview · Patient Profile & Risk Stratification · Pharmacokinetics · PD & He
 | CYTO-PV | Phlebotomy (Hct<45%) | CV events | 4.4% vs 10.9% | Modeled |
 
 ### References: 58 PubMed citations (disease biology, JAK2 mutation, clinical trials, PK/PD, guidelines)
+
+---
+
+## Familial Mediterranean Fever (가족성 지중해열) — 2026-06-25
+
+**Disease:** Familial Mediterranean Fever (FMF) | Hereditary Autoinflammatory Disease
+
+**Driver Mutation:** *MEFV* gain-of-function mutations (M694V, M680I, V726A, E148Q) → PYRIN inflammasome hyperactivation → IL-1β/IL-18 excess → episodic sterile serositis + long-term AA amyloidosis
+
+### Mechanistic Map Highlights
+- **10 subgraph clusters · 100+ nodes** covering full autoinflammatory pathobiology and drug PK/PD
+- MEFV mutation → impaired RhoA/PKN1-PKN2-mediated PYRIN phosphorylation → spontaneous ASC speck → Caspase-1 → IL-1β maturation + Gasdermin D pyroptosis
+- Long-term risk: SAA excess → AA amyloid fibril deposition → renal amyloidosis → CKD/ESRD
+- Drug targets: Colchicine (tubulin/PYRIN), Anakinra (IL-1R1 blockade), Canakinumab (anti-IL-1β mAb), Rilonacept (IL-1 trap)
+
+### mrgsolve Model (22 ODEs)
+| Compartment Group | ODEs |
+|---|---|
+| Colchicine PK (2-cpt + leukocyte) | GUT_COL, CENT_COL, PERI_COL, LEU_COL |
+| Anakinra PK (SC) | SC_ANA, CENT_ANA |
+| Canakinumab PK (SC 2-cpt) | SC_CANA, CENT_CANA, PERI_CANA |
+| PYRIN inflammasome | RhoA, Pyrin_p, ASC, Casp1 |
+| Cytokines + acute phase | IL1b_pro, IL1b_mat, IL18, SAA, CRP |
+| Neutrophil dynamics | Neu_circ, Neu_tis |
+| Attack dynamics | Att_sev |
+| Amyloidosis | AA_dep, eGFR |
+
+### Treatment Scenarios Simulated
+1. No treatment (untreated M694V homozygous)
+2. Colchicine 0.5 mg BID (standard first-line)
+3. Colchicine 1.0 mg QD (alternative dosing)
+4. Anakinra 100 mg SC QD (colchicine-resistant/intolerant)
+5. Canakinumab 150 mg SC Q8W (CLUSTER trial, FDA-approved FMF indication)
+
+### Shiny Dashboard (8 Tabs)
+Patient Profile · Drug PK · Inflammasome Dynamics · Attack Simulation · Clinical Endpoints · Scenario Comparison · Amyloidosis Risk · Sensitivity Analysis
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| Zemer 1986 NEJM | Colchicine | Attack reduction | ~75% | ~73% |
+| CLUSTER (De Benedetti 2018 NEJM) | Canakinumab 150 mg Q8W | Attack-free response | 61% vs 6% | ~60% |
+| Georgin-Lavialle 2020 | Anakinra 100 mg/d | Attack-free at 3mo | ~70% | ~68% |
+| Lachmann 2007 NEJM | Amyloidosis (SAA control) | 5y renal survival | 90%+ (SAA<4) | Modeled |
+
+### References: 50 PubMed citations (MEFV genetics, PYRIN inflammasome, IL-1β biology, colchicine, IL-1 inhibitors, AA amyloidosis, classification criteria, QSP modeling)
