@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-154-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-155-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **153개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **154개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -278,6 +278,7 @@ qsp/
 | 152 | 부인종양학 | [**난소암 (HGSOC)**<br><sub>Ovarian Cancer · High-Grade Serous · OC</sub>](ovarian-cancer/) | <a href="ovarian-cancer/oc_qsp_model.svg"><img src="ovarian-cancer/oc_qsp_model.png" width="190" alt="OC"></a> | **TP53 변이(>96%) + HRD(BRCA1/2·HRR 유전자) → 상동재조합 결핍 → PARP 합성 치사 · 백금 내성 · 복막 전이 → HGSOC**. DDR/HRR 경로(BRCA1/2·RAD51·PARP1/2·ATM/ATR·CHK1/2) + PI3K/AKT/mTOR + VEGF/혈관신생(HIF-1α·VEGFR1/2·DLL4/Notch) + 종양 미세환경(CAF·TAM M1/M2·MDSC·NK·CD8+ T·Treg·IL-6·TGF-β·IL-10·STAT3) + 면역회피(PD-L1/PD-1·CTLA-4·IDO1·LAG-3·TIM-3·TIGIT) + 복막 전이(EMT·CA-125/MUC16·HE4·LPA) 10클러스터. 카보플라틴(Calvert AUC6 공식·Chatelut CL·Pt-DNA 부가물·G2/M 정지)·파클리탁셀(3구획 PK·비선형·튜불린 안정화)·오라파립(300mg BID·PARP 트래핑·합성 치사)·니라파립(300mg QD·t½=36h)·베바시주맙(anti-VEGF·15mg/kg q3w) 5종 완전 PK/PD 모델링. **180+ 노드 10클러스터**, **18구획 ODE**(CAR·PAC·OLA·NIRA·BEV PK+VEGF+TV(Gompertz)+CA125+Pt_DNA+CD8T+HRD), **6치료 시나리오**(무치료·Carbo+Pacli×6·+Bev유지·→오라파립 BRCA+·→니라파립 HRD+·+Bev→Ola+Bev PAOLA-1). Moore 2018 NEJM(SOLO-1 mPFS NR, HR 0.30)·Gonzalez-Martin 2019 NEJM(PRIMA mPFS 13.8mo, HR 0.43)·Ray-Coquard 2019 NEJM(PAOLA-1 mPFS 22.1mo, HR 0.33)·ICON7/GOG218(베바시주맙) 보정. CA-125·HE4·ROMA·PFS·RECIST 1.1·ctDNA·HRD 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD바이오마커·종양반응·시나리오비교·바이오마커패널). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](ovarian-cancer/oc_qsp_model.svg) · [⚙️ mrgsolve](ovarian-cancer/oc_mrgsolve_model.R) · [📊 Shiny](ovarian-cancer/oc_shiny_app.R) · [📚 문헌](ovarian-cancer/oc_references.md) · [📄 README](ovarian-cancer/README.md) |
 | 149 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
 | 154 | 혈액종양·골수증식 | [**진성 다혈증 (PV)**<br><sub>Polycythemia Vera · PV</sub>](polycythemia-vera/) | <a href="polycythemia-vera/pv_qsp_model.svg"><img src="polycythemia-vera/pv_qsp_model.png" width="190" alt="PV"></a> | **JAK2 V617F 체세포 돌연변이(>95%) → 구성적 JAK-STAT5 신호 → EPO 비의존적 BFU-E/CFU-E 과증식 → 적혈구 덩어리 상승 → Hct 증가 → 혈액 점도 상승 → 혈전 위험(DVT·뇌졸중·간정맥 혈전). 혈소판증가증·백혈구증가증·비장비대(수외조혈). 골수섬유증(post-PV MF) 및 AML 이행 위험**. JAK2 V617F clone → JAK-STAT5/3·PI3K/AKT/mTOR·MAPK/ERK 경로; SOCS1/3 음성 피드백; EPO-R·MPL·G-CSF-R 과민성; BFU-E→CFU-E→망상적혈구→RBC 조혈 ODE; 혈소판(CFU-Mk→거핵구)·WBC 구획; 비장 용적(수외조혈·EMH); 골수 섬유화 점수(MF-0~3); JAK2 V617F 대립유전자 부담(%). 룩솔리티닙(10mg BID·JAK1/2 IC50 2.8/3.3nM·RESPONSE trial SVR35 38%·Hct 조절 60%·2구획 PK)·하이드록시유레아(500mg/d·리보뉴클레오티드 환원효소 억제·IC50=150μM·ECLAP)·PEG-IFN-α2a(45μg/wk SC·클론 억제·PROUD-PV 대립유전자 부담 감소) 완전 PK/PD 모델링 + 정맥 사혈·아스피린. **100+ 노드 10클러스터**, **16구획 ODE**(룩솔리티닙 2구획+HYU 1구획+IFN SC/중심+BFU-E/CFU-E/망상적혈구 BM·순환/RBC/PLT/WBC+비장+섬유화+JAK2 대립유전자 부담), **6치료 시나리오**(무치료·사혈+아스피린·하이드록시유레아·룩솔리티닙·PEG-IFN-α2a·룩솔리티닙 용량반응). RESPONSE(2015 NEJM)·RESPONSE-2(2017 Lancet Oncol)·PROUD-PV/CONTINUATION-PV(2020 Lancet Haematol)·CYTO-PV(2013 NEJM)·ECLAP(2004 NEJM) 임상 보정. Hct·PLT·WBC·비장용적·SVR35·JAK2 대립유전자 부담·pSTAT5 억제·MPN-SAF TSS·연간 혈전 위험·BM 섬유화 점수·MF/AML 이행 위험 바이오마커. **7탭 Shiny 대시보드**(개요·환자프로파일 & ELN 위험층화·약동학·PD & 혈액학·임상 엔드포인트·시나리오 비교·바이오마커 & 질환진행). **58개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](polycythemia-vera/pv_qsp_model.svg) · [⚙️ mrgsolve](polycythemia-vera/pv_mrgsolve_model.R) · [📊 Shiny](polycythemia-vera/pv_shiny_app.R) · [📚 문헌](polycythemia-vera/pv_references.md) · [📄 README](polycythemia-vera/README.md) |
+| 155 | 산과·임신 | [**자간전증 (Preeclampsia)**<br><sub>Preeclampsia · Eclampsia · PE</sub>](preeclampsia/) | <a href="preeclampsia/pe_qsp_model.svg"><img src="preeclampsia/pe_qsp_model.png" width="190" alt="PE"></a> | **불완전한 영양막세포(EVT) 침윤 → 나선동맥 불완전 재형성 → 태반 허혈/저산소증 → HIF-1α → sFlt-1↑ 분비 → VEGF/PlGF 격리(sFlt-1/PlGF비율>38) + sEng↑ → VEGFR2 신호↓ → eNOS 활성↓ → NO↓/ET-1↑/ROS↑ 내피세포 기능 부전 → SVR↑ → 고혈압(SBP≥140mmHg) · 사구체 내피세포 장애→족세포손상→단백뇨(≥300mg/24h) · TXA2↑→혈소판감소·미세혈전→HELLP → 자간증**. 혈관형성 불균형(sFlt-1/PlGF/sEng) + 내피세포 기능부전(NO/ET-1/ROS) + 심혈관(SBP/DBP/SVR) + 신장(GFR/단백뇨/사구체내피세포장애) + 응고/HELLP(혈소판/LDH/용혈) + 신경(발작역치/NMDA축/자간증) + 간(허혈/AST/ALT) + 보체(C3/C5/MAC) + 태아(제대혈류/IUGR) 15클러스터. 아스피린(75mg/d·COX-1 비가역억제·TXA2~95%억제·ASPRE NEJM 2017 62% 조기자간전증 감소)·라베탈롤(200mg BID·α1+β1차단·CHIPS NEJM 2015)·니페디핀MR(30mg/d·L형Ca²⁺채널차단·CYP3A4대사)·황산마그네슘(4g IV+1g/h·NMDA수용체차단·경련예방·Magpie Lancet 2002 58%↓) 4종 완전 PK/PD 모델링. **150+ 노드 15클러스터**, **20구획 ODE**(아스피린2구획+COX1억제+라베탈롤+니페디핀+Mg+sFlt-1+PlGF+sEng+NO+ET1+ROS+SBP+DBP+GFR+단백뇨+혈소판+LDH+경련위험), **6치료 시나리오**(무치료·아스피린예방·라베탈롤·니페디핀·황산마그네슘·병용). ASPRE(Rolnik 2017 Lancet)·CHIPS(Magee 2015 NEJM)·Magpie(Altman 2002 Lancet)·Verlohren 2010(sFlt-1/PlGF비율≥38 예측, 민감도82%·특이도95%) 보정. SBP/DBP·sFlt-1/PlGF비율·단백뇨·GFR·혈소판·LDH·경련위험·Mg²⁺혈중농도(치료창 1.7-3.5mmol/L) 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·약물PK·혈관형성균형·심혈관-신장·HELLP&신경계·시나리오비교·바이오마커패널·About). **60개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](preeclampsia/pe_qsp_model.svg) · [⚙️ mrgsolve](preeclampsia/pe_mrgsolve_model.R) · [📊 Shiny](preeclampsia/pe_shiny_app.R) · [📚 문헌](preeclampsia/pe_references.md) · [📄 README](preeclampsia/README.md) |
 
 ---
 
@@ -1618,3 +1619,68 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | CARES (Merke NEJM 2024) | Crinecerfont 200 mg BID | ACTH % change | −66% | −61% |
 
 ### References: 54 PubMed citations (HPA axis dynamics, CYP21A2 enzyme kinetics, HC/PRED/DEX PK, tildacerfont/crinecerfont PK-PD, CARES/CAH2301 trials, growth/bone effects, newborn screening, psychosocial outcomes, QSP modeling)
+
+---
+
+## 🤰 자간전증 (Preeclampsia) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`preeclampsia/`](preeclampsia/) | **약어:** PE | **날짜:** 2026-06-25
+
+[![PE QSP 기계론적 지도](preeclampsia/pe_qsp_model.png)](preeclampsia/pe_qsp_model.svg)
+
+**질환**: 자간전증(Preeclampsia, PE) | **분류**: 산과·임신합병증 | **유병률**: 전 세계 임신의 2–8% | **정의**: 임신 20주 이후 신발생 고혈압(SBP ≥140 또는 DBP ≥90 mmHg) + 단백뇨(≥300 mg/24h) 및/또는 장기손상
+
+### Pathophysiology Clusters (15)
+- 모체 위험인자 (고혈압 기왕력·비만·다태임신·초산)
+- 태반 구획 (영양막세포 침윤·나선동맥 재형성·HIF-1α·태반 산소 공급)
+- 혈관형성 불균형 (sFlt-1↑·PlGF↓·sEng↑·VEGFR2·sFlt-1/PlGF 비율)
+- 내피세포 기능부전 (eNOS↓·NO↓·ET-1↑·ROS↑·산화스트레스)
+- 심혈관/혈압 (SVR↑·SBP/DBP·심박출량·레닌-안지오텐신)
+- 신장 (GFR↓·사구체내피세포장애·족세포손상·단백뇨)
+- 응고/HELLP (TXA2↑·혈소판감소·LDH↑·용혈·미세혈관병증)
+- 신경계 (발작역치↓·NMDA 수용체·자간증·두통·시각 장애)
+- 간 (간세포 허혈·AST/ALT↑·피막하 혈종)
+- 보체 (C3/C5 활성화·MAC 형성·내피세포 손상)
+- 태아 구획 (제대혈류·IUGR·태아 저산소증)
+- 아스피린 PK/PD (COX-1 비가역 억제·TXA2 감소)
+- 라베탈롤 PK/PD (α1+β1 차단·SVR 감소)
+- 니페디핀 PK/PD (L형 Ca²⁺ 채널 차단·혈관 이완)
+- 황산마그네슘 PK/PD (NMDA 길항·경련 예방)
+
+### ODE Model Structure (20 + 2 state variables)
+| Compartment | Description |
+|---|---|
+| DEPOT_ASP, ASPIRIN | 아스피린 위장관 흡수·중심 구획 |
+| SALICYLATE, COX1_INH | 살리실산염 가수분해물·COX-1 억제 상태 (0–1) |
+| DEPOT_LAB, LABETALOL | 라베탈롤 흡수·혈장 구획 |
+| DEPOT_NIF, NIFEDIPINE | 니페디핀 흡수·혈장 구획 |
+| MG_PLASMA | 황산마그네슘 혈장 풀 (mmol) |
+| SFLT1, PLGF, SENG | sFlt-1·PlGF·가용성 엔도글린 (혈관형성인자) |
+| NO_EA, ET1, ROS | 산화질소 생체이용률·엔도텔린-1·활성산소 지수 |
+| SBP, DBP | 수축기/이완기 혈압 (mmHg) |
+| GFR_C, PROTEINURIA | 사구체여과율·단백뇨 (mg/24h) |
+| PLATELET | 혈소판 수 (×10³/µL) |
+| LDH_MK, SEIZURE_RISK | LDH/HELLP 마커·발작 위험 지수 |
+
+### Treatment Scenarios (6)
+| 시나리오 | 치료 | 근거 |
+|---|---|---|
+| 1 | 무치료 | 자연 경과 |
+| 2 | 아스피린 75 mg/d (12주→) | ASPRE 2017: 조기 PE 62% 감소 |
+| 3 | 라베탈롤 200 mg BID (24주→) | CHIPS 2015: α1+β 차단 혈압 조절 |
+| 4 | 니페디핀 MR 30 mg/d (24주→) | L형 Ca²⁺ 차단·CHIPS 비교군 |
+| 5 | MgSO₄ 4 g IV + 1 g/h (30주→) | Magpie 2002: 자간증 58% 감소 |
+| 6 | 병용 (아스피린+라베탈롤+MgSO₄) | 최적 다약제 전략 |
+
+### Shiny Dashboard (8 Tabs)
+환자 프로파일 & 임상 상태 · 약물 PK (4종) · 혈관형성 균형 (sFlt-1/PlGF/sEng) · 심혈관-신장 (SBP/DBP/GFR/단백뇨) · HELLP & 신경계 (혈소판/LDH/경련위험/Mg 안전창) · 시나리오 비교 (6개 치료군) · 바이오마커 패널 (히트맵) · About
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| Rolnik 2017 Lancet (ASPRE) | Aspirin 150 mg/d | Early PE reduction | 62% | ~60% |
+| Magee 2015 NEJM (CHIPS) | Labetalol 200 mg BID | SBP <140 mmHg | 63.9% | ~65% |
+| Altman 2002 Lancet (Magpie) | MgSO₄ 4g+1g/h | Eclampsia reduction | 58% | ~55% |
+| Verlohren 2010 AJOG | sFlt-1/PlGF ratio | PE prediction sensitivity | 82% | Threshold encoded |
+
+### References: 60 PubMed citations (Disease Overview · Angiogenic Imbalance · Endothelial Dysfunction · Cardiovascular/BP · Renal · Coagulation/HELLP · Neurological · Aspirin/Labetalol/Nifedipine/MgSO₄ PK-PD · Biomarkers · Complement · Reviews/Guidelines · QSP Modeling)
