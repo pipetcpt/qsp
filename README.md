@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-158-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-159-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **158개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **159개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -282,6 +282,7 @@ qsp/
 | 156 | 신경·뇌혈관 | [**허혈성 뇌졸중**<br><sub>Ischemic Stroke · IS</sub>](ischemic-stroke/) | <a href="ischemic-stroke/is_qsp_model.svg"><img src="ischemic-stroke/is_qsp_model.png" width="190" alt="IS"></a> | **혈전/색전성 뇌혈관 폐색 → CBF 급감 → 허혈 핵심부(Core, <10 mL/100g/min) 불가역 괴사 + 반음영부(Penumbra, 10–20 mL/100g/min) 가역적 위험 조직 → ATP 고갈 → Na⁺/K⁺-ATPase 실패·탈분극 → 흥분독성 글루타메이트(NMDA/AMPA→Ca²⁺ 과부하) → ROS/NOS 과잉→미토콘드리아 기능부전→Cytc→Caspase-3→아포토시스/괴사 → 소교세포 활성화·호중구 침윤·IL-1β/IL-6/TNF-α↑ → MMP-9→BBB 파괴→혈관성 부종→출혈성 전환**. tPA(0.9 mg/kg IV·NINDS 1995·ECASS-3 2008 4.5h 창)·EVT(기계적 혈전제거·DEFUSE-3/DAWN 최대 24h)·아스피린(81–325mg·COX-1 비가역 억제·IST 1997)·아픽사반(5mg BID·FXa 억제·ARISTOTLE 2011·심방세동 2차 예방)·스타틴(LDL 감소 + 플레이오트로픽·SPARCL 2006) 5종 완전 PK/PD 모델링. **141 노드 12 서브그래프 클러스터**(위험인자·혈관병변/혈전·급성치료PK·허혈핵심부/반음영·흥분독성/이온·산화스트레스/NO·신경염증/BBB·재관류손상·2차예방PK·신경보호/신규표적·임상결과·바이오마커), **18구획 ODE**(혈전+CBF×2+tPA×2+아스피린×2+아픽사반×3+ATP+글루타메이트+Ca²⁺+ROS+IL-6+BBB+경색부피+NIHSS), **5치료 시나리오**(표준 tPA 2h·지연 tPA 4.5h·항혈소판 단독·tPA+아픽사반(AF)·EVT 3h). Tanswell 2002(tPA PK·CL=550mL/min)·Frost 2008(아픽사반 PK)·NINDS 1995·ECASS-3 2008·DEFUSE-3 2018·IST 1997·ARISTOTLE 2011·SPARCL 2006 보정. NIHSS·mRS·경색부피(mL)·BBB 무결성·IL-6·GFAP·UCH-L1·NSE·S100β·DWI/PWI 미스매치 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·급성치료PK·허혈캐스케이드·신경염증/BBB·임상엔드포인트·2차예방PK·시나리오비교·바이오마커). **50개 PubMed 인용** (11개 섹션).<br>[🗺️ 지도](ischemic-stroke/is_qsp_model.svg) · [⚙️ mrgsolve](ischemic-stroke/is_mrgsolve_model.R) · [📊 Shiny](ischemic-stroke/is_shiny_app.R) · [📚 문헌](ischemic-stroke/is_references.md) · [📄 README](ischemic-stroke/README.md) |
 | 157 | 혈액·골수부전 | [**재생불량성 빈혈**<br><sub>Aplastic Anemia · AA</sub>](aplastic-anemia/) | <a href="aplastic-anemia/aa_qsp_model.svg"><img src="aplastic-anemia/aa_qsp_model.png" width="190" alt="AA"></a> | **자가반응 CD8+ CTL 활성화(분자 모방·HLA-DR 제시) → IFN-γ/TNF-α 사이토카인 폭풍 → HSC에 FasL·퍼포린/그랜자임 B·NF-κB/ROS/p53 경로로 직접 세포자멸 → 조혈줄기세포(HSC) 풀 고갈 → 다계열 조혈부전(범혈구감소증) → 저세포성 골수(BM cellularity <25%)**. Treg(FoxP3+) 결핍 → 면역관용 붕괴; IFN-γ → FasR 상향·CXCL9/10 → CTL 골수 모집; BM 미세환경(MSC·내피세포) 손상·지방 대체; PNH 클론(GPI-앵커 결핍·면역 도피) 확대. hATG(40mg/kg×4d·2구획 PK·CL 0.85L/h)·rATG(3.5mg/kg×5d·CL 0.50L/h)·사이클로스포린(5mg/kg/d PO·목표 트로프 150–250ng/mL·CYP3A4·DDI)·엘트롬보파그(150mg/d·c-Mpl 작용제·JAK2/STAT5→HSC 자기재생↑·van der Straaten PopPK)·다나졸(400mg/d 안드로겐·EPO↑·Bcl-2↑) 5종 완전 PK/PD 모델링 + 동종조혈모세포이식(HSCT). **130+ 노드 13클러스터**(면역유발/항원제시·T세포활성화/확장·전염증사이토카인·HSC구획/세포자멸사·BM미세환경·다계열조혈·말초혈액/임상지표·ATG PK·CsA PK·EPAG PK·약물PD기전·질환 중증도/임상결과·지지요법), **20구획 ODE**(ATG 2구획+CsA+EPAG+Danazol PK 5구획+Teff+Treg+HSC+CFU-E+망상적혈구+RBC+CFU-G+ANC+MK+PLT+BM세포성+IFN-γ+TNF-α+IL-2+PNH클론), **5치료 시나리오**(무치료·hATG+CsA·hATG+CsA+EPAG·rATG+CsA+EPAG·동종HSCT). Scheinberg 2011 NEJM(hATG vs rATG·CR 68% vs 37%)·Townsley 2017 NEJM(EPAG 추가·CR 58% vs 36% at 6mo)·Peffault 2022 NEJM(rATG+CsA+EPAG CR 68%)·Olnes 2012 NEJM(EPAG 단독 CR 17%·PR 11%) 임상 보정. Hgb·ANC·PLT·ARC·BM세포성·IFN-γ/TNF-α/IL-2·PNH클론 크기·CR/PR/NR·수혈 필요성·MDS/AML 이행 위험 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일 & 중증도·약물PK·조혈·임상엔드포인트·시나리오비교·바이오마커 & 클론진화). **41개 PubMed 인용** (8개 섹션).<br>[🗺️ 지도](aplastic-anemia/aa_qsp_model.svg) · [⚙️ mrgsolve](aplastic-anemia/aa_mrgsolve_model.R) · [📊 Shiny](aplastic-anemia/aa_shiny_app.R) · [📚 문헌](aplastic-anemia/aa_references.md) · [📄 README](aplastic-anemia/README.md) |
 | 158 | 이식면역·HSCT 합병증 | [**이식편대숙주병 (GvHD)**<br><sub>Graft-versus-Host Disease · GvHD</sub>](graft-versus-host-disease/) | <a href="graft-versus-host-disease/gvhd_qsp_model.svg"><img src="graft-versus-host-disease/gvhd_qsp_model.png" width="190" alt="GvHD"></a> | **동종 HSCT 후 공여자 T세포가 숙주 전처치(TBI/항암화학요법) 유발 조직손상(DAMP/PAMP)으로 활성화된 숙주 수지상세포(DC)에 의해 프라이밍 → TCR-MHC mismatch 직접/간접 동종반응(CD28-B7 공자극) → NFAT·NF-κB·JAK-STAT 경로 활성화 → Th1(IFN-γ·TNF-α)/Th17(IL-17A·IL-22) 극화·Treg 결핍 → 급성: 피부·장·간 장기손상(Glucksberg I-IV); 만성: Tfh-B 세포 GC반응·자가항체·TGF-β/ROCK2 섬유화 → 폐쇄성 세기관지염(BOS)·피부경화·간섬유화**. 발병기전 14클러스터(HSCT전처치·항원제시·T세포 분화·사이토카인 네트워크·피부·장·간·폐·B세포 병증·TGF-β/ROCK2 섬유화·CNI PK·룩솔리티닙 PK/PD·기타약물·임상 엔드포인트). CsA(3mg/kg/d PO·F=30%·CYP3A4·2구획·C₀목표 100–300ng/mL)·타크로리무스(0.03mg/kg/d PO·F=25%·CYP3A5·2구획·C₀ 5–15ng/mL)·프레드니손(1mg/kg/d·NF-κB억제·광범위사이토카인↓)·**룩솔리티닙(10mg BID·JAK1 Ki=3.3nM·JAK2 Ki=2.8nM·STAT3/5차단·Treg확장·REACH2/3 NEJM 2020/2021 근거)·벨루모수딜(200mg QD ROCK2 선택적 저해·IRF4/STAT3억제·Th17↓Treg↑·섬유화↓·ROCKstar Blood 2021)·MMF/MPA(1.5g BID·IMPDH억제·림프구 증식차단)** 6종 완전 PK/PD 모델링. **130+ 노드 14 서브그래프 클러스터**, **32구획 ODE**(약물PK 16구획: CsA 3+TAC 3+PRED 2+RUX 3+BELU 2+MPA 2+; 면역PD 16구획: Th1·Th17·Treg·CD8·Bcell·TNF-α·IFN-γ·IL-17A·IL-10·TGF-β·IL-6·피부손상·장손상·간손상·폐손상·섬유화), **6치료 시나리오**(무예방·CsA 단독·CsA+MMF·TAC+MMF·CsA→룩솔리티닙·CsA→벨루모수딜). Glucksberg/NIH 등급·ORR·FFS·OS·NRM 임상 엔드포인트. ST2/REG3α/sTNFR1/CXCL9 바이오마커 패널(Ann Arbor 알고리즘). **8탭 Shiny 대시보드**(환자·약물PK·면역세포·사이토카인·장기손상&엔드포인트·시나리오비교·바이오마커·기전지도). **60개 PubMed 인용** (14개 섹션·Zeiser 2020/2021 NEJM·Cutler 2021 Blood·Ferrara 2009 Lancet·Vander Lugt 2013 NEJM).<br>[🗺️ 지도](graft-versus-host-disease/gvhd_qsp_model.svg) · [⚙️ mrgsolve](graft-versus-host-disease/gvhd_mrgsolve_model.R) · [📊 Shiny](graft-versus-host-disease/gvhd_shiny_app.R) · [📚 문헌](graft-versus-host-disease/gvhd_references.md) · [📄 README](graft-versus-host-disease/README.md) | Treg(FoxP3+) 결핍 → 면역관용 붕괴; IFN-γ → FasR 상향·CXCL9/10 → CTL 골수 모집; BM 미세환경(MSC·내피세포) 손상·지방 대체; PNH 클론(GPI-앵커 결핍·면역 도피) 확대. hATG(40mg/kg×4d·2구획 PK·CL 0.85L/h)·rATG(3.5mg/kg×5d·CL 0.50L/h)·사이클로스포린(5mg/kg/d PO·목표 트로프 150–250ng/mL·CYP3A4·DDI)·엘트롬보파그(150mg/d·c-Mpl 작용제·JAK2/STAT5→HSC 자기재생↑·van der Straaten PopPK)·다나졸(400mg/d 안드로겐·EPO↑·Bcl-2↑) 5종 완전 PK/PD 모델링 + 동종조혈모세포이식(HSCT). **130+ 노드 13클러스터**(면역유발/항원제시·T세포활성화/확장·전염증사이토카인·HSC구획/세포자멸사·BM미세환경·다계열조혈·말초혈액/임상지표·ATG PK·CsA PK·EPAG PK·약물PD기전·질환 중증도/임상결과·지지요법), **20구획 ODE**(ATG 2구획+CsA+EPAG+Danazol PK 5구획+Teff+Treg+HSC+CFU-E+망상적혈구+RBC+CFU-G+ANC+MK+PLT+BM세포성+IFN-γ+TNF-α+IL-2+PNH클론), **5치료 시나리오**(무치료·hATG+CsA·hATG+CsA+EPAG·rATG+CsA+EPAG·동종HSCT). Scheinberg 2011 NEJM(hATG vs rATG·CR 68% vs 37%)·Townsley 2017 NEJM(EPAG 추가·CR 58% vs 36% at 6mo)·Peffault 2022 NEJM(rATG+CsA+EPAG CR 68%)·Olnes 2012 NEJM(EPAG 단독 CR 17%·PR 11%) 임상 보정. Hgb·ANC·PLT·ARC·BM세포성·IFN-γ/TNF-α/IL-2·PNH클론 크기·CR/PR/NR·수혈 필요성·MDS/AML 이행 위험 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일 & 중증도·약물PK·조혈·임상엔드포인트·시나리오비교·바이오마커 & 클론진화). **41개 PubMed 인용** (8개 섹션).<br>[🗺️ 지도](aplastic-anemia/aa_qsp_model.svg) · [⚙️ mrgsolve](aplastic-anemia/aa_mrgsolve_model.R) · [📊 Shiny](aplastic-anemia/aa_shiny_app.R) · [📚 문헌](aplastic-anemia/aa_references.md) · [📄 README](aplastic-anemia/README.md) |
+| 159 | 신경정신과 | [**양극성 장애 (Bipolar Disorder)**<br><sub>Bipolar Disorder · BD-I / BD-II</sub>](bipolar-disorder/) | <a href="bipolar-disorder/bd_qsp_model.svg"><img src="bipolar-disorder/bd_qsp_model.png" width="190" alt="BD"></a> | **도파민 과활성(조증) ↔ 세로토닌·NE 결핍(우울) 반복 삽화. GSK-3β 과활성 → mTOR/BDNF↓ → 해마 신경발생↓; IL-6/TNF-α 신경염증; CLOCK/BMAL1 일주기 리듬 교란; CACNA1C(L형 Ca²⁺ 채널) 위험 대립유전자→신경 과흥분성**. 리튬(2구획 PK·CL 1.8L/h·GSK-3β IC₅₀=0.7mEq/L·BDNF↑·BALANCE/CANMAT 2018 근거)·발프로에이트(비선형 단백결합·fu₀ 10%·GABA-T억제·HDAC억제·VPA GSK-3β 억제)·쿠에티아핀+노르쿠에티아핀(CYP3A4·F=9%·D2R 차단·NET 억제·EMBOLDEN I/II 우울증 근거)·라모트리진(Na⁺채널·Ca²⁺채널 차단·Glu 방출↓·STRIDE-BD 적정 프로토콜)·아리피프라졸(D2R 부분 효현제) 5종 완전 PK/PD 모델링. **120+ 노드 12클러스터**(신경전달물질/수용체·신호전달/GSK-3β·이온채널·HPA축/일주기·신경가소성/BDNF·신경염증·약물MOA·약물PK·임상엔드포인트·유전/후성유전·뇌회로·장-뇌축), **22구획 ODE**(리튬 2구획+발프로에이트+쿠에티아핀+노르쿠에티아핀+라모트리진 PK 10구획; DA·5HT·GSK3·BDNF·IL6·코르티솔 PD 6구획; YMRS·MADRS·GAF·체중·일주기 진동자 6구획), **6치료 시나리오**(리튬 단독 21d 조증·발프로에이트 단독 21d 조증·쿠에티아핀 56d BD우울증·리튬+쿠에티아핀 병용 56d·리튬 유지요법 1년·라모트리진 적정 112d BD-II 우울증). Bowden 1994 JAMA(발프로에이트 조증 RCT)·Calabrese 2005 AJP(쿠에티아핀 우울증 BOLDER)·Young 2010 JCP(EMBOLDEN I)·Geddes 2010 Lancet(BALANCE Li+VPA)·Cipriani 2013 Lancet 메타분석·Yatham 2018 Bipolar Disord(CANMAT 2018 가이드라인) 보정. YMRS·MADRS·HAM-D·CGI-BP·GAF·리튬 혈중농도·VPA·QTc·체중·BDNF 인덱스·GSK-3β 활성·IL-6·코르티솔 임상 바이오마커. **6탭 Shiny 대시보드**(환자프로파일&PGx·약동학·PD바이오마커·임상엔드포인트·시나리오비교·안전모니터). **46개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](bipolar-disorder/bd_qsp_model.svg) · [⚙️ mrgsolve](bipolar-disorder/bd_mrgsolve_model.R) · [📊 Shiny](bipolar-disorder/bd_shiny_app.R) · [📚 문헌](bipolar-disorder/bd_references.md) · [📄 README](bipolar-disorder/README.md) |
 
 ---
 
@@ -1913,3 +1914,35 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Vander Lugt 2013 NEJM | ST2 바이오마커 | 비재발 사망 예측 | ST2>33ng/mL → HR 3.7 |
 
 ### References: 60 PubMed citations (병태생리·T세포생물학·CNI PK/PD·룩솔리티닙 임상시험·벨루모수딜·Ibrutinib·B세포병증·섬유화/TGF-β·장기특이 GvHD·NIH consensus·예방&1선치료·QSP모델링·장내미생물·바이오마커)
+---
+
+## Bipolar Disorder (양극성 장애) — 상세 설명
+
+**디렉토리:** [`bipolar-disorder/`](bipolar-disorder/)
+**추가일:** 2026-06-25
+
+양극성 장애는 조증/경조증과 우울증 삽화가 반복되는 중증 신경정신과 질환으로, 전 세계 유병률 약 2.4%의 주요 장애 원인이다. 이 QSP 모델은 다음을 통합한다:
+
+- **신경전달물질 시스템**: 도파민(DA), 세로토닌(5-HT), 노르에피네프린(NE), GABA/글루타메이트 시냅스 역학
+- **신호전달 경로**: GSK-3β 억제(리튬/발프로에이트), PKC, cAMP/PKA, PI3K/AKT, mTOR, MAPK/ERK
+- **신경가소성**: BDNF/TrkB, 해마 신경발생, 수상돌기 가시 밀도, 해마 용적
+- **신경염증**: IL-6, TNF-α, NLRP3 염증소체, IDO/키누레닌 경로, ROS
+- **HPA 축 & 일주기 리듬**: CRH→ACTH→코르티솔, CLOCK/BMAL1/PER/CRY 시계 유전자
+- **이온채널**: Nav1.x, Cav1.2(CACNA1C), HCN(Ih 전류)
+- **약물 PK/PD**: 리튬(2-cmt), 발프로에이트(비선형 단백결합), 쿠에티아핀+노르쿠에티아핀(CYP3A4), 라모트리진
+- **유전/후성유전**: CACNA1C, ANK3, CLOCK, BDNF Val66Met, COMT Val158Met, miRNA-134/132
+
+### 기계론적 지도 미리보기
+
+[![Bipolar Disorder Mechanistic Map](bipolar-disorder/bd_qsp_model.png)](bipolar-disorder/bd_qsp_model.svg)
+
+### 6가지 치료 시나리오
+
+| 시나리오 | 용법 | 기간 | 1차 엔드포인트 |
+|----------|------|------|----------------|
+| 1. 리튬 단독 | 900 mg/d (TID) | 21일 | YMRS 반응 |
+| 2. 발프로에이트 단독 | 1000 mg/d (BID) | 21일 | YMRS 반응 |
+| 3. 쿠에티아핀 단독 | 300 mg QD | 56일 | MADRS 반응 (BD 우울증) |
+| 4. 리튬 + 쿠에티아핀 | Li + QTP 300 mg | 56일 | MADRS 관해 |
+| 5. 리튬 유지요법 | 900 mg/d | 1년 | BDNF, GSK-3β, 장기 기분 안정 |
+| 6. 라모트리진 적정 | 25→50→100→200 mg/d | 112일 | BD-II 우울증 MADRS |
