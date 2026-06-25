@@ -277,6 +277,7 @@ qsp/
 | 153 | 부인과학·생식내분비 | [**자궁근종 (Uterine Leiomyoma)**<br><sub>Uterine Fibroids · Leiomyoma · UFL</sub>](uterine-leiomyoma/) | <a href="uterine-leiomyoma/ufl_qsp_model.svg"><img src="uterine-leiomyoma/ufl_qsp_model.png" width="190" alt="UFL"></a> | **MED12 돌연변이(70%)·HMGA2 과발현 → HPG 축(GnRH→LH/FSH→E2/P4) 구동 → ERα/PR 과발현 → 세포증식(MAPK/ERK·PI3K/AKT/mTOR·Wnt/β-catenin)↑ + ECM 축적(TGF-β1·콜라겐I/III·TIMP↑·MMP↓·LOX 교차결합) + 국소 아로마타제 과발현(PGE2 → CYP19A1 → E2 양성피드백) → 자궁근종 성장 → AUB·골반통·불임**. HPG 축(KNDy 신경세포·GnRH 펄스·LH/FSH·E2 음성피드백) + 난소 스테로이드 생합성(StAR·CYP11A1·3β-HSD·CYP17A1·CYP19A1 아로마타제) + 자궁 생물학(ERα·ERβ·PR-A/B·VEGF) + 근종 발병기전(MED12·HMGA2·섬유화) + 세포 내 신호전달(MAPK·PI3K·Wnt·JAK-STAT·NF-κB) + ECM 리모델링(MMP-1/2/9·TIMP-1/2·LOX·히알루론산) + 면역미세환경(M2 대식세포·비만세포·PGE2·COX-2) 15클러스터. 류프로라이드 3.75mg 데포(GnRH 작용제·뇌하수체 탈감작·초기 flare→90% E2 억제·Friedman 1989)·엘라고릭스 150/200mg BID(경구 GnRH 길항제·즉각 GnRHR 차단·flare 無·용량 의존적 E2 억제·ELARIS UF-I/II 2020 NEJM)·렐루고릭스 40mg QD(t½≈60h·장기 억제·LIBERTY 1/2 2021 NEJM)·울리프리스탈(UPA 5mg·SPRM 부분길항·PEARL I/II 2012 NEJM·13주×2코스) 4종 완전 PK/PD 모델링 + 호르몬 보충요법(E2 1mg+NET 0.5mg·골보호·안면홍조 완화). **120+ 노드 15클러스터**, **18구획 ODE**(GnRH·LH·FSH·E2·P4·근종용적·ECM·MBL·Hgb·BMD·약물PK 4종 8구획), **6치료 시나리오**(무치료·류프로라이드·엘라고릭스 150mg·엘라고릭스 200mg+AB·렐루고릭스+AB·UPA). Simon 2020 NEJM(ELARIS UF-I: 68.5% HMB 해소)·Schlaff 2020 NEJM(ELARIS UF-II: 76.5%)·Lukes 2021 NEJM(LIBERTY 1: 71.2%)·Murji 2022 NEJM(PRIMROSE: 93.9%)·Donnez 2012 NEJM(PEARL I: 91%) 보정. PBAC 점수·MBL(mL/cycle)·Hgb·BMD 변화율·UFS-QoL·안면홍조 점수 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD지표·임상엔드포인트·시나리오비교·바이오마커패널). **60개 PubMed 인용** (15개 섹션).<br>[🗺️ 지도](uterine-leiomyoma/ufl_qsp_model.svg) · [⚙️ mrgsolve](uterine-leiomyoma/ufl_mrgsolve_model.R) · [📊 Shiny](uterine-leiomyoma/ufl_shiny_app.R) · [📚 문헌](uterine-leiomyoma/ufl_references.md) · [📄 README](uterine-leiomyoma/README.md) |
 | 152 | 부인종양학 | [**난소암 (HGSOC)**<br><sub>Ovarian Cancer · High-Grade Serous · OC</sub>](ovarian-cancer/) | <a href="ovarian-cancer/oc_qsp_model.svg"><img src="ovarian-cancer/oc_qsp_model.png" width="190" alt="OC"></a> | **TP53 변이(>96%) + HRD(BRCA1/2·HRR 유전자) → 상동재조합 결핍 → PARP 합성 치사 · 백금 내성 · 복막 전이 → HGSOC**. DDR/HRR 경로(BRCA1/2·RAD51·PARP1/2·ATM/ATR·CHK1/2) + PI3K/AKT/mTOR + VEGF/혈관신생(HIF-1α·VEGFR1/2·DLL4/Notch) + 종양 미세환경(CAF·TAM M1/M2·MDSC·NK·CD8+ T·Treg·IL-6·TGF-β·IL-10·STAT3) + 면역회피(PD-L1/PD-1·CTLA-4·IDO1·LAG-3·TIM-3·TIGIT) + 복막 전이(EMT·CA-125/MUC16·HE4·LPA) 10클러스터. 카보플라틴(Calvert AUC6 공식·Chatelut CL·Pt-DNA 부가물·G2/M 정지)·파클리탁셀(3구획 PK·비선형·튜불린 안정화)·오라파립(300mg BID·PARP 트래핑·합성 치사)·니라파립(300mg QD·t½=36h)·베바시주맙(anti-VEGF·15mg/kg q3w) 5종 완전 PK/PD 모델링. **180+ 노드 10클러스터**, **18구획 ODE**(CAR·PAC·OLA·NIRA·BEV PK+VEGF+TV(Gompertz)+CA125+Pt_DNA+CD8T+HRD), **6치료 시나리오**(무치료·Carbo+Pacli×6·+Bev유지·→오라파립 BRCA+·→니라파립 HRD+·+Bev→Ola+Bev PAOLA-1). Moore 2018 NEJM(SOLO-1 mPFS NR, HR 0.30)·Gonzalez-Martin 2019 NEJM(PRIMA mPFS 13.8mo, HR 0.43)·Ray-Coquard 2019 NEJM(PAOLA-1 mPFS 22.1mo, HR 0.33)·ICON7/GOG218(베바시주맙) 보정. CA-125·HE4·ROMA·PFS·RECIST 1.1·ctDNA·HRD 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD바이오마커·종양반응·시나리오비교·바이오마커패널). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](ovarian-cancer/oc_qsp_model.svg) · [⚙️ mrgsolve](ovarian-cancer/oc_mrgsolve_model.R) · [📊 Shiny](ovarian-cancer/oc_shiny_app.R) · [📚 문헌](ovarian-cancer/oc_references.md) · [📄 README](ovarian-cancer/README.md) |
 | 149 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
+| 154 | 혈액종양·골수증식 | [**진성 다혈증 (PV)**<br><sub>Polycythemia Vera · PV</sub>](polycythemia-vera/) | <a href="polycythemia-vera/pv_qsp_model.svg"><img src="polycythemia-vera/pv_qsp_model.png" width="190" alt="PV"></a> | **JAK2 V617F 체세포 돌연변이(>95%) → 구성적 JAK-STAT5 신호 → EPO 비의존적 BFU-E/CFU-E 과증식 → 적혈구 덩어리 상승 → Hct 증가 → 혈액 점도 상승 → 혈전 위험(DVT·뇌졸중·간정맥 혈전). 혈소판증가증·백혈구증가증·비장비대(수외조혈). 골수섬유증(post-PV MF) 및 AML 이행 위험**. JAK2 V617F clone → JAK-STAT5/3·PI3K/AKT/mTOR·MAPK/ERK 경로; SOCS1/3 음성 피드백; EPO-R·MPL·G-CSF-R 과민성; BFU-E→CFU-E→망상적혈구→RBC 조혈 ODE; 혈소판(CFU-Mk→거핵구)·WBC 구획; 비장 용적(수외조혈·EMH); 골수 섬유화 점수(MF-0~3); JAK2 V617F 대립유전자 부담(%). 룩솔리티닙(10mg BID·JAK1/2 IC50 2.8/3.3nM·RESPONSE trial SVR35 38%·Hct 조절 60%·2구획 PK)·하이드록시유레아(500mg/d·리보뉴클레오티드 환원효소 억제·IC50=150μM·ECLAP)·PEG-IFN-α2a(45μg/wk SC·클론 억제·PROUD-PV 대립유전자 부담 감소) 완전 PK/PD 모델링 + 정맥 사혈·아스피린. **100+ 노드 10클러스터**, **16구획 ODE**(룩솔리티닙 2구획+HYU 1구획+IFN SC/중심+BFU-E/CFU-E/망상적혈구 BM·순환/RBC/PLT/WBC+비장+섬유화+JAK2 대립유전자 부담), **6치료 시나리오**(무치료·사혈+아스피린·하이드록시유레아·룩솔리티닙·PEG-IFN-α2a·룩솔리티닙 용량반응). RESPONSE(2015 NEJM)·RESPONSE-2(2017 Lancet Oncol)·PROUD-PV/CONTINUATION-PV(2020 Lancet Haematol)·CYTO-PV(2013 NEJM)·ECLAP(2004 NEJM) 임상 보정. Hct·PLT·WBC·비장용적·SVR35·JAK2 대립유전자 부담·pSTAT5 억제·MPN-SAF TSS·연간 혈전 위험·BM 섬유화 점수·MF/AML 이행 위험 바이오마커. **7탭 Shiny 대시보드**(개요·환자프로파일 & ELN 위험층화·약동학·PD & 혈액학·임상 엔드포인트·시나리오 비교·바이오마커 & 질환진행). **58개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](polycythemia-vera/pv_qsp_model.svg) · [⚙️ mrgsolve](polycythemia-vera/pv_mrgsolve_model.R) · [📊 Shiny](polycythemia-vera/pv_shiny_app.R) · [📚 문헌](polycythemia-vera/pv_references.md) · [📄 README](polycythemia-vera/README.md) |
 
 ---
 
@@ -1320,3 +1321,56 @@ AUB (과다 월경출혈) + 골반통 + 골반 압박감 + 불임
 | [`ufl_shiny_app.R`](uterine-leiomyoma/ufl_shiny_app.R) | Shiny 6탭 인터랙티브 대시보드 |
 | [`ufl_references.md`](uterine-leiomyoma/ufl_references.md) | 참고문헌 60개 (15섹션, PubMed 링크) |
 | [`README.md`](uterine-leiomyoma/README.md) | 디렉토리 상세 설명 |
+
+---
+
+## QSP Model Library — Disease Index
+
+| Date | Category | Disease (EN) | 질환명 (KR) | Thumbnail | DOT | SVG | R Model | Shiny | Refs |
+|------|----------|-------------|------------|-----------|-----|-----|---------|-------|------|
+| 2026-06-25 | Myeloproliferative Neoplasm | Polycythemia Vera | 진성 다혈증 | [![PV](polycythemia-vera/pv_qsp_model.png)](polycythemia-vera/pv_qsp_model.svg) | [.dot](polycythemia-vera/pv_qsp_model.dot) | [.svg](polycythemia-vera/pv_qsp_model.svg) | [.R](polycythemia-vera/pv_mrgsolve_model.R) | [app](polycythemia-vera/pv_shiny_app.R) | [refs](polycythemia-vera/pv_references.md) |
+
+---
+
+## Polycythemia Vera (진성 다혈증) — 2026-06-25
+
+**Disease:** Polycythemia Vera (PV) | BCR-ABL1-negative Myeloproliferative Neoplasm
+
+**Driver Mutation:** JAK2 V617F (>95%) → constitutive JAK-STAT5 signaling → clonal erythroid expansion
+
+### Mechanistic Map Highlights
+- **10 subgraph clusters · 100+ nodes** covering full disease biology and drug PK/PD
+- JAK2 V617F → JAK-STAT5 cascade → BFU-E/CFU-E hyperproliferation → elevated RBC mass → thrombosis risk
+- Drug targets: Ruxolitinib (JAK1/2), Hydroxyurea (ribonucleotide reductase), PEG-IFN-α2a (clonal suppression), Aspirin (COX-1/TXA2)
+
+### mrgsolve Model (16 ODEs)
+| Compartment Group | ODEs |
+|---|---|
+| Ruxolitinib PK (2-compartment) | DEPOT_RUX, CENT_RUX, PERI_RUX |
+| Hydroxyurea PK | CENT_HYU |
+| PEG-IFN-α2a PK (SC depot) | SC_IFN, CENT_IFN |
+| Erythropoiesis | BFU-E, CFU-E, RETIC_BM, RETIC_C, RBC |
+| Thrombo/leukopoiesis | PLT, WBC |
+| Disease progression | SPL (spleen), FIBRO (BM fibrosis), ALLELE (JAK2 allele burden) |
+
+### Treatment Scenarios Simulated
+1. Untreated natural history (2 years)
+2. Phlebotomy + Aspirin (low-risk standard)
+3. Hydroxyurea 500 mg/d (high-risk, ECLAP calibrated)
+4. Ruxolitinib 10 mg BID (RESPONSE trial calibrated: SVR35, Hct control)
+5. PEG-IFN-α2a 45 μg/wk SC (PROUD-PV calibrated: allele burden reduction)
+6. Ruxolitinib dose-response (5/10/15/20 mg BID)
+
+### Shiny Dashboard (7 Tabs)
+Overview · Patient Profile & Risk Stratification · Pharmacokinetics · PD & Hematology · Clinical Endpoints · Scenario Comparison · Biomarkers & Disease Progression
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| RESPONSE | Ruxolitinib 10 mg BID | SVR35 at wk 32 | 38% | ~37% |
+| RESPONSE | Ruxolitinib 10 mg BID | Hct control wk 32 | 60% | ~58% |
+| PROUD-PV | PEG-IFN-α2a 45 μg/wk | CHR wk 52 | 43% | ~42% |
+| ECLAP | Aspirin 81 mg/d | Thrombosis reduction | ~60% | ~55% |
+| CYTO-PV | Phlebotomy (Hct<45%) | CV events | 4.4% vs 10.9% | Modeled |
+
+### References: 58 PubMed citations (disease biology, JAK2 mutation, clinical trials, PK/PD, guidelines)
