@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-152-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-153-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **152개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **153개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -1477,6 +1477,7 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 
 ### References: 55 PubMed citations (KIT D816V pathobiology, WHO 2022 classification, midostaurin/avapritinib trials, cladribine, bone disease, QSP methodology)
 | 2026-06-25 | Fibroinflammatory / Immune-Mediated | IgG4-Related Disease | IgG4 연관 질환 | [![IgG4-RD](igg4-related-disease/igg4rd_qsp_model.png)](igg4-related-disease/igg4rd_qsp_model.svg) | [.dot](igg4-related-disease/igg4rd_qsp_model.dot) | [.svg](igg4-related-disease/igg4rd_qsp_model.svg) | [.R](igg4-related-disease/igg4rd_mrgsolve_model.R) | [app](igg4-related-disease/igg4rd_shiny_app.R) | [refs](igg4-related-disease/igg4rd_references.md) |
+| 2026-06-25 | Bone Marrow Failure / Hematology | Aplastic Anemia | 재생불량성 빈혈 | [![AA](aplastic-anemia/aa_qsp_model.png)](aplastic-anemia/aa_qsp_model.svg) | [.dot](aplastic-anemia/aa_qsp_model.dot) | [.svg](aplastic-anemia/aa_qsp_model.svg) | [.R](aplastic-anemia/aa_mrgsolve_model.R) | [app](aplastic-anemia/aa_shiny_app.R) | [refs](aplastic-anemia/aa_references.md) |
 
 ---
 
@@ -1531,3 +1532,58 @@ Overview · Patient Profile · Pharmacokinetics · B Cell & Immunity · Cytokine
 Rituximab depletes CD20+ B cells and plasmablasts but **NOT** CD20− long-lived plasma cells — explaining why IgG4 normalizes slowly and relapse occurs from residual plasma cells. Maintenance rituximab re-depletes repopulating plasmablasts and reduces relapse.
 
 ### References: 60 PubMed citations (disease biology, Tfh2/CTL4 pathogenesis, IgG4 class switching, clinical trials, rituximab PK/TMDD, dupilumab, organ manifestations, QSP methodology)
+
+---
+
+## Aplastic Anemia (재생불량성 빈혈) — 2026-06-25
+
+**Disease:** Aplastic Anemia (AA) | Immune-Mediated Bone Marrow Failure Syndrome
+
+[![AA Map](aplastic-anemia/aa_qsp_model.png)](aplastic-anemia/aa_qsp_model.svg)
+
+### Disease Overview
+Aplastic Anemia is a life-threatening bone marrow failure syndrome caused by **autoreactive CD8+ T-cell–mediated destruction of hematopoietic stem cells (HSCs)**. The trigger is idiopathic in ~70% of cases; recognized causes include viral infections (EBV, CMV, hepatitis), chemical exposures (benzene), and drugs (chloramphenicol, carbamazepine). Genetic susceptibility via **HLA-DR15** is well established. Resulting pancytopenia causes life-threatening infections (ANC-driven) and bleeding (PLT-driven). Long-term complications include PNH clone expansion and MDS/AML transformation.
+
+### Mechanistic Map (12 Clusters, 130+ Nodes)
+- Environmental trigger → oligoclonal TCR expansion → Th1 CD4+/CD8+ polarization (T-bet+)
+- IFN-γ → JAK1-STAT1-IRF1 → Fas up-regulation → HSC apoptosis (extrinsic + intrinsic)
+- TNF-α → TNFR1 → Caspase-8/3 cascade → HSC elimination
+- Treg (CD4+CD25+FoxP3+) depleted → loss of immune tolerance
+- BM niche: CXCL12/CXCR4, Notch/Wnt maintained; adipocyte replacement → hostile niche
+- Progenitor cascade: LT-HSC → ST-HSC → MPP → CMP/CLP → GMP/MEP → mature cells
+- Telomere biology: TERT/TERC/DKC1 mutations → short TL → DDR/p53 → HSC senescence
+- Drug nodes: hATG (2-cpt TMDD, CDC, ADCC), rATG, CsA (calcineurin-NFATc1), Eltrombopag (MPL/JAK2-STAT5), Danazol (AR→TERT)
+
+### mrgsolve ODE Model (19 Compartments)
+| Compartment Group | ODEs |
+|---|---|
+| Immune dynamics | CD8 (autoreactive CD8+), TREG (regulatory T cells), CYTO (cytokine index) |
+| HSC & Progenitors | HSC (pool, AU), PROG (myeloid progenitors), CFU_E (erythroid progenitors) |
+| Erythroid lineage | RETIC (reticulocytes), RBC (Hgb, g/dL) |
+| Megakaryocyte/PLT | MKP (progenitors), PLT (×10⁹/L) |
+| Neutrophil lineage | NEUP (precursors), NEU (×10⁹/L) |
+| Telomere biology | TELO (relative length) |
+| ATG PK (2-cpt IV) | CATG (central), PATG (peripheral) |
+| CsA PK (oral 2-cpt) | CGUT (gut), CCSA (central) |
+| EPAG PK (oral 1-cpt) | EGUT (gut), CEPG (central) |
+
+### Treatment Scenarios Simulated
+1. Untreated severe AA (sAA natural history)
+2. hATG + CsA standard IST (Young 2011 NEJM: 6-mo CR ~68%)
+3. rATG + CsA (inferior IST; Young 2011 NEJM: 6-mo CR ~37%)
+4. hATG + CsA + Eltrombopag (Townsley 2017 NEJM: 6-mo CR ~58%)
+5. Eltrombopag monotherapy (Desmond 2013 JCI: ~44% in refractory AA)
+6. CsA monotherapy (non-severe/elderly patients)
+
+### Shiny Dashboard (6 Tabs)
+Patient Profile · Pharmacokinetics · BM & Immunity · Clinical Endpoints · Scenario Comparison · Biomarkers
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| Young 2011 NEJM (n=120) | hATG+CsA | 6-mo CR | 68% | ~65-70% |
+| Young 2011 NEJM (n=120) | rATG+CsA | 6-mo CR | 37% | ~35-40% |
+| Townsley 2017 NEJM (n=92) | hATG+CsA+EPAG | 6-mo CR | 58% | ~55-60% |
+| Olnes 2012 NEJM (n=25) | EPAG monotherapy | 6-mo response | 44% | ~40-45% |
+
+### References: 60 PubMed citations (disease biology, T-cell immunopathogenesis, HSC biology, ATG/CsA/EPAG pharmacology, telomere biology, PNH/clonal evolution, clinical trials, QSP modeling)
