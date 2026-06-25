@@ -1,0 +1,597 @@
+digraph nhl_dlbcl_qsp {
+  graph [label="Non-Hodgkin Lymphoma (DLBCL) QSP Model\nDiffuse Large B-Cell Lymphoma — Mechanistic Pathophysiology & Pharmacology",
+         labelloc=t, fontsize=22, fontname="Helvetica-Bold",
+         bgcolor="#F8F9FA", rankdir=LR, splines=ortho, nodesep=0.4, ranksep=0.8,
+         compound=true];
+  node [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box, margin="0.15,0.08"];
+  edge [fontname="Helvetica", fontsize=8, arrowsize=0.7];
+
+  /* ============================================================
+     CLUSTER 1: B-Cell Development & Normal Differentiation
+     ============================================================ */
+  subgraph cluster_bcell_dev {
+    label="1. B-Cell Development & Differentiation";
+    style=filled; fillcolor="#E8F5E9"; color="#388E3C"; fontsize=13; fontcolor="#1B5E20";
+
+    ProB [label="Pro-B Cell\n(CD34+, CD19+)", fillcolor="#C8E6C9"];
+    PreB [label="Pre-B Cell\n(IgM pre-BCR)", fillcolor="#C8E6C9"];
+    ImmatureB [label="Immature B\n(IgM+)", fillcolor="#C8E6C9"];
+    NaiveB [label="Naive B Cell\n(IgM+IgD+)", fillcolor="#A5D6A7"];
+    GCB_cell [label="GC B Cell\n(BCL6+, IRF4-low)", fillcolor="#81C784", shape=ellipse];
+    MemoryB [label="Memory B Cell\n(CD27+, IgG+)", fillcolor="#66BB6A"];
+    PlasmaCell [label="Plasma Cell\n(CD138+, BLIMP1+)", fillcolor="#4CAF50"];
+    PAX5 [label="PAX5\n(B-cell TF)", fillcolor="#A5D6A7", shape=diamond];
+    IRF4 [label="IRF4\n(Plasma diff.)", fillcolor="#A5D6A7", shape=diamond];
+    BCL6_TF [label="BCL6\n(GC master TF)", fillcolor="#81C784", shape=diamond];
+    BLIMP1 [label="BLIMP1/PRDM1\n(Plasma master TF)", fillcolor="#66BB6A", shape=diamond];
+    AID [label="AID/AICDA\n(Somatic mutation)", fillcolor="#C8E6C9", shape=diamond];
+
+    ProB -> PreB [label="VDJ recomb."];
+    PreB -> ImmatureB [label="L-chain recomb."];
+    ImmatureB -> NaiveB [label="Selection"];
+    NaiveB -> GCB_cell [label="Ag stimulation\n+ T-cell help"];
+    GCB_cell -> MemoryB [label="GC exit"];
+    GCB_cell -> PlasmaCell [label="GC exit"];
+    PAX5 -> ProB [arrowhead=dot];
+    BCL6_TF -> GCB_cell [arrowhead=dot];
+    AID -> GCB_cell [label="SHM/CSR"];
+    BLIMP1 -> PlasmaCell [arrowhead=dot];
+    IRF4 -> PlasmaCell [arrowhead=dot];
+    BCL6_TF -> IRF4 [label="Represses", style=dashed, arrowhead=tee, color=red];
+    BCL6_TF -> BLIMP1 [label="Represses", style=dashed, arrowhead=tee, color=red];
+  }
+
+  /* ============================================================
+     CLUSTER 2: Germinal Center Reaction & DLBCL Origin
+     ============================================================ */
+  subgraph cluster_gc_reaction {
+    label="2. Germinal Center (GC) Reaction & DLBCL Origin";
+    style=filled; fillcolor="#FFF8E1"; color="#F57F17"; fontsize=13; fontcolor="#E65100";
+
+    DZ [label="Dark Zone\n(CXCR4+, CXCL12)", fillcolor="#FFF9C4"];
+    LZ [label="Light Zone\n(CXCR5+, CXCL13)", fillcolor="#FFF9C4"];
+    FDC [label="Follicular Dendritic\nCell (FDC)", fillcolor="#FFE082"];
+    Tfh [label="T Follicular Helper\n(CD4+, CXCR5+, PD-1hi)", fillcolor="#FFCA28"];
+    CD40L_Tfh [label="CD40L/CD154\n(Tfh signal)", fillcolor="#FFB300"];
+    CXCR4 [label="CXCR4\n(Dark zone homing)", fillcolor="#FFF9C4", shape=hexagon];
+    CXCR5 [label="CXCR5\n(Light zone homing)", fillcolor="#FFF9C4", shape=hexagon];
+    SHM [label="Somatic\nHypermutation\n(AID-mediated)", fillcolor="#FFF176"];
+    CSR [label="Class Switch\nRecombination", fillcolor="#FFF176"];
+    DLBCL_origin [label="DLBCL\n(GCB or ABC subtype)\n≥3 SHM errors", fillcolor="#FF8F00", shape=octagon, fontcolor=white];
+    GCB_type [label="GCB-DLBCL\n(BCL6+, EZH2 mut)", fillcolor="#FF6F00", fontcolor=white];
+    ABC_type [label="ABC-DLBCL\n(NF-κB activated,\nIRF4/MUM1+)", fillcolor="#E65100", fontcolor=white];
+    PMBL [label="PMBL\n(JAK-STAT, CD30+)", fillcolor="#BF360C", fontcolor=white];
+
+    DZ -> LZ [label="CXCR5↑"];
+    LZ -> DZ [label="Selection → CXCR4↑"];
+    FDC -> LZ [label="Ag presentation"];
+    Tfh -> LZ [label="CD40L, IL-21, IL-4"];
+    SHM -> DZ [arrowhead=dot];
+    CSR -> LZ [arrowhead=dot];
+    GCB_cell -> DZ [ltail=cluster_bcell_dev, style=dashed];
+    DZ -> DLBCL_origin [label="Oncogenic\nmutation", color=red, style=bold];
+    DLBCL_origin -> GCB_type;
+    DLBCL_origin -> ABC_type;
+    DLBCL_origin -> PMBL;
+    CXCR4 -> DZ [arrowhead=dot];
+    CXCR5 -> LZ [arrowhead=dot];
+  }
+
+  /* ============================================================
+     CLUSTER 3: BCR Signaling (PI3K/AKT/mTOR & MAPK)
+     ============================================================ */
+  subgraph cluster_bcr_signaling {
+    label="3. BCR Signaling — PI3K/AKT/mTOR & MAPK";
+    style=filled; fillcolor="#E3F2FD"; color="#1565C0"; fontsize=13; fontcolor="#0D47A1";
+
+    BCR [label="BCR\n(IgM/IgG surface)", fillcolor="#BBDEFB", shape=hexagon];
+    Lyn_kinase [label="Lyn Kinase\n(SFK)", fillcolor="#90CAF9"];
+    Syk_kinase [label="Syk Kinase\n(ITAM)", fillcolor="#64B5F6"];
+    BTK_kinase [label="BTK\n(Bruton's TK)", fillcolor="#42A5F5", shape=ellipse];
+    PLCG2 [label="PLCγ2\n(DAG + IP3)", fillcolor="#2196F3"];
+    IP3 [label="IP3\n(Ca²⁺ release)", fillcolor="#1E88E5"];
+    Calcium [label="Ca²⁺\n(↑cytoplasmic)", fillcolor="#1565C0", fontcolor=white];
+    Calcineurin [label="Calcineurin\n(PP2B)", fillcolor="#1565C0", fontcolor=white];
+    NFAT [label="NFAT\n(nuclear)", fillcolor="#0D47A1", fontcolor=white];
+    PI3K_delta [label="PI3Kδ\n(p110δ/p85)", fillcolor="#90CAF9"];
+    PIP2 [label="PIP2", fillcolor="#BBDEFB"];
+    PIP3 [label="PIP3\n(2nd messenger)", fillcolor="#90CAF9"];
+    PTEN [label="PTEN\n(PIP3 → PIP2)", fillcolor="#E57373", shape=hexagon];
+    PDK1 [label="PDK1\n(AKT activator)", fillcolor="#64B5F6"];
+    AKT [label="AKT\n(PKB)", fillcolor="#42A5F5", shape=ellipse];
+    mTORC1 [label="mTORC1\n(RAPTOR)", fillcolor="#1E88E5", shape=ellipse];
+    S6K1 [label="S6K1\n(protein synth.)", fillcolor="#1565C0", fontcolor=white];
+    EIF4EBP1 [label="4E-BP1\n(translation)", fillcolor="#1565C0", fontcolor=white];
+    GSK3B [label="GSK3β\n(→ MYC degr.)", fillcolor="#0D47A1", fontcolor=white];
+    RAS_BCR [label="RAS\n(GTPase)", fillcolor="#64B5F6", shape=ellipse];
+    RAF_BCR [label="RAF/B-RAF", fillcolor="#42A5F5"];
+    MEK_BCR [label="MEK1/2", fillcolor="#1E88E5"];
+    ERK_BCR [label="ERK1/2\n(MAPK)", fillcolor="#1565C0", fontcolor=white];
+
+    BCR -> Lyn_kinase [label="ITAM phos."];
+    Lyn_kinase -> Syk_kinase;
+    Syk_kinase -> BTK_kinase;
+    BTK_kinase -> PLCG2;
+    PLCG2 -> IP3;
+    IP3 -> Calcium;
+    Calcium -> Calcineurin;
+    Calcineurin -> NFAT [label="Dephospho."];
+    Syk_kinase -> PI3K_delta;
+    PI3K_delta -> PIP2 [arrowhead=tee];
+    PI3K_delta -> PIP3 [label="PIP2→PIP3"];
+    PTEN -> PIP3 [arrowhead=tee, color=red];
+    PIP3 -> PDK1;
+    PDK1 -> AKT [label="T308 phos."];
+    AKT -> mTORC1 [label="S473 phos."];
+    mTORC1 -> S6K1;
+    mTORC1 -> EIF4EBP1 [label="Phospho.→inact."];
+    AKT -> GSK3B [label="Inhibits", arrowhead=tee, color=red];
+    RAS_BCR -> RAF_BCR;
+    RAF_BCR -> MEK_BCR;
+    MEK_BCR -> ERK_BCR;
+    Syk_kinase -> RAS_BCR [style=dashed];
+  }
+
+  /* ============================================================
+     CLUSTER 4: NF-κB Pathway (Canonical & Non-Canonical)
+     ============================================================ */
+  subgraph cluster_nfkb {
+    label="4. NF-κB Pathway — Canonical & Non-Canonical";
+    style=filled; fillcolor="#FCE4EC"; color="#AD1457"; fontsize=13; fontcolor="#880E4F";
+
+    CBM_complex [label="CBM Complex\nCARD11/BCL10/MALT1", fillcolor="#F8BBD0", shape=ellipse];
+    IKK_complex [label="IKK Complex\n(IKKα/IKKβ/NEMO)", fillcolor="#F48FB1"];
+    IkBa [label="IκBα\n(NF-κB inhibitor)", fillcolor="#F06292", shape=hexagon];
+    NFkB_p65 [label="NF-κB\np65/p50 (canonical)", fillcolor="#E91E63", fontcolor=white, shape=ellipse];
+    NFkB_p52 [label="NF-κB\np52/RelB (non-canonical)", fillcolor="#C2185B", fontcolor=white, shape=ellipse];
+    TRAF3 [label="TRAF3\n(NIK suppressor)", fillcolor="#F48FB1"];
+    TRAF6 [label="TRAF6\n(IKKβ activator)", fillcolor="#F48FB1"];
+    NIK [label="NIK/MAP3K14\n(non-canonical)", fillcolor="#E91E63", fontcolor=white];
+    BAFFR [label="BAFF-R\n(TNFRSF13C)", fillcolor="#F8BBD0", shape=hexagon];
+    CD40R [label="CD40\n(Tfh interaction)", fillcolor="#F8BBD0", shape=hexagon];
+    A20 [label="A20/TNFAIP3\n(NF-κB feedback)", fillcolor="#EF9A9A"];
+    MYD88_L265P [label="MyD88\nL265P mutation\n(ABC-DLBCL)", fillcolor="#B71C1C", fontcolor=white];
+    CD79AB [label="CD79A/B\nITAM mutations\n(ABC-DLBCL)", fillcolor="#C62828", fontcolor=white];
+    NFkB_targets [label="NF-κB Target Genes:\nBCL-2, BCL-XL, MCL-1,\nIL-6, IL-10, FLIP,\nICAM-1, CD44, VEGF", fillcolor="#AD1457", fontcolor=white, shape=rect];
+
+    BTK_kinase -> CBM_complex [ltail=cluster_bcr_signaling];
+    MYD88_L265P -> CBM_complex [label="TLR/IL-1R signal"];
+    CD79AB -> CBM_complex [label="Tonic BCR"];
+    CBM_complex -> IKK_complex;
+    IKK_complex -> IkBa [label="Phospho.→degrade", arrowhead=tee];
+    IkBa -> NFkB_p65 [arrowhead=tee, color=red, label="Sequesters"];
+    NFkB_p65 -> NFkB_targets;
+    BAFFR -> TRAF3 [arrowhead=tee];
+    TRAF3 -> NIK [arrowhead=tee, label="Normally\ndegrades"];
+    NIK -> IKK_complex [label="IKKα phos."];
+    NIK -> NFkB_p52;
+    CD40R -> TRAF6;
+    TRAF6 -> IKK_complex;
+    A20 -> IKK_complex [arrowhead=tee, label="Feedback"];
+  }
+
+  /* ============================================================
+     CLUSTER 5: MYC Oncogene & Cell Cycle
+     ============================================================ */
+  subgraph cluster_myc_cellcycle {
+    label="5. MYC Oncogene, c-MYC/BCL-2 Double-Hit & Cell Cycle";
+    style=filled; fillcolor="#F3E5F5"; color="#6A1B9A"; fontsize=13; fontcolor="#4A148C";
+
+    MYC_gene [label="MYC Gene\n8q24 translocation\n(t(8;14))", fillcolor="#E1BEE7", shape=parallelogram];
+    cMYC [label="c-MYC protein\n(bHLH-LZ TF)", fillcolor="#CE93D8", shape=ellipse];
+    MAX_protein [label="MAX\n(MYC partner)", fillcolor="#BA68C8"];
+    MYC_targets [label="MYC Target Genes:\nCDK4, Cyclin D1/E,\nE2F1, LDHA,\nGLS, ODC1", fillcolor="#9C27B0", fontcolor=white, shape=rect];
+    CyclinD1 [label="Cyclin D1/D3\n(G1/S transition)", fillcolor="#AB47BC"];
+    CDK46 [label="CDK4/6", fillcolor="#9C27B0", fontcolor=white];
+    RB1 [label="RB1\n(G1 checkpoint)", fillcolor="#7B1FA2", fontcolor=white, shape=hexagon];
+    E2F_TF [label="E2F1/2/3\n(S-phase genes)", fillcolor="#6A1B9A", fontcolor=white];
+    CyclinE [label="Cyclin E\n(CDK2 partner)", fillcolor="#AB47BC"];
+    CDK2 [label="CDK2", fillcolor="#8E24AA", fontcolor=white];
+    p21 [label="p21/CDKN1A\n(CDK inhibitor)", fillcolor="#EF9A9A", shape=hexagon];
+    p16 [label="p16/CDKN2A\n(CDK4/6 inh.)", fillcolor="#EF9A9A", shape=hexagon];
+    MDM2 [label="MDM2\n(p53 E3 ligase)", fillcolor="#CE93D8"];
+    TP53 [label="TP53/p53\n(17p13 del, mut)", fillcolor="#7B1FA2", fontcolor=white, shape=diamond];
+    BCL2_translocate [label="BCL-2\nt(14;18)\n(GCB-DLBCL)", fillcolor="#E1BEE7", shape=parallelogram];
+    DoubleHit [label="Double-Hit\nLymphoma\n(MYC+BCL2/BCL6)", fillcolor="#4A148C", fontcolor=white, shape=octagon];
+
+    MYC_gene -> cMYC;
+    cMYC -> MAX_protein [label="Heterodimerize"];
+    MAX_protein -> MYC_targets [label="E-box binding"];
+    MYC_targets -> CyclinD1;
+    CyclinD1 -> CDK46 [label="Activates"];
+    CDK46 -> RB1 [label="Phospho.→inact.", arrowhead=tee];
+    RB1 -> E2F_TF [arrowhead=tee, label="Normally\nrepresses"];
+    E2F_TF -> CyclinE;
+    CyclinE -> CDK2;
+    CDK2 -> RB1 [label="Hyperphospho."];
+    p21 -> CDK46 [arrowhead=tee, color=red];
+    p21 -> CDK2 [arrowhead=tee, color=red];
+    p16 -> CDK46 [arrowhead=tee, color=red];
+    TP53 -> p21 [label="Transactivates"];
+    TP53 -> MDM2 [label="Transactivates"];
+    MDM2 -> cMYC [label="Degrades", arrowhead=tee];
+    MDM2 -> TP53 [label="Auto-feedback\n(degrades)", arrowhead=tee, color=red];
+    MYC_gene -> DoubleHit;
+    BCL2_translocate -> DoubleHit;
+    AKT -> MDM2 [label="Activates", ltail=cluster_bcr_signaling];
+    GSK3B -> cMYC [label="T58 phos.→\ndegradation", ltail=cluster_bcr_signaling];
+  }
+
+  /* ============================================================
+     CLUSTER 6: BCL-2 Family & Apoptosis
+     ============================================================ */
+  subgraph cluster_apoptosis {
+    label="6. BCL-2 Family & Apoptosis Regulation";
+    style=filled; fillcolor="#FBE9E7"; color="#BF360C"; fontsize=13; fontcolor="#7F0000";
+
+    BCL2_prot [label="BCL-2\n(anti-apoptotic)", fillcolor="#FFCCBC", shape=ellipse];
+    BCL_XL [label="BCL-XL\n(anti-apoptotic)", fillcolor="#FFCCBC", shape=ellipse];
+    MCL1 [label="MCL-1\n(anti-apoptotic)", fillcolor="#FFCCBC", shape=ellipse];
+    BFL1 [label="BFL-1/A1\n(anti-apoptotic)", fillcolor="#FFCCBC", shape=ellipse];
+    BAX [label="BAX\n(pro-apoptotic)", fillcolor="#FF7043", fontcolor=white, shape=ellipse];
+    BAK [label="BAK\n(pro-apoptotic)", fillcolor="#FF7043", fontcolor=white, shape=ellipse];
+    BIM [label="BIM/BCL2L11\n(BH3-only)", fillcolor="#FF5722", fontcolor=white];
+    BID [label="BID/tBID\n(BH3-only)", fillcolor="#FF5722", fontcolor=white];
+    PUMA [label="PUMA/BBC3\n(BH3-only, p53)", fillcolor="#FF5722", fontcolor=white];
+    NOXA [label="NOXA\n(BH3-only)", fillcolor="#FF5722", fontcolor=white];
+    Cytochrome_C [label="Cytochrome c\n(mitochondrial release)", fillcolor="#F4511E", fontcolor=white];
+    Apaf1 [label="Apaf-1\n(apoptosome)", fillcolor="#E64A19", fontcolor=white];
+    Casp9 [label="Caspase-9\n(initiator)", fillcolor="#D84315", fontcolor=white, shape=ellipse];
+    Casp3 [label="Caspase-3\n(executioner)", fillcolor="#BF360C", fontcolor=white, shape=ellipse];
+    Casp8 [label="Caspase-8\n(death receptor)", fillcolor="#D84315", fontcolor=white, shape=ellipse];
+    FLIP_protein [label="c-FLIP\n(Casp8 inhibitor)", fillcolor="#FFCCBC"];
+    XIAP [label="XIAP\n(IAP, Casp inh.)", fillcolor="#FFCCBC"];
+    Survivin [label="Survivin/BIRC5\n(IAP)", fillcolor="#FFCCBC"];
+    Apoptosis_end [label="CELL DEATH\nApoptosis", fillcolor="#7F0000", fontcolor=white, shape=octagon];
+
+    BCL2_prot -> BAX [arrowhead=tee, color=darkgreen, label="Sequesters"];
+    BCL_XL -> BAK [arrowhead=tee, color=darkgreen];
+    MCL1 -> BAK [arrowhead=tee, color=darkgreen];
+    BCL2_prot -> BIM [arrowhead=tee, color=darkgreen];
+    BIM -> BCL2_prot [label="Displaces", arrowhead=tee, style=dashed];
+    BIM -> BAX [label="Activates"];
+    BAX -> Cytochrome_C [label="MOMP"];
+    BAK -> Cytochrome_C [label="MOMP"];
+    Cytochrome_C -> Apaf1 [label="Apoptosome\nformation"];
+    Apaf1 -> Casp9;
+    Casp9 -> Casp3;
+    Casp8 -> Casp3;
+    Casp3 -> Apoptosis_end;
+    FLIP_protein -> Casp8 [arrowhead=tee, color=darkgreen];
+    XIAP -> Casp3 [arrowhead=tee, color=darkgreen];
+    XIAP -> Casp9 [arrowhead=tee, color=darkgreen];
+    Survivin -> Casp3 [arrowhead=tee, color=darkgreen];
+    PUMA -> BCL2_prot [label="Binds", arrowhead=tee, style=dashed];
+    NOXA -> MCL1 [label="Binds", arrowhead=tee, style=dashed];
+    TP53 -> PUMA [label="Induces", ltail=cluster_myc_cellcycle];
+    TP53 -> NOXA [label="Induces", ltail=cluster_myc_cellcycle];
+    NFkB_targets -> BCL2_prot [label="Transcription", ltail=cluster_nfkb];
+    NFkB_targets -> BCL_XL [ltail=cluster_nfkb];
+    NFkB_targets -> MCL1 [ltail=cluster_nfkb];
+    NFkB_targets -> FLIP_protein [ltail=cluster_nfkb];
+  }
+
+  /* ============================================================
+     CLUSTER 7: Epigenetic Regulation
+     ============================================================ */
+  subgraph cluster_epigenetics {
+    label="7. Epigenetic Regulation & Key DLBCL Mutations";
+    style=filled; fillcolor="#E8EAF6"; color="#283593"; fontsize=13; fontcolor="#1A237E";
+
+    EZH2_mut [label="EZH2 Y641\nMutation\n(GCB-DLBCL)", fillcolor="#C5CAE9", shape=parallelogram];
+    EZH2_prot [label="EZH2\n(PRC2 complex,\nH3K27me3)", fillcolor="#9FA8DA"];
+    KMT2D [label="KMT2D/MLL4\n(H3K4me3, lost)", fillcolor="#7986CB", shape=parallelogram];
+    CREBBP [label="CREBBP/CBP\n(HAT, mut)", fillcolor="#5C6BC0", fontcolor=white, shape=parallelogram];
+    EP300 [label="EP300\n(HAT, mut)", fillcolor="#3949AB", fontcolor=white, shape=parallelogram];
+    DNMT3A [label="DNMT3A\n(DNA methyl.)", fillcolor="#1A237E", fontcolor=white];
+    TET2 [label="TET2\n(DNA demethyl.)", fillcolor="#1A237E", fontcolor=white];
+    H3K27me3 [label="H3K27me3\n(repressive mark)", fillcolor="#9FA8DA"];
+    H3K4me3 [label="H3K4me3\n(active mark)", fillcolor="#7986CB", fontcolor=white];
+    SWI_SNF [label="SWI/SNF\n(ARID1A, mut)", fillcolor="#5C6BC0", fontcolor=white];
+    HDAC_complex [label="HDAC1/2\n(deacetylation)", fillcolor="#3949AB", fontcolor=white];
+    Epigenetic_targets [label="Repressed: CDKN1A,\nCD19, IGHM,\nDifferentiation genes", fillcolor="#1A237E", fontcolor=white, shape=rect];
+
+    EZH2_mut -> EZH2_prot [label="Gain-of-function"];
+    EZH2_prot -> H3K27me3 [label="Methylates"];
+    H3K27me3 -> Epigenetic_targets [label="Silences"];
+    KMT2D -> H3K4me3 [label="Normally adds\n(lost in DLBCL)"];
+    CREBBP -> H3K4me3 [label="Acetylates\n(lost in DLBCL)"];
+    EP300 -> CREBBP [label="Cooperates"];
+    SWI_SNF -> Epigenetic_targets [label="Remodels\n(lost in DLBCL)"];
+    HDAC_complex -> H3K4me3 [arrowhead=tee, label="Removes acetyl"];
+    BCL6_TF -> HDAC_complex [label="Recruits", ltail=cluster_bcell_dev];
+    BCL6_TF -> EZH2_prot [label="Upregulates", ltail=cluster_bcell_dev];
+  }
+
+  /* ============================================================
+     CLUSTER 8: Tumor Microenvironment (TME)
+     ============================================================ */
+  subgraph cluster_tme {
+    label="8. Tumor Microenvironment (TME)";
+    style=filled; fillcolor="#E0F7FA"; color="#006064"; fontsize=13; fontcolor="#004D40";
+
+    TAM_M1 [label="TAM M1\n(anti-tumor)", fillcolor="#B2EBF2"];
+    TAM_M2 [label="TAM M2\n(pro-tumor)", fillcolor="#80DEEA"];
+    CD4_T [label="CD4+ T Cell\n(TME)", fillcolor="#4DD0E1"];
+    CD8_cytotoxic [label="CD8+ CTL\n(tumor killing)", fillcolor="#26C6DA"];
+    NK_cell [label="NK Cell\n(ADCC effector)", fillcolor="#00BCD4", fontcolor=white];
+    Treg_tme [label="T-regulatory\n(CD4+FoxP3+)", fillcolor="#00ACC1", fontcolor=white];
+    CAF [label="Cancer-Associated\nFibroblast (CAF)", fillcolor="#0097A7", fontcolor=white];
+    VEGF [label="VEGF-A\n(angiogenesis)", fillcolor="#00838F", fontcolor=white];
+    HIF1A [label="HIF-1α\n(hypoxia TF)", fillcolor="#006064", fontcolor=white, shape=diamond];
+    IL6_tme [label="IL-6\n(pro-inflammatory)", fillcolor="#4DD0E1"];
+    IL10_tme [label="IL-10\n(immunosuppressive)", fillcolor="#00BCD4", fontcolor=white];
+    CXCL13_tme [label="CXCL13\n(Tfh chemoattract.)", fillcolor="#26C6DA"];
+    CCL2 [label="CCL2/MCP-1\n(monocyte recruit)", fillcolor="#4DD0E1"];
+    PD1_T [label="PD-1\n(T-cell exhaust.)", fillcolor="#00ACC1", fontcolor=white, shape=hexagon];
+    CTLA4 [label="CTLA-4\n(immune check.)", fillcolor="#0097A7", fontcolor=white, shape=hexagon];
+    ECM [label="ECM Remodeling\n(MMP2, MMP9)", fillcolor="#006064", fontcolor=white];
+    Angiogenesis [label="Tumor Vasculature\n(angiogenesis)", fillcolor="#004D40", fontcolor=white];
+
+    TAM_M2 -> IL6_tme;
+    TAM_M2 -> IL10_tme;
+    TAM_M2 -> VEGF;
+    HIF1A -> VEGF;
+    VEGF -> Angiogenesis;
+    CD8_cytotoxic -> Apoptosis_end [label="Cytolysis", lhead=cluster_apoptosis, style=dashed];
+    NK_cell -> Apoptosis_end [label="ADCC", lhead=cluster_apoptosis, style=dashed];
+    Treg_tme -> CD8_cytotoxic [arrowhead=tee, label="Suppresses"];
+    IL10_tme -> CD8_cytotoxic [arrowhead=tee];
+    IL10_tme -> TAM_M1 [arrowhead=tee, label="→ M2 polar."];
+    PD1_T -> CD8_cytotoxic [arrowhead=tee, label="Exhaustion"];
+    CTLA4 -> CD4_T [arrowhead=tee];
+    CCL2 -> TAM_M2 [label="Recruits"];
+    CAF -> ECM;
+    CAF -> IL6_tme;
+    CXCL13_tme -> Tfh [lhead=cluster_gc_reaction];
+  }
+
+  /* ============================================================
+     CLUSTER 9: Immune Evasion Mechanisms
+     ============================================================ */
+  subgraph cluster_immune_evasion {
+    label="9. Immune Evasion Mechanisms";
+    style=filled; fillcolor="#EFEBE9"; color="#3E2723"; fontsize=13; fontcolor="#1B0000";
+
+    PDL1 [label="PD-L1/CD274\n(9p24 amplification)", fillcolor="#D7CCC8", shape=hexagon];
+    PDL2 [label="PD-L2/CD273", fillcolor="#BCAAA4", shape=hexagon];
+    CD47 [label="CD47\n('Don't eat me'\nsignal)", fillcolor="#A1887F", shape=hexagon];
+    SIRPa [label="SIRPα\n(macrophage rec.)", fillcolor="#8D6E63", fontcolor=white, shape=hexagon];
+    MHC1_loss [label="MHC-I\nDownregulation\n(β2M mut/del)", fillcolor="#795548", fontcolor=white];
+    B2M [label="β2-Microglobulin\n(B2M mutations)", fillcolor="#6D4C41", fontcolor=white];
+    CD19_mod [label="CD19\nModulation\n(escape from CAR-T)", fillcolor="#5D4037", fontcolor=white];
+    CD20_shed [label="CD20\nShedding/Loss\n(Rituximab resist.)", fillcolor="#4E342E", fontcolor=white];
+    JAK_STAT [label="JAK1/2 - STAT3/6\n(PD-L1 induction)", fillcolor="#3E2723", fontcolor=white];
+    Immune_evasion_summary [label="Immune Evasion\nOutcomes:\n↓CTL killing\n↓ADCC\n↑Tumor survival", fillcolor="#1B0000", fontcolor=white, shape=rect];
+
+    PDL1 -> PD1_T [label="Inhibits CTL", lhead=cluster_tme];
+    PDL2 -> PD1_T [lhead=cluster_tme];
+    CD47 -> SIRPa [label="'Don't phagocyt.'"];
+    SIRPa -> TAM_M1 [arrowhead=tee, label="Phagocytosis↓", lhead=cluster_tme];
+    MHC1_loss -> CD8_cytotoxic [arrowhead=tee, label="→ CTL blind", lhead=cluster_tme];
+    B2M -> MHC1_loss [label="Required for\nMHC-I assembly"];
+    JAK_STAT -> PDL1 [label="9p24.1 ampl."];
+    CD19_mod -> Immune_evasion_summary;
+    CD20_shed -> Immune_evasion_summary;
+    MHC1_loss -> Immune_evasion_summary;
+  }
+
+  /* ============================================================
+     CLUSTER 10: Drug PK — Rituximab (Anti-CD20 mAb)
+     ============================================================ */
+  subgraph cluster_pk_rituximab {
+    label="10. Drug PK/PD — Rituximab (Anti-CD20 mAb)";
+    style=filled; fillcolor="#F1F8E9"; color="#33691E"; fontsize=13; fontcolor="#1B5E20";
+
+    RTX_dose [label="Rituximab\n375 mg/m² IV\n(R-CHOP Day 1)", fillcolor="#DCEDC8", shape=parallelogram];
+    RTX_central [label="Rituximab\nCentral Cmt\n(Vc = 3.1 L)", fillcolor="#C5E1A5"];
+    RTX_peripheral [label="Rituximab\nPeripheral Cmt\n(Vp = 3.7 L)", fillcolor="#AED581"];
+    CD20_free [label="CD20\n(free surface Ag)\nBmax ~300k/cell", fillcolor="#8BC34A"];
+    CD20_RTX [label="CD20-RTX\nComplex\n(bound)", fillcolor="#7CB342"];
+    RTX_TMDD [label="TMDD\n(Target-Mediated\nDrug Disposition)", fillcolor="#558B2F", fontcolor=white];
+    RTX_FcRn [label="FcRn recycling\n(T½~21 days)", fillcolor="#33691E", fontcolor=white];
+    ADCC_eff [label="ADCC\n(NK + FcγRIIIa)", fillcolor="#C5E1A5"];
+    CDC_eff [label="CDC\n(C1q activation)", fillcolor="#AED581"];
+    Direct_apop [label="Direct Apoptosis\n(RTX-mediated)", fillcolor="#8BC34A"];
+    RTX_effect_sum [label="RTX Effects:\n↓CD20+ tumor cells\nB-cell depletion", fillcolor="#1B5E20", fontcolor=white, shape=rect];
+    FcgRIIIa [label="FcγRIIIa\n(V158F polymorphism)", fillcolor="#C5E1A5", shape=hexagon];
+    Complement [label="Complement\nC1q/C3/C5b-9\n(MAC)", fillcolor="#AED581"];
+
+    RTX_dose -> RTX_central;
+    RTX_central -> RTX_peripheral [label="Q (distrib.)"];
+    RTX_peripheral -> RTX_central [label="Q (return)"];
+    RTX_central -> RTX_TMDD [label="CD20 binding\nkon=0.27/nM/h"];
+    RTX_TMDD -> CD20_RTX [label="Complex form."];
+    CD20_RTX -> RTX_FcRn [label="Internalization\nkint=0.05/h"];
+    RTX_FcRn -> RTX_central [label="Recycling"];
+    CD20_RTX -> ADCC_eff;
+    CD20_RTX -> CDC_eff;
+    CD20_RTX -> Direct_apop;
+    FcgRIIIa -> ADCC_eff [label="NK cell bridge"];
+    Complement -> CDC_eff;
+    NK_cell -> ADCC_eff [lhead=cluster_tme];
+    ADCC_eff -> RTX_effect_sum;
+    CDC_eff -> RTX_effect_sum;
+    Direct_apop -> RTX_effect_sum;
+    CD20_free -> CD20_shed [lhead=cluster_immune_evasion, style=dashed, label="Downregulation"];
+  }
+
+  /* ============================================================
+     CLUSTER 11: Drug PK — CHOP Chemotherapy Components
+     ============================================================ */
+  subgraph cluster_pk_chop {
+    label="11. Drug PK — CHOP Components";
+    style=filled; fillcolor="#FFF3E0"; color="#E65100"; fontsize=13; fontcolor="#BF360C";
+
+    Cyclophos_dose [label="Cyclophosphamide\n750 mg/m² IV (Day 1)", fillcolor="#FFE0B2", shape=parallelogram];
+    Cyclophos_active [label="4-OH-Cyclophos\n(Active metabolite)\nCYP2B6", fillcolor="#FFCC80"];
+    Cyclophos_effect [label="DNA Alkylation\nCross-links\nG2/M arrest", fillcolor="#FFA726"];
+    Doxo_dose [label="Doxorubicin\n50 mg/m² IV (Day 1)", fillcolor="#FFE0B2", shape=parallelogram];
+    Doxo_central [label="Doxorubicin\nCentral (Vc=25L)", fillcolor="#FFCC80"];
+    Doxo_effect [label="DNA Intercalation\nTopo II inhibit.\nFree radical →\nCardiotoxicity", fillcolor="#FFA726"];
+    Vincristine_dose [label="Vincristine\n1.4 mg/m² (max 2mg)\nIV (Day 1)", fillcolor="#FFE0B2", shape=parallelogram];
+    Vincristine_effect [label="Tubulin Inhibit.\nMitotic arrest\nNeurotoxicity", fillcolor="#FFCC80"];
+    Prednisone_dose [label="Prednisone\n100 mg PO\n(Days 1-5)", fillcolor="#FFE0B2", shape=parallelogram];
+    Prednisone_effect [label="GR-α activation\nNF-κB inhibit.\nLymphocytolysis", fillcolor="#FFCC80"];
+    CHOP_toxicity [label="CHOP Toxicities:\nFebile neutropenia\nAnemia, thrombocytopenia\nMucositis\nNeuropathy", fillcolor="#E65100", fontcolor=white, shape=rect];
+    Nadir_ANC [label="ANC Nadir\n(Day 10-14)\nG-CSF support", fillcolor="#FFA726"];
+
+    Cyclophos_dose -> Cyclophos_active [label="CYP2B6/3A4"];
+    Cyclophos_active -> Cyclophos_effect;
+    Doxo_dose -> Doxo_central;
+    Doxo_central -> Doxo_effect;
+    Vincristine_dose -> Vincristine_effect;
+    Prednisone_dose -> Prednisone_effect;
+    Cyclophos_effect -> CHOP_toxicity;
+    Doxo_effect -> CHOP_toxicity;
+    Vincristine_effect -> CHOP_toxicity;
+    Prednisone_effect -> Nadir_ANC [label="Partially\nmasks"];
+    CHOP_toxicity -> Nadir_ANC;
+    Prednisone_effect -> NFkB_targets [lhead=cluster_nfkb, label="Inhibits"];
+  }
+
+  /* ============================================================
+     CLUSTER 12: Novel Targeted Agents
+     ============================================================ */
+  subgraph cluster_novel_agents {
+    label="12. Novel Targeted Agents (Pola, Ibrutinib, Venetoclax, Tafasitamab)";
+    style=filled; fillcolor="#E8F5E9"; color="#1B5E20"; fontsize=13; fontcolor="#1B5E20";
+
+    Pola_dose [label="Polatuzumab Vedotin\n(anti-CD79b ADC)\n1.8 mg/kg IV q21d", fillcolor="#C8E6C9", shape=parallelogram];
+    CD79b_Ag [label="CD79B Antigen\n(BCR component)", fillcolor="#A5D6A7", shape=hexagon];
+    Pola_linker [label="Pola-MMAE\n(ADC payload\nMMAE microtubule inh.)", fillcolor="#81C784"];
+    Pola_effect [label="Tumor Cell Death\n(MMAE-mediated)\n+ Bystander killing", fillcolor="#4CAF50", fontcolor=white];
+    Ibrut_dose [label="Ibrutinib\n560 mg PO QD\n(ABC-DLBCL)", fillcolor="#C8E6C9", shape=parallelogram];
+    Ibrut_target [label="BTK C481\nCovalent Binding\nIC50 = 0.5 nM", fillcolor="#A5D6A7", shape=hexagon];
+    Ibrut_effect [label="↓NF-κB, ↓MYD88\nBCR signal block\nABC-DLBCL specific", fillcolor="#66BB6A"];
+    Venetoclax_dose [label="Venetoclax\n400-800 mg PO QD\n(BCL-2 high)", fillcolor="#C8E6C9", shape=parallelogram];
+    Venetoclax_target [label="BCL-2\nBH3-mimetic\nKi <0.01 nM", fillcolor="#A5D6A7", shape=hexagon];
+    Venetoclax_effect [label="BAX/BAK release\nMOMP, Apoptosis\n↑in BCL-2 translocated", fillcolor="#43A047", fontcolor=white];
+    Tafasitamab [label="Tafasitamab\n(anti-CD19)\n12 mg/kg IV", fillcolor="#C8E6C9", shape=parallelogram];
+    CD19_Ag [label="CD19 Antigen\n(pan-B marker)", fillcolor="#A5D6A7", shape=hexagon];
+    Tafa_effect [label="Enhanced ADCC\n+ CDC\nFc-engineered", fillcolor="#2E7D32", fontcolor=white];
+    Lenalidomide [label="Lenalidomide\n25 mg PO D1-21\n(+ Tafasitamab)", fillcolor="#C8E6C9", shape=parallelogram];
+    Lena_effect [label="Cereblon/IKZF1/3\nDegradation\nImmune activation\nAnti-proliferative", fillcolor="#1B5E20", fontcolor=white];
+    Glofitamab [label="Glofitamab\n(CD3×CD20 bispecific\nT-cell engager)", fillcolor="#C8E6C9", shape=parallelogram];
+    Glofit_effect [label="T-cell→Tumor\nImmune synapse\nCRS risk", fillcolor="#33691E", fontcolor=white];
+
+    Pola_dose -> CD79b_Ag [label="Binds"];
+    CD79b_Ag -> Pola_linker [label="Internalize\n→ MMAE release"];
+    Pola_linker -> Pola_effect;
+    Ibrut_dose -> Ibrut_target [label="Covalent"];
+    Ibrut_target -> BTK_kinase [arrowhead=tee, lhead=cluster_bcr_signaling, label="Inhibits"];
+    Ibrut_target -> Ibrut_effect;
+    Venetoclax_dose -> Venetoclax_target;
+    Venetoclax_target -> BCL2_prot [arrowhead=tee, lhead=cluster_apoptosis, label="Antagonizes"];
+    Venetoclax_target -> Venetoclax_effect;
+    Venetoclax_effect -> Apoptosis_end [lhead=cluster_apoptosis];
+    Tafasitamab -> CD19_Ag;
+    CD19_Ag -> Tafa_effect;
+    Lenalidomide -> Lena_effect;
+    Lena_effect -> Tafa_effect [label="Synergy"];
+    Glofitamab -> CD20_RTX [lhead=cluster_pk_rituximab, label="CD20 engage"];
+    Glofitamab -> Glofit_effect;
+  }
+
+  /* ============================================================
+     CLUSTER 13: CAR-T Cell Therapy
+     ============================================================ */
+  subgraph cluster_cart {
+    label="13. CAR-T Cell Therapy (Axi-cel / Tisa-cel / Liso-cel)";
+    style=filled; fillcolor="#F3E5F5"; color="#4A148C"; fontsize=13; fontcolor="#4A148C";
+
+    Patient_Tcell [label="Patient T-cells\n(apheresis)", fillcolor="#E1BEE7", shape=parallelogram];
+    CAR_construct [label="CAR Construct\n(anti-CD19 scFv\n+ CD28/41BB\n+ CD3ζ)", fillcolor="#CE93D8"];
+    Ex_vivo [label="Ex Vivo\nExpansion\n(7-14 days)", fillcolor="#BA68C8"];
+    Axi_cel [label="Axi-cel (CD28)\nYESCARTA®\n2×10⁶/kg", fillcolor="#9C27B0", fontcolor=white];
+    Tisa_cel [label="Tisa-cel (4-1BB)\nKYMRIAH®\n0.6-6×10⁸", fillcolor="#7B1FA2", fontcolor=white];
+    Liso_cel [label="Liso-cel (4-1BB)\nBREYANZI®\n5-10×10⁷", fillcolor="#6A1B9A", fontcolor=white];
+    CAR_expansion [label="In Vivo\nCART Expansion\n(Peak D7-14)", fillcolor="#AB47BC"];
+    CAR_persistence [label="CAR-T\nPersistence\n(Memory pool)", fillcolor="#8E24AA", fontcolor=white];
+    CAR_killing [label="CD19+ Tumor\nCell Killing\n(Direct lysis)", fillcolor="#6A1B9A", fontcolor=white];
+    CRS_tox [label="CRS\n(Cytokine Release\nSyndrome)\nGrade 1-4", fillcolor="#B71C1C", fontcolor=white, shape=octagon];
+    ICANS [label="ICANS\n(Immune effector\nCell Assoc. Neuro.)\nGrade 1-4", fillcolor="#880E4F", fontcolor=white, shape=octagon];
+    Tocilizumab [label="Tocilizumab\n(IL-6R blockade)\nCRS treatment", fillcolor="#D1C4E9", shape=parallelogram];
+    Dexa_cart [label="Dexamethasone\n(ICANS/severe CRS)", fillcolor="#D1C4E9", shape=parallelogram];
+    CD19_resist [label="CD19 Antigen\nLoss/Modulation\n(Resistance mechanism)", fillcolor="#4A148C", fontcolor=white, shape=hexagon];
+
+    Patient_Tcell -> CAR_construct [label="Viral transduction"];
+    CAR_construct -> Ex_vivo;
+    Ex_vivo -> Axi_cel;
+    Ex_vivo -> Tisa_cel;
+    Ex_vivo -> Liso_cel;
+    Axi_cel -> CAR_expansion;
+    Tisa_cel -> CAR_expansion;
+    Liso_cel -> CAR_expansion;
+    CAR_expansion -> CAR_persistence;
+    CAR_expansion -> CAR_killing [label="Effector phase"];
+    CAR_killing -> CD19_Ag [lhead=cluster_novel_agents, arrowhead=tee, label="Targets"];
+    CAR_killing -> CRS_tox [label="IL-6, IFN-γ\ncytokine storm"];
+    CAR_killing -> ICANS [label="Neuroinflammation"];
+    Tocilizumab -> CRS_tox [arrowhead=tee, label="Treats"];
+    Dexa_cart -> ICANS [arrowhead=tee];
+    CD19_resist -> CAR_killing [arrowhead=tee, label="Escape"];
+    CD19_mod -> CD19_resist [ltail=cluster_immune_evasion];
+  }
+
+  /* ============================================================
+     CLUSTER 14: Clinical Endpoints & Outcomes
+     ============================================================ */
+  subgraph cluster_clinical {
+    label="14. Clinical Endpoints & Response Assessment";
+    style=filled; fillcolor="#ECEFF1"; color="#263238"; fontsize=13; fontcolor="#102027";
+
+    Tumor_burden [label="Tumor Burden\n(SPD - sum of\nproducts diameters)", fillcolor="#CFD8DC", shape=ellipse];
+    PET_CT [label="PET-CT\nDeauville Score\n1-5", fillcolor="#B0BEC5"];
+    CT_scan [label="CT Scan\nLugano Criteria", fillcolor="#90A4AE"];
+    BM_biopsy [label="Bone Marrow\nBiopsy", fillcolor="#78909C", fontcolor=white];
+    CR_resp [label="Complete Response\nDeauville 1-2\nno BM involvement", fillcolor="#4CAF50", fontcolor=white, shape=ellipse];
+    PR_resp [label="Partial Response\n≥50% tumor reduction\nDeauville 3-4", fillcolor="#8BC34A", fontcolor=white, shape=ellipse];
+    SD_resp [label="Stable Disease\n<50% reduction", fillcolor="#FFC107", shape=ellipse];
+    PD_resp [label="Progressive Disease\n>50% increase\nor new lesion", fillcolor="#F44336", fontcolor=white, shape=ellipse];
+    ORR [label="ORR\n(CR + PR)", fillcolor="#607D8B", fontcolor=white];
+    PFS_end [label="PFS\n(Progression-Free\nSurvival)", fillcolor="#546E7A", fontcolor=white];
+    OS_end [label="OS\n(Overall Survival)", fillcolor="#455A64", fontcolor=white];
+    IPI_score [label="IPI Score\n0-5\n(Age, LDH, Stage,\nPS, Extranodal)", fillcolor="#37474F", fontcolor=white, shape=diamond];
+    R_IPI [label="R-IPI\n(Revised IPI)\n0: very good\n1-2: good\n3-5: poor", fillcolor="#263238", fontcolor=white, shape=diamond];
+    LDH [label="LDH\n(Tumor burden\nbiomarker)", fillcolor="#B0BEC5"];
+    ctDNA [label="ctDNA/cfDNA\n(MRD marker)", fillcolor="#90A4AE"];
+    Beta2MG [label="β2-Microglobulin\n(Prog. factor)", fillcolor="#78909C", fontcolor=white];
+    EFS24 [label="EFS24\n(Event-free\nSurvival 24mo)", fillcolor="#455A64", fontcolor=white];
+    DHL_outcome [label="Double-Hit/\nTriple-Hit\nPoor prognosis", fillcolor="#102027", fontcolor=white, shape=octagon];
+
+    RTX_effect_sum -> Tumor_burden [arrowhead=tee, lhead=cluster_pk_rituximab, label="Kills tumor"];
+    CHOP_toxicity -> Tumor_burden [arrowhead=tee, lhead=cluster_pk_chop, label="Cytotoxic"];
+    CAR_killing -> Tumor_burden [arrowhead=tee, lhead=cluster_cart];
+    Tumor_burden -> PET_CT [label="Assessed by"];
+    Tumor_burden -> CT_scan;
+    PET_CT -> CR_resp;
+    PET_CT -> PR_resp;
+    PET_CT -> SD_resp;
+    PET_CT -> PD_resp;
+    CT_scan -> CR_resp;
+    BM_biopsy -> CR_resp [label="Required for CR"];
+    CR_resp -> ORR;
+    PR_resp -> ORR;
+    ORR -> PFS_end;
+    PFS_end -> OS_end;
+    IPI_score -> R_IPI;
+    LDH -> IPI_score;
+    Beta2MG -> IPI_score [label="(B2M)"];
+    ctDNA -> CR_resp [label="MRD guidance"];
+    CR_resp -> EFS24 [label="If maintained"];
+    DoubleHit -> DHL_outcome [ltail=cluster_myc_cellcycle];
+    DHL_outcome -> R_IPI [label="Informs prognosis"];
+  }
+
+  /* Cross-cluster connections */
+  NaiveB -> BCR [ltail=cluster_bcell_dev, lhead=cluster_bcr_signaling, style=dashed, label="Antigen binding"];
+  GCB_type -> EZH2_mut [lhead=cluster_epigenetics, style=dashed, label="EZH2 gain-of-fn"];
+  ABC_type -> MYD88_L265P [lhead=cluster_nfkb, style=dashed, label="ABC-specific"];
+  ABC_type -> CD79AB [lhead=cluster_nfkb, style=dashed];
+  mTORC1 -> cMYC [ltail=cluster_bcr_signaling, lhead=cluster_myc_cellcycle, label="Stabilizes"];
+  GCB_cell -> BCL2_translocate [ltail=cluster_bcell_dev, lhead=cluster_myc_cellcycle, label="t(14;18)"];
+  JAK_STAT -> PDL1 [lhead=cluster_immune_evasion, label="Induces"];
+  CD20_free -> RTX_central [lhead=cluster_pk_rituximab, label="RTX target", ltail=cluster_immune_evasion];
+  ERK_BCR -> cMYC [ltail=cluster_bcr_signaling, lhead=cluster_myc_cellcycle, label="Stabilizes"];
+}
