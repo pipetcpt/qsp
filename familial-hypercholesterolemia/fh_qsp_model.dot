@@ -1,0 +1,532 @@
+digraph FH_QSP {
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, bgcolor="#F8F9FA", compound=true, splines=ortho, nodesep=0.4, ranksep=0.7];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box];
+  edge  [fontname="Helvetica", fontsize=8, color="#555555"];
+
+  /* ============================================================
+     CLUSTER 1: Statin Pharmacokinetics
+     ============================================================ */
+  subgraph cluster_statin_pk {
+    label="Statin Pharmacokinetics";
+    style=filled; fillcolor="#EBF5FB"; color="#2E86C1"; penwidth=2;
+
+    Statin_Oral_Dose    [label="Statin\nOral Dose",       fillcolor="#AED6F1", shape=cylinder];
+    Statin_GI           [label="GI Tract\n(Absorption)",  fillcolor="#7FB3D3"];
+    Statin_Portal       [label="Portal Vein\n(First-Pass)", fillcolor="#5499C7"];
+    Statin_Liver_PK     [label="Hepatic\nStatin (active)", fillcolor="#2E86C1", fontcolor=white];
+    Statin_Plasma       [label="Systemic\nStatin Plasma",  fillcolor="#1A5276", fontcolor=white];
+    Statin_Glucuronide  [label="Statin\nGlucuronide",      fillcolor="#A9CCE3"];
+    Statin_InactMet     [label="Inactive\nMetabolite",      fillcolor="#D6EAF8"];
+    CYP3A4              [label="CYP3A4\n(metabolism)",      fillcolor="#F9E79F", shape=diamond];
+    CYP2C9              [label="CYP2C9\n(metabolism)",      fillcolor="#F9E79F", shape=diamond];
+    UGT1A3              [label="UGT1A3\n(glucuronidation)", fillcolor="#FAD7A0", shape=diamond];
+    OATP1B1             [label="OATP1B1\n(hepatic influx)", fillcolor="#ABEBC6", shape=diamond];
+    PGP_efflux          [label="P-gp Efflux\n(intestinal)", fillcolor="#FADBD8", shape=diamond];
+    Renal_Excretion_S   [label="Renal\nExcretion",          fillcolor="#D5D8DC"];
+
+    Statin_Oral_Dose  -> Statin_GI         [label="ka"];
+    PGP_efflux        -> Statin_GI         [label="efflux", arrowhead=tee, color="red"];
+    Statin_GI         -> Statin_Portal     [label="F (bioavailability)"];
+    Statin_Portal     -> Statin_Liver_PK   [label="first-pass"];
+    OATP1B1           -> Statin_Liver_PK   [style=dashed, arrowhead=vee];
+    Statin_Liver_PK   -> Statin_Plasma     [label="ke"];
+    Statin_Liver_PK   -> Statin_Glucuronide[label="UGT"];
+    UGT1A3            -> Statin_Glucuronide[style=dotted];
+    Statin_Plasma     -> Statin_InactMet   [label="CYP3A4/2C9"];
+    CYP3A4            -> Statin_InactMet   [style=dotted];
+    CYP2C9            -> Statin_InactMet   [style=dotted];
+    Statin_InactMet   -> Renal_Excretion_S [label="renal CL"];
+    Statin_Glucuronide -> Renal_Excretion_S;
+  }
+
+  /* ============================================================
+     CLUSTER 2: PCSK9 Inhibitor / Inclisiran PK
+     ============================================================ */
+  subgraph cluster_pcsk9i_pk {
+    label="PCSK9 Inhibitor & Inclisiran PK";
+    style=filled; fillcolor="#E9F7EF"; color="#1E8449"; penwidth=2;
+
+    PCSK9i_SubQ         [label="PCSK9i\nSubQ Depot",        fillcolor="#A9DFBF", shape=cylinder];
+    PCSK9i_Central      [label="PCSK9i\nCentral Plasma",     fillcolor="#27AE60", fontcolor=white];
+    PCSK9i_Peripheral   [label="PCSK9i\nPeripheral Tissue",  fillcolor="#52BE80"];
+    FcRn_Recycling      [label="FcRn\nRecycling",            fillcolor="#ABEBC6", shape=diamond];
+    TMDD_Clearance      [label="Target-Mediated\nClearance (TMDD)", fillcolor="#FADBD8", shape=diamond];
+    PCSK9i_Complex_P    [label="PCSK9i–PCSK9\nPlasma Complex", fillcolor="#D5F5E3"];
+    Inclisiran_SubQ     [label="Inclisiran\nSubQ Depot",     fillcolor="#82E0AA", shape=cylinder];
+    Inclisiran_Liver    [label="Inclisiran\nHepatocyte",     fillcolor="#239B56", fontcolor=white];
+    RISC_Complex        [label="RISC/PCSK9\nmRNA Silencing", fillcolor="#1D8348", fontcolor=white];
+    mRNA_Cleavage       [label="PCSK9 mRNA\nCleavage",       fillcolor="#A9DFBF"];
+
+    PCSK9i_SubQ      -> PCSK9i_Central    [label="ka_sc"];
+    PCSK9i_Central   -> PCSK9i_Peripheral [label="Q12"];
+    PCSK9i_Peripheral-> PCSK9i_Central    [label="Q21"];
+    FcRn_Recycling   -> PCSK9i_Central    [label="recycle", style=dashed];
+    PCSK9i_Central   -> TMDD_Clearance    [label="TMDD CL"];
+    PCSK9i_Central   -> PCSK9i_Complex_P  [label="binding to\nPCSK9"];
+    Inclisiran_SubQ  -> Inclisiran_Liver  [label="GalNAc\ntargeting"];
+    Inclisiran_Liver -> RISC_Complex      [label="RISC loading"];
+    RISC_Complex     -> mRNA_Cleavage     [label="catalytic"];
+  }
+
+  /* ============================================================
+     CLUSTER 3: Other Lipid-Lowering Drug PK
+     ============================================================ */
+  subgraph cluster_other_drugs {
+    label="Other Lipid-Lowering Drug PK";
+    style=filled; fillcolor="#F5EEF8"; color="#7D3C98"; penwidth=2;
+
+    Ezetimibe_Oral      [label="Ezetimibe\nOral Dose",       fillcolor="#D2B4DE", shape=cylinder];
+    Ezetimibe_GI        [label="Ezetimibe\nGI Conc",          fillcolor="#BB8FCE"];
+    Ezetimibe_Gluc      [label="Ezetimibe\nGlucuronide",      fillcolor="#A569BD"];
+    Ezetimibe_Plasma    [label="Ezetimibe\nPlasma",           fillcolor="#8E44AD", fontcolor=white];
+    NPC1L1_inh         [label="NPC1L1\nInhibition",          fillcolor="#F1948A", shape=diamond];
+    BempedoicAcid       [label="Bempedoic Acid\nOral",        fillcolor="#C39BD3", shape=cylinder];
+    BA_CoA_Ester        [label="Bempedoic Acid\nCoA-ester",   fillcolor="#AF7AC5"];
+    ACLY_Inhibition     [label="ACLY\nInhibition",            fillcolor="#E74C3C", shape=diamond, fontcolor=white];
+    Lomitapide_Oral     [label="Lomitapide\nOral",            fillcolor="#D2B4DE", shape=cylinder];
+    Lomitapide_Plasma   [label="Lomitapide\nPlasma",          fillcolor="#884EA0", fontcolor=white];
+    MTP_Inhibition      [label="MTP\nInhibition",             fillcolor="#E74C3C", shape=diamond, fontcolor=white];
+    Cholestyramine_GI   [label="Bile Acid\nSequestrant (GI)", fillcolor="#D7DBDD"];
+    BileAcid_Complex    [label="BA–Resin\nComplex",           fillcolor="#BFC9CA"];
+
+    Ezetimibe_Oral    -> Ezetimibe_GI      [label="absorption"];
+    Ezetimibe_GI      -> Ezetimibe_Plasma  [label="enterohepatic"];
+    Ezetimibe_GI      -> NPC1L1_inh        [label="inhibits", arrowhead=tee, color="red"];
+    Ezetimibe_Plasma  -> Ezetimibe_Gluc    [label="glucuronide"];
+    BempedoicAcid     -> BA_CoA_Ester      [label="CoA ligase"];
+    BA_CoA_Ester      -> ACLY_Inhibition   [label="inhibits", arrowhead=tee, color="red"];
+    Lomitapide_Oral   -> Lomitapide_Plasma [label="absorption"];
+    Lomitapide_Plasma -> MTP_Inhibition    [label="inhibits", arrowhead=tee, color="red"];
+    Cholestyramine_GI -> BileAcid_Complex  [label="chelation"];
+  }
+
+  /* ============================================================
+     CLUSTER 4: Cholesterol Biosynthesis
+     ============================================================ */
+  subgraph cluster_chol_biosyn {
+    label="Cholesterol Biosynthesis (Mevalonate Pathway)";
+    style=filled; fillcolor="#FEFCE8"; color="#B7950B"; penwidth=2;
+
+    Acetyl_CoA          [label="Acetyl-CoA",            fillcolor="#FCF3CF"];
+    HMG_CoA             [label="HMG-CoA",               fillcolor="#F9E79F"];
+    Mevalonate          [label="Mevalonate",             fillcolor="#F7DC6F"];
+    Mevalonate_PP       [label="Mevalonate\n5-Pyrophosphate", fillcolor="#F4D03F"];
+    Isopentenyl_PP      [label="Isopentenyl\nPyrophosphate (IPP)", fillcolor="#F1C40F"];
+    Geranyl_PP          [label="Geranyl\nPyrophosphate (GPP)", fillcolor="#D4AC0D"];
+    Farnesyl_PP         [label="Farnesyl\nPyrophosphate (FPP)", fillcolor="#B7950B", fontcolor=white];
+    Geranylgeranyl_PP   [label="Geranylgeranyl-PP\n(GGPP)", fillcolor="#9A7D0A", fontcolor=white];
+    Squalene            [label="Squalene",               fillcolor="#E59866"];
+    Oxidosqualene       [label="2,3-Oxidosqualene",      fillcolor="#D35400", fontcolor=white];
+    Lanosterol          [label="Lanosterol",             fillcolor="#E67E22"];
+    Zymosterol          [label="Zymosterol",             fillcolor="#F0B27A"];
+    Desmosterol         [label="Desmosterol",            fillcolor="#F5CBA7"];
+    Cholesterol_Intra   [label="Cholesterol\n(Intracellular)", fillcolor="#E8DAEF"];
+    HMGCR_Enzyme        [label="HMGCR\n(Rate-limiting)", fillcolor="#E74C3C", shape=diamond, fontcolor=white];
+    SqSynthase          [label="Squalene\nSynthase",     fillcolor="#FAD7A0", shape=diamond];
+    CYP51A1             [label="CYP51A1\n(14α-demethylase)", fillcolor="#FAD7A0", shape=diamond];
+    CoQ10_branch        [label="CoQ10\n(side branch)",   fillcolor="#D5D8DC", style="dashed,filled"];
+    Dolichol_branch     [label="Dolichols\n(glycosylation)", fillcolor="#D5D8DC", style="dashed,filled"];
+    Ras_Raf_branch      [label="Ras/Rho\nPrenylation",  fillcolor="#FADBD8", style="dashed,filled"];
+
+    Acetyl_CoA        -> HMG_CoA          [label="ACAT/HMGS"];
+    HMG_CoA          -> Mevalonate        [label="HMGCR ★"];
+    HMGCR_Enzyme     -> Mevalonate        [style=dotted];
+    Mevalonate       -> Mevalonate_PP     [label="mevalonate kinase"];
+    Mevalonate_PP    -> Isopentenyl_PP    [label="decarboxylase"];
+    Isopentenyl_PP   -> Geranyl_PP        [label="IPP isomerase/\nGPPS"];
+    Geranyl_PP       -> Farnesyl_PP       [label="FPPS"];
+    Farnesyl_PP      -> Geranylgeranyl_PP [label="GGPPS"];
+    Farnesyl_PP      -> Squalene          [label="squalene\nsynthase"];
+    SqSynthase       -> Squalene          [style=dotted];
+    Squalene         -> Oxidosqualene     [label="squalene\nepoxidase"];
+    Oxidosqualene    -> Lanosterol        [label="LSS (cyclase)"];
+    Lanosterol       -> Zymosterol        [label="CYP51A1\n(20+ steps)"];
+    CYP51A1          -> Zymosterol        [style=dotted];
+    Zymosterol       -> Desmosterol       [label="DHCR24"];
+    Desmosterol      -> Cholesterol_Intra [label="DHCR7\n(last step)"];
+    Farnesyl_PP      -> CoQ10_branch      [style=dashed, color="gray"];
+    Geranylgeranyl_PP-> Dolichol_branch   [style=dashed, color="gray"];
+    Farnesyl_PP      -> Ras_Raf_branch    [style=dashed, color="gray"];
+    Geranylgeranyl_PP-> Ras_Raf_branch    [style=dashed, color="gray"];
+  }
+
+  /* ============================================================
+     CLUSTER 5: LDLR Regulation & PCSK9 Biology
+     ============================================================ */
+  subgraph cluster_ldlr_pcsk9 {
+    label="LDLR–PCSK9 Biology & SREBP2 Regulation";
+    style=filled; fillcolor="#FDEDEC"; color="#C0392B"; penwidth=2;
+
+    SREBP2_precursor    [label="SREBP2 Precursor\n(ER membrane)",     fillcolor="#FADBD8"];
+    SCAP_sensor         [label="SCAP\n(Cholesterol sensor)",          fillcolor="#F1948A", shape=diamond];
+    INSIG1              [label="INSIG1\n(ER retention)",              fillcolor="#FADBD8"];
+    INSIG2              [label="INSIG2",                              fillcolor="#FADBD8"];
+    SREBP2_Golgi        [label="SREBP2\n(Golgi cleavage)",            fillcolor="#E74C3C", fontcolor=white];
+    SREBP2_nuclear      [label="SREBP2\n(Active Nuclear)",            fillcolor="#C0392B", fontcolor=white, shape=ellipse];
+    LDLR_gene           [label="LDLR\nGene",                          fillcolor="#F5B7B1"];
+    LDLR_mRNA           [label="LDLR\nmRNA",                          fillcolor="#F1948A"];
+    LDLR_ER             [label="LDLR Protein\n(ER synthesis)",        fillcolor="#E74C3C", fontcolor=white];
+    LDLR_Golgi          [label="LDLR\n(Golgi maturation)",            fillcolor="#CB4335", fontcolor=white];
+    LDLR_Surface        [label="LDLR\n(Cell Surface Pool)",           fillcolor="#A93226", fontcolor=white];
+    LDL_LDLR_Complex    [label="LDL–LDLR\nComplex",                  fillcolor="#F9EBEA"];
+    Clathrin_Pit        [label="Clathrin-Coated\nPit",                fillcolor="#FAD7A0"];
+    ARH_adaptor         [label="ARH\n(Adaptor Protein)",              fillcolor="#FAD7A0", shape=diamond];
+    Endosome_early      [label="Early\nEndosome",                     fillcolor="#FDFEFE"];
+    Endosome_late       [label="Late Endosome /\nMVB",                fillcolor="#F2F3F4"];
+    Lysosome            [label="Lysosome\n(pH 4.5–5.5)",              fillcolor="#D5D8DC"];
+    LDLR_Recycle_pool   [label="LDLR Recycling\nEndosome",           fillcolor="#ABEBC6"];
+    LDLR_Degraded       [label="LDLR\nDegradation (lysosome)",        fillcolor="#E74C3C", fontcolor=white, shape=oval];
+    PCSK9_intracell     [label="PCSK9\n(Intracellular)",             fillcolor="#F5CBA7"];
+    PCSK9_Secreted      [label="PCSK9\n(Secreted/Plasma)",           fillcolor="#E59866"];
+    PCSK9_LDLR_complex  [label="PCSK9–LDLR\nComplex (surface)",      fillcolor="#F0B27A"];
+    PCSK9_lyso_complex  [label="PCSK9–LDLR\n(Lysosomal complex)",    fillcolor="#CA6F1E", fontcolor=white];
+    Sortilin_PCSK9      [label="Sortilin\n(PCSK9 secretion)",         fillcolor="#F5B7B1", shape=diamond];
+    Furin_PCSK9         [label="Furin\n(PCSK9 autocatalysis)",        fillcolor="#F5B7B1", shape=diamond];
+
+    Cholesterol_Intra -> SCAP_sensor     [label="high [Chol]\nINSIG retention", arrowhead=tee, color="red"];
+    SCAP_sensor       -> INSIG1          [style=dashed];
+    SCAP_sensor       -> INSIG2          [style=dashed];
+    SCAP_sensor       -> SREBP2_Golgi    [label="SCAP escorts\nSREBP2"];
+    SREBP2_precursor  -> SREBP2_Golgi    [label="ER→Golgi"];
+    SREBP2_Golgi      -> SREBP2_nuclear  [label="S1P/S2P\ncleavage"];
+    SREBP2_nuclear    -> LDLR_gene       [label="SRE binding\n↑transcription", color="#1E8449"];
+    LDLR_gene         -> LDLR_mRNA       [label="transcription"];
+    LDLR_mRNA         -> LDLR_ER         [label="translation"];
+    LDLR_ER           -> LDLR_Golgi      [label="N-glycosylation"];
+    LDLR_Golgi        -> LDLR_Surface    [label="trafficking"];
+    LDLR_Surface      -> LDL_LDLR_Complex[label="LDL binding\n(ApoB100/ApoE)"];
+    ARH_adaptor       -> Clathrin_Pit    [style=dotted];
+    LDL_LDLR_Complex  -> Clathrin_Pit   [label="ARH-mediated\nendocytosis"];
+    Clathrin_Pit      -> Endosome_early  [label="vesicle\nformation"];
+    Endosome_early    -> Endosome_late   [label="maturation"];
+    Endosome_late     -> Lysosome        [label="LDL\nhydrolysis"];
+    Endosome_early    -> LDLR_Recycle_pool[label="LDLR\nrecycling (pH)"];
+    LDLR_Recycle_pool -> LDLR_Surface    [label="recycled\n(∼100× cycles)"];
+    PCSK9_intracell   -> Furin_PCSK9     [style=dotted];
+    Furin_PCSK9       -> PCSK9_intracell [arrowhead=none, style=dotted];
+    PCSK9_intracell   -> Sortilin_PCSK9  [style=dotted];
+    Sortilin_PCSK9    -> PCSK9_Secreted  [style=dashed];
+    PCSK9_Secreted    -> PCSK9_LDLR_complex[label="binds LDLR\nat EGF-A domain"];
+    PCSK9_LDLR_complex-> Clathrin_Pit   [label="co-internalized"];
+    PCSK9_LDLR_complex-> PCSK9_lyso_complex[label="prevents pH-\nmediated release"];
+    PCSK9_lyso_complex-> LDLR_Degraded  [label="lysosomal\ndegradation", color="red"];
+    SREBP2_nuclear    -> PCSK9_intracell [label="↑PCSK9\ntranscription (SRE)"];
+  }
+
+  /* ============================================================
+     CLUSTER 6: Plasma Lipoprotein Metabolism
+     ============================================================ */
+  subgraph cluster_lipoprotein {
+    label="Plasma Lipoprotein Metabolism";
+    style=filled; fillcolor="#FEF9E7"; color="#D4AC0D"; penwidth=2;
+
+    ApoB100_Synth       [label="ApoB100\nSynthesis (liver)", fillcolor="#FCF3CF"];
+    MTP_Liver           [label="MTP\n(VLDL assembly)",       fillcolor="#FAD7A0", shape=diamond];
+    VLDL1               [label="VLDL1\n(TG-rich, large)",    fillcolor="#F9E79F"];
+    VLDL2               [label="VLDL2\n(smaller VLDL)",      fillcolor="#F4D03F"];
+    IDL_Part            [label="IDL\n(remnant lipoprotein)", fillcolor="#F0B27A"];
+    LDL_Part            [label="LDL\n(main atherogenic)",    fillcolor="#E67E22"];
+    sdLDL_Part          [label="small dense LDL\n(sdLDL)",   fillcolor="#CA6F1E", fontcolor=white];
+    Lpa_Part            [label="Lp(a)\n[Apo(a)+ApoB100]",   fillcolor="#D35400", fontcolor=white];
+    oxLDL               [label="oxLDL\n(oxidized LDL)",      fillcolor="#C0392B", fontcolor=white];
+    ApoE_prot           [label="ApoE\n(VLDL/IDL clearance)", fillcolor="#D5D8DC", shape=ellipse];
+    ApoC2_prot          [label="ApoC2\n(LPL activator)",     fillcolor="#D5D8DC", shape=ellipse];
+    ApoC3_prot          [label="ApoC3\n(LPL inhibitor)",     fillcolor="#D5D8DC", shape=ellipse];
+    LPL_Act             [label="LPL\n(lipoprotein lipase)",  fillcolor="#ABEBC6", shape=diamond];
+    HL_Act              [label="HL\n(hepatic lipase)",       fillcolor="#ABEBC6", shape=diamond];
+    CETP_Act            [label="CETP\n(CE↔TG transfer)",    fillcolor="#A9CCE3", shape=diamond];
+    ApoA1_Synth         [label="ApoA1\nSynthesis",           fillcolor="#D1F2EB"];
+    Pre_beta_HDL        [label="Pre-β HDL\n(nascent)",       fillcolor="#A9DFBF"];
+    HDL3_Part           [label="HDL3\n(smaller, denser)",    fillcolor="#52BE80"];
+    HDL2_Part           [label="HDL2\n(larger, buoyant)",    fillcolor="#27AE60", fontcolor=white];
+    LCAT_Act            [label="LCAT\n(cholesterol esterification)", fillcolor="#ABEBC6", shape=diamond];
+    SR_B1               [label="SR-BI\n(hepatic HDL uptake)",fillcolor="#1E8449", fontcolor=white, shape=diamond];
+    ABCA1_efflux        [label="ABCA1\n(cell→HDL efflux)",  fillcolor="#D5F5E3", shape=diamond];
+
+    ApoB100_Synth    -> VLDL1          [label="MTP-mediated"];
+    MTP_Liver        -> VLDL1          [style=dotted];
+    ApoC2_prot       -> VLDL1          [style=dashed, arrowhead=none];
+    ApoC3_prot       -> VLDL1          [style=dashed, arrowhead=none];
+    ApoE_prot        -> VLDL1          [style=dashed, arrowhead=none];
+    VLDL1            -> VLDL2          [label="LPL\n(TG lipolysis)"];
+    LPL_Act          -> VLDL1          [style=dotted];
+    VLDL2            -> IDL_Part       [label="further\nlipolysis"];
+    IDL_Part         -> LDL_Part       [label="HL\n(final lipolysis)"];
+    HL_Act           -> IDL_Part       [style=dotted];
+    LDL_Part         -> sdLDL_Part     [label="TG enrichment\n+ CETP", style=dashed];
+    CETP_Act         -> LDL_Part       [style=dotted];
+    ApoA1_Synth      -> Pre_beta_HDL   [label="lipid-poor\nApoA1"];
+    ABCA1_efflux     -> Pre_beta_HDL   [label="cholesterol\nefflux"];
+    Pre_beta_HDL     -> HDL3_Part      [label="LCAT\nesterification"];
+    LCAT_Act         -> HDL3_Part      [style=dotted];
+    HDL3_Part        -> HDL2_Part      [label="LCAT\ncontinues"];
+    HDL2_Part        -> SR_B1          [label="selective CE\nuptake (liver)"];
+    CETP_Act         -> HDL2_Part      [label="CE→TG\nexchange", arrowhead=tee, color="red", style=dashed];
+    LDL_Part         -> oxLDL          [label="ROS/\nMPO oxidation"];
+  }
+
+  /* ============================================================
+     CLUSTER 7: Intestinal Cholesterol Absorption & Bile Acids
+     ============================================================ */
+  subgraph cluster_intestinal {
+    label="Intestinal Absorption & Bile Acid Metabolism";
+    style=filled; fillcolor="#EBF5FB"; color="#1A5276"; penwidth=2;
+
+    Diet_Chol           [label="Dietary\nCholesterol",        fillcolor="#AED6F1", shape=cylinder];
+    Biliary_Chol        [label="Biliary\nCholesterol",        fillcolor="#85C1E9"];
+    NPC1L1_trans        [label="NPC1L1\n(apical transporter)", fillcolor="#5499C7", shape=diamond];
+    Enterocyte_Chol     [label="Enterocyte\nCholesterol",     fillcolor="#2E86C1", fontcolor=white];
+    ABCG5_G8            [label="ABCG5/G8\n(basolateral efflux)", fillcolor="#1A5276", fontcolor=white, shape=diamond];
+    CM_Assembly         [label="Chylomicron\nAssembly",       fillcolor="#7FB3D3"];
+    ApoB48_prot         [label="ApoB48\n(chylomicron marker)", fillcolor="#A9CCE3", shape=ellipse];
+    MTP_Intestinal      [label="MTP\n(chylomicron assembly)", fillcolor="#FAD7A0", shape=diamond];
+    Chylomicron_Lymph   [label="Chylomicron\n(Lymph/Blood)",  fillcolor="#D6EAF8"];
+    CYP7A1              [label="CYP7A1\n(bile acid synthesis\nrate-limiting)", fillcolor="#E74C3C", fontcolor=white, shape=diamond];
+    CYP8B1              [label="CYP8B1\n(CA synthesis)",      fillcolor="#FAD7A0", shape=diamond];
+    FXR_liver           [label="FXR\n(liver BA sensor)",      fillcolor="#FDFEFE", shape=ellipse];
+    Bile_Acid_Pool      [label="Bile Acid\nPool (liver)",      fillcolor="#D1F2EB"];
+    Bile_Acid_GI        [label="Bile Acids\n(GI lumen)",      fillcolor="#A9DFBF"];
+    ASBT_trans          [label="ASBT\n(ileal BA transporter)", fillcolor="#27AE60", fontcolor=white, shape=diamond];
+    FGF19              [label="FGF19/21\n(ileal BA signal)",  fillcolor="#D5F5E3", shape=ellipse];
+    Enterohep_Circ      [label="Enterohepatic\nCirculation",  fillcolor="#52BE80"];
+
+    Diet_Chol         -> NPC1L1_trans   [label="absorption\n(∼40-60%)"];
+    Biliary_Chol      -> NPC1L1_trans   [label="reabsorption"];
+    NPC1L1_trans      -> Enterocyte_Chol[label="uptake"];
+    Enterocyte_Chol   -> ABCG5_G8       [label="efflux\nback to lumen", style=dashed];
+    ABCG5_G8          -> Bile_Acid_GI   [style=dotted];
+    Enterocyte_Chol   -> CM_Assembly    [label="packaged"];
+    MTP_Intestinal    -> CM_Assembly    [style=dotted];
+    ApoB48_prot       -> CM_Assembly    [style=dashed, arrowhead=none];
+    CM_Assembly       -> Chylomicron_Lymph[label="secretion"];
+    CYP7A1            -> Bile_Acid_Pool  [label="primary BA\nsynthesis"];
+    CYP8B1            -> Bile_Acid_Pool  [style=dotted];
+    FXR_liver         -> CYP7A1          [label="FXR → SHP\n↓CYP7A1", arrowhead=tee, color="red"];
+    Bile_Acid_Pool    -> Bile_Acid_GI    [label="biliary\nsecretion"];
+    Bile_Acid_GI      -> ASBT_trans      [label="ileal\nreabsorption"];
+    ASBT_trans        -> Enterohep_Circ  [label="portal return"];
+    Enterohep_Circ    -> Bile_Acid_Pool  [label="recycled"];
+    Bile_Acid_GI      -> FGF19           [label="FXR\nactivation"];
+    FGF19            -> CYP7A1           [label="FGF19→\nFGFR4 inhibits", arrowhead=tee, color="red"];
+  }
+
+  /* ============================================================
+     CLUSTER 8: Genetic Determinants of FH
+     ============================================================ */
+  subgraph cluster_genetics {
+    label="Genetic Determinants of Familial Hypercholesterolemia";
+    style=filled; fillcolor="#F2F3F4"; color="#566573"; penwidth=2;
+
+    LDLR_WT             [label="LDLR WT\n(normal function)",        fillcolor="#ABEBC6"];
+    LDLR_Class1         [label="LDLR Class 1\n(null, no protein)",  fillcolor="#E74C3C", fontcolor=white];
+    LDLR_Class2         [label="LDLR Class 2\n(transport defect)",  fillcolor="#E67E22"];
+    LDLR_Class3         [label="LDLR Class 3\n(binding defect)",    fillcolor="#F39C12"];
+    LDLR_Class4         [label="LDLR Class 4\n(clustering defect)", fillcolor="#F0B27A"];
+    LDLR_Class5         [label="LDLR Class 5\n(recycling defect)",  fillcolor="#FAD7A0"];
+    APOB_R3527Q         [label="APOB R3527Q\n(binding defect)",     fillcolor="#F5B7B1"];
+    PCSK9_D374Y         [label="PCSK9 D374Y\n(GoF: severe FH)",     fillcolor="#E74C3C", fontcolor=white];
+    PCSK9_LOF           [label="PCSK9 R46L/\nY142X (LoF protect)", fillcolor="#A9DFBF"];
+    HetFH_Status        [label="Heterozygous FH\n(LDL 190-400 mg/dL)", fillcolor="#FADBD8", shape=oval];
+    HomFH_Status        [label="Homozygous FH\n(LDL 400-1000 mg/dL)", fillcolor="#C0392B", fontcolor=white, shape=oval];
+    Receptor_Activity   [label="Receptor Activity\n(0-25% homozygous;\n50% heterozygous)", fillcolor="#F9EBEA"];
+    GeneTherapy_Target  [label="Gene Therapy\n(AAV/LNP-LDLR)", fillcolor="#D2B4DE"];
+    CRISPR_PCSK9        [label="CRISPR-Cas9\n(PCSK9 editing)",  fillcolor="#D2B4DE"];
+
+    LDLR_WT           -> HetFH_Status    [style=dashed, arrowhead=none, label="1 normal allele"];
+    LDLR_Class1       -> HomFH_Status    [label="most severe"];
+    LDLR_Class2       -> HetFH_Status    [label="common\nmutation"];
+    LDLR_Class3       -> HetFH_Status    [label="reduces\nLDL binding"];
+    LDLR_Class4       -> HetFH_Status    [label="internalization\ndefect"];
+    LDLR_Class5       -> HetFH_Status    [label="recycling\ndefect"];
+    APOB_R3527Q       -> HetFH_Status    [label="FDB\n(familial defective ApoB)"];
+    PCSK9_D374Y       -> HomFH_Status    [label="severe\nLDLR loss"];
+    PCSK9_LOF         -> HetFH_Status    [label="protective\n↓LDL 28%", style=dashed, color="green"];
+    HetFH_Status      -> Receptor_Activity[label="~50%\nLDLR function"];
+    HomFH_Status      -> Receptor_Activity[label="0-25%\nLDLR function"];
+    GeneTherapy_Target-> LDLR_Class1     [label="replaces\ndefective LDLR", color="green"];
+    CRISPR_PCSK9      -> PCSK9_D374Y     [label="correction", color="green"];
+  }
+
+  /* ============================================================
+     CLUSTER 9: Vascular Pathophysiology & Atherosclerosis
+     ============================================================ */
+  subgraph cluster_vascular {
+    label="Vascular Pathophysiology & Atherogenesis";
+    style=filled; fillcolor="#FDEDEC"; color="#7B241C"; penwidth=2;
+
+    Endo_Dysfunction    [label="Endothelial\nDysfunction",          fillcolor="#F5B7B1"];
+    LDL_Transcytosis    [label="LDL\nTranscytosis",                 fillcolor="#F1948A"];
+    Subendo_Retention   [label="Subendothelial\nLDL Retention",     fillcolor="#E74C3C", fontcolor=white];
+    Proteoglycan_Bind   [label="Proteoglycan\nBinding (LDL)",       fillcolor="#FADBD8"];
+    Monocyte_Adhesion   [label="Monocyte\nAdhesion (VCAM-1/MCP-1)", fillcolor="#F1948A"];
+    Foam_Cell_Form      [label="Foam Cell\nFormation",              fillcolor="#C0392B", fontcolor=white];
+    Macrophage_Diff     [label="Macrophage\nDifferentiation (M1)",  fillcolor="#E74C3C", fontcolor=white];
+    NLRP3_inflamm       [label="NLRP3\nInflammasome",               fillcolor="#922B21", fontcolor=white];
+    IL1b                [label="IL-1β\n(pro-inflammatory)",         fillcolor="#A93226", fontcolor=white];
+    TNFa                [label="TNF-α\n(pro-inflammatory)",         fillcolor="#A93226", fontcolor=white];
+    MMP_Activity        [label="MMP-2/9\n(plaque erosion)",         fillcolor="#D5D8DC", shape=diamond];
+    Fibrous_Cap         [label="Fibrous Cap\n(thinning)",           fillcolor="#E59866"];
+    Plaque_Vuln         [label="Vulnerable\nPlaque",                fillcolor="#D35400", fontcolor=white];
+    Plaque_Rupture      [label="Plaque\nRupture/Erosion",           fillcolor="#922B21", fontcolor=white];
+    Thrombosis          [label="Coronary\nThrombosis",              fillcolor="#7B241C", fontcolor=white];
+    Xanthoma_T          [label="Tendon\nXanthoma",                  fillcolor="#FAD7A0"];
+    Corneal_Arcus       [label="Corneal\nArcus (juvenilis)",        fillcolor="#D6EAF8"];
+    Xanthoma_Tuberous   [label="Tuberous\nXanthoma",                fillcolor="#FBEEE6"];
+
+    oxLDL            -> Endo_Dysfunction [label="oxidative\nstress"];
+    LDL_Part         -> LDL_Transcytosis [label="high [LDL]\nforces transcytosis"];
+    LDL_Transcytosis -> Subendo_Retention[label="intimal\nretention"];
+    Proteoglycan_Bind-> Subendo_Retention[style=dashed, arrowhead=none];
+    Subendo_Retention-> oxLDL           [label="local\noxidation"];
+    Endo_Dysfunction -> Monocyte_Adhesion[label="↑VCAM-1\n↑ICAM-1"];
+    Monocyte_Adhesion-> Macrophage_Diff  [label="transmigration\n→ M0→M1"];
+    Macrophage_Diff  -> Foam_Cell_Form   [label="SR-A/CD36\noxLDL uptake"];
+    oxLDL           -> Foam_Cell_Form    [label="SR-A/CD36\nmediated"];
+    Foam_Cell_Form   -> NLRP3_inflamm    [label="cholesterol crystals\nactivate NLRP3"];
+    NLRP3_inflamm    -> IL1b             [label="caspase-1\ncleavage"];
+    NLRP3_inflamm    -> TNFa             [label="NF-κB\npathway"];
+    IL1b             -> MMP_Activity     [label="↑MMP\nexpression"];
+    TNFa             -> MMP_Activity     [label="↑MMP\nexpression"];
+    MMP_Activity     -> Fibrous_Cap      [label="collagen\ndegradation"];
+    Fibrous_Cap      -> Plaque_Vuln      [label="thin cap\n<65 μm"];
+    Plaque_Vuln      -> Plaque_Rupture   [label="shear stress\ntrigger"];
+    Plaque_Rupture   -> Thrombosis       [label="platelet\nactivation + TF"];
+    LDL_Part         -> Xanthoma_T       [label="skin/tendon\ndeposition"];
+    LDL_Part         -> Corneal_Arcus    [label="corneal\ndeposition"];
+    LDL_Part         -> Xanthoma_Tuberous[label="joint\ndeposition"];
+  }
+
+  /* ============================================================
+     CLUSTER 10: Clinical Endpoints & Biomarkers
+     ============================================================ */
+  subgraph cluster_endpoints {
+    label="Clinical Endpoints & Biomarkers";
+    style=filled; fillcolor="#EBF5FB"; color="#154360"; penwidth=2;
+
+    LDL_C_plasma        [label="LDL-C\n(plasma mg/dL)",            fillcolor="#2E86C1", fontcolor=white];
+    TC_plasma           [label="Total Cholesterol\n(TC, mg/dL)",   fillcolor="#1A5276", fontcolor=white];
+    TG_plasma           [label="Triglycerides\n(TG, mg/dL)",       fillcolor="#AED6F1"];
+    HDL_C_plasma        [label="HDL-C\n(plasma mg/dL)",            fillcolor="#A9DFBF"];
+    Non_HDL_C           [label="Non-HDL-C\n(TC - HDL-C)",          fillcolor="#7FB3D3"];
+    ApoB100_plasma      [label="ApoB100\n(plasma mg/dL)",          fillcolor="#85C1E9"];
+    Lpa_plasma          [label="Lp(a)\n(plasma nmol/L)",           fillcolor="#D5D8DC"];
+    PCSK9_plasma_ep     [label="Plasma\nPCSK9 (ng/mL)",            fillcolor="#FAD7A0"];
+    CRP_hscrp           [label="hsCRP\n(inflammation marker)",     fillcolor="#FADBD8"];
+    Framingham          [label="Framingham\n10-yr CVD Score",      fillcolor="#1A5276", fontcolor=white, shape=oval];
+    PCE_Score           [label="Pooled Cohort\nEquation (PCE)",    fillcolor="#2E86C1", fontcolor=white, shape=oval];
+    ASCVD_Risk          [label="ASCVD 10-yr Risk\n(%)",            fillcolor="#C0392B", fontcolor=white, shape=oval];
+    LDL_Goal_Ach        [label="LDL-C Goal\nAttainment",           fillcolor="#27AE60", fontcolor=white, shape=oval];
+    Premature_MI        [label="Premature MI\n(<55 men, <65 women)",fillcolor="#922B21", fontcolor=white, shape=oval];
+    Premature_Stroke    [label="Premature\nStroke",                 fillcolor="#7B241C", fontcolor=white, shape=oval];
+    Carotid_IMT         [label="Carotid IMT\n(μm)",                fillcolor="#D5D8DC"];
+    CAC_Score           [label="Coronary\nArtery Calcium (CAC)",   fillcolor="#BFC9CA"];
+
+    LDL_Part         -> LDL_C_plasma     [label="measured"];
+    VLDL1            -> TC_plasma        [label="contributes"];
+    IDL_Part         -> TC_plasma        [label="contributes"];
+    LDL_Part         -> TC_plasma        [label="main\ncomponent"];
+    HDL2_Part        -> HDL_C_plasma     [label="measured"];
+    LDL_Part         -> Non_HDL_C        [label="part of\nnon-HDL"];
+    ApoB100_Synth    -> ApoB100_plasma   [label="all ApoB-\ncontaining LP"];
+    Lpa_Part         -> Lpa_plasma       [label="measured"];
+    PCSK9_Secreted   -> PCSK9_plasma_ep  [label="plasma\nlevel"];
+    IL1b             -> CRP_hscrp        [label="↑CRP\nthrough liver"];
+    LDL_C_plasma     -> Framingham       [label="risk\ncalculation"];
+    LDL_C_plasma     -> PCE_Score        [label="risk\ncalculation"];
+    PCE_Score        -> ASCVD_Risk       [label="output"];
+    Framingham       -> ASCVD_Risk       [label="output"];
+    LDL_C_plasma     -> LDL_Goal_Ach    [label="< 70 mg/dL\n(high risk goal)"];
+    Thrombosis       -> Premature_MI     [label="coronary\nevent"];
+    Thrombosis       -> Premature_Stroke [label="cerebral\nevent"];
+    LDL_Part         -> Carotid_IMT      [label="promotes\nIMT progression"];
+    Plaque_Vuln      -> CAC_Score        [label="calcification\nscore"];
+  }
+
+  /* ============================================================
+     CLUSTER 11: Statin Pleiotropic Effects
+     ============================================================ */
+  subgraph cluster_pleiotropic {
+    label="Statin Pleiotropic (Non-Lipid) Effects";
+    style=filled; fillcolor="#E9F7EF"; color="#1D6A39"; penwidth=2;
+
+    eNOS_Upregul        [label="eNOS\nUpregulation",             fillcolor="#A9DFBF"];
+    NO_Production       [label="↑NO\nProduction",               fillcolor="#52BE80"];
+    Rho_Inhibition      [label="Rho/ROCK\nInhibition",          fillcolor="#27AE60", fontcolor=white];
+    MMP_Inh_Statin      [label="MMP Inhibition\n(plaque stabilization)", fillcolor="#1E8449", fontcolor=white];
+    Platelet_Aggr       [label="Platelet Aggregation\nReduction", fillcolor="#82E0AA"];
+    hsCRP_Reduction     [label="hsCRP\nReduction",              fillcolor="#ABEBC6"];
+    Macrophage_M2       [label="Macrophage\nM1→M2 Shift",       fillcolor="#A9DFBF"];
+    Foam_Cell_Regress   [label="Foam Cell\nRegression",         fillcolor="#D5F5E3"];
+    Endothel_Protect    [label="Endothelial\nProtection",       fillcolor="#A9DFBF"];
+
+    Statin_Liver_PK  -> eNOS_Upregul   [label="Rho\ninhibition", style=dashed];
+    Ras_Raf_branch   -> Rho_Inhibition [label="statin\nblocks GGPP", arrowhead=tee, color="red"];
+    Rho_Inhibition   -> eNOS_Upregul   [label="derepresses\neNOS"];
+    eNOS_Upregul     -> NO_Production  [label="enzymatic"];
+    NO_Production    -> Endothel_Protect[label="vasoprotective"];
+    Statin_Liver_PK  -> MMP_Inh_Statin [label="anti-inflammatory", style=dashed];
+    MMP_Inh_Statin   -> Foam_Cell_Regress[label="plaque\nstabilization"];
+    Statin_Liver_PK  -> Platelet_Aggr  [label="TXA2 ↓", style=dashed];
+    Statin_Liver_PK  -> hsCRP_Reduction[label="anti-inflammatory", style=dashed];
+    hsCRP_Reduction  -> Macrophage_M2  [label="M2 polarization"];
+    Macrophage_M2    -> Foam_Cell_Regress[label="efferocytosis"];
+  }
+
+  /* ============================================================
+     INTER-CLUSTER CONNECTIONS
+     ============================================================ */
+
+  // Statin → HMGCR (main PD effect)
+  Statin_Liver_PK   -> HMGCR_Enzyme     [label="competitive\ninhibition", arrowhead=tee, color="red", penwidth=2];
+  HMGCR_Enzyme      -> Mevalonate        [arrowhead=tee, color="red"];
+
+  // HMGCR inhibition → LDLR upregulation
+  HMGCR_Enzyme      -> Cholesterol_Intra [label="↓synthesis\n→↓CHOL", arrowhead=tee, color="red"];
+  Cholesterol_Intra -> SREBP2_precursor  [label="low CHOL\nactivates SCAP", arrowhead=none, style=dashed];
+
+  // PCSK9i → PCSK9
+  PCSK9i_Central    -> PCSK9_Secreted    [label="neutralizes\nPCSK9", arrowhead=tee, color="green", penwidth=2];
+  PCSK9i_Central    -> PCSK9_LDLR_complex[label="blocks\nLDLR binding", arrowhead=tee, color="green", penwidth=2];
+
+  // Inclisiran → PCSK9 mRNA
+  mRNA_Cleavage     -> PCSK9_intracell   [label="↓PCSK9\nsynthesis", arrowhead=tee, color="green"];
+  PCSK9_intracell   -> PCSK9_Secreted    [label="secretion"];
+
+  // LDLR → LDL clearance
+  LDLR_Surface      -> LDL_Part          [label="endocytosis\n(main clearance)", arrowhead=tee, color="green", penwidth=2];
+  LDLR_Surface      -> IDL_Part          [label="VLDL/IDL\nclearance"];
+
+  // Cholesterol → Bile acids (CYP7A1)
+  Cholesterol_Intra -> CYP7A1            [label="substrate for\nbile acid synthesis"];
+
+  // Ezetimibe → NPC1L1 → cholesterol absorption
+  NPC1L1_inh       -> NPC1L1_trans       [label="blocks\ntransporter", arrowhead=tee, color="red", penwidth=2];
+  NPC1L1_trans      -> Enterocyte_Chol   [arrowhead=tee, color="red"];
+
+  // BileAcid Sequestrant → Bile acids
+  BileAcid_Complex  -> Enterohep_Circ    [label="blocks\nreabsorption", arrowhead=tee, color="red"];
+  BileAcid_Complex  -> FXR_liver         [label="↓BA→\n↑CYP7A1", arrowhead=tee, color="green"];
+
+  // ACLY inhibition → Acetyl-CoA
+  ACLY_Inhibition   -> Acetyl_CoA        [label="↓acetyl-CoA\nsupply", arrowhead=tee, color="red", penwidth=2];
+
+  // MTP inhibition → VLDL
+  MTP_Inhibition    -> VLDL1             [label="↓VLDL\nassembly", arrowhead=tee, color="red", penwidth=2];
+  MTP_Inhibition    -> CM_Assembly       [label="↓chylomicron\nassembly", arrowhead=tee, color="red"];
+
+  // Genetics → LDLR function
+  Receptor_Activity -> LDLR_Surface      [label="determines\nLDLR pool size", penwidth=2];
+  HomFH_Status      -> LDL_C_plasma      [label="extreme LDL\nelevation", color="red", penwidth=2];
+  HetFH_Status      -> LDL_C_plasma      [label="moderate LDL\nelevation", color="red"];
+
+  // Chylomicron → lipoprotein pool
+  Chylomicron_Lymph -> VLDL1             [label="remnant\nmetabolism", style=dashed];
+
+  // LDL → atherogenesis
+  LDL_Part          -> Subendo_Retention [label="↑LDL = ↑\natherogenesis", penwidth=2];
+
+  // Genetic therapy
+  GeneTherapy_Target-> LDLR_Surface      [label="↑functional\nLDLR", color="green", style=dashed, penwidth=2];
+
+}
