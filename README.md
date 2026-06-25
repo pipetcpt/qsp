@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-152-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-153-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **152개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **153개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -1477,6 +1477,7 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 
 ### References: 55 PubMed citations (KIT D816V pathobiology, WHO 2022 classification, midostaurin/avapritinib trials, cladribine, bone disease, QSP methodology)
 | 2026-06-25 | Fibroinflammatory / Immune-Mediated | IgG4-Related Disease | IgG4 연관 질환 | [![IgG4-RD](igg4-related-disease/igg4rd_qsp_model.png)](igg4-related-disease/igg4rd_qsp_model.svg) | [.dot](igg4-related-disease/igg4rd_qsp_model.dot) | [.svg](igg4-related-disease/igg4rd_qsp_model.svg) | [.R](igg4-related-disease/igg4rd_mrgsolve_model.R) | [app](igg4-related-disease/igg4rd_shiny_app.R) | [refs](igg4-related-disease/igg4rd_references.md) |
+| 2026-06-25 | Hematologic / Genetic | Beta-Thalassemia | 베타 지중해빈혈 | [![BTH](beta-thalassemia/bth_qsp_model.png)](beta-thalassemia/bth_qsp_model.svg) | [.dot](beta-thalassemia/bth_qsp_model.dot) | [.svg](beta-thalassemia/bth_qsp_model.svg) | [.R](beta-thalassemia/bth_mrgsolve_model.R) | [app](beta-thalassemia/bth_shiny_app.R) | [refs](beta-thalassemia/bth_references.md) |
 
 ---
 
@@ -1531,3 +1532,45 @@ Overview · Patient Profile · Pharmacokinetics · B Cell & Immunity · Cytokine
 Rituximab depletes CD20+ B cells and plasmablasts but **NOT** CD20− long-lived plasma cells — explaining why IgG4 normalizes slowly and relapse occurs from residual plasma cells. Maintenance rituximab re-depletes repopulating plasmablasts and reduces relapse.
 
 ### References: 60 PubMed citations (disease biology, Tfh2/CTL4 pathogenesis, IgG4 class switching, clinical trials, rituximab PK/TMDD, dupilumab, organ manifestations, QSP methodology)
+
+---
+
+## Beta-Thalassemia (베타 지중해빈혈) — 2026-06-25
+
+**Disease:** Beta-Thalassemia (β-Thalassemia Major) | Hematologic / Genetic / Hemoglobinopathy
+
+**Hallmarks:** HBB gene mutation · α/β globin chain imbalance · Ineffective erythropoiesis (60–90%) · ERFE↑↑↑ → hepcidin suppression → iron overload · Multi-organ damage (liver, heart, endocrine)
+
+### Pathogenic Driver Cascade
+HBB mutation → β-globin deficiency → excess free α-chains → Heinz body precipitation → erythroblast apoptosis (IE 60–90%) → severe anemia → EPO ↑↑ → ERFE ↑↑↑ → hepcidin ↓↓ → ferroportin ↑ → excess GI iron absorption → LIC ↑↑ → NTBI → cardiac T2* ↓ → cardiomyopathy · endocrine failure
+
+### Mechanistic Map Highlights
+- **12 subgraph clusters · 115+ nodes** covering full pathobiology and drug PK/PD
+- Genetic basis (HBB, BCL11A, HbF regulation) → BM erythropoiesis cascade → IE → EPO axis
+- ERFE/hepcidin/BMP-SMAD regulatory network → iron metabolism (plasma, liver LIC, cardiac, endocrine)
+- End-organ damage (hepatic fibrosis, cardiomyopathy, DM, hypogonadism, osteoporosis)
+- Drug PK/PD: Luspatercept (ACVR2B trap), Deferasirox/DFO/DFP (chelation), Hydroxyurea (HbF), Gene therapy (beti-cel/CRISPR)
+
+### ODE Model Structure (22 state variables)
+| Compartment Group | Key ODEs |
+|---|---|
+| Luspatercept PK (2-cpt SC) | LUSPAT_SC, LUSPAT_C1, LUSPAT_C2 |
+| Deferasirox PK (1-cpt PO) | DFX_GUT, DFX_CENT |
+| Hydroxyurea PK (1-cpt PO) | HU_GUT, HU_CENT |
+| Erythropoiesis cascade | BFU_E, CFU_E, PRO_E, BASO_E, POLY_E, ORTHO_E, RETIC, RBC_MAT |
+| Regulatory axis | EPO_CMT, ERFE_CMT, HEPC_CMT |
+| Iron compartments | FE_PL, FE_LIV, FERR_CMT, FE_CARD |
+
+### Shiny Dashboard (6 Tabs)
+Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · Clinical Endpoints (6-scenario comparison) · Biomarker Dashboard
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| BELIEVE (Cappellini 2020 NEJM, n=336) | Luspatercept 1.0 mg/kg q21d | Tx burden reduction ≥33% at wk48 | 21.4% vs 4.5% | ~ΔHb +1.4 g/dL |
+| BEYOND (Taher 2022 NEJM, n=145 NTDT) | Luspatercept 1.0 mg/kg q21d | TI ≥12wk | 77.7% vs 0% placebo | ~76% predicted |
+| ESCALATOR (Cappellini 2006 Blood) | Deferasirox 20–30 mg/kg/day | LIC reduction at 1yr | −2.8 mg/g | ~−2.5 mg/g |
+| Thompson 2018 NEJM (HGB-207) | beti-cel gene therapy | TI at 2yr | 68% (15/22) | ie_frac → 0.05 |
+| Pennell 2006 Blood | Deferiprone 75 mg/kg | Cardiac T2* improvement | +27% at 1yr | Modeled T2* ↑ |
+
+### References: 37 PubMed citations (disease biology, ERFE/hepcidin pathway, iron metabolism, BELIEVE/BEYOND trials, chelation therapy, gene therapy/CRISPR, HbF induction, QSP erythropoiesis modeling)
