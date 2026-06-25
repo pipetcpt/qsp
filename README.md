@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-172-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-173-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **172개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **173개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -1491,6 +1491,7 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 | 2026-06-25 | Endocrine / Genetic | Congenital Adrenal Hyperplasia | 선천성 부신증식증 | [![CAH](congenital-adrenal-hyperplasia/cah_qsp_model.png)](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.dot](congenital-adrenal-hyperplasia/cah_qsp_model.dot) | [.svg](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.R](congenital-adrenal-hyperplasia/cah_mrgsolve_model.R) | [app](congenital-adrenal-hyperplasia/cah_shiny_app.R) | [refs](congenital-adrenal-hyperplasia/cah_references.md) |
 | 2026-06-25 | Autoimmune / Hematology | Thrombotic Thrombocytopenic Purpura | 혈전성 혈소판감소성 자반증 | [![TTP](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.png)](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg) | [.dot](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.dot) | [.svg](thrombotic-thrombocytopenic-purpura/ttp_qsp_model.svg) | [.R](thrombotic-thrombocytopenic-purpura/ttp_mrgsolve_model.R) | [app](thrombotic-thrombocytopenic-purpura/ttp_shiny_app.R) | [refs](thrombotic-thrombocytopenic-purpura/ttp_references.md) |
 | 2026-06-25 | Metabolic / Genetic | Hereditary Hemochromatosis | 유전성 혈색증 | [![HH](hereditary-hemochromatosis/hh_qsp_model.png)](hereditary-hemochromatosis/hh_qsp_model.svg) | [.dot](hereditary-hemochromatosis/hh_qsp_model.dot) | [.svg](hereditary-hemochromatosis/hh_qsp_model.svg) | [.R](hereditary-hemochromatosis/hh_mrgsolve_model.R) | [app](hereditary-hemochromatosis/hh_shiny_app.R) | [refs](hereditary-hemochromatosis/hh_references.md) |
+| 2026-06-25 | Neuromuscular / Genetic | Duchenne Muscular Dystrophy | 뒤시엔 근이영양증 | [![DMD](duchenne-muscular-dystrophy/dmd_qsp_model.png)](duchenne-muscular-dystrophy/dmd_qsp_model.svg) | [.dot](duchenne-muscular-dystrophy/dmd_qsp_model.dot) | [.svg](duchenne-muscular-dystrophy/dmd_qsp_model.svg) | [.R](duchenne-muscular-dystrophy/dmd_mrgsolve_model.R) | [app](duchenne-muscular-dystrophy/dmd_shiny_app.R) | [refs](duchenne-muscular-dystrophy/dmd_references.md) |
 
 ---
 
@@ -2495,3 +2496,113 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Elmberg 2003 Gastroenterology | 간경변 HH의 HCC 위험 30배 상승 |
 
 ### References: 55 PubMed citations (15개 섹션: 역학·유전학·헵시딘-BMP/SMAD·철흡수·수송·세포항상성·RES재순환·간손상·심장철과부하·진단영상·사혈·DFO·DFX·DFP·신규치료·QSP 모델링)
+
+---
+
+## 💪 뒤시엔 근이영양증 (Duchenne Muscular Dystrophy, DMD) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`duchenne-muscular-dystrophy/`](duchenne-muscular-dystrophy/) | **약어:** DMD | **날짜:** 2026-06-25
+
+[![DMD QSP 기계론적 지도](duchenne-muscular-dystrophy/dmd_qsp_model.png)](duchenne-muscular-dystrophy/dmd_qsp_model.svg)
+
+*클릭하면 인터랙티브 SVG가 열립니다 — 12개 클러스터, 186+ 노드*
+
+### 질환 개요
+
+| 항목 | 내용 |
+|------|------|
+| **유전자** | DMD (Xp21.2), 2.4 Mb, 79 엑손 (인간 최대 유전자) |
+| **단백질** | 디스트로핀 (427 kDa, 막 골격 단백질) |
+| **유병률** | 남아 출생 3,500–5,000명당 1명 |
+| **유전 방식** | X-연관 열성 |
+| **발병 연령** | 2–5세 (Gowers 징후, 종아리 가성비대) |
+| **보행 상실** | 중앙값 12세(무치료) / ~15세(코르티코스테로이드) |
+| **기대수명** | 과거 20대 → 현재 30–40대 이상 (현대 관리) |
+
+### 병태생리 요약
+
+```
+DMD 유전자 돌연변이 (프레임시프트/결실) → 디스트로핀 부재 (<0.1% 정상)
+        ↓
+DAPC 복합체 불안정 (사르코글리칸·디스트로글리칸·nNOS 소실)
+        ↓
+근막 취약성 → 편심성 수축 시 미세파열
+        ↓
+Ca²⁺ 과부하 → 칼페인 활성화 → 근섬유 괴사
+        ↓
+DAMP 방출 → TLR4 → NF-κB → M1 대식세포 (TNF-α, IL-1β)
+        ↓
+M2 대식세포 TGF-β → 근섬유아세포 활성화 → 콜라겐 I/III 침착
+        ↓
+FAP 지방 침윤 + 위성세포 고갈 → 재생 실패
+        ↓
+근기능 소실 → 보행 상실 → 호흡부전 → 심근병증
+```
+
+### 기계론적 지도 클러스터 (12개, 186+ 노드)
+
+| 클러스터 | 핵심 구성 요소 |
+|---------|------------|
+| ① 유전적 기반 | DMD 유전자·79 엑손·결실/삽입/넌센스 돌연변이·리딩 프레임 규칙·Dp71 아이소폼 |
+| ② DAPC 복합체 | α/β-디스트로글리칸·α/β/γ/δ-사르코글리칸·신트로핀·디스트로브레빈·nNOS·라미닌-211 |
+| ③ 막 병리 | 근막 취약성·TRPC1/4/6·TRPV2·Ca²⁺ 과부하·RyR 누출·SERCA 억제·칼페인 |
+| ④ 산화 스트레스 | ROS·미토콘드리아 기능장애·ETC 복합체 I/III·Nrf2/HO-1 경로 |
+| ⑤ 염증 반응 | NF-κB·NLRP3·M1/M2 대식세포·TNF-α·IL-1β·IL-6·보체 |
+| ⑥ 섬유화 | TGF-β1/Smad2/3·CTGF·근섬유아세포·FAP·콜라겐 I/III·ECM |
+| ⑦ 근재생 | 위성세포·Pax7/MyoD/마이오제닌·마이오스타틴·IGF-1·위성세포 고갈 |
+| ⑧ 코르티코스테로이드 | 데플라자코트·프레드니손·바모롤론·GR·NFkB 억제·부작용 |
+| ⑨ 엑손 스킵·유전자치료 | 에테플리르센·골로디르센·카시머센·Elevidys·ASO PK·AAV 벡터 |
+| ⑩ 신규 치료법 | 기비노스타트·팜레불루맙·CRISPR·유트로핀 유도제·마이오스타틴 억제제 |
+| ⑪ 임상 결과 | 6MWD·NSAA·FVC%·LVEF·CK·보행 상실·삶의 질 |
+| ⑫ 장기 침범 | 심근병증·호흡·위장관·CNS(Dp71)·골 |
+
+### ODE 구획 (19개)
+
+| # | 구획 | 단위 | 생물학적 의미 |
+|---|------|------|------------|
+| 1 | `DEPOT_CS` | mg | 코르티코스테로이드 경구 흡수 데포 |
+| 2 | `CENT_CS` | mg | 스테로이드 혈장 중심 구획 |
+| 3 | `PERIPH_CS` | mg | 스테로이드 말초(근육) 구획 |
+| 4 | `CENT_ASO` | mg/kg | ASO 혈장 중심 구획 |
+| 5 | `MUS_ASO` | mg/kg | ASO 근육/조직 구획 |
+| 6 | `IC_ASO` | nmol/L | ASO 세포내 활성 농도 |
+| 7 | `AAV_CIRC` | vg/kg | 순환 AAV 벡터 |
+| 8 | `AAV_MUS` | vg/cell | 근육내 AAV |
+| 9 | `DYS` | % | 디스트로핀 수준 (% 정상) |
+| 10 | `MEMI` | 0–1 | 근막 완전성 (0=파열, 1=정상) |
+| 11 | `CAI` | rel. | 세포내 Ca²⁺ (정상=1.0) |
+| 12 | `ROS` | rel. | 활성산소종 (정상=1.0) |
+| 13 | `NFkB` | fold | NF-κB 활성도 배수 |
+| 14 | `M1` | cells/µL | M1 대식세포 밀도 |
+| 15 | `M2` | cells/µL | M2 대식세포 밀도 |
+| 16 | `TGFb` | pg/mL | TGF-β1 농도 |
+| 17 | `FIB` | 0–100 | 근육 섬유화 점수 |
+| 18 | `SC` | % | 위성세포 풀 (% 정상) |
+| 19 | `MF` | % | 근기능 (% 기저치) |
+
+### 치료 시나리오 (6개)
+
+| 시나리오 | 요법 | 임상 근거 |
+|---------|------|---------|
+| S1 | **무치료 자연경과** | CINRG DNHS Bello 2015 Neurology |
+| S2 | **데플라자코트** 0.9 mg/kg/day | McDonald 2013 Muscle Nerve |
+| S3 | **프레드니손** 0.75 mg/kg/day | Bushby 2010 Lancet Neurol |
+| S4 | **에테플리르센** 30 mg/kg/wk IV (엑손 51) | Mendell 2016 Ann Neurol |
+| S5 | **Elevidys** 1.33×10¹⁴ vg/kg 단회 IV | Mendell 2020 JAMA Neurol |
+| S6 | **데플라자코트 + 에테플리르센** 병용 | 조합 시뮬레이션 |
+
+### 2024년 기준 승인 약물
+
+| 약물 | 분류 | FDA 승인 | 적용 환자 |
+|------|------|---------|---------|
+| Deflazacort (Emflaza®) | 코르티코스테로이드 | 2017 | 모든 DMD ≥2세 |
+| Vamorolone (Agamree®) | 해리성 스테로이드 | 2023 | ≥2세 |
+| Eteplirsen (Exondys 51®) | PMO ASO | 2016 | 엑손 51 스킵 가능 (~13%) |
+| Golodirsen (Vyondys 53®) | PMO ASO | 2019 | 엑손 53 스킵 가능 (~8%) |
+| Viltolarsen (Viltepso®) | PMO ASO | 2020 | 엑손 53 스킵 가능 |
+| Casimersen (Amondys 45®) | PMO ASO | 2021 | 엑손 45 스킵 가능 (~8%) |
+| Delandistrogene moxeparvovec (Elevidys®) | AAV 유전자치료 | 2023 | 4–5세 |
+| Givinostat (Duvyzat®) | HDAC 억제제 | 2024 | ≥6세 |
+| Ataluren (Translarna®) | 조기종결코돈 억제 | EMA 2014 | 넌센스 돌연변이 (~10–15%) |
+
+### References: 57 PubMed citations (13개 섹션: 질환유전학·DAPC·Ca²⁺/ROS·염증·섬유화·위성세포·코르티코스테로이드·엑손스킵ASO·유전자치료·신규치료·임상자연경과·심장·QSP모델링)
