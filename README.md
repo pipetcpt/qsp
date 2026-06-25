@@ -274,6 +274,7 @@ qsp/
 | 144 | 자가면역질환 | [**류마티카 다발성 근통**<br><sub>Polymyalgia Rheumatica · PMR</sub>](polymyalgia-rheumatica/) | <a href="polymyalgia-rheumatica/pmr_qsp_model.svg"><img src="polymyalgia-rheumatica/pmr_qsp_model.png" width="190" alt="PMR"></a> | **IL-6 중심 염증 → 근통·조조강직** — HLA-DRB1*04·PTPN22 유전 소인 + 환경 유발(감염·계절) → 형질세포양 수지상세포(pDC) 및 고전적 단핵구 활성화 → NLRP3 인플라마좀·TLR4 → IL-1β·TNF-α; IL-23 → Th17(IL-17A/F) 분화, IFN-γ → Th1 편향, Treg 기능 억제; 어깨·고관절 활막/점액낭 FLS 활성화 → IL-6 폭풍. JAK1/2-STAT3-SOCS3 피드백 → CRP/피브리노겐 급성기 반응물 ↑. GCA 혈관 침범(15–20%; 측두·추골·대동맥 Th17/Th1 협력). 프레드니솔론(15mg/d ACR 표준·2구획 PK·CL=14L/h·V1=30L·GR-결합 transrepression NF-κB/AP-1 억제·GILZ/Annexin A1↑·HPA 축 억제); 토실리주맙(162mg SC QW·TMDD·mIL-6R·sIL-6R 이중 차단·GiACTA 2017 NEJM·GCA·PMR-SPARE Phase 2). RANK/RANKL/OPG·Wnt 골 경로·GC 유발 골다공증. **130+ 노드 12클러스터**, **22구획 ODE**(Pred PK 3+TCZ PK 3+HPA 축 1+IL-6 경로 2+급성기 반응물 2+BMD 1+질환활성도 2+기타 8), **7치료 시나리오**(무치료·Pred 15mg ACR 표준·Pred 22.5mg 급속 테이퍼·Pred 15mg 완만 테이퍼·TCZ QW+Pred·TCZ Q2W+Pred·TCZ 단독 스테로이드 무병). PMR-AS(0–70)·CRP·ESR·IL-6·BMD·코르티솔·재발 위험 바이오마커. 6탭 Shiny 대시보드(환자프로파일·약물PK·염증마커·질환활성도·시나리오비교·바이오마커탐색기). 55개 PubMed 인용(12섹션).<br>[🗺️ 지도](polymyalgia-rheumatica/pmr_qsp_model.svg) · [⚙️ mrgsolve](polymyalgia-rheumatica/pmr_mrgsolve_model.R) · [📊 Shiny](polymyalgia-rheumatica/pmr_shiny_app.R) · [📚 문헌](polymyalgia-rheumatica/pmr_references.md) · [📄 README](polymyalgia-rheumatica/README.md) |
 | 150 | 만성질환·간담도 | [**비알코올 지방간질환/MASLD**<br><sub>NAFLD/MASLD · Metabolic-Associated Steatotic Liver Disease</sub>](nafld-masld/) | <a href="nafld-masld/nafld_qsp_model.svg"><img src="nafld-masld/nafld_qsp_model.png" width="190" alt="NAFLD/MASLD"></a> | **인슐린 저항성 → 간 지질 과잉축적(지방증) → 산화·ER 스트레스 → 쿠퍼세포 활성화·NLRP3 인플라마좀 → 간세포 사멸(아포토시스·풍선변성) → 간성상세포(HSC) 활성화 → TGF-β1/SMAD2/3·LOXL2·MMP/TIMP → 간섬유화 → 간경변 → HCC**. 인슐린저항성·아디포카인(아디포넥틴↓·렙틴↑) + DNL(SREBP-1c/ChREBP/ACC/FAS) + β-산화(PPARα·CPT-1) + VLDL 분비 이상; CYP2E1/ACOX 과산화 → ROS·4-HNE·MDA → Nrf2/Keap1 산화스트레스 완충; ER 스트레스(PERK/IRE1α/ATF6 UPR 삼중 경로) → JNK·CHOP → 미토콘드리아 투과성 전환 → Cytc 방출. 장-간 축: LPS/TLR4·FXR/FGF-19·SCFA·TMAO·담즙산 순환. 레스메티롬(★2024 FDA 승인·THRβ 선택적 작용제·MAESTRO-NASH NAS↓≥2 25.9%·F↓≥1 24.2%)·오베티콜산(OCA·FXR 작용·REGENERATE F↓ 23%)·세마글루티드(GLP-1RA·NATIVE MASH 소실 59%)·엘라피브라노르(PPARα/δ)·라니피브라노르(pan-PPAR)·세니크리비록(CCR2/5 길항)·셀론세르팁(ASK1 억제) 완전 PK/PD 모델링. **100+ 노드 10클러스터**(지방조직·췌장·간지질·산화스트레스/ER·쿠퍼염증·간세포사멸·HSC섬유화·장-간 축·약물PK/PD·임상 엔드포인트), **22구획 ODE**(약물PK 5+간지질 3+산화/ER 스트레스 3+염증 6+세포사 1+섬유화 3+바이오마커 1), **5치료 시나리오**(무치료·OCA·세마글루티드·OCA+Sema 병용·레스메티롬). NAS 점수(0–8: 지방증+염증+풍선변성)·섬유화 병기(F0–F4)·ALT/AST·FIB-4·ELF 점수 임상 엔드포인트. Harrison 2024 NEJM(MAESTRO)·Sanyal 2019 Lancet(REGENERATE)·Newsome 2021 Lancet(NATIVE)·Armstrong 2016 Lancet(LEAN)·Friedman 2018 Hepatol(CENTAUR) 보정. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD바이오마커·임상엔드포인트·시나리오비교·바이오마커패널). **59개 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](nafld-masld/nafld_qsp_model.svg) · [⚙️ mrgsolve](nafld-masld/nafld_mrgsolve_model.R) · [📊 Shiny](nafld-masld/nafld_shiny_app.R) · [📚 문헌](nafld-masld/nafld_references.md) · [📄 README](nafld-masld/README.md) |
 | 151 | 희귀유전·폐·간 | [**알파-1 항트립신 결핍증**<br><sub>Alpha-1 Antitrypsin Deficiency · AATD</sub>](alpha1-antitrypsin-deficiency/) | <a href="alpha1-antitrypsin-deficiency/aatd_qsp_model.svg"><img src="alpha1-antitrypsin-deficiency/aatd_qsp_model.png" width="190" alt="AATD"></a> | **SERPINA1 Glu342Lys(Z 대립유전자) → Z-AAT 소포체 내 루프-시트 중합체 축적(gain-of-function 간독성) + 혈청 AAT 부족(<11 µM ELF 임계) → 중성구 엘라스타제(NE) 무제한 활성 → 범소엽성 폐기종**. 소포체 내 Z-AAT 중합체(ERAD/UPR/자가포식 과부하) → NF-κB/TGF-β1 → 간성상세포(HSC) 활성화 → 간섬유화 → 간경변 → HCC. 폐: PMN 동원·IL-8·NE·MMP-12 → 엘라스틴 분해 → FEV1 저하 → 폐기종 지수. Prolastin-C(60mg/kg/wk IV 증강·t½=4.5일·RAPID 임상)·Fazirsiran(GalNAc-siRNA 200mg SQ q12wk·간 Z-AAT 중합체 ~88% 감소·SEQUOIA 2022 NEJM)·Alvelestat(60mg BID PO·경구 NE 억제제·McElvaney 2020 AJRCCM)·rAAV 유전자치료 5종 PK/PD 완전 모델링. **130+ 노드 10클러스터**(유전자형·ER 단백질 품질관리·간 병증·AAT 생물학·프로테아제-항프로테아제 균형·폐 병증·염증 캐스케이드·약물 개입·PD 효과·임상 엔드포인트). **20구획 ODE**(간 5+혈청AAT 2구획+폐 6+약물PK/PD 7). **6치료 시나리오**(무치료·Prolastin-C·Fazirsiran·Alvelestat·rAAV 유전자치료·증강+NE억제 병용). RAPID(Chapman 2015 Lancet·CT폐밀도 감소 연간 1.54 g/L 완화)·SEQUOIA(Strnad 2022 NEJM) 보정. AAT혈청·ELF-AAT·FEV1%·SGRQ·악화율·Z-중합체·간섬유화·NE 바이오마커. **6탭 Shiny 대시보드**(환자프로파일·약물PK/AAT·폐 PD·임상엔드포인트·시나리오비교·바이오마커). **54개 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](alpha1-antitrypsin-deficiency/aatd_qsp_model.svg) · [⚙️ mrgsolve](alpha1-antitrypsin-deficiency/aatd_mrgsolve_model.R) · [📊 Shiny](alpha1-antitrypsin-deficiency/aatd_shiny_app.R) · [📚 문헌](alpha1-antitrypsin-deficiency/aatd_references.md) · [📄 README](alpha1-antitrypsin-deficiency/README.md) |
+| 153 | 부인과학·생식내분비 | [**자궁근종 (Uterine Leiomyoma)**<br><sub>Uterine Fibroids · Leiomyoma · UFL</sub>](uterine-leiomyoma/) | <a href="uterine-leiomyoma/ufl_qsp_model.svg"><img src="uterine-leiomyoma/ufl_qsp_model.png" width="190" alt="UFL"></a> | **MED12 돌연변이(70%)·HMGA2 과발현 → HPG 축(GnRH→LH/FSH→E2/P4) 구동 → ERα/PR 과발현 → 세포증식(MAPK/ERK·PI3K/AKT/mTOR·Wnt/β-catenin)↑ + ECM 축적(TGF-β1·콜라겐I/III·TIMP↑·MMP↓·LOX 교차결합) + 국소 아로마타제 과발현(PGE2 → CYP19A1 → E2 양성피드백) → 자궁근종 성장 → AUB·골반통·불임**. HPG 축(KNDy 신경세포·GnRH 펄스·LH/FSH·E2 음성피드백) + 난소 스테로이드 생합성(StAR·CYP11A1·3β-HSD·CYP17A1·CYP19A1 아로마타제) + 자궁 생물학(ERα·ERβ·PR-A/B·VEGF) + 근종 발병기전(MED12·HMGA2·섬유화) + 세포 내 신호전달(MAPK·PI3K·Wnt·JAK-STAT·NF-κB) + ECM 리모델링(MMP-1/2/9·TIMP-1/2·LOX·히알루론산) + 면역미세환경(M2 대식세포·비만세포·PGE2·COX-2) 15클러스터. 류프로라이드 3.75mg 데포(GnRH 작용제·뇌하수체 탈감작·초기 flare→90% E2 억제·Friedman 1989)·엘라고릭스 150/200mg BID(경구 GnRH 길항제·즉각 GnRHR 차단·flare 無·용량 의존적 E2 억제·ELARIS UF-I/II 2020 NEJM)·렐루고릭스 40mg QD(t½≈60h·장기 억제·LIBERTY 1/2 2021 NEJM)·울리프리스탈(UPA 5mg·SPRM 부분길항·PEARL I/II 2012 NEJM·13주×2코스) 4종 완전 PK/PD 모델링 + 호르몬 보충요법(E2 1mg+NET 0.5mg·골보호·안면홍조 완화). **120+ 노드 15클러스터**, **18구획 ODE**(GnRH·LH·FSH·E2·P4·근종용적·ECM·MBL·Hgb·BMD·약물PK 4종 8구획), **6치료 시나리오**(무치료·류프로라이드·엘라고릭스 150mg·엘라고릭스 200mg+AB·렐루고릭스+AB·UPA). Simon 2020 NEJM(ELARIS UF-I: 68.5% HMB 해소)·Schlaff 2020 NEJM(ELARIS UF-II: 76.5%)·Lukes 2021 NEJM(LIBERTY 1: 71.2%)·Murji 2022 NEJM(PRIMROSE: 93.9%)·Donnez 2012 NEJM(PEARL I: 91%) 보정. PBAC 점수·MBL(mL/cycle)·Hgb·BMD 변화율·UFS-QoL·안면홍조 점수 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD지표·임상엔드포인트·시나리오비교·바이오마커패널). **60개 PubMed 인용** (15개 섹션).<br>[🗺️ 지도](uterine-leiomyoma/ufl_qsp_model.svg) · [⚙️ mrgsolve](uterine-leiomyoma/ufl_mrgsolve_model.R) · [📊 Shiny](uterine-leiomyoma/ufl_shiny_app.R) · [📚 문헌](uterine-leiomyoma/ufl_references.md) · [📄 README](uterine-leiomyoma/README.md) |
 | 152 | 부인종양학 | [**난소암 (HGSOC)**<br><sub>Ovarian Cancer · High-Grade Serous · OC</sub>](ovarian-cancer/) | <a href="ovarian-cancer/oc_qsp_model.svg"><img src="ovarian-cancer/oc_qsp_model.png" width="190" alt="OC"></a> | **TP53 변이(>96%) + HRD(BRCA1/2·HRR 유전자) → 상동재조합 결핍 → PARP 합성 치사 · 백금 내성 · 복막 전이 → HGSOC**. DDR/HRR 경로(BRCA1/2·RAD51·PARP1/2·ATM/ATR·CHK1/2) + PI3K/AKT/mTOR + VEGF/혈관신생(HIF-1α·VEGFR1/2·DLL4/Notch) + 종양 미세환경(CAF·TAM M1/M2·MDSC·NK·CD8+ T·Treg·IL-6·TGF-β·IL-10·STAT3) + 면역회피(PD-L1/PD-1·CTLA-4·IDO1·LAG-3·TIM-3·TIGIT) + 복막 전이(EMT·CA-125/MUC16·HE4·LPA) 10클러스터. 카보플라틴(Calvert AUC6 공식·Chatelut CL·Pt-DNA 부가물·G2/M 정지)·파클리탁셀(3구획 PK·비선형·튜불린 안정화)·오라파립(300mg BID·PARP 트래핑·합성 치사)·니라파립(300mg QD·t½=36h)·베바시주맙(anti-VEGF·15mg/kg q3w) 5종 완전 PK/PD 모델링. **180+ 노드 10클러스터**, **18구획 ODE**(CAR·PAC·OLA·NIRA·BEV PK+VEGF+TV(Gompertz)+CA125+Pt_DNA+CD8T+HRD), **6치료 시나리오**(무치료·Carbo+Pacli×6·+Bev유지·→오라파립 BRCA+·→니라파립 HRD+·+Bev→Ola+Bev PAOLA-1). Moore 2018 NEJM(SOLO-1 mPFS NR, HR 0.30)·Gonzalez-Martin 2019 NEJM(PRIMA mPFS 13.8mo, HR 0.43)·Ray-Coquard 2019 NEJM(PAOLA-1 mPFS 22.1mo, HR 0.33)·ICON7/GOG218(베바시주맙) 보정. CA-125·HE4·ROMA·PFS·RECIST 1.1·ctDNA·HRD 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·PD바이오마커·종양반응·시나리오비교·바이오마커패널). **55개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](ovarian-cancer/oc_qsp_model.svg) · [⚙️ mrgsolve](ovarian-cancer/oc_mrgsolve_model.R) · [📊 Shiny](ovarian-cancer/oc_shiny_app.R) · [📚 문헌](ovarian-cancer/oc_references.md) · [📄 README](ovarian-cancer/README.md) |
 | 149 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
 
@@ -1218,3 +1219,104 @@ dEF/dt = krec·(EF_target − EF)
 | ④ 종양 반응 | 종양 부피 Gompertz 곡선, RECIST 분류, 최선 반응%, 추정 PFS |
 | ⑤ 시나리오 비교 | 6가지 치료 시나리오 종양·CA-125 비교, 요약 테이블 |
 | ⑥ 바이오마커 패널 | 종합 바이오마커 6개 패널, BRCA/HRD 치료 결정 트리, 임상시험 참조 수치 |
+
+---
+
+## 🔬 자궁근종 (Uterine Leiomyoma) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`uterine-leiomyoma/`](uterine-leiomyoma/) | **약어:** UFL | **날짜:** 2026-06-25
+
+[![UFL QSP 기계론적 지도](uterine-leiomyoma/ufl_qsp_model.png)](uterine-leiomyoma/ufl_qsp_model.svg)
+
+**질환**: 자궁근종 (Uterine Leiomyoma / Uterine Fibroids) | **분류**: 부인과학·생식내분비 | **유병률**: 가임기 여성 70–80% (가장 흔한 양성 부인과 종양)
+
+### 발병기전 핵심 (Core Pathogenesis)
+
+```
+HPG 축 (GnRH → LH/FSH → E2/P4)
+         ↓
+자궁근층 ERα/PR 과발현 (MED12 돌연변이 70%, HMGA2 과발현)
+         ↓
+세포증식 ↑ (MAPK/ERK · PI3K/AKT/mTOR · Wnt/β-catenin · Cyclin D1)
++ ECM 축적 ↑ (TGF-β1 → 콜라겐 I/III · TIMP↑ · MMP↓ · LOX 교차결합)
++ 국소 아로마타제 (PGE2 → CYP19A1 → 근종 내 E2 → 양성 피드백)
+         ↓
+자궁근종 성장 (근종 용적 증가, ECM 경화)
+         ↓
+AUB (과다 월경출혈) + 골반통 + 골반 압박감 + 불임
+         ↓
+철 결핍 빈혈 (Hgb < 12 g/dL) + 삶의 질 저하 (UFS-QoL)
+```
+
+### 기계론적 지도 구성 (Mechanistic Map — 15 Clusters, 120+ Nodes)
+
+| 클러스터 | 주요 구성 요소 |
+|---------|-------------|
+| HPG 축 | KNDy 신경세포(키스펩틴/NKB/다이노르핀) → GnRH 펄스 → LH/FSH 분비 → 뇌하수체 탈감작 |
+| 난소 스테로이드 생성 | 협막·과립막 세포 → StAR·CYP11A1·3β-HSD·CYP17A1·CYP19A1(아로마타제) → E2·P4 |
+| 호르몬 피드백 | E2 음성/양성 피드백, P4 음성피드백, 인히빈 A/B → FSH 선택적 억제 |
+| 자궁 생물학 | 자궁근층·내막 ERα/PR, VEGF, 자궁 수축, MBL |
+| 근종 발병기전 | MED12·HMGA2 → ERα/PR 과발현 → 아로마타제 과발현 → 증식·ECM |
+| 세포 내 신호전달 | MAPK/ERK · PI3K/AKT/mTOR · Wnt/β-catenin · JAK-STAT3 · NF-κB |
+| ECM 리모델링 | 콜라겐 I/III · 피브로넥틴 · MMP-1/2/9 · TIMP-1/2 · LOX · 히알루론산 |
+| 염증·면역 | M2 대식세포 · 비만세포 · IL-1β/6/8/13 · TNF-α · PGE2 · COX-2 |
+| GnRH 작용제 PK | 류프로라이드 데포: ka=0.01/h, CL=8 L/h, Vd=30 L, 데포→혈장 흡수 |
+| GnRH 길항제 PK | 엘라고릭스(t½=4-6h, F=56%)·렐루고릭스(t½=60h, F=12%) 경구 PK |
+| SPRM PK | 울리프리스탈(t½=32-38h, F=87%, PR 부분길항, PABC) |
+| 골 건강 | RANKL/OPG 균형 · BMD 변화율 · 저에스트로겐 골흡수 · 호르몬 보충 보호 |
+| 임상 엔드포인트 | AUB·MBL·PBAC·Hgb·UFS-QoL·VEGF·안면홍조 점수 |
+| 기타 치료 | LNG-IUD·OCP·트라넥사믹산·철분·근종절제술·자궁절제술·UAE·MRgFUS |
+| 위험인자 | 인종·초경 연령·미산부·비만·가족력·비타민D 결핍 |
+
+### ODE 모델 구획 (18 Compartments)
+
+| 구획 | 설명 |
+|-----|------|
+| GnRH_C | GnRH 펄스 농도 (nmol/L); E2·P4 음성피드백 조절 |
+| LH_C | 혈청 LH (IU/L); E2 피드백 + GnRH 자극 + 약물 억제 |
+| FSH_C | 혈청 FSH (IU/L); 인히빈 음성피드백 |
+| E2_C | 혈청 에스트라디올 (pg/mL); 근종 성장 주요 드라이버 |
+| P4_C | 혈청 프로게스테론 (ng/mL); ECM 합성 자극 |
+| V_fib | 근종 용적 (cm³); Gompertz 성장 + 호르몬 자극 |
+| ECM_fib | 근종 내 ECM 용적 (cm³); TGF-β/P4 의존 |
+| MBL_cum | 주기당 누적 월경혈량 (mL); 근종 크기 + E2 의존 |
+| Hgb_C | 헤모글로빈 (g/dL); 조혈 균형 − MBL 손실 |
+| BMD_C | 골밀도 (정규화); E2 의존적 보호 |
+| Leu_depot/plasma | 류프로라이드 데포 → 혈장 2구획 PK |
+| Ela_gut/plasma | 엘라고릭스 장 → 혈장 2구획 PK |
+| Rel_gut/plasma | 렐루고릭스 장 → 혈장 2구획 PK |
+| UPA_gut/plasma | 울리프리스탈 장 → 혈장 2구획 PK |
+
+### 6가지 치료 시나리오 (Treatment Scenarios)
+
+| # | 시나리오 | 핵심 근거 임상시험 | 24주 HMB 해소율 |
+|---|---------|-----------------|----------------|
+| S1 | 무치료 (자연 경과) | — | — |
+| S2 | 류프로라이드 3.75mg depot q4w | Friedman 1989 Fertil Steril | — (수술 전처치) |
+| S3 | 엘라고릭스 150mg BID | ELARIS UF-I (Simon 2020 NEJM) | **45.2%** |
+| S4 | 엘라고릭스 200mg BID + 보충요법 | ELARIS UF-I/II (Simon/Schlaff NEJM 2020) | **68.5–76.5%** |
+| S5 | 렐루고릭스 복합제 (40mg+E2/NET) QD | LIBERTY 1/2 (Lukes/Al-Hendy NEJM 2021) | **71.2%** |
+| S6 | UPA 5mg QD × 13주 × 2 코스 | PEARL I/II (Donnez NEJM 2012) | **91%** 출혈 조절 |
+
+### GnRH 길항제 vs 작용제 비교
+
+| 특성 | 작용제 (류프로라이드) | 길항제 (엘라고릭스·렐루고릭스) |
+|-----|------------------|--------------------------|
+| 작용 기전 | GnRHR 지속 노출 → 하향조절 | 경쟁적 GnRHR 차단 |
+| 초기 반응 | Flare 효과 1–2주 | 즉각적 억제 (Flare 없음) |
+| 투여 경로 | 주사 (데포) | 경구 |
+| 억제 속도 | 2–4주 후 완전 억제 | 수일 내 억제 |
+| E2 목표 수준 | < 20 pg/mL (거세 수준) | 20–50 pg/mL (보충요법 시) |
+| 가역성 | 중단 후 3–6개월 회복 | 빠른 회복 (단기 t½) |
+
+### 파일 목록 (Files)
+
+| 파일 | 설명 |
+|------|------|
+| [`ufl_qsp_model.dot`](uterine-leiomyoma/ufl_qsp_model.dot) | Graphviz 기계론적 지도 소스 (15클러스터, 120+ 노드) |
+| [`ufl_qsp_model.svg`](uterine-leiomyoma/ufl_qsp_model.svg) | 기계론적 지도 SVG (벡터) |
+| [`ufl_qsp_model.png`](uterine-leiomyoma/ufl_qsp_model.png) | 기계론적 지도 PNG (150 dpi) |
+| [`ufl_mrgsolve_model.R`](uterine-leiomyoma/ufl_mrgsolve_model.R) | mrgsolve 18구획 ODE 모델 + 6시나리오 |
+| [`ufl_shiny_app.R`](uterine-leiomyoma/ufl_shiny_app.R) | Shiny 6탭 인터랙티브 대시보드 |
+| [`ufl_references.md`](uterine-leiomyoma/ufl_references.md) | 참고문헌 60개 (15섹션, PubMed 링크) |
+| [`README.md`](uterine-leiomyoma/README.md) | 디렉토리 상세 설명 |
