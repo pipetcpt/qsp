@@ -1476,3 +1476,58 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 | PIONEER (Lim 2023 NEJM) | Avapritinib 25 mg QD | Symptom score reduction | ~30% | ~28% |
 
 ### References: 55 PubMed citations (KIT D816V pathobiology, WHO 2022 classification, midostaurin/avapritinib trials, cladribine, bone disease, QSP methodology)
+| 2026-06-25 | Fibroinflammatory / Immune-Mediated | IgG4-Related Disease | IgG4 연관 질환 | [![IgG4-RD](igg4-related-disease/igg4rd_qsp_model.png)](igg4-related-disease/igg4rd_qsp_model.svg) | [.dot](igg4-related-disease/igg4rd_qsp_model.dot) | [.svg](igg4-related-disease/igg4rd_qsp_model.svg) | [.R](igg4-related-disease/igg4rd_mrgsolve_model.R) | [app](igg4-related-disease/igg4rd_shiny_app.R) | [refs](igg4-related-disease/igg4rd_references.md) |
+
+---
+
+## IgG4-Related Disease (IgG4 연관 질환) — 2026-06-25
+
+**Disease:** IgG4-Related Disease (IgG4-RD) | Systemic Fibroinflammatory Immune-Mediated Condition
+
+**Hallmarks:** Storiform fibrosis · Obliterative phlebitis · IgG4+ lymphoplasmacytic infiltrate (>40% IgG4:IgG ratio) · Serum IgG4 > 135 mg/dL
+
+### Pathogenic Driver Cascade
+Tfh2 cell expansion (IL-4hi) → Germinal center reaction → IgG4+ plasmablasts/plasma cells → elevated serum IgG4 · Cytotoxic CD4+ T cells (SLAMF7+) → TGF-β1 → Myofibroblast activation → Storiform fibrosis
+
+### Mechanistic Map Highlights
+- **10 subgraph clusters · 140+ nodes** covering full immune pathobiology and drug PK/PD
+- Novel pathogenic axis: expanded Tfh2 → IL-4/IL-10 synergy → IgG4 class-switch recombination
+- Fibrosis pathway: SLAMF7+ CTL4 + M2 macrophage → TGF-β1/CCL18/PDGF → myofibroblasts → ECM
+- Drug targets: Rituximab (CD20 TMDD), Prednisone (GR/NF-κB), Dupilumab (IL-4Rα TMDD)
+
+### mrgsolve Model (23 ODEs)
+| Compartment Group | Key ODEs |
+|---|---|
+| Rituximab PK (TMDD 2-cpt) | CENT_RTX, PERI_RTX, CD20_FREE, RTX_CD20 |
+| Prednisone PK | GUT_PRED, CENT_PRED |
+| Dupilumab PK (TMDD SC) | SC_DUP, CENT_DUP, IL4RA_FREE, DUP_IL4RA |
+| B cell cascade | BNV, GCB, PB (plasmablast), PC (long-lived plasma cell) |
+| Pathogenic T cells | TFH2 (Tfh2), CTL4 (cytotoxic CD4+) |
+| Cytokines | IgG4_SER, IL4, IL10, TGFB |
+| Fibrosis | MYOFIB (myofibroblast), ECM (fibrosis index) |
+| Disease activity | IRI (IgG4-RD Responder Index, 0-24) |
+
+### Treatment Scenarios Simulated
+1. Untreated natural history (24 months)
+2. Prednisone 40 mg/d taper over 6 months
+3. Rituximab 1g IV D1+D15 (Khosroshahi 2012 protocol)
+4. Rituximab 375 mg/m² IV ×4 weekly (oncology protocol)
+5. Rituximab 1g induction + 500 mg maintenance q6m ×2 years
+6. Dupilumab 300 mg SC q2w (investigational; Bozzalla 2022)
+
+### Shiny Dashboard (7 Tabs)
+Overview · Patient Profile · Pharmacokinetics · B Cell & Immunity · Cytokines & Fibrosis · Scenario Comparison · Biomarkers
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| Khosroshahi 2012 Ann Rheum Dis (n=10) | RTX 1g D1+D15 | IgG4 fall at 3mo | 75-80% | ~77% |
+| Khosroshahi 2012 | RTX 1g D1+D15 | Response at 6mo | 91% | ~87% |
+| Carruthers 2015 Ann Rheum Dis (n=30) | RTX | B-cell nadir | <5/μL (>95% depletion) | ~3% baseline |
+| Lanzillotta 2020 Lancet Rheum | RTX vs GC | IRI response | RTX 97%, GC 84% | ~95% vs 81% |
+| Hart 2021 NEJM MITIGATE | RTX vs GC | 12-mo relapse prevention | RTX 87% vs GC 61% | Modeled |
+
+### Key Mechanistic Insight
+Rituximab depletes CD20+ B cells and plasmablasts but **NOT** CD20− long-lived plasma cells — explaining why IgG4 normalizes slowly and relapse occurs from residual plasma cells. Maintenance rituximab re-depletes repopulating plasmablasts and reduces relapse.
+
+### References: 60 PubMed citations (disease biology, Tfh2/CTL4 pathogenesis, IgG4 class switching, clinical trials, rituximab PK/TMDD, dupilumab, organ manifestations, QSP methodology)
