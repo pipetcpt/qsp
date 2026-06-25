@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-153-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-154-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **153개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
@@ -1478,6 +1478,7 @@ Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpo
 ### References: 55 PubMed citations (KIT D816V pathobiology, WHO 2022 classification, midostaurin/avapritinib trials, cladribine, bone disease, QSP methodology)
 | 2026-06-25 | Fibroinflammatory / Immune-Mediated | IgG4-Related Disease | IgG4 연관 질환 | [![IgG4-RD](igg4-related-disease/igg4rd_qsp_model.png)](igg4-related-disease/igg4rd_qsp_model.svg) | [.dot](igg4-related-disease/igg4rd_qsp_model.dot) | [.svg](igg4-related-disease/igg4rd_qsp_model.svg) | [.R](igg4-related-disease/igg4rd_mrgsolve_model.R) | [app](igg4-related-disease/igg4rd_shiny_app.R) | [refs](igg4-related-disease/igg4rd_references.md) |
 | 2026-06-25 | Hematologic / Genetic | Beta-Thalassemia | 베타 지중해빈혈 | [![BTH](beta-thalassemia/bth_qsp_model.png)](beta-thalassemia/bth_qsp_model.svg) | [.dot](beta-thalassemia/bth_qsp_model.dot) | [.svg](beta-thalassemia/bth_qsp_model.svg) | [.R](beta-thalassemia/bth_mrgsolve_model.R) | [app](beta-thalassemia/bth_shiny_app.R) | [refs](beta-thalassemia/bth_references.md) |
+| 2026-06-25 | Endocrine / Genetic | Congenital Adrenal Hyperplasia | 선천성 부신증식증 | [![CAH](congenital-adrenal-hyperplasia/cah_qsp_model.png)](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.dot](congenital-adrenal-hyperplasia/cah_qsp_model.dot) | [.svg](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.R](congenital-adrenal-hyperplasia/cah_mrgsolve_model.R) | [app](congenital-adrenal-hyperplasia/cah_shiny_app.R) | [refs](congenital-adrenal-hyperplasia/cah_references.md) |
 
 ---
 
@@ -1574,3 +1575,46 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Pennell 2006 Blood | Deferiprone 75 mg/kg | Cardiac T2* improvement | +27% at 1yr | Modeled T2* ↑ |
 
 ### References: 37 PubMed citations (disease biology, ERFE/hepcidin pathway, iron metabolism, BELIEVE/BEYOND trials, chelation therapy, gene therapy/CRISPR, HbF induction, QSP erythropoiesis modeling)
+
+---
+
+## 선천성 부신증식증 (Congenital Adrenal Hyperplasia, CAH) — 최신 모델 상세 (2026-06-25)
+
+| 2026-06-25 | Endocrine / Genetic | Congenital Adrenal Hyperplasia | 선천성 부신증식증 | [![CAH](congenital-adrenal-hyperplasia/cah_qsp_model.png)](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.dot](congenital-adrenal-hyperplasia/cah_qsp_model.dot) | [.svg](congenital-adrenal-hyperplasia/cah_qsp_model.svg) | [.R](congenital-adrenal-hyperplasia/cah_mrgsolve_model.R) | [app](congenital-adrenal-hyperplasia/cah_shiny_app.R) | [refs](congenital-adrenal-hyperplasia/cah_references.md) |
+
+**선천성 부신증식증(CAH)**은 CYP21A2(21-수산화효소) 유전자 돌연변이로 코르티솔 및 알도스테론 합성이 차단되고, 이로 인해 ACTH 과다 분비 → 부신 과형성 → 17-OHP 축적 → 안드로겐 과잉이 발생하는 상염색체 열성 유전 내분비 질환입니다.
+
+### Mechanistic Map Highlights (14 clusters, 130+ nodes)
+- HPA 축 (시상하부 CRH → 뇌하수체 ACTH → 부신 피질 스테로이드 생합성)
+- **CYP21A2 결핍 블록**: 17-OHP 및 프로게스테론 → DOC/Compound S 경로 차단
+- **17-OHP → 안드로겐 전환**: 안드로스텐디온/테스토스테론 과잉 (염-손실형 CAH의 핵심 병태)
+- 안드로겐 과잉 효과 (남성화, 성장 가속, 불임, TART)
+- 성장/골격 효과 (키 SDS, 골령 진행, BMD)
+- 무기질코르티코이드 축 (레닌-안지오텐신-알도스테론)
+- 약물 PK/PD: Hydrocortisone (2-cpt), Prednisolone, Dexamethasone, Fludrocortisone (MC), Tildacerfont (CRF1R 길항제, 2-cpt), Crinecerfont (CRF1R 길항제)
+
+### ODE Model Structure (35 state variables)
+| Compartment Group | ODEs |
+|---|---|
+| HPA Axis | CRH, ACTH |
+| Steroidogenesis | PREG, PROG, OHP17 (17-OHP), DHEA, A4, Testosterone, DOC, Compound S, Cortisol, Aldosterone |
+| Mineralocorticoid axis | RENIN |
+| Growth / Bone | HEIGHT_SDS, BONE_AGE, BMD |
+| HC PK (2-cpt oral) | HC_GUT, HC_CENT, HC_PERI |
+| Prednisolone PK | PRED_GUT, PRED_CENT |
+| Fludrocortisone PK | FC_GUT, FC_CENT |
+| Tildacerfont PK (2-cpt) | TILD_GUT, TILD_CENT, TILD_PERI |
+| Crinecerfont PK | CRINE_GUT, CRINE_CENT |
+
+### Shiny Dashboard (6 Tabs)
+환자 프로파일 · 약물 PK · 스테로이드 바이오마커 (17-OHP/ACTH/A4/Cortisol) · 임상 엔드포인트 (키 SDS/골령/BMD/레닌) · 시나리오 비교 (6개 치료 전략) · 바이오마커 대시보드 (목표 달성률/CRF1 점유율)
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| Bonfig 2009 JCEM | HC standard therapy | 17-OHP control rate | ~53% | ~50% |
+| CAH2301 (Sarafoglou NEJM 2023) | Tildacerfont 100 mg QD | 17-OHP % change | −58% | −55% |
+| CARES (Merke NEJM 2024) | Crinecerfont 200 mg BID | Androstenedione % change | −44% | −42% |
+| CARES (Merke NEJM 2024) | Crinecerfont 200 mg BID | ACTH % change | −66% | −61% |
+
+### References: 54 PubMed citations (HPA axis dynamics, CYP21A2 enzyme kinetics, HC/PRED/DEX PK, tildacerfont/crinecerfont PK-PD, CARES/CAH2301 trials, growth/bone effects, newborn screening, psychosocial outcomes, QSP modeling)
