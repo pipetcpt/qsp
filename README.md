@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-156-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-157-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **154개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **155개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -280,6 +280,7 @@ qsp/
 | 154 | 혈액종양·골수증식 | [**진성 다혈증 (PV)**<br><sub>Polycythemia Vera · PV</sub>](polycythemia-vera/) | <a href="polycythemia-vera/pv_qsp_model.svg"><img src="polycythemia-vera/pv_qsp_model.png" width="190" alt="PV"></a> | **JAK2 V617F 체세포 돌연변이(>95%) → 구성적 JAK-STAT5 신호 → EPO 비의존적 BFU-E/CFU-E 과증식 → 적혈구 덩어리 상승 → Hct 증가 → 혈액 점도 상승 → 혈전 위험(DVT·뇌졸중·간정맥 혈전). 혈소판증가증·백혈구증가증·비장비대(수외조혈). 골수섬유증(post-PV MF) 및 AML 이행 위험**. JAK2 V617F clone → JAK-STAT5/3·PI3K/AKT/mTOR·MAPK/ERK 경로; SOCS1/3 음성 피드백; EPO-R·MPL·G-CSF-R 과민성; BFU-E→CFU-E→망상적혈구→RBC 조혈 ODE; 혈소판(CFU-Mk→거핵구)·WBC 구획; 비장 용적(수외조혈·EMH); 골수 섬유화 점수(MF-0~3); JAK2 V617F 대립유전자 부담(%). 룩솔리티닙(10mg BID·JAK1/2 IC50 2.8/3.3nM·RESPONSE trial SVR35 38%·Hct 조절 60%·2구획 PK)·하이드록시유레아(500mg/d·리보뉴클레오티드 환원효소 억제·IC50=150μM·ECLAP)·PEG-IFN-α2a(45μg/wk SC·클론 억제·PROUD-PV 대립유전자 부담 감소) 완전 PK/PD 모델링 + 정맥 사혈·아스피린. **100+ 노드 10클러스터**, **16구획 ODE**(룩솔리티닙 2구획+HYU 1구획+IFN SC/중심+BFU-E/CFU-E/망상적혈구 BM·순환/RBC/PLT/WBC+비장+섬유화+JAK2 대립유전자 부담), **6치료 시나리오**(무치료·사혈+아스피린·하이드록시유레아·룩솔리티닙·PEG-IFN-α2a·룩솔리티닙 용량반응). RESPONSE(2015 NEJM)·RESPONSE-2(2017 Lancet Oncol)·PROUD-PV/CONTINUATION-PV(2020 Lancet Haematol)·CYTO-PV(2013 NEJM)·ECLAP(2004 NEJM) 임상 보정. Hct·PLT·WBC·비장용적·SVR35·JAK2 대립유전자 부담·pSTAT5 억제·MPN-SAF TSS·연간 혈전 위험·BM 섬유화 점수·MF/AML 이행 위험 바이오마커. **7탭 Shiny 대시보드**(개요·환자프로파일 & ELN 위험층화·약동학·PD & 혈액학·임상 엔드포인트·시나리오 비교·바이오마커 & 질환진행). **58개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](polycythemia-vera/pv_qsp_model.svg) · [⚙️ mrgsolve](polycythemia-vera/pv_mrgsolve_model.R) · [📊 Shiny](polycythemia-vera/pv_shiny_app.R) · [📚 문헌](polycythemia-vera/pv_references.md) · [📄 README](polycythemia-vera/README.md) |
 | 155 | 산과·임신 | [**자간전증 (Preeclampsia)**<br><sub>Preeclampsia · Eclampsia · PE</sub>](preeclampsia/) | <a href="preeclampsia/pe_qsp_model.svg"><img src="preeclampsia/pe_qsp_model.png" width="190" alt="PE"></a> | **불완전한 영양막세포(EVT) 침윤 → 나선동맥 불완전 재형성 → 태반 허혈/저산소증 → HIF-1α → sFlt-1↑ 분비 → VEGF/PlGF 격리(sFlt-1/PlGF비율>38) + sEng↑ → VEGFR2 신호↓ → eNOS 활성↓ → NO↓/ET-1↑/ROS↑ 내피세포 기능 부전 → SVR↑ → 고혈압(SBP≥140mmHg) · 사구체 내피세포 장애→족세포손상→단백뇨(≥300mg/24h) · TXA2↑→혈소판감소·미세혈전→HELLP → 자간증**. 혈관형성 불균형(sFlt-1/PlGF/sEng) + 내피세포 기능부전(NO/ET-1/ROS) + 심혈관(SBP/DBP/SVR) + 신장(GFR/단백뇨/사구체내피세포장애) + 응고/HELLP(혈소판/LDH/용혈) + 신경(발작역치/NMDA축/자간증) + 간(허혈/AST/ALT) + 보체(C3/C5/MAC) + 태아(제대혈류/IUGR) 15클러스터. 아스피린(75mg/d·COX-1 비가역억제·TXA2~95%억제·ASPRE NEJM 2017 62% 조기자간전증 감소)·라베탈롤(200mg BID·α1+β1차단·CHIPS NEJM 2015)·니페디핀MR(30mg/d·L형Ca²⁺채널차단·CYP3A4대사)·황산마그네슘(4g IV+1g/h·NMDA수용체차단·경련예방·Magpie Lancet 2002 58%↓) 4종 완전 PK/PD 모델링. **150+ 노드 15클러스터**, **20구획 ODE**(아스피린2구획+COX1억제+라베탈롤+니페디핀+Mg+sFlt-1+PlGF+sEng+NO+ET1+ROS+SBP+DBP+GFR+단백뇨+혈소판+LDH+경련위험), **6치료 시나리오**(무치료·아스피린예방·라베탈롤·니페디핀·황산마그네슘·병용). ASPRE(Rolnik 2017 Lancet)·CHIPS(Magee 2015 NEJM)·Magpie(Altman 2002 Lancet)·Verlohren 2010(sFlt-1/PlGF비율≥38 예측, 민감도82%·특이도95%) 보정. SBP/DBP·sFlt-1/PlGF비율·단백뇨·GFR·혈소판·LDH·경련위험·Mg²⁺혈중농도(치료창 1.7-3.5mmol/L) 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·약물PK·혈관형성균형·심혈관-신장·HELLP&신경계·시나리오비교·바이오마커패널·About). **60개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](preeclampsia/pe_qsp_model.svg) · [⚙️ mrgsolve](preeclampsia/pe_mrgsolve_model.R) · [📊 Shiny](preeclampsia/pe_shiny_app.R) · [📚 문헌](preeclampsia/pe_references.md) · [📄 README](preeclampsia/README.md) |
 | 156 | 신경·뇌혈관 | [**허혈성 뇌졸중**<br><sub>Ischemic Stroke · IS</sub>](ischemic-stroke/) | <a href="ischemic-stroke/is_qsp_model.svg"><img src="ischemic-stroke/is_qsp_model.png" width="190" alt="IS"></a> | **혈전/색전성 뇌혈관 폐색 → CBF 급감 → 허혈 핵심부(Core, <10 mL/100g/min) 불가역 괴사 + 반음영부(Penumbra, 10–20 mL/100g/min) 가역적 위험 조직 → ATP 고갈 → Na⁺/K⁺-ATPase 실패·탈분극 → 흥분독성 글루타메이트(NMDA/AMPA→Ca²⁺ 과부하) → ROS/NOS 과잉→미토콘드리아 기능부전→Cytc→Caspase-3→아포토시스/괴사 → 소교세포 활성화·호중구 침윤·IL-1β/IL-6/TNF-α↑ → MMP-9→BBB 파괴→혈관성 부종→출혈성 전환**. tPA(0.9 mg/kg IV·NINDS 1995·ECASS-3 2008 4.5h 창)·EVT(기계적 혈전제거·DEFUSE-3/DAWN 최대 24h)·아스피린(81–325mg·COX-1 비가역 억제·IST 1997)·아픽사반(5mg BID·FXa 억제·ARISTOTLE 2011·심방세동 2차 예방)·스타틴(LDL 감소 + 플레이오트로픽·SPARCL 2006) 5종 완전 PK/PD 모델링. **141 노드 12 서브그래프 클러스터**(위험인자·혈관병변/혈전·급성치료PK·허혈핵심부/반음영·흥분독성/이온·산화스트레스/NO·신경염증/BBB·재관류손상·2차예방PK·신경보호/신규표적·임상결과·바이오마커), **18구획 ODE**(혈전+CBF×2+tPA×2+아스피린×2+아픽사반×3+ATP+글루타메이트+Ca²⁺+ROS+IL-6+BBB+경색부피+NIHSS), **5치료 시나리오**(표준 tPA 2h·지연 tPA 4.5h·항혈소판 단독·tPA+아픽사반(AF)·EVT 3h). Tanswell 2002(tPA PK·CL=550mL/min)·Frost 2008(아픽사반 PK)·NINDS 1995·ECASS-3 2008·DEFUSE-3 2018·IST 1997·ARISTOTLE 2011·SPARCL 2006 보정. NIHSS·mRS·경색부피(mL)·BBB 무결성·IL-6·GFAP·UCH-L1·NSE·S100β·DWI/PWI 미스매치 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·급성치료PK·허혈캐스케이드·신경염증/BBB·임상엔드포인트·2차예방PK·시나리오비교·바이오마커). **50개 PubMed 인용** (11개 섹션).<br>[🗺️ 지도](ischemic-stroke/is_qsp_model.svg) · [⚙️ mrgsolve](ischemic-stroke/is_mrgsolve_model.R) · [📊 Shiny](ischemic-stroke/is_shiny_app.R) · [📚 문헌](ischemic-stroke/is_references.md) · [📄 README](ischemic-stroke/README.md) |
+| 157 | 혈액·골수부전 | [**재생불량성 빈혈**<br><sub>Aplastic Anemia · AA</sub>](aplastic-anemia/) | <a href="aplastic-anemia/aa_qsp_model.svg"><img src="aplastic-anemia/aa_qsp_model.png" width="190" alt="AA"></a> | **자가반응 CD8+ CTL 활성화(분자 모방·HLA-DR 제시) → IFN-γ/TNF-α 사이토카인 폭풍 → HSC에 FasL·퍼포린/그랜자임 B·NF-κB/ROS/p53 경로로 직접 세포자멸 → 조혈줄기세포(HSC) 풀 고갈 → 다계열 조혈부전(범혈구감소증) → 저세포성 골수(BM cellularity <25%)**. Treg(FoxP3+) 결핍 → 면역관용 붕괴; IFN-γ → FasR 상향·CXCL9/10 → CTL 골수 모집; BM 미세환경(MSC·내피세포) 손상·지방 대체; PNH 클론(GPI-앵커 결핍·면역 도피) 확대. hATG(40mg/kg×4d·2구획 PK·CL 0.85L/h)·rATG(3.5mg/kg×5d·CL 0.50L/h)·사이클로스포린(5mg/kg/d PO·목표 트로프 150–250ng/mL·CYP3A4·DDI)·엘트롬보파그(150mg/d·c-Mpl 작용제·JAK2/STAT5→HSC 자기재생↑·van der Straaten PopPK)·다나졸(400mg/d 안드로겐·EPO↑·Bcl-2↑) 5종 완전 PK/PD 모델링 + 동종조혈모세포이식(HSCT). **130+ 노드 13클러스터**(면역유발/항원제시·T세포활성화/확장·전염증사이토카인·HSC구획/세포자멸사·BM미세환경·다계열조혈·말초혈액/임상지표·ATG PK·CsA PK·EPAG PK·약물PD기전·질환 중증도/임상결과·지지요법), **20구획 ODE**(ATG 2구획+CsA+EPAG+Danazol PK 5구획+Teff+Treg+HSC+CFU-E+망상적혈구+RBC+CFU-G+ANC+MK+PLT+BM세포성+IFN-γ+TNF-α+IL-2+PNH클론), **5치료 시나리오**(무치료·hATG+CsA·hATG+CsA+EPAG·rATG+CsA+EPAG·동종HSCT). Scheinberg 2011 NEJM(hATG vs rATG·CR 68% vs 37%)·Townsley 2017 NEJM(EPAG 추가·CR 58% vs 36% at 6mo)·Peffault 2022 NEJM(rATG+CsA+EPAG CR 68%)·Olnes 2012 NEJM(EPAG 단독 CR 17%·PR 11%) 임상 보정. Hgb·ANC·PLT·ARC·BM세포성·IFN-γ/TNF-α/IL-2·PNH클론 크기·CR/PR/NR·수혈 필요성·MDS/AML 이행 위험 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일 & 중증도·약물PK·조혈·임상엔드포인트·시나리오비교·바이오마커 & 클론진화). **41개 PubMed 인용** (8개 섹션).<br>[🗺️ 지도](aplastic-anemia/aa_qsp_model.svg) · [⚙️ mrgsolve](aplastic-anemia/aa_mrgsolve_model.R) · [📊 Shiny](aplastic-anemia/aa_shiny_app.R) · [📚 문헌](aplastic-anemia/aa_references.md) · [📄 README](aplastic-anemia/README.md) |
 
 ---
 
@@ -1751,3 +1752,78 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | SPARCL 2006 NEJM | Atorvastatin 80 mg | Recurrent stroke | 16% RRR | Plaque stabilization |
 
 ### References: 50 PubMed citations (Clinical Trials · tPA PK · Apixaban PK · Ischemic Cascade · Oxidative Stress · Neuroinflammation/BBB · Imaging · Biomarkers · QSP Modeling · Guidelines · Epidemiology)
+
+---
+
+## 🩸 재생불량성 빈혈 (Aplastic Anemia) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`aplastic-anemia/`](aplastic-anemia/) | **약어:** AA | **날짜:** 2026-06-25
+
+[![AA QSP 기계론적 지도](aplastic-anemia/aa_qsp_model.png)](aplastic-anemia/aa_qsp_model.svg)
+
+**질환**: 재생불량성 빈혈(Aplastic Anemia) | **분류**: 혈액·골수부전 | **유병률**: 연간 2–3/100만 명(서구), 동아시아 2–3배↑ | **정의**: 자가면역 T세포에 의한 조혈줄기세포(HSC) 파괴로 인한 골수 저형성 및 범혈구감소증
+
+### Pathophysiology Clusters (13)
+- 면역 유발 & 항원 제시 (환경 촉발·바이러스·HLA-DR·MHC-I·교차반응 자가항원·pDC)
+- T세포 활성화 & 클론 확장 (Th1 CD4+·CD8+ CTL·TCR 올리고클론·NK/NKT세포·Treg 결핍)
+- 전염증성 사이토카인 네트워크 (IFN-γ 핵심 매개자·TNF-α·IL-2·IL-6·IL-15·IL-18·GM-CSF·CXCL9/10)
+- HSC 구획 & 세포자멸사 경로 (FasR/FasL·퍼포린/그랜자임B·NF-κB·p53·ROS·텔로미어 단축·PNH 클론)
+- 골수 미세환경 (MSC·조골세포·내피세포·CXCL12/SDF-1·SCF·TPO·EPO·Ang-1·VCAM-1·지방 대체·섬유화)
+- 다계열 조혈 & 분화 (CMP/CLP·MEP→BFU-E/CFU-E→망상적혈구→RBC·MK→PLT·GMP→호중구·B세포)
+- 말초혈액 & 임상지표 (Hgb/Hct·ANC·ARC·PLT·Severity 분류 VSAA/SAA/nSAA)
+- 약물 PK — ATG (hATG 40mg/kg×4d·rATG 3.5mg/kg×5d·2구획·Vc 5.8L·CL 0.85L/h)
+- 약물 PK — 사이클로스포린 (5mg/kg/d PO·F≈34%·목표 트로프 150–250ng/mL·CYP3A4)
+- 약물 PK — 엘트롬보파그 (150mg/d·F≈52%·t½≈21h·목표 ≥70μg/mL·금속 킬레이션 주의)
+- 약물 PD 기전 (ATG: ADCC+보체 → T세포 고갈; CsA: 칼시뉴린 억제→NFAT→IL-2 차단; EPAG: c-Mpl→JAK2/STAT5→HSC 자기재생↑; 다나졸: EPO↑·Bcl-2↑)
+- 질환 중증도 & 임상 결과 (nSAA/SAA/VSAA·CR/PR/NR·재발·PNH 확대·MDS/AML 이행·GvHD·생존)
+- 지지 요법 & 모니터링 (pRBC/혈소판 수혈·G-CSF·항생제 예방·철 킬레이션·CBC·BM 생검·flow PNH·HLA 타이핑)
+
+### ODE Model Structure (20 compartments)
+
+| 구획 | 설명 | 단위 |
+|------|------|------|
+| ATG_C / ATG_P | ATG 중심/말초 2구획 | mg/L |
+| CsA_C | 사이클로스포린 혈중 농도 | ng/mL |
+| EPAG_C | 엘트롬보파그 혈중 농도 | μg/mL |
+| Danazol_C | 다나졸 혈중 농도 | ng/mL |
+| Teff | 자가반응 효과 T세포 | ×10⁶/kg |
+| Treg | 조절 T세포 (FoxP3+) | ×10⁶/kg |
+| HSC | 조혈줄기세포 풀 (% 정상) | % |
+| CFU_E | 적혈구 전구세포 (CFU-E) | % |
+| Retic | 망상적혈구 | % |
+| RBC | 순환 적혈구 → Hgb | % |
+| CFU_G | 과립구 전구세포 (CFU-G) | % |
+| ANC_pool | 순환 호중구 → ANC | % |
+| MK | 거핵구 | % |
+| PLT_pool | 혈소판 | % |
+| BM_score | 골수 세포성 점수 | 0–1 |
+| IFNg_c | IFN-γ 농도 | pg/mL |
+| TNFa_c | TNF-α 농도 | pg/mL |
+| IL2_c | IL-2 농도 | pg/mL |
+| PNH_clone | PNH 클론 분율 | 0–1 |
+
+### Treatment Scenarios (5)
+
+| 시나리오 | 치료 | 근거 |
+|----------|------|------|
+| 1 | 무치료 (자연 경과) | 重症 범혈구감소증 진행 |
+| 2 | hATG + CsA (표준 IST) | Scheinberg 2011 NEJM |
+| 3 | hATG + CsA + EPAG (Day 14) | Townsley 2017 NEJM |
+| 4 | rATG + CsA + EPAG (NIH 프로토콜) | Peffault 2022 NEJM |
+| 5 | 동종조혈모세포이식 (MSD) | Bacigalupo 2017 Blood |
+
+### Shiny Dashboard (6 Tabs)
+
+환자 프로파일 & 중증도 (Camitta 분류·value box·기전 개요) · 약물 PK (ATG/CsA/EPAG 농도-시간·PK 파라미터표·T세포 고갈 효과) · 조혈 (HSC 풀·BM 세포성·적혈구 계통·골수/거핵구 계통·T세포 동태) · 임상 엔드포인트 (Hgb·ANC·PLT·ARC·반응 분류·수혈 필요성) · 시나리오 비교 (5개 치료군 오버레이·Day 180 CR/PR/NR 스택드 바) · 바이오마커 & 클론 (IFN-γ·TNF-α·IL-2 동태·PNH 클론 크기·MDS/AML 위험)
+
+### Key Calibration Data
+
+| 임상시험 | 약물 | 엔드포인트 | 관찰값 | 모델 |
+|----------|------|-----------|--------|------|
+| Scheinberg 2011 NEJM | hATG+CsA vs rATG+CsA | 6개월 혈액반응률 | 68% vs 37% | hATG CL 0.85 vs rATG CL 0.50 L/h |
+| Townsley 2017 NEJM | hATG+CsA±EPAG | CR 6개월 | 58% vs 36% | EPAG EC50 60μg/mL; JAK2/STAT5 HSC 자기재생↑ |
+| Peffault 2022 NEJM | rATG+CsA+EPAG | CR 6개월 | 68% (vs 41% hATG) | EPAG+rATG 시너지 모델 |
+| Olnes 2012 NEJM | EPAG 단독 | 반응률 | CR 17%+PR 11% | TPO-R 작용 단독 HSC 자극 |
+| Townsley 2016 NEJM (danazol) | 다나졸 | 텔로미어 연장·혈구 개선 | 50% 안정화 | EPO↑+Bcl-2↑ 미미한 HSC 확장 |
+
+### References: 41 PubMed citations (병태생리 · IST 임상시험 · 엘트롬보파그 · HSCT · PNH&클론진화 · PK-PD 모델링 · 지지요법/가이드라인 · 유전학/텔로미어)
