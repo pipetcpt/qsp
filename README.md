@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-175-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-176-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **174개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **175개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -288,6 +288,7 @@ qsp/
 | 163 | 안과·망막 | [**노인성 황반변성**<br><sub>Age-related Macular Degeneration · AMD</sub>](age-related-macular-degeneration/) | <a href="age-related-macular-degeneration/amd_qsp_model.svg"><img src="age-related-macular-degeneration/amd_qsp_model.png" width="190" alt="AMD"></a> | **노화·유전(CFH Y402H·ARMS2 A69S)·보체계 과활성화 → 드루젠 형성·Bruch막 두꺼워짐 → RPE 기능부전·지방갈색소(A2E) 축적 → MAC(C5b-9) 매개 RPE 세포사 → 지리적 위축(GA, 건성 말기). VEGF-A165 과분비 → VEGFR-2(KDR) 활성화 → PI3K/Akt/mTOR·ERK1/2 → 내피세포 증식·이동·혈관 투과성↑ → 맥락막 신생혈관(CNV, 습성)**. 항VEGF 5종 완전 IVT PK/PD: **라니비주맙**(0.5mg·48kDa·Kd 0.04nM·t½ 유리체 7.2d)·**애플리버셉트**(2mg·115kDa·Kd 0.0005nM·VEGF trap)·**베바시주맙**(1.25mg·149kDa)·**파리시맙**(6mg·이중표적 VEGF-A+Ang-2·Kd 0.0003nM·TIE2 경로)·**브롤루시주맙**(6mg·26kDa scFv·t½ 4d). Ang-2/TIE2 축: ANG2 경쟁적 TIE2 억제→혈관 불안정화→유리체 Ang-2 파리시맙 결합(Kd~0.9pM). 보체계: C3→C3a/C3b, C5→C5a/MAC; CFH Y402H 변이→CFH 기능↓→C3b 불활성화 장애·드루젠 보체 침착·RPE 스트레스; pegcetacoplan(C3 억제제)·avacopan(C5aR1 억제제). **130+ 노드 10 서브그래프 클러스터**(약물 PK·VEGF/혈관신생·Ang-2/TIE2·보체계·RPE/Bruch막·CNV형성·신경염증·유전/위험인자·임상엔드포인트·약물치료), **20구획 ODE**(Drug 유리체·망막·전신; VEGF free·bound·VEGFR2; ANG2 free·bound; C3·C5·MAC; RPE정상·손상·지방갈색소·드루젠; CNV 면적·과잉유체; GA면적; BCVA; 광수용체), **6치료 시나리오**(라니비주맙 q4w×3→q8w·애플리버셉트 q4w→q8w·파리시맙 q4w×4→q16w T&E·브롤루시주맙 q6w→q12w·무치료 자연경과·건성 AMD+AREDS2 4년). Brown 2006 NEJM(ANCHOR)·CATT 2011 NEJM(BEV vs RNB)·Heier 2012 Ophthalmol(VIEW1/2 AFL)·Khanani 2022 Ophthalmol(TENAYA/LUCERNE FAR)·Dugel 2020 Ophthalmol(HAWK/HARRIER BRO) 임상 보정. BCVA(ETDRS 자수)·CNV 면적(mm²)·CST(OCT μm)·GA 면적(mm²)·자유 VEGF(nM)·RPE 분획·광수용체 생존률 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&질환 병기·약물 PK·PD 핵심 마커·임상 엔드포인트·시나리오 비교·바이오마커 탐색기). **55개 PubMed 인용** (17개 섹션: 역학·드루젠&Bruch막·RPE생물학·보체경로·VEGF경로·항VEGF PK·라니비주맙/베바시주맙 임상시험·애플리버셉트·브롤루시주맙·파리시맙·Ang-2/TIE2·지리적 위축·AMD 유전학·AREDS·산화스트레스·QSP모델링·신규치료제).<br>[🗺️ 지도](age-related-macular-degeneration/amd_qsp_model.svg) · [⚙️ mrgsolve](age-related-macular-degeneration/amd_mrgsolve_model.R) · [📊 Shiny](age-related-macular-degeneration/amd_shiny_app.R) · [📚 문헌](age-related-macular-degeneration/amd_references.md) · [📄 README](age-related-macular-degeneration/README.md) |
 | 161 | 혈액종양 | [**비호지킨 림프종 (DLBCL)**<br><sub>Non-Hodgkin Lymphoma · NHL</sub>](non-hodgkin-lymphoma/) | <a href="non-hodgkin-lymphoma/nhl_qsp_model.svg"><img src="non-hodgkin-lymphoma/nhl_qsp_model.png" width="190" alt="NHL"></a> | **GCB B세포에서 기원한 가장 흔한 공격성 B세포 림프종. BCR 신호(Lyn→Syk→BTK→PI3K/AKT/mTOR·NF-κB)·MYC/BCL-2 이중발현·GC반응 이탈 후 악성화**. 리투시맙(항CD20·2구획+TMDD PK·ADCC/CDC/직접세포자멸)·사이클로포스파마이드(CYP2B6→4-OH-CPP)·독소루비신(2구획)·베네토클락스(BCL-2 BH3유사체)·이브루티닙(BTK 공유억제·ABC형 특이) 5종 완전 PK/PD. **120+ 노드 14 서브그래프 클러스터**(B세포분화·GC반응/DLBCL기원·BCR신호·NF-κB경로·MYC/세포주기·BCL-2/세포자멸·후성유전학·종양미세환경·면역회피·리투시맙PK·CHOP PK·신규표적치료제·CAR-T·임상엔드포인트), **22구획 ODE**(리투시맙 2구획+CD20 TMDD·4-OH-사이클로포스파마이드·독소루비신 2구획·베네토클락스·이브루티닙+종양·BCR신호·BCL-2점유율·NK·CD8·ANC·내성·CRS위험), **6치료 시나리오**(무치료·R-CHOP×6·Pola-R-CHP×6(POLARIX)·R-CHOP+이브루티닙(ABC형,PHOENIX)·R-CHOP+베네토클락스(CAVALLI)·R-CHOP 이중발현). Coiffier 2002 NEJM(R-CHOP CR~65%)·Tilly 2022 NEJM(POLARIX 2yr PFS 76.7% vs 70.2%)·Younes 2019 NEJM(PHOENIX)·Morschhauser 2021 JCO(CAVALLI BCL-2+ ORR 88%) 임상 보정. CR/PR/SD/PD(Lugano기준)·SPD·IPI/R-IPI·ctDNA MRD·ANC·CRS위험지수 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일&아형·약물PK·종양동태·임상엔드포인트·시나리오비교·바이오마커&독성). **50개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](non-hodgkin-lymphoma/nhl_qsp_model.svg) · [⚙️ mrgsolve](non-hodgkin-lymphoma/nhl_mrgsolve_model.R) · [📊 Shiny](non-hodgkin-lymphoma/nhl_shiny_app.R) · [📚 문헌](non-hodgkin-lymphoma/nhl_references.md) · [📄 README](non-hodgkin-lymphoma/README.md) |
 | 166 | 내분비·대사·심혈관 | [**가족성 고콜레스테롤혈증**<br><sub>Familial Hypercholesterolemia · FH</sub>](familial-hypercholesterolemia/) | <a href="familial-hypercholesterolemia/fh_qsp_model.svg"><img src="familial-hypercholesterolemia/fh_qsp_model.png" width="190" alt="FH"></a> | **LDLR 돌연변이(이형접합 1/250·동형접합 1/300,000) → LDLR 기능↓(0–50%) → LDL-C 극적 상승(HetFH 190–400 mg/dL, HomFH 400–1,000 mg/dL) → 조기 죽상동맥경화·심근경색**. HMGCR 억제(스타틴·Emax 모델·LDLR 상향)→SREBP2/PCSK9 피드백; PCSK9 억제(에볼로쿠맙 420mg q4w·2구획+TMDD PK)→LDLR 재활용 보존→LDL 제거↑; Inclisiran(siRNA·GalNAc-간 표적·RISC 매개 PCSK9 mRNA 분해)→PCSK9 합성↓; 에제티미브(NPC1L1 억제→장 흡수↓); 벰페도익산(ACLY 억제→아세틸-CoA↓); 로미타피드(MTP 억제→VLDL 합성↓) 완전 PK/PD. **157+ 노드 11 서브그래프 클러스터**(스타틴PK·PCSK9i/Inclisiran PK·기타지질강하제PK·메발로네이트/콜레스테롤생합성 22단계·LDLR-PCSK9 생물학/SREBP2·혈장 지단백 대사·장 콜레스테롤 흡수·FH 유전 결정인자·혈관 죽상경화·임상 엔드포인트·스타틴 다면발현 효과), **18구획 ODE**(스타틴/PCSK9i/에제티미브 PK 9구획; HMGCR rel·LDLR rel·PCSK9 plasma·VLDL/IDL/LDL/HDL/TG PD 9구획), **6치료 시나리오**(①HetFH 무치료 ②스타틴40mg/d ③스타틴+에제티미브 ④에볼로쿠맙420mg q4w ⑤스타틴+에볼로쿠맙 ⑥HomFH 로미타피드+스타틴+에볼로쿠맙). FOURIER NEJM 2017·ODYSSEY OUTCOMES NEJM 2018·ORION-9/-10 NEJM 2020·IMPROVE-IT NEJM 2015·CLEAR Outcomes NEJM 2023 임상 보정. LDL-C(ESC 목표 <55 mg/dL 초고위험/<70 mg/dL 고위험)·LDLR 표면발현·혈장 PCSK9(유리/총)·HMGCR 활성·Non-HDL-C·ApoB100·10년 ASCVD 위험 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&LDL 목표달성·약물 PK·지질 반응·바이오마커·시나리오 비교·유전 위험 프로파일). **57개 PubMed 인용** (14개 섹션: 역학/유전·LDLR 생물학·PCSK9·HMGCR·스타틴PK·PCSK9 억제제 임상시험·inclisiran·에제티미브·로미타피드·벰페도익산·QSP모델링·지단백 동역학·가이드라인·유전자치료).<br>[🗺️ 지도](familial-hypercholesterolemia/fh_qsp_model.svg) · [⚙️ mrgsolve](familial-hypercholesterolemia/fh_mrgsolve_model.R) · [📊 Shiny](familial-hypercholesterolemia/fh_shiny_app.R) · [📚 문헌](familial-hypercholesterolemia/fh_references.md) · [📄 README](familial-hypercholesterolemia/README.md) |
+| 167 | 종양학·피부암 | [**악성 흑색종**<br><sub>Melanoma · MEL</sub>](melanoma/) | <a href="melanoma/melanoma_qsp_model.svg"><img src="melanoma/melanoma_qsp_model.png" width="190" alt="MEL"></a> | **BRAF V600E/K 돌연변이(~50%) → 구성적 MEK1/2 활성 → ERK1/2 핵 전위 → MITF·MYC·사이클린D1 전사 → 세포증식·생존·혈관신생. NRAS Q61(~20%)·NF1 결손(~15%)·WT 드라이버**. BRAFi 2종(베무라페닙 960mg BID·다브라페닙 150mg BID): CYP3A4/UGT1A 대사·IC50 0.28 µg/mL·ERK Emax 모델·BRIM-3 ORR 48% 보정. MEKi(트라메티닙 2mg QD): CYP3A4 대사·Hill 1.5·allosteric 억제·CRAF 역설 활성화 차단·COMBI-d mPFS 9.3mo. 면역관문억제제: 펨브롤리주맙(200mg IV q3w·t½ 27d·FcRn·PD-1 IC50 12 µg/mL·KEYNOTE-006 ORR 33%)·니볼루맙+이필리무맙(CheckMate 067 mPFS 11.5mo·5yr OS 52%)·이필리무맙(CTLA-4·Treg 고갈·ipilimumab 3mg/kg). **159+ 노드 12 서브그래프 클러스터**(BRAFi PK·MEKi PK·면역관문억제제 PK·MAPK 신호 경로·전사인자&세포주기·PI3K/AKT/mTOR·내인성 세포자멸·항원 제시&T세포 프라이밍·T세포 생물학·종양 미세환경·획득 내성 기전·임상 엔드포인트), **16구획 ODE**(BRAFi/MEKi 각 2구획 경구 PK; ICI 2구획 IV PK; ERK 활성도·획득내성·종양부담·CD8+TIL·PD-1 수용체 점유율·CTLA-4 수용체 점유율·Treg 분율·TME IFN-γ·혈청 LDH·S100B 단백 PD 10구획), **6치료 시나리오**(①무치료 BRAF V600E ②베무라페닙 960mg BID BRIM-3 ③다브라페닙+트라메티닙 COMBI-d ④펨브롤리주맙 200mg q3w KEYNOTE-006 ⑤니볼루맙+이필리무맙 CheckMate 067 ⑥순차요법 BRAFi/MEKi→펨브롤리주맙 wk24). 획득 내성 모델: kR_on×약물 압력×(1-R)→BRAF 증폭·이차 NRAS 돌연변이·MEK1/2 GoF·COT1/MAP3K8·EGFR 상향; ERK 재활성화→종양 재성장. TMB·PD-L1 발현·LDH 기준치 예후 파라미터화. **6탭 Shiny 대시보드**(환자 프로파일&BRAF 상태·약물 PK·종양 반응&내성·면역 동태·시나리오 비교·바이오마커(LDH·S100B·TMB·PD-L1 민감도 분석)). **63개 PubMed 인용** (14개 섹션: 역학·BRAF 돌연변이 생물학·BRAFi 임상시험·BRAFi+MEKi 병용·PD-1 억제제·CTLA-4 억제제&병용 면역요법·획득 내성·면역요법 내성&TME·TME 면역생물학·예측 바이오마커·QSP&수학 모델링·MITF 생물학·순차 전략·임상 가이드라인).<br>[🗺️ 지도](melanoma/melanoma_qsp_model.svg) · [⚙️ mrgsolve](melanoma/melanoma_mrgsolve_model.R) · [📊 Shiny](melanoma/melanoma_shiny_app.R) · [📚 문헌](melanoma/melanoma_references.md) · [📄 README](melanoma/README.md) |
 | 165 | 자가면역·신장 | [**루푸스 신염**<br><sub>Lupus Nephritis · LN</sub>](lupus-nephritis/) | <a href="lupus-nephritis/ln_qsp_model.svg"><img src="lupus-nephritis/ln_qsp_model.png" width="190" alt="LN"></a> | **type I IFN(pDC→cGAS-STING→TLR7/9) → BAFF↑ → B세포 과활성화 → 장수 형질세포 → anti-dsDNA IgG → 면역복합체(IC) → 사구체 메산지움·내피세포 침착 → 보체(C1q→C4→C3→C5a+C5b-9) → 족세포(podocyte) 손상 → nephrin↓ → 단백뇨(UPCR↑) → TGF-β→간질 섬유화→eGFR 감소**. Voclosporin(칼시뉴린 억제·족세포 안정화·AURORA 1 CRR 41% vs 23%)·Belimumab(항BLyS·BLISS-LN CRR 43% vs 32%)·Anifrolumab(항IFNAR1·ISG score↓>75%·TULIP-LN)·MMF/MPA(IMPDH 억제·장간순환)·HCQ(TLR7/9↓·IFN-α↓)·CYC(유로-루푸스 저용량 유도) 6종 완전 PK/PD. **100+ 노드 15 서브그래프 클러스터**(선천면역/NETosis·T세포·B세포/자가항체·보체계·사구체 병리·요세관간질·신장 혈역학·HCQ PK/PD·MMF/MPA PK/PD·Voclosporin PK/PD·Belimumab PK/PD·Anifrolumab PK/PD·CYC PK/PD·GC PK/PD·사이토카인 네트워크), **20구획 ODE**(MMF/MPA 3구획+HCQ 2구획+VCS+BEL 2구획+ANI 2구획 PK; B_naive/GC/Plasma_cell/Tfh/Treg 면역 5구획; Anti_dsDNA/C3/C4 3구획; Podocyte_inj/Proteinuria/eGFR 3구획), **5치료 시나리오**(①MMF+HCQ SoC ②MMF+HCQ+Voclosporin AURORA ③MMF+HCQ+Belimumab BLISS-LN ④MMF+HCQ+Anifrolumab 고IFN ⑤CYC 유도→MMF 유지 Euro-Lupus). AURORA 1 Lancet 2021·BLISS-LN NEJM 2020·ACCESS JASN 2009·Euro-Lupus Houssiau 2002 임상 보정. CRR(UPCR<0.5+eGFR≥60)·PRR(UPCR<1.0+eGFR≥60)·anti-dsDNA 정상화·C3 회복·SLEDAI 신장 점수·족세포 손상 지수 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&LN 병기·약물 PK·면역 바이오마커·신기능·임상 엔드포인트·시나리오 비교). **45개 PubMed 인용** (8개 섹션: 역학·분류·병태생리·면역기전·사구체/족세포·임상시험·약물PK/PD·QSP모델링).<br>[🗺️ 지도](lupus-nephritis/ln_qsp_model.svg) · [⚙️ mrgsolve](lupus-nephritis/ln_mrgsolve_model.R) · [📊 Shiny](lupus-nephritis/ln_shiny_app.R) · [📚 문헌](lupus-nephritis/ln_references.md) · [📄 README](lupus-nephritis/README.md) |
 | 159 | 신경정신과 | [**양극성 장애 (Bipolar Disorder)**<br><sub>Bipolar Disorder · BD-I / BD-II</sub>](bipolar-disorder/) | <a href="bipolar-disorder/bd_qsp_model.svg"><img src="bipolar-disorder/bd_qsp_model.png" width="190" alt="BD"></a> | **도파민 과활성(조증) ↔ 세로토닌·NE 결핍(우울) 반복 삽화. GSK-3β 과활성 → mTOR/BDNF↓ → 해마 신경발생↓; IL-6/TNF-α 신경염증; CLOCK/BMAL1 일주기 리듬 교란; CACNA1C(L형 Ca²⁺ 채널) 위험 대립유전자→신경 과흥분성**. 리튬(2구획 PK·CL 1.8L/h·GSK-3β IC₅₀=0.7mEq/L·BDNF↑·BALANCE/CANMAT 2018 근거)·발프로에이트(비선형 단백결합·fu₀ 10%·GABA-T억제·HDAC억제·VPA GSK-3β 억제)·쿠에티아핀+노르쿠에티아핀(CYP3A4·F=9%·D2R 차단·NET 억제·EMBOLDEN I/II 우울증 근거)·라모트리진(Na⁺채널·Ca²⁺채널 차단·Glu 방출↓·STRIDE-BD 적정 프로토콜)·아리피프라졸(D2R 부분 효현제) 5종 완전 PK/PD 모델링. **120+ 노드 12클러스터**(신경전달물질/수용체·신호전달/GSK-3β·이온채널·HPA축/일주기·신경가소성/BDNF·신경염증·약물MOA·약물PK·임상엔드포인트·유전/후성유전·뇌회로·장-뇌축), **22구획 ODE**(리튬 2구획+발프로에이트+쿠에티아핀+노르쿠에티아핀+라모트리진 PK 10구획; DA·5HT·GSK3·BDNF·IL6·코르티솔 PD 6구획; YMRS·MADRS·GAF·체중·일주기 진동자 6구획), **6치료 시나리오**(리튬 단독 21d 조증·발프로에이트 단독 21d 조증·쿠에티아핀 56d BD우울증·리튬+쿠에티아핀 병용 56d·리튬 유지요법 1년·라모트리진 적정 112d BD-II 우울증). Bowden 1994 JAMA(발프로에이트 조증 RCT)·Calabrese 2005 AJP(쿠에티아핀 우울증 BOLDER)·Young 2010 JCP(EMBOLDEN I)·Geddes 2010 Lancet(BALANCE Li+VPA)·Cipriani 2013 Lancet 메타분석·Yatham 2018 Bipolar Disord(CANMAT 2018 가이드라인) 보정. YMRS·MADRS·HAM-D·CGI-BP·GAF·리튬 혈중농도·VPA·QTc·체중·BDNF 인덱스·GSK-3β 활성·IL-6·코르티솔 임상 바이오마커. **6탭 Shiny 대시보드**(환자프로파일&PGx·약동학·PD바이오마커·임상엔드포인트·시나리오비교·안전모니터). **46개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](bipolar-disorder/bd_qsp_model.svg) · [⚙️ mrgsolve](bipolar-disorder/bd_mrgsolve_model.R) · [📊 Shiny](bipolar-disorder/bd_shiny_app.R) · [📚 문헌](bipolar-disorder/bd_references.md) · [📄 README](bipolar-disorder/README.md) |
 
@@ -2789,3 +2790,59 @@ NLRP3 인플라마좀 → IL-1β/TNF-α → MMP↑ → 섬유성 캡 약화
 | S6 | **로미타피드 + 스타틴 + 에볼로쿠맙 (HomFH)** | AEGERION 임상 (Lancet 2013) |
 
 ### References: 57 PubMed citations (14개 섹션: 역학/유전·LDLR생물학·PCSK9·HMGCR/생합성·스타틴PK·PCSK9i 임상시험·inclisiran·에제티미브·로미타피드·벰페도익산·QSP모델링·지단백동역학·임상가이드라인·유전자치료)
+
+---
+
+## Melanoma (악성 흑색종) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`melanoma/`](melanoma/) | **약어:** MEL | **날짜:** 2026-06-25
+
+[![Melanoma QSP 기계론적 지도](melanoma/melanoma_qsp_model.png)](melanoma/melanoma_qsp_model.svg)
+
+| **항목** | **내용** |
+|----------|---------|
+| **질환명** | 악성 흑색종 (Melanoma) |
+| **주요 드라이버** | BRAF V600E/K (~50%), NRAS Q61 (~20%), NF1 손실 (~15%), WT (<10%) |
+| **표적 치료** | BRAFi (베무라페닙/다브라페닙) + MEKi (트라메티닙/코비메티닙) |
+| **면역 치료** | PD-1 (펨브롤리주맙/니볼루맙) + CTLA-4 (이필리무맙) |
+| **5년 OS (최선 치료)** | ~52% (니볼루맙+이필리무맙, CheckMate 067) |
+| **핵심 저항 기전** | BRAF 증폭, 이차 NRAS 돌연변이, MEK1/2 GoF, COT1, EGFR 상향 |
+
+### 파일 구성
+
+| 파일 | 설명 |
+|------|------|
+| 🗺️ 기계론적 지도 | [`melanoma_qsp_model.dot`](melanoma/melanoma_qsp_model.dot) | **159+ 노드, 12 클러스터** |
+| ⚙️ mrgsolve ODE | [`melanoma_mrgsolve_model.R`](melanoma/melanoma_mrgsolve_model.R) | **16구획 ODE**, **6치료 시나리오** |
+| 📊 Shiny 앱 | [`melanoma_shiny_app.R`](melanoma/melanoma_shiny_app.R) | **6탭** (환자 프로파일·PK·종양반응·면역동태·시나리오비교·바이오마커) |
+| 📚 참고문헌 | [`melanoma_references.md`](melanoma/melanoma_references.md) | **63개 PubMed 인용** (14개 섹션) |
+
+### 모델 클러스터 (12개)
+
+| 클러스터 | 핵심 구성 요소 |
+|---------|------------|
+| ① BRAFi PK | CYP3A4/UGT1A1 대사·OATP1B·PPB >99%·Tmax 2–4h·Vd 100L |
+| ② MEKi PK | CYP3A4/UGT1A3·Tmax 1.5h·t½ 3.9d (트라메티닙)·Vd 214L |
+| ③ ICI PK | 2구획 IV PK·TMDD·FcRn 재활용·t½ 25–27d·PD-1/CTLA-4 수용체 점유율 |
+| ④ MAPK 신호 | RAS→BRAF V600E/K(구성적)→MEK1/2→ERK1/2→핵 전위·DUSP6 음성 피드백·CRAF 역설 활성화 |
+| ⑤ 전사인자·세포주기 | MITF·MYC·FOS/JUN·사이클린D1/E1·CDK4/6·RB1·CDKN2A p16·p53·MDM2 |
+| ⑥ PI3K/AKT/mTOR | PTEN 손실→PIP3↑→AKT→mTORC1/S6K·내성 우회 경로 |
+| ⑦ 내인성 세포자멸 | BCL-2/xL/MCL1 vs BIM/PUMA/NOXA→BAX/BAK→MOMP→caspase 폭포 |
+| ⑧ 항원 제시·T세포 프라이밍 | MHC-I/II·프로테아좀·TAP·CD28/B7·CD40·IFN-γ→PD-L1↑·성숙 DC |
+| ⑨ T세포 생물학 | CD8+ TIL 모집·소진(TIM-3/LAG-3/TIGIT)·Granzyme B/Perforin·IL-2·IFN-γ·Treg |
+| ⑩ 종양 미세환경 | VEGF/혈관신생·TGF-β·IL-6/10·MDSC·TAM(M2)·EMT·저산소·HIF-1α |
+| ⑪ 획득 내성 | BRAF 증폭/스플라이스 변이·이차 NRAS Q61·MEK1/2 GoF·COT1·DUSP6 손실·ERK 재활성화 |
+| ⑫ 임상 엔드포인트 | ORR/DCR/PFS/OS·반응 깊이·LDH·S100B·ctDNA·TMB·MSI-H |
+
+### 치료 시나리오 (6개)
+
+| 시나리오 | 요법 | 임상 근거 |
+|---------|------|---------|
+| S1 | **BRAF V600E 무치료** | 역사적 중앙 OS ~8개월 |
+| S2 | **베무라페닙 960mg BID** | BRIM-3 (NEJM 2011) — ORR 48%, mPFS 5.3mo |
+| S3 | **다브라페닙 150mg BID + 트라메티닙 2mg QD** | COMBI-d (NEJM 2014) — ORR 67%, mPFS 9.3mo, 5yr OS 28% |
+| S4 | **펨브롤리주맙 200mg q3w** | KEYNOTE-006 (NEJM 2015) — ORR 33%, mPFS 5.6mo, 3yr OS 50% |
+| S5 | **니볼루맙 1mg/kg + 이필리무맙 3mg/kg q3w×4 → 니볼루맙 유지** | CheckMate 067 — ORR 58%, mPFS 11.5mo, 5yr OS 52% |
+| S6 | **다브라페닙+트라메티닙 (wk 0-24) → 펨브롤리주맙 (wk 24+)** | KEYNOTE-022 순차 전략 |
+
+### References: 63 PubMed citations (14개 섹션: 역학·BRAF 돌연변이 생물학·BRAFi 임상시험·BRAFi+MEKi 병용·PD-1 억제제·CTLA-4 억제제&면역병용·획득 내성·면역요법 내성&TME·TME 면역생물학·예측 바이오마커·QSP&수학 모델링·MITF 생물학·순차 전략·임상 가이드라인)
