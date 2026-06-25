@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-155-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-156-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **154개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
@@ -279,6 +279,7 @@ qsp/
 | 149 | 희귀혈액·보체 | [**발작성 야간 혈색소뇨증**<br><sub>Paroxysmal Nocturnal Hemoglobinuria · PNH</sub>](paroxysmal-nocturnal-hemoglobinuria/) | <a href="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg"><img src="paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.png" width="190" alt="PNH"></a> | **PIGA 체세포 돌연변이 → GPI 앵커 결핍 → CD55/CD59 소실 → 보체 대체경로 무조절 활성화 → 혈관내 용혈(IVH)·혈관외 용혈(EVH)·혈전증**. CD55(DAF) 소실→C3 전환효소 비억제→C3b 대량 침착→EVH; CD59(MIRL) 소실→C9 중합 자유→MAC(C5b-9) 형성→IVH; 유리 Hgb→NO 포착→평활근 이상수축·혈전 위험. 에쿨리주맙(900mg q2w IV·항C5·TRIUMPH NEJM 2006·TI 49%)·라블리주맙(3300mg q8w IV·항C5·긴 t½~49일·ALXN1210-301 Blood 2019·TI 73.6%)·익타코판(200mg BID PO·Factor B 억제·IVH+EVH 완전 차단·APPLY-PNH NEJM 2024·TI 51.1%)·다니코판(150mg TID PO·Factor D 억제·에쿨리주맙 add-on·EVH 감소). **130+ 노드 13클러스터**, **24구획 ODE**(조혈 4+보체 4+용혈출력 4+에쿨리주맙PK 3+라블리주맙PK 3+익타코판PK 2+다니코판PK 2), **6치료 시나리오**(무치료·에쿨리주맙·라블리주맙·익타코판·에쿨리주맙+다니코판·익타코판 고클론). **35개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](paroxysmal-nocturnal-hemoglobinuria/pnh_qsp_model.svg) · [⚙️ mrgsolve](paroxysmal-nocturnal-hemoglobinuria/pnh_mrgsolve_model.R) · [📊 Shiny](paroxysmal-nocturnal-hemoglobinuria/pnh_shiny_app.R) · [📚 문헌](paroxysmal-nocturnal-hemoglobinuria/pnh_references.md) · [📄 README](paroxysmal-nocturnal-hemoglobinuria/README.md) |
 | 154 | 혈액종양·골수증식 | [**진성 다혈증 (PV)**<br><sub>Polycythemia Vera · PV</sub>](polycythemia-vera/) | <a href="polycythemia-vera/pv_qsp_model.svg"><img src="polycythemia-vera/pv_qsp_model.png" width="190" alt="PV"></a> | **JAK2 V617F 체세포 돌연변이(>95%) → 구성적 JAK-STAT5 신호 → EPO 비의존적 BFU-E/CFU-E 과증식 → 적혈구 덩어리 상승 → Hct 증가 → 혈액 점도 상승 → 혈전 위험(DVT·뇌졸중·간정맥 혈전). 혈소판증가증·백혈구증가증·비장비대(수외조혈). 골수섬유증(post-PV MF) 및 AML 이행 위험**. JAK2 V617F clone → JAK-STAT5/3·PI3K/AKT/mTOR·MAPK/ERK 경로; SOCS1/3 음성 피드백; EPO-R·MPL·G-CSF-R 과민성; BFU-E→CFU-E→망상적혈구→RBC 조혈 ODE; 혈소판(CFU-Mk→거핵구)·WBC 구획; 비장 용적(수외조혈·EMH); 골수 섬유화 점수(MF-0~3); JAK2 V617F 대립유전자 부담(%). 룩솔리티닙(10mg BID·JAK1/2 IC50 2.8/3.3nM·RESPONSE trial SVR35 38%·Hct 조절 60%·2구획 PK)·하이드록시유레아(500mg/d·리보뉴클레오티드 환원효소 억제·IC50=150μM·ECLAP)·PEG-IFN-α2a(45μg/wk SC·클론 억제·PROUD-PV 대립유전자 부담 감소) 완전 PK/PD 모델링 + 정맥 사혈·아스피린. **100+ 노드 10클러스터**, **16구획 ODE**(룩솔리티닙 2구획+HYU 1구획+IFN SC/중심+BFU-E/CFU-E/망상적혈구 BM·순환/RBC/PLT/WBC+비장+섬유화+JAK2 대립유전자 부담), **6치료 시나리오**(무치료·사혈+아스피린·하이드록시유레아·룩솔리티닙·PEG-IFN-α2a·룩솔리티닙 용량반응). RESPONSE(2015 NEJM)·RESPONSE-2(2017 Lancet Oncol)·PROUD-PV/CONTINUATION-PV(2020 Lancet Haematol)·CYTO-PV(2013 NEJM)·ECLAP(2004 NEJM) 임상 보정. Hct·PLT·WBC·비장용적·SVR35·JAK2 대립유전자 부담·pSTAT5 억제·MPN-SAF TSS·연간 혈전 위험·BM 섬유화 점수·MF/AML 이행 위험 바이오마커. **7탭 Shiny 대시보드**(개요·환자프로파일 & ELN 위험층화·약동학·PD & 혈액학·임상 엔드포인트·시나리오 비교·바이오마커 & 질환진행). **58개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](polycythemia-vera/pv_qsp_model.svg) · [⚙️ mrgsolve](polycythemia-vera/pv_mrgsolve_model.R) · [📊 Shiny](polycythemia-vera/pv_shiny_app.R) · [📚 문헌](polycythemia-vera/pv_references.md) · [📄 README](polycythemia-vera/README.md) |
 | 155 | 산과·임신 | [**자간전증 (Preeclampsia)**<br><sub>Preeclampsia · Eclampsia · PE</sub>](preeclampsia/) | <a href="preeclampsia/pe_qsp_model.svg"><img src="preeclampsia/pe_qsp_model.png" width="190" alt="PE"></a> | **불완전한 영양막세포(EVT) 침윤 → 나선동맥 불완전 재형성 → 태반 허혈/저산소증 → HIF-1α → sFlt-1↑ 분비 → VEGF/PlGF 격리(sFlt-1/PlGF비율>38) + sEng↑ → VEGFR2 신호↓ → eNOS 활성↓ → NO↓/ET-1↑/ROS↑ 내피세포 기능 부전 → SVR↑ → 고혈압(SBP≥140mmHg) · 사구체 내피세포 장애→족세포손상→단백뇨(≥300mg/24h) · TXA2↑→혈소판감소·미세혈전→HELLP → 자간증**. 혈관형성 불균형(sFlt-1/PlGF/sEng) + 내피세포 기능부전(NO/ET-1/ROS) + 심혈관(SBP/DBP/SVR) + 신장(GFR/단백뇨/사구체내피세포장애) + 응고/HELLP(혈소판/LDH/용혈) + 신경(발작역치/NMDA축/자간증) + 간(허혈/AST/ALT) + 보체(C3/C5/MAC) + 태아(제대혈류/IUGR) 15클러스터. 아스피린(75mg/d·COX-1 비가역억제·TXA2~95%억제·ASPRE NEJM 2017 62% 조기자간전증 감소)·라베탈롤(200mg BID·α1+β1차단·CHIPS NEJM 2015)·니페디핀MR(30mg/d·L형Ca²⁺채널차단·CYP3A4대사)·황산마그네슘(4g IV+1g/h·NMDA수용체차단·경련예방·Magpie Lancet 2002 58%↓) 4종 완전 PK/PD 모델링. **150+ 노드 15클러스터**, **20구획 ODE**(아스피린2구획+COX1억제+라베탈롤+니페디핀+Mg+sFlt-1+PlGF+sEng+NO+ET1+ROS+SBP+DBP+GFR+단백뇨+혈소판+LDH+경련위험), **6치료 시나리오**(무치료·아스피린예방·라베탈롤·니페디핀·황산마그네슘·병용). ASPRE(Rolnik 2017 Lancet)·CHIPS(Magee 2015 NEJM)·Magpie(Altman 2002 Lancet)·Verlohren 2010(sFlt-1/PlGF비율≥38 예측, 민감도82%·특이도95%) 보정. SBP/DBP·sFlt-1/PlGF비율·단백뇨·GFR·혈소판·LDH·경련위험·Mg²⁺혈중농도(치료창 1.7-3.5mmol/L) 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·약물PK·혈관형성균형·심혈관-신장·HELLP&신경계·시나리오비교·바이오마커패널·About). **60개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](preeclampsia/pe_qsp_model.svg) · [⚙️ mrgsolve](preeclampsia/pe_mrgsolve_model.R) · [📊 Shiny](preeclampsia/pe_shiny_app.R) · [📚 문헌](preeclampsia/pe_references.md) · [📄 README](preeclampsia/README.md) |
+| 156 | 신경·뇌혈관 | [**허혈성 뇌졸중**<br><sub>Ischemic Stroke · IS</sub>](ischemic-stroke/) | <a href="ischemic-stroke/is_qsp_model.svg"><img src="ischemic-stroke/is_qsp_model.png" width="190" alt="IS"></a> | **혈전/색전성 뇌혈관 폐색 → CBF 급감 → 허혈 핵심부(Core, <10 mL/100g/min) 불가역 괴사 + 반음영부(Penumbra, 10–20 mL/100g/min) 가역적 위험 조직 → ATP 고갈 → Na⁺/K⁺-ATPase 실패·탈분극 → 흥분독성 글루타메이트(NMDA/AMPA→Ca²⁺ 과부하) → ROS/NOS 과잉→미토콘드리아 기능부전→Cytc→Caspase-3→아포토시스/괴사 → 소교세포 활성화·호중구 침윤·IL-1β/IL-6/TNF-α↑ → MMP-9→BBB 파괴→혈관성 부종→출혈성 전환**. tPA(0.9 mg/kg IV·NINDS 1995·ECASS-3 2008 4.5h 창)·EVT(기계적 혈전제거·DEFUSE-3/DAWN 최대 24h)·아스피린(81–325mg·COX-1 비가역 억제·IST 1997)·아픽사반(5mg BID·FXa 억제·ARISTOTLE 2011·심방세동 2차 예방)·스타틴(LDL 감소 + 플레이오트로픽·SPARCL 2006) 5종 완전 PK/PD 모델링. **141 노드 12 서브그래프 클러스터**(위험인자·혈관병변/혈전·급성치료PK·허혈핵심부/반음영·흥분독성/이온·산화스트레스/NO·신경염증/BBB·재관류손상·2차예방PK·신경보호/신규표적·임상결과·바이오마커), **18구획 ODE**(혈전+CBF×2+tPA×2+아스피린×2+아픽사반×3+ATP+글루타메이트+Ca²⁺+ROS+IL-6+BBB+경색부피+NIHSS), **5치료 시나리오**(표준 tPA 2h·지연 tPA 4.5h·항혈소판 단독·tPA+아픽사반(AF)·EVT 3h). Tanswell 2002(tPA PK·CL=550mL/min)·Frost 2008(아픽사반 PK)·NINDS 1995·ECASS-3 2008·DEFUSE-3 2018·IST 1997·ARISTOTLE 2011·SPARCL 2006 보정. NIHSS·mRS·경색부피(mL)·BBB 무결성·IL-6·GFAP·UCH-L1·NSE·S100β·DWI/PWI 미스매치 임상 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일·급성치료PK·허혈캐스케이드·신경염증/BBB·임상엔드포인트·2차예방PK·시나리오비교·바이오마커). **50개 PubMed 인용** (11개 섹션).<br>[🗺️ 지도](ischemic-stroke/is_qsp_model.svg) · [⚙️ mrgsolve](ischemic-stroke/is_mrgsolve_model.R) · [📊 Shiny](ischemic-stroke/is_shiny_app.R) · [📚 문헌](ischemic-stroke/is_references.md) · [📄 README](ischemic-stroke/README.md) |
 
 ---
 
@@ -1684,3 +1685,69 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Verlohren 2010 AJOG | sFlt-1/PlGF ratio | PE prediction sensitivity | 82% | Threshold encoded |
 
 ### References: 60 PubMed citations (Disease Overview · Angiogenic Imbalance · Endothelial Dysfunction · Cardiovascular/BP · Renal · Coagulation/HELLP · Neurological · Aspirin/Labetalol/Nifedipine/MgSO₄ PK-PD · Biomarkers · Complement · Reviews/Guidelines · QSP Modeling)
+
+---
+
+## 🧠 허혈성 뇌졸중 (Ischemic Stroke) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`ischemic-stroke/`](ischemic-stroke/) | **약어:** IS | **날짜:** 2026-06-25
+
+[![IS QSP 기계론적 지도](ischemic-stroke/is_qsp_model.png)](ischemic-stroke/is_qsp_model.svg)
+
+**질환**: 허혈성 뇌졸중(Ischemic Stroke) | **분류**: 신경·뇌혈관 | **유병률**: 전 세계 연간 1,100만 건, 사망 원인 2위 | **정의**: 뇌혈관의 혈전·색전으로 인한 혈류 차단 → 뇌신경세포 허혈 손상
+
+### Pathophysiology Clusters (12)
+- 위험인자 및 동반질환 (HTN·DM2·AF·이상지질혈증·흡연·비만·고령·이전 TIA)
+- 혈관 병변 및 혈전 형성 (죽상경화·플라크 파열·혈소판·응고계·피브린 혈전)
+- 급성기 치료 PK/PD (IV tPA 2구획·PAI-1·플라스미노겐·피브린용해·EVT)
+- 허혈 핵심부 & 반음영부 (CBF dynamics·ATP·전파피질확산·DWI/PWI 불일치)
+- 흥분독성 & 이온 항상성 파괴 (글루타메이트·NMDA/AMPA·Ca²⁺·세포자멸사/괴사)
+- 산화 스트레스 & NO 경로 (ROS·XO·NADPH산화효소·eNOS/iNOS·퍼옥시나이트라이트)
+- 신경 염증 & BBB 파괴 (소교세포·성상세포·IL-1β/IL-6/TNF-α·MMP-9·혈뇌장벽)
+- 재관류 손상 (ROS 폭발·mPTP·호중구 burst·보체·출혈성 전환)
+- 2차 예방 PK/PD (아스피린·클로피도그렐·아픽사반·스타틴·항고혈압제)
+- 신경보호 & 신규 표적 (NMDA길항제·에다라본·NLRP3 억제제·BDNF/VEGF·줄기세포)
+- 임상 결과 (NIHSS·mRS·Barthel·재발률·사망·장기 장애)
+- 바이오마커 (GFAP·UCH-L1·NSE·S100β·IL-6·D-Dimer·DWI/PWI·CT 관류)
+
+### ODE Model Structure (18 compartments)
+| 구획 | 설명 | 단위 |
+|------|------|------|
+| THROMBUS | 혈전 부담 | 0–1 (정규화) |
+| CBF_CORE | 핵심부 뇌혈류 | mL/100g/min |
+| CBF_PEN | 반음영부 뇌혈류 | mL/100g/min |
+| TPA_CENT / TPA_PERI | tPA 2구획 PK | mg |
+| ASP_GUT / ASP_CENT | 아스피린 PK | mg |
+| NOAC_GUT / NOAC_CENT / NOAC_PERI | 아픽사반 PK | mg |
+| ATP_PEN | 반음영부 ATP (정규화) | 0–1 |
+| GLUT | 세포외 글루타메이트 | mmol/L |
+| CA2 | 세포내 Ca²⁺ | mmol/L |
+| ROS | 활성산소 | a.u. |
+| IL6 | 혈청 IL-6 | pg/mL |
+| BBB | 혈뇌장벽 무결성 | 0–1 |
+| INFARCT | 경색 핵심부 용적 | mL |
+| NIHSS | NIHSS 점수 (연속형) | 0–42 |
+
+### Treatment Scenarios (5)
+| 시나리오 | 치료 | 근거 |
+|----------|------|------|
+| 1 | IV tPA 2h + 아스피린 (표준 치료) | NINDS 1995 |
+| 2 | 지연 IV tPA 4.5h + 아스피린 | ECASS-3 2008 |
+| 3 | 항혈소판 단독 (혈전용해제 無) | IST 1997 |
+| 4 | tPA + 아픽사반 (심방세동 환자) | ARISTOTLE 2011 |
+| 5 | EVT 3h (기계적 혈전제거 시뮬레이션) | DEFUSE-3 2018 |
+
+### Shiny Dashboard (8 Tabs)
+환자 프로파일 & 위험인자 · 급성치료 PK (tPA/EVT) · 허혈 캐스케이드 (CBF/ATP/글루타메이트) · 신경염증 & BBB · 임상 엔드포인트 (NIHSS/mRS/경색부피) · 2차 예방 PK (아스피린/아픽사반) · 시나리오 비교 (5개 치료군) · 바이오마커 패널
+
+### Key Calibration Data
+| 임상시험 | 약물 | 엔드포인트 | 관찰 | 모델 |
+|----------|------|-----------|------|------|
+| NINDS 1995 NEJM | tPA 0.9 mg/kg ≤3h | 90d favorable outcome (mRS 0–1) | 39% vs 26% | Recanalization ↑ |
+| ECASS-3 2008 NEJM | tPA 3–4.5h | 90d mRS 0–1 NNT | NNT=14 | Smaller penumbra salvage |
+| DEFUSE-3 2018 NEJM | EVT 6–16h | 90d mRS 0–2 | 45% vs 17% | Rapid recanalization |
+| IST 1997 Lancet | Aspirin 300 mg | Death/non-fatal stroke | −11/1000 | COX-1 inhibition >95% |
+| ARISTOTLE 2011 NEJM | Apixaban 5 mg BID | Stroke/SE reduction | 21% RRR | Xa inhibition >80% at Css |
+| SPARCL 2006 NEJM | Atorvastatin 80 mg | Recurrent stroke | 16% RRR | Plaque stabilization |
+
+### References: 50 PubMed citations (Clinical Trials · tPA PK · Apixaban PK · Ischemic Cascade · Oxidative Stress · Neuroinflammation/BBB · Imaging · Biomarkers · QSP Modeling · Guidelines · Epidemiology)
