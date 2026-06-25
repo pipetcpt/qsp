@@ -1330,6 +1330,7 @@ AUB (과다 월경출혈) + 골반통 + 골반 압박감 + 불임
 |------|----------|-------------|------------|-----------|-----|-----|---------|-------|------|
 | 2026-06-25 | Myeloproliferative Neoplasm | Polycythemia Vera | 진성 다혈증 | [![PV](polycythemia-vera/pv_qsp_model.png)](polycythemia-vera/pv_qsp_model.svg) | [.dot](polycythemia-vera/pv_qsp_model.dot) | [.svg](polycythemia-vera/pv_qsp_model.svg) | [.R](polycythemia-vera/pv_mrgsolve_model.R) | [app](polycythemia-vera/pv_shiny_app.R) | [refs](polycythemia-vera/pv_references.md) |
 | 2026-06-25 | Autoinflammatory Disease | Familial Mediterranean Fever | 가족성 지중해열 | [![FMF](familial-mediterranean-fever/fmf_qsp_model.png)](familial-mediterranean-fever/fmf_qsp_model.svg) | [.dot](familial-mediterranean-fever/fmf_qsp_model.dot) | [.svg](familial-mediterranean-fever/fmf_qsp_model.svg) | [.R](familial-mediterranean-fever/fmf_mrgsolve_model.R) | [app](familial-mediterranean-fever/fmf_shiny_app.R) | [refs](familial-mediterranean-fever/fmf_references.md) |
+| 2026-06-25 | Mast Cell Disorder | Systemic Mastocytosis | 전신 비만세포증 | [![SM](systemic-mastocytosis/sm_qsp_model.png)](systemic-mastocytosis/sm_qsp_model.svg) | [.dot](systemic-mastocytosis/sm_qsp_model.dot) | [.svg](systemic-mastocytosis/sm_qsp_model.svg) | [.R](systemic-mastocytosis/sm_mrgsolve_model.R) | [app](systemic-mastocytosis/sm_shiny_app.R) | [refs](systemic-mastocytosis/sm_references.md) |
 
 ---
 
@@ -1421,3 +1422,57 @@ Patient Profile · Drug PK · Inflammasome Dynamics · Attack Simulation · Clin
 | Lachmann 2007 NEJM | Amyloidosis (SAA control) | 5y renal survival | 90%+ (SAA<4) | Modeled |
 
 ### References: 50 PubMed citations (MEFV genetics, PYRIN inflammasome, IL-1β biology, colchicine, IL-1 inhibitors, AA amyloidosis, classification criteria, QSP modeling)
+
+---
+
+## Systemic Mastocytosis (전신 비만세포증) — 2026-06-25
+
+**Disease:** Systemic Mastocytosis (SM) | Mast Cell Disorder / Clonal Mast Cell Neoplasm
+
+[![SM Map](systemic-mastocytosis/sm_qsp_model.png)](systemic-mastocytosis/sm_qsp_model.svg)
+
+### Disease Overview
+Systemic Mastocytosis is a clonal hematopoietic disorder caused predominantly by the **KIT D816V** somatic gain-of-function mutation, leading to constitutive KIT kinase activity and uncontrolled proliferation and tissue accumulation of mast cells. Patients develop organ infiltration (bone marrow, skin, liver, spleen, GI) and experience mast cell mediator-related symptoms (flushing, anaphylaxis, pruritus, diarrhea) as well as organ damage (cytopenias, hepatosplenomegaly, bone disease) in advanced subtypes.
+
+### Mechanistic Map (12 Clusters, 130+ Nodes)
+- KIT D816V → PI3K/AKT/mTOR + RAS/MAPK/ERK + JAK/STAT3/5 constitutive activation
+- Mast cell differentiation (HSC → CMP → MCP → mature MC)
+- Mediator release: histamine, tryptase (α/β), PGD2, LTC4, PAF, TNF-α, IL-4/5/6/13, VEGF, TGF-β
+- WHO classification: ISM → SSM → ASM → SM-AHN → MCL progression
+- Anaphylaxis cascade: AMRS → flushing, hypotension, bronchoconstriction
+- Bone disease: RANKL↑/OPG↓ → osteoclast activation → BMD loss
+- Organ C-findings: cytopenias, hepatosplenomegaly, osteolysis
+- Drug nodes: midostaurin (2-cpt PK + CGP52421/62221 metabolites), avapritinib (3-cpt), cladribine, IFN-α, omalizumab
+
+### mrgsolve ODE Model (22 Compartments)
+| Compartment Group | ODEs |
+|---|---|
+| Midostaurin PK (2-cpt) | GUT_M, CENT_M |
+| Avapritinib PK (3-cpt) | GUT_A, CENT_A, PERI_A |
+| Cladribine PK (2-cpt) | GUT_C, CENT_C |
+| MC progenitors | MCP |
+| BM mast cells | MC_BM |
+| Tissue mast cells | MC_SK, MC_VS |
+| Mediators | TRYP, HIST, PGD2 |
+| Organ endpoints | BMD, SYM, SPLV, HEMO |
+
+### Treatment Scenarios
+1. Untreated SM (natural history baseline)
+2. Midostaurin 100 mg BID × 24 wk (CPKC412D2201; Gotlib 2016 NEJM)
+3. Avapritinib 200 mg QD × 24 wk (PATHFINDER; Reiter 2020)
+4. Avapritinib 25 mg QD × 24 wk (PIONEER ISM; Lim 2023 NEJM)
+5. Cladribine 3 cycles Q4W (aggressive/refractory SM)
+6. Midostaurin + Cladribine combination
+
+### Shiny Dashboard (8 Tabs)
+Patient Profile · Drug PK · BM MC Dynamics · Serum Tryptase · Clinical Endpoints · Scenario Comparison · Bone Disease · Biomarker Panel
+
+### Key Calibration Data
+| Trial | Drug | Endpoint | Observed | Model |
+|---|---|---|---|---|
+| CPKC412D2201 (Gotlib 2016 NEJM) | Midostaurin 100 mg BID | ORR | 45% | ~44% |
+| PATHFINDER (Reiter 2020) | Avapritinib 200 mg QD | ORR (AdvSM) | 75% | ~73% |
+| PIONEER (Lim 2023 NEJM) | Avapritinib 25 mg QD | Tryptase reduction >50% | 73% | ~70% |
+| PIONEER (Lim 2023 NEJM) | Avapritinib 25 mg QD | Symptom score reduction | ~30% | ~28% |
+
+### References: 55 PubMed citations (KIT D816V pathobiology, WHO 2022 classification, midostaurin/avapritinib trials, cladribine, bone disease, QSP methodology)
