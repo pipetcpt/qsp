@@ -1,0 +1,496 @@
+digraph AIP_QSP {
+    graph [
+        rankdir=LR,
+        label="Acute Intermittent Porphyria (AIP) – Quantitative Systems Pharmacology Model\nHeme Biosynthesis · ALAS1 Regulation · Givosiran siRNA PK/PD · Hemin IV · Neurotoxicity · Clinical Outcomes",
+        labelloc=top,
+        fontname="Helvetica-Bold",
+        fontsize=13,
+        bgcolor="#F8F8FF",
+        splines=ortho,
+        nodesep=0.35,
+        ranksep=0.55,
+        pad=0.6
+    ];
+
+    node [fontname="Helvetica", fontsize=8, style="filled,rounded", shape=box];
+    edge [fontname="Helvetica", fontsize=7, arrowsize=0.7];
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 1: Mitochondrial Heme Biosynthesis
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_mito_biosyn {
+        label="Mitochondrial Heme Biosynthesis";
+        style="filled";
+        color="#8B4513";
+        fillcolor="#FFF8DC";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Glycine       [label="Glycine\n(substrate)", fillcolor="#FFFACD"];
+        SucCoA        [label="Succinyl-CoA\n(substrate)", fillcolor="#FFFACD"];
+        ALAS1_mRNA    [label="ALAS1 mRNA\n(rate-limiting step)", fillcolor="#FFA500", fontcolor="white"];
+        ALAS1_prot    [label="ALAS1 Protein\n(enzyme, rate-lim.)", fillcolor="#FF6600", fontcolor="white"];
+        ALA_mito      [label="δ-Aminolevulinic\nAcid (ALA)\nmitochondrial", fillcolor="#FFDAB9"];
+        PPOX          [label="PPOX\nProtoporphyrinogen\nOxidase", fillcolor="#DEB887"];
+        PPIXm         [label="Protoporphyrin IX\n(mitochondria)", fillcolor="#CD853F"];
+        Ferrochelatase[label="Ferrochelatase\n(FECH)", fillcolor="#8B4513", fontcolor="white"];
+        Fe2_pool      [label="Fe²⁺ Pool\n(labile iron)", fillcolor="#A0522D", fontcolor="white"];
+        Heme_mito     [label="Free Heme\n(hepatic pool)", fillcolor="#8B0000", fontcolor="white"];
+
+        Glycine -> ALAS1_prot [label="substrate"];
+        SucCoA -> ALAS1_prot [label="substrate"];
+        ALAS1_mRNA -> ALAS1_prot [label="translation"];
+        ALAS1_prot -> ALA_mito [label="synthesis\n(rate-limiting)", color="#FF6600", penwidth=2];
+        PPIXm -> Ferrochelatase [label="substrate"];
+        Fe2_pool -> Ferrochelatase [label="cofactor"];
+        Ferrochelatase -> Heme_mito [label="chelation", color="#8B0000", penwidth=2];
+        PPOX -> PPIXm [label="oxidation"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 2: Cytoplasmic Heme Biosynthesis
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_cyto_biosyn {
+        label="Cytoplasmic Heme Biosynthesis (PBGD Bottleneck)";
+        style="filled";
+        color="#4169E1";
+        fillcolor="#E6EEF9";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        ALA_cyto      [label="δ-ALA\n(cytoplasm)", fillcolor="#ADD8E6"];
+        ALAD          [label="ALAD\nALA Dehydratase\n(Pb²⁺ inhibited)", fillcolor="#6495ED"];
+        PBG           [label="Porphobilinogen\n(PBG)", fillcolor="#00CED1", fontcolor="white"];
+        PBGD          [label="PBGD/HMBS\n(↓50% in AIP\nGENETIC DEFECT)", fillcolor="#DC143C", fontcolor="white", style="filled,rounded", penwidth=3];
+        HMB           [label="Hydroxymethyl-\nbilane (HMB)", fillcolor="#7B68EE"];
+        UROS          [label="UROS\nUroporphyrinogen\nIII Synthase", fillcolor="#6A5ACD"];
+        UROIII        [label="Uroporphyrinogen\nIII", fillcolor="#9370DB"];
+        UROD          [label="UROD\nUroporphyrinogen\nDecarboxylase", fillcolor="#8A2BE2"];
+        CPGIII        [label="Coproporphyrinogen\nIII", fillcolor="#9400D3", fontcolor="white"];
+        CPOX          [label="CPOX\nCoproporphyrinogen\nOxidase", fillcolor="#7B00D3", fontcolor="white"];
+        PPGIXc        [label="Protoporphyrinogen\nIX (cytoplasm)", fillcolor="#6600CC", fontcolor="white"];
+
+        ALA_mito -> ALA_cyto [label="mitochondrial\nexport"];
+        ALA_cyto -> ALAD [label="2× ALA\nsubstrate"];
+        ALAD -> PBG [label="condensation\n(2 ALA → PBG)"];
+        PBG -> PBGD [label="4× PBG\nBOTTLENECK", color="#DC143C", penwidth=3];
+        PBGD -> HMB [label="polymerization\n(linear tetrapyrrole)", color="#DC143C"];
+        HMB -> UROS [label="substrate"];
+        UROS -> UROIII [label="cyclization"];
+        UROIII -> UROD [label="substrate"];
+        UROD -> CPGIII [label="decarboxylation\n(×4 COOH→CH₃)"];
+        CPGIII -> CPOX [label="substrate"];
+        CPOX -> PPGIXc [label="oxidative\ndecarboxylation"];
+        PPGIXc -> PPOX [label="→ mitochondria"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 3: ALAS1 Transcriptional Regulation
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_regulation {
+        label="ALAS1 Transcriptional Regulation";
+        style="filled";
+        color="#228B22";
+        fillcolor="#F0FFF0";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        PGC1a         [label="PGC-1α\n(transcriptional coactivator)", fillcolor="#90EE90"];
+        HNF4a         [label="HNF-4α\n(hepatocyte TF)", fillcolor="#32CD32"];
+        FOXO1         [label="FOXO1\n(gluconeogenesis TF)", fillcolor="#3CB371"];
+        NRF1          [label="NRF-1\n(mitochondrial biogenesis)", fillcolor="#2E8B57"];
+        AMPK          [label="AMPK\n(cellular energy sensor)", fillcolor="#00FA9A"];
+        mTORC1        [label="mTORC1\n(nutrient sensor)", fillcolor="#00FF7F"];
+        PI3K_AKT      [label="PI3K/AKT\n(insulin signaling)", fillcolor="#7CFC00"];
+        Glucose_repr  [label="Glucose Repression\n(carbohydrate effect)", fillcolor="#ADFF2F"];
+        HRI_kinase    [label="HRI (eIF2αK1)\nHeme-regulated\nkinase", fillcolor="#9ACD32"];
+        eIF2a_p       [label="eIF2α-P\n(phosphorylated)", fillcolor="#6B8E23"];
+        ATF4          [label="ATF4\n(integrated stress\nresponse TF)", fillcolor="#556B2F", fontcolor="white"];
+        HEME_feedback [label="Heme Feedback\nInhibition of ALAS1", fillcolor="#8B0000", fontcolor="white"];
+        ALAS2_liver   [label="ALAS2 (erythroid)\nnot regulated same way", fillcolor="#C0C0C0"];
+
+        PGC1a -> ALAS1_mRNA [label="coactivates\ntranscription", color="#228B22", penwidth=2];
+        HNF4a -> ALAS1_mRNA [label="TF\nactivation", color="#228B22"];
+        FOXO1 -> ALAS1_mRNA [label="fasting\nactivation", color="#228B22"];
+        NRF1 -> ALAS1_mRNA [label="activates", color="#228B22"];
+        AMPK -> PGC1a [label="phosphorylates\n(low energy)"];
+        mTORC1 -> PGC1a [label="inhibits", color="#FF0000", arrowhead=tee];
+        PI3K_AKT -> FOXO1 [label="phosphorylates\n(nuclear export)", color="#FF0000", arrowhead=tee];
+        PI3K_AKT -> mTORC1 [label="activates"];
+        Glucose_repr -> ALAS1_mRNA [label="transcriptional\nrepression", color="#FF0000", style=dashed, arrowhead=tee];
+        Glucose_repr -> PI3K_AKT [label="activates via\ninsulin"];
+        Heme_mito -> HEME_feedback [label="product\ndetection"];
+        HEME_feedback -> ALAS1_mRNA [label="feedback\ninhibition\n(ALAS1 stability)", color="#8B0000", arrowhead=tee, penwidth=2];
+        Heme_mito -> HRI_kinase [label="inhibits HRI\n(heme sensor)", color="#FF0000", arrowhead=tee];
+        HRI_kinase -> eIF2a_p [label="phosphorylates"];
+        eIF2a_p -> ATF4 [label="selective\ntranslation"];
+        ATF4 -> PGC1a [label="indirect\nactivation", style=dashed];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 4: Trigger Factors
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_triggers {
+        label="AIP Attack Trigger Factors";
+        style="filled";
+        color="#B8860B";
+        fillcolor="#FFFACD";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Prog          [label="Progesterone\n(luteal phase)", fillcolor="#FFD700"];
+        Estrogen_cyc  [label="Menstrual Cycle\nHormonal Variation", fillcolor="#FFA500"];
+        Drug_barb     [label="Barbiturates\n(CYP1A2/2C9 inducers)", fillcolor="#FF8C00"];
+        Drug_sulf     [label="Sulfonamides\n(CYP inducers)", fillcolor="#FF7F50"];
+        Drug_AED      [label="Certain\nAntiepileptics\n(phenytoin, carbamazepine)", fillcolor="#FF6347"];
+        Drug_rif      [label="Rifampicin\n(CYP3A4 inducer)", fillcolor="#FF4500"];
+        Drug_griseo   [label="Griseofulvin\n(antifungal CYP inducer)", fillcolor="#FF3333"];
+        CYP_enzymes   [label="Hepatic CYP450\nEnzymes", fillcolor="#CD5C5C"];
+        Heme_CYP_dem  [label="Heme Demand for\nCYP Apoprotein", fillcolor="#DC143C", fontcolor="white"];
+        Caloric_rest  [label="Caloric Restriction\n(fasting / crash diets)", fillcolor="#DAA520"];
+        Alcohol       [label="Alcohol\n(CYP2E1 inducer)", fillcolor="#B8860B"];
+        Infections    [label="Infections /\nInflammation", fillcolor="#8B6914"];
+        Physical_stress[label="Physical Stress\n(surgery, trauma)", fillcolor="#996515"];
+        Psych_stress  [label="Psychological\nStress", fillcolor="#8B8000"];
+        Lead_toxicity [label="Lead Toxicity\n(ALAD inhibition)", fillcolor="#708090"];
+
+        Prog -> ALAS1_mRNA [label="upregulates\ntranscription", color="#B8860B", penwidth=2];
+        Estrogen_cyc -> Prog [label="cycle\nphase"];
+        Drug_barb -> CYP_enzymes [label="induces"];
+        Drug_sulf -> CYP_enzymes [label="induces"];
+        Drug_AED -> CYP_enzymes [label="induces"];
+        Drug_rif -> CYP_enzymes [label="induces"];
+        Drug_griseo -> CYP_enzymes [label="induces"];
+        Alcohol -> CYP_enzymes [label="CYP2E1\ninduction"];
+        CYP_enzymes -> Heme_CYP_dem [label="requires heme\nfor apoprotein"];
+        Heme_CYP_dem -> Heme_mito [label="depletes\nfree heme", color="#FF0000", arrowhead=tee];
+        Heme_CYP_dem -> ALAS1_mRNA [label="indirectly\nupregulates\n(via heme depletion)", color="#B8860B"];
+        Caloric_rest -> FOXO1 [label="activates"];
+        Caloric_rest -> AMPK [label="activates\n(↑AMP/ATP)"];
+        Infections -> PGC1a [label="cytokine\nactivation"];
+        Physical_stress -> PGC1a [label="cortisol\nactivation"];
+        Psych_stress -> PGC1a [label="activates\nvia HPA axis"];
+        Lead_toxicity -> ALAD [label="inhibits\nALAD", color="#FF0000", arrowhead=tee];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 5: Givosiran siRNA PK/PD
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_givosiran {
+        label="Givosiran PK/PD (GalNAc-siRNA Therapy, 2.5 mg/kg SC Q1M)";
+        style="filled";
+        color="#6A0DAD";
+        fillcolor="#F5EEFF";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        GIV_dose      [label="Givosiran SC Dose\n2.5 mg/kg Q1M", fillcolor="#E6CCFF", style="filled,bold"];
+        GIV_SC_depot  [label="SC Depot\n(subcutaneous)", fillcolor="#D8B4FE"];
+        GIV_plasma    [label="Givosiran Plasma\n(intact siRNA duplex)", fillcolor="#C084FC"];
+        GIV_periph    [label="Peripheral\nCompartment", fillcolor="#A855F7"];
+        GalNAc_lig    [label="GalNAc Triantennary\nLigand", fillcolor="#9333EA", fontcolor="white"];
+        ASGPR         [label="ASGPR\n(hepatocyte\nasialoglycoprotein receptor)", fillcolor="#7C3AED", fontcolor="white"];
+        Endosome      [label="Endosomal Uptake\n& Escape", fillcolor="#6D28D9", fontcolor="white"];
+        RISC_loading  [label="RISC Complex\n(Ago2 loading)", fillcolor="#5B21B6", fontcolor="white"];
+        RISC_active   [label="Active RISC\n(cleaves ALAS1 mRNA)", fillcolor="#4C1D95", fontcolor="white"];
+        ALAS1_cleavage[label="ALAS1 mRNA\nCatalytic Cleavage", fillcolor="#3B0F8C", fontcolor="white"];
+        GIV_liver     [label="Liver Givosiran\nConc. (ng/g tissue)", fillcolor="#8B5CF6"];
+        GIV_urine_ex  [label="Urinary Excretion\n(intact + metabolites)", fillcolor="#7C3AED", fontcolor="white"];
+        GIV_metabol   [label="Plasma Nuclease\nDegradation", fillcolor="#6D28D9", fontcolor="white"];
+        GIV_PK_param  [label="PK: CL~1.6 mL/h/kg\nt½ plasma~5d\nt½ liver~6mo", fillcolor="#9370DB"];
+
+        GIV_dose -> GIV_SC_depot [label="SC injection"];
+        GIV_SC_depot -> GIV_plasma [label="ka~0.5/d\nF1~90%"];
+        GIV_plasma -> GIV_periph [label="distribution\nQ=0.15 L/kg/d"];
+        GIV_periph -> GIV_plasma [label="redistribution"];
+        GIV_plasma -> GalNAc_lig [label="GalNAc\ntargeting moiety"];
+        GalNAc_lig -> ASGPR [label="binding\nKd ~1 nM"];
+        ASGPR -> Endosome [label="receptor-mediated\nendocytosis"];
+        Endosome -> RISC_loading [label="endosomal\nescape (~1%)"];
+        RISC_loading -> RISC_active [label="antisense strand\nloads Ago2"];
+        RISC_active -> ALAS1_cleavage [label="multiple catalytic\nturnovers (×1000s)"];
+        ALAS1_cleavage -> ALAS1_mRNA [label="~90% knockdown\nat trough", color="#6A0DAD", arrowhead=tee, penwidth=2];
+        GIV_plasma -> GIV_liver [label="liver distributes\n(nM concentrations)"];
+        GIV_plasma -> GIV_urine_ex [label="renal\nexcretion (~25%)"];
+        GIV_plasma -> GIV_metabol [label="nuclease\ndegradation"];
+        GIV_liver -> GIV_PK_param [label="tissue PK"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 6: Hemin IV PK/PD
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_hemin {
+        label="Hemin IV PK/PD (Acute Attack Treatment, 3-4 mg/kg/d × 4d)";
+        style="filled";
+        color="#B22222";
+        fillcolor="#FFF0F0";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Hemin_dose    [label="Hemin IV Dose\n3-4 mg/kg/d × 4d", fillcolor="#FFD0D0", style="filled,bold"];
+        Hemin_plasma  [label="Hemin Plasma\n(free + bound)", fillcolor="#FFB0B0"];
+        Albumin_bind  [label="Albumin-Heme\nComplex (~50%)", fillcolor="#FF9090"];
+        Hemopexin     [label="Hemopexin-Heme\nComplex (high affinity)", fillcolor="#FF7070"];
+        Hemin_liver   [label="Hepatic Hemin\nUptake (LRP1/CD91)", fillcolor="#FF5050"];
+        Heme_exo      [label="Exogenous Heme\nPool (hepatic)", fillcolor="#FF3030", fontcolor="white"];
+        HO1           [label="HO-1\nHeme Oxygenase-1\n(inducible, CYP7A1 pathway)", fillcolor="#CC0000", fontcolor="white"];
+        HO2           [label="HO-2\nHeme Oxygenase-2\n(constitutive)", fillcolor="#AA0000", fontcolor="white"];
+        Biliverdin    [label="Biliverdin→Bilirubin\n+ CO (vasodilatory)", fillcolor="#C8A000"];
+        Iron_release  [label="Fe²⁺ Release\n(from heme catabolism)", fillcolor="#8B4513"];
+        Ferritin_stor [label="Ferritin\n(iron storage)", fillcolor="#A0522D"];
+        Hemin_FB_ALAS1[label="Exogenous Heme\nFeedback Inhibits ALAS1", fillcolor="#8B0000", fontcolor="white"];
+        Hemin_SE      [label="Side Effects\n(coagulopathy, phlebitis,\nrenal impairment)", fillcolor="#FF8C69"];
+        Hematin_form  [label="Hematin Arginate\n(stabilized formulation)", fillcolor="#FFB347"];
+
+        Hemin_dose -> Hemin_plasma [label="IV infusion\nt½~2h plasma"];
+        Hemin_dose -> Hematin_form [label="arginate\nstabilization"];
+        Hematin_form -> Hemin_plasma [label="more stable\nformulation"];
+        Hemin_plasma -> Albumin_bind [label="~50% binds\nalbumin"];
+        Hemin_plasma -> Hemopexin [label="high affinity\nbinding (Kd ~1 pM)"];
+        Hemopexin -> Hemin_liver [label="LRP1 receptor\nendocytosis"];
+        Albumin_bind -> Hemin_liver [label="hepatic\nuptake"];
+        Hemin_liver -> Heme_exo [label="supplements\nhepatic heme pool"];
+        Heme_exo -> Heme_mito [label="adds to\nfree heme"];
+        Heme_exo -> HO1 [label="induces HO-1\n(Nrf2 pathway)"];
+        Heme_exo -> HO2 [label="substrate"];
+        Heme_exo -> Hemin_FB_ALAS1 [label="feedback\nsensor"];
+        Hemin_FB_ALAS1 -> ALAS1_mRNA [label="transcriptional\nsuppression", color="#8B0000", arrowhead=tee, penwidth=2];
+        HO1 -> Biliverdin [label="catabolism\n(rate-limiting)"];
+        HO1 -> Iron_release [label="releases Fe²⁺"];
+        HO2 -> Biliverdin [label="constitutive\ncatabolism"];
+        Iron_release -> Ferritin_stor [label="sequestration\n(safe storage)"];
+        Hemin_plasma -> Hemin_SE [label="→ procoagulant\nproteins ↓"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 7: Pathophysiology & Neurotoxicity
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_patho {
+        label="Pathophysiology: ALA/PBG Accumulation & Neurotoxicity";
+        style="filled";
+        color="#8B0000";
+        fillcolor="#FFF5F5";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        ALA_accum     [label="ALA Accumulation\n(hepatic; 10-50× normal)", fillcolor="#FFB6C1"];
+        ALA_plasma_c  [label="Plasma ALA\n(>20× normal in attack)", fillcolor="#FF69B4", fontcolor="white"];
+        ALA_urine_c   [label="Urinary ALA\n(diagnostic; >20 mmol/mol\ncreatinine)", fillcolor="#FF1493", fontcolor="white"];
+        PBG_accum     [label="PBG Accumulation\n(hepatic; 50-200× normal)", fillcolor="#FFB6C1"];
+        PBG_plasma_c  [label="Plasma PBG\n(elevated in attack)", fillcolor="#FF69B4", fontcolor="white"];
+        PBG_urine_c   [label="Urinary PBG\n(key diagnostic marker)", fillcolor="#FF1493", fontcolor="white"];
+        ALA_neurotox  [label="ALA Neurotoxicity\n(GABA structural analog)", fillcolor="#DC143C", fontcolor="white"];
+        GABA_inhib    [label="GABA-A Receptor\nCompetitive Inhibition\n(ALA ≈ GABA structure)", fillcolor="#B22222", fontcolor="white"];
+        ROS_ALA       [label="ROS Generation\n(ALA auto-oxidation\nFe²⁺-catalyzed)", fillcolor="#CD5C5C", fontcolor="white"];
+        Mito_ROS      [label="Mitochondrial ROS\n(Respiratory Chain\nComplex I inhibition)", fillcolor="#A52A2A", fontcolor="white"];
+        Glut_exc      [label="Glutamate\nExcitotoxicity\n(Ca²⁺ influx)", fillcolor="#8B0000", fontcolor="white"];
+        Axon_degen    [label="Axonal Degeneration\n(energy failure)", fillcolor="#750000", fontcolor="white"];
+        ANS_dysfunc   [label="Autonomic Nervous\nSystem Dysfunction\n(tachycardia, HTN, ileus)", fillcolor="#6B0000", fontcolor="white"];
+        Motor_neuro   [label="Motor\nNeuropathy\n(ascending paralysis)", fillcolor="#600000", fontcolor="white"];
+        Sensory_neuro [label="Sensory\nNeuropathy\n(pain, paresthesia)", fillcolor="#550000", fontcolor="white"];
+        CNS_effects   [label="CNS Manifestations\n(seizures, encephalopathy,\npsychiatric)", fillcolor="#500000", fontcolor="white"];
+        SIADH         [label="SIADH\n(inappropriate ADH\nsecretion)", fillcolor="#8B0000", fontcolor="white"];
+        Hyponatremia  [label="Hyponatremia\n(Na⁺ < 130 mEq/L)\n→ seizure threshold ↓", fillcolor="#990000", fontcolor="white"];
+        Visceral_pain [label="Visceral Pain\n(abdominal neuropathy\nVAS ↑↑)", fillcolor="#CC0000", fontcolor="white"];
+
+        ALA_cyto -> ALA_accum [label="accumulates when\nPBGD activity ↓50%"];
+        PBG -> PBG_accum [label="accumulates\n(PBGD deficient)"];
+        ALA_accum -> ALA_plasma_c [label="hepatic export\nto bloodstream"];
+        ALA_accum -> ALA_neurotox [label="direct neurotoxin"];
+        ALA_plasma_c -> ALA_urine_c [label="renal\nexcretion"];
+        ALA_plasma_c -> ALA_neurotox [label="BBB penetration\n(passive diffusion)"];
+        PBG_accum -> PBG_plasma_c [label="export"];
+        PBG_plasma_c -> PBG_urine_c [label="renal\nexcretion"];
+        ALA_neurotox -> GABA_inhib [label="competitive\ninhibition\n(structural mimicry)"];
+        ALA_neurotox -> ROS_ALA [label="auto-oxidation\nFe²⁺-Fenton rxn"];
+        GABA_inhib -> CNS_effects [label="→ excitatory\nimbalance"];
+        ROS_ALA -> Mito_ROS [label="mitochondrial\npenetration"];
+        Mito_ROS -> Glut_exc [label="NMDAR\nactivation"];
+        Mito_ROS -> Axon_degen [label="oxidative\naxonal damage"];
+        Glut_exc -> Axon_degen [label="Ca²⁺-mediated\nexcitotoxic death"];
+        Axon_degen -> Motor_neuro [label="motor fiber\nloss"];
+        Axon_degen -> Sensory_neuro [label="sensory fiber\nloss"];
+        Axon_degen -> ANS_dysfunc [label="autonomic fiber\ndegeneration"];
+        ANS_dysfunc -> SIADH [label="hypothalamic\nactivation"];
+        ANS_dysfunc -> Visceral_pain [label="visceral sensory\nsensitization"];
+        SIADH -> Hyponatremia [label="water retention\n(free water ↑)"];
+        Hyponatremia -> CNS_effects [label="lowers seizure\nthreshold"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 8: Clinical Manifestations & Endpoints
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_clinical {
+        label="Clinical Manifestations & Primary Endpoints";
+        style="filled";
+        color="#2F4F4F";
+        fillcolor="#F0F8F0";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Abd_pain      [label="Abdominal Pain\n(colicky, severe;\nvisceral neuropathy)", fillcolor="#98FB98"];
+        Nausea_vom    [label="Nausea / Vomiting\n(autonomic, CNS)", fillcolor="#90EE90"];
+        Constipation  [label="Constipation / Ileus\n(GI dysmotility)", fillcolor="#7CFC00"];
+        Tachycardia   [label="Tachycardia &\nHypertension\n(sympathetic excess)", fillcolor="#32CD32"];
+        Seizures_clin [label="Seizures\n(hyponatremia + ALA\nGABA inhibition)", fillcolor="#00FF7F"];
+        Paralysis_clin[label="Flaccid Paralysis\n(ascending motor\nneuropathy)", fillcolor="#00FA9A"];
+        Psych_sx      [label="Psychiatric Sx\n(anxiety, depression,\npsychosis)", fillcolor="#00CED1"];
+        Dark_urine    [label="Dark/Red Urine\n(porphyrin\nphotooxidation)", fillcolor="#008B8B"];
+        AAR           [label="Annual Attack Rate\n(AAR)\nPRIMARY ENDPOINT", fillcolor="#008080", fontcolor="white", style="filled,bold"];
+        Attack_sev    [label="Attack Severity\nScore (composite)", fillcolor="#006666", fontcolor="white"];
+        Hosp_rate     [label="Hospitalization\nRate (/year)", fillcolor="#004C4C", fontcolor="white"];
+        CKD_prog      [label="CKD Progression\n(GFR decline; ALA\nchronic nephrotoxicity)", fillcolor="#336633", fontcolor="white"];
+        HCC_risk      [label="Hepatocellular Ca\nRisk (20-70× general\npopulation)", fillcolor="#224422", fontcolor="white"];
+        QoL_score     [label="Quality of Life\n(SF-36, EQ-5D,\nPAIN-VAS)", fillcolor="#1A341A", fontcolor="white"];
+        PBGD_fxn      [label="PBGD Enzyme Activity\n(~50% normal;\ngenetic marker)", fillcolor="#2E8B57"];
+        ALA_norm      [label="Urine ALA\nNormalization\n(therapeutic response)", fillcolor="#3CB371"];
+        PBG_norm      [label="Urine PBG\nNormalization\n(therapeutic response)", fillcolor="#32CD32"];
+
+        ANS_dysfunc -> Tachycardia [label="sympathetic\nactivation"];
+        ANS_dysfunc -> Constipation [label="GI\ndysmotility"];
+        Motor_neuro -> Paralysis_clin [label="severe\nneuropathy"];
+        CNS_effects -> Seizures_clin [label="clinical\nseizures"];
+        CNS_effects -> Psych_sx [label="neuropsych\nmanifestations"];
+        Hyponatremia -> Seizures_clin [label="severe Na⁺ ↓\n→ seizures"];
+        Visceral_pain -> Abd_pain [label="periumbilical\ncolicky pain"];
+        ALA_neurotox -> Nausea_vom [label="CNS/ANS\nstimulation"];
+        PBG_urine_c -> Dark_urine [label="porphyrin\nchromogen\noxidation"];
+        ALA_urine_c -> AAR [label="ALA >20× N\n→ attack"];
+        PBG_urine_c -> AAR [label="PBG >5× N\n→ attack def."];
+        Abd_pain -> AAR [label="clinical\ncriterion"];
+        AAR -> Attack_sev [label="characterizes"];
+        AAR -> Hosp_rate [label="severe attacks\n→ hospitalize"];
+        Hosp_rate -> QoL_score [label="negative\nimpact"];
+        Attack_sev -> QoL_score [label="impairs\nfunction"];
+        ALA_plasma_c -> CKD_prog [label="chronic\nnephrotoxicity\n(tubular damage)"];
+        CKD_prog -> HCC_risk [label="comorbidity\nassociation"];
+        PBGD_fxn -> PBG_accum [label="defines genetic\nbottleneck"];
+        ALA_norm -> QoL_score [label="biochemical\nresponse"];
+        PBG_norm -> QoL_score [label="biochemical\nresponse"];
+        ALA_norm -> AAR [label="predicts\nattack freedom"];
+        PBG_norm -> AAR [label="predicts\nattack freedom"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 9: Supportive & Preventive Treatments
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_supportive {
+        label="Supportive, Preventive & Emerging Treatments";
+        style="filled";
+        color="#2E8B57";
+        fillcolor="#F0FFF4";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Glucose_IV    [label="IV Glucose\n(300-400g/d carb\nload therapy)", fillcolor="#CAFFCA"];
+        GnRH_agonist  [label="GnRH Agonists\n(leuprolide; hormonal\ncycle prevention)", fillcolor="#90EE90"];
+        Opioids_rx    [label="Opioids\n(morphine/oxycodone;\npain management)", fillcolor="#98FB98"];
+        Antiemetics_rx[label="Antiemetics\n(ondansetron;\nsafe in AIP)", fillcolor="#7FFF00"];
+        Beta_blk      [label="β-Blockers\n(propranolol;\ntachycardia/HTN)", fillcolor="#69B245"];
+        Na_correct    [label="Hypertonic Saline\nor fluid restriction\n(hyponatremia Rx)", fillcolor="#5F9F3C"];
+        Seizure_rx    [label="Safe Anticonvulsants\n(levetiracetam,\ngabapentin, Mg²⁺)", fillcolor="#508C33"];
+        Gene_therapy  [label="Liver Gene Therapy\nAAV5-PBGD\n(experimental)", fillcolor="#427A2A"];
+        Liver_transpl [label="Liver Transplantation\n(curative: removes\nporphyric hepatocytes)", fillcolor="#346821"];
+        Cimetidine_rx [label="Cimetidine\n(prophylactic;\nCYP inhibition→↓heme demand)", fillcolor="#2E5C1A"];
+        Diet_CHO      [label="High Carbohydrate\nDiet (>300g/d)\n(prevent triggers)", fillcolor="#3A7022"];
+
+        Glucose_IV -> PI3K_AKT [label="insulin release\n→ PI3K/AKT"];
+        Glucose_IV -> Glucose_repr [label="activates carb\nrepression signal"];
+        Glucose_IV -> ALAS1_mRNA [label="↓ ALAS1\ntranscription", color="#FF0000", arrowhead=tee];
+        Diet_CHO -> Glucose_IV [label="oral\nalternative"];
+        GnRH_agonist -> Prog [label="suppresses\nluteal Prog\nsurges", color="#FF0000", arrowhead=tee];
+        Opioids_rx -> Abd_pain [label="analgesia", color="#2E8B57", arrowhead=tee];
+        Antiemetics_rx -> Nausea_vom [label="symptomatic\ncontrol", color="#2E8B57", arrowhead=tee];
+        Beta_blk -> Tachycardia [label="sympatholytic\nblockade", color="#2E8B57", arrowhead=tee];
+        Na_correct -> Hyponatremia [label="corrects\nhyponatremia", color="#2E8B57", arrowhead=tee];
+        Seizure_rx -> Seizures_clin [label="anticonvulsant\n(safe drugs)", color="#2E8B57", arrowhead=tee];
+        Gene_therapy -> PBGD_fxn [label="↑ PBGD\nexpression\n(AAV5-HMBS)", color="#0000FF", penwidth=2];
+        Liver_transpl -> ALAS1_mRNA [label="removes porphyric\nliver source", color="#0000FF", penwidth=2];
+        Cimetidine_rx -> CYP_enzymes [label="CYP inhibition\n→ ↓heme demand", color="#2E8B57", arrowhead=tee];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 10: Biochemical Monitoring & Biomarkers
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_biomarker {
+        label="Biochemical Monitoring & Biomarkers";
+        style="filled";
+        color="#4682B4";
+        fillcolor="#F0F4FF";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Spot_urine    [label="Spot Urine\nALA + PBG\n(qualitative screen)", fillcolor="#B0C4DE"];
+        Quant_urine   [label="Quantitative 24h\nUrine ALA+PBG+\nPorphyrins", fillcolor="#87CEEB"];
+        Plasma_fluoresc[label="Plasma Porphyrin\nFluorescence\n(λ 615-620nm)", fillcolor="#6495ED"];
+        RBC_PBGD      [label="Erythrocyte PBGD\nActivity Assay\n(~50% of normal)", fillcolor="#4169E1"];
+        HMBS_gene_test[label="HMBS Gene\nMutation Testing\n(>400 variants)", fillcolor="#1E90FF"];
+        GIV_TDM       [label="Givosiran TDM\n(plasma AUC, trough\nmonitoring)", fillcolor="#00BFFF"];
+        LFT_monitor   [label="Liver Function Tests\n(ALT, AST; HCC\nsurveillance)", fillcolor="#0099CC"];
+        Renal_monitor [label="Renal Function\n(creatinine, eGFR;\nALA nephrotoxicity)", fillcolor="#005588"];
+        Porphyrin_feces[label="Fecal Porphyrins\n(differential diagnosis)", fillcolor="#1E3A5F", fontcolor="white"];
+        Safe_drug_list[label="Safe Drug List\n(porphyria.guru;\nclinical tool)", fillcolor="#2E4F6A", fontcolor="white"];
+
+        ALA_urine_c -> Spot_urine [label="screen +"];
+        PBG_urine_c -> Spot_urine [label="screen +"];
+        ALA_urine_c -> Quant_urine [label="quantitative\nmeasurement"];
+        PBG_urine_c -> Quant_urine [label="quantitative\nmeasurement"];
+        PPIXm -> Plasma_fluoresc [label="fluorescence\n(Soret band)"];
+        PBGD_fxn -> RBC_PBGD [label="measured in\nred blood cells"];
+        PBGD_fxn -> HMBS_gene_test [label="genetic basis\nHMBS mutations"];
+        Spot_urine -> AAR [label="triggers\nattack diagnosis"];
+        Quant_urine -> ALA_norm [label="confirms\ntreatment response"];
+        Quant_urine -> PBG_norm [label="confirms\ntreatment response"];
+        GIV_plasma -> GIV_TDM [label="blood sample\nfor TDM"];
+        GIV_TDM -> AAR [label="exposure-response\nrelationship"];
+        LFT_monitor -> HCC_risk [label="HCC surveillance\n(ultrasound + AFP)"];
+        Renal_monitor -> CKD_prog [label="monitors\nALA nephrotoxicity"];
+        Porphyrin_feces -> PBGD_fxn [label="differential\ndiagnosis VP/HCP"];
+        Drug_barb -> Safe_drug_list [label="unsafe drugs\ncatalogued"];
+        Drug_AED -> Safe_drug_list [label="anticonvulsant\nsafety rating"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // CLUSTER 11: Population PK Variability & Covariates
+    // ─────────────────────────────────────────────────────
+    subgraph cluster_popPK {
+        label="Population PK/PD Variability & Covariates";
+        style="filled";
+        color="#708090";
+        fillcolor="#F5F5F5";
+        fontname="Helvetica-Bold";
+        fontsize=10;
+
+        Body_weight   [label="Body Weight\n(mg/kg dose norm.)", fillcolor="#C0C0C0"];
+        Renal_func    [label="Renal Function\n(eGFR determines\ngivosiran CL)", fillcolor="#A9A9A9"];
+        Hepatic_func  [label="Hepatic Function\n(ASGPR expression;\nmCTP score)", fillcolor="#909090"];
+        Female_sex    [label="Female Sex\n(AIP predominance\n5:1 F:M ratio)", fillcolor="#808080", fontcolor="white"];
+        Age_effect    [label="Age (peak onset\n15-45 yrs;\nhormonal window)", fillcolor="#696969", fontcolor="white"];
+        HMBS_genotype [label="HMBS Genotype\n(>400 pathogenic\nvariants)", fillcolor="#606060", fontcolor="white"];
+        Ethnicity     [label="Ethnicity\n(Swedish/Irish\nhigher prevalence)", fillcolor="#505050", fontcolor="white"];
+        CYP_variant   [label="CYP Polymorphisms\n(CYP1A2, 2C9\ninfluence triggers)", fillcolor="#404040", fontcolor="white"];
+        IIV_params    [label="IIV Parameters\n(BSV on CL, Vd, ka\nfrom popPK model)", fillcolor="#303030", fontcolor="white"];
+        IOV_params    [label="IOV Parameters\n(inter-occasion\nvariability)", fillcolor="#202020", fontcolor="white"];
+
+        Body_weight -> GIV_dose [label="mg/kg\nnormalization"];
+        Renal_func -> GIV_urine_ex [label="determines\nexcretion rate"];
+        Hepatic_func -> ASGPR [label="ASGPR expression\nlevel"];
+        Female_sex -> Prog [label="hormonal\ntriggers"];
+        Female_sex -> Estrogen_cyc [label="menstrual cycle"];
+        Age_effect -> Estrogen_cyc [label="reproductive\nyears"];
+        HMBS_genotype -> PBGD_fxn [label="determines\nresidual activity"];
+        CYP_variant -> CYP_enzymes [label="metabolizer\nstatus"];
+        IIV_params -> GIV_plasma [label="varies PK\nacross patients"];
+        IOV_params -> GIV_plasma [label="varies PK\nacross cycles"];
+    }
+
+    // ─────────────────────────────────────────────────────
+    // Key cross-cluster edges
+    // ─────────────────────────────────────────────────────
+    ALAS1_cleavage -> ALAS1_prot [label="↓ enzyme\nproduction", color="#6A0DAD", style=dashed, arrowhead=tee];
+    ALAS1_prot -> ALA_accum [label="produces excess\nALA when PBGD↓", color="#FF6600"];
+    Hemin_FB_ALAS1 -> HEME_feedback [label="same pathway\nas endogenous"];
+    HEME_feedback -> ALAS1_mRNA [label="coordinates\nfeedback"];
+    PBGD -> PBGD_fxn [label="50% activity\n(heterozygous)"];
+    GIV_liver -> ALAS1_cleavage [label="liver conc.\ndrives RISC"];
+}
