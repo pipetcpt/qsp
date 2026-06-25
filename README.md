@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-162-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-163-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **162개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **163개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -284,6 +284,7 @@ qsp/
 | 158 | 이식면역·HSCT 합병증 | [**이식편대숙주병 (GvHD)**<br><sub>Graft-versus-Host Disease · GvHD</sub>](graft-versus-host-disease/) | <a href="graft-versus-host-disease/gvhd_qsp_model.svg"><img src="graft-versus-host-disease/gvhd_qsp_model.png" width="190" alt="GvHD"></a> | **동종 HSCT 후 공여자 T세포가 숙주 전처치(TBI/항암화학요법) 유발 조직손상(DAMP/PAMP)으로 활성화된 숙주 수지상세포(DC)에 의해 프라이밍 → TCR-MHC mismatch 직접/간접 동종반응(CD28-B7 공자극) → NFAT·NF-κB·JAK-STAT 경로 활성화 → Th1(IFN-γ·TNF-α)/Th17(IL-17A·IL-22) 극화·Treg 결핍 → 급성: 피부·장·간 장기손상(Glucksberg I-IV); 만성: Tfh-B 세포 GC반응·자가항체·TGF-β/ROCK2 섬유화 → 폐쇄성 세기관지염(BOS)·피부경화·간섬유화**. 발병기전 14클러스터(HSCT전처치·항원제시·T세포 분화·사이토카인 네트워크·피부·장·간·폐·B세포 병증·TGF-β/ROCK2 섬유화·CNI PK·룩솔리티닙 PK/PD·기타약물·임상 엔드포인트). CsA(3mg/kg/d PO·F=30%·CYP3A4·2구획·C₀목표 100–300ng/mL)·타크로리무스(0.03mg/kg/d PO·F=25%·CYP3A5·2구획·C₀ 5–15ng/mL)·프레드니손(1mg/kg/d·NF-κB억제·광범위사이토카인↓)·**룩솔리티닙(10mg BID·JAK1 Ki=3.3nM·JAK2 Ki=2.8nM·STAT3/5차단·Treg확장·REACH2/3 NEJM 2020/2021 근거)·벨루모수딜(200mg QD ROCK2 선택적 저해·IRF4/STAT3억제·Th17↓Treg↑·섬유화↓·ROCKstar Blood 2021)·MMF/MPA(1.5g BID·IMPDH억제·림프구 증식차단)** 6종 완전 PK/PD 모델링. **130+ 노드 14 서브그래프 클러스터**, **32구획 ODE**(약물PK 16구획: CsA 3+TAC 3+PRED 2+RUX 3+BELU 2+MPA 2+; 면역PD 16구획: Th1·Th17·Treg·CD8·Bcell·TNF-α·IFN-γ·IL-17A·IL-10·TGF-β·IL-6·피부손상·장손상·간손상·폐손상·섬유화), **6치료 시나리오**(무예방·CsA 단독·CsA+MMF·TAC+MMF·CsA→룩솔리티닙·CsA→벨루모수딜). Glucksberg/NIH 등급·ORR·FFS·OS·NRM 임상 엔드포인트. ST2/REG3α/sTNFR1/CXCL9 바이오마커 패널(Ann Arbor 알고리즘). **8탭 Shiny 대시보드**(환자·약물PK·면역세포·사이토카인·장기손상&엔드포인트·시나리오비교·바이오마커·기전지도). **60개 PubMed 인용** (14개 섹션·Zeiser 2020/2021 NEJM·Cutler 2021 Blood·Ferrara 2009 Lancet·Vander Lugt 2013 NEJM).<br>[🗺️ 지도](graft-versus-host-disease/gvhd_qsp_model.svg) · [⚙️ mrgsolve](graft-versus-host-disease/gvhd_mrgsolve_model.R) · [📊 Shiny](graft-versus-host-disease/gvhd_shiny_app.R) · [📚 문헌](graft-versus-host-disease/gvhd_references.md) · [📄 README](graft-versus-host-disease/README.md) | Treg(FoxP3+) 결핍 → 면역관용 붕괴; IFN-γ → FasR 상향·CXCL9/10 → CTL 골수 모집; BM 미세환경(MSC·내피세포) 손상·지방 대체; PNH 클론(GPI-앵커 결핍·면역 도피) 확대. hATG(40mg/kg×4d·2구획 PK·CL 0.85L/h)·rATG(3.5mg/kg×5d·CL 0.50L/h)·사이클로스포린(5mg/kg/d PO·목표 트로프 150–250ng/mL·CYP3A4·DDI)·엘트롬보파그(150mg/d·c-Mpl 작용제·JAK2/STAT5→HSC 자기재생↑·van der Straaten PopPK)·다나졸(400mg/d 안드로겐·EPO↑·Bcl-2↑) 5종 완전 PK/PD 모델링 + 동종조혈모세포이식(HSCT). **130+ 노드 13클러스터**(면역유발/항원제시·T세포활성화/확장·전염증사이토카인·HSC구획/세포자멸사·BM미세환경·다계열조혈·말초혈액/임상지표·ATG PK·CsA PK·EPAG PK·약물PD기전·질환 중증도/임상결과·지지요법), **20구획 ODE**(ATG 2구획+CsA+EPAG+Danazol PK 5구획+Teff+Treg+HSC+CFU-E+망상적혈구+RBC+CFU-G+ANC+MK+PLT+BM세포성+IFN-γ+TNF-α+IL-2+PNH클론), **5치료 시나리오**(무치료·hATG+CsA·hATG+CsA+EPAG·rATG+CsA+EPAG·동종HSCT). Scheinberg 2011 NEJM(hATG vs rATG·CR 68% vs 37%)·Townsley 2017 NEJM(EPAG 추가·CR 58% vs 36% at 6mo)·Peffault 2022 NEJM(rATG+CsA+EPAG CR 68%)·Olnes 2012 NEJM(EPAG 단독 CR 17%·PR 11%) 임상 보정. Hgb·ANC·PLT·ARC·BM세포성·IFN-γ/TNF-α/IL-2·PNH클론 크기·CR/PR/NR·수혈 필요성·MDS/AML 이행 위험 임상 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일 & 중증도·약물PK·조혈·임상엔드포인트·시나리오비교·바이오마커 & 클론진화). **41개 PubMed 인용** (8개 섹션).<br>[🗺️ 지도](aplastic-anemia/aa_qsp_model.svg) · [⚙️ mrgsolve](aplastic-anemia/aa_mrgsolve_model.R) · [📊 Shiny](aplastic-anemia/aa_shiny_app.R) · [📚 문헌](aplastic-anemia/aa_references.md) · [📄 README](aplastic-anemia/README.md) |
 | 160 | 결합조직·심혈관 유전질환 | [**마르팡 증후군 (Marfan Syndrome)**<br><sub>Marfan Syndrome · MFS</sub>](marfan-syndrome/) | <a href="marfan-syndrome/mfs_qsp_model.svg"><img src="marfan-syndrome/mfs_qsp_model.png" width="190" alt="MFS"></a> | **FBN1 돌연변이(Chr 15q21.1) → 피브릴린-1 결함 → ECM 마이크로피브릴 파괴 → TGF-β 서열화 손상 → 자유 TGF-β1/2 증가 → p-SMAD2/3 + p-ERK1/2 과활성 → MMP-2/9↑ → 대동맥 중막 탄성 박판 분절화·낭성 괴사·평활근세포 세포자멸 → 대동맥 근부(발살바동) 확장 → 대동맥판 역류·박리(A/B형)·파열**. 안지오텐신 II/AT1R → NOX4/ROS/NF-κB → VSMC 표현형 전환(수축→합성). 아테노롤(50–100mg QD·β1-선택적·2구획 PK·Vc=67L·CL=10.8L/h·HR↓·dP/dt_max↓)·로사르탄(50–100mg QD·AT1R 차단·EXP-3174 활성 대사물 IC50=4nM·TGF-β 신호↓·p-SMAD2/3↓)·이르베사르탄(AIMS RCT)·프로프라노롤(비선택적 β-차단) 4종 완전 PK/PD. **130+ 노드 14 서브그래프 클러스터**(유전기반·TGF-β 정규 경로·MAPK/ERK·ECM 리모델링·혈관 평활근세포·대동맥 병리·심장/혈역학·혈역학 파라미터·골격계·안과·기타 전신·약물 PK·약물 PD 기전·임상 엔드포인트/바이오마커), **20구획 ODE**(아테노롤 3구획+로사르탄/EXP-3174 3구획 PK; TGF-β1·p-SMAD2/3·p-ERK1/2·MMP PD 4구획; 대동맥 근부 직경·AR 등급·HR·SBP·dP/dt·NT-proBNP·LVEDD·관측 TGF-β·겐트 점수 9구획), **6치료 시나리오**(무치료·아테노롤 50mg·아테노롤 100mg·로사르탄 50mg·로사르탄 100mg·아테노롤+로사르탄 병용). Lacro 2014 NEJM(PHN trial: 아테노롤 vs 로사르탄·Z-점수 Δ–0.12/–0.14·p=NS)·Radonic 2010 EHJ(COMPARE: 로사르탄 100mg·대동맥 성장률 0.77→0.59mm/yr)·Forteza 2016 JACC(AIMS: 이르베사르탄 vs 아테노롤·대동맥 성장률 동등)·Brooke 2008 NEJM(로사르탄 소아·성장률 현저 ↓)·Shores 1994 NEJM(프로프라노롤·10년 성장률 50%↓)·Habashi 2006 Science(Fbn1+/- 마우스·로사르탄 TGF-β 억제 기전) 보정. 대동맥 근부 직경·Z-점수·연간 성장률(목표 <0.5mm/yr)·AR 등급·HR/dP/dt_max·수축기 혈압·LVEDD·NT-proBNP·혈장 TGF-β1·MMP-9·겐트 전신 점수·수술 역치(≥50mm/≥45mm+위험인자) 임상 엔드포인트. **7탭 Shiny 대시보드**(환자프로파일 & 겐트기준·약물PK·TGF-β/분자 PD·심혈관 엔드포인트·시나리오비교·바이오마커&모니터링·수술 결정 지원). **50개 PubMed 인용** (11개 섹션·PHN/COMPARE/AIMS/NEJM/EHJ).<br>[🗺️ 지도](marfan-syndrome/mfs_qsp_model.svg) · [⚙️ mrgsolve](marfan-syndrome/mfs_mrgsolve_model.R) · [📊 Shiny](marfan-syndrome/mfs_shiny_app.R) · [📚 문헌](marfan-syndrome/mfs_references.md) · [📄 README](marfan-syndrome/README.md) |
 | 162 | 희귀 대사질환 | [**급성 간헐성 포르피린증**<br><sub>Acute Intermittent Porphyria · AIP</sub>](acute-intermittent-porphyria/) | <a href="acute-intermittent-porphyria/aip_qsp_model.svg"><img src="acute-intermittent-porphyria/aip_qsp_model.png" width="190" alt="AIP"></a> | **HMBS(PBGD) 유전자 기능 상실 → PBGD 효소 활성 ~50% → 헴 전구체(ALA·PBG) 과축적 → 신경독성 급성 발작**. ALA(GABA 구조 유사체) → GABA-A 수용체 경쟁 억제 + Fe²⁺ 촉매 자동산화 ROS → 미토콘드리아 기능 부전 → 축삭 변성 → 자율신경·운동·감각 신경병증. ALAS1 PGC-1α·HNF-4α·FOXO1 전사 조절 + 헴 피드백 억제(Imax). 유발인자: CYP 유도 약물(바르비투르산·설폰아미드·항전간제·리팜피신)·프로게스테론(황체기)·금식·감염. **Givosiran(GalNAc-siRNA·2.5mg/kg SC Q28d·ASGPR 수용체 매개 간 흡수·RISC/Ago2 복합체·ALAS1 mRNA ~87% KD·2구획+간구획 PK·ENVISION 2020 NEJM·AAR 74% ↓)**. Hemin IV(3mg/kg/d×4d·헤모펙신/알부민 결합·LRP1 간 흡수·HO-1 유도·외인성 헴 피드백→ALAS1 억제·급성 발작 표준치료). **130+ 노드 11 서브그래프 클러스터**(미토콘드리아 헴 생합성·세포질 헴 생합성/PBGD 병목·ALAS1 전사 조절·발작 유발인자·Givosiran PK/PD·Hemin IV PK/PD·병태생리&신경독성·임상 증상&엔드포인트·지지치료&예방·생화학 모니터링·집단 PK/PD 공변량), **17구획 ODE**(Givosiran 4구획: SC depot·혈장 중심·혈장 말초·간; ALAS1 mRNA·단백; ALA 간·혈장; PBG 간·혈장; 자유 헴; Hemin 혈장·간; 신경독성 지수·발작위험 적분·AUC_ALA·AUC_PBG), **6치료 시나리오**(위약·Givosiran 2.5mg/kg Q1M·Hemin IV 3mg/kg×4d·Givosiran+돌파 Hemin·Givosiran 5.0mg/kg·유전자치료 PBGD 95% 회복). Balwani 2020 NEJM ENVISION(AAR 74%↓·소변ALA 정상화 73%·PBG 정상화 63%)·Sardh 2019 NEJM(ALAS1 mRNA KD 87% M3 trough)·Gouya 2020 Hepatology EXPLORE(자연 경과) 임상 보정. 연간발작률(AAR)·소변 ALA/PBG 정상화·ALAS1 mRNA KD·신경독성 지수·누적 발작위험일·eGFR 궤적·간세포암(HCC) 위험(20–70×) 임상 엔드포인트. VPop N=100 시뮬레이션(CL·ASGPR 흡수 IIV 30–35% CV·여성 85%). **6탭 Shiny 대시보드**(환자 프로파일&HMBS 유전형·약물 PK·PD 마커·임상 엔드포인트·시나리오 비교·바이오마커&VPop). **57개 PubMed 인용** (12개 섹션: 임상시험·헴 생합성·ALAS1 조절·Givosiran 약리·Hemin PK/PD·신경독성·역학&유전학·QSP 모델링·장기 합병증·호르몬 유발인자·유전자치료·약물 안전성 DB).<br>[🗺️ 지도](acute-intermittent-porphyria/aip_qsp_model.svg) · [⚙️ mrgsolve](acute-intermittent-porphyria/aip_mrgsolve_model.R) · [📊 Shiny](acute-intermittent-porphyria/aip_shiny_app.R) · [📚 문헌](acute-intermittent-porphyria/aip_references.md) · [📄 README](acute-intermittent-porphyria/README.md) |
+| 163 | 안과·망막 | [**노인성 황반변성**<br><sub>Age-related Macular Degeneration · AMD</sub>](age-related-macular-degeneration/) | <a href="age-related-macular-degeneration/amd_qsp_model.svg"><img src="age-related-macular-degeneration/amd_qsp_model.png" width="190" alt="AMD"></a> | **노화·유전(CFH Y402H·ARMS2 A69S)·보체계 과활성화 → 드루젠 형성·Bruch막 두꺼워짐 → RPE 기능부전·지방갈색소(A2E) 축적 → MAC(C5b-9) 매개 RPE 세포사 → 지리적 위축(GA, 건성 말기). VEGF-A165 과분비 → VEGFR-2(KDR) 활성화 → PI3K/Akt/mTOR·ERK1/2 → 내피세포 증식·이동·혈관 투과성↑ → 맥락막 신생혈관(CNV, 습성)**. 항VEGF 5종 완전 IVT PK/PD: **라니비주맙**(0.5mg·48kDa·Kd 0.04nM·t½ 유리체 7.2d)·**애플리버셉트**(2mg·115kDa·Kd 0.0005nM·VEGF trap)·**베바시주맙**(1.25mg·149kDa)·**파리시맙**(6mg·이중표적 VEGF-A+Ang-2·Kd 0.0003nM·TIE2 경로)·**브롤루시주맙**(6mg·26kDa scFv·t½ 4d). Ang-2/TIE2 축: ANG2 경쟁적 TIE2 억제→혈관 불안정화→유리체 Ang-2 파리시맙 결합(Kd~0.9pM). 보체계: C3→C3a/C3b, C5→C5a/MAC; CFH Y402H 변이→CFH 기능↓→C3b 불활성화 장애·드루젠 보체 침착·RPE 스트레스; pegcetacoplan(C3 억제제)·avacopan(C5aR1 억제제). **130+ 노드 10 서브그래프 클러스터**(약물 PK·VEGF/혈관신생·Ang-2/TIE2·보체계·RPE/Bruch막·CNV형성·신경염증·유전/위험인자·임상엔드포인트·약물치료), **20구획 ODE**(Drug 유리체·망막·전신; VEGF free·bound·VEGFR2; ANG2 free·bound; C3·C5·MAC; RPE정상·손상·지방갈색소·드루젠; CNV 면적·과잉유체; GA면적; BCVA; 광수용체), **6치료 시나리오**(라니비주맙 q4w×3→q8w·애플리버셉트 q4w→q8w·파리시맙 q4w×4→q16w T&E·브롤루시주맙 q6w→q12w·무치료 자연경과·건성 AMD+AREDS2 4년). Brown 2006 NEJM(ANCHOR)·CATT 2011 NEJM(BEV vs RNB)·Heier 2012 Ophthalmol(VIEW1/2 AFL)·Khanani 2022 Ophthalmol(TENAYA/LUCERNE FAR)·Dugel 2020 Ophthalmol(HAWK/HARRIER BRO) 임상 보정. BCVA(ETDRS 자수)·CNV 면적(mm²)·CST(OCT μm)·GA 면적(mm²)·자유 VEGF(nM)·RPE 분획·광수용체 생존률 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&질환 병기·약물 PK·PD 핵심 마커·임상 엔드포인트·시나리오 비교·바이오마커 탐색기). **55개 PubMed 인용** (17개 섹션: 역학·드루젠&Bruch막·RPE생물학·보체경로·VEGF경로·항VEGF PK·라니비주맙/베바시주맙 임상시험·애플리버셉트·브롤루시주맙·파리시맙·Ang-2/TIE2·지리적 위축·AMD 유전학·AREDS·산화스트레스·QSP모델링·신규치료제).<br>[🗺️ 지도](age-related-macular-degeneration/amd_qsp_model.svg) · [⚙️ mrgsolve](age-related-macular-degeneration/amd_mrgsolve_model.R) · [📊 Shiny](age-related-macular-degeneration/amd_shiny_app.R) · [📚 문헌](age-related-macular-degeneration/amd_references.md) · [📄 README](age-related-macular-degeneration/README.md) |
 | 161 | 혈액종양 | [**비호지킨 림프종 (DLBCL)**<br><sub>Non-Hodgkin Lymphoma · NHL</sub>](non-hodgkin-lymphoma/) | <a href="non-hodgkin-lymphoma/nhl_qsp_model.svg"><img src="non-hodgkin-lymphoma/nhl_qsp_model.png" width="190" alt="NHL"></a> | **GCB B세포에서 기원한 가장 흔한 공격성 B세포 림프종. BCR 신호(Lyn→Syk→BTK→PI3K/AKT/mTOR·NF-κB)·MYC/BCL-2 이중발현·GC반응 이탈 후 악성화**. 리투시맙(항CD20·2구획+TMDD PK·ADCC/CDC/직접세포자멸)·사이클로포스파마이드(CYP2B6→4-OH-CPP)·독소루비신(2구획)·베네토클락스(BCL-2 BH3유사체)·이브루티닙(BTK 공유억제·ABC형 특이) 5종 완전 PK/PD. **120+ 노드 14 서브그래프 클러스터**(B세포분화·GC반응/DLBCL기원·BCR신호·NF-κB경로·MYC/세포주기·BCL-2/세포자멸·후성유전학·종양미세환경·면역회피·리투시맙PK·CHOP PK·신규표적치료제·CAR-T·임상엔드포인트), **22구획 ODE**(리투시맙 2구획+CD20 TMDD·4-OH-사이클로포스파마이드·독소루비신 2구획·베네토클락스·이브루티닙+종양·BCR신호·BCL-2점유율·NK·CD8·ANC·내성·CRS위험), **6치료 시나리오**(무치료·R-CHOP×6·Pola-R-CHP×6(POLARIX)·R-CHOP+이브루티닙(ABC형,PHOENIX)·R-CHOP+베네토클락스(CAVALLI)·R-CHOP 이중발현). Coiffier 2002 NEJM(R-CHOP CR~65%)·Tilly 2022 NEJM(POLARIX 2yr PFS 76.7% vs 70.2%)·Younes 2019 NEJM(PHOENIX)·Morschhauser 2021 JCO(CAVALLI BCL-2+ ORR 88%) 임상 보정. CR/PR/SD/PD(Lugano기준)·SPD·IPI/R-IPI·ctDNA MRD·ANC·CRS위험지수 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일&아형·약물PK·종양동태·임상엔드포인트·시나리오비교·바이오마커&독성). **50개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](non-hodgkin-lymphoma/nhl_qsp_model.svg) · [⚙️ mrgsolve](non-hodgkin-lymphoma/nhl_mrgsolve_model.R) · [📊 Shiny](non-hodgkin-lymphoma/nhl_shiny_app.R) · [📚 문헌](non-hodgkin-lymphoma/nhl_references.md) · [📄 README](non-hodgkin-lymphoma/README.md) |
 | 159 | 신경정신과 | [**양극성 장애 (Bipolar Disorder)**<br><sub>Bipolar Disorder · BD-I / BD-II</sub>](bipolar-disorder/) | <a href="bipolar-disorder/bd_qsp_model.svg"><img src="bipolar-disorder/bd_qsp_model.png" width="190" alt="BD"></a> | **도파민 과활성(조증) ↔ 세로토닌·NE 결핍(우울) 반복 삽화. GSK-3β 과활성 → mTOR/BDNF↓ → 해마 신경발생↓; IL-6/TNF-α 신경염증; CLOCK/BMAL1 일주기 리듬 교란; CACNA1C(L형 Ca²⁺ 채널) 위험 대립유전자→신경 과흥분성**. 리튬(2구획 PK·CL 1.8L/h·GSK-3β IC₅₀=0.7mEq/L·BDNF↑·BALANCE/CANMAT 2018 근거)·발프로에이트(비선형 단백결합·fu₀ 10%·GABA-T억제·HDAC억제·VPA GSK-3β 억제)·쿠에티아핀+노르쿠에티아핀(CYP3A4·F=9%·D2R 차단·NET 억제·EMBOLDEN I/II 우울증 근거)·라모트리진(Na⁺채널·Ca²⁺채널 차단·Glu 방출↓·STRIDE-BD 적정 프로토콜)·아리피프라졸(D2R 부분 효현제) 5종 완전 PK/PD 모델링. **120+ 노드 12클러스터**(신경전달물질/수용체·신호전달/GSK-3β·이온채널·HPA축/일주기·신경가소성/BDNF·신경염증·약물MOA·약물PK·임상엔드포인트·유전/후성유전·뇌회로·장-뇌축), **22구획 ODE**(리튬 2구획+발프로에이트+쿠에티아핀+노르쿠에티아핀+라모트리진 PK 10구획; DA·5HT·GSK3·BDNF·IL6·코르티솔 PD 6구획; YMRS·MADRS·GAF·체중·일주기 진동자 6구획), **6치료 시나리오**(리튬 단독 21d 조증·발프로에이트 단독 21d 조증·쿠에티아핀 56d BD우울증·리튬+쿠에티아핀 병용 56d·리튬 유지요법 1년·라모트리진 적정 112d BD-II 우울증). Bowden 1994 JAMA(발프로에이트 조증 RCT)·Calabrese 2005 AJP(쿠에티아핀 우울증 BOLDER)·Young 2010 JCP(EMBOLDEN I)·Geddes 2010 Lancet(BALANCE Li+VPA)·Cipriani 2013 Lancet 메타분석·Yatham 2018 Bipolar Disord(CANMAT 2018 가이드라인) 보정. YMRS·MADRS·HAM-D·CGI-BP·GAF·리튬 혈중농도·VPA·QTc·체중·BDNF 인덱스·GSK-3β 활성·IL-6·코르티솔 임상 바이오마커. **6탭 Shiny 대시보드**(환자프로파일&PGx·약동학·PD바이오마커·임상엔드포인트·시나리오비교·안전모니터). **46개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](bipolar-disorder/bd_qsp_model.svg) · [⚙️ mrgsolve](bipolar-disorder/bd_mrgsolve_model.R) · [📊 Shiny](bipolar-disorder/bd_shiny_app.R) · [📚 문헌](bipolar-disorder/bd_references.md) · [📄 README](bipolar-disorder/README.md) |
 
@@ -2167,3 +2168,82 @@ Patient Profile · PK Profiles · Erythropoiesis Dynamics · Iron Metabolism · 
 | Sardh 2019 NEJM | ALAS1 mRNA KD: ~87% at Month 3 trough |
 
 ### References: 57 PubMed citations (12개 섹션: 랜드마크 임상시험·헴 생합성 경로·ALAS1 조절·Givosiran 약리·Hemin PK/PD·신경독성 기전·역학&유전학·QSP/PK-PD 모델링·장기 합병증·호르몬 유발인자·유전자치료·약물 안전성 데이터베이스)
+
+---
+
+## 🧬 노인성 황반변성 (Age-related Macular Degeneration, AMD) — 최신 모델 상세 (2026-06-25)
+
+> **디렉토리:** [`age-related-macular-degeneration/`](age-related-macular-degeneration/) | **약어:** AMD | **날짜:** 2026-06-25
+
+[![AMD QSP 기계론적 지도](age-related-macular-degeneration/amd_qsp_model.png)](age-related-macular-degeneration/amd_qsp_model.svg)
+
+### 질환 개요
+
+노인성 황반변성(AMD)은 **고소득 국가 50세 이상 성인에서 비가역적 중심시력 상실의 주요 원인**으로, 전 세계 약 2억 명에 영향을 미치는 주요 만성 안과 질환입니다(2040년 약 2.88억 명 예측). 망막 색소상피(RPE)·Bruch막·광수용체로 구성된 복합체의 노화성 퇴행을 기반으로:
+
+- **건성(비삼출성) AMD**: 드루젠 형성, RPE 위축, 지리적 위축(GA) → 서서히 진행하는 중심암점
+- **습성(삼출성/신생혈관) AMD**: VEGF 과분비 → 맥락막 신생혈관(CNV) 형성 → 삼출물·출혈·반흔 → 급격한 시력 손실
+
+| 분자적 특성 | 내용 |
+|-----------|------|
+| **주요 위험 유전자** | CFH Y402H (rs1061170), ARMS2 A69S (rs10490924) — 귀속 위험 ~50% |
+| **보체계 결함** | CFH 기능 저하 → C3b 불활성화 장애 → 드루젠 보체 침착 → MAC 형성 → RPE 손상 |
+| **VEGF 경로** | RPE 기저측 VEGF-A165 과분비 → VEGFR-2(KDR) 활성화 → EC 증식/이동 → CNV |
+| **유병률** | 전 세계 2억 명; 습성 AMD ~15%, GA ~20% of late AMD |
+| **시력 손실 속도** | 미치료 습성 AMD: 1년 내 −14.9자(CATT 무치료군) |
+| **치료 성과** | 라니비주맙 q4w: 1년 +7.2자; 파리시맙 q4w→q16w: +10.7자 |
+
+### 기계론적 지도 클러스터 (10개)
+
+| 클러스터 | 주요 구성 요소 |
+|---------|------------|
+| 약물 PK (전신) | IVT 주사 → 유리체 → 망막/RPE → 전신 배출; 5종 항VEGF 약물 완전 PK |
+| VEGF/혈관신생 | HIF-1α/2α → VEGF-A165 mRNA → VEGFR-2 활성화 → PI3K/Akt/mTOR·ERK·PLCγ → 내피세포 증식·이동·혈관 투과성 |
+| Ang-2/TIE2 | ANG1/ANG2 경쟁 → Tie2 활성화/억제 → FOXO1 → 혈관 안정화/불안정화; 파리시맙 Ang-2 arm (Kd~0.9pM) |
+| 보체계 | C3→C3a/C3b, C5→C5a/MAC; CFH·CFB·CFD·properdin; C3aR/C5aR1→RPE 스트레스; pegcetacoplan·avacopan |
+| RPE/Bruch막 | 지방갈색소(A2E) 축적 → mtDNA 손상 → NLRP3/IL-1β → RPE 세포사멸·괴사; Bruch막 지질 침착·석회화 |
+| CNV 형성 | 맥락막 모세혈관 → BM 파괴 → Type 1/2/3 CNV → SRF/IRF/PED → CST(OCT) |
+| 신경염증 | 소교세포 활성화·대식세포 침윤 → IL-6/TNFα/MCP-1 → VEGF 증폭; PEDF 항혈관신생 작용 |
+| 유전/위험인자 | CFH Y402H·ARMS2 A69S·C3 R102G·HTRA1·VEGF 다형성; 흡연(RR~4×)·UV·고령화·심혈관 위험인자 |
+| 임상 엔드포인트 | BCVA(ETDRS 자수)·CST(OCT μm)·CNV 면적(mm²)·GA 면적(mm²)·병기(초기/중간/말기) |
+| 약물 치료 | q4w·q8w·q12w·T&E·PRN 용량 프로토콜; AREDS2 보충제; PDT; PDS 지속 방출 |
+
+### ODE 구획 (20개)
+
+| # | 구획 | 단위 | 생물학적 의미 |
+|---|-----|------|------------|
+| 1–3 | `DRUG_VIT`, `DRUG_RET`, `DRUG_SYS` | nM, nM, mg | 유리체·망막/RPE·전신 약물 농도 |
+| 4–5 | `VEGF_FREE`, `VEGF_BOUND` | nM | 유리 VEGF-A / 약물:VEGF 복합체 |
+| 6 | `VEGFR2_ACT` | 0–1 | VEGFR-2 활성화 분획 |
+| 7–8 | `ANG2_FREE`, `ANG2_BOUND` | nM | 유리 Ang-2 / 파리시맙:Ang-2 복합체 |
+| 9–11 | `C3_LOCAL`, `C5_LOCAL`, `MAC_LOCAL` | AU | 국소 망막 보체 C3·C5·MAC |
+| 12–13 | `RPE_NORM`, `RPE_DAM` | 0–1 | 정상·손상 RPE 세포 분획 |
+| 14–15 | `LIPOFUSCIN`, `DRUSEN` | AU, mm² | 지방갈색소 축적·드루젠 면적 |
+| 16 | `CNV_AREA` | mm² | CNV 병변 면적 |
+| 17 | `FLUID_EX` | μm | 기준 CST 초과 과잉 유체 |
+| 18 | `GA_AREA` | mm² | 지리적 위축 면적 |
+| 19 | `BCVA_SCORE` | letters | ETDRS 최대 교정 시력 |
+| 20 | `PR_FRAC` | 0–1 | 광수용체 생존 분획 |
+
+### 치료 시나리오 (6개)
+
+| 시나리오 | 내용 | 임상 보정 근거 |
+|---------|------|-------------|
+| S1 | **라니비주맙** 0.5mg q4w×3 → q8w | ANCHOR·MARINA 2006 NEJM, CATT 2011 NEJM |
+| S2 | **애플리버셉트** 2mg q4w×3 → q8w | VIEW 1/2 2012 Ophthalmology (Heier) |
+| S3 | **파리시맙** 6mg q4w×4 → q16w T&E | TENAYA/LUCERNE 2022 Ophthalmology (Khanani) |
+| S4 | **브롤루시주맙** 6mg q6w×3 → q12w | HAWK/HARRIER 2020 Ophthalmology (Dugel) |
+| S5 | 무치료 자연 경과 | CATT 2011 무치료군 −14.9자 |
+| S6 | **건성 AMD** + AREDS2 보충제 4년 | AREDS2 2013 JAMA (루테인/지아잔틴) |
+
+### 임상 보정 (calibration)
+
+| 임상시험 | 보정 표적 |
+|---------|---------|
+| Brown 2006 NEJM (ANCHOR) | 라니비주맙 q4w 1년 +7.2자 |
+| CATT 2011 NEJM | 무치료군 1년 −14.9자; BEV ≈ RNB non-inferior |
+| Heier 2012 Ophthalmol (VIEW1/2) | 애플리버셉트 q8w 1년 +8.4자 non-inferior to q4w RNB |
+| Khanani 2022 Ophthalmol (TENAYA/LUCERNE) | 파리시맙 q16w T&E 1년 +10.7자; 45% 환자 q16w 달성 |
+| Dugel 2020 Ophthalmol (HAWK/HARRIER) | 브롤루시주맙 q12w 1년 +6.6자; CST 감소 우수 |
+
+### References: 55 PubMed citations (17개 섹션: 역학·드루젠&Bruch막 생물학·RPE 기능·보체 경로·VEGF/혈관신생·항VEGF PK(안내)·라니비주맙/베바시주맙 임상시험·애플리버셉트(VIEW)·브롤루시주맙(HAWK/HARRIER)·파리시맙(TENAYA/LUCERNE)·Ang-2/Tie2 경로·지리적 위축/건성 AMD·AMD 유전학·AREDS/영양보충제·산화스트레스/미토콘드리아·수학적 & QSP 모델링·신규 치료 전략)
