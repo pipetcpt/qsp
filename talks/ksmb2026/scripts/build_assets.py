@@ -235,8 +235,8 @@ placeholder(os.path.join(SHINY,"igan_dashboard.png"),(1000,620),
 w,h=1200,320; im=Image.new("RGB",(w,h),"white"); d=ImageDraw.Draw(im)
 try: ft=ImageFont.truetype("DejaVuSans-Bold.ttf",26); fs=ImageFont.truetype("DejaVuSans.ttf",18)
 except Exception: ft=ImageFont.load_default(); fs=ImageFont.load_default()
-labels=["The Catholic University\nof Korea — Pharmacology","PIPET","TiumBio"]
-bw=360; gap=(w-3*bw)//4
+labels=["The Catholic University\nof Korea — Pharmacology","PIPET\nPharmacometrics Institute"]
+n=len(labels); bw=420; gap=(w-n*bw)//(n+1)
 for i,lab in enumerate(labels):
     x=gap+i*(bw+gap)
     d.rounded_rectangle([x,70,x+bw,250],radius=16,outline=TEAL,width=3,fill=PANEL)
@@ -245,4 +245,16 @@ for i,lab in enumerate(labels):
     bb=d.textbbox((0,0),"logo placeholder",font=fs); d.text((x+(bw-(bb[2]-bb[0]))/2,210),"logo placeholder",font=fs,fill=MUTED)
 im.save(os.path.join(LOGO,"logos_row.png"))
 print("  placeholders done")
+
+# ---------- 9) repo QR code ----------
+print("[9] repo QR")
+try:
+    import qrcode
+    qr=qrcode.QRCode(border=1,box_size=10,error_correction=qrcode.constants.ERROR_CORRECT_M)
+    qr.add_data("https://github.com/pipetcpt/qsp"); qr.make(fit=True)
+    img=qr.make_image(fill_color=NAVY,back_color="white").convert("RGB")
+    img.save(os.path.join(FIG,"repo_qr.png")); print("  repo_qr.png",img.size)
+except Exception as e:
+    print("  ! QR skipped:",e)
+
 print("ALL ASSETS BUILT ->",A)

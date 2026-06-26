@@ -1,21 +1,17 @@
-# KSMB 2026 talk — build targets
-# Requires: quarto (PATH); python3 with cairosvg, pillow, matplotlib, numpy.
-# Beamer additionally needs a LaTeX engine: `quarto install tinytex`.
+# KSMB 2026 talk — build targets (RevealJS HTML)
+# Requires: quarto (PATH); python3 with cairosvg, pillow, matplotlib, numpy, qrcode.
 
 QUARTO ?= quarto
 
-.PHONY: all assets revealjs beamer clean
+.PHONY: all assets revealjs clean
 
-all: assets revealjs beamer
+all: revealjs
 
 assets:
 	bash scripts/prepare-assets.sh
 
 revealjs: assets
 	$(QUARTO) render slides.qmd --to revealjs
-
-beamer: assets
-	$(QUARTO) render slides.qmd --to beamer
 
 clean:
 	rm -rf _output .quarto slides_files
