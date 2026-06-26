@@ -254,6 +254,10 @@ try:
     qr.add_data("https://github.com/pipetcpt/qsp"); qr.make(fit=True)
     img=qr.make_image(fill_color=NAVY,back_color="white").convert("RGB")
     img.save(os.path.join(FIG,"repo_qr.png")); print("  repo_qr.png",img.size)
+    qr2=qrcode.QRCode(border=1,box_size=10,error_correction=qrcode.constants.ERROR_CORRECT_M)
+    qr2.add_data("https://pipetqsp.shinyapps.io/merigolix/"); qr2.make(fit=True)
+    qr2.make_image(fill_color=NAVY,back_color="white").convert("RGB").save(os.path.join(FIG,"app_qr.png"))
+    print("  app_qr.png")
 except Exception as e:
     print("  ! QR skipped:",e)
 

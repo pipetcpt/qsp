@@ -45,5 +45,6 @@ mkdir -p "$(dirname "$CSV")"
 )
 
 python3 "$HERE/build_assets.py"
-python3 "$HERE/build_merigolix.py"   # faithful preview of the live Merigolix dashboard
+# NOTE: assets/shiny/merigolix_dashboard.webp is the real app screenshot (committed,
+# not generated). Do not overwrite it.
 echo "prepare-assets: done."
