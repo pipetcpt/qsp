@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-181-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-182-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **181개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
@@ -295,6 +295,7 @@ qsp/
 | 169 | 혈액종양·골수증식 | [**본태성 혈소판 증가증**<br><sub>Essential Thrombocythemia · ET</sub>](essential-thrombocythemia/) | <a href="essential-thrombocythemia/et_qsp_model.svg"><img src="essential-thrombocythemia/et_qsp_model.png" width="190" alt="ET"></a> | **JAK2 V617F(55–65%)·CALR Type1/2(25%)·MPL W515L(5%) 돌연변이 → JAK2 구성적 활성 → STAT5·PI3K·MAPK 하류 신호 → 메가카리오사이트 과증식·혈소판 생성 폭주(PLT 500–1500×10⁹/L). TGF-β1 분비 → 섬유아세포 활성화 → 세망섬유화(MF-0→3) → Post-ET 골수섬유화(10yr 10–20%)·AML 전환(~3%). 혈소판 활성화(TXA2/COX-1·P2Y12·GPIb-vWF·GPIIb/IIIa) → 동맥·정맥 혈전증; PLT>1500 → 후천성 von Willebrand병 → 출혈. 5종 약물 완전 PK/PD: 히드록시우레아(RRM2 억제·EC50=3.5µg/mL·PT-1 NEJM 2005 CHR 60%)·아나그렐리드(PDE3A 선택적 억제·EC50=25ng/mL·ANAHYDRET Blood 2013)·룩솔리티닙(JAK1/2 Ki=3nM·RESPONSE-2)·페길화 IFN-α2a(JAK2+ 클론 선택적 억제·Kiladjian 2013)·아스피린(COX-1 공유결합 아세틸화). **~160 노드 9 서브그래프 클러스터**(드라이버 돌연변이·JAK-STAT/PI3K·메가카리오포이에시스 계층·사이토카인·혈소판 생물학·혈전/출혈 합병증·약물 PK/PD·임상 엔드포인트·BM 병리/전환), **17구획 ODE**(HSC·MKP·MK·PLT·TPO·JAK2 대립유전자 부담·비장 크기 PD 7구획; HU/ANA/RUX/pIFN 각 2구획 PK 8구획; 혈전·MF 위험 누적 2구획), **7치료 시나리오**(①무치료 ②아스피린 단독 ③HU 500mg+ASA ④HU 1500mg+ASA ⑤아나그렐리드 2mg+ASA ⑥룩솔리티닙 20mg+ASA ⑦Peg-IFN-α2a 90µg/wk+ASA). ELN 2009 반응 기준(CHR: PLT≤400+WBC≤10; PHR; CMR: JAK2 AB<1%). MIPSS-ET 분자 예후 점수 위험 층화. **8탭 Shiny 대시보드**(환자 프로파일&IPSS-ET·약물 PK·혈소판 동태·JAK2 대립유전자 부담·혈전 위험·시나리오 비교·다중 바이오마커 패널·BM 진행). **45개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](essential-thrombocythemia/et_qsp_model.svg) · [⚙️ mrgsolve](essential-thrombocythemia/et_mrgsolve_model.R) · [📊 Shiny](essential-thrombocythemia/et_shiny_app.R) · [📚 문헌](essential-thrombocythemia/et_references.md) · [📄 README](essential-thrombocythemia/README.md) |
 | 170 | 신경근육 | [**근긴장성 이영양증 제1형**<br><sub>Myotonic Dystrophy Type 1 · DM1</sub>](myotonic-dystrophy/) | <a href="myotonic-dystrophy/dm1_qsp_model.svg"><img src="myotonic-dystrophy/dm1_qsp_model.png" width="190" alt="DM1"></a> | **DMPK 유전자 CTG 삼핵산 반복 확장(>50→10,000+) → CUGn RNA 핵내 발형 헤어핀 구조 → 핵내 RNA foci → MBNL1 격리(기능 소실) + PKCβII 활성화 → CUGBP1/CELF1 과인산화(기능 획득) → 태아형 스플라이싱 프로그램 복귀**. CLCN1 태아형(+7a) → ClC-1 단백 소실 → 근막 과흥분성 → 근긴장; INSR 태아형(-11) → 인슐린 저항성(T2DM 3배); SERCA1 태아형(-22) → Ca²⁺ 항상성 장애; TNNT2/CAMK2D/KCNQ1 이상 스플라이싱 → 심장 전도 장애(PR↑·QRS↑·QTc↑·HV>70ms·돌연사 30%); MAPT 4R/3R 불균형+APP → CNS 타우 병리·백질 병변·인지 저하. **멕실레틴(Nav1.4 차단 IC₅₀=3μM·Logigian 2010 RCT·MELT 2018)·ASO(DYNE-101/AOC 1001·RNase H 매개 CUG RNA 분해·MBNL1 복원·스플라이싱 구제)·AAV-MBNL1 유전자치료(실험적)** 완전 PK/PD. **~158 노드 10 클러스터**(유전·분자/RNA결합단백질/이상 선택적 스플라이싱/골격근/심장/CNS·인지/내분비·대사/약동학/약력학/임상 엔드포인트), **22구획 ODE**(멕실레틴 3+ASO 3 PK 6구획; CUG foci·MBNL1·CUGBP1·CLCN1/SERCA1/INSR 스플라이싱 지수 6구획; 근긴장VAS·악력·근육량·PR·QTc·HOMA-IR·FVC% 7 임상구획), **7치료 시나리오**(①자연경과 ②멕실레틴200mg TID ③300mg TID MELT ④ASO 4주 간격 ⑤멕실레틴+ASO 복합 ⑥AAV-MBNL1 유전자치료 ⑦중증CTG=1200). Logigian 2010 Neurology(VAS −2.6점)·MELT 2018·DYNE-101 Ph2 2023(CLCN1 ~40pp 개선)·Groh 2008 NEJM(HV>70ms→SCD 5배) 보정. CLCN1 exon7a 스플라이싱 지수·RNA foci·DMPK mRNA·근긴장 VAS·악력·PR/QRS/QTc·HOMA-IR·FVC% 바이오마커. **7탭 Shiny 대시보드**(환자 프로파일·약물PK·근육·근긴장·심장 안전성·시나리오 비교·바이오마커 패널·CNS·대사). **40개 PubMed 인용** (10개 섹션).<br>[🗺️ 지도](myotonic-dystrophy/dm1_qsp_model.svg) · [⚙️ mrgsolve](myotonic-dystrophy/dm1_mrgsolve_model.R) · [📊 Shiny](myotonic-dystrophy/dm1_shiny_app.R) · [📚 문헌](myotonic-dystrophy/dm1_references.md) · [📄 README](myotonic-dystrophy/README.md) |
 | 172 | 호흡기·이비인후과 | [**만성 비부비동염 동반 비용종**<br><sub>Chronic Rhinosinusitis with Nasal Polyps · CRSwNP</sub>](chronic-rhinosinusitis-with-nasal-polyps/) | <a href="chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.svg"><img src="chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.png" width="190" alt="CRSwNP"></a> | **비강·부비동 상피세포 손상 → TSLP·IL-33·IL-25 경보소(alarmin) 방출 → ILC2 활성화·수지상세포 Th2 성숙화 → IL-4/IL-5/IL-13 폭포 → IgE 클래스 전환·호산구 동원·배상세포 과증식·점액 과분비. IL-13→ 퍼리오스틴·TGF-β1→ 섬유화; IL-5→ 혈중/조직 호산구→ ECP/MBP/EPX 탈과립→ 상피 추가 손상. VEGF→ 혈관신생→ 부종→ 비용종 성장(NPS 0→8). 황색포도상구균 장독소(SEB) → B세포 다클론 활성화 → 국소 IgE 과잉 생산(AERD 아형 특징). AERD(Samter 삼징후): ASA/NSAIDs→ COX-1 억제→ PGE2 감소→ LTC4/D4 과잉→ 비용종+천식+NSAID 과민성. 5종 바이오로직 완전 PK/PD: **dupilumab**(anti-IL-4Rα 300mg SC q2w·SINUS-24/52·ΔNPS −1.8~−2.1)·**mepolizumab**(anti-IL-5 100mg SC q4w·SYNAPSE·혈중 호산구 −60%)·**benralizumab**(anti-IL-5Rα+ADCC 30mg SC q4-8w·OSTRO·호산구 >90% 고갈)·**omalizumab**(anti-IgE 75–600mg SC·POLYP 1&2)·**tezepelumab**(anti-TSLP 210mg SC q4w·WAYPOINT·가장 상류 차단). **154+ 노드 11 서브그래프 클러스터**(①상피장벽·경보소 ②선천면역 ILC2·비만세포 ③적응면역 Th2·Treg·형질세포 ④사이토카인·케모카인·지질 매개물 ⑤호산구 생물학 ⑥IgE 축·FcεRI ⑦조직 리모델링·비용종 성장 ⑧약물 PK/PD ⑨신경성 염증·감각 증상 ⑩임상 엔드포인트·바이오마커 ⑪내표형·동반질환), **22구획 ODE**(dupilumab 3+mepo/benra/omali/teze 각 2 PK 11구획; EPI·TSLP·ILC2·TH2·IL4·IL5·IL13·IGE·EOSB·EOST·GOBC·TGFB·VEGF·NPS 14구획 + SNOT22·OBS_VAS·OLFACT·BLD_EOS·FeNO 유도 변수), **7치료 시나리오**(①무치료 ②INCS 단독 ③dupilumab+INCS ④mepolizumab+INCS ⑤benralizumab+INCS ⑥omalizumab+INCS ⑦tezepelumab+INCS). SINUS-24/52·SYNAPSE·OSTRO·POLYP 1&2·WAYPOINT 보정. **7탭 Shiny 대시보드**(환자 프로파일·바이오마커 기반 내표형 선택·약물 PK·사이토카인/호산구/IgE 동태·임상 엔드포인트 NPS/SNOT-22/PNIF·시나리오 비교·호산구/IgE 반응자 분석·치료 중단 후 재발 장기 시뮬레이션). **60개 PubMed 인용** (18개 섹션).<br>[🗺️ 지도](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.svg) · [⚙️ mrgsolve](chronic-rhinosinusitis-with-nasal-polyps/crsnp_mrgsolve_model.R) · [📊 Shiny](chronic-rhinosinusitis-with-nasal-polyps/crsnp_shiny_app.R) · [📚 문헌](chronic-rhinosinusitis-with-nasal-polyps/crsnp_references.md) · [📄 README](chronic-rhinosinusitis-with-nasal-polyps/README.md) |
+| 174 | 호흡기·심혈관 | [**만성 혈전색전성 폐동맥 고혈압**<br><sub>Chronic Thromboembolic Pulmonary Hypertension · CTEPH</sub>](chronic-thromboembolic-pulmonary-hypertension/) | <a href="chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.svg"><img src="chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.png" width="190" alt="CTEPH"></a> | **폐색전증 불완전 섬유용해 → 조직화 혈전(기계적 고정 PVR↑) + 이차 혈관 리모델링(ET-1↑·NO↓·PGI₂↓·SMC 증식) → 총 PVR↑ → 우심실 압력 과부하·비후·확장·부전 → CO↓·SaO₂↓·6MWD↓. tPA 결핍·PAI-1↑·비정상 피브린 가교로 섬유용해 장애. 3종 약물 완전 PK/PD: **리오시과트**(sGC 자극제·cGMP↑·CHEST-1 +46m 6MWD·PVR −31%)·**마시텐탄**(ERA·ETA/ETB 이중 차단·SERAPHIN·PVR −25%)·**트레프로스티닐**(프로스타사이클린·IP수용체→cAMP↑·혈소판억제·항증식). 시술/수술: **PEA**(폐동맥 내막절제술·PVRfixed −70%·근치적)·**BPA**(풍선 폐동맥 성형술·회당 −12%·불가능 환자용)·항응고. **134+ 노드 12 클러스터**(①혈전 기원·급성PE ②섬유용해 장애 ③폐혈관 리모델링 ④혈역학 ⑤우심실 리모델링 ⑥가스 교환 ⑦신경체액 활성화·바이오마커 ⑧리오시과트 PK/PD ⑨ERA PK/PD ⑩프로스타사이클린 PK/PD ⑪수술·시술 ⑫임상 엔드포인트), **19구획 ODE**(리오시과트 C/P/Met+마시텐탄 C/P/Met+트레프로스티닐 7 PK; TB·PVR_fixed·PVR_var·ET1·cGMP·cAMP·RV_work·mPAP·CO·SaO₂·BNP·6MWD 12 PD), **7치료 시나리오**(①무치료 ②항응고 단독 ③리오시과트 2.5mg TID ④마시텐탄 10mg QD ⑤리오시과트+마시텐탄 병용 ⑥BPA 5회+리오시과트 ⑦수술 후+병용). CHEST-1/CHEST-2·SERAPHIN·MERIT-1·Madani PEA·Wiedenroth BPA 보정. **7탭 Shiny 대시보드**(환자 프로파일·PK·PD 신호·혈역학·임상 엔드포인트·시나리오 비교·바이오마커). **60개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.svg) · [⚙️ mrgsolve](chronic-thromboembolic-pulmonary-hypertension/cteph_mrgsolve_model.R) · [📊 Shiny](chronic-thromboembolic-pulmonary-hypertension/cteph_shiny_app.R) · [📚 문헌](chronic-thromboembolic-pulmonary-hypertension/cteph_references.md) · [📄 README](chronic-thromboembolic-pulmonary-hypertension/README.md) |
 | 173 | 소화기·간담도 | [**알코올성 간질환**<br><sub>Alcoholic Liver Disease · ALD</sub>](alcoholic-liver-disease/) | <a href="alcoholic-liver-disease/ald_qsp_model.svg"><img src="alcoholic-liver-disease/ald_qsp_model.png" width="190" alt="ALD"></a> | **에탄올 → 아세트알데히드(ADH/CYP2E1) + ROS 생성 → GSH 고갈·Nrf2/KEAP1/ARE 산화스트레스 방어 → 장내 미생물 불균형(dysbiosis) → 장 투과성↑ → LPS 문맥 유입 → TLR4/MD-2/CD14 → Kupffer 세포 NF-κB 활성화 → NLRP3 인플라마솜 → IL-1β/TNF-α/CXCL8 폭포 → 호중구 CXCR2 매개 침윤 → MPO/NETs/HOCl 산화 손상 → 간세포 아포토시스(Casp-3/8)·괴사사멸(RIPK3/MLKL)·페롭토시스(GPX4↓) → ALT/빌리루빈/INR 상승 → 간성상세포 활성화(TGF-β1/SMAD2-3/PDGF-BB) → 콜라겐 I/III ECM 축적 → 간경변. MELD·Maddrey DF·ABIC·Lille 점수 모델링. 5종 약물 완전 PK/PD: **프레드니솔론**(40mg QD×28d·STOPAH NEJM 2015·NF-κB 억제)·**N-아세틸시스테인**(IV GET protocol·GSH 보충)·**G-CSF**(5μg/kg SC×5d·조혈·간재생 HGF↑)·**펜톡시필린**(400mg TID·PDE 억제·TNF-α mRNA 불안정화)·**아나킨라**(IL-1Ra·NLRP3 하류 차단·실험적). **200+ 노드 10 서브그래프 클러스터**(①에탄올 대사 ②산화 스트레스/항산화 방어 ③장-간 축 ④Kupffer 세포/NLRP3 ⑤호중구 침윤 ⑥간세포 사멸·재생 ⑦간 섬유화/HSC ⑧약물 PK ⑨약물 PD ⑩임상 엔드포인트), **22구획 ODE**(ETOH·AA·ROS·GSH·LPS·KC·TNF·IL1B·NEUT·H·ALT·BILI·INR·F PD 14구획; PRED 3구획+NAC+GCSF+PTX+ANK PK 8구획), **7치료 시나리오**(①지속 음주 무치료 ②금주 단독 ③프레드니솔론 ④NAC IV ⑤프레드니솔론+NAC ⑥G-CSF ⑦프레드니솔론+아나킨라). STOPAH NEJM 2015·Nguyen-Khac NEJM 2011(GET)·Spahr Hepatology 2008(G-CSF)·Thursz Hepatology 2021(GALA)·Pose JHEP Rep 2021(Anakinra) 보정. MELD·ALT·빌리루빈·INR·생존 간세포%·Lille 점수·Maddrey DF·90일 사망률 엔드포인트. **7탭 Shiny 대시보드**(환자프로파일&중증도 점수·약물PK·산화스트레스&사이토카인 동태·임상엔드포인트·시나리오비교·바이오마커&Lille 점수 계산기·스테로이드 반응자 층화). **61개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](alcoholic-liver-disease/ald_qsp_model.svg) · [⚙️ mrgsolve](alcoholic-liver-disease/ald_mrgsolve_model.R) · [📊 Shiny](alcoholic-liver-disease/ald_shiny_app.R) · [📚 문헌](alcoholic-liver-disease/ald_references.md) · [📄 README](alcoholic-liver-disease/README.md) |
 | 171 | 정신·신경 | [**주의력결핍과잉행동장애**<br><sub>Attention Deficit Hyperactivity Disorder · ADHD</sub>](adhd/) | <a href="adhd/adhd_qsp_model.svg"><img src="adhd/adhd_qsp_model.png" width="190" alt="ADHD"></a> | **도파민(DA)·노르에피네프린(NE) 신경전달 저하로 인한 전전두피질(PFC) 기능 장애. DAT1/DRD4/DRD5/SNAP25/COMT 위험 유전자 → 중뇌(VTA→PFC) DA 합성 감소·청반(LC→PFC) NE 긴장도 저하 → PFC 피질 성숙 3년 지연**. D1R 저자극 → AMPAR 시냅스 약화 → 작업기억(WM)↓; α2A-AR 저자극 → HCN 채널 개방 → Ih전류↑ → PFC 네트워크 불안정. **역U 함수(Arnsten)**: PFC 기능 = 최적 DA/NE 긴장도에서 극대화, 결핍(ADHD) 또는 과잉(자극제 과용) 모두 인지 저하. 5종 약물 완전 PK/PD: 메틸페니데이트IR/ER(DAT/NET 경쟁적 억제·Ki=34/340nM·Volkow 1998 PET DAT점유 72%)·암페타민XR(DAT 역방향 수송+방출·Ki=100nM)·아토목세틴(선택적 NET 억제·Ki=2nM·CYP2D6 EM/PM 대사형 4배 차이·Michelson 2001 NEJM Pediatrics)·구안파신ER(α2A-AR 효현제·Ki=1nM·HCN채널 폐쇄·Sallee 2009 JAACAP)·빌록사진ER(NET+5-HT2B·Nasser 2021). **~140 노드 9 클러스터**(유전·신경발달/카테콜아민 생합성/도파민계/노르에피네프린계/PFC회로·인지/약동학/약력학/임상엔드포인트/바이오마커), **25구획 ODE**(MPH 3+AMP 3+ATX 3+GFN 4+VLX 2 PK 15구획; DA_syn·NE_syn·DAT_occ·NET_occ·PFC_DA·PFC_NE·WM_idx·ExecFun·ADHD_RS·CGI_S·QoL_idx 11구획), **7치료 시나리오**(①무치료 ②MPH IR TID ③MPH ER QD ④AMP XR QD ⑤ATX QD ⑥GFN ER QD ⑦VLX ER QD). MTA 1999(n=579, MPH ADHD-RS −10점)·Michelson 2001(n=297, ATX −8점)·Sallee 2009(n=345, GFN −7점)·Nasser 2021(n=460, VLX −8점)·Volkow 1998 PET(DAT점유 72%) 보정. **7탭 Shiny 대시보드**(환자프로파일·약물PK·DA/NE동태·PFC·인지·임상엔드포인트·시나리오비교·바이오마커). **53개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](adhd/adhd_qsp_model.svg) · [⚙️ mrgsolve](adhd/adhd_mrgsolve_model.R) · [📊 Shiny](adhd/adhd_shiny_app.R) · [📚 문헌](adhd/adhd_references.md) · [📄 README](adhd/README.md) |
 
@@ -3251,3 +3252,62 @@ IL-4, IL-5, IL-13 ─────────────────► IL-4, I
 | [`ald_shiny_app.R`](alcoholic-liver-disease/ald_shiny_app.R) | Shiny 인터랙티브 대시보드 (7탭) |
 | [`ald_references.md`](alcoholic-liver-disease/ald_references.md) | 참고문헌 61편 (14개 섹션) |
 | [`README.md`](alcoholic-liver-disease/README.md) | 디렉토리 상세 문서 |
+
+---
+
+## 174. 만성 혈전색전성 폐동맥 고혈압 (Chronic Thromboembolic Pulmonary Hypertension, CTEPH)
+
+> **디렉토리:** [`chronic-thromboembolic-pulmonary-hypertension/`](chronic-thromboembolic-pulmonary-hypertension/) | **약어:** CTEPH | **날짜:** 2026-06-26  
+> **유병률:** 급성 폐색전증 생존자의 ~3–5%에서 발생; 유병률 ~3–30명/백만(진단 저평가 가능성 높음)
+
+[![CTEPH QSP Mechanistic Map](chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.png)](chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.svg)
+
+*클릭하면 고해상도 SVG 지도로 이동합니다*
+
+### 기계론적 경로 요약
+
+```
+급성 폐색전증
+  ├─ 불완전 혈전 분해 (tPA↓·PAI-1↑·비정상 피브린 가교)
+  │    └─ 조직화 혈전 → 신생내막 형성 → 기계적 고정 PVR↑ (PVR_fixed)
+  │
+  ├─ 이차 폐혈관 리모델링
+  │    ├─ 내피세포 기능 부전 → ET-1↑ · NO↓ · PGI₂↓
+  │    ├─ ET-1 → SMC 증식·이주 → 내막 비후·중막 비대
+  │    └─ TGF-β/PDGF → 외막 섬유화 → 혈관 PVR 동적 성분↑ (PVR_var)
+  │
+  ├─ 총 PVR↑ → mPAP↑ → 우심실 압력 과부하
+  │    ├─ 적응 단계: RV 비후 (compensated)
+  │    └─ 부전 단계: RV 확장·수축 장애·삼첨판 역류·심박출량↓
+  │
+  └─ CO↓ + V/Q 불일치 → SaO₂↓ → BNP↑ → 6MWD↓ → WHO FC 악화
+```
+
+### mrgsolve ODE 모델 (19구획)
+
+- **약물 PK (7개)**: 리오시과트 C/P/M1 대사체·마시텐탄 C/P/ACT-132577·트레프로스티닐 C
+- **질환 PD (12개)**: TB·PVR_fixed·PVR_var·ET1·cGMP·cAMP·RV_work·mPAP·CO·SaO₂·BNP·6MWD
+
+### 치료 시나리오 7가지
+
+| # | 요법 | 예상 6MWD 변화 | 근거 임상시험 |
+|---|------|---------------|--------------|
+| S1 | 무치료 | −20 m/yr 진행 | 자연 경과 |
+| S2 | 항응고 단독 | 안정 | — |
+| S3 | 리오시과트 2.5mg TID | +46 m (wk16) | CHEST-1 (Ghofrani 2013 *NEJM*) |
+| S4 | 마시텐탄 10mg QD | +35–40 m | SERAPHIN (Pulido 2013 *NEJM*) |
+| S5 | 리오시과트 + 마시텐탄 | +60–75 m | MERIT-1 (Meyer 2022 *ERJ*) |
+| S6 | BPA 5회 + 리오시과트 | +70–90 m | Wiedenroth 2020 |
+| S7 | PEA 수술 후 + 병용 | +120–150 m | Madani 2012 *ATS* |
+
+### 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`cteph_qsp_model.dot`](chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.dot) | Graphviz 기계론적 지도 (134+ 노드, 12 클러스터) |
+| [`cteph_qsp_model.svg`](chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`cteph_qsp_model.png`](chronic-thromboembolic-pulmonary-hypertension/cteph_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`cteph_mrgsolve_model.R`](chronic-thromboembolic-pulmonary-hypertension/cteph_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (19구획, 7 시나리오) |
+| [`cteph_shiny_app.R`](chronic-thromboembolic-pulmonary-hypertension/cteph_shiny_app.R) | Shiny 인터랙티브 대시보드 (7탭) |
+| [`cteph_references.md`](chronic-thromboembolic-pulmonary-hypertension/cteph_references.md) | 참고문헌 60편 (12개 섹션) |
+| [`README.md`](chronic-thromboembolic-pulmonary-hypertension/README.md) | 디렉토리 상세 문서 |
