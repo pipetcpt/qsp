@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-176-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-177-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **175개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **176개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -292,6 +292,7 @@ qsp/
 | 165 | 자가면역·신장 | [**루푸스 신염**<br><sub>Lupus Nephritis · LN</sub>](lupus-nephritis/) | <a href="lupus-nephritis/ln_qsp_model.svg"><img src="lupus-nephritis/ln_qsp_model.png" width="190" alt="LN"></a> | **type I IFN(pDC→cGAS-STING→TLR7/9) → BAFF↑ → B세포 과활성화 → 장수 형질세포 → anti-dsDNA IgG → 면역복합체(IC) → 사구체 메산지움·내피세포 침착 → 보체(C1q→C4→C3→C5a+C5b-9) → 족세포(podocyte) 손상 → nephrin↓ → 단백뇨(UPCR↑) → TGF-β→간질 섬유화→eGFR 감소**. Voclosporin(칼시뉴린 억제·족세포 안정화·AURORA 1 CRR 41% vs 23%)·Belimumab(항BLyS·BLISS-LN CRR 43% vs 32%)·Anifrolumab(항IFNAR1·ISG score↓>75%·TULIP-LN)·MMF/MPA(IMPDH 억제·장간순환)·HCQ(TLR7/9↓·IFN-α↓)·CYC(유로-루푸스 저용량 유도) 6종 완전 PK/PD. **100+ 노드 15 서브그래프 클러스터**(선천면역/NETosis·T세포·B세포/자가항체·보체계·사구체 병리·요세관간질·신장 혈역학·HCQ PK/PD·MMF/MPA PK/PD·Voclosporin PK/PD·Belimumab PK/PD·Anifrolumab PK/PD·CYC PK/PD·GC PK/PD·사이토카인 네트워크), **20구획 ODE**(MMF/MPA 3구획+HCQ 2구획+VCS+BEL 2구획+ANI 2구획 PK; B_naive/GC/Plasma_cell/Tfh/Treg 면역 5구획; Anti_dsDNA/C3/C4 3구획; Podocyte_inj/Proteinuria/eGFR 3구획), **5치료 시나리오**(①MMF+HCQ SoC ②MMF+HCQ+Voclosporin AURORA ③MMF+HCQ+Belimumab BLISS-LN ④MMF+HCQ+Anifrolumab 고IFN ⑤CYC 유도→MMF 유지 Euro-Lupus). AURORA 1 Lancet 2021·BLISS-LN NEJM 2020·ACCESS JASN 2009·Euro-Lupus Houssiau 2002 임상 보정. CRR(UPCR<0.5+eGFR≥60)·PRR(UPCR<1.0+eGFR≥60)·anti-dsDNA 정상화·C3 회복·SLEDAI 신장 점수·족세포 손상 지수 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&LN 병기·약물 PK·면역 바이오마커·신기능·임상 엔드포인트·시나리오 비교). **45개 PubMed 인용** (8개 섹션: 역학·분류·병태생리·면역기전·사구체/족세포·임상시험·약물PK/PD·QSP모델링).<br>[🗺️ 지도](lupus-nephritis/ln_qsp_model.svg) · [⚙️ mrgsolve](lupus-nephritis/ln_mrgsolve_model.R) · [📊 Shiny](lupus-nephritis/ln_shiny_app.R) · [📚 문헌](lupus-nephritis/ln_references.md) · [📄 README](lupus-nephritis/README.md) |
 | 159 | 신경정신과 | [**양극성 장애 (Bipolar Disorder)**<br><sub>Bipolar Disorder · BD-I / BD-II</sub>](bipolar-disorder/) | <a href="bipolar-disorder/bd_qsp_model.svg"><img src="bipolar-disorder/bd_qsp_model.png" width="190" alt="BD"></a> | **도파민 과활성(조증) ↔ 세로토닌·NE 결핍(우울) 반복 삽화. GSK-3β 과활성 → mTOR/BDNF↓ → 해마 신경발생↓; IL-6/TNF-α 신경염증; CLOCK/BMAL1 일주기 리듬 교란; CACNA1C(L형 Ca²⁺ 채널) 위험 대립유전자→신경 과흥분성**. 리튬(2구획 PK·CL 1.8L/h·GSK-3β IC₅₀=0.7mEq/L·BDNF↑·BALANCE/CANMAT 2018 근거)·발프로에이트(비선형 단백결합·fu₀ 10%·GABA-T억제·HDAC억제·VPA GSK-3β 억제)·쿠에티아핀+노르쿠에티아핀(CYP3A4·F=9%·D2R 차단·NET 억제·EMBOLDEN I/II 우울증 근거)·라모트리진(Na⁺채널·Ca²⁺채널 차단·Glu 방출↓·STRIDE-BD 적정 프로토콜)·아리피프라졸(D2R 부분 효현제) 5종 완전 PK/PD 모델링. **120+ 노드 12클러스터**(신경전달물질/수용체·신호전달/GSK-3β·이온채널·HPA축/일주기·신경가소성/BDNF·신경염증·약물MOA·약물PK·임상엔드포인트·유전/후성유전·뇌회로·장-뇌축), **22구획 ODE**(리튬 2구획+발프로에이트+쿠에티아핀+노르쿠에티아핀+라모트리진 PK 10구획; DA·5HT·GSK3·BDNF·IL6·코르티솔 PD 6구획; YMRS·MADRS·GAF·체중·일주기 진동자 6구획), **6치료 시나리오**(리튬 단독 21d 조증·발프로에이트 단독 21d 조증·쿠에티아핀 56d BD우울증·리튬+쿠에티아핀 병용 56d·리튬 유지요법 1년·라모트리진 적정 112d BD-II 우울증). Bowden 1994 JAMA(발프로에이트 조증 RCT)·Calabrese 2005 AJP(쿠에티아핀 우울증 BOLDER)·Young 2010 JCP(EMBOLDEN I)·Geddes 2010 Lancet(BALANCE Li+VPA)·Cipriani 2013 Lancet 메타분석·Yatham 2018 Bipolar Disord(CANMAT 2018 가이드라인) 보정. YMRS·MADRS·HAM-D·CGI-BP·GAF·리튬 혈중농도·VPA·QTc·체중·BDNF 인덱스·GSK-3β 활성·IL-6·코르티솔 임상 바이오마커. **6탭 Shiny 대시보드**(환자프로파일&PGx·약동학·PD바이오마커·임상엔드포인트·시나리오비교·안전모니터). **46개 PubMed 인용** (14개 섹션).<br>[🗺️ 지도](bipolar-disorder/bd_qsp_model.svg) · [⚙️ mrgsolve](bipolar-disorder/bd_mrgsolve_model.R) · [📊 Shiny](bipolar-disorder/bd_shiny_app.R) · [📚 문헌](bipolar-disorder/bd_references.md) · [📄 README](bipolar-disorder/README.md) |
 | 168 | 자가면역·소아 류마티스 | [**소아특발성 관절염**<br><sub>Juvenile Idiopathic Arthritis · JIA</sub>](juvenile-idiopathic-arthritis/) | <a href="juvenile-idiopathic-arthritis/jia_qsp_model.svg"><img src="juvenile-idiopathic-arthritis/jia_qsp_model.png" width="190" alt="JIA"></a> | **T세포/B세포·사이토카인(TNF-α/IL-6/IL-1β/IL-18) 매개 활막 염증과 연골·골 파괴. 소수관절형/다관절형 RF±/전신형(sJIA)/ERA/건선성 7아형 모델링. sJIA: NLRP3→IL-1β/IL-18 자가염증 루프·MAS(대식세포 활성화 증후군) 경로 포함. 활막 섬유아세포(FLS) 활성화·NF-κB·MMP-1/13·ADAMTS-4 연골 파괴; RANKL/OPG 파골세포 활성·골미란; 성장판 손상(소아 특이). 에타네르셉트(SC 격주·TMDD 2구획·Lovell 1998 NEJM ACR30 74%)·토실리주맙(IL-6Ri·MM-CL·De Benedetti 2012 NEJM sJIA ACR30 85.7%)·카나키누맙(IL-1βi·Ruperto 2012 NEJM)·MTX(폴리글루타민화·GI/중심/말초/세포내 4구획)·바리시티닙(JAK1/2i) 5약물 완전 PK/PD. 160+ 노드 13클러스터·21구획 ODE·7치료 시나리오(무치료·MTX·MTX+에타네르셉트·토실리주맙(sJIA)·카나키누맙(sJIA)·단계적 치료·바리시티닙). JADAS-27·ACR소아30/50/70·CHAQ·CRP·ESR 임상 엔드포인트. 8탭 Shiny 대시보드(환자프로파일·PK·사이토카인PD·임상엔드포인트·시나리오비교·바이오마커패널·관절손상·MAS위험). 50개 PubMed 인용(14개 섹션)**.<br>[🗺️ 지도](juvenile-idiopathic-arthritis/jia_qsp_model.svg) · [⚙️ mrgsolve](juvenile-idiopathic-arthritis/jia_mrgsolve_model.R) · [📊 Shiny](juvenile-idiopathic-arthritis/jia_shiny_app.R) · [📚 문헌](juvenile-idiopathic-arthritis/jia_references.md) · [📄 README](juvenile-idiopathic-arthritis/README.md) |
+| 169 | 혈액종양·골수증식 | [**본태성 혈소판 증가증**<br><sub>Essential Thrombocythemia · ET</sub>](essential-thrombocythemia/) | <a href="essential-thrombocythemia/et_qsp_model.svg"><img src="essential-thrombocythemia/et_qsp_model.png" width="190" alt="ET"></a> | **JAK2 V617F(55–65%)·CALR Type1/2(25%)·MPL W515L(5%) 돌연변이 → JAK2 구성적 활성 → STAT5·PI3K·MAPK 하류 신호 → 메가카리오사이트 과증식·혈소판 생성 폭주(PLT 500–1500×10⁹/L). TGF-β1 분비 → 섬유아세포 활성화 → 세망섬유화(MF-0→3) → Post-ET 골수섬유화(10yr 10–20%)·AML 전환(~3%). 혈소판 활성화(TXA2/COX-1·P2Y12·GPIb-vWF·GPIIb/IIIa) → 동맥·정맥 혈전증; PLT>1500 → 후천성 von Willebrand병 → 출혈. 5종 약물 완전 PK/PD: 히드록시우레아(RRM2 억제·EC50=3.5µg/mL·PT-1 NEJM 2005 CHR 60%)·아나그렐리드(PDE3A 선택적 억제·EC50=25ng/mL·ANAHYDRET Blood 2013)·룩솔리티닙(JAK1/2 Ki=3nM·RESPONSE-2)·페길화 IFN-α2a(JAK2+ 클론 선택적 억제·Kiladjian 2013)·아스피린(COX-1 공유결합 아세틸화). **~160 노드 9 서브그래프 클러스터**(드라이버 돌연변이·JAK-STAT/PI3K·메가카리오포이에시스 계층·사이토카인·혈소판 생물학·혈전/출혈 합병증·약물 PK/PD·임상 엔드포인트·BM 병리/전환), **17구획 ODE**(HSC·MKP·MK·PLT·TPO·JAK2 대립유전자 부담·비장 크기 PD 7구획; HU/ANA/RUX/pIFN 각 2구획 PK 8구획; 혈전·MF 위험 누적 2구획), **7치료 시나리오**(①무치료 ②아스피린 단독 ③HU 500mg+ASA ④HU 1500mg+ASA ⑤아나그렐리드 2mg+ASA ⑥룩솔리티닙 20mg+ASA ⑦Peg-IFN-α2a 90µg/wk+ASA). ELN 2009 반응 기준(CHR: PLT≤400+WBC≤10; PHR; CMR: JAK2 AB<1%). MIPSS-ET 분자 예후 점수 위험 층화. **8탭 Shiny 대시보드**(환자 프로파일&IPSS-ET·약물 PK·혈소판 동태·JAK2 대립유전자 부담·혈전 위험·시나리오 비교·다중 바이오마커 패널·BM 진행). **45개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](essential-thrombocythemia/et_qsp_model.svg) · [⚙️ mrgsolve](essential-thrombocythemia/et_mrgsolve_model.R) · [📊 Shiny](essential-thrombocythemia/et_shiny_app.R) · [📚 문헌](essential-thrombocythemia/et_references.md) · [📄 README](essential-thrombocythemia/README.md) |
 
 ---
 
@@ -2933,3 +2934,53 @@ NK세포 기능 저하 (Perforin 결핍 소인)
 | [`jia_mrgsolve_model.R`](juvenile-idiopathic-arthritis/jia_mrgsolve_model.R) | mrgsolve ODE QSP 모델 |
 | [`jia_shiny_app.R`](juvenile-idiopathic-arthritis/jia_shiny_app.R) | Shiny 인터랙티브 대시보드 |
 | [`jia_references.md`](juvenile-idiopathic-arthritis/jia_references.md) | 참고문헌 50편 |
+
+---
+
+## 🩸 본태성 혈소판 증가증 (Essential Thrombocythemia) — 최신 모델 상세 (2026-06-26)
+
+> **디렉토리:** [`essential-thrombocythemia/`](essential-thrombocythemia/) | **약어:** ET | **날짜:** 2026-06-26
+
+[![ET QSP 기계론적 지도](essential-thrombocythemia/et_qsp_model.png)](essential-thrombocythemia/et_qsp_model.svg)
+
+### 병태생리 핵심 경로
+
+```
+JAK2 V617F (구성적) ──► JAK2 활성 ──► pSTAT5·PI3K·mTOR → BCL-XL/MCL1 항세포사멸
+CALR Type1/2 ──► MPL 비정상 활성 ──► JAK2 ──► (동일 캐스케이드)
+LT-HSC → MKP → BFU-MK → CFU-MK → IMK → PMK → Mature MK(16–64N 배수성) → Proplatelet → PLT
+
+Mature MK ──► TGF-β1 분비 ──► 섬유아세포 활성 ──► 세망섬유화(MF grade 0→3)
+           ──► PDGF-AB/VEGF ──► BM 신혈관형성 → 골수 과세포성
+
+PLT > 1500×10⁹/L ──► 고전단 응력 ──► ultra-large vWF → ADAMTS13 소모 → 후천성 vWD → 출혈
+PLT 활성화(TXA2·P2Y12·GPIb·GPIIb/IIIa) ──► 동맥(뇌졸중·MI)/정맥(DVT·PE)/미세혈관(적혈구통증) 혈전
+```
+
+### QSP 모델 구성
+
+- **기계론적 지도**: ~160 노드 · 9 서브그래프 클러스터 (드라이버 돌연변이·JAK-STAT/PI3K/MAPK 신호·메가카리오포이에시스 계층·사이토카인 환경·혈소판 생물학·혈전/출혈·약물 PK/PD·임상 엔드포인트·BM 병리/전환)
+- **mrgsolve ODE**: 17구획 — HSC·MKP·MK·PLT·TPO·JAK2 대립유전자 부담·비장(PD 7)·HU/ANA/RUX/pIFN 각 2구획(PK 8)·혈전/MF 위험 누적(2)
+- **치료 시나리오 7가지**: 무치료·아스피린·HU 500mg+ASA·HU 1500mg+ASA·아나그렐리드 2mg+ASA·룩솔리티닙 20mg+ASA·Peg-IFN-α2a 90µg/wk+ASA
+- **Shiny 대시보드**: 8탭 — 환자 프로파일&IPSS-ET·약물 PK·혈소판 동태·JAK2 대립유전자 부담·혈전 위험·시나리오 비교·다중 바이오마커 패널·BM 진행
+
+### 주요 임상시험 보정
+
+| 임상시험 | 치료 | 결과 | 참고문헌 |
+|---------|------|------|---------|
+| PT-1 | HU vs ANA | CHR 59% vs 36% (1yr) | Harrison 2005 NEJM |
+| ANAHYDRET | HU vs ANA | 비열등 CHR ~65% vs ~62% | Gisslinger 2013 Blood |
+| RESPONSE-2 | Ruxolitinib | PLT 정상화 ~50–60% | Verstovsek 2020 Leukemia |
+| Kiladjian 2013 | Peg-IFN-α2a | CHR 45%; JAK2 MR 18% | Haematologica |
+| Rumi 2014 | JAK2 vs CALR | 동맥혈전 JAK2 1.8× 위험 | Blood |
+
+### 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`et_qsp_model.dot`](essential-thrombocythemia/et_qsp_model.dot) | Graphviz 기계론적 지도 소스 (~160 노드, 9 클러스터) |
+| [`et_qsp_model.svg`](essential-thrombocythemia/et_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`et_qsp_model.png`](essential-thrombocythemia/et_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`et_mrgsolve_model.R`](essential-thrombocythemia/et_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (17구획, 7 시나리오) |
+| [`et_shiny_app.R`](essential-thrombocythemia/et_shiny_app.R) | Shiny 인터랙티브 대시보드 (8탭) |
+| [`et_references.md`](essential-thrombocythemia/et_references.md) | 참고문헌 45편 (12개 섹션) |
