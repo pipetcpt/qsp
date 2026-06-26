@@ -1,0 +1,411 @@
+digraph ADHD_QSP_Model {
+    graph [
+        label="ADHD (Attention Deficit Hyperactivity Disorder)\nQuantitative Systems Pharmacology Model\nDopamine · Norepinephrine · PFC Executive Function · Drug PK/PD"
+        labelloc=t fontsize=22 fontname="Helvetica-Bold"
+        bgcolor="#F8F9FA" rankdir=TB
+        splines=ortho nodesep=0.4 ranksep=0.6
+    ]
+    node [fontname="Helvetica" fontsize=10 style="filled,rounded" shape=box]
+    edge [fontname="Helvetica" fontsize=8]
+
+    // ─────────────────────────────────────────────────
+    // 1. Genetic & Neurodevelopmental Factors
+    // ─────────────────────────────────────────────────
+    subgraph cluster_genetics {
+        label="① Genetic & Neurodevelopmental Risk Factors"
+        style=filled fillcolor="#FFF3E0" color="#E65100" fontsize=13 fontname="Helvetica-Bold"
+
+        DAT1  [label="DAT1 (SLC6A3)\n10-repeat allele\nReduced DAT expression" fillcolor="#FFB74D"]
+        DRD4  [label="DRD4 7-repeat allele\nReduced D4 sensitivity\nBlunted DA signaling" fillcolor="#FFB74D"]
+        DRD5  [label="DRD5 148bp allele\nIncreased D1 affinity\nStriatal/PFC effects" fillcolor="#FFB74D"]
+        SNAP25[label="SNAP25\nSynaptic vesicle fusion\nReduced DA/NE release" fillcolor="#FFB74D"]
+        COMT  [label="COMT Val158Met\nFaster DA catabolism\nPFC DA depletion" fillcolor="#FFB74D"]
+        ADRA2A[label="ADRA2A\nα2A-AR polymorphism\nAltered NE PFC tone" fillcolor="#FFB74D"]
+        HTR1B [label="HTR1B\n5-HT1B receptor\nComorbid impulsivity" fillcolor="#FFB74D"]
+        LPHN3 [label="LPHN3 / ADGRL3\nSynaptic adhesion\nDA circuitry dev." fillcolor="#FFB74D"]
+        BDNF_gen[label="BDNF Val66Met\nReduced BDNF secretion\nNeuroplasticity deficit" fillcolor="#FFB74D"]
+        NRG3  [label="NRG3\nPFC maturation\nLate neurodevelopment" fillcolor="#FFB74D"]
+        CNTNAP2[label="CNTNAP2\nNeurexin-related\nFrontal lobe connectivity" fillcolor="#FFB74D"]
+
+        // Neurodevelopmental processes
+        PFC_maturation [label="PFC Maturation Delay\n~3 yr lag vs controls\nFrontal thinning" fillcolor="#FFCC80"]
+        CC_thickness   [label="Cortical Thickness↓\nPFC, parietal, temporal\nDelayed myelination" fillcolor="#FFCC80"]
+        Striatum_dev   [label="Striatal Development\nCaudate volume↓\nReduced dopaminergic tone" fillcolor="#FFCC80"]
+        Cerebellum_dev [label="Cerebellum\nVolume↓\nTiming/motor coordination" fillcolor="#FFCC80"]
+        FC_network     [label="Functional Connectivity\nDefault Mode Network↑\nTask-positive Network↓" fillcolor="#FFCC80"]
+
+        DAT1 -> PFC_maturation
+        DRD4 -> PFC_maturation
+        COMT -> PFC_maturation
+        SNAP25 -> Striatum_dev
+        BDNF_gen -> CC_thickness
+        NRG3 -> PFC_maturation
+        CNTNAP2 -> FC_network
+        PFC_maturation -> CC_thickness
+        PFC_maturation -> Striatum_dev
+        CC_thickness -> Cerebellum_dev
+    }
+
+    // ─────────────────────────────────────────────────
+    // 2. Catecholamine Biosynthesis
+    // ─────────────────────────────────────────────────
+    subgraph cluster_biosynthesis {
+        label="② Catecholamine Biosynthesis & Metabolism"
+        style=filled fillcolor="#E8F5E9" color="#2E7D32" fontsize=13 fontname="Helvetica-Bold"
+
+        TYR   [label="Tyrosine (dietary)\nAmino acid precursor" fillcolor="#A5D6A7"]
+        TH    [label="Tyrosine Hydroxylase\n(TH) rate-limiting step\nBH4 cofactor dependent" fillcolor="#66BB6A"]
+        DOPA  [label="L-DOPA\nDihydroxyphenylalanine" fillcolor="#A5D6A7"]
+        AADC  [label="AADC\nAromatic amino acid\ndecarboxylase" fillcolor="#66BB6A"]
+        DA_synth[label="Dopamine (DA)\nSynthesized in vesicles" fillcolor="#43A047"]
+        VMAT2 [label="VMAT2\nVesicular storage\nDA/NE packaging" fillcolor="#66BB6A"]
+        DA_pool[label="Vesicular DA Pool\nReleasable fraction" fillcolor="#A5D6A7"]
+        DBH   [label="Dopamine β-Hydroxylase\n(DBH)\nDA→NE conversion" fillcolor="#66BB6A"]
+        NE_synth[label="Norepinephrine (NE)\nSynthesized in LC" fillcolor="#43A047"]
+        PNMT  [label="PNMT\nNE→Epinephrine\n(adrenal medulla)" fillcolor="#66BB6A"]
+        MAO   [label="MAO-A/B\nMitochondrial\nCatecholamine degradation" fillcolor="#EF9A9A"]
+        COMT_enz[label="COMT enzyme\nCatechol-O-methyltransferase\nExtracellular DA/NE↓" fillcolor="#EF9A9A"]
+        DOPAC [label="DOPAC / HVA\nDA metabolites\nurinary biomarker" fillcolor="#FFCDD2"]
+        NE_met[label="DHPG / VMA\nNE metabolites\nplasma biomarker" fillcolor="#FFCDD2"]
+
+        TYR -> TH -> DOPA -> AADC -> DA_synth
+        DA_synth -> VMAT2 -> DA_pool
+        DA_pool -> DBH -> NE_synth
+        NE_synth -> PNMT
+        DA_synth -> MAO -> DOPAC
+        NE_synth -> MAO -> NE_met
+        DA_synth -> COMT_enz -> DOPAC
+        NE_synth -> COMT_enz -> NE_met
+    }
+
+    // ─────────────────────────────────────────────────
+    // 3. Dopamine System
+    // ─────────────────────────────────────────────────
+    subgraph cluster_DA {
+        label="③ Dopamine Neurotransmission"
+        style=filled fillcolor="#E3F2FD" color="#0D47A1" fontsize=13 fontname="Helvetica-Bold"
+
+        VTA   [label="Ventral Tegmental Area\n(VTA)\nDA neurons A10" fillcolor="#90CAF9"]
+        SNc   [label="Substantia Nigra\npars compacta (SNc)\nDA neurons A9" fillcolor="#90CAF9"]
+        DA_rel[label="Presynaptic DA Release\nCa²⁺-dependent exocytosis\nAction potential-driven" fillcolor="#64B5F6"]
+        DAT   [label="Dopamine Transporter\n(DAT / SLC6A3)\nReuptake rate constant" fillcolor="#1565C0" fontcolor=white]
+        DA_syn[label="Synaptic Cleft [DA]\nFree unbound\nConcentration" fillcolor="#42A5F5"]
+        D1R   [label="D1/D5 Receptors\nGs-coupled, PKA↑\nPFC strengthening" fillcolor="#1E88E5" fontcolor=white]
+        D2R   [label="D2/D3 Receptors\nGi-coupled, PKA↓\nStriatal modulation" fillcolor="#1E88E5" fontcolor=white]
+        D4R   [label="D4 Receptor\nPFC interneurons\nGABAergic control" fillcolor="#1E88E5" fontcolor=white]
+        DA_auto[label="D2/D3 Autoreceptors\nPresynaptic feedback\nRelease inhibition" fillcolor="#42A5F5"]
+        cAMP_DA[label="cAMP/PKA Signaling\nD1: cAMP↑→AMPA↑\nD2: cAMP↓" fillcolor="#90CAF9"]
+        DARPP32[label="DARPP-32\nPhosphoprotein\nDA/PKA effector" fillcolor="#90CAF9"]
+        ERK_DA [label="ERK1/2 (MAPK)\nDA-dependent\nplasticity" fillcolor="#90CAF9"]
+        Mesolimbic[label="Mesolimbic Pathway\nVTA→NAcc\nReward/motivation" fillcolor="#BBDEFB"]
+        Mesocortical[label="Mesocortical Pathway\nVTA→PFC\nCognitive control" fillcolor="#BBDEFB"]
+        Nigrostriatal[label="Nigrostriatal Pathway\nSNc→Striatum\nMotor/habit" fillcolor="#BBDEFB"]
+        NAcc  [label="Nucleus Accumbens\nReward circuit\nMotivational salience" fillcolor="#64B5F6"]
+        Striatum_DA[label="Striatum\nDorsal: habit/motor\nVentral: reward" fillcolor="#64B5F6"]
+
+        VTA -> Mesolimbic -> NAcc
+        VTA -> Mesocortical
+        SNc -> Nigrostriatal -> Striatum_DA
+        DA_pool -> DA_rel
+        DA_rel -> DA_syn
+        DA_syn -> DAT [label="reuptake" style=dashed color=red]
+        DA_syn -> D1R
+        DA_syn -> D2R
+        DA_syn -> D4R
+        DA_syn -> DA_auto [label="autoreceptor\nfeedback" color=orange]
+        DA_auto -> DA_rel [label="inhibit" color=red arrowhead=tee]
+        D1R -> cAMP_DA -> DARPP32 -> ERK_DA
+        D2R -> cAMP_DA [label="inhibit" color=red]
+        D4R -> cAMP_DA
+    }
+
+    // ─────────────────────────────────────────────────
+    // 4. Norepinephrine System
+    // ─────────────────────────────────────────────────
+    subgraph cluster_NE {
+        label="④ Norepinephrine Neurotransmission"
+        style=filled fillcolor="#F3E5F5" color="#4A148C" fontsize=13 fontname="Helvetica-Bold"
+
+        LC    [label="Locus Coeruleus (LC)\nPrincipal NE nucleus\nA6 neurons, brainstem" fillcolor="#CE93D8"]
+        NE_rel[label="Presynaptic NE Release\nPhasic vs tonic modes\nLC firing rate-dependent" fillcolor="#BA68C8"]
+        NET   [label="NE Transporter\n(NET / SLC6A2)\nHigh-affinity reuptake" fillcolor="#6A1B9A" fontcolor=white]
+        NE_syn[label="Synaptic Cleft [NE]\nFree concentration\nTemporal precision" fillcolor="#AB47BC"]
+        A1R   [label="α1-Adrenoceptor\nGq-coupled\nPostsynaptic excitation" fillcolor="#7B1FA2" fontcolor=white]
+        A2AR  [label="α2A-Adrenoceptor\nGi-coupled\nPFC pyramidal: cognition" fillcolor="#7B1FA2" fontcolor=white]
+        A2B_auto[label="α2-Autoreceptor\nPresynaptic LC\nNE release inhibition" fillcolor="#AB47BC"]
+        B1R   [label="β1-Adrenoceptor\nGs-coupled\nHeart rate, attention" fillcolor="#7B1FA2" fontcolor=white]
+        B2R   [label="β2-Adrenoceptor\nGli-coupled\nBronchodilation" fillcolor="#7B1FA2" fontcolor=white]
+        NE_PFC[label="NE in PFC\nOptimal tone window\nInverted-U function" fillcolor="#CE93D8"]
+        Hcn_ch[label="HCN Channel\nα2A→Gi→cAMP↓\nIh current reduction\nPFC network stability" fillcolor="#CE93D8"]
+        NE_LC_PFC[label="LC→PFC Projection\nTop-down arousal\nAttentional gating" fillcolor="#E1BEE7"]
+        NE_LC_Hip[label="LC→Hippocampus\nMemory consolidation\nContextual learning" fillcolor="#E1BEE7"]
+        NE_LC_Cer[label="LC→Cerebellum\nMotor timing\nCoordination" fillcolor="#E1BEE7"]
+
+        LC -> NE_LC_PFC -> NE_PFC
+        LC -> NE_LC_Hip
+        LC -> NE_LC_Cer
+        NE_synth -> NE_rel
+        NE_rel -> NE_syn
+        NE_syn -> NET [label="reuptake" style=dashed color=red]
+        NE_syn -> A1R
+        NE_syn -> A2AR -> Hcn_ch
+        NE_syn -> A2B_auto -> NE_rel [label="inhibit" color=red arrowhead=tee]
+        NE_syn -> B1R
+        NE_syn -> B2R
+        A2AR -> NE_PFC [label="optimal\ntone" color=blue]
+    }
+
+    // ─────────────────────────────────────────────────
+    // 5. Prefrontal Cortex Circuits & Cognitive Function
+    // ─────────────────────────────────────────────────
+    subgraph cluster_PFC {
+        label="⑤ Prefrontal Cortex Circuits & Cognitive Function"
+        style=filled fillcolor="#FFF8E1" color="#E65100" fontsize=13 fontname="Helvetica-Bold"
+
+        dlPFC [label="Dorsolateral PFC (dlPFC)\nWorking memory\nCognitive flexibility" fillcolor="#FFD54F"]
+        vmPFC [label="Ventromedial PFC (vmPFC)\nEmotion regulation\nReward evaluation" fillcolor="#FFD54F"]
+        ACC   [label="Anterior Cingulate Cortex\n(ACC)\nError monitoring\nResponse inhibition" fillcolor="#FFD54F"]
+        OFC   [label="Orbitofrontal Cortex\n(OFC)\nImpulse control\nReward discounting" fillcolor="#FFD54F"]
+        Pyr5  [label="Layer V Pyramidal Neurons\nPFC output cells\nRecurrent excitation" fillcolor="#FFCA28"]
+        PV_int[label="PV+ Fast-spiking\nInterneurons\nGamma oscillations" fillcolor="#FFCA28"]
+        GABA_PFC[label="GABAergic Inhibition\nLocal circuit control\nSignal-to-noise" fillcolor="#FFCA28"]
+        NMDAR [label="NMDA Receptors\nGlutamate/glycine\nWorking memory trace" fillcolor="#FFCA28"]
+        AMPAR [label="AMPA Receptors\nFast excitation\nDA-D1 potentiated" fillcolor="#FFCA28"]
+        WM    [label="Working Memory\nCapacity: n-back\nDigit span" fillcolor="#FFF9C4"]
+        InhibCtrl[label="Inhibitory Control\nGo/No-go task\nStop Signal Reaction Time" fillcolor="#FFF9C4"]
+        CogFlex[label="Cognitive Flexibility\nTask switching\nSet shifting" fillcolor="#FFF9C4"]
+        Attention[label="Sustained Attention\nCPT omissions\nVigilance decrement" fillcolor="#FFF9C4"]
+        PFC_DA_tone[label="DA Tone (PFC)\nOptimal: D1 → WM↑\nExcess: D1→↓ / D2↓" fillcolor="#FFD54F"]
+        PFC_NE_tone[label="NE Tone (PFC)\nOptimal: α2A→WM↑\nHigh: α1 → WM↓" fillcolor="#FFD54F"]
+
+        dlPFC -> WM
+        dlPFC -> CogFlex
+        ACC -> InhibCtrl
+        OFC -> InhibCtrl
+        vmPFC -> CogFlex
+        Pyr5 -> NMDAR -> WM
+        AMPAR -> WM
+        PV_int -> GABA_PFC -> Pyr5 [label="inhibit"]
+        D1R -> AMPAR [label="strengthen"]
+        D1R -> PFC_DA_tone
+        A2AR -> PFC_NE_tone
+        PFC_DA_tone -> dlPFC
+        PFC_NE_tone -> dlPFC
+        GABA_PFC -> Attention
+    }
+
+    // ─────────────────────────────────────────────────
+    // 6. Pharmacokinetics
+    // ─────────────────────────────────────────────────
+    subgraph cluster_PK {
+        label="⑥ Pharmacokinetics (PK) — Drug Absorption & Distribution"
+        style=filled fillcolor="#E8EAF6" color="#1A237E" fontsize=13 fontname="Helvetica-Bold"
+
+        // Methylphenidate
+        MPH_gut[label="Methylphenidate\nGI Absorption\nka=1.2 h⁻¹ IR\nka=0.4 h⁻¹ ER" fillcolor="#9FA8DA"]
+        MPH_cen[label="MPH Central\nVc=6.4 L/kg\nCl=0.45 L/h/kg\nt½=2.5 h (IR), ~8h (ER)" fillcolor="#7986CB"]
+        MPH_per[label="MPH Peripheral\nVp=8.0 L/kg\nkcp=0.36 h⁻¹" fillcolor="#9FA8DA"]
+        MPH_met[label="MPH Metabolism\nCES1 hydrolysis\nRitalinic acid (inactive)" fillcolor="#9FA8DA"]
+
+        // Amphetamine (mixed salts)
+        AMP_gut[label="Amphetamine\nGI Absorption\nka=1.0 h⁻¹\nFa=75%" fillcolor="#9FA8DA"]
+        AMP_cen[label="AMP Central\nVc=3.5 L/kg\nCl=0.56 L/h/kg\nt½=9–14 h" fillcolor="#7986CB"]
+        AMP_per[label="AMP Peripheral\npH-dependent renal\nexcretion (pKa=9.9)" fillcolor="#9FA8DA"]
+        AMP_met[label="AMP Metabolism\nCYP2D6 hydroxylation\nMAO oxidation" fillcolor="#9FA8DA"]
+
+        // Atomoxetine
+        ATX_gut[label="Atomoxetine\nGI Absorption\nka=2.0 h⁻¹\nF=63% EM" fillcolor="#9FA8DA"]
+        ATX_cen[label="ATX Central\nVc=0.85 L/kg\nCl=0.35 L/h/kg\nt½=5h(EM)/22h(PM)" fillcolor="#7986CB"]
+        ATX_per[label="ATX Peripheral\nVp=2.4 L/kg\nProtein binding 98%" fillcolor="#9FA8DA"]
+        ATX_met[label="ATX Metabolism\nCYP2D6 major\nEM vs PM phenotype" fillcolor="#9FA8DA"]
+
+        // Guanfacine ER
+        GFN_gut[label="Guanfacine ER\nGI Absorption\nka=0.6 h⁻¹ (slow)\nF=80%" fillcolor="#9FA8DA"]
+        GFN_cen[label="GFN Central\nVc=2.8 L/kg\nCl=0.05 L/h/kg\nt½=17 h" fillcolor="#7986CB"]
+        GFN_per[label="GFN Peripheral\nVp=16 L/kg\nExtensive distribution" fillcolor="#9FA8DA"]
+
+        // Viloxazine ER
+        VLX_gut[label="Viloxazine ER\nGI Absorption\nka=0.5 h⁻¹\nF=88%" fillcolor="#9FA8DA"]
+        VLX_cen[label="VLX Central\nVc=1.5 L/kg\nCl=0.28 L/h/kg\nt½=7 h" fillcolor="#7986CB"]
+
+        MPH_gut -> MPH_cen -> MPH_per
+        MPH_cen -> MPH_met
+        AMP_gut -> AMP_cen -> AMP_per
+        AMP_cen -> AMP_met
+        ATX_gut -> ATX_cen -> ATX_per
+        ATX_cen -> ATX_met
+        GFN_gut -> GFN_cen -> GFN_per
+        VLX_gut -> VLX_cen
+    }
+
+    // ─────────────────────────────────────────────────
+    // 7. Pharmacodynamics (Drug Mechanisms)
+    // ─────────────────────────────────────────────────
+    subgraph cluster_PD {
+        label="⑦ Pharmacodynamics — Drug Mechanisms of Action"
+        style=filled fillcolor="#FCE4EC" color="#880E4F" fontsize=13 fontname="Helvetica-Bold"
+
+        // MPH mechanisms
+        MPH_DAT [label="MPH: DAT Inhibition\nKi(DAT)=34 nM\nIC50=50–100 nM\n[MPH] × (1/Ki+[MPH]) → DAT_occ" fillcolor="#F48FB1"]
+        MPH_NET [label="MPH: NET Inhibition\nKi(NET)=340 nM\n[MPH] × (1/Ki+[MPH])" fillcolor="#F48FB1"]
+        MPH_DA_up[label="DA Synaptic ↑\nDAT occupied→\nDA clearance↓" fillcolor="#F06292"]
+        MPH_NE_up[label="NE Synaptic ↑\nNET occupied→\nNE clearance↓" fillcolor="#F06292"]
+
+        // AMP mechanisms
+        AMP_DAT2[label="AMP: DAT Reverse\nTransport\nSubstrate → DA efflux\nKi(DAT)=100 nM" fillcolor="#F48FB1"]
+        AMP_NET2[label="AMP: NET Reverse\nTransport\nNE efflux from vesicles" fillcolor="#F48FB1"]
+        AMP_VMAT[label="AMP: VMAT2\nDisruption\nVesicular leak→cytoplasm" fillcolor="#F48FB1"]
+        AMP_MAO_inh[label="AMP: MAO\nInhibition (weak)\nDA/NE metabolism↓" fillcolor="#F48FB1"]
+        AMP_DA_up2[label="DA Synaptic ↑↑\nBoth reuptake block\n+ active efflux" fillcolor="#E91E63" fontcolor=white]
+
+        // ATX mechanisms
+        ATX_NET2[label="ATX: NET Inhibition\nKi(NET)=2 nM\nHighly selective\nDAT-sparing" fillcolor="#F48FB1"]
+        ATX_NE_up[label="NE Synaptic ↑↑\nPFC NET-mediated\nDA ↑ via NE→DA cross-talk" fillcolor="#F06292"]
+        ATX_5HT[label="ATX: 5-HT modulation\nWeak 5-HT2 activity\nMood/anxiety benefit" fillcolor="#F48FB1"]
+
+        // GFN mechanisms
+        GFN_A2A[label="Guanfacine: α2A\nAgonist\nKi=1.0 nM\nPostsynaptic PFC" fillcolor="#F48FB1"]
+        GFN_Hcn[label="GFN→Gi→cAMP↓\nHCN channel closure\nIh current↓\nPFC network↑" fillcolor="#F06292"]
+        GFN_imp[label="Reduced Impulsivity\nvia OFC/ACC\nNE optimization" fillcolor="#F06292"]
+
+        // VLX mechanisms
+        VLX_NET3[label="Viloxazine: NET\nInhibition\nKi(NET)=42 nM" fillcolor="#F48FB1"]
+        VLX_5HT2B[label="VLX: 5-HT2B agonist\n5-HT2C antagonist\n5-HT7 agonist" fillcolor="#F48FB1"]
+        VLX_NE_up[label="NE ↑ + 5-HT\nmodulation\nComorbid anxiety benefit" fillcolor="#F06292"]
+
+        // Clonidine
+        CLN_A2[label="Clonidine: α2\nAgonist\nLess selective than GFN\nSedation risk" fillcolor="#F48FB1"]
+
+        MPH_cen -> MPH_DAT -> MPH_DA_up
+        MPH_cen -> MPH_NET -> MPH_NE_up
+        AMP_cen -> AMP_DAT2 -> AMP_DA_up2
+        AMP_cen -> AMP_NET2 -> AMP_DA_up2
+        AMP_cen -> AMP_VMAT -> AMP_DA_up2
+        AMP_cen -> AMP_MAO_inh -> AMP_DA_up2
+        ATX_cen -> ATX_NET2 -> ATX_NE_up
+        ATX_cen -> ATX_5HT
+        GFN_cen -> GFN_A2A -> GFN_Hcn -> GFN_imp
+        VLX_cen -> VLX_NET3 -> VLX_NE_up
+        VLX_cen -> VLX_5HT2B -> VLX_NE_up
+
+        // Effects on synapse
+        MPH_DA_up -> DA_syn [style=dashed color=blue]
+        AMP_DA_up2 -> DA_syn [style=dashed color=blue]
+        MPH_NE_up -> NE_syn [style=dashed color=blue]
+        ATX_NE_up -> NE_syn [style=dashed color=blue]
+        VLX_NE_up -> NE_syn [style=dashed color=blue]
+        GFN_A2A -> A2AR [style=dashed color=blue]
+    }
+
+    // ─────────────────────────────────────────────────
+    // 8. Clinical Endpoints & Symptom Dimensions
+    // ─────────────────────────────────────────────────
+    subgraph cluster_endpoints {
+        label="⑧ Clinical Endpoints & Symptom Dimensions"
+        style=filled fillcolor="#E0F7FA" color="#006064" fontsize=13 fontname="Helvetica-Bold"
+
+        ADHD_RS[label="ADHD-RS-5\n(Rating Scale)\nInattention 9 items\nHyperactivity 9 items\nTotal 0–54" fillcolor="#80DEEA"]
+        CGI_I  [label="CGI-I / CGI-S\nClinician Global\nImpression\n1=Very much improved" fillcolor="#80DEEA"]
+        SNAP   [label="SNAP-IV / SKAMP\nParent/Teacher Rating\nClassroom behavior" fillcolor="#80DEEA"]
+        Conners[label="Conners 3\nParent/Teacher/Self\nADHD symptoms" fillcolor="#80DEEA"]
+        BRIEF  [label="BRIEF-2\nExecutive Function\nBehavior Rating" fillcolor="#80DEEA"]
+
+        // Symptom domains
+        Inattention[label="Inattention\nCareless mistakes\nLost items\nForgetfulness" fillcolor="#B2EBF2"]
+        Hyperactivity[label="Hyperactivity\nFidgeting\nLeaving seat\nExcessive talking" fillcolor="#B2EBF2"]
+        Impulsivity[label="Impulsivity\nBlurting out answers\nInterrupting\nDifficulty waiting" fillcolor="#B2EBF2"]
+        EF_deficit[label="Executive Function\nDeficits\nPlanning, organizing\nTime management" fillcolor="#B2EBF2"]
+        WM_deficit[label="Working Memory\nDeficits\nShort-term recall\nMental arithmetic" fillcolor="#B2EBF2"]
+        Emotional_dysreg[label="Emotional\nDysregulation\nFrustration intolerance\nMood lability" fillcolor="#B2EBF2"]
+        Sleep_disturb [label="Sleep Disturbance\nDelayed sleep onset\nRestless sleep\nCircadian rhythm shift" fillcolor="#B2EBF2"]
+
+        // Functional outcomes
+        Academic[label="Academic Performance\nGrade point average\nTest scores" fillcolor="#E0F7FA"]
+        Occupational[label="Occupational\nFunctioning\nWork productivity\nJob retention" fillcolor="#E0F7FA"]
+        Social    [label="Social Functioning\nPeer relationships\nFamily conflict" fillcolor="#E0F7FA"]
+        QoL       [label="Quality of Life\n(ADHD-QoL)\nADL function\nSelf-efficacy" fillcolor="#E0F7FA"]
+        Comorbid  [label="Comorbidities\nAnxiety 50%\nDepression 30%\nODD 40% · CD 14%" fillcolor="#E0F7FA"]
+        Substance [label="Substance Use Risk\n2–8× higher\nSelf-medication\nhypothesis" fillcolor="#FFB3B3"]
+
+        ADHD_RS -> Inattention
+        ADHD_RS -> Hyperactivity
+        ADHD_RS -> Impulsivity
+        CGI_I -> EF_deficit
+        BRIEF -> EF_deficit
+        BRIEF -> WM_deficit
+        Inattention -> Academic
+        Inattention -> Occupational
+        Hyperactivity -> Social
+        EF_deficit -> Academic
+        EF_deficit -> Occupational
+        WM_deficit -> Academic
+        Emotional_dysreg -> Social
+        Comorbid -> Emotional_dysreg
+        Comorbid -> Sleep_disturb
+        Inattention -> QoL
+        Social -> QoL
+        Academic -> QoL
+        Substance -> Comorbid
+        Emotional_dysreg -> Substance
+    }
+
+    // ─────────────────────────────────────────────────
+    // 9. Biomarkers & Neuroimaging
+    // ─────────────────────────────────────────────────
+    subgraph cluster_biomarkers {
+        label="⑨ Biomarkers & Neuroimaging Endpoints"
+        style=filled fillcolor="#F9FBE7" color="#558B2F" fontsize=13 fontname="Helvetica-Bold"
+
+        DAT_PET[label="DAT SPECT/PET\nStriatial DAT density\n[¹²³I]FP-CIT" fillcolor="#DCEDC8"]
+        D2_PET [label="D2/D3 PET\nStriatal D2/D3\n[¹¹C]raclopride" fillcolor="#DCEDC8"]
+        fMRI   [label="fMRI (Task-based)\ndlPFC activation\nn-back / CPT" fillcolor="#DCEDC8"]
+        rs_fMRI[label="Resting-state fMRI\nDMN↔Task-positive\nAnticorrelation" fillcolor="#DCEDC8"]
+        EEG    [label="EEG Biomarkers\nTheta↑ Frontal\nBeta↓ (theta/beta↑)\nP300 latency↑" fillcolor="#DCEDC8"]
+        CPT    [label="CPT-3 / QbTest\nOmission errors\nCommission errors\nRTSD" fillcolor="#DCEDC8"]
+        HRV    [label="Heart Rate Variability\nRSA (RSA↓ ADHD)\nVagal tone" fillcolor="#DCEDC8"]
+        Plasma_NE[label="Plasma NE\nUrinary VMA\nNE system activity" fillcolor="#DCEDC8"]
+        CSF_HVA[label="CSF HVA\nDA turnover\nresearch only" fillcolor="#DCEDC8"]
+        GFAP   [label="Serum GFAP\nAstrocyte marker\nNeuroinflammation?" fillcolor="#DCEDC8"]
+
+        DA_syn -> DAT_PET [style=dashed]
+        DA_syn -> D2_PET [style=dashed]
+        dlPFC -> fMRI [style=dashed]
+        FC_network -> rs_fMRI [style=dashed]
+        Attention -> EEG [style=dashed]
+        Attention -> CPT [style=dashed]
+        NE_syn -> Plasma_NE [style=dashed]
+    }
+
+    // ─────────────────────────────────────────────────
+    // Cross-cluster connections
+    // ─────────────────────────────────────────────────
+    // Genetics → Biosynthesis
+    DAT1 -> DAT [style=dashed color=gray label="regulates"]
+    COMT -> COMT_enz [style=dashed color=gray]
+    SNAP25 -> DA_rel [style=dashed color=gray label="reduces"]
+
+    // Biosynthesis → Neurotransmission
+    DA_pool -> VTA [style=dashed color=darkgreen]
+    NE_synth -> LC [style=dashed color=darkgreen]
+
+    // Neurotransmission → PFC
+    DA_syn -> PFC_DA_tone [label="modulate" style=dashed color=blue]
+    NE_syn -> PFC_NE_tone [label="modulate" style=dashed color=blue]
+    Hcn_ch -> dlPFC [label="stabilize" style=dashed color=purple]
+
+    // PFC → Endpoints
+    WM -> WM_deficit [style=dashed]
+    InhibCtrl -> Impulsivity [style=dashed color=red label="deficit→"]
+    Attention -> Inattention [style=dashed color=red label="deficit→"]
+    CogFlex -> EF_deficit [style=dashed color=red label="deficit→"]
+
+    // Endpoints → Clinical scales
+    Inattention -> ADHD_RS [style=dashed]
+    Hyperactivity -> ADHD_RS [style=dashed]
+    Impulsivity -> ADHD_RS [style=dashed]
+    EF_deficit -> CGI_I [style=dashed]
+
+    // Biomarker connections
+    EEG -> ADHD_RS [style=dashed color=gray label="correlate"]
+    CPT -> ADHD_RS [style=dashed color=gray label="correlate"]
+}
