@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-184-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-185-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **183개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
@@ -302,6 +302,7 @@ qsp/
 | 171 | 정신·신경 | [**주의력결핍과잉행동장애**<br><sub>Attention Deficit Hyperactivity Disorder · ADHD</sub>](adhd/) | <a href="adhd/adhd_qsp_model.svg"><img src="adhd/adhd_qsp_model.png" width="190" alt="ADHD"></a> | **도파민(DA)·노르에피네프린(NE) 신경전달 저하로 인한 전전두피질(PFC) 기능 장애. DAT1/DRD4/DRD5/SNAP25/COMT 위험 유전자 → 중뇌(VTA→PFC) DA 합성 감소·청반(LC→PFC) NE 긴장도 저하 → PFC 피질 성숙 3년 지연**. D1R 저자극 → AMPAR 시냅스 약화 → 작업기억(WM)↓; α2A-AR 저자극 → HCN 채널 개방 → Ih전류↑ → PFC 네트워크 불안정. **역U 함수(Arnsten)**: PFC 기능 = 최적 DA/NE 긴장도에서 극대화, 결핍(ADHD) 또는 과잉(자극제 과용) 모두 인지 저하. 5종 약물 완전 PK/PD: 메틸페니데이트IR/ER(DAT/NET 경쟁적 억제·Ki=34/340nM·Volkow 1998 PET DAT점유 72%)·암페타민XR(DAT 역방향 수송+방출·Ki=100nM)·아토목세틴(선택적 NET 억제·Ki=2nM·CYP2D6 EM/PM 대사형 4배 차이·Michelson 2001 NEJM Pediatrics)·구안파신ER(α2A-AR 효현제·Ki=1nM·HCN채널 폐쇄·Sallee 2009 JAACAP)·빌록사진ER(NET+5-HT2B·Nasser 2021). **~140 노드 9 클러스터**(유전·신경발달/카테콜아민 생합성/도파민계/노르에피네프린계/PFC회로·인지/약동학/약력학/임상엔드포인트/바이오마커), **25구획 ODE**(MPH 3+AMP 3+ATX 3+GFN 4+VLX 2 PK 15구획; DA_syn·NE_syn·DAT_occ·NET_occ·PFC_DA·PFC_NE·WM_idx·ExecFun·ADHD_RS·CGI_S·QoL_idx 11구획), **7치료 시나리오**(①무치료 ②MPH IR TID ③MPH ER QD ④AMP XR QD ⑤ATX QD ⑥GFN ER QD ⑦VLX ER QD). MTA 1999(n=579, MPH ADHD-RS −10점)·Michelson 2001(n=297, ATX −8점)·Sallee 2009(n=345, GFN −7점)·Nasser 2021(n=460, VLX −8점)·Volkow 1998 PET(DAT점유 72%) 보정. **7탭 Shiny 대시보드**(환자프로파일·약물PK·DA/NE동태·PFC·인지·임상엔드포인트·시나리오비교·바이오마커). **53개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](adhd/adhd_qsp_model.svg) · [⚙️ mrgsolve](adhd/adhd_mrgsolve_model.R) · [📊 Shiny](adhd/adhd_shiny_app.R) · [📚 문헌](adhd/adhd_references.md) · [📄 README](adhd/README.md) |
 | 177 | 종양·호흡기 | [**소세포 폐암 (SCLC)**<br><sub>Small Cell Lung Cancer · SCLC</sub>](small-cell-lung-cancer/) | <a href="small-cell-lung-cancer/sclc_qsp_model.svg"><img src="small-cell-lung-cancer/sclc_qsp_model.png" width="190" alt="SCLC"></a> | **TP53·RB1 동시 소실(~90/85%) → 신경내분비(NE) 분화·급속 증식. ASCL1/NEUROD1(NE-high)·YAP1/POU2F3(NE-low) 전사 프로그램 결정 → DLL3 이상 표면 발현(~80%) → Notch 시스-억제 → NE 표현형 유지**. 에토포사이드+카보플라틴(CE): Topo-II 독소·DNA 이중나선 절단(DSB) → 세포사멸; CE + 아테졸리주맙(IMpower133 OS HR 0.70·13.9개월) · CE + 더발루맙(CASPIAN OS HR 0.73·13.0개월) 1차 면역항암 병합요법. **Tarlatamab**(DLL3 × CD3 BiTE·10mg q2w): DLL3+ 종양세포로 T세포 유도·DeLLphi-301 ORR 40%·mDOR 9.7개월·FDA 2024 승인. **Lurbinectedin**: RNA Pol II 분해·DNA 알킬화·2차 ORR 35.2%·ATLANTIS trial. **Trilaciclib**(CDK4/6i·240mg/m² iv): G1 정지→ 조혈모세포 보호 → 중증 호중구감소 61→17% 감소. **100+ 노드 12 서브그래프 클러스터**(①유전자 이상 ②NE 아형·전사인자 ③DLL3/Notch ④DNA 손상 응답 ⑤세포주기 ⑥면역 TME·관문 ⑦세포내 신호(PI3K·BCL-2) ⑧면역항암제 PK ⑨화학요법·소분자 PK ⑩종양 동태·임상 엔드포인트 ⑪골수·골수보호 ⑫아형 가소성·내성), **21구획 ODE**(아테졸리주맙 2+더발루맙 2+카보플라틴 1+에토포사이드 2+lurbinectedin 1+topotecan 1+tarlatamab 3+trilaciclib 1 PK 13구획; DNA 손상·Ts·Ta·Tr·CD8T·PD-L1 RO·NK·IFN-γ 8 PD구획), **8치료 시나리오**(①무치료 ②CE ③CE+아테졸리주맙 IMpower133 ④CE+더발루맙 CASPIAN ⑤tarlatamab 2차 ⑥lurbinectedin 2차 ⑦topotecan 2차 ⑧CE+trilaciclib). IMpower133·CASPIAN·DeLLphi-301·ATLANTIS·Trigo 2020·Wedam 2021 보정. SLD(cm)·ORR·CD8T·PD-L1 RO·DNA 손상 지표·NK·IFN-γ 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·분자경로·임상엔드포인트·시나리오비교·바이오마커&TME). **48편 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](small-cell-lung-cancer/sclc_qsp_model.svg) · [⚙️ mrgsolve](small-cell-lung-cancer/sclc_mrgsolve_model.R) · [📊 Shiny](small-cell-lung-cancer/sclc_shiny_app.R) · [📚 문헌](small-cell-lung-cancer/sclc_references.md) · [📄 README](small-cell-lung-cancer/README.md) |
 | 178 | 종양·신경 | [**교모세포종 (GBM)**<br><sub>Glioblastoma Multiforme · GBM</sub>](glioblastoma/) | <a href="glioblastoma/gbm_qsp_model.svg"><img src="glioblastoma/gbm_qsp_model.png" width="190" alt="GBM"></a> | **EGFR 증폭/EGFRvIII → PI3K/AKT/mTOR 과활성화·PTEN 소실 → 무제한 증식; MGMT 비메틸화 → O6-MeG 신속 복구 → TMZ 내성; HIF-1α → VEGF-A → 혈관신생; M2-TAM·Treg·PD-L1 → 면역억제 미세환경. Stupp 프로토콜(TMZ 75mg/m² 동시화학방사선 → TMZ 150-200mg/m² ×6사이클): MGMT 메틸화 mOS 21.7개월 vs 비메틸화 12.6개월(Hegi 2005 NEJM). 혈뇌장벽(BBB): TMZ Kp,brain=0.28; 방사선 LQ 모델(α=0.30Gy⁻¹·α/β=10Gy). 베바시주맙(anti-VEGF·AVAGLIO/RTOG0825)·TTF(전기장 200kHz·EF-14 mOS 20.9개월). **220+ 노드 13 클러스터**(①유전자 이상·EGFR/PTEN ②RTK/RAS-MAPK ③PI3K/AKT/mTOR ④세포주기·아포토시스 ⑤DNA 손상·MMR ⑥종양 미세환경 ⑦혈관신생·VEGF ⑧면역 관문 ⑨교모세포 줄기세포 ⑩약물 PK ⑪혈뇌장벽 ⑫방사선 치료 ⑬임상 엔드포인트), **18구획 ODE**(TMZ Gut·Cp·Cp2·Cbrain·O6MeG 5; BEV Cp·Cp2·VEGF_free·BEV_VEGF 4; APD1·PD1_occ 2; 종양 Ts·Tr·GSC 3; 면역 CD8·Treg·TAM 3; NV 1구획), **7치료 시나리오**(①무치료 ②Stupp+MGMT메틸화 mOS 21.7개월 ③Stupp+비메틸화 mOS 12.6개월 ④Stupp+베바시주맙 AVAGLIO ⑤Stupp+TTF EF-14 ⑥펨브롤리주맙+TMZ 재발 ⑦베바시주맙 단독 구제). Stupp 2005 NEJM·Hegi 2005 NEJM·Friedman 2009 JCO·Stupp 2017 JAMA(EF-14)·Reardon 2020 Lancet 보정. RANO 직경(cm)·종양 부피·OS·MGMT 메틸화 상태·CD8/Treg 비·PD-1 점유율 엔드포인트. **7탭 Shiny 대시보드**(환자프로파일&치료설정·약물PK·DNA손상&MGMT·종양동태·시나리오비교·TME&바이오마커·임상엔드포인트). **60편 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](glioblastoma/gbm_qsp_model.svg) · [⚙️ mrgsolve](glioblastoma/gbm_mrgsolve_model.R) · [📊 Shiny](glioblastoma/gbm_shiny_app.R) · [📚 문헌](glioblastoma/gbm_references.md) · [📄 README](glioblastoma/README.md) |
+| 184 | 희귀·혈액 | [**혈구탐식성 림프조직구증 (HLH)**<br><sub>Hemophagocytic Lymphohistiocytosis · HLH</sub>](hemophagocytic-lymphohistiocytosis/) | <a href="hemophagocytic-lymphohistiocytosis/hlh_qsp_model.svg"><img src="hemophagocytic-lymphohistiocytosis/hlh_qsp_model.png" width="190" alt="HLH"></a> | **NK세포/CTL 세포독성 결함(PRF1·UNC13D·STXBP2…) 또는 외부 트리거(EBV·CMV·sJIA·악성 종양) → APC 제거 실패 → CD4/CD8 T세포 지속 활성화 → IFN-γ·IL-18 폭발적 생산(★ 핵심 사이토카인) → 대식세포 활성화(M1 극화) → 혈구탐식(적혈구·백혈구·혈소판 engulfment) → 페리틴↑↑↑(>10,000 ng/mL·★진단 바이오마커)·sCD25↑↑↑(>2,400 U/mL)·골수 억제(범혈구감소)·간비종대·응고병증(DIC)·다발 장기부전. TNF-α·IL-6→발열; IL-1β(NLRP3 인플라마솜)→MAS/sJIA-HLH 亞型; IL-12·IL-10 역설적 공존(사이토카인 폭풍 증폭). 진단: HLH-2004 기준(8항목 중 5개 이상) 또는 HScore≥169(민감도 93%). 6종 약물 완전 PK/PD: **덱사메타손**(GR→NF-κB↓·IFN-γ↓·대식세포 활성화↓)·**에토포사이드**(Topo-II 독소→활성화 T/NK 고갈·HLH-2004 프로토콜)·**사이클로스포린A**(칼시뉴린/NFAT 차단→IL-2·IFN-γ↓)·**에마팔루맙**(anti-IFN-γ mAb·TMDD·Locatelli 2020 NEJM·FDA 2018 승인·원발성 HLH)·**아나킨라**(IL-1Ra·MAS/sJIA-HLH·NLRP3 하류)·**룩솔리티닙**(JAK1/2 억제→STAT1/3 차단→IFN-γ·IL-6 하류 억제·난치성 HLH). **100+ 노드 10 서브그래프 클러스터**(①유전적 배경 PRF1/UNC13D/STX11/STXBP2/RAB27A/LYST ②트리거 인자 EBV/CMV/sJIA/SLE/악성종양 ③NK·CTL 기능 결함 ④APC–T세포 교차신호 ⑤사이토카인 폭풍 네트워크 ⑥대식세포 활성화·혈구탐식 ⑦다발 장기 손상 ⑧임상 발현·HScore/HLH-2004 기준 ⑨약물 PK/PD ⑩임상 엔드포인트), **20구획 ODE**(NK·CTL·T_ACT·APC 면역 4; IFNg·IL6·TNFa·IL18·IL10·IL12 사이토카인 6; MAC_ACT·HEMOPHAG·FERR·BM_SUPP 탐식·손상 4; LIVER_DMG·COAG_DMG 장기 2; DEX/ETOP/CSA/EMAPA/ANK/RUX PK 4구획), **5치료 시나리오**(①무치료 ②HLH-2004 DEX+ETOP+CsA ③에마팔루맙+DEX 원발성 HLH ④아나킨라+DEX MAS/sJIA ⑤룩솔리티닙+DEX 난치성). Jordan 2004 Blood(IFN-γ·마우스 HLH모델)·Bergsten 2017 Blood(HLH-2004 장기추적)·Locatelli 2020 NEJM(에마팔루맙 ORR 65%)·Ahmed 2019 Lancet Haematol(룩솔리티닙)·Fardet 2014(HScore 검증) 보정. IFN-γ(pg/mL)·페리틴(ng/mL)·혈구탐식 지수·BM 억제·간 손상·응고병증·sCD25·NK 활성·HScore·생존 확률 엔드포인트. **6탭 Shiny 대시보드**(환자 프로파일&HLH 아형·약물PK·사이토카인 폭풍·임상 엔드포인트·5가지 시나리오 비교·바이오마커&HScore 추적). **52개 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](hemophagocytic-lymphohistiocytosis/hlh_qsp_model.svg) · [⚙️ mrgsolve](hemophagocytic-lymphohistiocytosis/hlh_mrgsolve_model.R) · [📊 Shiny](hemophagocytic-lymphohistiocytosis/hlh_shiny_app.R) · [📚 문헌](hemophagocytic-lymphohistiocytosis/hlh_references.md) · [📄 README](hemophagocytic-lymphohistiocytosis/README.md) |
 | 179 | 자가면역·안과 | [**포도막염 (Uveitis)**<br><sub>Non-infectious Uveitis · UVT</sub>](uveitis/) | <a href="uveitis/uvt_qsp_model.svg"><img src="uveitis/uvt_qsp_model.png" width="190" alt="UVT"></a> | **HLA-B27·IRBP/S-Ag 자가항원 → APC 활성화 → Th1(IFN-γ)/Th17(IL-17A) 분화 → TNF-α·IL-6·VEGF-A 분비 → 혈-안방장벽(BAB)·혈-망막장벽(BRB) 파괴 → 전방세포 유입(SUN 등급↑)·낭포황반부종(CME) → 시력 저하(logMAR↑)**. 안구 면역특권 소실: FasL+/IDO+/TGF-β2 억제 → T세포 침입; leukostasis(ICAM-1·VCAM-1↑) → BAB 붕괴. VEGF-A → VEGFR2 → ZO-1/Occludin 분해 → BRB 파괴 → CME → CST↑; 만성화 시 신생혈관(sRNV)·망막 박리·이차 녹내장·백내장. **아달리무맙(VISUAL I: Jaffe 2016 NEJM)**: TNF 중화 → 재발 억제(Hazard Ratio 0.50); **덱사메타손 IVT 임플란트 Ozurdex(HURON: Lowder 2011)**: 유리체 서방 → BRB 회복·CME 65% 해소; **전신 프레드니손(MUST Trial: Kempen 2011 NEJM)**: GR 점유→NF-κB 억제; **토실리주맙(IL-6R 차단·STOP-Uveitis 2019)**. **130+ 노드 12 클러스터**(①안구 해부·면역특권 ②유발 기전·HLA-B27·VKH·Birdshot ③선천 면역 ④T세포 적응 면역 ⑤B세포·자가항체 ⑥사이토카인·케모카인 ⑦혈-안방/망막장벽 파괴 ⑧임상 발현·합병증 ⑨약물 PK ⑩약물 PD 기전 ⑪경과·재발 ⑫바이오마커·모니터링), **20구획 ODE**(약물 PK 6구획: Cgut·Cp·Cperiph·C_ant·C_post·C_depot; 면역 4: T_eff·T_reg·APC_act·Macro; 사이토카인 4: TNF·IL6·IL17·VEGF; 장벽 2: BAB_int·BRB_int; 임상 PD 4: Cells_AH·CME·VA_def·IOP_e; GR_occ), **7치료 시나리오**(①무치료 ②점안 프레드니솔론 1% QID ③안와주위 트리암시놀론 40mg ④유리체내 덱사메타손 임플란트 Ozurdex ⑤전신 프레드니손 1mg/kg·점감 ⑥아달리무맙 40mg SC q2w ⑦병합 Pred+Ada). VISUAL I/II·HURON Trial·MUST Trial·STOP-Uveitis 보정. BCVA(logMAR)·OCT-CST(μm)·SUN 등급(0–4)·IOP(mmHg)·TNF/IL-6/VEGF·BAB/BRB 무결성·GR 점유율 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일&치료선택·PK·면역&사이토카인·장벽 무결성·임상 엔드포인트·시나리오 비교·가상환자 VP n=500·바이오마커 모니터링). **60편 PubMed 인용** (15개 섹션).<br>[🗺️ 지도](uveitis/uvt_qsp_model.svg) · [⚙️ mrgsolve](uveitis/uvt_mrgsolve_model.R) · [📊 Shiny](uveitis/uvt_shiny_app.R) · [📚 문헌](uveitis/uvt_references.md) · [📄 README](uveitis/README.md) |
 
 ---
@@ -3651,3 +3652,88 @@ APC 활성화 (DC/대식세포) → TCR/CD28 → T세포 분화
 | [`uvt_shiny_app.R`](uveitis/uvt_shiny_app.R) | Shiny 인터랙티브 대시보드 (8탭) |
 | [`uvt_references.md`](uveitis/uvt_references.md) | 참고문헌 60편 (15개 섹션) |
 | [`README.md`](uveitis/README.md) | 디렉토리 상세 문서 |
+
+---
+
+## 🔴 혈구탐식성 림프조직구증 (HLH) — 최신 모델 상세 (2026-06-26)
+
+> **디렉토리:** [`hemophagocytic-lymphohistiocytosis/`](hemophagocytic-lymphohistiocytosis/) | **약어:** HLH | **날짜:** 2026-06-26
+
+[![HLH QSP Mechanistic Map](hemophagocytic-lymphohistiocytosis/hlh_qsp_model.png)](hemophagocytic-lymphohistiocytosis/hlh_qsp_model.svg)
+
+### 개요
+
+혈구탐식성 림프조직구증(HLH)은 NK세포/세포독성 T림프구(CTL)의 세포독성 결함 또는 외부 트리거(EBV, CMV, 자가면역 질환, 악성 종양)에 의해 유발되는 치명적인 초염증 증후군입니다. 핵심 병리 기전은 **IFN-γ 주도 사이토카인 폭풍 → 대식세포 과활성화 → 혈구탐식(적혈구·백혈구·혈소판 포식) → 범혈구감소 + 다발 장기 부전**입니다. 치료 없이는 5주 내 사망률이 50%를 초과합니다.
+
+### 아형
+
+| 아형 | 발생기전 | 주요 유전자 | 1차 치료 |
+|------|----------|------------|---------|
+| **원발성 HLH (FHL 1–5)** | NK/CTL 세포독성 유전적 결함 | PRF1, UNC13D, STX11, STXBP2, RAB27A | HLH-2004 → 동종 HSCT |
+| **이차성 HLH** | 감염·악성 종양 트리거 | 없음(소인 유전자 가능) | 트리거 치료 + DEX ± ETOP |
+| **MAS (대식세포 활성화 증후군)** | sJIA/SLE/AOSD 플레어 | NLRP3, IL-18 다형성 | 고용량 코르티코이드 ± 아나킨라/토실리주맙 |
+
+### 핵심 기전 요약
+
+```
+유전 결함(PRF1/UNC13D…)        외부 트리거(EBV/CMV/sJIA)
+         ↓                               ↓
+  NK/CTL 기능 결함 ──────────── APC 제거 실패
+         ↓                               ↓
+  지속적 APC-T세포 교차신호 → T세포 과활성화
+         ↓                               ↓
+  IFN-γ ↑↑↑ ───────────── 대식세포 활성화(IFN-γ/EC50)
+  IL-18 ↑ (시너지)                        ↓
+  IL-12 ↑ (증폭)               혈구탐식 (RBC·WBC·PLT 포식)
+         ↓                    페리틴 ↑↑↑ (>10,000 ng/mL)
+  사이토카인 폭풍              sCD25 ↑↑↑ (>2,400 U/mL)
+  TNF-α, IL-6, IL-1β ↑                   ↓
+         ↓                    BM 억제 → 범혈구감소
+  다발 장기 손상               응고병증 (DIC)
+  (간·신장·CNS·폐)                        ↓
+         ↓                              ↓ 사망 (무치료)
+  HScore ≥169 → 진단
+```
+
+### mrgsolve ODE 모델 구조 (20구획)
+
+| 구획 그룹 | 변수 |
+|-----------|------|
+| 면역세포 | NK_CELLS, CTL_CELLS, T_ACT, APC_ACT |
+| 사이토카인 (pg/mL) | IFNg, IL6, TNFa, IL18, IL10, IL12 |
+| 대식세포 cascade | MAC_ACT, HEMOPHAG_IDX, FERR, BM_SUPP |
+| 장기 손상 | LIVER_DMG, COAG_DMG |
+| 약물 PK | DEX (2구획 경구), ETOP (2구획 IV), CsA (2구획 경구), Emapalumab (mAb TMDD), Anakinra (SC 1구획), Ruxolitinib (2구획 경구) |
+
+### 치료 시나리오 5가지
+
+| # | 요법 | 적응증 | 주요 기전 |
+|---|------|--------|----------|
+| S1 | 무치료 | 자연 경과 대조군 | — |
+| S2 | **HLH-2004** (DEX + 에토포사이드 + CsA) | 원발성/이차성 HLH | T세포 고갈 + 대식세포 억제 |
+| S3 | **에마팔루맙 + DEX** | 원발성/난치성 HLH (FDA 2018 승인) | IFN-γ 직접 중화 (TMDD 모델) |
+| S4 | **아나킨라 + DEX** | MAS/sJIA-HLH | IL-1β 신호 차단 |
+| S5 | **룩솔리티닙 + DEX** | 난치성/재발 HLH (구제요법) | JAK1/2→STAT1/3 하류 억제 |
+
+### 약물 표적 요약
+
+| 약물 | 표적 | HLH에서의 효과 |
+|------|------|---------------|
+| 덱사메타손 | GR/NF-κB | ↓ IFN-γ, TNF-α, 대식세포 활성화 |
+| 에토포사이드 | Topo-II | 활성화 T세포/NK 고갈 → 사이토카인 원천 차단 |
+| 사이클로스포린 A | 칼시뉴린/NFAT | ↓ IL-2, IFN-γ; T세포 증식 차단 |
+| **에마팔루맙** | IFN-γ (직접 중화) | HLH 최초 표적 치료제; FDA 2018 원발성 HLH 승인 |
+| 아나킨라 | IL-1 수용체 | IL-1β 신호 차단; MAS/NLRP3 주도 아형에 최적 |
+| 룩솔리티닙 | JAK1/2 | IFN-γ·IL-6 하류 JAK-STAT 경로 차단 |
+
+### 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`hlh_qsp_model.dot`](hemophagocytic-lymphohistiocytosis/hlh_qsp_model.dot) | Graphviz 기계론적 지도 (100+ 노드, 10 클러스터) |
+| [`hlh_qsp_model.svg`](hemophagocytic-lymphohistiocytosis/hlh_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`hlh_qsp_model.png`](hemophagocytic-lymphohistiocytosis/hlh_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`hlh_mrgsolve_model.R`](hemophagocytic-lymphohistiocytosis/hlh_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (20구획, 5 치료 시나리오) |
+| [`hlh_shiny_app.R`](hemophagocytic-lymphohistiocytosis/hlh_shiny_app.R) | Shiny 인터랙티브 대시보드 (6탭) |
+| [`hlh_references.md`](hemophagocytic-lymphohistiocytosis/hlh_references.md) | 참고문헌 52편 (13개 섹션) |
+| [`README.md`](hemophagocytic-lymphohistiocytosis/README.md) | 디렉토리 상세 문서 |
