@@ -2,7 +2,7 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-185-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-186-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
 현재 **183개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
@@ -3737,3 +3737,65 @@ APC 활성화 (DC/대식세포) → TCR/CD28 → T세포 분화
 | [`hlh_shiny_app.R`](hemophagocytic-lymphohistiocytosis/hlh_shiny_app.R) | Shiny 인터랙티브 대시보드 (6탭) |
 | [`hlh_references.md`](hemophagocytic-lymphohistiocytosis/hlh_references.md) | 참고문헌 52편 (13개 섹션) |
 | [`README.md`](hemophagocytic-lymphohistiocytosis/README.md) | 디렉토리 상세 문서 |
+| 185 | 희귀·혈액·면역항암 | [**사이토카인 방출 증후군 (CRS)**<br><sub>Cytokine Release Syndrome · CRS</sub>](cytokine-release-syndrome/) | <a href="cytokine-release-syndrome/crs_qsp_model.svg"><img src="cytokine-release-syndrome/crs_qsp_model.png" width="190" alt="CRS"></a> | **CAR-T세포/이중특이항체 투여 후 면역 이펙터 세포 대규모 활성화 → T세포 IFN-γ·IL-2·GM-CSF 폭발 → 대식세포 M1 극화(JAK-STAT1) → IL-6↑↑↑(★핵심 드라이버)·IL-1β(NLRP3 인플라마솜)·TNF-α** — 내피세포 활성화(iNOS→NO↑→혈관확장→저혈압)·VEGF/ANG2→혈관 투과성↑→저산소증; 혈뇌장벽 붕괴→CNS 대식세포 활성화→ICANS(ICE 점수 0-10; 섬망·발작·뇌부종). ASTCT 2019 CRS 등급: **Grade 1**(발열만)→**Grade 2**(발열+수액반응 저혈압/저유량 O₂)→**Grade 3**(승압제 필요/고유량 O₂)→**Grade 4**(기계환기·ECMO). 빈발 트리거: CD19 CAR-T(CD28 공자극 → 빠른 증식·중증; Axicabtagene·Tisagenlecleucel), CD19 CAR-T(4-1BB → 완만·경증; KymRAH), BCMA CAR-T(Idecabtagene·Ciltacabtagene·MM), CD20/BCMA 이중특이항체(Mosunetuzumab·Teclistamab·Glofitamab), 블리나투모맙(CD3×CD19·주기적 CRS). 6종 약물 완전 PK/PD: **토실리주맙**(Anti-IL-6R mAb·TMDD·CL=0.22 L/d·t½=11-13d·gp130 cis/trans 신호 모두 차단·FDA CRS 승인 2017)·**실투시맙**(Anti-IL-6 mAb·t½=21d·IL-6 직접 중화·Castleman disease 적응증)·**덱사메타손**(GR/NF-κB·t½=3.5h·IL-6·TNF-α·IFN-γ 억제·모든 ICANS 등급 1차)·**룩솔리티닙**(JAK1/2·t½=3h·IC50 JAK1 3.3nM·pSTAT3/pSTAT1 억제·대식세포 IL-6 피드백 루프 차단·난치성 CRS/HLH 2차)·**아나킨라**(IL-1Ra·SC·t½=4-6h·NLRP3 인플라마솜 하류 차단·MAS 중첩/소아 선호). **100+ 노드 10 서브그래프 클러스터**(①면역치료 트리거 CAR-T/BiAb ②T세포 활성화·증식(IL-2 자가분비) ③T세포 유래 사이토카인(IFN-γ·IL-2·GM-CSF·TNF-α) ④대식세포/골수세포 활성화 ⑤IL-6 신호 네트워크(JAK-STAT3·SOCS3 음성피드백·CRP·피브리노겐) ⑥내피·혈관 반응 ⑦ASTCT CRS 등급 발현 ⑧ICANS 뇌독성 ⑨약물 PK/PD ⑩다발 장기 침범·임상 결과), **22구획 ODE**(CAR-T_ACT·CART_EXH·TUMOR 3; IFNg·IL2·GMCSF·TNFaT T세포 사이토카인 4; MAC_ACT·IL6·IL1B·TNFaM 대식세포 4; STAT3·CRP·FERRITIN IL-6 하류 3; ENDO_ACT·VASC_PERM 혈관 2; CRS_SEV·ORGAN_DMG 임상 2; 5약물 PK 10구획), **5치료 시나리오**(①무치료 ②토실리주맙 Grade 2 ③토실리주맙+덱사 Grade 3 ④룩솔리티닙+덱사 난치성 Grade 4 ⑤아나킨라+덱사 MAS/소아). Teachey 2016 Cancer Discov(IFN-γ Day3 바이오마커)·Neelapu 2017 NEJM(axicabtagene ZUMA-1)·Maude 2014 NEJM(KymRAH ALL)·Giavridis 2018 Nat Med(대식세포 IL-1 기전)·Lee 2019 ASTCT 등급 보정. 예측 바이오마커: IFN-γ Day3(≥75 pg/mL → 중증 특이적)·IL-6(>50 pg/mL)·CRP(>100 mg/L)·페리틴(>2000 ng/mL·HLH 중첩 시 >10,000)·피브리노겐 감소(DIC)·종양 부담(전처치). **6탭 Shiny 대시보드**(환자프로파일&치료선택·약물PK·사이토카인폭풍·임상 엔드포인트·5시나리오 비교·바이오마커&ASTCT 기준 추적). **55개 PubMed 인용** (17개 섹션).<br>[🗺️ 지도](cytokine-release-syndrome/crs_qsp_model.svg) · [⚙️ mrgsolve](cytokine-release-syndrome/crs_mrgsolve_model.R) · [📊 Shiny](cytokine-release-syndrome/crs_shiny_app.R) · [📚 문헌](cytokine-release-syndrome/crs_references.md) · [📄 README](cytokine-release-syndrome/README.md) |
+
+---
+
+## 🔴 사이토카인 방출 증후군 (CRS) — 최신 모델 상세 (2026-06-26)
+
+> **디렉토리:** [`cytokine-release-syndrome/`](cytokine-release-syndrome/) | **약어:** CRS | **날짜:** 2026-06-26
+
+[![CRS QSP Mechanistic Map](cytokine-release-syndrome/crs_qsp_model.png)](cytokine-release-syndrome/crs_qsp_model.svg)
+
+### 질환 개요
+
+사이토카인 방출 증후군(CRS)은 CAR-T세포 치료 또는 이중특이항체 투여 후 발생하는 치명적인 초염증 증후군입니다. CD19 CAR-T 환자의 50-90%에서 발생하며(Grade ≥2: 20-30%), 현대적 관리(토실리주맙+덱사메타손)로 사망률이 10% 이상에서 3% 미만으로 감소했습니다.
+
+**핵심 병리 기전:**
+```
+CAR-T 주입 (Day 0) → 항원 인식 → T세포 활성화·증식
+→ IFN-γ↑↑↑ + GM-CSF↑ → 대식세포 M1 활성화(JAK-STAT1)
+→ IL-6↑↑↑(★핵심) + IL-1β(NLRP3) + TNF-α
+→ 내피 활성화(iNOS→NO→혈관확장) → 저혈압·저산소증 → CRS 등급 상승
+→ 혈뇌장벽 붕괴 → IL-6 CNS 침투 → ICANS
+```
+
+### CRS 아형 및 트리거
+
+| 트리거 | 대표 약제 | CRS 발생 시점 | 주요 등급 |
+|--------|----------|-------------|---------|
+| **CD19 CAR-T (CD28 공자극)** | Axicabtagene (Yescarta®) | Day 1-5 | Grade 2-4 |
+| **CD19 CAR-T (4-1BB 공자극)** | Tisagenlecleucel (KymRAH®) | Day 2-7 | Grade 1-3 (완만) |
+| **BCMA CAR-T** | Idecabtagene (Abecma®) | Day 1-7 | Grade 1-3 |
+| **CD3×CD19 이중특이항체** | Blinatumomab (Blincyto®) | 수 시간 | Grade 1-2 (주기적) |
+| **BCMA×CD3 이중특이항체** | Teclistamab (Tecvayli®) | Day 1-3 | Grade 1-3 |
+
+### ASTCT CRS 등급 체계 (2019)
+
+| 등급 | 발열 | 저혈압 | 저산소증 | 치료 |
+|------|------|--------|---------|------|
+| **Grade 1** | ≥38°C | 없음 | 없음 | 지지 요법 |
+| **Grade 2** | ≥38°C | 수액 반응성 | 저유량 O₂ | **토실리주맙** ± 덱사메타손 |
+| **Grade 3** | ≥38°C | 승압제 1종 필요 | 고유량 O₂ | **토실리주맙 + 덱사메타손** |
+| **Grade 4** | ≥38°C | 승압제 복수 또는 ECMO | 기계 환기 | **토실리주맙 + 덱사 + 룩솔리티닙/아나킨라** |
+
+### 약물 기전 요약
+
+| 약물 | 표적 | CRS에서의 효과 |
+|------|------|--------------|
+| **토실리주맙** | IL-6R (gp130) | IL-6 cis/trans 신호 동시 차단; FDA CRS 승인 (2017); TMDD 동학 |
+| **실투시맙** | 유리 IL-6 | IL-6 직접 중화; IL-6R 차단 없음 |
+| **덱사메타손** | GR/NF-κB | 모든 ICANS 등급에 필수; BBB 안정화; IL-6·TNF-α·IFN-γ 동시 억제 |
+| **룩솔리티닙** | JAK1/2 (IC50 3.3nM) | pSTAT3/pSTAT1↓; 대식세포 IL-6 피드백 루프 차단; 난치성 CRS |
+| **아나킨라** | IL-1R | NLRP3 인플라마솜 하류 차단; MAS 중첩/소아 CRS 선호 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`crs_qsp_model.dot`](cytokine-release-syndrome/crs_qsp_model.dot) | Graphviz 기계론적 지도 (100+ 노드, 10 클러스터) |
+| [`crs_qsp_model.svg`](cytokine-release-syndrome/crs_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`crs_qsp_model.png`](cytokine-release-syndrome/crs_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`crs_mrgsolve_model.R`](cytokine-release-syndrome/crs_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (22구획, 5 치료 시나리오) |
+| [`crs_shiny_app.R`](cytokine-release-syndrome/crs_shiny_app.R) | Shiny 인터랙티브 대시보드 (6탭) |
+| [`crs_references.md`](cytokine-release-syndrome/crs_references.md) | 참고문헌 55편 (17개 섹션) |
