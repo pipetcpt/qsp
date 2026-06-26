@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-179-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-180-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **178개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **180개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -294,6 +294,7 @@ qsp/
 | 168 | 자가면역·소아 류마티스 | [**소아특발성 관절염**<br><sub>Juvenile Idiopathic Arthritis · JIA</sub>](juvenile-idiopathic-arthritis/) | <a href="juvenile-idiopathic-arthritis/jia_qsp_model.svg"><img src="juvenile-idiopathic-arthritis/jia_qsp_model.png" width="190" alt="JIA"></a> | **T세포/B세포·사이토카인(TNF-α/IL-6/IL-1β/IL-18) 매개 활막 염증과 연골·골 파괴. 소수관절형/다관절형 RF±/전신형(sJIA)/ERA/건선성 7아형 모델링. sJIA: NLRP3→IL-1β/IL-18 자가염증 루프·MAS(대식세포 활성화 증후군) 경로 포함. 활막 섬유아세포(FLS) 활성화·NF-κB·MMP-1/13·ADAMTS-4 연골 파괴; RANKL/OPG 파골세포 활성·골미란; 성장판 손상(소아 특이). 에타네르셉트(SC 격주·TMDD 2구획·Lovell 1998 NEJM ACR30 74%)·토실리주맙(IL-6Ri·MM-CL·De Benedetti 2012 NEJM sJIA ACR30 85.7%)·카나키누맙(IL-1βi·Ruperto 2012 NEJM)·MTX(폴리글루타민화·GI/중심/말초/세포내 4구획)·바리시티닙(JAK1/2i) 5약물 완전 PK/PD. 160+ 노드 13클러스터·21구획 ODE·7치료 시나리오(무치료·MTX·MTX+에타네르셉트·토실리주맙(sJIA)·카나키누맙(sJIA)·단계적 치료·바리시티닙). JADAS-27·ACR소아30/50/70·CHAQ·CRP·ESR 임상 엔드포인트. 8탭 Shiny 대시보드(환자프로파일·PK·사이토카인PD·임상엔드포인트·시나리오비교·바이오마커패널·관절손상·MAS위험). 50개 PubMed 인용(14개 섹션)**.<br>[🗺️ 지도](juvenile-idiopathic-arthritis/jia_qsp_model.svg) · [⚙️ mrgsolve](juvenile-idiopathic-arthritis/jia_mrgsolve_model.R) · [📊 Shiny](juvenile-idiopathic-arthritis/jia_shiny_app.R) · [📚 문헌](juvenile-idiopathic-arthritis/jia_references.md) · [📄 README](juvenile-idiopathic-arthritis/README.md) |
 | 169 | 혈액종양·골수증식 | [**본태성 혈소판 증가증**<br><sub>Essential Thrombocythemia · ET</sub>](essential-thrombocythemia/) | <a href="essential-thrombocythemia/et_qsp_model.svg"><img src="essential-thrombocythemia/et_qsp_model.png" width="190" alt="ET"></a> | **JAK2 V617F(55–65%)·CALR Type1/2(25%)·MPL W515L(5%) 돌연변이 → JAK2 구성적 활성 → STAT5·PI3K·MAPK 하류 신호 → 메가카리오사이트 과증식·혈소판 생성 폭주(PLT 500–1500×10⁹/L). TGF-β1 분비 → 섬유아세포 활성화 → 세망섬유화(MF-0→3) → Post-ET 골수섬유화(10yr 10–20%)·AML 전환(~3%). 혈소판 활성화(TXA2/COX-1·P2Y12·GPIb-vWF·GPIIb/IIIa) → 동맥·정맥 혈전증; PLT>1500 → 후천성 von Willebrand병 → 출혈. 5종 약물 완전 PK/PD: 히드록시우레아(RRM2 억제·EC50=3.5µg/mL·PT-1 NEJM 2005 CHR 60%)·아나그렐리드(PDE3A 선택적 억제·EC50=25ng/mL·ANAHYDRET Blood 2013)·룩솔리티닙(JAK1/2 Ki=3nM·RESPONSE-2)·페길화 IFN-α2a(JAK2+ 클론 선택적 억제·Kiladjian 2013)·아스피린(COX-1 공유결합 아세틸화). **~160 노드 9 서브그래프 클러스터**(드라이버 돌연변이·JAK-STAT/PI3K·메가카리오포이에시스 계층·사이토카인·혈소판 생물학·혈전/출혈 합병증·약물 PK/PD·임상 엔드포인트·BM 병리/전환), **17구획 ODE**(HSC·MKP·MK·PLT·TPO·JAK2 대립유전자 부담·비장 크기 PD 7구획; HU/ANA/RUX/pIFN 각 2구획 PK 8구획; 혈전·MF 위험 누적 2구획), **7치료 시나리오**(①무치료 ②아스피린 단독 ③HU 500mg+ASA ④HU 1500mg+ASA ⑤아나그렐리드 2mg+ASA ⑥룩솔리티닙 20mg+ASA ⑦Peg-IFN-α2a 90µg/wk+ASA). ELN 2009 반응 기준(CHR: PLT≤400+WBC≤10; PHR; CMR: JAK2 AB<1%). MIPSS-ET 분자 예후 점수 위험 층화. **8탭 Shiny 대시보드**(환자 프로파일&IPSS-ET·약물 PK·혈소판 동태·JAK2 대립유전자 부담·혈전 위험·시나리오 비교·다중 바이오마커 패널·BM 진행). **45개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](essential-thrombocythemia/et_qsp_model.svg) · [⚙️ mrgsolve](essential-thrombocythemia/et_mrgsolve_model.R) · [📊 Shiny](essential-thrombocythemia/et_shiny_app.R) · [📚 문헌](essential-thrombocythemia/et_references.md) · [📄 README](essential-thrombocythemia/README.md) |
 | 170 | 신경근육 | [**근긴장성 이영양증 제1형**<br><sub>Myotonic Dystrophy Type 1 · DM1</sub>](myotonic-dystrophy/) | <a href="myotonic-dystrophy/dm1_qsp_model.svg"><img src="myotonic-dystrophy/dm1_qsp_model.png" width="190" alt="DM1"></a> | **DMPK 유전자 CTG 삼핵산 반복 확장(>50→10,000+) → CUGn RNA 핵내 발형 헤어핀 구조 → 핵내 RNA foci → MBNL1 격리(기능 소실) + PKCβII 활성화 → CUGBP1/CELF1 과인산화(기능 획득) → 태아형 스플라이싱 프로그램 복귀**. CLCN1 태아형(+7a) → ClC-1 단백 소실 → 근막 과흥분성 → 근긴장; INSR 태아형(-11) → 인슐린 저항성(T2DM 3배); SERCA1 태아형(-22) → Ca²⁺ 항상성 장애; TNNT2/CAMK2D/KCNQ1 이상 스플라이싱 → 심장 전도 장애(PR↑·QRS↑·QTc↑·HV>70ms·돌연사 30%); MAPT 4R/3R 불균형+APP → CNS 타우 병리·백질 병변·인지 저하. **멕실레틴(Nav1.4 차단 IC₅₀=3μM·Logigian 2010 RCT·MELT 2018)·ASO(DYNE-101/AOC 1001·RNase H 매개 CUG RNA 분해·MBNL1 복원·스플라이싱 구제)·AAV-MBNL1 유전자치료(실험적)** 완전 PK/PD. **~158 노드 10 클러스터**(유전·분자/RNA결합단백질/이상 선택적 스플라이싱/골격근/심장/CNS·인지/내분비·대사/약동학/약력학/임상 엔드포인트), **22구획 ODE**(멕실레틴 3+ASO 3 PK 6구획; CUG foci·MBNL1·CUGBP1·CLCN1/SERCA1/INSR 스플라이싱 지수 6구획; 근긴장VAS·악력·근육량·PR·QTc·HOMA-IR·FVC% 7 임상구획), **7치료 시나리오**(①자연경과 ②멕실레틴200mg TID ③300mg TID MELT ④ASO 4주 간격 ⑤멕실레틴+ASO 복합 ⑥AAV-MBNL1 유전자치료 ⑦중증CTG=1200). Logigian 2010 Neurology(VAS −2.6점)·MELT 2018·DYNE-101 Ph2 2023(CLCN1 ~40pp 개선)·Groh 2008 NEJM(HV>70ms→SCD 5배) 보정. CLCN1 exon7a 스플라이싱 지수·RNA foci·DMPK mRNA·근긴장 VAS·악력·PR/QRS/QTc·HOMA-IR·FVC% 바이오마커. **7탭 Shiny 대시보드**(환자 프로파일·약물PK·근육·근긴장·심장 안전성·시나리오 비교·바이오마커 패널·CNS·대사). **40개 PubMed 인용** (10개 섹션).<br>[🗺️ 지도](myotonic-dystrophy/dm1_qsp_model.svg) · [⚙️ mrgsolve](myotonic-dystrophy/dm1_mrgsolve_model.R) · [📊 Shiny](myotonic-dystrophy/dm1_shiny_app.R) · [📚 문헌](myotonic-dystrophy/dm1_references.md) · [📄 README](myotonic-dystrophy/README.md) |
+| 172 | 호흡기·이비인후과 | [**만성 비부비동염 동반 비용종**<br><sub>Chronic Rhinosinusitis with Nasal Polyps · CRSwNP</sub>](chronic-rhinosinusitis-with-nasal-polyps/) | <a href="chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.svg"><img src="chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.png" width="190" alt="CRSwNP"></a> | **비강·부비동 상피세포 손상 → TSLP·IL-33·IL-25 경보소(alarmin) 방출 → ILC2 활성화·수지상세포 Th2 성숙화 → IL-4/IL-5/IL-13 폭포 → IgE 클래스 전환·호산구 동원·배상세포 과증식·점액 과분비. IL-13→ 퍼리오스틴·TGF-β1→ 섬유화; IL-5→ 혈중/조직 호산구→ ECP/MBP/EPX 탈과립→ 상피 추가 손상. VEGF→ 혈관신생→ 부종→ 비용종 성장(NPS 0→8). 황색포도상구균 장독소(SEB) → B세포 다클론 활성화 → 국소 IgE 과잉 생산(AERD 아형 특징). AERD(Samter 삼징후): ASA/NSAIDs→ COX-1 억제→ PGE2 감소→ LTC4/D4 과잉→ 비용종+천식+NSAID 과민성. 5종 바이오로직 완전 PK/PD: **dupilumab**(anti-IL-4Rα 300mg SC q2w·SINUS-24/52·ΔNPS −1.8~−2.1)·**mepolizumab**(anti-IL-5 100mg SC q4w·SYNAPSE·혈중 호산구 −60%)·**benralizumab**(anti-IL-5Rα+ADCC 30mg SC q4-8w·OSTRO·호산구 >90% 고갈)·**omalizumab**(anti-IgE 75–600mg SC·POLYP 1&2)·**tezepelumab**(anti-TSLP 210mg SC q4w·WAYPOINT·가장 상류 차단). **154+ 노드 11 서브그래프 클러스터**(①상피장벽·경보소 ②선천면역 ILC2·비만세포 ③적응면역 Th2·Treg·형질세포 ④사이토카인·케모카인·지질 매개물 ⑤호산구 생물학 ⑥IgE 축·FcεRI ⑦조직 리모델링·비용종 성장 ⑧약물 PK/PD ⑨신경성 염증·감각 증상 ⑩임상 엔드포인트·바이오마커 ⑪내표형·동반질환), **22구획 ODE**(dupilumab 3+mepo/benra/omali/teze 각 2 PK 11구획; EPI·TSLP·ILC2·TH2·IL4·IL5·IL13·IGE·EOSB·EOST·GOBC·TGFB·VEGF·NPS 14구획 + SNOT22·OBS_VAS·OLFACT·BLD_EOS·FeNO 유도 변수), **7치료 시나리오**(①무치료 ②INCS 단독 ③dupilumab+INCS ④mepolizumab+INCS ⑤benralizumab+INCS ⑥omalizumab+INCS ⑦tezepelumab+INCS). SINUS-24/52·SYNAPSE·OSTRO·POLYP 1&2·WAYPOINT 보정. **7탭 Shiny 대시보드**(환자 프로파일·바이오마커 기반 내표형 선택·약물 PK·사이토카인/호산구/IgE 동태·임상 엔드포인트 NPS/SNOT-22/PNIF·시나리오 비교·호산구/IgE 반응자 분석·치료 중단 후 재발 장기 시뮬레이션). **60개 PubMed 인용** (18개 섹션).<br>[🗺️ 지도](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.svg) · [⚙️ mrgsolve](chronic-rhinosinusitis-with-nasal-polyps/crsnp_mrgsolve_model.R) · [📊 Shiny](chronic-rhinosinusitis-with-nasal-polyps/crsnp_shiny_app.R) · [📚 문헌](chronic-rhinosinusitis-with-nasal-polyps/crsnp_references.md) · [📄 README](chronic-rhinosinusitis-with-nasal-polyps/README.md) |
 | 171 | 정신·신경 | [**주의력결핍과잉행동장애**<br><sub>Attention Deficit Hyperactivity Disorder · ADHD</sub>](adhd/) | <a href="adhd/adhd_qsp_model.svg"><img src="adhd/adhd_qsp_model.png" width="190" alt="ADHD"></a> | **도파민(DA)·노르에피네프린(NE) 신경전달 저하로 인한 전전두피질(PFC) 기능 장애. DAT1/DRD4/DRD5/SNAP25/COMT 위험 유전자 → 중뇌(VTA→PFC) DA 합성 감소·청반(LC→PFC) NE 긴장도 저하 → PFC 피질 성숙 3년 지연**. D1R 저자극 → AMPAR 시냅스 약화 → 작업기억(WM)↓; α2A-AR 저자극 → HCN 채널 개방 → Ih전류↑ → PFC 네트워크 불안정. **역U 함수(Arnsten)**: PFC 기능 = 최적 DA/NE 긴장도에서 극대화, 결핍(ADHD) 또는 과잉(자극제 과용) 모두 인지 저하. 5종 약물 완전 PK/PD: 메틸페니데이트IR/ER(DAT/NET 경쟁적 억제·Ki=34/340nM·Volkow 1998 PET DAT점유 72%)·암페타민XR(DAT 역방향 수송+방출·Ki=100nM)·아토목세틴(선택적 NET 억제·Ki=2nM·CYP2D6 EM/PM 대사형 4배 차이·Michelson 2001 NEJM Pediatrics)·구안파신ER(α2A-AR 효현제·Ki=1nM·HCN채널 폐쇄·Sallee 2009 JAACAP)·빌록사진ER(NET+5-HT2B·Nasser 2021). **~140 노드 9 클러스터**(유전·신경발달/카테콜아민 생합성/도파민계/노르에피네프린계/PFC회로·인지/약동학/약력학/임상엔드포인트/바이오마커), **25구획 ODE**(MPH 3+AMP 3+ATX 3+GFN 4+VLX 2 PK 15구획; DA_syn·NE_syn·DAT_occ·NET_occ·PFC_DA·PFC_NE·WM_idx·ExecFun·ADHD_RS·CGI_S·QoL_idx 11구획), **7치료 시나리오**(①무치료 ②MPH IR TID ③MPH ER QD ④AMP XR QD ⑤ATX QD ⑥GFN ER QD ⑦VLX ER QD). MTA 1999(n=579, MPH ADHD-RS −10점)·Michelson 2001(n=297, ATX −8점)·Sallee 2009(n=345, GFN −7점)·Nasser 2021(n=460, VLX −8점)·Volkow 1998 PET(DAT점유 72%) 보정. **7탭 Shiny 대시보드**(환자프로파일·약물PK·DA/NE동태·PFC·인지·임상엔드포인트·시나리오비교·바이오마커). **53개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](adhd/adhd_qsp_model.svg) · [⚙️ mrgsolve](adhd/adhd_mrgsolve_model.R) · [📊 Shiny](adhd/adhd_shiny_app.R) · [📚 문헌](adhd/adhd_references.md) · [📄 README](adhd/README.md) |
 
 ---
@@ -3106,3 +3107,83 @@ Clinical ADHD Syndrome:
 | [`adhd_mrgsolve_model.R`](adhd/adhd_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (25구획, 7 시나리오) |
 | [`adhd_shiny_app.R`](adhd/adhd_shiny_app.R) | Shiny 인터랙티브 대시보드 (7탭) |
 | [`adhd_references.md`](adhd/adhd_references.md) | 참고문헌 53편 (12개 섹션) |
+
+---
+
+## 172. 만성 비부비동염 동반 비용종 (Chronic Rhinosinusitis with Nasal Polyps, CRSwNP)
+
+> **디렉토리:** [`chronic-rhinosinusitis-with-nasal-polyps/`](chronic-rhinosinusitis-with-nasal-polyps/) | **약어:** CRSwNP | **날짜:** 2026-06-26  
+> **분류:** 호흡기·이비인후과 (Respiratory/ENT) | **ICD-10:** J33 (비용종) / J32 (부비동염) | **관련 endotype:** Type 2 eosinophilic (≥90% Western), non-eosinophilic (Asian)  
+> **유병률:** 전체 인구의 약 4–5% (성인); 중증 CRSwNP ~1–2%
+
+[![CRSwNP QSP 기계론적 지도](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.png)](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.svg)
+
+### 병태생리 핵심 경로
+
+```
+상피세포 손상 (알레르겐·병원체·오염물질·SEB 등)
+        │
+        ▼  Alarmin 방출
+   TSLP + IL-33 + IL-25 (type 2 경보소)
+        │
+   ┌────┼────────────────────────────────────┐
+   ▼   ▼                                    ▼
+ ILC2 MastCell               DCs (Th2-polarizing)
+   │    │                        │
+   │    │ → Histamine, PGD2,     │ → Th2 polarization
+   │    │   LTC4/D4, Tryptase    │
+   ▼                             ▼
+IL-4, IL-5, IL-13 ─────────────────► IL-4, IL-5, IL-13
+   │
+   ├─ IL-4/IL-13 → IL-4Rα → IgE class switching → Plasma cell IgE ↑
+   ├─ IL-4/IL-13 → Goblet cell hyperplasia → MUC5AC↑, Rhinorrhea
+   ├─ IL-13 → Periostin (POSTN) → Subepithelial fibrosis
+   ├─ IL-13 → Eotaxin-3 (CCL26) → Tissue eosinophil recruitment
+   └─ IL-5 → Blood Eosinophil ↑ → Tissue Eos → ECP/MBP/EPX degranulation
+                                                      │
+                                        TGF-β1 ──────►│───► Fibrosis
+                                        VEGF ─────────►│───► Angiogenesis → Edema
+                                                        ▼
+                                              NASAL POLYP GROWTH (NPS ↑)
+```
+
+### QSP 모델 구성
+
+- **기계론적 지도**: **154+ 노드 · 11 서브그래프 클러스터** (①상피장벽·경보소 ②선천면역 ILC2·비만세포·호염기구·DC ③적응면역 Th2·Treg·Tfh·형질세포 ④사이토카인·케모카인·지질매개물 ⑤호산구 생물학 ⑥IgE 축·FcεRI ⑦조직 리모델링·비용종 성장 ⑧약물 PK/PD ⑨신경성 염증·감각 증상 ⑩임상 엔드포인트·바이오마커 ⑪내표형·동반질환)
+- **mrgsolve ODE**: **22구획** — dupilumab 2-구획 SC + 4종 바이오로직 각 1구획 SC PK 11구획; EPI·TSLP·ILC2·TH2·IL4·IL5·IL13·IGE·EOSB·EOST·GOBC·TGFB·VEGF·NPS 14 disease 구획 (OBS_VAS·SNOT22·OLFACT·BLD_EOS·FeNO·PERIOSTIN 유도 변수)
+- **치료 시나리오 7가지**: ①무치료 ②INCS 단독 ③Dupilumab 300mg q2w+INCS ④Mepolizumab 100mg q4w+INCS ⑤Benralizumab 30mg q4w→q8w+INCS ⑥Omalizumab 300mg q4w+INCS ⑦Tezepelumab 210mg q4w+INCS
+- **Shiny 대시보드**: 7탭 — 환자 프로파일·바이오마커 선택 / 약물 PK / 사이토카인·바이오마커 동태 / 임상 엔드포인트 (NPS·SNOT-22·PNIF·OLFACT) / 시나리오 비교 / 반응자 분석 / 장기 치료 중단 후 재발 시뮬레이션
+
+### 주요 임상시험 보정
+
+| 임상시험 | 치료 | 1차 결과 | 참고문헌 |
+|---------|------|---------|---------|
+| **LIBERTY NP SINUS-24** | Dupilumab 300mg q2w | ΔNPS −1.8 (vs. −0.2 위약) | *Lancet* 2019 |
+| **LIBERTY NP SINUS-52** | Dupilumab 300mg q2w | ΔNPS −2.1; ΔSNOT-22 −19.7 | *Lancet* 2019 |
+| **SYNAPSE** | Mepolizumab 100mg q4w | ΔNPS −0.9; 혈중 Eos −55% | *Lancet Respir Med* 2021 |
+| **OSTRO** | Benralizumab 30mg q4-8w | ΔNPS −0.9; 혈중 Eos >90% ↓ | *J Allergy Clin Immunol* 2022 |
+| **POLYP 1&2** | Omalizumab (wt/IgE 기반) | ΔNPS −1.1 | *NEJM / Lancet Respir Med* |
+| **WAYPOINT** | Tezepelumab 210mg q4w | ΔNPS −1.3; 혈중 Eos −66% | *Lancet Respir Med* 2023 |
+
+### 바이오마커 기반 약물 선택 가이드
+
+| 바이오마커 | 임계값 | 권장 약물 | 근거 |
+|-----------|--------|---------|------|
+| 혈중 호산구 | ≥300 cells/μL | Benralizumab, Mepolizumab | SYNAPSE, OSTRO 하위그룹 |
+| 혈중 호산구 | ≥150 cells/μL | Dupilumab, Tezepelumab | 모든 내표형에서 유효 |
+| 총 IgE | 30–1,500 kU/L + 체중기준 | Omalizumab | POLYP 1&2 적응증 |
+| 퍼리오스틴 | ≥25 ng/mL | Dupilumab (IL-13 fibrotic) | IL-13-driven 표현형 |
+| TSLP 과발현 | 조직 생검 | Tezepelumab | 가장 상류 차단 |
+| 모든 내표형 | — | Tezepelumab, Dupilumab | 내표형 무관 효과 |
+
+### 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`crsnp_qsp_model.dot`](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.dot) | Graphviz 기계론적 지도 (154+ 노드, 11 클러스터) |
+| [`crsnp_qsp_model.svg`](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`crsnp_qsp_model.png`](chronic-rhinosinusitis-with-nasal-polyps/crsnp_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`crsnp_mrgsolve_model.R`](chronic-rhinosinusitis-with-nasal-polyps/crsnp_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (22구획, 7 시나리오) |
+| [`crsnp_shiny_app.R`](chronic-rhinosinusitis-with-nasal-polyps/crsnp_shiny_app.R) | Shiny 인터랙티브 대시보드 (7탭) |
+| [`crsnp_references.md`](chronic-rhinosinusitis-with-nasal-polyps/crsnp_references.md) | 참고문헌 60편 (18개 섹션) |
+| [`README.md`](chronic-rhinosinusitis-with-nasal-polyps/README.md) | 디렉토리 상세 문서 |
