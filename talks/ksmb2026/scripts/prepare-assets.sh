@@ -45,4 +45,5 @@ mkdir -p "$(dirname "$CSV")"
 )
 
 python3 "$HERE/build_assets.py"
+python3 "$HERE/build_merigolix.py"   # faithful preview of the live Merigolix dashboard
 echo "prepare-assets: done."

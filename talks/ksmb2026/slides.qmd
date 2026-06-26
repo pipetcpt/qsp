@@ -331,7 +331,7 @@ E_muc = 1-(1-E_bud)*(1-E_sib);
 - patient profile · PK · pathophysiology
 - clinical endpoints · scenario comparison · biomarkers (6–8 tabs)
 
-![](assets/shiny/igan_dashboard.png){width="100%"}
+![](assets/shiny/merigolix_dashboard.png){width="100%"}
 :::
 ::: {.column width="48%"}
 **④ Reference grounding** — traceable evidence
@@ -343,6 +343,57 @@ E_muc = 1-(1-E_bud)*(1-E_sib);
 [Grounding is what separates a model from a guess.]{.lead}
 :::
 ::::
+
+## From biology to runnable code — `mrgsolve`
+
+Each model is a compact, C++-compiled ODE program (Merigolix-flavoured excerpt):
+
+```cpp
+[PARAM] CL=549, Vc=1690, Ka=3.4, IC50=1.5, kin=3.8, kout=0.066
+[CMT]   GUT, CENT, E2, LESION
+[ODE]
+double Cp   = CENT/Vc;                    // plasma drug
+double inh  = Imax*Cp/(IC50 + Cp);        // Hill inhibition
+dxdt_GUT    = -Ka*GUT;
+dxdt_CENT   =  Ka*GUT - (CL/Vc)*CENT;
+dxdt_E2     =  kin*(1 - inh) - kout*E2;   // estradiol turnover
+dxdt_LESION =  kg*E2*LESION - kreg*LESION;// E2-driven lesion growth
+```
+
+[~40 lines define a full PK → hormone → disease model.]{.lead}
+
+## From model to interactive app — `Shiny`
+
+A reactive server turns parameter sliders into live clinical predictions:
+
+```r
+server <- function(input, output) {
+  sim <- reactive({
+    mod |> param(IC50 = input$ic50, CL = input$cl) |>
+      ev(amt = input$dose, ii = 24, addl = input$days) |>
+      mrgsim(end = 168)
+  })
+  output$e2   <- renderPlot(plot(sim(), E2   ~ time))
+  output$pain <- renderPlot(plot(sim(), PAIN ~ time))
+}
+```
+
+[Move a slider → re-solve the ODEs → E2, pain, BMD update instantly.]{.lead}
+
+## The Claude Code Routine — in pseudocode
+
+```python
+while True:                       # runs on a schedule, ~daily
+    disease = pick_uncovered(rotate_categories=True)
+    refs    = read_pubmed(disease, n=50)             # broad literature sweep
+    cmap    = build_graphviz_map(disease, refs)      # >= 100 nodes
+    model   = write_mrgsolve_odes(disease, refs)     # >= 15 ODEs
+    app     = build_shiny_dashboard(model)           # >= 6 tabs
+    assert quality_gates(cmap, model, app, refs)     # hard minimums
+    git_commit_and_push(disease)                     # stop-hook enforced
+```
+
+[One disease, end-to-end, every run — and it never tires.]{.lead}
 
 ## A living library, growing daily
 
@@ -379,6 +430,46 @@ One consistent framework, spanning the spectrum of human disease:
 - **Immune / hematologic** — lupus, RA, sickle cell, ITP, myelofibrosis…
 
 Hundreds of distinct **drugs and molecular targets**.
+:::
+::::
+
+## Case vignettes — one modeling insight each (1 / 2)
+
+:::: {.columns}
+::: {.column width="33%"}
+**NSCLC — EGFR resistance**
+
+Osimertinib vs the **T790M / C797S** escape clones: the model times resistant-clone outgrowth → rationale for combination or sequencing.
+:::
+::: {.column width="33%"}
+**HFrEF — GDMT sequencing**
+
+ARNI · β-blocker · MRA · SGLT2i: explore **order and up-titration speed** against reverse remodeling (LVEF, NT-proBNP).
+:::
+::: {.column width="33%"}
+**ATTR amyloidosis — gene silencing**
+
+TTR knockdown (patisiran / vutrisiran) → tetramer–monomer kinetics → neuropathy and cardiac burden over years.
+:::
+::::
+
+## Case vignettes — one modeling insight each (2 / 2)
+
+:::: {.columns}
+::: {.column width="33%"}
+**SLE — type-I interferon**
+
+Anifrolumab (anti-IFNAR) damps the IFN signature; the model links IFN → autoantibody → flare risk (SLEDAI).
+:::
+::: {.column width="33%"}
+**T2DM — incretin axis**
+
+GLP-1 / GIP (tirzepatide): a glucose–insulin–weight feedback loop → HbA1c and body-weight trajectories.
+:::
+::: {.column width="33%"}
+**ITP — platelet kinetics**
+
+TPO-receptor agonists vs anti-platelet antibody: a production-versus-destruction balance → platelet recovery.
 :::
 ::::
 
@@ -486,6 +577,58 @@ $$\dot N = rN\!\Big(1-\tfrac{N}{K}\Big)(1{+}k_{IL6}\,IL6)-\mathrm{kill}(C)\,N-k_
 ::::
 
 [Reduced-model trajectories (treated vs. untreated). The full `mrgsolve` models drive the interactive Shiny dashboards.]{.fineprint}
+
+## Flagship case — Merigolix, a GnRH antagonist for endometriosis
+
+:::: {.columns}
+::: {.column width="58%"}
+![](assets/shiny/merigolix_dashboard.png){width="100%"}
+:::
+::: {.column width="42%"}
+**Mechanism.** An oral GnRH-receptor antagonist lowers LH/FSH → suppresses ovarian **estradiol (E2)** → regression of estrogen-dependent endometriotic lesions and pain.
+
+**One model couples**
+
+- 2-compartment **PK** (Ka, CL/F, Vc, Q, Vp)
+- HPG-axis **PD** — E2 / LH / FSH turnover with Hill inhibition
+- **endpoints** — pain (NRS), lesion size, hot flashes, **BMD**, endometrium
+
+[Drug → hormone → lesion → symptom, in one ODE system.]{.lead}
+:::
+::::
+
+## Merigolix — the estrogen "threshold" trade-off
+
+:::: {.columns}
+::: {.column width="50%"}
+**The therapeutic window** (the estrogen-threshold hypothesis)
+
+- too little E2 suppression → no symptom relief
+- too much → **hot flashes** and **bone loss**
+- aim for a *partial* E2 band (~20–40 pg/mL)
+
+The model makes it quantitative: dose → E2 trough → simultaneous **benefit** (pain ↓, lesion ↓) and **risk** (BMD ↓, flashes ↑).
+:::
+::: {.column width="50%"}
+**This simulation run**
+
+- E2 trough **2.6 pg/mL**; pain **3.1 → 1.1**; lesion **18.5 → 5.3 mm**
+- but **BMD −1.22%** and hot flashes **5.4 → 7.9 / day**
+- → motivates **dose titration** and **hormonal add-back**
+
+[QSP turns a clinical trade-off into a tunable optimization.]{.lead}
+:::
+::::
+
+## Try it live
+
+```{=html}
+<iframe src="https://pipetqsp.shinyapps.io/merigolix/" width="100%" height="600"
+        style="border:1px solid #D9E1E8; border-radius:8px; background:#fff;"
+        loading="lazy" referrerpolicy="no-referrer"></iframe>
+```
+
+[Live app → **pipetqsp.shinyapps.io/merigolix** — move the sliders during the talk.]{.fineprint}
 
 ## The mathematics of the *whole* library
 
