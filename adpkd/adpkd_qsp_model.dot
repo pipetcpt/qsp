@@ -1,0 +1,582 @@
+digraph ADPKD_QSP {
+    graph [
+        label = "ADPKD Quantitative Systems Pharmacology Model\nAutosomal Dominant Polycystic Kidney Disease\nDrug Targets: Tolvaptan · Everolimus · Octreotide LAR · ACEi/ARB"
+        fontname = "Helvetica"
+        fontsize = 22
+        rankdir = TB
+        splines = polyline
+        overlap = false
+        compound = true
+        bgcolor = "#FAFAFA"
+        nodesep = 0.35
+        ranksep = 0.6
+    ]
+    node [fontname="Helvetica" fontsize=8 style=filled shape=ellipse]
+    edge [fontname="Helvetica" fontsize=7 arrowsize=0.6]
+
+    // ============================
+    // Cluster 0: Drug Inputs & PK
+    // ============================
+    subgraph cluster_drug_pk {
+        label = "Drug PK Compartments"
+        style = filled
+        fillcolor = "#E3F2FD"
+        color = "#1565C0"
+        fontsize = 11
+
+        TOLV_DOSE   [label="Tolvaptan\nOral Dose\n(mg)" shape=box fillcolor="#1565C0" fontcolor=white]
+        TOLV_GUT    [label="Tolvaptan\nGut (Agut)" fillcolor="#90CAF9"]
+        TOLV_CENT   [label="Tolvaptan\nCentral (Cp)" fillcolor="#42A5F5"]
+        TOLV_PERI   [label="Tolvaptan\nPeripheral (V2)" fillcolor="#64B5F6"]
+        TOLV_CYP3A4 [label="CYP3A4\nMetabolism\n(hepatic)" shape=diamond fillcolor="#1976D2" fontcolor=white]
+        TOLV_HEPATO [label="Hepatic\nToxicity Risk\n(ALT/AST↑)" shape=hexagon fillcolor="#FF7043"]
+
+        EVER_DOSE   [label="Everolimus\nOral Dose\n(mg)" shape=box fillcolor="#6A1B9A" fontcolor=white]
+        EVER_GUT    [label="Everolimus\nGut (Egut)" fillcolor="#CE93D8"]
+        EVER_CENT   [label="Everolimus\nBlood (Ce)" fillcolor="#AB47BC"]
+        EVER_PERI   [label="Everolimus\nPeripheral (V2)" fillcolor="#9C27B0" fontcolor=white]
+
+        ACEI_DOSE   [label="ACEi/ARB\nOral Dose\n(mg)" shape=box fillcolor="#004D40" fontcolor=white]
+        ACEI_CENT   [label="ACEi/ARB\nPlasma (Cp)" fillcolor="#80CBC4"]
+
+        OCTR_DOSE   [label="Octreotide LAR\nDepot Injection\n(30 mg/28 days)" shape=box fillcolor="#E65100" fontcolor=white]
+        OCTR_DEPOT  [label="Octreotide\nDepot\n(slow release)" fillcolor="#FFAB40"]
+        OCTR_CENT   [label="Octreotide\nPlasma (Cp)" fillcolor="#FF9800"]
+
+        TOLV_DOSE  -> TOLV_GUT  [label="oral F=0.56"]
+        TOLV_GUT   -> TOLV_CENT [label="ka=1.0/h"]
+        TOLV_CENT  -> TOLV_PERI [label="Q/V1"]
+        TOLV_PERI  -> TOLV_CENT [label="Q/V2"]
+        TOLV_CENT  -> TOLV_CYP3A4 [label="CL=4 L/h"]
+        TOLV_CYP3A4 -> TOLV_HEPATO [label="reactive\nmetabolite?" style=dashed]
+
+        EVER_DOSE  -> EVER_GUT  [label="oral F=0.16"]
+        EVER_GUT   -> EVER_CENT [label="ka=0.4/h"]
+        EVER_CENT  -> EVER_PERI [label="Q/V1"]
+        EVER_PERI  -> EVER_CENT [label="Q/V2"]
+
+        ACEI_DOSE  -> ACEI_CENT [label="oral F=0.6"]
+        OCTR_DOSE  -> OCTR_DEPOT [label="IM/SC depot"]
+        OCTR_DEPOT -> OCTR_CENT  [label="krel=0.002/h"]
+    }
+
+    // ============================
+    // Cluster 1: Genetics
+    // ============================
+    subgraph cluster_genetics {
+        label = "Genetic Layer: PKD1 / PKD2 Mutations"
+        style = filled
+        fillcolor = "#FCE4EC"
+        color = "#C62828"
+        fontsize = 11
+
+        PKD1_GENE   [label="PKD1 Gene\n(Chr 16p13.3)\n~85% of cases" shape=box3d fillcolor="#C62828" fontcolor=white]
+        PKD2_GENE   [label="PKD2 Gene\n(Chr 4q22.1)\n~15% of cases" shape=box3d fillcolor="#C62828" fontcolor=white]
+        GERMLINE_MUT [label="Germline\nHeterozygous\nMutation" fillcolor="#EF9A9A"]
+        SOMATIC_HIT  [label="Somatic\nSecond Hit\n(two-hit model)" fillcolor="#E57373"]
+        LOH          [label="Loss of\nHeterozygosity\n(LOH)" fillcolor="#EF9A9A"]
+        PC1_PROTEIN  [label="Polycystin-1\n(PC1 / 3,074 aa)\n11-TM GPCR-like" fillcolor="#FFCDD2"]
+        PC2_PROTEIN  [label="Polycystin-2\n(PC2 / TRPP2)\nTRP Ca²⁺ channel" fillcolor="#FFCDD2"]
+        PC1_PC2_COMPLEX [label="PC1–PC2\nHeterocomplex\n(at primary cilium)" fillcolor="#C62828" fontcolor=white]
+        HAPLO_INSUFF [label="Haploinsufficiency\n(partial PC1 loss)" fillcolor="#EF9A9A"]
+        PKD1_TRUNCAT [label="Truncating\nMutations\n(~70% PKD1)" fillcolor="#FFCDD2"]
+        PKD2_MISSENSE [label="PKD2 Missense\nMutations" fillcolor="#FFCDD2"]
+        CILIA_DEFECT [label="Loss of Ciliary\nLocalization\n& Signaling" fillcolor="#EF9A9A"]
+        SOMATIC_RATE [label="Somatic Mutation\nRate / Cell\n(~1e-5 per gene)" fillcolor="#F48FB1"]
+
+        PKD1_GENE    -> GERMLINE_MUT
+        PKD2_GENE    -> GERMLINE_MUT
+        GERMLINE_MUT -> SOMATIC_HIT [label="second hit\nin single cell"]
+        SOMATIC_HIT  -> LOH
+        LOH -> PC1_PROTEIN [label="null → no\nfunctional PC1" style=dashed]
+        LOH -> PC2_PROTEIN [label="null → no\nfunctional PC2" style=dashed]
+        PKD1_GENE    -> PKD1_TRUNCAT
+        PKD2_GENE    -> PKD2_MISSENSE
+        PC1_PROTEIN  -> PC1_PC2_COMPLEX
+        PC2_PROTEIN  -> PC1_PC2_COMPLEX
+        PC1_PC2_COMPLEX -> CILIA_DEFECT [label="loss of\ncomplex →"]
+        PC1_PROTEIN  -> HAPLO_INSUFF
+        SOMATIC_HIT  -> SOMATIC_RATE
+    }
+
+    // ============================
+    // Cluster 2: Ca²⁺ / Polycystin
+    // ============================
+    subgraph cluster_calcium {
+        label = "Polycystin / Calcium Signaling (Primary Cilium)"
+        style = filled
+        fillcolor = "#E8F5E9"
+        color = "#2E7D32"
+        fontsize = 11
+
+        PRIMARY_CILIUM  [label="Primary Cilium\n(mechanosensor)" shape=box fillcolor="#2E7D32" fontcolor=white]
+        FLUID_FLOW      [label="Tubular Fluid\nFlow Bending\n(↑shear stress)" fillcolor="#A5D6A7"]
+        PC1_GPS         [label="PC1 GPS-motif\nAutoproteolyic\nCleavage" fillcolor="#81C784"]
+        PC1_NTF         [label="PC1 N-terminal\nFragment (NTF)" fillcolor="#C8E6C9"]
+        PC1_CTF         [label="PC1 C-terminal\nFragment (CTF)" fillcolor="#C8E6C9"]
+        PC1_NUCLEAR     [label="PC1-CTF\nNuclear\nTranslocation" fillcolor="#66BB6A"]
+        PC2_CHANNEL     [label="PC2 Channel\nGating\n(flow-activated)" fillcolor="#81C784"]
+        CA2_IC          [label="[Ca²⁺]i\nIntracellular\n↓ in ADPKD" fillcolor="#1B5E20" fontcolor=white]
+        ER_CA2_RELEASE  [label="ER Ca²⁺\nRelease" fillcolor="#388E3C" fontcolor=white]
+        IP3R            [label="IP₃ Receptor\n(ER membrane)" fillcolor="#A5D6A7"]
+        RYR             [label="Ryanodine\nReceptor (RyR)" fillcolor="#A5D6A7"]
+        SERCA_PUMP      [label="SERCA Pump\n(Ca²⁺ re-uptake\ninto ER)" fillcolor="#C8E6C9"]
+        STIM1           [label="STIM1\n(ER Ca²⁺ sensor)" fillcolor="#81C784"]
+        ORAI1           [label="Orai1 Channel\n(CRAC, SOCE)" fillcolor="#A5D6A7"]
+        SOCE            [label="Store-Operated\nCa²⁺ Entry\n(SOCE)" fillcolor="#4CAF50" fontcolor=white]
+        CALMODULIN      [label="Calmodulin\n(Ca²⁺/CaM)" fillcolor="#66BB6A"]
+        CAMKII          [label="CaMKII\nActivation" fillcolor="#43A047"]
+        CALCINEURIN     [label="Calcineurin\n(PP2B)" fillcolor="#66BB6A"]
+        NFAT_TF         [label="NFAT\nTranscription\nFactor" fillcolor="#81C784"]
+        PLC_GAMMA       [label="PLC-γ\nActivation\n(IP₃ production)" fillcolor="#A5D6A7"]
+
+        PRIMARY_CILIUM -> FLUID_FLOW [label="bends in flow"]
+        FLUID_FLOW -> PC1_GPS [label="activates\nPC1/PC2"]
+        PC1_PROTEIN -> PC1_GPS [label="cleavage"]
+        PC1_GPS -> PC1_NTF
+        PC1_GPS -> PC1_CTF
+        PC1_CTF -> PC1_NUCLEAR [label="nuclear\ntranslocation"]
+        PC2_PROTEIN -> PC2_CHANNEL [label="gating"]
+        PC2_CHANNEL -> CA2_IC [label="Ca²⁺ influx\n(when normal)"]
+        CA2_IC -> ER_CA2_RELEASE [label="Ca²⁺-induced\nCa²⁺ release (CICR)"]
+        IP3R -> ER_CA2_RELEASE
+        RYR  -> ER_CA2_RELEASE
+        ER_CA2_RELEASE -> CA2_IC [label="↑[Ca²⁺]i"]
+        SERCA_PUMP -> ER_CA2_RELEASE [dir=back label="re-uptake"]
+        STIM1  -> ORAI1  [label="ER depletion\nactivates STIM1"]
+        ORAI1  -> SOCE
+        SOCE   -> CA2_IC [label="Ca²⁺ entry"]
+        CA2_IC -> CALMODULIN  [label="Ca²⁺ binding"]
+        CALMODULIN -> CAMKII
+        CALMODULIN -> CALCINEURIN
+        CALCINEURIN -> NFAT_TF [label="dephosphorylates"]
+        PC1_CTF -> PLC_GAMMA  [label="cytoplasmic\ntail activates"]
+        PLC_GAMMA -> IP3R     [label="IP₃ → IP₃R"]
+    }
+
+    // ============================
+    // Cluster 3: cAMP / PKA / AVP
+    // ============================
+    subgraph cluster_cAMP {
+        label = "cAMP / PKA / Vasopressin Axis (Collecting Duct)"
+        style = filled
+        fillcolor = "#FFF8E1"
+        color = "#F57F17"
+        fontsize = 11
+
+        AVPR2        [label="V2 Receptor\n(AVPR2)\nGpcr – Gs-coupled" shape=ellipse fillcolor="#F57F17" fontcolor=white]
+        AVP_HORMONE  [label="AVP / ADH\n(Arginine Vasopressin)\nfrom posterior pituitary" fillcolor="#FFE082"]
+        GS_PROTEIN   [label="Gs Protein\nα-subunit\nCoupling" fillcolor="#FFECB3"]
+        ADENYLYL_CYCASE [label="Adenylyl Cyclase\n(AC5/AC6)\nATP → cAMP" fillcolor="#FFB300"]
+        CAMP_LEVEL   [label="Intracellular\ncAMP ↑\n(key driver)" fillcolor="#E65100" fontcolor=white]
+        PDE4_ENZYME  [label="PDE4/PDE11\nPhosphodiesterase\ncAMP → 5'AMP" fillcolor="#FFB300"]
+        PKA_REG      [label="PKA Regulatory\nSubunit (RII-β)\n4 cAMP bind" fillcolor="#FFCA28"]
+        PKA_CAT      [label="PKA Catalytic\nSubunit (Cα)" fillcolor="#FFA000"]
+        PKA_ACTIVE   [label="Active PKA\nComplex\n(free C-subunit)" fillcolor="#E65100" fontcolor=white]
+        CREB_PHOSPHO [label="CREB\nPhosphorylation\n(Ser133)" fillcolor="#FFCC02"]
+        CRE_TRANSCRIP [label="CRE-Driven\nGene Transcription\n(cyst genes)" fillcolor="#FFE082"]
+        EPAC1        [label="Epac1/Epac2\ncAMP-GEF\n(cAMP sensor)" fillcolor="#FFE0B2"]
+        RAP1_GTP     [label="Rap1-GTP\nActivation" fillcolor="#FFCC80"]
+        PKA_BRAF     [label="PKA → B-Raf\n(Ser445 phospho)" fillcolor="#FF9800"]
+        SSTR2_5      [label="SSTR2/SSTR5\n(Somatostatin\nReceptor 2/5)" shape=ellipse fillcolor="#BF360C" fontcolor=white]
+        SOMATOSTATIN [label="Somatostatin /\nOctreotide /\nLanreotide" shape=box fillcolor="#D84315" fontcolor=white]
+        GI_PROTEIN   [label="Gi Protein\nα-subunit\n(inhibitory)" fillcolor="#FF7043"]
+        AQP2_EXPR    [label="AQP2 Expression\n(water channel)\nV2R-target" fillcolor="#FFCC80"]
+
+        AVP_HORMONE  -> AVPR2       [label="binding Kd~pM"]
+        AVPR2        -> GS_PROTEIN  [label="GPCR\ncoupling"]
+        GS_PROTEIN   -> ADENYLYL_CYCASE [label="Gαs activates\nAC"]
+        ADENYLYL_CYCASE -> CAMP_LEVEL [label="cAMP synthesis\n↑↑ in ADPKD"]
+        PDE4_ENZYME  -> CAMP_LEVEL  [label="degradation" color=red dir=back]
+        CAMP_LEVEL   -> PKA_REG     [label="4 cAMP bind\nregulatory"]
+        PKA_REG      -> PKA_ACTIVE  [label="R dissociates\nfrees C-subunit"]
+        PKA_CAT      -> PKA_ACTIVE
+        PKA_ACTIVE   -> CREB_PHOSPHO [label="nucleus"]
+        CREB_PHOSPHO -> CRE_TRANSCRIP
+        CRE_TRANSCRIP -> AQP2_EXPR  [label="V2R-driven\nAQP2 gene"]
+        CAMP_LEVEL   -> EPAC1       [label="Epac1\nactivation"]
+        EPAC1        -> RAP1_GTP
+        CAMP_LEVEL   -> PKA_BRAF    [label="PKA→B-Raf"]
+        PKA_BRAF     -> PKA_ACTIVE  [label="feeds ERK\nvia Raf-MEK-ERK"]
+        SOMATOSTATIN -> SSTR2_5     [label="binding"]
+        SSTR2_5      -> GI_PROTEIN  [label="Gi coupling"]
+        GI_PROTEIN   -> ADENYLYL_CYCASE [label="inhibits AC" color=red]
+        OCTR_CENT    -> SSTR2_5     [label="octreotide\nbinds SSTR"]
+    }
+
+    // ============================
+    // Cluster 4: mTOR / PI3K
+    // ============================
+    subgraph cluster_mTOR {
+        label = "PI3K / Akt / mTOR Pathway"
+        style = filled
+        fillcolor = "#EDE7F6"
+        color = "#4527A0"
+        fontsize = 11
+
+        EGF_LIGAND   [label="EGF / TGF-α\n(apical mislocation\nin ADPKD)" fillcolor="#B39DDB"]
+        EGFR_RECEPTOR [label="EGFR (ErbB1)\n(mis-located\napical in ADPKD)" shape=ellipse fillcolor="#4527A0" fontcolor=white]
+        GRB2_SOS     [label="GRB2/SOS\nAdaptor\nComplex" fillcolor="#9575CD"]
+        PI3K_CAT     [label="PI3K p110α/δ\n(Class I)" fillcolor="#7E57C2"]
+        PIP2         [label="PIP2\n(PI-4,5-P₂)" fillcolor="#D1C4E9"]
+        PIP3         [label="PIP3\n(PI-3,4,5-P₃)" fillcolor="#9575CD"]
+        PTEN_PHOSPH  [label="PTEN Phosphatase\n(PIP3→PIP2\ntumor suppressor)" fillcolor="#7986CB"]
+        PDK1_KINASE  [label="PDK1\n(PIP3-activated\nkinase)" fillcolor="#9575CD"]
+        AKT_PROTEIN  [label="Akt (PKB)\nThr308 + Ser473\nphosphorylation" fillcolor="#4527A0" fontcolor=white]
+        TSC1_TSC2    [label="TSC1/TSC2\nComplex\n(hamartin/tuberin)" fillcolor="#9575CD"]
+        TSC2_INHIB   [label="TSC2\nPhosphorylation\n(Akt → inactive TSC2)" fillcolor="#7E57C2"]
+        RHEB_GTP     [label="Rheb-GTP\n(mTOR activator)" fillcolor="#4527A0" fontcolor=white]
+        MTORC1       [label="mTORC1\n(Raptor complex)\nRapamycin-sensitive" fillcolor="#1A237E" fontcolor=white]
+        MTORC2       [label="mTORC2\n(Rictor complex)\nRapamycin-insensitive" fillcolor="#283593" fontcolor=white]
+        S6K1_KINASE  [label="S6K1 (p70S6K)\nActivation\n(Thr389)" fillcolor="#7E57C2"]
+        RIBOSOMEBIOG [label="Ribosome\nBiogenesis\n↑ Protein synthesis" fillcolor="#B39DDB"]
+        EBP1_PHOSPHO [label="4E-BP1\nPhosphorylation\n→ mRNA translation" fillcolor="#9575CD"]
+        PRAS40       [label="PRAS40\n(Akt-regulated\nmTORC1 inhibitor)" fillcolor="#D1C4E9"]
+        DEPTOR       [label="DEPTOR\n(negative\nregulator)" fillcolor="#D1C4E9"]
+        AMPK_LKB1    [label="AMPK / LKB1\n(energy sensor\nAMP:ATP↑)" fillcolor="#7986CB"]
+        FKBP12       [label="FKBP12\n(immunophilin\nrapamycin binder)" fillcolor="#CE93D8"]
+        RAPA_COMPLEX [label="FKBP12-\nEverolimus-\nmTOR Complex" shape=diamond fillcolor="#6A1B9A" fontcolor=white]
+
+        EGF_LIGAND   -> EGFR_RECEPTOR [label="apical\nactivation"]
+        EGFR_RECEPTOR -> GRB2_SOS
+        GRB2_SOS     -> PI3K_CAT     [label="Ras→PI3K"]
+        PI3K_CAT     -> PIP2
+        PIP2         -> PIP3         [label="PI3K\nphosphorylates"]
+        PTEN_PHOSPH  -> PIP3         [label="dephosphorylates" color=red dir=back]
+        PIP3         -> PDK1_KINASE  [label="recruits"]
+        PDK1_KINASE  -> AKT_PROTEIN  [label="pThr308"]
+        MTORC2       -> AKT_PROTEIN  [label="pSer473\nfull activation"]
+        AKT_PROTEIN  -> TSC1_TSC2    [label="phospho-TSC2\n→ inhibit" color=red]
+        AKT_PROTEIN  -> TSC2_INHIB
+        TSC1_TSC2    -> RHEB_GTP     [label="GAP activity\n(inhibits Rheb)" color=red]
+        TSC2_INHIB   -> RHEB_GTP     [label="allows Rheb-GTP\naccumulation"]
+        RHEB_GTP     -> MTORC1       [label="activates"]
+        MTORC1       -> S6K1_KINASE  [label="Thr389\nphospho"]
+        S6K1_KINASE  -> RIBOSOMEBIOG
+        MTORC1       -> EBP1_PHOSPHO [label="cap-dep\ntranslation↑"]
+        PRAS40       -> MTORC1       [label="Akt relieves\nPRAS40" color=red]
+        DEPTOR       -> MTORC1       [label="inhibitory" color=red]
+        DEPTOR       -> MTORC2       [label="inhibitory" color=red]
+        AMPK_LKB1    -> TSC1_TSC2    [label="activates TSC\n(energy stress)"]
+        FKBP12       -> RAPA_COMPLEX [label="drug binding"]
+        EVER_CENT    -> RAPA_COMPLEX [label="everolimus\nbinds FKBP12"]
+        RAPA_COMPLEX -> MTORC1       [label="allosteric\ninhibition" color=red]
+    }
+
+    // ============================
+    // Cluster 5: MAPK / Proliferation
+    // ============================
+    subgraph cluster_MAPK {
+        label = "MAPK / ERK / Cell Proliferation Pathway"
+        style = filled
+        fillcolor = "#FBE9E7"
+        color = "#BF360C"
+        fontsize = 11
+
+        RAS_GTPASE   [label="Ras GTPase\n(H-Ras, K-Ras)\nGTP-bound" fillcolor="#BF360C" fontcolor=white]
+        CRAF_BRAF    [label="C-Raf / B-Raf\nSerine/Threonine\nKinases" fillcolor="#D84315" fontcolor=white]
+        MEK1_MEK2    [label="MEK1/MEK2\n(MAP2K1/2)\nDual kinase" fillcolor="#BF360C" fontcolor=white]
+        ERK1_ERK2    [label="ERK1/2\n(MAPK3/1)\nActivation ↑↑" fillcolor="#8D1C00" fontcolor=white]
+        RSK2_KINASE  [label="RSK2 / p90RSK\nActivation" fillcolor="#D84315" fontcolor=white]
+        CELL_PROLIF  [label="Cell\nProliferation ↑\n(cyst epithelium)" fillcolor="#6D0000" fontcolor=white]
+        CYCLIN_D1    [label="Cyclin D1\nUpregulation" fillcolor="#BF360C" fontcolor=white]
+        CDK4_CDK6    [label="CDK4/CDK6\nCell cycle" fillcolor="#D84315" fontcolor=white]
+        RB_PHOSPHO   [label="Rb\nHyperphosphorylation\n→ inactive" fillcolor="#E64A19" fontcolor=white]
+        E2F_TRANSCRIP [label="E2F\nTranscription\n(S-phase entry)" fillcolor="#FF5722" fontcolor=white]
+        BCL2_MCL1    [label="Bcl-2 / Mcl-1\nAnti-apoptotic\nProteins" fillcolor="#D84315" fontcolor=white]
+        JAK2_STAT3   [label="JAK2/STAT3\nSignaling" fillcolor="#BF360C" fontcolor=white]
+        HIF1A        [label="HIF-1α\nHypoxia\nResponse" fillcolor="#E64A19" fontcolor=white]
+        VEGF_SECR    [label="VEGF\nAngiogenesis\n(cyst vascularization)" fillcolor="#FF7043"]
+        TGFB1        [label="TGF-β1\n(Smad2/3 pathway)\nFibrosis driver" fillcolor="#E64A19" fontcolor=white]
+        CTGF_CCN2    [label="CTGF/CCN2\n(fibrogenic\ngrowth factor)" fillcolor="#FF5722" fontcolor=white]
+        WNT_PATHWAY  [label="Wnt/β-catenin\n(non-canonical)\nPathway" fillcolor="#FF7043"]
+        APOPTOSIS_RES [label="Apoptosis\nResistance ↑\n(cyst persistence)" fillcolor="#6D0000" fontcolor=white]
+
+        RAS_GTPASE   -> CRAF_BRAF    [label="activates"]
+        CRAF_BRAF    -> MEK1_MEK2
+        MEK1_MEK2    -> ERK1_ERK2
+        ERK1_ERK2    -> RSK2_KINASE
+        ERK1_ERK2    -> CELL_PROLIF  [label="proliferation\nsignals"]
+        ERK1_ERK2    -> CYCLIN_D1    [label="transcription"]
+        CYCLIN_D1    -> CDK4_CDK6    [label="activates"]
+        CDK4_CDK6    -> RB_PHOSPHO
+        RB_PHOSPHO   -> E2F_TRANSCRIP [label="releases E2F"]
+        E2F_TRANSCRIP -> CELL_PROLIF
+        ERK1_ERK2    -> BCL2_MCL1    [label="upregulates"]
+        BCL2_MCL1    -> APOPTOSIS_RES [label="inhibits\napoptosis"]
+        JAK2_STAT3   -> CELL_PROLIF
+        JAK2_STAT3   -> BCL2_MCL1
+        HIF1A        -> VEGF_SECR
+        TGFB1        -> CTGF_CCN2    [label="induces"]
+        WNT_PATHWAY  -> CELL_PROLIF  [label="β-catenin\ntarget genes"]
+        PKA_BRAF     -> CRAF_BRAF    [label="PKA→B-Raf\n(Ser445 phospho)"]
+        S6K1_KINASE  -> CELL_PROLIF  [label="protein synthesis\nfor growth"]
+        EGFR_RECEPTOR -> RAS_GTPASE  [label="Grb2/Sos\nRas-GEF"]
+    }
+
+    // ============================
+    // Cluster 6: Cyst Biology
+    // ============================
+    subgraph cluster_cyst {
+        label = "Cyst Formation, Fluid Secretion & Kidney Enlargement"
+        style = filled
+        fillcolor = "#E1F5FE"
+        color = "#01579B"
+        fontsize = 11
+
+        TUB_EPITHELIUM  [label="Normal Tubular\nEpithelium\n(healthy state)" shape=box fillcolor="#01579B" fontcolor=white]
+        EPITH_DEDIFF    [label="Epithelial\nDedifferentiation\n(PC1/2 loss)" fillcolor="#0288D1" fontcolor=white]
+        POLARITY_REV    [label="Cell Polarity\nReversal\n(apical↔basolateral)" fillcolor="#039BE5" fontcolor=white]
+        NA_K_ATPASE_MIS [label="Na⁺/K⁺-ATPase\nMislocalization\n(apical surface)" fillcolor="#03A9F4" fontcolor=white]
+        CFTR_CHANNEL    [label="CFTR\n(Cl⁻ channel)\nPKA-activated" fillcolor="#01579B" fontcolor=white]
+        NKCC1_TRANSP    [label="NKCC1\nNa⁺/K⁺/2Cl⁻\nCotransporter" fillcolor="#0277BD" fontcolor=white]
+        FLUID_SECRETION [label="Cl⁻/Fluid\nSecretion into\nCyst Lumen" fillcolor="#0288D1" fontcolor=white]
+        CYST_LUMEN_P    [label="Cyst Lumen\nHydrostatic\nPressure ↑" fillcolor="#039BE5" fontcolor=white]
+        CYST_EXPANSION  [label="Cyst Expansion\nRate (dV/dt)\n(proliferation + fluid)" fillcolor="#01579B" fontcolor=white]
+        CYST_NUMBER     [label="Cyst Number\n(bilateral kidneys\n>100s-1000s)" fillcolor="#0288D1" fontcolor=white]
+        CYST_SIZE_DIST  [label="Cyst Size\nDistribution\n(mm to cm)" fillcolor="#039BE5" fontcolor=white]
+        TKV_STATE       [label="TKV\n(Total Kidney Volume)\n★ Primary Endpoint ★" shape=box3d fillcolor="#002171" fontcolor=white]
+        TKV_GROWTH_RATE [label="Annual TKV\nGrowth Rate\n(~5.5%/yr untreated)" fillcolor="#01579B" fontcolor=white]
+        INTERST_FIBROSIS [label="Interstitial\nFibrosis\n(TGF-β/CTGF)" fillcolor="#81D4FA"]
+        MYOFIBROBLAST   [label="Myofibroblast\nActivation\n(α-SMA+)" fillcolor="#B3E5FC"]
+        MACROPHAGE      [label="Macrophage\nInfiltration\n(M1→M2 phenotype)" fillcolor="#B3E5FC"]
+        IL6_MCP1        [label="IL-6 / MCP-1 /\nTNF-α\n(pro-inflammatory)" fillcolor="#81D4FA"]
+        ROS_OXIDATIVE   [label="ROS / Oxidative\nStress ↑\n(mitochondrial)" fillcolor="#B3E5FC"]
+        NEPHRON_LOSS    [label="Functional Nephron\nLoss\n(compression / ischemia)" fillcolor="#002171" fontcolor=white]
+        COLLECTING_DUCT [label="Collecting Duct\n(site of V2R\nexpression)" fillcolor="#039BE5" fontcolor=white]
+
+        PC1_PC2_COMPLEX -> TUB_EPITHELIUM [label="loss →" style=dashed color=red]
+        TUB_EPITHELIUM  -> EPITH_DEDIFF   [label="PKD defect\ntriggers"]
+        EPITH_DEDIFF    -> POLARITY_REV
+        POLARITY_REV    -> NA_K_ATPASE_MIS
+        CAMP_LEVEL      -> CFTR_CHANNEL   [label="PKA phospho\nCFTR opens"]
+        CFTR_CHANNEL    -> FLUID_SECRETION [label="Cl⁻ secretion\ndrives H₂O"]
+        NKCC1_TRANSP    -> FLUID_SECRETION [label="basolateral\nNaCl uptake"]
+        NA_K_ATPASE_MIS -> FLUID_SECRETION [label="apical Na pump\ndrives secretion"]
+        FLUID_SECRETION -> CYST_LUMEN_P
+        CYST_LUMEN_P    -> CYST_EXPANSION
+        CELL_PROLIF     -> CYST_EXPANSION  [label="cyst wall\nproliferation"]
+        CYST_EXPANSION  -> CYST_NUMBER
+        CYST_EXPANSION  -> CYST_SIZE_DIST
+        CYST_NUMBER     -> TKV_STATE
+        CYST_SIZE_DIST  -> TKV_STATE
+        TKV_STATE       -> TKV_GROWTH_RATE [label="annual Δ"]
+        TGFB1           -> INTERST_FIBROSIS
+        CTGF_CCN2       -> INTERST_FIBROSIS
+        INTERST_FIBROSIS -> MYOFIBROBLAST
+        MACROPHAGE      -> IL6_MCP1       [label="secretes\ncytokines"]
+        IL6_MCP1        -> INTERST_FIBROSIS [label="amplifies\nfibrosis"]
+        TKV_STATE       -> NEPHRON_LOSS   [label="mechanical\ncompression\n+ ischemia"]
+        ROS_OXIDATIVE   -> IL6_MCP1       [label="NF-κB\nactivation"]
+        CAMP_LEVEL      -> COLLECTING_DUCT [label="predominant\nsite of effect"]
+        COLLECTING_DUCT -> CFTR_CHANNEL
+        AQP2_EXPR       -> FLUID_SECRETION [label="AQP2\n(V2R target)"]
+    }
+
+    // ============================
+    // Cluster 7: RAAS / Cardiovascular
+    // ============================
+    subgraph cluster_RAAS {
+        label = "RAAS / Cardiovascular Axis"
+        style = filled
+        fillcolor = "#FFF3E0"
+        color = "#BF360C"
+        fontsize = 11
+
+        JGA_CELLS       [label="Juxtaglomerular\nApparatus (JGA)\n(renin-producing)" fillcolor="#BF360C" fontcolor=white]
+        RENIN_RELEASE   [label="Renin Release\n(↑ intrarenal\npressure in ADPKD)" fillcolor="#E64A19" fontcolor=white]
+        ANGIOTENSINOGEN [label="Angiotensinogen\n(liver-derived\nα2-globulin)" fillcolor="#FFCC80"]
+        ANGIOTENSIN_I   [label="Angiotensin I\n(Ang I, decapeptide)" fillcolor="#FFB74D"]
+        ACE_ENZYME      [label="ACE\n(Angiotensin\nConverting Enzyme)" fillcolor="#BF360C" fontcolor=white]
+        ANGIOTENSIN_II  [label="Angiotensin II\n(Ang II) ↑\n(vasoactive)" fillcolor="#7F0000" fontcolor=white]
+        AT1R_RECEP      [label="AT1 Receptor\n(AGTR1)\nvasoconstriction" shape=ellipse fillcolor="#C62828" fontcolor=white]
+        AT2R_RECEP      [label="AT2 Receptor\n(AGTR2)\nvasodilation" shape=ellipse fillcolor="#FFAB40"]
+        ALDOSTERONE     [label="Aldosterone\n(adrenal\ncortex)" fillcolor="#FF9800"]
+        MR_RECEPTOR     [label="Mineralocorticoid\nReceptor (MR)" shape=ellipse fillcolor="#E65100" fontcolor=white]
+        ENAC_CHANNEL    [label="ENaC\n(Na⁺ retention\ncollecting duct)" fillcolor="#FFCC80"]
+        SYMP_NS         [label="Sympathetic\nNervous System ↑\n(renal nerve)" fillcolor="#FF6D00"]
+        NOREPINEPHRINE  [label="Norepinephrine\n(NE)\nβ1/α1 agonist" fillcolor="#FFAB40"]
+        ENDOTHELIN_1    [label="Endothelin-1\n(ET-1)\n(endothelium)" fillcolor="#FF9800"]
+        ETA_RECEPTOR    [label="ETA Receptor\n(EDNRA)\nvasoconstriction" shape=ellipse fillcolor="#BF360C" fontcolor=white]
+        SYS_BP          [label="Systemic Blood\nPressure ↑\n(hypertension)" fillcolor="#7F0000" fontcolor=white]
+        GLOM_HYPERTEN   [label="Glomerular\nHypertension\n(hyperfiltration)" fillcolor="#C62828" fontcolor=white]
+        EFFERENT_VASO   [label="Efferent Arteriole\nVasoconstriction\n(Ang II mediated)" fillcolor="#E64A19" fontcolor=white]
+        OXYSTRESS_VASO  [label="Vascular\nOxidative Stress\n(O₂⁻ / H₂O₂)" fillcolor="#FF8A65"]
+
+        TKV_STATE       -> JGA_CELLS     [label="intrarenal\npressure ↑"]
+        JGA_CELLS       -> RENIN_RELEASE
+        RENIN_RELEASE   -> ANGIOTENSINOGEN [label="cleaves\n(Ang I)"]
+        ANGIOTENSINOGEN -> ANGIOTENSIN_I
+        ANGIOTENSIN_I   -> ACE_ENZYME
+        ACE_ENZYME      -> ANGIOTENSIN_II  [label="removes\nC-terminal\ndipeptide"]
+        ANGIOTENSIN_II  -> AT1R_RECEP
+        ANGIOTENSIN_II  -> AT2R_RECEP
+        AT1R_RECEP      -> ALDOSTERONE    [label="adrenal\nstimulation"]
+        AT1R_RECEP      -> EFFERENT_VASO  [label="vasoconstriction"]
+        AT1R_RECEP      -> SYS_BP         [label="↑SVR"]
+        ALDOSTERONE     -> MR_RECEPTOR
+        MR_RECEPTOR     -> ENAC_CHANNEL   [label="Na⁺ channel\nupregulation"]
+        ENAC_CHANNEL    -> SYS_BP         [label="Na⁺/H₂O\nretention"]
+        SYMP_NS         -> NOREPINEPHRINE
+        NOREPINEPHRINE  -> SYS_BP         [label="↑HR\n+ SVR"]
+        ENDOTHELIN_1    -> ETA_RECEPTOR
+        ETA_RECEPTOR    -> SYS_BP         [label="potent\nvasoconstriction"]
+        EFFERENT_VASO   -> GLOM_HYPERTEN
+        GLOM_HYPERTEN   -> NEPHRON_LOSS   [label="hyperfiltration\ndamage"]
+        ACEI_CENT       -> ACE_ENZYME     [label="ACEi inhibits" color=red]
+        ACEI_CENT       -> AT1R_RECEP     [label="ARB blocks\nAT1R" color=red]
+        IL6_MCP1        -> OXYSTRESS_VASO [label="endothelial\nactivation"]
+        OXYSTRESS_VASO  -> SYS_BP         [label="↓NO\nuncoupling"]
+    }
+
+    // ============================
+    // Cluster 8: Drug PD / Targets
+    // ============================
+    subgraph cluster_drug_PD {
+        label = "Drug Pharmacodynamics & PD Biomarkers"
+        style = filled
+        fillcolor = "#F3E5F5"
+        color = "#4A148C"
+        fontsize = 11
+
+        V2R_OCCUPANCY   [label="V2R Occupancy\nby Tolvaptan (%)\n(Emax model)" fillcolor="#4A148C" fontcolor=white]
+        V2R_BLOCKADE    [label="V2R Blockade\nFunctional Effect\n(↓ cAMP in CD)" fillcolor="#6A1B9A" fontcolor=white]
+        URINE_OSMOL     [label="Urine Osmolality ↓\n(PD biomarker)\n<300 mOsm/kg" fillcolor="#7B1FA2" fontcolor=white]
+        AQP2_DOWN       [label="AQP2\nDownregulation\n(urinary AQP2)" fillcolor="#AB47BC"]
+        URINE_FLOW_RATE [label="Urine Flow ↑\n(aquaresis ~3-4\nL/day on tolvaptan)" fillcolor="#CE93D8"]
+        CAMP_REDUC_TOLV [label="cAMP Reduction\n(collecting duct)\n↓ CFTR/PKA" fillcolor="#6A1B9A" fontcolor=white]
+        TKV_INH_TOLV    [label="TKV Growth\nInhibition\n(Tolvaptan: -4.4%/yr)" fillcolor="#4A148C" fontcolor=white]
+        MTOR_INHIBIT    [label="mTOR\nInhibition\n(Everolimus)" fillcolor="#1A237E" fontcolor=white]
+        PHOSPHO_S6K1_R  [label="↓Phospho-S6K1\n(PD biomarker\nfor mTOR inhibition)" fillcolor="#3949AB" fontcolor=white]
+        TKV_INH_EVER    [label="TKV Growth\nInhibition\n(Everolimus: -4.9%)" fillcolor="#283593" fontcolor=white]
+        RAAS_INHIBIT    [label="RAAS Inhibition\n(ACEi/ARB)" fillcolor="#006064" fontcolor=white]
+        BP_REDUCTION    [label="Blood Pressure\nReduction\n(-5 to -10 mmHg)" fillcolor="#00838F" fontcolor=white]
+        RENAL_PROTECT   [label="Renoprotective\nEffect\n(eGFR preservation)" fillcolor="#00897B" fontcolor=white]
+        OCTR_SSTR_ACT   [label="SSTR2/5\nActivation\n(Octreotide)" fillcolor="#BF360C" fontcolor=white]
+        CAMP_REDUC_OCT  [label="cAMP Reduction\n(Gi-mediated)\nvía SSTR" fillcolor="#D84315" fontcolor=white]
+        LIVER_CYST_R    [label="Liver Cyst\nVolume Reduction\n(octreotide benefit)" fillcolor="#FF7043"]
+        SERUM_UREA_N    [label="Serum BUN / Cr\nMonitoring\n(renal function)" fillcolor="#CE93D8"]
+        LIVER_ENZYMES   [label="Liver Enzymes\n(ALT/AST)\nMonitoring" fillcolor="#EF9A9A"]
+
+        TOLV_CENT       -> V2R_OCCUPANCY  [label="Cp → PD\n(Hill Emax)"]
+        V2R_OCCUPANCY   -> V2R_BLOCKADE
+        V2R_BLOCKADE    -> AVPR2          [label="competitive\nantagonist" color=red]
+        V2R_BLOCKADE    -> URINE_OSMOL    [label="↓AQP2/\nwater perm"]
+        V2R_BLOCKADE    -> AQP2_DOWN
+        AQP2_DOWN       -> URINE_FLOW_RATE [label="aquaresis"]
+        V2R_BLOCKADE    -> CAMP_REDUC_TOLV [label="↓V2R→\n↓AC→↓cAMP"]
+        CAMP_REDUC_TOLV -> TKV_INH_TOLV   [label="↓CFTR fluid\n↓proliferation"]
+
+        EVER_CENT       -> MTOR_INHIBIT   [label="FKBP12\ncomplex"]
+        MTOR_INHIBIT    -> PHOSPHO_S6K1_R
+        MTOR_INHIBIT    -> TKV_INH_EVER
+
+        ACEI_CENT       -> RAAS_INHIBIT
+        RAAS_INHIBIT    -> BP_REDUCTION
+        BP_REDUCTION    -> RENAL_PROTECT
+
+        OCTR_CENT       -> OCTR_SSTR_ACT  [label="Kd~nM\nSSTR2/5"]
+        OCTR_SSTR_ACT   -> CAMP_REDUC_OCT
+        CAMP_REDUC_OCT  -> TKV_INH_TOLV   [label="additive\neffect"]
+        OCTR_SSTR_ACT   -> LIVER_CYST_R
+        TOLV_HEPATO     -> LIVER_ENZYMES  [label="hepatic\ntoxicity"]
+        NEPHRON_LOSS    -> SERUM_UREA_N   [label="GFR↓ →\nBUN/Cr↑"]
+    }
+
+    // ============================
+    // Cluster 9: Clinical Outcomes
+    // ============================
+    subgraph cluster_clinical {
+        label = "Clinical Outcomes & Prognostic Biomarkers"
+        style = filled
+        fillcolor = "#E8EAF6"
+        color = "#1A237E"
+        fontsize = 11
+
+        TKV_MEASURED    [label="TKV (MRI)\n★ Primary Endpoint ★\n(mL or L)" shape=box3d fillcolor="#1A237E" fontcolor=white]
+        HTTKV           [label="htTKV\n(height-adjusted TKV)\n>600 mL/m" fillcolor="#283593" fontcolor=white]
+        ANNUAL_TKV_CHG  [label="Annual TKV Δ\n(%/yr)\nPlacebo: +5.5%/yr" fillcolor="#3949AB" fontcolor=white]
+        EGFR_VALUE      [label="eGFR\n(mL/min/1.73m²)\nCKD staging basis" shape=box3d fillcolor="#1A237E" fontcolor=white]
+        EGFR_DECLINE    [label="eGFR Decline\n(-3.5 to -4.0\nmL/min/yr untreated)" fillcolor="#283593" fontcolor=white]
+        CKD_STAGE       [label="CKD Stage\n1 → 2 → 3 → 4 → 5\n(GFR threshold)" fillcolor="#3F51B5" fontcolor=white]
+        SERUM_CREAT     [label="Serum Creatinine\n(μmol/L)\n(renal function)" fillcolor="#5C6BC0"]
+        URINE_PROTEIN   [label="Urine Protein\n(UPCR, mg/g)\n(proteinuria)" fillcolor="#7986CB"]
+        BP_OUTCOME      [label="Blood Pressure\nControl\n(target <130/80)" fillcolor="#5C6BC0"]
+        MAYO_CLASS      [label="Mayo Imaging\nClassification\n1A → 1B → 1C → 1D → 1E" fillcolor="#283593" fontcolor=white]
+        PROPKD_SCORE    [label="PROPKD Score\n(0-9 points)\nGenotype + phenotype" fillcolor="#3949AB" fontcolor=white]
+        ESRD_PRED_TIME  [label="Predicted Time\nto ESRD (years)\nMedian: PKD1=54, PKD2=74" fillcolor="#0D1B80" fontcolor=white]
+        PAIN_HEMATURIA  [label="Flank Pain\nHematuria\nUTI Episodes" fillcolor="#7986CB"]
+        QOL_SCORE       [label="Quality of Life\n(SF-36 / ADPKD-IS)\nPatient-reported" fillcolor="#9FA8DA"]
+        LIVER_BURDEN    [label="Liver Cyst\nBurden (PCLD)\n(co-involvement)" fillcolor="#7986CB"]
+        MAYO_CALC       [label="Mayo Clinic\nPrognostic\nCalculator" shape=box fillcolor="#3949AB" fontcolor=white]
+        CRISP_IMAGING   [label="CRISP Cohort\nMRI-based TKV\nLongitudinal" fillcolor="#9FA8DA"]
+        URINARY_AQP2    [label="Urinary AQP2\n(PD biomarker\nfor V2R inhibition)" fillcolor="#9FA8DA"]
+
+        TKV_STATE       -> TKV_MEASURED   [label="MRI\nmeasurement"]
+        TKV_MEASURED    -> HTTKV          [label="÷ height (m)"]
+        HTTKV           -> MAYO_CLASS     [label="+ age\nclassification"]
+        TKV_GROWTH_RATE -> ANNUAL_TKV_CHG
+        TKV_INH_TOLV    -> ANNUAL_TKV_CHG [label="treatment\neffect" color=blue]
+        TKV_INH_EVER    -> ANNUAL_TKV_CHG [label="treatment\neffect" color=blue]
+        NEPHRON_LOSS    -> EGFR_VALUE     [label="nephron →\nGFR"]
+        EGFR_VALUE      -> EGFR_DECLINE   [label="annual Δ"]
+        EGFR_DECLINE    -> CKD_STAGE      [label="staging\ntransition"]
+        CKD_STAGE       -> ESRD_PRED_TIME [label="progression\ncurve"]
+        EGFR_VALUE      -> SERUM_CREAT    [label="inverse\nrelation"]
+        MAYO_CLASS      -> PROPKD_SCORE   [label="input"]
+        PROPKD_SCORE    -> ESRD_PRED_TIME [label="prognostic\nmodel"]
+        SYS_BP          -> BP_OUTCOME
+        BP_REDUCTION    -> BP_OUTCOME     [label="treatment\neffect" color=blue]
+        CYST_EXPANSION  -> PAIN_HEMATURIA [label="pressure\non organs"]
+        TKV_MEASURED    -> LIVER_BURDEN
+        RENAL_PROTECT   -> EGFR_DECLINE   [label="slows\ndecline" color=blue]
+        TKV_MEASURED    -> MAYO_CALC
+        TKV_MEASURED    -> CRISP_IMAGING
+        AQP2_DOWN       -> URINARY_AQP2   [label="urinary\nAQP2 excretion"]
+        URINE_OSMOL     -> URINARY_AQP2
+    }
+
+    // ============================
+    // Cross-cluster edges
+    // ============================
+
+    // Ca2+ inverse regulation of cAMP (key ADPKD mechanism)
+    CA2_IC -> CAMP_LEVEL [label="↓Ca²⁺ → ↑cAMP\n(inverse coupling)" color="#C62828" style=dashed penwidth=2]
+
+    // cAMP drives CFTR
+    CAMP_LEVEL -> CFTR_CHANNEL [label="PKA-mediated\nCFTR activation" color="#01579B" penwidth=2]
+
+    // cAMP to mTOR (indirect)
+    CAMP_LEVEL -> MTORC1 [label="cAMP→mTOR\n(indirect)" style=dashed]
+
+    // PKA to ERK (B-Raf pathway)
+    PKA_ACTIVE -> RAS_GTPASE [label="B-Raf via PKA\n(Ras-independent\nERK activation)"]
+
+    // mTOR to proliferation
+    MTORC1 -> CELL_PROLIF [label="mTOR drives\nproliferation"]
+
+    // EGFR connects to RAS
+    EGFR_RECEPTOR -> GRB2_SOS [label="GEF\nactivation"]
+
+    // TKV feeds RAAS
+    TKV_STATE -> JGA_CELLS [label="kidney\nenlargement\n→ RAAS" style=dashed]
+
+    // BP feeds RAAS
+    SYS_BP -> JGA_CELLS [label="baroreceptor\n→renin\n(feedback)" style=dashed]
+
+    // Nephron to eGFR
+    NEPHRON_LOSS -> EGFR_VALUE [label="GFR ∝\nnephron mass"]
+
+    // Oxidative stress
+    ROS_OXIDATIVE -> TGFB1 [label="ROS→TGFβ\nfibrosis" style=dashed]
+
+    // PC1 CTF regulates mTOR
+    PC1_NUCLEAR -> MTORC1 [label="PC1-CTF\ninhibits mTOR\n(when normal)" color=green style=dashed]
+
+    // AQP2 from V2R
+    AVP_HORMONE -> AQP2_EXPR [label="V2R→AQP2\n(water channel)" style=dashed]
+
+    // Tolvaptan inhibits V2R
+    TOLV_CENT -> AVPR2 [label="blocks V2R\n(competitive)" color=red penwidth=2]
+
+}

@@ -1,0 +1,458 @@
+digraph FibromyalgiaQSP {
+    graph [
+        label="Fibromyalgia (FM) — Quantitative Systems Pharmacology Model\nCentral Sensitization · Descending Modulation · HPA Axis · Sleep · Autonomic · Drug PK/PD",
+        labelloc=t, fontsize=22, fontname="Helvetica-Bold",
+        rankdir=LR, splines=curved, nodesep=0.35, ranksep=0.55,
+        bgcolor="#F8F9FA", pad=0.8
+    ]
+    node [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box]
+    edge [fontname="Helvetica", fontsize=8]
+
+    /* ===== DRUG INPUT / PK ===== */
+    subgraph cluster_PK {
+        label="Drug PK — Pharmacokinetics"
+        style=filled; color="#E3F2FD"; fontcolor="#1565C0"; fontsize=13
+
+        DUL_dose   [label="Duloxetine\nDose (mg)", fillcolor="#BBDEFB", shape=cylinder]
+        PRE_dose   [label="Pregabalin\nDose (mg)", fillcolor="#BBDEFB", shape=cylinder]
+        MIL_dose   [label="Milnacipran\nDose (mg)", fillcolor="#BBDEFB", shape=cylinder]
+        TCA_dose   [label="Amitriptyline\nDose (mg)", fillcolor="#BBDEFB", shape=cylinder]
+
+        DUL_gut    [label="Duloxetine\nGut (A1)", fillcolor="#90CAF9"]
+        DUL_cent   [label="Duloxetine\nCentral (A2)", fillcolor="#64B5F6"]
+        DUL_peri   [label="Duloxetine\nPeripheral (A3)", fillcolor="#42A5F5"]
+        DUL_Cp     [label="Duloxetine\nPlasma Conc\n(Cp)", fillcolor="#2196F3", fontcolor=white]
+
+        PRE_gut    [label="Pregabalin\nGut (B1)", fillcolor="#90CAF9"]
+        PRE_cent   [label="Pregabalin\nCentral (B2)", fillcolor="#64B5F6"]
+        PRE_Cp     [label="Pregabalin\nPlasma Conc\n(Cp)", fillcolor="#2196F3", fontcolor=white]
+
+        MIL_gut    [label="Milnacipran\nGut (C1)", fillcolor="#90CAF9"]
+        MIL_cent   [label="Milnacipran\nCentral (C2)", fillcolor="#64B5F6"]
+        MIL_Cp     [label="Milnacipran\nPlasma Conc", fillcolor="#2196F3", fontcolor=white]
+
+        TCA_gut    [label="Amitriptyline\nGut (D1)", fillcolor="#90CAF9"]
+        TCA_cent   [label="Amitriptyline\nCentral (D2)", fillcolor="#64B5F6"]
+        TCA_Cp     [label="Amitriptyline\nPlasma Conc", fillcolor="#2196F3", fontcolor=white]
+
+        DUL_CYP    [label="CYP1A2/2D6\nMetabolism", fillcolor="#1565C0", fontcolor=white, shape=diamond]
+        PRE_renal  [label="Renal\nElimination", fillcolor="#1565C0", fontcolor=white, shape=diamond]
+    }
+
+    DUL_dose -> DUL_gut [label="ka_DUL\n(F=0.50)"]
+    DUL_gut -> DUL_cent [label="ka_DUL"]
+    DUL_cent -> DUL_peri [label="k12_DUL"]
+    DUL_peri -> DUL_cent [label="k21_DUL"]
+    DUL_cent -> DUL_CYP [label="CL/V"]
+    DUL_cent -> DUL_Cp [label="Cp=A2/V"]
+
+    PRE_dose -> PRE_gut [label="ka_PRE\n(F=0.90)"]
+    PRE_gut -> PRE_cent [label="ka_PRE"]
+    PRE_cent -> PRE_renal [label="CLr/V"]
+    PRE_cent -> PRE_Cp [label="Cp=B2/V"]
+
+    MIL_dose -> MIL_gut [label="ka_MIL"]
+    MIL_gut -> MIL_cent [label="ka_MIL"]
+    MIL_cent -> MIL_Cp  [label="Cp=C2/V"]
+
+    TCA_dose -> TCA_gut [label="ka_TCA"]
+    TCA_gut -> TCA_cent [label="ka_TCA"]
+    TCA_cent -> TCA_Cp  [label="Cp=D2/V"]
+
+    /* ===== PERIPHERAL SENSITIZATION ===== */
+    subgraph cluster_PERIPH {
+        label="Peripheral Sensitization"
+        style=filled; color="#FCE4EC"; fontcolor="#880E4F"; fontsize=13
+
+        tissue_injury [label="Tissue Micro-injury\n/ Muscle Ischemia", fillcolor="#F8BBD0"]
+        mast_cell     [label="Mast Cell\nActivation", fillcolor="#F48FB1"]
+        bradykinin    [label="Bradykinin\n(BK)", fillcolor="#F06292"]
+        PGE2_periph   [label="PGE2\n(peripheral)", fillcolor="#EC407A"]
+        NGF_periph    [label="NGF\n(peripheral)", fillcolor="#E91E63"]
+        TrkA          [label="TrkA Receptor\nActivation", fillcolor="#C2185B", fontcolor=white]
+        TRPV1_periph  [label="TRPV1\n(nociceptor)", fillcolor="#AD1457", fontcolor=white]
+        NaV1_7        [label="Nav1.7/1.8\nSodium Channels", fillcolor="#880E4F", fontcolor=white]
+        DRG_neuron    [label="DRG Nociceptor\n(Aδ/C-fiber)", fillcolor="#F48FB1"]
+        SP_release    [label="Substance P\nRelease (periph)", fillcolor="#E91E63"]
+        CGRP_periph   [label="CGRP Release\n(peripheral)", fillcolor="#EC407A"]
+        acidosis      [label="Local Acidosis\n(ASICs)", fillcolor="#F8BBD0"]
+        ATP_periph    [label="ATP\n(P2X3)", fillcolor="#F48FB1"]
+        cytokines_p   [label="IL-6/TNF-α\n(peripheral)", fillcolor="#F06292"]
+    }
+
+    tissue_injury -> mast_cell -> bradykinin
+    tissue_injury -> acidosis -> DRG_neuron
+    tissue_injury -> ATP_periph -> DRG_neuron
+    bradykinin -> PGE2_periph -> TRPV1_periph
+    bradykinin -> DRG_neuron
+    NGF_periph -> TrkA -> TRPV1_periph
+    NGF_periph -> NaV1_7
+    TrkA -> DRG_neuron [label="sensitization"]
+    TRPV1_periph -> DRG_neuron [label="depolarization"]
+    NaV1_7 -> DRG_neuron [label="AP firing"]
+    DRG_neuron -> SP_release
+    DRG_neuron -> CGRP_periph
+    cytokines_p -> PGE2_periph
+    cytokines_p -> TRPV1_periph [label="sensitize"]
+
+    /* ===== DORSAL HORN / SPINAL CORD (Central Sensitization) ===== */
+    subgraph cluster_SPINAL {
+        label="Spinal Dorsal Horn — Central Sensitization"
+        style=filled; color="#F3E5F5"; fontcolor="#4A148C"; fontsize=13
+
+        Afferent_C    [label="C-fiber Input\n(Aδ+C)", fillcolor="#E1BEE7"]
+        DHN_WDR       [label="WDR Neuron\n(Wide Dynamic Range)", fillcolor="#CE93D8"]
+        NK1R          [label="NK1 Receptor\n(Substance P)", fillcolor="#AB47BC"]
+        NMDAR_sp      [label="NMDA Receptor\n(Mg2+ block removed)", fillcolor="#8E24AA", fontcolor=white]
+        AMPAR_sp      [label="AMPA/Kainate\nReceptor", fillcolor="#7B1FA2", fontcolor=white]
+        PKC_eps       [label="PKCε Activation\n(phosphorylation)", fillcolor="#6A1B9A", fontcolor=white]
+        ERK_spinal    [label="ERK1/2\nSignaling", fillcolor="#4A148C", fontcolor=white]
+        BDNF_sp       [label="BDNF\n(spinal)", fillcolor="#CE93D8"]
+        TrkB_sp       [label="TrkB Receptor", fillcolor="#AB47BC"]
+        SP_spinal     [label="Substance P\n(spinal)", fillcolor="#E1BEE7"]
+        CGRP_sp       [label="CGRP\n(spinal)", fillcolor="#E1BEE7"]
+        Glu_sp        [label="Glutamate\n(synaptic cleft)", fillcolor="#CE93D8"]
+        windup        [label="Wind-Up\nPhenomenon", fillcolor="#BA68C8", shape=oval]
+        LTP_sp        [label="Spinal LTP\n(central sensitization)", fillcolor="#9C27B0", fontcolor=white, shape=oval]
+        Inhib_inter   [label="Inhibitory\nInterneuron\n(GABA/Gly)", fillcolor="#E1BEE7"]
+        KCC2          [label="KCC2 Transporter\n(Cl- homeostasis)", fillcolor="#CE93D8"]
+        disinhibit    [label="Disinhibition\n(loss of Cl-)", fillcolor="#AB47BC", shape=oval]
+        dynorphin     [label="Dynorphin\n(spinal)", fillcolor="#9C27B0", fontcolor=white]
+        microglia_sp  [label="Microglia\nActivation (spinal)", fillcolor="#7B1FA2", fontcolor=white]
+        IL1b_sp       [label="IL-1β\n(spinal)", fillcolor="#CE93D8"]
+        IL6_sp        [label="IL-6\n(spinal)", fillcolor="#CE93D8"]
+        TNFa_sp       [label="TNF-α\n(spinal)", fillcolor="#AB47BC"]
+        Asc_proj      [label="Ascending\nSpinotalamic Tract", fillcolor="#E1BEE7", shape=oval]
+    }
+
+    SP_release -> SP_spinal
+    CGRP_periph -> CGRP_sp
+    Afferent_C -> SP_spinal
+    Afferent_C -> Glu_sp
+    Afferent_C -> DHN_WDR
+    SP_spinal -> NK1R -> DHN_WDR [label="activation"]
+    Glu_sp -> NMDAR_sp
+    Glu_sp -> AMPAR_sp
+    NMDAR_sp -> PKC_eps [label="Ca2+ influx"]
+    NMDAR_sp -> ERK_spinal
+    PKC_eps -> NMDAR_sp [label="phospho-potentiation", style=dashed]
+    AMPAR_sp -> DHN_WDR
+    DHN_WDR -> windup [label="repetitive stimulus"]
+    windup -> LTP_sp
+    ERK_spinal -> LTP_sp
+    BDNF_sp -> TrkB_sp -> NMDAR_sp [label="potentiation"]
+    microglia_sp -> BDNF_sp
+    microglia_sp -> IL1b_sp -> NMDAR_sp [label="upregulate"]
+    microglia_sp -> IL6_sp
+    microglia_sp -> TNFa_sp -> AMPAR_sp [label="traffick"]
+    KCC2 -> Inhib_inter [label="normal Cl-"]
+    Inhib_inter -> DHN_WDR [label="inhibition", color=blue]
+    TNFa_sp -> KCC2 [label="downregulate", color=red]
+    KCC2 -> disinhibit [label="if low KCC2"]
+    disinhibit -> DHN_WDR [label="→ excitatory GABA", color=orange]
+    dynorphin -> NMDAR_sp [label="κ-opioid\nparadox", color=red, style=dashed]
+    LTP_sp -> Asc_proj
+
+    /* ===== SUPRASPINAL / BRAIN ===== */
+    subgraph cluster_BRAIN {
+        label="Supraspinal — Brain Pain Matrix & Descending Modulation"
+        style=filled; color="#E8F5E9"; fontcolor="#1B5E20"; fontsize=13
+
+        thalamus      [label="Thalamus\n(VPL/VPM)", fillcolor="#C8E6C9"]
+        ACC           [label="Anterior Cingulate\nCortex (ACC)", fillcolor="#A5D6A7"]
+        insula        [label="Insula\n(interoception)", fillcolor="#81C784"]
+        PFC           [label="Prefrontal Cortex\n(PFC)", fillcolor="#66BB6A"]
+        amygdala      [label="Amygdala\n(fear/anxiety)", fillcolor="#4CAF50"]
+        hippo         [label="Hippocampus\n(stress memory)", fillcolor="#43A047"]
+        PAG           [label="Periaqueductal Gray\n(PAG)", fillcolor="#388E3C", fontcolor=white]
+        RVM           [label="Rostral Ventromedial\nMedulla (RVM)", fillcolor="#2E7D32", fontcolor=white]
+        LC            [label="Locus Coeruleus\n(NE source)", fillcolor="#1B5E20", fontcolor=white]
+        raphe         [label="Raphe Nuclei\n(5-HT source)", fillcolor="#388E3C", fontcolor=white]
+        NE_desc       [label="Descending NE\n(α2-AR)", fillcolor="#A5D6A7"]
+        SHT_desc      [label="Descending 5-HT\n(5-HT1A/2A)", fillcolor="#81C784"]
+        DNIC          [label="DNIC\n(Diffuse Noxious Inhibitory\nControl)", fillcolor="#C8E6C9", shape=oval]
+        DPMS          [label="Descending Pain\nModulating System\n(DPMS)", fillcolor="#4CAF50", fontcolor=white, shape=oval]
+        cortex_global [label="Default Mode Network\n(hyperactivity)", fillcolor="#A5D6A7"]
+        basal_ganglia [label="Basal Ganglia\n(dopaminergic)", fillcolor="#66BB6A"]
+        dopamine_path [label="Dopamine\nReward Pathway", fillcolor="#43A047"]
+        serotonin_cn  [label="CNS Serotonin\n(5-HT)", fillcolor="#81C784"]
+        NE_cn         [label="CNS\nNorepinephrine (NE)", fillcolor="#A5D6A7"]
+        GABA_brain    [label="GABA\n(supraspinal)", fillcolor="#C8E6C9"]
+        CRF_amyg      [label="CRF\n(amygdala output)", fillcolor="#4CAF50"]
+    }
+
+    Asc_proj -> thalamus -> ACC
+    thalamus -> insula
+    ACC -> PFC
+    insula -> PFC
+    insula -> amygdala
+    amygdala -> hippo
+    amygdala -> CRF_amyg
+    PFC -> PAG [label="cognitive\nmodulation"]
+    PAG -> RVM -> NE_desc
+    PAG -> RVM -> SHT_desc
+    LC -> NE_desc [label="noradrenergic"]
+    raphe -> serotonin_cn
+    NE_desc -> Inhib_inter [label="inhibit pain↑", color=blue]
+    SHT_desc -> Inhib_inter [color=blue]
+    NE_desc -> DHN_WDR [label="α2-AR\ninhibition", color=blue]
+    DPMS -> DNIC
+    DNIC -> DHN_WDR [label="inhibition", color=blue, style=dashed]
+    cortex_global -> thalamus [label="altered\nconnectivity"]
+    basal_ganglia -> dopamine_path
+    dopamine_path -> PAG [label="modulate"]
+    serotonin_cn -> GABA_brain -> PAG
+    hippo -> amygdala [label="memory\nfear loop"]
+    CRF_amyg -> PAG [label="stress→pain"]
+
+    /* ===== HPA AXIS / STRESS / NEUROENDOCRINE ===== */
+    subgraph cluster_HPA {
+        label="HPA Axis — Stress & Neuroendocrine"
+        style=filled; color="#FFF9C4"; fontcolor="#F57F17"; fontsize=13
+
+        CRH_hypo      [label="CRH\n(Hypothalamus)", fillcolor="#FFF176"]
+        ACTH_pit      [label="ACTH\n(Pituitary)", fillcolor="#FFEE58"]
+        cortisol      [label="Cortisol\n(Adrenal Cortex)", fillcolor="#FFD600"]
+        GR_receptor   [label="Glucocorticoid\nReceptor (GR)", fillcolor="#FFC107"]
+        GH_pit        [label="Growth Hormone\n(GH)", fillcolor="#FFF176"]
+        IGF1          [label="IGF-1\n(Liver)", fillcolor="#FFEE58"]
+        GH_axis_inh   [label="GH/IGF-1 Axis\nDeficiency", fillcolor="#FF8F00", fontcolor=white, shape=oval]
+        NPY_hypo      [label="NPY\n(Hypothalamus)", fillcolor="#FFF176"]
+        substance_p_h [label="Substance P\n(Hypothalamus)", fillcolor="#FFD600"]
+        AVP_hypo      [label="AVP\n(vasopressin)", fillcolor="#FFEE58"]
+        CRH_neg_fb    [label="Negative\nFeedback Loop", fillcolor="#FF8F00", fontcolor=white, shape=oval]
+        cortisol_low  [label="Hypocortisolism\n(blunted response)", fillcolor="#F57F17", fontcolor=white, shape=oval]
+        DHEA          [label="DHEA\n(adrenal androgen)", fillcolor="#FFF176"]
+        melatonin_h   [label="Melatonin\n(Pineal)", fillcolor="#FFEE58"]
+        TSH_hypo      [label="TSH / Thyroid\nHormones", fillcolor="#FFF176"]
+    }
+
+    CRH_hypo -> ACTH_pit -> cortisol
+    cortisol -> GR_receptor -> CRH_neg_fb [label="negative FB"]
+    CRH_neg_fb -> CRH_hypo [label="↓CRH", color=blue]
+    cortisol -> cortisol_low [label="blunted\ndiurnal", style=dashed]
+    cortisol_low -> microglia_sp [label="loss anti-inflam\ncontrol", color=red]
+    CRH_amyg -> CRH_hypo [label="stress input"]
+    GH_pit -> IGF1 -> GH_axis_inh [label="deficiency\nin FM"]
+    GH_axis_inh -> tissue_injury [label="impaired repair"]
+    NPY_hypo -> DHN_WDR [label="descend\ninhibit", color=blue]
+    substance_p_h -> CRH_hypo [label="activate"]
+    AVP_hypo -> ACTH_pit
+    DHEA -> cortisol [label="precursor"]
+    melatonin_h -> sleep_delta [label="synchronize"]
+    TSH_hypo -> tissue_injury [label="if hypothyroid\ncomorbidity"]
+
+    /* ===== AUTONOMIC NERVOUS SYSTEM ===== */
+    subgraph cluster_ANS {
+        label="Autonomic Nervous System"
+        style=filled; color="#F9FBE7"; fontcolor="#558B2F"; fontsize=13
+
+        SNS_outflow   [label="Sympathetic\nOutflow (SNS)", fillcolor="#F0F4C3"]
+        PNS_outflow   [label="Parasympathetic\nOutflow (PNS)", fillcolor="#DCEDC8"]
+        NE_SNS        [label="Norepinephrine\n(sympathetic)", fillcolor="#C5E1A5"]
+        HRV           [label="Heart Rate\nVariability (HRV↓)", fillcolor="#AED581"]
+        BP_dysreg     [label="BP Dysregulation\n(orthostatic)", fillcolor="#9CCC65"]
+        pain_sympath  [label="Sympathetic\nMaintained Pain\n(SMP)", fillcolor="#8BC34A", fontcolor=white]
+        sweat_gland   [label="Sudomotor\nDysfunction", fillcolor="#7CB342"]
+        ANS_imbalance [label="Autonomic\nImbalance\n(SNS>PNS)", fillcolor="#558B2F", fontcolor=white, shape=oval]
+        vagal_tone    [label="Vagal Tone\n(↓anti-inflam)", fillcolor="#DCEDC8"]
+    }
+
+    SNS_outflow -> NE_SNS -> pain_sympath [label="α1-AR\nnociceptors"]
+    SNS_outflow -> HRV [label="↓HRV\n(SNS dominance)"]
+    PNS_outflow -> HRV [label="↑HRV"]
+    SNS_outflow -> BP_dysreg
+    SNS_outflow -> sweat_gland
+    ANS_imbalance -> SNS_outflow [label="chronically active"]
+    ANS_imbalance -> PNS_outflow [label="chronically reduced"]
+    vagal_tone -> cytokines_p [label="↑inflammation\nif low vagal"]
+    PNS_outflow -> vagal_tone
+    cortisol_low -> ANS_imbalance [label="no brake"]
+    CRF_amyg -> SNS_outflow [label="stress→sympathetic"]
+
+    /* ===== SLEEP / CIRCADIAN ===== */
+    subgraph cluster_SLEEP {
+        label="Sleep — Circadian & Non-Restorative Sleep"
+        style=filled; color="#EDE7F6"; fontcolor="#4527A0"; fontsize=13
+
+        circadian_clock [label="Circadian Clock\n(SCN)", fillcolor="#D1C4E9"]
+        sleep_pressure  [label="Sleep Pressure\n(Adenosine)", fillcolor="#B39DDB"]
+        orexin          [label="Orexin/Hypocretin\n(arousal)", fillcolor="#9575CD"]
+        NREM_delta      [label="NREM/Delta\nSlow-Wave Sleep", fillcolor="#7E57C2"]
+        sleep_delta     [label="δ-wave EEG\n(SWS)", fillcolor="#673AB7", fontcolor=white]
+        alpha_intrusion [label="Alpha-Delta\nSleep Intrusion", fillcolor="#512DA8", fontcolor=white, shape=oval]
+        sleep_quality   [label="Non-Restorative\nSleep (NRS)", fillcolor="#311B92", fontcolor=white, shape=oval]
+        sleep_GH        [label="GH Release\nduring SWS", fillcolor="#B39DDB"]
+        sleep_pain_loop [label="Sleep-Pain\nVicious Cycle", fillcolor="#7E57C2", fontcolor=white, shape=oval]
+        serotonin_slp   [label="5-HT\n(promotes NREM)", fillcolor="#D1C4E9"]
+        NE_sleep        [label="NE\n(wake-promoting)", fillcolor="#B39DDB"]
+        histamine_wk    [label="Histamine\n(wake promoting)", fillcolor="#9575CD"]
+        adenosine_clr   [label="Adenosine Clearance\n(glymphatics)", fillcolor="#7E57C2"]
+    }
+
+    circadian_clock -> sleep_pressure
+    sleep_pressure -> NREM_delta
+    orexin -> NREM_delta [label="inhibit\n(wake=↓NREM)", color=red]
+    NREM_delta -> sleep_delta
+    sleep_delta -> alpha_intrusion [label="pain→α-intrude"]
+    alpha_intrusion -> sleep_quality
+    sleep_quality -> sleep_pain_loop
+    sleep_pain_loop -> LTP_sp [label="↑sensitization", color=red]
+    sleep_pain_loop -> cortisol_low [label="disrupted HPA"]
+    sleep_GH -> GH_pit [label="feedback"]
+    NREM_delta -> sleep_GH
+    GH_axis_inh -> sleep_quality [label="poor SWS\n↓GH pulse"]
+    serotonin_slp -> NREM_delta [label="promote"]
+    NE_sleep -> NREM_delta [label="inhibit\n(arousal)", color=red]
+    melatonin_h -> circadian_clock
+    adenosine_clr -> sleep_quality [label="if impaired"]
+
+    /* ===== IMMUNE / NEUROINFLAMMATION ===== */
+    subgraph cluster_IMMUNE {
+        label="Neuroinflammation & Immune"
+        style=filled; color="#FBE9E7"; fontcolor="#BF360C"; fontsize=13
+
+        TLR4_microglia [label="TLR4\n(microglia)", fillcolor="#FFCCBC"]
+        NF_kB_mg       [label="NF-κB\nPathway", fillcolor="#FFAB91"]
+        NLRP3          [label="NLRP3\nInflammasome", fillcolor="#FF8A65"]
+        ROS_neuro      [label="ROS\n(neuroinflammation)", fillcolor="#FF7043"]
+        CX3CR1         [label="CX3CR1\n(microglia receptor)", fillcolor="#F4511E"]
+        fractalkine    [label="Fractalkine\n(CX3CL1)", fillcolor="#E64A19", fontcolor=white]
+        mast_brain     [label="Mast Cell\n(brain/meninges)", fillcolor="#BF360C", fontcolor=white]
+        complement_sp  [label="Complement\n(C3/C5a)", fillcolor="#FFCCBC"]
+        P2X4_mg        [label="P2X4\n(microglia ATP-gate)", fillcolor="#FFAB91"]
+        IFNg_neuro     [label="IFN-γ\n(neuroinflam)", fillcolor="#FF7043"]
+        SP_immune      [label="Substance P\n(immune modulator)", fillcolor="#FFCCBC"]
+        CXCL10         [label="CXCL10/IP-10\n(chemokine)", fillcolor="#FF8A65"]
+    }
+
+    TLR4_microglia -> NF_kB_mg -> IL1b_sp
+    NF_kB_mg -> IL6_sp
+    NF_kB_mg -> TNFa_sp
+    NLRP3 -> IL1b_sp [label="activation"]
+    ROS_neuro -> NLRP3
+    DRG_neuron -> fractalkine -> CX3CR1 -> microglia_sp
+    microglia_sp -> P2X4_mg -> BDNF_sp
+    P2X4_mg -> ATP_periph [label="sense ATP"]
+    mast_brain -> histamine_wk [label="release"]
+    mast_brain -> TLR4_microglia [label="prime"]
+    complement_sp -> microglia_sp [label="activate"]
+    IFNg_neuro -> microglia_sp [label="M1 activation"]
+    SP_immune -> mast_brain [label="neurogenic\nactivation"]
+    SP_spinal -> SP_immune
+    CXCL10 -> microglia_sp
+    cortisol -> NF_kB_mg [label="normally inhibits\n(anti-inflam)", color=blue, style=dashed]
+    cortisol_low -> NF_kB_mg [label="loss of\ninhibition", color=red]
+
+    /* ===== DRUG PD (Pharmacodynamics) ===== */
+    subgraph cluster_PD {
+        label="Drug PD — Pharmacodynamics"
+        style=filled; color="#E0F7FA"; fontcolor="#006064"; fontsize=13
+
+        DUL_SERT      [label="SERT Inhibition\n(Duloxetine)", fillcolor="#B2EBF2"]
+        DUL_NET       [label="NET Inhibition\n(Duloxetine)", fillcolor="#80DEEA"]
+        MIL_SERT      [label="SERT Inhibition\n(Milnacipran)", fillcolor="#4DD0E1"]
+        MIL_NET       [label="NET Inhibition\n(Milnacipran)", fillcolor="#26C6DA"]
+        PRE_alpha2d   [label="α2δ-1 Ca-Ch Block\n(Pregabalin)", fillcolor="#00BCD4", fontcolor=white]
+        TCA_SERT2     [label="SERT/NET Inh\n(Amitriptyline)", fillcolor="#0097A7", fontcolor=white]
+        TCA_H1        [label="H1 Block\n(Amitriptyline)", fillcolor="#006064", fontcolor=white]
+        NE_syn_up     [label="↑Synaptic NE\n(SNRI effect)", fillcolor="#80DEEA"]
+        SHT_syn_up    [label="↑Synaptic 5-HT\n(SNRI effect)", fillcolor="#B2EBF2"]
+        Ca_spinal_inh [label="↓Spinal Ca2+\n→↓Glu release\n(Pregabalin)", fillcolor="#26C6DA"]
+        GABA_analogue [label="GABA-B analog\neffect (Pregabalin)", fillcolor="#4DD0E1"]
+        EMax_DUL      [label="Emax PD\nDuloxetine", fillcolor="#00BCD4", fontcolor=white, shape=oval]
+        EMax_PRE      [label="Emax PD\nPregabalin", fillcolor="#006064", fontcolor=white, shape=oval]
+        Hill_pain     [label="Hill Sigmoid\nPain Reduction", fillcolor="#0097A7", fontcolor=white, shape=oval]
+    }
+
+    DUL_Cp -> DUL_SERT [label="IC50=1.8nM"]
+    DUL_Cp -> DUL_NET  [label="IC50=7.5nM"]
+    MIL_Cp -> MIL_SERT [label="IC50=8nM"]
+    MIL_Cp -> MIL_NET  [label="IC50=9nM"]
+    DUL_SERT -> SHT_syn_up
+    DUL_NET -> NE_syn_up
+    MIL_SERT -> SHT_syn_up
+    MIL_NET -> NE_syn_up
+    TCA_Cp -> TCA_SERT2 -> SHT_syn_up
+    TCA_Cp -> TCA_SERT2 -> NE_syn_up
+    TCA_Cp -> TCA_H1 -> sleep_quality [label="improve\n(sedation)"]
+    PRE_Cp -> PRE_alpha2d -> Ca_spinal_inh
+    Ca_spinal_inh -> Glu_sp [label="↓release", color=blue]
+    Ca_spinal_inh -> SP_spinal [label="↓release", color=blue]
+    PRE_Cp -> GABA_analogue
+    GABA_analogue -> Inhib_inter [label="support", color=blue]
+    SHT_syn_up -> raphe [label="potentiate"]
+    NE_syn_up -> LC [label="potentiate"]
+    NE_syn_up -> NE_desc [label="↑descending\ninhibition", color=blue]
+    SHT_syn_up -> SHT_desc [label="↑descending\ninhibition", color=blue]
+    DUL_Cp -> EMax_DUL
+    PRE_Cp -> EMax_PRE
+    EMax_DUL -> Hill_pain
+    EMax_PRE -> Hill_pain
+
+    /* ===== CLINICAL OUTCOMES ===== */
+    subgraph cluster_OUTCOMES {
+        label="Clinical Outcomes & Biomarkers"
+        style=filled; color="#ECEFF1"; fontcolor="#263238"; fontsize=13
+
+        pain_score    [label="Pain Score\n(NRS 0-10)", fillcolor="#CFD8DC"]
+        FIQ           [label="Fibromyalgia\nImpact Questionnaire\n(FIQ/FIQR)", fillcolor="#B0BEC5"]
+        fatigue       [label="Fatigue\n(MFI)", fillcolor="#90A4AE"]
+        depression    [label="Depression\n(PHQ-9)", fillcolor="#78909C"]
+        anxiety       [label="Anxiety\n(GAD-7)", fillcolor="#607D8B"]
+        cognitive_dys [label="Cognitive\nDysfunction\n('Fibro-fog')", fillcolor="#546E7A"]
+        tender_pts    [label="Tender Point\nCount (0-18)", fillcolor="#455A64", fontcolor=white]
+        PPT           [label="Pressure Pain\nThreshold (PPT)", fillcolor="#37474F", fontcolor=white]
+        PGIC          [label="Patient Global\nImpression of Change\n(PGIC)", fillcolor="#263238", fontcolor=white]
+        SP_CSF        [label="Substance P\n(CSF biomarker↑)", fillcolor="#CFD8DC"]
+        NE_plasma     [label="NE\n(plasma↑)", fillcolor="#B0BEC5"]
+        SHT_serum     [label="5-HT\n(serum↓)", fillcolor="#90A4AE"]
+        cortisol_24h  [label="24h Cortisol\n(urine/plasma)", fillcolor="#78909C"]
+        IGF1_plasma   [label="IGF-1\n(plasma↓)", fillcolor="#607D8B"]
+        HRV_metric    [label="HRV\n(↓ in FM)", fillcolor="#546E7A"]
+        cytokines_b   [label="IL-6/IL-8\n(blood↑)", fillcolor="#455A64", fontcolor=white]
+        QOL           [label="Quality of Life\n(SF-36)", fillcolor="#CFD8DC"]
+        work_impair   [label="Work Impairment\n(WPAI)", fillcolor="#B0BEC5"]
+    }
+
+    LTP_sp -> pain_score [label="→ chronic pain"]
+    pain_score -> FIQ
+    sleep_quality -> fatigue
+    fatigue -> FIQ
+    sleep_quality -> depression
+    depression -> FIQ
+    anxiety -> FIQ
+    cognitive_dys -> FIQ
+    cortex_global -> cognitive_dys [label="default mode\nhyperactivity"]
+    tender_pts -> pain_score
+    PPT -> tender_pts
+    DHN_WDR -> PPT [label="central\nsensitization"]
+    SP_spinal -> SP_CSF
+    NE_desc -> NE_plasma [label="reflect"]
+    serotonin_cn -> SHT_serum [label="reflect"]
+    cortisol -> cortisol_24h
+    IGF1 -> IGF1_plasma
+    HRV -> HRV_metric
+    cytokines_p -> cytokines_b
+    IL6_sp -> cytokines_b
+    FIQ -> PGIC
+    FIQ -> QOL
+    FIQ -> work_impair
+    Hill_pain -> pain_score [label="drug effect\n(Emax model)", color=darkgreen]
+    EMax_DUL -> fatigue [label="↓fatigue"]
+    EMax_PRE -> sleep_quality [label="↑SWS"]
+
+    /* ===== CROSS-CLUSTER EDGES (major) ===== */
+    LTP_sp -> amygdala [label="ascending\npain→emotion"]
+    cortisol -> microglia_sp [label="modulate", style=dashed]
+    ANS_imbalance -> sleep_quality [label="SNS activation\n→ fragmented sleep"]
+    sleep_pain_loop -> fatigue
+    NE_cn -> LC [label="pool"]
+    serotonin_cn -> raphe [label="pool"]
+    NE_syn_up -> NE_cn
+    SHT_syn_up -> serotonin_cn
+    depression -> sleep_quality [label="↓sleep quality"]
+    anxiety -> SNS_outflow [label="→ SNS↑"]
+    dopamine_path -> fatigue [label="↓dopamine\n→fatigue"]
+    CRH_hypo -> sleep_quality [label="disrupt sleep"]
+}

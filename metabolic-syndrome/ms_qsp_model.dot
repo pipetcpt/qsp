@@ -1,0 +1,586 @@
+digraph MetabolicSyndrome_QSP {
+  graph [
+    label="Metabolic Syndrome — Quantitative Systems Pharmacology Map\nCentral Obesity · Insulin Resistance · Dyslipidemia · Hypertension · Inflammation"
+    labelloc=t labeljust=c fontsize=24 fontname="Helvetica-Bold"
+    bgcolor="#F5F5F0" rankdir=LR compound=true splines=true
+    pad=1.0 nodesep=0.35 ranksep=0.9
+  ]
+  node [fontname="Helvetica" fontsize=9 style="filled,rounded" shape=box]
+  edge [fontname="Helvetica" fontsize=7 penwidth=1.1]
+
+  /* ── Drug PK compartments ── */
+  subgraph cluster_drug_pk {
+    label="Drug Pharmacokinetics" fontsize=13 style=filled fillcolor="#E8F4E8"
+    color="#2E8B57" penwidth=2
+
+    MET_gut  [label="Metformin\nGut (Fg)" fillcolor="#B7E4C7"]
+    MET_c    [label="Metformin\nCentral (Cc)" fillcolor="#95D5A5"]
+    MET_t    [label="Metformin\nTissue (Ct)" fillcolor="#74C69D"]
+
+    GLP1_sc  [label="GLP-1 RA\nSC Depot" fillcolor="#C8E6C9"]
+    GLP1_c   [label="GLP-1 RA\nPlasma Cp" fillcolor="#A5D6A7"]
+
+    SGLT2_gut [label="SGLT2i\nGut Absorption" fillcolor="#DCEDC8"]
+    SGLT2_c   [label="SGLT2i\nPlasma Cp" fillcolor="#C5E1A5"]
+
+    STAT_gut [label="Statin\nGut (FPE)" fillcolor="#F0F4C3"]
+    STAT_c   [label="Statin\nPlasma active" fillcolor="#E6EE9C"]
+
+    ARB_gut  [label="ARB/ACEi\nGut Absorption" fillcolor="#FFECB3"]
+    ARB_c    [label="ARB/ACEi\nPlasma Cp" fillcolor="#FFE082"]
+
+    TZD_gut  [label="TZD\nGut Absorption" fillcolor="#FFE0B2"]
+    TZD_c    [label="TZD\nPlasma Cp" fillcolor="#FFCC80"]
+
+    MET_gut -> MET_c [label="ka·Fg"]
+    MET_c -> MET_t [label="kpt"]
+    MET_t -> MET_c [label="ktp" constraint=false]
+
+    GLP1_sc -> GLP1_c [label="ka_sc"]
+    SGLT2_gut -> SGLT2_c [label="ka_s"]
+    STAT_gut -> STAT_c [label="ka·F"]
+    ARB_gut -> ARB_c [label="ka·F"]
+    TZD_gut -> TZD_c [label="ka·F"]
+  }
+
+  /* ── Adipose Tissue ── */
+  subgraph cluster_adipose {
+    label="Adipose Tissue & Adipokines" fontsize=13 style=filled fillcolor="#FFF3E0"
+    color="#E65100" penwidth=2
+
+    VAT     [label="Visceral Adipose\nTissue (VAT) kg" fillcolor="#FFCC80" shape=ellipse]
+    SAT     [label="Subcutaneous\nAdipose (SAT) kg" fillcolor="#FFB74D" shape=ellipse]
+    FFA_pl  [label="Free Fatty Acids\nPlasma mM" fillcolor="#FFA726"]
+    Lep     [label="Leptin\nng/mL" fillcolor="#FF8A65"]
+    Adip    [label="Adiponectin\nμg/mL" fillcolor="#FFAB91"]
+    Resistin [label="Resistin\nng/mL" fillcolor="#FF7043"]
+    Visfatin [label="Visfatin/NAMPT\nng/mL" fillcolor="#FF5722"]
+    Lipase  [label="HSL Activity" fillcolor="#FFCCBC"]
+    LPL     [label="LPL Activity" fillcolor="#FFAB91"]
+    Fat_hyp [label="Adipocyte\nHypertrophy" fillcolor="#FF8A65"]
+
+    VAT -> Lep [label="synthesis"]
+    VAT -> Resistin [label="synthesis"]
+    VAT -> Visfatin [label="synthesis"]
+    VAT -> FFA_pl [label="lipolysis\nvia HSL"]
+    SAT -> Adip [label="synthesis"]
+    SAT -> FFA_pl [label="lipolysis"]
+    Lipase -> FFA_pl [label="rate"]
+    LPL -> Fat_hyp [label="FA uptake"]
+    Fat_hyp -> VAT [label="mass increase" constraint=false]
+  }
+
+  /* ── Pancreas ── */
+  subgraph cluster_pancreas {
+    label="Pancreas — Islet Biology" fontsize=13 style=filled fillcolor="#E8EAF6"
+    color="#283593" penwidth=2
+
+    Beta    [label="β-cell Mass\nrelative" fillcolor="#9FA8DA" shape=ellipse]
+    Alpha   [label="α-cell Function\nrelative" fillcolor="#7986CB" shape=ellipse]
+    Ins     [label="Insulin\nPlasma μU/mL" fillcolor="#5C6BC0"]
+    Ins_pp  [label="Portal Insulin\nμU/mL" fillcolor="#3F51B5"]
+    Gluc    [label="Glucagon\npg/mL" fillcolor="#B39DDB"]
+    GLP1_e  [label="Endogenous\nGLP-1 pM" fillcolor="#CE93D8"]
+    GIP     [label="GIP\npM" fillcolor="#BA68C8"]
+    C_pep   [label="C-peptide\nnM" fillcolor="#9C27B0"]
+    Amylin  [label="Amylin\npM" fillcolor="#7B1FA2"]
+
+    Beta -> Ins [label="GSIS secretion"]
+    Beta -> C_pep [label="co-secretion"]
+    Beta -> Amylin [label="co-secretion"]
+    Alpha -> Gluc [label="secretion"]
+    GLP1_e -> Beta [label="potentiation"]
+    GIP -> Beta [label="incretin"]
+    Ins -> Alpha [label="inhibits" color=red]
+    Amylin -> Gluc [label="inhibits" color=red]
+    Beta -> Ins_pp [label="portal\nsecretion"]
+    Ins_pp -> Ins [label="systemic" constraint=false]
+  }
+
+  /* ── Glucose Metabolism ── */
+  subgraph cluster_glucose {
+    label="Glucose Metabolism" fontsize=13 style=filled fillcolor="#E3F2FD"
+    color="#0277BD" penwidth=2
+
+    G_pl    [label="Plasma Glucose\nmg/dL" fillcolor="#81D4FA" shape=ellipse]
+    G_gut   [label="Gut Glucose\nAbsorption" fillcolor="#4FC3F7"]
+    G_hgp   [label="Hepatic Glucose\nProduction HGP" fillcolor="#29B6F6"]
+    G_musc  [label="Muscle Glucose\nUptake Rd" fillcolor="#0288D1"]
+    G_ren   [label="Renal Glucose\nReabsorption" fillcolor="#01579B"]
+    G_ren2  [label="Urinary Glucose\nExcretion UGE" fillcolor="#B3E5FC"]
+    G_brain [label="CNS Glucose\nUtilization" fillcolor="#E1F5FE"]
+    Glycogen [label="Hepatic Glycogen\nmg/kg" fillcolor="#80DEEA"]
+    PEPCK   [label="PEPCK Activity\ngluconeogenesis" fillcolor="#00ACC1"]
+    G6Pase  [label="G6Pase Activity\nglycogenolysis" fillcolor="#0097A7"]
+
+    G_gut -> G_pl [label="Ra"]
+    G_hgp -> G_pl [label="EGP"]
+    G_pl -> G_musc [label="Rd·f(Ins)"]
+    G_pl -> G_brain [label="constant"]
+    G_pl -> G_ren [label="filtered GFR"]
+    G_ren -> G_ren2 [label="excess UGE"]
+    Glycogen -> G_hgp [label="glycogenolysis"]
+    PEPCK -> G_hgp [label="gluconeogenesis"]
+    G6Pase -> G_hgp [label="rate"]
+  }
+
+  /* ── Liver ── */
+  subgraph cluster_liver {
+    label="Liver — Metabolism Hub" fontsize=13 style=filled fillcolor="#F3E5F5"
+    color="#6A1B9A" penwidth=2
+
+    Liv_IR  [label="Hepatic\nInsulin Resistance" fillcolor="#CE93D8"]
+    VLDL    [label="VLDL-TG\nProduction" fillcolor="#BA68C8"]
+    VLDL_p  [label="VLDL Particles" fillcolor="#AB47BC"]
+    ApoB    [label="ApoB100\nmg/dL" fillcolor="#9C27B0"]
+    SREBP1c [label="SREBP-1c\nlipogenesis TF" fillcolor="#8E24AA"]
+    DNL     [label="De Novo\nLipogenesis DNL" fillcolor="#7B1FA2"]
+    ChREBP  [label="ChREBP\nglucose sensing TF" fillcolor="#6A1B9A"]
+    HMGCoA  [label="HMG-CoA Reductase\ncholesterol synth" fillcolor="#4A148C"]
+    PCSK9   [label="PCSK9\nng/mL" fillcolor="#E040FB"]
+    LDLr    [label="LDL Receptor\nExpression" fillcolor="#D500F9"]
+    NAFLD_s [label="Hepatic Fat\nContent pct" fillcolor="#EA80FC"]
+    ALT     [label="ALT\nU/L" fillcolor="#E1BEE7"]
+    Chol_s  [label="Cholesterol\nSynthesis rate" fillcolor="#CE93D8"]
+
+    Liv_IR -> VLDL [label="secretion increase"]
+    SREBP1c -> DNL [label="activates"]
+    ChREBP -> DNL [label="activates"]
+    DNL -> NAFLD_s [label="lipid accumulation"]
+    FFA_pl -> NAFLD_s [label="FA uptake"]
+    NAFLD_s -> ALT [label="hepatocyte stress"]
+    VLDL -> VLDL_p [label="assembly"]
+    VLDL_p -> ApoB [label="carries"]
+    HMGCoA -> Chol_s [label="synthesis"]
+    PCSK9 -> LDLr [label="degrades" color=red]
+  }
+
+  /* ── Lipid Metabolism ── */
+  subgraph cluster_lipid {
+    label="Circulating Lipid Metabolism" fontsize=13 style=filled fillcolor="#FBE9E7"
+    color="#BF360C" penwidth=2
+
+    LDL_pl  [label="LDL-C\nmg/dL" fillcolor="#FF8A65" shape=ellipse]
+    HDL_pl  [label="HDL-C\nmg/dL" fillcolor="#FF7043" shape=ellipse]
+    TG_pl   [label="Triglycerides\nmg/dL" fillcolor="#FF6E40" shape=ellipse]
+    TC      [label="Total Cholesterol\nmg/dL" fillcolor="#FF5722"]
+    CETP    [label="CETP Activity\ncholesterol transfer" fillcolor="#D84315"]
+    ApoA1   [label="ApoA1\nmg/dL" fillcolor="#BF360C"]
+    SR_BI   [label="SR-BI Receptor\nHDL uptake" fillcolor="#FFAB91"]
+    Lp_a    [label="Lp(a)\nmg/dL" fillcolor="#FF8A65"]
+    OxLDL   [label="Oxidized LDL\nmg/dL" fillcolor="#FF7043"]
+    sdLDL   [label="Small Dense LDL\nparticles" fillcolor="#FF5722"]
+
+    VLDL_p -> TG_pl [label="lipolysis by LPL"]
+    TG_pl -> LDL_pl [label="CETP exchange"]
+    CETP -> HDL_pl [label="TG enrichment\nHDL decrease" color=red]
+    LDL_pl -> OxLDL [label="oxidation"]
+    LDL_pl -> sdLDL [label="TG enrichment"]
+    ApoA1 -> HDL_pl [label="assembles"]
+    SR_BI -> HDL_pl [label="hepatic uptake" color=red]
+    Chol_s -> LDL_pl [label="VLDL IDL LDL"]
+    Lp_a -> LDL_pl [label="independent risk" constraint=false]
+    LDLr -> LDL_pl [label="hepatic clearance" color=green]
+  }
+
+  /* ── Insulin Signaling ── */
+  subgraph cluster_insulin_sig {
+    label="Insulin Signaling Cascade" fontsize=13 style=filled fillcolor="#E8F5E9"
+    color="#1B5E20" penwidth=2
+
+    IR_rec  [label="Insulin Receptor\nIR" fillcolor="#A5D6A7"]
+    IRS1    [label="IRS-1\ntyrosine phospho" fillcolor="#81C784"]
+    PI3K    [label="PI3K\np85/p110" fillcolor="#66BB6A"]
+    PIP3    [label="PIP3" fillcolor="#4CAF50"]
+    Akt     [label="Akt/PKB\np-Akt" fillcolor="#43A047"]
+    GLUT4   [label="GLUT4\nTranslocation" fillcolor="#388E3C"]
+    GSK3    [label="GSK-3β\nglycogen synthase" fillcolor="#2E7D32"]
+    GS      [label="Glycogen Synthase\nActivity" fillcolor="#1B5E20"]
+    FoxO1   [label="FoxO1\ngluconeogenesis TF" fillcolor="#C8E6C9"]
+    mTORC1  [label="mTORC1\nS6K1 pathway" fillcolor="#A5D6A7"]
+    PTEN    [label="PTEN\nPIP3 phosphatase" fillcolor="#81C784"]
+    IRS1_ser [label="IRS-1 Serine\nPhospho IR decrease" fillcolor="#DCEDC8"]
+
+    IR_rec -> IRS1 [label="tyrosine phospho"]
+    IRS1 -> PI3K [label="activates"]
+    PI3K -> PIP3 [label="converts PIP2"]
+    PTEN -> PIP3 [label="dephosphorylates" color=red]
+    PIP3 -> Akt [label="PDK1 activates"]
+    Akt -> GLUT4 [label="AS160 fusion"]
+    Akt -> GSK3 [label="inhibits" color=red]
+    GSK3 -> GS [label="inhibits" color=red]
+    Akt -> FoxO1 [label="nuclear exclusion" color=red]
+    FoxO1 -> PEPCK [label="transcribes"]
+    Akt -> mTORC1 [label="activates"]
+    mTORC1 -> IRS1_ser [label="S6K serine phospho" color=red]
+    IRS1_ser -> IRS1 [label="desensitizes" color=red constraint=false]
+  }
+
+  /* ── AMPK Pathway ── */
+  subgraph cluster_ampk {
+    label="AMPK & Energy Sensing" fontsize=13 style=filled fillcolor="#E0F7FA"
+    color="#004D40" penwidth=2
+
+    AMPK    [label="AMPK\nAMP:ATP ratio" fillcolor="#80CBC4"]
+    LKB1    [label="LKB1\nupstream kinase" fillcolor="#4DB6AC"]
+    ACC     [label="ACC\nfatty acid synthesis" fillcolor="#26A69A"]
+    CPT1    [label="CPT1\nbeta-oxidation entry" fillcolor="#00897B"]
+    Sirt1   [label="SIRT1\ndeacetylase" fillcolor="#00796B"]
+    PGC1a   [label="PGC-1alpha\nmitochondrial biogenesis" fillcolor="#00695C"]
+    NRF2    [label="NRF2\nantioxidant" fillcolor="#004D40"]
+    ROS     [label="Mitochondrial\nROS" fillcolor="#80CBC4"]
+    UCP2    [label="UCP2\nuncoupling" fillcolor="#4DB6AC"]
+    ADP_ATP [label="AMP/ATP\nRatio" fillcolor="#B2DFDB"]
+
+    ADP_ATP -> AMPK [label="activates"]
+    LKB1 -> AMPK [label="Thr172 phospho"]
+    AMPK -> ACC [label="inhibits" color=red]
+    ACC -> CPT1 [label="malonyl-CoA decrease\nCPT1 active"]
+    CPT1 -> PGC1a [label="beta-oxidation increase"]
+    AMPK -> Sirt1 [label="NAD+ increase"]
+    Sirt1 -> PGC1a [label="deacetylates\nactivates"]
+    PGC1a -> NRF2 [label="co-activates"]
+    NRF2 -> ROS [label="scavenges" color=red]
+    ROS -> UCP2 [label="induces"]
+    UCP2 -> ROS [label="dissipates" color=red constraint=false]
+  }
+
+  /* ── Inflammation ── */
+  subgraph cluster_inflammation {
+    label="Chronic Low-Grade Inflammation" fontsize=13 style=filled fillcolor="#FCE4EC"
+    color="#880E4F" penwidth=2
+
+    TNFa    [label="TNF-alpha\npg/mL" fillcolor="#F48FB1"]
+    IL6     [label="IL-6\npg/mL" fillcolor="#F06292"]
+    IL1b    [label="IL-1beta\npg/mL" fillcolor="#EC407A"]
+    IL10    [label="IL-10\npg/mL" fillcolor="#E91E63"]
+    CRP     [label="hsCRP\nmg/L" fillcolor="#C2185B"]
+    MCP1    [label="MCP-1/CCL2\npg/mL" fillcolor="#AD1457"]
+    Mac_VAT [label="M1 Macrophages\nin VAT" fillcolor="#880E4F"]
+    NFkB    [label="NF-kappaB\nActivation" fillcolor="#FCE4EC"]
+    IKKb    [label="IKK-beta\nNF-kappaB kinase" fillcolor="#F8BBD0"]
+    JNK     [label="JNK1\nstress kinase" fillcolor="#F48FB1"]
+    NLRP3   [label="NLRP3\nInflammasome" fillcolor="#F06292"]
+    M2_Mac  [label="M2 Macrophages\nanti-inflam" fillcolor="#EC407A"]
+    Treg    [label="T-regulatory\nCells Treg" fillcolor="#E91E63"]
+
+    Mac_VAT -> TNFa [label="secretes"]
+    Mac_VAT -> IL6  [label="secretes"]
+    Mac_VAT -> IL1b [label="secretes"]
+    Mac_VAT -> MCP1 [label="secretes"]
+    TNFa -> NFkB [label="activates"]
+    TNFa -> JNK [label="activates"]
+    NFkB -> IKKb [label="positive feedback"]
+    NLRP3 -> IL1b [label="cleaves IL-1beta pro"]
+    FFA_pl -> NLRP3 [label="activates"]
+    IL6 -> CRP [label="induces liver"]
+    IL10 -> TNFa [label="inhibits" color=red]
+    IL10 -> IL1b [label="inhibits" color=red]
+    M2_Mac -> IL10 [label="secretes"]
+    Treg -> IL10 [label="secretes"]
+    MCP1 -> Mac_VAT [label="recruits" constraint=false]
+    Adip -> M2_Mac [label="promotes"]
+  }
+
+  /* ── RAAS & Blood Pressure ── */
+  subgraph cluster_raas {
+    label="RAAS & Blood Pressure Regulation" fontsize=13 style=filled fillcolor="#EDE7F6"
+    color="#311B92" penwidth=2
+
+    Renin   [label="Renin\njuxtaglomerular" fillcolor="#B39DDB"]
+    AngI    [label="Angiotensin I\nng/mL" fillcolor="#9575CD"]
+    AngII   [label="Angiotensin II\nng/mL" fillcolor="#7E57C2"]
+    ACE     [label="ACE\nconversion enzyme" fillcolor="#673AB7"]
+    AT1R    [label="AT1 Receptor\nvasoconstriction" fillcolor="#5E35B1"]
+    AT2R    [label="AT2 Receptor\nvasodilation" fillcolor="#4527A0"]
+    Aldo    [label="Aldosterone\nng/dL" fillcolor="#7B1FA2"]
+    SNS     [label="Sympathetic Tone\nnorepinephrine" fillcolor="#9C27B0"]
+    MAP     [label="Mean Arterial\nPressure mmHg" fillcolor="#BA68C8" shape=ellipse]
+    SBP     [label="Systolic BP\nmmHg" fillcolor="#CE93D8" shape=ellipse]
+    DBP     [label="Diastolic BP\nmmHg" fillcolor="#E1BEE7" shape=ellipse]
+    CO      [label="Cardiac Output\nL/min" fillcolor="#D1C4E9"]
+    SVR     [label="Systemic Vascular\nResistance" fillcolor="#B39DDB"]
+    BK      [label="Bradykinin\nkinin system" fillcolor="#7E57C2"]
+
+    Renin -> AngI [label="angiotensinogen"]
+    AngI -> AngII [label="ACE conversion"]
+    ACE -> BK [label="degrades" color=red]
+    AngII -> AT1R [label="binds"]
+    AngII -> AT2R [label="binds"]
+    AT1R -> SVR [label="vasoconstriction"]
+    AT1R -> Aldo [label="adrenal secretion"]
+    Aldo -> MAP [label="Na retention volume"]
+    BK -> MAP [label="vasodilation" color=red]
+    SNS -> Renin [label="beta1-AR"]
+    SNS -> CO [label="HR contractility"]
+    CO -> MAP [label="CO x SVR"]
+    SVR -> MAP [label="CO x SVR" constraint=false]
+    MAP -> SBP [label="pulse pressure"]
+    MAP -> DBP [label="pulse pressure"]
+  }
+
+  /* ── Endothelial Function ── */
+  subgraph cluster_endothelial {
+    label="Endothelial Function & Cardiovascular Risk" fontsize=13 style=filled fillcolor="#FFF8E1"
+    color="#F57F17" penwidth=2
+
+    eNOS    [label="eNOS Activity\nendothelial NO" fillcolor="#FFE082"]
+    NO      [label="Nitric Oxide\nnM" fillcolor="#FFD54F"]
+    ET1     [label="Endothelin-1\npg/mL" fillcolor="#FFCA28"]
+    VCAM1   [label="VCAM-1\nadhesion molecule" fillcolor="#FFC107"]
+    Platelet [label="Platelet\nAggregation" fillcolor="#FFA000"]
+    Fibrinogen [label="Fibrinogen\ng/L" fillcolor="#FF8F00"]
+    PAI1    [label="PAI-1\nfibrinolysis inhibitor" fillcolor="#FF6F00"]
+    IMT     [label="Carotid IMT\nmm" fillcolor="#FFCCBC"]
+    CVD_risk [label="10-year CVD Risk\nFramingham pct" fillcolor="#FF5722" shape=ellipse]
+
+    Akt -> eNOS [label="Ser1177 phospho"]
+    eNOS -> NO [label="L-Arg to NO"]
+    OxLDL -> eNOS [label="reduces" color=red]
+    TNFa -> eNOS [label="reduces" color=red]
+    NO -> SVR [label="vasodilation" color=red]
+    NO -> Platelet [label="inhibits aggregation" color=red]
+    AngII -> ET1 [label="induces"]
+    ET1 -> SVR [label="vasoconstriction"]
+    AngII -> VCAM1 [label="NF-kappaB"]
+    IL6 -> Fibrinogen [label="acute phase"]
+    IL6 -> PAI1 [label="induces"]
+    OxLDL -> IMT [label="plaque formation"]
+    IMT -> CVD_risk [label="surrogate marker"]
+    CRP -> CVD_risk [label="risk score"]
+    LDL_pl -> CVD_risk [label="atherogenic"]
+    HDL_pl -> CVD_risk [label="protective" color=green]
+    SBP -> CVD_risk [label="risk factor"]
+    Fibrinogen -> CVD_risk [label="thrombosis"]
+  }
+
+  /* ── Muscle Metabolism ── */
+  subgraph cluster_muscle {
+    label="Skeletal Muscle Metabolism" fontsize=13 style=filled fillcolor="#F1F8E9"
+    color="#33691E" penwidth=2
+
+    Musc_IR [label="Muscle Insulin\nResistance" fillcolor="#DCEDC8"]
+    Myoc    [label="Myokines\nIL-6 irisin FGF21" fillcolor="#C5E1A5"]
+    GLUT4_m [label="GLUT4 in Muscle\ninsulin-stimulated" fillcolor="#AED581"]
+    Glyc_m  [label="Muscle Glycogen\nmmol/kg" fillcolor="#8BC34A"]
+    Oxid_m  [label="Muscle Fat\nOxidation" fillcolor="#7CB342"]
+    Ceramide [label="Ceramide\nlipotoxicity" fillcolor="#558B2F"]
+    DAG     [label="Diacylglycerol\nDAG" fillcolor="#33691E"]
+    PKC_e   [label="PKC epsilon theta\nserine kinases" fillcolor="#CCFF90"]
+    IMCL    [label="Intramyocellular\nLipid IMCL" fillcolor="#B9F6CA"]
+
+    GLUT4_m -> G_musc [label="glucose transport"]
+    GLUT4 -> GLUT4_m [label="same mechanism"]
+    Musc_IR -> GLUT4_m [label="reduces" color=red]
+    Myoc -> AMPK [label="IL-6 AMPK cross-talk"]
+    FFA_pl -> Ceramide [label="saturated FA"]
+    FFA_pl -> DAG [label="accumulation"]
+    Ceramide -> PKC_e [label="activates"]
+    DAG -> PKC_e [label="activates"]
+    PKC_e -> IRS1_ser [label="serine phospho IR decrease"]
+    FFA_pl -> IMCL [label="excess storage"]
+    IMCL -> Musc_IR [label="lipotoxicity"]
+    AMPK -> Oxid_m [label="beta-oxidation increase"]
+    Oxid_m -> IMCL [label="clears" color=red]
+  }
+
+  /* ── Kidney ── */
+  subgraph cluster_kidney {
+    label="Kidney — Glucose & BP Regulation" fontsize=13 style=filled fillcolor="#E0F2F1"
+    color="#004D40" penwidth=2
+
+    GFR     [label="GFR\nmL/min/1.73m2" fillcolor="#80CBC4" shape=ellipse]
+    TmG     [label="Tubular Max Glucose\nReabsorption TmG" fillcolor="#4DB6AC"]
+    SGLT2_k [label="SGLT2 Transporter\nproximal tubule" fillcolor="#26A69A"]
+    SGLT1_k [label="SGLT1 Transporter\ndistal S3 segment" fillcolor="#00897B"]
+    Na_ret  [label="Sodium\nReabsorption" fillcolor="#00796B"]
+    RAAS_k  [label="Intrarenal RAAS\nActivation" fillcolor="#00695C"]
+    Alb_uria [label="Albuminuria\nmg/g Cr" fillcolor="#004D40"]
+    eGFR_dec [label="eGFR Decline\nmL/min/year" fillcolor="#CCFFEF"]
+
+    GFR -> G_ren [label="filters glucose"]
+    SGLT2_k -> TmG [label="sets transport max"]
+    TmG -> G_ren [label="reabsorbs 90 pct"]
+    SGLT1_k -> G_ren [label="reabsorbs 10 pct"]
+    Na_ret -> Aldo [label="regulated by" constraint=false]
+    RAAS_k -> AngII [label="local production"]
+    AngII -> Na_ret [label="Na H exchanger"]
+    Alb_uria -> eGFR_dec [label="proteinuria risk"]
+    MAP -> GFR [label="perfusion pressure"]
+  }
+
+  /* ── CNS & Neuroendocrine ── */
+  subgraph cluster_cns {
+    label="CNS & Neuroendocrine Regulation" fontsize=13 style=filled fillcolor="#EFF8FB"
+    color="#0277BD" penwidth=2
+
+    Hypo    [label="Hypothalamus\nARC nucleus" fillcolor="#B3E5FC"]
+    NPY     [label="NPY/AgRP\norexigenic" fillcolor="#81D4FA"]
+    POMC    [label="POMC/CART\nanorexigenic" fillcolor="#4FC3F7"]
+    MC4R    [label="MC4R\nmelanocortin 4R" fillcolor="#29B6F6"]
+    Food_int [label="Food Intake\nkcal/day" fillcolor="#0288D1" shape=ellipse]
+    EE      [label="Energy Expenditure\nkcal/day" fillcolor="#0277BD" shape=ellipse]
+    BAT     [label="Brown Adipose\nThermogenesis" fillcolor="#01579B"]
+    HPA     [label="HPA Axis\ncortisol" fillcolor="#B3E5FC"]
+    Cortisol [label="Cortisol\nμg/dL" fillcolor="#81D4FA"]
+    Cortisol_r [label="Glucocorticoid\nReceptor GR" fillcolor="#4FC3F7"]
+
+    Lep -> Hypo [label="anorexigenic"]
+    Hypo -> NPY [label="leptin resistance\nNPY increase"]
+    Hypo -> POMC [label="leptin POMC"]
+    POMC -> MC4R [label="alpha-MSH"]
+    MC4R -> Food_int [label="inhibits" color=red]
+    MC4R -> EE [label="increases"]
+    NPY -> Food_int [label="stimulates"]
+    NPY -> EE [label="decreases" color=red]
+    EE -> BAT [label="thermogenesis"]
+    HPA -> Cortisol [label="ACTH cortisol"]
+    Cortisol -> Cortisol_r [label="binds GR"]
+    Cortisol_r -> VAT [label="visceral fat\ndeposition"]
+    SNS -> BAT [label="beta3-AR activation"]
+    IL6 -> HPA [label="activates"]
+  }
+
+  /* ── Drug PD mechanisms ── */
+  subgraph cluster_drug_pd {
+    label="Drug Pharmacodynamics" fontsize=13 style=filled fillcolor="#F9FBE7"
+    color="#827717" penwidth=2
+
+    MET_AMPK  [label="Metformin AMPK\nComplex I inhibition" fillcolor="#F0F4C3"]
+    GLP1_cAMP  [label="GLP-1 RA cAMP\nincretin effect" fillcolor="#E6EE9C"]
+    GLP1_wt    [label="GLP-1 RA\nWeight Loss" fillcolor="#DCE775"]
+    SGLT2_gluc [label="SGLT2i UGE\nglucosuia 70g/day" fillcolor="#D4E157"]
+    STAT_hmgcoa [label="Statin HMG-CoA\nReductase Inhibition" fillcolor="#CDDC39"]
+    ARB_AT1    [label="ARB AT1R\nBlockade" fillcolor="#C6CA33"]
+    ACEi_ACE   [label="ACEi ACE\nInhibition BK increase" fillcolor="#AFBF23"]
+    TZD_PPARg  [label="TZD PPARgamma\nActivation" fillcolor="#9E9D24"]
+    SGLT2_CVP  [label="SGLT2i\nHospHF CKD protect" fillcolor="#F9FBE7"]
+
+    MET_c -> MET_AMPK [label="Cm EC50_met"]
+    MET_AMPK -> AMPK [label="activates"]
+    MET_AMPK -> G_hgp [label="HGP inhibit" color=red]
+
+    GLP1_c -> GLP1_cAMP [label="receptor agonism"]
+    GLP1_cAMP -> Beta [label="insulin increase"]
+    GLP1_cAMP -> Gluc [label="glucagon decrease" color=red]
+    GLP1_c -> GLP1_wt [label="appetite centers"]
+    GLP1_wt -> Food_int [label="reduces" color=red]
+
+    SGLT2_c -> SGLT2_gluc [label="TmG decrease"]
+    SGLT2_gluc -> G_ren2 [label="UGE increase"]
+    SGLT2_c -> Na_ret [label="Na reabsorb decrease" color=red]
+    SGLT2_CVP -> CVD_risk [label="reduces" color=green]
+    SGLT2_CVP -> Alb_uria [label="reduces" color=red]
+
+    STAT_c -> STAT_hmgcoa [label="inhibits HMG-CoA"]
+    STAT_hmgcoa -> Chol_s [label="blocks" color=red]
+    STAT_hmgcoa -> LDLr [label="upregulates LDL decrease"]
+
+    ARB_c -> ARB_AT1 [label="competitive antagonism"]
+    ARB_AT1 -> AT1R [label="blocks" color=red]
+    ACEi_ACE -> ACE [label="inhibits" color=red]
+
+    TZD_c -> TZD_PPARg [label="nuclear receptor agonist"]
+    TZD_PPARg -> Adip [label="adiponectin increase"]
+    TZD_PPARg -> FFA_pl [label="FFA decrease" color=red]
+  }
+
+  /* ── Clinical Endpoints ── */
+  subgraph cluster_endpoints {
+    label="Clinical Endpoints & Biomarkers" fontsize=13 style=filled fillcolor="#FAFAFA"
+    color="#424242" penwidth=2
+
+    Waist   [label="Waist Circumference\ncm" fillcolor="#E0E0E0" shape=ellipse]
+    BMI     [label="BMI\nkg/m2" fillcolor="#BDBDBD" shape=ellipse]
+    HbA1c   [label="HbA1c\npct" fillcolor="#9E9E9E" shape=ellipse]
+    FPG     [label="Fasting Glucose\nmg/dL" fillcolor="#757575" shape=ellipse]
+    HOMA_IR [label="HOMA-IR\ninsulin resistance" fillcolor="#616161"]
+    HOMA_B  [label="HOMA-beta\nbeta-cell function" fillcolor="#424242"]
+    MetS_Z  [label="MetS Z-score\ncomposite severity" fillcolor="#212121" fontcolor=white]
+    NCEP    [label="NCEP-ATP III\nCriteria 3 of 5" fillcolor="#37474F" fontcolor=white]
+    MACE    [label="MACE\nMI stroke death" fillcolor="#263238" shape=ellipse fontcolor=white]
+    T2DM    [label="T2DM\nProgression Risk" fillcolor="#1A237E" shape=ellipse fontcolor=white]
+    HF_risk [label="Heart Failure\nRisk" fillcolor="#B71C1C" shape=ellipse fontcolor=white]
+    CKD_prog [label="CKD Progression\nRisk" fillcolor="#004D40" shape=ellipse fontcolor=white]
+
+    VAT -> Waist [label="surrogate"]
+    VAT -> BMI [label="component"]
+    G_pl -> FPG [label="fasting state"]
+    G_pl -> HbA1c [label="glycation tau 10 wk"]
+    Ins -> HOMA_IR [label="HOMA G x I / 22.5"]
+    Beta -> HOMA_B [label="beta-cell score"]
+    HbA1c -> T2DM [label="predictor"]
+    HOMA_IR -> T2DM [label="predictor"]
+    CVD_risk -> MACE [label="event rate"]
+    LDL_pl -> MACE [label="atherogenesis"]
+    TG_pl -> MACE [label="residual risk"]
+    MAP -> HF_risk [label="pressure overload"]
+    eGFR_dec -> CKD_prog [label="progression"]
+    Alb_uria -> CKD_prog [label="risk marker"]
+    MetS_Z -> MACE [label="composite risk"]
+    MetS_Z -> T2DM [label="incidence"]
+  }
+
+  /* ── Inter-cluster cross-edges ── */
+
+  /* Adipose -> Insulin Signaling */
+  FFA_pl -> IRS1_ser [label="lipotoxicity\nserine kinases" color=orange]
+  Resistin -> IR_rec [label="inhibits binding" color=red]
+  Adip -> IR_rec [label="sensitizes AdipoR1/R2"]
+  TNFa -> IRS1_ser [label="JNK serine phospho" color=orange]
+  IKKb -> IRS1_ser [label="serine phospho IR decrease" color=red]
+
+  /* Pancreas -> Glucose */
+  Ins -> G_hgp [label="HGP inhibit fasting" color=red]
+  Ins -> G_musc [label="GLUT4 transport"]
+  Gluc -> G_hgp [label="stimulates glycogenolysis"]
+
+  /* Glucose -> Pancreas */
+  G_pl -> Beta [label="glucose sensor GSIS"]
+  G_pl -> GLP1_e [label="L-cell stimulation"]
+  G_pl -> GIP [label="K-cell stimulation"]
+
+  /* Liver <-> Lipid */
+  VLDL_p -> TG_pl [label="VLDL-TG catabolism"]
+
+  /* Adipose -> Inflammation */
+  VAT -> Mac_VAT [label="recruits M1 macrophages"]
+  FFA_pl -> Mac_VAT [label="TLR4 activation"]
+  Lep -> Mac_VAT [label="pro-inflammatory"]
+  Adip -> Mac_VAT [label="M1 to M2 switch" color=red]
+
+  /* Inflammation -> Metabolism */
+  TNFa -> Liv_IR [label="NF-kappaB IRS-1 Ser"]
+  IL6 -> Liv_IR [label="SOCS3 IRS-1 degrad"]
+  IL1b -> Beta [label="beta-cell apoptosis" color=red]
+  CRP -> eNOS [label="reduces" color=red]
+
+  /* RAAS -> Metabolism */
+  AngII -> Ins [label="AT1R IRS-1 Ser decrease" color=red]
+  AngII -> ROS [label="NADPH oxidase ROS"]
+
+  /* Kidney -> Glucose */
+  G_ren2 -> G_pl [label="UGE loss glucose balance" color=red constraint=false]
+  Na_ret -> MAP [label="volume expansion"]
+
+  /* CNS -> Metabolism */
+  Food_int -> VAT [label="caloric surplus fat"]
+  EE -> VAT [label="caloric deficit" color=red]
+  Cortisol_r -> G_hgp [label="gluconeogenesis increase"]
+
+  /* Insulin -> SNS */
+  Ins -> SNS [label="activates" color=orange]
+  Lep -> SNS [label="activates" color=orange]
+
+  /* Myokines */
+  Myoc -> Adip [label="irisin adiponectin" color=red]
+
+  /* Drug targets (blue bold) */
+  MET_c -> AMPK [label="Complex I AMPK" color=blue style=bold]
+  GLP1_c -> Beta [label="incretin agonism" color=blue style=bold]
+  GLP1_c -> Food_int [label="CNS satiety" color=blue style=bold]
+  SGLT2_c -> SGLT2_k [label="competitive inhibit" color=blue style=bold]
+  STAT_c -> HMGCoA [label="enzyme inhibit" color=blue style=bold]
+  ARB_c -> AT1R [label="selective antagonism" color=blue style=bold]
+  TZD_c -> AMPK [label="PPARgamma Adiponectin" color=blue style=bold]
+}
