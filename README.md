@@ -300,6 +300,7 @@ qsp/
 | 176 | 신장·비뇨 | [**간질성 방광염 / 방광 통증 증후군 (IC/BPS)**<br><sub>Interstitial Cystitis / Bladder Pain Syndrome · IC/BPS</sub>](interstitial-cystitis/) | <a href="interstitial-cystitis/ic_bps_qsp_model.svg"><img src="interstitial-cystitis/ic_bps_qsp_model.png" width="190" alt="IC/BPS"></a> | **GAG층 결핍 → 요로상피 투과성↑ → 요중 K+ 누출 → C-섬유(TRPV1+·P2X3+) 탈분극 → 비만세포 활성화(히스타민·트립타아제·PGE2·TNF-α 분비) → PAR2 → 장벽↓(양성 피드백) → 서브스턴스 P·CGRP 역행성 분비(신경성 염증) → NGF↑ → C-섬유 증식·TRPV1 상향 → 척수 감작(Wind-up·NMDA·BDNF) → 중추 감작(ACC·도서엽) → 만성 통증 증폭**. Hunner형(5–15%): IL-6/IFN-γ↑·T세포 집중 침윤·점막 궤양 → CsA 반응; 비Hunner형(85–95%): GAG 결핍 우세·방광내 치료 적합. APF(항증식인자)·EGF/HB-EGF 결핍으로 요로상피 자기회복 장애. **140+ 노드 9 클러스터**(①트리거 ②요로상피 장벽 ③비만세포 ④신경성 염증·감각 경로 ⑤면역 이상 ⑥방광벽 리모델링 ⑦척수/중추 통증 처리 ⑧임상 엔드포인트 ⑨약물 PK/PD), **22구획 ODE**(PPS 2+히드록시진 2+CsA 2+아미트립틸린 2 PK 8구획; GAG·PERM·MC·HIST·SP·NGF·IL6·TNF·C_FIBER·SPINAL·CENTRAL·CAP·PAIN·OLS 14 PD구획), **7치료 시나리오**(①무치료 ②PPS 100mg TID·Nickel 2005 ③히드록시진 25mg QD·Sant 2003 ④방광내 DMSO 50%×6회 ⑤CsA 3mg/kg/day Hunner형·Sairanen 2005 ⑥BoNTA 100U 방광내·Gottsch 2011 ⑦삼중 병용 PPS+히드록시진+아미트립틸린). AUA IC/BPS 가이드라인 2022·Parsons 2007 *Urology*·Sant 2003 *J Urol*·Theoharides 2012 *Semin Immunopathol* 보정. VAS 통증·O'Leary-Sant 점수(0–20)·기능적 방광 용량(mL)·배뇨 빈도(회/24h)·GAG 지수·비만세포 활성 엔드포인트. **8탭 Shiny 대시보드**(Overview·환자프로파일 & UPOINT·약물PK·PD 바이오마커·임상엔드포인트·시나리오비교·아형탐색기·민감도분석). **62개 PubMed 인용** (17개 섹션).<br>[🗺️ 지도](interstitial-cystitis/ic_bps_qsp_model.svg) · [⚙️ mrgsolve](interstitial-cystitis/ic_bps_mrgsolve_model.R) · [📊 Shiny](interstitial-cystitis/ic_bps_shiny_app.R) · [📚 문헌](interstitial-cystitis/ic_bps_references.md) · [📄 README](interstitial-cystitis/README.md) |
 | 175 | 감염후·면역 | [**롱 코비드 (Long COVID / PASC)**<br><sub>Post-Acute Sequelae of SARS-CoV-2 · PASC</sub>](long-covid/) | <a href="long-covid/pasc_qsp_model.svg"><img src="long-covid/pasc_qsp_model.png" width="190" alt="PASC"></a> | **SARS-CoV-2 조직 저장소(장·림프절·CNS) 지속 → 잔류 항원 → 면역 이상(CD8+ 소진·자가항체·IFN-I 기능 부전) → 다계통 손상**. 내피세포 기능 부전(eNOS↓·ICAM-1↑) → 피브린 미세혈전(마이크로클롯) → D-이중체↑ · 산소 전달↓; 혈뇌장벽(BBB) 손상 → 소교세포 활성화 M1 → 신경염증 → 세로토닌 고갈(IDO1↑·트립토판→키뉴레닌) → 뇌안개·인지 저하·MoCA↓; 자율신경 기능 부전(항-아드레날린 자가항체·소섬유신경병증) → POTS(기립 시 HR ≥30bpm↑); 미토콘드리아 기능 이상 (복합체 I 손상·ROS↑·ATP↓·AMPK→혐기성 해당→젖산↑) → 운동 후 증상악화(PEM); 장내 미생물 불균형(비피도박테리움↓·LPS 유출→TLR4→IL-1β↑). 4종 약물 완전 PK/PD: **니르마트렐비르 300mg BID×15d**(Mpro 억제·IC₅₀=3nM·바이러스 복제↓·저장소 감소·RECOVER-VITAL NCT05595369)·**메트포민 500mg BID**(AMPK↑·복합체I↓·ROS↓·NF-κB↓·IL-6 −41%·COVID-OUT Bramante 2023 *Lancet Infect Dis*)·**서트랄린 50mg QD**(SERT↑5-HT·σ1R 길항·혈소판 응집↓·신경염증↓)·**저용량 날트렉손 4.5mg QD**(TLR4 길항→소교세포 억제·엔도르핀 반동↑·피로↓). **100+ 노드 10 클러스터**(①바이러스 지속·저장소 ②면역 이상 ③내피·혈관 ④신경염증·뇌안개 ⑤자율신경 POTS ⑥미토콘드리아·에너지 ⑦장내 미생물·장-면역 축 ⑧호르몬 ⑨약물 PK/PD ⑩임상 엔드포인트), **28구획 ODE**(바이러스 4·면역 5·혈관 2·신경 4·자율신경 1·미토콘드리아 3·PK 8구획 +임상 변수 유도), **7치료 시나리오**(①무치료 ②니르마트렐비르 15d ③메트포민 ④저용량날트렉손 ⑤서트랄린 ⑥니르마트렐비르+메트포민 ⑦전체 병용). COVID-OUT Bramante 2023·Hammond 2022 *NEJM*·Klein 2023 *Nature*(면역 프로파일)·Pretorius 2021(마이크로클롯)·Wong 2023 *Cell*(세로토닌)·RECOVER-VITAL 보정. FSS·VO₂max%·MoCA·POTS ΔHR(bpm)·SF-36 PCS·NfL(pg/mL)·D-이중체·CRP 엔드포인트. **8탭 Shiny 대시보드**(환자프로파일&레이더차트·PK·바이러스&면역·신경&자율신경·임상엔드포인트·시나리오비교·가상환자분석·바이오마커 패널). **62개 PubMed 인용** (15개 섹션).<br>[🗺️ 지도](long-covid/pasc_qsp_model.svg) · [⚙️ mrgsolve](long-covid/pasc_mrgsolve_model.R) · [📊 Shiny](long-covid/pasc_shiny_app.R) · [📚 문헌](long-covid/pasc_references.md) · [📄 README](long-covid/README.md) |
 | 171 | 정신·신경 | [**주의력결핍과잉행동장애**<br><sub>Attention Deficit Hyperactivity Disorder · ADHD</sub>](adhd/) | <a href="adhd/adhd_qsp_model.svg"><img src="adhd/adhd_qsp_model.png" width="190" alt="ADHD"></a> | **도파민(DA)·노르에피네프린(NE) 신경전달 저하로 인한 전전두피질(PFC) 기능 장애. DAT1/DRD4/DRD5/SNAP25/COMT 위험 유전자 → 중뇌(VTA→PFC) DA 합성 감소·청반(LC→PFC) NE 긴장도 저하 → PFC 피질 성숙 3년 지연**. D1R 저자극 → AMPAR 시냅스 약화 → 작업기억(WM)↓; α2A-AR 저자극 → HCN 채널 개방 → Ih전류↑ → PFC 네트워크 불안정. **역U 함수(Arnsten)**: PFC 기능 = 최적 DA/NE 긴장도에서 극대화, 결핍(ADHD) 또는 과잉(자극제 과용) 모두 인지 저하. 5종 약물 완전 PK/PD: 메틸페니데이트IR/ER(DAT/NET 경쟁적 억제·Ki=34/340nM·Volkow 1998 PET DAT점유 72%)·암페타민XR(DAT 역방향 수송+방출·Ki=100nM)·아토목세틴(선택적 NET 억제·Ki=2nM·CYP2D6 EM/PM 대사형 4배 차이·Michelson 2001 NEJM Pediatrics)·구안파신ER(α2A-AR 효현제·Ki=1nM·HCN채널 폐쇄·Sallee 2009 JAACAP)·빌록사진ER(NET+5-HT2B·Nasser 2021). **~140 노드 9 클러스터**(유전·신경발달/카테콜아민 생합성/도파민계/노르에피네프린계/PFC회로·인지/약동학/약력학/임상엔드포인트/바이오마커), **25구획 ODE**(MPH 3+AMP 3+ATX 3+GFN 4+VLX 2 PK 15구획; DA_syn·NE_syn·DAT_occ·NET_occ·PFC_DA·PFC_NE·WM_idx·ExecFun·ADHD_RS·CGI_S·QoL_idx 11구획), **7치료 시나리오**(①무치료 ②MPH IR TID ③MPH ER QD ④AMP XR QD ⑤ATX QD ⑥GFN ER QD ⑦VLX ER QD). MTA 1999(n=579, MPH ADHD-RS −10점)·Michelson 2001(n=297, ATX −8점)·Sallee 2009(n=345, GFN −7점)·Nasser 2021(n=460, VLX −8점)·Volkow 1998 PET(DAT점유 72%) 보정. **7탭 Shiny 대시보드**(환자프로파일·약물PK·DA/NE동태·PFC·인지·임상엔드포인트·시나리오비교·바이오마커). **53개 PubMed 인용** (12개 섹션).<br>[🗺️ 지도](adhd/adhd_qsp_model.svg) · [⚙️ mrgsolve](adhd/adhd_mrgsolve_model.R) · [📊 Shiny](adhd/adhd_shiny_app.R) · [📚 문헌](adhd/adhd_references.md) · [📄 README](adhd/README.md) |
+| 177 | 종양·호흡기 | [**소세포 폐암 (SCLC)**<br><sub>Small Cell Lung Cancer · SCLC</sub>](small-cell-lung-cancer/) | <a href="small-cell-lung-cancer/sclc_qsp_model.svg"><img src="small-cell-lung-cancer/sclc_qsp_model.png" width="190" alt="SCLC"></a> | **TP53·RB1 동시 소실(~90/85%) → 신경내분비(NE) 분화·급속 증식. ASCL1/NEUROD1(NE-high)·YAP1/POU2F3(NE-low) 전사 프로그램 결정 → DLL3 이상 표면 발현(~80%) → Notch 시스-억제 → NE 표현형 유지**. 에토포사이드+카보플라틴(CE): Topo-II 독소·DNA 이중나선 절단(DSB) → 세포사멸; CE + 아테졸리주맙(IMpower133 OS HR 0.70·13.9개월) · CE + 더발루맙(CASPIAN OS HR 0.73·13.0개월) 1차 면역항암 병합요법. **Tarlatamab**(DLL3 × CD3 BiTE·10mg q2w): DLL3+ 종양세포로 T세포 유도·DeLLphi-301 ORR 40%·mDOR 9.7개월·FDA 2024 승인. **Lurbinectedin**: RNA Pol II 분해·DNA 알킬화·2차 ORR 35.2%·ATLANTIS trial. **Trilaciclib**(CDK4/6i·240mg/m² iv): G1 정지→ 조혈모세포 보호 → 중증 호중구감소 61→17% 감소. **100+ 노드 12 서브그래프 클러스터**(①유전자 이상 ②NE 아형·전사인자 ③DLL3/Notch ④DNA 손상 응답 ⑤세포주기 ⑥면역 TME·관문 ⑦세포내 신호(PI3K·BCL-2) ⑧면역항암제 PK ⑨화학요법·소분자 PK ⑩종양 동태·임상 엔드포인트 ⑪골수·골수보호 ⑫아형 가소성·내성), **21구획 ODE**(아테졸리주맙 2+더발루맙 2+카보플라틴 1+에토포사이드 2+lurbinectedin 1+topotecan 1+tarlatamab 3+trilaciclib 1 PK 13구획; DNA 손상·Ts·Ta·Tr·CD8T·PD-L1 RO·NK·IFN-γ 8 PD구획), **8치료 시나리오**(①무치료 ②CE ③CE+아테졸리주맙 IMpower133 ④CE+더발루맙 CASPIAN ⑤tarlatamab 2차 ⑥lurbinectedin 2차 ⑦topotecan 2차 ⑧CE+trilaciclib). IMpower133·CASPIAN·DeLLphi-301·ATLANTIS·Trigo 2020·Wedam 2021 보정. SLD(cm)·ORR·CD8T·PD-L1 RO·DNA 손상 지표·NK·IFN-γ 엔드포인트. **6탭 Shiny 대시보드**(환자프로파일·약물PK·분자경로·임상엔드포인트·시나리오비교·바이오마커&TME). **48편 PubMed 인용** (13개 섹션).<br>[🗺️ 지도](small-cell-lung-cancer/sclc_qsp_model.svg) · [⚙️ mrgsolve](small-cell-lung-cancer/sclc_mrgsolve_model.R) · [📊 Shiny](small-cell-lung-cancer/sclc_shiny_app.R) · [📚 문헌](small-cell-lung-cancer/sclc_references.md) · [📄 README](small-cell-lung-cancer/README.md) |
 
 ---
 
@@ -3448,3 +3449,73 @@ VAS 통증↑ · O'Leary-Sant 점수↑ · 방광 용량↓ · 배뇨 빈도↑
 | [`ic_bps_shiny_app.R`](interstitial-cystitis/ic_bps_shiny_app.R) | Shiny 인터랙티브 대시보드 (8탭) |
 | [`ic_bps_references.md`](interstitial-cystitis/ic_bps_references.md) | 참고문헌 62편 (17개 섹션) |
 | [`README.md`](interstitial-cystitis/README.md) | 디렉토리 상세 문서 |
+
+---
+
+## 177. 소세포 폐암 (Small Cell Lung Cancer, SCLC)
+
+> **디렉토리:** [`small-cell-lung-cancer/`](small-cell-lung-cancer/) | **약어:** SCLC | **날짜:** 2026-06-26  
+> **유병률:** 전체 폐암의 15%; ES-SCLC 중앙 OS 12~14개월(1차 면역항암 포함); 5년 생존율 ~7% (ES)
+
+[![SCLC QSP Mechanistic Map](small-cell-lung-cancer/sclc_qsp_model.png)](small-cell-lung-cancer/sclc_qsp_model.svg)
+
+*클릭하면 고해상도 SVG 지도로 이동합니다*
+
+### 기계론적 경로 요약
+
+```
+유전적 배경 (TP53 ~90% + RB1 ~85% 동시 소실)
+  │
+  ▼
+ASCL1/NEUROD1 전사 프로그램 (NE-high) ←→ YAP1/POU2F3 (NE-low) [가소성]
+  │
+  ├─ DLL3 이상 표면 발현 (~80% SCLC) → Notch1/2/3 시스-억제 → NE 표현형 유지
+  │    └─ Tarlatamab (DLL3×CD3 BiTE) → T세포 유도 → 종양 사멸
+  │
+  ├─ DNA 손상 응답 (DDR)
+  │    ├─ Topo-II: 에토포사이드 독소 → DSB → ATM/CHEK2 → 아포토시스
+  │    ├─ 카보플라틴: DNA 교차결합 → DSB → ATR/CHEK1
+  │    └─ Lurbinectedin: RNA Pol II 분해 + DNA 알킬화
+  │
+  ├─ 세포주기 탈조절 (Rb 소실 → E2F 해방 → S기 진입 무제한)
+  │    └─ Trilaciclib (CDK4/6i): G1 정지 → 조혈모세포 보호
+  │
+  └─ 면역 회피
+       ├─ PD-L1: IFN-γ 유도 → PD-1 결합 → CD8 T세포 기능 억제
+       │    └─ 아테졸리주맙/더발루맙: PD-L1 차단 → T세포 활성 복원
+       ├─ TIGIT: CD155 결합 → T/NK 억제
+       ├─ CD47 "do not eat me": SIRPα → 대식세포 식작용 억제
+       └─ MHC-I 소실: CD8 T세포 인식 회피
+
+임상 엔드포인트: SLD↓ · ORR · PFS · OS
+```
+
+### mrgsolve ODE 모델 (21구획)
+
+- **약물 PK (13 구획)**: 아테졸리주맙(2) · 더발루맙(2) · 카보플라틴(1) · 에토포사이드(2) · lurbinectedin(1) · topotecan(1) · tarlatamab(3-cmt: 중심·종양·주변) · trilaciclib(1)
+- **질환 PD (8 구획)**: DNA 손상 지표 · 민감 종양세포(Ts) · G1 정지세포(Ta) · 내성세포(Tr) · CD8+ T세포 · PD-L1 수용체 점유율 · NK세포 · IFN-γ
+
+### 치료 시나리오 8가지
+
+| # | 요법 | 주요 기전 | 근거 임상시험 |
+|---|------|----------|--------------|
+| S1 | 무치료 | Gompertz 자연 경과 | — |
+| S2 | CE 단독 (카보플라틴+에토포사이드) | DSB → 세포사멸 | Loehrer 1988 |
+| S3 | CE + 아테졸리주맙 | PD-L1 차단 | IMpower133 (Horn 2018 NEJM) |
+| S4 | CE + 더발루맙 | PD-L1 차단 | CASPIAN (Soria 2019 Lancet) |
+| S5 | Tarlatamab 10mg q2w (2차) | DLL3×CD3 BiTE | DeLLphi-301 (Paz-Ares 2023 NEJM) |
+| S6 | Lurbinectedin 3.2mg/m² q3w (2차) | RNA Pol II 분해 | Trigo 2020 Lancet Oncol |
+| S7 | Topotecan 1.5mg/m² d1-5 q3w (2차) | TOP1 독소 | Ardizzoni 1997 JCO |
+| S8 | CE + Trilaciclib | CDK4/6i 골수 보호 | Wedam 2021 Clin Cancer Res |
+
+### 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`sclc_qsp_model.dot`](small-cell-lung-cancer/sclc_qsp_model.dot) | Graphviz 기계론적 지도 (100+ 노드, 12 클러스터) |
+| [`sclc_qsp_model.svg`](small-cell-lung-cancer/sclc_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`sclc_qsp_model.png`](small-cell-lung-cancer/sclc_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`sclc_mrgsolve_model.R`](small-cell-lung-cancer/sclc_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (21구획, 8 시나리오) |
+| [`sclc_shiny_app.R`](small-cell-lung-cancer/sclc_shiny_app.R) | Shiny 인터랙티브 대시보드 (6탭) |
+| [`sclc_references.md`](small-cell-lung-cancer/sclc_references.md) | 참고문헌 48편+ (13개 섹션) |
+| [`README.md`](small-cell-lung-cancer/README.md) | 디렉토리 상세 문서 |
