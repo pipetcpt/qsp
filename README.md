@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-186-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-187-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **183개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **186개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -3737,6 +3737,8 @@ APC 활성화 (DC/대식세포) → TCR/CD28 → T세포 분화
 | [`hlh_shiny_app.R`](hemophagocytic-lymphohistiocytosis/hlh_shiny_app.R) | Shiny 인터랙티브 대시보드 (6탭) |
 | [`hlh_references.md`](hemophagocytic-lymphohistiocytosis/hlh_references.md) | 참고문헌 52편 (13개 섹션) |
 | [`README.md`](hemophagocytic-lymphohistiocytosis/README.md) | 디렉토리 상세 문서 |
+| 186 | 소화기·만성 | [**위마비 (Gastroparesis)**<br><sub>Gastroparesis · GP</sub>](gastroparesis/) | <a href="gastroparesis/gp_qsp_model.svg"><img src="gastroparesis/gp_qsp_model.png" width="190" alt="GP"></a> | **ICC(카할 간질세포) 소실 + nNOS 뉴런 고갈 + 미주신경병증 → 위 배출 지연(4h 잔류 >10%) → GCSI 증상** — 당뇨병성(T1DM 29%·T2DM 1%)·특발성·수술 후 3대 아형. 핵심 3결함: ①ICC 밀도 정상의 40~60% 감소(c-Kit+ 세포·SCF/c-Kit 신호 저하)→위 서파(3 cpm) 부정맥·연동 소실; ②nNOS 뉴런 85% 결손→NO 생성 감소→유문 이완 실패→유문 과긴장(저항↑); ③미주신경 원심성 섬유 탈수초→ACh 방출↓→전정부 수축력↓. 당뇨 기전: 고혈당→산화 스트레스(ROS↑)→iNOS 과활성→nNOS 경쟁적 억제; AGE-RAGE→ENS 염증→신경 퇴행; 미세혈관 질환→ENS 허혈→ICC 추가 소실. 신경전달물질 네트워크: D2 수용체 활성→ACh 방출 억제→전정부↓·유문↑; 5-HT4 작동→ACh 증가→운동 강화; 모틸린 수용체(MMC phase III)→전정부 위상 III 수축 유도; 그렐린/GHSR→전정부 수축력 상향. 약물 PK/PD 7종 완전 모델링: **메토클로프라미드**(D2 차단+5HT4 부분작동·F=75%·CL=70L/h·IC50_D2=5ng/mL·EC50_5HT4=50ng/mL·BBB 투과→추체외로 부작용); **돔페리돈**(말초 D2 차단·F=15%·BBB 불투과·QTc 위험); **에리스로마이신**(모틸린 수용체 작동·F=35%·EC50=800ng/mL·단기 속효·내성발생); **프루칼로프리드**(완전 5-HT4 작동·F=90%·EC50=3ng/mL·t½=26h·항암 안전성 프로파일); **릴라모렐린**(그렐린/GHSR SC·EC50=15ng/mL·2상 구토 83% 감소·Camilleri 2017 JAMA IM); **온단세트론**(5-HT3 차단·항구토 전용·IC50=8ng/mL). **100+ 노드 10 서브그래프 클러스터**(①CNS·구역 조절 NTS/DMV/화학수용체 유발대 ②자율신경계 미주 원심/구심 ③장신경계·ICC ④신경전달물질 수용체 신호 ⑤위 운동 기능 전정부·유문·기저부 ⑥핵심 병태생리 산화스트레스·nNOS·iNOS·대식세포 ⑦당뇨 기전 AGE-RAGE·미세혈관 ⑧약물 PK 7종 ⑨약물 PD 수용체효과·전정자극·유문억제 ⑩임상 엔드포인트 GCSI·GES·4h잔류율). **16구획 ODE**(MCP_GI·MCP_plasma·MCP_CNS·DOM·ERY·PRU·REL PK 7; D2_effect·HT4_effect 수용체 간접반응 2; nNOS_act·ICC_dens 질환진행 2; Antral_c·Pyloric_t 운동기능 2; GasVol·GER_cum·GCSI_dyn 임상 3). **7치료 시나리오**: S0 무치료·S1 메토클로프라미드 10mg QID·S2 돔페리돈 10mg TID·S3 에리스로마이신 250mg TID(단기 모틸린)·S4 프루칼로프리드 2mg QD·S5 릴라모렐린 100mcg SC BID·S6 프루칼로프리드+온단세트론 병용. APPROVE 임상(메토클로프라미드 GCSI ↓0.5)·PRED 임상(프루칼로프리드 GES T½ 개선 ~20분)·Camilleri 2017 JAMA IM(릴라모렐린 구토 83%↓) 보정. 바이오마커: ICC 밀도(c-Kit+ 생검)·nNOS 뉴런(근신경총 면역형광)·4h 위배출 신티그래피·SmartPill·¹³C-옥탄산 호기검사·혈장 그렐린·모틸린·HbA1c. **7탭 Shiny 대시보드**(환자 프로파일&질환 중증도·PK 농도-시간·PD 수용체 점유·위 운동기능·임상 엔드포인트·7시나리오 비교·ICC/nNOS 바이오마커). **53개 PubMed 인용** (11개 섹션).<br>[🗺️ 지도](gastroparesis/gp_qsp_model.svg) · [⚙️ mrgsolve](gastroparesis/gp_mrgsolve_model.R) · [📊 Shiny](gastroparesis/gp_shiny_app.R) · [📚 문헌](gastroparesis/gp_references.md) · [📄 README](gastroparesis/README.md) |
+
 | 185 | 희귀·혈액·면역항암 | [**사이토카인 방출 증후군 (CRS)**<br><sub>Cytokine Release Syndrome · CRS</sub>](cytokine-release-syndrome/) | <a href="cytokine-release-syndrome/crs_qsp_model.svg"><img src="cytokine-release-syndrome/crs_qsp_model.png" width="190" alt="CRS"></a> | **CAR-T세포/이중특이항체 투여 후 면역 이펙터 세포 대규모 활성화 → T세포 IFN-γ·IL-2·GM-CSF 폭발 → 대식세포 M1 극화(JAK-STAT1) → IL-6↑↑↑(★핵심 드라이버)·IL-1β(NLRP3 인플라마솜)·TNF-α** — 내피세포 활성화(iNOS→NO↑→혈관확장→저혈압)·VEGF/ANG2→혈관 투과성↑→저산소증; 혈뇌장벽 붕괴→CNS 대식세포 활성화→ICANS(ICE 점수 0-10; 섬망·발작·뇌부종). ASTCT 2019 CRS 등급: **Grade 1**(발열만)→**Grade 2**(발열+수액반응 저혈압/저유량 O₂)→**Grade 3**(승압제 필요/고유량 O₂)→**Grade 4**(기계환기·ECMO). 빈발 트리거: CD19 CAR-T(CD28 공자극 → 빠른 증식·중증; Axicabtagene·Tisagenlecleucel), CD19 CAR-T(4-1BB → 완만·경증; KymRAH), BCMA CAR-T(Idecabtagene·Ciltacabtagene·MM), CD20/BCMA 이중특이항체(Mosunetuzumab·Teclistamab·Glofitamab), 블리나투모맙(CD3×CD19·주기적 CRS). 6종 약물 완전 PK/PD: **토실리주맙**(Anti-IL-6R mAb·TMDD·CL=0.22 L/d·t½=11-13d·gp130 cis/trans 신호 모두 차단·FDA CRS 승인 2017)·**실투시맙**(Anti-IL-6 mAb·t½=21d·IL-6 직접 중화·Castleman disease 적응증)·**덱사메타손**(GR/NF-κB·t½=3.5h·IL-6·TNF-α·IFN-γ 억제·모든 ICANS 등급 1차)·**룩솔리티닙**(JAK1/2·t½=3h·IC50 JAK1 3.3nM·pSTAT3/pSTAT1 억제·대식세포 IL-6 피드백 루프 차단·난치성 CRS/HLH 2차)·**아나킨라**(IL-1Ra·SC·t½=4-6h·NLRP3 인플라마솜 하류 차단·MAS 중첩/소아 선호). **100+ 노드 10 서브그래프 클러스터**(①면역치료 트리거 CAR-T/BiAb ②T세포 활성화·증식(IL-2 자가분비) ③T세포 유래 사이토카인(IFN-γ·IL-2·GM-CSF·TNF-α) ④대식세포/골수세포 활성화 ⑤IL-6 신호 네트워크(JAK-STAT3·SOCS3 음성피드백·CRP·피브리노겐) ⑥내피·혈관 반응 ⑦ASTCT CRS 등급 발현 ⑧ICANS 뇌독성 ⑨약물 PK/PD ⑩다발 장기 침범·임상 결과), **22구획 ODE**(CAR-T_ACT·CART_EXH·TUMOR 3; IFNg·IL2·GMCSF·TNFaT T세포 사이토카인 4; MAC_ACT·IL6·IL1B·TNFaM 대식세포 4; STAT3·CRP·FERRITIN IL-6 하류 3; ENDO_ACT·VASC_PERM 혈관 2; CRS_SEV·ORGAN_DMG 임상 2; 5약물 PK 10구획), **5치료 시나리오**(①무치료 ②토실리주맙 Grade 2 ③토실리주맙+덱사 Grade 3 ④룩솔리티닙+덱사 난치성 Grade 4 ⑤아나킨라+덱사 MAS/소아). Teachey 2016 Cancer Discov(IFN-γ Day3 바이오마커)·Neelapu 2017 NEJM(axicabtagene ZUMA-1)·Maude 2014 NEJM(KymRAH ALL)·Giavridis 2018 Nat Med(대식세포 IL-1 기전)·Lee 2019 ASTCT 등급 보정. 예측 바이오마커: IFN-γ Day3(≥75 pg/mL → 중증 특이적)·IL-6(>50 pg/mL)·CRP(>100 mg/L)·페리틴(>2000 ng/mL·HLH 중첩 시 >10,000)·피브리노겐 감소(DIC)·종양 부담(전처치). **6탭 Shiny 대시보드**(환자프로파일&치료선택·약물PK·사이토카인폭풍·임상 엔드포인트·5시나리오 비교·바이오마커&ASTCT 기준 추적). **55개 PubMed 인용** (17개 섹션).<br>[🗺️ 지도](cytokine-release-syndrome/crs_qsp_model.svg) · [⚙️ mrgsolve](cytokine-release-syndrome/crs_mrgsolve_model.R) · [📊 Shiny](cytokine-release-syndrome/crs_shiny_app.R) · [📚 문헌](cytokine-release-syndrome/crs_references.md) · [📄 README](cytokine-release-syndrome/README.md) |
 
 ---
@@ -3799,3 +3801,58 @@ CAR-T 주입 (Day 0) → 항원 인식 → T세포 활성화·증식
 | [`crs_mrgsolve_model.R`](cytokine-release-syndrome/crs_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (22구획, 5 치료 시나리오) |
 | [`crs_shiny_app.R`](cytokine-release-syndrome/crs_shiny_app.R) | Shiny 인터랙티브 대시보드 (6탭) |
 | [`crs_references.md`](cytokine-release-syndrome/crs_references.md) | 참고문헌 55편 (17개 섹션) |
+
+---
+
+## 🟢 위마비 (Gastroparesis) — 최신 모델 상세 (2026-06-26)
+
+> **디렉토리:** [`gastroparesis/`](gastroparesis/) | **약어:** GP | **날짜:** 2026-06-26
+
+[![Gastroparesis QSP Mechanistic Map](gastroparesis/gp_qsp_model.png)](gastroparesis/gp_qsp_model.svg)
+
+### 질환 개요
+
+위마비(Gastroparesis)는 기계적 폐색이 없는 만성 위 배출 지연으로, 구역·구토·조기 포만감·복부 팽만이 특징적인 만성 위운동 장애입니다. 미국 약 500만 명이 이환되어 있으며 당뇨병성(T1DM 29%)·특발성(36%)·수술 후(13%)의 3대 아형으로 분류됩니다.
+
+**핵심 병리 기전:**
+```
+당뇨병/고혈당 → 산화 스트레스(ROS↑) + 미세혈관 질환
+    ↓
+ICC(카할 간질세포) 소실 (정상의 40~60%)
+    ↓ 위 서파 소실·부정맥
+nNOS 뉴런 고갈 (생검에서 85% 결손)
+    ↓ NO 감소 → 유문 이완 실패
+전정부 수축력 저하 + 유문 과긴장
+    ↓
+위 배출 지연 → 4h 잔류 >10% → GCSI 증상
+```
+
+### 치료 약물 기전
+
+| 약물 | 분류 | 핵심 수용체 | 위 운동 효과 |
+|------|------|-----------|------------|
+| **메토클로프라미드** | D2 차단+5HT4 부분작동 | D2(GI·CNS)+5HT4 | 전정부↑·유문↓·항구토 |
+| **돔페리돈** | 말초 D2 차단 | 말초 D2(BBB 불투과) | 전정부↑·QTc↑ |
+| **에리스로마이신** | 모틸린 수용체 작동약 | 모틸린 R | MMC 유도→단기 강력 효과 |
+| **프루칼로프리드** | 완전 5-HT4 작동약 | 5-HT4 (완전) | 전정부↑·항암 안전성↑ |
+| **릴라모렐린** | 그렐린 유사체 | GHSR | 전정부 수축력↑ (2상 중) |
+| **온단세트론** | 5-HT3 차단 | CTZ 5-HT3 | 항구토 전용 (비운동촉진) |
+
+### GCSI 진단 기준
+
+| 등급 | 4h 잔류 | GCSI 점수 | 임상 특성 |
+|------|--------|---------|---------|
+| **경증** | 10–20% | ≤2.5 | 증상 간헐적·영양 양호 |
+| **중등도** | 20–35% | 2.5–3.5 | 증상 지속·체중 감소 |
+| **중증** | >35% | >3.5 | 입원 반복·정맥 영양 필요 |
+
+### 모델 파일 목록
+
+| 파일 | 설명 |
+|------|------|
+| [`gp_qsp_model.dot`](gastroparesis/gp_qsp_model.dot) | Graphviz 기계론적 지도 (100+ 노드, 10 클러스터) |
+| [`gp_qsp_model.svg`](gastroparesis/gp_qsp_model.svg) | 벡터 형식 지도 (고해상도) |
+| [`gp_qsp_model.png`](gastroparesis/gp_qsp_model.png) | 래스터 형식 지도 (150 dpi) |
+| [`gp_mrgsolve_model.R`](gastroparesis/gp_mrgsolve_model.R) | mrgsolve ODE QSP 모델 (16구획, 7 치료 시나리오) |
+| [`gp_shiny_app.R`](gastroparesis/gp_shiny_app.R) | Shiny 인터랙티브 대시보드 (7탭) |
+| [`gp_references.md`](gastroparesis/gp_references.md) | 참고문헌 53편 (11개 섹션) |
