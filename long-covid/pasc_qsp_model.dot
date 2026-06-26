@@ -1,0 +1,486 @@
+digraph PASC_QSP {
+    graph [
+        label="Long COVID (PASC) — Quantitative Systems Pharmacology Model\nPost-Acute Sequelae of SARS-CoV-2 Infection",
+        labelloc=t, fontsize=22, fontname="Helvetica-Bold",
+        bgcolor="#FAFAFA", splines=spline, rankdir=TB,
+        nodesep=0.5, ranksep=0.8, overlap=false,
+        compound=true
+    ]
+    node [shape=box, style="filled,rounded", fontname="Helvetica", fontsize=10]
+    edge [fontname="Helvetica", fontsize=9]
+
+    /* ===================================================================
+       CLUSTER 1: VIRAL PERSISTENCE & RESERVOIRS
+    =================================================================== */
+    subgraph cluster_viral {
+        label="VIRAL PERSISTENCE & RESERVOIRS"
+        style="filled,rounded" fillcolor="#FFE8E8" color="#CC0000" fontsize=14 fontname="Helvetica-Bold"
+
+        SARS2 [label="SARS-CoV-2\n(Active Virus)", fillcolor="#FF6666" fontcolor=white shape=ellipse]
+        Viral_RNA [label="Viral RNA\n(ssRNA+)", fillcolor="#FF9999"]
+        Spike_Protein [label="Spike Protein\n(Free/Membrane)", fillcolor="#FF9999"]
+        ACE2_Rec [label="ACE2 Receptor\n(Epithelial/Endothelial)", fillcolor="#FFB3B3"]
+        Gut_Reservoir [label="GI Tract Viral\nReservoir", fillcolor="#FFCCCC"]
+        Lymph_Reservoir [label="Lymph Node\nViral Reservoir", fillcolor="#FFCCCC"]
+        CNS_Reservoir [label="CNS Viral\nReservoir (Brainstem)", fillcolor="#FFCCCC"]
+        Latent_Antigen [label="Persistent Viral\nAntigen (S1, N)", fillcolor="#FFD6D6"]
+        Viral_Load [label="Viral Load\n(RNA copies/mL)", fillcolor="#FF8080"]
+        Replication_Rate [label="Viral Replication\nRate (kViral)", fillcolor="#FFAAAA"]
+
+        SARS2 -> Viral_RNA [label="transcription"]
+        SARS2 -> Spike_Protein [label="expression"]
+        Spike_Protein -> ACE2_Rec [label="binding"]
+        ACE2_Rec -> SARS2 [label="cell entry"]
+        Viral_RNA -> Replication_Rate [label="drives"]
+        Replication_Rate -> Viral_Load [label="accumulates"]
+        Viral_Load -> Gut_Reservoir [label="seeding"]
+        Viral_Load -> Lymph_Reservoir [label="seeding"]
+        Viral_Load -> CNS_Reservoir [label="neuroinvasion"]
+        Gut_Reservoir -> Latent_Antigen [label="persistent\nreactivation"]
+        Lymph_Reservoir -> Latent_Antigen [label="persistent\nreactivation"]
+        CNS_Reservoir -> Latent_Antigen [label="persistent\nreactivation"]
+    }
+
+    /* ===================================================================
+       CLUSTER 2: INNATE & ADAPTIVE IMMUNE DYSREGULATION
+    =================================================================== */
+    subgraph cluster_immune {
+        label="IMMUNE DYSREGULATION"
+        style="filled,rounded" fillcolor="#FFF0E8" color="#CC5500" fontsize=14 fontname="Helvetica-Bold"
+
+        pDC [label="Plasmacytoid\nDendritic Cells (pDC)", fillcolor="#FFD0A0"]
+        IFN_I [label="Type I IFN\n(IFN-α/β)", fillcolor="#FFBB77"]
+        IFN_III [label="Type III IFN\n(IFN-λ)", fillcolor="#FFBB77"]
+        IFN_sig [label="IFN Signaling\n(IFNAR1/2→STAT1/2)", fillcolor="#FFC299"]
+        NK_cells [label="NK Cells\n(Dysfunctional)", fillcolor="#FFD6AA"]
+        CD8_exh [label="CD8+ T Cells\n(Exhausted PD1+TIM3+)", fillcolor="#FFB366"]
+        CD4_exh [label="CD4+ T Cells\n(Th1/Th2 Imbalance)", fillcolor="#FFB366"]
+        Treg [label="T Regulatory\nCells (Treg↓)", fillcolor="#FFD0A0"]
+        B_cell_abd [label="B Cells\n(Aberrant Activation)", fillcolor="#FFD6AA"]
+        Memory_B [label="Memory B Cells\n(Dysregulated)", fillcolor="#FFD6AA"]
+        Autoantibodies [label="Autoantibodies\n(Anti-ACE2, Anti-IFN,\nAnti-Adrenergic)", fillcolor="#FF9944"]
+        TH17_act [label="Th17 Activation\n(IL-17↑)", fillcolor="#FFB366"]
+        IL6 [label="IL-6\n(Persistent Elevation)", fillcolor="#FF8833"]
+        IL10 [label="IL-10\n(Anti-inflammatory)", fillcolor="#FFD0A0"]
+        TNFa [label="TNF-α\n(Systemic)", fillcolor="#FF8833"]
+        IL1b [label="IL-1β\n(Inflammasome)", fillcolor="#FF8833"]
+        NLRP3 [label="NLRP3 Inflammasome\n(Macrophage)", fillcolor="#FFAA55"]
+        Mast_cells [label="Mast Cell\nHyperactivation", fillcolor="#FFD0A0"]
+        Hist_release [label="Histamine &\nProstaglandins", fillcolor="#FFD6AA"]
+
+        Latent_Antigen -> pDC [label="stimulates" style=dashed]
+        pDC -> IFN_I [label="produces"]
+        pDC -> IFN_III [label="produces"]
+        IFN_I -> IFN_sig [label="activates"]
+        IFN_sig -> CD8_exh [label="drives\nexhaustion"]
+        IFN_sig -> CD4_exh [label="drives\nexhaustion"]
+        CD8_exh -> Treg [label="suppresses"]
+        CD4_exh -> TH17_act [label="skews"]
+        TH17_act -> IL6 [label="induces"]
+        TH17_act -> IL1b [label="induces"]
+        Latent_Antigen -> B_cell_abd [label="aberrant\nstimulation"]
+        B_cell_abd -> Memory_B [label="differentiates"]
+        B_cell_abd -> Autoantibodies [label="secretes"]
+        NLRP3 -> IL1b [label="processes"]
+        IL1b -> IL6 [label="amplifies"]
+        IL6 -> TNFa [label="co-stimulates"]
+        Mast_cells -> Hist_release [label="releases"]
+        Hist_release -> IL6 [label="amplifies"]
+        NK_cells -> CD8_exh [label="dysfunction\nworsens"]
+    }
+
+    /* ===================================================================
+       CLUSTER 3: ENDOTHELIAL & VASCULAR DYSFUNCTION
+    =================================================================== */
+    subgraph cluster_vascular {
+        label="ENDOTHELIAL & VASCULAR DYSFUNCTION"
+        style="filled,rounded" fillcolor="#FFE8F0" color="#CC0066" fontsize=14 fontname="Helvetica-Bold"
+
+        Endothelium [label="Vascular Endothelium\n(Injured/Inflamed)", fillcolor="#FFB3CC"]
+        eNOS [label="eNOS Activity↓\n(Nitric Oxide ↓)", fillcolor="#FFCCDD"]
+        ICAM1 [label="ICAM-1/VCAM-1\n(↑ Adhesion Molecules)", fillcolor="#FFAACC"]
+        Platelet_act [label="Platelet\nHyperactivation", fillcolor="#FF80AA"]
+        Fibrin_clots [label="Fibrin\nMicroclots/Microthrombi", fillcolor="#FF4488"]
+        vWF_elev [label="von Willebrand Factor↑\n(Endothelial Damage Marker)", fillcolor="#FFAACC"]
+        D_dimer [label="D-Dimer↑\n(Fibrinolysis Marker)", fillcolor="#FFAACC"]
+        Complement_act [label="Complement Activation\n(C3a, C5a, MAC)", fillcolor="#FF80AA"]
+        RBC_deform [label="RBC Deformability↓\n(Reduced O2 Delivery)", fillcolor="#FFBBCC"]
+        Capillary_raref [label="Capillary\nRarefaction", fillcolor="#FFCCDD"]
+        VEGF [label="VEGF\n(Angiogenic Factor)", fillcolor="#FFAACC"]
+        Tissue_hypoxia [label="Tissue Hypoxia\n(Organ-level)", fillcolor="#FF6699"]
+
+        Spike_Protein -> Endothelium [label="direct injury"]
+        IL6 -> Endothelium [label="activates"]
+        TNFa -> Endothelium [label="activates"]
+        Autoantibodies -> Endothelium [label="ADCC damage"]
+        Endothelium -> eNOS [label="downregulates"]
+        Endothelium -> ICAM1 [label="upregulates"]
+        Endothelium -> vWF_elev [label="releases"]
+        ICAM1 -> Platelet_act [label="promotes"]
+        Platelet_act -> Fibrin_clots [label="forms"]
+        Fibrin_clots -> D_dimer [label="generates"]
+        Complement_act -> Endothelium [label="damages"]
+        IL1b -> Complement_act [label="activates"]
+        Fibrin_clots -> RBC_deform [label="impairs"]
+        RBC_deform -> Tissue_hypoxia [label="contributes"]
+        Capillary_raref -> Tissue_hypoxia [label="worsens"]
+        VEGF -> Capillary_raref [label="insufficient\nregeneration"]
+        Tissue_hypoxia -> VEGF [label="upregulates"]
+    }
+
+    /* ===================================================================
+       CLUSTER 4: NEUROINFLAMMATION & BRAIN FOG
+    =================================================================== */
+    subgraph cluster_neuro {
+        label="NEUROINFLAMMATION & COGNITIVE DYSFUNCTION"
+        style="filled,rounded" fillcolor="#EEF0FF" color="#3300CC" fontsize=14 fontname="Helvetica-Bold"
+
+        BBB_disruption [label="Blood-Brain Barrier\nDisruption", fillcolor="#AABBFF"]
+        Microglia_act [label="Microglial\nActivation (M1)", fillcolor="#8899FF"]
+        Astro_react [label="Astrocyte\nReactivation (A1)", fillcolor="#9999FF"]
+        Neuroinflam [label="Neuroinflammation\n(CNS IL-6, IL-1β)", fillcolor="#7788EE"]
+        Serotonin_depl [label="Serotonin Depletion\n(Tryptophan→Kynurenine)", fillcolor="#8888DD"]
+        Kynurenine_path [label="Kynurenine Pathway\n(IDO1↑ →Quinolinate)", fillcolor="#9999EE"]
+        Dopamine_dys [label="Dopamine\nDysfunction", fillcolor="#AAAAFF"]
+        NAcc_hypo [label="Nucleus Accumbens\nHypoactivation", fillcolor="#BBBBFF"]
+        Hippoc_damage [label="Hippocampal\nVolume Reduction", fillcolor="#9999DD"]
+        GFAP_elev [label="GFAP↑\n(Astrocyte Damage Marker)", fillcolor="#AABBFF"]
+        NfL_elev [label="NfL↑\n(Neuro-axonal Injury)", fillcolor="#AABBFF"]
+        Cogn_impair [label="Cognitive Impairment\n(Brain Fog, Memory ↓)", fillcolor="#6677EE" fontcolor=white]
+        Headache [label="Headache /\nMigraines", fillcolor="#99AAFF"]
+        Sleep_disturb [label="Sleep Disturbance\n(Non-restorative)", fillcolor="#BBCCFF"]
+
+        CNS_Reservoir -> BBB_disruption [label="neuroinvasion"]
+        IL6 -> BBB_disruption [label="disrupts"]
+        Fibrin_clots -> BBB_disruption [label="cerebral\nmicrothrombi"]
+        BBB_disruption -> Microglia_act [label="activates"]
+        BBB_disruption -> Astro_react [label="activates"]
+        Microglia_act -> Neuroinflam [label="produces"]
+        Astro_react -> Neuroinflam [label="amplifies"]
+        Neuroinflam -> Serotonin_depl [label="IDO1 activation"]
+        Serotonin_depl -> Kynurenine_path [label="shifts to"]
+        Kynurenine_path -> Dopamine_dys [label="neurotoxic\nmetabolites"]
+        Dopamine_dys -> NAcc_hypo [label="impairs reward\ncircuit"]
+        Neuroinflam -> Hippoc_damage [label="induces"]
+        Astro_react -> GFAP_elev [label="marker"]
+        Microglia_act -> NfL_elev [label="drives\nneuronal injury"]
+        Hippoc_damage -> Cogn_impair [label="causes"]
+        NAcc_hypo -> Cogn_impair [label="contributes"]
+        Kynurenine_path -> Cogn_impair [label="quinolinate\ntoxicity"]
+        Neuroinflam -> Headache [label="sensitizes"]
+        Neuroinflam -> Sleep_disturb [label="disrupts\nHPA-axis"]
+    }
+
+    /* ===================================================================
+       CLUSTER 5: AUTONOMIC DYSFUNCTION (POTS/DYSAUTONOMIA)
+    =================================================================== */
+    subgraph cluster_autonomic {
+        label="AUTONOMIC DYSFUNCTION (POTS / DYSAUTONOMIA)"
+        style="filled,rounded" fillcolor="#F0FFF0" color="#006600" fontsize=14 fontname="Helvetica-Bold"
+
+        Auto_AB [label="Anti-Adrenergic &\nAnti-Muscarinic Autoantibodies", fillcolor="#99DD99"]
+        SFN [label="Small Fiber\nNeuropathy (SFN)", fillcolor="#88CC88"]
+        ANS_dysreg [label="ANS Dysregulation\n(↓Parasympathetic, ↑Sympathetic)", fillcolor="#77BB77"]
+        HR_variab [label="Heart Rate Variability↓\n(↓HRV → Fatigue)", fillcolor="#88BB88"]
+        POTS_mech [label="POTS Mechanism:\nPooling → ↑HR ≥30 bpm", fillcolor="#55AA55" fontcolor=white]
+        Norepi_surge [label="Norepinephrine\nSurge (Orthostasis)", fillcolor="#88DD88"]
+        BP_fluctuate [label="BP Dysregulation\n(Orthostatic Intolerance)", fillcolor="#99CC99"]
+        Venous_pool [label="Peripheral Venous\nPooling (↓Preload)", fillcolor="#AACCAA"]
+        Cardiac_output [label="Cardiac Output↓\n(Orthostasis)", fillcolor="#77BB77"]
+        Hypovolemia [label="Hypovolemia\n(Low Blood Volume)", fillcolor="#AADDAA"]
+        Renin_aldo [label="RAAS Activation\n(Renin↑, Aldosterone↑)", fillcolor="#88CC88"]
+
+        Autoantibodies -> Auto_AB [label="includes"]
+        Auto_AB -> ANS_dysreg [label="receptor\ndysfunction"]
+        CNS_Reservoir -> SFN [label="neuronal\ndamage"]
+        IL6 -> SFN [label="demyelination"]
+        SFN -> ANS_dysreg [label="impairs\nefferents"]
+        ANS_dysreg -> HR_variab [label="reduces"]
+        ANS_dysreg -> Venous_pool [label="↓venomotor tone"]
+        Venous_pool -> Cardiac_output [label="↓venous return"]
+        Cardiac_output -> POTS_mech [label="compensatory ↑HR"]
+        POTS_mech -> Norepi_surge [label="sympathetic\ncompensation"]
+        Norepi_surge -> BP_fluctuate [label="exacerbates"]
+        Hypovolemia -> Venous_pool [label="worsens"]
+        Hypovolemia -> Renin_aldo [label="activates"]
+        Renin_aldo -> Hypovolemia [label="partial compensation"]
+    }
+
+    /* ===================================================================
+       CLUSTER 6: MITOCHONDRIAL & METABOLIC DYSFUNCTION
+    =================================================================== */
+    subgraph cluster_mito {
+        label="MITOCHONDRIAL & ENERGY METABOLISM DYSFUNCTION"
+        style="filled,rounded" fillcolor="#FFFDE0" color="#888800" fontsize=14 fontname="Helvetica-Bold"
+
+        mito_damage [label="Mitochondrial\nDysfunction", fillcolor="#FFEE55"]
+        ROS [label="Reactive Oxygen\nSpecies (ROS)↑", fillcolor="#FFDD33"]
+        Ox_stress [label="Oxidative Stress\n(↓Antioxidants)", fillcolor="#FFDD33"]
+        ATP_deficit [label="ATP Production↓\n(↓Oxidative Phosphorylation)", fillcolor="#FFCC00"]
+        AMP_AMPK [label="AMP:ATP↑ →\nAMPK Activation", fillcolor="#FFDD66"]
+        Glycolysis_shift [label="Shift to\nAnaerobic Glycolysis", fillcolor="#FFEE88"]
+        Lactate_elev [label="Lactate↑\n(PEM Trigger)", fillcolor="#FFCC66"]
+        PEM [label="Post-Exertional\nMalaise (PEM)", fillcolor="#FFAA00"]
+        HIF1a [label="HIF-1α Activation\n(Hypoxia Response)", fillcolor="#FFCC33"]
+        Mito_biogen [label="Mitochondrial\nBiogenesis↓ (PGC-1α↓)", fillcolor="#FFDD88"]
+        NAD_depl [label="NAD+ Depletion\n(PARP1 overconsumption)", fillcolor="#FFEE99"]
+        CoQ10_def [label="CoQ10 Deficiency\n(ETC dysfunction)", fillcolor="#FFEEAA"]
+
+        Tissue_hypoxia -> mito_damage [label="hypoxic injury"]
+        Neuroinflam -> mito_damage [label="inflammatory\ndamage"]
+        ROS -> mito_damage [label="oxidative\ndamage"]
+        mito_damage -> ATP_deficit [label="reduces\nOXPHOS"]
+        mito_damage -> ROS [label="ETC leak"]
+        ROS -> Ox_stress [label="accumulates"]
+        ATP_deficit -> AMP_AMPK [label="activates"]
+        AMP_AMPK -> Glycolysis_shift [label="upregulates"]
+        Glycolysis_shift -> Lactate_elev [label="produces"]
+        Lactate_elev -> PEM [label="triggers"]
+        ATP_deficit -> PEM [label="energy\ninsufficiency"]
+        Tissue_hypoxia -> HIF1a [label="stabilizes"]
+        HIF1a -> Glycolysis_shift [label="promotes"]
+        mito_damage -> Mito_biogen [label="impairs"]
+        Ox_stress -> NAD_depl [label="PARP1 activation"]
+        NAD_depl -> mito_damage [label="worsens SIRT3\nactivity↓"]
+        mito_damage -> CoQ10_def [label="↓ETC complex II/III"]
+    }
+
+    /* ===================================================================
+       CLUSTER 7: GUT MICROBIOME & IMMUNE AXIS
+    =================================================================== */
+    subgraph cluster_microbiome {
+        label="GUT MICROBIOME DYSBIOSIS & GUT-IMMUNE AXIS"
+        style="filled,rounded" fillcolor="#F0FFF8" color="#006633" fontsize=14 fontname="Helvetica-Bold"
+
+        Dysbiosis [label="Gut Dysbiosis\n(↓Bifidobacterium, ↑Proteobacteria)", fillcolor="#99FFCC"]
+        Gut_barrier [label="Gut Epithelial\nBarrier↓ (Leaky Gut)", fillcolor="#99EECC"]
+        LPS_transloc [label="LPS/Endotoxin\nTranslocation", fillcolor="#77DDAA"]
+        SCFA_depl [label="Short-Chain Fatty\nAcid↓ (Butyrate↓)", fillcolor="#AAFFDD"]
+        Mucosal_imm [label="Mucosal IgA↓\n(Secretory IgA)", fillcolor="#BBFFEE"]
+        Entero_sero [label="Enterochromaffin Cell\n5-HT Production↓", fillcolor="#99FFDD"]
+        Gut_neuroinflam [label="Enteric Nervous\nSystem Inflammation", fillcolor="#77EEBB"]
+        Tryptophan_deplet [label="Tryptophan\nDepletion (Gut)", fillcolor="#88DDCC"]
+        GI_symptoms [label="GI Symptoms\n(IBS-like, Nausea, Diarrhea)", fillcolor="#66DDAA"]
+
+        Gut_Reservoir -> Dysbiosis [label="disrupts"]
+        IL6 -> Gut_barrier [label="disrupts TJ"]
+        TNFa -> Gut_barrier [label="disrupts TJ"]
+        Dysbiosis -> Gut_barrier [label="worsens"]
+        Gut_barrier -> LPS_transloc [label="allows"]
+        LPS_transloc -> IL1b [label="TLR4→\nNF-κB activation"]
+        LPS_transloc -> TNFa [label="systemic\nendotoxemia"]
+        Dysbiosis -> SCFA_depl [label="reduced\nfermentation"]
+        SCFA_depl -> Gut_barrier [label="↓barrier\nintegrity"]
+        SCFA_depl -> Treg [label="↓induction"]
+        Dysbiosis -> Mucosal_imm [label="reduces"]
+        Dysbiosis -> Entero_sero [label="reduces"]
+        Entero_sero -> Serotonin_depl [label="contributes"]
+        Dysbiosis -> Tryptophan_deplet [label="↓IDO substrate"]
+        Tryptophan_deplet -> Serotonin_depl [label="substrate\ndepletion"]
+        Gut_Reservoir -> Gut_neuroinflam [label="inflames ENS"]
+        Gut_neuroinflam -> GI_symptoms [label="causes"]
+        Dysbiosis -> GI_symptoms [label="contributes"]
+    }
+
+    /* ===================================================================
+       CLUSTER 8: HORMONAL & ADRENAL DYSFUNCTION
+    =================================================================== */
+    subgraph cluster_hormonal {
+        label="HORMONAL DYSREGULATION"
+        style="filled,rounded" fillcolor="#FFF8F0" color="#884400" fontsize=14 fontname="Helvetica-Bold"
+
+        HPA_axis [label="HPA Axis\nDysregulation", fillcolor="#FFCC99"]
+        Cortisol_low [label="Cortisol↓\n(Adrenal Insufficiency-like)", fillcolor="#FFBB77"]
+        ACTH_dysreg [label="ACTH Dysregulation\n(↑ Basal, ↓ Response)", fillcolor="#FFCC99"]
+        Thyroid_dys [label="Post-COVID\nThyroiditis / Thyroid Dysfunction", fillcolor="#FFDDAA"]
+        TSH_abnorm [label="TSH Abnormality\n(↑ or ↓)", fillcolor="#FFE0BB"]
+        Sex_hormone [label="Sex Hormone\nDisruption (Testosterone↓)", fillcolor="#FFD0AA"]
+        IGF1_low [label="IGF-1↓\n(GH Axis Effect)", fillcolor="#FFDDBB"]
+        Fatigue_HPA [label="Fatigue from\nCortisol Insufficiency", fillcolor="#FFBB66"]
+
+        Neuroinflam -> HPA_axis [label="dysregulates\nCRH/CRF"]
+        ANS_dysreg -> HPA_axis [label="disrupts"]
+        HPA_axis -> Cortisol_low [label="blunted\nresponse"]
+        HPA_axis -> ACTH_dysreg [label="drives"]
+        Autoantibodies -> Thyroid_dys [label="anti-thyroid\nAbs"]
+        IL6 -> Thyroid_dys [label="non-thyroidal\nillness syndrome"]
+        Thyroid_dys -> TSH_abnorm [label="manifests as"]
+        Cortisol_low -> Fatigue_HPA [label="causes"]
+        Cortisol_low -> IL6 [label="↓anti-inflammatory\nfeedback"]
+        Sex_hormone -> Fatigue_HPA [label="contributes"]
+        HPA_axis -> Sex_hormone [label="HPG axis\ninterference"]
+        Cortisol_low -> IGF1_low [label="associated"]
+    }
+
+    /* ===================================================================
+       CLUSTER 9: DRUG PK/PD — PHARMACOLOGICAL INTERVENTIONS
+    =================================================================== */
+    subgraph cluster_drug {
+        label="PHARMACOLOGICAL INTERVENTIONS (PK/PD)"
+        style="filled,rounded" fillcolor="#F5F0FF" color="#440088" fontsize=14 fontname="Helvetica-Bold"
+
+        /* Antiviral */
+        Nirmatrelvir [label="Nirmatrelvir\n(Paxlovid Extended)\nMpro Inhibitor", fillcolor="#BB88FF"]
+        Ritonavir [label="Ritonavir\n(CYP3A4 Booster)", fillcolor="#CC99FF"]
+        Nirmvir_PK [label="Nirmatrelvir PK\nCmax, Tmax, t½=6.9h", fillcolor="#DDBBFF"]
+        Nirm_PD [label="Nirmatrelvir PD\n↓Viral Replication\n(IC50=3nM)", fillcolor="#CC99EE"]
+
+        /* Metformin */
+        Metformin [label="Metformin\n(AMPK Activator)", fillcolor="#9966DD"]
+        Met_PK [label="Metformin PK\nF=55%, t½=6h\n(renal clearance)", fillcolor="#BBAAEE"]
+        Met_PD_mito [label="Metformin PD:\nComplex I Inhibition\n→ AMPK↑ → mTOR↓", fillcolor="#AA88DD"]
+        Met_anti_inflam [label="Metformin\nAnti-inflammatory\n(NF-κB↓, IL-6↓)", fillcolor="#AA88DD"]
+
+        /* SSRIs */
+        Sertraline [label="Sertraline\n(SERT inhibitor)", fillcolor="#8855CC"]
+        Fluvoxamine [label="Fluvoxamine\n(σ1R agonist)", fillcolor="#8855CC"]
+        SSRI_PK [label="SSRI PK\nF=44-88%, t½=13-65h\nCYP2D6/CYP1A2", fillcolor="#AA88DD"]
+        SSRI_PD [label="SSRI PD:\n5-HT↑, σ1R→anti-inflam\nPlatelet aggregation↓", fillcolor="#9966CC"]
+
+        /* Low-dose Naltrexone */
+        LDN [label="Low-Dose Naltrexone\n(LDN 1.5-4.5mg)", fillcolor="#7744BB"]
+        LDN_PK [label="LDN PK\nF=96%, t½=4h\nExtensive FPM", fillcolor="#9977CC"]
+        LDN_PD [label="LDN PD:\nMicroglia↓, TLR4↓\nOpioid rebound (endorphins↑)", fillcolor="#8866BB"]
+
+        /* Anticoagulants */
+        Anticoag [label="Anticoagulation\n(Aspirin/Rivaroxaban)", fillcolor="#6633AA"]
+        Anticoag_PD [label="Anticoagulation PD:\nFibrin Microclots↓\nPlatelet activation↓", fillcolor="#7744BB"]
+
+        /* Immunomodulators */
+        Steroids [label="Corticosteroids\n(Low-dose Prednisone)", fillcolor="#5522AA"]
+        IVIG [label="IVIG\n(Intravenous Ig)", fillcolor="#5522AA"]
+        Rintatolimod [label="Rintatolimod\n(TLR3 Agonist)", fillcolor="#6633BB"]
+
+        Nirmatrelvir -> Nirmvir_PK [label="PK"]
+        Ritonavir -> Nirmvir_PK [label="boosts"]
+        Nirmvir_PK -> Nirm_PD [label="drives"]
+        Nirm_PD -> Replication_Rate [label="inhibits"]
+        Nirm_PD -> Latent_Antigen [label="reduces\nantigen load"]
+
+        Metformin -> Met_PK [label="PK"]
+        Met_PK -> Met_PD_mito [label="drives"]
+        Met_PD_mito -> AMP_AMPK [label="activates"]
+        Met_PD_mito -> ROS [label="reduces\nmito ROS"]
+        Met_PK -> Met_anti_inflam [label="drives"]
+        Met_anti_inflam -> IL6 [label="reduces"]
+        Met_anti_inflam -> TNFa [label="reduces"]
+
+        Sertraline -> SSRI_PK [label="PK"]
+        Fluvoxamine -> SSRI_PK [label="PK"]
+        SSRI_PK -> SSRI_PD [label="drives"]
+        SSRI_PD -> Serotonin_depl [label="reverses"]
+        SSRI_PD -> Platelet_act [label="reduces"]
+        SSRI_PD -> Neuroinflam [label="σ1R\nreduces"]
+
+        LDN -> LDN_PK [label="PK"]
+        LDN_PK -> LDN_PD [label="drives"]
+        LDN_PD -> Microglia_act [label="reduces"]
+        LDN_PD -> Neuroinflam [label="reduces\n(TLR4↓)"]
+
+        Anticoag -> Anticoag_PD [label="PD"]
+        Anticoag_PD -> Fibrin_clots [label="dissolves/prevents"]
+        Anticoag_PD -> Platelet_act [label="reduces"]
+
+        Steroids -> IL6 [label="suppresses"]
+        Steroids -> TNFa [label="suppresses"]
+        Steroids -> Cortisol_low [label="replaces"]
+        IVIG -> Autoantibodies [label="neutralizes\n(Fc receptor blockade)"]
+        Rintatolimod -> IFN_I [label="restores IFN\nresponse"]
+        Rintatolimod -> NK_cells [label="restores\nfunction"]
+    }
+
+    /* ===================================================================
+       CLUSTER 10: CLINICAL ENDPOINTS & PATIENT-REPORTED OUTCOMES
+    =================================================================== */
+    subgraph cluster_clinical {
+        label="CLINICAL ENDPOINTS & PATIENT-REPORTED OUTCOMES"
+        style="filled,rounded" fillcolor="#F8F8F8" color="#333333" fontsize=14 fontname="Helvetica-Bold"
+
+        Fatigue_score [label="Fatigue Severity\nScore (FSS)", fillcolor="#CCCCCC"]
+        CPET_VO2max [label="VO2max\n(CPET Aerobic Capacity)", fillcolor="#BBBBBB"]
+        MoCA_score [label="MoCA Score\n(Cognitive Function)", fillcolor="#CCCCCC"]
+        SF36 [label="SF-36 QoL\n(Physical/Mental)", fillcolor="#DDDDDD"]
+        COMPASS31 [label="COMPASS-31\n(Autonomic Symptom Score)", fillcolor="#CCCCCC"]
+        Dyspnea_score [label="Dyspnea Score\n(mMRC / Borg)", fillcolor="#CCCCCC"]
+        Pain_VAS [label="Pain VAS\n(Musculoskeletal)", fillcolor="#CCCCCC"]
+        PSQI [label="PSQI\n(Sleep Quality Index)", fillcolor="#DDDDDD"]
+        ND_biomarkers [label="Neuro Biomarkers\n(NfL, GFAP in plasma)", fillcolor="#BBBBBB"]
+        Inflammatory_markers [label="Inflammatory Markers\n(CRP, IL-6, D-dimer)", fillcolor="#CCCCCC"]
+        Tilt_test [label="Tilt Table Test\n(POTS Diagnosis)", fillcolor="#BBBBBB"]
+        Return_to_work [label="Return-to-Work /\nFunctional Capacity", fillcolor="#AAAAAA"]
+
+        PEM -> Fatigue_score [label="drives"]
+        ATP_deficit -> Fatigue_score [label="drives"]
+        Fatigue_HPA -> Fatigue_score [label="contributes"]
+        mito_damage -> CPET_VO2max [label="↓VO2max"]
+        Tissue_hypoxia -> CPET_VO2max [label="↓aerobic capacity"]
+        Cogn_impair -> MoCA_score [label="reduces"]
+        Fatigue_score -> SF36 [label="worsens\nPhysical domain"]
+        Cogn_impair -> SF36 [label="worsens\nMental domain"]
+        POTS_mech -> COMPASS31 [label="raises score"]
+        ANS_dysreg -> COMPASS31 [label="raises score"]
+        Dyspnea_score -> SF36 [label="worsens"]
+        RBC_deform -> Dyspnea_score [label="contributes"]
+        Tissue_hypoxia -> Dyspnea_score [label="causes"]
+        Sleep_disturb -> PSQI [label="worsens"]
+        Neuroinflam -> Pain_VAS [label="central\nsensitization"]
+        NfL_elev -> ND_biomarkers [label="marker"]
+        GFAP_elev -> ND_biomarkers [label="marker"]
+        IL6 -> Inflammatory_markers [label="CRP proxy"]
+        D_dimer -> Inflammatory_markers [label="coagulopathy\nmarker"]
+        POTS_mech -> Tilt_test [label="≥30 bpm ↑"]
+        BP_fluctuate -> Tilt_test [label="abnormal"]
+        Fatigue_score -> Return_to_work [label="prevents"]
+        CPET_VO2max -> Return_to_work [label="predicts"]
+        MoCA_score -> Return_to_work [label="predicts"]
+    }
+
+    /* ===================================================================
+       CROSS-CLUSTER CONNECTIONS
+    =================================================================== */
+    // Viral → Immune
+    Spike_Protein -> NLRP3 [label="activates\n(PAMP)" style=dashed color="#CC0000"]
+    Viral_RNA -> Mast_cells [label="activates" style=dashed color="#CC0000"]
+    ACE2_Rec -> ANS_dysreg [label="ACE2 loss →\n↓Ang1-7" style=dashed color="#006600"]
+
+    // Immune → Vascular
+    IL6 -> Platelet_act [label="via IL-6R" style=dashed color="#CC5500"]
+    Autoantibodies -> Platelet_act [label="anti-platelet Abs" style=dashed color="#CC0066"]
+
+    // Immune → Neuro
+    IL6 -> BBB_disruption [label="cytokine storm" style=dashed color="#3300CC"]
+    TNFa -> Microglia_act [label="activates" style=dashed color="#3300CC"]
+
+    // Vascular → Mito
+    Fibrin_clots -> mito_damage [label="ischemic\ndamage" style=dashed color="#888800"]
+
+    // Neuro → Autonomic
+    Cogn_impair -> POTS_mech [label="central\ncontribution" style=dashed color="#006600"]
+    Sleep_disturb -> ANS_dysreg [label="HRV further\nreduced" style=dashed color="#006600"]
+
+    // Mito → Clinical
+    CoQ10_def -> Fatigue_score [label="energy\ndeficit" style=dashed color="#333333"]
+    Lactate_elev -> Fatigue_score [label="PEM" style=dashed color="#333333"]
+
+    // Microbiome → Immune
+    LPS_transloc -> NLRP3 [label="TLR4 pathway" style=dashed color="#006633"]
+    SCFA_depl -> Hist_release [label="mast cell\nstabilization↓" style=dashed color="#006633"]
+
+    // Drug → Clinical (key efficacy arrows)
+    Nirm_PD -> Viral_Load [label="↓ reservoir\nreactivation" style=dashed color="#440088" penwidth=2]
+    Met_PD_mito -> PEM [label="↓ via\nAMPK/mTOR" style=dashed color="#440088" penwidth=2]
+    SSRI_PD -> Fatigue_score [label="improves\n(serotonin ↑)" style=dashed color="#440088" penwidth=2]
+    LDN_PD -> Cogn_impair [label="improves\n(neuroinflam↓)" style=dashed color="#440088" penwidth=2]
+    Anticoag_PD -> Tissue_hypoxia [label="↓ microthrombi\n→ O2 flow ↑" style=dashed color="#440088" penwidth=2]
+    IVIG -> POTS_mech [label="autoAb\nneutralization" style=dashed color="#440088" penwidth=2]
+
+    // Legend
+    subgraph cluster_legend {
+        label="LEGEND" style="filled,rounded" fillcolor="#FFFFFF" color="#999999"
+        L1 [label="Solid arrows: direct causal links" shape=plaintext]
+        L2 [label="Dashed arrows: cross-cluster regulatory links" shape=plaintext]
+        L3 [label="Red border: viral components" shape=plaintext]
+        L4 [label="Purple border: drug interventions" shape=plaintext]
+        L5 [label="Gray: clinical endpoints / biomarkers" shape=plaintext]
+    }
+}
