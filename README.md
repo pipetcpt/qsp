@@ -317,6 +317,48 @@ qsp/
 | 192 | 감염·면역 | [**결핵**<br><sub>Tuberculosis · TB</sub>](tuberculosis/) | <a href="tuberculosis/tb_qsp_model.svg"><img src="tuberculosis/tb_qsp_model.png" width="190" alt="tb"></a> | *Mycobacterium tuberculosis* 흡입 → 폐포 대식세포 탐식·포식소체 탈출 → AR(활발 증식)·SR(서행 증식)·NR(비증식 지속체) 3중 세균 아집단 → Th1-IFN-γ 축 유도·육아종 형성 → RIPE 4제 요법(Rifampicin rpoB / Isoniazid InhA / Pyrazinamide 산성 pH / Ethambutol) ± Bedaquiline(MDR-TB ATP합성효소) 각 아집단별 Emax 살균·멸균 활성. HIV 공감염(phi_Th1↓)·당뇨(phi_Mact↓) 시나리오 포함.<br>[🗺️ 지도](tuberculosis/tb_qsp_model.svg) · [⚙️ mrgsolve](tuberculosis/tb_mrgsolve_model.R) · [📚 문헌](tuberculosis/tb_references.md) · [📄 README](tuberculosis/README.md) |
 | 193 | 종양학·내분비 | [**갑상선암**<br><sub>Thyroid Cancer · ThyCa</sub>](thyroid-cancer/) | <a href="thyroid-cancer/thyca_qsp_model.svg"><img src="thyroid-cancer/thyca_qsp_model.png" width="190" alt="thyca"></a> | BRAF V600E·RET 발암 드라이버 → MAPK(RAS-RAF-MEK-ERK)·PI3K/AKT/mTOR 이중 경로 활성화 → 분화암(DTC: 유두·여포)·수질암(MTC)·미분화암(ATC) 아형별 진행. 렌바티닙(SELECT, PFS HR 0.21)·소라페닙(DECISION, PFS HR 0.59)·셀퍼카티닙(LIBRETTO-001, ORR 69%) TKI 치료 + 방사성요오드(¹³¹I) 재분화 + TSH 억제 요법 포함. 18구획 ODE, 7 시나리오, 130+ 노드 기계론적 지도.<br>[🗺️ 지도](thyroid-cancer/thyca_qsp_model.svg) · [⚙️ mrgsolve](thyroid-cancer/thyca_mrgsolve_model.R) · [📚 문헌](thyroid-cancer/thyca_references.md) · [📄 README](thyroid-cancer/README.md) |
 | 194 | 희귀·혈액 | [**비정형 용혈요독 증후군 (aHUS)**<br><sub>Atypical Hemolytic Uremic Syndrome · aHUS</sub>](atypical-hemolytic-uremic-syndrome/) | <a href="atypical-hemolytic-uremic-syndrome/ahus_qsp_model.svg"><img src="atypical-hemolytic-uremic-syndrome/ahus_qsp_model.png" width="190" alt="ahus"></a> | 보체 대체경로(AP) 조절 이상(CFH/CFI/CD46 돌연변이·항CFH 자가항체) → C3b 축적·C5 전환효소 형성 → MAC(C5b-9) 생성 → 혈관내피 손상 → 혈전성 미세혈관병증(TMA): 혈소판감소증·MAHA·급성신손상. 에쿨리주맙(항C5, LEAP 시험)·라뷸리주맙(q8w)·입타코판(경구 Factor B 억제제)·다니코판(Factor D) QSP/TMDD 모델. 18 ODE 구획, 5 치료 시나리오, 55개 문헌.<br>[🗺️ 지도](atypical-hemolytic-uremic-syndrome/ahus_qsp_model.svg) · [⚙️ mrgsolve](atypical-hemolytic-uremic-syndrome/ahus_mrgsolve_model.R) · [📚 문헌](atypical-hemolytic-uremic-syndrome/ahus_references.md) · [📄 README](atypical-hemolytic-uremic-syndrome/README.md) |
+| 195 | 안과 | [**원발개방각녹내장 (POAG)**<br><sub>Primary Open-Angle Glaucoma · POAG</sub>](glaucoma/) | <a href="glaucoma/poag_qsp_model.svg"><img src="glaucoma/poag_qsp_model.png" width="190" alt="poag"></a> | 방수 유출 장애(TM ECM 축적·RhoA-ROCK 과활성·TGF-β2 섬유화) → IOP 상승(Goldmann 방정식) → 시신경 유두(ONH) 층판사골 변형 → 축삭수송 차단 → BDNF 역행수송↓ → RGC 사멸(Bax/Bcl-2→Caspase-3) → RNFL 감소 → 시야(VF-MD) 진행. 5종 약물(PGA·BB·CAI·A2A·ROCK-I)·SLT·MIGS·섬유주절제술 통합. 15 ODE 구획, 8 치료 시나리오, 66개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](glaucoma/poag_qsp_model.svg) · [⚙️ mrgsolve](glaucoma/poag_mrgsolve_model.R) · [📚 문헌](glaucoma/poag_references.md) · [📄 README](glaucoma/README.md) |
+
+---
+
+## 195. 원발개방각녹내장 (Primary Open-Angle Glaucoma, POAG)
+
+[![POAG](glaucoma/poag_qsp_model.png)](glaucoma/poag_qsp_model.svg)
+
+**분류:** 안과 (Ophthalmology) · **디렉토리:** [`glaucoma/`](glaucoma/)
+
+### 병태생리 (Pathophysiology)
+
+원발개방각녹내장은 **방수 유출 저항 증가**를 핵심으로 하는 시신경 손상 질환입니다.
+
+**Goldmann 방정식**: IOP = (F_prod − F_uv) / C_tm + P_ep
+
+1. **방수 생성 경로**: 모양체 비색소 상피 → Na⁺/K⁺-ATPase + CA-II/IV → HCO₃⁻/Na⁺ 분비 → 방수 형성 (F_prod = 2.5 μL/min)
+2. **섬유주 유출 장애**: TGF-β2 과발현 → SMAD2/3 → ECM 증가 (fibronectin, collagen) + RhoA-ROCK1/2 → 액토미오신 수축 → 섬유주 세포 경직 → C_tm 감소 (0.30 → 0.15–0.20)
+3. **포도막공막 유출**: FP 수용체 → PKC → MMP-1/3 → 모양체 기질 이완 → F_uv ↑
+4. **IOP 상승**: C_tm ↓ + F_uv 변화 → IOP 21–35 mmHg
+5. **시신경 유두 손상**: IOP 상승 → 층판사골(LC) 변형 → 축삭수송 차단 → BDNF 역행 수송 차단 → RGC soma로 BDNF 공급 감소 → TrkB 신호↓/p75NTR 신호↑
+6. **RGC 사멸**: BDNF↓ → Bax↑/Bcl-2↓ → Cytochrome c → Casp-9 → Casp-3; 동시에 NMDA↑ → Ca²⁺ → nNOS/ROS; DLK → JNK → p53 → PUMA → 미토콘드리아 경로
+7. **임상 결과**: RGC 소실 → RNFL 감소 → VF-MD 악화 → 법적 실명 (MD < −22 dB)
+
+### 약물 기전 (Drug Mechanisms)
+
+| 약물군 | 대표 약물 | 기전 | IOP 감소 |
+|-------|---------|------|---------|
+| Prostaglandin 유사체 (PGA) | Latanoprost, Travoprost | FP-R → MMP ↑ → F_uv ↑ +80–120% | 25–35% |
+| 베타 차단제 (BB) | Timolol, Betaxolol | β₂-AR 차단 → cAMP↓ → F_prod↓ 30% | 20–30% |
+| 탄산탈수효소억제제 (CAI) | Dorzolamide, Brinzolamide | CA-II/IV 억제 → HCO₃⁻↓ → F_prod↓ 25% | 15–25% |
+| α₂ 수용체 작용제 (A2A) | Brimonidine | α₂-AR → Gi → cAMP↓ → F_prod↓; + BDNF ↑ (신경보호) | 20–30% |
+| ROCK 억제제 | Netarsudil | ROCK1/2 억제 → 세포골격 이완 → C_tm ↑ +35%; P_ep↓ | 15–25% |
+| 선택적 레이저 섬유주성형술 (SLT) | — | 섬유주 세포 선택적 열 손상 → C_tm ↑ 30–50% | 25–35% |
+
+### 모델 구조 요약
+
+- **ODE 구획**: 15개 (Drug PK ×5 + F_aq, F_uv, C_tm, IOP, ECM_TM, BDNF, Casp3, RGC, RNFL, VF_MD)
+- **시나리오**: 8개 (미치료 · PGA · BB · CAI · A2A · ROCK-I · PGA+BB · Triple)
+- **기계론적 지도**: 150+ 노드, 10 서브그래프 클러스터
+- **참고문헌**: 66개 (AGIS, OHTS, EMGT, CIGTS, LiGHT, UKGTS, TVT 시험 포함)
+- **Shiny 탭**: 7개 (환자 프로파일 · Drug PK · IOP 역학 · 임상 종점 · 시나리오 비교 · 바이오마커 · 민감도 분석)
 
 ---
 
