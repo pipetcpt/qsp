@@ -29,16 +29,17 @@ FTUP_RSM=0.70, EC50_RSM=0.08, EMAX_RSM=0.85,
 KA_OCA=1.2, CL_OCA=15, V1_OCA=20, EC50_OCA=0.05, EMAX_OCA=0.75,
 KA_SEM=0.0045, CL_SEM=0.034, V1_SEM=3.2, EC50_SEM=0.025, EMAX_SEM=0.80,
 KA_EMP=1.5, CL_EMP=10, V1_EMP=70, EC50_EMP=0.15, EMAX_EMP=0.90,
-KLIN_LF=0.003, KOUT_LF=0.003, LF0=0.20,
+// SS-consistent turnover (kin=KOUT*baseline) + fold-change drivers; see model file / design brief
+KOUT_LF=0.003, LF0=0.20, WDNL=0.4, WUPT=0.6,
 DNL0=1.0, KDNL_IR=0.4,
 IR0=2.5, KOUT_IR=0.02, KFFA_IR=0.15, KTNF_IR=0.25,
-KUP0=0.5, KOUT_KUP=0.05, KLIP_KUP=0.2,
-KOUT_TNF=0.12, KPROD_TNF=0.06, KKUP_TNF=0.5, TNF0=0.5,
-KOUT_IL6=0.15, KPROD_IL6=0.05, KKUP_IL6=0.3, IL60=0.33,
-KOUT_TGF=0.08, KPROD_TGF=0.012, KKUP_TGF=0.15, KLIP_TGF=0.10, TGF0=0.15,
-KOUT_HSC=0.005, KTGF_HSC=0.15, HSC0=0.10,
-KOUT_COL=0.003, KHSC_COL=0.05, COL0=0.15, KFIBREG=0.8,
-KOUT_ALT=0.030, KREL_ALT=1.5, ALT0=45, KAPOP_ALT=8.0,
+KUP0=0.5, KOUT_KUP=0.05, GLIP_KUP=0.5, GSAT_KUP=0.5,
+KOUT_TNF=0.12, GKUP_TNF=0.5, TNF0=0.5,
+KOUT_IL6=0.15, GKUP_IL6=0.5, IL60=0.33,
+KOUT_TGF=0.08, GKUP_TGF=0.4, GLIP_TGF=0.3, TGF0=0.15,
+KOUT_HSC=0.005, GTGF_HSC=0.6, HSC0=0.10,
+KOUT_COL=0.0008, GHSC_COL=0.6, COL0=0.15, KFIBREG=0.8,
+KOUT_ALT=0.030, GTNF_ALT=0.5, GLIP_ALT=0.5, ALT0=45,
 ADIPON0=6.0, KOUT_ADI=0.05, FXR0=0.5, LIPOTOX0=0.3,
 WT0=95, KOUT_WT=0.0015,
 DOSE_RSM=0, DOSE_OCA=0, DOSE_SEM=0, DOSE_EMP=0
@@ -86,23 +87,28 @@ dxdt_BODY_WT=KOUT_WT*(WT_target-BODY_WT);
 double ADIPON_ss=ADIPON0*(WT0/BODY_WT)*(1+0.3*E_SEM);
 dxdt_ADIPONECTIN=KOUT_ADI*(ADIPON_ss-ADIPONECTIN);
 
+// Insulin resistance (set-point; IR_ss=IR0 at baseline)
 double IR_ss=IR0*(1+KFFA_IR*(LIVER_FAT/LF0-1)+KTNF_IR*(TNFA/TNF0-1)-0.2*(ADIPONECTIN/ADIPON0-1))*(1-0.3*E_SEM-0.2*E_EMP-0.1*E_RSM);
 IR_ss=(IR_ss<0.5)?0.5:IR_ss;
 dxdt_INS_RES=KOUT_IR*(IR_ss-INS_RES);
 
-double DNL=DNL0*(1+KDNL_IR*(INS_RES/IR0-1))*(1-0.4*E_RSM-0.25*E_OCA);
-double LF_influx=KLIN_LF*DNL*(BODY_WT/WT0);
-double LF_efflux=KOUT_LF*LIVER_FAT*(1+0.6*E_RSM)*(1+0.15*E_SEM);
-dxdt_LIVER_FAT=LF_influx-LF_efflux;
+// Liver fat: turnover kin=KOUT_LF*LF0; influx = DNL (normalized) + adipose-NEFA (weight)
+double DNL_n=DNL0*(1+KDNL_IR*(INS_RES/IR0-1))*(1-0.4*E_RSM-0.25*E_OCA);
+double WT_n=BODY_WT/WT0;
+double LF_kin=KOUT_LF*LF0*(WDNL*DNL_n+WUPT*WT_n);
+double LF_efflux=KOUT_LF*(1+0.6*E_RSM)*(1+0.15*E_SEM);
+dxdt_LIVER_FAT=LF_kin-LF_efflux*LIVER_FAT;
 
-double LIPOTOX=LIPOTOX0*(LIVER_FAT/LF0);
-dxdt_KUPFFER=(KOUT_KUP*KUP0+KLIP_KUP*LIPOTOX/LIPOTOX0)/(1+0.3*E_OCA+0.2*E_SEM)-KOUT_KUP*KUPFFER;
-dxdt_TNFA=KPROD_TNF+KKUP_TNF*KUPFFER-KOUT_TNF*TNFA;
-dxdt_IL6C=KPROD_IL6+KKUP_IL6*KUPFFER-KOUT_IL6*IL6C;
-dxdt_TGFB=(KPROD_TGF+KKUP_TGF*KUPFFER+KLIP_TGF*LIPOTOX/LIPOTOX0)/(1+0.4*E_OCA+0.2*E_RSM)-KOUT_TGF*TGFB;
-dxdt_HSC=(KOUT_HSC*HSC0+KTGF_HSC*TGFB)/(1+0.4*E_OCA+0.15*E_RSM+0.1*E_SEM)-KOUT_HSC*HSC;
-dxdt_COLLAGEN=(KOUT_COL*COL0+KHSC_COL*HSC)/(1+0.35*E_OCA+0.15*E_RSM)-KOUT_COL*COLLAGEN;
-dxdt_ALT_CMT=KREL_ALT+KAPOP_ALT*TNFA*LIPOTOX-KOUT_ALT*ALT_CMT;
+// Fold-change lipotoxicity (=1 at baseline); SS-consistent inflammation/fibrosis pools
+double LIP_n=LIVER_FAT/LF0;
+double S_KUP=1+GLIP_KUP*(LIP_n-1)/(1+GSAT_KUP*(LIP_n-1));
+dxdt_KUPFFER=KOUT_KUP*KUP0*S_KUP/(1+0.3*E_OCA+0.2*E_SEM)-KOUT_KUP*KUPFFER;
+dxdt_TNFA=KOUT_TNF*TNF0*(1+GKUP_TNF*(KUPFFER/KUP0-1))*(ADIPON0/ADIPONECTIN)/(1+0.2*E_OCA+0.2*E_SEM)-KOUT_TNF*TNFA;
+dxdt_IL6C=KOUT_IL6*IL60*(1+GKUP_IL6*(KUPFFER/KUP0-1))*(1-0.2*E_OCA)-KOUT_IL6*IL6C;
+dxdt_TGFB=KOUT_TGF*TGF0*(1+GKUP_TGF*(KUPFFER/KUP0-1)+GLIP_TGF*(LIP_n-1))/(1+0.4*E_OCA+0.2*E_RSM)-KOUT_TGF*TGFB;
+dxdt_HSC=KOUT_HSC*HSC0*(1+GTGF_HSC*(TGFB/TGF0-1))/(1+0.4*E_OCA+0.15*E_RSM+0.1*E_SEM)-KOUT_HSC*HSC;
+dxdt_COLLAGEN=KOUT_COL*COL0*(1+GHSC_COL*(HSC/HSC0-1))/(1+0.35*E_OCA+0.15*E_RSM)-KOUT_COL*COLLAGEN;
+dxdt_ALT_CMT=KOUT_ALT*ALT0*(1+GTNF_ALT*(TNFA/TNF0-1)+GLIP_ALT*(LIP_n-1))-KOUT_ALT*ALT_CMT;
 
 $TABLE
 double LF_PCT=LIVER_FAT*100;
@@ -121,30 +127,77 @@ double Cp_RSM_out=RSM_CENT/V1_RSM;
 double Cp_OCA_out=OCA_CENT/V1_OCA;
 double Cp_SEM_out=SEM_CENT/V1_SEM;
 double Cp_EMP_out=EMP_CENT/V1_EMP;
-double Week=time/168;
+double Week=TIME/168;   // use TIME (uppercase); lowercase time collides with the C library time function
 
 $CAPTURE
-LF_PCT PDFF FIB_SCORE NAS ALT_CMT TNFA IL6C TGFB HSC COLLAGEN
-KUPFFER INS_RES BODY_WT ADIPONECTIN TG_SERUM LDL_C FIB4
+// NOTE: compartments (ALT_CMT, TNFA, IL6C, TGFB, HSC, COLLAGEN, KUPFFER,
+// INS_RES, BODY_WT, ADIPONECTIN) are returned automatically and must NOT be
+// listed here — mrgsolve >=1.0 rejects compartments in $CAPTURE.
+LF_PCT PDFF FIB_SCORE NAS TG_SERUM LDL_C FIB4
 Cp_RSM_out Cp_OCA_out Cp_SEM_out Cp_EMP_out Week
 '
 
 ## Compile once at startup
 mod_global <- mcode("NAFLD_Shiny", nafld_code)
 
+## ── UI helper (defined BEFORE the ui object, which uses it at build time) ──
+valueBox_shiny <- function(title, value, color, icon_tag) {
+  div(
+    class = "card mb-3",
+    style = paste0("background:", color, "; color:white; border-radius:8px; padding:12px;"),
+    div(style = "font-size:13px; opacity:0.85;", title),
+    div(style = "font-size:20px; font-weight:bold;", value),
+    div(style = "font-size:28px; opacity:0.5; float:right; margin-top:-40px;", icon_tag)
+  )
+}
+
 ## ── UI ─────────────────────────────────────────────────────
 ui <- page_navbar(
   title = div(
-    span("NAFLD/NASH", style = "font-weight:bold; color:#880E4F;"),
-    span(" QSP Dashboard", style = "color:#333;")
+    span("NAFLD/NASH", style = "font-weight:bold; color:#FFFFFF;"),
+    span(" QSP Dashboard", style = "color:#F4C6DC;")
   ),
-  theme = bs_theme(
-    bootswatch  = "flatly",
-    primary     = "#880E4F",
-    success     = "#388E3C",
-    info        = "#1565C0"
+  theme = bs_add_rules(
+    bs_theme(
+      bootswatch  = "flatly",
+      primary     = "#880E4F",
+      success     = "#388E3C",
+      info        = "#1565C0"
+    ),
+    "
+    /* ── High-contrast navbar tab labels ───────────────────── */
+    .navbar { background-color: #880E4F !important;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+    .navbar .navbar-brand { color: #ffffff !important; font-size: 1.15rem; }
+
+    /* inactive tabs: bright, legible text on the maroon bar */
+    .navbar-nav .nav-link {
+      color: rgba(255,255,255,0.88) !important;
+      font-weight: 600;
+      font-size: 0.97rem;
+      letter-spacing: 0.2px;
+      padding: 0.45rem 0.85rem;
+      margin: 0 2px;
+      border-radius: 7px;
+      transition: all 0.15s ease-in-out;
+    }
+    /* hover/focus: white text on a translucent highlight */
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link:focus {
+      color: #ffffff !important;
+      background-color: rgba(255,255,255,0.18);
+    }
+    /* active tab: white pill with maroon text — pops out clearly */
+    .navbar-nav .nav-link.active,
+    .navbar-nav .show > .nav-link {
+      color: #880E4F !important;
+      background-color: #ffffff !important;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.30);
+    }
+    "
   ),
-  bg = "#F8F9FA",
+  navbar_options = navbar_options(bg = "#880E4F", theme = "dark"),  # dark bar, light text
 
   ## ── Sidebar (shared across tabs) ─────────────────────────
   nav_panel(
@@ -278,14 +331,14 @@ ui <- page_navbar(
     layout_sidebar(
       sidebar = sidebar(
         width = 280,
-        h5("Fibrosis Parameters"),
-        sliderInput("ktgf_hsc", "TGF-β→HSC rate", min = 0.05, max = 0.5, value = 0.15, step = 0.01),
-        sliderInput("khsc_col", "HSC→Collagen rate",min = 0.01, max = 0.15, value = 0.05, step = 0.005),
-        sliderInput("kout_col", "Collagen turnover (1/h)", min = 0.001, max = 0.01, value = 0.003, step = 0.001),
+        h5("Fibrosis Sensitivities"),
+        sliderInput("ktgf_hsc", "TGF-β→HSC sensitivity", min = 0.1, max = 1.5, value = 0.6, step = 0.05),
+        sliderInput("khsc_col", "HSC→Collagen sensitivity", min = 0.1, max = 1.5, value = 0.6, step = 0.05),
+        sliderInput("kout_col", "Collagen turnover (1/h)", min = 0.0002, max = 0.003, value = 0.0008, step = 0.0002),
         hr(),
-        h5("Inflammation Parameters"),
-        sliderInput("klip_kup", "Lipotox→Kupffer", min = 0.05, max = 0.6, value = 0.2, step = 0.05),
-        sliderInput("kkup_tgf", "Kupffer→TGF-β",  min = 0.05, max = 0.5, value = 0.15, step = 0.05),
+        h5("Inflammation Sensitivities"),
+        sliderInput("klip_kup", "Lipotox→Kupffer sensitivity", min = 0.1, max = 1.5, value = 0.5, step = 0.05),
+        sliderInput("kkup_tgf", "Kupffer→TGF-β sensitivity",  min = 0.1, max = 1.5, value = 0.4, step = 0.05),
         actionButton("run_fib", "Recalculate", class = "btn-warning btn-sm", width = "100%")
       ),
       fluidRow(
@@ -422,15 +475,7 @@ ui <- page_navbar(
 )
 
 ## ── Helper functions ───────────────────────────────────────
-valueBox_shiny <- function(title, value, color, icon_tag) {
-  div(
-    class = "card mb-3",
-    style = paste0("background:", color, "; color:white; border-radius:8px; padding:12px;"),
-    div(style = "font-size:13px; opacity:0.85;", title),
-    div(style = "font-size:20px; font-weight:bold;", value),
-    div(style = "font-size:28px; opacity:0.5; float:right; margin-top:-40px;", icon_tag)
-  )
-}
+## (valueBox_shiny is defined above the UI block, since the UI uses it at build time)
 
 ## Build event schedule for a scenario
 get_events <- function(arm, weeks) {
@@ -502,7 +547,7 @@ server <- function(input, output, session) {
   ## ── Reactive: Run all-scenarios simulation ─────────────
   all_sims <- reactive({
     input$run_compare  # trigger
-    req(input$compare_arms)
+    shiny::req(input$compare_arms)  # qualify: mrgsolve also exports a req() generic that masks shiny::req
     isolate({
       weeks <- input$compare_weeks
       arms  <- c("Placebo", input$compare_arms)
@@ -656,11 +701,11 @@ server <- function(input, output, session) {
       arms <- c("Placebo", "Resmetirom 100mg QD", "OCA 25mg QD",
                 "Semaglutide 2.4mg QW", "Resmetirom + Semaglutide")
       mod_f <- param(mod_global,
-                     KTGF_HSC = input$ktgf_hsc,
-                     KHSC_COL = input$khsc_col,
+                     GTGF_HSC = input$ktgf_hsc,
+                     GHSC_COL = input$khsc_col,
                      KOUT_COL = input$kout_col,
-                     KLIP_KUP = input$klip_kup,
-                     KKUP_TGF = input$kkup_tgf)
+                     GLIP_KUP = input$klip_kup,
+                     GKUP_TGF = input$kkup_tgf)
       bind_rows(lapply(arms, function(a) {
         df <- sim_arm(mod_f, a, 72)
         df
@@ -735,7 +780,7 @@ server <- function(input, output, session) {
   ## ── Scenario comparison ────────────────────────────────
   output$compare_plot <- renderPlotly({
     df  <- all_sims()
-    req(nrow(df) > 0)
+    shiny::req(nrow(df) > 0)
     yv  <- input$metric_select
     make_plotly(df, yv,
                 paste("Scenario Comparison:", yv),
@@ -744,7 +789,7 @@ server <- function(input, output, session) {
 
   output$compare_table <- renderDT({
     df <- all_sims()
-    req(nrow(df) > 0)
+    shiny::req(nrow(df) > 0)
     tab <- df %>%
       filter(abs(Week - max(Week)) < 0.1) %>%
       select(Scenario, LF_PCT, FIB_SCORE, NAS, ALT_CMT,
@@ -771,7 +816,7 @@ server <- function(input, output, session) {
     bm <- intersect(input$bm_panel,
                     c("PDFF_pct","LSM_kPa","ALT_CMT","FIB4",
                       "INS_RES","TG_SERUM","LDL_C","ADIPONECTIN","TNFA","BODY_WT"))
-    req(length(bm) >= 3)
+    shiny::req(length(bm) >= 3)
 
     # Normalize to baseline (Week 0)
     base_df <- df %>% filter(Week < 0.1)

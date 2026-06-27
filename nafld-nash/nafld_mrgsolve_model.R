@@ -60,76 +60,77 @@ EC50_EMP  = 0.15     // EC50 for SGLT2 inhibition (µg/L)
 EMAX_EMP  = 0.90     // max glycosuric effect
 
 // ── Disease biology parameters ───────────────────────────
-// Hepatic fat / steatosis
-KLIN_LF   = 0.003    // baseline liver fat influx (fraction/h)
-KOUT_LF   = 0.003    // liver fat clearance (1/h)  SS = KLIN/KOUT
-LF0       = 0.20     // baseline hepatic fat fraction (20%)
+// Every disease pool uses a steady-state-consistent turnover (indirect-response)
+// form: dxdt_X = KOUT_X*X0*(driver, =1 at baseline) - KOUT_X*X, so the initialized
+// baseline IS a steady state (kin = KOUT*baseline) and placebo stays flat
+// (Dayneka 1993; Jusko & Ko 1994; Woo 2009). Cross-talk uses dimensionless
+// fold-change gains sized so the steatosis→Kupffer→TNFα→IR→DNL→fat loop gain < 1
+// (Angeli-Ferrell-Sontag 2004). See nafld_model_design_brief.md.
+
+// Hepatic fat / steatosis (influx split: DNL + adipose-NEFA uptake)
+KOUT_LF   = 0.003    // liver fat turnover (1/h; t½~10 d). kin = KOUT_LF*LF0
+LF0       = 0.20     // baseline hepatic fat fraction (20%, NASH)
+WDNL      = 0.4      // fraction of fat influx from de novo lipogenesis
+WUPT      = 0.6      // fraction from adipose NEFA uptake (∝ body weight)
 
 // De novo lipogenesis
-DNL0      = 1.0      // baseline DNL (relative)
-KDNL_IR   = 0.4      // IR effect on DNL (per unit IR)
-KDNL_SBP  = 0.3      // SREBP-1c effect on DNL
+DNL0      = 1.0      // baseline DNL (relative, =1)
+KDNL_IR   = 0.4      // IR → DNL fold-change sensitivity
 
-// Insulin resistance
+// Insulin resistance (set-point form; already SS-consistent)
 IR0       = 2.5      // baseline HOMA-IR
 KOUT_IR   = 0.02     // IR resolution rate (1/h)
-KFFA_IR   = 0.15     // FFA effect on IR (per relative unit)
-KTNF_IR   = 0.25     // TNF-α effect on IR (per relative unit)
+KFFA_IR   = 0.15     // liver-fat → IR sensitivity
+KTNF_IR   = 0.25     // TNF-α → IR sensitivity
 
-// Kupffer cell / inflammation
+// Kupffer cell activation (saturable lipotoxicity drive)
 KUP0      = 0.5      // baseline Kupffer activation (0-1)
 KOUT_KUP  = 0.05     // (1/h)
-KLPS_KUP  = 0.3      // LPS → Kupffer activation
-KLIP_KUP  = 0.2      // lipotoxicity → Kupffer activation
+GLIP_KUP  = 0.5      // lipotoxicity → Kupffer sensitivity
+GSAT_KUP  = 0.5      // saturation of Kupffer drive (ceiling = 1+GLIP_KUP/GSAT_KUP)
 
-// TNF-alpha
+// TNF-alpha (Kupffer-driven, adiponectin-protected)
 KOUT_TNF  = 0.12     // (1/h)
-KPROD_TNF = 0.06     // baseline production (rel units/h)
-KKUP_TNF  = 0.5      // Kupffer → TNF-α
+GKUP_TNF  = 0.5      // Kupffer → TNF-α sensitivity
 TNF0      = 0.5      // baseline
 
-// IL-6
+// IL-6 (Kupffer-driven)
 KOUT_IL6  = 0.15     // (1/h)
-KPROD_IL6 = 0.05
-KKUP_IL6  = 0.3
-IL60      = 0.33
+GKUP_IL6  = 0.5      // Kupffer → IL-6 sensitivity
+IL60      = 0.33     // baseline
 
-// TGF-β1
+// TGF-β1 (Kupffer + lipotoxicity drive)
 KOUT_TGF  = 0.08     // (1/h)
-KPROD_TGF = 0.012    // baseline (from Kupffer + inflam)
-KKUP_TGF  = 0.15
-KLIP_TGF  = 0.10     // lipotoxicity → TGF-β
-TGF0      = 0.15
+GKUP_TGF  = 0.4      // Kupffer → TGF-β sensitivity
+GLIP_TGF  = 0.3      // lipotoxicity → TGF-β sensitivity
+TGF0      = 0.15     // baseline
 
-// Hepatic Stellate Cell (HSC) activation
-KOUT_HSC  = 0.005    // quiescence rate (1/h) — very slow
-KTGF_HSC  = 0.15     // TGF-β → HSC activation
+// Hepatic Stellate Cell (HSC) activation (TGF-β-driven)
+KOUT_HSC  = 0.005    // quiescence rate (1/h) — slow (days)
+GTGF_HSC  = 0.6      // TGF-β → HSC sensitivity
 HSC0      = 0.10     // baseline (low in healthy)
 
-// Collagen / Fibrosis
-KOUT_COL  = 0.003    // collagen turnover (1/h)
-KHSC_COL  = 0.05     // HSC → collagen production
+// Collagen / Fibrosis (slowest pool — months)
+KOUT_COL  = 0.0008   // collagen turnover (1/h; t½~36 d)
+GHSC_COL  = 0.6      // HSC → collagen sensitivity
 COL0      = 0.15     // baseline collagen (rel)
 KFIBREG   = 0.8      // fibrosis-collagen conversion (stage per unit)
 
-// Liver enzymes
-KOUT_ALT  = 0.030    // ALT turnover (1/h; t½~23h)
-KREL_ALT  = 1.5      // basal ALT release (U/L/h)
+// Liver enzymes (ALT injury = sum of normalized TNF + lipotoxicity)
+KOUT_ALT  = 0.030    // ALT turnover (1/h; t½~23h). kin = KOUT_ALT*ALT0
+GTNF_ALT  = 0.5      // TNF-α → ALT injury sensitivity
+GLIP_ALT  = 0.5      // lipotoxicity → ALT injury sensitivity
 ALT0      = 45       // baseline ALT (U/L) — elevated NASH
-KAPOP_ALT = 8.0      // apoptosis → ALT release
 
 // Adiponectin (protective; inversely with obesity)
 ADIPON0   = 6.0      // baseline (µg/mL; reduced in NASH)
 KOUT_ADI  = 0.05     // (1/h)
 
-// FXR activity (bile acid sensing)
+// Reference values (steatosis/lipotoxicity scaling)
 FXR0      = 0.5      // baseline FXR activation (0-1)
-KOUT_FXR  = 0.1      // (1/h)
+LIPOTOX0  = 0.3      // baseline lipotoxicity index
 
-// Lipotoxicity index (ceramide / DAG proxy)
-LIPOTOX0  = 0.3      // baseline lipotoxicity
-
-// Body weight / IR driven by semaglutide
+// Body weight
 WT0       = 95       // baseline weight (kg)
 KOUT_WT   = 0.0015   // (1/h)
 
@@ -234,7 +235,7 @@ double ADIPON_ss = ADIPON0 * (WT0 / BODY_WT) * (1 + 0.3 * E_SEM);
 dxdt_ADIPONECTIN = KOUT_ADI * (ADIPON_ss - ADIPONECTIN);
 
 // ─────────────────────────────────────────────────────────
-// Insulin resistance
+// Insulin resistance (set-point form; IR_ss = IR0 at baseline)
 // ─────────────────────────────────────────────────────────
 double IR_from_FFA  = KFFA_IR  * (LIVER_FAT / LF0 - 1);
 double IR_from_TNF  = KTNF_IR  * (TNFA / TNF0 - 1);
@@ -245,74 +246,73 @@ IR_ss = (IR_ss < 0.5) ? 0.5 : IR_ss;
 dxdt_INS_RES = KOUT_IR * (IR_ss - INS_RES);
 
 // ─────────────────────────────────────────────────────────
-// De novo lipogenesis (implicit in liver fat model)
+// De novo lipogenesis (normalized; DNL_n = 1 at baseline)
 // ─────────────────────────────────────────────────────────
-double DNL = DNL0 * (1 + KDNL_IR * (INS_RES / IR0 - 1));
-double DNL_inh = 0.4 * E_RSM + 0.25 * E_OCA;   // drug inhibition of DNL
-DNL = DNL * (1 - DNL_inh);
+double DNL_n = DNL0 * (1 + KDNL_IR * (INS_RES / IR0 - 1));
+DNL_n = DNL_n * (1 - (0.4 * E_RSM + 0.25 * E_OCA));   // THRβ/FXR inhibit DNL
 
 // ─────────────────────────────────────────────────────────
-// Liver fat (hepatic steatosis)
+// Liver fat (turnover; kin = KOUT_LF*LF0, influx = DNL + adipose-NEFA)
 // ─────────────────────────────────────────────────────────
-double LF_influx = KLIN_LF * DNL * (BODY_WT / WT0); // FFA from adipose + DNL
-double LF_efflux = KOUT_LF * LIVER_FAT
+double WT_n      = BODY_WT / WT0;                       // adipose NEFA flux (dominant)
+double LF_kin    = KOUT_LF * LF0 * (WDNL * DNL_n + WUPT * WT_n);
+double LF_efflux = KOUT_LF
                  * (1 + 0.6 * E_RSM)    // THRβ → FAO ↑
                  * (1 + 0.15 * E_SEM);  // GLP-1 → hepatic fat ↓
-dxdt_LIVER_FAT = LF_influx - LF_efflux;
+dxdt_LIVER_FAT = LF_kin - LF_efflux * LIVER_FAT;
 
 // ─────────────────────────────────────────────────────────
-// Lipotoxicity index (ceramide/DAG — proxy from liver fat)
+// Lipotoxicity (fold-change proxy from liver fat; = 1 at baseline)
 // ─────────────────────────────────────────────────────────
-double LIPOTOX = LIPOTOX0 * (LIVER_FAT / LF0);
+double LIP_n = LIVER_FAT / LF0;
 
 // ─────────────────────────────────────────────────────────
-// Kupffer cell activation
+// Kupffer cell activation (saturable lipotoxicity drive)
 // ─────────────────────────────────────────────────────────
-double KUP_kin = (KOUT_KUP * KUP0)
-               + KLIP_KUP * LIPOTOX / LIPOTOX0;  // lipotoxicity drives
+double S_KUP  = 1 + GLIP_KUP * (LIP_n - 1) / (1 + GSAT_KUP * (LIP_n - 1));
 double KUP_inh = 1 + 0.3 * E_OCA + 0.2 * E_SEM; // drug suppression (FXR/GLP-1)
-dxdt_KUPFFER = KUP_kin / KUP_inh - KOUT_KUP * KUPFFER;
+dxdt_KUPFFER = KOUT_KUP * KUP0 * S_KUP / KUP_inh - KOUT_KUP * KUPFFER;
 
 // ─────────────────────────────────────────────────────────
-// TNF-α
+// TNF-α (Kupffer-driven, adiponectin-protected)
 // ─────────────────────────────────────────────────────────
-double TNF_kin = KPROD_TNF + KKUP_TNF * KUPFFER;
-dxdt_TNFA = TNF_kin - KOUT_TNF * TNFA;
+double S_TNF   = 1 + GKUP_TNF * (KUPFFER / KUP0 - 1);
+double TNF_inh = 1 + 0.2 * E_OCA + 0.2 * E_SEM;
+dxdt_TNFA = KOUT_TNF * TNF0 * S_TNF * (ADIPON0 / ADIPONECTIN) / TNF_inh
+          - KOUT_TNF * TNFA;
 
 // ─────────────────────────────────────────────────────────
-// IL-6
+// IL-6 (Kupffer-driven)
 // ─────────────────────────────────────────────────────────
-double IL6_kin = KPROD_IL6 + KKUP_IL6 * KUPFFER;
-dxdt_IL6C = IL6_kin - KOUT_IL6 * IL6C;
+double S_IL6 = 1 + GKUP_IL6 * (KUPFFER / KUP0 - 1);
+dxdt_IL6C = KOUT_IL6 * IL60 * S_IL6 * (1 - 0.2 * E_OCA) - KOUT_IL6 * IL6C;
 
 // ─────────────────────────────────────────────────────────
-// TGF-β1
+// TGF-β1 (Kupffer + lipotoxicity drive; FXR/THRβ anti-fibrotic)
 // ─────────────────────────────────────────────────────────
-double TGF_kin = KPROD_TGF
-              + KKUP_TGF * KUPFFER
-              + KLIP_TGF * LIPOTOX / LIPOTOX0;
-double TGF_inh = 1 + 0.4 * E_OCA + 0.2 * E_RSM; // FXR/THRβ anti-fibrotic
-dxdt_TGFB = TGF_kin / TGF_inh - KOUT_TGF * TGFB;
+double S_TGF   = 1 + GKUP_TGF * (KUPFFER / KUP0 - 1) + GLIP_TGF * (LIP_n - 1);
+double TGF_inh = 1 + 0.4 * E_OCA + 0.2 * E_RSM;
+dxdt_TGFB = KOUT_TGF * TGF0 * S_TGF / TGF_inh - KOUT_TGF * TGFB;
 
 // ─────────────────────────────────────────────────────────
-// Hepatic Stellate Cell activation
+// Hepatic Stellate Cell activation (TGF-β-driven)
 // ─────────────────────────────────────────────────────────
-double HSC_kin = KOUT_HSC * HSC0 + KTGF_HSC * TGFB;
+double S_HSC   = 1 + GTGF_HSC * (TGFB / TGF0 - 1);
 double HSC_inh = 1 + 0.4 * E_OCA + 0.15 * E_RSM + 0.1 * E_SEM;
-dxdt_HSC = HSC_kin / HSC_inh - KOUT_HSC * HSC;
+dxdt_HSC = KOUT_HSC * HSC0 * S_HSC / HSC_inh - KOUT_HSC * HSC;
 
 // ─────────────────────────────────────────────────────────
-// Collagen / ECM (fibrosis)
+// Collagen / ECM (HSC-driven; slowest pool)
 // ─────────────────────────────────────────────────────────
-double COL_kin = KOUT_COL * COL0 + KHSC_COL * HSC;
+double S_COL   = 1 + GHSC_COL * (HSC / HSC0 - 1);
 double COL_inh = 1 + 0.35 * E_OCA + 0.15 * E_RSM;
-dxdt_COLLAGEN = COL_kin / COL_inh - KOUT_COL * COLLAGEN;
+dxdt_COLLAGEN = KOUT_COL * COL0 * S_COL / COL_inh - KOUT_COL * COLLAGEN;
 
 // ─────────────────────────────────────────────────────────
-// ALT (hepatocellular injury)
+// ALT (hepatocellular injury = SUM of normalized TNF + lipotoxicity)
 // ─────────────────────────────────────────────────────────
-double ALT_injury = KAPOP_ALT * TNFA * LIPOTOX;
-dxdt_ALT_CMT = KREL_ALT + ALT_injury - KOUT_ALT * ALT_CMT;
+double S_ALT = 1 + GTNF_ALT * (TNFA / TNF0 - 1) + GLIP_ALT * (LIP_n - 1);
+dxdt_ALT_CMT = KOUT_ALT * ALT0 * S_ALT - KOUT_ALT * ALT_CMT;
 
 $TABLE
 // Derived PK metrics
@@ -360,11 +360,12 @@ double EFFECT_SEM = E_SEM;
 double EFFECT_EMP = E_EMP;
 
 $CAPTURE
+// NOTE: compartments (ALT_CMT, TNFA, IL6C, TGFB, COLLAGEN, HSC, KUPFFER,
+// ADIPONECTIN, BODY_WT, INS_RES, LIVER_FAT) are returned automatically and
+// must NOT be listed here — mrgsolve >=1.0 rejects compartments in $CAPTURE.
 Cp_RSM_out Cp_OCA_out Cp_SEM_out Cp_EMP_out
 LF_PCT PDFF FIB_SCORE NAS HOMA_IR
-ALT_CMT TG_SERUM LDL_C FIB4 ELF
-TNFA IL6C TGFB COLLAGEN HSC KUPFFER
-ADIPONECTIN BODY_WT INS_RES LIVER_FAT
+TG_SERUM LDL_C FIB4 ELF
 EFFECT_RSM EFFECT_OCA EFFECT_SEM EFFECT_EMP
 '
 
