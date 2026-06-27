@@ -1,0 +1,600 @@
+digraph WM_QSP_Model {
+  graph [
+    label="Waldenström's Macroglobulinemia (WM) — Comprehensive QSP Mechanistic Map\nBTK/MYD88/NF-κB·CXCR4·BCR Signaling · IgM Production · Tumor Microenvironment · Drug PK/PD"
+    labelloc=t fontsize=22 fontname="Helvetica-Bold"
+    rankdir=TB bgcolor="#F8F9FA"
+    nodesep=0.45 ranksep=0.6
+    splines=curved compound=true
+  ]
+  node [fontname="Helvetica" fontsize=10 style="filled,rounded" shape=box]
+  edge [fontname="Helvetica" fontsize=8]
+
+  /* ============================================================
+     CLUSTER 1 — Drug Pharmacokinetics
+  ============================================================ */
+  subgraph cluster_pk {
+    label="Drug Pharmacokinetics" style=filled fillcolor="#EBF5FB"
+    color="#2E86C1" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#AED6F1"]
+    IBR_dose  [label="Ibrutinib\nOral Dose\n420–560 mg/d"]
+    ZAN_dose  [label="Zanubrutinib\nOral Dose\n160 mg BID"]
+    RTX_dose  [label="Rituximab IV\n375 mg/m²"]
+    BENDA_dose[label="Bendamustine\nIV 90 mg/m²"]
+    BOR_dose  [label="Bortezomib\nSC 1.3 mg/m²"]
+    VEN_dose  [label="Venetoclax\nOral Ramp-up"]
+    DEX_dose  [label="Dexamethasone\n20 mg"]
+
+    IBR_gut   [label="Ibrutinib Gut\nAbsorption F~10%"]
+    IBR_C     [label="Ibrutinib\nCentral (Cp)\nCmax~118 ng/mL"]
+    IBR_met   [label="PCI-45227\nActive Metabolite"]
+    IBR_CL    [label="CL/F ~73 L/h\nT½ ~4-6 h\nCYP3A4"]
+
+    ZAN_gut   [label="Zanubrutinib Gut\nF~60%"]
+    ZAN_C     [label="Zanubrutinib\nCentral (Cp)\nCmax~270 ng/mL"]
+    ZAN_CL    [label="CL/F ~29 L/h\nT½ ~2-4 h"]
+
+    RTX_C     [label="Rituximab\nSerum\n(TMDD PK)"]
+    RTX_per   [label="Rituximab\nPeripheral\nDistrib."]
+
+    VEN_gut   [label="Venetoclax Gut\nF~variable (fat)"]
+    VEN_C     [label="Venetoclax\nCentral (Cp)\nCmax~0.5-2 µM"]
+
+    BOR_C     [label="Bortezomib\nPlasma (rapid dist)"]
+    BENDA_C   [label="Bendamustine\nPlasma T½~30 min"]
+
+    IBR_dose -> IBR_gut [label="oral"]
+    IBR_gut  -> IBR_C   [label="ka·F"]
+    IBR_C    -> IBR_met [label="CYP3A4"]
+    IBR_C    -> IBR_CL  [label="elim"]
+    ZAN_dose -> ZAN_gut [label="oral"]
+    ZAN_gut  -> ZAN_C   [label="ka·F"]
+    ZAN_C    -> ZAN_CL  [label="elim"]
+    RTX_dose -> RTX_C   [label="IV infusion"]
+    RTX_C   <-> RTX_per [label="k12/k21"]
+    VEN_dose -> VEN_gut [label="oral+fat"]
+    VEN_gut  -> VEN_C   [label="ka·F"]
+    BOR_dose -> BOR_C   [label="SC/IV"]
+    BENDA_dose->BENDA_C [label="IV"]
+    DEX_dose -> DEX_dose [style=invis]
+  }
+
+  /* ============================================================
+     CLUSTER 2 — BTK Signaling (BCR/TLR→BTK→Downstream)
+  ============================================================ */
+  subgraph cluster_btk {
+    label="BTK / BCR Signaling" style=filled fillcolor="#FDEDEC"
+    color="#C0392B" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#F1948A"]
+    BCR       [label="B-Cell Receptor\n(BCR) Complex"]
+    CD79AB    [label="CD79a/CD79b\nITAM"]
+    LYN       [label="LYN Kinase\n(SFK)"]
+    SYK       [label="SYK Kinase"]
+    BLNK      [label="BLNK/SLP-65\nScaffold"]
+    BTK       [label="BTK\n(Bruton's Tyrosine\nKinase)"]
+    BTK_occ   [label="BTK Occupancy\n(IBR covalent)"]
+    PLCg2     [label="PLCγ2\nActivation"]
+    DAG       [label="DAG\n(Diacylglycerol)"]
+    IP3       [label="IP3 →\nCa²⁺ Release"]
+    PKC_beta  [label="PKCβ\nActivation"]
+    CARD11    [label="CARD11\nBCL10·MALT1\n(CBM complex)"]
+    PI3K_d    [label="PI3K-δ\nActivation"]
+    PIP3      [label="PIP3\nGeneration"]
+    AKT_bcr   [label="AKT\n(BCR arm)"]
+
+    BCR    -> CD79AB   [label="antigen\ncrosslinking"]
+    CD79AB -> LYN      [label="pY ITAM"]
+    LYN    -> SYK      [label="phospho"]
+    SYK    -> BLNK     [label="pY"]
+    BLNK   -> BTK      [label="scaff"]
+    BTK    -> BTK_occ  [label="IBR/ZAN\ncovalent" color="#C0392B" style=dashed]
+    BTK    -> PLCg2    [label="pY783"]
+    PLCg2  -> DAG      [label="cleavage"]
+    PLCg2  -> IP3      [label="cleavage"]
+    DAG    -> PKC_beta [label="activates"]
+    IP3    -> PKC_beta [label="Ca²⁺"]
+    PKC_beta -> CARD11 [label="pS"]
+    CARD11 -> CARD11   [label="CBM → IKK" style=dashed]
+    LYN    -> PI3K_d   [label="activates"]
+    SYK    -> PI3K_d   [label="p85 recr"]
+    PI3K_d -> PIP3     [label="phospho"]
+    PIP3   -> AKT_bcr  [label="PH domain"]
+  }
+
+  /* ============================================================
+     CLUSTER 3 — MYD88 / NF-κB Pathway (core WM driver)
+  ============================================================ */
+  subgraph cluster_myd88 {
+    label="MYD88 L265P / NF-κB Pathway" style=filled fillcolor="#EAF2FF"
+    color="#1A5276" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#85C1E9"]
+    TLR9      [label="TLR9\n(endosomal)"]
+    TOLL      [label="IL-1R / TLR\nSignal Complex"]
+    MYD88_wt  [label="MYD88 WT\n(DD·TIR domains)"]
+    MYD88_mut [label="MYD88 L265P\n★ mutation ~95% WM\n(spontaneously\nactive)"]
+    IRAK4     [label="IRAK4\nKinase\n(phospho)"]
+    IRAK1     [label="IRAK1\nKinase"]
+    TRAF6     [label="TRAF6\nUbiquitin Ligase\n(K63-Ub chains)"]
+    TAK1      [label="TAK1·TAB1/2\nComplex"]
+    IKKb      [label="IKKβ\n(IκB Kinase)"]
+    IKKa      [label="IKKα"]
+    NEMO      [label="NEMO/IKKγ\n(regulatory)"]
+    IkBa      [label="IκBα\n(inhibitor)"]
+    NFkB_p65  [label="NF-κB p65/p50\n(cytoplasmic)"]
+    NFkB_nuc  [label="NF-κB p65\nNuclear (active)"]
+    BCL2_t    [label="BCL-2\n(NF-κB target)"]
+    BCLxL     [label="BCL-xL\n(survival)"]
+    XIAP      [label="XIAP\nanti-apoptosis"]
+    MYC_t     [label="c-MYC\nproliferation"]
+    CCND1     [label="Cyclin D1\ncell cycle"]
+    IL6_auto  [label="IL-6\n(autocrine)"]
+    CXCR4_nf  [label="CXCR4\n(NF-κB target)"]
+    HCK       [label="HCK\n(SFK·BTK\nactivator)"]
+    BTK_myd   [label="BTK\n(MYD88→BTK\nfeedback)"]
+
+    MYD88_mut -> IRAK4    [label="constitutive"]
+    TLR9      -> MYD88_wt [label="ligand"]
+    TOLL      -> MYD88_wt [label="DD domain"]
+    MYD88_wt  -> IRAK4    [label="DD interact"]
+    IRAK4     -> IRAK1    [label="pT209"]
+    IRAK1     -> TRAF6    [label="K63-Ub"]
+    TRAF6     -> TAK1     [label="MAP3K"]
+    TAK1      -> IKKb     [label="pS177"]
+    IKKb      -> IkBa     [label="pS32/36\n→26S deg"]
+    IKKa      -> NEMO     [label="complex"]
+    IkBa      -> NFkB_p65 [label="releases"]
+    NFkB_p65  -> NFkB_nuc [label="nuclear\ntranslocate"]
+    NFkB_nuc  -> BCL2_t   [label="transcription"]
+    NFkB_nuc  -> BCLxL    [label="transcription"]
+    NFkB_nuc  -> XIAP     [label="transcription"]
+    NFkB_nuc  -> MYC_t    [label="transcription"]
+    NFkB_nuc  -> CCND1    [label="transcription"]
+    NFkB_nuc  -> IL6_auto [label="transcription"]
+    NFkB_nuc  -> CXCR4_nf [label="transcription"]
+    MYD88_mut -> HCK      [label="direct bind"]
+    HCK       -> BTK_myd  [label="Y551 phospho"]
+    BTK_myd   -> NFkB_p65 [label="indirect"]
+    IL6_auto  -> MYD88_mut[label="JAK/STAT3\nfeedback" color="#E74C3C"]
+  }
+
+  /* ============================================================
+     CLUSTER 4 — PI3K / AKT / mTOR Axis
+  ============================================================ */
+  subgraph cluster_pi3k {
+    label="PI3K / AKT / mTOR Signaling" style=filled fillcolor="#EAFAF1"
+    color="#1E8449" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#82E0AA"]
+    PTEN      [label="PTEN\n(PIP3 phosphatase)"]
+    AKT_main  [label="AKT (pT308/S473)\nCentral Node"]
+    mTORC1    [label="mTORC1\n(Raptor·mTOR)"]
+    mTORC2    [label="mTORC2\n(Rictor·mTOR)"]
+    S6K1      [label="S6K1\nribosomal S6\nkinase"]
+    S6       [label="40S S6\nribosomal protein\n(translation↑)"]
+    EIF4EBP1  [label="4E-BP1\n(eIF4E release)"]
+    eIF4E     [label="eIF4E\nCap-dependent\ntranslation"]
+    GSK3b     [label="GSK-3β\n(pS9→inactive)"]
+    FOXO3a    [label="FOXO3a\n(sequester\nin cytoplasm)"]
+    MDM2_p    [label="MDM2\n→ p53\ndegradation"]
+    RAS       [label="RAS\n(H/K/N-RAS)"]
+    RAF       [label="RAF\n(BRAF V600E rare)"]
+    MEK       [label="MEK1/2"]
+    ERK       [label="ERK1/2\n(proliferation)"]
+
+    PIP3     -> AKT_main  [label="PH→PIP3"]
+    PTEN     -> PIP3      [label="dephospho" color="#E74C3C"]
+    AKT_main -> mTORC1    [label="pS2448"]
+    mTORC2   -> AKT_main  [label="pS473"]
+    mTORC1   -> S6K1      [label="pT389"]
+    S6K1     -> S6        [label="pS235/236"]
+    mTORC1   -> EIF4EBP1  [label="pT37/46"]
+    EIF4EBP1 -> eIF4E     [label="releases"]
+    AKT_main -> GSK3b     [label="pS9 inhib"]
+    AKT_main -> FOXO3a    [label="pT32 nuclear\nexclusion"]
+    AKT_main -> MDM2_p    [label="pS166"]
+    RAS      -> RAF       [label="GTP"]
+    RAF      -> MEK       [label="pS218"]
+    MEK      -> ERK       [label="pT202/Y204"]
+    ERK      -> MYC_t     [label="stabilize"]
+  }
+
+  /* ============================================================
+     CLUSTER 5 — CXCR4 / Bone Marrow Homing
+  ============================================================ */
+  subgraph cluster_cxcr4 {
+    label="CXCR4 / BM Homing & TME Cross-talk" style=filled fillcolor="#FDF2E9"
+    color="#D68910" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#FAD7A0"]
+    CXCL12    [label="CXCL12/SDF-1\n(stromal)"]
+    CXCR4_r   [label="CXCR4\nReceptor\n(WHIM mut ~35%)"]
+    CXCR4_whim[label="CXCR4 WHIM\nTruncation\n(reduced\ninternalization)"]
+    Gai       [label="Gαi / Gβγ\nCoupling"]
+    GIRK      [label="GIRK Channel\n(Gβγ→K+ flux)"]
+    CDC42     [label="CDC42\nRac1 (F-actin)"]
+    VLA4      [label="VLA-4 (α4β1)\nIntegrin"]
+    VCAM1     [label="VCAM-1\n(stromal)"]
+    BM_adhere [label="BM Adhesion\n& Retention"]
+    PI3K_cx   [label="PI3K-γ\n(Gβγ→)"]
+    JAK2_cx   [label="JAK2\n(CXCR4 trans.)"]
+    STAT3_cx  [label="STAT3\n(pY705)"]
+    BCL2_cx   [label="BCL-2\n(STAT3 target)"]
+    CXCR5     [label="CXCR5\n(BM chemotaxis)"]
+    CCR6      [label="CCR6\n(marginal zone\nhoming)"]
+
+    CXCL12   -> CXCR4_r   [label="ligand bind"]
+    CXCR4_r  -> CXCR4_whim[label="WHIM\nmutation" style=dashed color="#D35400"]
+    CXCR4_r  -> Gai       [label="GPCR act"]
+    Gai      -> CDC42     [label="Gβγ"]
+    Gai      -> GIRK      [label="Gβγ"]
+    CDC42    -> VLA4      [label="inside-out"]
+    VLA4     -> VCAM1     [label="adhesion"]
+    VCAM1    -> BM_adhere [label="retain WM\ncells in BM"]
+    Gai      -> PI3K_cx   [label="Gβγ→PI3Kγ"]
+    PI3K_cx  -> AKT_main  [label="PIP3"]
+    CXCR4_r  -> JAK2_cx   [label="β-arr2"]
+    JAK2_cx  -> STAT3_cx  [label="pY705"]
+    STAT3_cx -> BCL2_cx   [label="transcription"]
+    CXCR4_whim-> BM_adhere[label="prolonged\nretention"]
+    CXCR5    -> BM_adhere [label="accessory"]
+    CCR6     -> BM_adhere [label="homing"]
+  }
+
+  /* ============================================================
+     CLUSTER 6 — Lymphoplasmacytic Cell Biology & IgM Production
+  ============================================================ */
+  subgraph cluster_cell {
+    label="Lymphoplasmacytic Cell Differentiation & IgM Production" style=filled fillcolor="#F4ECF7"
+    color="#7D3C98" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#D2B4DE"]
+    proB      [label="Pro-B Cell\nBM precursor"]
+    preB      [label="Pre-B Cell\nVDJ recombin."]
+    immB      [label="Immature B Cell\nIgM+ IgD-"]
+    matB      [label="Mature Naive\nB Cell IgM+ IgD+"]
+    MZB       [label="Marginal Zone\nB Cell (IgM+)"]
+    LPC       [label="Lymphoplasmacytic\nCell (LPC)\n★ WM tumor cell"]
+    PC_IgM    [label="Plasma Cell\nIgM-secreting\n(terminal)"]
+    IgM_mono  [label="Monoclonal IgM\n(pentameric 900 kDa)"]
+    BLIMP1    [label="BLIMP1/PRDM1\n(plasma cell\nmaster TF)"]
+    IRF4      [label="IRF4\n(plasma cell\ndiff factor)"]
+    PAX5      [label="PAX5\n(B-cell TF\nrepressed in PC)"]
+    XBP1      [label="XBP1\n(UPR·ER stress\nIg secretion)"]
+    MYD88L265 [label="MYD88 L265P\n★ key oncogenic\ndriver in LPC"]
+    SOX11     [label="SOX11 (-)"]
+    CD19      [label="CD19+\n(B-lineage)"]
+    CD20      [label="CD20+\n(rituximab target)"]
+    CD38      [label="CD38\n(low/neg)"]
+    CD138     [label="CD138\n(low in LPC)"]
+    SIg       [label="Surface IgM\n(BCR)"]
+    FMC7      [label="FMC7+\nmarker"]
+    BM_inf    [label="BM Infiltration\n(≥10% LPC/PC\nfor diagnosis)"]
+
+    proB   -> preB     [label="IL-7"]
+    preB   -> immB     [label="VDJ"]
+    immB   -> matB     [label="IgM+IgD+"]
+    matB   -> MZB      [label="antigen\nindep."]
+    MZB    -> LPC      [label="oncogenic\ntransform"]
+    LPC    -> PC_IgM   [label="BLIMP1\ndifferent."]
+    PC_IgM -> IgM_mono [label="ER secretion"]
+    BLIMP1 -> PAX5     [label="represses" color="#E74C3C"]
+    BLIMP1 -> XBP1     [label="induces"]
+    XBP1   -> IgM_mono [label="ER chaperones\n↑ Ig secretion"]
+    IRF4   -> BLIMP1   [label="cooperates"]
+    LPC    -> CD19     [label="express"]
+    LPC    -> CD20     [label="express"]
+    LPC    -> CD38     [label="low/neg"]
+    LPC    -> CD138    [label="low"]
+    LPC    -> SIg      [label="surface IgM"]
+    LPC    -> FMC7     [label="express"]
+    MYD88L265 -> LPC   [label="drives\nsurvival/prolif"]
+    LPC    -> BM_inf   [label="accumulate"]
+    PC_IgM -> BM_inf   [label="accumulate"]
+  }
+
+  /* ============================================================
+     CLUSTER 7 — Tumor Microenvironment
+  ============================================================ */
+  subgraph cluster_tme {
+    label="Bone Marrow Tumor Microenvironment (TME)" style=filled fillcolor="#FDFEFE"
+    color="#566573" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#D5D8DC"]
+    BMSC      [label="BM Stromal\nCells (BMSC)"]
+    CXCL12_s  [label="CXCL12\n(stromal secreted)"]
+    IL6_s     [label="IL-6\n(stromal)"]
+    IL10_s    [label="IL-10\n(immunosuppr)"]
+    TNFA_s    [label="TNF-α\n(stromal)"]
+    BAFF      [label="BAFF/BLyS\n(B-cell survival)"]
+    APRIL     [label="APRIL\n(LPC survival)"]
+    Mast_cell [label="Mast Cells\n(CD117+)\n(BM niche)"]
+    Macro_M2  [label="BM Macrophages\nM2 (tolerogenic)"]
+    Treg      [label="Regulatory\nT Cells\n(Treg)"]
+    CD4_h     [label="CD4+ T Helper\n(reduced funct)"]
+    NK_cell   [label="NK Cells\n(reduced ADCC\nin WM)"]
+    fibronect  [label="Fibronectin\nCollagen IV\n(ECM)"]
+    HIF1a     [label="HIF-1α\n(hypoxia)"]
+    VEGF_tm   [label="VEGF-A\n(angiogenesis)"]
+
+    BMSC     -> CXCL12_s  [label="secrete"]
+    BMSC     -> IL6_s     [label="secrete"]
+    BMSC     -> BAFF      [label="secrete"]
+    BMSC     -> APRIL     [label="secrete"]
+    BMSC     -> fibronect  [label="produce"]
+    Mast_cell-> IL6_s     [label="IL-6\nparacrine"]
+    Mast_cell-> BAFF      [label="secrete"]
+    Macro_M2 -> IL10_s    [label="secrete"]
+    Macro_M2 -> TNFA_s    [label="secrete"]
+    Treg     -> NK_cell   [label="suppress" color="#E74C3C"]
+    IL6_s    -> STAT3_cx  [label="JAK1/2"]
+    BAFF     -> LPC       [label="BAFF-R\nsurvival"]
+    APRIL    -> LPC       [label="BCMA/TACI"]
+    HIF1a    -> VEGF_tm   [label="transcription"]
+    fibronect -> VLA4     [label="integrin\nligand"]
+  }
+
+  /* ============================================================
+     CLUSTER 8 — Apoptosis & Cell Death Pathways
+  ============================================================ */
+  subgraph cluster_apoptosis {
+    label="Apoptosis / Cell Death Pathways" style=filled fillcolor="#FDEDEC"
+    color="#922B21" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#F5B7B1"]
+    BCL2_main [label="BCL-2\n(anti-apoptotic)"]
+    BCLxL_a   [label="BCL-xL"]
+    MCL1      [label="MCL-1\n(short-lived)"]
+    BAX       [label="BAX/BAK\n(pro-apoptotic)"]
+    PUMA      [label="PUMA/NOXA\nBH3-only"]
+    BIM       [label="BIM\n(BH3-only)"]
+    CytC      [label="Cytochrome c\n(mitochondrial)"]
+    APAF1     [label="APAF-1\nApoptosome"]
+    CASP9     [label="Caspase-9\n(initiator)"]
+    CASP3     [label="Caspase-3/7\n(executor)"]
+    CASP8     [label="Caspase-8\n(extrinsic)"]
+    FAS_L     [label="FasL / TRAIL\n(extrinsic path)"]
+    XIAP_a    [label="XIAP\n(IAP·caspase\ninhibitor)"]
+    proteasome[label="26S Proteasome\n(UPS)"]
+    UPR       [label="Unfolded Protein\nResponse (UPR)\nATF6·IRE1·PERK"]
+    GRP78     [label="GRP78/BiP\n(ER chaperone)"]
+
+    BCL2_main-> BAX      [label="sequesters" color="#27AE60"]
+    BCLxL_a  -> BAX      [label="sequesters" color="#27AE60"]
+    MCL1     -> BAX      [label="sequesters" color="#27AE60"]
+    PUMA     -> BCL2_main[label="BH3 displaces" color="#E74C3C"]
+    BIM      -> MCL1     [label="BH3 displaces" color="#E74C3C"]
+    BAX      -> CytC     [label="MOMP pore"]
+    CytC     -> APAF1    [label="binds"]
+    APAF1    -> CASP9    [label="Apoptosome"]
+    CASP9    -> CASP3    [label="cleaves"]
+    FAS_L    -> CASP8    [label="DISC"]
+    CASP8    -> CASP3    [label="cleaves"]
+    CASP8    -> BIM      [label="truncates tBIM"]
+    XIAP_a   -> CASP3    [label="inhibits" color="#27AE60"]
+    XIAP_a   -> CASP9    [label="inhibits" color="#27AE60"]
+    proteasome->IkBa     [label="degrades"]
+    proteasome->PUMA     [label="normal\ndegrades"]
+    proteasome->MCL1     [label="degrades\n(short T½)"]
+    UPR      -> CASP3    [label="severe ER\nstress"]
+    GRP78    -> UPR      [label="overwhelmed"]
+    XBP1     -> GRP78    [label="induces"]
+  }
+
+  /* ============================================================
+     CLUSTER 9 — IgM-Mediated Disease Manifestations
+  ============================================================ */
+  subgraph cluster_igm {
+    label="IgM-Mediated Disease Manifestations" style=filled fillcolor="#FFFDE7"
+    color="#B7950B" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#F9E79F"]
+    IgM_serum [label="Serum IgM\n(g/L)\nNormal <0.3 g/L"]
+    viscosity [label="Serum Viscosity\n(>3-4 cP → symptoms)"]
+    hypervisco[label="Hyperviscosity\nSyndrome\n(HVS)\nIgM >3000 mg/dL"]
+    retinopathy[label="Retinopathy\n(sausage veins)"]
+    CNS_HVS   [label="CNS Symptoms\nHeadache·Vertigo\nVisual change"]
+    bleeding  [label="Mucosal Bleeding\n(platelet dysfunct)"]
+    cryo      [label="Cryoglobulinemia\nType I/II"]
+    cold_agg  [label="Cold Agglutinin\nDisease (IgM-κ)"]
+    hemolysis [label="Hemolysis\n(complement)"]
+    anti_MAG  [label="Anti-MAG IgM\n(myelin assoc\nglycoprotein)"]
+    PN        [label="Peripheral\nNeuropathy\n(demyelinating)"]
+    AIHA      [label="AIHA\n(rare)"]
+    amyloid   [label="IgM Amyloid\n(rarely AL)"]
+    IgM_PLT   [label="Platelet\nCoating (IgM)\n→ dysfunction"]
+    Hb_low    [label="Hemoglobin↓\n(anemia)\n<10 g/dL"]
+    BM_replace[label="BM Replacement\nof Normal\nHematopoiesis"]
+
+    IgM_mono -> IgM_serum  [label="secreted\npentamers"]
+    IgM_serum-> viscosity  [label="↑ aggregation\n& polymerization"]
+    viscosity-> hypervisco [label=">3 cP"]
+    hypervisco-> retinopathy[label="capillary\nsludging"]
+    hypervisco-> CNS_HVS   [label="CNS\nperfusion↓"]
+    hypervisco-> bleeding  [label="platelet\ndysfunction"]
+    IgM_serum-> cryo      [label="thermal\nprecip"]
+    cryo     -> hemolysis  [label="complement"]
+    IgM_serum-> cold_agg  [label="anti-I/i"]
+    cold_agg -> hemolysis  [label="complement\nC3b opson"]
+    IgM_serum-> anti_MAG  [label="molecular\nmimicry"]
+    anti_MAG -> PN        [label="demyelin"]
+    IgM_serum-> amyloid   [label="rare\nmisfolding"]
+    IgM_serum-> IgM_PLT   [label="coat\nplatelets"]
+    IgM_PLT  -> bleeding  [label="acquired vWD\n→ bleeding"]
+    BM_replace-> Hb_low   [label="erythroid\nsuppression"]
+    BM_inf   -> BM_replace [label="tumor\nreplacement"]
+  }
+
+  /* ============================================================
+     CLUSTER 10 — Drug Pharmacodynamics / Targets
+  ============================================================ */
+  subgraph cluster_pd {
+    label="Drug Pharmacodynamics & Target Engagement" style=filled fillcolor="#E8DAEF"
+    color="#6C3483" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#C39BD3"]
+    IBR_BTK   [label="Ibrutinib→BTK\nC481 covalent\nocc >95%"]
+    ZAN_BTK   [label="Zanubrutinib→BTK\nC481 covalent\nocc ~100%\n(fewer off-targets)"]
+    IBR_EGFR  [label="Ibrutinib off-target\nEGFR (AF-1)"]
+    IBR_ITK   [label="Ibrutinib off-target\nITK (T-cell)"]
+    RTX_CD20  [label="Rituximab→CD20\nADCC·CDC·apo"]
+    RTX_ADCC  [label="ADCC\n(NK·FcγRIIIA)"]
+    RTX_CDC   [label="CDC\n(C1q·MAC)"]
+    RTX_Apo   [label="Direct\nApoptosis"]
+    BOR_26S   [label="Bortezomib→\n26S Proteasome\nβ5 subunit"]
+    BOR_MCL1  [label="MCL-1↓\n(bortezomib)"]
+    BOR_IkBa  [label="IκBα stab\n→NF-κB↓"]
+    VEN_BCL2  [label="Venetoclax→BCL-2\nBH3 mimetic\nKi<1 nM"]
+    VEN_BAX   [label="BAX/BAK\nfree → MOMP"]
+    BENDA_DNA [label="Bendamustine\nDNA crosslink\n+alkylation"]
+    BENDA_apo [label="DNA damage\n→ apoptosis"]
+    DEX_GR    [label="Dexamethasone\nGR (NF-κB↓\nIL-6↓)"]
+    EVE_mTOR  [label="Everolimus\n→mTORC1↓"]
+    IXAZ_prot [label="Ixazomib\n→ Proteasome\n(oral)"]
+    CARFIL    [label="Carfilzomib\n→ Proteasome\n(irreversible)"]
+    PLASM     [label="Plasmapheresis\n(IgM removal\nfrom serum)"]
+
+    IBR_C    -> IBR_BTK  [label="IC50~0.5 nM\ncovalent"]
+    ZAN_C    -> ZAN_BTK  [label="IC50~0.3 nM"]
+    IBR_BTK  -> BTK      [label="blocks" color="#C0392B"]
+    ZAN_BTK  -> BTK      [label="blocks" color="#C0392B"]
+    IBR_C    -> IBR_EGFR [label="off-target"]
+    IBR_C    -> IBR_ITK  [label="off-target"]
+    RTX_C    -> RTX_CD20 [label="CD20\nbinding"]
+    RTX_CD20 -> RTX_ADCC [label="→"]
+    RTX_CD20 -> RTX_CDC  [label="→"]
+    RTX_CD20 -> RTX_Apo  [label="→"]
+    RTX_ADCC -> CASP3    [label="NK kill"]
+    RTX_CDC  -> CASP3    [label="MAC lysis"]
+    RTX_Apo  -> CASP3    [label="direct"]
+    BOR_C    -> BOR_26S  [label="β5 active\nsite"]
+    BOR_26S  -> BOR_MCL1 [label="MCL-1\nnot degraded\n→ accum paradox\nthen UPR kill"]
+    BOR_26S  -> BOR_IkBa [label="stab IκBα\n→ NF-κB↓"]
+    BOR_26S  -> UPR      [label="misfolded\nIg accumulate"]
+    VEN_C    -> VEN_BCL2 [label="BH3 domain\nKi<1 nM"]
+    VEN_BCL2 -> VEN_BAX  [label="displaces\nBAX/BAK"]
+    VEN_BAX  -> CytC     [label="MOMP"]
+    BENDA_C  -> BENDA_DNA[label="DNA\nalkylation"]
+    BENDA_DNA-> BENDA_apo[label="DSB→apo"]
+    DEX_dose -> DEX_GR   [label="GR binding"]
+    DEX_GR   -> NFkB_nuc [label="IκBα↑\nGR-NF-κB" color="#27AE60"]
+    EVE_mTOR -> mTORC1   [label="FKBP12\nallosteric" color="#C0392B"]
+    IXAZ_prot-> proteasome[label="β5" color="#C0392B"]
+    CARFIL   -> proteasome[label="β5 irrev" color="#C0392B"]
+    IgM_serum-> PLASM    [label="removed\nby plasmapheresis" style=dashed]
+  }
+
+  /* ============================================================
+     CLUSTER 11 — Clinical Endpoints / Response Criteria
+  ============================================================ */
+  subgraph cluster_clinical {
+    label="Clinical Endpoints & Response Criteria (Owen/IWWM)" style=filled fillcolor="#E8F8F5"
+    color="#0E6655" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#A9DFBF"]
+    IgM_resp  [label="IgM Response\n(serum g/L)"]
+    BM_resp   [label="BM Biopsy\nLPC% response"]
+    Hgb_resp  [label="Hemoglobin\nResponse\n(g/dL)"]
+    CR_crit   [label="Complete Response (CR)\nIgM normal\nBM biopsy\nnormal\nno symptoms"]
+    VGPR_crit [label="Very Good PR\nIgM ↓ >90%"]
+    PR_crit   [label="Partial Response\nIgM ↓ >50%"]
+    MR_crit   [label="Minor Response\nIgM ↓ 25-50%"]
+    SD_crit   [label="Stable Disease\nIgM ↓ <25%\nor ↑ <25%"]
+    PD_crit   [label="Progressive\nDisease\nIgM ↑ >25%"]
+    PFS       [label="Progression-Free\nSurvival (PFS)"]
+    OS        [label="Overall\nSurvival (OS)"]
+    TTNT      [label="Time to Next\nTreatment"]
+    ORR       [label="Overall\nResponse Rate\n(≥MR)"]
+    MRD       [label="MRD (minimal\nresidual disease)"]
+    QoL       [label="Quality of Life\nFACT-Lym·EORTC"]
+
+    IgM_serum -> IgM_resp   [label="monitor"]
+    BM_inf    -> BM_resp    [label="assess"]
+    Hb_low    -> Hgb_resp   [label="Hgb\ntracking"]
+    IgM_resp  -> CR_crit    [label="if normal"]
+    IgM_resp  -> VGPR_crit  [label="↓>90%"]
+    IgM_resp  -> PR_crit    [label="↓>50%"]
+    IgM_resp  -> MR_crit    [label="↓25-50%"]
+    IgM_resp  -> SD_crit    [label="minimal Δ"]
+    IgM_resp  -> PD_crit    [label="↑>25%"]
+    VGPR_crit -> PFS        [label="correlates"]
+    PR_crit   -> PFS        [label="correlates"]
+    PFS       -> OS         [label="surrogate"]
+    PD_crit   -> TTNT       [label="triggers"]
+    CR_crit   -> MRD        [label="assess\nifCR"]
+    QoL       -> OS         [label="patient\nreport"]
+    ORR       -> PR_crit    [label="≥PR"]
+    ORR       -> MR_crit    [label="or ≥MR"]
+  }
+
+  /* ============================================================
+     CLUSTER 12 — Genetic / Epigenetic Landscape
+  ============================================================ */
+  subgraph cluster_genetics {
+    label="Genomic & Epigenetic Landscape of WM" style=filled fillcolor="#F0FFF0"
+    color="#1B7A1B" penwidth=2.5 fontname="Helvetica-Bold" fontsize=13
+
+    node [fillcolor="#90EE90"]
+    MYD88_gene[label="MYD88 L265P\n★ ~95% WM\n(most common\nhematologic mut)"]
+    CXCR4_gene[label="CXCR4 WHIM mut\n~35% WM\n(S338X, etc.)"]
+    CD79B_mut [label="CD79B mut\n~15% WM\n(BCR signaling↑)"]
+    TP53_del  [label="TP53 del/mut\n(rare, R/R WM)"]
+    del6q     [label="6q deletion\n(TNFAIP3·PRDM1\n~50% WM)"]
+    HIST_mut  [label="Histone mutations\n(ARID1A·KMT2D)\nepigenetic"]
+    TRRAP_mut [label="TRRAP\nTRRSF13B\nmutations"]
+    chr12_tri [label="Trisomy 4\nTrisomy 12\n(clonal evol.)"]
+    IgH_del   [label="IgH translocation\n(rare vs MM)"]
+    TP53_p    [label="p53 (TP53)\nDNA damage\nsensor"]
+    p21       [label="p21/CDKN1A\nCDK2 inhibitor\ncell cycle arrest"]
+
+    MYD88_gene -> MYD88_mut [label="drives\nonco signal"]
+    CXCR4_gene -> CXCR4_whim[label="BM retention↑"]
+    CD79B_mut  -> BCR       [label="hyperactivate"]
+    TP53_del   -> TP53_p    [label="loss of function"]
+    del6q      -> NFkB_nuc  [label="derepresses\nNF-κB"]
+    HIST_mut   -> MYC_t     [label="epigenetic\nupregulate"]
+    TP53_p     -> p21       [label="transcription"]
+    p21        -> CCND1     [label="inhibits\nCDK4/6" color="#E74C3C"]
+  }
+
+  /* ============================================================
+     INTER-CLUSTER CONNECTIONS
+  ============================================================ */
+  // MYD88→BTK feedback
+  MYD88_mut  -> BTK_myd   [label="MYD88→HCK→BTK" color="#1A5276" style=bold lhead=cluster_myd88]
+  BTK        -> NFkB_p65  [label="indirect NF-κB" color="#C0392B"]
+  BTK        -> PI3K_d    [label="PI3K-δ act" color="#1E8449"]
+  AKT_bcr    -> mTORC1    [label="→mTOR" color="#1E8449"]
+  AKT_bcr    -> AKT_main  [label="converge"]
+  CARD11     -> IKKb      [label="IKK\nactivation" color="#1A5276"]
+  IKKb       -> IkBa      [label="pS32/36\ndegradation"]
+
+  // BCR → BTK → NF-κB
+  BTK        -> PLCg2     [color="#C0392B"]
+  PKC_beta   -> IKKb      [label="PKCβ→IKK"]
+
+  // CXCR4 → PI3K/AKT
+  PI3K_cx    -> PIP3      [color="#1E8449"]
+
+  // Drug effects on core nodes
+  IBR_BTK    -> NFkB_nuc  [label="IBR blocks\nBTK→NF-κB\n↓" color="#C0392B" style=dashed]
+  VEN_BCL2   -> BCL2_main [label="VEN binds\nBCL-2" color="#922B21" style=dashed]
+  BOR_IkBa   -> NFkB_nuc  [label="BOR→IκBα stab\n→NF-κB↓" color="#922B21" style=dashed]
+
+  // LPC proliferation feedback
+  LPC        -> MYD88L265 [label="LPC\nharborsMut" style=invis]
+  MYD88L265  -> NFkB_nuc  [label="constitutive\nNF-κB" color="#1A5276" lhead=cluster_myd88]
+  NFkB_nuc   -> LPC       [label="surviv·prolif\ntargets" color="#1A5276"]
+
+  // Cell death convergence
+  CASP3      -> LPC       [label="apoptosis\nkills LPC" color="#922B21"]
+  CASP3      -> PC_IgM    [label="kills PC" color="#922B21"]
+
+  // IgM → clinical
+  IgM_serum  -> IgM_resp  [label="serum\nconc" color="#0E6655"]
+  Hb_low     -> Hgb_resp  [label="CBC" color="#0E6655"]
+
+  // Plasmapheresis acute effect
+  PLASM      -> IgM_serum [label="acutely\n↓IgM" color="#D68910" style=dashed]
+}

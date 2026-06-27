@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-197-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-198-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **197개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **198개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -320,6 +320,7 @@ qsp/
 | 195 | 안과 | [**원발개방각녹내장 (POAG)**<br><sub>Primary Open-Angle Glaucoma · POAG</sub>](glaucoma/) | <a href="glaucoma/poag_qsp_model.svg"><img src="glaucoma/poag_qsp_model.png" width="190" alt="poag"></a> | 방수 유출 장애(TM ECM 축적·RhoA-ROCK 과활성·TGF-β2 섬유화) → IOP 상승(Goldmann 방정식) → 시신경 유두(ONH) 층판사골 변형 → 축삭수송 차단 → BDNF 역행수송↓ → RGC 사멸(Bax/Bcl-2→Caspase-3) → RNFL 감소 → 시야(VF-MD) 진행. 5종 약물(PGA·BB·CAI·A2A·ROCK-I)·SLT·MIGS·섬유주절제술 통합. 15 ODE 구획, 8 치료 시나리오, 66개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](glaucoma/poag_qsp_model.svg) · [⚙️ mrgsolve](glaucoma/poag_mrgsolve_model.R) · [📚 문헌](glaucoma/poag_references.md) · [📄 README](glaucoma/README.md) |
 | 196 | 신경계·뇌혈관 | [**혈관성 치매 (VaD)**<br><sub>Vascular Dementia · VaD</sub>](vascular-dementia/) | <a href="vascular-dementia/vad_qsp_model.svg"><img src="vascular-dementia/vad_qsp_model.png" width="190" alt="vad"></a> | 고혈압·당뇨·이상지질혈증 → 소혈관 질환(SVD) → 백질변성(WMH)·열공경색·피질 미세경색 → 혈뇨장벽(BBB) 손상(MMP9↑·TJ단백↓) → DAMPs 유입 → 미세아교세포 M1 활성화(NF-κB→IL-1β/TNF-α/IL-6) → 산화 스트레스(ROS·ONOO⁻) → 뉴런 사멸(caspase-3) + ACh 톤↓(ChAT↓·AChE↑) + 시냅스 소실 → 인지 저하(MMSE↓·실행 기능↓·처리 속도↓). 강압제(PROGRESS, SCOPE, SPRINT-MIND)·스타틴·항혈소판·AChEI(도네페질)·메만틴·실로스타졸(SIGNAL2) 6가지 치료 시나리오 통합. 114노드 9클러스터 기계론적 지도, 18 ODE 구획, 70개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](vascular-dementia/vad_qsp_model.svg) · [⚙️ mrgsolve](vascular-dementia/vad_mrgsolve_model.R) · [📚 문헌](vascular-dementia/vad_references.md) · [📄 README](vascular-dementia/README.md) |
 | 197 | 종양학·비뇨기 | [**신세포암 (ccRCC)**<br><sub>Renal Cell Carcinoma · RCC</sub>](renal-cell-carcinoma/) | <a href="renal-cell-carcinoma/rcc_qsp_model.svg"><img src="renal-cell-carcinoma/rcc_qsp_model.png" width="190" alt="rcc"></a> | VHL 돌연변이(60–90%) → pVHL 소실 → HIF-1α/2α 축적 → VEGF↑·CA9↑·GLUT1↑ → 혈관신생 + mTOR 양성피드백 + MDSCs·Treg·PD-L1 면역 회피. sunitinib·nivolumab+ipilimumab(CheckMate 214)·pembrolizumab+axitinib(KEYNOTE-426)·cabozantinib+nivolumab(CheckMate 9ER)·cabozantinib(METEOR)·everolimus(RECORD-1)·belzutifan(LITESPARK-005) 7개 시나리오. 125+ 노드, 18 ODE 구획, 60개 문헌, 7탭 Shiny.<br>[🗺️ 지도](renal-cell-carcinoma/rcc_qsp_model.svg) · [⚙️ mrgsolve](renal-cell-carcinoma/rcc_mrgsolve_model.R) · [📚 문헌](renal-cell-carcinoma/rcc_references.md) · [📄 README](renal-cell-carcinoma/README.md) |
+| 198 | 혈액종양학 | [**발덴스트롬 거대글로불린혈증 (WM)**<br><sub>Waldenström's Macroglobulinemia · WM</sub>](waldenstrom-macroglobulinemia/) | <a href="waldenstrom-macroglobulinemia/wm_qsp_model.svg"><img src="waldenstrom-macroglobulinemia/wm_qsp_model.png" width="190" alt="wm"></a> | MYD88 L265P(~95%) 구성적 NF-κB 활성화 + CXCR4 WHIM 돌연변이(~35%) BM 체류 강화 → 림프형질세포 증식 → IgM 단클론 파라단백 → 과점도 증후군·한랭글로불린·항MAG 신경병증. BTK 억제제(이브루티닙/자누브루티닙)·리툭시맙·벤다무스틴·보르테조밉·베네토클락스 7개 시나리오. 12 클러스터 120+ 노드, 20 ODE 구획, 62개 문헌, 7탭 Shiny.<br>[🗺️ 지도](waldenstrom-macroglobulinemia/wm_qsp_model.svg) · [⚙️ mrgsolve](waldenstrom-macroglobulinemia/wm_mrgsolve_model.R) · [📚 문헌](waldenstrom-macroglobulinemia/wm_references.md) · [📄 README](waldenstrom-macroglobulinemia/README.md) |
 
 ---
 
@@ -422,6 +423,36 @@ qsp/
 - **임상시험 보정**: CheckMate 214 (Nivo+Ipi mPFS 11.6 mo), KEYNOTE-426 (Pembro+Axitinib 15.1 mo), CheckMate 9ER (Cabo+Nivo 16.6 mo), CLEAR (Len+Pembro 23.9 mo), METEOR (Cabo 7.4 mo), RECORD-1 (Ever 4.0 mo), LITESPARK-005 (Belzutifan ORR 22%)
 - **Shiny 앱**: 7탭 (환자 프로파일·IMDC 위험도 · PK · VHL/HIF/VEGF 경로 · 종양 역학·BOR 폭포 차트 · 면역 TME·PD-1 점유율 · 시나리오 비교 · 바이오마커 히트맵)
 - **참고문헌**: 60개 (VHL 생물학, VEGF/혈관신생, mTOR, TME, 1차·2차 임상시험, 벨주티판, PK/PD 모델링, QSP, 유전체학, 가이드라인 포함)
+
+---
+
+## 198. 발덴스트롬 거대글로불린혈증 (Waldenström's Macroglobulinemia, WM)
+
+[![WM](waldenstrom-macroglobulinemia/wm_qsp_model.png)](waldenstrom-macroglobulinemia/wm_qsp_model.svg)
+
+**분류:** 혈액종양학 (Hematologic Oncology) · **디렉토리:** [`waldenstrom-macroglobulinemia/`](waldenstrom-macroglobulinemia/)
+
+### 병태생리 (Pathophysiology)
+
+발덴스트롬 거대글로불린혈증(WM)은 골수와 림프절에 집결하는 **림프형질세포성 림프종(Lymphoplasmacytic Lymphoma, LPL)**으로 단클론 IgM 파라단백을 분비하는 희귀 B세포 악성 종양입니다. 전체 비호지킨 림프종의 1–2%, 연간 발생률 ~3/100만이며 중앙 발병 연령은 70세입니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **MYD88 L265P (~95%)** | MyD88 자발 이량체화 → IRAK4/IRAK1/TRAF6 → IKKβ → IκBα 분해 → p65/p50 핵내 이동 → BCL-2·BCL-xL·c-MYC·CCND1 전사 활성화; MYD88→HCK→BTK 직접 피드포워드 경로 |
+| **CXCR4 WHIM 돌연변이 (~35%)** | 수용체 내재화 감소(C-말단 절단) → CXCL12/SDF-1 지속 신호 → Gαi/Gβγ → PI3K-γ·CDC42→VLA-4→VCAM-1 → BM 부착·체류 강화 → 이브루티닙 저항성 |
+| **BCR/BTK 신호전달** | 항원→CD79a/b ITAM→LYN/SYK→BLNK→BTK→PLCγ2→DAG/IP3→PKCβ→CBM(CARD11·BCL10·MALT1)→IKK→NF-κB; BTK→PI3K-δ→AKT→mTORC1 |
+| **IgM 과잉 생성** | LPC 분화(BLIMP1·IRF4·XBP1) → 형질세포 → 오량체 IgM(900 kDa) 분비 → 점도 증가(cP ∝ IgM^1.4) → 과점도 증후군·안저 소시지 정맥·두개내 허혈·점막 출혈 |
+| **IgM 매개 합병증** | 한랭글로불린혈증(보체 용혈)·항MAG IgM(말초 탈수초 신경병증)·한랭응집소 질환·후천성 von Willebrand 병 |
+| **BM 미세환경** | 기질세포 CXCL12/BAFF/APRIL → 종양세포 생존; 비만세포(IL-6 파라크린); Treg NK 억제; BM 침윤 → 정상 조혈 억제 → 빈혈·혈소판 감소 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 12 서브그래프 클러스터, 120+ 노드 (Drug PK·BTK/BCR·MYD88-NF-κB·PI3K/AKT/mTOR·CXCR4/BM homing·LPC 분화/IgM·TME·세포사멸·IgM 합병증·약물 PD·임상 결과/Owen criteria·유전체 경관)
+- **mrgsolve ODE**: 20 구획 (Ibrutinib 2-cmpt·Zanubrutinib·Rituximab·Venetoclax PK + BTK 점유율·NF-κB·BCL-2·LPC·PC·IgM·Hgb·점도·BM침윤·CD20·NK·Proteasome)
+- **치료 시나리오**: 7개 (Watch & Wait · Ibrutinib 420 mg/d · Ibrutinib+Rituximab [iR] · Zanubrutinib 160 mg BID · R-Bendamustine · BDR · Venetoclax)
+- **임상시험 보정**: iNNOVATOR(Treon NEJM 2015 — ORR 91.5%), INNOVATE(Dimopoulos NEJM 2018 — PFS 82% @ 30mo), ASPEN(Tam JCO 2020), R-Benda(Rummel Lancet 2013), BDR(Dimopoulos 2013), Venetoclax(Castillo Blood 2018)
+- **Shiny 앱**: 7탭 (환자 프로파일·IPSSWM 점수 · Drug PK · PD 핵심지표 · 임상 엔드포인트 · 시나리오 비교·Waterfall · 바이오마커 패널 · About)
+- **참고문헌**: 62개 (MYD88 발견·CXCR4 WHIM·BTK 신호·IgM 합병증·임상시험·PK/PD·신약)
 
 ---
 
