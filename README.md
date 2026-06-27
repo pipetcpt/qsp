@@ -321,6 +321,7 @@ qsp/
 | 196 | 신경계·뇌혈관 | [**혈관성 치매 (VaD)**<br><sub>Vascular Dementia · VaD</sub>](vascular-dementia/) | <a href="vascular-dementia/vad_qsp_model.svg"><img src="vascular-dementia/vad_qsp_model.png" width="190" alt="vad"></a> | 고혈압·당뇨·이상지질혈증 → 소혈관 질환(SVD) → 백질변성(WMH)·열공경색·피질 미세경색 → 혈뇨장벽(BBB) 손상(MMP9↑·TJ단백↓) → DAMPs 유입 → 미세아교세포 M1 활성화(NF-κB→IL-1β/TNF-α/IL-6) → 산화 스트레스(ROS·ONOO⁻) → 뉴런 사멸(caspase-3) + ACh 톤↓(ChAT↓·AChE↑) + 시냅스 소실 → 인지 저하(MMSE↓·실행 기능↓·처리 속도↓). 강압제(PROGRESS, SCOPE, SPRINT-MIND)·스타틴·항혈소판·AChEI(도네페질)·메만틴·실로스타졸(SIGNAL2) 6가지 치료 시나리오 통합. 114노드 9클러스터 기계론적 지도, 18 ODE 구획, 70개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](vascular-dementia/vad_qsp_model.svg) · [⚙️ mrgsolve](vascular-dementia/vad_mrgsolve_model.R) · [📚 문헌](vascular-dementia/vad_references.md) · [📄 README](vascular-dementia/README.md) |
 | 197 | 종양학·비뇨기 | [**신세포암 (ccRCC)**<br><sub>Renal Cell Carcinoma · RCC</sub>](renal-cell-carcinoma/) | <a href="renal-cell-carcinoma/rcc_qsp_model.svg"><img src="renal-cell-carcinoma/rcc_qsp_model.png" width="190" alt="rcc"></a> | VHL 돌연변이(60–90%) → pVHL 소실 → HIF-1α/2α 축적 → VEGF↑·CA9↑·GLUT1↑ → 혈관신생 + mTOR 양성피드백 + MDSCs·Treg·PD-L1 면역 회피. sunitinib·nivolumab+ipilimumab(CheckMate 214)·pembrolizumab+axitinib(KEYNOTE-426)·cabozantinib+nivolumab(CheckMate 9ER)·cabozantinib(METEOR)·everolimus(RECORD-1)·belzutifan(LITESPARK-005) 7개 시나리오. 125+ 노드, 18 ODE 구획, 60개 문헌, 7탭 Shiny.<br>[🗺️ 지도](renal-cell-carcinoma/rcc_qsp_model.svg) · [⚙️ mrgsolve](renal-cell-carcinoma/rcc_mrgsolve_model.R) · [📚 문헌](renal-cell-carcinoma/rcc_references.md) · [📄 README](renal-cell-carcinoma/README.md) |
 | 198 | 혈액종양학 | [**발덴스트롬 거대글로불린혈증 (WM)**<br><sub>Waldenström's Macroglobulinemia · WM</sub>](waldenstrom-macroglobulinemia/) | <a href="waldenstrom-macroglobulinemia/wm_qsp_model.svg"><img src="waldenstrom-macroglobulinemia/wm_qsp_model.png" width="190" alt="wm"></a> | MYD88 L265P(~95%) 구성적 NF-κB 활성화 + CXCR4 WHIM 돌연변이(~35%) BM 체류 강화 → 림프형질세포 증식 → IgM 단클론 파라단백 → 과점도 증후군·한랭글로불린·항MAG 신경병증. BTK 억제제(이브루티닙/자누브루티닙)·리툭시맙·벤다무스틴·보르테조밉·베네토클락스 7개 시나리오. 12 클러스터 120+ 노드, 20 ODE 구획, 62개 문헌, 7탭 Shiny.<br>[🗺️ 지도](waldenstrom-macroglobulinemia/wm_qsp_model.svg) · [⚙️ mrgsolve](waldenstrom-macroglobulinemia/wm_mrgsolve_model.R) · [📚 문헌](waldenstrom-macroglobulinemia/wm_references.md) · [📄 README](waldenstrom-macroglobulinemia/README.md) |
+| 199 | 종양학·비뇨기 | [**방광암 (요로상피암, BLCA)**<br><sub>Bladder Cancer · Urothelial Carcinoma · BLCA</sub>](bladder-cancer/) | <a href="bladder-cancer/blca_qsp.svg"><img src="bladder-cancer/blca_qsp.png" width="190" alt="blca"></a> | FGFR3 돌연변이(~60% NMIBC) → RAS/MAPK 증식; TP53·RB1·CDKN2A 변이(고등급 MIBC); PD-L1 IFN-γ 유도 → 면역 회피; TGF-β/Treg/MDSC 억제. BCG(SWOG S8507 CRR 55–70%)·GC 화학요법(ORR 49%, mOS 13.8mo)·펨브롤리주맙(KEYNOTE-045 ORR 21.1%)·아테졸리주맙(IMvigor210/211)·에르다피티닙(BLC2001 ORR 40.4%)·엔포르투맙 베도틴(EV-301 OS HR 0.70)·사시투주맙 7개 시나리오. 11 클러스터 112 노드, 20 ODE 구획, 41개 문헌, 7탭 Shiny.<br>[🗺️ 지도](bladder-cancer/blca_qsp.svg) · [⚙️ mrgsolve](bladder-cancer/blca_mrgsolve_model.R) · [📚 문헌](bladder-cancer/blca_references.md) · [📄 README](bladder-cancer/README.md) |
 
 ---
 
@@ -453,6 +454,36 @@ qsp/
 - **임상시험 보정**: iNNOVATOR(Treon NEJM 2015 — ORR 91.5%), INNOVATE(Dimopoulos NEJM 2018 — PFS 82% @ 30mo), ASPEN(Tam JCO 2020), R-Benda(Rummel Lancet 2013), BDR(Dimopoulos 2013), Venetoclax(Castillo Blood 2018)
 - **Shiny 앱**: 7탭 (환자 프로파일·IPSSWM 점수 · Drug PK · PD 핵심지표 · 임상 엔드포인트 · 시나리오 비교·Waterfall · 바이오마커 패널 · About)
 - **참고문헌**: 62개 (MYD88 발견·CXCR4 WHIM·BTK 신호·IgM 합병증·임상시험·PK/PD·신약)
+
+---
+
+## 199. 방광암 (Bladder Cancer / Urothelial Carcinoma, BLCA)
+
+[![BLCA](bladder-cancer/blca_qsp.png)](bladder-cancer/blca_qsp.svg)
+
+**분류:** 종양학·비뇨기 (Oncology / Urology) · **디렉토리:** [`bladder-cancer/`](bladder-cancer/)
+
+### 병태생리 (Pathophysiology)
+
+방광암(요로상피암)은 전 세계 연간 약 57만 명의 신환이 발생하는 비뇨기계 대표 악성 종양으로, 남성에서 여성보다 3–4배 흔하다. 병기에 따라 비침습성(NMIBC)과 근층침습성(MIBC), 전이성(mUBC)으로 구분된다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **FGFR3 돌연변이/융합 (~60% NMIBC)** | FGFR3 구성적 이량체화 → RAS/MAPK+PI3K 증식 신호; FGFR3-TACC3 융합 → 에르다피티닙(BLC2001 ORR 40.4%) 표적 |
+| **TP53·RB1·CDKN2A 변이 (고등급 MIBC)** | p53 기능 상실 → 세포 주기 탈조절·세포사멸 억제; RB1/CDKN2A 소실 → CDK4/6 탈억제 → G1/S 진행 |
+| **PD-L1 면역 회피** | 종양 세포 IFN-γ 유도 PD-L1 발현 → PD-1 T세포 탈진 → CTL 억제; 아테졸리주맙·펨브롤리주맙 표적 |
+| **BCG → TLR2/4 → Th1/CD8 면역** | TLR2/4 자극 → DC 성숙 → IL-12 → Th1·CD8+ CTL → 직접 종양 사멸; NMIBC CRR 55–70% (SWOG S8507) |
+| **Nectin-4/TROP2 표면 항원** | 요로상피암 광범위 고발현 → 엔포르투맙 베도틴(EV-301 OS HR 0.70)·사시투주맙 고비테칸 ADC 표적 |
+| **TGF-β/Treg/MDSC 면역억제 TME** | 종양 TGF-β → Treg 유도·MDSC 모집 → CD8+ CTL 억제 → BCG 효능 제한·IO 저항성 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 11 서브그래프 클러스터, 112 노드 (위험인자·분자변이·종양신호·TME·면역·PK BCG/GC·PK IO·PK 표적/ADC·약력학·임상결과·바이오마커)
+- **mrgsolve ODE**: 20 구획 (BCG 방광내 2구획, 시스플라틴+젬시타빈 PK, 펨브롤리주맙 2구획, 아테졸리주맙 2구획, 에르다피티닙 경구 2구획, 엔포르투맙 베도틴, CD8/Treg/MDSC 면역, 종양세포수, FGFR3act, PDL1, IFN-γ, NMP22, SLD)
+- **치료 시나리오**: 7개 (무치료 · BCG 81mg 방광내 주1×6→q3w 유지 [SWOG S8507] · GC 화학요법 q3w [von der Maase 2000] · 펨브롤리주맙 200mg q3w [KEYNOTE-045] · 아테졸리주맙 1200mg q3w [IMvigor210/211] · 에르다피티닙 8mg/d [BLC2001, FGFR 변이 선택] · 엔포르투맙 베도틴 1.25mg/kg d1,8,15 q28d [EV-301])
+- **임상시험 보정**: SWOG S8507(BCG CRR 55–70%), von der Maase 2000(GC ORR 49% mOS 13.8mo), KEYNOTE-045(펨브롤리주맙 ORR 21.1% OS HR 0.73), IMvigor210/211(아테졸리주맙), BLC2001(에르다피티닙 ORR 40.4%), EV-301(엔포르투맙 베도틴 OS HR 0.70)
+- **Shiny 앱**: 7탭 (환자 프로파일[FGFR3/PD-L1 상태] · PK[혈중농도·RO] · 면역바이오마커[CD8/Treg/MDSC/IFN-γ/PD-L1] · 종양역학[종양세포수·SLD] · 임상엔드포인트[워터폴·RECIST] · 시나리오비교 · 바이오마커분석[NMP22·위상공간])
+- **참고문헌**: 41개 (역학·분자생물학·위험인자·FGFR3 신호·BCG 면역요법·GC 화학요법·PD-1/PD-L1·ADC·TME·바이오마커·진료지침·PK/PD 모델링)
 
 ---
 
