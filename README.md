@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-196-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-197-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **196개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **197개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -319,6 +319,7 @@ qsp/
 | 194 | 희귀·혈액 | [**비정형 용혈요독 증후군 (aHUS)**<br><sub>Atypical Hemolytic Uremic Syndrome · aHUS</sub>](atypical-hemolytic-uremic-syndrome/) | <a href="atypical-hemolytic-uremic-syndrome/ahus_qsp_model.svg"><img src="atypical-hemolytic-uremic-syndrome/ahus_qsp_model.png" width="190" alt="ahus"></a> | 보체 대체경로(AP) 조절 이상(CFH/CFI/CD46 돌연변이·항CFH 자가항체) → C3b 축적·C5 전환효소 형성 → MAC(C5b-9) 생성 → 혈관내피 손상 → 혈전성 미세혈관병증(TMA): 혈소판감소증·MAHA·급성신손상. 에쿨리주맙(항C5, LEAP 시험)·라뷸리주맙(q8w)·입타코판(경구 Factor B 억제제)·다니코판(Factor D) QSP/TMDD 모델. 18 ODE 구획, 5 치료 시나리오, 55개 문헌.<br>[🗺️ 지도](atypical-hemolytic-uremic-syndrome/ahus_qsp_model.svg) · [⚙️ mrgsolve](atypical-hemolytic-uremic-syndrome/ahus_mrgsolve_model.R) · [📚 문헌](atypical-hemolytic-uremic-syndrome/ahus_references.md) · [📄 README](atypical-hemolytic-uremic-syndrome/README.md) |
 | 195 | 안과 | [**원발개방각녹내장 (POAG)**<br><sub>Primary Open-Angle Glaucoma · POAG</sub>](glaucoma/) | <a href="glaucoma/poag_qsp_model.svg"><img src="glaucoma/poag_qsp_model.png" width="190" alt="poag"></a> | 방수 유출 장애(TM ECM 축적·RhoA-ROCK 과활성·TGF-β2 섬유화) → IOP 상승(Goldmann 방정식) → 시신경 유두(ONH) 층판사골 변형 → 축삭수송 차단 → BDNF 역행수송↓ → RGC 사멸(Bax/Bcl-2→Caspase-3) → RNFL 감소 → 시야(VF-MD) 진행. 5종 약물(PGA·BB·CAI·A2A·ROCK-I)·SLT·MIGS·섬유주절제술 통합. 15 ODE 구획, 8 치료 시나리오, 66개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](glaucoma/poag_qsp_model.svg) · [⚙️ mrgsolve](glaucoma/poag_mrgsolve_model.R) · [📚 문헌](glaucoma/poag_references.md) · [📄 README](glaucoma/README.md) |
 | 196 | 신경계·뇌혈관 | [**혈관성 치매 (VaD)**<br><sub>Vascular Dementia · VaD</sub>](vascular-dementia/) | <a href="vascular-dementia/vad_qsp_model.svg"><img src="vascular-dementia/vad_qsp_model.png" width="190" alt="vad"></a> | 고혈압·당뇨·이상지질혈증 → 소혈관 질환(SVD) → 백질변성(WMH)·열공경색·피질 미세경색 → 혈뇨장벽(BBB) 손상(MMP9↑·TJ단백↓) → DAMPs 유입 → 미세아교세포 M1 활성화(NF-κB→IL-1β/TNF-α/IL-6) → 산화 스트레스(ROS·ONOO⁻) → 뉴런 사멸(caspase-3) + ACh 톤↓(ChAT↓·AChE↑) + 시냅스 소실 → 인지 저하(MMSE↓·실행 기능↓·처리 속도↓). 강압제(PROGRESS, SCOPE, SPRINT-MIND)·스타틴·항혈소판·AChEI(도네페질)·메만틴·실로스타졸(SIGNAL2) 6가지 치료 시나리오 통합. 114노드 9클러스터 기계론적 지도, 18 ODE 구획, 70개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](vascular-dementia/vad_qsp_model.svg) · [⚙️ mrgsolve](vascular-dementia/vad_mrgsolve_model.R) · [📚 문헌](vascular-dementia/vad_references.md) · [📄 README](vascular-dementia/README.md) |
+| 197 | 종양학·비뇨기 | [**신세포암 (ccRCC)**<br><sub>Renal Cell Carcinoma · RCC</sub>](renal-cell-carcinoma/) | <a href="renal-cell-carcinoma/rcc_qsp_model.svg"><img src="renal-cell-carcinoma/rcc_qsp_model.png" width="190" alt="rcc"></a> | VHL 돌연변이(60–90%) → pVHL 소실 → HIF-1α/2α 축적 → VEGF↑·CA9↑·GLUT1↑ → 혈관신생 + mTOR 양성피드백 + MDSCs·Treg·PD-L1 면역 회피. sunitinib·nivolumab+ipilimumab(CheckMate 214)·pembrolizumab+axitinib(KEYNOTE-426)·cabozantinib+nivolumab(CheckMate 9ER)·cabozantinib(METEOR)·everolimus(RECORD-1)·belzutifan(LITESPARK-005) 7개 시나리오. 125+ 노드, 18 ODE 구획, 60개 문헌, 7탭 Shiny.<br>[🗺️ 지도](renal-cell-carcinoma/rcc_qsp_model.svg) · [⚙️ mrgsolve](renal-cell-carcinoma/rcc_mrgsolve_model.R) · [📚 문헌](renal-cell-carcinoma/rcc_references.md) · [📄 README](renal-cell-carcinoma/README.md) |
 
 ---
 
@@ -390,6 +391,37 @@ qsp/
 - **임상시험 보정**: PROGRESS·SCOPE·SPRINT-MIND (혈압 조절), SIGNAL2 (실로스타졸 WMH), Black 2003 (도네페질 VaD)
 - **Shiny 앱**: 7탭 (환자 프로파일 · Drug PK/PD · 혈관·뇌관류 · 신경생물학적 기전 · 임상 엔드포인트 · 시나리오 비교 · 바이오마커 패널)
 - **참고문헌**: 70개 (VASCOG 진단기준, 소혈관질환, 신경염증, 임상시험 포함)
+
+---
+
+---
+
+## 197. 신세포암 (Renal Cell Carcinoma, ccRCC)
+
+[![ccRCC](renal-cell-carcinoma/rcc_qsp_model.png)](renal-cell-carcinoma/rcc_qsp_model.svg)
+
+**분류:** 종양학·비뇨기 (Oncology / Urology) · **디렉토리:** [`renal-cell-carcinoma/`](renal-cell-carcinoma/)
+
+### 병태생리 (Pathophysiology)
+
+투명세포 신세포암(ccRCC)은 신장 피질에서 발생하는 가장 흔한 신장암으로, 전체 신장암의 약 75%를 차지합니다. 핵심 발병기전은 **VHL 종양억제유전자 돌연변이**(60–90%)로 인한 산소 감지 경로 붕괴입니다.
+
+| 병리 과정 | 세부 메커니즘 |
+|---------|------------|
+| **VHL/HIF 산소 감지 경로** | VHL 돌연변이 → pVHL 소실 → HIF-1α/2α 유비퀴틴화 실패 → HRE 전사 활성화 → VEGF-A·CA9·GLUT1·EPO 과발현 |
+| **VEGF 혈관신생** | VEGF-A → VEGFR2 인산화 → PI3K/AKT·MAPK/ERK → 내피세포 증식·이동·혈관 형성 |
+| **mTOR 양성 피드백** | PI3K/AKT → mTORC1 활성화 → HIF 번역 증가 → VEGF 추가 상향 조절 |
+| **종양 면역 미세환경** | VEGF → MDSC 모집·Treg 유도 → CD8+ T세포 기능 억제; PD-L1↑ → PD-1 결합 → 면역 체크포인트 회피 |
+| **대사 재프로그래밍** | HIF-1α → GLUT1·LDHA↑ → Warburg 효과 (산소 존재 하 혐기성 해당과정) |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 125+ 노드, 11 서브그래프 클러스터 (유전학·VHL/HIF 산소 감지·HIF 표적유전자·혈관신생·PI3K/AKT/mTOR·MAPK/RAS·TME·세포주기·종양 대사·Drug PK/PD·임상 결과)
+- **mrgsolve ODE**: 18 구획 (Sunitinib 2-구획 PK + SU12662 활성 대사체, Nivolumab TMDD PD-1, Belzutifan, pVHL·HIF-2α·VEGF·VEGFR2·mTOR, Simeoni TGI 종양 성장, CD8·Treg·MDSC 면역)
+- **치료 시나리오**: 7개 (Sunitinib · Nivo+Ipi · Pembro+Axitinib · Cabo+Nivo · Cabozantinib · Everolimus · Belzutifan)
+- **임상시험 보정**: CheckMate 214 (Nivo+Ipi mPFS 11.6 mo), KEYNOTE-426 (Pembro+Axitinib 15.1 mo), CheckMate 9ER (Cabo+Nivo 16.6 mo), CLEAR (Len+Pembro 23.9 mo), METEOR (Cabo 7.4 mo), RECORD-1 (Ever 4.0 mo), LITESPARK-005 (Belzutifan ORR 22%)
+- **Shiny 앱**: 7탭 (환자 프로파일·IMDC 위험도 · PK · VHL/HIF/VEGF 경로 · 종양 역학·BOR 폭포 차트 · 면역 TME·PD-1 점유율 · 시나리오 비교 · 바이오마커 히트맵)
+- **참고문헌**: 60개 (VHL 생물학, VEGF/혈관신생, mTOR, TME, 1차·2차 임상시험, 벨주티판, PK/PD 모델링, QSP, 유전체학, 가이드라인 포함)
 
 ---
 
