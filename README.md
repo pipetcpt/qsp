@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-198-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-200-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **198개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **200개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -322,6 +322,7 @@ qsp/
 | 197 | 종양학·비뇨기 | [**신세포암 (ccRCC)**<br><sub>Renal Cell Carcinoma · RCC</sub>](renal-cell-carcinoma/) | <a href="renal-cell-carcinoma/rcc_qsp_model.svg"><img src="renal-cell-carcinoma/rcc_qsp_model.png" width="190" alt="rcc"></a> | VHL 돌연변이(60–90%) → pVHL 소실 → HIF-1α/2α 축적 → VEGF↑·CA9↑·GLUT1↑ → 혈관신생 + mTOR 양성피드백 + MDSCs·Treg·PD-L1 면역 회피. sunitinib·nivolumab+ipilimumab(CheckMate 214)·pembrolizumab+axitinib(KEYNOTE-426)·cabozantinib+nivolumab(CheckMate 9ER)·cabozantinib(METEOR)·everolimus(RECORD-1)·belzutifan(LITESPARK-005) 7개 시나리오. 125+ 노드, 18 ODE 구획, 60개 문헌, 7탭 Shiny.<br>[🗺️ 지도](renal-cell-carcinoma/rcc_qsp_model.svg) · [⚙️ mrgsolve](renal-cell-carcinoma/rcc_mrgsolve_model.R) · [📚 문헌](renal-cell-carcinoma/rcc_references.md) · [📄 README](renal-cell-carcinoma/README.md) |
 | 198 | 혈액종양학 | [**발덴스트롬 거대글로불린혈증 (WM)**<br><sub>Waldenström's Macroglobulinemia · WM</sub>](waldenstrom-macroglobulinemia/) | <a href="waldenstrom-macroglobulinemia/wm_qsp_model.svg"><img src="waldenstrom-macroglobulinemia/wm_qsp_model.png" width="190" alt="wm"></a> | MYD88 L265P(~95%) 구성적 NF-κB 활성화 + CXCR4 WHIM 돌연변이(~35%) BM 체류 강화 → 림프형질세포 증식 → IgM 단클론 파라단백 → 과점도 증후군·한랭글로불린·항MAG 신경병증. BTK 억제제(이브루티닙/자누브루티닙)·리툭시맙·벤다무스틴·보르테조밉·베네토클락스 7개 시나리오. 12 클러스터 120+ 노드, 20 ODE 구획, 62개 문헌, 7탭 Shiny.<br>[🗺️ 지도](waldenstrom-macroglobulinemia/wm_qsp_model.svg) · [⚙️ mrgsolve](waldenstrom-macroglobulinemia/wm_mrgsolve_model.R) · [📚 문헌](waldenstrom-macroglobulinemia/wm_references.md) · [📄 README](waldenstrom-macroglobulinemia/README.md) |
 | 199 | 종양학·비뇨기 | [**방광암 (요로상피암, BLCA)**<br><sub>Bladder Cancer · Urothelial Carcinoma · BLCA</sub>](bladder-cancer/) | <a href="bladder-cancer/blca_qsp.svg"><img src="bladder-cancer/blca_qsp.png" width="190" alt="blca"></a> | FGFR3 돌연변이(~60% NMIBC) → RAS/MAPK 증식; TP53·RB1·CDKN2A 변이(고등급 MIBC); PD-L1 IFN-γ 유도 → 면역 회피; TGF-β/Treg/MDSC 억제. BCG(SWOG S8507 CRR 55–70%)·GC 화학요법(ORR 49%, mOS 13.8mo)·펨브롤리주맙(KEYNOTE-045 ORR 21.1%)·아테졸리주맙(IMvigor210/211)·에르다피티닙(BLC2001 ORR 40.4%)·엔포르투맙 베도틴(EV-301 OS HR 0.70)·사시투주맙 7개 시나리오. 11 클러스터 112 노드, 20 ODE 구획, 41개 문헌, 7탭 Shiny.<br>[🗺️ 지도](bladder-cancer/blca_qsp.svg) · [⚙️ mrgsolve](bladder-cancer/blca_mrgsolve_model.R) · [📚 문헌](bladder-cancer/blca_references.md) · [📄 README](bladder-cancer/README.md) |
+| 200 | 자가면역 신경근육 | [**람베르트-이튼 근무력증후군 (LEMS)**<br><sub>Lambert-Eaton Myasthenic Syndrome · LEMS</sub>](lambert-eaton-syndrome/) | <a href="lambert-eaton-syndrome/lems_qsp_model.svg"><img src="lambert-eaton-syndrome/lems_qsp_model.png" width="190" alt="lems"></a> | 항P/Q형 VGCC 자가항체 → 전시냅스 Ca²⁺ 유입 감소 → ACh 방출 저하 → EPP 감소·안전계수 저하 → CMAP 감소·근력 약화. 50–60% SCLC 동반 부종양. 아미파리딘(3,4-DAP K⁺차단 Emax, EC50 120 ng/mL)·프레드니솔론·혈장교환·IVIG·항암화학요법 6개 시나리오. 12 클러스터 100+ 노드, 15 ODE 구획, 56개 문헌, 7탭 Shiny.<br>[🗺️ 지도](lambert-eaton-syndrome/lems_qsp_model.svg) · [⚙️ mrgsolve](lambert-eaton-syndrome/lems_mrgsolve_model.R) · [📚 문헌](lambert-eaton-syndrome/lems_references.md) · [📄 README](lambert-eaton-syndrome/README.md) |
 
 ---
 
@@ -484,6 +485,37 @@ qsp/
 - **임상시험 보정**: SWOG S8507(BCG CRR 55–70%), von der Maase 2000(GC ORR 49% mOS 13.8mo), KEYNOTE-045(펨브롤리주맙 ORR 21.1% OS HR 0.73), IMvigor210/211(아테졸리주맙), BLC2001(에르다피티닙 ORR 40.4%), EV-301(엔포르투맙 베도틴 OS HR 0.70)
 - **Shiny 앱**: 7탭 (환자 프로파일[FGFR3/PD-L1 상태] · PK[혈중농도·RO] · 면역바이오마커[CD8/Treg/MDSC/IFN-γ/PD-L1] · 종양역학[종양세포수·SLD] · 임상엔드포인트[워터폴·RECIST] · 시나리오비교 · 바이오마커분석[NMP22·위상공간])
 - **참고문헌**: 41개 (역학·분자생물학·위험인자·FGFR3 신호·BCG 면역요법·GC 화학요법·PD-1/PD-L1·ADC·TME·바이오마커·진료지침·PK/PD 모델링)
+
+---
+
+## 200. 람베르트-이튼 근무력증후군 (Lambert-Eaton Myasthenic Syndrome, LEMS)
+
+[![LEMS](lambert-eaton-syndrome/lems_qsp_model.png)](lambert-eaton-syndrome/lems_qsp_model.svg)
+
+**분류:** 자가면역 신경근육질환 (Autoimmune Neuromuscular) · **디렉토리:** [`lambert-eaton-syndrome/`](lambert-eaton-syndrome/)
+
+### 병태생리 (Pathophysiology)
+
+람베르트-이튼 근무력증후군(LEMS)은 신경근육 접합부(NMJ) 전시냅스 말단의 **P/Q형 전압개폐칼슘채널(VGCC)**을 표적으로 하는 자가항체에 의해 유발되는 희귀 자가면역 질환입니다. 약 50–60%는 **소세포폐암(SCLC)**과 동반되는 부종양 증후군이며, 나머지는 비종양성 자가면역 LEMS입니다. 유병률 약 3.4/100만으로 중증 근무력증과 달리 **전시냅스** 병변이 특징입니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **SCLC 종양 → 분자 모방** | SCLC 세포가 P/Q형 VGCC(Cav2.1 α1A 소단위)를 과발현 → 항원 분비 → 교차반응 항VGCC IgG 자가항체 생성 |
+| **항VGCC IgG → VGCC 내재화** | 자가항체가 VGCC에 결합 → VGCC 군집 파괴 및 항원 조절(antigenic modulation) → 전시냅스 활성화 구역 감소 |
+| **Ca²⁺ 유입 감소 → ACh 방출 저하** | VGCC 기능 감소 → Ca²⁺ 내향 전류 감소 → SNARE 복합체 의존성 소포 융합 감소 → ACh 방출량 감소 |
+| **EPP 감소 → 안전계수 저하** | 종판전위(EPP) 진폭 감소 → EPP/역치 비율(안전계수) < 1 → 근육 활동전위 불발 → CMAP 감소·근력 저하 |
+| **촉진 현상 (Facilitation)** | 반복 자극 시 잔여 Ca²⁺ 축적 → 소포 방출 일시적 증가 → CMAP 증가(>60% at 20–50 Hz RNS) ← LEMS 진단 핵심 |
+| **자율신경 VGCC 차단** | 교감·부교감 신경절 VGCC도 차단 → 구강건조·변비·발기부전·기립저혈압·무한증 |
+| **아미파리딘(3,4-DAP) 기전** | 전압개폐 K⁺ 채널 차단 → 신경 활동전위 연장 → Ca²⁺ 채널 개방 시간 증가 → Ca²⁺ 유입 보상 → ACh 방출 증가 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 12 서브그래프 클러스터, 100+ 노드 (SCLC 종양·종양학 치료·면역계·항VGCC 항체·전시냅스 말단·NMJ/후시냅스·자율신경계·아미파리딘 PK·면역억제제 PK·아미파리딘 PD·면역억제 PD·임상 엔드포인트)
+- **mrgsolve ODE**: 15 구획 (아미파리딘 2구획 PK, 프레드니솔론 2구획 PK, 항VGCC 항체, VGCC 기능, ACh RRP, EPP, CMAP, QMG, B세포, SCLC 종양, 촉진 상태)
+- **치료 시나리오**: 6개 (자연경과 · 아미파리딘 15 mg TID 단독 · 프레드니솔론 40 mg/일 단독 · 아미파리딘+프레드니솔론 병합 · 혈장교환 5회+아미파리딘 · 부종양: 항암+아미파리딘)
+- **임상시험 보정**: Oh et al. Muscle Nerve 2009(아미파리딘 3,4-DAP 위약 대조), Sanders et al. 2018(아미파리딘 인산염 3상), Keogh et al. Brain 2015(CMAP 촉진-임상 관계), Bain et al. Neurology 1996(IVIG ORR), Chalk et al. Neurology 1990(SCLC 치료 후 LEMS 개선)
+- **Shiny 앱**: 7탭 (환자 프로파일·PE 세션 · 약물 PK·K⁺차단 Emax · VGCC & 항체 동태 · NMJ/CMAP · 임상 엔드포인트·QMG · 시나리오 비교 · 바이오마커 패널)
+- **참고문헌**: 56개 (VGCC 자가항체·NMJ 생리·아미파리딘 PK/PD·면역치료·부종양·전기진단·QSP 모델링·임상시험)
 
 ---
 
