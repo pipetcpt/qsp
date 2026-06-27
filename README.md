@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-194-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-196-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **194개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **196개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -318,6 +318,33 @@ qsp/
 | 193 | 종양학·내분비 | [**갑상선암**<br><sub>Thyroid Cancer · ThyCa</sub>](thyroid-cancer/) | <a href="thyroid-cancer/thyca_qsp_model.svg"><img src="thyroid-cancer/thyca_qsp_model.png" width="190" alt="thyca"></a> | BRAF V600E·RET 발암 드라이버 → MAPK(RAS-RAF-MEK-ERK)·PI3K/AKT/mTOR 이중 경로 활성화 → 분화암(DTC: 유두·여포)·수질암(MTC)·미분화암(ATC) 아형별 진행. 렌바티닙(SELECT, PFS HR 0.21)·소라페닙(DECISION, PFS HR 0.59)·셀퍼카티닙(LIBRETTO-001, ORR 69%) TKI 치료 + 방사성요오드(¹³¹I) 재분화 + TSH 억제 요법 포함. 18구획 ODE, 7 시나리오, 130+ 노드 기계론적 지도.<br>[🗺️ 지도](thyroid-cancer/thyca_qsp_model.svg) · [⚙️ mrgsolve](thyroid-cancer/thyca_mrgsolve_model.R) · [📚 문헌](thyroid-cancer/thyca_references.md) · [📄 README](thyroid-cancer/README.md) |
 | 194 | 희귀·혈액 | [**비정형 용혈요독 증후군 (aHUS)**<br><sub>Atypical Hemolytic Uremic Syndrome · aHUS</sub>](atypical-hemolytic-uremic-syndrome/) | <a href="atypical-hemolytic-uremic-syndrome/ahus_qsp_model.svg"><img src="atypical-hemolytic-uremic-syndrome/ahus_qsp_model.png" width="190" alt="ahus"></a> | 보체 대체경로(AP) 조절 이상(CFH/CFI/CD46 돌연변이·항CFH 자가항체) → C3b 축적·C5 전환효소 형성 → MAC(C5b-9) 생성 → 혈관내피 손상 → 혈전성 미세혈관병증(TMA): 혈소판감소증·MAHA·급성신손상. 에쿨리주맙(항C5, LEAP 시험)·라뷸리주맙(q8w)·입타코판(경구 Factor B 억제제)·다니코판(Factor D) QSP/TMDD 모델. 18 ODE 구획, 5 치료 시나리오, 55개 문헌.<br>[🗺️ 지도](atypical-hemolytic-uremic-syndrome/ahus_qsp_model.svg) · [⚙️ mrgsolve](atypical-hemolytic-uremic-syndrome/ahus_mrgsolve_model.R) · [📚 문헌](atypical-hemolytic-uremic-syndrome/ahus_references.md) · [📄 README](atypical-hemolytic-uremic-syndrome/README.md) |
 | 195 | 안과 | [**원발개방각녹내장 (POAG)**<br><sub>Primary Open-Angle Glaucoma · POAG</sub>](glaucoma/) | <a href="glaucoma/poag_qsp_model.svg"><img src="glaucoma/poag_qsp_model.png" width="190" alt="poag"></a> | 방수 유출 장애(TM ECM 축적·RhoA-ROCK 과활성·TGF-β2 섬유화) → IOP 상승(Goldmann 방정식) → 시신경 유두(ONH) 층판사골 변형 → 축삭수송 차단 → BDNF 역행수송↓ → RGC 사멸(Bax/Bcl-2→Caspase-3) → RNFL 감소 → 시야(VF-MD) 진행. 5종 약물(PGA·BB·CAI·A2A·ROCK-I)·SLT·MIGS·섬유주절제술 통합. 15 ODE 구획, 8 치료 시나리오, 66개 문헌, 7탭 Shiny 앱.<br>[🗺️ 지도](glaucoma/poag_qsp_model.svg) · [⚙️ mrgsolve](glaucoma/poag_mrgsolve_model.R) · [📚 문헌](glaucoma/poag_references.md) · [📄 README](glaucoma/README.md) |
+| 196 | 희귀·혈액 | [**과호산구 증후군 (HES)**<br><sub>Hypereosinophilic Syndrome · HES</sub>](hypereosinophilic-syndrome/) | <a href="hypereosinophilic-syndrome/hes_qsp_model.svg"><img src="hypereosinophilic-syndrome/hes_qsp_model.png" width="190" alt="hes"></a> | IL-5 과분비(Th2·ILC2) 또는 FIP1L1-PDGFRA 융합 키나아제(구성적 활성) → 골수 호산구 전구체(EoP) 과증식·성숙 → 혈중 AEC ≥1500/µL → 심장(뢰플러 심내막염→심내막 심근 섬유화→제한성 심근병증)·폐·소화관·피부·신경 침윤. 메폴리주맙(항IL-5 TMDD 모델, NEJM 2008)·베나리주맙(항IL-5Rα + ADCC, NEJM 2019)·이마티닙(FIP1L1-PDGFRA TKI, Lancet 2002)·프레드니솔론(GR 매개 IL-5↓·호산구 세포자멸 촉진) 4종 PK/PD 통합. 20 ODE 구획, 5 치료 시나리오, 50개 문헌, 6탭 Shiny 앱.<br>[🗺️ 지도](hypereosinophilic-syndrome/hes_qsp_model.svg) · [⚙️ mrgsolve](hypereosinophilic-syndrome/hes_mrgsolve_model.R) · [📚 문헌](hypereosinophilic-syndrome/hes_references.md) · [📄 README](hypereosinophilic-syndrome/README.md) |
+
+---
+
+## 196. 과호산구 증후군 (Hypereosinophilic Syndrome, HES)
+
+[![HES](hypereosinophilic-syndrome/hes_qsp_model.png)](hypereosinophilic-syndrome/hes_qsp_model.svg)
+
+**분류:** 희귀·혈액 (Rare/Hematology) · **디렉토리:** [`hypereosinophilic-syndrome/`](hypereosinophilic-syndrome/)
+
+### 병태생리 (Pathophysiology)
+
+HES는 말초혈액 호산구 절대 수치(AEC) ≥ 1500/µL이 ≥1개월 지속되면서 호산구 매개 장기 손상이 확인된 경우로 정의된다. 주요 아형은 ①림프구성 HES(L-HES): 이상 Th2 T세포 클론의 IL-5 과분비, ②골수성/클론성 HES(M-HES): FIP1L1-PDGFRA 융합 키나아제의 구성적 활성, ③반응성(기생충, 알레르기), ④특발성으로 분류된다.
+
+심장 침범은 **뢰플러 심내막염(Löffler endocarditis) → 심내막 심근 섬유화(EMF) → 제한성 심근병증**으로 이행하며, MBP·ECP·EPO 독성 과립 단백질이 핵심 기전이다. 신경계(말초신경병증, 뇌병증), 폐(호산구성 폐렴), 피부(두드러기, 홍피증), 소화관(호산구성 식도염·위장염) 침범도 동반된다.
+
+### QSP 모델 구조
+
+| 구성요소 | 내용 |
+|---------|------|
+| **ODE 구획** | 20개 (Drug PK 11 + 질환 PD 9) |
+| **Drug PK** | 메폴리주맙(2-CMT SC + TMDD), 베나리주맙(2-CMT SC + ADCC), 이마티닙(1-CMT PO), 프레드니솔론(1-CMT PO) |
+| **PD 구획** | IL-5(pg/mL), EoP·EoI·EoM-BM(골수 조혈), EO_BLOOD(AEC), FIBROSIS(심장), PULM_SCORE(폐) |
+| **치료 시나리오** | 5가지 (미치료·프레드니솔론·메폴리주맙·베나리주맙·이마티닙-클론성) |
+| **기계론적 지도** | 115+ 노드, 14 클러스터 |
+| **참고문헌** | 50개 (Rothenberg 2008 NEJM, Cools 2003 NEJM, Kuang 2019 NEJM, Gleich 2002 Lancet 포함) |
+| **Shiny 탭** | 6개 (환자 프로파일·PK·호산구 운동학·장기 손상·치료 비교·바이오마커 상관) |
 
 ---
 
