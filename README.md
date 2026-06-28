@@ -334,6 +334,7 @@ qsp/
 | 209 | 혈액종양/아밀로이드증 | [**AL 아밀로이드증 (AL Amyloidosis)**<br><sub>Immunoglobulin Light Chain Amyloidosis · AL · Daratumumab · CyBorD · ANDROMEDA</sub>](al-amyloidosis/) | <a href="al-amyloidosis/al_qsp_model.svg"><img src="al-amyloidosis/al_qsp_model.png" width="190" alt="al"></a> | 형질세포 이상증식(MGUS→SMM→클론성 형질세포) → CD38 고발현 → 단클론 자유경쇄(FLC) 과분비 → 아밀로이드 원섬유 핵화·신장(β-sheet 중합체)·파종 자가촉매 증폭 → 심장(LV 비후, 이완기 기능부전, NT-proBNP↑, hs-TnT↑)·신장(사구체 아밀로이드→신증후군, eGFR↓)·간(간비대, ALP↑)·자율신경 아밀로이드 침착 통합 QSP 모델. 올리고머 직접 심장독성(Oligomer-cardiotoxicity) 경로 포함. Daratumumab(TMDD 2구획 PK, kon=0.005 nM⁻¹day⁻¹, CD38 수용체 동태, ADCC/CDC/ADCP, NK세포 고갈-회복 주기)·Bortezomib(1구획+20S 프로테아좀 가역 결합, BTZ_PROT EC50=6.5 nM)·Cyclophosphamide(4-OH-CY 활성 대사체, CYP2B6)·Dexamethasone(GR 점유→PC 아폽토시스)·Melphalan(DNA 가교 형성) 5종 PK/PD 포함. ANDROMEDA(NEJM 2021, Dara+CyBorD 53% CR vs CyBorD 18%)·MDex(Blood 2004, ~33% CR)·CyBorD(Blood 2012, ~29% CR) 보정. Mayo 2012 4단계 병기(hs-TnT≥0.025 + NT-proBNP≥1800 + dFLC≥18 mg/dL + eGFR<50 위험 인자) 동태적 추적. 무치료·Dara 단독·CyBorD·Dara-CyBorD·VCD·MDex·CYP2C19 PM 7개 시나리오. 14 클러스터 100+ 노드, 20 ODE 구획, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](al-amyloidosis/al_qsp_model.svg) · [⚙️ mrgsolve](al-amyloidosis/al_mrgsolve_model.R) · [📚 문헌](al-amyloidosis/al_references.md) · [📄 README](al-amyloidosis/README.md) |
 | 210 | 심혈관/판막질환 | [**대동맥판막 협착증 (AS/CAVD)**<br><sub>Calcific Aortic Valve Stenosis · CAVD · BMP/RANKL/Lp(a)/LVEF/TAVR</sub>](aortic-stenosis/) | <a href="aortic-stenosis/as_qsp_model.svg"><img src="aortic-stenosis/as_qsp_model.png" width="190" alt="as"></a> | 판막 내피세포 손상(shear stress·oxLDL·NOTCH1 소실) → BMP-2/4·TGF-β1 활성화 → 판막 간질세포(VIC) 골아세포성 전환(Runx2·Osterix·ALP↑) → RANKL/OPG 비율 증가 → 미세석회화(hydroxyapatite) → 거대석회화 → 대동맥판막 면적(AVA) 감소 → 경판막 압력차(ΔP) 증가 → LV 압력 과부하 → 동심성 LV 비후(LVMI↑)·간질 섬유화(콜라겐 분획↑) → LVEDP 상승·LVEF 저하 → NT-proBNP·hs-TnT 상승 → 증상 3주징(협심증·실신·호흡곤란) → NYHA 악화 → MACE의 완전 통합 QSP 모델. Lp(a)/oxPL(Thanassoulis NEJM 2013) 독립 위험 인자·MGP 카르복실화 억제 경로 포함. Rosuvastatin(2구획, STATIN_V1=134L, SEAS 스타틴 비효과 반영 Emax_calc=5%)·Evolocumab(SC 1구획, PCSK9i ka=0.012 hr⁻¹, LDL+Lp(a) ↓)·Denosumab(RANKL 차단, 가설 Emax_calc=30%)·Vitamin K2 MK-7(MGP 카르복실화 회복, EC50_MGP=0.3 μg/L)·Ramipril(ACEi, AngII↓→섬유화↓) 5종 PK/PD 포함. TAVR/SAVR 후 LV 역 리모델링(AVA 회복→afterload↓→LVEF↑) 시뮬레이션. 무치료·스타틴·스타틴+PCSK9i·스타틴+데노수맙·스타틴+VK2·최대 약물요법 6개 시나리오. SEAS(2008, 스타틴 비효과)·PARTNER(2011, TAVR)·PARTNER 3(2019, 저위험 TAVR)·Marechaux(2010, Ca score 자연 경과) 보정. 12 클러스터 110+ 노드, 20 ODE 구획, 50개 문헌, 6탭 Shiny.<br>[🗺️ 지도](aortic-stenosis/as_qsp_model.svg) · [⚙️ mrgsolve](aortic-stenosis/as_mrgsolve_model.R) · [📚 문헌](aortic-stenosis/as_references.md) · [📄 README](aortic-stenosis/README.md) |
 | 211 | 자가면역/신경계 | [**ME/CFS (근통성 뇌척수염/만성피로증후군)**<br><sub>Myalgic Encephalomyelitis/Chronic Fatigue Syndrome · ME/CFS · LDN · PDH/PDK1 · Neuroinflammation · POTS</sub>](me-cfs/) | <a href="me-cfs/mecfs_qsp_model.svg"><img src="me-cfs/mecfs_qsp_model.png" width="190" alt="mecfs"></a> | 바이러스 지속감염(EBV·HHV-6·SARS-CoV-2) → TLR3/4/7·cGAS-STING 활성화 → IFN-γ↑(Th1/NK) → PDK1↑(피루브산탈수소효소인산화효소1) → PDH 인산화·억제 → 피루브산→젖산 전환(Warburg-유사 대사전환, Fluge 2017 JCI Insight·Naviaux 2016 PNAS) → NADH↓→복합체I↓→ATP 결핍 → 피로·PEM(노력후불쾌감) 완전 통합 QSP 모델. NK세포 세포독성 감소(30–50%)·CD8+ T세포 소진(PD-1/LAG-3/TIM-3↑)·β2AR+M1R 자가항체(~60%) → POTS·자율신경기능장애·HRV 감소. NLRP3 인플라마좀·비만세포활성화증후군(MCAS·트립타제↑·히스타민) → BBB 투과성 증가 → 소신경교세포 활성화·TSPO PET 신호↑(Nakatomi 2014 JNM) → 키누레닌 경로(IDO1↑→퀴놀린산↑) → 해마 손상·인지기능 저하("뇌안개"). HPA축 저코티솔혈증·GR 저항·CRH↓·일주기리듬 교란. LDN 4.5mg/d(TLR4 억제·소신경교세포 완화, Younger 2009)·피리도스티그민 30mg TID(AChE 억제→ANS 회복→POTS↓)·리툭시맙 1g IV×2(CD20+ B세포 고갈→자가항체↓, Fluge 2009/2011)·NAD+ 전구체 NMN/NR 500mg/d(시르투인→PGC-1α→미토콘드리아 복구)·병합요법 6개 시나리오. 12 클러스터 220+ 노드, 25 ODE 구획, 62개 문헌, 8탭 Shiny.<br>[🗺️ 지도](me-cfs/mecfs_qsp_model.svg) · [⚙️ mrgsolve](me-cfs/mecfs_mrgsolve_model.R) · [📚 문헌](me-cfs/mecfs_references.md) · [📄 README](me-cfs/README.md) |
+| 212 | 희귀 폐질환/종양억제유전자 | [**림프관평활근종증 (LAM)**<br><sub>Lymphangioleiomyomatosis · LAM · TSC1/2 · mTOR · VEGF-D · Sirolimus/Everolimus</sub>](lymphangioleiomyomatosis/) | <a href="lymphangioleiomyomatosis/lam_qsp_model.svg"><img src="lymphangioleiomyomatosis/lam_qsp_model.png" width="190" alt="lam"></a> | TSC1/TSC2 기능 소실 변이(배선 또는 체세포 이중타격) → Rheb-GTP↑(정상 2.5배) → mTORC1 과활성(LAM 세포 내 4배) → S6K1-pT389↑·4E-BP1-P↑ → LAM 세포 증식·생존·침윤↑. LAM 세포(HMB-45+·α-SMA+·ERα+·PR+)는 MMP-2/9/13 분비 → ECM 분해·탄력섬유 파괴 → 폐포벽 파괴 → 낭종 형성 → FEV1 연간 ~120mL 감소. VEGF-D(진단: >800pg/mL) → VEGFR-3 → 림프관신생 → 유미흉·후복막 림프관종. 에스트로겐(E2) → ERα·PI3K/Akt 비게놈 경로 → mTORC1 추가 상향(폐경 후 진행 속도 감소 설명). 신장 혈관근지방종(AML) 동반 50-60%. MILES(McCormack NEJM 2011): 시롤리무스 2mg/d → FEV1 안정화(+153mL vs −12mL/12개월), VEGF-D 30% 감소, 중단 후 재감소. EXIST-2(Kingswood Lancet 2016): 에버롤리무스 → AML >50% 감소. 시롤리무스(2구획 PK, F~15%, t½~62h)·에버롤리무스(2구획 PK, F~30%, t½~28h) PK 모델 + FKBP12→mTORC1 억제 PD(Imax=0.90, IC50=2.5ng/mL). mTORC2 부분적 탈출(Sarbassov 2006), S6K1→IRS-1 음성 피드백 내성 기전 포함. 무치료·시롤리무스 2mg/d·에버롤리무스 10mg/d·시롤리무스 12개월 후 중단·에버롤리무스+GnRH 5개 시나리오. 14 클러스터 120+ 노드, 18 ODE 구획, 50개 문헌, 6탭 Shiny.<br>[🗺️ 지도](lymphangioleiomyomatosis/lam_qsp_model.svg) · [⚙️ mrgsolve](lymphangioleiomyomatosis/lam_mrgsolve_model.R) · [📚 문헌](lymphangioleiomyomatosis/lam_references.md) · [📄 README](lymphangioleiomyomatosis/README.md) |
 
 ---
 
@@ -796,3 +797,37 @@ qsp/
 - **임상시험 보정**: SEAS(Rossebø NEJM 2008, 스타틴 비효과 반영), PARTNER(Smith NEJM 2011), PARTNER 3(Mack NEJM 2019), Marechaux Heart 2010(CT 칼슘 스코어 자연 경과 ~250 AU/yr), Pellikka Circulation 2005(무증상 AS 자연 경과)
 - **Shiny 앱**: 6탭 (환자 프로파일·AS 중증도 게이지 · Drug PK 농도-시간 · PD 핵심 지표 · 임상 엔드포인트·시간-to-severe AS · 시나리오 비교 · 바이오마커 패널·열지도)
 - **참고문헌**: 50편 (역학·판막 석회화 기전·RANKL/OPG·BMP/NOTCH/Wnt·Lp(a)·MGP·SEAS/ASTRONOMER/SALTIRE 스타틴 시험·PCSK9i·데노수맙·TAVR/SAVR·LV 리모델링·영상·QSP 모델링)
+
+---
+
+## 212. 림프관평활근종증 (Lymphangioleiomyomatosis, LAM)
+
+[![LAM QSP Model](lymphangioleiomyomatosis/lam_qsp_model.png)](lymphangioleiomyomatosis/lam_qsp_model.svg)
+
+**분류**: 희귀 폐질환 / 종양억제유전자 질환 (Rare Lung Disease / Tumor Suppressor Gene Disorder) · **디렉토리**: [`lymphangioleiomyomatosis/`](lymphangioleiomyomatosis/)
+
+림프관평활근종증(LAM)은 주로 가임기 여성에서 발생하는 희귀 진행성 낭성 폐질환(유병률 10만 명당 1-9명)입니다. TSC1/TSC2 유전자의 기능 소실 변이(散發性: TSC2 체세포 이중타격; TSC-LAM: 배선 변이+LOH)로 tuberin(TSC2 단백)의 Rheb GTPase 활성화 기능이 소실되어 **Rheb-GTP↑ → mTORC1 과활성(정상의 4배)**이 유발됩니다. LAM 세포(자궁/골반 기원, HMB-45+·α-SMA+·ERα+)는 MMP-2/9/13을 분비해 폐 실질 ECM을 분해하고 낭종을 형성하여 FEV1이 연간 ~120mL 감소합니다. 혈청 VEGF-D(>800pg/mL)는 90% 특이도의 진단 바이오마커이며, 에스트로겐은 PI3K/Akt 비게놈 경로로 mTORC1을 추가 상향합니다.
+
+### 핵심 기전
+- **TSC1/2 → Rheb → mTORC1**: TSC 복합체(hamartin-tuberin)는 Rheb의 GAP. 소실 시 Rheb-GTP 지속→ mTORC1→ S6K1-pT389/4E-BP1-P → LAM 세포 증식·생존·침윤
+- **ECM 분해 및 낭종 형성**: MMP-2·MMP-9·MMP-13 → 탄력섬유·IV형 콜라겐 분해 → 기도 주변 낭종 → 폐쇄성 환기장애(FEV1↓) · DLCO↓
+- **VEGF-D → 림프관신생**: VEGFR-3 → 림프관 확장·유미흉·후복막 림프관종; VEGF-D가 혈청으로 유출 → 진단 마커
+- **에스트로겐 조절**: ERα 핵수용체 + E2→PI3K/Akt 비게놈 경로 → TSC2 Akt-인산화 억제 → mTORC1 추가 상향. 폐경 후 진행 속도 감소, 임신 시 악화
+- **mTORC2 탈출(Drug Resistance)**: 고용량 시롤리무스→ 불완전 mTORC2 억제; S6K1→IRS-1 음성 피드백 해제→ Akt 재활성화
+
+### 약물 표적 및 치료 시나리오
+| 치료 | 기전 | 근거 | 핵심 결과 |
+|------|------|------|---------|
+| 시롤리무스 2mg/day | FKBP12·mTORC1 알로스테릭 억제 | MILES (NEJM 2011) | FEV1 +153mL vs −12mL (12mo), VEGF-D −30% |
+| 에버롤리무스 10mg/day | FKBP12·mTORC1 억제 | EXIST-2 (Lancet 2016) | AML >50% 감소 |
+| 시롤리무스→중단 (12mo) | Off-Rx 재감소 모사 | MILES 연장 | FEV1 재감소 (중단 후) |
+| 에버롤리무스+GnRH | mTOR+에스트로겐 동시 차단 | 가설 (병용 요법) | 추가적 LAM 세포 억제 |
+| 무치료 | 자연 경과 | Johnson NEJM 2010 | FEV1 −117mL/yr |
+
+### 모델 사양
+- **기계론적 지도**: 14 서브그래프 클러스터, 120+ 노드 (유전적 기반·LAM 세포 기원·상위 mTOR 신호·TSC/Rheb/mTOR 핵심 축·mTORC1 기질·LAM 세포 생물학·폐 병리·림프관/체외 침범·호르몬 조절·약물 PK·약물 PD·부작용·바이오마커·임상 엔드포인트)
+- **mrgsolve ODE**: 18 구획 — 시롤리무스 3구획+에버롤리무스 3구획 PK + Rheb-GTP·mTORC1·S6K1-pT389·4E-BP1 신호 구획 + LAM 세포·VEGF-D·MMP·에스트로겐·낭종 부피·FEV1·DLCO·AML 부피 질환 상태 구획
+- **치료 시나리오**: 5개 (무치료·시롤리무스 2mg·에버롤리무스 10mg·시롤리무스 12개월 후 중단·에버롤리무스+GnRH)
+- **임상시험 보정**: MILES(FEV1 안정화)·EXIST-2(AML 50% 감소)·Johnson 2010(자연 경과 FEV1 감소)·Young 2011(VEGF-D 진단 역치)
+- **Shiny 앱**: 6탭 (환자 프로파일·중증도 게이지 · Drug PK 농도-시간·정상상태 · mTOR 경로·S6K1·4E-BP1·Rheb-GTP · 임상 엔드포인트·FEV1/DLCO/낭종/6MWT · 5개 시나리오 비교·결과 표 · 바이오마커 패널·VEGF-D/MMP/AML)
+- **참고문헌**: 50편 (MILES·EXIST-2 임상시험·자연 경과·VEGF-D 바이오마커·TSC/mTOR 신호·LAM 세포 생물학·림프관신생·에스트로겐 조절·MMP/프로테아제·폐이식·CT 정량·가이드라인·PK 파라미터)
