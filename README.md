@@ -328,6 +328,7 @@ qsp/
 | 203 | 알레르기/면역 | [**알레르기 비염 (AR)**<br><sub>Allergic Rhinitis · AR · Type I Hypersensitivity</sub>](allergic-rhinitis/) | <a href="allergic-rhinitis/ar_qsp_model.svg"><img src="allergic-rhinitis/ar_qsp_model.png" width="190" alt="ar"></a> | IgE-비만세포 축(FcεRI 가교결합 → 탈과립) + Th2 사이토카인 캐스케이드(IL-4/5/13) + 호산구 동태의 통합 QSP 모델. 히스타민·PGD2·CysLT(LTC4/D4/E4)·PAF 조기 반응 및 후기 호산구 침윤·TSLP/IL-33 상피 알라민 경로 포함. 세티리진(H1RO ≥80%, Yanai 1995)·플루티카손 FP(GR→IL-4/5/13 억제, TNSS −38%)·몬텔루카스트(CysLT1R 차단, TNSS −22%)·오말리주맙(자유 IgE >95% 감소, Fahy 1997) 7개 시나리오. 12 클러스터 100+ 노드, 25 ODE 구획, 60개 문헌, 6탭 Shiny.<br>[🗺️ 지도](allergic-rhinitis/ar_qsp_model.svg) · [⚙️ mrgsolve](allergic-rhinitis/ar_mrgsolve_model.R) · [📚 문헌](allergic-rhinitis/ar_references.md) · [📄 README](allergic-rhinitis/README.md) |
 | 205 | 심혈관/자가염증 | [**반복 심낭염 (RP)**<br><sub>Recurrent Pericarditis · RP · NLRP3/IL-1β Axis</sub>](recurrent-pericarditis/) | <a href="recurrent-pericarditis/rp_qsp_model.svg"><img src="recurrent-pericarditis/rp_qsp_model.png" width="190" alt="rp"></a> | NLRP3 인플라마솜(Signal 1 TLR→NF-κB + Signal 2 ATP/결정/K⁺efflux) → Caspase-1 → IL-1β/IL-18 성숙·분비 → IL-1R1 → NF-κB 양성 피드백 루프 → CXCL8 → 심낭 중성구 침윤 → PGE2/LTC4 매개 삼출액·통증·발열 → TGF-β1 → 섬유화 → 수축성 심낭염의 완전 통합 QSP 모델. 콜히친(β-tubulin 결합 → NLRP3 ASC 억제, IC50=0.5 ng/mL), Ibuprofen(COX-2 억제 → PGE2↓), Prednisone(GRα transrepression → NF-κB↓), Anakinra(IL-1R1 경쟁적 차단, IC50=0.1 nM), Rilonacept(IL-1α/β 이중 포획, KD<1 pM) PK/PD 포함. 무치료·NSAID·콜히친·콜히친+NSAID·프레드니솔론·아나킨라·리로나셉트 7개 시나리오. COPE(2005, 재발률 45→24%)·ICAP(2013, 32.3→16.7%)·AIRTRIP(2016, 90.9→18.2%)·RHAPSODY(2021, HR 0.04) 보정. 14 클러스터 162+ 노드, 24 ODE 구획, 57개 문헌, 7탭 Shiny.<br>[🗺️ 지도](recurrent-pericarditis/rp_qsp_model.svg) · [⚙️ mrgsolve](recurrent-pericarditis/rp_mrgsolve_model.R) · [📚 문헌](recurrent-pericarditis/rp_references.md) · [📄 README](recurrent-pericarditis/README.md) |
 | 204 | 호흡기 | [**과민성 폐렴 (HP)**<br><sub>Hypersensitivity Pneumonitis · HP · Extrinsic Allergic Alveolitis</sub>](hypersensitivity-pneumonitis/) | <a href="hypersensitivity-pneumonitis/hp_qsp_model.svg"><img src="hypersensitivity-pneumonitis/hp_qsp_model.png" width="190" alt="hp"></a> | 유기 항원(조류 단백·열성 세균·곰팡이) 반복 흡입에 의한 Th1 림프구성 폐포염 → 비건락성 육아종 형성 → TGF-β1/PDGF 매개 근섬유모세포 활성화 → 폐 섬유화(UIP/NSIP 유사 패턴) 통합 QSP 모델. TLR2/4/9·NLRP3·M1/M2 대식세포 분극·Th1/Th17/Treg 동태·면역복합체(IgG 침강소)·육아종 형성-분해·섬유화 폭포(AEC2 손상·EMT·콜라겐 침착)·ROS·FVC/DLCO 폐기능 저하 포함. Prednisolone(GR Transrepression, EC50=150 ng/mL)·MMF(IMPDH 억제, IC50=0.24 μg/mL)·Nintedanib(PDGFR/FGFR/VEGFR 억제, EC50=200 ng/mL) PK/PD. 항원회피·PDN·MMF·Nintedanib·병합 7개 시나리오. 10 클러스터 100+ 노드, 22 ODE 구획, 42개 문헌, 8탭 Shiny.<br>[🗺️ 지도](hypersensitivity-pneumonitis/hp_qsp_model.svg) · [⚙️ mrgsolve](hypersensitivity-pneumonitis/hp_mrgsolve_model.R) · [📚 문헌](hypersensitivity-pneumonitis/hp_references.md) · [📄 README](hypersensitivity-pneumonitis/README.md) |
+| 207 | 혈관/결합조직 | [**레이노 현상 (RP)**<br><sub>Raynaud's Phenomenon · RP · α2-AR / ET-1 / NO / RhoA-ROCK</sub>](raynaud-phenomenon/) | <a href="raynaud-phenomenon/raynaud_qsp_model.svg"><img src="raynaud-phenomenon/raynaud_qsp_model.png" width="190" alt="raynaud"></a> | 한랭·스트레스 자극 → 교감신경 NE 방출 → α2C-AR(한랭 상향조절) 과민 활성 → Gq/PLC/IP3→SR Ca²⁺ 방출 + RhoGEF→RhoA-GTP→ROCK1/2→MYPT1 인산화→MLCP 억제→MLC 인산화(Ca²⁺ 비의존성) → 지속적 VSMC 수축 → 디지털 혈류 감소·혈관경련 발작의 완전 통합 QSP 모델. 내피세포 eNOS↓/NO↓/sGC/cGMP/PKG/MLCP 경로·ET-1(ETA→Gα12/13+Gq, ETB→NO/PGI2)·PGI2/IP-R/Gs/cAMP/PKA/BKCa 이완 경로·혈소판(TXA2·5-HT·ADP→GP IIb/IIIa)·CGRP/SP/NPY 신경펩타이드 균형·NOX2/XO→ROS→NF-κB→ET-1 양성 피드백·이차성 전신경화증(SSc) 혈관 리모델링·모세혈관 소실 포함. 니페디핀(L-VGCC 차단, EC50=15 ng/mL)·실데나필(PDE5 억제→cGMP↑, EC50=50 ng/mL)·보센탄(ETA/ETB 차단→ET-1↓, EC50=600 ng/mL)·일로프로스트(IP-R 작용제→cAMP↑, EC50=0.5 ng/mL)·프라조신(α1-차단, EC50=2 ng/mL) 5종 PK/PD 포함. Thompson 2005(CCB 메타분석)·Fries 2005(실데나필 RCT)·Matucci-Cerinic 2011(보센탄 RAPIDS-2)·Belch 1995(일로프로스트 RCT) 보정. 13 클러스터 100+ 노드, 18 ODE 구획, 9 치료 시나리오, 62개 문헌, 7탭 Shiny.<br>[🗺️ 지도](raynaud-phenomenon/raynaud_qsp_model.svg) · [⚙️ mrgsolve](raynaud-phenomenon/raynaud_mrgsolve_model.R) · [📚 문헌](raynaud-phenomenon/raynaud_references.md) · [📄 README](raynaud-phenomenon/README.md) |
 | 206 | 신경계/수면장애 | [**나르콜렙시 1형 (NT1)**<br><sub>Narcolepsy Type 1 · NT1 · Orexin/Hypocretin Deficiency</sub>](narcolepsy/) | <a href="narcolepsy/narc_qsp_model.svg"><img src="narcolepsy/narc_qsp_model.png" width="190" alt="narc"></a> | HLA-DQB1\*06:02 감수성 + H1N1/Pandemrix 분자 모방 → CD4+/CD8+ T세포·NK세포가 시상하부 외측 오렉신 신경세포(~70,000개 → 85–95% 소실) 자가면역 파괴 → CSF 히포크레틴-1 <110 pg/mL → OX1R/OX2R 신호 소실 → LC(NE)·TMN(히스타민)·VTA(DA)·DRN(5-HT) 각성 모노아민계 불안정 → VLPO-각성계 플립-플롭 스위치 상태 전환 빈번 → EDS(과도한 주간 졸음, ESS↑)/카탈렉시(편도체 감정 자극 → REM 근긴장소실 불수의 활성)/입면 환각/수면 마비 4징 완전 통합 QSP 모델. 소디움 옥시베이트(GABA-B/GHB-R→서파수면↑, 카탈렉시 -69–75%)·모다피닐(DAT/NET 억제, ESS -4.3)·피톨리산트(H3R 역작용제→히스타민↑, HARMONY I ESS -5.8)·솔리암페톨(DAT/NET, TONES 3 ESS -7.7)·벤라팍신(SERT/NET→REM 억제 항카탈렉시)·TAK-994(OX2R 직접 작용제, 실험) 6종 PK/PD. 12 클러스터 431 노드, 23 ODE 구획, 7 치료 시나리오, 47개 문헌, 8탭 Shiny.<br>[🗺️ 지도](narcolepsy/narc_qsp_model.svg) · [⚙️ mrgsolve](narcolepsy/narc_mrgsolve_model.R) · [📚 문헌](narcolepsy/narc_references.md) · [📄 README](narcolepsy/README.md) |
 
 ---
@@ -692,3 +693,31 @@ qsp/
 ## 📄 라이선스 (License)
 
 본 저장소의 라이선스는 [LICENSE](LICENSE) 파일을 참조하세요.
+
+---
+
+## 레이노 현상 (Raynaud's Phenomenon) — 상세 정보
+
+[![Raynaud QSP Model](raynaud-phenomenon/raynaud_qsp_model.png)](raynaud-phenomenon/raynaud_qsp_model.svg)
+
+**분류**: 혈관·결합조직 | **디렉토리**: [`raynaud-phenomenon/`](raynaud-phenomenon/)
+
+레이노 현상은 한랭 또는 감정적 스트레스에 의해 유발되는 소동맥의 간헐적 혈관경련으로, 손가락·발가락·귀·코 등 말단부에 삼색 변화(창백→청색→홍조)를 일으킵니다. 전세계 유병률 3-5%, 여성에서 3배 높고, 일차성(특발성, 60-70%)과 이차성(전신경화증·루푸스·MCTD·쇼그렌 등 결합조직질환 동반, 30-40%)으로 분류됩니다. 이차성은 디지털 궤양·괴저로 이어질 수 있어 예후가 불량합니다.
+
+### 핵심 기전
+- **α2C-아드레날린 수용체 과민**: 한랭에 의해 세포 내에서 형질막으로 이동·상향조절, NE에 대한 반응성 3-5배 증가
+- **RhoA/ROCK 경로**: Gα12/13·RhoGEF→RhoA-GTP→ROCK1/2→MYPT1(Thr696) 인산화→MLCP 억제→Ca²⁺ 비의존성 MLC 인산화→지속 수축(Ca²⁺ 감수성 증가)
+- **내피 NO 결핍**: 이차성에서 eNOS 발현 감소, ROS에 의한 BH4 산화→eNOS 탈결합→O₂⁻ 생성 악순환
+- **ET-1 과잉**: 이차성에서 3-4배 상승, ETA-R(VSMC 수축·증식)과 ETB-R(내피 NO/PGI2↑) 불균형
+- **PGI2 결핍·TXA2 과잉**: 혈소판 활성화 촉진, 미세혈전 및 TP 수용체 매개 혈관수축 증폭
+- **CGRP 결핍**: 감각신경 말단에서 한랭에 의해 CGRP 방출 억제→신경성 혈관이완 소실
+
+### 약물 표적 및 치료 시나리오
+| 약물 | 기전 | 시나리오 |
+|------|------|----------|
+| 니페디핀 30mg QD | L-VGCC 차단→Cai↓ | 일차성 1차 치료 |
+| 실데나필 50mg BID | PDE5 억제→cGMP↑→PKG→MLCP | 이차성 2차 치료 |
+| 보센탄 125mg BID | ETA/ETB 차단→ET-1 효과 차단 | 이차성 디지털 궤양 예방 |
+| 일로프로스트 IV×5d | IP-R 작용제→cAMP↑·항혈소판 | 이차성 중증/급성기 |
+| 프라조신 1mg BID | α1-AR 차단→교감 수축↓ | 일차성 대안 |
+| 니페디핀+실데나필 | CCB+PDE5i 상보적 병용 | 난치성 일차성 |
