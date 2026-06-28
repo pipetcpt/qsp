@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-202-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-203-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **202개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **203개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -325,6 +325,7 @@ qsp/
 | 200 | 자가면역 신경근육 | [**람베르트-이튼 근무력증후군 (LEMS)**<br><sub>Lambert-Eaton Myasthenic Syndrome · LEMS</sub>](lambert-eaton-syndrome/) | <a href="lambert-eaton-syndrome/lems_qsp_model.svg"><img src="lambert-eaton-syndrome/lems_qsp_model.png" width="190" alt="lems"></a> | 항P/Q형 VGCC 자가항체 → 전시냅스 Ca²⁺ 유입 감소 → ACh 방출 저하 → EPP 감소·안전계수 저하 → CMAP 감소·근력 약화. 50–60% SCLC 동반 부종양. 아미파리딘(3,4-DAP K⁺차단 Emax, EC50 120 ng/mL)·프레드니솔론·혈장교환·IVIG·항암화학요법 6개 시나리오. 12 클러스터 100+ 노드, 15 ODE 구획, 56개 문헌, 7탭 Shiny.<br>[🗺️ 지도](lambert-eaton-syndrome/lems_qsp_model.svg) · [⚙️ mrgsolve](lambert-eaton-syndrome/lems_mrgsolve_model.R) · [📚 문헌](lambert-eaton-syndrome/lems_references.md) · [📄 README](lambert-eaton-syndrome/README.md) |
 | 201 | 신장·비뇨 | [**급성 신손상 (AKI)**<br><sub>Acute Kidney Injury · AKI</sub>](acute-kidney-injury/) | <a href="acute-kidney-injury/aki_qsp_model.svg"><img src="acute-kidney-injury/aki_qsp_model.png" width="190" alt="aki"></a> | 허혈-재관류(IRI)·신독성(NTX)·패혈증 연관(SA-AKI) 세 아형의 통합 QSP 모델. ATP 고갈 → 미토콘드리아 기능부전 → 아폽토시스/괴사/페롭토시스·세뇨관 세포 활력(TCV) 감소 → GFR↓·NGAL/KIM-1 상승. TLR4→NF-κB→IL-6/TNF-α 염증·산화스트레스(ROS/GSH)·TGF-β1→섬유화(AKI-to-CKD) 경로 포함. Furosemide(OAT1/3·NKCC2)·Norepinephrine·NAC·CRRT PK/PD. 12 클러스터 100+ 노드, 20 ODE 구획, 7 치료 시나리오, 55개 문헌, 6탭 Shiny.<br>[🗺️ 지도](acute-kidney-injury/aki_qsp_model.svg) · [⚙️ mrgsolve](acute-kidney-injury/aki_mrgsolve_model.R) · [📚 문헌](acute-kidney-injury/aki_references.md) · [📄 README](acute-kidney-injury/README.md) |
 | 202 | 신경정신 | [**강박장애 (OCD)**<br><sub>Obsessive-Compulsive Disorder · OCD</sub>](obsessive-compulsive-disorder/) | <a href="obsessive-compulsive-disorder/ocd_qsp_model.svg"><img src="obsessive-compulsive-disorder/ocd_qsp_model.png" width="190" alt="ocd"></a> | **CSTC 회로 과활성화** — OFC 과활성(강박 사고) → 미상핵 과대사(강박 행동) → 직접 경로(D1/Go) 우세·간접 경로(D2/No-Go) 약화 → 시상 탈억제 → OFC 루프 재구동. SERT ≥80% 점유 필요(우울증 60% 대비). 5-HT1A 자가수용체 탈감작이 2–4주 지연 반응 설명. Sertraline 200 mg(2구획+BBB)·Clomipramine 250 mg(DCMI 활성 대사체)·Risperidone D2 증강·ERP/CBT 기전 통합. 13 클러스터 130+ 노드, 23 ODE 구획, 6 치료 시나리오, 가상 환자 100명 Monte Carlo, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](obsessive-compulsive-disorder/ocd_qsp_model.svg) · [⚙️ mrgsolve](obsessive-compulsive-disorder/ocd_mrgsolve_model.R) · [📚 문헌](obsessive-compulsive-disorder/ocd_references.md) · [📄 README](obsessive-compulsive-disorder/README.md) |
+| 203 | 혈액종양 | [**호지킨 림프종 (HL)**<br><sub>Hodgkin Lymphoma · HL</sub>](hodgkin-lymphoma/) | <a href="hodgkin-lymphoma/hl_qsp_model.svg"><img src="hodgkin-lymphoma/hl_qsp_model.png" width="190" alt="hl"></a> | RS 세포 NF-κB·JAK/STAT·CD30 구성적 활성화 + PD-L1/L2(9p24.1 증폭) 과발현 → 면역억제 미세환경(Treg·M2 대식세포·호산구). ABVD·BV-AVD·에스칼레이티드 BEACOPP PK/PD 통합. 브렌툭시맙 베도틴 ADC(CD30→MMAE 방출)·펨브롤리주맙 PD-1 차단·Friberg ANC 나딜 모델 포함. ECHELON-1·KEYNOTE-087·GHSG HD18 임상시험 보정. 12 클러스터 120+ 노드, 23 ODE 구획, 6 치료 시나리오, 35개 문헌, 6탭 Shiny.<br>[🗺️ 지도](hodgkin-lymphoma/hl_qsp_model.svg) · [⚙️ mrgsolve](hodgkin-lymphoma/hl_mrgsolve_model.R) · [📚 문헌](hodgkin-lymphoma/hl_references.md) · [📄 README](hodgkin-lymphoma/README.md) |
 
 ---
 
@@ -548,6 +549,36 @@ qsp/
 - **임상시험 보정**: KDIGO 2012 기준(sCr×1.5/2.0/3.0), Gaudry NEJM 2016(CRRT 90d 사망률 48%), Zarbock JAMA 2016(조기 RRT), Mishra JASN 2003(NGAL 2h 조기상승), Han KI 2002(KIM-1 shedding), Meersch ICM 2017(TIMP-2·IGFBP7), Felker NEJM 2011(Furosemide 용량반응)
 - **Shiny 앱**: 6탭 (환자 프로파일·KDIGO 병기 기준 · Drug PK·NKCC2 억제율·이뇨반응 · 신장바이오마커·세뇨관세포활력·ROS/GSH · 임상엔드포인트·GFR·AKI병기·소변량 · 전시나리오 비교·요약표 · AKI-to-CKD·TGF-β1·섬유화·장기GFR)
 - **참고문헌**: 55개 (역학·KDIGO·IRI·NTX·SA-AKI·산화스트레스·염증·바이오마커·Furosemide·혈압지지·NAC·CRRT·AKI-to-CKD·QSP모델링·임상시험)
+
+---
+
+## 203. 호지킨 림프종 (Hodgkin Lymphoma, HL)
+
+[![HL](hodgkin-lymphoma/hl_qsp_model.png)](hodgkin-lymphoma/hl_qsp_model.svg)
+
+**분류:** 혈액종양학 (Hematologic Oncology) · **디렉토리:** [`hodgkin-lymphoma/`](hodgkin-lymphoma/)
+
+### 병태생리 (Pathophysiology)
+
+호지킨 림프종(HL)은 **리드-스턴버그(Reed-Sternberg, RS) 세포**를 특징으로 하는 B세포 유래 악성 림프종입니다. RS 세포는 종양 세포의 0.1–5%에 불과하지만 NF-κB·JAK/STAT·CD30 경로의 구성적 활성화를 통해 강력한 면역억제 미세환경을 형성합니다. 전체 림프종의 약 10%를 차지하며, ABVD 또는 BV-AVD 병합 화학요법으로 5년 생존율 85–90% 달성이 가능합니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **NF-κB 구성적 활성** | A20(TNFAIP3) 돌연변이·CARD11 돌연변이 → IKKβ 과활성 → IκBα 인산화/분해 → p65/p50 핵 이동 → Bcl-2/xL·survivin 발현 → RS 세포 생존 |
+| **JAK2–STAT3/6 축** | IL-13 자가분비 루프 → IL-13Rα1 → JAK1/TYK2 → STAT6 활성; 9p24.1 JAK2 증폭 → STAT3 과활성 → PD-L1/PD-L2 유도 |
+| **9p24.1 증폭 → PD-L1/L2** | cHL의 ~97%에서 PD-L1 과발현; JAK2 의존적 메커니즘 → 종양침윤 T세포 탈진(TOX↑, LAG-3/TIM-3↑) |
+| **CD30/TNFRSF8** | 거의 모든 RS 세포에서 고도 발현 → TRAF2/3/5 → NF-κB·AP-1 활성화; sCD30 탈락으로 혈청 바이오마커 역할 |
+| **EBV LMP1** | 기능적 CD40 모방 → CRAR1/2 → NF-κB·JAK/STAT 활성화; 혼합세포형 40%, 결절경화형 10%에서 EBV 양성 |
+| **종양 미세환경 (TME)** | CCL17/TARC·CCL22 분비 → Treg·Th2 세포 유인; TGF-β·IL-10 → M2 대식세포 → CD8+ T세포 억제 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 12 서브그래프 클러스터, 120+ 노드 (RS 세포 생물학·NF-κB·JAK/STAT·CD30·PD-1/PD-L1·EBV·종양 미세환경·ABVD PK·BV ADC PK/PD·펨브롤리주맙 PK/PD·골수 독성·임상 엔드포인트)
+- **mrgsolve ODE**: 23 구획 — 약물 PK (DOX 2구획·BLM·VBL 2구획·DTIC+MTIC·BV 항체+MMAE·펨브롤리주맙 2구획), 질환 PD (종양 부피·T_eff·T_reg·M2 대식세포·NF-κB·PD-L1·LDH), Friberg ANC 나딜 (Prol·Tr1·Tr2·Tr3·Circ)
+- **치료 시나리오**: 6개 (자연경과 · ABVD 6주기[d1+15 q28d] · 에스칼레이티드 BEACOPP 6주기 · BV-AVD 6주기[ECHELON-1] · 펨브롤리주맙 단독[KEYNOTE-087] · BV+펨브롤리주맙 병합)
+- **임상시험 보정**: Connors ECHELON-1 NEJM 2018(BV-AVD 5yr PFS 82%), Chen KEYNOTE-087 JCO 2017(펨브롤리주맙 ORR 69%), Borchmann HD18 Lancet 2017, Hasenclever IPS-7 NEJM 1998, Friberg ANC 나딜 JPKPD 2002
+- **Shiny 앱**: 6탭 (환자 프로파일·병기·IPS 7인자 · PK 약물 농도·Cmax/AUC/t½ · 종양 역학·워터폴·LDH·Deauville · 임상 엔드포인트·PFS/OS·CR/PR · 전 시나리오 비교·ANC 나딜 · 바이오마커·TARC/CCL17·CD30)
+- **참고문헌**: 35개 (역학·병태생리·EBV·TME·PD-1/PD-L1·1차 치료·재발/불응성·PK/PD 모델링·바이오마커·임상시험)
 
 ---
 
