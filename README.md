@@ -332,6 +332,7 @@ qsp/
 | 206 | 신경계/수면장애 | [**나르콜렙시 1형 (NT1)**<br><sub>Narcolepsy Type 1 · NT1 · Orexin/Hypocretin Deficiency</sub>](narcolepsy/) | <a href="narcolepsy/narc_qsp_model.svg"><img src="narcolepsy/narc_qsp_model.png" width="190" alt="narc"></a> | HLA-DQB1\*06:02 감수성 + H1N1/Pandemrix 분자 모방 → CD4+/CD8+ T세포·NK세포가 시상하부 외측 오렉신 신경세포(~70,000개 → 85–95% 소실) 자가면역 파괴 → CSF 히포크레틴-1 <110 pg/mL → OX1R/OX2R 신호 소실 → LC(NE)·TMN(히스타민)·VTA(DA)·DRN(5-HT) 각성 모노아민계 불안정 → VLPO-각성계 플립-플롭 스위치 상태 전환 빈번 → EDS(과도한 주간 졸음, ESS↑)/카탈렉시(편도체 감정 자극 → REM 근긴장소실 불수의 활성)/입면 환각/수면 마비 4징 완전 통합 QSP 모델. 소디움 옥시베이트(GABA-B/GHB-R→서파수면↑, 카탈렉시 -69–75%)·모다피닐(DAT/NET 억제, ESS -4.3)·피톨리산트(H3R 역작용제→히스타민↑, HARMONY I ESS -5.8)·솔리암페톨(DAT/NET, TONES 3 ESS -7.7)·벤라팍신(SERT/NET→REM 억제 항카탈렉시)·TAK-994(OX2R 직접 작용제, 실험) 6종 PK/PD. 12 클러스터 431 노드, 23 ODE 구획, 7 치료 시나리오, 47개 문헌, 8탭 Shiny.<br>[🗺️ 지도](narcolepsy/narc_qsp_model.svg) · [⚙️ mrgsolve](narcolepsy/narc_mrgsolve_model.R) · [📚 문헌](narcolepsy/narc_references.md) · [📄 README](narcolepsy/README.md) |
 | 208 | 신장·대사 | [**CKD-미네랄골질환 (CKD-MBD)**<br><sub>CKD-Mineral Bone Disorder · FGF23·Klotho·PTH·Vitamin D</sub>](ckd-mineral-bone-disorder/) | <a href="ckd-mineral-bone-disorder/ckdmbd_qsp_model.svg"><img src="ckd-mineral-bone-disorder/ckdmbd_qsp_model.png" width="190" alt="ckdmbd"></a> | GFR 저하 → FGF23↑↑(CKD G2부터, Gutierrez 2008 NEJM) + Klotho↓ → CYP27B1 억제 → 1,25-(OH)₂D₃ 결핍 → CaSR 저감수성 → 이차성 부갑상선 기능항진증(iPTH↑) + 고인산혈증·저칼슘혈증 → RANKL/OPG 불균형·스클레로스틴↑ → 골이영양증(골화석증·무동성골·혼합형) + VSMC 골아세포 분화·MGP 탈카르복실화·Fetuin-A 감소 → 혈관 석회화 → CV 사건 증가. Sevelamer(Pi 결합, Sev_Emax 65%)·CaCO₃·Cinacalcet(CaSR 활성화, IC50 15 ng/mL)·Paricalcitol(VDR 작용, EC50 0.2 ng/mL)·Etelcalcetide(IV CaSR, EC50 50 ng/mL)·Denosumab(RANKL 억제, Imax 95%) 6종 PK/PD. KDIGO 2017 iPTH 150–600·Pi<5.5·Ca 8.4–10.2 목표. 10 클러스터 115+ 노드, 17 ODE 구획, 7 치료 시나리오, 42개 문헌, 7탭 Shiny.<br>[🗺️ 지도](ckd-mineral-bone-disorder/ckdmbd_qsp_model.svg) · [⚙️ mrgsolve](ckd-mineral-bone-disorder/ckdmbd_mrgsolve_model.R) · [📚 문헌](ckd-mineral-bone-disorder/ckdmbd_references.md) · [📄 README](ckd-mineral-bone-disorder/README.md) |
 | 209 | 혈액종양/아밀로이드증 | [**AL 아밀로이드증 (AL Amyloidosis)**<br><sub>Immunoglobulin Light Chain Amyloidosis · AL · Daratumumab · CyBorD · ANDROMEDA</sub>](al-amyloidosis/) | <a href="al-amyloidosis/al_qsp_model.svg"><img src="al-amyloidosis/al_qsp_model.png" width="190" alt="al"></a> | 형질세포 이상증식(MGUS→SMM→클론성 형질세포) → CD38 고발현 → 단클론 자유경쇄(FLC) 과분비 → 아밀로이드 원섬유 핵화·신장(β-sheet 중합체)·파종 자가촉매 증폭 → 심장(LV 비후, 이완기 기능부전, NT-proBNP↑, hs-TnT↑)·신장(사구체 아밀로이드→신증후군, eGFR↓)·간(간비대, ALP↑)·자율신경 아밀로이드 침착 통합 QSP 모델. 올리고머 직접 심장독성(Oligomer-cardiotoxicity) 경로 포함. Daratumumab(TMDD 2구획 PK, kon=0.005 nM⁻¹day⁻¹, CD38 수용체 동태, ADCC/CDC/ADCP, NK세포 고갈-회복 주기)·Bortezomib(1구획+20S 프로테아좀 가역 결합, BTZ_PROT EC50=6.5 nM)·Cyclophosphamide(4-OH-CY 활성 대사체, CYP2B6)·Dexamethasone(GR 점유→PC 아폽토시스)·Melphalan(DNA 가교 형성) 5종 PK/PD 포함. ANDROMEDA(NEJM 2021, Dara+CyBorD 53% CR vs CyBorD 18%)·MDex(Blood 2004, ~33% CR)·CyBorD(Blood 2012, ~29% CR) 보정. Mayo 2012 4단계 병기(hs-TnT≥0.025 + NT-proBNP≥1800 + dFLC≥18 mg/dL + eGFR<50 위험 인자) 동태적 추적. 무치료·Dara 단독·CyBorD·Dara-CyBorD·VCD·MDex·CYP2C19 PM 7개 시나리오. 14 클러스터 100+ 노드, 20 ODE 구획, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](al-amyloidosis/al_qsp_model.svg) · [⚙️ mrgsolve](al-amyloidosis/al_mrgsolve_model.R) · [📚 문헌](al-amyloidosis/al_references.md) · [📄 README](al-amyloidosis/README.md) |
+| 210 | 심혈관/판막질환 | [**대동맥판막 협착증 (AS/CAVD)**<br><sub>Calcific Aortic Valve Stenosis · CAVD · BMP/RANKL/Lp(a)/LVEF/TAVR</sub>](aortic-stenosis/) | <a href="aortic-stenosis/as_qsp_model.svg"><img src="aortic-stenosis/as_qsp_model.png" width="190" alt="as"></a> | 판막 내피세포 손상(shear stress·oxLDL·NOTCH1 소실) → BMP-2/4·TGF-β1 활성화 → 판막 간질세포(VIC) 골아세포성 전환(Runx2·Osterix·ALP↑) → RANKL/OPG 비율 증가 → 미세석회화(hydroxyapatite) → 거대석회화 → 대동맥판막 면적(AVA) 감소 → 경판막 압력차(ΔP) 증가 → LV 압력 과부하 → 동심성 LV 비후(LVMI↑)·간질 섬유화(콜라겐 분획↑) → LVEDP 상승·LVEF 저하 → NT-proBNP·hs-TnT 상승 → 증상 3주징(협심증·실신·호흡곤란) → NYHA 악화 → MACE의 완전 통합 QSP 모델. Lp(a)/oxPL(Thanassoulis NEJM 2013) 독립 위험 인자·MGP 카르복실화 억제 경로 포함. Rosuvastatin(2구획, STATIN_V1=134L, SEAS 스타틴 비효과 반영 Emax_calc=5%)·Evolocumab(SC 1구획, PCSK9i ka=0.012 hr⁻¹, LDL+Lp(a) ↓)·Denosumab(RANKL 차단, 가설 Emax_calc=30%)·Vitamin K2 MK-7(MGP 카르복실화 회복, EC50_MGP=0.3 μg/L)·Ramipril(ACEi, AngII↓→섬유화↓) 5종 PK/PD 포함. TAVR/SAVR 후 LV 역 리모델링(AVA 회복→afterload↓→LVEF↑) 시뮬레이션. 무치료·스타틴·스타틴+PCSK9i·스타틴+데노수맙·스타틴+VK2·최대 약물요법 6개 시나리오. SEAS(2008, 스타틴 비효과)·PARTNER(2011, TAVR)·PARTNER 3(2019, 저위험 TAVR)·Marechaux(2010, Ca score 자연 경과) 보정. 12 클러스터 110+ 노드, 20 ODE 구획, 50개 문헌, 6탭 Shiny.<br>[🗺️ 지도](aortic-stenosis/as_qsp_model.svg) · [⚙️ mrgsolve](aortic-stenosis/as_mrgsolve_model.R) · [📚 문헌](aortic-stenosis/as_references.md) · [📄 README](aortic-stenosis/README.md) |
 
 ---
 
@@ -749,3 +750,48 @@ qsp/
 | Cyclophosphamide 300mg/m² PO | 4-OH-CY DNA 알킬화 → 클론성 형질세포 사멸 | CyBorD 병용 |
 | Dexamethasone 20-40mg PO | GR-매개 전사억제 → 형질세포 아폽토시스 | 모든 regimen |
 | Melphalan 0.15-0.25mg/kg PO | DNA 가교 → 형질세포 사멸; SCT 전처치(200mg/m²) | MDex: CR ~33% |
+
+---
+
+## 210. 대동맥판막 협착증 (Calcific Aortic Valve Stenosis, AS/CAVD)
+
+[![AS/CAVD QSP Model](aortic-stenosis/as_qsp_model.png)](aortic-stenosis/as_qsp_model.svg)
+
+**분류**: 심혈관 / 판막질환 (Cardiovascular / Valvular Heart Disease) · **디렉토리**: [`aortic-stenosis/`](aortic-stenosis/)
+
+석회성 대동맥판막 협착증(CAVD)은 65세 이상 성인에서 가장 흔한 판막 질환으로, 전 세계 유병률 약 2.5%, 고령화에 따라 급속히 증가합니다. 대동맥판막 내피세포 손상(shear stress, oxLDL, NOTCH1 돌연변이)에서 시작해 판막 간질세포(VIC)의 골아세포성 전환, 수산화인회석 결정 형성, 판막 석회화 진행의 연쇄 반응을 거쳐 대동맥판막 면적(AVA) 감소와 LV 압력 과부하를 유발합니다. 치료하지 않으면 증상 발현(협심증-실신-심부전의 3주징) 후 평균 생존기간이 1–5년에 불과하며, TAVR/SAVR이 유일한 근치적 치료입니다.
+
+### 핵심 병인 기전
+- **판막 내피세포(VEC) 손상**: 비정상적 전단 응력(BAV/고혈압) → eNOS 하향·ROS 증가 → BMP-2/4 → VIC 활성화
+- **Lp(a)/oxLDL 침윤**: 산화 인지질(OxPL) → VIC의 RANKL↑ 및 OPG↓ → VIC-골아세포 분화 촉진
+- **RANKL/OPG 불균형**: 활성화 VIC → RANKL 발현↑ / OPG 발현↓ → Runx2/Osterix → ALP↑ → Matrix Vesicle → 수산화인회석 핵화
+- **MGP(기질 Gla 단백질)**: Vitamin K 의존성 카르복실화로 항석회화 기능 발휘. K 결핍 시 비카르복실화 MGP 축적 → 석회화 억제 실패
+- **NOTCH1 신호**: VEC에서 BMP 억제 역할; NOTCH1 기능 소실 돌연변이(Garg Nature 2005) → 대동맥판막 석회화 조기 발생
+- **혈역학적 결과**: AVA 감소(정상 >2.0cm² → 중증 <1.0cm²) → 경판막 압력차 >40mmHg → LV 수축기압 상승 → Laplace 벽 응력 증가 → 동심성 LV 비후(LVMI↑) → TGF-β1/AngII → 간질 섬유화
+- **임상 3주징**: 협심증(관상동맥 관류 예비력↓, subendocardial ischemia), 실신(운동 시 심박출량 감소→뇌관류↓), 호흡곤란(LVEDP 상승→폐울혈)
+
+### 약물 표적 및 치료 시나리오 비교
+| 시나리오 | 핵심 약물 | 석회화 억제 | LDL↓ | 증상 완화 | 근거 수준 |
+|---------|---------|-----------|------|---------|---------|
+| 무치료 | — | — | — | — | — |
+| 스타틴 단독 | Rosuvastatin 20mg | 최소 (SEAS 실패) | 50–55% | 부분 | Level A (Negative) |
+| 스타틴+PCSK9i | +Evolocumab 140mg Q2W | 간접적(LDL↓↓) | 75–80% | 부분 | Level B |
+| 스타틴+Denosumab | +Denosumab 60mg Q6M | 가설 30% | 50% | 실험적 | Level C (Hypothesis) |
+| 스타틴+VK2 | +MK-7 180μg QD | 중등도(MGP 활성화) | 50% | 부분 | Level C |
+| 최대 약물 병합 | +ACEi+PCSK9i+VK2 | ~15-20% 지연 | >80% | 상당 | 복합 |
+
+### 임상 핵심 지표 (AHA/ACC 2021 기준)
+| 중증도 | AVA (cm²) | 평균 압력차 (mmHg) | Vmax (m/s) |
+|--------|-----------|-----------------|-----------|
+| 경증 | >1.5 | <25 | <3.0 |
+| 중등도 | 1.0–1.5 | 25–40 | 3.0–4.0 |
+| 중증 | <1.0 | >40 | >4.0 |
+| 초중증 | <0.6 | >60 | >5.0 |
+
+### 모델 사양 (Model Specifications)
+- **기계론적 지도**: 12 서브그래프 클러스터, 110+ 노드 (위험인자·VEC 손상·염증·VIC 골아세포 전환·석회화 진행·혈역학·LV 리모델링·바이오마커·약물 PK·약물 PD·TAVR/SAVR 중재·전신 합병증)
+- **mrgsolve ODE**: 20 구획 — 스타틴 3구획(GUT/CENTRAL/PERIPH)·PCSK9i 2구획·데노수맙 2구획·VK2 2구획·ACEi 2구획 PK + 판막 칼슘 스코어·LDL·Lp(a)·RANKL·IL-6·MGP 카르복실화·AngII·LVMI·콜라겐 분획·LVEF·NT-proBNP 질환 상태 변수
+- **치료 시나리오**: 6개 (무치료 · 스타틴 단독 · 스타틴+PCSK9i · 스타틴+데노수맙(가설) · 스타틴+VK2 · 최대 약물 병합)
+- **임상시험 보정**: SEAS(Rossebø NEJM 2008, 스타틴 비효과 반영), PARTNER(Smith NEJM 2011), PARTNER 3(Mack NEJM 2019), Marechaux Heart 2010(CT 칼슘 스코어 자연 경과 ~250 AU/yr), Pellikka Circulation 2005(무증상 AS 자연 경과)
+- **Shiny 앱**: 6탭 (환자 프로파일·AS 중증도 게이지 · Drug PK 농도-시간 · PD 핵심 지표 · 임상 엔드포인트·시간-to-severe AS · 시나리오 비교 · 바이오마커 패널·열지도)
+- **참고문헌**: 50편 (역학·판막 석회화 기전·RANKL/OPG·BMP/NOTCH/Wnt·Lp(a)·MGP·SEAS/ASTRONOMER/SALTIRE 스타틴 시험·PCSK9i·데노수맙·TAVR/SAVR·LV 리모델링·영상·QSP 모델링)
