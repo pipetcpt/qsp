@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-202-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-203-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **202개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **203개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -325,6 +325,7 @@ qsp/
 | 200 | 자가면역 신경근육 | [**람베르트-이튼 근무력증후군 (LEMS)**<br><sub>Lambert-Eaton Myasthenic Syndrome · LEMS</sub>](lambert-eaton-syndrome/) | <a href="lambert-eaton-syndrome/lems_qsp_model.svg"><img src="lambert-eaton-syndrome/lems_qsp_model.png" width="190" alt="lems"></a> | 항P/Q형 VGCC 자가항체 → 전시냅스 Ca²⁺ 유입 감소 → ACh 방출 저하 → EPP 감소·안전계수 저하 → CMAP 감소·근력 약화. 50–60% SCLC 동반 부종양. 아미파리딘(3,4-DAP K⁺차단 Emax, EC50 120 ng/mL)·프레드니솔론·혈장교환·IVIG·항암화학요법 6개 시나리오. 12 클러스터 100+ 노드, 15 ODE 구획, 56개 문헌, 7탭 Shiny.<br>[🗺️ 지도](lambert-eaton-syndrome/lems_qsp_model.svg) · [⚙️ mrgsolve](lambert-eaton-syndrome/lems_mrgsolve_model.R) · [📚 문헌](lambert-eaton-syndrome/lems_references.md) · [📄 README](lambert-eaton-syndrome/README.md) |
 | 201 | 신장·비뇨 | [**급성 신손상 (AKI)**<br><sub>Acute Kidney Injury · AKI</sub>](acute-kidney-injury/) | <a href="acute-kidney-injury/aki_qsp_model.svg"><img src="acute-kidney-injury/aki_qsp_model.png" width="190" alt="aki"></a> | 허혈-재관류(IRI)·신독성(NTX)·패혈증 연관(SA-AKI) 세 아형의 통합 QSP 모델. ATP 고갈 → 미토콘드리아 기능부전 → 아폽토시스/괴사/페롭토시스·세뇨관 세포 활력(TCV) 감소 → GFR↓·NGAL/KIM-1 상승. TLR4→NF-κB→IL-6/TNF-α 염증·산화스트레스(ROS/GSH)·TGF-β1→섬유화(AKI-to-CKD) 경로 포함. Furosemide(OAT1/3·NKCC2)·Norepinephrine·NAC·CRRT PK/PD. 12 클러스터 100+ 노드, 20 ODE 구획, 7 치료 시나리오, 55개 문헌, 6탭 Shiny.<br>[🗺️ 지도](acute-kidney-injury/aki_qsp_model.svg) · [⚙️ mrgsolve](acute-kidney-injury/aki_mrgsolve_model.R) · [📚 문헌](acute-kidney-injury/aki_references.md) · [📄 README](acute-kidney-injury/README.md) |
 | 202 | 신경정신 | [**강박장애 (OCD)**<br><sub>Obsessive-Compulsive Disorder · OCD</sub>](obsessive-compulsive-disorder/) | <a href="obsessive-compulsive-disorder/ocd_qsp_model.svg"><img src="obsessive-compulsive-disorder/ocd_qsp_model.png" width="190" alt="ocd"></a> | **CSTC 회로 과활성화** — OFC 과활성(강박 사고) → 미상핵 과대사(강박 행동) → 직접 경로(D1/Go) 우세·간접 경로(D2/No-Go) 약화 → 시상 탈억제 → OFC 루프 재구동. SERT ≥80% 점유 필요(우울증 60% 대비). 5-HT1A 자가수용체 탈감작이 2–4주 지연 반응 설명. Sertraline 200 mg(2구획+BBB)·Clomipramine 250 mg(DCMI 활성 대사체)·Risperidone D2 증강·ERP/CBT 기전 통합. 13 클러스터 130+ 노드, 23 ODE 구획, 6 치료 시나리오, 가상 환자 100명 Monte Carlo, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](obsessive-compulsive-disorder/ocd_qsp_model.svg) · [⚙️ mrgsolve](obsessive-compulsive-disorder/ocd_mrgsolve_model.R) · [📚 문헌](obsessive-compulsive-disorder/ocd_references.md) · [📄 README](obsessive-compulsive-disorder/README.md) |
+| 203 | 알레르기/면역 | [**알레르기 비염 (AR)**<br><sub>Allergic Rhinitis · AR · Type I Hypersensitivity</sub>](allergic-rhinitis/) | <a href="allergic-rhinitis/ar_qsp_model.svg"><img src="allergic-rhinitis/ar_qsp_model.png" width="190" alt="ar"></a> | IgE-비만세포 축(FcεRI 가교결합 → 탈과립) + Th2 사이토카인 캐스케이드(IL-4/5/13) + 호산구 동태의 통합 QSP 모델. 히스타민·PGD2·CysLT(LTC4/D4/E4)·PAF 조기 반응 및 후기 호산구 침윤·TSLP/IL-33 상피 알라민 경로 포함. 세티리진(H1RO ≥80%, Yanai 1995)·플루티카손 FP(GR→IL-4/5/13 억제, TNSS −38%)·몬텔루카스트(CysLT1R 차단, TNSS −22%)·오말리주맙(자유 IgE >95% 감소, Fahy 1997) 7개 시나리오. 12 클러스터 100+ 노드, 25 ODE 구획, 60개 문헌, 6탭 Shiny.<br>[🗺️ 지도](allergic-rhinitis/ar_qsp_model.svg) · [⚙️ mrgsolve](allergic-rhinitis/ar_mrgsolve_model.R) · [📚 문헌](allergic-rhinitis/ar_references.md) · [📄 README](allergic-rhinitis/README.md) |
 
 ---
 
@@ -548,6 +549,36 @@ qsp/
 - **임상시험 보정**: KDIGO 2012 기준(sCr×1.5/2.0/3.0), Gaudry NEJM 2016(CRRT 90d 사망률 48%), Zarbock JAMA 2016(조기 RRT), Mishra JASN 2003(NGAL 2h 조기상승), Han KI 2002(KIM-1 shedding), Meersch ICM 2017(TIMP-2·IGFBP7), Felker NEJM 2011(Furosemide 용량반응)
 - **Shiny 앱**: 6탭 (환자 프로파일·KDIGO 병기 기준 · Drug PK·NKCC2 억제율·이뇨반응 · 신장바이오마커·세뇨관세포활력·ROS/GSH · 임상엔드포인트·GFR·AKI병기·소변량 · 전시나리오 비교·요약표 · AKI-to-CKD·TGF-β1·섬유화·장기GFR)
 - **참고문헌**: 55개 (역학·KDIGO·IRI·NTX·SA-AKI·산화스트레스·염증·바이오마커·Furosemide·혈압지지·NAC·CRRT·AKI-to-CKD·QSP모델링·임상시험)
+
+---
+
+## 203. 알레르기 비염 (Allergic Rhinitis, AR)
+
+[![AR](allergic-rhinitis/ar_qsp_model.png)](allergic-rhinitis/ar_qsp_model.svg)
+
+**분류:** 알레르기/면역학 (Allergy / Immunology) · **디렉토리:** [`allergic-rhinitis/`](allergic-rhinitis/)
+
+### 병태생리 (Pathophysiology)
+
+알레르기 비염(AR)은 전 세계 인구의 10–40%에 영향을 미치는 가장 흔한 만성 알레르기 질환으로, 꽃가루·집먼지진드기·동물비듬 등 흡입 알레르겐에 대한 **IgE 매개 제1형 과민반응**이 병태생리의 핵심입니다. 천식·부비동염·결막염과 밀접히 연관되며(통합 기도, united airway), 수면 장애·인지 기능 저하·업무·학습 능률 감소 등 삶의 질에 큰 영향을 줍니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **감작 단계** | 알레르겐 → mDC 포획(TSLP 프라이밍) → MHC II / OX40L → Th2 분화 → B세포 IgE 클래스전환(IL-4/IL-13·CD40L) |
+| **IgE-비만세포 축** | 자유 IgE → FcεRI 결합(감작); 재노출 시 IgE 가교결합 → Syk/PLCγ 신호 → 탈과립 |
+| **초기 반응 (<60분)** | 히스타민(H1R·H4R)·PGD2(CRTH2)·LTC4/D4(CysLT1R)·PAF → 재채기·콧물·소양감 |
+| **후기 반응 (4–24h)** | IL-4/5/13·ILC2 → Eotaxin-1/3·RANTES → 호산구 비강 침윤 → 충혈·후각 저하 |
+| **상피 알라민 경로** | 알레르겐 단백분해효소 → 장벽 손상 → TSLP·IL-33·IL-25 → ILC2 활성화 루프 |
+| **신경염증** | H1R → 삼차신경 활성화 → 축삭반사 → SP·CGRP 방출 → NANC 혈관확장·분비 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 12 서브그래프 클러스터, 100+ 노드 (알레르겐 노출·상피 알라민·APC/Th2 감작·B세포/IgE·비만세포·초기 매개물질·수용체 활성화·후기 반응/호산구·비강 생리/증상·H1 항히스타민 PK/PD·INCS PK/PD·생물학적 제제/LTRA/면역요법)
+- **mrgsolve ODE**: 25 구획 (AG·IGE_FREE·IGE_MAST·MAST_ACT·MAST_CHG·HISTAMINE·CYS_LT·TH2·IL4·IL5·IL13·EOS_B·EOS_N·세티리진 2구획·플루티카손 1구획·몬텔루카스트 2구획·오말리주맙 3구획+IgE복합체)
+- **치료 시나리오**: 7개 (자연경과 · 세티리진 10 mg QD · 플루티카손 FP 200 μg/d · 몬텔루카스트 10 mg QD · 세티리진+FP 복합 · 오말리주맙 300 mg q4w · 3제 병합)
+- **임상시험 보정**: Yanai 1995(세티리진 H1-RO ≥80%), Meltzer 2005(FP TNSS -38%), Philip 2002(몬텔루카스트 TNSS -22%), Fahy 1997(오말리주맙 자유 IgE >95% 감소), Durham 1999(SCIT 3년 지속효과)
+- **Shiny 앱**: 6탭 (환자 프로파일·ARIA 분류 · Drug PK·H1RO·GR·CysLT1 점유율 · 매개물질·Th2 사이토카인·호산구·IgE · 증상/TNSS · 전시나리오 비교 · 기계론적 지도)
+- **참고문헌**: 60편 (역학·병태생리·IgE 생물학·비만세포·매개물질·Th2 사이토카인·H1-항히스타민·INCS·LTRA·생물학적 제제·면역요법·임상시험·PK/PD 모델링)
 
 ---
 
