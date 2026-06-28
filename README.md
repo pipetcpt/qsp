@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-206-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-209-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **206개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **209개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -331,6 +331,7 @@ qsp/
 | 207 | 혈관/결합조직 | [**레이노 현상 (RP)**<br><sub>Raynaud's Phenomenon · RP · α2-AR / ET-1 / NO / RhoA-ROCK</sub>](raynaud-phenomenon/) | <a href="raynaud-phenomenon/raynaud_qsp_model.svg"><img src="raynaud-phenomenon/raynaud_qsp_model.png" width="190" alt="raynaud"></a> | 한랭·스트레스 자극 → 교감신경 NE 방출 → α2C-AR(한랭 상향조절) 과민 활성 → Gq/PLC/IP3→SR Ca²⁺ 방출 + RhoGEF→RhoA-GTP→ROCK1/2→MYPT1 인산화→MLCP 억제→MLC 인산화(Ca²⁺ 비의존성) → 지속적 VSMC 수축 → 디지털 혈류 감소·혈관경련 발작의 완전 통합 QSP 모델. 내피세포 eNOS↓/NO↓/sGC/cGMP/PKG/MLCP 경로·ET-1(ETA→Gα12/13+Gq, ETB→NO/PGI2)·PGI2/IP-R/Gs/cAMP/PKA/BKCa 이완 경로·혈소판(TXA2·5-HT·ADP→GP IIb/IIIa)·CGRP/SP/NPY 신경펩타이드 균형·NOX2/XO→ROS→NF-κB→ET-1 양성 피드백·이차성 전신경화증(SSc) 혈관 리모델링·모세혈관 소실 포함. 니페디핀(L-VGCC 차단, EC50=15 ng/mL)·실데나필(PDE5 억제→cGMP↑, EC50=50 ng/mL)·보센탄(ETA/ETB 차단→ET-1↓, EC50=600 ng/mL)·일로프로스트(IP-R 작용제→cAMP↑, EC50=0.5 ng/mL)·프라조신(α1-차단, EC50=2 ng/mL) 5종 PK/PD 포함. Thompson 2005(CCB 메타분석)·Fries 2005(실데나필 RCT)·Matucci-Cerinic 2011(보센탄 RAPIDS-2)·Belch 1995(일로프로스트 RCT) 보정. 13 클러스터 100+ 노드, 18 ODE 구획, 9 치료 시나리오, 62개 문헌, 7탭 Shiny.<br>[🗺️ 지도](raynaud-phenomenon/raynaud_qsp_model.svg) · [⚙️ mrgsolve](raynaud-phenomenon/raynaud_mrgsolve_model.R) · [📚 문헌](raynaud-phenomenon/raynaud_references.md) · [📄 README](raynaud-phenomenon/README.md) |
 | 206 | 신경계/수면장애 | [**나르콜렙시 1형 (NT1)**<br><sub>Narcolepsy Type 1 · NT1 · Orexin/Hypocretin Deficiency</sub>](narcolepsy/) | <a href="narcolepsy/narc_qsp_model.svg"><img src="narcolepsy/narc_qsp_model.png" width="190" alt="narc"></a> | HLA-DQB1\*06:02 감수성 + H1N1/Pandemrix 분자 모방 → CD4+/CD8+ T세포·NK세포가 시상하부 외측 오렉신 신경세포(~70,000개 → 85–95% 소실) 자가면역 파괴 → CSF 히포크레틴-1 <110 pg/mL → OX1R/OX2R 신호 소실 → LC(NE)·TMN(히스타민)·VTA(DA)·DRN(5-HT) 각성 모노아민계 불안정 → VLPO-각성계 플립-플롭 스위치 상태 전환 빈번 → EDS(과도한 주간 졸음, ESS↑)/카탈렉시(편도체 감정 자극 → REM 근긴장소실 불수의 활성)/입면 환각/수면 마비 4징 완전 통합 QSP 모델. 소디움 옥시베이트(GABA-B/GHB-R→서파수면↑, 카탈렉시 -69–75%)·모다피닐(DAT/NET 억제, ESS -4.3)·피톨리산트(H3R 역작용제→히스타민↑, HARMONY I ESS -5.8)·솔리암페톨(DAT/NET, TONES 3 ESS -7.7)·벤라팍신(SERT/NET→REM 억제 항카탈렉시)·TAK-994(OX2R 직접 작용제, 실험) 6종 PK/PD. 12 클러스터 431 노드, 23 ODE 구획, 7 치료 시나리오, 47개 문헌, 8탭 Shiny.<br>[🗺️ 지도](narcolepsy/narc_qsp_model.svg) · [⚙️ mrgsolve](narcolepsy/narc_mrgsolve_model.R) · [📚 문헌](narcolepsy/narc_references.md) · [📄 README](narcolepsy/README.md) |
 | 208 | 신장·대사 | [**CKD-미네랄골질환 (CKD-MBD)**<br><sub>CKD-Mineral Bone Disorder · FGF23·Klotho·PTH·Vitamin D</sub>](ckd-mineral-bone-disorder/) | <a href="ckd-mineral-bone-disorder/ckdmbd_qsp_model.svg"><img src="ckd-mineral-bone-disorder/ckdmbd_qsp_model.png" width="190" alt="ckdmbd"></a> | GFR 저하 → FGF23↑↑(CKD G2부터, Gutierrez 2008 NEJM) + Klotho↓ → CYP27B1 억제 → 1,25-(OH)₂D₃ 결핍 → CaSR 저감수성 → 이차성 부갑상선 기능항진증(iPTH↑) + 고인산혈증·저칼슘혈증 → RANKL/OPG 불균형·스클레로스틴↑ → 골이영양증(골화석증·무동성골·혼합형) + VSMC 골아세포 분화·MGP 탈카르복실화·Fetuin-A 감소 → 혈관 석회화 → CV 사건 증가. Sevelamer(Pi 결합, Sev_Emax 65%)·CaCO₃·Cinacalcet(CaSR 활성화, IC50 15 ng/mL)·Paricalcitol(VDR 작용, EC50 0.2 ng/mL)·Etelcalcetide(IV CaSR, EC50 50 ng/mL)·Denosumab(RANKL 억제, Imax 95%) 6종 PK/PD. KDIGO 2017 iPTH 150–600·Pi<5.5·Ca 8.4–10.2 목표. 10 클러스터 115+ 노드, 17 ODE 구획, 7 치료 시나리오, 42개 문헌, 7탭 Shiny.<br>[🗺️ 지도](ckd-mineral-bone-disorder/ckdmbd_qsp_model.svg) · [⚙️ mrgsolve](ckd-mineral-bone-disorder/ckdmbd_mrgsolve_model.R) · [📚 문헌](ckd-mineral-bone-disorder/ckdmbd_references.md) · [📄 README](ckd-mineral-bone-disorder/README.md) |
+| 209 | 혈액종양/아밀로이드증 | [**AL 아밀로이드증 (AL Amyloidosis)**<br><sub>Immunoglobulin Light Chain Amyloidosis · AL · Daratumumab · CyBorD · ANDROMEDA</sub>](al-amyloidosis/) | <a href="al-amyloidosis/al_qsp_model.svg"><img src="al-amyloidosis/al_qsp_model.png" width="190" alt="al"></a> | 형질세포 이상증식(MGUS→SMM→클론성 형질세포) → CD38 고발현 → 단클론 자유경쇄(FLC) 과분비 → 아밀로이드 원섬유 핵화·신장(β-sheet 중합체)·파종 자가촉매 증폭 → 심장(LV 비후, 이완기 기능부전, NT-proBNP↑, hs-TnT↑)·신장(사구체 아밀로이드→신증후군, eGFR↓)·간(간비대, ALP↑)·자율신경 아밀로이드 침착 통합 QSP 모델. 올리고머 직접 심장독성(Oligomer-cardiotoxicity) 경로 포함. Daratumumab(TMDD 2구획 PK, kon=0.005 nM⁻¹day⁻¹, CD38 수용체 동태, ADCC/CDC/ADCP, NK세포 고갈-회복 주기)·Bortezomib(1구획+20S 프로테아좀 가역 결합, BTZ_PROT EC50=6.5 nM)·Cyclophosphamide(4-OH-CY 활성 대사체, CYP2B6)·Dexamethasone(GR 점유→PC 아폽토시스)·Melphalan(DNA 가교 형성) 5종 PK/PD 포함. ANDROMEDA(NEJM 2021, Dara+CyBorD 53% CR vs CyBorD 18%)·MDex(Blood 2004, ~33% CR)·CyBorD(Blood 2012, ~29% CR) 보정. Mayo 2012 4단계 병기(hs-TnT≥0.025 + NT-proBNP≥1800 + dFLC≥18 mg/dL + eGFR<50 위험 인자) 동태적 추적. 무치료·Dara 단독·CyBorD·Dara-CyBorD·VCD·MDex·CYP2C19 PM 7개 시나리오. 14 클러스터 100+ 노드, 20 ODE 구획, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](al-amyloidosis/al_qsp_model.svg) · [⚙️ mrgsolve](al-amyloidosis/al_mrgsolve_model.R) · [📚 문헌](al-amyloidosis/al_references.md) · [📄 README](al-amyloidosis/README.md) |
 
 ---
 
@@ -722,3 +723,29 @@ qsp/
 | 일로프로스트 IV×5d | IP-R 작용제→cAMP↑·항혈소판 | 이차성 중증/급성기 |
 | 프라조신 1mg BID | α1-AR 차단→교감 수축↓ | 일차성 대안 |
 | 니페디핀+실데나필 | CCB+PDE5i 상보적 병용 | 난치성 일차성 |
+
+---
+
+## AL 아밀로이드증 (AL Amyloidosis) — 상세 정보
+
+[![AL Amyloidosis QSP Model](al-amyloidosis/al_qsp_model.png)](al-amyloidosis/al_qsp_model.svg)
+
+**분류**: 혈액종양/아밀로이드증 | **디렉토리**: [`al-amyloidosis/`](al-amyloidosis/)
+
+면역글로불린 경쇄(Light Chain) 아밀로이드증(AL형)은 클론성 형질세포 이상증(MGUS→SMM→형질세포종)에서 유래한 단클론 자유경쇄(FLC)가 아밀로이드 원섬유로 오접힘·중합되어 심장·신장·간·말초신경 등 다발 장기에 침착하는 전신 질환입니다. 연간 발생률 약 10/백만 명, 진단 중위 연령 63세, λ형 경쇄가 κ형보다 흔합니다. 심장 침범(>75%)이 가장 심한 예후 인자이며, Mayo 2012 4병기 시스템(hs-TnT, NT-proBNP, dFLC, eGFR)이 표준 병기 도구입니다.
+
+### 핵심 기전
+- **형질세포 클론 증식**: MGUS → SMM → AL 형질세포종, CD38 고발현이 표적 항원
+- **아밀로이드 원섬유 형성**: 단클론 FLC(특히 VL 도메인 오접힘) → β-sheet 올리고머 → 핵화·신장·파종 자가촉매 → 불용성 원섬유; SAP(혈청 아밀로이드 P) 결합이 원섬유 안정화
+- **심장 아밀로이드증(CA-AL)**: 간질 아밀로이드 침착 → LV 벽 비후 → 이완기 부전 → LV GLS 저하 → NT-proBNP·hs-TnT 상승 → NYHA 심부전; 올리고머 직접 심장독성 별도 경로
+- **신장 아밀로이드증**: 사구체 메산지움 침착 → 신증후군 범위 단백뇨·알부민뇨 → eGFR 저하 → CKD → ESKD
+- **골수 미세환경**: 기질세포 IL-6·APRIL/BAFF → NF-κB → MCL-1 → 형질세포 생존; IRF4/BLIMP-1 → LC 유전자 전사
+
+### 약물 표적 및 치료 시나리오 (ANDROMEDA 기반)
+| 약물 | 기전 | 핵심 임상 성적 |
+|------|------|--------------|
+| Daratumumab 16mg/kg IV | CD38 결합 → ADCC(NK세포)·CDC(보체)·ADCP(대식세포) | ANDROMEDA: CR 53% vs 18%(CyBorD 단독) |
+| Bortezomib 1.3mg/m² SC | 20S 프로테아좀 억제 → UPR → 형질세포 아폽토시스 | CyBorD: CR 29% |
+| Cyclophosphamide 300mg/m² PO | 4-OH-CY DNA 알킬화 → 클론성 형질세포 사멸 | CyBorD 병용 |
+| Dexamethasone 20-40mg PO | GR-매개 전사억제 → 형질세포 아폽토시스 | 모든 regimen |
+| Melphalan 0.15-0.25mg/kg PO | DNA 가교 → 형질세포 사멸; SCT 전처치(200mg/m²) | MDex: CR ~33% |
