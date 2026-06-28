@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-203-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-204-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **203개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **204개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -326,6 +326,7 @@ qsp/
 | 201 | 신장·비뇨 | [**급성 신손상 (AKI)**<br><sub>Acute Kidney Injury · AKI</sub>](acute-kidney-injury/) | <a href="acute-kidney-injury/aki_qsp_model.svg"><img src="acute-kidney-injury/aki_qsp_model.png" width="190" alt="aki"></a> | 허혈-재관류(IRI)·신독성(NTX)·패혈증 연관(SA-AKI) 세 아형의 통합 QSP 모델. ATP 고갈 → 미토콘드리아 기능부전 → 아폽토시스/괴사/페롭토시스·세뇨관 세포 활력(TCV) 감소 → GFR↓·NGAL/KIM-1 상승. TLR4→NF-κB→IL-6/TNF-α 염증·산화스트레스(ROS/GSH)·TGF-β1→섬유화(AKI-to-CKD) 경로 포함. Furosemide(OAT1/3·NKCC2)·Norepinephrine·NAC·CRRT PK/PD. 12 클러스터 100+ 노드, 20 ODE 구획, 7 치료 시나리오, 55개 문헌, 6탭 Shiny.<br>[🗺️ 지도](acute-kidney-injury/aki_qsp_model.svg) · [⚙️ mrgsolve](acute-kidney-injury/aki_mrgsolve_model.R) · [📚 문헌](acute-kidney-injury/aki_references.md) · [📄 README](acute-kidney-injury/README.md) |
 | 202 | 신경정신 | [**강박장애 (OCD)**<br><sub>Obsessive-Compulsive Disorder · OCD</sub>](obsessive-compulsive-disorder/) | <a href="obsessive-compulsive-disorder/ocd_qsp_model.svg"><img src="obsessive-compulsive-disorder/ocd_qsp_model.png" width="190" alt="ocd"></a> | **CSTC 회로 과활성화** — OFC 과활성(강박 사고) → 미상핵 과대사(강박 행동) → 직접 경로(D1/Go) 우세·간접 경로(D2/No-Go) 약화 → 시상 탈억제 → OFC 루프 재구동. SERT ≥80% 점유 필요(우울증 60% 대비). 5-HT1A 자가수용체 탈감작이 2–4주 지연 반응 설명. Sertraline 200 mg(2구획+BBB)·Clomipramine 250 mg(DCMI 활성 대사체)·Risperidone D2 증강·ERP/CBT 기전 통합. 13 클러스터 130+ 노드, 23 ODE 구획, 6 치료 시나리오, 가상 환자 100명 Monte Carlo, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](obsessive-compulsive-disorder/ocd_qsp_model.svg) · [⚙️ mrgsolve](obsessive-compulsive-disorder/ocd_mrgsolve_model.R) · [📚 문헌](obsessive-compulsive-disorder/ocd_references.md) · [📄 README](obsessive-compulsive-disorder/README.md) |
 | 203 | 알레르기/면역 | [**알레르기 비염 (AR)**<br><sub>Allergic Rhinitis · AR · Type I Hypersensitivity</sub>](allergic-rhinitis/) | <a href="allergic-rhinitis/ar_qsp_model.svg"><img src="allergic-rhinitis/ar_qsp_model.png" width="190" alt="ar"></a> | IgE-비만세포 축(FcεRI 가교결합 → 탈과립) + Th2 사이토카인 캐스케이드(IL-4/5/13) + 호산구 동태의 통합 QSP 모델. 히스타민·PGD2·CysLT(LTC4/D4/E4)·PAF 조기 반응 및 후기 호산구 침윤·TSLP/IL-33 상피 알라민 경로 포함. 세티리진(H1RO ≥80%, Yanai 1995)·플루티카손 FP(GR→IL-4/5/13 억제, TNSS −38%)·몬텔루카스트(CysLT1R 차단, TNSS −22%)·오말리주맙(자유 IgE >95% 감소, Fahy 1997) 7개 시나리오. 12 클러스터 100+ 노드, 25 ODE 구획, 60개 문헌, 6탭 Shiny.<br>[🗺️ 지도](allergic-rhinitis/ar_qsp_model.svg) · [⚙️ mrgsolve](allergic-rhinitis/ar_mrgsolve_model.R) · [📚 문헌](allergic-rhinitis/ar_references.md) · [📄 README](allergic-rhinitis/README.md) |
+| 204 | 호흡기 | [**과민성 폐렴 (HP)**<br><sub>Hypersensitivity Pneumonitis · HP · Extrinsic Allergic Alveolitis</sub>](hypersensitivity-pneumonitis/) | <a href="hypersensitivity-pneumonitis/hp_qsp_model.svg"><img src="hypersensitivity-pneumonitis/hp_qsp_model.png" width="190" alt="hp"></a> | 유기 항원(조류 단백·열성 세균·곰팡이) 반복 흡입에 의한 Th1 림프구성 폐포염 → 비건락성 육아종 형성 → TGF-β1/PDGF 매개 근섬유모세포 활성화 → 폐 섬유화(UIP/NSIP 유사 패턴) 통합 QSP 모델. TLR2/4/9·NLRP3·M1/M2 대식세포 분극·Th1/Th17/Treg 동태·면역복합체(IgG 침강소)·육아종 형성-분해·섬유화 폭포(AEC2 손상·EMT·콜라겐 침착)·ROS·FVC/DLCO 폐기능 저하 포함. Prednisolone(GR Transrepression, EC50=150 ng/mL)·MMF(IMPDH 억제, IC50=0.24 μg/mL)·Nintedanib(PDGFR/FGFR/VEGFR 억제, EC50=200 ng/mL) PK/PD. 항원회피·PDN·MMF·Nintedanib·병합 7개 시나리오. 10 클러스터 100+ 노드, 22 ODE 구획, 42개 문헌, 8탭 Shiny.<br>[🗺️ 지도](hypersensitivity-pneumonitis/hp_qsp_model.svg) · [⚙️ mrgsolve](hypersensitivity-pneumonitis/hp_mrgsolve_model.R) · [📚 문헌](hypersensitivity-pneumonitis/hp_references.md) · [📄 README](hypersensitivity-pneumonitis/README.md) |
 
 ---
 
@@ -579,6 +580,38 @@ qsp/
 - **임상시험 보정**: Yanai 1995(세티리진 H1-RO ≥80%), Meltzer 2005(FP TNSS -38%), Philip 2002(몬텔루카스트 TNSS -22%), Fahy 1997(오말리주맙 자유 IgE >95% 감소), Durham 1999(SCIT 3년 지속효과)
 - **Shiny 앱**: 6탭 (환자 프로파일·ARIA 분류 · Drug PK·H1RO·GR·CysLT1 점유율 · 매개물질·Th2 사이토카인·호산구·IgE · 증상/TNSS · 전시나리오 비교 · 기계론적 지도)
 - **참고문헌**: 60편 (역학·병태생리·IgE 생물학·비만세포·매개물질·Th2 사이토카인·H1-항히스타민·INCS·LTRA·생물학적 제제·면역요법·임상시험·PK/PD 모델링)
+
+---
+
+## 204. 과민성 폐렴 (Hypersensitivity Pneumonitis, HP)
+
+[![HP](hypersensitivity-pneumonitis/hp_qsp_model.png)](hypersensitivity-pneumonitis/hp_qsp_model.svg)
+
+**분류:** 호흡기·간질성 폐질환 (Respiratory / Interstitial Lung Disease) · **디렉토리:** [`hypersensitivity-pneumonitis/`](hypersensitivity-pneumonitis/)
+
+### 병태생리 (Pathophysiology)
+
+과민성 폐렴(HP, 외인성 알레르기성 폐포염)은 유기 항원(조류 단백질, 열성 방선균, 곰팡이 포자 등)의 반복적 흡입에 의해 유발되는 **면역 매개 간질성 폐질환**입니다. 급성(수시간 내 독감 유사 증상), 아급성, 만성/섬유화 HP로 스펙트럼을 이루며, 만성 섬유화 HP의 5년 사망률은 20–40%에 달합니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **항원 노출 및 처리** | 흡입 항원(<5μm 입자) → 폐포 침착 → TLR2/4/9·NLRP3 인플라마솜 → NF-κB → M1 대식세포 활성화 |
+| **선천면역 반응** | M1 대식세포 → TNF-α·IL-1β·IL-6·IL-12·CXCL8 생성 → 호중구 유입·DC 성숙화 |
+| **Th1 적응면역** | mDC → 림프절 항원 제시 → CD4⁺ Th1 분화(IL-12 의존) → IFN-γ→ 대식세포 재활성화 루프 |
+| **Th17 경로** | IL-6+TGF-β → Th17 분화 → IL-17A → 호중구 추가 모집·섬유화 촉진 |
+| **Treg 조절 축** | TGF-β+IL-10 → FOXP3⁺ Treg → Th1/Th17 억제; IL-10 → 육아종 분해 촉진 |
+| **비건락성 육아종** | M1 대식세포 집합 → 상피양 세포·다핵 거대세포 → 비건락성 육아종(아급성 HP 특징) |
+| **섬유화 전환** | 만성 항원 지속 → TGFβ1↑·IL-13↑ → 섬유모세포 활성화·근섬유모세포(α-SMA⁺) 분화 → 콜라겐 I/III 침착 → ECM 교차결합(LOX) → 비가역적 반흔; AEC2 손상·노화(SASP) → TGFβ 추가 분비 |
+| **FVC/DLCO 저하** | 폐포벽 비후 → 제한성 패턴(FVC↓·TLC↓) + 기체교환장애(DLCO↓) → 저산소혈증 → (후기) 폐동맥 고혈압 → 우심부전 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 10 서브그래프 클러스터, 100+ 노드 (항원 노출·선천면역·사이토카인 네트워크·T세포/B세포 적응면역·육아종·섬유화 폭포·폐 병리생리·Drug PK·Drug PD·임상 엔드포인트/바이오마커)
+- **mrgsolve ODE**: 22 구획 (AG_lung·M_M1·M_M2·Neutrophil·C_TNF/IL6/IL12/IFNg/TGFb/IL17/IL10·T_Th1/Th17/Treg·Granuloma·Fibroblast·Myofib·Collagen·ROS·PDN/MPA/Nint PK 구획·FVC·DLCO·KL6_serum)
+- **치료 시나리오**: 7개 (무치료 자연경과 · 항원회피 90% · Prednisolone 40mg/d · MMF 1500mg BID · Nintedanib 150mg BID · PDN+MMF+부분 항원회피 · Nintedanib+완전 항원회피)
+- **임상시험 보정**: Morisset Lancet Respir Med 2020(MMF vs AZA 섬유화 HP 무작위 대조), Flaherty NEJM 2019(Nintedanib 진행성 섬유화 ILD), Raghu Am J Respir Crit Care Med 2020(ATS/JRS/ALAT HP 진료지침), Walsh Thorax 2014(HP 자연 경과)
+- **Shiny 앱**: 8탭 (환자 프로파일·질환 개요 · Drug PK·농도-시간 곡선 · 면역반응·Th1/Th17/Treg·M1/M2·사이토카인 · 섬유화 QSP·육아종·근섬유모세포·콜라겐·ROS · 임상 엔드포인트·FVC/DLCO 궤적 · 7개 치료군 시나리오 비교 · 바이오마커·KL-6/염증지수 · 참고문헌)
+- **참고문헌**: 42편 (역학·진단·선천면역·T세포·사이토카인·육아종·섬유화·항원회피·스테로이드·MMF/AZA·Nintedanib·바이오마커·QSP 모델링)
 
 ---
 
