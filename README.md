@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-200-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-201-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **200개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **201개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -323,6 +323,7 @@ qsp/
 | 198 | 혈액종양학 | [**발덴스트롬 거대글로불린혈증 (WM)**<br><sub>Waldenström's Macroglobulinemia · WM</sub>](waldenstrom-macroglobulinemia/) | <a href="waldenstrom-macroglobulinemia/wm_qsp_model.svg"><img src="waldenstrom-macroglobulinemia/wm_qsp_model.png" width="190" alt="wm"></a> | MYD88 L265P(~95%) 구성적 NF-κB 활성화 + CXCR4 WHIM 돌연변이(~35%) BM 체류 강화 → 림프형질세포 증식 → IgM 단클론 파라단백 → 과점도 증후군·한랭글로불린·항MAG 신경병증. BTK 억제제(이브루티닙/자누브루티닙)·리툭시맙·벤다무스틴·보르테조밉·베네토클락스 7개 시나리오. 12 클러스터 120+ 노드, 20 ODE 구획, 62개 문헌, 7탭 Shiny.<br>[🗺️ 지도](waldenstrom-macroglobulinemia/wm_qsp_model.svg) · [⚙️ mrgsolve](waldenstrom-macroglobulinemia/wm_mrgsolve_model.R) · [📚 문헌](waldenstrom-macroglobulinemia/wm_references.md) · [📄 README](waldenstrom-macroglobulinemia/README.md) |
 | 199 | 종양학·비뇨기 | [**방광암 (요로상피암, BLCA)**<br><sub>Bladder Cancer · Urothelial Carcinoma · BLCA</sub>](bladder-cancer/) | <a href="bladder-cancer/blca_qsp.svg"><img src="bladder-cancer/blca_qsp.png" width="190" alt="blca"></a> | FGFR3 돌연변이(~60% NMIBC) → RAS/MAPK 증식; TP53·RB1·CDKN2A 변이(고등급 MIBC); PD-L1 IFN-γ 유도 → 면역 회피; TGF-β/Treg/MDSC 억제. BCG(SWOG S8507 CRR 55–70%)·GC 화학요법(ORR 49%, mOS 13.8mo)·펨브롤리주맙(KEYNOTE-045 ORR 21.1%)·아테졸리주맙(IMvigor210/211)·에르다피티닙(BLC2001 ORR 40.4%)·엔포르투맙 베도틴(EV-301 OS HR 0.70)·사시투주맙 7개 시나리오. 11 클러스터 112 노드, 20 ODE 구획, 41개 문헌, 7탭 Shiny.<br>[🗺️ 지도](bladder-cancer/blca_qsp.svg) · [⚙️ mrgsolve](bladder-cancer/blca_mrgsolve_model.R) · [📚 문헌](bladder-cancer/blca_references.md) · [📄 README](bladder-cancer/README.md) |
 | 200 | 자가면역 신경근육 | [**람베르트-이튼 근무력증후군 (LEMS)**<br><sub>Lambert-Eaton Myasthenic Syndrome · LEMS</sub>](lambert-eaton-syndrome/) | <a href="lambert-eaton-syndrome/lems_qsp_model.svg"><img src="lambert-eaton-syndrome/lems_qsp_model.png" width="190" alt="lems"></a> | 항P/Q형 VGCC 자가항체 → 전시냅스 Ca²⁺ 유입 감소 → ACh 방출 저하 → EPP 감소·안전계수 저하 → CMAP 감소·근력 약화. 50–60% SCLC 동반 부종양. 아미파리딘(3,4-DAP K⁺차단 Emax, EC50 120 ng/mL)·프레드니솔론·혈장교환·IVIG·항암화학요법 6개 시나리오. 12 클러스터 100+ 노드, 15 ODE 구획, 56개 문헌, 7탭 Shiny.<br>[🗺️ 지도](lambert-eaton-syndrome/lems_qsp_model.svg) · [⚙️ mrgsolve](lambert-eaton-syndrome/lems_mrgsolve_model.R) · [📚 문헌](lambert-eaton-syndrome/lems_references.md) · [📄 README](lambert-eaton-syndrome/README.md) |
+| 201 | 신장·비뇨 | [**급성 신손상 (AKI)**<br><sub>Acute Kidney Injury · AKI</sub>](acute-kidney-injury/) | <a href="acute-kidney-injury/aki_qsp_model.svg"><img src="acute-kidney-injury/aki_qsp_model.png" width="190" alt="aki"></a> | 허혈-재관류(IRI)·신독성(NTX)·패혈증 연관(SA-AKI) 세 아형의 통합 QSP 모델. ATP 고갈 → 미토콘드리아 기능부전 → 아폽토시스/괴사/페롭토시스·세뇨관 세포 활력(TCV) 감소 → GFR↓·NGAL/KIM-1 상승. TLR4→NF-κB→IL-6/TNF-α 염증·산화스트레스(ROS/GSH)·TGF-β1→섬유화(AKI-to-CKD) 경로 포함. Furosemide(OAT1/3·NKCC2)·Norepinephrine·NAC·CRRT PK/PD. 12 클러스터 100+ 노드, 20 ODE 구획, 7 치료 시나리오, 55개 문헌, 6탭 Shiny.<br>[🗺️ 지도](acute-kidney-injury/aki_qsp_model.svg) · [⚙️ mrgsolve](acute-kidney-injury/aki_mrgsolve_model.R) · [📚 문헌](acute-kidney-injury/aki_references.md) · [📄 README](acute-kidney-injury/README.md) |
 
 ---
 
@@ -516,6 +517,36 @@ qsp/
 - **임상시험 보정**: Oh et al. Muscle Nerve 2009(아미파리딘 3,4-DAP 위약 대조), Sanders et al. 2018(아미파리딘 인산염 3상), Keogh et al. Brain 2015(CMAP 촉진-임상 관계), Bain et al. Neurology 1996(IVIG ORR), Chalk et al. Neurology 1990(SCLC 치료 후 LEMS 개선)
 - **Shiny 앱**: 7탭 (환자 프로파일·PE 세션 · 약물 PK·K⁺차단 Emax · VGCC & 항체 동태 · NMJ/CMAP · 임상 엔드포인트·QMG · 시나리오 비교 · 바이오마커 패널)
 - **참고문헌**: 56개 (VGCC 자가항체·NMJ 생리·아미파리딘 PK/PD·면역치료·부종양·전기진단·QSP 모델링·임상시험)
+
+---
+
+## 201. 급성 신손상 (Acute Kidney Injury, AKI)
+
+[![AKI](acute-kidney-injury/aki_qsp_model.png)](acute-kidney-injury/aki_qsp_model.svg)
+
+**분류:** 신장학 / 중환자의학 (Nephrology / Critical Care) · **디렉토리:** [`acute-kidney-injury/`](acute-kidney-injury/)
+
+### 병태생리 (Pathophysiology)
+
+급성 신손상(AKI)은 **48시간 이내 혈청 크레아티닌 ≥ 0.3 mg/dL 상승, 또는 7일 이내 기저치의 1.5배 이상 상승, 또는 6시간 이상 소변량 < 0.5 mL/kg/h**로 정의(KDIGO 2012)되며, 전 세계 입원환자의 10–15%, ICU 환자의 50% 이상에서 발생합니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **미세혈관 기능부전** | ET-1·Ang II↑, NO↓, TXA2↑ → 구심성 세동맥 수축 → GFR↓; 수질 저산소증(pO₂ < 20 mmHg) |
+| **허혈-재관류 (IRI)** | ATP 고갈 → mPTP 개방 → Cyt-c → Casp-9/3 → 아폽토시스; GPx4↓/GSH 고갈 → 지질과산화 → 페롭토시스 |
+| **신독성 (NTX)** | 시스플라틴/아미노글리코시드 → 직접 세뇨관 독성 + ROS↑ + GSH 고갈 |
+| **패혈증 연관 (SA-AKI)** | LPS/DAMPs → TLR4 → NF-κB → IL-6·TNF-α·IL-1β↑ → 중성구 NETosis; 직접 사이토카인 세뇨관 독성 |
+| **세뇨관 폐색·역류** | 솔가장자리 탈락 → 관내 캐스트→폐색 → filtrate backleak |
+| **AKI-to-CKD 전환** | G2/M 정지 → TGF-β1↑ → SMAD2/3 → 근섬유모세포 활성화 → 섬유화 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 12 서브그래프 클러스터, 100+ 노드 (유발인자, 미세혈관기능부전, 세뇨관세포손상·아폽토시스/괴사/페롭토시스, 산화스트레스·Nrf2, 선천면역·NF-κB·NLRP3, 사구체여과·소변역학, AKI 바이오마커, Furosemide PK·NKCC2, 혈압약·NAC·CRRT, 세뇨관수복·재생, 부적응수복→CKD, 임상결과)
+- **mrgsolve ODE**: 20 구획 (Furosemide 3구획 PK·OAT1/3 활성분비·NKCC2 억제 + NE 1구획 PK·α1 MAP 효과 + NAC 1구획 PK·GSH 보충, ATP·ROS·GSH·TCV·GFR·IL-6·TNF-α, NGAL·KIM-1·SCr·Cystatin C, TGF-β1·근섬유모세포·섬유화지수)
+- **치료 시나리오**: 7개 (IRI 무치료 · IRI+Furosemide 40mg IV q12h · IRI+Norepinephrine · IRI+NAC 예방 · SA-AKI 무치료 · SA-AKI+NE+Furosemide+CRRT · 신독성 AKI-시스플라틴 장기)
+- **임상시험 보정**: KDIGO 2012 기준(sCr×1.5/2.0/3.0), Gaudry NEJM 2016(CRRT 90d 사망률 48%), Zarbock JAMA 2016(조기 RRT), Mishra JASN 2003(NGAL 2h 조기상승), Han KI 2002(KIM-1 shedding), Meersch ICM 2017(TIMP-2·IGFBP7), Felker NEJM 2011(Furosemide 용량반응)
+- **Shiny 앱**: 6탭 (환자 프로파일·KDIGO 병기 기준 · Drug PK·NKCC2 억제율·이뇨반응 · 신장바이오마커·세뇨관세포활력·ROS/GSH · 임상엔드포인트·GFR·AKI병기·소변량 · 전시나리오 비교·요약표 · AKI-to-CKD·TGF-β1·섬유화·장기GFR)
+- **참고문헌**: 55개 (역학·KDIGO·IRI·NTX·SA-AKI·산화스트레스·염증·바이오마커·Furosemide·혈압지지·NAC·CRRT·AKI-to-CKD·QSP모델링·임상시험)
 
 ---
 
