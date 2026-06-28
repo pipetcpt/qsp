@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-204-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-206-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **204개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **206개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -328,6 +328,7 @@ qsp/
 | 203 | 알레르기/면역 | [**알레르기 비염 (AR)**<br><sub>Allergic Rhinitis · AR · Type I Hypersensitivity</sub>](allergic-rhinitis/) | <a href="allergic-rhinitis/ar_qsp_model.svg"><img src="allergic-rhinitis/ar_qsp_model.png" width="190" alt="ar"></a> | IgE-비만세포 축(FcεRI 가교결합 → 탈과립) + Th2 사이토카인 캐스케이드(IL-4/5/13) + 호산구 동태의 통합 QSP 모델. 히스타민·PGD2·CysLT(LTC4/D4/E4)·PAF 조기 반응 및 후기 호산구 침윤·TSLP/IL-33 상피 알라민 경로 포함. 세티리진(H1RO ≥80%, Yanai 1995)·플루티카손 FP(GR→IL-4/5/13 억제, TNSS −38%)·몬텔루카스트(CysLT1R 차단, TNSS −22%)·오말리주맙(자유 IgE >95% 감소, Fahy 1997) 7개 시나리오. 12 클러스터 100+ 노드, 25 ODE 구획, 60개 문헌, 6탭 Shiny.<br>[🗺️ 지도](allergic-rhinitis/ar_qsp_model.svg) · [⚙️ mrgsolve](allergic-rhinitis/ar_mrgsolve_model.R) · [📚 문헌](allergic-rhinitis/ar_references.md) · [📄 README](allergic-rhinitis/README.md) |
 | 205 | 심혈관/자가염증 | [**반복 심낭염 (RP)**<br><sub>Recurrent Pericarditis · RP · NLRP3/IL-1β Axis</sub>](recurrent-pericarditis/) | <a href="recurrent-pericarditis/rp_qsp_model.svg"><img src="recurrent-pericarditis/rp_qsp_model.png" width="190" alt="rp"></a> | NLRP3 인플라마솜(Signal 1 TLR→NF-κB + Signal 2 ATP/결정/K⁺efflux) → Caspase-1 → IL-1β/IL-18 성숙·분비 → IL-1R1 → NF-κB 양성 피드백 루프 → CXCL8 → 심낭 중성구 침윤 → PGE2/LTC4 매개 삼출액·통증·발열 → TGF-β1 → 섬유화 → 수축성 심낭염의 완전 통합 QSP 모델. 콜히친(β-tubulin 결합 → NLRP3 ASC 억제, IC50=0.5 ng/mL), Ibuprofen(COX-2 억제 → PGE2↓), Prednisone(GRα transrepression → NF-κB↓), Anakinra(IL-1R1 경쟁적 차단, IC50=0.1 nM), Rilonacept(IL-1α/β 이중 포획, KD<1 pM) PK/PD 포함. 무치료·NSAID·콜히친·콜히친+NSAID·프레드니솔론·아나킨라·리로나셉트 7개 시나리오. COPE(2005, 재발률 45→24%)·ICAP(2013, 32.3→16.7%)·AIRTRIP(2016, 90.9→18.2%)·RHAPSODY(2021, HR 0.04) 보정. 14 클러스터 162+ 노드, 24 ODE 구획, 57개 문헌, 7탭 Shiny.<br>[🗺️ 지도](recurrent-pericarditis/rp_qsp_model.svg) · [⚙️ mrgsolve](recurrent-pericarditis/rp_mrgsolve_model.R) · [📚 문헌](recurrent-pericarditis/rp_references.md) · [📄 README](recurrent-pericarditis/README.md) |
 | 204 | 호흡기 | [**과민성 폐렴 (HP)**<br><sub>Hypersensitivity Pneumonitis · HP · Extrinsic Allergic Alveolitis</sub>](hypersensitivity-pneumonitis/) | <a href="hypersensitivity-pneumonitis/hp_qsp_model.svg"><img src="hypersensitivity-pneumonitis/hp_qsp_model.png" width="190" alt="hp"></a> | 유기 항원(조류 단백·열성 세균·곰팡이) 반복 흡입에 의한 Th1 림프구성 폐포염 → 비건락성 육아종 형성 → TGF-β1/PDGF 매개 근섬유모세포 활성화 → 폐 섬유화(UIP/NSIP 유사 패턴) 통합 QSP 모델. TLR2/4/9·NLRP3·M1/M2 대식세포 분극·Th1/Th17/Treg 동태·면역복합체(IgG 침강소)·육아종 형성-분해·섬유화 폭포(AEC2 손상·EMT·콜라겐 침착)·ROS·FVC/DLCO 폐기능 저하 포함. Prednisolone(GR Transrepression, EC50=150 ng/mL)·MMF(IMPDH 억제, IC50=0.24 μg/mL)·Nintedanib(PDGFR/FGFR/VEGFR 억제, EC50=200 ng/mL) PK/PD. 항원회피·PDN·MMF·Nintedanib·병합 7개 시나리오. 10 클러스터 100+ 노드, 22 ODE 구획, 42개 문헌, 8탭 Shiny.<br>[🗺️ 지도](hypersensitivity-pneumonitis/hp_qsp_model.svg) · [⚙️ mrgsolve](hypersensitivity-pneumonitis/hp_mrgsolve_model.R) · [📚 문헌](hypersensitivity-pneumonitis/hp_references.md) · [📄 README](hypersensitivity-pneumonitis/README.md) |
+| 206 | 신경계/수면장애 | [**나르콜렙시 1형 (NT1)**<br><sub>Narcolepsy Type 1 · NT1 · Orexin/Hypocretin Deficiency</sub>](narcolepsy/) | <a href="narcolepsy/narc_qsp_model.svg"><img src="narcolepsy/narc_qsp_model.png" width="190" alt="narc"></a> | HLA-DQB1\*06:02 감수성 + H1N1/Pandemrix 분자 모방 → CD4+/CD8+ T세포·NK세포가 시상하부 외측 오렉신 신경세포(~70,000개 → 85–95% 소실) 자가면역 파괴 → CSF 히포크레틴-1 <110 pg/mL → OX1R/OX2R 신호 소실 → LC(NE)·TMN(히스타민)·VTA(DA)·DRN(5-HT) 각성 모노아민계 불안정 → VLPO-각성계 플립-플롭 스위치 상태 전환 빈번 → EDS(과도한 주간 졸음, ESS↑)/카탈렉시(편도체 감정 자극 → REM 근긴장소실 불수의 활성)/입면 환각/수면 마비 4징 완전 통합 QSP 모델. 소디움 옥시베이트(GABA-B/GHB-R→서파수면↑, 카탈렉시 -69–75%)·모다피닐(DAT/NET 억제, ESS -4.3)·피톨리산트(H3R 역작용제→히스타민↑, HARMONY I ESS -5.8)·솔리암페톨(DAT/NET, TONES 3 ESS -7.7)·벤라팍신(SERT/NET→REM 억제 항카탈렉시)·TAK-994(OX2R 직접 작용제, 실험) 6종 PK/PD. 12 클러스터 431 노드, 23 ODE 구획, 7 치료 시나리오, 47개 문헌, 8탭 Shiny.<br>[🗺️ 지도](narcolepsy/narc_qsp_model.svg) · [⚙️ mrgsolve](narcolepsy/narc_mrgsolve_model.R) · [📚 문헌](narcolepsy/narc_references.md) · [📄 README](narcolepsy/README.md) |
 
 ---
 
@@ -643,6 +644,37 @@ qsp/
 - **임상시험 보정**: COPE Circulation 2005 (재발률 45→24%, RRR 47%), ICAP NEJM 2013 (32.3→16.7%, RRR 48%), CORP Ann Int Med 2011 (45.5→19.2%, RRR 58%), AIRTRIP NEJM 2016 (90.9→18.2%, RRR 80%), RHAPSODY NEJM 2021 (HR 0.04, RRR 88%)
 - **Shiny 앱**: 7탭 (환자 프로파일·치료 선택 · Drug PK·PD 억제율 · NLRP3·사이토카인 dynamics · 심낭 병리·삼출·섬유화 · 임상 엔드포인트·CRP·통증 · 7개 시나리오 비교·임상시험 벤치마크 · 바이오마커·Emax 곡선·위험 레이더)
 - **참고문헌**: 57편 (역학·NLRP3·IL-1β·콜히친·NSAID·코르티코스테로이드·아나킨라·리로나셉트·영상·바이오마커·수축성 심낭염·QSP 모델링)
+
+---
+
+## 206. 나르콜렙시 1형 (Narcolepsy Type 1, NT1)
+
+[![NT1](narcolepsy/narc_qsp_model.png)](narcolepsy/narc_qsp_model.svg)
+
+**분류:** 신경계 / 수면장애 (Neurological / Sleep Disorder) · **디렉토리:** [`narcolepsy/`](narcolepsy/)
+
+### 병태생리 (Pathophysiology)
+
+나르콜렙시 1형(NT1)은 시상하부 외측(lateral hypothalamus)의 **오렉신(히포크레틴) 신경세포가 자가면역 기전으로 선택적·비가역적으로 파괴**되어 발생하는 만성 신경계 수면장애입니다. 정상인에서 약 70,000개 존재하는 오렉신 신경세포 중 **85–95%가 소실**되면서 뇌척수액(CSF) 히포크레틴-1(오렉신-A) 농도가 110 pg/mL 미만으로 감소합니다. 오렉신은 각성 안정화의 핵심 조절자이므로, 그 결핍은 **플립-플롭 수면-각성 스위치**의 상태 전환 빈도를 급격히 높여 4가지 핵심 증상을 유발합니다.
+
+| 핵심 병리 경로 | 세부 기전 |
+|-------------|----------|
+| **자가면역 병인** | HLA-DQB1\*06:02(~95% NT1) + HLA-DQA1\*01:02 감수성 → H1N1 인플루엔자/Pandemrix 백신 분자 모방 → CD4+/CD8+ T세포·NK세포·B세포 활성화 → 항오렉신/항TRIB2/항PMCA4 자가항체 → 오렉신 신경세포 선택적 파괴 |
+| **오렉신 수용체 시스템** | OXA(OX1R≫OX2R 친화성), OXB(OX2R≥OX1R) → Gq/PLC/IP3/Ca²⁺ + Gi/cAMP/PKA 이중 신호 → LC·TMN·VTA·DRN·기저전뇌 각성 아민계 동시 활성화 |
+| **각성 시스템 붕괴** | 오렉신 결핍 → LC(NE)·TMN(히스타민)·VTA(DA)·DRN(5-HT) 발화율 불안정 → 수면 중 잦은 각성 및 주간 수면 발작 |
+| **플립-플롭 스위치** | VLPO GABAergic 뉴런 ↔ 각성계 상호억제 균형 파괴 → 상태 전환 역치 저하 → 각성/수면/REM 경계 소실 |
+| **카탈렉시** | 편도체 감정 자극(웃음·놀람) → vlPAG/LPT REM-off 억제 소실 → SubC 글루타메이트계 → 척수 GABA/글리신 → 전신 근긴장소실(의식 유지) |
+| **수면 구조 이상** | 입면 직후 REM 수면(SOREMP) ≥2회 · REM 잠복기 <15분 · 수면 분절화 · N3 감소 |
+| **대사 합병증** | 오렉신 결핍 → 렙틴 저항성·그렐린↑ → 칼로리 섭취 조절 이상 → 비만(BMI↑) · T2DM 위험 2–3배 증가 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 12 서브그래프 클러스터, 431 노드, 244 방향 엣지 (자가면역 병인·오렉신 신경세포·수용체 신호계·각성 모노아민계·수면 촉진계·REM/카탈렉시 회로·임상 4징·약물 PK·약리 표적·바이오마커·플립-플롭 스위치·대사 합병증)
+- **mrgsolve ODE**: 23 구획 — 소디움 옥시베이트 3구획(GUT/CENT/PERI)·모다피닐 2구획·피톨리산트 2구획·솔리암페톨 2구획·벤라팍신 2구획 PK + LC/TMN/VTA/DRN 각성계·SLEEP_P/VLPO/ADENOSINE 수면계·WAKE_STATE/REM_STATE/NREM_STATE 상태 변수·EDS_ACC/CATAPLEXY_ACC 임상 축적
+- **치료 시나리오**: 7개 (무치료 NT1 · 소디움 옥시베이트 4.5g 분할 · 모다피닐 200 mg · 피톨리산트 18 mg · 솔리암페톨 150 mg · 소디움 옥시베이트+피톨리산트 병합 · 벤라팍신 75 mg)
+- **임상시험 보정**: Black 2010 (카탈렉시 -69–75%), HARMONY I/Szakacs 2017 (피톨리산트 ESS -5.8 vs 위약 -3.4), TONES 3/Schweitzer 2019 (솔리암페톨 ESS -7.7), US Modafinil Multicenter 2000 (ESS -4.3), Mignot 2002 (CSF 히포크레틴-1 진단 기준 <110 pg/mL)
+- **Shiny 앱**: 8탭 (환자 프로파일·HLA 상태 · Drug PK 농도-시간 · 수면-각성 조절·플립-플롭·일주기 · 임상 엔드포인트·ESS/카탈렉시/PSG · 치료 시나리오 비교·임상시험 벤치마크 폭포수/산림 그림 · 바이오마커·CSF 히포크레틴 진단 · 자가면역 기전·HLA/신경세포 소실 타임라인 · 참고문헌)
+- **참고문헌**: 47편 (역학·진단·오렉신계·자가면역 병인·소디움 옥시베이트·모다피닐·피톨리산트·솔리암페톨·항카탈렉시·바이오마커·QSP/수면 모델링)
 
 ---
 
