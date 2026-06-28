@@ -326,6 +326,7 @@ qsp/
 | 201 | 신장·비뇨 | [**급성 신손상 (AKI)**<br><sub>Acute Kidney Injury · AKI</sub>](acute-kidney-injury/) | <a href="acute-kidney-injury/aki_qsp_model.svg"><img src="acute-kidney-injury/aki_qsp_model.png" width="190" alt="aki"></a> | 허혈-재관류(IRI)·신독성(NTX)·패혈증 연관(SA-AKI) 세 아형의 통합 QSP 모델. ATP 고갈 → 미토콘드리아 기능부전 → 아폽토시스/괴사/페롭토시스·세뇨관 세포 활력(TCV) 감소 → GFR↓·NGAL/KIM-1 상승. TLR4→NF-κB→IL-6/TNF-α 염증·산화스트레스(ROS/GSH)·TGF-β1→섬유화(AKI-to-CKD) 경로 포함. Furosemide(OAT1/3·NKCC2)·Norepinephrine·NAC·CRRT PK/PD. 12 클러스터 100+ 노드, 20 ODE 구획, 7 치료 시나리오, 55개 문헌, 6탭 Shiny.<br>[🗺️ 지도](acute-kidney-injury/aki_qsp_model.svg) · [⚙️ mrgsolve](acute-kidney-injury/aki_mrgsolve_model.R) · [📚 문헌](acute-kidney-injury/aki_references.md) · [📄 README](acute-kidney-injury/README.md) |
 | 202 | 신경정신 | [**강박장애 (OCD)**<br><sub>Obsessive-Compulsive Disorder · OCD</sub>](obsessive-compulsive-disorder/) | <a href="obsessive-compulsive-disorder/ocd_qsp_model.svg"><img src="obsessive-compulsive-disorder/ocd_qsp_model.png" width="190" alt="ocd"></a> | **CSTC 회로 과활성화** — OFC 과활성(강박 사고) → 미상핵 과대사(강박 행동) → 직접 경로(D1/Go) 우세·간접 경로(D2/No-Go) 약화 → 시상 탈억제 → OFC 루프 재구동. SERT ≥80% 점유 필요(우울증 60% 대비). 5-HT1A 자가수용체 탈감작이 2–4주 지연 반응 설명. Sertraline 200 mg(2구획+BBB)·Clomipramine 250 mg(DCMI 활성 대사체)·Risperidone D2 증강·ERP/CBT 기전 통합. 13 클러스터 130+ 노드, 23 ODE 구획, 6 치료 시나리오, 가상 환자 100명 Monte Carlo, 50개 문헌, 8탭 Shiny.<br>[🗺️ 지도](obsessive-compulsive-disorder/ocd_qsp_model.svg) · [⚙️ mrgsolve](obsessive-compulsive-disorder/ocd_mrgsolve_model.R) · [📚 문헌](obsessive-compulsive-disorder/ocd_references.md) · [📄 README](obsessive-compulsive-disorder/README.md) |
 | 203 | 알레르기/면역 | [**알레르기 비염 (AR)**<br><sub>Allergic Rhinitis · AR · Type I Hypersensitivity</sub>](allergic-rhinitis/) | <a href="allergic-rhinitis/ar_qsp_model.svg"><img src="allergic-rhinitis/ar_qsp_model.png" width="190" alt="ar"></a> | IgE-비만세포 축(FcεRI 가교결합 → 탈과립) + Th2 사이토카인 캐스케이드(IL-4/5/13) + 호산구 동태의 통합 QSP 모델. 히스타민·PGD2·CysLT(LTC4/D4/E4)·PAF 조기 반응 및 후기 호산구 침윤·TSLP/IL-33 상피 알라민 경로 포함. 세티리진(H1RO ≥80%, Yanai 1995)·플루티카손 FP(GR→IL-4/5/13 억제, TNSS −38%)·몬텔루카스트(CysLT1R 차단, TNSS −22%)·오말리주맙(자유 IgE >95% 감소, Fahy 1997) 7개 시나리오. 12 클러스터 100+ 노드, 25 ODE 구획, 60개 문헌, 6탭 Shiny.<br>[🗺️ 지도](allergic-rhinitis/ar_qsp_model.svg) · [⚙️ mrgsolve](allergic-rhinitis/ar_mrgsolve_model.R) · [📚 문헌](allergic-rhinitis/ar_references.md) · [📄 README](allergic-rhinitis/README.md) |
+| 205 | 심혈관/자가염증 | [**반복 심낭염 (RP)**<br><sub>Recurrent Pericarditis · RP · NLRP3/IL-1β Axis</sub>](recurrent-pericarditis/) | <a href="recurrent-pericarditis/rp_qsp_model.svg"><img src="recurrent-pericarditis/rp_qsp_model.png" width="190" alt="rp"></a> | NLRP3 인플라마솜(Signal 1 TLR→NF-κB + Signal 2 ATP/결정/K⁺efflux) → Caspase-1 → IL-1β/IL-18 성숙·분비 → IL-1R1 → NF-κB 양성 피드백 루프 → CXCL8 → 심낭 중성구 침윤 → PGE2/LTC4 매개 삼출액·통증·발열 → TGF-β1 → 섬유화 → 수축성 심낭염의 완전 통합 QSP 모델. 콜히친(β-tubulin 결합 → NLRP3 ASC 억제, IC50=0.5 ng/mL), Ibuprofen(COX-2 억제 → PGE2↓), Prednisone(GRα transrepression → NF-κB↓), Anakinra(IL-1R1 경쟁적 차단, IC50=0.1 nM), Rilonacept(IL-1α/β 이중 포획, KD<1 pM) PK/PD 포함. 무치료·NSAID·콜히친·콜히친+NSAID·프레드니솔론·아나킨라·리로나셉트 7개 시나리오. COPE(2005, 재발률 45→24%)·ICAP(2013, 32.3→16.7%)·AIRTRIP(2016, 90.9→18.2%)·RHAPSODY(2021, HR 0.04) 보정. 14 클러스터 162+ 노드, 24 ODE 구획, 57개 문헌, 7탭 Shiny.<br>[🗺️ 지도](recurrent-pericarditis/rp_qsp_model.svg) · [⚙️ mrgsolve](recurrent-pericarditis/rp_mrgsolve_model.R) · [📚 문헌](recurrent-pericarditis/rp_references.md) · [📄 README](recurrent-pericarditis/README.md) |
 | 204 | 호흡기 | [**과민성 폐렴 (HP)**<br><sub>Hypersensitivity Pneumonitis · HP · Extrinsic Allergic Alveolitis</sub>](hypersensitivity-pneumonitis/) | <a href="hypersensitivity-pneumonitis/hp_qsp_model.svg"><img src="hypersensitivity-pneumonitis/hp_qsp_model.png" width="190" alt="hp"></a> | 유기 항원(조류 단백·열성 세균·곰팡이) 반복 흡입에 의한 Th1 림프구성 폐포염 → 비건락성 육아종 형성 → TGF-β1/PDGF 매개 근섬유모세포 활성화 → 폐 섬유화(UIP/NSIP 유사 패턴) 통합 QSP 모델. TLR2/4/9·NLRP3·M1/M2 대식세포 분극·Th1/Th17/Treg 동태·면역복합체(IgG 침강소)·육아종 형성-분해·섬유화 폭포(AEC2 손상·EMT·콜라겐 침착)·ROS·FVC/DLCO 폐기능 저하 포함. Prednisolone(GR Transrepression, EC50=150 ng/mL)·MMF(IMPDH 억제, IC50=0.24 μg/mL)·Nintedanib(PDGFR/FGFR/VEGFR 억제, EC50=200 ng/mL) PK/PD. 항원회피·PDN·MMF·Nintedanib·병합 7개 시나리오. 10 클러스터 100+ 노드, 22 ODE 구획, 42개 문헌, 8탭 Shiny.<br>[🗺️ 지도](hypersensitivity-pneumonitis/hp_qsp_model.svg) · [⚙️ mrgsolve](hypersensitivity-pneumonitis/hp_mrgsolve_model.R) · [📚 문헌](hypersensitivity-pneumonitis/hp_references.md) · [📄 README](hypersensitivity-pneumonitis/README.md) |
 
 ---
@@ -612,6 +613,36 @@ qsp/
 - **임상시험 보정**: Morisset Lancet Respir Med 2020(MMF vs AZA 섬유화 HP 무작위 대조), Flaherty NEJM 2019(Nintedanib 진행성 섬유화 ILD), Raghu Am J Respir Crit Care Med 2020(ATS/JRS/ALAT HP 진료지침), Walsh Thorax 2014(HP 자연 경과)
 - **Shiny 앱**: 8탭 (환자 프로파일·질환 개요 · Drug PK·농도-시간 곡선 · 면역반응·Th1/Th17/Treg·M1/M2·사이토카인 · 섬유화 QSP·육아종·근섬유모세포·콜라겐·ROS · 임상 엔드포인트·FVC/DLCO 궤적 · 7개 치료군 시나리오 비교 · 바이오마커·KL-6/염증지수 · 참고문헌)
 - **참고문헌**: 42편 (역학·진단·선천면역·T세포·사이토카인·육아종·섬유화·항원회피·스테로이드·MMF/AZA·Nintedanib·바이오마커·QSP 모델링)
+
+---
+
+## 205. 반복 심낭염 (Recurrent Pericarditis, RP)
+
+[![RP](recurrent-pericarditis/rp_qsp_model.png)](recurrent-pericarditis/rp_qsp_model.svg)
+
+**분류:** 심혈관 / 자가염증 (Cardiovascular / Autoinflammatory) · **디렉토리:** [`recurrent-pericarditis/`](recurrent-pericarditis/)
+
+### 병태생리 (Pathophysiology)
+
+반복 심낭염(RP)은 급성 심낭염 첫 에피소드 후 4-6주 이상의 무증상 기간을 거쳐 재발하는 염증성 심낭 질환으로, 치료하지 않으면 **30-50%**에서 재발합니다. 핵심 병리기전은 **NLRP3 인플라마솜 → IL-1β/IL-18 축**으로, 심낭 간엽세포·대식세포·중성구의 IL-1β 과다 분비가 심낭 염증·삼출·섬유화의 중심입니다.
+
+| 핵심 병리 경로 | 세부 메커니즘 |
+|-------------|------------|
+| **NLRP3 인플라마솜** | Signal 1 (TLR→NF-κB) + Signal 2 (ATP, 결정, K⁺ efflux) → ASC speck → Caspase-1 → IL-1β/IL-18 성숙 분비 |
+| **IL-1β 양성 루프** | IL-1β → IL-1R1→IRAK4→NF-κB → TNF/IL-6/CXCL8 → 추가 NLRP3 활성화 |
+| **중성구 침윤** | CXCL8/LTB4 → 심낭 중성구 → NET → DAMP → 인플라마솜 재활성화 |
+| **에이코사노이드** | COX-2 → PGE2 (발열, 통증, 혈관투과성↑) · 5-LOX → LTB4/LTC4 |
+| **섬유화** | M2↑TGF-β1 → 심낭 근섬유모세포 → Collagen I/III → 심낭 비후 → 수축성 심낭염 |
+| **적응면역** | Memory T cells (재활성화·재발 유발) · 항심장 항체 → 면역복합체 → 보체 활성화 |
+
+### 모델 사양 (Model Specifications)
+
+- **기계론적 지도**: 14 서브그래프 클러스터, 162+ 노드 (병인 10종·DAMP/PAMP 인식·NLRP3 인플라마솜·NF-κB·선천면역세포·적응면역·에이코사노이드·심낭 병리·임상 바이오마커·콜히친 PK/PD·NSAID PK/PD·코르티코스테로이드 PK/PD·생물학적 제제 PK/PD·임상 결과)
+- **mrgsolve ODE**: 24 구획 (Colchicine 3구획 PK·Ibuprofen 2구획·Prednisone 2구획·Anakinra 2구획·Rilonacept 2구획 + NLRP3_ACT·IL1β·IL18·TNF·IL6·Neutrophil·M1_Macro + INFLAM·EFFUSION·FIBRIN·FIBROSIS + CRP·PAIN)
+- **치료 시나리오**: 7개 (무치료 · Ibuprofen 600 mg TID · Colchicine 0.5 mg BID · Colchicine+NSAID 병합 · Prednisone 0.5 mg/kg/d → taper · Anakinra 100 mg/d SC · Rilonacept 320→160 mg qw)
+- **임상시험 보정**: COPE Circulation 2005 (재발률 45→24%, RRR 47%), ICAP NEJM 2013 (32.3→16.7%, RRR 48%), CORP Ann Int Med 2011 (45.5→19.2%, RRR 58%), AIRTRIP NEJM 2016 (90.9→18.2%, RRR 80%), RHAPSODY NEJM 2021 (HR 0.04, RRR 88%)
+- **Shiny 앱**: 7탭 (환자 프로파일·치료 선택 · Drug PK·PD 억제율 · NLRP3·사이토카인 dynamics · 심낭 병리·삼출·섬유화 · 임상 엔드포인트·CRP·통증 · 7개 시나리오 비교·임상시험 벤치마크 · 바이오마커·Emax 곡선·위험 레이더)
+- **참고문헌**: 57편 (역학·NLRP3·IL-1β·콜히친·NSAID·코르티코스테로이드·아나킨라·리로나셉트·영상·바이오마커·수축성 심낭염·QSP 모델링)
 
 ---
 
