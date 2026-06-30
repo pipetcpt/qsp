@@ -1,0 +1,363 @@
+/* =====================================================================
+   Quantitative Systems Pharmacology (QSP) Map
+   Disease: Carcinoid Syndrome (Functional Neuroendocrine Tumor of midgut)
+   Author:  CCR / Claude Code Routine (QSP Disease Model Library)
+   Date:    2026-06-30
+   Scope:   Midgut NET (ileal/jejunal/appendiceal) -> hepatic metastasis ->
+            systemic vasoactive amine (serotonin, tachykinin, kallikrein,
+            histamine, prostaglandin) release -> classical & atypical
+            carcinoid syndrome (flushing, secretory diarrhea, bronchospasm,
+            carcinoid heart disease) and pharmacological control
+            (somatostatin analogs, TPH1 inhibitors, PRRT, IFN-α, mTORi,
+            VEGFR-TKI, hepatic-directed therapy).
+   Nodes:   >180 ; Clusters: 14 ; PK/PD edges encoded for 10 agents.
+   ===================================================================== */
+
+digraph CarcinoidSyndromeQSP {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=11, splines=true,
+         nodesep=0.25, ranksep=0.55, compound=true,
+         label="Carcinoid Syndrome — Functional Midgut NET QSP Map (Tryptophan→5-HT→5-HIAA axis, SSTR2/5 pharmacology, CHD, PRRT/TKI/IFN/mTORi)",
+         labelloc="t", fontcolor="#333333"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#444444", fillcolor="#FAFAFA"];
+  edge  [fontname="Helvetica", fontsize=9, color="#555555"];
+
+  /* ===================== Substrate / EC cell biology ================ */
+  subgraph cluster_EC {
+    label="① Enterochromaffin / Midgut NET tumor cell";
+    style=filled; color="#E3F2FD";
+    Trp        [label="L-Tryptophan\n(dietary, plasma)"];
+    Trp_uptake [label="LAT1/SLC7A5 uptake"];
+    TPH1       [label="TPH1 (Tryptophan\nHydroxylase 1)\nrate-limiting", fillcolor="#90CAF9"];
+    BH4        [label="BH4 cofactor"];
+    HTP5       [label="5-Hydroxy-Trp (5-HTP)"];
+    AADC       [label="AADC / DOPA\ndecarboxylase"];
+    SerEC      [label="Serotonin (5-HT)\nintracellular pool", fillcolor="#FFCDD2"];
+    VMAT1      [label="VMAT1 vesicular\nstorage"];
+    Vesicle    [label="Chromogranin-A\ngranules", fillcolor="#FFE0B2"];
+    Release    [label="Ca²⁺-dependent\nexocytosis"];
+    Niacin_def [label="Niacin depletion\n(→ pellagra)"];
+    Telotri    [label="Telotristat ethyl\n(LX-1606) → active\n→ TPH1 inhibition", shape=note, fillcolor="#C8E6C9"];
+
+    Trp -> Trp_uptake -> HTP5;
+    TPH1 -> HTP5 [label="hydroxylation"];
+    BH4 -> TPH1;
+    HTP5 -> AADC -> SerEC;
+    SerEC -> VMAT1 -> Vesicle -> Release;
+    Trp -> Niacin_def [style=dashed, label="diversion ≥60%"];
+    Telotri -> TPH1 [label="−", color=red, fontcolor=red];
+  }
+
+  /* ===================== Tumor biology / drivers ==================== */
+  subgraph cluster_Tumor {
+    label="② NET driver biology (G1/G2 midgut)";
+    style=filled; color="#FFF3E0";
+    Ki67     [label="Ki-67 LI\n(grade G1<3% / G2 3–20%)", fillcolor="#FFE0B2"];
+    CDKN1B   [label="CDKN1B (p27)\nloss"];
+    MEN1     [label="MEN1 / menin"];
+    DAXX_ATRX[label="DAXX/ATRX\n(ALT pathway)"];
+    Akt_NET  [label="PI3K/AKT/mTOR"];
+    VEGF     [label="VEGF-A / VEGFR-2"];
+    Ang      [label="Angiogenesis\n(tumor vessels)"];
+    Hep_met  [label="Hepatic metastasis\n(≥80% of CS)", fillcolor="#FFAB91"];
+    Liver_load[label="Liver tumor burden\n(% replacement)"];
+    Bypass   [label="Portal bypass →\nsystemic 5-HT spill", fillcolor="#FFCDD2"];
+
+    Ki67 -> Hep_met;
+    CDKN1B -> Akt_NET;
+    MEN1 -> Akt_NET;
+    DAXX_ATRX -> Ang;
+    Akt_NET -> Ang;
+    Ang -> VEGF;
+    Hep_met -> Liver_load -> Bypass;
+    Bypass -> SerEC [ltail=cluster_Tumor, lhead=cluster_EC, style=dotted];
+  }
+
+  /* ===================== Hormone repertoire ========================= */
+  subgraph cluster_Hormones {
+    label="③ Secreted bioactive products";
+    style=filled; color="#FCE4EC";
+    SerPlasma [label="Plasma 5-HT", fillcolor="#F8BBD0"];
+    CgA       [label="Chromogranin-A\n(biomarker)"];
+    NKA       [label="Neurokinin A"];
+    SP        [label="Substance P"];
+    Bradykin  [label="Bradykinin /\nKallikrein"];
+    HistEC    [label="Histamine\n(foregut subtype)"];
+    PGE2      [label="PGE2 / PGD2"];
+    NPK       [label="Neuropeptide K"];
+    Motilin   [label="Motilin-like\npeptides"];
+    Hist_FG   [label="Atypical carcinoid\n(foregut/bronchial)\n→ 5-HTP + histamine", fillcolor="#F48FB1"];
+
+    SerEC -> SerPlasma [ltail=cluster_EC];
+    SerEC -> CgA;
+    Vesicle -> NKA;
+    Vesicle -> SP;
+    Vesicle -> Bradykin;
+    Vesicle -> PGE2;
+    Vesicle -> NPK;
+    Vesicle -> Motilin;
+    Hist_FG -> HistEC;
+  }
+
+  /* ===================== Metabolism / clearance ===================== */
+  subgraph cluster_Metab {
+    label="④ Serotonin clearance & urinary marker";
+    style=filled; color="#E8F5E9";
+    MAOA   [label="MAO-A (lung,\nliver, gut)"];
+    ALDH   [label="ALDH"];
+    HIAA5  [label="5-HIAA\n(urinary 24h)", fillcolor="#A5D6A7"];
+    Urine  [label="Urinary 5-HIAA\n>52 µmol/24h", fillcolor="#A5D6A7"];
+    SERT   [label="SERT (platelets,\nneurons) uptake"];
+    Plat_5HT[label="Platelet 5-HT\npool (whole-blood)"];
+
+    SerPlasma -> SERT -> Plat_5HT;
+    SerPlasma -> MAOA -> ALDH -> HIAA5 -> Urine;
+  }
+
+  /* ===================== Vasculature / Flushing ===================== */
+  subgraph cluster_Flush {
+    label="⑤ Flushing & vasomotor symptoms";
+    style=filled; color="#FFF8E1";
+    H1R       [label="H1 receptor"];
+    SP_NK1R   [label="NK1 receptor (SP)"];
+    Brady_B2  [label="B2 bradykinin\nreceptor"];
+    Endo_NO   [label="Endothelial NO\nsynthase"];
+    Vasodil   [label="Cutaneous\nvasodilation"];
+    Flush     [label="Flushing\n(face/neck)", fillcolor="#FFE082"];
+    Lacrim    [label="Lacrimation,\nperiorbital edema"];
+    Hypotens  [label="Hypotension\n(severe spell)"];
+
+    SP -> SP_NK1R -> Endo_NO -> Vasodil;
+    Bradykin -> Brady_B2 -> Endo_NO;
+    HistEC -> H1R -> Vasodil;
+    Vasodil -> Flush;
+    Vasodil -> Lacrim;
+    Vasodil -> Hypotens;
+  }
+
+  /* ===================== GI symptoms ================================ */
+  subgraph cluster_GI {
+    label="⑥ Secretory diarrhea / GI";
+    style=filled; color="#E0F2F1";
+    HT3R    [label="5-HT3 receptor\n(enteric neuron)"];
+    HT4R    [label="5-HT4 receptor\n(motility, secretion)"];
+    HT1P    [label="5-HT1P / 5-HT2A"];
+    Cl_sec  [label="Cl⁻ / H₂O\nsecretion (CFTR)"];
+    Motil   [label="↑Intestinal motility"];
+    BSM     [label="Bowel sound /\nborborygmi"];
+    Diarrh  [label="Secretory diarrhea\n(BM/day)", fillcolor="#80CBC4"];
+    Cramp   [label="Abdominal cramping"];
+    Malabs  [label="Bile salt\nmalabsorption"];
+
+    SerPlasma -> HT3R -> Motil;
+    SerPlasma -> HT4R -> Cl_sec -> Diarrh;
+    SerPlasma -> HT1P -> Motil;
+    Motil -> BSM;
+    Motil -> Diarrh;
+    Cl_sec -> Cramp;
+    Diarrh -> Malabs;
+  }
+
+  /* ===================== Carcinoid Heart Disease ===================== */
+  subgraph cluster_CHD {
+    label="⑦ Carcinoid Heart Disease (CHD)";
+    style=filled; color="#FFEBEE";
+    HT2B     [label="5-HT2B receptor\n(valvular fibroblast)", fillcolor="#EF9A9A"];
+    TGFb     [label="TGF-β1 / SMAD2/3"];
+    CTGF     [label="CTGF / Periostin"];
+    Fibrob   [label="Valve fibroblast →\nmyofibroblast"];
+    ECM_dep  [label="Plaque-like collagen\ndeposition on tricuspid/\npulmonic valves", fillcolor="#EF5350"];
+    TR       [label="Tricuspid\nregurgitation"];
+    PS       [label="Pulmonic\nstenosis"];
+    RHF      [label="Right heart failure\n(NYHA III–IV)", fillcolor="#E57373"];
+    NTproBNP [label="NT-proBNP elevation"];
+    Echo     [label="Echocardiogram\n(Hassan score)"];
+
+    SerPlasma -> HT2B -> TGFb -> Fibrob;
+    TGFb -> CTGF -> ECM_dep;
+    Fibrob -> ECM_dep;
+    ECM_dep -> TR -> RHF;
+    ECM_dep -> PS -> RHF;
+    RHF -> NTproBNP;
+    RHF -> Echo;
+  }
+
+  /* ===================== Bronchial / Pulmonary ===================== */
+  subgraph cluster_Pulm {
+    label="⑧ Bronchospasm & pulmonary";
+    style=filled; color="#EDE7F6";
+    HT2A_sm  [label="5-HT2A airway\nsmooth muscle"];
+    H1_air   [label="H1 receptor (airway)"];
+    Bronch   [label="Bronchospasm /\nwheezing"];
+    Atyp     [label="Atypical CS\n(foregut/bronchial NET)"];
+    FEV1     [label="↓FEV1"];
+
+    SerPlasma -> HT2A_sm -> Bronch -> FEV1;
+    HistEC -> H1_air -> Bronch;
+    Hist_FG -> Atyp;
+  }
+
+  /* ===================== Carcinoid crisis ========================== */
+  subgraph cluster_Crisis {
+    label="⑨ Carcinoid Crisis";
+    style=filled; color="#FFCCBC";
+    Trigger    [label="Anesthesia /\nbiopsy / PRRT /\nepinephrine"];
+    Surge      [label="Massive\nhormone surge"];
+    Crisis     [label="Carcinoid crisis\n(BP collapse,\narrhythmia,\nbronchospasm)", fillcolor="#FF8A65"];
+    OCT_pre    [label="Pre-procedural\noctreotide bolus\n(250–500 µg IV)", shape=note];
+
+    Trigger -> Surge -> Crisis;
+    OCT_pre -> Crisis [label="−", color=red, fontcolor=red];
+  }
+
+  /* ===================== SSTR pharmacology ========================= */
+  subgraph cluster_SSTR {
+    label="⑩ Somatostatin receptor (SSTR) axis";
+    style=filled; color="#E1F5FE";
+    SST14    [label="Endogenous SST-14\n(paracrine)"];
+    SSTR2    [label="SSTR2 (dominant\non midgut NET)", fillcolor="#81D4FA"];
+    SSTR5    [label="SSTR5"];
+    SSTR1_3_4[label="SSTR1/3/4"];
+    Gi       [label="Gαi → ↓cAMP\n→ ↓exocytosis"];
+    Ca_block [label="↓Ca²⁺ influx"];
+    PIPbreak [label="PIP2 → IP3 / DAG\n(SSTR2-Gq cross)"];
+    Antipro  [label="Antiproliferation\n(SHP-1 / p27 / RAS-MAPK ↓)", fillcolor="#4FC3F7"];
+
+    SST14 -> SSTR2; SST14 -> SSTR5; SST14 -> SSTR1_3_4;
+    SSTR2 -> Gi -> Release [label="−", color=red, fontcolor=red];
+    SSTR2 -> Ca_block;
+    SSTR2 -> Antipro;
+    SSTR5 -> Gi;
+  }
+
+  /* ===================== Drug PK/PD ================================ */
+  subgraph cluster_Drugs {
+    label="⑪ Therapeutic agents (PK/PD)";
+    style=filled; color="#F3E5F5";
+    OCT_LAR  [label="Octreotide LAR\n10–30 mg IM q28d\n(SANDOSTATIN)", shape=note, fillcolor="#CE93D8"];
+    LAN_AUT  [label="Lanreotide autogel\n60–120 mg SC q28d\n(CLARINET)", shape=note, fillcolor="#CE93D8"];
+    PASIR    [label="Pasireotide LAR\n(SSTR1/2/3/5)\n40–60 mg q28d", shape=note];
+    OCT_SC   [label="Octreotide SC\n50–200 µg t.i.d.\n(short-acting rescue)", shape=note];
+    Telot_d  [label="Telotristat ethyl\n250 mg t.i.d. PO\n(TELESTAR/TELECAST)", shape=note, fillcolor="#A5D6A7"];
+    PRRT     [label="¹⁷⁷Lu-DOTATATE\n7.4 GBq q8w × 4\n(NETTER-1/NETTER-2)", shape=note, fillcolor="#FFAB91"];
+    IFN_a    [label="IFN-α-2b\n3–5 MU SC TIW"];
+    Eve      [label="Everolimus\n10 mg/day\n(RADIANT-4)", shape=note];
+    Sun      [label="Sunitinib\n37.5 mg/day pNET", shape=note];
+    Surufa   [label="Surufatinib\n300 mg/day", shape=note];
+    Cabozan  [label="Cabozantinib\n60 mg/day (CABINET)", shape=note];
+    Belz     [label="Belzutifan (HIF-2α)\nVHL-associated", shape=note];
+    HAE_TACE [label="Hepatic artery\nembolization /\nbland / TACE / DEB"];
+    Y90      [label="⁹⁰Y radioembolization"];
+    Surg     [label="Cytoreductive\nsurgery / debulking"];
+    Ondans   [label="Ondansetron (5-HT3)\nsymptomatic", shape=note];
+    Lopera   [label="Loperamide, codeine,\ncholestyramine"];
+
+    OCT_LAR -> SSTR2 [label="agonist", color=blue, fontcolor=blue];
+    LAN_AUT -> SSTR2 [label="agonist", color=blue, fontcolor=blue];
+    PASIR   -> SSTR5 [label="agonist", color=blue, fontcolor=blue];
+    PASIR   -> SSTR2 [color=blue];
+    OCT_SC  -> SSTR2 [color=blue];
+    Telot_d -> TPH1  [label="−", color=red, fontcolor=red];
+    PRRT    -> SSTR2 [label="DOTA-binding\n→ β⁻ DNA damage", color=purple, fontcolor=purple];
+    IFN_a   -> Ki67  [label="−"];
+    IFN_a   -> Ang   [label="−"];
+    Eve     -> Akt_NET [label="mTORC1 −", color=red, fontcolor=red];
+    Sun     -> VEGF  [label="−"];
+    Surufa  -> VEGF  [label="−"];
+    Cabozan -> VEGF  [label="−"];
+    Belz    -> Akt_NET [label="HIF-2α −"];
+    HAE_TACE-> Liver_load [label="−", color=red, fontcolor=red];
+    Y90     -> Liver_load [label="−"];
+    Surg    -> Liver_load [label="−"];
+    Ondans  -> HT3R  [label="−"];
+    Lopera  -> Motil [label="−"];
+  }
+
+  /* ===================== Clinical endpoints ======================== */
+  subgraph cluster_End {
+    label="⑫ Clinical endpoints (TELESTAR, NETTER-1/2, RADIANT-4)";
+    style=filled; color="#ECEFF1";
+    BMday    [label="Bowel movements / day\n(target ↓ ≥30%)", fillcolor="#90A4AE"];
+    Flush_d  [label="Flushing episodes / day\n(diary)", fillcolor="#90A4AE"];
+    uHIAA    [label="24-h urinary 5-HIAA\n(% baseline)", fillcolor="#90A4AE"];
+    PFS      [label="Progression-free\nsurvival (RECIST)"];
+    OS       [label="Overall survival"];
+    QoL      [label="EORTC QLQ-C30 /\nGI-NET21"];
+    NIH_Hass [label="Hassan score (echo)"];
+
+    Diarrh   -> BMday;
+    Flush    -> Flush_d;
+    HIAA5    -> uHIAA;
+    Ki67     -> PFS;
+    Liver_load -> OS;
+    Diarrh   -> QoL;
+    ECM_dep  -> NIH_Hass;
+  }
+
+  /* ===================== Safety & toxicity ========================= */
+  subgraph cluster_Safety {
+    label="⑬ Drug toxicity / safety";
+    style=filled; color="#FFF9C4";
+    GallS   [label="Gallstones\n(SSA-induced)"];
+    Hypergly[label="Hyperglycemia\n(SSTR5/pasireotide)"];
+    Steator [label="Steatorrhea\n(pancreatic\nexocrine ↓)"];
+    Hepatox [label="↑ALT/AST\n(telotristat/IFN/eve)"];
+    Renal   [label="Renal toxicity\n(PRRT — amino acid\nprotection)"];
+    Heme    [label="Cytopenias\n(PRRT, IFN)"];
+    Pneum   [label="Pneumonitis\n(everolimus)"];
+    BradyHR [label="Bradycardia (SSA)"];
+    Depress [label="Depression\n(telotristat 6%)"];
+
+    OCT_LAR -> GallS; LAN_AUT -> GallS; PASIR -> Hypergly;
+    OCT_LAR -> Steator; OCT_LAR -> BradyHR;
+    Telot_d -> Hepatox; IFN_a -> Heme; PRRT -> Heme; PRRT -> Renal;
+    Eve -> Pneum; Eve -> Hepatox; Telot_d -> Depress;
+  }
+
+  /* ===================== Patient covariates ========================= */
+  subgraph cluster_Cov {
+    label="⑭ Patient covariates";
+    style=filled; color="#F1F8E9";
+    Age      [label="Age (median 63)"];
+    Sex      [label="Sex"];
+    Wt       [label="Body weight"];
+    Renal_F  [label="CrCl / eGFR"];
+    Hep_F    [label="Liver function\n(Child–Pugh)"];
+    Tumor_g  [label="Tumor grade\n(WHO G1/G2)"];
+    Site     [label="Primary site\n(midgut, foregut,\nhindgut, unknown)"];
+    SSTR_PET [label="⁶⁸Ga-DOTATATE\nPET Krenning score"];
+    Diet     [label="Dietary tryptophan,\ntyramine triggers"];
+
+    Age -> OCT_LAR [style=dashed];
+    Hep_F -> Telot_d [style=dashed];
+    Renal_F -> PRRT [style=dashed];
+    SSTR_PET -> PRRT [style=dashed];
+    Tumor_g -> PFS [style=dashed];
+    Site -> Hist_FG [style=dashed];
+  }
+
+  /* ===================== Inter-cluster overlays ===================== */
+  SerPlasma -> HT2B [constraint=false];
+  SerPlasma -> HT3R [constraint=false];
+  SerPlasma -> HT4R [constraint=false];
+  SerPlasma -> HT2A_sm [constraint=false];
+  Vesicle   -> SerPlasma [constraint=false];
+
+  OCT_LAR -> SerPlasma [label="↓ release", color=red, fontcolor=red, constraint=false];
+  LAN_AUT -> SerPlasma [label="↓ release", color=red, fontcolor=red, constraint=false];
+  Telot_d -> SerPlasma [label="↓ synthesis", color=red, fontcolor=red, constraint=false];
+  PRRT    -> Liver_load [label="↓ tumor", color=purple, fontcolor=purple, constraint=false];
+  Eve     -> Liver_load [label="↓ growth", color=red, constraint=false];
+  Sun     -> Liver_load [label="↓ growth", color=red, constraint=false];
+
+  /* Legend */
+  subgraph cluster_legend {
+    label="Legend"; style=dashed; color=gray;
+    L1 [label="Tumor / hormone", shape=box, style="rounded,filled", fillcolor="#FFCDD2"];
+    L2 [label="Drug node", shape=note, fillcolor="#CE93D8"];
+    L3 [label="Receptor / signal", shape=box, style="rounded,filled", fillcolor="#81D4FA"];
+    L4 [label="Endpoint", shape=box, style="rounded,filled", fillcolor="#90A4AE"];
+    L5 [label="Inhibition →", shape=plain, fontcolor=red];
+    L6 [label="Activation →", shape=plain, fontcolor=blue];
+  }
+}
