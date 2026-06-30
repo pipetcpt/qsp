@@ -1,0 +1,351 @@
+digraph TSC_QSP {
+    rankdir=LR;
+    graph [fontname="Helvetica", fontsize=11, splines=true, overlap=false, concentrate=false, nodesep=0.35, ranksep=0.55, bgcolor="white"];
+    node  [fontname="Helvetica", fontsize=10, shape=box, style="rounded,filled", fillcolor="#F7F7F7", color="#444444"];
+    edge  [fontname="Helvetica", fontsize=9, color="#666666"];
+
+    /* ==================== 1. GENETICS & TWO-HIT ==================== */
+    subgraph cluster_genetics {
+        label="① Genetics · TSC1 (9q34) / TSC2 (16p13.3) · Two-Hit Loss-of-Heterozygosity";
+        style="rounded,filled"; fillcolor="#FFF3E0"; color="#E65100"; fontsize=12;
+        TSC1_gene  [label="TSC1 (9q34) → Hamartin\n~31% germline"];
+        TSC2_gene  [label="TSC2 (16p13.3) → Tuberin\n~69% germline · severer"];
+        Mosaic     [label="Mosaicism\n~10–25% NMI cases"];
+        Germline   [label="Germline\nautosomal dominant\nde novo ~⅔"];
+        Somatic2nd [label="Somatic 2nd-hit\n(LOH 16p / 9q)\nin each lesion"];
+        PKD1_contig[label="TSC2/PKD1 contiguous\ngene syndrome → severe ADPKD"];
+        NMI        [label="No mutation identified\n(NMI ~10–15%)"];
+        TSC1_gene  -> Germline;
+        TSC2_gene  -> Germline;
+        Germline   -> Somatic2nd;
+        Mosaic     -> Somatic2nd [style=dashed];
+        TSC2_gene  -> PKD1_contig [label="deletion"];
+        NMI        -> Mosaic [style=dotted, label="deep seq"];
+    }
+
+    /* ==================== 2. mTORC1 SIGNALING ==================== */
+    subgraph cluster_mtor {
+        label="② mTORC1 Core Signaling · TSC1/2 → Rheb → mTORC1";
+        style="rounded,filled"; fillcolor="#E3F2FD"; color="#0D47A1"; fontsize=12;
+        Hamartin   [label="Hamartin (TSC1)\nscaffold/stabilizer"];
+        Tuberin    [label="Tuberin (TSC2)\nGAP for Rheb"];
+        TBC1D7     [label="TBC1D7\nstabilizing subunit"];
+        RhebGTP    [label="Rheb-GTP\n↑↑ in TSC lesions"];
+        RhebGDP    [label="Rheb-GDP (inactive)"];
+        mTORC1     [label="mTORC1\n(mTOR · RAPTOR · mLST8 · PRAS40 · DEPTOR)\nHYPERACTIVE"];
+        S6K1       [label="S6K1 / p70S6K\np-T389"];
+        rpS6       [label="rpS6\np-S235/236, p-S240/244"];
+        E4BP1      [label="4E-BP1\np-T37/46/65/70"];
+        eIF4E      [label="eIF4E → cap-dep\ntranslation"];
+        ULK1       [label="ULK1 (autophagy)\np-S757 ⊣"];
+        TFEB       [label="TFEB\ncytoplasmic-sequestered\n(lysosomal biogenesis ⊣)"];
+        AktS473    [label="Akt p-S473\n(neg-feedback ⊣)"];
+        IRS1       [label="IRS-1\nS6K1-mediated degradation"];
+        Lysosome   [label="Lysosome\nRagulator · Rag GTPases · v-ATPase\nAA-sensing"];
+
+        Hamartin -> Tuberin [label="binds/stabilizes"];
+        TBC1D7   -> Tuberin;
+        Tuberin  -> RhebGTP [label="GAP → GTP→GDP", color="#0D47A1"];
+        RhebGTP  -> RhebGDP [style=dashed, label="hydrolysis"];
+        RhebGTP  -> mTORC1  [label="ACTIVATES", color="#0D47A1", penwidth=2];
+        Lysosome -> mTORC1  [label="recruitment"];
+        mTORC1   -> S6K1;
+        mTORC1   -> E4BP1   [label="phospho ⊣ binding to eIF4E"];
+        S6K1     -> rpS6;
+        E4BP1    -> eIF4E   [label="release"];
+        mTORC1   -> ULK1    [label="phospho ⊣"];
+        mTORC1   -> TFEB    [label="phospho ⊣ nuclear"];
+        S6K1     -> IRS1    [label="phospho-degron"];
+        IRS1     -> AktS473 [label="↓ PI3K → ↓ Akt"];
+    }
+
+    /* ==================== 3. UPSTREAM REGULATORS ==================== */
+    subgraph cluster_upstream {
+        label="③ Upstream Inputs to TSC1/2 · Energy · Growth Factors · Stress";
+        style="rounded,filled"; fillcolor="#E8F5E9"; color="#1B5E20"; fontsize=12;
+        Insulin   [label="Insulin / IGF-1"];
+        PI3K      [label="PI3K → PIP3"];
+        AKT       [label="Akt p-T308"];
+        AMPK      [label="AMPK\nlow ATP/AMP"];
+        Glucose   [label="Glucose / energy"];
+        Amino     [label="Leucine / Arg / Met"];
+        REDD1     [label="REDD1 / DDIT4\nhypoxia"];
+        GSK3      [label="GSK3β"];
+        ERK       [label="ERK1/2 / RSK"];
+        Wnt       [label="Wnt ⊣ GSK3"];
+        TNFa      [label="TNF-α → IKKβ"];
+        PI3K  -> AKT;
+        AKT   -> Tuberin [label="phospho ⊣ (S939·T1462)", color="#1B5E20"];
+        ERK   -> Tuberin [label="phospho ⊣ (S664)"];
+        Insulin -> PI3K;
+        AMPK   -> Tuberin [label="phospho ⇧ (S1387)"];
+        AMPK   -> mTORC1  [label="phospho ⊣ RAPTOR"];
+        Glucose -> AMPK [dir=back, label="ATP↓"];
+        Amino  -> Lysosome;
+        REDD1  -> Tuberin [label="releases from 14-3-3"];
+        GSK3   -> Tuberin [label="phospho ⇧"];
+        Wnt    -> GSK3    [label="⊣"];
+        TNFa   -> Tuberin [label="phospho ⊣ (S487)"];
+    }
+
+    /* ==================== 4. mTORC2 & FEEDBACK ==================== */
+    subgraph cluster_mtorc2 {
+        label="④ mTORC2 · S473-Akt Feedback · Resistance";
+        style="rounded,filled"; fillcolor="#F3E5F5"; color="#4A148C"; fontsize=12;
+        mTORC2    [label="mTORC2\n(mTOR · RICTOR · mSIN1 · mLST8)"];
+        Akt473    [label="Akt p-S473"];
+        SGK1      [label="SGK1"];
+        FOXO      [label="FOXO ⊣"];
+        Rictor    [label="RICTOR"];
+        Sin1      [label="mSIN1"];
+        Rictor -> mTORC2;
+        Sin1   -> mTORC2;
+        mTORC2 -> Akt473;
+        mTORC2 -> SGK1;
+        Akt473 -> FOXO [label="phospho ⊣"];
+        mTORC1 -> mTORC2 [label="S6K1→IRS1 ⊣\n(neg feedback)", style=dashed];
+    }
+
+    /* ==================== 5. NEURO – TUBERS & EPILEPSY ==================== */
+    subgraph cluster_neuro {
+        label="⑤ Neurological · Cortical Tubers · SEGA · Epilepsy · TAND";
+        style="rounded,filled"; fillcolor="#FFEBEE"; color="#B71C1C"; fontsize=12;
+        CorticalTubers [label="Cortical tubers\nfocal cortical dysplasia\n80–90%"];
+        SEGA          [label="SEGA\nSubependymal giant-cell astrocytoma\n10–20%"];
+        SEN           [label="SEN (subependymal nodules)\n>80%"];
+        Hydroceph     [label="Obstructive hydrocephalus\n(SEGA at Monro)"];
+        WhiteMatter   [label="Radial migration lines\nWM heterotopias"];
+        Spasms        [label="Infantile spasms\n(West syndrome) 30%"];
+        FocalSz       [label="Focal seizures"];
+        LGS           [label="Lennox–Gastaut-like\nrefractory"];
+        Cognition     [label="Cognitive impairment\nID ~50%"];
+        ASD           [label="Autism spectrum (TSC-ASD)\n40–50%"];
+        TAND          [label="TAND syndrome\n(behavioural · psychiatric · neuropsych)"];
+        GABAergic     [label="GABAergic interneuron\nimbalance"];
+        Glutamatergic [label="Glutamatergic hyperexcitability\nNMDA / AMPA"];
+        SynPlast      [label="Aberrant synaptic plasticity\n(eIF4E↑ FMRP/mGluR axis)"];
+
+        mTORC1 -> CorticalTubers [label="prenatal neural progenitor"];
+        mTORC1 -> SEN;
+        SEN    -> SEGA [label="growth → > 1 cm"];
+        SEGA   -> Hydroceph;
+        CorticalTubers -> Spasms;
+        CorticalTubers -> FocalSz;
+        Spasms -> LGS [label="evolution"];
+        FocalSz -> Cognition [label="status / freq"];
+        FocalSz -> ASD;
+        Spasms  -> ASD [label="↑↑ risk"];
+        CorticalTubers -> TAND;
+        mTORC1 -> SynPlast;
+        SynPlast -> ASD;
+        GABAergic -> FocalSz [label="loss → hyperexc"];
+        Glutamatergic -> FocalSz;
+        WhiteMatter -> Cognition;
+    }
+
+    /* ==================== 6. KIDNEY ==================== */
+    subgraph cluster_kidney {
+        label="⑥ Kidney · Angiomyolipoma · Cysts · Renal Cell Carcinoma";
+        style="rounded,filled"; fillcolor="#FFF8E1"; color="#F57F17"; fontsize=12;
+        AML        [label="Renal angiomyolipoma (AML)\nbilateral · multifocal · 70–80%"];
+        AML_bleed  [label="Wunderlich syndrome\nretroperitoneal haemorrhage\n>4 cm risk"];
+        EpithCyst  [label="Renal cysts"];
+        ContigPKD  [label="TSC2/PKD1 → ADPKD-like\nESRD by adolescence"];
+        ChromoRCC  [label="Chromophobe RCC / oncocytoma\n2–3%"];
+        eGFR       [label="eGFR decline"];
+        PEComa     [label="PEComa\nperivascular epithelioid"];
+        Aneurysm   [label="AML aneurysms\nintralesional"];
+        AML_bleed -> eGFR;
+        EpithCyst -> eGFR;
+        ContigPKD -> eGFR [label="rapid"];
+        mTORC1 -> AML;
+        mTORC1 -> EpithCyst;
+        mTORC1 -> PEComa;
+        AML    -> Aneurysm;
+        Aneurysm -> AML_bleed;
+        AML    -> ChromoRCC [style=dashed];
+    }
+
+    /* ==================== 7. LUNG – LAM ==================== */
+    subgraph cluster_lung {
+        label="⑦ Lung · LAM (TSC-LAM in 30–40% adult females)";
+        style="rounded,filled"; fillcolor="#E0F2F1"; color="#00695C"; fontsize=12;
+        LAMcell   [label="LAM cell\nHMB-45+ · α-SMA+ · ERα+ · PR+"];
+        VEGFD     [label="VEGF-D\ndiagnostic >800 pg/mL"];
+        MMP       [label="MMP-2/9/13\nECM degradation"];
+        Cysts     [label="Cystic lung destruction\nbilateral"];
+        FEV1      [label="FEV1 decline\n~75 mL/yr untreated"];
+        Chylo     [label="Chylothorax\nlymphatic leak"];
+        Pneumothx [label="Pneumothorax\n70% lifetime"];
+        ER_LAM    [label="Estrogen → ERα\nnon-genomic PI3K"];
+        mTORC1 -> LAMcell;
+        LAMcell -> MMP;
+        LAMcell -> VEGFD;
+        MMP   -> Cysts;
+        Cysts -> FEV1;
+        Cysts -> Pneumothx;
+        VEGFD -> Chylo [label="lymphangiogenesis"];
+        ER_LAM -> mTORC1 [label="amplifies"];
+    }
+
+    /* ==================== 8. SKIN ==================== */
+    subgraph cluster_skin {
+        label="⑧ Skin · Cutaneous Hamartomas";
+        style="rounded,filled"; fillcolor="#FCE4EC"; color="#880E4F"; fontsize=12;
+        FacialAF [label="Facial angiofibromas\n(~75%) · cheek/nose"];
+        Shagreen [label="Shagreen patch\nlumbosacral connective tissue nevus"];
+        Hypomel  [label="Hypomelanotic macules\nash-leaf · >3 = major"];
+        Periung  [label="Ungual fibroma\nKoenen tumor"];
+        ConfettiSk [label="Confetti skin lesions"];
+        ForeheadPlq [label="Fibrous cephalic plaque"];
+        mTORC1 -> FacialAF;
+        mTORC1 -> Shagreen;
+        mTORC1 -> Periung;
+        mTORC1 -> ForeheadPlq;
+    }
+
+    /* ==================== 9. CARDIAC ==================== */
+    subgraph cluster_heart {
+        label="⑨ Cardiac · Rhabdomyomas · Arrhythmia";
+        style="rounded,filled"; fillcolor="#EFEBE9"; color="#3E2723"; fontsize=12;
+        Rhabdo  [label="Cardiac rhabdomyoma\n>50% antenatal"];
+        WPW     [label="Pre-excitation / WPW\ndysrhythmia"];
+        Obstruction [label="LVOT/RVOT obstruction\nfetal hydrops"];
+        Regress [label="Spontaneous regression\npostnatal"];
+        Rhabdo -> WPW;
+        Rhabdo -> Obstruction;
+        Rhabdo -> Regress [label="growth-hormone↓"];
+        mTORC1 -> Rhabdo [label="fetal"];
+    }
+
+    /* ==================== 10. EYE ==================== */
+    subgraph cluster_eye {
+        label="⑩ Ophthalmologic · Retinal Hamartomas";
+        style="rounded,filled"; fillcolor="#E1F5FE"; color="#01579B"; fontsize=12;
+        RetinalHam [label="Retinal astrocytic hamartoma\n30–50%"];
+        AchromoIris [label="Achromic iris patch"];
+        VisualLoss [label="Visual field defect\n(rare)"];
+        mTORC1 -> RetinalHam;
+        RetinalHam -> VisualLoss;
+    }
+
+    /* ==================== 11. EVEROLIMUS (RAD001) PK/PD ==================== */
+    subgraph cluster_eve {
+        label="⑪ Everolimus PK · FKBP12-mTORC1 binding · PD";
+        style="rounded,filled"; fillcolor="#E8EAF6"; color="#1A237E"; fontsize=12;
+        EVE_oral   [label="Everolimus PO\n4.5 mg/m² QD · titrated to trough 5–15 ng/mL"];
+        EVE_gut    [label="GI absorption\nF=0.30 · Ka 1.6/h"];
+        EVE_plasma [label="Plasma\nV1=110 L · CL=8.8 L/h\nt½ ~28 h"];
+        EVE_perif  [label="Peripheral cpt\nQ=15 L/h"];
+        EVE_tissue [label="Tissue (brain, kidney, lung)"];
+        EVE_CYP3A  [label="CYP3A4/5 + P-gp\nstrong inducers/inhibitors caution"];
+        FKBP12     [label="FKBP12\n~10⁴ copies/cell"];
+        FKBP12_EVE [label="FKBP12 · Everolimus\ncomplex"];
+        EVE_oral -> EVE_gut;
+        EVE_gut  -> EVE_plasma;
+        EVE_plasma -> EVE_perif [dir=both];
+        EVE_plasma -> EVE_tissue;
+        EVE_plasma -> EVE_CYP3A [label="elimination"];
+        EVE_tissue -> FKBP12_EVE;
+        FKBP12     -> FKBP12_EVE;
+        FKBP12_EVE -> mTORC1 [label="ALLOSTERIC ⊣\nIC50 ~2 nM", color="#1A237E", penwidth=2];
+    }
+
+    /* ==================== 12. SIROLIMUS PK/PD ==================== */
+    subgraph cluster_sir {
+        label="⑫ Sirolimus PK · TSC adult · FKBP12-mTORC1 ⊣";
+        style="rounded,filled"; fillcolor="#E0F7FA"; color="#006064"; fontsize=12;
+        SIR_oral [label="Sirolimus PO\n2 mg/day · trough 6–14 ng/mL"];
+        SIR_pk   [label="2-cpt PK\nF~15% · CL=8.7 L/h · V=12 L/kg · t½ ~62 h"];
+        SIR_skin [label="Topical sirolimus 0.1–1%\nfacial angiofibromas"];
+        SIR_oral -> SIR_pk;
+        SIR_pk   -> FKBP12_EVE [style=dashed, label="alternate complex"];
+        SIR_skin -> FacialAF [label="local PD"];
+    }
+
+    /* ==================== 13. ANTI-SEIZURE / TAND DRUGS ==================== */
+    subgraph cluster_aed {
+        label="⑬ Antiseizure / Neurobehavioural Therapy";
+        style="rounded,filled"; fillcolor="#FFFDE7"; color="#827717"; fontsize=12;
+        Vigabatrin [label="Vigabatrin (VGB)\nGABA-T inhibitor\nfirst-line infantile spasms"];
+        ACTH       [label="ACTH/Prednisolone\nspasm rescue"];
+        CBD        [label="Cannabidiol (CBD)\nEpidiolex · GWPCARE6 trial\nadj. for TSC seizures"];
+        Vincristine[label="(not used; histo)"];
+        VPA        [label="Valproate (caution)"];
+        CLB        [label="Clobazam"];
+        VFD_AE     [label="Vigabatrin AE\nperipheral visual field defects"];
+        Vigabatrin -> GABAergic [label="↑ GABA"];
+        Vigabatrin -> Spasms    [label="resolves 60–80%", color="#827717"];
+        ACTH       -> Spasms;
+        CBD        -> FocalSz   [label="adj 25 mg/kg/d"];
+        CBD        -> CYP_inhib [label="↑ CLB-M1\n↑ EVE AUC"];
+        CYP_inhib  [label="CYP2C19/3A4\ninteractions"];
+        CYP_inhib  -> EVE_plasma [label="↑ AUC"];
+        Vigabatrin -> VFD_AE;
+        CLB        -> FocalSz;
+    }
+
+    /* ==================== 14. mTORi ADVERSE EFFECTS ==================== */
+    subgraph cluster_ae {
+        label="⑭ mTOR-Inhibitor Adverse Effects";
+        style="rounded,filled"; fillcolor="#F1F8E9"; color="#33691E"; fontsize=12;
+        Stomatitis [label="Stomatitis (40–60%)"];
+        Dyslip     [label="Dyslipidemia\n(TG/LDL ↑)"];
+        Hyperglyc  [label="Hyperglycaemia"];
+        Infection  [label="Infection / herpes / pneumonitis"];
+        Proteinuria[label="Proteinuria"];
+        NoninfPneu [label="Non-infectious pneumonitis"];
+        Cytopenia  [label="Cytopenias"];
+        Amenorrhea [label="Menstrual irregularity"];
+        EVE_plasma -> Stomatitis;
+        EVE_plasma -> Dyslip;
+        EVE_plasma -> Hyperglyc;
+        EVE_plasma -> Infection;
+        EVE_plasma -> NoninfPneu;
+        EVE_plasma -> Cytopenia;
+        EVE_plasma -> Amenorrhea;
+        SIR_pk     -> Stomatitis;
+        SIR_pk     -> Proteinuria;
+    }
+
+    /* ==================== 15. CLINICAL ENDPOINTS ==================== */
+    subgraph cluster_clin {
+        label="⑮ Clinical Endpoints & Composite Scores";
+        style="rounded,filled"; fillcolor="#ECEFF1"; color="#263238"; fontsize=12;
+        Diag_2012 [label="2012 International Consensus\nMajor 11 / Minor 7 criteria"];
+        SEGA_vol  [label="SEGA volume MRI"];
+        AML_diam  [label="AML longest diameter\n(EXIST-2 ≥50%↓ = response)"];
+        Skin_score[label="Facial angiofibroma\nFASI / EFASI"];
+        Sz_freq   [label="Seizure frequency / 28d\n(EXIST-3 ≥50%↓)"];
+        QOLIE     [label="QOLIE-31 / QOL-CE"];
+        TAND_chk  [label="TAND-L checklist"];
+        FEV1_clin [label="FEV1 (LAM)"];
+        FAS       [label="FAS / NIH severity"];
+        AML       -> AML_diam;
+        SEGA      -> SEGA_vol;
+        FacialAF  -> Skin_score;
+        FocalSz   -> Sz_freq;
+        Spasms    -> Sz_freq;
+        TAND      -> TAND_chk;
+        FEV1      -> FEV1_clin;
+        Diag_2012 -> FAS;
+    }
+
+    /* ==================== 16. CLINICAL TRIALS ANCHORS ==================== */
+    subgraph cluster_trials {
+        label="⑯ Pivotal Trials & Anchors";
+        style="rounded,filled"; fillcolor="#F9FBE7"; color="#9E9D24"; fontsize=12;
+        EXIST1 [label="EXIST-1 (NEJM 2013)\nEverolimus → SEGA ≥50%↓\n35% vs 0%"];
+        EXIST2 [label="EXIST-2 (Lancet 2013/Lancet 2016)\nEverolimus → AML ≥50%↓ 42% vs 0%"];
+        EXIST3 [label="EXIST-3 (Lancet 2016)\nEverolimus 9 ng/mL → Sz ↓40%, ↓15 ng/mL ↓39%"];
+        MILES  [label="MILES (NEJM 2011)\nSirolimus → FEV1 stable (LAM)"];
+        GWPCARE6 [label="GWPCARE6 (JAMA Neurol 2021)\nCannabidiol 25/50 mg/kg/d → Sz ↓48–47%"];
+        TOSCA  [label="TOSCA registry\n(~2200 pts natural history)"];
+        EXIST1 -> SEGA_vol [label="response"];
+        EXIST2 -> AML_diam;
+        EXIST3 -> Sz_freq;
+        MILES  -> FEV1_clin;
+        GWPCARE6 -> Sz_freq;
+        TOSCA  -> FAS;
+    }
+}
