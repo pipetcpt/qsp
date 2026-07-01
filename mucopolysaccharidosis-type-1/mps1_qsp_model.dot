@@ -1,0 +1,315 @@
+digraph MPS1_QSP {
+  // ==========================================================
+  // Mucopolysaccharidosis Type I (MPS I) — Quantitative Systems Pharmacology Model
+  //   IDUA gene (4p16.3) loss-of-function → alpha-L-iduronidase deficiency
+  //   → lysosomal accumulation of dermatan sulfate & heparan sulfate (GAG)
+  //   → multi-organ storage disease: skeletal dysostosis multiplex, cardiac
+  //   valve thickening, upper-airway obstruction, corneal clouding,
+  //   hepatosplenomegaly, and (in severe Hurler phenotype) progressive
+  //   neurodegeneration behind an impermeable blood-brain barrier.
+  //   Drugs/Interventions: Laronidase (recombinant human alpha-L-iduronidase,
+  //   IV ERT) · Hematopoietic Stem Cell Transplantation (HSCT, cross-correction
+  //   + CNS microglial replacement) · Investigational lentiviral HSC gene
+  //   therapy (OTL-203) · Investigational AAV9 CNS-directed gene therapy
+  //   (RGX-111) · Investigational substrate-reduction therapy (genistein)
+  //   Clusters : 11 | Nodes : 133 | Edges : ~190
+  //   For QSP simulation with mrgsolve · Author: Claude Code Routine (2026-07-01)
+  // ==========================================================
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, splines=true, overlap=false, nodesep=0.28, ranksep=0.55, compound=true, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box, color="#37474F", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=9, color="#455A64", arrowsize=0.7];
+
+  // ==============================================================
+  // Cluster 1 — Genetics & Etiology
+  // ==============================================================
+  subgraph cluster_genetics {
+    label="① Genetics · Etiology"; style="rounded,filled"; fillcolor="#FFF8E1"; color="#F9A825";
+    IDUA_Gene        [label="IDUA gene\n(4p16.3)"; fillcolor="#FFECB3"];
+    IDUA_Mutation    [label="Loss-of-function\nmutation (missense/\nnonsense/splice/\nlarge deletion)"; fillcolor="#FFCC80"];
+    AR_Inheritance   [label="Autosomal\nrecessive\ninheritance"];
+    Consanguinity    [label="Consanguinity /\nfounder variants"];
+    CarrierFreq      [label="Carrier\nfrequency\n~1:100"];
+    Incidence_MPS1   [label="Incidence\n~1:100,000\nbirths"];
+    NullNull_Geno    [label="Null/Null genotype\n(W402X, Q70X)"; fillcolor="#FFAB91"];
+    Missense_Geno    [label="Missense/missense\nor missense/null\ngenotype"];
+    GenotypePheno    [label="Genotype-phenotype\ncorrelation\n(imperfect)"];
+    NewbornScreen    [label="Newborn screening\n(tandem MS/MS\nIDUA activity)"];
+    GeneticTest      [label="IDUA sequencing /\nenzyme assay\n(leukocyte, DBS)"];
+    FamilyHx         [label="Family history /\nsibling cascade\ntesting"];
+  }
+  IDUA_Gene -> IDUA_Mutation -> AR_Inheritance;
+  Consanguinity -> AR_Inheritance; CarrierFreq -> Incidence_MPS1;
+  IDUA_Mutation -> NullNull_Geno; IDUA_Mutation -> Missense_Geno;
+  NullNull_Geno -> GenotypePheno [label="severe\n(Hurler)"];
+  Missense_Geno -> GenotypePheno [label="attenuated\n(Hurler-Scheie/Scheie)"];
+  NewbornScreen -> GeneticTest -> IDUA_Mutation [style=dashed];
+  FamilyHx -> GeneticTest;
+
+  // ==============================================================
+  // Cluster 2 — GAG Substrate & Lysosomal Catabolic Pathway
+  // ==============================================================
+  subgraph cluster_gagpath {
+    label="② GAG Substrate · Catabolic Pathway"; style="rounded,filled"; fillcolor="#E8F5E9"; color="#2E7D32";
+    DermatanSulfate  [label="Dermatan sulfate\n(DS, substrate)"];
+    HeparanSulfate   [label="Heparan sulfate\n(HS, substrate)"];
+    Lysosome         [label="Lysosome\n(catabolic organelle)"];
+    IDUA_Enzyme      [label="alpha-L-\niduronidase\n(IDUA)"; fillcolor="#A5D6A7"];
+    IDUA_Deficiency  [label="IDUA activity\n<1% normal"; fillcolor="#66BB6A"];
+    IdU_Residue      [label="Terminal\nalpha-L-iduronic\nacid residue"];
+    StepwiseDegrad   [label="Normal stepwise\nexo-glycosidase\ndegradation"];
+    I2S_Enzyme       [label="Iduronate-2-\nsulfatase\n(unaffected)"];
+    HeparanNAG       [label="Heparan-N-acetyl-\nglucosaminidase\n(unaffected)"];
+    GAG_ChainAccum   [label="Undegraded GAG\nchain accumulation"; fillcolor="#66BB6A"];
+    PartialGAG_Frag  [label="Partially degraded\nGAG oligosaccharide\nfragments"];
+    M6P_Tag          [label="Mannose-6-\nphosphate tagging\n(Golgi)"];
+    M6PR             [label="Mannose-6-P\nreceptor (M6PR)\ntrafficking"];
+  }
+  DermatanSulfate -> Lysosome; HeparanSulfate -> Lysosome;
+  Lysosome -> IdU_Residue -> IDUA_Enzyme [label="normally\ncleaved"];
+  IDUA_Mutation -> IDUA_Deficiency; IDUA_Enzyme -> IDUA_Deficiency [style=dashed, color="#B71C1C", label="loss of\nactivity"];
+  IDUA_Deficiency -> StepwiseDegrad [label="blocks\ndegradation", color="#B71C1C"];
+  I2S_Enzyme -> StepwiseDegrad [style=dashed]; HeparanNAG -> StepwiseDegrad [style=dashed];
+  StepwiseDegrad -> GAG_ChainAccum [style=dashed, label="pathway\nhalted"];
+  IDUA_Deficiency -> GAG_ChainAccum [label="DS+HS\naccumulate"];
+  GAG_ChainAccum -> PartialGAG_Frag;
+  M6P_Tag -> M6PR -> IDUA_Enzyme [label="normal\nenzyme import"];
+
+  // ==============================================================
+  // Cluster 3 — Cellular / Lysosomal Pathology & Secondary Cascades
+  // ==============================================================
+  subgraph cluster_cellpath {
+    label="③ Lysosomal Storage · Secondary Pathology"; style="rounded,filled"; fillcolor="#FCE4EC"; color="#AD1457";
+    LysosomalSwelling [label="Progressive\nlysosomal\nswelling"; fillcolor="#F48FB1"];
+    AutophagyDysfx    [label="Impaired\nautophagic flux"];
+    mTOR_Dysreg       [label="mTOR pathway\ndysregulation"];
+    SecondaryGM       [label="Secondary GM2/GM3\nganglioside\naccumulation"];
+    OxidativeStress   [label="Oxidative stress\n(ROS)"];
+    Apoptosis_Cell    [label="Cellular\napoptosis"];
+    TLR4_Activation   [label="TLR4 activation\nby GAG fragments\n(DAMP-like)"];
+    NFkB_Pathway      [label="NF-κB pathway\nactivation"];
+    InflamCytokines   [label="IL-1β / IL-6 /\nTNF-α release"; fillcolor="#F48FB1"];
+    ChondrocyteDysfx  [label="Chondrocyte\ndysfunction"];
+    FibroblastDysfx   [label="Fibroblast\ndysfunction"];
+    ECM_Remodel       [label="Abnormal\nextracellular\nmatrix remodeling"];
+    CellDysfxGeneral  [label="Global cellular\ndysfunction /\ntissue damage"; fillcolor="#EC407A"];
+  }
+  GAG_ChainAccum -> LysosomalSwelling -> AutophagyDysfx -> mTOR_Dysreg;
+  LysosomalSwelling -> SecondaryGM; SecondaryGM -> OxidativeStress -> Apoptosis_Cell;
+  PartialGAG_Frag -> TLR4_Activation -> NFkB_Pathway -> InflamCytokines;
+  LysosomalSwelling -> ChondrocyteDysfx; LysosomalSwelling -> FibroblastDysfx;
+  ChondrocyteDysfx -> ECM_Remodel; FibroblastDysfx -> ECM_Remodel;
+  InflamCytokines -> CellDysfxGeneral; Apoptosis_Cell -> CellDysfxGeneral; ECM_Remodel -> CellDysfxGeneral;
+
+  // ==============================================================
+  // Cluster 4 — Skeletal System (Dysostosis Multiplex)
+  // ==============================================================
+  subgraph cluster_skeletal {
+    label="④ Skeletal · Dysostosis Multiplex"; style="rounded,filled"; fillcolor="#EFEBE9"; color="#4E342E";
+    DysostosisMultiplex [label="Dysostosis\nmultiplex\n(radiographic hallmark)"; fillcolor="#BCAAA4"];
+    GrowthPlateChondro  [label="Growth-plate\nchondrocyte\nGAG storage"];
+    Kyphoscoliosis      [label="Thoracolumbar\nkyphosis /\nscoliosis"];
+    GenuValgum          [label="Genu valgum"];
+    JointContractures   [label="Progressive joint\ncontractures\n(claw-hand)"];
+    CarpalTunnelSkel    [label="Carpal tunnel\nsyndrome"];
+    HipDysplasia        [label="Hip dysplasia /\nacetabular\ndysplasia"];
+    OdontoidHypoplasia  [label="Odontoid process\nhypoplasia"; fillcolor="#BCAAA4"];
+    CervicalStenosis    [label="Cervical spinal\ncanal stenosis"];
+    ShortStature        [label="Short stature /\ngrowth arrest\n(after age 2-3y)"];
+    BoneDensityLow      [label="Reduced bone\nmineral density"];
+    JointROM_Shoulder   [label="Restricted\nshoulder flexion\n(joint ROM)"];
+    SkeletalPain        [label="Chronic\nskeletal pain"];
+  }
+  CellDysfxGeneral -> GrowthPlateChondro -> DysostosisMultiplex;
+  DysostosisMultiplex -> Kyphoscoliosis; DysostosisMultiplex -> GenuValgum;
+  ECM_Remodel -> JointContractures -> CarpalTunnelSkel;
+  DysostosisMultiplex -> HipDysplasia; DysostosisMultiplex -> OdontoidHypoplasia -> CervicalStenosis;
+  GrowthPlateChondro -> ShortStature; DysostosisMultiplex -> BoneDensityLow;
+  JointContractures -> JointROM_Shoulder; DysostosisMultiplex -> SkeletalPain;
+
+  // ==============================================================
+  // Cluster 5 — Cardiovascular Manifestations
+  // ==============================================================
+  subgraph cluster_cardio {
+    label="⑤ Cardiovascular Manifestations"; style="rounded,filled"; fillcolor="#FFEBEE"; color="#C62828";
+    CardiacValveGAG    [label="Cardiac valve\nleaflet GAG\ninfiltration"; fillcolor="#EF9A9A"];
+    MitralThickening   [label="Mitral valve\nthickening"];
+    AorticThickening   [label="Aortic valve\nthickening"];
+    ValveRegurg        [label="Progressive\nvalvular\nregurgitation/stenosis"];
+    Cardiomyopathy     [label="Myocardial GAG\ninfiltration /\ncardiomyopathy"];
+    LV_Hypertrophy     [label="Left ventricular\nhypertrophy"];
+    CoronaryNarrowing  [label="Coronary\nintimal GAG\nnarrowing"];
+    Arrhythmia_CV      [label="Conduction\nabnormality /\narrhythmia"];
+    HeartFailure_CV    [label="Congestive\nheart failure"; fillcolor="#E57373"];
+    Echo_LVMass        [label="Echocardiographic\nLV mass"];
+    EndocardialFibro   [label="Endocardial\nfibroelastosis\n(infantile Hurler)"];
+  }
+  CellDysfxGeneral -> CardiacValveGAG -> MitralThickening; CardiacValveGAG -> AorticThickening;
+  MitralThickening -> ValveRegurg; AorticThickening -> ValveRegurg;
+  CellDysfxGeneral -> Cardiomyopathy -> LV_Hypertrophy;
+  CellDysfxGeneral -> CoronaryNarrowing -> Arrhythmia_CV;
+  ValveRegurg -> HeartFailure_CV; LV_Hypertrophy -> HeartFailure_CV;
+  LV_Hypertrophy -> Echo_LVMass; Cardiomyopathy -> EndocardialFibro;
+
+  // ==============================================================
+  // Cluster 6 — Respiratory / Upper Airway
+  // ==============================================================
+  subgraph cluster_resp {
+    label="⑥ Respiratory · Upper Airway"; style="rounded,filled"; fillcolor="#E1F5FE"; color="#0277BD";
+    UpperAirwayGAG    [label="Upper airway\nsoft-tissue GAG\ndeposition"; fillcolor="#81D4FA"];
+    AdenotonsillarHy  [label="Adenotonsillar\nhypertrophy"];
+    TrachealNarrowing [label="Tracheobronchial\nnarrowing /\nmalacia"];
+    MacroglossiaResp  [label="Macroglossia"];
+    OSA_AHI           [label="Obstructive sleep\napnea (OSA)"; fillcolor="#4FC3F7"];
+    ChestWallRestrict [label="Thoracic cage\ndeformity /\nrestriction"];
+    FVC_Restrictive   [label="Restrictive lung\nphysiology (FVC↓)"];
+    RecurrentResp     [label="Recurrent upper/\nlower respiratory\ninfections"];
+    SleepStudy_AHI    [label="Polysomnography\nAHI index"];
+    RespFailureRisk   [label="Respiratory\nfailure risk /\nanesthesia hazard"; fillcolor="#0288D1"];
+  }
+  CellDysfxGeneral -> UpperAirwayGAG -> AdenotonsillarHy; UpperAirwayGAG -> TrachealNarrowing;
+  UpperAirwayGAG -> MacroglossiaResp; AdenotonsillarHy -> OSA_AHI; TrachealNarrowing -> OSA_AHI;
+  MacroglossiaResp -> OSA_AHI; ChestWallRestrict -> FVC_Restrictive;
+  DysostosisMultiplex -> ChestWallRestrict; OSA_AHI -> RecurrentResp;
+  OSA_AHI -> SleepStudy_AHI; TrachealNarrowing -> RespFailureRisk; FVC_Restrictive -> RespFailureRisk;
+
+  // ==============================================================
+  // Cluster 7 — CNS / Neurological
+  // ==============================================================
+  subgraph cluster_cns {
+    label="⑦ CNS · Neurological"; style="rounded,filled"; fillcolor="#EDE7F6"; color="#4527A0";
+    CNS_GAG_Accum     [label="CNS neuronal/\nmeningeal GAG\naccumulation"; fillcolor="#B39DDB"];
+    BBB_Barrier       [label="Blood-brain\nbarrier (blocks\nIV enzyme entry)"; fillcolor="#7E57C2"];
+    Hydrocephalus     [label="Communicating\nhydrocephalus"];
+    CSF_GAG           [label="CSF GAG /\nopening pressure"];
+    Neurodegeneration [label="Progressive\nneurodegeneration\n(severe Hurler)"; fillcolor="#5E35B1"];
+    NeuronalStorage   [label="Neuronal lysosomal\nstorage (ganglioside)"];
+    CognitiveDecline  [label="Cognitive decline /\ndevelopmental\nregression"; fillcolor="#512DA8"];
+    DQ_Score          [label="Developmental\nquotient (DQ)"];
+    CervicalMyelo     [label="Cervical\nmyelopathy\n(cord compression)"];
+    PeripheralEntrap  [label="Peripheral nerve\nentrapment\n(median/ulnar)"];
+    BehavioralSleep   [label="Behavioral /\nsleep disturbance"];
+    CommunicatingHydro_Shunt [label="Ventriculoperitoneal\nshunt (surgical)"];
+  }
+  CellDysfxGeneral -> CNS_GAG_Accum; CNS_GAG_Accum -> NeuronalStorage -> Neurodegeneration;
+  CNS_GAG_Accum -> Hydrocephalus -> CSF_GAG; Hydrocephalus -> CommunicatingHydro_Shunt;
+  Neurodegeneration -> CognitiveDecline -> DQ_Score;
+  CervicalStenosis -> CervicalMyelo; CarpalTunnelSkel -> PeripheralEntrap;
+  Neurodegeneration -> BehavioralSleep;
+
+  // ==============================================================
+  // Cluster 8 — Ophthalmologic & Other Organ Involvement
+  // ==============================================================
+  subgraph cluster_other {
+    label="⑧ Ophthalmologic · Hepatosplenic · Other"; style="rounded,filled"; fillcolor="#FFF3E0"; color="#EF6C00";
+    CornealGAG        [label="Corneal stromal\nGAG deposition"; fillcolor="#FFCC80"];
+    CornealClouding   [label="Progressive\ncorneal clouding"; fillcolor="#FFA726"];
+    GlaucomaSecondary [label="Secondary\nglaucoma"];
+    RetinalDegen      [label="Retinal\ndegeneration"];
+    HepaticGAG        [label="Hepatic Kupffer-\ncell/hepatocyte GAG"];
+    Hepatomegaly      [label="Hepatomegaly"];
+    Splenomegaly      [label="Splenomegaly"];
+    HerniaInguinal    [label="Inguinal /\numbilical hernia"];
+    HearingLoss       [label="Mixed conductive-\nsensorineural\nhearing loss"];
+    OtitisMediaRecur  [label="Recurrent otitis\nmedia / effusion"];
+    FacialDysmorphism [label="Coarse facial\nfeatures"; fillcolor="#FFB74D"];
+    GI_Symptoms       [label="GI symptoms\n(diarrhea, hepatic\ndysfunction)"];
+  }
+  CellDysfxGeneral -> CornealGAG -> CornealClouding -> GlaucomaSecondary;
+  CornealGAG -> RetinalDegen;
+  CellDysfxGeneral -> HepaticGAG -> Hepatomegaly; HepaticGAG -> Splenomegaly;
+  ECM_Remodel -> HerniaInguinal; UpperAirwayGAG -> HearingLoss -> OtitisMediaRecur;
+  CellDysfxGeneral -> FacialDysmorphism; HepaticGAG -> GI_Symptoms;
+
+  // ==============================================================
+  // Cluster 9 — Laronidase Enzyme Replacement Therapy PK/PD
+  // ==============================================================
+  subgraph cluster_ert {
+    label="⑨ Laronidase ERT PK/PD"; style="rounded,filled"; fillcolor="#E0F7FA"; color="#00838F";
+    Laronidase_IV     [label="Laronidase\n(Aldurazyme) IV\ninfusion 0.58 mg/kg\nweekly, 3-4h"; shape=ellipse, fillcolor="#4DD0E1"];
+    Laronidase_Central [label="Central (plasma)\ncompartment"];
+    Laronidase_Periph  [label="Peripheral tissue\ndistribution\ncompartment"];
+    M6PR_Uptake        [label="M6PR-mediated\ncellular uptake\n(receptor-mediated)"];
+    ADA_AntiLaronidase [label="Anti-laronidase\nIgG antibody\n(~90% seroconvert)"; fillcolor="#26C6DA"];
+    Infusion_Reaction  [label="Infusion-associated\nreactions (IAR)"];
+    HepaticSplenicUpt  [label="Hepatic/splenic\nuptake (high\nperfusion, good\nresponse)"; fillcolor="#4DD0E1"];
+    CardiacUptake      [label="Cardiac tissue\nuptake (moderate\nresponse)"];
+    CartilageBonePoor  [label="Cartilage/bone\navascular tissue\n(poor ERT\npenetration)"; fillcolor="#00ACC1"];
+    CNS_NoPenetration  [label="CNS (no ERT\npenetration —\nblocked by BBB)"; fillcolor="#006064"];
+    WeeklyDosing       [label="Chronic weekly\nIV dosing regimen"];
+    ImmuneToleranceInd [label="Immune tolerance\ninduction (high-\ntiter ADA)"];
+    RecMediatedElim    [label="Receptor-mediated\nclearance\n(nonlinear)"];
+  }
+  Laronidase_IV -> Laronidase_Central -> Laronidase_Periph;
+  Laronidase_Central -> M6P_Tag [style=dashed, label="M6P-terminated\nglycoprotein"];
+  M6PR -> M6PR_Uptake; Laronidase_Periph -> M6PR_Uptake;
+  Laronidase_Central -> ADA_AntiLaronidase [label="repeated\nexposure"];
+  ADA_AntiLaronidase -> RecMediatedElim [label="accelerated\nclearance"];
+  Laronidase_Central -> Infusion_Reaction; ADA_AntiLaronidase -> Infusion_Reaction;
+  M6PR_Uptake -> HepaticSplenicUpt; M6PR_Uptake -> CardiacUptake;
+  M6PR_Uptake -> CartilageBonePoor [style=dashed, color="#B71C1C", label="limited"];
+  Laronidase_Central -> CNS_NoPenetration [style=dashed, color="#B71C1C", label="blocked"];
+  HepaticSplenicUpt -> IDUA_Enzyme [style=dashed, color="#00695C", label="restores\nactivity"];
+  WeeklyDosing -> Laronidase_IV; ADA_AntiLaronidase -> ImmuneToleranceInd;
+  Laronidase_Central -> RecMediatedElim;
+
+  // ==============================================================
+  // Cluster 10 — HSCT · Gene Therapy · Investigational SRT
+  // ==============================================================
+  subgraph cluster_hsct {
+    label="⑩ HSCT · Gene Therapy · Investigational SRT"; style="rounded,filled"; fillcolor="#F1F8E9"; color="#558B2F";
+    MyeloablativeCond  [label="Myeloablative\nconditioning\n(busulfan/cyclo)"];
+    DonorStemCellInf   [label="Donor HSC\ninfusion (BM/UCB/\nPBSC)"; shape=ellipse, fillcolor="#AED581"];
+    EngraftChimerism   [label="Donor engraftment /\nchimerism level"];
+    DonorIDUA_Enzyme   [label="Donor-derived\nIDUA enzyme\nproduction"; fillcolor="#9CCC65"];
+    CrossCorrection    [label="Cross-correction\n(donor cells secrete\nenzyme, host cells\nuptake via M6PR)"];
+    MicroglialReplace  [label="Donor monocyte-\nderived microglial\nreplacement (CNS)"; fillcolor="#7CB342"];
+    TimingTransplant   [label="Transplant timing\n(<2.5y critical\nwindow)"; fillcolor="#8BC34A"];
+    GVHD_Risk          [label="Graft-versus-host\ndisease risk"];
+    TRM_Risk           [label="Transplant-related\nmortality (~10-15%)"];
+    LentiviralHSC_GT   [label="Investigational\nlentiviral HSC gene\ntherapy (OTL-203)"; shape=ellipse, fillcolor="#C5E1A5"];
+    AAV9_CNS_GT        [label="Investigational\nAAV9 CNS-directed\ngene therapy\n(RGX-111)"; shape=ellipse, fillcolor="#C5E1A5"];
+    Genistein_SRT      [label="Investigational\nsubstrate-reduction\ntherapy (genistein,\noral isoflavone)"; shape=ellipse, fillcolor="#DCEDC8"];
+    BridgingERT        [label="Bridging laronidase\nERT pre-/peri-\ntransplant"];
+  }
+  MyeloablativeCond -> DonorStemCellInf -> EngraftChimerism;
+  EngraftChimerism -> DonorIDUA_Enzyme -> CrossCorrection;
+  CrossCorrection -> IDUA_Enzyme [style=dashed, color="#33691E", label="restores\nactivity, all\ntissues"];
+  EngraftChimerism -> MicroglialReplace -> CNS_NoPenetration [style=dashed, color="#33691E", label="overcomes\nBBB limitation"];
+  TimingTransplant -> CognitiveDecline [style=dashed, color="#33691E", label="early transplant\npreserves cognition"];
+  MyeloablativeCond -> GVHD_Risk; MyeloablativeCond -> TRM_Risk;
+  BridgingERT -> Laronidase_IV [style=dashed];
+  LentiviralHSC_GT -> DonorIDUA_Enzyme [style=dashed, label="supraphysiologic\nIDUA expression"];
+  AAV9_CNS_GT -> CNS_GAG_Accum [style=dashed, color="#33691E", label="direct CNS\nenzyme delivery"];
+  Genistein_SRT -> DermatanSulfate [style=dashed, color="#33691E", label="inhibits GAG\nbiosynthesis"];
+  Genistein_SRT -> HeparanSulfate [style=dashed, color="#33691E"];
+
+  // ==============================================================
+  // Cluster 11 — Clinical Endpoints & Biomarkers
+  // ==============================================================
+  subgraph cluster_clin {
+    label="⑪ Clinical Endpoints · Biomarkers"; style="rounded,filled"; fillcolor="#ECEFF1"; color="#37474F";
+    Urinary_GAG       [label="Urinary GAG\nexcretion (uGAG,\nprimary biomarker)"; shape=ellipse, fillcolor="#B0BEC5"];
+    SixMWT            [label="6-minute walk\ntest distance"; shape=ellipse, fillcolor="#B0BEC5"];
+    FVC_PctPredicted  [label="FVC %\npredicted"; shape=ellipse, fillcolor="#B0BEC5"];
+    JointROM_Composite [label="Composite joint\nROM score"; shape=ellipse, fillcolor="#B0BEC5"];
+    LiverSpleenVolMRI [label="Liver/spleen\nvolume (MRI)"; shape=ellipse, fillcolor="#B0BEC5"];
+    Echo_ValveThick   [label="Echocardiographic\nvalve thickness"; shape=ellipse, fillcolor="#B0BEC5"];
+    CorneaScore       [label="Corneal clouding\nseverity score"; shape=ellipse, fillcolor="#B0BEC5"];
+    DQ_CognitiveScore [label="DQ / cognitive\nassessment score"; shape=ellipse, fillcolor="#90A4AE"];
+    Growth_HeightZ    [label="Height Z-score /\ngrowth velocity"; shape=ellipse, fillcolor="#B0BEC5"];
+    QoL_PRO           [label="Quality of life /\npatient-reported\noutcome"; shape=ellipse, fillcolor="#B0BEC5"];
+    Survival_OS       [label="Overall survival"; shape=ellipse, fillcolor="#78909C"];
+  }
+  GAG_ChainAccum -> Urinary_GAG [color="#263238", label="reflects systemic\nGAG turnover"];
+  FVC_Restrictive -> SixMWT; OSA_AHI -> SixMWT; HeartFailure_CV -> SixMWT;
+  FVC_Restrictive -> FVC_PctPredicted;
+  JointROM_Shoulder -> JointROM_Composite; JointContractures -> JointROM_Composite;
+  Hepatomegaly -> LiverSpleenVolMRI; Splenomegaly -> LiverSpleenVolMRI;
+  ValveRegurg -> Echo_ValveThick; Echo_LVMass -> Echo_ValveThick;
+  CornealClouding -> CorneaScore;
+  DQ_Score -> DQ_CognitiveScore;
+  ShortStature -> Growth_HeightZ;
+  SixMWT -> QoL_PRO; JointROM_Composite -> QoL_PRO; DQ_CognitiveScore -> QoL_PRO;
+  HeartFailure_CV -> Survival_OS; RespFailureRisk -> Survival_OS; CervicalMyelo -> Survival_OS; TRM_Risk -> Survival_OS [style=dashed];
+}
