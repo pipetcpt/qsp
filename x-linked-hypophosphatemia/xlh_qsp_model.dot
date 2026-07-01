@@ -1,0 +1,316 @@
+digraph XLH_QSP {
+  // ==========================================================
+  // X-Linked Hypophosphatemia (XLH) — Quantitative Systems Pharmacology Model
+  //   PHEX (Xp22.11) loss-of-function → osteocyte FGF23 overproduction
+  //   FGF23-FGFR1c/αKlotho renal signaling → NPT2a/NPT2c internalization
+  //   → renal phosphate wasting + suppressed 1-alpha-hydroxylase (calcitriol↓)
+  //   → defective growth-plate/osteoid mineralization (rickets/osteomalacia)
+  //   Drugs: Burosumab (anti-FGF23 mAb) · Oral phosphate salts ·
+  //   Calcitriol/alfacalcidol (active vitamin D analogs)
+  //   Clusters : 15 | Nodes : 121 | Edges : ~175
+  //   For QSP simulation with mrgsolve · Author: Claude Code Routine (2026-07-01)
+  // ==========================================================
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, splines=true, overlap=false, nodesep=0.28, ranksep=0.55, compound=true, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box, color="#37474F", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=9, color="#455A64", arrowsize=0.7];
+
+  // ==============================================================
+  // Cluster 1 — Genetics & Etiology
+  // ==============================================================
+  subgraph cluster_genetics {
+    label="① Genetics · Etiology"; style="rounded,filled"; fillcolor="#FFF8E1"; color="#F9A825";
+    PHEX_Gene     [label="PHEX gene\n(Xp22.11)"; fillcolor="#FFECB3"];
+    PHEX_LOF      [label="Loss-of-function\nmutation (missense/\nnonsense/deletion)"; fillcolor="#FFCC80"];
+    XLdominant    [label="X-linked\ndominant inheritance"];
+    DeNovoXLH     [label="De novo mutation\n~20-30%"];
+    ADHR_FGF23    [label="ADHR: FGF23\nGOF mutation\n(R176Q/R179Q)"];
+    ARHR1_DMP1    [label="ARHR1: DMP1\nloss-of-function"];
+    ARHR2_ENPP1   [label="ARHR2: ENPP1\nloss-of-function"];
+    TIO_Paraneo   [label="TIO: paraneoplastic\nmesenchymal tumor\nFGF23 secretion"];
+    Incidence_XLH [label="Incidence\n~1:20,000 births"];
+    FamilyHx      [label="Family history /\ncascade testing"];
+    GeneticTest   [label="PHEX sequencing\n(genetic confirmation)"];
+  }
+  PHEX_Gene -> PHEX_LOF -> XLdominant; DeNovoXLH -> PHEX_LOF;
+  Incidence_XLH -> PHEX_LOF; FamilyHx -> GeneticTest -> PHEX_LOF;
+  PHEX_LOF -> Incidence_XLH [style=dashed, label="most common\nheritable rickets"];
+
+  // ==============================================================
+  // Cluster 2 — PHEX-FGF23 Osteocyte Regulatory Axis
+  // ==============================================================
+  subgraph cluster_phexfgf23 {
+    label="② PHEX-FGF23 Osteocyte Axis"; style="rounded,filled"; fillcolor="#FFEBEE"; color="#C62828";
+    Osteocyte     [label="Osteocyte\n(bone matrix cell)"];
+    PHEX_Protein  [label="PHEX endopeptidase\n(membrane-bound)"; fillcolor="#FFCDD2"];
+    MEPE          [label="MEPE\n(matrix protein)"];
+    ASARM_Peptide [label="ASARM peptide\n(PHEX substrate)"; fillcolor="#EF9A9A"];
+    PC2_Convertase [label="Furin/PC2\nproprotein convertase"];
+    FGF23_Gene    [label="FGF23 gene\ntranscription"];
+    FGF23_Intact  [label="Intact FGF23\n(biologically active)"; fillcolor="#EF9A9A"];
+    FGF23_Cleaved [label="Cleaved FGF23\n(inactive fragments)"];
+    FGF23_Overprod [label="FGF23\noverproduction ↑↑"; fillcolor="#E57373"];
+    SIBLING_Family [label="SIBLING protein\nfamily (DMP1/MEPE)"];
+    LocalMineral   [label="Local bone\nmineralization\nfeedback (disrupted)"];
+  }
+  PHEX_LOF -> PHEX_Protein [label="reduced/absent\nenzyme activity"];
+  Osteocyte -> MEPE -> ASARM_Peptide;
+  PHEX_Protein -> ASARM_Peptide [label="fails to\ndegrade", color="#B71C1C"];
+  ASARM_Peptide -> LocalMineral [label="inhibits\nmineralization"];
+  Osteocyte -> FGF23_Gene -> FGF23_Intact;
+  PC2_Convertase -> FGF23_Cleaved; FGF23_Intact -> PC2_Convertase [style=dashed, label="normally\ncleaved"];
+  PHEX_Protein -> PC2_Convertase [label="indirect\nregulation", style=dashed];
+  FGF23_Intact -> FGF23_Overprod; SIBLING_Family -> FGF23_Gene [label="dysregulated\nsignal"];
+  ARHR1_DMP1 -> SIBLING_Family [label="DMP1 loss"]; ARHR2_ENPP1 -> FGF23_Overprod [style=dashed];
+  ADHR_FGF23 -> FGF23_Intact [label="stabilizes vs\nPC2 cleavage"];
+  TIO_Paraneo -> FGF23_Overprod [label="ectopic tumor\nsecretion"];
+
+  // ==============================================================
+  // Cluster 3 — FGF23-FGFR1c/αKlotho Renal Signaling
+  // ==============================================================
+  subgraph cluster_fgf23sig {
+    label="③ FGF23-FGFR1c/αKlotho Signaling"; style="rounded,filled"; fillcolor="#E1F5FE"; color="#0277BD";
+    FGF23_Circ    [label="Circulating\nFGF23 (intact)"; fillcolor="#B3E5FC"];
+    AlphaKlotho   [label="α-Klotho\n(obligate co-receptor)"];
+    FGFR1c        [label="FGFR1c\n(renal proximal\ntubule receptor)"; fillcolor="#81D4FA"];
+    FGF23_Complex [label="FGF23-FGFR1c-\nαKlotho ternary complex"];
+    FRS2_Renal    [label="FRS2α\nadaptor"];
+    RAS_Renal     [label="RAS-RAF-MEK-\nERK1/2 (renal)"];
+    EGR1          [label="EGR1\nimmediate response"];
+    Burosumab_Target [label="Burosumab binds\nFGF23 directly"; shape=ellipse, fillcolor="#4FC3F7"];
+  }
+  FGF23_Overprod -> FGF23_Circ;
+  FGF23_Circ -> FGF23_Complex; AlphaKlotho -> FGF23_Complex; FGFR1c -> FGF23_Complex;
+  FGF23_Complex -> FRS2_Renal -> RAS_Renal -> EGR1;
+  Burosumab_Target -> FGF23_Circ [label="neutralizes", color="#1B5E20"];
+
+  // ==============================================================
+  // Cluster 4 — Renal Phosphate Handling
+  // ==============================================================
+  subgraph cluster_renalpi {
+    label="④ Renal Phosphate Handling"; style="rounded,filled"; fillcolor="#E8F5E9"; color="#2E7D32";
+    NPT2a         [label="NPT2a (SLC34A1)\napical Na-Pi cotransporter"; fillcolor="#C8E6C9"];
+    NPT2c         [label="NPT2c (SLC34A3)\napical Na-Pi cotransporter"];
+    BrushBorder   [label="Proximal tubule\nbrush border\nmembrane"];
+    Internalization [label="Transporter\ninternalization/\ndegradation"; fillcolor="#A5D6A7"];
+    TmPGFR        [label="TmP/GFR\n(tubular max Pi\nreabsorption threshold) ↓↓"; fillcolor="#81C784"];
+    UrinaryPiLoss [label="Urinary phosphate\nwasting ↑↑"];
+    FilteredPi    [label="Filtered Pi\nload (GFR)"];
+  }
+  RAS_Renal -> Internalization -> NPT2a; RAS_Renal -> Internalization -> NPT2c;
+  NPT2a -> BrushBorder; NPT2c -> BrushBorder;
+  Internalization -> TmPGFR [label="reduced\nreabsorption"];
+  FilteredPi -> UrinaryPiLoss; TmPGFR -> UrinaryPiLoss;
+
+  // ==============================================================
+  // Cluster 5 — Vitamin D / Calcitriol Metabolism
+  // ==============================================================
+  subgraph cluster_vitd {
+    label="⑤ Vitamin D · Calcitriol Metabolism"; style="rounded,filled"; fillcolor="#F3E5F5"; color="#6A1B9A";
+    CYP27B1       [label="1α-hydroxylase\n(CYP27B1)"; fillcolor="#E1BEE7"];
+    CYP24A1       [label="24-hydroxylase\n(CYP24A1)\ninduced ↑"];
+    Calcidiol     [label="25(OH)D\n(calcidiol)"];
+    Calcitriol_Endog [label="1,25(OH)2D\n(calcitriol) —\ninappropriately\nlow/normal"; fillcolor="#CE93D8"];
+    Calcitriol_Inact [label="24,25(OH)2D\n(inactivated)"];
+    IntestinalCaAbs [label="Intestinal Ca\nabsorption ↓"];
+    IntestinalPiAbs [label="Intestinal Pi\nabsorption ↓"];
+  }
+  RAS_Renal -> CYP27B1 [label="suppresses", color="#4A148C"];
+  RAS_Renal -> CYP24A1 [label="induces", color="#4A148C"];
+  Calcidiol -> CYP27B1 -> Calcitriol_Endog;
+  Calcidiol -> CYP24A1 -> Calcitriol_Inact;
+  Calcitriol_Endog -> IntestinalCaAbs; Calcitriol_Endog -> IntestinalPiAbs;
+
+  // ==============================================================
+  // Cluster 6 — PTH-Calcium Axis
+  // ==============================================================
+  subgraph cluster_pth {
+    label="⑥ PTH-Calcium Axis"; style="rounded,filled"; fillcolor="#FBE9E7"; color="#BF360C";
+    SerumCa       [label="Serum ionized\ncalcium"; fillcolor="#FFCCBC"];
+    CaSR          [label="Calcium-sensing\nreceptor (parathyroid)"];
+    PTH_Secretion [label="PTH secretion"];
+    SecondaryHPT  [label="Secondary\nhyperparathyroidism"; fillcolor="#FFAB91"];
+    TertiaryHPT   [label="Tertiary\nhyperparathyroidism\n(autonomous)"];
+    Parathyroidectomy [label="Parathyroidectomy\n(refractory tHPT)"];
+    PTH_FGF23_Loop [label="PTH stimulates\nfurther FGF23\nsecretion (feedback)"];
+  }
+  IntestinalCaAbs -> SerumCa [label="↓ absorption"];
+  SerumCa -> CaSR -> PTH_Secretion [label="low Ca\nstimulates"];
+  Calcitriol_Endog -> PTH_Secretion [label="low calcitriol\nremoves suppression", style=dashed];
+  PTH_Secretion -> SecondaryHPT -> TertiaryHPT -> Parathyroidectomy;
+  PTH_Secretion -> PTH_FGF23_Loop -> FGF23_Gene [style=dashed, label="amplifies"];
+
+  // ==============================================================
+  // Cluster 7 — Bone Mineralization Pathology
+  // ==============================================================
+  subgraph cluster_bonemin {
+    label="⑦ Bone Mineralization Pathology"; style="rounded,filled"; fillcolor="#EDE7F6"; color="#4527A0";
+    HypoPi_Systemic [label="Chronic systemic\nhypophosphatemia"; fillcolor="#D1C4E9"];
+    OsteoidAccum  [label="Unmineralized\nosteoid accumulation"];
+    GrowthPlateWiden [label="Growth plate\nwidening/\ndisorganization"; fillcolor="#B39DDB"];
+    RicketsPed    [label="Rickets\n(pediatric)"; fillcolor="#9575CD"];
+    OsteomalaciaAdult [label="Osteomalacia\n(adult)"; fillcolor="#9575CD"];
+    Craniosynostosis [label="Craniosynostosis"];
+    ChiariMalform [label="Chiari I\nmalformation"];
+    Pseudofracture [label="Pseudofractures"];
+    InsufficiencyFx [label="Insufficiency\nfractures"];
+  }
+  UrinaryPiLoss -> HypoPi_Systemic; IntestinalPiAbs -> HypoPi_Systemic;
+  HypoPi_Systemic -> OsteoidAccum -> RicketsPed; OsteoidAccum -> OsteomalaciaAdult;
+  HypoPi_Systemic -> GrowthPlateWiden -> RicketsPed;
+  RicketsPed -> Craniosynostosis; Craniosynostosis -> ChiariMalform;
+  OsteomalaciaAdult -> Pseudofracture -> InsufficiencyFx;
+
+  // ==============================================================
+  // Cluster 8 — Skeletal / Orthopedic Manifestations
+  // ==============================================================
+  subgraph cluster_ortho {
+    label="⑧ Skeletal · Orthopedic"; style="rounded,filled"; fillcolor="#FFFDE7"; color="#F57F17";
+    LegBowing     [label="Genu varum /\ngenu valgum"; fillcolor="#FFF59D"];
+    ShortStature  [label="Disproportionate\nshort stature"];
+    GrowthVelocityLow [label="Growth velocity\n↓ (pediatric)"];
+    LowerLimbDeform [label="Progressive lower\nlimb deformity"];
+    Osteotomy_XLH [label="Corrective\nosteotomy"];
+    Enthesopathy  [label="Enthesopathy\n(calcific)"; fillcolor="#FFE082"];
+    EarlyOA       [label="Early-onset\nosteoarthritis"];
+    SpinalStenosis_XLH [label="Spinal stenosis\n(ligamentous\nossification)"];
+    JointStiffness [label="Joint stiffness /\nrange-of-motion ↓"];
+  }
+  GrowthPlateWiden -> LegBowing; RicketsPed -> ShortStature;
+  RicketsPed -> GrowthVelocityLow -> ShortStature;
+  LegBowing -> LowerLimbDeform -> Osteotomy_XLH;
+  HypoPi_Systemic -> Enthesopathy [label="ectopic\ncalcification"]; Enthesopathy -> EarlyOA;
+  Enthesopathy -> SpinalStenosis_XLH; EarlyOA -> JointStiffness;
+
+  // ==============================================================
+  // Cluster 9 — Dental Manifestations
+  // ==============================================================
+  subgraph cluster_dental {
+    label="⑨ Dental Manifestations"; style="rounded,filled"; fillcolor="#E0F7FA"; color="#00695C";
+    DentinDefect  [label="Interglobular\ndentin defects"; fillcolor="#B2DFDB"];
+    PulpChamber   [label="Enlarged pulp\nchambers / horns"];
+    EnamelDefect  [label="Enamel\nmicrocracks"];
+    SpontAbscess  [label="Spontaneous\ndental abscesses"; fillcolor="#80CBC4"];
+    PeriodontalDz [label="Periodontal\ndisease"];
+    DentalTx      [label="Dental surveillance\n/ endodontic care"];
+  }
+  OsteoidAccum -> DentinDefect [style=dashed, label="matrix\nmineralization defect"];
+  DentinDefect -> PulpChamber; DentinDefect -> EnamelDefect;
+  PulpChamber -> SpontAbscess; EnamelDefect -> SpontAbscess;
+  SpontAbscess -> PeriodontalDz; SpontAbscess -> DentalTx;
+
+  // ==============================================================
+  // Cluster 10 — Muscular & Functional Impact
+  // ==============================================================
+  subgraph cluster_muscle {
+    label="⑩ Muscular · Functional"; style="rounded,filled"; fillcolor="#F1F8E9"; color="#33691E";
+    MyopathyXLH   [label="Proximal\nmyopathy"; fillcolor="#DCEDC8"];
+    MuscleWeak    [label="Muscle\nweakness"];
+    GaitAbnormal  [label="Waddling gait /\nabnormal gait"];
+    ChronicPainXLH [label="Chronic\nmusculoskeletal pain"; fillcolor="#C5E1A5"];
+    Fatigue_XLH   [label="Fatigue"];
+    MobilityLimit [label="Mobility\nlimitation"];
+    QoL_XLH       [label="Health-related\nquality of life ↓"; fillcolor="#AED581"];
+    Employment_XLH [label="Reduced employment /\nfunctional independence"];
+  }
+  HypoPi_Systemic -> MyopathyXLH [label="ATP/energetics\nimpairment"]; MyopathyXLH -> MuscleWeak;
+  LowerLimbDeform -> GaitAbnormal; MuscleWeak -> GaitAbnormal;
+  SpinalStenosis_XLH -> ChronicPainXLH; Enthesopathy -> ChronicPainXLH;
+  ChronicPainXLH -> Fatigue_XLH; GaitAbnormal -> MobilityLimit;
+  MobilityLimit -> QoL_XLH; ChronicPainXLH -> QoL_XLH; QoL_XLH -> Employment_XLH;
+
+  // ==============================================================
+  // Cluster 11 — Drug PK: Burosumab
+  // ==============================================================
+  subgraph cluster_pk_buro {
+    label="⑪ Drug PK — Burosumab"; style="rounded,filled"; fillcolor="#FCE4EC"; color="#AD1457";
+    Burosumab_SC  [label="Burosumab SC\n(0.8-2.0 mg/kg\nQ2W ped / Q4W adult)"; shape=ellipse, fillcolor="#F8BBD0"];
+    BuroAbsorption [label="SC absorption\n(ka, F~70%)"];
+    BuroCentral   [label="Central\ncompartment Cp"];
+    BuroPeripheral [label="Peripheral\ncompartment"];
+    BuroFcRn      [label="FcRn-mediated\nrecycling (IgG1)"];
+    BuroClearance [label="Target-mediated +\nlinear clearance"];
+    BuroImmunogen [label="Anti-drug\nantibodies (rare)"];
+    BuroAdherence [label="Injection\nadherence"];
+  }
+  Burosumab_SC -> BuroAbsorption -> BuroCentral;
+  BuroCentral -> BuroPeripheral [dir=both];
+  BuroFcRn -> BuroCentral [label="extends t½\n(~19 days)"];
+  BuroCentral -> BuroClearance; BuroCentral -> Burosumab_Target;
+  BuroAdherence -> Burosumab_SC [style=dashed]; BuroCentral -> BuroImmunogen [style=dashed];
+
+  // ==============================================================
+  // Cluster 12 — Drug PK: Conventional Therapy
+  // ==============================================================
+  subgraph cluster_pk_conv {
+    label="⑫ Drug PK — Conventional Therapy"; style="rounded,filled"; fillcolor="#E8EAF6"; color="#283593";
+    OralPhosphate [label="Oral phosphate\nsalts (20-60 mg/kg/d\ndivided TID-QID)"; shape=ellipse, fillcolor="#C5CAE9"];
+    PhosGutAbs    [label="Gut absorption\n(transient spike)"];
+    PhosGICompliance [label="GI tolerability /\ndiarrhea (adherence↓)"];
+    Calcitriol_Oral [label="Calcitriol /\nalfacalcidol PO\n(20-60 ng/kg/d)"; shape=ellipse, fillcolor="#9FA8DA"];
+    CalcitriolGutAbs [label="Rapid oral\nabsorption"];
+    CalcitriolCentral [label="Central\nconcentration"];
+  }
+  OralPhosphate -> PhosGutAbs [label="transient\nserum Pi rise"]; PhosGutAbs -> PhosGICompliance;
+  Calcitriol_Oral -> CalcitriolGutAbs -> CalcitriolCentral;
+
+  // ==============================================================
+  // Cluster 13 — Drug PD
+  // ==============================================================
+  subgraph cluster_pd {
+    label="⑬ Drug PD"; style="rounded,filled"; fillcolor="#FFF3E0"; color="#E65100";
+    FGF23_Neutralized [label="Free FGF23\nneutralized (%)"; fillcolor="#FFCC80"];
+    NPT2_Restoration [label="NPT2a/c\nsurface restoration"];
+    TmPGFR_Rescue [label="TmP/GFR\nrescue"; fillcolor="#FFB74D"];
+    SerumPi_Rescue [label="Serum Pi\nnormalization"];
+    Calcitriol_Rescue [label="Endogenous\ncalcitriol rescue"];
+    PhosSpike_PD  [label="Oral Pi:\ntransient serum\nspike → rapid decay"];
+    Calcitriol_Direct [label="Exogenous calcitriol:\ndirect intestinal\nCa/Pi absorption ↑"];
+    Overcorrection_Risk [label="Overcorrection risk\n(hyperPi/hyperCa)"];
+  }
+  Burosumab_Target -> FGF23_Neutralized -> NPT2_Restoration -> TmPGFR_Rescue;
+  TmPGFR_Rescue -> SerumPi_Rescue; FGF23_Neutralized -> Calcitriol_Rescue [label="disinhibits\nCYP27B1"];
+  OralPhosphate -> PhosSpike_PD; Calcitriol_Oral -> Calcitriol_Direct;
+  PhosSpike_PD -> Overcorrection_Risk [style=dashed]; Calcitriol_Direct -> Overcorrection_Risk [style=dashed];
+  SerumPi_Rescue -> HypoPi_Systemic [label="reverses", color="#1B5E20"];
+  Calcitriol_Rescue -> Calcitriol_Endog [label="restores", color="#1B5E20"];
+
+  // ==============================================================
+  // Cluster 14 — Clinical Endpoints
+  // ==============================================================
+  subgraph cluster_endpoints {
+    label="⑭ Clinical Endpoints"; style="rounded,filled"; fillcolor="#E8F5E9"; color="#1B5E20";
+    RSS           [label="Rickets Severity\nScore (RSS, Thacher)"; fillcolor="#A5D6A7"];
+    RGI_C         [label="Radiographic Global\nImpression of Change"];
+    AGV_XLH       [label="Annualized growth\nvelocity (cm/yr)"];
+    HeightZ_XLH   [label="Height Z-score"];
+    SixMWT        [label="6-minute walk\ntest (adults)"];
+    WOMAC         [label="WOMAC pain/\nstiffness score"];
+    BSAP          [label="Bone-specific\nalkaline phosphatase\n(BSAP)"; fillcolor="#81C784"];
+    PROM_XLH      [label="Patient-reported\noutcome (BPI-SF)"];
+  }
+  GrowthPlateWiden -> RSS [label="inverse", style=dashed]; RSS -> RGI_C;
+  GrowthVelocityLow -> AGV_XLH; AGV_XLH -> HeightZ_XLH;
+  MobilityLimit -> SixMWT; ChronicPainXLH -> WOMAC; ChronicPainXLH -> PROM_XLH;
+  OsteoidAccum -> BSAP [label="elevated\nbone turnover"];
+
+  // ==============================================================
+  // Cluster 15 — Safety / Adverse Events
+  // ==============================================================
+  subgraph cluster_safety {
+    label="⑮ Safety · Adverse Events"; style="rounded,filled"; fillcolor="#FBE9E7"; color="#D84315";
+    InjectionSiteAE_XLH [label="Injection site\nreactions (burosumab)"];
+    RestlessLegsAE [label="Restless legs\nsyndrome (burosumab)"];
+    HeadacheAE    [label="Headache /\ntooth abscess (burosumab)"];
+    NephrocalcinosisRisk [label="Nephrocalcinosis\nrisk"; fillcolor="#FFAB91"];
+    HypercalciuriaRisk [label="Hypercalciuria"];
+    RenalFuncDecline [label="Renal function\ndecline (CKD)"];
+    HyperPi_Risk  [label="Hyperphosphatemia\n(overdose)"];
+    MonitoringProtocol_XLH [label="Guideline-based\nbiochemical monitoring"];
+  }
+  Burosumab_SC -> InjectionSiteAE_XLH; Burosumab_SC -> RestlessLegsAE; Burosumab_SC -> HeadacheAE;
+  Overcorrection_Risk -> HyperPi_Risk; Calcitriol_Direct -> HypercalciuriaRisk;
+  HypercalciuriaRisk -> NephrocalcinosisRisk; PhosSpike_PD -> NephrocalcinosisRisk [style=dashed];
+  NephrocalcinosisRisk -> RenalFuncDecline;
+  MonitoringProtocol_XLH -> NephrocalcinosisRisk [style=dashed]; MonitoringProtocol_XLH -> HyperPi_Risk [style=dashed];
+}
