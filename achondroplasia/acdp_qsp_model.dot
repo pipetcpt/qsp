@@ -1,0 +1,362 @@
+digraph ACH_QSP {
+  // ==========================================================
+  // Achondroplasia (ACH) — Quantitative Systems Pharmacology Model
+  //   FGFR3 gain-of-function (G380R, ~97%) → constitutive dimerization
+  //   RAS-RAF-MEK-ERK / STAT1 hyperactivation → growth plate chondrocyte
+  //   proliferation & hypertrophic differentiation suppression
+  //   CNP-NPR2-cGMP-PKGII counter-regulatory axis (vosoritide target)
+  //   Craniofacial · Spinal · Neurologic · ENT/Respiratory · Orthopedic
+  //   sequelae; Drugs: Vosoritide (CNP analog) · TransCon CNP
+  //   (navepegritide) · Infigratinib (FGFR1-3 TKI) · Growth hormone
+  //   Clusters : 15  |  Nodes : ~160  |  Edges : ~230
+  //   For QSP simulation with mrgsolve · Author: Claude Code Routine (2026-07-01)
+  // ==========================================================
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, splines=true, overlap=false, nodesep=0.28, ranksep=0.55, compound=true, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box, color="#37474F", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=9, color="#455A64", arrowsize=0.7];
+
+  // ==============================================================
+  // Cluster 1 — Genetics & Etiology
+  // ==============================================================
+  subgraph cluster_genetics {
+    label="① Genetics · Etiology"; style="rounded,filled"; fillcolor="#FFF8E1"; color="#F9A825";
+    FGFR3_Gene   [label="FGFR3 gene\n(4p16.3)"; fillcolor="#FFECB3"];
+    G380R        [label="G380R mutation\n(~97% of ACH)"; fillcolor="#FFCC80"];
+    OtherFGFR3   [label="G375C · G346E\n(other TM mutations)"];
+    DeNovo       [label="De novo mutation\n~80% (paternal age↑)"];
+    AD_Inherit   [label="Autosomal dominant\ninheritance"];
+    Homozygous   [label="Homozygous ACH\n(both parents ACH)\nlethal in infancy"; fillcolor="#FFAB91"];
+    GenoSpectrum [label="FGFR3 spectrum:\nHCH ↔ ACH ↔ TD"];
+    Incidence    [label="Incidence\n~1:25,000 births"];
+    PaternalAge  [label="Advanced\npaternal age"];
+    PrenatalDx   [label="Prenatal US:\nshort femur <5th %ile"];
+  }
+  FGFR3_Gene -> G380R; FGFR3_Gene -> OtherFGFR3; FGFR3_Gene -> GenoSpectrum;
+  PaternalAge -> DeNovo -> G380R; G380R -> AD_Inherit;
+  G380R -> Homozygous [label="both parents ACH"];
+  G380R -> PrenatalDx; Incidence -> G380R;
+
+  // ==============================================================
+  // Cluster 2 — FGFR3 Receptor Signaling
+  // ==============================================================
+  subgraph cluster_fgfr3 {
+    label="② FGFR3 Receptor Signaling"; style="rounded,filled"; fillcolor="#FFEBEE"; color="#C62828";
+    FGF_Ligand   [label="FGF9 · FGF18\nligand binding"];
+    FGFR3_Dimer  [label="Ligand-independent\nconstitutive dimerization"; fillcolor="#FFCDD2"];
+    TM_Stabilize [label="Transmembrane domain\nstabilization (G380R)"];
+    Autophos     [label="Receptor\nautophosphorylation ↑↑"];
+    FRS2         [label="FRS2α adaptor"];
+    RAS          [label="RAS-GTP ↑"];
+    RAF1         [label="RAF1 (CRAF) ↑"];
+    MEK          [label="MEK1/2 ↑"];
+    ERK          [label="ERK1/2 (pERK) ↑↑"; fillcolor="#EF9A9A"];
+    STAT1        [label="STAT1\nphosphorylation ↑"];
+    PI3K         [label="PI3K-AKT ↑"];
+    PLCg         [label="PLCγ-PKC"];
+    SOCS3        [label="SOCS3 negative\nfeedback (blunted)"];
+    FGFR3_Turnover [label="Reduced receptor\ndegradation (Cbl↓)"];
+  }
+  TM_Stabilize -> FGFR3_Dimer; FGF_Ligand -> FGFR3_Dimer [style=dashed, label="ligand-dependent\n(minor)"];
+  FGFR3_Dimer -> Autophos -> FRS2;
+  FRS2 -> RAS -> RAF1 -> MEK -> ERK;
+  Autophos -> STAT1; Autophos -> PI3K; Autophos -> PLCg;
+  ERK -> SOCS3 [style=dashed, label="feedback\n(blunted)"];
+  FGFR3_Turnover -> Autophos [label="↓ clearance\nsustains signal"];
+
+  // ==============================================================
+  // Cluster 3 — Growth Plate Chondrocyte Biology
+  // ==============================================================
+  subgraph cluster_growthplate {
+    label="③ Growth Plate Chondrocyte Biology"; style="rounded,filled"; fillcolor="#E8F5E9"; color="#2E7D32";
+    RestingZone   [label="Resting zone\nchondrocytes"];
+    ProlifZone    [label="Proliferative zone\ncolumnar chondrocytes"];
+    PrehypertZone [label="Prehypertrophic\nzone"];
+    HypertZone    [label="Hypertrophic\nzone"];
+    ChondroProlif [label="Chondrocyte\nproliferation rate ↓↓"; fillcolor="#C8E6C9"];
+    p21_CDKN1A    [label="p21^CIP1 (CDKN1A) ↑\n(STAT1-driven)"];
+    CellCycleArrest [label="G0/G1 cell\ncycle arrest"];
+    SOX9          [label="SOX9 ↑\n(ERK-driven)"];
+    RUNX2         [label="RUNX2 ↓\n(hypertrophy TF)"];
+    Col2a1        [label="Col2a1 matrix\nsynthesis ↓"];
+    Col10a1       [label="Col10a1 (hypertrophic\nmarker) ↓"];
+    PTHrP         [label="PTHrP-Ihh\nfeedback disrupted"];
+    Ihh           [label="Indian hedgehog\nsignaling"];
+    ChondroApopt  [label="Dysregulated\nhypertrophic apoptosis"];
+    ColumnDisorg  [label="Disorganized\nproliferative columns"];
+    GrowthPlateHeight [label="Growth plate\nheight ↓"; fillcolor="#A5D6A7"];
+  }
+  RestingZone -> ProlifZone -> PrehypertZone -> HypertZone;
+  ERK -> ChondroProlif [label="inhibits"]; STAT1 -> p21_CDKN1A -> CellCycleArrest -> ChondroProlif;
+  ERK -> SOX9; SOX9 -> RUNX2 [label="represses"]; RUNX2 -> Col10a1;
+  ProlifZone -> Col2a1; HypertZone -> Col10a1; PTHrP -> Ihh -> ProlifZone;
+  ERK -> PTHrP [style=dashed];
+  ChondroProlif -> ColumnDisorg; RUNX2 -> ChondroApopt [label="↓ orderly\napoptosis"];
+  ColumnDisorg -> GrowthPlateHeight; ChondroApopt -> GrowthPlateHeight; Col10a1 -> GrowthPlateHeight;
+
+  // ==============================================================
+  // Cluster 4 — CNP-NPR2-cGMP-PKGII Counter-Regulatory Axis
+  // ==============================================================
+  subgraph cluster_cnp {
+    label="④ CNP-NPR2 Counter-Regulatory Axis (Drug Target)"; style="rounded,filled"; fillcolor="#E1F5FE"; color="#0277BD";
+    CNP_Endog    [label="Endogenous CNP\n(NPPC)"];
+    NPR2_NPRB    [label="NPR-B (NPR2)\nreceptor"; fillcolor="#B3E5FC"];
+    NPR3_Clear   [label="NPR-C clearance\nreceptor"];
+    NEP_Degrad   [label="Neprilysin (NEP)\ndegradation"];
+    GC_Activity  [label="Particulate\nguanylyl cyclase"];
+    cGMP         [label="cGMP ↑"; fillcolor="#81D4FA"];
+    PKGII        [label="PKG II (cGKII)"];
+    RAF1_Inhib   [label="RAF1 inhibitory\nphosphorylation\n(Ser259/365)"];
+    MAPK_Counter [label="MAPK pathway\ncounter-inhibition"];
+    Vosoritide_Target [label="Vosoritide binds\nNPR-B"; shape=ellipse, fillcolor="#4FC3F7"];
+  }
+  CNP_Endog -> NPR2_NPRB -> GC_Activity -> cGMP -> PKGII -> RAF1_Inhib -> RAF1 [label="inhibits"];
+  RAF1_Inhib -> MAPK_Counter -> ERK [label="dampens"];
+  CNP_Endog -> NPR3_Clear [label="cleared\n(no signal)"]; CNP_Endog -> NEP_Degrad [label="degraded"];
+  Vosoritide_Target -> NPR2_NPRB;
+
+  // ==============================================================
+  // Cluster 5 — Craniofacial & Skull Base
+  // ==============================================================
+  subgraph cluster_cranio {
+    label="⑤ Craniofacial · Skull Base"; style="rounded,filled"; fillcolor="#F3E5F5"; color="#6A1B9A";
+    Synchondroses  [label="Cranial base\nsynchondroses"];
+    PrematureFusion [label="Premature\nsynchondrosis fusion"];
+    ForamenMagnum  [label="Foramen magnum\nstenosis"; fillcolor="#E1BEE7"];
+    MidfaceHypo    [label="Midface\nhypoplasia"];
+    FrontalBossing [label="Frontal bossing ·\nmacrocephaly"];
+    SkullBaseShort [label="Shortened\nskull base"];
+    JugularForamen [label="Jugular foramen\nstenosis"];
+    VenousOutflow  [label="Venous outflow\nobstruction"];
+    ICP            [label="Intracranial\npressure ↑"];
+    ChoanalNarrow  [label="Choanal / nasal\nairway narrowing"];
+    Macrocephaly   [label="Relative\nmacrocephaly"];
+    Ventriculomegaly [label="Ventriculomegaly"];
+  }
+  GrowthPlateHeight -> Synchondroses [label="endochondral\ngrowth ↓"];
+  Synchondroses -> PrematureFusion -> ForamenMagnum;
+  PrematureFusion -> SkullBaseShort -> MidfaceHypo;
+  SkullBaseShort -> JugularForamen -> VenousOutflow -> ICP;
+  ForamenMagnum -> VenousOutflow; MidfaceHypo -> ChoanalNarrow;
+  Macrocephaly -> FrontalBossing; ICP -> Ventriculomegaly;
+
+  // ==============================================================
+  // Cluster 6 — Spine
+  // ==============================================================
+  subgraph cluster_spine {
+    label="⑥ Spine"; style="rounded,filled"; fillcolor="#FBE9E7"; color="#BF360C";
+    ShortPedicles   [label="Short pedicles\n(interpedicular\nnarrowing)"];
+    SpinalCanal     [label="Spinal canal\ndiameter ↓"; fillcolor="#FFCCBC"];
+    ThoracolumbarKyphosis [label="Thoracolumbar\nkyphosis (infancy)"];
+    LumbarLordosis  [label="Exaggerated\nlumbar lordosis"];
+    SpinalStenosis  [label="Progressive spinal\nstenosis (adult)"; fillcolor="#FFAB91"];
+    DiscDegen       [label="Disc\ndegeneration"];
+    Claudication    [label="Neurogenic\nclaudication"];
+    Gibbus          [label="Gibbus\ndeformity"];
+    GaitDisturb     [label="Gait\ndisturbance"];
+  }
+  GrowthPlateHeight -> ShortPedicles -> SpinalCanal;
+  ThoracolumbarKyphosis -> Gibbus; SpinalCanal -> ThoracolumbarKyphosis;
+  ThoracolumbarKyphosis -> LumbarLordosis [label="compensatory"];
+  SpinalCanal -> SpinalStenosis; DiscDegen -> SpinalStenosis;
+  SpinalStenosis -> Claudication -> GaitDisturb;
+
+  // ==============================================================
+  // Cluster 7 — Neurologic Complications
+  // ==============================================================
+  subgraph cluster_neuro {
+    label="⑦ Neurologic Complications"; style="rounded,filled"; fillcolor="#EDE7F6"; color="#4527A0";
+    Cervicomedullary [label="Cervicomedullary\ncompression"; fillcolor="#D1C4E9"];
+    Hydrocephalus   [label="Hydrocephalus\n(communicating)"];
+    Syringomyelia   [label="Syringomyelia"];
+    CentralApnea    [label="Central sleep\napnea (brainstem)"];
+    Hyperreflexia   [label="Hyperreflexia ·\nclonus"];
+    SuddenDeathRisk [label="Sudden infant\ndeath risk\n(severe FMS)"; fillcolor="#B39DDB"];
+    MotorDelay      [label="Gross motor\ndevelopmental delay"];
+    Hypotonia       [label="Infantile\nhypotonia"];
+    VP_Shunt        [label="VP shunt\n(if symptomatic)"];
+  }
+  ForamenMagnum -> Cervicomedullary; Ventriculomegaly -> Hydrocephalus;
+  Cervicomedullary -> Syringomyelia; Cervicomedullary -> CentralApnea;
+  Cervicomedullary -> Hyperreflexia -> SuddenDeathRisk;
+  Cervicomedullary -> SuddenDeathRisk; Hypotonia -> MotorDelay;
+  Cervicomedullary -> MotorDelay; Hydrocephalus -> VP_Shunt;
+
+  // ==============================================================
+  // Cluster 8 — ENT / Respiratory
+  // ==============================================================
+  subgraph cluster_ent {
+    label="⑧ ENT · Respiratory"; style="rounded,filled"; fillcolor="#E0F7FA"; color="#00695C";
+    EustachianDys   [label="Eustachian tube\ndysfunction"];
+    OtitisMedia     [label="Recurrent\notitis media"];
+    ConductiveHL    [label="Conductive\nhearing loss"];
+    Tympanostomy    [label="Tympanostomy\ntubes"];
+    AdenotonsHyper  [label="Adenotonsillar\nhypertrophy"];
+    OSA             [label="Obstructive sleep\napnea"; fillcolor="#B2DFDB"];
+    AHI             [label="Apnea-hypopnea\nindex ↑"];
+    RestrictiveLung [label="Restrictive lung\ndisease (small thorax)"];
+    ChronicHypoxemia [label="Chronic\nhypoxemia"];
+    CPAP            [label="CPAP /\nadenotonsillectomy"];
+  }
+  MidfaceHypo -> EustachianDys -> OtitisMedia -> ConductiveHL;
+  OtitisMedia -> Tympanostomy;
+  ChoanalNarrow -> AdenotonsHyper [style=dashed]; AdenotonsHyper -> OSA;
+  CentralApnea -> AHI; OSA -> AHI; AHI -> ChronicHypoxemia;
+  RestrictiveLung -> ChronicHypoxemia; ChronicHypoxemia -> CPAP; AHI -> CPAP;
+
+  // ==============================================================
+  // Cluster 9 — Orthopedic / Limb
+  // ==============================================================
+  subgraph cluster_ortho {
+    label="⑨ Orthopedic · Limb"; style="rounded,filled"; fillcolor="#FFFDE7"; color="#F57F17";
+    RhizomelicShort [label="Rhizomelic limb\nshortening"; fillcolor="#FFF59D"];
+    LongBoneGrowth  [label="Long bone\nlongitudinal growth ↓"];
+    TridentHand     [label="Trident hand\nconfiguration"];
+    GenuVarum       [label="Genu varum\n(bowing)"];
+    FibularOvergrowth [label="Relative fibular\novergrowth"];
+    JointLaxity     [label="Ligamentous\nlaxity"];
+    LimbPain        [label="Progressive\nbowing / pain"];
+    Osteotomy       [label="Corrective\nosteotomy"];
+    LimbLengthening [label="Limb lengthening\nsurgery (Ilizarov)"];
+    AdultHeight      [label="Adult height\n~124-131 cm"; fillcolor="#FFE082"];
+  }
+  GrowthPlateHeight -> LongBoneGrowth -> RhizomelicShort;
+  LongBoneGrowth -> TridentHand; FibularOvergrowth -> GenuVarum;
+  RhizomelicShort -> GenuVarum; GenuVarum -> LimbPain -> Osteotomy;
+  JointLaxity -> GenuVarum; LongBoneGrowth -> AdultHeight;
+  Osteotomy -> LimbLengthening [style=dashed];
+
+  // ==============================================================
+  // Cluster 10 — Metabolic / Systemic Comorbidities
+  // ==============================================================
+  subgraph cluster_metab {
+    label="⑩ Metabolic · Systemic Comorbidities"; style="rounded,filled"; fillcolor="#F1F8E9"; color="#33691E";
+    ReducedMobility [label="Reduced physical\nactivity / mobility"];
+    ObesityRisk     [label="Obesity risk ↑"];
+    Cardiometabolic [label="Cardiometabolic\nrisk"];
+    ChronicPain     [label="Chronic back /\nleg pain"];
+    QoL             [label="Health-related\nquality of life ↓"; fillcolor="#DCEDC8"];
+    Psychosocial    [label="Psychosocial\nimpact · stigma"];
+    Employment      [label="Reduced employment /\nfunctional independence"];
+    LifeExpectancy  [label="Life expectancy\n(near-normal w/ mgmt)"];
+  }
+  GaitDisturb -> ReducedMobility -> ObesityRisk -> Cardiometabolic;
+  LimbPain -> ChronicPain; SpinalStenosis -> ChronicPain;
+  ChronicPain -> QoL; Psychosocial -> QoL; AdultHeight -> Psychosocial;
+  QoL -> Employment; Cardiometabolic -> LifeExpectancy; SuddenDeathRisk -> LifeExpectancy;
+
+  // ==============================================================
+  // Cluster 11 — Drug PK (Vosoritide · TransCon CNP · Infigratinib · GH)
+  // ==============================================================
+  subgraph cluster_pk {
+    label="⑪ Drug PK"; style="rounded,filled"; fillcolor="#FCE4EC"; color="#AD1457";
+    Vosoritide_SC   [label="Vosoritide 15 µg/kg\nSC QD"; shape=ellipse, fillcolor="#F8BBD0"];
+    VosAbsorption   [label="SC absorption\n(ka)"];
+    VosCentral      [label="Central\ncompartment Cp"];
+    VosDegrad       [label="NPR-C / NEP-mediated\ndegradation"];
+    VosCmax         [label="Cmax\n(t½ ~15-20 min)"];
+    TransCon_CNP    [label="TransCon CNP\n(navepegritide) SC QW"; shape=ellipse, fillcolor="#F48FB1"];
+    TransConRelease [label="Sustained prodrug\nrelease"];
+    Infigratinib_PO [label="Infigratinib\n(FGFR1-3i) PO QD"; shape=ellipse, fillcolor="#F06292"];
+    InfigAbsorption [label="Oral absorption"];
+    InfigCentral    [label="Central Cp\n(t½ ~20 h)"];
+    InfigCYP3A4     [label="CYP3A4\nmetabolism"];
+    GH_Therapy      [label="Growth hormone\n(off-label, limited effect)"];
+    DrugAdherence   [label="Adherence /\ninjection burden"];
+    Immunogenicity  [label="Anti-drug\nantibodies"];
+  }
+  Vosoritide_SC -> VosAbsorption -> VosCentral -> VosDegrad;
+  VosCentral -> VosCmax; VosCentral -> Vosoritide_Target;
+  TransCon_CNP -> TransConRelease -> VosCentral [label="slow-release\nCNP moiety"];
+  Infigratinib_PO -> InfigAbsorption -> InfigCentral -> InfigCYP3A4;
+  DrugAdherence -> Vosoritide_SC [style=dashed]; Vosoritide_SC -> Immunogenicity [style=dashed];
+
+  // ==============================================================
+  // Cluster 12 — Drug PD
+  // ==============================================================
+  subgraph cluster_pd {
+    label="⑫ Drug PD"; style="rounded,filled"; fillcolor="#EDE7F6"; color="#5E35B1";
+    NPRB_Occupancy  [label="NPR-B receptor\noccupancy"];
+    pERK_Inhibition [label="pERK\ninhibition (%)"; fillcolor="#D1C4E9"];
+    ChondroRescue   [label="Chondrocyte\nproliferation rescue"];
+    GrowthPlateRescue [label="Growth plate\nheight rescue"; fillcolor="#B39DDB"];
+    FGFR3i_Inhibition [label="Direct FGFR3\nkinase inhibition\n(infigratinib)"];
+    OffTargetFGFR1  [label="Off-target FGFR1\ninhibition\n(growth plate/endocrine)"];
+    Hyperphos_Risk  [label="Hyperphosphatemia\n(FGFRi class effect)"];
+    Vasodilation_PD [label="Transient BP ↓\n(CNP vasodilatory effect)"];
+    ReflexTachy     [label="Reflex\ntachycardia"];
+    cGMP_Systemic   [label="Systemic cGMP\nexposure"];
+  }
+  VosCmax -> NPRB_Occupancy -> cGMP_Systemic; cGMP_Systemic -> cGMP;
+  cGMP -> pERK_Inhibition [label="via PKGII-RAF1"]; ERK -> pERK_Inhibition [style=dashed, label="baseline"];
+  pERK_Inhibition -> ChondroRescue -> GrowthPlateRescue;
+  GrowthPlateRescue -> GrowthPlateHeight [label="partial\nreversal", color="#1B5E20"];
+  InfigCentral -> FGFR3i_Inhibition -> Autophos [label="blocks", color="#1B5E20"];
+  FGFR3i_Inhibition -> OffTargetFGFR1 -> Hyperphos_Risk;
+  NPRB_Occupancy -> Vasodilation_PD -> ReflexTachy;
+
+  // ==============================================================
+  // Cluster 13 — Clinical Endpoints
+  // ==============================================================
+  subgraph cluster_endpoints {
+    label="⑬ Clinical Endpoints"; style="rounded,filled"; fillcolor="#E8EAF6"; color="#283593";
+    AGV             [label="Annualized growth\nvelocity (cm/yr)"; fillcolor="#C5CAE9"];
+    HeightZscore    [label="Height Z-score\n(ACH-specific curve)"];
+    UL_Ratio        [label="Upper/lower body\nsegment ratio"];
+    SittingHeight   [label="Sitting height"];
+    ArmSpan         [label="Arm span"];
+    FM_Area         [label="Foramen magnum\narea (MRI)"];
+    SpinalCanalZ    [label="Spinal canal\ndiameter Z-score"];
+    BMI_Zscore      [label="BMI Z-score\n(ACH-specific)"];
+    MotorMilestone  [label="Motor milestone\nachievement score"];
+    SleepAHI        [label="Polysomnography\nAHI"];
+    OtitisFreq      [label="Otitis media\nepisodes / year"];
+    PatientQoL      [label="PROM / QoL\nscore"];
+  }
+  GrowthPlateRescue -> AGV; AGV -> HeightZscore; RhizomelicShort -> UL_Ratio;
+  AdultHeight -> SittingHeight; AdultHeight -> ArmSpan;
+  ForamenMagnum -> FM_Area; SpinalCanal -> SpinalCanalZ;
+  ObesityRisk -> BMI_Zscore; MotorDelay -> MotorMilestone;
+  AHI -> SleepAHI; OtitisMedia -> OtitisFreq; QoL -> PatientQoL;
+
+  // ==============================================================
+  // Cluster 14 — Surgical / Interventional
+  // ==============================================================
+  subgraph cluster_surgery {
+    label="⑭ Surgical · Interventional"; style="rounded,filled"; fillcolor="#FFF3E0"; color="#E65100";
+    FMD_Surgery       [label="Foramen magnum\ndecompression"];
+    SpinalDecompress  [label="Spinal decompression\n/ fusion"];
+    Adenotonsillectomy [label="Adenotonsillectomy"];
+    EarTubes          [label="Ear tube\nplacement"];
+    LimbSurgery       [label="Osteotomy /\nlengthening"];
+    SurgicalRisk      [label="Perioperative\nanesthetic risk\n(airway / C-spine)"];
+    MonitoringProtocol [label="Multidisciplinary\nsurveillance protocol"];
+    AgeMilestones     [label="Age-specific monitoring\n(AAP guidelines)"];
+  }
+  Cervicomedullary -> FMD_Surgery [label="severe FMS"];
+  SpinalStenosis -> SpinalDecompress; OSA -> Adenotonsillectomy;
+  OtitisMedia -> EarTubes; LimbPain -> LimbSurgery;
+  FMD_Surgery -> SurgicalRisk; SpinalDecompress -> SurgicalRisk;
+  MonitoringProtocol -> AgeMilestones; AgeMilestones -> FMD_Surgery [style=dashed];
+  AgeMilestones -> SleepAHI [style=dashed]; AgeMilestones -> FM_Area [style=dashed];
+
+  // ==============================================================
+  // Cluster 15 — Safety / Adverse Events
+  // ==============================================================
+  subgraph cluster_safety {
+    label="⑮ Safety · Adverse Events"; style="rounded,filled"; fillcolor="#FBE9E7"; color="#D84315";
+    InjectionSiteAE [label="Injection site\nreactions (vosoritide)"];
+    HypotensionAE   [label="Transient\nhypotension"];
+    EmesisAE        [label="Vomiting\n(common AE)"];
+    EarAE           [label="Ear pain"];
+    CornealAE       [label="Corneal deposits\n(FGFRi class)"];
+    NailAE          [label="Nail toxicity\n(FGFRi class)"];
+    GrowthPlateSafety [label="Growth plate safety\nmonitoring (X-ray)"];
+    LongTermSafety  [label="Long-term extension\nsafety data"];
+  }
+  Vosoritide_SC -> InjectionSiteAE; Vasodilation_PD -> HypotensionAE;
+  Vosoritide_SC -> EmesisAE; Vosoritide_SC -> EarAE;
+  InfigCentral -> CornealAE; InfigCentral -> NailAE;
+  GrowthPlateRescue -> GrowthPlateSafety [style=dashed];
+  GrowthPlateSafety -> LongTermSafety; Hyperphos_Risk -> LongTermSafety;
+}
