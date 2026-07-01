@@ -1,0 +1,407 @@
+digraph HRS_QSP {
+  // ==========================================================
+  // Hepatorenal Syndrome (HRS) — Quantitative Systems Pharmacology Model
+  //   HRS-AKI / HRS-NAKI (ICA-2015 / ICA-2019 revised)
+  //   Cirrhosis · Portal hypertension → Systemic Inflammation
+  //   Splanchnic vasodilation → Effective arterial hypovolemia
+  //   RAAS / SNS / AVP activation → Renal vasoconstriction
+  //   Cirrhotic cardiomyopathy · Kidney injury · Precipitants
+  //   Drugs: Terlipressin · Norepinephrine · Midodrine + Octreotide
+  //          Albumin · Vasopressin · Furosemide · Spironolactone
+  //          Rifaximin · Antibiotics (SBP) · TIPS · RRT · LT
+  //   Clusters : 15  |  Nodes : ~180  |  Edges : ~260
+  //   For QSP simulation with mrgsolve · Author: Claude Code Routine (2026-07-01)
+  // ==========================================================
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, splines=true, overlap=false, nodesep=0.28, ranksep=0.55, compound=true, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box, color="#37474F", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=9, color="#455A64", arrowsize=0.7];
+
+  // ==============================================================
+  // Cluster 1 — Underlying Cirrhosis · Portal Hypertension
+  // ==============================================================
+  subgraph cluster_cirrhosis {
+    label="① Advanced Cirrhosis · Portal Hypertension"; style="rounded,filled"; fillcolor="#FFF8E1"; color="#F9A825";
+    ChildPugh   [label="Child-Pugh C\n(≥10)"; fillcolor="#FFECB3"];
+    MELDNa      [label="MELD-Na\n(≥18)"; fillcolor="#FFECB3"];
+    ACLF        [label="ACLF grade\n(EASL-CLIF)"; fillcolor="#FFCC80"];
+    HSC         [label="Hepatic Stellate\nCell activation"; fillcolor="#FFE0B2"];
+    Fibrosis    [label="Bridging fibrosis\n· Nodular regen."];
+    IntraHRes   [label="Intrahepatic\nvascular resistance ↑"];
+    HVPG        [label="HVPG\n≥ 10-12 mmHg"; fillcolor="#FFCA28"];
+    Sinusoid    [label="Sinusoidal\nendothelial dysfunction"];
+    eNOS_liver  [label="Hepatic eNOS ↓\n(caveolin-1 seq.)"];
+    ET1_liver   [label="ET-1 (hepatic) ↑"];
+    Ascites     [label="Refractory\nascites"; fillcolor="#FFE082"];
+    Varices     [label="Varices ± bleed"];
+    Hyponat     [label="Dilutional\nhyponatremia\n(Na < 130)"];
+    Bilirubin   [label="Bilirubin ↑\n(>3-4 mg/dL)"];
+    Albumin_hep [label="Serum albumin ↓\n(<3 g/dL)"];
+    INR         [label="INR ↑\n(coagulopathy)"];
+    Encephalop  [label="Hepatic\nencephalopathy"];
+  }
+  ChildPugh -> MELDNa -> ACLF;
+  HSC -> Fibrosis -> IntraHRes -> HVPG;
+  Sinusoid -> IntraHRes; eNOS_liver -> Sinusoid [label="↓ NO"];
+  ET1_liver -> IntraHRes;
+  HVPG -> Varices; HVPG -> Ascites;
+  Ascites -> Hyponat;
+
+  // ==============================================================
+  // Cluster 2 — Systemic Inflammation · PAMPs / DAMPs
+  // ==============================================================
+  subgraph cluster_infl {
+    label="② Systemic Inflammation · Gut-Liver Axis"; style="rounded,filled"; fillcolor="#FFEBEE"; color="#C62828";
+    GutBarrier  [label="Gut permeability ↑\n(zonulin, dysbiosis)"];
+    BactTrans   [label="Bacterial translocation\nto mesenteric LN"];
+    LPS         [label="LPS · PAMPs\n(TLR4, TLR2)"];
+    HMGB1       [label="HMGB1 · DAMPs"];
+    KupfferAct  [label="Kupffer / macrophage\nNF-κB activation"];
+    TNFa        [label="TNF-α ↑"];
+    IL6         [label="IL-6 ↑"];
+    IL1b        [label="IL-1β ↑"];
+    IL8         [label="IL-8 ↑ (CXCL8)"];
+    CRP         [label="CRP · procalcitonin"];
+    SIRS        [label="SIRS / Sepsis\ncriteria"];
+    Compl_C5a   [label="Complement C5a"];
+    NETs        [label="Neutrophil NETosis"];
+    IL10        [label="IL-10 (anti-infl.)"];
+  }
+  GutBarrier -> BactTrans -> LPS -> KupfferAct;
+  HMGB1 -> KupfferAct;
+  KupfferAct -> TNFa; KupfferAct -> IL6; KupfferAct -> IL1b; KupfferAct -> IL8;
+  TNFa -> SIRS; IL6 -> CRP; IL6 -> SIRS;
+  Compl_C5a -> NETs;
+
+  // ==============================================================
+  // Cluster 3 — Splanchnic Vasodilation
+  // ==============================================================
+  subgraph cluster_splanchnic {
+    label="③ Splanchnic Arterial Vasodilation"; style="rounded,filled"; fillcolor="#E1F5FE"; color="#0277BD";
+    eNOS_splan  [label="Splanchnic eNOS\nphosphorylation (Ser1177) ↑"; fillcolor="#B3E5FC"];
+    iNOS_splan  [label="iNOS (splanchnic\nmesenteric bed) ↑"; fillcolor="#B3E5FC"];
+    NO_splan    [label="NO (splanchnic)\n↑↑↑"; fillcolor="#4FC3F7"];
+    HO_CO       [label="HO-1 / CO ↑"];
+    Prostacyc   [label="Prostacyclin (PGI₂)\n(COX-2) ↑"];
+    Glucagon    [label="Glucagon ↑\n(hyperglucagonemia)"];
+    Adenosine   [label="Adenosine ↑"];
+    ETB_endo    [label="ET-B receptor\n(endothelial)"];
+    SplanchArt  [label="Splanchnic\narteriolar dilation"; fillcolor="#4FC3F7"];
+    SplanchRes  [label="Splanchnic\nvascular resistance ↓↓"];
+    SplanchVol  [label="Splanchnic\nblood pooling ↑↑"];
+    PortalIn    [label="Portal inflow ↑\n(hyperdynamic)"];
+    ADMA        [label="ADMA ↓\n(eNOS uncoupling)"];
+    BH4         [label="BH4 (cofactor)"];
+  }
+  LPS -> iNOS_splan [label="TLR4/NF-κB", style=dashed];
+  TNFa -> iNOS_splan [style=dashed];
+  eNOS_splan -> NO_splan; iNOS_splan -> NO_splan;
+  NO_splan -> SplanchArt; HO_CO -> SplanchArt; Prostacyc -> SplanchArt;
+  Glucagon -> SplanchArt; Adenosine -> SplanchArt; ETB_endo -> NO_splan;
+  SplanchArt -> SplanchRes; SplanchArt -> SplanchVol;
+  SplanchVol -> PortalIn -> HVPG;
+
+  // ==============================================================
+  // Cluster 4 — Effective Arterial Blood Volume · Systemic Circulation
+  // ==============================================================
+  subgraph cluster_eabv {
+    label="④ Effective Arterial Blood Volume · Hemodynamics"; style="rounded,filled"; fillcolor="#F3E5F5"; color="#6A1B9A";
+    EABV        [label="Effective arterial\nblood volume (EABV) ↓↓"; fillcolor="#CE93D8"];
+    MAP         [label="MAP\n(often ≤ 80 mmHg)"; fillcolor="#CE93D8"];
+    SVR         [label="Systemic vascular\nresistance ↓"];
+    CO_index    [label="Cardiac output\nindex ↑ (hyperdyn.)"];
+    HR          [label="Heart rate ↑"];
+    Baroreceptor[label="Baroreceptor\nunloading"];
+    NHBaroreflex[label="Central\nsympathetic outflow"];
+    CVP         [label="CVP\n(low central pressure)"];
+    RVP         [label="Renal perfusion\npressure ↓"];
+    PulseP      [label="Pulse pressure"];
+  }
+  SplanchRes -> SVR -> MAP; MAP -> EABV;
+  SplanchVol -> EABV [label="pooled blood, ↓ effective", style=dashed];
+  EABV -> Baroreceptor -> NHBaroreflex;
+  CO_index -> MAP;
+  MAP -> RVP;
+
+  // ==============================================================
+  // Cluster 5 — Cirrhotic Cardiomyopathy
+  // ==============================================================
+  subgraph cluster_cardiomyop {
+    label="⑤ Cirrhotic Cardiomyopathy"; style="rounded,filled"; fillcolor="#FCE4EC"; color="#AD1457";
+    CCM_dys     [label="Cirrhotic\ncardiomyopathy"; fillcolor="#F48FB1"];
+    LV_EF       [label="LV EF (baseline\nnormal / stress ↓)"];
+    Diastolic   [label="Diastolic\ndysfunction (E/A)"];
+    QT          [label="QT prolongation"];
+    ChronoInc   [label="Chronotropic\nincompetence"];
+    ProBNP      [label="NT-proBNP ↑"];
+    Troponin    [label="hs-cTnT ↑"];
+    Beta_ds    [label="β-adrenergic\ndownregulation"];
+    Cardiac_NO  [label="Cardiac NO / CO"];
+    K_currents  [label="K+ currents ↓\n(APD prolonged)"];
+    Ascites_pre[label="Increased intra-\nabdominal pressure"];
+  }
+  TNFa -> CCM_dys; NO_splan -> Cardiac_NO -> CCM_dys;
+  CCM_dys -> LV_EF; CCM_dys -> Diastolic; CCM_dys -> QT; CCM_dys -> ChronoInc;
+  CCM_dys -> ProBNP; Ascites -> Ascites_pre -> Diastolic;
+  Beta_ds -> ChronoInc;
+  LV_EF -> CO_index [label="stress unmasking"];
+
+  // ==============================================================
+  // Cluster 6 — Neurohormonal Axis (RAAS · SNS · AVP)
+  // ==============================================================
+  subgraph cluster_neurohorm {
+    label="⑥ Neurohormonal Activation (RAAS · SNS · AVP)"; style="rounded,filled"; fillcolor="#E8F5E9"; color="#2E7D32";
+    RAAS        [label="RAAS activation"; fillcolor="#A5D6A7"];
+    Renin       [label="Plasma renin\nactivity ↑↑"];
+    AngII       [label="Angiotensin II ↑↑"];
+    AldoAct     [label="Aldosterone ↑↑"];
+    SNS         [label="Sympathetic NS ↑"; fillcolor="#A5D6A7"];
+    NE_plasma   [label="Plasma\nnorepinephrine ↑↑"];
+    AVP         [label="Non-osmotic AVP\nsecretion ↑↑"; fillcolor="#A5D6A7"];
+    V1aR        [label="V1a receptor\n(vascular smooth m.)"];
+    V2R         [label="V2 receptor\n(collecting duct)"];
+    Copeptin    [label="Copeptin ↑"];
+  }
+  Baroreceptor -> RAAS; Baroreceptor -> SNS; Baroreceptor -> AVP;
+  RAAS -> Renin -> AngII -> AldoAct;
+  SNS -> NE_plasma;
+  AVP -> V1aR; AVP -> V2R;
+  AVP -> Copeptin;
+  Hyponat -> AVP [label="non-osmotic", style=dashed];
+
+  // ==============================================================
+  // Cluster 7 — Renal Microcirculation & Hemodynamics
+  // ==============================================================
+  subgraph cluster_renalflow {
+    label="⑦ Renal Vasoconstriction · Microcirculation"; style="rounded,filled"; fillcolor="#FFF3E0"; color="#E65100";
+    RBF         [label="Renal blood\nflow ↓↓"; fillcolor="#FFB74D"];
+    CortexPerf  [label="Cortical perfusion ↓\n(intrarenal shunting)"];
+    AfferentArt [label="Afferent arteriolar\nvasoconstriction"; fillcolor="#FFB74D"];
+    EfferentArt [label="Efferent arteriolar\nvasoconstriction"];
+    RVR         [label="Renal vascular\nresistance ↑"];
+    RenalET1    [label="Renal ET-1 ↑"];
+    RenalTXA2   [label="Renal TXA₂ ↑"];
+    RenalNO     [label="Renal NO ↓\n(paradoxical)"];
+    RenalPGE2   [label="Renal PGE₂ / PGI₂ ↓\n(prostaglandin depletion)"];
+    Adenosine_r [label="Renal adenosine\n(A1R vasoconstr.)"];
+    Endocann    [label="Endocannabinoids\n(CB1 renal)"];
+    RenalKinin  [label="Renal kallikrein-\nkinin ↓"];
+    GFR         [label="GFR ↓↓\n(often < 30 mL/min)"; fillcolor="#FF9800"];
+    RenalPress  [label="Filtration pressure ↓"];
+  }
+  AngII -> AfferentArt; NE_plasma -> AfferentArt; V1aR -> AfferentArt;
+  AngII -> EfferentArt;
+  Adenosine_r -> AfferentArt; Endocann -> AfferentArt;
+  RenalET1 -> AfferentArt; RenalTXA2 -> AfferentArt;
+  RenalPGE2 -> RenalPress [label="PGE₂ maintains RBF, ↓ in HRS"];
+  RVP -> RenalPress -> GFR;
+  AfferentArt -> RVR -> RBF; RBF -> CortexPerf -> GFR;
+  RenalKinin -> RBF [label="↓ vasodilator", style=dashed];
+
+  // ==============================================================
+  // Cluster 8 — Kidney Tubular Injury / Biomarkers
+  // ==============================================================
+  subgraph cluster_tubular {
+    label="⑧ Kidney: Structural vs Functional Injury"; style="rounded,filled"; fillcolor="#EDE7F6"; color="#4527A0";
+    Cr          [label="Serum creatinine ↑\n(ICA-AKI stage)"; fillcolor="#B39DDB"];
+    CysC        [label="Cystatin C ↑\n(pre-Cr rise)"];
+    UrineNa     [label="Urine Na < 20 mEq/L\n(sodium retention)"];
+    FeNa        [label="FeNa < 1% (early)\n· FeUrea < 35%"];
+    Osmolality  [label="Urine osmolality\n↑ (concentrated)"];
+    UrineOutput [label="Urine output ↓\n(oliguria/anuria)"];
+    NGAL        [label="Urine NGAL\n(discriminate ATN)"];
+    KIM1        [label="KIM-1"];
+    L_FABP      [label="L-FABP"];
+    Proteinuria [label="Proteinuria\n< 500 mg/day"];
+    Sediment    [label="Bland sediment\n(vs granular casts=ATN)"];
+    ATN         [label="Acute tubular\nnecrosis (differential)"];
+    Interstitial[label="Interstitial\nnephritis (differential)"];
+  }
+  GFR -> Cr; GFR -> CysC;
+  AVP -> Osmolality; AldoAct -> UrineNa;
+  V2R -> Osmolality; V2R -> UrineOutput [label="↓ free H₂O clearance"];
+  NGAL -> ATN [label="high → ATN"];
+  Interstitial -> Sediment;
+
+  // ==============================================================
+  // Cluster 9 — HRS Diagnostic Framework (ICA-2015 / 2019)
+  // ==============================================================
+  subgraph cluster_dx {
+    label="⑨ HRS Diagnostic Framework"; style="rounded,filled"; fillcolor="#E0F2F1"; color="#00695C";
+    HRS_AKI     [label="HRS-AKI\n(Cr ↑ ≥0.3 in 48h\nor ≥1.5× base in 7d)"; fillcolor="#80CBC4"];
+    HRS_NAKI    [label="HRS-NAKI\n(sub-acute/chronic)"; fillcolor="#80CBC4"];
+    HRS_AKD     [label="HRS-AKD\n(<3 mo, no full AKI)"];
+    HRS_CKD     [label="HRS-CKD\n(GFR<60, ≥3 mo)"];
+    AlbChall    [label="48h albumin\nchallenge (1 g/kg)\nno response"];
+    NoShock     [label="No shock ·\nno nephrotoxin ·\nno structural"];
+    HRS_type1   [label="Legacy Type 1\n(rapid, 2 wk)"];
+    HRS_type2   [label="Legacy Type 2\n(refractory ascites)"];
+    Precip_SBP  [label="Precipitant:\nSBP infection"];
+    Precip_GIB  [label="Precipitant:\nGI bleeding"];
+    Precip_LVP  [label="Precipitant:\nLVP without\nalbumin"];
+    Precip_Nephrotox[label="Nephrotoxin\n(NSAID, contrast,\naminoglycoside)"];
+  }
+  Cr -> HRS_AKI; NoShock -> HRS_AKI;
+  AlbChall -> HRS_AKI [label="confirm"];
+  HRS_AKI -> HRS_type1 [label="~classical"];
+  HRS_NAKI -> HRS_type2;
+  Precip_SBP -> HRS_AKI; Precip_GIB -> HRS_AKI; Precip_LVP -> HRS_AKI; Precip_Nephrotox -> HRS_AKI;
+
+  // ==============================================================
+  // Cluster 10 — Pharmacotherapy: Vasoconstrictors
+  // ==============================================================
+  subgraph cluster_vasoconstr {
+    label="⑩ Vasoconstrictor Pharmacotherapy"; style="rounded,filled"; fillcolor="#E3F2FD"; color="#1565C0";
+    Terli_dose  [label="Terlipressin\n(IV bolus/CI, FDA 2022)"; fillcolor="#90CAF9"];
+    Terli_lys   [label="Terlipressin →\nlysyl-vasopressin"];
+    Terli_V1a   [label="V1a agonism\n(splanchnic constriction)"];
+    Terli_effect[label="Splanchnic\nvasoconstriction ↑\nMAP ↑ · RBF ↑"];
+    NE_infusion [label="Norepinephrine\ncontinuous IV\n(central line, ICU)"; fillcolor="#90CAF9"];
+    NE_a1       [label="α1-adrenoceptor\nsystemic constriction"];
+    Midodrine   [label="Midodrine PO\n(prodrug → desglymidodrine)"; fillcolor="#90CAF9"];
+    Octreotide  [label="Octreotide SC/IV\n(SST analog)"];
+    Mid_Oct     [label="Midodrine + Octreotide\n+ Albumin"; fillcolor="#64B5F6"];
+    Vasopressin [label="Vasopressin\n(V1a agonist, ICU)"];
+    Ornipressin [label="Ornipressin\n(historic)"];
+    Terli_SE_isc[label="Terli ADR:\nischemia (digital,\nmesenteric)"];
+    Terli_SE_resp[label="Terli ADR:\nresp failure / pulm\nedema (CONFIRM)"];
+    NE_SE       [label="NE ADR:\narrhythmia, ischemia"];
+  }
+  Terli_dose -> Terli_lys -> Terli_V1a -> Terli_effect;
+  Terli_effect -> SplanchRes [label="↑", style=dashed];
+  Terli_effect -> MAP [label="↑"];
+  NE_infusion -> NE_a1 -> MAP;
+  Midodrine -> MAP; Octreotide -> SplanchRes [label="↓ glucagon/VIP"];
+  Mid_Oct -> MAP;
+  Vasopressin -> MAP;
+  Terli_dose -> Terli_SE_isc; Terli_dose -> Terli_SE_resp;
+  NE_infusion -> NE_SE;
+
+  // ==============================================================
+  // Cluster 11 — Albumin & Volume Support
+  // ==============================================================
+  subgraph cluster_albumin {
+    label="⑪ Albumin · Volume Support"; style="rounded,filled"; fillcolor="#F1F8E9"; color="#33691E";
+    Albumin_25  [label="Albumin 25%\n1 g/kg → 20-40 g/day"; fillcolor="#C5E1A5"];
+    Alb_oncot   [label="Oncotic pressure ↑\n(intravascular vol.)"];
+    Alb_bind    [label="Albumin binding:\ntoxins, cytokines, NO"];
+    Alb_antiInf [label="Immunomodulation:\nanti-inflammatory"];
+    Alb_endo    [label="Endothelial\nstabilization"];
+    IsotonicSaline[label="Isotonic saline\n(avoid if hypona)"];
+    FFP         [label="FFP / PCC\n(coagulopathy)"];
+    ATTIRE_neg  [label="ATTIRE trial:\nno benefit generalized\ntargeted still key"];
+    ANSWER_pos  [label="ANSWER trial:\nlong-term albumin\nascites survival ↑"];
+  }
+  Albumin_25 -> Alb_oncot -> EABV [label="↑"];
+  Albumin_25 -> Alb_bind; Albumin_25 -> Alb_antiInf; Albumin_25 -> Alb_endo;
+  Alb_antiInf -> TNFa [label="↓", style=dashed];
+
+  // ==============================================================
+  // Cluster 12 — Prevention / Precipitant Management
+  // ==============================================================
+  subgraph cluster_prevent {
+    label="⑫ Prevention · Precipitant Management"; style="rounded,filled"; fillcolor="#FFF9C4"; color="#9E9D24";
+    Antibiotic  [label="3rd-gen cephalosporin\n(SBP treatment)"; fillcolor="#FFF176"];
+    Norfloxacin [label="Norfloxacin PO\n(SBP prophylaxis)"];
+    Rifaximin   [label="Rifaximin\n(HE + gut translocation)"];
+    Beta_block  [label="Non-selective β-blocker\n(NSBB, caution HRS)"];
+    LVP_alb     [label="LVP + albumin\n(8 g/L ascites removed)"];
+    Diuretic_hold[label="Diuretic hold\n(furosemide/spirono)"];
+    Lactulose   [label="Lactulose (HE)"];
+    Avoid_NSAID [label="Avoid NSAIDs /\ncontrast / amino-\nglycosides"];
+    Statin      [label="Statin (endothelial\nprotection, RCT ongoing)"];
+    Prazosin    [label="α1-blocker (avoid,\nworsen hypotension)"];
+  }
+  Antibiotic -> LPS [label="↓", style=dashed];
+  Norfloxacin -> BactTrans [label="↓", style=dashed];
+  Rifaximin -> GutBarrier [label="↓", style=dashed];
+  LVP_alb -> Ascites [label="↓"];
+  Avoid_NSAID -> RenalPGE2 [label="preserve"];
+  Statin -> Sinusoid [label="↑ NO"];
+
+  // ==============================================================
+  // Cluster 13 — Procedural / Advanced Therapy
+  // ==============================================================
+  subgraph cluster_proc {
+    label="⑬ Procedural / Advanced Therapy"; style="rounded,filled"; fillcolor="#EFEBE9"; color="#4E342E";
+    TIPS        [label="TIPS\n(portosystemic shunt)"; fillcolor="#BCAAA4"];
+    TIPS_res    [label="Portal pressure ↓\nEABV ↑ · RBF ↑"];
+    RRT         [label="Renal replacement\ntherapy (CRRT/HD)"];
+    MARS        [label="MARS / Prometheus\n(extracorporeal albumin\ndialysis)"];
+    LT          [label="Liver transplantation\n(definitive Rx)"; fillcolor="#8D6E63"];
+    SLK         [label="Simultaneous\nLiver-Kidney (SLK)"];
+    Bridge      [label="Bridge: vasocontr.\n+ albumin → LT"];
+    LDLT        [label="Living donor LT"];
+    Peritoneal  [label="Peritoneovenous\nshunt (rare)"];
+  }
+  TIPS -> TIPS_res -> EABV;
+  TIPS -> Encephalop [label="↑ risk"];
+  RRT -> Cr [label="clearance"];
+  LT -> HRS_AKI [label="cure"];
+  Bridge -> LT;
+
+  // ==============================================================
+  // Cluster 14 — Clinical Endpoints / Outcomes
+  // ==============================================================
+  subgraph cluster_outcomes {
+    label="⑭ Clinical Endpoints · Outcomes"; style="rounded,filled"; fillcolor="#ECEFF1"; color="#37474F";
+    HRSReversal [label="HRS reversal\n(Cr ↓ to <1.5)"; fillcolor="#B0BEC5"];
+    DurableRev  [label="Durable reversal\n(no relapse 30 d)"];
+    RRT_free    [label="RRT-free\nsurvival"];
+    D30_surv    [label="30-day survival"; fillcolor="#B0BEC5"];
+    D90_surv    [label="90-day survival"];
+    LT_free     [label="LT-free survival"];
+    QoL_CLDQ    [label="CLDQ (QoL)"];
+    Cost        [label="ICU LOS · Cost"];
+    Rehosp      [label="Rehospitalization"];
+    ACLF_progr  [label="ACLF progression"];
+    OF_score    [label="EASL-CLIF\norgan-failure score"];
+  }
+  Terli_effect -> HRSReversal; NE_a1 -> HRSReversal; Mid_Oct -> HRSReversal;
+  HRSReversal -> D30_surv -> D90_surv -> LT_free;
+  ACLF -> ACLF_progr -> D30_surv [label="↓"];
+  Cr -> D30_surv [label="↓ if high"];
+  LT -> D90_surv [label="↑"];
+
+  // ==============================================================
+  // Cluster 15 — Special populations / Modifiers
+  // ==============================================================
+  subgraph cluster_special {
+    label="⑮ Special Populations / Modifiers"; style="rounded,filled"; fillcolor="#F9FBE7"; color="#827717";
+    Alcoholic   [label="Alcoholic hepatitis\n(steroid ± NAC)"];
+    NASH        [label="NASH cirrhosis"];
+    HBV         [label="HBV DNA + ETV/TDF"];
+    HCV         [label="HCV RNA + DAA"];
+    Postpartum  [label="Postpartum HRS"];
+    ChildA_B    [label="Child A/B (rare HRS)"];
+    Elderly     [label="Age > 65 (worse\nresponse)"];
+    Diabetes    [label="DM comorbid\n(afferent injury)"];
+    Sarcopenia_ [label="Sarcopenia · frailty"];
+    PortalVT    [label="Portal vein\nthrombosis"];
+    HCC         [label="HCC (staging)"];
+  }
+  Alcoholic -> ACLF; NASH -> ChildPugh;
+  Sarcopenia_ -> LT [label="risk"];
+  PortalVT -> HVPG;
+  HCC -> LT [label="MELD exception"];
+
+  // ==============================================================
+  // Cross-cluster integrative edges
+  // ==============================================================
+  RAAS -> RVR; AngII -> RenalET1; NE_plasma -> RVR;
+  AVP -> RenalNO [label="↓", style=dashed];
+  RenalPGE2 -> AfferentArt [label="dilate; ↓ in HRS", style=dashed];
+  V1aR -> Terli_effect;
+  Endocann -> RVR;
+  Compl_C5a -> KupfferAct;
+  SIRS -> ACLF; ACLF -> HRS_AKI;
+  Precip_SBP -> KupfferAct;
+  Precip_LVP -> EABV [label="↓ post-paracentesis\ncircul dysfunction"];
+  Precip_GIB -> EABV;
+  Precip_Nephrotox -> AfferentArt;
+
+  { rank=same; ChildPugh; MELDNa; ACLF; }
+  { rank=same; HRS_AKI; HRS_NAKI; }
+  { rank=same; Terli_dose; NE_infusion; Mid_Oct; }
+  { rank=same; D30_surv; D90_surv; LT_free; }
+}
