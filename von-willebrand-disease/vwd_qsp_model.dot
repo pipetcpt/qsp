@@ -1,0 +1,315 @@
+digraph VWD_QSP {
+  // ==========================================================
+  // Von Willebrand Disease (VWD) — Quantitative Systems Pharmacology Model
+  //   VWF gene (12p13.31) defects → quantitative (Type 1/3) or qualitative
+  //   (Type 2A/2B/2M/2N) deficiency of von Willebrand Factor → impaired
+  //   platelet adhesion (GPIbα/collagen) and/or FVIII stabilization →
+  //   mucocutaneous bleeding, menorrhagia, GI angiodysplasia bleeding.
+  //   Drugs: Desmopressin (DDAVP) · Plasma-derived VWF/FVIII concentrate
+  //   (Humate-P/Wilate) · Recombinant VWF (vonicog alfa/Vonvendi) ·
+  //   Tranexamic acid · Hormonal therapy (COC/LNG-IUS)
+  //   Clusters : 12  |  Nodes : ~145  |  Edges : ~210
+  //   For QSP simulation with mrgsolve · Author: Claude Code Routine (2026-07-01)
+  // ==========================================================
+  rankdir=LR;
+  graph [fontname="Helvetica", fontsize=11, splines=true, overlap=false, nodesep=0.28, ranksep=0.6, compound=true, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box, color="#37474F", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=9, color="#455A64", arrowsize=0.7];
+
+  // ==============================================================
+  // Cluster 1 — Genetics & VWD Classification
+  // ==============================================================
+  subgraph cluster_genetics {
+    label="① Genetics · Classification"; style="rounded,filled"; fillcolor="#FFF8E1"; color="#F9A825";
+    VWF_Gene      [label="VWF gene\n(12p13.31, 52 exons)"; fillcolor="#FFECB3"];
+    AD_Inherit    [label="Autosomal dominant\n(Type 1, 2A, 2B, 2M)"];
+    AR_Inherit    [label="Autosomal recessive\n(Type 3, 2N, some 2A)"];
+    Type1         [label="Type 1: partial\nquantitative deficiency\n(~75% of VWD)"; fillcolor="#FFE082"];
+    Type2A        [label="Type 2A: defective\nmultimerization/ADAMTS13\nhypersensitivity"];
+    Type2B        [label="Type 2B: GPIbα\ngain-of-function\n(A1 domain)"; fillcolor="#FFCC80"];
+    Type2M        [label="Type 2M: defective\nGPIbα/collagen binding\n(normal multimers)"];
+    Type2N        [label="Type 2N: defective\nFVIII binding\n(D'D3 domain)"];
+    Type3         [label="Type 3: total\nVWF deficiency\n(~1:1,000,000)"; fillcolor="#FFAB91"];
+    PlateletType  [label="Platelet-type\n(pseudo-)VWD\n(GPIbα mutation)"];
+    AcquiredVWD   [label="Acquired VWS\n(lymphoproliferative,\nAS, MPN, hypothyroid)"];
+    Prevalence    [label="Prevalence\n~1% (lab) / ~1:1000\n(symptomatic)"];
+    ABO_locus     [label="ABO blood group\n(modifier)"];
+    Penetrance    [label="Variable penetrance/\nexpressivity"];
+  }
+  VWF_Gene -> AD_Inherit; VWF_Gene -> AR_Inherit;
+  AD_Inherit -> Type1; AD_Inherit -> Type2A; AD_Inherit -> Type2B; AD_Inherit -> Type2M;
+  AR_Inherit -> Type3; AR_Inherit -> Type2N;
+  VWF_Gene -> PlateletType [style=dashed, label="GP1BA gene\n(phenocopy)"];
+  Prevalence -> Type1; Prevalence -> Type3;
+  ABO_locus -> Type1 [label="modulates\nbaseline level"];
+  Penetrance -> Type1;
+
+  // ==============================================================
+  // Cluster 2 — VWF Biosynthesis & Multimerization
+  // ==============================================================
+  subgraph cluster_biosynthesis {
+    label="② VWF Biosynthesis · Multimerization"; style="rounded,filled"; fillcolor="#E3F2FD"; color="#1565C0";
+    EndothelialCell [label="Vascular endothelial\ncell"];
+    Megakaryocyte   [label="Megakaryocyte /\nplatelet α-granule"];
+    PrePro_VWF      [label="Pre-pro-VWF\nmonomer"];
+    ER_Dimer        [label="ER: C-terminal\ndisulfide dimerization"];
+    Golgi_Multimer  [label="Golgi: N-terminal\nD2/D'D3 multimerization"; fillcolor="#BBDEFB"];
+    Furin_Cleave    [label="Furin cleavage:\npropeptide (VWFpp)\nremoved"];
+    ULVWF           [label="Ultra-large VWF\n(ULVWF) strings"; fillcolor="#90CAF9"];
+    WPB             [label="Weibel-Palade\nbodies (storage)"; fillcolor="#64B5F6"];
+    ConstitutiveSec [label="Constitutive\nsecretion (basal)"];
+    RegulatedSec    [label="Regulated secretion\n(stimulus-induced)"];
+    Secretagogues   [label="Thrombin·histamine·\nepinephrine·shear stress"];
+    PlasmaVWF_pool  [label="Circulating plasma\nVWF multimer pool"];
+  }
+  EndothelialCell -> PrePro_VWF; Megakaryocyte -> PrePro_VWF;
+  PrePro_VWF -> ER_Dimer -> Golgi_Multimer -> Furin_Cleave -> ULVWF;
+  ULVWF -> WPB; WPB -> RegulatedSec; Secretagogues -> RegulatedSec;
+  Golgi_Multimer -> ConstitutiveSec;
+  RegulatedSec -> PlasmaVWF_pool; ConstitutiveSec -> PlasmaVWF_pool;
+  Furin_Cleave -> PlasmaVWF_pool [label="VWFpp co-released\n(1:1 acutely)"];
+
+  // ==============================================================
+  // Cluster 3 — ADAMTS13 Proteolysis & Multimer-Size Regulation
+  // ==============================================================
+  subgraph cluster_adamts13 {
+    label="③ ADAMTS13 · Multimer Regulation"; style="rounded,filled"; fillcolor="#F3E5F5"; color="#6A1B9A";
+    ShearForce      [label="High shear\n(arterioles, stenosis)"];
+    A2_Unfold       [label="VWF A2 domain\nunfolding"; fillcolor="#E1BEE7"];
+    ADAMTS13_enz    [label="ADAMTS13\nmetalloprotease"];
+    Cleave_Site     [label="Tyr1605-Met1606\ncleavage site"];
+    HMWM_loss       [label="High-MW multimer\n(HMWM) loss"; fillcolor="#CE93D8"];
+    LMWM_frag       [label="Low-MW VWF\nfragments"];
+    ADAMTS13_Autoab [label="Acquired anti-\nADAMTS13 antibody\n(rare in aVWS)"];
+    AorticStenosis  [label="Severe aortic\nstenosis / LVAD\n(Heyde syndrome)"];
+    ADAMTS13_Consume [label="ADAMTS13 transient\nconsumption post-\nDDAVP ULVWF surge"];
+  }
+  ShearForce -> A2_Unfold -> Cleave_Site;
+  ADAMTS13_enz -> Cleave_Site -> HMWM_loss; Cleave_Site -> LMWM_frag;
+  ADAMTS13_Autoab -> ADAMTS13_enz [style=dashed, label="inhibits"; color="#C62828"];
+  AorticStenosis -> ShearForce [label="high-shear\njet lesion"];
+  ULVWF -> A2_Unfold [label="preferential\nsubstrate"];
+  RegulatedSec -> ADAMTS13_Consume; ADAMTS13_Consume -> HMWM_loss [style=dashed];
+
+  // ==============================================================
+  // Cluster 4 — Platelet Adhesion / Primary Hemostasis
+  // ==============================================================
+  subgraph cluster_platelet {
+    label="④ Platelet Adhesion · Primary Hemostasis"; style="rounded,filled"; fillcolor="#FFEBEE"; color="#C62828";
+    VesselInjury    [label="Vascular injury /\nendothelial denudation"];
+    Subendo_Collagen[label="Subendothelial\ncollagen exposed"];
+    VWF_A3_Collagen [label="VWF A3 domain –\ncollagen binding"];
+    VWF_A1_GPIba    [label="VWF A1 domain –\nGPIbα binding\n(high shear)"; fillcolor="#FFCDD2"];
+    GPIba_GOF       [label="GPIbα gain-of-\nfunction (Type 2B/\nplatelet-type)"; fillcolor="#EF9A9A"];
+    Platelet_Tether [label="Platelet tethering /\nrolling"];
+    Platelet_Activ  [label="Platelet activation\n(Ca²⁺, granule release)"];
+    GPIIbIIIa       [label="GPIIb/IIIa (αIIbβ3)\nactivation"];
+    Fibrinogen_Bridge[label="Fibrinogen/VWF\ncross-bridging"];
+    Platelet_Aggreg [label="Platelet\naggregation"];
+    PrimaryPlug     [label="Primary hemostatic\nplug"];
+    Type2B_Clearance[label="Type 2B: spontaneous\naggregation → RES\nclearance → thrombocytopenia"; fillcolor="#FFAB91"];
+  }
+  VesselInjury -> Subendo_Collagen -> VWF_A3_Collagen;
+  VWF_A3_Collagen -> VWF_A1_GPIba; VWF_A1_GPIba -> Platelet_Tether;
+  GPIba_GOF -> VWF_A1_GPIba [label="↑ affinity"; color="#C62828"];
+  Platelet_Tether -> Platelet_Activ -> GPIIbIIIa -> Fibrinogen_Bridge -> Platelet_Aggreg -> PrimaryPlug;
+  GPIba_GOF -> Type2B_Clearance; Type2B_Clearance -> PrimaryPlug [style=dashed, label="net ↓\n(fewer platelets)"];
+
+  // ==============================================================
+  // Cluster 5 — FVIII Stabilization / Secondary Hemostasis
+  // ==============================================================
+  subgraph cluster_fviii {
+    label="⑤ FVIII Stabilization · Secondary Hemostasis"; style="rounded,filled"; fillcolor="#FFF3E0"; color="#E65100";
+    VWF_DD3         [label="VWF D'D3 domain"; fillcolor="#FFE0B2"];
+    FVIII_Binding   [label="FVIII non-covalent\nbinding to VWF"];
+    Type2N_Defect   [label="Type 2N: defective\nD'D3-FVIII binding\n(hemophilia-like)"; fillcolor="#FFCC80"];
+    FVIII_Protect   [label="FVIII protected\nfrom APC/protein C\ndegradation"];
+    FVIII_HalfLife  [label="FVIII plasma\nhalf-life ↑ (~12h\nvs ~2h free)"];
+    TenaseComplex   [label="Intrinsic tenase\n(FIXa-FVIIIa-PL-Ca²⁺)"];
+    ThrombinGen     [label="Thrombin\ngeneration"];
+    FibrinFormation [label="Fibrin clot\nformation/stabilization"];
+    ClotStrength    [label="Clot strength /\nstability (TEG-like)"];
+  }
+  VWF_DD3 -> FVIII_Binding; Type2N_Defect -> FVIII_Binding [style=dashed, color="#C62828", label="impairs"];
+  FVIII_Binding -> FVIII_Protect -> FVIII_HalfLife -> TenaseComplex -> ThrombinGen -> FibrinFormation -> ClotStrength;
+  PrimaryPlug -> FibrinFormation [label="platelet PS\nsurface"];
+
+  // ==============================================================
+  // Cluster 6 — Clinical Bleeding Phenotype
+  // ==============================================================
+  subgraph cluster_clinical {
+    label="⑥ Clinical Bleeding Phenotype"; style="rounded,filled"; fillcolor="#FCE4EC"; color="#AD1457";
+    Epistaxis       [label="Epistaxis\n(recurrent)"];
+    GingivalBleed   [label="Gingival /\noral bleeding"];
+    EasyBruising    [label="Easy bruising /\necchymoses"];
+    Menorrhagia     [label="Heavy menstrual\nbleeding (HMB)"; fillcolor="#F8BBD0"];
+    GIBleed_Angio   [label="GI bleeding /\nangiodysplasia\n(Type 2A/3, aVWS)"; fillcolor="#F48FB1"];
+    PostSurgBleed   [label="Post-surgical/\ndental bleeding"];
+    PPH             [label="Postpartum\nhemorrhage"];
+    JointBleed      [label="Hemarthrosis\n(rare, severe Type 3)"];
+    ISTH_BAT        [label="ISTH-BAT bleeding\nassessment tool score"; fillcolor="#F06292"];
+    IronDefAnemia   [label="Chronic blood loss →\niron-deficiency anemia"];
+    QoL_Impact      [label="Quality of life /\nschool-work absenteeism"];
+  }
+  PrimaryPlug -> Epistaxis [style=dashed]; ClotStrength -> Epistaxis [style=dashed];
+  PrimaryPlug -> GingivalBleed; PrimaryPlug -> EasyBruising;
+  PrimaryPlug -> Menorrhagia; ClotStrength -> Menorrhagia;
+  HMWM_loss -> GIBleed_Angio [label="Type 2A/3 loss of\nHMWM in high-shear gut vessels"];
+  ClotStrength -> PostSurgBleed; ClotStrength -> PPH;
+  ClotStrength -> JointBleed [style=dashed, label="severe Type 3 only"];
+  Epistaxis -> ISTH_BAT; GingivalBleed -> ISTH_BAT; EasyBruising -> ISTH_BAT;
+  Menorrhagia -> ISTH_BAT; PostSurgBleed -> ISTH_BAT;
+  Menorrhagia -> IronDefAnemia; GIBleed_Angio -> IronDefAnemia;
+  ISTH_BAT -> QoL_Impact; IronDefAnemia -> QoL_Impact;
+
+  // ==============================================================
+  // Cluster 7 — Diagnostic Biomarkers
+  // ==============================================================
+  subgraph cluster_biomarkers {
+    label="⑦ Diagnostic Biomarkers"; style="rounded,filled"; fillcolor="#E0F2F1"; color="#00695C";
+    VWF_Ag          [label="VWF:Ag\n(antigen level)"; fillcolor="#B2DFDB"];
+    VWF_RCo         [label="VWF:RCo /\nVWF:GPIbM (activity)"; fillcolor="#80CBC4"];
+    VWF_CB          [label="VWF:CB\n(collagen binding)"];
+    FVIII_C         [label="FVIII:C\n(coagulant activity)"; fillcolor="#4DB6AC"];
+    RCo_Ag_Ratio    [label="VWF:RCo/Ag ratio\n(<0.7 = qualitative defect)"];
+    MultimerGel     [label="Multimer gel\nelectrophoresis"];
+    RIPA            [label="Ristocetin-induced\nplatelet aggregation"];
+    VWFpp_Ag_Ratio  [label="VWFpp:VWF:Ag ratio\n(clearance marker,\n↑ in Type 1C/Vicenza)"];
+    PFA_Closure     [label="PFA-100/200\nclosure time"];
+    BloodType_O     [label="Blood type O\n(~25% lower VWF)"];
+  }
+  VWF_AG_link1 [label="", shape=point, width=0];
+  PlasmaVWF_pool -> VWF_Ag; PlasmaVWF_pool -> VWF_RCo; PlasmaVWF_pool -> VWF_CB;
+  FVIII_Protect -> FVIII_C; VWF_RCo -> RCo_Ag_Ratio; VWF_Ag -> RCo_Ag_Ratio;
+  HMWM_loss -> MultimerGel [style=dashed]; VWF_A1_GPIba -> RIPA;
+  GPIba_GOF -> RIPA [label="hyper-response\nat low-dose ristocetin"];
+  Furin_Cleave -> VWFpp_Ag_Ratio; VWF_Ag -> VWFpp_Ag_Ratio;
+  VWF_RCo -> PFA_Closure [style=dashed]; BloodType_O -> VWF_Ag [style=dashed, label="modulates"];
+
+  // ==============================================================
+  // Cluster 8 — Drug PK/PD: Desmopressin (DDAVP)
+  // ==============================================================
+  subgraph cluster_ddavp {
+    label="⑧ Desmopressin (DDAVP) PK/PD"; style="rounded,filled"; fillcolor="#E8F5E9"; color="#2E7D32";
+    DDAVP_Dose      [label="DDAVP dose\n(IV 0.3 µg/kg ·\nIN 300 µg · SC)"; fillcolor="#C8E6C9"];
+    DDAVP_Absorb    [label="Absorption\n(IV rapid / IN·SC\nslower, F~10-20%)"];
+    DDAVP_Central   [label="DDAVP plasma\nconcentration"];
+    V2_Renal        [label="V2 receptor\n(renal collecting duct)"];
+    V2_Endothelial  [label="V2-like receptor\n(endothelial WPB\nrelease)"; fillcolor="#A5D6A7"];
+    AQP2_Insert     [label="Aquaporin-2\ninsertion → free\nwater retention"];
+    WPB_Release     [label="Acute WPB release\n(VWF + FVIII + VWFpp)"; fillcolor="#81C784"];
+    Tachyphylaxis   [label="Tachyphylaxis with\nrepeated dosing\n(WPB store depletion)"];
+    Hyponatremia    [label="Dilutional\nhyponatremia risk"];
+    Type2B_Contra   [label="Contraindicated in\nType 2B / platelet-type\n(worsens thrombocytopenia)"; fillcolor="#FF8A65"];
+    DDAVP_Trial     [label="Trial-and-response\ntesting (30·60·120 min\npost-dose VWF/FVIII)"];
+  }
+  DDAVP_Dose -> DDAVP_Absorb -> DDAVP_Central;
+  DDAVP_Central -> V2_Renal -> AQP2_Insert -> Hyponatremia;
+  DDAVP_Central -> V2_Endothelial -> WPB_Release;
+  WPB_Release -> PlasmaVWF_pool [label="acute surge\n(ULVWF-rich)"];
+  WPB_Release -> FVIII_C [label="acute rise"];
+  WPB_Release -> Tachyphylaxis [style=dashed];
+  DDAVP_Central -> Type2B_Contra [style=dashed]; Type2B_Contra -> Type2B_Clearance [color="#C62828"];
+  WPB_Release -> DDAVP_Trial;
+
+  // ==============================================================
+  // Cluster 9 — Drug PK/PD: VWF/FVIII Replacement Therapy
+  // ==============================================================
+  subgraph cluster_replacement {
+    label="⑨ VWF/FVIII Concentrate Replacement PK/PD"; style="rounded,filled"; fillcolor="#E8EAF6"; color="#283593";
+    PD_Concentrate  [label="Plasma-derived VWF/\nFVIII (Humate-P·Wilate·\nAlphanate, VWF:FVIII\nratio ~2.4:1 to 1:1)"; fillcolor="#C5CAE9"];
+    rVWF_Product    [label="Recombinant VWF\n(vonicog alfa,\nVonvendi, VWF-only)"; fillcolor="#9FA8DA"];
+    IV_Infusion     [label="IV infusion\n(central compartment)"];
+    Immediate_VWF   [label="Immediate VWF:Ag/\nRCo rise (dose-\nproportional)"];
+    Immediate_FVIII [label="Immediate FVIII:C\nrise (PD conc. only;\nrVWF has none)"];
+    Endo_FVIII_Rise [label="Endogenous FVIII\nrises 6-12h post-rVWF\n(stabilization of\nresidual endogenous FVIII)"; fillcolor="#7986CB"];
+    HMWM_Restore    [label="HMWM restored by\nexogenous multimers\n(bypasses biosynthesis defect)"];
+    PK_TargetTrough [label="PK-guided dosing:\ntarget VWF:RCo/FVIII:C\ntrough for surgery"];
+    HalfLife_VWF    [label="VWF:RCo half-life\n~12-20h"];
+    HalfLife_FVIII  [label="FVIII:C half-life\n~8-12h (post-\nstabilization)"];
+    Recombinant_NoImmunogenicity [label="No plasma-derived\npathogen/inhibitor risk\n(rVWF)"];
+  }
+  PD_Concentrate -> IV_Infusion; rVWF_Product -> IV_Infusion;
+  IV_Infusion -> Immediate_VWF -> PlasmaVWF_pool;
+  PD_Concentrate -> Immediate_FVIII -> FVIII_C;
+  rVWF_Product -> Endo_FVIII_Rise -> FVIII_C [label="delayed\nstabilization"];
+  Immediate_VWF -> HMWM_Restore -> HMWM_loss [style=dashed, color="#2E7D32", label="counteracts"];
+  Immediate_VWF -> HalfLife_VWF; Immediate_FVIII -> HalfLife_FVIII;
+  PK_TargetTrough -> IV_Infusion [style=dashed, label="dosing\nfeedback"];
+  rVWF_Product -> Recombinant_NoImmunogenicity;
+
+  // ==============================================================
+  // Cluster 10 — Adjunctive / Non-Factor Therapies
+  // ==============================================================
+  subgraph cluster_adjunct {
+    label="⑩ Adjunctive Therapies"; style="rounded,filled"; fillcolor="#F1F8E9"; color="#558B2F";
+    TXA_Dose        [label="Tranexamic acid\n(oral/IV, antifibrinolytic)"; fillcolor="#DCEDC8"];
+    TXA_Mechanism   [label="Plasminogen lysine-\nbinding site blockade"];
+    Plasmin_Inhib   [label="↓ Plasmin-mediated\nfibrinolysis"];
+    ClotStability   [label="Clot stability\nprolonged"];
+    AminocaproicAcid[label="ε-aminocaproic acid\n(alternative antifibrinolytic)"];
+    HormonalTx      [label="Combined oral\ncontraceptive / LNG-IUS"; fillcolor="#C5E1A5"];
+    Endometrial_Thin[label="Endometrial\nthinning / anovulation"];
+    IronRepletion   [label="Oral/IV iron\nrepletion"];
+    FibrinSealant   [label="Topical fibrin/\nthrombin sealant"];
+    AvoidAntiplt    [label="Avoid NSAIDs/\naspirin/antiplatelets"];
+  }
+  TXA_Dose -> TXA_Mechanism -> Plasmin_Inhib -> ClotStability; ClotStability -> ClotStrength [style=dashed];
+  AminocaproicAcid -> Plasmin_Inhib [style=dashed];
+  HormonalTx -> Endometrial_Thin -> Menorrhagia [style=dashed, color="#2E7D32", label="reduces"];
+  IronRepletion -> IronDefAnemia [style=dashed, color="#2E7D32", label="corrects"];
+  FibrinSealant -> PostSurgBleed [style=dashed, color="#2E7D32"];
+  AvoidAntiplt -> Platelet_Activ [style=dashed, color="#C62828", label="prevents\nfurther impairment"];
+
+  // ==============================================================
+  // Cluster 11 — Special Populations & Physiologic Modulators
+  // ==============================================================
+  subgraph cluster_special {
+    label="⑪ Special Populations · Modulators"; style="rounded,filled"; fillcolor="#E0F7FA"; color="#00838F";
+    Pregnancy_T3    [label="Pregnancy 3rd\ntrimester: VWF/FVIII\nrise 2-3× baseline"; fillcolor="#B2EBF2"];
+    Estrogen_Effect [label="Estrogen ↑ hepatic\nVWF/FVIII synthesis"];
+    Postpartum_Fall [label="Postpartum VWF/FVIII\nfall (days 1-21)\n→ delayed PPH risk"; fillcolor="#80DEEA"];
+    AcutePhase      [label="Acute-phase reactant:\ninflammation/stress/\nexercise ↑ VWF"];
+    Type2B_Pregnancy[label="Type 2B pregnancy:\nworsening thrombocytopenia\n(3rd trimester)"];
+    Age_Modulator   [label="VWF rises with age\n(endothelial senescence)"];
+    Peripartum_Mgmt [label="Peripartum monitoring\n(VWF:RCo/FVIII:C at\ndelivery + 3wk postpartum)"];
+  }
+  Pregnancy_T3 -> Estrogen_Effect -> PlasmaVWF_pool [label="physiologic\nboost"];
+  Pregnancy_T3 -> Postpartum_Fall -> PPH [label="if untreated\nType 1/3"];
+  AcutePhase -> PlasmaVWF_pool [style=dashed];
+  Pregnancy_T3 -> Type2B_Pregnancy -> Type2B_Clearance [style=dashed];
+  Age_Modulator -> PlasmaVWF_pool [style=dashed];
+  Peripartum_Mgmt -> Postpartum_Fall [style=dashed, label="monitor & treat"];
+
+  // ==============================================================
+  // Cluster 12 — Safety / Adverse Events
+  // ==============================================================
+  subgraph cluster_safety {
+    label="⑫ Safety · Adverse Events"; style="rounded,filled"; fillcolor="#FBE9E7"; color="#D84315";
+    Hyponatremia_Sz [label="Severe hyponatremia\n→ seizure (pediatric risk)"; fillcolor="#FFAB91"];
+    FluidRestrict   [label="Fluid restriction\n(24h post-DDAVP)"];
+    ThromboticRisk  [label="Thrombotic risk\n(VTE/MI, factor\noverdosing, elderly)"; fillcolor="#FF8A65"];
+    AllergicRxn     [label="Allergic/anaphylactoid\nreaction (plasma-derived)"];
+    InhibitorDev    [label="Anti-VWF alloantibody\n(rare, severe Type 3)"];
+    VolumeOverload  [label="Volume overload\n(large-volume infusion)"];
+    PathogenRisk    [label="Pathogen transmission\nrisk (plasma-derived,\nhistorical/mitigated)"];
+  }
+  Hyponatremia -> Hyponatremia_Sz; FluidRestrict -> Hyponatremia_Sz [style=dashed, color="#2E7D32", label="mitigates"];
+  Immediate_VWF -> ThromboticRisk [style=dashed, label="over-correction"];
+  PD_Concentrate -> AllergicRxn; PD_Concentrate -> PathogenRisk;
+  rVWF_Product -> InhibitorDev [style=dashed, label="rare"];
+  IV_Infusion -> VolumeOverload [style=dashed];
+
+  // ==============================================================
+  // Cross-cluster integrative edges
+  // ==============================================================
+  Type1 -> VWF_Ag [label="↓ baseline\n(20-50 IU/dL)"];
+  Type2A -> HMWM_loss; Type2B -> GPIba_GOF; Type2M -> VWF_A1_GPIba [style=dashed, color="#C62828", label="defective\nbinding"];
+  Type2N -> Type2N_Defect; Type3 -> PlasmaVWF_pool [style=dashed, color="#C62828", label="near-zero"];
+  PlateletType -> GPIba_GOF [style=dashed];
+  AcquiredVWD -> ADAMTS13_Autoab [style=dashed]; AcquiredVWD -> HMWM_loss [style=dashed];
+  RCo_Ag_Ratio -> Type2A [style=dashed, color="#6A1B9A", label="diagnostic\ndiscriminator"];
+  VWF_RCo -> Platelet_Tether [style=dashed]; FVIII_C -> TenaseComplex [style=dashed];
+  ISTH_BAT -> DDAVP_Dose [style=dashed, label="triggers\ntreatment"];
+  ISTH_BAT -> PD_Concentrate [style=dashed]; ISTH_BAT -> TXA_Dose [style=dashed];
+}
