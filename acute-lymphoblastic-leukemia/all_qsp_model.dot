@@ -1,0 +1,351 @@
+/* =====================================================================
+   Quantitative Systems Pharmacology (QSP) Map
+   Disease: Acute Lymphoblastic Leukemia (ALL) — B-ALL & T-ALL
+   Author:  CCR / Claude Code Routine (QSP Disease Model Library)
+   Date:    2026-07-01
+   Scope:   Precursor B/T-lymphoid leukemogenesis (cytogenetic drivers) ->
+            bone-marrow niche adhesion/signaling -> apoptosis resistance ->
+            multi-agent chemo-immunotherapy (VCR/steroid/asparaginase/MTX/
+            6-MP/TKI/blinatumomab/inotuzumab/CD19 CAR-T) PK/PD ->
+            myelosuppression, CRS/ICANS/VOD toxicity, and clinical
+            endpoints (MRD, CR, relapse, EFS/OS).
+   Nodes:   >140 ; Clusters: 15 ; PK/PD edges encoded for 10 agents.
+   ===================================================================== */
+
+digraph AcuteLymphoblasticLeukemiaQSP {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=11, splines=true,
+         nodesep=0.22, ranksep=0.55, compound=true,
+         label="Acute Lymphoblastic Leukemia — QSP Mechanistic Map\n(Leukemogenesis · BM Niche · Chemo-Immunotherapy PK/PD · MRD/CR/Relapse Endpoints)",
+         labelloc="t", fontcolor="#333333"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#444444", fillcolor="#FAFAFA"];
+  edge  [fontname="Helvetica", fontsize=9, color="#555555"];
+
+  /* ===================== 1. Normal lymphopoiesis & leukemogenesis ===== */
+  subgraph cluster_Leukemogenesis {
+    label="① Lymphoid progenitor biology & leukemogenic drivers";
+    style=filled; color="#E3F2FD";
+    HSC        [label="Hematopoietic\nstem cell (HSC)"];
+    CLP        [label="Common lymphoid\nprogenitor (CLP)"];
+    ProB       [label="Pro-B / Pre-B\nlymphoblast"];
+    ProT       [label="Pro-T / Pre-T\nthymocyte"];
+    IKZF1      [label="IKZF1 (Ikaros)\ndeletion", fillcolor="#FFCDD2"];
+    PAX5       [label="PAX5 alteration", fillcolor="#FFCDD2"];
+    BCRABL1    [label="BCR-ABL1\nt(9;22) Ph+", fillcolor="#EF9A9A"];
+    ETV6RUNX1  [label="ETV6-RUNX1\nt(12;21)", fillcolor="#EF9A9A"];
+    KMT2Ar     [label="KMT2A-rearranged\n(infant ALL)", fillcolor="#EF9A9A"];
+    TCF3PBX1   [label="TCF3-PBX1\nt(1;19)", fillcolor="#EF9A9A"];
+    Hyperdip   [label="Hyperdiploidy\n(51-65 chr)", fillcolor="#FFE0B2"];
+    Hypodip    [label="Hypodiploidy\n(<44 chr)", fillcolor="#FFAB91"];
+    PhLike     [label="Ph-like ALL\n(CRLF2/ABL-class/JAK)", fillcolor="#EF9A9A"];
+    NOTCH1     [label="NOTCH1 gain-of-\nfunction (T-ALL)", fillcolor="#EF9A9A"];
+    TLX1TLX3   [label="TLX1/TLX3/TAL1\noverexpression", fillcolor="#FFCCBC"];
+    Leukemogen [label="Clonal transformation\n→ leukemic lymphoblast", fillcolor="#E57373"];
+
+    HSC -> CLP -> ProB; CLP -> ProT;
+    IKZF1 -> Leukemogen; PAX5 -> Leukemogen;
+    BCRABL1 -> Leukemogen; ETV6RUNX1 -> Leukemogen;
+    KMT2Ar -> Leukemogen; TCF3PBX1 -> Leukemogen;
+    Hyperdip -> Leukemogen; Hypodip -> Leukemogen;
+    PhLike -> Leukemogen; NOTCH1 -> Leukemogen; TLX1TLX3 -> Leukemogen;
+    ProB -> Leukemogen [style=dashed]; ProT -> Leukemogen [style=dashed];
+  }
+
+  /* ===================== 2. Bone marrow niche & adhesion ============== */
+  subgraph cluster_Niche {
+    label="② Bone-marrow microenvironment & niche adhesion";
+    style=filled; color="#FFF3E0";
+    CXCL12    [label="CXCL12 (SDF-1)\nstromal chemokine"];
+    CXCR4     [label="CXCR4 receptor\n(blast)"];
+    VCAM1     [label="VCAM-1 (stroma)"];
+    VLA4      [label="VLA-4 / ITGA4\n(blast)"];
+    Stromal   [label="Mesenchymal stromal\ncell (MSC) niche"];
+    Osteo     [label="Osteoblastic niche"];
+    NicheProt [label="Niche-mediated\nchemoresistance", fillcolor="#FFE0B2"];
+    ECM_MMP   [label="MMP-9 / ECM\nremodeling"];
+    Hypoxia   [label="Marrow hypoxia\n(HIF-1α)"];
+
+    Stromal -> CXCL12 -> CXCR4; Stromal -> VCAM1 -> VLA4;
+    CXCR4 -> NicheProt; VLA4 -> NicheProt;
+    Osteo -> Stromal; ECM_MMP -> NicheProt; Hypoxia -> NicheProt;
+    NicheProt -> Leukemogen [ltail=cluster_Niche, lhead=cluster_Leukemogenesis, style=dotted];
+  }
+
+  /* ===================== 3. Intracellular signaling =================== */
+  subgraph cluster_Signaling {
+    label="③ Survival signal transduction";
+    style=filled; color="#F3E5F5";
+    PI3K      [label="PI3K"];
+    AKT       [label="AKT"];
+    mTOR      [label="mTORC1"];
+    JAK1_2    [label="JAK1/2\n(CRLF2/ABL-class)"];
+    STAT5     [label="STAT5"];
+    RAS       [label="RAS/RAF/MEK/ERK"];
+    FLT3sig   [label="FLT3-ITD\n(subset)"];
+    PTEN      [label="PTEN loss"];
+    NFkB      [label="NF-κB"];
+    Prolif    [label="Blast proliferation\n(Ki-67, S-phase)", fillcolor="#CE93D8"];
+
+    BCRABL1 -> JAK1_2 [lhead=cluster_Signaling]; PhLike -> JAK1_2 [lhead=cluster_Signaling];
+    JAK1_2 -> STAT5 -> Prolif;
+    PI3K -> AKT -> mTOR -> Prolif;
+    PTEN -> PI3K [style=dashed, label="−", color=red, fontcolor=red];
+    RAS -> Prolif; FLT3sig -> RAS; NFkB -> Prolif;
+    CXCR4 -> PI3K [ltail=cluster_Niche, lhead=cluster_Signaling, style=dotted];
+    NOTCH1 -> mTOR [style=dotted];
+  }
+
+  /* ===================== 4. Apoptosis / glucocorticoid pathway ========= */
+  subgraph cluster_Apoptosis {
+    label="④ Apoptosis resistance & glucocorticoid signaling";
+    style=filled; color="#E8F5E9";
+    BCL2      [label="BCL-2 / BCL-XL\nanti-apoptotic"];
+    BAX_BAK   [label="BAX/BAK\npro-apoptotic"];
+    MCL1      [label="MCL-1"];
+    Caspase   [label="Caspase-3/9\ncascade"];
+    GR        [label="Glucocorticoid\nreceptor (NR3C1)"];
+    GR_target [label="BIM / NUR77\n(pro-apoptotic GR targets)"];
+    Apoptosis [label="Lymphoblast\napoptosis", fillcolor="#A5D6A7"];
+    GR_resist [label="NR3C1 mutation /\nGR downregulation\n(steroid resistance)", fillcolor="#FFAB91"];
+
+    BCL2 -> BAX_BAK [style=dashed, label="−", color=red, fontcolor=red];
+    MCL1 -> BAX_BAK [style=dashed, label="−", color=red, fontcolor=red];
+    BAX_BAK -> Caspase -> Apoptosis;
+    GR -> GR_target -> BAX_BAK;
+    GR_resist -> GR [style=dashed, label="−", color=red, fontcolor=red];
+    Prolif -> BCL2 [ltail=cluster_Signaling, lhead=cluster_Apoptosis, style=dotted, label="survival dependency"];
+  }
+
+  /* ===================== 5. Immunophenotype / surface antigens ======== */
+  subgraph cluster_Immunophenotype {
+    label="⑤ Surface immunophenotype (therapeutic targets)";
+    style=filled; color="#EDE7F6";
+    CD19      [label="CD19\n(pan B-ALL)", fillcolor="#B39DDB"];
+    CD20      [label="CD20\n(~40% B-ALL)"];
+    CD22      [label="CD22\n(pan B-ALL)", fillcolor="#B39DDB"];
+    CD3       [label="CD3\n(T-cell engager anchor)"];
+    CD19_loss [label="CD19 antigen loss /\nlineage switch\n(immune escape)", fillcolor="#FFAB91"];
+
+    Leukemogen -> CD19; Leukemogen -> CD20; Leukemogen -> CD22;
+    CD19 -> CD19_loss [style=dashed, label="selection\npressure"];
+  }
+
+  /* ===================== 6. Vincristine PK/PD ========================== */
+  subgraph cluster_VCR {
+    label="⑥ Vincristine (VCR) — microtubule inhibitor PK/PD";
+    style=filled; color="#E1F5FE";
+    VCR_dose  [label="VCR 1.5 mg/m² IV\n(capped 2 mg)", shape=note, fillcolor="#B3E5FC"];
+    VCR_C     [label="VCR central\n(plasma)"];
+    VCR_P     [label="VCR peripheral\n(tissue-bound tubulin)"];
+    Tubulin   [label="β-tubulin\npolymerization"];
+    MitArrest [label="Mitotic arrest\n(M-phase block)"];
+    PeriphNeur[label="Peripheral sensory/\nautonomic neuropathy", fillcolor="#FFCC80"];
+
+    VCR_dose -> VCR_C; VCR_C -> VCR_P [dir=both];
+    VCR_C -> Tubulin [label="−", color=red, fontcolor=red];
+    Tubulin -> MitArrest -> Apoptosis [lhead=cluster_Apoptosis];
+    VCR_P -> PeriphNeur;
+  }
+
+  /* ===================== 7. Corticosteroid PK/PD ======================= */
+  subgraph cluster_Steroid {
+    label="⑦ Dexamethasone / Prednisone PK/PD";
+    style=filled; color="#FFFDE7";
+    DEX_dose  [label="Dexamethasone\n6-10 mg/m²/day PO\n(or Prednisone 40-60)", shape=note, fillcolor="#FFF59D"];
+    DEX_gut   [label="Steroid\nGI absorption"];
+    DEX_C     [label="Steroid plasma\nconcentration"];
+    CYP3A4ind [label="CYP3A4 induction\n(autoinduction, drug-drug)"];
+    Hyperglyc [label="Steroid\nhyperglycemia", fillcolor="#FFCC80"];
+    Osteonecr [label="Avascular\nosteonecrosis", fillcolor="#FFCC80"];
+    Myopathy  [label="Steroid myopathy /\nmood effects", fillcolor="#FFCC80"];
+
+    DEX_dose -> DEX_gut -> DEX_C;
+    DEX_C -> GR [lhead=cluster_Apoptosis, label="binds"];
+    DEX_C -> CYP3A4ind; DEX_C -> Hyperglyc; DEX_C -> Osteonecr; DEX_C -> Myopathy;
+  }
+
+  /* ===================== 8. Asparaginase PK/PD ========================= */
+  subgraph cluster_ASP {
+    label="⑧ PEG-asparaginase — enzymatic depletion PK/PD";
+    style=filled; color="#F1F8E9";
+    ASP_dose  [label="PEG-asparaginase\n2500 IU/m² IM/IV\nq2wk", shape=note, fillcolor="#C5E1A5"];
+    ASP_C     [label="Asparaginase\nenzyme activity"];
+    Asn_plasma[label="Plasma\nL-asparagine"];
+    Gln_dep   [label="Glutamine\ndepletion (co-substrate)"];
+    ASNS      [label="Asparagine synthetase\n(ASNS) upregulation\n(resistance)", fillcolor="#FFAB91"];
+    ProteinSyn[label="Blast protein\nsynthesis block"];
+    ASP_Ab    [label="Anti-asparaginase\nantibody (silent\ninactivation)", fillcolor="#FFAB91"];
+    Pancreatit[label="Asparaginase\npancreatitis", fillcolor="#FFCC80"];
+    Thrombosis[label="Hypercoagulable state\n(AT-III↓) / thrombosis", fillcolor="#FFCC80"];
+    Hepatotox [label="Hepatotoxicity /\nhypofibrinogenemia", fillcolor="#FFCC80"];
+
+    ASP_dose -> ASP_C; ASP_C -> Asn_plasma [label="−", color=red, fontcolor=red];
+    ASP_C -> Gln_dep;
+    Asn_plasma -> ProteinSyn -> Apoptosis [lhead=cluster_Apoptosis];
+    ASNS -> Asn_plasma [style=dashed, label="replenish\n(resistance)"];
+    ASP_Ab -> ASP_C [style=dashed, label="−", color=red, fontcolor=red];
+    ASP_C -> Pancreatit; ASP_C -> Thrombosis; ASP_C -> Hepatotox;
+  }
+
+  /* ===================== 9. Methotrexate / folate / CNS ================ */
+  subgraph cluster_MTX {
+    label="⑨ Methotrexate (HD-MTX + IT) — antifolate PK/PD";
+    style=filled; color="#FCE4EC";
+    MTX_dose  [label="HD-MTX 5 g/m² IV +\nIT-MTX (CNS ppx)", shape=note, fillcolor="#F8BBD0"];
+    MTX_C     [label="MTX plasma\n(central)"];
+    MTX_P     [label="MTX tissue\n(peripheral)"];
+    MTX_CSF   [label="MTX CSF\nconcentration"];
+    DHFR      [label="DHFR inhibition"];
+    FolateDep [label="Reduced-folate\ndepletion"];
+    MTXPG     [label="MTX-polyglutamate\n(intracellular retention)"];
+    Leucovor  [label="Leucovorin rescue\n(folinic acid)", shape=note, fillcolor="#C8E6C9"];
+    Mucositis [label="Mucositis /\nnephrotoxicity", fillcolor="#FFCC80"];
+    CNSblast  [label="Leptomeningeal /\nCNS blast sanctuary", fillcolor="#EF9A9A"];
+
+    MTX_dose -> MTX_C; MTX_C -> MTX_P [dir=both]; MTX_C -> MTX_CSF [label="BBB\npenetration"];
+    MTX_C -> DHFR [label="−", color=red, fontcolor=red];
+    DHFR -> FolateDep -> ProteinSyn [lhead=cluster_ASP];
+    MTX_C -> MTXPG -> Apoptosis [lhead=cluster_Apoptosis];
+    Leucovor -> FolateDep [style=dashed, label="rescue\nnormal cells", color=blue, fontcolor=blue];
+    MTX_C -> Mucositis;
+    MTX_CSF -> CNSblast [label="−", color=red, fontcolor=red];
+  }
+
+  /* ===================== 10. Thiopurine PK/PD =========================== */
+  subgraph cluster_Thiopurine {
+    label="⑩ 6-Mercaptopurine (maintenance) — thiopurine PK/PD";
+    style=filled; color="#EFEBE9";
+    MP_dose   [label="6-MP 50-75 mg/m²/day\nPO (maintenance)", shape=note, fillcolor="#D7CCC8"];
+    MP_C      [label="6-MP plasma"];
+    TPMT      [label="TPMT enzyme\nactivity (pharmacogenomic)"];
+    NUDT15    [label="NUDT15 enzyme\nactivity (pharmacogenomic)"];
+    TGN       [label="6-Thioguanine\nnucleotides (TGN)\nactive metabolite"];
+    XO        [label="Xanthine oxidase\n(inactivation; allopurinol DDI)"];
+    DNAincorp [label="DNA incorporation /\nstrand breaks"];
+    MyelosupThio[label="Thiopurine-driven\nmyelosuppression", fillcolor="#FFCC80"];
+
+    MP_dose -> MP_C;
+    MP_C -> TGN [label="TPMT/NUDT15-\ndependent"];
+    TPMT -> TGN [style=dashed]; NUDT15 -> TGN [style=dashed];
+    MP_C -> XO [style=dashed, label="−", color=red, fontcolor=red];
+    TGN -> DNAincorp -> Apoptosis [lhead=cluster_Apoptosis];
+    TGN -> MyelosupThio;
+  }
+
+  /* ===================== 11. TKI PK/PD (Ph+ ALL) ======================== */
+  subgraph cluster_TKI {
+    label="⑪ TKI (Imatinib/Dasatinib/Ponatinib) — Ph+ ALL PK/PD";
+    style=filled; color="#E0F2F1";
+    TKI_dose  [label="Dasatinib 70mg BID /\nPonatinib (T315I) PO", shape=note, fillcolor="#B2DFDB"];
+    TKI_C     [label="TKI plasma\nconcentration"];
+    ABL_kinase[label="BCR-ABL1\nkinase activity"];
+    T315I     [label="T315I gatekeeper\nmutation (resistance)", fillcolor="#FFAB91"];
+    QTc       [label="QTc prolongation\n(dasatinib/ponatinib)", fillcolor="#FFCC80"];
+    PleuralEff[label="Pleural effusion\n(dasatinib)", fillcolor="#FFCC80"];
+    VascEvent [label="Arterial occlusive\nevents (ponatinib)", fillcolor="#FFCC80"];
+
+    TKI_dose -> TKI_C; TKI_C -> ABL_kinase [label="−", color=red, fontcolor=red];
+    ABL_kinase -> JAK1_2 [lhead=cluster_Signaling, style=dashed];
+    T315I -> ABL_kinase [style=dashed, label="confers\nresistance"];
+    TKI_C -> QTc; TKI_C -> PleuralEff; TKI_C -> VascEvent;
+  }
+
+  /* ===================== 12. Blinatumomab (BiTE) PK/PD =================== */
+  subgraph cluster_Blina {
+    label="⑫ Blinatumomab — CD19×CD3 BiTE PK/PD";
+    style=filled; color="#FBE9E7";
+    BLIN_inf  [label="Blinatumomab\ncontinuous IV\n9-28 µg/day", shape=note, fillcolor="#FFCCBC"];
+    BLIN_C    [label="Blinatumomab\nplasma (short t½)"];
+    Synapse   [label="Immunologic\nsynapse formation"];
+    Tcell_act [label="Polyclonal T-cell\nactivation/expansion"];
+    Perforin  [label="Perforin/granzyme-\nmediated blast lysis"];
+    ADA_blin  [label="Anti-drug antibody\n(neutralization)", fillcolor="#FFAB91"];
+
+    BLIN_inf -> BLIN_C;
+    BLIN_C -> CD19 [lhead=cluster_Immunophenotype]; BLIN_C -> CD3 [lhead=cluster_Immunophenotype];
+    CD19 -> Synapse [ltail=cluster_Immunophenotype]; CD3 -> Synapse [ltail=cluster_Immunophenotype];
+    Synapse -> Tcell_act -> Perforin -> Apoptosis [lhead=cluster_Apoptosis];
+    Tcell_act -> IL6 [lhead=cluster_Toxicity];
+    ADA_blin -> BLIN_C [style=dashed, label="−", color=red, fontcolor=red];
+    CD19_loss -> Synapse [ltail=cluster_Immunophenotype, style=dashed, label="−", color=red, fontcolor=red];
+  }
+
+  /* ===================== 13. Inotuzumab & CD19 CAR-T ===================== */
+  subgraph cluster_CART {
+    label="⑬ Inotuzumab ozogamicin (ADC) & CD19 CAR-T cell kinetics";
+    style=filled; color="#F9FBE7";
+    INO_dose  [label="Inotuzumab\nozogamicin 0.8-1.8\nmg/m² IV", shape=note, fillcolor="#E6EE9C"];
+    INO_C     [label="Inotuzumab\nplasma (ADC)"];
+    Calichea  [label="Calicheamicin\npayload release"];
+    DoubleSB  [label="DNA double-strand\nbreaks"];
+    VOD_SOS   [label="Hepatic VOD/SOS\n(post-HSCT risk)", fillcolor="#FFAB91"];
+    CART_inf  [label="Tisagenlecleucel\nCD19 CAR-T infusion", shape=note, fillcolor="#DCE775"];
+    CART_blood[label="CAR-T cells\n(blood) — expansion"];
+    CART_tissue[label="CAR-T cells\n(marrow/tissue)"];
+    CART_persist[label="CAR-T persistence /\nB-cell aplasia"];
+
+    INO_dose -> INO_C -> CD22 [lhead=cluster_Immunophenotype];
+    CD22 -> Calichea [ltail=cluster_Immunophenotype]; Calichea -> DoubleSB -> Apoptosis [lhead=cluster_Apoptosis];
+    INO_C -> VOD_SOS;
+    CART_inf -> CART_blood; CART_blood -> CART_tissue [dir=both];
+    CART_tissue -> CD19 [lhead=cluster_Immunophenotype, label="antigen-driven\nexpansion"];
+    CART_blood -> CART_persist;
+    CART_tissue -> Perforin [lhead=cluster_Blina, style=dotted];
+    CD19_loss -> CART_tissue [ltail=cluster_Immunophenotype, style=dashed, label="−", color=red, fontcolor=red];
+  }
+
+  /* ===================== 14. Cytokine release / neurotoxicity =========== */
+  subgraph cluster_Toxicity {
+    label="⑭ Immunotherapy toxicity: CRS & ICANS";
+    style=filled; color="#FFF8E1";
+    IL6       [label="IL-6 (cytokine\nrelease)", fillcolor="#FFE082"];
+    IL6R      [label="IL-6 receptor\nsignaling (macrophage)"];
+    IFNg      [label="IFN-γ / TNF-α"];
+    CRS_grade [label="CRS grade\n(ASTCT 1-4)", fillcolor="#FFAB91"];
+    Toci      [label="Tocilizumab\n(IL-6R antagonist)", shape=note, fillcolor="#C8E6C9"];
+    BBB_perm  [label="BBB permeability\nincrease"];
+    ICANS     [label="ICANS (neurotoxicity,\nICE score)", fillcolor="#FFAB91"];
+    Steroid_rescue[label="Dexamethasone\nrescue (ICANS)", shape=note, fillcolor="#C8E6C9"];
+
+    IL6 -> IL6R -> CRS_grade; IFNg -> CRS_grade;
+    Toci -> IL6R [style=dashed, label="−", color=red, fontcolor=red];
+    CRS_grade -> BBB_perm -> ICANS;
+    Steroid_rescue -> ICANS [style=dashed, label="−", color=red, fontcolor=red];
+    Steroid_rescue -> CART_persist [ltail=cluster_Toxicity, lhead=cluster_CART, style=dashed, label="−", color=red, fontcolor=red];
+  }
+
+  /* ===================== 15. Myelosuppression & clinical endpoints ====== */
+  subgraph cluster_Endpoints {
+    label="⑮ Myelosuppression & clinical response endpoints";
+    style=filled; color="#EEEEEE";
+    Friberg_prol [label="Marrow proliferating\ncompartment"];
+    Friberg_trans[label="Maturation transit\ncompartments (×3)"];
+    ANC          [label="Absolute neutrophil\ncount (ANC)", fillcolor="#90A4AE"];
+    PLT          [label="Platelet count", fillcolor="#90A4AE"];
+    FebrileNeut  [label="Febrile neutropenia\n/ infection risk", fillcolor="#FFCC80"];
+    BM_blast     [label="BM blast %\n(morphologic)"];
+    MRD          [label="MRD (flow/PCR,\nlog10 scale)", fillcolor="#4DB6AC"];
+    CR           [label="Complete remission\n(CR/CRi)", fillcolor="#81C784"];
+    MRDneg       [label="MRD-negative\nremission (<0.01%)", fillcolor="#66BB6A"];
+    Relapse      [label="Relapse (marrow/\nCNS/testicular)", fillcolor="#E57373"];
+    EFS_OS       [label="Event-free / overall\nsurvival", fillcolor="#64B5F6"];
+
+    Apoptosis -> BM_blast [ltail=cluster_Apoptosis, style=dashed, label="log-kill"];
+    BM_blast -> MRD -> CR -> MRDneg -> EFS_OS;
+    MRD -> Relapse [style=dashed]; Relapse -> EFS_OS [style=dashed, label="−", color=red, fontcolor=red];
+    Friberg_prol -> Friberg_trans -> ANC; Friberg_trans -> PLT;
+    ANC -> FebrileNeut [style=dashed, label="−", color=red, fontcolor=red];
+    VCR_C -> Friberg_prol [ltail=cluster_VCR, style=dotted];
+    ASP_C -> Friberg_prol [ltail=cluster_ASP, style=dotted];
+    MTX_C -> Friberg_prol [ltail=cluster_MTX, style=dotted];
+    TGN -> Friberg_prol [ltail=cluster_Thiopurine, style=dotted];
+  }
+
+  /* ===================== Cross-cluster efficacy summation ============== */
+  MitArrest -> BM_blast [ltail=cluster_VCR, lhead=cluster_Endpoints, style=dotted];
+  GR_target -> BM_blast [ltail=cluster_Apoptosis, lhead=cluster_Endpoints, style=dotted];
+  ProteinSyn -> BM_blast [ltail=cluster_ASP, lhead=cluster_Endpoints, style=dotted];
+  CNSblast -> Relapse [ltail=cluster_MTX, lhead=cluster_Endpoints, style=dotted, label="CNS relapse"];
+  T315I -> Relapse [ltail=cluster_TKI, lhead=cluster_Endpoints, style=dotted];
+  ASNS -> Relapse [ltail=cluster_ASP, lhead=cluster_Endpoints, style=dotted];
+}
