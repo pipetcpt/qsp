@@ -55,7 +55,8 @@ print("  montage.png", sheet.size)
 # ---------- 2) real disease-map figures used in the deep-dive slides ----------
 print("[2] deep-dive maps")
 for dis, out in [("iga-nephropathy", "igan_map.png"), ("sickle-cell-disease", "scd_map.png"),
-                  ("multiple-myeloma", "mm_map.png")]:
+                  ("multiple-myeloma", "mm_map.png"), ("rheumatoid-arthritis", "ra_map.png"),
+                  ("duchenne-muscular-dystrophy", "dmd_map.png"), ("alzheimers-disease", "ad_map.png")]:
     svg = find_svg(dis)
     if not svg:
         print("  ! missing svg for", dis); continue
