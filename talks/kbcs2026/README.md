@@ -79,7 +79,8 @@ make assets
 
 ## Publishing to GitHub Pages
 
-The rendered deck is also published at `docs/kbcs2026/index.html` in the repo
-root, served by GitHub Pages alongside `docs/index.html` (the KSMB 2026 talk).
-After re-rendering, copy `_output/slides.html` to `../../docs/kbcs2026/index.html`
-and commit.
+The rendered deck is published at both `docs/index.html` (the site root,
+`pipetcpt.github.io/qsp/`) and `docs/kbcs2026/index.html` in the repo root.
+The KSMB 2026 talk now lives at `docs/ksmb2026/index.html`. After
+re-rendering, copy `_output/slides.html` to both `../../docs/index.html` and
+`../../docs/kbcs2026/index.html` and commit.
