@@ -14,7 +14,7 @@ format:
     footer: "Clinical Pharmacology Approaches on Organs-on-Chips · KBCS 2026"
     width: 1280
     height: 720
-    margin: 0.055
+    margin: 0.05
     center-title-slide: true
     incremental: false
     transition: fade
@@ -25,287 +25,157 @@ format:
     link-external-icon: false
 ---
 
-## Roadmap
+## Roadmap {.smaller}
 
 [KBCS 2026 · Medical Unmet Needs for BioChips]{.kicker}
 
-> A clinician's view: organs-on-chips generate beautiful human cell biology — but a chip reading only becomes **decision-grade evidence** once it is carried, quantitatively, into a human dose and a human patient.
+- **The unmet need** — why preclinical systems keep failing translation
+- **Clinical pharmacology** — QSP & PBPK as the bridge from chip signal to human prediction
+- **Our engine** — an LLM-augmented, open QSP model library (258 diseases and counting)
+- **Case studies** — many drug–disease examples the library already covers, incl. a live app (Merigolix)
+- **Our organ-chip work** — Gut–Liver–Kidney MPS + PBPK, condensed
+- **Where this goes** — a browser-based PBPK/QSP platform
 
-1. **The unmet need** — why conventional preclinical systems keep failing translation
-2. **The missing layer** — clinical pharmacology as the bridge from chip signal to human prediction
-3. **Case study** — our Gut–Liver–Kidney MPS + PBPK platform, in full
-4. **Our effort** — a 258-model open QSP library, built for *you* to use
-5. **Where this goes** — a browser-based PBPK/QSP platform
+## The unmet need: why preclinical systems fail translation {.smaller}
 
-## Why a clinician is standing here
+```{=html}
+<div class="stat-grid">
+  <div class="stat-card"><div class="n">~90%</div><div class="l">clinical-phase attrition</div></div>
+  <div class="stat-card"><div class="n">10–15 yr</div><div class="l">per approved drug</div></div>
+  <div class="stat-card"><div class="n">$1–2.6B</div><div class="l">cost per approved drug</div></div>
+</div>
+```
 
-:::: {.columns}
-::: {.column width="60%"}
-- I am **not** a chip engineer — I am a **clinical pharmacologist and physician**, treating patients and running early-phase trials at Seoul St. Mary's Hospital
-- My daily question is the mirror image of yours: *"Given this human biology, what dose, and for whom?"*
-- Organs-on-chips are, to me, a new **source of human-relevant data** — but data alone does not answer a dosing question
-- This talk is about the **translational layer** that turns a chip curve into a clinical answer
-:::
-::: {.column width="40%"}
-> **Sungpil Han, MD, PhD**
-> Associate Professor
-> Dept. of Pharmacology &
-> Dept. of Clinical Pharmacology & Therapeutics
-> The Catholic University of Korea
-> Seoul St. Mary's Hospital · PIPET
-:::
-::::
-
-## The translational gap that motivates this talk
-
-:::: {.columns}
-::: {.column width="55%"}
-- Drug development's attrition is driven largely by preclinical systems that cannot predict human **PK, efficacy, and toxicity**
 - **2D cell cultures** — no tissue architecture, no organ-level function
 - **Animal models** — persistent interspecies differences in drug disposition
-- The result: a durable gap between preclinical findings and clinical outcomes
-:::
-::: {.column width="45%"}
-[~90%]{.bignum}<br>
-[clinical-phase attrition]{.muted}
-
-<br>
-
-[10–15 yr / \$1–2.6B]{.bignum style="font-size:1.3em"}<br>
-[time & cost per approved drug]{.muted}
-:::
-::::
+- Healthy-volunteer **Phase 1** trials characterize exposure well, but leave it poorly characterized in exactly the patients who need it most: [IBD]{.chip} [AKI]{.chip} [Hepatic impairment]{.chip} [Pregnancy]{.chip} [Pediatric]{.chip} [Rare disease]{.chip}
 
 [DiMasi et al., *J Health Econ* 2016; Kola & Landis, *Nat Rev Drug Discov* 2004.]{.fineprint}
 
-## Who Phase 1 leaves behind
+## Organs-on-chips + the missing layer {.smaller}
 
-Healthy-volunteer Phase 1 trials characterize exposure well — **for healthy volunteers**. Exposure remains poorly characterized in exactly the patients who need it most:
+- **MPS / organs-on-chips** reconstitute human tissue architecture under physiologically relevant conditions — genuinely human-relevant, *before* first-in-human studies
+- But a raw chip concentration-time curve is a **descriptive** observation, not yet a dosing answer
+- **What a chip gives you:** concentration-time profiles · single- or multi-organ readouts · a mechanistically rich human-cell signal
+- **What a dosing decision needs:** clearance, tissue distribution, target engagement — for a **whole human body**, not a chip well
 
-[IBD]{.chip} · [Acute kidney injury]{.chip} · [Hepatic impairment]{.chip} · [Pregnancy]{.chip} · [Pediatric]{.chip} · [Rare disease]{.chip}
+[**Clinical pharmacology — NCA, PBPK, QSP — is the bridge** that turns a chip reading into decision-grade, human-predictive evidence. That bridge is what the rest of this talk is about.]{.lead}
 
-[This is precisely where a human-relevant, disease-state-capable platform — an organ-on-chip — has something a healthy-volunteer trial structurally cannot provide.]{.lead}
+## What is QSP & PBPK?
 
-## Organs-on-chips: the promise
+**PBPK** (physiologically based pharmacokinetics) and **QSP** (quantitative systems pharmacology) are systems biology × pharmacokinetics/pharmacodynamics — a mechanistic, mathematical description of the causal chain:
 
-Microphysiological systems (MPS) reconstitute the structural and functional units of human organs under physiologically relevant mechanical and biochemical conditions — a genuinely **human-relevant** platform to interrogate drug behavior *before* first-in-human studies.
+$$\textbf{drug} \;\rightarrow\; \textbf{target} \;\rightarrow\; \textbf{pathway} \;\rightarrow\; \textbf{disease} \;\rightarrow\; \textbf{patient}$$
 
-But a raw concentration-time curve from a chip well is a **descriptive** observation. The question this talk answers:
+- **PBPK** answers: where does the drug go, and at what concentration, in a whole human body?
+- **QSP** answers the next question: given that concentration, what happens to the disease?
+- Together they answer what statistics alone cannot: dose selection, DDI risk, response in special populations, IVIVE of chip-derived parameters
 
-> How do we turn organs-on-chips from **descriptive in vitro tools** into **quantitative, decision-grade evidence** for drug development?
+## Anatomy of a PBPK/QSP model
 
-## The missing layer: clinical pharmacology
+A coupled nonlinear dynamical system — an initial-value problem:
 
-:::: {.columns}
-::: {.column width="50%"}
-**What a chip gives you**
+$$\frac{d\mathbf{x}}{dt} = \mathbf{f}\!\big(\mathbf{x}(t),\, \boldsymbol{\theta},\, \mathbf{u}(t)\big), \qquad \mathbf{x}(0)=\mathbf{x}_0$$
 
-- concentration-time profiles
-- single-organ or multi-organ (body-on-a-chip) readouts
-- a mechanistically rich, human-cell signal
-:::
-::: {.column width="50%"}
-**What a dosing decision needs**
+- **States $\mathbf{x}$** — drug concentrations, receptor occupancy, signaling species, cell populations, biomarkers, clinical endpoints
+- **Parameters $\boldsymbol{\theta}$** — rate constants, $EC_{50}$/$E_{max}$, Hill $n$, clearances, binding affinities
+- **Inputs $\mathbf{u}(t)$** — dosing regimen: the controllable handle of therapy
 
-- clearance, tissue distribution, target engagement
-- a **whole human body**, not a chip well
-- an answer for *this* patient, not *a* cell culture
-:::
-::::
+[Our library's models: **15–35+ coupled ODEs**, **70–100+ parameters** per disease.]{.lead}
 
-[Non-compartmental analysis + mechanistic PK-PD modeling is the bridge — enabling in vitro-to-in vivo extrapolation (**IVIVE**) of exactly these quantities.]{.lead}
+## The recurring nonlinear structures {.smaller}
 
-## PBPK — scaling the chip to a human body
+The same mathematical motifs recur across essentially every disease and every chip-to-human bridge:
 
-**Physiologically based pharmacokinetics (PBPK)** couples chip-derived parameters to a compartmental representation of human physiology (organ volumes, blood flows, tissue partitioning), turning a microfluidic measurement into a **whole-body human exposure prediction**.
+| Motif | Governing idea | Typical use |
+|---|---|---|
+| Hill / $E_{max}$ | $E(C) = E_{max}C^n / (EC_{50}^n + C^n)$ | any drug dose–response |
+| Indirect response (turnover) | $dR/dt = k_{in}f(\cdot) - k_{out}R$ | biomarker synthesis/degradation |
+| Mass-action / TMDD | drug–target binding, target-mediated clearance | mAbs, receptor-saturating drugs |
+| Logistic growth | $dN/dt = rN(1-N/K) - kill(C)N$ | tumor burden under therapy |
+| Power-law feedback | e.g. $EPO \propto (Hb_0/Hb)^{\gamma}$ | homeostatic feedback loops |
 
-- supports **first-in-human dose selection**
-- supports **drug–drug interaction** evaluation
-- supports **exposure projection in special populations** the chip itself modeled (disease-state chips → disease-state humans)
+[The same grammar underlies both a 250-model QSP library and a chip-to-PBPK bridge.]{.fineprint}
 
-## QSP — adding the disease and the pharmacology
+## Why this matters — Model-Informed Drug Development {.smaller}
 
-PBPK answers "where does the drug go and at what concentration." **Quantitative Systems Pharmacology (QSP)** answers the next question: *given that concentration, what happens to the disease?*
+| Stage | What PBPK/QSP contributes | Effect on attrition |
+|---|---|---|
+| Target validation | does target modulation reach the phenotype? | kills implausible targets early |
+| First-in-human dose | exposure–response & safety margins from mechanism | safer, leaner Phase 1 |
+| Trial design | virtual patients → enrichment, endpoints, sample size | higher trial success |
+| Translation | chip→animal→human, adult→pediatric extrapolation | better external validity |
+| Combinations | synergy/antagonism *in silico* | rational polypharmacy |
 
-- couples PK to **receptor/pathway engagement**, **biomarker dynamics**, and **clinical endpoints**
-- lets a chip-measured perturbation (e.g. a cytokine, a transporter shift) propagate all the way to a **disease trajectory**
-- this is where your chip's biology — an inflamed gut, an injured liver, a cytokine signature — becomes a **testable clinical hypothesis**
+[Regulators (FDA/EMA) actively endorse MIDD — this is an established regulatory pathway, not a novelty.]{.lead}
 
-[Chip → PBPK → QSP is a single continuous translational chain, not three separate tools.]{.lead}
+## Regulatory tailwind for organs-on-chips
 
-## Regulatory tailwind: this is no longer a fringe idea
-
-:::: {.columns}
-::: {.column width="55%"}
 - **FDA Modernization Act 2.0** explicitly opens the door to New Approach Methodologies (NAMs) — including MPS — in place of some animal studies
-- Model-Informed Drug Development (**MIDD**) is an established regulatory pathway that already expects PBPK/QSP-grade quantitative packages
-- Integrating MPS data into an MIDD-style workflow is the credible route to regulatory acceptance — not a purely descriptive poster figure
-:::
-::: {.column width="45%"}
-> Positioning organs-on-chips within an established clinical-pharmacology / pharmacometric workflow reframes microphysiological data as a **translational bridge**: less animal testing, faster candidate selection, more reliable human dose and response prediction.
-:::
-::::
+- **MIDD** already expects PBPK/QSP-grade quantitative packages; integrating MPS data into an MIDD-style workflow is the credible route to regulatory acceptance
+- Positioning organs-on-chips inside an established clinical-pharmacology workflow reframes microphysiological data as a **translational bridge**: less animal testing, faster candidate selection, more reliable human prediction
 
-## Prerequisites for credible quantitative interpretation
+## The bottleneck: building one QSP model, traditionally
 
-Before a chip number can be trusted inside a PBPK/QSP model, four things must be checked — this is where most naïve chip-to-human extrapolations break:
+- Deep literature synthesis across pathophysiology + pharmacology
+- Careful ODE formulation, parameterization, software implementation, calibration
+- **Cost: expert-months to years per disease**
 
-1. **Chip-specific drug behavior** — absorption/adsorption to plastics and membranes, non-specific binding
-2. **Scaling of cellular and fluidic dimensions** — cells-per-chip vs. cells-per-organ, correct per-organ scaling factors
-3. **Verification against clinical data** — held-out clinical observations, not just internal consistency
-4. **Explicit, falsifiable correction rules** — not ad hoc curve-fitting to make numbers match
+**Consequences:**
 
-[The case study that follows was built exactly to test whether this discipline is achievable in practice.]{.lead}
+- only a handful of diseases ever get a model
+- models are siloed, rarely open, rarely reproducible
+- the long tail of diseases — and most chip programs' target diseases — never get one
 
-## Case study {visibility="uncounted"}
+[One disease ≈ one (or more) expert-years. Scarce · slow · closed.]{.lead}
 
-## Gut–Liver–Kidney MPS + mechanistic PBPK
+## Thesis — LLM-augmented model generation
 
-A patient-free, quantitative route to human PK — validated against clinical data the model never saw.
+> Use an **autonomous LLM coding agent** to build complete, quality-gated, fully-referenced QSP models — *at the pace of one disease per day* — with every artifact under version control.
 
-```{=html}
-<div class="stat-grid">
-  <div class="stat-card"><div class="n">6</div><div class="l">drugs</div></div>
-  <div class="stat-card"><div class="n">24</div><div class="l">clinical observations</div></div>
-  <div class="stat-card"><div class="n">1.85×</div><div class="l">AUC GMFE (overall)</div></div>
-  <div class="stat-card"><div class="n">100%</div><div class="l">within 4-fold</div></div>
-  <div class="stat-card"><div class="n">0</div><div class="l">clinical PK used to fit</div></div>
-  <div class="stat-card"><div class="n">2</div><div class="l">disease-state chip arms</div></div>
-</div>
-```
+- 🗺️ Graphviz **mechanistic map** · ⚙️ `mrgsolve` **ODE model** · 📊 **Shiny** dashboard · 📚 curated **references**
+- enforced **quality gates**, **literature grounding** for every parameter
+- standardized schema → comparable & auditable; **reproducible**: code + git history
 
-[No human PK data enters the prediction — all 24 clinical observations are reserved for post-hoc validation only.]{.fineprint}
+## The Claude Code Routine — an autonomous daily loop
 
-## Platform overview
+A scheduled coding agent. **Each run completes one disease end-to-end and pushes it:**
 
-![(A) Modular gut–liver–kidney MPS with shared media recirculation — chip-fitted parameters propagate to a whole-body PBPK with no human PK data entering the prediction. (B) Predicted vs. observed AUC, 24 clinical observations: GMFE 1.85×, 15/24 within 2-fold, 24/24 within 4-fold. (C) Predicted vs. observed Cmax: GMFE 2.55×.](assets/poster/fig1_platform_auc.png){width="95%"}
+1. **Select** an uncovered disease (rotate categories)
+2. **Research** — synthesize ~50 PubMed sources
+3. **Map** — Graphviz network (≥100 nodes)
+4. **Model** — `mrgsolve` ODEs (≥15 compartments)
+5. **Dashboard** — Shiny (≥6 tabs)
+6. **Ground** — sectioned references (≥30)
+7. **Commit & push** — automatically, under a git stop-hook that won't let a session end half-done
 
-## Method ① — chip ODE model: chip readout → kinetic parameters
+## Guardrails — why trust code an LLM wrote
 
-Drug-specific concentration–time data from the gut–liver–kidney chip (hiEC–HepaRG–RPTEC, shared media recirculation) are fitted with a **33-state ODE system** closing the recirculating loop: parent drug (17 states — PDMS adsorption, reservoir, basolateral/membrane/EPC/apical per organ, interconnects, plasma-return) plus a mirror 16-state metabolite sub-system. Hepatic EPC dynamics use $K_{puu,hep}$ on the membrane↔EPC driving force to capture OATP-style concentrative uptake.
+- **Quality gates (hard minimums):** map ≥100 nodes/≥8 clusters · ODE model ≥15 compartments/≥5 scenarios · dashboard ≥6 tabs · ≥30 references
+- **Structural templates:** reusable ODE motifs (Hill, turnover, TMDD) shrink the space of "things that can go wrong"
+- **Literature grounding:** every parameter set carries a calibration memo citing trials — the principal anti-hallucination mechanism
+- **Reproducibility & review:** everything is diffable, auditable, re-runnable code in git; human-in-the-loop review before use
 
-$$PS = P_{app,EPC} \times SA \times 3600 \qquad CL_{int,chip} = CL_{int,init} \times \frac{MPPGL}{HPGL} \times N_{cells} \times 60$$
+## Why an LLM/AI is the right engine
 
-[Chip-fitted outputs → PBPK inputs: $P_{app,gut/hep/renal}$, $CL_{int,hep,chip}$, $K_{puu,hep,chip}$, $CL_{sec,renal,chip}$, intestinal efflux ratio.]{.fineprint}
+- **Tireless & continuous** — a complete, multi-artifact disease model **nearly every day**, a cadence no human team sustains
+- **Vast literature synthesis** — ~12,800 citations integrated (~50/model)
+- **Breadth** — 258 diseases and hundreds of drugs/targets in one consistent framework
+- **Consistency** — identical schema and quality bar → comparable, reusable
+- **Economics** — expert-months → hours
 
-## Method ② — whole-body PBPK
+[The scarce resource is modeling expertise. The LLM *scales* it.]{.lead}
 
-**10-state perfusion-limited PBPK** (lung, heart, brain, muscle, adipose, skin, gut, liver, kidney, rest), with an optional 11-state **permeability-limited liver** for OATP substrates.
+## What's inside each model
 
-- tissue partition coefficients ($K_p$): **Rodgers–Rowland** (acids/bases/neutrals/zwitterions) + **Schmitt 2008** lysosomal ion-trapping for basic lipophiles
-- hepatic clearance: **Varma extended-clearance** formulation (passive $PS_{dif}$ + active $PS_{inf}$ implicit in chip-measured $K_{puu,liver}$)
-- intestinal first-pass: **Yang $Q_{gut}$**; oral absorption: **ACAT 7-segment** with chip-measured gut-wall P-gp efflux
-- physiology: Brown 1997; solved with `scipy.solve_ivp`/LSODA — full 6-drug/24-observation run **&lt;5 min on a laptop**
+- 🗺️ **Mechanistic map** — clustered directed graph: species/states as vertices, mechanistic interactions as edges
+- ⚙️ **`mrgsolve` ODE model** — compiled C++ solver; drug PK coupled to disease PD; 15–35+ states, ≥5 scenarios
+- 📊 **Shiny dashboard** — patient profile, PK, pathophysiology, endpoints, scenario comparison, biomarkers (6–8 tabs)
+- 📚 **~50 curated references** per model, anchoring every parameter
 
-## Method ③ — the chip→PBPK bridge and a falsifiable scaling rule
+[This is the exact structure a chip-to-human bridge needs to plug into: PK states, PD states, a disease trajectory.]{.lead}
 
-Per-cell → whole-organ scaling (HPGL, PTCPGK, $N_{ent,total}$) is literature-anchored, but *in vitro* metabolic activity is well known to under-represent *in vivo* activity. Rather than a blanket correction, we apply it **only** when a falsifiable three-criterion test is met:
-
-> **Apply $RAF_{CYP3A4}$ iff all three hold:**
-> (i) $f_{m,CYP3A4} \ge 0.90$ (CYP3A4-dominant) · (ii) $CL_{bile,frac} < 0.50$ (no biliary compensation) · (iii) $K_{puu,liver} < 3$ (uptake not already captured)
-
-[$RAF_{CYP3A4}=15$ (high-E) or 10 (moderate+biliary); $RAF_{OAT}=7$ (renal). Simvastatin ($K_{puu,liver}=9.96$) is already $K_{puu}$-captured → no RAF. **Uniform RAF → GMFE 9.7×; selective per-rule → 1.85×** — a >5× improvement by mechanism, not fitting.]{.fineprint}
-
-## Methods ④ + ⑤ — inputs, validation, and disease-state extension
-
-:::: {.columns}
-::: {.column width="50%"}
-**④ Drug-specific inputs & validation**
-
-- inputs are physchem only: logP, $pK_a$, $f_{u,p}$, blood:plasma ratio, MW, dose, route
-- **no clinical PK enters the prediction** — all 24 observations (4 published studies × 6 drugs, 3–6-fold dose range each) are reserved for **post-hoc** validation
-:::
-::: {.column width="50%"}
-**⑤ Disease-state extension**
-
-- chips re-fitted under **DSS** (gut injury) and **cisplatin** (renal/hepatic injury)
-- unaffected-organ parameters **locked** at healthy-chip values
-- chip-measured shifts propagate through the **identical PBPK pipeline** — no re-parameterization
-:::
-::::
-
-## Result 1 — healthy subjects: 24 observations, 6 drugs
-
-```{=html}
-<div class="stat-grid">
-  <div class="stat-card"><div class="n">1.85×</div><div class="l">AUC GMFE (overall)</div></div>
-  <div class="stat-card"><div class="n">100%</div><div class="l">within 4-fold (24/24)</div></div>
-  <div class="stat-card"><div class="n">62.5%</div><div class="l">within 2-fold (15/24)</div></div>
-</div>
-```
-
-| Drug | Mechanism | Dose | AUC GMFE | 2-fold | 4-fold |
-|---|---|---|---|---|---|
-| Antipyrine | CYP1A2, low E | 500–1200 PO | 1.59× | 4/4 | 4/4 |
-| Benzylpenicillin | OAT1/3 renal | 360–1200 IV | 1.23× | 4/4 | 4/4 |
-| Testosterone | CYP3A4 high-E + SHBG | 40–200 PO | 1.98× | 2/4 | 4/4 |
-| Crizotinib | CYP3A4 high-E + biliary | 100–300 PO | 2.61× | 1/4 | 4/4 |
-| Gefitinib | CYP3A4 + biliary-dominant | 150–500 PO | 2.93× | 0/4 | 4/4 |
-| Simvastatin | OATP1B1 + CYP3A4 | 20–80 PO | 1.37× | 4/4 | 4/4 |
-| **Overall (n=24)** | | | **1.85×** | **15/24** | **24/24** |
-
-[Performance falls within the 2–5× GMFE benchmark of industry-standard PBPK platforms.]{.fineprint}
-
-## Result 1 — dose–exposure scaling across all six drugs
-
-![Per-drug AUC_inf vs. dose (3–6-fold range; four independent clinical PK studies per drug). Filled squares = PBPK-predicted; open circles = clinical observation. Approximately linear AUC–dose scaling supports first-order clearance and prospective dose selection within the validated mechanism set.](assets/poster/fig2_perdrug_dose.png){width="88%"}
-
-## Supporting — full concentration-time profiles
-
-![PBPK-predicted plasma concentration–time (blue) overlaid with the observed clinical Cmax (orange) for each of the six drugs; log-linear y-axis. Drug class annotated above each panel, spanning low-E CYP1A2, renal OAT1/3, high-E CYP3A4 ± SHBG/P-gp/biliary, and OATP1B1 prodrug mechanisms.](assets/poster/fig3_conc_time.png){width="88%"}
-
-## Supporting — whole-body tissue distribution
-
-![Predicted tissue distribution kinetics (plasma, muscle, liver, kidney, adipose; log scale). Tissue:plasma Kp from Rodgers–Rowland partitioning with Schmitt 2008 lysosomal ion-trapping for basic lipophiles (crizotinib, gefitinib).](assets/poster/fig4_tissue_dist.png){width="88%"}
-
-## Result 2 — disease-state chips predict *exposure shifts*
-
-The **identical PBPK pipeline** (no re-parameterization) applied to two disease-state chip arms:
-
-```{=html}
-<div class="stat-grid">
-  <div class="stat-card"><div class="n">0.49×</div><div class="l">gefitinib AUC under DSS colitis (gut-driven)</div></div>
-  <div class="stat-card"><div class="n">2.19×</div><div class="l">simvastatin AUC under cisplatin injury (hepatic-driven)</div></div>
-  <div class="stat-card"><div class="n">2 sites</div><div class="l">platform distinguishes gut vs. hepatic localization</div></div>
-</div>
-```
-
-[Clinical implication: standard-dose gefitinib may be sub-therapeutic in IBD-comorbid NSCLC; simvastatin + cisplatin combination warrants a prospective PK study (rhabdomyolysis risk).]{.lead}
-
-## Result 2 — where the exposure shift localizes
-
-![(a) Gefitinib under DSS chip colitis (gut Papp ↓7×): AUC ratio 0.49×, Foral 0.80→0.50. (b) Bioavailability decomposition: Fa, Fh essentially unchanged — the shift localizes almost entirely to Fg (gut-localized). (c) Simvastatin under cisplatin chip injury (renal Papp ↓40×, hepatic Kpuu ↓2×): AUC ratio 2.19×, Foral 0.038→0.076. (d) Chip-measured shifts: CLplasma ~unchanged, Kpuu,liver halved, large Peff reductions — a hepatic-localized effect consistent with OATP1B1 suppression.](assets/poster/fig5_disease_state.png){width="82%"}
-
-## Where the platform still needs work
-
-| Chip measurement | Limitation | Correction used | Experimental fix |
-|---|---|---|---|
-| $P_{app}$ gut/liver/kidney | No mucus/peristalsis layer | &lt;2× on $F_a$ | Engineered mucus + mechanical stretch |
-| $CL_{int,hep,chip}$ | HepaRG 2D CYP3A4 ~10% of in vivo | RAF 10–15 (Kvist 2018) | Spheroid HepaRG / primary hepatocyte |
-| $K_{puu,liver}$ | Can't decompose $PS_{inf}$/$PS_{dif}$ | Varma 2015 simplification | Parallel primary hepatocyte OATP assay |
-| $CL_{sec,renal}$ | RPTEC OAT1/3 ~1% of in vivo | Mathialagan 2017 PTC anchor | iPSC proximal tubule / OAT-transduced RPTEC |
-| Disease-state shifts | Sparse clinical PK in patients | Direction-of-effect vs. literature | Prospective clinical PK in IBD/AKI cohorts |
-
-## Case study — conclusions
-
-- **Bottom-up MPS-PBPK** predicts human AUC within **4-fold for 100% of 24 clinical observations** across mechanistically diverse drugs — using **no human PK input**
-- The **three-criterion mechanism-aware RAF rule** converts an ambiguous scaling decision into an objective, falsifiable test (uniform 9.7× → selective **1.85×** GMFE)
-- The same pipeline distinguishes **gut- vs. hepatic-localized** exposure shifts in disease-state chips — hypothesis-generating for IBD- and AKI-comorbid patients normally excluded from Phase 1
-- **Open-source Python**; a full six-drug simulation runs in &lt;5 minutes on a laptop
-
-[This work augments, not replaces, animal/clinical PK — a quantitative, patient-free route where prospective clinical PK is difficult to obtain.]{.lead}
-
-## Our effort {visibility="uncounted"}
-
-## From chip data to human relevance — closing the loop
-
-The case study shows the *mechanism*: PBPK and QSP are what let chip-generated data acquire **human relevance** and translate into genuinely better **human prediction** — not just for one platform, but as a general discipline every MPS program can adopt.
-
-![](assets/figs/bridge.png){width="92%"}
-
-## Our effort: a 258-model open QSP library
-
-To make this discipline immediately usable — not theoretical — my group has spent the past year building an **open, standardized library of QSP models**, one disease at a time, largely through an autonomous LLM-assisted pipeline.
+## Scale: a 258-model open QSP library
 
 ```{=html}
 <div class="stat-grid">
@@ -318,65 +188,258 @@ To make this discipline immediately usable — not theoretical — my group has 
 </div>
 ```
 
-## What's inside each model
+[Traditional QSP: a handful of diseases, expert-months each. This library: 258 diseases, hours each — a step change, not an increment.]{.lead}
 
-Every model in the library ships four consistent, literature-grounded deliverables:
+## Breadth of coverage
 
-- 🗺️ a **mechanistic map** (Graphviz; pathway → target → disease)
-- ⚙️ an **mrgsolve ODE model** (drug PK coupled to disease PD; 15–35+ states)
-- 📊 an interactive **Shiny dashboard** (patient profile, PK, endpoints, scenarios)
-- 📚 **~50 curated references** per model, anchoring every parameter
+[Oncology]{.chip} [Autoimmune/rheumatic]{.chip} [Vasculitis]{.chip} [Cardiovascular]{.chip} [Respiratory]{.chip} [Renal/urologic]{.chip} [GI/hepatobiliary]{.chip} [Endocrine/metabolic]{.chip} [Neurologic]{.chip} [Psychiatric]{.chip} [Dermatologic]{.chip} [Infectious]{.chip} [Ophthalmic]{.chip} [Rare/genetic]{.chip}
 
-[The same structure your chip data needs to plug into: PK states, PD states, and a disease trajectory.]{.lead}
+- **Cancers** — breast, NSCLC, SCLC, glioblastoma, CML, multiple myeloma, melanoma, pancreatic…
+- **Rare & genetic** — Fabry, Gaucher, DMD, SMA, Huntington, transthyretin amyloidosis…
+- **Common chronic** — diabetes, heart failure, COPD, CKD…
+- **Immune / hematologic** — lupus, RA, sickle cell, ITP, myelofibrosis…
 
-## How this helps *your* chip program, directly
+[Hundreds of distinct drugs and molecular targets — very likely including one relevant to your chip.]{.lead}
+
+## Case studies: drugs · targets · modeled endpoints {.smaller}
+
+A single framework already spans dozens of drug classes and mechanisms of action:
+
+| Disease | Drug (example) | Target / mechanism | Modeled endpoint |
+|---|---|---|---|
+| Rheumatoid arthritis | tocilizumab | IL-6 receptor | DAS28 · CRP |
+| Psoriasis | secukinumab | IL-17A | PASI |
+| Type 2 diabetes | semaglutide | GLP-1 receptor | HbA1c · weight |
+| Heart failure (rEF) | sacubitril/valsartan | neprilysin + AT₁ (ARNI) | LVEF · NT-proBNP |
+| COPD | triple therapy (ICS/LABA/LAMA) | β2/M3/glucocorticoid receptors | FEV1 · exacerbation rate |
+| Non-small-cell lung cancer | osimertinib | mutant EGFR | tumor burden |
+| Chronic myeloid leukemia | imatinib | BCR-ABL | BCR-ABL transcript ratio |
+| Pulmonary arterial HTN | macitentan | endothelin A/B receptor | PVR · 6-min walk |
+| IgA nephropathy | sparsentan | endothelin-A + AT₁ | UPCR · eGFR |
+| Sickle cell disease | voxelotor | HbS–O₂ affinity | Hb · hemolysis |
+| Multiple myeloma | daratumumab | CD38 (TMDD) | M-protein |
+| Endometriosis | Merigolix (GnRH antagonist) | GnRH receptor | pain · lesion size |
+
+[Every drug–target–endpoint link is grounded in the trial literature.]{.fineprint}
+
+## Case studies — one modeling insight each (1/2)
+
+:::: {.columns}
+::: {.column width="33%"}
+**NSCLC — EGFR resistance**
+
+Osimertinib vs. **T790M/C797S** escape clones: timing of resistant-clone outgrowth → rationale for combination or sequencing.
+:::
+::: {.column width="33%"}
+**HFrEF — GDMT sequencing**
+
+ARNI · β-blocker · MRA · SGLT2i: order and up-titration speed vs. reverse remodeling (LVEF, NT-proBNP).
+:::
+::: {.column width="33%"}
+**ATTR amyloidosis — gene silencing**
+
+TTR knockdown (patisiran/vutrisiran) → tetramer–monomer kinetics → neuropathy/cardiac burden over years.
+:::
+::::
+
+## Case studies — one modeling insight each (2/2)
+
+:::: {.columns}
+::: {.column width="33%"}
+**SLE — type-I interferon**
+
+Anifrolumab (anti-IFNAR) damps the IFN signature; IFN → autoantibody → flare risk (SLEDAI).
+:::
+::: {.column width="33%"}
+**T2DM — incretin axis**
+
+GLP-1/GIP (tirzepatide): glucose–insulin–weight feedback loop → HbA1c and weight trajectories.
+:::
+::: {.column width="33%"}
+**ITP — platelet kinetics**
+
+TPO-receptor agonists vs. anti-platelet antibody: production-vs-destruction balance → platelet recovery.
+:::
+::::
+
+## Deep dive — IgA nephropathy: the "four-hit" cascade
+
+:::: {.columns}
+::: {.column width="40%"}
+![](assets/figs/igan_map.png){width="100%"}
+:::
+::: {.column width="60%"}
+- Galactose-deficient IgA1 → anti-glycan autoantibodies → immune complexes → mesangial deposition + complement activation → proteinuria, falling eGFR
+- **Drugs modeled:** RAAS blockade · budesonide-TRF (gut B cells/APRIL) · sparsentan (dual ETA+AT₁) · iptacopan (complement factor B) · sibeprenlimab (anti-APRIL)
+- **Endpoints:** UPCR, eGFR slope — calibrated to NefIgArd, PROTECT, APPLAUSE-IgAN
+- 20 ODEs · 7 scenarios
+:::
+::::
+
+## Deep dive — sickle cell disease: polymerization to vaso-occlusion
+
+:::: {.columns}
+::: {.column width="40%"}
+![](assets/figs/scd_map.png){width="100%"}
+:::
+::: {.column width="60%"}
+- Deoxygenated HbS polymerizes → sickling & hemolysis → free Hb scavenges NO → endothelial activation, P-selectin adhesion → vaso-occlusive crises
+- **Drugs modeled:** hydroxyurea (HbF induction) · voxelotor (HbS–O₂ affinity) · crizanlizumab (anti-P-selectin) · L-glutamine
+- **Endpoints:** Hb, HbF%, vaso-occlusion rate, LDH — calibrated to MSH, HOPE, SUSTAIN
+- 24 ODEs; power-law erythropoiesis feedback
+:::
+::::
+
+## Deep dive — multiple myeloma: an oncology exemplar
+
+:::: {.columns}
+::: {.column width="40%"}
+![](assets/figs/mm_map.png){width="100%"}
+:::
+::: {.column width="60%"}
+- Marrow plasma-cell clones secrete M-protein; IL-6 autocrine growth; RANKL/OPG/DKK1 imbalance → bone disease
+- **Drugs modeled:** bortezomib/carfilzomib (proteasome) · lenalidomide (cereblon) · daratumumab (anti-CD38, **TMDD**) · venetoclax (BCL-2) · zoledronate (bone)
+- **Endpoints:** M-protein, free light chains — regimens VRd/DRd/KRd/DVRd
+- Logistic growth + resistant clone + TMDD, coupled to bone-remodeling ODEs
+:::
+::::
+
+## Flagship case — Merigolix, a live drug–disease model
 
 :::: {.columns}
 ::: {.column width="55%"}
-- Working on a **cytokine**, a **transporter**, a **receptor**, or a **disease** your chip models? There is very likely already a QSP model of it in this library — mechanistic map, ODEs, and drugs included
-- Use it to **generate a research hypothesis** before you run the chip experiment
-- Use it as a **PD/disease layer** to attach on top of your own chip → PBPK bridge, exactly as in the case study
+![](assets/shiny/merigolix_dashboard.webp){width="100%"}
 :::
 ::: {.column width="45%"}
-> No one expects you to run all 258 complex models. The goal is that this library becomes a platform that **dramatically accelerates the translation** of the molecules, drugs, cytokines, and diseases *you* already work on.
+**Merigolix** — an oral GnRH-receptor antagonist for **endometriosis**: lowers LH/FSH → suppresses estradiol → regresses estrogen-dependent lesions and pain.
+
+- 2-compartment PK + HPG-axis PD (E2/LH/FSH turnover, Hill inhibition)
+- Endpoints: pain (NRS), lesion size, hot flashes, BMD, endometrium — one ODE system, drug → hormone → lesion → symptom
+
+[**Try it live:** [pipetqsp.shinyapps.io/merigolix](https://pipetqsp.shinyapps.io/merigolix/)]{.lead}
 :::
 ::::
+
+## Merigolix — the estrogen "threshold" trade-off {.smaller}
+
+:::: {.columns}
+::: {.column width="50%"}
+**The therapeutic window**
+
+- too little E2 suppression → no symptom relief
+- too much → hot flashes and bone loss
+- target a *partial* E2 band (~20–40 pg/mL)
+:::
+::: {.column width="50%"}
+**This simulation run**
+
+- E2 trough 2.6 pg/mL; pain 3.1 → 1.1; lesion 18.5 → 5.3 mm
+- but BMD −1.22% and hot flashes 5.4 → 7.9/day
+- → motivates dose titration + hormonal add-back
+:::
+::::
+
+[QSP turns a clinical efficacy/safety trade-off into a tunable, quantitative optimization problem — exactly the kind of question a chip program eventually has to answer too.]{.lead}
 
 ## The gallery — a fraction of the library
 
 ![A sample of the mechanistic maps in the library — one autonomous build each, spanning oncology, autoimmune, cardiovascular, renal, metabolic, neurological, and rare disease.](assets/figs/montage.png){width="86%"}
 
+## How this helps *your* chip program, directly
+
+- Working on a **cytokine**, **transporter**, **receptor**, or **disease** your chip models? There is very likely already a QSP model of it in this library
+- Use it to **generate a research hypothesis** before running the chip experiment
+- Use it as a **PD/disease layer** to attach on top of your own chip→PBPK bridge — exactly as in our own case study later in this talk
+
+[No one expects you to run all 258 models. The goal is a platform that dramatically accelerates the translation of the molecules, drugs, cytokines, and diseases *you* already work on.]{.lead}
+
 ## Fully open — every line of code
 
-```{=html}
-<div style="display:flex; align-items:center; gap:40px; justify-content:center; margin-top:10px;">
-  <img src="assets/figs/repo_qr.png" style="width:190px;height:190px;border:2px solid #163A5F;border-radius:10px;padding:6px;background:#fff;">
-  <div style="max-width:520px;">
-    <p style="font-size:1.15em;"><b>github.com/pipetcpt/qsp</b></p>
-    <p>Every mechanistic map, every ODE model, every Shiny dashboard, every reference list — <b>openly versioned</b>, one commit at a time.</p>
-    <p class="lead">Clone it, run a model, adapt it to your chip's biology, or simply browse for ideas.</p>
-  </div>
-</div>
-```
+- **github.com/pipetcpt/qsp** — every mechanistic map, ODE model, Shiny dashboard, and reference list, openly versioned, one commit at a time
+- Clone it, run a model, adapt it to your chip's biology, or simply browse for ideas
+- QR code in the top-right corner of every slide in this talk links directly to the repository
 
 ## Where this goes: a browser-based PBPK/QSP platform
 
-Complex ODE systems are a real barrier to adoption. My future goal is a **web platform** where any researcher can, from a browser alone:
+Complex ODE systems are a real barrier to adoption. The goal: a **web platform** where any researcher can, from a browser alone —
 
 - **search** by disease, target, drug, or cytokine
-- **browse** the mechanistic map and the ODE structure without installing anything
+- **browse** the mechanistic map and ODE structure without installing anything
 - run a **simple simulation** — a dose, a parameter tweak, an instant plot
-- export parameters directly into their own PBPK/QSP or chip-bridge workflow
+- **export** parameters directly into their own PBPK/QSP or chip-bridge workflow
 
-![Concept mockup — search, browse, and simulate PBPK/QSP models directly in the browser.](assets/figs/webapp_mock.png){width="78%"}
+## Prerequisites for trusting a chip-derived number
 
-## Conclusion & an open invitation
+Before a chip number can be trusted inside a PBPK/QSP model, four things must be checked — this is where most naïve chip-to-human extrapolations break:
+
+1. **Chip-specific drug behavior** — adsorption to plastics/membranes, non-specific binding
+2. **Scaling of cellular and fluidic dimensions** — correct per-organ scaling factors
+3. **Verification against held-out clinical data** — not just internal consistency
+4. **Explicit, falsifiable correction rules** — not ad hoc curve-fitting
+
+[The case study that follows was built exactly to test whether this discipline is achievable in practice.]{.lead}
+
+## Our case study: Gut–Liver–Kidney MPS + PBPK
+
+```{=html}
+<div class="stat-grid">
+  <div class="stat-card"><div class="n">6</div><div class="l">drugs</div></div>
+  <div class="stat-card"><div class="n">24</div><div class="l">clinical observations</div></div>
+  <div class="stat-card"><div class="n">1.85×</div><div class="l">AUC GMFE (overall)</div></div>
+  <div class="stat-card"><div class="n">100%</div><div class="l">within 4-fold</div></div>
+  <div class="stat-card"><div class="n">0</div><div class="l">clinical PK used to fit</div></div>
+  <div class="stat-card"><div class="n">2</div><div class="l">disease-state chip arms</div></div>
+</div>
+```
+
+- Modular gut–liver–kidney MPS (hiEC–HepaRG–RPTEC), shared media recirculation
+- Chip-fitted kinetic parameters propagate to a whole-body PBPK — **no human PK data enters the prediction**
+- All 24 clinical observations reserved for **post-hoc** validation only
+
+## The model predicts human PK well
+
+![Predicted vs. observed AUC and Cmax across 24 clinical observations, 6 mechanistically diverse drugs. Inner band = 2-fold; outer band = 4-fold.](assets/poster/fig1_fit_only.png){width="92%"}
+
+## How it works, in brief {.smaller}
+
+- **Chip → kinetics:** a 33-state ODE system fits chip concentration-time data (parent + metabolite), closing the recirculating loop; $K_{puu,hep}$ captures OATP-style hepatic uptake
+- **Whole-body PBPK:** 10-state perfusion-limited (+ optional permeability-limited liver); Rodgers–Rowland $K_p$; Varma extended clearance; ACAT oral absorption
+- **The scaling rule:** apply a relative-activity factor (RAF) to bridge *in vitro* → *in vivo* metabolism **only if** CYP3A4 contributes ≥90%, biliary clearance <50%, and hepatic uptake isn't already captured — a falsifiable, mechanism-based test, not curve-fitting
+  - uniform correction → GMFE 9.7×; **selective, rule-based correction → GMFE 1.85×**
+- **Inputs:** physchem only (logP, $pK_a$, $f_{u,p}$, blood:plasma, MW, dose) — no clinical PK used to fit
+- **Disease-state extension:** chips re-fitted under DSS colitis / cisplatin injury; unaffected-organ parameters locked; same PBPK pipeline, no re-parameterization
+
+## Validation results — 24 observations, 6 drugs {.smaller}
+
+| Drug | Mechanism | AUC GMFE | 2-fold | 4-fold |
+|---|---|---|---|---|
+| Antipyrine | CYP1A2, low E | 1.59× | 4/4 | 4/4 |
+| Benzylpenicillin | OAT1/3 renal | 1.23× | 4/4 | 4/4 |
+| Testosterone | CYP3A4 high-E + SHBG | 1.98× | 2/4 | 4/4 |
+| Crizotinib | CYP3A4 high-E + biliary | 2.61× | 1/4 | 4/4 |
+| Gefitinib | CYP3A4 + biliary-dominant | 2.93× | 0/4 | 4/4 |
+| Simvastatin | OATP1B1 + CYP3A4 | 1.37× | 4/4 | 4/4 |
+| **Overall (n=24)** | | **1.85×** | **15/24** | **24/24** |
+
+[Falls within the 2–5× GMFE benchmark of industry-standard PBPK platforms.]{.fineprint}
+
+## Disease-state extension, limitations, and what this means {.smaller}
+
+- **Gefitinib under DSS colitis chip:** AUC ratio 0.49× — gut-localized (Fg driven, Fa/Fh unchanged)
+- **Simvastatin under cisplatin-injury chip:** AUC ratio 2.19× — hepatic-localized (Kpuu,liver halved, consistent with OATP1B1 suppression)
+- Same PBPK pipeline distinguishes gut- vs. hepatic-localized shifts — hypothesis-generating for IBD/AKI-comorbid patients normally excluded from Phase 1
+- **Known limitations:** no mucus/peristalsis layer (chip Papp); HepaRG 2D CYP3A4 ~10% of *in vivo* (RAF-corrected); RPTEC OAT1/3 ~1% of *in vivo* (PTC-anchor corrected); sparse clinical PK in disease-state patients (roadmap: prospective IBD/AKI cohorts)
+- **Open-source Python**; full 6-drug/24-observation run reproducible in **&lt;5 minutes** on a laptop
+
+[This work augments, not replaces, animal/clinical PK.]{.fineprint}
+
+## Conclusion & an open invitation {.smaller}
 
 :::: {.columns}
 ::: {.column width="60%"}
-- Organs-on-chips generate genuinely human-relevant biology — but need **clinical pharmacology (NCA, PBPK, QSP)** to become decision-grade, human-predictive evidence
+- Organs-on-chips generate genuinely human-relevant biology — clinical pharmacology (NCA, PBPK, QSP) is what turns it into decision-grade, human-predictive evidence
 - Our Gut–Liver–Kidney case study shows this is achievable **without clinical PK input**, and extends to disease-state chips
-- Our **258-model open QSP library** exists specifically so the NAMs/MPS community can adopt this discipline immediately, not build it from scratch
+- Our **258-model open QSP library** exists so the NAMs/MPS community can adopt this discipline immediately, not build it from scratch
 :::
 ::: {.column width="40%"}
 [This project is completely open. If you are building an organ-on-chip and want a PBPK/QSP bridge — or a disease model to build toward — **I would love to collaborate.**]{.lead}
@@ -388,7 +451,9 @@ shan@catholic.ac.kr
 
 ## Selected references {.smaller}
 
-::: {style="columns:2; column-gap:2em; font-size:0.62em; line-height:1.5;"}
+::: {style="columns:2; column-gap:2em; font-size:0.6em; line-height:1.45;"}
+DiMasi JA et al. *J Health Econ* 47, 20–33 (2016).
+
 Kola I & Landis J. *Nat Rev Drug Discov* 3, 711–715 (2004).
 
 Huh D et al. *Science* 328, 1662–1668 (2010).
@@ -412,16 +477,7 @@ Mathialagan S et al. *Drug Metab Dispos* 45, 409–417 (2017).
 Rodgers T & Rowland M. *J Pharm Sci* 95, 1238–1257 (2006).
 
 Yang J et al. *Curr Drug Metab* 8, 676–684 (2007).
-
-DiMasi JA et al. *J Health Econ* 47, 20–33 (2016).
 :::
-
-## Acknowledgements & data availability
-
-- Chip experiments performed in collaboration with research partners at the Catholic University of Korea, Hongik University, and Danin-Bio
-- Open-source Python implementation (NumPy / SciPy); input CSVs and simulation outputs released at publication
-- Full six-drug, 24-observation prediction is reproducible in **&lt;5 minutes** on a laptop
-- The 258-model QSP library is openly available at **github.com/pipetcpt/qsp**
 
 ## Contact
 
