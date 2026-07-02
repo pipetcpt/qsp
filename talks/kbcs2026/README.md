@@ -30,10 +30,10 @@ challenge to KBCS members. There is no Acknowledgements slide and no "why a
 clinician" slide. Every slide uses one uniform body font size — `{.smaller}`
 is reserved for the handful of slides with a genuinely large data table (the
 12-row drugs/targets table, the 6-drug validation table, the references
-list); no `stat-grid` boxes anywhere, only tables. The deck is bilingual:
-titles, headings, references, and contact info stay in English; explanatory
-body bullets mix in Korean while disease/drug/gene/endpoint names stay in
-English.
+list); no `stat-grid` boxes anywhere, only tables. The deck itself is
+English-only, written as short bullet fragments rather than full sentences.
+`script_ko.docx` is a separate Korean spoken-narration aid for the
+presenter — its content is not shown on any slide.
 
 ## Contents
 
