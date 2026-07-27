@@ -1,0 +1,579 @@
+/* =====================================================================
+   Chronic Insomnia Disorder (CID) — Quantitative Systems Pharmacology map
+   만성 불면장애 QSP 기계론적 지도
+   ---------------------------------------------------------------------
+   Organising principle:
+     Borbély's TWO-PROCESS model (S x C) sets when sleep *can* occur;
+     the ascending arousal system / VLPO "flip-flop" switch decides whether
+     it *does*; orexin stabilises the switch. Chronic insomnia is then a
+     disorder of the THIRD process — 24-h HYPERAROUSAL (cortical, HPA,
+     autonomic) — perpetuated by conditioned learning and by the very
+     behaviours (time-in-bed extension, sleep effort) patients adopt.
+     Hypnotics act on the switch; CBT-I acts on S and on the perpetuating
+     loop — which is why only the latter changes the disease.
+
+   Render:
+     dot -Tsvg ins_qsp_model.dot -o ins_qsp_model.svg
+     dot -Tpng -Gdpi=150 ins_qsp_model.dot -o ins_qsp_model.png
+   ===================================================================== */
+
+digraph InsomniaQSP {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.28, ranksep=0.62, newrank=true,
+         fontname="Helvetica", fontsize=11,
+         labelloc="t", fontcolor="#1a1a2e",
+         label=<<B>Chronic Insomnia Disorder — QSP Mechanistic Map</B><BR/>
+                <FONT POINT-SIZE="12">만성 불면장애 정량적 시스템 약리학 지도 · Two-Process (S×C) core · flip-flop switch · 24-h hyperarousal · CBT-I &amp; hypnotic pharmacology</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#4a4a6a", penwidth=1.0];
+  edge  [fontname="Helvetica", fontsize=8, color="#5a5a7a", arrowsize=0.6];
+
+  /* ---------- colour key -------------------------------------------- */
+  subgraph cluster_key {
+    label="범례 / Legend"; style="rounded,filled"; fillcolor="#fafafa"; color="#bbbbbb"; fontsize=11;
+    k_phys  [label="생리 / physiology",        fillcolor="#e3f2fd"];
+    k_path  [label="병태생리 / pathology",     fillcolor="#ffebee"];
+    k_drug  [label="약물 / drug (PK)",          fillcolor="#f3e5f5"];
+    k_targ  [label="표적 / receptor target",    fillcolor="#ede7f6", shape=ellipse];
+    k_ep    [label="임상 엔드포인트 / endpoint",fillcolor="#fff8e1", shape=note];
+    k_beh   [label="행동·인지 / behaviour",     fillcolor="#e8f5e9"];
+    k_ae    [label="이상반응 / adverse effect", fillcolor="#fbe9e7", shape=octagon];
+    k_state [label="ODE 상태변수 / ODE state",  fillcolor="#e0f7fa", shape=box3d];
+    k_phys -> k_path -> k_drug -> k_targ -> k_ep -> k_beh -> k_ae -> k_state [style=invis];
+  }
+
+  /* =================================================================
+     1. PROCESS C — circadian pacemaker (SCN molecular clock)
+     ================================================================= */
+  subgraph cluster_circ {
+    label="① 일주기 진자 Process C — SCN 분자시계 / Circadian pacemaker";
+    style="rounded,filled"; fillcolor="#e8eaf6"; color="#5c6bc0"; fontsize=12;
+
+    LIGHT   [label="환경 광 노출\nAmbient light (lux)\n야간 청색광 · screens", fillcolor="#fff9c4"];
+    IPRGC   [label="ipRGC (멜라놉신)\nMelanopsin OPN4\nintrinsically photosensitive RGC", fillcolor="#e3f2fd"];
+    RHT     [label="망막시상하부로\nRetinohypothalamic tract\nGlu + PACAP", fillcolor="#e3f2fd"];
+    SCN     [label="시교차상핵 SCN\nMaster pacemaker\n~20,000 neurons", fillcolor="#c5cae9", shape=doubleoctagon];
+    CLOCKBM [label="CLOCK:BMAL1 heterodimer\nE-box 전사활성화", fillcolor="#e3f2fd"];
+    PERCRY  [label="PER1/2/3 · CRY1/2\n음성 되먹임 루프 (TTFL)", fillcolor="#e3f2fd"];
+    CK1D    [label="CK1δ/ε\nPER 인산화 → 분해속도\n(τ 결정, DSPD 변이)", fillcolor="#e3f2fd"];
+    REVERB  [label="REV-ERBα/β · RORα\nBMAL1 안정화 2차 루프", fillcolor="#e3f2fd"];
+    VIPAVP  [label="SCN 출력: VIP · AVP · GRP\nshell↔core 동조", fillcolor="#e3f2fd"];
+    DMH     [label="배내측 시상하부 DMH\nSCN 출력 중계", fillcolor="#e3f2fd"];
+    SPZ     [label="아교차상 영역 sSPZ\nsubparaventricular zone", fillcolor="#e3f2fd"];
+    PVN     [label="실방핵 PVN", fillcolor="#e3f2fd"];
+    IML     [label="척수 중간외측주 IML\n교감신경 절전뉴런", fillcolor="#e3f2fd"];
+    SCG     [label="상경신경절 SCG\n→ 송과체 NE", fillcolor="#e3f2fd"];
+    PINEAL  [label="송과체 Pineal gland", fillcolor="#e3f2fd"];
+    AANAT   [label="AANAT (율속효소)\n야간 ↑, 광에 의해 급성 억제", fillcolor="#e3f2fd"];
+    ASMT    [label="ASMT (HIOMT)\nN-acetylserotonin → melatonin", fillcolor="#e3f2fd"];
+    MELend  [label="내인성 멜라토닌\nEndogenous melatonin\nDLMO · 야간 peak 60–70 pg/mL", fillcolor="#e0f7fa", shape=box3d];
+    MT1R    [label="MT1 (MTNR1A)\n각성 억제 · 급성 수면유도", fillcolor="#ede7f6", shape=ellipse];
+    MT2R    [label="MT2 (MTNR1B)\n위상 이동 (PRC)", fillcolor="#ede7f6", shape=ellipse];
+    PRC     [label="위상반응곡선 PRC\n저녁광=지연 · 새벽광=전진\n멜라토닌은 반대 위상", fillcolor="#e3f2fd", shape=parallelogram];
+    PHI     [label="Φ 위상 이동 (h)\nCircadian phase shift", fillcolor="#e0f7fa", shape=box3d];
+    CPROC   [label="Process C\n각성 신호 진폭 (alerting signal)\nC(t)=A·sin(2π(t−Φ)/24)", fillcolor="#c5cae9", shape=box3d];
+    WMZ     [label="Wake-maintenance zone\n(수면금지 구역, 취침 2–3h 전)", fillcolor="#ffe0b2"];
+    CBTemp  [label="심부체온 CBT\n최저점 ~04–05시", fillcolor="#e0f7fa", shape=box3d];
+
+    LIGHT -> IPRGC -> RHT -> SCN;
+    SCN -> CLOCKBM -> PERCRY -> CLOCKBM [label="negative FB", style=dashed, color="#c62828"];
+    CK1D -> PERCRY [label="degradation"];
+    CLOCKBM -> REVERB -> CLOCKBM [style=dashed];
+    SCN -> VIPAVP -> DMH -> SPZ;
+    SCN -> PVN -> IML -> SCG -> PINEAL;
+    PINEAL -> AANAT -> ASMT -> MELend;
+    LIGHT -> AANAT [label="acute suppression", color="#c62828", style=dashed, arrowhead=tee];
+    MELend -> MT1R; MELend -> MT2R;
+    MT2R -> PRC -> PHI; LIGHT -> PRC;
+    PHI -> CPROC; SCN -> CPROC; CPROC -> WMZ;
+    SCN -> CBTemp;
+  }
+
+  /* =================================================================
+     2. PROCESS S — homeostatic sleep pressure
+     ================================================================= */
+  subgraph cluster_homeo {
+    label="② 항상성 수면압 Process S — 아데노신 / Homeostatic drive";
+    style="rounded,filled"; fillcolor="#e0f2f1"; color="#26a69a"; fontsize=12;
+
+    NEURACT [label="각성 중 신경 대사활동\nWaking neuronal activity", fillcolor="#e3f2fd"];
+    ATPuse  [label="ATP 소비 ↑\n→ AMP → 세포외 ATP 방출", fillcolor="#e3f2fd"];
+    CD73    [label="CD73 / NT5E\n5'-nucleotidase (ATP→ADO)", fillcolor="#e3f2fd"];
+    ASTRO   [label="성상교세포 SNARE\nATP/ADO gliotransmission", fillcolor="#e3f2fd"];
+    ADO     [label="세포외 아데노신 ADO\nbasal forebrain ISF ↑ during wake", fillcolor="#e0f7fa", shape=box3d];
+    ENT1    [label="ENT1 수송체 · ADA\nadenosine clearance", fillcolor="#e3f2fd"];
+    A1R     [label="A1 수용체 (Gi)\nBF 각성뉴런 억제", fillcolor="#ede7f6", shape=ellipse];
+    A2AR    [label="A2A 수용체 (Gs)\n측기저부·VLPO 활성화", fillcolor="#ede7f6", shape=ellipse];
+    PGD2    [label="PGD2 / L-PGDS\n지주막 DP1 → A2A", fillcolor="#e3f2fd"];
+    SPRESS  [label="Process S\n항상성 수면압 (S)\n각성 시 포화 상승 · 수면 시 지수 감쇠", fillcolor="#b2dfdb", shape=box3d];
+    SWA     [label="서파활동 SWA\nEEG δ power 0.5–4 Hz\nS의 직접 지표", fillcolor="#e0f7fa", shape=box3d];
+    SHY     [label="시냅스 항상성 가설 SHY\n각성 중 시냅스 강도↑ →\n수면 중 하향조절 (downscaling)", fillcolor="#e3f2fd"];
+    SLEEPSUB[label="수면 부족 부채\nSleep debt / TST 결핍 누적", fillcolor="#ffebee"];
+
+    NEURACT -> ATPuse -> CD73 -> ADO; ASTRO -> ADO; ATPuse -> ASTRO;
+    ADO -> ENT1 [dir=both, label="clearance"];
+    ADO -> A1R; ADO -> A2AR; PGD2 -> A2AR;
+    A1R -> SPRESS; A2AR -> SPRESS; ADO -> SPRESS;
+    SPRESS -> SWA; SHY -> SWA; NEURACT -> SHY;
+    SPRESS -> SLEEPSUB [style=dashed];
+  }
+
+  /* =================================================================
+     3. Ascending arousal system (wake side of the flip-flop)
+     ================================================================= */
+  subgraph cluster_arousal {
+    label="③ 상행 각성 시스템 / Ascending arousal system (wake-promoting)";
+    style="rounded,filled"; fillcolor="#fff3e0"; color="#fb8c00"; fontsize=12;
+
+    LC      [label="청반 LC\nNoradrenaline (NE)", fillcolor="#ffe0b2"];
+    DR      [label="등쪽솔기핵 DR\nSerotonin 5-HT", fillcolor="#ffe0b2"];
+    TMN     [label="결절유두체핵 TMN\nHistamine", fillcolor="#ffe0b2"];
+    LDTPPT  [label="LDT/PPT\nAcetylcholine (REM-on/wake)", fillcolor="#ffe0b2"];
+    VPAG    [label="복측 수도관주위회백질 vPAG\nDopamine", fillcolor="#ffe0b2"];
+    BFCH    [label="기저전뇌 BF\nACh · glutamate · parvalbumin GABA", fillcolor="#ffe0b2"];
+    PBPC    [label="Parabrachial / precoeruleus\nGlutamate → BF·cortex", fillcolor="#ffe0b2"];
+    THALR   [label="시상 relay nuclei\n피질 활성화 전달", fillcolor="#ffe0b2"];
+    CTXACT  [label="피질 각성 (desynchronised EEG)\nCortical activation", fillcolor="#ffe0b2"];
+    NEtone  [label="NE tone\n(LC 발화율)", fillcolor="#e0f7fa", shape=box3d];
+    HAtone  [label="Histamine tone\n(TMN 발화율)", fillcolor="#e0f7fa", shape=box3d];
+    H1R     [label="H1 수용체\n피질·시상 각성", fillcolor="#ede7f6", shape=ellipse];
+    A1AR    [label="α1-adrenoceptor", fillcolor="#ede7f6", shape=ellipse];
+    HT2A    [label="5-HT2A 수용체\n각성·SWS 억제", fillcolor="#ede7f6", shape=ellipse];
+
+    LC -> NEtone -> A1AR -> CTXACT;
+    TMN -> HAtone -> H1R -> CTXACT;
+    DR -> HT2A -> CTXACT;
+    LDTPPT -> THALR -> CTXACT; VPAG -> CTXACT;
+    PBPC -> BFCH -> CTXACT; BFCH -> THALR;
+    LC -> BFCH; TMN -> BFCH; DR -> BFCH;
+  }
+
+  /* =================================================================
+     4. Sleep-promoting nuclei + the flip-flop switch
+     ================================================================= */
+  subgraph cluster_sleepside {
+    label="④ 수면 촉진 핵 & Flip-flop 스위치 / Sleep-active nuclei";
+    style="rounded,filled"; fillcolor="#e8eaf6"; color="#3949ab"; fontsize=12;
+
+    VLPO    [label="복외측 시각교차전핵 VLPO\nGABA + galanin (sleep-active)", fillcolor="#c5cae9"];
+    MNPO    [label="정중시각교차전핵 MnPO\n수면 개시 · 온도 통합", fillcolor="#c5cae9"];
+    PZ      [label="Parafacial zone PZ\nGABA/glycine → NREM", fillcolor="#c5cae9"];
+    NNOS    [label="피질 nNOS/NPY 중간뉴런\nSWA 국소 생성", fillcolor="#c5cae9"];
+    GAL     [label="Galanin\nVLPO 공동전달물질", fillcolor="#c5cae9"];
+    GABAt   [label="VLPO GABA 출력\nSleep drive output", fillcolor="#e0f7fa", shape=box3d];
+    FLIP    [label="FLIP-FLOP SWITCH\nVLPO ⟷ 각성계 상호억제\n(mutual inhibition, bistable)", fillcolor="#b39ddb", shape=doubleoctagon];
+    GABAAR  [label="GABA-A 수용체\nα1(진정)·α2/α3(항불안)·α5(기억)\nβ2/β3 · γ2 (BZ site)", fillcolor="#ede7f6", shape=ellipse];
+    CLCOND  [label="Cl⁻ 전도도 ↑\n과분극 → 발화 억제", fillcolor="#e3f2fd"];
+    SPIND   [label="수면방추 Spindles\n시상망상핵 TRN 11–16 Hz", fillcolor="#e3f2fd"];
+    KCOMP   [label="K-complex\nN2 표지", fillcolor="#e3f2fd"];
+
+    VLPO -> GABAt; MNPO -> VLPO; PZ -> GABAt; GAL -> GABAt; VLPO -> GAL;
+    GABAt -> GABAAR -> CLCOND -> FLIP;
+    VLPO -> FLIP; NNOS -> SWA [ltail=cluster_sleepside, lhead=cluster_homeo, style=dotted];
+    FLIP -> SPIND; SPIND -> KCOMP;
+    GABAt -> LC   [arrowhead=tee, color="#1565c0"];
+    GABAt -> TMN  [arrowhead=tee, color="#1565c0"];
+    GABAt -> DR   [arrowhead=tee, color="#1565c0"];
+    GABAt -> BFCH [arrowhead=tee, color="#1565c0"];
+    NEtone -> VLPO [arrowhead=tee, color="#e65100"];
+    HAtone -> VLPO [arrowhead=tee, color="#e65100"];
+    SPRESS -> VLPO [label="S drives sleep side", color="#00897b"];
+    CPROC  -> FLIP [label="C gates timing", color="#3949ab"];
+  }
+
+  /* =================================================================
+     5. Orexin — switch stabiliser
+     ================================================================= */
+  subgraph cluster_orexin {
+    label="⑤ 오렉신/하이포크레틴 — 스위치 안정자 / Orexin system";
+    style="rounded,filled"; fillcolor="#fce4ec"; color="#d81b60"; fontsize=12;
+
+    LHOX    [label="외측 시상하부 LH\n오렉신 뉴런 (~70,000)", fillcolor="#f8bbd0"];
+    PPOX    [label="Prepro-orexin (HCRT)\n→ orexin-A / orexin-B", fillcolor="#f8bbd0"];
+    OXA     [label="Orexin-A (CSF)\n주간 ↑ · 야간 ↓\nCSF 350–500 pg/mL", fillcolor="#e0f7fa", shape=box3d];
+    OXB     [label="Orexin-B", fillcolor="#f8bbd0"];
+    OX1R    [label="OX1R (Gq)\nLC 선택적 · 보상·식욕", fillcolor="#ede7f6", shape=ellipse];
+    OX2R    [label="OX2R (Gq/Gi)\nTMN 선택적 · 각성 유지 핵심", fillcolor="#ede7f6", shape=ellipse];
+    MCH     [label="MCH 뉴런 (LH)\nREM-active, 오렉신과 길항", fillcolor="#f8bbd0"];
+    OXSTAB  [label="스위치 안정화\n각성 상태 유지 (anti-fragmentation)", fillcolor="#f8bbd0"];
+    LEPGHR  [label="Leptin / ghrelin / glucose\n대사 입력 → 오렉신", fillcolor="#f8bbd0"];
+
+    LHOX -> PPOX -> OXA; PPOX -> OXB;
+    OXA -> OX1R; OXA -> OX2R; OXB -> OX2R;
+    OX1R -> LC; OX2R -> TMN; OX2R -> BFCH; OX1R -> DR;
+    OX1R -> OXSTAB; OX2R -> OXSTAB; OXSTAB -> FLIP;
+    MCH -> LHOX [arrowhead=tee]; LEPGHR -> LHOX;
+    CPROC -> LHOX [label="circadian drive"];
+  }
+
+  /* =================================================================
+     6. HYPERAROUSAL — the core of chronic insomnia
+     ================================================================= */
+  subgraph cluster_hyper {
+    label="⑥ 과각성 (핵심 병태생리) / 24-h HYPERAROUSAL — the third process";
+    style="rounded,filled"; fillcolor="#ffebee"; color="#c62828"; fontsize=13; penwidth=2.0;
+
+    AROU    [label="AROUSAL 상태변수\n인지·정서·신체 과각성 (A)", fillcolor="#ef9a9a", shape=box3d, penwidth=2.0];
+    COGAR   [label="인지적 과각성\nracing thoughts · rumination · worry", fillcolor="#ffcdd2"];
+    SOMAR   [label="신체적 과각성\nmuscle tension · palpitation", fillcolor="#ffcdd2"];
+    EMOAR   [label="정서적 과각성\npre-sleep anxiety · 예기불안", fillcolor="#ffcdd2"];
+    BETAEEG [label="EEG β/γ power ↑ (16–45 Hz)\nsleep onset 및 NREM 중 침입", fillcolor="#ffcdd2"];
+    HIGHMET [label="전뇌 대사율 ↑ (FDG-PET)\nwake→NREM 감소 실패", fillcolor="#ffcdd2"];
+    AMYG    [label="편도체 amygdala 과반응\n정서 조절 실패", fillcolor="#ffcdd2"];
+    SALNET  [label="Salience network (ACC·insula)\n야간 자기감시 ↑", fillcolor="#ffcdd2"];
+    DMN     [label="Default mode network\n입면 시 비활성화 실패", fillcolor="#ffcdd2"];
+    LOCSLP  [label="국소 수면 (local sleep)\n감각·운동 피질은 자는데\n전전두·변연계는 깨어있음", fillcolor="#ffcdd2"];
+    HTR     [label="심박수 ↑ · HRV ↓\nLF/HF ratio ↑", fillcolor="#ffcdd2"];
+    MSNA    [label="근교감신경 활성 MSNA ↑", fillcolor="#ffcdd2"];
+    ARSTATE [label="야간 각성 반응 (arousals)\ncortical micro-arousal index ↑", fillcolor="#ffcdd2"];
+
+    COGAR -> AROU; SOMAR -> AROU; EMOAR -> AROU;
+    AROU -> BETAEEG; AROU -> HIGHMET; AMYG -> EMOAR; SALNET -> COGAR; DMN -> COGAR;
+    AROU -> LOCSLP; AROU -> HTR; AROU -> MSNA; AROU -> ARSTATE;
+    AROU -> FLIP [label="raises wake side", color="#c62828", penwidth=2.0];
+    AROU -> VLPO [arrowhead=tee, color="#c62828"];
+    NEtone -> AROU; OXA -> AROU;
+  }
+
+  /* =================================================================
+     7. HPA axis
+     ================================================================= */
+  subgraph cluster_hpa {
+    label="⑦ HPA 축 / Hypothalamic–pituitary–adrenal axis";
+    style="rounded,filled"; fillcolor="#f3e5f5"; color="#8e24aa"; fontsize=12;
+
+    STRESS  [label="심리사회적 스트레스\nPrecipitating life event", fillcolor="#ffebee"];
+    CRH     [label="CRH (PVN)", fillcolor="#e0f7fa", shape=box3d];
+    AVPh    [label="AVP (co-secretagogue)", fillcolor="#e1bee7"];
+    ACTH    [label="ACTH (뇌하수체 전엽)", fillcolor="#e0f7fa", shape=box3d];
+    CORT    [label="코르티솔 Cortisol\n저녁·야간 nadir 상승이 특징", fillcolor="#e0f7fa", shape=box3d];
+    CAR     [label="기상 코르티솔 반응 CAR\n둔화/증가 혼재", fillcolor="#e1bee7"];
+    GRMR    [label="GR / MR 되먹임\n해마 GR 저항성", fillcolor="#e1bee7"];
+    IL6TNF  [label="IL-6 · TNF-α · CRP ↑\n저등급 전신 염증", fillcolor="#e0f7fa", shape=box3d];
+    NFKBi   [label="NF-κB 활성 ↑\n(수면 부족 → 단핵구)", fillcolor="#e1bee7"];
+
+    STRESS -> CRH -> ACTH -> CORT;
+    AVPh -> ACTH; CRH -> AVPh;
+    CORT -> GRMR -> CRH [arrowhead=tee, style=dashed, label="negative FB (impaired)"];
+    CORT -> CAR;
+    CRH -> AROU [label="direct arousal", color="#c62828"];
+    CORT -> AROU;
+    CORT -> SPRESS [arrowhead=tee, label="SWS 억제"];
+    AROU -> CRH [label="feed-forward loop", color="#c62828", style=bold];
+    NFKBi -> IL6TNF; STRESS -> NFKBi; IL6TNF -> AROU [style=dashed];
+  }
+
+  /* =================================================================
+     8. Sleep architecture & state transitions
+     ================================================================= */
+  subgraph cluster_arch {
+    label="⑧ 수면 구조 · 상태 전이 / Sleep architecture";
+    style="rounded,filled"; fillcolor="#e1f5fe"; color="#0288d1"; fontsize=12;
+
+    WAKEst  [label="WAKE", fillcolor="#ffe0b2", shape=ellipse];
+    N1      [label="N1 (전이수면)", fillcolor="#b3e5fc", shape=ellipse];
+    N2      [label="N2 (방추·K-complex)\n전체 45–55%", fillcolor="#b3e5fc", shape=ellipse];
+    N3      [label="N3 SWS (서파수면)\n전체 13–23%, 전반부 집중", fillcolor="#b3e5fc", shape=ellipse];
+    REMst   [label="REM 수면\n전체 20–25%, 후반부 집중", fillcolor="#d1c4e9", shape=ellipse];
+    SLD     [label="Sublaterodorsal nucleus SLD\nREM-on glutamate", fillcolor="#d1c4e9"];
+    VLPAG   [label="vlPAG / LPT\nREM-off GABA", fillcolor="#d1c4e9"];
+    REMFF   [label="REM flip-flop\nSLD ⟷ vlPAG 상호억제", fillcolor="#d1c4e9", shape=octagon];
+    ATON    [label="REM 근무력증 atonia\nGlycine/GABA → 운동뉴런", fillcolor="#d1c4e9"];
+    CYCLE   [label="NREM–REM 주기 ~90 min\n밤새 4–6 주기", fillcolor="#b3e5fc"];
+    SFI     [label="수면 분절 지수\nSleep fragmentation index ↑", fillcolor="#ffebee"];
+
+    WAKEst -> N1 -> N2 -> N3; N3 -> N2 -> REMst; REMst -> N2; N1 -> WAKEst; N2 -> WAKEst;
+    SLD -> REMst; VLPAG -> REMFF; SLD -> REMFF; REMFF -> REMst; REMst -> ATON;
+    LDTPPT -> SLD; NEtone -> VLPAG; HT2A -> VLPAG;
+    CYCLE -> REMst; SPRESS -> N3; CPROC -> REMst [label="REM propensity ~CBT nadir"];
+    ARSTATE -> SFI; SFI -> WAKEst;
+  }
+
+  /* =================================================================
+     9. 3-P (Spielman) perpetuation loop / behavioural pathology
+     ================================================================= */
+  subgraph cluster_3p {
+    label="⑨ 3P 모형 — 만성화 되먹임 고리 / Spielman 3-P perpetuating loop";
+    style="rounded,filled"; fillcolor="#fff8e1"; color="#f9a825"; fontsize=12;
+
+    PREDIS  [label="Predisposing 소인\n특성 불안 · 반추 성향 · 여성 · 가족력\nshort-sleep phenotype", fillcolor="#ffe082"];
+    PRECIP  [label="Precipitating 촉발\n급성 스트레스 · 통증 · 교대근무\n질병 · 상실", fillcolor="#ffe082"];
+    PERPET  [label="Perpetuating 유지\n(약물·CBT-I의 진짜 표적)", fillcolor="#ffcc80", shape=doubleoctagon];
+    TIBext  [label="침상시간 연장 TIB↑\n'더 오래 누워 있으면 더 자겠지'", fillcolor="#e8f5e9"];
+    NAPS    [label="주간 낮잠 · 늦잠\n→ S 소진", fillcolor="#e8f5e9"];
+    SEFF    [label="수면 노력 Sleep effort\n'잠들려고 애쓰기'\n(역설적 각성)", fillcolor="#e8f5e9", shape=box3d];
+    COND    [label="조건화된 각성 COND\n침대·침실 = 각성 단서\n(classical conditioning)", fillcolor="#e8f5e9", shape=box3d];
+    DBAS    [label="역기능적 수면 신념 DBAS-16\n'8시간 못 자면 내일 망한다'\ncatastrophising", fillcolor="#e8f5e9", shape=box3d];
+    MONIT   [label="수면 감시 행동\nclock-watching · 신체감각 monitoring", fillcolor="#e8f5e9"];
+    MISP    [label="수면 상태 오지각 MISP\nsubjective TST ≪ PSG TST\n(paradoxical insomnia)", fillcolor="#e8f5e9", shape=box3d];
+    SAFEBEH [label="안전 행동\n음주 자가치료 · 조기 취침 · 카페인 보상", fillcolor="#e8f5e9"];
+
+    PREDIS -> PERPET; PRECIP -> PERPET; PRECIP -> STRESS;
+    PERPET -> TIBext -> SPRESS [arrowhead=tee, label="S 희석"];
+    PERPET -> NAPS -> SPRESS [arrowhead=tee];
+    PERPET -> SEFF -> AROU; PERPET -> COND -> AROU;
+    PERPET -> DBAS -> COGAR; PERPET -> MONIT -> COGAR;
+    LOCSLP -> MISP; AROU -> MISP; MISP -> DBAS [style=dashed, label="vicious cycle"];
+    PERPET -> SAFEBEH;
+    ARSTATE -> COND [label="bed↔wake pairing", color="#c62828"];
+  }
+
+  /* =================================================================
+     10. CBT-I — behavioural pharmacology of the loop
+     ================================================================= */
+  subgraph cluster_cbti {
+    label="⑩ 인지행동치료 CBT-I / Cognitive behavioural therapy for insomnia (1차 치료)";
+    style="rounded,filled"; fillcolor="#e8f5e9"; color="#2e7d32"; fontsize=12;
+
+    CBTI    [label="CBT-I 패키지 (4–8 세션)\ndCBT-I / SHUTi · Sleepio", fillcolor="#a5d6a7", shape=doubleoctagon];
+    SRT     [label="수면 제한 요법 SRT\nTIB := 최근 TST (최소 5–5.5 h)", fillcolor="#c8e6c9"];
+    STIMC   [label="자극 조절 요법 Stimulus control\n졸릴 때만 침대 · 20분 규칙", fillcolor="#c8e6c9"];
+    COGTH   [label="인지 재구성\nDBAS 수정 · 파국화 교정", fillcolor="#c8e6c9"];
+    RELAX   [label="이완 · PMR · 호흡\n신체 각성 감소", fillcolor="#c8e6c9"];
+    HYGIENE [label="수면 위생 (단독 효과 없음)\ncaffeine · alcohol · light · 온도", fillcolor="#c8e6c9"];
+    MINDF   [label="마음챙김 · 수용전념 ACT\n수면 노력 감소 (역설적 의도)", fillcolor="#c8e6c9"];
+    TITRATE [label="TIB 재적정\nSE>85% → +15 min/주", fillcolor="#c8e6c9"];
+
+    CBTI -> SRT -> TIBext [arrowhead=tee, color="#2e7d32", penwidth=1.6];
+    SRT -> SPRESS [label="S 응축 → 수면 압축", color="#2e7d32", penwidth=1.6];
+    CBTI -> STIMC -> COND [arrowhead=tee, color="#2e7d32", penwidth=1.6];
+    CBTI -> COGTH -> DBAS [arrowhead=tee, color="#2e7d32"];
+    CBTI -> RELAX -> SOMAR [arrowhead=tee, color="#2e7d32"];
+    CBTI -> MINDF -> SEFF [arrowhead=tee, color="#2e7d32"];
+    CBTI -> HYGIENE; SRT -> TITRATE -> SRT;
+    SRT -> SLEEPSUB [label="초기 주간 졸림 (일시적)", style=dashed, color="#ef6c00"];
+  }
+
+  /* =================================================================
+     11. BzRA (Z-drugs & benzodiazepines) PK
+     ================================================================= */
+  subgraph cluster_bzra {
+    label="⑪ BzRA (Z-drug/BZD) PK — GABA-A 양성 알로스테릭 조절";
+    style="rounded,filled"; fillcolor="#f3e5f5"; color="#7b1fa2"; fontsize=12;
+
+    ZOLdose [label="졸피뎀 Zolpidem 5/10 mg\n(IR · ER · SL)", fillcolor="#e1bee7", shape=note];
+    ZOLdep  [label="ZOL 흡수 구획 (ka≈1.5 /h)", fillcolor="#f3e5f5", shape=box3d];
+    ZOLc    [label="ZOL 중심 구획\nt½ ≈ 2.5 h · Vd 0.54 L/kg\nCYP3A4(61%)·2C9·1A2", fillcolor="#f3e5f5", shape=box3d];
+    ESZdose [label="에스조피클론 Eszopiclone 1–3 mg", fillcolor="#e1bee7", shape=note];
+    ESZdep  [label="ESZ 흡수 구획", fillcolor="#f3e5f5", shape=box3d];
+    ESZc    [label="ESZ 중심 구획\nt½ ≈ 6 h (고령 9 h)\nCYP3A4 · 2E1", fillcolor="#f3e5f5", shape=box3d];
+    TRIAZ   [label="Triazolam / temazepam\n(비선택적 BZD, 참고)", fillcolor="#e1bee7", shape=note];
+    CYP3A4  [label="CYP3A4\n케토코나졸↑ · 리팜핀↓\n고령·여성 CL↓ (~50% 여성)", fillcolor="#f3e5f5"];
+    ZOLmet  [label="비활성 대사체 (ZOL)\n→ 소변 배설", fillcolor="#f3e5f5"];
+
+    ZOLdose -> ZOLdep -> ZOLc -> ZOLmet;
+    ESZdose -> ESZdep -> ESZc;
+    ZOLc -> CYP3A4 [dir=both]; ESZc -> CYP3A4 [dir=both]; TRIAZ -> CYP3A4;
+  }
+
+  /* =================================================================
+     12. DORA PK
+     ================================================================= */
+  subgraph cluster_dora {
+    label="⑫ 이중 오렉신 수용체 길항제 DORA PK";
+    style="rounded,filled"; fillcolor="#fce4ec"; color="#ad1457"; fontsize=12;
+
+    SUVdose [label="수보렉산트 Suvorexant 10–20 mg", fillcolor="#f8bbd0", shape=note];
+    SUVc    [label="SUV 중심 구획\nt½ ≈ 12 h · Tmax 2 h\nCYP3A4 주 대사", fillcolor="#fce4ec", shape=box3d];
+    LEMdose [label="렘보렉산트 Lemborexant 5–10 mg", fillcolor="#f8bbd0", shape=note];
+    LEMc    [label="LEM 중심 구획\n빠른 흡수 Tmax 1–3 h\n다상 t½ 17–19 h", fillcolor="#fce4ec", shape=box3d];
+    DARdose [label="다리도렉산트 Daridorexant 25–50 mg", fillcolor="#f8bbd0", shape=note];
+    DARc    [label="DAR 중심 구획\nt½ ≈ 8 h (설계상 최단)\nTmax 1–2 h", fillcolor="#fce4ec", shape=box3d];
+    OXOCC   [label="OX1R/OX2R 점유율\nReceptor occupancy (%)\n(PET: [11C]-EMPA/GSK)", fillcolor="#fce4ec", shape=box3d];
+    HIGHFAT [label="고지방식 동반 투여\n→ Tmax 지연 (효과 발현 지연)", fillcolor="#fce4ec"];
+
+    SUVdose -> SUVc -> OXOCC; LEMdose -> LEMc -> OXOCC; DARdose -> DARc -> OXOCC;
+    OXOCC -> OX1R [arrowhead=tee, color="#ad1457", penwidth=1.6];
+    OXOCC -> OX2R [arrowhead=tee, color="#ad1457", penwidth=1.6];
+    HIGHFAT -> LEMc [style=dashed]; SUVc -> CYP3A4 [dir=both]; DARc -> CYP3A4 [dir=both]; LEMc -> CYP3A4 [dir=both];
+  }
+
+  /* =================================================================
+     13. Melatonergic / histaminergic / serotonergic hypnotics
+     ================================================================= */
+  subgraph cluster_othdrug {
+    label="⑬ 멜라토닌계 · 항히스타민계 · 세로토닌계 수면제 PK";
+    style="rounded,filled"; fillcolor="#ede7f6"; color="#5e35b1"; fontsize=12;
+
+    RAMdose [label="라멜테온 Ramelteon 8 mg\nMT1/MT2 선택적 작용제", fillcolor="#d1c4e9", shape=note];
+    RAMc    [label="RAM 중심 구획\n생체이용률 <2% (1차 통과)\nt½ 1–2.6 h · CYP1A2", fillcolor="#ede7f6", shape=box3d];
+    RAMM2   [label="활성 대사체 M-II\n노출 20–100배 · t½ 2–5 h\nMT 친화도 1/10 but 총 기여 큼", fillcolor="#ede7f6", shape=box3d];
+    FLUVOX  [label="플루복사민 (CYP1A2 억제)\n→ RAM AUC 190배 ↑ (금기)", fillcolor="#ffcdd2"];
+    MELdose [label="외인성 멜라토닌 2 mg PR\n(유럽 승인 ≥55세) · IR 0.5–5 mg", fillcolor="#d1c4e9", shape=note];
+    MELc    [label="MEL 중심 구획\n경구 F 3–15% · t½ 40–60 min\n개체간 변동 매우 큼", fillcolor="#ede7f6", shape=box3d];
+    DOXdose [label="저용량 독세핀 Doxepin 3–6 mg\n(H1 선택적 용량)", fillcolor="#d1c4e9", shape=note];
+    DOXc    [label="DOX 중심 구획\nt½ ≈ 15 h · CYP2C19/2D6\n고용량서만 항콜린 작용", fillcolor="#ede7f6", shape=box3d];
+    TRZdose [label="트라조돈 Trazodone 25–100 mg\n(허가외 사용, 근거 제한적)", fillcolor="#d1c4e9", shape=note];
+    TRZc    [label="TRZ 중심 구획\nt½ 6–9 h · CYP3A4 → mCPP", fillcolor="#ede7f6", shape=box3d];
+    MIRT    [label="미르타자핀 15 mg (참고)\nH1 ≫ 5-HT2A · 체중↑", fillcolor="#d1c4e9", shape=note];
+    ANTIH   [label="OTC 디펜히드라민/독실아민\n내성 3–4일 · 항콜린 부담", fillcolor="#d1c4e9", shape=note];
+    GABAPEN [label="가바펜틴/프레가발린 (참고)\nα2δ → SWS ↑ (통증 동반 시)", fillcolor="#d1c4e9", shape=note];
+
+    RAMdose -> RAMc -> RAMM2; RAMc -> MT1R; RAMM2 -> MT1R; RAMc -> MT2R; RAMM2 -> MT2R;
+    FLUVOX -> RAMc [label="AUC ↑↑↑", color="#c62828"];
+    MELdose -> MELc -> MT1R; MELc -> MT2R;
+    DOXdose -> DOXc -> H1R [arrowhead=tee, penwidth=1.6];
+    TRZdose -> TRZc; TRZc -> HT2A [arrowhead=tee]; TRZc -> H1R [arrowhead=tee]; TRZc -> A1AR [arrowhead=tee];
+    MIRT -> H1R [arrowhead=tee]; ANTIH -> H1R [arrowhead=tee]; GABAPEN -> SWA;
+  }
+
+  /* =================================================================
+     14. Exogenous modifiers: caffeine, alcohol, light, shift work
+     ================================================================= */
+  subgraph cluster_exo {
+    label="⑭ 외인성 조절 인자 / Exogenous modifiers";
+    style="rounded,filled"; fillcolor="#efebe9"; color="#6d4c41"; fontsize=12;
+
+    CAFdose [label="카페인 Caffeine 100–400 mg\n반감기 5 h (임신/OC 사용시 ↑↑)", fillcolor="#d7ccc8", shape=note];
+    CAFc    [label="CAF 중심 구획\nCYP1A2 (유전형 변이 큼)", fillcolor="#efebe9", shape=box3d];
+    CAFANT  [label="A1/A2A 경쟁적 길항\n→ 유효 아데노신 작용 ↓", fillcolor="#efebe9"];
+    ETOHd   [label="알코올 (nightcap)\n0.5–1.0 g/kg", fillcolor="#d7ccc8", shape=note];
+    ETOHc   [label="ETOH 중심 구획\nMichaelis–Menten 소실\n~0.15 g/L/h", fillcolor="#efebe9", shape=box3d];
+    ETOHreb [label="후반부 반동 각성\nREM 반동 · 교감신경 항진\n(전반부 SOL↓ / 후반부 WASO↑)", fillcolor="#ffcdd2"];
+    SHIFT   [label="교대근무 · 시차\n생체시계–사회시계 불일치", fillcolor="#d7ccc8"];
+    BLUEL   [label="야간 청색광 (스크린)\n멜라토닌 억제 · 위상 지연", fillcolor="#d7ccc8"];
+    BRIGHTL [label="아침 고조도 광치료\n2,500–10,000 lux · 위상 전진", fillcolor="#c8e6c9"];
+    EXERC   [label="운동 시점\n오후 운동: SWS↑ / 취침 직전: 각성↑", fillcolor="#d7ccc8"];
+    TEMPB   [label="침실 온도 · 온욕\n말초 혈관확장 → CBT 하강 촉진", fillcolor="#d7ccc8"];
+    NICOT   [label="니코틴\n각성 + 야간 금단 → 분절", fillcolor="#d7ccc8"];
+
+    CAFdose -> CAFc -> CAFANT; CAFANT -> A1R [arrowhead=tee, color="#6d4c41", penwidth=1.6];
+    CAFANT -> A2AR [arrowhead=tee, color="#6d4c41"];
+    ETOHd -> ETOHc; ETOHc -> GABAAR [label="acute PAM"]; ETOHc -> ETOHreb; ETOHreb -> AROU;
+    ETOHreb -> REMst [label="REM rebound"];
+    SHIFT -> PHI; BLUEL -> LIGHT; BRIGHTL -> LIGHT; BRIGHTL -> PHI [label="phase advance", color="#2e7d32"];
+    EXERC -> SPRESS; TEMPB -> CBTemp; NICOT -> AROU;
+  }
+
+  /* =================================================================
+     15. Adverse effects & safety
+     ================================================================= */
+  subgraph cluster_ae {
+    label="⑮ 이상반응 · 안전성 / Adverse effects & safety";
+    style="rounded,filled"; fillcolor="#fbe9e7"; color="#d84315"; fontsize=12;
+
+    RESID   [label="익일 잔류 진정\nNext-morning residual sedation\n(기상 시 잔류 농도 ∝)", fillcolor="#fbe9e7", shape=octagon];
+    PSYCHO  [label="정신운동 장애\nDSST ↓ · 운전 SDLP ↑\n(FDA 2013 졸피뎀 여성 용량 하향)", fillcolor="#fbe9e7", shape=octagon];
+    FALLS   [label="낙상 · 고관절 골절\n고령에서 위험비 1.5–2.5\n(Beers criteria 회피 권고)", fillcolor="#fbe9e7", shape=octagon];
+    CSB     [label="복합수면행동 CSB\nsleepwalking · sleep-driving · 수면섭식\n(FDA 2019 박스경고: Z-drug)", fillcolor="#fbe9e7", shape=octagon];
+    AMNES   [label="전향성 기억상실\nα5 GABA-A 매개", fillcolor="#fbe9e7", shape=octagon];
+    TOLB    [label="내성 TOL\nGABA-A 수용체 하향조절/재구성\n(주로 BZD; Z-drug은 완만)", fillcolor="#fbe9e7", shape=box3d];
+    REBOUND [label="반동 불면 Rebound insomnia\n중단 후 1–3일 각성 과잉보상", fillcolor="#fbe9e7", shape=octagon];
+    DEPEND  [label="의존 · 금단\n장기 사용 시 감량 어려움", fillcolor="#fbe9e7", shape=octagon];
+    RESPD   [label="호흡 억제\nOSA/COPD 동반 시 주의\n(오피오이드 병용 금기)", fillcolor="#fbe9e7", shape=octagon];
+    DORAAE  [label="DORA 특이 이상반응\n주간 졸림 · 수면마비 · 입면환각\ncataplexy-유사 (희귀)", fillcolor="#fbe9e7", shape=octagon];
+    ABNDRM  [label="이상 꿈 · 악몽\n(DORA는 REM 증가)", fillcolor="#fbe9e7", shape=octagon];
+    HANGOV  [label="숙취 위험 지수\nHangover index (모델 출력)", fillcolor="#fbe9e7", shape=box3d];
+
+    ZOLc -> RESID; ESZc -> RESID; SUVc -> RESID; LEMc -> RESID; DARc -> RESID; DOXc -> RESID; TRZc -> RESID;
+    RESID -> PSYCHO -> FALLS; RESID -> HANGOV;
+    GABAAR -> CSB; GABAAR -> AMNES; ZOLc -> CSB;
+    GABAAR -> TOLB -> REBOUND -> AROU [color="#d84315", penwidth=1.6];
+    TOLB -> DEPEND; GABAAR -> RESPD;
+    OXOCC -> DORAAE; OXOCC -> ABNDRM;
+
+  }
+
+  /* =================================================================
+     16. Comorbidity & bidirectional interactions
+     ================================================================= */
+  subgraph cluster_comorb {
+    label="⑯ 동반질환 · 양방향 상호작용 / Comorbidity (bidirectional)";
+    style="rounded,filled"; fillcolor="#f1f8e9"; color="#689f38"; fontsize=12;
+
+    MDD     [label="주요우울장애 MDD\n불면은 위험인자이자 잔존증상\n(HR ≈ 2.1 신규 우울증)", fillcolor="#dcedc8"];
+    GAD     [label="불안장애 GAD/공황", fillcolor="#dcedc8"];
+    CPAIN   [label="만성 통증 (섬유근통·관절염)\n통증↔수면 양방향", fillcolor="#dcedc8"];
+    OSAc    [label="폐쇄성 수면무호흡 OSA\nCOMISA (동반 30–40%)", fillcolor="#dcedc8"];
+    RLSc    [label="하지불안증후군 RLS\n철·도파민", fillcolor="#dcedc8"];
+    VMSc    [label="폐경 혈관운동증상 VMS\n야간 발한 → 각성", fillcolor="#dcedc8"];
+    AGE     [label="노화 Ageing\nSWS↓ · 멜라토닌↓ · 위상 전진\n· 야간뇨 · 다약제", fillcolor="#dcedc8"];
+    ADHDc   [label="ADHD · 자폐\n위상 지연 동반 흔함", fillcolor="#dcedc8"];
+    SUBST   [label="물질사용 (알코올·대마)\n자가치료 → 악화", fillcolor="#dcedc8"];
+
+    MDD -> AROU; MDD -> REMst [label="REM latency ↓ · density ↑"];
+    AROU -> MDD [label="불면 → 우울 발생", color="#c62828"];
+    GAD -> EMOAR; CPAIN -> ARSTATE; CPAIN -> AROU; ARSTATE -> CPAIN [label="통각 역치 ↓"];
+    OSAc -> ARSTATE; RLSc -> SOMAR [style=dotted, label="입면 전 하지 불편"];
+    VMSc -> ARSTATE; AGE -> MELend [arrowhead=tee]; AGE -> SPRESS [arrowhead=tee];
+    AGE -> PHI [label="phase advance"]; ADHDc -> PHI; SUBST -> ETOHd;
+    AGE -> FALLS [color="#d84315"];
+  }
+
+  /* =================================================================
+     17. Long-term consequences
+     ================================================================= */
+  subgraph cluster_conseq {
+    label="⑰ 장기 결과 / Long-term consequences";
+    style="rounded,filled"; fillcolor="#eceff1"; color="#546e7a"; fontsize=12;
+
+    HTNc    [label="고혈압 · 야간 non-dipping\n(short-sleep insomnia 표현형)", fillcolor="#cfd8dc"];
+    CVDc    [label="심혈관 사건 위험 ↑\nRR ≈ 1.2–1.45 (메타분석)", fillcolor="#cfd8dc"];
+    IRc     [label="인슐린 저항성 · 2형 당뇨\nOR ≈ 1.3", fillcolor="#cfd8dc"];
+    GLYMc   [label="글림프 청소 ↓\nAβ · tau 제거 저하 (SWS 의존)", fillcolor="#cfd8dc"];
+    COGD    [label="인지 저하 · 치매 위험", fillcolor="#cfd8dc"];
+    ACCID   [label="교통사고 · 산업재해", fillcolor="#cfd8dc"];
+    WORKP   [label="생산성 손실 (presenteeism)\n연간 사회적 비용", fillcolor="#cfd8dc"];
+    SUICID  [label="자살 사고 위험 ↑\n(우울과 독립적)", fillcolor="#cfd8dc"];
+
+    HTNc -> CVDc; MSNA -> HTNc; CORT -> IRc; IL6TNF -> CVDc;
+    SWA -> GLYMc [arrowhead=tee, label="SWS ↓ → clearance ↓"]; GLYMc -> COGD;
+    PSYCHO -> ACCID; SLEEPSUB -> ACCID; SLEEPSUB -> WORKP; MDD -> SUICID; AROU -> SUICID;
+  }
+
+  /* =================================================================
+     18. Clinical endpoints (model outputs)
+     ================================================================= */
+  subgraph cluster_endpoint {
+    label="⑱ 임상 엔드포인트 (모델 출력) / Clinical endpoints";
+    style="rounded,filled"; fillcolor="#fff8e1"; color="#f57f17"; fontsize=13; penwidth=2.0;
+
+    SOL_ep  [label="SOL / LPS\n수면 잠복기 (min)\n목표 <30 min", fillcolor="#fff59d", shape=note];
+    WASO_ep [label="WASO\n입면 후 각성 시간 (min)\n목표 <30 min", fillcolor="#fff59d", shape=note];
+    TST_ep  [label="TST\n총 수면 시간 (min)\n목표 ≥360 min", fillcolor="#fff59d", shape=note];
+    SE_ep   [label="SE (%)\n수면 효율 = TST/TIB\n목표 ≥85%", fillcolor="#fff59d", shape=note];
+    NAW_ep  [label="각성 횟수 (NAW)\nnumber of awakenings", fillcolor="#fff59d", shape=note];
+    ISI_ep  [label="ISI (0–28)\nInsomnia Severity Index\n관해 <8 · 반응 ≥6점 감소", fillcolor="#fff59d", shape=note];
+    PSQI_ep [label="PSQI (0–21)\n>5 = 수면의 질 불량", fillcolor="#fff59d", shape=note];
+    sTST_ep [label="주관적 sTST / sSOL\n(수면일지 · 오지각 반영)", fillcolor="#fff59d", shape=note];
+    N3_ep   [label="N3 (SWS) 분율 %", fillcolor="#fff59d", shape=note];
+    REM_ep  [label="REM 분율 % · REM 잠복기", fillcolor="#fff59d", shape=note];
+    DAYF_ep [label="주간 기능 지표\nFOSQ · ESS · MSLT/MWT", fillcolor="#fff59d", shape=note];
+    QOL_ep  [label="삶의 질 SF-36 · EQ-5D", fillcolor="#fff59d", shape=note];
+    REMIS   [label="관해율 Remission\nISI<8 & SE>85% 유지", fillcolor="#fff59d", shape=note];
+
+    SOL_ep -> SE_ep; WASO_ep -> SE_ep; TST_ep -> SE_ep; NAW_ep -> WASO_ep;
+    SOL_ep -> ISI_ep; WASO_ep -> ISI_ep; TST_ep -> ISI_ep; DAYF_ep -> ISI_ep;
+    ISI_ep -> PSQI_ep; ISI_ep -> QOL_ep; ISI_ep -> REMIS; SE_ep -> REMIS;
+    MISP -> sTST_ep; TST_ep -> sTST_ep;
+    SWA -> N3_ep; REMst -> REM_ep;
+    HANGOV -> DAYF_ep; SLEEPSUB -> DAYF_ep;
+  }
+
+  /* =================================================================
+     Cross-cluster integrative edges — where the model actually lives
+     ================================================================= */
+  SPRESS -> FLIP [label="S ↑ → sleep", color="#00897b", penwidth=1.8];
+  FLIP   -> WAKEst [label="wake state", color="#ef6c00"];
+  FLIP   -> N1     [label="sleep state", color="#1565c0"];
+  ONSETP [label="입면 확률 P(sleep)\nσ( wS·S + C(t) − A − θ + Σ drug effects )",
+          fillcolor="#b2dfdb", shape=hexagon, penwidth=2.0];
+  SPRESS -> ONSETP; CPROC -> ONSETP [label="−C(t)"]; AROU -> ONSETP [arrowhead=tee, color="#c62828", penwidth=1.8];
+  GABAAR -> ONSETP [color="#7b1fa2", penwidth=1.6];
+  OXOCC  -> ONSETP [color="#ad1457", penwidth=1.6];
+  MT1R   -> ONSETP [color="#5e35b1"];
+  H1R    -> ONSETP [arrowhead=tee, color="#5e35b1"];
+  COND   -> ONSETP [arrowhead=tee, color="#f9a825"];
+  SEFF   -> ONSETP [arrowhead=tee, color="#f9a825"];
+  ONSETP -> SOL_ep [arrowhead=tee, penwidth=1.6];
+  ONSETP -> WASO_ep [arrowhead=tee];
+  ONSETP -> TST_ep [penwidth=1.6];
+  TIBext -> SE_ep [arrowhead=tee];
+  SRT    -> SE_ep [color="#2e7d32", penwidth=1.6];
+  CBTemp -> ONSETP [label="CBT 하강 → 입면 촉진"];
+  ZOLc   -> GABAAR [color="#7b1fa2", penwidth=1.8, label="α1 PAM"];
+  ESZc   -> GABAAR [color="#7b1fa2", penwidth=1.8, label="α1/α2/α3 PAM"];
+  TOLB   -> GABAAR [arrowhead=tee, label="효과 감쇠", color="#d84315"];
+  ISI_ep -> DBAS [style=dashed, label="증상 → 신념 강화", color="#c62828"];
+  CBTI   -> ISI_ep [color="#2e7d32", penwidth=1.8, label="지속 효과 (>12개월)"];
+  ZOLdose -> ISI_ep [color="#7b1fa2", style=dashed, label="즉효 · 중단 시 소실"];
+}
