@@ -1,0 +1,749 @@
+/* =====================================================================
+   Autoimmune Pulmonary Alveolar Proteinosis (aPAP) — QSP mechanistic map
+   ---------------------------------------------------------------------
+   Central premise of this map:
+     aPAP is NOT an inflammatory lung disease and NOT a surfactant
+     over-production disease. It is an UNCLOSED MASS BALANCE in the
+     alveolar surfactant pool, opened by the loss of a SIGNAL (GM-CSF)
+     rather than by the loss of a cell. Production is normal; the
+     dominant CATABOLIC sink (the alveolar macrophage) is switched off.
+     The pool is therefore the time-integral of a small difference
+     between two large fluxes, which is why the disease takes years.
+
+   Three structural commitments encoded below (see README):
+     (1) RECYCLING IS NOT CLEARANCE. Type-II re-uptake that returns
+         material to the pool is a loop, not a sink; only true
+         catabolism and mucociliary/lymphatic egress are sinks.
+     (2) The autoantibody is a STOICHIOMETRIC BUFFER in vast molar
+         excess over pg/mL GM-CSF, not an inhibitor with an IC50.
+         Hence a titre THRESHOLD (the model puts the half-signal titre
+         at 5.6 ug/mL against a published 5), and then saturation.
+         NOTE: the titre-severity decorrelation is only PARTLY
+         reproduced - see D05. Buffer saturation alone does not
+         abolish it; the assay measuring binding rather than
+         neutralisation is needed too, and even then r ~ +0.6.
+     (3) Inhaled GM-CSF works by OVERWHELMING that buffer locally.
+         The therapeutic quantity is a molar ratio in epithelial lining
+         fluid, not a plasma concentration — which is why route, not
+         dose, separates success from failure.
+
+   One premise of this map was tested and FAILED. Cluster 11 was drawn
+   expecting the filling-exclusion feedback to be strong enough to make
+   aPAP bistable (a held state and a runaway state). Diagnostic D15
+   shows it is sub-critical: burdens of 300 mg and 8169 mg both
+   converge to 6160 mg at the same catabolic floor. The cluster is
+   labelled with the refutation rather than redrawn.
+
+   Rendering:
+     dot -Tsvg pap_qsp_model.dot -o pap_qsp_model.svg
+     dot -Tpng -Gdpi=150 pap_qsp_model.dot -o pap_qsp_model.png
+   ===================================================================== */
+
+digraph aPAP_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 30;
+  label = "Autoimmune Pulmonary Alveolar Proteinosis (aPAP) — Quantitative Systems Pharmacology Map\nsurfactant mass balance · GM-CSF autoantibody buffer · alveolar macrophage catabolic capacity · gas-exchange physics · 25 modules";
+  bgcolor = "white";
+  nodesep = 0.22;
+  ranksep = 0.55;
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica", fontsize = 11,
+        color = "#5a5a5a", fillcolor = "#f7f7f7", penwidth = 1.0, margin = "0.10,0.055"];
+  edge [fontname = "Helvetica", fontsize = 9, color = "#606060", arrowsize = 0.65, penwidth = 1.0];
+
+  /* ---------- shared visual grammar ----------
+     blue      = genetics / exposure
+     purple    = adaptive immunity, autoantibody
+     teal      = cytokine / receptor / signal transduction
+     orange    = macrophage biology
+     yellow    = surfactant pools and fluxes  (the mass balance)
+     brown     = cholesterol arm
+     grey-blue = structure / filling
+     green     = physiology & gas exchange
+     red        = clinical endpoints
+     pink      = drugs / interventions
+     dark red  = adverse effects
+  */
+
+  /* ================================================================
+     1. GENETIC BACKGROUND, EXPOSURE, DISEASE-CLASS ASSIGNMENT
+     ================================================================ */
+  subgraph cluster_gen {
+    label = "1. Susceptibility, exposure and PAP disease class";
+    style = "filled"; fillcolor = "#eef4fb"; color = "#3d6fa5"; fontsize = 14; fontcolor = "#24507d";
+    node [fillcolor = "#dbe8f6", color = "#3d6fa5"];
+
+    HLA_DRB1     [label = "HLA-DRB1*08:03 / class II\nrestriction of GM-CSF epitopes"];
+    Tol_break    [label = "Loss of B-cell tolerance\nto self GM-CSF"];
+    Smoke        [label = "Cigarette smoke\n(56% of Japanese aPAP cohort)"];
+    Dust         [label = "Inorganic dust / silica /\naluminium exposure (23%)"];
+    Age_sex      [label = "Median onset 51 y, M:F 2.1:1\nincidence 0.49 / 10^6 / y"];
+
+    CSF2RA_mut   [label = "CSF2RA biallelic loss\n(hereditary PAP, X-linked region)", fillcolor = "#c6d9f1"];
+    CSF2RB_mut   [label = "CSF2RB loss-of-function\n(hereditary PAP)", fillcolor = "#c6d9f1"];
+    GATA2_def    [label = "GATA2 haploinsufficiency\n(monocytopenia, secondary PAP)", fillcolor = "#c6d9f1"];
+    MDS_CMML     [label = "MDS / CMML / haematologic malignancy\n(secondary PAP: fewer macrophages)", fillcolor = "#c6d9f1"];
+    SFTPB_C_mut  [label = "SFTPB / SFTPC / ABCA3 / NKX2-1\n(congenital surfactant dysfunction)", fillcolor = "#c6d9f1"];
+
+    Class_auto   [label = "CLASS: autoimmune PAP (~90%)\nsignal lost, receptor intact", shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    Class_hered  [label = "CLASS: hereditary PAP\nreceptor absent — GM-CSF cannot work", shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    Class_sec    [label = "CLASS: secondary PAP\nmacrophage NUMBER reduced, signal intact", shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+
+    HLA_DRB1 -> Tol_break;
+    Age_sex -> Tol_break [style = dotted];
+    Tol_break -> Class_auto;
+    CSF2RA_mut -> Class_hered; CSF2RB_mut -> Class_hered;
+    GATA2_def -> Class_sec;  MDS_CMML -> Class_sec;
+    Smoke -> Class_auto [style = dotted, label = "permissive"];
+    Dust  -> Class_sec  [style = dotted, label = "dust overload"];
+  }
+
+  /* ================================================================
+     2. AUTOANTIBODY GENERATION
+     ================================================================ */
+  subgraph cluster_ab {
+    label = "2. GM-CSF autoantibody generation (the lesion that never leaves)";
+    style = "filled"; fillcolor = "#f4eefb"; color = "#7a4fa5"; fontsize = 14; fontcolor = "#5b2f86";
+    node [fillcolor = "#e8dbf6", color = "#7a4fa5"];
+
+    B_naive      [label = "Naive / memory B cell\n(CD20+, rituximab-sensitive)"];
+    Tfh          [label = "T-follicular helper cell\nIL-21, CD40L"];
+    GC           [label = "Germinal centre\naffinity maturation"];
+    Plasmablast  [label = "Short-lived plasmablast\nt1/2 ~ 3-5 d, CD20-low"];
+    LLPC         [label = "LONG-LIVED PLASMA CELL\nCD20-negative — rituximab-refractory", style = "filled,bold", fillcolor = "#d9c2ee"];
+    IgG_subclass [label = "Polyclonal IgG1/IgG2 GMAb\n>= 5 epitopes on GM-CSF"];
+    Ab_affinity  [label = "High affinity\nKd ~ 10-100 pM"];
+    Ab_neutral   [label = "NEUTRALISING fraction\n(epitope overlaps receptor site)"];
+    Ab_nonneut   [label = "Non-neutralising fraction\n(titre without function)"];
+    Ab_healthy   [label = "Low-level GMAb in healthy people\n(sub-threshold, non-neutralising)"];
+
+    B_naive -> GC; Tfh -> GC;
+    GC -> Plasmablast; GC -> LLPC;
+    Plasmablast -> IgG_subclass; LLPC -> IgG_subclass;
+    IgG_subclass -> Ab_affinity -> Ab_neutral;
+    IgG_subclass -> Ab_nonneut [style = dotted];
+    Ab_healthy -> Ab_nonneut [style = dotted];
+    Tol_break -> B_naive;
+  }
+
+  /* ================================================================
+     3. ANTIBODY DISTRIBUTION — WHY ELF, NOT SERUM, IS THE COMPARTMENT
+     ================================================================ */
+  subgraph cluster_abdist {
+    label = "3. Antibody distribution: serum, extravascular pool, and epithelial lining fluid";
+    style = "filled"; fillcolor = "#f4eefb"; color = "#7a4fa5"; fontsize = 14; fontcolor = "#5b2f86";
+    node [fillcolor = "#e8dbf6", color = "#7a4fa5"];
+
+    Ab_serum   [label = "Serum GMAb\n(clinical titre, mug/mL)", style = "filled,bold", fillcolor = "#d9c2ee"];
+    Ab_ev      [label = "Extravascular IgG pool\n~55% of body IgG"];
+    FcRn       [label = "FcRn recycling\nIgG t1/2 ~ 21 d"];
+    Ab_ELF     [label = "ELF GMAb (kappa ~ 0.05-0.10 of serum)\nTHE compartment that matters", style = "filled,bold", fillcolor = "#d9c2ee"];
+    Ab_thresh  [label = "CRITICAL THRESHOLD ~5 mug/mL serum\n(primate + patient data)", shape = octagon, fillcolor = "#c9a8e8"];
+    Ab_plateau [label = "Above threshold: free GM-CSF already ~0\n=> titre no longer predicts severity", shape = note, fillcolor = "#f0e6fa"];
+
+    Ab_neutral -> Ab_serum;
+    Ab_serum -> Ab_ev [dir = both, label = "k12/k21"];
+    FcRn -> Ab_serum [label = "salvage"];
+    Ab_serum -> Ab_ELF [label = "transudation kappa"];
+    Ab_ELF -> Ab_thresh; Ab_thresh -> Ab_plateau;
+  }
+
+  /* ================================================================
+     4. GM-CSF PRODUCTION IN THE ALVEOLUS
+     ================================================================ */
+  subgraph cluster_gmprod {
+    label = "4. Endogenous GM-CSF in the alveolus (pg/mL, not ng/mL)";
+    style = "filled"; fillcolor = "#e9f6f4"; color = "#2f8f80"; fontsize = 14; fontcolor = "#1d6b5e";
+    node [fillcolor = "#d3ece7", color = "#2f8f80"];
+
+    AEC2_gm    [label = "AEC2 constitutive CSF2 expression"];
+    Fibro_gm   [label = "Interstitial fibroblast GM-CSF"];
+    Tcell_gm   [label = "T-cell / ILC GM-CSF (inducible)"];
+    NFkB_gm    [label = "NF-kB / AP-1 drive\n(TNF, IL-1beta, LPS)"];
+    GM_ELF     [label = "ELF GM-CSF total ~ 5-20 pg/mL\n= ~0.02 pmol in 30 mL ELF", style = "filled,bold", fillcolor = "#b9dfd7"];
+    GM_sink    [label = "Alveolar protein clearance\n(t1/2 ~ 3-6 h) + receptor-mediated uptake"];
+
+    AEC2_gm -> GM_ELF; Fibro_gm -> GM_ELF; Tcell_gm -> GM_ELF;
+    NFkB_gm -> AEC2_gm; NFkB_gm -> Tcell_gm;
+    GM_ELF -> GM_sink;
+  }
+
+  /* ================================================================
+     5. THE BUFFER: LIGAND-ANTIBODY-RECEPTOR COMPETITION
+     ================================================================ */
+  subgraph cluster_buffer {
+    label = "5. Stoichiometric buffer — 10^4-fold molar excess of antibody sites over ligand";
+    style = "filled"; fillcolor = "#e9f6f4"; color = "#2f8f80"; fontsize = 14; fontcolor = "#1d6b5e";
+    node [fillcolor = "#d3ece7", color = "#2f8f80"];
+
+    Complex     [label = "GM-CSF : GMAb complex\n(1:1 sites, bivalent IgG)"];
+    GM_free     [label = "FREE GM-CSF in ELF\nsolved from binding quadratic", shape = octagon, style = "filled,bold", fillcolor = "#9fd4c9"];
+    Molar_ratio [label = "MOLAR RATIO R = ligand sites / antibody sites\nR<1: buffered   R>1: signal restored", shape = note, fillcolor = "#e4f4f0"];
+    Titration   [label = "Titration is STOICHIOMETRIC, not IC50-shaped\n=> steep threshold, then plateau", shape = note, fillcolor = "#e4f4f0"];
+
+    GM_ELF -> Complex; Ab_ELF -> Complex;
+    GM_ELF -> GM_free; Ab_ELF -> GM_free [color = "#b03030", arrowhead = tee, label = "sequestration"];
+    Complex -> Molar_ratio [style = dotted]; Molar_ratio -> Titration [style = dotted];
+  }
+
+  /* ================================================================
+     6. RECEPTOR AND PROXIMAL SIGNALLING
+     ================================================================ */
+  subgraph cluster_sig {
+    label = "6. GM-CSF receptor and proximal signalling (high-affinity dodecamer)";
+    style = "filled"; fillcolor = "#e9f6f4"; color = "#2f8f80"; fontsize = 14; fontcolor = "#1d6b5e";
+    node [fillcolor = "#d3ece7", color = "#2f8f80"];
+
+    CSF2RA   [label = "CSF2RA (alpha chain)\nligand specificity"];
+    CSF2RB   [label = "CSF2RB (beta-common)\nshared with IL-3/IL-5"];
+    Dodecamer[label = "Hexamer -> dodecamer assembly\nhigh-affinity Kd ~ 20-50 pM"];
+    Occ      [label = "Receptor occupancy Occ\n(dimensionless 0-1)", style = "filled,bold", fillcolor = "#b9dfd7"];
+    JAK2     [label = "JAK2 transphosphorylation"];
+    STAT5    [label = "STAT5A/B dimer -> nucleus"];
+    PI3K     [label = "PI3K / AKT (survival)"];
+    MAPK     [label = "RAS / ERK1-2 (proliferation)"];
+    NFkB_am  [label = "NF-kB (effector functions)"];
+    Reserve  [label = "SIGNALLING RESERVE\nOcc50 << basal Occ => 3-fold buffer\nbefore transcription moves", shape = note, fillcolor = "#e4f4f0"];
+
+    GM_free -> Dodecamer; CSF2RA -> Dodecamer; CSF2RB -> Dodecamer;
+    Dodecamer -> Occ -> JAK2 -> STAT5;
+    JAK2 -> PI3K; JAK2 -> MAPK; STAT5 -> NFkB_am [style = dotted];
+    Occ -> Reserve [style = dotted];
+    CSF2RA_mut -> CSF2RA [color = "#b03030", arrowhead = tee, label = "absent"];
+    CSF2RB_mut -> CSF2RB [color = "#b03030", arrowhead = tee, label = "absent"];
+  }
+
+  /* ================================================================
+     7. TRANSCRIPTIONAL PROGRAM OF THE ALVEOLAR MACROPHAGE
+     ================================================================ */
+  subgraph cluster_tx {
+    label = "7. Terminal-differentiation program (the part the antibody actually destroys)";
+    style = "filled"; fillcolor = "#fdf1e6"; color = "#c07a2a"; fontsize = 14; fontcolor = "#8a5310";
+    node [fillcolor = "#fae0c4", color = "#c07a2a"];
+
+    PU1       [label = "PU.1 / SPI1\nmaster regulator of AM identity", style = "filled,bold", fillcolor = "#f6cb9c"];
+    PPARG     [label = "PPAR-gamma\nlipid-handling program", style = "filled,bold", fillcolor = "#f6cb9c"];
+    CEBPB     [label = "C/EBP-beta"];
+    ABCG1     [label = "ABCG1 (cholesterol efflux)"];
+    ABCA1     [label = "ABCA1 (phospholipid/ApoA-I efflux)"];
+    LIPA      [label = "LIPA / lysosomal acid lipase\n(catabolism of internalised lipid)"];
+    PLA2      [label = "Lysosomal phospholipases\n(PLA2G15, PLBD1)"];
+    CTSD      [label = "Cathepsins / SP-B, SP-C proteolysis"];
+    MARCO     [label = "MARCO / CD11b / SR-A\n(uptake receptors)"];
+    CSF1R     [label = "CSF1R (M-CSF axis, GM-CSF-independent)"];
+    TFEB      [label = "TFEB / lysosome biogenesis"];
+    Catab_cap [label = "PER-CELL CATABOLIC CAPACITY\n(mg surfactant / 10^6 cells / d)", shape = octagon, style = "filled,bold", fillcolor = "#f0b478"];
+
+    STAT5 -> PU1; STAT5 -> CEBPB; PU1 -> PPARG; CEBPB -> PPARG [style = dotted];
+    PPARG -> ABCG1; PPARG -> ABCA1; PPARG -> LIPA; PU1 -> PLA2; PU1 -> CTSD;
+    PU1 -> MARCO; PU1 -> TFEB; TFEB -> LIPA [style = dotted];
+    LIPA -> Catab_cap; PLA2 -> Catab_cap; CTSD -> Catab_cap; MARCO -> Catab_cap;
+    CSF1R -> Catab_cap [style = dotted, label = "residual\nGM-CSF-free floor"];
+  }
+
+  /* ================================================================
+     8. ALVEOLAR MACROPHAGE POPULATION BIOLOGY
+     ================================================================ */
+  subgraph cluster_am {
+    label = "8. Alveolar macrophage population: number is preserved, function is not";
+    style = "filled"; fillcolor = "#fdf1e6"; color = "#c07a2a"; fontsize = 14; fontcolor = "#8a5310";
+    node [fillcolor = "#fae0c4", color = "#c07a2a"];
+
+    Mono_blood [label = "Blood monocyte pool"];
+    Mono_rec   [label = "Monocyte recruitment to alveolus\n(CCL2 / CX3CR1)"];
+    AM_self    [label = "AM local self-renewal\n(GM-CSF- and M-CSF-dependent)"];
+    AM_num     [label = "AM NUMBER (10^6 cells)\nnormal-to-increased in aPAP", style = "filled,bold", fillcolor = "#f6cb9c"];
+    AM_foamy   [label = "Foamy, engorged AM\n(pathognomonic on BAL cytology)"];
+    AM_lipid   [label = "Intracellular lipid load\nfeedback inhibition of uptake", style = "filled,bold", fillcolor = "#f6cb9c"];
+    AM_chol    [label = "Free cholesterol / crystals\ntoxic, inflammasome-activating"];
+    AM_apop    [label = "AM apoptosis / lipoapoptosis"];
+    Effero     [label = "Efferocytosis of dead AM\n(adds to alveolar debris)"];
+    AM_TNF     [label = "Reduced TNF-alpha, IL-8, ROS\n(host-defence failure)"];
+    Total_cap  [label = "TOTAL CATABOLIC CLEARANCE\n= AM_num x per-cell capacity", shape = octagon, style = "filled,bold", fillcolor = "#f0b478"];
+
+    Mono_blood -> Mono_rec -> AM_num; AM_self -> AM_num;
+    STAT5 -> AM_self [label = "proliferative drive"];
+    GATA2_def -> Mono_blood [color = "#b03030", arrowhead = tee];
+    MDS_CMML -> Mono_blood [color = "#b03030", arrowhead = tee, label = "fewer precursors"];
+    AM_num -> Total_cap; Catab_cap -> Total_cap;
+    AM_lipid -> Catab_cap [color = "#b03030", arrowhead = tee, label = "saturation"];
+    AM_lipid -> AM_foamy; AM_chol -> AM_apop -> Effero;
+    AM_lipid -> AM_chol;
+    Catab_cap -> AM_TNF [style = dotted];
+    PU1 -> AM_TNF;
+  }
+
+  /* ================================================================
+     9. SURFACTANT SYNTHESIS IN AEC2
+     ================================================================ */
+  subgraph cluster_synth {
+    label = "9. Surfactant synthesis and lamellar-body secretion (unchanged in aPAP)";
+    style = "filled"; fillcolor = "#fdfae4"; color = "#b8a12a"; fontsize = 14; fontcolor = "#7e6c0d";
+    node [fillcolor = "#f7f0bf", color = "#b8a12a"];
+
+    AEC2       [label = "Type II alveolar epithelial cell"];
+    CCT_alpha  [label = "CTP:phosphocholine cytidylyltransferase\n(rate-limiting for PC)"];
+    DSPC       [label = "Disaturated phosphatidylcholine (DSPC)\n~40% of surfactant lipid"];
+    PG_lipid   [label = "Phosphatidylglycerol, PI, other PL"];
+    Chol_synth [label = "Cholesterol (5-10% of surfactant lipid)\nsynthesis + LDL uptake"];
+    SPB        [label = "SP-B (essential for film)"];
+    SPC        [label = "SP-C"];
+    SPA        [label = "SP-A (innate immunity, homeostasis)"];
+    SPD        [label = "SP-D (leaks to serum: biomarker)"];
+    ABCA3      [label = "ABCA3 lipid transporter"];
+    LB         [label = "LAMELLAR BODY store\n(intracellular pool)", style = "filled,bold", fillcolor = "#f0e79a"];
+    Secretion  [label = "Regulated secretion\n(stretch, purinergic, beta-agonist)", shape = octagon, fillcolor = "#efe08a"];
+
+    AEC2 -> CCT_alpha -> DSPC -> LB;
+    AEC2 -> PG_lipid -> LB; Chol_synth -> LB;
+    AEC2 -> SPB -> LB; AEC2 -> SPC -> LB; AEC2 -> SPA -> LB; AEC2 -> SPD -> LB;
+    ABCA3 -> LB; SFTPB_C_mut -> ABCA3 [color = "#b03030", arrowhead = tee];
+    LB -> Secretion;
+  }
+
+  /* ================================================================
+     10. THE MASS BALANCE — CORE OF THE MODEL
+     ================================================================ */
+  subgraph cluster_balance {
+    label = "10. ALVEOLAR SURFACTANT MASS BALANCE — recycling is a loop, not a sink";
+    style = "filled"; fillcolor = "#fdfae4"; color = "#b8a12a"; fontsize = 15; fontcolor = "#7e6c0d";
+    penwidth = 2.0;
+    node [fillcolor = "#f7f0bf", color = "#b8a12a"];
+
+    PL_alv    [label = "ALVEOLAR PHOSPHOLIPID POOL\n~300 mg normal -> 10-40 g in PAP", shape = box3d, style = "filled,bold", fillcolor = "#efdd6e", fontsize = 13];
+    SP_alv    [label = "Alveolar surfactant PROTEIN pool\n(SP-A/B/C/D + serum proteins)"];
+    CHOL_alv  [label = "Alveolar CHOLESTEROL pool\n(separately handled — statin target)", fillcolor = "#f0e79a"];
+    Seq       [label = "SEQUESTERED / consolidated material\ndense, slowly exchanging", shape = box3d, fillcolor = "#efe08a"];
+
+    Flux_de   [label = "de novo production\n~300 mg/d (4 mg/kg/d)", shape = parallelogram, fillcolor = "#faf5d8"];
+    Flux_rec  [label = "TYPE-II RE-UPTAKE AND RE-SECRETION\nlarge flux, ZERO net effect at steady state", shape = parallelogram, style = "filled,bold", fillcolor = "#f0e79a"];
+    Flux_IIdeg[label = "type-II intracellular DEGRADATION\n~25% of net sink (saturable)", shape = parallelogram, fillcolor = "#faf5d8"];
+    Flux_mac  [label = "MACROPHAGE CATABOLISM\n~65% of net sink — the arm that fails", shape = parallelogram, style = "filled,bold", fillcolor = "#efdd6e"];
+    Flux_muco [label = "mucociliary + lymphatic egress\n~10% of net sink (capacity-limited)", shape = parallelogram, fillcolor = "#faf5d8"];
+    Imbalance [label = "NET IMBALANCE = production - sinks\nsmall difference of large fluxes\n=> years to fill, integral not rate", shape = note, style = "filled,bold", fillcolor = "#fff9c8"];
+
+    Secretion -> PL_alv; Flux_de -> PL_alv; LB -> Flux_rec [dir = both];
+    PL_alv -> Flux_rec [dir = both, label = "loop"];
+    PL_alv -> Flux_IIdeg; PL_alv -> Flux_mac; PL_alv -> Flux_muco;
+    PL_alv -> SP_alv [style = dotted]; PL_alv -> CHOL_alv [style = dotted];
+    PL_alv -> Seq [dir = both, label = "consolidation /\nre-dispersion"];
+    Total_cap -> Flux_mac [label = "sets this flux", penwidth = 2.0, color = "#8a5310"];
+    Flux_mac -> Imbalance [style = dotted]; Flux_de -> Imbalance [style = dotted];
+    CHOL_alv -> AM_chol; PL_alv -> AM_lipid;
+    Effero -> SP_alv [style = dotted, label = "debris"];
+  }
+
+  /* ================================================================
+     11. SATURATION AND SEQUESTRATION — WHY 50x, NOT 3x
+     ================================================================ */
+  subgraph cluster_sat {
+    label = "11. Why the pool reaches 50x normal: the surviving sinks saturate and are then physically excluded";
+    style = "filled"; fillcolor = "#fdfae4"; color = "#b8a12a"; fontsize = 14; fontcolor = "#7e6c0d";
+    node [fillcolor = "#f7f0bf", color = "#b8a12a"];
+
+    Km_II     [label = "Type-II endocytosis is receptor-limited\nKm near the NORMAL pool size"];
+    Cap_muco  [label = "Mucociliary egress is capacity-limited\n(fixed alveolar-bronchiolar flow)"];
+    Exclusion [label = "FILLING EXCLUDES the surviving sinks\n(no air-liquid interface, no AM crawling)", shape = octagon, style = "filled,bold", fillcolor = "#efdd6e"];
+    Posfeed   [label = "POSITIVE FEEDBACK\nmore filling -> less clearance -> more filling", shape = note, fillcolor = "#fff9c8"];
+    Twostate  [label = "TESTED AND REFUTED (diagnostic D15):\nthis feedback is SUB-CRITICAL. There is ONE\nequilibrium burden per catabolic floor, reached\nfrom either direction - no bistability, no\nhysteresis. The clinical spread is a steep\nsingle-valued dependence on that floor, not\ntwo states.", shape = note, style = "filled,bold", fillcolor = "#ffe9a8"];
+
+    Km_II -> Flux_IIdeg [arrowhead = tee, color = "#b03030"];
+    Cap_muco -> Flux_muco [arrowhead = tee, color = "#b03030"];
+    Exclusion -> Flux_IIdeg [arrowhead = tee, color = "#b03030"];
+    Exclusion -> Flux_muco [arrowhead = tee, color = "#b03030"];
+    Exclusion -> Flux_mac  [arrowhead = tee, color = "#b03030"];
+    Exclusion -> Posfeed -> Twostate;
+  }
+
+  /* ================================================================
+     12. CHOLESTEROL ARM
+     ================================================================ */
+  subgraph cluster_chol {
+    label = "12. Cholesterol arm: what the macrophage cannot get rid of";
+    style = "filled"; fillcolor = "#f6efe8"; color = "#8a5a3a"; fontsize = 14; fontcolor = "#6a3d20";
+    node [fillcolor = "#ecdccd", color = "#8a5a3a"];
+
+    HMGCR     [label = "HMG-CoA reductase\n(macrophage de novo cholesterol)"];
+    LDLR_am   [label = "LDLR / SR-B1 uptake"];
+    Oxysterol [label = "Oxysterols (25-OH, 27-OH)"];
+    LXR       [label = "LXR-alpha/beta activation"];
+    Efflux    [label = "Cholesterol efflux to HDL/ApoA-I"];
+    Chol_block[label = "EFFLUX BLOCK in aPAP\n(ABCG1 low because PPAR-gamma low)", shape = octagon, style = "filled,bold", fillcolor = "#dcc3ab"];
+    Crystal   [label = "Cholesterol crystal formation\nNLRP3 inflammasome, IL-1beta"];
+
+    HMGCR -> AM_chol; LDLR_am -> AM_chol; AM_chol -> Oxysterol -> LXR;
+    LXR -> ABCG1 [style = dotted, label = "partial, PPARg-independent"];
+    ABCG1 -> Efflux; ABCA1 -> Efflux; Efflux -> AM_chol [arrowhead = tee, color = "#b03030"];
+    PPARG -> Chol_block [arrowhead = tee, color = "#b03030"]; Chol_block -> Efflux [arrowhead = tee, color = "#b03030"];
+    AM_chol -> Crystal -> AM_apop;
+    CHOL_alv -> LDLR_am;
+  }
+
+  /* ================================================================
+     13. ALVEOLAR FILLING AND LUNG STRUCTURE
+     ================================================================ */
+  subgraph cluster_struct {
+    label = "13. Alveolar filling, heterogeneity and structure";
+    style = "filled"; fillcolor = "#edf1f5"; color = "#5b6f85"; fontsize = 14; fontcolor = "#3b4f65";
+    node [fillcolor = "#dbe3ec", color = "#5b6f85"];
+
+    Unit_norm [label = "Normal alveolar units\n(ventilated, perfused)"];
+    Unit_part [label = "PARTIALLY filled units\ndiffusion-limited, thick barrier", style = "filled,bold", fillcolor = "#c8d4e2"];
+    Unit_full [label = "FULLY filled units\nperfused but unventilated = SHUNT", style = "filled,bold", fillcolor = "#c8d4e2"];
+    Hetero    [label = "Geographic heterogeneity\n(gravity, regional ventilation)"];
+    CrazyPave [label = "HRCT: ground-glass + crazy paving\nsharp lobular demarcation"];
+    CT_dens   [label = "Quantitative CT density (HU)\nendpoint in the PAGE trial"];
+    Compliance[label = "Reduced compliance, restrictive defect\nFVC / TLC modestly reduced"];
+    Sf_tension[label = "Paradox: abundant surfactant but\nabnormal film function (SP-B proteolysis)"];
+
+    PL_alv -> Unit_part [label = "filling"]; Unit_part -> Unit_full;
+    Seq -> Unit_full; Hetero -> Unit_part [style = dotted]; Hetero -> Unit_full [style = dotted];
+    Unit_norm -> Unit_part [style = dotted];
+    Unit_full -> CrazyPave; Unit_part -> CT_dens; Unit_full -> CT_dens;
+    Unit_full -> Compliance; PL_alv -> Sf_tension [style = dotted];
+    Unit_full -> Exclusion [label = "drives", color = "#8a5310"];
+  }
+
+  /* ================================================================
+     14. GAS EXCHANGE PHYSICS — ENDPOINTS ARE COMPUTED, NOT SCORED
+     ================================================================ */
+  subgraph cluster_gas {
+    label = "14. Gas-exchange physics: A-aDO2 and DLCO are COMPUTED from shunt, diffusion and O2 transport";
+    style = "filled"; fillcolor = "#eaf6ec"; color = "#3d8a4f"; fontsize = 15; fontcolor = "#256134";
+    penwidth = 2.0;
+    node [fillcolor = "#d5ecd9", color = "#3d8a4f"];
+
+    Shunt     [label = "Shunt fraction Qs/Qt\nfrom fully filled units", style = "filled,bold", fillcolor = "#bde0c4"];
+    VQ        [label = "V/Q mismatch\nfrom partially filled units"];
+    Dm        [label = "Membrane diffusing capacity Dm\n(surface area x conductance)"];
+    Vc        [label = "Capillary blood volume Vc"];
+    DLCO      [label = "DLCO % predicted\n(Roughton-Forster 1/DL = 1/Dm + 1/theta.Vc)", shape = octagon, style = "filled,bold", fillcolor = "#a8d6b2"];
+    PAO2      [label = "Alveolar gas equation\nPAO2 = FiO2(Patm-47) - PaCO2/R"];
+    CcO2      [label = "End-capillary O2 content\n(Hill dissociation curve)"];
+    CvO2      [label = "Mixed venous O2 content\nCvO2 = CaO2 - VO2/(CO x 10)"];
+    CaO2      [label = "Arterial O2 content\nshunt equation mixing"];
+    PaO2      [label = "PaO2 (mm Hg)", shape = octagon, style = "filled,bold", fillcolor = "#a8d6b2"];
+    AaDO2     [label = "A-aDO2 = PAO2 - PaO2\nPRIMARY ENDPOINT of IMPALA / PAGE", shape = octagon, style = "filled,bold", fillcolor = "#8ec99b"];
+    SpO2      [label = "SpO2 rest and exercise"];
+    Exercise  [label = "EXERCISE: VO2 x5, CO x3\n=> lower CvO2 => shunt amplified", shape = note, fillcolor = "#e6f5e9"];
+    Nonlin    [label = "Pool -> PaO2 is convex-saturating:\nlong silent phase, then rapid decline", shape = note, fillcolor = "#e6f5e9"];
+
+    Unit_full -> Shunt; Unit_part -> VQ; Unit_part -> Dm [arrowhead = tee, color = "#b03030"];
+    Unit_full -> Dm [arrowhead = tee, color = "#b03030"];
+    Dm -> DLCO; Vc -> DLCO;
+    PAO2 -> CcO2 -> CaO2; Shunt -> CaO2; VQ -> CaO2 [style = dotted];
+    CvO2 -> CaO2; CaO2 -> CvO2 [style = dotted, label = "Fick loop"];
+    CaO2 -> PaO2 -> AaDO2; PAO2 -> AaDO2; PaO2 -> SpO2;
+    Exercise -> CvO2 [style = dotted]; Exercise -> SpO2 [style = dotted];
+    Shunt -> Nonlin [style = dotted];
+  }
+
+  /* ================================================================
+     15. SYSTEMIC CONSEQUENCES OF CHRONIC HYPOXAEMIA
+     ================================================================ */
+  subgraph cluster_syst {
+    label = "15. Systemic consequences of chronic hypoxaemia";
+    style = "filled"; fillcolor = "#eaf6ec"; color = "#3d8a4f"; fontsize = 14; fontcolor = "#256134";
+    node [fillcolor = "#d5ecd9", color = "#3d8a4f"];
+
+    EPO       [label = "Renal EPO release"];
+    Erythro   [label = "Secondary erythrocytosis\n(raised Hb, raised O2 content)"];
+    HPV       [label = "Hypoxic pulmonary vasoconstriction"];
+    PVR       [label = "Raised pulmonary vascular resistance"];
+    PH        [label = "Pulmonary hypertension (subset)"];
+    RV        [label = "RV afterload, cor pulmonale (late)"];
+    Clubbing  [label = "Digital clubbing (~30%)"];
+    Fatigue   [label = "Fatigue, exercise intolerance"];
+
+    PaO2 -> EPO [arrowhead = tee, color = "#b03030"]; EPO -> Erythro -> CaO2 [style = dotted, label = "compensation"];
+    PaO2 -> HPV [arrowhead = tee, color = "#b03030"]; HPV -> PVR -> PH -> RV;
+    PaO2 -> Clubbing [arrowhead = tee, color = "#b03030"]; PaO2 -> Fatigue [arrowhead = tee, color = "#b03030"];
+  }
+
+  /* ================================================================
+     16. HOST DEFENCE AND INFECTION
+     ================================================================ */
+  subgraph cluster_inf {
+    label = "16. Host-defence failure and opportunistic infection (the risk WLL does not remove)";
+    style = "filled"; fillcolor = "#f9ecec"; color = "#a04040"; fontsize = 14; fontcolor = "#7a2020";
+    node [fillcolor = "#f0d5d5", color = "#a04040"];
+
+    Neut_fn   [label = "Impaired neutrophil function\n(GM-CSF-dependent priming)"];
+    AM_kill   [label = "Impaired AM phagocytosis / killing"];
+    Culture   [label = "Surfactant as culture medium\n(lipid-rich, protected niche)"];
+    Nocardia  [label = "Nocardia spp."];
+    NTM       [label = "Mycobacteria (TB and NTM)"];
+    Asperg    [label = "Aspergillus / Cryptococcus / PJP"];
+    Pneumonia [label = "Bacterial pneumonia, sepsis"];
+    Inf_death [label = "Infection-attributable mortality\n(~20% of PAP deaths)"];
+
+    AM_TNF -> Neut_fn [style = dotted]; Catab_cap -> AM_kill [style = dotted];
+    PU1 -> AM_kill; PL_alv -> Culture;
+    Neut_fn -> Nocardia; AM_kill -> Nocardia; Culture -> Nocardia;
+    AM_kill -> NTM; AM_kill -> Asperg; Neut_fn -> Pneumonia;
+    Nocardia -> Inf_death; NTM -> Inf_death; Pneumonia -> Inf_death;
+  }
+
+  /* ================================================================
+     17. IRREVERSIBLE REMODELLING
+     ================================================================ */
+  subgraph cluster_fib {
+    label = "17. Irreversible remodelling: the ceiling on recovery";
+    style = "filled"; fillcolor = "#edf1f5"; color = "#5b6f85"; fontsize = 14; fontcolor = "#3b4f65";
+    node [fillcolor = "#dbe3ec", color = "#5b6f85"];
+
+    Chronic   [label = "Chronic alveolar filling\n(months to years)"];
+    TGFb      [label = "TGF-beta1 activation,\nAEC2 stress and apoptosis"];
+    Fibrosis  [label = "Interstitial fibrosis (~20% of long-standing PAP)", style = "filled,bold", fillcolor = "#c8d4e2"];
+    Lymph     [label = "Lymphatic engorgement\n(residual gas-exchange defect after WLL)"];
+    DLCO_ceil [label = "PERMANENT DLCO CEILING\n75 +- 19 %pred at 5 y post-WLL", shape = octagon, fillcolor = "#c8d4e2"];
+
+    PL_alv -> Chronic -> TGFb -> Fibrosis;
+    Chronic -> Lymph; Fibrosis -> DLCO_ceil; Lymph -> DLCO_ceil;
+    Fibrosis -> Dm [arrowhead = tee, color = "#b03030"];
+    Fibrosis -> Compliance;
+  }
+
+  /* ================================================================
+     18. BIOMARKERS
+     ================================================================ */
+  subgraph cluster_bio {
+    label = "18. Circulating biomarkers (alveolar-to-blood leak, proportional to the pool)";
+    style = "filled"; fillcolor = "#f2f6fa"; color = "#4a6f9a"; fontsize = 14; fontcolor = "#2c4f75";
+    node [fillcolor = "#e0e9f4", color = "#4a6f9a"];
+
+    Barrier  [label = "Alveolar-capillary barrier leak\n(pool-dependent)"];
+    KL6      [label = "Serum KL-6 / MUC1"];
+    SPD_ser  [label = "Serum SP-D"];
+    SPA_ser  [label = "Serum SP-A"];
+    CEA_ser  [label = "Serum CEA"];
+    LDH_ser  [label = "Serum LDH"];
+    CYFRA    [label = "Serum CYFRA 21-1"];
+    GMAb_test[label = "Serum GMAb (diagnostic, not prognostic)"];
+    Bio_note [label = "Biomarkers track the POOL;\nGMAb titre does not track SEVERITY", shape = note, fillcolor = "#eff4fa"];
+
+    PL_alv -> Barrier; Unit_full -> Barrier;
+    Barrier -> KL6; Barrier -> SPD_ser; Barrier -> SPA_ser; Barrier -> CEA_ser; Barrier -> LDH_ser; Barrier -> CYFRA;
+    Ab_serum -> GMAb_test; GMAb_test -> Bio_note [style = dotted]; KL6 -> Bio_note [style = dotted];
+  }
+
+  /* ================================================================
+     19. CLINICAL ENDPOINTS
+     ================================================================ */
+  subgraph cluster_clin {
+    label = "19. Clinical endpoints and disease severity score";
+    style = "filled"; fillcolor = "#fdeaea"; color = "#b03030"; fontsize = 15; fontcolor = "#8a1a1a";
+    penwidth = 2.0;
+    node [fillcolor = "#f8d3d3", color = "#b03030"];
+
+    Dyspnea   [label = "Exertional dyspnoea (54% at presentation)"];
+    Asympt    [label = "ASYMPTOMATIC at diagnosis (32%)\nfound on health screening", shape = note, fillcolor = "#fdeaea"];
+    Cough     [label = "Cough (usually dry)"];
+    DSS       [label = "DISEASE SEVERITY SCORE 1-5\n(symptoms + PaO2 bands)", shape = octagon, style = "filled,bold", fillcolor = "#f0b0b0"];
+    SGRQ      [label = "SGRQ total score\n(secondary endpoint, IMPALA-2)", shape = octagon, style = "filled,bold", fillcolor = "#f0b0b0"];
+    SixMWD    [label = "6-minute walk distance / exercise capacity"];
+    O2_need   [label = "Supplemental oxygen requirement"];
+    Resp_fail [label = "Respiratory failure"];
+    Death     [label = "Death (5-y survival ~75-95%)", shape = doubleoctagon, fillcolor = "#e89a9a"];
+    Remission [label = "Spontaneous remission (~5-8%)", shape = note, fillcolor = "#fdeaea"];
+
+    PaO2 -> DSS; Dyspnea -> DSS; AaDO2 -> DSS [style = dotted];
+    DLCO -> SixMWD; PaO2 -> SixMWD; Fatigue -> SixMWD;
+    Dyspnea -> SGRQ; Cough -> SGRQ; SixMWD -> SGRQ;
+    PaO2 -> O2_need [arrowhead = tee, color = "#b03030"];
+    Resp_fail -> Death; Inf_death -> Death; RV -> Death [style = dotted];
+    DSS -> Resp_fail; PaO2 -> Asympt [style = dotted];
+    Total_cap -> Remission [style = dotted, label = "titre falls\nbelow threshold"];
+  }
+
+  /* ================================================================
+     20. INHALED GM-CSF — PK AND THE MOLAR-RATIO ARGUMENT
+     ================================================================ */
+  subgraph cluster_inh {
+    label = "20. Inhaled recombinant GM-CSF: molgramostim, sargramostim (the buffer-overwhelming route)";
+    style = "filled"; fillcolor = "#fdeef7"; color = "#a63f7a"; fontsize = 15; fontcolor = "#7d2358";
+    penwidth = 2.0;
+    node [fillcolor = "#f6d7e8", color = "#a63f7a"];
+
+    Neb       [label = "Nebuliser dose\nmolgramostim 300 mug QD (eFlow)\nsargramostim 125 mug BID", shape = folder, fillcolor = "#f0bcd8"];
+    Deposit   [label = "Alveolar deposition fraction\n~30-60% of nominal dose"];
+    Exhale    [label = "Exhaled + oropharyngeal loss"];
+    MCC_loss  [label = "Mucociliary removal from airways"];
+    GM_dose   [label = "GM-CSF delivered to ELF\n300 mug x 0.4 = 120 mug = 8.3 nmol\n(vs ~0.16 nmol of neutralising sites)", shape = octagon, style = "filled,bold", fillcolor = "#eaa8cc"];
+    Ratio_win [label = "8.3 nmol ligand vs ~0.16 nmol neutralising sites\n=> ~50-fold EXCESS: buffer overwhelmed", shape = note, style = "filled,bold", fillcolor = "#fbe4f1"];
+    Spill     [label = "Systemic spillover\n(low, transient plasma GM-CSF)"];
+    Coverage  [label = "TIME ABOVE SIGNALLING THRESHOLD\nthe real efficacy variable", shape = octagon, style = "filled,bold", fillcolor = "#eaa8cc"];
+    Cont_int  [label = "Continuous vs every-other-week:\nsame dose per day, different coverage", shape = note, fillcolor = "#fbe4f1"];
+
+    Neb -> Deposit; Neb -> Exhale [style = dotted]; Deposit -> MCC_loss [style = dotted];
+    Deposit -> GM_dose -> GM_ELF [penwidth = 2.0, color = "#a63f7a"];
+    GM_dose -> Ratio_win [style = dotted]; GM_dose -> Spill [style = dotted];
+    GM_free -> Coverage; Coverage -> PU1 [penwidth = 2.0, color = "#a63f7a", label = "restores program"];
+    Cont_int -> Coverage [style = dotted];
+  }
+
+  /* ================================================================
+     21. SYSTEMIC GM-CSF
+     ================================================================ */
+  subgraph cluster_sc {
+    label = "21. Systemic GM-CSF (subcutaneous): the same drug in the wrong compartment";
+    style = "filled"; fillcolor = "#fdeef7"; color = "#a63f7a"; fontsize = 14; fontcolor = "#7d2358";
+    node [fillcolor = "#f6d7e8", color = "#a63f7a"];
+
+    SC_dose   [label = "Sargramostim SC 5-20 mug/kg/d"];
+    GM_plasma [label = "Plasma GM-CSF"];
+    Ab_neutral_sys [label = "Neutralisation by the LARGE serum antibody pool\n(150-fold more sites than in ELF)", shape = octagon, fillcolor = "#eaa8cc"];
+    ELF_pen   [label = "ELF penetration ~1-5% of plasma"];
+    SC_partial[label = "Partial responses only (~40%)\nat high, escalating doses", shape = note, fillcolor = "#fbe4f1"];
+    Sys_AE    [label = "Systemic exposure = systemic AEs\n(neutrophilia, bone pain, fever)"];
+
+    SC_dose -> GM_plasma -> Ab_neutral_sys; GM_plasma -> ELF_pen -> GM_ELF;
+    Ab_neutral_sys -> ELF_pen [arrowhead = tee, color = "#b03030"];
+    ELF_pen -> SC_partial [style = dotted]; GM_plasma -> Sys_AE;
+  }
+
+  /* ================================================================
+     22. WHOLE LUNG LAVAGE
+     ================================================================ */
+  subgraph cluster_wll {
+    label = "22. Whole lung lavage: removes the pool, not the cause — and washes out the antibody";
+    style = "filled"; fillcolor = "#fdeef7"; color = "#a63f7a"; fontsize = 14; fontcolor = "#7d2358";
+    node [fillcolor = "#f6d7e8", color = "#a63f7a"];
+
+    WLL       [label = "WHOLE LUNG LAVAGE\n10-40 L saline per lung, GA + DLT", shape = folder, style = "filled,bold", fillcolor = "#f0bcd8"];
+    WLL_rm    [label = "Instantaneous removal of\n50-80% of the alveolar pool", shape = octagon, style = "filled,bold", fillcolor = "#eaa8cc"];
+    WLL_ab    [label = "ALSO washes out ELF antibody\n=> transient signalling window", shape = octagon, fillcolor = "#eaa8cc"];
+    WLL_am    [label = "Also removes alveolar macrophages\n(short-term capacity loss)"];
+    SLL       [label = "Segmental / lobar lavage\n(bronchoscopic, lower risk)"];
+    WLL_dur   [label = "Median benefit years, >70% recurrence-free at 7 y\n= pool removed / net accumulation rate", shape = note, fillcolor = "#fbe4f1"];
+    WLL_AE    [label = "Hypoxaemia, spill-over, pneumothorax,\nARDS, arrhythmia, fever"];
+
+    WLL -> WLL_rm -> PL_alv [arrowhead = tee, color = "#b03030", penwidth = 2.0];
+    WLL -> WLL_ab -> Ab_ELF [arrowhead = tee, color = "#b03030"];
+    WLL -> WLL_am -> AM_num [arrowhead = tee, color = "#b03030", style = dotted];
+    WLL -> Seq [arrowhead = tee, color = "#b03030", style = dotted];
+    SLL -> WLL_rm [style = dotted, label = "partial"];
+    WLL_rm -> WLL_dur [style = dotted]; WLL -> WLL_AE;
+  }
+
+  /* ================================================================
+     23. ANTIBODY-DIRECTED THERAPY
+     ================================================================ */
+  subgraph cluster_abtx {
+    label = "23. Antibody-directed therapy: attacking the buffer instead of overwhelming it";
+    style = "filled"; fillcolor = "#fdeef7"; color = "#a63f7a"; fontsize = 14; fontcolor = "#7d2358";
+    node [fillcolor = "#f6d7e8", color = "#a63f7a"];
+
+    RTX       [label = "Rituximab 1000 mg x2\n(anti-CD20)", shape = folder, fillcolor = "#f0bcd8"];
+    RTX_eff   [label = "Depletes CD20+ B cells,\nNOT long-lived plasma cells", shape = octagon, fillcolor = "#eaa8cc"];
+    PLEX      [label = "Plasmapheresis\n(1-1.5 plasma volumes x n)", shape = folder, fillcolor = "#f0bcd8"];
+    PLEX_lim  [label = "Removes only INTRAVASCULAR IgG (~45%)\nrebound from extravascular pool", shape = octagon, fillcolor = "#eaa8cc"];
+    FcRn_inh  [label = "FcRn inhibitor (efgartigimod-like)\nmodel-generated hypothesis", shape = folder, fillcolor = "#f0bcd8"];
+    FcRn_eff  [label = "-60 to -70% total IgG:\nhelps only if baseline titre is near threshold", shape = octagon, fillcolor = "#eaa8cc"];
+    Bortez    [label = "Proteasome inhibitor / anti-CD38\n(targets the plasma cell — untested)", shape = folder, fillcolor = "#f0bcd8"];
+
+    RTX -> RTX_eff -> B_naive [arrowhead = tee, color = "#b03030"];
+    RTX_eff -> Plasmablast [arrowhead = tee, color = "#b03030", style = dotted];
+    LLPC -> RTX_eff [arrowhead = tee, color = "#b03030", label = "escape", style = dashed];
+    PLEX -> PLEX_lim -> Ab_serum [arrowhead = tee, color = "#b03030"];
+    Ab_ev -> PLEX_lim [label = "refills", style = dashed];
+    FcRn_inh -> FcRn_eff; FcRn_eff -> FcRn [arrowhead = tee, color = "#b03030"];
+    Bortez -> LLPC [arrowhead = tee, color = "#b03030", style = dotted];
+  }
+
+  /* ================================================================
+     24. LIPID-DIRECTED AND CELL THERAPY
+     ================================================================ */
+  subgraph cluster_other {
+    label = "24. Lipid-directed and cell/gene therapy";
+    style = "filled"; fillcolor = "#fdeef7"; color = "#a63f7a"; fontsize = 14; fontcolor = "#7d2358";
+    node [fillcolor = "#f6d7e8", color = "#a63f7a"];
+
+    Statin    [label = "Statin (atorvastatin / simvastatin)\noral, high dose", shape = folder, fillcolor = "#f0bcd8"];
+    Statin_eff[label = "Lowers macrophage cholesterol burden;\nGM-CSF-INDEPENDENT partial rescue", shape = octagon, fillcolor = "#eaa8cc"];
+    Pio       [label = "PPAR-gamma agonist (pioglitazone)\nmechanistic candidate", shape = folder, fillcolor = "#f0bcd8"];
+    PMT       [label = "Pulmonary macrophage transplantation\n(hereditary PAP, preclinical)", shape = folder, fillcolor = "#f0bcd8"];
+    HSCT      [label = "HSCT / gene-corrected macrophages\n(CSF2RA deficiency)", shape = folder, fillcolor = "#f0bcd8"];
+    Transpl   [label = "Lung transplantation\n(recurrence in the graft reported)", shape = folder, fillcolor = "#f0bcd8"];
+    O2_tx     [label = "Supplemental O2 (symptomatic only:\nraises PaO2, not clearance)", shape = folder, fillcolor = "#f0bcd8"];
+
+    Statin -> HMGCR [arrowhead = tee, color = "#b03030"]; Statin -> Statin_eff;
+    Statin_eff -> Catab_cap [penwidth = 1.6, color = "#a63f7a"];
+    Statin_eff -> CHOL_alv [arrowhead = tee, color = "#b03030"];
+    Pio -> PPARG [penwidth = 1.4, color = "#a63f7a"];
+    PMT -> AM_num; HSCT -> Mono_blood; HSCT -> CSF2RA [label = "corrected allele"];
+    Transpl -> PL_alv [arrowhead = tee, color = "#b03030", style = dotted];
+    O2_tx -> PAO2;
+  }
+
+  /* ================================================================
+     25. ADVERSE EFFECTS OF GM-CSF THERAPY
+     ================================================================ */
+  subgraph cluster_ae {
+    label = "25. Adverse effects: the same occupancy curve, read on non-target cells";
+    style = "filled"; fillcolor = "#f7e8e8"; color = "#8a2020"; fontsize = 14; fontcolor = "#6b1414";
+    node [fillcolor = "#eccccc", color = "#8a2020"];
+
+    Neutrophilia [label = "Neutrophilia / leucocytosis"];
+    Eos          [label = "Eosinophilia, eosinophilic infiltrate"];
+    ChestPain    [label = "Chest pain / discomfort\n(reported with inhaled molgramostim)"];
+    Cough_AE     [label = "Cough, oropharyngeal irritation"];
+    Ab_boost     [label = "Theoretical GMAb boosting by\nexogenous antigen (not seen in trials)", shape = note, fillcolor = "#f7e8e8"];
+    Flu          [label = "Flu-like symptoms, fever, bone pain\n(systemic route)"];
+    Infl_lung    [label = "Excess alveolar inflammation\nif signalling is driven far above normal"];
+
+    Coverage -> Neutrophilia [style = dotted]; Spill -> Neutrophilia;
+    Coverage -> Eos [style = dotted]; Neb -> Cough_AE; Neb -> ChestPain;
+    GM_dose -> Ab_boost [style = dotted]; GM_plasma -> Flu;
+    Coverage -> Infl_lung [style = dotted, label = "supra-normal"];
+  }
+
+  /* ================================================================
+     CROSS-MODULE BACKBONE — the causal spine of the disease
+     ================================================================ */
+  Class_auto  -> Ab_serum   [penwidth = 2.2, color = "#7a4fa5", label = "  autoantibody"];
+  Ab_ELF      -> GM_free    [penwidth = 2.2, color = "#7a4fa5"];
+  GM_free     -> Occ        [penwidth = 2.2, color = "#2f8f80"];
+  Occ         -> PU1        [penwidth = 2.2, color = "#2f8f80", label = "  Hill, Occ50 low"];
+  Catab_cap   -> Total_cap  [penwidth = 2.2, color = "#c07a2a"];
+  Total_cap   -> PL_alv     [penwidth = 2.4, color = "#b8a12a", arrowhead = tee, label = "  the sink that failed"];
+  PL_alv      -> Unit_full  [penwidth = 2.4, color = "#5b6f85"];
+  Unit_full   -> Shunt      [penwidth = 2.4, color = "#3d8a4f"];
+  Shunt       -> AaDO2      [penwidth = 2.4, color = "#3d8a4f"];
+  AaDO2       -> DSS        [penwidth = 2.4, color = "#b03030"];
+  DSS         -> Death      [penwidth = 1.6, color = "#b03030", style = dashed];
+  Class_hered -> Occ        [penwidth = 1.8, color = "#3d6fa5", arrowhead = tee, label = "  receptor absent:\n  GM-CSF is a structural null"];
+  Class_sec   -> AM_num     [penwidth = 1.8, color = "#3d6fa5", arrowhead = tee];
+  Fibrosis    -> DLCO       [penwidth = 1.6, color = "#5b6f85", arrowhead = tee, style = dashed];
+
+  /* ---------- legend ---------- */
+  subgraph cluster_legend {
+    label = "Legend";
+    style = "filled"; fillcolor = "#fafafa"; color = "#888888"; fontsize = 13;
+    node [shape = plaintext, fillcolor = "#fafafa", style = "filled", fontsize = 10];
+    L1 [label = <<table border="0" cellborder="0" cellspacing="2">
+      <tr><td align="left"><b>Node colour</b></td><td align="left"></td></tr>
+      <tr><td bgcolor="#dbe8f6">blue</td><td align="left">genetics, exposure, PAP class</td></tr>
+      <tr><td bgcolor="#e8dbf6">purple</td><td align="left">adaptive immunity, autoantibody</td></tr>
+      <tr><td bgcolor="#d3ece7">teal</td><td align="left">cytokine, receptor, signal transduction</td></tr>
+      <tr><td bgcolor="#fae0c4">orange</td><td align="left">alveolar macrophage biology</td></tr>
+      <tr><td bgcolor="#f7f0bf">yellow</td><td align="left">surfactant pools and fluxes (mass balance)</td></tr>
+      <tr><td bgcolor="#ecdccd">brown</td><td align="left">cholesterol arm</td></tr>
+      <tr><td bgcolor="#dbe3ec">slate</td><td align="left">alveolar filling, structure, fibrosis</td></tr>
+      <tr><td bgcolor="#d5ecd9">green</td><td align="left">gas-exchange physics, systemic O2</td></tr>
+      <tr><td bgcolor="#f8d3d3">red</td><td align="left">clinical endpoints</td></tr>
+      <tr><td bgcolor="#f6d7e8">pink</td><td align="left">drugs and interventions</td></tr>
+      <tr><td align="left"><b>Edges</b></td><td align="left"></td></tr>
+      <tr><td align="left">arrow</td><td align="left">activation / flux / causation</td></tr>
+      <tr><td align="left">bar (tee)</td><td align="left">inhibition / removal</td></tr>
+      <tr><td align="left">dotted</td><td align="left">modulation, weak or hypothesised link</td></tr>
+      <tr><td align="left">thick</td><td align="left">causal spine of the disease</td></tr>
+      </table>>];
+  }
+}
