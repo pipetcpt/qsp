@@ -1,0 +1,963 @@
+/* =====================================================================
+   PRIMARY HYPEROXALURIA (PH1 / PH2 / PH3) — QSP Mechanistic Map
+   including secondary (enteric) hyperoxaluria as the SAME equations
+   evaluated with a different source term
+   ---------------------------------------------------------------------
+   THE ORGANISING IDEA
+
+     OXALATE IS A TERMINAL METABOLITE. HUMANS HAVE NO OXALATE-DEGRADING
+     ENZYME. THEREFORE PRIMARY HYPEROXALURIA IS NOT A DISEASE WITH A
+     SEVERITY SCORE — IT IS AN UNCLOSED MASS BALANCE, AND EVERY CLINICAL
+     FEATURE IS THE ARITHMETIC OF WHERE THE UNEXCRETED OXALATE WENT.
+
+         hepatic production  =  renal excretion
+                             +  enteric elimination
+                             +  d(tissue burden)/dt
+
+     There is deliberately NO node on this map called "disease severity"
+     and no parameter in the companion mrgsolve model that sets it. The
+     phenotype is the residual of the three-way balance above.
+
+   ---------------------------------------------------------------------
+   WHY THAT ONE EQUATION EXPLAINS THE WHOLE DISEASE
+
+   Rearranged, the balance says the tissue burden grows whenever
+   production exceeds what the kidney and gut can remove. The gut term
+   is small and roughly fixed. So the entire natural history is governed
+   by ONE ratio:
+
+            production (set by genotype)
+            ----------------------------
+            renal clearance (set by GFR)
+
+   and the two arms of that ratio move in OPPOSITE directions over a
+   lifetime, because the oxalate the kidney excretes is what destroys
+   the kidney. The denominator is eaten by the numerator. That is the
+   whole disease, and it produces three consequences that no additive
+   severity model can generate:
+
+     (1) A THRESHOLD, NOT A SLOPE. While GFR is preserved the kidney
+         clears essentially all of the production, so PLASMA oxalate is
+         near normal and the disease is a stone disease. Once GFR falls
+         far enough that clearance drops below production, the residual
+         has nowhere to go but tissue; plasma oxalate rises as ~1/GFR
+         and crosses the calcium-oxalate solubility limit of plasma
+         (~30 umol/L). Below that GFR the disease changes organ system —
+         it stops being nephrology and becomes bone, retina, heart,
+         nerve and skin. Systemic oxalosis is not a late complication;
+         it is the same equation past a root.
+
+     (2) A RUNAWAY. Crystals deposited in the kidney destroy nephrons,
+         which lowers GFR, which raises plasma oxalate, which deposits
+         more crystals (cluster 12). The feedback is positive and its
+         loop gain rises as GFR falls, which is why the terminal decline
+         in PH1 is abrupt rather than linear.
+
+     (3) A BIOMARKER THAT INVERTS. Urinary oxalate is (renal clearance)
+         x (plasma oxalate). Early on, clearance is fixed and Uox tracks
+         production — it is a valid efficacy biomarker. Late on, falling
+         GFR pulls Uox DOWN while the disease accelerates. There is a
+         GFR at which dUox/dt changes sign with production unchanged.
+         See cluster 21: this is why one drug needed two different
+         registration endpoints in two different trials.
+
+   ---------------------------------------------------------------------
+   THE ENZYMOLOGY, AND WHY THE DRUG TARGET IS NOT THE BROKEN GENE
+
+   Glyoxylate is the pivot metabolite. It sits in the hepatocyte with
+   two possible fates:
+
+       DETOXIFY   glyoxylate + L-alanine --AGT/PLP--> glycine + pyruvate
+                  (peroxisomal, AGXT gene, needs pyridoxal-5'-phosphate)
+
+       POISON     glyoxylate --LDHA--> OXALATE
+                  (cytosolic, irreversible, terminal)
+
+   PH1 is loss of the detoxifying branch (AGXT). The flux does not stop;
+   it is re-routed. So the rational drug targets are NOT AGT — you
+   cannot easily restore a missing enzyme — but the two flanking
+   reactions:
+
+       UPSTREAM   block glycolate -> glyoxylate   (HAO1 / glycolate
+                  oxidase; lumasiran). Glyoxylate is never made, so
+                  GLYCOLATE accumulates instead. Glycolate is a benign,
+                  freely filtered dead end. The rising plasma glycolate
+                  is therefore not a side effect — it is the receipt.
+
+       DOWNSTREAM block glyoxylate -> oxalate     (LDHA; nedosiran,
+                  stiripentol). Oxalate is never made, so GLYOXYLATE
+                  accumulates instead — a reactive aldehyde, which is
+                  why this branch carries a theoretical liability the
+                  upstream branch does not.
+
+   Both are SUBSTRATE REDUCTION THERAPY: they treat a toxic-accumulation
+   disease by turning down the tap rather than repairing the drain.
+
+   ---------------------------------------------------------------------
+   THE RESULT THIS MAP EXISTS TO GENERATE: DELIVERY, NOT TARGET,
+   DECIDES WHICH DISEASE THE DRUG TREATS
+
+   LDHA is the last step for PH1, PH2 AND PH3 — all three funnel through
+   it. A naive reading says an LDHA siRNA should treat all three. It
+   does not: nedosiran works in PH1 and failed in PH2.
+
+   The reason is drawn on this map as a geometric fact rather than a
+   footnote. A GalNAc-conjugated siRNA is taken up by the
+   asialoglycoprotein receptor, which is expressed at ~500,000 copies
+   per HEPATOCYTE and essentially nowhere else (cluster 14). So the
+   knockdown is hepatocyte-restricted by construction. That is fine when
+   the oxalate is made in hepatocytes:
+
+       AGXT   — liver-specific expression      -> PH1 oxalate is hepatic
+       GRHPR  — expressed in liver AND kidney  -> PH2 oxalate is partly
+                and other tissues                 EXTRAHEPATIC
+       HOGA1  — liver (+ kidney) mitochondrial -> PH3 intermediate
+
+   A liver-restricted drug cannot silence an enzyme deficiency whose
+   consequence is generated outside the liver. Nodes OX_SRC_HEP and
+   OX_SRC_EXTRAHEP exist for exactly this reason, and in the companion
+   model the PH2 non-response is produced by moving mass between those
+   two nodes — no separate "PH2 resistance" parameter is used. A
+   small-molecule LDH inhibitor that distributes to kidney as well as
+   liver (stiripentol) is drawn on a DIFFERENT arrow into the same
+   target for the same reason.
+
+   ---------------------------------------------------------------------
+   THE THREE THERAPEUTIC LAYERS, WHICH ARE NOT INTERCHANGEABLE
+
+     LAYER A  PRODUCTION   changes the mass balance
+              lumasiran, nedosiran, stiripentol, pyridoxine (genotype-
+              gated), liver replacement, gene therapy
+     LAYER B  CRYSTALLISATION  changes NOTHING in the mass balance and
+              still prevents stones — hyperhydration, potassium citrate,
+              magnesium, neutral phosphate. Uox in mmol/day is untouched;
+              only the CONCENTRATION and the inhibitor activity change,
+              so relative supersaturation falls. This is the clearest
+              demonstration on the map that the stone endpoint is driven
+              by a ratio, not by a flux.
+     LAYER C  REMOVAL      dialysis, enteric degradation (Oxalobacter)
+              — and cluster 19 shows by arithmetic that conventional
+              thrice-weekly haemodialysis CANNOT match PH1 production.
+
+   Layer B protects the kidney but never prevents systemic oxalosis.
+   Layer C is quantitatively insufficient alone. Only Layer A closes the
+   balance. That ordering is the map's therapeutic argument.
+
+   ---------------------------------------------------------------------
+   STRUCTURE (21 clusters, 250+ nodes)
+
+     1  Genetics and genotype-phenotype
+     2  Substrate supply into the glyoxylate pool
+     3  Hepatocyte peroxisome — the AGT reaction
+     4  Hepatocyte cytosol — LDHA and the terminal step
+     5  Hepatocyte mitochondrion — HOGA1 / hydroxyproline route
+     6  Oxalate systemic distribution and the solubility limit
+     7  Bone — the reservoir that both buffers and betrays
+     8  Soft-tissue oxalosis
+     9  Renal oxalate handling
+    10  Crystallisation physical chemistry (Layer B target)
+    11  Crystal-induced tubulointerstitial injury
+    12  The nephron-loss positive feedback loop
+    13  Gut-kidney oxalate axis (and enteric hyperoxaluria)
+    14  siRNA PK/PD — GalNAc/ASGPR/RISC
+    15  Pyridoxine and chaperone rescue
+    16  Small molecules, gene therapy, experimental
+    17  Supportive / crystallisation-directed therapy
+    18  Dialysis kinetics
+    19  Transplantation
+    20  Clinical endpoints
+    21  The measurement layer (biomarker inversion, assay traps)
+
+   Arrow convention:  solid black = mass flux / conversion
+                      solid blue  = activation / promotion
+                      dashed red  = inhibition / blockade
+                      dashed grey = modulation, measurement, annotation
+   ===================================================================== */
+
+digraph PH1_QSP {
+  graph [rankdir=LR, splines=spline, overlap=false, nodesep=0.30, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", label=<<B>PRIMARY HYPEROXALURIA — QSP MECHANISTIC MAP</B><BR/>
+<FONT POINT-SIZE="12">Oxalate is a terminal metabolite: production = renal excretion + enteric elimination + d(tissue burden)/dt</FONT><BR/>
+<FONT POINT-SIZE="10">PH1 (AGXT) · PH2 (GRHPR) · PH3 (HOGA1) · enteric hyperoxaluria as the same balance with a different source term</FONT>>,
+         bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded",
+         shape=box, penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.65, penwidth=1.0];
+
+  /* ---------- colour language -------------------------------------- */
+  /* gene/genotype        #ede7f6 purple  */
+  /* metabolite pool      #fff8e1 amber   */
+  /* enzyme               #e8f5e9 green   */
+  /* organ/structure      #e3f2fd blue    */
+  /* injury/inflammation  #ffebee red     */
+  /* drug                 #fce4ec pink    */
+  /* biomarker            #e0f7fa cyan    */
+  /* endpoint             #f3e5f5 violet  */
+  /* arithmetic/identity  #eceff1 grey    */
+
+  /* ================================================================
+     CLUSTER 1 — GENETICS AND GENOTYPE-PHENOTYPE
+     ================================================================ */
+  subgraph cluster_gen {
+    label=<<B>1. GENETICS — three genes, three diseases, one metabolite</B>>;
+    style="filled,rounded"; fillcolor="#f6f3fb"; color="#7e57c2"; fontsize=12;
+
+    AGXT      [label="AGXT  (2q37.3)\nalanine:glyoxylate aminotransferase\nPEROXISOMAL, LIVER-SPECIFIC\n→ PH1 (~80% of PH)", fillcolor="#ede7f6"];
+    GRHPR     [label="GRHPR  (9p13.2)\nglyoxylate/hydroxypyruvate reductase\nCYTOSOLIC, WIDELY EXPRESSED\n→ PH2 (~10%)", fillcolor="#ede7f6"];
+    HOGA1     [label="HOGA1  (10q24.2)\n4-hydroxy-2-oxoglutarate aldolase\nMITOCHONDRIAL, liver + kidney\n→ PH3 (~10%)", fillcolor="#ede7f6"];
+    SLC26A1   [label="SLC26A1 / SLC26A6\nsulfate/oxalate anion exchangers\ncandidate modifier of enteric\nsecretion and renal handling", fillcolor="#ede7f6"];
+
+    ALL_G170R [label="p.Gly170Arg  (G170R)\ncommonest PH1 allele (~30% of alleles)\nprotein FOLDS but is MISTARGETED\nto mitochondrion → PYRIDOXINE-RESPONSIVE", fillcolor="#d1c4e9"];
+    ALL_F152I [label="p.Phe152Ile  (F152I)\nfolding/dimerisation defect\nPYRIDOXINE-RESPONSIVE", fillcolor="#d1c4e9"];
+    ALL_I244T [label="p.Ile244Thr\nfounder allele (N Africa, Canary Is.)\naggregation-prone; partial B6 response", fillcolor="#ede7f6"];
+    ALL_G82E  [label="p.Gly82Glu\nPLP-binding-site destroyed\nNOT rescuable by pyridoxine", fillcolor="#ede7f6"];
+    ALL_NULL  [label="nonsense / frameshift / large deletion\nno protein at all\nB6-UNRESPONSIVE, infantile phenotype", fillcolor="#b39ddb"];
+    MINOR_HAP [label="minor allele haplotype (P11L)\ncis-acting; creates the mitochondrial\ntargeting sequence G170R needs\n→ required for the B6 phenotype", fillcolor="#ede7f6"];
+
+    RESID_AGT [label="RESIDUAL AGT ACTIVITY  (0-100%)\nTHE SINGLE PARAMETER FROM WHICH\nTHE PHENOTYPE IS GENERATED", fillcolor="#eceff1", shape=box, penwidth=2.4, color="#37474f"];
+    PHENO_INF [label="infantile oxalosis\nESKD in the first months of life\nresidual activity ≈ 0", fillcolor="#f3e5f5"];
+    PHENO_CHILD [label="childhood nephrolithiasis /\nnephrocalcinosis, ESKD in teens", fillcolor="#f3e5f5"];
+    PHENO_ADULT [label="adult recurrent stone former\nESKD in 4th-6th decade or never\nresidual activity 10-30%", fillcolor="#f3e5f5"];
+    PENETR   [label="incomplete penetrance / wide intrafamilial\nvariability — same genotype, different course\n(modifier + environment + diagnostic delay)", fillcolor="#eceff1"];
+
+      ALL_G170R -> MINOR_HAP [dir=both, style=dashed, color="#78909c", label="cis"];
+  }
+
+  /* ================================================================
+     CLUSTER 2 — SUBSTRATE SUPPLY INTO THE GLYOXYLATE POOL
+     ================================================================ */
+  subgraph cluster_sub {
+    label=<<B>2. SUBSTRATE SUPPLY — where the glyoxylate comes from</B>>;
+    style="filled,rounded"; fillcolor="#fffdf5"; color="#f9a825"; fontsize=12;
+
+    DIET_GLYCOLATE [label="dietary / microbial GLYCOLATE\n(leafy greens, fruit; minor)", fillcolor="#fff8e1"];
+    DIET_HYPRO     [label="dietary + ENDOGENOUS\n4-HYDROXYPROLINE\ncollagen turnover, gelatin, meat\n→ ~20-45% of oxalate in PH", fillcolor="#fff8e1"];
+    COLL_TURN      [label="collagen degradation flux\n(growth, immobilisation, bone resorption,\ncatabolic illness, corticosteroids)", fillcolor="#fff8e1"];
+    DIET_GLYCINE   [label="glycine / serine", fillcolor="#fff8e1"];
+    ASCORBATE      [label="ASCORBATE (vitamin C)\nnon-enzymatic degradation → oxalate\nhigh-dose supplements = added source", fillcolor="#fff8e1"];
+    FRUCTOSE       [label="fructose / glycerol\n→ hydroxypyruvate / glyceraldehyde", fillcolor="#fff8e1"];
+    EG_TOX         [label="ETHYLENE GLYCOL poisoning\nADH → glycolaldehyde → glycolate → glyoxylate\nTHE ACQUIRED PHENOCOPY of PH1\n(same node, different time constant)", fillcolor="#ffe0b2"];
+    DIET_OXALATE   [label="DIETARY OXALATE\nspinach, rhubarb, nuts, tea, cocoa\n~100-200 mg/d ingested,\n~2-10% absorbed in health", fillcolor="#fff8e1"];
+    GLYCOLALD      [label="glycolaldehyde", fillcolor="#fff8e1"];
+
+    HYPRO_FLUX [label="hydroxyproline → glyoxylate flux\nWHY GROWTH AND IMMOBILISATION\nWORSEN PH", fillcolor="#eceff1"];
+
+    COLL_TURN -> DIET_HYPRO [color=black];
+    DIET_HYPRO -> HYPRO_FLUX [color=black];
+    EG_TOX -> GLYCOLALD [color=black, label="ADH"];
+    GLYCOLALD -> DIET_GLYCOLATE [color=black, label="ALDH"];
+  }
+
+  /* ================================================================
+     CLUSTER 3 — HEPATOCYTE PEROXISOME (the AGT reaction)
+     ================================================================ */
+  subgraph cluster_perox {
+    label=<<B>3. HEPATOCYTE PEROXISOME — glyoxylate detoxification (the branch PH1 loses)</B>>;
+    style="filled,rounded"; fillcolor="#f4fbf5"; color="#2e7d32"; fontsize=12;
+
+    PEROX      [label="PEROXISOME\n(hepatocyte)", fillcolor="#e3f2fd", shape=box3d];
+    GLYCOLATE_P [label="peroxisomal GLYCOLATE", fillcolor="#fff8e1"];
+    GO_HAO1    [label="GLYCOLATE OXIDASE (GO)\nHAO1 gene, FMN-dependent\nglycolate + O2 → glyoxylate + H2O2\n★ LUMASIRAN TARGET", fillcolor="#c8e6c9", penwidth=2.0];
+    H2O2       [label="H2O2 → catalase\n(peroxisomal oxidative load)", fillcolor="#fff8e1"];
+    GLYOX_P    [label="PEROXISOMAL GLYOXYLATE\nthe pivot metabolite", fillcolor="#ffe082", penwidth=2.2];
+    AGT_HOLO   [label="AGT holoenzyme (PLP-loaded dimer)\nglyoxylate + L-alanine → glycine + pyruvate\nTHE DETOXIFYING REACTION", fillcolor="#a5d6a7", penwidth=2.0];
+    AGT_APO    [label="apo-AGT (no PLP)\ninactive; aggregation-prone;\nproteasome substrate", fillcolor="#e8f5e9"];
+    AGT_MISTGT [label="MISTARGETED AGT (mitochondrial)\nenzymatically active but IN THE WRONG\nORGANELLE → no access to peroxisomal\nglyoxylate (the G170R lesion)", fillcolor="#e8f5e9"];
+    PLP_LIV    [label="hepatic PYRIDOXAL-5'-PHOSPHATE (PLP)\ncofactor AND chemical chaperone", fillcolor="#fff8e1"];
+    GLYCINE    [label="glycine + pyruvate\n(harmless products)", fillcolor="#fff8e1"];
+    DAO        [label="D-amino acid oxidase (DAO)\nglycine → glyoxylate (minor)", fillcolor="#e8f5e9"];
+    PEROX_LEAK [label="peroxisomal membrane permeability\nto glyoxylate\n(sets how much escapes to cytosol)", fillcolor="#eceff1"];
+    HSP_CHAP   [label="HSP70 / HSP90 chaperone system\nfolding QC of nascent AGT", fillcolor="#e8f5e9"];
+    PROTEASOME [label="ubiquitin-proteasome degradation\nof misfolded AGT", fillcolor="#e8f5e9"];
+
+    GLYCOLATE_P -> GO_HAO1 [color=black];
+    GO_HAO1 -> GLYOX_P [color=black, label="flux J_GO"];
+    GO_HAO1 -> H2O2 [color=black, style=dashed];
+    GLYOX_P -> AGT_HOLO [color=black];
+    AGT_HOLO -> GLYCINE [color=black, label="J_AGT"];
+    PLP_LIV -> AGT_HOLO [color="#1565c0", label="cofactor"];
+    AGT_APO -> AGT_HOLO [color=black, label="+PLP"];
+    PLP_LIV -> AGT_APO [style=dashed, color="#1565c0", label="chaperone\nrescue"];
+    AGT_APO -> PROTEASOME [color=black];
+    HSP_CHAP -> AGT_APO [style=dashed, color="#78909c"];
+    DAO -> GLYOX_P [color=black];
+    GLYOX_P -> PEROX_LEAK [color=black];
+  }
+
+  /* ================================================================
+     CLUSTER 4 — HEPATOCYTE CYTOSOL (LDHA, the terminal step)
+     ================================================================ */
+  subgraph cluster_cyto {
+    label=<<B>4. HEPATOCYTE CYTOSOL — the irreversible step, and the salvage route PH2 loses</B>>;
+    style="filled,rounded"; fillcolor="#f4fbf5"; color="#2e7d32"; fontsize=12;
+
+    GLYOX_C   [label="CYTOSOLIC GLYOXYLATE\nreactive 2-oxo aldehyde", fillcolor="#ffe082", penwidth=2.2];
+    LDHA_LIV  [label="LDHA (LDH-5, hepatic)\nglyoxylate + NADH → OXALATE\n★ NEDOSIRAN / STIRIPENTOL TARGET", fillcolor="#c8e6c9", penwidth=2.0];
+    GRHPR_ENZ [label="GRHPR\nglyoxylate + NADPH → GLYCOLATE\nhydroxypyruvate → D-glycerate\nTHE CYTOSOLIC SALVAGE (lost in PH2)", fillcolor="#a5d6a7", penwidth=2.0];
+    OX_HEP    [label="HEPATIC OXALATE\nTERMINAL — no human enzyme degrades it", fillcolor="#ffcc80", penwidth=2.4];
+    HPYR      [label="HYDROXYPYRUVATE", fillcolor="#fff8e1"];
+    LGLYCERATE [label="L-GLYCERATE\nmade by LDH when GRHPR is absent\n→ L-GLYCERIC ACIDURIA = PH2 marker", fillcolor="#fff8e1"];
+    GLYCOLATE_C [label="CYTOSOLIC GLYCOLATE\nbenign dead end, freely filtered", fillcolor="#fff8e1"];
+    NADH_RATIO [label="cytosolic NADH/NAD+ redox state\n(ethanol, fructose, hypoxia shift it)", fillcolor="#eceff1"];
+    GLYOX_TOX [label="glyoxylate protein carbonylation /\nGSH depletion — the theoretical liability\nof blocking the DOWNSTREAM step", fillcolor="#ffebee"];
+    OX_SRC_HEP [label="OX_SRC_HEP\nHEPATOCYTE-DERIVED OXALATE\n(reachable by GalNAc-siRNA)", fillcolor="#eceff1", penwidth=2.2, color="#37474f"];
+    OX_SRC_EXTRAHEP [label="OX_SRC_EXTRAHEP\nEXTRAHEPATIC OXALATE\n(kidney, other tissues — NOT reachable\nby a hepatocyte-restricted drug)\nTHE PH2 NON-RESPONSE LIVES HERE", fillcolor="#eceff1", penwidth=2.2, color="#37474f"];
+
+    GLYOX_C -> LDHA_LIV [color=black];
+    LDHA_LIV -> OX_HEP [color=black, label="J_LDH (irreversible)"];
+    GLYOX_C -> GRHPR_ENZ [color=black];
+    GRHPR_ENZ -> GLYCOLATE_C [color=black, label="salvage"];
+    HPYR -> GRHPR_ENZ [color=black];
+    HPYR -> LGLYCERATE [color=black, label="LDH (PH2 only)"];
+    NADH_RATIO -> LDHA_LIV [style=dashed, color="#78909c"];
+    GLYOX_C -> GLYOX_TOX [style=dashed, color="#c62828"];
+    OX_HEP -> OX_SRC_HEP [color=black];
+  }
+
+  /* ================================================================
+     CLUSTER 5 — MITOCHONDRION / HYDROXYPROLINE ROUTE (PH3)
+     ================================================================ */
+  subgraph cluster_mito {
+    label=<<B>5. HEPATOCYTE MITOCHONDRION — the hydroxyproline route and PH3</B>>;
+    style="filled,rounded"; fillcolor="#f4fbf5"; color="#2e7d32"; fontsize=12;
+
+    MITO      [label="MITOCHONDRION", fillcolor="#e3f2fd", shape=box3d];
+    HYP_OX    [label="4-hydroxyproline oxidase / dehydrogenase", fillcolor="#e8f5e9"];
+    HOG       [label="4-HYDROXY-2-OXOGLUTARATE (HOG)\naccumulates in PH3", fillcolor="#fff8e1"];
+    HOGA1_ENZ [label="HOGA1 aldolase\nHOG → pyruvate + GLYOXYLATE\n(lost in PH3)", fillcolor="#a5d6a7"];
+    GLYOX_M   [label="MITOCHONDRIAL GLYOXYLATE", fillcolor="#ffe082"];
+    DHG       [label="2,4-DIHYDROXYGLUTARATE (DHG)\nHOG reduction product\n→ PH3 diagnostic metabolite", fillcolor="#fff8e1"];
+    HOG_INHIB [label="HOG inhibits mitochondrial GRHPR\nand disturbs citrate metabolism\n→ WHY LOSING AN UPSTREAM ALDOLASE\nSTILL RAISES OXALATE", fillcolor="#eceff1"];
+    HYP_TRANS [label="mitochondrial glyoxylate export\nto cytosol", fillcolor="#eceff1"];
+
+    HYP_OX -> HOG [color=black];
+    HOG -> HOGA1_ENZ [color=black];
+    HOGA1_ENZ -> GLYOX_M [color=black];
+    HOG -> DHG [color=black, label="PH3: accumulates"];
+    HOG -> HOG_INHIB [color=black];
+    GLYOX_M -> HYP_TRANS [color=black];
+  }
+
+  /* ================================================================
+     CLUSTER 6 — OXALATE SYSTEMIC DISTRIBUTION AND SOLUBILITY LIMIT
+     ================================================================ */
+  subgraph cluster_dist {
+    label=<<B>6. OXALATE DISTRIBUTION — and the solubility limit that defines systemic oxalosis</B>>;
+    style="filled,rounded"; fillcolor="#fffdf5"; color="#ef6c00"; fontsize=12;
+
+    OX_PL   [label="PLASMA OXALATE (Pox)\nnormal 1-6 umol/L\nESKD-PH1 60-120 umol/L", fillcolor="#ffcc80", penwidth=2.4];
+    OX_ECF  [label="rapidly exchanging ECF oxalate\n(Vd ≈ 0.2-0.3 L/kg)", fillcolor="#fff8e1"];
+    OX_FREE [label="free (ultrafilterable) oxalate\n— minimal protein binding", fillcolor="#fff8e1"];
+    CA_PL   [label="plasma ionised calcium", fillcolor="#fff8e1"];
+    SS_PLASMA [label="PLASMA CaOx SUPERSATURATION\nSS_plasma = [Ca2+]·[Ox2-] / Ksp\nsolubility limit reached at\nPox ≈ 30 umol/L", fillcolor="#eceff1", penwidth=2.4, color="#37474f"];
+    DEPO_ON [label="SYSTEMIC DEPOSITION SWITCH\ndeposition rate ∝ max(0, Pox − Pox_crit)\n★ THE THRESHOLD, GENERATED NOT ASSUMED", fillcolor="#ffe0b2", penwidth=2.4];
+    TOT_BURDEN [label="TOTAL BODY OXALATE BURDEN\n(the integral of everything unexcreted)", fillcolor="#eceff1", penwidth=2.0];
+    NUCLEATE_SYS [label="heterogeneous nucleation on\ncollagen, elastin, basement membrane", fillcolor="#fff8e1"];
+
+    OX_PL -> OX_ECF [dir=both, color=black];
+    OX_PL -> OX_FREE [color=black];
+    OX_FREE -> SS_PLASMA [color=black];
+    CA_PL -> SS_PLASMA [color="#1565c0"];
+    SS_PLASMA -> DEPO_ON [color="#1565c0", penwidth=1.8];
+    DEPO_ON -> NUCLEATE_SYS [color=black];
+    DEPO_ON -> TOT_BURDEN [color=black];
+  }
+
+  /* ================================================================
+     CLUSTER 7 — BONE: THE RESERVOIR THAT BUFFERS THEN BETRAYS
+     ================================================================ */
+  subgraph cluster_bone {
+    label=<<B>7. BONE — the largest reservoir; it buffers before ESKD and releases after transplant</B>>;
+    style="filled,rounded"; fillcolor="#f5faff"; color="#1565c0"; fontsize=12;
+
+    OX_BONE [label="SKELETAL OXALATE\nthe dominant tissue reservoir;\ncan hold thousands of umol/kg", fillcolor="#bbdefb", penwidth=2.2];
+    BONE_IN  [label="influx: CaOx co-precipitation\nwith hydroxyapatite at the\nmineralisation front", fillcolor="#e3f2fd"];
+    BONE_OUT [label="efflux: OSTEOCLASTIC RESORPTION\nreleases oxalate back to plasma\n→ WHY Uox STAYS HIGH FOR MONTHS\nAFTER A NORMAL LIVER IS INSTALLED", fillcolor="#e3f2fd", penwidth=2.0];
+    OSTEOCLAST [label="osteoclast activity\n(PTH, RANKL, acidosis, steroids,\nimmobilisation, growth)", fillcolor="#e3f2fd"];
+    OX_OSTEOPATHY [label="OXALATE OSTEOPATHY\nCaOx rosettes in trabeculae,\nsclerotic/lucent bands, pathological\nfractures, bone pain", fillcolor="#ffebee"];
+    MARROW_OX [label="marrow oxalate granulomas\n→ EPO-RESISTANT ANAEMIA\nand pancytopenia", fillcolor="#ffebee"];
+    GROWTH_FAIL [label="growth failure / short stature\n(children)", fillcolor="#f3e5f5"];
+    BONE_TURN_DRV [label="bone turnover as a DRUG-INDEPENDENT\nDETERMINANT of post-transplant Uox\n(a reservoir, not a source)", fillcolor="#eceff1"];
+
+    BONE_IN -> OX_BONE [color=black];
+    OX_BONE -> BONE_OUT [color=black];
+    OSTEOCLAST -> BONE_OUT [color="#1565c0", penwidth=1.6];
+    OX_BONE -> OX_OSTEOPATHY [color=black];
+    OX_OSTEOPATHY -> MARROW_OX [color=black];
+    OX_OSTEOPATHY -> GROWTH_FAIL [color=black];
+    BONE_OUT -> BONE_TURN_DRV [style=dashed, color="#78909c"];
+  }
+
+  /* ================================================================
+     CLUSTER 8 — SOFT-TISSUE OXALOSIS
+     ================================================================ */
+  subgraph cluster_soft {
+    label=<<B>8. SOFT-TISSUE OXALOSIS — the disease past the threshold is not a kidney disease</B>>;
+    style="filled,rounded"; fillcolor="#fff5f5"; color="#c62828"; fontsize=12;
+
+    OX_SOFT   [label="soft-tissue oxalate burden", fillcolor="#ffcdd2", penwidth=2.0];
+    RETINA_OX [label="RETINAL / MACULAR oxalate\ncrystalline retinopathy,\nsubretinal fibrosis → VISION LOSS", fillcolor="#ffebee"];
+    MYOCARD   [label="MYOCARDIAL oxalosis\nconduction block, arrhythmia,\nrestrictive cardiomyopathy, sudden death", fillcolor="#ffebee"];
+    VESSEL_OX [label="MEDIAL ARTERIAL oxalate\nlivedo reticularis, acral gangrene,\ncalciphylaxis-like ulcers", fillcolor="#ffebee"];
+    NERVE_OX  [label="PERIPHERAL NERVE / vasa nervorum\nsensorimotor and autonomic\nneuropathy, mononeuritis multiplex", fillcolor="#ffebee"];
+    THYROID_OX [label="THYROID oxalate deposition\n(usually clinically silent)", fillcolor="#ffebee"];
+    JOINT_OX  [label="synovial CaOx → oxalate arthropathy,\nchondrocalcinosis, tenosynovitis", fillcolor="#ffebee"];
+    SKIN_OX   [label="cutaneous deposits, nodules,\nnon-healing ulcers", fillcolor="#ffebee"];
+    TEETH_OX  [label="dental / periodontal deposits", fillcolor="#ffebee"];
+    IRREVERSIBLE [label="deposition is SLOWLY reversible at best\n— removal half-life measured in\nMONTHS-YEARS, hence the value of\ntreating BEFORE the threshold", fillcolor="#eceff1", penwidth=2.0];
+
+    OX_SOFT -> RETINA_OX [color=black];
+    OX_SOFT -> MYOCARD [color=black];
+    OX_SOFT -> VESSEL_OX [color=black];
+    OX_SOFT -> NERVE_OX [color=black];
+    OX_SOFT -> THYROID_OX [color=black];
+    OX_SOFT -> JOINT_OX [color=black];
+    OX_SOFT -> SKIN_OX [color=black];
+    OX_SOFT -> TEETH_OX [color=black];
+    OX_SOFT -> IRREVERSIBLE [style=dashed, color="#78909c"];
+  }
+
+  /* ================================================================
+     CLUSTER 9 — RENAL OXALATE HANDLING
+     ================================================================ */
+  subgraph cluster_renal {
+    label=<<B>9. RENAL HANDLING — the only sink that matters, and the one being destroyed</B>>;
+    style="filled,rounded"; fillcolor="#f5faff"; color="#1565c0"; fontsize=12;
+
+    GFR       [label="GFR / eGFR\n(mL/min/1.73 m²)", fillcolor="#90caf9", penwidth=2.2];
+    NEPHRONS  [label="viable nephron number\n(fraction of normal)", fillcolor="#bbdefb", penwidth=2.0];
+    SNGFR     [label="single-nephron hyperfiltration\ncompensates early loss → masks\nnephron attrition until late", fillcolor="#e3f2fd"];
+    FILT_OX   [label="filtered oxalate load\n= GFR × Pox_free", fillcolor="#fff8e1"];
+    SEC_OX    [label="net tubular SECRETION of oxalate\n(SLC26A6-mediated)\nCl_ox / Cl_creatinine ≈ 1.0-1.5", fillcolor="#e3f2fd"];
+    REABS_OX  [label="limited passive reabsorption", fillcolor="#e3f2fd"];
+    CL_OX     [label="RENAL OXALATE CLEARANCE\nCl_ox = f_sec × GFR\nTHE DENOMINATOR OF THE DISEASE", fillcolor="#eceff1", penwidth=2.4, color="#37474f"];
+    TUB_OX_CONC [label="TUBULAR FLUID [oxalate]\nrises along the nephron as water\nis reabsorbed → peaks in the\nmedullary collecting duct", fillcolor="#fff8e1", penwidth=2.0];
+    LDHA_KID  [label="RENAL LDHA\nlocal tubular glyoxylate → oxalate\n★ NOT silenced by a\nhepatocyte-restricted siRNA", fillcolor="#c8e6c9", penwidth=2.0];
+    GLYOX_FILT [label="filtered glyoxylate + glycolate\ndelivered to the tubule", fillcolor="#fff8e1"];
+    U_OX      [label="URINARY OXALATE EXCRETION (Uox)\nnormal <0.46 mmol/1.73m²/24h\nPH1 typically 1.0-2.5", fillcolor="#e0f7fa", penwidth=2.2];
+    U_FLOW    [label="urine flow rate\n(the denominator of concentration)", fillcolor="#e3f2fd"];
+    MEDULLARY [label="medullary tonicity / countercurrent\nconcentrating mechanism\n= the crystallisation hot spot", fillcolor="#e3f2fd"];
+    OX_KID_TIS [label="RENAL PARENCHYMAL oxalate\n(nephrocalcinosis burden)", fillcolor="#ffcdd2", penwidth=2.0];
+
+    NEPHRONS -> GFR [color="#1565c0", penwidth=2.0];
+    NEPHRONS -> SNGFR [color="#1565c0"];
+    SNGFR -> GFR [color="#1565c0", style=dashed, label="compensation"];
+    GFR -> FILT_OX [color=black];
+    GFR -> CL_OX [color=black, penwidth=1.8];
+    SEC_OX -> CL_OX [color="#1565c0"];
+    REABS_OX -> CL_OX [style=dashed, color="#c62828"];
+    CL_OX -> U_OX [color=black, penwidth=2.0];
+    FILT_OX -> TUB_OX_CONC [color=black];
+    SEC_OX -> TUB_OX_CONC [color="#1565c0"];
+    U_FLOW -> TUB_OX_CONC [style=dashed, color="#c62828", label="dilutes"];
+    MEDULLARY -> TUB_OX_CONC [color="#1565c0"];
+    GLYOX_FILT -> LDHA_KID [color=black];
+    LDHA_KID -> TUB_OX_CONC [color=black, label="LOCAL synthesis"];
+  }
+
+  /* ================================================================
+     CLUSTER 10 — CRYSTALLISATION PHYSICAL CHEMISTRY
+     ================================================================ */
+  subgraph cluster_cryst {
+    label=<<B>10. CRYSTALLISATION — a RATIO, not a flux: the target of therapy that changes no mass balance</B>>;
+    style="filled,rounded"; fillcolor="#fffdf5"; color="#f9a825"; fontsize=12;
+
+    U_CA   [label="urinary CALCIUM\n(hypercalciuria is common in PH3\nand modifies risk in PH1)", fillcolor="#fff8e1"];
+    U_CIT  [label="urinary CITRATE\ncomplexes Ca2+ AND inhibits\ncrystal growth/aggregation", fillcolor="#fff8e1"];
+    U_MG   [label="urinary MAGNESIUM\ncomplexes oxalate", fillcolor="#fff8e1"];
+    U_PH   [label="urine pH\n(CaOx solubility is pH-insensitive —\nunlike uric acid and cystine)", fillcolor="#fff8e1"];
+    U_VOL  [label="URINE VOLUME\nthe most powerful and cheapest\nlever on the ratio", fillcolor="#fff8e1", penwidth=2.0];
+    OPN_UMOD [label="macromolecular inhibitors\nosteopontin, uromodulin, nephrocalcin,\nbikunin, Tamm-Horsfall protein", fillcolor="#fff8e1"];
+    RSS    [label="RELATIVE SUPERSATURATION (RSS CaOx)\nRSS = AP(CaOx) / Ksp\nTHE STONE DRIVER", fillcolor="#eceff1", penwidth=2.4, color="#37474f"];
+    NUCLEATION [label="homogeneous + heterogeneous\nnucleation (RSS > ~8-10)", fillcolor="#fff8e1"];
+    GROWTH [label="crystal growth", fillcolor="#fff8e1"];
+    AGGREG [label="aggregation", fillcolor="#fff8e1"];
+    COM_COD [label="COM (monohydrate, whewellite) vs\nCOD (dihydrate, weddellite)\nCOM adheres more avidly →\nPH urine favours COM", fillcolor="#fff8e1"];
+    RETENTION [label="CRYSTAL RETENTION\n(the step that converts crystalluria\ninto disease)", fillcolor="#ffebee", penwidth=2.0];
+    RANDALL [label="Randall plaque / plugs at the\npapillary tip", fillcolor="#ffebee"];
+    STONE  [label="STONE FORMATION\nradio-opaque CaOx calculi,\noften bilateral and recurrent", fillcolor="#f3e5f5", penwidth=2.0];
+    NC     [label="NEPHROCALCINOSIS\nmedullary → cortical;\nthe PH-specific pattern", fillcolor="#f3e5f5", penwidth=2.0];
+    CRYSTALLURIA [label="crystalluria (COM crystals on\nfresh urine microscopy)", fillcolor="#e0f7fa"];
+    OBSTRUCT [label="ureteric obstruction, colic,\npost-obstructive AKI", fillcolor="#f3e5f5"];
+    UTI    [label="stone-associated UTI /\nurosepsis", fillcolor="#f3e5f5"];
+
+    U_CA -> RSS [color="#1565c0", penwidth=1.6];
+    U_CIT -> RSS [style=dashed, color="#c62828", penwidth=1.6];
+    U_MG -> RSS [style=dashed, color="#c62828"];
+    U_VOL -> RSS [style=dashed, color="#c62828", penwidth=2.0];
+    U_PH -> RSS [style=dashed, color="#78909c"];
+    RSS -> NUCLEATION [color="#1565c0", penwidth=1.8];
+    NUCLEATION -> GROWTH [color=black];
+    GROWTH -> AGGREG [color=black];
+    AGGREG -> RETENTION [color=black];
+    OPN_UMOD -> AGGREG [style=dashed, color="#c62828"];
+    OPN_UMOD -> RETENTION [style=dashed, color="#c62828"];
+    COM_COD -> RETENTION [color="#1565c0"];
+    RETENTION -> STONE [color=black, penwidth=1.6];
+    RETENTION -> NC [color=black, penwidth=1.6];
+    RETENTION -> RANDALL [color=black];
+    NUCLEATION -> CRYSTALLURIA [color=black];
+    STONE -> OBSTRUCT [color=black];
+    STONE -> UTI [color=black];
+  }
+
+  /* ================================================================
+     CLUSTER 11 — CRYSTAL-INDUCED TUBULOINTERSTITIAL INJURY
+     ================================================================ */
+  subgraph cluster_injury {
+    label=<<B>11. CRYSTAL-INDUCED INJURY — the mechanistic bridge from crystals to lost GFR</B>>;
+    style="filled,rounded"; fillcolor="#fff5f5"; color="#c62828"; fontsize=12;
+
+    ADHESION [label="crystal-epithelial ADHESION\nCD44, hyaluronan, annexin-II,\nphosphatidylserine exposure", fillcolor="#ffebee"];
+    INTERNAL [label="crystal internalisation /\nintratubular plugging", fillcolor="#ffebee"];
+    TUB_INJ  [label="proximal tubular injury\nKIM-1, NGAL, L-FABP release", fillcolor="#ffebee"];
+    ROS      [label="mitochondrial ROS,\nlipid peroxidation", fillcolor="#ffebee"];
+    NLRP3    [label="NLRP3 INFLAMMASOME\ncrystal = classic DAMP;\nASC + caspase-1 assembly", fillcolor="#ffcdd2", penwidth=2.0];
+    IL1B     [label="IL-1beta / IL-18\n(mature, caspase-1-cleaved)", fillcolor="#ffcdd2"];
+    IL6_TNF  [label="IL-6, TNF-alpha, MCP-1/CCL2", fillcolor="#ffebee"];
+    MACROPH  [label="monocyte/macrophage influx;\nM1 polarisation; granuloma formation\naround crystals", fillcolor="#ffebee"];
+    MULTINUC [label="multinucleate giant cells\n(crystal granuloma)", fillcolor="#ffebee"];
+    TGFB     [label="TGF-beta1", fillcolor="#ffebee"];
+    EMT      [label="partial EMT / tubular\ndedifferentiation, G2/M arrest", fillcolor="#ffebee"];
+    FIBRO    [label="INTERSTITIAL FIBROSIS\nmyofibroblast expansion,\ncollagen I/III deposition", fillcolor="#ffcdd2", penwidth=2.0];
+    ATUBULAR [label="atubular glomeruli /\nglomerulotubular disconnection", fillcolor="#ffebee"];
+    NEPHRON_LOSS [label="NEPHRON LOSS\n(irreversible)", fillcolor="#ef9a9a", penwidth=2.4];
+    NECROINFL [label="regulated necrosis (necroptosis,\nferroptosis) of tubular cells", fillcolor="#ffebee"];
+    AKI_EPI  [label="acute crystalline nephropathy\n(acute-on-chronic GFR drops that\nratchet the disease downward)", fillcolor="#ffebee"];
+    ANTI_IL1 [label="anti-IL-1 / NLRP3 blockade\n— MECHANISTICALLY IMPLIED,\nNOT AN APPROVED THERAPY\n(a falsifiable prediction of this map)", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+
+    RETENTION -> ADHESION [color=black];
+    ADHESION -> INTERNAL [color=black];
+    INTERNAL -> TUB_INJ [color=black];
+    TUB_INJ -> ROS [color="#1565c0"];
+    INTERNAL -> NLRP3 [color="#1565c0", penwidth=1.8];
+    ROS -> NLRP3 [color="#1565c0"];
+    NLRP3 -> IL1B [color=black, penwidth=1.8];
+    IL1B -> MACROPH [color="#1565c0", penwidth=1.6];
+    IL1B -> IL6_TNF [color="#1565c0"];
+    MACROPH -> MULTINUC [color=black];
+    MACROPH -> TGFB [color="#1565c0", penwidth=1.6];
+    IL6_TNF -> TGFB [color="#1565c0"];
+    TGFB -> EMT [color="#1565c0"];
+    TGFB -> FIBRO [color="#1565c0", penwidth=2.0];
+    EMT -> FIBRO [color="#1565c0"];
+    FIBRO -> ATUBULAR [color=black];
+    ATUBULAR -> NEPHRON_LOSS [color=black, penwidth=2.0];
+    TUB_INJ -> NECROINFL [color="#1565c0"];
+    NECROINFL -> NEPHRON_LOSS [color=black];
+    INTERNAL -> AKI_EPI [color=black];
+    AKI_EPI -> NEPHRON_LOSS [color=black];
+    ANTI_IL1 -> NLRP3 [style=dashed, color="#c62828", penwidth=1.8];
+    ANTI_IL1 -> IL1B [style=dashed, color="#c62828"];
+  }
+
+  /* ================================================================
+     CLUSTER 12 — THE POSITIVE FEEDBACK LOOP
+     ================================================================ */
+  subgraph cluster_loop {
+    label=<<B>12. THE RUNAWAY — a positive feedback loop whose gain RISES as GFR falls</B>>;
+    style="filled,rounded"; fillcolor="#f7f7f7"; color="#37474f"; fontsize=12; penwidth=2.4;
+
+    L1 [label="① nephron loss", fillcolor="#eceff1", penwidth=1.8];
+    L2 [label="② GFR falls\n→ renal oxalate clearance falls", fillcolor="#eceff1", penwidth=1.8];
+    L3 [label="③ production now EXCEEDS clearance\n→ plasma oxalate rises ∝ 1/GFR", fillcolor="#eceff1", penwidth=1.8];
+    L4 [label="④ Pox crosses ~30 umol/L\n→ tissue + renal deposition begins", fillcolor="#eceff1", penwidth=1.8];
+    L5 [label="⑤ nephrocalcinosis + crystal\ninflammation destroy more nephrons", fillcolor="#eceff1", penwidth=1.8];
+    LOOP_GAIN [label="LOOP GAIN\nrises steeply below eGFR ≈ 30-45\n→ EXPLAINS THE ABRUPT TERMINAL\nDECLINE WITHOUT A NEW MECHANISM", fillcolor="#ffe0b2", penwidth=2.4];
+    POINT_NR [label="POINT OF NO RETURN\nbeyond which stopping production\nno longer stops progression,\nbecause the bone reservoir\nkeeps feeding the plasma pool", fillcolor="#ffcdd2", penwidth=2.4];
+    EARLY_TX [label="→ THE ARGUMENT FOR EARLY DIAGNOSIS\nis loop-gain arithmetic, not sentiment", fillcolor="#eceff1"];
+
+    L1 -> L2 -> L3 -> L4 -> L5 -> L1 [color="#c62828", penwidth=2.2];
+    L2 -> LOOP_GAIN [style=dashed, color="#78909c"];
+    LOOP_GAIN -> POINT_NR [color="#c62828", penwidth=1.8];
+    POINT_NR -> EARLY_TX [style=dashed, color="#78909c"];
+  }
+
+  /* ================================================================
+     CLUSTER 13 — GUT-KIDNEY OXALATE AXIS
+     ================================================================ */
+  subgraph cluster_gut {
+    label=<<B>13. GUT-KIDNEY AXIS — small in PH, decisive in enteric hyperoxaluria (same equation, different source)</B>>;
+    style="filled,rounded"; fillcolor="#fffdf5"; color="#f9a825"; fontsize=12;
+
+    GUT_LUMEN [label="intestinal luminal oxalate", fillcolor="#fff8e1"];
+    ABS_PARA  [label="paracellular absorption\n(colon > ileum)", fillcolor="#e3f2fd"];
+    ABS_TRANS [label="transcellular absorption\n(SLC26A6, SLC26A3)", fillcolor="#e3f2fd"];
+    CA_BINDING [label="luminal Ca2+ binds oxalate\n→ unabsorbable CaOx\nWHY CALCIUM RESTRICTION IS WRONG", fillcolor="#eceff1"];
+    ENT_SECR  [label="ENTERIC SECRETION of oxalate\n(plasma → lumen via SLC26A6)\nan alternative sink that RISES\nas plasma oxalate rises", fillcolor="#e3f2fd", penwidth=2.0];
+    OXF       [label="OXALOBACTER FORMIGENES\nobligate oxalate-degrading anaerobe\noxalyl-CoA decarboxylase + formyl-CoA\ntransferase (oxc / frc)", fillcolor="#e8f5e9", penwidth=2.0];
+    OXF_LOSS  [label="loss of colonisation after\nantibiotic exposure\n(a modifiable risk factor)", fillcolor="#ffebee"];
+    OTHER_DEG [label="Lactobacillus / Bifidobacterium /\nEnterococcus oxalate degradation\n(minor)", fillcolor="#e8f5e9"];
+    FAT_MALABS [label="FAT MALABSORPTION\n(bariatric surgery, short bowel,\nIBD, cystic fibrosis, pancreatic\ninsufficiency)", fillcolor="#ffebee"];
+    FFA_CA    [label="free fatty acids sequester luminal Ca2+\n→ oxalate stays soluble\n+ bile acids raise mucosal permeability", fillcolor="#eceff1"];
+    ENTERIC_HO [label="ENTERIC (SECONDARY) HYPEROXALURIA\nsame RSS and same CKD mechanism,\nbut the source is DIETARY, so enteric\ndegradation WORKS here and is\nnearly futile in PH1\n★ ONE EQUATION, TWO DISEASES", fillcolor="#ffe0b2", penwidth=2.4];
+
+    DIET_OXALATE -> GUT_LUMEN [color=black];
+    GUT_LUMEN -> ABS_PARA [color=black];
+    GUT_LUMEN -> ABS_TRANS [color=black];
+    CA_BINDING -> GUT_LUMEN [style=dashed, color="#c62828", penwidth=1.6];
+    OXF -> GUT_LUMEN [style=dashed, color="#c62828", penwidth=1.8, label="degrades"];
+    OTHER_DEG -> GUT_LUMEN [style=dashed, color="#c62828"];
+    OXF_LOSS -> OXF [style=dashed, color="#c62828"];
+    FAT_MALABS -> FFA_CA [color=black];
+    FFA_CA -> ABS_PARA [color="#1565c0", penwidth=1.8];
+    FFA_CA -> ENTERIC_HO [color="#1565c0", penwidth=1.8];
+    OX_PL -> ENT_SECR [color=black];
+    ENT_SECR -> GUT_LUMEN [color=black];
+  }
+
+  /* ================================================================
+     CLUSTER 14 — siRNA PK/PD (GalNAc / ASGPR / RISC)
+     ================================================================ */
+  subgraph cluster_sirna {
+    label=<<B>14. GalNAc-siRNA PK/PD — a plasma half-life of hours driving a quarterly dose, and why delivery decides indication</B>>;
+    style="filled,rounded"; fillcolor="#fdf3f7"; color="#ad1457"; fontsize=12;
+
+    LUM   [label="LUMASIRAN\nGalNAc-siRNA vs HAO1 (glycolate oxidase)\n3 mg/kg SC monthly ×3, then QUARTERLY\n(>20 kg)", fillcolor="#f8bbd0", penwidth=2.2];
+    NED   [label="NEDOSIRAN\nGalNAc-siRNA vs LDHA\n160 mg SC MONTHLY (≥50 kg)", fillcolor="#f8bbd0", penwidth=2.2];
+    SC_DEPOT [label="subcutaneous depot\nfirst-order absorption", fillcolor="#fce4ec"];
+    PLASMA_SI [label="plasma siRNA\nt½ ≈ 4-6 h — SHORT", fillcolor="#fce4ec"];
+    ASGPR [label="ASIALOGLYCOPROTEIN RECEPTOR (ASGPR)\n~5×10⁵ copies per HEPATOCYTE,\nrecycling t½ ~15 min,\nEXPRESSED ESSENTIALLY NOWHERE ELSE\n★ THE SOURCE OF TISSUE SELECTIVITY", fillcolor="#f8bbd0", penwidth=2.4];
+    TRIVALENT [label="trivalent GalNAc ligand\n→ nanomolar avidity for ASGPR", fillcolor="#fce4ec"];
+    ENDOSOME [label="clathrin endocytosis → endosome;\nslow, inefficient ENDOSOMAL ESCAPE\n(depot within the cell)", fillcolor="#fce4ec"];
+    RISC  [label="RISC-LOADED siRNA (Ago2)\nintracellular t½ WEEKS-MONTHS\n★ THE PK/PD DISCONNECT THAT MAKES\nQUARTERLY DOSING RATIONAL", fillcolor="#f48fb1", penwidth=2.4];
+    ESC_CHEM [label="ESC / ESC+ chemistry: 2'-OMe, 2'-F,\nphosphorothioate ends → nuclease\nstability, no innate immune activation", fillcolor="#fce4ec"];
+    MRNA_CUT [label="Ago2-catalysed mRNA cleavage\n(catalytic, sub-stoichiometric)", fillcolor="#fce4ec"];
+    HAO1_MRNA [label="HAO1 mRNA", fillcolor="#e8f5e9"];
+    LDHA_MRNA [label="LDHA mRNA", fillcolor="#e8f5e9"];
+    PROT_TURN [label="target PROTEIN turnover sets the LAG\nbetween mRNA knockdown and\nmetabolic effect (weeks)", fillcolor="#eceff1", penwidth=1.8];
+    GLYCOLATE_RISE [label="PLASMA / URINARY GLYCOLATE RISES\n— an ON-TARGET 'abnormal' laboratory\nvalue that is the RECEIPT for\nlumasiran target engagement", fillcolor="#e0f7fa", penwidth=2.2];
+    HEP_ONLY [label="HEPATOCYTE-RESTRICTED knockdown\n→ CANNOT touch OX_SRC_EXTRAHEP\n→ PH1 responds, PH2 does not\n★ DELIVERY, NOT TARGET, DECIDES", fillcolor="#ffe0b2", penwidth=2.4];
+    ISR_AE [label="injection-site reactions\n(the dominant adverse event)", fillcolor="#ffebee"];
+    LUM_LOAD [label="loading-then-maintenance schedule\nis a RISC-accumulation design,\nnot an empirical convention", fillcolor="#eceff1"];
+
+    LUM -> SC_DEPOT [color=black]; NED -> SC_DEPOT [color=black];
+    TRIVALENT -> ASGPR [color="#1565c0"];
+    SC_DEPOT -> PLASMA_SI [color=black];
+    PLASMA_SI -> ASGPR [color=black];
+    ASGPR -> ENDOSOME [color=black];
+    ENDOSOME -> RISC [color=black, penwidth=1.8];
+    ESC_CHEM -> RISC [style=dashed, color="#78909c"];
+    RISC -> MRNA_CUT [color=black, penwidth=1.8];
+    MRNA_CUT -> HAO1_MRNA [style=dashed, color="#c62828", penwidth=1.8];
+    MRNA_CUT -> LDHA_MRNA [style=dashed, color="#c62828", penwidth=1.8];
+    HAO1_MRNA -> GO_HAO1 [color=black, label="translation"];
+    LDHA_MRNA -> LDHA_LIV [color=black, label="translation"];
+    PROT_TURN -> GO_HAO1 [style=dashed, color="#78909c"];
+    ASGPR -> HEP_ONLY [style=dashed, color="#78909c", penwidth=1.8];
+    HEP_ONLY -> OX_SRC_EXTRAHEP [style=dashed, color="#78909c"];
+    GO_HAO1 -> GLYCOLATE_RISE [style=dashed, color="#0097a7", label="blocked → substrate\naccumulates"];
+    LUM -> ISR_AE [style=dashed, color="#c62828"];
+    RISC -> LUM_LOAD [style=dashed, color="#78909c"];
+    LDHA_MRNA -> LDHA_KID [style=dashed, color="#78909c", label="NOT reached"];
+  }
+
+  /* ================================================================
+     CLUSTER 15 — PYRIDOXINE / CHAPERONE RESCUE
+     ================================================================ */
+  subgraph cluster_b6 {
+    label=<<B>15. PYRIDOXINE — the only genotype-gated therapy: a cofactor acting as a chaperone</B>>;
+    style="filled,rounded"; fillcolor="#fdf3f7"; color="#ad1457"; fontsize=12;
+
+    PN     [label="PYRIDOXINE (vitamin B6)\n5-20 mg/kg/day PO", fillcolor="#f8bbd0", penwidth=2.0];
+    PN_ABS [label="intestinal absorption → hepatic\npyridoxal kinase → PNP oxidase", fillcolor="#fce4ec"];
+    PLP_PL [label="plasma PLP", fillcolor="#fce4ec"];
+    CHAP_MECH [label="MECHANISM IS NOT SIMPLE COFACTOR\nREPLETION — PLP stabilises the folding\nintermediate and restores PEROXISOMAL\nIMPORT of G170R/F152I protein", fillcolor="#eceff1", penwidth=2.0];
+    B6_RESP [label="RESPONDERS: G170R and F152I\n(especially homozygous)\n→ ~30-50% Uox reduction", fillcolor="#f3e5f5"];
+    B6_NONRESP [label="NON-RESPONDERS: null alleles,\nPLP-binding-site mutants (G82E)\n→ ZERO effect at any dose\n★ A STRUCTURAL NULL, NOT A DOSE ISSUE", fillcolor="#ffebee", penwidth=2.0];
+    B6_NEURO [label="dose-limiting sensory neuronopathy\nat high chronic doses\n(the reason for a ceiling)", fillcolor="#ffebee"];
+    B6_CEIL  [label="response saturates once AGT is\nfully PLP-loaded → dose escalation\nbeyond ~10 mg/kg/day buys little", fillcolor="#eceff1"];
+
+    PN -> PN_ABS -> PLP_PL [color=black];
+    PLP_PL -> PLP_LIV [color=black];
+    PLP_LIV -> CHAP_MECH [color="#1565c0"];
+    CHAP_MECH -> AGT_MISTGT [style=dashed, color="#c62828", label="restores\ntargeting"];
+    CHAP_MECH -> B6_RESP [color="#1565c0"];
+    ALL_G170R -> B6_RESP [color="#1565c0", style=dashed];
+    ALL_F152I -> B6_RESP [color="#1565c0", style=dashed];
+    ALL_NULL -> B6_NONRESP [color="#1565c0", style=dashed];
+    ALL_G82E -> B6_NONRESP [color="#1565c0", style=dashed];
+    PN -> B6_NEURO [style=dashed, color="#c62828"];
+    PN -> B6_CEIL [style=dashed, color="#78909c"];
+  }
+
+  /* ================================================================
+     CLUSTER 16 — SMALL MOLECULES, GENE THERAPY, EXPERIMENTAL
+     ================================================================ */
+  subgraph cluster_exp {
+    label=<<B>16. SMALL MOLECULES AND GENE THERAPY — the same targets reached by different routes</B>>;
+    style="filled,rounded"; fillcolor="#fdf3f7"; color="#ad1457"; fontsize=12;
+
+    STP   [label="STIRIPENTOL\nrepurposed antiepileptic; LDH5 inhibitor\nORAL SMALL MOLECULE → reaches\nLIVER *AND* KIDNEY\n(evidence conflicting)", fillcolor="#f8bbd0", penwidth=2.0];
+    STP_ADV [label="a small molecule can silence RENAL\nLDHA that an siRNA cannot —\nthe distribution argument run in reverse", fillcolor="#eceff1", penwidth=2.0];
+    GO_INHIB [label="small-molecule GO/HAO1 inhibitors\n(e.g. salicylate analogues,\nCCPST-class compounds) — preclinical", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+    AAV_AGXT [label="AAV8-AGXT liver gene addition\n(preclinical / early clinical)\nrestores the MISSING enzyme rather\nthan reducing substrate", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+    CRISPR_HAO1 [label="CRISPR/base-editing HAO1 knockout\n— a permanent, single-administration\nversion of lumasiran", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+    LNP_MRNA [label="LNP-mRNA AGT replacement", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+    OXDC_ENZ [label="oral/crystallised oxalate\ndecarboxylase (OxDC) enzyme therapy\n— degrades LUMINAL oxalate only", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+    CHAPERONE_SM [label="pharmacological chaperones\n(dequalinium-class) for AGT folding —\nB6-independent rescue", fillcolor="#fce4ec", style="filled,rounded,dashed"];
+    COMBO_LOGIC [label="COMBINATION LOGIC\nLayer A (production) × Layer B (RSS)\nis multiplicative on stone risk;\nLayer A × Layer C is additive on balance", fillcolor="#eceff1", penwidth=2.0];
+
+    STP -> LDHA_LIV [style=dashed, color="#c62828", penwidth=1.8];
+    STP -> LDHA_KID [style=dashed, color="#c62828", penwidth=1.8];
+    STP -> STP_ADV [style=dashed, color="#78909c"];
+    GO_INHIB -> GO_HAO1 [style=dashed, color="#c62828"];
+    AAV_AGXT -> AGT_HOLO [color="#1565c0", penwidth=1.6];
+    LNP_MRNA -> AGT_HOLO [color="#1565c0"];
+    CRISPR_HAO1 -> HAO1_MRNA [style=dashed, color="#c62828"];
+    CHAPERONE_SM -> AGT_APO [style=dashed, color="#c62828"];
+    OXDC_ENZ -> GUT_LUMEN [style=dashed, color="#c62828"];
+  }
+
+  /* ================================================================
+     CLUSTER 17 — SUPPORTIVE / CRYSTALLISATION-DIRECTED THERAPY
+     ================================================================ */
+  subgraph cluster_supp {
+    label=<<B>17. LAYER B THERAPY — changes no flux, halves the risk</B>>;
+    style="filled,rounded"; fillcolor="#fdf3f7"; color="#ad1457"; fontsize=12;
+
+    HYPERHYD [label="HYPERHYDRATION\n2-3 L/m²/day, including OVERNIGHT\n(gastrostomy in infants)\nmass balance UNCHANGED, RSS halved", fillcolor="#f8bbd0", penwidth=2.2];
+    KCIT    [label="POTASSIUM CITRATE\n0.10-0.15 g/kg/day\ncomplexes Ca2+, inhibits growth,\ncorrects the acidosis of CKD", fillcolor="#f8bbd0", penwidth=2.0];
+    MG_SUPP [label="magnesium supplementation\n(complexes oxalate)", fillcolor="#fce4ec"];
+    NEUT_PHOS [label="neutral orthophosphate\n(inhibitor; largely historical)", fillcolor="#fce4ec"];
+    THIAZ   [label="thiazide (only if hypercalciuric)", fillcolor="#fce4ec"];
+    DIET_ADV [label="dietary advice: avoid oxalate-rich foods\nand high-dose vitamin C;\nDO NOT restrict calcium;\nmoderate animal protein", fillcolor="#fce4ec"];
+    AVOID_ASC [label="avoid ascorbate megadose\n(a removable source term)", fillcolor="#fce4ec"];
+    LAYER_B_LIMIT [label="LAYER B PROTECTS THE KIDNEY BUT\nNEVER PREVENTS SYSTEMIC OXALOSIS —\nthe balance is still unclosed\n★ THE LIMIT OF SUPPORTIVE CARE", fillcolor="#ffe0b2", penwidth=2.4];
+
+    HYPERHYD -> U_VOL [color="#1565c0", penwidth=2.2];
+    KCIT -> U_CIT [color="#1565c0", penwidth=2.0];
+    MG_SUPP -> U_MG [color="#1565c0"];
+    NEUT_PHOS -> OPN_UMOD [color="#1565c0"];
+    THIAZ -> U_CA [style=dashed, color="#c62828"];
+    DIET_ADV -> DIET_OXALATE [style=dashed, color="#c62828"];
+    AVOID_ASC -> ASCORBATE [style=dashed, color="#c62828"];
+    HYPERHYD -> LAYER_B_LIMIT [style=dashed, color="#78909c"];
+    KCIT -> LAYER_B_LIMIT [style=dashed, color="#78909c"];
+  }
+
+  /* ================================================================
+     CLUSTER 18 — DIALYSIS KINETICS
+     ================================================================ */
+  subgraph cluster_dial {
+    label=<<B>18. DIALYSIS — Layer C, and an arithmetic demonstration of its insufficiency</B>>;
+    style="filled,rounded"; fillcolor="#f5faff"; color="#1565c0"; fontsize=12;
+
+    HD    [label="HAEMODIALYSIS\noxalate is small (90 Da) and\nfreely dialysable — high extraction", fillcolor="#bbdefb", penwidth=2.0];
+    HDF   [label="haemodiafiltration / high-flux,\nhigh-blood-flow, large surface area", fillcolor="#e3f2fd"];
+    PD    [label="peritoneal dialysis\nLOWER oxalate clearance per day\nthan intensive HD", fillcolor="#e3f2fd"];
+    DAILY_HD [label="DAILY / nocturnal extended HD\n(6-7 sessions per week) —\nthe only regimen that approaches balance", fillcolor="#bbdefb", penwidth=2.0];
+    REBOUND [label="POST-DIALYSIS REBOUND\nPox refills from tissue within hours;\ntime-averaged Pox ≫ post-HD Pox\n★ WHY A GOOD POST-DIALYSIS NUMBER\nIS A MISLEADING NUMBER", fillcolor="#ffe0b2", penwidth=2.2];
+    DIAL_ARITH [label="THE ARITHMETIC\nproduction in severe PH1 ≈ 4-7 mmol/day\n≈ 30-50 mmol/week;\nconventional 3×4 h HD removes only\na fraction of that\n→ CUMULATIVE POSITIVE BALANCE\n★ DIALYSIS CANNOT BE THE ANSWER ALONE", fillcolor="#ffcdd2", penwidth=2.4];
+    DIAL_PLUS_A [label="Layer A + Layer C:\ncutting production makes an\notherwise-insufficient dialysis\nprescription sufficient", fillcolor="#eceff1", penwidth=2.0];
+
+    HD -> HDF [color="#1565c0"]; HD -> DAILY_HD [color="#1565c0"];
+    HD -> REBOUND [color=black];
+    HD -> DIAL_ARITH [style=dashed, color="#78909c"];
+    PD -> DIAL_ARITH [style=dashed, color="#78909c"];
+    DIAL_ARITH -> DIAL_PLUS_A [color="#1565c0"];
+    HD -> OX_PL [style=dashed, color="#c62828", label="removes"];
+    OX_BONE -> REBOUND [color=black, label="refills"];
+  }
+
+  /* ================================================================
+     CLUSTER 19 — TRANSPLANTATION
+     ================================================================ */
+  subgraph cluster_tx {
+    label=<<B>19. TRANSPLANTATION — replace the factory, not just the drain</B>>;
+    style="filled,rounded"; fillcolor="#f5faff"; color="#1565c0"; fontsize=12;
+
+    KTX_ALONE [label="ISOLATED KIDNEY TRANSPLANT\nhistorically FAILS in PH1: the liver keeps\nproducing, and the mobilising bone burden\nfloods the new graft", fillcolor="#ffcdd2", penwidth=2.0];
+    CLKT   [label="COMBINED LIVER-KIDNEY TRANSPLANT\nreplaces the SOURCE — the definitive\nanatomical answer to a mass-balance problem", fillcolor="#bbdefb", penwidth=2.2];
+    SEQ_LKT [label="sequential liver-then-kidney", fillcolor="#e3f2fd"];
+    PRE_LTX [label="pre-emptive isolated LIVER transplant\n(before ESKD) — trades a functioning\nkidney's future for a liver operation now", fillcolor="#e3f2fd"];
+    GRAFT_OX [label="EARLY GRAFT OXALATE NEPHROPATHY\nintensive peri-operative HD + high urine\noutput are mandatory while the\ntissue burden unloads", fillcolor="#ffebee", penwidth=2.0];
+    UNLOAD [label="post-transplant oxalate UNLOADING\nUox stays elevated for MONTHS-YEARS\nfrom the BONE reservoir, with a\nNORMAL liver in place\n★ A RESERVOIR EFFECT, NOT A RELAPSE", fillcolor="#ffe0b2", penwidth=2.4];
+    RNAI_SHIFT [label="★ THE PARADIGM SHIFT THIS MAP PREDICTS\nif a drug closes the mass balance,\nISOLATED KIDNEY TRANSPLANT becomes\nrational and the liver can be spared", fillcolor="#c8e6c9", penwidth=2.4];
+    IMMUNO [label="immunosuppression: CNI nephrotoxicity\nadds a second injury to a kidney\nalready handling a crystal load", fillcolor="#ffebee"];
+
+    KTX_ALONE -> GRAFT_OX [color=black, penwidth=1.8];
+    OX_BONE -> UNLOAD [color=black, penwidth=1.8];
+    UNLOAD -> GRAFT_OX [color="#1565c0", penwidth=1.8];
+    CLKT -> OX_SRC_HEP [style=dashed, color="#c62828", penwidth=1.8, label="removes the factory"];
+    SEQ_LKT -> CLKT [style=dashed, color="#78909c"];
+    PRE_LTX -> OX_SRC_HEP [style=dashed, color="#c62828"];
+    LUM -> RNAI_SHIFT [color="#1565c0", style=dashed];
+    RNAI_SHIFT -> KTX_ALONE [color="#1565c0", style=dashed, label="makes viable"];
+    IMMUNO -> NEPHRON_LOSS [color="#1565c0", style=dashed];
+  }
+
+  /* ================================================================
+     CLUSTER 20 — CLINICAL ENDPOINTS
+     ================================================================ */
+  subgraph cluster_end {
+    label=<<B>20. CLINICAL ENDPOINTS</B>>;
+    style="filled,rounded"; fillcolor="#faf5fc"; color="#6a1b9a"; fontsize=12;
+
+    E_STONE  [label="symptomatic stone events / year", fillcolor="#f3e5f5"];
+    E_PROC   [label="ureteroscopy, SWL, PCNL burden\n(and SWL is relatively contraindicated\nin dense PH stones)", fillcolor="#f3e5f5"];
+    E_NC     [label="nephrocalcinosis grade on ultrasound", fillcolor="#f3e5f5"];
+    E_EGFR   [label="eGFR slope (mL/min/1.73m²/year)", fillcolor="#f3e5f5", penwidth=2.0];
+    E_ESKD   [label="ESKD / dialysis initiation\n(~20-50% of PH1 by age 25)", fillcolor="#f3e5f5", penwidth=2.2];
+    E_OXALOSIS [label="clinically apparent SYSTEMIC OXALOSIS", fillcolor="#f3e5f5", penwidth=2.0];
+    E_GROWTH [label="growth velocity / final height", fillcolor="#f3e5f5"];
+    E_ANEMIA [label="EPO-resistant anaemia", fillcolor="#f3e5f5"];
+    E_QOL    [label="pain, treatment burden (overnight\nfluids, dialysis), quality of life", fillcolor="#f3e5f5"];
+    E_MORT   [label="mortality (cardiac oxalosis, sepsis)", fillcolor="#f3e5f5"];
+    E_DELAY  [label="DIAGNOSTIC DELAY\nmedian years from first stone to\ndiagnosis; a modifiable determinant\nof every endpoint above", fillcolor="#eceff1", penwidth=2.0];
+
+    STONE -> E_STONE [color=black]; E_STONE -> E_PROC [color=black];
+    NC -> E_NC [color=black];
+    NEPHRON_LOSS -> E_EGFR [color=black, penwidth=2.0];
+    E_EGFR -> E_ESKD [color=black, penwidth=2.0];
+    OX_SOFT -> E_OXALOSIS [color=black, penwidth=1.8];
+    GROWTH_FAIL -> E_GROWTH [color=black];
+    MARROW_OX -> E_ANEMIA [color=black];
+    MYOCARD -> E_MORT [color=black];
+    E_DELAY -> E_ESKD [color="#1565c0", style=dashed];
+  }
+
+  /* ================================================================
+     CLUSTER 21 — THE MEASUREMENT LAYER
+     ================================================================ */
+  subgraph cluster_meas {
+    label=<<B>21. THE MEASUREMENT LAYER — the biomarker that inverts, and the assays that lie</B>>;
+    style="filled,rounded"; fillcolor="#f0fafc"; color="#00838f"; fontsize=12; penwidth=2.2;
+
+    M_UOX [label="24-h Uox (mmol/1.73m²/day)\nVALID while eGFR is preserved\n= production, essentially", fillcolor="#b2ebf2", penwidth=2.0];
+    M_UOXCR [label="Uox : creatinine ratio\n(the only option in infants;\nage-dependent reference range)", fillcolor="#e0f7fa"];
+    M_POX [label="PLASMA OXALATE (Pox)\nthe ONLY valid biomarker once\neGFR < ~30-45", fillcolor="#b2ebf2", penwidth=2.0];
+    M_INVERT [label="★ THE INVERSION\nUox = Cl_ox × Pox. As GFR falls, Uox\nFALLS while the disease ACCELERATES.\nThere is a GFR at which dUox/dt changes\nSIGN with production unchanged.\nA FALLING Uox IN ADVANCED PH IS NOT\nA THERAPEUTIC SUCCESS.", fillcolor="#ffe0b2", penwidth=2.6, color="#e65100"];
+    M_TRIALS [label="WHY ONE DRUG NEEDED TWO ENDPOINTS\nILLUMINATE-A (eGFR ≥30): 24-h Uox\nILLUMINATE-C (advanced CKD/dialysis): Pox\n— not a regulatory quirk but the\nconsequence of the inversion above", fillcolor="#e0f7fa", penwidth=2.2];
+    M_GLYCOLATE [label="plasma / urinary GLYCOLATE\nRISES on lumasiran (on-target),\nnormal or high at baseline in PH1", fillcolor="#e0f7fa"];
+    M_LGLYC [label="urinary L-GLYCERATE → PH2", fillcolor="#e0f7fa"];
+    M_DHG [label="urinary DHG / HOG → PH3", fillcolor="#e0f7fa"];
+    M_ASSAY1 [label="ASSAY TRAP 1 — EX VIVO OXALOGENESIS\nascorbate in the specimen converts to\noxalate after collection; samples must be\nACIDIFIED and processed promptly or Uox\nis spuriously high", fillcolor="#ffebee", penwidth=2.0];
+    M_ASSAY2 [label="ASSAY TRAP 2 — Pox needs immediate\nacidification and rapid separation;\nCaOx precipitates in the tube", fillcolor="#ffebee"];
+    M_ASSAY3 [label="ASSAY TRAP 3 — a single 24-h collection\nis noisy (day-to-day CV 20-30%);\ncompleteness must be verified by\ncreatinine excretion", fillcolor="#ffebee"];
+    M_GENETIC [label="GENETIC TESTING is now first-line;\nliver biopsy AGT assay reserved for\nunresolved cases", fillcolor="#e0f7fa"];
+    M_RSS_MEAS [label="RSS/AP(CaOx) computed from a full\nurine profile (EQUIL2/JESS) — a\nCALCULATED, not measured, biomarker", fillcolor="#e0f7fa"];
+    M_SURROGATE [label="SURROGATE VALIDITY QUESTION\nno completed trial has yet shown that\nlowering Uox changes eGFR SLOPE —\nthe model treats this as a PREDICTION\nto be falsified, not a fact", fillcolor="#eceff1", penwidth=2.2];
+
+    U_OX -> M_UOX [color=black];
+    M_UOX -> M_UOXCR [style=dashed, color="#78909c"];
+    OX_PL -> M_POX [color=black];
+    GFR -> M_INVERT [style=dashed, color="#e65100", penwidth=2.0];
+    M_UOX -> M_INVERT [style=dashed, color="#e65100", penwidth=2.0];
+    M_INVERT -> M_TRIALS [color="#00838f", penwidth=2.0];
+    GLYCOLATE_RISE -> M_GLYCOLATE [color=black];
+    LGLYCERATE -> M_LGLYC [color=black];
+    DHG -> M_DHG [color=black];
+    ASCORBATE -> M_ASSAY1 [style=dashed, color="#c62828"];
+    M_UOX -> M_ASSAY3 [style=dashed, color="#78909c"];
+    M_POX -> M_ASSAY2 [style=dashed, color="#78909c"];
+    RSS -> M_RSS_MEAS [color=black];
+    M_UOX -> M_SURROGATE [style=dashed, color="#78909c"];
+    E_EGFR -> M_SURROGATE [style=dashed, color="#78909c"];
+  }
+
+  /* ================================================================
+     CROSS-CLUSTER WIRING — the mass balance itself
+     ================================================================ */
+
+  /* genotype → residual activity → the enzymology */
+  ALL_G170R -> RESID_AGT [color="#1565c0"];
+  ALL_F152I -> RESID_AGT [color="#1565c0"];
+  ALL_I244T -> RESID_AGT [color="#1565c0"];
+  ALL_G82E  -> RESID_AGT [color="#1565c0"];
+  ALL_NULL  -> RESID_AGT [color="#1565c0"];
+  RESID_AGT -> AGT_HOLO [color="#1565c0", penwidth=2.2];
+  RESID_AGT -> PHENO_INF   [style=dashed, color="#78909c"];
+  RESID_AGT -> PHENO_CHILD [style=dashed, color="#78909c"];
+  RESID_AGT -> PHENO_ADULT [style=dashed, color="#78909c"];
+  RESID_AGT -> PENETR [style=dashed, color="#78909c"];
+  AGXT -> AGT_HOLO [color="#1565c0"];
+  AGXT -> AGT_MISTGT [style=dashed, color="#78909c"];
+  GRHPR -> GRHPR_ENZ [color="#1565c0"];
+  HOGA1 -> HOGA1_ENZ [color="#1565c0"];
+  SLC26A1 -> SEC_OX [style=dashed, color="#78909c"];
+  SLC26A1 -> ENT_SECR [style=dashed, color="#78909c"];
+
+  /* substrate supply → peroxisome / mitochondrion */
+  DIET_GLYCOLATE -> GLYCOLATE_P [color=black];
+  GLYCOLATE_C -> GLYCOLATE_P [dir=both, color=black];
+  DIET_GLYCINE -> DAO [color=black];
+  HYPRO_FLUX -> HYP_OX [color=black];
+  FRUCTOSE -> HPYR [color=black];
+  ASCORBATE -> OX_HEP [color=black, label="non-enzymatic"];
+
+  /* peroxisome → cytosol */
+  PEROX_LEAK -> GLYOX_C [color=black, penwidth=2.0, label="ESCAPE\n(the pathogenic flux)"];
+  HYP_TRANS -> GLYOX_C [color=black];
+  AGT_MISTGT -> GLYOX_M [style=dashed, color="#78909c", label="wrong compartment"];
+
+  /* the terminal metabolite enters the body */
+  OX_SRC_HEP -> OX_PL [color=black, penwidth=2.4, label="PRODUCTION"];
+  OX_SRC_EXTRAHEP -> OX_PL [color=black, penwidth=2.0];
+  LDHA_KID -> OX_SRC_EXTRAHEP [color=black];
+  GRHPR_ENZ -> OX_SRC_EXTRAHEP [style=dashed, color="#78909c", label="PH2: extrahepatic\nsource"];
+  ABS_PARA -> OX_PL [color=black, label="absorption"];
+  ABS_TRANS -> OX_PL [color=black];
+
+  /* the three sinks */
+  OX_PL -> FILT_OX [color=black, penwidth=2.0];
+  OX_PL -> BONE_IN [color=black, penwidth=1.8];
+  OX_PL -> OX_SOFT [color=black, penwidth=1.8];
+  OX_PL -> OX_KID_TIS [color=black, penwidth=1.8];
+  BONE_OUT -> OX_PL [color=black, penwidth=1.8];
+  DEPO_ON -> OX_SOFT [color="#1565c0", penwidth=2.0];
+  DEPO_ON -> BONE_IN [color="#1565c0"];
+  DEPO_ON -> OX_KID_TIS [color="#1565c0", penwidth=2.0];
+
+  /* urine formation and the ratio */
+  U_OX -> RSS [color="#1565c0", penwidth=2.2];
+  TUB_OX_CONC -> RSS [color="#1565c0", penwidth=2.0];
+  U_VOL -> U_FLOW [color="#1565c0"];
+
+  /* crystals destroy the sink — the loop closes */
+  OX_KID_TIS -> NEPHRON_LOSS [color="#c62828", penwidth=2.0];
+  NC -> NEPHRON_LOSS [color="#c62828", penwidth=2.0];
+  OBSTRUCT -> NEPHRON_LOSS [color="#c62828"];
+  NEPHRON_LOSS -> NEPHRONS [style=dashed, color="#c62828", penwidth=2.2, label="depletes"];
+  GFR -> L2 [style=dashed, color="#78909c"];
+  OX_PL -> L3 [style=dashed, color="#78909c"];
+  NEPHRON_LOSS -> L1 [style=dashed, color="#78909c"];
+
+  /* CKD consequences that feed back on the chemistry */
+  GFR -> ACIDOSIS [style=dashed, color="#78909c"];
+  ACIDOSIS [label="metabolic acidosis of CKD\n→ hypocitraturia + bone buffering\n(loses an inhibitor AND mobilises\nthe reservoir)", fillcolor="#ffebee"];
+  ACIDOSIS -> U_CIT [style=dashed, color="#c62828", penwidth=1.6];
+  ACIDOSIS -> OSTEOCLAST [color="#1565c0"];
+  GFR -> CKD_SEQ [style=dashed, color="#78909c"];
+  CKD_SEQ [label="usual CKD sequelae\n(anaemia, CKD-MBD, hypertension,\ncardiovascular risk) superimposed\non the oxalosis", fillcolor="#ffebee"];
+
+  /* endpoints from the measurement layer */
+  M_POX -> E_OXALOSIS [style=dashed, color="#78909c", label="predicts"];
+  M_INVERT -> E_EGFR [style=dashed, color="#e65100"];
+
+  /* ---------- THE BALANCE SHEET, stated as a node ---------------- */
+  BALANCE [label=<<B>THE MASS BALANCE — the model's single organising identity</B><BR/>
+d(TOTAL BODY OXALATE)/dt = PRODUCTION − RENAL EXCRETION − ENTERIC ELIMINATION − DIALYTIC REMOVAL<BR/>
+<BR/>
+PRODUCTION is set by genotype and reduced only by LAYER A<BR/>
+RENAL EXCRETION = Cl_ox × Pox, and Cl_ox is itself destroyed by the oxalate<BR/>
+ENTERIC ELIMINATION is small in PH and decisive in enteric hyperoxaluria<BR/>
+DIALYTIC REMOVAL is, by arithmetic, insufficient alone<BR/>
+<BR/>
+<I>Everything else on this map — stones, nephrocalcinosis, ESKD, retinopathy, cardiomyopathy,<BR/>
+bone disease, anaemia, the biomarker inversion, graft loss — is where the residual went.</I>>,
+           shape=note, fillcolor="#fffde7", color="#f57f17", penwidth=2.6, fontsize=11];
+
+  TOT_BURDEN -> BALANCE [style=dashed, color="#f57f17", penwidth=2.0];
+  CL_OX -> BALANCE [style=dashed, color="#f57f17", penwidth=2.0];
+  DIAL_ARITH -> BALANCE [style=dashed, color="#f57f17"];
+  ENT_SECR -> BALANCE [style=dashed, color="#f57f17"];
+  OX_SRC_HEP -> BALANCE [style=dashed, color="#f57f17", penwidth=2.0];
+
+  /* plasma glycolate — the lumasiran target-engagement marker */
+  GLYCOLATE_PL_X [label="plasma GLYCOLATE\n(freely filtered, benign;\nrises on lumasiran)", fillcolor="#fff8e1"];
+  GLYCOLATE_PL_X -> M_GLYCOLATE [color=black];
+  GLYCOLATE_C -> GLYCOLATE_PL_X [color=black];
+  GFR -> GLYCOLATE_PL_X [style=dashed, color="#78909c", label="cleared by"];
+}
