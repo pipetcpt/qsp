@@ -1,0 +1,845 @@
+/* =====================================================================
+   Charcot-Marie-Tooth disease type 1A (CMT1A) — QSP mechanistic map
+   ---------------------------------------------------------------------
+   Central premise of this map:
+
+     CMT1A is not a loss-of-function disease and not a toxic-species
+     disease. It is a GENE DOSAGE disease: a 1.4-Mb tandem duplication
+     at 17p11.2 delivers three copies of PMP22 instead of two, and
+     everything downstream is the consequence of running one structural
+     myelin protein at roughly 1.4-1.6x its correct stoichiometry.
+
+     That single fact forces an unusual architecture on the model, and
+     four structural commitments follow from it:
+
+     (1) THE DOSE-RESPONSE IS U-SHAPED AND THE TARGET IS INTERIOR.
+         Human genetics supplies both arms of the curve at integer
+         points: 1 copy = HNPP (tomaculous neuropathy), 2 = normal,
+         3 = CMT1A, 4 = severe infantile CMT1A/DSS. A PMP22-lowering
+         therapy therefore has a therapeutic WINDOW with a far wall,
+         and "more knockdown" is not "more benefit" - past g = 1.0 the
+         model must convert CMT1A into HNPP. Optimal knockdown of the
+         3-copy state is 33%, not 90%. This is drawn as cluster 20.
+
+     (2) THE MOLECULAR LESION IS MYELIN BUT THE CLINICAL LESION IS
+         AXON, AND THEY ARE SEPARATED BY DECADES. Conduction velocity
+         is set by internodal length and myelin thickness during
+         developmental myelination, reaches its low plateau by age
+         2-5 y, and then does not change for the rest of life. Every
+         gram of disability instead comes from length-dependent axonal
+         loss running underneath it. Hence a trial powered on NCV is
+         measuring a variable whose time-derivative is structurally
+         zero (cluster 24).
+
+     (3) LENGTH-DEPENDENCE IS GEOMETRY, NOT BIOLOGY. Nothing is
+         different about the biology of the axon going to the foot;
+         it is just 1 m long instead of 0.35 m. Delivered trophic and
+         metabolic support decays along the axon, demand at the
+         terminal does not, and the resulting supply/demand MARGIN is
+         what orders foot before hand before proximal. The same
+         equation, with transport velocity as its input, is what makes
+         vincristine catastrophic here and merely unpleasant in a
+         normal nerve (cluster 22).
+
+     (4) THE NERVE HAS A LARGE, SILENT, ONE-WAY RESERVE. Collateral
+         sprouting lets a surviving motor unit adopt the orphaned
+         fibres of up to ~5-8 lost ones, so measured strength stays
+         normal while motor unit number falls by 80%. The disease is
+         therefore quiet for a decade and then appears to accelerate;
+         "onset" is the exhaustion of a reserve, not the start of a
+         process. This is why an adult trial is operating on what is
+         left after the reserve is gone (cluster 11).
+
+   Two things on this map were drawn as INTERIOR OPTIMA rather than as
+   directions of benefit: PMP22 dosage (cluster 20) and Schwann-cell
+   c-Jun (cluster 4).
+
+   ONE OF THEM WAS WRONG. Diagnostic D14 sweeps the c-Jun gain over a
+   decade and finds the response monotone: lowering c-Jun is better at
+   every point, because the metabolic (lactate/MCT1) support that the
+   axon loses when a Schwann cell dedifferentiates always outweighs the
+   trophic support it gains from the repair phenotype. Cluster 4 is
+   labelled with its own refutation rather than redrawn. The PMP22
+   dosage optimum (cluster 20) survives, and its two walls are at
+   integer gene-copy numbers.
+
+   Rendering:
+     dot -Tsvg cmt1a_qsp_model.dot -o cmt1a_qsp_model.svg
+     dot -Tpng -Gdpi=150 cmt1a_qsp_model.dot -o cmt1a_qsp_model.png
+   ===================================================================== */
+
+digraph CMT1A_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 30;
+  label = "Charcot-Marie-Tooth disease type 1A (CMT1A) — Quantitative Systems Pharmacology Map\nPMP22 gene dosage · Schwann-cell proteostasis · length-dependent axonal supply/demand · motor-unit reserve · 24 modules";
+  bgcolor = "white";
+  nodesep = 0.22;
+  ranksep = 0.55;
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica", fontsize = 11,
+        color = "#5a5a5a", fillcolor = "#f7f7f7", penwidth = 1.0, margin = "0.10,0.055"];
+  edge [fontname = "Helvetica", fontsize = 9, color = "#606060", arrowsize = 0.65, penwidth = 1.0];
+
+  /* ---------- shared visual grammar ----------
+     blue       = genetics / gene dosage
+     purple     = transcriptional control of PMP22
+     teal       = proteostasis, ER stress, autophagy
+     orange     = Schwann cell state and myelin
+     yellow     = node of Ranvier / conduction
+     brown      = axonal transport and metabolic support
+     grey-blue  = motor unit, NMJ, reserve
+     green      = muscle, skeleton, sensory physiology
+     red        = clinical endpoints and biomarkers
+     pink       = drugs / interventions
+     dark red   = adverse effects, contraindications, iatrogenic harm
+  */
+
+  /* ================================================================
+     1. GENETIC LESION AND COPY NUMBER
+     ================================================================ */
+  subgraph cluster_gen {
+    label = "1. The genetic lesion: PMP22 copy number at 17p11.2 (the whole aetiology)";
+    style = "filled"; fillcolor = "#eef4fb"; color = "#3d6fa5"; fontsize = 14; fontcolor = "#24507d";
+    node [fillcolor = "#dbe8f6", color = "#3d6fa5"];
+
+    REP_lo     [label = "CMT1A-REP proximal repeat\n~24 kb, 98.7% identical"];
+    REP_hi     [label = "CMT1A-REP distal repeat\nrecombination hotspot"];
+    NAHR       [label = "Non-allelic homologous recombination\nin male meiosis (~90% paternal origin)"];
+    DUP        [label = "1.4-Mb TANDEM DUPLICATION 17p11.2\nde novo in ~10%, prevalence ~1/5000",
+                shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    DEL        [label = "Reciprocal 1.4-Mb DELETION\n= HNPP", fillcolor = "#c6d9f1"];
+    PMP22gene  [label = "PMP22 (peripheral myelin protein 22)\n5 exons, 160 aa, 4 TM domains"];
+
+    CN1        [label = "COPY NUMBER 1\nHNPP: tomacula, pressure palsies", fillcolor = "#c6d9f1"];
+    CN2        [label = "COPY NUMBER 2\nnormal myelin", fillcolor = "#c6d9f1"];
+    CN3        [label = "COPY NUMBER 3\nCMT1A", shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    CN4        [label = "COPY NUMBER 4 (homozygous dup)\nsevere infantile / DSS phenotype", fillcolor = "#c6d9f1"];
+
+    PMP22pt    [label = "PMP22 POINT mutation (Trembler-J)\n= CMT1E: different disease, misfolded\ntoxic species, not a dosage problem", fillcolor = "#cfe0f4"];
+    MPZ        [label = "MPZ / P0 mutation = CMT1B\n(structural, not dosage)", fillcolor = "#cfe0f4"];
+    GJB1       [label = "GJB1 / Cx32 = CMTX1\n(gap-junction, X-linked)", fillcolor = "#cfe0f4"];
+    MFN2       [label = "MFN2 = CMT2A\n(axonal, mitochondrial fusion)", fillcolor = "#cfe0f4"];
+
+    MODLOCI    [label = "Modifier loci / genetic background\n(e.g. SIPA1L2, PMP22 3'UTR variants)\nsame duplication, CMTNS 2 to 30"];
+    HEIGHT     [label = "Stature = axon LENGTH\nheight is a dose variable, not a covariate"];
+
+    REP_lo -> NAHR; REP_hi -> NAHR;
+    NAHR -> DUP; NAHR -> DEL [style = dotted, label = "reciprocal"];
+    DUP -> PMP22gene [label = "3 copies"];
+    DEL -> CN1; PMP22gene -> CN3;
+    CN2 -> PMP22gene [style = dotted];
+    DUP -> CN4 [style = dotted, label = "dup/dup"];
+    MODLOCI -> CN3 [style = dotted];
+    HEIGHT -> CN3 [style = dotted, label = "modifies expressivity"];
+  }
+
+  /* ================================================================
+     2. TRANSCRIPTIONAL CONTROL OF PMP22 — THE DRUGGABLE LAYER
+     ================================================================ */
+  subgraph cluster_txn {
+    label = "2. Transcriptional and post-transcriptional control of PMP22 (where every drug acts)";
+    style = "filled"; fillcolor = "#f4eefb"; color = "#7a4fa5"; fontsize = 14; fontcolor = "#5b2f86";
+    node [fillcolor = "#e8dbf6", color = "#7a4fa5"];
+
+    P1prom     [label = "P1 promoter (exon 1A)\nSchwann-cell specific, myelin-linked"];
+    P2prom     [label = "P2 promoter (exon 1B)\nnon-myelinating / ubiquitous"];
+    EGR2tx     [label = "EGR2 / Krox20\nmaster myelination TF"];
+    SOX10      [label = "SOX10\npermissive pioneer factor"];
+    YY1        [label = "YY1, TEAD1/YAP-TAZ\nenhancer occupancy at P1"];
+    cAMP       [label = "cAMP / PKA / CREB\npositive drive on PMP22 transcription"];
+    PRnuc      [label = "Progesterone receptor\ntranscriptional activator of PMP22"];
+    miR29a     [label = "miR-29a\n3'UTR repression of PMP22"];
+    PMP22mRNA  [label = "PMP22 mRNA\n~1.5x normal in CMT1A nerve/skin",
+                shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    Dosage_g   [label = "FUNCTIONAL DOSAGE g\n= PMP22 protein / normal\nthe single controlled variable",
+                shape = box, style = "filled,bold", fillcolor = "#c9a9e6"];
+    SkinPMP22  [label = "Skin-biopsy PMP22 mRNA\naccessible target-engagement readout"];
+
+    P1prom -> PMP22mRNA; P2prom -> PMP22mRNA [style = dotted];
+    EGR2tx -> P1prom; SOX10 -> P1prom; YY1 -> P1prom;
+    cAMP -> P1prom [label = "+"];
+    PRnuc -> P1prom [label = "+"];
+    miR29a -> PMP22mRNA [arrowhead = tee, label = "-"];
+    PMP22mRNA -> Dosage_g;
+    PMP22mRNA -> SkinPMP22 [style = dotted];
+  }
+
+  /* ================================================================
+     3. PROTEOSTASIS: WHAT THE EXTRA 50% ACTUALLY DOES
+     ================================================================ */
+  subgraph cluster_prot {
+    label = "3. Schwann-cell proteostasis: the fate of the supernumerary PMP22";
+    style = "filled"; fillcolor = "#e8f6f4"; color = "#2f8b80"; fontsize = 14; fontcolor = "#1d6259";
+    node [fillcolor = "#cdeae5", color = "#2f8b80"];
+
+    Translate  [label = "Translation at rough ER\nPMP22 is inefficiently folded even normally\n(~80% degraded in wild-type)"];
+    Fold_ok    [label = "Correctly folded PMP22\nER exit competent"];
+    Fold_bad   [label = "Misfolded / unassembled PMP22\nfraction rises with dosage"];
+    Calnexin   [label = "Calnexin sequestration\nchaperone occupancy diverted"];
+    ERAD       [label = "ERAD / retrotranslocation\nto cytosolic proteasome"];
+    Proteas    [label = "26S proteasome\nfinite capacity"];
+    Aggreg     [label = "PMP22 AGGREGATES\nperinuclear aggresome + late endosome",
+                shape = box, style = "filled,bold", fillcolor = "#a9dbd3"];
+    LateEndo   [label = "Late endosome / lysosome loading\nmyelin protein mistrafficked away from membrane"];
+    Autoph     [label = "Autophagic flux (LC3-II, p62)\nimpaired as aggregate load rises"];
+    PERK       [label = "PERK - eIF2a-P - ATF4\nintegrated stress response"];
+    CHOP       [label = "CHOP / DDIT3\npro-apoptotic arm (mild in CMT1A)"];
+    XBP1       [label = "IRE1 / XBP1s\nadaptive UPR branch"];
+    TransBlock [label = "Global translation attenuation\nmyelin protein synthesis falls with it"];
+    Chaperone  [label = "HSP70 / HSP90 / small HSPs\nfolding capacity"];
+
+    Translate -> Fold_ok; Translate -> Fold_bad;
+    Fold_bad -> Calnexin; Fold_bad -> ERAD -> Proteas;
+    Proteas -> Aggreg [style = dotted, label = "when saturated"];
+    Fold_bad -> Aggreg; Aggreg -> LateEndo;
+    Aggreg -> Autoph [arrowhead = tee, label = "clogs"];
+    Autoph -> Aggreg [arrowhead = tee, label = "clears"];
+    Fold_bad -> PERK; PERK -> CHOP; PERK -> TransBlock; Fold_bad -> XBP1;
+    Chaperone -> Fold_ok [label = "+"];
+    Calnexin -> Chaperone [arrowhead = tee, label = "titrates away"];
+  }
+
+  /* ================================================================
+     4. SCHWANN CELL STATE — AN INTERIOR OPTIMUM
+     ================================================================ */
+  subgraph cluster_sc {
+    label = "4. Schwann-cell state: c-Jun (drawn as interior optimum #2 — REFUTED by diagnostic D14, see below)";
+    style = "filled"; fillcolor = "#fdf0e6"; color = "#c1732a"; fontsize = 14; fontcolor = "#94551c";
+    node [fillcolor = "#f9ddc2", color = "#c1732a"];
+
+    SCmy       [label = "Myelinating Schwann cell\n1:1 with axon, EGR2-high"];
+    SCrep      [label = "Repair (Bungner) Schwann cell\nc-Jun-high, EGR2-low",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+    CJUN       [label = "c-JUN\ndedifferentiation master switch",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+    EGR2sc     [label = "EGR2 / Krox20\npro-myelination"];
+    NOTCH      [label = "NOTCH / HEY2\ndedifferentiation permissive"];
+    MEKERK     [label = "MEK / ERK1-2\ndose-dependent: low = myelinate,\nhigh = demyelinate"];
+    NRG1III    [label = "Axonal NRG1 type III\nsets myelin thickness (g-ratio)"];
+    ErbB       [label = "ErbB2 / ErbB3 receptor\non Schwann cell"];
+    SCprol     [label = "Schwann-cell proliferation\nsupernumerary cells"];
+    ONION      [label = "ONION BULB formation\nconcentric SC processes,\nnerve hypertrophy on ultrasound",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+    SCtrophic  [label = "Repair-SC trophic output\nGDNF, BDNF, NT-3, artemin\nSUPPORTS the axon\n--- REFUTED: D14 finds this arm is\nNEVER a net benefit. Lowering c-Jun\nis monotonically better because the\nlactate supply from MYELINATING cells\ndominates the trophic gain. There is\nno interior optimum here.", fillcolor = "#e8c9c9", color = "#a34a4a"];
+    SCmetab    [label = "Myelinating-SC metabolic output\nglycolysis - lactate - MCT1\nFUELS the axon"];
+    Demy       [label = "Segmental demyelination"];
+    Remy       [label = "Remyelination\nthinner sheath, SHORTER internodes"];
+    Cycle      [label = "Repeated de/remyelination cycling\nthe ratchet that shortens internodes",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+
+    CJUN -> SCrep; SCrep -> SCtrophic; SCrep -> SCprol -> ONION;
+    EGR2sc -> SCmy; SCmy -> SCmetab;
+    CJUN -> EGR2sc [arrowhead = tee]; EGR2sc -> CJUN [arrowhead = tee];
+    NOTCH -> CJUN; MEKERK -> CJUN [label = "high"];
+    NRG1III -> ErbB -> EGR2sc;
+    SCrep -> Demy; Demy -> Remy -> Cycle; Cycle -> Demy [style = dotted];
+    Cycle -> ONION;
+  }
+
+  /* ================================================================
+     5. MYELIN SHEATH GEOMETRY
+     ================================================================ */
+  subgraph cluster_myelin {
+    label = "5. Myelin sheath: thickness, internodal length and the developmental window";
+    style = "filled"; fillcolor = "#fdf0e6"; color = "#c1732a"; fontsize = 14; fontcolor = "#94551c";
+    node [fillcolor = "#f9e3cf", color = "#c1732a"];
+
+    PMP22mem   [label = "PMP22 in compact myelin\n2-5% of PNS myelin protein"];
+    P0prot     [label = "MPZ / P0\n~50% of PNS myelin protein"];
+    MBP        [label = "MBP, PMP2, connexin-32\nintraperiod / major dense line"];
+    Stoich     [label = "PMP22 : P0 STOICHIOMETRY\nthe quantity that must be right",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+    Lamellae   [label = "Lamella number / myelin thickness\ng-ratio 0.6-0.7 normal, >0.75 in CMT1A"];
+    IntLen     [label = "INTERNODAL LENGTH\nset in childhood by SC number along axon;\nratchets DOWN, never up",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+    DevWin     [label = "Developmental myelination window\nbirth to ~5 y: internodes and NCV fixed here",
+                shape = box, style = "filled,bold", fillcolor = "#f2c496"];
+    Tomacula   [label = "TOMACULA (focal hypermyelination)\nthe LOW-dosage lesion (HNPP)", fillcolor = "#f6cfa6"];
+    Hypomy     [label = "Hypomyelination / amyelination\nthe HIGH-dosage lesion (CMT1A)", fillcolor = "#f6cfa6"];
+    MyelinDeb  [label = "Myelin debris / macrophage recruitment\nlow-grade endoneurial inflammation"];
+    Macro      [label = "Endoneurial macrophages\nCSF1-driven, amplify demyelination"];
+
+    PMP22mem -> Stoich; P0prot -> Stoich; MBP -> Stoich;
+    Stoich -> Lamellae; Stoich -> Hypomy [label = "g > 1"]; Stoich -> Tomacula [label = "g < 1"];
+    DevWin -> IntLen; DevWin -> Lamellae;
+    Hypomy -> MyelinDeb -> Macro; Macro -> Hypomy [style = dotted, label = "+"];
+  }
+
+  /* ================================================================
+     6. NODE OF RANVIER AND CONDUCTION
+     ================================================================ */
+  subgraph cluster_node {
+    label = "6. Node of Ranvier and conduction velocity (the variable that does not move)";
+    style = "filled"; fillcolor = "#fdf9e3"; color = "#b39b1e"; fontsize = 14; fontcolor = "#87740f";
+    node [fillcolor = "#f7f0c2", color = "#b39b1e"];
+
+    NaV16      [label = "Nodal NaV1.6 clustering\ngliomedin / NF186 / ankyrin-G"];
+    Caspr      [label = "Paranodal Caspr / contactin / NF155\nseptate-like junctions"];
+    Kv1        [label = "Juxtaparanodal Kv1.1 / Kv1.2\nexposed when paranode fails"];
+    NodeLen    [label = "Nodal / paranodal disorganisation\nwidened nodes, dispersed NaV"];
+    NCV        [label = "MOTOR NCV\n~20 m/s in CMT1A (normal >49)\nPLATEAUS BY AGE 5 AND STAYS THERE",
+                shape = box, style = "filled,bold", fillcolor = "#efe49a"];
+    TempDisp   [label = "Temporal dispersion of CMAP\nnon-uniform internodal delays"];
+    CondBlock  [label = "Conduction block / failure\nuniform in CMT1A, focal in HNPP"];
+    Fmt        [label = "F-wave latency, distal motor latency\nsame frozen kinetics as NCV"];
+    ActivDep   [label = "Activity-dependent conduction failure\nfatigue during sustained effort"];
+
+    Caspr -> NaV16; NodeLen -> NaV16 [arrowhead = tee];
+    Caspr -> Kv1 [arrowhead = tee, label = "excludes"];
+    NaV16 -> NCV; NodeLen -> NCV [arrowhead = tee];
+    NodeLen -> CondBlock; NCV -> TempDisp [style = dotted];
+    Kv1 -> ActivDep; NCV -> Fmt;
+  }
+
+  /* ================================================================
+     7. AXONAL TRANSPORT
+     ================================================================ */
+  subgraph cluster_transport {
+    label = "7. Axonal transport: the delivery system whose throughput sets the margin";
+    style = "filled"; fillcolor = "#f3ece5"; color = "#8a6244"; fontsize = 14; fontcolor = "#63452e";
+    node [fillcolor = "#e4d5c6", color = "#8a6244"];
+
+    MTtrack    [label = "Microtubule track\ndynamic instability, EB3 comets"];
+    TUBAC      [label = "alpha-TUBULIN ACETYLATION (K40)\nsets kinesin-1 run length and velocity",
+                shape = box, style = "filled,bold", fillcolor = "#d3bda6"];
+    HDAC6      [label = "HDAC6 (cytoplasmic deacetylase)\nlowers acetylation, slows transport"];
+    ATAT1      [label = "alpha-TAT1 acetyltransferase"];
+    KIF5       [label = "Kinesin-1 / KIF5A anterograde\nmitochondria, vesicles, cargo"];
+    DYNEIN     [label = "Cytoplasmic dynein retrograde\nsignalling endosomes to soma"];
+    MIRO       [label = "Miro / Milton (TRAK) adaptors\nCa2+-gated mitochondrial arrest"];
+    NFtrans    [label = "Slow axonal transport of neurofilaments\nsets axonal calibre"];
+    NFphos     [label = "NF phosphorylation state\nmyelin-dependent (MAG signal)"];
+    Calibre    [label = "AXONAL CALIBRE\nreduced in CMT1A - reduced NF spacing",
+                shape = box, style = "filled,bold", fillcolor = "#d3bda6"];
+    Vtrans     [label = "EFFECTIVE TRANSPORT VELOCITY v\nthe drug-sensitive parameter",
+                shape = box, style = "filled,bold", fillcolor = "#c6ab90"];
+
+    MTtrack -> KIF5; TUBAC -> KIF5 [label = "+"]; TUBAC -> DYNEIN [label = "+"];
+    HDAC6 -> TUBAC [arrowhead = tee]; ATAT1 -> TUBAC [label = "+"];
+    KIF5 -> Vtrans; DYNEIN -> Vtrans; MIRO -> KIF5 [arrowhead = tee, label = "Ca2+ arrest"];
+    NFphos -> NFtrans -> Calibre;
+  }
+
+  /* ================================================================
+     8. GLIA-AXON METABOLIC SUPPORT
+     ================================================================ */
+  subgraph cluster_metab {
+    label = "8. Schwann-cell to axon metabolic support: myelin as a feeding structure, not an insulator";
+    style = "filled"; fillcolor = "#f3ece5"; color = "#8a6244"; fontsize = 14; fontcolor = "#63452e";
+    node [fillcolor = "#e9ddd0", color = "#8a6244"];
+
+    SCglyc     [label = "Schwann-cell glycolysis\nGLUT1 uptake, LDHA"];
+    Lactate    [label = "Lactate / pyruvate shuttle\nSC MCT4 - periaxonal space - axon MCT1",
+                shape = box, style = "filled,bold", fillcolor = "#d3bda6"];
+    AxMito     [label = "Axonal mitochondria\ndensity, membrane potential, ATP output"];
+    ATPax      [label = "AXONAL ATP SUPPLY\nfuels NKA and transport",
+                shape = box, style = "filled,bold", fillcolor = "#d3bda6"];
+    NKA        [label = "Na+/K+-ATPase load\nrises when conduction is not saltatory"];
+    EnergyGap  [label = "ENERGY GAP\ndemyelinated axon costs more AND is fed less",
+                shape = box, style = "filled,bold", fillcolor = "#c6ab90"];
+    ROS        [label = "ROS / oxidative stress\nlipid peroxidation"];
+    CaOverload [label = "Axoplasmic Ca2+ overload\nreverse NCX under energy failure"];
+    mPTP       [label = "mPTP opening\npoint of no return for the segment"];
+
+    SCglyc -> Lactate -> AxMito -> ATPax;
+    NKA -> ATPax [arrowhead = tee, label = "consumes"];
+    ATPax -> EnergyGap [arrowhead = tee]; NKA -> EnergyGap;
+    EnergyGap -> CaOverload -> mPTP; EnergyGap -> ROS -> AxMito [arrowhead = tee];
+    CaOverload -> MIRO [label = "arrests transport"];
+  }
+
+  /* ================================================================
+     9. LENGTH-DEPENDENT SUPPLY / DEMAND — THE GEOMETRIC CORE
+     ================================================================ */
+  subgraph cluster_length {
+    label = "9. Length-dependence is GEOMETRY: the supply/demand margin along a 1-metre axon";
+    style = "filled"; fillcolor = "#f3ece5"; color = "#6b4a30"; fontsize = 14; fontcolor = "#4a3220";
+    node [fillcolor = "#dfcdb9", color = "#6b4a30"];
+
+    Soma       [label = "Motor neuron soma (lumbar / cervical)\nsingle synthetic source"];
+    Ltrans     [label = "TRANSIT TIME = L / v\nand cargo is consumed en route",
+                shape = box, style = "filled,bold", fillcolor = "#c6ab90"];
+    Supply     [label = "DELIVERED SUPPLY at terminal\nS(L) = S0 * exp(-L / (v * tau))",
+                shape = box, style = "filled,bold", fillcolor = "#c6ab90"];
+    Demand     [label = "TERMINAL DEMAND\nindependent of L (arbor size, firing rate)"];
+    Margin     [label = "MARGIN = Supply / Demand\nhealthy foot ~2.5, CMT1A foot ~1.1",
+                shape = box, style = "filled,bold", fillcolor = "#b99a7d"];
+    Lfoot      [label = "L = 1.00 m: intrinsic foot / EDB\nfirst to fail", fillcolor = "#d5c0aa"];
+    Lleg       [label = "L = 0.85 m: tibialis anterior, peroneal\nfoot-drop segment", fillcolor = "#d5c0aa"];
+    Lhand      [label = "L = 0.75 m: hand intrinsics (APB, ADM)\nsecond decade", fillcolor = "#d5c0aa"];
+    Lprox      [label = "L = 0.35 m: proximal leg / arm\nspared until very late", fillcolor = "#d5c0aa"];
+    DyingBack  [label = "DYING-BACK degeneration\nterminal retreats proximally"];
+    Sensory_L  [label = "Sensory axons: even longer\n(DRG to toe tip), fail first"];
+
+    Soma -> Ltrans -> Supply; Vtrans -> Ltrans [arrowhead = tee, label = "v raises supply"];
+    Lactate -> Supply [label = "local top-up"];
+    Supply -> Margin; Demand -> Margin [arrowhead = tee];
+    Margin -> Lfoot; Margin -> Lleg; Margin -> Lhand; Margin -> Lprox;
+    Lfoot -> DyingBack; Sensory_L -> DyingBack;
+  }
+
+  /* ================================================================
+     10. AXON DEGENERATION PROGRAM
+     ================================================================ */
+  subgraph cluster_degen {
+    label = "10. The execution program: how a below-margin axon segment is actually destroyed";
+    style = "filled"; fillcolor = "#f6e9e9"; color = "#a34a4a"; fontsize = 14; fontcolor = "#7c3434";
+    node [fillcolor = "#eccfcf", color = "#a34a4a"];
+
+    NMNAT2     [label = "NMNAT2 (labile, transport-dependent)\nhalf-life ~ 30-60 min"];
+    NMN_NAD    [label = "NMN / NAD+ ratio rises\nwhen NMNAT2 delivery fails"];
+    SARM1      [label = "SARM1 activation\nNAD+ hydrolase, the executioner",
+                shape = box, style = "filled,bold", fillcolor = "#e0b3b3"];
+    DLK        [label = "DLK / JNK stress signalling\nretrograde injury signal"];
+    Calpain    [label = "Calpain / cytoskeletal proteolysis"];
+    Fragment   [label = "Axon fragmentation\n(Wallerian-like, distal first)"];
+    AxLoss     [label = "IRREVERSIBLE AXON LOSS\nthe quantity that becomes disability",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    Regen      [label = "Regenerative sprouting from the stump\nlimited: must re-grow the same 1 m"];
+    NfLrelease [label = "Neurofilament light released to blood\nplasma NfL biomarker"];
+
+    Margin -> NMNAT2 [arrowhead = tee, label = "delivery fails"];
+    NMNAT2 -> NMN_NAD [arrowhead = tee]; NMN_NAD -> SARM1;
+    mPTP -> SARM1 [style = dotted]; SARM1 -> Fragment; Calpain -> Fragment; DLK -> Calpain;
+    Fragment -> AxLoss -> NfLrelease;
+    AxLoss -> Regen [style = dotted]; Regen -> AxLoss [arrowhead = tee, style = dotted, label = "rarely wins over 1 m"];
+  }
+
+  /* ================================================================
+     11. MOTOR UNIT RESERVE — THE SILENT DECADE
+     ================================================================ */
+  subgraph cluster_mu {
+    label = "11. Collateral reinnervation reserve: why 80% of motor units can be lost with normal strength";
+    style = "filled"; fillcolor = "#edf1f6"; color = "#4f6d8f"; fontsize = 14; fontcolor = "#354c66";
+    node [fillcolor = "#d5dfeb", color = "#4f6d8f"];
+
+    MUcount    [label = "MOTOR UNIT NUMBER (MUNE / MScanFit)\nfalls from the first decade",
+                shape = box, style = "filled,bold", fillcolor = "#bccbdd"];
+    Orphan     [label = "Orphaned muscle fibres\ndenervated, releasing NRG / IGF"];
+    Sprout     [label = "Terminal + nodal collateral sprouting\nsurviving MU adopts orphans",
+                shape = box, style = "filled,bold", fillcolor = "#bccbdd"];
+    MUsize     [label = "Motor unit SIZE (fibres per MU)\nup to 5-8x normal"];
+    Reserve    [label = "REINNERVATION RESERVE\none-way, finite, silently consumed",
+                shape = box, style = "filled,bold", fillcolor = "#a9bcd2"];
+    Knee       [label = "RESERVE EXHAUSTION KNEE\nstrength falls only after this point",
+                shape = box, style = "filled,bold", fillcolor = "#a9bcd2"];
+    NMJinst    [label = "NMJ instability / fragmentation\nlarge units are fragile units"];
+    AgrinMuSK  [label = "Agrin / LRP4 / MuSK / rapsyn\nendplate maintenance"];
+    Grouping   [label = "Fibre-type grouping on biopsy\nthe histological fingerprint of reinnervation"];
+
+    AxLoss -> MUcount [arrowhead = tee];
+    MUcount -> Orphan; Orphan -> Sprout; Sprout -> MUsize; MUsize -> Reserve [arrowhead = tee, label = "consumes"];
+    Reserve -> Knee; MUsize -> NMJinst; AgrinMuSK -> NMJinst [arrowhead = tee];
+    Sprout -> Grouping;
+  }
+
+  /* ================================================================
+     12. MUSCLE
+     ================================================================ */
+  subgraph cluster_muscle {
+    label = "12. Muscle: denervation atrophy, fatty replacement and the imbalance that deforms the foot";
+    style = "filled"; fillcolor = "#eaf5ea"; color = "#4c8a4c"; fontsize = 14; fontcolor = "#336133";
+    node [fillcolor = "#d3ebd3", color = "#4c8a4c"];
+
+    TA         [label = "Tibialis anterior (dorsiflexion)\ndenervates EARLY"];
+    PerLong    [label = "Peroneus longus (plantarflexes 1st ray)\nRELATIVELY SPARED"];
+    IntrFoot   [label = "Intrinsic foot muscles\ndenervate FIRST (longest axons)"];
+    Gastroc    [label = "Gastrocnemius / soleus\nspared until late"];
+    HandIntr   [label = "Hand intrinsics (APB, FDI)\nsecond decade, thenar wasting"];
+    Atrophy    [label = "Denervation atrophy\nMuRF1 / atrogin-1 / FoxO"];
+    FatRepl    [label = "Fatty replacement (MRI fat fraction)\nthe most responsive imaging biomarker",
+                shape = box, style = "filled,bold", fillcolor = "#b8dfb8"];
+    Force      [label = "MAXIMAL FORCE\nMRC grade, dynamometry",
+                shape = box, style = "filled,bold", fillcolor = "#b8dfb8"];
+    Imbalance  [label = "AGONIST/ANTAGONIST IMBALANCE\nTA weak, peroneus longus strong",
+                shape = box, style = "filled,bold", fillcolor = "#b8dfb8"];
+    ExTrain    [label = "Exercise / strength training\nlimited but real effect on retained units"];
+    Overuse    [label = "Overwork weakness (theoretical)\nlarge reinnervated units under strain"];
+
+    Knee -> Force [arrowhead = tee];
+    IntrFoot -> Atrophy; TA -> Atrophy; HandIntr -> Atrophy;
+    Atrophy -> FatRepl; Atrophy -> Force [arrowhead = tee];
+    TA -> Imbalance [arrowhead = tee]; PerLong -> Imbalance;
+    ExTrain -> Force [label = "+"]; ExTrain -> Overuse [style = dotted];
+  }
+
+  /* ================================================================
+     13. SENSORY SYSTEM
+     ================================================================ */
+  subgraph cluster_sens {
+    label = "13. Sensory system: large-fibre loss, proprioceptive ataxia and the unfelt foot";
+    style = "filled"; fillcolor = "#eaf5ea"; color = "#4c8a4c"; fontsize = 14; fontcolor = "#336133";
+    node [fillcolor = "#dcf0dc", color = "#4c8a4c"];
+
+    DRG        [label = "Dorsal root ganglion neuron\npseudounipolar, two long branches"];
+    Ia_spindle [label = "Ia afferent / muscle spindle\nproprioception"];
+    Abeta      [label = "A-beta touch / vibration\nMeissner, Pacinian"];
+    Adelta_C   [label = "A-delta / C small fibres\nrelatively preserved in CMT1A"];
+    VibThr     [label = "Vibration threshold at hallux\nearliest quantitative sensory sign"];
+    SNAP       [label = "Sural SNAP amplitude\noften absent by adulthood"];
+    IENFD      [label = "Intraepidermal nerve fibre density\nskin biopsy"];
+    Proprio    [label = "PROPRIOCEPTIVE LOSS\ndrives ataxia more than weakness does",
+                shape = box, style = "filled,bold", fillcolor = "#b8dfb8"];
+    Romberg    [label = "Romberg positive / sensory ataxia"];
+    Ulcer      [label = "Insensate foot + high plantar pressure\nulceration risk", fillcolor = "#e8c9c9"];
+
+    DRG -> Ia_spindle; DRG -> Abeta; DRG -> Adelta_C;
+    Sensory_L -> DRG [style = dotted];
+    Ia_spindle -> Proprio; Abeta -> VibThr; Abeta -> SNAP;
+    Adelta_C -> IENFD; Proprio -> Romberg;
+  }
+
+  /* ================================================================
+     14. NEUROPATHIC PAIN, CRAMP AND FATIGUE
+     ================================================================ */
+  subgraph cluster_pain {
+    label = "14. Pain, cramp and fatigue: the symptoms patients rank highest and trials measure least";
+    style = "filled"; fillcolor = "#f6e9e9"; color = "#a34a4a"; fontsize = 14; fontcolor = "#7c3434";
+    node [fillcolor = "#f0d9d9", color = "#a34a4a"];
+
+    Ectopic    [label = "Ectopic firing at demyelinated segments\nand regenerating sprouts"];
+    NaV17      [label = "NaV1.7 / NaV1.8 upregulation in DRG"];
+    Cramp      [label = "Muscle cramp\nhyperexcitable terminal branches"];
+    DorsalH    [label = "Dorsal horn wind-up / central sensitisation"];
+    PainSc     [label = "NEUROPATHIC PAIN score\n~2/3 of adults with CMT1A",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    Fatigue    [label = "FATIGUE (FSS)\ntop-ranked symptom; partly conduction-cost",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    MSKpain    [label = "Musculoskeletal / joint pain\nfrom deformity and altered gait"];
+
+    Ectopic -> NaV17 -> PainSc; Ectopic -> Cramp;
+    DorsalH -> PainSc; ActivDep -> Fatigue; EnergyGap -> Fatigue;
+    MSKpain -> PainSc;
+  }
+
+  /* ================================================================
+     15. SKELETAL DEFORMITY
+     ================================================================ */
+  subgraph cluster_skel {
+    label = "15. Skeletal deformity: an irreversible mechanical record of past muscle imbalance";
+    style = "filled"; fillcolor = "#eaf5ea"; color = "#3f7a5a"; fontsize = 14; fontcolor = "#2b5540";
+    node [fillcolor = "#cfe8dc", color = "#3f7a5a"];
+
+    PesCavus   [label = "PES CAVUS\nplantarflexed 1st ray, high arch",
+                shape = box, style = "filled,bold", fillcolor = "#b3dcc8"];
+    HammerToe  [label = "Claw / hammer toes\nintrinsic minus posture"];
+    HindVarus  [label = "Hindfoot varus\ncoleman block: flexible then fixed"];
+    FootDrop   [label = "Foot drop / steppage gait"];
+    AFO        [label = "Ankle-foot orthosis\nmechanical substitution", fillcolor = "#f7d5e4"];
+    Surgery    [label = "Osteotomy / tendon transfer\nmechanical, not disease-modifying", fillcolor = "#f7d5e4"];
+    Scoliosis  [label = "Scoliosis (~15-20%)"];
+    HipDys     [label = "Hip dysplasia (~8%)"];
+    PlantP     [label = "Abnormal plantar pressure distribution"];
+    Falls      [label = "FALLS\ncombined weakness + proprioceptive loss",
+                shape = box, style = "filled,bold", fillcolor = "#b3dcc8"];
+
+    Imbalance -> PesCavus -> HammerToe; PesCavus -> HindVarus; PesCavus -> PlantP -> Ulcer;
+    TA -> FootDrop [arrowhead = tee]; FootDrop -> Falls; Proprio -> Falls;
+    AFO -> FootDrop [arrowhead = tee]; Surgery -> PesCavus [arrowhead = tee];
+  }
+
+  /* ================================================================
+     16. CLINICAL ENDPOINTS
+     ================================================================ */
+  subgraph cluster_clin {
+    label = "16. Clinical endpoints: composite scales, their ceilings and their slopes";
+    style = "filled"; fillcolor = "#f6e9e9"; color = "#8f2f2f"; fontsize = 14; fontcolor = "#6b2020";
+    node [fillcolor = "#e8c6c6", color = "#8f2f2f"];
+
+    CMTNS      [label = "CMTNS-R (0-36)\ncomposite: symptoms + signs + electrophysiology\nslope ~0.1-0.7 / year",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    CMTES      [label = "CMTES-R (0-28)\nexamination-only subscale"];
+    ONLS       [label = "ONLS (0-12)\narm + leg disability; the PLEO-CMT primary",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    TenMWT     [label = "10-metre walk test (s)"];
+    SixMWT     [label = "6-minute walk distance (m)"];
+    NineHPT    [label = "9-hole peg test (s)\nhand function"];
+    Dorsi      [label = "Ankle dorsiflexion strength (MRC / N)"];
+    Grip       [label = "Grip / pinch strength"];
+    SF36       [label = "SF-36 / patient-reported QoL"];
+    CMTPedS    [label = "CMTPedS (paediatric, 0-44)\nmoves faster than adult scales"];
+    Ceiling    [label = "SCALE CEILING AND FLOOR EFFECTS\nCMTNS insensitive at both ends",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+
+    Force -> Dorsi -> CMTNS; Force -> Grip -> CMTNS;
+    Proprio -> CMTNS; SNAP -> CMTNS; NCV -> CMTNS [label = "frozen component"];
+    CMTNS -> CMTES [style = dotted]; Dorsi -> ONLS; Grip -> ONLS;
+    FootDrop -> TenMWT; Falls -> SixMWT; HandIntr -> NineHPT;
+    CMTNS -> Ceiling [style = dotted]; ONLS -> Ceiling [style = dotted];
+    PainSc -> SF36 [arrowhead = tee]; Fatigue -> SF36 [arrowhead = tee];
+  }
+
+  /* ================================================================
+     17. BIOMARKERS
+     ================================================================ */
+  subgraph cluster_bio {
+    label = "17. Biomarkers ranked by responsiveness (and the one that is structurally useless)";
+    style = "filled"; fillcolor = "#f6e9e9"; color = "#8f2f2f"; fontsize = 14; fontcolor = "#6b2020";
+    node [fillcolor = "#efd6d6", color = "#8f2f2f"];
+
+    NfL_pl     [label = "PLASMA NfL\nelevated ~2x, tracks active axon loss",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    MRIfat     [label = "MRI intramuscular fat fraction\n~1.2-1.8 %/year: the most responsive",
+                shape = box, style = "filled,bold", fillcolor = "#d99a9a"];
+    CMAPamp    [label = "CMAP amplitude\ndirect surrogate for surviving motor axons"];
+    MUNEb      [label = "MUNE / MScanFit\nmoves earliest of all"];
+    NCVb       [label = "NCV as an endpoint\nDERIVATIVE IS ZERO AFTER AGE 5 - unusable",
+                shape = box, style = "filled,bold", fillcolor = "#c98080"];
+    NerveUS    [label = "Nerve ultrasound CSA\nhypertrophy: a trait, not a state"];
+    SkinBx     [label = "Skin biopsy PMP22 mRNA\ntarget engagement, not efficacy"];
+    Nerve_MRI  [label = "Nerve MRI / MR neurography"];
+
+    AxLoss -> NfL_pl; AxLoss -> CMAPamp [arrowhead = tee]; MUcount -> MUNEb;
+    FatRepl -> MRIfat; NCV -> NCVb; ONION -> NerveUS;
+    Dosage_g -> SkinBx [style = dotted];
+  }
+
+  /* ================================================================
+     18. PXT3003
+     ================================================================ */
+  subgraph cluster_pxt {
+    label = "18. PXT3003 (baclofen + naltrexone + D-sorbitol): low-dose combination, PMP22 transcription";
+    style = "filled"; fillcolor = "#fdeef5"; color = "#b8477e"; fontsize = 14; fontcolor = "#8c3260";
+    node [fillcolor = "#f7d5e4", color = "#b8477e"];
+
+    BAC_dose   [label = "(R)-baclofen PO\nGABA-B agonist, sub-therapeutic dose"];
+    NTX_dose   [label = "Naltrexone PO (low dose)\nopioid receptor antagonist"];
+    SOR_dose   [label = "D-sorbitol PO"];
+    BAC_pk     [label = "Baclofen PK\nF ~ 0.7, t1/2 ~ 4 h, renal CL"];
+    NTX_pk     [label = "Naltrexone PK\nhigh first pass, 6-beta-naltrexol metabolite"];
+    SOR_pk     [label = "Sorbitol PK\nosmotic, poorly absorbed"];
+    Synergy    [label = "Claimed multi-target synergy\non PMP22 transcription (P1 promoter)"];
+    PXT_effect [label = "PMP22 mRNA reduction\n~15-25% in preclinical models"];
+    PLEO       [label = "PLEO-CMT phase 3\nONLS -0.37 vs placebo at high dose;\n1.5x arm stopped (sorbitol crystallisation)", fillcolor = "#f0bcd4"];
+    PREMIER    [label = "PREMIER phase 3 (2024)\nFAILED primary endpoint", fillcolor = "#e5a1c2"];
+    Formul     [label = "Formulation instability\nthe 1.5x arm lost mid-trial", fillcolor = "#e5a1c2"];
+
+    BAC_dose -> BAC_pk; NTX_dose -> NTX_pk; SOR_dose -> SOR_pk;
+    BAC_pk -> Synergy; NTX_pk -> Synergy; SOR_pk -> Synergy;
+    Synergy -> PXT_effect; PXT_effect -> PMP22mRNA [arrowhead = tee];
+    PXT_effect -> PLEO; PLEO -> PREMIER; Formul -> PLEO;
+  }
+
+  /* ================================================================
+     19. ASCORBIC ACID
+     ================================================================ */
+  subgraph cluster_aa {
+    label = "19. Ascorbic acid: four null RCTs, and a PK explanation that precedes any question of efficacy";
+    style = "filled"; fillcolor = "#fdeef5"; color = "#b8477e"; fontsize = 14; fontcolor = "#8c3260";
+    node [fillcolor = "#fadeeb", color = "#b8477e"];
+
+    AA_dose    [label = "Oral ascorbic acid\n1.0 / 1.5 / 3.0 / 4.0 g per day in trials"];
+    SVCT1gut   [label = "SVCT1 intestinal transporter\nSATURATES: F falls from ~0.9 to ~0.16",
+                shape = box, style = "filled,bold", fillcolor = "#f0bcd4"];
+    AA_plasma  [label = "PLASMA ASCORBATE\nPLATEAUS near 70-80 uM regardless of dose",
+                shape = box, style = "filled,bold", fillcolor = "#f0bcd4"];
+    RenalThr   [label = "Renal threshold\nfiltered load above ~60 uM is not reabsorbed"];
+    SVCT2      [label = "SVCT2 tissue uptake (Schwann cell)\nKm ~ 20 uM: already saturated at baseline"];
+    AA_cAMP    [label = "Adenylate cyclase inhibition - cAMP down\n- PMP22 P1 transcription down"];
+    Mouse      [label = "C22 mouse: 4x lifespan-scaled dose\nrescued myelination (Passage 2004)"];
+    TRIAAL     [label = "CMT-TRIAAL / CMT-TRAUK / Micallef /\nBurns paediatric: ALL NULL", fillcolor = "#e5a1c2"];
+    DoseGap    [label = "MODEL RESULT: 1.5 g/d and 4 g/d differ\nby ~10% in plasma, not by 2.7x",
+                shape = box, style = "filled,bold", fillcolor = "#e5a1c2"];
+
+    AA_dose -> SVCT1gut -> AA_plasma; AA_plasma -> RenalThr -> AA_plasma [arrowhead = tee];
+    AA_plasma -> SVCT2 -> AA_cAMP; AA_cAMP -> cAMP [arrowhead = tee];
+    Mouse -> AA_dose [style = dotted, label = "translation step"];
+    AA_plasma -> DoseGap; DoseGap -> TRIAAL;
+  }
+
+  /* ================================================================
+     20. PMP22-LOWERING OLIGONUCLEOTIDES — THE INTERIOR OPTIMUM
+     ================================================================ */
+  subgraph cluster_oligo {
+    label = "20. PMP22-lowering oligonucleotides: the therapeutic window has a FAR WALL (interior optimum #1)";
+    style = "filled"; fillcolor = "#fdeef5"; color = "#9c2f6a"; fontsize = 14; fontcolor = "#75204f";
+    node [fillcolor = "#f5c9de", color = "#9c2f6a"];
+
+    ASO        [label = "ASO gapmer vs PMP22 mRNA\nRNase H1 cleavage (Zhao 2018 JCI)"];
+    siRNA      [label = "siRNA-fatty-acid conjugate (FALCON)\nRISC loading, sciatic nerve delivery"];
+    AAV_shRNA  [label = "AAV-delivered shRNA / miRNA\none-shot, non-titratable = risky here"];
+    CRISPRi    [label = "CRISPRi / epigenetic silencing\nnon-titratable, permanent"];
+    SC_depot   [label = "Subcutaneous depot"];
+    Plasma_o   [label = "Plasma oligonucleotide\nrapid distribution, hours"];
+    Nerve_o    [label = "PERIPHERAL NERVE TISSUE POOL\nt1/2 weeks - months: the PD driver",
+                shape = box, style = "filled,bold", fillcolor = "#eeb0cf"];
+    KD         [label = "PMP22 knockdown fraction\nslow on, very slow off"];
+    Window     [label = "THERAPEUTIC WINDOW\n0 < knockdown < 33% of the 3-copy state",
+                shape = box, style = "filled,bold", fillcolor = "#e29ac0"];
+    Overshoot  [label = "OVERSHOOT: g < 1\niatrogenic HNPP - tomacula, pressure palsies",
+                shape = box, style = "filled,bold", fillcolor = "#c97fa5"];
+    Slowdrug   [label = "Long tissue half-life is PROTECTIVE here\nit flattens g and keeps it inside the window",
+                shape = box, style = "filled,bold", fillcolor = "#e29ac0"];
+    Titrate    [label = "Dose titration against skin PMP22 mRNA\nthe only safe way to approach g = 1"];
+
+    ASO -> SC_depot; siRNA -> SC_depot; SC_depot -> Plasma_o -> Nerve_o -> KD;
+    KD -> PMP22mRNA [arrowhead = tee];
+    KD -> Window; Window -> Dosage_g [arrowhead = tee];
+    KD -> Overshoot [label = "if too deep"]; Overshoot -> Tomacula;
+    Nerve_o -> Slowdrug; Titrate -> KD [style = dotted];
+    AAV_shRNA -> Overshoot [style = dotted, label = "cannot be dialled back"];
+    CRISPRi -> Overshoot [style = dotted];
+  }
+
+  /* ================================================================
+     21. OTHER PHARMACOLOGY
+     ================================================================ */
+  subgraph cluster_other {
+    label = "21. Other pharmacological arms: transport, trophic support, hormonal and proteostatic";
+    style = "filled"; fillcolor = "#fdeef5"; color = "#b8477e"; fontsize = 14; fontcolor = "#8c3260";
+    node [fillcolor = "#fadeeb", color = "#b8477e"];
+
+    HDACi      [label = "HDAC6 inhibitor (tubastatin A class)\nrestores alpha-tubulin acetylation"];
+    HDACi_pk   [label = "HDAC6i PK\noral, short t1/2, CNS-sparing selectivity"];
+    NT3        [label = "Neurotrophin-3 (NT-3)\nTrkC on Schwann cells and axons"];
+    AAV_NT3    [label = "AAV1.NT-3 intramuscular gene therapy\n(Sahenk): sustained local NT-3"];
+    NRG1drug   [label = "Soluble NRG1-III / ErbB agonism\nforces myelination"];
+    Onapri     [label = "Onapristone (PR antagonist)\nlowered PMP22 in CMT1A rat (Sereda 2003)"];
+    Curcumin   [label = "Curcumin / proteostasis modulators\naggregate clearance"];
+    Sorbitol_x [label = "Osmolyte chemical chaperones"];
+    Exercise   [label = "Structured exercise / resistance training"];
+    Pregabalin [label = "Pregabalin / duloxetine / TCA\nsymptomatic pain only"];
+    NoDMT      [label = "STANDARD OF CARE 2026:\nno approved disease-modifying therapy",
+                shape = box, style = "filled,bold", fillcolor = "#e5a1c2"];
+
+    HDACi -> HDACi_pk -> HDAC6 [arrowhead = tee];
+    NT3 -> SCtrophic [label = "+"]; AAV_NT3 -> NT3;
+    NRG1drug -> NRG1III [label = "+"];
+    Onapri -> PRnuc [arrowhead = tee];
+    Curcumin -> Aggreg [arrowhead = tee]; Sorbitol_x -> Fold_ok [label = "+"];
+    Exercise -> ExTrain; Pregabalin -> PainSc [arrowhead = tee];
+  }
+
+  /* ================================================================
+     22. NEUROTOXIC CONTRAINDICATIONS
+     ================================================================ */
+  subgraph cluster_tox {
+    label = "22. Neurotoxic drugs: the same margin equation, evaluated at a lower transport velocity";
+    style = "filled"; fillcolor = "#f7dede"; color = "#8b2020"; fontsize = 14; fontcolor = "#661414";
+    node [fillcolor = "#eebcbc", color = "#8b2020"];
+
+    VCR        [label = "VINCRISTINE\nabsolutely contraindicated in CMT1A",
+                shape = box, style = "filled,bold", fillcolor = "#dd9494"];
+    VCR_mech   [label = "Microtubule depolymerisation\ntransport velocity v collapses"];
+    VCR_cat    [label = "CATASTROPHIC quadriparesis within 1-3 doses\n(Graf 1996; reported in undiagnosed CMT1A)",
+                shape = box, style = "filled,bold", fillcolor = "#dd9494"];
+    Taxane     [label = "Paclitaxel / docetaxel\nMT stabilisation, transport impaired"];
+    Platin     [label = "Cisplatin / oxaliplatin\nDRG-selective, sensory"];
+    Nitrofur   [label = "Nitrofurantoin, amiodarone, dapsone,\nmetronidazole, thalidomide, bortezomib"];
+    Statin_q   [label = "Statins: association reported, not established"];
+    Margin_lo  [label = "PRE-EXISTING MARGIN ALREADY ~1.1\nno headroom to absorb any transport hit",
+                shape = box, style = "filled,bold", fillcolor = "#dd9494"];
+
+    VCR -> VCR_mech -> Vtrans [arrowhead = tee];
+    Margin -> Margin_lo; Margin_lo -> VCR_cat; VCR_mech -> VCR_cat;
+    Taxane -> Vtrans [arrowhead = tee]; Platin -> DRG [arrowhead = tee];
+    Nitrofur -> AxLoss [style = dotted]; Statin_q -> AxLoss [style = dotted];
+  }
+
+  /* ================================================================
+     23. MODIFIERS AND LIFE COURSE
+     ================================================================ */
+  subgraph cluster_mod {
+    label = "23. Modifiers and life course: pregnancy, growth, comorbidity, immobilisation";
+    style = "filled"; fillcolor = "#eef4fb"; color = "#3d6fa5"; fontsize = 14; fontcolor = "#24507d";
+    node [fillcolor = "#dfeaf7", color = "#3d6fa5"];
+
+    Preg       [label = "PREGNANCY\nprogesterone rises 10-100x - PMP22 up",
+                shape = box, style = "filled,bold", fillcolor = "#c6d9f1"];
+    PregWorse  [label = "Documented worsening in ~1/3 of pregnancies\noften incomplete recovery"];
+    Growth     [label = "Childhood growth\naxons lengthen faster than they can be supplied"];
+    Ageing     [label = "Ageing: baseline motor unit attrition\nadds to the disease slope after 60"];
+    Diabetes   [label = "Comorbid diabetes / CIDP overlap\nsuperimposed second hit"];
+    Immob      [label = "Immobilisation / illness\nreserve loss not recovered"];
+    B6         [label = "Pyridoxine excess, alcohol, B12 deficiency\nadditive axonal insults"];
+    CIDPover   [label = "Superimposed inflammatory neuropathy\nrare, steroid-responsive: worth excluding", fillcolor = "#cfe0f4"];
+
+    Preg -> PRnuc [label = "+"]; Preg -> PregWorse;
+    Growth -> Ltrans [style = dotted]; Ageing -> MUcount [arrowhead = tee];
+    Diabetes -> AxLoss; Immob -> Reserve [arrowhead = tee]; B6 -> AxLoss;
+    CIDPover -> Demy;
+  }
+
+  /* ================================================================
+     24. TRIAL DESIGN LAYER
+     ================================================================ */
+  subgraph cluster_trial {
+    label = "24. The trial-design layer: why a correct drug can still produce a null result here";
+    style = "filled"; fillcolor = "#f2f2f2"; color = "#555555"; fontsize = 14; fontcolor = "#333333";
+    node [fillcolor = "#e2e2e2", color = "#555555"];
+
+    Slope      [label = "TRUE PROGRESSION SLOPE\nCMTNS ~0.1-0.7 points/year"];
+    MeasErr    [label = "MEASUREMENT ERROR\nCMTNS inter-rater SD ~1.5-2 points",
+                shape = box, style = "filled,bold", fillcolor = "#cfcfcf"];
+    SNR        [label = "SIGNAL-TO-NOISE\n12-month signal is a fraction of the noise",
+                shape = box, style = "filled,bold", fillcolor = "#cfcfcf"];
+    Nreq       [label = "REQUIRED SAMPLE SIZE\ncomputed, not assumed",
+                shape = box, style = "filled,bold", fillcolor = "#cfcfcf"];
+    Duration   [label = "REQUIRED DURATION\n>= 24-36 months for adult scales"];
+    Enrich     [label = "ENRICHMENT: recruit while reserve remains\nchildren / early adults, CMTPedS"];
+    EndpointCh [label = "ENDPOINT CHOICE dominates power\nMRI fat fraction >> NfL > CMAP >> CMTNS >> NCV",
+                shape = box, style = "filled,bold", fillcolor = "#c2c2c2"];
+    Placebo    [label = "Placebo-arm drift: practice effects on timed tests\ncan cancel a real drug effect"];
+    Window_t   [label = "TREATMENT WINDOW\nreserve, not age, defines who can still benefit",
+                shape = box, style = "filled,bold", fillcolor = "#c2c2c2"];
+
+    Slope -> SNR; MeasErr -> SNR [arrowhead = tee]; SNR -> Nreq -> Duration;
+    CMTNS -> Slope; NCVb -> EndpointCh; MRIfat -> EndpointCh; NfL_pl -> EndpointCh;
+    EndpointCh -> Nreq [arrowhead = tee]; Enrich -> Nreq [arrowhead = tee];
+    Reserve -> Window_t; Window_t -> Enrich; Placebo -> SNR [arrowhead = tee];
+    PLEO -> Nreq [style = dotted]; TRIAAL -> Nreq [style = dotted];
+  }
+
+  /* ================================================================
+     CROSS-CLUSTER EDGES — the spine of the model
+     ================================================================ */
+  Dosage_g   -> Translate      [lhead = cluster_prot, penwidth = 2.0, color = "#2f8b80", label = "  1.5x load"];
+  Aggreg     -> CJUN           [penwidth = 2.0, color = "#c1732a", label = "  proteostatic stress\n  dedifferentiates"];
+  PERK       -> EGR2sc         [arrowhead = tee, color = "#2f8b80"];
+  Dosage_g   -> Stoich         [penwidth = 2.0, color = "#c1732a", label = "  wrong ratio"];
+  Cycle      -> IntLen         [arrowhead = tee, penwidth = 2.0, color = "#c1732a", label = "  ratchet"];
+  IntLen     -> NCV            [penwidth = 2.0, color = "#b39b1e"];
+  Lamellae   -> NCV            [penwidth = 1.5, color = "#b39b1e"];
+  Demy       -> NodeLen        [penwidth = 1.5, color = "#b39b1e"];
+  Demy       -> NKA            [penwidth = 1.5, color = "#8a6244", label = "  conduction cost up"];
+  SCmetab    -> Lactate        [penwidth = 2.0, color = "#8a6244"];
+  Demy       -> SCmetab        [arrowhead = tee, penwidth = 2.0, color = "#8a6244", label = "  support withdrawn"];
+  SCtrophic  -> Supply         [penwidth = 1.5, color = "#6b4a30", label = "  local"];
+  Calibre    -> Demand         [penwidth = 1.2, color = "#6b4a30"];
+  Margin     -> AxLoss         [penwidth = 2.4, color = "#a34a4a", label = "  below 1: dying back"];
+  AxLoss     -> Force          [arrowhead = tee, penwidth = 1.5, color = "#4c8a4c", ltail = cluster_degen];
+  Reserve    -> MUsize         [style = dotted, color = "#4f6d8f"];
+  Knee       -> CMTNS          [penwidth = 2.0, color = "#8f2f2f", label = "  disability begins"];
+  Ulcer      -> ONLS           [color = "#8f2f2f", style = dotted];
+  MUcount    -> NfL_pl         [style = dotted, color = "#8f2f2f"];
+  Window     -> Stoich         [penwidth = 2.0, color = "#9c2f6a", label = "  restores ratio"];
+  Overshoot  -> Margin         [style = dotted, color = "#8b2020", label = "  no axonal benefit either"];
+  HDACi_pk   -> Vtrans         [penwidth = 1.8, color = "#b8477e", label = "  raises v - raises margin"];
+  NT3        -> Regen          [penwidth = 1.2, color = "#b8477e"];
+  PXT_effect -> Dosage_g       [arrowhead = tee, penwidth = 1.5, color = "#b8477e"];
+  AA_cAMP    -> Dosage_g       [arrowhead = tee, style = dotted, color = "#b8477e"];
+  VCR_cat    -> AxLoss         [penwidth = 2.0, color = "#8b2020"];
+  Preg       -> Dosage_g       [style = dotted, color = "#3d6fa5"];
+  DevWin     -> Window_t       [style = dotted, color = "#555555", label = "  the earliest window of all"];
+  NCV        -> EndpointCh     [style = dotted, color = "#555555"];
+
+  /* ---------- legend ---------- */
+  subgraph cluster_legend {
+    label = "Legend";
+    style = "filled"; fillcolor = "#fafafa"; color = "#888888"; fontsize = 13;
+    node [shape = plaintext, fillcolor = "#fafafa", color = "#fafafa", fontsize = 10];
+    L1 [label = "solid arrow  =  activation / flux / causation"];
+    L2 [label = "tee arrow  =  inhibition / consumption / suppression"];
+    L3 [label = "dotted arrow  =  modulation, weak or conditional link"];
+    L4 [label = "bold node  =  quantity carried explicitly as a state or key algebraic output in the mrgsolve model"];
+    L5 [label = "g  =  PMP22 functional dosage relative to normal (2 copies).  CMT1A untreated g ~ 1.5;  HNPP g ~ 0.5;  therapeutic target g = 1.0"];
+    L6 [label = "Margin  =  delivered axonal supply / terminal demand.  Axon degenerates while Margin < 1."];
+    L1 -> L2 -> L3 -> L4 -> L5 -> L6 [style = invis];
+  }
+}
