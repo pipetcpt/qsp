@@ -1,0 +1,987 @@
+/* =====================================================================
+   Alcohol Use Disorder (AUD) — QSP Mechanistic Map
+   ---------------------------------------------------------------------
+   The organising idea of this map (and of aud_mrgsolve_model.R):
+
+   In almost every other disease in this library the dose is an input.
+   In AUD the dose is an OUTPUT — the patient decides it, and the
+   pharmacology of what they already drank is what does the deciding.
+   The map is therefore drawn as a CLOSED LOOP, not a cascade:
+
+     drinking  ->  ethanol PK (gastric first pass, Widmark Vd,
+                   saturable ADH + inducible CYP2E1, ALDH2)
+       -> acute pharmacology: GABA_A potentiation, NMDA block,
+          beta-endorphin -> MOR -> disinhibition of VTA GABA
+          -> phasic dopamine in nucleus accumbens          (REWARD)
+       -> repetition -> allostatic adaptation:
+            GABA_A subunit reconfiguration (alpha1/delta down)
+            NR2B-NMDA up, GLT-1/xCT down
+            dynorphin/KOR up, CRF up, NPY down
+            reward set point shifts, PFC control erodes,
+            dorsolateral-striatal HABIT takes over from goal-direction
+       -> falling BAC now UNMASKS that adaptation:
+            withdrawal, negative affect, insomnia, autonomic storm
+            (and each detox increments the KINDLING index)
+       -> craving = incentive salience + negative reinforcement
+       -> DRINKING AGAIN.  The loop closes here.
+
+   Every approved and emerging medication is placed by WHERE IT CUTS
+   THE LOOP, because that is what distinguishes them clinically:
+
+     naltrexone / nalmefene   cut the MOR->dopamine reinforcement arm
+                              -> fewer drinks per drinking day
+     acamprosate              cut the glutamatergic negative-affect arm
+                              -> more days abstinent
+     disulfiram               insert an aversive acetaldehyde branch
+                              upstream of the decision (supervision-dependent)
+     topiramate / gabapentin  cut both arms (AMPA/kainate + GABA, alpha2delta)
+     baclofen                 GABA_B brake on VTA
+     ondansetron              5-HT3 brake on dopamine (early-onset subtype)
+     semaglutide              GLP-1R brake on incentive salience
+     benzodiazepines          replace the missing GABA tone during detox only
+
+   Render:
+     dot -Tsvg aud_qsp_model.dot -o aud_qsp_model.svg
+     dot -Tpng -Gdpi=150 aud_qsp_model.dot -o aud_qsp_model.png
+   ===================================================================== */
+
+digraph AUD_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.55;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Alcohol Use Disorder — Quantitative Systems Pharmacology Map</b><br/>
+             <font point-size="13">drinking &#8594; ethanol PK &#8594; opioid/dopamine reinforcement &#8594; allostatic neuroadaptation &#8594; withdrawal &amp; craving &#8594; drinking (closed loop)</font><br/>
+             <font point-size="11">21 mechanistic modules · 248 nodes · 403 edges · states carried as ODEs in aud_mrgsolve_model.R are drawn with a double border</font>>;
+    fontsize = 22;
+    bgcolor = "white";
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 10, penwidth = 1.0, margin = "0.09,0.05"];
+    edge [fontname = "Helvetica", fontsize = 8, color = "#5c6670",
+          arrowsize = 0.62, penwidth = 0.9];
+
+    /* ---------- shared visual vocabulary ------------------------------
+       double border (peripheries=2) = ODE state in the mrgsolve model
+       octagon                       = drug / intervention
+       hexagon                       = clinical endpoint / read-out
+       diamond                       = regulatory switch or decision node
+       parallelogram                 = flux / transfer process
+       red edge                      = inhibition / antagonism
+       green edge                    = restorative / protective
+       orange edge                   = the closed reinforcement loop
+       ---------------------------------------------------------------- */
+
+    /* ================================================================
+       1. HOST, GENETIC AND ENVIRONMENTAL SUSCEPTIBILITY
+       ================================================================ */
+    subgraph cluster_risk {
+        label = "1. Susceptibility · pharmacogenetics · environment";
+        style = "filled,rounded"; fillcolor = "#f4f1ec"; color = "#b9ae9c";
+        fontsize = 13; fontcolor = "#6b5f4b";
+        node [fillcolor = "#efe8dc", color = "#a99a80"];
+
+        G_OPRM1   [label = "OPRM1 A118G (rs1799971)\nAsn40Asp · G-allele ~ 15-30% (higher in East Asia)\nsteeper beta-endorphin binding, larger NTX effect", shape = diamond, fillcolor = "#e5dbc6"];
+        G_ALDH2   [label = "ALDH2*2 (rs671, Glu504Lys)\nheterozygote ~ 15-25% residual activity\nhomozygote ~ null · East Asian 30-50%", shape = diamond, fillcolor = "#e5dbc6"];
+        G_ADH1B   [label = "ADH1B*2 (rs1229984, Arg48His)\n~40x faster ethanol oxidation\nprotective, acetaldehyde-mediated", shape = diamond, fillcolor = "#e5dbc6"];
+        G_GABRA2  [label = "GABRA2 haplotype\nGABA-A alpha2 subunit · subjective response"];
+        G_5HTT    [label = "5-HTTLPR LL genotype\nearly-onset / Type B subtype\npredicts ondansetron response", shape = diamond, fillcolor = "#e5dbc6"];
+        G_KCNJ6   [label = "GIRK2 / KCNJ6 variation\nethanol-sensitive K+ conductance"];
+        G_FAMHX   [label = "Family history density\nheritability of AUD ~ 50%"];
+        R_AGEONS  [label = "Age at first drink < 15 y\nmaturational vulnerability of PFC"];
+        R_SEX     [label = "Sex\nWidmark r 0.68 (M) vs 0.55 (F)\nlower gastric ADH in women"];
+        R_BW      [label = "Body weight · body water\ndetermines Vd for a given dose"];
+        R_TRAUMA  [label = "Early-life adversity / PTSD\nsensitised CRF-HPA axis"];
+        R_SOCIAL  [label = "Drinking environment\ncue density · availability · price"];
+        R_PSYCH   [label = "Psychiatric comorbidity\nMDD · anxiety · ADHD · bipolar"];
+        R_TOLGEN  [label = "Low level of response (LR)\nSchuckit low-LR phenotype\nneeds more drinks for same effect"];
+    }
+
+    /* ================================================================
+       2. DRINKING BEHAVIOUR — THE DOSE IS AN OUTPUT
+       ================================================================ */
+    subgraph cluster_behav {
+        label = "2. Drinking behaviour — dose generation (closed-loop input)";
+        style = "filled,rounded"; fillcolor = "#fdf2e6"; color = "#e0b57a";
+        fontsize = 13; fontcolor = "#8a5a20";
+        node [fillcolor = "#fbe6cd", color = "#d3a25f"];
+
+        B_DRIVE   [label = "DRIVE\nnet drinking drive\n= craving − control − aversion", peripheries = 2, fillcolor = "#f7d6a8"];
+        B_DECIDE  [label = "Decision to drink today", shape = diamond, fillcolor = "#f2c98c"];
+        B_DPD     [label = "Drinks per day\n(1 standard drink = 14 g ethanol US / 10 g WHO)", peripheries = 2, fillcolor = "#f7d6a8"];
+        B_WINDOW  [label = "Within-day drinking window\ntypically 17:00-23:00 · sets absorption rate", shape = parallelogram, fillcolor = "#f2c98c"];
+        B_PACE    [label = "Drinking pace (g/h)\nascending-limb steepness"];
+        B_FED     [label = "Fed vs fasted state\nfood delays gastric emptying, cuts peak BAC ~ 40%"];
+        B_ABSTG   [label = "Abstinence goal / treatment contract", shape = diamond, fillcolor = "#f2c98c"];
+        B_ADH     [label = "Medication adherence\nsupervised vs self-administered"];
+        B_MM      [label = "Medical management / CBT / MET\npsychosocial platform (COMBINE)", shape = octagon, fillcolor = "#f5deb9"];
+        B_AA      [label = "Mutual-help attendance\n12-step facilitation"];
+        B_CUEEXP  [label = "Cue exposure events\nbar · advertising · stress · anniversary"];
+        B_PRIMING [label = "Priming dose effect\nfirst drink raises P(next drink)", shape = parallelogram, fillcolor = "#f2c98c"];
+        B_LAPSE   [label = "Lapse", shape = diamond, fillcolor = "#f2c98c"];
+        B_RELAPSE [label = "Relapse to heavy drinking", shape = diamond, fillcolor = "#eeb877"];
+        B_TAC     [label = "Total alcohol consumption (g/day)", peripheries = 2, fillcolor = "#f7d6a8"];
+    }
+
+    /* ================================================================
+       3. ETHANOL ABSORPTION, DISTRIBUTION, FIRST PASS
+       ================================================================ */
+    subgraph cluster_ethpk {
+        label = "3. Ethanol ADME — gastric first pass · Widmark distribution";
+        style = "filled,rounded"; fillcolor = "#eef4fa"; color = "#8fb4d9";
+        fontsize = 13; fontcolor = "#2d5b8c";
+        node [fillcolor = "#dceaf6", color = "#6f9fce"];
+
+        PK_ST     [label = "ETH_ST\nstomach ethanol (g)", peripheries = 2, fillcolor = "#c9def2"];
+        PK_GASTADH[label = "Gastric ADH (ADH7 / sigma-ADH)\nfirst-pass 5-10% · lower in women\nabolished by H2-blockers & fasting", shape = parallelogram, fillcolor = "#cfe2f4"];
+        PK_EMPTY  [label = "Gastric emptying\nrate-limiting step for peak BAC", shape = parallelogram, fillcolor = "#cfe2f4"];
+        PK_GUT    [label = "ETH_GUT\nduodenum/jejunum ethanol (g)", peripheries = 2, fillcolor = "#c9def2"];
+        PK_ABS    [label = "Passive absorption\nka ~ 3-6 /h · no transporter required", shape = parallelogram, fillcolor = "#cfe2f4"];
+        PK_PORTAL [label = "Portal delivery to liver"];
+        PK_CENT   [label = "ETH_C\ncentral ethanol amount (g)\nBAC = ETH_C / (r x BW)", peripheries = 2, fillcolor = "#c9def2"];
+        PK_VD     [label = "Widmark Vd\nr = 0.68 (M) / 0.55 (F) L/kg\ntotal body water compartment"];
+        PK_BAC    [label = "Blood alcohol concentration (BAC)\ng/dL · the exposure driver", shape = hexagon, fillcolor = "#b9d5ef"];
+        PK_BRAIN  [label = "Brain ethanol\nequilibrates in minutes (freely diffusible)"];
+        PK_BREATH [label = "Breath / transdermal ethanol\nSCRAM-TAC continuous monitoring", shape = hexagon, fillcolor = "#b9d5ef"];
+        PK_RENAL  [label = "Renal + pulmonary excretion\n~2-5% of dose unchanged", shape = parallelogram, fillcolor = "#cfe2f4"];
+        PK_MEG    [label = "Mellanby effect\nacute tolerance: same BAC,\nless impairment on descending limb"];
+        PK_ASC    [label = "Ascending limb\nstimulant / euphoric / reinforcing"];
+        PK_DESC   [label = "Descending limb\nsedative / dysphoric"];
+    }
+
+    /* ================================================================
+       4. OXIDATIVE METABOLISM AND REDOX
+       ================================================================ */
+    subgraph cluster_metab {
+        label = "4. Oxidative metabolism — ADH · CYP2E1 · ALDH2 · redox shift";
+        style = "filled,rounded"; fillcolor = "#f0f7ee"; color = "#93bd8b";
+        fontsize = 13; fontcolor = "#33683a";
+        node [fillcolor = "#dcecd8", color = "#7aa972"];
+
+        MB_ADH    [label = "Hepatic ADH1B/1C (cytosolic)\nVmax ~ 0.15 g/L/h · Km ~ 0.05 g/L\nZERO-ORDER at any drinking BAC", shape = parallelogram, fillcolor = "#cee4c8"];
+        MB_CYP    [label = "CYP2E1\nrelative induction (fold)", peripheries = 2, fillcolor = "#c6dfc0"];
+        MB_MEOS   [label = "MEOS flux\nKm ~ 8-10 mM (0.4 g/L)\n10% of clearance -> 20-25% when induced", shape = parallelogram, fillcolor = "#cee4c8"];
+        MB_CAT    [label = "Catalase / H2O2 pathway\nminor systemically, relevant in brain", shape = parallelogram, fillcolor = "#cee4c8"];
+        MB_ACD    [label = "ACD\nacetaldehyde (uM)", peripheries = 2, fillcolor = "#c6dfc0"];
+        MB_ALDH2  [label = "Mitochondrial ALDH2\nKm ~ 1 uM · keeps ACD at 1-2 uM\nTHE disulfiram / ALDH2*2 node", shape = parallelogram, fillcolor = "#cee4c8"];
+        MB_ACT    [label = "ACT\nacetate (mM) -> peripheral acetyl-CoA", peripheries = 2, fillcolor = "#c6dfc0"];
+        MB_NADH   [label = "NADH\nhepatic NADH/NAD+ ratio (relative)", peripheries = 2, fillcolor = "#c6dfc0"];
+        MB_LACT   [label = "LACT\nlactate (mmol/L)", peripheries = 2, fillcolor = "#c6dfc0"];
+        MB_GNG    [label = "Gluconeogenesis suppressed\npyruvate -> lactate shunt\nfasting hypoglycaemia"];
+        MB_FAOX   [label = "Fatty-acid oxidation suppressed\nPPAR-alpha down, SREBP-1c up", shape = parallelogram, fillcolor = "#cee4c8"];
+        MB_TG     [label = "Hepatic triglyceride synthesis up"];
+        MB_URIC   [label = "Lactate blocks renal urate excretion\n-> hyperuricaemia / gout flare"];
+        MB_ROS    [label = "CYP2E1-derived ROS\nsuperoxide · hydroxyethyl radical", fillcolor = "#e9d9d1", color = "#b98f7c"];
+        MB_GSH    [label = "Hepatic glutathione depletion"];
+        MB_NAPQI  [label = "CYP2E1 x paracetamol -> NAPQI\ntherapeutic-dose hepatotoxicity risk", fillcolor = "#e9d9d1", color = "#b98f7c"];
+        MB_TOLMET [label = "Metabolic tolerance\nfaster clearance at same dose", shape = diamond, fillcolor = "#cadfc4"];
+        MB_ACDADD [label = "Acetaldehyde-protein adducts\nneoantigen -> immune hepatitis", fillcolor = "#e9d9d1", color = "#b98f7c"];
+        MB_SALSO  [label = "Salsolinol (ACD + dopamine condensate)\nVTA MOR-dependent reinforcement"];
+    }
+
+    /* ================================================================
+       5. NON-OXIDATIVE METABOLISM AND OBJECTIVE BIOMARKERS
+       ================================================================ */
+    subgraph cluster_biomk {
+        label = "5. Non-oxidative metabolism · objective consumption biomarkers";
+        style = "filled,rounded"; fillcolor = "#f6f2fa"; color = "#b39ccd";
+        fontsize = 13; fontcolor = "#5b3f80";
+        node [fillcolor = "#e8ddf3", color = "#a087bf"];
+
+        BM_PLD    [label = "Phospholipase D transphosphatidylation\n~0.05% of dose", shape = parallelogram, fillcolor = "#ded0ee"];
+        BM_PETH   [label = "PETH\nphosphatidylethanol 16:0/18:1 (ng/mL)\nt1/2 ~ 4-10 d · window 2-4 weeks", peripheries = 2, fillcolor = "#d8c8ea"];
+        BM_FAEE   [label = "Fatty-acid ethyl esters (FAEE)\nhair / meconium matrix"];
+        BM_ETG    [label = "EtG / EtS (urine)\nUGT / SULT conjugates · window 2-3 d", shape = hexagon, fillcolor = "#d0bde6"];
+        BM_CDT    [label = "CDT\ncarbohydrate-deficient transferrin (%)", peripheries = 2, fillcolor = "#d8c8ea"];
+        BM_CDTMEC[label = "ACD inhibits Golgi glycosyltransferase\nneeds >= 60 g/day for 1-2 weeks", shape = parallelogram, fillcolor = "#ded0ee"];
+        BM_GGT    [label = "GGT\ngamma-glutamyl transferase (U/L)", peripheries = 2, fillcolor = "#d8c8ea"];
+        BM_MCV    [label = "MCV\nmean corpuscular volume (fL)\nslow marker, t1/2 ~ RBC lifespan", peripheries = 2, fillcolor = "#d8c8ea"];
+        BM_COMBO  [label = "PEth + GGT + CDT combination\nbest sensitivity for relapse detection", shape = hexagon, fillcolor = "#d0bde6"];
+        BM_SELFR  [label = "Self-report (TLFB / AUDIT-C)\nunder-reports by 30-50%", shape = hexagon, fillcolor = "#d0bde6"];
+    }
+
+    /* ================================================================
+       6. GABA-A SIGNALLING, TOLERANCE AND SUBUNIT SWITCHING
+       ================================================================ */
+    subgraph cluster_gaba {
+        label = "6. GABA-A signalling · sedation · tolerance · subunit reconfiguration";
+        style = "filled,rounded"; fillcolor = "#eef6f6"; color = "#83b8b8";
+        fontsize = 13; fontcolor = "#1f5f5f";
+        node [fillcolor = "#d7ebeb", color = "#67a3a3"];
+
+        GA_SYN    [label = "Synaptic GABA-A (alpha1/beta2/gamma2)\nphasic inhibition · sedation, ataxia"];
+        GA_EXTRA  [label = "Extrasynaptic GABA-A (alpha4/alpha6-delta)\nTONIC current · sensitive to 3-30 mM ethanol"];
+        GA_POT    [label = "Ethanol potentiation of GABA-A\nEC50 ~ 20-50 mM for synaptic,\nlower for delta-containing", shape = parallelogram, fillcolor = "#cde5e5"];
+        GA_NAS    [label = "Neuroactive steroids (allopregnanolone)\nethanol raises them -> indirect GABA-A gain"];
+        GA_TONE   [label = "GABA_TONE\nnet GABAergic inhibitory tone", peripheries = 2, fillcolor = "#c6e0e0"];
+        GA_SUB    [label = "GABAA_SUB\nsubunit reconfiguration index\n(alpha1 down, alpha4 up, delta internalised)", peripheries = 2, fillcolor = "#c6e0e0"];
+        GA_TOLF   [label = "Functional (pharmacodynamic) tolerance", shape = diamond, fillcolor = "#cbe4e4"];
+        GA_XTOL   [label = "Cross-tolerance to benzodiazepines,\nbarbiturates, volatile anaesthetics"];
+        GA_VTAINT [label = "VTA GABA interneuron\ntonic brake on dopamine neurons"];
+        GA_CEAGABA[label = "CeA GABAergic transmission\nethanol-sensitive, CRF-amplified"];
+        GA_WDGAP  [label = "Withdrawal GABA deficit\nadaptation persists after ethanol leaves", shape = diamond, fillcolor = "#cbe4e4"];
+    }
+
+    /* ================================================================
+       7. GLUTAMATE / NMDA SYSTEM AND HOMEOSTASIS
+       ================================================================ */
+    subgraph cluster_glu {
+        label = "7. Glutamate · NMDA · homeostatic transporters";
+        style = "filled,rounded"; fillcolor = "#fdf0f0"; color = "#d99b9b";
+        fontsize = 13; fontcolor = "#8c2f2f";
+        node [fillcolor = "#f7dcdc", color = "#c98383"];
+
+        GL_NMDA   [label = "NMDA receptor (GluN1/GluN2B)\nethanol is a non-competitive inhibitor"];
+        GL_INH    [label = "Acute NMDA inhibition\namnesia (blackout), ataxia, anti-anxiety", shape = parallelogram, fillcolor = "#f2cccc"];
+        GL_UP     [label = "NMDA_UP\nNR2B/GluN2B upregulation index", peripheries = 2, fillcolor = "#eec2c2"];
+        GL_GLT1   [label = "GLT1\nastrocytic GLT-1 (EAAT2) + xCT capacity", peripheries = 2, fillcolor = "#eec2c2"];
+        GL_EXT    [label = "GLU_NAC\nextracellular glutamate, NAc / mPFC", peripheries = 2, fillcolor = "#eec2c2"];
+        GL_MGLU5  [label = "mGluR5 / Homer2 scaffold\nreinstatement of alcohol seeking"];
+        GL_AMPA   [label = "AMPA / kainate receptors\nGluA1 trafficking · topiramate target"];
+        GL_EXCITO [label = "Excitotoxic Ca2+ influx\nneuronal loss, cerebellar & PFC atrophy", fillcolor = "#f0d3cc", color = "#c08b7c"];
+        GL_HYPER  [label = "Withdrawal hyperglutamatergia\nunopposed NMDA drive when ethanol stops", shape = diamond, fillcolor = "#f2cccc"];
+        GL_HOMEO  [label = "Glutamate homeostasis deficit\nthe acamprosate / N-acetylcysteine target", shape = diamond, fillcolor = "#f2cccc"];
+        GL_SEIZ   [label = "Withdrawal seizure generation\n(rum fits) 12-48 h", shape = hexagon, fillcolor = "#eeb9b9"];
+    }
+
+    /* ================================================================
+       8. ENDOGENOUS OPIOID SYSTEM — THE REINFORCEMENT ARM
+       ================================================================ */
+    subgraph cluster_opioid {
+        label = "8. Endogenous opioid reinforcement — the naltrexone / nalmefene arm";
+        style = "filled,rounded"; fillcolor = "#fff7e4"; color = "#dcc077";
+        fontsize = 13; fontcolor = "#7d6110";
+        node [fillcolor = "#faeecb", color = "#cbb063";
+
+        ];
+        OP_POMC   [label = "Arcuate POMC neurons\nethanol-evoked release"];
+        OP_BEND   [label = "BEND\nbeta-endorphin in NAc / VTA", peripheries = 2, fillcolor = "#f5e4b4"];
+        OP_ENK    [label = "Met/Leu-enkephalin\nNAc shell, delta-opioid receptor"];
+        OP_MOR    [label = "mu-opioid receptor (MOR)\nGi/o · Ki naltrexone ~ 0.2 nM"];
+        OP_MOROCC [label = "MOR occupancy (%)\n50 mg naltrexone -> > 90% for 24 h", shape = hexagon, fillcolor = "#f0dba1"];
+        OP_DOR    [label = "delta-opioid receptor\nmodulates consumption"];
+        OP_DISINH [label = "Disinhibition of VTA GABA interneuron\nMOR-Gi on the brake -> dopamine burst", shape = parallelogram, fillcolor = "#f5e4b4"];
+        OP_SUBJ   [label = "Subjective high / liking\nblunted by MOR blockade", shape = hexagon, fillcolor = "#f0dba1"];
+        OP_A118G  [label = "OPRM1 118G carriers\nlarger blunting by naltrexone\n(pharmacogenetic moderator)", shape = diamond, fillcolor = "#f3e0ad"];
+        OP_PRIME  [label = "Opioid-mediated priming\ndrives drinks-per-drinking-day, not P(any drink)", shape = diamond, fillcolor = "#f3e0ad"];
+    }
+
+    /* ================================================================
+       9. MESOLIMBIC DOPAMINE AND INCENTIVE SALIENCE
+       ================================================================ */
+    subgraph cluster_da {
+        label = "9. Mesolimbic dopamine · incentive sensitisation · habit";
+        style = "filled,rounded"; fillcolor = "#f0f0fb"; color = "#9a9ad2";
+        fontsize = 13; fontcolor = "#33338c";
+        node [fillcolor = "#dcdcf5", color = "#8484c4"];
+
+        DA_VTA    [label = "VTA dopamine neurons\nburst firing after MOR disinhibition"];
+        DA_NAC    [label = "DA_NAC\naccumbal dopamine (relative to baseline)", peripheries = 2, fillcolor = "#cccdf0"];
+        DA_D1     [label = "D1 MSN (direct pathway)\ngo / approach"];
+        DA_D2     [label = "D2 MSN (indirect pathway)\ndownregulated in chronic AUD (PET D2/3 Bmax low)"];
+        DA_DAT    [label = "DAT reuptake"];
+        DA_FOSB   [label = "DeltaFosB accumulation\nmonths-long transcriptional memory"];
+        DA_CUE    [label = "CUEREACT\ncue-conditioned incentive salience", peripheries = 2, fillcolor = "#cccdf0"];
+        DA_WANT   [label = "Wanting dissociates from liking\n(incentive-sensitisation theory)", shape = diamond, fillcolor = "#d2d2f2"];
+        DA_HABIT  [label = "HABIT\ndorsolateral striatal habit strength", peripheries = 2, fillcolor = "#cccdf0"];
+        DA_SHIFT  [label = "Ventral -> dorsal striatal shift\ngoal-directed -> stimulus-response", shape = parallelogram, fillcolor = "#d2d2f2"];
+        DA_ALLO   [label = "ALLO\nallostatic reward set-point shift", peripheries = 2, fillcolor = "#cccdf0"];
+        DA_ANHED  [label = "Anhedonia / reward deficiency\nnatural rewards devalued", shape = hexagon, fillcolor = "#c2c2ec"];
+        DA_5HT3   [label = "5-HT3 receptors on DA terminals\nethanol-evoked DA release component"];
+        DA_GLP1R  [label = "GLP-1R on VTA / NAc neurons\nsuppresses ethanol-evoked DA"];
+        DA_GABAB  [label = "GABA-B autoreceptors on VTA\nbaclofen brake"];
+        DA_CB1    [label = "CB1 endocannabinoid tone\npermissive for ethanol reward"];
+    }
+
+    /* ================================================================
+       10. DYNORPHIN / KOR ANTI-REWARD
+       ================================================================ */
+    subgraph cluster_dyn {
+        label = "10. Dynorphin / kappa-opioid anti-reward (the dark side)";
+        style = "filled,rounded"; fillcolor = "#f2eef2"; color = "#a98ba9";
+        fontsize = 13; fontcolor = "#5c2f5c";
+        node [fillcolor = "#e6dae6", color = "#9a789a"];
+
+        DY_PDYN   [label = "Prodynorphin induction\nCREB-dependent, repeated binge"];
+        DY_DYN    [label = "DYN\ndynorphin / KOR tone", peripheries = 2, fillcolor = "#dccadc"];
+        DY_KOR    [label = "kappa-opioid receptor on DA terminals\nGi -> suppresses dopamine release"];
+        DY_DYSPH  [label = "Dysphoria · aversive state", shape = hexagon, fillcolor = "#d4bcd4"];
+        DY_NEGREIN[label = "Negative reinforcement\ndrinking to relieve, not to enjoy", shape = diamond, fillcolor = "#dfcadf"];
+        DY_NMF    [label = "Nalmefene KOR partial agonism\ndistinguishes it from naltrexone"];
+    }
+
+    /* ================================================================
+       11. EXTENDED AMYGDALA STRESS SYSTEM
+       ================================================================ */
+    subgraph cluster_amyg {
+        label = "11. Extended amygdala — CRF · NPY · noradrenaline";
+        style = "filled,rounded"; fillcolor = "#fdefe9"; color = "#e0a184";
+        fontsize = 13; fontcolor = "#8c3f18";
+        node [fillcolor = "#f8ddd0", color = "#cf8f70"];
+
+        AM_CEA    [label = "Central nucleus of amygdala (CeA)\n+ BNST = extended amygdala"];
+        AM_CRF    [label = "CRF_CEA\nCRF tone in extended amygdala", peripheries = 2, fillcolor = "#f4cdba"];
+        AM_CRF1   [label = "CRF1 receptor signalling\nrecruited in dependence, not in social drinking"];
+        AM_NPY    [label = "NPY_CEA\nneuropeptide Y (endogenous CRF brake)", peripheries = 2, fillcolor = "#f4cdba"];
+        AM_NE     [label = "NE_LC\nlocus coeruleus noradrenergic output", peripheries = 2, fillcolor = "#f4cdba"];
+        AM_A1     [label = "alpha1-adrenoceptor\nprazosin / doxazosin target"];
+        AM_A2     [label = "alpha2-autoreceptor\nclonidine / dexmedetomidine target"];
+        AM_NEGAFF [label = "NEGAFF\nnegative affect (anxiety, dysphoria, irritability)", peripheries = 2, fillcolor = "#f4cdba"];
+        AM_SLEEP  [label = "SLEEPD\nsleep fragmentation / REM rebound", peripheries = 2, fillcolor = "#f4cdba"];
+        AM_STRESSR[label = "Stress-induced reinstatement\nyohimbine / life-stress model", shape = diamond, fillcolor = "#f6d5c4"];
+        AM_OT     [label = "Oxytocin (BNST)\nexperimental anti-craving"];
+    }
+
+    /* ================================================================
+       12. HPA AXIS
+       ================================================================ */
+    subgraph cluster_hpa {
+        label = "12. HPA axis — acute activation, chronic blunting";
+        style = "filled,rounded"; fillcolor = "#f7f4ea"; color = "#c5b884";
+        fontsize = 13; fontcolor = "#6e6120";
+        node [fillcolor = "#ece5cd", color = "#b3a468"];
+
+        HP_CRH    [label = "CRH_HYP\nhypothalamic PVN CRH", peripheries = 2, fillcolor = "#e2d9ba"];
+        HP_ACTH   [label = "ACTH\npituitary corticotroph output", peripheries = 2, fillcolor = "#e2d9ba"];
+        HP_CORT   [label = "CORT\nplasma cortisol", peripheries = 2, fillcolor = "#e2d9ba"];
+        HP_GR     [label = "GR_SENS\nglucocorticoid receptor sensitivity", peripheries = 2, fillcolor = "#e2d9ba"];
+        HP_BLUNT  [label = "Blunted HPA response in dependence\nlow cortisol reactivity predicts relapse", shape = diamond, fillcolor = "#e6dec3"];
+        HP_ACUTE  [label = "Acute ethanol -> HPA activation\n(reverses with chronic exposure)"];
+        HP_FEED   [label = "Negative feedback loop", shape = parallelogram, fillcolor = "#e6dec3"];
+        HP_ALLOP  [label = "Adrenal allopregnanolone\ncontributes to acute GABAergic effect"];
+    }
+
+    /* ================================================================
+       13. PREFRONTAL CONTROL AND EXECUTIVE FUNCTION
+       ================================================================ */
+    subgraph cluster_pfc {
+        label = "13. Prefrontal executive control · decision weighting";
+        style = "filled,rounded"; fillcolor = "#eef2ef"; color = "#93ab9a";
+        fontsize = 13; fontcolor = "#2f5539";
+        node [fillcolor = "#dbe6de", color = "#7e9a86"];
+
+        PF_DLPFC  [label = "dlPFC / vmPFC top-down control"];
+        PF_CTRL   [label = "PFC\nexecutive control capacity", peripheries = 2, fillcolor = "#cdded3"];
+        PF_ACC    [label = "Anterior cingulate conflict monitoring"];
+        PF_INSULA [label = "Insula interoception\nurge representation"];
+        PF_DELAY  [label = "Delay discounting steepens\nfuture consequences devalued", shape = hexagon, fillcolor = "#c5d8cb"];
+        PF_INHIB  [label = "Response inhibition deficit\n(stop-signal, go/no-go)"];
+        PF_ATROPHY[label = "Grey/white matter loss\npartially reversible with abstinence", fillcolor = "#e2dbd0", color = "#a8977e"];
+        PF_RECOV  [label = "PFC recovery with sustained abstinence\nweeks to months", shape = parallelogram, fillcolor = "#d5e3d9"];
+    }
+
+    /* ================================================================
+       14. CRAVING INTEGRATION
+       ================================================================ */
+    subgraph cluster_crave {
+        label = "14. Craving integration — three drivers, one read-out";
+        style = "filled,rounded"; fillcolor = "#fff0f4"; color = "#dda0b5";
+        fontsize = 13; fontcolor = "#8c2b4c";
+        node [fillcolor = "#f9dde6", color = "#cd8ba2"];
+
+        CR_CRAVE  [label = "CRAVE\ncomposite craving (PACS / OCDS scale)", peripheries = 2, fillcolor = "#f4c9d8"];
+        CR_INCEN  [label = "Incentive-salience limb\n(cue-driven, dopaminergic)"];
+        CR_RELIEF [label = "Relief limb\n(negative affect, CRF / glutamate)"];
+        CR_HABITL [label = "Habit limb\n(automatic, stimulus-response)"];
+        CR_OCDS   [label = "Obsessive-Compulsive Drinking Scale", shape = hexagon, fillcolor = "#efb9cd"];
+        CR_ALQ    [label = "Alcohol Urge Questionnaire (AUQ)", shape = hexagon, fillcolor = "#efb9cd"];
+        CR_CUEREAC[label = "Cue-reactivity paradigm\nlab surrogate of relapse risk", shape = hexagon, fillcolor = "#efb9cd"];
+    }
+
+    /* ================================================================
+       15. WITHDRAWAL SYNDROME AND KINDLING
+       ================================================================ */
+    subgraph cluster_wd {
+        label = "15. Withdrawal syndrome · kindling · delirium tremens";
+        style = "filled,rounded"; fillcolor = "#fbecec"; color = "#cf8888";
+        fontsize = 13; fontcolor = "#7d1f1f";
+        node [fillcolor = "#f3d5d5", color = "#bc7272"];
+
+        WD_UNMASK [label = "Ethanol removed -> adaptation unmasked\nGABA deficit + NMDA excess", shape = diamond, fillcolor = "#f0cccc"];
+        WD_EXC    [label = "Net CNS excitation index\n(the quantity benzodiazepines titrate)", shape = parallelogram, fillcolor = "#f0cccc"];
+        WD_CIWA   [label = "CIWA\nCIWA-Ar autonomic withdrawal score", peripheries = 2, fillcolor = "#eec2c2"];
+        WD_TREM   [label = "Tremor, diaphoresis, tachycardia\n6-24 h"];
+        WD_SEIZ   [label = "Generalised tonic-clonic seizure\npeak 12-48 h", shape = hexagon, fillcolor = "#e9b1b1"];
+        WD_HALL   [label = "Alcoholic hallucinosis\n12-24 h, clear sensorium"];
+        WD_DT     [label = "Delirium tremens\n48-96 h · mortality 1-4% treated", shape = hexagon, fillcolor = "#e9b1b1"];
+        WD_KINDLE [label = "KINDLE\nkindling index (prior detoxifications)", peripheries = 2, fillcolor = "#eec2c2"];
+        WD_KMECH  [label = "Kindling mechanism\neach withdrawal lowers seizure threshold\nand deepens later negative affect", shape = diamond, fillcolor = "#f0cccc"];
+        WD_PAWS   [label = "Protracted withdrawal (PAWS)\nmonths of dysphoria, insomnia, craving", shape = hexagon, fillcolor = "#e9b1b1"];
+        WD_PRED   [label = "PAWS predicts relapse better than\nacute CIWA severity"];
+    }
+
+    /* ================================================================
+       16. DRUG PHARMACOKINETICS
+       ================================================================ */
+    subgraph cluster_pk {
+        label = "16. Pharmacotherapy — pharmacokinetics";
+        style = "filled,rounded"; fillcolor = "#eaf1f7"; color = "#7fa4c6";
+        fontsize = 13; fontcolor = "#22496e";
+        node [fillcolor = "#d5e4f0", shape = octagon, color = "#6b93b8"];
+
+        D_NTX     [label = "Naltrexone PO 50 mg qd\nF ~ 5-40% (high first pass)\nt1/2 ~ 4 h"];
+        D_NTXOL   [label = "6-beta-naltrexol (active metabolite)\nt1/2 ~ 13 h · 10-30x plasma of parent", shape = box, style = "rounded,filled", peripheries = 2, fillcolor = "#c6dbec"];
+        D_XRNTX   [label = "XR-naltrexone 380 mg IM q4wk\nPLGA depot · plateau d3-d28\nbypasses first pass and adherence"];
+        D_ACP     [label = "Acamprosate 666 mg tid\nF ~ 11% · Tmax 3-8 h · t1/2 ~ 20-33 h\nrenally cleared, no hepatic metabolism"];
+        D_DSF     [label = "Disulfiram 250 mg qd\nprodrug -> DDC -> DDC-Me-SO\nirreversible ALDH2 inhibition"];
+        D_TPM     [label = "Topiramate 25 -> 300 mg/d\nF ~ 80% · t1/2 ~ 21 h · renal"];
+        D_GBP     [label = "Gabapentin 600 mg tid\nsaturable LAT1 absorption\nrenal, t1/2 ~ 6 h"];
+        D_BAC     [label = "Baclofen 30 -> 300 mg/d\nt1/2 ~ 4 h · renal"];
+        D_NMF     [label = "Nalmefene 18 mg as-needed\nt1/2 ~ 13 h · targeted dosing"];
+        D_OND     [label = "Ondansetron 4 ug/kg bid\nCYP3A4/2D6 · t1/2 ~ 4 h"];
+        D_BZD     [label = "Chlordiazepoxide / lorazepam\nsymptom-triggered (CIWA-Ar >= 8)\nlorazepam preferred in cirrhosis"];
+        D_SEM     [label = "Semaglutide 0.25 -> 1.0 mg SC weekly\nt1/2 ~ 7 d · GLP-1R agonist"];
+        D_THIA    [label = "Thiamine 500 mg IV tds (Wernicke)\nor 100 mg PO prophylaxis"];
+        D_PRAZ    [label = "Prazosin / doxazosin\nalpha1 antagonist (off-label)"];
+        D_DISU_ADH[label = "Supervised administration\nthe single largest disulfiram effect modifier", shape = diamond, style = "filled", fillcolor = "#cfe0ee"];
+    }
+
+    /* ================================================================
+       17. DRUG PHARMACODYNAMICS — WHERE EACH AGENT CUTS THE LOOP
+       ================================================================ */
+    subgraph cluster_pd {
+        label = "17. Pharmacodynamics — target engagement";
+        style = "filled,rounded"; fillcolor = "#e9f3ee"; color = "#77b394";
+        fontsize = 13; fontcolor = "#1d5c3c";
+        node [fillcolor = "#d3e9dd", color = "#63a081"];
+
+        P_MORBLK  [label = "MOR competitive blockade\nnaltrexone + 6-beta-naltrexol + nalmefene", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_KORPART [label = "KOR partial agonism (nalmefene)\ncaps dysphoric limb"];
+        P_NMDAMOD [label = "Acamprosate: NMDA/mGluR5 modulation\nrestores glutamate homeostasis", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_AMPABLK [label = "Topiramate: AMPA/kainate GluK1 blockade\n+ GABA-A potentiation + CA inhibition", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_A2D     [label = "Gabapentin: alpha2delta-1 (CACNA2D1)\nnormalises CeA GABA, restores sleep", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_GABAB   [label = "Baclofen: GABA-B agonism on VTA", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_5HT3BLK [label = "Ondansetron: 5-HT3 blockade\nreduces ethanol-evoked DA", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_GLP1    [label = "Semaglutide: central GLP-1R\nreduces incentive salience and intake", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_ALDHBLK [label = "Disulfiram: ALDH2 inactivation\n-> acetaldehyde 5-10x", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_AVERS   [label = "Aversive expectancy\nflush, nausea, palpitations, hypotension", shape = diamond, fillcolor = "#cbe5d8"];
+        P_BZDSUB  [label = "Benzodiazepine GABA-A substitution\nreplaces missing tone during detox", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_A1BLK   [label = "alpha1 blockade (prazosin)\ndampens LC-driven arousal", shape = parallelogram, fillcolor = "#c7e2d4"];
+        P_TOLER   [label = "Tolerance to the medication itself\n(baclofen sedation, topiramate cognition)"];
+    }
+
+    /* ================================================================
+       18. HEPATIC INJURY AXIS
+       ================================================================ */
+    subgraph cluster_liver {
+        label = "18. Alcohol-related liver disease axis";
+        style = "filled,rounded"; fillcolor = "#f9f2e7"; color = "#d3b477";
+        fontsize = 13; fontcolor = "#7a5713";
+        node [fillcolor = "#f0e2c7", color = "#c2a263"];
+
+        LV_STEAT  [label = "STEAT\nhepatic steatosis fraction", peripheries = 2, fillcolor = "#e8d5b0"];
+        LV_LPS    [label = "LPS\ngut-derived endotoxin (portal)", peripheries = 2, fillcolor = "#e8d5b0"];
+        LV_LEAK   [label = "Ethanol/ACD -> tight-junction loss\nleaky gut, dysbiosis", shape = parallelogram, fillcolor = "#ecdcbb"];
+        LV_KUPF   [label = "Kupffer cell TLR4 / CD14 activation"];
+        LV_TNF    [label = "TNFA\nTNF-alpha and IL-1beta", peripheries = 2, fillcolor = "#e8d5b0"];
+        LV_ALT    [label = "ALT\nalanine aminotransferase (U/L)", peripheries = 2, fillcolor = "#e8d5b0"];
+        LV_AST    [label = "AST\naspartate aminotransferase (U/L)\nAST/ALT > 2 is the alcohol signature", peripheries = 2, fillcolor = "#e8d5b0"];
+        LV_HSC    [label = "Hepatic stellate cell activation\nTGF-beta1 -> collagen I/III"];
+        LV_FIB    [label = "FIB\nfibrosis stage (continuous F0-F4)", peripheries = 2, fillcolor = "#e8d5b0"];
+        LV_AH     [label = "Alcoholic hepatitis (Maddrey DF >= 32)\nprednisolone / Lille score", shape = hexagon, fillcolor = "#e2c895"];
+        LV_CIRR   [label = "Cirrhosis · portal hypertension\nvarices, ascites, HE", shape = hexagon, fillcolor = "#e2c895"];
+        LV_HCC    [label = "Hepatocellular carcinoma risk", shape = hexagon, fillcolor = "#e2c895"];
+        LV_REGR   [label = "Regression with abstinence\nsteatosis days-weeks, fibrosis months-years", shape = parallelogram, fillcolor = "#ecdcbb"];
+        LV_PKIMP  [label = "Cirrhosis alters drug handling\nnaltrexone hepatic caution, lorazepam preferred", shape = diamond, fillcolor = "#ead9b6"];
+    }
+
+    /* ================================================================
+       19. NUTRITION, ELECTROLYTES, NEUROLOGICAL COMPLICATIONS
+       ================================================================ */
+    subgraph cluster_nutri {
+        label = "19. Nutrition · electrolytes · neurological complications";
+        style = "filled,rounded"; fillcolor = "#eef1f6"; color = "#98a6c2";
+        fontsize = 13; fontcolor = "#33436e";
+        node [fillcolor = "#dde3ef", color = "#8593b3"];
+
+        NU_THIA   [label = "THIA\nthiamine (vitamin B1) status", peripheries = 2, fillcolor = "#ccd6e8"];
+        NU_ABS    [label = "Reduced thiamine absorption + storage\nplus carbohydrate load precipitates deficit", shape = parallelogram, fillcolor = "#d3dbec"];
+        NU_WERN   [label = "Wernicke encephalopathy\nophthalmoplegia · ataxia · confusion", shape = hexagon, fillcolor = "#c3cfe4"];
+        NU_KORS   [label = "Korsakoff amnestic syndrome\n(80% of untreated Wernicke)", shape = hexagon, fillcolor = "#c3cfe4"];
+        NU_MG     [label = "Hypomagnesaemia\nrefractory hypokalaemia, seizure threshold"];
+        NU_K      [label = "Hypokalaemia / hypophosphataemia"];
+        NU_REFEED [label = "Refeeding syndrome risk"];
+        NU_FOL    [label = "Folate / B12 deficiency -> macrocytosis"];
+        NU_KETO   [label = "Alcoholic ketoacidosis\nhigh NADH + starvation -> beta-hydroxybutyrate"];
+        NU_HYPOG  [label = "Fasting hypoglycaemia\ngluconeogenesis blocked"];
+        NU_PN     [label = "Peripheral neuropathy\nthiamine + direct axonal toxicity", shape = hexagon, fillcolor = "#c3cfe4"];
+        NU_CEREB  [label = "Cerebellar vermian degeneration", shape = hexagon, fillcolor = "#c3cfe4"];
+    }
+
+    /* ================================================================
+       20. CARDIOVASCULAR AND OTHER SYSTEMIC EFFECTS
+       ================================================================ */
+    subgraph cluster_cv {
+        label = "20. Cardiovascular · systemic effects";
+        style = "filled,rounded"; fillcolor = "#fdf0f7"; color = "#d59cc0";
+        fontsize = 13; fontcolor = "#7d2a58";
+        node [fillcolor = "#f6dcec", color = "#c288aa"];
+
+        CV_SBP    [label = "SBP\nsystolic blood pressure (mmHg)", peripheries = 2, fillcolor = "#f0cae2"];
+        CV_SYMP   [label = "Sympathetic activation + cortisol\nJ-curve is confounded; > 2 drinks/d raises BP"];
+        CV_AF     [label = "Atrial fibrillation burden\nholiday heart · dose-dependent", shape = hexagon, fillcolor = "#eab8d8"];
+        CV_CMYO   [label = "CMYO\nalcoholic cardiomyopathy (LVEF decrement)", peripheries = 2, fillcolor = "#f0cae2"];
+        CV_STROKE [label = "Haemorrhagic stroke risk", shape = hexagon, fillcolor = "#eab8d8"];
+        CV_CANCER [label = "ACD-driven cancer risk\noropharynx, oesophagus, breast, colon", shape = hexagon, fillcolor = "#eab8d8"];
+        CV_PANCR  [label = "Chronic pancreatitis"];
+        CV_OSTEO  [label = "Osteopenia, hypogonadism"];
+        CV_IMMUNE [label = "Impaired host defence\npneumonia, tuberculosis, sepsis"];
+        CV_BPREV  [label = "BP falls within 2-4 weeks of abstinence", shape = parallelogram, fillcolor = "#f3d3e6"];
+    }
+
+    /* ================================================================
+       21. CLINICAL ENDPOINTS AND TRIAL READ-OUTS
+       ================================================================ */
+    subgraph cluster_end {
+        label = "21. Clinical endpoints — what trials actually measure";
+        style = "filled,rounded"; fillcolor = "#eef7f2"; color = "#7cbb9c";
+        fontsize = 13; fontcolor = "#14603f";
+        node [shape = hexagon, fillcolor = "#cfe9dd", color = "#5fa382"];
+
+        E_HDD     [label = "%HDD\npercent heavy drinking days\n(>= 5 M / >= 4 F drinks per day)"];
+        E_DPDD    [label = "DPDD\ndrinks per drinking day\n(the naltrexone-sensitive endpoint)"];
+        E_PDA     [label = "PDA\npercent days abstinent\n(the acamprosate-sensitive endpoint)"];
+        E_PSNHD   [label = "PSNHD\nsubjects with no heavy drinking day"];
+        E_ABST    [label = "Complete abstinence rate"];
+        E_TTR     [label = "Time to first heavy drinking day"];
+        E_WHO     [label = "WHO risk drinking level\n(2-level reduction = FDA/EMA-acceptable endpoint)"];
+        E_GCO     [label = "Good clinical outcome (COMBINE)\nabstinent or moderate drinking without problems"];
+        E_CIWAEP  [label = "Peak CIWA-Ar · total benzodiazepine dose\n· seizure / DT incidence"];
+        E_PETHEP  [label = "PEth-confirmed abstinence\nobjective corroboration of self-report"];
+        E_QOL     [label = "DrInC / SF-36 / WHOQOL\nconsequences and quality of life"];
+        E_MORT    [label = "All-cause and liver mortality"];
+    }
+
+    /* ================================================================
+       EDGES
+       ================================================================ */
+
+    /* --- 1 -> the rest: susceptibility wiring --------------------- */
+    G_FAMHX  -> R_TOLGEN;
+    R_AGEONS -> PF_CTRL   [color = "#b04a4a", arrowhead = tee, label = "impairs maturation"];
+    R_TOLGEN -> B_DPD     [label = "more drinks for same effect"];
+    R_SEX    -> PK_VD;
+    R_BW     -> PK_VD;
+    R_SEX    -> PK_GASTADH [label = "lower in women"];
+    G_ADH1B  -> MB_ADH    [color = "#2f7a3f", label = "40x Vmax"];
+    G_ALDH2  -> MB_ALDH2  [color = "#b04a4a", arrowhead = tee, label = "15-25% activity (het)"];
+    G_OPRM1  -> OP_MOR    [label = "binding affinity"];
+    G_OPRM1  -> P_MORBLK  [style = dashed, label = "moderates NTX effect"];
+    G_GABRA2 -> GA_SYN;
+    G_5HTT   -> DA_5HT3   [style = dashed, label = "moderates ondansetron"];
+    G_KCNJ6  -> DA_VTA;
+    R_TRAUMA -> AM_CRF    [color = "#c06a2b"];
+    R_PSYCH  -> AM_NEGAFF [color = "#c06a2b"];
+    R_SOCIAL -> B_CUEEXP;
+    R_SOCIAL -> B_DECIDE;
+
+    /* --- 2. behaviour -> dose ------------------------------------ */
+    B_DRIVE  -> B_DECIDE  [color = "#d2802a", penwidth = 1.5];
+    B_DECIDE -> B_DPD     [color = "#d2802a", penwidth = 1.5];
+    B_ABSTG  -> B_DECIDE  [color = "#2f7a3f", arrowhead = tee];
+    B_MM     -> B_ABSTG   [color = "#2f7a3f"];
+    B_MM     -> B_ADH     [color = "#2f7a3f"];
+    B_AA     -> B_ABSTG   [color = "#2f7a3f"];
+    B_ADH    -> D_NTX     [style = dashed];
+    B_ADH    -> D_ACP     [style = dashed];
+    B_ADH    -> D_DSF     [style = dashed, label = "adherence dominates"];
+    B_DPD    -> B_TAC;
+    B_DPD    -> B_WINDOW;
+    B_WINDOW -> B_PACE;
+    B_PACE   -> PK_ST     [color = "#d2802a", penwidth = 1.6, label = "g/h into stomach"];
+    B_FED    -> PK_EMPTY  [color = "#b04a4a", arrowhead = tee, label = "delays"];
+    B_CUEEXP -> DA_CUE    [color = "#c06a2b"];
+    B_PRIMING-> B_DPD     [color = "#d2802a"];
+    B_LAPSE  -> B_PRIMING;
+    B_PRIMING-> B_RELAPSE [color = "#d2802a"];
+    B_RELAPSE-> B_TAC     [color = "#d2802a"];
+    B_TAC    -> E_WHO;
+
+    /* --- 3. ethanol PK ------------------------------------------- */
+    PK_ST    -> PK_GASTADH;
+    PK_GASTADH -> MB_ACD  [label = "first-pass ACD"];
+    PK_ST    -> PK_EMPTY;
+    PK_EMPTY -> PK_GUT;
+    PK_GUT   -> PK_ABS;
+    PK_ABS   -> PK_PORTAL;
+    PK_PORTAL-> PK_CENT   [penwidth = 1.4];
+    PK_CENT  -> PK_VD     [style = dashed];
+    PK_VD    -> PK_BAC;
+    PK_CENT  -> PK_BAC    [penwidth = 1.4];
+    PK_BAC   -> PK_BRAIN  [penwidth = 1.4];
+    PK_BAC   -> PK_BREATH;
+    PK_CENT  -> PK_RENAL;
+    PK_BAC   -> PK_ASC;
+    PK_BAC   -> PK_DESC;
+    PK_ASC   -> OP_BEND   [color = "#d2802a", penwidth = 1.3];
+    PK_DESC  -> DY_DYSPH  [color = "#8a4a8a"];
+    PK_ASC   -> PK_MEG;
+    PK_MEG   -> PK_DESC   [style = dashed];
+
+    /* --- 4. metabolism ------------------------------------------- */
+    PK_CENT  -> MB_ADH    [penwidth = 1.4];
+    PK_CENT  -> MB_MEOS;
+    PK_CENT  -> MB_CAT;
+    MB_CYP   -> MB_MEOS   [penwidth = 1.3, label = "Vmax scaling"];
+    PK_CENT  -> MB_CYP    [color = "#c06a2b", label = "chronic exposure induces"];
+    MB_ADH   -> MB_ACD    [penwidth = 1.4];
+    MB_MEOS  -> MB_ACD;
+    MB_CAT   -> MB_ACD;
+    MB_ADH   -> MB_NADH   [penwidth = 1.3];
+    MB_ACD   -> MB_ALDH2  [penwidth = 1.4];
+    MB_ALDH2 -> MB_ACT;
+    MB_ALDH2 -> MB_NADH;
+    MB_NADH  -> MB_LACT   [penwidth = 1.2];
+    MB_NADH  -> MB_GNG    [color = "#b04a4a", arrowhead = tee];
+    MB_NADH  -> MB_FAOX   [color = "#b04a4a", arrowhead = tee];
+    MB_FAOX  -> MB_TG;
+    MB_TG    -> LV_STEAT  [penwidth = 1.3];
+    MB_LACT  -> MB_URIC;
+    MB_GNG   -> NU_HYPOG;
+    MB_NADH  -> NU_KETO;
+    MB_CYP   -> MB_ROS    [penwidth = 1.2];
+    MB_ROS   -> MB_GSH    [color = "#b04a4a", arrowhead = tee];
+    MB_CYP   -> MB_NAPQI;
+    MB_ROS   -> LV_ALT    [color = "#c06a2b"];
+    MB_CYP   -> MB_TOLMET;
+    MB_TOLMET-> PK_BAC    [color = "#2f7a3f", arrowhead = tee, label = "lower BAC per drink"];
+    MB_ACD   -> MB_ACDADD;
+    MB_ACDADD-> LV_TNF    [color = "#c06a2b"];
+    MB_ACD   -> MB_SALSO;
+    MB_SALSO -> DA_VTA    [color = "#d2802a", style = dashed];
+    MB_ACD   -> CV_CANCER [color = "#b04a4a"];
+    MB_ACT   -> CV_SYMP   [style = dashed];
+
+    /* --- 5. biomarkers ------------------------------------------- */
+    PK_CENT  -> BM_PLD;
+    BM_PLD   -> BM_PETH   [penwidth = 1.3];
+    BM_PLD   -> BM_FAEE;
+    PK_CENT  -> BM_ETG;
+    MB_ACD   -> BM_CDTMEC;
+    BM_CDTMEC-> BM_CDT;
+    LV_ALT   -> BM_GGT    [style = dashed];
+    PK_CENT  -> BM_GGT    [label = "enzyme induction"];
+    NU_FOL   -> BM_MCV;
+    PK_CENT  -> BM_MCV    [label = "direct erythroid toxicity"];
+    BM_PETH  -> BM_COMBO;
+    BM_GGT   -> BM_COMBO;
+    BM_CDT   -> BM_COMBO;
+    BM_COMBO -> E_PETHEP;
+    BM_SELFR -> E_HDD     [style = dashed, label = "biased"];
+    BM_PETH  -> BM_SELFR  [style = dashed, arrowhead = tee, label = "corrects"];
+
+    /* --- 6. GABA -------------------------------------------------- */
+    PK_BRAIN -> GA_POT    [penwidth = 1.4];
+    GA_POT   -> GA_SYN;
+    GA_POT   -> GA_EXTRA;
+    GA_NAS   -> GA_EXTRA  [color = "#2f7a3f"];
+    HP_ALLOP -> GA_NAS;
+    GA_SYN   -> GA_TONE   [penwidth = 1.3];
+    GA_EXTRA -> GA_TONE   [penwidth = 1.3];
+    GA_TONE  -> GA_VTAINT;
+    GA_TONE  -> GA_CEAGABA;
+    PK_BRAIN -> GA_SUB    [color = "#c06a2b", label = "chronic reconfiguration"];
+    GA_SUB   -> GA_TONE   [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    GA_SUB   -> GA_TOLF;
+    GA_TOLF  -> GA_XTOL;
+    GA_TOLF  -> B_DPD     [color = "#d2802a", label = "escalation"];
+    GA_SUB   -> GA_WDGAP  [penwidth = 1.3];
+    GA_WDGAP -> WD_UNMASK [penwidth = 1.4];
+    GA_XTOL  -> D_BZD     [style = dashed, label = "higher doses needed"];
+
+    /* --- 7. glutamate --------------------------------------------- */
+    PK_BRAIN -> GL_INH    [penwidth = 1.3];
+    GL_INH   -> GL_NMDA   [color = "#b04a4a", arrowhead = tee];
+    PK_BRAIN -> GL_UP     [color = "#c06a2b", label = "compensatory upregulation"];
+    GL_UP    -> GL_NMDA   [penwidth = 1.2];
+    PK_BRAIN -> GL_GLT1   [color = "#b04a4a", arrowhead = tee, label = "chronic downregulation"];
+    GL_GLT1  -> GL_EXT    [color = "#2f7a3f", arrowhead = tee, penwidth = 1.2];
+    GL_NMDA  -> GL_EXT    [style = dashed];
+    GL_EXT   -> GL_MGLU5;
+    GL_EXT   -> GL_AMPA;
+    GL_EXT   -> GL_EXCITO;
+    GL_EXCITO-> PF_ATROPHY;
+    GL_UP    -> GL_HYPER  [penwidth = 1.3];
+    GL_GLT1  -> GL_HOMEO  [color = "#2f7a3f", arrowhead = tee];
+    GL_EXT   -> GL_HOMEO;
+    GL_HYPER -> WD_UNMASK [penwidth = 1.4];
+    GL_HYPER -> GL_SEIZ;
+    GL_SEIZ  -> WD_SEIZ;
+    GL_HOMEO -> AM_NEGAFF [color = "#c06a2b", penwidth = 1.2];
+    GL_MGLU5 -> DA_CUE    [color = "#c06a2b"];
+
+    /* --- 8. opioid ------------------------------------------------ */
+    OP_POMC  -> OP_BEND;
+    PK_BRAIN -> OP_POMC   [penwidth = 1.2];
+    OP_BEND  -> OP_MOR    [penwidth = 1.4];
+    OP_ENK   -> OP_DOR;
+    OP_MOR   -> OP_MOROCC;
+    OP_MOR   -> OP_DISINH [penwidth = 1.4];
+    OP_DISINH-> GA_VTAINT [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    GA_VTAINT-> DA_VTA    [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    OP_DISINH-> DA_VTA    [color = "#d2802a", penwidth = 1.5];
+    OP_MOR   -> OP_SUBJ;
+    OP_A118G -> OP_MOR    [style = dashed];
+    OP_MOR   -> OP_PRIME  [penwidth = 1.2];
+    OP_PRIME -> B_PRIMING [color = "#d2802a", penwidth = 1.4];
+    OP_DOR   -> B_DPD     [style = dashed];
+
+    /* --- 9. dopamine ---------------------------------------------- */
+    DA_VTA   -> DA_NAC    [penwidth = 1.5];
+    DA_NAC   -> DA_D1     [penwidth = 1.2];
+    DA_NAC   -> DA_D2;
+    DA_DAT   -> DA_NAC    [color = "#b04a4a", arrowhead = tee];
+    DA_D1    -> DA_FOSB;
+    DA_FOSB  -> DA_CUE    [penwidth = 1.3];
+    DA_NAC   -> DA_CUE    [color = "#d2802a"];
+    DA_CUE   -> DA_WANT;
+    DA_WANT  -> CR_INCEN  [penwidth = 1.3];
+    DA_FOSB  -> DA_HABIT;
+    DA_SHIFT -> DA_HABIT  [penwidth = 1.3];
+    DA_NAC   -> DA_SHIFT  [style = dashed, label = "repeated pairing"];
+    DA_HABIT -> CR_HABITL [penwidth = 1.2];
+    DA_D2    -> DA_ALLO   [color = "#b04a4a", arrowhead = tee, label = "D2 loss raises set point"];
+    DA_ALLO  -> DA_ANHED  [penwidth = 1.2];
+    DA_ALLO  -> CR_RELIEF [penwidth = 1.2];
+    DA_5HT3  -> DA_NAC    [color = "#d2802a"];
+    DA_GLP1R -> DA_NAC    [color = "#2f7a3f", arrowhead = tee];
+    DA_GABAB -> DA_VTA    [color = "#2f7a3f", arrowhead = tee];
+    DA_CB1   -> DA_VTA    [style = dashed];
+    DA_ANHED -> E_QOL     [color = "#b04a4a"];
+
+    /* --- 10. dynorphin -------------------------------------------- */
+    DA_FOSB  -> DY_PDYN   [penwidth = 1.2];
+    PK_BRAIN -> DY_PDYN   [color = "#c06a2b", label = "repeated binge"];
+    DY_PDYN  -> DY_DYN    [penwidth = 1.3];
+    DY_DYN   -> DY_KOR    [penwidth = 1.3];
+    DY_KOR   -> DA_NAC    [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    DY_KOR   -> DY_DYSPH  [penwidth = 1.2];
+    DY_DYSPH -> AM_NEGAFF [penwidth = 1.3];
+    DY_DYSPH -> DY_NEGREIN;
+    DY_NEGREIN -> CR_RELIEF [penwidth = 1.3];
+    DY_NMF   -> DY_KOR    [color = "#2f7a3f", arrowhead = tee];
+
+    /* --- 11. extended amygdala ------------------------------------ */
+    PK_BRAIN -> AM_CRF    [color = "#c06a2b", label = "chronic recruitment"];
+    AM_CEA   -> AM_CRF;
+    AM_CRF   -> AM_CRF1   [penwidth = 1.3];
+    AM_CRF1  -> AM_NEGAFF [penwidth = 1.4];
+    AM_NPY   -> AM_CRF    [color = "#2f7a3f", arrowhead = tee, penwidth = 1.2];
+    PK_BRAIN -> AM_NPY    [color = "#b04a4a", arrowhead = tee, label = "chronic depletion"];
+    AM_CRF   -> AM_NE     [penwidth = 1.2];
+    AM_NE    -> AM_A1     [penwidth = 1.2];
+    AM_NE    -> AM_A2;
+    AM_A1    -> AM_NEGAFF [penwidth = 1.2];
+    AM_A1    -> WD_EXC    [penwidth = 1.2];
+    AM_NEGAFF-> AM_SLEEP  [penwidth = 1.2];
+    AM_SLEEP -> AM_NEGAFF [penwidth = 1.0, style = dashed, label = "reciprocal"];
+    AM_NEGAFF-> CR_RELIEF [penwidth = 1.4];
+    AM_STRESSR -> B_DRIVE [color = "#d2802a", penwidth = 1.2];
+    AM_CRF   -> AM_STRESSR;
+    AM_OT    -> AM_CRF    [color = "#2f7a3f", arrowhead = tee, style = dashed];
+    GA_CEAGABA -> AM_CRF  [color = "#2f7a3f", arrowhead = tee, style = dashed];
+
+    /* --- 12. HPA --------------------------------------------------- */
+    AM_CRF   -> HP_CRH    [penwidth = 1.2];
+    HP_ACUTE -> HP_CRH;
+    PK_BRAIN -> HP_ACUTE;
+    HP_CRH   -> HP_ACTH   [penwidth = 1.3];
+    HP_ACTH  -> HP_CORT   [penwidth = 1.3];
+    HP_CORT  -> HP_FEED;
+    HP_FEED  -> HP_CRH    [color = "#2f7a3f", arrowhead = tee];
+    HP_GR    -> HP_FEED   [penwidth = 1.1];
+    PK_BRAIN -> HP_GR     [color = "#b04a4a", arrowhead = tee, label = "chronic"];
+    HP_GR    -> HP_BLUNT  [color = "#b04a4a", arrowhead = tee];
+    HP_BLUNT -> B_RELAPSE [color = "#c06a2b", style = dashed, label = "low reactivity predicts relapse"];
+    HP_CORT  -> CV_SYMP;
+    HP_CORT  -> HP_ALLOP;
+    HP_CORT  -> LV_STEAT  [style = dashed];
+
+    /* --- 13. PFC --------------------------------------------------- */
+    PF_DLPFC -> PF_CTRL   [penwidth = 1.3];
+    PF_ACC   -> PF_CTRL;
+    PF_CTRL  -> B_DRIVE   [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4];
+    PF_CTRL  -> DA_HABIT  [color = "#2f7a3f", arrowhead = tee];
+    PK_BRAIN -> PF_CTRL   [color = "#b04a4a", arrowhead = tee, label = "chronic erosion"];
+    GL_EXT   -> PF_CTRL   [color = "#b04a4a", arrowhead = tee];
+    PF_CTRL  -> PF_DELAY  [color = "#2f7a3f", arrowhead = tee];
+    PF_CTRL  -> PF_INHIB  [color = "#2f7a3f", arrowhead = tee];
+    PF_ATROPHY -> PF_CTRL [color = "#b04a4a", arrowhead = tee];
+    PF_RECOV -> PF_CTRL   [color = "#2f7a3f", penwidth = 1.2];
+    PF_INSULA-> CR_CRAVE  [penwidth = 1.1];
+    PF_DELAY -> B_DECIDE  [color = "#c06a2b"];
+
+    /* --- 14. craving ---------------------------------------------- */
+    CR_INCEN -> CR_CRAVE  [penwidth = 1.4];
+    CR_RELIEF-> CR_CRAVE  [penwidth = 1.4];
+    CR_HABITL-> CR_CRAVE  [penwidth = 1.2];
+    CR_CRAVE -> B_DRIVE   [color = "#d2802a", penwidth = 1.6];
+    CR_CRAVE -> CR_OCDS;
+    CR_CRAVE -> CR_ALQ;
+    DA_CUE   -> CR_CUEREAC;
+    CR_CUEREAC -> B_RELAPSE [style = dashed];
+
+    /* --- 15. withdrawal ------------------------------------------- */
+    PK_BAC   -> WD_UNMASK [color = "#b04a4a", arrowhead = tee, label = "falling BAC triggers"];
+    WD_UNMASK-> WD_EXC    [penwidth = 1.5];
+    GL_HYPER -> WD_EXC    [penwidth = 1.3];
+    GA_WDGAP -> WD_EXC    [penwidth = 1.3];
+    WD_EXC   -> WD_CIWA   [penwidth = 1.5];
+    WD_CIWA  -> WD_TREM;
+    WD_EXC   -> WD_SEIZ   [penwidth = 1.2];
+    WD_CIWA  -> WD_HALL;
+    WD_CIWA  -> WD_DT     [penwidth = 1.2];
+    WD_KINDLE-> WD_EXC    [penwidth = 1.3, label = "amplifies"];
+    WD_UNMASK-> WD_KMECH;
+    WD_KMECH -> WD_KINDLE [penwidth = 1.3];
+    WD_KINDLE-> WD_SEIZ   [color = "#b04a4a"];
+    WD_EXC   -> WD_PAWS;
+    WD_PAWS  -> AM_NEGAFF [penwidth = 1.3];
+    WD_PAWS  -> WD_PRED;
+    WD_PRED  -> B_RELAPSE [color = "#c06a2b", penwidth = 1.2];
+    WD_CIWA  -> E_CIWAEP;
+    WD_SEIZ  -> E_CIWAEP;
+    WD_DT    -> E_CIWAEP;
+    NU_MG    -> WD_SEIZ   [color = "#c06a2b", style = dashed];
+
+    /* --- 16/17. drugs: PK -> PD ----------------------------------- */
+    D_NTX    -> D_NTXOL   [penwidth = 1.2];
+    D_NTX    -> P_MORBLK  [penwidth = 1.3];
+    D_NTXOL  -> P_MORBLK  [penwidth = 1.4, label = "dominant exposure"];
+    D_XRNTX  -> P_MORBLK  [penwidth = 1.4];
+    D_XRNTX  -> B_ADH     [color = "#2f7a3f", label = "removes daily adherence"];
+    D_NMF    -> P_MORBLK  [penwidth = 1.2];
+    D_NMF    -> P_KORPART;
+    P_KORPART-> DY_NMF;
+    D_ACP    -> P_NMDAMOD [penwidth = 1.3];
+    D_TPM    -> P_AMPABLK [penwidth = 1.3];
+    D_GBP    -> P_A2D     [penwidth = 1.3];
+    D_BAC    -> P_GABAB   [penwidth = 1.3];
+    D_OND    -> P_5HT3BLK [penwidth = 1.2];
+    D_SEM    -> P_GLP1    [penwidth = 1.3];
+    D_DSF    -> P_ALDHBLK [penwidth = 1.4];
+    D_BZD    -> P_BZDSUB  [penwidth = 1.4];
+    D_PRAZ   -> P_A1BLK;
+    D_DISU_ADH -> D_DSF   [color = "#2f7a3f", penwidth = 1.4];
+    D_THIA   -> NU_THIA   [color = "#2f7a3f", penwidth = 1.4];
+    D_BAC    -> P_TOLER   [style = dashed];
+    D_TPM    -> P_TOLER   [style = dashed];
+
+    /* --- 17. PD -> mechanism -------------------------------------- */
+    P_MORBLK -> OP_MOR    [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    P_MORBLK -> OP_MOROCC [penwidth = 1.2];
+    P_MORBLK -> OP_SUBJ   [color = "#b04a4a", arrowhead = tee];
+    P_NMDAMOD-> GL_EXT    [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4];
+    P_NMDAMOD-> GL_HOMEO  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4];
+    P_AMPABLK-> GL_AMPA   [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    P_AMPABLK-> GA_TONE   [color = "#2f7a3f", penwidth = 1.1];
+    P_AMPABLK-> DA_NAC    [color = "#b04a4a", arrowhead = tee];
+    P_A2D    -> AM_NEGAFF [color = "#2f7a3f", arrowhead = tee, penwidth = 1.3];
+    P_A2D    -> AM_SLEEP  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.2];
+    P_A2D    -> WD_EXC    [color = "#2f7a3f", arrowhead = tee];
+    P_GABAB  -> DA_GABAB  [penwidth = 1.2];
+    P_5HT3BLK-> DA_5HT3   [color = "#b04a4a", arrowhead = tee, penwidth = 1.2];
+    P_GLP1   -> DA_GLP1R  [penwidth = 1.3];
+    P_GLP1   -> DA_CUE    [color = "#2f7a3f", arrowhead = tee];
+    P_ALDHBLK-> MB_ALDH2  [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    MB_ACD   -> P_AVERS   [penwidth = 1.4, label = "flush reaction"];
+    P_AVERS  -> B_DRIVE   [color = "#2f7a3f", arrowhead = tee, penwidth = 1.6];
+    P_BZDSUB -> GA_TONE   [color = "#2f7a3f", penwidth = 1.5];
+    P_BZDSUB -> WD_EXC    [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4];
+    P_A1BLK  -> AM_A1     [color = "#b04a4a", arrowhead = tee];
+
+    /* --- 18. liver ------------------------------------------------- */
+    PK_CENT  -> LV_LEAK;
+    LV_LEAK  -> LV_LPS    [penwidth = 1.3];
+    LV_LPS   -> LV_KUPF   [penwidth = 1.3];
+    LV_KUPF  -> LV_TNF    [penwidth = 1.4];
+    LV_STEAT -> LV_ALT    [penwidth = 1.2];
+    LV_TNF   -> LV_ALT    [penwidth = 1.3];
+    LV_ALT   -> LV_AST    [style = dashed];
+    LV_TNF   -> LV_AST    [penwidth = 1.2];
+    LV_TNF   -> LV_HSC    [penwidth = 1.3];
+    LV_STEAT -> LV_HSC;
+    LV_HSC   -> LV_FIB    [penwidth = 1.4];
+    LV_TNF   -> LV_AH     [penwidth = 1.2];
+    LV_FIB   -> LV_CIRR   [penwidth = 1.3];
+    LV_CIRR  -> LV_HCC;
+    LV_CIRR  -> LV_PKIMP;
+    LV_PKIMP -> D_BZD     [style = dashed, label = "lorazepam"];
+    LV_PKIMP -> D_NTX     [style = dashed];
+    LV_REGR  -> LV_STEAT  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.3];
+    LV_REGR  -> LV_FIB    [color = "#2f7a3f", arrowhead = tee];
+    B_ABSTG  -> LV_REGR   [color = "#2f7a3f"];
+    LV_CIRR  -> E_MORT    [penwidth = 1.2];
+    LV_FIB   -> E_MORT;
+
+    /* --- 19. nutrition --------------------------------------------- */
+    PK_CENT  -> NU_ABS    [color = "#b04a4a"];
+    NU_ABS   -> NU_THIA   [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    NU_THIA  -> NU_WERN   [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4];
+    NU_WERN  -> NU_KORS   [penwidth = 1.2];
+    NU_THIA  -> NU_PN     [color = "#2f7a3f", arrowhead = tee];
+    NU_THIA  -> NU_CEREB  [color = "#2f7a3f", arrowhead = tee];
+    NU_MG    -> NU_K;
+    NU_REFEED-> NU_K;
+    NU_FOL   -> BM_MCV;
+    NU_WERN  -> E_QOL     [color = "#b04a4a"];
+    NU_KORS  -> E_QOL     [color = "#b04a4a"];
+
+    /* --- 20. cardiovascular ---------------------------------------- */
+    CV_SYMP  -> CV_SBP    [penwidth = 1.3];
+    PK_CENT  -> CV_SBP    [color = "#c06a2b", label = "dose-dependent"];
+    B_TAC    -> CV_AF;
+    B_TAC    -> CV_CMYO   [penwidth = 1.2];
+    CV_SBP   -> CV_STROKE;
+    CV_CMYO  -> E_MORT;
+    CV_CANCER-> E_MORT;
+    CV_IMMUNE-> E_MORT;
+    B_TAC    -> CV_PANCR;
+    B_TAC    -> CV_OSTEO;
+    B_TAC    -> CV_IMMUNE;
+    B_ABSTG  -> CV_BPREV  [color = "#2f7a3f"];
+    CV_BPREV -> CV_SBP    [color = "#2f7a3f", arrowhead = tee];
+
+    /* --- 21. endpoints --------------------------------------------- */
+    B_DPD    -> E_HDD     [penwidth = 1.4];
+    B_DPD    -> E_DPDD    [penwidth = 1.4];
+    B_DECIDE -> E_PDA     [penwidth = 1.4];
+    E_HDD    -> E_PSNHD;
+    E_HDD    -> E_TTR;
+    E_PDA    -> E_ABST;
+    E_HDD    -> E_WHO;
+    E_PDA    -> E_GCO;
+    E_HDD    -> E_GCO;
+    BM_PETH  -> E_PETHEP;
+    E_WHO    -> E_MORT    [style = dashed, label = "risk-level reduction"];
+    E_GCO    -> E_QOL;
+
+    /* --- THE CLOSED LOOP, drawn explicitly ------------------------- */
+    DA_NAC   -> B_DRIVE   [color = "#e07b1f", penwidth = 2.0, style = bold, label = "reinforcement"];
+    B_DPD    -> PK_ST     [color = "#e07b1f", penwidth = 2.0, style = bold, label = "dose = output"];
+    WD_PAWS  -> CR_RELIEF [color = "#e07b1f", penwidth = 2.0, style = bold, label = "negative reinforcement"];
+    DA_CUE   -> CR_INCEN  [color = "#e07b1f", penwidth = 2.0, style = bold];
+
+    /* --- legend ---------------------------------------------------- */
+    subgraph cluster_legend {
+        label = "Legend";
+        style = "filled,rounded"; fillcolor = "#ffffff"; color = "#9aa3ab";
+        fontsize = 12; fontcolor = "#444c54";
+        node [shape = plaintext, fillcolor = "#ffffff", style = "", fontsize = 10];
+        LEG [label = <<table border="0" cellborder="0" cellspacing="2">
+            <tr><td align="left"><b>double border</b></td><td align="left">ODE state in aud_mrgsolve_model.R</td></tr>
+            <tr><td align="left"><b>octagon</b></td><td align="left">drug / intervention</td></tr>
+            <tr><td align="left"><b>hexagon</b></td><td align="left">clinical endpoint / read-out</td></tr>
+            <tr><td align="left"><b>diamond</b></td><td align="left">switch, moderator or decision node</td></tr>
+            <tr><td align="left"><b>parallelogram</b></td><td align="left">flux / transfer process</td></tr>
+            <tr><td align="left"><font color="#b04a4a"><b>red / tee</b></font></td><td align="left">inhibition or antagonism</td></tr>
+            <tr><td align="left"><font color="#2f7a3f"><b>green</b></font></td><td align="left">restorative / protective</td></tr>
+            <tr><td align="left"><font color="#e07b1f"><b>bold orange</b></font></td><td align="left">the closed reinforcement loop</td></tr>
+            </table>>];
+    }
+}
