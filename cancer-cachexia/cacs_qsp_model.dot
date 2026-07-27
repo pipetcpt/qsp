@@ -1,0 +1,1043 @@
+/* =====================================================================
+   Cancer Anorexia-Cachexia Syndrome (CACS) — QSP Mechanistic Map
+   ---------------------------------------------------------------------
+   The organising idea of this map (and of cacs_mrgsolve_model.R):
+
+     CACHEXIA IS NOT STARVATION.
+
+   In simple starvation the body defends itself: intake falls, so resting
+   energy expenditure falls with it, lipolysis spares protein, and refeeding
+   restores what was lost. In cancer cachexia every one of those three
+   compensations is broken, and it is the BREAKAGE, not the negative energy
+   balance, that makes the syndrome refractory to food.
+
+   The map is therefore drawn as TWO INDEPENDENT ARMS that converge on
+   skeletal muscle, plus a THIRD axis that nutrition and most drugs never
+   touch at all:
+
+     ARM A  INTAKE      tumour -> GDF-15 -> GFRAL/RET on area postrema
+       (anorexia)       -> CALCR/CGRP + DBH neurons -> nausea, conditioned
+                        taste aversion -> hypothalamic melanocortin tone
+                        shifts (POMC up, AgRP compensation BLOCKED by
+                        central IL-1beta/PGE2) -> energy intake falls
+                        AND the falling-leptin rescue signal fails.
+
+     ARM B  CATABOLISM  tumour -> IL-6/LIF/TNF/TWEAK -> myocyte JAK-STAT3
+       (+ hypermetab.)  and activin A -> ActRIIB -> SMAD2/3 -> FoxO
+                        -> MAFbx/MuRF1 -> ubiquitin-proteasome + autophagy;
+                        in parallel IGF-1/Akt/mTORC1 is suppressed
+                        (ANABOLIC RESISTANCE), and PTHrP/IL-6 brown the
+                        white adipose tissue so REE rises while intake falls.
+
+     AXIS C MUSCLE      inflammation nitrates myosin, leaks RyR1, wrecks
+       QUALITY          mitochondria and collapses PGC-1alpha, so FORCE PER
+                        KILOGRAM falls independently of mass. Mass that is
+                        added quickly without mitochondrial biogenesis is
+                        DILUTED, low-quality mass.
+
+   Axis C is why this map exists. It is the mechanistic explanation for the
+   single most reproducible result in cachexia drug development:
+
+       anamorelin (ROMANA 1/2) and enobosarm (POWER 1/2) BOTH met their
+       lean-body-mass endpoints and BOTH missed their function endpoints
+       (handgrip strength, stair-climb power).
+
+   Every intervention on this map is placed by WHICH ARM IT CUTS, because
+   that is what determines which endpoint it can possibly move:
+
+     anamorelin (GHSR-1a)      ARM A appetite + GH/IGF-1 mass  -> LBM, weight; NOT grip
+     megestrol acetate         ARM A appetite only, + glucocorticoid-like
+                               catabolism                      -> fat and fluid, NOT LBM
+     olanzapine (H1/5-HT2C/D2) ARM A appetite + antiemetic      -> weight, appetite
+     dexamethasone             ARM A short-lived appetite, ARM B WORSENED
+                               after ~3-4 weeks (steroid myopathy)
+     ponsegromab (anti-GDF-15) ARM A at its source              -> intake, weight, activity
+     tocilizumab (anti-IL-6R)  ARM B cytokine arm + APR         -> CRP, weight stabilisation
+     bimagrumab (anti-ActRIIB) ARM B SMAD arm                   -> large LBM gain, fat loss
+     enobosarm (SARM)          ARM B synthesis arm              -> LBM; NOT stair-climb power
+     espindolol (beta-block)   ARM B hypermetabolism + catabolism, no
+                               mass dilution                   -> weight AND grip
+     EPA / celecoxib           ARM B upstream NF-kB / eicosanoid
+     resistance exercise       AXIS C — the only arm that raises quality
+     nutrition (ONS/EN/PN)     substrate only; cannot cross anabolic resistance
+     effective anticancer Rx   removes the driver — the definitive therapy
+
+   A fourth structural feature is the POINT OF NO RETURN. Sustained
+   inflammation depletes the Pax7+ satellite-cell pool and myonuclei, and
+   the depletion is drawn (and coded) as effectively irreversible. Once it
+   has happened, cutting arms A and B no longer restores mass: this is
+   refractory cachexia, and it is why the Fearon 2011 staging is a
+   one-way street.
+
+   Render:
+     dot -Tsvg cacs_qsp_model.dot -o cacs_qsp_model.svg
+     dot -Tpng -Gdpi=150 cacs_qsp_model.dot -o cacs_qsp_model.png
+   ===================================================================== */
+
+digraph CACS_QSP {
+    rankdir = TB;
+    compound = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.28;
+    ranksep = 0.55;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Cancer Anorexia-Cachexia Syndrome — Quantitative Systems Pharmacology Map</b><br/>
+             <font point-size="13">tumour cachexins &#8594; (A) anorexia via GFRAL/melanocortin + (B) catabolism via STAT3/SMAD-FoxO + (C) loss of muscle QUALITY &#8594; mass, function and survival dissociate</font><br/>
+             <font point-size="11">19 mechanistic modules · 247 nodes · 457 edges · states carried as ODEs in cacs_mrgsolve_model.R are drawn with a double border</font>>;
+    fontsize = 22;
+    bgcolor = "white";
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 10, penwidth = 1.0, margin = "0.09,0.05"];
+    edge [fontname = "Helvetica", fontsize = 8, color = "#5c6670",
+          arrowsize = 0.62, penwidth = 0.9];
+
+    /* ---------- shared visual vocabulary ------------------------------
+       double border (peripheries=2) = ODE state in the mrgsolve model
+       octagon                       = drug / intervention
+       hexagon                       = clinical endpoint / read-out
+       diamond                       = regulatory switch or moderator
+       parallelogram                 = flux / transfer process
+       red edge                      = inhibition / antagonism
+       green edge                    = restorative / protective
+       orange edge                   = the amino-acid vicious cycle
+       purple edge                   = the quality-dilution path (Axis C)
+       ---------------------------------------------------------------- */
+
+    /* ================================================================
+       1. TUMOUR COMPARTMENT AND TUMOUR-DERIVED CACHEXINS
+       ================================================================ */
+    subgraph cluster_tumor {
+        label = "1. 종양 구획 · 종양 유래 카켁신 (Tumour compartment & tumour-derived cachexins)";
+        style = "filled,rounded"; fillcolor = "#f7ecec"; color = "#c99a9a";
+        fontsize = 13; fontcolor = "#7d4a4a";
+        node [fillcolor = "#f0dcdc", color = "#c08a8a"];
+
+        TU_BURD  [label = "Tumour burden (g)\nGompertz growth · TVOL0 x exp(ln(TMAX/TVOL0)(1-e^-kg t))\nthe single upstream driver of the whole map", peripheries = 2, fillcolor = "#e6c6c6"];
+        TU_PROL  [label = "Proliferation / clonal expansion\ndoubling time 60-120 d (solid tumours)"];
+        TU_TYPE  [label = "Histology moderator\npancreatic ~ 80% · gastro-oesophageal ~ 60%\nNSCLC ~ 45% · breast/prostate ~ 15-30%", shape = diamond, fillcolor = "#e0c0c0"];
+        TU_HYPOX [label = "Intratumoural hypoxia\nHIF-1alpha stabilisation"];
+        TU_WARB  [label = "Aerobic glycolysis (Warburg)\nglucose -> lactate even in O2"];
+        TU_LAC   [label = "Lactate export (MCT4)\nsubstrate for hepatic Cori cycle"];
+        TU_GLUT  [label = "Tumour glucose avidity\n(FDG-PET SUVmax correlates with weight loss)"];
+        TU_AAUP  [label = "Tumour amino-acid uptake\nglutamine addiction · BCAA · LAT1/ASCT2", shape = parallelogram, fillcolor = "#e8d0d0"];
+        TU_NECR  [label = "Tumour necrosis -> DAMPs\nHMGB1 · ATP · mtDNA"];
+        TU_EXO   [label = "Tumour extracellular vesicles\nHsp70/Hsp90 · miR-21 -> TLR7 in myotubes"];
+        TU_GDF15 [label = "GDF-15 / MIC-1 / NAG-1 secretion\nthe dominant anorexigenic cachexin\nhealthy ~ 0.5 ng/mL, cachexia 3-10 ng/mL"];
+        TU_IL6   [label = "IL-6 secretion\ntumour + stroma + TAM"];
+        TU_LIF   [label = "LIF (leukaemia inhibitory factor)\ngp130 ligand, potent in murine C26"];
+        TU_TNF   [label = "TNF-alpha ('cachectin')\nlocal > systemic in humans"];
+        TU_IL1B  [label = "IL-1beta\nalso acts centrally via PGE2"];
+        TU_ACTA  [label = "Activin A (INHBA)\nrises in cachexia · ActRIIB ligand"];
+        TU_PTHRP [label = "PTHrP\ndrives adipose browning via PTH1R"];
+        TU_TWEAK [label = "TWEAK (TNFSF12)\n-> Fn14 on myofibre -> NF-kB"];
+        TU_ZAG   [label = "ZAG / lipid-mobilising factor (AZGP1)\nbeta3-adrenergic-like lipolytic signal"];
+        TU_PIF   [label = "Proteolysis-inducing factor (PIF/DAF)\ncontroversial in humans - drawn as hypothesis", style = "rounded,filled,dashed"];
+    }
+
+    /* ================================================================
+       2. SYSTEMIC INFLAMMATION — THE CIRCULATING MEDIATOR POOL
+       ================================================================ */
+    subgraph cluster_infl {
+        label = "2. 전신 염증 · 순환 매개체 풀 (Systemic inflammation — circulating mediator pool)";
+        style = "filled,rounded"; fillcolor = "#fdf0e4"; color = "#e0ac72";
+        fontsize = 13; fontcolor = "#8a5820";
+        node [fillcolor = "#f8e2cc", color = "#d79c60"];
+
+        IM_MAC    [label = "Tumour-associated macrophages / monocytes\nM1 skew · amplify IL-6 and TNF"];
+        IM_MDSC   [label = "Myeloid-derived suppressor cells\nexpand with tumour burden"];
+        IM_NFKB   [label = "Systemic NF-kB tone\nfeed-forward cytokine amplification"];
+        IM_IL6S   [label = "Plasma IL-6 (pg/mL)\nbaseline ~2 · severe cachexia 20-60", peripheries = 2, fillcolor = "#f2d2b0"];
+        IM_TNFS   [label = "Plasma TNF-alpha (pg/mL)\nmodest rise in humans", peripheries = 2, fillcolor = "#f2d2b0"];
+        IM_GDF15S [label = "Plasma GDF-15 (ng/mL)\nstrongest single predictor of weight loss", peripheries = 2, fillcolor = "#f2d2b0"];
+        IM_ACTAS  [label = "Plasma activin A (pg/mL)\nrises ~2-4x", peripheries = 2, fillcolor = "#f2d2b0"];
+        IM_MSTN   [label = "Plasma myostatin (ng/mL)\nPARADOX: FALLS in human cachexia\n(muscle is the source; less muscle = less myostatin)", peripheries = 2, fillcolor = "#f2d2b0"];
+        IM_LIFS   [label = "Plasma LIF / OSM\ngp130 family, shares STAT3"];
+        IM_LPS    [label = "Gut barrier failure -> LPS / TLR4\nchemotherapy and mucositis amplify"];
+        IM_NLR    [label = "Neutrophil-lymphocyte ratio\nsimple prognostic surrogate", shape = hexagon, fillcolor = "#f6dcc0"];
+        IM_IL10   [label = "IL-10 / TGF-beta counter-regulation\ninsufficient to close the loop"];
+    }
+
+    /* ================================================================
+       3. HEPATIC ACUTE-PHASE RESPONSE AND METABOLIC REPROGRAMMING
+       ================================================================ */
+    subgraph cluster_liver {
+        label = "3. 간 급성기 반응 · 대사 재프로그래밍 (Hepatic acute-phase response & metabolic reprogramming)";
+        style = "filled,rounded"; fillcolor = "#f2f5e9"; color = "#a9bd7e";
+        fontsize = 13; fontcolor = "#5c6f33";
+        node [fillcolor = "#e6edd6", color = "#9cb06e"];
+
+        LV_STAT3 [label = "Hepatocyte gp130 / JAK1 / STAT3\nIL-6 + LIF converge"];
+        LV_CRP   [label = "C-reactive protein (mg/L)\nbaseline <3 · cachexia 10-100", peripheries = 2, fillcolor = "#dbe6c4"];
+        LV_FIB   [label = "Fibrinogen, SAA, haptoglobin\npositive acute-phase proteins"];
+        LV_ALB   [label = "Serum albumin (g/L)\nNEGATIVE acute-phase protein\nfalls 42 -> 25-30", peripheries = 2, fillcolor = "#dbe6c4"];
+        LV_APRAA [label = "Amino-acid diversion into APR\n~ 2.6 g muscle protein per 1 g fibrinogen", shape = parallelogram, fillcolor = "#e2ebd0"];
+        LV_GNG   [label = "Hepatic gluconeogenesis\nCori cycle + glutamine + alanine"];
+        LV_UREA  [label = "Ureagenesis -> obligatory nitrogen loss\nnegative nitrogen balance"];
+        LV_HEPC  [label = "Hepcidin (IL-6/STAT3 driven)\nferroportin block -> functional iron deficiency"];
+        LV_ANEM  [label = "Anaemia of inflammation\nHb falls, fatigue rises"];
+        LV_MASS  [label = "Hepatomegaly\nliver mass RISES while muscle falls\n(masks weight loss on the scale)", peripheries = 2, fillcolor = "#dbe6c4"];
+        LV_KETO  [label = "Impaired ketogenesis\nthe starvation protein-sparing switch FAILS", shape = diamond, fillcolor = "#dfe9c8"];
+        LV_MGPS  [label = "modified Glasgow Prognostic Score\nCRP >10 (+1) and albumin <35 (+1) -> 0/1/2", shape = hexagon, fillcolor = "#e9f0da"];
+    }
+
+    /* ================================================================
+       4. ARM A(i) — BRAINSTEM GFRAL / AREA POSTREMA
+       ================================================================ */
+    subgraph cluster_brainstem {
+        label = "4. [팔 A-i] 뇌간 GFRAL · 최후영역 (ARM A-i: brainstem GFRAL / area postrema)";
+        style = "filled,rounded"; fillcolor = "#eaf0f8"; color = "#89a5c9";
+        fontsize = 13; fontcolor = "#39557d";
+        node [fillcolor = "#d9e4f2", color = "#7d97bd"];
+
+        BS_AP    [label = "Area postrema (circumventricular)\noutside the blood-brain barrier"];
+        BS_GFRAL [label = "GFRAL - RET co-receptor complex\nEXCLUSIVE receptor for GDF-15\nexpressed ONLY in AP/NTS", shape = diamond, fillcolor = "#cbdaee"];
+        BS_CALCR [label = "AP CALCR / CGRP neurons\nmeal termination + malaise"];
+        BS_DBH   [label = "NTS DBH+ noradrenergic neurons\nproject to PBN and hypothalamus"];
+        BS_PBN   [label = "Parabrachial nucleus CGRP relay\nfinal common path for aversive anorexia"];
+        BS_5HT3  [label = "Enterochromaffin 5-HT -> 5-HT3\nvagal chemoreceptor trigger"];
+        BS_VAGAL [label = "Vagal afferents\nCCK · PYY(3-36) · GLP-1 · distension"];
+        BS_NAUS  [label = "Nausea (0-10)\ndose-limiting for intake", peripheries = 2, fillcolor = "#cbdaee"];
+        BS_EMES  [label = "Emesis / retching"];
+        BS_CTA   [label = "Conditioned taste aversion\nfood becomes a learned aversive cue", shape = diamond, fillcolor = "#cbdaee"];
+        BS_SIG   [label = "Aversive brainstem drive (effect cmt)\nintegrates GDF-15 + 5-HT3 + vagal load", peripheries = 2, fillcolor = "#cbdaee"];
+    }
+
+    /* ================================================================
+       5. ARM A(ii) — HYPOTHALAMIC MELANOCORTIN
+       ================================================================ */
+    subgraph cluster_hypo {
+        label = "5. [팔 A-ii] 시상하부 멜라노코르틴 (ARM A-ii: hypothalamic melanocortin system)";
+        style = "filled,rounded"; fillcolor = "#eef0fa"; color = "#9a9fd0";
+        fontsize = 13; fontcolor = "#464a86";
+        node [fillcolor = "#dfe2f5", color = "#8e93c8"];
+
+        HY_ARC   [label = "Arcuate nucleus (median eminence, leaky BBB)\nfirst-order energy sensor"];
+        HY_AGRP  [label = "AgRP / NPY neurons (orexigenic tone)\nSHOULD fire when fat mass falls\nbut are silenced in cachexia", peripheries = 2, fillcolor = "#d0d4ef"];
+        HY_POMC  [label = "POMC / CART neurons (anorexigenic tone)\ninappropriately ACTIVE", peripheries = 2, fillcolor = "#d0d4ef"];
+        HY_MSH   [label = "alpha-MSH release"];
+        HY_MC4R  [label = "MC4R on PVN neurons\nthe anorexia switch", shape = diamond, fillcolor = "#d0d4ef"];
+        HY_PVN   [label = "Paraventricular nucleus\nintegrates to feeding + CRH + sympathetic output"];
+        HY_LEP   [label = "Leptin (falls with fat mass)\nthe rescue signal that FAILS to rescue"];
+        HY_INSC  [label = "Central insulin signal"];
+        HY_GHRE  [label = "Ghrelin (acyl) RISES in cachexia\nyet appetite does not - ghrelin resistance", shape = diamond, fillcolor = "#d0d4ef"];
+        HY_LEAP2 [label = "LEAP2 / ghrelin ratio rises\nendogenous GHSR-1a antagonist"];
+        HY_GHSR  [label = "GHSR-1a on ARC AgRP neurons\nanamorelin's target"];
+        HY_OREX  [label = "Orexin / MCH lateral hypothalamus\narousal-linked feeding drive"];
+        HY_5HT   [label = "Hypothalamic serotonin\nIDO/kynurenine shunt raises free Trp"];
+        HY_IL1B  [label = "Central IL-1beta / COX-2 / PGE2 (EP4)\nBLOCKS the AgRP compensation", shape = diamond, fillcolor = "#d0d4ef"];
+        HY_CRHN  [label = "CRH neurons -> HPA activation"];
+        HY_ANOR  [label = "Integrated anorexia drive\n(the ARM A output)", peripheries = 2, fillcolor = "#d0d4ef"];
+    }
+
+    /* ================================================================
+       6. INTAKE AND THE GASTROINTESTINAL TRACT
+       ================================================================ */
+    subgraph cluster_intake {
+        label = "6. 섭취 · 위장관 (Energy intake & gastrointestinal barriers)";
+        style = "filled,rounded"; fillcolor = "#f3f0fb"; color = "#b0a2d2";
+        fontsize = 13; fontcolor = "#59477f";
+        node [fillcolor = "#e6e0f4", color = "#a294c6";]
+
+        GI_INTAKE [label = "Energy intake (kcal/d)\nweight-stable requirement ~ 30 kcal/kg", peripheries = 2, fillcolor = "#dbd2ee"];
+        GI_PROT   [label = "Protein intake (g/kg/d)\ntarget 1.2-1.5 · typical achieved 0.7-0.9", peripheries = 2, fillcolor = "#dbd2ee"];
+        GI_SATIETY[label = "Early satiety\nthe most reported single symptom"];
+        GI_GASTRO [label = "Delayed gastric emptying / gastroparesis\nautonomic + opioid + tumour"];
+        GI_TASTE  [label = "Dysgeusia / hyposmia\nzinc, chemotherapy, radiotherapy"];
+        GI_MUC    [label = "Mucositis / odynophagia\nchemo- and radiation-induced"];
+        GI_OBSTR  [label = "Mechanical: obstruction, ascites, dysphagia"];
+        GI_MALAB  [label = "Malabsorption / exocrine insufficiency\n(pancreatic and upper-GI primaries)"];
+        GI_CONST  [label = "Opioid-induced constipation"];
+        GI_PAIN   [label = "Uncontrolled pain / symptom burden"];
+        GI_DEPR   [label = "Depression, anxiety, eating-related distress\n'food becomes a battleground' (patient + family)"];
+        GI_ONS    [label = "Oral nutritional supplement (ONS)\n+300 to +600 kcal/d, adherence-limited", shape = octagon, fillcolor = "#cfc3e6"];
+        GI_ENPN   [label = "Enteral / parenteral nutrition\nbypasses intake, NOT anabolic resistance", shape = octagon, fillcolor = "#cfc3e6"];
+    }
+
+    /* ================================================================
+       7. ARM B(i) — SKELETAL MUSCLE PROTEOLYSIS
+       ================================================================ */
+    subgraph cluster_prote {
+        label = "7. [팔 B-i] 골격근 단백 이화 (ARM B-i: skeletal muscle proteolysis)";
+        style = "filled,rounded"; fillcolor = "#fbeced"; color = "#d68f96";
+        fontsize = 13; fontcolor = "#8e3d47";
+        node [fillcolor = "#f4d9dc", color = "#c9848c"];
+
+        MU_GP130  [label = "Myofibre gp130 / JAK2"];
+        MU_STAT3  [label = "Muscle STAT3 activation (effect cmt)\nthe IL-6/LIF arm", peripheries = 2, fillcolor = "#eec6cb"];
+        MU_ACTRIIB[label = "ActRIIB (ACVR2B) receptor\nshared by activin A, myostatin, GDF-11", shape = diamond, fillcolor = "#eec6cb"];
+        MU_SMAD   [label = "SMAD2/3 phosphorylation (effect cmt)\nthe activin arm", peripheries = 2, fillcolor = "#eec6cb"];
+        MU_FN14   [label = "Fn14 (TNFRSF12A) induction\nTWEAK receptor, appears only in atrophying muscle"];
+        MU_NFKB2  [label = "Myofibre NF-kB (p65 / p50)\nTNF + TWEAK + TLR"];
+        MU_FOXO   [label = "FoxO1 / FoxO3 nuclear activity\nthe atrogene master switch", peripheries = 2, fillcolor = "#eec6cb"];
+        MU_KLF15  [label = "KLF15 (glucocorticoid-induced)\namplifies FoxO / branched-chain catabolism"];
+        MU_MAFBX  [label = "MAFbx / atrogin-1 (FBXO32)\ntargets MyoD and eIF3f"];
+        MU_MURF1  [label = "MuRF1 (TRIM63)\nubiquitinates myosin heavy chain"];
+        MU_UPS    [label = "26S ubiquitin-proteasome flux\ndominant proteolytic route", peripheries = 2, fillcolor = "#eec6cb"];
+        MU_AUTO   [label = "Autophagy-lysosome flux (LC3-II, p62, Bnip3)\ndisordered, not simply increased", peripheries = 2, fillcolor = "#eec6cb"];
+        MU_CALP   [label = "Calpain-1/2 and caspase-3\nrelease myofilaments from the sarcomere\n(the rate-limiting first cut)", shape = parallelogram, fillcolor = "#f0cdd2"];
+        MU_ROS    [label = "NOX2 / mitochondrial ROS\noxidative stress", peripheries = 2, fillcolor = "#eec6cb"];
+        MU_AAOUT  [label = "Net amino-acid efflux from muscle\n(the vicious cycle currency)", shape = parallelogram, fillcolor = "#f0cdd2"];
+        MU_AAPL   [label = "Plasma amino-acid / BCAA pool", peripheries = 2, fillcolor = "#eec6cb"];
+    }
+
+    /* ================================================================
+       8. ARM B(ii) — ANABOLIC ARM AND ANABOLIC RESISTANCE
+       ================================================================ */
+    subgraph cluster_anab {
+        label = "8. [팔 B-ii] 동화 신호 · 동화 저항 (ARM B-ii: anabolic signalling & anabolic resistance)";
+        style = "filled,rounded"; fillcolor = "#eaf6f1"; color = "#7fb9a0";
+        fontsize = 13; fontcolor = "#2f6b52";
+        node [fillcolor = "#d5ebe1", color = "#6faa92"];
+
+        AN_GH    [label = "GH secretion (pulse amplitude)\nRISES in cachexia", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_GHR   [label = "Hepatic GH resistance (SOCS3 up, GHR down)\nGH rises but IGF-1 does not follow", shape = diamond, fillcolor = "#c2e0d3"];
+        AN_IGF1  [label = "Plasma IGF-1 (ng/mL)\n150 -> 70-100 in cachexia", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_IGFBP [label = "IGFBP-1/3 shift, reduced free IGF-1"];
+        AN_IR    [label = "Insulin resistance (skeletal muscle)\nGLUT4 translocation impaired"];
+        AN_AKT   [label = "PI3K / Akt (effect cmt)\nnode where anabolism and FoxO meet", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_MTOR  [label = "mTORC1 activity (effect cmt)", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_S6K   [label = "p70-S6K1 / rpS6 phosphorylation"];
+        AN_4EBP  [label = "4E-BP1 release of eIF4E"];
+        AN_REDD1 [label = "REDD1 / DDIT4 (glucocorticoid, hypoxia)\nbrakes mTORC1"];
+        AN_GCN2  [label = "GCN2 / eIF2alpha / ATF4\namino-acid deprivation response"];
+        AN_LEU   [label = "Leucine sensing (Sestrin2, CASTOR1, SLC38A9)\nthreshold ~ 2.5 g leucine per meal", shape = diamond, fillcolor = "#c2e0d3"];
+        AN_AAT   [label = "Amino-acid transporters LAT1 / SNAT2"];
+        AN_MPS   [label = "Muscle protein synthesis rate (FSR %/d)\n1.5 -> 0.9 %/d", shape = parallelogram, fillcolor = "#cbe5da"];
+        AN_ARES  [label = "ANABOLIC RESISTANCE index\nthe fraction of a protein bolus that is WASTED\nWHY FOOD ALONE DOES NOT WORK", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_SATC  [label = "Pax7+ satellite-cell pool / myonuclei\nDEPLETED, effectively irreversibly\n(the point of no return)", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_MYOD  [label = "MyoD / myogenin differentiation block\nPax7 retained, fusion arrested"];
+        AN_TEST  [label = "Testosterone (ng/dL)\nhypogonadism of chronic illness", peripheries = 2, fillcolor = "#c2e0d3"];
+        AN_AR    [label = "Androgen receptor in myonuclei\nenobosarm's target"];
+    }
+
+    /* ================================================================
+       9. ADIPOSE TISSUE — LIPOLYSIS AND BROWNING
+       ================================================================ */
+    subgraph cluster_fat {
+        label = "9. 지방조직 · 지방분해 및 갈색화 (Adipose tissue: lipolysis & browning)";
+        style = "filled,rounded"; fillcolor = "#fdf7e3"; color = "#d9c274";
+        fontsize = 13; fontcolor = "#7f6a1c";
+        node [fillcolor = "#f7eec9", color = "#cbb264"];
+
+        AD_FAT   [label = "Fat mass (kg)\nLOST BEFORE MUSCLE - the earliest signal", peripheries = 2, fillcolor = "#f0e2ae"];
+        AD_ATGL  [label = "ATGL (PNPLA2) - rate-limiting\nATGL-null mice are protected from cachexia"];
+        AD_HSL   [label = "Hormone-sensitive lipase (LIPE)"];
+        AD_LIPO  [label = "Lipolytic flux", shape = parallelogram, fillcolor = "#f4e8bd"];
+        AD_LPL   [label = "Lipoprotein lipase suppression\nstorage arm switched off"];
+        AD_FFA   [label = "Plasma free fatty acids / glycerol"];
+        AD_UCP1  [label = "WAT browning: UCP1+ beige adipocytes\nfutile proton leak = pure heat", peripheries = 2, fillcolor = "#f0e2ae"];
+        AD_PTH1R [label = "PTH1R (PTHrP receptor) on adipocyte"];
+        AD_B3AR  [label = "beta3-adrenoceptor (sympathetic + ZAG)"];
+        AD_LEPS  [label = "Leptin secretion falls with fat mass"];
+        AD_ADIPO [label = "Adiponectin RISES (unlike obesity)"];
+        AD_FIBR  [label = "Adipose fibrosis / ECM remodelling\nlimits refilling even after tumour control"];
+        AD_ECTOP [label = "Ectopic lipid: myosteatosis, hepatic steatosis\nlow muscle radiodensity on CT"];
+        AD_VAT   [label = "Visceral vs subcutaneous partition"];
+    }
+
+    /* ================================================================
+       10. ENERGY BALANCE AND HYPERMETABOLISM
+       ================================================================ */
+    subgraph cluster_energy {
+        label = "10. 에너지 균형 · 과대사 (Energy balance & hypermetabolism)";
+        style = "filled,rounded"; fillcolor = "#fdeef4"; color = "#dba2bc";
+        fontsize = 13; fontcolor = "#8b3f5f";
+        node [fillcolor = "#f7dde8", color = "#cd93ac"];
+
+        EN_REE   [label = "Resting energy expenditure (kcal/d)\nRISES while intake falls - the defining paradox", peripheries = 2, fillcolor = "#f2cbdc"];
+        EN_PREE  [label = "Predicted REE (Harris-Benedict / Mifflin)"];
+        EN_HYPERM[label = "Hypermetabolism: REE/pREE > 1.10\nseen in ~ 50% of advanced cancer", shape = hexagon, fillcolor = "#f6d7e4"];
+        EN_AEE   [label = "Activity energy expenditure\nfalls with ECOG - partly offsets REE rise"];
+        EN_DIT   [label = "Diet-induced thermogenesis (~10% of intake)"];
+        EN_TEE   [label = "Total energy expenditure", shape = parallelogram, fillcolor = "#f4d3e0"];
+        EN_CORI  [label = "Cori cycle futile flux\n6 ATP consumed per 2 ATP the tumour gains\n~ 250-300 kcal/d at high burden", shape = parallelogram, fillcolor = "#f4d3e0"];
+        EN_FUT   [label = "Other futile cycles: triglyceride-FFA, protein turnover"];
+        EN_BAL   [label = "Net energy balance (kcal/d)", shape = parallelogram, fillcolor = "#f4d3e0"];
+        EN_ACT   [label = "Physical activity level (steps/d, PAL)", peripheries = 2, fillcolor = "#f2cbdc"];
+    }
+
+    /* ================================================================
+       11. NEUROENDOCRINE AXES
+       ================================================================ */
+    subgraph cluster_neuro {
+        label = "11. 신경내분비 축 (Neuroendocrine axes)";
+        style = "filled,rounded"; fillcolor = "#eef4f6"; color = "#8fb2bd";
+        fontsize = 13; fontcolor = "#3a5f6b";
+        node [fillcolor = "#dde9ee", color = "#83a5b1"];
+
+        NE_ACTH  [label = "ACTH"];
+        NE_CORT  [label = "Cortisol (total, ug/dL)\nloss of diurnal rhythm, relative excess", peripheries = 2, fillcolor = "#cbdde5"];
+        NE_GR    [label = "Glucocorticoid receptor in myofibre\n-> KLF15, REDD1, FoxO, MuRF1", shape = diamond, fillcolor = "#cbdde5"];
+        NE_SNS   [label = "Sympathetic tone (NE spillover)", peripheries = 2, fillcolor = "#cbdde5"];
+        NE_B2AR  [label = "Muscle beta2-adrenoceptor\n(chronic overdrive -> desensitisation)"];
+        NE_T3    [label = "Low-T3 syndrome (rT3 up)\ncounter-regulatory, partly protective"];
+        NE_HYPOG [label = "Hypogonadotropic hypogonadism"];
+        NE_VITD  [label = "Vitamin D insufficiency"];
+        NE_MELA  [label = "Circadian disruption / melatonin loss"];
+    }
+
+    /* ================================================================
+       12. BODY COMPOSITION AND ORGAN CONSEQUENCES
+       ================================================================ */
+    subgraph cluster_body {
+        label = "12. 체성분 · 장기 결과 (Body composition & organ-level consequences)";
+        style = "filled,rounded"; fillcolor = "#f0f0f0"; color = "#a8a8a8";
+        fontsize = 13; fontcolor = "#4d4d4d";
+        node [fillcolor = "#e2e2e2", color = "#9a9a9a"];
+
+        BC_MUSC  [label = "Skeletal muscle mass (kg)\n25 kg -> 18-20 kg", peripheries = 2, fillcolor = "#d2d2d2"];
+        BC_OLBM  [label = "Non-muscle lean mass (viscera, skin, bone)\nrelatively spared; liver even grows", peripheries = 2, fillcolor = "#d2d2d2"];
+        BC_EDEMA [label = "Extracellular fluid / oedema / ascites\nhypoalbuminaemia -> oncotic pressure falls\nMASKS true tissue loss on the scale", peripheries = 2, fillcolor = "#d2d2d2"];
+        BC_BW    [label = "Body weight (kg)", shape = hexagon, fillcolor = "#e8e8e8"];
+        BC_WLHIST[label = "Weight ~6 months ago (transit chain)\nthe denominator for %WL", peripheries = 2, fillcolor = "#d2d2d2"];
+        BC_SMI   [label = "L3 skeletal muscle index (cm2/m2)\nsarcopenia cut-off 43-55 (M) / 39-41 (F)", shape = hexagon, fillcolor = "#e8e8e8"];
+        BC_CARD  [label = "Cardiac atrophy / cachectic cardiomyopathy\nLV mass falls, fibrosis rises"];
+        BC_DIAPH [label = "Diaphragm and intercostal wasting\n-> dyspnoea, weak cough, pneumonia"];
+        BC_BONE  [label = "Bone loss / fracture risk"];
+        BC_IMM   [label = "Immune incompetence, infection risk"];
+    }
+
+    /* ================================================================
+       13. AXIS C — MUSCLE QUALITY AND PHYSICAL FUNCTION
+       ================================================================ */
+    subgraph cluster_func {
+        label = "13. [축 C] 근육의 질 · 신체 기능 (AXIS C: muscle QUALITY & physical function) — the axis that mass-only drugs miss";
+        style = "filled,rounded"; fillcolor = "#f4ecfb"; color = "#b48ad4";
+        fontsize = 13; fontcolor = "#5f3583";
+        node [fillcolor = "#e8daf5", color = "#a67cc6"];
+
+        FN_MYOQ  [label = "MUSCLE QUALITY (force per kg)\ndriven DOWN by inflammation, UP by loading,\nDILUTED by fast mass accrual", peripheries = 2, fillcolor = "#dcc7ef"];
+        FN_PGC1  [label = "PGC-1alpha / mitochondrial biogenesis\ncollapses early, before mass is lost", peripheries = 2, fillcolor = "#dcc7ef"];
+        FN_MITO  [label = "Mitochondrial content & OXPHOS capacity", peripheries = 2, fillcolor = "#dcc7ef"];
+        FN_MFN   [label = "Mitophagy imbalance (BNIP3, Fis1, OPA1 loss)\nfragmented network"];
+        FN_ATP   [label = "ATP supply per gram of muscle"];
+        FN_MHC   [label = "Myosin heavy-chain nitration / carbonylation\nforce lost WITHOUT mass lost", shape = diamond, fillcolor = "#dcc7ef"];
+        FN_RYR   [label = "RyR1 oxidation -> Ca2+ leak\nexcitation-contraction uncoupling"];
+        FN_FIBER [label = "Fibre-type shift IIa -> IIx, fatigue-prone"];
+        FN_NMJ   [label = "Neuromuscular junction remodelling / denervation"];
+        FN_DIL   [label = "QUALITY DILUTION of newly added mass\nmass added faster than mitochondria are built\n= low force-per-kg tissue", shape = parallelogram, fillcolor = "#e2d0f2"];
+        FN_GRIP  [label = "Handgrip strength (kg)\nGRIP = mass x quality", shape = hexagon, fillcolor = "#eee2f8"];
+        FN_STAIR [label = "Stair-climb power / 6MWT / SPPB", shape = hexagon, fillcolor = "#eee2f8"];
+        FN_FATIG [label = "Fatigue (FACIT-F)", shape = hexagon, fillcolor = "#eee2f8"];
+        FN_ECOG  [label = "ECOG performance status (0-4)", peripheries = 2, fillcolor = "#dcc7ef"];
+    }
+
+    /* ================================================================
+       14. ORAL DRUG PHARMACOKINETICS
+       ================================================================ */
+    subgraph cluster_pkoral {
+        label = "14. 경구 약물 PK (Oral drug pharmacokinetics)";
+        style = "filled,rounded"; fillcolor = "#eef6f9"; color = "#8fb9cd";
+        fontsize = 13; fontcolor = "#31606f";
+        node [fillcolor = "#daeaf1", color = "#83abbf"];
+
+        PK_ANAD [label = "Anamorelin gut depot\n100 mg PO qd, fasted; Tmax ~1 h", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_ANAC [label = "Anamorelin plasma\nt1/2 ~ 7 h · CYP3A4 substrate", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_MEGD [label = "Megestrol acetate depot\n400-800 mg/d oral suspension", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_MEGC [label = "Megestrol plasma\nt1/2 ~ 30 h, dose-saturable absorption", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_DEXD [label = "Dexamethasone depot\n4 mg PO qd", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_DEXC [label = "Dexamethasone plasma\nt1/2 ~ 4 h, biological t1/2 36-54 h", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_OLZD [label = "Olanzapine depot\n2.5-5 mg PO qhs", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_OLZC [label = "Olanzapine plasma\nt1/2 ~ 33 h · CYP1A2", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_ENOD [label = "Enobosarm depot (3 mg PO qd)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_ENOC [label = "Enobosarm plasma (t1/2 ~ 20 h)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_ESPD [label = "Espindolol depot (10 mg PO bid)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_ESPC [label = "Espindolol plasma (t1/2 ~ 4-6 h)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_EPAD [label = "EPA depot (2 g/d)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_EPAC [label = "EPA membrane enrichment\nslow, weeks-scale turnover", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_CELD [label = "Celecoxib depot (200 mg bid)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_CELC [label = "Celecoxib plasma (t1/2 ~ 11 h)", peripheries = 2, fillcolor = "#c8dfea"];
+        PK_CYP  [label = "CYP3A4 / CYP1A2 clearance\nDDI node (azoles, smoking)", shape = diamond, fillcolor = "#c8dfea"];
+    }
+
+    /* ================================================================
+       15. BIOLOGIC PHARMACOKINETICS
+       ================================================================ */
+    subgraph cluster_pkbio {
+        label = "15. 생물학적 제제 PK (Biologic pharmacokinetics)";
+        style = "filled,rounded"; fillcolor = "#f7f2e8"; color = "#c9b189";
+        fontsize = 13; fontcolor = "#6e5729";
+        node [fillcolor = "#eee3cf", color = "#bda478"];
+
+        PK_PONSD [label = "Ponsegromab SC depot\n100 / 200 / 400 mg q4w · F ~ 0.6-0.7", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_PONSC [label = "Ponsegromab central (IgG1 mAb)\nt1/2 ~ 3 weeks", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_PONSP [label = "Ponsegromab peripheral", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_TCZD  [label = "Tocilizumab SC depot (162 mg q1-2w)", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_TCZC  [label = "Tocilizumab central\nTMDD: CL falls as IL-6R saturates", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_BIMC  [label = "Bimagrumab central (IV 10 mg/kg q4w)", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_BIMP  [label = "Bimagrumab peripheral", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_CPLX  [label = "Ponsegromab-GDF15 complex\ntotal GDF-15 rises, FREE GDF-15 collapses", peripheries = 2, fillcolor = "#e4d5ba"];
+        PK_FCRN  [label = "FcRn recycling (albumin-dependent)\nhypoalbuminaemia raises mAb clearance", shape = diamond, fillcolor = "#e4d5ba"];
+        PK_ADA   [label = "Anti-drug antibodies (immunogenicity)"];
+    }
+
+    /* ================================================================
+       16. DRUGS AND THEIR TARGETS
+       ================================================================ */
+    subgraph cluster_pd {
+        label = "16. 약물 · 표적 (Drugs and their molecular targets) — placed by WHICH ARM THEY CUT";
+        style = "filled,rounded"; fillcolor = "#e9f7ef"; color = "#7dbf9a";
+        fontsize = 13; fontcolor = "#26694a";
+        node [shape = octagon, fillcolor = "#cdead9", color = "#6cae8a"];
+
+        DR_ANAM [label = "ANAMORELIN\nGHSR-1a agonist\nARM A appetite + GH/IGF-1 mass"];
+        DR_PONS [label = "PONSEGROMAB\nanti-GDF-15 mAb\nARM A at its source"];
+        DR_MEG  [label = "MEGESTROL ACETATE\nprogestin: NPY up, cytokines down\nbut glucocorticoid-like on muscle"];
+        DR_DEX  [label = "DEXAMETHASONE\nappetite now, myopathy later"];
+        DR_OLZ  [label = "OLANZAPINE\nH1 / 5-HT2C / D2 / M-receptor\nappetite + antiemetic"];
+        DR_ENO  [label = "ENOBOSARM\nselective androgen receptor modulator\nARM B synthesis"];
+        DR_BIM  [label = "BIMAGRUMAB\nanti-ActRIIB mAb\nARM B SMAD blockade"];
+        DR_TCZ  [label = "TOCILIZUMAB / CLAZAKIZUMAB\nIL-6R / IL-6 blockade\nARM B cytokine"];
+        DR_ESP  [label = "ESPINDOLOL (MT-102)\nnon-selective beta-blocker + 5-HT1a\nARM B hypermetabolism, no dilution"];
+        DR_EPA  [label = "EPA (n-3 PUFA)\nNF-kB / eicosanoid class switch"];
+        DR_CEL  [label = "CELECOXIB / IBUPROFEN\nCOX-2 -> PGE2"];
+        DR_MC4RA[label = "MC4R antagonist (investigational)\nreleases the melanocortin brake", style = "filled,dashed"];
+        DR_GRLN [label = "Ghrelin / GHSR agonists (other)\nmacimorelin, ipamorelin", style = "filled,dashed"];
+        DR_ACE  [label = "ACE inhibitor / ARB\nadjunct, angiotensin-II-driven atrophy", style = "filled,dashed"];
+        DR_APEL [label = "Apelin / GDF-11 modulation (preclinical)", style = "filled,dashed"];
+    }
+
+    /* ================================================================
+       17. NON-PHARMACOLOGIC INTERVENTIONS
+       ================================================================ */
+    subgraph cluster_nonpharm {
+        label = "17. 비약물 중재 (Non-pharmacologic interventions)";
+        style = "filled,rounded"; fillcolor = "#eaf5e6"; color = "#8dbd7c";
+        fontsize = 13; fontcolor = "#3f6b31";
+        node [shape = octagon, fillcolor = "#d5ebcd", color = "#7cae6b"];
+
+        NP_RES  [label = "RESISTANCE EXERCISE\n2-3 x /week, progressive\nthe ONLY intervention that raises QUALITY"];
+        NP_AER  [label = "Aerobic / interval training\nPGC-1alpha, mitochondrial biogenesis"];
+        NP_NUTC [label = "Dietitian-led nutrition counselling\n(symptom-directed, not just calories)"];
+        NP_PROT [label = "Protein / leucine / HMB bolus\n25-30 g with >= 2.5 g leucine per meal"];
+        NP_PSY  [label = "Psychosocial support for patient AND family\ntargets eating-related distress"];
+        NP_MULT [label = "MULTIMODAL PACKAGE (MENAC-style)\nexercise + nutrition + anti-inflammatory\n+ early oncological control"];
+        NP_SYMP [label = "Symptom control: antiemetics, prokinetics,\npain, oral care, bowel regimen"];
+    }
+
+    /* ================================================================
+       18. ANTICANCER THERAPY — CAUSE AND CURE
+       ================================================================ */
+    subgraph cluster_onc {
+        label = "18. 항암치료 — 원인이자 치료 (Anticancer therapy: both aggravator and definitive cure)";
+        style = "filled,rounded"; fillcolor = "#fdeeea"; color = "#dda28f";
+        fontsize = 13; fontcolor = "#8c4630";
+        node [fillcolor = "#f7ddd4", color = "#cf947f"];
+
+        ON_CHEMO [label = "Cytotoxic chemotherapy", shape = octagon, fillcolor = "#f2cdc1"];
+        ON_ICI   [label = "Immune checkpoint inhibitor", shape = octagon, fillcolor = "#f2cdc1"];
+        ON_TARG  [label = "Targeted therapy / endocrine therapy", shape = octagon, fillcolor = "#f2cdc1"];
+        ON_RESP  [label = "Tumour response (RECIST)\nBURDEN FALLS -> cachexia can reverse", shape = diamond, fillcolor = "#f2cdc1"];
+        ON_MYOTX [label = "Direct chemo myotoxicity\ncisplatin, doxorubicin -> NF-kB, mito damage"];
+        ON_TOXG  [label = "Grade 3-4 toxicity risk\nrises with low SMI (dose per kg lean, not per m2)", shape = hexagon, fillcolor = "#f6e0d8"];
+        ON_DOSE  [label = "Relative dose intensity delivered", peripheries = 2, fillcolor = "#f2cdc1"];
+        ON_STOP  [label = "Treatment discontinuation\nthe commonest proximate cause of death", shape = hexagon, fillcolor = "#f6e0d8"];
+        ON_ICIRE [label = "Sarcopenia predicts POOR ICI response\n(muscle as an immune-competence surrogate)"];
+    }
+
+    /* ================================================================
+       19. STAGING AND CLINICAL ENDPOINTS
+       ================================================================ */
+    subgraph cluster_end {
+        label = "19. 병기 · 임상 엔드포인트 (Fearon staging & clinical endpoints)";
+        style = "filled,rounded"; fillcolor = "#eef2f7"; color = "#96a7bd";
+        fontsize = 13; fontcolor = "#3b4d66";
+        node [shape = hexagon, fillcolor = "#dde5ef", color = "#8a9db4"];
+
+        EP_PRECA [label = "PRECACHEXIA\n%WL <= 5%, anorexia, metabolic change"];
+        EP_CACH  [label = "CACHEXIA (Fearon 2011)\n%WL > 5%, OR %WL > 2% with BMI < 20,\nOR %WL > 2% with sarcopenia"];
+        EP_REFR  [label = "REFRACTORY CACHEXIA\nECOG 3-4, life expectancy < 3 months,\nunresponsive to anticancer therapy", shape = doubleoctagon, fillcolor = "#cfd9e6"];
+        EP_WL    [label = "% weight loss over 6 months"];
+        EP_BMI   [label = "Body mass index (kg/m2)"];
+        EP_MARTIN[label = "Martin grade 0-4 (%WL x BMI grid)\nmedian OS 20.9 -> 4.3 months across grades"];
+        EP_FAACT [label = "FAACT A/CS score (0-48)\n<= 37 defines anorexia"];
+        EP_QOL   [label = "EORTC QLQ-C30 global health / physical function"];
+        EP_SARCO [label = "CT-defined sarcopenia (L3 SMI)"];
+        EP_HAZ   [label = "Instantaneous mortality hazard", peripheries = 2, fillcolor = "#cfd9e6"];
+        EP_SURV  [label = "Overall survival"];
+        EP_HOSP  [label = "Unplanned hospitalisation / infection"];
+    }
+
+    /* ================================================================
+       EDGES
+       ================================================================ */
+
+    /* --- 1: tumour internals ---------------------------------------- */
+    TU_TYPE  -> TU_BURD  [style = dashed, label = "growth rate"];
+    TU_BURD  -> TU_PROL;
+    TU_PROL  -> TU_BURD  [color = "#b04a4a", label = "Gompertz"];
+    TU_BURD  -> TU_HYPOX;
+    TU_HYPOX -> TU_WARB;
+    TU_WARB  -> TU_LAC;
+    TU_WARB  -> TU_GLUT;
+    TU_BURD  -> TU_NECR;
+    TU_BURD  -> TU_EXO;
+    TU_BURD  -> TU_AAUP;
+    TU_HYPOX -> TU_GDF15 [label = "HIF-1a, ATF4"];
+    TU_BURD  -> TU_GDF15;
+    TU_BURD  -> TU_IL6;
+    TU_BURD  -> TU_LIF;
+    TU_BURD  -> TU_TNF;
+    TU_BURD  -> TU_IL1B;
+    TU_BURD  -> TU_ACTA;
+    TU_BURD  -> TU_PTHRP;
+    TU_BURD  -> TU_TWEAK;
+    TU_BURD  -> TU_ZAG;
+    TU_BURD  -> TU_PIF  [style = dashed];
+    TU_TYPE  -> TU_GDF15 [style = dashed];
+    TU_NECR  -> IM_MAC;
+    TU_EXO   -> MU_NFKB2 [style = dashed, label = "miR-21 -> TLR7"];
+
+    /* --- 1 -> 2: cachexins into the circulation ---------------------- */
+    TU_GDF15 -> IM_GDF15S [penwidth = 1.6];
+    TU_IL6   -> IM_IL6S   [penwidth = 1.6];
+    TU_LIF   -> IM_LIFS;
+    TU_TNF   -> IM_TNFS;
+    TU_ACTA  -> IM_ACTAS  [penwidth = 1.6];
+    TU_IL1B  -> IM_NFKB;
+    IM_MAC   -> IM_IL6S;
+    IM_MAC   -> IM_TNFS;
+    IM_MAC   -> IM_NFKB;
+    IM_NFKB  -> IM_IL6S;
+    IM_MDSC  -> IM_IL6S;
+    TU_BURD  -> IM_MDSC;
+    IM_LPS   -> IM_MAC;
+    IM_IL6S  -> IM_IL10 [label = "counter-reg"];
+    IM_IL10  -> IM_IL6S [color = "#2f7a3f", arrowhead = tee];
+    IM_IL6S  -> IM_NLR;
+    IM_TNFS  -> IM_NLR;
+    BC_MUSC  -> IM_MSTN [color = "#2f7a3f", label = "muscle IS the source\n-> myostatin FALLS"];
+
+    /* --- 2 -> 3: hepatic acute-phase response ------------------------ */
+    IM_IL6S  -> LV_STAT3 [penwidth = 1.5];
+    IM_LIFS  -> LV_STAT3;
+    LV_STAT3 -> LV_CRP   [penwidth = 1.5];
+    LV_STAT3 -> LV_FIB;
+    LV_STAT3 -> LV_HEPC;
+    LV_STAT3 -> LV_ALB   [color = "#b04a4a", arrowhead = tee, label = "transcription down"];
+    LV_STAT3 -> LV_MASS;
+    LV_FIB   -> LV_APRAA;
+    LV_CRP   -> LV_APRAA;
+    LV_APRAA -> MU_AAOUT [color = "#e07b1f", style = bold, penwidth = 1.6, label = "APR demands\nmuscle nitrogen"];
+    LV_HEPC  -> LV_ANEM;
+    LV_ANEM  -> FN_FATIG;
+    LV_ANEM  -> EN_ACT [color = "#b04a4a", arrowhead = tee];
+    TU_LAC   -> LV_GNG   [penwidth = 1.4];
+    LV_GNG   -> EN_CORI  [penwidth = 1.4];
+    MU_AAPL  -> LV_GNG;
+    LV_GNG   -> LV_UREA;
+    LV_UREA  -> EP_WL    [style = dashed, label = "N loss"];
+    IM_IL6S  -> LV_KETO  [color = "#b04a4a", arrowhead = tee];
+    LV_KETO  -> MU_AAOUT [color = "#b04a4a", arrowhead = tee, label = "no protein-sparing\nswitch"];
+    LV_CRP   -> LV_MGPS;
+    LV_ALB   -> LV_MGPS;
+    LV_ALB   -> BC_EDEMA [color = "#b04a4a", arrowhead = tee, label = "oncotic pressure"];
+    LV_ALB   -> PK_FCRN;
+    LV_MASS  -> BC_OLBM  [color = "#2f7a3f"];
+
+    /* --- ARM A-i: GDF-15 -> brainstem -------------------------------- */
+    IM_GDF15S -> BS_AP    [penwidth = 1.8, color = "#2f5f9e"];
+    BS_AP     -> BS_GFRAL [penwidth = 1.8, color = "#2f5f9e"];
+    BS_GFRAL  -> BS_CALCR [penwidth = 1.6, color = "#2f5f9e"];
+    BS_GFRAL  -> BS_DBH   [penwidth = 1.4, color = "#2f5f9e"];
+    BS_CALCR  -> BS_PBN;
+    BS_DBH    -> BS_PBN;
+    BS_PBN    -> BS_SIG   [penwidth = 1.6, color = "#2f5f9e"];
+    BS_5HT3   -> BS_AP;
+    BS_VAGAL  -> BS_AP;
+    BS_VAGAL  -> BS_SIG;
+    BS_SIG    -> BS_NAUS  [penwidth = 1.5];
+    BS_NAUS   -> BS_EMES;
+    BS_NAUS   -> BS_CTA;
+    BS_CTA    -> GI_INTAKE [color = "#b04a4a", arrowhead = tee, penwidth = 1.3];
+    BS_SIG    -> HY_ANOR  [penwidth = 1.8, color = "#2f5f9e", label = "ARM A"];
+    BS_PBN    -> HY_PVN;
+    GI_MUC    -> BS_5HT3;
+    ON_CHEMO  -> BS_5HT3;
+
+    /* --- ARM A-ii: hypothalamic melanocortin -------------------------- */
+    HY_ARC   -> HY_AGRP;
+    HY_ARC   -> HY_POMC;
+    HY_POMC  -> HY_MSH;
+    HY_MSH   -> HY_MC4R  [penwidth = 1.4];
+    HY_AGRP  -> HY_MC4R  [color = "#2f7a3f", arrowhead = tee, label = "inverse agonist"];
+    HY_MC4R  -> HY_PVN   [penwidth = 1.4];
+    HY_PVN   -> HY_ANOR  [penwidth = 1.6];
+    HY_PVN   -> HY_CRHN;
+    HY_PVN   -> NE_SNS;
+    AD_LEPS  -> HY_LEP;
+    HY_LEP   -> HY_AGRP  [color = "#b04a4a", arrowhead = tee];
+    HY_LEP   -> HY_POMC;
+    HY_INSC  -> HY_POMC;
+    HY_GHRE  -> HY_GHSR;
+    HY_GHSR  -> HY_AGRP  [color = "#2f7a3f", penwidth = 1.3];
+    HY_LEAP2 -> HY_GHSR  [color = "#b04a4a", arrowhead = tee, label = "endogenous antagonist"];
+    HY_IL1B  -> HY_POMC  [penwidth = 1.4, color = "#b04a4a"];
+    HY_IL1B  -> HY_AGRP  [color = "#b04a4a", arrowhead = tee, penwidth = 1.6, label = "BLOCKS the\ncompensation"];
+    HY_IL1B  -> HY_LEAP2;
+    HY_5HT   -> HY_POMC;
+    IM_IL6S  -> HY_IL1B;
+    IM_TNFS  -> HY_IL1B;
+    IM_IL6S  -> HY_5HT   [label = "IDO / free Trp"];
+    HY_OREX  -> GI_INTAKE [color = "#2f7a3f"];
+    HY_ANOR  -> HY_OREX  [color = "#b04a4a", arrowhead = tee];
+    HY_CRHN  -> NE_ACTH;
+    HY_ANOR  -> GI_INTAKE [color = "#b04a4a", arrowhead = tee, penwidth = 2.0, label = "ARM A output"];
+    HY_ANOR  -> EP_FAACT [color = "#b04a4a", arrowhead = tee];
+
+    /* --- 6: intake and GI barriers ------------------------------------ */
+    GI_SATIETY -> GI_INTAKE [color = "#b04a4a", arrowhead = tee];
+    GI_GASTRO  -> GI_SATIETY;
+    GI_GASTRO  -> BS_VAGAL  [label = "distension"];
+    GI_TASTE   -> GI_INTAKE [color = "#b04a4a", arrowhead = tee];
+    GI_MUC     -> GI_INTAKE [color = "#b04a4a", arrowhead = tee];
+    GI_OBSTR   -> GI_INTAKE [color = "#b04a4a", arrowhead = tee];
+    GI_CONST   -> GI_SATIETY;
+    GI_PAIN    -> GI_INTAKE [color = "#b04a4a", arrowhead = tee];
+    GI_DEPR    -> GI_INTAKE [color = "#b04a4a", arrowhead = tee];
+    BS_NAUS    -> GI_INTAKE [color = "#b04a4a", arrowhead = tee, penwidth = 1.5];
+    GI_INTAKE  -> GI_PROT   [penwidth = 1.3];
+    GI_MALAB   -> GI_PROT   [color = "#b04a4a", arrowhead = tee];
+    GI_ONS     -> GI_INTAKE [color = "#2f7a3f", penwidth = 1.3];
+    GI_ENPN    -> GI_INTAKE [color = "#2f7a3f", penwidth = 1.3];
+    GI_PROT    -> AN_LEU;
+    GI_PROT    -> MU_AAPL   [penwidth = 1.3];
+    GI_INTAKE  -> EN_DIT;
+    GI_INTAKE  -> EN_BAL    [penwidth = 1.6, color = "#2f7a3f"];
+    NP_SYMP    -> GI_GASTRO [color = "#2f7a3f", arrowhead = tee];
+    NP_SYMP    -> BS_NAUS   [color = "#2f7a3f", arrowhead = tee];
+    NP_SYMP    -> GI_PAIN   [color = "#2f7a3f", arrowhead = tee];
+    NP_NUTC    -> GI_INTAKE [color = "#2f7a3f"];
+    NP_PSY     -> GI_DEPR   [color = "#2f7a3f", arrowhead = tee];
+
+    /* --- ARM B-i: proteolysis ----------------------------------------- */
+    IM_IL6S   -> MU_GP130  [penwidth = 1.6];
+    IM_LIFS   -> MU_GP130;
+    MU_GP130  -> MU_STAT3  [penwidth = 1.6];
+    IM_ACTAS  -> MU_ACTRIIB[penwidth = 1.6];
+    IM_MSTN   -> MU_ACTRIIB;
+    MU_ACTRIIB-> MU_SMAD   [penwidth = 1.6];
+    IM_TNFS   -> MU_NFKB2;
+    TU_TWEAK  -> MU_FN14   [penwidth = 1.3];
+    MU_FN14   -> MU_NFKB2  [penwidth = 1.3];
+    IM_LPS    -> MU_NFKB2;
+    MU_STAT3  -> MU_FOXO   [penwidth = 1.6];
+    MU_SMAD   -> MU_FOXO   [penwidth = 1.6];
+    MU_NFKB2  -> MU_MURF1  [penwidth = 1.3];
+    NE_GR     -> MU_KLF15  [penwidth = 1.4];
+    MU_KLF15  -> MU_FOXO   [penwidth = 1.4];
+    AN_AKT    -> MU_FOXO   [color = "#2f7a3f", arrowhead = tee, penwidth = 1.6, label = "phosphorylates\n-> nuclear exclusion"];
+    MU_FOXO   -> MU_MAFBX  [penwidth = 1.5];
+    MU_FOXO   -> MU_MURF1  [penwidth = 1.5];
+    MU_FOXO   -> MU_AUTO   [penwidth = 1.4];
+    MU_MAFBX  -> MU_UPS    [penwidth = 1.5];
+    MU_MURF1  -> MU_UPS    [penwidth = 1.5];
+    MU_CALP   -> MU_UPS    [label = "releases myofilaments"];
+    MU_ROS    -> MU_CALP;
+    MU_ROS    -> MU_NFKB2;
+    MU_STAT3  -> MU_ROS;
+    MU_UPS    -> MU_AAOUT  [penwidth = 1.6];
+    MU_AUTO   -> MU_AAOUT  [penwidth = 1.2];
+    MU_AAOUT  -> MU_AAPL   [penwidth = 1.5];
+    MU_UPS    -> BC_MUSC   [color = "#b04a4a", arrowhead = tee, penwidth = 1.8, label = "degradation kd"];
+    MU_AUTO   -> BC_MUSC   [color = "#b04a4a", arrowhead = tee];
+    MU_MAFBX  -> AN_MYOD   [color = "#b04a4a", arrowhead = tee, label = "degrades MyoD"];
+    MU_MURF1  -> FN_MHC    [label = "ubiquitinates MHC"];
+    ON_MYOTX  -> MU_NFKB2;
+    ON_MYOTX  -> MU_ROS;
+
+    /* --- the amino-acid vicious cycle (highlighted) -------------------- */
+    MU_AAPL  -> TU_AAUP  [color = "#e07b1f", style = bold, penwidth = 2.2, label = "muscle feeds the tumour"];
+    TU_AAUP  -> TU_BURD  [color = "#e07b1f", style = bold, penwidth = 2.2];
+    TU_BURD  -> TU_IL6   [color = "#e07b1f", style = bold, penwidth = 2.2];
+    IM_IL6S  -> MU_STAT3 [color = "#e07b1f", style = bold, penwidth = 2.2, label = "cycle closes"];
+
+    /* --- ARM B-ii: anabolic signalling and resistance ------------------ */
+    AN_GH    -> AN_IGF1  [color = "#2f7a3f"];
+    AN_GHR   -> AN_IGF1  [color = "#b04a4a", arrowhead = tee, penwidth = 1.5, label = "GH resistance"];
+    IM_IL6S  -> AN_GHR   [penwidth = 1.4];
+    LV_STAT3 -> AN_GHR   [label = "SOCS3"];
+    AN_IGF1  -> AN_AKT   [color = "#2f7a3f", penwidth = 1.5];
+    AN_IGFBP -> AN_IGF1  [color = "#b04a4a", arrowhead = tee];
+    AN_IR    -> AN_AKT   [color = "#b04a4a", arrowhead = tee];
+    AN_AKT   -> AN_MTOR  [color = "#2f7a3f", penwidth = 1.5];
+    AN_LEU   -> AN_MTOR  [color = "#2f7a3f", penwidth = 1.5];
+    AN_AAT   -> AN_LEU;
+    AN_REDD1 -> AN_MTOR  [color = "#b04a4a", arrowhead = tee];
+    NE_GR    -> AN_REDD1;
+    AN_GCN2  -> AN_MTOR  [color = "#b04a4a", arrowhead = tee];
+    MU_AAPL  -> AN_GCN2  [color = "#b04a4a", arrowhead = tee, label = "AA sufficiency\nrelieves GCN2"];
+    AN_MTOR  -> AN_S6K;
+    AN_MTOR  -> AN_4EBP;
+    AN_S6K   -> AN_MPS   [color = "#2f7a3f", penwidth = 1.4];
+    AN_4EBP  -> AN_MPS   [color = "#2f7a3f", penwidth = 1.4];
+    AN_MPS   -> BC_MUSC  [color = "#2f7a3f", penwidth = 1.8, label = "synthesis ks"];
+    MU_STAT3 -> AN_ARES  [penwidth = 1.4];
+    MU_SMAD  -> AN_ARES  [penwidth = 1.2];
+    AN_REDD1 -> AN_ARES;
+    AN_IR    -> AN_ARES;
+    AN_ARES  -> AN_MPS   [color = "#b04a4a", arrowhead = tee, penwidth = 2.0, label = "the protein bolus\nis WASTED"];
+    AN_SATC  -> AN_MPS   [color = "#2f7a3f", penwidth = 1.5, label = "regenerative ceiling"];
+    MU_STAT3 -> AN_SATC  [color = "#b04a4a", arrowhead = tee, penwidth = 1.5, label = "slow, irreversible\ndepletion"];
+    AN_MYOD  -> AN_SATC  [color = "#2f7a3f"];
+    AN_TEST  -> AN_AR    [color = "#2f7a3f"];
+    AN_AR    -> AN_MPS   [color = "#2f7a3f"];
+    NE_HYPOG -> AN_TEST  [color = "#b04a4a", arrowhead = tee];
+    IM_IL6S  -> AN_IR;
+    AD_FFA   -> AN_IR;
+    AD_ECTOP -> AN_IR;
+    NP_PROT  -> AN_LEU   [color = "#2f7a3f", penwidth = 1.3];
+    NP_RES   -> AN_ARES  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.6, label = "restores sensitivity"];
+    NP_RES   -> AN_SATC  [color = "#2f7a3f"];
+
+    /* --- 9: adipose ---------------------------------------------------- */
+    TU_ZAG   -> AD_B3AR  [penwidth = 1.3];
+    NE_SNS   -> AD_B3AR  [penwidth = 1.3];
+    AD_B3AR  -> AD_ATGL  [penwidth = 1.3];
+    AD_B3AR  -> AD_HSL;
+    IM_TNFS  -> AD_ATGL;
+    IM_IL6S  -> AD_ATGL;
+    AD_ATGL  -> AD_LIPO  [penwidth = 1.5];
+    AD_HSL   -> AD_LIPO;
+    AD_LIPO  -> AD_FFA   [penwidth = 1.4];
+    AD_LIPO  -> AD_FAT   [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    AD_LPL   -> AD_FAT   [color = "#b04a4a", arrowhead = tee, label = "storage off"];
+    IM_TNFS  -> AD_LPL;
+    TU_PTHRP -> AD_PTH1R [penwidth = 1.4];
+    AD_PTH1R -> AD_UCP1  [penwidth = 1.5];
+    IM_IL6S  -> AD_UCP1  [penwidth = 1.3];
+    AD_B3AR  -> AD_UCP1;
+    AD_UCP1  -> EN_REE   [penwidth = 1.6, color = "#c2568b", label = "futile proton leak"];
+    AD_FAT   -> AD_LEPS  [penwidth = 1.4];
+    AD_FAT   -> AD_ADIPO [color = "#b04a4a", arrowhead = tee];
+    AD_FFA   -> AD_ECTOP;
+    AD_FFA   -> EN_FUT;
+    AD_LIPO  -> AD_FIBR;
+    AD_FIBR  -> AD_FAT   [color = "#b04a4a", arrowhead = tee, label = "limits refilling"];
+    AD_FAT   -> AD_VAT;
+    AD_ECTOP -> FN_MYOQ  [color = "#b04a4a", arrowhead = tee, label = "myosteatosis"];
+
+    /* --- 10: energy balance --------------------------------------------- */
+    EN_CORI  -> EN_REE   [penwidth = 1.5, color = "#c2568b"];
+    EN_FUT   -> EN_REE   [color = "#c2568b"];
+    LV_APRAA -> EN_REE   [color = "#c2568b", label = "APR is expensive"];
+    IM_IL6S  -> EN_REE   [color = "#c2568b", penwidth = 1.3];
+    TU_BURD  -> EN_REE   [color = "#c2568b", label = "tumour's own\nmetabolic rate"];
+    EN_PREE  -> EN_HYPERM;
+    EN_REE   -> EN_HYPERM [penwidth = 1.4];
+    EN_REE   -> EN_TEE   [penwidth = 1.5];
+    EN_AEE   -> EN_TEE;
+    EN_DIT   -> EN_TEE;
+    EN_ACT   -> EN_AEE   [penwidth = 1.3];
+    FN_ECOG  -> EN_ACT   [color = "#b04a4a", arrowhead = tee, penwidth = 1.4];
+    EN_TEE   -> EN_BAL   [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    EN_BAL   -> AD_FAT   [penwidth = 1.8, label = "residual balance\npartitioned to fat"];
+    BC_MUSC  -> EN_PREE;
+    BC_MUSC  -> EN_REE   [label = "lean mass is the\nmain REE determinant"];
+    EN_ACT   -> AN_ARES  [color = "#2f7a3f", arrowhead = tee, label = "disuse worsens it"];
+
+    /* --- 11: neuroendocrine ---------------------------------------------- */
+    NE_ACTH  -> NE_CORT  [penwidth = 1.4];
+    IM_IL6S  -> NE_ACTH;
+    NE_CORT  -> NE_GR    [penwidth = 1.5];
+    NE_GR    -> MU_MURF1;
+    NE_GR    -> AN_MTOR  [color = "#b04a4a", arrowhead = tee];
+    NE_SNS   -> EN_REE   [color = "#c2568b"];
+    NE_SNS   -> NE_B2AR;
+    NE_B2AR  -> BC_MUSC  [color = "#2f7a3f", style = dashed, label = "desensitised"];
+    IM_IL6S  -> NE_T3    [color = "#b04a4a", arrowhead = tee];
+    NE_T3    -> EN_REE   [color = "#2f7a3f", arrowhead = tee, label = "counter-regulatory"];
+    IM_IL6S  -> NE_HYPOG;
+    NE_HYPOG -> AN_TEST  [color = "#b04a4a", arrowhead = tee];
+    NE_VITD  -> FN_MYOQ  [color = "#2f7a3f", style = dashed];
+    NE_MELA  -> NE_CORT  [style = dashed];
+
+    /* --- 12: body composition -------------------------------------------- */
+    BC_MUSC  -> BC_BW    [penwidth = 1.6];
+    BC_OLBM  -> BC_BW    [penwidth = 1.2];
+    AD_FAT   -> BC_BW    [penwidth = 1.6];
+    BC_EDEMA -> BC_BW    [penwidth = 1.4, label = "masks loss"];
+    BC_BW    -> BC_WLHIST[label = "6-month transit chain"];
+    BC_WLHIST-> EP_WL    [penwidth = 1.5];
+    BC_BW    -> EP_WL    [penwidth = 1.5];
+    BC_BW    -> EP_BMI;
+    BC_MUSC  -> BC_SMI   [penwidth = 1.5];
+    BC_SMI   -> EP_SARCO [penwidth = 1.4];
+    BC_MUSC  -> BC_CARD;
+    BC_MUSC  -> BC_DIAPH;
+    BC_MUSC  -> BC_BONE;
+    BC_MUSC  -> BC_IMM;
+    BC_CARD  -> EP_HAZ;
+    BC_DIAPH -> EP_HOSP;
+    BC_IMM   -> EP_HOSP;
+    BC_IMM   -> ON_ICIRE;
+    BC_EDEMA -> EP_WL    [style = dashed, color = "#b04a4a", label = "false reassurance"];
+
+    /* --- AXIS C: quality ---------------------------------------------------- */
+    IM_IL6S  -> FN_PGC1  [color = "#b04a4a", arrowhead = tee, penwidth = 1.5];
+    IM_TNFS  -> FN_PGC1  [color = "#b04a4a", arrowhead = tee];
+    NP_AER   -> FN_PGC1  [color = "#2f7a3f", penwidth = 1.5];
+    NP_RES   -> FN_PGC1  [color = "#2f7a3f", penwidth = 1.3];
+    FN_PGC1  -> FN_MITO  [color = "#2f7a3f", penwidth = 1.5];
+    FN_MITO  -> FN_ATP   [color = "#2f7a3f", penwidth = 1.4];
+    FN_MFN   -> FN_MITO  [color = "#b04a4a", arrowhead = tee];
+    MU_ROS   -> FN_MFN;
+    MU_ROS   -> FN_MHC   [penwidth = 1.4];
+    MU_ROS   -> FN_RYR   [penwidth = 1.4];
+    FN_MHC   -> FN_MYOQ  [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    FN_RYR   -> FN_MYOQ  [color = "#b04a4a", arrowhead = tee, penwidth = 1.4];
+    FN_FIBER -> FN_MYOQ  [color = "#b04a4a", arrowhead = tee];
+    FN_NMJ   -> FN_MYOQ  [color = "#b04a4a", arrowhead = tee];
+    FN_ATP   -> FN_MYOQ  [color = "#2f7a3f", penwidth = 1.5];
+    FN_MITO  -> FN_MYOQ  [color = "#2f7a3f", penwidth = 1.3];
+    NP_RES   -> FN_MYOQ  [color = "#2f7a3f", penwidth = 2.0, label = "the only lever\nthat raises quality"];
+    EN_ACT   -> FN_NMJ   [color = "#2f7a3f", arrowhead = tee];
+    FN_DIL   -> FN_MYOQ  [color = "#7d3cb0", style = bold, penwidth = 2.0, arrowhead = tee, label = "DILUTION"];
+    BC_MUSC  -> FN_GRIP  [penwidth = 1.8, label = "mass"];
+    FN_MYOQ  -> FN_GRIP  [penwidth = 1.8, label = "x quality"];
+    BC_MUSC  -> FN_STAIR [penwidth = 1.3];
+    FN_MYOQ  -> FN_STAIR [penwidth = 1.6];
+    FN_ATP   -> FN_FATIG [color = "#2f7a3f", arrowhead = tee];
+    FN_GRIP  -> FN_ECOG  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4];
+    FN_STAIR -> FN_ECOG  [color = "#2f7a3f", arrowhead = tee];
+    FN_FATIG -> FN_ECOG;
+    FN_ECOG  -> EP_QOL   [color = "#b04a4a", arrowhead = tee, penwidth = 1.4];
+    FN_ECOG  -> EP_REFR  [penwidth = 1.5];
+    FN_GRIP  -> EP_HAZ   [color = "#2f7a3f", arrowhead = tee];
+
+    /* --- 14/15 -> 16: PK feeding PD -------------------------------------- */
+    DR_ANAM  -> PK_ANAD;   PK_ANAD -> PK_ANAC  [label = "ka"];
+    DR_MEG   -> PK_MEGD;   PK_MEGD -> PK_MEGC;
+    DR_DEX   -> PK_DEXD;   PK_DEXD -> PK_DEXC;
+    DR_OLZ   -> PK_OLZD;   PK_OLZD -> PK_OLZC;
+    DR_ENO   -> PK_ENOD;   PK_ENOD -> PK_ENOC;
+    DR_ESP   -> PK_ESPD;   PK_ESPD -> PK_ESPC;
+    DR_EPA   -> PK_EPAD;   PK_EPAD -> PK_EPAC;
+    DR_CEL   -> PK_CELD;   PK_CELD -> PK_CELC;
+    PK_CYP   -> PK_ANAC  [color = "#b04a4a", arrowhead = tee, label = "CL"];
+    PK_CYP   -> PK_OLZC  [color = "#b04a4a", arrowhead = tee];
+    PK_CYP   -> PK_DEXC  [color = "#b04a4a", arrowhead = tee];
+    DR_PONS  -> PK_PONSD; PK_PONSD -> PK_PONSC [label = "ka, F ~ 0.65"];
+    PK_PONSC -> PK_PONSP [dir = both];
+    PK_PONSC -> PK_CPLX  [penwidth = 1.5];
+    IM_GDF15S-> PK_CPLX  [penwidth = 1.5];
+    PK_CPLX  -> IM_GDF15S[color = "#b04a4a", arrowhead = tee, penwidth = 1.8, label = "FREE GDF-15\ncollapses"];
+    DR_TCZ   -> PK_TCZD;  PK_TCZD -> PK_TCZC;
+    DR_BIM   -> PK_BIMC;  PK_BIMC -> PK_BIMP [dir = both];
+    PK_FCRN  -> PK_PONSC [color = "#b04a4a", arrowhead = tee, label = "hypoalbuminaemia\nspeeds mAb CL"];
+    PK_FCRN  -> PK_TCZC  [color = "#b04a4a", arrowhead = tee];
+    PK_ADA   -> PK_PONSC [color = "#b04a4a", arrowhead = tee, style = dashed];
+
+    /* --- 16: drug -> target actions --------------------------------------- */
+    PK_ANAC  -> HY_GHSR  [color = "#2f7a3f", penwidth = 1.6, label = "agonist"];
+    PK_ANAC  -> AN_GH    [color = "#2f7a3f", penwidth = 1.6];
+    PK_ANAC  -> GI_GASTRO[color = "#2f7a3f", arrowhead = tee, label = "prokinetic"];
+    PK_MEGC  -> HY_AGRP  [color = "#2f7a3f", penwidth = 1.4, label = "NPY up"];
+    PK_MEGC  -> IM_IL6S  [color = "#2f7a3f", arrowhead = tee];
+    PK_MEGC  -> NE_GR    [color = "#b04a4a", penwidth = 1.4, label = "glucocorticoid-like\n(off-target catabolism)"];
+    PK_MEGC  -> AN_TEST  [color = "#b04a4a", arrowhead = tee, label = "gonadal suppression"];
+    PK_MEGC  -> BC_EDEMA [color = "#b04a4a", label = "fluid retention, VTE"];
+    PK_DEXC  -> HY_ANOR  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4, label = "days 1-21 only"];
+    PK_DEXC  -> NE_GR    [color = "#b04a4a", penwidth = 1.8, label = "myopathy after ~3-4 wk"];
+    PK_DEXC  -> IM_IL6S  [color = "#2f7a3f", arrowhead = tee];
+    PK_OLZC  -> HY_ANOR  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.5, label = "H1 / 5-HT2C"];
+    PK_OLZC  -> BS_NAUS  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.5, label = "D2 / 5-HT3"];
+    PK_OLZC  -> AN_IR    [color = "#b04a4a", label = "metabolic side-effect"];
+    PK_ENOC  -> AN_AR    [color = "#2f7a3f", penwidth = 1.6];
+    PK_BIMC  -> MU_ACTRIIB[color = "#b04a4a", arrowhead = tee, penwidth = 1.8];
+    PK_TCZC  -> MU_GP130 [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    PK_TCZC  -> LV_STAT3 [color = "#b04a4a", arrowhead = tee, penwidth = 1.6];
+    PK_ESPC  -> NE_B2AR  [color = "#b04a4a", arrowhead = tee];
+    PK_ESPC  -> EN_REE   [color = "#2f7a3f", arrowhead = tee, penwidth = 1.5, label = "cuts hypermetabolism"];
+    PK_ESPC  -> AD_B3AR  [color = "#b04a4a", arrowhead = tee];
+    PK_ESPC  -> MU_UPS   [color = "#2f7a3f", arrowhead = tee];
+    PK_EPAC  -> IM_NFKB  [color = "#2f7a3f", arrowhead = tee];
+    PK_EPAC  -> MU_NFKB2 [color = "#2f7a3f", arrowhead = tee];
+    PK_CELC  -> HY_IL1B  [color = "#2f7a3f", arrowhead = tee, label = "PGE2"];
+    PK_CELC  -> IM_IL6S  [color = "#2f7a3f", arrowhead = tee];
+    DR_MC4RA -> HY_MC4R  [color = "#2f7a3f", arrowhead = tee, style = dashed];
+    DR_GRLN  -> HY_GHSR  [color = "#2f7a3f", style = dashed];
+    DR_ACE   -> MU_FOXO  [color = "#2f7a3f", arrowhead = tee, style = dashed];
+    DR_APEL  -> FN_MITO  [color = "#2f7a3f", style = dashed];
+    DR_PONS  -> BS_GFRAL [color = "#b04a4a", arrowhead = tee, style = dashed, label = "net effect"];
+
+    /* --- the dilution path (Axis C, highlighted) ----------------------------- */
+    PK_ANAC  -> FN_DIL   [color = "#7d3cb0", style = bold, penwidth = 1.8, label = "fast GH/IGF-1 mass"];
+    PK_ENOC  -> FN_DIL   [color = "#7d3cb0", style = bold, penwidth = 1.8, label = "fast AR-driven mass"];
+    PK_BIMC  -> FN_DIL   [color = "#7d3cb0", style = bold, penwidth = 1.6];
+    BC_MUSC  -> FN_DIL   [color = "#7d3cb0", style = bold, penwidth = 1.4, label = "d(mass)/dt"];
+
+    /* --- 17: non-pharmacologic ------------------------------------------------ */
+    NP_MULT  -> NP_RES   [color = "#2f7a3f"];
+    NP_MULT  -> NP_NUTC  [color = "#2f7a3f"];
+    NP_MULT  -> DR_EPA   [color = "#2f7a3f"];
+    NP_MULT  -> ON_CHEMO [color = "#2f7a3f", style = dashed];
+    NP_NUTC  -> GI_ONS   [color = "#2f7a3f"];
+    NP_NUTC  -> NP_PROT  [color = "#2f7a3f"];
+    NP_AER   -> EN_ACT   [color = "#2f7a3f"];
+    NP_RES   -> EN_ACT   [color = "#2f7a3f"];
+
+    /* --- 18: anticancer therapy ------------------------------------------------ */
+    ON_CHEMO -> ON_RESP  [color = "#2f7a3f", penwidth = 1.4];
+    ON_ICI   -> ON_RESP  [color = "#2f7a3f", penwidth = 1.4];
+    ON_TARG  -> ON_RESP  [color = "#2f7a3f", penwidth = 1.4];
+    ON_RESP  -> TU_BURD  [color = "#2f7a3f", arrowhead = tee, penwidth = 2.0, label = "removes the driver\n= the definitive therapy"];
+    ON_CHEMO -> ON_MYOTX [color = "#b04a4a"];
+    ON_CHEMO -> GI_MUC   [color = "#b04a4a"];
+    ON_CHEMO -> IM_LPS   [color = "#b04a4a"];
+    ON_DOSE  -> ON_RESP  [penwidth = 1.4];
+    BC_SMI   -> ON_TOXG  [color = "#2f7a3f", arrowhead = tee, penwidth = 1.4, label = "low SMI -> more toxicity"];
+    ON_TOXG  -> ON_DOSE  [color = "#b04a4a", arrowhead = tee, penwidth = 1.5];
+    ON_TOXG  -> ON_STOP  [penwidth = 1.3];
+    FN_ECOG  -> ON_STOP  [penwidth = 1.5];
+    ON_STOP  -> EP_HAZ   [penwidth = 1.6];
+    ON_ICIRE -> ON_RESP  [color = "#b04a4a", arrowhead = tee, style = dashed];
+
+    /* --- 19: staging and endpoints ---------------------------------------------- */
+    EP_WL    -> EP_PRECA;
+    EP_WL    -> EP_CACH  [penwidth = 1.5];
+    EP_BMI   -> EP_CACH;
+    EP_SARCO -> EP_CACH;
+    EP_PRECA -> EP_CACH  [label = "progression"];
+    EP_CACH  -> EP_REFR  [penwidth = 1.4];
+    AN_SATC  -> EP_REFR  [color = "#b04a4a", arrowhead = tee, penwidth = 1.8, label = "POINT OF NO RETURN:\ndepleted pool = irreversible"];
+    EP_WL    -> EP_MARTIN[penwidth = 1.4];
+    EP_BMI   -> EP_MARTIN[penwidth = 1.4];
+    EP_MARTIN-> EP_HAZ   [penwidth = 1.6];
+    LV_MGPS  -> EP_HAZ   [penwidth = 1.5];
+    EP_SARCO -> EP_HAZ   [penwidth = 1.3];
+    EP_REFR  -> EP_HAZ   [penwidth = 1.8];
+    EP_HAZ   -> EP_SURV  [color = "#b04a4a", arrowhead = tee, penwidth = 1.8];
+    EP_HOSP  -> EP_HAZ;
+    EP_FAACT -> EP_QOL   [color = "#2f7a3f"];
+    GI_INTAKE-> EP_FAACT [color = "#2f7a3f", penwidth = 1.3];
+    BS_NAUS  -> EP_FAACT [color = "#b04a4a", arrowhead = tee];
+    TU_BURD  -> EP_HAZ   [penwidth = 1.6, label = "tumour burden itself"];
+
+    /* --- legend -------------------------------------------------------------- */
+    subgraph cluster_legend {
+        label = "Legend";
+        style = "filled,rounded"; fillcolor = "#ffffff"; color = "#9aa3ab";
+        fontsize = 12; fontcolor = "#444c54";
+        node [shape = plaintext, fillcolor = "#ffffff", style = "", fontsize = 10];
+        LEG [label = <<table border="0" cellborder="0" cellspacing="2">
+            <tr><td align="left"><b>double border</b></td><td align="left">ODE state in cacs_mrgsolve_model.R</td></tr>
+            <tr><td align="left"><b>octagon</b></td><td align="left">drug / intervention</td></tr>
+            <tr><td align="left"><b>hexagon</b></td><td align="left">clinical endpoint / read-out</td></tr>
+            <tr><td align="left"><b>diamond</b></td><td align="left">switch, moderator or decision node</td></tr>
+            <tr><td align="left"><b>parallelogram</b></td><td align="left">flux / transfer process</td></tr>
+            <tr><td align="left"><b>dashed box</b></td><td align="left">hypothesis or investigational agent</td></tr>
+            <tr><td align="left"><font color="#b04a4a"><b>red / tee</b></font></td><td align="left">inhibition or antagonism</td></tr>
+            <tr><td align="left"><font color="#2f7a3f"><b>green</b></font></td><td align="left">restorative / protective</td></tr>
+            <tr><td align="left"><font color="#e07b1f"><b>bold orange</b></font></td><td align="left">the amino-acid vicious cycle (muscle feeds the tumour)</td></tr>
+            <tr><td align="left"><font color="#7d3cb0"><b>bold purple</b></font></td><td align="left">Axis C — quality dilution of rapidly added mass</td></tr>
+            <tr><td align="left"><font color="#c2568b"><b>pink</b></font></td><td align="left">contribution to resting energy expenditure</td></tr>
+            <tr><td align="left"><b>ARM A</b></td><td align="left">intake / anorexia (GDF-15 &#8594; GFRAL &#8594; melanocortin)</td></tr>
+            <tr><td align="left"><b>ARM B</b></td><td align="left">catabolism + hypermetabolism (STAT3 / SMAD &#8594; FoxO)</td></tr>
+            <tr><td align="left"><b>AXIS C</b></td><td align="left">muscle quality — force per kilogram</td></tr>
+            </table>>];
+    }
+}
