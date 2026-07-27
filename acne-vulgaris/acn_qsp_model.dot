@@ -1,0 +1,927 @@
+/*
+ * acn_qsp_model.dot
+ * ---------------------------------------------------------------------------
+ * 심상성 여드름 (Acne vulgaris, ACN)
+ * Quantitative Systems Pharmacology mechanistic map
+ *
+ * 18 clusters · ~230 nodes · ~400 edges
+ *
+ * Render:
+ *   dot -Tsvg acn_qsp_model.dot -o acn_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 acn_qsp_model.dot -o acn_qsp_model.png
+ *
+ * Legend (edge style):
+ *   solid black   = mass flux / differentiation / lesion transit
+ *   blue          = stimulation / activation
+ *   red (tee)     = inhibition / suppression
+ *   dashed green  = drug action
+ *   dotted grey   = feedback / amplification loop
+ *   dashed orange = adverse effect / safety liability
+ *
+ * The four classical pathogenic pillars are colour-anchored:
+ *   (1) hyperseborrhoea .................. cluster 4  (gold)
+ *   (2) infundibular hyperkeratinisation . cluster 5  (tan)
+ *   (3) C. acnes dysbiosis / biofilm ..... cluster 6  (green)
+ *   (4) inflammation ..................... clusters 7-9 (red/purple)
+ * ---------------------------------------------------------------------------
+ */
+digraph ACN_QSP {
+  graph [rankdir=TB, newrank=true, splines=spline, overlap=false, nodesep=0.26, ranksep=0.52,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", label=<<B>심상성 여드름 (Acne vulgaris) — QSP Mechanistic Map</B><BR/>
+         <FONT POINT-SIZE="11">Androgen–IGF-1/mTORC1–sebocyte axis · infundibular hyperkeratinisation · <I>C. acnes</I> phylotype/biofilm/resistance · NLRP3–IL-1β–Th17 inflammation · lesion-transit kinetics · topical/systemic/hormonal/isotretinoin pharmacology</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=1.0, margin="0.08,0.05"];
+  edge  [fontname="Helvetica", fontsize=8, color="#444444", arrowsize=0.6];
+
+  /* ===================================================================== */
+  /* 1. 병인 — 유전·연령·외인 (Etiology / exposome)                          */
+  /* ===================================================================== */
+  subgraph cluster_etio {
+    label=<<B>1. 병인 — 유전 · 부신초기발육 · 외인 (Exposome)</B>>;
+    style="rounded,filled"; fillcolor="#FDF2F2"; color="#C0392B"; fontcolor="#943126";
+    node [fillcolor="#FADBD8"];
+
+    e_herit   [label="유전율 78–81%\n(쌍둥이 연구)", fillcolor="#F5B7B1", penwidth=2];
+    e_gwas    [label="GWAS 위험 유전자좌\n(TGFB2 · OVOL1 · FST · WNT10A\nSEMA4B · 11q13.1)"];
+    e_fst     [label="FST (Follistatin)\n→ TGF-β/액티빈 신호 조절"];
+    e_tgfb2   [label="TGFB2 → 모낭피지선\n분화 프로그램 변화"];
+    e_ovol1   [label="OVOL1 → 각질세포\n분화 조절"];
+    e_cyp     [label="CYP17A1 · CYP1A1 다형성\n(스테로이드 생성 변이)"];
+    e_ar_cag  [label="AR 유전자 CAG 반복 짧음\n→ 수용체 전사활성↑"];
+    e_srd5a1  [label="SRD5A1 (5α-환원효소 1형)\n피지선 발현량 변이"];
+
+    e_adrenar [label="부신초기발육 (Adrenarche)\n8–10세 · DHEA-S 상승", fillcolor="#F5B7B1", penwidth=2];
+    e_puberty [label="사춘기 성선 성숙\n(LH/FSH → 성선 안드로겐)"];
+    e_age     [label="연령 분포\n호발 15–19세 · 성인여성 지속형 12–22%"];
+    e_sex     [label="성별: 청소년기 남>여\n성인기 여>남 (턱선·하부안면)"];
+
+    e_diet_gi [label="고혈당지수 식이\n(High glycaemic load)", fillcolor="#F5B7B1", penwidth=2];
+    e_dairy   [label="유제품 (특히 탈지유)\n웨이 단백 · 류신"];
+    e_whey    [label="웨이/BCAA 보충제\n(운동 보조제)"];
+    e_smoke   [label="흡연 (면포성 여드름 연관)"];
+    e_humid   [label="고온다습 · 폐색성 화장품\n(Acne cosmetica)"];
+    e_mech    [label="기계적 마찰·압박\n(Acne mechanica · 마스크)"];
+    e_drug    [label="약물유발 여드름양 발진\n(EGFR 억제제·코르티코스테로이드·\n리튬·이소니아지드·안드로겐)"];
+    e_pcos    [label="PCOS · 고안드로겐혈증\n(SAHA 증후군)", fillcolor="#F5B7B1", penwidth=2];
+    e_stress  [label="심리적 스트레스\n(시험기 악화 재현)"];
+    e_micro   [label="피부 마이크로바이옴\n다양성 감소"];
+  }
+
+  /* ===================================================================== */
+  /* 2. 안드로겐 축 (Androgen axis)                                          */
+  /* ===================================================================== */
+  subgraph cluster_andro {
+    label=<<B>2. 안드로겐 축 — 부신 · 성선 · 국소 스테로이드 생성</B>>;
+    style="rounded,filled"; fillcolor="#FEF9E7"; color="#B7950B"; fontcolor="#7D6608";
+    node [fillcolor="#FCF3CF"];
+
+    a_crhhpa  [label="시상하부 CRH → 뇌하수체 ACTH"];
+    a_zr      [label="부신 망상대 (Zona reticularis)"];
+    a_dheas   [label="DHEA-S (혈중 저장형)", fillcolor="#F9E79F", penwidth=2];
+    a_dhea    [label="DHEA"];
+    a_andros  [label="Androstenedione"];
+    a_lh      [label="LH → 난소 난포막세포 /\n고환 라이디히세포"];
+    a_tt      [label="총 테스토스테론 (TT)", fillcolor="#F9E79F", penwidth=2];
+    a_shbg    [label="SHBG (간 합성)", fillcolor="#F9E79F", penwidth=2];
+    a_ft      [label="유리 테스토스테론 (FT)\n= 생물학적 활성분획", fillcolor="#F9E79F", penwidth=2];
+    a_5ar1    [label="5α-환원효소 1형 (SRD5A1)\n피지선에 우세 발현", fillcolor="#F9E79F", penwidth=2];
+    a_dht     [label="모낭내 DHT\n(AR 친화도 5–10배)", fillcolor="#F5B041", penwidth=2];
+    a_3bhsd   [label="3β-HSD · 17β-HSD\n(피지선 국소 전환)"];
+    a_ar      [label="안드로겐 수용체 (AR)\n피지세포·모낭 각질세포 핵수용체", fillcolor="#F5B041", penwidth=2];
+    a_arE     [label="AR–ARE 결합 → 표적유전자 전사"];
+    a_aromat  [label="아로마타제 → 에스트라디올\n(피지 억제 방향)"];
+    a_insSHBG [label="인슐린 → 간 SHBG 합성 억제", fillcolor="#F8C471"];
+    a_ee      [label="에스트로겐(EE) → SHBG 합성 유도"];
+    a_pcosdrv [label="PCOS: LH/FSH비↑ · 난포막세포\n안드로겐 과분비"];
+    a_lateCAH [label="비고전형 21-수산화효소 결핍\n(성인여성 난치성 여드름 감별)"];
+  }
+
+  /* ===================================================================== */
+  /* 3. 영양·대사 신호 (Nutrient / metabolic signalling)                     */
+  /* ===================================================================== */
+  subgraph cluster_metab {
+    label=<<B>3. 영양-대사 신호 — 인슐린 · IGF-1 · mTORC1/FoxO1</B>>;
+    style="rounded,filled"; fillcolor="#EAF7F0"; color="#1E8449"; fontcolor="#145A32";
+    node [fillcolor="#D5F5E3"];
+
+    m_gl      [label="혈당부하 (Glycaemic load) ↑"];
+    m_ins     [label="혈중 인슐린 ↑", fillcolor="#ABEBC6", penwidth=2];
+    m_igfbp3  [label="IGFBP-3 ↓ (유리 IGF-1 증가)"];
+    m_igf1    [label="IGF-1 (혈중 · 국소)", fillcolor="#7DCEA0", penwidth=2];
+    m_igf1r   [label="IGF-1R / 인슐린 수용체\n(피지세포)"];
+    m_pi3k    [label="PI3K → AKT"];
+    m_foxo1   [label="FoxO1 (핵 배제 시 억제 해제)", fillcolor="#7DCEA0", penwidth=2];
+    m_mtorc1  [label="mTORC1 (영양-성장 허브)", fillcolor="#52BE80", penwidth=2];
+    m_leu     [label="류신/BCAA → Rag GTPase\n→ mTORC1 직접 활성화"];
+    m_srebp   [label="SREBP-1c (지질생성 전사인자)", fillcolor="#7DCEA0", penwidth=2];
+    m_pparg   [label="PPAR-γ (피지세포 분화·지질축적)"];
+    m_lxr     [label="LXR-α → 지질생성 보조"];
+    m_ampk    [label="AMPK (메트포민 표적) ⟂ mTORC1"];
+    m_ir      [label="인슐린 저항성 (HOMA-IR↑)"];
+    m_obes    [label="비만 · 지방조직 염증"];
+  }
+
+  /* ===================================================================== */
+  /* 4. 피지선 생물학 & 피지 조성 (필러 1: 과피지)                            */
+  /* ===================================================================== */
+  subgraph cluster_seb {
+    label=<<B>4. 피지선 · 피지 조성 — 필러 ① 과피지 (Hyperseborrhoea)</B>>;
+    style="rounded,filled"; fillcolor="#FDF6E3"; color="#B9770E"; fontcolor="#7E5109";
+    node [fillcolor="#FAE5D3"];
+
+    s_stem    [label="피지선 줄기세포 (Blimp1⁺ · LRIG1⁺)"];
+    s_prolif  [label="피지세포 증식\n(기저 피지세포)", fillcolor="#F0B27A", penwidth=2];
+    s_diff    [label="피지세포 말단분화\n(지질 적재 · holocrine)", fillcolor="#F0B27A", penwidth=2];
+    s_mass    [label="피지선 유효 질량 (SGM)", fillcolor="#E67E22", penwidth=2, fontcolor="white"];
+    s_apop    [label="피지세포 세포자멸\n(이소트레티노인 표적)", fillcolor="#F0B27A"];
+    s_holo    [label="Holocrine 분비 → 피지 배출"];
+    s_ser     [label="피지 분비율 SER\n(µg/cm²/min)", fillcolor="#E67E22", penwidth=2, fontcolor="white"];
+
+    s_tg      [label="트리글리세라이드 (~40%)"];
+    s_wax     [label="왁스 에스터 (~25%)"];
+    s_squal   [label="스쿠알렌 (~12%, 피부 고유)", fillcolor="#F0B27A", penwidth=2];
+    s_sapien  [label="Sapienic acid (C16:1Δ6)\n(항균 · SCD-1 산물)"];
+    s_chol    [label="콜레스테롤 · 콜레스테릴 에스터"];
+    s_la      [label="리놀레산 (필수지방산)\n피지 증가 시 희석 결핍", fillcolor="#F5CBA7", penwidth=2];
+    s_scd     [label="SCD-1 (지방산 불포화화)"];
+    s_fasn    [label="FASN · ACC (지질 신생합성)"];
+    s_sqox    [label="스쿠알렌 과산화물 (SQOX)\n면포유발 + 염증유발", fillcolor="#DC7633", penwidth=2, fontcolor="white"];
+    s_ros     [label="ROS · 지질 과산화\n(UV · 포르피린 광반응)"];
+    s_vitE    [label="피지 내 비타민 E ↓\n(항산화 방어 소진)"];
+    s_crhr    [label="피지세포 CRH-R1\n(신경내분비 수용체)"];
+    s_msh     [label="MC1R / α-MSH → 지질생성↑"];
+    s_cb2     [label="CB2 카나비노이드 수용체\n(내인성 카나비노이드 지질생성)"];
+    s_sp      [label="Substance P → NK-1R\n피지선 비대 · 비만세포 활성"];
+  }
+
+  /* ===================================================================== */
+  /* 5. 모낭 누두부 각질화 (필러 2)                                          */
+  /* ===================================================================== */
+  subgraph cluster_ker {
+    label=<<B>5. 모낭 누두부 과각화 — 필러 ② (Infundibular hyperkeratinisation)</B>>;
+    style="rounded,filled"; fillcolor="#FBF3E4"; color="#9A7D0A"; fontcolor="#7D6608";
+    node [fillcolor="#F9E79F"];
+
+    k_kc      [label="누두부 각질형성세포"];
+    k_prolif  [label="각질형성세포 증식↑ (Ki-67↑)", fillcolor="#F7DC6F", penwidth=2];
+    k_diff    [label="이상 말단분화\n(K6/K16 · 인볼루크린 이상)"];
+    k_desmo   [label="데스모좀 분해 지연\n(각질세포 응집 유지)", fillcolor="#F7DC6F", penwidth=2];
+    k_fillag  [label="필라그린 발현 증가\n(누두부 국한)"];
+    k_ladef   [label="리놀레산 결핍\n→ 장벽 이상 · 과각화 유발", fillcolor="#F7DC6F", penwidth=2];
+    k_il1a    [label="IL-1α (각질세포 자가분비)\n면포 형성의 최초 신호", fillcolor="#F4D03F", penwidth=2];
+    k_il1r    [label="IL-1R → MyD88 → NF-κB"];
+    k_androk  [label="AR 매개 각질세포 증식"];
+    k_retrar  [label="RAR-β/γ → 정상 분화 회복\n(레티노이드 표적)", fillcolor="#F7DC6F", penwidth=2];
+    k_plug    [label="각질 플러그 (Corneocyte plug)", fillcolor="#D4AC0D", penwidth=2, fontcolor="white"];
+    k_micro   [label="미세면포 (Microcomedone)\n임상 전 병변 저장고", fillcolor="#D4AC0D", penwidth=2, fontcolor="white"];
+    k_dilate  [label="모낭 확장 · 벽 얇아짐"];
+    k_rupture [label="모낭벽 파열\n(내용물 진피 유출)", fillcolor="#CA6F1E", penwidth=2, fontcolor="white"];
+  }
+
+  /* ===================================================================== */
+  /* 6. Cutibacterium acnes 생태 (필러 3)                                    */
+  /* ===================================================================== */
+  subgraph cluster_cacnes {
+    label=<<B>6. <I>Cutibacterium acnes</I> — 필러 ③ 이상균총 · 바이오필름 · 내성</B>>;
+    style="rounded,filled"; fillcolor="#E8F8F5"; color="#117A65"; fontcolor="#0E6251";
+    node [fillcolor="#D1F2EB"];
+
+    c_niche   [label="무산소 · 지질 풍부 모낭 니치"];
+    c_growth  [label="C. acnes 증식 (지질 의존)", fillcolor="#A3E4D7", penwidth=2];
+    c_ia1     [label="Phylotype IA1 (여드름 우세)", fillcolor="#76D7C4", penwidth=2];
+    c_ib_ii   [label="Phylotype IB · II (건강 피부 우세)"];
+    c_iii     [label="Phylotype III (진행성 대식세포 반응)"];
+    c_loss    [label="계통형 다양성 상실\n(균총 불균형 = 진정한 이상균총)", fillcolor="#76D7C4", penwidth=2];
+    c_biofilm [label="바이오필름 (EPS 다당)\n항생제 침투 저해 · MIC 수백배↑", fillcolor="#48C9B0", penwidth=2, fontcolor="white"];
+    c_plank   [label="부유성 (Planktonic) 집단"];
+    c_lipase  [label="세균 리파아제 (GehA)\n→ 유리지방산 생성", fillcolor="#76D7C4", penwidth=2];
+    c_ffa     [label="유리지방산 (FFA)\n면포유발 + 자극성", fillcolor="#45B39D", penwidth=2, fontcolor="white"];
+    c_porph   [label="포르피린 (코프로/프로토포르피린 III)\n→ 광활성 ROS", fillcolor="#76D7C4", penwidth=2];
+    c_camp    [label="CAMP factor (용혈독소)\n→ 각질세포 세포독성"];
+    c_hyal    [label="히알루로니데이트 리아제"];
+    c_prote   [label="세균 프로테아제 → PAR-2 활성화"];
+    c_scfa    [label="단쇄지방산 (프로피온산)\n→ HDAC 억제 · 각질세포 반응 변화"];
+    c_res23   [label="23S rRNA 돌연변이\n(에리트로마이신·클린다마이신 내성)", fillcolor="#F1948A", penwidth=2];
+    c_res16   [label="16S rRNA G1058C\n(테트라사이클린 내성)", fillcolor="#F1948A", penwidth=2];
+    c_erm     [label="erm(X) 획득 내성 유전자"];
+    c_resfrac [label="내성 분획 (RESFRAC)\n항생제 선택압 하 증가", fillcolor="#E74C3C", penwidth=2, fontcolor="white"];
+    c_sepi    [label="S. epidermidis (길항균)\n숙신산 생성 → C. acnes 억제"];
+    c_malas   [label="Malassezia spp.\n(모낭염 감별진단)"];
+  }
+
+  /* ===================================================================== */
+  /* 7. 선천면역 인식 (Innate recognition)                                   */
+  /* ===================================================================== */
+  subgraph cluster_innate {
+    label=<<B>7. 선천면역 인식 — TLR2 · 인플라마좀 · 항균펩타이드</B>>;
+    style="rounded,filled"; fillcolor="#FDEDEC"; color="#B03A2E"; fontcolor="#922B21";
+    node [fillcolor="#FADBD8"];
+
+    i_tlr2    [label="TLR2 (모낭주위 단핵구·각질세포)", fillcolor="#F1948A", penwidth=2];
+    i_tlr4    [label="TLR4"];
+    i_nod2    [label="NOD2 (세포내 펩티도글리칸 감지)"];
+    i_par2    [label="PAR-2 (프로테아제 활성화 수용체)"];
+    i_cd36    [label="CD36 (지질 스캐빈저 수용체)"];
+    i_myd88   [label="MyD88 → IRAK → TRAF6"];
+    i_nfkb    [label="NF-κB 활성화", fillcolor="#EC7063", penwidth=2, fontcolor="white"];
+    i_ap1     [label="AP-1 (c-Jun/c-Fos)\n→ MMP 전사"];
+    i_nlrp3   [label="NLRP3 인플라마좀\n(NLRP3–ASC–procaspase-1)", fillcolor="#EC7063", penwidth=2, fontcolor="white"];
+    i_casp1   [label="Caspase-1 활성화"];
+    i_prol1b  [label="pro-IL-1β → IL-1β 성숙", fillcolor="#E74C3C", penwidth=2, fontcolor="white"];
+    i_kefflux [label="K⁺ 유출 · 리소좀 파열 · ROS\n(NLRP3 2차 신호)"];
+    i_hbd2    [label="hBD-2 (β-디펜신 2)"];
+    i_ll37    [label="LL-37 (카텔리시딘)"];
+    i_psor    [label="Psoriasin (S100A7)"];
+    i_gran    [label="그래뉼리신 · RNase 7"];
+  }
+
+  /* ===================================================================== */
+  /* 8. 사이토카인 · 호중구 · 기질분해 (Effector inflammation)                */
+  /* ===================================================================== */
+  subgraph cluster_cyto {
+    label=<<B>8. 사이토카인 · 호중구 · 기질 분해</B>>;
+    style="rounded,filled"; fillcolor="#F5EEF8"; color="#7D3C98"; fontcolor="#5B2C6F";
+    node [fillcolor="#E8DAEF"];
+
+    y_il1b    [label="IL-1β", fillcolor="#C39BD3", penwidth=2];
+    y_il8     [label="IL-8 / CXCL8 (호중구 주화)", fillcolor="#C39BD3", penwidth=2];
+    y_tnf     [label="TNF-α", fillcolor="#C39BD3", penwidth=2];
+    y_il6     [label="IL-6"];
+    y_gmcsf   [label="GM-CSF"];
+    y_il12    [label="IL-12 / IL-23 (수지상세포)"];
+    y_ifng    [label="IFN-γ (Th1)"];
+    y_neu     [label="호중구 모낭주위 침윤\n→ 농포 형성", fillcolor="#AF7AC5", penwidth=2, fontcolor="white"];
+    y_mpo     [label="MPO · 엘라스타아제 · NET"];
+    y_mac     [label="대식세포 · 이물거대세포\n(파열 후 육아종성 반응)"];
+    y_mmp     [label="MMP-1 · MMP-9 · MMP-13\n(진피 콜라겐 분해)", fillcolor="#AF7AC5", penwidth=2, fontcolor="white"];
+    y_timp    [label="TIMP-1/2 (억제제) 불균형"];
+    y_vegf    [label="VEGF → 홍반 · 혈관확장"];
+    y_pge2    [label="PGE₂ / LTB₄ (5-LOX · COX-2)"];
+  }
+
+  /* ===================================================================== */
+  /* 9. 적응면역 Th17 축                                                     */
+  /* ===================================================================== */
+  subgraph cluster_adapt {
+    label=<<B>9. 적응면역 — Th17/Th1 및 조절 실패</B>>;
+    style="rounded,filled"; fillcolor="#F4ECF7"; color="#6C3483"; fontcolor="#4A235A";
+    node [fillcolor="#D7BDE2"];
+
+    t_dc      [label="진피 수지상세포 · 랑게르한스세포\n(C. acnes 항원 제시)"];
+    t_naive   [label="Naïve CD4⁺ T세포"];
+    t_rorgt   [label="RORγt 유도 (IL-1β + IL-6 + TGF-β)", fillcolor="#BB8FCE", penwidth=2];
+    t_th17    [label="Th17 세포", fillcolor="#A569BD", penwidth=2, fontcolor="white"];
+    t_il17    [label="IL-17A / IL-17F", fillcolor="#A569BD", penwidth=2, fontcolor="white"];
+    t_il22    [label="IL-22 (각질세포 증식 촉진)"];
+    t_th1     [label="Th1 (IFN-γ) — 계통형 III 반응"];
+    t_treg    [label="Treg 기능 상대적 부족"];
+    t_mem     [label="조직 상주 기억 T세포\n(재발 소인)"];
+    t_ampl    [label="IL-17 → 각질세포 CXCL8·hBD-2\n→ 호중구 재유입 (증폭고리)"];
+  }
+
+  /* ===================================================================== */
+  /* 10. 병변 전이 동역학 (Lesion transit kinetics)                          */
+  /* ===================================================================== */
+  subgraph cluster_lesion {
+    label=<<B>10. 병변 전이 동역학 — 모델의 임상 출력 사슬</B>>;
+    style="rounded,filled"; fillcolor="#FEF5E7"; color="#CA6F1E"; fontcolor="#873600";
+    node [fillcolor="#FAD7A0"];
+
+    L_mc    [label="미세면포 (MC)\n임상 미검출 저장고", fillcolor="#F8C471", penwidth=2];
+    L_cc    [label="폐쇄면포 (백두 · Closed comedone)", fillcolor="#F5B041", penwidth=2];
+    L_oc    [label="개방면포 (흑두 · Open comedone)\n멜라닌+SQOX 산화 착색", fillcolor="#F5B041", penwidth=2];
+    L_pap   [label="염증성 구진 (Papule)", fillcolor="#E59866", penwidth=2];
+    L_pus   [label="농포 (Pustule)", fillcolor="#DC7633", penwidth=2, fontcolor="white"];
+    L_nod   [label="결절 · 낭종 (Nodule/Cyst)", fillcolor="#BA4A00", penwidth=2, fontcolor="white"];
+    L_sinus [label="동로 (Sinus tract) · 누공\n(응괴성 여드름)"];
+    L_res   [label="병변 소실 (Resolution)"];
+    L_pih   [label="염증후 과색소침착 (PIH)\n(피츠패트릭 IV–VI 고위험)", fillcolor="#A04000", penwidth=2, fontcolor="white"];
+    L_ery   [label="염증후 홍반 (PIE)"];
+    L_atro  [label="위축성 흉터\n(icepick · boxcar · rolling)", fillcolor="#7E5109", penwidth=2, fontcolor="white"];
+    L_hyper [label="비후성 흉터 · 켈로이드\n(체간 호발)"];
+    L_reser [label="미세면포 저장고 잔존\n= 치료 중단 후 재발의 근원", fillcolor="#F8C471", penwidth=2];
+  }
+
+  /* ===================================================================== */
+  /* 11. 신경내분비 · 스트레스 축                                            */
+  /* ===================================================================== */
+  subgraph cluster_neuro {
+    label=<<B>11. 신경내분비 · 산화 스트레스 축</B>>;
+    style="rounded,filled"; fillcolor="#EBF5FB"; color="#2874A6"; fontcolor="#1B4F72";
+    node [fillcolor="#D4E6F1"];
+
+    n_stress  [label="심리적 스트레스", fillcolor="#AED6F1", penwidth=2];
+    n_crh     [label="피부 국소 CRH 생성\n(peripheral HPA 등가체)", fillcolor="#AED6F1", penwidth=2];
+    n_crhr1   [label="CRH-R1 (피지세포·비만세포)"];
+    n_cort    [label="코르티솔 (전신 · 국소 11β-HSD1)"];
+    n_subp    [label="Substance P (감각신경 말단)"];
+    n_ngf     [label="NGF → 신경 감작"];
+    n_mast    [label="비만세포 탈과립 (히스타민·트립타아제)"];
+    n_sleep   [label="수면 부족 · 일주기 교란"];
+    n_uv      [label="UV 노출 → 스쿠알렌 광산화"];
+    n_nrf2    [label="Nrf2 항산화 반응 (상대적 부족)"];
+  }
+
+  /* ===================================================================== */
+  /* 12. 국소 치료 PK/PD                                                     */
+  /* ===================================================================== */
+  subgraph cluster_topical {
+    label=<<B>12. 국소 치료 — 모낭 전달 PK/PD</B>>;
+    style="rounded,filled"; fillcolor="#EAFAF1"; color="#1E8449"; fontcolor="#145A32";
+    node [style="rounded,filled", fillcolor="#D5F5E3", shape=note];
+
+    d_apply   [label="도포 (Applied dose)\n표면 → 각질층 저장고"];
+    d_folli   [label="모낭 경로 전달\n(Follicular delivery ~0.1% 면적,\n실제 흡수 기여 큼)", penwidth=2];
+    d_bpo     [label="벤조일퍼옥사이드 2.5–5%\n→ 벤조산 + 자유라디칼", fillcolor="#ABEBC6", penwidth=2];
+    d_bpo_kill[label="비특이 산화 살균\n(내성 발생 불가)", fillcolor="#ABEBC6", penwidth=2];
+    d_bpo_ox  [label="자체 산화 스트레스 → 자극·건조"];
+    d_treti   [label="트레티노인 0.025–0.1%\n(RAR-α/β/γ)"];
+    d_adapa   [label="아다팔렌 0.1 / 0.3%\n(RAR-β/γ 선택 · 광안정)", fillcolor="#ABEBC6", penwidth=2];
+    d_tazar   [label="타자로텐 0.045–0.1%\n(RAR-β/γ · 고효력)"];
+    d_trifa   [label="트리파로텐 0.005%\n(RAR-γ 선택 · 체간 적응증)", fillcolor="#ABEBC6", penwidth=2];
+    d_retpd   [label="면포용해 · 각질세포 정상분화\n· 침투 증강 · 항염", penwidth=2];
+    d_clinda  [label="클린다마이신 1%\n(50S 리보솜)"];
+    d_eryth   [label="에리트로마이신 2% (내성 만연)"];
+    d_azelaic [label="아젤라산 15–20%\n(각질정상화 · 항균 · 티로시나아제 억제)"];
+    d_dapsone [label="답손 5–7.5% 겔\n(호중구 MPO 억제)"];
+    d_clasco  [label="클라스코테론 1% 크림\n(국소 AR 길항 · 코르텍솔론 17α-프로피오네이트)", fillcolor="#ABEBC6", penwidth=2];
+    d_minofoam[label="미노사이클린 4% 폼\n(전신 노출 최소)"];
+    d_salicyl [label="살리실산 0.5–2% (BHA)"];
+    d_niacin  [label="나이아신아마이드 (보조 항염)"];
+    d_irrit   [label="레티노이드 피부염\n(홍반·인설·작열감) → 순응도↓", fillcolor="#FADBD8"];
+  }
+
+  /* ===================================================================== */
+  /* 13. 전신 항생제 PK/PD 및 내성                                           */
+  /* ===================================================================== */
+  subgraph cluster_abx {
+    label=<<B>13. 전신 항생제 — PK/PD · 항염 작용 · 내성 관리</B>>;
+    style="rounded,filled"; fillcolor="#FEF9E7"; color="#9A7D0A"; fontcolor="#7D6608";
+    node [style="rounded,filled", fillcolor="#FCF3CF", shape=note];
+
+    b_doxy    [label="독시사이클린 50–100 mg\n(t½ ~18 h · 지용성 · 모낭 도달)", penwidth=2];
+    b_mino    [label="미노사이클린 50–100 mg\n(CNS 투과 · 어지럼)"];
+    b_sarec   [label="사레사이클린 1.5 mg/kg\n(협범위 · 장내총 보존)", penwidth=2];
+    b_subanti [label="아항균 용량 독시사이클린 40 mg MR\n(20 mg IR + 30 mg DR)", penwidth=2];
+    b_ribo    [label="30S 리보솜 결합 → 단백합성 억제"];
+    b_antiinf [label="비항균 항염 작용:\nMMP 억제 · NF-κB 억제 ·\n호중구 주화 억제", penwidth=2];
+    b_tmpsmx  [label="TMP-SMX (내성/불내성 시 2차)"];
+    b_azithro [label="아지트로마이신 (임신부 대안)"];
+    b_limit   [label="가이드라인: 항생제 단독요법 금지\n· 3–4개월 이내 종료", fillcolor="#FADBD8", penwidth=2];
+    b_stew    [label="항생제 청지기 원칙\n= 항상 BPO 또는 레티노이드 병용", fillcolor="#FADBD8", penwidth=2];
+    b_gutmb   [label="장내 마이크로바이옴 교란\n(광범위 테트라사이클린)", fillcolor="#FADBD8"];
+    b_photo   [label="광민감성 (독시사이클린)", fillcolor="#FADBD8"];
+    b_vestib  [label="전정 부작용 · 색소침착\n· 약물유발 루푸스 (미노사이클린)", fillcolor="#FADBD8"];
+    b_iih     [label="특발성 두개내압상승\n(테트라사이클린 + 이소트레티노인 병용 금기)", fillcolor="#F5B7B1", penwidth=2];
+  }
+
+  /* ===================================================================== */
+  /* 14. 호르몬 요법                                                         */
+  /* ===================================================================== */
+  subgraph cluster_horm {
+    label=<<B>14. 호르몬 요법 — COC · 항안드로겐</B>>;
+    style="rounded,filled"; fillcolor="#FDEDEC"; color="#CB4335"; fontcolor="#943126";
+    node [style="rounded,filled", fillcolor="#FADBD8", shape=note];
+
+    h_coc     [label="복합경구피임제 (EE 20–35 µg +\n프로게스틴)", penwidth=2];
+    h_ee      [label="에티닐에스트라디올\n→ 간 SHBG 합성 ↑↑", penwidth=2];
+    h_drsp    [label="드로스피레논 (항안드로겐·항무기질코르티코이드)"];
+    h_cpa     [label="시프로테론 아세테이트 (강력 AR 길항)"];
+    h_norg    [label="노르게스티메이트 · 노르에틴드론\n(FDA 여드름 적응증)"];
+    h_lhsupp  [label="LH 억제 → 난소 안드로겐 생산 ↓"];
+    h_spiro   [label="스피로놀락톤 50–200 mg/d\n(AR 길항 + 17,20-라이아제 억제)", penwidth=2];
+    h_canre   [label="칸레논 (활성 대사체, t½ ~16 h)"];
+    h_hyperk  [label="고칼륨혈증 (건강한 젊은 여성에서\n위험 낮음 · 일상 모니터링 불필요)", fillcolor="#F5B7B1"];
+    h_spiroae [label="월경불순 · 유방압통 · 이뇨\n· 남성 태아 여성화 위험", fillcolor="#F5B7B1"];
+    h_metf    [label="메트포민 (PCOS · 인슐린저항성 동반)"];
+    h_finas   [label="5α-환원효소 억제제 (off-label · 남성 금기 아님)"];
+    h_vte     [label="정맥혈전색전증 위험 (COC)\n흡연·35세↑·편두통 전조 금기", fillcolor="#F5B7B1", penwidth=2];
+  }
+
+  /* ===================================================================== */
+  /* 15. 이소트레티노인 PK/PD                                                */
+  /* ===================================================================== */
+  subgraph cluster_iso {
+    label=<<B>15. 이소트레티노인 — PK · 피지선 위축 · 누적용량-재발 관계</B>>;
+    style="rounded,filled"; fillcolor="#E8F6F3"; color="#0E6251"; fontcolor="#0B5345";
+    node [style="rounded,filled", fillcolor="#D0ECE7", shape=note];
+
+    r_dose    [label="이소트레티노인 0.25–1.0 mg/kg/d PO", penwidth=2];
+    r_food    [label="고지방식 병용 시 흡수 2배\n(Lidose/micronised 제형은 식이 의존 감소)", penwidth=2];
+    r_abs     [label="흡수 (F ~25% 공복 / ~50% 식후)"];
+    r_central [label="중심구획 (t½ ~20 h)"];
+    r_4oxo    [label="4-옥소-이소트레티노인 (CYP2C8)\n활성 대사체 · t½ ~24–29 h", penwidth=2];
+    r_isotret [label="트레티노인 · 이소머화 상호전환"];
+    r_crabp   [label="세포내 CRABP-II ↑ → 핵 전달"];
+    r_rar     [label="RAR-α/β/γ · RXR 이형이량체"];
+    r_foxo    [label="FoxO1/FoxO3 핵내 회복\n→ mTORC1 · AR 신호 억제", penwidth=2];
+    r_tram    [label="TRAIL · 소포체 스트레스 매개\n피지세포 세포자멸", penwidth=2];
+    r_atrophy [label="피지선 위축 (최대 90% SER 감소)", penwidth=2];
+    r_lipoc   [label="LCN2 (리포칼린-2) 유도\n→ 피지세포 자멸 매개"];
+    r_micrb   [label="피지 감소 → C. acnes 니치 소실\n(직접 항균 작용 아님)", penwidth=2];
+    r_cum     [label="누적 용량 (mg/kg)\n120–150 mg/kg 목표", fillcolor="#A2D9CE", penwidth=2];
+    r_durab   [label="영구적 선(gland) 축소 분획\n= 누적용량 의존 (재발률 결정)", fillcolor="#A2D9CE", penwidth=2];
+    r_relapse [label="중단 후 재발\n(저누적용량 · 어린 연령 · 여성 · 체간)", fillcolor="#F5B7B1", penwidth=2];
+    r_flare   [label="초기 악화 (Initial flare, 2–4주)\n중증 결절성에서 스테로이드 선행 필요", fillcolor="#F5B7B1"];
+    r_fulmin  [label="전격성 여드름 (Acne fulminans)\n유발 위험", fillcolor="#F5B7B1"];
+    r_terato  [label="최기형성 (Retinoic acid embryopathy)\niPLEDGE · 2가지 피임 · 임신검사", fillcolor="#E74C3C", penwidth=2, fontcolor="white"];
+    r_muco    [label="점막피부 독성 (구순염 100% 근접·\n건조·비출혈) = 용량 대리지표", fillcolor="#F5B7B1", penwidth=2];
+    r_lipid   [label="중성지방 ↑ (~25–45%) · LDL ↑\n· 췌장염 (드묾, TG>800)", fillcolor="#F5B7B1"];
+    r_alt     [label="AST/ALT 상승 (~10–15%, 대개 경미)", fillcolor="#F5B7B1"];
+    r_msk     [label="근골격통 · CK 상승 (운동 시)", fillcolor="#F5B7B1"];
+    r_mood    [label="기분 변화 신호 (인과관계 미확립,\n체계적 모니터링 권고)", fillcolor="#F5B7B1"];
+    r_night   [label="야맹 · 각막혼탁 (드묾)", fillcolor="#F5B7B1"];
+  }
+
+  /* ===================================================================== */
+  /* 16. 임상 엔드포인트                                                     */
+  /* ===================================================================== */
+  subgraph cluster_endpt {
+    label=<<B>16. 임상 엔드포인트 — 등록시험 표준</B>>;
+    style="rounded,filled"; fillcolor="#EBF5FB"; color="#1F618D"; fontcolor="#154360";
+    node [shape=ellipse, style=filled, fillcolor="#AED6F1"];
+
+    p_infl    [label="염증성 병변 수\n(구진+농포+결절)", fillcolor="#5DADE2", penwidth=2, fontcolor="white"];
+    p_nonin   [label="비염증성 병변 수\n(면포)", fillcolor="#5DADE2", penwidth=2, fontcolor="white"];
+    p_total   [label="총 병변 수"];
+    p_iga     [label="IGA / EGSS (0–4)", fillcolor="#5DADE2", penwidth=2, fontcolor="white"];
+    p_succ    [label="IGA 성공 = 0 또는 1 이면서\n기저 대비 ≥2등급 개선", fillcolor="#2E86C1", penwidth=2, fontcolor="white"];
+    p_time    [label="반응 도달 시간 (주)"];
+    p_scarQ   [label="여드름 흉터 부담 (SCAR-S)"];
+    p_dlqi    [label="삶의 질 (DLQI · CADI · Acne-QoL)"];
+    p_relap   [label="재발률 (치료 종료 후 12개월)"];
+    p_adher   [label="치료 순응도\n(자극감·복잡성이 최대 결정인자)"];
+  }
+
+  /* ===================================================================== */
+  /* 17. 중증·변이 표현형                                                    */
+  /* ===================================================================== */
+  subgraph cluster_pheno {
+    label=<<B>17. 중증 · 변이 표현형</B>>;
+    style="rounded,filled"; fillcolor="#F9EBEA"; color="#922B21"; fontcolor="#78281F";
+    node [fillcolor="#F2D7D5"];
+
+    x_mild    [label="경증 (면포 우세)"];
+    x_mod     [label="중등증 (염증성 병변 20–40)"];
+    x_sev     [label="중증 결절성 (결절 ≥5)"];
+    x_congl   [label="응괴성 여드름 (Acne conglobata)"];
+    x_fulmin  [label="전격성 여드름 (발열·관절통·백혈구증가)"];
+    x_adultf  [label="성인 여성 여드름 (턱선·하부안면·\n호르몬 요법 반응 우수)", penwidth=2];
+    x_neonat  [label="신생아 두부 농포증 (Malassezia)"];
+    x_infant  [label="영아 여드름 (일과성 안드로겐)"];
+    x_sapho   [label="SAPHO 증후군"];
+    x_papa    [label="PAPA / PASH / PAPASH\n(PSTPIP1 · 자가염증)"];
+    x_hs      [label="화농성 한선염 동반 (모낭폐색 4징)"];
+    x_excor   [label="Acne excoriée (강박적 자극)"];
+    x_apert   [label="Apert 증후군 (FGFR2 활성화 변이)"];
+  }
+
+  /* ===================================================================== */
+  /* 18. QSP 모델 상태변수 지도                                              */
+  /* ===================================================================== */
+  subgraph cluster_qsp {
+    label=<<B>18. mrgsolve 상태변수 대응표 (Model state map)</B>>;
+    style="rounded,filled"; fillcolor="#F2F4F4"; color="#566573"; fontcolor="#34495E";
+    node [shape=box, style="filled", fillcolor="#D5DBDB", fontsize=9];
+
+    q_horm  [label="호르몬: TT · SHBG · FT · DHT · ARSIG"];
+    q_metab [label="대사: INS · IGF1 · LIP(mTORC1/SREBP)"];
+    q_seb   [label="피지선: SGM · SER · SQOX · LA · DURAB"];
+    q_ker   [label="각질화: KER · IL1A"];
+    q_micro [label="미생물: CAP · CAB · RESF · FFA · PORPH"];
+    q_infl  [label="염증: TLR · IL1B · IL8 · TNF · IL17 · NEU · MMP"];
+    q_les   [label="병변: MC · CC · OC · PAP · PUS · NOD · PIH · SCAR"];
+    q_pk    [label="PK: BPO · RET · CLI · AZE · CLAS ·\nTET(중앙) · ISO/4-OXO · SPIRO · EE"];
+    q_saf   [label="안전성: TG · ALT · KSER · MUCO · CUMISO"];
+  }
+
+  /* ===================================================================== */
+  /* EDGES — 병인 → 축                                                       */
+  /* ===================================================================== */
+  e_herit   -> e_gwas   [color="#2E86C1"];
+  e_gwas    -> e_fst;
+  e_gwas    -> e_tgfb2;
+  e_gwas    -> e_ovol1;
+  e_tgfb2   -> s_diff   [color="#2E86C1"];
+  e_ovol1   -> k_diff   [color="#2E86C1"];
+  e_fst     -> s_prolif [color="#2E86C1"];
+  e_cyp     -> a_zr     [color="#2E86C1"];
+  e_ar_cag  -> a_ar     [color="#2E86C1"];
+  e_srd5a1  -> a_5ar1   [color="#2E86C1"];
+
+  e_adrenar -> a_dheas  [color="#2E86C1", penwidth=2];
+  e_puberty -> a_lh     [color="#2E86C1"];
+  e_age     -> e_adrenar [style=dotted, color="#7F8C8D"];
+  e_sex     -> a_tt     [style=dotted, color="#7F8C8D"];
+  e_pcos    -> a_pcosdrv [color="#2E86C1", penwidth=2];
+  e_pcos    -> m_ir     [color="#2E86C1"];
+  a_lateCAH -> a_andros [color="#2E86C1"];
+
+  e_diet_gi -> m_gl     [color="#2E86C1", penwidth=2];
+  e_dairy   -> m_igf1   [color="#2E86C1", penwidth=2];
+  e_dairy   -> m_leu;
+  e_whey    -> m_leu    [color="#2E86C1"];
+  e_smoke   -> k_micro  [color="#2E86C1"];
+  e_humid   -> k_plug   [color="#2E86C1"];
+  e_mech    -> k_plug   [color="#2E86C1"];
+  e_drug    -> x_mod    [color="#2E86C1"];
+  e_stress  -> n_stress [color="#2E86C1", penwidth=2];
+  e_micro   -> c_loss   [color="#2E86C1"];
+
+  /* 안드로겐 축 내부 */
+  a_crhhpa  -> a_zr     [color="#2E86C1"];
+  a_zr      -> a_dheas  [color="#2E86C1"];
+  a_dheas   -> a_dhea;
+  a_dhea    -> a_andros;
+  a_andros  -> a_tt;
+  a_lh      -> a_tt     [color="#2E86C1"];
+  a_pcosdrv -> a_tt     [color="#2E86C1"];
+  a_tt      -> a_ft     [color="#2E86C1", penwidth=2];
+  a_shbg    -> a_ft     [color="#C0392B", arrowhead=tee, penwidth=2, label="결합"];
+  a_insSHBG -> a_shbg   [color="#C0392B", arrowhead=tee];
+  m_ins     -> a_insSHBG [color="#2E86C1"];
+  a_ee      -> a_shbg   [color="#2E86C1", penwidth=2];
+  a_ft      -> a_5ar1;
+  a_5ar1    -> a_dht    [color="#2E86C1", penwidth=2];
+  a_3bhsd   -> a_dht    [color="#2E86C1"];
+  a_dheas   -> a_3bhsd  [style=dotted, color="#7F8C8D", label="국소 전환"];
+  a_dht     -> a_ar     [color="#2E86C1", penwidth=2];
+  a_ft      -> a_ar     [color="#2E86C1"];
+  a_ar      -> a_arE    [color="#2E86C1"];
+  a_aromat  -> a_ft     [color="#C0392B", arrowhead=tee];
+
+  /* 안드로겐 → 표적 */
+  a_arE -> s_prolif [color="#2E86C1", penwidth=2];
+  a_arE -> s_diff   [color="#2E86C1"];
+  a_arE -> s_fasn   [color="#2E86C1"];
+  a_arE -> k_androk [color="#2E86C1"];
+  k_androk -> k_prolif [color="#2E86C1"];
+
+  /* 대사 축 */
+  m_gl     -> m_ins   [color="#2E86C1", penwidth=2];
+  m_ins    -> m_igfbp3 [color="#C0392B", arrowhead=tee];
+  m_igfbp3 -> m_igf1  [color="#2E86C1"];
+  m_ins    -> m_igf1  [color="#2E86C1"];
+  m_igf1   -> m_igf1r [color="#2E86C1", penwidth=2];
+  m_ins    -> m_igf1r [color="#2E86C1"];
+  m_igf1r  -> m_pi3k  [color="#2E86C1"];
+  m_pi3k   -> m_foxo1 [color="#C0392B", arrowhead=tee, penwidth=2, label="핵 배제"];
+  m_pi3k   -> m_mtorc1 [color="#2E86C1", penwidth=2];
+  m_foxo1  -> m_mtorc1 [color="#C0392B", arrowhead=tee, penwidth=2];
+  m_foxo1  -> a_ar     [color="#C0392B", arrowhead=tee, label="AR 공억제"];
+  m_leu    -> m_mtorc1 [color="#2E86C1", penwidth=2];
+  m_mtorc1 -> m_srebp  [color="#2E86C1", penwidth=2];
+  m_srebp  -> s_fasn   [color="#2E86C1", penwidth=2];
+  m_srebp  -> s_scd    [color="#2E86C1"];
+  m_pparg  -> s_diff   [color="#2E86C1"];
+  m_lxr    -> s_fasn   [color="#2E86C1"];
+  m_ampk   -> m_mtorc1 [color="#C0392B", arrowhead=tee];
+  m_ir     -> m_ins    [color="#2E86C1"];
+  m_obes   -> m_ir     [color="#2E86C1"];
+  m_igf1   -> a_5ar1   [color="#2E86C1", label="5AR 발현↑"];
+  m_igf1   -> a_zr     [color="#2E86C1", label="부신 스테로이드생성↑"];
+
+  /* 피지선 */
+  s_stem   -> s_prolif;
+  s_prolif -> s_mass   [penwidth=2];
+  s_diff   -> s_mass   [penwidth=2];
+  s_apop   -> s_mass   [color="#C0392B", arrowhead=tee, penwidth=2];
+  s_mass   -> s_holo   [penwidth=2];
+  s_holo   -> s_ser    [penwidth=2];
+  s_fasn   -> s_tg     [penwidth=2];
+  s_fasn   -> s_squal  [penwidth=2];
+  s_scd    -> s_sapien;
+  s_tg     -> s_ser;
+  s_wax    -> s_ser;
+  s_squal  -> s_ser;
+  s_chol   -> s_ser;
+  s_ser    -> s_la     [color="#C0392B", arrowhead=tee, penwidth=2, label="희석"];
+  s_squal  -> s_sqox   [penwidth=2];
+  s_ros    -> s_sqox   [color="#2E86C1", penwidth=2];
+  n_uv     -> s_ros    [color="#2E86C1"];
+  c_porph  -> s_ros    [color="#2E86C1", penwidth=2, label="광활성"];
+  s_vitE   -> s_sqox   [color="#C0392B", arrowhead=tee];
+  s_crhr   -> s_fasn   [color="#2E86C1"];
+  s_msh    -> s_fasn   [color="#2E86C1"];
+  s_cb2    -> s_fasn   [color="#2E86C1"];
+  s_sp     -> s_prolif [color="#2E86C1"];
+
+  /* 신경내분비 */
+  n_stress -> n_crh    [color="#2E86C1", penwidth=2];
+  n_crh    -> n_crhr1  [color="#2E86C1"];
+  n_crhr1  -> s_crhr   [color="#2E86C1", penwidth=2];
+  n_stress -> n_cort   [color="#2E86C1"];
+  n_cort   -> y_il1b   [color="#2E86C1", style=dotted];
+  n_stress -> n_subp   [color="#2E86C1"];
+  n_subp   -> s_sp     [color="#2E86C1", penwidth=2];
+  n_subp   -> n_mast   [color="#2E86C1"];
+  n_ngf    -> n_subp   [color="#2E86C1"];
+  n_mast   -> y_tnf    [color="#2E86C1"];
+  n_sleep  -> n_stress [color="#2E86C1"];
+  n_nrf2   -> s_sqox   [color="#C0392B", arrowhead=tee];
+
+  /* 각질화 */
+  k_kc     -> k_prolif;
+  k_prolif -> k_plug   [penwidth=2];
+  k_diff   -> k_plug   [penwidth=2];
+  k_desmo  -> k_plug   [penwidth=2];
+  k_fillag -> k_plug;
+  s_la     -> k_ladef  [color="#C0392B", arrowhead=tee, penwidth=2, label="결핍 시 ↑"];
+  k_ladef  -> k_prolif [color="#2E86C1", penwidth=2];
+  k_ladef  -> k_diff   [color="#2E86C1"];
+  k_il1a   -> k_il1r   [color="#2E86C1", penwidth=2];
+  k_il1r   -> k_prolif [color="#2E86C1", penwidth=2];
+  k_il1r   -> i_nfkb   [color="#2E86C1"];
+  s_sqox   -> k_il1a   [color="#2E86C1", penwidth=2, label="면포유발"];
+  c_ffa    -> k_il1a   [color="#2E86C1", penwidth=2];
+  k_plug   -> k_micro  [penwidth=2];
+  k_micro  -> k_dilate [penwidth=2];
+  k_dilate -> k_rupture [penwidth=2];
+  k_retrar -> k_desmo  [color="#C0392B", arrowhead=tee, penwidth=2];
+  k_retrar -> k_prolif [color="#C0392B", arrowhead=tee];
+
+  /* C. acnes */
+  s_ser    -> c_niche  [color="#2E86C1", penwidth=2, label="지질 기질"];
+  k_micro  -> c_niche  [color="#2E86C1", label="무산소화"];
+  c_niche  -> c_growth [color="#2E86C1", penwidth=2];
+  c_growth -> c_plank  [penwidth=2];
+  c_plank  -> c_biofilm [penwidth=2, label="부착"];
+  c_biofilm -> c_plank [style=dotted, color="#7F8C8D", label="탈리"];
+  c_ia1    -> c_biofilm [color="#2E86C1", penwidth=2];
+  c_ia1    -> c_porph  [color="#2E86C1", penwidth=2];
+  c_ib_ii  -> c_loss   [color="#C0392B", arrowhead=tee];
+  c_iii    -> y_mac    [color="#2E86C1"];
+  c_loss   -> c_ia1    [color="#2E86C1", penwidth=2];
+  c_growth -> c_lipase [penwidth=2];
+  c_lipase -> c_ffa    [penwidth=2, label="TG 가수분해"];
+  s_tg     -> c_ffa    [penwidth=2];
+  c_camp   -> k_kc     [color="#C0392B", arrowhead=tee];
+  c_hyal   -> k_dilate [color="#2E86C1"];
+  c_prote  -> i_par2   [color="#2E86C1"];
+  c_scfa   -> k_diff   [color="#2E86C1"];
+  c_sepi   -> c_growth [color="#C0392B", arrowhead=tee];
+  c_biofilm -> c_resfrac [color="#2E86C1", style=dotted, label="관용(tolerance)"];
+  c_res23  -> c_resfrac [color="#2E86C1", penwidth=2];
+  c_res16  -> c_resfrac [color="#2E86C1", penwidth=2];
+  c_erm    -> c_resfrac [color="#2E86C1"];
+
+  /* 선천면역 */
+  c_plank  -> i_tlr2   [color="#2E86C1", penwidth=2];
+  c_biofilm -> i_tlr2  [color="#2E86C1"];
+  c_ffa    -> i_tlr2   [color="#2E86C1"];
+  c_ffa    -> i_cd36   [color="#2E86C1"];
+  s_sqox   -> i_tlr2   [color="#2E86C1"];
+  c_plank  -> i_nod2   [color="#2E86C1"];
+  i_tlr2   -> i_myd88  [color="#2E86C1", penwidth=2];
+  i_tlr4   -> i_myd88  [color="#2E86C1"];
+  i_nod2   -> i_nfkb   [color="#2E86C1"];
+  i_par2   -> i_nfkb   [color="#2E86C1"];
+  i_cd36   -> i_nfkb   [color="#2E86C1"];
+  i_myd88  -> i_nfkb   [color="#2E86C1", penwidth=2];
+  i_nfkb   -> i_ap1    [color="#2E86C1"];
+  i_nfkb   -> i_prol1b [color="#2E86C1", penwidth=2, label="신호1"];
+  c_plank  -> i_nlrp3  [color="#2E86C1", penwidth=2, label="신호2"];
+  i_kefflux -> i_nlrp3 [color="#2E86C1"];
+  s_ros    -> i_nlrp3  [color="#2E86C1"];
+  i_nlrp3  -> i_casp1  [color="#2E86C1", penwidth=2];
+  i_casp1  -> i_prol1b [color="#2E86C1", penwidth=2];
+  i_prol1b -> y_il1b   [penwidth=2];
+  i_nfkb   -> i_hbd2   [color="#2E86C1"];
+  i_nfkb   -> i_ll37   [color="#2E86C1"];
+  i_nfkb   -> i_psor   [color="#2E86C1"];
+  i_hbd2   -> c_growth [color="#C0392B", arrowhead=tee];
+  i_ll37   -> y_il8    [color="#2E86C1"];
+  i_gran   -> c_growth [color="#C0392B", arrowhead=tee];
+
+  /* 사이토카인 */
+  i_nfkb  -> y_il8   [color="#2E86C1", penwidth=2];
+  i_nfkb  -> y_tnf   [color="#2E86C1", penwidth=2];
+  i_nfkb  -> y_il6   [color="#2E86C1"];
+  i_nfkb  -> y_gmcsf [color="#2E86C1"];
+  y_il1b  -> y_il8   [color="#2E86C1", penwidth=2];
+  y_il1b  -> y_il6   [color="#2E86C1"];
+  y_il1b  -> t_rorgt [color="#2E86C1", penwidth=2];
+  y_il6   -> t_rorgt [color="#2E86C1", penwidth=2];
+  y_il12  -> y_ifng  [color="#2E86C1"];
+  y_il8   -> y_neu   [color="#2E86C1", penwidth=2];
+  y_neu   -> y_mpo   [penwidth=2];
+  y_mpo   -> y_mmp   [color="#2E86C1"];
+  y_neu   -> y_mmp   [color="#2E86C1", penwidth=2];
+  y_tnf   -> y_mmp   [color="#2E86C1"];
+  i_ap1   -> y_mmp   [color="#2E86C1", penwidth=2];
+  y_timp  -> y_mmp   [color="#C0392B", arrowhead=tee];
+  y_tnf   -> y_vegf  [color="#2E86C1"];
+  y_il1b  -> y_pge2  [color="#2E86C1"];
+  y_mac   -> y_mmp   [color="#2E86C1"];
+  k_rupture -> y_mac [color="#2E86C1", penwidth=2];
+  k_rupture -> y_neu [color="#2E86C1", penwidth=2];
+
+  /* 적응면역 */
+  c_plank -> t_dc    [color="#2E86C1"];
+  t_dc    -> t_naive [color="#2E86C1"];
+  t_naive -> t_rorgt [color="#2E86C1"];
+  t_rorgt -> t_th17  [color="#2E86C1", penwidth=2];
+  t_th17  -> t_il17  [penwidth=2];
+  t_th17  -> t_il22  [];
+  t_il17  -> t_ampl  [color="#2E86C1", penwidth=2];
+  t_ampl  -> y_il8   [color="#2E86C1", penwidth=2];
+  t_ampl  -> i_hbd2  [color="#2E86C1"];
+  t_il22  -> k_prolif [color="#2E86C1"];
+  t_treg  -> t_th17  [color="#C0392B", arrowhead=tee];
+  t_th1   -> y_ifng  [color="#2E86C1"];
+  t_th17  -> t_mem   [style=dotted, color="#7F8C8D"];
+  t_mem   -> t_th17  [style=dotted, color="#7F8C8D", label="재발 소인"];
+
+  /* 병변 사슬 */
+  k_micro -> L_mc  [penwidth=2];
+  L_mc    -> L_cc  [penwidth=2, label="성숙"];
+  L_mc    -> L_oc  [penwidth=2];
+  s_sqox  -> L_oc  [color="#2E86C1", label="산화 착색"];
+  L_cc    -> L_pap [penwidth=2, label="염증 전환"];
+  L_oc    -> L_pap [penwidth=2];
+  y_il1b  -> L_pap [color="#2E86C1", penwidth=2];
+  t_il17  -> L_pap [color="#2E86C1"];
+  y_tnf   -> L_pap [color="#2E86C1"];
+  L_pap   -> L_pus [penwidth=2];
+  y_neu   -> L_pus [color="#2E86C1", penwidth=2];
+  L_pap   -> L_nod [penwidth=2];
+  k_rupture -> L_nod [color="#2E86C1", penwidth=2];
+  L_nod   -> L_sinus [penwidth=2];
+  L_pap   -> L_res [penwidth=2];
+  L_pus   -> L_res [penwidth=2];
+  L_nod   -> L_res [penwidth=2];
+  L_res   -> L_pih [penwidth=2];
+  L_res   -> L_ery [penwidth=2];
+  L_nod   -> L_atro [penwidth=2];
+  y_mmp   -> L_atro [color="#2E86C1", penwidth=2, label="콜라겐 소실"];
+  L_nod   -> L_hyper [penwidth=2];
+  L_mc    -> L_reser [style=dotted, color="#7F8C8D", penwidth=2];
+  L_reser -> L_cc  [style=dotted, color="#7F8C8D", penwidth=2, label="중단 후 재발"];
+
+  /* 엔드포인트 */
+  L_pap -> p_infl  [penwidth=2];
+  L_pus -> p_infl  [penwidth=2];
+  L_nod -> p_infl  [penwidth=2];
+  L_cc  -> p_nonin [penwidth=2];
+  L_oc  -> p_nonin [penwidth=2];
+  p_infl  -> p_total;
+  p_nonin -> p_total;
+  p_infl  -> p_iga [penwidth=2];
+  p_nonin -> p_iga;
+  L_nod   -> p_iga [penwidth=2];
+  p_iga   -> p_succ [penwidth=2];
+  p_iga   -> p_time;
+  L_atro  -> p_scarQ [penwidth=2];
+  L_pih   -> p_dlqi;
+  p_infl  -> p_dlqi [penwidth=2];
+  L_reser -> p_relap [penwidth=2];
+  d_irrit -> p_adher [color="#C0392B", arrowhead=tee, penwidth=2];
+  p_adher -> p_succ  [color="#2E86C1", penwidth=2];
+
+  /* ===================================================================== */
+  /* 약물 작용 (dashed green)                                               */
+  /* ===================================================================== */
+  d_apply -> d_folli [style=dashed, color="#1E8449", penwidth=2];
+  d_folli -> d_bpo   [style=dashed, color="#1E8449"];
+  d_folli -> d_adapa [style=dashed, color="#1E8449"];
+  d_folli -> d_clinda [style=dashed, color="#1E8449"];
+  d_folli -> d_clasco [style=dashed, color="#1E8449"];
+
+  d_bpo     -> d_bpo_kill [style=dashed, color="#1E8449", penwidth=2];
+  d_bpo_kill -> c_plank   [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  d_bpo_kill -> c_biofilm [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  d_bpo_kill -> c_resfrac [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2, label="내성분획 감소"];
+  d_bpo     -> d_bpo_ox   [style=dashed, color="#E67E22"];
+  d_bpo_ox  -> s_sqox     [style=dashed, color="#E67E22", label="산화 부담"];
+  d_bpo_ox  -> d_irrit    [style=dashed, color="#E67E22"];
+
+  d_treti -> d_retpd [style=dashed, color="#1E8449"];
+  d_adapa -> d_retpd [style=dashed, color="#1E8449", penwidth=2];
+  d_tazar -> d_retpd [style=dashed, color="#1E8449"];
+  d_trifa -> d_retpd [style=dashed, color="#1E8449", penwidth=2];
+  d_retpd -> k_retrar [style=dashed, color="#1E8449", penwidth=2];
+  d_retpd -> L_mc     [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2, label="미세면포 저장고 소거"];
+  d_retpd -> i_nfkb   [style=dashed, color="#1E8449", arrowhead=tee];
+  d_retpd -> d_irrit  [style=dashed, color="#E67E22"];
+
+  d_clinda  -> c_plank   [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  d_clinda  -> c_resfrac [style=dashed, color="#E67E22", penwidth=2, label="선택압"];
+  d_eryth   -> c_resfrac [style=dashed, color="#E67E22", penwidth=2];
+  d_azelaic -> k_retrar  [style=dashed, color="#1E8449"];
+  d_azelaic -> c_plank   [style=dashed, color="#1E8449", arrowhead=tee];
+  d_azelaic -> L_pih     [style=dashed, color="#1E8449", arrowhead=tee, label="티로시나아제 억제"];
+  d_dapsone -> y_neu     [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  d_clasco  -> a_ar      [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  d_minofoam -> c_plank  [style=dashed, color="#1E8449", arrowhead=tee];
+  d_salicyl -> k_desmo   [style=dashed, color="#1E8449", arrowhead=tee];
+  d_niacin  -> i_nfkb    [style=dashed, color="#1E8449", arrowhead=tee];
+
+  b_doxy    -> b_ribo    [style=dashed, color="#1E8449", penwidth=2];
+  b_mino    -> b_ribo    [style=dashed, color="#1E8449"];
+  b_sarec   -> b_ribo    [style=dashed, color="#1E8449", penwidth=2];
+  b_ribo    -> c_plank   [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  b_ribo    -> c_resfrac [style=dashed, color="#E67E22", penwidth=2];
+  b_doxy    -> b_antiinf [style=dashed, color="#1E8449", penwidth=2];
+  b_subanti -> b_antiinf [style=dashed, color="#1E8449", penwidth=2];
+  b_antiinf -> y_mmp     [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  b_antiinf -> y_il8     [style=dashed, color="#1E8449", arrowhead=tee];
+  b_antiinf -> i_nfkb    [style=dashed, color="#1E8449", arrowhead=tee];
+  b_subanti -> c_resfrac [style=dashed, color="#1E8449", arrowhead=tee, label="선택압 없음"];
+  b_stew    -> c_resfrac [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  b_limit   -> b_stew    [style=dashed, color="#1E8449"];
+  b_doxy    -> b_gutmb   [style=dashed, color="#E67E22"];
+  b_sarec   -> b_gutmb   [style=dashed, color="#1E8449", arrowhead=tee, label="협범위"];
+  b_doxy    -> b_photo   [style=dashed, color="#E67E22"];
+  b_mino    -> b_vestib  [style=dashed, color="#E67E22"];
+  b_doxy    -> b_iih     [style=dashed, color="#E67E22", penwidth=2];
+  b_tmpsmx  -> c_plank   [style=dashed, color="#1E8449", arrowhead=tee];
+  b_azithro -> c_plank   [style=dashed, color="#1E8449", arrowhead=tee];
+
+  h_coc   -> h_ee     [style=dashed, color="#1E8449", penwidth=2];
+  h_ee    -> a_ee     [style=dashed, color="#1E8449", penwidth=2];
+  h_coc   -> h_lhsupp [style=dashed, color="#1E8449", penwidth=2];
+  h_lhsupp -> a_lh    [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  h_drsp  -> a_ar     [style=dashed, color="#1E8449", arrowhead=tee];
+  h_cpa   -> a_ar     [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  h_norg  -> h_coc    [style=dashed, color="#1E8449"];
+  h_spiro -> h_canre  [style=dashed, color="#1E8449", penwidth=2];
+  h_canre -> a_ar     [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  h_canre -> a_tt     [style=dashed, color="#1E8449", arrowhead=tee, label="17,20-라이아제 억제"];
+  h_spiro -> h_hyperk [style=dashed, color="#E67E22"];
+  h_spiro -> h_spiroae [style=dashed, color="#E67E22"];
+  h_coc   -> h_vte    [style=dashed, color="#E67E22", penwidth=2];
+  h_metf  -> m_ampk   [style=dashed, color="#1E8449"];
+  h_metf  -> m_ins    [style=dashed, color="#1E8449", arrowhead=tee];
+  h_finas -> a_5ar1   [style=dashed, color="#1E8449", arrowhead=tee];
+
+  r_dose    -> r_abs     [style=dashed, color="#1E8449", penwidth=2];
+  r_food    -> r_abs     [style=dashed, color="#1E8449", penwidth=2];
+  r_abs     -> r_central [style=dashed, color="#1E8449", penwidth=2];
+  r_central -> r_4oxo    [style=dashed, color="#1E8449", penwidth=2];
+  r_central -> r_isotret [style=dashed, color="#1E8449"];
+  r_central -> r_crabp   [style=dashed, color="#1E8449"];
+  r_4oxo    -> r_crabp   [style=dashed, color="#1E8449"];
+  r_crabp   -> r_rar     [style=dashed, color="#1E8449", penwidth=2];
+  r_rar     -> r_foxo    [style=dashed, color="#1E8449", penwidth=2];
+  r_foxo    -> m_foxo1   [style=dashed, color="#1E8449", penwidth=2];
+  r_rar     -> r_tram    [style=dashed, color="#1E8449", penwidth=2];
+  r_rar     -> r_lipoc   [style=dashed, color="#1E8449"];
+  r_lipoc   -> r_tram    [style=dashed, color="#1E8449"];
+  r_tram    -> s_apop    [style=dashed, color="#1E8449", penwidth=2];
+  r_tram    -> r_atrophy [style=dashed, color="#1E8449", penwidth=2];
+  r_atrophy -> s_mass    [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  r_atrophy -> r_micrb   [style=dashed, color="#1E8449", penwidth=2];
+  r_micrb   -> c_niche   [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  r_rar     -> k_retrar  [style=dashed, color="#1E8449", penwidth=2];
+  r_dose    -> r_cum     [style=dashed, color="#1E8449", penwidth=2];
+  r_cum     -> r_durab   [style=dashed, color="#1E8449", penwidth=2];
+  r_durab   -> r_relapse [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2];
+  r_durab   -> s_mass    [style=dashed, color="#1E8449", arrowhead=tee, penwidth=2, label="영구 축소"];
+  r_relapse -> p_relap   [penwidth=2];
+  r_central -> r_flare   [style=dashed, color="#E67E22"];
+  r_flare   -> L_nod     [style=dashed, color="#E67E22"];
+  r_flare   -> r_fulmin  [style=dashed, color="#E67E22"];
+  r_central -> r_terato  [style=dashed, color="#E67E22", penwidth=2];
+  r_central -> r_muco    [style=dashed, color="#E67E22", penwidth=2];
+  r_central -> r_lipid   [style=dashed, color="#E67E22", penwidth=2];
+  r_central -> r_alt     [style=dashed, color="#E67E22"];
+  r_central -> r_msk     [style=dashed, color="#E67E22"];
+  r_central -> r_mood    [style=dashed, color="#E67E22"];
+  r_central -> r_night   [style=dashed, color="#E67E22"];
+  r_muco    -> p_adher   [color="#C0392B", arrowhead=tee, penwidth=2];
+
+  /* 표현형 */
+  p_infl -> x_mild  [style=dotted, color="#7F8C8D"];
+  p_infl -> x_mod   [style=dotted, color="#7F8C8D"];
+  L_nod  -> x_sev   [style=dotted, color="#7F8C8D", penwidth=2];
+  x_sev  -> x_congl [style=dotted, color="#7F8C8D"];
+  x_congl -> x_fulmin [style=dotted, color="#7F8C8D"];
+  a_ft   -> x_adultf [style=dotted, color="#7F8C8D", penwidth=2];
+  x_adultf -> h_spiro [style=dashed, color="#1E8449", penwidth=2, label="반응 우수"];
+  x_sev  -> r_dose  [style=dashed, color="#1E8449", penwidth=2, label="1차 적응"];
+  x_papa -> i_nlrp3 [color="#2E86C1"];
+  x_sapho -> y_il1b [color="#2E86C1"];
+  x_hs   -> k_plug  [color="#2E86C1"];
+  x_apert -> s_prolif [color="#2E86C1"];
+  x_neonat -> c_malas [style=dotted, color="#7F8C8D"];
+  a_dheas -> x_infant [style=dotted, color="#7F8C8D", label="영아기 일과성"];
+  x_excor -> L_atro [color="#2E86C1"];
+
+  /* 상태변수 매핑 (dotted grey) */
+  a_ar    -> q_horm  [style=dotted, color="#95A5A6"];
+  m_mtorc1 -> q_metab [style=dotted, color="#95A5A6"];
+  s_ser   -> q_seb   [style=dotted, color="#95A5A6"];
+  k_micro -> q_ker   [style=dotted, color="#95A5A6"];
+  c_resfrac -> q_micro [style=dotted, color="#95A5A6"];
+  y_mmp   -> q_infl  [style=dotted, color="#95A5A6"];
+  L_pap   -> q_les   [style=dotted, color="#95A5A6"];
+  r_4oxo  -> q_pk    [style=dotted, color="#95A5A6"];
+  r_lipid -> q_saf   [style=dotted, color="#95A5A6"];
+
+  /* 핵심 되먹임 고리 (dotted grey) */
+  y_il1b  -> k_il1a  [style=dotted, color="#7F8C8D", penwidth=2, label="염증→과각화 증폭"];
+  c_ffa   -> c_niche [style=dotted, color="#7F8C8D", label="자기 기질 생성"];
+  L_pap   -> k_rupture [style=dotted, color="#7F8C8D"];
+  c_resfrac -> c_growth [style=dotted, color="#7F8C8D", penwidth=2, label="항생제 하 생존"];
+}
