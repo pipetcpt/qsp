@@ -1,0 +1,1005 @@
+/* =====================================================================
+   Kidney Transplant Rejection & Immunosuppression — QSP Mechanistic Map
+   ---------------------------------------------------------------------
+   The organising idea of this map (and of ktx_mrgsolve_model.R):
+
+   A kidney transplant is the only "disease" in this library in which the
+   pathology is CAUSED BY THE PATIENT'S OWN INTACT IMMUNE SYSTEM doing
+   exactly what it is supposed to do, and in which the therapeutic target
+   is therefore not a pathway but a SET POINT.  Everything here is drawn
+   around one axis:
+
+        NET IMMUNOSUPPRESSION (NIS)
+        too little  ->  alloimmunity  ->  TCMR / dnDSA / ABMR  ->  graft loss
+        too much    ->  BK virus, CMV, PTLD, sepsis            ->  graft loss
+
+   The map is therefore a U-SHAPED TRADE-OFF, not a cascade, and the two
+   arms are drawn as two competing loops that converge on the same
+   endpoint box (death-censored graft failure).  Between them sits the
+   thing a transplant clinician actually manipulates: drug exposure.
+
+   Three feedback loops close the system:
+
+     LOOP 1  (alloimmune amplification)
+         graft injury -> DAMPs -> more antigen presentation + more
+         endothelial activation -> more effector traffic -> more injury
+
+     LOOP 2  (nephron-mass / hyperfiltration, Brenner)
+         nephron loss -> single-nephron hyperfiltration -> TGF-beta ->
+         IFTA -> further nephron loss.  This loop is drug-independent
+         and is why every graft eventually declines even without rejection
+
+     LOOP 3  (the clinical control loop)
+         viraemia / rejection -> clinician moves NIS -> the OTHER arm of
+         the U worsens.  BK screening with pre-emptive IS reduction is
+         implemented as a genuine closed-loop controller in the R model,
+         not as a scripted dose change
+
+   Why the drugs are placed where they are:
+
+     ATG (rabbit)        depletes the T-cell pool itself (signal-independent)
+     basiliximab         blocks CD25 -> caps IL-2-driven clonal expansion
+     tacrolimus / CsA    block calcineurin -> NFAT -> IL-2 transcription
+                         (signal 1->3 coupling) AND constrict the afferent
+                         arteriole and drive arteriolar hyalinosis - the
+                         same molecule creates the benefit and the toxicity
+     mycophenolate       blocks IMPDH -> de novo purine synthesis, on which
+                         lymphocytes uniquely depend -> blocks PROLIFERATION
+                         of both T and B arms (and of marrow -> leucopenia)
+     belatacept          blocks CD80/86-CD28 signal 2 -> profound effect on
+                         NAIVE T cells and on the B-cell help that generates
+                         dnDSA, but CD28-null CD57+ memory T cells escape:
+                         less dnDSA, better GFR, MORE early TCMR
+     corticosteroids     trans-repress NF-kB/AP-1 across APC and T cells
+     mTOR inhibitors     block signal 3 downstream of CD25, spare the
+                         afferent arteriole, favour Treg, but impair tubular
+                         repair and cause proteinuria
+     rituximab           depletes CD20+ B cells but NOT CD20-negative
+                         long-lived plasma cells -> DSA barely moves
+                         (this is drawn explicitly - it is why RITUX-ERAH
+                         was negative)
+     anti-CD38           reaches the plasma-cell compartment rituximab
+     (felzartamab)       cannot, and additionally disarms NK ADCC
+     tocilizumab /       IL-6R blockade -> less Tfh help, slower plasmablast
+     clazakizumab        generation -> DSA falls slowly over months
+     eculizumab          blocks C5 -> stops MAC but NOT C4d, NK ADCC or
+                         the non-complement endothelial arm
+     imlifidase (IdeS)   cleaves circulating IgG within hours - the only
+                         intervention that can remove DSA faster than the
+                         plasma cells remake it
+     PLEX                first-order removal of circulating IgG only
+
+   Render:
+     dot -Tsvg ktx_qsp_model.dot -o ktx_qsp_model.svg
+     dot -Tpng -Gdpi=150 ktx_qsp_model.dot -o ktx_qsp_model.png
+   ===================================================================== */
+
+digraph KTX_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.55;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Kidney Transplant Rejection &amp; Immunosuppression — Quantitative Systems Pharmacology Map</b><br/>
+             <font point-size="13">donor antigen &#8594; allorecognition &#8594; T-cell and B-cell effector arms &#8594; TCMR / DSA / ABMR &#8594; nephron loss &#8594; graft failure,<br/>
+             held in balance against BK / CMV / malignancy by one manipulable quantity: net immunosuppression</font><br/>
+             <font point-size="11">20 mechanistic modules · 243 nodes · 385 edges · states carried as ODEs in ktx_mrgsolve_model.R are drawn with a double border</font>>;
+    fontsize = 22;
+    bgcolor = "white";
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 10, penwidth = 1.0, margin = "0.09,0.05"];
+    edge [fontname = "Helvetica", fontsize = 8, color = "#5c6670",
+          arrowsize = 0.62, penwidth = 0.9];
+
+    /* ---------- shared visual vocabulary ------------------------------
+       double border (peripheries=2) = ODE state in the mrgsolve model
+       octagon                       = drug / intervention
+       hexagon                       = clinical endpoint / read-out
+       diamond                       = regulatory switch or decision node
+       parallelogram                 = flux / transfer process
+       red edge                      = inhibition / antagonism
+       green edge                    = restorative / protective
+       orange edge                   = amplifying (positive-feedback) arm
+       ---------------------------------------------------------------- */
+
+    /* ================================================================
+       1. DONOR AND RECIPIENT — THE FIXED RISK SET
+       ================================================================ */
+    subgraph cluster_risk {
+        label = "1. Donor / recipient risk set — everything that is fixed before the anastomosis";
+        style = "filled,rounded"; fillcolor = "#f4f1ec"; color = "#b9ae9c";
+        fontsize = 13; fontcolor = "#6b5f4b";
+        node [fillcolor = "#efe8dc", color = "#a99a80"];
+
+        D_TYPE    [label = "Donor type\nliving > DBD > DCD\nDCD adds warm ischaemia", shape = diamond, fillcolor = "#e5dbc6"];
+        D_KDPI    [label = "KDPI / KDRI\ndonor age, HTN, DM, Cr, HCV, DCD\nsets NEPHRON DOSE handed over", shape = diamond, fillcolor = "#e5dbc6"];
+        D_AGE     [label = "Donor age\n> 60 y: fewer, sclerotic glomeruli\nlower repair reserve"];
+        D_MASS    [label = "Transplanted nephron mass\n~ 0.9-1.1 x 10^6 glomeruli (1 kidney)\nvs 2.0-2.4 x 10^6 native"];
+        D_CIT     [label = "Cold ischaemia time (h)\neach +1 h: ~1.3% higher graft failure risk"];
+        D_MP      [label = "Machine perfusion vs static cold storage", shape = octagon, fillcolor = "#f0e6d2"];
+        R_HLAMM   [label = "HLA A/B/DR mismatch (0-6)\nclassical antigen-level matching", shape = diamond, fillcolor = "#e5dbc6"];
+        R_EPLET   [label = "HLA-DR/DQ eplet mismatch load\nmolecular mismatch, better dnDSA predictor\nthreshold ~ 10 DR / 17 DQ eplets", shape = diamond, fillcolor = "#e5dbc6"];
+        R_CPRA    [label = "cPRA / sensitisation\nprior transplant, transfusion, pregnancy\ncPRA > 80% = high immunological risk", shape = diamond, fillcolor = "#e5dbc6"];
+        R_PREDSA  [label = "Preformed DSA\npositive XM or DSA+/XM- (incompatible)"];
+        R_CYP3A5  [label = "CYP3A5 *1/*3 genotype\nEXPRESSER (*1 carrier) clears tacrolimus ~1.5-2x faster\n~15-25% of Europeans, 50-80% of Africans, ~25% East Asians", shape = diamond, fillcolor = "#e5dbc6"];
+        R_ABCB1   [label = "ABCB1 (P-gp) haplotype\nenterocyte efflux, modest effect on F"];
+        R_AGE     [label = "Recipient age / immunosenescence\nolder = weaker alloresponse, higher infection risk"];
+        R_RACE    [label = "Ancestry\nhigher CYP3A5 expresser frequency,\nAPOL1 donor risk variants"];
+        R_BMI     [label = "Body weight / BMI\nfixed mg/kg dosing overshoots in obesity"];
+        R_PRIM    [label = "Primary renal disease\nrecurrence risk (FSGS, IgAN, aHUS, MPGN)"];
+        R_ADHRISK [label = "Adherence risk profile\nadolescent/young adult, low health literacy,\ndepression, cost, pill burden", shape = diamond, fillcolor = "#e5dbc6"];
+        R_CMVSER  [label = "CMV serostatus D+/R-\nhighest-risk mismatch", shape = diamond, fillcolor = "#e5dbc6"];
+    }
+
+    /* ================================================================
+       2. ISCHAEMIA-REPERFUSION INJURY AND DELAYED GRAFT FUNCTION
+       ================================================================ */
+    subgraph cluster_iri {
+        label = "2. Ischaemia-reperfusion injury · innate priming · delayed graft function";
+        style = "filled,rounded"; fillcolor = "#fdeeee"; color = "#e2a3a3";
+        fontsize = 13; fontcolor = "#9b3535";
+        node [fillcolor = "#fadede", color = "#d38b8b"];
+
+        I_ATP     [label = "Tubular ATP depletion\nNa+/K+-ATPase failure, cytoskeletal collapse"];
+        I_ROS     [label = "Reperfusion ROS burst\nxanthine oxidase, mitochondrial complex I"];
+        I_MPT     [label = "Mitochondrial permeability transition\ncytochrome c release", shape = parallelogram, fillcolor = "#f6cccc"];
+        I_NEC     [label = "Acute tubular necrosis / ferroptosis\nproximal S3 segment most vulnerable", shape = parallelogram, fillcolor = "#f6cccc"];
+        I_AKI     [label = "AKI\nacute tubular injury burden (recoverable)", peripheries = 2, fillcolor = "#f4c3c3"];
+        I_DAMP    [label = "DAMP\nHMGB1 · HSP70 · uric acid · mtDNA · ATP", peripheries = 2, fillcolor = "#f4c3c3"];
+        I_TLR     [label = "TLR2 / TLR4 · NLRP3 inflammasome\nsterile innate activation", shape = parallelogram, fillcolor = "#f6cccc"];
+        I_COMP    [label = "Complement activation on ischaemic endothelium\nlectin + alternative pathway"];
+        I_NEUT    [label = "Neutrophil / monocyte influx\nICAM-1, P-selectin, IL-8"];
+        I_KIM1    [label = "Tubular injury markers\nKIM-1 · NGAL · urinary CXCL9/10"];
+        I_DGF     [label = "Delayed graft function\ndialysis within 7 days · ~25% DBD, ~50% DCD", shape = hexagon, fillcolor = "#f0b3b3"];
+        I_REPAIR  [label = "Tubular regeneration\nsurviving epithelium dedifferentiates and repopulates", shape = parallelogram, fillcolor = "#f6cccc"];
+        I_MALREP  [label = "Maladaptive repair\nG2/M arrest, senescence, profibrotic secretome", shape = parallelogram, fillcolor = "#f6cccc"];
+    }
+
+    /* ================================================================
+       3. ALLORECOGNITION
+       ================================================================ */
+    subgraph cluster_allorec {
+        label = "3. Allorecognition — how the recipient learns the graft is foreign";
+        style = "filled,rounded"; fillcolor = "#f2eef8"; color = "#b2a2cf";
+        fontsize = 13; fontcolor = "#553f85";
+        node [fillcolor = "#e7e0f3", color = "#9c89bf"];
+
+        A_PASS    [label = "Donor passenger leucocytes\ndonor DC migrate to recipient lymph node\ndecay over ~2-4 weeks", shape = parallelogram, fillcolor = "#ded3ee"];
+        A_DIR     [label = "DIRECT allorecognition\nrecipient TCR reads intact donor MHC\nhuge precursor frequency (1-10%)\ndominates EARLY rejection", shape = parallelogram, fillcolor = "#ded3ee"];
+        A_INDIR   [label = "INDIRECT allorecognition\nrecipient APC presents processed donor peptide\non self-MHC-II · dominates LATE rejection\nand provides B-cell help for dnDSA", shape = parallelogram, fillcolor = "#ded3ee"];
+        A_SEMI    [label = "SEMI-DIRECT (cross-dressing)\nrecipient DC acquires intact donor MHC\nvia trogocytosis / exosomes", shape = parallelogram, fillcolor = "#ded3ee"];
+        A_AG      [label = "Ag\ndonor antigen presentation load\n(the driver of every downstream arm)", peripheries = 2, fillcolor = "#d6c8ec"];
+        A_MHC1    [label = "Donor HLA class I (A, B, C)\non every nucleated graft cell"];
+        A_MHC2    [label = "Donor HLA class II (DR, DQ, DP)\nconstitutive on endothelium/DC,\nIFN-gamma-inducible on tubular cells"];
+        A_MICA    [label = "Non-HLA targets\nMICA · AT1R · perlecan/LG3 · endothelial antigens"];
+        A_LN      [label = "Draining lymph node / spleen\nsite of priming"];
+        A_TLO     [label = "Tertiary lymphoid organs in the graft\nlate, local priming and B-cell maturation"];
+    }
+
+    /* ================================================================
+       4. T-CELL ACTIVATION — SIGNALS 1, 2, 3
+       ================================================================ */
+    subgraph cluster_tact {
+        label = "4. T-cell activation — signal 1 (TCR) · signal 2 (costimulation) · signal 3 (IL-2/mTOR) — where 5 drug classes act";
+        style = "filled,rounded"; fillcolor = "#eef4fa"; color = "#8fb4d9";
+        fontsize = 13; fontcolor = "#2d5b8c";
+        node [fillcolor = "#dceaf6", color = "#6f9fce"];
+
+        T_TCR     [label = "SIGNAL 1 · TCR-CD3 engagement\nLck -> ZAP-70 -> LAT -> PLC-gamma1", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_CA      [label = "IP3 -> Ca2+ release -> calmodulin", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_CN      [label = "CALCINEURIN (PPP3)\nphosphatase · the tacrolimus/CsA target", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_FKBP    [label = "FKBP12 - tacrolimus complex\n(cyclophilin - cyclosporine complex)"];
+        T_NFAT    [label = "NFAT dephosphorylation and nuclear import\n-> IL2, IFNG, CD40LG, IL4 transcription", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_CD28    [label = "SIGNAL 2 · CD80/CD86 -> CD28\nPI3K/AKT, Bcl-xL, IL-2 mRNA stabilisation", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_CD40    [label = "CD40 - CD154 (CD40L)\nlicenses the APC, drives germinal centres"];
+        T_ICOS    [label = "ICOS - ICOSL\nTfh differentiation and maintenance"];
+        T_LFA     [label = "LFA-1 / ICAM-1 immunological synapse\nadhesion, also graft entry"];
+        T_CTLA4   [label = "CTLA-4 (CD152)\nhigher-affinity CD80/86 competitor\nthe physiological brake belatacept mimics", shape = diamond, fillcolor = "#c6dcf1"];
+        T_PD1     [label = "PD-1 / PD-L1 exhaustion axis\nsustains long-term graft acceptance"];
+        T_IL2     [label = "IL2\nautocrine/paracrine IL-2 pool", peripheries = 2, fillcolor = "#c9def2"];
+        T_CD25    [label = "SIGNAL 3 · IL-2R alpha (CD25) induction\nhigh-affinity trimeric receptor", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_JAK     [label = "JAK1/JAK3 -> STAT5\nclonal expansion programme", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_MTOR    [label = "PI3K -> AKT -> mTORC1 (raptor)\nS6K1/4E-BP1 -> G1/S transit", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_PURINE  [label = "De novo purine synthesis\nIMPDH type II -> GTP\nlymphocytes lack the salvage pathway", shape = parallelogram, fillcolor = "#cfe2f4"];
+        T_CYCLE   [label = "Cell-cycle entry and clonal expansion", shape = parallelogram, fillcolor = "#cfe2f4"];
+    }
+
+    /* ================================================================
+       5. T-CELL POPULATIONS AND THE REGULATORY BALANCE
+       ================================================================ */
+    subgraph cluster_tpop {
+        label = "5. T-cell compartments · memory · the effector-to-regulatory balance";
+        style = "filled,rounded"; fillcolor = "#eaf4f1"; color = "#8dc0ae";
+        fontsize = 13; fontcolor = "#1f6b52";
+        node [fillcolor = "#d8ece5", color = "#6cab95"];
+
+        P_TN      [label = "Tn\nnaive / resting alloreactive precursors", peripheries = 2, fillcolor = "#c6e2d8"];
+        P_TACT    [label = "Tact\nactivated blasts in lymphoid tissue", peripheries = 2, fillcolor = "#c6e2d8"];
+        P_TEFF    [label = "Teff\ncirculating cytotoxic CD8 + Th1 effectors", peripheries = 2, fillcolor = "#c6e2d8"];
+        P_TMEM    [label = "Tmem\nalloreactive memory (Tem/Tcm)\nheterologous immunity from prior viral exposure", peripheries = 2, fillcolor = "#c6e2d8"];
+        P_CD28N   [label = "CD28-null CD57+ CD4 Tem\nBELATACEPT-RESISTANT subset\nexpanded by age, CMV, prior transplant", shape = diamond, fillcolor = "#b9dbcf"];
+        P_TREG    [label = "Treg\nFOXP3+ regulatory T cells", peripheries = 2, fillcolor = "#c6e2d8"];
+        P_TFH     [label = "T follicular helper (Tfh)\nCXCR5+ PD-1hi · IL-21 · the B-cell help node"];
+        P_TH17    [label = "Th17 / IL-17\nneutrophilic and fibrotic arm"];
+        P_SUP     [label = "Regulatory balance\nSUP = Treg / (Treg + Teff)\nsets the size of the lesion for a given effector load", shape = diamond, fillcolor = "#b9dbcf"];
+        P_TINF    [label = "Tinf\ngraft-infiltrating T cells", peripheries = 2, fillcolor = "#c6e2d8"];
+        P_HOMEO   [label = "Homeostatic proliferation after depletion\nIL-7/IL-15-driven repopulation favours MEMORY\n(the ATG paradox)", shape = parallelogram, fillcolor = "#cbe6dc"];
+        P_TOL     [label = "Operational tolerance\nchimerism, deletion, regulation\n(rare, deliberate protocols only)", shape = diamond, fillcolor = "#b9dbcf"];
+    }
+
+    /* ================================================================
+       6. T-CELL MEDIATED REJECTION (TCMR)
+       ================================================================ */
+    subgraph cluster_tcmr {
+        label = "6. T cell-mediated rejection — the tubulointerstitial lesion";
+        style = "filled,rounded"; fillcolor = "#fdf2e6"; color = "#e0b57a";
+        fontsize = 13; fontcolor = "#8a5a20";
+        node [fillcolor = "#fbe6cd", color = "#d3a25f"];
+
+        M_CHEMO   [label = "CXCL9 / CXCL10 / CXCL11 -> CXCR3\nIFN-gamma-induced recruitment gradient"];
+        M_MIG     [label = "Effector traffic into the graft\nrolling -> LFA-1/ICAM firm adhesion -> diapedesis", shape = parallelogram, fillcolor = "#f7d6a8"];
+        M_GZMB    [label = "Granzyme B / perforin\ndirect tubular epithelial killing", shape = parallelogram, fillcolor = "#f7d6a8"];
+        M_FAS     [label = "Fas-FasL apoptosis of tubular cells", shape = parallelogram, fillcolor = "#f7d6a8"];
+        M_MAC     [label = "Activated macrophages\nIFN-gamma-licensed, iNOS, TNF-alpha"];
+        M_TUB     [label = "TUB\ntubulitis + interstitial inflammation burden", peripheries = 2, fillcolor = "#f4c98f"];
+        M_BANFFT  [label = "Banff t score (tubulitis, 0-3)", shape = hexagon, fillcolor = "#f0bd7a"];
+        M_BANFFI  [label = "Banff i score (interstitial inflammation, 0-3)", shape = hexagon, fillcolor = "#f0bd7a"];
+        M_BANFFV  [label = "Banff v score (intimal arteritis, 0-3)\nBanff IIA/IIB - steroid-resistant phenotype", shape = hexagon, fillcolor = "#f0bd7a"];
+        M_BORDER  [label = "Borderline changes\ni1t1 - not benign: predicts later dnDSA", shape = diamond, fillcolor = "#f2c98c"];
+        M_SUBCL   [label = "Subclinical rejection\nfound only on protocol biopsy, stable creatinine", shape = diamond, fillcolor = "#f2c98c"];
+        M_IFNG    [label = "IFNg\ninterferon-gamma tone", peripheries = 2, fillcolor = "#f4c98f"];
+    }
+
+    /* ================================================================
+       7. B CELLS, PLASMA CELLS, DSA
+       ================================================================ */
+    subgraph cluster_bcell {
+        label = "7. B-cell arm — germinal centre · plasmablast · the long-lived plasma cell that no B-cell drug reaches";
+        style = "filled,rounded"; fillcolor = "#f6eef5"; color = "#cf9ec4";
+        fontsize = 13; fontcolor = "#7d3269";
+        node [fillcolor = "#efdfec", color = "#bd85b1"];
+
+        B_BN      [label = "Bn\nnaive + memory alloreactive B cells (CD20+)", peripheries = 2, fillcolor = "#e6cfe1"];
+        B_BCR     [label = "BCR ligation by intact donor HLA\nB cells are also efficient alloantigen APC", shape = parallelogram, fillcolor = "#e9d5e5"];
+        B_GC      [label = "Bgc\ngerminal-centre / activated B cells", peripheries = 2, fillcolor = "#e6cfe1"];
+        B_HELP    [label = "Tfh help: CD40L + IL-21 (+ IL-6)\nrequired for class switch and affinity maturation", shape = parallelogram, fillcolor = "#e9d5e5"];
+        B_BAFF    [label = "BAFF / APRIL survival niche\nrises after B-cell depletion (rebound risk)"];
+        B_CSR     [label = "Class-switch recombination (AID)\nIgM -> IgG1/IgG3 (complement-fixing)\nvs IgG2/IgG4 (non-fixing)", shape = parallelogram, fillcolor = "#e9d5e5"];
+        B_PB      [label = "PB\nshort-lived plasmablasts (CD20- CD38+)", peripheries = 2, fillcolor = "#e6cfe1"];
+        B_LLPC    [label = "LLPC\nlong-lived bone-marrow plasma cells\nCD20-NEGATIVE, CD38+/BCMA+, t1/2 in years\nWHY RITUXIMAB DOES NOT LOWER DSA", peripheries = 2, fillcolor = "#dfc0d8"];
+        B_BMNICHE [label = "Bone-marrow survival niche\nCXCL12+ stroma, APRIL, IL-6"];
+        B_DSA     [label = "DSA\ncirculating donor-specific IgG (MFI)", peripheries = 2, fillcolor = "#dfc0d8"];
+        B_DNDSA   [label = "de novo DSA (dnDSA)\n~ 15-25% by 5 y · driven by eplet load,\nlow tacrolimus exposure and non-adherence", shape = hexagon, fillcolor = "#dbb3d2"];
+        B_MFI     [label = "DSA MFI · C1q/C3d binding · IgG subclass\nrisk stratification of the antibody itself", shape = hexagon, fillcolor = "#dbb3d2"];
+        B_BOUND   [label = "DSA bound to graft endothelium\nsaturable target: the graft is an antibody sink", shape = parallelogram, fillcolor = "#e9d5e5"];
+    }
+
+    /* ================================================================
+       8. COMPLEMENT, NK CELLS, ENDOTHELIUM — THE ABMR EFFECTOR ARMS
+       ================================================================ */
+    subgraph cluster_abmr {
+        label = "8. ABMR effector arms — complement · FcgammaR/NK ADCC · direct endothelial signalling · 'missing self'";
+        style = "filled,rounded"; fillcolor = "#fdeef4"; color = "#e5a0bd";
+        fontsize = 13; fontcolor = "#9c2d57";
+        node [fillcolor = "#fadfe9", color = "#d885a5"];
+
+        C_C1Q     [label = "C1q binding by IgG1/IgG3 hexamers\nclassical pathway ignition", shape = parallelogram, fillcolor = "#f6cddc"];
+        C_C4      [label = "C1s -> C4 cleavage -> C4b -> C4d\nC4d is a covalent FOOTPRINT, not an effector", shape = parallelogram, fillcolor = "#f6cddc"];
+        C_C4D     [label = "C4D\nperitubular capillary C4d deposition", peripheries = 2, fillcolor = "#f4c0d3"];
+        C_C3      [label = "C3 convertase -> C3a / C3b\namplification loop"];
+        C_C5      [label = "C5 convertase -> C5a (chemotaxis) + C5b", shape = parallelogram, fillcolor = "#f6cddc"];
+        C_MAC     [label = "C5b-9 membrane attack complex\nsublytic MAC -> non-canonical NF-kB in endothelium", shape = parallelogram, fillcolor = "#f6cddc"];
+        C_FCGR    [label = "FcgammaRIIIa (CD16) on NK cells\nADCC - the COMPLEMENT-INDEPENDENT arm", shape = parallelogram, fillcolor = "#f6cddc"];
+        C_MISS    [label = "'Missing self'\ndonor HLA-I fails to engage recipient inhibitory KIR\n-> NK activation WITHOUT any antibody", shape = diamond, fillcolor = "#f2b6ce"];
+        C_NK      [label = "NKact\nactivated intragraft NK cells", peripheries = 2, fillcolor = "#f4c0d3"];
+        C_ENDO    [label = "ENDO\nendothelial activation state", peripheries = 2, fillcolor = "#f4c0d3"];
+        C_HLAX    [label = "HLA cross-linking -> mTOR, ERK, Src\nproliferative endothelial signalling (antibody as agonist)", shape = parallelogram, fillcolor = "#f6cddc"];
+        C_PSEL    [label = "P-selectin exocytosis, vWF release,\nleucocyte capture in peritubular capillaries"];
+        C_MVI     [label = "MVI\nmicrovascular inflammation (g + ptc)", peripheries = 2, fillcolor = "#f4c0d3"];
+        C_BANFFG  [label = "Banff g (glomerulitis) + ptc (capillaritis)\ng+ptc >= 2 defines active MVI", shape = hexagon, fillcolor = "#f0aac6"];
+        C_TG      [label = "TG\ntransplant glomerulopathy (cg)\nGBM duplication - largely irreversible", peripheries = 2, fillcolor = "#f4c0d3"];
+        C_ABMRDX  [label = "Active / chronic active ABMR\nBanff: MVI + evidence of antibody interaction + DSA", shape = hexagon, fillcolor = "#f0aac6"];
+    }
+
+    /* ================================================================
+       9. TACROLIMUS / CYCLOSPORINE PK
+       ================================================================ */
+    subgraph cluster_cnipk {
+        label = "9. Calcineurin-inhibitor PK — the exposure that has to be steered";
+        style = "filled,rounded"; fillcolor = "#eef2f7"; color = "#9aa9bd";
+        fontsize = 13; fontcolor = "#3c4e66";
+        node [fillcolor = "#dfe6ef", color = "#8496ad"];
+
+        K_TDOSE   [label = "Tacrolimus PO BID\n0.05-0.1 mg/kg BID start\n(or once-daily extended release)", shape = octagon, fillcolor = "#d3ddea"];
+        K_TA1     [label = "TAC_A1 / TAC_A2\ngut transit (absorption lag)", peripheries = 2, fillcolor = "#cdd8e7"];
+        K_CYP34   [label = "Enterocyte + hepatic CYP3A4/CYP3A5\nfirst pass ~ 75% · F ~ 0.25", shape = parallelogram, fillcolor = "#d6dfeb"];
+        K_PGP     [label = "P-glycoprotein (ABCB1) efflux\nback into the gut lumen", shape = parallelogram, fillcolor = "#d6dfeb"];
+        K_TC      [label = "TAC_C\ncentral tacrolimus (whole blood)", peripheries = 2, fillcolor = "#cdd8e7"];
+        K_TP      [label = "TAC_P\nperipheral tissue tacrolimus", peripheries = 2, fillcolor = "#cdd8e7"];
+        K_RBC     [label = "Erythrocyte partitioning (~95%)\nwhole-blood assay, haematocrit-dependent"];
+        K_C0      [label = "Trough C0 (ng/mL)\nmonths 0-3: 8-10 · later: 5-7", shape = hexagon, fillcolor = "#c6d3e4"];
+        K_DDI     [label = "CYP3A interactions\nazoles, diltiazem, ritonavir (up)\nrifampicin, phenytoin (down)", shape = diamond, fillcolor = "#c6d3e4"];
+        K_IPV     [label = "Intra-patient variability (IPV)\nCV% of consecutive troughs\n> 30% -> dnDSA, rejection, graft loss", shape = diamond, fillcolor = "#c6d3e4"];
+        K_TTR     [label = "Time in therapeutic range\nand time below 5 ng/mL", shape = hexagon, fillcolor = "#c6d3e4"];
+        K_CSA     [label = "Cyclosporine PO BID (comparator)\nC0 150-250 ng/mL · ~25x less potent per ng", shape = octagon, fillcolor = "#d3ddea"];
+        K_CSAC    [label = "CSA_C / CSA_P\ncyclosporine central / peripheral", peripheries = 2, fillcolor = "#cdd8e7"];
+        K_TACEQ   [label = "TACEQ = TAC + CSA/25\npotency-normalised CNI exposure", shape = diamond, fillcolor = "#c6d3e4"];
+    }
+
+    /* ================================================================
+       10. MYCOPHENOLATE, STEROID, mTOR INHIBITOR PK
+       ================================================================ */
+    subgraph cluster_otherpk {
+        label = "10. Antiproliferative · corticosteroid · mTOR-inhibitor PK";
+        style = "filled,rounded"; fillcolor = "#f0f4ec"; color = "#a7bd94";
+        fontsize = 13; fontcolor = "#46632c";
+        node [fillcolor = "#e2ebd9", color = "#93ab7e"];
+
+        Y_MMF     [label = "Mycophenolate mofetil 500-1000 mg BID\n(or EC-MPS 720 mg BID)", shape = octagon, fillcolor = "#d7e4ca"];
+        Y_MMFD    [label = "MMF_D\ngut depot (ester prodrug)", peripheries = 2, fillcolor = "#d2e0c4"];
+        Y_ESTER   [label = "Rapid esterase hydrolysis MMF -> MPA", shape = parallelogram, fillcolor = "#dae7cf"];
+        Y_MPAC    [label = "MPA_C / MPA_P\nmycophenolic acid central / peripheral", peripheries = 2, fillcolor = "#d2e0c4"];
+        Y_ALB     [label = "97-99% albumin bound\nfree fraction rises in hypoalbuminaemia and uraemia"];
+        Y_UGT     [label = "UGT1A9 glucuronidation -> MPAG", shape = parallelogram, fillcolor = "#dae7cf"];
+        Y_MPAG    [label = "MPAG\nglucuronide, biliary excreted", peripheries = 2, fillcolor = "#d2e0c4"];
+        Y_EHC     [label = "Enterohepatic recirculation\ngut beta-glucuronidase regenerates MPA\n~ 30-40% of AUC, second peak at 6-12 h", shape = parallelogram, fillcolor = "#dae7cf"];
+        Y_AUC     [label = "MPA AUC0-12 (mg.h/L)\ntherapeutic window 30-60", shape = hexagon, fillcolor = "#cddcbf"];
+        Y_PRED    [label = "Prednisone PO daily\n(taper 20 -> 5 mg)", shape = octagon, fillcolor = "#d7e4ca"];
+        Y_PREDC   [label = "PRED_C\nprednisolone (active)", peripheries = 2, fillcolor = "#d2e0c4"];
+        Y_MP      [label = "Methylprednisolone IV pulse\n250-500 mg x 3 d for TCMR", shape = octagon, fillcolor = "#d7e4ca"];
+        Y_MPC     [label = "MP_C\nmethylprednisolone", peripheries = 2, fillcolor = "#d2e0c4"];
+        Y_GR      [label = "Glucocorticoid receptor -> trans-repression\nof NF-kB and AP-1 in APC and T cells", shape = parallelogram, fillcolor = "#dae7cf"];
+        Y_EVR     [label = "Everolimus / sirolimus\nC0 3-8 ng/mL with reduced CNI", shape = octagon, fillcolor = "#d7e4ca"];
+        Y_EVRC    [label = "EVR_C\nmTOR-inhibitor concentration", peripheries = 2, fillcolor = "#d2e0c4"];
+    }
+
+    /* ================================================================
+       11. BIOLOGICS PK AND TARGET ENGAGEMENT
+       ================================================================ */
+    subgraph cluster_bio {
+        label = "11. Biologics — induction, costimulation blockade, and the ABMR toolbox";
+        style = "filled,rounded"; fillcolor = "#eef1f8"; color = "#9aa4cd";
+        fontsize = 13; fontcolor = "#37417d";
+        node [fillcolor = "#dfe3f3", color = "#8b95c4"];
+
+        Z_ATG     [label = "Rabbit ATG (Thymoglobulin)\n1.5 mg/kg x 4-5 d · high immunological risk", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_ATGC    [label = "ATG_C\nrabbit ATG concentration (t1/2 ~ 30 d)", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_DEPL    [label = "Polyclonal opsonisation, complement lysis,\napoptosis, margination of T cells\n(B and NK partially spared)", shape = parallelogram, fillcolor = "#d6dbf1"];
+        Z_BAS     [label = "Basiliximab 20 mg d0 + d4\nstandard immunological risk", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_BASC    [label = "BAS_C\nbasiliximab (CD25 saturation ~ 4-6 weeks)", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_BELA    [label = "Belatacept 10 -> 5 mg/kg IV monthly\nCNI-free maintenance (EBV-seropositive only)", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_BELAC   [label = "BELA_C\nbelatacept concentration", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_OCC     [label = "CD80/CD86 receptor occupancy\nsignal-2 blockade (naive >> CD28-null memory)", shape = parallelogram, fillcolor = "#d6dbf1"];
+        Z_RTX     [label = "Rituximab 375 mg/m2\nanti-CD20", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_RTXC    [label = "RTX_C\nrituximab concentration", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_TCZ     [label = "Tocilizumab 8 mg/kg q4w /\nclazakizumab 25 mg q4w (anti-IL-6R / anti-IL-6)", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_TCZC    [label = "TCZ_C\nIL-6 axis blocker concentration", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_CD38    [label = "Felzartamab / daratumumab\nanti-CD38 - reaches plasma cells AND NK", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_CD38C   [label = "FZB_C\nanti-CD38 concentration", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_IVIG    [label = "IVIG 2 g/kg\nFc-mediated modulation, idiotype neutralisation", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_IVIGC   [label = "IVIG_C\npooled IgG concentration", peripheries = 2, fillcolor = "#ccd2ec"];
+        Z_PLEX    [label = "Plasma exchange\n1-1.5 plasma volumes, alternate days\nremoves circulating IgG only", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_IDES    [label = "Imlifidase (IdeS)\ncleaves IgG below the hinge within hours\ndesensitisation for the positive crossmatch", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_ECU     [label = "Eculizumab (anti-C5)\nblocks MAC, leaves C4d and ADCC intact", shape = octagon, fillcolor = "#d2d7ef"];
+        Z_BTZ     [label = "Bortezomib (proteasome inhibitor)\nplasma-cell directed - BORTEJECT was negative", shape = octagon, fillcolor = "#d2d7ef"];
+    }
+
+    /* ================================================================
+       12. NET IMMUNOSUPPRESSION — THE CONTROLLED VARIABLE
+       ================================================================ */
+    subgraph cluster_nis {
+        label = "12. NET IMMUNOSUPPRESSION — the single quantity that trades rejection against infection";
+        style = "filled,rounded"; fillcolor = "#fff8e1"; color = "#dcc06a";
+        fontsize = 14; fontcolor = "#7a5f10";
+        node [fillcolor = "#fdefc4", color = "#cfae55"];
+
+        N_CNINH   [label = "Calcineurin inhibition\nEmax on NFAT-dependent IL-2 transcription", shape = parallelogram, fillcolor = "#fbe7ac"];
+        N_MPAINH  [label = "IMPDH inhibition\nEmax on lymphocyte proliferation", shape = parallelogram, fillcolor = "#fbe7ac"];
+        N_STINH   [label = "Glucocorticoid trans-repression", shape = parallelogram, fillcolor = "#fbe7ac"];
+        N_COSBLK  [label = "Costimulation blockade", shape = parallelogram, fillcolor = "#fbe7ac"];
+        N_IL2BLK  [label = "CD25 blockade", shape = parallelogram, fillcolor = "#fbe7ac"];
+        N_DEPL    [label = "Lymphodepletion", shape = parallelogram, fillcolor = "#fbe7ac"];
+        N_NIS     [label = "NET IMMUNOSUPPRESSION (NIS, 0-1)\nthe controlled variable of transplantation", shape = diamond, fillcolor = "#f7d977", penwidth = 2.0];
+        N_UNDER   [label = "UNDER-immunosuppression\nrejection, dnDSA, ABMR", shape = diamond, fillcolor = "#f9dd8e"];
+        N_OVER    [label = "OVER-immunosuppression\nBK, CMV, PTLD, sepsis, malignancy", shape = diamond, fillcolor = "#f9dd8e"];
+        N_UCURVE  [label = "U-SHAPED graft survival\nboth arms end at the same place", shape = hexagon, fillcolor = "#f5cf5e", penwidth = 2.0];
+    }
+
+    /* ================================================================
+       13. ADHERENCE AND EXPOSURE VARIABILITY
+       ================================================================ */
+    subgraph cluster_adh {
+        label = "13. Adherence and exposure variability — the commonest modifiable cause of late graft loss";
+        style = "filled,rounded"; fillcolor = "#f6f0ea"; color = "#c6a98f";
+        fontsize = 13; fontcolor = "#7a5230";
+        node [fillcolor = "#ece0d4", color = "#b5967a"];
+
+        H_ADH     [label = "ADH\nadherence state (fraction of doses taken)", peripheries = 2, fillcolor = "#e3d2c1"];
+        H_DECAY   [label = "Adherence decay with time since transplant\nfeeling well, side effects, cost, transition to adult care", shape = parallelogram, fillcolor = "#e8d9ca"];
+        H_MISS    [label = "Missed / mistimed doses\nBID regimens are the most vulnerable", shape = parallelogram, fillcolor = "#e8d9ca"];
+        H_DIP     [label = "Trough excursions below 5 ng/mL\nNFAT escape windows", shape = diamond, fillcolor = "#dfcab6"];
+        H_INTERV  [label = "Adherence intervention\nreminders, once-daily conversion, DOT, counselling", shape = octagon, fillcolor = "#e8dbcc"];
+        H_MONITOR [label = "Monitoring\ntrough CV%, dd-cfDNA, DSA screening, protocol biopsy", shape = octagon, fillcolor = "#e8dbcc"];
+    }
+
+    /* ================================================================
+       14. GRAFT STRUCTURE AND FUNCTION
+       ================================================================ */
+    subgraph cluster_func {
+        label = "14. Graft structure and function — nephron mass, haemodynamics, filtration";
+        style = "filled,rounded"; fillcolor = "#eaf1f6"; color = "#93b2c8";
+        fontsize = 13; fontcolor = "#25566f";
+        node [fillcolor = "#d9e6ef", color = "#7ba0ba"];
+
+        F_NM      [label = "NM\nfunctioning nephron mass (fraction of implanted)", peripheries = 2, fillcolor = "#c8dbe8"];
+        F_SNGFR   [label = "Single-nephron GFR\nrises as NM falls (compensatory hyperfiltration)", shape = parallelogram, fillcolor = "#d0e0ea"];
+        F_AFF     [label = "Afferent arteriolar vasoconstriction\nCNI: endothelin up, NO down, RAAS up\nFULLY REVERSIBLE - the belatacept GFR gap", shape = parallelogram, fillcolor = "#d0e0ea"];
+        F_HYAL    [label = "CNIHYAL\ncumulative CNI arteriolopathy (ah) - irreversible", peripheries = 2, fillcolor = "#c8dbe8"];
+        F_EGFR    [label = "eGFR (mL/min/1.73 m2)\nCKD-EPI 2021", shape = hexagon, fillcolor = "#bcd3e3"];
+        F_SCR     [label = "SCR\nserum creatinine (generation vs clearance)", peripheries = 2, fillcolor = "#c8dbe8"];
+        F_SLOPE   [label = "eGFR slope (mL/min/1.73 m2 per year)\nthe accepted surrogate for graft failure", shape = hexagon, fillcolor = "#bcd3e3"];
+        F_PROT    [label = "PROT\nproteinuria (UPCR, g/g)", peripheries = 2, fillcolor = "#c8dbe8"];
+        F_CFDNA   [label = "CFDNA\ndonor-derived cell-free DNA (%)\nt1/2 ~ 6 h - an injury flux, not a state", peripheries = 2, fillcolor = "#c8dbe8"];
+        F_BP      [label = "Post-transplant hypertension\nCNI, steroids, graft dysfunction"];
+    }
+
+    /* ================================================================
+       15. CHRONIC FIBROSIS
+       ================================================================ */
+    subgraph cluster_fib {
+        label = "15. Chronic injury — IFTA, the final common pathway (drug-independent)";
+        style = "filled,rounded"; fillcolor = "#f3f0e6"; color = "#c3b98d";
+        fontsize = 13; fontcolor = "#6a5f1e";
+        node [fillcolor = "#e8e3ce", color = "#b0a678"];
+
+        X_TGF     [label = "TGF-beta1 / SMAD2-3 signalling\nthe fibrotic master switch", shape = parallelogram, fillcolor = "#ded7bd"];
+        X_EMT     [label = "Partial EMT of tubular epithelium\nsenescent, profibrotic phenotype", shape = parallelogram, fillcolor = "#ded7bd"];
+        X_MYOF    [label = "Interstitial myofibroblast expansion\n(pericyte-derived, alpha-SMA+)"];
+        X_COLL    [label = "Collagen I/III, fibronectin deposition"];
+        X_PTCRAR  [label = "Peritubular capillary rarefaction\n-> chronic hypoxia -> HIF-1a -> more fibrosis", shape = parallelogram, fillcolor = "#ded7bd"];
+        X_IFTA    [label = "IFTA\ninterstitial fibrosis + tubular atrophy (ci + ct)", peripheries = 2, fillcolor = "#dcd4b4"];
+        X_BANFFCI [label = "Banff ci + ct score (0-6)\nchronicity - each point costs graft years", shape = hexagon, fillcolor = "#d5cba4"];
+        X_HYPER   [label = "HYPERFILTRATION LOOP\nnephron loss -> SNGFR up -> shear/strain ->\nTGF-beta -> IFTA -> more nephron loss", shape = diamond, fillcolor = "#d5cba4", penwidth = 2.0];
+    }
+
+    /* ================================================================
+       16. BK POLYOMAVIRUS
+       ================================================================ */
+    subgraph cluster_bk {
+        label = "16. BK polyomavirus — the price of the other arm of the U";
+        style = "filled,rounded"; fillcolor = "#eef6f0"; color = "#95c2a4";
+        fontsize = 13; fontcolor = "#255f38";
+        node [fillcolor = "#dbeee2", color = "#78ab89"];
+
+        V_LATENT  [label = "Latent BKV in renourinary epithelium\n(usually of DONOR origin)"];
+        V_REACT   [label = "Reactivation when T-cell control falls", shape = parallelogram, fillcolor = "#d2e8da"];
+        V_BKV     [label = "BKV\nplasma BK viral load (copies/mL)", peripheries = 2, fillcolor = "#c8e3d2"];
+        V_VIRURIA [label = "Decoy cells / viruria\nprecedes viraemia by ~4 weeks", shape = hexagon, fillcolor = "#bcdcc8"];
+        V_TCTRL   [label = "BKV-specific T-cell control\nsuppressed in proportion to NIS", shape = parallelogram, fillcolor = "#d2e8da"];
+        V_BKVAN   [label = "BKVAN\nBK nephropathy - tubular lysis + interstitial infiltrate\nhistologically MIMICS TCMR", peripheries = 2, fillcolor = "#c8e3d2"];
+        V_SCREEN  [label = "Screening protocol\nplasma PCR monthly x 6, then q3mo to 2 y", shape = octagon, fillcolor = "#d2e8da"];
+        V_REDUCE  [label = "Pre-emptive IS reduction\nMPA first (-50%), then CNI target down\nCLOSED-LOOP CONTROLLER in the R model", shape = octagon, fillcolor = "#d2e8da", penwidth = 2.0];
+        V_TRAP    [label = "The BK trap\nreduce IS -> virus clears -> alloimmunity rebounds\n-> rejection on a scarred graft", shape = diamond, fillcolor = "#bcdcc8"];
+    }
+
+    /* ================================================================
+       17. CMV AND OTHER INFECTION / MALIGNANCY
+       ================================================================ */
+    subgraph cluster_inf {
+        label = "17. CMV, other infection and malignancy — the rest of the over-immunosuppression arm";
+        style = "filled,rounded"; fillcolor = "#f7f1ec"; color = "#c9a68e";
+        fontsize = 13; fontcolor = "#7d472a";
+        node [fillcolor = "#eee1d7", color = "#bb937a"];
+
+        W_CMV     [label = "CMV\nCMV viral load (IU/mL)", peripheries = 2, fillcolor = "#e6d3c5"];
+        W_DRSTAT  [label = "D+/R- serostatus\nno pre-existing CMV-specific T cells", shape = diamond, fillcolor = "#e0c9b8"];
+        W_VGC     [label = "Valganciclovir prophylaxis 200 d\n(or letermovir - no myelosuppression)", shape = octagon, fillcolor = "#e8d8ca"];
+        W_GCVC    [label = "GCV_C\nganciclovir concentration (renally cleared)", peripheries = 2, fillcolor = "#e6d3c5"];
+        W_CMVDIS  [label = "CMV syndrome / tissue-invasive disease\nplus indirect alloimmune effects", shape = hexagon, fillcolor = "#dfc3ae"];
+        W_WBC     [label = "WBC\nleucocyte count (x10^9/L)", peripheries = 2, fillcolor = "#e6d3c5"];
+        W_LEUK    [label = "Leucopenia\nMPA + valganciclovir + ATG additive", shape = hexagon, fillcolor = "#dfc3ae"];
+        W_PTLD    [label = "EBV-driven PTLD\nrisk highest in EBV D+/R- and after depletion", shape = hexagon, fillcolor = "#dfc3ae"];
+        W_SKIN    [label = "Skin cancer / solid tumours\ncumulative net-immunosuppression exposure", shape = hexagon, fillcolor = "#dfc3ae"];
+        W_NISAUC  [label = "NISAUC\ncumulative net-immunosuppression exposure", peripheries = 2, fillcolor = "#e6d3c5"];
+        W_PTDM    [label = "GLU\npost-transplant diabetes index\n(steroid + tacrolimus beta-cell toxicity)", peripheries = 2, fillcolor = "#e6d3c5"];
+        W_SEPSIS  [label = "Bacterial / fungal infection, sepsis\nthe commonest cause of death with function", shape = hexagon, fillcolor = "#dfc3ae"];
+    }
+
+    /* ================================================================
+       18. DIAGNOSTIC AND DECISION LAYER
+       ================================================================ */
+    subgraph cluster_dx {
+        label = "18. Diagnostic and decision layer — what the clinician can actually see";
+        style = "filled,rounded"; fillcolor = "#eef3f3"; color = "#9bb8b8";
+        fontsize = 13; fontcolor = "#2f5c5c";
+        node [fillcolor = "#dde9e9", color = "#82a5a5"];
+
+        Q_SCRRISE [label = "Creatinine rise > 20%\nthe classical (late, insensitive) trigger", shape = diamond, fillcolor = "#cfe0e0"];
+        Q_INDBX   [label = "Indication biopsy", shape = octagon, fillcolor = "#d7e4e4"];
+        Q_PROTBX  [label = "Protocol biopsy (3 / 12 mo)\nfinds subclinical rejection before creatinine moves", shape = octagon, fillcolor = "#d7e4e4"];
+        Q_MMDX    [label = "Molecular microscope (MMDx)\ntranscript-based rejection archetypes"];
+        Q_CFDNA   [label = "dd-cfDNA > 0.5-1.0%\nrules out active rejection well (high NPV)", shape = diamond, fillcolor = "#cfe0e0"];
+        Q_DSAMON  [label = "DSA surveillance (SAB assay)", shape = octagon, fillcolor = "#d7e4e4"];
+        Q_LADDER  [label = "Treatment ladder\nTCMR: steroid pulse -> ATG if steroid-resistant\nABMR: PLEX/IVIG +/- anti-IL-6 / anti-CD38", shape = octagon, fillcolor = "#d7e4e4", penwidth = 2.0];
+        Q_IBOX    [label = "iBox composite risk\neGFR + proteinuria + histology + DSA\nvalidated surrogate for graft loss", shape = hexagon, fillcolor = "#c6d9d9"];
+    }
+
+    /* ================================================================
+       19. CLINICAL ENDPOINTS
+       ================================================================ */
+    subgraph cluster_end {
+        label = "19. Clinical endpoints";
+        style = "filled,rounded"; fillcolor = "#f6eaea"; color = "#cf9a9a";
+        fontsize = 14; fontcolor = "#8f2b2b";
+        node [fillcolor = "#eed6d6", color = "#c08585"];
+
+        E_BPAR    [label = "Biopsy-proven acute rejection at 12 mo\nTAC/MPA/steroid ~ 10-12% · belatacept ~ 17-22%", shape = hexagon, fillcolor = "#e6c2c2"];
+        E_EGFR12  [label = "eGFR at 12 months\nTAC ~ 55-60 · belatacept ~ 63-68 · CsA ~ 50", shape = hexagon, fillcolor = "#e6c2c2"];
+        E_DNDSA5  [label = "dnDSA at 5 years\n~ 15-25% overall · > 40% with non-adherence", shape = hexagon, fillcolor = "#e6c2c2"];
+        E_SLOPE   [label = "eGFR slope\nstable graft ~ -1 · chronic ABMR ~ -5 to -10 /yr", shape = hexagon, fillcolor = "#e6c2c2"];
+        E_DCGS    [label = "Death-censored graft survival\n~ 90% at 5 y, ~ 75% at 10 y (deceased donor)", shape = hexagon, fillcolor = "#e0b0b0", penwidth = 2.0];
+        E_HAZ     [label = "HAZ\ncumulative graft-failure hazard", peripheries = 2, fillcolor = "#e6c2c2"];
+        E_DIAL    [label = "Return to dialysis (eGFR < 15)", shape = hexagon, fillcolor = "#e0b0b0"];
+        E_DWFG    [label = "Death with functioning graft\ncardiovascular, infection, malignancy", shape = hexagon, fillcolor = "#e6c2c2"];
+        E_CUMREJ  [label = "CUMREJ\ncumulative rejection burden (lesion-days)", peripheries = 2, fillcolor = "#e6c2c2"];
+    }
+
+    /* ================================================================
+       20. SIMULATED THERAPEUTIC SCENARIOS
+       ================================================================ */
+    subgraph cluster_scen {
+        label = "20. The 20 scenarios simulated in ktx_mrgsolve_model.R";
+        style = "filled,rounded"; fillcolor = "#f0f0f4"; color = "#a8a8bd";
+        fontsize = 13; fontcolor = "#3f3f5c";
+        node [fillcolor = "#e2e2ea", color = "#9494ab"];
+
+        S_STD     [label = "1-2 · standard-risk TAC/MPA/steroid\nwith basiliximab, +/- living donor", shape = octagon, fillcolor = "#d8d8e3"];
+        S_HIGH    [label = "3-4 · high immunological risk\nATG vs basiliximab induction", shape = octagon, fillcolor = "#d8d8e3"];
+        S_CYP     [label = "5-6 · CYP3A5 expresser\nstandard vs genotype-guided dose", shape = octagon, fillcolor = "#d8d8e3"];
+        S_BELA    [label = "7 · belatacept CNI-free\n8 · cyclosporine comparator", shape = octagon, fillcolor = "#d8d8e3"];
+        S_STER    [label = "9 · early steroid withdrawal (d7)\n10 · everolimus + reduced CNI", shape = octagon, fillcolor = "#d8d8e3"];
+        S_ADH     [label = "11 · non-adherence from month 12\n12 · high tacrolimus IPV (CV 40%)", shape = octagon, fillcolor = "#d8d8e3"];
+        S_BK      [label = "13 · BK viraemia WITH screening\n14 · BK viraemia without screening", shape = octagon, fillcolor = "#d8d8e3"];
+        S_TCMR    [label = "15 · Banff IIA TCMR, steroid pulse\n16 · steroid-resistant TCMR -> ATG rescue", shape = octagon, fillcolor = "#d8d8e3"];
+        S_ABMR    [label = "17 · active ABMR: PLEX/IVIG/rituximab\n18 · chronic active ABMR: anti-IL-6\n19 · chronic active ABMR: anti-CD38", shape = octagon, fillcolor = "#d8d8e3"];
+        S_DGF     [label = "20 · DCD donor, CIT 24 h, KDPI 85\nDGF and low nephron dose", shape = octagon, fillcolor = "#d8d8e3"];
+    }
+
+    /* ================================================================
+       EDGES
+       ================================================================ */
+
+    /* --- 1 -> 2 : donor quality drives ischaemic injury --- */
+    D_TYPE   -> D_CIT;
+    D_TYPE   -> I_ATP     [label = "warm ischaemia (DCD)"];
+    D_CIT    -> I_ATP     [label = "duration"];
+    D_KDPI   -> D_MASS    [label = "sets nephron dose", color = "#b06a2c"];
+    D_AGE    -> D_KDPI;
+    D_AGE    -> I_MALREP  [label = "less repair reserve"];
+    D_MP     -> I_ATP     [color = "#2e7d32", label = "attenuates"];
+    D_MASS   -> F_NM      [label = "initial condition", color = "#b06a2c"];
+    R_RACE   -> R_CYP3A5;
+    R_BMI    -> K_TDOSE   [label = "mg/kg dosing"];
+    R_PRIM   -> F_PROT    [label = "disease recurrence", style = dashed];
+    R_ADHRISK-> H_DECAY;
+    R_CMVSER -> W_DRSTAT;
+    R_AGE    -> P_CD28N   [label = "immunosenescence"];
+
+    /* --- 2 : IRI cascade --- */
+    I_ATP    -> I_ROS;
+    I_ROS    -> I_MPT;
+    I_MPT    -> I_NEC;
+    I_ROS    -> I_NEC;
+    I_NEC    -> I_AKI;
+    I_NEC    -> I_DAMP;
+    I_AKI    -> I_DAMP;
+    I_DAMP   -> I_TLR;
+    I_TLR    -> I_NEUT;
+    I_COMP   -> I_NEUT;
+    I_ROS    -> I_COMP;
+    I_NEUT   -> I_AKI     [color = "#e07b39", label = "amplifies"];
+    I_AKI    -> I_KIM1;
+    I_AKI    -> I_DGF;
+    I_AKI    -> I_REPAIR;
+    I_REPAIR -> I_AKI     [color = "#2e7d32", label = "resolves"];
+    I_AKI    -> I_MALREP  [label = "if severe / prolonged"];
+    I_MALREP -> X_TGF     [color = "#e07b39"];
+    I_DGF    -> E_DCGS    [style = dashed, label = "worse long-term"];
+    I_AKI    -> F_EGFR    [color = "#c62828", label = "acute functional loss"];
+    I_AKI    -> F_CFDNA   [label = "releases dd-cfDNA"];
+
+    /* --- 2 -> 3 : danger signals amplify allorecognition --- */
+    I_DAMP   -> A_AG      [color = "#e07b39", label = "LOOP 1: raises antigen presentation"];
+    I_TLR    -> A_PASS    [label = "matures donor DC"];
+    I_DAMP   -> C_ENDO;
+
+    /* --- 3 : allorecognition --- */
+    A_PASS   -> A_DIR;
+    A_MHC1   -> A_DIR;
+    A_MHC2   -> A_DIR;
+    A_MHC1   -> A_INDIR;
+    A_MHC2   -> A_INDIR;
+    A_PASS   -> A_SEMI;
+    A_DIR    -> A_AG;
+    A_INDIR  -> A_AG;
+    A_SEMI   -> A_AG;
+    A_MICA   -> A_AG      [style = dashed, label = "non-HLA"];
+    R_HLAMM  -> A_AG      [label = "antigenic load"];
+    R_EPLET  -> B_BN      [label = "B-cell epitope load", color = "#b06a2c"];
+    R_EPLET  -> A_INDIR;
+    A_LN     -> T_TCR;
+    A_AG     -> T_TCR     [penwidth = 1.6];
+    A_AG     -> B_BCR     [penwidth = 1.6];
+    A_TLO    -> B_GC      [label = "late local B maturation"];
+    A_INDIR  -> P_TFH     [label = "provides help for dnDSA", color = "#b06a2c"];
+    M_IFNG   -> A_MHC2    [color = "#e07b39", label = "induces class II on tubules"];
+
+    /* --- 4 : activation signals --- */
+    T_TCR    -> T_CA;
+    T_CA     -> T_CN;
+    T_CN     -> T_NFAT;
+    T_NFAT   -> T_IL2;
+    T_CD28   -> T_NFAT    [label = "signal 2 sustains"];
+    T_CD28   -> T_IL2;
+    T_CTLA4  -> T_CD28    [color = "#c62828", label = "outcompetes"];
+    T_PD1    -> T_TCR     [color = "#c62828"];
+    T_LFA    -> T_TCR     [label = "stabilises synapse"];
+    T_IL2    -> T_CD25;
+    T_CD25   -> T_JAK;
+    T_JAK    -> T_MTOR;
+    T_MTOR   -> T_CYCLE;
+    T_PURINE -> T_CYCLE;
+    T_CYCLE  -> P_TACT    [penwidth = 1.6];
+    T_TCR    -> P_TACT;
+    T_CD40   -> B_HELP;
+    T_ICOS   -> P_TFH;
+    T_NFAT   -> T_CD40    [label = "CD40LG transcription"];
+
+    /* --- drug -> target : CNI --- */
+    K_TDOSE  -> K_TA1;
+    K_TA1    -> K_CYP34;
+    K_CYP34  -> K_TC      [label = "F ~ 0.25"];
+    K_PGP    -> K_TA1     [color = "#c62828", label = "efflux"];
+    K_TC     -> K_TP;
+    K_TP     -> K_TC;
+    K_TC     -> K_RBC;
+    K_TC     -> K_C0;
+    K_TC     -> K_CYP34   [label = "systemic clearance"];
+    R_CYP3A5 -> K_CYP34   [label = "EXPRESSER: CL x 1.9", color = "#b06a2c", penwidth = 1.4];
+    R_ABCB1  -> K_PGP;
+    K_DDI    -> K_CYP34;
+    K_CSA    -> K_CSAC;
+    K_C0     -> K_TACEQ;
+    K_CSAC   -> K_TACEQ;
+    K_TACEQ  -> T_FKBP;
+    T_FKBP   -> T_CN      [color = "#c62828", penwidth = 1.8, label = "CALCINEURIN INHIBITION"];
+    K_C0     -> K_TTR;
+    K_IPV    -> K_TTR     [color = "#c62828"];
+    K_TACEQ  -> N_CNINH;
+    K_TACEQ  -> F_AFF     [color = "#c62828", penwidth = 1.4, label = "vasoconstriction (reversible)"];
+    K_TACEQ  -> F_HYAL    [label = "cumulative exposure -> ah"];
+    K_TACEQ  -> W_PTDM    [label = "beta-cell toxicity"];
+    K_TACEQ  -> F_BP;
+
+    /* --- drug -> target : MPA --- */
+    Y_MMF    -> Y_MMFD;
+    Y_MMFD   -> Y_ESTER;
+    Y_ESTER  -> Y_MPAC;
+    Y_MPAC   -> Y_ALB;
+    Y_MPAC   -> Y_UGT;
+    Y_UGT    -> Y_MPAG;
+    Y_MPAG   -> Y_EHC;
+    Y_EHC    -> Y_MMFD    [color = "#2e7d32", label = "second peak"];
+    Y_MPAC   -> Y_AUC;
+    Y_MPAC   -> T_PURINE  [color = "#c62828", penwidth = 1.8, label = "IMPDH-II INHIBITION"];
+    Y_MPAC   -> N_MPAINH;
+    Y_MPAC   -> W_WBC     [color = "#c62828", label = "marrow suppression"];
+
+    /* --- drug -> target : steroids --- */
+    Y_PRED   -> Y_PREDC;
+    Y_MP     -> Y_MPC;
+    Y_PREDC  -> Y_GR;
+    Y_MPC    -> Y_GR      [penwidth = 1.4];
+    Y_GR     -> M_TUB     [color = "#c62828", penwidth = 1.5, label = "resolves tubulitis"];
+    Y_GR     -> T_NFAT    [color = "#c62828"];
+    Y_GR     -> M_IFNG    [color = "#c62828"];
+    Y_GR     -> N_STINH;
+    Y_PREDC  -> W_PTDM    [label = "insulin resistance"];
+
+    /* --- drug -> target : mTORi --- */
+    Y_EVR    -> Y_EVRC;
+    Y_EVRC   -> T_MTOR    [color = "#c62828", penwidth = 1.6, label = "signal-3 blockade"];
+    Y_EVRC   -> P_TREG    [color = "#2e7d32", label = "spares/favours Treg"];
+    Y_EVRC   -> C_HLAX    [color = "#c62828", label = "blocks endothelial proliferation"];
+    Y_EVRC   -> F_PROT    [color = "#c62828", label = "podocyte VEGF -> proteinuria"];
+    Y_EVRC   -> I_REPAIR  [color = "#c62828", label = "impairs tubular repair"];
+
+    /* --- drug -> target : biologics --- */
+    Z_ATG    -> Z_ATGC;
+    Z_ATGC   -> Z_DEPL;
+    Z_DEPL   -> P_TN      [color = "#c62828", penwidth = 1.6];
+    Z_DEPL   -> P_TEFF    [color = "#c62828"];
+    Z_DEPL   -> P_TMEM    [color = "#c62828", style = dashed, label = "partially resistant"];
+    Z_DEPL   -> P_TINF    [color = "#c62828"];
+    Z_DEPL   -> P_TREG    [color = "#c62828", style = dashed];
+    Z_DEPL   -> P_HOMEO;
+    P_HOMEO  -> P_TMEM    [color = "#e07b39", label = "repopulation skews to memory"];
+    Z_DEPL   -> N_DEPL;
+    Z_BAS    -> Z_BASC;
+    Z_BASC   -> T_CD25    [color = "#c62828", penwidth = 1.6, label = "CD25 saturation"];
+    Z_BASC   -> N_IL2BLK;
+    Z_BELA   -> Z_BELAC;
+    Z_BELAC  -> Z_OCC;
+    Z_OCC    -> T_CD28    [color = "#c62828", penwidth = 1.8, label = "SIGNAL 2 BLOCKADE"];
+    Z_OCC    -> P_TFH     [color = "#c62828", label = "cuts B-cell help -> less dnDSA"];
+    P_CD28N  -> Z_OCC     [color = "#e07b39", style = dashed, label = "ESCAPES blockade"];
+    Z_OCC    -> N_COSBLK;
+    Z_RTX    -> Z_RTXC;
+    Z_RTXC   -> B_BN      [color = "#c62828", penwidth = 1.5, label = "CD20 depletion"];
+    Z_RTXC   -> B_GC      [color = "#c62828"];
+    Z_RTXC   -> B_LLPC    [color = "#9e9e9e", style = dashed, label = "NO EFFECT (CD20-negative)"];
+    Z_RTXC   -> B_BAFF    [color = "#e07b39", label = "BAFF rises after depletion"];
+    Z_TCZ    -> Z_TCZC;
+    Z_TCZC   -> B_HELP    [color = "#c62828", penwidth = 1.4, label = "IL-6R blockade"];
+    Z_TCZC   -> P_TFH     [color = "#c62828"];
+    Z_CD38   -> Z_CD38C;
+    Z_CD38C  -> B_PB      [color = "#c62828", penwidth = 1.5];
+    Z_CD38C  -> B_LLPC    [color = "#c62828", penwidth = 1.5, label = "REACHES the plasma cell"];
+    Z_CD38C  -> C_NK      [color = "#c62828", label = "also depletes CD38+ NK"];
+    Z_IVIG   -> Z_IVIGC;
+    Z_IVIGC  -> B_DSA     [color = "#c62828", label = "neutralisation / FcRn competition"];
+    Z_IVIGC  -> C_C1Q     [color = "#c62828", label = "complement scavenging"];
+    Z_PLEX   -> B_DSA     [color = "#c62828", penwidth = 1.6, label = "first-order removal"];
+    Z_IDES   -> B_DSA     [color = "#c62828", penwidth = 1.8, label = "IgG cleaved within hours"];
+    Z_ECU    -> C_C5      [color = "#c62828", penwidth = 1.6];
+    Z_BTZ    -> B_PB      [color = "#c62828", style = dashed];
+    Z_BTZ    -> B_LLPC    [color = "#c62828", style = dashed, label = "modest in vivo"];
+
+    /* --- 5 : T-cell population flows --- */
+    P_TN     -> P_TACT    [label = "priming"];
+    P_TACT   -> P_TEFF    [label = "differentiation"];
+    P_TACT   -> P_TMEM;
+    P_TMEM   -> P_TACT    [color = "#e07b39", label = "rapid recall (costimulation-independent)"];
+    P_TACT   -> P_TREG    [label = "peripheral induction"];
+    P_TEFF   -> P_SUP;
+    P_TREG   -> P_SUP;
+    P_SUP    -> M_TUB     [color = "#2e7d32", label = "limits lesion size"];
+    P_TEFF   -> P_TINF    [label = "graft entry", penwidth = 1.4];
+    P_TACT   -> P_TFH;
+    P_TACT   -> P_TH17;
+    P_TH17   -> X_TGF     [style = dashed];
+    P_TREG   -> P_TOL     [color = "#2e7d32", style = dashed];
+    T_CN     -> P_TREG    [color = "#c62828", style = dashed, label = "CNI impairs Treg (IL-2 dependent)"];
+
+    /* --- 6 : TCMR lesion --- */
+    M_IFNG   -> M_CHEMO;
+    M_CHEMO  -> M_MIG;
+    C_ENDO   -> M_MIG     [label = "adhesion molecules"];
+    M_MIG    -> P_TINF;
+    P_TINF   -> M_GZMB;
+    P_TINF   -> M_FAS;
+    P_TINF   -> M_IFNG;
+    M_IFNG   -> M_MAC;
+    M_GZMB   -> M_TUB     [penwidth = 1.4];
+    M_FAS    -> M_TUB;
+    M_MAC    -> M_TUB;
+    M_TUB    -> M_BANFFT;
+    M_TUB    -> M_BANFFI;
+    M_TUB    -> M_BANFFV  [label = "if arterial involvement"];
+    M_TUB    -> M_BORDER;
+    M_TUB    -> M_SUBCL;
+    M_BORDER -> B_DNDSA   [style = dashed, label = "predicts later dnDSA"];
+    M_TUB    -> I_DAMP    [color = "#e07b39", penwidth = 1.4, label = "LOOP 1 closes"];
+    M_TUB    -> F_CFDNA;
+    M_TUB    -> F_NM      [color = "#c62828", penwidth = 1.5, label = "nephron loss"];
+    M_TUB    -> X_TGF     [color = "#e07b39"];
+    M_TUB    -> E_CUMREJ;
+    M_BANFFV -> Q_LADDER  [label = "steroid-resistant"];
+
+    /* --- 7 : B-cell arm --- */
+    B_BCR    -> B_GC;
+    B_BN     -> B_GC;
+    P_TFH    -> B_HELP    [penwidth = 1.4];
+    B_HELP   -> B_GC      [penwidth = 1.4];
+    B_HELP   -> B_CSR;
+    B_BAFF   -> B_BN      [color = "#2e7d32"];
+    B_CSR    -> B_PB;
+    B_GC     -> B_PB      [label = "differentiation"];
+    B_PB     -> B_LLPC    [label = "niche entry", penwidth = 1.3];
+    B_BMNICHE-> B_LLPC    [color = "#2e7d32", label = "survival signals"];
+    B_PB     -> B_DSA     [penwidth = 1.5, label = "high per-cell IgG output"];
+    B_LLPC   -> B_DSA     [penwidth = 1.5, label = "constitutive, drug-resistant output"];
+    B_DSA    -> B_DNDSA;
+    B_DSA    -> B_MFI;
+    B_DSA    -> B_BOUND   [penwidth = 1.5];
+    R_PREDSA -> B_DSA     [label = "preformed"];
+    R_CPRA   -> R_PREDSA;
+    B_GC     -> A_TLO     [style = dashed];
+
+    /* --- 8 : ABMR effector arms --- */
+    B_BOUND  -> C_C1Q     [penwidth = 1.4];
+    B_BOUND  -> C_FCGR    [penwidth = 1.4];
+    B_BOUND  -> C_HLAX    [penwidth = 1.3];
+    C_C1Q    -> C_C4;
+    C_C4     -> C_C4D;
+    C_C4     -> C_C3;
+    C_C3     -> C_C5;
+    C_C5     -> C_MAC;
+    C_MAC    -> C_ENDO    [penwidth = 1.4];
+    C_MISS   -> C_NK      [penwidth = 1.4];
+    C_FCGR   -> C_NK      [penwidth = 1.4];
+    C_NK     -> C_ENDO;
+    C_HLAX   -> C_ENDO;
+    C_ENDO   -> C_PSEL;
+    C_PSEL   -> C_MVI;
+    C_NK     -> C_MVI     [penwidth = 1.4];
+    C_MAC    -> C_MVI;
+    P_TINF   -> C_MVI     [style = dashed, label = "mixed rejection"];
+    C_MVI    -> C_BANFFG;
+    C_MVI    -> C_TG      [penwidth = 1.4, label = "chronic remodelling"];
+    C_MVI    -> C_ABMRDX;
+    C_C4D    -> C_ABMRDX;
+    B_DSA    -> C_ABMRDX;
+    C_MVI    -> F_NM      [color = "#c62828", penwidth = 1.5];
+    C_TG     -> F_PROT    [penwidth = 1.4];
+    C_TG     -> F_NM      [color = "#c62828", penwidth = 1.4];
+    C_MVI    -> F_CFDNA   [penwidth = 1.3, label = "highest dd-cfDNA signal"];
+    C_MVI    -> I_DAMP    [color = "#e07b39"];
+    C_MVI    -> X_TGF     [color = "#e07b39"];
+    C_MVI    -> E_CUMREJ;
+    C_ENDO   -> M_CHEMO;
+
+    /* --- 12 : net immunosuppression aggregation --- */
+    N_CNINH  -> N_NIS     [penwidth = 1.3];
+    N_MPAINH -> N_NIS     [penwidth = 1.3];
+    N_STINH  -> N_NIS;
+    N_COSBLK -> N_NIS;
+    N_IL2BLK -> N_NIS;
+    N_DEPL   -> N_NIS     [penwidth = 1.3];
+    N_NIS    -> N_UNDER   [label = "too low", color = "#c62828"];
+    N_NIS    -> N_OVER    [label = "too high", color = "#c62828"];
+    N_UNDER  -> A_AG      [style = dashed];
+    N_UNDER  -> B_DNDSA   [penwidth = 1.4];
+    N_UNDER  -> M_TUB     [penwidth = 1.4];
+    N_OVER   -> V_REACT   [penwidth = 1.4];
+    N_OVER   -> W_CMV     [penwidth = 1.3];
+    N_OVER   -> W_PTLD;
+    N_OVER   -> W_SEPSIS;
+    N_UNDER  -> N_UCURVE;
+    N_OVER   -> N_UCURVE;
+    N_UCURVE -> E_DCGS    [penwidth = 1.8, color = "#8f2b2b"];
+    N_NIS    -> W_NISAUC  [label = "integrated over time"];
+    W_NISAUC -> W_SKIN;
+    W_NISAUC -> W_PTLD;
+
+    /* --- 13 : adherence --- */
+    H_DECAY  -> H_ADH     [color = "#c62828"];
+    H_ADH    -> H_MISS;
+    H_MISS   -> K_TA1     [color = "#c62828", penwidth = 1.5, label = "lowers effective dose"];
+    H_MISS   -> K_IPV     [penwidth = 1.4];
+    K_IPV    -> H_DIP;
+    H_DIP    -> T_NFAT    [color = "#e07b39", penwidth = 1.5, label = "NFAT escape"];
+    H_DIP    -> B_DNDSA   [color = "#e07b39", penwidth = 1.5];
+    H_INTERV -> H_ADH     [color = "#2e7d32"];
+    H_MONITOR-> H_INTERV  [color = "#2e7d32"];
+    H_MONITOR-> Q_DSAMON;
+
+    /* --- 14/15 : function, fibrosis, the hyperfiltration loop --- */
+    F_NM     -> F_SNGFR   [color = "#e07b39", label = "fewer nephrons -> higher SNGFR"];
+    F_SNGFR  -> X_HYPER   [color = "#e07b39", penwidth = 1.5];
+    X_HYPER  -> X_TGF     [color = "#e07b39", penwidth = 1.5];
+    X_TGF    -> X_EMT;
+    X_TGF    -> X_MYOF;
+    X_MYOF   -> X_COLL;
+    X_COLL   -> X_IFTA    [penwidth = 1.4];
+    X_EMT    -> X_IFTA;
+    X_IFTA   -> X_PTCRAR;
+    X_PTCRAR -> X_TGF     [color = "#e07b39", label = "hypoxia loop"];
+    X_IFTA   -> X_BANFFCI;
+    X_IFTA   -> F_NM      [color = "#c62828", penwidth = 1.6, label = "LOOP 2 closes"];
+    F_HYAL   -> X_IFTA;
+    F_HYAL   -> F_NM      [color = "#c62828"];
+    F_NM     -> F_EGFR    [penwidth = 1.8];
+    F_AFF    -> F_EGFR    [color = "#c62828", penwidth = 1.4];
+    F_SNGFR  -> F_EGFR    [color = "#2e7d32", label = "partial compensation"];
+    F_EGFR   -> F_SCR     [color = "#c62828", label = "clearance of creatinine"];
+    F_EGFR   -> F_SLOPE;
+    F_SLOPE  -> Q_IBOX;
+    F_PROT   -> Q_IBOX;
+    F_PROT   -> X_TGF     [label = "proteinuric tubular stress"];
+    F_EGFR   -> E_EGFR12;
+    F_EGFR   -> E_DIAL    [label = "< 15 mL/min"];
+    F_BP     -> X_TGF     [style = dashed];
+
+    /* --- 16 : BK --- */
+    V_LATENT -> V_REACT;
+    V_REACT  -> V_BKV     [penwidth = 1.4];
+    V_BKV    -> V_VIRURIA;
+    V_TCTRL  -> V_BKV     [color = "#c62828", penwidth = 1.4, label = "immune clearance"];
+    N_NIS    -> V_TCTRL   [color = "#c62828", penwidth = 1.4];
+    V_BKV    -> V_BKVAN   [label = "sustained > 10^4 copies/mL"];
+    V_BKVAN  -> F_NM      [color = "#c62828", penwidth = 1.4];
+    V_BKVAN  -> M_TUB     [style = dashed, label = "mimics TCMR histologically"];
+    V_BKVAN  -> X_TGF;
+    V_SCREEN -> V_BKV     [style = dashed, label = "detects"];
+    V_SCREEN -> V_REDUCE  [penwidth = 1.5];
+    V_REDUCE -> Y_MMF     [color = "#2e7d32", penwidth = 1.5, label = "-50% MPA first"];
+    V_REDUCE -> K_TDOSE   [color = "#2e7d32", label = "then CNI target down"];
+    V_REDUCE -> V_TRAP;
+    V_TRAP   -> N_UNDER   [color = "#e07b39", penwidth = 1.4];
+    V_BKV    -> F_CFDNA   [style = dashed];
+
+    /* --- 17 : CMV and other over-immunosuppression --- */
+    W_DRSTAT -> W_CMV     [penwidth = 1.3];
+    W_VGC    -> W_GCVC;
+    W_GCVC   -> W_CMV     [color = "#c62828", penwidth = 1.4];
+    W_GCVC   -> W_WBC     [color = "#c62828", label = "myelosuppression"];
+    F_EGFR   -> W_GCVC    [label = "renal clearance"];
+    W_CMV    -> W_CMVDIS;
+    W_CMV    -> A_AG      [style = dashed, color = "#e07b39", label = "indirect alloimmune effect"];
+    W_WBC    -> W_LEUK;
+    W_LEUK   -> Y_MMF     [color = "#c62828", style = dashed, label = "forces dose reduction"];
+    Z_DEPL   -> W_WBC     [color = "#c62828"];
+    W_PTDM   -> E_DWFG    [style = dashed];
+    W_SEPSIS -> E_DWFG    [penwidth = 1.3];
+    W_SKIN   -> E_DWFG    [style = dashed];
+    W_PTLD   -> E_DWFG    [style = dashed];
+
+    /* --- 18 : diagnostics and decisions --- */
+    F_SCR    -> Q_SCRRISE;
+    Q_SCRRISE-> Q_INDBX   [penwidth = 1.3];
+    F_CFDNA  -> Q_CFDNA;
+    Q_CFDNA  -> Q_INDBX;
+    Q_INDBX  -> M_BANFFT;
+    Q_INDBX  -> C_BANFFG;
+    Q_INDBX  -> X_BANFFCI;
+    Q_PROTBX -> M_SUBCL   [penwidth = 1.3];
+    Q_INDBX  -> Q_MMDX;
+    Q_DSAMON -> B_MFI;
+    M_BANFFT -> Q_LADDER;
+    C_ABMRDX -> Q_LADDER  [penwidth = 1.4];
+    M_SUBCL  -> Q_LADDER;
+    Q_LADDER -> Y_MP      [penwidth = 1.4];
+    Q_LADDER -> Z_ATG     [label = "steroid-resistant TCMR"];
+    Q_LADDER -> Z_PLEX;
+    Q_LADDER -> Z_IVIG;
+    Q_LADDER -> Z_RTX;
+    Q_LADDER -> Z_TCZ     [label = "chronic active ABMR"];
+    Q_LADDER -> Z_CD38;
+    Q_IBOX   -> E_DCGS    [penwidth = 1.4];
+    B_MFI    -> Q_IBOX;
+    X_BANFFCI-> Q_IBOX;
+    C_BANFFG -> Q_IBOX;
+
+    /* --- 19 : endpoints --- */
+    M_TUB    -> E_BPAR;
+    C_ABMRDX -> E_BPAR;
+    B_DNDSA  -> E_DNDSA5;
+    F_SLOPE  -> E_SLOPE;
+    E_CUMREJ -> E_HAZ     [penwidth = 1.3];
+    F_EGFR   -> E_HAZ     [penwidth = 1.4];
+    F_PROT   -> E_HAZ;
+    C_TG     -> E_HAZ     [penwidth = 1.3];
+    X_IFTA   -> E_HAZ     [penwidth = 1.3];
+    B_DSA    -> E_HAZ;
+    E_HAZ    -> E_DCGS    [penwidth = 1.8, color = "#8f2b2b"];
+    E_DIAL   -> E_DCGS;
+    E_DWFG   -> E_DCGS    [style = dashed, label = "censored"];
+
+    /* --- 20 : scenarios point at the levers they move --- */
+    S_STD    -> K_TDOSE   [style = dotted, color = "#7a7a94"];
+    S_HIGH   -> Z_ATG     [style = dotted, color = "#7a7a94"];
+    S_CYP    -> R_CYP3A5  [style = dotted, color = "#7a7a94"];
+    S_BELA   -> Z_BELA    [style = dotted, color = "#7a7a94"];
+    S_STER   -> Y_PRED    [style = dotted, color = "#7a7a94"];
+    S_ADH    -> H_ADH     [style = dotted, color = "#7a7a94"];
+    S_BK     -> V_SCREEN  [style = dotted, color = "#7a7a94"];
+    S_TCMR   -> Y_MP      [style = dotted, color = "#7a7a94"];
+    S_ABMR   -> Z_PLEX    [style = dotted, color = "#7a7a94"];
+    S_DGF    -> D_CIT     [style = dotted, color = "#7a7a94"];
+}
