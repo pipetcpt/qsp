@@ -20,7 +20,8 @@
 # =============================================================================
 
 library(shiny)
-library(mrgsolve)
+library(mrgsolve)   # NOTE: mrgsolve also exports req(); because it is attached
+                    # after shiny, shiny::req must be called qualified below.
 suppressMessages({
   library(dplyr)
   library(tidyr)
@@ -442,7 +443,7 @@ server <- function(input, output, session) {
 
   # ---- tab 8 ---------------------------------------------------------------
   scen_sim <- eventReactive(input$goscen, {
-    req(length(input$scen) > 0)
+    shiny::req(length(input$scen) > 0)
     withProgress(message = "시나리오 실행 중 ...", {
       bind_rows(lapply(input$scen, function(nm) {
         p <- SCEN[[nm]]
