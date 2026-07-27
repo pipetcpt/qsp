@@ -1,0 +1,693 @@
+/*
+ * hypopt_qsp_model.dot
+ * ---------------------------------------------------------------------------
+ * 만성 부갑상선기능저하증 (Chronic Hypoparathyroidism, HypoPT)
+ * Quantitative Systems Pharmacology mechanistic map
+ *
+ * 16 clusters · ~175 nodes · ~300 edges
+ *
+ * Render:
+ *   dot -Tsvg hypopt_qsp_model.dot -o hypopt_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 hypopt_qsp_model.dot -o hypopt_qsp_model.png
+ *
+ * Legend (edge style):
+ *   solid black  = mass flux / synthesis / conversion
+ *   blue         = stimulation / activation
+ *   red (tee)    = inhibition / loss of function
+ *   dashed green = drug action
+ *   dotted grey  = feedback loop
+ * ---------------------------------------------------------------------------
+ */
+digraph HypoPT_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.28, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", label=<<B>만성 부갑상선기능저하증 (Chronic Hypoparathyroidism) — QSP Mechanistic Map</B><BR/>
+         <FONT POINT-SIZE="11">Parathyroid chief cell · PTH1R signaling · bone–kidney–gut calcium axis · phosphate/FGF23 · PTH replacement pharmacology</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=1.0, margin="0.08,0.05"];
+  edge  [fontname="Helvetica", fontsize=8, color="#444444", arrowsize=0.6];
+
+  /* ===================================================================== */
+  /* 1. 병인 (Etiology)                                                     */
+  /* ===================================================================== */
+  subgraph cluster_etio {
+    label=<<B>1. 병인 — 부갑상선 상실·기능부전</B>>;
+    style="rounded,filled"; fillcolor="#FDF2F2"; color="#C0392B"; fontcolor="#943126";
+    node [fillcolor="#FADBD8"];
+
+    e_surg     [label="수술적 (75–80%)\nPost-surgical", fillcolor="#F5B7B1", penwidth=2];
+    e_thyroid  [label="갑상선 전절제술\n(Total thyroidectomy)"];
+    e_ptx      [label="부갑상선 절제술\n(HPT 수술 후)"];
+    e_neck     [label="근치적 경부 청소술\n혈류 손상"];
+    e_transient[label="일과성 (>6개월 지속 시\n만성으로 정의)"];
+
+    e_ai_aps1  [label="APS-1 / AIRE 돌연변이\n(자가면역 다선증후군 1형)"];
+    e_ai_nalp5 [label="항-NALP5 자가항체"];
+    e_ai_casrab[label="CaSR 활성화 자가항체"];
+
+    e_adh1     [label="ADH1: CASR 기능획득\n(상염색체 우성 저칼슘혈증 1형)", fillcolor="#F5B7B1", penwidth=2];
+    e_adh2     [label="ADH2: GNA11 기능획득"];
+    e_gcm2     [label="GCM2 기능소실\n(부갑상선 발생 장애)"];
+    e_pthgene  [label="PTH 유전자 돌연변이\n(prepro-PTH 신호서열)"];
+    e_gata3    [label="HDR 증후군 (GATA3)\n난청·신장 이상 동반"];
+    e_22q11    [label="DiGeorge 22q11.2 결실\n(TBX1)"];
+    e_fam111a  [label="Kenny–Caffey / FAM111A"];
+    e_mito     [label="미토콘드리아병\n(KSS · MELAS · MTP 결핍)"];
+
+    e_infilt   [label="침윤성: 혈색소증·윌슨병\n전이암·아밀로이드"];
+    e_rad      [label="경부 방사선 조사 / 방사성요오드"];
+    e_mglow    [label="중증 저마그네슘혈증\n(기능성·가역적)", fillcolor="#F5B7B1"];
+    e_idio     [label="특발성 / 미분류"];
+    e_maternal [label="모체 고칼슘혈증에 의한\n신생아 일과성 억제"];
+  }
+
+  /* ===================================================================== */
+  /* 2. 부갑상선 주세포 생물학                                              */
+  /* ===================================================================== */
+  subgraph cluster_pcell {
+    label=<<B>2. 부갑상선 주세포 (Chief cell) — 칼슘 감지와 PTH 분비</B>>;
+    style="rounded,filled"; fillcolor="#FEF9E7"; color="#B7950B"; fontcolor="#7D6608";
+    node [fillcolor="#FCF3CF"];
+
+    pc_mass    [label="주세포 유효 질량\n(Functional chief-cell mass)", fillcolor="#F9E79F", penwidth=2];
+    pc_casr    [label="CaSR (칼슘감지수용체, class C GPCR)", fillcolor="#F9E79F", penwidth=2];
+    pc_gq      [label="Gq/11 → PLCβ → IP3 / DAG"];
+    pc_gi      [label="Gi → 아데닐산고리화효소 억제 → cAMP ↓"];
+    pc_cai     [label="세포내 Ca²⁺ ↑ → 분비 억제"];
+    pc_setpt   [label="Ca 설정점 (set-point, EC₅₀ ≈ 1.15–1.25 mM)", fillcolor="#F9E79F", penwidth=2];
+    pc_sigmoid [label="S자형 Ca–PTH 반응곡선\n(4-parameter Hill, 좌하방 이동)"];
+    pc_gene    [label="PTH 유전자 전사"];
+    pc_mrna    [label="PTH mRNA 안정성\n(AUF1 · 3'-UTR)"];
+    pc_prepro  [label="prepro-PTH (115 aa)"];
+    pc_pro     [label="pro-PTH (90 aa)"];
+    pc_pth184  [label="PTH(1-84) 성숙 호르몬", fillcolor="#F9E79F", penwidth=2];
+    pc_gran    [label="분비과립 저장고\n(즉시 방출 가능 풀)"];
+    pc_secr    [label="PTH 분비율 (박동성 · 기저 25%)"];
+    pc_deg     [label="세포내 분해 → C-말단 절편\nPTH(7-84) 길항 작용"];
+    pc_vdrfb   [label="VDR 음성 되먹임 (1,25D → PTH 전사 ↓)"];
+    pc_klotho  [label="FGFR1–αKlotho (FGF23 되먹임)"];
+    pc_mgdep   [label="Mg²⁺ 의존 Gα 활성 / 세포외유출"];
+    pc_prolif  [label="주세포 증식 (만성 저칼슘 자극)"];
+  }
+
+  /* ===================================================================== */
+  /* 3. PTH1R 신호전달                                                      */
+  /* ===================================================================== */
+  subgraph cluster_pth1r {
+    label=<<B>3. PTH1R 수용체 신호전달 (뼈·신장 표적세포)</B>>;
+    style="rounded,filled"; fillcolor="#EAF2F8"; color="#2471A3"; fontcolor="#1A5276";
+    node [fillcolor="#D4E6F1"];
+
+    r_pth1r  [label="PTH1R (class B GPCR)", fillcolor="#AED6F1", penwidth=2];
+    r_r0     [label="R0 고친화 상태\n→ 지속형 cAMP 신호", fillcolor="#AED6F1"];
+    r_rg     [label="RG 상태 (G단백 의존)\n→ 일시적 cAMP 신호"];
+    r_gs     [label="Gs → 아데닐산고리화효소"];
+    r_camp   [label="cAMP ↑", fillcolor="#AED6F1", penwidth=2];
+    r_pka    [label="PKA 활성화"];
+    r_gq2    [label="Gq/11 → PLCβ → PKC / Ca²⁺"];
+    r_barr   [label="β-arrestin 동원 → 내재화"];
+    r_endo   [label="엔도솜 내 cAMP 지속 신호\n(retromer 의존 종료)"];
+    r_creb   [label="CREB / SIK 표적 유전자"];
+    r_pthrp  [label="PTHrP (국소 리간드, 경쟁)"];
+    r_desens [label="수용체 탈감작 / 재순환"];
+  }
+
+  /* ===================================================================== */
+  /* 4. 신장 처리                                                           */
+  /* ===================================================================== */
+  subgraph cluster_kidney {
+    label=<<B>4. 신장 — 칼슘 재흡수·인 배설·1α-수산화</B>>;
+    style="rounded,filled"; fillcolor="#EAFAF1"; color="#1E8449"; fontcolor="#145A32";
+    node [fillcolor="#D5F5E3"];
+
+    k_gfr     [label="사구체 여과율 (GFR)", fillcolor="#ABEBC6"];
+    k_filt    [label="여과 칼슘 부하\n(≈10 g/일, 98–99% 재흡수)"];
+    k_pt      [label="근위세뇨관 (65% Ca 재흡수)"];
+    k_npt2a   [label="NPT2a / NPT2c (인 공수송체)", fillcolor="#ABEBC6"];
+    k_pireab  [label="인 재흡수 ↑ → TmP/GFR ↑", fillcolor="#ABEBC6", penwidth=2];
+    k_tal     [label="헨레 상행각 (TAL, 20%)"];
+    k_cldn    [label="Claudin-16/19 부수세포 경로"];
+    k_casrtal [label="TAL CaSR (양이온 재흡수 억제)"];
+    k_nkcc2   [label="NKCC2 → 관강 양전위"];
+    k_dct     [label="원위곡세뇨관 (DCT, 10–15%, PTH 의존)", fillcolor="#ABEBC6", penwidth=2];
+    k_trpv5   [label="TRPV5 (관강측 진입)"];
+    k_calb28  [label="Calbindin-D28k (세포내 셔틀)"];
+    k_ncx1    [label="NCX1 / PMCA1b (기저측 배출)"];
+    k_careab  [label="원위 칼슘 재흡수 ↓", fillcolor="#ABEBC6", penwidth=2];
+    k_hyperca [label="고칼슘뇨 (>4 mg/kg/일 · >300 mg/일)", fillcolor="#82E0AA", penwidth=2];
+    k_cyp27b1 [label="CYP27B1 (1α-수산화효소) ↓", fillcolor="#ABEBC6", penwidth=2];
+    k_cyp24a1 [label="CYP24A1 (24-수산화효소) ↑"];
+    k_mgreab  [label="TAL Mg²⁺ 재흡수 (TRPM6/claudin)"];
+    k_nephroc [label="신석회화증 (수질 석회 침착)", fillcolor="#82E0AA", penwidth=2];
+    k_stone   [label="신결석 (칼슘 인산/수산)"];
+    k_ckd     [label="만성 신질환 · eGFR 하강\n(HypoPT에서 2–17배 위험)", fillcolor="#82E0AA", penwidth=2];
+    k_conc    [label="요농축력 저하 · 다뇨"];
+    k_hco3    [label="근위 HCO₃⁻ 재흡수 ↑ → 경도 대사성 알칼리증"];
+  }
+
+  /* ===================================================================== */
+  /* 5. 뼈 재형성                                                           */
+  /* ===================================================================== */
+  subgraph cluster_bone {
+    label=<<B>5. 뼈 — 저회전 골 (Low bone turnover) 상태</B>>;
+    style="rounded,filled"; fillcolor="#F4ECF7"; color="#7D3C98"; fontcolor="#4A235A";
+    node [fillcolor="#E8DAEF"];
+
+    b_ocyte   [label="골세포 (Osteocyte) 네트워크"];
+    b_sost    [label="스클레로스틴 (SOST) ↑"];
+    b_wnt     [label="Wnt / β-catenin 신호 ↓"];
+    b_ob      [label="조골세포 (Osteoblast) 활성 ↓", fillcolor="#D7BDE2"];
+    b_oc      [label="파골세포 (Osteoclast) 활성 ↓↓", fillcolor="#D7BDE2"];
+    b_mcsf    [label="M-CSF"];
+    b_rankl   [label="RANKL"];
+    b_opg     [label="OPG"];
+    b_ratio   [label="RANKL / OPG 비 ↓", fillcolor="#D7BDE2", penwidth=2];
+    b_remod   [label="골재형성 단위(BMU) 활성화빈도 ↓\n= 저회전 골", fillcolor="#C39BD3", penwidth=2];
+    b_labile  [label="빠른 교환성 골 칼슘 저장고\n≈ 1–2 g (총 교환성 4–5 g 중)"];
+    b_mineral [label="구조적 골 미네랄 (≈1,000 g Ca)"];
+    b_p1np    [label="P1NP (골형성 표지자) ↓"];
+    b_ctx     [label="CTX (골흡수 표지자) ↓"];
+    b_bsap    [label="골특이 ALP ↓"];
+    b_ocn     [label="오스테오칼신 ↓"];
+    b_bmd     [label="BMD ↑ (요추 Z-score +1 ~ +2)", fillcolor="#D7BDE2", penwidth=2];
+    b_micro   [label="미세구조: 피질 두께↑·다공성↓\n소주 TBS 저하 · 광물화 이질성↓"];
+    b_fx      [label="골절 위험 (부위별 이질적\n척추 위험↑, 고관절 위험↓·불명확)"];
+    b_marrow  [label="골수 지방화 / 골세포 사멸"];
+  }
+
+  /* ===================================================================== */
+  /* 6. 장관 칼슘·인 흡수                                                   */
+  /* ===================================================================== */
+  subgraph cluster_gut {
+    label=<<B>6. 장 — 칼슘·인 흡수</B>>;
+    style="rounded,filled"; fillcolor="#FEF5E7"; color="#CA6F1E"; fontcolor="#873600";
+    node [fillcolor="#FAE5D3"];
+
+    g_dietca  [label="식이 칼슘 (800–1,200 mg/일)"];
+    g_suppca  [label="경구 칼슘염\n(탄산칼슘 40% · 구연산칼슘 21%)", fillcolor="#F5CBA7"];
+    g_ph      [label="위산 pH 의존 용해\n(PPI·무위산증 시 탄산염 흡수↓)"];
+    g_trpv6   [label="TRPV6 (십이지장 능동 진입)"];
+    g_calb9   [label="Calbindin-D9k"];
+    g_pmca    [label="PMCA1b (기저측 배출)"];
+    g_para    [label="부수세포 수동 확산 (공회장·회장)"];
+    g_frac    [label="칼슘 흡수분율\n(1,25D 의존 ~20% → 45%)", fillcolor="#F5CBA7", penwidth=2];
+    g_dietpi  [label="식이 인 (800–1,400 mg/일)"];
+    g_npt2b   [label="NPT2b (인 흡수)"];
+    g_binder  [label="인결합제 / 저인 식이"];
+    g_oxal    [label="장내 수산 흡수 (칼슘 결합 감소 시 ↑)"];
+  }
+
+  /* ===================================================================== */
+  /* 7. 비타민 D 축                                                         */
+  /* ===================================================================== */
+  subgraph cluster_vitd {
+    label=<<B>7. 비타민 D 축</B>>;
+    style="rounded,filled"; fillcolor="#FDEDEC"; color="#CB4335"; fontcolor="#78281F";
+    node [fillcolor="#FADBD8"];
+
+    v_skin    [label="피부 7-DHC → 콜레칼시페롤 (UVB)"];
+    v_diet    [label="식이 / 보충 비타민 D₃"];
+    v_cyp2r1  [label="간 CYP2R1 (25-수산화)"];
+    v_25d     [label="25(OH)D (저장형, t½ ≈ 2–3주)", fillcolor="#F5B7B1"];
+    v_dbp     [label="DBP / 알부민 결합 ↔ 유리 분획"];
+    v_125d    [label="1,25(OH)₂D (칼시트리올, t½ ≈ 4–6 h)", fillcolor="#F5B7B1", penwidth=2];
+    v_vdr     [label="VDR–RXR 전사 복합체"];
+    v_cyp24   [label="CYP24A1 → 24,25D · 칼시트로산"];
+    v_exocal  [label="외인성 칼시트리올 (0.25–2 µg/일)", fillcolor="#F5B7B1"];
+    v_alfa    [label="알파칼시돌 → 간 25-수산화 필요"];
+    v_dhtach  [label="디하이드로타키스테롤 (구형 요법)"];
+  }
+
+  /* ===================================================================== */
+  /* 8. 인 / FGF23 축                                                       */
+  /* ===================================================================== */
+  subgraph cluster_pi {
+    label=<<B>8. 인 항상성 · FGF23 · 이소성 석회화</B>>;
+    style="rounded,filled"; fillcolor="#EBF5FB"; color="#2E86C1"; fontcolor="#1B4F72";
+    node [fillcolor="#D6EAF8"];
+
+    p_piec    [label="혈청 인 ↑ (고인산혈증)", fillcolor="#AED6F1", penwidth=2];
+    p_fgf23   [label="FGF23 (골세포 분비)"];
+    p_klotho  [label="αKlotho 보조수용체"];
+    p_dmp1    [label="DMP1 / PHEX 조절"];
+    p_caxp    [label="Ca × P 곱 ↑ (>55 mg²/dL²)", fillcolor="#AED6F1", penwidth=2];
+    p_ppi     [label="피로인산 / 페투인-A 억제 용량 초과"];
+    p_ectopic [label="이소성 석회화\n(신장·혈관·기저핵·수정체)", fillcolor="#85C1E9", penwidth=2];
+    p_vsmc    [label="혈관평활근 골형성 전환\n(RUNX2·BMP2)"];
+  }
+
+  /* ===================================================================== */
+  /* 9. 마그네슘                                                            */
+  /* ===================================================================== */
+  subgraph cluster_mg {
+    label=<<B>9. 마그네슘 상호작용</B>>;
+    style="rounded,filled"; fillcolor="#F2F4F4"; color="#5D6D7E"; fontcolor="#2E4053";
+    node [fillcolor="#E5E7E9"];
+
+    m_ec      [label="혈청 Mg²⁺", fillcolor="#CCD1D1"];
+    m_intake  [label="섭취 / 위장관 흡수 (TRPM6)"];
+    m_loss    [label="소실: 설사·PPI·이뇨제\n시스플라틴·알코올"];
+    m_secblk  [label="PTH 분비 차단 (Gα 활성 결핍)"];
+    m_res     [label="말단기관 PTH 저항 (아데닐산고리화효소)"];
+    m_repl    [label="Mg 보충 → 가역적 회복"];
+  }
+
+  /* ===================================================================== */
+  /* 10. 칼슘 화학종 · 보정                                                 */
+  /* ===================================================================== */
+  subgraph cluster_spec {
+    label=<<B>10. 혈중 칼슘 화학종 (Speciation) 과 보정</B>>;
+    style="rounded,filled"; fillcolor="#FBEEE6"; color="#A04000"; fontcolor="#6E2C00";
+    node [fillcolor="#F6DDCC"];
+
+    s_total   [label="총 혈청 칼슘 (8.5–10.2 mg/dL)"];
+    s_alb     [label="알부민 결합 분획 (≈40%)"];
+    s_cmplx   [label="음이온 복합체 (구연산·인산·중탄산, ≈10%)"];
+    s_ion     [label="이온화 칼슘 (≈50%, 1.15–1.30 mM)", fillcolor="#EDBB99", penwidth=2];
+    s_ph      [label="혈중 pH (알칼리증 → 알부민 결합↑ → iCa↓)"];
+    s_corr    [label="보정식: Ca + 0.8 × (4.0 − 알부민)"];
+    s_citrate [label="구연산 (대량수혈·투석) → iCa ↓"];
+    s_ecfvol  [label="세포외액 칼슘 풀 (≈1 g, 회전 매우 빠름)"];
+  }
+
+  /* ===================================================================== */
+  /* 11. 신경근 증상                                                        */
+  /* ===================================================================== */
+  subgraph cluster_nm {
+    label=<<B>11. 신경근 흥분성 · 급성 증상</B>>;
+    style="rounded,filled"; fillcolor="#FDF2E9"; color="#D35400"; fontcolor="#943126";
+    node [fillcolor="#FAE5D3"];
+
+    n_nav     [label="전압의존 Na⁺ 채널 문턱 불안정화\n(막 표면전하 차폐 감소)"];
+    n_excit   [label="신경근 흥분성 ↑", fillcolor="#F5CBA7", penwidth=2];
+    n_pares   [label="구주위·수족 이상감각"];
+    n_tetany  [label="테타니 · 수족경련"];
+    n_signs   [label="Chvostek · Trousseau 징후"];
+    n_laryngo [label="후두경련 · 기관지경련"];
+    n_seiz    [label="전신 발작 (뇌파 이상)"];
+    n_qt      [label="QTc 연장 (ST 연장)"];
+    n_cmp     [label="저칼슘성 확장성 심근병증 (가역적)"];
+    n_myopath [label="근병증 · CK 상승"];
+  }
+
+  /* ===================================================================== */
+  /* 12. 만성 장기 합병증 · 삶의 질                                          */
+  /* ===================================================================== */
+  subgraph cluster_cns {
+    label=<<B>12. 만성 합병증 · 삶의 질</B>>;
+    style="rounded,filled"; fillcolor="#F5EEF8"; color="#8E44AD"; fontcolor="#4A235A";
+    node [fillcolor="#EBDEF0"];
+
+    c_bg      [label="기저핵 석회화 (Fahr 증후군형)", fillcolor="#D7BDE2"];
+    c_parkin  [label="추체외로 증상 · 운동이상"];
+    c_fog     [label="브레인 포그 · 집행기능 저하", fillcolor="#D7BDE2"];
+    c_mood    [label="불안 · 우울 (유병률 2배)"];
+    c_fatig   [label="피로 · 활력 저하"];
+    c_qol     [label="삶의 질 (HPES · SF-36 저하)", fillcolor="#D7BDE2", penwidth=2];
+    c_cat     [label="후낭하 백내장"];
+    c_dental  [label="법랑질 저형성 · 치근 이상 (소아기 발병)"];
+    c_skin    [label="피부 건조 · 조갑 이형성 · 탈모"];
+    c_infect  [label="감염 · 입원 위험 증가"];
+  }
+
+  /* ===================================================================== */
+  /* 13. 기존(전통적) 치료                                                  */
+  /* ===================================================================== */
+  subgraph cluster_conv {
+    label=<<B>13. 기존 치료 (Conventional therapy)</B>>;
+    style="rounded,filled"; fillcolor="#E9F7EF"; color="#229954"; fontcolor="#186A3B";
+    node [style="rounded,filled,dashed", fillcolor="#D4EFDF"];
+
+    t_cacarb  [label="탄산칼슘 (식후, 1,000–3,000 mg 원소칼슘/일)"];
+    t_cacit   [label="구연산칼슘 (PPI 사용자·무위산증)"];
+    t_calcitr [label="칼시트리올 0.25–2 µg/일 (분할)", fillcolor="#A9DFBF"];
+    t_alfa    [label="알파칼시돌 0.5–4 µg/일"];
+    t_chole   [label="콜레칼시페롤 (25D 저장 보충)"];
+    t_thiaz   [label="티아지드 이뇨제 (HCTZ 25–50 mg)\n+ 저나트륨 식이", fillcolor="#A9DFBF"];
+    t_amil    [label="아밀로라이드 (칼륨 보존 병용)"];
+    t_pibind  [label="인결합제 · 저인 식이"];
+    t_mg      [label="마그네슘 보충"];
+    t_ivca    [label="IV 칼슘 글루콘산 (급성 위기)", fillcolor="#A9DFBF"];
+    t_limit   [label="한계: 요중 칼슘 조절 불가 ·\n혈중 칼슘 변동폭 큼 · 신장 위험 지속", fillcolor="#F9E79F", penwidth=2];
+  }
+
+  /* ===================================================================== */
+  /* 14. PTH 대체요법 (PK/PD)                                               */
+  /* ===================================================================== */
+  subgraph cluster_pthrx {
+    label=<<B>14. PTH 대체요법 — PK / PD</B>>;
+    style="rounded,filled"; fillcolor="#E8F8F5"; color="#117A65"; fontcolor="#0B5345";
+    node [style="rounded,filled,dashed", fillcolor="#D1F2EB"];
+
+    x_rhpth   [label="rhPTH(1-84) 50–100 µg SC QD\n(Natpara; 2024 시장철수)", fillcolor="#A3E4D7"];
+    x_tpt     [label="테리파라타이드 PTH(1-34)\nBID / TID / 지속주입 펌프"];
+    x_tc      [label="팔로페그테리파라타이드\n(TransCon PTH, 18–30 µg QD)", fillcolor="#A3E4D7", penwidth=2];
+    x_prod    [label="TransCon 링커 pH 의존 가수분해\n→ 유리 PTH(1-34) 서방 방출"];
+    x_eneb    [label="에네보파라타이드 (AZP-3601)\nRG-선택적 작용제"];
+    x_lapth   [label="LA-PTH / 장기작용 유사체 (전임상)"];
+    x_scdep   [label="SC 흡수 (F ≈ 0.53, Tmax 0.5–2 h)"];
+    x_cl      [label="선형 청소 (CL/F, 간·신 분해)"];
+    x_expo    [label="지속적 저농도 노출\n(생리적 프로파일 근사)", fillcolor="#A3E4D7", penwidth=2];
+    x_pulse   [label="박동성 고농도 노출\n(동화 효과 · 골흡수 급증)"];
+    x_immuno  [label="항-PTH 항체 (임상적 영향 미미)"];
+    x_taper   [label="칼슘·활성비타민D 단계적 감량"];
+  }
+
+  /* ===================================================================== */
+  /* 15. CaSR 표적치료 · 기타                                               */
+  /* ===================================================================== */
+  subgraph cluster_calci {
+    label=<<B>15. CaSR 표적치료 및 기타 접근</B>>;
+    style="rounded,filled"; fillcolor="#FEF9E7"; color="#B9770E"; fontcolor="#7E5109";
+    node [style="rounded,filled,dashed", fillcolor="#FCF3CF"];
+
+    y_encal   [label="엔칼레렛 (encaleret, CaSR 음성 알로스테릭 조절제)", fillcolor="#F9E79F", penwidth=2];
+    y_shift   [label="CaSR 설정점 우측 이동\n→ 잔존 PTH 분비 회복 · 요중 Ca ↓"];
+    y_adh1tgt [label="ADH1 표적 (잔존 부갑상선 필수)"];
+    y_autotx  [label="부갑상선 자가이식 / 동종이식"];
+    y_cell    [label="유전자·세포치료 (iPSC 유래 주세포, 연구단계)"];
+    y_pth1rag [label="비펩타이드 PTH1R 작용제 (탐색)"];
+  }
+
+  /* ===================================================================== */
+  /* 16. 임상 엔드포인트                                                    */
+  /* ===================================================================== */
+  subgraph cluster_ep {
+    label=<<B>16. 임상 엔드포인트 · 관찰변수</B>>;
+    style="rounded,filled"; fillcolor="#EBEDEF"; color="#34495E"; fontcolor="#212F3D";
+    node [shape=note, fillcolor="#D5D8DC"];
+
+    z_sca     [label="알부민 보정 혈청 Ca\n목표 8.0–9.0 mg/dL", penwidth=2];
+    z_ion     [label="이온화 칼슘 (mmol/L)"];
+    z_pi      [label="혈청 인 (정상 상한 이하)"];
+    z_uca     [label="24시간 요중 칼슘 <300 mg (<250 여성)", penwidth=2];
+    z_egfr    [label="eGFR 기울기 (mL/min/1.73 m²/년)"];
+    z_nc      [label="영상 신석회화증 / 신결석 발생률"];
+    z_comp    [label="삼중 복합 반응 (PaTHway/PARALLAX)\nCa 정상 + 칼슘 ≤600 mg + 활성 VitD 0", penwidth=2];
+    z_indep   [label="기존 치료 독립 비율"];
+    z_symp    [label="HPES 증상 · 영향 점수"];
+    z_bmdz    [label="BMD Z-score 정상화"];
+    z_hosp    [label="저칼슘혈증 관련 응급실·입원"];
+    z_qtc     [label="QTc (ms)"];
+  }
+
+  /* ===================================================================== */
+  /* EDGES                                                                  */
+  /* ===================================================================== */
+
+  /* --- 1 → 2 : etiology to chief-cell mass --- */
+  e_thyroid  -> e_surg;
+  e_ptx      -> e_surg;
+  e_neck     -> e_surg;
+  e_surg     -> e_transient;
+  e_transient-> pc_mass [color="#C0392B", arrowhead=tee, penwidth=1.6];
+  e_ai_aps1  -> e_ai_nalp5;
+  e_ai_nalp5 -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_ai_casrab-> pc_casr [color="#2471A3", label="활성화"];
+  e_adh1     -> pc_casr [color="#2471A3", label="기능획득", penwidth=1.6];
+  e_adh2     -> pc_gq   [color="#2471A3", label="Gα11 항진"];
+  e_gcm2     -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_pthgene  -> pc_prepro [color="#C0392B", arrowhead=tee];
+  e_gata3    -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_22q11    -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_fam111a  -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_mito     -> pc_secr [color="#C0392B", arrowhead=tee];
+  e_infilt   -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_rad      -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_idio     -> pc_mass [color="#C0392B", arrowhead=tee];
+  e_maternal -> pc_secr [color="#C0392B", arrowhead=tee];
+  e_mglow    -> m_secblk [color="#C0392B"];
+
+  /* --- 2 : chief-cell internal --- */
+  pc_casr -> pc_gq  [color="#2471A3"];
+  pc_casr -> pc_gi  [color="#2471A3"];
+  pc_gq   -> pc_cai [color="#2471A3"];
+  pc_gi   -> pc_secr[color="#C0392B", arrowhead=tee];
+  pc_cai  -> pc_secr[color="#C0392B", arrowhead=tee, label="분비 억제"];
+  pc_casr -> pc_setpt;
+  pc_setpt-> pc_sigmoid;
+  pc_sigmoid -> pc_secr;
+  pc_gene -> pc_mrna -> pc_prepro -> pc_pro -> pc_pth184 -> pc_gran -> pc_secr;
+  pc_mass -> pc_gene;
+  pc_mass -> pc_gran;
+  pc_pth184 -> pc_deg;
+  pc_deg  -> pc_secr [style=dotted, color="#7F8C8D", label="PTH(7-84) 길항"];
+  pc_vdrfb-> pc_gene [color="#C0392B", arrowhead=tee];
+  pc_klotho -> pc_gene [color="#C0392B", arrowhead=tee];
+  pc_mgdep -> pc_secr [color="#2471A3"];
+  pc_prolif -> pc_mass [color="#2471A3"];
+  pc_secr -> r_pth1r [label="순환 PTH", penwidth=1.8];
+
+  /* --- 3 : PTH1R signaling --- */
+  r_pth1r -> r_r0;
+  r_pth1r -> r_rg;
+  r_r0 -> r_gs [color="#2471A3"];
+  r_rg -> r_gs [color="#2471A3"];
+  r_gs -> r_camp -> r_pka -> r_creb;
+  r_pth1r -> r_gq2 [color="#2471A3"];
+  r_pth1r -> r_barr -> r_endo;
+  r_endo -> r_camp [style=dotted, color="#7F8C8D", label="지속 신호"];
+  r_barr -> r_desens;
+  r_desens -> r_pth1r [style=dotted, color="#7F8C8D"];
+  r_pthrp -> r_pth1r [color="#2471A3", style=dashed];
+
+  /* --- 3 → 4/5 : receptor to organs --- */
+  r_pka -> k_trpv5   [color="#2471A3", label="발현·활성 ↑"];
+  r_pka -> k_calb28  [color="#2471A3"];
+  r_pka -> k_npt2a   [color="#C0392B", arrowhead=tee, label="내재화·분해"];
+  r_pka -> k_cyp27b1 [color="#2471A3", penwidth=1.5];
+  r_pka -> k_cyp24a1 [color="#C0392B", arrowhead=tee];
+  r_pka -> b_rankl   [color="#2471A3"];
+  r_pka -> b_opg     [color="#C0392B", arrowhead=tee];
+  r_pka -> b_sost    [color="#C0392B", arrowhead=tee];
+  r_creb -> b_ob     [color="#2471A3"];
+  r_gq2 -> b_ob      [color="#2471A3", style=dotted];
+
+  /* --- 4 : kidney internal --- */
+  k_gfr -> k_filt;
+  k_filt -> k_pt -> k_tal -> k_dct;
+  k_nkcc2 -> k_cldn [color="#2471A3", label="관강 양전위"];
+  k_cldn -> k_tal [color="#2471A3"];
+  k_casrtal -> k_nkcc2 [color="#C0392B", arrowhead=tee];
+  k_casrtal -> k_cldn  [color="#C0392B", arrowhead=tee];
+  k_trpv5 -> k_calb28 -> k_ncx1 -> k_careab;
+  k_dct -> k_careab;
+  k_careab -> k_hyperca [color="#C0392B", arrowhead=tee, label="재흡수↓ → 요배설↑"];
+  k_npt2a -> k_pireab;
+  k_pireab -> p_piec [color="#2471A3", penwidth=1.5];
+  k_cyp27b1 -> v_125d [color="#2471A3", penwidth=1.5];
+  k_cyp24a1 -> v_cyp24 [color="#2471A3"];
+  k_mgreab -> m_ec [color="#2471A3"];
+  k_hyperca -> k_nephroc [color="#C0392B", penwidth=1.6];
+  k_hyperca -> k_stone [color="#C0392B"];
+  k_nephroc -> k_ckd [color="#C0392B", penwidth=1.6];
+  k_stone -> k_ckd [color="#C0392B"];
+  k_ckd -> k_gfr [color="#C0392B", arrowhead=tee, style=dotted];
+  k_ckd -> k_cyp27b1 [color="#C0392B", arrowhead=tee, style=dotted, label="악순환"];
+  k_hyperca -> k_conc;
+  k_hco3 -> s_ph [color="#2471A3"];
+  p_piec -> k_nephroc [color="#C0392B", label="Ca×P"];
+
+  /* --- 5 : bone internal --- */
+  b_ocyte -> b_sost;
+  b_sost -> b_wnt [color="#C0392B", arrowhead=tee];
+  b_wnt -> b_ob [color="#2471A3"];
+  b_ob -> b_rankl;
+  b_ob -> b_opg;
+  b_ob -> b_mcsf;
+  b_rankl -> b_ratio;
+  b_opg -> b_ratio [color="#C0392B", arrowhead=tee];
+  b_mcsf -> b_oc [color="#2471A3"];
+  b_ratio -> b_oc [color="#2471A3", penwidth=1.5];
+  b_oc -> b_remod;
+  b_ob -> b_remod;
+  b_remod -> b_labile [label="칼슘 방출/침착"];
+  b_labile -> s_ecfvol [label="빠른 완충 플럭스", penwidth=1.5];
+  b_remod -> b_mineral;
+  b_ob -> b_p1np; b_ob -> b_bsap; b_ob -> b_ocn;
+  b_oc -> b_ctx;
+  b_remod -> b_bmd [color="#C0392B", arrowhead=tee, label="저회전 → BMD↑"];
+  b_bmd -> b_micro;
+  b_micro -> b_fx;
+  b_remod -> b_marrow;
+  b_marrow -> b_ocyte [style=dotted, color="#7F8C8D"];
+  b_mineral -> p_piec [label="인 방출"];
+  b_ocyte -> p_fgf23;
+
+  /* --- 6 : gut --- */
+  g_dietca -> g_frac;
+  g_suppca -> g_ph -> g_frac;
+  g_cacit_dummy [style=invis, shape=point, width=0.01];
+  g_trpv6 -> g_calb9 -> g_pmca -> g_frac;
+  g_para -> g_frac;
+  g_frac -> s_ecfvol [label="흡수 칼슘 유입", penwidth=1.6];
+  g_dietpi -> g_npt2b -> p_piec;
+  g_binder -> g_npt2b [color="#C0392B", arrowhead=tee, style=dashed];
+  g_suppca -> g_oxal [color="#C0392B", arrowhead=tee, label="장내 수산 결합"];
+  g_oxal -> k_stone [color="#C0392B"];
+  v_125d -> g_trpv6 [color="#2471A3", penwidth=1.6];
+  v_125d -> g_calb9 [color="#2471A3"];
+  v_125d -> g_npt2b [color="#2471A3"];
+
+  /* --- 7 : vitamin D --- */
+  v_skin -> v_cyp2r1; v_diet -> v_cyp2r1;
+  v_cyp2r1 -> v_25d -> v_dbp;
+  v_dbp -> v_125d [label="기질 공급"];
+  v_125d -> v_vdr;
+  v_vdr -> pc_vdrfb [style=dotted, color="#7F8C8D"];
+  v_125d -> v_cyp24 [color="#2471A3", label="자기 이화 유도"];
+  v_cyp24 -> v_125d [color="#C0392B", arrowhead=tee, style=dotted];
+  v_exocal -> v_125d [color="#229954", style=dashed, penwidth=1.6, label="직접 보충"];
+  v_alfa -> v_cyp2r1 [color="#229954", style=dashed];
+  v_alfa -> v_125d [color="#229954", style=dashed];
+  v_dhtach -> v_vdr [color="#229954", style=dashed];
+  v_125d -> p_fgf23 [color="#2471A3"];
+
+  /* --- 8 : phosphate / FGF23 --- */
+  p_fgf23 -> p_klotho;
+  p_klotho -> k_npt2a [color="#C0392B", arrowhead=tee];
+  p_klotho -> k_cyp27b1 [color="#C0392B", arrowhead=tee];
+  p_dmp1 -> p_fgf23 [color="#C0392B", arrowhead=tee];
+  p_piec -> p_fgf23 [color="#2471A3"];
+  p_piec -> p_caxp;
+  s_total -> p_caxp;
+  p_caxp -> p_ectopic [color="#C0392B", penwidth=1.6];
+  p_ppi -> p_ectopic [color="#C0392B", arrowhead=tee];
+  p_caxp -> p_vsmc [color="#2471A3"];
+  p_vsmc -> p_ectopic [color="#C0392B"];
+  p_ectopic -> c_bg [color="#C0392B"];
+  p_ectopic -> c_cat [color="#C0392B"];
+  p_ectopic -> k_nephroc [color="#C0392B"];
+  p_piec -> v_125d [color="#C0392B", arrowhead=tee, style=dotted, label="1α 억제"];
+
+  /* --- 9 : magnesium --- */
+  m_intake -> m_ec; m_loss -> m_ec [color="#C0392B", arrowhead=tee];
+  m_ec -> pc_mgdep [color="#2471A3"];
+  m_secblk -> pc_secr [color="#C0392B", arrowhead=tee, penwidth=1.5];
+  m_res -> r_gs [color="#C0392B", arrowhead=tee];
+  m_repl -> m_ec [color="#229954", style=dashed];
+  k_mgreab -> m_ec;
+  r_pka -> k_mgreab [color="#2471A3", style=dotted];
+
+  /* --- 10 : speciation --- */
+  s_ecfvol -> s_total;
+  s_total -> s_alb; s_total -> s_cmplx; s_total -> s_ion;
+  s_ph -> s_alb [color="#2471A3", label="알칼리증 시 결합↑"];
+  s_alb -> s_ion [color="#C0392B", arrowhead=tee];
+  s_cmplx -> s_ion [color="#C0392B", arrowhead=tee];
+  s_citrate -> s_cmplx [color="#2471A3"];
+  s_total -> s_corr;
+  s_ion -> pc_casr [style=dotted, color="#7F8C8D", penwidth=1.6, label="주 되먹임 신호"];
+  s_ion -> k_casrtal [style=dotted, color="#7F8C8D"];
+  s_ion -> n_nav [color="#C0392B", arrowhead=tee];
+  s_ecfvol -> k_filt;
+  s_ecfvol -> b_labile [dir=both, label="양방향 교환"];
+
+  /* --- 11 : neuromuscular --- */
+  n_nav -> n_excit [color="#2471A3", penwidth=1.6];
+  n_excit -> n_pares; n_excit -> n_tetany; n_excit -> n_signs;
+  n_excit -> n_laryngo; n_excit -> n_seiz; n_excit -> n_myopath;
+  s_ion -> n_qt [color="#C0392B", arrowhead=tee, label="저Ca → QTc↑"];
+  s_ion -> n_cmp [color="#C0392B", arrowhead=tee];
+  n_qt -> z_qtc;
+  n_tetany -> z_hosp; n_seiz -> z_hosp; n_laryngo -> z_hosp;
+
+  /* --- 12 : chronic complications --- */
+  c_bg -> c_parkin;
+  c_bg -> c_fog;
+  s_ion -> c_fog [color="#C0392B", arrowhead=tee, style=dotted];
+  c_fog -> c_qol [color="#C0392B", arrowhead=tee];
+  c_mood -> c_qol [color="#C0392B", arrowhead=tee];
+  c_fatig -> c_qol [color="#C0392B", arrowhead=tee];
+  c_cat -> c_qol [color="#C0392B", arrowhead=tee];
+  c_skin -> c_qol [color="#C0392B", arrowhead=tee];
+  c_dental -> c_qol [color="#C0392B", arrowhead=tee];
+  c_infect -> z_hosp;
+  c_qol -> z_symp;
+  k_ckd -> c_fatig [color="#2471A3", style=dotted];
+
+  /* --- 13 : conventional therapy actions --- */
+  t_cacarb -> g_suppca [color="#229954", style=dashed, penwidth=1.6];
+  t_cacit  -> g_suppca [color="#229954", style=dashed];
+  t_calcitr-> v_exocal [color="#229954", style=dashed, penwidth=1.6];
+  t_alfa   -> v_alfa   [color="#229954", style=dashed];
+  t_chole  -> v_diet   [color="#229954", style=dashed];
+  t_thiaz  -> k_dct    [color="#229954", style=dashed, penwidth=1.6, label="NCC 억제 → 원위 Ca 재흡수↑"];
+  t_thiaz  -> k_hyperca[color="#229954", style=dashed, arrowhead=tee];
+  t_amil   -> k_hyperca[color="#229954", style=dashed, arrowhead=tee];
+  t_pibind -> g_binder [color="#229954", style=dashed];
+  t_mg     -> m_repl   [color="#229954", style=dashed];
+  t_ivca   -> s_ecfvol [color="#229954", style=dashed, penwidth=1.6, label="즉시 교정"];
+  t_cacarb -> t_limit [style=dotted, color="#7F8C8D"];
+  t_calcitr-> t_limit [style=dotted, color="#7F8C8D"];
+  t_limit  -> k_hyperca [color="#C0392B", penwidth=1.5, label="요중 Ca 미조절"];
+  t_limit  -> p_piec [color="#C0392B"];
+  t_limit  -> c_qol [color="#C0392B", arrowhead=tee];
+
+  /* --- 14 : PTH replacement --- */
+  x_rhpth -> x_scdep [color="#117A65", style=dashed];
+  x_tpt   -> x_scdep [color="#117A65", style=dashed];
+  x_tc    -> x_prod  [color="#117A65", style=dashed, penwidth=1.6];
+  x_prod  -> x_scdep [color="#117A65", style=dashed, penwidth=1.6];
+  x_eneb  -> x_scdep [color="#117A65", style=dashed];
+  x_lapth -> x_scdep [color="#117A65", style=dashed];
+  x_scdep -> x_cl;
+  x_scdep -> x_expo [label="완만한 방출"];
+  x_scdep -> x_pulse [label="급속 방출"];
+  x_expo -> r_pth1r [color="#117A65", style=dashed, penwidth=2, label="생리적 자극"];
+  x_pulse -> r_pth1r [color="#117A65", style=dashed, penwidth=1.4];
+  x_pulse -> b_oc [color="#C0392B", label="일시적 골흡수 급증"];
+  x_eneb  -> r_rg [color="#117A65", style=dashed, label="RG 선택 → 골흡수 최소화"];
+  x_rhpth -> x_immuno [style=dotted, color="#7F8C8D"];
+  x_expo -> x_taper [color="#117A65", style=dashed];
+  x_taper -> t_cacarb [color="#229954", style=dashed, arrowhead=tee];
+  x_taper -> t_calcitr[color="#229954", style=dashed, arrowhead=tee];
+  x_expo -> k_careab [color="#117A65", style=dashed, penwidth=1.6];
+  x_expo -> k_pireab [color="#117A65", style=dashed, arrowhead=tee];
+  x_expo -> k_cyp27b1 [color="#117A65", style=dashed];
+  x_expo -> b_remod [color="#117A65", style=dashed, label="회전율 정상화"];
+
+  /* --- 15 : CaSR-targeted --- */
+  y_encal -> pc_casr [color="#B9770E", style=dashed, penwidth=1.8, arrowhead=tee, label="NAM"];
+  y_encal -> y_shift [color="#B9770E", style=dashed];
+  y_shift -> pc_secr [color="#2471A3", penwidth=1.5];
+  y_shift -> k_casrtal [color="#B9770E", style=dashed, arrowhead=tee];
+  y_shift -> k_hyperca [color="#B9770E", style=dashed, arrowhead=tee, label="요중 Ca ↓"];
+  y_adh1tgt -> y_encal [style=dotted, color="#7F8C8D"];
+  y_autotx -> pc_mass [color="#B9770E", style=dashed];
+  y_cell -> pc_mass [color="#B9770E", style=dashed];
+  y_pth1rag -> r_pth1r [color="#B9770E", style=dashed];
+
+  /* --- 16 : endpoints wiring --- */
+  s_corr -> z_sca;
+  s_ion -> z_ion;
+  p_piec -> z_pi;
+  k_hyperca -> z_uca [penwidth=1.6];
+  k_gfr -> z_egfr;
+  k_nephroc -> z_nc;
+  z_sca -> z_comp; z_uca -> z_comp; x_taper -> z_indep; z_indep -> z_comp;
+  b_bmd -> z_bmdz;
+  b_ctx -> z_bmdz [style=dotted, color="#7F8C8D"];
+  b_p1np -> z_bmdz [style=dotted, color="#7F8C8D"];
+
+  /* --- core disease axis (thick backbone) --- */
+  pc_secr -> s_ecfvol [color="#1A5276", penwidth=2.2, style=bold, label="PTH 결핍 시 소실되는 3대 경로"];
+  k_careab -> s_ecfvol [color="#1A5276", penwidth=2.0, style=bold];
+  b_labile -> s_ion [color="#1A5276", penwidth=2.0, style=bold];
+  v_125d -> g_frac [color="#1A5276", penwidth=2.0, style=bold];
+
+  /* --- 범례 --- */
+  subgraph cluster_legend {
+    label=<<B>범례 (Legend)</B>>;
+    style="rounded,filled"; fillcolor="#FFFFFF"; color="#909497"; fontcolor="#5D6D7E";
+    node [shape=plaintext, fillcolor="#FFFFFF", style=""];
+    lg [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#444444">━━</FONT></TD><TD ALIGN="LEFT">물질 흐름 / 합성 / 전환</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#2471A3">━━▶</FONT></TD><TD ALIGN="LEFT">자극 · 활성화</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#C0392B">━━┤</FONT></TD><TD ALIGN="LEFT">억제 · 기능소실</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#229954">╌╌▶</FONT></TD><TD ALIGN="LEFT">약물 작용</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#7F8C8D">┈┈▶</FONT></TD><TD ALIGN="LEFT">되먹임 고리</TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT COLOR="#1A5276"><B>━━▶</B></FONT></TD><TD ALIGN="LEFT">핵심 질환 축 (PTH 결핍의 3대 경로)</TD></TR>
+    </TABLE>>];
+  }
+}
