@@ -82,6 +82,10 @@ CATEGORY_RULES = [
     ("안과", "안과"), ("망막", "안과"),
     ("감염", "감염"),
     ("자가면역", "자가면역·류마티스"), ("류마티스", "자가면역·류마티스"),
+    # primary immunodeficiency: first entry is CVID (2026-07-27). Kept as its
+    # own category because these are deficiency states, not autoimmune disease,
+    # even when immune dysregulation dominates the clinical course.
+    ("면역결핍", "면역결핍"), ("면역글로불린", "면역결핍"),
     ("부인", "부인·생식"), ("산과", "부인·생식"), ("생식", "부인·생식"),
     ("희귀", "희귀·유전"), ("유전", "희귀·유전"),
 ]
