@@ -187,11 +187,15 @@ dot -Tpng -Gdpi=150 ph1_qsp_model.dot -o ph1_qsp_model.png
 # 28개 시나리오 + 44개 검증 검사 실행
 Rscript ph1_mrgsolve_model.R
 
-# 9탭 대시보드
-Rscript -e 'shiny::runApp("ph1_shiny_app.R", port = 8080)'
+# 9탭 대시보드 (한글 라벨 때문에 UTF-8 로케일에서 실행)
+LANG=C.UTF-8 Rscript -e 'shiny::runApp("ph1_shiny_app.R", port = 8080)'
 ```
 
 필요 패키지: `mrgsolve`, `dplyr`, `tidyr` (`ggplot2`, `shiny`는 선택/앱용).
+코드 자체는 모든 로케일에서 파싱되지만(식별자는 전부 ASCII, 한글은 문자열
+리터럴에만 존재), C/POSIX 로케일에서는 R이 표와 그래프 라벨의 다바이트 문자를
+제거하므로 헤더가 `| 요Ox 기저 |` 대신 `| Ox |`로 나옵니다. 앱은 이 경우
+경고만 출력하고 계속 실행되며 **수치는 영향을 받지 않습니다.**
 Shiny 앱은 모델 정의를 `ph1_mrgsolve_model.R`에서 **직접 읽어오므로** 대시보드와
 배치 스크립트가 서로 어긋날 수 없다.
 

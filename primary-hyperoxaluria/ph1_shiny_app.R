@@ -2,7 +2,14 @@
 #  Primary Hyperoxaluria Type 1 (PH1) — Shiny dashboard for the QSP model
 #  ph1_shiny_app.R   ·   companion to ph1_mrgsolve_model.R / ph1_qsp_model.dot
 #
-#  Run:  Rscript -e 'shiny::runApp("ph1_shiny_app.R", port = 8080)'
+#  Run:  LANG=C.UTF-8 Rscript -e 'shiny::runApp("ph1_shiny_app.R", port = 8080)'
+#
+#  LOCALE: the labels are Korean, so run this in a UTF-8 locale.  The code
+#  itself parses in any locale (all identifiers are ASCII; Korean text lives
+#  only in string literals), but under a C/POSIX locale R strips the multibyte
+#  characters when it renders tables and plot labels — headers come out as
+#  "| Ox | Ox 6 |" instead of "| 요Ox 기저 | 요Ox 6개월 |".  The check below
+#  warns rather than stops, since the numbers are still correct.
 #
 #  The app loads the model source out of ph1_mrgsolve_model.R (the `code`
 #  string), so the dashboard and the batch script can never drift apart.
@@ -39,6 +46,12 @@ i1 <- grep("^'$", src)
 i1 <- i1[i1 > i0][1]
 code <- paste(c(sub("^code <- '", "", src[i0]), src[(i0 + 1):(i1 - 1)]), collapse = "\n")
 mod <- mcode_cache("ph1_app", code)
+
+if (!grepl("UTF-8|utf8", Sys.getlocale("LC_CTYPE"), ignore.case = TRUE)) {
+  message("NOTE: LC_CTYPE is '", Sys.getlocale("LC_CTYPE"), "', not UTF-8. ",
+          "Korean labels in tables and plots will be stripped. ",
+          "Re-run with LANG=C.UTF-8 for correct labels; results are unaffected.")
+}
 
 THEME <- theme_bw(base_size = 12) +
   theme(legend.position = "bottom", strip.background = element_rect(fill = "#eef2f7"),
