@@ -1,0 +1,821 @@
+/* =====================================================================
+   Clostridioides difficile Infection (CDI) — QSP Mechanistic Map
+   ---------------------------------------------------------------------
+   Core logic of the map (and of cdi_mrgsolve_model.R):
+
+     antibiotic exposure
+       -> collapse of the obligate-anaerobe guilds (esp. the bai+
+          7alpha-dehydroxylating Clostridia)
+       -> loss of secondary bile acids (DCA/LCA) + rise of conjugated
+          primary bile acids (taurocholate) + release of the sialic
+          acid / Stickland amino-acid nutrient niche
+       -> CspC-mediated spore germination + unrestrained vegetative
+          outgrowth  (= loss of colonization resistance)
+       -> PaLoc de-repression (CodY/CcpA off, SigD/Spo0A on)
+       -> TcdA/TcdB glucosylate RhoA/Rac1/Cdc42
+       -> tight-junction failure, colonocyte death, FZD-blockade of
+          stem-cell renewal, pyrin-inflammasome IL-1beta, neutrophil
+          influx, pseudomembranes
+       -> diarrhoea / leukocytosis / hypoalbuminaemia / AKI
+       -> and, because the sporulating reservoir outlives the
+          antibiotic while the microbiome is still flat, RECURRENCE.
+
+   Therapeutic logic is organised around that last line: agents differ
+   less in how fast they kill C. difficile than in what they do to the
+   microbiome that has to come back (vancomycin vs fidaxomicin), and
+   the two ways to break the recurrence loop are to neutralise the
+   toxin (bezlotoxumab) or to re-seed the guild (FMT / SER-109 /
+   RBX2660).
+
+   Render:
+     dot -Tsvg cdi_qsp_model.dot -o cdi_qsp_model.svg
+     dot -Tpng -Gdpi=150 cdi_qsp_model.dot -o cdi_qsp_model.png
+   ===================================================================== */
+
+digraph CDI_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Clostridioides difficile Infection — Quantitative Systems Pharmacology Map</b><br/>
+             <font point-size="13">dysbiosis &#8594; bile-acid permissive niche &#8594; spore germination &#8594; PaLoc toxin output &#8594; barrier failure &#8594; recurrence</font><br/>
+             <font point-size="11">20 mechanistic modules · 236 nodes · states carried in cdi_mrgsolve_model.R are drawn with a double border</font>>;
+    fontsize = 22;
+    bgcolor = "white";
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 10, penwidth = 1.0, margin = "0.09,0.05"];
+    edge [fontname = "Helvetica", fontsize = 8, color = "#5c6670",
+          arrowsize = 0.62, penwidth = 0.9];
+
+    /* ---------- shared visual vocabulary ------------------------------
+       double border  = ODE state in the mrgsolve model
+       octagon        = drug / intervention
+       hexagon        = clinical endpoint
+       diamond        = regulatory switch
+       red edge       = inhibition / killing
+       green edge     = protective / restorative
+       ---------------------------------------------------------------- */
+
+    /* ================================================================
+       1. HOST RISK FACTORS AND EXPOSURE
+       ================================================================ */
+    subgraph cluster_risk {
+        label = "1. Risk factors · exposure · reservoir";
+        style = "filled,rounded"; fillcolor = "#f4f1ec"; color = "#b9ae9c";
+        fontsize = 13; fontcolor = "#6b5f4b";
+        node [fillcolor = "#efe8dc", color = "#a99a80"];
+
+        R_ABXHX   [label = "Recent antibiotic exposure\n(single strongest modifiable risk)"];
+        R_AGE     [label = "Age ≥ 65 y\nimmunosenescence · lower anti-toxin IgG"];
+        R_HOSP    [label = "Hospitalisation / LTCF stay\nspore pressure in environment"];
+        R_PPI     [label = "Proton-pump inhibitor\n↓gastric acid barrier to vegetative cells"];
+        R_H2RA    [label = "H2 blocker (weaker effect)"];
+        R_IMSUP   [label = "Immunosuppression\nsteroids · chemotherapy · transplant"];
+        R_PRIOR   [label = "Prior CDI episode\nrecurrence risk 20% → 40% → 60%"];
+        R_TUBE    [label = "Enteral tube feeding\nfibre-poor, low-SCFA substrate"];
+        R_IBD     [label = "IBD / prior colectomy\ninflamed permissive mucosa"];
+        R_CKD     [label = "CKD · low albumin\nfrailty covariates"];
+        R_ENVSP   [label = "Environmental spore reservoir\nsurfaces · hands · alcohol-gel resistant"];
+        R_INGEST  [label = "Faecal–oral spore ingestion", shape = parallelogram, fillcolor = "#e2d6c1"];
+        R_ACIDSURV[label = "Spore survives gastric acid\n(exosporium CdeC/CdeM)"];
+    }
+
+    R_ABXHX   -> ABX_DOSE   [color = "#8a5a2b", penwidth = 1.4];
+    R_PPI     -> R_ACIDSURV;
+    R_H2RA    -> R_ACIDSURV [style = dashed];
+    R_HOSP    -> R_ENVSP;
+    R_ENVSP   -> R_INGEST;
+    R_INGEST  -> R_ACIDSURV;
+    R_ACIDSURV-> CD_SPORE_L [penwidth = 1.4];
+    R_AGE     -> AB_IGG     [color = "#c0392b", arrowhead = tee];
+    R_IMSUP   -> AB_IGG     [color = "#c0392b", arrowhead = tee];
+    R_PRIOR   -> CD_SPORE_B [style = dashed];
+    R_TUBE    -> MB_BUT     [color = "#c0392b", arrowhead = tee, style = dashed];
+    R_IBD     -> EPI_PERM   [style = dashed];
+    R_CKD     -> CL_CRE     [style = dashed];
+
+    /* ================================================================
+       2. PRECIPITATING ANTIBIOTIC AND ITS SPECTRUM
+       ================================================================ */
+    subgraph cluster_abx {
+        label = "2. Precipitating antibiotic — spectrum determines the size of the hole";
+        style = "filled,rounded"; fillcolor = "#fbf0e7"; color = "#d9a377";
+        fontsize = 13; fontcolor = "#8a5a2b";
+        node [fillcolor = "#f6e2d2", color = "#c98a5c"];
+
+        ABX_DOSE  [label = "Precipitating antibiotic dose", shape = octagon, fillcolor = "#e9c9ad"];
+        ABX_FQ    [label = "Fluoroquinolone\n(highest OR; also selects gyrA T82I RT027)"];
+        ABX_CEPH  [label = "3rd/4th-gen cephalosporin"];
+        ABX_CARB  [label = "Carbapenem"];
+        ABX_CLIN  [label = "Clindamycin\n(classic index agent)"];
+        ABX_AMC   [label = "Amoxicillin–clavulanate"];
+        ABX_PTZ   [label = "Piperacillin–tazobactam\n(paradoxically anti-C. difficile)"];
+        ABX_COL   [label = "ABX_COL\ncolonic antibiotic exposure", shape = box, peripheries = 2, fillcolor = "#e9c9ad"];
+        ABX_BILE  [label = "Biliary / mucosal secretion into lumen"];
+        ABX_DUR   [label = "Duration & number of agents\n(cumulative dysbiosis dose)"];
+    }
+
+    ABX_FQ -> ABX_DOSE; ABX_CEPH -> ABX_DOSE; ABX_CARB -> ABX_DOSE;
+    ABX_CLIN -> ABX_DOSE; ABX_AMC -> ABX_DOSE; ABX_PTZ -> ABX_DOSE [style = dashed];
+    ABX_DUR -> ABX_DOSE;
+    ABX_DOSE -> ABX_BILE -> ABX_COL [penwidth = 1.3];
+    ABX_COL -> MB_SBA [color = "#c0392b", arrowhead = tee, penwidth = 2.0, label = "kill"];
+    ABX_COL -> MB_BUT [color = "#c0392b", arrowhead = tee, penwidth = 1.7];
+    ABX_COL -> MB_BAC [color = "#c0392b", arrowhead = tee, penwidth = 1.5];
+    ABX_COL -> MB_BIF [color = "#c0392b", arrowhead = tee, penwidth = 1.5];
+    ABX_COL -> MB_ENT [color = "#27ae60", style = dashed, label = "selects"];
+    ABX_COL -> MB_ENC [color = "#27ae60", style = dashed, label = "selects (VRE)"];
+    ABX_COL -> LBP_ENG [color = "#c0392b", arrowhead = tee, label = "blocks engraftment"];
+
+    /* ================================================================
+       3. GUT MICROBIOME GUILDS = COLONIZATION RESISTANCE
+       ================================================================ */
+    subgraph cluster_mb {
+        label = "3. Colonic microbiota guilds — the substrate of colonization resistance";
+        style = "filled,rounded"; fillcolor = "#eef6ef"; color = "#8fc79a";
+        fontsize = 13; fontcolor = "#1e7b3c";
+        node [fillcolor = "#dcefdf", color = "#6fb37f"];
+
+        MB_SBA  [label = "MB_SBA\nbai⁺ 7α-dehydroxylating Clostridia\nC. scindens · C. hiranonis · Clostridia XIVa",
+                 peripheries = 2, fillcolor = "#c5e6cc", penwidth = 1.4];
+        MB_BUT  [label = "MB_BUT\nbutyrogenic Lachnospiraceae /\nRuminococcaceae · Faecalibacterium",
+                 peripheries = 2, fillcolor = "#c5e6cc"];
+        MB_BAC  [label = "MB_BAC\nBacteroidetes\nB. thetaiotaomicron · mucin foragers",
+                 peripheries = 2, fillcolor = "#c5e6cc"];
+        MB_BIF  [label = "MB_BIF\nActinobacteria / Bifidobacterium\nBSH-rich · AA competitor",
+                 peripheries = 2, fillcolor = "#c5e6cc"];
+        MB_ENT  [label = "MB_ENT\nEnterobacteriaceae bloom\nE. coli · Klebsiella (facultative)",
+                 peripheries = 2, fillcolor = "#f7dcd0", color = "#c07a5c"];
+        MB_ENC  [label = "MB_ENC\nEnterococcus bloom\ncross-feeds C. difficile (Smith 2022)",
+                 peripheries = 2, fillcolor = "#f7dcd0", color = "#c07a5c"];
+        MB_DIV  [label = "Shannon diversity index\n(collapses ≈1–2 units after antibiotics)", shape = note, fillcolor = "#e8f3ea"];
+        MB_NICHE[label = "Niche occupancy of the\nobligate-anaerobe compartment", shape = diamond, fillcolor = "#cfe8d5"];
+        MB_O2   [label = "Epithelial hypoxia lost\n(butyrate↓ → PPARγ↓ → luminal O₂↑)"];
+        MB_BACTN[label = "Bacteriocins / lantibiotics\n(thuricin CD, nisin-like)"];
+        MB_AKK  [label = "Akkermansia muciniphila\nmucin turnover"];
+    }
+
+    MB_SBA -> MB_NICHE; MB_BUT -> MB_NICHE; MB_BAC -> MB_NICHE; MB_BIF -> MB_NICHE;
+    MB_NICHE -> MB_DIV;
+    MB_NICHE -> CD_KCAP [color = "#c0392b", arrowhead = tee, penwidth = 2.0, label = "colonization\nresistance"];
+    MB_NICHE -> MB_ENT  [color = "#c0392b", arrowhead = tee];
+    MB_NICHE -> MB_ENC  [color = "#c0392b", arrowhead = tee];
+    MB_BUT -> MB_O2 [color = "#27ae60", arrowhead = tee];
+    MB_O2  -> MB_ENT [label = "aerobic expansion"];
+    MB_BUT -> MB_BACTN [color = "#27ae60"];
+    MB_BACTN -> CD_VEG [color = "#c0392b", arrowhead = tee, style = dashed];
+    MB_BAC -> MB_AKK [style = dashed];
+    MB_AKK -> NUT_SIA [label = "mucin sialidase"];
+    MB_ENC -> NUT_AA [label = "leucine/ornithine\ncross-feeding", color = "#e67e22"];
+
+    /* ================================================================
+       4. BILE ACID METABOLISM — THE GERMINATION SWITCH
+       ================================================================ */
+    subgraph cluster_ba {
+        label = "4. Enterohepatic + microbial bile-acid metabolism (the germination switch)";
+        style = "filled,rounded"; fillcolor = "#fdf6e3"; color = "#dbc477";
+        fontsize = 13; fontcolor = "#8a7418";
+        node [fillcolor = "#f8ecc9", color = "#c9ad55"];
+
+        BA_HEP  [label = "Hepatic synthesis\nCYP7A1 / CYP8B1 / CYP27A1"];
+        BA_CONJ [label = "Conjugation with taurine / glycine\n(BAAT)"];
+        BA_ASBT [label = "Ileal ASBT reclamation (~95%)\nOSTα/β → portal return"];
+        BA_SPILL[label = "Colonic spill-over of\nconjugated primary bile acids"];
+        BA_TCA  [label = "BA_TCA\nconjugated primary pool\nTCA · TCDCA · GCA · GCDCA",
+                 peripheries = 2, fillcolor = "#f3dfa2", penwidth = 1.4];
+        BA_BSH  [label = "Microbial bile-salt hydrolase (BSH)\nBacteroides · Bifidobacterium · Lactobacillus", shape = diamond, fillcolor = "#efe0b0"];
+        BA_CA   [label = "BA_CA\ncholate (free primary)", peripheries = 2, fillcolor = "#f3dfa2"];
+        BA_CDCA [label = "BA_CDCA\nchenodeoxycholate\ncompetitive germination INHIBITOR", peripheries = 2, fillcolor = "#f3dfa2"];
+        BA_BAI  [label = "bai operon 7α-dehydroxylation\nbaiB·baiCD·baiE·baiH·baiA2", shape = diamond, fillcolor = "#efe0b0", penwidth = 1.4];
+        BA_DCA  [label = "BA_DCA\ndeoxycholate — inhibits outgrowth", peripheries = 2, fillcolor = "#e9d089", penwidth = 1.4];
+        BA_LCA  [label = "BA_LCA\nlithocholate — inhibits outgrowth", peripheries = 2, fillcolor = "#e9d089"];
+        BA_UDCA [label = "Ursodeoxycholate (ursodiol)\nnon-germinant competitor", shape = octagon, fillcolor = "#f0e3b7"];
+        BA_FXR  [label = "FXR (NR1H4) → FGF19\nfeedback on CYP7A1", shape = diamond, fillcolor = "#efe0b0"];
+        BA_TGR5 [label = "TGR5 / GPBAR1\nanti-inflammatory cAMP signalling", shape = diamond, fillcolor = "#efe0b0"];
+        BA_VDR  [label = "VDR (LCA ligand)\n→ cathelicidin CAMP", shape = diamond, fillcolor = "#efe0b0"];
+    }
+
+    BA_HEP -> BA_CONJ -> BA_ASBT;
+    BA_ASBT -> BA_SPILL [label = "5% escape"];
+    BA_SPILL -> BA_TCA [penwidth = 1.4];
+    MB_BAC -> BA_BSH [color = "#27ae60"]; MB_BIF -> BA_BSH [color = "#27ae60"]; MB_BUT -> BA_BSH [color = "#27ae60", style = dashed];
+    BA_TCA -> BA_BSH; BA_BSH -> BA_CA [label = "≈60%"]; BA_BSH -> BA_CDCA [label = "≈40%"];
+    MB_SBA -> BA_BAI [color = "#27ae60", penwidth = 2.0];
+    BA_CA -> BA_BAI; BA_CDCA -> BA_BAI;
+    BA_BAI -> BA_DCA [penwidth = 1.6]; BA_BAI -> BA_LCA [penwidth = 1.4];
+    BA_TCA -> CD_GERM [color = "#e67e22", penwidth = 2.2, label = "CspC germinant"];
+    BA_CDCA -> CD_GERM [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    BA_UDCA -> CD_GERM [color = "#c0392b", arrowhead = tee, style = dashed];
+    BA_DCA -> CD_VEG [color = "#c0392b", arrowhead = tee, penwidth = 1.8];
+    BA_LCA -> CD_VEG [color = "#c0392b", arrowhead = tee, penwidth = 1.5];
+    BA_DCA -> CD_GERM [color = "#c0392b", arrowhead = tee, style = dashed];
+    BA_DCA -> BA_FXR; BA_LCA -> BA_VDR; BA_DCA -> BA_TGR5;
+    BA_TGR5 -> IM_TNF [color = "#27ae60", arrowhead = tee, style = dashed];
+    BA_VDR -> EPI_MUC [color = "#27ae60", style = dashed];
+    BA_FXR -> BA_HEP [color = "#c0392b", arrowhead = tee, style = dashed];
+
+    /* ================================================================
+       5. LUMINAL NUTRIENT NICHE
+       ================================================================ */
+    subgraph cluster_nut {
+        label = "5. Luminal nutrient niche liberated by dysbiosis";
+        style = "filled,rounded"; fillcolor = "#f2f4fa"; color = "#a3b3d6";
+        fontsize = 13; fontcolor = "#3b4d80";
+        node [fillcolor = "#e3e9f6", color = "#8b9fce"];
+
+        NUT_MUCIN [label = "Host mucin O-glycans\n(MUC2 substrate pool)"];
+        NUT_SIAL  [label = "Bacteroides sialidase / fucosidase\nliberates free monosaccharides"];
+        NUT_SIA   [label = "NUT_SIA\nfree sialic acid + succinate\n(NanT/NanA · Yjh succinate→butyrate)",
+                   peripheries = 2, fillcolor = "#ccd8f0", penwidth = 1.4];
+        NUT_AA    [label = "NUT_AA\nStickland amino acids\nproline · glycine · leucine",
+                   peripheries = 2, fillcolor = "#ccd8f0", penwidth = 1.4];
+        NUT_PRD   [label = "Proline reductase PrdB\n(preferred Stickland acceptor)"];
+        NUT_GRD   [label = "Glycine reductase GrdAB"];
+        NUT_ETH   [label = "Ethanolamine / sorbitol\nalternative carbon (eut operon)"];
+        NUT_TREH  [label = "Trehalose (RT027/RT078\nlow-threshold treA variants)"];
+        NUT_COMP  [label = "Commensal nutrient competition", shape = diamond, fillcolor = "#d6dff2"];
+        NUT_FE    [label = "Iron / zinc availability\ncalprotectin-restricted"];
+    }
+
+    NUT_MUCIN -> NUT_SIAL -> NUT_SIA;
+    MB_BAC -> NUT_SIAL;
+    MB_SBA -> NUT_COMP [color = "#27ae60"]; MB_BUT -> NUT_COMP [color = "#27ae60"]; MB_BIF -> NUT_COMP [color = "#27ae60"];
+    NUT_COMP -> NUT_SIA [color = "#c0392b", arrowhead = tee, penwidth = 1.6, label = "consumes"];
+    NUT_COMP -> NUT_AA  [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    NUT_SIA -> CD_VEG [color = "#e67e22", penwidth = 1.8, label = "growth"];
+    NUT_AA  -> NUT_PRD; NUT_AA -> NUT_GRD;
+    NUT_PRD -> CD_VEG [color = "#e67e22", penwidth = 1.6];
+    NUT_GRD -> CD_VEG [color = "#e67e22"];
+    NUT_ETH -> CD_VEG [style = dashed]; NUT_TREH -> CD_VEG [style = dashed];
+    NUT_AA -> TOX_CODY [color = "#c0392b", arrowhead = tee, penwidth = 1.4];
+    NUT_FE -> CD_VEG [style = dashed];
+
+    /* ================================================================
+       6. SCFA / BUTYRATE AXIS
+       ================================================================ */
+    subgraph cluster_scfa {
+        label = "6. SCFA axis — barrier support and virulence damping";
+        style = "filled,rounded"; fillcolor = "#eef7f7"; color = "#8cc5c5";
+        fontsize = 13; fontcolor = "#146b6b";
+        node [fillcolor = "#d9eeee", color = "#6fb3b3"];
+
+        SC_FIB  [label = "Dietary fermentable fibre"];
+        SCFA_BUT[label = "SCFA_BUT\nluminal butyrate", peripheries = 2, fillcolor = "#c2e5e5", penwidth = 1.4];
+        SC_ACE  [label = "Acetate / propionate"];
+        SC_GPR  [label = "GPR43 (FFAR2) / GPR109A"];
+        SC_HDAC [label = "HDAC inhibition → HIF-1α stabilisation"];
+        SC_TREG [label = "Colonic Treg induction (Foxp3⁺)"];
+        SC_CLDN [label = "Claudin-1 / ZO-1 transcription↑"];
+    }
+
+    SC_FIB -> MB_BUT [color = "#27ae60"];
+    MB_BUT -> SCFA_BUT [color = "#27ae60", penwidth = 1.8];
+    MB_BAC -> SC_ACE [color = "#27ae60"]; SC_ACE -> MB_BUT [label = "cross-feed", color = "#27ae60", style = dashed];
+    SCFA_BUT -> SC_GPR -> SC_TREG;
+    SCFA_BUT -> SC_HDAC -> SC_CLDN -> EPI_TJ [color = "#27ae60", penwidth = 1.4];
+    SC_HDAC -> MB_O2 [color = "#27ae60", arrowhead = tee];
+    SCFA_BUT -> TOX_PROD [color = "#c0392b", arrowhead = tee, penwidth = 1.4, label = "damps\ntcdA/B"];
+    SCFA_BUT -> CD_VEG [color = "#c0392b", arrowhead = tee];
+    SC_TREG -> IM_TNF [color = "#27ae60", arrowhead = tee, style = dashed];
+
+    /* ================================================================
+       7. C. DIFFICILE LIFE CYCLE
+       ================================================================ */
+    subgraph cluster_cd {
+        label = "7. C. difficile life cycle — germination, outgrowth, sporulation, biofilm";
+        style = "filled,rounded"; fillcolor = "#fdeeee"; color = "#e39a9a";
+        fontsize = 13; fontcolor = "#9b2222";
+        node [fillcolor = "#f8d8d8", color = "#d07878"];
+
+        CD_SPORE_L [label = "CD_SPORE_L\nluminal spore pool", peripheries = 2, fillcolor = "#f2bcbc", penwidth = 1.4];
+        CD_CSPC    [label = "CspC pseudoprotease\ngerminant receptor (bile salt)", shape = diamond, fillcolor = "#f0c8c8"];
+        CD_CSPBA   [label = "CspB / CspA protease cascade"];
+        CD_SLEC    [label = "SleC cortex lytic enzyme\ncortex hydrolysis"];
+        CD_CADIP   [label = "Ca²⁺-DPA release · core rehydration"];
+        CD_GERM    [label = "CD_GERM\ngermination rate", shape = diamond, fillcolor = "#eeaaaa", penwidth = 1.6];
+        CD_OUTG    [label = "Outgrowth to vegetative cell"];
+        CD_VEG     [label = "CD_VEG\nluminal vegetative burden", peripheries = 2, fillcolor = "#f2bcbc", penwidth = 1.6];
+        CD_KCAP    [label = "CD_KCAP\neffective luminal carrying capacity", shape = diamond, fillcolor = "#eeaaaa"];
+        CD_MUC     [label = "CD_MUC\nmucus/mucosa-adherent population", peripheries = 2, fillcolor = "#f2bcbc", penwidth = 1.4];
+        CD_BIOF    [label = "Biofilm (Spo0A · LuxS · CD2831 · PSII)"];
+        CD_SPO0A   [label = "Spo0A phosphorelay\norphan kinases CD1492/CD1579/CD2492", shape = diamond, fillcolor = "#f0c8c8"];
+        CD_SIGF    [label = "σF → σG (forespore)"];
+        CD_SIGE    [label = "σE → σK (mother cell)"];
+        CD_SPORUL  [label = "Sporulation flux", shape = diamond, fillcolor = "#eeaaaa"];
+        CD_SPORE_B [label = "CD_SPORE_B\nmucosa/biofilm spore reservoir\n= the recurrence seed", peripheries = 2, fillcolor = "#e79a9a", penwidth = 1.8];
+        CD_SHED    [label = "Faecal shedding\n(transmission · asymptomatic carriage)"];
+        CD_PERSIST [label = "Antibiotic-tolerant persister cells"];
+    }
+
+    CD_SPORE_L -> CD_CSPC -> CD_CSPBA -> CD_SLEC -> CD_CADIP -> CD_OUTG;
+    CD_GERM -> CD_OUTG [penwidth = 1.6];
+    CD_CSPC -> CD_GERM;
+    CD_OUTG -> CD_VEG [penwidth = 1.8];
+    CD_KCAP -> CD_VEG [penwidth = 1.6];
+    CD_VEG -> CD_MUC [dir = both, label = "adhesion /\ndetachment"];
+    CD_MUC -> CD_BIOF; CD_BIOF -> CD_PERSIST;
+    CD_VEG -> CD_SPO0A; CD_SPO0A -> CD_SIGF; CD_SPO0A -> CD_SIGE;
+    CD_SIGF -> CD_SPORUL; CD_SIGE -> CD_SPORUL;
+    CD_SPORUL -> CD_SPORE_L; CD_SPORUL -> CD_SPORE_B [penwidth = 1.6];
+    CD_BIOF -> CD_SPORE_B [penwidth = 1.4];
+    CD_SPORE_B -> CD_GERM [style = dashed, label = "re-germination\nafter drug withdrawal", color = "#c0392b", penwidth = 1.6];
+    CD_SPORE_L -> CD_SHED; CD_SPORE_B -> CD_SHED [style = dashed];
+    CD_SPO0A -> TOX_PROD [style = dashed];
+    CD_PERSIST -> CD_VEG [style = dashed, label = "regrowth"];
+
+    /* ================================================================
+       8. ADHESION AND COLONIZATION FACTORS
+       ================================================================ */
+    subgraph cluster_adh {
+        label = "8. Adhesion, surface architecture, quorum sensing";
+        style = "filled,rounded"; fillcolor = "#fbeef6"; color = "#dda2c7";
+        fontsize = 13; fontcolor = "#8d2a63";
+        node [fillcolor = "#f4dcec", color = "#c884ac"];
+
+        AD_SLPA  [label = "S-layer protein SlpA (LMW/HMW)\nCwp84 maturation"];
+        AD_CWPV  [label = "CwpV phase-variable adhesin"];
+        AD_FLIC  [label = "Flagellin FliC / cap FliD\nTLR5 ligand"];
+        AD_CD2831[label = "CD2831 collagen-binding MSCRAMM"];
+        AD_FBP68 [label = "Fbp68 fibronectin-binding"];
+        AD_GROEL [label = "GroEL surface chaperone"];
+        AD_PSII  [label = "PSII cell-wall polysaccharide"];
+        AD_AGR   [label = "AgrB/AgrD quorum signal", shape = diamond, fillcolor = "#eecfe2"];
+        AD_LUXS  [label = "LuxS / AI-2 signalling", shape = diamond, fillcolor = "#eecfe2"];
+        AD_SIGD  [label = "σD (SigD, flagellar σ28)\n→ tcdR", shape = diamond, fillcolor = "#eecfe2", penwidth = 1.4];
+    }
+
+    AD_SLPA -> CD_MUC [color = "#e67e22", penwidth = 1.4];
+    AD_CWPV -> CD_MUC; AD_CD2831 -> CD_MUC; AD_FBP68 -> CD_MUC; AD_GROEL -> CD_MUC [style = dashed];
+    AD_PSII -> CD_BIOF; AD_FLIC -> CD_MUC;
+    AD_FLIC -> IM_TLR5 [color = "#e67e22"];
+    AD_SLPA -> IM_TLR4 [color = "#e67e22"];
+    AD_AGR -> TOX_TCDR; AD_LUXS -> TOX_TCDR; AD_SIGD -> TOX_TCDR [penwidth = 1.4];
+    AD_FLIC -> AD_SIGD;
+
+    /* ================================================================
+       9. PaLoc REGULATION
+       ================================================================ */
+    subgraph cluster_paloc {
+        label = "9. PaLoc (19.6 kb) transcriptional control of toxin output";
+        style = "filled,rounded"; fillcolor = "#f6f0fb"; color = "#b9a2dd";
+        fontsize = 13; fontcolor = "#5b2a8d";
+        node [fillcolor = "#e7dcf5", color = "#9a84c8"];
+
+        TOX_PALOC [label = "PaLoc: tcdR–tcdB–tcdE–tcdA–tcdC"];
+        TOX_TCDR  [label = "TcdR alternative σ factor\n(positive autoregulation)", shape = diamond, fillcolor = "#d9c9f0", penwidth = 1.4];
+        TOX_TCDC  [label = "TcdC putative anti-σ\n(truncated / nonfunctional in RT027)", shape = diamond, fillcolor = "#d9c9f0"];
+        TOX_TCDE  [label = "TcdE holin-like release channel"];
+        TOX_CODY  [label = "CodY (GTP + BCAA sensor)\nrepressor", shape = diamond, fillcolor = "#d9c9f0", penwidth = 1.4];
+        TOX_CCPA  [label = "CcpA catabolite repression\n(glucose)", shape = diamond, fillcolor = "#d9c9f0"];
+        TOX_CYS   [label = "Cysteine repression"];
+        TOX_BIOT  [label = "Biotin limitation (BioY) → toxin↑"];
+        TOX_RSTA  [label = "RstA (RRNPP regulator)"];
+        TOX_STAT  [label = "Stationary phase / nutrient exhaustion", shape = diamond, fillcolor = "#d9c9f0"];
+        TOX_PROD  [label = "TOX_PROD\ntoxin synthesis rate per cell", shape = diamond, fillcolor = "#cbb6ea", penwidth = 1.6];
+    }
+
+    TOX_PALOC -> TOX_TCDR; TOX_TCDR -> TOX_PALOC [label = "autoinduction"];
+    TOX_TCDC -> TOX_TCDR [color = "#c0392b", arrowhead = tee];
+    TOX_CODY -> TOX_TCDR [color = "#c0392b", arrowhead = tee, penwidth = 1.5];
+    TOX_CCPA -> TOX_TCDR [color = "#c0392b", arrowhead = tee];
+    TOX_CYS -> TOX_CODY; TOX_BIOT -> TOX_TCDR [color = "#27ae60"];
+    TOX_RSTA -> TOX_TCDR [style = dashed];
+    TOX_STAT -> TOX_TCDR [penwidth = 1.4];
+    TOX_TCDR -> TOX_PROD [penwidth = 1.8];
+    TOX_PROD -> TCDA [penwidth = 1.8]; TOX_PROD -> TCDB [penwidth = 1.8];
+    TOX_TCDE -> TCDA [style = dashed]; TOX_TCDE -> TCDB [style = dashed];
+    CD_VEG -> TOX_PROD [penwidth = 1.6];
+    CD_MUC -> TOX_PROD [penwidth = 1.4, label = "local, high-yield"];
+
+    /* ================================================================
+       10. TOXIN TRAFFICKING AND Rho GLUCOSYLATION
+       ================================================================ */
+    subgraph cluster_tox {
+        label = "10. TcdA / TcdB — receptor binding, autoprocessing, Rho-GTPase glucosylation";
+        style = "filled,rounded"; fillcolor = "#fdf0ea"; color = "#e8a781";
+        fontsize = 13; fontcolor = "#a34c19";
+        node [fillcolor = "#f9ddcc", color = "#d38e63"];
+
+        TCDA     [label = "TCDA\nluminal TcdA (308 kDa enterotoxin)", peripheries = 2, fillcolor = "#f5c6a8", penwidth = 1.4];
+        TCDB     [label = "TCDB\nluminal TcdB (270 kDa cytotoxin)", peripheries = 2, fillcolor = "#f5c6a8", penwidth = 1.8];
+        TOX_CPLX [label = "TOX_CPLX\nTcdB · bezlotoxumab complex", peripheries = 2, fillcolor = "#f0d7c6"];
+        TOX_RCSPG[label = "CSPG4 receptor (TcdB)"];
+        TOX_RFZD [label = "FZD1/2/7 receptor (TcdB)\nWnt co-receptor", penwidth = 1.4];
+        TOX_RNEC [label = "Nectin-3 / PVRL3 (TcdB)"];
+        TOX_RLRP [label = "LRP1 (TcdB)"];
+        TOX_RGAG [label = "Sulfated GAG + LDLR / gp96 (TcdA)"];
+        TCDA_MUC [label = "TCDA_MUC\nmucosa-bound TcdA", peripheries = 2, fillcolor = "#f5c6a8"];
+        TCDB_MUC [label = "TCDB_MUC\nmucosa-bound TcdB", peripheries = 2, fillcolor = "#f0b48e", penwidth = 1.8];
+        TOX_ENDO [label = "Clathrin/PACSIN2 endocytosis\n→ endosome acidification (v-ATPase)"];
+        TOX_PORE [label = "Delivery domain pore\n(hydrophobic helices)"];
+        TOX_CPD  [label = "InsP6-activated cysteine protease domain\nautoprocessing"];
+        TOX_GTD  [label = "Glucosyltransferase domain released\nUDP-glucose donor"];
+        TOX_RHOA [label = "RhoA-Thr37 mono-O-glucosylation", penwidth = 1.4];
+        TOX_RAC1 [label = "Rac1-Thr35 glucosylation"];
+        TOX_CDC42[label = "Cdc42 glucosylation"];
+        TOX_ROCK [label = "ROCK / mDia signalling lost"];
+        TOX_ACTIN[label = "F-actin depolymerisation\nstress-fibre collapse", penwidth = 1.4];
+        TOX_PYRIN[label = "Pyrin (MEFV) senses RhoA inactivation", shape = diamond, fillcolor = "#f2d0b8", penwidth = 1.4];
+        TOX_NEUT [label = "Antibody neutralisation of free toxin", shape = diamond, fillcolor = "#f2d0b8"];
+    }
+
+    TCDB -> TOX_RCSPG; TCDB -> TOX_RFZD; TCDB -> TOX_RNEC; TCDB -> TOX_RLRP;
+    TCDA -> TOX_RGAG;
+    TOX_RCSPG -> TCDB_MUC [penwidth = 1.6]; TOX_RFZD -> TCDB_MUC; TOX_RNEC -> TCDB_MUC; TOX_RLRP -> TCDB_MUC;
+    TOX_RGAG -> TCDA_MUC [penwidth = 1.4];
+    TCDB_MUC -> TOX_ENDO; TCDA_MUC -> TOX_ENDO;
+    TOX_ENDO -> TOX_PORE -> TOX_CPD -> TOX_GTD;
+    TOX_GTD -> TOX_RHOA [penwidth = 1.6]; TOX_GTD -> TOX_RAC1; TOX_GTD -> TOX_CDC42;
+    TOX_RHOA -> TOX_ROCK [color = "#c0392b", arrowhead = tee];
+    TOX_RHOA -> TOX_ACTIN [penwidth = 1.6]; TOX_RAC1 -> TOX_ACTIN; TOX_CDC42 -> TOX_ACTIN;
+    TOX_RHOA -> TOX_PYRIN [penwidth = 1.4];
+    TOX_PYRIN -> IM_NLRP3 [penwidth = 1.4];
+    TOX_ACTIN -> EPI_TJ [color = "#c0392b", arrowhead = tee, penwidth = 2.0];
+    TOX_ACTIN -> EPI_APOP [penwidth = 1.6];
+    TOX_RFZD -> EPI_WNT [color = "#c0392b", arrowhead = tee, penwidth = 1.8, label = "blocks Wnt"];
+    TOX_NEUT -> TCDB [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    TCDB -> TOX_CPLX [dir = both];
+    AB_IGG -> TOX_NEUT [color = "#27ae60", penwidth = 1.4];
+    DR_BEZ_GUT -> TOX_CPLX [color = "#27ae60", penwidth = 1.8];
+
+    /* ================================================================
+       11. BINARY TOXIN AND HYPERVIRULENT RIBOTYPES
+       ================================================================ */
+    subgraph cluster_cdt {
+        label = "11. Binary toxin CDT and hypervirulent ribotypes";
+        style = "filled,rounded"; fillcolor = "#fbe9e9"; color = "#d98f8f";
+        fontsize = 13; fontcolor = "#8d1f1f";
+        node [fillcolor = "#f5d2d2", color = "#c97575"];
+
+        RT_027   [label = "Ribotype 027 / NAP1 / BI\ntcdC truncation · high toxin · fluoroquinolone-R", shape = diamond, fillcolor = "#efbcbc", penwidth = 1.6];
+        RT_078   [label = "Ribotype 078 / RT126\ncommunity & livestock-associated"];
+        RT_017   [label = "Ribotype 017 (A⁻B⁺)"];
+        RT_GYRA  [label = "gyrA Thr82Ile fluoroquinolone resistance"];
+        CDT_LOC  [label = "CdtLoc: cdtA · cdtB · cdtR"];
+        CDT      [label = "CDT\nbinary toxin (ADP-ribosyltransferase)", peripheries = 2, fillcolor = "#efbcbc"];
+        CDT_ACTIN[label = "Actin ADP-ribosylation (Arg177)\nmicrotubule protrusions → ↑adherence"];
+        RT_SPOR  [label = "Higher sporulation rate\n→ higher recurrence & transmission"];
+        RT_MIC   [label = "Reduced susceptibility\n(metronidazole hetero-resistance, plasmid pCD-METRO)"];
+    }
+
+    RT_027 -> TOX_TCDC [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    RT_027 -> CDT_LOC; RT_078 -> CDT_LOC; RT_027 -> RT_GYRA; RT_GYRA -> ABX_FQ [dir = back, style = dashed];
+    RT_017 -> TCDB [style = dashed, label = "A⁻B⁺"];
+    CDT_LOC -> CDT [penwidth = 1.4];
+    CDT -> CDT_ACTIN -> CD_MUC [color = "#e67e22"];
+    CDT -> EPI_APOP [style = dashed];
+    RT_027 -> RT_SPOR -> CD_SPORUL [penwidth = 1.4];
+    RT_027 -> TOX_PROD [penwidth = 1.6, label = "toxin ×"];
+    RT_027 -> RT_MIC; RT_MIC -> DR_MTZ [color = "#c0392b", arrowhead = tee, style = dashed];
+    RT_027 -> CL_FULM [style = dashed];
+
+    /* ================================================================
+       12. EPITHELIAL INJURY AND BARRIER
+       ================================================================ */
+    subgraph cluster_epi {
+        label = "12. Colonic epithelium — barrier failure, secretion, stem-cell arrest";
+        style = "filled,rounded"; fillcolor = "#eef3fa"; color = "#9db6d8";
+        fontsize = 13; fontcolor = "#26456e";
+        node [fillcolor = "#dbe6f5", color = "#83a1cb"];
+
+        EPI_CELL [label = "EPI\nviable colonocyte fraction", peripheries = 2, fillcolor = "#c6d8ef", penwidth = 1.6];
+        EPI_TJ   [label = "EPI_TJ\ntight junction integrity\nZO-1 · occludin · claudin-1/2", peripheries = 2, fillcolor = "#c6d8ef", penwidth = 1.6];
+        EPI_PERM [label = "EPI_PERM\nparacellular permeability index", peripheries = 2, fillcolor = "#c6d8ef", penwidth = 1.4];
+        EPI_MUC  [label = "EPI_MUCUS\nMUC2 mucus layer", peripheries = 2, fillcolor = "#c6d8ef"];
+        EPI_SC   [label = "EPI_SC\nLgr5⁺ stem / progenitor pool", peripheries = 2, fillcolor = "#c6d8ef", penwidth = 1.4];
+        EPI_WNT  [label = "Wnt / β-catenin renewal signal", shape = diamond, fillcolor = "#cddcf1", penwidth = 1.4];
+        EPI_APOP [label = "Caspase-3/8/9 apoptosis\n+ TcdB high-dose NOX/ROS necrosis"];
+        EPI_MLCK [label = "MLCK activation\n→ junction contraction"];
+        EPI_CFTR [label = "CFTR / NKCC1 Cl⁻–HCO₃⁻ secretion"];
+        EPI_NHE3 [label = "NHE3 Na⁺ absorption↓"];
+        EPI_H2O  [label = "H2O\nluminal fluid load", peripheries = 2, fillcolor = "#c6d8ef", penwidth = 1.4];
+        EPI_SP   [label = "Substance P / CGRP neurogenic loop\n(NK1R, enteric neurons, mast cells)"];
+        EPI_HIF  [label = "HIF-1α barrier programme"];
+        EPI_REG3 [label = "REG3γ · fucosylation (Fut2)\nantimicrobial epithelial programme"];
+    }
+
+    TCDB_MUC -> EPI_CELL [color = "#c0392b", arrowhead = tee, penwidth = 2.2, label = "cytopathic"];
+    TCDA_MUC -> EPI_CELL [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    EPI_WNT -> EPI_SC [color = "#27ae60", penwidth = 1.6];
+    EPI_SC -> EPI_CELL [color = "#27ae60", penwidth = 1.8, label = "regeneration"];
+    TCDB_MUC -> EPI_SC [color = "#c0392b", arrowhead = tee, penwidth = 1.4];
+    EPI_APOP -> EPI_CELL [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    EPI_MLCK -> EPI_TJ [color = "#c0392b", arrowhead = tee];
+    EPI_CELL -> EPI_TJ [color = "#27ae60", penwidth = 1.4];
+    EPI_TJ -> EPI_PERM [color = "#c0392b", arrowhead = tee, penwidth = 1.8];
+    EPI_CELL -> EPI_MUC [color = "#27ae60"];
+    EPI_MUC -> CD_MUC [color = "#c0392b", arrowhead = tee, style = dashed, label = "shields mucosa"];
+    EPI_PERM -> EPI_H2O [penwidth = 1.6];
+    EPI_CFTR -> EPI_H2O [penwidth = 1.6]; EPI_NHE3 -> EPI_H2O [penwidth = 1.3];
+    TCDA_MUC -> EPI_CFTR; IM_IL1B -> EPI_CFTR;
+    EPI_CELL -> EPI_NHE3 [color = "#27ae60", arrowhead = tee];
+    EPI_SP -> EPI_CFTR [style = dashed]; TCDA_MUC -> EPI_SP;
+    EPI_HIF -> EPI_TJ [color = "#27ae60"];
+    SCFA_BUT -> EPI_HIF [color = "#27ae60"];
+    EPI_PERM -> IM_LPS [penwidth = 1.4];
+    IM_IL22 -> EPI_REG3 [color = "#27ae60", penwidth = 1.4];
+    EPI_REG3 -> MB_ENT [color = "#c0392b", arrowhead = tee];
+    EPI_PERM -> DR_BEZ_GUT [color = "#27ae60", penwidth = 1.6, label = "transudation\nof IgG into lumen"];
+    EPI_PERM -> DR_MTZ_COL [penwidth = 1.4, label = "inflamed-mucosa\ndelivery"];
+
+    /* ================================================================
+       13. INNATE IMMUNITY AND PSEUDOMEMBRANE
+       ================================================================ */
+    subgraph cluster_inn {
+        label = "13. Innate immune response and pseudomembrane formation";
+        style = "filled,rounded"; fillcolor = "#fdf3e8"; color = "#e3b57e";
+        fontsize = 13; fontcolor = "#8a5a10";
+        node [fillcolor = "#f8e4c9", color = "#cf9d5c"];
+
+        IM_TLR4  [label = "TLR4 (SlpA) → MyD88 → NF-κB"];
+        IM_TLR5  [label = "TLR5 (flagellin) → NF-κB"];
+        IM_NOD1  [label = "NOD1 (peptidoglycan) → CXCL1"];
+        IM_NLRP3 [label = "NLRP3 / ASC / caspase-1 inflammasome", penwidth = 1.4];
+        IM_IL1B  [label = "IM_IL1B\nIL-1β (+ IL-18)", peripheries = 2, fillcolor = "#f2d2a4", penwidth = 1.6];
+        IM_IL8   [label = "IM_IL8\nIL-8/CXCL8 · CXCL1/2 · CXCL5", peripheries = 2, fillcolor = "#f2d2a4", penwidth = 1.6];
+        IM_TNF   [label = "IM_TNF\nTNF-α · IL-6 composite", peripheries = 2, fillcolor = "#f2d2a4", penwidth = 1.4];
+        IM_NEUT  [label = "IM_NEUT\nmucosal neutrophil density", peripheries = 2, fillcolor = "#f2d2a4", penwidth = 1.6];
+        IM_PSM   [label = "IM_PSM\npseudomembranes\nfibrin · mucin · neutrophils · debris", peripheries = 2, fillcolor = "#eec287", penwidth = 1.6];
+        IM_CALPR [label = "Faecal calprotectin / lactoferrin"];
+        IM_ILC3  [label = "ILC3 / Th17 → IL-23 axis"];
+        IM_IL22  [label = "IM_IL22\nIL-22 (protective)", peripheries = 2, fillcolor = "#dff0d2", color = "#7fae5c", penwidth = 1.4];
+        IM_C3    [label = "Complement C3 (IL-22-dependent)\nrestrains Enterobacteriaceae"];
+        IM_IL33  [label = "IL-33 / ST2 → ILC2 (protective)"];
+        IM_EOS   [label = "Eosinophils (IL-25-dependent, protective)"];
+        IM_MDSC  [label = "MDSC expansion (immunoregulatory)"];
+        IM_LPS   [label = "Translocated LPS / bacterial products"];
+        IM_MAC   [label = "Lamina propria macrophage / monocyte"];
+        IM_NETS  [label = "Neutrophil extracellular traps"];
+    }
+
+    IM_TLR4 -> IM_MAC; IM_TLR5 -> IM_MAC; IM_NOD1 -> IM_IL8; IM_LPS -> IM_MAC [penwidth = 1.4];
+    IM_MAC -> IM_TNF [penwidth = 1.6]; IM_MAC -> IM_IL8 [penwidth = 1.4]; IM_MAC -> IM_NLRP3;
+    IM_NLRP3 -> IM_IL1B [penwidth = 1.8];
+    IM_IL1B -> IM_IL8 [penwidth = 1.6]; IM_TNF -> IM_IL8 [penwidth = 1.4];
+    IM_IL8 -> IM_NEUT [penwidth = 2.0]; IM_IL1B -> IM_NEUT [penwidth = 1.4];
+    IM_NEUT -> IM_PSM [penwidth = 1.8]; EPI_CELL -> IM_PSM [color = "#27ae60", arrowhead = tee, penwidth = 1.4];
+    IM_NEUT -> IM_CALPR; IM_NEUT -> IM_NETS;
+    IM_NEUT -> EPI_CELL [color = "#c0392b", arrowhead = tee, style = dashed, label = "bystander injury"];
+    IM_NEUT -> EPI_MUC [color = "#c0392b", arrowhead = tee, style = dashed];
+    IM_IL1B -> EPI_TJ [color = "#c0392b", arrowhead = tee]; IM_TNF -> EPI_TJ [color = "#c0392b", arrowhead = tee];
+    IM_IL1B -> IM_ILC3; IM_ILC3 -> IM_IL22 [penwidth = 1.4];
+    SCFA_BUT -> IM_IL22 [color = "#27ae60", style = dashed, label = "AhR/GPR"];
+    IM_IL22 -> IM_C3 [color = "#27ae60"]; IM_C3 -> MB_ENT [color = "#c0392b", arrowhead = tee, penwidth = 1.4];
+    IM_IL22 -> EPI_CELL [color = "#27ae60", penwidth = 1.4];
+    IM_IL33 -> IM_EOS [color = "#27ae60"]; IM_EOS -> EPI_CELL [color = "#27ae60", style = dashed];
+    IM_MDSC -> IM_TNF [color = "#27ae60", arrowhead = tee, style = dashed];
+    IM_IL8 -> CL_WBC [penwidth = 1.6]; IM_IL1B -> CL_WBC [penwidth = 1.4];
+    IM_PSM -> CL_DIARR [penwidth = 1.4];
+
+    /* ================================================================
+       14. ADAPTIVE IMMUNITY AND ANTI-TOXIN ANTIBODY
+       ================================================================ */
+    subgraph cluster_adapt {
+        label = "14. Adaptive anti-toxin immunity — the determinant of carriage vs recurrence";
+        style = "filled,rounded"; fillcolor = "#eef7f1"; color = "#8bbf9f";
+        fontsize = 13; fontcolor = "#14663c";
+        node [fillcolor = "#d8ecdf", color = "#6ba883"];
+
+        AB_APC   [label = "Antigen presentation (toxin, SlpA)"];
+        AB_TH    [label = "CD4⁺ T-helper priming"];
+        AB_GC    [label = "Germinal-centre B-cell response"];
+        AB_IGG   [label = "AB_IGG\nendogenous neutralising anti-TcdB IgG\n(low day-3 titre predicts recurrence)",
+                   peripheries = 2, fillcolor = "#c3e2ce", penwidth = 1.8];
+        AB_IGA   [label = "Secretory anti-toxin IgA (pIgR transport)"];
+        AB_MEM   [label = "Memory B / plasma-cell pool"];
+        AB_CARR  [label = "Asymptomatic carriage phenotype\n(high titre, toxin neutralised)", shape = hexagon, fillcolor = "#cde8d7"];
+        AB_TREG  [label = "Mucosal Treg tolerance"];
+        AB_VAC   [label = "Toxoid vaccine / PF-06425090\n(CLOVER: severity↓, primary endpoint missed)", shape = octagon, fillcolor = "#cfe8d8"];
+    }
+
+    TCDB -> AB_APC; TCDA -> AB_APC; AD_SLPA -> AB_APC [style = dashed];
+    AB_APC -> AB_TH -> AB_GC -> AB_IGG [penwidth = 1.6];
+    AB_GC -> AB_IGA; AB_GC -> AB_MEM; AB_MEM -> AB_IGG [style = dashed];
+    AB_IGA -> TCDA [color = "#c0392b", arrowhead = tee];
+    AB_IGG -> AB_CARR [color = "#27ae60", penwidth = 1.4];
+    AB_IGG -> CL_RECUR [color = "#c0392b", arrowhead = tee, penwidth = 1.8];
+    AB_VAC -> AB_IGG [color = "#27ae60", penwidth = 1.4];
+    AB_TREG -> IM_TNF [color = "#27ae60", arrowhead = tee, style = dashed];
+    R_IMSUP -> AB_GC [color = "#c0392b", arrowhead = tee, style = dashed];
+
+    /* ================================================================
+       15. SYSTEMIC MANIFESTATIONS AND COMPLICATIONS
+       ================================================================ */
+    subgraph cluster_sys {
+        label = "15. Systemic manifestations, severity and complications";
+        style = "filled,rounded"; fillcolor = "#f7eef2"; color = "#d59ab0";
+        fontsize = 13; fontcolor = "#8d2447";
+        node [fillcolor = "#f1dae3", color = "#c68299"];
+
+        CL_WBC   [label = "CL_WBC\nperipheral WBC (×10⁹/L)", peripheries = 2, fillcolor = "#ecc8d6", penwidth = 1.4];
+        CL_ALB   [label = "CL_ALB\nserum albumin (protein-losing enteropathy)", peripheries = 2, fillcolor = "#ecc8d6", penwidth = 1.4];
+        CL_CRE   [label = "CL_CRE\nserum creatinine (volume depletion AKI)", peripheries = 2, fillcolor = "#ecc8d6", penwidth = 1.4];
+        CL_LACT  [label = "Serum lactate (≥5 mmol/L = fulminant)"];
+        CL_HYPO  [label = "Hypotension / vasopressor need"];
+        CL_ILEUS [label = "Ileus / colonic dysmotility"];
+        CL_TMC   [label = "Toxic megacolon (≥6 cm)"];
+        CL_PERF  [label = "Perforation · peritonitis"];
+        CL_COLEC [label = "Subtotal colectomy / diverting loop ileostomy", shape = hexagon, fillcolor = "#e6b7c8"];
+        CL_SEPSIS[label = "Secondary sepsis / bacteraemia", shape = hexagon, fillcolor = "#e6b7c8"];
+        CL_DEATH [label = "30-day all-cause mortality", shape = hexagon, fillcolor = "#dda3b8"];
+        CL_LOS   [label = "Length of stay · readmission · cost"];
+        CL_ELEC  [label = "Hypokalaemia · metabolic acidosis"];
+    }
+
+    CL_ILEUS -> CL_TMC -> CL_PERF -> CL_COLEC;
+    CL_TMC -> CL_COLEC; CL_LACT -> CL_DEATH; CL_HYPO -> CL_DEATH; CL_PERF -> CL_DEATH;
+    CL_SEPSIS -> CL_DEATH; CL_COLEC -> CL_DEATH [style = dashed];
+    CL_DIARR -> CL_ELEC; CL_DIARR -> CL_CRE [penwidth = 1.4]; CL_DIARR -> CL_HYPO [style = dashed];
+    EPI_PERM -> CL_ALB [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    IM_TNF -> CL_ALB [color = "#c0392b", arrowhead = tee, style = dashed];
+    CL_ILEUS -> CL_DIARR [color = "#c0392b", arrowhead = tee, style = dashed, label = "masks diarrhoea"];
+    IM_PSM -> CL_ILEUS; CL_WBC -> CL_FULM; CL_CRE -> CL_SEV;
+    CL_SEPSIS -> CL_LOS; CL_DEATH -> CL_LOS [style = invis];
+
+    /* ================================================================
+       16. ANTIBACTERIAL PHARMACOLOGY (PK/PD)
+       ================================================================ */
+    subgraph cluster_abpk {
+        label = "16. Anti-C. difficile antibacterials — colonic PK and PD";
+        style = "filled,rounded"; fillcolor = "#eaf2fb"; color = "#8fb2da";
+        fontsize = 13; fontcolor = "#1b4f8f";
+        node [fillcolor = "#d5e5f7", color = "#7ba2d2"];
+
+        DR_VAN     [label = "Oral vancomycin 125 mg q6h ×10 d\n(taper/pulse for recurrence)", shape = octagon, fillcolor = "#bcd6f2", penwidth = 1.4];
+        DR_VAN_COL [label = "VAN_COL\nfaecal vancomycin ≈1000–3000 µg/g\n(MIC90 ≈1 µg/mL)", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_FDX     [label = "Fidaxomicin 200 mg q12h ×10 d\n(EXTEND extended-pulsed regimen)", shape = octagon, fillcolor = "#bcd6f2", penwidth = 1.4];
+        DR_FDX_COL [label = "FDX_COL\nfaecal fidaxomicin ≈1000 µg/g\n(MIC90 ≈0.25 µg/mL)", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_OP1118  [label = "OP1118_COL\nOP-1118 hydrolysis metabolite\n(≈½ potency, colonic)", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_RNAP    [label = "RNA polymerase switch-region inhibition\n(σ-dependent transcription)", shape = diamond, fillcolor = "#cfe0f4", penwidth = 1.4];
+        DR_MTZ     [label = "Metronidazole 500 mg q8h\n(no longer first-line)", shape = octagon, fillcolor = "#bcd6f2"];
+        DR_MTZ_COL [label = "MTZ_COL\ncolonic metronidazole — falls as mucosa heals", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_MTZ_SYS [label = "MTZ_C\nsystemic metronidazole (F≈1, t½ 8 h)", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_RID     [label = "Ridinilazole 200 mg q12h\n(Ri-CoDIFy: non-inferior, superiority missed)", shape = octagon, fillcolor = "#bcd6f2"];
+        DR_RID_COL [label = "RID_COL\nnarrow-spectrum colonic exposure", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_RFX     [label = "Rifaximin 400 mg q8h ×2 wk chaser", shape = octagon, fillcolor = "#bcd6f2"];
+        DR_RFX_COL [label = "RFX_COL\nfaecal rifaximin (<0.4% absorbed)", peripheries = 2, fillcolor = "#c8ddf5"];
+        DR_TIGE    [label = "Tigecycline IV (fulminant salvage)", shape = octagon, fillcolor = "#bcd6f2"];
+        DR_NTZ     [label = "Nitazoxanide (alternative)", shape = octagon, fillcolor = "#bcd6f2"];
+        DR_KILL    [label = "KILL_CD\ntotal bactericidal pressure on C. difficile", shape = diamond, fillcolor = "#b3cff0", penwidth = 1.6];
+        DR_COLLAT  [label = "Collateral guild kill\n(the recurrence tax)", shape = diamond, fillcolor = "#b3cff0", penwidth = 1.6];
+    }
+
+    DR_VAN -> DR_VAN_COL [penwidth = 1.4]; DR_FDX -> DR_FDX_COL [penwidth = 1.4]; DR_FDX_COL -> DR_OP1118;
+    DR_MTZ -> DR_MTZ_SYS -> DR_MTZ_COL; DR_RID -> DR_RID_COL; DR_RFX -> DR_RFX_COL;
+    DR_FDX_COL -> DR_RNAP [penwidth = 1.4]; DR_OP1118 -> DR_RNAP;
+    DR_RNAP -> DR_KILL [penwidth = 1.4];
+    DR_RNAP -> CD_SPORUL [color = "#27ae60", arrowhead = tee, penwidth = 1.8, label = "blocks sporulation"];
+    DR_RNAP -> TOX_PROD [color = "#27ae60", arrowhead = tee, penwidth = 1.6, label = "toxin↓"];
+    DR_VAN_COL -> DR_KILL [penwidth = 1.6]; DR_MTZ_COL -> DR_KILL; DR_RID_COL -> DR_KILL; DR_RFX_COL -> DR_KILL [style = dashed];
+    DR_TIGE -> DR_KILL [style = dashed]; DR_NTZ -> DR_KILL [style = dashed];
+    DR_KILL -> CD_VEG [color = "#c0392b", arrowhead = tee, penwidth = 2.2];
+    DR_KILL -> CD_MUC [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    DR_KILL -> CD_SPORE_L [color = "#c0392b", arrowhead = tee, style = dashed, label = "spores unaffected", penwidth = 0.7];
+    DR_VAN_COL -> DR_COLLAT [penwidth = 2.0]; DR_MTZ_COL -> DR_COLLAT [penwidth = 1.4];
+    DR_FDX_COL -> DR_COLLAT [penwidth = 0.8, label = "narrow"];
+    DR_RID_COL -> DR_COLLAT [penwidth = 0.6, style = dashed];
+    DR_COLLAT -> MB_SBA [color = "#c0392b", arrowhead = tee, penwidth = 2.0];
+    DR_COLLAT -> MB_BUT [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    DR_COLLAT -> MB_BIF [color = "#c0392b", arrowhead = tee, penwidth = 1.4];
+    DR_COLLAT -> MB_ENC [color = "#e67e22", style = dashed, label = "VRE selection"];
+
+    /* ================================================================
+       17. MICROBIOME RESTORATION
+       ================================================================ */
+    subgraph cluster_rest {
+        label = "17. Microbiome restoration — treating the hole rather than the organism";
+        style = "filled,rounded"; fillcolor = "#eef8f1"; color = "#87c79c";
+        fontsize = 13; fontcolor = "#136b3a";
+        node [fillcolor = "#d5eede", color = "#69b184"];
+
+        DR_FMT   [label = "FMT — colonoscopic / NG / capsule\n(≈85–90% cure in recurrent CDI)", shape = octagon, fillcolor = "#bce2cc", penwidth = 1.6];
+        DR_SER   [label = "SER-109 / VOWST oral purified Firmicutes spores\n(ECOSPOR III: 12% vs 40% recurrence)", shape = octagon, fillcolor = "#bce2cc", penwidth = 1.6];
+        DR_RBX   [label = "RBX2660 / REBYOTA rectal suspension\n(PUNCH CD3: 70.6% vs 57.5% sustained)", shape = octagon, fillcolor = "#bce2cc", penwidth = 1.4];
+        DR_VE303 [label = "VE303 defined 8-strain consortium (Ph 2)", shape = octagon, fillcolor = "#bce2cc"];
+        LBP_ENG  [label = "LBP\nengrafting dose", peripheries = 2, fillcolor = "#c8e8d6", penwidth = 1.4];
+        DR_ENGR  [label = "Engraftment flux into MB_SBA / MB_BUT", shape = diamond, fillcolor = "#c1e4d1", penwidth = 1.6];
+        DR_BARES [label = "Secondary bile-acid restoration within days", penwidth = 1.4];
+        DR_DAV   [label = "DAV132 colon-targeted adsorbent\n(protects microbiome from the index antibiotic)", shape = octagon, fillcolor = "#bce2cc"];
+        DR_PROB  [label = "S. boulardii / Lactobacillus probiotics\n(adjunct, modest evidence)", shape = octagon, fillcolor = "#cdeadb"];
+        DR_URSO  [label = "Ursodiol (bile-acid competition)", shape = octagon, fillcolor = "#cdeadb"];
+        DR_STOP  [label = "Stop the precipitating antibiotic & PPI\n(the cheapest intervention)", shape = octagon, fillcolor = "#cdeadb", penwidth = 1.4];
+        DR_DIET  [label = "Fibre / fermentable substrate reintroduction", shape = octagon, fillcolor = "#cdeadb"];
+    }
+
+    DR_FMT -> LBP_ENG [penwidth = 1.6]; DR_SER -> LBP_ENG [penwidth = 1.6]; DR_RBX -> LBP_ENG [penwidth = 1.4]; DR_VE303 -> LBP_ENG;
+    LBP_ENG -> DR_ENGR [penwidth = 1.6];
+    DR_ENGR -> MB_SBA [color = "#27ae60", penwidth = 2.2]; DR_ENGR -> MB_BUT [color = "#27ae60", penwidth = 1.8];
+    DR_FMT -> MB_BAC [color = "#27ae60", style = dashed]; DR_FMT -> MB_BIF [color = "#27ae60", style = dashed];
+    DR_ENGR -> DR_BARES -> BA_DCA [color = "#27ae60", penwidth = 1.6];
+    DR_DAV -> ABX_COL [color = "#c0392b", arrowhead = tee, penwidth = 1.4];
+    DR_STOP -> ABX_DOSE [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    DR_STOP -> R_PPI [color = "#c0392b", arrowhead = tee, style = dashed];
+    DR_DIET -> SC_FIB [color = "#27ae60"];
+    DR_URSO -> BA_UDCA [color = "#27ae60"];
+    DR_PROB -> MB_NICHE [color = "#27ae60", style = dashed];
+
+    /* ================================================================
+       18. TOXIN-DIRECTED IMMUNOTHERAPY
+       ================================================================ */
+    subgraph cluster_imm {
+        label = "18. Toxin-directed immunotherapy";
+        style = "filled,rounded"; fillcolor = "#f9f0fb"; color = "#c69ed9";
+        fontsize = 13; fontcolor = "#6b2185";
+        node [fillcolor = "#eddcf3", color = "#ad84c4"];
+
+        DR_BEZ     [label = "Bezlotoxumab 10 mg/kg IV single dose\nanti-TcdB IgG1 · t½ ≈19 d\n(MODIFY I/II: recurrence 16.5% vs 26.6%)",
+                     shape = octagon, fillcolor = "#dfc6ec", penwidth = 1.6];
+        DR_BEZ_C   [label = "BEZ_C / BEZ_P\ncentral + peripheral plasma (2-cmt)", peripheries = 2, fillcolor = "#e5d1f0"];
+        DR_BEZ_GUT [label = "BEZ_GUT\nluminal antibody (permeability-driven transudate)", peripheries = 2, fillcolor = "#e5d1f0", penwidth = 1.4];
+        DR_ACTOX   [label = "Actoxumab (anti-TcdA)\nno added benefit — discontinued", shape = octagon, fillcolor = "#efe0f5"];
+        DR_IVIG    [label = "IVIG (severe/refractory, anecdotal)", shape = octagon, fillcolor = "#efe0f5"];
+        DR_HFCAUT  [label = "Caution: heart-failure subgroup\n(MODIFY safety signal)", shape = note, fillcolor = "#f6eafa"];
+        DR_TOLEV   [label = "Tolevamer toxin-binding polymer\n(failed phase 3 — proof the toxin alone isn't enough)", shape = octagon, fillcolor = "#efe0f5"];
+    }
+
+    DR_BEZ -> DR_BEZ_C -> DR_BEZ_GUT [penwidth = 1.6];
+    DR_BEZ -> DR_HFCAUT [style = dashed];
+    DR_ACTOX -> TCDA [color = "#c0392b", arrowhead = tee, style = dashed];
+    DR_IVIG -> TOX_NEUT [color = "#27ae60", style = dashed];
+    DR_TOLEV -> TCDB [color = "#c0392b", arrowhead = tee, style = dashed];
+    DR_BEZ_GUT -> TCDB [color = "#c0392b", arrowhead = tee, penwidth = 2.0, label = "neutralise"];
+    DR_BEZ_GUT -> CL_RECUR [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+
+    /* ================================================================
+       19. CLINICAL ENDPOINTS
+       ================================================================ */
+    subgraph cluster_end {
+        label = "19. Clinical endpoints and trial read-outs";
+        style = "filled,rounded"; fillcolor = "#fdf1f1"; color = "#dd9494";
+        fontsize = 13; fontcolor = "#8d1c1c";
+        node [shape = hexagon, fillcolor = "#f4cccc", color = "#c97878"];
+
+        CL_DIARR [label = "STOOL\nunformed stools / 24 h\n(Bristol 6–7)", peripheries = 2, penwidth = 1.8, fillcolor = "#efb8b8"];
+        CL_SEV   [label = "IDSA/SHEA severity\n(WBC ≥15 or Cr ≥1.5 mg/dL)"];
+        CL_FULM  [label = "Fulminant CDI\n(ileus · megacolon · shock)"];
+        CL_CURE  [label = "Clinical cure\n≤3 unformed stools × 2 consecutive days"];
+        CL_TTR   [label = "Time to resolution of diarrhoea (TTROD)"];
+        CL_RECUR [label = "Recurrence within 8 weeks", penwidth = 1.8, fillcolor = "#e8a3a3"];
+        CL_SCR   [label = "Sustained clinical response\nday 30 / 60 / 90", penwidth = 1.6];
+        CL_TOXNEG[label = "Faecal toxin / NAAT clearance"];
+        CL_QOL   [label = "Cdiff32 quality of life"];
+    }
+
+    CL_DIARR -> CL_CURE [color = "#c0392b", arrowhead = tee, penwidth = 1.6];
+    CL_DIARR -> CL_TTR; CL_CURE -> CL_SCR [penwidth = 1.6];
+    CL_RECUR -> CL_SCR [color = "#c0392b", arrowhead = tee, penwidth = 1.8];
+    CL_CURE -> CL_QOL [color = "#27ae60"]; CL_RECUR -> CL_QOL [color = "#c0392b", arrowhead = tee];
+    CL_SEV -> CL_FULM; CL_FULM -> CL_COLEC; CL_FULM -> CL_DEATH [penwidth = 1.4];
+    EPI_H2O -> CL_DIARR [penwidth = 2.0];
+    TCDB -> CL_TOXNEG [style = dashed]; CD_VEG -> CL_TOXNEG [style = dashed];
+    CD_SPORE_B -> CL_RECUR [color = "#c0392b", penwidth = 2.0, label = "reservoir"];
+    MB_SBA -> CL_RECUR [color = "#27ae60", arrowhead = tee, penwidth = 2.0, label = "recovered guild\nprevents relapse"];
+    BA_DCA -> CL_RECUR [color = "#27ae60", arrowhead = tee, penwidth = 1.6];
+    CL_ALB -> CL_SEV [color = "#c0392b", arrowhead = tee, style = dashed];
+
+    /* ================================================================
+       20. MODEL BOOKKEEPING
+       ================================================================ */
+    subgraph cluster_legend {
+        label = "20. Legend and mrgsolve implementation notes";
+        style = "filled,rounded"; fillcolor = "#f2f2f2"; color = "#b0b0b0";
+        fontsize = 13; fontcolor = "#444444";
+        node [shape = note, fillcolor = "#fafafa", color = "#9a9a9a", fontsize = 9];
+
+        LG_1 [label = "double border = ODE state in cdi_mrgsolve_model.R (61 compartments)"];
+        LG_2 [label = "octagon = drug / intervention   ·   hexagon = clinical endpoint\ndiamond = regulatory switch or derived rate"];
+        LG_3 [label = "red tee-arrow = inhibition or killing\ngreen tee-arrow = protective inhibition of a harmful node\ngreen arrow = restorative / supportive flux"];
+        LG_4 [label = "The recurrence loop is the model's organising principle:\nCD_SPORE_B survives therapy, MB_SBA does not recover before the drug stops,\nBA_TCA stays high and BA_DCA stays low → CD_GERM re-fires."];
+        LG_5 [label = "Calibration anchors: Louie 2011 & Cornely 2012 (fidaxomicin vs vancomycin),\nWilcox 2017 MODIFY I/II (bezlotoxumab), van Nood 2013 (FMT),\nFeuerstadt 2022 ECOSPOR III (SER-109), Khanna 2022 PUNCH CD3 (RBX2660),\nGuery 2018 EXTEND, Johnson 2014 (metronidazole vs vancomycin), Kyne 2001 (anti-toxin IgG)."];
+        LG_6 [label = "Two therapeutic axes are structurally distinct in the model:\nKILL_CD (organism) vs DR_COLLAT/DR_ENGR (ecology).\nOnly the second changes the recurrence probability."];
+
+        LG_1 -> LG_2 -> LG_3 -> LG_4 -> LG_5 -> LG_6 [style = invis];
+    }
+
+    /* ================================================================
+       CROSS-CUTTING FEEDBACK LOOPS (drawn last so they overlay)
+       ================================================================ */
+    CD_VEG   -> NUT_SIA  [color = "#c0392b", arrowhead = tee, style = dashed, label = "consumes"];
+    CD_VEG   -> NUT_AA   [color = "#c0392b", arrowhead = tee, style = dashed];
+    MB_ENT   -> IM_LPS   [penwidth = 1.4];
+    EPI_H2O  -> BA_TCA   [color = "#c0392b", arrowhead = tee, style = dashed, label = "washout"];
+    EPI_H2O  -> DR_VAN_COL [color = "#c0392b", arrowhead = tee, style = dashed, label = "diarrhoeal\nwashout"];
+    IM_NEUT  -> MB_NICHE [color = "#c0392b", arrowhead = tee, style = dashed];
+    CL_DIARR -> MB_NICHE [color = "#c0392b", arrowhead = tee, style = dashed, label = "transit ↑"];
+    TOX_ACTIN-> EPI_MLCK;
+    CD_MUC   -> IM_TLR4  [penwidth = 1.2];
+    CD_MUC   -> IM_TLR5  [penwidth = 1.2];
+    AB_IGG   -> CD_MUC   [color = "#c0392b", arrowhead = tee, style = dashed];
+    IM_IL22  -> EPI_TJ   [color = "#27ae60", style = dashed];
+    BA_DCA   -> CD_SPORULATION_NOTE [style = invis];
+    CD_SPORULATION_NOTE [label = "Secondary bile acids also suppress\nsporulation and toxin expression",
+                          shape = note, fillcolor = "#fdf6e3", color = "#c9ad55", fontsize = 9];
+    CD_SPORULATION_NOTE -> CD_SPORUL [color = "#27ae60", arrowhead = tee, style = dashed];
+    CD_SPORULATION_NOTE -> TOX_PROD  [color = "#27ae60", arrowhead = tee, style = dashed];
+}
