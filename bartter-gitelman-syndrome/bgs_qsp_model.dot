@@ -1,0 +1,751 @@
+/* ============================================================================
+   bgs_qsp_model.dot — Quantitative Systems Pharmacology map of the
+   SALT-LOSING TUBULOPATHIES: Bartter syndrome (types I-V) and
+   Gitelman syndrome.
+
+   CENTRAL ORGANISING IDEA
+   -----------------------
+   Bartter and Gitelman syndrome are NOT two diseases with two mechanisms.
+   They are ONE mechanism — loss of NaCl reabsorption in the distal nephron —
+   read out at two different ANATOMICAL POSITIONS relative to the macula
+   densa. Everything that clinically distinguishes them falls out of that
+   single positional fact:
+
+     * Lesion UPSTREAM of / AT the macula densa (thick ascending limb, TAL):
+       the macula densa itself is salt-blind -> COX-2 induction -> renal PGE2
+       storm ("hyperprostaglandin E syndrome") -> renin amplification, further
+       NKCC2 inhibition, AQP2 antagonism -> polyuria, growth failure.
+       Loss of TAL K+ recycling collapses the lumen-positive transepithelial
+       potential -> paracellular Ca2+ AND Mg2+ driving force lost ->
+       HYPERCALCIURIA -> nephrocalcinosis -> CKD.
+       => COX inhibition is disease-modifying.
+
+     * Lesion DOWNSTREAM of the macula densa (distal convoluted tubule, DCT):
+       the macula densa still sees normal NaCl -> NO PGE2 storm.
+       TAL paracellular divalent transport is intact -> volume contraction
+       raises proximal Ca2+ reabsorption and DCT TRPV5 -> HYPOCALCIURIA.
+       DCT injury destroys TRPM6 -> severe symptomatic HYPOMAGNESAEMIA.
+       => COX inhibition is nearly useless; Mg2+ repletion is the therapy.
+
+   So urinary calcium changes SIGN, and NSAID efficacy switches on and off,
+   with no genotype-specific switch anywhere in the model: only the two
+   capacity parameters FTAL and FDCT move.
+
+   Layout: 14 clusters, >190 nodes. Render with
+     dot -Tsvg bgs_qsp_model.dot -o bgs_qsp_model.svg
+     dot -Tpng -Gdpi=150 bgs_qsp_model.dot -o bgs_qsp_model.png
+   ==========================================================================*/
+
+digraph BGS_QSP {
+    graph [rankdir = TB,
+           splines = spline,
+           overlap = false,
+           concentrate = false,
+           compound = true,
+           nodesep = 0.30,
+           ranksep = 0.62,
+           fontname = "Helvetica",
+           fontsize = 12,
+           labelloc = "t",
+           labeljust = "c",
+           bgcolor = "white",
+           label = <<FONT POINT-SIZE="34"><B>Bartter &amp; Gitelman Syndrome — QSP Mechanistic Map</B></FONT><BR/>
+                    <FONT POINT-SIZE="19">Salt-Losing Tubulopathies: nephron-segment transport · macula densa NaCl sensing · COX-2/PGE<SUB>2</SUB> amplification · RAAS · divalent cation handling · drug PK/PD · clinical endpoints</FONT><BR/>
+                    <FONT POINT-SIZE="15" COLOR="#8B0000"><B>Emergent principle:</B> lesion POSITION relative to the macula densa — not lesion identity — sets the PGE<SUB>2</SUB> phenotype, the SIGN of urinary calcium, and whether COX inhibition works.</FONT><BR/>
+                    <FONT POINT-SIZE="13" COLOR="#555555">FTAL = fractional thick-ascending-limb NaCl transport capacity · FDCT = fractional distal-convoluted-tubule NCC capacity</FONT>>];
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, penwidth = 1.1, margin = "0.09,0.05"];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.0,
+          arrowsize = 0.65, color = "#5A5A5A"];
+
+    /* ---------- colour convention -------------------------------------- */
+    /* gene / lesion        #FFD9D9   red-pink                              */
+    /* transporter/channel  #D6E9FF   blue                                  */
+    /* segment / tissue     #E8E8E8   grey                                  */
+    /* signalling mediator  #FFF0C9   amber                                 */
+    /* systemic pool        #DFF5E1   green                                 */
+    /* drug                 #E4D9FF   violet                                */
+    /* endpoint / biomarker #FFE0B2   orange                                */
+    /* pathology            #F3C9C9   dusty red                             */
+
+/* ==========================================================================
+   1. GENETICS AND MOLECULAR LESIONS
+   ========================================================================== */
+    subgraph cluster_gene {
+        label = <<B>1. Genetic Lesions — one pathway, six positions</B><BR/><FONT POINT-SIZE="10">Bartter I-V · Gitelman · phenocopies. Each gene maps onto a single point in the TAL/DCT transport chain.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FFF6F6"; color = "#C08080"; fontsize = 15;
+        node [fillcolor = "#FFD9D9", color = "#B05A5A"];
+
+        G_SLC12A1 [label = "SLC12A1 (15q21.1)\nNKCC2 · Bartter type I\nantenatal, severe\nloss-of-function, AR"];
+        G_KCNJ1   [label = "KCNJ1 (11q24.3)\nROMK / Kir1.1 · Bartter type II\nantenatal; transient\nNEONATAL HYPERKALAEMIA"];
+        G_CLCNKB  [label = "CLCNKB (1p36.13)\nClC-Kb · Bartter type III\n'classic'; widest phenotype\nspectrum → Gitelman-like"];
+        G_BSND    [label = "BSND (1p32.3)\nbarttin (β-subunit of\nClC-Ka/Kb) · Bartter type IVa\n+ SENSORINEURAL DEAFNESS"];
+        G_CLCNKAB [label = "CLCNKA + CLCNKB\ndigenic · Bartter type IVb\n+ sensorineural deafness"];
+        G_MAGED2  [label = "MAGED2 (Xp11.22)\nBartter type V · X-linked\nHSP40 co-chaperone of\nNKCC2/NCC surface expression\nTRANSIENT — remits postnatally"];
+        G_SLC12A3 [label = "SLC12A3 (16q13)\nNCC · GITELMAN syndrome\nAR; carrier freq ~1 %\nprevalence ~1-10 / 40 000"];
+
+        G_CASR    [label = "CASR gain-of-function\nADH type 1 (Bartter-like)\nhypocalcaemia + hypercalciuria"];
+        G_KCNJ10  [label = "KCNJ10 (Kir4.1)\nEAST / SeSAME syndrome\nGitelman-like + epilepsy,\nataxia, deafness"];
+        G_HNF1B   [label = "HNF1B\nRCAD: hypomagnesaemia,\nMODY5, renal cysts\n(FXYD2 transactivation loss)"];
+        G_CLDN16  [label = "CLDN16 / CLDN19\nFHHNC: paracellular TAL\nMg/Ca leak, nephrocalcinosis"];
+        G_TRPM6   [label = "TRPM6\nHSH: hypomagnesaemia with\nsecondary hypocalcaemia"];
+        G_MITO    [label = "mtDNA tRNA-Ile m.4291T>C\nMELAS-associated\nGitelman-like tubulopathy"];
+        G_ANTINCC [label = "anti-NCC autoantibody\n(Sjögren, acquired\nGitelman-like syndrome)"];
+
+        G_SLC12A1 -> G_CLCNKB [style=invis];
+        G_KCNJ1 -> G_BSND [style=invis];
+    }
+
+/* ==========================================================================
+   2. THICK ASCENDING LIMB (TAL) TRANSPORT MODULE
+   ========================================================================== */
+    subgraph cluster_tal {
+        label = <<B>2. Thick Ascending Limb — the K<SUP>+</SUP> recycling engine</B><BR/><FONT POINT-SIZE="10">Reabsorbs 25-30 % of filtered Na<SUP>+</SUP>. Generates the lumen-POSITIVE potential that drives paracellular Ca<SUP>2+</SUP>/Mg<SUP>2+</SUP> uptake.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#F2F7FF"; color = "#6688BB"; fontsize = 15;
+        node [fillcolor = "#D6E9FF", color = "#5577AA"];
+
+        TAL_SEG   [label = "TAL epithelium\n(medullary + cortical)", fillcolor = "#E8E8E8", color="#777777"];
+        NKCC2     [label = "NKCC2 (apical)\n1Na⁺ : 1K⁺ : 2Cl⁻\nelectroneutral entry"];
+        ROMK      [label = "ROMK / Kir1.1 (apical)\nK⁺ RECYCLING back to lumen\n→ sustains NKCC2 turnover"];
+        KCC_BK    [label = "BK / Maxi-K (apical)\nflow-dependent K⁺ exit"];
+        NAK_TAL   [label = "Na⁺/K⁺-ATPase (basolateral)\nsets the electrochemical\ngradient; high O₂ demand"];
+        CLCKB_TAL [label = "ClC-Kb + barttin (basolateral)\nCl⁻ exit"];
+        CLCKA_TAL [label = "ClC-Ka + barttin\n(thin limb / inner ear)"];
+        KCC4      [label = "KCC4 (basolateral)\nK⁺-Cl⁻ cotransport"];
+        NHE3_TAL  [label = "NHE3 (apical)\nHCO₃⁻ reclamation"];
+        TAL_PD    [label = "LUMEN-POSITIVE\ntransepithelial PD\n(+8 mV) — the DRIVING FORCE", fillcolor = "#FFF0C9", color="#BB9944"];
+        CLDN1619  [label = "claudin-16 / claudin-19\ncation-selective paracellular\npore (tight junction)"];
+        PARA_CA   [label = "paracellular Ca²⁺\nreabsorption (TAL)\n~20 % of filtered load"];
+        PARA_MG   [label = "paracellular Mg²⁺\nreabsorption (TAL)\n~70 % of filtered load"];
+        CASR_TAL  [label = "CaSR (basolateral TAL)\nCa²⁺/Mg²⁺-sensing brake\non NKCC2 + ROMK"];
+        UMOD      [label = "uromodulin (THP)\nchaperones NKCC2/ROMK\nto the apical membrane"];
+        TAL_CAP   [label = "TAL NaCl transport CAPACITY\nFTAL ∈ [0,1]\n← type I/II/III/IVa/IVb lesions", fillcolor = "#F3C9C9", color="#AA5555"];
+        CORT_DIL  [label = "cortical diluting segment\n→ free-water generation\n(urinary dilution)"];
+        MED_GRAD  [label = "medullary osmotic gradient\n(countercurrent multiplier)"];
+
+        NKCC2  -> TAL_PD   [label = "Na/K/2Cl entry"];
+        ROMK   -> TAL_PD   [label = "K⁺ back-leak\n→ lumen positive", color = "#CC5500", penwidth = 2.0];
+        NKCC2  -> ROMK     [label = "supplies K⁺", style = dashed];
+        ROMK   -> NKCC2    [label = "recycled K⁺ sustains\ncotransport", color = "#CC5500", penwidth = 1.8];
+        NAK_TAL-> NKCC2    [label = "Na⁺ gradient"];
+        CLCKB_TAL -> NKCC2 [label = "Cl⁻ exit prevents\ncell Cl⁻ accumulation"];
+        KCC4   -> CLCKB_TAL [style = dashed];
+        UMOD   -> NKCC2    [style = dashed, label = "trafficking"];
+        UMOD   -> ROMK     [style = dashed];
+        CASR_TAL -> NKCC2  [label = "inhibits", color = "#B22222", arrowhead = tee];
+        CASR_TAL -> ROMK   [label = "inhibits", color = "#B22222", arrowhead = tee];
+        TAL_PD -> CLDN1619 [label = "electrical driving force"];
+        CLDN1619 -> PARA_CA;
+        CLDN1619 -> PARA_MG;
+        TAL_SEG -> NKCC2 [style = invis];
+        NKCC2 -> CORT_DIL;
+        NKCC2 -> MED_GRAD;
+        TAL_CAP -> NKCC2 [label = "scales Vmax", color = "#B22222", penwidth = 2.0];
+        KCC_BK -> TAL_PD [style = dashed];
+        NHE3_TAL -> TAL_SEG [style = dashed];
+        CLCKA_TAL -> TAL_SEG [style = dashed];
+    }
+
+/* ==========================================================================
+   3. DISTAL CONVOLUTED TUBULE (DCT) MODULE
+   ========================================================================== */
+    subgraph cluster_dct {
+        label = <<B>3. Distal Convoluted Tubule — NCC, the WNK kinase network, and TRPM6</B><BR/><FONT POINT-SIZE="10">Reabsorbs 5-10 % of filtered Na<SUP>+</SUP>; the ONLY site of regulated transcellular Mg<SUP>2+</SUP> uptake.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#F2F7FF"; color = "#6688BB"; fontsize = 15;
+        node [fillcolor = "#D6E9FF", color = "#5577AA"];
+
+        DCT_SEG   [label = "DCT epithelium\n(DCT1 / DCT2)", fillcolor = "#E8E8E8", color="#777777"];
+        NCC       [label = "NCC / SLC12A3 (apical)\n1Na⁺ : 1Cl⁻\nthiazide-sensitive"];
+        WNK4      [label = "WNK4 kinase\nchloride-sensitive sensor"];
+        WNK1      [label = "WNK1 / KS-WNK1"];
+        SPAK      [label = "SPAK / OSR1\nphosphorylates NCC (T53/T58)\nand NKCC2"];
+        KLHL3     [label = "KLHL3-CUL3 E3 ligase\ndegrades WNK4\n(PHA-II when mutated)"];
+        KIR4145   [label = "Kir4.1/Kir5.1 (basolateral)\nKCNJ10/KCNJ16\nK⁺-sensing → cell Cl⁻"];
+        CLCKB_DCT [label = "ClC-Kb (basolateral DCT)\nCl⁻ exit — shared with TAL\n(why type III overlaps Gitelman)"];
+        NAK_DCT   [label = "Na⁺/K⁺-ATPase (basolateral)\nγ-subunit FXYD2"];
+        TRPM6     [label = "TRPM6 (apical)\ntranscellular Mg²⁺ entry\nEGF/EGFR-dependent"];
+        CNNM2     [label = "CNNM2 / SLC41A1\nbasolateral Mg²⁺ extrusion"];
+        TRPV5     [label = "TRPV5 (apical, DCT2/CNT)\ntranscellular Ca²⁺ entry\nrate-limiting, PTH/calcitriol-up"];
+        CALB      [label = "calbindin-D28K\nintracellular Ca²⁺ ferry"];
+        NCX1      [label = "NCX1 + PMCA1b (basolateral)\nCa²⁺ extrusion"];
+        DCT_CAP   [label = "DCT NCC transport CAPACITY\nFDCT ∈ [0,1]\n← Gitelman; also type III/IVa", fillcolor = "#F3C9C9", color="#AA5555"];
+        DCT_ATROPHY [label = "DCT atrophy / hypoplasia\n(chronic NCC loss)\n→ TRPM6 + TRPV5 loss", fillcolor = "#F3C9C9", color="#AA5555"];
+        EGF_DCT   [label = "EGF → EGFR (DCT)\npermissive for TRPM6", fillcolor = "#FFF0C9", color="#BB9944"];
+
+        WNK4 -> SPAK -> NCC [label = "phospho-activation"];
+        WNK1 -> SPAK;
+        KLHL3 -> WNK4 [label = "ubiquitin-mediated\ndegradation", arrowhead = tee, color = "#B22222"];
+        KIR4145 -> WNK4 [label = "low cell Cl⁻ → WNK4 ON", style = dashed];
+        CLCKB_DCT -> KIR4145 [style = dashed];
+        NAK_DCT -> NCC [label = "Na⁺ gradient"];
+        DCT_CAP -> NCC [label = "scales Vmax", color = "#B22222", penwidth = 2.0];
+        NCC -> DCT_ATROPHY [label = "loss of NCC-driven\ntrophic signalling", style = dashed, arrowhead = tee, color="#B22222"];
+        DCT_ATROPHY -> TRPM6 [arrowhead = tee, color = "#B22222", penwidth = 1.7];
+        DCT_ATROPHY -> TRPV5 [arrowhead = tee, color = "#B22222"];
+        EGF_DCT -> TRPM6;
+        TRPM6 -> CNNM2 [label = "transcellular Mg²⁺"];
+        TRPV5 -> CALB -> NCX1 [label = "transcellular Ca²⁺"];
+        DCT_SEG -> NCC [style = invis];
+    }
+
+/* ==========================================================================
+   4. PROXIMAL TUBULE AND COLLECTING DUCT (ASDN)
+   ========================================================================== */
+    subgraph cluster_ptcd {
+        label = <<B>4. Proximal Tubule and Aldosterone-Sensitive Distal Nephron</B><BR/><FONT POINT-SIZE="10">The PT amplifies Ca<SUP>2+</SUP> retention when volume-contracted; the ASDN is where Na<SUP>+</SUP> is traded for K<SUP>+</SUP> and H<SUP>+</SUP>.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#F5F5F5"; color = "#888888"; fontsize = 15;
+        node [fillcolor = "#D6E9FF", color = "#5577AA"];
+
+        PT_SEG    [label = "proximal tubule (S1-S3)\nreabsorbs 60-70 % Na⁺\nisosmotic, Ca²⁺-COUPLED", fillcolor = "#E8E8E8", color="#777777"];
+        NHE3_PT   [label = "NHE3 (apical PT)\nAng II-stimulated"];
+        NBCe1     [label = "NBCe1 (basolateral)\nHCO₃⁻ exit"];
+        PT_PARA_CA[label = "PT paracellular + transcellular\nCa²⁺ reabsorption\nfollows Na⁺/H₂O convection"];
+        SGLT2_PT  [label = "SGLT2 / NaPi-IIa\n(co-dependent Na⁺ routes)"];
+        CNT_CD    [label = "connecting tubule +\ncortical collecting duct (ASDN)", fillcolor = "#E8E8E8", color="#777777"];
+        ENAC      [label = "ENaC (α/β/γ, apical)\naldosterone- and\nAng II-driven Na⁺ entry"];
+        ROMK_CD   [label = "ROMK (apical CD)\nprincipal-cell K⁺ SECRETION"];
+        BK_CD     [label = "BK / Maxi-K (apical CD)\nFLOW-dependent K⁺ secretion"];
+        PENDRIN   [label = "pendrin (SLC26A4, β-IC)\nCl⁻/HCO₃⁻ exchange"];
+        HATPASE   [label = "H⁺-ATPase + H⁺/K⁺-ATPase\n(α-intercalated cell)\nH⁺ secretion, K⁺ salvage"];
+        AQP2      [label = "AQP2 (apical CD)\nvasopressin-gated water\nchannel"];
+        UT_A1     [label = "UT-A1 urea transporter"];
+        NEW_HCO3  [label = "distal H⁺ secretion →\nNEW HCO₃⁻ generation\n(the alkalosis engine)", fillcolor = "#FFF0C9", color="#BB9944"];
+        LUMEN_NEG [label = "lumen-NEGATIVE PD in ASDN\n(electrogenic Na⁺ entry)", fillcolor = "#FFF0C9", color="#BB9944"];
+        DIST_DELIV[label = "DISTAL Na⁺ + Cl⁻ DELIVERY\n(the coupling variable)", fillcolor = "#FFF0C9", color="#BB9944", penwidth = 2.0];
+
+        PT_SEG -> NHE3_PT [style = invis];
+        NHE3_PT -> PT_PARA_CA [label = "Na⁺/H₂O convection\ndrags Ca²⁺", penwidth = 1.6];
+        NHE3_PT -> NBCe1;
+        SGLT2_PT -> PT_SEG [style = dashed];
+        ENAC -> LUMEN_NEG -> ROMK_CD [label = "electrical driving force\nfor K⁺ secretion", penwidth = 1.8];
+        DIST_DELIV -> ENAC [label = "substrate", penwidth = 1.8];
+        DIST_DELIV -> BK_CD [label = "tubular FLOW", penwidth = 1.5];
+        LUMEN_NEG -> HATPASE [label = "favours H⁺ secretion"];
+        HATPASE -> NEW_HCO3;
+        PENDRIN -> CNT_CD [style = dashed];
+        AQP2 -> CNT_CD [style = dashed];
+        UT_A1 -> CNT_CD [style = dashed];
+        CNT_CD -> ENAC [style = invis];
+    }
+
+/* ==========================================================================
+   5. MACULA DENSA / JGA — THE POSITIONAL SENSOR
+   ========================================================================== */
+    subgraph cluster_md {
+        label = <<B>5. Macula Densa and Juxtaglomerular Apparatus — where POSITION becomes PHENOTYPE</B><BR/><FONT POINT-SIZE="10">The macula densa sits at the END of the TAL. A TAL lesion blinds it; a DCT lesion does not. This one fact generates the whole Bartter/Gitelman divergence.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FFFCF0"; color = "#BB9944"; fontsize = 15;
+        node [fillcolor = "#FFF0C9", color = "#BB9944"];
+
+        MD_CELL   [label = "macula densa cell\n(terminal TAL, at the\nglomerular hilum)", fillcolor = "#E8E8E8", color="#777777"];
+        MD_NKCC2  [label = "macula densa NKCC2\nthe NaCl SENSOR", fillcolor = "#D6E9FF", color="#5577AA"];
+        MD_NACL   [label = "SENSED luminal [NaCl]\nat the macula densa\n(≈ f(FTAL) only)", penwidth = 2.2, color = "#CC5500"];
+        MD_ATP    [label = "ATP release via\nmaxi-anion channel\n→ adenosine (A1R)"];
+        TGF       [label = "tubuloglomerular feedback\n(TGF): afferent\narteriolar tone"];
+        MD_NNOS   [label = "nNOS (NOS1) →\nNO — vasodilator,\nrenin-permissive"];
+        MD_COX2   [label = "COX-2 induction\n(macula densa + medullary\ninterstitial cells)", penwidth = 2.0, color = "#CC5500"];
+        MPGES1    [label = "mPGES-1\n(microsomal PGE synthase)"];
+        PGE2      [label = "renal PGE₂\n★ the amplifier ★", penwidth = 2.4, color = "#B22222", fillcolor = "#FFE0B2"];
+        PGI2      [label = "PGI₂ (prostacyclin)\nrenin-stimulatory"];
+        EP2       [label = "EP2 receptor → Gs → cAMP"];
+        EP4       [label = "EP4 receptor → Gs → cAMP\n(JG cell renin release)"];
+        EP1_EP3   [label = "EP1/EP3 receptors\n(Gq / Gi — natriuretic,\nAQP2-antagonising)"];
+        JG_CELL   [label = "juxtaglomerular granular cell", fillcolor = "#E8E8E8", color="#777777"];
+        JG_HYPER  [label = "JG cell HYPERPLASIA\n(histological hallmark)", fillcolor = "#F3C9C9", color="#AA5555"];
+        BARO      [label = "renal baroreceptor\n(afferent arteriolar\nwall tension)"];
+        SNS_RENAL [label = "renal sympathetic\nβ1-adrenergic drive"];
+
+        MD_CELL -> MD_NKCC2 [style = invis];
+        MD_NKCC2 -> MD_NACL [label = "transduces"];
+        MD_NACL -> MD_ATP   [label = "HIGH NaCl →", style = dashed];
+        MD_ATP -> TGF;
+        MD_NACL -> MD_COX2  [label = "LOW NaCl → COX-2 ON", color = "#B22222", penwidth = 2.2, arrowhead = tee];
+        MD_NACL -> MD_NNOS  [arrowhead = tee, style = dashed];
+        MD_COX2 -> MPGES1 -> PGE2;
+        MD_COX2 -> PGI2;
+        PGE2 -> EP2; PGE2 -> EP4; PGE2 -> EP1_EP3;
+        EP4 -> JG_CELL [label = "cAMP → renin\nexocytosis", penwidth = 1.8];
+        EP2 -> JG_CELL;
+        PGI2 -> JG_CELL;
+        MD_NNOS -> JG_CELL [style = dashed];
+        BARO -> JG_CELL [label = "low wall tension\n→ renin ↑"];
+        SNS_RENAL -> JG_CELL [label = "β1 → cAMP"];
+        JG_CELL -> JG_HYPER [label = "chronic stimulation"];
+        MD_NACL -> JG_CELL [label = "direct NaCl-dependent\nsuppression", arrowhead = tee, style = dashed];
+    }
+
+/* ==========================================================================
+   6. RAAS AND VOLUME CONTROL
+   ========================================================================== */
+    subgraph cluster_raas {
+        label = <<B>6. RAAS, Volume Status and Vasopressin</B><BR/><FONT POINT-SIZE="10">Secondary hyperreninaemic hyperaldosteronism WITHOUT hypertension — the diagnostic signature of a salt-wasting lesion.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#F0FFF2"; color = "#55AA66"; fontsize = 15;
+        node [fillcolor = "#DFF5E1", color = "#448855"];
+
+        RENIN     [label = "plasma renin activity (PRA)\n↑↑ 3-10 × normal", penwidth = 1.8];
+        AGT       [label = "angiotensinogen (hepatic)"];
+        ANGI      [label = "angiotensin I"];
+        ACE_L     [label = "ACE (pulmonary + renal)"];
+        ANGII     [label = "angiotensin II\n↑↑", penwidth = 1.8];
+        AT1R      [label = "AT₁ receptor\n(vascular, adrenal, PT, ASDN)"];
+        ALDO      [label = "aldosterone\n↑↑ (secondary)", penwidth = 1.8];
+        MR        [label = "mineralocorticoid receptor\n(ASDN principal cell)"];
+        SGK1      [label = "SGK1 → NDRG1 → ENaC/ROMK\ntranscription + trafficking"];
+        ECFV      [label = "extracellular fluid volume\nCONTRACTED", penwidth = 1.8, fillcolor = "#F3C9C9", color = "#AA5555"];
+        BP_SYS    [label = "systemic blood pressure\nNORMAL or LOW\n(despite ↑↑ aldosterone)", fillcolor = "#FFE0B2", color = "#CC8800"];
+        VASC_RESIST [label = "vascular resistance\n(blunted pressor response\nto Ang II / noradrenaline)"];
+        ADH       [label = "AVP / vasopressin"];
+        V2R       [label = "V₂ receptor → cAMP → AQP2"];
+        ANP       [label = "ANP / BNP\n(low — no volume expansion)"];
+        THIRST    [label = "SALT CRAVING + polydipsia\n(hypothalamic + behavioural)", fillcolor = "#FFE0B2", color = "#CC8800"];
+        NA_INTAKE [label = "dietary NaCl intake\n(often spontaneously high)"];
+        PGE2_VASC [label = "PGE₂/PGI₂-dependent\nGFR support (afferent\nvasodilatation)"];
+
+        RENIN -> ANGI; AGT -> ANGI; ACE_L -> ANGII; ANGI -> ANGII;
+        ANGII -> AT1R -> ALDO -> MR -> SGK1;
+        ANGII -> VASC_RESIST; VASC_RESIST -> BP_SYS;
+        ECFV -> BARO [label = "underfilling", arrowhead = tee, lhead = cluster_md];
+        ECFV -> BP_SYS;
+        ECFV -> ADH [label = "baroreflex\n(non-osmotic)"];
+        ADH -> V2R -> AQP2;
+        ECFV -> THIRST; THIRST -> NA_INTAKE;
+        ECFV -> ANP [arrowhead = tee];
+        AT1R -> NHE3_PT [label = "↑ PT Na⁺ AND Ca²⁺\nreabsorption", penwidth = 1.7];
+        SGK1 -> ENAC [penwidth = 1.8];
+        SGK1 -> ROMK_CD [penwidth = 1.6];
+        MR -> HATPASE [label = "↑ H⁺-ATPase"];
+        PGE2 -> PGE2_VASC;
+    }
+
+/* ==========================================================================
+   7. SYSTEMIC ELECTROLYTE AND ACID-BASE STATE
+   ========================================================================== */
+    subgraph cluster_lytes {
+        label = <<B>7. Systemic Electrolytes and Acid-Base — the shared final common path</B><BR/><FONT POINT-SIZE="10">Hypokalaemic hypochloraemic metabolic alkalosis is common to BOTH syndromes; magnesium and calcium are what separate them.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#F0FFF2"; color = "#55AA66"; fontsize = 15;
+        node [fillcolor = "#DFF5E1", color = "#448855"];
+
+        S_NA      [label = "serum Na⁺\n135-142 (usually normal —\nthe kidney defends tonicity)"];
+        S_K       [label = "serum K⁺\n↓↓ 2.2-3.2 mmol/L", penwidth = 2.0, fillcolor = "#FFE0B2", color = "#CC8800"];
+        S_CL      [label = "serum Cl⁻\n↓↓ (hypochloraemia —\nprecedes and drives alkalosis)", penwidth = 1.7];
+        S_HCO3    [label = "serum HCO₃⁻\n↑ 28-38 mmol/L\nMETABOLIC ALKALOSIS", penwidth = 2.0, fillcolor = "#FFE0B2", color = "#CC8800"];
+        S_MG      [label = "serum Mg²⁺\nGitelman ↓↓ 0.40-0.60\nBartter ↓ 0.65-0.80 mmol/L", penwidth = 2.0, fillcolor = "#FFE0B2", color = "#CC8800"];
+        S_CA      [label = "serum ionised Ca²⁺\nusually normal"];
+        IC_K      [label = "intracellular K⁺ pool\n(≈ 3000 mmol; the buffer\nthat hides true deficit)"];
+        TRANS_K   [label = "transcellular K⁺ shift\nalkalosis + insulin + β₂\n→ K⁺ INTO cells", fillcolor = "#FFF0C9", color = "#BB9944"];
+        U_K       [label = "urinary K⁺ excretion ↑\n(inappropriately high for\nthe degree of hypokalaemia)"];
+        U_CL      [label = "urinary Cl⁻ > 40 mmol/L\n★ excludes vomiting /\nlaxatives / low intake ★", fillcolor = "#FFE0B2", color = "#CC8800"];
+        U_CA      [label = "URINARY CALCIUM\nBartter: ↑↑ hypercalciuria\nGitelman: ↓↓ hypocalciuria\n(the SIGN FLIPS)", penwidth = 2.6, color = "#B22222", fillcolor = "#FFE0B2"];
+        U_MG      [label = "fractional Mg²⁺ excretion\nFE-Mg > 4 % (renal wasting)", fillcolor = "#FFE0B2", color = "#CC8800"];
+        U_PGE2    [label = "urinary PGE₂ + PGE-M\nBartter ↑↑ 2-10 ×\nGitelman NORMAL", penwidth = 2.2, color = "#B22222", fillcolor = "#FFE0B2"];
+        U_VOL     [label = "urine volume / polyuria\nantenatal Bartter\n> 2 L/m²/day"];
+        U_OSM     [label = "urine osmolality ↓\n(impaired concentrating\nAND diluting ability)"];
+        MG_K_LINK [label = "hypomagnesaemia RELEASES\nMg²⁺-block of ROMK\n→ renal K⁺ wasting worsens\n(K⁺ cannot be repleted\nuntil Mg²⁺ is)", penwidth = 2.2, color = "#B22222", fillcolor = "#FFF0C9"];
+        BONE_MG   [label = "bone + intracellular\nMg²⁺ stores (slow pool)"];
+        H2O_BAL   [label = "water balance /\nplasma tonicity"];
+
+        DIST_DELIV -> U_K [label = "more Na⁺ delivered\n= more K⁺ lost", penwidth = 1.8];
+        ROMK_CD -> U_K [penwidth = 1.8];
+        BK_CD -> U_K;
+        U_K -> S_K [arrowhead = tee, penwidth = 2.0];
+        S_K <-> IC_K [dir = both, label = "buffering"];
+        TRANS_K -> S_K [arrowhead = tee];
+        S_HCO3 -> TRANS_K [penwidth = 1.5];
+        NEW_HCO3 -> S_HCO3 [penwidth = 1.9];
+        S_CL -> S_HCO3 [label = "Cl⁻ depletion →\ncontraction alkalosis", arrowhead = normal, penwidth = 1.7];
+        PARA_MG -> S_MG [penwidth = 1.6];
+        TRPM6 -> S_MG [penwidth = 2.0];
+        S_MG -> U_MG [style = dashed];
+        S_MG -> MG_K_LINK [arrowhead = tee, penwidth = 2.0];
+        MG_K_LINK -> ROMK_CD [label = "disinhibits\nK⁺ secretion", penwidth = 2.0, color = "#B22222"];
+        BONE_MG <-> S_MG [dir = both];
+        PARA_CA -> U_CA [arrowhead = tee, penwidth = 1.8];
+        PT_PARA_CA -> U_CA [arrowhead = tee, penwidth = 1.8];
+        TRPV5 -> U_CA [arrowhead = tee, penwidth = 1.6];
+        PGE2 -> U_PGE2;
+        PGE2 -> AQP2 [label = "EP3 → ↓ AQP2\n→ polyuria", arrowhead = tee, penwidth = 1.5];
+        AQP2 -> U_VOL [arrowhead = tee];
+        CORT_DIL -> U_OSM;
+        U_VOL -> H2O_BAL;
+        S_NA -> H2O_BAL;
+        DIST_DELIV -> U_CL;
+    }
+
+/* ==========================================================================
+   8. NEUROMUSCULAR AND CARDIAC CONSEQUENCES
+   ========================================================================== */
+    subgraph cluster_neuro {
+        label = <<B>8. Neuromuscular, Cardiac and Musculoskeletal Consequences</B><BR/><FONT POINT-SIZE="10">Where K<SUP>+</SUP> and Mg<SUP>2+</SUP> become symptoms — and where the mortality risk sits.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FFF6F0"; color = "#CC8855"; fontsize = 15;
+        node [fillcolor = "#FFE0B2", color = "#CC8800"];
+
+        RMP       [label = "skeletal-muscle resting\nmembrane potential\n(hyperpolarised by low K⁺)", fillcolor = "#DFF5E1", color="#448855"];
+        CRAMPS    [label = "muscle cramps, carpopedal\nspasm, TETANY\n(Chvostek / Trousseau)"];
+        WEAKNESS  [label = "proximal weakness,\nperiodic paralysis-like\nepisodes"];
+        FATIGUE   [label = "chronic fatigue,\nexercise intolerance,\nreduced QoL (SF-36 ↓)"];
+        RHABDO    [label = "rhabdomyolysis\n(rare; K⁺ < 2.0 + exertion)", fillcolor = "#F3C9C9", color="#AA5555"];
+        PARESTH   [label = "paraesthesiae, tetany,\nnocturnal cramps"];
+        CHONDRO   [label = "CHONDROCALCINOSIS\n(CPPD; Mg²⁺ is a cofactor\nof pyrophosphatase)", fillcolor = "#F3C9C9", color="#AA5555"];
+        SEIZ      [label = "seizures\n(severe hypomagnesaemia;\nEAST syndrome)", fillcolor = "#F3C9C9", color="#AA5555"];
+        QTC       [label = "QTc PROLONGATION\n(hypokalaemia + hypomagnesaemia\n→ ↓ IKr repolarisation reserve)", penwidth = 2.0];
+        TDP       [label = "ventricular ectopy →\nTORSADE DE POINTES,\nsudden cardiac death", fillcolor = "#F3C9C9", color="#AA5555", penwidth = 1.8];
+        DIG_SENS  [label = "digoxin sensitivity,\nQT-prolonging drug\nsusceptibility"];
+        DEAF      [label = "SENSORINEURAL DEAFNESS\n(barttin in inner-ear\nmarginal cells — type IV only)", fillcolor = "#F3C9C9", color="#AA5555"];
+        VERTIGO   [label = "vestibular dysfunction\n(type IV)"];
+
+        S_K -> RMP [penwidth = 1.8];
+        S_MG -> RMP [penwidth = 1.5];
+        RMP -> WEAKNESS; RMP -> CRAMPS; RMP -> PARESTH;
+        S_K -> WEAKNESS [arrowhead = tee, penwidth = 1.7];
+        S_MG -> CRAMPS [arrowhead = tee, penwidth = 1.9];
+        S_K -> FATIGUE [arrowhead = tee];
+        S_MG -> SEIZ [arrowhead = tee];
+        S_K -> RHABDO [arrowhead = tee];
+        S_MG -> CHONDRO [arrowhead = tee, penwidth = 1.6];
+        S_K -> QTC [arrowhead = tee, penwidth = 2.0];
+        S_MG -> QTC [arrowhead = tee, penwidth = 1.8];
+        QTC -> TDP [penwidth = 1.8];
+        DIG_SENS -> TDP [style = dashed];
+        G_BSND -> DEAF [penwidth = 1.8, color = "#B22222"];
+        G_CLCNKAB -> DEAF [color = "#B22222"];
+        CLCKA_TAL -> DEAF [style = dashed];
+        DEAF -> VERTIGO [style = dashed];
+    }
+
+/* ==========================================================================
+   9. GROWTH, ENDOCRINE AND METABOLIC SEQUELAE
+   ========================================================================== */
+    subgraph cluster_growth {
+        label = <<B>9. Growth Failure and Endocrine/Metabolic Sequelae</B><BR/><FONT POINT-SIZE="10">In antenatal Bartter, growth is the primary paediatric endpoint — and it is PGE<SUB>2</SUB>-reversible.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FFF6F0"; color = "#CC8855"; fontsize = 15;
+        node [fillcolor = "#FFE0B2", color = "#CC8800"];
+
+        GH_AXIS   [label = "GH secretion (pituitary)"];
+        IGF1      [label = "hepatic IGF-1 / IGFBP-3\n↓ (functional GH resistance)"];
+        GH_RESIST [label = "GH/IGF-1 axis RESISTANCE\n(K⁺ depletion + alkalosis\n+ PGE₂ + chronic volume\ncontraction)", penwidth = 1.7];
+        GROWTH_PLATE [label = "epiphyseal growth plate\nchondrocyte proliferation"];
+        HT_SDS    [label = "HEIGHT SDS / growth velocity\nuntreated antenatal Bartter\n−2 to −3 SDS", penwidth = 2.0];
+        PUBERTY   [label = "delayed puberty,\ndelayed bone age"];
+        SALT_APP  [label = "salt appetite, pica for salt"];
+        FTT       [label = "failure to thrive,\nvomiting, constipation\n(infancy)"];
+        GLUC_INT  [label = "glucose intolerance\n(hypokalaemia impairs\ninsulin secretion)"];
+        INSULIN   [label = "insulin secretion ↓\n(K⁺-dependent β-cell\nrepolarisation)"];
+        HYPERURIC [label = "HYPERURICAEMIA + gout\n(volume contraction →\n↑ PT urate reabsorption)"];
+        RENIN_HYP [label = "hyperreninaemic\nhyperaldosteronism\n(biochemical hallmark)"];
+        PTH_AX    [label = "PTH / calcitriol axis\n(mildly ↑ in hypomagnesaemia,\nor PARADOXICALLY LOW —\nMg²⁺ is needed for PTH release)"];
+
+        S_K -> GH_RESIST [arrowhead = tee, penwidth = 1.7];
+        S_HCO3 -> GH_RESIST [penwidth = 1.4];
+        PGE2 -> GH_RESIST [penwidth = 1.9, color = "#B22222"];
+        ECFV -> GH_RESIST [arrowhead = tee];
+        GH_AXIS -> IGF1;
+        GH_RESIST -> IGF1 [arrowhead = tee, penwidth = 1.8];
+        IGF1 -> GROWTH_PLATE -> HT_SDS [penwidth = 1.7];
+        HT_SDS -> PUBERTY [style = dashed];
+        ECFV -> SALT_APP;
+        S_K -> FTT [arrowhead = tee];
+        S_K -> INSULIN [penwidth = 1.4];
+        INSULIN -> GLUC_INT [arrowhead = tee];
+        ECFV -> HYPERURIC [arrowhead = tee, penwidth = 1.5];
+        RENIN -> RENIN_HYP; ALDO -> RENIN_HYP;
+        S_MG -> PTH_AX [style = dashed];
+    }
+
+/* ==========================================================================
+   10. RENAL STRUCTURAL PROGRESSION
+   ========================================================================== */
+    subgraph cluster_renal {
+        label = <<B>10. Renal Structural Progression — the Bartter-specific long-term risk</B><BR/><FONT POINT-SIZE="10">Hypercalciuria is what converts a lifelong electrolyte disorder into progressive CKD; Gitelman rarely does this.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FDF2F2"; color = "#AA5555"; fontsize = 15;
+        node [fillcolor = "#F3C9C9", color = "#AA5555"];
+
+        CAP_SUPERSAT [label = "tubular CaP / CaOx\nsupersaturation\n(↑ urinary Ca²⁺ × ↓ citrate\n× alkaline urine)"];
+        NEPHROCALC [label = "MEDULLARY NEPHROCALCINOSIS\n(ultrasound-graded 0-3)\nantenatal Bartter: >80 %", penwidth = 2.0];
+        STONES    [label = "nephrolithiasis, renal colic"];
+        TUB_INJ   [label = "tubular epithelial injury,\ncrystal-induced inflammation\n(NLRP3, MCP-1)"];
+        INTERSTIT [label = "tubulointerstitial\ninflammation + FIBROSIS"];
+        CYSTS     [label = "small cortical cysts\n(chronic type III)"];
+        GFR       [label = "GFR / eGFR\nslow decline; ~20 % of\nadult Bartter reach CKD 3-5", penwidth = 1.8, fillcolor = "#FFE0B2", color = "#CC8800"];
+        ESRD      [label = "ESKD → dialysis /\ntransplantation\n(CURES the tubulopathy)"];
+        AKI_RISK  [label = "acute-on-chronic AKI\n(gastroenteritis, fasting,\nNSAID + volume depletion)", penwidth = 1.7];
+        HYPOKAL_NEPH [label = "hypokalaemic nephropathy\n(vacuolar tubular changes,\nADH resistance)"];
+
+        U_CA -> CAP_SUPERSAT [penwidth = 2.0];
+        U_VOL -> CAP_SUPERSAT [arrowhead = tee, label = "dilution protects"];
+        CAP_SUPERSAT -> NEPHROCALC [penwidth = 1.9];
+        CAP_SUPERSAT -> STONES;
+        NEPHROCALC -> TUB_INJ -> INTERSTIT -> GFR [arrowhead = tee, penwidth = 1.7];
+        S_K -> HYPOKAL_NEPH [arrowhead = tee];
+        HYPOKAL_NEPH -> INTERSTIT;
+        INTERSTIT -> CYSTS [style = dashed];
+        GFR -> ESRD [arrowhead = tee];
+        AKI_RISK -> GFR [arrowhead = tee, penwidth = 1.6];
+        ECFV -> AKI_RISK [arrowhead = tee];
+        GFR -> DIST_DELIV [label = "filtered load", style = dashed];
+    }
+
+/* ==========================================================================
+   11. ANTENATAL / NEONATAL MODULE
+   ========================================================================== */
+    subgraph cluster_antenatal {
+        label = <<B>11. Antenatal and Neonatal Presentation</B><BR/><FONT POINT-SIZE="10">Fetal polyuria is the earliest reading of a TAL lesion — and MAGED2 disease reverses itself.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FDF2F2"; color = "#AA5555"; fontsize = 15;
+        node [fillcolor = "#F3C9C9", color = "#AA5555"];
+
+        FETAL_POLYURIA [label = "FETAL polyuria\n(TAL lesion → impaired\nfetal urine concentration)"];
+        POLYHYDRAM [label = "POLYHYDRAMNIOS\n(AFI > 24 cm, from ~24 wk)", penwidth = 1.8];
+        PRETERM   [label = "PRETERM BIRTH\n(median 32-34 wk in\nantenatal Bartter)", penwidth = 1.8];
+        NEO_SALT  [label = "neonatal massive salt wasting,\ndehydration, hypernatraemia"];
+        NEO_HYPERK[label = "TRANSIENT NEONATAL\nHYPERKALAEMIA (type II only —\nROMK also secretes K⁺ in CD)", penwidth = 1.6];
+        MAGED2_HIF[label = "MAGED2 is HIF-1α-regulated;\nthe hypoxic fetal environment\nis required for the phenotype", fillcolor = "#FFF0C9", color = "#BB9944"];
+        TRANSIENT [label = "SPONTANEOUS POSTNATAL\nREMISSION (type V) —\nnormoxia restores NKCC2/NCC\nsurface expression", penwidth = 1.8, fillcolor = "#DFF5E1", color = "#448855"];
+        AMNIO_RX  [label = "antenatal management:\nserial amnioreduction,\n(maternal indomethacin —\ncontroversial: DA closure, NEC)", fillcolor = "#E4D9FF", color = "#7755AA"];
+        NEO_NEC   [label = "necrotising enterocolitis,\nGI perforation\n(neonatal NSAID risk)"];
+        FACIES    [label = "triangular facies,\nlarge ears, protruding\nforehead (antenatal type)"];
+
+        TAL_CAP -> FETAL_POLYURIA [penwidth = 1.7];
+        FETAL_POLYURIA -> POLYHYDRAM -> PRETERM;
+        G_MAGED2 -> MAGED2_HIF -> TRANSIENT;
+        G_KCNJ1 -> NEO_HYPERK [penwidth = 1.6, color = "#B22222"];
+        ROMK_CD -> NEO_HYPERK [arrowhead = tee, style = dashed];
+        PRETERM -> NEO_SALT;
+        POLYHYDRAM -> AMNIO_RX;
+        AMNIO_RX -> NEO_NEC [style = dashed, color = "#B22222"];
+        FETAL_POLYURIA -> FACIES [style = dashed];
+    }
+
+/* ==========================================================================
+   12. DRUG PHARMACOLOGY — PK AND MECHANISM
+   ========================================================================== */
+    subgraph cluster_drug {
+        label = <<B>12. Therapeutics — PK and Mechanism of Action</B><BR/><FONT POINT-SIZE="10">No disease-specific drug exists. Every agent below is a repurposed physiological counter-move.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#F7F2FF"; color = "#7755AA"; fontsize = 15;
+        node [fillcolor = "#E4D9FF", color = "#7755AA"];
+
+        D_KCL     [label = "oral KCl\n1-10 mmol/kg/day divided\n(CHLORIDE salt is essential —\nnot citrate/bicarbonate)"];
+        D_MG      [label = "oral Mg²⁺ salts\n(aspartate/lactate/chloride ≫\noxide; 3-6 divided doses;\nGI absorption is saturable)"];
+        D_NACL    [label = "NaCl supplementation\n(mainstay in infancy;\n5-10 mmol/kg/day)"];
+        D_INDO    [label = "INDOMETHACIN\n1-4 mg/kg/day; t½ 4-9 h\nnon-selective COX-1/COX-2"];
+        D_CELE    [label = "celecoxib\n2-10 mg/kg/day; t½ 11 h\nCOX-2-selective; CYP2C9"];
+        D_IBU     [label = "ibuprofen\n(alternative; shorter t½)"];
+        D_AMIL    [label = "AMILORIDE\n0.3-0.5 mg/kg/day\nENaC blocker → K⁺-sparing"];
+        D_SPIRO   [label = "spironolactone → canrenone\n(active metabolite, t½ 15-20 h)\nMR antagonist"];
+        D_EPLE    [label = "eplerenone\n(more selective MR antagonist;\nno antiandrogen effect)"];
+        D_ACEI    [label = "ACE inhibitor / ARB\n(enalapril, losartan)\n— HYPOTENSION RISK, use\nlast-line and low-dose"];
+        D_RHGH    [label = "recombinant human GH\n(persistent growth failure\ndespite optimal biochemistry)"];
+        D_INDO_PK [label = "indomethacin PK:\nF ≈ 0.98, Vd ≈ 0.29 L/kg,\n99 % protein-bound,\nCYP2C9 + glucuronidation,\nenterohepatic recycling"];
+        PK_ORAL   [label = "oral absorption\n(ka, saturable for Mg²⁺)"];
+        COX1_INH  [label = "COX-1 inhibition\n(gastric PGE₂, platelet TXA₂)"];
+        COX2_INH  [label = "COX-2 inhibition\n(renal PGE₂ — THE\ntherapeutic target)", penwidth = 2.0];
+        ENAC_BLOCK[label = "ENaC pore block\n(amiloride, K_i ≈ 0.1 µM)"];
+        MR_BLOCK  [label = "MR antagonism"];
+        SGLT2_HYP [label = "investigational / off-label:\nSGLT2 inhibitors, ARNI,\nCl⁻-channel openers — NO\nevidence base in tubulopathy", style = "rounded,dashed"];
+        AVOID     [label = "AVOID: thiazides, loop\ndiuretics, QT-prolonging\ndrugs, aminoglycosides,\nPPIs (Mg²⁺ loss)", fillcolor = "#F3C9C9", color = "#AA5555"];
+
+        PK_ORAL -> D_INDO_PK [style = invis];
+        D_INDO -> D_INDO_PK [style = dashed];
+        D_INDO -> COX1_INH [penwidth = 1.5];
+        D_INDO -> COX2_INH [penwidth = 2.0];
+        D_IBU  -> COX2_INH; D_IBU -> COX1_INH;
+        D_CELE -> COX2_INH [penwidth = 2.0];
+        COX2_INH -> MD_COX2 [arrowhead = tee, penwidth = 2.4, color = "#B22222", lhead = cluster_md];
+        D_AMIL -> ENAC_BLOCK -> ENAC [arrowhead = tee, penwidth = 2.0, color = "#B22222"];
+        D_SPIRO -> MR_BLOCK; D_EPLE -> MR_BLOCK;
+        MR_BLOCK -> MR [arrowhead = tee, penwidth = 2.0, color = "#B22222"];
+        D_ACEI -> ANGII [arrowhead = tee, penwidth = 1.7, color = "#B22222"];
+        D_KCL -> S_K [penwidth = 2.0];
+        D_KCL -> S_CL [penwidth = 1.7];
+        D_MG -> S_MG [penwidth = 2.2];
+        D_NACL -> ECFV [penwidth = 2.0];
+        D_RHGH -> IGF1 [penwidth = 1.8];
+        PK_ORAL -> D_KCL [style = dashed];
+        PK_ORAL -> D_MG [style = dashed];
+    }
+
+/* ==========================================================================
+   13. TREATMENT-RELATED TOXICITY AND SAFETY
+   ========================================================================== */
+    subgraph cluster_tox {
+        label = <<B>13. Iatrogenic Risk — why NSAID benefit must be dose-titrated, not maximised</B><BR/><FONT POINT-SIZE="10">The PGE<SUB>2</SUB> that drives the disease is the same PGE<SUB>2</SUB> that protects the stomach and the glomerulus.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FDF2F2"; color = "#AA5555"; fontsize = 15;
+        node [fillcolor = "#F3C9C9", color = "#AA5555"];
+
+        GI_ULCER  [label = "NSAID gastropathy:\nerosion, ulcer, GI bleed\n(the commonest reason for\ndiscontinuation)"];
+        NSAID_AKI [label = "PG-dependent GFR loss →\nAKI (compounded by\nvolume contraction)", penwidth = 1.8];
+        NSAID_CKD [label = "chronic interstitial injury,\naccelerated eGFR decline"];
+        PLT_DYS   [label = "platelet dysfunction\n(COX-1 / TXA₂)"];
+        CV_RISK   [label = "COX-2-selective:\ncardiovascular / thrombotic\nrisk signal"];
+        HYPERK_RX [label = "IATROGENIC HYPERKALAEMIA\n(amiloride + spironolactone\n+ KCl + ACEi stacked)", penwidth = 1.8];
+        HYPOTEN   [label = "symptomatic hypotension\n(ACEi/ARB on top of an\nalready volume-contracted\npatient)"];
+        MG_DIARR  [label = "osmotic diarrhoea from\noral Mg²⁺ → paradoxically\nWORSENS Mg²⁺/K⁺ loss", penwidth = 1.7];
+        GYNECO    [label = "gynaecomastia, menstrual\nirregularity (spironolactone\nantiandrogen effect)"];
+        ADHERENCE [label = "pill burden 6-20 tabs/day\n→ ADHERENCE FAILURE\n(the true rate-limiter\nof outcome)", penwidth = 2.0, fillcolor = "#FFE0B2", color = "#CC8800"];
+
+        COX1_INH -> GI_ULCER [penwidth = 1.9];
+        COX1_INH -> PLT_DYS;
+        COX2_INH -> NSAID_AKI [penwidth = 1.9];
+        PGE2_VASC -> NSAID_AKI [style = dashed];
+        NSAID_AKI -> NSAID_CKD -> GFR [arrowhead = tee];
+        D_CELE -> CV_RISK [style = dashed];
+        D_AMIL -> HYPERK_RX [style = dashed];
+        D_SPIRO -> HYPERK_RX [style = dashed];
+        D_ACEI -> HYPERK_RX [style = dashed];
+        D_KCL -> HYPERK_RX [style = dashed];
+        D_ACEI -> HYPOTEN [penwidth = 1.6];
+        D_MG -> MG_DIARR [penwidth = 1.8];
+        MG_DIARR -> S_MG [arrowhead = tee, penwidth = 1.5];
+        D_MG -> ADHERENCE; D_KCL -> ADHERENCE; D_INDO -> ADHERENCE;
+        ADHERENCE -> S_K [arrowhead = tee, style = dashed];
+        GI_ULCER -> ADHERENCE [style = dashed];
+    }
+
+/* ==========================================================================
+   14. DIAGNOSTICS, ENDPOINTS AND DIFFERENTIAL
+   ========================================================================== */
+    subgraph cluster_dx {
+        label = <<B>14. Diagnostics, Clinical Endpoints and Differential Diagnosis</B><BR/><FONT POINT-SIZE="10">The functional tests are, in effect, in-vivo target-engagement assays for NKCC2 and NCC.</FONT>>;
+        style = "rounded,filled"; fillcolor = "#FFF9F0"; color = "#CC8800"; fontsize = 15;
+        node [fillcolor = "#FFE0B2", color = "#CC8800"];
+
+        DX_GENETIC [label = "GENETIC TESTING\n(NGS tubulopathy panel) —\nthe diagnostic gold standard"];
+        DX_HCTZ   [label = "HCTZ (thiazide) TEST\nΔ fractional Cl⁻ excretion\nFLAT in Gitelman\n(NCC already offline)", penwidth = 1.8];
+        DX_FURO   [label = "FUROSEMIDE TEST\nΔ FE-Cl⁻ FLAT in Bartter I/II\n(NKCC2 already offline)", penwidth = 1.8];
+        DX_URCL   [label = "urinary Cl⁻ > 40 mmol/L +\nnormal BP + high renin\n= renal salt wasting"];
+        DX_CACR   [label = "urinary Ca/creatinine ratio\n< 0.07 → Gitelman\n> 0.20 → Bartter\n(mmol/mmol)", penwidth = 2.0];
+        DX_FEMG   [label = "FE-Mg²⁺ > 4 % with\nlow serum Mg²⁺"];
+        DX_US     [label = "renal ultrasound:\nnephrocalcinosis grading"];
+        DX_ECG    [label = "ECG / QTc, Holter"];
+        DX_PGE2   [label = "urinary PGE₂ / PGE-M\n(discriminates the\nhyperprostaglandin-E phenotype)"];
+        DX_DIURETIC [label = "screen for SURREPTITIOUS\ndiuretic use (urine diuretic\nassay) — the key mimic", fillcolor = "#F3C9C9", color = "#AA5555"];
+        DD_VOMIT  [label = "differential: vomiting /\nbulimia (urinary Cl⁻ LOW),\nlaxative abuse", fillcolor = "#F3C9C9", color = "#AA5555"];
+        DD_CF     [label = "differential: cystic fibrosis\n(sweat Cl⁻), pseudo-Bartter\nfrom sweat/GI Cl⁻ loss", fillcolor = "#F3C9C9", color = "#AA5555"];
+        DD_DRUG   [label = "drug-induced: aminoglycosides,\ncisplatin, calcineurin inhibitors,\ncetuximab (EGFR → TRPM6),\nPPI, amphotericin", fillcolor = "#F3C9C9", color = "#AA5555"];
+        DD_HYPERALDO [label = "differential: primary\naldosteronism, Liddle,\nAME, licorice — all with\nLOW renin + HYPERTENSION", fillcolor = "#F3C9C9", color = "#AA5555"];
+        EP_K      [label = "PRIMARY ENDPOINT:\nserum K⁺ ≥ 3.0 mmol/L", penwidth = 2.0];
+        EP_MG     [label = "serum Mg²⁺ ≥ 0.60 mmol/L"];
+        EP_HCO3   [label = "serum HCO₃⁻ < 30 mmol/L"];
+        EP_GROWTH [label = "height velocity / ΔHt-SDS\n(paediatric primary endpoint)", penwidth = 1.7];
+        EP_SYMPT  [label = "cramp-free days, fatigue\nscore, QoL (SF-36 / PedsQL)"];
+        EP_EGFR   [label = "eGFR slope (mL/min/1.73 m²/yr)"];
+        EP_QTC    [label = "QTc < 450 ms; freedom from\narrhythmic events"];
+        EP_NEPHRO [label = "nephrocalcinosis progression\n(ultrasound grade)"];
+        EP_PRA    [label = "PRA / aldosterone normalisation\n(target-engagement biomarker)"];
+
+        DX_GENETIC -> DX_CACR [style = invis];
+        NCC -> DX_HCTZ [arrowhead = tee, penwidth = 1.7];
+        NKCC2 -> DX_FURO [arrowhead = tee, penwidth = 1.7];
+        U_CL -> DX_URCL; U_CA -> DX_CACR [penwidth = 1.9];
+        U_MG -> DX_FEMG; U_PGE2 -> DX_PGE2 [penwidth = 1.7];
+        NEPHROCALC -> DX_US; QTC -> DX_ECG;
+        DX_DIURETIC -> DD_VOMIT [style = dashed];
+        S_K -> EP_K [penwidth = 2.0]; S_MG -> EP_MG; S_HCO3 -> EP_HCO3;
+        HT_SDS -> EP_GROWTH [penwidth = 1.7];
+        CRAMPS -> EP_SYMPT; FATIGUE -> EP_SYMPT;
+        GFR -> EP_EGFR; QTC -> EP_QTC; NEPHROCALC -> EP_NEPHRO;
+        RENIN -> EP_PRA; ALDO -> EP_PRA;
+        G_SLC12A3 -> DX_GENETIC [style = dashed];
+        G_CLCNKB -> DX_GENETIC [style = dashed];
+    }
+
+/* ==========================================================================
+   CROSS-CLUSTER WIRING — the mechanistic spine
+   ========================================================================== */
+
+    /* genotype -> transport capacity */
+    G_SLC12A1 -> TAL_CAP [penwidth = 2.2, color = "#B22222", label = "FTAL ≈ 0.10"];
+    G_KCNJ1   -> TAL_CAP [penwidth = 2.0, color = "#B22222", label = "FTAL ≈ 0.25"];
+    G_CLCNKB  -> TAL_CAP [penwidth = 2.0, color = "#B22222", label = "FTAL ≈ 0.45"];
+    G_CLCNKB  -> DCT_CAP [penwidth = 1.6, color = "#B22222", label = "FDCT ≈ 0.55\n(ClC-Kb is in BOTH segments\n→ overlap phenotype)"];
+    G_BSND    -> TAL_CAP [penwidth = 2.0, color = "#B22222", label = "FTAL ≈ 0.10"];
+    G_BSND    -> DCT_CAP [penwidth = 1.4, color = "#B22222"];
+    G_CLCNKAB -> TAL_CAP [penwidth = 1.6, color = "#B22222"];
+    G_MAGED2  -> TAL_CAP [penwidth = 1.6, color = "#B22222", style = dashed, label = "transient"];
+    G_MAGED2  -> DCT_CAP [penwidth = 1.4, style = dashed];
+    G_SLC12A3 -> DCT_CAP [penwidth = 2.4, color = "#B22222", label = "FDCT ≈ 0.15"];
+    G_KCNJ10  -> KIR4145 [penwidth = 1.6, color = "#B22222", arrowhead = tee];
+    G_CASR    -> CASR_TAL [penwidth = 1.6, color = "#B22222"];
+    G_CLDN16  -> CLDN1619 [penwidth = 1.6, color = "#B22222", arrowhead = tee];
+    G_TRPM6   -> TRPM6 [penwidth = 1.6, color = "#B22222", arrowhead = tee];
+    G_HNF1B   -> NAK_DCT [penwidth = 1.3, color = "#B22222", arrowhead = tee, style = dashed];
+    G_MITO    -> NAK_DCT [penwidth = 1.3, style = dashed, arrowhead = tee];
+    G_ANTINCC -> NCC [penwidth = 1.4, color = "#B22222", arrowhead = tee, style = dashed];
+
+    PGE2_VASC -> GFR [style = dashed, label = "PG-dependent\nGFR support"];
+
+    /* the transport chain */
+    PT_SEG    -> TAL_SEG [label = "delivers ~30-40 %\nof filtered Na⁺", penwidth = 1.6];
+    NKCC2     -> DCT_SEG [label = "TAL escape → DCT load", penwidth = 1.6];
+    NCC       -> DIST_DELIV [arrowhead = tee, penwidth = 2.2,
+                             label = "NCC failure → ↑↑ distal delivery"];
+    NKCC2     -> DIST_DELIV [arrowhead = tee, penwidth = 2.2,
+                             label = "TAL failure → ↑↑ distal delivery"];
+    MD_CELL   -> DCT_SEG [label = "macula densa sits\nBETWEEN the two lesions", style = dashed, penwidth = 1.8, color = "#CC5500"];
+    TAL_CAP   -> MD_NACL [penwidth = 2.4, color = "#B22222",
+                          label = "TAL lesion → macula densa BLIND"];
+    DCT_CAP   -> MD_NACL [style = dashed, color = "#999999",
+                          label = "DCT lesion: NO effect on\nsensed NaCl → NO PGE₂ storm"];
+
+    /* the PGE2 positive-feedback loop (Bartter only) */
+    PGE2 -> NKCC2 [arrowhead = tee, penwidth = 2.0, color = "#CC5500",
+                   label = "FURTHER inhibits TAL\n(VICIOUS CIRCLE)"];
+    PGE2 -> RENIN [penwidth = 2.2, color = "#B22222", label = "EP4 → renin"];
+    JG_CELL -> RENIN [penwidth = 2.0];
+
+    /* volume / RAAS closure */
+    DIST_DELIV -> ECFV [arrowhead = tee, penwidth = 2.0, label = "urinary NaCl loss"];
+    ALDO -> DIST_DELIV [arrowhead = tee, style = dashed, label = "partial\ncompensation"];
+    ECFV -> RENIN [penwidth = 1.8, label = "underfilling → renin ↑"];
+    S_K  -> ALDO [penwidth = 1.4, label = "hypokalaemia partly\nrestrains aldosterone"];
+    ANGII -> PT_PARA_CA [penwidth = 1.6, label = "↑ PT Ca²⁺ retention\n→ HYPOCALCIURIA in Gitelman", color = "#006699"];
+    ECFV -> PT_PARA_CA [arrowhead = tee, penwidth = 1.7, color = "#006699",
+                        label = "contraction → PT avidity ↑"];
+    ECFV -> TRPV5 [arrowhead = tee, penwidth = 1.4, color = "#006699"];
+
+    /* adaptive remodelling */
+    ALDO -> ENAC [penwidth = 2.0];
+    DIST_DELIV -> NCC [label = "compensatory NCC\nup-phosphorylation (Bartter)", style = dashed, penwidth = 1.4];
+    NKCC2 -> SPAK [style = dashed, label = "shared SPAK/OSR1\nregulatory node"];
+
+    /* therapy → outcome spine */
+    COX2_INH -> PGE2 [arrowhead = tee, penwidth = 2.6, color = "#B22222"];
+    PGE2 -> DIST_DELIV [penwidth = 1.6, label = "natriuretic"];
+    D_INDO -> EP_GROWTH [style = dashed, penwidth = 1.5, label = "catch-up growth\n(Bartter only)"];
+    ENAC_BLOCK -> U_K [arrowhead = tee, penwidth = 2.0];
+    MR_BLOCK -> U_K [arrowhead = tee, penwidth = 1.8];
+    D_MG -> MG_K_LINK [arrowhead = tee, penwidth = 2.2, color = "#B22222",
+                       label = "repleting Mg²⁺ is what\nfinally lets K⁺ rise"];
+
+    /* invisible rank scaffolding to keep the flow top-to-bottom */
+    { rank = same; G_SLC12A1; G_KCNJ1; G_CLCNKB; G_BSND; G_SLC12A3; }
+    { rank = same; TAL_CAP; DCT_CAP; }
+    { rank = same; S_K; S_MG; S_HCO3; S_CL; }
+    { rank = same; EP_K; EP_MG; EP_HCO3; EP_GROWTH; EP_QTC; }
+
+    /* ------------------------------------------------------------------ */
+    /* LEGEND                                                             */
+    /* ------------------------------------------------------------------ */
+    subgraph cluster_legend {
+        label = <<B>Legend</B>>;
+        style = "rounded,filled"; fillcolor = "#FFFFFF"; color = "#666666"; fontsize = 14;
+        node [shape = box, style = "rounded,filled", fontsize = 10];
+
+        L1 [label = "gene / molecular lesion", fillcolor = "#FFD9D9", color = "#B05A5A"];
+        L2 [label = "transporter / channel", fillcolor = "#D6E9FF", color = "#5577AA"];
+        L3 [label = "segment / tissue", fillcolor = "#E8E8E8", color = "#777777"];
+        L4 [label = "signalling mediator", fillcolor = "#FFF0C9", color = "#BB9944"];
+        L5 [label = "systemic pool / physiology", fillcolor = "#DFF5E1", color = "#448855"];
+        L6 [label = "drug / intervention", fillcolor = "#E4D9FF", color = "#7755AA"];
+        L7 [label = "endpoint / biomarker", fillcolor = "#FFE0B2", color = "#CC8800"];
+        L8 [label = "pathology / complication", fillcolor = "#F3C9C9", color = "#AA5555"];
+        L9  [label = "activation / flux", shape = plaintext, fillcolor = "#FFFFFF"];
+        L10 [label = "inhibition (⊣)", shape = plaintext, fillcolor = "#FFFFFF"];
+        L11 [label = "red edge = key\ncausal step", shape = plaintext, fillcolor = "#FFFFFF"];
+        L12 [label = "blue edge = the\nCALCIUM SIGN FLIP", shape = plaintext, fillcolor = "#FFFFFF"];
+
+        L1 -> L2 -> L3 -> L4 [style = invis];
+        L5 -> L6 -> L7 -> L8 [style = invis];
+        L9 -> L10 [label = "activates"];
+        L10 -> L11 [arrowhead = tee, label = "inhibits", color = "#B22222"];
+        L11 -> L12 [color = "#006699"];
+    }
+}
