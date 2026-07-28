@@ -1,0 +1,854 @@
+/* =====================================================================
+   IgE-mediated food allergy and anaphylaxis (FA / ANA)
+   Quantitative Systems Pharmacology mechanistic map
+   ---------------------------------------------------------------------
+   Central premise of this map:
+
+     The clinically measured quantity in food allergy is a THRESHOLD -
+     the eliciting dose (ED) of allergen protein that provokes an
+     objective reaction. Everything the patient experiences, everything
+     a trial measures, and everything a drug changes, is a movement of
+     that one number.
+
+     The map is built around a single structural claim about what sets
+     it:
+
+        THE THRESHOLD IS NOT SET BY HOW MUCH IgE THE PATIENT HAS.
+        IT IS SET BY HOW MUCH OF THE IgE SITTING ON THE MAST CELL
+        SURFACE IS ALLERGEN-SPECIFIC, AND THAT ENTERS THE SIGNAL
+        QUADRATICALLY.
+
+     A mast cell carries ~2e5 FcepsilonRI. Each is loaded from the serum
+     IgE pool essentially in proportion to abundance, without regard to
+     specificity - the receptor binds the Fc, not the paratope. So the
+     surface carries specific IgE at the same fraction f = sIgE/IgEtot
+     as the serum. Degranulation requires an allergen molecule to
+     BRIDGE TWO adjacent receptors. The probability that a randomly
+     chosen adjacent pair is specific-and-specific is f^2, and the
+     density of bridgeable pairs scales as (rho * L * f)^2 where rho is
+     receptor density and L is fractional receptor occupancy.
+
+     Four structural commitments follow, and each is drawn explicitly.
+
+     (1) THE SQUARE LAW. Cross-link density is quadratic in surface
+         specific-IgE, so anything that lowers total receptor loading
+         buys TWICE its log-effect on the threshold. This is cluster 5,
+         and it is the reason omalizumab - which lowers free IgE about
+         10-fold - moves the median tolerated dose about 100-fold
+         (OUtMATCH: 10 mg to >1000 mg peanut protein) rather than
+         10-fold. The factor of two is not fitted. It is the exponent.
+
+     (2) RECEPTOR DENSITY IS A SLOW STATE, NOT A CONSTANT. Free IgE
+         stabilises FcepsilonRI on the mast cell and basophil surface,
+         so lowering free IgE lowers receptor number as well, over
+         8-12 weeks. Anti-IgE therefore has a fast arm (free IgE falls
+         in days) and a slow arm (rho falls over months) that MULTIPLY
+         inside the square. This is why the challenge in every
+         successful anti-IgE food allergy trial is placed at week 16-20
+         and not at week 4 (cluster 13).
+
+     (3) IMMUNOTHERAPY ACTS UPSTREAM OF THE CELL, ANTI-IgE ACTS ON THE
+         CELL. IgG4 induced by oral immunotherapy intercepts allergen
+         in the interstitium BEFORE it reaches the surface, and engages
+         the inhibitory FcgammaRIIb. Anti-IgE changes the surface
+         itself. Because the two act at different points in series they
+         are multiplicative in the threshold, which is the mechanistic
+         content of the OUtMATCH combination arms (clusters 13, 14).
+
+     (4) SEVERITY IS NOT A SMOOTH FUNCTION OF ACTIVATION, BECAUSE THE
+         CIRCULATION HAS A RESERVE. Up to ~35% of plasma volume can
+         shift into the interstitium before mean arterial pressure
+         moves. Below that, reactions are urticaria and vomiting;
+         above it, pressure falls off a cliff. Grading scales look
+         ordinal because the underlying physiology is a reserve being
+         spent, not a dial being turned (cluster 8).
+
+   A fifth commitment concerns what the threshold IS as a measurement:
+   it is a RANDOM VARIABLE, not a constant. Within-patient variability
+   across repeat challenges is roughly 0.4-0.5 log10, and most of that
+   variance is cofactor-driven (exercise, NSAID, alcohol, intercurrent
+   infection, sleep loss, menses) acting on allergen DELIVERY rather
+   than on immunology. Cluster 12 draws the cofactors as threshold
+   multipliers, deliberately NOT as severity multipliers.
+
+   ---------------------------------------------------------------------
+   Colour key
+     blue      = allergen, exposure, delivery
+     purple    = B cell / IgE / antibody compartment
+     teal      = mast cell / basophil surface and signalling
+     orange    = mediators
+     green     = therapeutic pharmacology (disease-modifying)
+     grey-blue = acute rescue pharmacology
+     red       = clinical events and endpoints
+     dark red  = adverse effects, iatrogenic harm, failure modes
+     bold box  = a state variable carried as an ODE in the mrgsolve model
+   ===================================================================== */
+
+digraph FoodAllergyAnaphylaxis {
+
+  graph [rankdir = TB, splines = spline, overlap = false, nodesep = 0.30,
+         ranksep = 0.62, fontname = "Helvetica", fontsize = 13,
+         labelloc = "t", compound = true, bgcolor = "#ffffff",
+         label = "IgE-mediated food allergy and anaphylaxis — QSP mechanistic map\nthe eliciting dose as the single controlled variable: (receptor density × occupancy × specific fraction)² is the engine"];
+
+  node  [shape = box, style = "filled,rounded", fontname = "Helvetica",
+         fontsize = 10, margin = "0.10,0.055", penwidth = 1.0];
+  edge  [fontname = "Helvetica", fontsize = 8.5, color = "#5a5a5a",
+         arrowsize = 0.65, penwidth = 0.9];
+
+  /* ================================================================
+     1. SENSITISATION — HOW THE PATIENT ACQUIRED THE IgE
+     ================================================================ */
+  subgraph cluster_sens {
+    label = "1. Sensitisation: the dual-allergen-exposure route (skin sensitises, gut tolerises)";
+    style = "filled"; fillcolor = "#eef4fb"; color = "#3d6fa5"; fontsize = 14; fontcolor = "#24507d";
+    node [fillcolor = "#dbe8f6", color = "#3d6fa5"];
+
+    FLG      [label = "Filaggrin loss-of-function / barrier defect\nTEWL up, ~3-5x food allergy risk"];
+    ECZ      [label = "Infant atopic dermatitis\nseverity + earliest onset = strongest\nsingle predictor of food allergy"];
+    ENVDUST  [label = "Environmental peanut protein in house dust\nng-µg/g; dose-dependent sensitisation\nthrough inflamed skin"];
+    LC       [label = "Langerhans / CD11b+ dermal DC\nsample allergen at the barrier"];
+    TSLP     [label = "Keratinocyte alarmins\nTSLP, IL-25, IL-33"];
+    ILC2     [label = "Skin and gut ILC2\nIL-5, IL-13 amplifier"];
+    SKINTH2  [label = "Cutaneous Th2 priming\nOX40L+ DC, no oral tolerance signal"];
+    GUTORAL  [label = "Oral route: early, regular, sufficient dose\nLEAP: 4h peanut protein/wk from 4-11 mo"];
+    CD103    [label = "Gut CD103+ DC + retinoic acid + TGF-beta\ntolerogenic default of the intestine"];
+    TREGind  [label = "Induced antigen-specific Treg (pTreg)\nFoxp3+, RORgt+, LAP+"];
+    TOLER    [label = "ORAL TOLERANCE ESTABLISHED\nLEAP: 13.7% -> 1.9% peanut allergy at 5 y",
+              shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    SENSIT   [label = "SENSITISATION\nallergen-specific IgE detectable,\nno clinical reactivity yet",
+              shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    CLINALL  [label = "CLINICAL FOOD ALLERGY\nsensitised AND reactive\n(~70% of sIgE+ children are NOT allergic)"];
+    MICROB   [label = "Infant microbiome / Clostridia\nSCFA (butyrate) -> pTreg, barrier"];
+    CSECT    [label = "C-section, antibiotics, low fibre\ndysbiosis, weaker tolerogenic tone"];
+
+    FLG -> ECZ; ECZ -> TSLP; TSLP -> ILC2; TSLP -> SKINTH2;
+    ENVDUST -> LC; ECZ -> LC [label = "barrier open"];
+    LC -> SKINTH2; ILC2 -> SKINTH2;
+    SKINTH2 -> SENSIT;
+    GUTORAL -> CD103; MICROB -> CD103; CSECT -> MICROB [arrowhead = tee];
+    CD103 -> TREGind; TREGind -> TOLER;
+    TOLER -> SENSIT [arrowhead = tee, label = "prevents"];
+    SENSIT -> CLINALL [label = "if surface\ncross-linking\nexceeds threshold"];
+  }
+
+  /* ================================================================
+     2. THE ALLERGEN AND ITS DELIVERY
+     ================================================================ */
+  subgraph cluster_alg {
+    label = "2. The allergen: molecular identity, digestion resistance and the delivered dose";
+    style = "filled"; fillcolor = "#eaf3fb"; color = "#2f6ea8"; fontsize = 14; fontcolor = "#1e4f7d";
+    node [fillcolor = "#d5e6f6", color = "#2f6ea8"];
+
+    DOSEmg   [label = "INGESTED DOSE\nmg of allergen PROTEIN\n(not mg of food)",
+              shape = box, style = "filled,bold", fillcolor = "#a9c9e8"];
+    ARAH2    [label = "Ara h 2 / Ara h 6 (2S albumin)\ndisulphide-stabilised, pepsin-resistant,\nthe dominant effector allergen of peanut"];
+    ARAH1    [label = "Ara h 1 (7S vicilin) / Ara h 3 (11S legumin)\nabundant, less potent per mole"];
+    ARAH8    [label = "Ara h 8 (PR-10, Bet v 1 homolog)\nlabile: pollen cross-reactive, oral\nsyndrome only, NOT anaphylaxis"];
+    OMEGA5   [label = "omega-5 gliadin (Tri a 19)\nWFDEIA: reacts only WITH cofactor"];
+    CASEIN   [label = "Bos d 8 casein / Gal d 1 ovomucoid\nheat-stable = persistent phenotype"];
+    OVALB    [label = "Gal d 2 ovalbumin / Bos d 5 BLG\nheat-labile = baked-tolerant phenotype"];
+    VALENCY  [label = "ALLERGEN VALENCY n >= 2\nmonovalent allergen CANNOT cross-link\n(this is why hydrolysates are safe)"];
+    EPITOPE  [label = "Linear vs conformational epitope repertoire\nepitope diversity tracks severity better\nthan sIgE titre"];
+    MATRIX   [label = "Food matrix: fat, protein, baking\nhigh-fat matrix slows absorption ->\nlater, sometimes more severe reaction"];
+    GASTRIC  [label = "Gastric emptying + pH\nPPI use raises intact protein delivery"];
+    PEPSIN   [label = "Peptic / tryptic digestion\nfraction surviving intact"];
+    PERM     [label = "Intestinal permeability\nparacellular + transcellular (CD23-mediated)"];
+    ALGGUT   [label = "LUMINAL ALLERGEN\ngut compartment",
+              shape = box, style = "filled,bold", fillcolor = "#a9c9e8"];
+    ALGSYS   [label = "SYSTEMIC / INTERSTITIAL ALLERGEN\nthe concentration the mast cell actually sees",
+              shape = box, style = "filled,bold", fillcolor = "#8fb8e0"];
+    SPLANCH  [label = "Splanchnic blood flow\nsets absorption rate constant"];
+    LOCALMC  [label = "Local GI mucosal mast cell\nfirst cell reached: oral itch, vomiting"];
+
+    DOSEmg -> ALGGUT;
+    ARAH2 -> DOSEmg; ARAH1 -> DOSEmg; ARAH8 -> DOSEmg [style = dotted];
+    OMEGA5 -> DOSEmg [style = dotted]; CASEIN -> DOSEmg [style = dotted];
+    OVALB -> DOSEmg [style = dotted];
+    ARAH2 -> EPITOPE; EPITOPE -> VALENCY;
+    MATRIX -> GASTRIC; GASTRIC -> ALGGUT;
+    ALGGUT -> PEPSIN; PEPSIN -> ALGGUT [arrowhead = tee, label = "destroys labile\nallergens only"];
+    ARAH8 -> PEPSIN [label = "destroyed"];
+    ARAH2 -> PEPSIN [label = "survives", style = bold];
+    ALGGUT -> PERM; PERM -> ALGSYS; SPLANCH -> ALGSYS;
+    ALGGUT -> LOCALMC;
+    VALENCY -> ALGSYS [style = dotted, label = "quality of\nthe dose"];
+  }
+
+  /* ================================================================
+     3. THE IgE COMPARTMENT
+     ================================================================ */
+  subgraph cluster_ige {
+    label = "3. The IgE compartment: production, the serum pool, and the specific fraction f";
+    style = "filled"; fillcolor = "#f4eefb"; color = "#7a4fa5"; fontsize = 14; fontcolor = "#5b2f86";
+    node [fillcolor = "#e8dbf6", color = "#7a4fa5"];
+
+    TH2      [label = "Allergen-specific Th2 / Tfh13\nIL-4, IL-13; Tfh13 is the IgE-licensing subset",
+              shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    IL4      [label = "IL-4 / IL-13 -> IL-4Ralpha -> STAT6\nthe class-switch signal"];
+    CSR      [label = "Class-switch recombination to IgE\nsequential IgM -> IgG1 -> IgE is the\ndominant route (high-affinity clones)"];
+    BMEM     [label = "IgG1+ memory B cell reservoir\nthe true long-term store of allergy\n(IgE memory B cells are rare)",
+              shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    PCige    [label = "IgE plasma cells (short-lived, mucosal +\nbone-marrow long-lived fraction)",
+              shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    SIGE     [label = "SPECIFIC IgE (sIgE), serum\nkU_A/L; half-life ~2 d free in serum",
+              shape = box, style = "filled,bold", fillcolor = "#c9a9e6"];
+    TIGE     [label = "TOTAL IgE, serum\n(sum over all specificities)",
+              shape = box, style = "filled,bold", fillcolor = "#c9a9e6"];
+    FRACF    [label = "SPECIFIC FRACTION  f = sIgE / total IgE\nbetter threshold predictor than sIgE alone\n(the ratio, not the titre)",
+              shape = box, style = "filled,bold", fillcolor = "#b892dd"];
+    AFFIN    [label = "IgE affinity / avidity (KD 1e-10 to 1e-8 M)\nlow-affinity clones do not bridge"];
+    ATOPICBG [label = "Atopic background: eczema, asthma, HDM,\npollen -> total IgE 500-5000 kU/L\nDILUTES f at unchanged sIgE",
+              fillcolor = "#dfd0f0"];
+    IGGb     [label = "Allergen-specific IgG1 / IgG4\n\"blocking\" antibody",
+              shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    PCigg    [label = "IgG4 plasma cells\nIL-10-driven, slower on and slower off",
+              shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    IL10     [label = "IL-10 (Treg / Br1) -> IgG4 switch"];
+    RATIO4   [label = "sIgG4 / sIgE ratio\nrises 10-100x on immunotherapy"];
+
+    TH2 -> IL4; IL4 -> CSR; CSR -> PCige; BMEM -> PCige [label = "recall"];
+    CSR -> BMEM; PCige -> SIGE; SIGE -> TIGE;
+    ATOPICBG -> TIGE [label = "adds non-specific IgE"];
+    SIGE -> FRACF; TIGE -> FRACF [arrowhead = tee, label = "denominator"];
+    AFFIN -> FRACF [style = dotted, label = "effective f"];
+    IL10 -> PCigg; PCigg -> IGGb; IGGb -> RATIO4; SIGE -> RATIO4 [arrowhead = tee];
+    BMEM -> PCigg [label = "re-switch under\nIL-10 + antigen"];
+  }
+
+  /* ================================================================
+     4. THE MAST CELL SURFACE
+     ================================================================ */
+  subgraph cluster_surf {
+    label = "4. The mast cell / basophil surface: receptor density ρ and occupancy L";
+    style = "filled"; fillcolor = "#e8f6f4"; color = "#2f8b80"; fontsize = 14; fontcolor = "#1d6259";
+    node [fillcolor = "#cdeae5", color = "#2f8b80"];
+
+    MCtiss   [label = "Tissue mast cell burden\nskin, gut, lung, perivascular\n~1e4 cells/mm3 in skin"];
+    BASO     [label = "Circulating basophil\naccessible surrogate for the same surface"];
+    FCERI    [label = "FcepsilonRI DENSITY rho\n~1e4 to 1e6 per cell; a SLOW STATE",
+              shape = box, style = "filled,bold", fillcolor = "#a9dbd3"];
+    IGESTAB  [label = "Free IgE stabilises FcepsilonRI\n(receptor is degraded when unoccupied)\nPOSITIVE FEEDBACK",
+              fillcolor = "#b9e2db"];
+    OCCUP    [label = "OCCUPANCY L = free IgE / (KD + free IgE)\nKD ~1e-10 M: saturated at normal IgE,\nso L only moves when IgE is driven LOW",
+              shape = box, style = "filled,bold", fillcolor = "#a9dbd3"];
+    SURFsp   [label = "SURFACE SPECIFIC IgE  S = rho · L · f\nmolecules of allergen-binding IgE per cell",
+              shape = box, style = "filled,bold", fillcolor = "#8fcfc5"];
+    MRGPRX2  [label = "MRGPRX2 (IgE-INDEPENDENT)\nvancomycin, quinolones, icatibant, opioids\nnot involved in food allergy - drawn to\nmark what this model does NOT explain",
+              fillcolor = "#dfeeeb", color = "#7fa9a3", fontcolor = "#4b6b67"];
+    FCGR2B   [label = "FcgammaRIIb (ITIM, inhibitory)\nco-aggregation with FcepsilonRI aborts\nsignalling: the IgG4 second mechanism"];
+    RELEAS   [label = "Intrinsic releasability\nnonreleaser basophils (SYK-low) ~10-20%\nof people: same IgE, no reaction"];
+
+    MCtiss -> FCERI; BASO -> FCERI [style = dotted];
+    IGESTAB -> FCERI [label = "+"];
+    FCERI -> SURFsp; OCCUP -> SURFsp;
+    RELEAS -> SURFsp [style = dotted, label = "gates downstream"];
+    MRGPRX2 -> MCtiss [style = dotted, label = "parallel,\nunmodelled"];
+  }
+
+  /* ================================================================
+     5. THE SQUARE LAW  — THE ENGINE OF THE MODEL
+     ================================================================ */
+  subgraph cluster_xlink {
+    label = "5. THE ENGINE: cross-linking is QUADRATIC in surface specific IgE";
+    style = "filled"; fillcolor = "#fdf3e3"; color = "#b5761a"; fontsize = 15; fontcolor = "#8a5a10";
+    node [fillcolor = "#f8e3c3", color = "#b5761a"];
+
+    PAIR     [label = "A bridge needs TWO adjacent receptors\nBOTH carrying allergen-specific IgE"];
+    PROB     [label = "P(adjacent pair is specific-specific) = f²\nthe specificity enters TWICE"];
+    XLINK    [label = "CROSS-LINK DENSITY  X\nX ∝ (rho · L · f)² · [allergen]/(K + [allergen])\nthe single quantity that decides everything",
+              shape = box, style = "filled,bold", fillcolor = "#eec489", penwidth = 2.2];
+    HOOK     [label = "HOOK EFFECT (prozone)\nat very high [allergen] every IgE is\nmonovalently occupied -> bridges FALL.\nReal in vitro, essentially never reached\nin vivo: drawn so the model does not\nclaim protection at high dose",
+              fillcolor = "#f5d9ad"];
+    NMIN     [label = "Minimum bridge number\n~100-2000 aggregated receptors per cell\nbelow this, no measurable degranulation"];
+    THRESH   [label = "ELICITING DOSE  ED\nthe allergen dose at which X first\nexceeds the degranulation threshold",
+              shape = box, style = "filled,bold", fillcolor = "#e8b273", penwidth = 2.0];
+    LOG2     [label = "CONSEQUENCE OF THE SQUARE:\nany k-fold fall in rho·L·f gives a k²-fold\nfall in X, hence ~2 log10 threshold shift\nper 1 log10 of surface IgE removed",
+              shape = box, style = "filled,bold", fillcolor = "#e8b273"];
+    IGGCOMP  [label = "IgG4 removes allergen BEFORE the surface\n(competitive interception, upstream)\n-> divides [allergen], does NOT touch f",
+              fillcolor = "#f5d9ad"];
+    MULTIPL  [label = "SERIES ARCHITECTURE\nupstream interception (IgG4) × surface\nreduction (anti-IgE) MULTIPLY in the ED\n= the mechanistic content of combination\nimmunotherapy trials",
+              shape = box, style = "filled,bold", fillcolor = "#e8b273"];
+
+    PAIR -> PROB; PROB -> XLINK;
+    XLINK -> NMIN; NMIN -> THRESH;
+    HOOK -> XLINK [arrowhead = tee, style = dashed];
+    XLINK -> LOG2; LOG2 -> THRESH;
+    IGGCOMP -> XLINK [arrowhead = tee];
+    IGGCOMP -> MULTIPL; LOG2 -> MULTIPL;
+  }
+
+  /* ================================================================
+     6. SIGNALLING
+     ================================================================ */
+  subgraph cluster_sig {
+    label = "6. FcepsilonRI proximal signalling and its brakes";
+    style = "filled"; fillcolor = "#e8f6f4"; color = "#2f8b80"; fontsize = 14; fontcolor = "#1d6259";
+    node [fillcolor = "#cdeae5", color = "#2f8b80"];
+
+    LYN      [label = "Lyn / Fyn -> ITAM phosphorylation\non FcRbeta and FcRgamma"];
+    SYK      [label = "SYK recruitment and activation\nthe rate-limiting kinase",
+              shape = box, style = "filled,bold", fillcolor = "#a9dbd3"];
+    LAT      [label = "LAT / LAT2 scaffold, SLP-76, Vav"];
+    PLCG     [label = "PLCgamma1/2 -> IP3 + DAG"];
+    CAFLUX   [label = "Store-operated Ca²⁺ entry\nSTIM1 / ORAI1 — the degranulation trigger",
+              shape = box, style = "filled,bold", fillcolor = "#a9dbd3"];
+    PKC      [label = "PKC / MARCKS -> granule translocation"];
+    SNARE    [label = "SNARE fusion: VAMP8, SNAP23, syntaxin-4"];
+    PI3K     [label = "PI3K p110delta -> AKT -> survival,\nnewly-synthesised mediator arm"];
+    MAPK     [label = "ERK / p38 / JNK -> cPLA2 + cytokine\ntranscription (the LATE arm)"];
+    SHIP1    [label = "SHIP-1 (inositol phosphatase)\nthe dominant negative brake"];
+    LYNneg   [label = "Lyn negative arm / Csk / PTPN6\nhigh-intensity aggregation self-limits"];
+    ANERGY   [label = "DESENSITISED / ANERGIC STATE\nSYK down, SHIP-1 up, FcepsilonRI\ninternalised — induced by REPEATED\nSUB-THRESHOLD antigen: the cellular\nbasis of oral immunotherapy",
+              shape = box, style = "filled,bold", fillcolor = "#8fcfc5"];
+    CAMP     [label = "cAMP / PKA (beta2, PGE2, adenosine A2B)\nraises the Ca²⁺ threshold — how\nadrenaline stabilises the mast cell"];
+    GRAN     [label = "GRANULE CONTENT (depletable)\nrefractoriness after massive release",
+              shape = box, style = "filled,bold", fillcolor = "#a9dbd3"];
+
+    LYN -> SYK; SYK -> LAT; LAT -> PLCG; PLCG -> CAFLUX; CAFLUX -> SNARE;
+    PLCG -> PKC; PKC -> SNARE;
+    LAT -> PI3K; PI3K -> MAPK;
+    SHIP1 -> PI3K [arrowhead = tee]; SHIP1 -> CAFLUX [arrowhead = tee];
+    LYNneg -> SYK [arrowhead = tee];
+    ANERGY -> SYK [arrowhead = tee]; SHIP1 -> ANERGY;
+    CAMP -> CAFLUX [arrowhead = tee];
+    SNARE -> GRAN [arrowhead = tee, label = "consumes"];
+  }
+
+  /* ================================================================
+     7. MEDIATORS
+     ================================================================ */
+  subgraph cluster_med {
+    label = "7. Mediators: the preformed wave, the lipid wave and the cytokine wave";
+    style = "filled"; fillcolor = "#fdf0e6"; color = "#c1651b"; fontsize = 14; fontcolor = "#8f4a12";
+    node [fillcolor = "#f8ddc6", color = "#c1651b"];
+
+    HIST     [label = "HISTAMINE (preformed)\npeak 5-10 min, t½ ~2 min\nH1 vasodilation/permeability, H2 gastric,\nH3/H4 neural and chemotactic",
+              shape = box, style = "filled,bold", fillcolor = "#f2c79c"];
+    TRYPT    [label = "TRYPTASE (preformed)\npeak 15-120 min, t½ ~2 h\nthe only routinely measurable marker;\nrise >(1.2 × baseline + 2) = activation",
+              shape = box, style = "filled,bold", fillcolor = "#f2c79c"];
+    CHYM     [label = "Chymase, carboxypeptidase A3\nangiotensin II generation (counter-regulatory)"];
+    HEP      [label = "Heparin -> contact system -> bradykinin\nangio-oedema component"];
+    PAF      [label = "PAF (newly synthesised, seconds-minutes)\nmost potent hypotensive mediator;\nLOW PAF-acetylhydrolase = fatal anaphylaxis",
+              shape = box, style = "filled,bold", fillcolor = "#f2c79c"];
+    LTC4     [label = "Cysteinyl leukotrienes C4/D4/E4\nbronchoconstriction 1000x histamine,\nsustained capillary leak",
+              shape = box, style = "filled,bold", fillcolor = "#f2c79c"];
+    PGD2     [label = "PGD2 -> DP1/DP2(CRTH2)\nflush, bronchoconstriction, Th2 chemotaxis"];
+    TNFa     [label = "TNF-alpha (preformed + synthesised)\nlate endothelial activation"];
+    IL4mc    [label = "Mast cell IL-4, IL-5, IL-13\nfeeds back on the IgE compartment"];
+    CCL2     [label = "CCL2 / CCL5 / CXCL8\nlate cellular recruitment"];
+    NO       [label = "eNOS/iNOS -> NO -> cGMP\nrefractory vasodilation in severe cases"];
+    COMPL    [label = "Complement C3a / C5a anaphylatoxins\namplify mast cell release (secondary)"];
+
+    HIST -> NO; PAF -> NO;
+    TRYPT -> COMPL [style = dotted]; COMPL -> HIST [style = dotted, label = "amplifies"];
+    HEP -> PGD2 [style = invis];
+    TNFa -> CCL2; IL4mc -> CCL2 [style = dotted];
+  }
+
+  /* ================================================================
+     8. CARDIOVASCULAR — WHERE PEOPLE DIE
+     ================================================================ */
+  subgraph cluster_cv {
+    label = "8. Cardiovascular: the reserve, then the cliff";
+    style = "filled"; fillcolor = "#fdeaea"; color = "#b3352f"; fontsize = 14; fontcolor = "#8a2723";
+    node [fillcolor = "#f8d2d0", color = "#b3352f"];
+
+    ENDOgap  [label = "Endothelial gap formation\nVE-cadherin internalisation, RhoA\n(H1 + PAF + cysLT act together)"];
+    LEAK     [label = "CAPILLARY LEAK\nup to 35% of plasma volume into the\ninterstitium in ~10 minutes",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    PV       [label = "PLASMA VOLUME\nthe reserve being spent",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    VDIL     [label = "Arteriolar + venodilation\nSVR falls, venous capacitance rises"];
+    PRELOAD  [label = "Venous return / preload collapse\n(the dominant lesion — NOT pump failure)"];
+    COMPENS  [label = "COMPENSATORY RESERVE\nbaroreflex, catecholamine surge,\nRAAS, splanchnic constriction:\nMAP HELD FLAT until reserve is spent",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    MAP      [label = "MEAN ARTERIAL PRESSURE\nflat, then a cliff",
+              shape = box, style = "filled,bold", fillcolor = "#e89792", penwidth = 2.0];
+    KOUNIS   [label = "Kounis syndrome\nmast cells in coronary plaque ->\nvasospasm / plaque rupture"];
+    UPRIGHT  [label = "UPRIGHT POSTURE / SUDDEN STANDING\n\"empty ventricle\" — deaths documented\nwhen patients are stood up. Lay flat.",
+              fillcolor = "#e58a85", fontcolor = "#3a0e0c"];
+    BEZOLD   [label = "Bezold-Jarisch reflex\nparadoxical bradycardia in ~10%:\nabsence of tachycardia does NOT exclude"];
+    ARREST   [label = "CARDIOVASCULAR COLLAPSE / ARREST\nmedian time to arrest: food 30 min,\nvenom 15 min, IV drug 5 min",
+              shape = box, style = "filled,bold", fillcolor = "#d9615a", fontcolor = "#ffffff"];
+
+    ENDOgap -> LEAK; LEAK -> PV [arrowhead = tee];
+    VDIL -> PRELOAD; PV -> PRELOAD;
+    PRELOAD -> MAP; VDIL -> MAP [arrowhead = tee];
+    COMPENS -> MAP [label = "holds"];
+    LEAK -> COMPENS [arrowhead = tee, label = "spends"];
+    MAP -> ARREST; UPRIGHT -> PRELOAD [arrowhead = tee, label = "removes the\nlast reserve"];
+    BEZOLD -> MAP [arrowhead = tee, style = dotted];
+    KOUNIS -> ARREST [style = dotted];
+  }
+
+  /* ================================================================
+     9. RESPIRATORY
+     ================================================================ */
+  subgraph cluster_resp {
+    label = "9. Respiratory: the other fatal route (and why asthma is the risk factor)";
+    style = "filled"; fillcolor = "#eaf5ee"; color = "#2f8b52"; fontsize = 14; fontcolor = "#1d6238";
+    node [fillcolor = "#cfe9d8", color = "#2f8b52"];
+
+    LARYNX   [label = "Laryngeal / pharyngeal angio-oedema\nupper airway occlusion; fatal in minutes"];
+    BRONCH   [label = "Bronchial smooth muscle constriction\ncysLT >> histamine",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    MUCUS    [label = "Mucus plugging + airway oedema"];
+    FEV1     [label = "FEV1 / PEF FALL\nthe respiratory endpoint",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    ASTHMA   [label = "PRE-EXISTING ASTHMA\nlower baseline calibre -> the SAME\nbronchoconstriction produces a larger\nfall in flow. #1 risk factor for fatal\nfood anaphylaxis",
+              fillcolor = "#a3d4b4"];
+    HYPOXIA  [label = "Hypoxaemia -> myocardial ischaemia\n-> the second route to arrest"];
+
+    BRONCH -> FEV1 [arrowhead = tee]; MUCUS -> FEV1 [arrowhead = tee];
+    ASTHMA -> FEV1 [arrowhead = tee, label = "amplifies"];
+    FEV1 -> HYPOXIA; LARYNX -> HYPOXIA;
+  }
+
+  /* ================================================================
+     10. SKIN, GI, AND THE GRADING PROBLEM
+     ================================================================ */
+  subgraph cluster_organ {
+    label = "10. Skin, gastrointestinal and neurological features — and why grading scales mislead";
+    style = "filled"; fillcolor = "#fdeaea"; color = "#b3352f"; fontsize = 14; fontcolor = "#8a2723";
+    node [fillcolor = "#f8d2d0", color = "#b3352f"];
+
+    OAS      [label = "Oral pruritus / tingling\nlocal mucosal mast cells, earliest sign"];
+    URT      [label = "Urticaria / angio-oedema / flush\nH1-driven, the most VISIBLE feature",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    GI       [label = "Nausea, vomiting, cramping, diarrhoea\nGI mast cell + vagal",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    DOOM     [label = "Sense of impending doom, confusion\ncerebral hypoperfusion + mediator effect"];
+    NOSKIN   [label = "SKIN INVOLVEMENT IS ABSENT IN\n10-20% OF FATAL CASES\n-> 'no rash' does not exclude anaphylaxis",
+              fillcolor = "#e58a85", fontcolor = "#3a0e0c"];
+    SEVSCORE [label = "Severity grade (PRACTALL / WAO / Brown)\nORDINAL, and dominated by skin signs\nthat carry no mortality information",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    ANTIHmask[label = "H1-ANTIHISTAMINE PRE-TREATMENT\nsuppresses urticaria and pruritus but\nNOT hypotension: removes the warning\nsign while leaving the danger",
+              fillcolor = "#e58a85", fontcolor = "#3a0e0c"];
+
+    OAS -> SEVSCORE; URT -> SEVSCORE; GI -> SEVSCORE; DOOM -> SEVSCORE;
+    NOSKIN -> SEVSCORE [arrowhead = tee, label = "breaks it"];
+    ANTIHmask -> URT [arrowhead = tee];
+    ANTIHmask -> SEVSCORE [arrowhead = tee, label = "lowers the score,\nnot the risk"];
+  }
+
+  /* ================================================================
+     11. LATE PHASE AND BIPHASIC REACTION
+     ================================================================ */
+  subgraph cluster_late {
+    label = "11. Late phase and the biphasic reaction (why observation periods exist)";
+    style = "filled"; fillcolor = "#fdf0e6"; color = "#c1651b"; fontsize = 14; fontcolor = "#8f4a12";
+    node [fillcolor = "#f8ddc6", color = "#c1651b"];
+
+    NEWSYN   [label = "Newly synthesised mediator arm\ncPLA2 -> lipids (min), transcription (h)"];
+    RECRUIT  [label = "Eosinophil / basophil / Th2 recruitment\n4-12 h after the initial wave",
+              shape = box, style = "filled,bold", fillcolor = "#f2c79c"];
+    BIPH     [label = "BIPHASIC REACTION\n~4-5% of episodes (higher with severe\ninitial reaction and delayed adrenaline)",
+              shape = box, style = "filled,bold", fillcolor = "#f2c79c"];
+    OBSERVE  [label = "Observation period 4-6 h\nthe clinical consequence of the biphasic\ntimescale"];
+    STEROID  [label = "Systemic corticosteroid\nNO acute effect (genomic, 4-6 h);\nevidence for biphasic prevention is weak\n— given by habit more than by data",
+              fillcolor = "#f5d9ad"];
+    PROTRACT [label = "Protracted anaphylaxis\nrefractory to adrenaline; NO-mediated\nvasoplegia, needs infusion + vasopressin"];
+
+    NEWSYN -> RECRUIT; RECRUIT -> BIPH; BIPH -> OBSERVE;
+    STEROID -> BIPH [arrowhead = tee, style = dashed, label = "weak / unproven"];
+    NEWSYN -> PROTRACT [style = dotted];
+  }
+
+  /* ================================================================
+     12. COFACTORS — THRESHOLD MULTIPLIERS
+     ================================================================ */
+  subgraph cluster_cof {
+    label = "12. Cofactors: they multiply the DELIVERED DOSE, not the immunology";
+    style = "filled"; fillcolor = "#eef4fb"; color = "#3d6fa5"; fontsize = 14; fontcolor = "#24507d";
+    node [fillcolor = "#dbe8f6", color = "#3d6fa5"];
+
+    EXERC    [label = "Exercise\nsplanchnic redistribution, gut permeability,\nplasma osmolality; FDEIA/WDEIA"];
+    NSAID    [label = "NSAID / aspirin\ntight-junction opening + COX shunt to cysLT;\nthe single strongest documented cofactor"];
+    ETOH     [label = "Alcohol\npermeability + vasodilation"];
+    INFECT   [label = "Acute infection / fever\nmast cell priming, barrier"];
+    SLEEP    [label = "Sleep deprivation, stress, menses\nmodest, poorly quantified"];
+    PPIco    [label = "PPI / antacid\nintact protein survives to the small bowel"];
+    ASTHMAun [label = "Uncontrolled asthma\nnot a threshold cofactor — a SEVERITY\ncofactor (see cluster 9)"];
+    BB       [label = "Beta-blocker / ACE inhibitor\nblunt the response to adrenaline and to\nendogenous compensation"];
+    THRVAR   [label = "WITHIN-PATIENT THRESHOLD VARIANCE\n~0.4-0.5 log10 across repeat challenges\n-> a single DBPCFC ED is ONE DRAW",
+              shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    POPTHR   [label = "POPULATION THRESHOLD DISTRIBUTION\nlog-normal; ED01 ~0.2 mg, ED05 ~1.5 mg,\nED10 ~3 mg peanut protein\n(the basis of VITAL / precautionary labelling)",
+              shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+
+    EXERC -> THRVAR; NSAID -> THRVAR; ETOH -> THRVAR; INFECT -> THRVAR;
+    SLEEP -> THRVAR; PPIco -> THRVAR;
+    THRVAR -> POPTHR;
+  }
+
+  /* ================================================================
+     13. ANTI-IgE PHARMACOLOGY
+     ================================================================ */
+  subgraph cluster_antiige {
+    label = "13. Anti-IgE: target-mediated disposition, the fast arm and the slow arm";
+    style = "filled"; fillcolor = "#eaf5ee"; color = "#2f8b52"; fontsize = 14; fontcolor = "#1d6238";
+    node [fillcolor = "#cfe9d8", color = "#2f8b52"];
+
+    OMAsc    [label = "OMALIZUMAB subcutaneous depot\nq2-4 wk, dose from weight × total IgE table\n(75-600 mg; the table exists because the\nDRUG:IgE STOICHIOMETRY must be met)",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    OMAc     [label = "Omalizumab central compartment\nCL ~2.4 mL/kg/d, Vc ~78 mL/kg, t½ ~26 d",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    TMDD     [label = "TMDD: omalizumab:IgE 1:1 and 2:1 complexes\ntrimers/hexamers cleared by RES;\nTOTAL IgE RISES 5-10x while FREE FALLS",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    FREEIGE  [label = "FREE IgE\ntarget <10-25 ng/mL; falls within days",
+              shape = box, style = "filled,bold", fillcolor = "#9fd3b1"];
+    RHODOWN  [label = "FcepsilonRI DOWNREGULATION\nbasophil receptor -90% over 8-12 wk\n— THE SLOW ARM",
+              shape = box, style = "filled,bold", fillcolor = "#9fd3b1"];
+    WK16     [label = "WHY THE CHALLENGE IS AT WEEK 16-20\nfast arm alone gives ~1 log of threshold;\nfast × slow inside the square gives ~2 logs",
+              shape = box, style = "filled,bold", fillcolor = "#8ac9a1"];
+    HIGHIGE  [label = "VERY HIGH TOTAL IgE (>1500 kU/L)\nstoichiometry unattainable at licensed dose\n-> free IgE never suppressed -> NONRESPONSE\n(the model's main predicted failure mode)",
+              fillcolor = "#f5d9ad", color = "#b5761a"];
+    LIGEL    [label = "Ligelizumab\n~50x higher affinity; suppresses free IgE\nfurther but NOT proportionally better\nclinically — consistent with saturation\nof the L term"];
+    UNMASK   [label = "WITHDRAWAL: free IgE rebounds in weeks,\nrho recovers over months -> threshold\nreturns. Anti-IgE is SUPPRESSIVE, not\nDISEASE-MODIFYING",
+              fillcolor = "#e58a85", color = "#b3352f", fontcolor = "#3a0e0c"];
+
+    OMAsc -> OMAc; OMAc -> TMDD; TMDD -> FREEIGE [arrowhead = tee];
+    FREEIGE -> RHODOWN [arrowhead = tee, label = "removes the\nstabilising ligand"];
+    FREEIGE -> WK16; RHODOWN -> WK16;
+    HIGHIGE -> FREEIGE [arrowhead = tee, label = "blocks\nsuppression"];
+    LIGEL -> FREEIGE [arrowhead = tee, style = dotted];
+    OMAsc -> UNMASK [style = dotted, label = "on stopping"];
+  }
+
+  /* ================================================================
+     14. ALLERGEN IMMUNOTHERAPY
+     ================================================================ */
+  subgraph cluster_ait {
+    label = "14. Allergen immunotherapy: interception upstream, plus a slow tolerance arm";
+    style = "filled"; fillcolor = "#eaf5ee"; color = "#2f8b52"; fontsize = 14; fontcolor = "#1d6238";
+    node [fillcolor = "#cfe9d8", color = "#2f8b52"];
+
+    OIT      [label = "ORAL IMMUNOTHERAPY (OIT)\ndaily peanut protein, 0.5 mg -> 300 mg\nover ~6-12 months (AR101 / PALISADE)",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    SLIT     [label = "Sublingual (SLIT) 2 mg/d\nsmaller threshold shift, far fewer AEs"];
+    EPIT     [label = "Epicutaneous (patch, 250 µg)\nsmallest shift, best safety, best in\nthe youngest children"];
+    EARLYOIT [label = "OIT started under age 4 (IMPACT)\nremission 20% vs 7% — the tolerance arm\nis age-dependent and closes"];
+    IGG4up   [label = "sIgG4 rises 10-100x\nplasma-cell driven, on over months\nand OFF over weeks-months",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    INTERCEPT[label = "INTERSTITIAL INTERCEPTION\nIgG4 binds allergen before FcepsilonRI\ncan — the fast, reversible mechanism",
+              shape = box, style = "filled,bold", fillcolor = "#9fd3b1"];
+    FCGRINH  [label = "FcgammaRIIb co-aggregation\nITIM -> SHIP-1 -> aborted signal"];
+    MCDESENS [label = "Mast cell / basophil desensitisation\nrepeated sub-threshold antigen -> SYK down\n(days; LOST within days of stopping)",
+              shape = box, style = "filled,bold", fillcolor = "#9fd3b1"];
+    TREG2    [label = "Allergen-specific Treg / Br1 expansion\nIL-10, TGF-beta — the SLOW arm (years)",
+              shape = box, style = "filled,bold", fillcolor = "#9fd3b1"];
+    DESENS   [label = "DESENSITISATION\nthreshold up WHILE ON therapy\n(PALISADE: 67% tolerate 600 mg vs 4%)",
+              shape = box, style = "filled,bold", fillcolor = "#8ac9a1"];
+    SU       [label = "SUSTAINED UNRESPONSIVENESS / REMISSION\nthreshold stays up after weeks off drug\n— a different, rarer endpoint",
+              shape = box, style = "filled,bold", fillcolor = "#8ac9a1"];
+    OITAE    [label = "OIT ADVERSE EFFECTS\n~10-20% withdraw; systemic reactions,\nadrenaline use HIGHER than placebo;\nnew-onset EoE in ~3-5%",
+              fillcolor = "#e58a85", color = "#b3352f", fontcolor = "#3a0e0c"];
+    DOSEREAC [label = "Dosing reactions are COFACTOR-GATED\nthe same maintenance dose that is safe\ndaily becomes reactive after exercise,\nfever or on an empty stomach",
+              fillcolor = "#f5d9ad", color = "#b5761a"];
+
+    OIT -> IGG4up; SLIT -> IGG4up [style = dotted]; EPIT -> IGG4up [style = dotted];
+    IGG4up -> INTERCEPT; IGG4up -> FCGRINH;
+    OIT -> MCDESENS; OIT -> TREG2 [label = "slow"];
+    EARLYOIT -> TREG2 [label = "age-dependent"];
+    INTERCEPT -> DESENS; FCGRINH -> DESENS; MCDESENS -> DESENS;
+    TREG2 -> SU; DESENS -> SU [style = dotted, label = "only via the\nslow arm"];
+    OIT -> OITAE; OIT -> DOSEREAC;
+  }
+
+  /* ================================================================
+     15. TYPE 2 CYTOKINE BLOCKADE AND OTHER UPSTREAM DRUGS
+     ================================================================ */
+  subgraph cluster_t2 {
+    label = "15. Upstream type-2 blockade and adjuncts";
+    style = "filled"; fillcolor = "#eaf5ee"; color = "#2f8b52"; fontsize = 14; fontcolor = "#1d6238";
+    node [fillcolor = "#cfe9d8", color = "#2f8b52"];
+
+    DUPI     [label = "DUPILUMAB (anti-IL-4Ralpha)\nblocks class switching -> sIgE falls\nSLOWLY (months) and INCOMPLETELY",
+              shape = box, style = "filled,bold", fillcolor = "#b3dcc2"];
+    DUPIfail [label = "Dupilumab MONOTHERAPY moved the peanut\nthreshold in only ~2/24 patients.\nThe model's explanation: it lowers sIgE\nand total IgE TOGETHER, so f is nearly\nunchanged, and f is what is squared",
+              shape = box, style = "filled,bold", fillcolor = "#8ac9a1"];
+    TSLPmab  [label = "Tezepelumab (anti-TSLP)\nupstream of the alarmin arm; under study"];
+    BTKi     [label = "BTK inhibitor (acalabrutinib, remibrutinib)\nblocks FcepsilonRI signalling DOWNSTREAM\nof cross-linking — abolishes reaction\nwithout touching IgE (proof of concept\nin 2 days of dosing)"];
+    JAKi     [label = "JAK1 inhibitor (abrocitinib)\nadjunct to OIT, small trials"];
+    ANTIKIT  [label = "Anti-KIT (barzolvolimab, briquilimab)\ndepletes the mast cell itself — the\nmost direct route to raising rho·threshold"];
+    PROBIOT  [label = "Probiotic + OIT (PPOIT)\nadjuvant to the Treg arm"];
+
+    DUPI -> DUPIfail; DUPI -> TSLPmab [style = invis];
+  }
+
+  /* ================================================================
+     16. ACUTE RESCUE PHARMACOLOGY
+     ================================================================ */
+  subgraph cluster_rescue {
+    label = "16. Acute rescue: adrenaline opposes the mediators, it does not remove them";
+    style = "filled"; fillcolor = "#eef2f7"; color = "#4a6785"; fontsize = 14; fontcolor = "#2f4762";
+    node [fillcolor = "#d8e2ee", color = "#4a6785"];
+
+    EPIim    [label = "ADRENALINE 0.3-0.5 mg IM, anterolateral thigh\ntmax ~8-10 min; deltoid and SC are slower\nand lower — the site is part of the dose",
+              shape = box, style = "filled,bold", fillcolor = "#b9cbe0"];
+    EPIin    [label = "Intranasal adrenaline 2 mg (neffy)\nCmax comparable to IM, tmax ~20 min;\nremoves the needle as a barrier to USE"];
+    EPIiv    [label = "IV adrenaline infusion 0.05-0.1 µg/kg/min\nfor refractory cases; bolus IV is the\nmain source of iatrogenic harm"];
+    EPIc     [label = "Adrenaline plasma concentration\nt½ ~2-3 min — the reason a single dose\ncan fail and 1/3 of episodes need a second",
+              shape = box, style = "filled,bold", fillcolor = "#b9cbe0"];
+    A1       [label = "alpha1: arteriolar + venous constriction\nreverses SVR fall AND capillary leak;\nrestores preload — the life-saving action"];
+    B1       [label = "beta1: inotropy, chronotropy"];
+    B2       [label = "beta2: bronchodilation + cAMP-mediated\nMAST CELL STABILISATION (stops further\nrelease — the only mediator-side action)"];
+    INTEGRAL [label = "WHY EARLY IS BETTER — IT IS AN INTEGRAL\nharm = ∫ capillary leak dt. Delay does not\nreduce efficacy; it increases the deficit\nthat must then be repaired",
+              shape = box, style = "filled,bold", fillcolor = "#a9bfd8", penwidth = 2.0];
+    FLUID    [label = "IV crystalloid 20 mL/kg, repeat\nrefills what has leaked; often needs\n1-3 L in an adult"];
+    POSITION [label = "SUPINE with legs elevated\nautotransfusion of ~500 mL"];
+    H1blk    [label = "H1 antihistamine (cetirizine PO / IV)\nrelieves itch and urticaria ONLY;\nno effect on airway or MAP;\nNOT first-line and must not delay adrenaline",
+              fillcolor = "#c8d5e5"];
+    H2blk    [label = "H2 antihistamine — no outcome evidence"];
+    SABA     [label = "Inhaled salbutamol\nadjunct for bronchospasm only"];
+    GLUC     [label = "Glucagon 1-5 mg IV\nfor beta-blocked patients: bypasses\nthe blocked receptor via Gs"];
+    VASOP    [label = "Vasopressin / methylene blue\nNO-mediated refractory vasoplegia"];
+    DELAY    [label = "DELAYED ADRENALINE\npresent in the majority of fatal cases;\nmedian delay to arrest is short enough\nthat 'wait and see' is the lethal step",
+              fillcolor = "#d9615a", fontcolor = "#ffffff", color = "#8a2723"];
+    NOCARRY  [label = "Autoinjector not carried / expired /\nnot used because symptoms seemed mild\n— the commonest real-world failure",
+              fillcolor = "#e58a85", color = "#b3352f", fontcolor = "#3a0e0c"];
+
+    EPIim -> EPIc; EPIin -> EPIc [style = dotted]; EPIiv -> EPIc [style = dotted];
+    EPIc -> A1; EPIc -> B1; EPIc -> B2;
+    EPIc -> INTEGRAL; DELAY -> INTEGRAL [label = "widens"];
+    NOCARRY -> DELAY;
+    POSITION -> FLUID [style = invis];
+  }
+
+  /* ================================================================
+     17. DIAGNOSTICS
+     ================================================================ */
+  subgraph cluster_dx {
+    label = "17. Diagnostics: what each test actually measures on this map";
+    style = "filled"; fillcolor = "#f4eefb"; color = "#7a4fa5"; fontsize = 14; fontcolor = "#5b2f86";
+    node [fillcolor = "#e8dbf6", color = "#7a4fa5"];
+
+    SPT      [label = "Skin prick test wheal\nmeasures rho·L·f IN SKIN — a surface\nreadout, which is why it beats serum sIgE"];
+    SIGEtest [label = "Serum sIgE (ImmunoCAP, kU_A/L)\nmeasures the NUMERATOR of f only"];
+    COMPDX   [label = "Component-resolved diagnosis\nAra h 2 sIgE >> whole peanut sIgE for\ndiscriminating allergy from sensitisation"];
+    BAT      [label = "Basophil activation test (CD63/CD203c)\nmeasures the ENGINE DIRECTLY on a\nsurrogate cell; best correlate of threshold"];
+    MAT      [label = "Mast cell activation test (donor MC\nsensitised with patient serum)\nseparates the serum term from the cell term"];
+    OFC      [label = "Double-blind placebo-controlled food\nchallenge (DBPCFC) — the reference\nstandard, measures ONE DRAW of the ED",
+              shape = box, style = "filled,bold", fillcolor = "#d9c2ee"];
+    BSTRYP   [label = "Baseline serum tryptase\n>8 ng/mL or HaT (TPSAB1 duplication)\n-> more severe reactions"];
+    HAT      [label = "Hereditary alpha-tryptasaemia (~5% of people)\nand clonal mast cell disease\n— a rho-side severity modifier"];
+    EPITMAP  [label = "Epitope diversity / bead-based epitope assay\ntracks severity and OIT outcome"];
+
+    SPT -> OFC [style = dotted]; SIGEtest -> COMPDX; COMPDX -> OFC [style = dotted];
+    BAT -> OFC [style = dotted]; MAT -> BAT [style = dotted];
+    BSTRYP -> HAT;
+  }
+
+  /* ================================================================
+     18. NATURAL HISTORY
+     ================================================================ */
+  subgraph cluster_nat {
+    label = "18. Natural history: which allergies resolve, and why";
+    style = "filled"; fillcolor = "#eef4fb"; color = "#3d6fa5"; fontsize = 14; fontcolor = "#24507d";
+    node [fillcolor = "#dbe8f6", color = "#3d6fa5"];
+
+    MILKEGG  [label = "Cow's milk and egg\n~70-80% resolve by school age\n(heat-labile epitopes dominate)"];
+    BAKED    [label = "Baked milk / baked egg tolerance\n~70% tolerate the baked form and it\nacts as a de facto immunotherapy"];
+    PEANUT   [label = "Peanut, tree nut, fish, shellfish\n~20% resolve; usually lifelong"];
+    IGEDEC   [label = "Falling sIgE trajectory\nthe best single predictor of resolution",
+              shape = box, style = "filled,bold", fillcolor = "#aec9e8"];
+    LLPC     [label = "Long-lived IgE plasma cell niche\nsurvival of this niche is what makes\npeanut allergy permanent"];
+    ATOPMARCH[label = "Atopic march: eczema -> food allergy ->\nasthma -> rhinitis"];
+
+    MILKEGG -> IGEDEC; BAKED -> IGEDEC; PEANUT -> LLPC;
+    LLPC -> IGEDEC [arrowhead = tee]; ATOPMARCH -> LLPC [style = dotted];
+  }
+
+  /* ================================================================
+     19. ENDPOINTS
+     ================================================================ */
+  subgraph cluster_end {
+    label = "19. Clinical endpoints and trial readouts";
+    style = "filled"; fillcolor = "#fdeaea"; color = "#b3352f"; fontsize = 14; fontcolor = "#8a2723";
+    node [fillcolor = "#f8d2d0", color = "#b3352f"];
+
+    EDmg     [label = "ELICITING DOSE (mg protein)\nthe primary variable of the whole field",
+              shape = box, style = "filled,bold", fillcolor = "#e89792", penwidth = 2.0];
+    RESP600  [label = "Responder: tolerates a SINGLE dose\n>= 600 mg peanut protein\n(the OUtMATCH / PALISADE endpoint)",
+              shape = box, style = "filled,bold", fillcolor = "#f0b5b2"];
+    CUMTOL   [label = "Cumulative tolerated dose\n(more informative, less used)"];
+    SEVMAX   [label = "Maximum severity grade at challenge"];
+    EPIUSE   [label = "Adrenaline use during challenge\n— safety endpoint that moves the WRONG\nway during OIT build-up"];
+    QOL      [label = "FAQLQ / caregiver burden\nthe endpoint patients care most about;\ntracks freedom from accidental reaction,\nnot the threshold per se"];
+    ACCID    [label = "Accidental reaction rate\n~7-15% per year on avoidance alone"];
+    LABEL    [label = "Precautionary allergen labelling / VITAL\nreference doses derived from ED05\n— a population, not a patient, decision"];
+    DEATH    [label = "Fatal food anaphylaxis\n~0.03-0.3 per million person-years:\nRARE, and the gap between fear and risk\nis itself a therapeutic target",
+              shape = box, style = "filled,bold", fillcolor = "#d9615a", fontcolor = "#ffffff"];
+
+    EDmg -> RESP600; EDmg -> CUMTOL; EDmg -> ACCID [arrowhead = tee];
+    ACCID -> QOL [arrowhead = tee]; SEVMAX -> QOL [arrowhead = tee];
+    EDmg -> LABEL; ACCID -> DEATH [style = dotted];
+    EPIUSE -> QOL [arrowhead = tee, style = dotted];
+  }
+
+  /* ================================================================
+     20. WHAT THE MODEL DOES NOT COVER
+     ================================================================ */
+  subgraph cluster_not {
+    label = "20. Explicitly outside this model (drawn so it is not mistaken for coverage)";
+    style = "filled"; fillcolor = "#f2f2f2"; color = "#8a8a8a"; fontsize = 13; fontcolor = "#555555";
+    node [fillcolor = "#e3e3e3", color = "#8a8a8a", fontcolor = "#333333"];
+
+    FPIES    [label = "FPIES — non-IgE, T-cell/innate,\ndelayed 1-4 h vomiting, no IgE anywhere"];
+    EOE      [label = "Eosinophilic oesophagitis\nfood-triggered but not IgE-effector"];
+    ALPHAGAL [label = "Alpha-gal syndrome\nIgE-mediated but delayed 3-6 h\n(lipid-particle kinetics, not this map)"];
+    HIST_INT [label = "Histamine intolerance / scombroid\nno IgE, no mast cell"];
+    COELIAC  [label = "Coeliac disease — adaptive, not IgE"];
+    IDIOP    [label = "Idiopathic anaphylaxis / MRGPRX2 /\nclonal mast cell disease as primary cause"];
+
+    FPIES -> EOE [style = invis]; ALPHAGAL -> HIST_INT [style = invis];
+  }
+
+  /* ================================================================
+     CROSS-CLUSTER WIRING — the actual causal spine
+     ================================================================ */
+
+  /* sensitisation feeds the IgE compartment */
+  SENSIT   -> TH2      [lhead = cluster_ige, color = "#7a4fa5", penwidth = 1.4];
+  SKINTH2  -> TH2      [color = "#7a4fa5"];
+  TREGind  -> IL10     [color = "#7a4fa5", style = dotted];
+
+  /* IgE compartment sets the surface */
+  SIGE     -> OCCUP    [color = "#2f8b80", penwidth = 1.3];
+  TIGE     -> OCCUP    [color = "#2f8b80", penwidth = 1.3, label = "free IgE"];
+  TIGE     -> IGESTAB  [color = "#2f8b80"];
+  FRACF    -> SURFsp   [color = "#2f8b80", penwidth = 1.8, label = "f"];
+
+  /* surface + allergen -> the engine */
+  SURFsp   -> XLINK    [color = "#b5761a", penwidth = 2.2, label = "squared"];
+  ALGSYS   -> XLINK    [color = "#b5761a", penwidth = 2.0];
+  IGGb     -> IGGCOMP  [color = "#b5761a", penwidth = 1.6];
+  RELEAS   -> NMIN     [style = dotted, color = "#2f8b80"];
+
+  /* engine -> signalling -> mediators */
+  XLINK    -> LYN      [color = "#2f8b80", penwidth = 2.0];
+  GRAN     -> HIST     [color = "#c1651b", penwidth = 1.4];
+  SNARE    -> HIST     [color = "#c1651b", penwidth = 1.6];
+  SNARE    -> TRYPT    [color = "#c1651b", penwidth = 1.6];
+  SNARE    -> CHYM     [color = "#c1651b"];
+  SNARE    -> HEP      [color = "#c1651b"];
+  MAPK     -> PAF      [color = "#c1651b", penwidth = 1.4];
+  MAPK     -> LTC4     [color = "#c1651b", penwidth = 1.4];
+  MAPK     -> PGD2     [color = "#c1651b"];
+  MAPK     -> TNFa     [color = "#c1651b"];
+  MAPK     -> IL4mc    [color = "#c1651b"];
+  IL4mc    -> TH2      [color = "#7a4fa5", style = dotted, label = "feedback"];
+
+  /* mediators -> organs */
+  HIST     -> ENDOgap  [color = "#b3352f", penwidth = 1.5];
+  PAF      -> ENDOgap  [color = "#b3352f", penwidth = 1.9];
+  LTC4     -> ENDOgap  [color = "#b3352f", penwidth = 1.3];
+  HIST     -> VDIL     [color = "#b3352f", penwidth = 1.5];
+  PAF      -> VDIL     [color = "#b3352f", penwidth = 1.7];
+  NO       -> VDIL     [color = "#b3352f"];
+  LTC4     -> BRONCH   [color = "#2f8b52", penwidth = 1.8];
+  HIST     -> BRONCH   [color = "#2f8b52"];
+  PGD2     -> BRONCH   [color = "#2f8b52"];
+  LTC4     -> MUCUS    [color = "#2f8b52"];
+  HIST     -> LARYNX   [color = "#2f8b52"];
+  HEP      -> LARYNX   [color = "#2f8b52", style = dotted, label = "bradykinin"];
+  HIST     -> URT      [color = "#b3352f", penwidth = 1.4];
+  HIST     -> GI       [color = "#b3352f"];
+  LOCALMC  -> OAS      [color = "#b3352f"];
+  LOCALMC  -> GI       [color = "#b3352f"];
+  MAP      -> DOOM     [color = "#b3352f", arrowhead = tee];
+  TRYPT    -> BSTRYP   [style = dotted, color = "#7a4fa5"];
+  HAT      -> MCtiss   [style = dotted, color = "#2f8b80", label = "more mast cells,\nmore tryptase"];
+
+  /* late phase */
+  MAPK     -> NEWSYN   [color = "#c1651b"];
+  TNFa     -> RECRUIT  [color = "#c1651b"];
+
+  /* cofactors act on delivery, not on immunology */
+  EXERC    -> PERM     [color = "#3d6fa5", penwidth = 1.5, label = "×2-5 delivered dose"];
+  NSAID    -> PERM     [color = "#3d6fa5", penwidth = 1.7];
+  ETOH     -> PERM     [color = "#3d6fa5"];
+  INFECT   -> RELEAS   [color = "#3d6fa5", style = dotted];
+  PPIco    -> PEPSIN   [color = "#3d6fa5", arrowhead = tee];
+  EXERC    -> SPLANCH  [color = "#3d6fa5"];
+  ASTHMAun -> ASTHMA   [color = "#2f8b52", style = dotted];
+  BB       -> A1       [color = "#b3352f", arrowhead = tee, style = dashed];
+  BB       -> COMPENS  [color = "#b3352f", arrowhead = tee, style = dashed];
+  GLUC     -> B1       [color = "#4a6785", style = dotted, label = "bypass"];
+
+  /* anti-IgE into the surface */
+  FREEIGE  -> OCCUP    [color = "#2f8b52", penwidth = 1.9, arrowhead = tee];
+  RHODOWN  -> FCERI    [color = "#2f8b52", penwidth = 1.9, arrowhead = tee];
+  TMDD     -> TIGE     [color = "#2f8b52", style = dotted, label = "total RISES\n(assay artefact\nif misread)"];
+  HIGHIGE  -> TIGE     [style = dotted, color = "#2f8b52"];
+  WK16     -> THRESH   [color = "#b5761a", penwidth = 1.6];
+
+  /* immunotherapy into the engine */
+  INTERCEPT -> ALGSYS  [color = "#2f8b52", penwidth = 1.7, arrowhead = tee];
+  FCGRINH  -> FCGR2B   [color = "#2f8b52"];
+  FCGR2B   -> SHIP1    [color = "#2f8b80", penwidth = 1.4];
+  MCDESENS -> ANERGY   [color = "#2f8b52", penwidth = 1.5];
+  TREG2    -> TH2      [color = "#2f8b52", arrowhead = tee, penwidth = 1.3];
+  TREG2    -> IL10     [color = "#2f8b52"];
+  OIT      -> ALGGUT   [color = "#2f8b52", style = dotted, label = "the drug IS\nthe allergen"];
+  DOSEREAC -> URT      [color = "#b3352f", style = dotted];
+  OITAE    -> EOE      [style = dotted, color = "#8a8a8a"];
+
+  /* upstream type 2 blockade */
+  DUPI     -> IL4      [color = "#2f8b52", arrowhead = tee, penwidth = 1.5];
+  DUPIfail -> FRACF    [color = "#2f8b52", style = dashed, label = "f barely moves"];
+  TSLPmab  -> TSLP     [color = "#2f8b52", arrowhead = tee, style = dotted];
+  BTKi     -> SYK      [color = "#2f8b52", arrowhead = tee, penwidth = 1.4];
+  ANTIKIT  -> MCtiss   [color = "#2f8b52", arrowhead = tee, penwidth = 1.4];
+  JAKi     -> TH2      [color = "#2f8b52", arrowhead = tee, style = dotted];
+  PROBIOT  -> TREG2    [color = "#2f8b52", style = dotted];
+
+  /* rescue into the physiology */
+  A1       -> LEAK     [color = "#4a6785", arrowhead = tee, penwidth = 1.8];
+  A1       -> VDIL     [color = "#4a6785", arrowhead = tee, penwidth = 1.8];
+  A1       -> PRELOAD  [color = "#4a6785", penwidth = 1.5];
+  B1       -> MAP      [color = "#4a6785"];
+  B2       -> BRONCH   [color = "#4a6785", arrowhead = tee, penwidth = 1.6];
+  B2       -> CAMP     [color = "#4a6785", penwidth = 1.5];
+  FLUID    -> PV       [color = "#4a6785", penwidth = 1.4];
+  POSITION -> PRELOAD  [color = "#4a6785", penwidth = 1.3];
+  H1blk    -> URT      [color = "#4a6785", arrowhead = tee];
+  H1blk    -> MAP      [color = "#4a6785", style = dashed, label = "NO effect"];
+  SABA     -> BRONCH   [color = "#4a6785", arrowhead = tee, style = dotted];
+  VASOP    -> MAP      [color = "#4a6785", style = dotted];
+  INTEGRAL -> ARREST   [color = "#4a6785", arrowhead = tee, penwidth = 1.6];
+  DELAY    -> DEATH    [color = "#b3352f", penwidth = 1.6];
+
+  /* engine to endpoints */
+  THRESH   -> EDmg     [color = "#b3352f", penwidth = 2.2];
+  POPTHR   -> LABEL    [color = "#b3352f", penwidth = 1.3];
+  THRVAR   -> EDmg     [color = "#b3352f", style = dotted, label = "one draw"];
+  DESENS   -> EDmg     [color = "#2f8b52", penwidth = 1.8];
+  SU       -> EDmg     [color = "#2f8b52", penwidth = 1.4];
+  MULTIPL  -> EDmg     [color = "#b5761a", penwidth = 1.8];
+  SEVSCORE -> SEVMAX   [color = "#b3352f"];
+  MAP      -> SEVMAX   [color = "#b3352f", penwidth = 1.4];
+  FEV1     -> SEVMAX   [color = "#2f8b52", penwidth = 1.4];
+  ARREST   -> DEATH    [color = "#b3352f", penwidth = 2.0];
+  BIPH     -> OBSERVE  [color = "#c1651b"];
+  UNMASK   -> EDmg     [color = "#b3352f", style = dashed, arrowhead = tee];
+  IGEDEC   -> SIGE     [color = "#3d6fa5", arrowhead = tee, style = dotted];
+  OFC      -> EDmg     [color = "#7a4fa5", style = dotted];
+  BAT      -> XLINK    [color = "#7a4fa5", style = dotted, label = "measures\nthe engine"];
+
+  /* legend */
+  subgraph cluster_legend {
+    label = "Legend";
+    style = "filled"; fillcolor = "#fafafa"; color = "#9a9a9a"; fontsize = 12; fontcolor = "#444444";
+    node [shape = plaintext, style = "", fillcolor = "#fafafa", fontsize = 9.5];
+    LEG [label = <<table border="0" cellborder="0" cellspacing="2">
+      <tr><td align="left"><b>bold box</b></td><td align="left">state variable carried as an ODE in fana_mrgsolve_model.R</td></tr>
+      <tr><td align="left">→</td><td align="left">activation / flux</td></tr>
+      <tr><td align="left">⊣</td><td align="left">inhibition / consumption</td></tr>
+      <tr><td align="left">dotted</td><td align="left">modulatory, conditional, or measurement relation</td></tr>
+      <tr><td align="left">dashed</td><td align="left">weak, disputed, or explicitly absent effect</td></tr>
+      <tr><td align="left">orange cluster 5</td><td align="left">the engine: X ∝ (ρ·L·f)² · [allergen]/(K+[allergen])</td></tr>
+      <tr><td align="left">dark red</td><td align="left">iatrogenic harm, failure mode, or fatal pathway</td></tr>
+    </table>>];
+  }
+}

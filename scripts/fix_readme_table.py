@@ -86,6 +86,10 @@ CATEGORY_RULES = [
     # own category because these are deficiency states, not autoimmune disease,
     # even when immune dysregulation dominates the clinical course.
     ("면역결핍", "면역결핍"), ("면역글로불린", "면역결핍"),
+    # IgE-mediated allergy: first entry is food allergy/anaphylaxis
+    # (2026-07-28). Kept separate from 자가면역 because the effector is a
+    # type I hypersensitivity mechanism, not loss of self-tolerance.
+    ("알레르기", "알레르기"), ("아나필락시스", "알레르기"),
     ("부인", "부인·생식"), ("산과", "부인·생식"), ("생식", "부인·생식"),
     ("희귀", "희귀·유전"), ("유전", "희귀·유전"),
 ]
