@@ -1,0 +1,698 @@
+/* ===========================================================================
+   Familial Chylomicronemia Syndrome (FCS) — QSP Mechanistic Map
+   ---------------------------------------------------------------------------
+   Organising idea:  Plasma triglyceride in FCS is not set by a rate, it is set
+   by a SATURATED CAPACITY.  Triglyceride-rich lipoprotein (TRL) clearance is
+   the SUM of two structurally different limbs:
+
+        CL_total  =  CL_LPL( LPL activity )      <-- first-order, huge capacity
+                   + CL_indep( apoC-III, RES )   <-- saturable, tiny Vmax
+
+   In healthy plasma the first limb carries >95% of the flux and the second is
+   invisible.  In FCS the first limb is multiplied by a genotype factor that is
+   ZERO (biallelic LOF in LPL, APOC2, APOA5, GPIHBP1 or LMF1), so the entire
+   dietary fat flux is forced through a Michaelis–Menten route whose Vmax is
+   of the order of the daily fat load itself.  Three consequences are drawn
+   explicitly on this map and are the whole reason the map exists:
+
+     (1) Steady-state TG becomes a HYPERBOLA in dietary fat, not a line.  Below
+         the knee TG is nearly normal; a few grams of fat above it and TG runs
+         away to 3000–10000 mg/dL.  That is why "<20 g fat/day" behaves like a
+         cliff edge and not like a dose-response.
+     (2) Every drug that works by RAISING LPL — fibrates (PPARa -> LPL
+         transcription), omega-3, niacin, insulin — multiplies a limb that is
+         already zero.  Zero times anything is zero.  This is a structural
+         prediction, not an empirical disappointment.
+     (3) Every drug that works in FCS acts on the OTHER limb: apoC-III
+         knockdown (volanesorsen, olezarsen, plozasiran) raises the Vmax of
+         the LPL-INDEPENDENT hepatic route, because apoC-III blocks
+         LDLR/LRP1/HSPG remnant uptake by a mechanism that never needed LPL.
+         That is why an antisense drug lowers TG by 70-80% in a patient with
+         literally undetectable lipase.
+
+   The clinical endpoint is drawn the same way.  Acute pancreatitis hazard is
+   not linear in TG: it is a threshold-convex function of TIME SPENT ABOVE
+   ~880 mg/dL (10 mmol/L), integrated over postprandial excursions.  A therapy
+   is therefore scored by how much of the upper tail of the TG distribution it
+   deletes, not by its mean percent change — which is why observed pancreatitis
+   reductions (83-88%) exceed what the percent-TG number naively predicts.
+
+   Render:
+     dot -Tsvg fcs_qsp_model.dot -o fcs_qsp_model.svg
+     dot -Tpng -Gdpi=150 fcs_qsp_model.dot -o fcs_qsp_model.png
+   =========================================================================== */
+
+digraph FCS_QSP {
+  graph [ rankdir      = LR,
+          splines      = spline,
+          nodesep      = 0.24,
+          ranksep      = 0.72,
+          fontname     = "Helvetica",
+          fontsize     = 11,
+          compound     = true,
+          newrank      = true,
+          bgcolor      = "white",
+          label        = "Familial Chylomicronemia Syndrome (FCS) — Integrated QSP Mechanistic Map\l21 clusters · 222 nodes · 290 edges · one saturated clearance capacity: CL_total = CL_LPL(genotype ~ 0) + CL_independent(apoC-III, saturable)\lQSP Disease Model Library — research/education only\l",
+          labelloc     = "t",
+          fontcolor    = "#1a1a2e" ];
+
+  node [ shape = box, style = "rounded,filled", fontname = "Helvetica",
+         fontsize = 9, penwidth = 0.8, margin = "0.07,0.04" ];
+  edge [ fontname = "Helvetica", fontsize = 7.5, penwidth = 0.9,
+         arrowsize = 0.6, color = "#4a4a5a" ];
+
+  /* ===================== 1. GENETIC ARCHITECTURE ======================== */
+  subgraph cluster_gene {
+    label = "1. Genetic architecture — five genes, one enzyme complex, one phenotype";
+    style = "filled,rounded"; color = "#c5cae9"; fillcolor = "#e8eaf6"; fontsize = 12;
+    node [fillcolor = "#c5cae9", color = "#5c6bc0"];
+
+    G_LPL     [label = "LPL (8p21.3)\nbiallelic LOF · 60–80% of FCS\n>200 pathogenic variants"];
+    G_APOC2   [label = "APOC2 (19q13.32)\nloss of the obligate LPL activator\n~5% of FCS"];
+    G_APOA5   [label = "APOA5 (11q23.3)\nbiallelic LOF · ~5%\nTRL–LPL–GPIHBP1 tethering lost"];
+    G_GPIHBP1 [label = "GPIHBP1 (8q24.3)\n~10–15% · LPL cannot be moved\nto the capillary lumen"];
+    G_LMF1    [label = "LMF1 (16p13.3)\nrare · ER chaperone for LPL\nfolding/dimerisation"];
+    G_CREB3L3 [label = "CREB3L3 · GPD1 (rare)\nhepatic TG-clearance TFs"];
+    G_BIALL   [label = "BIALLELIC state required\nhomozygous · compound het\n(pseudo-recessive)", fillcolor="#9fa8da"];
+    G_HET     [label = "Heterozygous carriers\nTG 150–400 mg/dL\nNOT FCS"];
+    G_AUTOAB  [label = "Acquired FCS\nautoantibody vs LPL or GPIHBP1\n(SLE, Sjögren) — phenocopy"];
+    G_MCS     [label = "Multifactorial chylomicronemia (MCS)\npolygenic TG score + secondary factor\n(>90% of TG>1000 seen in clinic)", fillcolor="#ffe0b2", color="#fb8c00"];
+    G_APOC3LOF[label = "APOC3 LOF carriers (natural experiment)\nTG −39% · CHD −40%\n(Lancaster Amish R19X)", fillcolor="#c8e6c9", color="#43a047"];
+    G_ANGPTL3L[label = "ANGPTL3 LOF (FHBL2)\ncombined hypolipidaemia\nno cardiovascular penalty", fillcolor="#c8e6c9", color="#43a047"];
+    G_PENETR  [label = "Genotype→phenotype:\nresidual post-heparin LPL activity\nis the ONE quantitative modifier", fillcolor="#9fa8da"];
+
+    G_LPL -> G_BIALL; G_APOC2 -> G_BIALL; G_APOA5 -> G_BIALL;
+    G_GPIHBP1 -> G_BIALL; G_LMF1 -> G_BIALL; G_CREB3L3 -> G_BIALL;
+    G_BIALL -> G_PENETR;
+    G_LPL -> G_HET [style=dashed];
+    G_AUTOAB -> G_PENETR [style=dashed];
+  }
+
+  /* ===================== 2. SECONDARY / MODIFYING FACTORS =============== */
+  subgraph cluster_mod {
+    label = "2. Secondary amplifiers — what pushes a partial genotype over the knee";
+    style = "filled,rounded"; color = "#ffe0b2"; fillcolor = "#fff8e1"; fontsize = 12;
+    node [fillcolor = "#ffe0b2", color = "#fb8c00"];
+
+    M_ALC     [label = "Alcohol\n↑hepatic VLDL-TG secretion\n↓FA oxidation"];
+    M_EST     [label = "Oestrogen (oral) · pregnancy\n↑VLDL secretion · ↓LPL\n3rd-trimester TG surge 2–4×"];
+    M_PREG    [label = "Pregnancy in FCS\nTG can exceed 10 000 mg/dL\npancreatitis risk peak wk 28–36", fillcolor="#ffab91", color="#e64a19"];
+    M_DM      [label = "Uncontrolled diabetes\ninsulinopenia → LPL transcription↓\n(a 3rd hit on the LPL limb)"];
+    M_OB      [label = "Obesity · insulin resistance\n↑FFA flux · ↑VLDL"];
+    M_HYPOTH  [label = "Hypothyroidism\n↓LPL · ↓LDLR"];
+    M_CKD     [label = "Nephrotic syndrome · CKD\n↓lipolysis · ↑apoC-III"];
+    M_DRUG    [label = "Drugs: tamoxifen · isotretinoin\npropofol · L-asparaginase\nclozapine/olanzapine · protease inhibitors"];
+    M_CARB    [label = "Refined carbohydrate · fructose\n→ChREBP/SREBP-1c → DNL"];
+    M_FAST    [label = "Acute fasting / plasmapheresis\nremoves the input term entirely", fillcolor="#c8e6c9", color="#43a047"];
+
+    M_ALC -> M_PREG [style=invis];
+    M_EST -> M_PREG;
+  }
+
+  /* ===================== 3. DIETARY FAT INPUT =========================== */
+  subgraph cluster_diet {
+    label = "3. Dietary fat — the input term (the only term the patient controls)";
+    style = "filled,rounded"; color = "#dcedc8"; fillcolor = "#f1f8e9"; fontsize = 12;
+    node [fillcolor = "#dcedc8", color = "#7cb342"];
+
+    D_FAT     [label = "Dietary long-chain triglyceride (LCT)\ng per meal — model input FAT_GUT"];
+    D_LIPASE  [label = "Gastric + pancreatic lipase\ncolipase · bile salt micelles"];
+    D_2MAG    [label = "2-monoacylglycerol + free fatty acid\nmicellar solubilisation"];
+    D_NPC1L1  [label = "Enterocyte uptake\nCD36 · FATP4 · NPC1L1 (sterols)"];
+    D_MCT     [label = "Medium-chain triglyceride (MCT)\nC8–C12 → PORTAL vein, albumin-bound\nBYPASSES chylomicron assembly", fillcolor="#c8e6c9", color="#43a047"];
+    D_OMEGA   [label = "Marine ω-3 (EPA/DHA)\n↓hepatic VLDL-TG secretion\n(input-side, not clearance-side)"];
+    D_TARGET  [label = "FCS diet prescription\n<20 g LCT/day (~15% energy)\n+ MCT + fat-soluble vitamins", fillcolor="#a5d6a7", color="#2e7d32"];
+    D_ADHERE  [label = "Adherence decay\nreal-world 30–60%\nsocial/holiday fat binges", fillcolor="#ffccbc", color="#e64a19"];
+    D_BURDEN  [label = "Diet burden\nfood anxiety · social isolation\n(FCS-Symptom/IMPACT PROs)"];
+
+    D_FAT -> D_LIPASE -> D_2MAG -> D_NPC1L1;
+    D_MCT -> D_TARGET [style=dashed, label="fat calories\nwithout CM"];
+    D_TARGET -> D_ADHERE -> D_BURDEN;
+  }
+
+  /* ===================== 4. ENTEROCYTE / CHYLOMICRON ASSEMBLY =========== */
+  subgraph cluster_ent {
+    label = "4. Enterocyte — chylomicron assembly and lymphatic delivery";
+    style = "filled,rounded"; color = "#b3e5fc"; fillcolor = "#e1f5fe"; fontsize = 12;
+    node [fillcolor = "#b3e5fc", color = "#039be5"];
+
+    E_MGAT    [label = "MGAT2 → DGAT1\nTG re-esterification in smooth ER"];
+    E_APOB48  [label = "apoB48 (APOBEC1-edited)\none per particle → apoB48 = particle count"];
+    E_MTP     [label = "MTP (MTTP)\nlipidation of nascent apoB48"];
+    E_PRECM   [label = "Pre-chylomicron\n+ apoA-I · apoA-IV · apoA-V"];
+    E_PCTV    [label = "PCTV / Sar1b (SAR1B)\nER→Golgi transport vesicle"];
+    E_SECR    [label = "Basolateral secretion\ninto lacteal"];
+    E_LYMPH   [label = "Mesenteric lymph → thoracic duct\ntransit delay 1–3 h (model LYMPH)"];
+    E_CM      [label = "NASCENT CHYLOMICRON\nd < 0.95 g/mL · 75–1200 nm\n~90% TG by mass", fillcolor="#81d4fa", color="#0277bd"];
+    E_APOCII  [label = "apoC-II acquired from HDL\nobligate LPL activator"];
+    E_APOCIII [label = "apoC-III acquired from HDL\nLPL inhibitor + uptake inhibitor", fillcolor="#ffcdd2", color="#e53935"];
+    E_APOE    [label = "apoE acquired from HDL\nligand for LDLR/LRP1"];
+
+    E_MGAT -> E_MTP; E_APOB48 -> E_MTP; E_MTP -> E_PRECM -> E_PCTV -> E_SECR -> E_LYMPH -> E_CM;
+    E_APOCII -> E_CM; E_APOCIII -> E_CM; E_APOE -> E_CM;
+  }
+
+  /* ===================== 5. LPL MACHINERY (LIMB 1) ====================== */
+  subgraph cluster_lpl {
+    label = "5. LPL machinery — LIMB 1 of clearance (multiplied by genotype ≈ 0 in FCS)";
+    style = "filled,rounded"; color = "#f8bbd0"; fillcolor = "#fce4ec"; fontsize = 12;
+    node [fillcolor = "#f8bbd0", color = "#d81b60"];
+
+    L_TRANS   [label = "LPL transcription\nadipocyte · myocyte · cardiomyocyte\n(insulin ↑adipose · fasting ↑muscle)"];
+    L_ER      [label = "ER folding — LMF1 chaperone\nhomodimer assembly (head-to-tail)"];
+    L_SECR    [label = "Secretion to subendothelial HSPG"];
+    L_GPIHBP1 [label = "GPIHBP1 (LU domain + acidic tract)\ncapillary endothelial transcytosis\nabluminal → LUMINAL"];
+    L_LUMEN   [label = "LUMINAL LPL–GPIHBP1 complex\nthe only catalytically relevant pool", fillcolor="#f48fb1", color="#ad1457"];
+    L_ACTIV   [label = "apoC-II activation\n(lid displacement, ~50-fold kcat)"];
+    L_APOA5   [label = "apoA-V\ntethers TRL to GPIHBP1/HSPG\n↑residence time"];
+    L_CAT     [label = "TG hydrolysis\nsn-1/sn-3 ester bonds\n→ 2-MAG + 2 FFA"];
+    L_ANG3    [label = "ANGPTL3 (hepatic, endocrine)\nunfolds the LPL hydrolase domain", fillcolor="#ffcdd2", color="#e53935"];
+    L_ANG4    [label = "ANGPTL4 (local, fasting-induced)\nirreversible LPL unfolding", fillcolor="#ffcdd2", color="#e53935"];
+    L_ANG8    [label = "ANGPTL8 (feeding-induced)\nANGPTL3/8 complex = 100× inhibitor\nANGPTL4/8 = de-inhibitor", fillcolor="#ffcdd2", color="#e53935"];
+    L_APOC3I  [label = "apoC-III\ndisplaces apoC-II · ↓LPL kcat", fillcolor="#ffcdd2", color="#e53935"];
+    L_APOC1   [label = "apoC-I\nweak LPL inhibitor · blocks apoE binding"];
+    L_HSPG    [label = "Endothelial HSPG (syndecan-1)\nTRL margination platform"];
+    L_TURN    [label = "LPL inactivation & turnover\nmonomerisation → hepatic clearance\nt½ minutes-hours"];
+    L_HEPARIN [label = "Post-heparin LPL activity assay\nDIAGNOSTIC: <5% of normal = FCS", fillcolor="#f48fb1", color="#ad1457"];
+    L_ZERO    [label = "FCS: LUMINAL LPL ACTIVITY ≈ 0\n⇒ LIMB 1 CONTRIBUTES NOTHING\nno drug that scales LPL can help", fillcolor="#b71c1c", fontcolor="white", color="#7f0000", penwidth=2];
+
+    L_TRANS -> L_ER -> L_SECR -> L_GPIHBP1 -> L_LUMEN -> L_CAT;
+    L_ACTIV -> L_CAT; L_APOA5 -> L_LUMEN; L_HSPG -> L_LUMEN;
+    L_ANG3 -> L_LUMEN [color="#e53935", arrowhead=tee];
+    L_ANG4 -> L_LUMEN [color="#e53935", arrowhead=tee];
+    L_ANG8 -> L_ANG3 [label="×100 potency"];
+    L_APOC3I -> L_ACTIV [color="#e53935", arrowhead=tee];
+    L_APOC1 -> L_LUMEN [color="#e53935", arrowhead=tee, style=dashed];
+    L_LUMEN -> L_TURN [style=dashed];
+    L_LUMEN -> L_HEPARIN [style=dotted];
+    L_CAT -> L_ZERO [style=invis];
+  }
+
+  /* ===================== 6. LPL-INDEPENDENT CLEARANCE (LIMB 2) ========== */
+  subgraph cluster_indep {
+    label = "6. LPL-INDEPENDENT clearance — LIMB 2, saturable, the only route left in FCS";
+    style = "filled,rounded"; color = "#d1c4e9"; fillcolor = "#ede7f6"; fontsize = 12;
+    node [fillcolor = "#d1c4e9", color = "#7e57c2"];
+
+    I_REM     [label = "TRL / chylomicron remnant\napoE-enriched, apoC-III-shielded"];
+    I_LDLR    [label = "Hepatocyte LDL receptor\napoE-mediated remnant uptake"];
+    I_LRP1    [label = "LRP1\nsecond apoE receptor, HSPG-assisted"];
+    I_SDC1    [label = "Syndecan-1 HSPG\nsinusoidal remnant capture"];
+    I_HL      [label = "Hepatic lipase (LIPC)\nremnant TG hydrolysis, LPL-independent"];
+    I_EL      [label = "Endothelial lipase (LIPG)\nmainly phospholipase"];
+    I_RES     [label = "Reticuloendothelial system\nKupffer cells · splenic macrophages\nnon-receptor scavenging of large CM", fillcolor="#b39ddb", color="#5e35b1"];
+    I_SATUR   [label = "SATURABLE KINETICS\nVmax_indep ≈ 1× daily fat load\nKm ≈ 800–1200 mg/dL", fillcolor="#9575cd", color="#4527a0", penwidth=2];
+    I_APOC3B  [label = "apoC-III blocks BOTH:\n(i) apoE–receptor docking\n(ii) HSPG binding", fillcolor="#ffcdd2", color="#e53935"];
+    I_SIZE    [label = "Particle SIZE constraint\nCM > 70 nm cannot cross the\nfenestrated sinusoid efficiently"];
+    I_KEY     [label = "KEY: knocking down apoC-III raises\nVmax of THIS limb — no LPL needed.\nMechanistic basis of ASO/siRNA efficacy", fillcolor="#c8e6c9", color="#2e7d32", penwidth=2];
+
+    I_REM -> I_LDLR; I_REM -> I_LRP1; I_REM -> I_SDC1; I_REM -> I_RES;
+    I_LDLR -> I_SATUR; I_LRP1 -> I_SATUR; I_SDC1 -> I_SATUR; I_RES -> I_SATUR;
+    I_HL -> I_REM [style=dashed]; I_EL -> I_REM [style=dashed];
+    I_APOC3B -> I_LDLR [color="#e53935", arrowhead=tee];
+    I_APOC3B -> I_SDC1 [color="#e53935", arrowhead=tee];
+    I_SIZE -> I_SATUR [style=dashed];
+    I_SATUR -> I_KEY [style=dotted];
+  }
+
+  /* ===================== 7. APOC3 BIOLOGY =============================== */
+  subgraph cluster_apoc3 {
+    label = "7. apoC-III — the druggable node that sits on BOTH limbs";
+    style = "filled,rounded"; color = "#ffcdd2"; fillcolor = "#ffebee"; fontsize = 12;
+    node [fillcolor = "#ffcdd2", color = "#e53935"];
+
+    C3_GENE   [label = "APOC3 (11q23.3)\nAPOA1/APOC3/APOA4/APOA5 cluster"];
+    C3_HNF4   [label = "HNF-4α · RXR · FoxO1\ntranscriptional drive"];
+    C3_INS    [label = "Insulin → FoxO1 exclusion\n→ APOC3 transcription ↓\n(lost in insulin resistance)"];
+    C3_GLU    [label = "Glucose → ChREBP\n→ APOC3 ↑"];
+    C3_MRNA   [label = "Hepatic APOC3 mRNA\n(model state APOC3_mRNA)", fillcolor="#ef9a9a"];
+    C3_PROT   [label = "Plasma apoC-III\n8–15 mg/dL normal · 20–40 in FCS", fillcolor="#ef9a9a", color="#c62828"];
+    C3_E1     [label = "Effect 1: inhibits LPL\n(irrelevant when LPL = 0)"];
+    C3_E2     [label = "Effect 2: inhibits hepatic\nremnant uptake (LDLR/LRP1/HSPG)", fillcolor="#ef9a9a"];
+    C3_E3     [label = "Effect 3: ↑ hepatic VLDL\nassembly & secretion"];
+    C3_E4     [label = "Effect 4: pro-inflammatory\nmonocyte-endothelium adhesion (NF-κB)"];
+    C3_INTEST [label = "Intestinal APOC3 expression\n(second, smaller source)"];
+    C3_POOL   [label = "apoC-III distribution\nHDL-bound ↔ TRL-bound exchangeable pool"];
+
+    C3_GENE -> C3_MRNA; C3_HNF4 -> C3_GENE; C3_GLU -> C3_GENE;
+    C3_INS -> C3_GENE [arrowhead=tee];
+    C3_MRNA -> C3_PROT -> C3_POOL;
+    C3_PROT -> C3_E1; C3_PROT -> C3_E2; C3_PROT -> C3_E3; C3_PROT -> C3_E4;
+    C3_INTEST -> C3_PROT [style=dashed];
+  }
+
+  /* ===================== 8. HEPATIC VLDL AXIS =========================== */
+  subgraph cluster_liver {
+    label = "8. Hepatic VLDL axis — the competing input the diet does not control";
+    style = "filled,rounded"; color = "#ffe0b2"; fillcolor = "#fff3e0"; fontsize = 12;
+    node [fillcolor = "#ffe0b2", color = "#f57c00"];
+
+    H_FFA     [label = "Portal + systemic FFA influx"];
+    H_DNL     [label = "De novo lipogenesis\nSREBP-1c · ChREBP · ACC · FASN · SCD1"];
+    H_TGPOOL  [label = "Hepatic cytosolic TG pool\n(model LIVER_TG)"];
+    H_APOB100 [label = "apoB100 co-translational lipidation\nMTP-dependent"];
+    H_VLDL    [label = "VLDL1 / VLDL2 secretion\n(model VLDL_TG)", fillcolor="#ffcc80", color="#ef6c00"];
+    H_PPARA   [label = "PPARα → FA β-oxidation\n(fibrate target)"];
+    H_STEAT   [label = "Hepatic steatosis · hepatomegaly\ncommon in FCS, usually bland"];
+    H_ALT     [label = "ALT/AST elevation\n(also an ASO class safety signal)"];
+    H_CETP    [label = "CETP: TG→HDL/LDL exchange\nTG-rich HDL → HL → rapid catabolism"];
+    H_HDLLOW  [label = "HDL-C very low (<25 mg/dL)\nLDL-C low/normal — NOT protective,\njust a mass-balance artefact"];
+    H_APOB48  [label = "apoB48 measurement\ndistinguishes CM from VLDL burden"];
+
+    H_FFA -> H_TGPOOL; H_DNL -> H_TGPOOL; H_TGPOOL -> H_APOB100 -> H_VLDL;
+    H_PPARA -> H_TGPOOL [arrowhead=tee];
+    H_TGPOOL -> H_STEAT -> H_ALT;
+    H_VLDL -> H_CETP -> H_HDLLOW;
+  }
+
+  /* ===================== 9. PLASMA LIPID STATE ========================== */
+  subgraph cluster_plasma {
+    label = "9. Plasma compartment — the saturated state variable";
+    style = "filled,rounded"; color = "#ffecb3"; fillcolor = "#fffde7"; fontsize = 12;
+    node [fillcolor = "#ffecb3", color = "#ffa000"];
+
+    P_CMTG    [label = "PLASMA CHYLOMICRON-TG\n(model CM_TG) — dominant species in FCS", fillcolor="#ffe082", color="#ff8f00", penwidth=2];
+    P_VLDLTG  [label = "Plasma VLDL-TG (model VLDL_TG)"];
+    P_REMTG   [label = "Remnant-TG / remnant-cholesterol"];
+    P_TOTTG   [label = "TOTAL PLASMA TG\nFCS fasting 1500–10 000 mg/dL\n(17–113 mmol/L)", fillcolor="#ffe082", color="#ff8f00", penwidth=2];
+    P_KNEE    [label = "THE KNEE\nTG rises hyperbolically once\ninput > Vmax_indep", fillcolor="#ff8a65", color="#bf360c", penwidth=2];
+    P_PPEXC   [label = "Postprandial excursion\n+1000–4000 mg/dL per fatty meal\npeak 3–5 h, no true fasting baseline"];
+    P_LACT    [label = "Lactescent (milky) plasma\ncreamy supernatant on standing\n(the 12-h refrigerator test)"];
+    P_VISC    [label = "Plasma viscosity ↑\nsludging in pancreatic capillaries"];
+    P_PSEUDO  [label = "Assay interference\npseudohyponatraemia · false low HbA1c\nfalse amylase (inhibitor) — MISDIAGNOSIS"];
+    P_FFAP    [label = "Plasma FFA / albumin binding\nunbound FFA is the toxic species"];
+    P_APOB    [label = "apoB total normal-low;\nparticle count NOT the problem —\nparticle SIZE and TG mass are"];
+
+    P_CMTG -> P_TOTTG; P_VLDLTG -> P_TOTTG; P_REMTG -> P_TOTTG;
+    P_TOTTG -> P_KNEE; P_PPEXC -> P_TOTTG;
+    P_TOTTG -> P_LACT; P_TOTTG -> P_VISC; P_TOTTG -> P_PSEUDO;
+    P_CMTG -> P_FFAP [style=dashed];
+  }
+
+  /* ===================== 10. PANCREATITIS MECHANISM ===================== */
+  subgraph cluster_panc {
+    label = "10. Acute pancreatitis — the endpoint that defines the disease";
+    style = "filled,rounded"; color = "#ffcdd2"; fillcolor = "#fbe9e7"; fontsize = 12;
+    node [fillcolor = "#ffcdd2", color = "#d84315"];
+
+    A_CAP     [label = "Pancreatic capillary bed\nCM cannot pass — margination"];
+    A_PLIP    [label = "Pancreatic lipase leakage\ninto the microcirculation"];
+    A_HYDRO   [label = "LOCAL TG hydrolysis in situ\n(the one place lipolysis still happens)", fillcolor="#ffab91"];
+    A_UFFA    [label = "Unbound (albumin-unbuffered) FFA\nlocal concentration → detergent action", fillcolor="#ff8a65", color="#bf360c", penwidth=2];
+    A_MEMB    [label = "Acinar membrane lysis\nlysophosphatidylcholine · micelle injury"];
+    A_CA      [label = "Sustained cytosolic Ca²⁺ overload\nSERCA failure · store-operated influx"];
+    A_MITO    [label = "Mitochondrial permeability transition\nATP depletion (MPTP, cyclophilin D)"];
+    A_TRYP    [label = "Intra-acinar trypsinogen activation\ncathepsin B · colocalisation"];
+    A_NFKB    [label = "NF-κB activation (parallel to trypsin)\nIL-6 · TNF-α · CXCL1/2"];
+    A_NECRO   [label = "Acinar necrosis · autodigestion"];
+    A_ISCH    [label = "Capillary sludging + ischaemia\n(viscosity limb, trypsin-independent)"];
+    A_SIRS    [label = "SIRS · capillary leak\nAPACHE-II · organ failure"];
+    A_SEVERE  [label = "Severe AP\nnecrosis · ICU · mortality 5–10%\nHTG-AP is MORE severe than biliary AP", fillcolor="#e57373", color="#b71c1c"];
+    A_RECUR   [label = "RECURRENT AP\nmedian 2–5 lifetime episodes\n(some patients >20)"];
+    A_CHRONIC [label = "Chronic pancreatitis\nfibrosis · calcification"];
+    A_EPI     [label = "Exocrine pancreatic insufficiency\nsteatorrhoea (worsens the diet problem)"];
+    A_DM3C    [label = "Type 3c diabetes\n(then raises TG further — vicious loop)", fillcolor="#e57373"];
+    A_THRESH  [label = "THRESHOLD 880 mg/dL (10 mmol/L)\nrisk rises steeply; >2000 mg/dL steeper.\nHAZARD IS CONVEX, NOT LINEAR", fillcolor="#ff8a65", color="#bf360c", penwidth=2];
+
+    A_CAP -> A_PLIP -> A_HYDRO -> A_UFFA;
+    A_UFFA -> A_MEMB -> A_CA -> A_MITO -> A_TRYP -> A_NECRO;
+    A_UFFA -> A_NFKB -> A_NECRO;
+    A_CAP -> A_ISCH -> A_NECRO;
+    A_NECRO -> A_SIRS -> A_SEVERE -> A_RECUR -> A_CHRONIC;
+    A_CHRONIC -> A_EPI; A_CHRONIC -> A_DM3C;
+    A_THRESH -> A_HYDRO [style=dotted];
+  }
+
+  /* ===================== 11. NON-PANCREATIC MANIFESTATIONS ============== */
+  subgraph cluster_clin {
+    label = "11. Non-pancreatic disease burden — chronic, and usually ignored";
+    style = "filled,rounded"; color = "#f0f4c3"; fillcolor = "#f9fbe7"; fontsize = 12;
+    node [fillcolor = "#f0f4c3", color = "#afb42b"];
+
+    N_XANTH   [label = "Eruptive xanthomas\nbuttocks · extensors · TG > 1500–2000\ndermal foam macrophages"];
+    N_LIPRET  [label = "Lipaemia retinalis\ncreamy retinal vessels (TG > 2500)"];
+    N_HSM     [label = "Hepatosplenomegaly\nRES foam-cell loading"];
+    N_ABD     [label = "Chronic/recurrent abdominal pain\noften without frank pancreatitis\n(the most common daily symptom)"];
+    N_FOG     [label = "Cognitive 'brain fog'\nimpaired concentration/memory\nplausibly viscosity + microcirculation"];
+    N_FATIGUE [label = "Fatigue · impaired work capacity"];
+    N_ANX     [label = "Anxiety/depression\nfear of the next attack"];
+    N_INFANT  [label = "Infantile presentation\ncolic · failure to thrive\nlipaemic blood at first venepuncture"];
+    N_QOL     [label = "Quality of life\nFCS-IMPACT · FCS-SS instruments"];
+    N_ATHERO  [label = "Atherosclerosis risk: NOT clearly ↑\n(CM too large to enter intima) —\ncontrast with remnant-rich MCS", fillcolor="#dcedc8"];
+
+    N_XANTH -> N_QOL; N_LIPRET -> N_QOL; N_ABD -> N_QOL;
+    N_FOG -> N_QOL; N_FATIGUE -> N_QOL; N_ANX -> N_QOL;
+    N_HSM -> N_QOL; N_INFANT -> N_QOL;
+  }
+
+  /* ===================== 12. FAILED THERAPY (LIMB-1 DRUGS) ============== */
+  subgraph cluster_fail {
+    label = "12. Conventional TG drugs — all act on LIMB 1, all fail in true FCS";
+    style = "filled,rounded"; color = "#cfd8dc"; fillcolor = "#eceff1"; fontsize = 12;
+    node [fillcolor = "#cfd8dc", color = "#546e7a"];
+
+    F_FIB     [label = "Fenofibrate / gemfibrozil\nPPARα → ↑LPL, ↓APOC3\nneeds LPL protein to exist"];
+    F_STATIN  [label = "Statins\nLDLR↑ — wrong particle, wrong limb"];
+    F_NIACIN  [label = "Niacin\n↓adipose lipolysis → ↓VLDL only"];
+    F_O3      [label = "ω-3 4 g/day (icosapent/omega-3-acid)\n↓VLDL secretion, some ↑LPL"];
+    F_INSULIN [label = "IV insulin ± heparin (acute)\ninsulin ↑LPL transcription;\nheparin releases the LPL you HAVE"];
+    F_APH     [label = "Plasmapheresis / plasma exchange\nremoves TG mechanically\n(bridges pregnancy & severe AP)", fillcolor="#c8e6c9", color="#43a047"];
+    F_ORL     [label = "Orlistat\n↓intestinal fat absorption (input limb)", fillcolor="#dcedc8"];
+    F_RESULT  [label = "OBSERVED: fibrate + ω-3 give\n<10–20% TG reduction in LPL-null FCS.\nEXPECTED from the structure: ~0%", fillcolor="#b0bec5", color="#37474f", penwidth=2];
+
+    F_FIB -> F_RESULT; F_STATIN -> F_RESULT; F_NIACIN -> F_RESULT; F_O3 -> F_RESULT;
+    F_INSULIN -> F_RESULT [style=dashed];
+  }
+
+  /* ===================== 13. APOC3 ANTISENSE — VOLANESORSEN ============= */
+  subgraph cluster_vola {
+    label = "13. Volanesorsen — 2′-MOE antisense oligonucleotide (EU-approved 2019)";
+    style = "filled,rounded"; color = "#b2dfdb"; fillcolor = "#e0f2f1"; fontsize = 12;
+    node [fillcolor = "#b2dfdb", color = "#00897b"];
+
+    V_DOSE    [label = "300 mg SC weekly ×3 mo\nthen q2w (platelet-driven)"];
+    V_DEPOT   [label = "SC depot\nka ≈ 0.05–0.15 h⁻¹ (model VOL_SC)"];
+    V_PLASMA  [label = "Plasma PS-ASO\nt½ plasma 2–5 h, >90% albumin-bound"];
+    V_UPTAKE  [label = "Broad tissue uptake\n(no ligand): liver, kidney, spleen,\nMACROPHAGES ← relevant to platelets"];
+    V_LIVER   [label = "Hepatocyte nuclear ASO\ntissue t½ 2–4 weeks (model VOL_LIV)"];
+    V_RNASE   [label = "RNase H1 cleavage of APOC3 mRNA\ngapmer mechanism", fillcolor="#80cbc4"];
+    V_PD      [label = "apoC-III ↓ 71–84%\nTG ↓ 77% at 3 mo (APPROACH, n=66)", fillcolor="#80cbc4", color="#00695c"];
+    V_AP      [label = "AP episodes ↓ (open-label extension)\nxanthoma & abdominal pain improve"];
+    V_PLT     [label = "THROMBOCYTOPENIA\n<100×10⁹/L in ~47%; <50 in 15%\nplatelet-count-driven dosing rules", fillcolor="#ffab91", color="#d84315"];
+    V_ISR     [label = "Injection-site reactions ~61–82%\nleading cause of discontinuation"];
+    V_REG     [label = "EMA conditional approval (Waylivra, 2019)\nFDA CRL — benefit/risk on platelets", fillcolor="#b0bec5"];
+
+    V_DOSE -> V_DEPOT -> V_PLASMA -> V_UPTAKE -> V_LIVER -> V_RNASE -> V_PD -> V_AP;
+    V_UPTAKE -> V_PLT [color="#d84315"];
+    V_DEPOT -> V_ISR [style=dashed];
+    V_PLT -> V_REG [style=dashed];
+  }
+
+  /* ===================== 14. GALNAC ASO — OLEZARSEN ===================== */
+  subgraph cluster_ole {
+    label = "14. Olezarsen — GalNAc₃-conjugated APOC3 ASO (Balance, NEJM 2024)";
+    style = "filled,rounded"; color = "#c8e6c9"; fillcolor = "#e8f5e9"; fontsize = 12;
+    node [fillcolor = "#c8e6c9", color = "#43a047"];
+
+    O_DOSE    [label = "50 or 80 mg SC monthly"];
+    O_DEPOT   [label = "SC depot (model OLE_SC)"];
+    O_PLASMA  [label = "Plasma ASO-GalNAc conjugate"];
+    O_ASGPR   [label = "ASGPR (asialoglycoprotein receptor)\nhepatocyte-selective, ~30× potency gain\n→ far lower systemic exposure", fillcolor="#a5d6a7", color="#2e7d32"];
+    O_LIVER   [label = "Hepatocyte ASO (model OLE_LIV)\ntissue t½ ~2–4 weeks"];
+    O_RNASE   [label = "RNase H1 → APOC3 mRNA degradation"];
+    O_PD      [label = "apoC-III ↓ ~65–74%\nTG ↓ 43.5% (80 mg) vs +0.8% placebo at 6 mo\n↓73.7% by month 12 (open-label)", fillcolor="#a5d6a7", color="#2e7d32"];
+    O_AP      [label = "Acute pancreatitis: 1 event (olezarsen)\nvs 11 events (placebo) — 88% reduction"];
+    O_SAFE    [label = "NO clinically meaningful\nplatelet decline; ISR mild\n(the GalNAc dividend)", fillcolor="#a5d6a7"];
+    O_SHTG    [label = "Severe HTG programme (CORE/CORE2/Essence)\nbroader MCS population"];
+
+    O_DOSE -> O_DEPOT -> O_PLASMA -> O_ASGPR -> O_LIVER -> O_RNASE -> O_PD -> O_AP;
+    O_PD -> O_SAFE [style=dotted];
+    O_PD -> O_SHTG [style=dashed];
+  }
+
+  /* ===================== 15. GALNAC siRNA — PLOZASIRAN ================== */
+  subgraph cluster_plo {
+    label = "15. Plozasiran — GalNAc-siRNA vs APOC3 (PALISADE, NEJM 2024/25)";
+    style = "filled,rounded"; color = "#b3e5fc"; fillcolor = "#e1f5fe"; fontsize = 12;
+    node [fillcolor = "#b3e5fc", color = "#0288d1"];
+
+    S_DOSE    [label = "25 mg (or 50 mg) SC every 3 months"];
+    S_DEPOT   [label = "SC depot (model PLO_SC)"];
+    S_ASGPR   [label = "ASGPR-mediated hepatocyte uptake"];
+    S_ENDO    [label = "Endosomal escape (rate-limiting)\n→ cytosol"];
+    S_RISC    [label = "AGO2/RISC loading\nguide strand retained\nEFFECT-COMPARTMENT t½ ~30–60 d", fillcolor="#81d4fa", color="#0277bd"];
+    S_SLICE   [label = "Catalytic slicing of APOC3 mRNA\n(one RISC, many transcripts)"];
+    S_PD      [label = "apoC-III ↓ ~76–80%\nTG ↓ ~80% at month 10\n(PALISADE, n=75 FCS)", fillcolor="#81d4fa", color="#0277bd"];
+    S_AP      [label = "AP events ↓ 83%\n(1.4% vs 20% of patients)"];
+    S_SAFE    [label = "No platelet signal;\ndose-related HbA1c/glucose ↑ watched\n(APOC3 ↔ insulin sensitivity)"];
+    S_SHASTA  [label = "SHASTA-2 (SHTG) · MUIR (mixed HL)\n→ same PD in non-FCS"];
+
+    S_DOSE -> S_DEPOT -> S_ASGPR -> S_ENDO -> S_RISC -> S_SLICE -> S_PD -> S_AP;
+    S_PD -> S_SAFE [style=dotted]; S_PD -> S_SHASTA [style=dashed];
+  }
+
+  /* ===================== 16. ANGPTL3 & OTHER PIPELINE =================== */
+  subgraph cluster_pipe {
+    label = "16. ANGPTL3 axis and the rest of the pipeline";
+    style = "filled,rounded"; color = "#d7ccc8"; fillcolor = "#efebe9"; fontsize = 12;
+    node [fillcolor = "#d7ccc8", color = "#6d4c41"];
+
+    X_EVI     [label = "Evinacumab (anti-ANGPTL3 mAb)\n15 mg/kg IV q4w · 2-cmt mAb PK"];
+    X_EVIMECH [label = "Frees LPL from ANGPTL3 inhibition\n⇒ acts on LIMB 1 ⇒ needs residual LPL"];
+    X_EVIRES  [label = "In LPL-null FCS: modest/inconsistent TG ↓\nIn PARTIAL LPL deficiency & MCS: clear ↓\nEXACTLY the structural prediction", fillcolor="#bcaaa4", color="#4e342e", penwidth=2];
+    X_ZODA    [label = "Zodasiran (ARO-ANG3, siRNA)\nhepatic ANGPTL3 knockdown"];
+    X_SOLB    [label = "Solbinsiran · ANGPTL3 ASO\nsame limb, same caveat"];
+    X_GENE    [label = "Alipogene tiparvovec (Glybera)\nAAV1-LPL^S447X IM · first EU gene therapy\nwithdrawn 2017 (durability/cost)"];
+    X_GENE2   [label = "Next-gen: AAV/LNP-mRNA LPL,\nbase editing of APOC3/ANGPTL3\n(pre-clinical)"];
+    X_APOA5   [label = "apoA-V agonism / APOA5 mRNA\n(pre-clinical, LIMB-1)"];
+    X_FGF21   [label = "FGF21 analogues (pegozafermin)\n↓DNL · ↓VLDL — input limb\nSHTG phase 2 TG ↓ ~60%"];
+    X_LIPID   [label = "Investigational apoC-III mAbs\n& oral small molecules"];
+
+    X_EVI -> X_EVIMECH -> X_EVIRES;
+    X_ZODA -> X_EVIMECH; X_SOLB -> X_EVIMECH;
+    X_GENE -> X_EVIRES [style=dashed];
+    X_APOA5 -> X_EVIMECH [style=dashed];
+  }
+
+  /* ===================== 17. SAFETY / TOLERABILITY ====================== */
+  subgraph cluster_safe {
+    label = "17. Safety architecture — why chemistry, not target, decided the class";
+    style = "filled,rounded"; color = "#ffccbc"; fillcolor = "#fbe9e7"; fontsize = 12;
+    node [fillcolor = "#ffccbc", color = "#e64a19"];
+
+    Y_PSASO   [label = "PS backbone protein binding\n(class effect of naked PS-ASO)"];
+    Y_MACRO   [label = "Macrophage/platelet interaction\nGPVI · platelet activation & clearance"];
+    Y_PLTMOD  [label = "Model: PLT production ↓ +\ndestruction ↑ ∝ systemic ASO exposure", fillcolor="#ffab91"];
+    Y_GALNAC  [label = "GalNAc conjugation → 20–30× dose ↓\n⇒ systemic exposure ↓ ⇒ platelet\nand ISR signal largely disappears", fillcolor="#c8e6c9", color="#43a047"];
+    Y_ISR2    [label = "Injection-site reaction burden"];
+    Y_HEPTOX  [label = "Hepatic transaminase monitoring"];
+    Y_RENAL   [label = "Renal tubular ASO accumulation\n(proteinuria monitoring)"];
+    Y_IMMUNO  [label = "Immunogenicity (ADA)\nmAbs and oligos"];
+    Y_GLUC    [label = "Glycaemic drift with deep\nAPOC3/ANGPTL3 knockdown"];
+    Y_VITAMIN [label = "Fat-soluble vitamin deficiency\nfrom the DIET, not the drug (A,D,E,K)"];
+
+    Y_PSASO -> Y_MACRO -> Y_PLTMOD;
+    Y_GALNAC -> Y_PLTMOD [arrowhead=tee, color="#43a047"];
+    Y_GALNAC -> Y_ISR2 [arrowhead=tee, color="#43a047"];
+  }
+
+  /* ===================== 18. CLINICAL ENDPOINTS ========================= */
+  subgraph cluster_end {
+    label = "18. Endpoints — and why % TG change is the wrong one";
+    style = "filled,rounded"; color = "#b39ddb"; fillcolor = "#ede7f6"; fontsize = 12;
+    node [fillcolor = "#b39ddb", color = "#5e35b1"];
+
+    K_TG3     [label = "Primary: % change fasting TG\nat month 3 / 6 (regulatory convention)"];
+    K_BELOW   [label = "% of patients reaching TG < 880 mg/dL\n(the mechanistically meaningful one)", fillcolor="#9575cd", color="#4527a0"];
+    K_TAT     [label = "TIME-ABOVE-THRESHOLD\ndays/year with TG > 880 mg/dL\n(model output TAT880)", fillcolor="#9575cd", color="#4527a0", penwidth=2];
+    K_AUC     [label = "Cumulative TG exposure AUC\nand postprandial peak TG"];
+    K_AP      [label = "AP event rate (events/patient-year)\nthe endpoint patients actually care about", fillcolor="#9575cd", color="#4527a0"];
+    K_APOC3   [label = "Plasma apoC-III % change\n(target engagement, not benefit)"];
+    K_ABDPAIN [label = "Abdominal pain days · PRO diaries"];
+    K_XANTH2  [label = "Xanthoma clearance"];
+    K_QOL2    [label = "FCS-IMPACT / EQ-5D"];
+    K_CONVEX  [label = "BECAUSE hazard is convex in TG,\nΔ(AP rate) > Δ(mean TG).\n43% TG ↓ can buy ~88% AP ↓", fillcolor="#7e57c2", fontcolor="white", color="#311b92", penwidth=2];
+
+    K_TG3 -> K_CONVEX [style=dashed]; K_TAT -> K_CONVEX; K_BELOW -> K_CONVEX;
+    K_CONVEX -> K_AP;
+    K_AUC -> K_TAT;
+  }
+
+  /* ===================== 19. DIAGNOSIS & SCORING ======================== */
+  subgraph cluster_dx {
+    label = "19. Diagnosis — separating FCS from the 100× commoner MCS";
+    style = "filled,rounded"; color = "#c5e1a5"; fillcolor = "#f1f8e9"; fontsize = 12;
+    node [fillcolor = "#c5e1a5", color = "#689f38"];
+
+    Q_SCORE   [label = "FCS Score (Moulin 2018) ≥10/17\nsens 88% · spec 85%"];
+    Q_ITEMS   [label = "Score items: fasting TG >885 mg/dL always ·\nno secondary cause · TG unresponsive to\nfibrate/statin · onset <40 y · prior AP"];
+    Q_GENE    [label = "Genetic panel: LPL·APOC2·APOA5·\nGPIHBP1·LMF1 (biallelic)"];
+    Q_LPLACT  [label = "Post-heparin LPL activity <5%\n(gold standard, few labs)"];
+    Q_UNMET   [label = "Median diagnostic delay ~10–20 y\nmisdiagnosed as alcoholic/biliary AP"];
+    Q_PREV    [label = "Prevalence 1–10 per million\n(founder effects: Québec Saguenay,\nAfrikaner, Amish)"];
+    Q_MISS    [label = "Diagnostic trap: amylase can be\nFALSELY NORMAL in HTG-AP\n(inhibitor in lipaemic serum)", fillcolor="#ffe0b2", color="#f57c00"];
+
+    Q_ITEMS -> Q_SCORE -> Q_GENE -> Q_LPLACT;
+    Q_UNMET -> Q_PREV [style=invis];
+    Q_MISS -> Q_UNMET;
+  }
+
+  /* ===================== 20. QSP MODEL STRUCTURE ======================== */
+  subgraph cluster_model {
+    label = "20. QSP model structure — what is actually integrated";
+    style = "filled,rounded"; color = "#b0bec5"; fillcolor = "#eceff1"; fontsize = 12;
+    node [fillcolor = "#b0bec5", color = "#455a64", shape=note];
+
+    Z_ODE     [label = "43 ODE compartments\ngut · lymph · plasma lipoproteins · liver ·\napoC-III mRNA/protein · pancreas · PK ×5 drugs"];
+    Z_INPUT   [label = "INPUT: meal-wise fat dosing\n(3 meals/day, g LCT)"];
+    Z_SUM     [label = "CLEARANCE: CL_LPL·f_geno\n+ Vmax_indep·TG/(Km+TG)·g(apoC-III)", fillcolor="#90a4ae"];
+    Z_HAZ     [label = "HAZARD: λ(t) = λ0 · exp(β·(TG−TG*)₊/1000)\nintegrated → AP events/patient-year", fillcolor="#90a4ae"];
+    Z_PK      [label = "PK: volanesorsen · olezarsen ·\nplozasiran (RISC effect cmt) ·\nevinacumab (2-cmt mAb) · fenofibrate"];
+    Z_SCEN    [label = "10 simulation scenarios\nincl. diet titration, pregnancy,\nfat binge, genotype spectrum"];
+    Z_CAL     [label = "Calibrated to APPROACH · Balance ·\nPALISADE · SHASTA-2 · Moulin cohort"];
+    Z_FUNC    [label = "Analysis functions:\nFCS_saturation_curve() · FCS_limb_decomposition()\nFCS_trial_ledger() · FCS_threshold_time()"];
+
+    Z_ODE -> Z_SUM -> Z_HAZ; Z_INPUT -> Z_ODE; Z_PK -> Z_ODE;
+    Z_SCEN -> Z_CAL -> Z_FUNC;
+  }
+
+  /* ===================== 21. THE STRUCTURAL CLAIM ======================= */
+  subgraph cluster_claim {
+    label = "21. The structural claim this map exists to make";
+    style = "filled,rounded"; color = "#ffab91"; fillcolor = "#fff3e0"; fontsize = 12;
+    node [fillcolor = "#ffe0b2", color = "#e64a19", shape=box, penwidth=1.5];
+
+    W_1 [label = "1. FCS is a SATURATED-CAPACITY disease.\nTG is a hyperbola in dietary fat, so the diet\nthreshold is a cliff and not a slope.", fillcolor="#ffcc80"];
+    W_2 [label = "2. Clearance is a SUM of two limbs, and the\ngenotype multiplies the first one by zero.\nEvery limb-1 drug is arithmetically dead.", fillcolor="#ffcc80"];
+    W_3 [label = "3. apoC-III knockdown works because it raises\nVmax of limb 2 — a route that never needed\nlipase. Hence 70–80% TG ↓ with LPL = 0.", fillcolor="#ffcc80"];
+    W_4 [label = "4. The pancreatitis endpoint is CONVEX in TG.\nDeleting the upper tail buys more than the\nmean-percent number suggests (88% vs 43%).", fillcolor="#ffcc80"];
+    W_5 [label = "5. GalNAc conjugation changed the class not by\nchanging the target but by cutting systemic\nexposure ~30× — a PK fix for a PD-blind toxicity.", fillcolor="#ffcc80"];
+
+    W_1 -> W_2 -> W_3 -> W_4 -> W_5 [style=dotted, arrowhead=none];
+  }
+
+  /* ===================== CROSS-CLUSTER WIRING =========================== */
+
+  /* genotype → machinery */
+  G_LPL     -> L_TRANS    [lhead=cluster_lpl, color="#5c6bc0", label="no functional enzyme"];
+  G_LMF1    -> L_ER       [color="#5c6bc0", arrowhead=tee];
+  G_GPIHBP1 -> L_GPIHBP1  [color="#5c6bc0", arrowhead=tee];
+  G_APOC2   -> L_ACTIV    [color="#5c6bc0", arrowhead=tee];
+  G_APOA5   -> L_APOA5    [color="#5c6bc0", arrowhead=tee];
+  G_BIALL   -> L_ZERO     [color="#b71c1c", penwidth=1.6];
+  G_PENETR  -> L_HEPARIN  [style=dotted];
+  G_MCS     -> L_LUMEN    [style=dashed, label="partial activity retained"];
+  G_APOC3LOF-> C3_PROT    [color="#43a047", arrowhead=tee, label="natural knockdown"];
+  G_ANGPTL3L-> L_ANG3     [color="#43a047", arrowhead=tee];
+
+  /* modifiers → liver / LPL */
+  M_ALC   -> H_VLDL   [color="#f57c00"];
+  M_EST   -> H_VLDL   [color="#f57c00"];
+  M_EST   -> L_TRANS  [color="#f57c00", arrowhead=tee];
+  M_PREG  -> P_TOTTG  [color="#e64a19", penwidth=1.4];
+  M_DM    -> L_TRANS  [color="#f57c00", arrowhead=tee];
+  M_OB    -> H_FFA    [color="#f57c00"];
+  M_HYPOTH-> L_TRANS  [color="#f57c00", arrowhead=tee];
+  M_CKD   -> C3_PROT  [color="#f57c00"];
+  M_DRUG  -> H_VLDL   [color="#f57c00"];
+  M_CARB  -> H_DNL    [color="#f57c00"];
+  M_FAST  -> D_FAT    [color="#43a047", arrowhead=tee];
+
+  /* diet → enterocyte → plasma */
+  D_NPC1L1 -> E_MGAT   [color="#7cb342"];
+  D_TARGET -> D_FAT    [arrowhead=tee, color="#2e7d32", label="the only\neffective\nnon-drug lever"];
+  D_ADHERE -> D_FAT    [color="#e64a19", label="binge → input spike"];
+  D_OMEGA  -> H_VLDL   [arrowhead=tee, color="#7cb342"];
+  D_MCT    -> H_FFA    [color="#7cb342", label="portal FFA,\nno CM formed"];
+  E_CM     -> P_CMTG   [color="#0277bd", penwidth=1.6];
+
+  /* the two limbs acting on the plasma pool */
+  P_CMTG -> L_LUMEN  [color="#d81b60", label="LIMB 1 substrate"];
+  L_CAT  -> P_CMTG   [arrowhead=tee, color="#d81b60", penwidth=1.6, label="hydrolysis\n(absent in FCS)"];
+  L_ZERO -> P_KNEE   [color="#b71c1c", penwidth=1.8, label="input forced\ninto limb 2"];
+  P_CMTG -> I_REM    [color="#7e57c2", label="LIMB 2 substrate"];
+  I_SATUR-> P_CMTG   [arrowhead=tee, color="#7e57c2", penwidth=1.6, label="saturable removal"];
+  P_VLDLTG -> I_REM  [color="#7e57c2", style=dashed];
+  H_VLDL   -> P_VLDLTG [color="#ef6c00", penwidth=1.4];
+
+  /* apoC-III wiring */
+  C3_E1 -> L_ACTIV  [arrowhead=tee, color="#e53935"];
+  C3_E2 -> I_APOC3B [color="#e53935", penwidth=1.5];
+  C3_E3 -> H_VLDL   [color="#e53935"];
+  C3_PROT -> E_APOCIII [color="#e53935", style=dashed];
+  C3_INS  -> M_DM   [style=dashed];
+
+  /* FFA / tissue */
+  L_CAT -> P_FFAP   [style=dashed, color="#d81b60"];
+  P_FFAP -> H_FFA   [color="#ffa000"];
+
+  /* plasma → pancreas */
+  P_CMTG  -> A_CAP    [color="#d84315", penwidth=1.6];
+  P_TOTTG -> A_THRESH [color="#d84315", penwidth=1.6];
+  P_VISC  -> A_ISCH   [color="#d84315"];
+  P_PPEXC -> A_THRESH [color="#d84315", style=dashed, label="the peaks, not\nthe mean"];
+  P_FFAP  -> A_UFFA   [color="#d84315", style=dashed];
+  A_DM3C  -> M_DM     [color="#d84315", style=dashed, label="vicious loop"];
+  A_EPI   -> D_LIPASE [arrowhead=tee, style=dashed];
+
+  /* plasma → other organs */
+  P_TOTTG -> N_XANTH  [color="#afb42b"];
+  P_TOTTG -> N_LIPRET [color="#afb42b"];
+  P_TOTTG -> N_HSM    [color="#afb42b"];
+  P_VISC  -> N_FOG    [color="#afb42b"];
+  P_TOTTG -> N_ABD    [color="#afb42b"];
+  A_RECUR -> N_ANX    [color="#afb42b"];
+  D_BURDEN-> N_QOL    [color="#afb42b"];
+  I_RES   -> N_HSM    [style=dashed, color="#7e57c2"];
+  P_CMTG  -> N_ATHERO [style=dashed, arrowhead=tee, label="too large to\nenter intima"];
+
+  /* failed drugs act on limb 1 */
+  F_FIB    -> L_TRANS  [color="#546e7a", label="↑transcription of\na gene that is broken"];
+  F_FIB    -> C3_GENE  [color="#546e7a", arrowhead=tee];
+  F_O3     -> H_VLDL   [color="#546e7a", arrowhead=tee];
+  F_NIACIN -> H_FFA    [color="#546e7a", arrowhead=tee];
+  F_INSULIN-> L_TRANS  [color="#546e7a"];
+  F_STATIN -> I_LDLR   [color="#546e7a"];
+  F_ORL    -> D_LIPASE [color="#546e7a", arrowhead=tee];
+  F_APH    -> P_TOTTG  [color="#43a047", arrowhead=tee, penwidth=1.4];
+  L_ZERO   -> F_RESULT [color="#b71c1c", penwidth=1.6, label="zero × anything"];
+
+  /* apoC-III drugs act on limb 2 */
+  V_RNASE -> C3_MRNA [arrowhead=tee, color="#00897b", penwidth=1.6];
+  O_RNASE -> C3_MRNA [arrowhead=tee, color="#43a047", penwidth=1.6];
+  S_SLICE -> C3_MRNA [arrowhead=tee, color="#0288d1", penwidth=1.6];
+  C3_PROT -> I_APOC3B [color="#e53935"];
+  I_KEY   -> V_PD [style=dotted, color="#2e7d32"];
+  I_KEY   -> O_PD [style=dotted, color="#2e7d32"];
+  I_KEY   -> S_PD [style=dotted, color="#2e7d32"];
+
+  /* ANGPTL3 drugs act on limb 1 */
+  X_EVIMECH -> L_ANG3 [arrowhead=tee, color="#6d4c41", penwidth=1.4];
+  L_ZERO    -> X_EVIRES [color="#b71c1c", style=dashed, label="same arithmetic"];
+  X_GENE    -> L_TRANS  [color="#6d4c41", label="restores the\nmissing protein"];
+  X_FGF21   -> H_DNL    [arrowhead=tee, color="#6d4c41"];
+
+  /* safety wiring */
+  V_UPTAKE -> Y_PSASO  [color="#e64a19"];
+  Y_PLTMOD -> V_PLT    [color="#e64a19", penwidth=1.4];
+  O_ASGPR  -> Y_GALNAC [color="#43a047", penwidth=1.4];
+  S_ASGPR  -> Y_GALNAC [color="#43a047", penwidth=1.4];
+  Y_GALNAC -> O_SAFE   [color="#43a047"];
+  Y_GALNAC -> S_SAFE   [color="#43a047"];
+  S_PD     -> Y_GLUC   [style=dashed];
+  D_TARGET -> Y_VITAMIN[style=dashed, color="#e64a19"];
+  X_EVI    -> Y_IMMUNO [style=dashed];
+  V_LIVER  -> Y_HEPTOX [style=dashed];
+  V_UPTAKE -> Y_RENAL  [style=dashed];
+
+  /* endpoints */
+  P_TOTTG  -> K_TG3    [color="#5e35b1"];
+  P_TOTTG  -> K_BELOW  [color="#5e35b1"];
+  P_PPEXC  -> K_TAT    [color="#5e35b1", penwidth=1.4];
+  A_THRESH -> K_TAT    [color="#5e35b1", penwidth=1.4];
+  A_RECUR  -> K_AP     [color="#5e35b1", penwidth=1.4];
+  C3_PROT  -> K_APOC3  [color="#5e35b1", style=dashed];
+  N_ABD    -> K_ABDPAIN[color="#5e35b1"];
+  N_XANTH  -> K_XANTH2 [color="#5e35b1"];
+  N_QOL    -> K_QOL2   [color="#5e35b1"];
+  V_PD     -> K_TG3    [style=dashed, color="#00897b"];
+  O_PD     -> K_TG3    [style=dashed, color="#43a047"];
+  S_PD     -> K_TG3    [style=dashed, color="#0288d1"];
+  O_AP     -> K_CONVEX [style=dashed, color="#43a047"];
+  S_AP     -> K_CONVEX [style=dashed, color="#0288d1"];
+
+  /* diagnosis */
+  L_HEPARIN -> Q_LPLACT [color="#689f38"];
+  G_BIALL   -> Q_GENE   [color="#689f38"];
+  P_PSEUDO  -> Q_MISS   [color="#689f38"];
+  G_MCS     -> Q_SCORE  [color="#689f38", style=dashed, label="the differential"];
+  A_RECUR   -> Q_UNMET  [color="#689f38", style=dashed];
+
+  /* model + claim */
+  Z_SUM  -> W_2 [style=dotted];
+  I_SATUR-> Z_SUM [style=dotted];
+  Z_HAZ  -> W_4 [style=dotted];
+  P_KNEE -> W_1 [style=dotted, penwidth=1.4];
+  I_KEY  -> W_3 [style=dotted, penwidth=1.4];
+  Y_GALNAC -> W_5 [style=dotted, penwidth=1.4];
+}
