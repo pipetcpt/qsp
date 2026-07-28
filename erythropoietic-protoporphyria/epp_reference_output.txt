@@ -1,0 +1,382 @@
+EPP / XLP QSP MODEL — REFERENCE NUMERICAL CHECK
+pure-python mirror of epp_mrgsolve_model.R  (no numpy / no scipy)
+
+==============================================================================
+A. STEADY-STATE CALIBRATION — is the biomarker scale right?
+==============================================================================
+genotype                      RBC PPIX   Zn-PP    Zn%   plasma    skin   liver    ALT   t_tol
+                                umol/L  umol/L      %   umol/L  umol/L  umol/L    U/L     min
+Normal (FECH 100%)                0.13    0.85   86.7    0.007   0.009    0.00     25  1682.9
+Silent carrier (FECH 50%)         0.53    0.88   62.6    0.029   0.035    0.01     25   416.1
+Borderline    (FECH 35%)          2.66    1.06   28.5    0.147   0.177    0.07     25    82.8
+EPP moderate  (FECH 25%)         10.92    1.48   11.9    0.607   0.728    0.29     25    20.1
+EPP typical   (FECH 15%)         21.42    1.42    6.2    1.192   1.430    0.64     26    10.2
+EPP severe    (FECH 10%)         26.77    1.12    4.0    1.492   1.790    0.88     28     8.2
+XLP (ALAS2 GOF x3.5)             17.49    8.13   31.7    0.972   1.167    0.50     26    12.5
+
+  reference ranges: normal erythrocyte PPIX < 1.5 umol/L;
+  clinically manifest EPP typically 10-40 umol/L; XLP comparable or
+  higher WITH a large Zn-PP fraction; untreated EPP tolerance time to
+  the first prodrome is minutes, not hours.
+
+  self-consistency (analytic vs 400 d of integration, FECH 15%):
+    RBC PPIX         21.4176  vs    21.4176
+    plasma            1.1918  vs     1.1918
+    liver             0.6425  vs     0.6425
+    cholestasis       0.0051  vs     0.0051
+
+==============================================================================
+B. THE FERROCHELATASE THRESHOLD — derived, not assumed
+==============================================================================
+  Normal chelation CAPACITY / normal ALAS2 flux = R_cap = 2.900
+  => the terminal step can no longer keep up below FECH residual
+     FRES* = 1/R_cap = 34.5% .  The ~35% clinical
+     penetrance threshold is a CONSEQUENCE of that capacity ratio.
+
+ FECH residual %   RBC PPIX  x normal  skin PPIX  t_tol min  sun h/day
+             100       0.13       1.0      0.009     1682.9       8.00
+              70       0.24       1.8      0.016      919.8       7.97
+              50       0.53       4.0      0.035      416.1       7.41
+              40       1.24       9.5      0.082      177.4       5.36
+              35       2.66      20.3      0.177       82.8       3.23
+              30       6.12      46.9      0.408       35.9       1.61
+              25      10.92      83.6      0.728       20.1       0.94
+              20      16.11     123.3      1.074       13.6       0.65
+              15      21.42     163.9      1.430       10.2       0.50
+              12      24.63     188.5      1.646        8.9       0.43
+              10      26.77     204.9      1.790        8.2       0.40
+               8      28.92     221.4      1.937        7.6       0.37
+
+==============================================================================
+C. DISCRIMINATOR #1 — ZINC PROTOPORPHYRIN: same overload, opposite metal
+==============================================================================
+  Normal (FECH 100%)         free PPIX    0.13  Zn-PP   0.85  total EP    0.98  metal-free  13.3%
+  EPP typical   (FECH 15%)   free PPIX   21.42  Zn-PP   1.42  total EP   22.83  metal-free  93.8%
+  XLP (ALAS2 GOF x3.5)       free PPIX   17.49  Zn-PP   8.13  total EP   25.62  metal-free  68.3%
+
+  free PPIX vs normal:  EPP x164   XLP x134    (both enormously up — the same overload)
+  Zn-PP    vs normal:   EPP x1.7    XLP x9.6     (a 5.7-fold DISPROPORTION)
+  metal-free fraction:  normal 13%  ->  EPP 94%  vs  XLP 68%
+
+  Mechanism: FECH is the enzyme that inserts ZINC as well as iron.
+  EPP breaks that enzyme, so the substrate piles up and the metal
+  cannot go in either — free PPIX rises 160-fold while Zn-PP barely
+  moves. XLP leaves FECH intact and merely floods it, so zinc
+  insertion rises with the substrate. The clinically used metal-free
+  fraction therefore separates the two diseases, and it does so here
+  with nothing in the code special-casing them: only FRES and GOF
+  differ between the two runs.
+
+  (Contrast: iron deficiency and lead poisoning raise Zn-PP with a
+   NORMAL metal-free PPIX — FECH is intact, the substrate is normal,
+   only the metal is wrong. Set FEDOSE < 0 in section D to see the
+   Zn-PP arm move on its own.)
+
+==============================================================================
+D. SIGN FLIP #2 — IRON: the same nutrient helps XLP and harms EPP
+==============================================================================
+  Iron enters at three points: (+) IRE/IRP de-repression of ALAS2,
+  (-) Fe2+ co-substrate of FECH, (-) 2Fe-2S cluster -> FECH Vmax.
+
+ iron supply      LIP  IRE fac  ISC fac             EPP FECH 15%            XLP FECH 100%
+  x baseline       uM                        RBC PPIX    delta %      RBC PPIX    delta %
+        0.50     10.0    0.557    0.667         12.91      -39.7         18.56       +6.2
+        0.75     15.0    0.829    0.857         18.71      -12.6         22.60      +29.2
+        1.00     20.0    1.000    1.000         21.42       +0.0         17.49       +0.0
+        1.25     25.0    1.105    1.111         22.29       +4.1          9.16      -47.6
+        1.50     30.0    1.172    1.200         22.22       +3.8          3.78      -78.4
+        2.00     40.0    1.248    1.333         21.01       -1.9          1.39      -92.1
+        3.00     60.0    1.308    1.500         17.99      -16.0          0.69      -96.0
+
+  => In XLP, iron loading is STRONGLY beneficial: FECH is intact, so
+     the extra iron feeds the disposal arm and it wins outright.
+     In EPP the SAME intervention is essentially inert (a few percent
+     the wrong way at modest doses): the disposal enzyme is broken and
+     cannot use the iron, so all that is left is the IRE/IRP supply
+     arm pushing ALAS2 up. Identical equations, identical parameters —
+     only FRES and GOF differ between the two columns.
+     This reproduces the clinical asymmetry: iron repletion has
+     repeatedly helped in X-linked protoporphyria while trials and
+     case series in EPP have been inconsistent and at best neutral.
+     Note also the non-monotonicity in the XLP column at 0.5-0.75x:
+     severe iron deficiency suppresses ALAS2 translation through the
+     very same IRE, so the supply arm re-emerges at the bottom end.
+
+==============================================================================
+E-G. THERAPY — two orthogonal axes, and why their effects MULTIPLY
+==============================================================================
+  Axis A (shielding)      MC1R agonists raise epidermal melanin OD
+  Axis B (source)         bitopertin lowers PPIX via glycine limitation
+  Photodynamic dose  D = E x T(melanin) x [PPIX]skin x t
+  therefore tolerance time  t_tol = D_pro / (E x T x PPIX)  -- a RATIO
+  of PRODUCTS, so the two axes compose multiplicatively.
+
+  Endpoints are averaged over the whole 180-day season, because the
+  afamelanotide implant produces a deliberate sawtooth (dosed q60d)
+  and a single day-180 snapshot would land on its trough.
+
+regimen, 180-day season             RBC PPIX  melanin   T_epi  t_tol min  x base  sun h/d  season h
+untreated EPP                          21.42    1.000   0.500       10.2    1.00     0.50        89
+afamelanotide 16 mg implant q60d       21.42    1.918   0.270       19.7    1.92     0.92       166
+dersimelagon 100 mg od                 21.42    1.188   0.440       11.7    1.14     0.56       101
+dersimelagon 300 mg od                 21.42    1.537   0.350       15.0    1.47     0.72       129
+bitopertin 20 mg od                    17.89    1.000   0.500       12.1    1.18     0.58       105
+bitopertin 60 mg od                    13.07    1.000   0.500       16.3    1.59     0.78       140
+beta-carotene 180 mg od                21.42    1.000   0.500       11.1    1.09     0.54        97
+afamelanotide + bitopertin             13.07    1.918   0.270       31.5    3.08     1.42       256
+
+  fold-change in tolerance time
+    afamelanotide alone              x1.925
+    bitopertin alone                 x1.594
+    ADDITIVE expectation (fa+fb-1)   x2.518
+    MULTIPLICATIVE (Bliss) fa*fb     x3.067
+    OBSERVED in the model            x3.078
+    excess over the additive expectation +22.2%
+
+  on the CENSORED registrational endpoint (pain-free sun h/day):
+    untreated 0.50 | afamelanotide 0.92 | bitopertin 0.78 | combination 1.42
+    combination gain +0.93 h/day vs the sum of the single-
+    agent gains +0.71 h/day — the 8 h daylight
+    window compresses what any trial of this endpoint can resolve.
+    Over a 180-day season: untreated 89 h, afamelanotide 166 h, combination 256 h.
+
+  MC1R-agonist dose-response (pure shielding axis, day-180 steady):
+  dersimelagon mg od   melanin   T_epi  t_tol min  sun h/d  RBC PPIX
+                   0     1.000   0.500       10.2     0.50     21.42
+                  25     1.069   0.477       10.7     0.52     21.42
+                  50     1.137   0.455       11.3     0.54     21.42
+                 100     1.271   0.414       12.3     0.59     21.42
+                 200     1.530   0.346       14.8     0.71     21.42
+                 300     1.777   0.292       17.5     0.83     21.42
+                 600     2.454   0.183       28.0     1.29     21.42
+  the last column never moves: a shielding drug does not lower PPIX.
+  That is a falsifiable prediction, and it is what the afamelanotide
+  trials reported — protoporphyrin concentrations were unchanged.
+
+  bitopertin dose-response (pure source axis):
+    bitopertin mg od  glycine mM  RBC PPIX   % drop  t_tol min  melanin
+                   0       0.800     21.42      0.0       10.2    1.000
+                   5       0.763     20.44      4.6       10.7    1.000
+                  10       0.730     19.53      8.8       11.2    1.000
+                  20       0.673     17.89     16.5       12.1    1.000
+                  30       0.626     16.46     23.2       13.2    1.000
+                  60       0.523     13.07     39.0       16.4    1.000
+                 120       0.406      8.77     59.0       24.3    1.000
+  and the melanin column never moves. The axes are orthogonal in
+  mechanism but multiply in effect, because dose is a product.
+
+==============================================================================
+F2. AFAMELANOTIDE PK/PD HYSTERESIS — a 5-day drug with a 60-day effect
+==============================================================================
+   day  implant left ug  plasma ug/L  melanin   T_epi  t_tol min
+     0          16000.0       0.0000    1.000   0.500       10.2
+     1           7788.0       8.6151    1.011   0.496       10.3
+     2           3790.8       4.1934    1.042   0.486       10.5
+     5            437.2       0.4836    1.224   0.428       12.0
+    10             11.9       0.0132    1.583   0.334       15.3
+    20              0.0       0.0000    1.881   0.272       18.8
+    30              0.0       0.0000    1.873   0.273       18.7
+    45              0.0       0.0000    1.713   0.305       16.8
+    59              0.0       0.0000    1.555   0.340       15.0
+    61           7788.0       8.6151    1.545   0.343       14.9
+    90              0.0       0.0000    2.177   0.221       23.1
+   120          16000.0       0.0000    1.712   0.305       16.8
+   150              0.0       0.0000    2.270   0.207       24.7
+   180              0.0       0.0000    1.763   0.295       17.4
+   200              0.0       0.0000    1.517   0.349       14.6
+  Plasma drug is effectively gone by about day 5, yet protection goes
+  on rising for another two to three weeks and peaks around day 20.
+  The PD outlasts the PK by more than an order of magnitude, which is
+  why the dose interval is set by melanin turnover (~35 d) rather than
+  by the pharmacokinetics -- 60 days, not 5.
+
+==============================================================================
+H. HEPATIC BISTABILITY — protoporphyric hepatopathy as a SADDLE-NODE
+==============================================================================
+  The only exit for PPIX is bile; PPIX crystals reduce bile flow;
+  reduced bile flow raises hepatic PPIX. Positive feedback on a
+  single-exit system produces MORE THAN ONE steady state.
+
+ FECH %  RBC PPIX  input flux  steady states (hepatic PPIX, cholestasis)
+     30      6.12       0.860  [  0.16, 0.000, stable]
+     20     16.11       2.264  [  0.46, 0.001, stable]
+     15     21.42       3.010  [  0.64, 0.005, stable]  [  1.92, 0.598, SADDLE]  [  2.99, 0.705, stable]
+     12     24.63       3.461  [  0.77, 0.015, stable]  [  1.61, 0.459, SADDLE]  [  4.26, 0.713, stable]
+     11     25.70       3.611  [  0.82, 0.022, stable]  [  1.54, 0.411, SADDLE]  [  4.76, 0.714, stable]
+     10     26.77       3.762  [  0.88, 0.032, stable]  [  1.46, 0.360, SADDLE]  [  5.32, 0.714, stable]
+      9     27.85       3.913  [  0.94, 0.048, stable]  [  1.39, 0.302, SADDLE]  [  5.97, 0.714, stable]
+      8     28.92       4.064  [  1.03, 0.077, stable]  [  1.29, 0.230, SADDLE]  [  6.72, 0.714, stable]
+      7     30.00       4.215  [  7.60, 0.714, stable]
+      6     31.07       4.366  [  8.67, 0.714, stable]
+
+  BISTABLE WINDOW in residual ferrochelatase activity:
+    upper fold  FECH = 16.06%  (RBC PPIX 20.3 umol/L)  <- below this a second, cholestatic
+                attractor APPEARS alongside the healthy one
+    lower fold  FECH = 7.43%  (RBC PPIX 29.5 umol/L)  <- below this the HEALTHY branch
+                CEASES TO EXIST and hepatopathy is obligatory
+  Between the folds the patient is bistable: biochemically stable for
+  decades, yet one sufficiently large transient (intercurrent illness,
+  fasting, alcohol, a haemolytic episode) pushes the state past the
+  saddle and the system falls onto the cholestatic branch and stays
+  there. That is why protoporphyric liver failure presents abruptly.
+
+  Worked example, FECH residual 10%:
+    healthy branch      hepatic PPIX   0.88  cholestasis 0.032
+    SADDLE (threshold)  hepatic PPIX   1.46  cholestasis 0.360
+    disease branch      hepatic PPIX   5.32  cholestasis 0.714
+    margin to the saddle: 67% above the resting hepatic PPIX
+
+  Rescue from an ESTABLISHED cholestatic branch (FECH 8%),
+  90 days of treatment, started from the disease attractor:
+    baseline: hepatic PPIX 6.72  cholestasis 0.714  ALT 233 U/L  bilirubin 7.75 mg/dL
+
+rescue (90 days)                    hep PPIX  cholest.     ALT   bili  RBC PPIX
+no treatment                            6.72     0.714     233   7.75     28.92
+cholestyramine 16 g/d                   4.62     0.714     148   4.80     28.92
+RBC transfusion (erythron -60%)         0.17     0.000      25   0.60      5.96
+plasmapheresis                          3.92     0.712     126   4.06     28.92
+cholestyramine + transfusion            0.15     0.000      25   0.60      5.96
+all three                               0.13     0.000      25   0.60      5.96
+bone-marrow transplant                  0.01     0.000      25   0.60      3.92
+  Liver transplantation is deliberately absent from this list: it
+  changes NONE of the parameters above, because the source is the
+  marrow. That is precisely why the disease recurs in the graft, and
+  why marrow transplantation — which resets FRES — is the curative one.
+
+==============================================================================
+I. A DAY IN THE LIFE — prodrome, retreat, and the all-or-nothing step
+==============================================================================
+  Intended outdoor window 10:00-18:00 every day. The patient is his
+  own feedback controller: the prodrome is the sensor, walking into
+  the shade is the actuator, and his reaction time is the loop delay.
+
+  (a) ADULT who retreats within 2 minutes of the prodrome
+  t (h)  prodromal dose  in shade  oxid. signal  pain NRS  cum sun h
+    9.0           0.000     0.000         0.000      0.00       0.00
+   10.0           0.004     0.000         0.004      0.00       0.00
+   11.0           1.259     0.962         0.816      0.02       0.28
+   12.0           1.270     0.967         0.549      0.07       0.32
+   13.0           1.270     0.967         0.409      0.12       0.35
+   14.0           1.262     0.964         0.334      0.18       0.38
+   15.0           1.245     0.956         0.289      0.25       0.42
+   16.0           1.217     0.939         0.255      0.32       0.48
+   17.0           1.168     0.893         0.219      0.40       0.56
+   18.0           1.062     0.699         0.149      0.48       0.73
+   19.0           0.914     0.266         0.074      0.55       0.73
+   20.0           0.787     0.068         0.037      0.61       0.73
+
+  (b) SAME PATIENT, SAME SUN — but 40 minutes to get out of it
+      (a young child, a car journey, a wedding, a fishing trip)
+  t (h)  prodromal dose  in shade  oxid. signal  pain NRS  cum sun h
+    9.0           0.000     0.000         0.000      0.00       0.00
+   10.0           0.004     0.000         0.004      0.00       0.00
+   11.0           3.185     0.696         2.339      0.08       0.67
+   12.0           3.565     0.932         1.759      0.44       0.83
+   13.0           3.254     0.985         1.008      0.92       0.86
+   14.0           2.839     0.997         0.528      1.49       0.87
+   15.0           2.451     0.999         0.267      2.14       0.87
+   16.0           2.111     1.000         0.134      2.85       0.87
+   17.0           1.817     1.000         0.066      3.58       0.87
+   18.0           1.564     1.000         0.033      4.27       0.87
+   19.0           1.346     0.995         0.016      4.91       0.87
+   20.0           1.158     0.949         0.008      5.46       0.87
+
+  the 3-day tail of reaction (b), with NO further sun exposure:
+  hours after exposure  pain NRS    oedema
+                     0      6.94      6.55
+                     6      7.88      4.85
+                    12      8.20      3.44
+                    18      8.28      2.41
+                    24      8.23      1.69
+                    30      8.09      1.18
+                    36      7.88      0.82
+                    42      7.60      0.57
+                    48      7.26      0.40
+                    54      6.86      0.28
+                    60      6.41      0.19
+                    66      5.91      0.14
+                    72      5.37      0.09
+                    78      4.81      0.07
+                    84      4.25      0.05
+                    90      3.70      0.03
+                    96      3.18      0.02
+  A three-microsecond species (singlet oxygen) has produced a
+  three-day illness. The persistence is not in the photon and not in
+  the porphyrin — it is in the slow inflammatory state variables the
+  photon switched on, which is why the pain is opioid-refractory and
+  why nothing done AFTER the exposure shortens it much.
+
+  Over 14 days with a competent controller: pain-free sun 10.0 h total
+  (0.72 h/day against an 8 h/day intention), peak NRS 6.4, reaction-days 0.00.
+  Note what the model does NOT say: it does not say an untreated
+  patient has many reactions. A patient who obeys his prodrome every
+  single time has almost none — at the cost of 0.7 of the 8 hours he
+  wanted. The disease burden IS the avoidance.
+
+==============================================================================
+J. THE CONTROL LOOP — reaction time decides prodrome vs full reaction
+==============================================================================
+  Identical photobiology, identical PPIX, one identical sunny day.
+  The ONLY thing that changes is how long the patient takes to notice
+  the prodrome and get out of the light.
+
+  (the afamelanotide arm is sampled 30 days after an implant, where
+   melanin = 1.87 and epidermal transmittance = 0.273)
+
+  retreat                                 UNTREATED EPP                               ON AFAMELANOTIDE
+delay min   peak dose   sun h  peak NRS   at h    rxn-d    peak dose   sun h  peak NRS   at h    rxn-d
+      0.5        1.27    0.74      1.21   15.0     0.00         1.22    1.24      1.07   15.0     0.00
+      1.0        1.27    0.73      1.21   15.0     0.00         1.22    1.24      1.07   15.0     0.00
+      2.0        1.27    0.73      1.21   15.0     0.00         1.22    1.24      1.07   15.0     0.00
+      5.0        1.39    0.73      1.26   15.0     0.00         1.24    1.23      1.08   15.0     0.00
+     10.0        1.72    0.75      1.56   15.2     0.00         1.39    1.24      1.13   15.0     0.00
+     20.0        2.37    0.77      3.54   16.2     0.00         1.72    1.26      1.49   15.2     0.00
+     40.0        3.58    0.87      8.28   18.2     0.11         2.35    1.14      3.72   16.6     0.00
+     90.0        6.08    1.70      9.75   19.6     0.34         3.67    1.87      8.69   19.0     0.16
+
+  Two things to read off this table.
+  (i)  THE STEP. Between a 20-minute and a 40-minute delay the peak
+       pain roughly doubles and reaction-days go from ~0 to real:
+       the reaction is all-or-nothing, not graded, because the
+       mast-cell/complement arm becomes self-amplifying above DCRIT.
+       Clinically this is why patients describe either 'a warning'
+       or 'three days of boiling oil', and very little in between.
+  (ii) THE SECOND BENEFIT OF SHIELDING. At every delay the
+       afamelanotide column accrues LESS dose and MORE sun. By
+       slowing the rate at which dose accumulates, the drug makes the
+       SAME human reaction time non-limiting. That benefit is
+       invisible to an 'hours in sunlight' endpoint, which is one
+       reason patient-reported outcomes in this disease can move
+       further than the primary endpoint does.
+
+  A caveat the model produces on its own: with the nociceptor
+  time constant set to ~50 h, DAILY exposure stacks even when every
+  prodrome is obeyed. Fourteen consecutive days of compliant outdoor
+  time at a 2-minute delay reach a plateau pain of:
+    untreated        NRS 6.4 (cumulative pain-free sun 10.0 h)
+    afamelanotide    NRS 6.2 (cumulative pain-free sun 16.3 h)
+  i.e. the chronic low-grade burning reported by patients who try to
+  live a normal outdoor life is a predicted consequence of a slow
+  nociceptor state, not of any single reaction.
+
+==============================================================================
+K. ENVIRONMENTAL MODIFIERS — why glass, cloud and sunscreen all fail
+==============================================================================
+condition                                 transmitted  t_tol min  sun h/day
+open summer sun (reference)                      1.00       10.2       0.50
+behind ordinary window glass                     0.90       11.4       0.55
+overcast sky                                     0.50       20.5       0.96
+SPF 50 chemical sunscreen                        1.00       10.2       0.50
+iron-oxide tinted sunscreen                      0.35       29.2       1.34
+long sleeves + wide-brim hat                     0.15       68.2       2.78
+full opaque cover                                0.05      204.7       5.77
+  SPF 50 is listed at transmittance 1.00 deliberately: ultraviolet
+  filters do not attenuate the 400-410 nm Soret band that drives this
+  disease. Only broadband opaque or reflectant cover does — and, from
+  the inside, melanin.
+
+==============================================================================
+DONE — every number above is computed by the equations in
+==============================================================================
+epp_mrgsolve_model.R.  Regenerate with:
+    python3 epp_reference_check.py > epp_reference_output.txt
