@@ -1,0 +1,376 @@
+===============================================================================
+ POSTPARTUM DEPRESSION QSP MODEL — REFERENCE IMPLEMENTATION OUTPUT
+ 38-ODE system · pure-stdlib RK4 (h = 0.1 h) · t = 0 is delivery
+===============================================================================
+
+===============================================================================
+TABLE 1 · The two arms of the product, and why a trough exists
+===============================================================================
+Potentiation is Emax*PAM^h/(EC50^h+PAM^h) with Emax=2.50, EC50=120 nM, h=1.4
+The delta-pool set-point is R_ss = G_target/(1+potentiation), so the
+PRODUCT is held at G_target = 1.00 in ANY steady state.
+
+state                           PAM(nM) potentiation   R_delta,ss   G_tonic,ss
+-------------------------------------------------------------------------------
+non-pregnant                        6.0        0.037        0.964        1.000
+2nd trimester                      60.0        0.687        0.593        1.000
+term (3rd trimester)              160.0        1.498        0.400        1.000
+day 3 postpartum                    4.8        0.027        0.973        1.000
+day 5 postpartum                    4.0        0.021        0.979        1.000
+
+The steady states are all identical (1.00) — the disease is NOT a
+steady state.  It is the TRANSIENT between two of them:
+   R_delta is still 0.400 (the term value) when PAM has already
+   reached 4.8 nM  ->  G_tonic = 0.411  =  a 59% LOSS of tonic
+   inhibition that no steady-state analysis would ever show.
+
+   tonic-inhibition deficit stays worse than 25 %  for    149 h =  6.2 d
+   tonic-inhibition deficit stays worse than 10 %  for    308 h = 12.8 d
+   tonic-inhibition deficit stays worse than 5 %   for    428 h = 17.8 d
+
+=> the model DERIVES a 2-3 week window of reduced tonic inhibition
+   from two time constants (ligand t1/2 12 h, receptor t1/2 120 h)
+   and nothing else.  Compare with the observed clustering of PPD
+   onset in the first postpartum weeks (PMID 23487258).  The width
+   is set by the RECEPTOR constant, which has no human measurement
+   (assumption A8) — so treat the width as an order of magnitude,
+   not a prediction.
+
+===============================================================================
+TABLE 2 · Simulated endocrine trajectory across delivery
+===============================================================================
+   t (h)     P4 nM  ALLOp nM  ALLOb nM     E2 nM   R_delta  G_tonic     CORT     HCRH
+-------------------------------------------------------------------------------
+     -24     400.0     81.54    164.08    59.993     0.397    0.827     16.3    0.348
+       0     400.0     81.54    164.08    59.993     0.397    0.827     16.3    0.348
+       6     147.8     74.63    158.07    30.754     0.397    0.830      7.3    0.350
+      12      53.5     59.35    133.68    15.419     0.397    0.801      4.7    0.354
+      24       8.4     32.87     77.83     3.916     0.403    0.674      4.7    0.362
+      48       2.1      9.81     23.74     0.320     0.438    0.500      4.8    0.377
+      72       2.0      3.88      9.54     0.095     0.496    0.499      4.9    0.391
+     120       2.0      2.02      5.10     0.080     0.609    0.599      5.1    0.420
+     240       2.0      1.90      4.80     0.080     0.790    0.786      5.7    0.485
+     504       2.0      1.90      4.80     0.080     0.933    0.938      6.8    0.603
+    1080       2.0      1.90      4.80     0.080     0.972    0.980      8.2    0.776
+
+plasma allopregnanolone falls 21-fold (81.5 -> 3.88 nM) in 72 h;
+estradiol falls 631-fold; the delta-receptor pool has moved 17.5 %
+of the way back to its non-pregnant value.  THAT is the mismatch.
+
+===============================================================================
+TABLE 3 · Same trajectory, three vulnerabilities (no treatment)
+===============================================================================
+Identical hormones in every row.  Only V differs.
+V scales symptom accrual gain, narrows the E/I threshold
+(THR = 2.6/V^1.0) and slows delta-pool recovery.
+
+phenotype                        V     THR  peakEXC    peakS     HAMD     EPDS d42 HAMD
+-------------------------------------------------------------------------------
+resilient (support+)          0.80    3.29     3.83    0.061      4.0      2.3      4.0
+population average            1.00    2.63     3.99    0.279     10.9      7.1      7.0
+at risk (prior MDD)           1.40    1.88     4.31    0.685     23.9     16.1     23.9
+high risk (prior PPD)         1.70    1.55     6.75    0.850     29.2     19.7     27.9
+very high risk                2.00    1.32     7.05    0.890     30.5     20.6     29.6
+
+peak symptom load occurs at t = 206 h = 8.6 d postpartum for the
+high-risk phenotype.  The average-V woman gets a self-limited dip
+(EPDS 7.1, below the 12/13 screening cut-off) — the model's
+account of 'baby blues' — while the high-risk woman latches into a
+sustained episode (HAM-D 29.2).  ONE parameter separates them.
+
+===============================================================================
+TABLE 4 · Brexanolone: PK, saturation, and the flat 60->90 arm
+===============================================================================
+rate ug/kg/h    Css ng/mL     Css nM  brain nM-eq potentiation      vs 30
+-------------------------------------------------------------------------------
+30                   30.0       94.2          188        1.632       1.00
+60                   60.0      188.4          377        2.081       1.27
+90                   90.0      282.6          565        2.244       1.37
+120                 120.0      376.8          754        2.323       1.42
+
+Going from 60 to 90 ug/kg/h raises steady-state exposure by 50 %
+but potentiation by only 7.8 % — the Hill function is already
+saturated.  Site-2 direct activation (sedation) has no such ceiling
+in this range.  A flat 60-vs-90 efficacy comparison with MORE
+sedation at the higher rate is therefore the PREDICTION, and it is
+what phase 3 study 1 reported (-19.5 for BRX60 vs -17.7 for BRX90).
+
+Steady-state brexanolone exposure at 90 ug/kg/h is 283 nM plasma,
+i.e. 3.5x the third-trimester allopregnanolone level the model uses
+(80 nM).  The infusion does not 'restore pregnancy levels' — it
+overshoots them severalfold, which is exactly why sedation, not
+efficacy, is the dose-limiting toxicity.
+
+===============================================================================
+TABLE 5 · Treatment arms vs the published trial endpoints
+===============================================================================
+HAM-D17 change from enrolment (day 21 postpartum, V = 1.70)
+
+arm                               base    60 h     d 3    d 15    d 28    d 45
+-------------------------------------------------------------------------------
+placebo (inpatient, 60 h)         28.8   -15.6   -15.3   -13.8   -14.5   -15.1
+brexanolone 60 ug/kg/h            28.8   -19.2   -19.8   -13.7   -14.3   -15.1
+brexanolone 90 ug/kg/h            28.8   -19.4   -20.1   -13.8   -14.3   -15.1
+placebo (outpatient)              28.8    -5.8    -6.6   -13.1   -14.3   -15.1
+zuranolone 30 mg x 14 d           28.8    -6.2    -7.1   -14.5   -13.5   -14.8
+zuranolone 50 mg x 14 d           28.8    -6.4    -7.4   -15.5   -13.4   -14.7
+zuranolone 50 mg x 3 d            28.8    -6.4    -7.4   -12.8   -14.1   -15.0
+sertraline 50->100 mg             28.8    -5.8    -6.6   -13.9   -17.5   -21.8
+esketamine 0.25 mg/kg once        28.8    -5.8    -6.6   -13.1   -14.4   -15.1
+protected sleep only              28.8    -5.8    -6.6   -13.3   -14.7   -15.5
+CBT/IPT only                      28.8    -6.0    -6.8   -14.3   -16.0   -17.0
+
+OBSERVED (published, see header):
+  brexanolone phase 3 study 1, 60 h : BRX60 -19.5 · BRX90 -17.7 · placebo -14.0
+  brexanolone phase 2, 60 h         : BRX -21.0 · placebo -8.8
+  SKYLARK, day 15                   : ZUR50 -15.6 · placebo -11.6
+  ROBIN, day 15                     : ZUR30 -17.8 · placebo -13.6
+
+MODEL drug-placebo differences:  brexanolone 60 h -3.6  (obs -5.5)
+                                zuranolone d15   -2.5  (obs -4.0)
+
+WHERE THIS FAILS — state it plainly:
+  The model reproduces (a) the enrolment severity, (b) the 60-hour
+  brexanolone response, (c) the day-15 zuranolone response and
+  (d) the magnitude of both placebo responses.  It does NOT
+  reproduce the MAINTENANCE of drug-placebo separation at days
+  28-45: every arm converges to about HAM-D 14, whereas the trials
+  kept a small separation to day 30 (brexanolone) and day 45
+  (zuranolone).  The late-time attractor of this system is a
+  partially-recovered state that all arms fall into once the
+  receptor trough has closed, and no drug parameter changes where
+  that attractor sits — only how fast a patient reaches it.
+  Table 12 shows that the two obvious mechanistic repairs fail, and
+  why the failure is structural rather than a fitting problem.
+
+===============================================================================
+TABLE 6 · The bridge test: is durability the receptor, or the drug?
+===============================================================================
+Brexanolone stops at 60 h.  Zuranolone stops at day 14.  Both keep
+working.  The model says the drug does not hold the improvement —
+it holds the patient until R_delta has re-expanded, and the
+symptom-sleep loop then keeps her in the recovered state.
+So switch OFF receptor recovery (KR = 0) and re-run.
+
+arm                                   d 3       d 15       d 45
+-------------------------------------------------------------------------------
+brexanolone, KR normal              -19.8      -13.7      -15.1
+zuranolone 50 mg, KR normal          -7.4      -15.5      -14.7
+brexanolone, KR = 0                 -16.5      -11.8      -11.9
+zuranolone 50 mg, KR = 0             -6.8      -13.7      -11.9
+
+With the receptor frozen, the ON-DRUG response survives (the ligand
+arm still works) but the day-45 benefit is 3-4 HAM-D points worse in
+BOTH arms.  No parameter of the symptom equations was touched, so
+this is a structural consequence: part of what looks like drug
+durability is receptor recovery that would have happened anyway.
+It is NOT the whole story — see the failure noted under Table 5.
+
+Course length at the same daily dose (zuranolone 50 mg):
+  3-day course   day 15  -12.8   day 45  -15.0
+  14-day course  day 15  -15.5   day 45  -14.7
+
+NOTE — the course-length prediction does NOT come out: the 3-day
+course is worse at day 15 (it has stopped) but indistinguishable at
+day 45, because by then every arm has reached the same attractor.
+So this model does not support 'shorter courses relapse'.  It
+supports only the weaker claim that a course must still be running
+to hold an acute advantage.  A model that reproduced maintained
+separation would be needed to say anything about course length, and
+this is not that model.
+
+===============================================================================
+TABLE 7 · Why the placebo response is so large, and so variable
+===============================================================================
+The placebo arms of these trials improved by 8.8 to 14.0 HAM-D
+points.  In this model that is not noise: an enrolled woman is
+sitting on a receptor pool that is still re-expanding, and trial
+participation itself changes her sleep.  Both are dated quantities,
+so the model predicts placebo response should SHRINK with later
+enrolment.
+
+enrolment           R_delta    G_tonic  placebo 60h  placebo d15
+-------------------------------------------------------------------------------
+day 7                 0.661      0.647        -15.5        -12.5
+day 14                0.834      0.829        -15.7        -12.9
+day 21                0.911      0.912        -15.6        -13.1
+day 42                0.968      0.972        -15.1        -12.9
+day 90                0.973      0.976        -14.7        -12.5
+day 180               0.973      0.960        -14.8        -12.4
+
+TWO readings, and only one of them supports the model:
+  SUPPORTED — the inpatient 60-hour column is larger than the
+  outpatient day-15 column at every enrolment day, and for a
+  mechanistic reason: continuous nursing care protects sleep, which
+  is a state variable here.  The brexanolone trials were inpatient
+  and their placebo arms improved -14.0 in 60 h; the zuranolone
+  trials were outpatient and theirs took 15 days to reach -11.6.
+  The model reproduces that ordering without being told about it.
+  NOT SUPPORTED — the predicted placebo response is nearly FLAT in
+  enrolment day (about 1 HAM-D point across day 7 to day 180), even
+  though the delta-pool column moves from 0.66 to 0.97.  The
+  calibrated care term dominates the mechanistic one.  So the model
+  does not, after calibration, predict a useful enrolment-timing
+  effect, and the earlier hypothesis that receptor recovery explains
+  much of the placebo response is NOT borne out at these weights.
+
+===============================================================================
+TABLE 8 · Onset kinetics separate the mechanisms, not the efficacy
+===============================================================================
+arm                                 d 1      d 3      d 7     d 15     d 45
+-------------------------------------------------------------------------------
+brexanolone 60 (GABA_A)            -9.9    -19.8    -15.8    -13.7    -15.1
+zuranolone 50 (GABA_A)             -2.9     -7.4    -12.9    -15.5    -14.7
+esketamine (glutamate)             -2.8     -6.6    -10.5    -13.1    -15.1
+sertraline (monoamine)             -2.8     -6.6    -10.7    -13.9    -21.8
+placebo (outpatient)               -2.8     -6.6    -10.5    -13.1    -15.1
+
+Sertraline is the one arm that keeps improving past day 28 in this
+model, because its slow plasticity arm keeps pushing after the
+receptor trough has closed.  That is a model artefact worth naming:
+it comes from SYN entering the excitatory load as a divisor with no
+ceiling, and it should not be read as a claim that sertraline beats
+a neurosteroid at week 6.
+
+Nothing about sertraline was made weak: its SERT occupancy is
+immediate (78 % at day 15) and its final effect is competitive.
+The delay comes from two states in series — 5-HT1A autoreceptor
+desensitisation (t1/2 10 d) and structural plasticity (t1/2 10 d)
+— which is why a GABA_A PAM and an SSRI can converge by week 6 and
+still be unrecognisably different on day 3.
+
+===============================================================================
+TABLE 9 · Maternal versus infant exposure during lactation
+===============================================================================
+regimen                      Cmax mat milk ng/mL      RID %  infant nM
+-------------------------------------------------------------------------------
+brexanolone 90 (60 h)            88.1      132.2       0.65     0.5010
+zuranolone 50 mg/d              246.3      369.5       5.47     1.1547
+sertraline 100 mg/d              54.5       98.2       0.80     0.3321
+
+The relative infant dose is what matters, not the maternal dose.
+The 60-hour brexanolone infusion delivers well under 1 %% of the
+maternal dose per kg, against a measured brexanolone milk study
+(PMID 35869362) that this column should be checked against; the
+14-day oral zuranolone course delivers several-fold more because it
+is given for 14 days rather than 60 hours, and still sits under the
+conventional 10 %% concern threshold.
+An orally dosed neurosteroid is additionally crippled by first-pass
+metabolism (F_oral = 0.05 assumed here, with NO neonatal
+measurement behind it), so the infant plasma concentrations above
+are ~2 orders of magnitude below the model's own potentiation EC50
+of 120 nM.  Maternal sedation and infant sedation are different
+questions and this model separates them explicitly rather than
+reasoning from the maternal dose.
+
+===============================================================================
+TABLE 10 · Non-pharmacological arms and the vicious cycle
+===============================================================================
+The symptom -> insomnia -> sleep debt -> excitatory load -> symptom
+loop is closed in this model.  Its loop gain is what makes a
+60-hour intervention durable, and it is also a target itself.
+
+arm                                 d 3     d 15     d 45  sleep h
+-------------------------------------------------------------------------------
+no intervention (contact only)     -6.6    -13.1    -15.1     4.07
+protected sleep block              -6.6    -13.3    -15.5     4.42
+CBT/IPT                            -6.8    -14.3    -17.0     4.19
+zuranolone 50 mg                   -7.4    -15.5    -14.7     4.34
+
+Protected sleep is not a placebo control in this model — it is an
+active arm acting on a real state variable, which is exactly why the
+inpatient placebo arm of the brexanolone trials was so effective and
+why 'placebo-controlled' is a subtler claim in PPD than elsewhere.
+
+===============================================================================
+TABLE 11 · Sensitivity of the day-15 zuranolone effect
+===============================================================================
+one parameter at a time, +/- 30 %, effect on model day-15 HAM-D
+change in the zuranolone 50 mg arm (reference -15.5)
+
+parameter           -30 %      +30 %    max |d|
+-------------------------------------------------------------------------------
+THR0                -13.5      -18.2       2.63
+K_NSP               -13.3      -17.0       2.19
+KDEC_SD             -13.8      -17.3       1.76
+W_SD                -17.1      -14.5       1.57
+EMAX_PAM            -14.7      -16.5       0.96
+KOFF                -16.4      -14.7       0.91
+EC50_PAM            -16.4      -15.0       0.88
+ZUR_EQ              -14.7      -16.3       0.79
+A_SYMP              -16.3      -15.1       0.73
+KR                  -16.1      -14.9       0.62
+KON                 -15.3      -15.2       0.33
+V_KR                -15.4      -15.6       0.11
+KFAST               -15.5      -15.5       0.00
+
+Read this ranking against the model's own story, because it does
+not fully agree with it:
+  * THR0 is first, as claimed — the E/I threshold is the disease
+    boundary in this model and the endpoint moves 2.6 points with it.
+  * K_NSP is SECOND, and K_NSP is the fitted, non-mechanistic
+    care/expectancy term (assumption A5).  That is a warning label:
+    a large share of this endpoint is calibration, not mechanism.
+  * KDEC_SD and W_SD are third and fourth, i.e. the SLEEP LOOP
+    matters more here than anything to do with the drug.
+  * the drug's own potency parameters (ZUR_EQ, EC50_PAM, EMAX_PAM)
+    sit mid-table, because potentiation is saturated at therapeutic
+    exposure (Table 4) — that part of the story does hold.
+  * KR ranks LOW (0.62) even though it sets the trough width in
+    Table 1.  The two are not in conflict: KR governs WHEN the
+    window closes, while the day-15 endpoint is governed by how the
+    symptom loop behaves inside a window that is open either way.
+
+===============================================================================
+TABLE 12 · Two mechanistic repairs, both rejected
+===============================================================================
+The model under-predicts maintained drug-placebo separation
+(Table 5).  The two obvious repairs were implemented as switches and
+tested rather than argued about.
+
+REPAIR 1 (KR_BOOST): let PAM exposure ACCELERATE delta-pool
+plasticity, so the drug speeds up the recovery it is bridging.
+REPAIR 2 (W_PAM_BDNF): give the PAM a plasticity arm through BDNF,
+so restoring tonic inhibition drives structural recovery.
+
+setting                        base  brx 60h  brx d30  zur d15
+-------------------------------------------------------------------------------
+reference (both off)           28.8    -19.2    -14.4    -15.5
+KR_BOOST = 1.0                 28.7    -17.9    -14.2    -14.0
+KR_BOOST = 3.0                 28.7    -16.7    -14.1    -13.3
+W_PAM_BDNF = 0.15              25.5    -17.2    -11.7    -14.6
+W_PAM_BDNF = 0.35              23.9    -16.2    -10.7    -16.6
+
+BOTH REPAIRS MAKE THE FIT WORSE, AND FOR THE SAME REASON.
+Brexanolone IS allopregnanolone (assumption A2 — a fact, not a
+modelling choice), so the drug and the endogenous ligand enter the
+model through the SAME potentiation term.  Any parameter that gives
+the drug extra credit also gives PREGNANCY extra credit: it lowers
+the baseline the patient starts from and shrinks the room a drug has
+to work in.  The 'base' column above shows exactly that (28.8 ->
+25.5 -> 23.9 as W_PAM_BDNF rises).  REPAIR 1 fails even more
+directly: in a homeostatic set-point model a PAM cannot accelerate
+recovery of the pool, because it LOWERS the set-point the pool is
+chasing.  Speeding up the chase moves it toward a lower target.
+
+So the missing durability mechanism cannot live on the
+allopregnanolone-potentiation axis at all.  It has to be something
+the drug does that pregnancy does not — a candidate the trials could
+distinguish: a durable change in the sleep/behaviour loop bought by
+60 hours of functioning (which this model would represent as a
+lasting reduction in A_SYMP or WAKE, not as a receptor effect).
+
+===============================================================================
+SUMMARY OF NUMBERS QUOTED IN README.md
+===============================================================================
+term delta-pool set-point          : 0.400 (vs 0.964 non-pregnant)
+tonic inhibition at day-3 nadir    : 0.411 of set-point (59 % loss)
+trough wider than 10 % deficit     : 13 d
+60 -> 90 ug/kg/h potentiation gain : +7.8 %
+brexanolone 60 h, model vs placebo : -3.6 (obs -5.5)
+zuranolone d15, model vs placebo   : -2.5 (obs -4.0)
+brexanolone RID                    : see Table 9
+
+===============================================================================
+ END OF REFERENCE OUTPUT
+===============================================================================
