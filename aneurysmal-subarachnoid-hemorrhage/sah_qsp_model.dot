@@ -1,0 +1,689 @@
+/* ==========================================================================
+   sah_qsp_model.dot
+   Aneurysmal Subarachnoid Haemorrhage -> Delayed Cerebral Ischaemia (aSAH-DCI)
+   Quantitative Systems Pharmacology mechanistic map
+   동맥류성 뇌지주막하출혈 후 지연성 뇌허혈 (DCI) 기계론적 지도
+
+   ORGANISING IDEA
+   ---------------
+   The map is NOT drawn as "blood -> vasospasm -> ischaemia".  It is drawn as
+   ONE SHARED ARTERIOLAR VASODILATORY RESERVE (the big central node) with FOUR
+   COMPETING CONSUMERS, each of which can exhaust it on its own:
+
+       C1  large-artery spasm          (the only consumer angiography can see)
+       C2  microvascular / pericyte tone + capillary transit heterogeneity
+       C3  capillary microthrombosis
+       C4  perfusion-pressure loss (ICP up / MAP down) and SD inverse coupling
+
+   Ischaemia begins where the SUM of the demands crosses the reserve, so every
+   therapeutic arrow in this map has to be read against the other three
+   consumers.  That is the graph-theoretic reason a drug can abolish
+   angiographic vasospasm and move the clinical endpoint by nothing.
+
+   22 subgraph clusters, 213 nodes, 300+ edges.
+   Render:  dot -Tsvg sah_qsp_model.dot -o sah_qsp_model.svg
+            dot -Tpng -Gdpi=150 sah_qsp_model.dot -o sah_qsp_model.png
+   ========================================================================== */
+
+digraph aSAH_DCI_QSP {
+    rankdir = TB;
+    compound = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<B>Aneurysmal Subarachnoid Haemorrhage &#8594; Delayed Cerebral Ischaemia (aSAH-DCI) QSP Map</B><BR/>
+<I>동맥류성 지주막하출혈 후 지연성 뇌허혈 &#183; 하나의 세동맥 예비능(vasodilatory reserve)을 넷이 나눠 쓰는 구조</I><BR/>
+<FONT POINT-SIZE="11">Not "vasospasm &#8594; ischaemia" but ONE SHARED RESERVE with FOUR COMPETING CONSUMERS &#183; 22 clusters &#183; 213 nodes</FONT>>;
+    fontsize = 22;
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+          margin="0.07,0.045", penwidth=1.0];
+    edge [fontname="Helvetica", fontsize=8, arrowsize=0.62, penwidth=0.9,
+          color="#5a6672"];
+
+    /* ---------------------------------------------------------------- 1 */
+    subgraph cluster_bleed {
+        label = "1. 파열과 초기 뇌손상  Rupture & Early Brain Injury (0-72 h)";
+        style = "filled"; color = "#b03030"; fillcolor = "#fdecec"; fontsize = 13;
+        node [fillcolor="#f8cccc"];
+        ANEUR   [label="Saccular aneurysm\n(ACOM 30% / PCOM 25% / MCA 20%)"];
+        RUPT    [label="RUPTURE\n동맥류 파열", shape=octagon, fillcolor="#ee8888", penwidth=2];
+        SMOKE   [label="Smoking · HTN · female sex\n· family history", fillcolor="#fbe3e3"];
+        ICPSPIKE[label="ICP spike to near-MAP\n(seconds-minutes)"];
+        CPPCRASH[label="CPP crash → global\ncirculatory arrest"];
+        NOFLOW  [label="Transient global\nno-flow / oligaemia"];
+        WFNS    [label="WFNS / Hunt-Hess grade\n(clinical severity)", shape=note, fillcolor="#fbe3e3"];
+        MFISH   [label="modified Fisher grade 1-4\n(cisternal + IVH clot load)", shape=note, fillcolor="#fbe3e3"];
+        REBLEED [label="Re-bleeding (untreated 15%/24 h)"];
+        SECURE  [label="Aneurysm securing\n(clip vs coil, <24-72 h)", fillcolor="#dff0d8"];
+        APOP    [label="Neuronal apoptosis\n(caspase-3, AIF)"];
+        BBB1    [label="Acute BBB breakdown\n(MMP-9, occludin loss)"];
+        EBI     [label="EARLY BRAIN INJURY (EBI)\n초기 뇌손상 부담", shape=doubleoctagon, fillcolor="#e07070", penwidth=2];
+        GLOBEDM [label="Global cytotoxic\n+ vasogenic oedema"];
+        SEIZ    [label="Acute seizure / status"];
+    }
+
+    /* ---------------------------------------------------------------- 2 */
+    subgraph cluster_clot {
+        label = "2. 지주막하 혈액과 적혈구 용혈  Cisternal Clot & Erythrocyte Haemolysis";
+        style = "filled"; color = "#8a4b00"; fillcolor = "#fdf3e6"; fontsize = 13;
+        node [fillcolor="#f9e0bf"];
+        CLOT    [label="Cisternal clot mass CLOT\n(기저수조 혈액량)", shape=box3d, penwidth=1.6];
+        IVH     [label="Intraventricular blood IVH"];
+        RBCL    [label="Erythrocytes entering haemolysis\nRBCL  (transit pool)", shape=box3d, penwidth=1.6];
+        KMAT    [label="k_mat 0.25/d\nclot → RBC pool", shape=plaintext, fillcolor="none"];
+        KHEM    [label="k_hem 0.23/d\nhaemolysis", shape=plaintext, fillcolor="none"];
+        DELAY   [label="THE CLOCK:\nCLOT → RBCL → oxyHb transit\ngenerates the day 4-10 window\nwith NO explicit switch",
+                 shape=note, fillcolor="#ffe9c9", penwidth=1.6];
+        FIBLYS  [label="Fibrinolysis in CSF\n(plasmin, uPA)"];
+        LUMB    [label="Lumbar / cisternal drainage,\nirrigation, intrathecal rt-PA", fillcolor="#dff0d8"];
+    }
+
+    /* ---------------------------------------------------------------- 3 */
+    subgraph cluster_hb {
+        label = "3. 헤모글로빈 소거 경로  Haemoglobin Scavenging & Haem Catabolism";
+        style = "filled"; color = "#7a4b7a"; fillcolor = "#f8effa"; fontsize = 13;
+        node [fillcolor="#ecd7f2"];
+        OXYHB   [label="CSF free oxyhaemoglobin\nOXYHB", shape=box3d, penwidth=1.8, fillcolor="#dbb0e8"];
+        METHB   [label="Methaemoglobin / heme release"];
+        HP      [label="Haptoglobin HP\n(scavenging capacity)"];
+        HPGEN   [label="Hp1-1 / Hp2-1 / Hp2-2 genotype\nHp2-2 = worse clearance", shape=note, fillcolor="#f4e3f8"];
+        CD163   [label="CD163+ macrophage /\nmicroglial uptake"];
+        HEME    [label="Free haem HEME\n(pro-oxidant, TLR4 agonist)"];
+        HO1     [label="HO-1 induction (inducible,\nt½ 1.9 d = THE LAG)", fillcolor="#dbb0e8"];
+        NRF2    [label="Nrf2 / ARE antioxidant\nresponse"];
+        FE      [label="Free iron Fe2+\n→ Fenton chemistry"];
+        FTN     [label="Ferritin sequestration"];
+        BILIV   [label="Biliverdin → bilirubin"];
+        BOX     [label="Bilirubin oxidation products\n(BOXes, vasoconstrictor)"];
+        CO      [label="CO (vasodilator, BKCa)"];
+        HBSCAV  [label="NO scavenging by\ncell-free Hb (k ~10^7 M-1s-1)", shape=note, fillcolor="#f4e3f8"];
+    }
+
+    /* ---------------------------------------------------------------- 4 */
+    subgraph cluster_et {
+        label = "4. 엔도텔린 축  Endothelin Axis";
+        style = "filled"; color = "#005f73"; fillcolor = "#e6f4f6"; fontsize = 13;
+        node [fillcolor="#c2e4ea"];
+        BIGET   [label="Big ET-1 (precursor)"];
+        ECE1    [label="ECE-1 / chymase"];
+        ET1     [label="Endothelin-1 ET1\n(CSF, endothelium, PMN)", shape=box3d, penwidth=1.6, fillcolor="#9fd4de"];
+        ETA     [label="ETA receptor (SMC)\n→ constriction"];
+        ETB1    [label="ETB1 (endothelium)\n→ NO release"];
+        ETB2    [label="ETB2 (SMC)\n→ constriction"];
+        IP3     [label="Gq / PLC → IP3 → Ca2+\nstore release"];
+        ETCLEAR [label="ET-1 clearance\n(lung ETB, NEP)"];
+    }
+
+    /* ---------------------------------------------------------------- 5 */
+    subgraph cluster_no {
+        label = "5. NO-cGMP 축  Nitric Oxide / cGMP Signalling";
+        style = "filled"; color = "#1b5e20"; fillcolor = "#eaf5ea"; fontsize = 13;
+        node [fillcolor="#cfe8cf"];
+        ENOS    [label="eNOS (endothelium)"];
+        NNOS    [label="nNOS (adventitial\nnitrergic nerves)"];
+        NNOSLOSS[label="nNOS neurone loss in\nsubarachnoid space"];
+        ADMA    [label="ADMA ↑ (endogenous\neNOS inhibitor)"];
+        DDAH    [label="DDAH-II (ADMA degradation)\n↓ by oxidative stress"];
+        BH4     [label="BH4 depletion →\neNOS uncoupling"];
+        NOB     [label="NO bioavailability NOB", shape=box3d, penwidth=1.6, fillcolor="#a9d8a9"];
+        SGC     [label="Soluble guanylate cyclase"];
+        CGMP    [label="cGMP → PKG"];
+        MLCPa   [label="MLCP activation\n(relaxation)"];
+        PDE5    [label="PDE5 (cGMP breakdown)"];
+    }
+
+    /* ---------------------------------------------------------------- 6 */
+    subgraph cluster_ros {
+        label = "6. 산화 스트레스  Oxidative & Nitrosative Stress";
+        style = "filled"; color = "#7f4f24"; fillcolor = "#fbf1e7"; fontsize = 13;
+        node [fillcolor="#f2ddc6"];
+        O2M     [label="Superoxide O2•−\n(NOX2/4, XO, mitochondria)"];
+        ROS     [label="ROS burden ROS", shape=box3d, penwidth=1.6, fillcolor="#e9c69f"];
+        ONOO    [label="Peroxynitrite ONOO−"];
+        LPO     [label="Lipid peroxidation\n(20-HETE, F2-isoprostane)"];
+        ISOP    [label="8-iso-PGF2α (CSF marker)\n→ TP receptor constriction"];
+        SODCAT  [label="SOD / catalase / GPx"];
+        FERROP  [label="Ferroptosis (GPX4 loss,\nlipid ROS)"];
+        MITO    [label="Mitochondrial dysfunction\n→ LPR ↑"];
+    }
+
+    /* ---------------------------------------------------------------- 7 */
+    subgraph cluster_rho {
+        label = "7. 혈관 평활근 수축 기구  SMC Contractile Machinery (Ca2+ & Ca-sensitisation)";
+        style = "filled"; color = "#3b3b6d"; fillcolor = "#eeeef8"; fontsize = 13;
+        node [fillcolor="#d5d5ee"];
+        CAV12   [label="L-type Cav1.2\n(dihydropyridine target)"];
+        CAI     [label="[Ca2+]i ↑"];
+        CAM     [label="Ca2+-calmodulin"];
+        MLCK    [label="MLCK"];
+        MLC20   [label="MLC20 phosphorylation\n= contraction", fillcolor="#bfbfe4"];
+        RHOA    [label="RhoA-GTP"];
+        ROCK    [label="Rho-kinase ROCK2\n(Ca-SENSITISATION)", fillcolor="#bfbfe4"];
+        CPI17   [label="PKC → CPI-17"];
+        MLCP    [label="MLCP (MYPT1) inhibition"];
+        KCA     [label="BKCa / Kv channel\ndysfunction → depolarisation"];
+        TRPC    [label="TRPC / store-operated\nCa2+ entry"];
+        SUSTAIN [label="SUSTAINED constriction\nwithout sustained Ca2+\n(why Ca-blockade alone is weak)",
+                 shape=note, fillcolor="#e3e3f6"];
+    }
+
+    /* ---------------------------------------------------------------- 8 */
+    subgraph cluster_large {
+        label = "8. 대혈관 혈관수축과 재형성  Large-Artery Spasm & Remodelling  [CONSUMER 1]";
+        style = "filled"; color = "#b26500"; fillcolor = "#fff4e2"; fontsize = 14;
+        node [fillcolor="#ffe0b0"];
+        SPASM   [label="Functional large-artery\nconstriction SPASM", shape=box3d, penwidth=1.8, fillcolor="#ffc46b"];
+        STRUCT  [label="Structural remodelling STRUCT\n(myofibroblast, collagen,\nintimal hyperplasia — sticky)"];
+        SEGMENT [label="Only the SPASTIC SEGMENT obeys r⁻⁴\n(f_seg 0.33 of large-artery R):\n33% narrowing = modest load,\n50% narrowing = catastrophic",
+                 shape=note, fillcolor="#fff0d5", penwidth=1.6];
+        MCA     [label="MCA M1 / ICA terminus"];
+        ACA     [label="ACA A1-A2"];
+        BA      [label="Basilar / vertebral"];
+        CALIB   [label="Angiographic calibre\n(DSA / CTA — WHAT WE SEE)", shape=hexagon, fillcolor="#ffd28a"];
+        TCDV    [label="TCD mean flow velocity\n(v ∝ Q/A)", shape=hexagon, fillcolor="#ffd28a"];
+        LINDEG  [label="Lindegaard ratio\n(MCA/ICA)"];
+        RL      [label="R_large  (large-artery\nresistance)", shape=box3d, fillcolor="#ffb347", penwidth=1.6];
+    }
+
+    /* ---------------------------------------------------------------- 9 */
+    subgraph cluster_micro {
+        label = "9. 미세순환 · 통과시간 이질성  Microcirculation & Capillary Transit Heterogeneity  [CONSUMER 2]";
+        style = "filled"; color = "#00695c"; fillcolor = "#e6f5f2"; fontsize = 14;
+        node [fillcolor="#bfe6dd"];
+        PERI    [label="Pericyte constriction\n(ET-1, ROS, 20-HETE)"];
+        ARTL    [label="Penetrating arteriole tone"];
+        ENDSW   [label="Endothelial swelling +\nglycocalyx shedding"];
+        CAPCOL  [label="Capillary collapse /\nno-reflow"];
+        RMIC    [label="Microvascular resistance\nRMIC", shape=box3d, penwidth=1.8, fillcolor="#8fd6c6"];
+        CTH     [label="Capillary transit-time\nheterogeneity CTH", shape=box3d, penwidth=1.8, fillcolor="#8fd6c6"];
+        OEFMAX  [label="Maximum extractable O2\nfraction OEFmax ↓\n= 0.85 / (1 + 1.75·CTH)", shape=hexagon, fillcolor="#a8ded1"];
+        CTHNOTE [label="Ostergaard/Jespersen:\nwith a heterogeneous bed the SAME CBF\nno longer delivers the same O2 —\nthis is why the microcirculation is a\nFIRST-CLASS consumer, not a footnote",
+                 shape=note, fillcolor="#e0f2ee", penwidth=1.6];
+        NVU     [label="Neurovascular unit\nuncoupling (astrocyte endfoot)"];
+    }
+
+    /* --------------------------------------------------------------- 10 */
+    subgraph cluster_thromb {
+        label = "10. 미세혈전  Microthrombosis & Coagulation  [CONSUMER 3]";
+        style = "filled"; color = "#8b0000"; fillcolor = "#fdeeee"; fontsize = 14;
+        node [fillcolor="#f7c9c9"];
+        PLT     [label="Platelet activation\n(P-selectin, GPIIb/IIIa)"];
+        VWF     [label="vWF release / ultra-large\nmultimers"];
+        ADAMTS  [label="ADAMTS13 consumption"];
+        PAI1    [label="PAI-1 ↑ / tPA ↓\n(fibrinolytic shutdown)", fillcolor="#f0b0b0"];
+        TF      [label="Tissue factor exposure"];
+        FIBRIN  [label="Fibrin microthrombi\n(autopsy: 60-80% of aSAH)"];
+        MTHR    [label="Capillary occlusion\nfraction MTHR", shape=box3d, penwidth=1.8, fillcolor="#eb9d9d"];
+        DDIM    [label="D-dimer / thrombin-\nantithrombin complexes"];
+        NETS    [label="Neutrophil extracellular\ntraps (NETs)"];
+        MICROEMB[label="Microembolic signals\non TCD"];
+    }
+
+    /* --------------------------------------------------------------- 11 */
+    subgraph cluster_inflam {
+        label = "11. 신경염증  Neuroinflammation";
+        style = "filled"; color = "#6a1b9a"; fillcolor = "#f5eefa"; fontsize = 13;
+        node [fillcolor="#e0cdee"];
+        TLR4    [label="TLR4 / MyD88\n(haem, HMGB1, DAMPs)"];
+        NLRP3   [label="NLRP3 inflammasome\n→ caspase-1"];
+        MICROG  [label="Microglia M1 polarisation"];
+        PMN     [label="Neutrophil influx\n(CXCL1/8, MPO)"];
+        IL6     [label="IL-6 (CSF, predicts DCI)"];
+        IL1B    [label="IL-1β"];
+        TNFA    [label="TNF-α"];
+        MMP9    [label="MMP-9 → BBB, basal lamina"];
+        INFL    [label="Neuroinflammatory burden\nINFL", shape=box3d, penwidth=1.6, fillcolor="#cbb0e0"];
+        MCP1    [label="CCL2/MCP-1 monocyte\nrecruitment"];
+        COX2    [label="COX-2 → PGF2α, TXA2"];
+        ASTRO   [label="Reactive astrogliosis"];
+    }
+
+    /* --------------------------------------------------------------- 12 */
+    subgraph cluster_sd {
+        label = "12. 확산성 탈분극  Spreading Depolarisation (SD)  [CONSUMER 4a]";
+        style = "filled"; color = "#004d99"; fillcolor = "#e8f1fb"; fontsize = 14;
+        node [fillcolor="#c3dcf5"];
+        KEXT    [label="Extracellular K+ ↑\n(clearance failure)"];
+        GLU     [label="Extracellular glutamate ↑"];
+        NAKATP  [label="Na+/K+-ATPase failure\n(energy dependent)"];
+        SDSUS   [label="SD susceptibility SDSUS", shape=box3d, penwidth=1.6, fillcolor="#9cc6ef"];
+        SDEV    [label="SD events / clusters\n(ECoG, 7/d max rate)", shape=box3d, penwidth=1.6, fillcolor="#9cc6ef"];
+        SDDEM   [label="Metabolic DEMAND spike\n(CMRO2 +30%)"];
+        INVCPL  [label="INVERSE neurovascular coupling:\nSD constricts instead of dilating\nin compromised tissue", fillcolor="#a8cdf0"];
+        SDBURD  [label="Cumulative SD burden\n(independent outcome predictor)", shape=hexagon, fillcolor="#b3d4f2"];
+        NMDA    [label="NMDA receptor / Ca2+ wave"];
+    }
+
+    /* --------------------------------------------------------------- 13 */
+    subgraph cluster_auto {
+        label = "13. 자동조절능  Cerebral Autoregulation  [CONSUMER 4b]";
+        style = "filled"; color = "#37474f"; fillcolor = "#eceff1"; fontsize = 13;
+        node [fillcolor="#cfd8dc"];
+        MYOG    [label="Myogenic (Bayliss) response"];
+        AREG    [label="Autoregulatory gain AREG\n(1 = intact, 0 = pressure-passive)",
+                 shape=box3d, penwidth=1.8, fillcolor="#b0bec5"];
+        PRX     [label="PRx / Mx index\n(bedside measure)", shape=hexagon, fillcolor="#c3ccd1"];
+        OPTCPP  [label="Optimal CPP (CPPopt)"];
+        AREGLOSS[label="Loss driven by ischaemia,\nROS, inflammation, EBI\n— and it FEEDS BACK"];
+    }
+
+    /* --------------------------------------------------------------- 14 */
+    subgraph cluster_reserve {
+        label = "14. ★ 공유 세동맥 예비능 ★  THE SHARED ARTERIOLAR RESERVE";
+        style = "filled"; color = "#000000"; fillcolor = "#fff9c4"; fontsize = 15; penwidth = 2.4;
+        node [fillcolor="#ffee9c"];
+        RA      [label="Arteriolar resistance RA\n(the only ADJUSTABLE element)", shape=box3d, penwidth=2.0, fillcolor="#ffe066"];
+        RESERVE [label="★ VASODILATORY RESERVE ★\nRA0 0.85 → RAmin 0.20\n= 0.65 resistance units\n\nFOUR consumers, ONE pool",
+                 shape=doubleoctagon, penwidth=2.6, fillcolor="#ffd400", fontsize=12];
+        RADES   [label="RA_desired = CPP/CBFtarget\n− R_large − R_micro", shape=plaintext, fillcolor="none"];
+        EXHAUST [label="RESERVE EXHAUSTED\n(RA clamped at RAmin)\n→ CBF becomes\nresistance- and pressure-passive",
+                 shape=octagon, penwidth=2.0, fillcolor="#ffcc33"];
+        MARGIN  [label="Ischaemic margin =\nCBFmax / CBFrequired", shape=hexagon, fillcolor="#ffe066"];
+        REDUND  [label="REDUNDANCY THEOREM:\nblocking ONE consumer helps only the\nsubpopulation in which that consumer\nwas the MARGINAL one.\nHence clazosentan.",
+                 shape=note, penwidth=1.8, fillcolor="#fff59d"];
+    }
+
+    /* --------------------------------------------------------------- 15 */
+    subgraph cluster_o2 {
+        label = "15. 산소 공급과 대사  Oxygen Delivery, Extraction & Metabolism";
+        style = "filled"; color = "#01579b"; fillcolor = "#e3f2fd"; fontsize = 13;
+        node [fillcolor="#bbdefb"];
+        CPP     [label="CPP = MAP − ICP", shape=box3d, penwidth=1.6];
+        CBF     [label="CBF = CPP / (R_large + RA + R_micro)",
+                 shape=box3d, penwidth=2.0, fillcolor="#90caf9"];
+        HGB     [label="Haemoglobin concentration\n(anaemia in 50% of aSAH)"];
+        CAO2    [label="CaO2 = 1.34·Hb·SaO2\n+ 0.003·PaO2"];
+        DO2     [label="DO2 = CBF × CaO2", shape=box3d, penwidth=1.6, fillcolor="#90caf9"];
+        CMRO2   [label="CMRO2 (demand)\n= 17.5 × (1 + 0.30·SD)"];
+        OEF     [label="Oxygen extraction fraction"];
+        ISCH    [label="ISCHAEMIA SIGNAL ISCH\n= 1 − DO2·OEFmax / CMRO2",
+                 shape=doubleoctagon, penwidth=2.2, fillcolor="#64b5f6"];
+        PBTO2   [label="PbtO2 (Licox)\nearliest bedside signal", shape=hexagon, fillcolor="#a6d4fa"];
+        LPR     [label="Microdialysis lactate/\npyruvate ratio > 40", shape=hexagon, fillcolor="#a6d4fa"];
+        SJVO2   [label="SjvO2 / NIRS rSO2", shape=hexagon, fillcolor="#a6d4fa"];
+        CTP     [label="CT perfusion:\nMTT ↑, CBF ↓", shape=hexagon, fillcolor="#a6d4fa"];
+        FEVER   [label="Fever / hyperthermia\n→ demand ↑"];
+        GLUC    [label="Hyperglycaemia\n→ anaerobic penalty"];
+    }
+
+    /* --------------------------------------------------------------- 16 */
+    subgraph cluster_injury {
+        label = "16. 조직 손상  Oxygen Debt → Infarction";
+        style = "filled"; color = "#4e342e"; fillcolor = "#efebe9"; fontsize = 13;
+        node [fillcolor="#d7ccc8"];
+        OGD     [label="Oxygen debt OGD\n(∫ISCH dt − repair)", shape=box3d, penwidth=1.6];
+        PENUM   [label="Penumbra (reversible)"];
+        CORE    [label="Core (irreversible)"];
+        HILLC   [label="Conversion = Hill(OGD, 0.30, n=4)\n— duration AND depth", shape=plaintext, fillcolor="none"];
+        INFVOL  [label="DCI INFARCT VOLUME\n(mL, irreversible)", shape=doubleoctagon, penwidth=2.0, fillcolor="#bcaaa4"];
+        CYTED   [label="Cytotoxic oedema → ICP ↑\n(a closing loop)"];
+        NEURDEG [label="Selective neuronal loss\n(no visible infarct)"];
+    }
+
+    /* --------------------------------------------------------------- 17 */
+    subgraph cluster_csf {
+        label = "17. CSF 역학과 수두증  CSF Dynamics, Hydrocephalus & ICP";
+        style = "filled"; color = "#00838f"; fillcolor = "#e0f7fa"; fontsize = 13;
+        node [fillcolor="#b2ebf2"];
+        ARACH   [label="Arachnoid granulation\nobstruction / fibrosis"];
+        HYDRO   [label="Ventriculomegaly HYDRO"];
+        EVD     [label="External ventricular drain", fillcolor="#dff0d8"];
+        SHUNT   [label="Shunt dependency (~20%)"];
+        EDEMA   [label="Global oedema EDEMA"];
+        ICP     [label="ICP", shape=box3d, penwidth=1.6, fillcolor="#80deea"];
+        COMPL   [label="Intracranial compliance ↓"];
+    }
+
+    /* --------------------------------------------------------------- 18 */
+    subgraph cluster_systemic {
+        label = "18. 전신 합병증  Systemic Complications (they act on the SAME node)";
+        style = "filled"; color = "#33691e"; fillcolor = "#f1f8e9"; fontsize = 13;
+        node [fillcolor="#dcedc8"];
+        SIADH   [label="SIADH (ADH ↑)"];
+        NATRI   [label="Cerebral salt wasting\n(BNP/ANP ↑, natriuresis)"];
+        NAS     [label="Serum sodium NAS\n(hyponatraemia 30-50%)", shape=box3d];
+        HYPOVOL [label="Hypovolaemia → CPP ↓"];
+        CATECH  [label="Catecholamine surge"];
+        CARD    [label="Neurogenic stunned myocardium\n(troponin, TCC, EF ↓)"];
+        NPE     [label="Neurogenic / iatrogenic\npulmonary oedema → PaO2 ↓"];
+        FLUID   [label="Fluid retention burden FLUID\n(the clazosentan harm channel)", fillcolor="#c5e1a5"];
+        ANEMIA  [label="Anaemia → CaO2 ↓"];
+        TRANSF  [label="RBC transfusion\n(raises CaO2 directly)", fillcolor="#dff0d8"];
+        FLUDRO  [label="Fludrocortisone /\nhypertonic saline", fillcolor="#dff0d8"];
+    }
+
+    /* --------------------------------------------------------------- 19 */
+    subgraph cluster_pk_nimo {
+        label = "19. 니모디핀 PK/PD  Nimodipine (the only outcome-proven drug)";
+        style = "filled"; color = "#1a237e"; fillcolor = "#e8eaf6"; fontsize = 13;
+        node [fillcolor="#c5cae9"];
+        NIMPO   [label="Nimodipine 60 mg PO q4h × 21 d"];
+        FIRSTP  [label="CYP3A4 first pass\nF ≈ 0.13 (huge variability)"];
+        NIMG    [label="Gut depot NIMG (ka 36/d)"];
+        NIMC    [label="Plasma NIMC (t½ 1.7 h)\nCss ≈ 48 ng/mL", shape=box3d];
+        NIMIV   [label="IV nimodipine 2 mg/h\n(same exposure, MORE hypotension)"];
+        NIMDHP  [label="Dihydropyridine block of\nCav1.2"];
+        NIMSP   [label="Large-artery relaxation\n(Emax only 0.16 — SMALL)"];
+        NIMRM   [label="Microvascular relaxation\n(Emax 0.45 — the real effect)"];
+        NIMSD   [label="SD suppression (−55%)"];
+        NIMNP   [label="Neuroprotection: OGD→infarct\nconversion −50%"];
+        NIMMAP  [label="MAP ↓ 5 mmHg PO /\n15 mmHg IV = HARM CHANNEL", fillcolor="#ffcdd2"];
+        CYP3A4  [label="CYP3A4 inducers/inhibitors\n(rifampicin contraindicated)"];
+    }
+
+    /* --------------------------------------------------------------- 20 */
+    subgraph cluster_pk_clz {
+        label = "20. 클라조센탄 PK/PD  Clazosentan — the instructive failure";
+        style = "filled"; color = "#880e4f"; fillcolor = "#fce4ec"; fontsize = 13;
+        node [fillcolor="#f8bbd0"];
+        CLZIV   [label="Clazosentan 5-15 mg/h IV\nday 1-14"];
+        CLAZ    [label="Plasma CLAZ (t½ 2 h)\nCss ≈ 2160 ng/mL @15 mg/h", shape=box3d];
+        CLZETA  [label="Selective ETA blockade\n(Emax 0.70 on ET-1 signal)"];
+        CLZSP   [label="Angiographic vasospasm\n−65% (CONSCIOUS-1) ✔"];
+        CLZMIC  [label="Microvascular effect\nSMALL (Emax 0.08)"];
+        CLZNULL [label="Endpoint effect ≈ 0\n(CONSCIOUS-2/3) ✘", fillcolor="#f48fb1"];
+        CLZFLU  [label="Fluid retention →\npulmonary oedema", fillcolor="#ffcdd2"];
+        CLZHYPO [label="Hypotension (MAP −6)\n→ CPP ↓", fillcolor="#ffcdd2"];
+        CLZANEM [label="Haemodilution / anaemia\n(Hb −0.8 g/dL) → CaO2 ↓", fillcolor="#ffcdd2"];
+        CLZLESS [label="LESSON: the angiographic win is eaten\nby REDUNDANCY first and by the\nHARM CHANNEL second", shape=note, fillcolor="#fce4ec", penwidth=1.6];
+    }
+
+    /* --------------------------------------------------------------- 21 */
+    subgraph cluster_pk_other {
+        label = "21. 기타 약물  Other Pharmacology (each enters a DIFFERENT consumer)";
+        style = "filled"; color = "#2e7d32"; fillcolor = "#e8f5e9"; fontsize = 13;
+        node [fillcolor="#c8e6c9"];
+        CILO    [label="Cilostazol 100 mg bid\n(PDE3: antiplatelet + microdilation)"];
+        STAT    [label="Simvastatin 40 mg\n(eNOS ↑, weak — STASH null)"];
+        MILRIN  [label="Milrinone (PDE3, IV or IA)"];
+        NICAIT  [label="Intrathecal / implanted\nnicardipine (local, no ↓MAP)"];
+        VERAP   [label="Intra-arterial verapamil /\nnicardipine / balloon angioplasty"];
+        FASU    [label="Fasudil (ROCK inhibitor)"];
+        KETAM   [label="Ketamine (SD suppression)"];
+        HTN     [label="Induced hypertension\n(MAP +20; HIMALAIA null)"];
+        TXA     [label="Tranexamic acid\n(rebleed ↓, DCI ↑? ULTRA null)"];
+        HEPARIN [label="Unfractionated heparin\n(anti-inflammatory, microthrombi)"];
+        SUGA    [label="Sugammadex/clevidipine —\nnot relevant, excluded", style="dashed,filled", fillcolor="#eeeeee"];
+        EPOD    [label="Erythropoietin,\nmagnesium (IMASH null)"];
+        DAPSONE [label="Dapsone, deferoxamine\n(iron/haem-directed, exploratory)"];
+    }
+
+    /* --------------------------------------------------------------- 22 */
+    subgraph cluster_endpoints {
+        label = "22. 임상 종말점  Clinical Endpoints";
+        style = "filled"; color = "#212121"; fillcolor = "#fafafa"; fontsize = 14;
+        node [fillcolor="#e0e0e0", shape=hexagon];
+        EP_ANG  [label="Angiographic vasospasm\n(≥33% narrowing, day 7-10)"];
+        EP_TCD  [label="TCD > 120 / > 200 cm/s"];
+        EP_DCI  [label="DCI: new deficit or\nGCS drop ≥2 for ≥1 h", penwidth=2.0, fillcolor="#bdbdbd"];
+        EP_INF  [label="New cerebral infarction\non CT/MRI at 6 weeks"];
+        EP_MRS  [label="mRS 4-6 at 90 days\n(poor outcome)", penwidth=2.2, fillcolor="#9e9e9e"];
+        EP_GOSE [label="GOSE ≤ 4"];
+        EP_MORT [label="Mortality (case fatality 25-35%)"];
+        EP_COG  [label="Cognitive impairment /\nreturn to work"];
+        EP_SHUNT[label="Shunt dependency"];
+        EP_HYPO [label="Hyponatraemia < 135"];
+        EP_PULM [label="Pulmonary complications"];
+    }
+
+    /* ======================= EDGES ======================================= */
+
+    /* --- rupture and early brain injury --- */
+    SMOKE -> ANEUR; ANEUR -> RUPT [penwidth=1.6];
+    RUPT -> ICPSPIKE [penwidth=1.6]; RUPT -> CLOT [penwidth=2.0, color="#8a4b00"];
+    RUPT -> IVH; RUPT -> WFNS; RUPT -> MFISH; RUPT -> REBLEED; RUPT -> SEIZ;
+    RUPT -> CATECH [color="#33691e"];
+    SECURE -> REBLEED [arrowhead=tee, color="#2e7d32"];
+    ICPSPIKE -> CPPCRASH -> NOFLOW -> APOP; NOFLOW -> BBB1;
+    APOP -> EBI [penwidth=1.6]; BBB1 -> EBI; GLOBEDM -> EBI; SEIZ -> EBI;
+    NOFLOW -> GLOBEDM; WFNS -> EBI [style=dashed]; REBLEED -> EBI;
+    ICPSPIKE -> ICP [color="#00838f"];
+    MFISH -> CLOT [style=dashed, color="#8a4b00"]; MFISH -> IVH [style=dashed];
+
+    /* --- clot to oxyhaemoglobin: THE CLOCK --- */
+    CLOT -> KMAT [style=invis];
+    CLOT -> RBCL [label="k_mat 0.25/d", penwidth=1.8, color="#8a4b00"];
+    IVH -> RBCL [label="0.7 × k_matv", color="#8a4b00"];
+    RBCL -> OXYHB [label="k_hem 0.23/d", penwidth=2.0, color="#7a4b7a"];
+    DELAY -> RBCL [style=dotted, arrowhead=none];
+    FIBLYS -> CLOT [arrowhead=tee];
+    LUMB -> CLOT [arrowhead=tee, penwidth=1.6, color="#2e7d32", label="physical\nremoval"];
+    LUMB -> RBCL [arrowhead=tee, color="#2e7d32"];
+    LUMB -> IVH  [arrowhead=tee, color="#2e7d32"];
+    LUMB -> OXYHB [arrowhead=tee, color="#2e7d32", label="CSF washout"];
+    IVH -> HYDRO [color="#00838f", penwidth=1.4]; IVH -> INFL;
+
+    /* --- haemoglobin scavenging --- */
+    OXYHB -> METHB -> HEME; OXYHB -> HEME [penwidth=1.4];
+    HP -> OXYHB [arrowhead=tee, label="scavenge", penwidth=1.4];
+    HPGEN -> HP [style=dashed, label="Hp2-2 −40%"];
+    CD163 -> OXYHB [arrowhead=tee]; HP -> CD163;
+    HEME -> HO1 [label="induces (lag)", penwidth=1.4];
+    OXYHB -> HO1 [style=dashed];
+    HO1 -> HEME [arrowhead=tee, penwidth=1.4]; HO1 -> BILIV; HO1 -> FE; HO1 -> CO;
+    NRF2 -> HO1; HEME -> NRF2; FE -> FTN; FE -> O2M [color="#7f4f24", penwidth=1.4];
+    BILIV -> BOX; BOX -> SPASM [color="#b26500"];
+    CO -> KCA [arrowhead=tee];
+    HBSCAV -> NOB [arrowhead=tee, style=dotted];
+    OXYHB -> HBSCAV [style=dotted, arrowhead=none];
+    HEME -> TLR4 [color="#6a1b9a", penwidth=1.4];
+    FE -> FERROP;
+
+    /* --- endothelin --- */
+    BIGET -> ECE1 -> ET1 [penwidth=1.4];
+    OXYHB -> ET1 [label="primary driver", penwidth=2.0, color="#005f73"];
+    ROS -> ET1 [color="#005f73"]; INFL -> ET1 [color="#005f73"];
+    ET1 -> ETA [penwidth=1.6]; ET1 -> ETB1; ET1 -> ETB2;
+    ETA -> IP3 -> CAI [color="#3b3b6d"]; ETB2 -> IP3;
+    ETB1 -> ENOS [color="#1b5e20"];
+    ET1 -> ETCLEAR [dir=back, style=dashed];
+    ETA -> RHOA [penwidth=1.4, color="#3b3b6d"];
+    ET1 -> PERI [color="#00695c", penwidth=1.6];
+
+    /* --- NO axis --- */
+    ENOS -> NOB [penwidth=1.4]; NNOS -> NOB; NNOSLOSS -> NNOS [arrowhead=tee];
+    OXYHB -> NNOSLOSS [style=dashed];
+    ADMA -> ENOS [arrowhead=tee]; DDAH -> ADMA [arrowhead=tee];
+    ROS -> DDAH [arrowhead=tee, color="#7f4f24"]; BH4 -> ENOS [arrowhead=tee];
+    ROS -> BH4 [color="#7f4f24"];
+    OXYHB -> NOB [arrowhead=tee, penwidth=2.0, color="#1b5e20", label="NO scavenging"];
+    NOB -> SGC -> CGMP -> MLCPa [color="#1b5e20"];
+    MLCPa -> MLC20 [arrowhead=tee, color="#1b5e20"];
+    PDE5 -> CGMP [arrowhead=tee];
+    NOB -> RMIC [arrowhead=tee, color="#00695c", penwidth=1.4];
+
+    /* --- ROS --- */
+    O2M -> ROS [penwidth=1.6]; HEME -> ROS [penwidth=1.6, color="#7f4f24"];
+    INFL -> ROS [color="#7f4f24"]; BOX -> ROS;
+    ROS -> ONOO; NOB -> ONOO [style=dashed]; ROS -> LPO -> ISOP;
+    ISOP -> SPASM [color="#b26500"]; ISOP -> RMIC [color="#00695c"];
+    SODCAT -> ROS [arrowhead=tee]; ROS -> MITO -> LPR;
+    ROS -> AREG [arrowhead=tee, color="#37474f"];
+    FERROP -> INFVOL [style=dashed];
+
+    /* --- SMC contraction --- */
+    CAV12 -> CAI [penwidth=1.4]; KCA -> CAV12 [label="depolarisation"];
+    CAI -> CAM -> MLCK -> MLC20 [penwidth=1.4];
+    RHOA -> ROCK -> MLCP [penwidth=1.6]; MLCP -> MLC20 [label="disinhibition", penwidth=1.4];
+    CPI17 -> MLCP; ROS -> RHOA [color="#7f4f24"];
+    TRPC -> CAI; NOB -> RHOA [arrowhead=tee, color="#1b5e20"];
+    MLC20 -> SPASM [penwidth=2.0, color="#b26500"];
+    ROCK -> SUSTAIN [style=dotted, arrowhead=none];
+    ROCK -> STRUCT [color="#b26500"];
+    FASU -> ROCK [arrowhead=tee, color="#2e7d32"];
+
+    /* --- large artery --- */
+    SPASM -> MCA [style=dashed]; SPASM -> ACA [style=dashed]; SPASM -> BA [style=dashed];
+    SPASM -> CALIB [penwidth=1.8]; STRUCT -> CALIB [penwidth=1.4];
+    SPASM -> RL [penwidth=2.0]; STRUCT -> RL [penwidth=1.4];
+    SEGMENT -> RL [style=dotted, arrowhead=none];
+    CALIB -> TCDV [penwidth=1.4]; TCDV -> LINDEG;
+    CALIB -> EP_ANG [penwidth=1.6]; TCDV -> EP_TCD;
+    RL -> RADES [penwidth=1.8, color="#b26500"];
+    RL -> CBF [arrowhead=tee, penwidth=1.8, color="#b26500"];
+
+    /* --- microcirculation --- */
+    PERI -> RMIC [penwidth=1.8]; ARTL -> RMIC; ENDSW -> CAPCOL -> CTH;
+    ROS -> PERI [color="#00695c"]; INFL -> ENDSW;
+    RMIC -> CTH [penwidth=1.4]; MTHR -> CTH [penwidth=2.0, color="#8b0000"];
+    CTH -> OEFMAX [arrowhead=tee, penwidth=2.0];
+    CTHNOTE -> OEFMAX [style=dotted, arrowhead=none];
+    OEFMAX -> ISCH [penwidth=2.0, color="#01579b"];
+    RMIC -> RADES [penwidth=1.8, color="#00695c"];
+    RMIC -> CBF [arrowhead=tee, penwidth=1.8, color="#00695c"];
+    NVU -> RMIC; ASTRO -> NVU;
+
+    /* --- microthrombosis --- */
+    PLT -> FIBRIN [penwidth=1.4]; VWF -> PLT [penwidth=1.4];
+    ADAMTS -> VWF [arrowhead=tee]; TF -> FIBRIN;
+    PAI1 -> FIBRIN [penwidth=1.6, label="fibrinolytic\nshutdown"];
+    INFL -> PAI1 [penwidth=1.4, color="#8b0000"]; OXYHB -> PAI1 [color="#8b0000"];
+    NETS -> FIBRIN; PMN -> NETS;
+    FIBRIN -> MTHR [penwidth=2.0]; MTHR -> DDIM [style=dashed];
+    FIBRIN -> MICROEMB [style=dashed];
+    MTHR -> RMIC [penwidth=1.4]; MTHR -> RADES [penwidth=1.6, color="#8b0000"];
+    CILO -> PLT [arrowhead=tee, penwidth=1.8, color="#2e7d32"];
+    HEPARIN -> FIBRIN [arrowhead=tee, color="#2e7d32"];
+
+    /* --- inflammation --- */
+    TLR4 -> MICROG [penwidth=1.4]; NLRP3 -> IL1B; MICROG -> NLRP3;
+    MICROG -> IL6; MICROG -> TNFA; MICROG -> MCP1 -> PMN;
+    PMN -> MMP9; IL1B -> INFL; IL6 -> INFL [penwidth=1.4]; TNFA -> INFL;
+    MMP9 -> BBB1 [style=dashed]; COX2 -> ISOP;
+    OXYHB -> TLR4 [color="#6a1b9a", penwidth=1.4]; EBI -> INFL [color="#6a1b9a"];
+    INFL -> RMIC [color="#00695c", penwidth=1.4];
+    INFL -> AREG [arrowhead=tee, color="#37474f"];
+    INFL -> COX2; MICROG -> ASTRO;
+    INFL -> HP [label="acute-phase ↑", style=dashed];
+
+    /* --- spreading depolarisation --- */
+    ISCH -> KEXT [penwidth=1.6, color="#004d99"]; KEXT -> SDSUS [penwidth=1.4];
+    GLU -> SDSUS; NAKATP -> SDSUS [arrowhead=tee];
+    ISCH -> NAKATP [arrowhead=tee, color="#004d99"];
+    NMDA -> GLU; EBI -> SDSUS [color="#004d99"];
+    NOB -> SDSUS [arrowhead=tee, color="#1b5e20"];
+    SDSUS -> SDEV [penwidth=1.8]; SDEV -> SDDEM [penwidth=1.4];
+    SDEV -> INVCPL [penwidth=1.6]; SDEV -> SDBURD [penwidth=1.4];
+    SDDEM -> CMRO2 [penwidth=1.6, color="#01579b"];
+    INVCPL -> RA [label="CONSTRICTS the\nreserve element", penwidth=1.8, color="#004d99"];
+    SDBURD -> EP_MRS [style=dashed, penwidth=1.4, label="independent\npredictor"];
+    INFVOL -> SDSUS [style=dashed, label="closes\nthe loop"];
+    KETAM -> SDEV [arrowhead=tee, penwidth=1.6, color="#2e7d32"];
+
+    /* --- autoregulation --- */
+    MYOG -> AREG [penwidth=1.4]; AREGLOSS -> AREG [arrowhead=tee, penwidth=1.6];
+    ISCH -> AREGLOSS [penwidth=1.8, color="#37474f", label="vicious loop"];
+    EBI -> AREGLOSS; AREG -> PRX [style=dashed]; PRX -> OPTCPP;
+    AREG -> RA [penwidth=2.2, label="gain on\nRA_desired"];
+
+    /* --- the shared reserve --- */
+    RADES -> RA [penwidth=2.0];
+    RA -> RESERVE [penwidth=2.2]; RESERVE -> EXHAUST [penwidth=2.0];
+    RESERVE -> MARGIN [penwidth=1.6];
+    EXHAUST -> CBF [arrowhead=tee, penwidth=2.4, color="#b8860b"];
+    REDUND -> RESERVE [style=dotted, arrowhead=none];
+    CPP -> RADES [penwidth=1.8, color="#01579b"];
+    MARGIN -> ISCH [style=dashed, penwidth=1.4];
+
+    /* --- oxygen --- */
+    ICP -> CPP [arrowhead=tee, penwidth=1.8, color="#01579b"];
+    CPP -> CBF [penwidth=1.8]; RA -> CBF [arrowhead=tee, penwidth=2.0];
+    HGB -> CAO2 [penwidth=1.6]; ANEMIA -> HGB [arrowhead=tee];
+    TRANSF -> HGB [penwidth=1.6, color="#2e7d32"];
+    NPE -> CAO2 [arrowhead=tee, color="#33691e"];
+    CAO2 -> DO2 [penwidth=1.8]; CBF -> DO2 [penwidth=2.0];
+    DO2 -> OEF [dir=back]; CMRO2 -> OEF [penwidth=1.4];
+    DO2 -> ISCH [arrowhead=tee, penwidth=2.2];
+    CMRO2 -> ISCH [penwidth=1.8]; FEVER -> CMRO2; GLUC -> ISCH [style=dashed];
+    DO2 -> PBTO2 [penwidth=1.6]; OEF -> PBTO2 [arrowhead=tee];
+    ISCH -> LPR [style=dashed]; CBF -> CTP [style=dashed]; DO2 -> SJVO2 [style=dashed];
+
+    /* --- injury --- */
+    ISCH -> OGD [penwidth=2.0]; OGD -> HILLC [style=invis];
+    OGD -> PENUM [penwidth=1.4]; PENUM -> CORE [penwidth=1.4];
+    HILLC -> INFVOL [style=dotted, arrowhead=none];
+    OGD -> INFVOL [penwidth=2.2, label="Hill(n=4)"];
+    CORE -> INFVOL; INFVOL -> CYTED -> EDEMA [color="#00838f"];
+    INFVOL -> EP_INF [penwidth=1.8]; INFVOL -> EP_MRS [penwidth=2.0];
+    ISCH -> EP_DCI [penwidth=2.2]; INFVOL -> EP_DCI [penwidth=1.6];
+    OGD -> NEURDEG [style=dashed]; NEURDEG -> EP_COG [style=dashed];
+
+    /* --- CSF / ICP --- */
+    ARACH -> HYDRO [penwidth=1.4]; INFL -> ARACH [style=dashed];
+    HYDRO -> ICP [penwidth=1.6]; EDEMA -> ICP [penwidth=1.6];
+    EVD -> HYDRO [arrowhead=tee, penwidth=1.6, color="#2e7d32"];
+    EVD -> ICP [arrowhead=tee, color="#2e7d32"];
+    HYDRO -> SHUNT [style=dashed]; SHUNT -> EP_SHUNT;
+    COMPL -> ICP [arrowhead=tee, style=dashed];
+    IVH -> ARACH [style=dashed];
+
+    /* --- systemic --- */
+    CATECH -> CARD [penwidth=1.4]; CATECH -> NPE;
+    EBI -> SIADH; EBI -> NATRI; SIADH -> NAS [arrowhead=tee, penwidth=1.4];
+    NATRI -> NAS [arrowhead=tee, penwidth=1.4]; NATRI -> HYPOVOL;
+    HYPOVOL -> CPP [arrowhead=tee, color="#01579b", penwidth=1.4];
+    NAS -> EP_HYPO [penwidth=1.4]; NAS -> EP_MRS [style=dashed];
+    CARD -> CPP [arrowhead=tee, style=dashed];
+    NPE -> EP_PULM [penwidth=1.4]; FLUID -> NPE [penwidth=1.6];
+    FLUID -> EP_MRS [penwidth=1.8, color="#880e4f", label="HARM"];
+    FLUDRO -> NAS [penwidth=1.4, color="#2e7d32"];
+    ANEMIA -> EP_MRS [style=dashed];
+
+    /* --- nimodipine --- */
+    NIMPO -> FIRSTP -> NIMG -> NIMC [penwidth=1.4];
+    NIMIV -> NIMC [penwidth=1.4]; CYP3A4 -> FIRSTP [style=dashed];
+    NIMC -> NIMDHP [penwidth=1.6];
+    NIMDHP -> CAV12 [arrowhead=tee, penwidth=1.6, color="#1a237e"];
+    NIMDHP -> NIMSP; NIMDHP -> NIMRM; NIMC -> NIMSD; NIMC -> NIMNP; NIMC -> NIMMAP;
+    NIMSP -> SPASM [arrowhead=tee, penwidth=1.2, color="#1a237e"];
+    NIMRM -> RMIC [arrowhead=tee, penwidth=2.0, color="#1a237e"];
+    NIMSD -> SDEV [arrowhead=tee, penwidth=1.6, color="#1a237e"];
+    NIMNP -> INFVOL [arrowhead=tee, penwidth=1.8, color="#1a237e"];
+    NIMMAP -> CPP [arrowhead=tee, penwidth=1.6, color="#c62828"];
+
+    /* --- clazosentan --- */
+    CLZIV -> CLAZ [penwidth=1.4]; CLAZ -> CLZETA [penwidth=1.6];
+    CLZETA -> ETA [arrowhead=tee, penwidth=2.0, color="#880e4f"];
+    CLZETA -> CLZSP [penwidth=1.8]; CLZSP -> SPASM [arrowhead=tee, penwidth=1.8, color="#880e4f"];
+    CLZETA -> CLZMIC; CLZMIC -> RMIC [arrowhead=tee, penwidth=1.0, color="#880e4f"];
+    CLAZ -> CLZFLU [penwidth=1.6]; CLAZ -> CLZHYPO [penwidth=1.4]; CLAZ -> CLZANEM [penwidth=1.4];
+    CLZFLU -> FLUID [penwidth=1.8, color="#c62828"];
+    CLZHYPO -> CPP [arrowhead=tee, penwidth=1.6, color="#c62828"];
+    CLZANEM -> HGB [arrowhead=tee, penwidth=1.6, color="#c62828"];
+    CLZSP -> CLZNULL [style=dashed]; CLZFLU -> CLZNULL [style=dashed];
+    CLZNULL -> EP_MRS [style=dashed, penwidth=1.4];
+    CLZLESS -> CLZNULL [style=dotted, arrowhead=none];
+    RESERVE -> CLZNULL [style=dotted, label="redundancy", color="#b8860b"];
+
+    /* --- other drugs --- */
+    CILO -> RMIC [arrowhead=tee, penwidth=1.4, color="#2e7d32"];
+    CILO -> MTHR [arrowhead=tee, penwidth=2.0, color="#2e7d32"];
+    STAT -> ENOS [penwidth=1.2, color="#2e7d32"]; STAT -> INFL [arrowhead=tee, penwidth=1.0, color="#2e7d32"];
+    MILRIN -> RMIC [arrowhead=tee, penwidth=1.6, color="#2e7d32"];
+    MILRIN -> CPP [penwidth=1.2, color="#2e7d32"];
+    NICAIT -> SPASM [arrowhead=tee, penwidth=1.8, color="#2e7d32"];
+    NICAIT -> RMIC [arrowhead=tee, penwidth=1.2, color="#2e7d32"];
+    VERAP -> SPASM [arrowhead=tee, penwidth=1.4, color="#2e7d32"];
+    HTN -> CPP [penwidth=1.8, color="#2e7d32", label="works ONLY if\nAREG is low"];
+    HTN -> FLUID [penwidth=1.0, color="#c62828"];
+    TXA -> REBLEED [arrowhead=tee, color="#2e7d32"]; TXA -> MTHR [penwidth=1.0, color="#c62828"];
+    EPOD -> ROS [arrowhead=tee, style=dashed];
+    DAPSONE -> HEME [arrowhead=tee, style=dashed];
+    DAPSONE -> FE [arrowhead=tee, style=dashed];
+
+    /* --- endpoint aggregation --- */
+    EP_DCI -> EP_MRS [penwidth=1.8]; EP_INF -> EP_MRS [penwidth=1.6];
+    EBI -> EP_MRS [penwidth=2.2, label="the LARGEST single\ndeterminant"];
+    EP_MRS -> EP_GOSE [style=dashed]; EP_MRS -> EP_MORT [style=dashed];
+    EP_MRS -> EP_COG [style=dashed];
+    EP_ANG -> EP_DCI [style=dashed, label="r² only ≈ 0.14\n(THE DISSOCIATION)", penwidth=1.4, color="#c62828"];
+
+    /* --- rank hints --- */
+    { rank = same; RUPT; }
+    { rank = same; CALIB; TCDV; PBTO2; }
+    { rank = same; EP_MRS; EP_GOSE; }
+}
