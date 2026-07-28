@@ -1,0 +1,762 @@
+/* ============================================================================
+   ros_qsp_model.dot — Quantitative Systems Pharmacology map of ROSACEA
+   (erythematotelangiectatic · papulopustular · phymatous · ocular)
+
+   CENTRAL ORGANISING IDEA
+   -----------------------
+   Rosacea is NOT a severity spectrum running from "a bit red" to "red with
+   bumps". It is ONE upstream innate-immune amplifier — stratum-corneum
+   KLK5 cleaving cathelicidin hCAP18 into LL-37 — discharging into FOUR
+   effector states that differ only in their TIME CONSTANT and in whether
+   they carry MEMORY:
+
+     STATE 1  VASCULAR TONE          tau ~ minutes      no memory
+              neuropeptide (CGRP/PACAP/SP) + NO driven smooth-muscle
+              relaxation.  Read out as FLUSHING / transient erythema.
+
+     STATE 2  VASCULAR STRUCTURE     tau ~ weeks-months  memory
+              VEGF-A driven vessel density and calibre.  Read out as
+              PERSISTENT (non-blanching) erythema and TELANGIECTASIA.
+
+     STATE 3  INFLAMMATORY INFILTRATE tau ~ weeks        memory
+              Demodex/TLR2/NLRP3 -> mast cell, neutrophil, Th17/IL-17A.
+              Read out as PAPULES and PUSTULES.
+
+     STATE 4  FIBROSIS + GLANDULAR HYPERPLASIA  tau ~ years  HYSTERESIS
+              TGF-beta/lymphstasis driven.  Read out as PHYMA — and it does
+              not run backwards when the drivers are removed.
+
+   EVERY THERAPEUTIC PARADOX IN ROSACEA IS THE STATEMENT "this drug reads a
+   different state than the endpoint you measured":
+
+     * brimonidine / oxymetazoline touch STATE 1 ONLY.  Enormous day-1
+       erythema effect, zero disease modification, and — because chronic
+       alpha-2A occupancy internalises the receptor while an unopposed
+       compensatory vasodilator drive builds underneath — a subset ends up
+       REDDER THAN BASELINE.  Rebound is not a coded side effect here; it is
+       what two adaptation states do when you clamp tone for 8 weeks.
+     * ivermectin, azelaic acid, doxycycline 40 mg touch STATE 3 (and the
+       amplifier above it).  Papules fall in 4-12 weeks; erythema follows
+       only slowly and only through STATE 2.
+     * sub-antimicrobial doxycycline is anti-protease, NOT anti-parasitic:
+       it lowers lesions dose-dependently while Demodex density stays nearly
+       flat across a ten-fold dose range.
+     * pulsed-dye laser / KTP is the only modality that DELETES STATE 2.
+     * nothing licensed touches the TRPV1/CGRP sensitisation memory, which
+       is why flush FREQUENCY survives every drug in this map.
+
+   And one positive feedback closes the loop: each flush raises TRPV1/TRPA1
+   expression, which lowers the next trigger threshold — "flushing begets
+   flushing" — the model's account of why episodic ETR converts into fixed
+   erythema over years.
+
+   Layout: 16 clusters, ~200 nodes. Render with
+     dot -Tsvg ros_qsp_model.dot -o ros_qsp_model.svg
+     dot -Tpng -Gdpi=150 ros_qsp_model.dot -o ros_qsp_model.png
+   ==========================================================================*/
+
+digraph ROS_QSP {
+    graph [rankdir = TB,
+           splines = spline,
+           overlap = false,
+           compound = true,
+           nodesep = 0.30,
+           ranksep = 0.60,
+           fontname = "Helvetica",
+           fontsize = 12,
+           labelloc = "t",
+           labeljust = "c",
+           bgcolor = "white",
+           label = <<FONT POINT-SIZE="34"><B>Rosacea — QSP Mechanistic Map</B></FONT><BR/>
+                    <FONT POINT-SIZE="19">KLK5/LL-37 innate amplifier · <I>Demodex</I> follicular unit · TRPV1-CGRP neurovascular tone · VEGF angiogenesis · Th17 infiltrate · phyma fibrosis · ocular surface · drug PK/PD · clinical endpoints</FONT><BR/>
+                    <FONT POINT-SIZE="15" COLOR="#8B0000"><B>Emergent principle:</B> one amplifier, four effector states with four different time constants — a drug's endpoint profile is decided by WHICH state it reads, not by how potent it is.</FONT><BR/>
+                    <FONT POINT-SIZE="13" COLOR="#555555">STATE 1 tone (minutes) · STATE 2 vessel structure (months) · STATE 3 infiltrate (weeks) · STATE 4 fibrosis (years, irreversible)</FONT>>];
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, penwidth = 1.1, margin = "0.09,0.05"];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.0,
+          arrowsize = 0.65, color = "#5A5A5A"];
+
+    /* ---------------- colour convention ------------------------------------
+       trigger / exposome      #FFF2CC   pale amber
+       barrier / SC protease   #E8DFF5   pale violet
+       microbiome              #DDEBD8   pale green
+       innate immune           #FBDDD3   pale salmon
+       cellular infiltrate     #F6CFCF   pink
+       neurovascular (fast)    #D6E9F8   pale blue
+       vascular structure      #C9DFF0   blue
+       remodelling / phyma     #E5D5C3   tan
+       ocular                  #D9F0EE   teal
+       drug / PK               #E3D7F0   lilac
+       target engagement       #D7CCEB   deeper lilac
+       device / physical       #DCDCDC   grey
+       endpoint / PRO          #FDE2E2   red-pink
+       comorbidity             #EFEFE0   khaki
+       -------------------------------------------------------------------- */
+
+    /* =====================================================================
+       CLUSTER 0 — TRIGGERS / EXPOSOME  (the input layer)
+       ===================================================================== */
+    subgraph cluster_trig {
+        label = <<B>0. Triggers &amp; exposome</B><BR/><FONT POINT-SIZE="10">patient-reported flush provocateurs — enter the model as one scalar TRIGGER load</FONT>>;
+        style = "rounded,filled"; color = "#C9A227"; fillcolor = "#FFFBEF";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#FFF2CC", color = "#C9A227"];
+
+        UV       [label = "UV radiation\n(UVB 290-320 nm)"];
+        HEAT     [label = "Heat / hot drinks\nsauna, hot bath"];
+        ALC      [label = "Alcohol\n(ethanol, acetaldehyde)"];
+        SPICE    [label = "Spicy food\ncapsaicin, cinnamaldehyde"];
+        EXER     [label = "Exercise\ncore temperature rise"];
+        STRESS   [label = "Psychological stress\nCRH / substance P"];
+        COLD     [label = "Cold wind\nchapping"];
+        MENO     [label = "Menopause /\nvasomotor instability"];
+        DRUGTRIG [label = "Drug triggers\nniacin, CCB, nitrates,\ntopical steroid withdrawal"];
+        MICROCLI [label = "Microclimate\nhumidity, occlusion"];
+        SMOKE    [label = "Smoking\n(inverse assoc. in PPR)"];
+        TRIGGER  [label = "TRIGGER LOAD\n(composite exposome score)",
+                  fillcolor = "#F5D76E", penwidth = 2.0];
+    }
+
+    UV -> TRIGGER; HEAT -> TRIGGER; ALC -> TRIGGER; SPICE -> TRIGGER;
+    EXER -> TRIGGER; STRESS -> TRIGGER; COLD -> TRIGGER; MENO -> TRIGGER;
+    DRUGTRIG -> TRIGGER; MICROCLI -> TRIGGER;
+    SMOKE -> TRIGGER [style = dashed, label = "±"];
+
+    /* =====================================================================
+       CLUSTER 1 — SKIN BARRIER & STRATUM-CORNEUM PROTEASE ENVIRONMENT
+       ===================================================================== */
+    subgraph cluster_barrier {
+        label = <<B>1. Skin barrier &amp; stratum-corneum protease environment</B><BR/><FONT POINT-SIZE="10">the pH/protease layer that decides how much LL-37 gets made from a fixed amount of precursor</FONT>>;
+        style = "rounded,filled"; color = "#7D5BA6"; fillcolor = "#F7F4FC";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#E8DFF5", color = "#7D5BA6"];
+
+        CERAM    [label = "Ceramide / lipid\nlamellae content"];
+        TEWL     [label = "Transepidermal water loss\n(TEWL, g/m2/h)"];
+        BARRIER  [label = "BARRIER INTEGRITY\n(state variable)", penwidth = 2.0,
+                  fillcolor = "#D8C8EF"];
+        PHSC     [label = "Stratum corneum pH\n(rosacea: 5.0 -> 5.6)"];
+        SPINK5   [label = "SPINK5 / LEKTI\nendogenous KLK inhibitor"];
+        KLK7     [label = "KLK7\n(stratum corneum\nchymotryptic enzyme)"];
+        TRYP     [label = "Serine protease activity\n(total, x3-5 in rosacea)"];
+        FLG      [label = "Filaggrin /\ncorneodesmosome turnover"];
+        AQP3     [label = "Aquaporin-3\nhydration"];
+        SENS     [label = "Clinical skin sensitivity\nstinging, burning"];
+    }
+
+    CERAM -> BARRIER [label = "maintains"];
+    FLG -> BARRIER; AQP3 -> BARRIER;
+    BARRIER -> TEWL [label = "−", color = "#2E7D32"];
+    PHSC -> TRYP [label = "alkaline shift\nactivates"];
+    SPINK5 -> TRYP [label = "−", color = "#2E7D32"];
+    KLK7 -> TRYP;
+    BARRIER -> TRIGGER [label = "− (penetration)", color = "#2E7D32",
+                        style = dashed];
+    TEWL -> SENS;
+
+    /* =====================================================================
+       CLUSTER 2 — FOLLICULAR UNIT: DEMODEX / MICROBIOME / SEBUM
+       ===================================================================== */
+    subgraph cluster_micro {
+        label = <<B>2. Follicular unit — <I>Demodex</I>, its bacteria, and the sebaceous habitat</B><BR/><FONT POINT-SIZE="10">density 0.7/cm2 healthy vs 10-15/cm2 papulopustular (standardised skin surface biopsy)</FONT>>;
+        style = "rounded,filled"; color = "#4C8C5A"; fillcolor = "#F3F8F1";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#DDEBD8", color = "#4C8C5A"];
+
+        SEBGL    [label = "Sebaceous gland\nvolume / activity"];
+        SEBUM    [label = "SEBUM output\n(habitat + substrate)", penwidth = 2.0,
+                  fillcolor = "#C8E0C0"];
+        DEMO     [label = "DEMODEX FOLLICULORUM\ndensity (mites/cm2)",
+                  penwidth = 2.4, fillcolor = "#A8D39B"];
+        DEMOBR   [label = "D. brevis\n(deep gland, ocular)"];
+        MITEDEAD [label = "Dead-mite antigen\nrelease (lysis burst)"];
+        BOL      [label = "Bacillus oleronius\nantigens (62/83 kDa)"];
+        SEPI     [label = "S. epidermidis\n(temperature-shifted\nvirulence)"];
+        CUTIB    [label = "Cutibacterium acnes\n(relatively DEPLETED\nin rosacea)"];
+        HPYL     [label = "H. pylori / SIBO\n(systemic hypothesis)"];
+        CHITIN   [label = "Chitin / mite exoskeleton\n-> chitinase-like\nrecognition"];
+        MITEFECE [label = "Mite faecal pellets\nlipases, proteases"];
+        FOLLPLUG [label = "Follicular plugging\nDemodex casts"];
+    }
+
+    SEBGL -> SEBUM;
+    SEBUM -> DEMO [label = "carrying capacity", penwidth = 1.6];
+    DEMO -> DEMOBR [style = dashed];
+    DEMO -> MITEDEAD [label = "death /\nkilling"];
+    DEMO -> BOL [label = "gut symbiont\nrelease"];
+    DEMO -> MITEFECE; DEMO -> CHITIN; DEMO -> FOLLPLUG;
+    MITEDEAD -> BOL [penwidth = 1.4];
+    FOLLPLUG -> DEMO [label = "+ (anaerobic\nniche)", style = dashed];
+
+    /* =====================================================================
+       CLUSTER 3 — INNATE IMMUNE AMPLIFIER  (the shared upstream node)
+       ===================================================================== */
+    subgraph cluster_innate {
+        label = <<B>3. Innate immune amplifier — KLK5 · cathelicidin · LL-37 · TLR2 · NLRP3</B><BR/><FONT POINT-SIZE="10">Yamasaki 2007 <I>Nat Med</I>: rosacea skin carries ~10x LL-37 and abnormal KLK5 processing; two positive feedback loops live here</FONT>>;
+        style = "rounded,filled"; color = "#C0392B"; fillcolor = "#FEF5F2";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#FBDDD3", color = "#C0392B"];
+
+        VITD     [label = "UV -> vitamin D3\n-> CAMP gene induction"];
+        HCAP18   [label = "hCAP18\n(cathelicidin precursor)"];
+        KLK5     [label = "KLK5 (SCTE)\nACTIVE PROTEASE", penwidth = 2.4,
+                  fillcolor = "#F3A99A"];
+        LL37     [label = "LL-37\n(mature cathelicidin)", penwidth = 2.4,
+                  fillcolor = "#EE8F7C"];
+        LL37FRAG [label = "LL-37 fragments\n(RK-31, KS-30 —\nmore inflammatory)"];
+        TLR2     [label = "TLR2 expression\n(keratinocyte)", penwidth = 1.8];
+        TLR4     [label = "TLR4 / CD14"];
+        MYD88    [label = "MyD88 -> NF-kB\np65 nuclear translocation"];
+        NLRP3    [label = "NLRP3 inflammasome\ncaspase-1"];
+        IL1B     [label = "IL-1beta\n(mature)"];
+        IL18     [label = "IL-18"];
+        CXCL8    [label = "CXCL8 / IL-8\nneutrophil chemokine"];
+        CCL2     [label = "CCL2 / MCP-1\nmonocyte chemokine"];
+        TNFA     [label = "TNF-alpha"];
+        IL6      [label = "IL-6"];
+        MMP9     [label = "MMP-9 / MMP-2\n(gelatinases)", penwidth = 1.8];
+        MMP1     [label = "MMP-1 (collagenase)"];
+        ROS      [label = "ROS / oxidative stress\nO2−, H2O2, ONOO−", penwidth = 1.8];
+        NRF2     [label = "NRF2 antioxidant\nresponse (protective)"];
+        MRGPRX2  [label = "MRGPRX2\n(mast-cell LL-37 receptor)"];
+        EGFR     [label = "EGFR transactivation\n(keratinocyte proliferation)"];
+        IFNG     [label = "IFN-gamma\n(Th1 arm)"];
+        AMPS     [label = "Other AMPs\n(hBD-2, S100A7,\npsoriasin)"];
+    }
+
+    VITD -> HCAP18 [label = "+"];
+    HCAP18 -> LL37 [label = "cleaved by", penwidth = 1.6];
+    KLK5 -> LL37 [label = "PROTEOLYSIS\n(rate-limiting)", penwidth = 2.4,
+                  color = "#B33A2B"];
+    TRYP -> KLK5 [label = "activates cascade", penwidth = 1.6, ltail = cluster_barrier];
+    KLK5 -> LL37FRAG; LL37 -> LL37FRAG;
+    LL37 -> TLR2 [label = "+ (FEEDBACK LOOP 1)", color = "#B33A2B",
+                  penwidth = 1.8, style = bold];
+    TLR2 -> KLK5 [label = "+ (closes loop 1)", color = "#B33A2B",
+                  penwidth = 1.8, style = bold];
+    BOL -> TLR2 [label = "PAMP", penwidth = 1.6];
+    CHITIN -> TLR2; MITEFECE -> TLR2; SEPI -> TLR4; CUTIB -> TLR2 [style = dashed];
+    TLR2 -> MYD88; TLR4 -> MYD88;
+    MYD88 -> NLRP3; MYD88 -> CXCL8; MYD88 -> CCL2; MYD88 -> TNFA; MYD88 -> IL6;
+    LL37 -> NLRP3 [label = "+ direct"];
+    NLRP3 -> IL1B; NLRP3 -> IL18;
+    IL1B -> CXCL8; IL1B -> MMP9; TNFA -> MMP9; IL6 -> MMP9;
+    MMP9 -> KLK5 [label = "+ activates\n(FEEDBACK LOOP 2)", color = "#B33A2B",
+                  penwidth = 1.8, style = bold];
+    MMP9 -> MMP1;
+    UV -> ROS [penwidth = 1.4]; MITEDEAD -> ROS;
+    ROS -> NLRP3; ROS -> MMP9; ROS -> KLK5;
+    NRF2 -> ROS [label = "−", color = "#2E7D32"];
+    LL37 -> MRGPRX2; LL37 -> EGFR; LL37 -> AMPS;
+    IL1B -> IFNG [style = dashed];
+    MMP1 -> BARRIER [label = "−", color = "#2E7D32", style = dashed];
+
+    /* =====================================================================
+       CLUSTER 4 — CELLULAR INFILTRATE  (STATE 3, tau ~ weeks)
+       ===================================================================== */
+    subgraph cluster_cell {
+        label = <<B>4. Cellular infiltrate — STATE 3 (tau ~ weeks)</B><BR/><FONT POINT-SIZE="10">mast cell is the hub: it is downstream of LL-37 via MRGPRX2 AND upstream of both vessels and fibrosis</FONT>>;
+        style = "rounded,filled"; color = "#A93226"; fillcolor = "#FDF1F1";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#F6CFCF", color = "#A93226"];
+
+        MC       [label = "MAST CELLS\ndensity + activation", penwidth = 2.4,
+                  fillcolor = "#EFB0B0"];
+        MCTRYP   [label = "Mast-cell tryptase\n(-> KLK activation, PAR-2)"];
+        HIST     [label = "Histamine\n(H1/H2)"];
+        NEU      [label = "NEUTROPHILS\n(pustule content)", penwidth = 2.0];
+        NETS     [label = "Neutrophil extracellular\ntraps (NETs)"];
+        MAC      [label = "Macrophages\nM1-skewed"];
+        DC       [label = "Dendritic cells /\nLangerhans"];
+        TH1      [label = "Th1 cells\nIFN-gamma"];
+        TH17     [label = "TH17 CELLS", penwidth = 2.0];
+        IL17     [label = "IL-17A / IL-17F", penwidth = 2.0,
+                  fillcolor = "#EFB0B0"];
+        IL23     [label = "IL-23 / IL-12p40"];
+        TREG     [label = "Treg (FOXP3)\ninsufficient restraint"];
+        BCELL    [label = "B cells / plasma cells\n(late, phyma)"];
+        GRANU    [label = "Granuloma formation\n(granulomatous rosacea)"];
+        PLASM    [label = "Plasmacytoid infiltrate\nperifollicular"];
+        PAP      [label = "PAPULES + PUSTULES\ninflammatory lesion count",
+                  penwidth = 2.6, fillcolor = "#E58A8A"];
+    }
+
+    MRGPRX2 -> MC [label = "degranulation", penwidth = 1.8];
+    MC -> MCTRYP; MC -> HIST; MCTRYP -> KLK5 [label = "+", color = "#B33A2B"];
+    CXCL8 -> NEU [penwidth = 1.6]; NEU -> NETS; NETS -> ROS;
+    CCL2 -> MAC; MAC -> IL23; DC -> IL23; IL23 -> TH17 [penwidth = 1.6];
+    LL37 -> DC; TH17 -> IL17 [penwidth = 1.8];
+    IL17 -> CXCL8 [label = "+ (LOOP 3)", color = "#B33A2B"];
+    IL17 -> NEU; IL17 -> AMPS; IL1B -> TH17; IL6 -> TH17;
+    TREG -> TH17 [label = "−", color = "#2E7D32"];
+    TH1 -> MAC; IFNG -> MAC;
+    NEU -> PAP [penwidth = 2.0]; IL17 -> PAP [penwidth = 2.0];
+    MC -> PAP; MAC -> GRANU; TH1 -> GRANU;
+    DEMO -> PAP [label = "perifollicular\nlesions", penwidth = 1.6];
+    BCELL -> PLASM;
+
+    /* =====================================================================
+       CLUSTER 5 — NEUROVASCULAR AXIS  (STATE 1, tau ~ minutes + memory)
+       ===================================================================== */
+    subgraph cluster_neuro {
+        label = <<B>5. Neurovascular axis — STATE 1 tone (tau ~ minutes) + TRPV1 sensitisation MEMORY</B><BR/><FONT POINT-SIZE="10">the only loop in the map that no licensed rosacea drug interrupts — which is why flush FREQUENCY survives treatment</FONT>>;
+        style = "rounded,filled"; color = "#2E6FA7"; fillcolor = "#F2F8FD";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#D6E9F8", color = "#2E6FA7"];
+
+        CFIB     [label = "Sensory C-fibres /\nAdelta (V1-V2 trigeminal)"];
+        TRPV1    [label = "TRPV1 expression\n(SENSITISATION STATE)",
+                  penwidth = 2.4, fillcolor = "#AFD4F0"];
+        TRPV4    [label = "TRPV4\n(keratinocyte, osmo/heat)"];
+        TRPA1    [label = "TRPA1\n(cinnamaldehyde, cold)"];
+        TRPM8    [label = "TRPM8 (cold, menthol)"];
+        NGF      [label = "NGF / neurotrophins\n-> nerve sprouting"];
+        NERVED   [label = "Perivascular nerve\ndensity (increased)"];
+        CGRP     [label = "CGRP release", penwidth = 2.0,
+                  fillcolor = "#AFD4F0"];
+        PACAP    [label = "PACAP-38\n(VPAC1/2)"];
+        SP       [label = "Substance P\n(NK1R)"];
+        VIP      [label = "VIP"];
+        NOS      [label = "eNOS / nNOS / iNOS"];
+        NO       [label = "Nitric oxide\n-> cGMP -> PKG", penwidth = 1.8];
+        PGE2     [label = "PGE2 / PGD2\n(COX-2 derived)"];
+        H1R      [label = "H1 receptor\n(endothelium)"];
+        SMC      [label = "Dermal arteriolar\nsmooth muscle"];
+        TONE     [label = "VASCULAR TONE (STATE 1)\n0 = constricted, 1 = dilated",
+                  penwidth = 2.6, fillcolor = "#8FC2E8"];
+        FLUSH    [label = "FLUSHING EPISODE\n(transient erythema)",
+                  penwidth = 2.2, fillcolor = "#8FC2E8"];
+        FLUSHMEM [label = "Cumulative flush burden\n(drives sensitisation)"];
+        CRH      [label = "CRH / cortisol axis\nstress -> mast cell"];
+        SYMP     [label = "Sympathetic tone\nalpha-1A / alpha-2A"];
+    }
+
+    TRIGGER -> CFIB [penwidth = 2.0];
+    TRIGGER -> TRPV1 [style = dashed];
+    CFIB -> TRPV1; TRPV1 -> CGRP [penwidth = 2.0]; TRPV1 -> SP;
+    TRPV4 -> CGRP; TRPA1 -> CGRP; TRPM8 -> CGRP [style = dashed];
+    SPICE -> TRPV1 [label = "capsaicin"];
+    HEAT -> TRPV1 [label = ">43 C"]; ALC -> TRPV1;
+    NGF -> NERVED; NERVED -> CGRP; LL37 -> NGF [style = dashed];
+    CGRP -> SMC [label = "relax (CGRP-R)", penwidth = 1.8];
+    PACAP -> SMC; VIP -> SMC; SP -> H1R;
+    SP -> MC [label = "NK1R degranulation", penwidth = 1.6];
+    HIST -> H1R; H1R -> NOS; NOS -> NO [penwidth = 1.6];
+    NO -> SMC [label = "relax", penwidth = 1.8];
+    PGE2 -> SMC; MC -> PGE2;
+    SMC -> TONE [penwidth = 2.2];
+    SYMP -> SMC [label = "constrict", color = "#2E7D32"];
+    TONE -> FLUSH [penwidth = 2.2];
+    FLUSH -> FLUSHMEM [penwidth = 1.6];
+    FLUSHMEM -> TRPV1 [label = "SENSITISATION\n(FEEDBACK LOOP 4:\nflush begets flush)",
+                       color = "#B33A2B", penwidth = 2.0, style = bold];
+    STRESS -> CRH; CRH -> MC; CRH -> SP;
+    CGRP -> MC [style = dashed]; MC -> CGRP [style = dashed, label = "reciprocal"];
+
+    /* =====================================================================
+       CLUSTER 6 — VASCULAR STRUCTURE  (STATE 2, tau ~ weeks-months)
+       ===================================================================== */
+    subgraph cluster_vasc {
+        label = <<B>6. Vascular structure &amp; angiogenesis — STATE 2 (tau ~ weeks-months, has MEMORY)</B><BR/><FONT POINT-SIZE="10">the substrate of PERSISTENT erythema: what an alpha-agonist cannot blanch and only a laser can remove</FONT>>;
+        style = "rounded,filled"; color = "#1B5E8C"; fillcolor = "#EEF6FC";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#C9DFF0", color = "#1B5E8C"];
+
+        VEGFA    [label = "VEGF-A", penwidth = 2.0];
+        VEGFR2   [label = "VEGFR-2 / KDR\nendothelial"];
+        ANGPT2   [label = "Angiopoietin-2 /\nTie-2 destabilisation"];
+        HIF1A    [label = "HIF-1alpha\n(hypoxia, ROS)"];
+        CD31     [label = "CD31+ endothelial\nproliferation"];
+        PERIC    [label = "Pericyte dropout\nvessel fragility"];
+        VDEN     [label = "VESSEL DENSITY + CALIBRE\n(STATE 2)", penwidth = 2.6,
+                  fillcolor = "#8FC2E8"];
+        TELANG   [label = "TELANGIECTASIA\n(visible vessels)", penwidth = 2.2];
+        PERM     [label = "Vascular permeability\nplasma extravasation"];
+        OEDEMA   [label = "Dermal oedema\n(persistent, solid)"];
+        LYMPH    [label = "Lymphatic vessel\ndysfunction / stasis", penwidth = 1.8];
+        ERYPERS  [label = "PERSISTENT ERYTHEMA\n(non-blanching component)",
+                  penwidth = 2.6, fillcolor = "#8FC2E8"];
+        HAEMO    [label = "Cutaneous haemoglobin\n(erythema index,\nreflectance spectrometry)"];
+    }
+
+    IL17 -> VEGFA [penwidth = 1.6]; MC -> VEGFA [penwidth = 1.6];
+    TNFA -> VEGFA; HIF1A -> VEGFA; ROS -> HIF1A; SP -> VEGFA;
+    VEGFA -> VEGFR2 [penwidth = 1.8]; VEGFR2 -> CD31; VEGFR2 -> PERM;
+    ANGPT2 -> PERIC; CD31 -> VDEN [penwidth = 2.0]; PERIC -> VDEN;
+    MMP9 -> VDEN [label = "matrix\nremodelling"];
+    VDEN -> TELANG [penwidth = 2.0];
+    VDEN -> ERYPERS [penwidth = 2.4];
+    TONE -> ERYPERS [label = "adds the\nreversible part", penwidth = 1.8];
+    PERM -> OEDEMA; OEDEMA -> LYMPH; LYMPH -> OEDEMA [label = "vicious circle",
+                       color = "#B33A2B", style = bold];
+    VDEN -> HAEMO; TONE -> HAEMO;
+    HIST -> PERM; CGRP -> VDEN [style = dashed, label = "trophic"];
+
+    /* =====================================================================
+       CLUSTER 7 — REMODELLING / PHYMA  (STATE 4, tau ~ years, HYSTERESIS)
+       ===================================================================== */
+    subgraph cluster_phyma {
+        label = <<B>7. Remodelling &amp; phyma — STATE 4 (tau ~ years, IRREVERSIBLE)</B><BR/><FONT POINT-SIZE="10">the one state with hysteresis: removing the drivers does not run it backwards, so only surgery/ablation moves it</FONT>>;
+        style = "rounded,filled"; color = "#8B6A3F"; fillcolor = "#FAF6F0";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#E5D5C3", color = "#8B6A3F"];
+
+        TGFB     [label = "TGF-beta1 /\nSMAD2-3"];
+        CTGF     [label = "CTGF / CCN2"];
+        FIBRO    [label = "Dermal fibroblast\nactivation (alpha-SMA)"];
+        COL1     [label = "Collagen I / III\ndeposition"];
+        ELAST    [label = "Elastin degradation\n(solar elastosis)"];
+        GLYCO    [label = "Glycosaminoglycan\naccumulation"];
+        FIB      [label = "DERMAL FIBROSIS\n(STATE 4)", penwidth = 2.4,
+                  fillcolor = "#D3BC9F"];
+        SEBHYP   [label = "Sebaceous gland\nHYPERPLASIA", penwidth = 2.0];
+        PHYMA    [label = "PHYMA\nrhino-/gnatho-/oto-/\nmeta-/blepharophyma",
+                  penwidth = 2.6, fillcolor = "#C8AB85"];
+        SCAR     [label = "Fibrotic scarring\nnodules"];
+        DISFIG   [label = "Disfigurement /\nnasal airway obstruction"];
+        ANDRO    [label = "Androgen / DHT drive\n(male phyma predominance)"];
+        LOXL     [label = "LOX / lysyl oxidase\ncross-linking (locks\nthe fibrotic state)"];
+    }
+
+    ANDRO -> SEBGL [label = "+", penwidth = 1.4];
+    FIBRO -> LOXL; LOXL -> FIB [label = "IRREVERSIBILITY", color = "#8B0000",
+                                penwidth = 1.8];
+
+    MC -> TGFB [penwidth = 1.6]; MAC -> TGFB; IL17 -> TGFB [style = dashed];
+    LYMPH -> TGFB [label = "stasis ->\nfibrogenesis", penwidth = 1.6];
+    TGFB -> CTGF; TGFB -> FIBRO [penwidth = 1.8]; CTGF -> FIBRO;
+    FIBRO -> COL1 [penwidth = 1.8]; COL1 -> FIB [penwidth = 2.0];
+    GLYCO -> FIB; MMP1 -> ELAST; UV -> ELAST; ELAST -> FIB [style = dashed];
+    FIB -> PHYMA [penwidth = 2.2]; SEBHYP -> PHYMA [penwidth = 2.2];
+    OEDEMA -> PHYMA; FIB -> SCAR; PHYMA -> DISFIG;
+
+    /* =====================================================================
+       CLUSTER 8 — OCULAR ROSACEA
+       ===================================================================== */
+    subgraph cluster_ocul {
+        label = <<B>8. Ocular rosacea — the same amplifier at the lid margin</B><BR/><FONT POINT-SIZE="10">present in 50-75% of rosacea and poorly correlated with cutaneous severity; <I>D. brevis</I> + MMP-9 dominate here</FONT>>;
+        style = "rounded,filled"; color = "#1E8C82"; fillcolor = "#F0FAF9";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#D9F0EE", color = "#1E8C82"];
+
+        MEIB     [label = "Meibomian gland\nfunction"];
+        MGD      [label = "Meibomian gland\ndysfunction / dropout", penwidth = 2.0];
+        LIPLAY   [label = "Tear lipid layer\nthickness"];
+        TFBUT    [label = "Tear film break-up\ntime (TBUT)"];
+        OSMOL    [label = "Tear osmolarity\n(mOsm/L)"];
+        OCSURF   [label = "Ocular surface\ninflammation", penwidth = 2.0,
+                  fillcolor = "#B6E3DF"];
+        MMP9OC   [label = "Tear MMP-9\n(InflammaDry)"];
+        LIDTEL   [label = "Lid margin\ntelangiectasia"];
+        CHALAZ   [label = "Chalazion /\nrecurrent hordeolum"];
+        KERAT    [label = "Punctate keratitis /\ncorneal neovascularisation"];
+        OSDI     [label = "OSDI score\n(0-100)", penwidth = 2.0];
+    }
+
+    DEMOBR -> MGD [penwidth = 1.8]; DEMO -> LIDTEL;
+    MEIB -> LIPLAY [label = "+"]; MGD -> MEIB [label = "−", color = "#2E7D32"];
+    LIPLAY -> TFBUT; TFBUT -> OSMOL [label = "−", color = "#2E7D32"];
+    OSMOL -> OCSURF [penwidth = 1.6]; IL17 -> OCSURF; IL1B -> OCSURF;
+    OCSURF -> MMP9OC; MMP9OC -> KERAT; MGD -> CHALAZ;
+    OCSURF -> OSDI [penwidth = 2.0]; TFBUT -> OSDI;
+    KLK5 -> MGD [style = dashed, label = "shared\namplifier"];
+
+    /* =====================================================================
+       CLUSTER 9 — TOPICAL DRUG PK
+       ===================================================================== */
+    subgraph cluster_pktop {
+        label = <<B>9. Topical drug PK — skin depot kinetics</B><BR/><FONT POINT-SIZE="10">vehicle -&gt; stratum corneum reservoir -&gt; viable epidermis/dermis -&gt; follicular (sebaceous) compartment</FONT>>;
+        style = "rounded,filled"; color = "#6C3FA0"; fillcolor = "#F6F2FB";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#E3D7F0", color = "#6C3FA0"];
+
+        IVM_APP  [label = "Ivermectin 1% cream\n1x daily"];
+        IVM_SK   [label = "Ivermectin\nskin/follicle conc."];
+        MTZ_APP  [label = "Metronidazole 0.75-1%\n1-2x daily"];
+        MTZ_SK   [label = "Metronidazole\nskin conc."];
+        AZA_APP  [label = "Azelaic acid 15% gel\n2x daily"];
+        AZA_SK   [label = "Azelaic acid\nskin conc."];
+        BRM_APP  [label = "Brimonidine 0.33% gel\n1x daily"];
+        BRM_SK   [label = "Brimonidine\ndermal effect site"];
+        OXY_APP  [label = "Oxymetazoline 1% cream\n1x daily"];
+        OXY_SK   [label = "Oxymetazoline\ndermal effect site"];
+        MIN_APP  [label = "Minocycline 1.5% foam\n1x daily"];
+        MIN_SK   [label = "Minocycline\nfollicular conc."];
+        PERM_APP [label = "Permethrin 5% /\ncrotamiton (off-label)"];
+        TAC_APP  [label = "Topical calcineurin\ninhibitor (steroid-induced)"];
+        SYSABS   [label = "Systemic absorption\n(low; brimonidine ~ng/mL)"];
+        VEHIC    [label = "Vehicle effect\n(emollient, 10-20%\nIGA success)"];
+    }
+
+    IVM_APP -> IVM_SK; MTZ_APP -> MTZ_SK; AZA_APP -> AZA_SK;
+    BRM_APP -> BRM_SK; OXY_APP -> OXY_SK; MIN_APP -> MIN_SK;
+    IVM_SK -> SYSABS [style = dashed]; BRM_SK -> SYSABS [style = dashed];
+    VEHIC -> BARRIER [label = "+"];
+
+    /* =====================================================================
+       CLUSTER 10 — SYSTEMIC DRUG PK
+       ===================================================================== */
+    subgraph cluster_pksys {
+        label = <<B>10. Systemic drug PK</B><BR/><FONT POINT-SIZE="10">doxycycline 40 mg modified-release is deliberately SUB-antimicrobial (Cmax ~0.6 mg/L, below MIC) — anti-protease only</FONT>>;
+        style = "rounded,filled"; color = "#563680"; fillcolor = "#F4F0FA";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#E3D7F0", color = "#563680"];
+
+        DOX_PO   [label = "Doxycycline 40 mg MR\n(30 mg IR + 10 mg DR)\nonce daily"];
+        DOX_GUT  [label = "Gut depot"];
+        DOX_P    [label = "Doxycycline plasma\nCmax ~0.6 mg/L", penwidth = 1.8];
+        DOX_100  [label = "Doxycycline 100 mg\n(antimicrobial dose)"];
+        ISO_PO   [label = "Isotretinoin 0.25-0.3\nmg/kg/day"];
+        ISO_P    [label = "Isotretinoin plasma\n+ 4-oxo metabolite"];
+        IVMPO    [label = "Ivermectin PO 200 ug/kg\n(refractory Demodex)"];
+        CARV     [label = "Carvedilol 6.25 mg\n(off-label flushing)"];
+        CLON     [label = "Clonidine 0.05 mg bid\n(off-label flushing)"];
+        ONDA     [label = "Ondansetron /\nother off-label"];
+        HRT      [label = "Menopausal hormone\ntherapy (VMS overlap)"];
+        DRUGELIM [label = "Hepatic CYP3A4 /\nrenal elimination"];
+    }
+
+    DOX_PO -> DOX_GUT; DOX_GUT -> DOX_P; DOX_P -> DRUGELIM;
+    DOX_100 -> DOX_P [style = dashed, label = "same drug,\n4x exposure"];
+    ISO_PO -> ISO_P; ISO_P -> DRUGELIM;
+    IVMPO -> IVM_SK [style = dashed, label = "systemic ->\nfollicle"];
+
+    /* =====================================================================
+       CLUSTER 11 — TARGET ENGAGEMENT / PD  (where the states are read)
+       ===================================================================== */
+    subgraph cluster_pd {
+        label = <<B>11. Target engagement — WHICH STATE does each drug read?</B><BR/><FONT POINT-SIZE="10">the alpha-2A adaptation pair (receptor availability + compensatory vasodilator drive) is what generates rebound erythema</FONT>>;
+        style = "rounded,filled"; color = "#4A2C7A"; fillcolor = "#F3EFFB";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#D7CCEB", color = "#4A2C7A"];
+
+        GLUCL    [label = "Demodex GluCl channel\n(ivermectin target)\n-> paralysis, death",
+                  penwidth = 1.8];
+        IVM_AI   [label = "Ivermectin anti-inflammatory\n(LL-37/TLR2/NF-kB down)"];
+        MTZ_AOX  [label = "Metronidazole:\nROS scavenging,\nneutrophil suppression"];
+        AZA_KLK  [label = "Azelaic acid:\nKLK5 + serine protease\ninhibition, PPAR-gamma",
+                  penwidth = 1.8];
+        DOX_MMP  [label = "Doxycycline:\nMMP-9 / KLK5 / IL-1beta\ninhibition (Zn-chelation)",
+                  penwidth = 1.8];
+        DOX_ANTI [label = "Doxycycline 100 mg:\nADDS antibacterial\nkill (not needed)"];
+        A2AR     [label = "alpha-2A receptor\nAVAILABLE fraction\n(desensitisation state)",
+                  penwidth = 2.2, fillcolor = "#C0AEE0"];
+        A1AR     [label = "alpha-1A receptor\n(oxymetazoline)"];
+        VDILC    [label = "COMPENSATORY vasodilator\ndrive (rebound state)",
+                  penwidth = 2.2, fillcolor = "#C0AEE0"];
+        ISO_SEB  [label = "Isotretinoin:\nsebocyte apoptosis\n-> gland atrophy", penwidth = 1.8];
+        MIN_PD   [label = "Minocycline:\nanti-inflammatory +\nfollicular antibacterial"];
+        BB_PD    [label = "beta-blockade:\nblunts flush\nefferent limb"];
+        A2CNS    [label = "Clonidine: central\nsympatholysis"];
+        TRPBLOCK [label = "TRPV1 antagonists\n(INVESTIGATIONAL —\nno licensed agent)",
+                  style = "rounded,filled,dashed", fillcolor = "#EDEDED"];
+        IL17BLK  [label = "IL-17 blockade\n(secukinumab —\nphase 2 signal)",
+                  style = "rounded,filled,dashed", fillcolor = "#EDEDED"];
+        MRGBLK   [label = "MRGPRX2 antagonists\n(preclinical)",
+                  style = "rounded,filled,dashed", fillcolor = "#EDEDED"];
+        HYDROX   [label = "Hydroxychloroquine\n(mast-cell / TLR)",
+                  style = "rounded,filled,dashed", fillcolor = "#EDEDED"];
+    }
+
+    IVM_SK -> GLUCL [penwidth = 1.8]; IVM_SK -> IVM_AI;
+    GLUCL -> DEMO [label = "− KILL (log-linear)", color = "#2E7D32",
+                   penwidth = 2.2];
+    IVM_AI -> LL37 [label = "−", color = "#2E7D32", penwidth = 1.6];
+    IVM_AI -> TLR2 [label = "−", color = "#2E7D32"];
+    MTZ_SK -> MTZ_AOX; MTZ_AOX -> ROS [label = "−", color = "#2E7D32",
+                                       penwidth = 1.6];
+    MTZ_AOX -> NEU [label = "−", color = "#2E7D32"];
+    AZA_SK -> AZA_KLK; AZA_KLK -> KLK5 [label = "− (TOP of cascade)",
+                                        color = "#2E7D32", penwidth = 2.0];
+    AZA_KLK -> ROS [label = "−", color = "#2E7D32"];
+    DOX_P -> DOX_MMP [penwidth = 1.8];
+    DOX_MMP -> MMP9 [label = "−", color = "#2E7D32", penwidth = 2.0];
+    DOX_MMP -> KLK5 [label = "−", color = "#2E7D32", penwidth = 1.6];
+    DOX_MMP -> IL1B [label = "−", color = "#2E7D32"];
+    DOX_MMP -> MMP9OC [label = "− (ocular)", color = "#2E7D32"];
+    DOX_100 -> DOX_ANTI; DOX_ANTI -> BOL [label = "−", color = "#2E7D32",
+                                          style = dashed];
+    DOX_MMP -> DEMO [label = "NO EFFECT\n(falsifiable prediction)",
+                     style = dotted, color = "#8B0000", penwidth = 1.4];
+    BRM_SK -> A2AR [penwidth = 1.8];
+    A2AR -> SMC [label = "CONSTRICT\n(state 1 only)", color = "#2E7D32",
+                 penwidth = 2.0];
+    BRM_SK -> A2AR [label = "chronic occupancy\n-> internalisation −",
+                    style = dashed, color = "#8B0000"];
+    BRM_SK -> VDILC [label = "+ builds under\nthe clamp", color = "#8B0000",
+                     penwidth = 1.8];
+    VDILC -> SMC [label = "REBOUND relax", color = "#8B0000", penwidth = 1.8];
+    OXY_SK -> A1AR; A1AR -> SMC [label = "constrict", color = "#2E7D32",
+                                 penwidth = 1.6];
+    ISO_P -> ISO_SEB; ISO_SEB -> SEBGL [label = "−", color = "#2E7D32",
+                                        penwidth = 2.0];
+    MIN_SK -> MIN_PD; MIN_PD -> NEU [label = "−", color = "#2E7D32"];
+    MIN_PD -> BOL [label = "−", color = "#2E7D32"];
+    CARV -> BB_PD; BB_PD -> TONE [label = "−", color = "#2E7D32"];
+    CLON -> A2CNS; A2CNS -> SYMP [label = "−", color = "#2E7D32"];
+    TRPBLOCK -> TRPV1 [label = "− (unmet need)", style = dashed];
+    IL17BLK -> IL17 [label = "−", style = dashed];
+    MRGBLK -> MRGPRX2 [label = "−", style = dashed];
+    HYDROX -> MC [label = "−", style = dashed];
+    PERM_APP -> DEMO [label = "−", color = "#2E7D32", style = dashed];
+    TAC_APP -> MC [style = dashed];
+    HRT -> MENO [label = "−", color = "#2E7D32", style = dashed];
+
+    /* =====================================================================
+       CLUSTER 12 — PHYSICAL / DEVICE MODALITIES
+       ===================================================================== */
+    subgraph cluster_dev {
+        label = <<B>12. Physical modalities — the only tools that DELETE a state</B><BR/><FONT POINT-SIZE="10">selective photothermolysis empties STATE 2; ablative/surgical work is the only exit from STATE 4</FONT>>;
+        style = "rounded,filled"; color = "#666666"; fillcolor = "#F7F7F7";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#DCDCDC", color = "#666666"];
+
+        PDL      [label = "Pulsed-dye laser\n595 nm (7-10 J/cm2)"];
+        KTP      [label = "KTP 532 nm\n(fine telangiectasia)"];
+        IPL      [label = "IPL 515-1200 nm"];
+        ND1064   [label = "Nd:YAG 1064 nm\n(deep vessels)"];
+        CO2      [label = "CO2 / Er:YAG ablation\n(rhinophyma)"];
+        SURG     [label = "Surgical debulking\n/ electrosurgery"];
+        PHOTOTH  [label = "Selective\nphotothermolysis\n(oxyhaemoglobin target)"];
+        PURPURA  [label = "Purpura / PIH\n(dose-limiting)"];
+        SUNSCR   [label = "Broad-spectrum SPF30+\n(primary prevention)"];
+        SKINCARE [label = "Gentle cleanser +\nceramide moisturiser"];
+        LIDHYG   [label = "Lid hygiene / warm\ncompress / tea-tree\n(terpinen-4-ol)"];
+        IPLMGD   [label = "IPL to lid margin\n(MGD)"];
+    }
+
+    PDL -> PHOTOTH; KTP -> PHOTOTH; IPL -> PHOTOTH; ND1064 -> PHOTOTH;
+    PHOTOTH -> VDEN [label = "− STEP DELETION", color = "#2E7D32",
+                     penwidth = 2.4];
+    PHOTOTH -> PURPURA [style = dashed];
+    CO2 -> PHYMA [label = "− debulk", color = "#2E7D32", penwidth = 2.0];
+    SURG -> PHYMA [label = "−", color = "#2E7D32", penwidth = 2.0];
+    SUNSCR -> UV [label = "−", color = "#2E7D32", penwidth = 1.6];
+    SKINCARE -> BARRIER [label = "+", penwidth = 1.6];
+    LIDHYG -> DEMOBR [label = "−", color = "#2E7D32"];
+    LIDHYG -> MGD [label = "−", color = "#2E7D32"];
+    IPLMGD -> MGD [label = "−", color = "#2E7D32"];
+
+    /* =====================================================================
+       CLUSTER 13 — CLINICAL ENDPOINTS / PROs
+       ===================================================================== */
+    subgraph cluster_end {
+        label = <<B>13. Clinical endpoints &amp; patient-reported outcomes</B><BR/><FONT POINT-SIZE="10">each endpoint is wired to ONE state — which is how the map predicts endpoint-specific drug failure</FONT>>;
+        style = "rounded,filled"; color = "#B03A2E"; fillcolor = "#FEF3F3";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#FDE2E2", color = "#B03A2E"];
+
+        CEA      [label = "CEA 0-4\nClinician Erythema Assessment",
+                  penwidth = 2.2];
+        PSA      [label = "PSA 0-4\nPatient Self-Assessment"];
+        IGA      [label = "IGA 0-4 (success = 0/1)\nprimary phase-3 endpoint",
+                  penwidth = 2.2];
+        ILC      [label = "Inflammatory lesion\nCOUNT (papules+pustules)",
+                  penwidth = 2.2];
+        TELSC    [label = "Telangiectasia\ngrade 0-3"];
+        FLFREQ   [label = "Flush frequency\n(episodes/day)", penwidth = 2.0];
+        FLDUR    [label = "Flush duration /\nAUC of redness"];
+        PHYGR    [label = "Phyma grade 0-3"];
+        STING    [label = "Stinging / burning\nVAS 0-10"];
+        DLQI     [label = "DLQI 0-30\nquality of life", penwidth = 2.0];
+        ROSQOL   [label = "RosaQoL /\nRosaTx PRO"];
+        OSDIEND  [label = "OSDI (ocular)"];
+        COMPOS   [label = "Composite success\n(CEA + PSA both\n>= 2-grade improvement)",
+                  penwidth = 2.0];
+        RELAPSE  [label = "Time to relapse\nafter withdrawal", penwidth = 2.0];
+        ADHERE   [label = "Adherence /\nlocal tolerability\n(AZA stinging, BRM rebound)"];
+    }
+
+    ERYPERS -> CEA [penwidth = 2.4]; TONE -> CEA [penwidth = 1.8];
+    CEA -> COMPOS; PSA -> COMPOS; CEA -> PSA [style = dashed];
+    PAP -> ILC [penwidth = 2.4]; PAP -> IGA [penwidth = 2.0];
+    ERYPERS -> IGA [penwidth = 1.4]; TELANG -> TELSC [penwidth = 2.0];
+    FLUSH -> FLFREQ [penwidth = 2.2]; TONE -> FLDUR;
+    PHYMA -> PHYGR [penwidth = 2.2]; SENS -> STING; TRPV1 -> STING [penwidth = 1.6];
+    CEA -> DLQI; ILC -> DLQI; PHYGR -> DLQI; STING -> DLQI;
+    DLQI -> ROSQOL; OSDI -> OSDIEND [penwidth = 2.0];
+    ADHERE -> DLQI [style = dashed];
+    VDILC -> CEA [label = "REBOUND\n(worse than baseline)", color = "#8B0000",
+                  penwidth = 1.8];
+    DEMO -> RELAPSE [label = "reservoir sets\nrelapse clock", penwidth = 1.8];
+
+    /* =====================================================================
+       CLUSTER 14 — SYSTEMIC ASSOCIATIONS / COMORBIDITY
+       ===================================================================== */
+    subgraph cluster_com {
+        label = <<B>14. Systemic associations</B><BR/><FONT POINT-SIZE="10">shared low-grade innate inflammation and the neurovascular phenotype turn up outside the skin</FONT>>;
+        style = "rounded,filled"; color = "#8A8A5C"; fillcolor = "#FBFBF2";
+        fontsize = 15; penwidth = 1.6;
+        node [fillcolor = "#EFEFE0", color = "#8A8A5C"];
+
+        MIGR     [label = "Migraine\n(shared CGRP/TRPV1)"];
+        CVRISK   [label = "Cardiometabolic risk\ndyslipidaemia, HTN"];
+        NEURODEG [label = "Parkinson disease /\ndementia (registry signal)"];
+        GIASSOC  [label = "Coeliac / IBD / SIBO\nassociations"];
+        AUTOIM   [label = "Autoimmune disease\n(T1DM, RA, MS in women)"];
+        DEPR     [label = "Depression / anxiety\n(stigma + CRH loop)"];
+        SIBOTX   [label = "Rifaximin\n(if SIBO present)",
+                  style = "rounded,filled,dashed"];
+    }
+
+    CGRP -> MIGR [penwidth = 1.6]; TRPV1 -> MIGR;
+    IL17 -> CVRISK [style = dashed]; TNFA -> CVRISK [style = dashed];
+    LL37 -> NEURODEG [style = dashed, label = "hypothesis"];
+    GIASSOC -> HPYL; HPYL -> TLR2 [style = dashed];
+    DLQI -> DEPR [penwidth = 1.6]; DEPR -> STRESS [label = "closes the\nstress loop",
+                     color = "#B33A2B", style = bold];
+    AUTOIM -> TH17 [style = dashed]; SIBOTX -> GIASSOC [label = "−", style = dashed];
+
+    /* =====================================================================
+       CLUSTER 15 — READING THE MAP  (legend / emergent principle)
+       ===================================================================== */
+    subgraph cluster_legend {
+        label = <<B>15. How to read this map</B>>;
+        style = "rounded,filled"; color = "#333333"; fillcolor = "#FCFCFC";
+        fontsize = 15; penwidth = 1.6;
+        node [shape = note, fillcolor = "#FFFFFF", color = "#333333",
+              fontsize = 10];
+
+        LEG1 [label = "FOUR STATES, FOUR CLOCKS\n\
+STATE 1 tone .......... minutes, no memory  -> flushing, blanchable erythema\l\
+STATE 2 vessel density  weeks-months, memory -> persistent erythema, telangiectasia\l\
+STATE 3 infiltrate ..... weeks, memory ...... -> papules, pustules\l\
+STATE 4 fibrosis/gland  years, HYSTERESIS ... -> phyma\l"];
+
+        LEG2 [label = "WHICH STATE DOES THE DRUG READ?\n\
+brimonidine / oxymetazoline ..... STATE 1 only\l\
+ivermectin ...................... STATE 3 (+ Demodex reservoir)\l\
+azelaic acid .................... amplifier (KLK5) -> 3, slowly 2\l\
+doxycycline 40 mg ............... amplifier (MMP-9/KLK5) -> 3\l\
+isotretinoin .................... habitat (sebum) -> 2, 3, 4-slowing\l\
+PDL / IPL / KTP ................. STATE 2 deletion\l\
+CO2 / surgery ................... STATE 4 debulking\l\
+NOTHING LICENSED ................ TRPV1/CGRP sensitisation memory\l"];
+
+        LEG3 [label = "FOUR POSITIVE FEEDBACK LOOPS\n\
+L1  LL-37 -> TLR2 -> KLK5 -> LL-37     (innate amplification)\l\
+L2  KLK5 -> IL-1beta -> MMP-9 -> KLK5  (protease amplification)\l\
+L3  IL-17A -> CXCL8 -> neutrophil -> IL-17A\l\
+L4  flush -> TRPV1 up -> lower threshold -> flush  (progression ETR -> fixed)\l\
+plus  oedema <-> lymphatic stasis  (phyma) and  DLQI -> stress -> CRH -> mast cell\l"];
+
+        LEG4 [label = "FALSIFIABLE PREDICTIONS THIS MAP MAKES\n\
+1. doxycycline lowers lesions across a 10-fold dose range while mite density\l\
+   stays nearly flat -- anti-protease, not acaricidal\l\
+2. brimonidine gives the largest day-1 CEA drop of any agent and the\l\
+   largest week-8 rebound in the subgroup with fast alpha-2A desensitisation\l\
+3. an agent that only clears Demodex delays RELAPSE more than it speeds RESPONSE\l\
+4. laser improves CEA without touching ILC; ivermectin the reverse\l\
+5. no pharmacotherapy in this map reduces flush FREQUENCY below the\l\
+   trigger-driven floor set by TRPV1 sensitisation\l"];
+    }
+
+    LEG1 -> LEG2 [style = invis]; LEG2 -> LEG3 [style = invis];
+    LEG3 -> LEG4 [style = invis];
+
+    /* ------------- a few cross-cluster ranks to keep the flow readable ---- */
+    { rank = same; TRIGGER; BARRIER; SEBUM; }
+    { rank = same; TONE; VDEN; PAP; FIB; }
+    { rank = same; CEA; ILC; FLFREQ; PHYGR; }
+}
