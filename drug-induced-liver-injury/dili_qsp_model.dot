@@ -1,0 +1,754 @@
+/* ===========================================================================
+   Drug-Induced Liver Injury (DILI) — Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------------
+   Organising thesis of this map (and of the accompanying mrgsolve model):
+
+     DILI is a RATE problem, not a DOSE problem.
+
+   Every arrow below that carries a reactive species is a FLUX. Injury occurs
+   when a production flux outruns a disposal flux, and the liver's disposal
+   fluxes (GSH resynthesis, mitochondrial ROS scavenging, BSEP export,
+   hepatocyte regeneration) all saturate. Because the JNK -> Sab -> ROS -> JNK
+   loop (cluster 6) is a POSITIVE feedback with a saturating gain, the system
+   is BISTABLE: below a separatrix the liver adapts silently, above it the
+   same drug at the same total exposure proceeds to necrosis. The therapeutic
+   window of every antidote in cluster 14 is therefore not a pharmacokinetic
+   half-life, it is the time at which the trajectory crosses that separatrix.
+
+   Layout: 14 subgraph clusters, >210 nodes, >330 edges.
+   Render:  dot -Tsvg dili_qsp_model.dot -o dili_qsp_model.svg
+            dot -Tpng -Gdpi=150 dili_qsp_model.dot -o dili_qsp_model.png
+   =========================================================================== */
+
+digraph DILI_QSP {
+    graph [ rankdir      = TB,
+            newrank      = true,     /* required: cluster-crossing edges below
+                                        break the legacy per-cluster ranker */
+            splines      = spline,
+            overlap      = false,
+            concentrate  = false,
+            compound     = true,
+            nodesep      = 0.28,
+            ranksep      = 0.55,
+            fontname     = "Helvetica,Arial,sans-serif",
+            fontsize     = 12,
+            labelloc     = "t",
+            label        = <<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+                            <TR><TD><FONT POINT-SIZE="40"><B>Drug-Induced Liver Injury (DILI) — QSP Mechanistic Map</B></FONT></TD></TR>
+                            <TR><TD><FONT POINT-SIZE="20">약물유발 간손상 · 정량적 시스템 약리학 지도</FONT></TD></TR>
+                            <TR><TD><FONT POINT-SIZE="16">Reactive-metabolite flux vs. thiol resynthesis · mitochondrial bioenergetics · JNK–Sab bistable amplification ·<BR/>bile-acid (BSEP) cholestasis · innate DAMP signalling · HLA-restricted adaptive immunity · regeneration reserve</FONT></TD></TR>
+                            <TR><TD><FONT POINT-SIZE="15" COLOR="#8B0000"><B>Central claim: injury = f(production rate / disposal rate), and the system is bistable — so the same AUC can be silent or fatal.</B></FONT></TD></TR>
+                            </TABLE>>,
+            bgcolor      = "white" ];
+
+    node [ shape     = box,
+           style     = "rounded,filled",
+           fontname  = "Helvetica,Arial,sans-serif",
+           fontsize  = 11,
+           margin    = "0.10,0.055",
+           penwidth  = 1.1 ];
+
+    edge [ fontname  = "Helvetica,Arial,sans-serif",
+           fontsize  = 9,
+           penwidth  = 1.1,
+           arrowsize = 0.7,
+           color     = "#4a4a4a" ];
+
+    /* ---------- colour semantics ------------------------------------------
+       #DCE9F7 pale blue    drug / PK species
+       #FBE3D6 pale orange  enzymes & transporters (catalytic machinery)
+       #F8D7DA pale red     toxic species / damage
+       #D8F0DC pale green   protective / adaptive / defence
+       #EDE0F5 pale purple  immune cells & cytokines
+       #FFF6C8 pale yellow  signalling nodes / second messengers
+       #E2E3E5 pale grey    structural / physiological state
+       #CFE7E4 pale teal    biomarkers
+       #FADCE8 pale pink    clinical endpoints
+       #FFE7B3 amber        therapeutics / interventions
+       ---------------------------------------------------------------------- */
+
+/* ==========================================================================
+   CLUSTER 1 — Drug pharmacokinetics & hepatic disposition
+   ========================================================================== */
+subgraph cluster_pk {
+    label = "1 · 약물동태 및 간 분포 (Drug PK & Hepatic Disposition)";
+    fontsize = 18; fontcolor = "#12406B"; style = "rounded,filled";
+    fillcolor = "#F4F9FF"; color = "#12406B"; penwidth = 2;
+
+    DOSE      [label = "경구 투여 용량\nOral dose D (mg)\n치료용량 vs 과량", fillcolor = "#DCE9F7"];
+    GUT       [label = "위장관 구획\nGut depot\n(ka, lag time)", fillcolor = "#DCE9F7"];
+    GASTRIC   [label = "위 배출 지연\nDelayed gastric emptying\n(opioid co-ingestion, food)", fillcolor = "#E2E3E5"];
+    ACHARCOAL [label = "활성탄 흡착\nActivated charcoal\n(< 2–4 h 유효)", fillcolor = "#FFE7B3"];
+    PORTAL    [label = "문맥 혈류\nPortal vein\nQ_H ≈ 1.35 L/min", fillcolor = "#DCE9F7"];
+    FPM       [label = "초회통과 대사\nFirst-pass extraction\nF = f(E_H)", fillcolor = "#DCE9F7"];
+    CENT      [label = "중심(혈장) 구획\nCentral plasma\nC_p, V_c", fillcolor = "#DCE9F7"];
+    PERIPH    [label = "말초 조직 구획\nPeripheral tissue\nV_p, Q_inter", fillcolor = "#DCE9F7"];
+    PPB       [label = "혈장 단백 결합\nPlasma protein binding\nfu (알부민↓ → fu↑)", fillcolor = "#E2E3E5"];
+    OATP      [label = "간 유입 수송체\nOATP1B1 / 1B3 / NTCP\nSLCO1B1 c.521T>C", fillcolor = "#FBE3D6"];
+    LIVDRUG   [label = "간세포 내 약물\nIntrahepatic drug\nC_liv (구동 노출)", fillcolor = "#DCE9F7", penwidth = 2.4];
+    RENAL     [label = "신 배설\nRenal clearance\nCL_R", fillcolor = "#DCE9F7"];
+    ENTERO    [label = "장간 순환\nEnterohepatic recirculation\n(β-glucuronidase)", fillcolor = "#DCE9F7"];
+    LIPOPHIL  [label = "물리화학적 위험 인자\nlogP > 3 & 일일용량 > 100 mg\n(Rule-of-Two)", fillcolor = "#F8D7DA"];
+
+    DOSE -> GUT [label = "섭취"];
+    GASTRIC -> GUT [label = "ka↓, Tmax 지연", style = dashed, color = "#7a7a7a"];
+    ACHARCOAL -> GUT [label = "흡수 차단", color = "#B8860B", arrowhead = tee];
+    GUT -> PORTAL [label = "ka"];
+    PORTAL -> FPM;
+    FPM -> CENT [label = "F·D"];
+    CENT -> PERIPH [label = "Q"]; PERIPH -> CENT;
+    PPB -> CENT [label = "fu 결정", style = dashed];
+    CENT -> OATP [label = "sinusoidal uptake"];
+    OATP -> LIVDRUG;
+    FPM -> LIVDRUG [label = "직접 간 노출"];
+    LIVDRUG -> CENT [label = "유출 (MRP3/4)", style = dashed];
+    CENT -> RENAL [label = "제거"];
+    ENTERO -> GUT [label = "재흡수", style = dashed];
+    LIPOPHIL -> LIVDRUG [label = "간 축적↑", style = dashed, color = "#B03A2E"];
+}
+
+/* ==========================================================================
+   CLUSTER 2 — Biotransformation: bioactivation vs detoxification
+   ========================================================================== */
+subgraph cluster_biotrans {
+    label = "2 · 생체변환 — 활성화 대 해독 (Biotransformation: Bioactivation vs Detoxification)";
+    fontsize = 18; fontcolor = "#8A4B10"; style = "rounded,filled";
+    fillcolor = "#FFF8F2"; color = "#8A4B10"; penwidth = 2;
+
+    CYP2E1  [label = "CYP2E1\n(주 활성화 효소)\n에탄올·금식으로 유도", fillcolor = "#FBE3D6", penwidth = 2.2];
+    CYP1A2  [label = "CYP1A2\n(흡연 유도)", fillcolor = "#FBE3D6"];
+    CYP3A4  [label = "CYP3A4\n(리팜핀·카바마제핀 유도)", fillcolor = "#FBE3D6"];
+    CYP2C9  [label = "CYP2C9 / 2D6 / 2B6\n다형성 대사", fillcolor = "#FBE3D6"];
+    UGT     [label = "UGT1A1/1A6/1A9\n글루쿠론산 포합 (Phase II)", fillcolor = "#FBE3D6"];
+    SULT    [label = "SULT1A1/1A3/2A1\n황산 포합 (저용량서 포화)", fillcolor = "#FBE3D6"];
+    GST     [label = "GST (M1/T1/P1)\nGSH 포합 촉매", fillcolor = "#FBE3D6"];
+    NAT2    [label = "NAT2 아세틸화\n(느린 대사자 = 이소니아지드 위험)", fillcolor = "#FBE3D6"];
+    RM      [label = "반응성 대사체 (RM)\nNAPQI / 니트로소 / 에폭사이드\n/ 아실글루쿠로나이드", fillcolor = "#F8D7DA", penwidth = 3, shape = octagon];
+    PHASE2  [label = "Phase II 포합 경로 포화\nSaturation of conjugation\n(치료용량 = 미포화)", fillcolor = "#E2E3E5"];
+    MERCAP  [label = "머캅투르산 배설\nCys / NAc-Cys 부가체 뇨 배설\n(노출 바이오마커)", fillcolor = "#D8F0DC"];
+    NQO1    [label = "NQO1 / AKR / 카보닐 환원효소\n2전자 환원 해독", fillcolor = "#D8F0DC"];
+    ALDH    [label = "ALDH / 에폭사이드 가수분해효소\n(mEH)", fillcolor = "#D8F0DC"];
+    ACYLG   [label = "아실글루쿠로나이드 전위\nAcyl-glucuronide transacylation\n(디클로페낙 · NSAIDs)", fillcolor = "#F8D7DA"];
+    IDIOSYN [label = "구조 경보 (Structural alert)\n아닐린·티오펜·퓨란·하이드라진\n·니트로방향족", fillcolor = "#F8D7DA"];
+
+    LIVDRUG -> CYP2E1 [label = "산화적 활성화", color = "#B03A2E", penwidth = 1.8];
+    LIVDRUG -> CYP1A2; LIVDRUG -> CYP3A4; LIVDRUG -> CYP2C9;
+    LIVDRUG -> UGT [label = "무독성 배설"];
+    LIVDRUG -> SULT [label = "무독성 배설"];
+    LIVDRUG -> NAT2;
+    CYP2E1 -> RM [color = "#B03A2E", penwidth = 2.4];
+    CYP1A2 -> RM [color = "#B03A2E"];
+    CYP3A4 -> RM [color = "#B03A2E"];
+    CYP2C9 -> RM [color = "#B03A2E"];
+    NAT2 -> RM [label = "하이드라진 경로", color = "#B03A2E", style = dashed];
+    IDIOSYN -> RM [label = "화학적 소인", style = dashed, color = "#B03A2E"];
+    ACYLG -> RM [style = dashed, color = "#B03A2E"];
+    UGT -> ACYLG [label = "카복실산 약물"];
+    PHASE2 -> UGT [label = "용량 의존 포화", style = dashed, arrowhead = tee];
+    PHASE2 -> SULT [label = "용량 의존 포화", style = dashed, arrowhead = tee];
+    RM -> NQO1 [label = "우회 해독"];
+    RM -> ALDH;
+    GST -> MERCAP;
+    RM -> GST [label = "GSH 포합", color = "#1E7B34", penwidth = 2];
+}
+
+/* ==========================================================================
+   CLUSTER 3 — Glutathione / thiol defence  (the disposal rate)
+   ========================================================================== */
+subgraph cluster_gsh {
+    label = "3 · 글루타티온 · 티올 방어 — '처리 속도' (Glutathione / Thiol Defence — the Disposal Rate)";
+    fontsize = 18; fontcolor = "#14632A"; style = "rounded,filled";
+    fillcolor = "#F3FBF4"; color = "#14632A"; penwidth = 2;
+
+    GSH      [label = "환원형 글루타티온 (GSH)\n간 농도 5–10 mM\n소실 반감기 ≈ 2–4 h", fillcolor = "#D8F0DC", penwidth = 3, shape = octagon];
+    GSSG     [label = "산화형 글루타티온 (GSSG)\nGSH/GSSG 비 = 산화환원 지표", fillcolor = "#D8F0DC"];
+    GCL      [label = "GCLC / GCLM\nγ-glutamylcysteine ligase\n(율속 효소)", fillcolor = "#FBE3D6", penwidth = 2];
+    GSS      [label = "GSS\nGlutathione synthetase", fillcolor = "#FBE3D6"];
+    CYS      [label = "시스테인 풀\nCysteine (율속 기질)\n혈장 10–15 µM", fillcolor = "#D8F0DC", penwidth = 2];
+    TRANSSUL [label = "트랜스설퍼레이션 경로\nMethionine → Cys (CBS/CSE)", fillcolor = "#D8F0DC"];
+    GR       [label = "글루타티온 환원효소 (GR)\nNADPH 의존", fillcolor = "#FBE3D6"];
+    GPX      [label = "GPx1/4\nH2O2·지질과산화물 환원", fillcolor = "#FBE3D6"];
+    NADPH    [label = "NADPH 공급\nG6PD · 말산효소", fillcolor = "#D8F0DC"];
+    MITOGSH  [label = "미토콘드리아 GSH 풀\n(별도 구획, 2GSH 수송체)\n고갈이 치명적", fillcolor = "#D8F0DC", penwidth = 2.2];
+    THIOR    [label = "티오레독신 / 퍼옥시레독신\nTrx-Prx 축", fillcolor = "#D8F0DC"];
+    MTALLO   [label = "메탈로티오네인 (MT)\n티올 완충", fillcolor = "#D8F0DC"];
+    FASTING  [label = "금식 · 영양불량 · 만성 음주\nGSH 기저치 40–60%↓", fillcolor = "#F8D7DA"];
+    GSHDEP   [label = "GSH 고갈 임계\n< 30% 기저치에서\n단백질 부가체 급증", fillcolor = "#F8D7DA", penwidth = 2.4, shape = octagon];
+
+    CYS -> GCL [label = "율속 기질", penwidth = 1.8];
+    TRANSSUL -> CYS;
+    GCL -> GSS; GSS -> GSH [label = "합성 (k_syn)", color = "#1E7B34", penwidth = 2];
+    GSH -> GST [label = "포합 소비 (k_conj)", color = "#B03A2E", penwidth = 2];
+    GSH -> GPX; GPX -> GSSG;
+    GSSG -> GR; GR -> GSH [label = "재환원"];
+    NADPH -> GR; NADPH -> THIOR;
+    GSH -> MITOGSH [label = "미토 유입"];
+    GSH -> GSHDEP [label = "고갈 시", style = dashed, color = "#B03A2E"];
+    MITOGSH -> GSHDEP [style = dashed, color = "#B03A2E"];
+    FASTING -> GSH [label = "기저치↓", arrowhead = tee, color = "#B03A2E", penwidth = 1.8];
+    FASTING -> CYS [arrowhead = tee, color = "#B03A2E"];
+    MTALLO -> GSHDEP [arrowhead = tee, style = dashed];
+    THIOR -> GSHDEP [arrowhead = tee, style = dashed];
+    GSH -> GSSG [label = "산화 스트레스 하", style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 4 — Covalent binding & mitochondrial bioenergetics
+   ========================================================================== */
+subgraph cluster_mito {
+    label = "4 · 공유결합 부가체 및 미토콘드리아 생체에너지학 (Covalent Adducts & Mitochondrial Bioenergetics)";
+    fontsize = 18; fontcolor = "#7D1128"; style = "rounded,filled";
+    fillcolor = "#FFF5F6"; color = "#7D1128"; penwidth = 2;
+
+    ADDUCT   [label = "단백질 공유 부가체\nCovalent protein adducts\n(APAP-Cys, 혈중 검출 가능)", fillcolor = "#F8D7DA", penwidth = 2.6, shape = octagon];
+    MITOADD  [label = "미토콘드리아 단백 부가체\nGDH · ALDH2 · ATP synthase\n(독성의 실제 표적)", fillcolor = "#F8D7DA", penwidth = 2.4];
+    ETC      [label = "전자전달계 (ETC)\nComplex I / III 억제", fillcolor = "#F8D7DA"];
+    UNCOUPLE [label = "산화적 인산화 탈공역\nProton-motive force 소산\n(살리실산·페노프로펜)", fillcolor = "#F8D7DA"];
+    BOX      [label = "미토콘드리아 β-산화 억제\nFAO block (발프로산·테트라사이클린)\n→ 미세소포성 지방증", fillcolor = "#F8D7DA"];
+    MTDNA    [label = "mtDNA 폴리머라제 γ 억제\n(NRTIs · 피알루리딘)\nmtDNA 고갈", fillcolor = "#F8D7DA"];
+    ROS      [label = "미토콘드리아 ROS\nO2•− → H2O2\n(초기 신호 → 후기 손상)", fillcolor = "#F8D7DA", penwidth = 2.6, shape = octagon];
+    PEROXY   [label = "퍼옥시나이트라이트 (ONOO−)\n니트로티로신 형성", fillcolor = "#F8D7DA"];
+    iNOS     [label = "iNOS / NO 생성", fillcolor = "#FBE3D6"];
+    SOD2     [label = "SOD2 (MnSOD)\n미토 O2•− 제거", fillcolor = "#D8F0DC"];
+    CAT      [label = "카탈라제 / GPx4", fillcolor = "#D8F0DC"];
+    ATP      [label = "간세포 ATP\n(정상 2.5–3 mM)\n< 25% → 괴사 확정", fillcolor = "#F8D7DA", penwidth = 2.6, shape = octagon];
+    MPT      [label = "미토콘드리아 투과성 전이 (MPT)\nCyclophilin D 의존 pore\n비가역 전환점", fillcolor = "#F8D7DA", penwidth = 2.8, shape = doubleoctagon];
+    CYTC     [label = "시토크롬 c 방출", fillcolor = "#F8D7DA"];
+    AIF      [label = "AIF / EndoG 핵 전위\n→ DNA 단편화", fillcolor = "#F8D7DA"];
+    CALCIUM  [label = "세포질 Ca2+ 항상성 붕괴\nSERCA·PMCA 부가체화", fillcolor = "#F8D7DA"];
+    MITOBIO  [label = "미토콘드리아 생합성\nPGC-1α · NRF1 · TFAM\n(적응 반응)", fillcolor = "#D8F0DC"];
+    MITOPHAG [label = "마이토파지 (Parkin/PINK1)\n손상 미토 제거", fillcolor = "#D8F0DC"];
+    LIPOPEROX[label = "지질 과산화 · 페롭토시스\nGPX4↓ · 4-HNE · MDA", fillcolor = "#F8D7DA"];
+
+    RM -> ADDUCT [label = "공유결합 (GSH 고갈 후)", color = "#B03A2E", penwidth = 2.6];
+    GSHDEP -> ADDUCT [label = "게이트 개방", color = "#B03A2E", penwidth = 2.2];
+    ADDUCT -> MITOADD [penwidth = 2];
+    MITOADD -> ETC [color = "#B03A2E", penwidth = 2];
+    UNCOUPLE -> ATP [arrowhead = tee, color = "#B03A2E"];
+    BOX -> ATP [arrowhead = tee, color = "#B03A2E"];
+    MTDNA -> ETC [arrowhead = tee, color = "#B03A2E"];
+    ETC -> ROS [label = "전자 누출", color = "#B03A2E", penwidth = 2.2];
+    ETC -> ATP [label = "ATP 생산↓", arrowhead = tee, color = "#B03A2E", penwidth = 2];
+    iNOS -> PEROXY; ROS -> PEROXY;
+    SOD2 -> ROS [arrowhead = tee, color = "#1E7B34"];
+    CAT -> ROS [arrowhead = tee, color = "#1E7B34"];
+    MITOGSH -> ROS [label = "미토 ROS 제거", arrowhead = tee, color = "#1E7B34", penwidth = 1.8];
+    ROS -> MPT [color = "#B03A2E", penwidth = 2.2];
+    PEROXY -> MPT [color = "#B03A2E"];
+    CALCIUM -> MPT [color = "#B03A2E", penwidth = 1.8];
+    ADDUCT -> CALCIUM [style = dashed];
+    ATP -> MPT [label = "ATP↓가 pore 개방 촉진", style = dashed, color = "#B03A2E"];
+    MPT -> CYTC; MPT -> AIF;
+    MPT -> ATP [label = "붕괴", arrowhead = tee, color = "#B03A2E", penwidth = 2.4];
+    MITOBIO -> ETC [label = "복구", color = "#1E7B34"];
+    MITOPHAG -> MPT [arrowhead = tee, color = "#1E7B34"];
+    ROS -> LIPOPEROX; LIPOPEROX -> MPT [style = dashed, color = "#B03A2E"];
+}
+
+/* ==========================================================================
+   CLUSTER 5 — Oxidative stress sensing & Nrf2 adaptive response
+   ========================================================================== */
+subgraph cluster_stress {
+    label = "5 · 산화 스트레스 감지 및 Nrf2 적응 반응 (Oxidative Stress Sensing & Nrf2 Adaptation)";
+    fontsize = 18; fontcolor = "#0E5B5B"; style = "rounded,filled";
+    fillcolor = "#F2FBFA"; color = "#0E5B5B"; penwidth = 2;
+
+    KEAP1  [label = "KEAP1 시스테인 센서\nCys151/273/288 변형", fillcolor = "#FFF6C8"];
+    NRF2   [label = "NRF2 안정화 · 핵 전위\n(적응의 핵심 스위치)", fillcolor = "#D8F0DC", penwidth = 2.6];
+    ARE    [label = "ARE 유전자 프로그램\nNQO1·HO-1·GCLC·GCLM·MRP", fillcolor = "#D8F0DC", penwidth = 2];
+    HO1    [label = "HO-1 (HMOX1)\n빌리버딘 · CO · 철", fillcolor = "#D8F0DC"];
+    ATF4   [label = "통합 스트레스 반응\nPERK-eIF2α-ATF4", fillcolor = "#FFF6C8"];
+    ERSTRS [label = "소포체 스트레스 (UPR)\nIRE1α · XBP1 · CHOP", fillcolor = "#F8D7DA"];
+    AUTOPH [label = "오토파지 (LC3-II · p62)\n부가체 · 손상 소기관 제거", fillcolor = "#D8F0DC"];
+    HSP    [label = "열충격 반응 (HSF1)\nHSP70 · HSP90", fillcolor = "#D8F0DC"];
+    AMPK   [label = "AMPK (ATP↓ 센서)\n이화작용 전환", fillcolor = "#FFF6C8"];
+    SIRT1  [label = "SIRT1 / NAD+ 축", fillcolor = "#D8F0DC"];
+    ADAPT  [label = "적응 (Adaptation)\n'ALT 상승 후 자연 관해'\n— 대다수 노출자의 귀결", fillcolor = "#D8F0DC", penwidth = 3, shape = octagon];
+
+    ROS -> KEAP1 [label = "Cys 산화"];
+    RM -> KEAP1 [label = "직접 부가체화", style = dashed];
+    KEAP1 -> NRF2 [label = "억제 해제", color = "#1E7B34", penwidth = 2.2];
+    NRF2 -> ARE [penwidth = 2];
+    ARE -> HO1; ARE -> GCL [label = "GSH 합성능↑", color = "#1E7B34", penwidth = 2.2];
+    ARE -> NQO1 [color = "#1E7B34"];
+    ARE -> SOD2 [color = "#1E7B34"];
+    HO1 -> ROS [arrowhead = tee, color = "#1E7B34"];
+    ATP -> AMPK [label = "ATP↓ → AMPK↑", style = dashed];
+    AMPK -> AUTOPH [color = "#1E7B34"];
+    AMPK -> MITOBIO [color = "#1E7B34"];
+    SIRT1 -> MITOBIO [color = "#1E7B34"];
+    AUTOPH -> ADDUCT [label = "제거", arrowhead = tee, color = "#1E7B34"];
+    AUTOPH -> MITOPHAG [color = "#1E7B34"];
+    ERSTRS -> ATF4; ATF4 -> ADAPT [style = dashed];
+    ERSTRS -> MPT [label = "CHOP 경로", style = dashed, color = "#B03A2E"];
+    HSP -> ADAPT [color = "#1E7B34"];
+    ARE -> ADAPT [color = "#1E7B34", penwidth = 2.4];
+    NRF2 -> ADAPT [color = "#1E7B34", penwidth = 2];
+}
+
+/* ==========================================================================
+   CLUSTER 6 — JNK–Sab amplification loop and the cell-death decision
+   (this is the bistability that makes DILI a threshold disease)
+   ========================================================================== */
+subgraph cluster_jnk {
+    label = "6 · JNK–Sab 증폭 고리와 세포사 결정 — 쌍안정성의 근원 (JNK–Sab Amplification Loop: the Source of Bistability)";
+    fontsize = 18; fontcolor = "#6A1B9A"; style = "rounded,filled";
+    fillcolor = "#FAF5FF"; color = "#6A1B9A"; penwidth = 2;
+
+    ASK1   [label = "ASK1 (MAP3K5)\nTrx 해리로 활성화", fillcolor = "#FFF6C8", penwidth = 2];
+    MKK4   [label = "MKK4 / MKK7", fillcolor = "#FFF6C8"];
+    PJNK   [label = "인산화 JNK (p-JNK)\n지속적 활성화 = 사망 신호\n(일시적 = 생존)", fillcolor = "#F8D7DA", penwidth = 3, shape = octagon];
+    SAB    [label = "Sab (SH3BP5)\n미토콘드리아 외막 도킹 단백", fillcolor = "#FFF6C8", penwidth = 2.2];
+    SHP1   [label = "미토 내 SHP1 활성화\n→ Src 탈인산화", fillcolor = "#FFF6C8"];
+    LOOP   [label = "정귀환 고리\np-JNK → Sab → ROS → ASK1 → p-JNK\n이득 > 1 이면 폭주", fillcolor = "#F8D7DA", penwidth = 3, shape = doubleoctagon];
+    MLKL   [label = "RIPK1–RIPK3–MLKL\n괴사성 세포사 (necroptosis)", fillcolor = "#F8D7DA"];
+    BAX    [label = "BAX / BAK 올리고머화\nBID → tBID", fillcolor = "#F8D7DA"];
+    CASP9  [label = "Apaf-1 / 카스파제-9", fillcolor = "#F8D7DA"];
+    CASP3  [label = "카스파제-3/7 실행\n(ATP 있을 때만 = 세포자멸사)", fillcolor = "#F8D7DA"];
+    NECROSIS [label = "괴사 (Oncotic necrosis)\nATP < 25% → 카스파제 불능\n막 파열 · 내용물 유출", fillcolor = "#F8D7DA", penwidth = 3, shape = octagon];
+    APOP   [label = "세포자멸사 (Apoptosis)\n막 보존 · DAMP 최소", fillcolor = "#F8D7DA"];
+    SEPARAT[label = "분리선 (Separatrix)\n적응 ↔ 괴사 사이의 불안정 경계\n— 해독제 창의 실제 정의", fillcolor = "#FFF6C8", penwidth = 3, shape = diamond];
+    NFKB   [label = "NF-κB 생존 신호\n(cFLIP · Bcl-xL · SOD2)", fillcolor = "#D8F0DC", penwidth = 2];
+
+    ROS -> ASK1 [label = "Trx 산화", color = "#B03A2E", penwidth = 2.2];
+    ERSTRS -> ASK1 [style = dashed];
+    ASK1 -> MKK4; MKK4 -> PJNK [penwidth = 2];
+    PJNK -> SAB [color = "#B03A2E", penwidth = 2.4];
+    SAB -> SHP1; SHP1 -> ETC [label = "Src 억제 → 호흡 저해", color = "#B03A2E", penwidth = 2];
+    SHP1 -> ROS [label = "ROS 추가 생성", color = "#B03A2E", penwidth = 2.4];
+    ROS -> LOOP [style = dashed]; PJNK -> LOOP [style = dashed]; SAB -> LOOP [style = dashed];
+    LOOP -> SEPARAT [label = "이득이 임계 초과", color = "#B03A2E", penwidth = 2.4];
+    PJNK -> MPT [label = "MPT 개방 촉진", color = "#B03A2E", penwidth = 2.4];
+    PJNK -> BAX; BAX -> CYTC; CYTC -> CASP9; CASP9 -> CASP3;
+    CASP3 -> APOP;
+    ATP -> CASP3 [label = "ATP 필요", style = dashed];
+    MPT -> NECROSIS [color = "#B03A2E", penwidth = 2.8];
+    ATP -> NECROSIS [label = "ATP < 25%", arrowhead = tee, color = "#B03A2E", penwidth = 2.4];
+    MLKL -> NECROSIS [color = "#B03A2E"];
+    PJNK -> MLKL [style = dashed];
+    NFKB -> PJNK [arrowhead = tee, color = "#1E7B34", penwidth = 1.8];
+    NFKB -> APOP [arrowhead = tee, color = "#1E7B34"];
+    SEPARAT -> NECROSIS [label = "초과 시", color = "#B03A2E", penwidth = 2.4];
+    SEPARAT -> ADAPT [label = "미달 시", color = "#1E7B34", penwidth = 2.4];
+    NRF2 -> LOOP [label = "이득 감소", arrowhead = tee, color = "#1E7B34", penwidth = 2];
+}
+
+/* ==========================================================================
+   CLUSTER 7 — Bile acid homeostasis and cholestatic injury
+   ========================================================================== */
+subgraph cluster_bile {
+    label = "7 · 담즙산 항상성 및 담즙정체성 손상 (Bile Acid Homeostasis & Cholestatic Injury)";
+    fontsize = 18; fontcolor = "#7A5C00"; style = "rounded,filled";
+    fillcolor = "#FFFBF0"; color = "#7A5C00"; penwidth = 2;
+
+    CYP7A1  [label = "CYP7A1\n담즙산 신생합성 율속", fillcolor = "#FBE3D6"];
+    BAHC    [label = "간세포 내 담즙산\nIntracellular bile acids\n(독성 종: LCA · DCA · CDCA)", fillcolor = "#F8D7DA", penwidth = 2.6, shape = octagon];
+    BSEP    [label = "BSEP (ABCB11)\n담관측 담즙산 배출 펌프\n억제 = 담즙정체 DILI 핵심", fillcolor = "#FBE3D6", penwidth = 2.8];
+    MRP2    [label = "MRP2 (ABCC2)\n포합체 · 빌리루빈 배출", fillcolor = "#FBE3D6"];
+    MRP34   [label = "MRP3 / MRP4 (기저측)\n대상성 역류 경로", fillcolor = "#FBE3D6", penwidth = 2];
+    MDR3    [label = "MDR3 (ABCB4)\n인지질 flop — 담즙 미셀 형성", fillcolor = "#FBE3D6"];
+    NTCP    [label = "NTCP (SLC10A1)\n담즙산 재유입", fillcolor = "#FBE3D6"];
+    FXR     [label = "FXR (NR1H4)\n담즙산 센서", fillcolor = "#D8F0DC", penwidth = 2.2];
+    SHP     [label = "SHP (NR0B2)\nCYP7A1 억제", fillcolor = "#D8F0DC"];
+    FGF19   [label = "장 FGF19 → FGFR4\n장-간 축 피드백", fillcolor = "#D8F0DC"];
+    BAPLASM [label = "혈장 총 담즙산\nTotal serum bile acids\n(조기 민감 지표)", fillcolor = "#CFE7E4", penwidth = 2];
+    BADETER [label = "담즙산 세포독성\n미셀 용해 · MPT · 아폽토시스\n· CXCL1/2 유도", fillcolor = "#F8D7DA", penwidth = 2.2];
+    BILICONJ[label = "빌리루빈 포합 (UGT1A1)\n· MRP2 배출", fillcolor = "#FBE3D6"];
+    CHOLANG [label = "담관세포 손상 (담관병증)\nVanishing bile duct syndrome", fillcolor = "#F8D7DA"];
+    ALKPHOS [label = "ALP / GGT 유리\n담관 상피 유래", fillcolor = "#CFE7E4"];
+    DRUGBSEP[label = "BSEP 억제 약물\n트로글리타존 · 보센탄 · 시클로스포린\n· 글리부라이드 (IC50 < 25 µM = 위험)", fillcolor = "#F8D7DA", penwidth = 2.2];
+
+    CYP7A1 -> BAHC [label = "신생합성"];
+    NTCP -> BAHC [label = "문맥 재유입"];
+    BAHC -> BSEP [label = "담관측 배출 (주 경로)", penwidth = 2.2];
+    BAHC -> MRP34 [label = "역류 (대상)", color = "#1E7B34"];
+    MRP34 -> BAPLASM [penwidth = 2];
+    DRUGBSEP -> BSEP [label = "경쟁적 억제", arrowhead = tee, color = "#B03A2E", penwidth = 2.6];
+    LIVDRUG -> DRUGBSEP [style = dashed];
+    BSEP -> BAHC [label = "제거", arrowhead = tee, penwidth = 2];
+    BAHC -> BADETER [label = "농도 임계 초과", color = "#B03A2E", penwidth = 2.4];
+    BADETER -> MPT [color = "#B03A2E", penwidth = 2];
+    BADETER -> ROS [color = "#B03A2E"];
+    BADETER -> NECROSIS [color = "#B03A2E", style = dashed];
+    BAHC -> FXR [label = "센서 활성화", color = "#1E7B34"];
+    FXR -> SHP; SHP -> CYP7A1 [arrowhead = tee, color = "#1E7B34", penwidth = 2];
+    FXR -> BSEP [label = "전사 유도", color = "#1E7B34", penwidth = 1.8];
+    FXR -> MRP34 [label = "탈출 경로 유도", color = "#1E7B34"];
+    FGF19 -> CYP7A1 [arrowhead = tee, color = "#1E7B34"];
+    MDR3 -> BADETER [label = "미셀 보호", arrowhead = tee, color = "#1E7B34"];
+    MRP2 -> BILICONJ [dir = back];
+    BILICONJ -> ALKPHOS [style = invis];
+    CHOLANG -> ALKPHOS [penwidth = 1.8];
+    BADETER -> CHOLANG [color = "#B03A2E"];
+    MRP2 -> CHOLANG [arrowhead = tee, style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 8 — Innate immunity: DAMPs, Kupffer cells, sterile inflammation
+   ========================================================================== */
+subgraph cluster_innate {
+    label = "8 · 선천면역 — DAMP · 쿠퍼세포 · 무균성 염증 (Innate Immunity: DAMPs, Kupffer Cells, Sterile Inflammation)";
+    fontsize = 18; fontcolor = "#4A148C"; style = "rounded,filled";
+    fillcolor = "#F8F4FD"; color = "#4A148C"; penwidth = 2;
+
+    DAMP     [label = "DAMPs 방출\nHMGB1 · mtDNA · ATP · F-actin\n· 요산 · HSP", fillcolor = "#F8D7DA", penwidth = 2.6, shape = octagon];
+    TLR4     [label = "TLR4 / TLR9 / RAGE", fillcolor = "#FBE3D6"];
+    NLRP3    [label = "NLRP3 인플라마좀\n· 카스파제-1", fillcolor = "#FBE3D6", penwidth = 2];
+    KUPFFER  [label = "쿠퍼세포 활성화\nM1 (전염증) ↔ M2 (수복)", fillcolor = "#EDE0F5", penwidth = 2.4];
+    MONOCYTE [label = "골수유래 단핵구 유입\nLy6C-hi → Ly6C-lo 전환", fillcolor = "#EDE0F5"];
+    NEUTRO   [label = "호중구 침윤\nMPO · NETs · 산화폭발", fillcolor = "#EDE0F5", penwidth = 2];
+    NKT      [label = "NK / NKT 세포\nIFN-γ · 퍼포린", fillcolor = "#EDE0F5"];
+    TNFA     [label = "TNF-α\n(양날: 사멸 + 재생 프라이밍)", fillcolor = "#EDE0F5", penwidth = 2.4];
+    IL1B     [label = "IL-1β\n(카스파제-1 절단)", fillcolor = "#EDE0F5"];
+    IL6      [label = "IL-6 → STAT3\n간보호 · 급성기 반응 · 재생", fillcolor = "#D8F0DC", penwidth = 2];
+    IL10     [label = "IL-10 (항염)\n손상 억제", fillcolor = "#D8F0DC", penwidth = 2];
+    CXCL     [label = "CXCL1 / CXCL2 / MCP-1\n주화성 구배", fillcolor = "#EDE0F5"];
+    HSCELL   [label = "간 성상세포 활성화\n→ 만성 시 섬유화", fillcolor = "#F8D7DA"];
+    LSEC     [label = "동양혈관 내피세포 손상\nSinusoidal obstruction syndrome", fillcolor = "#F8D7DA"];
+    COAG     [label = "응고 활성화 · 피브린 침착\n(TF · PAI-1)", fillcolor = "#F8D7DA"];
+    EFFEROC  [label = "사멸세포 포식 (efferocytosis)\n염증 소실 프로그램", fillcolor = "#D8F0DC"];
+
+    NECROSIS -> DAMP [color = "#B03A2E", penwidth = 2.8];
+    DAMP -> TLR4 [penwidth = 2]; DAMP -> NLRP3 [penwidth = 2];
+    TLR4 -> KUPFFER [penwidth = 2.2]; NLRP3 -> IL1B [penwidth = 2];
+    KUPFFER -> TNFA [penwidth = 2.2]; KUPFFER -> IL1B; KUPFFER -> IL6; KUPFFER -> IL10;
+    KUPFFER -> CXCL; CXCL -> NEUTRO [penwidth = 2]; CXCL -> MONOCYTE;
+    MONOCYTE -> KUPFFER [label = "보충"];
+    NEUTRO -> ROS [label = "2차 산화 손상", color = "#B03A2E", penwidth = 1.8];
+    NEUTRO -> NECROSIS [label = "2차 손상 확대", color = "#B03A2E", style = dashed];
+    NKT -> TNFA;
+    TNFA -> NFKB [label = "생존 신호도 동시 유발", color = "#1E7B34"];
+    TNFA -> PJNK [label = "지속 JNK 유도", color = "#B03A2E", penwidth = 2];
+    IL1B -> CXCL;
+    IL6 -> NFKB [color = "#1E7B34"];
+    IL10 -> KUPFFER [arrowhead = tee, color = "#1E7B34", penwidth = 1.8];
+    IL10 -> TNFA [arrowhead = tee, color = "#1E7B34"];
+    EFFEROC -> IL10 [color = "#1E7B34"];
+    NEUTRO -> EFFEROC [dir = back, style = dashed];
+    TNFA -> HSCELL; HSCELL -> LSEC [style = dashed];
+    LSEC -> COAG; COAG -> NECROSIS [label = "허혈 확대", style = dashed, color = "#B03A2E"];
+    BADETER -> CXCL [label = "담즙산 유도 주화성", color = "#B03A2E", style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 9 — Adaptive immunity: idiosyncratic, HLA-restricted DILI
+   ========================================================================== */
+subgraph cluster_adaptive {
+    label = "9 · 적응면역 — 특이체질(Idiosyncratic) HLA 제한 DILI (Adaptive Immunity: Idiosyncratic HLA-restricted DILI)";
+    fontsize = 18; fontcolor = "#1B5E20"; style = "rounded,filled";
+    fillcolor = "#F4FBF4"; color = "#1B5E20"; penwidth = 2;
+
+    HAPTEN  [label = "합텐 형성 (Hapten hypothesis)\n약물-단백 부가체 = 신생항원", fillcolor = "#F8D7DA", penwidth = 2.2];
+    PI      [label = "p-i 개념 (직접 HLA 결합)\n비공유 약물-HLA/TCR 상호작용", fillcolor = "#F8D7DA"];
+    APC     [label = "항원제시세포 (DC · KC)\nMHC-II 제시 · 공자극 (CD80/86)", fillcolor = "#EDE0F5", penwidth = 2];
+    HLARISK [label = "HLA 위험 대립유전자\nB*57:01 (플루클록사실린)\nDRB1*15:01 (아목시실린-클라불란산)\nB*35:02 (미노사이클린) · A*33:01", fillcolor = "#F8D7DA", penwidth = 2.6];
+    CD8T    [label = "약물특이 CD8+ T 세포\n퍼포린 · 그랜자임 B · FasL", fillcolor = "#EDE0F5", penwidth = 2.4];
+    CD4T    [label = "CD4+ Th1 / Th17\nIFN-γ · IL-17", fillcolor = "#EDE0F5"];
+    TREG    [label = "조절 T 세포 (Treg)\n면역 관용 유지 — 결정적", fillcolor = "#D8F0DC", penwidth = 2.4];
+    PD1     [label = "PD-1 / CTLA-4 관문\n간 내 관용 축", fillcolor = "#D8F0DC", penwidth = 2.2];
+    ICI     [label = "면역관문억제제 (ICI)\n관용 제거 → ICI 간염 (grade 3–4 ~2–10%)", fillcolor = "#F8D7DA", penwidth = 2.2];
+    TOLER   [label = "면역 관용 (Tolerance)\n대다수에서 자연 소실\n= 특이체질 DILI가 드문 이유", fillcolor = "#D8F0DC", penwidth = 2.6, shape = octagon];
+    LATENCY [label = "잠복기 (Latency)\n1–12주 (감작 시간)\n재투여 시 급속 재발", fillcolor = "#E2E3E5", penwidth = 2];
+    AUTOAB  [label = "자가항체 (ANA · SMA · 항-LKM)\n약물유발 자가면역 간염", fillcolor = "#F8D7DA"];
+    EOSIN   [label = "호산구증가 · 발진 · 발열\nDRESS 표현형", fillcolor = "#F8D7DA"];
+    KILL    [label = "세포독성 간세포 살상\n(용량 비의존 · 개체 특이)", fillcolor = "#F8D7DA", penwidth = 2.4];
+
+    ADDUCT -> HAPTEN [penwidth = 2.2];
+    LIVDRUG -> PI [style = dashed];
+    HAPTEN -> APC [penwidth = 2]; PI -> APC;
+    DAMP -> APC [label = "위험 신호 (2차 신호)", penwidth = 2, color = "#B03A2E"];
+    HLARISK -> APC [label = "제시 가능 펩타이드 결정", penwidth = 2.2];
+    APC -> CD8T [penwidth = 2.2]; APC -> CD4T;
+    CD4T -> CD8T [label = "도움"];
+    CD8T -> KILL [penwidth = 2.4];
+    CD4T -> EOSIN;
+    KILL -> NECROSIS [color = "#B03A2E", penwidth = 2.4];
+    KILL -> APOP [color = "#B03A2E"];
+    TREG -> CD8T [arrowhead = tee, color = "#1E7B34", penwidth = 2.2];
+    PD1 -> CD8T [arrowhead = tee, color = "#1E7B34", penwidth = 2.2];
+    TREG -> TOLER [color = "#1E7B34", penwidth = 2]; PD1 -> TOLER [color = "#1E7B34", penwidth = 2];
+    IL10 -> TREG [color = "#1E7B34"];
+    ICI -> PD1 [arrowhead = tee, color = "#B03A2E", penwidth = 2.4];
+    ICI -> TREG [arrowhead = tee, color = "#B03A2E"];
+    TOLER -> KILL [arrowhead = tee, color = "#1E7B34", penwidth = 2.4];
+    LATENCY -> CD8T [label = "감작 기간", style = dashed];
+    CD4T -> AUTOAB [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 10 — Regeneration, repair and functional reserve
+   ========================================================================== */
+subgraph cluster_regen {
+    label = "10 · 재생 · 수복 · 기능 예비력 (Regeneration, Repair & Functional Reserve)";
+    fontsize = 18; fontcolor = "#00695C"; style = "rounded,filled";
+    fillcolor = "#F1FAF8"; color = "#00695C"; penwidth = 2;
+
+    HEPVIABLE [label = "생존 간세포 질량\nViable hepatocyte mass\n(기능 예비력 = 예후 결정자)", fillcolor = "#E2E3E5", penwidth = 3, shape = octagon];
+    HEPSTRESS [label = "스트레스 간세포 풀\n(가역적 · 회복 가능)", fillcolor = "#FFF6C8", penwidth = 2];
+    PRIMING   [label = "재생 프라이밍\nTNF-α · IL-6 → STAT3 → G0 탈출", fillcolor = "#D8F0DC", penwidth = 2.2];
+    HGF       [label = "HGF / c-Met\n주 유사분열 촉진 인자", fillcolor = "#D8F0DC", penwidth = 2.2];
+    EGF       [label = "EGF / TGF-α / VEGF", fillcolor = "#D8F0DC"];
+    CYCLIN    [label = "세포주기 진입\nCyclin D1 · PCNA · Ki-67", fillcolor = "#D8F0DC"];
+    TGFB      [label = "TGF-β1 (증식 정지 신호)\n재생 종료 · 섬유화 유발", fillcolor = "#F8D7DA"];
+    PROGEN    [label = "간 전구세포 (ductular reaction)\n대량 손실 시 동원", fillcolor = "#D8F0DC"];
+    SYNTHFN   [label = "간 합성 기능\n알부민 · 응고인자 V/VII\n(INR 결정)", fillcolor = "#E2E3E5", penwidth = 2.4];
+    DETOXFN   [label = "간 해독 기능\n암모니아 제거 · 약물 청소율", fillcolor = "#E2E3E5", penwidth = 2];
+    ZONAL     [label = "구역 특이성 (Zone 3 / centrilobular)\nCYP2E1 최고 발현부에서 괴사 시작", fillcolor = "#E2E3E5", penwidth = 2];
+    FIBROSIS  [label = "섬유화 (만성 DILI · 10–20%)\n콜라겐 I/III 침착", fillcolor = "#F8D7DA"];
+
+    HEPVIABLE -> HEPSTRESS [label = "손상 진입"];
+    HEPSTRESS -> HEPVIABLE [label = "회복 (k_rec)", color = "#1E7B34", penwidth = 2];
+    HEPSTRESS -> NECROSIS [label = "임계 초과", color = "#B03A2E", penwidth = 2];
+    NECROSIS -> HEPVIABLE [label = "질량 손실", arrowhead = tee, color = "#B03A2E", penwidth = 2.6];
+    TNFA -> PRIMING [color = "#1E7B34", penwidth = 2]; IL6 -> PRIMING [color = "#1E7B34", penwidth = 2];
+    PRIMING -> CYCLIN; HGF -> CYCLIN [penwidth = 2]; EGF -> CYCLIN;
+    CYCLIN -> HEPVIABLE [label = "질량 회복 (k_reg)", color = "#1E7B34", penwidth = 2.6];
+    TGFB -> CYCLIN [arrowhead = tee, color = "#B03A2E", penwidth = 1.8];
+    TGFB -> FIBROSIS; HSCELL -> FIBROSIS [penwidth = 1.8];
+    PROGEN -> HEPVIABLE [label = "대량 손실 시", style = dashed, color = "#1E7B34"];
+    HEPVIABLE -> SYNTHFN [penwidth = 2.4]; HEPVIABLE -> DETOXFN [penwidth = 2];
+    ZONAL -> NECROSIS [label = "괴사 개시 부위", style = dashed];
+    CYP2E1 -> ZONAL [label = "중심정맥역 발현", style = dashed];
+    NECROSIS -> EFFEROC [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 11 — Host susceptibility modifiers
+   ========================================================================== */
+subgraph cluster_host {
+    label = "11 · 숙주 감수성 조절 인자 (Host Susceptibility Modifiers)";
+    fontsize = 18; fontcolor = "#5D4037"; style = "rounded,filled";
+    fillcolor = "#FAF7F5"; color = "#5D4037"; penwidth = 2;
+
+    AGE      [label = "연령 (>55세)\n· 재생능↓ · 예비력↓", fillcolor = "#E2E3E5"];
+    SEXF     [label = "여성\n(급성 간부전 · 자가면역형 위험↑)", fillcolor = "#E2E3E5"];
+    ETOH     [label = "만성 알코올 섭취\nCYP2E1 유도 + GSH 고갈\n(이중 타격)", fillcolor = "#F8D7DA", penwidth = 2.2];
+    MALNUT   [label = "금식 · 영양불량 · 저체중\n글리코겐·시스테인 고갈", fillcolor = "#F8D7DA"];
+    NAFLD    [label = "비만 · MASLD\n미토 예비력↓ · CYP2E1↑", fillcolor = "#F8D7DA"];
+    UNDERLIV [label = "기저 간질환 (간경변)\n예비력 상실 → 회복 실패", fillcolor = "#F8D7DA", penwidth = 2];
+    POLYPH   [label = "다약제 복용 · DDI\nCYP 유도(리팜핀)·억제", fillcolor = "#F8D7DA"];
+    HLAGEN   [label = "HLA 및 비-HLA 유전형\nPTPN22 · HLA-DQA1*02:01", fillcolor = "#F8D7DA"];
+    MITOHAP  [label = "미토콘드리아 하플로타입\nSOD2 Ala16Val · GPX1 Pro198Leu", fillcolor = "#F8D7DA"];
+    MICROB   [label = "장내 미생물총\nLPS 전위 · β-glucuronidase 활성", fillcolor = "#E2E3E5"];
+    HERBAL   [label = "생약 · 건강기능식품 (HDS)\n미국 DILIN 등록의 20%+", fillcolor = "#F8D7DA"];
+    PREGN    [label = "임신 · 호르몬 상태", fillcolor = "#E2E3E5"];
+
+    ETOH -> CYP2E1 [label = "유도 (2–3배)", color = "#B03A2E", penwidth = 2.4];
+    ETOH -> GSH [label = "고갈", arrowhead = tee, color = "#B03A2E", penwidth = 2];
+    MALNUT -> FASTING [penwidth = 2];
+    MALNUT -> UGT [label = "글루쿠론산 공급↓", arrowhead = tee, color = "#B03A2E"];
+    NAFLD -> CYP2E1 [color = "#B03A2E"];
+    NAFLD -> ETC [label = "미토 예비력↓", arrowhead = tee, color = "#B03A2E"];
+    AGE -> CYCLIN [arrowhead = tee, color = "#B03A2E"];
+    UNDERLIV -> HEPVIABLE [label = "기저 질량↓", arrowhead = tee, color = "#B03A2E", penwidth = 2];
+    POLYPH -> CYP3A4 [label = "유도/억제", style = dashed];
+    HLAGEN -> HLARISK [penwidth = 2];
+    MITOHAP -> SOD2 [arrowhead = tee, style = dashed];
+    MICROB -> ENTERO [style = dashed];
+    MICROB -> TLR4 [label = "LPS 전위", style = dashed];
+    HERBAL -> LIVDRUG [style = dashed, color = "#B03A2E"];
+    SEXF -> CD8T [style = dashed];
+    PREGN -> CYP2E1 [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 12 — Biomarkers
+   ========================================================================== */
+subgraph cluster_biomarker {
+    label = "12 · 바이오마커 (Biomarkers: Mechanistic and Regulatory)";
+    fontsize = 18; fontcolor = "#00579B"; style = "rounded,filled";
+    fillcolor = "#F1F8FE"; color = "#00579B"; penwidth = 2;
+
+    ALT     [label = "혈청 ALT\n= 사멸 '속도'의 대리지표\n(t½ ≈ 47 h)", fillcolor = "#CFE7E4", penwidth = 2.8, shape = octagon];
+    AST     [label = "혈청 AST\n(t½ ≈ 17 h · 근육 유래 혼입)", fillcolor = "#CFE7E4"];
+    TBIL    [label = "총 빌리루빈\n= 잔여 '예비력'의 대리지표\n(기능 질량 < 50%서 상승)", fillcolor = "#CFE7E4", penwidth = 2.8, shape = octagon];
+    ALPB    [label = "ALP\n담관 손상 지표", fillcolor = "#CFE7E4"];
+    INR     [label = "INR / 응고인자 V\n합성 기능 붕괴", fillcolor = "#CFE7E4", penwidth = 2.4];
+    RRATIO  [label = "R-비 = (ALT/ULN)/(ALP/ULN)\nR≥5 간세포형 · R≤2 담즙정체형\n· 2<R<5 혼합형", fillcolor = "#CFE7E4", penwidth = 2.4, shape = diamond];
+    MIR122  [label = "miR-122\n간 특이 · ALT보다 조기 상승", fillcolor = "#CFE7E4", penwidth = 2];
+    HMGB1B  [label = "HMGB1 (전장/아세틸화)\n괴사 대 면역활성 구분", fillcolor = "#CFE7E4", penwidth = 2];
+    K18     [label = "K18 / ccK18 (M65/M30)\n괴사 대 아폽토시스 비율", fillcolor = "#CFE7E4", penwidth = 2];
+    GLDH    [label = "GLDH\n미토콘드리아 유래 · 간 특이", fillcolor = "#CFE7E4"];
+    CSF1R   [label = "MCSFR / 오스테오폰틴\n대식세포 활성화 지표", fillcolor = "#CFE7E4"];
+    APAPCYS [label = "APAP-Cys 부가체 (혈중)\n노출 확진 바이오마커", fillcolor = "#CFE7E4", penwidth = 2];
+    TBAB    [label = "혈청 총 담즙산\n담즙정체 조기 지표", fillcolor = "#CFE7E4"];
+    LACTATE [label = "동맥 젖산 · 암모니아\n미토 부전 · 예후 지표", fillcolor = "#CFE7E4"];
+    ALBUM   [label = "알부민 (t½ 20일)\n만성 · 아급성 지표", fillcolor = "#CFE7E4"];
+
+    NECROSIS -> ALT [label = "유리 (∝ 괴사 속도)", penwidth = 2.8];
+    NECROSIS -> AST [penwidth = 2]; NECROSIS -> GLDH [penwidth = 1.8];
+    NECROSIS -> MIR122 [penwidth = 2]; NECROSIS -> HMGB1B [penwidth = 2];
+    NECROSIS -> K18 [penwidth = 1.8]; APOP -> K18 [label = "ccK18 (M30)"];
+    HEPVIABLE -> TBIL [label = "질량 부족 시 상승", arrowhead = tee, penwidth = 2.6];
+    BILICONJ -> TBIL [arrowhead = tee, penwidth = 1.8];
+    MRP2 -> TBIL [arrowhead = tee, style = dashed];
+    SYNTHFN -> INR [arrowhead = tee, penwidth = 2.6];
+    SYNTHFN -> ALBUM [arrowhead = tee];
+    ALKPHOS -> ALPB [penwidth = 2];
+    ALT -> RRATIO [penwidth = 2]; ALPB -> RRATIO [penwidth = 2];
+    ADDUCT -> APAPCYS [penwidth = 1.8];
+    BAPLASM -> TBAB [penwidth = 2];
+    ATP -> LACTATE [arrowhead = tee, penwidth = 1.8];
+    DETOXFN -> LACTATE [arrowhead = tee, style = dashed];
+    KUPFFER -> CSF1R [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 13 — Clinical endpoints, causality and prognosis
+   ========================================================================== */
+subgraph cluster_clin {
+    label = "13 · 임상 종말점 · 인과성 · 예후 (Clinical Endpoints, Causality & Prognosis)";
+    fontsize = 18; fontcolor = "#B71C1C"; style = "rounded,filled";
+    fillcolor = "#FFF4F4"; color = "#B71C1C"; penwidth = 2;
+
+    ASYMPT  [label = "무증상 효소 상승\n(적응 · 자연 소실)", fillcolor = "#FADCE8"];
+    HEPATOC [label = "간세포형 손상\nALT ≥ 5×ULN · R ≥ 5", fillcolor = "#FADCE8", penwidth = 2];
+    CHOLES  [label = "담즙정체형 손상\nALP ≥ 2×ULN · R ≤ 2\n(회복 느림 · 소양증)", fillcolor = "#FADCE8", penwidth = 2];
+    MIXED   [label = "혼합형 손상\n2 < R < 5", fillcolor = "#FADCE8"];
+    HYLAW   [label = "Hy's Law\nALT ≥ 3×ULN AND TBIL ≥ 2×ULN\n(담도폐색 없이) → 사망/이식 ~10%", fillcolor = "#FADCE8", penwidth = 3, shape = doubleoctagon];
+    ALFAIL  [label = "급성 간부전 (ALF)\n간성뇌증 + INR ≥ 1.5", fillcolor = "#FADCE8", penwidth = 2.6];
+    ENCEPH  [label = "간성뇌증 (I–IV등급)\n암모니아 · 뇌부종", fillcolor = "#FADCE8"];
+    KCC     [label = "King's College 기준\nAPAP형: pH<7.3 또는\n(INR>6.5 + Cr>3.4 + HE III–IV)", fillcolor = "#FADCE8", penwidth = 2.6, shape = diamond];
+    MELD    [label = "MELD / MELD-Na 점수", fillcolor = "#FADCE8"];
+    TRANSPL [label = "간이식 · 사망", fillcolor = "#FADCE8", penwidth = 2.4];
+    RECOV   [label = "완전 회복 (대다수)\n대개 6개월 이내", fillcolor = "#D8F0DC", penwidth = 2.4];
+    CHRONIC [label = "만성화 DILI (약 10–20%)\n6개월 이상 지속", fillcolor = "#FADCE8"];
+    VBDS    [label = "소실성 담관 증후군 (VBDS)\n비가역적 담관 소실", fillcolor = "#FADCE8"];
+    RUCAM   [label = "인과성 평가\nRUCAM / RECAM · DILIN 전문가 합의\n(dechallenge / rechallenge)", fillcolor = "#E2E3E5", penwidth = 2];
+    PRURIT  [label = "소양증 · 황달 · 피로\n· 우상복부 통증", fillcolor = "#FADCE8"];
+    REEXPO  [label = "재투여 (rechallenge)\n급속·중증 재발 — 원칙적 금기", fillcolor = "#FADCE8", penwidth = 2];
+
+    ALT -> HEPATOC [penwidth = 2]; RRATIO -> HEPATOC; RRATIO -> CHOLES; RRATIO -> MIXED;
+    ALPB -> CHOLES [penwidth = 2];
+    ALT -> HYLAW [penwidth = 2.6]; TBIL -> HYLAW [penwidth = 2.6];
+    ADAPT -> ASYMPT [color = "#1E7B34", penwidth = 2.2];
+    HYLAW -> ALFAIL [penwidth = 2.2];
+    INR -> ALFAIL [penwidth = 2.2]; ENCEPH -> ALFAIL [penwidth = 2];
+    DETOXFN -> ENCEPH [arrowhead = tee, penwidth = 2];
+    LACTATE -> KCC [penwidth = 1.8]; INR -> KCC [penwidth = 1.8]; ENCEPH -> KCC;
+    ALFAIL -> KCC [penwidth = 2]; KCC -> TRANSPL [penwidth = 2.4];
+    MELD -> TRANSPL;
+    TBIL -> MELD; INR -> MELD;
+    HEPVIABLE -> RECOV [label = "예비력 충분", color = "#1E7B34", penwidth = 2.4];
+    CYCLIN -> RECOV [color = "#1E7B34", penwidth = 2];
+    CHOLES -> CHRONIC [penwidth = 1.8]; CHOLES -> PRURIT;
+    CHOLANG -> VBDS [penwidth = 2]; VBDS -> CHRONIC;
+    FIBROSIS -> CHRONIC;
+    RUCAM -> HEPATOC [style = dashed, dir = back];
+    REEXPO -> CD8T [label = "기억 T세포 즉시 반응", color = "#B03A2E", penwidth = 2];
+    TBIL -> PRURIT [style = dashed];
+    HEPATOC -> ALFAIL [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 14 — Therapeutics and clinical management
+   ========================================================================== */
+subgraph cluster_tx {
+    label = "14 · 치료 및 임상 관리 (Therapeutics & Clinical Management)";
+    fontsize = 18; fontcolor = "#8A5B00"; style = "rounded,filled";
+    fillcolor = "#FFFAF0"; color = "#8A5B00"; penwidth = 2;
+
+    STOPDRUG [label = "원인 약물 즉시 중단\n(가장 효과적인 단일 개입)", fillcolor = "#FFE7B3", penwidth = 2.8];
+    NAC      [label = "N-아세틸시스테인 (NAC)\nIV 프레스콧: 150→50→100 mg/kg\n또는 21시간 SNAP 요법", fillcolor = "#FFE7B3", penwidth = 3, shape = octagon];
+    NACMECH1 [label = "NAC 기전 ①\n시스테인 공급 → GSH 재합성", fillcolor = "#FFE7B3", penwidth = 2];
+    NACMECH2 [label = "NAC 기전 ②\n직접 ROS 소거 · 티올 환원", fillcolor = "#FFE7B3"];
+    NACMECH3 [label = "NAC 기전 ③\n미세순환·산소 전달 개선\n(비-APAP ALF에서도 유익)", fillcolor = "#FFE7B3"];
+    RUMACK   [label = "Rumack-Matthew 노모그램\n4시간 농도 150 µg/mL 선\n(단회 급성 섭취에만 유효)", fillcolor = "#FFE7B3", penwidth = 2.2];
+    FOMEP    [label = "포메피졸 (4-MP)\nCYP2E1 억제 + JNK 억제\n(보조 요법 · 연구 단계)", fillcolor = "#FFE7B3", penwidth = 2.2];
+    CALMANG  [label = "칼망가포디피르\nSOD 모방체 (2상)", fillcolor = "#FFE7B3"];
+    CORTICO  [label = "코르티코스테로이드\n면역매개형·ICI 간염·DRESS\n(APAP형에는 무효)", fillcolor = "#FFE7B3", penwidth = 2.2];
+    MMF      [label = "마이코페놀레이트 · 타크롤리무스\n스테로이드 불응 ICI 간염", fillcolor = "#FFE7B3"];
+    UDCA     [label = "UDCA\n담즙정체형 · 담즙산 풀 친수화", fillcolor = "#FFE7B3", penwidth = 2];
+    CHOLEST  [label = "콜레스티라민 · 라이팜핀\n소양증 · 담즙산 격리\n(레플루노마이드 washout)", fillcolor = "#FFE7B3"];
+    LCARN    [label = "L-카르니틴\n발프로산 독성 · FAO 구제", fillcolor = "#FFE7B3", penwidth = 2];
+    CARNIT   [label = "L-오르니틴 L-아스파르테이트\n· 락툴로스 · 리팍시민 (뇌증)", fillcolor = "#FFE7B3"];
+    MARS     [label = "체외 간 보조 (MARS · 혈장교환)\n고용량 혈장교환은 ALF 생존 개선", fillcolor = "#FFE7B3", penwidth = 2];
+    LTX      [label = "간이식 (구제 치료)", fillcolor = "#FFE7B3", penwidth = 2.2];
+    MONITOR  [label = "예방적 모니터링 전략\n이소니아지드·항결핵 ALT 추적\n· '중단 규칙' (ALT>5×ULN)", fillcolor = "#FFE7B3", penwidth = 2];
+    DEPRESCR [label = "대체 약제 전환 · 재투여 금지\n· 환자 알림 카드", fillcolor = "#FFE7B3"];
+
+    STOPDRUG -> LIVDRUG [label = "유입 차단", arrowhead = tee, color = "#B8860B", penwidth = 2.8];
+    NAC -> NACMECH1 [penwidth = 2]; NAC -> NACMECH2; NAC -> NACMECH3;
+    NACMECH1 -> CYS [label = "기질 공급", color = "#1E7B34", penwidth = 2.8];
+    NACMECH2 -> ROS [arrowhead = tee, color = "#1E7B34", penwidth = 2];
+    NACMECH3 -> ATP [color = "#1E7B34"];
+    NAC -> SEPARAT [label = "분리선 아래로 되돌림\n(창 = 분리선 도달 시각)", color = "#1E7B34", penwidth = 2.8, style = bold];
+    RUMACK -> NAC [label = "치료 개시 결정", penwidth = 2];
+    APAPCYS -> RUMACK [style = dashed, dir = back];
+    FOMEP -> CYP2E1 [arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    FOMEP -> PJNK [arrowhead = tee, color = "#B8860B", penwidth = 2];
+    CALMANG -> ROS [arrowhead = tee, color = "#B8860B"];
+    CORTICO -> CD8T [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    CORTICO -> KUPFFER [arrowhead = tee, color = "#B8860B"];
+    MMF -> CD8T [arrowhead = tee, color = "#B8860B"];
+    UDCA -> BAHC [label = "독성 담즙산 희석", arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    UDCA -> BSEP [label = "이동 자극", color = "#B8860B"];
+    CHOLEST -> ENTERO [arrowhead = tee, color = "#B8860B", penwidth = 2];
+    LCARN -> BOX [arrowhead = tee, color = "#B8860B", penwidth = 2];
+    CARNIT -> ENCEPH [arrowhead = tee, color = "#B8860B"];
+    MARS -> TBIL [arrowhead = tee, color = "#B8860B"];
+    MARS -> ALFAIL [arrowhead = tee, color = "#B8860B", penwidth = 2];
+    LTX -> TRANSPL [style = dashed];
+    MONITOR -> STOPDRUG [label = "조기 검출", color = "#B8860B", penwidth = 2];
+    ALT -> MONITOR [style = dashed, dir = back];
+    DEPRESCR -> REEXPO [arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    ACHARCOAL -> DOSE [style = invis];
+}
+
+/* ==========================================================================
+   Cross-cluster integrating edges — the load-bearing structure
+   ========================================================================== */
+
+    /* the central rate comparison */
+    RM   -> GSH      [label = "  소비 flux (v_conj)  ", color = "#B03A2E", penwidth = 2.8, arrowhead = tee, constraint = false];
+    GCL  -> RM       [label = "  처리 능력 (v_syn)  ", color = "#1E7B34", penwidth = 2.6, style = dashed, arrowhead = tee, constraint = false];
+
+    /* injury feeds inflammation feeds injury */
+    TNFA -> HEPSTRESS [label = "2차 손상", color = "#B03A2E", style = dashed, constraint = false];
+    IL6  -> HEPVIABLE [label = "간보호", color = "#1E7B34", style = dashed, constraint = false];
+
+    /* bile arm converges on the same death node */
+    BAHC -> HEPSTRESS [color = "#B03A2E", style = dashed, constraint = false];
+
+    /* reserve determines whether the same rate is survivable */
+    HEPVIABLE -> SEPARAT [label = "예비력이 분리선 위치를 이동", style = dashed, color = "#6A1B9A", constraint = false];
+
+    /* the two arms of Hy's Law are structurally different quantities */
+    ALT  -> HYLAW    [style = bold, color = "#B71C1C", constraint = false];
+    TBIL -> HYLAW    [style = bold, color = "#B71C1C", constraint = false];
+
+/* ==========================================================================
+   Legend
+   ========================================================================== */
+subgraph cluster_legend {
+    label = "범례 (Legend)";
+    fontsize = 16; style = "rounded,filled"; fillcolor = "#FCFCFC"; color = "#666666";
+
+    L1 [label = "약물 / PK 화학종", fillcolor = "#DCE9F7"];
+    L2 [label = "효소 · 수송체", fillcolor = "#FBE3D6"];
+    L3 [label = "독성 화학종 · 손상", fillcolor = "#F8D7DA"];
+    L4 [label = "방어 · 적응 기전", fillcolor = "#D8F0DC"];
+    L5 [label = "면역세포 · 사이토카인", fillcolor = "#EDE0F5"];
+    L6 [label = "신호전달 노드", fillcolor = "#FFF6C8"];
+    L7 [label = "바이오마커", fillcolor = "#CFE7E4"];
+    L8 [label = "임상 종말점", fillcolor = "#FADCE8"];
+    L9 [label = "치료 개입", fillcolor = "#FFE7B3"];
+    L10 [label = "생리 · 구조 상태", fillcolor = "#E2E3E5"];
+    L11 [label = "임계 · 전환점 (octagon)", fillcolor = "#F8D7DA", shape = octagon];
+    L12 [label = "판정 규칙 (diamond)", fillcolor = "#CFE7E4", shape = diamond];
+
+    LE1 [label = "촉진 / 유발", shape = plaintext, style = "", fillcolor = "white"];
+    LE2 [label = "억제 (⊣)", shape = plaintext, style = "", fillcolor = "white"];
+    LE3 [label = "보호 방향 (녹색)", shape = plaintext, style = "", fillcolor = "white"];
+    LE4 [label = "손상 방향 (적색)", shape = plaintext, style = "", fillcolor = "white"];
+
+    L1 -> L2 [style = invis]; L2 -> L3 [style = invis]; L3 -> L4 [style = invis];
+    L4 -> L5 [style = invis]; L5 -> L6 [style = invis]; L6 -> L7 [style = invis];
+    L7 -> L8 [style = invis]; L8 -> L9 [style = invis]; L9 -> L10 [style = invis];
+    L10 -> L11 [style = invis]; L11 -> L12 [style = invis];
+    LE1 -> LE2 [label = "예시", color = "#4a4a4a"];
+    LE2 -> LE3 [arrowhead = tee, color = "#1E7B34"];
+    LE3 -> LE4 [color = "#B03A2E"];
+}
+
+}
