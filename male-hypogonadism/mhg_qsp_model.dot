@@ -1,0 +1,573 @@
+/*
+ * mhg_qsp_model.dot — Male Hypogonadism (남성 성선기능저하증)
+ * Quantitative Systems Pharmacology mechanistic map
+ *
+ * ORGANISING IDEA
+ * ---------------
+ * The quantity that is measured (total testosterone) is not the quantity that
+ * acts (free testosterone), and the map between them is a nonlinear mass-action
+ * binding equilibrium whose dominant partner — SHBG — is itself a regulated
+ * state variable, driven in opposite directions by the disease (obesity,
+ * insulin resistance -> SHBG down), by ageing (SHBG up ~1%/yr) and by the
+ * treatment (androgen -> SHBG down). Two consequences propagate through this
+ * whole map and are what the accompanying mrgsolve model computes:
+ *
+ *   (1) FREE T IS A CONVEX FUNCTION OF TOTAL T. The SHBG buffer saturates, so
+ *       free fraction rises from 1.75% at TT 100 ng/dL to 2.75% at TT 2000.
+ *       By Jensen's inequality a peaky regimen delivers MORE time-averaged
+ *       free T than a flat regimen at the same mean total T. Verified in the
+ *       mrgsolve model: every second difference of FT(TT) is positive.
+ *   (2) BUT THE CONVEXITIES DO NOT STACK, AND THE MODEL SAYS SO AGAINST THE
+ *       HYPOTHESIS IT WAS BUILT TO EXPRESS. The erythropoietic response is
+ *       convex only in its lower limb; supraphysiologic peaks overshoot the
+ *       Hill midpoint into the CONCAVE upper limb, so the response step
+ *       contributes a Jensen gap of ~zero or slightly NEGATIVE for exactly
+ *       the peaky regimens that were supposed to benefit. At matched weekly
+ *       dose the whole waveform effect on haematocrit is ~0.1 points.
+ *       What actually manufactures the ~3x excess of erythrocytosis on IM
+ *       versus transdermal is a FIXED THRESHOLD (Hct > 54%) applied to a
+ *       spread-out population — a property of the stopping rule, not of the
+ *       molecule. The pink notes in cluster 12 carry this result.
+ *
+ * The third axis of the map is the FEEDBACK LOOP that exogenous androgen
+ * breaks: LH -> Leydig -> intratesticular testosterone (ITT, ~35-100x serum)
+ * -> spermatogenesis. Serum T can be normalised while ITT collapses, which is
+ * why "replacement" and "fertility" are different therapeutic problems.
+ *
+ * Clusters: 22 (+ legend) · Nodes: 224 · Edges: 268
+ * Render:  dot -Tsvg mhg_qsp_model.dot -o mhg_qsp_model.svg
+ *          dot -Tpng -Gdpi=150 mhg_qsp_model.dot -o mhg_qsp_model.png
+ */
+
+digraph MaleHypogonadism_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.30, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, compound=true,
+           labelloc="t", fontcolor="#1a1a1a",
+           label="남성 성선기능저하증 (Male Hypogonadism) — QSP Mechanistic Map\nHPG axis · SHBG binding equilibrium · intratesticular testosterone · erythropoiesis · bone · body composition · 7 testosterone formulations + 5 non-androgen strategies"];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+           penwidth=0.8, color="#5a5a5a", margin="0.07,0.045"];
+    edge  [fontname="Helvetica", fontsize=7.5, arrowsize=0.6, penwidth=0.9, color="#666666"];
+
+    /* ===================== 1. HYPOTHALAMUS / KNDy ===================== */
+    subgraph cluster_hypo {
+        label="① 시상하부 — GnRH 박동 생성기 (KNDy neurons)";
+        style="rounded,filled"; fillcolor="#f2f6fd"; color="#7fa6d9"; fontsize=11; fontcolor="#28496f";
+        node [fillcolor="#dde9f9"];
+        KISS1     [label="KISS1 뉴런 (ARC/AVPV)\nkisspeptin-54/10"];
+        NKB       [label="Neurokinin B (TAC3)\n→ NK3R 자가자극"];
+        DYN       [label="Dynorphin (PDYN)\n→ KOR 자가억제"];
+        KNDy      [label="KNDy 박동 생성기\npulse generator"];
+        KISS1R    [label="KISS1R (GPR54)\nGnRH 뉴런 표면"];
+        GNRH_N    [label="GnRH 뉴런 (~2,000개)\n중격-시삭전야"];
+        GNRH_PULS [label="GnRH 박동\n빈도 ~8-14 pulse/24h\n진폭"];
+        PORTAL    [label="시상하부-뇌하수체\n문맥 순환"];
+        AR_HYPO   [label="AR (시상하부)\n음성 되먹임 수용체"];
+        ERA_HYPO  [label="ERα (ESR1, 시상하부)\nE2 음성 되먹임 — 지배적"];
+        LEP_HYPO  [label="Leptin 신호 (LEPR)\n대사적 관문 (permissive)"];
+        GHRELIN   [label="Ghrelin / 에너지 결핍\nGnRH 억제"];
+        CRH_N     [label="CRH / 스트레스 축\nGnRH 억제"];
+        OPIOID_R  [label="μ-opioid 수용체\n(외인성 아편유사제)"];
+        KNDy -> KISS1R [label="kisspeptin"];
+        KISS1 -> KNDy; NKB -> KNDy [label="+ (NK3R)"];
+        DYN -> KNDy [label="− (KOR)", color="#c0392b"];
+        KISS1R -> GNRH_N; GNRH_N -> GNRH_PULS -> PORTAL;
+        AR_HYPO -> KNDy [label="− DHT/T", color="#c0392b"];
+        ERA_HYPO -> KNDy [label="−− E2 (지배적)", color="#c0392b", penwidth=1.4];
+        LEP_HYPO -> KISS1 [label="+ permissive"];
+        GHRELIN -> KISS1 [label="−", color="#c0392b"];
+        CRH_N -> GNRH_PULS [label="−", color="#c0392b"];
+        OPIOID_R -> DYN [label="+ KOR/MOR", color="#c0392b"];
+    }
+
+    /* ===================== 2. PITUITARY ===================== */
+    subgraph cluster_pit {
+        label="② 뇌하수체 전엽 — 성선자극세포 (gonadotrope)";
+        style="rounded,filled"; fillcolor="#f2f6fd"; color="#7fa6d9"; fontsize=11; fontcolor="#28496f";
+        node [fillcolor="#dde9f9"];
+        GNRHR     [label="GnRH 수용체 (GNRHR)\nGq/11 → PLC → Ca²⁺/PKC"];
+        GONADO    [label="성선자극세포\n(전엽의 ~10%)"];
+        LHB       [label="LHB 전사\n(고빈도 박동 선호)"];
+        FSHB      [label="FSHB 전사\n(저빈도 박동 선호)"];
+        CGA       [label="CGA (공통 α-subunit)"];
+        LH_S      [label="혈청 LH\n1-9 IU/L · t½ ~30-60 min\n박동성"];
+        FSH_S     [label="혈청 FSH\n1-12 IU/L · t½ ~3-4 h\n비박동성"];
+        PRL_S     [label="혈청 프로락틴\n(고프로락틴혈증 → GnRH 억제)"];
+        AR_PIT    [label="AR (뇌하수체)\n음성 되먹임"];
+        FOLLI     [label="Follistatin (국소)\nactivin 중화"];
+        ACTIVIN   [label="Activin B (국소)\nFSHB 자극"];
+        GNRHR -> GONADO; GONADO -> LHB; GONADO -> FSHB; CGA -> LH_S; CGA -> FSH_S;
+        LHB -> LH_S; FSHB -> FSH_S;
+        AR_PIT -> LHB [label="−", color="#c0392b"];
+        ACTIVIN -> FSHB [label="+"]; FOLLI -> ACTIVIN [label="−", color="#c0392b"];
+        PRL_S -> GNRHR [label="− (via KNDy)", style=dashed, color="#c0392b"];
+    }
+    PORTAL -> GNRHR [label="GnRH 박동"];
+
+    /* ===================== 3. LEYDIG / STEROIDOGENESIS ===================== */
+    subgraph cluster_leydig {
+        label="③ 고환 — Leydig 세포 스테로이드생성";
+        style="rounded,filled"; fillcolor="#fdf4ee"; color="#dd9a6a"; fontsize=11; fontcolor="#8a4f1d";
+        node [fillcolor="#fbe6d6"];
+        LHCGR     [label="LHCGR (LH/hCG 수용체)\nGs 공유 — hCG t½ 훨씬 김"];
+        CAMP      [label="cAMP / PKA"];
+        STAR      [label="StAR 단백\n율속 단계: 콜레스테롤 미토콘드리아 유입"];
+        CHOL_L    [label="세포내 콜레스테롤 풀\n(LDLR / de novo / CE)"];
+        CYP11A1   [label="CYP11A1 (P450scc)\n→ 프레그네놀론"];
+        CYP17A1   [label="CYP17A1 (17α-OH/17,20-lyase)"];
+        HSD3B2    [label="HSD3B2"];
+        HSD17B3   [label="HSD17B3\n→ 테스토스테론"];
+        LEYDIG_M  [label="Leydig 세포 질량/기능\n(노화·화학요법·방사선에 취약)"];
+        ITT       [label="고환내 테스토스테론 (ITT)\n~600-1,250 nmol/L\n혈청의 ~35-100배", fillcolor="#f6c9a2", penwidth=1.6];
+        INSL3     [label="INSL3\nLeydig 기능 바이오마커"];
+        LHCGR -> CAMP -> STAR -> CYP11A1 -> CYP17A1 -> HSD3B2 -> HSD17B3 -> ITT;
+        CHOL_L -> STAR; LEYDIG_M -> LHCGR; LEYDIG_M -> INSL3;
+        CAMP -> CHOL_L [label="+ HSL/LDLR"];
+    }
+    LH_S -> LHCGR [label="박동성 자극", penwidth=1.3];
+
+    /* ===================== 4. SERTOLI / SPERMATOGENESIS ===================== */
+    subgraph cluster_sertoli {
+        label="④ 고환 — Sertoli 세포 및 정자형성 (74일 주기 + 부고환 통과)";
+        style="rounded,filled"; fillcolor="#fdf4ee"; color="#dd9a6a"; fontsize=11; fontcolor="#8a4f1d";
+        node [fillcolor="#fbe6d6"];
+        FSHR      [label="FSHR (Sertoli 세포)"];
+        SERTOLI   [label="Sertoli 세포 지지 능력\n(정자 생산의 상한 결정)"];
+        ABP       [label="Androgen-binding protein\n(고환 SHBG) → ITT 농축"];
+        AR_SERT   [label="AR (Sertoli)\nITT 의존 — 필수"];
+        BTB       [label="혈액-고환 장벽\n(tight junction)"];
+        SPGONIA   [label="정조세포 (spermatogonia)\nA_dark / A_pale / B"];
+        SPCYTE    [label="정모세포 (spermatocyte)\n감수분열 I/II"];
+        SPTID     [label="정자세포 (spermatid)\n정자변태 spermiogenesis"];
+        SPZOA     [label="정자 (spermatozoa)\n정세관 방출"];
+        EPIDID    [label="부고환 통과\n~10-14일 성숙"];
+        SPERM_OUT [label="사정 정자 농도\n정상 ≥16 M/mL (WHO 6판)", fillcolor="#f6c9a2", penwidth=1.4];
+        INHB      [label="Inhibin B\nSertoli 유래 · FSH 음성 되먹임"];
+        AMH_S     [label="AMH (미성숙 Sertoli 표지)"];
+        SPERM_THR [label="ITT 역치\n정상의 ~20-30% 미만 → 정자형성 정지", shape=note, fillcolor="#fdebd0"];
+        FSHR -> SERTOLI -> ABP; SERTOLI -> BTB; SERTOLI -> INHB; SERTOLI -> AMH_S;
+        AR_SERT -> SPGONIA [label="+ 필수"];
+        SPGONIA -> SPCYTE -> SPTID -> SPZOA -> EPIDID -> SPERM_OUT;
+        SERTOLI -> SPCYTE [label="지지 용량"];
+        SPERM_THR -> SPGONIA [style=dashed, color="#c0392b"];
+        ABP -> AR_SERT;
+    }
+    FSH_S -> FSHR [penwidth=1.2];
+    ITT -> AR_SERT [label="ITT → AR 점유", penwidth=1.6, color="#b9770e"];
+    ITT -> SPERM_THR [style=dashed];
+    INHB -> FSHB [label="− 선택적", color="#c0392b", lhead=cluster_pit];
+
+    /* ===================== 5. BINDING EQUILIBRIUM (CORE) ===================== */
+    subgraph cluster_bind {
+        label="⑤ 순환 결합 평형 — 이 지도의 수학적 중심 (Vermeulen 질량작용)";
+        style="rounded,filled"; fillcolor="#fdf2f6"; color="#d98cae"; fontsize=11; fontcolor="#8e2f5a";
+        node [fillcolor="#fadbe8"];
+        T_TOT     [label="총 테스토스테론 (TT)\n측정되는 값 · 정상 300-1,000 ng/dL", penwidth=1.5];
+        T_FREE    [label="유리 테스토스테론 (FT)\n작용하는 값 · ~2% · 50-210 pg/mL", fillcolor="#f2a7c9", penwidth=1.8];
+        T_ALB     [label="알부민 결합 T (~44%)\nK_A ≈ 3.6×10⁴ M⁻¹ · 저친화·고용량"];
+        T_SHBG    [label="SHBG 결합 T (~54%)\nK_S ≈ 1.0×10⁹ M⁻¹ · 고친화·포화성"];
+        T_BIO     [label="생체이용 T (FT + 알부민결합)\n≈ 46%"];
+        SHBG_P    [label="혈청 SHBG\n10-80 nmol/L — 조절되는 상태변수", penwidth=1.5];
+        ALB_P     [label="혈청 알부민 (4.3 g/dL)"];
+        VERM      [label="Vermeulen 2차방정식\naFT² + bFT − T = 0\na = N·K_S,  b = N + K_S·S − K_S·T\nN = 1 + K_A·[Alb]", shape=note, fillcolor="#fce4ec", fontsize=8];
+        CONVEX    [label="⚑ 볼록성 (CONVEXITY)\n유리분율: TT 300 → 1.9%\nTT 1000 → 2.3% · TT 2000 → 2.8%\n⇒ FT는 TT의 볼록함수", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        JENSEN    [label="⚑ Jensen 부등식\nE[FT(TT)] ≥ FT(E[TT])\n같은 평균 TT라도 진폭이 큰 요법이\n시간평균 유리 T를 더 많이 전달", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        T_TOT -> T_FREE; T_TOT -> T_ALB; T_TOT -> T_SHBG;
+        SHBG_P -> T_SHBG [penwidth=1.4]; ALB_P -> T_ALB;
+        T_FREE -> T_BIO; T_ALB -> T_BIO;
+        VERM -> T_FREE [style=dashed]; CONVEX -> JENSEN [style=dashed];
+        T_SHBG -> CONVEX [style=dashed, label="포화"];
+    }
+    ITT -> T_TOT [label="혈류 유출 · 생산 ~6 mg/day", penwidth=1.4];
+
+    /* ===================== 6. SHBG REGULATION ===================== */
+    subgraph cluster_shbg {
+        label="⑥ SHBG 조절 — 질환·치료·노화가 서로 반대로 민다";
+        style="rounded,filled"; fillcolor="#fdf2f6"; color="#d98cae"; fontsize=11; fontcolor="#8e2f5a";
+        node [fillcolor="#fadbe8"];
+        HNF4A     [label="간세포 HNF-4α\nSHBG 프로모터 주 조절자"];
+        SHBG_SYN  [label="간 SHBG 합성 (SHBG 유전자 17p13)"];
+        INS_SHBG  [label="인슐린 / 인슐린 저항성\n→ HNF-4α ↓ → SHBG ↓", fillcolor="#f7c6d9"];
+        DNL_SHBG  [label="간 de novo 지방생성 / 단당류\n→ SHBG ↓"];
+        T4_SHBG   [label="갑상선호르몬 (T3/T4)\n→ SHBG ↑"];
+        E2_SHBG   [label="에스트로겐 (E2)\n→ SHBG ↑"];
+        AND_SHBG  [label="안드로겐 (T/DHT)\n→ SHBG ↓ (치료 효과)", fillcolor="#f7c6d9"];
+        AGE_SHBG  [label="노화\n→ SHBG ↑ 약 1%/년", fillcolor="#f7c6d9"];
+        CIRR_SHBG [label="간경변 / 알코올\n→ SHBG ↑"];
+        OPP       [label="⚑ 반대 방향 이동\n비만 치료 시 TT↑ 와 SHBG↓ 가 동시에\n⇒ FT 상승폭 > TT 상승폭", shape=note, fillcolor="#f8bbd0", penwidth=1.5, fontsize=8];
+        HNF4A -> SHBG_SYN;
+        INS_SHBG -> HNF4A [label="−", color="#c0392b"]; DNL_SHBG -> HNF4A [label="−", color="#c0392b"];
+        T4_SHBG -> SHBG_SYN [label="+"]; E2_SHBG -> SHBG_SYN [label="+"];
+        AND_SHBG -> SHBG_SYN [label="−", color="#c0392b"]; AGE_SHBG -> SHBG_SYN [label="+"];
+        CIRR_SHBG -> SHBG_SYN [label="+"];
+        INS_SHBG -> OPP [style=dashed]; AND_SHBG -> OPP [style=dashed];
+    }
+    SHBG_SYN -> SHBG_P [label="분비", penwidth=1.3];
+
+    /* ===================== 7. PERIPHERAL METABOLISM ===================== */
+    subgraph cluster_metab {
+        label="⑦ 말초 대사 — 하나의 호르몬이 세 갈래로 갈린다";
+        style="rounded,filled"; fillcolor="#f5f9f0"; color="#8fbc6b"; fontsize=11; fontcolor="#4a6b2a";
+        node [fillcolor="#e3f0d5"];
+        SRD5A1    [label="SRD5A1 (간·피부)"];
+        SRD5A2    [label="SRD5A2 (전립선·생식기)\n→ 피나스테리드/두타스테리드 표적"];
+        DHT_S     [label="DHT (5α-DHT)\nAR 친화도 T의 ~2-5배\n방향화 불가", fillcolor="#cfe4bb", penwidth=1.3];
+        CYP19A1   [label="CYP19A1 (아로마타제)\n지방조직 우세 — 지방량에 비례", penwidth=1.3];
+        E2_S      [label="에스트라디올 (E2)\n남성 20-40 pg/mL\n골·지방·성욕에 필수", fillcolor="#cfe4bb", penwidth=1.4];
+        ARO_FAT   [label="지방조직 질량\n= 아로마타제 용량", fillcolor="#dbead0"];
+        HSD3A     [label="3α-HSD → 안드로스탄디올\n글루쿠로나이드 (5α 활성 표지)"];
+        UGT2B17   [label="UGT2B17 글루쿠로닌화\n(아시아인 결손 다형성 흔함)"];
+        HEP_CL    [label="간 청소 (CL)\n생체이용 분획에만 작용\n⇒ SHBG↓ 시 CL↑", shape=note, fillcolor="#eef7e4", fontsize=8];
+        URINE_T   [label="요중 T/E 비\n(도핑 검사)"];
+        SRD5A1 -> DHT_S; SRD5A2 -> DHT_S; DHT_S -> HSD3A -> UGT2B17 -> URINE_T;
+        CYP19A1 -> E2_S; ARO_FAT -> CYP19A1 [label="+ 용량", penwidth=1.3];
+    }
+    T_FREE -> SRD5A1; T_FREE -> SRD5A2; T_FREE -> CYP19A1 [penwidth=1.2];
+    T_BIO -> HEP_CL [label="청소 기질"]; HEP_CL -> T_TOT [label="− 제거", color="#c0392b"];
+    E2_S -> ERA_HYPO [label="주 되먹임 신호", penwidth=1.5, color="#c0392b"];
+    E2_S -> E2_SHBG; DHT_S -> AND_SHBG; T_FREE -> AND_SHBG;
+    T_FREE -> AR_HYPO; T_FREE -> AR_PIT;
+
+    /* ===================== 8. RECEPTOR SIGNALLING ===================== */
+    subgraph cluster_ar {
+        label="⑧ 수용체 신호전달 — AR / ER";
+        style="rounded,filled"; fillcolor="#f5f9f0"; color="#8fbc6b"; fontsize=11; fontcolor="#4a6b2a";
+        node [fillcolor="#e3f0d5"];
+        AR        [label="안드로겐 수용체 (AR, Xq12)"];
+        CAG       [label="CAG 반복 길이 (exon 1)\n짧을수록 전사활성 ↑ — 개체간 변이"];
+        HSP90     [label="HSP90 샤페론 복합체"];
+        AR_NUC    [label="AR 이량체 핵 전위"];
+        ARE       [label="ARE (androgen response element)\n표적 유전자 전사"];
+        COACT     [label="공활성자 (SRC-1/ARA70/p160)"];
+        AR_NG     [label="비유전체 AR 신호\nSrc/MAPK · 초 단위"];
+        ESR1_P    [label="ERα (ESR1) — 골·지방·되먹임"];
+        ESR2_P    [label="ERβ (ESR2)"];
+        GPER      [label="GPER1 (막 ER)"];
+        AIS       [label="AR 변이 (부분 안드로겐 불응증)\n표적 저항성", shape=note, fillcolor="#eef7e4", fontsize=8];
+        AR -> HSP90 -> AR_NUC -> ARE; CAG -> AR [label="전사활성 조절"];
+        COACT -> ARE; AR -> AR_NG; AIS -> AR [style=dashed, color="#c0392b"];
+    }
+    T_FREE -> AR [penwidth=1.4]; DHT_S -> AR [label="고친화", penwidth=1.4];
+    E2_S -> ESR1_P; E2_S -> ESR2_P; E2_S -> GPER;
+
+    /* ===================== 9. PRIMARY (TESTICULAR) AETIOLOGY ===================== */
+    subgraph cluster_prim {
+        label="⑨ 원발성(고환성) 성선기능저하증 — LH/FSH ↑";
+        style="rounded,filled"; fillcolor="#fbf1f1"; color="#d98080"; fontsize=11; fontcolor="#8e2323";
+        node [fillcolor="#f7dcdc"];
+        KLINE     [label="클라인펠터 증후군 47,XXY\n남성 1/600 · 최다 유전 원인"];
+        CRYPT     [label="정류고환 (cryptorchidism)"];
+        ORCHITIS  [label="이하선염 고환염 / 외상"];
+        CHEMO     [label="알킬화 항암제 / 방사선\nLeydig·정조세포 소실"];
+        VARICO    [label="정계정맥류"];
+        AGE_TEST  [label="노화 Leydig 소실\nTT ~1%/년 · FT ~2-3%/년"];
+        MYOTONIC  [label="근긴장성 이영양증 (DM1)"];
+        HEMO_T    [label="혈색소증 — 고환 철 침착"];
+        AR_MUT    [label="AR/LHCGR/HSD17B3 변이"];
+        PRIM_LAB  [label="검사 소견: TT ↓, LH ↑, FSH ↑\ninhibin B ↓", shape=note, fillcolor="#fdeaea", fontsize=8];
+        KLINE -> PRIM_LAB; CRYPT -> PRIM_LAB; ORCHITIS -> PRIM_LAB; CHEMO -> PRIM_LAB;
+        VARICO -> PRIM_LAB; AGE_TEST -> PRIM_LAB; MYOTONIC -> PRIM_LAB; HEMO_T -> PRIM_LAB;
+    }
+    KLINE -> LEYDIG_M [label="−−", color="#c0392b"]; CHEMO -> LEYDIG_M [label="−", color="#c0392b"];
+    CHEMO -> SERTOLI [label="−−", color="#c0392b"]; AGE_TEST -> LEYDIG_M [label="−", color="#c0392b"];
+
+    /* ===================== 10. SECONDARY (CENTRAL) AETIOLOGY ===================== */
+    subgraph cluster_sec {
+        label="⑩ 이차성(중추성) 성선기능저하증 — LH/FSH 정상 또는 ↓";
+        style="rounded,filled"; fillcolor="#fbf1f1"; color="#d98080"; fontsize=11; fontcolor="#8e2323";
+        node [fillcolor="#f7dcdc"];
+        KALL      [label="칼만 증후군\nANOS1/FGFR1/PROKR2/CHD7\nGnRH 뉴런 이동 실패 · 후각소실"];
+        IHH       [label="정상후각 특발성 저성선자극\n성선저하증 (nIHH)"];
+        PITAD     [label="뇌하수체 선종 / 수술 / 방사선"];
+        PROLACT   [label="고프로락틴혈증 (프로락틴종·약물)"];
+        HEMO_P    [label="혈색소증 — 뇌하수체 철 침착"];
+        TBI       [label="외상성 뇌손상 / 지주막하 출혈"];
+        OPIOID    [label="아편유사제 유발 안드로겐 결핍\n(만성 사용자의 ~50-75%)", fillcolor="#f2c6c6"];
+        GC_SUPP   [label="글루코코르티코이드 / 쿠싱"];
+        AAS_PRIOR [label="과거 단백동화 스테로이드 남용\n(ASIH — 지속적 억제)", fillcolor="#f2c6c6"];
+        SEC_LAB   [label="검사 소견: TT ↓, LH 정상/↓, FSH 정상/↓\n⇒ 가역성 · 생식능 회복 가능", shape=note, fillcolor="#fdeaea", fontsize=8];
+        KALL -> SEC_LAB; IHH -> SEC_LAB; PITAD -> SEC_LAB; PROLACT -> SEC_LAB;
+        HEMO_P -> SEC_LAB; TBI -> SEC_LAB; OPIOID -> SEC_LAB; GC_SUPP -> SEC_LAB; AAS_PRIOR -> SEC_LAB;
+    }
+    KALL -> GNRH_N [label="뉴런 부재", color="#c0392b"]; OPIOID -> OPIOID_R;
+    GC_SUPP -> CRH_N; PROLACT -> PRL_S; PITAD -> GONADO [label="−", color="#c0392b"];
+    AAS_PRIOR -> AR_HYPO [label="장기 억제", color="#c0392b"];
+
+    /* ===================== 11. FUNCTIONAL / OBESITY CYCLE ===================== */
+    subgraph cluster_func {
+        label="⑪ 기능성 성선기능저하증 — 비만·염증 자기강화 고리 (가역적)";
+        style="rounded,filled"; fillcolor="#fdf6e8"; color="#d9b45a"; fontsize=11; fontcolor="#8a6a10";
+        node [fillcolor="#faeccc"];
+        OBESITY   [label="내장 비만 (BMI ≥30)\n기능성 성선저하의 최대 원인", penwidth=1.4];
+        AROM_UP   [label="지방 아로마타제 활성 ↑\n→ E2 ↑"];
+        IR_FUNC   [label="인슐린 저항성"];
+        TNF_IL6   [label="TNF-α / IL-6 / 지방조직 대식세포\n→ KNDy 직접 억제"];
+        LEP_RES   [label="렙틴 저항성\n→ kisspeptin 자극 소실"];
+        OSA_F     [label="폐쇄성 수면무호흡 (OSA)\n수면분절 → 야간 LH 박동 소실"];
+        SLEEP     [label="수면부족 / 교대근무\nTT −10-15%"];
+        T2DM_F    [label="제2형 당뇨병\n남성의 ~30-40%에서 저 TT 동반"];
+        VICIOUS   [label="⚑ 악순환 고리\n비만 → E2↑·염증↑ → LH↓ → T↓\n→ 제지방↓·지방↑ → 비만 ↑", shape=note, fillcolor="#f9e0a0", penwidth=1.6, fontsize=8];
+        WT_LOSS   [label="체중 감량 / 대사수술\n10% 감량당 TT +2-3 nmol/L", fillcolor="#d5efd0"];
+        OBESITY -> AROM_UP -> VICIOUS; OBESITY -> IR_FUNC; OBESITY -> TNF_IL6; OBESITY -> LEP_RES;
+        OBESITY -> OSA_F; OSA_F -> SLEEP; IR_FUNC -> T2DM_F; VICIOUS -> OBESITY [color="#c0392b"];
+        WT_LOSS -> OBESITY [label="−", color="#1e8449", penwidth=1.4];
+    }
+    OBESITY -> ARO_FAT [penwidth=1.4]; IR_FUNC -> INS_SHBG [penwidth=1.3];
+    TNF_IL6 -> KNDy [label="−", color="#c0392b"]; LEP_RES -> LEP_HYPO [label="−", color="#c0392b"];
+    SLEEP -> GNRH_PULS [label="−", color="#c0392b"];
+
+    /* ===================== 12. ERYTHROPOIESIS ===================== */
+    subgraph cluster_ery {
+        label="⑫ 적혈구 생성 — TRT 최다 이상반응의 기전 (두 번째 볼록성)";
+        style="rounded,filled"; fillcolor="#fbeff0"; color="#cc6677"; fontsize=11; fontcolor="#8e1f33";
+        node [fillcolor="#f6d8dc"];
+        HEPCIDIN  [label="간 헵시딘 (HAMP)\nT → 억제 (BMP/SMAD·STAT3 경로)", penwidth=1.3];
+        FPN       [label="Ferroportin (SLC40A1)\n헵시딘 ↓ → 막 잔류 ↑"];
+        IRON_AV   [label="트랜스페린 결합 철 이용성 ↑\n페리틴 ↓ · TSAT ↑"];
+        EPO_K     [label="신장 EPO\nT → 산소 설정점 상향 이동"];
+        ERFE      [label="Erythroferrone (ERFE)\n적아구 유래 → 헵시딘 추가 억제"];
+        BFUE      [label="적혈구 전구세포 (BFU-E/CFU-E)"];
+        RETIC     [label="망상적혈구 (~1-2일)"];
+        RBC_M     [label="적혈구 질량\n수명 ~120일 — 신호를 적분", penwidth=1.4];
+        HCT       [label="헤마토크리트 (Hct)\n중지 기준 >54%", fillcolor="#f2b8c0", penwidth=1.5];
+        VISCOS    [label="혈액 점도 ↑\n(Hct에 초선형)"];
+        PHLEB     [label="치료적 사혈 / 용량 감량 / 제형 변경", fillcolor="#d5efd0"];
+        CONVEX2   [label="⚑ 두 번째 볼록성은 합성되지 않는다\n적혈구 반응은 낮은 구간에서만 볼록하고\n초생리적 첨두는 Hill의 오목한 상단으로 넘어간다\n⇒ 모델 결과: 첨두 이득 ≈ 0 또는 음수\n(가설을 반증한 지점 — 숨기지 않고 출력)", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        THRESH    [label="⚑ 격차를 만드는 것은 판정 규칙\nHct>54% 고정 역치를 집단 분포에 적용하면\n평균 ~1점 이동이 발생률 ~2.5배 차이가 된다\n⇒ 분자가 아니라 중지 기준의 성질", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        HEPCIDIN -> FPN [label="− 분해", color="#c0392b"]; FPN -> IRON_AV;
+        ERFE -> HEPCIDIN [label="−", color="#c0392b"];
+        IRON_AV -> BFUE; EPO_K -> BFUE -> RETIC -> RBC_M -> HCT -> VISCOS;
+        BFUE -> ERFE; PHLEB -> HCT [label="−", color="#1e8449"];
+        CONVEX2 -> HEPCIDIN [style=dashed];
+        HCT -> THRESH [style=dashed, penwidth=1.3];
+    }
+    T_FREE -> HEPCIDIN [label="− 억제", color="#c0392b", penwidth=1.4];
+    T_FREE -> EPO_K [label="+ 설정점", penwidth=1.3];
+    JENSEN -> CONVEX2 [style=dashed, label="합성되지 않음", penwidth=1.3, color="#c0392b"];
+
+    /* ===================== 13. BONE ===================== */
+    subgraph cluster_bone {
+        label="⑬ 골 — 효과는 대부분 T가 아니라 E2를 통한다";
+        style="rounded,filled"; fillcolor="#f3f2fb"; color="#8f8ad9"; fontsize=11; fontcolor="#3f3a8e";
+        node [fillcolor="#dedcf7"];
+        OSTEOB    [label="조골세포 / 골세포"];
+        OSTEOC    [label="파골세포"];
+        RANKL     [label="RANKL / OPG 비"];
+        SCLERO    [label="스클레로스틴 (SOST)"];
+        CTX_P1NP  [label="골표지자: CTX (흡수) · P1NP (형성)"];
+        BMD_TRAB  [label="요추 해면골 vBMD (QCT)\nT-Trials: +7.5% (1년)", fillcolor="#cbc8f2", penwidth=1.4];
+        BMD_CORT  [label="피질골 밀도 / 두께"];
+        FX_RISK   [label="임상 골절 위험\n⚠ TRAVERSE 골절 하위연구:\nTRT군에서 오히려 증가 (HR 1.43)", fillcolor="#f2b8c0", penwidth=1.5];
+        FALLS     [label="활동량·낙상 노출 변화\n(BMD와 골절의 괴리 가설)"];
+        OSTEOB -> RANKL; RANKL -> OSTEOC [label="+"]; SCLERO -> OSTEOB [label="−", color="#c0392b"];
+        OSTEOC -> CTX_P1NP; OSTEOB -> CTX_P1NP;
+        OSTEOB -> BMD_TRAB; OSTEOC -> BMD_TRAB [label="−", color="#c0392b"];
+        OSTEOB -> BMD_CORT; BMD_TRAB -> FX_RISK [label="−", color="#1e8449"];
+        FALLS -> FX_RISK [label="+", color="#c0392b"];
+    }
+    E2_S -> SCLERO [label="− (지배적 경로)", color="#c0392b", penwidth=1.6];
+    E2_S -> RANKL [label="−", color="#c0392b", penwidth=1.4];
+    T_FREE -> OSTEOB [label="+ (부수적)", style=dashed];
+
+    /* ===================== 14. MUSCLE & BODY COMPOSITION ===================== */
+    subgraph cluster_body {
+        label="⑭ 근육·체성분 — 용량 의존성이 가장 뚜렷한 종점";
+        style="rounded,filled"; fillcolor="#f3f2fb"; color="#8f8ad9"; fontsize=11; fontcolor="#3f3a8e";
+        node [fillcolor="#dedcf7"];
+        SATELL    [label="근위성세포 동원 · 근핵 증가"];
+        MYOSTAT   [label="Myostatin (MSTN) ↓"];
+        IGF1_M    [label="근육내 IGF-1 / mTOR"];
+        MPS       [label="근단백 합성률 ↑"];
+        LEAN      [label="제지방량 (kg)\n용량 의존 · +1.5-4 kg", fillcolor="#cbc8f2", penwidth=1.3];
+        STRENGTH  [label="근력 (leg press 1RM)"];
+        FATMASS   [label="지방량 / % 체지방\n(E2 결핍 시 오히려 증가)", fillcolor="#cbc8f2", penwidth=1.3];
+        PREADIPO  [label="전지방세포 분화 억제\n(중간엽 계열 전환)"];
+        FINK      [label="⚑ Finkelstein 해리 (NEJM 2013)\n제지방·근력 = T 의존\n체지방 = E2 의존 (아로마타제 억제로 증가)\n성기능 = 양쪽 모두", shape=note, fillcolor="#e8e6fa", penwidth=1.6, fontsize=8];
+        SATELL -> MPS; MYOSTAT -> MPS [label="−", color="#c0392b"]; IGF1_M -> MPS -> LEAN -> STRENGTH;
+        PREADIPO -> FATMASS [label="−", color="#1e8449"];
+        FINK -> LEAN [style=dashed]; FINK -> FATMASS [style=dashed];
+    }
+    T_FREE -> SATELL [penwidth=1.3]; T_FREE -> MYOSTAT [label="−", color="#c0392b"];
+    T_FREE -> PREADIPO; E2_S -> FATMASS [label="− (E2 결핍 시 지방↑)", color="#1e8449", penwidth=1.4];
+    FATMASS -> ARO_FAT [penwidth=1.2]; LEAN -> WT_LOSS [style=dashed];
+
+    /* ===================== 15. CNS / SEXUAL / MOOD ===================== */
+    subgraph cluster_cns {
+        label="⑮ 중추신경 — 성욕·발기·기분·인지";
+        style="rounded,filled"; fillcolor="#eef7f7"; color="#5aa9a9"; fontsize=11; fontcolor="#1f6b6b";
+        node [fillcolor="#d3ecec"];
+        LIBIDO    [label="성적 욕구 (libido)\nT·E2 모두 의존 · 용량 연속적", fillcolor="#b9e0e0", penwidth=1.3];
+        MPOA      [label="내측 시삭전야 (MPOA)\n도파민 · 옥시토신"];
+        NOS_CC    [label="음경 해면체 nNOS/eNOS\n→ cGMP"];
+        PDE5      [label="PDE5 → cGMP 분해\n(PDE5 억제제 표적)"];
+        ERECT     [label="발기 기능 (IIEF-EF)\nTRT 단독 효과는 제한적", fillcolor="#b9e0e0"];
+        PDQ4      [label="PDQ-Q4 성행위 점수\nT-Trials 주 종점 (+0.58)"];
+        MOOD_D    [label="기분 / 불쾌감\nPHQ-9 · 경도 개선"];
+        VITAL     [label="활력 / 피로 (FACIT-F)\nT-Trials 1차 종점 미달성", fillcolor="#b9e0e0"];
+        COGN      [label="인지 (기억)\nT-Trials 인지 하위연구: 효과 없음"];
+        SLEEP_CNS [label="수면의 질 / OSA 악화 가능"];
+        MPOA -> LIBIDO -> PDQ4; NOS_CC -> ERECT; PDE5 -> NOS_CC [label="−", color="#c0392b"];
+        LIBIDO -> ERECT; MOOD_D -> VITAL;
+    }
+    T_FREE -> MPOA [penwidth=1.3]; E2_S -> MPOA [label="+ 부분 기여", penwidth=1.2];
+    T_FREE -> NOS_CC; T_FREE -> MOOD_D; T_FREE -> VITAL; T_FREE -> COGN;
+    SLEEP_CNS -> OSA_F [style=dashed];
+
+    /* ===================== 16. PROSTATE / LUTS ===================== */
+    subgraph cluster_prost {
+        label="⑯ 전립선 — DHT 의존 · 포화 모델";
+        style="rounded,filled"; fillcolor="#eef7f7"; color="#5aa9a9"; fontsize=11; fontcolor="#1f6b6b";
+        node [fillcolor="#d3ecec"];
+        PROST_EP  [label="전립선 상피 / 기질"];
+        PSA       [label="혈청 PSA\nTRT 시 첫 6개월 +0.3-0.5 ng/mL", fillcolor="#b9e0e0"];
+        PROST_VOL [label="전립선 용적 / IPSS (LUTS)"];
+        SATUR     [label="포화 모델 (saturation model)\nAR 포화 ~TT 250 ng/dL 이상에서\n전립선 성장 반응 평탄", shape=note, fillcolor="#e0f2f2", fontsize=8];
+        PCA_RISK  [label="전립선암 검출\n메타분석·TRAVERSE에서 증가 신호 없음"];
+        PROST_EP -> PSA; PROST_EP -> PROST_VOL; SATUR -> PROST_EP [style=dashed];
+        PROST_EP -> PCA_RISK;
+    }
+    DHT_S -> PROST_EP [penwidth=1.4]; SRD5A2 -> PROST_EP;
+
+    /* ===================== 17. CARDIOMETABOLIC & SAFETY ===================== */
+    subgraph cluster_cv {
+        label="⑰ 심혈관·안전성 — TRAVERSE 이후의 지형";
+        style="rounded,filled"; fillcolor="#fbeff0"; color="#cc6677"; fontsize=11; fontcolor="#8e1f33";
+        node [fillcolor="#f6d8dc"];
+        HDL_D     [label="HDL-C ↓ (특히 경구·고용량)"];
+        LIPID     [label="총콜레스테롤 / LDL 소폭 ↓"];
+        INS_SENS  [label="인슐린 감수성 / HbA1c 소폭 개선"];
+        BP_T      [label="혈압 — 경구 TU에서 상승 (박스 경고)"];
+        AF_R      [label="심방세동 (TRAVERSE 3.5% vs 2.4%)", fillcolor="#f2b8c0"];
+        VTE_R     [label="폐색전/정맥혈전 (0.9% vs 0.5%)", fillcolor="#f2b8c0"];
+        AKI_R     [label="급성 신손상 (2.3% vs 1.5%)"];
+        MACE      [label="MACE — TRAVERSE HR 0.96\n비열등성 충족 (95% CI 0.78-1.17)", penwidth=1.4];
+        PLAQUE    [label="비석회화 관상동맥 플라크 용적\nT-Trials CV 하위연구에서 증가"];
+        GYNECO    [label="여성유방증 (E2 상승 시)"];
+        HDL_D -> MACE [style=dashed]; VISCOS -> VTE_R [penwidth=1.2]; VISCOS -> MACE [style=dashed];
+        HCT -> AF_R [style=dashed]; PLAQUE -> MACE [style=dashed];
+    }
+    T_FREE -> HDL_D [label="−", color="#c0392b"]; T_FREE -> INS_SENS; E2_S -> GYNECO;
+    LEAN -> INS_SENS [label="+", color="#1e8449"];
+
+    /* ===================== 18. TESTOSTERONE FORMULATION PK ===================== */
+    subgraph cluster_pk {
+        label="⑱ 테스토스테론 제형 PK — 같은 주간 용량, 다른 파형";
+        style="rounded,filled"; fillcolor="#eef0f4"; color="#8a93a8"; fontsize=11; fontcolor="#39415a";
+        node [fillcolor="#dbe0e8"];
+        TE_IM     [label="테스토스테론 에난트산/시피온산 IM\n100-200 mg q1-2wk · ka ~0.15/day\n첨두 1,100-1,500 → 저점 300 ng/dL", penwidth=1.3];
+        TU_IM     [label="테스토스테론 운데칸산 IM (Nebido/Aveed)\n750-1,000 mg q10-12wk · 매우 느린 방출\n⚠ 폐 오일 미세색전 (POME)"];
+        TU_PO     [label="경구 테스토스테론 운데칸산\n(Jatenzo/Kyzatrex) 158-396 mg BID\n림프 흡수 · 지방식 의존 · 첨두 높음"];
+        GEL_TD    [label="경피 겔 1.62% 20.25-81 mg/day\n준정상상태 · 일중 변동 작음\n⚠ 이차 전이 (secondary transfer)", penwidth=1.3];
+        SC_AI     [label="피하 자동주사기 (Xyosted)\n50-100 mg 주 1회 · 파형 완만", penwidth=1.2];
+        PELLET    [label="피하 펠릿 (Testopel)\n6-12개 q3-6개월 · 준영차 방출"];
+        NASAL_T   [label="비강 겔 (Natesto) 11 mg TID\n짧은 첨두 · LH 억제 최소"];
+        ESTER_H   [label="에스테르 가수분해 (혈장/조직 에스터라제)\n시피온산 mol 환산 계수 0.70\n에난트산 0.72 · 운데칸산 0.63"];
+        FLIPFLOP  [label="흡수율속 (flip-flop) 동태\n겉보기 t½ = 흡수 t½", shape=note, fillcolor="#e8ebf0", fontsize=8];
+        WAVEFORM  [label="⚑ 파형: 예상보다 작다\n같은 주간 용량에서 진폭을 2배로 해도\nHct 차이는 ~0.1점에 불과 (모델 결과)\n제형 간 격차의 대부분은 용량 차이다", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        TE_IM -> ESTER_H; TU_IM -> ESTER_H; TU_PO -> ESTER_H; PELLET -> ESTER_H;
+        TE_IM -> FLIPFLOP; TU_IM -> FLIPFLOP;
+        TE_IM -> WAVEFORM; GEL_TD -> WAVEFORM; SC_AI -> WAVEFORM; TU_PO -> WAVEFORM;
+    }
+    ESTER_H -> T_TOT [penwidth=1.5]; GEL_TD -> T_TOT [penwidth=1.3]; NASAL_T -> T_TOT;
+    WAVEFORM -> JENSEN [style=dashed, penwidth=1.3];
+
+    /* ===================== 19. NON-ANDROGEN THERAPY ===================== */
+    subgraph cluster_alt {
+        label="⑲ 비안드로겐 전략 — 축을 끄지 않고 올리기 (생식능 보존)";
+        style="rounded,filled"; fillcolor="#eef0f4"; color="#8a93a8"; fontsize=11; fontcolor="#39415a";
+        node [fillcolor="#dbe0e8"];
+        HCG_D     [label="hCG 500-3,000 IU SC 주 2-3회\nLHCGR 작용제 · t½ ~24-36 h", penwidth=1.3];
+        HMG_FSH   [label="hMG / 재조합 FSH 75-150 IU\n(Sertoli 지지 — 정자형성 유도)"];
+        CLOMI     [label="클로미펜 시트르산염 25-50 mg\nSERM — 시상하부 ERα 차단 → LH↑\nzuclomiphene 축적 (t½ 수 주)", penwidth=1.2];
+        ENCLOMI   [label="엔클로미펜 (trans 이성질체)\n축적 적음 · 정자수 보존"];
+        ANAST     [label="아나스트로졸 1 mg/day\n아로마타제 억제 → E2↓ → LH↑\n⚠ 골 손실 대가", penwidth=1.2];
+        KISSPEP   [label="Kisspeptin-54 유사체 (연구단계)\n상류에서 축 재기동"];
+        GNRH_PUMP [label="박동성 GnRH 펌프\n(칼만/nIHH — 생리적 재현)"];
+        SARM      [label="선택적 AR 조절제 (SARM, 미승인)\n조직 선택성 주장 · 간독성 신호"];
+        FERT_NOTE [label="⚑ 두 개의 다른 문제\n혈청 T 정상화 ≠ ITT 유지.\n생식능이 목표면 LH 신호를 끄면 안 된다.", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        HCG_D -> FERT_NOTE [style=dashed]; CLOMI -> ENCLOMI [style=dotted];
+    }
+    HCG_D -> LHCGR [label="직접 작용 (LH 우회)", penwidth=1.5, color="#1e8449"];
+    HMG_FSH -> FSHR [label="+", color="#1e8449", penwidth=1.2];
+    CLOMI -> ERA_HYPO [label="− 차단 → LH↑", color="#1e8449", penwidth=1.3];
+    ENCLOMI -> ERA_HYPO [label="− 차단", color="#1e8449"];
+    ANAST -> CYP19A1 [label="− 억제", color="#c0392b", penwidth=1.3];
+    KISSPEP -> KISS1R [color="#1e8449"]; GNRH_PUMP -> GNRHR [color="#1e8449"];
+    SARM -> AR [label="부분 작용제"];
+    ANAST -> SCLERO [label="E2↓ → 스클레로스틴↑ → 골손실", style=dashed, color="#c0392b"];
+
+    /* ===================== 20. AXIS SUPPRESSION BY EXOGENOUS T ===================== */
+    subgraph cluster_supp {
+        label="⑳ 외인성 안드로겐에 의한 축 차단 — 치료가 만드는 병태생리";
+        style="rounded,filled"; fillcolor="#fdf6e8"; color="#d9b45a"; fontsize=11; fontcolor="#8a6a10";
+        node [fillcolor="#faeccc"];
+        SUPP_LH   [label="LH 억제 (수일 내 검출한계 이하)"];
+        SUPP_FSH  [label="FSH 억제"];
+        ITT_CRASH [label="ITT 붕괴 — 정상의 ~2-6%\n(TE 200 mg 주 1회에서 −94%)", fillcolor="#f2c6c6", penwidth=1.5];
+        AZOO      [label="무정자증/희소정자증\n노출 3-6개월 후"];
+        TEST_ATR  [label="고환 용적 감소 (기저의 20-30%)"];
+        RECOVERY  [label="중단 후 회복\nLiu 2006 풀분석: 20 M/mL 도달\n6개월 67% · 12개월 90% · 24개월 100%", fillcolor="#d5efd0"];
+        HCG_RESCUE[label="hCG 병용 구제 (250-500 IU EOD)\nITT를 기저 근처로 유지", fillcolor="#d5efd0", penwidth=1.3];
+        RESTART   [label="회복 프로토콜\nhCG ± SERM ± FSH"];
+        SUPP_LH -> ITT_CRASH [penwidth=1.4, color="#c0392b"]; SUPP_FSH -> AZOO;
+        ITT_CRASH -> AZOO [penwidth=1.4, color="#c0392b"]; ITT_CRASH -> TEST_ATR;
+        AZOO -> RECOVERY; RECOVERY -> RESTART [style=dashed];
+        HCG_RESCUE -> ITT_CRASH [label="− 방지", color="#1e8449", penwidth=1.4];
+    }
+    T_FREE -> SUPP_LH [label="음성 되먹임", penwidth=1.5, color="#c0392b"];
+    E2_S -> SUPP_LH [label="강력 (아로마타제 경유)", penwidth=1.4, color="#c0392b"];
+    SUPP_LH -> LH_S [style=dashed, color="#c0392b"]; SUPP_FSH -> FSH_S [style=dashed, color="#c0392b"];
+    ITT_CRASH -> ITT [style=dashed, color="#c0392b"]; HCG_D -> HCG_RESCUE;
+    AZOO -> SPERM_OUT [style=dashed, color="#c0392b"];
+
+    /* ===================== 21. DIAGNOSIS & MONITORING ===================== */
+    subgraph cluster_dx {
+        label="㉑ 진단·모니터링 — 역치가 SHBG에 의존한다는 문제";
+        style="rounded,filled"; fillcolor="#f7f7f2"; color="#a8a88a"; fontsize=11; fontcolor="#5a5a39";
+        node [fillcolor="#e9e9d9"];
+        MORNING   [label="아침(오전 7-10시) 공복 TT\n서로 다른 날 2회 확인"];
+        LCMS      [label="LC-MS/MS 기준법\n(면역측정법은 저농도에서 부정확)"];
+        CUTOFF    [label="진단 역치 TT <300 ng/dL (10.4 nmol/L)\nCDC 조화화 기준"];
+        FT_CUT    [label="유리 T 역치 <65 pg/mL\n(평형투석 또는 Vermeulen 계산)"];
+        MISCLASS  [label="⚑ 오분류\nSHBG 낮으면 TT는 낮으나 FT 정상\nSHBG 높으면 TT 정상이나 FT 낮음\n⇒ 단일 TT 역치는 양방향으로 틀린다", shape=note, fillcolor="#f8bbd0", penwidth=1.6, fontsize=8];
+        SYMPT     [label="증상 확인 필수\n(성욕저하·조조발기 소실·여성유방증)"];
+        MONITOR   [label="모니터링: 3·6·12개월 후 매년\nTT · Hct · PSA · 증상"];
+        STOPRULE  [label="중지/감량 규칙\nHct >54% · PSA 속도 · 미해결 LUTS", fillcolor="#f2dede"];
+        MORNING -> LCMS -> CUTOFF; CUTOFF -> MISCLASS [style=dashed]; FT_CUT -> MISCLASS [style=dashed];
+        SYMPT -> CUTOFF; MONITOR -> STOPRULE;
+    }
+    SHBG_P -> MISCLASS [penwidth=1.5, color="#8e2f5a"];
+    T_TOT -> MORNING; T_FREE -> FT_CUT; HCT -> STOPRULE [penwidth=1.3]; PSA -> STOPRULE;
+
+    /* ===================== 22. CLINICAL ENDPOINTS ===================== */
+    subgraph cluster_end {
+        label="㉒ 임상 종점 및 주요 시험 (모델 보정 표적)";
+        style="rounded,filled"; fillcolor="#f7f7f2"; color="#a8a88a"; fontsize=11; fontcolor="#5a5a39";
+        node [fillcolor="#e9e9d9"];
+        TTRIAL_S  [label="T-Trials 성기능 (NEJM 2016)\nPDQ-Q4 +0.58 vs +0.10"];
+        TTRIAL_B  [label="T-Trials 골 (JAMA IM 2017)\n요추 해면골 vBMD +7.5%"];
+        TTRIAL_A  [label="T-Trials 빈혈 (JAMA IM 2017)\n원인불명 빈혈 교정 54% vs 15%"];
+        TTRIAL_V  [label="T-Trials 활력/보행: 1차 종점 미달"];
+        TRAVERSE  [label="TRAVERSE (NEJM 2023) n=5,246\nMACE HR 0.96 — 비열등", penwidth=1.4];
+        TRAV_FX   [label="TRAVERSE 골절 (NEJM 2024)\n3.50% vs 2.46% · HR 1.43", penwidth=1.3];
+        FINK_T    [label="Finkelstein (NEJM 2013)\nT vs E2 기여 해리"];
+        LIU_REC   [label="Liu 2006 (Lancet) 회복 풀분석"];
+        HCT_INC   [label="적혈구증가증 발생률\nIM ~35-40% vs 겔 ~10-15%"];
+        QOL       [label="환자 보고 결과 (PRO)\n성욕·활력·기분"];
+        TTRIAL_S -> QOL; TTRIAL_V -> QOL;
+    }
+    PDQ4 -> TTRIAL_S; BMD_TRAB -> TTRIAL_B; HCT -> TTRIAL_A [style=dashed];
+    VITAL -> TTRIAL_V; MACE -> TRAVERSE; FX_RISK -> TRAV_FX;
+    FINK -> FINK_T; RECOVERY -> LIU_REC; HCT -> HCT_INC [penwidth=1.3];
+    WAVEFORM -> HCT_INC [style=dashed, label="제형 격차의 설명 대상", penwidth=1.2];
+
+    /* ===================== CROSS-CUTTING LEGEND ===================== */
+    subgraph cluster_legend {
+        label="범례 (Legend)";
+        style="rounded,filled"; fillcolor="#ffffff"; color="#999999"; fontsize=10; fontcolor="#444444";
+        node [shape=plaintext, fillcolor="#ffffff", fontsize=8];
+        LEG1 [label="검은 화살표 = 활성화/흐름   빨간 화살표 = 억제   초록 화살표 = 치료적 개입"];
+        LEG2 [label="⚑ 표시 = 이 모델의 정량적 핵심 주장 (mrgsolve 모델의 분석 함수가 계산)"];
+        LEG3 [label="분홍 노트 = 볼록성·Jensen·오분류 — 서로 연결된 하나의 논증"];
+        LEG1 -> LEG2 [style=invis]; LEG2 -> LEG3 [style=invis];
+    }
+}
