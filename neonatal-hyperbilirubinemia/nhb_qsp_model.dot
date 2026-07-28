@@ -1,0 +1,480 @@
+/* ===========================================================================
+   nhb_qsp_model.dot
+   Neonatal hyperbilirubinaemia / kernicterus — QSP mechanistic map
+   신생아 고빌리루빈혈증(신생아 황달) 기계론적 지도
+
+   15 subgraph clusters, 138 nodes.
+
+   The map is laid out around ONE organising idea: the quantity that is
+   measured (total serum bilirubin, TSB) and the quantity that is toxic
+   (unbound / "free" bilirubin, Bf) are separated by a saturable albumin
+   binding isotherm.  Everything on the left of the map changes the LOAD,
+   everything in the ALBUMIN cluster changes the MAP FROM LOAD TO RISK, and
+   everything on the right is what the free species then does.
+
+   Render:
+     dot -Tsvg nhb_qsp_model.dot -o nhb_qsp_model.svg
+     dot -Tpng -Gdpi=150 nhb_qsp_model.dot -o nhb_qsp_model.png
+   =========================================================================== */
+digraph NHB_QSP {
+    rankdir = LR;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Neonatal Hyperbilirubinaemia · 신생아 고빌리루빈혈증 QSP Map</b><br/>
+             <i>haem catabolism → albumin binding → UGT1A1 conjugation → enterohepatic shunt → photochemistry → blood-brain barrier</i><br/>
+             <font point-size="11">TSB is what we measure · Bf is what injures · the albumin isotherm is the map between them</font>>;
+    fontsize = 26;
+    bgcolor = "white";
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, penwidth = 1.2, margin = "0.10,0.055"];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.1,
+          color = "#5a6472", arrowsize = 0.7];
+
+    /* ---------------------------------------------------------------- 1 */
+    subgraph cluster_erythron {
+        label = <<b>1 · 적혈구 파괴와 헴 대사</b><br/>Erythron and haem catabolism>;
+        style = "filled,rounded"; fillcolor = "#fdecea"; color = "#c0392b";
+        fontsize = 14; fontcolor = "#922b21";
+        node [fillcolor = "#f9d5d0", color = "#c0392b"];
+
+        RBC        [label = "신생아 적혈구\nRBC mass\nHb 14-20 g/dL"];
+        RBCLIFE    [label = "짧은 적혈구 수명\nRBC lifespan\n70-90 d (term)\n35-50 d (preterm)"];
+        HBF        [label = "태아 헤모글로빈\nHbF 70-90 %\n↑ oxidative fragility"];
+        SENESC     [label = "노화 적혈구 제거\nsplenic/RES\nsenescence"];
+        ISOIMM     [label = "동종면역 용혈\nABO / Rh(D) / Kell\nmaternal IgG · DAT+"];
+        G6PD       [label = "G6PD 결핍\nX-linked · 400M carriers\nNADPH↓ · GSH↓"];
+        OXTRIG     [label = "산화 유발인자\nnaphthalene · menthol\nsulfonamide · fava\n(via breast milk)"];
+        SPHERO     [label = "적혈구막·효소 결함\nspherocytosis\nelliptocytosis · PK def."];
+        SEPSIS     [label = "패혈증·DIC\nsepsis, infection"];
+        POLYCY     [label = "다혈증\npolycythaemia\ndelayed cord clamping\nmaternal DM · TTTS"];
+        EXTRAV     [label = "체외 혈액 저류\ncephalohaematoma\nbruising · IVH"];
+        INEFF      [label = "무효 적혈구 생성\nineffective erythropoiesis\n+ hepatic haem turnover\n= early-labelled 25 %"];
+        HAEM       [label = "유리 헴\nfree haem"];
+        HO1        [label = "헴 산화효소\nHO-1 (HMOX1)\nrate-limiting"];
+        BILIV      [label = "빌리버딘\nbiliverdin IXα"];
+        BVR        [label = "빌리버딘 환원효소\nBVR"];
+        CO         [label = "일산화탄소\nCO (1:1 mol)"];
+        COHB       [label = "카복시헤모글로빈\nCOHb %"];
+        ETCO       [label = "호기말 CO\nETCOc (ppm)\n★ production biomarker", shape = box, style = "rounded,filled,bold", fillcolor = "#f5b7b1"];
+        FE         [label = "철·페리틴\nFe²⁺ / ferritin"];
+        UCB0       [label = "비포합 빌리루빈 생성\nUCB production\n8.5 mg/kg/day\n(= 2 × adult)", shape = box, style = "rounded,filled,bold", fillcolor = "#f5b7b1"];
+
+        RBCLIFE -> SENESC; HBF -> RBCLIFE;
+        RBC -> SENESC; SENESC -> HAEM;
+        ISOIMM -> SENESC [label = "RES\nphagocytosis"];
+        G6PD -> SENESC; OXTRIG -> G6PD [label = "oxidant\nchallenge"];
+        SPHERO -> SENESC; SEPSIS -> SENESC; POLYCY -> SENESC;
+        EXTRAV -> HAEM [label = "resorption\nt½ ≈ 5 d"];
+        INEFF -> HAEM;
+        HAEM -> HO1; HO1 -> BILIV; HO1 -> CO; HO1 -> FE;
+        BILIV -> BVR; BVR -> UCB0;
+        CO -> COHB -> ETCO;
+        HAEM -> HO1 [label = "substrate\ninduction", style = dashed];
+    }
+
+    /* ---------------------------------------------------------------- 2 */
+    subgraph cluster_albumin {
+        label = <<b>2 · 알부민 결합 — 측정값에서 위험으로의 사상</b><br/>Albumin binding: the map from TSB to risk>;
+        style = "filled,rounded"; fillcolor = "#eaf2fb"; color = "#2471a3";
+        fontsize = 14; fontcolor = "#1a5276";
+        node [fillcolor = "#d4e6f1", color = "#2471a3"];
+
+        ALB        [label = "혈청 알부민\nalbumin 2.5-4.0 g/dL\n(preterm ≪ term)"];
+        SITE1      [label = "고친화도 1차 결합부위\nprimary site\nKA ≈ 4.5 × 10⁷ M⁻¹"];
+        SITE2      [label = "저친화도 2차 결합부위\nsecondary sites\nKA ≈ 1 × 10⁶ M⁻¹\n(prevents Bf divergence)"];
+        KMAT       [label = "결합능 미성숙\nreduced neonatal\nbinding affinity"];
+        ACID       [label = "산증\nacidaemia pH ↓\nKA × 0.7 at pH 7.15"];
+        FFA        [label = "유리지방산\nfree fatty acids\nintralipid · fasting"];
+        DISPL      [label = "경쟁적 치환 약물\nceftriaxone · ibuprofen\nsulfisoxazole · frusemide"];
+        BFREE      [label = "유리 빌리루빈\nFREE bilirubin Bf\n5-30 nM\n★ the toxic species",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#aed6f1", penwidth = 2.4];
+        BA         [label = "빌리루빈/알부민 몰비\nB/A molar ratio\n= KA·Bf/(1+KA·Bf)\n→ albumin-independent\nat fixed Bf",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#aed6f1"];
+        BOUND      [label = "알부민 결합 빌리루빈\nalbumin-bound UCB\n> 99.9 % of TSB"];
+
+        ALB -> SITE1; ALB -> SITE2;
+        KMAT -> SITE1 [label = "KA ↓"];
+        ACID -> SITE1 [label = "KA ↓"];
+        FFA -> SITE1 [label = "competition"];
+        DISPL -> SITE1 [label = "displacement"];
+        SITE1 -> BOUND; SITE2 -> BOUND;
+        SITE1 -> BFREE [label = "saturation\n→ Bf rises\nsupra-linearly", color = "#c0392b", penwidth = 2.0];
+        BFREE -> BA [style = dashed, label = "one-to-one\nat fixed KA"];
+    }
+
+    /* ---------------------------------------------------------------- 3 */
+    subgraph cluster_dist {
+        label = <<b>3 · 분포</b><br/>Distribution (2.5 dL/kg)>;
+        style = "filled,rounded"; fillcolor = "#f4ecf7"; color = "#7d3c98";
+        fontsize = 14; fontcolor = "#6c3483";
+        node [fillcolor = "#e8daef", color = "#7d3c98"];
+
+        PLASMA     [label = "혈장 구획\nplasma 0.5 dL/kg\n= TSB compartment"];
+        INTERST    [label = "혈관외 구획\ninterstitium + skin\n2.0 dL/kg\n= 80 % of the burden"];
+        SKIN       [label = "피부·피하\nskin & subcutis\n★ the photon target"];
+        TCB        [label = "경피 빌리루빈\nTcB (transcutaneous)\ntracks the skin pool"];
+        TSB        [label = "총 혈청 빌리루빈\nTSB (measured)\n= UCB + photoisomers",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#d2b4de", penwidth = 2.4];
+
+        PLASMA -> INTERST [dir = both, label = "t½ ≈ 0.6 h"];
+        INTERST -> SKIN [style = dotted, label = "optically\naccessible\nfraction"];
+        SKIN -> TCB; PLASMA -> TSB;
+    }
+
+    /* ---------------------------------------------------------------- 4 */
+    subgraph cluster_liver {
+        label = <<b>4 · 간 흡수와 포합 (UGT1A1)</b><br/>Hepatic uptake and glucuronidation>;
+        style = "filled,rounded"; fillcolor = "#eafaf1"; color = "#1e8449";
+        fontsize = 14; fontcolor = "#186a3b";
+        node [fillcolor = "#d4efdf", color = "#1e8449"];
+
+        OATP       [label = "정맥동 흡수\nOATP1B1 / OATP1B3\n(SLCO1B1)"];
+        SLCO       [label = "SLCO1B1 변이\n*1b / *15 haplotypes\n↓ uptake"];
+        LIGAND     [label = "리간딘\nligandin GSTA1/A2\ncytosolic trapping"];
+        UGT        [label = "UGT1A1\nbilirubin-UDP-\nglucuronosyltransferase",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#a9dfbf", penwidth = 2.4];
+        ONTOG     [label = "출생 후 성숙\nontogeny\n< 1 % at birth\n≈ 25 % at 96 h\nadult by 14 wk"];
+        UGT28      [label = "UGT1A1*28\n(TA)₇ promoter\nGilbert · 35 % activity"];
+        UGT6       [label = "UGT1A1*6 (G71R)\nEast Asian 20-30 %\ncoding · 40 % activity"];
+        CN1        [label = "Crigler-Najjar I\nnull · 0 % activity\nphenobarbital-refractory"];
+        CN2        [label = "Crigler-Najjar II\nArias · ~5 %\nphenobarbital-responsive"];
+        CAR        [label = "핵수용체 유도\nCAR (NR1I3) · PXR\nAhR"];
+        UDPGA      [label = "UDP-glucuronic acid\ncofactor supply"];
+        BMG        [label = "빌리루빈 모노글루쿠로나이드\nBMG"];
+        BDG        [label = "빌리루빈 디글루쿠로나이드\nBDG"];
+        MRP2       [label = "담관측 배출\nMRP2 (ABCC2)\nrate-limiting in\ncholestasis"];
+        MRP3       [label = "기저측 역류\nMRP3 (ABCC3)\nconjugated reflux"];
+
+        OATP -> LIGAND -> UGT; SLCO -> OATP [label = "↓"];
+        ONTOG -> UGT; UGT28 -> UGT [label = "↓"]; UGT6 -> UGT [label = "↓"];
+        CN1 -> UGT [label = "abolished"]; CN2 -> UGT [label = "≈ 5 %"];
+        CAR -> UGT [label = "transcriptional\ninduction"];
+        UDPGA -> UGT;
+        UGT -> BMG -> BDG; BDG -> MRP2; BMG -> MRP2;
+        BCON_ -> MRP3 [style = invis];
+        BCON_ [label = "간세포 내 포합 빌리루빈\nconjugated pool", fillcolor = "#d4efdf"];
+        UGT -> BCON_ [style = invis];
+    }
+
+    /* ---------------------------------------------------------------- 5 */
+    subgraph cluster_ehc {
+        label = <<b>5 · 담도 배출과 장간 순환 — 신생아의 두 번째 간</b><br/>Biliary excretion and the enterohepatic shunt>;
+        style = "filled,rounded"; fillcolor = "#fef9e7"; color = "#b7950b";
+        fontsize = 14; fontcolor = "#9a7d0a";
+        node [fillcolor = "#fcf3cf", color = "#b7950b"];
+
+        BILE       [label = "담즙 흐름\nbile flow\nimmature"];
+        MECON      [label = "태변 빌리루빈 저류\nmeconium load\n≈ 15 mg reabsorbable\ndelayed passage ↑"];
+        BGLUC      [label = "β-글루쿠로니다제\nβ-glucuronidase\nneonatal mucosa +\nhuman milk",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#f9e79f"];
+        FLORA      [label = "장내 미생물 미확립\nsterile gut → flora\nno urobilinoid conversion"];
+        DECONJ     [label = "탈포합\ndeconjugation\nBDG → UCB"];
+        REABS      [label = "공장 재흡수\njejunal reabsorption\n(portal → liver)\n≈ 50 % recycled",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#f9e79f", penwidth = 2.0];
+        TRANSIT    [label = "장 통과·배변\ngut transit / stooling\n∝ enteral volume"];
+        FAECAL     [label = "대변 배출\nfaecal excretion\n(the only true exit\nfor pigment)"];
+        SUBOPT     [label = "수유 부족 황달\nsuboptimal intake\nhyperbilirubinaemia\n(AAP 2022 term)"];
+        BMJ        [label = "모유 황달\nbreast-milk jaundice\nlate, β-glucuronidase\n3α,20β-pregnanediol"];
+
+        BILE -> DECONJ [style = invis];
+        MECON -> REABS; BGLUC -> DECONJ; FLORA -> BGLUC [label = "no\ncompeting\nflora"];
+        DECONJ -> REABS; REABS -> TRANSIT [label = "escapes"];
+        TRANSIT -> FAECAL; SUBOPT -> TRANSIT [label = "↓ volume\n↓ stooling"];
+        BMJ -> BGLUC;
+    }
+
+    /* ---------------------------------------------------------------- 6 */
+    subgraph cluster_photo {
+        label = <<b>6 · 광화학 — UGT1A1을 우회하는 유일한 경로</b><br/>Photochemistry: the only route that bypasses UGT1A1>;
+        style = "filled,rounded"; fillcolor = "#e8f8f5"; color = "#117a65";
+        fontsize = 14; fontcolor = "#0e6251";
+        node [fillcolor = "#d0ece7", color = "#117a65"];
+
+        PHOTON     [label = "청색광 광자\n460-490 nm\nabsorption peak of the\nbilirubin-albumin complex"];
+        IRRAD      [label = "분광 조도\nspectral irradiance\n≥ 30 µW/cm²/nm\n= 'intensive'"];
+        AREA       [label = "노출 체표면적\nexposed BSA fraction\n0.35 single overhead\n0.80 over + under"];
+        OPTICS     [label = "피부 광학\nskin optics\npenetration depth,\nthickness, melanin\n(falls with age)"];
+        SATUR      [label = "광학적 포화\noptical saturation\nI₅₀ ≈ 45 µW/cm²/nm"];
+        ZE         [label = "배위 이성질화\n(4Z,15Z) ⇄ (4Z,15E)\nFAST · REVERSIBLE\nphotostationary ≈ 20 %"];
+        LUMI       [label = "루미루빈\nlumirubin\nIRREVERSIBLE cyclisation\nt½ ≈ 1 h · no UGT1A1 needed",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#a2d9ce", penwidth = 2.0];
+        THERM      [label = "암반응 역이성질화\nthermal E → Z reversion\n(part of 'rebound')"];
+        ISOASSAY   [label = "광이성질체도 '빌리루빈'으로 측정됨\nphotoisomers are assayed AS bilirubin\n≈ 25 % of TSB during phototherapy",
+                    shape = note, fillcolor = "#fdebd0", color = "#ca6f1e"];
+        PHOTOEXC   [label = "담즙·소변 배출\nbiliary + renal excretion\nwithout conjugation"];
+
+        PHOTON -> ZE; IRRAD -> PHOTON; AREA -> PHOTON; OPTICS -> PHOTON;
+        IRRAD -> SATUR -> PHOTON [style = dashed];
+        ZE -> LUMI [label = "photocyclisation"];
+        ZE -> THERM [dir = both];
+        LUMI -> PHOTOEXC; ZE -> PHOTOEXC [label = "slower"];
+        ZE -> ISOASSAY [style = dashed]; LUMI -> ISOASSAY [style = dashed];
+    }
+
+    /* ---------------------------------------------------------------- 7 */
+    subgraph cluster_brain {
+        label = <<b>7 · 신경독성</b><br/>Neurotoxicity: BBB, basal ganglia, kernicterus>;
+        style = "filled,rounded"; fillcolor = "#fdedec"; color = "#943126";
+        fontsize = 14; fontcolor = "#7b241c";
+        node [fillcolor = "#fadbd8", color = "#943126"];
+
+        BBB        [label = "혈액-뇌 장벽\nblood-brain barrier\npermeable to Bf only"];
+        BBBOPEN    [label = "BBB 개방\nprematurity · sepsis\nasphyxia · hyperosmolality\nacidosis"];
+        PGP        [label = "유출 수송체\nP-glycoprotein (ABCB1)\nbilirubin efflux"];
+        BRAINB     [label = "뇌 조직 빌리루빈\nbrain bilirubin\nbasal ganglia"];
+        GP         [label = "선택적 취약 부위\nglobus pallidus ·\nsubthalamic nucleus ·\nhippocampal CA1 ·\nbrainstem auditory nuclei"];
+        MITO       [label = "미토콘드리아 독성\nmitochondrial\nuncoupling · ↓ATP"];
+        EXCIT      [label = "흥분독성\nNMDA-mediated\nglutamate excitotoxicity"];
+        OXST       [label = "산화 스트레스\nROS · lipid peroxidation\nGSH depletion"];
+        APOP       [label = "세포사\napoptosis (caspase-3)\n+ astrocyte injury"];
+        MYELIN     [label = "수초화 장애\nhypomyelination\noligodendrocyte injury"];
+        ABR        [label = "청각 뇌간 반응\nABR/BAER latency ↑\n★ REVERSIBLE marker",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#f5b7b1"];
+        BIND       [label = "BIND 점수\nBIND / BIND-M score\ntone · cry · mental status"];
+        ABE        [label = "급성 빌리루빈 뇌증\nacute bilirubin\nencephalopathy (ABE)"];
+        KERN       [label = "핵황달\nKERNICTERUS\nchoreoathetoid CP ·\nSNHL/ANSD · gaze palsy ·\ndental enamel dysplasia",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#e6b0aa", penwidth = 2.4];
+        MRI        [label = "MRI\nT1/T2 hyperintensity\nglobus pallidus"];
+
+        BBB -> BRAINB; BBBOPEN -> BBB [label = "↑ PS"];
+        PGP -> BRAINB [label = "efflux ↓"];
+        BRAINB -> GP; GP -> MITO; GP -> EXCIT; MITO -> OXST; EXCIT -> OXST;
+        OXST -> APOP; APOP -> MYELIN;
+        BRAINB -> ABR; APOP -> BIND; BIND -> ABE; ABE -> KERN; APOP -> KERN;
+        KERN -> MRI [style = dashed];
+    }
+
+    /* ---------------------------------------------------------------- 8 */
+    subgraph cluster_endp {
+        label = <<b>8 · 임상 지표와 판단 임계값</b><br/>Clinical endpoints and decision thresholds>;
+        style = "filled,rounded"; fillcolor = "#eef2f7"; color = "#34495e";
+        fontsize = 14; fontcolor = "#2c3e50";
+        node [fillcolor = "#d6dbdf", color = "#34495e"];
+
+        BHUT       [label = "Bhutani 노모그램\nhour-specific percentile\n(predischarge risk)"];
+        AAPPT      [label = "AAP 2022 광선치료 임계\nphototherapy threshold\nby GA × hour × risk"];
+        AAPET      [label = "AAP 2022 교환수혈 임계\nexchange threshold\n= PT + 3.5 mg/dL"];
+        ESCAL      [label = "치료 강화 임계\nescalation-of-care\n= ET − 2 mg/dL"];
+        RISKF      [label = "신경독성 위험인자\nGA < 38 wk · albumin < 3.0\nisoimmune haemolysis · G6PD\nsepsis · instability"];
+        AUCX       [label = "임계값 초과 AUC\nAUC above threshold\n(mg·h/dL)"];
+        RATE       [label = "상승 속도\nrate of rise\n> 0.3 mg/dL/h\n⇒ haemolysis"];
+        REBOUND    [label = "재상승\nrebound after\nphototherapy stop"];
+        READM      [label = "재입원·재원기간\nreadmission · LOS\nphototherapy hours"];
+
+        BHUT -> AAPPT; RISKF -> AAPPT [label = "lowers by\n≈ 2 mg/dL"];
+        RISKF -> AAPET; AAPPT -> AAPET -> ESCAL;
+        AAPPT -> AUCX; RATE -> AAPPT [style = dashed];
+        REBOUND -> READM;
+    }
+
+    /* ---------------------------------------------------------------- 9 */
+    subgraph cluster_pt {
+        label = <<b>9 · 치료 · 광선치료</b><br/>Phototherapy>;
+        style = "filled,rounded"; fillcolor = "#e8f6f3"; color = "#0e6655";
+        fontsize = 13; fontcolor = "#0b5345";
+        node [fillcolor = "#a3e4d7", color = "#0e6655", shape = box];
+
+        PTCONV     [label = "재래식 광선치료\nconventional PT\n8-10 µW/cm²/nm"];
+        PTINT      [label = "집중 광선치료\nintensive PT\n≥ 30 µW/cm²/nm,\nmaximal BSA"];
+        PTLED      [label = "LED / fibreoptic\nblue-green 478 nm\nlow IR output"];
+        PTHOME     [label = "가정 광선치료\nhome phototherapy\n(AAP 2022 permitted)"];
+        PTSTOP     [label = "중단 기준\nstopping rule\n+ rebound TSB at 24 h"];
+    }
+
+    /* --------------------------------------------------------------- 10 */
+    subgraph cluster_et {
+        label = <<b>10 · 치료 · 교환수혈</b><br/>Exchange transfusion>;
+        style = "filled,rounded"; fillcolor = "#fbeee6"; color = "#a04000";
+        fontsize = 13; fontcolor = "#873600";
+        node [fillcolor = "#f5cba7", color = "#a04000"];
+
+        DVET       [label = "이중 용적 교환수혈\ndouble-volume ET\n160-200 mL/kg over 2-4 h"];
+        ETALB      [label = "알부민 재설정\ndonor albumin\n→ binding capacity ↑",
+                    shape = box, style = "rounded,filled,bold", fillcolor = "#f0b27a"];
+        ETAB       [label = "항체·감작 적혈구 제거\nremoves alloantibody\nand coated RBC"];
+        ETREB      [label = "재상승\nrebound from the\nextravascular pool"];
+        ETCOMP     [label = "합병증\nNEC · thrombocytopenia\nhypocalcaemia · apnoea\ncatheter events · GVHD\nmortality 0.3-2 %"];
+        ALBINF     [label = "알부민 전처치\npre-ET albumin 1 g/kg\n(binding capacity)"];
+    }
+
+    /* --------------------------------------------------------------- 11 */
+    subgraph cluster_drug {
+        label = <<b>11 · 치료 · 약물</b><br/>Pharmacological therapy>;
+        style = "filled,rounded"; fillcolor = "#f5eef8"; color = "#6c3483";
+        fontsize = 13; fontcolor = "#5b2c6f";
+        node [fillcolor = "#d7bde2", color = "#6c3483"];
+
+        IVIG       [label = "면역글로불린\nIVIG 0.5-1 g/kg\nFcγR blockade on RES"];
+        SNMP       [label = "스타노포르핀\nstannsoporfin (SnMP)\ncompetitive HO-1 inhibitor\nsingle IM 4.5 mg/kg"];
+        PHENO      [label = "페노바르비탈\nphenobarbital\nCAR agonist → UGT1A1\n(useless in CN-I)"];
+        UDCA       [label = "우르소데옥시콜산\nursodeoxycholic acid\n↑ bile flow, ↓ shunt"];
+        AGAR       [label = "장내 결합제\noral agar · charcoal\ncalcium phosphate · zinc\n→ blocks reabsorption"];
+        CLOFIB     [label = "클로피브레이트\nclofibrate (PPARα)\n→ UGT1A1 induction"];
+        RHIG       [label = "항-D 면역글로불린\nRhIG prophylaxis\n(prevents the disease)"];
+        FEED       [label = "수유 지원·보충\nlactation support,\nsupplementation, IV fluid"];
+        METALLO    [label = "기타 메탈로포르피린\nZn/Sn-protoporphyrin\n(investigational)"];
+    }
+
+    /* --------------------------------------------------------------- 12 */
+    subgraph cluster_gene {
+        label = <<b>12 · 치료 · 효소 대체</b><br/>Enzyme replacement>;
+        style = "filled,rounded"; fillcolor = "#eafaf1"; color = "#148f77";
+        fontsize = 13; fontcolor = "#0e6251";
+        node [fillcolor = "#a3e4d7", color = "#148f77"];
+
+        AAV        [label = "AAV8-hUGT1A1\ngene transfer (GNT0003)\n→ CN-I becomes CN-II"];
+        HEPTX      [label = "간세포 이식\nhepatocyte transplantation\n(bridging)"];
+        OLT        [label = "간이식\nliver transplantation\ncurative in CN-I"];
+    }
+
+    /* --------------------------------------------------------------- 13 */
+    subgraph cluster_risk {
+        label = <<b>13 · 위험인자와 유전 배경</b><br/>Risk factors and genetic background>;
+        style = "filled,rounded"; fillcolor = "#fef5e7"; color = "#af601a";
+        fontsize = 13; fontcolor = "#935116";
+        node [fillcolor = "#fad7a0", color = "#af601a"];
+
+        GA         [label = "재태 주수\ngestational age\n35-37 wk = high risk"];
+        EASTAS     [label = "동아시아 인종\nEast Asian ancestry\nUGT1A1*6 + higher peaks"];
+        SIBHX      [label = "형제 병력\nprior sibling requiring\nphototherapy"];
+        MATDM      [label = "모체 당뇨\nmaternal diabetes\n(macrosomia, polycythaemia)"];
+        DISCH      [label = "조기 퇴원\nearly discharge\n< 48 h, no follow-up"];
+        MALE       [label = "남아\nmale sex"];
+        WTLOSS     [label = "체중 감소 > 8-10 %\nexcess weight loss\n(dehydration)"];
+    }
+
+    /* --------------------------------------------------------------- 14 */
+    subgraph cluster_hydr {
+        label = <<b>14 · 수분·영양·성장</b><br/>Hydration, feeding, growth>;
+        style = "filled,rounded"; fillcolor = "#eaf7fb"; color = "#1f618d";
+        fontsize = 13; fontcolor = "#154360";
+        node [fillcolor = "#aed6f1", color = "#1f618d"];
+
+        ENTERAL    [label = "장관 섭취량\nenteral intake\nmL/kg/day"];
+        WEIGHT     [label = "체중·체표면적\nweight, BSA\nBSA/W ∝ W^−0.30"];
+        HYDR       [label = "수분 상태\nhydration,\ninsensible water loss\n(↑ under lamps)"];
+        LACT       [label = "모유 수유 확립\nlactation establishment\nday 3-5 milk volume"];
+    }
+
+    /* --------------------------------------------------------------- 15 */
+    subgraph cluster_safety {
+        label = <<b>15 · 안전성</b><br/>Treatment safety>;
+        style = "filled,rounded"; fillcolor = "#f6f3f9"; color = "#7f8c8d";
+        fontsize = 13; fontcolor = "#5d6d7e";
+        node [fillcolor = "#e5e8e8", color = "#7f8c8d"];
+
+        IWL        [label = "불감 수분 소실\ninsensible water loss ↑\nthermal instability"];
+        RETINA     [label = "망막 손상\nretinal injury\n→ eye patches"];
+        BRONZE     [label = "청동아 증후군\nbronze baby syndrome\n(cholestasis + PT)"];
+        DNAOX      [label = "산화적 DNA 손상\noxidative DNA damage\n(8-OHdG)"];
+        BONDING    [label = "모아 분리\nmother-infant separation\nbreastfeeding interruption"];
+        PDA        [label = "동맥관 개존\nPDA (in preterms,\nvery low-dose reports)"];
+    }
+
+    /* ================= cross-cluster wiring ============================= */
+    UCB0   -> PLASMA   [label = "RES → plasma", color = "#c0392b", penwidth = 2.0];
+    PLASMA -> SITE1    [label = "binding", color = "#2471a3", penwidth = 1.8];
+    PLASMA -> BA;
+    BOUND  -> TSB      [style = dashed];
+    ISOASSAY -> TSB    [label = "inflate the\nreported value", color = "#ca6f1e", style = dashed];
+
+    PLASMA -> OATP     [label = "hepatic uptake", color = "#1e8449", penwidth = 1.8];
+    MRP3   -> PLASMA   [label = "conjugated reflux", style = dashed];
+    MRP2   -> BILE;
+    BILE   -> MECON    [style = invis];
+    MRP2   -> DECONJ   [label = "conjugated\nbilirubin\ninto the gut", color = "#b7950b", penwidth = 1.8];
+    REABS  -> OATP     [label = "portal return\n→ futile cycle", color = "#b7950b", penwidth = 2.0, style = bold];
+    TRANSIT -> FAECAL;
+
+    SKIN   -> ZE       [label = "photon\ntarget", color = "#117a65", penwidth = 2.0];
+    PHOTOEXC -> FAECAL [label = "no UGT1A1 required", color = "#117a65"];
+    THERM  -> PLASMA   [label = "returns pigment\nin the dark", color = "#117a65", style = dashed];
+
+    BFREE  -> BBB      [label = "the ONLY species\nthat crosses", color = "#943126", penwidth = 2.4];
+    BFREE  -> AAPPT    [style = dotted, label = "what the threshold\nis really about"];
+
+    /* --- therapy action edges ------------------------------------------- */
+    PTINT  -> IRRAD    [color = "#0e6655", penwidth = 1.6];
+    PTCONV -> IRRAD    [color = "#0e6655"];
+    PTLED  -> IRRAD    [color = "#0e6655"];
+    PTHOME -> IRRAD    [color = "#0e6655", style = dashed];
+    PTINT  -> AREA     [color = "#0e6655"];
+    PTSTOP -> REBOUND  [color = "#0e6655", style = dashed];
+    THERM  -> REBOUND  [style = dashed, color = "#117a65"];
+
+    DVET   -> PLASMA   [label = "removes plasma\npigment", color = "#a04000", penwidth = 1.8];
+    DVET   -> ETALB;   ETALB -> ALB [label = "3.0 → 3.9 g/dL", color = "#a04000", penwidth = 1.8];
+    DVET   -> ETAB;    ETAB -> ISOIMM [label = "removes the\ndriver", color = "#a04000", penwidth = 1.8];
+    DVET   -> ETREB;   ETREB -> INTERST [dir = back, style = dashed, color = "#a04000"];
+    DVET   -> ETCOMP   [style = dashed, color = "#a04000"];
+    ALBINF -> ALB      [color = "#a04000", style = dashed];
+
+    IVIG   -> ISOIMM   [label = "FcγR blockade\n⊣ RES phagocytosis", color = "#6c3483", penwidth = 1.8];
+    SNMP   -> HO1      [label = "competitive\ninhibition ⊣", color = "#6c3483", penwidth = 1.8];
+    PHENO  -> CAR      [label = "agonist", color = "#6c3483", penwidth = 1.6];
+    CLOFIB -> CAR      [label = "PPARα → UGT1A1", color = "#6c3483"];
+    METALLO -> HO1     [label = "⊣", color = "#6c3483", style = dashed];
+    UDCA   -> TRANSIT  [label = "↑ bile flow", color = "#6c3483"];
+    UDCA   -> REABS    [label = "⊣", color = "#6c3483", style = dashed];
+    AGAR   -> REABS    [label = "luminal binding ⊣", color = "#6c3483", penwidth = 1.8];
+    FEED   -> ENTERAL  [color = "#6c3483"];
+    RHIG   -> ISOIMM   [label = "primary\nprevention ⊣", color = "#6c3483", style = dashed];
+
+    AAV    -> UGT      [label = "transgene-derived\nactivity ≈ 10 % of adult", color = "#148f77", penwidth = 1.8];
+    HEPTX  -> UGT      [color = "#148f77", style = dashed];
+    OLT    -> UGT      [label = "curative", color = "#148f77", style = dashed];
+
+    /* --- risk-factor wiring -------------------------------------------- */
+    GA     -> RBCLIFE;  GA -> ALB [label = "↓"]; GA -> ONTOG [label = "slower"];
+    GA     -> BBBOPEN;  GA -> RISKF;
+    EASTAS -> UGT6;     SIBHX -> RISKF; MATDM -> POLYCY; MALE -> RISKF;
+    DISCH  -> READM     [label = "missed\npeak"];
+    WTLOSS -> HYDR;     HYDR -> ENTERAL [dir = both];
+    ENTERAL -> TRANSIT  [label = "stool\nfrequency", color = "#1f618d", penwidth = 1.8];
+    ENTERAL -> SUBOPT   [dir = back, label = "low volume"];
+    LACT   -> ENTERAL;  WEIGHT -> AREA [label = "photon delivery\n∝ BSA", color = "#1f618d"];
+    WEIGHT -> OPTICS    [label = "skin thickens\nwith age", color = "#1f618d", style = dashed];
+    SEPSIS -> BBBOPEN;  ACID -> BBBOPEN;
+
+    /* --- safety wiring -------------------------------------------------- */
+    PTINT  -> IWL      [style = dashed, color = "#7f8c8d"];
+    PTINT  -> RETINA   [style = dashed, color = "#7f8c8d"];
+    PTINT  -> DNAOX    [style = dashed, color = "#7f8c8d"];
+    PTINT  -> BONDING  [style = dashed, color = "#7f8c8d"];
+    PTINT  -> PDA      [style = dashed, color = "#7f8c8d"];
+    MRP2   -> BRONZE   [label = "cholestasis\n+ photons", style = dashed, color = "#7f8c8d"];
+    IWL    -> HYDR     [style = dashed];
+
+    /* --- endpoint wiring ------------------------------------------------ */
+    TSB    -> AAPPT    [color = "#34495e", penwidth = 1.8];
+    TSB    -> BHUT;    TCB -> BHUT [style = dashed, label = "screening"];
+    TSB    -> RATE;
+    ETCO   -> RISKF    [style = dotted, label = "identifies the\nproduction lesion"];
+    ABR    -> BIND;
+    AAPET  -> DVET     [label = "indication", color = "#34495e", penwidth = 1.8];
+    AAPPT  -> PTINT    [label = "indication", color = "#34495e", penwidth = 1.8];
+    ESCAL  -> IVIG     [label = "indication", color = "#34495e"];
+    ESCAL  -> ALBINF   [label = "indication", color = "#34495e", style = dashed];
+    KERN   -> READM    [style = invis];
+
+    /* --- legend --------------------------------------------------------- */
+    subgraph cluster_legend {
+        label = <<b>범례 / Legend</b>>;
+        style = "filled,rounded"; fillcolor = "#fbfcfc"; color = "#95a5a6";
+        fontsize = 12;
+        node [shape = plaintext, fillcolor = "white", fontsize = 10];
+        LEG [label = <<table border="0" cellborder="0" cellspacing="2">
+          <tr><td align="left">━━ solid: mass flux / causal activation</td></tr>
+          <tr><td align="left">╌╌ dashed: modulation, biomarker read-out, adverse effect</td></tr>
+          <tr><td align="left">⊣ inhibition · ★ model output of special interest</td></tr>
+          <tr><td align="left">bold node: a state variable of the 34-ODE mrgsolve model</td></tr>
+          <tr><td align="left">Bf = unbound (free) bilirubin · TSB = total serum bilirubin</td></tr>
+          <tr><td align="left">TcB = transcutaneous bilirubin · ETCOc = end-tidal carbon monoxide</td></tr>
+          <tr><td align="left">DVET = double-volume exchange transfusion · SnMP = stannsoporfin</td></tr>
+        </table>>];
+    }
+}

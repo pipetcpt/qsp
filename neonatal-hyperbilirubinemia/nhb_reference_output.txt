@@ -1,0 +1,429 @@
+==============================================================================
+  NEONATAL HYPERBILIRUBINAEMIA QSP MODEL - REFERENCE OUTPUT
+  pure-python RK4 re-implementation of nhb_mrgsolve_model.R (34 ODEs)
+  every number quoted in README.md is produced below
+==============================================================================
+
+==============================================================================
+A14. NUMERICAL SELF-CHECKS
+==============================================================================
+      (a) bilirubin production over 24 h in a 3.4 kg term neonate
+          26.10 mg/day = 7.68 mg/kg/day   (literature 6-10 mg/kg/day,
+           roughly twice the adult 3.8 mg/kg/day)
+      (b) bilirubin distribution space = 2.50 dL/kg (plasma 0.50 +
+          extravascular 2.00); 80 % of the exchangeable burden is
+          therefore extravascular, which sets the post-exchange rebound.
+      (c) no-clearance rise rate = production / space = 3.07 mg/dL/day
+      (d) UGT1A1 ontogeny: 0.8 % of adult at birth, 25.8 % at 96 h,
+          40.4 % at 7 d, 64.2 % at 14 d, 99.9 % at 14 weeks
+      (e) RK4 step-size check on the physiologic scenario, peak TSB:
+            dt = 0.20 h -> 8.5403 mg/dL
+            dt = 0.05 h -> 8.5404 mg/dL
+            dt = 0.01 h -> 8.5404 mg/dL
+
+==============================================================================
+A1. THESIS 1 - THE MONITORED QUANTITY IS NOT THE TOXIC QUANTITY
+    Free bilirubin (Bf) from the two-class saturable binding isotherm.
+    Iso-Bf contours -> the AAP 'neurotoxicity risk factor' threshold
+    reduction is COMPUTED, not assumed.
+==============================================================================
+
+  (a) Bf (nM) as a function of TSB and albumin, term binding (KA=45/uM)
+      TSB(mg/dL)   alb 4.0  alb 3.5  alb 3.0  alb 2.5  alb 2.0
+           5           3.6      4.2      5.0      6.3      8.5
+          10           8.5     10.2     12.8     17.3     26.4
+          12          11.0     13.4     17.3     24.3     40.1
+          15          15.5     19.6     26.4     40.1     78.6
+          18          21.4     28.0     40.1     68.3    164.8
+          20          26.4     35.5     53.6    100.1    269.5
+          22          32.5     45.4     72.7    149.2    426.1
+          25          44.7     66.5    118.1    269.7    803.3
+
+  (b) TSB (mg/dL) that produces Bf = 30 nM  [iso-risk contour]
+      condition                        albumin   TSB@Bf30   dTSB   B/A ratio
+      term, pH 7.40, no displacer          3.5     18.58   +0.00    0.604
+      albumin 3.0 g/dL (AAP risk factor)    3.0     15.93   -2.65    0.604
+      albumin 2.5 g/dL                     2.5     13.27   -5.31    0.604
+      acidaemia pH 7.15 (KA x0.70)         3.5     15.59   -2.99    0.506
+      ceftriaxone/ibuprofen displacer      3.5     15.59   -2.99    0.506
+      preterm 30 wk albumin binding x0.75    2.8     12.93   -5.65    0.525
+      sepsis+acidosis+alb 2.6 (combined)    2.6     10.59   -7.99    0.463
+
+      NOTE the B/A column: at a FIXED Bf the bilirubin/albumin molar
+      ratio is IDENTICAL across albumin concentrations (0.604 for the
+      first three rows) because BT/A = K*Bf/(1+K*Bf) depends only on Bf.
+      That is the mathematical reason B/A is a better risk index than
+      TSB - and also why it FAILS when binding AFFINITY is impaired
+      (acidaemia/displacer rows: same Bf, B/A falls to ~0.51).
+
+==============================================================================
+A2. PHYSIOLOGIC JAUNDICE - NATURAL HISTORY (no treatment)
+    term 40 wk, 3.4 kg, exclusively breast-fed, UGT1A1 wild type
+==============================================================================
+
+      h    TSB   TcB   Bf(nM)  UGT%   Hb   COHb  ETCOc  AAP-PT  AAP-ET
+       0   1.50  1.38     1.1   0.80  17.0  1.20   1.38     8.8    12.3
+      12   3.88  3.04     3.2   1.37  17.0  1.11   1.27    12.3    15.8
+      24   4.97  4.25     4.3   2.82  17.0  1.09   1.25    14.7    18.2
+      36   5.91  5.16     5.2   4.84  17.1  1.09   1.25    16.5    20.0
+      48   6.72  5.95     6.1   7.23  17.1  1.09   1.25    17.8    21.3
+      60   7.38  6.60     6.9   9.84  17.2  1.09   1.26    18.7    22.2
+      72   7.89  7.12     7.5  12.57  17.3  1.10   1.26    19.4    22.9
+      84   8.26  7.50     8.0  15.35  17.4  1.10   1.27    19.8    23.3
+      96   8.47  7.74     8.2  18.13  17.4  1.11   1.27    20.2    23.7
+     120   8.48  7.83     8.2  23.60  17.5  1.11   1.28    20.6    24.1
+     144   8.04  7.48     7.6  28.82  17.4  1.11   1.28    20.8    24.3
+     168   7.29  6.83     6.6  33.75  17.4  1.11   1.28    20.9    24.4
+     192   6.38  6.01     5.6  38.36  17.3  1.10   1.27    20.9    24.4
+     216   5.47  5.16     4.6  42.67  17.2  1.10   1.26    21.0    24.5
+     240   4.66  4.40     3.8  46.69  17.0  1.09   1.25    21.0    24.5
+     264   4.01  3.77     3.2  50.42  16.8  1.08   1.24    21.0    24.5
+     288   3.51  3.30     2.8  53.90  16.7  1.07   1.22    21.0    24.5
+     312   3.15  2.94     2.4  57.13  16.5  1.05   1.21    21.0    24.5
+     336   2.89  2.69     2.2  60.14  16.3  1.04   1.20    21.0    24.5
+
+      peak TSB 8.54 mg/dL at 108 h (target: 8-9 mg/dL at 96-120 h)
+      TSB at 168 h 7.29, at 336 h 2.89 (target 5-7 and 2-4 mg/dL)
+      max Bf 8.3 nM  (well below the 30-35 nM injury threshold)
+      hours above AAP phototherapy threshold: 0
+
+==============================================================================
+A3. THESIS 2 - TSB IS AN INTEGRAL OF A DIFFERENCE OF FLUXES, SO THE
+    SAME TSB CURVE HAS NON-UNIQUE CAUSES.  COHb/ETCOc RESOLVES IT.
+==============================================================================
+
+      scenario                            peak TSB   t_peak  ETCOc  Hb@168h
+      physiologic (wild type, breast-fed)    8.54      108   1.27    17.4
+      production doubled (ABO isoimmune)    18.43      138   2.39    16.4
+      clearance halved (UGT1A1*6/*6)        12.76      192   1.27    17.4
+      enterohepatic shunt maximal           11.32      168   1.27    17.4
+
+      Rows 2 and 3 can be tuned to the SAME peak TSB, but ETCOc (a
+      direct read-out of the haem->CO+bilirubin flux) differs ~2-fold,
+      and only row 2 drops haemoglobin.  Production and clearance
+      lesions are therefore separable at the bedside, and the model
+      says which drug class can work in each.
+
+==============================================================================
+A4. PHOTOTHERAPY AS A SURFACE PHENOMENON: IRRADIANCE x EXPOSED AREA
+    ABO isoimmune newborn, phototherapy started at 24 h
+==============================================================================
+
+      Irr(uW/cm2/nm)  fBSA   TSB@24h  TSB@48h  TSB@72h  24h change%  photon u
+             0     0.00     7.81    11.75    14.81        50.4         0
+             8     0.35     7.82    11.13    12.40        42.4      5253
+            15     0.35     7.82    10.49    11.00        34.2      8700
+            30     0.35     7.82     9.58     9.32        22.6     13919
+            15     0.80     7.82     8.69     7.90        11.1     19885
+            30     0.80     7.83     7.28     6.07        -7.0     31816
+            50     0.80     7.83     6.39     5.14       -18.3     41863
+            30     1.00     7.83     6.56     5.30       -16.2     39770
+
+      Saturation is optical, not assumed: doubling irradiance from 30
+      to 50 uW/cm2/nm buys far less than doubling exposed area from
+      0.35 to 0.80, which is exactly the observed clinical hierarchy.
+
+==============================================================================
+A5. THESIS 3 - THE ASSAY MEASURES PHOTOISOMERS AS 'BILIRUBIN'.
+    Native UCB falls faster than reported TSB; stopping the lamps
+    releases stored E-isomer -> part of 'rebound' is photochemical.
+==============================================================================
+
+        h   TSB(lab)  native UCB  lumirubin  E-isomer  isomer%ofTSB
+        24      7.83        7.81      0.000     0.012         0.2
+        30      8.93        6.82      0.409     1.703        23.6
+        36      8.29        6.30      0.405     1.586        24.0
+        48      7.28        5.55      0.351     1.377        23.7
+        60      6.58        5.03      0.314     1.234        23.5
+        72      6.06        4.64      0.286     1.130        23.4
+        74      5.72        4.58      0.071     1.066        19.9
+        78      6.10        5.15      0.004     0.947        15.6
+        84      6.80        6.01      0.000     0.792        11.6
+        96      8.07        7.51      0.000     0.555         6.9
+       120      9.99        9.72      0.000     0.271         2.7
+       144     11.12       10.99      0.000     0.132         1.2
+
+      TSB at lamps-off 6.06 -> 24 h later 8.07 (rebound +2.00 mg/dL)
+
+==============================================================================
+A6. TREATMENT LADDER IN SEVERE ISOIMMUNE HAEMOLYTIC DISEASE
+    Rh(D) alloimmunisation, cord Hb 13.5, albumin 3.0 g/dL, and a
+    LATE presentation: early discharge, readmitted at 48 h.  This is
+    the situation in which the escalation ladder actually separates -
+    started at 18 h, intensive phototherapy alone answers everything.
+==============================================================================
+
+      arm                                TSB48  TSB60  TSB72  peakBf  h>ET  INJ    P(kern)  Hb@7d
+      no treatment                        15.77  18.24  20.45   135.9   172  0.944    0.996   13.3
+      PT from 18 h (early, in hospital)    9.11   8.67   8.27    10.3     0  0.000    0.002   13.3
+      PT from 48 h (late presentation)    15.78  14.88  11.75    30.8     0  0.000    0.002   13.3
+      PT 48 h + IVIG 1 g/kg               15.78  13.56   9.85    30.8     0  0.000    0.002   13.9
+      PT 48 h + IVIG + SnMP 4.5 mg/kg     15.78  12.22   7.60    30.8     0  0.000    0.002   13.9
+      PT 48 h + IVIG + DVET at 54 h       15.78  10.15   7.03    30.8     0  0.000    0.002   14.5
+
+      Exchange transfusion is not merely 'faster photons'.  Donor
+      plasma also RESETS ALBUMIN (3.0 -> ~3.9 g/dL) and strips the
+      maternal alloantibody, so it acts on all three terms of the
+      free-bilirubin expression at once: the load, the binding
+      capacity, and the rate of production.  Phototherapy acts on
+      one.  That is why the ET arm's free-bilirubin trace falls
+      further than its TSB trace does (see A7).
+
+==============================================================================
+A7. EXCHANGE TRANSFUSION MECHANICS (emergent, not prescribed)
+    170 mL/kg over 3 h; nothing in the model says '50 % removal'
+==============================================================================
+
+        h    TSB    Bf(nM)  albumin   Hb   antibody   note
+      29.0   9.93     10.0     2.98  13.2     0.288
+      30.0   9.87      9.8     2.98  13.2     0.287
+      31.0   7.66      5.4     3.39  13.1     0.172
+      32.0   6.67      4.1     3.63  13.1     0.103
+      33.0   5.92      3.3     3.78  13.1     0.062
+      34.0   6.58      3.9     3.78  13.1     0.062
+      36.0   6.46      3.9     3.78  13.1     0.062
+      39.0   6.09      3.6     3.78  13.1     0.062
+      45.0   5.46      3.2     3.77  13.2     0.061
+      57.0   4.56      2.6     3.76  13.4     0.060
+      81.0   3.63      2.1     3.75  13.8     0.058
+
+      pre-ET TSB 9.87 -> immediately post 5.92 (40 % removed)
+      rebound at +6 h 6.09 (62 % of pre-ET) - refilling from the
+      extravascular pool, which is 80 % of the body burden.
+      Bf pre 9.8 nM -> post 3.3 nM (66 % fall, i.e. MORE than TSB)
+
+==============================================================================
+A8. G6PD DEFICIENCY - THE LEADING CAUSE OF KERNICTERUS WORLDWIDE
+    An oxidant challenge (naphthalene, menthol, sulfonamide, fava via
+    breast milk) modelled as a square pulse of oxidative haemolysis
+    starting at 60 h.  Note the STOICHIOMETRIC point below.
+==============================================================================
+
+      1 g/dL of haemoglobin destroyed = 0.8 g/kg Hb = 29 mg/kg
+      bilirubin = 11.6 mg/dL of TSB spread over the 2.5 dL/kg
+      bilirubin space.  A 3 g/dL fall in haemoglobin therefore
+      carries ~35 mg/dL of pigment.  This is the quantitative reason
+      G6PD crises reach exchange-level bilirubin with a haemoglobin
+      that still looks almost normal - and why 'the Hb is fine' is
+      not reassurance.
+
+      arm                            pulse  peakTSB t_pk  peakBf  Hb nadir  ETCOc  INJ
+      no challenge                       0     8.54  108     8.3    17.00   1.38  0.000
+      12 h challenge, untreated         12    19.73   72    35.6    16.43   8.87  0.000
+      12 h challenge + intensive PT     12    19.21   72    27.3    16.43   8.87  0.000
+      24 h challenge, untreated         24    28.63   84   115.1    15.81   9.95  0.498
+      24 h challenge + intensive PT     24    21.83   84    37.6    15.81   9.95  0.000
+      24 h challenge + PT + DVET        24    20.81   78    33.1    14.03   9.75  0.000
+
+==============================================================================
+A9. GENOTYPE x FEEDING: WHY 'PROLONGED JAUNDICE' IS AN INTERACTION
+    (breast-milk jaundice is an enterohepatic, not a hepatic, lesion)
+==============================================================================
+
+      genotype        feeding        peakTSB  t_peak  TSB@d7  TSB@d14  TSB@d28
+      wild            human milk        8.54     108    7.29     2.89     1.84
+      wild            formula           8.01      96    6.23     2.52     1.74
+      wild            milk, poor intake    9.58     126    9.00     3.64     1.89
+      UGT1A1*28 het   human milk       10.30     144   10.10     4.89     2.29
+      UGT1A1*28 het   formula           9.62     126    9.12     3.86     2.11
+      UGT1A1*28 het   milk, poor intake   11.54     162   11.53     6.87     2.49
+      Gilbert *28/*28 human milk       13.53     210   13.16    11.37     3.94
+      Gilbert *28/*28 formula          12.62     192   12.50     9.48     3.32
+      Gilbert *28/*28 milk, poor intake   14.77     228   14.06    13.37     5.27
+      UGT1A1*6/*6     human milk       12.76     192   12.62     9.83     3.36
+      UGT1A1*6/*6     formula          11.90     174   11.89     7.95     2.93
+      UGT1A1*6/*6     milk, poor intake   14.04     216   13.62    12.04     4.25
+
+      Poor enteral intake raises the peak WITHOUT touching UGT1A1:
+      the shunt term KREAB*BGU*(1-occ) is a clearance-competing flux,
+      so lactation support has the same units as a drug effect.
+
+==============================================================================
+A10. INTERRUPTING THE ENTEROHEPATIC SHUNT AS PHARMACOLOGY
+==============================================================================
+
+      intervention                       peakTSB  TSB@d7  cumulative output(mg)
+      none (human milk, good intake)        8.54    7.29        122
+      oral agar 250 mg/kg/day               7.64    5.60        138
+      UDCA 10 mg/kg q12h                    7.91    5.99        137
+      formula supplementation               8.01    6.23        132
+      phenobarbital 5 mg/kg/day             6.73    3.25        159
+
+==============================================================================
+A11. THESIS 4 - PHOTOTHERAPY IS THE ONLY BILIRUBIN-LOWERING ROUTE
+     THAT DOES NOT PASS THROUGH UGT1A1, AND ITS CEILING RISES WITH
+     AGE.  WHY IT RISES IS *NOT* WHAT IS USUALLY SAID: THE
+     SURFACE-TO-MASS TERM IS CANCELLED BY PRODUCTION ONTOGENY.
+==============================================================================
+
+  (a) Crigler-Najjar, first 14 days
+      CN-I, no treatment                   d3   9.65  d7  17.31  d14  25.71  Bf@d14   69.8 nM
+      CN-I, continuous intensive PT        d3   3.79  d7   3.46  d14   3.27  Bf@d14    2.0 nM
+      CN-I, PT + phenobarbital 5 mg/kg/d   d3   3.79  d7   3.46  d14   3.27  Bf@d14    2.0 nM
+      CN-II, no treatment                  d3   9.55  d7  16.68  d14  23.40  Bf@d14   52.0 nM
+      CN-II, phenobarbital 5 mg/kg/d       d3   9.48  d7  15.98  d14  20.28  Bf@d14   35.6 nM
+
+      Phenobarbital moves CN-II and does nothing whatever in CN-I.
+      That is not a rule in the model: induction enters as
+      GENO * ont * (1 + Emax*C/(EC50+C)), and GENO = 0 annihilates
+      the induction term along with the enzyme.  You cannot induce
+      a gene product that does not exist.
+
+  (b) THE CEILING-VS-AGE DECOMPOSITION.  Quasi-steady-state TSB in
+      CN-I on 12 h/day intensive phototherapy, at frozen body size.
+      Three nested models, to find out WHICH term makes phototherapy
+      fail as the patient grows:
+        [G]   geometry only    - BSA/W falls as W^-0.30
+        [G+P] + production ontogeny - bilirubin production per kg
+                                falls 8.5 -> 3.8 mg/kg/day (RBC
+                                lifespan 80 -> 120 d)
+        [G+P+O] + skin optics  - accessible pigment fraction falls
+                                toward 0.30 with a 3.0 y constant
+
+      age    W(kg)   BSA(cm2)  BSA/W   prod      TSB[G]  TSB[G+P]  TSB[G+P+O]
+                                        mg/kg/d
+       0.00 y   3.40      2209  649.8     7.68      4.80      4.80        4.87
+       0.25 y   6.00      3253  542.1     6.53      5.46      4.65        4.88
+       0.50 y   7.80      3892  498.9     5.99      5.80      4.52        4.93
+       1.00 y   9.60      4552  474.0     5.38      6.03      4.22        4.93
+       2.00 y  12.20      5473  448.6     4.76      6.28      3.89        5.15
+       4.00 y  16.30      6844  419.9     4.22      6.60      3.63        5.79
+       6.00 y  20.50      8105  395.4     3.99      6.90      3.59        6.45
+       8.00 y  25.30      9417  372.2     3.84      7.21      3.60        6.95
+      10.00 y  31.90     11008  345.1     3.69      7.61      3.66        7.31
+      14.00 y  50.00     14990  299.8     3.53      8.43      3.88        7.98
+      18.00 y  66.00     17937  271.8     3.43      9.05      4.04        8.36
+
+      READ THE THREE COLUMNS ACROSS.
+      [G]     geometry alone: the ceiling rises 1.89-fold from birth
+              to 18 y.  So the surface-to-mass argument is real.
+      [G+P]   add the fall in bilirubin production per kg (7.7 ->
+              3.4 mg/kg/day, i.e. the literature 8.5 -> 3.8 ratio)
+              and the ceiling goes FLAT (0.84-fold),
+              because BSA/W falls by 0.42 over the same interval and
+              production per kg falls by 3.80/8.50 = 0.45.  The two
+              terms very nearly cancel.  Geometry plus physiology
+              therefore predicts that phototherapy should keep
+              working - which contradicts the clinical course.
+      [G+P+O] restore the age-dependent optical accessibility of the
+              skin and the loss of control comes back (1.72-fold).
+
+      CONCLUSION.  The usual explanation for why phototherapy stops
+      controlling Crigler-Najjar as the child grows - 'the surface-to-
+      mass ratio falls' - is quantitatively insufficient in this model,
+      because it is almost exactly cancelled by the concurrent fall in
+      bilirubin production per kilogram.  What is left to explain the
+      failure is the optical term (thicker, more pigmented skin: less
+      of the pigment pool lies within the blue-light penetration
+      depth) together with achievable exposure time.  That is
+      actionable in a way the geometric story is not: it says defend
+      irradiance and hours-per-day, and replace the missing enzyme
+      before the optical term wins.
+
+      HONEST CAVEAT ON THE ABSOLUTE NUMBERS.  This model runs the
+      CN-I phototherapy ceiling at 4.9-8.4 mg/dL where the published
+      clinical range is roughly 15-25 mg/dL.  The single well-mixed
+      extravascular compartment is the reason: it lets the whole
+      extravascular pigment pool refill the irradiated layer at one
+      fast rate constant, so it overestimates how much of the body
+      burden the photons can reach.  A deep, slowly-exchanging pool
+      would raise the whole column.  The RATIO across the column -
+      the 1.72-fold rise, and its cancellation in [G+P] - is a
+      statement about scaling exponents and is insensitive to that
+      offset.  Scaled onto a clinically observed neonatal ceiling of
+      ~15 mg/dL, a 1.72-fold rise reaches ~26 mg/dL in adolescence,
+      which is where transplantation or gene transfer becomes
+      unavoidable.
+
+  (c) AAV8-hUGT1A1 gene transfer in CN-I (single IV dose at day 60,
+      phototherapy withdrawn at day 65)
+
+      day    TSB   transgene(% of adult UGT1A1)   Bf(nM)
+        30   4.73                 0.00                  3.3
+        55   4.09                 0.00                  2.8
+        60   3.95                 0.00                  2.7
+        65   3.57                 2.93                  2.4
+        70   7.79                 5.00                  7.0
+        80  10.36                 7.50                 10.3
+        90   9.91                 8.75                  9.7
+       100   9.31                 9.38                  8.9
+       120   9.07                 9.84                  8.6
+       140   9.31                 9.96                  8.9
+
+      10 % of adult UGT1A1 activity is enough to hold TSB near
+      9 mg/dL with the lamps off - i.e. gene transfer converts
+      CN-I into a CN-II phenotype, which is precisely what the
+      GNT0003 first-in-human results showed.  The model also says
+      why so little enzyme suffices: the pathway is not saturated,
+      so activity and clearance are still in their linear range.
+
+==============================================================================
+A12. 'SAME TSB, DIFFERENT DISEASE' - THE ISO-TSB EXPERIMENT
+     Hold the monitored number FIXED and vary only the phenotype.
+     Nothing in the model says preterm infants are more vulnerable.
+==============================================================================
+
+      Free bilirubin (nM) at a CLAMPED total serum bilirubin:
+      phenotype                                    TSB=12  TSB=18  TSB=22
+      term 40 wk, alb 3.4, pH 7.40                    14.1    29.8    49.2
+      term, albumin 2.8                               19.6    48.3    93.4
+      late preterm 35 wk (binding x0.85, BBB x1.6)    21.6    51.6    96.4
+      preterm 30 wk (binding x0.75, BBB x2.2)         35.2   104.8   238.8
+      term + sepsis/acidosis pH 7.15, alb 2.8         27.9    68.9   133.3
+      term + ceftriaxone (displacement x0.70)         22.2    48.9    84.1
+
+      Steady-state brain bilirubin and 24 h injury accrual at a
+      clamped TSB = 18 mg/dL (BBR_ss = FBBB * Bf, then INJ):
+      phenotype                                    Bf     BBRss   dINJ/24h*
+      term 40 wk, alb 3.4, pH 7.40                   29.8     29.8    0.0000
+      term, albumin 2.8                              48.3     48.3    0.1592
+      late preterm 35 wk (binding x0.85, BBB x1.6)   51.6     82.5    0.5702
+      preterm 30 wk (binding x0.75, BBB x2.2)       104.8    230.5    2.3464
+      term + sepsis/acidosis pH 7.15, alb 2.8        68.9    137.9    1.2346
+      term + ceftriaxone (displacement x0.70)        48.9     48.9    0.1668
+      * unconstrained accrual rate; the ODE itself saturates at INJ = 1
+
+      The 30-week row accrues injury at a clamped TSB of 18 mg/dL
+      that the term row does not accrue at all.  The AAP's separate
+      threshold curves for gestational age and for 'neurotoxicity
+      risk factors' are therefore not empirical corrections bolted
+      onto a bilirubin number - they are a binding isotherm and a
+      barrier permeability, and the model reproduces the size of the
+      correction (~2-3 mg/dL, see A1b) without being told it.
+
+==============================================================================
+A13. SCENARIO LIBRARY (the 10 arms shipped in the R model)
+     Phototherapy is CLOSED-LOOP in every arm: switched on when TSB
+     crosses that infant's own AAP-2022 threshold and off 2 mg/dL
+     below it, exactly as it is given.  Phototherapy hours are
+     therefore an OUTPUT of the model, not an assumption.
+==============================================================================
+
+      scenario                               peakTSB t_pk peakBf  PT h  h>ET  ETCOc  Hb@7d  INJ
+      S1  physiologic term, breast-fed         8.54  108    8.3     0     0   1.38   17.4 0.000
+      S2  suboptimal intake, late stooling     9.33  100    9.4     0     0   1.38   16.5 0.000
+      S3  ABO isoimmune (DAT+)                18.43  140   29.7     0     0   2.48   16.4 0.000
+      S4  Rh disease + IVIG 1 g/kg            20.50   96   40.7    10     0   3.37   14.0 0.000
+      S5  Rh disease + IVIG + DVET            11.98  112   12.8     0     0   3.37   14.7 0.000
+      S6  G6PD 24 h oxidant crisis            23.31   84   46.0    22    14   9.95   16.4 0.001
+      S7  late preterm 35 wk + risk factors   16.04  130   32.4    40     0   3.22   16.4 0.042
+      S8  UGT1A1*6/*6 prolonged jaundice      12.76  194   14.8     0     0   1.38   17.4 0.000
+      S9  Crigler-Najjar II + phenobarbital   20.28  336   35.6     0     0   1.38   17.4 0.001
+      S10 SnMP 4.5 mg/kg (production block)   11.98  154   13.4     0     0   2.46   16.4 0.000
+
+      S9 is the informative failure: a Crigler-Najjar II infant sits
+      at 20 mg/dL just UNDER a threshold curve that was built for
+      transient jaundice with a rising clearance behind it.  The AAP
+      thresholds encode an expectation of spontaneous resolution that
+      a conjugation defect does not honour, so a threshold-driven
+      controller under-treats exactly the infant whose bilirubin is
+      not going to come down by itself.
+
+      S1 needs no phototherapy at all; S7 - the late-preterm infant
+      with risk factors and only a MODERATE haemolytic load - needs
+      the most, because its threshold is the lowest and its free
+      bilirubin the highest at any given TSB.
+
+==============================================================================
+  END OF REFERENCE OUTPUT
+==============================================================================

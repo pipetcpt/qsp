@@ -90,6 +90,11 @@ CATEGORY_RULES = [
     # (2026-07-28). Kept separate from 자가면역 because the effector is a
     # type I hypersensitivity mechanism, not loss of self-tolerance.
     ("알레르기", "알레르기"), ("아나필락시스", "알레르기"),
+    # Neonatal / paediatric-onset conditions whose whole physiology is the
+    # postnatal transition itself: first entry is neonatal hyperbilirubinaemia
+    # (2026-07-28).  Kept separate from 내분비·대사 and 혈액 because the
+    # organising variable is postnatal age, not an organ system.
+    ("신생아", "신생아·소아"), ("소아", "신생아·소아"),
     ("부인", "부인·생식"), ("산과", "부인·생식"), ("생식", "부인·생식"),
     ("희귀", "희귀·유전"), ("유전", "희귀·유전"),
 ]
