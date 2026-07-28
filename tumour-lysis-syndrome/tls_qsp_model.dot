@@ -1,0 +1,690 @@
+/*
+ * tls_qsp_model.dot -- Tumour Lysis Syndrome: mechanistic QSP map
+ * ===============================================================
+ * The map is laid out around the CENTRAL LOOP rather than around organ
+ * systems, because the loop is the disease:
+ *
+ *     release flux  >  clearance capacity   ->  supersaturation
+ *          ^                                          |
+ *          |                                          v
+ *     clearance capacity  <-  GFR  <-  obstruction  <-  precipitation
+ *
+ * Node colour encodes the OPERATOR CLASS a therapy belongs to, because the
+ * model's main claim is that these classes are not interchangeable:
+ *
+ *   red      POOL            removes solute that already exists
+ *   orange   FLUX            blocks new production
+ *   gold     FLUX-SHAPING    lowers the release rate, same total
+ *   blue     DILUTION        lowers tubular concentration
+ *   purple   SPECIATION      moves the solubility curve
+ *   green    REDISTRIBUTION  moves solute between compartments
+ *   teal     SEQUESTRATION   removes solute outside the body
+ *
+ * Render:
+ *   dot -Tsvg tls_qsp_model.dot -o tls_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 tls_qsp_model.dot -o tls_qsp_model.png
+ */
+
+digraph TLS_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  bgcolor = "white";
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 30;
+  label = "Tumour Lysis Syndrome — Quantitative Systems Pharmacology Map\nrelease flux vs clearance capacity, closed into a loop through the kidney\n(22 clusters · 211 nodes · 320 edges · therapy nodes coloured by operator class)";
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+        fontsize = 11, color = "#37474f", fillcolor = "#eceff1",
+        penwidth = 1.1, margin = "0.10,0.055"];
+  edge [color = "#607d8b", penwidth = 1.0, arrowsize = 0.65,
+        fontname = "Helvetica", fontsize = 9];
+
+  /* ===================================================================
+   * 1. TRIGGER: what starts the lysis
+   * =================================================================== */
+  subgraph cluster_trigger {
+    label = "1. Cytoreductive trigger (the release rate is a PRESCRIPTION variable)";
+    style = "rounded,filled"; fillcolor = "#fff8e1"; color = "#f9a825";
+    fontsize = 15; fontcolor = "#e65100";
+
+    CHEMO      [label = "Cytotoxic chemotherapy\ncyclophosphamide · vincristine\ncytarabine · methotrexate", fillcolor = "#ffe082"];
+    VEN        [label = "Venetoclax\nBCL-2 inhibitor\n5-week 20→400 mg ramp", fillcolor = "#ffcc80"];
+    OBIN       [label = "Obinutuzumab / rituximab\nanti-CD20 debulking"];
+    CART       [label = "CAR-T / blinatumomab\nT-cell redirected lysis"];
+    RT         [label = "Radiotherapy\nnodal / whole-body"];
+    STEROID    [label = "Corticosteroid prephase\nprednisone 60 mg/m² × 5–7 d", fillcolor = "#ffe082"];
+    SPONT      [label = "Spontaneous lysis\nno therapy given\n(Burkitt, ALL, high LDH)"];
+    IMIDS      [label = "Lenalidomide / carfilzomib\n(CLL, myeloma)"];
+    KKILL      [label = "k_kill(t)\nfractional kill rate\nEmax·C/(EC50+C)", shape = ellipse, fillcolor = "#ffab91"];
+    RAMP       [label = "Dose-ramp shaping\nthe FIRST dose level sets\nthe peak release flux", fillcolor = "#ffd54f"];
+  }
+
+  /* ===================================================================
+   * 2. CELL DEATH AND CONTENT RELEASE
+   * =================================================================== */
+  subgraph cluster_release {
+    label = "2. Cell death and intracellular content release";
+    style = "rounded,filled"; fillcolor = "#fbe9e7"; color = "#d84315";
+    fontsize = 15; fontcolor = "#bf360c";
+
+    NVIA       [label = "Viable tumour N_via\n(10¹² cells)\ngrowth ln2/T_d", shape = ellipse];
+    NLYS       [label = "Committed-to-lysis pool\nN_lys, transit t½ 6 h\n(the 12–72 h clinical lag)", shape = ellipse];
+    APOP       [label = "Apoptosis → secondary necrosis\ncaspase-3 · plasma-membrane failure"];
+    MEMB       [label = "Membrane rupture\nloss of Na⁺/K⁺-ATPase gradient"];
+    REL        [label = "Release flux J_rel = Q_i·k_lys·N_lys\n(mmol/h) — the numerator of the race", shape = ellipse, fillcolor = "#ffab91"];
+    QK         [label = "K⁺ content\n38.5 mmol per 10¹² cells\n(110 mmol/L cell volume)"];
+    QPO4       [label = "Phosphate content\n60 mmol per 10¹² cells\n(~48 from nucleic-acid P)"];
+    QPUR       [label = "Purine content\n24 mmol per 10¹² cells\n(16 pg nucleic acid/cell)"];
+    QMG        [label = "Mg²⁺ content\n5 mmol per 10¹² cells"];
+    QLDH       [label = "LDH, cytokeratin, ferritin\nrelease markers (t½ 60 h)"];
+    QCYT       [label = "Cytokines / DAMPs\nHMGB1 · uric acid as DAMP"];
+    QDNA       [label = "Free DNA / histones\ncfDNA · NETs"];
+  }
+
+  /* ===================================================================
+   * 3. PURINE CATABOLIC CASCADE
+   * =================================================================== */
+  subgraph cluster_purine {
+    label = "3. Purine catabolic cascade (supply-limited, not enzyme-limited)";
+    style = "rounded,filled"; fillcolor = "#f3e5f5"; color = "#6a1b9a";
+    fontsize = 15; fontcolor = "#4a148c";
+
+    NUCACID    [label = "Nucleic acid\nDNA 6.6 pg + RNA 10–30 pg/cell"];
+    NUCLEASE   [label = "DNase / RNase\nnucleotide liberation"];
+    NT5E       [label = "5'-nucleotidase (NT5E/CD73)\nnucleotide → nucleoside + Pi"];
+    ADA        [label = "Adenosine deaminase\nadenosine → inosine"];
+    PNP        [label = "Purine nucleoside phosphorylase\ninosine → hypoxanthine + R1P"];
+    HYPOX      [label = "Hypoxanthine\nsoluble (~1400 mg/L)\nFE 0.60", shape = ellipse];
+    HGPRT      [label = "HGPRT salvage\nhypoxanthine → IMP\n(the escape valve)"];
+    XAN        [label = "Xanthine\nSOLUBILITY ONLY 0.40 mmol/L\npKa 7.7 → pH-independent", shape = ellipse, fillcolor = "#ce93d8"];
+    XO         [label = "Xanthine oxidoreductase (XDH/XO)\nMo-pterin + FAD + 2Fe2S\nhepatic, high capacity"];
+    URATE      [label = "Urate\npKa 5.75\nthe rate-limiting solute", shape = ellipse, fillcolor = "#ba68c8"];
+    ALLANT     [label = "Allantoin\n5–10× more soluble\nfreely filtered, FE 0.95", shape = ellipse];
+    ROS_XO     [label = "XO-derived O₂⁻ / H₂O₂\nendothelial oxidant stress"];
+  }
+
+  /* ===================================================================
+   * 4. XANTHINE OXIDASE INHIBITORS  (FLUX operators)
+   * =================================================================== */
+  subgraph cluster_xoi {
+    label = "4. Xanthine oxidase inhibitors — FLUX operators (block production, cannot empty a pool)";
+    style = "rounded,filled"; fillcolor = "#fff3e0"; color = "#ef6c00";
+    fontsize = 15; fontcolor = "#e65100";
+
+    ALLO_G     [label = "Allopurinol PO\n300–600 mg/day, F 0.90", fillcolor = "#ffcc80"];
+    ALLO_C     [label = "Allopurinol plasma\nV 90 L, CL 45 L/h, t½ 1.4 h", fillcolor = "#ffcc80"];
+    OXY        [label = "Oxypurinol (active metabolite)\nV 40 L, t½ 23 h, RENALLY CLEARED\naccumulates 5× in TLS-AKI", fillcolor = "#ffb74d"];
+    FEBU       [label = "Febuxostat PO 120 mg\nnon-purine, hepatic CL\nno renal dose adjustment", fillcolor = "#ffcc80"];
+    TOPIRO     [label = "Topiroxostat / oxypurinol IV\nalternatives where PO impossible"];
+    XOI_FRAC   [label = "Fractional XO inhibition\nΣ(C/IC50)/(1+Σ(C/IC50))\n0.84 allopurinol · 0.88 febuxostat", shape = ellipse, fillcolor = "#ffcc80"];
+    LEADTIME   [label = "Lead time requirement\nset by OXYPURINOL ACCUMULATION\n(t½ 23 h), not by pool size", fillcolor = "#ffe0b2"];
+    AHS        [label = "Allopurinol hypersensitivity\nHLA-B*58:01 · DRESS · SJS/TEN\nrisk ∝ oxypurinol exposure"];
+    MERCAP     [label = "6-MP / azathioprine interaction\nXO block → 4× exposure"];
+  }
+
+  /* ===================================================================
+   * 5. URATE OXIDASE  (POOL operator)
+   * =================================================================== */
+  subgraph cluster_uox {
+    label = "5. Urate oxidase — POOL operator (destroys existing solute; zero-order at TLS concentrations)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828";
+    fontsize = 15; fontcolor = "#b71c1c";
+
+    RASB       [label = "Rasburicase IV 0.20 mg/kg\n30-min infusion, 18.2 EAU/mg", fillcolor = "#ef9a9a"];
+    RASB_PK    [label = "Rasburicase PK\nV1 8 L · CL 0.30 L/h · t½ 18 h\n2-compartment", fillcolor = "#ef9a9a"];
+    UOX_RXN    [label = "Urate + O₂ + H₂O → allantoin + H₂O₂\nKm 25 µmol/L ≪ TLS urate\n⇒ ZERO ORDER", fillcolor = "#e57373"];
+    CAPACITY   [label = "Fixed capacity 2.6 mmol/h at 0.2 mg/kg\ncovers ≈3.2×10¹² cells\nscales linearly with dose", shape = ellipse, fillcolor = "#e57373"];
+    H2O2       [label = "H₂O₂ — one per urate destroyed\noxidant load ∝ tumour burden", fillcolor = "#ef9a9a"];
+    CAT        [label = "Catalase / glutathione peroxidase\nNADPH-dependent detoxification"];
+    G6PD       [label = "G6PD deficiency\nNADPH failure → CONTRAINDICATION"];
+    METHB      [label = "Methaemoglobinaemia\n18% at 6×10¹² cells if G6PD-deficient"];
+    HEMOL      [label = "Oxidative haemolysis\nHb −2.5 g/dL, Heinz bodies"];
+    ADA_AB     [label = "Anti-rasburicase antibodies\nCL ×2 on re-exposure\nloss of effect"];
+    PEGLO      [label = "Pegloticase\nchronic uricase (not licensed for TLS)"];
+    EXVIVO     [label = "EX VIVO artefact\nurate keeps degrading in the tube\n⇒ pre-chilled tube, ice, rapid assay", fillcolor = "#ffcdd2"];
+  }
+
+  /* ===================================================================
+   * 6. RENAL URATE HANDLING
+   * =================================================================== */
+  subgraph cluster_uahandle {
+    label = "6. Renal urate handling — the kidney's only defence is a saturable one";
+    style = "rounded,filled"; fillcolor = "#e8eaf6"; color = "#3949ab";
+    fontsize = 15; fontcolor = "#1a237e";
+
+    FILT_UA    [label = "Glomerular filtration of urate\nfreely filtered (unbound)"];
+    URAT1      [label = "URAT1 / SLC22A12\napical reabsorption, SATURABLE"];
+    GLUT9      [label = "GLUT9 / SLC2A9\nbasolateral exit"];
+    OAT13      [label = "OAT1 / OAT3 (SLC22A6/8)\nbasolateral secretion"];
+    ABCG2      [label = "ABCG2\napical secretion + intestinal route"];
+    NPT1_4     [label = "NPT1 / NPT4 (SLC17A1/A3)\napical secretion"];
+    FEUA       [label = "FE_urate rises 8% → 30%\nas plasma urate rises\n(reabsorption saturates)", shape = ellipse, fillcolor = "#9fa8da"];
+    EUA        [label = "Urate excretion E_UA = FE·GFR·C\n0.18 mmol/h basal (700 mg/day)", shape = ellipse];
+    URICOSUR   [label = "Uricosurics (probenecid etc.)\nRAISE tubular urate — contraindicated"];
+  }
+
+  /* ===================================================================
+   * 7. URATE SPECIATION AND CRYSTALLISATION
+   * =================================================================== */
+  subgraph cluster_uaxtal {
+    label = "7. Urate speciation and crystallisation — where the two threshold concentrations live";
+    style = "rounded,filled"; fillcolor = "#ede7f6"; color = "#512da8";
+    fontsize = 15; fontcolor = "#311b92";
+
+    CU_UA      [label = "Tubular urate concentration\nC_u = CF·E_UA / urine flow\n(medullary concentrating factor)", shape = ellipse];
+    PKA_UA     [label = "pKa 5.75\nuric acid ⇌ urate⁻ + H⁺"];
+    S_UA       [label = "Solubility S = S_HU(1+10^(pH−5.75))\n1.02 mmol/L at pH 5.5\n37.5 mmol/L at pH 7.5", shape = ellipse, fillcolor = "#b39ddb"];
+    SS_UA      [label = "Supersaturation SS = C_u / S\nnormal urine already sits at 1.9", shape = ellipse];
+    METASTAB   [label = "Metastable limit SS ≈ 2.5\nnucleation threshold"];
+    UA_CRIT    [label = "UA_crit — plasma urate at which\ntubular fluid reaches the limit\n6.8 / 9.0 / 10.5 mg/dL at 2 / 3 / 4 L", shape = ellipse, fillcolor = "#9575cd"];
+    UA_REQ     [label = "UA_req — plasma urate needed to\nEXCRETE the release flux\n22 mg/dL at 3×10¹² cells", shape = ellipse, fillcolor = "#9575cd"];
+    RACE       [label = "THE RACE:  UA_req > UA_crit\nthe kidney cannot excrete the load\nwithout crystallising it", fillcolor = "#7e57c2", fontcolor = "white"];
+    XTAL_UA    [label = "Intratubular uric acid crystal\ndistal tubule / collecting duct", shape = ellipse];
+    XTAL_MSU   [label = "Monosodium urate crystals\ninterstitial deposition"];
+    CAP_DELIV  [label = "Growth bounded by DELIVERY\ndeposition ≤ 0.95 · E_UA"];
+    DISSOL     [label = "Dissolution when SS < 1\n+ slow clearance t½ 3.6 d"];
+  }
+
+  /* ===================================================================
+   * 8. XANTHINE NEPHROPATHY
+   * =================================================================== */
+  subgraph cluster_xanxtal {
+    label = "8. The substitution the flux operator makes: xanthine";
+    style = "rounded,filled"; fillcolor = "#f1f8e9"; color = "#558b2f";
+    fontsize = 15; fontcolor = "#33691e";
+
+    XAN_LOAD   [label = "Xanthine load ∝ fractional XO block\n(the better the drug, the more xanthine)"];
+    S_XAN      [label = "Xanthine solubility 0.40 mmol/L\npKa 7.7 ⇒ alkali does NOT help"];
+    CU_XAN     [label = "Tubular xanthine concentration"];
+    XTAL_XAN   [label = "Xanthine crystal / xanthine stone\nxanthine nephropathy", shape = ellipse];
+    HX_ESCAPE  [label = "Hypoxanthine escape route\nFE 0.60, highly soluble\ncarries most of the diverted load"];
+    XDH_DEF    [label = "Hereditary xanthinuria\nthe natural experiment"];
+  }
+
+  /* ===================================================================
+   * 9. POTASSIUM
+   * =================================================================== */
+  subgraph cluster_k {
+    label = "9. Potassium — the solute on the knife edge (flux/capacity ratio 0.4 at intact GFR)";
+    style = "rounded,filled"; fillcolor = "#e0f2f1"; color = "#00695c";
+    fontsize = 15; fontcolor = "#004d40";
+
+    K_EC       [label = "Extracellular K⁺ pool\n4.1 mmol/L × 16.8 L = 69 mmol\n(a 3×10¹² tumour holds 116 mmol)", shape = ellipse];
+    NAK        [label = "Na⁺/K⁺-ATPase\ncellular re-uptake"];
+    INS        [label = "Insulin 10 U + glucose 25 g\nREDISTRIBUTION only", fillcolor = "#a5d6a7"];
+    SALB       [label = "Salbutamol 10–20 mg neb\nβ₂ → Na⁺/K⁺-ATPase", fillcolor = "#a5d6a7"];
+    HYPOGLY    [label = "Iatrogenic hypoglycaemia\nthe cost of the insulin route"];
+    ACIDOSIS   [label = "Metabolic acidosis / lactate\nshifts K⁺ OUT of cells"];
+    K_SHIFT    [label = "Parked K⁺ compartment\nreturns with t½ 2.5 h\nTOTAL BODY K UNCHANGED", shape = ellipse, fillcolor = "#80cbc4"];
+    ALDO       [label = "Aldosterone / ENaC\ndistal Na⁺ reabsorption"];
+    ROMK       [label = "ROMK + BK channels\nflow-dependent K⁺ secretion"];
+    DISTFLOW   [label = "Distal flow rate\nthe main modifiable term"];
+    COLON      [label = "Colonic K⁺ secretion (BK)\n~10 mmol/day, GFR-INDEPENDENT"];
+    SZC        [label = "Na-Zr-cyclosilicate / patiromer\nSEQUESTRATION in the gut", fillcolor = "#80cbc4"];
+    CAGLUC     [label = "Calcium gluconate\nmembrane stabilisation, not K⁺ removal"];
+    EK         [label = "K⁺ excretion capacity\n9.3 mmol/h at K 6.0, intact GFR\nfalls as GFR^0.7", shape = ellipse];
+  }
+
+  /* ===================================================================
+   * 10. CARDIAC ELECTROPHYSIOLOGY
+   * =================================================================== */
+  subgraph cluster_cardiac {
+    label = "10. Cardiac electrophysiology — the endpoint that kills within minutes";
+    style = "rounded,filled"; fillcolor = "#fce4ec"; color = "#ad1457";
+    fontsize = 15; fontcolor = "#880e4f";
+
+    EK_REV     [label = "E_K = −61·log([K]i/[K]o)\nresting potential depolarises"];
+    KIR21      [label = "Kir2.1 / I_K1\nconductance ↑ with [K]o"];
+    NAV15      [label = "Nav1.5 inactivation\nphase-0 slope ↓"];
+    ECG1       [label = "Peaked T waves\nK⁺ > 5.5–6.0"];
+    ECG2       [label = "P-wave loss, PR/QRS widening\nK⁺ > 6.5–7.0"];
+    ECG3       [label = "Sine-wave, VT/VF, asystole\nK⁺ > 8.0"];
+    QT_CA      [label = "QT prolongation from hypocalcaemia\nadds to the arrhythmia hazard"];
+    ARRHY      [label = "Arrhythmia / sudden death\ncumulative hazard endpoint", fillcolor = "#f48fb1"];
+  }
+
+  /* ===================================================================
+   * 11. PHOSPHATE
+   * =================================================================== */
+  subgraph cluster_po4 {
+    label = "11. Phosphate — winnable at intact GFR (ratio 0.5), lost once the urate limb takes the GFR";
+    style = "rounded,filled"; fillcolor = "#e1f5fe"; color = "#0277bd";
+    fontsize = 15; fontcolor = "#01579b";
+
+    PO4_EC     [label = "Extracellular phosphate\n1.15 mmol/L × 16.8 L = 19 mmol\n(a 3×10¹² tumour holds 180 mmol)", shape = ellipse];
+    TMP        [label = "TmP/GFR ≈ 0.90 mmol/L\nSATURABLE reabsorption maximum", shape = ellipse];
+    NAPI2A     [label = "NaPi-IIa / NaPi-IIc\nSLC34A1 / SLC34A3, apical"];
+    PIT2       [label = "PiT-2 / SLC20A2"];
+    FGF23      [label = "FGF23 / α-Klotho\nphosphaturic, suppresses 1,25-D"];
+    PTH_PO4    [label = "PTH → NaPi-IIa endocytosis\nphosphaturia"];
+    EPO4       [label = "Phosphate excretion capacity\n≈12 mmol/h at intact GFR\nfalls linearly with GFR", shape = ellipse];
+    SEVE       [label = "Sevelamer / lanthanum / Ca acetate\nSEQUESTRATION of DIETARY phosphate\n— reaches only 7% of the acute load", fillcolor = "#80deea"];
+    PO4_REBOUND [label = "Post-dialysis phosphate rebound\nintracellular pool re-equilibrates"];
+  }
+
+  /* ===================================================================
+   * 12. CALCIUM AND PTH
+   * =================================================================== */
+  subgraph cluster_ca {
+    label = "12. Calcium — a readout of the precipitation, not an independent abnormality";
+    style = "rounded,filled"; fillcolor = "#fff9c4"; color = "#f9a825";
+    fontsize = 15; fontcolor = "#f57f17";
+
+    CA_T       [label = "Total calcium 2.35 mmol/L", shape = ellipse];
+    CA_ION     [label = "IONISED calcium ≈ 0.50 × total\nfalls further with alkalosis", shape = ellipse, fillcolor = "#fff176"];
+    ALB        [label = "Albumin binding / pH\ntotal Ca is the wrong measurement"];
+    CASR       [label = "CaSR (parathyroid)\nsenses IONISED calcium"];
+    PTH        [label = "PTH ↑ up to 6× set point\nbone efflux up to 2.2 mmol/h", shape = ellipse];
+    CYP27B1    [label = "1α-hydroxylase (CYP27B1)\nSUPPRESSED by hyperphosphataemia/FGF23"];
+    VITD       [label = "1,25(OH)₂D ↓\ngut Ca absorption ↓"];
+    BONE       [label = "Bone resorption\nRANKL / osteoclast"];
+    TETANY     [label = "Tetany · Chvostek/Trousseau\nparaesthesia · laryngospasm"];
+    SEIZ       [label = "Seizure\ncumulative hazard endpoint", fillcolor = "#fff59d"];
+    CA_REPL    [label = "IV calcium repletion\nthe reflex — and a REACTANT", fillcolor = "#ffe082"];
+  }
+
+  /* ===================================================================
+   * 13. CALCIUM-PHOSPHATE PRECIPITATION
+   * =================================================================== */
+  subgraph cluster_cap {
+    label = "13. Calcium-phosphate precipitation — the second crystal, and the one alkali makes worse";
+    style = "rounded,filled"; fillcolor = "#e8f5e9"; color = "#2e7d32";
+    fontsize = 15; fontcolor = "#1b5e20";
+
+    PKA2       [label = "H₂PO₄⁻ ⇌ HPO₄²⁻ + H⁺\npKa2 6.80"];
+    FHPO4      [label = "HPO₄²⁻ fraction\n0.048 at pH 5.5 → 0.834 at pH 7.5\n(a 17-fold rise)", shape = ellipse, fillcolor = "#a5d6a7"];
+    CAPO4_PROD [label = "Ca × PO₄ product\nthreshold ≈ 60–70 mg²/dL²\n= 4.84 mmol²/L²", shape = ellipse, fillcolor = "#81c784"];
+    SS_SYS     [label = "Systemic supersaturation\ninterstitial / metastatic deposition", shape = ellipse];
+    SS_CAP     [label = "Tubular CaP supersaturation\nC_Ca·C_PO4·f_HPO4 / Ksp", shape = ellipse];
+    BRUSHITE   [label = "Brushite → hydroxyapatite\namorphous → crystalline"];
+    NEPHROCALC [label = "Nephrocalcinosis\nmedullary interstitial deposition", shape = ellipse];
+    XTAL_CAP   [label = "Renal calcium-phosphate burden\n22% of peak injury drive at 6×10¹² cells", shape = ellipse, fillcolor = "#a5d6a7"];
+    INHIB      [label = "Endogenous inhibitors\npyrophosphate · citrate · osteopontin\nTamm-Horsfall protein"];
+    METASTAT   [label = "Extrarenal metastatic calcification\nmyocardium · lung · vessels · cornea"];
+  }
+
+  /* ===================================================================
+   * 14. TUBULAR INJURY
+   * =================================================================== */
+  subgraph cluster_injury {
+    label = "14. Tubular injury — crystal-dependent and crystal-independent limbs";
+    style = "rounded,filled"; fillcolor = "#efebe9"; color = "#4e342e";
+    fontsize = 15; fontcolor = "#3e2723";
+
+    OBSTRUCT   [label = "Intratubular obstruction\nHill(ΣXtal, K50 12 mmol, n 2)", shape = ellipse, fillcolor = "#bcaaa4"];
+    BACKLEAK   [label = "Tubular backleak\n+ raised tubular pressure"];
+    SOLUBLE_UA [label = "SOLUBLE urate toxicity\n(crystal-independent)\nthreshold 8 mg/dL", fillcolor = "#bcaaa4"];
+    ENDOTH     [label = "Endothelial dysfunction\nNO ↓ · endothelin ↑"];
+    AFFERENT   [label = "Afferent arteriolar vasoconstriction\nRAAS activation"];
+    NLRP3      [label = "NLRP3 inflammasome\nurate crystals → IL-1β"];
+    MCP1       [label = "MCP-1 / CXCL1\nmonocyte recruitment"];
+    KIM1       [label = "KIM-1 · NGAL · TIMP-2·IGFBP7\ninjury biomarkers (earlier than creatinine)"];
+    TUBINJ     [label = "Tubular injury state\nk_inj·drive·(1−I) − k_rep·I", shape = ellipse, fillcolor = "#a1887f"];
+    NEPH       [label = "Viable nephron fraction\nslow loss, slow recovery", shape = ellipse];
+    TGFB       [label = "TGF-β / fibrosis\nCKD after severe episodes"];
+    HYPOVOL    [label = "Volume depletion\n(unmatched diuretic, poor intake)"];
+  }
+
+  /* ===================================================================
+   * 15. GFR AND THE CLOSING OF THE LOOP
+   * =================================================================== */
+  subgraph cluster_gfr {
+    label = "15. GFR — the term that closes the loop";
+    style = "rounded,filled"; fillcolor = "#e3f2fd"; color = "#1565c0";
+    fontsize = 15; fontcolor = "#0d47a1";
+
+    GFR        [label = "GFR = GFR₀ · NEPH · (1−obstruction) · vol\nsets EVERY clearance capacity", shape = ellipse, fillcolor = "#64b5f6", fontcolor = "white"];
+    CLEARCAP   [label = "Clearance capacity C_i\nthe denominator of the race", shape = ellipse, fillcolor = "#90caf9"];
+    CREAT      [label = "Creatinine\na LAGGING marker of GFR"];
+    UREA       [label = "Urea / BUN"];
+    OLIG       [label = "Oliguria\nobstruction limits flow\nindependently of GFR", shape = ellipse];
+    CKD_HOST   [label = "Pre-existing CKD\nreduced nephron reserve\n(the dominant host risk factor)"];
+    LOOPGAIN   [label = "LOOP GAIN < 1 in this model\n⇒ a steep knee near 3.5×10¹² cells,\nNOT a bistable switch", fillcolor = "#42a5f5", fontcolor = "white"];
+  }
+
+  /* ===================================================================
+   * 16. FLUID THERAPY  (DILUTION)
+   * =================================================================== */
+  subgraph cluster_fluid {
+    label = "16. Fluid therapy — DILUTION operator (raises UA_crit without touching any pool or flux)";
+    style = "rounded,filled"; fillcolor = "#e1f5fe"; color = "#0288d1";
+    fontsize = 15; fontcolor = "#01579b";
+
+    IVF        [label = "Isotonic crystalloid\n2–3 L/m²/day (3 L/m² if tolerated)", fillcolor = "#81d4fa"];
+    URINEFLOW  [label = "Urine flow 2 → 5 → 7 L/day\nlowers every tubular concentration", shape = ellipse, fillcolor = "#4fc3f7"];
+    ADH        [label = "ADH / free-water handling\nmaximal fractional water excretion"];
+    FURO       [label = "Loop diuretic (furosemide)\nonly in the volume-REPLETE patient", fillcolor = "#81d4fa"];
+    MANN       [label = "Mannitol\nhistorical, now discouraged"];
+    UOP_TARGET [label = "Urine output target\n≥ 2 mL/kg/h (100 mL/m²/h)"];
+    FLUID_OVER [label = "Fluid overload\nthe limit on this operator\n(oliguria, cardiac, pulmonary)"];
+  }
+
+  /* ===================================================================
+   * 17. ALKALINISATION  (SPECIATION)
+   * =================================================================== */
+  subgraph cluster_alk {
+    label = "17. Alkalinisation — SPECIATION operator with a two-sided price";
+    style = "rounded,filled"; fillcolor = "#f3e5f5"; color = "#7b1fa2";
+    fontsize = 15; fontcolor = "#4a148c";
+
+    NAHCO3     [label = "Sodium bicarbonate infusion\n(routine use abandoned)", fillcolor = "#ce93d8"];
+    ACETAZ     [label = "Acetazolamide\nurine alkalinisation without Na load"];
+    PHU        [label = "Urine pH 5.9 → 7.5\nτ ≈ 0.5 h", shape = ellipse, fillcolor = "#ba68c8"];
+    ALKALOSIS  [label = "Systemic metabolic alkalosis\nionised Ca ↓, tetany ↑"];
+    PH_OPT     [label = "OPTIMUM urine pH is not a constant\n6.6 without rasburicase at 3×10¹²\n7.0 at 6×10¹²\n5.9 (i.e. none) with rasburicase", fillcolor = "#ab47bc", fontcolor = "white"];
+    NA_LOAD    [label = "Sodium load → volume expansion\n(the only free part of the trade)"];
+  }
+
+  /* ===================================================================
+   * 18. RENAL REPLACEMENT THERAPY  (POOL)
+   * =================================================================== */
+  subgraph cluster_rrt {
+    label = "18. Renal replacement therapy — the only POOL operator for K⁺ and phosphate";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828";
+    fontsize = 15; fontcolor = "#b71c1c";
+
+    IHD        [label = "Intermittent haemodialysis\nhigh clearance, rebound", fillcolor = "#ef9a9a"];
+    CVVHD      [label = "CVVHD / CVVHDF\nsustained phosphate + urate clearance", fillcolor = "#ef9a9a"];
+    HD_K       [label = "K⁺ clearance 6 L/h\nlowers TOTAL BODY potassium"];
+    HD_PO4     [label = "Phosphate clearance\nthe only route that removes it"];
+    HD_UA      [label = "Urate clearance\nrelevant when uricase unavailable"];
+    RRT_TRIG   [label = "Triggers: refractory K⁺ · oliguria\nCa×PO₄ · uraemia · volume", shape = ellipse];
+    RRT_EP     [label = "Renal replacement endpoint\ncumulative hazard", fillcolor = "#e57373"];
+  }
+
+  /* ===================================================================
+   * 19. INFLAMMATORY OVERLAP
+   * =================================================================== */
+  subgraph cluster_crs {
+    label = "19. Overlap and differential — cytokine release syndrome";
+    style = "rounded,filled"; fillcolor = "#fff3e0"; color = "#e64a19";
+    fontsize = 15; fontcolor = "#bf360c";
+
+    CRS        [label = "Cytokine release syndrome\nIL-6 · IFN-γ · TNF-α · ferritin"];
+    TOCI       [label = "Tocilizumab / anakinra\ntreats CRS, not TLS"];
+    HLH_OVER   [label = "HLH / macrophage activation\nferritin ≫, fibrinogen ↓"];
+    CAPILLARY  [label = "Capillary leak → prerenal insult\ncompounds the crystal nephropathy"];
+    DIFF       [label = "Differentiation: LDH + urate + PO₄ vs\nIL-6 + ferritin + fever timing"];
+  }
+
+  /* ===================================================================
+   * 20. RISK STRATIFICATION
+   * =================================================================== */
+  subgraph cluster_risk {
+    label = "20. Risk stratification — burden, kinetics, host";
+    style = "rounded,filled"; fillcolor = "#eceff1"; color = "#455a64";
+    fontsize = 15; fontcolor = "#263238";
+
+    BURKITT    [label = "Burkitt lymphoma / B-ALL\nhighest risk: bulk + doubling time"];
+    ALL_HI     [label = "ALL with WBC > 100×10⁹/L"];
+    AML_HI     [label = "AML with WBC > 50×10⁹/L"];
+    CLL_VEN    [label = "CLL starting venetoclax\nnodal bulk + lymphocyte count"];
+    DLBCL      [label = "DLBCL / transformed lymphoma\nintermediate risk"];
+    SOLID      [label = "Solid tumours: SCLC, germ cell\nlow risk, case reports"];
+    LDH_RISK   [label = "LDH > 2× ULN\nthe best single surrogate for burden"];
+    BASE_UA    [label = "Baseline urate > 7.5 mg/dL"];
+    BASE_CR    [label = "Baseline creatinine ↑ / CKD\nrisk multiplier"];
+    CAIRO_RISK [label = "Cairo–Bishop risk classes\nlow / intermediate / high\n→ prophylaxis intensity"];
+  }
+
+  /* ===================================================================
+   * 21. CLINICAL ENDPOINTS
+   * =================================================================== */
+  subgraph cluster_endpoints {
+    label = "21. Clinical endpoints";
+    style = "rounded,filled"; fillcolor = "#fbe9e7"; color = "#bf360c";
+    fontsize = 15; fontcolor = "#870000";
+
+    LTLS       [label = "Laboratory TLS (Cairo–Bishop)\n≥2 of urate/K/PO₄/Ca\n−3 d to +7 d", fillcolor = "#ffab91"];
+    CTLS       [label = "Clinical TLS\nLTLS + creatinine 1.5× ULN,\narrhythmia, or seizure", fillcolor = "#ff8a65", fontcolor = "white"];
+    GRADE      [label = "Grading 0–V\n(grade V = death)"];
+    AKI_EP     [label = "AKI stage (KDIGO)\npeak creatinine ratio"];
+    ICU        [label = "ICU admission · length of stay"];
+    CHEMO_DELAY [label = "Chemotherapy delay / dose reduction\nthe oncological cost of TLS"];
+    MORT       [label = "Mortality\n(TLS-attributable ~1–5%,\nhigher with established CTLS)"];
+    CKD_LATE   [label = "Late CKD\nresidual nephron loss"];
+  }
+
+  /* ===================================================================
+   * 22. MEASUREMENT LAYER
+   * =================================================================== */
+  subgraph cluster_measure {
+    label = "22. Measurement layer — what the numbers on the chart actually are";
+    style = "rounded,filled"; fillcolor = "#f5f5f5"; color = "#616161";
+    fontsize = 15; fontcolor = "#424242";
+
+    SAMPLING   [label = "Blood sampling q4–q12 h\n(the 2-of-4 rule proves robust to this)"];
+    CR_LAG     [label = "Creatinine lags GFR by hours\n⇒ AKI is under-read early"];
+    TOTAL_CA   [label = "Total vs ionised calcium\nalbumin- and pH-dependent"];
+    UA_ASSAY   [label = "Uricase-based urate assay\n+ ex vivo degradation artefact"];
+    LDH_SURR   [label = "LDH as a burden surrogate\nreleased and cleared with t½ 60 h"];
+    PSEUDO     [label = "Pseudohyperkalaemia\nin extreme leucocytosis\n(in vitro lysis in the tube)"];
+    URINE_MIC  [label = "Urine microscopy\nurate / CaP / xanthine crystals"];
+  }
+
+  /* ===================================================================
+   * EDGES — trigger → release
+   * =================================================================== */
+  CHEMO -> KKILL; VEN -> KKILL; OBIN -> KKILL; CART -> KKILL; RT -> KKILL;
+  STEROID -> KKILL; IMIDS -> KKILL; SPONT -> KKILL;
+  VEN -> RAMP [style = dashed];
+  RAMP -> KKILL [label = "shapes\ndK/dt", color = "#f57f17", penwidth = 1.6];
+  STEROID -> RAMP [style = dashed];
+  KKILL -> NVIA [label = "−", color = "#c62828"];
+  KKILL -> NLYS [label = "+"];
+  NVIA -> NLYS; NLYS -> APOP -> MEMB -> REL;
+  NLYS -> REL [label = "k_lys", penwidth = 1.5];
+  REL -> QK; REL -> QPO4; REL -> QPUR; REL -> QMG; REL -> QLDH;
+  REL -> QCYT; REL -> QDNA;
+  QLDH -> LDH_SURR;
+
+  /* purine cascade */
+  QPUR -> NUCACID -> NUCLEASE -> NT5E;
+  QDNA -> NUCLEASE;
+  NT5E -> ADA -> PNP -> HYPOX;
+  NT5E -> QPO4 [label = "one Pi per\nnucleotide", style = dashed, color = "#0277bd"];
+  HYPOX -> HGPRT [label = "salvage"];
+  HYPOX -> XAN [label = "XO"]; XO -> HYPOX [style = dotted, arrowhead = none];
+  XAN -> URATE [label = "XO"]; XO -> XAN [style = dotted, arrowhead = none];
+  XO -> ROS_XO; ROS_XO -> ENDOTH;
+  URATE -> ALLANT [label = "uricase\n(absent in humans)", style = dashed];
+
+  /* XO inhibitors */
+  ALLO_G -> ALLO_C -> OXY;
+  ALLO_C -> XOI_FRAC; OXY -> XOI_FRAC; FEBU -> XOI_FRAC; TOPIRO -> XOI_FRAC;
+  XOI_FRAC -> XO [label = "inhibits", color = "#ef6c00", penwidth = 1.8, arrowhead = tee];
+  OXY -> LEADTIME [label = "t½ 23 h sets it", color = "#ef6c00"];
+  LEADTIME -> XOI_FRAC [style = dashed];
+  OXY -> AHS; ALLO_C -> MERCAP;
+  GFR -> OXY [label = "renal CL\n⇒ 5× accumulation\nin TLS-AKI", color = "#1565c0", style = dashed];
+  XOI_FRAC -> XAN_LOAD [label = "diverts flux", color = "#558b2f", penwidth = 1.4];
+
+  /* xanthine limb */
+  XAN -> CU_XAN; XAN_LOAD -> CU_XAN; S_XAN -> XTAL_XAN [arrowhead = tee];
+  CU_XAN -> XTAL_XAN; XAN_LOAD -> HX_ESCAPE; HX_ESCAPE -> HYPOX [dir = back];
+  XDH_DEF -> XTAL_XAN [style = dashed];
+  XTAL_XAN -> OBSTRUCT;
+
+  /* uricase */
+  RASB -> RASB_PK -> UOX_RXN;
+  RASB_PK -> CAPACITY; CAPACITY -> UOX_RXN [label = "V_max", penwidth = 1.5];
+  URATE -> UOX_RXN; UOX_RXN -> ALLANT; UOX_RXN -> H2O2;
+  H2O2 -> CAT; G6PD -> CAT [arrowhead = tee];
+  H2O2 -> METHB; H2O2 -> HEMOL; G6PD -> METHB; G6PD -> HEMOL;
+  RASB_PK -> ADA_AB -> RASB_PK [label = "CL ×2", color = "#c62828", style = dashed];
+  PEGLO -> UOX_RXN [style = dashed];
+  UOX_RXN -> EXVIVO [style = dashed]; EXVIVO -> UA_ASSAY;
+  REL -> H2O2 [label = "oxidant load\n∝ burden", style = dashed, color = "#c62828"];
+
+  /* renal urate handling */
+  URATE -> FILT_UA -> URAT1 -> GLUT9;
+  FILT_UA -> OAT13; FILT_UA -> ABCG2; FILT_UA -> NPT1_4;
+  URAT1 -> FEUA [label = "saturates", color = "#3949ab", penwidth = 1.5];
+  ABCG2 -> FEUA; OAT13 -> FEUA; NPT1_4 -> FEUA;
+  FEUA -> EUA; GFR -> EUA [penwidth = 1.4];
+  URICOSUR -> CU_UA [label = "raises", color = "#c62828", style = dashed];
+  EUA -> CU_UA [penwidth = 1.4];
+
+  /* urate crystallisation */
+  URINEFLOW -> CU_UA [label = "÷ flow", color = "#0288d1", penwidth = 1.6, arrowhead = tee];
+  PKA_UA -> S_UA; PHU -> S_UA [label = "10^(pH−5.75)", color = "#7b1fa2", penwidth = 1.6];
+  CU_UA -> SS_UA; S_UA -> SS_UA [arrowhead = tee];
+  METASTAB -> SS_UA [style = dotted];
+  S_UA -> UA_CRIT; URINEFLOW -> UA_CRIT; METASTAB -> UA_CRIT;
+  REL -> UA_REQ [label = "J_rel"]; FEUA -> UA_REQ; GFR -> UA_REQ;
+  UA_REQ -> RACE [penwidth = 1.8, color = "#4527a0"];
+  UA_CRIT -> RACE [penwidth = 1.8, color = "#4527a0", arrowhead = tee];
+  RACE -> XTAL_UA [penwidth = 1.8, color = "#4527a0"];
+  SS_UA -> XTAL_UA; XTAL_UA -> XTAL_MSU;
+  EUA -> CAP_DELIV -> XTAL_UA [label = "hard bound", style = dashed];
+  SS_UA -> DISSOL [style = dashed]; DISSOL -> XTAL_UA [arrowhead = tee, style = dashed];
+  XTAL_UA -> OBSTRUCT [penwidth = 1.6];
+  URATE -> SOLUBLE_UA [label = "> 8 mg/dL", color = "#4e342e"];
+
+  /* potassium */
+  QK -> K_EC;
+  K_EC -> NAK -> K_SHIFT; INS -> NAK [penwidth = 1.4]; SALB -> NAK;
+  INS -> HYPOGLY; ACIDOSIS -> K_EC [label = "shifts out"];
+  K_SHIFT -> K_EC [label = "returns\nt½ 2.5 h", color = "#00695c", style = dashed, penwidth = 1.4];
+  ALDO -> ROMK -> EK; DISTFLOW -> ROMK; URINEFLOW -> DISTFLOW;
+  GFR -> EK [penwidth = 1.5]; EK -> K_EC [arrowhead = tee, penwidth = 1.4];
+  COLON -> K_EC [arrowhead = tee]; SZC -> K_EC [arrowhead = tee];
+  K_EC -> ALDO;
+  HD_K -> K_EC [arrowhead = tee, penwidth = 1.6, color = "#c62828"];
+
+  /* cardiac */
+  K_EC -> EK_REV -> KIR21; EK_REV -> NAV15;
+  KIR21 -> ECG1 -> ECG2 -> ECG3 -> ARRHY;
+  NAV15 -> ECG2;
+  CA_ION -> QT_CA [arrowhead = tee]; QT_CA -> ARRHY;
+  CAGLUC -> ECG3 [arrowhead = tee, label = "stabilises"];
+  ARRHY -> CTLS; ARRHY -> MORT;
+
+  /* phosphate */
+  QPO4 -> PO4_EC;
+  TMP -> NAPI2A; NAPI2A -> EPO4 [arrowhead = tee]; PIT2 -> EPO4;
+  PO4_EC -> FGF23 -> TMP [arrowhead = tee, penwidth = 1.4];
+  PTH -> PTH_PO4 -> TMP [arrowhead = tee];
+  GFR -> EPO4 [penwidth = 1.5]; EPO4 -> PO4_EC [arrowhead = tee, penwidth = 1.4];
+  SEVE -> PO4_EC [arrowhead = tee, style = dashed, label = "diet only\n(7% of load)"];
+  HD_PO4 -> PO4_EC [arrowhead = tee, penwidth = 1.6, color = "#c62828"];
+  HD_PO4 -> PO4_REBOUND; PO4_REBOUND -> PO4_EC;
+  EPO4 -> CU_PO4_LINK [style = invis];
+  FGF23 -> CYP27B1 [arrowhead = tee];
+
+  /* calcium */
+  CA_T -> CA_ION; ALB -> CA_ION; ALKALOSIS -> CA_ION [arrowhead = tee, penwidth = 1.4];
+  CA_ION -> CASR -> PTH [arrowhead = tee];
+  PTH -> BONE -> CA_T; CYP27B1 -> VITD -> CA_T;
+  PO4_EC -> CYP27B1 [arrowhead = tee];
+  CA_ION -> TETANY -> SEIZ; CA_ION -> SEIZ [arrowhead = tee, penwidth = 1.4];
+  CA_REPL -> CA_T [penwidth = 1.4];
+  SEIZ -> CTLS; ALB -> TOTAL_CA;
+
+  /* calcium phosphate */
+  PKA2 -> FHPO4; PHU -> FHPO4 [label = "10^(pH−6.8)", color = "#7b1fa2", penwidth = 1.6];
+  CA_T -> CAPO4_PROD; PO4_EC -> CAPO4_PROD [penwidth = 1.4];
+  CAPO4_PROD -> SS_SYS; FHPO4 -> SS_CAP; ALKALOSIS -> SS_SYS [penwidth = 1.3];
+  CA_T -> SS_CAP; PO4_EC -> SS_CAP; INHIB -> SS_CAP [arrowhead = tee];
+  URINEFLOW -> SS_CAP [arrowhead = tee];
+  SS_SYS -> BRUSHITE -> NEPHROCALC; SS_CAP -> BRUSHITE;
+  SS_SYS -> METASTAT;
+  NEPHROCALC -> XTAL_CAP; XTAL_CAP -> OBSTRUCT [penwidth = 1.5];
+  SS_SYS -> CA_T [arrowhead = tee, label = "consumes Ca\n1.67 : 1", color = "#2e7d32", penwidth = 1.5];
+  SS_SYS -> PO4_EC [arrowhead = tee, color = "#2e7d32"];
+  CA_REPL -> CAPO4_PROD [label = "REACTANT", color = "#c62828", penwidth = 1.6];
+
+  /* injury and GFR */
+  OBSTRUCT -> BACKLEAK; OBSTRUCT -> GFR [arrowhead = tee, penwidth = 2.0, color = "#4e342e"];
+  OBSTRUCT -> OLIG [penwidth = 1.5];
+  SOLUBLE_UA -> ENDOTH -> AFFERENT -> GFR [arrowhead = tee, penwidth = 1.5];
+  XTAL_UA -> NLRP3 -> MCP1 -> TUBINJ;
+  SOLUBLE_UA -> TUBINJ; XTAL_CAP -> TUBINJ; XTAL_XAN -> TUBINJ;
+  XTAL_UA -> TUBINJ [penwidth = 1.5];
+  TUBINJ -> KIM1; TUBINJ -> NEPH [arrowhead = tee, penwidth = 1.4];
+  TUBINJ -> TGFB -> CKD_LATE;
+  NEPH -> GFR [penwidth = 1.8];
+  HYPOVOL -> GFR [arrowhead = tee, penwidth = 1.4];
+  CKD_HOST -> NEPH [arrowhead = tee, penwidth = 1.5];
+  GFR -> CREAT [arrowhead = tee]; GFR -> UREA [arrowhead = tee];
+  CREAT -> CR_LAG; CREAT -> AKI_EP;
+  OLIG -> RRT_TRIG; CREAT -> RRT_TRIG; K_EC -> RRT_TRIG; CAPO4_PROD -> RRT_TRIG;
+  GFR -> CLEARCAP [penwidth = 2.0, color = "#1565c0"];
+  CLEARCAP -> EUA; CLEARCAP -> EK; CLEARCAP -> EPO4;
+  RACE -> LOOPGAIN [style = dashed]; OBSTRUCT -> LOOPGAIN [style = dashed];
+  LOOPGAIN -> GFR [style = dashed];
+
+  /* fluids */
+  IVF -> URINEFLOW [penwidth = 1.8, color = "#0288d1"];
+  ADH -> URINEFLOW; FURO -> URINEFLOW; MANN -> URINEFLOW;
+  FURO -> HYPOVOL [label = "if unmatched", color = "#c62828", style = dashed];
+  FURO -> EK [label = "K⁺ CL ×1.9"];
+  URINEFLOW -> UOP_TARGET; IVF -> FLUID_OVER; OLIG -> FLUID_OVER;
+  FLUID_OVER -> IVF [arrowhead = tee, style = dashed];
+
+  /* alkalinisation */
+  NAHCO3 -> PHU [penwidth = 1.6, color = "#7b1fa2"];
+  ACETAZ -> PHU; NAHCO3 -> ALKALOSIS; NAHCO3 -> NA_LOAD -> URINEFLOW;
+  S_UA -> PH_OPT; FHPO4 -> PH_OPT; UOX_RXN -> PH_OPT [style = dashed,
+      label = "deletes the\nbenefit side", color = "#c62828"];
+  PH_OPT -> NAHCO3 [arrowhead = tee, style = dashed];
+
+  /* RRT */
+  RRT_TRIG -> IHD; RRT_TRIG -> CVVHD; RRT_TRIG -> RRT_EP;
+  IHD -> HD_K; IHD -> HD_PO4; IHD -> HD_UA; CVVHD -> HD_K; CVVHD -> HD_PO4;
+  CVVHD -> HD_PO4 [style = dotted]; HD_UA -> URATE [arrowhead = tee];
+  RRT_EP -> ICU; RRT_EP -> CTLS;
+
+  /* CRS overlap */
+  QCYT -> CRS -> TOCI [style = dashed]; CRS -> CAPILLARY -> HYPOVOL;
+  CRS -> HLH_OVER; CRS -> DIFF; LDH_SURR -> DIFF; CART -> CRS;
+
+  /* risk */
+  BURKITT -> NVIA; ALL_HI -> NVIA; AML_HI -> NVIA; CLL_VEN -> NVIA;
+  DLBCL -> NVIA; SOLID -> NVIA;
+  BURKITT -> LDH_RISK; ALL_HI -> LDH_RISK;
+  LDH_RISK -> CAIRO_RISK; BASE_UA -> CAIRO_RISK; BASE_CR -> CAIRO_RISK;
+  BASE_CR -> CKD_HOST; CAIRO_RISK -> IVF [style = dashed];
+  CAIRO_RISK -> ALLO_G [style = dashed]; CAIRO_RISK -> RASB [style = dashed];
+  CLL_VEN -> RAMP [style = dashed];
+
+  /* endpoints */
+  URATE -> LTLS; K_EC -> LTLS; PO4_EC -> LTLS; CA_T -> LTLS;
+  LTLS -> CTLS [penwidth = 1.6]; CREAT -> CTLS [penwidth = 1.4];
+  CTLS -> GRADE -> MORT; CTLS -> ICU; CTLS -> CHEMO_DELAY;
+  AKI_EP -> CKD_LATE;
+  UA_CRIT -> LTLS [label = "the 8 mg/dL criterion IS\nthe crystallisation threshold",
+      style = dashed, color = "#4527a0", fontcolor = "#4527a0"];
+
+  /* measurement */
+  SAMPLING -> LTLS [style = dashed]; UA_ASSAY -> URATE [style = dashed];
+  PSEUDO -> K_EC [style = dashed]; URINE_MIC -> XTAL_UA [style = dashed, dir = back];
+  URINE_MIC -> XTAL_CAP [style = dashed, dir = back];
+  TOTAL_CA -> CA_ION [style = dashed];
+
+  /* placeholder to keep the phosphate cluster wired without a dangling node */
+  CU_PO4_LINK [label = "Tubular phosphate concentration\nCF · E_PO4 / urine flow",
+               shape = ellipse];
+  EPO4 -> CU_PO4_LINK [style = solid];
+  URINEFLOW -> CU_PO4_LINK [arrowhead = tee];
+  CU_PO4_LINK -> SS_CAP [penwidth = 1.4];
+
+  /* legend */
+  subgraph cluster_legend {
+    label = "Operator classes (a therapy in one class cannot substitute for another)";
+    style = "rounded,filled"; fillcolor = "white"; color = "#9e9e9e";
+    fontsize = 14; fontcolor = "#424242";
+    L1 [label = "POOL — removes existing solute\nrasburicase · dialysis", fillcolor = "#ef9a9a"];
+    L2 [label = "FLUX — blocks production\nallopurinol · febuxostat", fillcolor = "#ffcc80"];
+    L3 [label = "FLUX-SHAPING — lowers release rate\nvenetoclax ramp · steroid prephase", fillcolor = "#ffd54f"];
+    L4 [label = "DILUTION — lowers tubular concentration\nhydration · (careful) furosemide", fillcolor = "#81d4fa"];
+    L5 [label = "SPECIATION — moves the solubility curve\nbicarbonate → urine pH", fillcolor = "#ce93d8"];
+    L6 [label = "REDISTRIBUTION — moves, does not remove\ninsulin/glucose · salbutamol", fillcolor = "#a5d6a7"];
+    L7 [label = "SEQUESTRATION — binds in the gut\nsevelamer · SZC/patiromer", fillcolor = "#80deea"];
+    L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7 [style = invis];
+  }
+}
