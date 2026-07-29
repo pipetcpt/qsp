@@ -1,0 +1,480 @@
+/* =====================================================================
+   cdys_qsp_model.dot
+   Cervical dystonia (spasmodic torticollis) -- QSP mechanistic map
+
+   Render:
+       dot -Tsvg cdys_qsp_model.dot -o cdys_qsp_model.svg
+       dot -Tpng -Gdpi=150 cdys_qsp_model.dot -o cdys_qsp_model.png
+
+   THERAPY NODES ARE COLOURED BY WHICH TERM OF THE MODEL THEY TOUCH, not
+   by drug class.  The classification matters because the four operator
+   families are bounded differently (see A2 in cdys_reference_check.py):
+
+     salmon      CHEMODENERVATION   -> T_m of the muscles actually reached
+     gold        GEOMETRY (phi)     -> rho and SUM(w): which motor units the
+                                       needle reaches at all.  This family
+                                       RELOCATES the ceiling; the others
+                                       merely climb toward it.
+     lightgreen  CENTRAL DRIVE      -> Dcen, the maladaptive plasticity state
+     lightblue   GATING             -> reciprocal / surround inhibition
+     plum        AFFERENT           -> abnormal spindle drive
+     lightgrey   NOCICEPTIVE        -> the pain state directly
+     wheat       IMMUNE ESCAPE      -> the neutralising-antibody gate
+   ===================================================================== */
+
+digraph cervical_dystonia_qsp {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    graph [fontname="Helvetica", fontsize=11, labelloc="t", nodesep=0.22,
+           ranksep=0.55, style="rounded", bgcolor="white"];
+    node  [fontname="Helvetica", fontsize=9, shape=box, style="filled,rounded",
+           fillcolor="white", color="grey40", margin="0.07,0.04"];
+    edge  [fontname="Helvetica", fontsize=8, color="grey45", arrowsize=0.65];
+
+    label = <<b>Cervical Dystonia (Spasmodic Torticollis) — QSP mechanistic map</b><br/>
+<font point-size="11">17 clusters · 167 nodes · 219 edges · botulinum neurotoxin PK/PD, dystonic network, spread, immunogenicity, clinical endpoints</font><br/>
+<font point-size="10">Central claim: the sustained ceiling is L_min = (1 − φ)·D_cen with φ = ρ·Σw — no drug parameter appears in it.</font>>;
+
+    /* ================================================================
+       1. GENETIC AND CONSTITUTIONAL PREDISPOSITION
+       ================================================================ */
+    subgraph cluster_gen {
+        label = "1. Genetic / constitutional predisposition";
+        style = "filled,rounded"; fillcolor = "#f7f4ff"; color = "#b8a9d9";
+        TOR1A     [label="TOR1A / DYT1\nΔGAG torsinA\n(nuclear envelope, ~30% penetrance)"];
+        THAP1     [label="THAP1 / DYT6\ntranscription factor\n(cranio-cervical, laryngeal)"];
+        GNAL      [label="GNAL / DYT25\nGα-olf\n(adult-onset cervical)"];
+        ANO3      [label="ANO3 / DYT24\nanoctamin-3\n(Ca²⁺-activated channel)"];
+        CIZ1      [label="CIZ1 / DYT23\ncell-cycle / Cdkn1a-interacting"];
+        COL6A3    [label="COL6A3 / DYT27\ncollagen VI α3 (recessive)"];
+        KMT2B     [label="KMT2B / DYT28\nH3K4 methyltransferase"];
+        SGCE      [label="SGCE / DYT11\nmyoclonus-dystonia"];
+        ENV_TR    [label="peripheral trauma /\nrepetitive neck use", shape=note, fillcolor="#eeeeee"];
+        AGESEX    [label="age 40–60, female > male\n(≈1.5:1)", shape=note, fillcolor="#eeeeee"];
+        REDUCED_P [label="incomplete penetrance\n+ second hit"];
+        TOR1A -> REDUCED_P; THAP1 -> REDUCED_P; GNAL -> REDUCED_P;
+        ANO3 -> REDUCED_P; CIZ1 -> REDUCED_P; COL6A3 -> REDUCED_P;
+        KMT2B -> REDUCED_P; SGCE -> REDUCED_P;
+        ENV_TR -> REDUCED_P; AGESEX -> REDUCED_P;
+    }
+
+    /* ================================================================
+       2. BASAL GANGLIA CIRCUIT
+       ================================================================ */
+    subgraph cluster_bg {
+        label = "2. Basal ganglia — direct/indirect imbalance";
+        style = "filled,rounded"; fillcolor = "#fff7f0"; color = "#e0a878";
+        SNc      [label="SNc dopaminergic neurons"];
+        DA       [label="striatal dopamine"];
+        D1       [label="D1 striatopallidal (direct)\nGABA/substance P"];
+        D2       [label="D2 striatopallidal (indirect)\nGABA/enkephalin"];
+        ChIN     [label="striatal cholinergic\ninterneuron (TAN)"];
+        ACh_STR  [label="striatal ACh tone ↑"];
+        M1R      [label="M1/M4 muscarinic receptors"];
+        GPe      [label="GPe"];
+        STN      [label="subthalamic nucleus"];
+        GPi      [label="GPi / SNr output nuclei"];
+        GPI_OUT  [label="GPi inhibitory output ↓\n(loss of selective inhibition)",
+                   fillcolor="#ffe4d0"];
+        LTD_LOSS [label="corticostriatal LTD lost /\nbidirectional plasticity failure",
+                   fillcolor="#ffe4d0"];
+        SNc -> DA; DA -> D1 [label="D1 +"]; DA -> D2 [label="D2 −"];
+        DA -> ChIN [label="D2 −"]; ChIN -> ACh_STR; ACh_STR -> M1R;
+        M1R -> LTD_LOSS; DA -> LTD_LOSS [label="deficient"];
+        D1 -> GPi [label="−"]; D2 -> GPe [label="−"]; GPe -> STN [label="−"];
+        STN -> GPi [label="+"]; GPi -> GPI_OUT;
+        LTD_LOSS -> GPI_OUT;
+    }
+
+    /* ================================================================
+       3. CEREBELLUM AND OLIVO-CEREBELLAR LOOP
+       ================================================================ */
+    subgraph cluster_cb {
+        label = "3. Cerebellum / olivo-cerebellar";
+        style = "filled,rounded"; fillcolor = "#f0fff4"; color = "#7fbf95";
+        IO       [label="inferior olive"];
+        CF       [label="climbing fibres"];
+        PC       [label="Purkinje cells\n(irregular simple-spike firing)"];
+        DN       [label="dentate nucleus"];
+        DTC      [label="dentato-thalamo-cortical\npathway"];
+        EBCC     [label="eyeblink conditioning ↓\n(cerebellar marker)", shape=note,
+                   fillcolor="#e8f7ec"];
+        CB_GAIN  [label="aberrant cerebellar gain\n(Cbll state)", fillcolor="#d8f3e2"];
+        IO -> CF; CF -> PC; PC -> DN [label="−"]; DN -> DTC;
+        PC -> EBCC; DTC -> CB_GAIN; DN -> CB_GAIN;
+    }
+
+    /* ================================================================
+       4. THALAMOCORTICAL AND SENSORIMOTOR CORTEX
+       ================================================================ */
+    subgraph cluster_ctx {
+        label = "4. Thalamocortical / sensorimotor cortex";
+        style = "filled,rounded"; fillcolor = "#f2f7ff"; color = "#8aa9d6";
+        VL       [label="VL / VA thalamus"];
+        M1       [label="primary motor cortex M1"];
+        SMA      [label="supplementary motor area"];
+        PMC      [label="premotor cortex"];
+        S1       [label="primary somatosensory S1\n(blurred somatotopy)"];
+        SICI     [label="short-interval intracortical\ninhibition ↓ (GABA-A)"];
+        SURR     [label="SURROUND INHIBITION ↓\n(SurrInh state)", fillcolor="#dde8fa"];
+        PLAST    [label="maladaptive LTP-like\nplasticity, homeostatic\nplasticity lost",
+                   fillcolor="#dde8fa"];
+        MOTOROVER[label="motor overflow /\nloss of movement selectivity"];
+        VL -> M1; VL -> SMA; VL -> PMC; S1 -> M1; S1 -> SMA;
+        M1 -> SICI [label="deficient"]; SICI -> SURR; SURR -> MOTOROVER;
+        PLAST -> SURR [label="−"]; PLAST -> MOTOROVER;
+        SMA -> M1; PMC -> M1;
+    }
+
+    /* ================================================================
+       5. SENSORIMOTOR INTEGRATION AND AFFERENT DRIVE
+       ================================================================ */
+    subgraph cluster_aff {
+        label = "5. Sensorimotor integration / afferent drive";
+        style = "filled,rounded"; fillcolor = "#faf2ff"; color = "#b98ed6";
+        SPINDLE  [label="muscle spindle\n(intrafusal fibres)"];
+        GAMMA    [label="γ-motoneuron\n(intrafusal cholinergic terminal)"];
+        IA_AFF   [label="Ia / II spindle afferents"];
+        CUT      [label="cutaneous + joint afferents"];
+        DORSAL   [label="dorsal column → VPL"];
+        TDT      [label="temporal discrimination\nthreshold ↑ (endophenotype)", shape=note,
+                   fillcolor="#f3e8fa"];
+        AFF_ABN  [label="ABNORMAL AFFERENT DRIVE\n(aff state)", fillcolor="#f0dcfa"];
+        GESTE    [label="sensory trick\n(geste antagoniste)", shape=note, fillcolor="#f3e8fa"];
+        GAMMA -> SPINDLE; SPINDLE -> IA_AFF; IA_AFF -> DORSAL; CUT -> DORSAL;
+        DORSAL -> S1; IA_AFF -> AFF_ABN; CUT -> AFF_ABN; AFF_ABN -> TDT;
+        GESTE -> AFF_ABN [label="− transient", style=dashed];
+    }
+
+    /* ================================================================
+       6. SPINAL CIRCUITS
+       ================================================================ */
+    subgraph cluster_sp {
+        label = "6. Spinal segmental circuits";
+        style = "filled,rounded"; fillcolor = "#f0f9ff"; color = "#7fb6d6";
+        IA_IN    [label="Ia inhibitory interneuron"];
+        RECIP    [label="RECIPROCAL INHIBITION ↓\n(RecInh state)", fillcolor="#daeefb"];
+        RENSHAW  [label="Renshaw recurrent inhibition"];
+        PRESYN   [label="presynaptic Ia inhibition ↓"];
+        ALPHA    [label="α-motoneuron pool\n(cervical C1–C4, XI)"];
+        COCON    [label="antagonist CO-CONTRACTION"];
+        RETIC    [label="reticulospinal /\nvestibulospinal drive"];
+        IA_AFF -> IA_IN; IA_IN -> RECIP; RECIP -> COCON [label="loss →"];
+        RENSHAW -> ALPHA [label="−"]; PRESYN -> ALPHA;
+        ALPHA -> COCON; RETIC -> ALPHA;
+    }
+
+    /* ================================================================
+       7. CENTRAL DYSTONIC DRIVE  (the integrating node)
+       ================================================================ */
+    subgraph cluster_drive {
+        label = "7. Central dystonic drive (D_cen)";
+        style = "filled,rounded"; fillcolor = "#fff0f0"; color = "#d68a8a";
+        DCEN     [label="D_cen\nMALADAPTIVE PLASTICITY STATE\nt½ ≈ 87 d — the RATCHET",
+                   shape=box3d, fillcolor="#ffd9d9", fontsize=10];
+        GCEN     [label="G_cen\ncentral drive gain"];
+        DESCEND  [label="descending dystonic\nmotor command"];
+        GCEN -> DCEN; DCEN -> DESCEND;
+    }
+
+    /* ================================================================
+       8. NECK MUSCLE MECHANICS AND TORQUE
+       ================================================================ */
+    subgraph cluster_musc {
+        label = "8. Neck muscles, torque shares w_m, and the reach fraction ρ";
+        style = "filled,rounded"; fillcolor = "#fffdf0"; color = "#ccc07a";
+        SCM      [label="sternocleidomastoid (contra)\nw = 0.20 · rotation, laterocollis"];
+        SPLEN    [label="splenius capitis (ipsi)\nw = 0.24 · rotation, retrocollis"];
+        TRAP     [label="trapezius (ipsi)\nw = 0.13 · shoulder elevation"];
+        LEVSC    [label="levator scapulae\nw = 0.08 · laterocollis"];
+        SEMI     [label="semispinalis capitis (DEEP)\nw = 0.12 · often missed"];
+        SCAL     [label="scalene complex\nw = 0.06 · laterocollis"];
+        OCI      [label="obliquus capitis inferior (DEEP)\nw = 0.10 · rotation, often missed"];
+        LONGUS   [label="longus colli / prevertebral\nw = 0.07 · effectively unreachable"];
+        RHO      [label="ρ = 0.55  REACH FRACTION\n(share of a targeted muscle the\ninjectate actually blocks)\nCALIBRATED FROM THE PLATEAU",
+                   shape=box3d, fillcolor="#fff3b8", fontsize=10];
+        PHI      [label="φ = ρ · Σ w(injected)\nstandard plan φ ≈ 0.36\nextended plan φ ≈ 0.48",
+                   shape=box3d, fillcolor="#fff3b8", fontsize=10];
+        TORQUE   [label="NET DYSTONIC TORQUE  L\nL ≥ (1 − φ)·D_cen   ← THE BOUND",
+                   shape=box3d, fillcolor="#ffe98a", fontsize=10];
+        PATTERN  [label="head posture pattern:\ntorticollis / laterocollis /\nantecollis / retrocollis"];
+        ROM      [label="cervical range of motion ↓"];
+        HYPERTR  [label="muscle hypertrophy,\npalpable banding"];
+        SCM -> TORQUE; SPLEN -> TORQUE; TRAP -> TORQUE; LEVSC -> TORQUE;
+        SEMI -> TORQUE; SCAL -> TORQUE; OCI -> TORQUE; LONGUS -> TORQUE;
+        RHO -> PHI; PHI -> TORQUE [label="bounds"];
+        TORQUE -> PATTERN; TORQUE -> ROM; TORQUE -> HYPERTR;
+    }
+
+    /* ================================================================
+       9. NEUROMUSCULAR JUNCTION AND THE CHEMODENERVATION CASCADE
+       ================================================================ */
+    subgraph cluster_nmj {
+        label = "9. NMJ and the chemodenervation cascade (per muscle: A → B → C → S → E)";
+        style = "filled,rounded"; fillcolor = "#f5f5f5"; color = "#999999";
+        A_FREE   [label="A_m  free bioactive toxin\nin muscle interstitium\nt½ ≈ 0.25 d", fillcolor="#ffe0e0"];
+        PSG      [label="polysialoganglioside GT1b\n(low-affinity acceptor)"];
+        SV2      [label="SV2A / SV2B / SV2C\n(protein receptor, serotype A)"];
+        SYT      [label="synaptotagmin I / II\n(protein receptor, serotype B)"];
+        HC       [label="Hᴄ heavy-chain\nbinding domain"];
+        HN       [label="Hɴ translocation domain"];
+        LC_DOM   [label="LC light chain\nZn²⁺ metalloprotease"];
+        B_ENDO   [label="B_m  bound / internalising\nendosomal pool\nt½ ≈ 1.5 d", fillcolor="#ffe0e0"];
+        ACIDIF   [label="endosome acidification\n(v-ATPase) → pore"];
+        C_ACT    [label="C_m  ACTIVE LIGHT CHAIN\nin terminal cytosol\nt½ ≈ 28 d  ← CALIBRATED",
+                   shape=box3d, fillcolor="#ffcccc", fontsize=10];
+        SNAP25   [label="SNAP-25\n(serotype A/C/E substrate)"];
+        VAMP     [label="VAMP / synaptobrevin\n(serotype B/D/F/G substrate)"];
+        SYNTAX   [label="syntaxin-1\n(serotype C substrate)"];
+        S_INTACT [label="S_m  INTACT SNARE FRACTION\nresynthesis t½ ≈ 5 d",
+                   shape=box3d, fillcolor="#ffcccc", fontsize=10];
+        SNARE_C  [label="SNARE complex assembly\n(cooperative, n ≈ 3)"];
+        QUANT    [label="quantal ACh release"];
+        SAFETY   [label="NEUROMUSCULAR SAFETY FACTOR\nSF ≈ 3 — release must fall BELOW\n1/SF before any weakness appears",
+                   shape=box3d, fillcolor="#ffcccc", fontsize=10];
+        E_TRANS  [label="E(S)  transmission efficacy\nTHRESHOLD function", fillcolor="#ffdddd"];
+        ACHR     [label="nicotinic AChR (postsynaptic)"];
+        MEPP     [label="MEPP frequency ↓,\nend-plate potential ↓"];
+        A_FREE -> HC; HC -> PSG; HC -> SV2; HC -> SYT;
+        PSG -> B_ENDO; SV2 -> B_ENDO; SYT -> B_ENDO;
+        B_ENDO -> ACIDIF; ACIDIF -> HN; HN -> LC_DOM; LC_DOM -> C_ACT;
+        C_ACT -> SNAP25 [label="cleave (A)"];
+        C_ACT -> VAMP [label="cleave (B)"];
+        C_ACT -> SYNTAX [label="cleave (C)", style=dashed];
+        SNAP25 -> S_INTACT; VAMP -> S_INTACT; SYNTAX -> S_INTACT;
+        S_INTACT -> SNARE_C; SNARE_C -> QUANT; QUANT -> SAFETY;
+        SAFETY -> E_TRANS; QUANT -> ACHR; ACHR -> MEPP; E_TRANS -> MEPP;
+    }
+
+    /* ================================================================
+       10. NERVE TERMINAL REMODELLING
+       ================================================================ */
+    subgraph cluster_sprout {
+        label = "10. Terminal remodelling — the two-phase recovery";
+        style = "filled,rounded"; fillcolor = "#f0fff0"; color = "#8fc98f";
+        SPROUT   [label="Q_m  nerve terminal SPROUTING\npeaks ≈ day 40", shape=box3d,
+                   fillcolor="#d6f5d6", fontsize=10];
+        TSC      [label="terminal Schwann cell\nprocess extension"];
+        NCAM     [label="NCAM, GAP-43 re-expression"];
+        AGRIN    [label="agrin – LRP4 – MuSK – rapsyn\nre-clustering"];
+        ACHR_SPR [label="extrajunctional AChR\nspreading (denervation-like)"];
+        ATROPHY  [label="muscle fibre atrophy,\ntype-II fibre loss"];
+        REGRESS  [label="sprout REGRESSION as the parent\nterminal regains SNAP-25"];
+        SHARED   [label="sprouts draw on the SAME\ncytosolic SNARE pool →\nrelease gated by S_m", shape=note,
+                   fillcolor="#e4f7e4"];
+        REINN    [label="functional reinnervation\ncomplete by ~3–6 months"];
+        SPROUT -> TSC; SPROUT -> NCAM; NCAM -> AGRIN; AGRIN -> ACHR_SPR;
+        SPROUT -> SHARED; SHARED -> REGRESS; REGRESS -> REINN;
+        ATROPHY -> SPROUT [label="+ signal"];
+    }
+
+    /* ================================================================
+       11. BOTULINUM TOXIN PRODUCTS AND ADMINISTRATION
+       ================================================================ */
+    subgraph cluster_prod {
+        label = "11. Products, dose, dilution, technique";
+        style = "filled,rounded"; fillcolor = "#fff0f5"; color = "#d68aa9";
+        ONA      [label="onabotulinumtoxinA\n900 kDa complex · 5 ng/100 U", fillcolor="salmon"];
+        INCO     [label="incobotulinumtoxinA\n150 kDa pure · 0.44 ng/100 U", fillcolor="salmon"];
+        ABO      [label="abobotulinumtoxinA\nSpeywood units · 4.35 ng/500 U", fillcolor="salmon"];
+        DAXI     [label="daxibotulinumtoxinA\n+ RTP004 peptide · ~24 wk", fillcolor="salmon"];
+        RIMA     [label="rimabotulinumtoxinB\nVAMP substrate · 5000–10000 U", fillcolor="salmon"];
+        DOSE     [label="total dose (Units)\nstandard 240 U", fillcolor="salmon"];
+        DILUTE   [label="dilution / injectate VOLUME\n(U per mL)", fillcolor="gold"];
+        NEEDLE   [label="needle placement,\nnumber of sites per muscle", fillcolor="gold"];
+        EMG      [label="needle-EMG guidance", fillcolor="gold"];
+        US       [label="ultrasound guidance", fillcolor="gold"];
+        TARGETSEL[label="MUSCLE SELECTION\n(which w_m are on the list)", fillcolor="gold"];
+        INTERVAL [label="re-injection interval\n(q12wk convention)", fillcolor="wheat"];
+        ONA -> DOSE; INCO -> DOSE; ABO -> DOSE; DAXI -> DOSE; RIMA -> DOSE;
+        DOSE -> A_FREE [label="bolus", lhead=cluster_nmj];
+        DILUTE -> A_FREE [label="↑ efflux"];
+        EMG -> NEEDLE; US -> NEEDLE; NEEDLE -> RHO [label="↑ ρ"];
+        EMG -> TARGETSEL; US -> TARGETSEL; TARGETSEL -> PHI [label="↑ Σw"];
+        DAXI -> C_ACT [label="↓ k_LC (longer)", style=dashed];
+    }
+
+    /* ================================================================
+       12. IMMUNOGENICITY AND SECONDARY NON-RESPONSE
+       ================================================================ */
+    subgraph cluster_imm {
+        label = "12. Immunogenicity → secondary non-response (absorbing)";
+        style = "filled,rounded"; fillcolor = "#fffaf0"; color = "#ccae7a";
+        AGLOAD   [label="Ag  neurotoxin-complex\nPROTEIN LOAD (ng)\n= dose × ng per Unit"];
+        DC       [label="dendritic cell uptake,\nMHC-II presentation"];
+        CD4      [label="CD4⁺ T-helper activation"];
+        GC       [label="germinal-centre reaction"];
+        BMEM     [label="MEMORY B cells\nt½ ≈ 1 y  → recall boost", shape=box3d,
+                   fillcolor="#f7ecd6", fontsize=10];
+        PLASMA   [label="plasma cells"];
+        NAB      [label="NEUTRALISING IgG\nvs Hᴄ domain\nt½ ≈ 20 d", shape=box3d,
+                   fillcolor="#f7ecd6", fontsize=10];
+        GATE     [label="potency gate\n1 / (1 + (Nab/Nab50)^h)", fillcolor="#f2e0bb"];
+        NONRESP  [label="SECONDARY NON-RESPONSE\n(absorbing state for that serotype)",
+                   fillcolor="#f2d5a0"];
+        NOCROSS  [label="serotypes A and B share no\nneutralising epitopes", shape=note,
+                   fillcolor="#fdf6e8"];
+        SWITCH   [label="serotype switch A → B\n(finite rescue)", fillcolor="wheat"];
+        LOWLOAD  [label="low-protein-load product", fillcolor="wheat"];
+        LONGINT  [label="longer interval\n→ memory decays between doses", fillcolor="wheat"];
+        AGLOAD -> DC; DC -> CD4; CD4 -> GC; GC -> BMEM; BMEM -> PLASMA;
+        PLASMA -> NAB; BMEM -> GC [label="recall ×(1+β·B)"];
+        NAB -> GATE; GATE -> NONRESP; GATE -> A_FREE [label="× gate", style=bold];
+        NOCROSS -> SWITCH; SWITCH -> NONRESP [label="−"];
+        LOWLOAD -> AGLOAD [label="−"]; LONGINT -> BMEM [label="−"];
+        INTERVAL -> BMEM;
+    }
+
+    /* ================================================================
+       13. SPREAD AND ADVERSE EFFECTS
+       ================================================================ */
+    subgraph cluster_ae {
+        label = "13. Diffusive spread and adverse effects";
+        style = "filled,rounded"; fillcolor = "#fff5f5"; color = "#d69a9a";
+        EFFLUX   [label="diffusive efflux from muscle\n∝ injectate volume"];
+        SW_CMT   [label="swallow compartment\n(pharyngeal constrictors — SMALL mass,\nso small amounts concentrate)"];
+        DYSPH    [label="DYSPHAGIA\n11% at 240 U, dose-dependent", fillcolor="#f7d5d5"];
+        NECKW    [label="NECK EXTENSOR WEAKNESS /\nHEAD DROP", fillcolor="#f7d5d5"];
+        GEOCONF  [label="the muscles carrying dystonic torque\nARE the muscles holding the head up",
+                   shape=note, fillcolor="#fdeaea"];
+        AU_CMT   [label="autonomic / salivary\ncholinergic terminals"];
+        DRYMOUTH [label="dry mouth (serotype B ≫ A)", fillcolor="#f7d5d5"];
+        FLU      [label="flu-like syndrome,\ninjection-site pain", fillcolor="#f7d5d5"];
+        GENWEAK  [label="distant / generalised weakness\n(rare, dose-related)", fillcolor="#f7d5d5"];
+        EFFLUX -> SW_CMT; SW_CMT -> DYSPH; EFFLUX -> AU_CMT; AU_CMT -> DRYMOUTH;
+        DILUTE -> EFFLUX [label="↑"]; A_FREE -> EFFLUX;
+        RIMA -> AU_CMT [label="×4 tropism", style=dashed];
+        GEOCONF -> NECKW; EFFLUX -> GENWEAK;
+    }
+
+    /* ================================================================
+       14. PAIN AND NOCICEPTION
+       ================================================================ */
+    subgraph cluster_pain {
+        label = "14. Pain and nociception";
+        style = "filled,rounded"; fillcolor = "#f7f7ff"; color = "#9a9ad6";
+        SUSTAIN  [label="sustained co-contraction"];
+        ISCHEM   [label="intramuscular ischaemia,\nlactate, low pH"];
+        ASIC     [label="ASIC3 / TRPV1 / P2X3\nnociceptor activation"];
+        CGRP     [label="CGRP + substance P release\nfrom nociceptor terminals"];
+        NGF      [label="NGF, bradykinin,\nPGE₂ sensitisation"];
+        DH       [label="dorsal horn wind-up,\nWDR neuron sensitisation"];
+        CENTSENS [label="central sensitisation\nt½ ≈ 23 d (Pain state)", fillcolor="#e0e0f7"];
+        BONT_AN  [label="BoNT blocks CGRP/SP release\n(direct antinociception —\nREQUIRED but not fitted: A13)",
+                   fillcolor="lightgrey"];
+        SUSTAIN -> ISCHEM; ISCHEM -> ASIC; ASIC -> CGRP; CGRP -> DH;
+        NGF -> ASIC; DH -> CENTSENS; COCON -> SUSTAIN;
+        BONT_AN -> CGRP [label="−"];
+        C_ACT -> BONT_AN [label="same LC", style=dashed];
+    }
+
+    /* ================================================================
+       15. OTHER THERAPEUTICS
+       ================================================================ */
+    subgraph cluster_rx {
+        label = "15. Non-toxin interventions, by operator family";
+        style = "filled,rounded"; fillcolor = "#f5fff5"; color = "#8fc98f";
+        THP      [label="trihexyphenidyl\nM1 antimuscarinic\n(cognitive burden limits it)",
+                   fillcolor="lightgreen"];
+        BAC      [label="baclofen\nGABA-B agonist", fillcolor="lightgreen"];
+        CLZ      [label="clonazepam\nGABA-A PAM", fillcolor="lightblue"];
+        TBZ      [label="tetrabenazine\nVMAT2 inhibitor", fillcolor="lightgreen"];
+        DBS      [label="GPi DEEP BRAIN STIMULATION\nramp t½ ≈ 45 d", fillcolor="lightgreen"];
+        DENERV   [label="selective peripheral denervation\n(Bertrand) / myectomy",
+                   fillcolor="gold"];
+        PHYSIO   [label="sensorimotor retraining,\nphysiotherapy", fillcolor="plum"];
+        SPLINT   [label="sensory-trick training,\nbiofeedback", fillcolor="plum"];
+        ANALG    [label="NSAID / duloxetine /\ngabapentinoid", fillcolor="lightgrey"];
+        THP -> GCEN [label="−"]; BAC -> GCEN [label="−"]; TBZ -> DA [label="−"];
+        DBS -> GPI_OUT [label="−"]; DBS -> GCEN [label="−"];
+        CLZ -> RECIP [label="+"]; CLZ -> SURR [label="+"];
+        DENERV -> PHI [label="↑ (permanent)"];
+        PHYSIO -> AFF_ABN [label="−"]; SPLINT -> AFF_ABN [label="−"];
+        ANALG -> CENTSENS [label="−"];
+        THP -> M1R [label="−"];
+    }
+
+    /* ================================================================
+       16. CLINICAL ENDPOINTS
+       ================================================================ */
+    subgraph cluster_end {
+        label = "16. Clinical endpoints";
+        style = "filled,rounded"; fillcolor = "#f0f0f0"; color = "#808080";
+        TW_SEV   [label="TWSTRS severity  0–35\nbaseline ≈ 20", fillcolor="#dddddd"];
+        TW_DIS   [label="TWSTRS disability  0–30\nbaseline ≈ 13", fillcolor="#dddddd"];
+        TW_PAIN  [label="TWSTRS pain  0–20\nbaseline ≈ 10", fillcolor="#dddddd"];
+        TW_TOT   [label="TWSTRS TOTAL  0–85\nbaseline ≈ 43", shape=box3d,
+                   fillcolor="#cccccc", fontsize=10];
+        MCID     [label="MCID ≈ 4.5 points", shape=note, fillcolor="#eeeeee"];
+        CDIP     [label="CDIP-58 patient-reported"];
+        TSUI     [label="Tsui score, head deviation angle"];
+        PGIC     [label="patient global impression\nof change"];
+        QOL      [label="quality of life, depression,\nsocial withdrawal"];
+        TW_SEV -> TW_TOT; TW_DIS -> TW_TOT; TW_PAIN -> TW_TOT;
+        TW_TOT -> MCID; TW_TOT -> PGIC; TW_SEV -> TSUI; TW_TOT -> CDIP;
+        TW_DIS -> QOL; TW_PAIN -> QOL;
+    }
+
+    /* ================================================================
+       CROSS-CLUSTER WIRING
+       ================================================================ */
+    REDUCED_P -> SNc [style=dashed];
+    REDUCED_P -> LTD_LOSS [style=dashed];
+    REDUCED_P -> PC [style=dashed];
+    REDUCED_P -> PLAST [style=dashed];
+
+    GPI_OUT -> VL [label="disinhibition"];
+    CB_GAIN -> VL;
+    CB_GAIN -> GCEN;
+    SURR -> GCEN [label="loss ↑ drive"];
+    RECIP -> GCEN [label="loss ↑ drive"];
+    AFF_ABN -> DCEN [label="drives plasticity", style=bold];
+    AFF_ABN -> S1;
+    PLAST -> DCEN [style=bold];
+    MOTOROVER -> DESCEND;
+
+    DESCEND -> ALPHA [label="dystonic command", style=bold];
+    ALPHA -> SCM; ALPHA -> SPLEN; ALPHA -> TRAP; ALPHA -> LEVSC;
+    ALPHA -> SEMI; ALPHA -> SCAL; ALPHA -> OCI; ALPHA -> LONGUS;
+    ALPHA -> GAMMA [label="α–γ co-activation"];
+
+    E_TRANS -> SCM [label="T_m", style=bold];
+    E_TRANS -> SPLEN [style=bold];
+    E_TRANS -> TRAP [style=bold];
+    E_TRANS -> LEVSC [style=bold];
+    SPROUT -> E_TRANS [label="+ partial, S-gated"];
+    S_INTACT -> SPROUT [label="gates sprout release", style=dashed];
+    E_TRANS -> SPROUT [label="recovery → regression", style=dashed];
+    C_ACT -> GAMMA [label="intrafusal block", style=bold];
+    GAMMA -> AFF_ABN [label="− (this is how a PERIPHERAL\ninjection reaches the CENTRE)",
+             style=bold, color="#8a2be2"];
+
+    TORQUE -> TW_SEV [style=bold];
+    TORQUE -> SUSTAIN;
+    CENTSENS -> TW_PAIN [style=bold];
+    TW_SEV -> TW_DIS;
+    CENTSENS -> TW_DIS;
+    PATTERN -> TW_SEV; ROM -> TW_SEV;
+
+    DYSPH -> TW_DIS [label="iatrogenic"];
+    NECKW -> TW_DIS [label="iatrogenic"];
+    NECKW -> TW_SEV [label="iatrogenic"];
+    E_TRANS -> NECKW [label="posterior over-block"];
+    SW_CMT -> DYSPH;
+    NONRESP -> TW_TOT [label="loss of effect"];
+
+    /* ---- legend ---- */
+    subgraph cluster_legend {
+        label = "Operator families — why the classification matters";
+        style = "filled,rounded"; fillcolor = "white"; color = "grey60";
+        L1 [label="CHEMODENERVATION → T_m\nbounded by φ; carries the harm", fillcolor="salmon"];
+        L2 [label="GEOMETRY (ρ, Σw) → φ\nRELOCATES the ceiling", fillcolor="gold"];
+        L3 [label="CENTRAL DRIVE → D_cen, G_cen\nonly DBS reaches it strongly", fillcolor="lightgreen"];
+        L4 [label="GATING → RecInh, SurrInh", fillcolor="lightblue"];
+        L5 [label="AFFERENT → aff", fillcolor="plum"];
+        L6 [label="NOCICEPTIVE → Pain", fillcolor="lightgrey"];
+        L7 [label="IMMUNE ESCAPE → Nab gate", fillcolor="wheat"];
+        L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7 [style=invis];
+    }
+}
