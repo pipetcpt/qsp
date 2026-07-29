@@ -1,0 +1,686 @@
+// ============================================================================
+//  MOG Antibody-Associated Disease (MOGAD) — Mechanistic QSP Map
+//  ---------------------------------------------------------------------------
+//  Render:  dot -Tsvg mogad_qsp_model.dot -o mogad_qsp_model.svg
+//           dot -Tpng -Gdpi=150 mogad_qsp_model.dot -o mogad_qsp_model.png
+//
+//  The map is organised around three structural commitments that the
+//  companion mrgsolve model turns into equations:
+//
+//   (1) SOURCE.  The pathogenic IgG1 comes predominantly from a SHORT-LIVED,
+//       CD20-NEGATIVE plasmablast pool sustained by an IL-6-dependent
+//       extrafollicular niche — not from long-lived marrow plasma cells.
+//       Everything downstream of cluster 2 inherits that short time constant.
+//   (2) TARGET.  MOG sits on the OUTERMOST myelin lamella of a CNS cell whose
+//       cell body survives the attack. Myelin is destroyed; the
+//       oligodendrocyte is largely spared; AQP4/astrocytes are intact. Hence
+//       demyelination without astrocytopathy, low sGFAP, and a high recovery
+//       ceiling — the single largest divergence from AQP4-IgG NMOSD.
+//   (3) CLEARANCE vs SOURCE.  Therapies act at one of two distinct nodes:
+//       the antibody SOURCE (steroids, MMF/AZA, rituximab, IL-6R blockade) or
+//       the antibody CLEARANCE/EFFECTOR arm (PLEX, IVIG/FcRn, complement
+//       inhibitors). Only the clearance arm is indifferent to plasmablast
+//       turnover — which is why its benefit does not decay as the source pool
+//       regenerates.
+// ============================================================================
+
+digraph MOGAD_QSP {
+  rankdir=LR;
+  compound=true;
+  splines=spline;
+  nodesep=0.20;
+  ranksep=0.62;
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=22;
+  label=<<B>Myelin Oligodendrocyte Glycoprotein Antibody-Associated Disease (MOGAD) — Mechanistic QSP Map</B><BR/>
+<FONT POINT-SIZE="13">Short-lived plasmablast IgG1 source → BBB transit → complement/ADCP attack on the outer myelin lamella → demyelination with oligodendrocyte survival → relapse-driven disability<BR/>
+Blue = immune source · Green = target tissue · Red = effector injury · Orange = drug/intervention · Purple = biomarker · Grey = clinical endpoint · Yellow = toxicity</FONT>>;
+  node [style="filled,rounded", shape=box, fontname="Helvetica", fontsize=10, color="#666666", penwidth=0.8];
+  edge [fontname="Helvetica", fontsize=8, color="#5a5a5a", arrowsize=0.7];
+
+  // ==========================================================================
+  subgraph cluster_host {
+    label="1. Host susceptibility & attack triggers";
+    style="filled,rounded"; color="#b9c6da"; fillcolor="#f2f5fa"; fontsize=13; fontcolor="#2b3f5c";
+    node [fillcolor="#dce6f4"];
+    HLA_DRB1_1601   [label="HLA-DRB1*16:02 /\nweak HLA association\n(unlike HLA-DR2 in MS)"];
+    Genetic_bg      [label="Polygenic background\n(no monogenic driver)"];
+    Age_paediatric  [label="Paediatric onset\n(ADEM-dominant phenotype)"];
+    Age_adult       [label="Adult onset\n(ON / myelitis dominant)"];
+    Sex_skew        [label="Modest female skew\nin adults (~1.5:1)"];
+    Infection_trig  [label="Antecedent infection\n(~1/3 of first attacks)"];
+    Mimicry         [label="Molecular mimicry to\nMOG extracellular Ig-like domain"];
+    Vaccine_temporal[label="Temporal post-vaccination\nassociation (rare, unproven causality)"];
+    Tolerance_loss  [label="Loss of peripheral\nB-cell tolerance to MOG"];
+    Epitope_Pro42   [label="Dominant epitope around\nPro42 / CC′-loop of MOG"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_bcell {
+    label="2. Peripheral B lineage — the SHORT-LIVED plasmablast source (commitment 1)";
+    style="filled,rounded"; color="#a9bdd6"; fillcolor="#eef3fa"; fontsize=13; fontcolor="#2b3f5c";
+    node [fillcolor="#d4e2f4"];
+    Naive_B         [label="Naive B cell\n(CD20+, CD19+)"];
+    MOG_spec_B      [label="MOG-specific B cell\n(circulating, CD20+)"];
+    GC_reaction     [label="Germinal-centre reaction\n(minor contribution)"];
+    Extrafollicular [label="Extrafollicular\nplasmablast response\n(dominant route)"];
+    Memory_B        [label="MOG-specific memory B cell\n(CD20+ — rituximab target)"];
+    Plasmablast     [label="SHORT-LIVED PLASMABLAST\nCD20− CD38hi, t½ ≈ 3–8 d\n(principal IgG1 factory)", fillcolor="#9dc3ea", penwidth=2.0];
+    LLPC_BM         [label="Long-lived marrow\nplasma cell (minor pool,\nCD20− and steroid-resistant)"];
+    Tfh_help        [label="T-follicular-helper\n/ Tph help"];
+    IL21            [label="IL-21"];
+    BAFF            [label="BAFF / TNFSF13B"];
+    APRIL           [label="APRIL"];
+    IL6_niche       [label="IL-6-dependent\nplasmablast survival niche", fillcolor="#9dc3ea", penwidth=1.6];
+    Class_switch    [label="Class switch to IgG1\n(complement-fixing subclass)"];
+    Clonal_expansion[label="Antigen-driven\nclonal expansion"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_ab {
+    label="3. Antibody biology, FcRn handling & titre";
+    style="filled,rounded"; color="#a9bdd6"; fillcolor="#eef3fa"; fontsize=13; fontcolor="#2b3f5c";
+    node [fillcolor="#cfe0f6"];
+    MOG_IgG1_serum  [label="Serum MOG-IgG1\n(pathogenic pool)", penwidth=2.0, fillcolor="#9dc3ea"];
+    C1q_affinity    [label="IgG1 Fc → C1q\nbinding competence"];
+    FcRn_recycling  [label="FcRn-mediated IgG\nrecycling (endothelium, MPS)"];
+    IgG_halflife    [label="IgG half-life ≈ 21 d\n(set by FcRn salvage)"];
+    Total_IgG_pool  [label="Total serum IgG pool\n(competes for FcRn)"];
+    Titer_CBA       [label="Live cell-based assay titre\n(clear positive ≥ 1:100)"];
+    Low_titer_grey  [label="Low/borderline titre\n(1:10–1:40 → low specificity)"];
+    Avidity         [label="Antibody avidity /\nepitope breadth"];
+    Sero_persistent [label="PERSISTENT seropositivity\n→ higher relapse risk", penwidth=1.6];
+    Sero_transient  [label="TRANSIENT seropositivity\n→ often monophasic"];
+    Fab_binding     [label="Fab binding to surface MOG\n(no internal antigen access needed)"];
+    Intrathecal_syn [label="Intrathecal MOG-IgG synthesis\n(low; CSF mostly serum-derived)"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_tcell {
+    label="4. T-cell / cytokine amplification";
+    style="filled,rounded"; color="#a9bdd6"; fillcolor="#eef3fa"; fontsize=13; fontcolor="#2b3f5c";
+    node [fillcolor="#dbe6f7"];
+    MOG_spec_CD4    [label="MOG-specific CD4+ T cell\n(pathology: CD4 ≫ CD8)"];
+    Th17_diff       [label="Th17 differentiation\n(RORγt)"];
+    IL17A           [label="IL-17A"];
+    GM_CSF          [label="GM-CSF\n(myeloid licensing)"];
+    IFNg            [label="IFN-γ"];
+    IL6_serum       [label="IL-6 (serum & CSF)", penwidth=1.6];
+    CXCL13          [label="CXCL13 (CSF)\nB-cell chemoattractant"];
+    TNFa            [label="TNF-α"];
+    Treg_deficit    [label="Regulatory T-cell\nfunctional deficit"];
+    Mono_recruit    [label="Monocyte recruitment\n(CCL2)"];
+    IL8_CSF         [label="IL-8 / CXCL8 (CSF)\nneutrophil chemotaxis"];
+    Th2_component   [label="Th2 / eosinophil component\n(less than AQP4-NMOSD)"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_bbb {
+    label="5. Blood–brain barrier transit (the rate-limiting gate)";
+    style="filled,rounded"; color="#b7cfc2"; fillcolor="#f0f7f3"; fontsize=13; fontcolor="#22503a";
+    node [fillcolor="#d7ece0"];
+    BBB_TJ          [label="Endothelial tight junctions\n(claudin-5, occludin, ZO-1)"];
+    MMP9            [label="MMP-9 / MMP-2"];
+    VEGF_A          [label="VEGF-A"];
+    BBB_perm        [label="BBB PERMEABILITY INDEX\n(gate for IgG entry)", penwidth=2.0, fillcolor="#b6dcc6"];
+    IgG_CNS_influx  [label="CNS parenchymal\nMOG-IgG concentration", penwidth=1.6];
+    Qalb            [label="CSF/serum albumin quotient\n(Qalb, barrier readout)"];
+    CSF_pleo        [label="CSF pleocytosis\n(often > 50 cells/µL)"];
+    OCB_negative    [label="CSF oligoclonal bands\nUSUALLY ABSENT\n(≠ multiple sclerosis)"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_target {
+    label="6. Target antigen & oligodendrocyte biology (commitment 2)";
+    style="filled,rounded"; color="#9dc4ab"; fillcolor="#eef7f1"; fontsize=13; fontcolor="#22503a";
+    node [fillcolor="#c9e7d6"];
+    MOG_protein     [label="MOG protein\n(CNS-restricted, ~0.05% of myelin)"];
+    MOG_outer       [label="Located on the OUTERMOST\nmyelin lamella → epitope\ndirectly antibody-accessible", penwidth=2.0, fillcolor="#a9d9bc"];
+    Myelin_sheath   [label="Myelin sheath\n(compacted lamellae)"];
+    Oligodendrocyte [label="Oligodendrocyte cell body\n(LARGELY SPARED)", penwidth=2.0, fillcolor="#a9d9bc"];
+    OPC_pool        [label="OPC pool (NG2+)\nremyelination reserve"];
+    OL_diff         [label="OPC → oligodendrocyte\ndifferentiation"];
+    Remyel_capacity [label="REMYELINATION CAPACITY\n∝ surviving oligodendrocytes", penwidth=1.6];
+    Node_Ranwier    [label="Node of Ranvier\n/ saltatory conduction"];
+    MOG_internalise [label="MOG internalisation &\nsurface redistribution"];
+    Cytoskeleton    [label="Myelin cytoskeletal\ndestabilisation"];
+    Myelin_debris   [label="Myelin debris /\nmyelin-laden macrophages"];
+    Axon_unit       [label="Axon–myelin unit\nintegrity"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_effector {
+    label="7. Effector injury — complement & antibody-dependent phagocytosis";
+    style="filled,rounded"; color="#dcb3ae"; fillcolor="#fcf2f1"; fontsize=13; fontcolor="#7a2b23";
+    node [fillcolor="#f8dedb"];
+    C1q_bind        [label="C1q binding to\nsurface-bound IgG1"];
+    C4b             [label="C4b / C2a\n(classical pathway)"];
+    C3_conv         [label="C3 convertase (C4b2a)"];
+    C3b_dep         [label="C3b deposition on myelin"];
+    C5_conv         [label="C5 convertase"];
+    C5a             [label="C5a (chemotaxis,\nmyeloid activation)"];
+    MAC             [label="C5b-9 membrane\nattack complex"];
+    CDC             [label="Complement-dependent\nMYELIN lysis", penwidth=1.6];
+    Microglia       [label="Microglial activation\n(Iba1+, FcγR+)"];
+    Macrophage      [label="Monocyte-derived\nmacrophage infiltration"];
+    ADCP            [label="ANTIBODY-DEPENDENT\nCELLULAR PHAGOCYTOSIS\nof opsonised myelin", penwidth=1.6];
+    FcgR            [label="FcγRI / FcγRIIa / FcγRIII\non myeloid cells"];
+    NK_ADCC         [label="NK-cell ADCC\n(minor in situ)"];
+    Granulocytes    [label="Neutrophil / eosinophil\ninfiltrate (variable)"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_tissue {
+    label="8. Tissue outcome — demyelination, then repair";
+    style="filled,rounded"; color="#9dc4ab"; fillcolor="#eef7f1"; fontsize=13; fontcolor="#22503a";
+    node [fillcolor="#cdeada"];
+    Perivenous      [label="Perivenous inflammatory\ndemyelination (hallmark)"];
+    Confluent       [label="Confluent white-matter\ndemyelination"];
+    Myelin_loss     [label="MYELIN LOSS\n(fast, recoverable)", penwidth=2.0, fillcolor="#a9d9bc"];
+    Conduction_block[label="Conduction block\n(functional, reversible)"];
+    Axonal_injury   [label="AXONAL INJURY\n(slow, IRREVERSIBLE)", penwidth=2.0, fillcolor="#f8dedb", color="#c06055"];
+    Gliosis_mild    [label="Mild reactive gliosis\n(no glial scar)"];
+    Edema           [label="Vasogenic oedema /\nlesion swelling"];
+    Remyelination   [label="REMYELINATION\n(weeks–months)", penwidth=1.6];
+    Lesion_resolve  [label="MRI lesion resolution\n(often near-complete)"];
+    Tissue_repair   [label="Functional repair /\nattack recovery"];
+    Atrophy         [label="Residual tissue atrophy\n(if axons lost)"];
+    Transection     [label="Axonal transection\n(severe attacks only)"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_aqp4 {
+    label="9. Why this is NOT AQP4-NMOSD (contrast arm)";
+    style="filled,rounded"; color="#c5bcd8"; fillcolor="#f5f2fa"; fontsize=13; fontcolor="#463366";
+    node [fillcolor="#e5dff2"];
+    AQP4_intact     [label="AQP4 expression\nPRESERVED in MOGAD lesions"];
+    Astro_intact    [label="Astrocyte / end-feet\nintegrity preserved"];
+    No_astrocytopathy[label="No primary astrocytopathy"];
+    GFAP_low        [label="Serum GFAP stays LOW\n(discriminates from NMOSD)", penwidth=1.6];
+    EAAT2_preserved [label="EAAT2 glutamate\nuptake preserved"];
+    NMOSD_contrast  [label="AQP4-NMOSD comparator:\nastrocyte death → necrosis\n→ poor recovery"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_on {
+    label="10. Phenotype A — optic neuritis (most common adult attack)";
+    style="filled,rounded"; color="#c8c0a8"; fillcolor="#faf8f0"; fontsize=13; fontcolor="#5c4f28";
+    node [fillcolor="#efe8d4"];
+    ON_attack       [label="MOG-ON attack\n(bilateral in ~50%)"];
+    Disc_edema      [label="Optic disc oedema /\npapillitis (~85%)"];
+    Perineural_enh  [label="Perineural & orbital-fat\nenhancement on MRI"];
+    LEON            [label="Longitudinally extensive\noptic nerve lesion"];
+    Chiasm          [label="Chiasmal / intracranial\nsegment involvement"];
+    Eye_pain        [label="Peri-orbital pain\n(often severe, prodromal)"];
+    VA_nadir        [label="Severe VA nadir\n(often ≤ 20/200)"];
+    RNFL_thin       [label="Peripapillary RNFL\nthinning (OCT)"];
+    GCIPL_loss      [label="Macular GCIPL loss\n(axonal proxy)"];
+    VA_recovery     [label="Marked VA RECOVERY\n(better than AQP4-ON)", penwidth=1.6];
+  }
+
+  // ==========================================================================
+  subgraph cluster_sc {
+    label="11. Phenotype B — myelitis";
+    style="filled,rounded"; color="#c8c0a8"; fillcolor="#faf8f0"; fontsize=13; fontcolor="#5c4f28";
+    node [fillcolor="#efe8d4"];
+    Myelitis        [label="MOG myelitis attack"];
+    LETM            [label="Longitudinally extensive\ntransverse myelitis"];
+    Conus           [label="Conus medullaris /\nlower-cord predilection"];
+    H_sign          [label="Axial grey-matter\n\"H-sign\" on T2"];
+    Cord_swelling   [label="Cord swelling / oedema"];
+    Motor_deficit   [label="Para-/tetraparesis"];
+    Sensory_level   [label="Sensory level"];
+    Sphincter       [label="Bladder & bowel\ndysfunction (prominent)"];
+    Neuropathic_pain[label="Neuropathic pain /\ntonic spasms"];
+    Cord_atrophy    [label="Residual cord atrophy"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_brain {
+    label="12. Phenotype C — brain: ADEM, cortical encephalitis (FLAMES), brainstem";
+    style="filled,rounded"; color="#c8c0a8"; fillcolor="#faf8f0"; fontsize=13; fontcolor="#5c4f28";
+    node [fillcolor="#efe8d4"];
+    ADEM            [label="ADEM phenotype\n(children ≫ adults)"];
+    Fluffy_lesions  [label="Large, poorly demarcated\n\"fluffy\" T2 lesions"];
+    FLAMES          [label="FLAMES: unilateral cortical\nFLAIR-hyperintense encephalitis"];
+    Seizures        [label="Focal & generalised\nseizures"];
+    Encephalopathy  [label="Encephalopathy"];
+    Brainstem       [label="Brainstem / cerebellar\npeduncle lesions"];
+    Area_postrema   [label="Area postrema syndrome\n(rare; typical of AQP4)"];
+    Cognitive       [label="Cognitive & behavioural\nsequelae (paediatric)"];
+    Headache_fever  [label="Headache & fever\n(meningitic presentation)"];
+    Lepto_enh       [label="Leptomeningeal\nenhancement"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_acute {
+    label="13. ACUTE attack therapy — PK/PD";
+    style="filled,rounded"; color="#dfbf8e"; fillcolor="#fdf6ea"; fontsize=13; fontcolor="#7a5210";
+    node [fillcolor="#fae4c0"];
+    IVMP            [label="IV methylprednisolone\n1 g × 3–5 d", penwidth=1.6];
+    MP_central      [label="MP plasma exposure\n(t½ ≈ 2–3 h)"];
+    GR_occupancy    [label="Glucocorticoid-receptor\noccupancy"];
+    NFkB_inhib      [label="NF-κB / AP-1 inhibition\n→ cytokine transcription ↓"];
+    PB_suppression  [label="Reversible plasmablast &\ncytokine suppression", penwidth=1.6];
+    IVIG_acute      [label="IVIG 2 g/kg\n(acute, 2–5 d)"];
+    FcRn_sat        [label="FcRn saturation by\nexogenous IgG"];
+    IgG_catab_up    [label="Accelerated catabolism of\npathogenic IgG (≈ +25–40%)", penwidth=1.6];
+    FcgR_block      [label="FcγR blockade /\nanti-idiotype neutralisation"];
+    PLEX            [label="Plasma exchange\n5 × over 10 d"];
+    IgG_removal     [label="Direct IgG removal\n(≈ 60–70% per course)", penwidth=1.6];
+    Rebound_synth   [label="Post-PLEX rebound synthesis\nif source not suppressed"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_maint {
+    label="14. MAINTENANCE therapy — source node vs clearance node (commitment 3)";
+    style="filled,rounded"; color="#dfbf8e"; fillcolor="#fdf6ea"; fontsize=13; fontcolor="#7a5210";
+    node [fillcolor="#fbe8cc"];
+    Pred_oral       [label="Oral prednisone\nwith slow taper"];
+    Taper_duration  [label="TAPER DURATION\n(the actual relapse determinant)", penwidth=2.0, fillcolor="#f6d79f"];
+    Steroid_depend  [label="Steroid dependency\n(relapse on withdrawal)"];
+    IVIG_maint      [label="MAINTENANCE IVIG\n1 g/kg q4wk\n(CLEARANCE node)", penwidth=2.0, fillcolor="#f6d79f"];
+    RTX             [label="Rituximab\n(anti-CD20, SOURCE node)"];
+    CD20neg_escape  [label="CD20− plasmablast ESCAPE\n→ partial protection only", penwidth=1.6];
+    MMF             [label="Mycophenolate\n(IMPDH inhibition)"];
+    AZA             [label="Azathioprine\n(purine antimetabolite)"];
+    TCZ             [label="Tocilizumab\n(IL-6R, source niche)"];
+    SAT             [label="Satralizumab\n(IL-6R, recycling mAb)"];
+    FcRn_inhib      [label="FcRn inhibitor\n(rozanolixizumab class)"];
+    C5_inhib        [label="C5 inhibition\n(eculizumab class, effector node)"];
+    Steroid_sparing [label="Steroid-sparing goal"];
+    Adherence       [label="Infusion adherence /\naccess & cost"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_biomarker {
+    label="15. Biomarkers";
+    style="filled,rounded"; color="#c5bcd8"; fillcolor="#f5f2fa"; fontsize=13; fontcolor="#463366";
+    node [fillcolor="#e3dcf1"];
+    BM_titer        [label="Serum MOG-IgG titre\n(live CBA)"];
+    BM_sNfL         [label="Serum NfL\n(axonal injury, rises in attack)"];
+    BM_sGFAP        [label="Serum GFAP\n(stays low → NOT astrocytopathy)"];
+    BM_CSF_cells    [label="CSF cell count"];
+    BM_CSF_protein  [label="CSF protein / Qalb"];
+    BM_OCT          [label="OCT RNFL / GCIPL"];
+    BM_MRI          [label="MRI lesion load &\nresolution"];
+    BM_VEP          [label="VEP latency / amplitude"];
+    BM_IL6          [label="CSF IL-6 / CXCL13"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_endpoint {
+    label="16. Clinical endpoints";
+    style="filled,rounded"; color="#b0b0b0"; fillcolor="#f4f4f4"; fontsize=13; fontcolor="#333333";
+    node [fillcolor="#e2e2e2"];
+    EP_hazard       [label="RELAPSE HAZARD\nλ(t)", penwidth=2.0, fillcolor="#cfcfcf"];
+    EP_ARR          [label="Annualised relapse rate\n(ARR)"];
+    EP_nadir        [label="Attack severity at nadir"];
+    EP_recovery     [label="Recovery fraction\nper attack"];
+    EP_EDSS         [label="EDSS"];
+    EP_VA           [label="Visual acuity (logMAR)"];
+    EP_sustained    [label="Sustained disability\n(step-wise, relapse-driven)"];
+    EP_TTFR         [label="Time to first relapse"];
+    EP_noprogress   [label="NO secondary progressive\nphase (unlike MS)", penwidth=1.6];
+    EP_QoL          [label="Quality of life / vision-\nrelated function"];
+  }
+
+  // ==========================================================================
+  subgraph cluster_tox {
+    label="17. Treatment toxicity & organ-system effects";
+    style="filled,rounded"; color="#d9cf8a"; fillcolor="#fbfae8"; fontsize=13; fontcolor="#6b6412";
+    node [fillcolor="#f2eec2"];
+    TOX_cumdose     [label="Cumulative glucocorticoid\ndose (g prednisone-equiv)"];
+    TOX_BMD         [label="Bone mineral density loss\n/ vertebral fracture"];
+    TOX_glucose     [label="Steroid hyperglycaemia"];
+    TOX_weight      [label="Weight gain /\ncushingoid habitus"];
+    TOX_infect      [label="Infection risk"];
+    TOX_hypogamma   [label="Rituximab-associated\nhypogammaglobulinaemia"];
+    TOX_IVIG_throm  [label="IVIG thrombosis /\nrenal risk"];
+    TOX_IVIG_head   [label="IVIG headache /\naseptic meningitis"];
+    TOX_menin       [label="Meningococcal risk\n(C5 inhibition)"];
+    TOX_eye         [label="Cataract / steroid\nglaucoma"];
+  }
+
+  // ==========================================================================
+  //  EDGES — 1/2: susceptibility → B lineage → antibody
+  // ==========================================================================
+  HLA_DRB1_1601 -> Tolerance_loss;
+  Genetic_bg -> Tolerance_loss;
+  Infection_trig -> Mimicry;
+  Vaccine_temporal -> Mimicry [style=dashed];
+  Mimicry -> Epitope_Pro42;
+  Epitope_Pro42 -> Tolerance_loss;
+  Tolerance_loss -> MOG_spec_B [penwidth=1.6];
+  Sex_skew -> Tolerance_loss [style=dotted];
+  Age_paediatric -> ADEM [penwidth=1.4];
+  Age_adult -> ON_attack;
+  Age_adult -> Myelitis;
+
+  Naive_B -> MOG_spec_B;
+  MOG_spec_B -> GC_reaction;
+  MOG_spec_B -> Extrafollicular [penwidth=1.6];
+  GC_reaction -> Memory_B;
+  Extrafollicular -> Plasmablast [penwidth=2.0];
+  Memory_B -> Plasmablast [label="differentiation", penwidth=1.6];
+  GC_reaction -> LLPC_BM [style=dashed];
+  Tfh_help -> GC_reaction;
+  Tfh_help -> IL21;
+  IL21 -> Class_switch;
+  BAFF -> Memory_B;
+  APRIL -> LLPC_BM;
+  IL6_niche -> Plasmablast [label="survival", penwidth=2.0];
+  Class_switch -> Plasmablast;
+  Clonal_expansion -> Plasmablast;
+  MOG_spec_CD4 -> Tfh_help;
+  MOG_spec_CD4 -> Clonal_expansion;
+
+  Plasmablast -> MOG_IgG1_serum [label="IgG1 secretion", penwidth=2.0];
+  LLPC_BM -> MOG_IgG1_serum [style=dashed, label="minor"];
+  MOG_IgG1_serum -> C1q_affinity;
+  MOG_IgG1_serum -> Titer_CBA;
+  MOG_IgG1_serum -> Fab_binding;
+  FcRn_recycling -> IgG_halflife [penwidth=1.4];
+  IgG_halflife -> MOG_IgG1_serum [label="salvage", penwidth=1.4];
+  Total_IgG_pool -> FcRn_recycling;
+  Titer_CBA -> Low_titer_grey [style=dotted];
+  Titer_CBA -> Sero_persistent;
+  Titer_CBA -> Sero_transient;
+  Avidity -> Fab_binding;
+  Sero_persistent -> EP_hazard [penwidth=1.8, color="#a03028"];
+  Sero_transient -> EP_TTFR [style=dashed, label="monophasic"];
+  Intrathecal_syn -> IgG_CNS_influx [style=dashed];
+
+  // ==========================================================================
+  //  EDGES — 3: T cells / cytokines
+  // ==========================================================================
+  Tolerance_loss -> MOG_spec_CD4;
+  MOG_spec_CD4 -> Th17_diff;
+  Th17_diff -> IL17A;
+  Th17_diff -> GM_CSF;
+  MOG_spec_CD4 -> IFNg;
+  IL17A -> IL6_serum;
+  IL6_serum -> IL6_niche [penwidth=1.8];
+  IL6_serum -> Th17_diff [label="feed-forward", style=dashed];
+  IL6_serum -> BBB_perm [penwidth=1.8, label="permeability ↑"];
+  GM_CSF -> Mono_recruit;
+  TNFa -> BBB_TJ [label="disrupt", color="#a03028"];
+  Treg_deficit -> MOG_spec_CD4;
+  CXCL13 -> Memory_B [style=dashed, label="CNS homing"];
+  IL8_CSF -> Granulocytes;
+  Th2_component -> Granulocytes [style=dotted];
+  IL6_serum -> BM_IL6;
+  CXCL13 -> BM_IL6;
+
+  // ==========================================================================
+  //  EDGES — 4: BBB gate
+  // ==========================================================================
+  MMP9 -> BBB_TJ [label="degrade", color="#a03028"];
+  VEGF_A -> BBB_TJ [color="#a03028"];
+  MOG_spec_CD4 -> MMP9;
+  Mono_recruit -> MMP9;
+  BBB_TJ -> BBB_perm [label="inverse", style=dashed];
+  BBB_perm -> IgG_CNS_influx [penwidth=2.0, label="gate"];
+  MOG_IgG1_serum -> IgG_CNS_influx [penwidth=2.0, label="transit"];
+  BBB_perm -> Qalb;
+  BBB_perm -> CSF_pleo;
+  Mono_recruit -> CSF_pleo;
+  Granulocytes -> CSF_pleo;
+  CSF_pleo -> BM_CSF_cells;
+  Qalb -> BM_CSF_protein;
+  OCB_negative -> BM_CSF_protein [style=dotted];
+
+  // ==========================================================================
+  //  EDGES — 5: antigen access & effector injury
+  // ==========================================================================
+  MOG_protein -> MOG_outer [penwidth=1.6];
+  MOG_outer -> Fab_binding [penwidth=2.0, label="accessible epitope"];
+  Myelin_sheath -> MOG_outer;
+  Oligodendrocyte -> Myelin_sheath [label="maintains"];
+  OPC_pool -> OL_diff;
+  OL_diff -> Oligodendrocyte;
+  Oligodendrocyte -> Remyel_capacity [penwidth=2.0, label="survival sets ceiling"];
+  OPC_pool -> Remyel_capacity;
+  Myelin_sheath -> Node_Ranwier;
+  Node_Ranwier -> Axon_unit;
+
+  IgG_CNS_influx -> Fab_binding [penwidth=2.0];
+  Fab_binding -> C1q_bind [penwidth=1.6];
+  Fab_binding -> FcgR [penwidth=1.6];
+  Fab_binding -> MOG_internalise;
+  MOG_internalise -> Cytoskeleton;
+  Cytoskeleton -> Myelin_loss [color="#a03028"];
+  C1q_affinity -> C1q_bind;
+  C1q_bind -> C4b;
+  C4b -> C3_conv;
+  C3_conv -> C3b_dep;
+  C3b_dep -> C5_conv;
+  C5_conv -> C5a;
+  C5_conv -> MAC;
+  MAC -> CDC [penwidth=1.6, color="#a03028"];
+  C3b_dep -> ADCP [label="opsonin", penwidth=1.6];
+  C5a -> Microglia;
+  C5a -> Macrophage;
+  FcgR -> ADCP [penwidth=1.6];
+  Microglia -> ADCP;
+  Macrophage -> ADCP;
+  Mono_recruit -> Macrophage;
+  NK_ADCC -> Myelin_loss [style=dashed];
+  Granulocytes -> Myelin_loss [style=dashed];
+  CDC -> Myelin_loss [penwidth=2.0, color="#a03028"];
+  ADCP -> Myelin_loss [penwidth=2.0, color="#a03028"];
+  ADCP -> Myelin_debris;
+  Myelin_debris -> Macrophage [label="clearance"];
+
+  // ==========================================================================
+  //  EDGES — 6: tissue outcome
+  // ==========================================================================
+  Myelin_loss -> Perivenous;
+  Perivenous -> Confluent;
+  Myelin_loss -> Conduction_block [penwidth=1.6];
+  Myelin_loss -> Edema;
+  Edema -> Cord_swelling;
+  Edema -> Fluffy_lesions;
+  Myelin_loss -> Axonal_injury [label="severity-dependent", penwidth=1.4, color="#a03028"];
+  MAC -> Axonal_injury [style=dashed, color="#a03028"];
+  Axonal_injury -> Transection;
+  Axonal_injury -> BM_sNfL [penwidth=1.6];
+  Axonal_injury -> Atrophy [penwidth=1.4];
+  Myelin_loss -> Gliosis_mild;
+  Remyel_capacity -> Remyelination [penwidth=2.0];
+  Remyelination -> Lesion_resolve [penwidth=1.6];
+  Remyelination -> Tissue_repair [penwidth=1.6];
+  Conduction_block -> Tissue_repair [style=dashed, label="reversible"];
+  Tissue_repair -> EP_recovery [penwidth=2.0];
+  Atrophy -> EP_sustained [penwidth=1.6];
+  Transection -> EP_sustained;
+  Lesion_resolve -> BM_MRI;
+  Atrophy -> BM_MRI;
+
+  // ==========================================================================
+  //  EDGES — 7: AQP4 contrast arm
+  // ==========================================================================
+  MOG_outer -> AQP4_intact [style=dotted, label="different antigen"];
+  AQP4_intact -> Astro_intact [penwidth=1.4];
+  Astro_intact -> No_astrocytopathy;
+  No_astrocytopathy -> GFAP_low [penwidth=1.6];
+  No_astrocytopathy -> Oligodendrocyte [label="no bystander OL death", penwidth=1.4];
+  Astro_intact -> EAAT2_preserved;
+  EAAT2_preserved -> Axon_unit [style=dashed];
+  GFAP_low -> BM_sGFAP [penwidth=1.6];
+  NMOSD_contrast -> EP_recovery [style=dotted, label="comparator: poor"];
+  No_astrocytopathy -> Remyel_capacity [penwidth=1.6];
+
+  // ==========================================================================
+  //  EDGES — 8: phenotypes
+  // ==========================================================================
+  Myelin_loss -> ON_attack [penwidth=1.4];
+  Myelin_loss -> Myelitis [penwidth=1.4];
+  Myelin_loss -> ADEM [penwidth=1.4];
+  Myelin_loss -> FLAMES;
+  ON_attack -> Disc_edema;
+  ON_attack -> Perineural_enh;
+  ON_attack -> LEON;
+  ON_attack -> Chiasm;
+  ON_attack -> Eye_pain;
+  ON_attack -> VA_nadir [penwidth=1.6];
+  VA_nadir -> EP_VA [penwidth=1.6];
+  Axonal_injury -> RNFL_thin [penwidth=1.4];
+  RNFL_thin -> GCIPL_loss;
+  GCIPL_loss -> BM_OCT;
+  RNFL_thin -> BM_OCT;
+  Remyelination -> VA_recovery [penwidth=1.6];
+  VA_recovery -> EP_VA [penwidth=1.6];
+  Conduction_block -> BM_VEP;
+  Remyelination -> BM_VEP [label="latency ↓"];
+
+  Myelitis -> LETM;
+  LETM -> Conus;
+  LETM -> H_sign;
+  LETM -> Motor_deficit;
+  LETM -> Sensory_level;
+  LETM -> Sphincter [penwidth=1.4];
+  LETM -> Neuropathic_pain;
+  Atrophy -> Cord_atrophy;
+  Motor_deficit -> EP_EDSS [penwidth=1.6];
+  Sphincter -> EP_EDSS;
+  Cord_atrophy -> EP_sustained;
+
+  ADEM -> Fluffy_lesions;
+  ADEM -> Encephalopathy;
+  ADEM -> Cognitive;
+  ADEM -> Lepto_enh;
+  FLAMES -> Seizures [penwidth=1.6];
+  FLAMES -> Headache_fever;
+  Brainstem -> EP_EDSS;
+  Myelin_loss -> Brainstem;
+  Area_postrema -> EP_EDSS [style=dotted];
+  Seizures -> EP_QoL;
+  Cognitive -> EP_QoL;
+  EP_VA -> EP_QoL [penwidth=1.4];
+  EP_EDSS -> EP_QoL;
+
+  // ==========================================================================
+  //  EDGES — 9: acute therapy
+  // ==========================================================================
+  IVMP -> MP_central [penwidth=1.6];
+  MP_central -> GR_occupancy [penwidth=1.6];
+  GR_occupancy -> NFkB_inhib;
+  NFkB_inhib -> IL6_serum [label="⊣", color="#1f7a3f", penwidth=1.6, arrowhead=tee];
+  NFkB_inhib -> PB_suppression [penwidth=1.6];
+  PB_suppression -> Plasmablast [color="#1f7a3f", penwidth=2.0, arrowhead=tee, label="⊣ reversible"];
+  GR_occupancy -> BBB_perm [color="#1f7a3f", penwidth=1.6, arrowhead=tee, label="⊣ seal barrier"];
+  GR_occupancy -> Edema [color="#1f7a3f", arrowhead=tee];
+
+  IVIG_acute -> FcRn_sat [penwidth=1.6];
+  IVIG_acute -> Total_IgG_pool [penwidth=1.4];
+  FcRn_sat -> IgG_catab_up [penwidth=1.8];
+  IgG_catab_up -> MOG_IgG1_serum [color="#1f7a3f", penwidth=1.8, arrowhead=tee, label="⊣ clearance ↑"];
+  IVIG_acute -> FcgR_block;
+  FcgR_block -> ADCP [color="#1f7a3f", penwidth=1.6, arrowhead=tee];
+  FcgR_block -> C1q_bind [color="#1f7a3f", style=dashed, arrowhead=tee];
+
+  PLEX -> IgG_removal [penwidth=1.8];
+  IgG_removal -> MOG_IgG1_serum [color="#1f7a3f", penwidth=2.0, arrowhead=tee, label="⊣ 60–70%"];
+  Plasmablast -> Rebound_synth [penwidth=1.4];
+  IgG_removal -> Rebound_synth [style=dashed, label="unmasks source"];
+  Rebound_synth -> MOG_IgG1_serum [color="#a03028", penwidth=1.4];
+
+  // ==========================================================================
+  //  EDGES — 10: maintenance therapy — SOURCE vs CLEARANCE nodes
+  // ==========================================================================
+  IVMP -> Pred_oral [label="then oral"];
+  Pred_oral -> Taper_duration [penwidth=1.8];
+  Taper_duration -> PB_suppression [penwidth=2.0, label="duration of suppression"];
+  Taper_duration -> Steroid_depend [penwidth=1.8];
+  Steroid_depend -> EP_hazard [penwidth=1.8, color="#a03028", label="rebound on withdrawal"];
+  Pred_oral -> TOX_cumdose [penwidth=1.6];
+  Steroid_sparing -> Pred_oral [color="#1f7a3f", arrowhead=tee];
+
+  IVIG_maint -> FcRn_sat [penwidth=2.0];
+  IVIG_maint -> FcgR_block [penwidth=1.6];
+  IVIG_maint -> Steroid_sparing [penwidth=1.6];
+  IVIG_maint -> Adherence [style=dotted];
+
+  RTX -> Memory_B [color="#1f7a3f", penwidth=1.8, arrowhead=tee, label="⊣ CD20+"];
+  RTX -> Naive_B [color="#1f7a3f", arrowhead=tee];
+  RTX -> CD20neg_escape [penwidth=1.8, label="does NOT touch"];
+  CD20neg_escape -> Plasmablast [color="#a03028", penwidth=1.8, label="escape → residual IgG1"];
+  RTX -> TOX_hypogamma [penwidth=1.4];
+
+  MMF -> Clonal_expansion [color="#1f7a3f", penwidth=1.6, arrowhead=tee];
+  AZA -> Clonal_expansion [color="#1f7a3f", penwidth=1.6, arrowhead=tee];
+  MMF -> Steroid_sparing;
+  AZA -> Steroid_sparing;
+
+  TCZ -> IL6_niche [color="#1f7a3f", penwidth=1.8, arrowhead=tee, label="⊣ IL-6R"];
+  SAT -> IL6_niche [color="#1f7a3f", penwidth=1.8, arrowhead=tee];
+  TCZ -> BBB_perm [color="#1f7a3f", style=dashed, arrowhead=tee];
+  SAT -> Th17_diff [color="#1f7a3f", style=dashed, arrowhead=tee];
+
+  FcRn_inhib -> FcRn_recycling [color="#1f7a3f", penwidth=1.8, arrowhead=tee, label="⊣ recycling"];
+  FcRn_inhib -> IgG_catab_up [penwidth=1.6];
+  C5_inhib -> C5_conv [color="#1f7a3f", penwidth=1.8, arrowhead=tee];
+  C5_inhib -> TOX_menin [penwidth=1.4];
+  Adherence -> EP_hazard [style=dotted];
+
+  // ==========================================================================
+  //  EDGES — 11: relapse / disability accrual loop
+  // ==========================================================================
+  MOG_IgG1_serum -> EP_hazard [penwidth=2.0, color="#a03028", label="titre-driven"];
+  BBB_perm -> EP_hazard [penwidth=1.6, color="#a03028"];
+  Infection_trig -> BBB_perm [style=dashed, label="attack trigger"];
+  EP_hazard -> EP_ARR [penwidth=1.8];
+  EP_hazard -> EP_TTFR [penwidth=1.6];
+  EP_ARR -> EP_nadir [penwidth=1.4];
+  IgG_CNS_influx -> EP_nadir [penwidth=1.6];
+  EP_nadir -> EP_recovery [label="deeper nadir → less complete", style=dashed];
+  EP_recovery -> EP_sustained [label="1 − recovery", penwidth=1.6];
+  EP_sustained -> EP_EDSS [penwidth=1.8];
+  EP_ARR -> EP_sustained [penwidth=1.6, label="step-wise accrual"];
+  EP_noprogress -> EP_EDSS [style=dotted, label="no insidious slope"];
+  Remyel_capacity -> EP_noprogress [penwidth=1.4];
+  BM_titer -> EP_hazard [style=dotted, label="monitoring"];
+  BM_sNfL -> EP_sustained [style=dotted];
+
+  // ==========================================================================
+  //  EDGES — 12: toxicity
+  // ==========================================================================
+  TOX_cumdose -> TOX_BMD [penwidth=1.6];
+  TOX_cumdose -> TOX_glucose;
+  TOX_cumdose -> TOX_weight;
+  TOX_cumdose -> TOX_infect;
+  TOX_cumdose -> TOX_eye;
+  TOX_hypogamma -> TOX_infect [penwidth=1.4];
+  MMF -> TOX_infect [style=dashed];
+  AZA -> TOX_infect [style=dashed];
+  TCZ -> TOX_infect [style=dashed];
+  IVIG_maint -> TOX_IVIG_throm [style=dashed];
+  IVIG_acute -> TOX_IVIG_head [style=dashed];
+  TOX_BMD -> EP_QoL [style=dotted];
+  TOX_infect -> EP_QoL [style=dotted];
+  TOX_weight -> EP_QoL [style=dotted];
+
+  // ==========================================================================
+  //  Legend
+  // ==========================================================================
+  subgraph cluster_legend {
+    label="Legend / model conventions";
+    style="filled,rounded"; color="#999999"; fillcolor="#ffffff"; fontsize=12;
+    node [shape=plaintext, fillcolor="#ffffff", style=none];
+    LEG [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+      <TR><TD ALIGN="LEFT"><B>→</B></TD><TD ALIGN="LEFT">activation / flux / causal increase</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>⊣</B> (green)</TD><TD ALIGN="LEFT">pharmacological inhibition</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>red</B></TD><TD ALIGN="LEFT">injury-promoting / disease-worsening edge</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>dashed</B></TD><TD ALIGN="LEFT">weak, variable or context-dependent link</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>dotted</B></TD><TD ALIGN="LEFT">monitoring / association rather than mechanism</TD></TR>
+      <TR><TD ALIGN="LEFT"><B>thick border</B></TD><TD ALIGN="LEFT">node carried as an explicit ODE state or key switch</TD></TR>
+      <TR><TD ALIGN="LEFT"> </TD><TD ALIGN="LEFT"> </TD></TR>
+      <TR><TD ALIGN="LEFT" COLSPAN="2"><I>Three structural commitments encoded in the map:</I></TD></TR>
+      <TR><TD ALIGN="LEFT">1.</TD><TD ALIGN="LEFT">IgG1 source = short-lived CD20− plasmablast (IL-6-dependent niche)</TD></TR>
+      <TR><TD ALIGN="LEFT">2.</TD><TD ALIGN="LEFT">Myelin is lost, the oligodendrocyte survives → high recovery ceiling, low sGFAP</TD></TR>
+      <TR><TD ALIGN="LEFT">3.</TD><TD ALIGN="LEFT">Drugs act at the antibody SOURCE or the CLEARANCE/EFFECTOR node; only the latter is<BR ALIGN="LEFT"/>    insensitive to plasmablast regeneration</TD></TR>
+    </TABLE>>];
+  }
+}
