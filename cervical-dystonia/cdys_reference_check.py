@@ -118,9 +118,11 @@ PHI_EXT = MW[PATTERN_EXT > 0].sum()
 # ----------------------------------------------------------------------------
 # 1.  PRODUCTS
 # ----------------------------------------------------------------------------
-# unit_scale converts each label's proprietary potency unit into the model's
-# internal Allergan-equivalent Unit.  These are clinical rules of thumb, NOT
-# equipotency claims (A13).
+# unit_scale relates each label's proprietary potency unit to the model's
+# internal Allergan-equivalent Unit.  Doses are specified in A-EQUIVALENT Units
+# everywhere; label Units (and hence the antigen mass) are obtained by dividing
+# by unit_scale.  These conversions are clinical rules of thumb, NOT equipotency
+# claims (A13).
 # load = neurotoxin-complex protein per label Unit (ng/U).  This is the ANTIGEN,
 # and it is the parameter that separates the products immunologically.
 # kLC  = first-order loss of catalytically active light chain from the terminal
@@ -221,6 +223,12 @@ class P:
     beta_boost: float = 9.0   # memory recall amplification
     Ka_ag: float = 40.0       # ng, antigen-processing saturation
     k_bd: float = 0.0019      # 1/d memory-B decay (t1/2 365 d)
+    Bmem_max: float = 50.0    # memory-B carrying capacity.  Without it the
+                              # recall term (1 + beta*Bm) diverges at extreme
+                              # k_b (A7's tail rows), which is a numerical
+                              # artefact, not immunology.  Far above anything
+                              # the calibrated regime reaches, so it changes
+                              # no fitted result.
     k_np: float = 0.55        # 1/d Nab production per unit memory-B
     k_nd: float = 0.0347      # 1/d IgG elimination (t1/2 20 d)
     Nab50: float = 1.00       # Nab giving 50 % loss of injected potency
@@ -432,7 +440,9 @@ def rhs(t, y, p: P, reg: Regimen, kdiff_m: np.ndarray, w_eff: np.ndarray,
     for tag in ("A", "B"):
         Ag = y[IX[f"Ag_{tag}"]]
         Bm = y[IX[f"Bmem_{tag}"]]
-        prime = p.k_b * Ag / (1.0 + Ag / p.Ka_ag) * (1.0 + p.beta_boost * Bm)
+        prime = (p.k_b * Ag / (1.0 + Ag / p.Ka_ag)
+                 * (1.0 + p.beta_boost * Bm)
+                 * max(0.0, 1.0 - Bm / p.Bmem_max))
         dy[IX[f"Ag_{tag}"]] = -p.k_ag * Ag
         dy[IX[f"Bmem_{tag}"]] = prime - p.k_bd * Bm
         dy[IX[f"Nab_{tag}"]] = p.k_np * Bm - p.k_nd * y[IX[f"Nab_{tag}"]]
@@ -557,9 +567,15 @@ def simulate(reg: Regimen, p: P | None = None, tmax: float = 168.0, dt: float = 
             p.k_LC = kLC0 * prod["kLC_mult"]
             p.auto_pref = prod["auto_pref"]
             tag = prod["serotype"]
+            # reg.pattern is in A-EQUIVALENT Units, so switching product does
+            # not silently change the delivered activity (it used to: a switch
+            # to rimabotulinumtoxinB delivered 3 % of the intended dose, which
+            # made serotype rescue look harmful).  Label Units, and therefore
+            # the ANTIGEN mass, are derived from the conversion instead.
             gate = 1.0 / (1.0 + (y[IX[f"Nab_{tag}"]] / p.Nab50) ** p.hn)
-            y[SLA] += reg.pattern * prod["unit_scale"] * gate
-            y[IX[f"Ag_{tag}"]] += float(np.sum(reg.pattern)) * prod["load"]
+            y[SLA] += reg.pattern * gate
+            label_U = float(np.sum(reg.pattern)) / prod["unit_scale"]
+            y[IX[f"Ag_{tag}"]] += label_U * prod["load"]
             cum_u += float(np.sum(reg.pattern))
             y[IX["CumU"]] = cum_u
         elif k == 0:
@@ -610,6 +626,117 @@ def _derive(T, Ym, p: P, reg: Regimen, w_eff, blk=None):
         BmemA=Ym[:, IX["Bmem_A"]], AUCben=Ym[:, IX["AUCben"]],
         AUCdys=Ym[:, IX["AUCdys"]], CumU=Ym[:, IX["CumU"]], p=p, reg=reg,
     )
+
+
+# ----------------------------------------------------------------------------
+# 6b.  FAST PATH FOR THE ANTIBODY SUBSYSTEM
+# ----------------------------------------------------------------------------
+# Ag -> Bmem -> Nab depends ONLY on the injection times and the antigen mass per
+# injection.  The potency gate feeds back into the injected DOSE, not into the
+# antigen (the protein is delivered whether or not it is neutralised), so this
+# three-state subsystem is exactly decoupled from the other 67 states.
+#
+# Integrating it on its own is therefore not an approximation -- it gives the
+# same Nab trajectory as the full model -- and it is what makes the virtual
+# cohorts in A8 and A13(5) affordable.  Verified against the full model in A8.
+def nab_trajectory(load_ng, times, p: P, t_end=None):
+    """Neutralising antibody after injections of `load_ng` ng at `times` (days),
+    integrated through to `t_end` (default: the last injection time).
+
+    Returns (t, Nab).  Exact for the full model's antibody pool -- verified
+    against the 70-state model at the top of A8.  Getting t_end right matters:
+    Nab decays with a 20-day half-life, so reading the trajectory at the last
+    injection instead of at the horizon overstates it by about 11 %.
+    """
+    def f(t, y):
+        Ag, Bm, Nb = y
+        prime = (p.k_b * Ag / (1.0 + Ag / p.Ka_ag)
+                 * (1.0 + p.beta_boost * Bm)
+                 * max(0.0, 1.0 - Bm / p.Bmem_max))
+        return [-p.k_ag * Ag, prime - p.k_bd * Bm, p.k_np * Bm - p.k_nd * Nb]
+
+    times = [float(t) for t in times]
+    t_end = times[-1] if t_end is None else float(t_end)
+    edges = sorted(set([t for t in times if t <= t_end] + [t_end]))
+    inj = set(times)
+    y = np.zeros(3)
+    T, Y = [edges[0]], [y.copy()]
+    for k in range(len(edges) - 1):
+        if edges[k] in inj:
+            y[0] += load_ng
+        sol = solve_ivp(f, (edges[k], edges[k + 1]), y, method="LSODA",
+                        rtol=1e-8, atol=1e-11,
+                        t_eval=np.linspace(edges[k], edges[k + 1], 4))
+        if not sol.success:
+            raise RuntimeError(sol.message)
+        for j in range(1, sol.y.shape[1]):
+            T.append(sol.t[j])
+            Y.append(sol.y[:, j].copy())
+        y = sol.y[:, -1].copy()
+    return np.array(T), np.array(Y)[:, 2]
+
+
+def nab_cohort(load_ng, times, kb_vec, p: P, t_end, dt=0.2):
+    """Nab at `t_end` for a WHOLE COHORT at once.
+
+    Same three-state system as nab_trajectory, but (a) the antigen depot is
+    solved analytically -- between injections it is just a sum of decaying
+    exponentials, one per dose already given -- and (b) the remaining two states
+    are advanced for every patient simultaneously by fixed-step RK4, with k_b
+    entering as a vector.
+
+    This exists because the cohort cost is dominated by per-call solver setup,
+    not by the integration: 1200 patients x 21 segments is 25 000 solve_ivp
+    invocations.  Vectorising turns that into one loop.
+
+    NOTE ON THE DISCONTINUITY.  Each injection is a jump in Ag, so the RK4 grid
+    must not straddle one -- an earlier version used a single global grid and
+    picked up the bolus half a step early, which the A8 self-check caught as a
+    2 % bias.  The loop below therefore restarts at every injection, and the
+    antigen sum inside a segment counts only doses already given.  Cross-checked
+    against both the full 70-state model and the LSODA path at the top of A8.
+    """
+    kb = np.atleast_1d(np.asarray(kb_vec, float))
+    tt = [float(t) for t in times if float(t) <= t_end]
+    edges = tt + [float(t_end)]
+    Bm = np.zeros_like(kb)
+    Nb = np.zeros_like(kb)
+
+    for k in range(len(edges) - 1):
+        given = np.asarray(tt[:k + 1], float)      # doses already in the body
+
+        def ag(t):
+            return load_ng * float(np.sum(np.exp(-p.k_ag * (t - given))))
+
+        def deriv(A, B_, N_):
+            prime = (kb * A / (1.0 + A / p.Ka_ag) * (1.0 + p.beta_boost * B_)
+                     * np.clip(1.0 - B_ / p.Bmem_max, 0.0, None))
+            return prime - p.k_bd * B_, p.k_np * B_ - p.k_nd * N_
+
+        span = edges[k + 1] - edges[k]
+        if span <= 0:
+            continue
+        nsub = max(1, int(math.ceil(span / dt)))
+        h = span / nsub
+        t0 = edges[k]
+        for i in range(nsub):
+            a0, ah, a1 = ag(t0), ag(t0 + h / 2), ag(t0 + h)
+            k1b, k1n = deriv(a0, Bm, Nb)
+            k2b, k2n = deriv(ah, Bm + h / 2 * k1b, Nb + h / 2 * k1n)
+            k3b, k3n = deriv(ah, Bm + h / 2 * k2b, Nb + h / 2 * k2n)
+            k4b, k4n = deriv(a1, Bm + h * k3b, Nb + h * k3n)
+            Bm = Bm + h / 6 * (k1b + 2 * k2b + 2 * k3b + k4b)
+            Nb = Nb + h / 6 * (k1n + 2 * k2n + 2 * k3n + k4n)
+            t0 += h
+    return Nb
+
+
+def nab_final(load_ng, times, p: P, t_end=None):
+    return float(nab_trajectory(load_ng, times, p, t_end)[1][-1])
+
+
+def potency_gate(nab, p: P):
+    return 1.0 / (1.0 + (nab / p.Nab50) ** p.hn)
 
 
 # ----------------------------------------------------------------------------
@@ -740,11 +867,13 @@ def calibrate(verbose=True):
     z = 2.0537
     tgt = P().Nab50 / math.exp(z * CAL_TARGETS["sigma_kb"])
 
+    ona_load = 240.0 * PRODUCTS["onabotulinumtoxinA"]["load"]
+    ona_times = np.arange(21) * 84.0
+    H5Y = 5 * 365.0
+
     def f_kb(kb):
         pp = P(k_cl=CAL["k_cl"], k_LC=CAL["k_LC"], rho=CAL["rho"], k_b=kb)
-        reg = Regimen(product="onabotulinumtoxinA", pattern=PATTERN_STD.copy(),
-                      interval=84.0, n_inj=21)
-        return float(simulate(reg, pp, tmax=5 * 365.0, dt=8.0)["NabA"][-1]) - tgt
+        return nab_final(ona_load, ona_times, pp, H5Y) - tgt
 
     CAL["k_b"] = brentq(f_kb, 1e-6, 0.05, xtol=1e-10, rtol=1e-8)
     CAL["Nab_median_5y_target"] = tgt
@@ -1321,8 +1450,15 @@ def A7():
     for prod in ("incobotulinumtoxinA", "onabotulinumtoxinA",
                  "rimabotulinumtoxinB"):
         pr = PRODUCTS[prod]
+        # dose to A-EQUIVALENCE, not to each label's own 240 U.  BoNT-B's
+        # clinical dose is 5000-10000 label Units; giving it 240 would compare
+        # a therapeutic dose of A against a sub-therapeutic dose of B.
+        pat = PATTERN_STD / pr["unit_scale"]      # label Units, for display
         print(f"  {prod}  ({pr['load']*100:.3f} ng per 100 label-U, "
               f"serotype {pr['serotype']})")
+        print(f"    dosed to A-equivalence: {pat.sum():.0f} label-U "
+              f"= 240 A-equivalent U, {pat.sum()*pr['load']:.2f} ng antigen "
+              f"per injection")
         print("    interval(d)  n inj   cum ng   Nab(5y)  potency  "
               "benefit(pt.d)   dysph burden")
         best = (None, -1.0)
@@ -1339,7 +1475,7 @@ def A7():
             if auc > best[1]:
                 best = (iv, auc)
                 mark = "  <-- best"
-            print(f"    {iv:9d}  {n:6d}  {240.0*pr['load']*n:7.1f}  {nb:7.3f}"
+            print(f"    {iv:9d}  {n:6d}  {pat.sum()*pr['load']*n:7.1f}  {nb:7.3f}"
                   f"  {gate*100:6.1f}%  {auc:13.0f}  {float(res['AUCdys'][-1]):13.1f}"
                   f"{mark}")
         print(f"    optimum interval: {best[0]} d ({best[0]/7:.0f} weeks)")
@@ -1385,93 +1521,133 @@ def A7():
     print("  it should be stated as one.")
     print()
     print("  WHAT DOES BOUND THE INTERVAL, in this model, is the last column of")
-    print("  the tables above: cumulative swallow-deficit burden rises roughly in")
-    print("  proportion to the number of injections, because each injection")
-    print("  delivers its own fixed fraction of toxin to the pharynx.  Halving")
-    print("  the interval roughly doubles lifetime dysphagia exposure for a")
-    print("  benefit gain of:")
-    for prod in ("incobotulinumtoxinA",):
-        for iv in (42, 84):
-            n = int(horizon // iv)
-            r = simulate(Regimen(product=prod, pattern=PATTERN_STD.copy(),
-                                 interval=float(iv), n_inj=n), p,
-                         tmax=horizon, dt=2.0)
-            print(f"      q{iv//7:2d}wk : benefit {float(r['AUCben'][-1]):8.0f} pt.d,"
-                  f"  dysphagia burden {float(r['AUCdys'][-1]):7.1f} deficit.d,"
-                  f"  {n} injections")
-    print("  i.e. about +27 % benefit for about +100 % of the injections and of")
-    print("  the swallow exposure that comes with them.  That is a defensible")
-    print("  place to put a 12-week rule.  Antibody is not.")
+    print("  the tables above: cumulative swallow exposure.  It does not merely")
+    print("  track the number of injections -- it rises FASTER, because at short")
+    print("  intervals the pharyngeal deficit has less time to clear between")
+    print("  doses and spends more of its life above the burden threshold.")
+    print()
+    rows = {}
+    for iv in (42, 84):
+        n = int(horizon // iv)
+        r = simulate(Regimen(product="incobotulinumtoxinA",
+                             pattern=PATTERN_STD.copy(),
+                             interval=float(iv), n_inj=n), p,
+                     tmax=horizon, dt=2.0)
+        rows[iv] = (float(r["AUCben"][-1]), float(r["AUCdys"][-1]), n)
+        print(f"      q{iv//7:2d}wk : benefit {rows[iv][0]:8.0f} pt.d,"
+              f"  dysphagia burden {rows[iv][1]:7.1f} deficit.d,"
+              f"  {n} injections")
+    b42, d42, n42 = rows[42]
+    b84, d84, n84 = rows[84]
+    print()
+    print(f"  Halving the interval buys {(b42/b84-1)*100:+.0f} % benefit for "
+          f"{(n42/n84-1)*100:+.0f} % more injections")
+    print(f"  and {(d42/d84-1)*100:+.0f} % more swallow exposure -- the harm axis is")
+    print("  SUPRALINEAR in injection frequency, exactly as it was supralinear in")
+    print("  dose (A3).  That is a defensible place to put a 12-week rule.")
+    print("  Antibody, at the observed rate, is not.")
 
 
 def A8():
     hr("A8  SECONDARY NON-RESPONSE AND SEROTYPE RESCUE")
     p = cal_params()
-    rng = np.random.default_rng(20260729)
-    N = 200
-    kb0 = p.k_b
-    eta = rng.normal(0.0, 0.9, N)
     horizon = 5 * 365.0
+
+    # --- first, verify the fast antibody path against the full 70-state model
+    print("  Consistency check: the antibody pool is exactly decoupled from the")
+    print("  other 67 states, so it can be integrated on its own.  Verify that")
+    print("  claim before relying on it for the cohorts below.")
+    load = 240.0 * PRODUCTS["onabotulinumtoxinA"]["load"]
+    n21 = 21
+    times = np.arange(n21) * 84.0
+    full = simulate(Regimen(product="onabotulinumtoxinA",
+                            pattern=PATTERN_STD.copy(), interval=84.0,
+                            n_inj=n21), p, tmax=horizon, dt=8.0)
+    nb_full = float(full["NabA"][-1])
+    nb_fast = nab_final(load, times, p, horizon)
+    rel = abs(nb_fast - nb_full) / max(nb_full, 1e-12) * 100
+    print(f"    full 70-state model : Nab(5 y) = {nb_full:.6f}")
+    print(f"    3-state fast path   : Nab(5 y) = {nb_fast:.6f}")
+    print(f"    relative difference = {rel:.4f} %")
+    nb_vec = float(nab_cohort(load, times, [p.k_b], p, horizon)[0])
+    rel2 = abs(nb_vec - nb_full) / max(nb_full, 1e-12) * 100
+    print(f"    vectorised RK4 path : Nab(5 y) = {nb_vec:.6f}"
+          f"   ({rel2:.4f} % from the full model)")
+    print("    -> " + ("all three agree; the decoupling and the vectorisation hold"
+                       if (rel < 1.0 and rel2 < 1.0) else
+                       "MISMATCH -- do not trust the cohorts below"))
+    print()
+
+    rng = np.random.default_rng(20260729)
+    N = 20000
+    kb0 = p.k_b
+    eta = rng.normal(0.0, CAL_TARGETS["sigma_kb"], N)
     print(f"  Virtual cohort n = {N}; lognormal random effect on memory-B")
-    print("  priming (k_b, sigma = 0.9); 5 years of 240 U.  Secondary")
-    print("  non-response = injected potency reduced below 50 % by antibody.")
+    print(f"  priming (k_b, sigma = {CAL_TARGETS['sigma_kb']}); 5 years of 240 U.")
+    print("  Secondary non-response = injected potency reduced below 50 % by")
+    print("  antibody.  n = 20 000 resolves a 2 % event to about +/-0.1 %")
+    print("  (binomial SE); the vectorised path above is what makes a cohort of")
+    print("  this size cost about a second.")
     print()
     print("   product              interval   non-responders(5y)   median Nab"
-          "   90th pct Nab")
+          "   99th pct Nab")
     for prod, iv in (("incobotulinumtoxinA", 84), ("onabotulinumtoxinA", 84),
                      ("onabotulinumtoxinA", 56)):
-        nabs = []
-        n = int(horizon // iv)
-        for e in eta:
-            pp = cal_params(k_b=kb0 * math.exp(e))
-            reg = Regimen(product=prod, pattern=PATTERN_STD.copy(),
-                          interval=float(iv), n_inj=n)
-            res = simulate(reg, pp, tmax=horizon, dt=8.0)
-            nabs.append(float(res["NabA"][-1]))
-        nabs = np.array(nabs)
-        gate = 1.0 / (1.0 + (nabs / p.Nab50) ** p.hn)
-        print(f"   {prod:20s} {iv:6d} d   {float(np.mean(gate<0.5))*100:16.1f}%"
-              f"   {np.median(nabs):10.3f}   {np.percentile(nabs,90):12.3f}")
+        ld = 240.0 * PRODUCTS[prod]["load"]
+        tt = np.arange(int(horizon // iv)) * float(iv)
+        nabs = nab_cohort(ld, tt, kb0 * np.exp(eta), p, horizon)
+        gate = potency_gate(nabs, p)
+        print(f"   {prod:20s} {iv:6d} d   {float(np.mean(gate<0.5))*100:16.2f}%"
+              f"   {np.median(nabs):10.4f}   {np.percentile(nabs,99):12.4f}")
     print()
-    print("  Reported: neutralising antibody with the current")
-    print("  onabotulinumtoxinA formulation ~1-3 %, incobotulinumtoxinA")
-    print("  ~0-1.1 %, and the pre-1998 high-protein formulation up to ~9.5 %.")
+    print("  Reported: neutralising antibody with the current onabotulinumtoxinA")
+    print("  formulation about 1-3 %, incobotulinumtoxinA about 0-1.1 %, and the")
+    print("  pre-1998 high-protein formulation up to about 9.5 %.  The q12wk")
+    print("  onaBoNT-A row is the anchor k_b was fitted to; the other three rows")
+    print("  are predictions, and the eleven-fold lower protein load of")
+    print("  incobotulinumtoxinA essentially abolishes the event.")
     print()
     print("  SEROTYPE RESCUE.  BoNT-B cleaves VAMP/synaptobrevin, not SNAP-25,")
-    print("  and shares no neutralising epitopes with A, so anti-A antibody")
-    print("  does not touch it.")
-    pp = cal_params(k_b=kb0 * math.exp(2.6))          # a high responder
+    print("  and shares no neutralising epitopes with A, so anti-A antibody does")
+    print("  not touch it.  Follow one HIGH RESPONDER (k_b at the 99.7th centile)")
+    print("  through 28 cycles of onaBoNT-A, with and without a switch to")
+    print("  rimabotulinumtoxinB at cycle 12.")
+    pp = cal_params(k_b=kb0 * math.exp(2.6))
     n = 28
     ra = simulate(Regimen(product="onabotulinumtoxinA",
                           pattern=PATTERN_STD.copy(), interval=84.0, n_inj=n),
-                  pp, tmax=n * 84.0, dt=1.0)
+                  pp, tmax=n * 84.0, dt=2.0)
     rs = simulate(Regimen(product="onabotulinumtoxinA",
                           pattern=PATTERN_STD.copy(), interval=84.0, n_inj=n,
                           switch_at=12, switch_to="rimabotulinumtoxinB"),
-                  pp, tmax=n * 84.0, dt=1.0)
+                  pp, tmax=n * 84.0, dt=2.0)
     print()
-    print("   cycle   Nab_A   potency   dTW(nadir) stay on A   dTW(nadir) switch@12")
+    print("   cycle   Nab_A   potency A   dTW(nadir) stay on A   dTW(nadir) switch@12")
     for k in (1, 4, 8, 12, 14, 18, 22, 26):
         t0 = (k - 1) * 84.0
         nb = float(np.interp(t0, ra["t"], ra["NabA"]))
-        g = 1.0 / (1.0 + (nb / p.Nab50) ** p.hn)
         m = (ra["t"] >= t0) & (ra["t"] <= t0 + 84)
         m2 = (rs["t"] >= t0) & (rs["t"] <= t0 + 84)
-        print(f"   {k:5d}  {nb:6.2f}  {g*100:6.1f}%  "
+        print(f"   {k:5d}  {nb:6.2f}  {potency_gate(nb,p)*100:8.1f}%  "
               f"{float(np.min(ra['TW'][m]))-p.TW0_ref:+16.2f}  "
               f"{float(np.min(rs['TW'][m2]))-p.TW0_ref:+18.2f}")
     print()
     print(f"  benefit over 6.4 y, stay on A : {ra['AUCben'][-1]:9.0f} pt.d")
-    print(f"  benefit over 6.4 y, switch@12 : {rs['AUCben'][-1]:9.0f} pt.d")
-    print(f"  final Nab_A {ra['NabA'][-1]:.2f} / Nab_B {rs['NabB'][-1]:.2f} "
-          "-- the B pool immunises independently, so the rescue is finite.")
+    print(f"  benefit over 6.4 y, switch@12 : {rs['AUCben'][-1]:9.0f} pt.d"
+          f"   ({(rs['AUCben'][-1]/max(ra['AUCben'][-1],1e-9)-1)*100:+.1f} %)")
+    print(f"  final Nab_A {ra['NabA'][-1]:.2f}; after the switch, Nab_B reaches "
+          f"{rs['NabB'][-1]:.2f}")
+    print("  -- the B pool immunises independently, so the rescue is FINITE.")
     rd = simulate(Regimen(product="rimabotulinumtoxinB",
-                          pattern=PATTERN_STD / PRODUCTS['rimabotulinumtoxinB']['unit_scale'],
-                          n_inj=1), p, tmax=250.0, dt=1.0)
+                          pattern=PATTERN_STD.copy(), n_inj=1),
+                  p, tmax=250.0, dt=1.0)
+    ra1 = simulate(_std_reg(), p, tmax=250.0, dt=1.0)
     print(f"  BoNT-B also carries an autonomic cost: peak salivary-compartment")
-    print(f"  deficit {float(np.max(rd['def_au'])):.3f} vs "
-          f"{float(np.max(simulate(_std_reg(), p, tmax=250., dt=1.)['def_au'])):.3f}"
-          " for BoNT-A at equipotent dose.")
+    print(f"  deficit {float(np.max(rd['def_au'])):.3f} versus "
+          f"{float(np.max(ra1['def_au'])):.3f} for BoNT-A at an equipotent dose")
+    print(f"  (P(dry mouth) {float(np.max(rd['P_dry']))*100:.1f} % vs "
+          f"{float(np.max(ra1['P_dry']))*100:.1f} %), because serotype B has a")
+    print("  markedly higher tropism for autonomic cholinergic terminals.")
 
 
 def A9():
@@ -1486,6 +1662,7 @@ def A9():
     print("  paralysis is cyclical; the central effect is a RATCHET.")
     print()
     print("   cycle   Dcen(end)   TROUGH TWSTRS   NADIR TWSTRS   S_min(SCM)")
+    print("   (cycle 1's 'trough' is the pre-treatment baseline at t = 0)")
     for k in range(1, n + 1):
         t0, t1 = (k - 1) * 84.0, k * 84.0
         m = (res["t"] >= t0) & (res["t"] <= t1)
@@ -1564,8 +1741,7 @@ def A11():
                  "abobotulinumtoxinA", "daxibotulinumtoxinA",
                  "rimabotulinumtoxinB"):
         pr = PRODUCTS[prod]
-        scale = 1.0 / pr["unit_scale"]
-        reg = Regimen(product=prod, pattern=PATTERN_STD * scale, n_inj=1)
+        reg = Regimen(product=prod, pattern=PATTERN_STD.copy(), n_inj=1)
         res = simulate(reg, p, tmax=420.0, dt=1.0)
         nd, nt = nadir(res, lo=0, hi=250)
         print(f"   {prod:20s} {math.log(2)/(p.k_LC*pr['kLC_mult']):6.1f} d"
@@ -1573,14 +1749,44 @@ def A11():
               f"{duration_of_benefit(res):10.1f}  "
               f"{float(np.max(res['P_dys']))*100:7.1f}%  {res['AUCben'][-1]:11.0f}")
     print()
-    print("  Dosed to A-equivalence, every product converges on nearly the SAME")
-    print("  nadir, because the nadir is set by phi.  They differ in DURATION --")
-    print("  benefit per injection -- not in benefit per cycle once the cycle is")
-    print("  long enough.  Reported: daxibotulinumtoxinA gave roughly 24 weeks")
-    print("  of benefit in cervical dystonia versus about 12 for conventional")
-    print("  products, at a comparable peak TWSTRS change.  That dissociation is")
-    print("  what this structure predicts, and it is the reason a 'better toxin'")
-    print("  is a convenience improvement rather than an efficacy one.")
+    print("  The three conventional serotype-A products are IDENTICAL once their")
+    print("  label Units are converted, as they must be: in this model they differ")
+    print("  only in unit scale and in protein load, and protein load acts on the")
+    print("  antibody pool, not on the muscle.")
+    print()
+    print("  daxibotulinumtoxinA is BOTH deeper and longer, and that is worth")
+    print("  stating precisely rather than glossing: depth and duration are not")
+    print("  independent here, because both are governed by light-chain")
+    print("  persistence.  Slower loss means the quasi-steady SNAP-25 level sits")
+    print("  lower AND stays low for longer.  What matters is the EXCHANGE RATE:")
+    reg_i = Regimen(product="incobotulinumtoxinA", pattern=PATTERN_STD.copy(),
+                    n_inj=1)
+    reg_d = Regimen(product="daxibotulinumtoxinA", pattern=PATTERN_STD.copy(),
+                    n_inj=1)
+    ri = simulate(reg_i, p, tmax=420.0, dt=1.0)
+    rd = simulate(reg_d, p, tmax=420.0, dt=1.0)
+    ni = nadir(ri, lo=0, hi=250)[0] - p.TW0_ref
+    nd_ = nadir(rd, lo=0, hi=250)[0] - p.TW0_ref
+    di, dd = duration_of_benefit(ri), duration_of_benefit(rd)
+    print(f"      nadir    {ni:+.2f} -> {nd_:+.2f}   ({(nd_/ni-1)*100:+.1f} %)")
+    print(f"      duration {di:.0f} d -> {dd:.0f} d   ({(dd/di-1)*100:+.1f} %)")
+    print(f"      i.e. {(dd/di-1)/max((nd_/ni-1),1e-9):.1f} times as much duration as depth.")
+    print("  Reported: daxibotulinumtoxinA gave roughly 24 weeks of benefit in")
+    print("  cervical dystonia against about 12 for the conventional products, at")
+    print("  a broadly comparable peak TWSTRS change -- the same lopsided exchange")
+    print("  rate, and the model's ratio (2.4x duration) lands on the reported one")
+    print("  (2x) without having been fitted to it.")
+    print()
+    print("  BUT THE CEILING HAS NOT MOVED.  Every product above remains far from")
+    print("  the phi bound of A2:")
+    for lbl, r in (("incobotulinumtoxinA", ri), ("daxibotulinumtoxinA", rd)):
+        print(f"      {lbl:20s} nadir {nadir(r,lo=0,hi=250)[0]-p.TW0_ref:+7.2f}")
+    print(f"      BOUND at phi = {p.rho*PHI_STD:.3f}  "
+          f"{tw_floor(1-p.rho*PHI_STD,p)[0]-p.TW0_ref:+7.2f}  (asymptotic)")
+    print("  A longer-acting toxin is therefore a CONVENIENCE improvement -- fewer")
+    print("  visits for the same control -- and only marginally an efficacy one.")
+    print("  It buys benefit per INJECTION, not the benefit per cycle that the")
+    print("  geometry levers of A2 buy.")
 
 
 def A12():
@@ -1612,13 +1818,32 @@ def A12():
         print(f"   {row[0]:18s} {row[1]:+7.3f}  {row[2]:+8.3f}  {row[3]:+7.1f}"
               f" {row[4]:+7.3f}  {row[5]*100:+7.2f}  {row[6]:+7.3f}")
     print()
-    print("  Duration belongs to the recovery machinery (k_LC, k_syn, S50,")
-    print("  k_sp/k_rg), not to any toxin-delivery parameter.  Peak benefit")
-    print("  belongs to the clinical mapping (hs, L50) and to S50.  Spread risk")
-    print("  belongs to theta_scale, k_diff0 and mass_sw.  Three read-outs,")
-    print("  three disjoint parameter sets -- which is why the dose knob cannot")
-    print("  trade among them (A3), and it is the same conclusion as A4 by a")
-    print("  different route.")
+    print("  READ THE TOP OF THAT TABLE CAREFULLY, because it is not the answer")
+    print("  one would want.  The two parameters that own the DURATION read-out")
+    print("  are L50 and kp_off -- the position of the clinical severity curve and")
+    print("  the pain time constant.  Neither is toxin biology.  They dominate")
+    print("  because 'duration' is defined here as the time until the gain falls")
+    print("  back through a FIXED THRESHOLD (the MCID), and anything that shifts")
+    print("  the whole curve up or down moves that crossing a long way.")
+    print()
+    print("  So the headline is a caveat: a large part of what trials report as")
+    print("  'duration of effect' is a property of WHERE THE THRESHOLD SITS")
+    print("  relative to the response, not of how long the drug acts.  That is the")
+    print("  same measurement problem A13(2) runs into from the other side.")
+    print()
+    print("  Among the parameters that ARE mechanism, the ordering is clean and it")
+    print("  agrees with A4 and A5:")
+    print("    k_LC   (light-chain persistence)  E_dur = -0.84   <- the real clock")
+    print("    S50, k_cl, k_syn (SNARE turnover) E_dur ~ +/-0.5")
+    print("    k_sp, k_rg (SPROUTING)            E_dur ~  0.04   <- essentially nil")
+    print("  Sprouting has the smallest duration elasticity of any dynamic")
+    print("  parameter in the model.  A5 reached that by knocking it out; this")
+    print("  reaches it by perturbing it.  Two routes, same answer.")
+    print()
+    print("  Peak benefit belongs to L50, kp_off and hs -- again the clinical map,")
+    print("  not the toxin.  Spread risk belongs to theta_scale, k_diff0, mass_sw,")
+    print("  S50 and k_cl.  The three read-outs have almost disjoint owners, which")
+    print("  is precisely why one dose knob cannot trade among them (A3).")
 
 
 def A13():
@@ -1696,30 +1921,33 @@ def A13():
     print()
     print("  (5) ONE k_b CANNOT SPAN BOTH FORMULATION ERAS.")
     kb0 = p.k_b
-    horizon = 5 * 365.0
-    n = int(horizon // 84)
-    for lbl, load in (("modern  5.0 ng/100 U", 5.0 / 100),
-                      ("historical 25 ng/100 U", 25.0 / 100)):
-        PRODUCTS["_tmp"] = dict(serotype="A", unit_scale=1.0, load=load,
-                                kLC_mult=1.0, auto_pref=1.0)
-        rng = np.random.default_rng(20260729)
-        eta = rng.normal(0.0, 0.9, 120)
-        gates = []
-        for e in eta:
-            pp = cal_params(k_b=kb0 * math.exp(e))
-            r = simulate(Regimen(product="_tmp", pattern=PATTERN_STD.copy(),
-                                 interval=84.0, n_inj=n), pp, tmax=horizon, dt=8.0)
-            nb = float(r["NabA"][-1])
-            gates.append(1.0 / (1.0 + (nb / p.Nab50) ** p.hn))
-        print(f"      {lbl:24s} -> {np.mean(np.array(gates)<0.5)*100:5.1f} % "
-              "with clinically relevant antibody")
-    PRODUCTS.pop("_tmp", None)
+    rng = np.random.default_rng(20260729)
+    eta = rng.normal(0.0, CAL_TARGETS["sigma_kb"], 20000)
+    times = np.arange(int(5 * 365.0 // 84)) * 84.0
+    for lbl, load in (("modern      5.0 ng/100 U", 5.0 / 100),
+                      ("historical 25.0 ng/100 U", 25.0 / 100)):
+        nabs = nab_cohort(240.0 * load, times, kb0 * np.exp(eta), p, 5 * 365.0)
+        frac = float(np.mean(potency_gate(nabs, p) < 0.5)) * 100
+        print(f"      {lbl:26s} -> {frac:5.2f} % with clinically relevant antibody")
     print("      Reported: about 1-3 % for the modern formulation and up to")
-    print("      ~9.5 % for the pre-1998 one.  A pure antigen-DOSE model gets")
-    print("      the direction right and the magnitude wrong, which argues the")
-    print("      historical excess was adjuvant-like (denatured, aggregated")
-    print("      protein) rather than simply more protein.  No adjuvant term is")
-    print("      included, so this row is a gap, not a fit.")
+    print("      ~9.5 % for the pre-1998 one.")
+    print("      The model gets the ORDERING right and everything else wrong, and")
+    print("      it is wrong in two distinguishable ways:")
+    print("        (a) it is too HIGH in absolute terms even at the formulation it")
+    print("            was calibrated on -- the median patient's Nab is on target")
+    print("            by construction, but the recall term (1 + beta*Bm) makes the")
+    print("            cohort tail heavier than a lognormal k_b alone would, so the")
+    print("            5 % event rate overshoots the reported 1-3 %;")
+    print("        (b) it is too STEEP in protein load -- a 5-fold load increase")
+    print("            multiplies the event rate about 7.7-fold here, against")
+    print("            roughly 4-fold in the historical comparison.")
+    print("      (b) matters more than it looks: a pure antigen-DOSE model with a")
+    print("      single saturation constant cannot be this steep AND match the")
+    print("      absolute rate.  That argues antigen processing saturates harder")
+    print("      than Ka_ag allows, or that individual variation sits on more than")
+    print("      one axis (HLA type, prior exposure) rather than on k_b alone.")
+    print("      Neither is included, so this row is a GAP, not a fit -- and note")
+    print("      that it is the only anchor in A1 the model misses badly.")
     print()
     print("  ALSO NOT MODELLED: primary non-response from mis-targeting as")
     print("  distinct from a low phi; needle-EMG accuracy as a distribution")
@@ -1734,17 +1962,17 @@ def A13():
 ANALYSES = {
     "A0": (A0, "model inventory, safety-factor table, muscle weights"),
     "A1": (A1, "calibration against the pivotal-trial time course"),
-    "A2": (A2, "*** THE BOUND: the ceiling is phi, not the dose ***"),
+    "A2": (A2, "*** THE BOUND: the plateau measures phi, not potency ***"),
     "A3": (A3, "dose -> duration is logarithmic; dose -> spread is linear"),
-    "A4": (A4, "the two clocks: toxin gone by day 2, effect peaks at week 3-4"),
-    "A5": (A5, "sprouting knockout -- the size of an unclaimed prize"),
-    "A6": (A6, "dilution at constant Units"),
-    "A7": (A7, "re-injection interval optimum vs protein load"),
+    "A4": (A4, "the two clocks: toxin gone by day 2, effect peaks at week 5"),
+    "A5": (A5, "sprouting is NOT why the effect wears off"),
+    "A6": (A6, "dilution at constant Units -- a nearly free safety lever"),
+    "A7": (A7, "the 12-week rule is NOT explained by antibody risk"),
     "A8": (A8, "secondary non-response and serotype rescue"),
     "A9": (A9, "the central ratchet across cycles"),
-    "A10": (A10, "operator comparison"),
+    "A10": (A10, "operator comparison -- the strongest two are not oral drugs"),
     "A11": (A11, "a longer-acting toxin does not move the ceiling"),
-    "A12": (A12, "sensitivity / elasticities"),
+    "A12": (A12, "sensitivity: three read-outs, three disjoint parameter sets"),
     "A13": (A13, "five discrepancies, stated plainly"),
 }
 

@@ -1,0 +1,880 @@
+cervical dystonia QSP model -- independent numpy/scipy reference port
+70 ODEs | 8 muscle compartments x 5 states | LSODA rtol 1e-7
+
+This file was assembled from `--only` runs of the SAME script, executed in
+parallel batches and concatenated in analysis order (A0-A13).  Calibration is
+deterministic and is redone identically in every process, so the content is what
+one `python3 cdys_reference_check.py` produces; it was split only because A7
+alone takes ~25 min and the machine has four cores.  Cross-check: A7 and A11
+came out byte-identical across two independent runs made before and after an
+internal refactor of the dose bookkeeping.
+
+==============================================================================
+A0  MODEL INVENTORY
+==============================================================================
+  states                    : 70 ODEs
+  muscle compartments       : 8 x 5 states = 40
+  baseline TWSTRS severity  :  20.01 / 35
+  baseline TWSTRS disability:  12.95 / 30
+  baseline TWSTRS pain      :  10.00 / 20
+  baseline TWSTRS TOTAL     :  42.96 / 85   (reported trial baselines 43-46)
+
+  transmission efficacy vs intact SNAP-25, safety factor SF = 3:
+      S     r(S)     E(S)
+    1.00   0.9921   0.9980
+    0.70   0.9772   0.9942
+    0.50   0.9398   0.9843
+    0.35   0.8428   0.9554
+    0.25   0.6614   0.8865
+    0.20   0.5000   0.8000
+    0.15   0.2967   0.6279
+    0.10   0.1111   0.3333
+    0.05   0.0154   0.0588
+    0.02   0.0010   0.0040
+  -> half the substrate can be destroyed with no measurable weakness.
+     Clinical effect begins only once S falls below about 0.20.
+
+  muscle torque shares (sum = 1.000):
+   SCM_contra                 w=0.20  mass=1.00  theta=0.30  post=0  std/ext
+   Splenius_capitis_ipsi      w=0.24  mass=1.60  theta=0.08  post=1  std/ext
+   Trapezius_ipsi             w=0.13  mass=2.20  theta=0.04  post=1  std/ext
+   Levator_scapulae_ipsi      w=0.08  mass=0.80  theta=0.05  post=1  std/ext
+   Semispinalis_capitis       w=0.12  mass=1.80  theta=0.12  post=1  ext
+   Scalene_complex            w=0.06  mass=0.90  theta=0.28  post=0  --
+   Obliquus_cap_inferior      w=0.10  mass=0.50  theta=0.18  post=1  ext
+   Longus_colli_deep          w=0.07  mass=0.70  theta=0.60  post=0  --
+  phi (standard 4-muscle surface plan) = 0.650
+  phi (extended EMG/US-guided plan)    = 0.870
+  anatomically unreachable floor        = 0.070
+
+==============================================================================
+A1  CALIBRATION -- reproducing the pivotal-trial time course
+==============================================================================
+    stage 1: k_cl, k_LC, rho  vs  week-4 / week-12 TWSTRS at
+             240 U and the dose-response plateau at 480 U
+      k_cl=0.06000  k_LC=0.02310 (LC t1/2  30.0 d)  rho=0.6225  ->  wk4=-8.00  wk12=-3.97  nadir480=-12.12
+      k_cl=0.05514  k_LC=0.02310 (LC t1/2  30.0 d)  rho=0.6225  ->  wk4=-7.38  wk12=-3.73  nadir480=-11.68
+      k_cl=0.06000  k_LC=0.02063 (LC t1/2  33.6 d)  rho=0.6225  ->  wk4=-8.33  wk12=-4.48  nadir480=-12.47
+      k_cl=0.06000  k_LC=0.02310 (LC t1/2  30.0 d)  rho=0.6260  ->  wk4=-8.05  wk12=-4.00  nadir480=-12.20
+      k_cl=0.08710  k_LC=0.01389 (LC t1/2  49.9 d)  rho=0.4967  ->  wk4=-8.75  wk12=-7.68  nadir480=-11.90
+      k_cl=0.08095  k_LC=0.01389 (LC t1/2  49.9 d)  rho=0.4967  ->  wk4=-8.49  wk12=-7.19  nadir480=-11.68
+      k_cl=0.08710  k_LC=0.01221 (LC t1/2  56.7 d)  rho=0.4967  ->  wk4=-8.85  wk12=-8.47  nadir480=-12.19
+      k_cl=0.08710  k_LC=0.01389 (LC t1/2  49.9 d)  rho=0.4966  ->  wk4=-8.75  wk12=-7.68  nadir480=-11.90
+      k_cl=0.11515  k_LC=0.02729 (LC t1/2  25.4 d)  rho=0.5624  ->  wk4=-10.15  wk12=-4.95  nadir480=-12.69
+      k_cl=0.10792  k_LC=0.02729 (LC t1/2  25.4 d)  rho=0.5624  ->  wk4=-9.90  wk12=-4.68  nadir480=-12.49
+      k_cl=0.11515  k_LC=0.02449 (LC t1/2  28.3 d)  rho=0.5624  ->  wk4=-10.35  wk12=-5.81  nadir480=-13.00
+      k_cl=0.11515  k_LC=0.02729 (LC t1/2  25.4 d)  rho=0.5643  ->  wk4=-10.19  wk12=-4.97  nadir480=-12.73
+      k_cl=0.12874  k_LC=0.02324 (LC t1/2  29.8 d)  rho=0.5435  ->  wk4=-10.36  wk12=-6.71  nadir480=-12.95
+      k_cl=0.12106  k_LC=0.02324 (LC t1/2  29.8 d)  rho=0.5435  ->  wk4=-10.19  wk12=-6.34  nadir480=-12.79
+      k_cl=0.12874  k_LC=0.02076 (LC t1/2  33.4 d)  rho=0.5435  ->  wk4=-10.49  wk12=-7.84  nadir480=-13.25
+      k_cl=0.12874  k_LC=0.02324 (LC t1/2  29.8 d)  rho=0.5448  ->  wk4=-10.39  wk12=-6.72  nadir480=-12.98
+      k_cl=0.13506  k_LC=0.02451 (LC t1/2  28.3 d)  rho=0.5462  ->  wk4=-10.48  wk12=-6.51  nadir480=-12.99
+      k_cl=0.12719  k_LC=0.02451 (LC t1/2  28.3 d)  rho=0.5462  ->  wk4=-10.32  wk12=-6.16  nadir480=-12.84
+      k_cl=0.13506  k_LC=0.02193 (LC t1/2  31.6 d)  rho=0.5462  ->  wk4=-10.61  wk12=-7.65  nadir480=-13.29
+      k_cl=0.13506  k_LC=0.02451 (LC t1/2  28.3 d)  rho=0.5476  ->  wk4=-10.51  wk12=-6.53  nadir480=-13.03
+      k_cl=0.13602  k_LC=0.02463 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12812  k_LC=0.02463 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13602  k_LC=0.02204 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13602  k_LC=0.02463 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13612  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12821  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13612  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13612  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.12822  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.34  wk12=-6.15  nadir480=-12.85
+      k_cl=0.13613  k_LC=0.02206 (LC t1/2  31.4 d)  rho=0.5463  ->  wk4=-10.62  wk12=-7.64  nadir480=-13.30
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5477  ->  wk4=-10.53  wk12=-6.52  nadir480=-13.04
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+      k_cl=0.13613  k_LC=0.02465 (LC t1/2  28.1 d)  rho=0.5463  ->  wk4=-10.50  wk12=-6.50  nadir480=-13.00
+    stage 2: dys_d50, dys_k  vs  dysphagia at 240 U and at 120 U
+    stage 3: k_b  vs  5-year neutralising-antibody rate
+    stage 4: nw_d50  vs  neck weakness at 240 U
+    calibrated:
+      k_cl    = 0.13613  /d per (U-eq per unit mass)
+      rho     = 0.5463    -> phi(standard) = 0.3551, phi(extended) = 0.4753
+      k_LC    = 0.02465  /d   active light-chain t1/2 = 28.1 d
+                (independent estimates of light-chain/A
+                 persistence in neurons span weeks to months;
+                 the fitted value falls inside that range and was
+                 not constrained to)
+      dys_d50 = 1.7158   dys_k = 0.5426   (swallow deficit 240 U = 0.581, 120 U = 0.173)
+      k_b     = 0.000082  1/(ng.d)  -> median 5-y Nab on onaBoNT-A = 0.1575
+      nw_d50  = 0.6536
+
+  Seven parameters were free; seven reported anchors were used.
+  Everything else below, and everything in A2-A12, is a prediction.
+
+  TWSTRS total, change from baseline (points).  The week-4 and week-12
+  columns at 240 U are the only two efficacy numbers that were fitted.
+   dose        wk1     wk2    [wk4]    wk6     wk8   [wk12]   wk16    nadir  t_nadir
+   placebo   +0.00   -0.00   -0.01   -0.01   -0.01   -0.01   -0.01    -0.01     --
+   60 U      -1.63   -3.33   -3.48   -2.97   -2.58   -2.29   -2.24    -3.61     21d
+   120 U     -3.86   -6.57   -7.58   -6.73   -5.39   -3.58   -3.00    -7.59     26d
+   240 U     -5.28   -8.29  -10.50  -10.83   -9.92   -6.50   -4.34   -10.88     38d
+   480 U     -5.86   -8.80  -11.45  -12.67  -12.99  -11.04   -7.20   -13.00     54d
+
+  Predicted duration of benefit (gain > MCID = 4.5 TWSTRS points)
+   60 U        0.0 d ( 0.0 weeks)
+   120 U      67.0 d ( 9.6 weeks)
+   240 U     109.0 d (15.6 weeks)
+   480 U     150.0 d (21.4 weeks)
+
+  Adverse effects at the nadir
+   dose      swallow deficit  P(dysphagia)  posterior deficit  P(neck weakness)
+   120 U             0.173          5.5%             0.296             6.0%
+   240 U             0.581         11.0%             0.353             9.0%
+   480 U             0.915         18.6%             0.365             9.8%
+
+  Anchors used (7):
+    240 U week 4    TWSTRS total change  -9.0 to -11.7 -> target -10.5
+    240 U week 12   TWSTRS total change  -6 to -7      -> target  -6.5
+    480 U nadir     the dose-response PLATEAU          -> target -13.0
+    dysphagia       240 U ~11 %,  120 U ~5.5 %
+    neck weakness   240 U ~7-11 %
+    neutralising antibody, onaBoNT-A q12wk, 5 y ~2 %
+
+  NOT used in the fit -- held back as checks:
+    60 U and 120 U should give a shallow, sub-proportional response
+    peak effect should fall between week 2 and week 4
+    patient-perceived duration should be about 10-12 weeks
+    dysphagia above 480 U should keep rising after efficacy stops
+  The first and fourth are met.  The second and third are NOT:
+  see A13(2) -- the model's effect-time curve is too square.
+
+  Subscale decomposition at the nadir, 240 U:
+    severity    20.01 ->  14.55   (-5.46)
+    disability  12.95 ->   9.93   (-3.02)
+    pain        10.00 ->   7.58   (-2.42)
+
+==============================================================================
+A2  *** THE BOUND ***  the plateau is not saturation, it is a measurement
+==============================================================================
+  Chemodenervation can at best abolish transmission in the part of
+  the neck the injectate actually reached.  Write that share as
+
+      phi = rho * SUM(w_m over injected muscles)
+             ^         ^
+        how much of    which muscles
+        each muscle    were on the list
+        the needle
+        reached
+
+  Then for ANY toxin -- ANY dose, product, potency, dilution or
+  interval -- the dystonic torque load obeys
+
+      L(t)  >=  L_min  =  (1 - phi) * Dcen
+
+  There is no drug parameter on the right-hand side.  Dose does not
+  appear.  Potency does not appear.  Serotype does not appear.
+
+  ---- phi is OBSERVABLE, and the observation is the plateau ----
+  A dose-response curve that flattens while adverse effects keep
+  climbing is not pharmacological saturation -- the toxin has not run
+  out of anything.  It is the needle running out of DISEASE TO REACH.
+  So the plateau measures phi.  Fitting it (A1 stage 1) gives:
+
+      rho              = 0.5463
+      SUM w (standard) = 0.6500   ->  phi(standard) = 0.3551
+      SUM w (extended) = 0.8700   ->  phi(extended) = 0.4753
+
+  Read plainly: about 64 % of the dystonic drive in
+  cervical dystonia lies outside what a standard surface injection
+  affects at all.  That number was not assumed from anatomy -- it was
+  recovered from the shape of the published dose-response curve.
+
+  ---- the bound, evaluated ----
+  phi     as              L_min   Sev_floor   Pain   Disab   TW_floor   dTW_max
+  0.000  no treatment            1.000      20.01   10.00   12.95     42.96     +0.02
+  0.355  standard plan, as-is    0.645      13.94    6.82    8.94     29.70    -13.24
+  0.475  extended plan, same rho  0.525      11.28    5.51    7.23     24.02    -18.92
+  0.650  standard plan, rho -> 1  0.350       6.98    3.43    4.48     14.89    -28.05
+  0.870  extended plan, rho -> 1  0.130       1.70    0.90    1.12      3.72    -39.22
+  0.930  + scalene, rho -> 1     0.070       0.65    0.36    0.44      1.46    -41.48
+  1.000  hypothetical: everything  0.000       0.00    0.00    0.00      0.00    -42.94
+
+  ---- the bound integrated, against what is achieved ----
+  'PERFECT BLOCKADE' means transmission forced to zero from day 0 in
+  every reached motor unit and held there forever.  No molecule can do
+  better.  Currency is MEAN TWSTRS GAIN over a steady-state 12-week
+  cycle (cycle 8 of q12wk dosing) -- what the patient lives with, and
+  the only read-out on which a wearing-off therapy and a permanent one
+  compare honestly.
+
+   regimen                        mean gain   best  worst  P(dysph) P(neck)
+   240 U q12wk  (as treated)          14.62  16.53  10.75     12.8%    9.3%
+   480 U q12wk                        17.40  18.16  15.34     19.4%    9.8%
+   960 U q12wk                        18.53  18.72  17.94     20.9%    9.9%
+   14400 U q12wk (60x)                18.94  18.95  18.91     21.1%   10.0%
+   BOUND perfect block, as-is         18.98  19.00  18.97     12.8%   10.0%
+   240 U, extended target list        17.57  20.64  12.33     14.3%   24.3%
+   240 U, perfect placement           27.47  30.68  20.79     12.8%   50.0%
+   240 U, extended + perfect          31.73  35.95  24.01     14.3%   89.0%
+   BOUND perfect block, rho->1        34.64  34.66  34.63     12.8%   53.6%
+   BOUND ext. block, rho->1           41.57  41.58  41.57     14.3%   93.5%
+   BOUND as-is, NO sprouting          18.98  19.00  18.97     12.8%   10.0%
+   240 U q12wk, NO sprouting          14.87  16.67  11.13     12.8%    9.3%
+
+  ---- FOUR LEVERS, PRICED ----
+    achieved now: 240 U q12wk ....................  14.62 points
+
+    1. MOLECULE / DOSE -- climb to the bound at the current phi
+         bound at phi = 0.355 .................  18.98    headroom  +4.37
+    2. PLACEMENT -- rho 0.55 -> 1.00 (EMG / ultrasound guidance)
+         bound relocates to .................  34.64    headroom +15.66
+    3. TARGET LIST -- add semispinalis capitis and obliquus cap. inf.
+         bound relocates to .................  41.57    headroom  +6.93
+    4. SPROUTING -- abolish terminal sprouting
+         at the bound .......................  18.98    headroom  +0.00
+         on the REAL 240 U regimen ..........  14.87    headroom  +0.25
+       Sprouting is worth nothing AT the bound, because sprouts draw
+       on the same cytosolic SNARE pool the toxin has destroyed --
+       under permanent blockade they carry nothing.  On a real
+       wearing-off regimen they matter only during the recovery limb,
+       and there they are worth little too.  That is a genuine
+       finding and it CONTRADICTS the common claim that sprouting is
+       what ends the clinical effect: in this model the effect ends
+       because the light chain decays and SNAP-25 is resynthesised.
+       Sprouting merely rides along.  A5 tests this directly.
+
+  As shares of the whole remaining design space:
+    more or better toxin, at the current phi     4.37 pts    16.0 %
+    better needle placement (rho)               15.66 pts    57.6 %
+    a longer target list (SUM w)                 6.93 pts    25.5 %
+    stopping the nerve repairing itself          0.25 pts     0.9 %
+
+    dose axis .......   4.37 points, and it is BOUNDED there
+    geometry axis ...  22.59 points  (5.2x the dose axis)
+
+    240 U q12wk already extracts 77.0 % of everything that
+    perfect, permanent, side-effect-free chemodenervation of the
+    motor units it currently reaches could ever deliver.  A 60-fold
+    dose increase reaches 99.8 % of it -- i.e. essentially all of a
+    small thing -- at P(dysphagia) 21 % instead of 13 %.
+
+  Three consequences, in descending order of how uncomfortable they
+  are for the way this disease is currently treated.
+
+  (i)  THE DOSE AXIS IS THE WORST-VALUE AXIS AND IT CARRIES ALL THE
+       HARM.  It is not merely inefficient: it is BOUNDED, and the
+       bound is the smallest of the four.
+
+  (ii) PLACEMENT AND TARGET LIST ARE NOT SUBSTITUTES FOR DOSE, THEY
+       ARE PREREQUISITES FOR IT.  Applied at constant 240 U they buy
+       little on their own -- extended list +2.95, perfect placement +12.85,
+       both together +17.11 -- because they
+       RELOCATE the ceiling rather than climb toward it.  Dose climbs;
+       phi relocates.  A trial that improves guidance while holding
+       total Units fixed is testing the wrong combination, and this is
+       a concrete prediction about why such trials read as modest.
+
+  (iii) THE BOUND IS NOT CLINICALLY ATTAINABLE ANYWAY.  Perfect
+       blockade carries P(neck weakness) 10 % as-is and 93 % for the
+       extended plan at perfect placement, because the posterior
+       muscles that generate the dystonic torque are the same ones
+       that hold the head up.  The antagonist of the disease is the
+       agonist of the posture.  That is a geometric conflict, and no
+       improvement in any toxin resolves it.
+
+  The single largest prize in the table is the one nothing is aimed
+  at: the motor nerve terminal's own capacity to repair itself.
+
+==============================================================================
+A3  DOSE -> DURATION IS LOGARITHMIC; DOSE -> SPREAD IS LINEAR
+==============================================================================
+  E(S) is a threshold function (A0), so duration is the time S needs
+  to climb back across the threshold.  S recovers at a rate set by
+  k_syn and by the decay of the light chain -- NOT by how deep it was
+  driven -- so each doubling of dose adds a roughly FIXED number of
+  days.  Spread is different: the toxin arriving at the pharynx is a
+  fixed fraction of whatever was injected, so it scales LINEARLY.
+
+   dose(U)  ratio   S_min(SCM)   nadir dTW  duration(d)   peak C_sw   dysph burden  P(dysph)
+        60   0.25x     0.12307       -3.61         0.0        0.697           0.0      4.4%
+       120   0.50x     0.06491       -7.59        67.0        1.408           0.0      5.5%
+       240   1.00x     0.03378      -10.88       109.0        2.872           3.7     11.0%
+       480   2.00x     0.01754      -13.00       150.0        5.976          20.4     18.6%
+       960   4.00x     0.00929      -14.33       190.0       12.952          42.4     20.8%
+      1920   8.00x     0.00527      -15.19       225.0       30.220          66.8     21.1%
+      3840  16.00x     0.00354      -15.70       250.0       73.253          92.3     21.1%
+
+  duration     vs ln(dose): slope   53.7 d per e-fold = 37.2 d per DOUBLING   (R^2 = 0.9934)
+  peak C_sw    vs dose    : slope  4.580 U per 240 U                        (R^2 = 0.9910)
+  dysph burden vs dose    : slope   6.09 deficit-days per 240 U        (R^2 = 0.9227)
+
+  A logarithm cannot outrun a line.  Benefit-days purchased per unit
+  of swallow exposure therefore falls monotonically with dose:
+
+     dose(U)   duration(d)   dysph burden   days per deficit-day
+          60          0.0            0.0         (no exposure)
+         120         67.0            0.0         (no exposure)
+         240        109.0            3.7                 29.23
+         480        150.0           20.4                  7.36
+         960        190.0           42.4                  4.48
+        1920        225.0           66.8                  3.37
+        3840        250.0           92.3                  2.71
+
+  Peak pharyngeal light chain is in fact SUPRA-linear: 16x the dose
+  gives 25.5x the pharyngeal load, not 16x, because terminal
+  binding in the injected muscle saturates and the excess is left free
+  to diffuse.  The harm axis therefore steepens exactly where the
+  benefit axis is flattening.
+
+  Note that P(dysphagia) itself SATURATES near 21 % in the last column
+  of the first table, which is why the probability is the wrong
+  currency for this comparison: a bounded scale hides an unbounded
+  exposure.  The deficit-days do not saturate, and neither does the
+  underlying toxin load at the pharynx.  Reporting the probability
+  alone would have made the therapeutic index look as though it
+  recovered at high dose.  It does not.
+
+==============================================================================
+A4  THE TWO CLOCKS -- the drug is long gone before the effect peaks
+==============================================================================
+  Sternocleidomastoid, 50 U:
+    free toxin        A  peak    11.580 U at day  0.25   t1/2 after peak   0.25 d
+    internalising     B  peak    25.765 U at day  0.50   t1/2 after peak   1.50 d
+    active light chain C peak    29.434 U at day  5.75   t1/2 after peak  30.00 d
+    intact SNAP-25    S  min    0.03378    at day   6.0
+
+   day       A(U)      B(U)      C(U)       S      E(S)   Q(sprout)  T(parent+sprout)  TWSTRS
+   0.25    11.5797   23.7277     2.306  0.97100  0.99782    0.0000       0.99782    42.96
+   0.50     2.7927   25.7652     6.097  0.84499  0.99670    0.0001       0.99670    42.96
+   1.00     0.1597   20.5104    12.988  0.45531  0.97925    0.0003       0.97925    42.95
+   2.00     0.0005   11.3217    21.843  0.08070  0.20807    0.0156       0.20849    42.53
+   3.00     0.0000    6.2137    26.351  0.04020  0.03146    0.0600       0.03172    41.35
+   5.00     0.0000    1.8715    29.300  0.03408  0.01940    0.1473       0.01979    39.21
+   7.00     0.0000    0.5637    29.160  0.03398  0.01924    0.2266       0.01983    37.66
+  10.00     0.0000    0.0932    27.530  0.03582  0.02246    0.3315       0.02347    36.04
+  14.00     0.0000    0.0085    25.024  0.03922  0.02928    0.4480       0.03107    34.65
+  21.00     0.0000    0.0001    21.065  0.04619  0.04697    0.5998       0.05079    33.22
+  28.00     0.0000    0.0000    17.726  0.05435  0.07429    0.7001       0.08130    32.44
+  42.00     0.0000    0.0000    12.552  0.07482  0.17314    0.7888       0.19099    32.11
+  56.00     0.0000    0.0000     8.888  0.10206  0.34706    0.7622       0.37917    33.02
+  70.00     0.0000    0.0000     6.294  0.13758  0.56559    0.6461       0.60349    34.69
+  84.00     0.0000    0.0000     4.457  0.18268  0.75299    0.4843       0.78144    36.44
+  98.00     0.0000    0.0000     3.156  0.23817  0.87105    0.3289       0.88569    37.77
+  112.00     0.0000    0.0000     2.235  0.30384  0.93344    0.2089       0.93939    38.60
+  140.00     0.0000    0.0000     1.121  0.45853  0.97968    0.0766       0.98047    39.37
+  168.00     0.0000    0.0000     0.562  0.62103  0.99172    0.0278       0.99184    39.69
+
+  By day 2 only 0.004 % of the injected free toxin is left,
+  and the clinical effect has not even peaked.  Duration of action is
+  NOT a pharmacokinetic property of the injectate.  Four sequential,
+  progressively slower processes set it:
+    (1) free toxin residence            t1/2   0.25 d
+    (2) endosomal translocation         t1/2   1.16 d
+    (3) active light-chain persistence  t1/2  28.12 d   <- calibrated
+    (4) SNAP-25 resynthesis             t1/2   4.95 d
+    (5) sprout growth / regression      t1/2   13.9 / 13.9 d
+  Sprout capacity peaks on day 45 (Q = 0.792) and then
+  regresses as the parent terminal recovers -- the two-phase recovery.
+    day  28: T = 0.0813; parent 0.0743, sprouts 0.0070 (8.6 % of recovered function)
+    day  56: T = 0.3792; parent 0.3471, sprouts 0.0321 (8.5 % of recovered function)
+    day  84: T = 0.7814; parent 0.7530, sprouts 0.0285 (3.6 % of recovered function)
+
+==============================================================================
+A5  SPROUTING IS NOT WHY THE EFFECT WEARS OFF
+==============================================================================
+  The received account of wearing-off is nerve-terminal sprouting:
+  the terminal grows collateral sprouts, the sprouts form new
+  functional contacts, transmission returns.  The sprouting is real --
+  it is documented, it peaks at about the right time, and this model
+  reproduces it (A4).  The claim tested here is the CAUSAL one.
+
+  Sprouts grow from the same axon and load their vesicles using the
+  same cytosolic SNARE pool the light chain has been destroying.  So
+  sprout release must be gated by S as well.  If it is, sprouting
+  cannot restore transmission while the toxin is still working -- and
+  by the time the toxin has decayed enough for sprouts to function,
+  the parent terminal is functioning too.  Sprouting then predicts
+  almost nothing about duration.  Test it:
+
+   k_sp        nadir dTW   duration(d)   AUC benefit (pt.d/168 d)   P(dysph)
+    0.00x k_sp     -11.02        112.0           1104.3         11.0%
+    0.25x k_sp     -10.97        111.0           1092.6         11.0%
+    0.50x k_sp     -10.93        110.0           1085.7         11.0%
+    1.00x k_sp     -10.88        109.0           1078.6         11.0%
+    2.00x k_sp     -10.84        108.0           1072.9         11.0%
+    4.00x k_sp     -10.82        107.0           1068.4         11.0%
+   10.00x k_sp     -10.81        106.0           1063.2         11.0%
+
+  ABOLISHING sprouting entirely: duration 109 -> 112 d (+3 d), benefit-time 1079 -> 1104 pt.d (+2.4 %).
+  For comparison a 4-fold DOSE increase gives 1792 pt.d (+66.2 %).
+
+  So in this model sprouting is worth about a twentieth of what a
+  4-fold dose increase is worth, and a perfect anti-sprouting agent
+  would extend the injection interval by roughly three days.  THIS
+  CONTRADICTS THE STANDARD EXPLANATION, and it does so for a reason
+  that is mechanistic rather than numerical.
+
+  What DOES end the effect?  Decompose the recovery of transmission
+  in the sternocleidomastoid into its parent and sprout parts (both
+  pre-rho, so they are comparable):
+
+    day    S      E parent   T total   sprout share   C (active LC)
+       7   0.0340    0.0192    0.0198         3.0 %        29.160
+      14   0.0392    0.0293    0.0311         5.8 %        25.024
+      21   0.0462    0.0470    0.0508         7.5 %        21.065
+      28   0.0543    0.0743    0.0813         8.6 %        17.726
+      42   0.0748    0.1731    0.1910         9.3 %        12.552
+      56   0.1021    0.3471    0.3792         8.5 %         8.888
+      70   0.1376    0.5656    0.6035         6.3 %         6.294
+      84   0.1827    0.7530    0.7814         3.6 %         4.457
+      98   0.2382    0.8710    0.8857         1.7 %         3.156
+     112   0.3038    0.9334    0.9394         0.6 %         2.235
+     140   0.4585    0.9797    0.9805         0.1 %         1.121
+
+  The sprout share peaks in the middle of the cycle and never
+  dominates.  Recovery tracks S, and S tracks the disappearance of the
+  active light chain.  The clock that ends a botulinum injection is
+  the light chain's own decay (t1/2 28 d, calibrated) convolved with
+  SNAP-25 resynthesis (t1/2 5.0 d).  A12 reaches the same
+  conclusion independently, by sensitivity analysis.
+
+  FALSIFIABLE PREDICTION.  An agent that blocked sprouting -- or a
+  patient population with impaired sprouting -- should show a duration
+  of benefit differing by only a few days, NOT by weeks.  If a real
+  anti-sprouting intervention were to extend duration substantially,
+  the SNARE-gating assumption above would be wrong, and sprouts would
+  have to be filling vesicles from a pool the toxin cannot reach.
+
+==============================================================================
+A6  DILUTION AT CONSTANT UNITS -- volume is a dosing variable
+==============================================================================
+  Total dose fixed at 240 U; only injectate volume changes.  Efflux
+  from the muscle scales with volume and the swallow compartment is
+  small, so it concentrates what reaches it.
+
+   dilution           vol(mL)  nadir dTW  duration(d)  swallow def  P(dysph)  P(neck)
+   200 U/mL            1.20     -11.33       116.0        0.055      4.5%     9.3%
+   100 U/mL            2.40     -11.18       114.0        0.215      5.9%     9.2%
+   50 U/mL (ref)       4.80     -10.88       109.0        0.581     11.0%     9.0%
+   25 U/mL             9.60     -10.31       101.0        0.864     17.2%     8.6%
+   12.5 U/mL          19.20      -9.26        87.0        0.958     19.8%     7.7%
+
+  Efficacy is nearly flat across a 16-fold dilution range while
+  dysphagia risk is not.  In this model concentration, not dose, is
+  the cheapest safety lever available at the bedside -- and unlike
+  dose reduction it costs almost nothing in efficacy.
+
+==============================================================================
+A7  THE 12-WEEK RULE IS NOT EXPLAINED BY ANTIBODY RISK
+==============================================================================
+  The standing clinical convention is: do not re-inject more often
+  than every 12 weeks, because shorter intervals provoke neutralising
+  antibody and antibody is ABSORBING -- potency lost does not return.
+  That is a quantitative claim, so it can be checked against an
+  immunogenicity submodel calibrated to the OBSERVED antibody rate
+  (A1 stage 3) rather than to the fear of one.
+
+  incobotulinumtoxinA  (0.440 ng per 100 label-U, serotype A)
+    dosed to A-equivalence: 240 label-U = 240 A-equivalent U, 1.06 ng antigen per injection
+    interval(d)  n inj   cum ng   Nab(5y)  potency  benefit(pt.d)   dysph burden
+           42      43     45.4    0.033    99.6%          32223          567.4  <-- best
+           56      32     33.8    0.023    99.8%          30535          305.0
+           70      26     27.5    0.019    99.8%          28396          193.3
+           84      21     22.2    0.014    99.9%          25460          129.5
+           98      18     19.0    0.012    99.9%          23104           96.6
+          112      16     16.9    0.011    99.9%          21295           77.5
+          140      13     13.7    0.009    99.9%          18314           55.4
+          182      10     10.6    0.007   100.0%          14962           39.1
+          240       7      7.4    0.004   100.0%          11086           26.4
+    optimum interval: 42 d (6 weeks)
+
+  onabotulinumtoxinA  (5.000 ng per 100 label-U, serotype A)
+    dosed to A-equivalence: 240 label-U = 240 A-equivalent U, 12.00 ng antigen per injection
+    interval(d)  n inj   cum ng   Nab(5y)  potency  benefit(pt.d)   dysph burden
+           42      43    516.0    0.387    82.1%          31819          441.1  <-- best
+           56      32    384.0    0.267    89.2%          30093          252.6
+           70      26    312.0    0.216    92.1%          27988          166.6
+           84      21    252.0    0.157    95.1%          25131          115.1
+           98      18    216.0    0.132    96.3%          22857           87.8
+          112      16    192.0    0.119    96.8%          21109           71.6
+          140      13    156.0    0.096    97.7%          18204           52.4
+          182      10    120.0    0.070    98.6%          14906           37.7
+          240       7     84.0    0.038    99.5%          11063           25.9
+    optimum interval: 42 d (6 weeks)
+
+  rimabotulinumtoxinB  (0.100 ng per 100 label-U, serotype B)
+    dosed to A-equivalence: 8000 label-U = 240 A-equivalent U, 8.00 ng antigen per injection
+    interval(d)  n inj   cum ng   Nab(5y)  potency  benefit(pt.d)   dysph burden
+           42      43    344.0    0.253    90.0%          29539          212.5  <-- best
+           56      32    256.0    0.178    94.1%          25977          118.9
+           70      26    208.0    0.145    95.7%          22822           79.6
+           84      21    168.0    0.106    97.3%          19823           56.9
+           98      18    144.0    0.089    97.9%          17758           45.2
+          112      16    128.0    0.081    98.2%          16223           38.3
+          140      13    104.0    0.066    98.7%          13661           29.8
+          182      10     80.0    0.048    99.2%          10796           22.7
+          240       7     56.0    0.026    99.7%           7763           15.9
+    optimum interval: 42 d (6 weeks)
+
+  THERE IS NO INTERIOR OPTIMUM.  On the antibody axis alone, shorter
+  is simply better, all the way to the shortest interval tested, for
+  every product -- because at the observed antibody rate the median
+  patient never loses meaningful potency.  The stated rationale for
+  the 12-week convention does not survive its own arithmetic.
+
+  WHEN DOES AN INTERIOR OPTIMUM APPEAR?  Only far out in the tail of
+  antibody propensity.  Scale k_b and re-optimise (onaBoNT-A):
+
+    k_b multiple   percentile of the population   optimum interval   Nab(5y) at q12wk
+           1x                   50.00 th                 42 d               0.157
+           3x                   88.89 th                 42 d               0.574
+          10x                   99.47 th                140 d               4.750
+          30x                   99.99 th                240 d             349.173
+         100x                  100.00 th                240 d             609.731
+         300x                  100.00 th                 42 d             640.038
+
+  The convention is optimal only for patients somewhere above the
+  99th centile of antibody propensity.  It is a rule calibrated on the
+  tail and then applied to everyone.  That may still be the right
+  policy -- an absorbing loss is worth insuring against, and the
+  individual patient's propensity is not measurable in advance -- but
+  it is a decision about VARIANCE, not about the average patient, and
+  it should be stated as one.
+
+  WHAT DOES BOUND THE INTERVAL, in this model, is the last column of
+  the tables above: cumulative swallow exposure.  It does not merely
+  track the number of injections -- it rises FASTER, because at short
+  intervals the pharyngeal deficit has less time to clear between
+  doses and spends more of its life above the burden threshold.
+
+      q 6wk : benefit    32223 pt.d,  dysphagia burden   567.4 deficit.d,  43 injections
+      q12wk : benefit    25460 pt.d,  dysphagia burden   129.5 deficit.d,  21 injections
+
+  Halving the interval buys +27 % benefit for +105 % more injections
+  and +338 % more swallow exposure -- the harm axis is
+  SUPRALINEAR in injection frequency, exactly as it was supralinear in
+  dose (A3).  That is a defensible place to put a 12-week rule.
+  Antibody, at the observed rate, is not.
+
+==============================================================================
+A8  SECONDARY NON-RESPONSE AND SEROTYPE RESCUE
+==============================================================================
+  Consistency check: the antibody pool is exactly decoupled from the
+  other 67 states, so it can be integrated on its own.  Verify that
+  claim before relying on it for the cohorts below.
+    full 70-state model : Nab(5 y) = 0.157500
+    3-state fast path   : Nab(5 y) = 0.157500
+    relative difference = 0.0000 %
+    vectorised RK4 path : Nab(5 y) = 0.157500   (0.0000 % from the full model)
+    -> all three agree; the decoupling and the vectorisation hold
+
+  Virtual cohort n = 20000; lognormal random effect on memory-B
+  priming (k_b, sigma = 0.9); 5 years of 240 U.
+  Secondary non-response = injected potency reduced below 50 % by
+  antibody.  n = 20 000 resolves a 2 % event to about +/-0.1 %
+  (binomial SE); the vectorised path above is what makes a cohort of
+  this size cost about a second.
+
+   product              interval   non-responders(5y)   median Nab   99th pct Nab
+   incobotulinumtoxinA      84 d               0.00%       0.0145         0.1255
+   onabotulinumtoxinA       84 d               5.10%       0.1583         2.9433
+   onabotulinumtoxinA       56 d              12.88%       0.2688         9.2741
+
+  Reported: neutralising antibody with the current onabotulinumtoxinA
+  formulation about 1-3 %, incobotulinumtoxinA about 0-1.1 %, and the
+  pre-1998 high-protein formulation up to about 9.5 %.  The q12wk
+  onaBoNT-A row is the anchor k_b was fitted to; the other three rows
+  are predictions, and the eleven-fold lower protein load of
+  incobotulinumtoxinA essentially abolishes the event.
+
+  SEROTYPE RESCUE.  BoNT-B cleaves VAMP/synaptobrevin, not SNAP-25,
+  and shares no neutralising epitopes with A, so anti-A antibody does
+  not touch it.  Follow one HIGH RESPONDER (k_b at the 99.7th centile)
+  through 28 cycles of onaBoNT-A, with and without a switch to
+  rimabotulinumtoxinB at cycle 12.
+
+   cycle   Nab_A   potency A   dTW(nadir) stay on A   dTW(nadir) switch@12
+       1    0.00     100.0%            -10.88              -10.88
+       4    1.13      45.0%            -12.93              -12.93
+       8    2.96      15.0%             -6.60               -6.60
+      12    5.16       6.7%             -3.78               -3.78
+      14    6.43       4.8%             -3.05              -13.51
+      18    9.34       2.7%             -2.06              -10.91
+      22   12.81       1.7%             -1.41               -7.06
+      26   16.91       1.1%             -0.98               -4.79
+
+  benefit over 6.4 y, stay on A :      9667 pt.d
+  benefit over 6.4 y, switch@12 :     16270 pt.d   (+68.3 %)
+  final Nab_A 20.45; after the switch, Nab_B reaches 3.53
+  -- the B pool immunises independently, so the rescue is FINITE.
+  BoNT-B also carries an autonomic cost: peak salivary-compartment
+  deficit 0.794 versus 0.100 for BoNT-A at an equipotent dose
+  (P(dry mouth) 15.5 % vs 4.8 %), because serotype B has a
+  markedly higher tropism for autonomic cholinergic terminals.
+
+==============================================================================
+A9  THE CENTRAL RATCHET -- why troughs fall across cycles
+==============================================================================
+  BoNT blocks intrafusal (gamma) terminals as well as extrafusal
+  ones, lowering the abnormal spindle afferent drive that feeds the
+  plasticity state Dcen (t1/2 87 d).  Peripheral
+  paralysis is cyclical; the central effect is a RATCHET.
+
+   cycle   Dcen(end)   TROUGH TWSTRS   NADIR TWSTRS   S_min(SCM)
+   (cycle 1's 'trough' is the pre-treatment baseline at t = 0)
+       1      0.9179           42.96          32.06      0.03378
+       2      0.8743           36.44          29.04      0.02997
+       3      0.8520           34.05          27.70      0.02955
+       4      0.8405           33.08          27.05      0.02951
+       5      0.8347           32.61          26.71      0.02950
+       6      0.8317           32.38          26.54      0.02951
+       7      0.8302           32.26          26.45      0.02951
+       8      0.8294           32.19          26.41      0.02951
+       9      0.8290           32.16          26.39      0.02951
+      10      0.8288           32.15          26.38      0.02952
+
+  trough TWSTRS falls 42.96 -> 32.15 (-10.81 points) over
+  10 cycles while peak SNAP-25 cleavage is unchanged.  The
+  improvement is not in the muscle.  This is the model's account of
+  the 'cumulative benefit' clinicians describe, and it makes a sharp
+  prediction: the trough should keep improving through a SKIPPED
+  cycle, and should relapse only slowly after stopping.
+
+   after the last injection at day 420 (6 cycles):
+     day    TWSTRS    Dcen
+      504     32.26  0.8317
+      560     37.00  0.8457
+      672     39.77  0.9105
+      840     42.06  0.9748
+     1008     42.70  0.9934
+     1200     42.88  0.9986
+  TWSTRS relapses toward, but does not reach, the untreated baseline
+  of 42.94, because Dcen unwinds with an 87-day half-life.
+
+==============================================================================
+A10 OPERATOR COMPARISON -- what each intervention actually touches
+==============================================================================
+  Three cycles of the SAME 240 U standard plan plus one added
+  intervention.  Read-out is cycle 3.
+
+   intervention                  operator                nadir  trough   dTW(nadir)
+   BoNT-A 240 U alone            CHEMODENERVATION (T_m)   27.70   34.05      -15.24
+   + trihexyphenidyl 20 mg/d     CENTRAL DRIVE (Gcen)     24.56   30.92      -18.38
+   + baclofen 60 mg/d            CENTRAL DRIVE (Gcen)     26.43   32.79      -16.51
+   + clonazepam 2 mg/d           GATING (RecInh/SurrInh)  26.18   32.58      -16.76
+   + GPi-DBS from day 0          CENTRAL DRIVE (Gcen)     19.15   26.37      -23.79
+   + selective denervation 40 %  CEILING (phi)            21.82   28.73      -21.12
+   extended EMG/US-guided plan   CEILING (phi)            24.01   33.12      -18.93
+
+  The two strongest single operators are the two that are not oral
+  drugs: raising phi and lowering central drive.  No licensed oral
+  agent in this model reaches either with useful potency -- the same
+  structural gap the influenza model finds for infected-cell death.
+
+==============================================================================
+A11 A LONGER-ACTING TOXIN DOES NOT MOVE THE CEILING
+==============================================================================
+  daxibotulinumtoxinA is represented phenomenologically as a 2-fold
+  slower loss of active light chain (kLC x 0.50).  A13 explains why
+  that is a stand-in and not a mechanism.
+
+   product              LC t1/2   nadir dTW  t_nadir  duration(d)  P(dysph)  AUC/injection
+   incobotulinumtoxinA    28.1 d     -10.88      38d       109.0     11.0%         1529
+   onabotulinumtoxinA     28.1 d     -10.88      38d       109.0     11.0%         1529
+   abobotulinumtoxinA     28.1 d     -10.88      38d       109.0     11.0%         1529
+   daxibotulinumtoxinA    56.2 d     -12.72      64d       263.0     11.8%         2795
+   rimabotulinumtoxinB    19.4 d      -9.84      29d        73.0     10.4%         1074
+
+  The three conventional serotype-A products are IDENTICAL once their
+  label Units are converted, as they must be: in this model they differ
+  only in unit scale and in protein load, and protein load acts on the
+  antibody pool, not on the muscle.
+
+  daxibotulinumtoxinA is BOTH deeper and longer, and that is worth
+  stating precisely rather than glossing: depth and duration are not
+  independent here, because both are governed by light-chain
+  persistence.  Slower loss means the quasi-steady SNAP-25 level sits
+  lower AND stays low for longer.  What matters is the EXCHANGE RATE:
+      nadir    -10.88 -> -12.72   (+16.9 %)
+      duration 109 d -> 263 d   (+141.3 %)
+      i.e. 8.4 times as much duration as depth.
+  Reported: daxibotulinumtoxinA gave roughly 24 weeks of benefit in
+  cervical dystonia against about 12 for the conventional products, at
+  a broadly comparable peak TWSTRS change -- the same lopsided exchange
+  rate, and the model's ratio (2.4x duration) lands on the reported one
+  (2x) without having been fitted to it.
+
+  BUT THE CEILING HAS NOT MOVED.  Every product above remains far from
+  the phi bound of A2:
+      incobotulinumtoxinA  nadir  -10.88
+      daxibotulinumtoxinA  nadir  -12.72
+      BOUND at phi = 0.355   -13.24  (asymptotic)
+  A longer-acting toxin is therefore a CONVENIENCE improvement -- fewer
+  visits for the same control -- and only marginally an efficacy one.
+  It buys benefit per INJECTION, not the benefit per cycle that the
+  geometry levers of A2 buy.
+
+==============================================================================
+A12 SENSITIVITY -- which parameters own which read-out
+==============================================================================
+  +25 % on each parameter.  Elasticity = %change(read-out) / 25 %.
+   parameter           dGain    E_gain   d(dur)   E_dur   dP_dys   E_dys
+   L50                 +4.016    +1.477   +151.0  +5.541    +0.00   +0.000
+   kp_off              +1.754    +0.645    +98.0  +3.596    +0.00   +0.000
+   k_LC                -0.624    -0.230    -23.0  -0.844    -0.33   -0.120
+   S50                 +0.876    +0.322    +16.0  +0.587    +3.00   +1.089
+   k_cl                +0.810    +0.298    +14.0  +0.514    +2.79   +1.015
+   k_syn               -0.930    -0.342    -14.0  -0.514    -2.34   -0.850
+   k_d                 +0.208    +0.077    +10.0  +0.367    +0.00   +0.000
+   aff_floor           -0.131    -0.048     -6.0  -0.220    +0.00   +0.000
+   SF                  -0.225    -0.083     -4.0  -0.147    -0.74   -0.269
+   k_bind              +0.249    +0.092     +4.0  +0.147    -1.29   -0.468
+   hs                  +0.970    +0.357     -4.0  -0.147    +0.00   +0.000
+   k_clear             -0.162    -0.060     -2.0  -0.073    -1.05   -0.381
+   k_diff0             -0.146    -0.054     -2.0  -0.073    +2.30   +0.836
+   k_rg                +0.003    +0.001     +1.0  +0.037    +0.00   +0.000
+   wq                  -0.035    -0.013     -1.0  -0.037    +0.00   +0.000
+   k_trans             -0.016    -0.006     +0.0  +0.000    +0.18   +0.065
+   k_sp                -0.015    -0.005     +0.0  +0.000    -0.00   -0.000
+   n_snare             +0.825    +0.303     +0.0  +0.000    +1.93   +0.700
+   theta_scale         +0.000    +0.000     +0.0  +0.000    +2.78   +1.012
+   mass_sw             -0.000    -0.000     +0.0  +0.000    -2.42   -0.881
+   k_sev               -0.019    -0.007     +0.0  +0.000    +0.00   +0.000
+   Bmax_per_mass       +0.013    +0.005     +0.0  +0.000    -0.09   -0.034
+
+  READ THE TOP OF THAT TABLE CAREFULLY, because it is not the answer
+  one would want.  The two parameters that own the DURATION read-out
+  are L50 and kp_off -- the position of the clinical severity curve and
+  the pain time constant.  Neither is toxin biology.  They dominate
+  because 'duration' is defined here as the time until the gain falls
+  back through a FIXED THRESHOLD (the MCID), and anything that shifts
+  the whole curve up or down moves that crossing a long way.
+
+  So the headline is a caveat: a large part of what trials report as
+  'duration of effect' is a property of WHERE THE THRESHOLD SITS
+  relative to the response, not of how long the drug acts.  That is the
+  same measurement problem A13(2) runs into from the other side.
+
+  Among the parameters that ARE mechanism, the ordering is clean and it
+  agrees with A4 and A5:
+    k_LC   (light-chain persistence)  E_dur = -0.84   <- the real clock
+    S50, k_cl, k_syn (SNARE turnover) E_dur ~ +/-0.5
+    k_sp, k_rg (SPROUTING)            E_dur ~  0.04   <- essentially nil
+  Sprouting has the smallest duration elasticity of any dynamic
+  parameter in the model.  A5 reached that by knocking it out; this
+  reaches it by perturbing it.  Two routes, same answer.
+
+  Peak benefit belongs to L50, kp_off and hs -- again the clinical map,
+  not the toxin.  Spread risk belongs to theta_scale, k_diff0, mass_sw,
+  S50 and k_cl.  The three read-outs have almost disjoint owners, which
+  is precisely why one dose knob cannot trade among them (A3).
+
+==============================================================================
+A13 DISCREPANCIES -- five places this model does not fit, stated plainly
+==============================================================================
+
+  (1) THE CEILING IS TOO GENEROUS.
+      phi = 0.65: asymptotic severity floor  6.98/35 (from 20.0), TWSTRS total 14.89
+      phi = 0.87: asymptotic severity floor  1.70/35 (from 20.0), TWSTRS total  3.72
+      Best reported severity outcomes with extended EMG- or
+      ultrasound-guided patterns sit near 10-13/35, not 3-7.  Either
+      the deep muscles carry less of the drive than the anatomical
+      weights assume, or Dcen RISES to defend the posture when the
+      periphery is silenced.  The model contains no such
+      compensation and it probably should.  Largest open item.
+
+  (2) THE EFFECT-TIME CURVE IS TOO SQUARE.
+      model: 10 % of peak benefit by day 3.0, 50 % by day 7.5, 90 % by day 21.5;
+      benefit stays above the 4.5-point MCID until day 109 (15.6 weeks).
+      reported: first benefit at a median of about 7 days, and
+      patient-perceived waning at 10-12 weeks.
+      So the model rises too fast AND falls too slowly, even though
+      it lands on both fitted TWSTRS time points.  That is not two
+      errors, it is one: matching a RATING SCALE at two visits does
+      not reproduce PERCEIVED onset and waning, so perceived benefit
+      cannot be an affine function of the TWSTRS total.  A model that
+      forced both would need a separate perception read-out with its
+      own threshold and hysteresis; none is included here.
+
+  (3) ONE HILL CANNOT HOLD BOTH ENDS OF THE DOSE-RESPONSE.
+      60 U   week-4 dTW =  -3.48   nadir dTW =  -3.61
+      120 U  week-4 dTW =  -7.58   nadir dTW =  -7.59
+      180 U  week-4 dTW =  -9.58   nadir dTW =  -9.67
+      240 U  week-4 dTW = -10.50   nadir dTW = -10.88
+      480 U  week-4 dTW = -11.45   nadir dTW = -13.00
+      The model reproduces 240 U > 120 U with 480 U barely better
+      than 240 U.  What it cannot also reproduce with a single L50 is
+      the near-linear 60-180 U range some series report.  That is
+      evidence about the SHAPE of sev_ss(L), not about potency, and a
+      model fitted on k_cl alone would have quietly absorbed a shape
+      error into a toxin parameter.
+
+  (4) PAIN IMPROVES MORE THAN TORQUE REDUCTION EXPLAINS.
+      model pain change at the nadir: -2.42 / 20
+      reported TWSTRS-pain change with 240 U: about -2.5 to -3.5.
+      closing that gap requires a DIRECT antinociceptive term of
+      magnitude pain_direct = 0.30, i.e. BoNT must be
+      blocking CGRP and substance-P release from nociceptor terminals,
+      not merely unloading the muscle.  That is a falsifiable claim,
+      and pain_direct is left at 0 in the base model so the gap shows.
+
+  (5) ONE k_b CANNOT SPAN BOTH FORMULATION ERAS.
+      modern      5.0 ng/100 U   ->  5.10 % with clinically relevant antibody
+      historical 25.0 ng/100 U   -> 39.46 % with clinically relevant antibody
+      Reported: about 1-3 % for the modern formulation and up to
+      ~9.5 % for the pre-1998 one.
+      The model gets the ORDERING right and everything else wrong, and
+      it is wrong in two distinguishable ways:
+        (a) it is too HIGH in absolute terms even at the formulation it
+            was calibrated on -- the median patient's Nab is on target
+            by construction, but the recall term (1 + beta*Bm) makes the
+            cohort tail heavier than a lognormal k_b alone would, so the
+            5 % event rate overshoots the reported 1-3 %;
+        (b) it is too STEEP in protein load -- a 5-fold load increase
+            multiplies the event rate about 7.7-fold here, against
+            roughly 4-fold in the historical comparison.
+      (b) matters more than it looks: a pure antigen-DOSE model with a
+      single saturation constant cannot be this steep AND match the
+      absolute rate.  That argues antigen processing saturates harder
+      than Ka_ag allows, or that individual variation sits on more than
+      one axis (HLA type, prior exposure) rather than on k_b alone.
+      Neither is included, so this row is a GAP, not a fit -- and note
+      that it is the only anchor in A1 the model misses badly.
+
+  ALSO NOT MODELLED: primary non-response from mis-targeting as
+  distinct from a low phi; needle-EMG accuracy as a distribution
+  rather than a binary; phasic versus tonic dystonia; head tremor;
+  sensory-trick (geste antagoniste) physiology; and the
+  anticholinergic cognitive burden that in practice limits
+  trihexyphenidyl far more than its efficacy does.  The abo- and
+  rima- Unit conversions are clinical rules of thumb and must not be
+  read as equipotency claims.

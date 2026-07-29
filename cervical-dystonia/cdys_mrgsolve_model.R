@@ -135,6 +135,7 @@ KB       :  0.000082: Naive memory-B priming per ng CALIBRATED
 BETABOOST:  9.0   : Memory recall amplification (-)
 KAAG     :  40.0  : Antigen-processing saturation (ng)
 KBD      :  0.0019: Memory-B decay (1/d)
+BMEMMAX  :  50.0  : Memory-B carrying capacity, caps the recall term (-)
 KNP      :  0.55  : Nab production per unit memory B (1/d)
 KND      :  0.0347: IgG elimination (1/d)
 NAB50    :  1.00  : Nab giving 50% loss of injected potency (-)
@@ -235,53 +236,53 @@ D8 :  0 : Nominal dose, longus colli (U)
 ## ---------------------------------------------------------------------
 $CMT @annotated
 // --- muscle 1: sternocleidomastoid (contralateral) ---
-A1_ : Free bioactive toxin, SCM (U)
-B1_ : Membrane-bound / internalising toxin, SCM (U)
-C1_ : Active light chain in cytosol, SCM (U-eq)
-S1_ : Intact SNARE fraction, SCM (-)
-Q1_ : Sprout-mediated release capacity, SCM (-)
+AM1 : Free bioactive toxin, SCM (U)
+BM1 : Membrane-bound / internalising toxin, SCM (U)
+CM1 : Active light chain in cytosol, SCM (U-eq)
+SM1 : Intact SNARE fraction, SCM (-)
+QM1 : Sprout-mediated release capacity, SCM (-)
 // --- muscle 2: splenius capitis (ipsilateral) ---
-A2_ : Free bioactive toxin, splenius (U)
-B2_ : Internalising toxin, splenius (U)
-C2_ : Active light chain, splenius (U-eq)
-S2_ : Intact SNARE fraction, splenius (-)
-Q2_ : Sprout capacity, splenius (-)
+AM2 : Free bioactive toxin, splenius (U)
+BM2 : Internalising toxin, splenius (U)
+CM2 : Active light chain, splenius (U-eq)
+SM2 : Intact SNARE fraction, splenius (-)
+QM2 : Sprout capacity, splenius (-)
 // --- muscle 3: trapezius ---
-A3_ : Free bioactive toxin, trapezius (U)
-B3_ : Internalising toxin, trapezius (U)
-C3_ : Active light chain, trapezius (U-eq)
-S3_ : Intact SNARE fraction, trapezius (-)
-Q3_ : Sprout capacity, trapezius (-)
+AM3 : Free bioactive toxin, trapezius (U)
+BM3 : Internalising toxin, trapezius (U)
+CM3 : Active light chain, trapezius (U-eq)
+SM3 : Intact SNARE fraction, trapezius (-)
+QM3 : Sprout capacity, trapezius (-)
 // --- muscle 4: levator scapulae ---
-A4_ : Free bioactive toxin, levator scapulae (U)
-B4_ : Internalising toxin, levator scapulae (U)
-C4_ : Active light chain, levator scapulae (U-eq)
-S4_ : Intact SNARE fraction, levator scapulae (-)
-Q4_ : Sprout capacity, levator scapulae (-)
+AM4 : Free bioactive toxin, levator scapulae (U)
+BM4 : Internalising toxin, levator scapulae (U)
+CM4 : Active light chain, levator scapulae (U-eq)
+SM4 : Intact SNARE fraction, levator scapulae (-)
+QM4 : Sprout capacity, levator scapulae (-)
 // --- muscle 5: semispinalis capitis (deep) ---
-A5_ : Free bioactive toxin, semispinalis (U)
-B5_ : Internalising toxin, semispinalis (U)
-C5_ : Active light chain, semispinalis (U-eq)
-S5_ : Intact SNARE fraction, semispinalis (-)
-Q5_ : Sprout capacity, semispinalis (-)
+AM5 : Free bioactive toxin, semispinalis (U)
+BM5 : Internalising toxin, semispinalis (U)
+CM5 : Active light chain, semispinalis (U-eq)
+SM5 : Intact SNARE fraction, semispinalis (-)
+QM5 : Sprout capacity, semispinalis (-)
 // --- muscle 6: scalene complex ---
-A6_ : Free bioactive toxin, scalenes (U)
-B6_ : Internalising toxin, scalenes (U)
-C6_ : Active light chain, scalenes (U-eq)
-S6_ : Intact SNARE fraction, scalenes (-)
-Q6_ : Sprout capacity, scalenes (-)
+AM6 : Free bioactive toxin, scalenes (U)
+BM6 : Internalising toxin, scalenes (U)
+CM6 : Active light chain, scalenes (U-eq)
+SM6 : Intact SNARE fraction, scalenes (-)
+QM6 : Sprout capacity, scalenes (-)
 // --- muscle 7: obliquus capitis inferior (deep) ---
-A7_ : Free bioactive toxin, OCI (U)
-B7_ : Internalising toxin, OCI (U)
-C7_ : Active light chain, OCI (U-eq)
-S7_ : Intact SNARE fraction, OCI (-)
-Q7_ : Sprout capacity, OCI (-)
+AM7 : Free bioactive toxin, OCI (U)
+BM7 : Internalising toxin, OCI (U)
+CM7 : Active light chain, OCI (U-eq)
+SM7 : Intact SNARE fraction, OCI (-)
+QM7 : Sprout capacity, OCI (-)
 // --- muscle 8: longus colli / deep prevertebral ---
-A8_ : Free bioactive toxin, longus colli (U)
-B8_ : Internalising toxin, longus colli (U)
-C8_ : Active light chain, longus colli (U-eq)
-S8_ : Intact SNARE fraction, longus colli (-)
-Q8_ : Sprout capacity, longus colli (-)
+AM8 : Free bioactive toxin, longus colli (U)
+BM8 : Internalising toxin, longus colli (U)
+CM8 : Active light chain, longus colli (U-eq)
+SM8 : Intact SNARE fraction, longus colli (-)
+QM8 : Sprout capacity, longus colli (-)
 // --- swallow compartment (pharyngeal constrictors) ---
 ASW : Free toxin, swallow compartment (U)
 BSW : Internalising toxin, swallow compartment (U)
@@ -326,8 +327,8 @@ CUMU   : Cumulative Units administered (U)
 ## ---------------------------------------------------------------------
 $MAIN
 // every SNARE pool starts intact
-S1_0 = 1.0; S2_0 = 1.0; S3_0 = 1.0; S4_0 = 1.0;
-S5_0 = 1.0; S6_0 = 1.0; S7_0 = 1.0; S8_0 = 1.0;
+SM1_0 = 1.0; SM2_0 = 1.0; SM3_0 = 1.0; SM4_0 = 1.0;
+SM5_0 = 1.0; SM6_0 = 1.0; SM7_0 = 1.0; SM8_0 = 1.0;
 SSW_0 = 1.0; SAU_0 = 1.0;
 
 DCEN_0 = 1.0;
@@ -359,11 +360,11 @@ double po[8] = {P1,P2,P3,P4,P5,P6,P7,P8};
 double dn[8] = {D1,D2,D3,D4,D5,D6,D7,D8};
 double vl[8] = {V1,V2,V3,V4,V5,V6,V7,V8};
 
-double A[8] = {A1_,A2_,A3_,A4_,A5_,A6_,A7_,A8_};
-double B[8] = {B1_,B2_,B3_,B4_,B5_,B6_,B7_,B8_};
-double C[8] = {C1_,C2_,C3_,C4_,C5_,C6_,C7_,C8_};
-double S[8] = {S1_,S2_,S3_,S4_,S5_,S6_,S7_,S8_};
-double Q[8] = {Q1_,Q2_,Q3_,Q4_,Q5_,Q6_,Q7_,Q8_};
+double A[8] = {AM1,AM2,AM3,AM4,AM5,AM6,AM7,AM8};
+double B[8] = {BM1,BM2,BM3,BM4,BM5,BM6,BM7,BM8};
+double C[8] = {CM1,CM2,CM3,CM4,CM5,CM6,CM7,CM8};
+double S[8] = {SM1,SM2,SM3,SM4,SM5,SM6,SM7,SM8};
+double Q[8] = {QM1,QM2,QM3,QM4,QM5,QM6,QM7,QM8};
 
 double dA[8], dB[8], dC[8], dS[8], dQ[8];
 double fluxsw = 0.0, fluxau = 0.0;
@@ -415,14 +416,14 @@ for (int i = 0; i < 8; ++i) {
   postden += w[i] * po[i];
 }
 
-dxdt_A1_ = dA[0]; dxdt_B1_ = dB[0]; dxdt_C1_ = dC[0]; dxdt_S1_ = dS[0]; dxdt_Q1_ = dQ[0];
-dxdt_A2_ = dA[1]; dxdt_B2_ = dB[1]; dxdt_C2_ = dC[1]; dxdt_S2_ = dS[1]; dxdt_Q2_ = dQ[1];
-dxdt_A3_ = dA[2]; dxdt_B3_ = dB[2]; dxdt_C3_ = dC[2]; dxdt_S3_ = dS[2]; dxdt_Q3_ = dQ[2];
-dxdt_A4_ = dA[3]; dxdt_B4_ = dB[3]; dxdt_C4_ = dC[3]; dxdt_S4_ = dS[3]; dxdt_Q4_ = dQ[3];
-dxdt_A5_ = dA[4]; dxdt_B5_ = dB[4]; dxdt_C5_ = dC[4]; dxdt_S5_ = dS[4]; dxdt_Q5_ = dQ[4];
-dxdt_A6_ = dA[5]; dxdt_B6_ = dB[5]; dxdt_C6_ = dC[5]; dxdt_S6_ = dS[5]; dxdt_Q6_ = dQ[5];
-dxdt_A7_ = dA[6]; dxdt_B7_ = dB[6]; dxdt_C7_ = dC[6]; dxdt_S7_ = dS[6]; dxdt_Q7_ = dQ[6];
-dxdt_A8_ = dA[7]; dxdt_B8_ = dB[7]; dxdt_C8_ = dC[7]; dxdt_S8_ = dS[7]; dxdt_Q8_ = dQ[7];
+dxdt_AM1 = dA[0]; dxdt_BM1 = dB[0]; dxdt_CM1 = dC[0]; dxdt_SM1 = dS[0]; dxdt_QM1 = dQ[0];
+dxdt_AM2 = dA[1]; dxdt_BM2 = dB[1]; dxdt_CM2 = dC[1]; dxdt_SM2 = dS[1]; dxdt_QM2 = dQ[1];
+dxdt_AM3 = dA[2]; dxdt_BM3 = dB[2]; dxdt_CM3 = dC[2]; dxdt_SM3 = dS[2]; dxdt_QM3 = dQ[2];
+dxdt_AM4 = dA[3]; dxdt_BM4 = dB[3]; dxdt_CM4 = dC[3]; dxdt_SM4 = dS[3]; dxdt_QM4 = dQ[3];
+dxdt_AM5 = dA[4]; dxdt_BM5 = dB[4]; dxdt_CM5 = dC[4]; dxdt_SM5 = dS[4]; dxdt_QM5 = dQ[4];
+dxdt_AM6 = dA[5]; dxdt_BM6 = dB[5]; dxdt_CM6 = dC[5]; dxdt_SM6 = dS[5]; dxdt_QM6 = dQ[5];
+dxdt_AM7 = dA[6]; dxdt_BM7 = dB[6]; dxdt_CM7 = dC[6]; dxdt_SM7 = dS[6]; dxdt_QM7 = dQ[6];
+dxdt_AM8 = dA[7]; dxdt_BM8 = dB[7]; dxdt_CM8 = dC[7]; dxdt_SM8 = dS[7]; dxdt_QM8 = dQ[7];
 
 // ============ spread compartments ==================================
 // The pharyngeal constrictors are SMALL, so a small absolute amount of toxin
@@ -445,12 +446,14 @@ dxdt_SAU = KSYN * (1.0 - fmin(fmax(SAU,0.0),1.0)) - KCL * (CAU / MASSAU) * fmin(
 // dose would, because recall is amplified while memory persists.  A7 shows
 // that, at the OBSERVED antibody rate, this still does not produce an interior
 // optimum -- so the q12wk convention is not explained by antibody risk.
-double primeA = KB * AGA / (1.0 + AGA / KAAG) * (1.0 + BETABOOST * BMEMA);
+double primeA = KB * AGA / (1.0 + AGA / KAAG) * (1.0 + BETABOOST * BMEMA)
+                * fmax(0.0, 1.0 - BMEMA / BMEMMAX);
 dxdt_AGA   = -KAG * AGA;
 dxdt_BMEMA = primeA - KBD * BMEMA;
 dxdt_NABA  = KNP * BMEMA - KND * NABA;
 
-double primeB = KB * AGB / (1.0 + AGB / KAAG) * (1.0 + BETABOOST * BMEMB);
+double primeB = KB * AGB / (1.0 + AGB / KAAG) * (1.0 + BETABOOST * BMEMB)
+                * fmax(0.0, 1.0 - BMEMB / BMEMMAX);
 dxdt_AGB   = -KAG * AGB;
 dxdt_BMEMB = primeB - KBD * BMEMB;
 dxdt_NABB  = KNP * BMEMB - KND * NABB;
@@ -531,8 +534,8 @@ double pn_ = 0.0, pd_ = 0.0;
   double w_[8]  = {W1,W2,W3,W4,W5,W6,W7,W8};
   double po_[8] = {P1,P2,P3,P4,P5,P6,P7,P8};
   double dn_[8] = {D1,D2,D3,D4,D5,D6,D7,D8};
-  double S_[8]  = {S1_,S2_,S3_,S4_,S5_,S6_,S7_,S8_};
-  double Q_[8]  = {Q1_,Q2_,Q3_,Q4_,Q5_,Q6_,Q7_,Q8_};
+  double S_[8]  = {SM1,SM2,SM3,SM4,SM5,SM6,SM7,SM8};
+  double Q_[8]  = {QM1,QM2,QM3,QM4,QM5,QM6,QM7,QM8};
   for (int i = 0; i < 8; ++i) {
     double Si = fmin(fmax(S_[i],0.0),1.0), Qi = fmin(fmax(Q_[i],0.0),1.0);
     double blk = (BLOCK > 0.5 && dn_[i] > 0.0) ? 1.0 : 0.0;
@@ -553,8 +556,8 @@ double P_DRYMOUTH  = 1.0 / (1.0 + exp(-(DEF_AU   - DYSD50) / DYSK));
 double GATE_A = 1.0 / (1.0 + pow(NABA / NAB50, HN));
 double GATE_B = 1.0 / (1.0 + pow(NABB / NAB50, HN));
 
-double S_SCM = S1_, S_SPLEN = S2_, Q_SCM = Q1_, C_SCM = C1_;
-double E_SCM = EEFF(fmin(fmax(S1_,0.0),1.0));
+double S_SCM = SM1, S_SPLEN = SM2, Q_SCM = QM1, C_SCM = CM1;
+double E_SCM = EEFF(fmin(fmax(SM1,0.0),1.0));
 
 $CAPTURE @annotated
 TWSTRS_TOTAL : TWSTRS total score, 0-85 (points)
@@ -607,7 +610,7 @@ PRODUCTS <- list(
 ## 240 U over four muscles is the pivotal-trial dose.
 PATTERN_STD <- c(50, 90, 60, 40,  0, 0,  0, 0)   # 240 U, phi ~ 0.36
 PATTERN_EXT <- c(45, 70, 40, 25, 40, 0, 20, 0)   # 240 U, phi ~ 0.48
-CMT_A <- c("A1_","A2_","A3_","A4_","A5_","A6_","A7_","A8_")
+CMT_A <- c("AM1","AM2","AM3","AM4","AM5","AM6","AM7","AM8")
 
 ## ---------------------------------------------------------------------
 ## build_dosing() -- turn an injection plan into an mrgsolve event table

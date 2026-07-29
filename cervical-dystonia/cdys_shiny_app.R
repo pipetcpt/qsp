@@ -229,7 +229,7 @@ server <- function(input, output, session) {
     interval <- if (is.null(interval)) input$interval else interval
     end <- if (is.null(end)) input$end else end
     upermL <- if (is.null(upermL)) input$upermL else upermL
-    cmtA <- paste0("A", 1:8, "_")
+    cmtA <- paste0("AM", 1:8)
 
     m <- param(mod,
       c(setNames(as.list(pat), paste0("D", 1:8)),
