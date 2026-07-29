@@ -1,0 +1,780 @@
+/*
+ * Allergic Bronchopulmonary Aspergillosis (ABPA) — QSP mechanistic map
+ * -------------------------------------------------------------------
+ * The map is drawn around ONE structural claim, cluster c09:
+ *   the Aspergillus population lives in TWO compartments — the airway
+ *   lumen (drug-accessible) and the inside of a high-attenuation mucus
+ *   plug (drug-sanctuary) — and the drug that kills the fungus cannot
+ *   reach the plug while the drug that dissolves the plug cannot kill
+ *   the fungus.  Every therapy in cluster c12-c15 is therefore
+ *   classified by WHICH TERM of that partition it touches, not by
+ *   potency.
+ *
+ * Two further structural traps are drawn explicitly:
+ *   c06/c15  total IgE RISES on omalizumab while free IgE falls, so the
+ *            ABPA response criterion ("total IgE down 35-50%") moves
+ *            OPPOSITE to the pharmacology  (node BIOMARKER_TRAP)
+ *   c13/c12  itraconazole inhibits CYP3A4, so part of its apparent
+ *            steroid-sparing effect is a DDI that makes each mg of
+ *            steroid act like several  (node DDI_CONFOUND)
+ *
+ * Render:  dot -Tsvg abpa_qsp_model.dot -o abpa_qsp_model.svg
+ *          dot -Tpng -Gdpi=150 abpa_qsp_model.dot -o abpa_qsp_model.png
+ */
+
+digraph ABPA_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  nodesep = 0.22;
+  ranksep = 0.52;
+  fontname = "Helvetica";
+  labelloc = "t";
+  labeljust = "l";
+  label = <<FONT POINT-SIZE="34"><B>Allergic Bronchopulmonary Aspergillosis — Quantitative Systems Pharmacology Map</B></FONT><BR/>
+           <FONT POINT-SIZE="19">the fungal population is partitioned into a drug-accessible lumen and a drug-inaccessible mucus plug;<BR/>
+           every therapy is classified by which term of that partition it touches</FONT><BR/>
+           <FONT POINT-SIZE="15">solid = mass flux / activation &nbsp;·&nbsp; dashed = modulation &nbsp;·&nbsp; dotted = inhibition &nbsp;·&nbsp; bold red = the sanctuary loop &nbsp;·&nbsp; diamond = clinical endpoint</FONT>>;
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+        fontsize = 11, penwidth = 1.1, margin = "0.09,0.05"];
+  edge [fontname = "Helvetica", fontsize = 9, arrowsize = 0.62, penwidth = 1.0];
+
+  /* ============================================================ */
+  /* c01  EXPOSURE AND FUNGAL BIOLOGY                             */
+  /* ============================================================ */
+  subgraph cluster_c01 {
+    label = "① Exposure · Aspergillus fumigatus biology";
+    style = "filled"; fillcolor = "#f3ede2"; color = "#8d7b5e"; fontsize = 17; fontcolor = "#5d4e33";
+    node [fillcolor = "#e6dcc6", color = "#8d7b5e"];
+
+    CONIDIA_AIR   [label = "Airborne conidia\n1–100 /m³ outdoor, ↑ compost,\ndamp housing, autumn spores"];
+    INHALED_DOSE  [label = "Inhaled conidial dose\n~10²–10³ conidia/day\n2–3 µm → alveolar & bronchial deposition"];
+    CONIDIA_LUM   [label = "Luminal conidia\n(dormant, RodA hydrophobin masked)"];
+    SWELLING      [label = "Conidial swelling\nRodA shed → β-glucan/chitin unmasked"];
+    GERM          [label = "Germination\n(37 °C, ≥ 4–6 h, requires nutrient + O₂)"];
+    HYPHAE_LUM    [label = "Luminal hyphae\n(non-invasive, mucosa-adherent)"];
+    GAG           [label = "Galactosaminogalactan (GAG)\nadhesive exopolysaccharide"];
+    BIOFILM       [label = "Hyphal biofilm / ECM\nextracellular matrix, ↓ diffusion,\nhypoxic core"];
+    PROTEASE      [label = "Secreted proteases\nAlp1/Asp f13, Asp f1 ribotoxin,\nAsp f2, Asp f4, Asp f6"];
+    GLIOTOXIN     [label = "Gliotoxin · secondary metabolites\nciliostasis, epithelial damage"];
+    ALLERGENS     [label = "Allergen panel\nAsp f1–f6, f22, f23\n(f4/f6 = ABPA-specific)"];
+    ERG_PATH      [label = "Ergosterol biosynthesis\nCYP51A/B (14-α-demethylase)"];
+    CYP51_MUT     [label = "cyp51A mutation\nTR34/L98H · TR46/Y121F/T289A\n→ azole resistance"];
+    HYPOXIA_PLUG  [label = "Intra-plug hypoxia\n→ ↓ azole potency, ↑ tolerance,\nsterol pathway shift"];
+    PERSISTER     [label = "Biofilm persister phenotype\nphenotypic azole tolerance (not MIC)"];
+  }
+
+  /* ============================================================ */
+  /* c02  EPITHELIUM AND BARRIER                                  */
+  /* ============================================================ */
+  subgraph cluster_c02 {
+    label = "② Airway epithelium · barrier · alarmins";
+    style = "filled"; fillcolor = "#e8f1ec"; color = "#4f8467"; fontsize = 17; fontcolor = "#2f5a44";
+    node [fillcolor = "#cfe4d8", color = "#4f8467"];
+
+    EPI           [label = "Bronchial epithelium\n(ciliated · goblet · basal · club)"];
+    TJ            [label = "Tight junctions\nZO-1 · occludin · claudin-18"];
+    PAR2          [label = "PAR-2 cleavage\n(protease-activated receptor 2)"];
+    EGFR_EPI      [label = "EGFR / ERK activation\n→ goblet metaplasia"];
+    ATP_REL       [label = "ATP release · P2Y₂\ndanger signal"];
+    TSLP          [label = "TSLP"];
+    IL25          [label = "IL-25 (IL-17E)"];
+    IL33          [label = "IL-33\n(nuclear alarmin, released on necrosis)"];
+    GMCSF_EPI     [label = "GM-CSF (epithelial)"];
+    CCL17_22      [label = "CCL17 / CCL22 (TARC/MDC)\nTh2 chemotaxis"];
+    CCL11_24_26   [label = "CCL11 / CCL24 / CCL26\n(eotaxin-1/2/3)"];
+    MCC           [label = "Mucociliary clearance\nCBF · periciliary layer depth"];
+    CILIOSTASIS   [label = "Ciliostasis\n(gliotoxin, EPX, dehydration)"];
+    CFTR_NODE     [label = "CFTR function\nCF & CFTR-heterozygote ABPA risk"];
+    ENAC          [label = "ENaC / ASL volume\nairway surface liquid depth"];
+    EPI_APOP      [label = "Epithelial injury / shedding"];
+    SPD           [label = "Surfactant protein D · pentraxin-3\nconidial opsonins"];
+  }
+
+  /* ============================================================ */
+  /* c03  INNATE IMMUNITY                                         */
+  /* ============================================================ */
+  subgraph cluster_c03 {
+    label = "③ Innate recognition · phagocyte clearance";
+    style = "filled"; fillcolor = "#eaf0f8"; color = "#4a6e9c"; fontsize = 17; fontcolor = "#2c4a71";
+    node [fillcolor = "#d3e1f2", color = "#4a6e9c"];
+
+    DECTIN1       [label = "Dectin-1 (CLEC7A)\nβ-1,3-glucan sensing"];
+    TLR24         [label = "TLR2 / TLR4 / TLR9"];
+    CARD9         [label = "CARD9 → Syk → NF-κB"];
+    AM            [label = "Alveolar macrophage\nconidial killing"];
+    NEUT_REC      [label = "Neutrophil recruitment\nIL-8/CXCL8 · IL-17"];
+    NADPH_OX      [label = "NADPH oxidase burst\n(NOX2 — CGD risk gene)"];
+    NET           [label = "Neutrophil extracellular traps"];
+    NE_MMP        [label = "Neutrophil elastase · MMP-9\nairway wall proteolysis"];
+    HYPHAL_KILL   [label = "Hyphal killing capacity\n(effective only extracellularly)"];
+    INFLAMMASOME  [label = "NLRP3 inflammasome\n→ IL-1β · IL-18"];
+    PTX3_DEF      [label = "PTX3 / TLR polymorphism\n(ABPA susceptibility)"];
+  }
+
+  /* ============================================================ */
+  /* c04  ADAPTIVE PRIMING                                        */
+  /* ============================================================ */
+  subgraph cluster_c04 {
+    label = "④ Antigen presentation · T-cell polarisation";
+    style = "filled"; fillcolor = "#f6ecf4"; color = "#8a5382"; fontsize = 17; fontcolor = "#63305c";
+    node [fillcolor = "#e9d3e5", color = "#8a5382"];
+
+    DC            [label = "Conventional DC (cDC2)\nallergen uptake · migration"];
+    HLA_RISK      [label = "HLA-DR2 / DR5 restriction\n(DQ2 protective)"];
+    NAIVE_T       [label = "Naïve CD4⁺ T cell"];
+    TH2           [label = "Th2 cell (Af-specific)\nGATA-3⁺"];
+    TH17          [label = "Th17 cell\nIL-17A · IL-22"];
+    TH1           [label = "Th1 cell\nIFN-γ (protective arm)"];
+    TREG          [label = "Treg (FOXP3⁺)\nreduced/dysfunctional in ABPA"];
+    ILC2          [label = "ILC2\nalarmin-driven, antigen-independent"];
+    IL10_TGF      [label = "IL-10 · TGF-β\n(tolerance arm)"];
+    TFH           [label = "Tfh cell → germinal centre"];
+  }
+
+  /* ============================================================ */
+  /* c05  TYPE-2 CYTOKINE AXIS                                    */
+  /* ============================================================ */
+  subgraph cluster_c05 {
+    label = "⑤ Type-2 cytokine axis (the amplifier)";
+    style = "filled"; fillcolor = "#fdf0e3"; color = "#b3743a"; fontsize = 17; fontcolor = "#8a5423";
+    node [fillcolor = "#f8ddbf", color = "#b3743a"];
+
+    IL4           [label = "IL-4\nclass switching · Th2 commitment"];
+    IL5           [label = "IL-5\neosinophilopoiesis · survival"];
+    IL13          [label = "IL-13\nmucin · AHR · remodelling"];
+    IL4RA         [label = "IL-4Rα\n(shared IL-4 type-II & IL-13 receptor)"];
+    IL5RA         [label = "IL-5Rα (CD125)"];
+    JAK_STAT6     [label = "JAK1/JAK3 → STAT6"];
+    GATA3         [label = "GATA-3"];
+    IL9           [label = "IL-9 (mast-cell growth)"];
+    IL31          [label = "IL-31"];
+    FENO_NODE     [label = "iNOS → FeNO\n(IL-13/STAT6-driven)"];
+  }
+
+  /* ============================================================ */
+  /* c06  B CELL AND IgE                                          */
+  /* ============================================================ */
+  subgraph cluster_c06 {
+    label = "⑥ B cell · IgE — where the biomarker breaks";
+    style = "filled"; fillcolor = "#fdeaea"; color = "#b04747"; fontsize = 17; fontcolor = "#8a2f2f";
+    node [fillcolor = "#f8cccc", color = "#b04747"];
+
+    B_CELL        [label = "Af-specific B cell"];
+    CSR           [label = "Class-switch recombination\nAID · ε germline transcription"];
+    PLASMA        [label = "IgE⁺ plasma cell\n(bone marrow, long-lived)"];
+    IGE_FREE      [label = "FREE serum IgE\nthe pharmacologically active species\nt½ ≈ 2.5 d", penwidth = 2.4];
+    IGE_CX        [label = "Omalizumab:IgE complex\ncleared like IgG, t½ ≈ 20–26 d", penwidth = 2.4];
+    IGE_TOTAL     [label = "TOTAL IgE (measured)\n= free + complexed", shape = box, style = "rounded,filled,bold", penwidth = 2.4];
+    IGE_SPEC      [label = "Af-specific IgE\n(> 0.35 kUA/L = ISHAM criterion)"];
+    IGG_SPEC      [label = "Af-specific IgG\n(> 27 mgA/L = ISHAM criterion)"];
+    PRECIP        [label = "Precipitating IgG\n→ immune complexes (type III)"];
+    BIOMARKER_TRAP [label = "STRUCTURAL TRAP\nomalizumab ↓ free IgE ~96%\nand ↑ TOTAL IgE ~2–3×;\nthe ABPA response criterion\n(total IgE ↓ 35–50%) therefore\nmoves OPPOSITE to the pharmacology",
+                    shape = octagon, style = "filled,bold", fillcolor = "#ffd9d9", color = "#a01818", fontcolor = "#7a1010", fontsize = 13, penwidth = 3];
+  }
+
+  /* ============================================================ */
+  /* c07  EFFECTOR CELLS                                          */
+  /* ============================================================ */
+  subgraph cluster_c07 {
+    label = "⑦ Effector cells · granule chemistry";
+    style = "filled"; fillcolor = "#fff6e0"; color = "#a8892c"; fontsize = 17; fontcolor = "#7d6516";
+    node [fillcolor = "#faeab6", color = "#a8892c"];
+
+    FCER1         [label = "FcεRI (mast cell / basophil)\noccupancy = IgE_f/(IgE_f+Kd)"];
+    MAST          [label = "Mast cell"];
+    BASO          [label = "Basophil\n(FcεRI down-modulated by anti-IgE)"];
+    DEGRAN        [label = "Degranulation\nhistamine · tryptase · PGD₂ · LTC₄"];
+    EOS_BM        [label = "Bone-marrow eosinophilopoiesis\nIL-5/IL-5Rα"];
+    EOS_BLOOD     [label = "Blood eosinophils\n(ISHAM: > 500 /µL)"];
+    EOS_AIRWAY    [label = "Airway eosinophils\n(sputum, BAL, tissue)"];
+    EOS_APOP      [label = "Eosinophil apoptosis\n(↑ by CS, by anti-IL-5)"];
+    ADCC          [label = "NK-cell ADCC\n(afucosylated anti-IL-5Rα)"];
+    EPX_MBP       [label = "EPX · MBP · ECP · EDN\ncationic granule proteins"];
+    EETOSIS       [label = "EETosis\n(cytolytic eosinophil death)"];
+    CLC_GAL10     [label = "Charcot–Leyden crystals\ngalectin-10 crystallisation"];
+    LTC4_CYS      [label = "Cysteinyl leukotrienes\nLTC₄/D₄/E₄"];
+    IL6_TNF       [label = "IL-6 · TNF-α\n(systemic inflammation)"];
+  }
+
+  /* ============================================================ */
+  /* c08  MUCUS AND THE PLUG                                      */
+  /* ============================================================ */
+  subgraph cluster_c08 {
+    label = "⑧ Mucin production · plug formation";
+    style = "filled"; fillcolor = "#ecebf7"; color = "#5b569b"; fontsize = 17; fontcolor = "#3a3675";
+    node [fillcolor = "#d6d4ee", color = "#5b569b"];
+
+    GOBLET        [label = "Goblet-cell metaplasia\n(SPDEF · FOXA3)"];
+    MUC5AC        [label = "MUC5AC secretion\nIL-13/STAT6-driven"];
+    MUC5B         [label = "MUC5B secretion\n(constitutive, clearance mucin)"];
+    SUBMUCOSAL    [label = "Submucosal gland hypertrophy"];
+    DISULFIDE     [label = "Mucin disulphide cross-linking\n(oxidative, EPX/H₂O₂-driven)"];
+    MUC_RIGID     [label = "Rigid mucin gel\n↑ elastic modulus, ↓ transportability"];
+    PLUG          [label = "MUCUS PLUG\nhigh-attenuation mucus (HAM)\nCT attenuation > paraspinal muscle",
+                   shape = box3d, style = "filled,bold", fillcolor = "#b9b5e8", penwidth = 2.6];
+    PLUG_SCORE    [label = "Mucus plug score\n(segmental plug count, 0–18)"];
+    PLUG_CLEAR    [label = "Plug clearance flux\nmucociliary + cough + dissolution"];
+    HYPER_TONIC   [label = "Airway dehydration\n↓ ASL → ↑ mucus concentration"];
+    EXPECTORATE   [label = "Brownish mucus plug expectoration\n(classical ABPA symptom)"];
+    ATELECTASIS   [label = "Lobar / segmental collapse\n(plug occlusion)"];
+  }
+
+  /* ============================================================ */
+  /* c09  THE SANCTUARY PARTITION — the structural core           */
+  /* ============================================================ */
+  subgraph cluster_c09 {
+    label = "⑨ THE SANCTUARY PARTITION — the structural core of the model";
+    style = "filled"; fillcolor = "#fde8ee"; color = "#a01a45"; fontsize = 19; fontcolor = "#7d0f33";
+    node [fillcolor = "#f7c3d3", color = "#a01a45"];
+
+    F_LUM         [label = "F_LUM — luminal fungal burden\nDRUG-ACCESSIBLE\nfree drug ≈ plasma unbound",
+                   shape = box3d, style = "filled,bold", penwidth = 2.6, fillcolor = "#f9aec5"];
+    F_PLUG        [label = "F_PLUG — plug-embedded burden\nDRUG-SANCTUARY\nfree drug ≈ f_pen × plasma unbound (f_pen ≈ 0.10)",
+                   shape = box3d, style = "filled,bold", penwidth = 2.6, fillcolor = "#f9aec5"];
+    ENTRAP        [label = "Entrapment flux\nk_in · PLUG · F_LUM", penwidth = 2.0];
+    RELEASE       [label = "Release flux\nk_out(PLUG) · F_PLUG", penwidth = 2.0];
+    F_PEN         [label = "Penetration factor f_pen\nplug matrix diffusion + protein binding\n+ hypoxia-driven potency loss"];
+    G_PLUG        [label = "Intra-plug growth rate g_p\n(nutrient-rich, immune-excluded)"];
+    ERAD_COND     [label = "ERADICATION CONDITION\nsanctuary self-sustains unless\nE_af > (g_p − k_out)/f_pen\n→ a threshold no antifungal dose\ncan reach when k_out is small",
+                   shape = octagon, style = "filled,bold", fillcolor = "#ffcfdd", color = "#7d0f33", fontcolor = "#6b0c2b", fontsize = 13, penwidth = 3];
+    REL_ANTIGEN   [label = "Antigen release flux\n(fungal turnover → allergen load)"];
+  }
+
+  /* ============================================================ */
+  /* c10  REMODELLING AND IRREVERSIBILITY                         */
+  /* ============================================================ */
+  subgraph cluster_c10 {
+    label = "⑩ Remodelling · the irreversible clock";
+    style = "filled"; fillcolor = "#efeae4"; color = "#7a6a58"; fontsize = 17; fontcolor = "#54473a";
+    node [fillcolor = "#ded3c5", color = "#7a6a58"];
+
+    TGFB          [label = "TGF-β1 activation"];
+    MMP9_TIMP     [label = "MMP-9 / TIMP-1 imbalance"];
+    ASM           [label = "Airway smooth-muscle hyperplasia"];
+    SUBEPI_FIB    [label = "Subepithelial fibrosis\ncollagen I/III deposition"];
+    WALL_THICK    [label = "Bronchial wall thickening"];
+    CARTILAGE     [label = "Cartilage & elastin destruction\n(proteolytic)"];
+    BRONCHIECT    [label = "CENTRAL BRONCHIECTASIS\nirreversible — an integrator, never a state that falls",
+                   shape = box3d, style = "filled,bold", fillcolor = "#cbbba4", penwidth = 2.4];
+    TRACTION      [label = "Traction bronchiectasis / fibrosis\n(Stage V, end-stage)"];
+    CAVITY        [label = "Cavitation · aspergilloma\n(chronic colonisation)"];
+    BACT_COLON    [label = "Secondary bacterial colonisation\nP. aeruginosa · NTM"];
+    VICIOUS       [label = "Cole vicious vortex\ninfection ⇄ inflammation ⇄ damage ⇄ ↓clearance"];
+  }
+
+  /* ============================================================ */
+  /* c11  PHYSIOLOGY AND SYMPTOMS                                 */
+  /* ============================================================ */
+  subgraph cluster_c11 {
+    label = "⑪ Airway physiology · symptoms";
+    style = "filled"; fillcolor = "#e6f3f7"; color = "#3d7f92"; fontsize = 17; fontcolor = "#245868";
+    node [fillcolor = "#c7e5ee", color = "#3d7f92"];
+
+    AHR           [label = "Airway hyper-responsiveness\n(PC₂₀ methacholine)"];
+    BRONCHOSPASM  [label = "Bronchoconstriction\n(reversible component)"];
+    LUMEN_OBSTR   [label = "Luminal obstruction\n(plug + oedema + secretions)"];
+    FIXED_OBSTR   [label = "Fixed obstruction\n(remodelling + bronchiectasis)"];
+    FEV1          [label = "FEV₁ % predicted", shape = diamond, style = "filled,bold", fillcolor = "#a8d6e4", penwidth = 2.2];
+    FVC_RATIO     [label = "FEV₁/FVC · air trapping (RV/TLC)"];
+    VQ            [label = "V/Q mismatch → hypoxaemia"];
+    WHEEZE        [label = "Wheeze · dyspnoea · cough"];
+    HAEMOPTYSIS   [label = "Haemoptysis"];
+    EXAC          [label = "ABPA exacerbation\n(≥ 50% ↑ total IgE + clinical/radiological worsening)",
+                   shape = diamond, style = "filled,bold", fillcolor = "#a8d6e4", penwidth = 2.2];
+    ACT_SCORE     [label = "Symptom control (ACT / SGRQ)", shape = diamond, style = "filled", fillcolor = "#a8d6e4"];
+  }
+
+  /* ============================================================ */
+  /* c12  CORTICOSTEROID PK/PD                                    */
+  /* ============================================================ */
+  subgraph cluster_c12 {
+    label = "⑫ Corticosteroid PK/PD — three steroids, three CYP3A4 sensitivities";
+    style = "filled"; fillcolor = "#e9f7ea"; color = "#3f8446"; fontsize = 17; fontcolor = "#26592c";
+    node [fillcolor = "#c9ecce", color = "#3f8446"];
+
+    PRED_DOSE     [label = "Prednisolone PO\n0.5 mg/kg/d × 2 wk → taper\n(ISHAM medium-dose protocol)"];
+    PRED_PK       [label = "Prednisolone PK\nF ≈ 0.8, t½ ≈ 3 h, nonlinear\ntranscortin binding; CYP3A4 share ≈ 0.15"];
+    MPRED_DOSE    [label = "Methylprednisolone PO/IV\n(pulse regimens)"];
+    MPRED_PK      [label = "Methylprednisolone PK\nCYP3A4 share ≈ 0.75\n→ AUC ↑ ~2.6× with itraconazole"];
+    BUD_DOSE      [label = "Inhaled budesonide / ciclesonide\n(± high-dose ICS)"];
+    BUD_PK        [label = "Budesonide PK\nswallowed fraction, first-pass\nCYP3A4 share ≈ 0.90 → AUC ↑ ~4×"];
+    GR            [label = "Glucocorticoid receptor (NR3C1)\noccupancy = C_u/(C_u+EC₅₀)"];
+    GR_TRANSREP   [label = "Transrepression\nNF-κB · AP-1 · GATA-3 ↓"];
+    GR_TRANSACT   [label = "Transactivation\nmetabolic & HPA effects"];
+    CS_RESIST     [label = "Steroid resistance\nGRβ · IL-2/IL-4 · neutrophilic switch"];
+    DDI_CONFOUND  [label = "STRUCTURAL TRAP\nitraconazole inhibits CYP3A4, so part of its\napparent steroid-sparing effect is a DDI —\neach mg of steroid acts like several.\nThe magnitude depends on WHICH steroid,\nwhich makes it testable.",
+                   shape = octagon, style = "filled,bold", fillcolor = "#d8f2dc", color = "#1f5a27", fontcolor = "#164420", fontsize = 13, penwidth = 3];
+  }
+
+  /* ============================================================ */
+  /* c13  AZOLE PK AND THE DDI                                    */
+  /* ============================================================ */
+  subgraph cluster_c13 {
+    label = "⑬ Azole PK · CYP interactions";
+    style = "filled"; fillcolor = "#fff0f0"; color = "#a4443c"; fontsize = 17; fontcolor = "#7d2b25";
+    node [fillcolor = "#f9d4d1", color = "#a4443c"];
+
+    ITRA_DOSE     [label = "Itraconazole 200 mg BID PO\n(capsule vs oral solution)"];
+    ITRA_ABS      [label = "Absorption\ncapsule needs gastric acid + food;\nsolution/SUBA ↑ F ~1.5–1.8×"];
+    ITRA_PK       [label = "Itraconazole PK — NONLINEAR\nsaturable CYP3A4 clearance,\nautoinhibition → supra-proportional AUC"];
+    OH_ITRA       [label = "Hydroxy-itraconazole\nactive metabolite, ≈ equipotent,\nAUC ≈ 1.5–2× parent"];
+    ITRA_PPB      [label = "Protein binding 99.8%\nf_u ≈ 0.002"];
+    CYP3A4_INH    [label = "CYP3A4 inhibition\nI = 1/(1 + C_u/Ki + C_u,OH/Ki,OH)", penwidth = 2.2];
+    PGP_INH       [label = "P-gp inhibition"];
+    VORI_DOSE     [label = "Voriconazole 200 mg BID PO"];
+    VORI_PK       [label = "Voriconazole PK — NONLINEAR\nMichaelis–Menten CYP2C19/3A4"];
+    CYP2C19       [label = "CYP2C19 genotype\nPM/IM ↑ trough 2–4× · UM ↓ trough"];
+    VORI_TDM      [label = "TDM target trough\n1–5.5 mg/L (efficacy vs toxicity)"];
+    POSA_ISAV     [label = "Posaconazole / isavuconazole\n(alternative, ↓ or no 3A4 induction of self)"];
+    NEB_AMB       [label = "Nebulised liposomal amphotericin B\nhigh airway conc., negligible systemic\nAUC → NO CYP3A4 DDI"];
+    ITRA_TDM      [label = "Itraconazole TDM\ntrough ≥ 0.5–1 mg/L (parent + OH)"];
+  }
+
+  /* ============================================================ */
+  /* c14  ANTIFUNGAL PD                                           */
+  /* ============================================================ */
+  subgraph cluster_c14 {
+    label = "⑭ Antifungal PD — where the exposure meets the sanctuary";
+    style = "filled"; fillcolor = "#f2f0e6"; color = "#7d7534"; fontsize = 17; fontcolor = "#585220";
+    node [fillcolor = "#e3dfc2", color = "#7d7534"];
+
+    CYP51_TARGET  [label = "Target: CYP51A/B\n14-α-demethylase inhibition"];
+    ERG_DEPLETE   [label = "Ergosterol depletion\n+ toxic 14-methyl sterol accumulation"];
+    MIC_NODE      [label = "MIC / MEC distribution\nA. fumigatus ECV itraconazole 1 mg/L"];
+    AUC_MIC       [label = "Exposure index AUC_u/MIC\n(azoles are AUC-driven)"];
+    E_AF_LUM      [label = "E_af,LUM — kill rate in lumen\nEmax·C_u/(C_u+EC₅₀)", penwidth = 2.0];
+    E_AF_PLUG     [label = "E_af,PLUG — kill rate in plug\n= f_pen · E_af,LUM  (≈ 10%)", penwidth = 2.0];
+    AMB_PD        [label = "Amphotericin B PD\nergosterol pore, concentration-dependent,\nacts at the mucosal surface"];
+    RESIST_SEL    [label = "Resistance selection\nsub-MIC exposure inside the plug"];
+  }
+
+  /* ============================================================ */
+  /* c15  BIOLOGICS PK/PD                                         */
+  /* ============================================================ */
+  subgraph cluster_c15 {
+    label = "⑮ Biologics — classified by which partition term they move";
+    style = "filled"; fillcolor = "#eef2fb"; color = "#41579b"; fontsize = 17; fontcolor = "#293b76";
+    node [fillcolor = "#d4ddf4", color = "#41579b"];
+
+    OMA_DOSE      [label = "Omalizumab SC\ntable capped at IgE ≤ 1500 IU/mL —\nABPA baseline is 1000–20000,\nso ABPA is dosed OFF the table"];
+    OMA_PK        [label = "Omalizumab PK\nt½ ≈ 26 d, F ≈ 0.62, TMDD"];
+    OMA_BIND      [label = "1:1 / 2:1 omalizumab:IgE binding\nKd ≈ 1 nM", penwidth = 2.0];
+    FCER1_DOWN    [label = "FcεRI down-regulation on basophils\n(slow, weeks)"];
+    MEPO          [label = "Mepolizumab 100 mg q4w SC\nanti-IL-5 (ligand)"];
+    BENRA         [label = "Benralizumab 30 mg q4w×3 → q8w\nanti-IL-5Rα + ADCC → near-total\neosinophil depletion"];
+    DUPI          [label = "Dupilumab 300 mg q2w SC\nanti-IL-4Rα → blocks IL-4 AND IL-13"];
+    DUPI_EOS      [label = "Transient blood eosinophilia\n(blocked tissue egress)"];
+    TEZE          [label = "Tezepelumab (anti-TSLP)\nupstream alarmin block"];
+    BIO_MUC       [label = "Mucin-drive reduction\n(IL-13 axis → MUC5AC ↓ → k_out ↑)", penwidth = 2.0];
+    SYNERGY       [label = "THRESHOLD-LOWERING, NOT BLISS SYNERGY\nthe biologic raises k_out and lowers PLUG,\nlowering the azole's eradication threshold E*.\nThe model finds NO Bliss synergy on burden\n(A9 reports the negative); what moves is the\nTHRESHOLD and the sanctuary SHARE",
+                   shape = octagon, style = "filled,bold", fillcolor = "#c9d6f5", color = "#22356b", fontcolor = "#1a2a57", fontsize = 13, penwidth = 3];
+  }
+
+  /* ============================================================ */
+  /* c16  SYSTEMIC TOXICITY                                       */
+  /* ============================================================ */
+  subgraph cluster_c16 {
+    label = "⑯ Systemic toxicity — the currency each therapy is paid in";
+    style = "filled"; fillcolor = "#f7f0f0"; color = "#8b5b5b"; fontsize = 17; fontcolor = "#653c3c";
+    node [fillcolor = "#e8d2d2", color = "#8b5b5b"];
+
+    HPA           [label = "HPA axis\nCRH → ACTH → cortisol"];
+    CORTISOL      [label = "Endogenous cortisol\n(morning serum, µg/dL)", shape = diamond, style = "filled", fillcolor = "#dcc0c0"];
+    ADRENAL_SUP   [label = "Adrenal suppression\n(iatrogenic Cushing — the budesonide+itraconazole trap)"];
+    BMD           [label = "Bone mineral density\nlumbar-spine T-score", shape = diamond, style = "filled", fillcolor = "#dcc0c0"];
+    FRACTURE      [label = "Fragility fracture hazard", shape = diamond, style = "filled", fillcolor = "#dcc0c0"];
+    HBA1C         [label = "Glucose / HbA1c\nsteroid-induced diabetes", shape = diamond, style = "filled", fillcolor = "#dcc0c0"];
+    WEIGHT_BP     [label = "Weight gain · hypertension · myopathy"];
+    CATARACT      [label = "Cataract · glaucoma"];
+    HEPATOTOX     [label = "Azole hepatotoxicity\nALT/AST elevation", shape = diamond, style = "filled", fillcolor = "#dcc0c0"];
+    ITRA_CHF      [label = "Itraconazole negative inotropy\n→ heart-failure warning · oedema"];
+    VORI_TOX      [label = "Voriconazole toxicity\nvisual · photosensitivity · SCC\nperiostitis · encephalopathy"];
+    INFECTION     [label = "Immunosuppression\n→ infection risk, PJP, TB reactivation"];
+    HELMINTH      [label = "Anti-IL-5 caveat\nhelminth clearance"];
+  }
+
+  /* ============================================================ */
+  /* c17  CLINICAL ENDPOINTS AND STAGING                          */
+  /* ============================================================ */
+  subgraph cluster_c17 {
+    label = "⑰ Diagnostic criteria · endpoints · staging";
+    style = "filled"; fillcolor = "#eaeaea"; color = "#555555"; fontsize = 17; fontcolor = "#333333";
+    node [shape = diamond, style = "filled,bold", fillcolor = "#cccccc", color = "#555555", penwidth = 1.8];
+
+    ISHAM_CRIT    [label = "ISHAM/ABPA criteria\npredisposing (asthma/CF) +\nobligatory (Af-IgE, total IgE > 500–1000) +\n≥ 2 of (Af-IgG, eos > 500, radiology)", shape = note, style = "filled", fillcolor = "#dddddd"];
+    E_TOTIGE      [label = "Endpoint: total IgE\n(the trap-laden one)"];
+    E_EOS         [label = "Endpoint: blood eosinophils"];
+    E_FENO        [label = "Endpoint: FeNO"];
+    E_PLUG        [label = "Endpoint: mucus-plug score"];
+    E_BRONCH      [label = "Endpoint: bronchiectasis extent"];
+    E_EXAC        [label = "Endpoint: exacerbations/year"];
+    E_OCS         [label = "Endpoint: cumulative OCS dose\n(prednisolone-equivalent, mg)"];
+    E_FEV1        [label = "Endpoint: FEV₁ % predicted"];
+    E_REMISSION   [label = "Endpoint: remission\n(≥ 6 months off systemic steroid,\nno exacerbation)"];
+    STAGING       [label = "Patterson/ISHAM stages\nI acute · II remission · III exacerbation ·\nIV steroid-dependent · V fibrotic", shape = note, style = "filled", fillcolor = "#dddddd"];
+    NET_UTILITY   [label = "Net utility\nbenefit − toxicity currency"];
+  }
+
+  /* ================================================================ */
+  /*  EDGES                                                          */
+  /* ================================================================ */
+
+  /* --- c01 exposure chain --- */
+  CONIDIA_AIR -> INHALED_DOSE;
+  INHALED_DOSE -> CONIDIA_LUM;
+  CONIDIA_LUM -> SWELLING -> GERM -> HYPHAE_LUM;
+  HYPHAE_LUM -> GAG -> BIOFILM;
+  HYPHAE_LUM -> PROTEASE;
+  HYPHAE_LUM -> GLIOTOXIN;
+  HYPHAE_LUM -> ALLERGENS;
+  PROTEASE -> ALLERGENS [style = dashed];
+  ERG_PATH -> HYPHAE_LUM [label = "membrane\nintegrity"];
+  CYP51_MUT -> ERG_PATH [style = dashed, label = "escapes\ninhibition"];
+  BIOFILM -> HYPOXIA_PLUG;
+  BIOFILM -> PERSISTER;
+  HYPOXIA_PLUG -> PERSISTER [style = dashed];
+  SWELLING -> DECTIN1 [label = "β-glucan\nexposed"];
+  CONIDIA_LUM -> SPD [dir = both, style = dashed];
+
+  /* --- c02 epithelium --- */
+  PROTEASE -> PAR2 [penwidth = 1.6];
+  PROTEASE -> TJ [style = dotted, label = "cleaves"];
+  GLIOTOXIN -> CILIOSTASIS;
+  GLIOTOXIN -> EPI_APOP;
+  PAR2 -> EPI;
+  PAR2 -> ATP_REL;
+  PAR2 -> EGFR_EPI;
+  TJ -> EPI [dir = both, style = dashed];
+  EPI -> TSLP; EPI -> IL25; EPI -> GMCSF_EPI;
+  EPI_APOP -> IL33;
+  TJ -> ALLERGENS [style = dotted, label = "barrier\nlimits access"];
+  ATP_REL -> IL33 [style = dashed];
+  EPI -> CCL17_22; EPI -> CCL11_24_26;
+  EGFR_EPI -> GOBLET [penwidth = 1.5];
+  CFTR_NODE -> ENAC [style = dashed];
+  ENAC -> HYPER_TONIC;
+  CFTR_NODE -> MCC [style = dashed];
+  CILIOSTASIS -> MCC [style = dotted];
+  MCC -> PLUG_CLEAR [penwidth = 1.6];
+  EPI_APOP -> EPI [style = dotted];
+  SPD -> AM [label = "opsonises"];
+
+  /* --- c03 innate --- */
+  DECTIN1 -> CARD9; TLR24 -> CARD9;
+  CARD9 -> AM; CARD9 -> NEUT_REC;
+  PTX3_DEF -> AM [style = dotted, label = "↓ clearance"];
+  AM -> CONIDIA_LUM [style = dotted, label = "conidial\nkilling"];
+  AM -> HYPHAL_KILL [style = dashed];
+  NEUT_REC -> NADPH_OX -> HYPHAL_KILL;
+  NEUT_REC -> NET; NEUT_REC -> NE_MMP;
+  HYPHAL_KILL -> HYPHAE_LUM [style = dotted];
+  DECTIN1 -> INFLAMMASOME; CLC_GAL10 -> INFLAMMASOME [style = dashed];
+  INFLAMMASOME -> NEUT_REC [style = dashed];
+  NE_MMP -> MMP9_TIMP;
+  NE_MMP -> TJ [style = dotted];
+  CARD9 -> DC [style = dashed];
+
+  /* --- c04 priming --- */
+  ALLERGENS -> DC [penwidth = 1.6];
+  CCL17_22 -> TH2 [label = "recruit"];
+  DC -> NAIVE_T;
+  HLA_RISK -> DC [style = dashed, label = "restricts\nepitope set"];
+  NAIVE_T -> TH2; NAIVE_T -> TH17; NAIVE_T -> TH1; NAIVE_T -> TREG;
+  NAIVE_T -> TFH;
+  TSLP -> DC [penwidth = 1.5]; TSLP -> ILC2;
+  IL25 -> ILC2; IL33 -> ILC2 [penwidth = 1.5];
+  IL33 -> TH2 [style = dashed];
+  TREG -> TH2 [style = dotted]; TREG -> IL10_TGF;
+  IL10_TGF -> CSR [style = dotted];
+  TH1 -> TH2 [style = dotted, label = "IFN-γ"];
+  TH2 -> IL4 [penwidth = 1.8]; TH2 -> IL5 [penwidth = 1.8]; TH2 -> IL13 [penwidth = 1.8];
+  TH2 -> IL9;
+  ILC2 -> IL5 [penwidth = 1.5]; ILC2 -> IL13 [penwidth = 1.5];
+  TH17 -> NEUT_REC [label = "IL-17A"];
+  TFH -> B_CELL [penwidth = 1.5];
+  GATA3 -> TH2 [dir = both, style = dashed];
+
+  /* --- c05 cytokines --- */
+  IL4 -> IL4RA [penwidth = 1.6]; IL13 -> IL4RA [penwidth = 1.6];
+  IL4RA -> JAK_STAT6 -> GATA3;
+  JAK_STAT6 -> MUC5AC [penwidth = 1.8];
+  JAK_STAT6 -> FENO_NODE;
+  IL5 -> IL5RA -> EOS_BM [penwidth = 1.8];
+  IL4 -> CSR [penwidth = 1.8, label = "ε switch"];
+  IL13 -> CSR [penwidth = 1.3];
+  IL13 -> AHR [penwidth = 1.5];
+  IL13 -> GOBLET [penwidth = 1.6];
+  IL13 -> TGFB [style = dashed];
+  IL9 -> MAST [style = dashed];
+  IL31 -> WHEEZE [style = dashed];
+  IL13 -> CCL11_24_26 [style = dashed];
+
+  /* --- c06 IgE --- */
+  B_CELL -> CSR -> PLASMA;
+  PLASMA -> IGE_FREE [penwidth = 2.2, label = "S_IgE"];
+  IGE_FREE -> IGE_TOTAL [penwidth = 2.0];
+  IGE_CX -> IGE_TOTAL [penwidth = 2.0, label = "assay detects\ncomplexed IgE"];
+  IGE_FREE -> IGE_SPEC [style = dashed]; PLASMA -> IGG_SPEC;
+  IGG_SPEC -> PRECIP; PRECIP -> NEUT_REC [style = dashed, label = "type III"];
+  IGE_FREE -> FCER1 [penwidth = 2.0];
+  IGE_TOTAL -> E_TOTIGE [penwidth = 1.6];
+  IGE_TOTAL -> BIOMARKER_TRAP [penwidth = 2.2, color = "#a01818"];
+  IGE_FREE -> BIOMARKER_TRAP [penwidth = 2.2, color = "#a01818", style = dashed];
+  BIOMARKER_TRAP -> E_TOTIGE [style = dotted, color = "#a01818", penwidth = 2.0, label = "invalidates"];
+  IGE_SPEC -> ISHAM_CRIT; IGG_SPEC -> ISHAM_CRIT; IGE_TOTAL -> ISHAM_CRIT;
+
+  /* --- c07 effectors --- */
+  FCER1 -> MAST [penwidth = 1.6]; FCER1 -> BASO;
+  ALLERGENS -> DEGRAN [style = dashed, label = "cross-links\nbound IgE"];
+  MAST -> DEGRAN; BASO -> DEGRAN;
+  DEGRAN -> BRONCHOSPASM [penwidth = 1.6];
+  DEGRAN -> LTC4_CYS; DEGRAN -> AHR [style = dashed];
+  EOS_BM -> EOS_BLOOD [penwidth = 1.8];
+  CCL11_24_26 -> EOS_AIRWAY [penwidth = 1.6, label = "tissue\negress"];
+  EOS_BLOOD -> EOS_AIRWAY [penwidth = 1.8];
+  EOS_BLOOD -> E_EOS;
+  EOS_AIRWAY -> EPX_MBP [penwidth = 1.6];
+  EOS_AIRWAY -> EETOSIS -> CLC_GAL10 [penwidth = 1.6];
+  EOS_AIRWAY -> LTC4_CYS;
+  EOS_AIRWAY -> IL6_TNF;
+  EPX_MBP -> DISULFIDE [penwidth = 2.0, label = "H₂O₂/thiocyanate\noxidative cross-link"];
+  EPX_MBP -> EPI_APOP; EPX_MBP -> CILIOSTASIS;
+  CLC_GAL10 -> MUC_RIGID [penwidth = 1.8];
+  EOS_APOP -> EOS_AIRWAY [style = dotted];
+  ADCC -> EOS_BLOOD [style = dotted, penwidth = 1.6];
+  LTC4_CYS -> BRONCHOSPASM; LTC4_CYS -> MUC5AC [style = dashed];
+  IL6_TNF -> NET [style = dashed];
+
+  /* --- c08 mucus and plug --- */
+  GOBLET -> MUC5AC [penwidth = 1.8];
+  SUBMUCOSAL -> MUC5B; GOBLET -> MUC5B [style = dashed];
+  MUC5AC -> MUC_RIGID [penwidth = 1.8]; MUC5B -> MUC_RIGID [style = dashed];
+  DISULFIDE -> MUC_RIGID [penwidth = 2.0];
+  HYPER_TONIC -> MUC_RIGID [penwidth = 1.5];
+  MUC_RIGID -> PLUG [penwidth = 2.4];
+  MUC_RIGID -> PLUG_CLEAR [style = dotted, penwidth = 2.0, label = "↓ transportability"];
+  PLUG_CLEAR -> PLUG [style = dotted, penwidth = 2.2, label = "k_out"];
+  PLUG -> PLUG_SCORE [penwidth = 1.6];
+  PLUG -> EXPECTORATE; PLUG -> ATELECTASIS;
+  PLUG -> LUMEN_OBSTR [penwidth = 2.0];
+  PLUG_SCORE -> E_PLUG;
+  SUBMUCOSAL -> WALL_THICK [style = dashed];
+  IL13 -> SUBMUCOSAL [style = dashed];
+
+  /* --- c09 THE SANCTUARY (bold red loop) --- */
+  HYPHAE_LUM -> F_LUM [penwidth = 2.4, color = "#a01a45"];
+  F_LUM -> ENTRAP [penwidth = 2.4, color = "#a01a45"];
+  PLUG -> ENTRAP [penwidth = 2.4, color = "#a01a45", label = "k_in·PLUG"];
+  ENTRAP -> F_PLUG [penwidth = 2.4, color = "#a01a45"];
+  F_PLUG -> RELEASE [penwidth = 2.4, color = "#a01a45"];
+  PLUG_CLEAR -> RELEASE [penwidth = 2.2, color = "#a01a45", style = dashed, label = "k_out"];
+  RELEASE -> F_LUM [penwidth = 2.4, color = "#a01a45", label = "reseeding"];
+  G_PLUG -> F_PLUG [penwidth = 2.0, color = "#a01a45"];
+  BIOFILM -> F_PEN [style = dotted, penwidth = 1.8];
+  HYPOXIA_PLUG -> F_PEN [style = dotted, penwidth = 1.6];
+  MUC_RIGID -> F_PEN [style = dotted, penwidth = 1.8, label = "matrix\ndiffusion barrier"];
+  F_PEN -> E_AF_PLUG [penwidth = 2.2];
+  F_LUM -> REL_ANTIGEN [penwidth = 1.6]; F_PLUG -> REL_ANTIGEN [penwidth = 1.6];
+  REL_ANTIGEN -> ALLERGENS [penwidth = 2.0, label = "closes the\nimmune loop"];
+  G_PLUG -> ERAD_COND [penwidth = 2.0, color = "#7d0f33"];
+  F_PEN -> ERAD_COND [penwidth = 2.0, color = "#7d0f33"];
+  PLUG_CLEAR -> ERAD_COND [penwidth = 2.0, color = "#7d0f33", style = dashed];
+  F_PLUG -> HYPHAE_LUM [style = dashed, color = "#a01a45", penwidth = 1.6];
+  PERSISTER -> F_PLUG [style = dashed];
+  RESIST_SEL -> CYP51_MUT [style = dashed, penwidth = 1.5];
+
+  /* --- c10 remodelling --- */
+  TGFB -> SUBEPI_FIB [penwidth = 1.6]; TGFB -> ASM;
+  MMP9_TIMP -> CARTILAGE [penwidth = 1.6];
+  EPX_MBP -> MMP9_TIMP [style = dashed];
+  CARTILAGE -> BRONCHIECT [penwidth = 2.2];
+  SUBEPI_FIB -> WALL_THICK; ASM -> WALL_THICK;
+  PLUG -> BRONCHIECT [penwidth = 1.8, label = "sustained\nocclusion"];
+  EXAC -> BRONCHIECT [penwidth = 2.0, label = "each event\nadds, none subtracts"];
+  BRONCHIECT -> MCC [style = dotted, penwidth = 1.8];
+  BRONCHIECT -> BACT_COLON; BRONCHIECT -> CAVITY;
+  BACT_COLON -> NEUT_REC [style = dashed];
+  BRONCHIECT -> VICIOUS; BACT_COLON -> VICIOUS; NE_MMP -> VICIOUS;
+  VICIOUS -> BRONCHIECT [penwidth = 1.8];
+  SUBEPI_FIB -> TRACTION; BRONCHIECT -> TRACTION;
+  BRONCHIECT -> E_BRONCH [penwidth = 1.8];
+  BRONCHIECT -> FIXED_OBSTR [penwidth = 2.0];
+  TRACTION -> FIXED_OBSTR;
+  BRONCHIECT -> HAEMOPTYSIS;
+  WALL_THICK -> FIXED_OBSTR;
+
+  /* --- c11 physiology --- */
+  AHR -> BRONCHOSPASM [penwidth = 1.5];
+  BRONCHOSPASM -> FEV1 [style = dotted, penwidth = 1.8];
+  LUMEN_OBSTR -> FEV1 [style = dotted, penwidth = 2.2];
+  FIXED_OBSTR -> FEV1 [style = dotted, penwidth = 2.2];
+  LUMEN_OBSTR -> FVC_RATIO; FIXED_OBSTR -> FVC_RATIO;
+  ATELECTASIS -> VQ; LUMEN_OBSTR -> VQ;
+  FEV1 -> E_FEV1 [penwidth = 1.6];
+  FEV1 -> ACT_SCORE [style = dashed];
+  WHEEZE -> ACT_SCORE [style = dotted];
+  BRONCHOSPASM -> WHEEZE; LUMEN_OBSTR -> WHEEZE;
+  EOS_AIRWAY -> EXAC [penwidth = 1.8];
+  PLUG -> EXAC [penwidth = 1.8];
+  F_LUM -> EXAC [penwidth = 1.5];
+  IGE_TOTAL -> EXAC [style = dashed, label = "≥50% rise\n= definition"];
+  EXAC -> E_EXAC [penwidth = 1.8];
+  EXAC -> PRED_DOSE [style = dashed, penwidth = 1.6, label = "triggers\nrescue course"];
+  FENO_NODE -> E_FENO;
+  STAGING -> E_REMISSION [style = dashed];
+  EXAC -> STAGING [style = dashed];
+
+  /* --- c12 corticosteroid --- */
+  PRED_DOSE -> PRED_PK -> GR [penwidth = 1.8];
+  MPRED_DOSE -> MPRED_PK -> GR [penwidth = 1.6];
+  BUD_DOSE -> BUD_PK -> GR [penwidth = 1.4];
+  GR -> GR_TRANSREP [penwidth = 1.8]; GR -> GR_TRANSACT [penwidth = 1.8];
+  GR_TRANSREP -> IL4 [style = dotted, penwidth = 1.6];
+  GR_TRANSREP -> IL5 [style = dotted, penwidth = 1.8];
+  GR_TRANSREP -> IL13 [style = dotted, penwidth = 1.6];
+  GR_TRANSREP -> TH2 [style = dotted, penwidth = 1.5];
+  GR_TRANSREP -> EOS_APOP [penwidth = 1.8, label = "↑ apoptosis"];
+  GR_TRANSREP -> CSR [style = dotted];
+  GR_TRANSREP -> MUC5AC [style = dotted];
+  GR_TRANSACT -> HPA [style = dotted, penwidth = 2.0];
+  GR_TRANSACT -> HBA1C [penwidth = 1.6]; GR_TRANSACT -> BMD [style = dotted, penwidth = 1.6];
+  GR_TRANSACT -> WEIGHT_BP; GR_TRANSACT -> CATARACT;
+  GR_TRANSACT -> INFECTION;
+  CS_RESIST -> GR [style = dotted, penwidth = 1.5];
+  IL4 -> CS_RESIST [style = dashed]; TH17 -> CS_RESIST [style = dashed];
+  PRED_DOSE -> E_OCS [penwidth = 1.8]; MPRED_DOSE -> E_OCS [penwidth = 1.4];
+  DDI_CONFOUND -> E_OCS [style = dotted, penwidth = 2.0, label = "confounds"];
+
+  /* --- c13 azole PK + DDI --- */
+  ITRA_DOSE -> ITRA_ABS -> ITRA_PK [penwidth = 1.8];
+  ITRA_PK -> OH_ITRA [penwidth = 1.6];
+  ITRA_PK -> ITRA_PPB; OH_ITRA -> ITRA_PPB;
+  ITRA_PPB -> CYP51_TARGET [penwidth = 1.8, label = "unbound\ndrives PD"];
+  ITRA_PK -> CYP3A4_INH [penwidth = 2.2];
+  OH_ITRA -> CYP3A4_INH [penwidth = 1.8];
+  ITRA_PK -> CYP3A4_INH [style = dashed, label = "autoinhibition\n→ nonlinear PK"];
+  CYP3A4_INH -> PRED_PK [penwidth = 1.6, color = "#1f5a27", label = "AUC ×1.2"];
+  CYP3A4_INH -> MPRED_PK [penwidth = 2.2, color = "#1f5a27", label = "AUC ×2.6"];
+  CYP3A4_INH -> BUD_PK [penwidth = 2.4, color = "#1f5a27", label = "AUC ×4"];
+  CYP3A4_INH -> DDI_CONFOUND [penwidth = 2.6, color = "#1f5a27"];
+  MPRED_PK -> DDI_CONFOUND [style = dashed, color = "#1f5a27"];
+  BUD_PK -> DDI_CONFOUND [style = dashed, color = "#1f5a27"];
+  PGP_INH -> ITRA_ABS [style = dashed];
+  ITRA_PK -> ITRA_TDM; OH_ITRA -> ITRA_TDM;
+  VORI_DOSE -> VORI_PK -> CYP51_TARGET [penwidth = 1.6];
+  CYP2C19 -> VORI_PK [penwidth = 1.8, style = dashed];
+  VORI_PK -> VORI_TDM -> VORI_TOX [style = dashed];
+  VORI_PK -> CYP3A4_INH [style = dashed];
+  POSA_ISAV -> CYP51_TARGET [style = dashed];
+  NEB_AMB -> AMB_PD [penwidth = 1.8];
+  ITRA_PK -> HEPATOTOX [style = dashed]; VORI_PK -> HEPATOTOX [style = dashed];
+  ITRA_PK -> ITRA_CHF [style = dashed];
+  CYP3A4_INH -> ADRENAL_SUP [penwidth = 2.0, color = "#1f5a27", label = "the budesonide\ntrap"];
+
+  /* --- c14 antifungal PD --- */
+  CYP51_TARGET -> ERG_DEPLETE [penwidth = 1.8];
+  ERG_DEPLETE -> ERG_PATH [style = dotted, penwidth = 1.8];
+  MIC_NODE -> AUC_MIC [style = dashed]; ITRA_TDM -> AUC_MIC [penwidth = 1.6];
+  AUC_MIC -> E_AF_LUM [penwidth = 2.0];
+  ERG_DEPLETE -> E_AF_LUM [penwidth = 1.8];
+  E_AF_LUM -> E_AF_PLUG [penwidth = 2.2, label = "× f_pen"];
+  E_AF_LUM -> F_LUM [style = dotted, penwidth = 2.4, color = "#a01a45"];
+  E_AF_PLUG -> F_PLUG [style = dotted, penwidth = 2.0, color = "#a01a45"];
+  E_AF_PLUG -> RESIST_SEL [style = dashed, penwidth = 1.6, label = "sub-MIC\nexposure"];
+  AMB_PD -> F_LUM [style = dotted, penwidth = 1.8];
+  AMB_PD -> F_PLUG [style = dotted, label = "× f_pen"];
+  CYP51_MUT -> MIC_NODE [penwidth = 1.6];
+  E_AF_LUM -> ERAD_COND [style = dashed, penwidth = 1.8];
+
+  /* --- c15 biologics --- */
+  OMA_DOSE -> OMA_PK [penwidth = 1.8];
+  OMA_PK -> OMA_BIND [penwidth = 2.0];
+  IGE_FREE -> OMA_BIND [penwidth = 2.2];
+  OMA_BIND -> IGE_CX [penwidth = 2.2];
+  OMA_BIND -> IGE_FREE [style = dotted, penwidth = 2.4, label = "↓ 95–99%"];
+  OMA_BIND -> FCER1_DOWN [penwidth = 1.5];
+  FCER1_DOWN -> FCER1 [style = dotted, penwidth = 1.8];
+  MEPO -> IL5 [style = dotted, penwidth = 2.0];
+  BENRA -> IL5RA [style = dotted, penwidth = 2.0];
+  BENRA -> ADCC [penwidth = 2.0];
+  DUPI -> IL4RA [style = dotted, penwidth = 2.2];
+  DUPI -> DUPI_EOS [style = dashed];
+  DUPI_EOS -> EOS_BLOOD [style = dashed];
+  TEZE -> TSLP [style = dotted, penwidth = 1.8];
+  DUPI -> BIO_MUC [penwidth = 2.0]; TEZE -> BIO_MUC [style = dashed];
+  MEPO -> BIO_MUC [style = dashed]; BENRA -> BIO_MUC [style = dashed];
+  BIO_MUC -> MUC5AC [style = dotted, penwidth = 2.0];
+  BIO_MUC -> PLUG_CLEAR [penwidth = 2.2, label = "raises k_out"];
+  BIO_MUC -> SYNERGY [penwidth = 2.4, color = "#22356b"];
+  ERAD_COND -> SYNERGY [penwidth = 2.4, color = "#22356b", label = "lowers the\nthreshold"];
+  SYNERGY -> E_REMISSION [penwidth = 2.0, color = "#22356b"];
+  OMA_DOSE -> E_OCS [style = dotted, label = "OCS sparing"];
+  MEPO -> E_OCS [style = dotted]; BENRA -> E_OCS [style = dotted]; DUPI -> E_OCS [style = dotted];
+  BENRA -> HELMINTH [style = dashed]; MEPO -> HELMINTH [style = dashed];
+
+  /* --- c16 toxicity --- */
+  HPA -> CORTISOL [penwidth = 1.8];
+  CORTISOL -> ADRENAL_SUP [style = dotted, penwidth = 1.8];
+  BMD -> FRACTURE [style = dotted, penwidth = 1.8];
+  E_OCS -> BMD [style = dotted, penwidth = 2.0];
+  E_OCS -> HBA1C [penwidth = 1.6]; E_OCS -> CATARACT; E_OCS -> INFECTION;
+  E_OCS -> CORTISOL [style = dotted, penwidth = 1.8];
+  HEPATOTOX -> NET_UTILITY [style = dotted];
+  FRACTURE -> NET_UTILITY [style = dotted, penwidth = 1.6];
+  HBA1C -> NET_UTILITY [style = dotted];
+  ADRENAL_SUP -> NET_UTILITY [style = dotted, penwidth = 1.6];
+  VORI_TOX -> NET_UTILITY [style = dotted];
+  ITRA_CHF -> NET_UTILITY [style = dotted];
+  INFECTION -> NET_UTILITY [style = dotted];
+
+  /* --- c17 endpoints into utility --- */
+  E_EXAC -> NET_UTILITY [penwidth = 1.8];
+  E_FEV1 -> NET_UTILITY [penwidth = 1.6];
+  E_BRONCH -> NET_UTILITY [penwidth = 1.8];
+  E_OCS -> NET_UTILITY [style = dotted, penwidth = 1.8];
+  E_REMISSION -> NET_UTILITY [penwidth = 1.6];
+  ISHAM_CRIT -> STAGING [style = dashed];
+  E_PLUG -> NET_UTILITY [style = dashed];
+  E_TOTIGE -> STAGING [style = dashed];
+
+  /* --- cross-cluster feedbacks that make the model a loop --- */
+  ALLERGENS -> B_CELL [style = dashed, penwidth = 1.5];
+  EOS_AIRWAY -> HYPHAL_KILL [style = dashed, label = "EPX is fungistatic\nbut not fungicidal"];
+  IGG_SPEC -> F_LUM [style = dotted, label = "opsonisation\n(weak)"];
+  GR_TRANSREP -> PLUG [style = dotted, penwidth = 1.8, label = "the only\nfast plug therapy"];
+  GR_TRANSACT -> F_LUM [penwidth = 1.6, label = "immunosuppression\n↑ fungal growth"];
+  BIOFILM -> HYPHAL_KILL [style = dotted, penwidth = 1.6];
+
+  /* --- legend --- */
+  subgraph cluster_legend {
+    label = "Legend / model bookkeeping";
+    style = "filled"; fillcolor = "#ffffff"; color = "#999999"; fontsize = 15; fontcolor = "#444444";
+    node [shape = plaintext, style = "", fillcolor = "#ffffff", fontsize = 11];
+    LEG [label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
+      <TR><TD BGCOLOR="#eeeeee"><B>element</B></TD><TD BGCOLOR="#eeeeee"><B>meaning</B></TD></TR>
+      <TR><TD>solid arrow</TD><TD ALIGN="LEFT">mass flux or activation</TD></TR>
+      <TR><TD>dashed arrow</TD><TD ALIGN="LEFT">modulation / permissive influence</TD></TR>
+      <TR><TD>dotted arrow</TD><TD ALIGN="LEFT">inhibition / reduction</TD></TR>
+      <TR><TD>bold crimson</TD><TD ALIGN="LEFT">the sanctuary loop F_LUM ⇄ F_PLUG (cluster ⑨)</TD></TR>
+      <TR><TD>bold green</TD><TD ALIGN="LEFT">the CYP3A4 drug-interaction path (cluster ⑬→⑫)</TD></TR>
+      <TR><TD>octagon</TD><TD ALIGN="LEFT">structural trap / derived condition, not a state variable</TD></TR>
+      <TR><TD>box3d</TD><TD ALIGN="LEFT">integrating compartment (plug, fungal pools, bronchiectasis)</TD></TR>
+      <TR><TD>diamond</TD><TD ALIGN="LEFT">clinical endpoint read out by the mrgsolve model</TD></TR>
+      <TR><TD>note</TD><TD ALIGN="LEFT">criteria / staging definition (not dynamic)</TD></TR>
+      </TABLE>>];
+    LEG2 [label = <<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
+      <TR><TD BGCOLOR="#eeeeee"><B>therapy</B></TD><TD BGCOLOR="#eeeeee"><B>which partition term it moves</B></TD></TR>
+      <TR><TD ALIGN="LEFT">itraconazole / voriconazole</TD><TD ALIGN="LEFT">E_af in F_LUM fully, in F_PLUG × f_pen ≈ 0.10</TD></TR>
+      <TR><TD ALIGN="LEFT">nebulised amphotericin B</TD><TD ALIGN="LEFT">E_af at the mucosal surface; no CYP3A4 DDI</TD></TR>
+      <TR><TD ALIGN="LEFT">corticosteroid</TD><TD ALIGN="LEFT">PLUG down fast, F_LUM <B>up</B> (immunosuppression)</TD></TR>
+      <TR><TD ALIGN="LEFT">omalizumab</TD><TD ALIGN="LEFT">FcεRI occupancy only; PLUG barely, F_PLUG not at all</TD></TR>
+      <TR><TD ALIGN="LEFT">mepolizumab / benralizumab</TD><TD ALIGN="LEFT">EPX → disulphide cross-linking → k_out up</TD></TR>
+      <TR><TD ALIGN="LEFT">dupilumab</TD><TD ALIGN="LEFT">MUC5AC drive down → PLUG down → k_out up → lowers<BR/>the azole eradication threshold E* (not Bliss synergy)</TD></TR>
+      <TR><TD ALIGN="LEFT">bronchoscopic toilet</TD><TD ALIGN="LEFT">sets F_PLUG and PLUG to ~0 instantaneously</TD></TR>
+      </TABLE>>];
+  }
+}

@@ -1,0 +1,622 @@
+ABPA QSP reference implementation — 42 ODE states, pure Python
+
+==============================================================================
+A0  MODEL SELF-CHECK — untreated steady state, convergence, IgE flux balance
+==============================================================================
+  dt=0.0400  IgE_tot=  1984.33  EOSB=  797.4  PLUG=1.00705  FLUM=0.09944  FPLG=0.29263  FEV1=66.9304  BRON=3.5441
+  dt=0.0200  IgE_tot=  1984.33  EOSB=  797.4  PLUG=1.00705  FLUM=0.09944  FPLG=0.29263  FEV1=66.9304  BRON=3.5441
+  dt=0.0100  IgE_tot=  1984.33  EOSB=  797.4  PLUG=1.00705  FLUM=0.09944  FPLG=0.29263  FEV1=66.9304  BRON=3.5441
+  dt=0.0050  IgE_tot=  1984.33  EOSB=  797.4  PLUG=1.00705  FLUM=0.09944  FPLG=0.29263  FEV1=66.9304  BRON=3.5441
+
+  10-year untreated drift (the model must reach a stable endotype, not run away):
+  yr            IgE     EOSB    PLUG    FLUM    FPLG    FEV1    BRON
+  0.0        1984.4    797.4  1.0071  0.0994  0.2927   67.86   3.000
+  1.0        1984.4    797.4  1.0071  0.0994  0.2927   66.93   3.546
+  2.0        1999.5    800.0  1.0287  0.1003  0.3058   65.81   4.111
+  3.0        2013.8    802.5  1.0508  0.1010  0.3188   64.67   4.696
+  4.0        2027.2    804.7  1.0734  0.1016  0.3317   63.49   5.304
+  5.0        2039.9    806.9  1.0966  0.1020  0.3444   62.28   5.934
+  6.0        2051.9    808.9  1.1204  0.1022  0.3571   61.04   6.587
+  7.0        2063.3    810.8  1.1449  0.1023  0.3697   59.76   7.265
+  8.0        2074.2    812.6  1.1701  0.1023  0.3822   58.44   7.969
+  9.0        2084.5    814.3  1.1961  0.1022  0.3947   57.08   8.700
+  10.0       2094.4    815.9  1.2230  0.1020  0.4070   55.68   9.459
+
+  IgE flux balance check (no omalizumab): S=7.32764 nM/d, kdegE*free=7.32730 nM/d, residual=3.34e-04
+
+==============================================================================
+A1  NATURAL HISTORY — untreated 5 years, and where the irreversibility comes from
+==============================================================================
+  t(yr)         IgE     EOSB  plugsc    FLUM    FPLG     FEV1    BRON  exac/yr
+  0.00       1984.4    797.4    6.04  0.0994  0.2927    67.86   3.000    1.208
+  0.50       1977.1    796.1    5.98  0.0989  0.2861    67.47   3.271    1.186
+  1.00       1984.4    797.4    6.04  0.0994  0.2927    66.93   3.546    1.208
+  1.50       1992.1    798.8    6.11  0.0999  0.2992    66.37   3.826    1.231
+  2.00       1999.5    800.0    6.17  0.1003  0.3058    65.81   4.111    1.255
+  2.50       2006.7    801.3    6.24  0.1007  0.3123    65.24   4.401    1.279
+  3.00       2013.8    802.5    6.30  0.1010  0.3188    64.67   4.696    1.303
+  3.50       2020.6    803.6    6.37  0.1013  0.3252    64.08   4.997    1.328
+  4.00       2027.2    804.7    6.44  0.1016  0.3317    63.49   5.304    1.353
+  4.50       2033.6    805.8    6.51  0.1018  0.3381    62.89   5.616    1.379
+  5.00       2039.9    806.9    6.58  0.1020  0.3444    62.28   5.934    1.406
+
+  5-year FEV1 loss = 5.57 points; of which reversible (plug) 0.72 and fixed (bronchiectasis) 6.85
+  sanctuary share of total fungal burden at 5 y = 77.2%
+
+==============================================================================
+A2  THE ERADICATION BOUNDARY — a closed form with no dose in the sanctuary row
+==============================================================================
+  Linearising the two-compartment fungal partition at F->0 gives
+
+      J = [[ gl - k_in*PLUG - k_host - E ,  k_out                 ],
+           [ k_in*PLUG                   ,  g_p - k_out - f_pen*E ]]
+
+  and clearance needs trace<0 AND det>0.  The second diagonal element holds
+  the ONLY dose term that reaches the sanctuary, attenuated by f_pen, so when
+  g_p > k_out the required luminal exposure is at least (g_p-k_out)/f_pen — a
+  bound containing no antifungal property except penetration.  Note what k_out
+  is: it belongs to the type-2 mucin axis, not to the antifungal.
+
+  (a) required luminal kill rate E* vs plug clearance k_out (PLUG=1.0, f_pen=0.10, g_p=0.35):
+      k_out        E* (1/d) floor=(gp-kout)/f     verdict
+      0.050           3.009         3.000  ABOVE Emax
+      0.100           2.521         2.500  ABOVE Emax
+      0.150           2.038         2.000  ABOVE Emax
+      0.200           1.562         1.500  ABOVE Emax
+      0.250           1.100         1.000   reachable
+      0.267           0.948         0.830   reachable
+      0.293           0.724         0.570   reachable
+      0.350           0.288         0.000   reachable
+      0.420           0.000         0.000 no drug needed
+      0.600           0.000         0.000 no drug needed
+      (the E* column tracks the analytic floor to within the coupling term k_out*k_in, which is the only thing the closed form omits)
+
+  (b) sweep f_pen at the untreated plug clearance:
+      untreated effective k_out = 0.2660 /d (EPX 1.6, BRON 3.0)
+      f_pen        E* (1/d)
+      0.02            4.375
+      0.05            1.826
+      0.10            0.957
+      0.20            0.505
+      0.40            0.266
+      0.70            0.158
+      1.00            0.112
+
+  (c) the achievable exposure, for scale — itraconazole 200 mg BID at steady state:
+      parent 1.279 mg/L, OH-itra 2.202 mg/L, unbound-equivalent 0.00608 mg/L
+      -> E_lum = 0.954 /d, which is 61.5% of the class ceiling Emax = 1.55
+      -> the sanctuary sees only f_pen*E = 0.0954 /d
+
+  (d) THE SEVERITY CROSSOVER.  k_out is not a constant: eosinophil-peroxidase
+  cross-linking and established bronchiectasis both lower it, so E* RISES as
+  the disease advances.  The grid below is E* over (bronchiectasis extent,
+  EPX); "." = itraconazole 200 mg BID suffices, "o" = needs more azole than
+  itraconazole delivers but less than Emax, "X" = above the ceiling of the
+  ENTIRE azole class, i.e. unreachable by any azole at any dose.
+
+      BRON\EPX      1.0      1.6      2.2      2.8      3.4      4.0
+      0.0         0.26.    0.73.    1.11o    1.41o    1.64X    1.83X
+      3.0         0.49.    0.96o    1.32o    1.59X    1.81X    1.98X
+      6.0         0.70.    1.16o    1.49o    1.75X    1.94X    2.10X
+      9.0         0.90.    1.33o    1.64X    1.88X    2.06X    2.21X
+      12.0        1.07o    1.48o    1.77X    1.99X    2.16X    2.30X
+      15.0        1.22o    1.61X    1.89X    2.09X    2.25X    2.38X
+      18.0        1.36o    1.72X    1.98X    2.18X    2.33X    2.45X
+      cells: 5 reachable by itraconazole (12%), 11 need a stronger azole (26%), 26 unreachable by any azole (62%)
+
+      along EPX = 1.6:  itraconazole (E=0.954) stops being sufficient at BRON = 2.96
+                        the whole azole class (Emax=1.55) stops at BRON = 13.61
+      along EPX = 3.0:  itraconazole stops at BRON = 0.00, the class at BRON = 0.94
+
+  (e) THE ONE PARAMETER THAT DECIDES ALL OF THIS AND HAS NEVER BEEN MEASURED
+  IN A HUMAN AIRWAY is g_p, the growth rate of Aspergillus inside a plug.  It
+  is reported for biofilms in vitro and inferred from explanted plugs, never
+  measured in situ.  The whole architecture turns on sign(g_p - k_out):
+
+      g_p          E* (1/d)   g_p - k_out                      meaning
+      0.10            0.000       -0.1660      clears without any drug
+      0.20            0.000       -0.0660      clears without any drug
+      0.29            0.426        0.0240        itraconazole suffices
+      0.35            0.957        0.0840       needs a stronger azole
+      0.45            1.911        0.1840        no azole can clear it
+      0.60            3.384        0.3340        no azole can clear it
+      0.80            5.369        0.5340        no azole can clear it
+
+  The model is reported here at g_p = 0.35, only 0.084 /d above the untreated
+  k_out, which puts itraconazole monotherapy almost exactly ON the boundary —
+  and that is itself a result worth stating, because it is what a ~60% response
+  rate to azole monotherapy looks like in a model with no responder/
+  non-responder covariate in it.  It also means the model's central claim is
+  FALSIFIABLE by a single measurement nobody has made.
+
+==============================================================================
+A3  THERAPY SCENARIOS — 52 weeks, every arm priced in its own currency
+==============================================================================
+  scenario                                    IgE_tot  IgE_fre    EOSB  plugsc    FTOT   FPLG%    FEV1    BRON   OCSmg    cort
+  01 untreated                                   1984   1984.3     797    6.04  0.3921   74.6%    66.9   3.544       0    14.0
+  02 prednisolone ISHAM taper                    1876   1876.1     796    5.97  0.3836   74.2%    67.5   3.245    2940    14.0
+  03 prednisolone 10 mg maintenance              1048   1047.6     275    1.08  0.0133    2.6%    80.3   3.064    3640     8.9
+  04 itraconazole 200 mg BID                     1014   1014.0     573    3.83  0.0023   32.4%    71.6   3.242       0    14.0
+  05 pred taper + itraconazole                   1013   1013.1     573    3.82  0.0023   32.0%    71.8   3.143    2940    14.0
+  06 pred + itra, DDI switched OFF               1013   1013.1     573    3.82  0.0023   32.1%    71.8   3.143    2940    14.0
+  07 pred + itra, antifungal OFF (DDI only)      1875   1875.5     796    5.97  0.3835   74.2%    67.5   3.244    2940    14.0
+  08 voriconazole 200 mg BID (CYP2C19 NM)        1014   1014.4     573    3.83  0.0024   33.0%    71.6   3.240       0    14.0
+  09 voriconazole 200 mg BID (CYP2C19 PM)        1011   1011.1     572    3.82  0.0019   27.8%    71.7   3.235       0    14.0
+  10 nebulised L-AmB 10 mg q48h                  1243   1243.1     634    4.40  0.0454   81.9%    70.2   3.327       0    14.0
+  11 omalizumab 375 mg q2w                       6206     77.3     796    5.50  0.3846   74.3%    69.2   3.417       0    14.0
+  12 mepolizumab 100 mg q4w                      1163   1163.2     328    3.52  0.0298   47.5%    72.1   3.194       0    14.0
+  13 benralizumab 30 mg q8w                      1048   1047.6     172    2.97  0.0085   24.4%    73.5   3.128       0    14.0
+  14 dupilumab 300 mg q2w                        1030   1030.2     583    1.82  0.0078   21.4%    78.8   3.085       0    14.0
+  15 dupilumab + itraconazole                    1007   1006.9     572    1.80  0.0016   10.0%    78.9   3.082       0    14.0
+  16 budesonide 1600 ug + itra (the trap)        1009   1008.7     410    2.11  0.0017    7.8%    76.2   3.097       0    12.0
+  17 bronchoscopic toilet d0 + itra              1013   1013.4     573    3.83  0.0023   32.3%    71.7   3.219       0    14.0
+  18 pred taper + itra + dupilumab               1007   1006.7     572    1.80  0.0016   10.0%    78.9   3.066    2940    14.0
+
+  WEEK 12 (acute response — this is what a trial's primary endpoint usually sees):
+  scenario                                    IgE_tot    dIgE%    EOSB  plugsc    FTOT     FEV1
+  01 untreated                                   1977       0%     795    5.95  0.3813     67.8
+  02 prednisolone ISHAM taper                    1267     -36%     201    0.63  0.0320     82.9
+  03 prednisolone 10 mg maintenance              1276     -35%     275    1.08  0.0133     80.4
+  04 itraconazole 200 mg BID                     1394     -29%     591    4.01  0.0065     71.5
+  05 pred taper + itraconazole                   1217     -38%     184    0.54  0.0020     83.6
+  06 pred + itra, DDI switched OFF               1218     -38%     196    0.61  0.0020     83.1
+  07 pred + itra, antifungal OFF (DDI only)      1269     -36%     188    0.56  0.0405     83.4
+  08 voriconazole 200 mg BID (CYP2C19 NM)        1377     -30%     589    4.00  0.0063     71.5
+  09 voriconazole 200 mg BID (CYP2C19 PM)        1323     -33%     577    3.87  0.0024     71.8
+  10 nebulised L-AmB 10 mg q48h                  1671     -15%     704    5.05  0.1209     69.3
+  11 omalizumab 375 mg q2w                       6183     213%     795    5.46  0.3767     69.7
+  12 mepolizumab 100 mg q4w                      1649     -17%     338    3.87  0.0824     71.3
+  13 benralizumab 30 mg q8w                      1406     -29%     123    2.92  0.0101     73.7
+  14 dupilumab 300 mg q2w                        1364     -31%     614    1.91  0.0184     78.5
+  15 dupilumab + itraconazole                    1248     -37%     572    1.80  0.0016     79.0
+  16 budesonide 1600 ug + itra (the trap)        1262     -36%     410    2.11  0.0017     76.3
+  17 bronchoscopic toilet d0 + itra              1249     -37%     575    3.84  0.0026     71.9
+  18 pred taper + itra + dupilumab               1212     -39%     184    0.40  0.0020     85.4
+
+  scenario                                    exac/52wk      dBRON      dFEV1
+  01 untreated                                    1.185     0.5441      +0.00
+  02 prednisolone ISHAM taper                     0.545     0.2454      +0.61
+  03 prednisolone 10 mg maintenance               0.186     0.0641     +13.37
+  04 itraconazole 200 mg BID                      0.499     0.2424      +4.71
+  05 pred taper + itraconazole                    0.317     0.1425      +4.92
+  06 pred + itra, DDI switched OFF                0.320     0.1434      +4.91
+  07 pred + itra, antifungal OFF (DDI only)       0.542     0.2443      +0.61
+  08 voriconazole 200 mg BID (CYP2C19 NM)         0.494     0.2403      +4.71
+  09 voriconazole 200 mg BID (CYP2C19 PM)         0.483     0.2346      +4.75
+  10 nebulised L-AmB 10 mg q48h                   0.669     0.3270      +3.25
+  11 omalizumab 375 mg q2w                        0.867     0.4171      +2.25
+  12 mepolizumab 100 mg q4w                       0.391     0.1941      +5.14
+  13 benralizumab 30 mg q8w                       0.275     0.1282      +6.60
+  14 dupilumab 300 mg q2w                         0.242     0.0852     +11.82
+  15 dupilumab + itraconazole                     0.234     0.0820     +11.95
+  16 budesonide 1600 ug + itra (the trap)         0.270     0.0966      +9.31
+  17 bronchoscopic toilet d0 + itra               0.452     0.2194      +4.76
+  18 pred taper + itra + dupilumab                0.193     0.0661     +11.99
+
+==============================================================================
+A4  THE CYP3A4 INTERACTION — and why one first-pass site is arithmetically impossible
+==============================================================================
+  itraconazole 200 mg BID x 6 wk: parent 1.279 mg/L, OH-itra 2.202 mg/L (OH/parent = 1.72)
+  unbound parent 0.00256 mg/L (Ki 0.0015), unbound OH 0.00352 mg/L (Ki 0.0050)
+  => fractional CYP3A4 activity I = 0.2932
+
+  A SINGLE-SITE MODEL IS RULED OUT BY ARITHMETIC.  If a drug's exposure rises
+  only because hepatic clearance is inhibited, the fold-change is
+  1/((1-s)+s*I), which is maximised at s=1 and therefore CANNOT exceed 1/I.
+  ceiling of any single-site model at this I:  1/I = 3.41
+  observed itraconazole-budesonide interaction: 4.2x  ->  EXCEEDS the ceiling, so the interaction must act at two sequential sites
+
+  The model therefore inhibits the gut wall (raising F) and the liver (lowering
+  CL) separately, and the fold-change becomes a PRODUCT:
+      fold_AUC = 1/((1-s_gut)+s_gut*I)  x  1/((1-s_hep)+s_hep*I)
+
+  steroid                    s_gut   s_hep fold(model)   fold(obs)      err
+  prednisolone                0.00    0.15       1.119        1.24    -9.8%
+  methylprednisolone          0.15    0.80       2.574        2.60    -1.0%
+  budesonide (inh)            0.70    0.70       3.917        4.20    -6.7%
+
+  Two numbers were fitted here: methylprednisolone's hepatic share (to Varis
+  1998, ~2.6x) and budesonide's gut/hepatic split (to the Raaska/Skov reports,
+  ~4.2x).  PREDNISOLONE WAS NOT FITTED — its CYP3A4 share comes from the
+  literature independently, and the model returns 1.12 against an observed
+  1.24, i.e. it under-predicts the smallest of the three interactions by ~10%.
+  The three-fold spread across steroids is what makes A5 testable rather than
+  rhetorical: the SAME azole confounds the SAME trial design differently
+  depending only on which steroid the protocol happened to specify.
+
+==============================================================================
+A5  DECOMPOSING ITRACONAZOLE'S STEROID-SPARING — antifungal or drug interaction?
+==============================================================================
+  A steroid-dependent patient is held on a FIXED steroid schedule in every
+  arm — no clinician, no titration — so any difference is attributable, and the
+  CYP3A4 interaction is switched on and off independently of the antifungal
+  effect.  Everything is reported against EXPOSURE INTEGRALS: AUC of unbound
+  prednisolone-equivalent (AUC_peq) and the integral of the GR effect actually
+  delivered (AUC_CS).  The first draft of this analysis read an end-of-study
+  trough instead, which overstated the interaction badly — inhibiting the
+  clearance of a 3-hour-half-life steroid moves its trough far more than its
+  AUC, and the trough is not what the receptor integrates.
+
+  backbone / arm                    AUC_peq    xAUC    AUC_CS  xAUC_CS     FTOT   plugsc    FEV1
+  prednisolone 10 mg/d, alone        2.9148   1.000   141.529    1.000   0.0133    1.084   80.30
+      + itraconazole (full)          3.2675   1.121   153.596    1.085   0.0018    0.950   81.08
+      + itra, DDI off                2.9148   1.000   141.529    1.000   0.0018    1.050   80.55
+      + itra, antifungal off         3.2675   1.121   153.596    1.085   0.0154    0.983   80.81
+  methylprednisolone 8 mg/d, alone     1.7188   1.000   110.320    1.000   0.0102    1.363   79.01
+      + itraconazole (full)          4.5425   2.643   204.160    1.851   0.0020    0.603   83.17
+      + itra, DDI off                1.7188   1.000   110.320    1.000   0.0017    1.329   79.22
+      + itra, antifungal off         4.5425   2.643   204.160    1.851   0.0387    0.645   82.73
+  budesonide 1600 ug/d inh, alone     0.1592   1.000    16.041    1.000   0.1893    4.397   69.88
+      + itraconazole (full)          0.6460   4.059    55.736    3.475   0.0017    2.107   76.24
+      + itra, DDI off                0.1592   1.000    16.041    1.000   0.0019    3.188   73.14
+      + itra, antifungal off         0.6460   4.059    55.736    3.475   0.0084    2.158   76.01
+
+  backbone                          xAUC   xAUC_CS  dFEV1 tot  antifungal      DDI  DDI share
+  prednisolone 10 mg/d              1.12      1.09      0.784       0.254    0.509      64.9%
+  methylprednisolone 8 mg/d         2.64      1.85      4.168       0.219    3.722      89.3%
+  budesonide 1600 ug/d inh          4.06      3.47      6.364       3.257    6.134      96.4%
+
+  WHAT THE NUMBERS ACTUALLY SAY, WHICH IS NOT WHAT I EXPECTED TWICE OVER.
+  My first expectation was that the interaction would explain most of
+  itraconazole's apparent steroid-sparing on every backbone.  My second, after
+  seeing prednisolone's small 1.1x AUC rise, was that prednisolone-based trials
+  are safe from the confound.  Neither survives its own table, and the reason is
+  that TWO different things vary across the rows.  The INTERACTION contribution
+  scales with the steroid's CYP3A4 dependence, as expected (0.51 -> 3.72 ->
+  6.14 FEV1 points).  But the ANTIFUNGAL contribution is not constant either
+  (0.25 -> 0.22 -> 3.26), and not because the fungus knows which steroid was
+  chosen: it is a headroom effect.  Prednisolone 10 mg/d already controls the
+  disease (FEV1 80.3, plug score 1.08), so there is almost nothing left for an
+  antifungal to win; inhaled budesonide alone barely controls it at all (FEV1
+  69.9, plug score 4.40), so the same antifungal pharmacology has room to move
+  6 points.  Both effects push the same way, which is the uncomfortable part —
+  the apparent benefit of adding itraconazole is largest exactly where the
+  backbone is weakest AND most CYP3A4-dependent, and those two explanations are
+  not separable from an efficacy endpoint alone.
+  That is the falsifiable prediction, and it has never been tested: an
+  itraconazole steroid-sparing trial should report a LARGER effect on
+  methylprednisolone or inhaled budesonide than on prednisolone, and the
+  difference is pharmacokinetic, not antifungal.  A5 is also the reason the
+  library's A4 exists — the interaction had to be calibrated against real DDI
+  studies before it could be used to reinterpret efficacy trials.
+
+==============================================================================
+A6  OMALIZUMAB — free IgE falls, TOTAL IgE rises, and the response criterion inverts
+==============================================================================
+  week        IgE_tot   IgE_free free ng/mL    cplx%  FcER_oc     FCER   effect
+  0            1984.4    1984.37    4762.49     0.0%    0.996      nan   0.9843
+  8            6141.6     103.31     247.94    98.3%    0.929      nan   0.7170
+  16           6187.8      81.26     195.02    98.7%    0.911      nan   0.6723
+  24           6189.2      77.54     186.09    98.7%    0.907      nan   0.6629
+  32           6192.6      76.88     184.52    98.8%    0.907      nan   0.6612
+  40           6197.4      76.93     184.63    98.8%    0.907      nan   0.6613
+  48           6202.9      77.15     185.17    98.8%    0.907      nan   0.6619
+
+  baseline total IgE 1984 IU/mL -> week 52 total IgE 6206 IU/mL (x3.13)
+  baseline free  IgE 1984.4 IU/mL -> week 52 free  IgE 77.3 IU/mL (-96.1%)
+  FcepsilonRI occupancy 0.996 -> 0.907;  receptor density 0.730;  effector activation 0.9843 -> 0.6622 (-32.7%)
+
+  ABPA response criterion 'total IgE falls 35-50%': NOT MET — the criterion scores a working drug as a failure
+  the same patient judged on FREE IgE: responder
+
+  Note the second, quieter result in the FcepsilonRI columns: at the classical
+  free-IgE target of 25 ng/mL the receptor is still ~57% occupied, because
+  FcepsilonRI binds IgE with ~0.10 nM affinity.  Instantaneous occupancy is
+  therefore NOT what omalizumab buys; the benefit tracks the slow fall in
+  receptor DENSITY, which is why the clinical effect lags the biomarker by
+  weeks.
+
+==============================================================================
+A7  IS THE TOTAL-IgE RISE AN ARTEFACT OF ONE PARAMETER?  Sweep the complex half-life
+==============================================================================
+  At steady state on omalizumab, IgE production S must leave by two routes:
+      S = kdegE*free + kelCX*complex
+  so  total/total_0 = f + (1-f)*(kdegE/kelCX)  with f = residual free fraction.
+  The RATIO of the two elimination rates is the whole story, and it is > 1 for
+  any IgG-like complex.  The magnitude is not identifiable from total IgE.
+
+  cplx t1/2 (d)       kelCX    IgE_tot x  free supp %    criterion
+  4.0                0.1733         1.58         98.0      not met
+  6.0                0.1155         2.36         97.0      not met
+  8.0                0.0866         3.13         96.1      not met
+  12.0               0.0578         4.64         94.4      not met
+  16.0               0.0433         6.12         92.9      not met
+  20.0               0.0347         7.57         91.5      not met
+  26.0               0.0267         9.69         89.5      not met
+
+  Across a 6.5-fold range of complex half-life the total-IgE ratio moves from
+  ~2x to ~9x and NEVER falls below 1, while free-IgE suppression stays above
+  90%.  The direction is structural; the size is not.  Three explanations of
+  the clinically reported 2-5x are indistinguishable here — faster-than-IgG
+  complex clearance, incomplete assay detection of complexed IgE, or a genuine
+  fall in IgE production — and the model does not pretend to separate them.
+
+==============================================================================
+A8  WHY ABPA IS DOSED OFF THE OMALIZUMAB TABLE — a molar flux balance
+==============================================================================
+  Omalizumab neutralises IgE stoichiometrically, so the requirement is a
+  FLUX condition, not a concentration one: the molar delivery rate of drug
+  must exceed the molar production rate of IgE.  Both are computable.
+
+  375 mg q2w delivers 20.41 nM/d of omalizumab into V=5.46 L
+  IgE production needed to sustain a baseline of X IU/mL is kdegE * X * 0.01263 nM/IU = 0.00350*X nM/d
+  with 0.5 IgE neutralised per omalizumab, the flux crossover is at baseline total IgE = 2917 IU/mL
+
+  Integrated model, 52 weeks of 375 mg q2w, with IgE PRODUCTION scaled
+  so that each untreated steady state matches the stated baseline:
+  IgE0      achieved     free0     free52   supp %  free ng/mL     FCER  eff drop
+  500            500     500.0       5.83    98.8%       13.98    0.282     87.3%
+  1000          1000    1000.0      15.25    98.5%       36.61    0.427     71.0%
+  1500          1500    1500.0      33.01    97.8%       79.24    0.577     52.5%
+  2000          2000    2000.0      77.36    96.1%      185.66    0.730     32.7%
+  3000          3000    3000.0    1367.77    54.4%     3282.66    0.953      4.3%
+  5000          5000    5000.0    4332.94    13.3%    10399.05    0.992      0.4%
+  8000          8000    8000.0    7434.51     7.1%    17842.83    0.996      0.1%
+  12000        12000   12000.0   11423.06     4.8%    27415.34    0.998      0.0%
+  20000        20000   20000.0   19370.04     3.1%    46488.09    0.999      0.0%
+
+  Dose required to reach free IgE < 25 ng/mL (the classical target):
+  IgE0      dose q2w (mg)   vs max 375  mg/(IU/mL x kg)   on-table?
+  500                 240        x0.64          0.00685         yes
+  1000                484        x1.29          0.00692          NO
+  1500                728        x1.94          0.00694          NO
+  2500               1217        x3.25          0.00695          NO
+  5000               2438        x6.50          0.00697          NO
+  10000              4881       x13.02          0.00697          NO
+
+  The omalizumab dosing table is capped at total IgE 1500 IU/mL.  The model
+  was never shown that number, yet the flux balance above puts the crossover
+  in the same neighbourhood, and the required-dose column crosses 375 mg q2w
+  there too.  ABPA's diagnostic threshold is total IgE > 1000 and its typical
+  baseline is 2000-5000, so the disease begins where the label stops.  This
+  reframes 'omalizumab non-response in ABPA' as a dosing question with an
+  arithmetic answer, and it predicts that response should correlate with
+  mg per (IU/mL x kg) rather than with mg.
+
+==============================================================================
+A9  DUPILUMAB + ITRACONAZOLE — testing synergy where the azole is NOT already enough
+==============================================================================
+  The biologic cannot kill Aspergillus and the azole cannot open a plug.  But
+  the biologic raises k_out, which is the parameter that sets the azole's
+  eradication threshold in A2, so the two are not two ways of doing one thing:
+  one lowers a bound the other has to clear.
+
+  A WARNING ABOUT THE TEST ITSELF.  In EARLY disease both single agents already
+  reduce the fungal burden by >98%, so every fractional-effect readout pins at
+  1.0 and a Bliss independence test has no dynamic range left to detect
+  anything.  Run there it returns a null that says nothing about the model.
+  The test below is therefore run twice: in early disease (where it is
+  uninformative, shown here to make the point) and in advanced disease reached
+  by letting the untreated model progress for 8 years (where it is not).
+
+  --- EARLY disease (the uninformative case) ---
+      arm                 FPLG      FTOT   sanct%     k_out   E* here vs itra E     FEV1
+      none             0.29263   0.39208    74.6%    0.2627     0.987     SHORT    66.93
+      itraconazole     0.00075   0.00233    32.4%    0.3359     0.316        OK    71.64
+      dupilumab        0.00167   0.00779    21.4%    0.4192     0.000        OK    78.75
+      both             0.00016   0.00163    10.0%    0.4208     0.000        OK    78.88
+
+      Bliss independence: expected = a + b - a*b
+      readout            itra      dupi    expected   observed     excess
+      total fungus     0.9941    0.9801      0.9999     0.9958    -0.0040  <- saturated, uninformative
+      sanctuary        0.9974    0.9943      1.0000     0.9994    -0.0005  <- saturated, uninformative
+      lumen            0.9842    0.9384      0.9990     0.9852    -0.0138
+      plug score       0.3662    0.6981      0.8086     0.7025    -0.1062
+      exac hazard      0.6422    0.8148      0.9337     0.8173    -0.1165
+
+  --- ADVANCED disease (8 y untreated progression) ---
+      starting state: BRON 7.97, EPX 1.64, k_out 0.2283, plug score 7.02, FEV1 58.4
+      azole eradication threshold E* here = 1.310 /d against a class ceiling of 1.55
+      arm                 FPLG      FTOT   sanct%     k_out   E* here vs itra E     FEV1
+      none             0.39464   0.49685    79.4%    0.2236     1.355     SHORT    57.09
+      itraconazole     0.00218   0.00401    54.4%    0.2908     0.708        OK    61.59
+      dupilumab        0.04255   0.07645    55.7%    0.3537     0.118        OK    67.34
+      both             0.00028   0.00177    16.0%    0.3657     0.017        OK    68.29
+
+      Bliss independence: expected = a + b - a*b
+      readout            itra      dupi    expected   observed     excess
+      total fungus     0.9919    0.8461      0.9988     0.9964    -0.0023
+      sanctuary        0.9945    0.8922      0.9994     0.9993    -0.0001
+      lumen            0.9821    0.6683      0.9941     0.9854    -0.0086
+      plug score       0.3813    0.6757      0.7994     0.7118    -0.0876
+      exac hazard      0.7031    0.8387      0.9521     0.8586    -0.0935
+
+  THE BLISS COLUMN IS A NEGATIVE RESULT AND IT IS REPORTED AS ONE.  The excess
+  is slightly NEGATIVE on every readout in both severity regimes: this model
+  does not produce Bliss synergy on fungal burden anywhere, and no amount of
+  looking for it changes that.  The reason is structural rather than
+  disappointing — both agents ultimately act through the same limiting term,
+  reached through saturating functions, so on a bounded readout their effects
+  compound sub-additively.  Anyone claiming pharmacological synergy for this
+  combination from a burden endpoint will not find it here.
+
+  WHAT THE MODEL DOES SAY IS IN THE OTHER TWO COLUMNS.  (i) COMPOSITION: at
+  equal total burden the sanctuary share falls from ~54% on itraconazole alone
+  to ~16% on the combination, so the surviving organisms sit where the drug can
+  reach them.  (ii) THRESHOLD: dupilumab raises k_out and lowers E*, and in the
+  advanced-disease patient E* starts at 1.311 /d — above the 0.954 /d that
+  itraconazole 200 mg BID actually delivers — so the azole there is suppressive
+  by construction until something moves the threshold.  The E*/vs-itra columns
+  above show which arms cross it and which do not.
+  The prediction, stated so it can fail: adding an IL-4Ra blocker should help
+  the azole MOST in patients with the highest mucus-plug and bronchiectasis
+  scores — the ones in whom azole monotherapy is observed to fail — and least
+  in the mild patients in whom such a trial is easiest to run.  A trial
+  enrolling mild ABPA would measure the combination at its weakest.
+
+==============================================================================
+A10  THE BUDESONIDE + ITRACONAZOLE TRAP — a toxicity produced by a PK interaction alone
+==============================================================================
+  arm                              BUD mg/L         CS   cortisol        BMD      HbA1c
+  budesonide 1600 ug alone          0.00000     0.0007      13.43     0.9967       5.49
+  itraconazole alone                0.00000     0.0000      14.00     1.0000       5.40
+  budesonide + itraconazole         0.00004     0.0216      11.96     0.9888       5.70
+  prednisolone 10 mg + itra         0.00000     0.0811       8.43     0.9687       6.23
+
+  Inhaled budesonide is chosen precisely to avoid systemic exposure; adding a
+  CYP3A4 inhibitor removes the first-pass step that made that true.  Nothing
+  in the disease model changed between rows 1 and 3 — the adrenal suppression
+  is manufactured entirely in the PK block.  This is the one place in the file
+  where a drug interaction is not a confound but the adverse event itself.
+
+==============================================================================
+A11  BRONCHOSCOPIC PLUG REMOVAL — how long does emptying the sanctuary last?
+==============================================================================
+  Setting FPLG and PLUG to ~0 at day 0 is the only intervention that touches
+  the sanctuary directly.  The question is whether the state is an attractor.
+
+  lavage alone
+    week          PLUG      FLUM      FPLG      FEV1
+    0          1.00711   0.09945   0.29267     67.86
+    4          0.83092   0.06014   0.12334     69.49
+    8          0.91619   0.08704   0.21950     68.54
+    12         0.96856   0.09585   0.26511     68.01
+    16         0.98588   0.09804   0.27874     67.79
+    20         0.99149   0.09861   0.28281     67.68
+    24         0.99407   0.09881   0.28454     67.58
+    28         0.99593   0.09891   0.28573     67.50
+    40         1.00090   0.09916   0.28882     67.25
+    52         1.00580   0.09939   0.29186     66.99
+    untreated sanctuary for comparison: FPLG = 0.29263
+    refill to 50% of it: day 56
+
+  lavage + itraconazole
+    week          PLUG      FLUM      FPLG      FEV1
+    0          1.00711   0.09945   0.29267     67.86
+    4          0.73478   0.00414   0.01190     70.76
+    8          0.65642   0.00203   0.00263     71.72
+    12         0.63937   0.00164   0.00100     71.93
+    16         0.63620   0.00158   0.00077     71.95
+    20         0.63579   0.00157   0.00074     71.94
+    24         0.63587   0.00157   0.00074     71.91
+    28         0.63607   0.00157   0.00074     71.88
+    40         0.63689   0.00157   0.00074     71.79
+    52         0.63782   0.00157   0.00075     71.69
+    untreated sanctuary for comparison: FPLG = 0.29263
+    refill to 50% of it: not reached in 52 wk
+
+  lavage + itra + dupilumab
+    week          PLUG      FLUM      FPLG      FEV1
+    0          1.00711   0.09945   0.29267     67.86
+    4          0.32161   0.00185   0.00124     78.45
+    8          0.30164   0.00148   0.00018     78.93
+    12         0.30000   0.00147   0.00016     78.97
+    16         0.29964   0.00147   0.00016     78.98
+    20         0.29948   0.00147   0.00016     78.98
+    24         0.29941   0.00147   0.00016     78.97
+    28         0.29939   0.00147   0.00016     78.96
+    40         0.29946   0.00147   0.00016     78.93
+    52         0.29960   0.00147   0.00016     78.89
+    untreated sanctuary for comparison: FPLG = 0.29263
+    refill to 50% of it: not reached in 52 wk
+
+==============================================================================
+A12  FIVE YEARS — the only endpoint that cannot be given back
+==============================================================================
+  arm                                BRON    dBRON     FEV1     exac    OCSmg      BMD     netU
+  untreated                         5.934    2.934    62.28     6.41        0   1.0000  -11.130
+  episodic pred (rescue only)       5.588    2.588    62.94     5.66     2940   0.9803  -15.101
+  continuous itraconazole           4.097    1.097    69.92     2.25        0   1.0000   -5.569
+  continuous dupilumab              3.390    0.390    78.18     1.14        0   1.0000   -3.048
+  dupilumab + itraconazole          3.382    0.382    78.32     1.12        0   1.0000   -3.015
+  pred 10 mg maintenance            3.307    0.307    79.78     0.90    18250   0.7503  -34.873
+
+  ranking by net utility: dupilumab + itraconazole > continuous dupilumab > continuous itraconazole > untreated > episodic pred (rescue only) > pred 10 mg maintenance
+
+==============================================================================
+A13  LOCAL SENSITIVITY — which parameters own which answer, and where sensitivity diverges
+==============================================================================
+  Read the E* column first.  Emax_af — the POTENCY of the antifungal — has an
+  elasticity of EXACTLY ZERO on the eradication threshold in every regime below,
+  because E* comes from a Jacobian in which no antifungal property appears except
+  f_pen.  Two E* columns are reported for exactly this reason:
+
+    E*        E* recomputed at the state the arm actually reached, so a
+              parameter can move it INDIRECTLY by changing PLUG and k_out
+    E*|fixed  E* evaluated at a FIXED reference state (PLUG 1.0, untreated
+              k_out), which isolates the closed form itself
+
+  Emax_af and EC50_af are exactly 0.000 in the E*|fixed column — the closed form
+  does not contain antifungal potency at all — while showing a small non-zero
+  entry under E*, because killing more fungus lowers the antigen drive, hence
+  IL-13, hence the plug, hence k_out.  That residual is a state effect, not a
+  potency effect, and it is one to two orders of magnitude smaller than g_p's.
+  Everything with a large E*|fixed entry (g_p, k_out0, g_epx, f_pen) belongs to
+  the mucus axis, not to the antifungal.
+
+  --- base regimen: itraconazole 200 mg BID alone (near the boundary) ---
+      FTOT=0.002328  FPLG=0.000754  plug=3.830  FEV1=71.64  E*=0.316  E*|fixed state=0.957
+      elasticity  d ln(y) / d ln(theta)  at +20%
+      parameter               FTOT        FPLG    plugsc      FEV1        E*   E*|fixed
+      f_pen                 -0.417      -1.044    -0.004     0.001    -0.711     -0.775
+      gp                   187.292     482.829     1.237    -0.159    15.118      3.464
+      kout0                 -1.078      -2.821    -0.850     0.098    -5.000     -2.327
+      g_epx                  0.914       2.392     0.338    -0.037     2.798      1.068
+      kin_f                  0.430       1.125     0.004    -0.001     0.430      0.106
+      gl                     0.777       0.793     0.008    -0.001     0.611      0.074
+      k_host                -0.836      -0.848    -0.009     0.002    -0.644     -0.086
+      Emax_af               -1.016      -1.569    -0.011     0.002    -0.046      0.000
+      EC50_af                0.498       0.823     0.005    -0.001     0.023      0.000
+      kelCX                  0.000       0.000     0.000     0.000     0.000      0.000
+      kdegE                 -0.004      -0.010    -0.008     0.003    -0.005      0.000
+      eta_oma                0.000       0.000     0.000     0.000     0.000      0.000
+      Kd_fcer               -0.001      -0.002    -0.002     0.001    -0.001      0.000
+      smuc                   0.264       0.690     0.598    -0.060     0.304      0.000
+      smuc_ige               0.120       0.314     0.275    -0.028     0.139      0.000
+      cs_plug                0.000       0.000     0.000     0.000     0.000      0.000
+      cs_muc                 0.000       0.000     0.000     0.000     0.000      0.000
+      kb1                    0.004       0.012     0.002    -0.002     0.019      0.000
+      kb2                    0.010       0.027     0.005    -0.005     0.045      0.000
+      s3A4h_mpred            0.000       0.000     0.000     0.000     0.000      0.000
+      Ki3A4_itra             0.000       0.000     0.000     0.000     0.000      0.000
+      th2_base               1.037       2.715     0.677    -0.089     2.721      0.000
+      pc0                    0.003       0.008     0.007    -0.002     0.004      0.000
+      kige                   0.003       0.008     0.007    -0.002     0.004      0.000
+      sepx                   0.914       2.392     0.338    -0.037     2.798      0.000
+      kepx                  -0.476      -1.247    -0.277     0.031    -2.398      0.000
+
+  --- base regimen: itraconazole + prednisolone 10 mg/d (well away from it) ---
+      FTOT=0.001785  FPLG=0.000031  plug=0.956  FEV1=81.05  E*=0.000  E*|fixed state=0.957
+      elasticity  d ln(y) / d ln(theta)  at +20%
+      parameter               FTOT        FPLG    plugsc      FEV1        E*   E*|fixed
+      f_pen                 -0.005      -0.169    -0.000     0.000       nan     -0.775
+      gp                     0.020       0.717     0.000    -0.000       nan      3.464
+      kout0                 -0.036      -1.740    -0.761     0.038       nan     -2.327
+      g_epx                  0.005       0.224     0.084    -0.004       nan      1.068
+      kin_f                  0.020       1.005     0.000    -0.000       nan      0.106
+      gl                     0.915       0.923     0.005    -0.000       nan      0.074
+      k_host                -0.787      -0.757    -0.004     0.000       nan     -0.086
+      Emax_af               -0.758      -0.903    -0.004     0.000       nan      0.000
+      EC50_af                0.329       0.395     0.002    -0.000       nan      0.000
+      kelCX                  0.000       0.000     0.000     0.000       nan      0.000
+      kdegE                 -0.000      -0.012    -0.011     0.002       nan      0.000
+      eta_oma                0.000       0.000     0.000     0.000       nan      0.000
+      Kd_fcer               -0.000      -0.003    -0.003     0.001       nan      0.000
+      smuc                   0.009       0.435     0.434    -0.021       nan      0.000
+      smuc_ige               0.008       0.376     0.374    -0.018       nan      0.000
+      cs_plug               -0.019      -0.894    -0.347     0.017       nan      0.000
+      cs_muc                -0.006      -0.304    -0.258     0.013       nan      0.000
+      kb1                    0.000       0.000     0.000    -0.000       nan      0.000
+      kb2                    0.000       0.004     0.002    -0.002       nan      0.000
+      s3A4h_mpred            0.000       0.000     0.000     0.000       nan      0.000
+      Ki3A4_itra            -0.004       0.029     0.020    -0.001       nan      0.000
+      th2_base               0.009       0.454     0.376    -0.035       nan      0.000
+      pc0                    0.000       0.010     0.010    -0.002       nan      0.000
+      kige                   0.000       0.010     0.010    -0.002       nan      0.000
+      sepx                   0.005       0.224     0.084    -0.004       nan      0.000
+      kepx                  -0.004      -0.181    -0.070     0.003       nan      0.000
+
+  THE TWO REGIMES DISAGREE BY A FACTOR OF 673 ON ONE ROW, AND THAT IS THE
+  RESULT.  The elasticity of the sanctuary burden to g_p is 0.72 on the
+  well-controlled regimen and 482.8 on azole monotherapy.  Sensitivity does not
+  merely grow near the eradication boundary — it DIVERGES there, because the
+  steady-state burden approaches the seed-supported floor and any change in the
+  balance g_p - k_out - f_pen*E moves it by orders of magnitude.  A parameter
+  sweep run only on the well-treated arm would have reported g_p as unimportant.
+
+  So the honest headline of the whole file is this: everything the model says
+  about whether an azole can clear ABPA is a statement about g_p, the intra-plug
+  fungal growth rate, WHICH HAS NEVER BEEN MEASURED IN A HUMAN AIRWAY — and the
+  closer a regimen sits to the boundary that matters clinically, the more
+  completely that unmeasured number owns the answer.  Anyone wanting to refute
+  this model should measure it rather than argue about the rest.
