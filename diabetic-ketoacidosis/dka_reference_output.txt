@@ -1,0 +1,476 @@
+DIABETIC KETOACIDOSIS / HYPERGLYCAEMIC CRISES QSP MODEL
+reference implementation output -- all numbers below are computed
+40 ODEs, RK4, h = 0.005 h, pure Python standard library
+
+==============================================================================
+A1.  THE PRESENTING STATE IS AN OUTPUT, NOT AN INPUT
+     70 kg type 1 diabetes, insulin omitted at t=0, moderate illness.
+==============================================================================
+      h    gluc     pH   HCO3     AG   BHB  AcAc    Na Na_cor      K     Cl   BUN   GFR
+      0      90  7.398   24.8   10.2   0.1  0.03 140.0  139.8   4.20  105.0     9   120
+      3     292  7.363   20.7   14.1   3.9  0.51 137.0  141.6   4.97  102.1    12   115
+      6     391  7.325   16.4   18.8   7.3  0.85 137.0  144.0   4.90  101.8    15    93
+      9     405  7.289   13.4   22.1   9.6  1.12 137.8  145.1   4.87  102.3    18    78
+     12     401  7.255   11.3   24.4  11.3  1.31 138.3  145.5   4.92  102.6    21    69
+     16     422  7.215    9.4   26.4  12.9  1.50 138.1  145.8   4.97  102.3    24    62
+     20     446  7.176    8.2   27.7  14.0  1.63 137.6  145.9   5.03  101.7    28    57
+     24     470  7.132    7.5   28.7  14.8  1.72 137.3  146.1   5.10  101.0    31    52
+
+  At 24 h (the moment of presentation used for every treatment run):
+    glucose 470 mg/dL (26.1 mmol/L)   pH 7.132   HCO3 7.5   anion gap 28.7
+    BHB 14.8 mmol/L   AcAc 1.72   total ketone 16.6   BHB:AcAc 8.6
+    Na 137 (corrected 146)  K 5.10  Cl 101  PCO2 23  effective osm 301
+    creatinine 1.65 mg/dL true / 1.80 as measured by the Jaffe assay
+    water deficit 5.5 L (7.9% of body weight)   ECF 11.3 of 14.0 L
+    total body K 3258 mmol (deficit 301 mmol = 4.3 mmol/kg) at a serum K of 5.10
+    urine output so far 7.5 L; urinary glucose 1065 mmol (192 g); urinary K 301 mmol
+    retained ketoanion = potential bicarbonate: 437 mmol; already lost in urine: 102 mmol
+
+==============================================================================
+A2.  STANDARD PROTOCOL:  glucose, anion gap and bicarbonate resolve at
+     THREE DIFFERENT TIMES, because they are three different quantities.
+==============================================================================
+      h    gluc     pH   HCO3     AG   BHB      K     Cl   GFR   GCS  insUU
+      0     470  7.132    7.5   28.7  14.8   5.10  101.0    52  13.3      0
+      1     395  7.131    7.6   26.0  12.1   3.70  105.9    64  12.9    140
+      2     314  7.209    9.4   22.3   9.0   3.92  110.0    76  14.3    140
+      4     227  7.312   13.4   17.5   5.0   3.58  112.6    85  15.0     70
+      6     224  7.346   16.8   14.6   2.7   3.58  111.3    86  15.0     70
+      8     222  7.360   18.8   12.9   1.4   3.48  110.4    87  14.9     70
+     10     220  7.366   19.7   12.0   0.7   3.40  109.8    88  14.9     70
+     12     217  7.367   20.1   11.7   0.5   3.34  109.4    88  15.0     70
+     16     214  7.368   20.2   11.4   0.4   3.31  109.3    89  15.0     70
+     20     213  7.369   20.3   11.2   0.3   3.36  109.3    90  15.0     63
+     24     212  7.368   20.3   11.2   0.3   3.29  109.4    90  15.0     48
+
+  Resolution criteria, in the order the model crosses them:
+    glucose < 250 mg/dL   (ADA target)                    2.9 h
+    pH > 7.30             (ADA)                           3.7 h
+    bicarbonate >= 15     (ADA)                           4.8 h
+    bicarbonate >= 18                                     7.1 h
+    anion gap <= 12       (ADA)                          10.1 h
+    BHB < 0.6 mmol/L      (JBDS, the actual disease)     10.7 h
+  -> glucose is at target 7.2 h before the anion gap closes and 7.8 h
+     before the ketosis itself is gone: a factor of 3.7 in time.
+  mean rate of fall, first hour: glucose 75 mg/dL/h, BHB 2.76 mmol/L/h
+  K nadir 3.29 mmol/L at 27.2 h;  Cl peak 113.1 mmol/L at 3.0 h
+
+==============================================================================
+A3.  WHERE DOES THE FIRST-HOUR GLUCOSE FALL COME FROM?
+     Fluid alone versus insulin alone versus both.
+==============================================================================
+  arm                          dGlu 1h   dGlu 2h  dBHB 1h  dBHB 2h dHCO3 2h
+  fluid only (no insulin)          -37       -61    -0.38    -0.44    -0.85
+  insulin only (no fluid)          -36      -101    -2.30    -5.32     2.88
+  both (standard)                  -75      -156    -2.76    -5.80     1.82
+
+  Flux decomposition of the standard arm (mmol/h of glucose), plus the
+  renal glucose CLEARANCE (L/h) -- the conductance of the escape valve:
+      h      HGP  disposal urine loss  renal CL     GFR    ECF L
+    0.0    104.8      63.0       39.2      1.50      52    11.30
+    0.5     86.0      76.7       38.4      1.57      56    11.78
+    1.0     72.8      79.2       38.2      1.74      64    12.22
+    2.0     59.8      77.2       30.5      1.75      76    12.50
+    3.0     53.5      73.4       19.2      1.40      83    12.76
+    4.0     55.8      67.0       15.1      1.20      85    12.71
+    4.0     55.8      67.0       15.1      1.20      85    12.71
+
+  Renal glucose clearance RISES 1.50 -> 1.74 -> 1.40 L/h as GFR is
+  restored (52 -> 64 -> 83 mL/min): saline reopens the escape valve,
+  and that is why fluid alone lowers glucose by 37 mg/dL in an hour
+  while moving BHB by 0.40 mmol/L.  The two deficits do not share a lever.
+
+==============================================================================
+A4.  WHY LOW-DOSE INSULIN WORKS (Kitabchi 1976 derived, not assumed).
+     Lipolysis IC50 = 15 uU/mL; glucose-disposal EC50 = 60 uU/mL.
+==============================================================================
+      U/kg/h ss uU/mL lipo supp  disposal tBHB<0.6 t Glu<250  K nadir  min Glu
+       0.025       35     0.345     0.130      nan       nan     4.08      250
+       0.050       70     0.501     0.230      nan       4.1     3.75      243
+       0.100      140     0.649     0.375     10.7       2.9     3.28      207
+       0.140      196     0.709     0.456      9.5       2.5     3.24      204
+       0.200      280     0.761     0.545      9.4       2.2     3.20      201
+       0.400      560     0.833     0.705      8.9       1.9     3.00      192
+
+  Across the 4-fold range from 0.10 to 0.40 U/kg/h the LIPOLYSIS arm
+  moves only from 0.649 to 0.833 of its maximum -- it is already nearly
+  saturated -- so the ketoacidosis resolves at almost the same time
+  (10.7 vs 8.9 h, 17% faster for 4 times the insulin).  The DISPOSAL
+  arm moves from 0.375 to 0.705 and is NOT saturated, so time to a glucose
+  of 250 mg/dL, the glucose nadir and the potassium nadir all scale with
+  dose.  Below the recommended range the lipolytic arm does lapse: at
+  0.025-0.05 U/kg/h the ketosis has still not cleared, which is the other
+  half of the same result.  Two half-maximal constants in the ratio 15:60,
+  and nothing else, are the whole content of the low-dose insulin finding.
+
+==============================================================================
+A5.  THE RENAL ESCAPE VALVE:  hyperglycaemia is a VOLUME disease.
+     Same insulin deficiency, only the drinking capacity varies.
+==============================================================================
+       water   gluc36h  osm_eff     GFR     BHB      pH urineGlu      GCS
+        1.00       540      303      43    16.3   7.072       37     11.6
+        0.70       560      310      40    16.4   7.085       36     12.0
+        0.50       637      332      31    17.0   7.026       30      4.4
+        0.35       732      354      24    17.4   7.048       24      3.0
+        0.25       788      366      20    17.6   7.068       21      3.0
+        0.15       837      376      18    17.7   7.084       19      3.0
+        0.05       882      385      16    17.8   7.098       17      3.0
+        0.00       902      389      16    17.8   7.103       16      3.0
+
+  Nothing in the model knows about 'HHS'.  Glucose is set by how much
+  of the filtered load the kidney is still allowed to throw away.
+
+==============================================================================
+A6.  DKA AND HHS ARE THE SAME EQUATIONS WITH TWO KNOBS.
+     Knob 1: residual beta-cell function.  Knob 2: access to water.
+==============================================================================
+  phenotype                    gluc      pH    HCO3     AG    BHB  osm_eff  Na_cor    GCS
+  classic DKA (type 1)          540   7.072     6.9   30.8   16.3      303     147   11.6
+  DKA, poor intake              788   7.068     9.7   34.4   17.6      366     178    3.0
+  mixed DKA/HHS                 499   7.340    18.0   19.6    4.7      317     154   13.1
+  HHS, early                    549   7.375    23.0   18.8    2.3      351     171    3.1
+  HHS, advanced                 694   7.376    23.2   20.4    3.0      372     181    3.0
+  euglycaemic (SGLT2i)          289   7.346    17.7   18.6    4.1      296     144   15.0
+
+  Residual insulin restrains LIPOLYSIS (IC50 15 uU/mL) long before it
+  restrains glucose (EC50 60): that single ordering is the whole
+  difference between a ketoacidotic and a hyperosmolar presentation.
+
+==============================================================================
+A7.  EUGLYCAEMIC DKA:  the escape valve held open by a drug.
+==============================================================================
+  no SGLT2i          glucose  422 mg/dL | BHB  4.3 | AG 17.9 | pH 7.343 | urinary glucose  31 mmol/h
+  SGLT2i on board    glucose  289 mg/dL | BHB  4.1 | AG 18.6 | pH 7.346 | urinary glucose  36 mmol/h
+
+  Same ketone burden (4.3 vs 4.1 mmol/L BHB) at a glucose 133 mg/dL lower.
+  A glucose-triggered diagnosis (>250 mg/dL) fires at 5.0 h without the drug
+  and at 22.4 h with it, while the gap crosses 16 at 7.3 h.
+
+==============================================================================
+A8.  WHY THE BICARBONATE LAGS THE GAP:  two separable causes, and
+     what happens when the kidney cannot repair either of them.
+==============================================================================
+  fluid                 t AG<12  HCO3@AG   Cl 12h HCO3 12h  HCO3 24h    pH 24h
+  0.9% saline              10.1     19.8    109.4     20.1      20.3     7.368
+  Plasma-Lyte 148          11.2     22.9    106.9     22.9      23.8     7.392
+  Ringer's lactate         12.1     21.7    107.9     21.7      23.5     7.390
+  0.9% saline + AKI         6.1     14.8    112.8     18.8      20.4     7.369
+  Plasma-Lyte + AKI         7.1     21.8    107.7     23.6      24.1     7.394
+
+  Book-keeping of the base account over 24 h (saline arm):
+    ketoanion RETAINED at presentation (= potential bicarbonate) : 437 mmol
+    ketoanion excreted with Na+/K+ during treatment (base LOST)  : 17 mmol
+    ketoanion excreted with NH4+ during treatment (base KEPT)    : 13 mmol
+    chloride infused                                             : 625 mmol
+    -> at 24 h: HCO3 20.3, Cl 109.4, anion gap 11.2, pH 7.368
+
+  Of those entries the ketoanion already lost BEFORE arrival is the
+  larger one: 102 mmol, which over a 35 L bicarbonate space is 2.9
+  mmol/L of base that cannot be recovered by oxidising anything, because
+  the carbon carrying it has left the body.
+  Removing the chloride load alone (balanced crystalloid) is worth
+  +3.6 mmol/L at 24 h, taking HCO3 from 20.3 to 23.8 against a normal
+  24.9; the residual 1.1 mmol/L is the ketoanion ledger, and no fluid
+  choice touches it.  Renal ammoniagenesis is the only route back and it
+  is capacity-limited and slow (2.2 mmol/h at 24 h against a ceiling of
+  12, tau 12 h), which is why the repair takes days, not hours.
+  Impose AKI at the start of treatment and the same arms give HCO3 20.4
+  (saline) and 24.1 (balanced) -- but the anion gap closes 4.0 h EARLIER,
+  because a ketoanion that cannot be filtered away has to be OXIDISED --
+  and oxidising it regenerates the bicarbonate that excreting it loses.
+  A failing kidney therefore makes the anion gap look better and the base
+  ledger worse, which is the opposite of the intuition.
+  (Ringer's lactate also raises MEASURED lactate to 2.6 mmol/L at 4 h,
+  which is not tissue hypoxia and should not be treated as such.)
+
+==============================================================================
+A8b. AN HONEST WARNING ABOUT BICARBONATE:  it is the small difference
+     of two large numbers, and is therefore badly conditioned.
+==============================================================================
+  At presentation the electroneutrality ledger reads
+    strong ion difference             +48.79 mEq/L
+    weak acid (albumin, phosphate)    -13.45
+    ketoanion                         -16.55
+    lactate                            -4.43
+    other unmeasured strong anion      -6.82
+    ------------------------------     +7.53  = bicarbonate
+  so [HCO3-] is 15.4% of the largest term in its own definition.
+
+  Consequence, measured: perturb ONLY the fractional excretion of
+  chloride by +/-15% and re-derive the presenting phenotype.
+        FECL       Cl     HCO3       pH       AG      BHB
+      0.0119    102.1      6.9    7.083     28.5     14.9
+      0.0130    101.5      7.2    7.109     28.6     14.8
+      0.0140    101.0      7.5    7.132     28.7     14.8
+      0.0150    100.5      7.8    7.151     28.8     14.8
+      0.0161    100.1      8.1    7.169     28.9     14.8
+
+  A 30% swing in one renal parameter moves the bicarbonate by several
+  mmol/L and the pH by >0.1, while the ANION GAP and the BHB -- the two
+  quantities that do not involve the cancellation -- barely move.  This
+  is a property of the chemistry, not of the model: it is why the anion
+  gap and the ketone are the robust bedside variables, why 'bicarbonate
+  recovery' is a poor endpoint once chloride is being infused, and why
+  the bicarbonate predictions of this model deserve less trust than its
+  gap and ketone predictions.
+
+==============================================================================
+A9.  POTASSIUM:  the serum value at presentation carries almost no
+     information about the deficit that is about to be uncovered.
+==============================================================================
+  presentation                K pres      pH  osm_eff  K deficit   mmol/kg
+  standard, 24 h                5.10   7.132      301        301       4.3
+  milder illness                5.06   7.162      300        286       4.1
+  severe illness                5.14   7.105      302        306       4.4
+  hyperosmolar                  6.08   7.043      345        348       5.0
+  long prodrome, 40 h           5.29   7.072      303        509       7.3
+  HHS-like                      5.82   7.376      372        303       4.3
+
+  Serum K spans 5.06-6.08 mmol/L (20%) while the deficit spans
+  286-509 mmol (78%).  Two patients here differ by 223 mmol of
+  body potassium at serum values 0.19 apart.
+
+  What the ADA 'hold insulin if K < 3.3' rule actually buys.
+  KCl mmol/L    K nadir    K nadir  h insulin   tBHB<0.6   tBHB<0.6
+              with rule    no rule       held  with rule    no rule
+           0       3.30       2.20        0.2       11.2        8.4
+          10       3.28       2.37        0.2       11.0        8.4
+          20       3.30       2.50        0.0       10.7        8.4
+          40       3.29       2.75        3.0       10.7        8.4
+          60       3.27       2.99        0.5       10.8        8.4
+
+  Without the rule and without replacement the nadir is dangerous;
+  with it, insulin is interrupted and the ketosis takes longer.  The
+  rule trades hours of ketoacidosis for avoided arrhythmia, and the
+  price is measurable: potassium is the reason DKA cannot be treated
+  with insulin alone even in a patient whose potassium looks high.
+
+==============================================================================
+A10. CEREBRAL OEDEMA:  the model reproduces a NEGATIVE trial (PECARN
+     FLUID 2018) -- fluid rate barely matters -- and then finds what does.
+==============================================================================
+  Fluid rate arms, identical presentation:
+  arm                            Vbr pres Vbr peak swelling%  peak ICP  min GCS   dOsm/h
+  slow  (10 mL/kg + 125 mL/h)      1.0055   1.0107      0.52        20     13.0     0.65
+  standard (15 mL/kg + 250)        1.0055   1.0106      0.51        20     12.9     0.24
+  fast  (20 mL/kg + 500)           1.0055   1.0116      0.61        20     12.7    -0.43
+  very fast (30 mL/kg + 750)       1.0055   1.0126      0.71        21     12.4    -1.03
+  A 6-fold range of fluid rate moves peak brain volume by well under a
+  percent, which is what the randomised trial found.
+
+  Now hold the fluid rate at standard and vary the PRESENTATION:
+  presentation             osm pres brainOsm swelling%  peak ICP  peak inj  minGCS
+  standard                      301     13.1      0.51        20      0.17    12.9
+  severe illness                302     14.5      0.47        20      0.18    12.1
+  longer prodrome 36 h          303     18.5      0.36        22      0.20    11.2
+  poor water access             366     55.0      0.48        10      0.00     3.0
+  HHS-like                      372     68.2      0.55        10      0.00     3.0
+  child 30 kg                   299     11.2      0.84        12      0.02    15.0
+
+  Decomposition of the swelling into its two mechanisms (standard arm,
+  the severe-illness presentation):
+    both mechanisms            swelling   0.47%   peak ICP   20 mmHg
+    osmotic only (KVASO=0)     swelling   0.00%   peak ICP   16 mmHg
+    injury only (COMPL=0)      swelling   0.94%   peak ICP   24 mmHg
+
+  The osmotic term is the smaller one.  The larger term is an ischaemic
+  injury that accrues BEFORE treatment starts, driven by hypocapnia and
+  hypoperfusion -- which is why the reported risk factors are a low PCO2
+  and a high urea at presentation rather than anything the clinician did
+  afterwards, and why a slower drip does not protect the brain.
+
+==============================================================================
+A11. THE NITROPRUSSIDE PARADOX:  urine ketones 'worsen' while the
+     patient recovers, because BHB is reduced and AcAc is not measured.
+==============================================================================
+      h     BHB    AcAc   total  BHB:AcAc    redox  acetone
+      0   14.83   1.724   16.55      8.60     2.87    0.335
+      1   12.06   1.886   13.95      6.40     2.12    0.343
+      2    9.03   2.009   11.04      4.50     1.49    0.358
+      3    6.60   1.804    8.41      3.66     1.22    0.371
+      4    5.00   1.389    6.39      3.60     1.20    0.383
+      6    2.74   0.758    3.50      3.61     1.20    0.388
+      8    1.36   0.402    1.76      3.38     1.13    0.380
+     12    0.47   0.156    0.63      3.03     1.01    0.349
+     18    0.35   0.116    0.46      3.00     1.00    0.301
+     24    0.32   0.107    0.43      3.00     1.00    0.260
+
+  Total ketones fall monotonically from 16.6 mmol/L, but the AcAc
+  FRACTION rises from 10.4% to 21.7% as hepatic redox normalises,
+  so a nitroprusside strip (AcAc + acetone only) reads a smaller
+  improvement than the disease shows: at 4 h total ketone is down
+  61% but the nitroprusside-visible pool is down only 14%.
+  Acetone (t1/2 23 h) is still 0.26 mmol/L at 24 h -- days of
+  'ketotic breath' and positive strips after the disease has gone.
+
+==============================================================================
+A12. SODIUM BICARBONATE THERAPY:  what the model says it buys.
+==============================================================================
+  Severe presentation used here: pH 7.069, HCO3 6.8, AG 30.5, BHB 16.1,
+  K 5.24, glucose 510 mg/dL, GCS 11.6
+  arm                        pH 1h   pH 4h  pH 12h  pH 24h   K min  PCO2 1h swelling%
+  no bicarbonate             7.073   7.293   7.366   7.368    3.30       25      0.36
+  100 mmol over 2 h          7.206   7.345   7.376   7.372    3.30       25      0.42
+  200 mmol over 2 h          7.306   7.393   7.394   7.379    3.29       27      0.62
+
+  Bicarbonate raises pH promptly (+0.233 at 1 h) but the arms have
+  converged by 12 h (+0.029) and 24 h (+0.011).  Time to BHB < 0.6 is
+  13.1 h without and 11.3 h with: the acid was never the reservoir --
+  the ketoanion was, and insulin sets the rate at which it is oxidised
+  back into bicarbonate.  Costs, computed: a lower potassium nadir
+  (3.29 vs 3.30), a higher PCO2 (27 vs 25 mmHg at 1 h, because
+  the respiratory drive is switched off by the very pH it corrected),
+  and 200 mmol of extra sodium in a patient whose brain is already
+  adapting to a falling osmolality.
+
+==============================================================================
+A13. STOPPING THE INFUSION:  the overlap is not a formality.
+==============================================================================
+  transition                             AG 2h     AG 6h    BHB 6h   gluc 6h
+  insulin stopped at gap closure, no SC      11.7      15.4      5.52       425
+  stopped, 10 U SC lispro given           11.5      13.2      3.71       365
+  stopped 2 h after gap closure, 10 U      11.4      13.0      3.59       362
+
+  Plasma insulin t1/2 is 5 min; the CPT-1 gate reopens within an
+  hour of stopping, and ketogenesis restarts from a fat store that
+  treatment never emptied.
+
+==============================================================================
+A14. SUBCUTANEOUS RAPID-ANALOGUE PROTOCOL vs IV INFUSION
+     (mild-to-moderate DKA; 0.3 U/kg s.c. load then 0.2 U/kg every 2 h,
+      halved and dextrose started once glucose < 250 mg/dL)
+==============================================================================
+  Presentation: glucose 443 mg/dL, pH 7.204, HCO3 9.0, AG 26.7, BHB 13.2
+  route          tBHB<0.6  tGlu<250 K nadir     peak   trough eff-site  minGlu
+                      (h)       (h)           plasma   plasma   trough   mg/dL
+  IV infusion         9.1       2.6    3.28       70       23       48     207
+  s.c. q2h            9.1       2.2    2.81      163       13       26     198
+
+  The interesting number is the TROUGH, and it needs two columns.
+  Between q2h doses the PLASMA insulin falls to 13 uU/mL, i.e. 0.89 of
+  the 15 uU/mL lipolysis IC50, because plasma insulin has a 5-minute
+  half-life and no bolus regimen can avoid a trough.  But the EFFECT SITE
+  only falls to 26 uU/mL (1.73 of the IC50), because it is a 21-minute
+  low-pass filter on that profile.  That filter is the whole reason an
+  intermittent subcutaneous protocol can suppress ketogenesis at all, and
+  it also says where it breaks: lengthen the interval, or slow absorption
+  (shock, oedema, regular insulin at ka 0.5 instead of 1.5 /h), and it
+  is the effect-site trough, not the peak, that crosses the constant.
+
+==============================================================================
+A15. PHENOTYPE PANEL (each row is a different parameter set, same model)
+==============================================================================
+  phenotype                       gluc      pH   HCO3     AG    BHB  BHB:AA     osm    GCS
+  adult T1D, moderate illness      506   7.088    7.0   29.9   15.7     8.6     302   12.0
+  adult T1D, severe sepsis         510   7.069    6.8   30.5   16.1     8.6     303   11.6
+  child 30 kg (allometric)         424   7.207    9.0   27.5   13.2     4.1     299   15.0
+  pregnancy (3rd trimester)        469   6.985    5.8   31.0   20.6    10.2     304    9.7
+  alcoholic ketoacidosis           184   7.351   18.3   19.0    7.9    18.4     295   15.0
+  SGLT2i, type 2                   289   7.345   17.6   18.7    4.1     7.3     296   15.0
+  HHS, elderly type 2              681   7.376   23.1   20.2    3.0     6.9     370    3.0
+  established AKI (low GFR)        732   7.209    9.2   24.8   14.1     8.6     299   15.0
+
+  Alcoholic ketoacidosis comes out with BHB:AcAc 18.4 (against 8.6 in
+  diabetic ketoacidosis) at a glucose of 184 mg/dL: the redox term, not
+  the insulin term, is doing the work -- which is why a nitroprusside
+  strip (blind to BHB) is at its most misleading in exactly this patient.
+
+==============================================================================
+A16. SENSITIVITY of the presenting phenotype (24 h lead-in, +/-25%)
+==============================================================================
+  parameter       d glucose (%)        d BHB (%)       d HCO3 (%)
+  LIPMAX                   29.7            213.8           -261.0
+  KGSCALE                  29.5            203.0           -259.2
+  VMAX_KOX                -14.1           -126.7            163.5
+  KMAL                      3.3             41.3            -53.8
+  FENA                     32.6              7.4            -99.8
+  ILL0                      1.3              5.9             -8.6
+  HGP0                    122.3              5.4            -45.7
+  TMGLU                    36.4             -2.1             -0.4
+  KVOMIT                    6.7              1.6              4.2
+  FECL                     -3.3             -1.2             53.2
+  POMAX                    -4.9             -1.0             -3.7
+  GFRMAX                  -43.2              0.6            -24.7
+  IC50_LIP                  0.0              0.1             -0.1
+  EC50_UP                   0.0              0.0             -0.1
+  VMI_UP                   -0.0             -0.0              0.0
+  PORTF                     0.0              0.0              0.0
+
+  (Values are elasticities: % change in the read-out per 100% change
+  in the parameter, from a two-sided +/-25% perturbation.)
+
+==============================================================================
+A17. CONSERVATION CHECKS (these must hold or the model is wrong)
+==============================================================================
+  1. Electroneutrality residual, max over 24 h : 1.89e-12 mEq/L
+  2. Anion gap reconstructed from its parts at 6 h : 14.5731 vs 14.5731
+  3. Sodium   : ECF content 1551 -> 1819 mmol; infused 491, urine 0;
+     change +268 = infused +491 - urinary 223 (residual 0.00e+00)
+  4. Potassium: total body +6.7 mmol vs (infused 133.6 - urinary 126.9)
+     = +6.7; closure residual 3.81e-12 mmol (0.000% of throughput)
+  5. Water    : TBW +2.35 L; urine 4.37 L over the 24 h
+  6. Ketone   : retained 437 -> 12 mmol; 30 mmol excreted;
+     the remaining 395 mmol was oxidised, regenerating bicarbonate 1:1,
+     which is where the recovered base came from.
+
+==============================================================================
+A18. DERIVATIVE FINGERPRINT (for comparison against the mrgsolve $ODE)
+==============================================================================
+  Evaluated at the 24 h presenting state, t = 3.0 h into the standard
+  protocol (0.9% NaCl 500 mL/h + KCl 40 mmol/L, insulin 7.0 U/h):
+    dVECF     = +4.545627e-01
+    dVICF     = -8.797874e-02
+    dNAE      = +6.996634e+01
+    dCLE      = +9.052315e+01
+    dKE       = +1.997117e+01
+    dKI       = -1.392570e+01
+    dPHOSE    = -1.738275e-01
+    dORGA     = -9.971725e-10
+    dLAC      = +1.359178e+00
+    dACAC     = +3.847237e-01
+    dBHB      = +3.308375e+00
+    dACET     = +5.434395e-01
+    dGLU      = +2.593356e+00
+    dGLYCO    = -2.621250e+01
+    dFFA      = +8.526513e-14
+    dUREA     = +9.790063e+00
+    dCREA     = +3.588281e-02
+    dPCO2     = +1.287915e-01
+    dINSSC    = -0.000000e+00
+    dINSP     = +1.166667e+03
+    dINSEF    = -7.212389e-29
+    dINSES    = -8.154723e-07
+    dGCG      = -1.675464e-01
+    dCORT     = +2.865758e-01
+    dEPI      = +1.398509e-02
+    dIR       = +1.146724e-02
+    dREDOX    = +2.524141e-10
+    dGFRR     = -8.317572e-03
+    dOSMB     = +4.640369e-01
+    dVBR      = +1.463428e-03
+    dALDO     = +3.334777e-02
+    dNH4C     = +2.658239e-01
+    dBETAF    = -2.897631e-02
+    dILL      = -8.237698e-03
+    dMENT     = -2.180482e-02
+    dINJ      = +1.600437e-02
+    dUKET     = +4.225804e+00
+    dUKETN    = +1.869758e+00
+    dUGLU     = +3.922676e+01
+    dUKCUM    = +1.395453e+01
+    dUVOL     = +2.478428e-01
+    dCLIN     = +9.700000e+01
+    dKINCUM   = +2.000000e+01
+    dNAINCUM  = +7.700000e+01
+
+  Key algebraic read-outs at the same point:
+    pH         = 7.131593
+    HCO3       = 7.534106
+    AG         = 28.717079
+    GLUmgdl    = 470.000195
+    KET        = 16.551566
+    BHB_ACAC   = 8.599352
+    OSM_EFF    = 300.585206
+    K          = 5.098838
+
+done.

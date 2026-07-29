@@ -1,0 +1,596 @@
+/* ===========================================================================
+   dka_qsp_model.dot
+   Diabetic Ketoacidosis / Hyperglycaemic Hyperosmolar State -- QSP map
+   ---------------------------------------------------------------------------
+   Organising idea (read the map along these two chains):
+
+     CHAIN 1  (glucose)  insulin deficit -> hepatic output UP and disposal DOWN
+                         -> osmotic diuresis -> ECF contraction -> GFR falls
+                         -> the RENAL ESCAPE VALVE closes -> glucose runs away
+                         ...so the glucose you measure is largely a VOLUME signal.
+
+     CHAIN 2  (acid)     insulin deficit -> lipolysis -> hepatic NEFA
+                         -> CPT-1 gate opens (malonyl-CoA falls)
+                         -> ketoacid; disposal is ONE saturable oxidation
+                         ...so the ketone you usually do not measure is the disease.
+
+   The two chains share a cause and share nothing else: they have different
+   half-maximal insulin concentrations (15 vs 60 uU/mL), different numbers of
+   exits, and different time constants.  Every clinically important behaviour
+   on this map is a consequence of that asymmetry.
+
+   Bicarbonate appears NOT as a pool but as a residual: it is whatever the
+   strong-ion difference has left over after the weak acids and the ketoanion
+   are subtracted.  Arrows into "HCO3_residual" are therefore arrows into an
+   arithmetic identity, not into a compartment.
+
+   Node shapes:  box = state/compartment      ellipse = flux/process
+                 diamond = drug or fluid      hexagon = clinical read-out
+                 octagon = clinical outcome   note = measurement artefact
+   Edge style:   solid = mass flow / activation      dashed = modulation
+                 dotted = inhibition                 bold = positive feedback
+   =========================================================================== */
+
+digraph DKA_QSP {
+  rankdir = TB;
+  compound = true;
+  concentrate = false;
+  splines = spline;
+  nodesep = 0.24;
+  ranksep = 0.52;
+  fontname = "Helvetica";
+  labelloc = "t";
+  label = <<b>Diabetic Ketoacidosis and the Hyperglycaemic Hyperosmolar State — Quantitative Systems Pharmacology Map</b><br/>
+<font point-size="11">Two deficits, two disposal architectures, one cause. Glucose has two exits (insulin-mediated disposal and a renal escape valve whose conductance is the ECF volume);<br/>
+ketoacid has one (saturable oxidation). Bicarbonate is not a compartment but the residual of the strong-ion difference.</font>>;
+  fontsize = 20;
+
+  node [fontname="Helvetica", fontsize=10, style="filled", penwidth=1.1];
+  edge [fontname="Helvetica", fontsize=8, arrowsize=0.65];
+
+  /* ---------------- 1. PRECIPITANTS ------------------------------------- */
+  subgraph cluster_trigger {
+    label = "1. Precipitants and host context";
+    style = "filled"; color = "#f5f5f5"; fontsize = 13; fontcolor = "#333333";
+    node [shape=box, fillcolor="#e8e8e8"];
+    T_omit   [label="Insulin omission\nor pump failure"];
+    T_new    [label="New-onset\ntype 1 diabetes"];
+    T_infect [label="Infection\n(pneumonia, UTI, sepsis)"];
+    T_mi     [label="Myocardial infarction\nor stroke"];
+    T_panc   [label="Acute pancreatitis"];
+    T_steroid[label="Glucocorticoids,\natypical antipsychotics"];
+    T_sglt2  [label="SGLT2 inhibitor\non board"];
+    T_preg   [label="Pregnancy\n(3rd trimester)"];
+    T_etoh   [label="Ethanol binge\n+ starvation"];
+    T_ckd    [label="Pre-existing CKD\n(low GFR reserve)"];
+    T_age    [label="Age, dependency,\nimpaired thirst / access"];
+    T_lowcarb[label="Carbohydrate\nrestriction, surgery,\nprolonged fasting"];
+    ILL      [label="ILL\nillness severity\n(state, decays)", fillcolor="#dddddd"];
+    T_infect -> ILL; T_mi -> ILL; T_panc -> ILL; T_steroid -> ILL;
+  }
+
+  /* ---------------- 2. BETA CELL ---------------------------------------- */
+  subgraph cluster_beta {
+    label = "2. Beta cell: the residual-insulin knob";
+    style = "filled"; color = "#eef6ff"; fontsize = 13; fontcolor = "#1a4f8a";
+    node [shape=box, fillcolor="#cfe3fb"];
+    BETA_MASS [label="BETA\nresidual beta-cell\nfunction (0 = type 1)"];
+    B_GLUT2   [label="GLUT2 / glucokinase\nglucose sensing"];
+    B_KATP    [label="K-ATP closure,\nCa2+ influx"];
+    B_GRAN    [label="Granule exocytosis"];
+    B_CPEP    [label="C-peptide\n(equimolar marker)"];
+    BETAF     [label="BETAF\nfunctional suppression\n(state, recovers)"];
+    node [shape=ellipse, fillcolor="#e3effc"];
+    B_SEC     [label="Endogenous secretion\nSEC = 8·BETA·BETAF·G²/(G²+8²)"];
+    B_GLUCOTOX[label="Glucotoxicity"];
+    B_ACIDSUP [label="Acidosis suppresses\nsecretion (pH < 7.2)"];
+    B_PORTAL  [label="Hepatic first-pass\nextraction ~50%\n=> PORTAL insulin 3-4x\nperipheral"];
+    B_GLUT2 -> B_KATP -> B_GRAN -> B_SEC;
+    BETA_MASS -> B_SEC; BETAF -> B_SEC; B_SEC -> B_CPEP;
+    B_GLUCOTOX -> BETAF [style=dotted]; B_ACIDSUP -> BETAF [style=dotted];
+    B_SEC -> B_PORTAL;
+  }
+
+  /* ---------------- 3. COUNTER-REGULATORY ------------------------------- */
+  subgraph cluster_cr {
+    label = "3. Counter-regulatory axis";
+    style = "filled"; color = "#fff4ec"; fontsize = 13; fontcolor = "#a04a12";
+    node [shape=box, fillcolor="#fbd9c0"];
+    GCG   [label="Glucagon\n(alpha cell)"];
+    EPI   [label="Epinephrine /\nnorepinephrine"];
+    CORT  [label="Cortisol"];
+    GH    [label="Growth hormone"];
+    IL6   [label="IL-6, TNF-alpha\n(illness cytokines)"];
+    IR    [label="IR\ninsulin-resistance\nindex (state)"];
+    node [shape=ellipse, fillcolor="#fdeadb"];
+    CR_ALPHA [label="Loss of intra-islet\ninsulin restraint\non the alpha cell"];
+    CR_HPA   [label="CRH-ACTH activation"];
+    CR_SNS   [label="Sympathoadrenal\nactivation (hypovolaemia,\nacidosis, pain)"];
+    CR_RANDLE[label="Randle / lipid-induced\ninsulin resistance"];
+    CR_ALPHA -> GCG; CR_HPA -> CORT; CR_SNS -> EPI;
+    ILL -> CR_HPA [style=dashed]; ILL -> IL6 [style=dashed]; IL6 -> IR [style=dashed];
+    CORT -> IR [style=dashed]; EPI -> IR [style=dashed]; CR_RANDLE -> IR [style=dashed];
+    GH -> IR [style=dashed];
+  }
+
+  /* ---------------- 4. INSULIN PK/PD ------------------------------------ */
+  subgraph cluster_insulin {
+    label = "4. Insulin pharmacokinetics and signal transduction";
+    style = "filled"; color = "#eaf7ee"; fontsize = 13; fontcolor = "#1d6b3a";
+    node [shape=diamond, fillcolor="#bfe9cd"];
+    RX_IV  [label="IV regular insulin\n0.05-0.14 U/kg/h"];
+    RX_SC  [label="s.c. lispro / aspart\n0.1 U/kg q2h"];
+    RX_BOL [label="IV bolus\n0.1 U/kg (optional)"];
+    node [shape=box, fillcolor="#d3f0dc"];
+    INSSC [label="INSSC\ns.c. depot (U)\nka 1.5 /h analogue,\n0.5 /h regular"];
+    INSP  [label="INSP\nplasma insulin (uU/mL)\nV 6 L, CL 50 L/h,\nt1/2 5 min"];
+    INSEF [label="INSEF\nPERIPHERAL effect site\ntau 0.35 h"];
+    INSES [label="INSES\nHEPATIC effect site\ntau 1.5 h"];
+    node [shape=ellipse, fillcolor="#e3f6e9"];
+    S_IRB   [label="Insulin receptor\nbeta-subunit autophosphorylation"];
+    S_IRS   [label="IRS-1 / PI3K / Akt"];
+    S_AS160 [label="AS160 phosphorylation"];
+    S_GLUT4 [label="GLUT4 translocation"];
+    S_PDE3B [label="PDE3B activation,\ncAMP falls"];
+    S_ACC   [label="ACC dephosphorylation\n=> malonyl-CoA rises"];
+    S_FOXO  [label="FOXO1 exclusion\n=> PEPCK, G6Pase fall"];
+    S_NKA   [label="Na+/K+-ATPase\nrecruitment"];
+    node [shape=box, fillcolor="#f0f0f0", style="filled,dashed"];
+    PD_LIP [label="IC50 lipolysis\n15 uU/mL"];
+    PD_HGP [label="IC50 hepatic output\n30 uU/mL"];
+    PD_UP  [label="EC50 disposal\n60 uU/mL"];
+    PD_K   [label="IC50 K+ shift\n25 uU/mL"];
+    RX_IV -> INSP; RX_BOL -> INSP; RX_SC -> INSSC -> INSP;
+    B_SEC -> INSP; INSP -> INSEF; INSP -> INSES;
+    INSEF -> S_IRB -> S_IRS;
+    S_IRS -> S_AS160 -> S_GLUT4;
+    S_IRS -> S_PDE3B; S_IRS -> S_NKA;
+    INSES -> S_ACC; INSES -> S_FOXO;
+    IR -> S_IRS [style=dotted, label="divides\neffect"];
+  }
+
+  /* ---------------- 5. HEPATIC GLUCOSE --------------------------------- */
+  subgraph cluster_hepg {
+    label = "5. Hepatic glucose production";
+    style = "filled"; color = "#fdf6e3"; fontsize = 13; fontcolor = "#8a6d1a";
+    node [shape=box, fillcolor="#f7e6a8"];
+    GLYCO [label="GLYCO\nhepatic glycogen\n(depletes in ~8 h)"];
+    node [shape=ellipse, fillcolor="#fbf1c9"];
+    H_GLYGEN [label="Glycogenolysis\n(25% of output)"];
+    H_GNG    [label="Gluconeogenesis\n(75%; the sustained arm)"];
+    H_PEPCK  [label="PEPCK, G6Pase,\nFBPase-1 induction"];
+    H_PYR    [label="Pyruvate, alanine,\nglutamine supply"];
+    H_GLYCEROL[label="Glycerol from\ntriglyceride hydrolysis"];
+    H_LACTATE[label="Lactate (Cori cycle)"];
+    H_ACETYL [label="Acetyl-CoA activates\npyruvate carboxylase"];
+    HGP      [label="HGP\ntotal glucose output\n~105 mmol/h in DKA\n(2-3x basal)", shape=box, fillcolor="#f2d98a"];
+    GLYCO -> H_GLYGEN -> HGP;
+    H_GNG -> HGP; H_PEPCK -> H_GNG; H_PYR -> H_GNG;
+    H_GLYCEROL -> H_GNG; H_LACTATE -> H_GNG; H_ACETYL -> H_GNG [style=dashed];
+    GCG -> H_PEPCK [style=dashed]; GCG -> H_GLYGEN [style=dashed];
+    EPI -> H_GLYGEN [style=dashed]; CORT -> H_PEPCK [style=dashed];
+    S_FOXO -> H_PEPCK [style=dotted]; S_PDE3B -> H_GLYGEN [style=dotted];
+    PD_HGP -> HGP [style=dashed];
+  }
+
+  /* ---------------- 6. ADIPOSE ----------------------------------------- */
+  subgraph cluster_fat {
+    label = "6. Adipose lipolysis — the most insulin-sensitive process in the body";
+    style = "filled"; color = "#fdeef4"; fontsize = 13; fontcolor = "#9c1f5a";
+    node [shape=box, fillcolor="#f7c6dc"];
+    TG    [label="Adipocyte triglyceride\n(ADIPOSE, effectively infinite)"];
+    FFA   [label="FFA\nplasma NEFA\n0.35 -> 1.7 mmol/L\nt1/2 ~3 min"];
+    GLYC3 [label="Glycerol"];
+    node [shape=ellipse, fillcolor="#fce0ec"];
+    F_ATGL [label="ATGL"];
+    F_HSL  [label="Hormone-sensitive lipase\n(PKA-phosphorylated)"];
+    F_PERI [label="Perilipin-1\nphosphorylation"];
+    F_ADRB [label="beta-3 adrenoceptor\n=> cAMP => PKA"];
+    F_ANP  [label="Natriuretic-peptide /\nPKG arm"];
+    F_REEST[label="Re-esterification\n(needs glycerol-3-P,\nfails without glucose uptake)"];
+    LIP    [label="LIP\nlipolytic flux\n26 -> 54 mmol/h", shape=box, fillcolor="#f2a8c8"];
+    TG -> F_ATGL -> LIP; TG -> F_HSL -> LIP; F_PERI -> F_HSL;
+    F_ADRB -> F_PERI; F_ANP -> F_HSL; EPI -> F_ADRB [style=dashed];
+    CORT -> F_HSL [style=dashed]; GH -> F_HSL [style=dashed];
+    S_PDE3B -> F_HSL [style=dotted]; PD_LIP -> LIP [style=dashed];
+    LIP -> FFA; LIP -> GLYC3 -> H_GLYCEROL;
+    F_REEST -> LIP [style=dotted];
+    S_GLUT4 -> F_REEST [style=dashed];
+  }
+
+  /* ---------------- 7. KETOGENESIS ------------------------------------- */
+  subgraph cluster_keto {
+    label = "7. Hepatic ketogenesis: a substrate arm TIMES a gate";
+    style = "filled"; color = "#f3ecfb"; fontsize = 13; fontcolor = "#5b2d8e";
+    node [shape=box, fillcolor="#d8c6f2"];
+    HFFA  [label="HFFA\nhepatic NEFA uptake\n(CD36, FATP)\n~27 mmol/h in DKA"];
+    MALCOA[label="Malonyl-CoA\nTHE GATE VARIABLE"];
+    ACAC  [label="ACAC\nacetoacetate\n1.7 mmol/L"];
+    BHB   [label="BHB\nbeta-hydroxybutyrate\n15 mmol/L"];
+    ACET  [label="ACET\nacetone\nt1/2 ~23 h, exhaled"];
+    REDOX [label="REDOX\nhepatic NADH/NAD+\n(2.9 in DKA, ~6 with ethanol)"];
+    node [shape=ellipse, fillcolor="#e7dcf8"];
+    K_ACC  [label="Acetyl-CoA carboxylase\n(ACC1/2)"];
+    K_CPT1 [label="CPT-1\nCPT1 = 1/(1+MalCoA/K)\nthe rate-limiting gate"];
+    K_BOX  [label="Mitochondrial\nbeta-oxidation"];
+    K_HMGCS[label="HMG-CoA synthase 2\n(mHMGCS, glucagon-induced)"];
+    K_HMGCL[label="HMG-CoA lyase"];
+    K_BDH  [label="BDH1\nAcAc + NADH <=> BHB + NAD+\nequilibrium, ratio = 3·REDOX"];
+    K_DECARB[label="Spontaneous\ndecarboxylation\nAcAc -> acetone + CO2"];
+    KGEN   [label="KGEN\nketoacid production\n3.6·HFFA·CPT1\n~65 mmol/h", shape=box, fillcolor="#c3a9ea"];
+    FFA -> HFFA; HFFA -> K_BOX; K_CPT1 -> K_BOX [label="gate"];
+    K_ACC -> MALCOA -> K_CPT1 [style=dotted];
+    S_ACC -> K_ACC [style=dashed, label="portal insulin\nRAISES malonyl-CoA"];
+    B_PORTAL -> MALCOA [style=dashed, label="privileged\nhepatic exposure"];
+    GCG -> K_ACC [style=dotted]; GCG -> K_HMGCS [style=dashed];
+    K_BOX -> K_HMGCS -> K_HMGCL -> KGEN;
+    KGEN -> ACAC; ACAC -> K_BDH -> BHB; BHB -> K_BDH [dir=both, style=dashed];
+    REDOX -> K_BDH [style=dashed]; K_BOX -> REDOX [style=dashed];
+    ACAC -> K_DECARB -> ACET;
+  }
+
+  /* ---------------- 8. KETONE DISPOSAL --------------------------------- */
+  subgraph cluster_kox {
+    label = "8. Ketone disposal — one exit, and it saturates";
+    style = "filled"; color = "#eef3f8"; fontsize = 13; fontcolor = "#2b4f70";
+    node [shape=ellipse, fillcolor="#cfdded"];
+    D_MCT   [label="MCT1/MCT2 uptake"];
+    D_BDH2  [label="Extrahepatic BDH1\nBHB -> AcAc"];
+    D_SCOT  [label="SCOT (OXCT1)\nAcAc-CoA formation\nABSENT in liver"];
+    D_THIO  [label="Thiolase -> 2 acetyl-CoA\n-> TCA cycle"];
+    D_BRAIN [label="Brain oxidation\n(linear in concentration,\nnon-saturable arm)"];
+    D_HEART [label="Myocardial oxidation\n(preferred fuel)"];
+    D_MUSCLE[label="Skeletal muscle\n(insulin-enhanced)"];
+    KOX    [label="KOX\nketone oxidation\n75·k/(k+4) + 1.2·k\nmmol/h", shape=box, fillcolor="#b6cbe0"];
+    BHB -> D_MCT; ACAC -> D_MCT; D_MCT -> D_BDH2 -> D_SCOT -> D_THIO;
+    D_THIO -> KOX; D_BRAIN -> KOX; D_HEART -> KOX; D_MUSCLE -> KOX;
+    S_GLUT4 -> D_MUSCLE [style=dashed];
+  }
+
+  /* ---------------- 9. ACID-BASE --------------------------------------- */
+  subgraph cluster_ab {
+    label = "9. Acid-base: bicarbonate is a RESIDUAL, not a pool";
+    style = "filled"; color = "#fdecec"; fontsize = 13; fontcolor = "#8d1c1c";
+    node [shape=box, fillcolor="#f6c4c4"];
+    SID   [label="SID_app\nNa + K + Ca,Mg - Cl\n- unmetabolised organic anion\n~45 mEq/L"];
+    ATOT  [label="A-\nalbumin + phosphate\nweak acid (Figge)\nconcentrates with the ECF"];
+    KETAN [label="Ketoanion\n(strong anion,\nnot a buffer)"];
+    LAC   [label="LAC\nlactate\n(hypoperfusion, +LR infusion)"];
+    SIGO  [label="Other unmeasured\nstrong anion (sulfate)"];
+    HCO3_residual [label="HCO3_residual\n= SID - A- - ketoanion\n- lactate - SIG\n7.5 mmol/L", fillcolor="#ef9a9a"];
+    PCO2  [label="PCO2\narterial (state)\ntau 0.4 h", fillcolor="#f6c4c4"];
+    node [shape=ellipse, fillcolor="#fbdcdc"];
+    A_HH    [label="Henderson-Hasselbalch\npH = 6.1 + log10(HCO3/0.0301·PCO2)"];
+    A_WINTER[label="Chemoreceptor drive\nPCO2 -> 13 + 1.15·HCO3"];
+    A_KUSS  [label="Kussmaul respiration\n(raises insensible loss)"];
+    A_FATIGUE[label="Respiratory muscle fatigue /\nobtundation caps compensation"];
+    A_HKX   [label="Intracellular buffering:\nH+ in, K+ out"];
+    A_BEXC  [label="Base excess,\nstandard base excess"];
+    SID -> HCO3_residual; ATOT -> HCO3_residual [style=dotted];
+    KETAN -> HCO3_residual [style=dotted]; LAC -> HCO3_residual [style=dotted];
+    SIGO -> HCO3_residual [style=dotted];
+    HCO3_residual -> A_HH; PCO2 -> A_HH;
+    HCO3_residual -> A_WINTER -> PCO2;
+    A_HH -> A_KUSS; A_FATIGUE -> PCO2 [style=dashed];
+    A_HH -> A_BEXC;
+    ACAC -> KETAN; BHB -> KETAN;
+    A_HH -> A_HKX [style=dashed];
+  }
+
+  /* ---------------- 10. RENAL ------------------------------------------ */
+  subgraph cluster_kidney {
+    label = "10. Kidney: the escape valve, the cation drain, and the base ledger";
+    style = "filled"; color = "#eaf4f4"; fontsize = 13; fontcolor = "#14655f";
+    node [shape=box, fillcolor="#bfe3e0"];
+    GFRR  [label="GFRR\nrelative GFR\n(1.0 -> 0.44 in DKA)"];
+    TMG   [label="Tm glucose\n75 mmol/h, scales\nSUB-proportionally with GFR\n(glomerulotubular balance)"];
+    NH4C  [label="NH4C\nammoniagenic capacity\n1.7 -> 12 mmol/h\n(tau 12 h: too slow to help)"];
+    ALDO  [label="ALDO\naldosterone activity"];
+    node [shape=ellipse, fillcolor="#d5eceb"];
+    R_FILT   [label="Filtered glucose\nGFR·[glucose]"];
+    R_SGLT2  [label="SGLT2 (90%) + SGLT1 (10%)\nproximal reabsorption"];
+    R_SPLAY  [label="Titration-curve splay"];
+    R_UGLU   [label="Glucosuria\n~40 mmol/h (7 g/h)"];
+    R_OSMDIU [label="OSMOTIC DIURESIS\nwashes out the\ncorticomedullary gradient"];
+    R_FENA   [label="Fractional Na excretion\nrises 5-fold with\nnon-reabsorbed solute"];
+    R_FEK    [label="Distal delivery of a\nNON-REABSORBABLE ANION\ndrives kaliuresis"];
+    R_ENAC   [label="ENaC / ROMK\n(aldosterone-driven)"];
+    R_FECL   [label="Cl- handling keyed to\nCl/Na ratio, not to [Cl-]"];
+    R_KETFE  [label="Ketoanion filtration,\nSMCT/MCT reabsorption,\nFE 5-15%"];
+    R_GLN    [label="Glutamine -> NH4+\n(PEPCK-coupled ammoniagenesis)"];
+    R_NH4CL  [label="NH4Cl excretion\n= net acid excretion\n(removes Cl, RAISES SID)"];
+    R_KETNA  [label="Ketoanion excreted with Na+/K+\n= POTENTIAL BICARBONATE LOST"];
+    R_UREA   [label="Urea excretion\n(FE falls when volume-depleted)"];
+    R_CREA   [label="Creatinine clearance"];
+    R_UV     [label="Urine flow\n= solute load / U_osm"];
+    R_FILT -> R_SGLT2 -> R_UGLU; TMG -> R_SGLT2 [style=dashed];
+    R_SPLAY -> R_SGLT2 [style=dashed]; GFRR -> R_FILT; GFRR -> TMG [style=dashed];
+    R_UGLU -> R_OSMDIU; R_KETFE -> R_OSMDIU; R_UREA -> R_OSMDIU;
+    R_OSMDIU -> R_UV; R_OSMDIU -> R_FENA [style=dashed]; R_OSMDIU -> R_FEK [style=dashed];
+    ALDO -> R_ENAC -> R_FEK [style=dashed]; ALDO -> R_FENA [style=dotted];
+    KETAN -> R_KETFE; R_KETFE -> R_FEK [style=dashed]; R_KETFE -> R_KETNA;
+    R_GLN -> NH4C -> R_NH4CL; R_KETFE -> R_NH4CL [style=dashed];
+    R_NH4CL -> SID [style=bold, color="#1d6b3a", label="base\ngenerated"];
+    R_KETNA -> SID [style=bold, color="#8d1c1c", label="base\nLOST"];
+    R_FENA -> SID [style=dotted]; R_FECL -> SID [style=dashed];
+    A_HH -> R_GLN [style=dashed, label="acidosis induces\nammoniagenesis"];
+  }
+
+  /* ---------------- 11. VOLUME ----------------------------------------- */
+  subgraph cluster_vol {
+    label = "11. Volume, osmolality and the closing of the escape valve";
+    style = "filled"; color = "#f0f0f7"; fontsize = 13; fontcolor = "#3a3a7a";
+    node [shape=box, fillcolor="#c9c9e8"];
+    VECF [label="VECF\nextracellular volume\n14.0 -> 11.3 L"];
+    VICF [label="VICF\nintracellular volume"];
+    NAE  [label="NAE / CLE\nECF sodium, chloride"];
+    UREA [label="UREA\nurea (BUN 9 -> 32 mg/dL)"];
+    CREA [label="CREA\ncreatinine"];
+    OSM  [label="OSM_eff\n2·Na + glucose\n285 -> 301 mOsm/kg"];
+    node [shape=ellipse, fillcolor="#dcdcf2"];
+    V_SHIFT [label="Osmotic water shift\nICF -> ECF\n(tau 0.25 h)\nPARTLY PROTECTS the ECF"];
+    V_THIRST[label="Osmoreceptor thirst\n=> polydipsia"];
+    V_VOMIT [label="Ketosis-driven vomiting\nand gastroparesis\nSHUTS OFF intake"];
+    V_INSENS[label="Insensible loss\n(fever, Kussmaul)"];
+    V_MAP   [label="Mean arterial pressure,\nrenal perfusion"];
+    V_PRERENAL[label="Prerenal azotaemia"];
+    V_NACORR[label="Corrected Na\n= Na + 0.024·(glucose-100)"];
+    R_UV -> VECF [style=dotted, label="loss"];
+    V_THIRST -> VECF; V_VOMIT -> V_THIRST [style=dotted];
+    KETAN -> V_VOMIT [style=dashed]; A_KUSS -> V_INSENS; V_INSENS -> VECF [style=dotted];
+    VECF -> V_MAP -> GFRR;
+    VECF -> V_SHIFT; VICF -> V_SHIFT; OSM -> V_SHIFT [style=dashed];
+    V_PRERENAL -> UREA; V_PRERENAL -> CREA; GFRR -> V_PRERENAL [style=dotted];
+    NAE -> OSM; NAE -> SID; OSM -> V_THIRST [style=dashed]; OSM -> V_NACORR;
+    R_UREA -> UREA [style=dotted]; R_CREA -> CREA [style=dotted];
+  }
+
+  /* ---------------- 12. GLUCOSE POOL ----------------------------------- */
+  subgraph cluster_glu {
+    label = "12. The glucose pool and its two exits";
+    style = "filled"; color = "#fff8e1"; fontsize = 13; fontcolor = "#8a6a00";
+    node [shape=box, fillcolor="#ffe9a8"];
+    GLU  [label="GLU\nECF glucose\n5 -> 26 mmol/L\n(90 -> 470 mg/dL)"];
+    node [shape=ellipse, fillcolor="#fff3cc"];
+    G_CNS   [label="Obligatory uptake\n(brain, erythrocyte)\nSATURATED at normoglycaemia\n-- does NOT rise"];
+    G_MASS  [label="Mass-action GLUT1 uptake\n(0.52 L/h)"];
+    G_INS   [label="Insulin-dependent disposal\nGLUT4, Vmax 70 mmol/h"];
+    G_GLYSYN[label="Glycogen synthesis"];
+    HGP -> GLU; GLU -> G_CNS; GLU -> G_MASS; GLU -> G_INS; GLU -> G_GLYSYN -> GLYCO;
+    S_GLUT4 -> G_INS [style=dashed]; PD_UP -> G_INS [style=dashed];
+    GLU -> R_FILT; GLU -> OSM;
+    T_sglt2 -> TMG [style=dotted, label="threshold falls\nto ~4 mmol/L"];
+  }
+
+  /* ---------------- 13. POTASSIUM -------------------------------------- */
+  subgraph cluster_k {
+    label = "13. Potassium: a normal serum value hiding a 300-500 mmol deficit";
+    style = "filled"; color = "#f7f0ea"; fontsize = 13; fontcolor = "#6b4423";
+    node [shape=box, fillcolor="#e2cdb6"];
+    KE [label="KE\nECF potassium\n4.2 -> 4.9 mmol/L"];
+    KI [label="KI\nICF potassium\n(3500 mmol store)"];
+    KDEF [label="Total-body deficit\n3-5 mmol/kg\n(300-500 mmol)"];
+    node [shape=ellipse, fillcolor="#efe2d3"];
+    K_SET   [label="Transmembrane set-point\nK_set = 4.2 + 0.9·(insulin lost)\n+ 1.2·(7.4-pH) + 0.015·(osm-285)"];
+    K_NKA   [label="Na+/K+-ATPase\n(insulin, beta-2)"];
+    K_ACID  [label="Acidosis (organic acids\nshift LESS than mineral)"];
+    K_TONIC [label="Hypertonicity:\ncell shrinkage, solvent drag"];
+    K_URIN  [label="Kaliuresis\n(aldosterone x anion delivery\nx flow)"];
+    K_REPL  [label="KCl replacement\n20-40 mmol/L of fluid"];
+    K_RULE  [label="ADA rule:\nhold insulin if K < 3.3"];
+    node [shape=hexagon, fillcolor="#e8d6c0"];
+    K_ECG [label="ECG: peaked T waves ->\nU waves, QT, arrhythmia"];
+    K_SET -> KE; S_NKA -> K_NKA -> K_SET [style=dotted]; K_ACID -> K_SET [style=dashed];
+    K_TONIC -> K_SET [style=dashed]; PD_K -> K_SET [style=dashed];
+    KI -> KE [dir=both]; K_URIN -> KDEF; R_FEK -> K_URIN; KE -> K_ECG;
+    K_REPL -> KE; K_RULE -> RX_IV [style=dotted]; KE -> K_RULE [style=dashed];
+    A_HKX -> KE [style=dashed];
+  }
+
+  /* ---------------- 14. PHOSPHATE / OTHER ------------------------------ */
+  subgraph cluster_phos {
+    label = "14. Phosphate, magnesium and the oxygen dissociation curve";
+    style = "filled"; color = "#f2f7f2"; fontsize = 13; fontcolor = "#3d6b3d";
+    node [shape=box, fillcolor="#cfe3cf"];
+    PHOSE [label="PHOSE\nECF phosphate\n(deficit ~1 mmol/kg)"];
+    MG    [label="Magnesium deficit"];
+    DPG   [label="Erythrocyte 2,3-DPG"];
+    node [shape=ellipse, fillcolor="#e2eee2"];
+    P_SHIFT [label="Insulin drives phosphate\ninto cells with glucose"];
+    P_ATP   [label="ATP depletion\n(muscle, diaphragm)"];
+    P_ODC   [label="Oxyhaemoglobin curve:\nacidosis shifts RIGHT,\nlow 2,3-DPG shifts LEFT"];
+    P_RHABDO[label="Rhabdomyolysis"];
+    P_REPL  [label="Potassium phosphate\n(only if < 0.3 mmol/L\nor cardiac/respiratory)"];
+    S_GLUT4 -> P_SHIFT -> PHOSE [style=dotted]; PHOSE -> DPG -> P_ODC;
+    A_HH -> P_ODC [style=dashed]; PHOSE -> P_ATP [style=dotted]; P_ATP -> P_RHABDO;
+    P_REPL -> PHOSE; PHOSE -> ATOT [style=dashed]; MG -> K_ECG [style=dashed];
+  }
+
+  /* ---------------- 15. BRAIN ------------------------------------------ */
+  subgraph cluster_brain {
+    label = "15. Brain: a slow osmolyte store, a fast water compartment, and an ischaemic insult";
+    style = "filled"; color = "#f6ecf9"; fontsize = 13; fontcolor = "#6a2472";
+    node [shape=box, fillcolor="#e2c8ea"];
+    OSMB [label="OSMB\nidiogenic osmoles\n(taurine, myo-inositol,\nglycerophosphocholine, betaine)\naccrual tau 8 h, washout 14 h"];
+    VBR  [label="VBR\nbrain water\n(tau 0.3 h -- FAST)"];
+    INJ  [label="INJ\nischaemic injury\n(accrues BEFORE treatment)"];
+    ICP  [label="Intracranial pressure"];
+    node [shape=ellipse, fillcolor="#eed9f3"];
+    BR_TAUT  [label="TauT, SMIT, BGT-1\norganic osmolyte transporters"];
+    BR_AQP4  [label="AQP4 water flux"];
+    BR_NKCC1 [label="NKCC1 activation\n(insulin, ischaemia)"];
+    BR_HYPOCAP[label="Hypocapnic cerebral\nvasoconstriction"];
+    BR_REPERF[label="Reperfusion on rehydration"];
+    BR_COMPL [label="Intracranial compliance\n(damps swelling, raises ICP)"];
+    BR_MISMATCH[label="RATE MISMATCH:\nplasma osmolality falls in hours,\nthe osmolyte store empties in days"];
+    OSM -> BR_TAUT -> OSMB; OSMB -> BR_MISMATCH; OSM -> BR_MISMATCH;
+    BR_MISMATCH -> VBR; BR_AQP4 -> VBR; BR_NKCC1 -> VBR [style=dashed];
+    PCO2 -> BR_HYPOCAP [style=dashed]; BR_HYPOCAP -> INJ;
+    GFRR -> INJ [style=dotted]; A_HH -> INJ [style=dashed];
+    BR_REPERF -> INJ [style=dashed]; INJ -> VBR [style=dashed];
+    BR_COMPL -> VBR [style=dotted]; VBR -> ICP;
+    S_GLUT4 -> BR_NKCC1 [style=dashed];
+  }
+
+  /* ---------------- 16. TREATMENT -------------------------------------- */
+  subgraph cluster_rx {
+    label = "16. Treatment inputs";
+    style = "filled"; color = "#e8f4fb"; fontsize = 13; fontcolor = "#0f5d85";
+    node [shape=diamond, fillcolor="#a9d8f0"];
+    RX_NS   [label="0.9% NaCl\nSID 0 -> hyperchloraemic\nacidosis by construction"];
+    RX_HALF [label="0.45% NaCl\n(once corrected Na is high)"];
+    RX_BAL  [label="Plasma-Lyte 148 /\nRinger's acetate\nSID ~50 after metabolism"];
+    RX_LR   [label="Ringer's lactate\n(raises MEASURED lactate)"];
+    RX_DEX  [label="Dextrose (two-bag)\nstarted at glucose < 250 mg/dL"];
+    RX_KCL  [label="KCl 20-40 mmol/L"];
+    RX_PO4  [label="K phosphate\n(restricted indications)"];
+    RX_BIC  [label="NaHCO3\n(pH < 6.9 only, and the\nmodel finds little for it)"];
+    RX_TRANS[label="Transition:\nbasal s.c. insulin 2 h\nBEFORE stopping the drip"];
+    ORGA    [label="ORGA\nunmetabolised acetate,\ngluconate (transient anion)", shape=box, fillcolor="#c5e5f5"];
+    RX_NS -> NAE; RX_HALF -> NAE; RX_BAL -> ORGA; RX_LR -> LAC;
+    RX_BAL -> NAE; RX_DEX -> GLU; RX_KCL -> KE; RX_PO4 -> PHOSE;
+    RX_BIC -> SID [label="Na+ without\na strong anion"];
+    ORGA -> SID [style=dotted, label="anion until\nmetabolised"];
+    ORGA -> HCO3_residual [style=bold, color="#1d6b3a", label="then base"];
+    RX_TRANS -> INSSC;
+  }
+
+  /* ---------------- 17. MONITORING ------------------------------------- */
+  subgraph cluster_mon {
+    label = "17. What we measure, and how each measurement misleads";
+    style = "filled"; color = "#fbf7e8"; fontsize = 13; fontcolor = "#7a6a15";
+    node [shape=hexagon, fillcolor="#f0e6b8"];
+    M_GLU  [label="Capillary glucose\n(fast, least informative)"];
+    M_BHB  [label="Point-of-care BHB\n(the actual disease)"];
+    M_AG   [label="Anion gap\n(robust: no cancellation)"];
+    M_HCO3 [label="Bicarbonate\n(ill-conditioned once\nchloride is infused)"];
+    M_PH   [label="pH, base excess"];
+    M_OSM  [label="Effective osmolality"];
+    M_ETCO2[label="End-tidal CO2\n(paediatric triage)"];
+    node [shape=note, fillcolor="#f7f1d4"];
+    X_NITRO [label="Nitroprusside strip detects\nAcAc + acetone, NOT BHB:\nreads WORSE as redox normalises"];
+    X_JAFFE [label="Acetoacetate cross-reacts in\nthe alkaline-picrate creatinine\nassay: falsely high creatinine"];
+    X_NA    [label="Measured Na is diluted by\nhyperglycaemia: use corrected Na\nto judge the water deficit"];
+    X_ACET  [label="Acetone persists for days:\npositive strips and ketotic breath\nafter the disease has gone"];
+    X_LRLAC [label="Ringer's lactate raises measured\nlactate without tissue hypoxia"];
+    GLU -> M_GLU; BHB -> M_BHB; HCO3_residual -> M_HCO3; HCO3_residual -> M_AG;
+    A_HH -> M_PH; OSM -> M_OSM; PCO2 -> M_ETCO2;
+    ACAC -> X_NITRO; ACET -> X_NITRO; REDOX -> X_NITRO [style=dashed];
+    ACAC -> X_JAFFE; CREA -> X_JAFFE; V_NACORR -> X_NA; ACET -> X_ACET; LAC -> X_LRLAC;
+  }
+
+  /* ---------------- 18. OUTCOMES --------------------------------------- */
+  subgraph cluster_out {
+    label = "18. Clinical endpoints and iatrogenic complications";
+    style = "filled"; color = "#fdeaea"; fontsize = 13; fontcolor = "#8b1a1a";
+    node [shape=hexagon, fillcolor="#f4bcbc"];
+    E_POLY  [label="Polyuria, polydipsia,\nweight loss"];
+    E_KUSS  [label="Kussmaul breathing,\nketotic breath"];
+    E_ABDO  [label="Abdominal pain,\nvomiting (pseudo-peritonitis)"];
+    E_MENT  [label="Obtundation -> coma\n(GCS from osmolality,\npH and brain volume)"];
+    E_SHOCK [label="Hypovolaemic shock,\nlactic acidosis"];
+    node [shape=octagon, fillcolor="#ef9a9a"];
+    O_EDEMA [label="Cerebral oedema\n(0.5-1% of paediatric DKA,\n20-25% mortality)"];
+    O_ARRHY [label="Arrhythmia\n(K+, Mg2+, phosphate)"];
+    O_AKI   [label="Acute kidney injury"];
+    O_VTE   [label="Venous thromboembolism\n(hyperosmolar, hyperviscous)"];
+    O_ARDS  [label="ARDS / pulmonary oedema"];
+    O_DEATH [label="Death\nDKA <1%, HHS 5-20%"];
+    node [shape=octagon, fillcolor="#f7c8a0"];
+    I_HYPO  [label="Iatrogenic hypoglycaemia"];
+    I_HYPOK [label="Iatrogenic hypokalaemia"];
+    I_HYPERCL[label="Iatrogenic hyperchloraemic\nacidosis (Cl- 99 -> 110)"];
+    I_REBOUND[label="Rebound ketosis after\npremature insulin withdrawal"];
+    R_UV -> E_POLY; V_THIRST -> E_POLY; A_KUSS -> E_KUSS; ACET -> E_KUSS;
+    V_VOMIT -> E_ABDO; KETAN -> E_ABDO;
+    OSM -> E_MENT; A_HH -> E_MENT; VBR -> E_MENT;
+    VECF -> E_SHOCK [style=dotted]; LAC -> E_SHOCK;
+    VBR -> O_EDEMA; ICP -> O_EDEMA; INJ -> O_EDEMA;
+    K_ECG -> O_ARRHY; GFRR -> O_AKI [style=dotted]; OSM -> O_VTE;
+    RX_NS -> O_ARDS [style=dashed]; O_EDEMA -> O_DEATH; O_ARRHY -> O_DEATH;
+    E_SHOCK -> O_DEATH; O_AKI -> O_DEATH [style=dashed];
+    G_INS -> I_HYPO [style=dashed]; K_SET -> I_HYPOK [style=dashed];
+    RX_NS -> I_HYPERCL; R_KETNA -> I_HYPERCL;
+    RX_TRANS -> I_REBOUND [style=dotted]; KGEN -> I_REBOUND [style=dashed];
+  }
+
+  /* ---------------- 19. THE PHENOTYPE AXIS ----------------------------- */
+  subgraph cluster_pheno {
+    label = "19. One model, five phenotypes — set by two knobs";
+    style = "filled"; color = "#eeeeee"; fontsize = 13; fontcolor = "#333333";
+    node [shape=box, fillcolor="#dcdcdc"];
+    PH_DKA  [label="DKA\nBETA 0, water intact\nglucose 470, pH 7.13,\nBHB 15"];
+    PH_MIX  [label="Mixed DKA/HHS\nBETA 0.10, water 0.25"];
+    PH_HHS  [label="HHS\nBETA 0.22, water 0.06\nglucose 680, pH 7.38,\nBHB 3.0, osm 370"];
+    PH_EU   [label="Euglycaemic DKA\nSGLT2i: valve held OPEN\nglucose 293, gap 21"];
+    PH_AKA  [label="Alcoholic ketoacidosis\nREDOX 6: BHB:AcAc 17\nat a glucose of 184"];
+    BETA_MASS -> PH_DKA [style=dashed]; BETA_MASS -> PH_HHS [style=dashed];
+    V_THIRST -> PH_HHS [style=dashed]; T_sglt2 -> PH_EU [style=dashed];
+    REDOX -> PH_AKA [style=dashed]; T_etoh -> PH_AKA [style=dashed];
+    T_age -> PH_HHS [style=dashed]; B_PORTAL -> PH_HHS [style=dashed];
+    PH_MIX [style="filled,dashed"];
+  }
+
+  /* ---------------- CROSS-CLUSTER SPINE ------------------------------- */
+  KOX -> HCO3_residual [style=bold, color="#1d6b3a", penwidth=1.8,
+          label="each ketoanion oxidised\nREGENERATES one HCO3-"];
+  T_omit -> INSP [style=dotted, penwidth=2.0, label="the primary lesion"];
+  T_new  -> BETA_MASS [style=dotted];
+  T_lowcarb -> GLYCO [style=dotted];
+  T_etoh -> REDOX [style=dashed, penwidth=1.8];
+  T_etoh -> H_GNG [style=dotted];
+  T_preg -> KGEN [style=dashed, label="accelerated starvation,\nlower buffer reserve"];
+  T_ckd -> GFRR [style=dotted];
+  T_age -> V_THIRST [style=dotted];
+  INSP -> B_SEC [style=dotted];
+  GLU  -> B_GLUT2 [style=dashed];
+  A_HH -> B_ACIDSUP [style=dashed];
+  GLU  -> B_GLUCOTOX [style=dashed];
+  INSEF -> CR_ALPHA [style=dotted];
+  FFA -> CR_RANDLE [style=dashed];
+  A_HH -> IR [style=dashed, label="acidosis itself\ncauses resistance"];
+  KGEN -> KETAN;
+
+  /* ---- THE TWO FEEDBACK LOOPS, drawn heavy ---- */
+  GLU -> R_OSMDIU [style=bold, color="#b8860b", penwidth=2.2,
+                   label="LOOP 1 (positive):\nglucose -> osmotic diuresis"];
+  R_OSMDIU -> VECF [style=bold, color="#b8860b", penwidth=2.2, arrowhead=tee];
+  VECF -> GFRR [style=bold, color="#b8860b", penwidth=2.2];
+  GFRR -> R_UGLU [style=bold, color="#b8860b", penwidth=2.2,
+                  label="the ESCAPE VALVE:\nits conductance IS the ECF volume"];
+  R_UGLU -> GLU [style=bold, color="#b8860b", penwidth=2.2, arrowhead=tee];
+
+  KETAN -> V_VOMIT [style=bold, color="#8b1a1a", penwidth=2.0,
+                    label="LOOP 2 (positive):\nketosis stops the patient drinking"];
+  V_VOMIT -> VECF [style=bold, color="#8b1a1a", penwidth=2.0, arrowhead=tee];
+  VECF -> CR_SNS [style=bold, color="#8b1a1a", penwidth=2.0];
+  CR_SNS -> F_ADRB [style=bold, color="#8b1a1a", penwidth=2.0];
+  LIP -> KGEN [style=bold, color="#8b1a1a", penwidth=2.0];
+
+  /* ---- the therapeutic levers, and which loop each one touches ---- */
+  RX_NS -> VECF [penwidth=2.0, color="#0f5d85", label="lever 1:\nreopens the valve"];
+  RX_IV -> PD_LIP [penwidth=2.0, color="#1d6b3a", label="lever 2:\ncloses the ketone tap"];
+
+  /* ---- legend ---- */
+  subgraph cluster_legend {
+    label = "Legend";
+    style = "filled"; color = "#ffffff"; fontsize = 12;
+    node [shape=plaintext, fillcolor="#ffffff"];
+    LEG [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="3">
+      <tr><td bgcolor="#eeeeee"><b>shape</b></td><td bgcolor="#eeeeee"><b>meaning</b></td>
+          <td bgcolor="#eeeeee"><b>edge</b></td><td bgcolor="#eeeeee"><b>meaning</b></td></tr>
+      <tr><td>box</td><td>state variable / compartment (an ODE)</td>
+          <td>solid</td><td>mass flow or activation</td></tr>
+      <tr><td>ellipse</td><td>flux or process (algebraic)</td>
+          <td>dashed</td><td>modulation</td></tr>
+      <tr><td>diamond</td><td>drug or intravenous fluid</td>
+          <td>dotted</td><td>inhibition / suppression</td></tr>
+      <tr><td>hexagon</td><td>measured read-out</td>
+          <td>bold gold</td><td>LOOP 1: the renal escape valve</td></tr>
+      <tr><td>octagon</td><td>clinical outcome</td>
+          <td>bold red</td><td>LOOP 2: ketosis closes oral intake</td></tr>
+      <tr><td>note</td><td>measurement artefact</td>
+          <td>bold green</td><td>bicarbonate regeneration</td></tr>
+    </table>>];
+  }
+}
