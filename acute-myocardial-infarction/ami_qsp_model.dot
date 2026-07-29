@@ -1,0 +1,787 @@
+/* ===========================================================================
+   Acute Myocardial Infarction (STEMI) — Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------------
+   Organising thesis of this map (and of the accompanying mrgsolve model):
+
+     An infarct is TWO RACES and ONE BIFURCATION.
+
+   RACE 1 (clusters 3–5, minutes to hours). A wavefront of necrosis crawls
+   from endocardium to epicardium. Its speed is set by how far residual
+   COLLATERAL flow falls short of BASAL metabolic demand — not of resting
+   demand. Tissue that can still pay its basal bill stops contracting and
+   survives indefinitely (hibernation); tissue that cannot, dies. The clock
+   this race runs against is time-to-reperfusion (clusters 1–2, 14).
+
+   RACE 2 (clusters 6–7, the first minutes of reflow). Ischemia leaves two
+   things behind: ACID, which holds the mitochondrial permeability transition
+   pore SHUT, and SUCCINATE, which becomes an oxidant burst the instant
+   oxygen returns. Restoring flow washes out the acid and ignites the
+   succinate at the same moment. Reperfusion is therefore simultaneously the
+   treatment and a second injury — which is why every arrow in cluster 6 is
+   drawn as a reperfusion-triggered arrow, not an ischemia-triggered one.
+
+   THE BIFURCATION (clusters 10–12, weeks to months). Laplace wall stress →
+   dilation → more wall stress is a POSITIVE loop. Concentric hypertrophy is
+   the NEGATIVE loop opposing it. Whether a given infarct settles into a
+   stable ventricle or runs away into heart failure is therefore a
+   BIFURCATION, not a dose. Every drug in cluster 14 that acts after day 1
+   acts by moving that separatrix, not by changing the infarct.
+
+   Read the map that way and the clinical facts fall out of it: the golden
+   hour is the shape of race 1, no-reflow is the positive feedback in
+   cluster 8, cardioprotection has a window of minutes because race 2 is
+   over in minutes, and guideline therapy works on a bifurcation rather
+   than on necrosis.
+
+   Layout: 16 subgraph clusters, >230 nodes, >350 edges.
+   Render:  dot -Tsvg ami_qsp_model.dot -o ami_qsp_model.svg
+            dot -Tpng -Gdpi=150 ami_qsp_model.dot -o ami_qsp_model.png
+   =========================================================================== */
+
+digraph AMI_QSP {
+    graph [ rankdir      = TB,
+            newrank      = true,
+            splines      = spline,
+            overlap      = false,
+            concentrate  = false,
+            compound     = true,
+            nodesep      = 0.28,
+            ranksep      = 0.55,
+            fontname     = "Helvetica,Arial,sans-serif",
+            fontsize     = 12,
+            labelloc     = "t",
+            label        = <<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+                            <TR><TD><FONT POINT-SIZE="40"><B>Acute Myocardial Infarction (STEMI) — QSP Mechanistic Map</B></FONT></TD></TR>
+                            <TR><TD><FONT POINT-SIZE="20">급성 심근경색 (ST상승 심근경색) · 정량적 시스템 약리학 지도</FONT></TD></TR>
+                            <TR><TD><FONT POINT-SIZE="16">관상동맥 혈전 · 관통벽 괴사 파면(wavefront) · 재관류 손상(mPTP · 숙신산 · pH 역설) · 미세혈관 폐색(no-reflow) ·<BR/>선천면역 치유 · 흉터 형성 · Laplace 벽응력 재형성 · 신경호르몬 축 · 항혈소판/섬유소용해/GDMT 약동–약력학</FONT></TD></TR>
+                            <TR><TD><FONT POINT-SIZE="15" COLOR="#8B0000"><B>Central claim: two races (wavefront vs. clock; acid washout vs. oxidant burst) and one bifurcation (wall stress ⇄ dilation).</B></FONT></TD></TR>
+                            </TABLE>>,
+            bgcolor      = "white" ];
+
+    node [ shape     = box,
+           style     = "rounded,filled",
+           fontname  = "Helvetica,Arial,sans-serif",
+           fontsize  = 11,
+           margin    = "0.10,0.055",
+           penwidth  = 1.1 ];
+
+    edge [ fontname  = "Helvetica,Arial,sans-serif",
+           fontsize  = 9,
+           penwidth  = 1.1,
+           arrowsize = 0.7,
+           color     = "#4a4a4a" ];
+
+    /* ---------- colour semantics ------------------------------------------
+       #DCE9F7 pale blue    drug / PK species / flow
+       #FBE3D6 pale orange  enzymes, channels & transporters
+       #F8D7DA pale red     injurious species / damage
+       #D8F0DC pale green   protective / adaptive / defence
+       #EDE0F5 pale purple  immune cells & cytokines
+       #FFF6C8 pale yellow  signalling nodes / second messengers
+       #E2E3E5 pale grey    structural / physiological state
+       #CFE7E4 pale teal    biomarkers
+       #FADCE8 pale pink    clinical endpoints
+       #FFE7B3 amber        therapeutics / interventions
+       ---------------------------------------------------------------------- */
+
+/* ==========================================================================
+   CLUSTER 1 — Plaque rupture and coronary thrombosis
+   ========================================================================== */
+subgraph cluster_plaque {
+    label = "1 · 죽상판 파열과 관상동맥 혈전 (Plaque Rupture & Coronary Thrombosis)";
+    fontsize = 18; fontcolor = "#7B241C"; style = "rounded,filled";
+    fillcolor = "#FDF3F2"; color = "#7B241C"; penwidth = 2;
+
+    PLAQUE   [label = "취약 죽상판\nVulnerable plaque\n얇은 섬유모(<65 µm) · 큰 지질핵", fillcolor = "#E2E3E5"];
+    MMPPL    [label = "판 내 MMP-1/8/9\nPlaque MMPs (대식세포)\n섬유모 콜라겐 분해", fillcolor = "#FBE3D6"];
+    RUPTURE  [label = "판 파열 (60–75%)\nPlaque rupture", fillcolor = "#F8D7DA", penwidth = 2.4];
+    EROSION  [label = "판 침식 (25–40%)\nPlaque erosion\n(젊은 여성·흡연 우세)", fillcolor = "#F8D7DA"];
+    TFEXP    [label = "조직인자 노출\nTissue factor (TF)\n지질핵 · 대식세포 유래", fillcolor = "#FBE3D6"];
+    COLEXP   [label = "내피하 콜라겐 노출\nSubendothelial collagen", fillcolor = "#F8D7DA"];
+    VWF      [label = "von Willebrand factor\n고전단 하 신전 → A1 노출", fillcolor = "#FBE3D6"];
+    GP1B     [label = "혈소판 부착\nGPIb-IX-V — VWF\nGPVI — collagen", fillcolor = "#FBE3D6"];
+    PLTACT   [label = "혈소판 활성화\nPlatelet activation\n모양 변화 · α/δ 과립 분비", fillcolor = "#F8D7DA", penwidth = 2.2];
+    TXA2     [label = "TXA₂ (COX-1)\nThromboxane A₂ → TP 수용체", fillcolor = "#FFF6C8"];
+    ADPP2Y   [label = "ADP → P2Y₁₂\nGi → cAMP↓ → 활성화 증폭", fillcolor = "#FFF6C8"];
+    GP2B3A   [label = "GPIIb/IIIa (αIIbβ3)\n최종 공통 응집 경로", fillcolor = "#FBE3D6", penwidth = 2.2];
+    XA       [label = "인자 Xa\nprothrombinase 복합체", fillcolor = "#FBE3D6"];
+    THROMBIN [label = "트롬빈 (IIa)\nThrombin — 최강 혈소판 작용제\n+ 피브리노겐 → 피브린", fillcolor = "#F8D7DA", penwidth = 2.4];
+    FIBRIN   [label = "피브린 그물\nCross-linked fibrin (FXIIIa)", fillcolor = "#F8D7DA"];
+    THROMBUS [label = "폐색성 적색 혈전\nOcclusive thrombus  THR\n(모델 상태변수)", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    TIMI     [label = "심외막 관류 등급\nEpicardial patency  PAT\nTIMI 0/1 → 2/3", fillcolor = "#DCE9F7", penwidth = 2.2];
+    REOCC    [label = "재폐색\nReocclusion (용해 후 5–15%)\n혈소판 재활성화가 원동력", fillcolor = "#F8D7DA"];
+    SPASM    [label = "관동맥 경련·미세혈전\nVasospasm · microthrombi", fillcolor = "#F8D7DA"];
+
+    PLAQUE -> MMPPL [style = dashed];
+    MMPPL -> RUPTURE [label = "섬유모 약화"];
+    PLAQUE -> RUPTURE; PLAQUE -> EROSION;
+    RUPTURE -> TFEXP; RUPTURE -> COLEXP; EROSION -> COLEXP;
+    COLEXP -> VWF [label = "고전단 신전"];
+    VWF -> GP1B; COLEXP -> GP1B [label = "GPVI"];
+    GP1B -> PLTACT;
+    PLTACT -> TXA2; PLTACT -> ADPP2Y;
+    TXA2 -> PLTACT [label = "자가증폭", color = "#B03A2E"];
+    ADPP2Y -> PLTACT [label = "자가증폭", color = "#B03A2E"];
+    PLTACT -> GP2B3A [label = "인테그린 활성화"];
+    TFEXP -> XA [label = "TF–VIIa"];
+    XA -> THROMBIN;
+    THROMBIN -> PLTACT [label = "PAR-1/4", color = "#B03A2E"];
+    THROMBIN -> FIBRIN;
+    GP2B3A -> THROMBUS [label = "응집"];
+    FIBRIN -> THROMBUS [label = "안정화"];
+    THROMBUS -> TIMI [label = "PAT = 1 − THR", arrowhead = tee, color = "#7B241C"];
+    PLTACT -> REOCC [style = dashed]; REOCC -> THROMBUS [color = "#B03A2E"];
+    SPASM -> TIMI [arrowhead = tee, style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 2 — Fibrinolytic system and the systemic bleeding cost
+   ========================================================================== */
+subgraph cluster_lysis {
+    label = "2 · 섬유소용해계와 전신 출혈 비용 (Fibrinolysis & Its Systemic Cost)";
+    fontsize = 18; fontcolor = "#154360"; style = "rounded,filled";
+    fillcolor = "#F2F8FD"; color = "#154360"; penwidth = 2;
+
+    PLG      [label = "플라스미노겐\nPlasminogen (PLG)\n혈장 + 피브린 결합", fillcolor = "#DCE9F7"];
+    TPAE     [label = "내인성 t-PA / u-PA\nEndogenous activators", fillcolor = "#D8F0DC"];
+    TNKC     [label = "테넥테플라제 혈중농도\nTenecteplase C_p\n2구획 · t½α ≈ 22 min", fillcolor = "#FFE7B3", penwidth = 2.2];
+    PLASMIN  [label = "플라스민\nPlasmin (PLN)\n활성 세린단백분해효소", fillcolor = "#FBE3D6", penwidth = 2.4];
+    A2AP     [label = "α₂-antiplasmin\n플라스민 급속 불활성화", fillcolor = "#D8F0DC"];
+    PAI1     [label = "PAI-1\n(IL-6 유도성 · 급성기 상승)", fillcolor = "#D8F0DC"];
+    TAFI     [label = "TAFI (CPU)\n피브린 리신 제거 → 용해 저항", fillcolor = "#D8F0DC"];
+    FDP      [label = "피브린 분해 → D-이합체\nFibrin degradation · D-dimer", fillcolor = "#CFE7E4"];
+    FIBGEN   [label = "혈중 피브리노겐\nFibrinogen (FIB)\n전신 고갈 = 출혈 위험", fillcolor = "#CFE7E4"];
+    PLTPLN   [label = "플라스민의 혈소판 활성화\nPlasmin activates platelets\n(용해제의 자기 상쇄)", fillcolor = "#F8D7DA", penwidth = 2.2];
+    BLEED    [label = "전신 출혈\nMajor bleeding", fillcolor = "#FADCE8"];
+    ICH      [label = "두개내 출혈\nIntracranial haemorrhage\n0.5–1.0% · 연령 의존", fillcolor = "#FADCE8", penwidth = 2.2];
+
+    TNKC -> PLASMIN [label = "PLG 활성화", color = "#B8860B", penwidth = 2];
+    TPAE -> PLASMIN; PLG -> PLASMIN;
+    PAI1 -> PLASMIN [label = "활성화 억제", arrowhead = tee, color = "#1E8449"];
+    A2AP -> PLASMIN [label = "즉시 중화", arrowhead = tee, color = "#1E8449"];
+    TAFI -> FDP [arrowhead = tee, style = dashed];
+    PLASMIN -> FDP; PLASMIN -> FIBGEN [label = "피브리노겐 분해", arrowhead = tee];
+    PLASMIN -> PLTPLN; PLTPLN -> PLTACT [color = "#B03A2E", label = "재폐색 기전"];
+    PLASMIN -> FIBRIN [label = "혈전 용해", arrowhead = tee, penwidth = 2, color = "#154360"];
+    PLASMIN -> BLEED [style = dashed]; FIBGEN -> BLEED [arrowhead = tee, style = dashed];
+    BLEED -> ICH [style = dashed];
+    PLG -> PLGDEPL;
+    PLGDEPL [label = "플라스미노겐 소모\nSystemic PLG depletion", fillcolor = "#CFE7E4"];
+    PLASMIN -> PLGDEPL [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 3 — Coronary flow, the collateral bed, and the transmural gradient
+   ========================================================================== */
+subgraph cluster_flow {
+    label = "3 · 관상동맥 혈류 · 부수혈관 · 관통벽 기울기 (Coronary Flow, Collaterals & the Transmural Gradient)";
+    fontsize = 18; fontcolor = "#0E6251"; style = "rounded,filled";
+    fillcolor = "#F0FAF7"; color = "#0E6251"; penwidth = 2;
+
+    QEPI     [label = "심외막 전방 혈류\nAntegrade flow ∝ PAT", fillcolor = "#DCE9F7", penwidth = 2.2];
+    COLLBED  [label = "부수혈관 상\nCollateral bed  COLL\n(정상 혈류의 2–30%)", fillcolor = "#D8F0DC", penwidth = 2.4];
+    RENTRY   [label = "부수혈관 즉시 동원\nInstantaneous recruitment\n(압력 구배 의존)", fillcolor = "#D8F0DC"];
+    ARTGEN   [label = "혈관신생/동맥생성\nArteriogenesis (수일–수주)\nHIF-1α → VEGF · FGF · MCP-1", fillcolor = "#D8F0DC"];
+    PRECOND  [label = "허혈 전조 (경색전 협심증)\nIschemic preconditioning\nKATP · PKCε · mPTP 저항성↑", fillcolor = "#D8F0DC", penwidth = 2.2];
+    TMGRAD   [label = "관통벽 부수혈류 기울기\nTransmural collateral gradient\nGC = (심내막 → 심외막)", fillcolor = "#E2E3E5", penwidth = 3, shape = box3d];
+    L1       [label = "L1 심내막하층\nSubendocardium\n최저 혈류 · 최고 벽응력", fillcolor = "#F8D7DA"];
+    L2       [label = "L2 심내막–중간\nInner midwall", fillcolor = "#F8D7DA"];
+    L3       [label = "L3 중간벽\nMidwall", fillcolor = "#E2E3E5"];
+    L4       [label = "L4 중간–심외막\nOuter midwall", fillcolor = "#E2E3E5"];
+    L5       [label = "L5 심외막하층\nSubepicardium\n생존 테두리(rim)", fillcolor = "#D8F0DC"];
+    CFR      [label = "관류 예비능\nCoronary flow reserve\n미세혈관 저항 IMR", fillcolor = "#DCE9F7"];
+    AAR      [label = "위험 영역\nArea at risk  AAR (%LV)\n= 폐색 부위의 지배 영역", fillcolor = "#E2E3E5", penwidth = 2.4];
+
+    TIMI -> QEPI [label = "PAT"];
+    COLLBED -> RENTRY; RENTRY -> TMGRAD;
+    ARTGEN -> COLLBED [label = "만성 적응", style = dashed];
+    TMGRAD -> L1 [label = "×0.05"]; TMGRAD -> L2 [label = "×0.35"];
+    TMGRAD -> L3 [label = "×0.75"]; TMGRAD -> L4 [label = "×1.35"];
+    TMGRAD -> L5 [label = "×2.50"];
+    QEPI -> L1; QEPI -> L2; QEPI -> L3; QEPI -> L4; QEPI -> L5;
+    CFR -> QEPI [style = dashed];
+    AAR -> TMGRAD [label = "층 질량 가중", style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 4 — Myocyte energetics: the supply-versus-BASAL-demand balance
+   ========================================================================== */
+subgraph cluster_energy {
+    label = "4 · 심근 에너지 대사 — 공급 대 기초요구 (Energetics: Supply vs BASAL Demand)";
+    fontsize = 18; fontcolor = "#7D6608"; style = "rounded,filled";
+    fillcolor = "#FEFCF0"; color = "#7D6608"; penwidth = 2;
+
+    O2DEL    [label = "산소 공급\nO₂ delivery = flow × CaO₂", fillcolor = "#DCE9F7"];
+    OXPHOS   [label = "산화적 인산화\nOxidative phosphorylation\nFFA(60–70%) · 젖산 · 포도당", fillcolor = "#FBE3D6"];
+    ATP      [label = "에너지 충전도\nEnergy charge  E\n(ATP/PCr 복합 상태)", fillcolor = "#FFF6C8", penwidth = 3, shape = box3d];
+    PCR      [label = "크레아틴 인산 완충\nPCr / CK 셔틀\n(수초–수분 완충)", fillcolor = "#D8F0DC"];
+    DEMAND   [label = "심근 산소 요구\nMVO₂ ∝ 심박수 × 수축기압\n(rate–pressure product)", fillcolor = "#E2E3E5", penwidth = 2.2];
+    BASAL    [label = "기초 대사 요구\nBASAL demand ≈ 0.20 × MVO₂\n(비수축성 · 이온 항상성)", fillcolor = "#E2E3E5", penwidth = 3];
+    AFFORD   [label = "감당 가능한 수축\nAffordable contraction  CF\n= (공급/요구 − 기초)/(1 − 기초)", fillcolor = "#FFF6C8", penwidth = 2.4];
+    HIBERN   [label = "동면 심근\nHibernating myocardium\n무운동이지만 생존", fillcolor = "#D8F0DC", penwidth = 2.4];
+    GLYCOGEN [label = "글리코겐 저장\nGlycogen store  G\n(수 시간 내 고갈)", fillcolor = "#D8F0DC"];
+    ANAERO   [label = "혐기 해당\nAnaerobic glycolysis\n≤ 18% 요구 충족", fillcolor = "#D8F0DC", penwidth = 2.2];
+    LACTATE  [label = "젖산 · H⁺ 축적\nLactate + H⁺  →  H", fillcolor = "#F8D7DA", penwidth = 2.4];
+    PRODINH  [label = "산물 억제\nProduct inhibition (PFK, GAPDH)\nH⁺ 자체가 해당을 멈춘다", fillcolor = "#F8D7DA", penwidth = 2.2];
+    WASHOUT  [label = "H⁺ 세척 제거\nH⁺ washout — 혈류에만 의존\n(허혈 중 = 0)", fillcolor = "#DCE9F7", penwidth = 2.4];
+    AMPK     [label = "AMPK 활성화\nAMP/ATP↑ → GLUT4 · CD36", fillcolor = "#FFF6C8"];
+    ADENO    [label = "아데노신 축적\nAdenosine → A1/A2 수용체\n혈관확장 · 전조 매개", fillcolor = "#D8F0DC"];
+    NAKATP   [label = "Na⁺/K⁺-ATPase 실패\nPump failure → K⁺ 유출", fillcolor = "#F8D7DA"];
+    DEFICIT  [label = "에너지 결손\nDeficit = BASAL − Supply\n(0 이하면 조직은 생존)", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+
+    L1 -> O2DEL; L2 -> O2DEL; L3 -> O2DEL; L4 -> O2DEL; L5 -> O2DEL;
+    O2DEL -> OXPHOS; OXPHOS -> ATP;
+    PCR -> ATP [label = "즉시 완충", style = dashed];
+    DEMAND -> BASAL [label = "×0.20"];
+    DEMAND -> AFFORD [arrowhead = tee];
+    O2DEL -> AFFORD; ANAERO -> AFFORD;
+    AFFORD -> HIBERN [label = "CF → 0, E 유지"];
+    GLYCOGEN -> ANAERO; ANAERO -> LACTATE; ANAERO -> ATP [style = dashed];
+    ANAERO -> GLYCOGEN [label = "소모", arrowhead = tee];
+    LACTATE -> PRODINH; PRODINH -> ANAERO [label = "해당 정지", arrowhead = tee, color = "#B03A2E", penwidth = 2];
+    WASHOUT -> LACTATE [label = "혈류 있으면 제거", arrowhead = tee, color = "#154360", penwidth = 2];
+    QEPI -> WASHOUT [label = "재관류가 세척을 가능하게 함", color = "#154360"];
+    ATP -> AMPK [arrowhead = tee]; AMPK -> ANAERO [style = dashed];
+    ATP -> ADENO [arrowhead = tee]; ADENO -> COLLBED [label = "혈관확장", style = dashed];
+    ATP -> NAKATP [arrowhead = tee];
+    BASAL -> DEFICIT; O2DEL -> DEFICIT [arrowhead = tee]; ANAERO -> DEFICIT [arrowhead = tee];
+    DEFICIT -> ATP [label = "E 하강 (KE × deficit)", arrowhead = tee, color = "#B03A2E", penwidth = 2.4];
+}
+
+/* ==========================================================================
+   CLUSTER 5 — Ionic derangement, calcium overload and contracture
+   ========================================================================== */
+subgraph cluster_calcium {
+    label = "5 · 이온 교란 · 칼슘 과부하 · 수축경직 (Ionic Derangement, Ca²⁺ Overload & Contracture)";
+    fontsize = 18; fontcolor = "#6C3483"; style = "rounded,filled";
+    fillcolor = "#F9F4FC"; color = "#6C3483"; penwidth = 2;
+
+    NHE1     [label = "NHE-1 (Na⁺/H⁺ 교환체)\n세포내 산성화가 구동", fillcolor = "#FBE3D6", penwidth = 2.2];
+    NAI      [label = "세포내 Na⁺ 과부하\nIntracellular Na⁺↑", fillcolor = "#F8D7DA"];
+    NCXREV   [label = "NCX 역방향 작동\nReverse-mode Na⁺/Ca²⁺ exchange\nNa⁺ 배출 = Ca²⁺ 유입", fillcolor = "#FBE3D6", penwidth = 2.4];
+    SERCA    [label = "SERCA2a 기능부전\nATP 의존 SR Ca²⁺ 재흡수 실패", fillcolor = "#FBE3D6"];
+    RYR2     [label = "RyR2 누출\nOxidised/hyperphosphorylated RyR2", fillcolor = "#FBE3D6"];
+    CAI      [label = "세포질·미토콘드리아 Ca²⁺\nCa²⁺ load  C", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    MCU      [label = "미토콘드리아 Ca²⁺ 유입기\nMCU — matrix Ca²⁺↑", fillcolor = "#FBE3D6"];
+    CALPAIN  [label = "칼페인 활성화\nCalpain → 세포골격 분해\n(α-fodrin · 디스트로핀)", fillcolor = "#F8D7DA"];
+    CONTRACT [label = "과수축 경직\nHypercontracture (재관류 시)\nRigor → 근섬유막 파열", fillcolor = "#F8D7DA", penwidth = 2.2];
+    OSMOT    [label = "삼투 팽윤\nOsmotic load (젖산·아미노산)\n세포 팽창", fillcolor = "#F8D7DA"];
+    KATP     [label = "K_ATP 채널 개방\nATP↓ → K⁺ 유출\n활동전위 단축", fillcolor = "#FBE3D6"];
+    KEFFLUX  [label = "세포외 K⁺ 축적\nExtracellular K⁺↑ → 부분탈분극", fillcolor = "#F8D7DA"];
+    GAPJ     [label = "간극연접 폐쇄\nCx43 dephosphorylation\n전도 지연", fillcolor = "#E2E3E5"];
+
+    LACTATE -> NHE1 [label = "산성화 구동", penwidth = 2];
+    NHE1 -> NAI; NAI -> NCXREV; NCXREV -> CAI [penwidth = 2.4, color = "#B03A2E"];
+    WASHOUT -> NHE1 [label = "세척 = pH 급회복 → NHE 폭주", color = "#B03A2E", style = dashed];
+    ATP -> SERCA [arrowhead = tee]; SERCA -> CAI [label = "재흡수 실패"];
+    RYR2 -> CAI; ATP -> NCXREV [arrowhead = tee, style = dashed];
+    CAI -> MCU; CAI -> CALPAIN; CAI -> CONTRACT;
+    CALPAIN -> CONTRACT [style = dashed];
+    LACTATE -> OSMOT; OSMOT -> CONTRACT [style = dashed];
+    ATP -> KATP [arrowhead = tee]; KATP -> KEFFLUX; NAKATP -> KEFFLUX;
+    LACTATE -> GAPJ [style = dashed];
+    KATP -> PRECOND [label = "미토 K_ATP = 보호", style = dashed, color = "#1E8449"];
+}
+
+/* ==========================================================================
+   CLUSTER 6 — Mitochondria and reperfusion injury: succinate, ROS, mPTP
+   ========================================================================== */
+subgraph cluster_mito {
+    label = "6 · 미토콘드리아와 재관류 손상 — 숙신산 · ROS · mPTP (Reperfusion Injury)";
+    fontsize = 18; fontcolor = "#922B21"; style = "rounded,filled";
+    fillcolor = "#FDF2F1"; color = "#922B21"; penwidth = 2;
+
+    SUCACC   [label = "숙신산 축적\nSuccinate accumulation  SUC\n(허혈 중 역방향 SDH)", fillcolor = "#F8D7DA", penwidth = 2.4];
+    REOX     [label = "재산소화\nReoxygenation (O₂ 복귀)", fillcolor = "#DCE9F7", penwidth = 2.4];
+    SDHOX    [label = "숙신산 급속 산화\nSDH burns SUC in seconds", fillcolor = "#FBE3D6", penwidth = 2.2];
+    RET      [label = "역전자전달\nReverse electron transport\nComplex I ← ubiquinol pool", fillcolor = "#F8D7DA", penwidth = 2.4];
+    ROS      [label = "산화제 폭발\nOxidant burst  ROS\nO₂•⁻ · H₂O₂ · •OH", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    NOX2     [label = "NOX2 (백혈구 NADPH oxidase)\n후기 ROS 공급원", fillcolor = "#FBE3D6"];
+    XO       [label = "잔틴 산화효소\nXanthine oxidase (히포잔틴 기질)", fillcolor = "#FBE3D6"];
+    ENOSUNC  [label = "eNOS 탈짝지음\nUncoupled eNOS → O₂•⁻\nBH₄ 고갈", fillcolor = "#F8D7DA"];
+    ONOO     [label = "퍼옥시나이트라이트\nONOO⁻ → 단백 니트로화", fillcolor = "#F8D7DA"];
+    CLPEROX  [label = "카디오리핀 과산화\nCardiolipin peroxidation\n→ 시토크롬 c 유리", fillcolor = "#F8D7DA"];
+    PHGATE   [label = "산성 관문\nAcid gate = 1/(1 + H/HP50)\n산성은 공극을 닫아 둔다", fillcolor = "#D8F0DC", penwidth = 3, shape = box3d];
+    PHPARA   [label = "pH 역설\npH paradox — 세척이 보호를 앗아간다\n(치료가 곧 두 번째 타격)", fillcolor = "#F8D7DA", penwidth = 3];
+    CYPD     [label = "Cyclophilin D (PPIF)\nmPTP 조립 감수성 인자", fillcolor = "#FBE3D6"];
+    MPTP     [label = "mPTP 개방\nPermeability transition pore  P\nCa²⁺ × ROS × (열린 관문)", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    DPSI     [label = "ΔΨm 붕괴\nMembrane potential collapse\nATP 합성 정지 · 팽윤", fillcolor = "#F8D7DA"];
+    CYTC     [label = "시토크롬 c 유출\nCytochrome c release", fillcolor = "#F8D7DA"];
+    RISK     [label = "RISK 경로\nPI3K–Akt–eNOS–GSK3β 억제\n(생존 신호)", fillcolor = "#D8F0DC", penwidth = 2.2];
+    SAFE     [label = "SAFE 경로\nTNF–JAK–STAT3\n(생존 신호)", fillcolor = "#D8F0DC"];
+    PKG      [label = "cGMP–PKG–PKCε\n미토 K_ATP 개방 → mPTP 저항", fillcolor = "#D8F0DC"];
+
+    ATP -> SUCACC [arrowhead = tee, style = dashed];
+    ANAERO -> SUCACC [label = "혐기 대사 부산물", penwidth = 2];
+    QEPI -> REOX [label = "재관류", penwidth = 2.4, color = "#154360"];
+    REOX -> SDHOX; SUCACC -> SDHOX [penwidth = 2.2];
+    SDHOX -> RET; RET -> ROS [penwidth = 2.4, color = "#B03A2E"];
+    NOX2 -> ROS; XO -> ROS; ENOSUNC -> ROS; ENOSUNC -> ONOO; ROS -> ONOO;
+    ROS -> CLPEROX; CLPEROX -> CYTC;
+    LACTATE -> PHGATE [label = "H⁺ → 관문 닫힘", color = "#1E8449", penwidth = 2.4];
+    WASHOUT -> PHPARA [penwidth = 2.4, color = "#B03A2E"];
+    PHPARA -> PHGATE [label = "관문 열림", arrowhead = tee, color = "#B03A2E", penwidth = 2.4];
+    PHGATE -> MPTP [label = "허용 조건", color = "#922B21", penwidth = 2.4];
+    CAI -> MPTP [penwidth = 2.4]; ROS -> MPTP [penwidth = 2.4]; CYPD -> MPTP;
+    MCU -> MPTP [style = dashed];
+    MPTP -> DPSI; DPSI -> ATP [arrowhead = tee, color = "#B03A2E"];
+    MPTP -> CYTC [style = dashed];
+    RISK -> MPTP [arrowhead = tee, color = "#1E8449", penwidth = 2];
+    SAFE -> MPTP [arrowhead = tee, color = "#1E8449"];
+    PKG -> MPTP [arrowhead = tee, color = "#1E8449"];
+    PRECOND -> PKG [color = "#1E8449"]; PRECOND -> RISK [color = "#1E8449"];
+    ADENO -> RISK [style = dashed, color = "#1E8449"];
+}
+
+/* ==========================================================================
+   CLUSTER 7 — Modes of cell death and the release of biomarkers
+   ========================================================================== */
+subgraph cluster_death {
+    label = "7 · 세포사 양식과 표지자 유리 (Modes of Cell Death & Biomarker Release)";
+    fontsize = 18; fontcolor = "#4A235A"; style = "rounded,filled";
+    fillcolor = "#F7F2FA"; color = "#4A235A"; penwidth = 2;
+
+    NECISCH  [label = "허혈성 괴사\nIschemic necrosis  NI\n= f((1 − E)⁴ × (1 + H))", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    NECREP   [label = "재관류성 괴사\nReperfusion necrosis  NR\n= f(mPTP 개방)", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    SARCRUP  [label = "근섬유막 파열\nSarcolemmal rupture (oncosis)\n비가역성의 정의적 사건", fillcolor = "#F8D7DA", penwidth = 2.4];
+    APOP     [label = "세포자멸사\nApoptosis — cyt c · caspase-9/3\n(경계 영역 우세)", fillcolor = "#F8D7DA"];
+    NECROPT  [label = "네크롭토시스\nNecroptosis — RIPK1/RIPK3–MLKL", fillcolor = "#F8D7DA"];
+    FERRO    [label = "페로프토시스\nFerroptosis — GPX4↓ · ACSL4↑\n지질 과산화 · 철 방출", fillcolor = "#F8D7DA"];
+    AUTOPH   [label = "자가포식\nAutophagy (초기 보호 · 후기 유해)", fillcolor = "#D8F0DC"];
+    WAVEFRONT[label = "괴사 파면\nWavefront of necrosis\n심내막 → 심외막 진행", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    ISLV     [label = "경색 크기\nInfarct size  IS (%LV)\n= AAR × Σ wᵢ(NIᵢ + NRᵢ)", fillcolor = "#FADCE8", penwidth = 3, shape = box3d];
+    SALVAGE  [label = "구제 지수\nMyocardial salvage index\n= (AAR − IS)/AAR", fillcolor = "#FADCE8", penwidth = 2.4];
+    TNIREL   [label = "cTnI 유리\ncTnI release ∝ d(necrosis)/dt × 혈류\n(세척이 필요하다)", fillcolor = "#CFE7E4", penwidth = 2.4];
+    CKMBREL  [label = "CK-MB 유리\nCK-MB (t½ ≈ 12 h) — 조기 정점", fillcolor = "#CFE7E4"];
+    WASHPHEN [label = "세척 현상\nWashout phenomenon\n재관류 = 조기·고봉 표지자", fillcolor = "#CFE7E4", penwidth = 2.2];
+    STUN     [label = "심근 기절\nStunning  STUN\n가역적 수축 부전 (수일–수주)", fillcolor = "#E2E3E5", penwidth = 2.4];
+
+    ATP -> NECISCH [arrowhead = tee, penwidth = 2.4, color = "#B03A2E"];
+    LACTATE -> NECISCH [label = "삼투·경직 가속", style = dashed];
+    MPTP -> NECREP [penwidth = 2.4, color = "#B03A2E"];
+    NECISCH -> SARCRUP; NECREP -> SARCRUP; CONTRACT -> SARCRUP [penwidth = 2];
+    CYTC -> APOP; ROS -> NECROPT [style = dashed]; ROS -> FERRO [style = dashed];
+    ATP -> AUTOPH [arrowhead = tee, style = dashed];
+    TMGRAD -> WAVEFRONT [label = "층별 사망 시각을 결정", penwidth = 2.4, color = "#0E6251"];
+    NECISCH -> WAVEFRONT; NECREP -> WAVEFRONT;
+    WAVEFRONT -> ISLV [penwidth = 2.4]; ISLV -> SALVAGE [arrowhead = tee];
+    AAR -> SALVAGE [style = dashed];
+    SARCRUP -> TNIREL; SARCRUP -> CKMBREL;
+    QEPI -> TNIREL [label = "유리에는 혈류가 필요", color = "#154360", style = dashed];
+    QEPI -> WASHPHEN [color = "#154360"]; WASHPHEN -> CKMBREL [style = dashed];
+    ROS -> STUN [penwidth = 2]; CAI -> STUN [penwidth = 2];
+}
+
+/* ==========================================================================
+   CLUSTER 8 — Microvascular obstruction (no-reflow) and its positive feedback
+   ========================================================================== */
+subgraph cluster_mvo {
+    label = "8 · 미세혈관 폐색 (No-Reflow) 과 그 정귀환 (Microvascular Obstruction)";
+    fontsize = 18; fontcolor = "#7E5109"; style = "rounded,filled";
+    fillcolor = "#FEF9EF"; color = "#7E5109"; penwidth = 2;
+
+    ENDOSW   [label = "내피세포 팽윤\nEndothelial swelling & blebs\n(에너지 실패 → 이온펌프 정지)", fillcolor = "#F8D7DA", penwidth = 2.2];
+    PMNPLUG  [label = "백혈구 마개\nNeutrophil capillary plugging\n강성 세포 + 접착", fillcolor = "#EDE0F5"];
+    PLTMICRO [label = "혈소판 미세혈전\nPlatelet–fibrin microthrombi", fillcolor = "#F8D7DA"];
+    EMBOL    [label = "원위 죽상혈전 색전\nDistal embolisation\n∝ 근위 혈전 제거 속도", fillcolor = "#F8D7DA", penwidth = 2.2];
+    IMH      [label = "심근내 출혈\nIntramyocardial haemorrhage\n(적혈구 유출 · 철 침착)", fillcolor = "#F8D7DA"];
+    EDEMA    [label = "간질 부종\nInterstitial oedema → 외부 압박", fillcolor = "#F8D7DA"];
+    MVO      [label = "미세혈관 폐색\nMVO / no-reflow  MVO (%LV)\n느린 해소(수주)", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    NOREFLOW [label = "정귀환 고리\nNo-reflow perpetuates ischemia\nMVO → 혈류↓ → MVO↑", fillcolor = "#F8D7DA", penwidth = 3];
+    IMRN     [label = "미세혈관 저항 지수\nIndex of microcirculatory resistance\nIMR > 40 U", fillcolor = "#CFE7E4"];
+    TMPG     [label = "심근 관류 등급\nTIMI myocardial perfusion grade\nMBG 0–1 = 불량 재관류", fillcolor = "#CFE7E4"];
+    STRES    [label = "ST 분절 해소\nST-segment resolution < 50%\n= 조직 수준 재관류 실패", fillcolor = "#CFE7E4", penwidth = 2.2];
+
+    ATP -> ENDOSW [arrowhead = tee, penwidth = 2];
+    PLTACT -> PLTMICRO;
+    THROMBUS -> EMBOL [label = "용해·압착 속도", style = dashed];
+    ROS -> IMH [style = dashed]; MVO -> IMH [style = dashed];
+    ROS -> EDEMA [style = dashed];
+    ENDOSW -> MVO [penwidth = 2.4]; PMNPLUG -> MVO; PLTMICRO -> MVO;
+    EMBOL -> MVO [penwidth = 2]; EDEMA -> MVO; IMH -> MVO [style = dashed];
+    MVO -> NOREFLOW; NOREFLOW -> QEPI [label = "유효 혈류 감소", arrowhead = tee, color = "#B03A2E", penwidth = 2.4];
+    MVO -> IMRN [style = dashed]; MVO -> TMPG [style = dashed]; MVO -> STRES [style = dashed];
+    MVO -> NECISCH [label = "허혈 지속", style = dashed, color = "#B03A2E"];
+}
+
+/* ==========================================================================
+   CLUSTER 9 — Innate immunity: the inflammatory-then-reparative programme
+   ========================================================================== */
+subgraph cluster_inflam {
+    label = "9 · 선천면역 — 염증 후 수복 프로그램 (Innate Immunity: Inflammatory → Reparative)";
+    fontsize = 18; fontcolor = "#5B2C6F"; style = "rounded,filled";
+    fillcolor = "#F8F3FB"; color = "#5B2C6F"; penwidth = 2;
+
+    DAMPS    [label = "위험 신호 (DAMPs)\nHMGB1 · HSP60/70 · mtDNA · ATP · IL-1α", fillcolor = "#F8D7DA", penwidth = 2.4];
+    TLR      [label = "TLR2 / TLR4 · RAGE\nMyD88 → NF-κB", fillcolor = "#FBE3D6"];
+    NLRP3    [label = "NLRP3 인플라마솜\nNLRP3–ASC–caspase-1\n(K⁺ 유출 · ROS · 리소좀 손상)", fillcolor = "#FBE3D6", penwidth = 2.4];
+    IL1B     [label = "IL-1β\n중심 전염증 사이토카인", fillcolor = "#EDE0F5", penwidth = 3, shape = box3d];
+    IL18     [label = "IL-18", fillcolor = "#EDE0F5"];
+    IL6      [label = "IL-6\n→ 간 급성기 반응", fillcolor = "#EDE0F5", penwidth = 2.2];
+    TNFA     [label = "TNF-α\n음성 수축력 · 세포자멸 촉진", fillcolor = "#EDE0F5"];
+    CXCL8    [label = "CXCL8 · CCL2(MCP-1)\n주화성 구배", fillcolor = "#EDE0F5"];
+    COMPL    [label = "보체 활성화\nC3a · C5a · MAC\n(허혈 신항원)", fillcolor = "#EDE0F5"];
+    NEUINF   [label = "호중구 유입\nNeutrophils  NEU\n(day 0–3, 혈류 의존적 배달)", fillcolor = "#EDE0F5", penwidth = 2.4];
+    MPO      [label = "MPO · NET 형성\nNETs → 미세혈관 손상", fillcolor = "#F8D7DA"];
+    MONO1    [label = "M1 대식세포 / Ly6Cʰⁱ 단핵구\nCCR2⁺ · 소화(digestive) 국면", fillcolor = "#EDE0F5", penwidth = 2.2];
+    MONO2    [label = "M2 대식세포 / Ly6Cˡᵒ\n수복(reparative) 국면 · day 3–7", fillcolor = "#D8F0DC", penwidth = 2.4];
+    SWITCH   [label = "M1 → M2 전환\n사멸 호중구 포식(efferocytosis)이 방아쇠", fillcolor = "#D8F0DC", penwidth = 2.4];
+    IL10     [label = "IL-10 · TGF-β\n항염 · 수복 신호", fillcolor = "#D8F0DC"];
+    TREG     [label = "조절 T세포 (Treg)\n염증 종료 · 흉터 질 개선", fillcolor = "#D8F0DC"];
+    CRPN     [label = "CRP · 백혈구 수\nAcute-phase biomarkers", fillcolor = "#CFE7E4"];
+
+    NECISCH -> DAMPS [penwidth = 2]; NECREP -> DAMPS [penwidth = 2];
+    DAMPS -> TLR; DAMPS -> NLRP3; ROS -> NLRP3 [style = dashed]; KEFFLUX -> NLRP3 [style = dashed];
+    TLR -> IL1B; NLRP3 -> IL1B [penwidth = 2.4]; NLRP3 -> IL18;
+    IL1B -> IL6 [penwidth = 2]; IL1B -> CXCL8; TLR -> TNFA;
+    IL6 -> CRPN; IL6 -> PAI1 [label = "PAI-1 유도", style = dashed];
+    COMPL -> NEUINF; CXCL8 -> NEUINF [penwidth = 2];
+    DAMPS -> NEUINF; NEUINF -> MPO; NEUINF -> ROS [label = "NOX2", style = dashed];
+    NEUINF -> NOX2 [style = dashed];
+    DAMPS -> MONO1; NEUINF -> MONO1 [style = dashed];
+    NEUINF -> SWITCH [label = "호중구 소실이 신호", arrowhead = tee, color = "#1E8449"];
+    MONO1 -> SWITCH; SWITCH -> MONO2 [penwidth = 2.4, color = "#1E8449"];
+    MONO2 -> IL10;
+    IL10 -> IL1B [arrowhead = tee, color = "#1E8449"]; TREG -> IL1B [arrowhead = tee, color = "#1E8449"];
+}
+
+/* ==========================================================================
+   CLUSTER 10 — Scar formation: the only thing standing between the infarct
+                and mechanical failure
+   ========================================================================== */
+subgraph cluster_scar {
+    label = "10 · 흉터 형성 — 경색과 기계적 파괴 사이의 유일한 방벽 (Scar Formation)";
+    fontsize = 18; fontcolor = "#145A32"; style = "rounded,filled";
+    fillcolor = "#F1FAF4"; color = "#145A32"; penwidth = 2;
+
+    TGFB     [label = "TGF-β1\nSmad2/3 → CTGF", fillcolor = "#FFF6C8", penwidth = 2.4];
+    MYOFIB   [label = "근섬유모세포\nMyofibroblast  MYOF\nα-SMA⁺ · 수축성 · ED-A 피브로넥틴", fillcolor = "#D8F0DC", penwidth = 2.4];
+    COL13    [label = "콜라겐 I / III 침착\nCollagen deposition  COL", fillcolor = "#D8F0DC", penwidth = 3, shape = box3d];
+    LOX      [label = "LOX 교차결합\nLysyl oxidase → 인장강도", fillcolor = "#D8F0DC"];
+    MMP9     [label = "MMP-2 / MMP-9 활성\nMMP  — ECM 분해", fillcolor = "#F8D7DA", penwidth = 2.4];
+    TIMP     [label = "TIMP-1 / TIMP-2\n내인성 MMP 억제자", fillcolor = "#D8F0DC"];
+    SCARSTR  [label = "흉터 인장강도\nScar strength = COL/(COL + K)\n2주에 걸쳐 성숙", fillcolor = "#D8F0DC", penwidth = 3, shape = box3d];
+    THINNING [label = "경색벽 박화\nInfarct thinning  THIN\n(미성숙 흉터 + 벽응력)", fillcolor = "#F8D7DA", penwidth = 2.4];
+    EXPANSION[label = "경색 확장\nInfarct expansion (day 1–14)\n근섬유 미끄러짐 · 재배열", fillcolor = "#F8D7DA", penwidth = 2.2];
+    RUPT     [label = "심장 파열 / 위가성 동맥류\nFree-wall rupture · pseudoaneurysm\n(흉터가 늦으면)", fillcolor = "#FADCE8", penwidth = 2.2];
+    ANEUR    [label = "진성 심실 동맥류\nTrue LV aneurysm · 혈전 형성", fillcolor = "#FADCE8"];
+    REMFIB   [label = "원격 영역 섬유화\nRemote-zone interstitial fibrosis\n알도스테론 · AT1R 매개", fillcolor = "#F8D7DA", penwidth = 2.2];
+
+    MONO2 -> TGFB; TGFB -> MYOFIB [penwidth = 2.4];
+    MYOFIB -> COL13 [penwidth = 2.4]; COL13 -> LOX; LOX -> SCARSTR [penwidth = 2];
+    COL13 -> SCARSTR [penwidth = 2.4];
+    MMP9 -> COL13 [label = "분해", arrowhead = tee, penwidth = 2, color = "#B03A2E"];
+    TIMP -> MMP9 [arrowhead = tee, color = "#1E8449"];
+    SCARSTR -> THINNING [arrowhead = tee, penwidth = 2.4, color = "#1E8449"];
+    MMP9 -> THINNING [penwidth = 2];
+    THINNING -> EXPANSION;
+    THINNING -> RUPT [style = dashed]; SCARSTR -> RUPT [arrowhead = tee, color = "#1E8449"];
+    THINNING -> ANEUR [style = dashed];
+    MYOFIB -> REMFIB [style = dashed];
+    COL13 -> MYOFIB [label = "성숙 → 근섬유모세포 소멸", arrowhead = tee, style = dashed, color = "#1E8449"];
+}
+
+/* ==========================================================================
+   CLUSTER 11 — LV mechanics: the Laplace bifurcation
+   ========================================================================== */
+subgraph cluster_mech {
+    label = "11 · 좌심실 역학 — Laplace 분기 (LV Mechanics: The Laplace Bifurcation)";
+    fontsize = 18; fontcolor = "#1A5276"; style = "rounded,filled";
+    fillcolor = "#F1F7FC"; color = "#1A5276"; penwidth = 2;
+
+    CONTRMASS[label = "수축 가능 질량\nContractile mass\n= 원격 + Σ wᵢ·생존ᵢ·CFᵢ·(1 − STUN)", fillcolor = "#E2E3E5", penwidth = 2.4];
+    EMAX     [label = "수축력 Emax\nEnd-systolic elastance (ESPVR)", fillcolor = "#E2E3E5", penwidth = 2.4];
+    ESV      [label = "수축말기 용적\nESV = V₀ + Pes/Emax", fillcolor = "#E2E3E5", penwidth = 2.2];
+    PED      [label = "확장말기 압\nFilling pressure Ped\n= f(용적상태 × 불완전배출 × 경직)", fillcolor = "#E2E3E5", penwidth = 2.4];
+    EDVS     [label = "구조적 실강 크기\nStructural chamber size  EDVS\n(수개월에 걸쳐 성장)", fillcolor = "#E2E3E5", penwidth = 3, shape = box3d];
+    EDV      [label = "관찰 확장말기 용적\nObserved EDV\n= EDVS × (Ped/Ped₀)^(1/n)", fillcolor = "#E2E3E5", penwidth = 3, shape = box3d];
+    RADIUS   [label = "실강 반경 r\nChamber radius", fillcolor = "#E2E3E5"];
+    THICK    [label = "벽 두께 h\nWall thickness = MASS/(ρ·SA)", fillcolor = "#E2E3E5"];
+    WS       [label = "Laplace 벽응력\nWall stress σ = P·r/(2h)", fillcolor = "#F8D7DA", penwidth = 3, shape = box3d];
+    WSINF    [label = "경색부 벽응력\nInfarct-zone stress = P·r/(2h(1−THIN))\n박화된 벽에 집중", fillcolor = "#F8D7DA", penwidth = 2.4];
+    DILLOOP  [label = "확장 정귀환 고리\nσ ↑ → 이심성 확장 → r ↑ → σ ↑\n(POSITIVE)", fillcolor = "#F8D7DA", penwidth = 3];
+    HYPLOOP  [label = "구심성 비후 부귀환 고리\nσ ↑ → 질량 ↑ → h ↑ → σ ↓\n(NEGATIVE — 유일한 제동)", fillcolor = "#D8F0DC", penwidth = 3];
+    SARCADD  [label = "근절 부가\nSarcomere addition (series/parallel)\ntitin · FAK · integrin 기계전달", fillcolor = "#E2E3E5"];
+    SPHERIC  [label = "구형화\nSphericity index↑\n(효율 저하)", fillcolor = "#E2E3E5"];
+    FMR      [label = "기능성 승모판 역류\nFunctional MR — 판막륜 확장·건삭 견인", fillcolor = "#FADCE8", penwidth = 2.2];
+    LVTHR    [label = "좌심실 내 혈전\nLV thrombus (무운동 심첨부)", fillcolor = "#FADCE8"];
+    SEPARATRX[label = "분기 분리선\nSeparatrix — 임계 경색 크기\n(파라미터가 아니라 계산 결과)", fillcolor = "#FADCE8", penwidth = 3, shape = box3d];
+
+    ISLV -> CONTRMASS [arrowhead = tee, penwidth = 2.4];
+    AFFORD -> CONTRMASS [penwidth = 2.2]; STUN -> CONTRMASS [arrowhead = tee, penwidth = 2];
+    CONTRMASS -> EMAX [penwidth = 2.4]; EMAX -> ESV [arrowhead = tee, penwidth = 2.4];
+    ESV -> PED [label = "불완전 배출", penwidth = 2.2];
+    PED -> EDV [penwidth = 2.4]; EDVS -> EDV [penwidth = 2.4];
+    EDV -> RADIUS; MASS -> THICK; EDV -> THICK [arrowhead = tee, style = dashed];
+    RADIUS -> WS [penwidth = 2.4]; PED -> WS [penwidth = 2]; THICK -> WS [arrowhead = tee, penwidth = 2.4];
+    WS -> WSINF; THINNING -> WSINF [penwidth = 2.4];
+    WS -> DILLOOP [penwidth = 2.4]; DILLOOP -> EDVS [penwidth = 2.4, color = "#B03A2E"];
+    EDVS -> EDV; EDV -> RADIUS;
+    WS -> HYPLOOP [penwidth = 2.4]; HYPLOOP -> MASS [penwidth = 2.4, color = "#1E8449"];
+    MASS [label = "좌심실 벽 질량\nLV wall mass  MASS", fillcolor = "#E2E3E5", penwidth = 2.2];
+    HYPLOOP -> SARCADD; SARCADD -> MASS [style = dashed];
+    EDVS -> SPHERIC [style = dashed]; SPHERIC -> EMAX [arrowhead = tee, style = dashed];
+    EDV -> FMR [style = dashed]; FMR -> VOLST [label = "전부하 재순환", style = dashed, color = "#B03A2E"];
+    ISLV -> LVTHR [style = dashed]; STUN -> LVTHR [style = dashed];
+    DILLOOP -> SEPARATRX [penwidth = 2]; HYPLOOP -> SEPARATRX [penwidth = 2];
+    ISLV -> SEPARATRX [label = "초기 조건", style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 12 — Neurohormonal activation: the amplifier on the positive loop
+   ========================================================================== */
+subgraph cluster_neuro {
+    label = "12 · 신경호르몬 활성화 — 정귀환 고리의 증폭기 (Neurohormonal Activation)";
+    fontsize = 18; fontcolor = "#78281F"; style = "rounded,filled";
+    fillcolor = "#FDF4F3"; color = "#78281F"; penwidth = 2;
+
+    CO       [label = "심박출량\nCardiac output = SV × HR", fillcolor = "#E2E3E5", penwidth = 2.4];
+    BARO     [label = "압수용체 반사\nBaroreflex unloading", fillcolor = "#FFF6C8"];
+    NE       [label = "교감신경 활성 / NE\nSympathetic drive  NE", fillcolor = "#FFF6C8", penwidth = 2.4];
+    B1DOWN   [label = "β1 수용체 하향조절\nGRK2 · β-arrestin\n(만성 NE의 대가)", fillcolor = "#F8D7DA"];
+    RENIN    [label = "레닌 분비\nRenal hypoperfusion · β1 자극", fillcolor = "#FBE3D6"];
+    ACE      [label = "ACE\nAng I → Ang II", fillcolor = "#FBE3D6"];
+    ANGII    [label = "안지오텐신 II\nAng II  ANG → AT1R", fillcolor = "#FFF6C8", penwidth = 2.4];
+    ALDO     [label = "알도스테론\nAldosterone  ALD → MR", fillcolor = "#FFF6C8", penwidth = 2.4];
+    ADH      [label = "바소프레신 (AVP)\nV1a 혈관수축 · V2 수분보유", fillcolor = "#FFF6C8"];
+    ET1      [label = "엔도텔린-1\nET-1 → ETA 혈관수축·섬유화", fillcolor = "#FFF6C8"];
+    VOLST    [label = "혈장 용적 / 울혈\nVolume status  VOL", fillcolor = "#E2E3E5", penwidth = 2.4];
+    AFTERL   [label = "후부하 (SBP)\nAfterload → 수축기 벽응력", fillcolor = "#E2E3E5", penwidth = 2.2];
+    HRN      [label = "심박수 HR\n(요구의 절반을 결정)", fillcolor = "#E2E3E5", penwidth = 2.2];
+    NPS      [label = "나트륨배설 펩타이드\nANP · BNP / NT-proBNP\n벽응력의 직접 판독", fillcolor = "#CFE7E4", penwidth = 2.4];
+    NEPRI    [label = "네프릴리신\nNeprilysin — NP 분해", fillcolor = "#FBE3D6"];
+    CGMP     [label = "cGMP–PKG\n혈관확장 · 항섬유화", fillcolor = "#D8F0DC"];
+
+    ESV -> CO [arrowhead = tee, style = dashed]; EDV -> CO [style = dashed];
+    HRN -> CO;
+    CO -> BARO [arrowhead = tee, penwidth = 2.2]; BARO -> NE [penwidth = 2.4];
+    NE -> HRN [penwidth = 2.2]; NE -> AFTERL; NE -> RENIN;
+    NE -> B1DOWN [style = dashed]; B1DOWN -> EMAX [arrowhead = tee, style = dashed];
+    CO -> RENIN [arrowhead = tee, penwidth = 2];
+    RENIN -> ACE; ACE -> ANGII [penwidth = 2.4];
+    ANGII -> ALDO [penwidth = 2.2]; ANGII -> AFTERL [penwidth = 2.2]; ANGII -> ADH; ANGII -> ET1;
+    ALDO -> VOLST [penwidth = 2.2]; ADH -> VOLST; ANGII -> DILLOOP [label = "확장 증폭", color = "#B03A2E", penwidth = 2.2];
+    ALDO -> DILLOOP [label = "확장 증폭", color = "#B03A2E", penwidth = 2];
+    ET1 -> AFTERL [style = dashed];
+    WS -> NPS [penwidth = 2.4]; NPS -> VOLST [arrowhead = tee, color = "#1E8449", penwidth = 2];
+    NPS -> CGMP; CGMP -> DILLOOP [arrowhead = tee, color = "#1E8449"];
+    NEPRI -> NPS [arrowhead = tee];
+    HRN -> DEMAND [penwidth = 2.4, color = "#7D6608"];
+    AFTERL -> DEMAND [penwidth = 2.4, color = "#7D6608"];
+    AFTERL -> WS [style = dashed];
+    NE -> IL6 [label = "염증 증폭", style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 13 — Electrophysiology and mechanical complications
+   ========================================================================== */
+subgraph cluster_ep {
+    label = "13 · 전기생리와 기계적 합병증 (Electrophysiology & Mechanical Complications)";
+    fontsize = 18; fontcolor = "#4D5656"; style = "rounded,filled";
+    fillcolor = "#F5F7F7"; color = "#4D5656"; penwidth = 2;
+
+    INJCUR   [label = "손상 전류\nInjury current (부분탈분극 경계)\nST 상승의 기원", fillcolor = "#F8D7DA", penwidth = 2.2];
+    APSHORT  [label = "활동전위 단축\nAP shortening (K_ATP 개방)", fillcolor = "#E2E3E5"];
+    DISPER   [label = "재분극 불균일\nDispersion of repolarisation", fillcolor = "#F8D7DA"];
+    REENTRY  [label = "회귀 회로\nReentry (경계 영역 · 흉터 채널)", fillcolor = "#F8D7DA", penwidth = 2.2];
+    VTVF     [label = "심실세동 / 심실빈맥\nVF / VT — 조기 사망의 주원인", fillcolor = "#FADCE8", penwidth = 2.4];
+    REPARR   [label = "재관류 부정맥\nReperfusion arrhythmia\n가속 심실 리듬 (AIVR)", fillcolor = "#FADCE8"];
+    AVBLOCK  [label = "AV 차단 / 서맥\n(하벽 경색 · Bezold–Jarisch)", fillcolor = "#FADCE8"];
+    AFIB     [label = "심방세동\nNew-onset AF (심방 신전·염증)", fillcolor = "#FADCE8"];
+    VSR      [label = "심실 중격 파열\nVentricular septal rupture", fillcolor = "#FADCE8"];
+    PMR      [label = "papillary muscle rupture\n급성 중증 승모판 역류", fillcolor = "#FADCE8"];
+    PERIC    [label = "경색후 심막염 / Dressler\nPost-MI pericarditis", fillcolor = "#FADCE8"];
+    SHOCK    [label = "심장성 쇼크\nCardiogenic shock (CI < 2.2)\n사망률 40–50%", fillcolor = "#FADCE8", penwidth = 2.4];
+
+    KEFFLUX -> INJCUR [penwidth = 2]; APSHORT -> DISPER; KATP -> APSHORT;
+    INJCUR -> DISPER; DISPER -> REENTRY; GAPJ -> REENTRY [style = dashed];
+    REENTRY -> VTVF [penwidth = 2.4];
+    CAI -> REPARR [style = dashed]; ROS -> REPARR [style = dashed]; REPARR -> VTVF [style = dashed];
+    NE -> VTVF [label = "역치 저하", style = dashed, color = "#B03A2E"];
+    SCARSTR -> REENTRY [label = "흉터 채널", style = dashed];
+    ISLV -> AVBLOCK [style = dashed]; EDV -> AFIB [style = dashed]; IL1B -> AFIB [style = dashed];
+    THINNING -> VSR [style = dashed]; MVO -> PMR [style = dashed];
+    DAMPS -> PERIC [style = dashed];
+    CO -> SHOCK [arrowhead = tee, penwidth = 2.4]; ISLV -> SHOCK [style = dashed]; PMR -> SHOCK [style = dashed];
+    VSR -> SHOCK [style = dashed];
+}
+
+/* ==========================================================================
+   CLUSTER 14 — Therapeutics: PK/PD of everything we actually give
+   ========================================================================== */
+subgraph cluster_tx {
+    label = "14 · 치료 약물의 약동–약력학 (Therapeutics: PK/PD of What We Actually Give)";
+    fontsize = 18; fontcolor = "#7E5109"; style = "rounded,filled";
+    fillcolor = "#FFFBF2"; color = "#7E5109"; penwidth = 2;
+
+    ASA      [label = "아스피린\nAspirin 300 mg → COX-1 비가역 억제\nTXA₂ 생성 차단", fillcolor = "#FFE7B3", penwidth = 2.2];
+    P2Y12I   [label = "P2Y₁₂ 억제제\nTicagrelor 180 mg (t½ 7 h) ·\nPrasugrel · Clopidogrel(CYP2C19)", fillcolor = "#FFE7B3", penwidth = 2.4];
+    CANGREL  [label = "칸그렐로르\nCangrelor IV — 즉시·가역적", fillcolor = "#FFE7B3"];
+    GPI      [label = "GPIIb/IIIa 억제제\nAbciximab · Tirofiban (bail-out)", fillcolor = "#FFE7B3"];
+    HEPARIN  [label = "항응고\nUFH · Enoxaparin · Bivalirudin\n트롬빈 생성 차단", fillcolor = "#FFE7B3", penwidth = 2.2];
+    TNKDOSE  [label = "테넥테플라제 볼루스\nTenecteplase 0.5 mg/kg (30–50 mg)\n고령 반량 (STREAM-2)", fillcolor = "#FFE7B3", penwidth = 2.4];
+    PPCI     [label = "일차적 관상동맥 중재술\nPrimary PCI — 스텐트 · 흡인\n한 단계로 개통", fillcolor = "#FFE7B3", penwidth = 3, shape = box3d];
+    PCIDELAY [label = "PCI 관련 지연\nPCI-related delay\n(60–120 min에서 역전)", fillcolor = "#E2E3E5", penwidth = 2.4];
+    IVBB     [label = "정맥 베타차단제\nIV metoprolol 3 × 5 mg\n요구 감소 = 파면 감속", fillcolor = "#FFE7B3", penwidth = 2.4];
+    POBB     [label = "경구 베타차단제\nMetoprolol/carvedilol/bisoprolol", fillcolor = "#FFE7B3"];
+    ACEI     [label = "ACE 억제제 / ARB\nRamipril · valsartan\nAng II 생성 차단", fillcolor = "#FFE7B3", penwidth = 2.4];
+    ARNI     [label = "ARNI\nSacubitril–valsartan (PARADISE-MI)\n네프릴리신 억제 → NP↑", fillcolor = "#FFE7B3"];
+    MRA      [label = "MR 길항제\nEplerenone (EPHESUS · REMINDER)\n수용체 차단 — 농도가 아니라", fillcolor = "#FFE7B3", penwidth = 2.2];
+    SGLT2    [label = "SGLT2 억제제\nEmpagliflozin (EMPACT-MI)\n용적·대사·항재형성", fillcolor = "#FFE7B3", penwidth = 2.2];
+    STATIN   [label = "고강도 스타틴 / PCSK9i\n판 안정화 · 항염", fillcolor = "#FFE7B3"];
+    COLCH    [label = "콜히친\nColchicine 0.5 mg (COLCOT)\nNLRP3 → IL-1β 감쇠", fillcolor = "#FFE7B3", penwidth = 2.2];
+    ANTIIL1  [label = "IL-1 표적 치료\nCanakinumab (CANTOS) · anakinra\n(MRC-ILA · VCU-ART)", fillcolor = "#FFE7B3", penwidth = 2.2];
+    ANTIIL6  [label = "IL-6 차단\nTocilizumab (ASSAIL-MI)\n경색 크기 감소 보고", fillcolor = "#FFE7B3"];
+    CSA      [label = "mPTP 억제제\nCyclosporine A (CIRCUS · CYCLE)\nCypD 결합 — 창(窓)은 분 단위", fillcolor = "#FFE7B3", penwidth = 2.4];
+    NITRATE  [label = "질산염 · 니코란딜\nNO–cGMP · 미토 K_ATP 개방", fillcolor = "#FFE7B3"];
+    O2SUPP   [label = "산소 (SpO₂ < 90%에서만)\nDETO2X-AMI — 무증상 저산소엔 무익", fillcolor = "#FFE7B3"];
+    MCS      [label = "기계적 순환 보조\nIABP · Impella · ECMO\n(DanGer Shock)", fillcolor = "#FFE7B3"];
+    CARDREH  [label = "심장 재활 · 운동\n원격 영역 적응 · 사망률 감소", fillcolor = "#FFE7B3"];
+
+    ASA -> TXA2 [arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    P2Y12I -> ADPP2Y [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    CANGREL -> ADPP2Y [arrowhead = tee, color = "#B8860B"];
+    GPI -> GP2B3A [arrowhead = tee, color = "#B8860B"];
+    HEPARIN -> THROMBIN [arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    TNKDOSE -> TNKC [color = "#B8860B", penwidth = 2.2];
+    PPCI -> THROMBUS [label = "기계적 제거", arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    PCIDELAY -> PPCI [label = "도착 시각", style = dashed];
+    TNKDOSE -> PCIDELAY [label = "즉시 vs 지연 비교", style = dashed];
+    P2Y12I -> REOCC [arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    GPI -> EMBOL [arrowhead = tee, style = dashed, color = "#B8860B"];
+    IVBB -> HRN [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    IVBB -> DEMAND [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    POBB -> NE [label = "효과 차단(농도 아님)", arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    ACEI -> ACE [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    ARNI -> NEPRI [arrowhead = tee, color = "#B8860B"];
+    ARNI -> ANGII [arrowhead = tee, style = dashed, color = "#B8860B"];
+    MRA -> ALDO [label = "수용체 차단", arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    SGLT2 -> VOLST [arrowhead = tee, color = "#B8860B"];
+    SGLT2 -> DILLOOP [arrowhead = tee, color = "#B8860B", style = dashed];
+    STATIN -> PLAQUE [arrowhead = tee, color = "#B8860B", style = dashed];
+    COLCH -> NLRP3 [arrowhead = tee, color = "#B8860B", penwidth = 2.2];
+    ANTIIL1 -> IL1B [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    ANTIIL6 -> IL6 [arrowhead = tee, color = "#B8860B"];
+    CSA -> MPTP [arrowhead = tee, color = "#B8860B", penwidth = 2.4];
+    NITRATE -> PKG [color = "#B8860B"]; NITRATE -> AFTERL [arrowhead = tee, style = dashed, color = "#B8860B"];
+    O2SUPP -> O2DEL [style = dashed, color = "#B8860B"];
+    MCS -> CO [color = "#B8860B", style = dashed]; MCS -> DEMAND [arrowhead = tee, style = dashed, color = "#B8860B"];
+    CARDREH -> HYPLOOP [style = dashed, color = "#B8860B"];
+    TNKDOSE -> ICH [label = "출혈 비용", style = dashed, color = "#B03A2E"];
+    ANTIIL1 -> SCARSTR [label = "과도 차단 = 흉터 지연", arrowhead = tee, style = dashed, color = "#B03A2E"];
+}
+
+/* ==========================================================================
+   CLUSTER 15 — Clinical endpoints
+   ========================================================================== */
+subgraph cluster_clin {
+    label = "15 · 임상 종말점 (Clinical Endpoints)";
+    fontsize = 18; fontcolor = "#6E2C00"; style = "rounded,filled";
+    fillcolor = "#FDF6F1"; color = "#6E2C00"; penwidth = 2;
+
+    ISEP     [label = "경색 크기 (CMR)\nInfarct size %LV — 최강 대리지표", fillcolor = "#FADCE8", penwidth = 2.4];
+    MVOEP    [label = "MVO %LV (CMR LGE)\n경색 크기와 독립적 예측력", fillcolor = "#FADCE8", penwidth = 2.4];
+    TNPEAK   [label = "cTnI 정점 · AUC\n(AUC가 크기를, 정점은 재관류를 본다)", fillcolor = "#CFE7E4", penwidth = 2.2];
+    EFEP     [label = "좌심실 구혈률\nLVEF (%) — day 1 vs 6개월", fillcolor = "#FADCE8", penwidth = 2.4];
+    EDVI     [label = "EDV / ESV 지수\nLV volume index (mL/m²)\n재형성의 정의적 지표", fillcolor = "#FADCE8", penwidth = 2.4];
+    NTPRO    [label = "NT-proBNP\n벽응력의 순환 판독", fillcolor = "#CFE7E4"];
+    HFHOSP   [label = "심부전 입원\nHF hospitalisation", fillcolor = "#FADCE8", penwidth = 2.2];
+    NYHA     [label = "NYHA 기능 등급\n· 6분 보행 · KCCQ", fillcolor = "#FADCE8"];
+    REINF    [label = "재경색 · 표적혈관 재개통\nRe-infarction · TVR", fillcolor = "#FADCE8"];
+    STROKEEP [label = "뇌졸중 (허혈·출혈)\nStroke", fillcolor = "#FADCE8"];
+    MORT30   [label = "30일 사망률\n30-day mortality", fillcolor = "#FADCE8", penwidth = 2.4];
+    MORT1Y   [label = "1년 사망률 · 돌연사\n1-year mortality · SCD", fillcolor = "#FADCE8", penwidth = 2.4];
+
+    ISLV -> ISEP [penwidth = 2.4]; MVO -> MVOEP [penwidth = 2.4];
+    TNIREL -> TNPEAK [penwidth = 2]; CKMBREL -> TNPEAK [style = dashed];
+    EMAX -> EFEP [penwidth = 2]; EDV -> EFEP [arrowhead = tee, penwidth = 2]; ESV -> EFEP [arrowhead = tee];
+    EDV -> EDVI [penwidth = 2.4]; EDVS -> EDVI [penwidth = 2];
+    NPS -> NTPRO [penwidth = 2.2];
+    EDVI -> HFHOSP [penwidth = 2.2]; EFEP -> HFHOSP [arrowhead = tee, penwidth = 2.2];
+    VOLST -> HFHOSP [style = dashed];
+    EFEP -> NYHA [arrowhead = tee]; HFHOSP -> NYHA [style = dashed];
+    REOCC -> REINF [penwidth = 2]; PLAQUE -> REINF [style = dashed];
+    ICH -> STROKEEP [penwidth = 2]; LVTHR -> STROKEEP [style = dashed]; AFIB -> STROKEEP [style = dashed];
+    SHOCK -> MORT30 [penwidth = 2.4]; VTVF -> MORT30 [penwidth = 2.4];
+    RUPT -> MORT30 [penwidth = 2]; ISEP -> MORT30 [penwidth = 2];
+    HFHOSP -> MORT1Y [penwidth = 2.2]; EDVI -> MORT1Y [penwidth = 2.2];
+    VTVF -> MORT1Y [style = dashed]; MVOEP -> MORT1Y [penwidth = 2];
+    SEPARATRX -> MORT1Y [label = "분기의 임상적 얼굴", penwidth = 2.2, color = "#B03A2E"];
+}
+
+/* ==========================================================================
+   CLUSTER 16 — Legend
+   ========================================================================== */
+subgraph cluster_legend {
+    label = "16 · 범례 (Legend)";
+    fontsize = 18; fontcolor = "#000000"; style = "rounded,filled";
+    fillcolor = "#FCFCFC"; color = "#000000"; penwidth = 2;
+
+    LG_PK   [label = "약물 / PK / 혈류", fillcolor = "#DCE9F7"];
+    LG_ENZ  [label = "효소 · 채널 · 수송체", fillcolor = "#FBE3D6"];
+    LG_DMG  [label = "손상 종(種) / 병태", fillcolor = "#F8D7DA"];
+    LG_PRO  [label = "보호 · 적응 기전", fillcolor = "#D8F0DC"];
+    LG_IMM  [label = "면역세포 · 사이토카인", fillcolor = "#EDE0F5"];
+    LG_SIG  [label = "신호전달 노드", fillcolor = "#FFF6C8"];
+    LG_STR  [label = "구조 · 생리 상태", fillcolor = "#E2E3E5"];
+    LG_BIO  [label = "바이오마커", fillcolor = "#CFE7E4"];
+    LG_CLIN [label = "임상 종말점", fillcolor = "#FADCE8"];
+    LG_TX   [label = "치료 개입", fillcolor = "#FFE7B3"];
+    LG_ODE  [label = "3D 상자 = mrgsolve 상태변수\n또는 핵심 유도량", fillcolor = "#FFFFFF", shape = box3d, penwidth = 2.4];
+    LG_ACT  [label = "실선 화살 = 촉진 / 유발", fillcolor = "#FFFFFF"];
+    LG_INH  [label = "T 화살 = 억제 / 차단", fillcolor = "#FFFFFF"];
+    LG_MOD  [label = "점선 = 조절 · 상관 · 느린 적응", fillcolor = "#FFFFFF"];
+    LG_POS  [label = "붉은 화살 = 정귀환 (증폭)", fillcolor = "#FFFFFF", color = "#B03A2E", penwidth = 2.4];
+    LG_NEG  [label = "녹색 화살 = 부귀환 (제동)", fillcolor = "#FFFFFF", color = "#1E8449", penwidth = 2.4];
+    LG_AMB  [label = "황갈색 화살 = 약물 작용", fillcolor = "#FFFFFF", color = "#B8860B", penwidth = 2.4];
+
+    LG_PK -> LG_ENZ [style = invis]; LG_ENZ -> LG_DMG [style = invis];
+    LG_DMG -> LG_PRO [style = invis]; LG_PRO -> LG_IMM [style = invis];
+    LG_IMM -> LG_SIG [style = invis]; LG_SIG -> LG_STR [style = invis];
+    LG_STR -> LG_BIO [style = invis]; LG_BIO -> LG_CLIN [style = invis];
+    LG_CLIN -> LG_TX [style = invis]; LG_TX -> LG_ODE [style = invis];
+    LG_ODE -> LG_ACT [style = invis]; LG_ACT -> LG_INH [style = invis];
+    LG_INH -> LG_MOD [style = invis]; LG_MOD -> LG_POS [style = invis];
+    LG_POS -> LG_NEG [style = invis]; LG_NEG -> LG_AMB [style = invis];
+}
+
+/* ==========================================================================
+   Cross-cluster edges that carry the two races and the bifurcation.
+   These are drawn last and heavily, because they are the argument.
+   ========================================================================== */
+
+/* --- edges deferred to here so that each node is declared in its own
+       cluster first: graphviz assigns a node to whichever cluster
+       mentions it earliest, so a forward reference would silently drag
+       the node out of its home box. ------------------------------------ */
+NEUINF   -> PMNPLUG;
+MONO2    -> TGFB       [penwidth = 2.4];
+MONO1    -> MMP9       [penwidth = 2];
+NEUINF   -> MMP9       [penwidth = 2];
+IL1B     -> MMP9       [penwidth = 2];
+TNFA     -> EMAX       [arrowhead = tee, style = dashed];
+ALDO     -> MYOFIB     [label = "MR 매개 촉진", style = dashed, color = "#B03A2E"];
+WSINF    -> THINNING   [penwidth = 2.4, color = "#B03A2E"];
+EXPANSION -> EDVS      [penwidth = 2.4, color = "#B03A2E"];
+REMFIB   -> PED        [label = "확장기 경직↑", style = dashed];
+VOLST    -> PED        [penwidth = 2.2];
+
+/* RACE 1 — the wavefront against the clock */
+TIMI     -> DEFICIT    [label = "① 재관류 시각이 결손을 끝낸다", penwidth = 3, color = "#0E6251", fontcolor = "#0E6251", fontsize = 12];
+DEFICIT  -> WAVEFRONT  [label = "② 결손이 파면의 속도다", penwidth = 3, color = "#0E6251", fontcolor = "#0E6251", fontsize = 12];
+
+/* RACE 2 — acid washout against the oxidant burst */
+REOX     -> PHPARA     [label = "③ 혈류 복귀 = 산 세척 = 관문 개방", penwidth = 3, color = "#922B21", fontcolor = "#922B21", fontsize = 12];
+MPTP     -> ISLV       [label = "④ 재관류가 스스로 만든 괴사", penwidth = 3, color = "#922B21", fontcolor = "#922B21", fontsize = 12];
+
+/* THE BIFURCATION — infarct size is an initial condition, not an endpoint */
+ISLV     -> WS         [label = "⑤ 경색 크기는 종말점이 아니라 초기조건", penwidth = 3, color = "#1A5276", fontcolor = "#1A5276", fontsize = 12];
+WS       -> SEPARATRX  [label = "⑥ 수렴이냐 발산이냐 — 분기", penwidth = 3, color = "#1A5276", fontcolor = "#1A5276", fontsize = 12];
+
+/* the therapeutic corollary: after day 1, drugs move the separatrix */
+ACEI     -> SEPARATRX  [label = "1일 이후의 약은 경색이 아니라 분리선을 움직인다",
+                        style = dashed, penwidth = 2.4, color = "#B8860B", fontcolor = "#7E5109", fontsize = 11];
+MRA      -> SEPARATRX  [style = dashed, penwidth = 2, color = "#B8860B"];
+POBB     -> SEPARATRX  [style = dashed, penwidth = 2, color = "#B8860B"];
+SGLT2    -> SEPARATRX  [style = dashed, penwidth = 2, color = "#B8860B"];
+}
