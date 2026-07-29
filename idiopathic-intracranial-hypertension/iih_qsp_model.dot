@@ -1,0 +1,766 @@
+/* =====================================================================
+   Idiopathic Intracranial Hypertension (IIH / pseudotumour cerebri)
+   Quantitative Systems Pharmacology mechanistic map
+   ---------------------------------------------------------------------
+   Organising principle
+   --------------------
+   Intracranial pressure is drawn here NOT as a tank that fills, but as
+   the FIXED POINT of the Davson relation
+
+        ICP  =  P_sss  +  R_out * F_form
+
+   closed through a mechanically collapsible transverse sinus
+
+        P_sss =  P_cv  +  Q_v * ( R_ts0 + R_tsf + R_tsc(ICP) )
+
+   The heavy red edges LOOP_* are that closure.  Because the loop has a
+   gain g = dP_sss/dICP, every arrow that lands on R_out or F_form is
+   amplified by 1/(1-g), every arrow that lands on P_cv is not, and when
+   g -> 1 the fixed point is destroyed (fulminant disease).  The four
+   therapeutic clusters are placed at the four terms of the same equation
+   so that the map can be read as an equation rather than as a list.
+
+   18 clusters, 214 nodes.  Rendered with:
+     dot -Tsvg iih_qsp_model.dot -o iih_qsp_model.svg
+     dot -Tpng -Gdpi=150 iih_qsp_model.dot -o iih_qsp_model.png
+   ===================================================================== */
+
+digraph IIH_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.20;
+    ranksep = 0.42;
+    fontname = "Helvetica";
+    fontsize = 11;
+    labelloc = "t";
+    label = <<b>Idiopathic Intracranial Hypertension &#8212; QSP mechanistic map</b><br/>
+<font point-size="11">ICP as the fixed point of the Davson relation closed through a collapsible transverse sinus:<br/>
+ICP = P<sub>cv</sub> + Q<sub>v</sub>(R<sub>ts0</sub> + R<sub>tsf</sub> + R<sub>tsc</sub>(ICP)) + R<sub>out</sub>F<sub>form</sub> &#8212; loop gain g = dP<sub>sss</sub>/dICP, amplification 1/(1&#8722;g), saddle-node at g = 1</font>>;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 9, margin = "0.06,0.035", penwidth = 0.7];
+    edge [fontname = "Helvetica", fontsize = 7, penwidth = 0.7,
+          arrowsize = 0.55, color = "#555555"];
+
+    /* ============================================================
+       1. HOST AND EXPOSURE FACTORS
+       ============================================================ */
+    subgraph cluster_host {
+        label = "1. Host, exposure and secondary causes";
+        style = "filled"; fillcolor = "#f7f3ea"; color = "#b7a06a";
+        fontsize = 11; fontcolor = "#6b5520";
+        node [fillcolor = "#efe7d2", color = "#a08b57"];
+
+        OBESITY   [label = "Obesity\nBMI 30-45"];
+        WTGAIN    [label = "Recent weight gain\n>5-15 % in 12 mo"];
+        FEMALE    [label = "Female sex,\nreproductive age (F:M 9:1)"];
+        PCOS      [label = "PCOS /\nhyperandrogenism"];
+        OSA       [label = "Obstructive sleep\napnoea"];
+        ANAEMIA   [label = "Iron-deficiency\nanaemia"];
+        TETRA     [label = "Tetracyclines\n(doxycycline, minocycline)"];
+        RETIN     [label = "Retinoids /\nhypervitaminosis A"];
+        LITHIUM   [label = "Lithium"];
+        GHRX      [label = "Recombinant GH,\nthyroxine (children)"];
+        STERWD    [label = "Corticosteroid\nwithdrawal"];
+        CVT       [label = "Cerebral venous\nsinus thrombosis\n(secondary IIH)"];
+        JUGCOMP   [label = "Jugular compression,\nsuperior vena cava\nobstruction"];
+        DURALAV   [label = "Dural AV fistula\n(secondary)"];
+        SLEEPPOS  [label = "Supine posture,\nsleep, Valsalva"];
+        HYPERCAP  [label = "Nocturnal\nhypercapnia"];
+        GENSUS    [label = "Constitutional sinus\nwall compliance\n(PCRIT, PSTIFF)", fillcolor = "#e3d3ad"];
+    }
+
+    /* ============================================================
+       2. ADIPOSE-ENDOCRINE AXIS
+       ============================================================ */
+    subgraph cluster_endo {
+        label = "2. Adipose–endocrine drive on the choroid plexus";
+        style = "filled"; fillcolor = "#fdf0f4"; color = "#c98aa4";
+        fontsize = 11; fontcolor = "#8e3f5c";
+        node [fillcolor = "#f8dfe8", color = "#c07a96"];
+
+        ADIPOSE   [label = "Visceral + subcutaneous\nadipose mass"];
+        HSD11B1   [label = "11β-HSD1\n(cortisone → cortisol)"];
+        CORTL     [label = "Local cortisol tone\nat choroid plexus\n[CORTL]"];
+        CORTISOL  [label = "Systemic cortisol,\nHPA tone"];
+        AKR1C3    [label = "AKR1C3 / adipose\nandrogen generation"];
+        TESTO     [label = "Testosterone,\nandrostenedione"];
+        CSFANDR   [label = "CSF androgen\nsignature (IIH-specific)"];
+        LEPTIN    [label = "Leptin, adiponectin,\nIL-6, TNF-α"];
+        AR_CP     [label = "Androgen receptor\non choroid plexus\nepithelium"];
+        GR_CP     [label = "Glucocorticoid receptor,\nMR on choroid plexus"];
+        ALDO      [label = "Aldosterone,\nRAAS activation"];
+        GLP1R     [label = "GLP-1 receptor\non choroid plexus"];
+    }
+
+    /* ============================================================
+       3. ABDOMINAL / THORACIC MECHANICS
+       ============================================================ */
+    subgraph cluster_mech {
+        label = "3. Abdominal → thoracic → central venous transmission";
+        style = "filled"; fillcolor = "#eef4f9"; color = "#7d9fc0";
+        fontsize = 11; fontcolor = "#2f5478";
+        node [fillcolor = "#dbe8f4", color = "#6f93b8"];
+
+        IAP       [label = "Intra-abdominal\npressure [IAP]"];
+        DIAPH     [label = "Diaphragmatic\nelevation"];
+        ITP       [label = "Intrathoracic\npressure"];
+        RAP       [label = "Right atrial\npressure"];
+        PCV       [label = "Central venous /\njugular pressure [PCV]", fillcolor = "#b9d2ea"];
+        EPIDVEN   [label = "Epidural venous\nplexus engorgement"];
+        SPINCOMP  [label = "Spinal CSF\ncompliance ↓"];
+    }
+
+    /* ============================================================
+       4. CHOROID PLEXUS CSF SECRETION
+       ============================================================ */
+    subgraph cluster_cp {
+        label = "4. Choroid plexus: CSF secretion  F_form";
+        style = "filled"; fillcolor = "#eef7f0"; color = "#78ad86";
+        fontsize = 11; fontcolor = "#25623a";
+        node [fillcolor = "#d9edde", color = "#69a077"];
+
+        CPEPI     [label = "Choroid plexus\nepithelium"];
+        NAKATP    [label = "Na+/K+-ATPase\n(apical)"];
+        NKCC1     [label = "NKCC1\n(apical, secretory)"];
+        AQP1      [label = "AQP1\nwater channel"];
+        CA2       [label = "Carbonic anhydrase\nII / XII"];
+        NBCE2     [label = "NBCe2 / NCBE\nHCO3- transport"];
+        NHE1      [label = "NHE1"];
+        KCNJ13    [label = "KCNJ13 (Kir7.1),\nKCC4"];
+        CFTR_CP   [label = "Cl- exit,\nanion channels"];
+        VATP      [label = "V-ATPase,\nintracellular pH"];
+        HCO3CP    [label = "Intracellular\nHCO3- supply"];
+        FFORM     [label = "CSF formation rate\nF_form  0.35 mL/min\n(500 mL/day)", fillcolor = "#a8d8b6", penwidth = 1.6];
+        EPENDYM   [label = "Ependymal /\ncapillary (extrachoroidal)\nCSF production"];
+    }
+
+    /* ============================================================
+       5. CSF EGRESS
+       ============================================================ */
+    subgraph cluster_out {
+        label = "5. CSF egress:  R_out is not an independent lesion";
+        style = "filled"; fillcolor = "#f4f0fa"; color = "#9d8cc4";
+        fontsize = 11; fontcolor = "#4d3d80";
+        node [fillcolor = "#e6def5", color = "#8b78b8"];
+
+        ARACHG    [label = "Arachnoid granulations\n→ dural sinus lumen"];
+        MENLYMPH  [label = "Meningeal (dural)\nlymphatic vessels"];
+        CRIBRI    [label = "Cribriform plate /\nolfactory route"];
+        CERVLN    [label = "Deep cervical\nlymph nodes"];
+        GLYMPH    [label = "Glymphatic\nperivascular clearance"];
+        ROOTSL    [label = "Spinal nerve root\nsleeves"];
+        STARLING2 [label = "Egress routes discharge\nINTO the venous\ncompartment"];
+        ROUT      [label = "CSF outflow resistance\nR_out = ROUTB + KROUTP·P_cv\n8 (lean) → 17 (BMI 38)", fillcolor = "#cdbdea", penwidth = 1.6];
+    }
+
+    /* ============================================================
+       6. CEREBRAL VENOUS SYSTEM  (the amplifier)
+       ============================================================ */
+    subgraph cluster_ven {
+        label = "6. Cerebral venous outflow: the Starling resistor that closes the loop";
+        style = "filled"; fillcolor = "#fdeeea"; color = "#d08b76";
+        fontsize = 11; fontcolor = "#8f3d21";
+        node [fillcolor = "#f9dcd3", color = "#c87e68"];
+
+        CBFQV     [label = "Cerebral venous outflow\nQ_v ≈ 600 mL/min", fillcolor = "#f4c6b6"];
+        SSS       [label = "Superior sagittal\nsinus pressure  P_sss", fillcolor = "#f4c6b6", penwidth = 1.4];
+        TSSEG     [label = "Transverse sinus:\nthin-walled tube INSIDE\nthe cranium"];
+        PTM       [label = "Transmural pressure\nP_seg − ICP"];
+        PCRITN    [label = "Wall support limit\nPCRIT (mmHg)"];
+        RTSC      [label = "Reversible compressive\nresistance R_tsc(ICP)", fillcolor = "#f0b6a2", penwidth = 1.4];
+        RTSF      [label = "Remodelled FIXED\nstenosis R_tsf\n(weeks–months)"];
+        RTS0      [label = "Baseline sinus\nresistance R_ts0\n(2 mmHg gradient)"];
+        GRAD      [label = "SSS → jugular\ngradient  Q_v·R_ts\nnormal <4, IIH 8–25 mmHg", fillcolor = "#f4c6b6"];
+        SIGMOID   [label = "Sigmoid sinus,\njugular bulb"];
+        JUGVALV   [label = "Jugular valve\nincompetence,\ncollateral drainage"];
+        TURBUL    [label = "Turbulent flow\nacross the stenosis"];
+        LOOPG     [label = "LOOP GAIN\ng = dP_sss/dICP\namplification 1/(1−g)", shape = octagon, fillcolor = "#e8705a", fontcolor = "white", penwidth = 1.8];
+        FOLD      [label = "SADDLE-NODE at g = 1\nlower branch destroyed\n→ fulminant IIH", shape = octagon, fillcolor = "#c0392b", fontcolor = "white", penwidth = 1.8];
+        BISTAB    [label = "Bistability + hysteresis\ntwo pressures at one\nparameter set", shape = octagon, fillcolor = "#e8926a", penwidth = 1.4];
+    }
+
+    /* ============================================================
+       7. CEREBRAL BLOOD FLOW / ACID-BASE
+       ============================================================ */
+    subgraph cluster_cbf {
+        label = "7. Acid–base and cerebral blood flow (the arm that opposes the drug)";
+        style = "filled"; fillcolor = "#fffbe8"; color = "#c7b356";
+        fontsize = 11; fontcolor = "#7a6716";
+        node [fillcolor = "#f8f1cd", color = "#bda94d"];
+
+        CARENAL   [label = "Renal carbonic\nanhydrase inhibition"];
+        HCO3      [label = "Plasma HCO3-\n25 → 18 mEq/L [HCO3]"];
+        ACIDOSIS  [label = "Metabolic acidosis,\ncompensatory\nhyperventilation"];
+        PACO2     [label = "PaCO2, cerebral\nperivascular pH"];
+        VASODIL   [label = "Cerebral arteriolar\nvasodilation"];
+        QVREL     [label = "Relative CBF\n[QVREL]  +15 %"];
+        CBV       [label = "Cerebral blood\nvolume ↑"];
+        AUTOREG   [label = "Cerebral\nautoregulation"];
+        HYPOKAL   [label = "Hypokalaemia,\nhyperchloraemia"];
+    }
+
+    /* ============================================================
+       8. INTRACRANIAL COMPLIANCE
+       ============================================================ */
+    subgraph cluster_comp {
+        label = "8. Intracranial pressure–volume behaviour";
+        style = "filled"; fillcolor = "#eef2f7"; color = "#8797ab";
+        fontsize = 11; fontcolor = "#3d4b5c";
+        node [fillcolor = "#dde5ee", color = "#7a8b9f";]
+
+        MARMAROU  [label = "Exponential P–V curve\nC = 1/(E1·ICP),\nE1 = 0.2 /mL"];
+        COMPL     [label = "Intracranial compliance\n0.5 mL/mmHg at ICP 10,\n0.19 at ICP 26"];
+        PULSEAMP  [label = "ICP pulse amplitude\ngrows with pressure"];
+        BWAVE     [label = "B-waves, plateau\nwaves, nocturnal peaks"];
+        TAUREL    [label = "Relaxation time\nτ = C·R_out ≈ 30 min"];
+        ICP       [label = "INTRACRANIAL PRESSURE\nICP  [ICP]\n(the fixed point)", shape = doubleoctagon,
+                   fillcolor = "#2c3e50", fontcolor = "white",
+                   fontsize = 12, penwidth = 2.0];
+        VENTRIC   [label = "Slit / normal\nventricles"];
+        EMPTYSELL [label = "Empty sella,\nposterior globe flattening,\noptic sheath distension (MRI)"];
+    }
+
+    /* ============================================================
+       9. OPTIC NERVE HEAD
+       ============================================================ */
+    subgraph cluster_onh {
+        label = "9. Optic nerve head: the translaminar pressure difference";
+        style = "filled"; fillcolor = "#eaf6fb"; color = "#6fa8bf";
+        fontsize = 11; fontcolor = "#1f5a72";
+        node [fillcolor = "#d4eaf4", color = "#5f96ad"];
+
+        PONS      [label = "Optic nerve sheath\nCSF pressure [PONS]", fillcolor = "#b6d9e9", penwidth = 1.4];
+        SHEATHCOMP[label = "Sheath compartmentation,\nsegmental pressure"];
+        IOP       [label = "Intraocular pressure\n[IOP] 15.5 mmHg", fillcolor = "#b6d9e9"];
+        AQHUM     [label = "Aqueous humour\nsecretion (ciliary CA)"];
+        TLPD      [label = "TRANSLAMINAR PRESSURE\nDIFFERENCE = PONS − IOP",
+                   shape = octagon, fillcolor = "#2980b9", fontcolor = "white",
+                   penwidth = 1.6];
+        LAMINA    [label = "Lamina cribrosa,\nscleral canal geometry"];
+        STASIS    [label = "Axoplasmic transport\nstasis [STASIS]"];
+        MITOACC   [label = "Mitochondrial\naccumulation, ATP\ndeficit at the lamina"];
+        RNFLS     [label = "Prelaminar swelling\n[RNFLS] 0–320 μm"];
+        AXON      [label = "Surviving RNFL axons\n[AXON] 98 → 38 μm"];
+        RNFLMEAS  [label = "OCT RNFL (measured)\n= AXON + RNFLS\nNON-MONOTONIC", fillcolor = "#9fd0e5", penwidth = 1.6];
+        GCLIPL    [label = "Ganglion cell – inner\nplexiform layer thinning"];
+        ONHISCH   [label = "ONH capillary\ncompression, ischaemia\n(TLPD > 22 mmHg)"];
+        PPWRINK   [label = "Peripapillary wrinkles,\nchoroidal folds"];
+        FRISEN    [label = "Frisen papilloedema\ngrade 0–5"];
+        OPTATRO   [label = "Optic atrophy,\npallor"];
+    }
+
+    /* ============================================================
+       10. VISUAL FUNCTION
+       ============================================================ */
+    subgraph cluster_vis {
+        label = "10. Visual endpoints";
+        style = "filled"; fillcolor = "#f3fbf3"; color = "#84b884";
+        fontsize = 11; fontcolor = "#2f6b2f";
+        node [fillcolor = "#ddf1dd", color = "#75a975"];
+
+        MD        [label = "Perimetric mean\ndeviation [MD] dB", fillcolor = "#c3e6c3", penwidth = 1.4];
+        BLINDSPOT [label = "Enlarged blind spot,\nnasal step, arcuate loss"];
+        TVO       [label = "Transient visual\nobscurations"];
+        VA        [label = "Visual acuity\n(late to fail)"];
+        COLCON    [label = "Colour vision,\ncontrast sensitivity"];
+        CUMEXP    [label = "Cumulative supra-threshold\nexposure ∫(TLPD−thr)dt\n[CUMEXP]"];
+        BLIND     [label = "Permanent severe\nvisual loss (2–10 %)", fillcolor = "#a8d8a8", penwidth = 1.4];
+    }
+
+    /* ============================================================
+       11. HEADACHE
+       ============================================================ */
+    subgraph cluster_ha {
+        label = "11. Headache: a state with its own hysteresis";
+        style = "filled"; fillcolor = "#fdf2e9"; color = "#d19a5e";
+        fontsize = 11; fontcolor = "#8a5410";
+        node [fillcolor = "#f9e2ca", color = "#c48e55"];
+
+        DURAFF    [label = "Dural / sinus wall\ntrigeminal afferents"];
+        VENDIST   [label = "Sinus wall distension\nby the gradient"];
+        TRPV1     [label = "TRPV1, ASIC3,\nP2X3 on afferents"];
+        CGRP      [label = "CGRP, PACAP,\nsubstance P [CGRP]"];
+        TCC       [label = "Trigeminocervical\ncomplex"];
+        STG       [label = "Central sensitisation\n[STG]", fillcolor = "#f3cfa8", penwidth = 1.4];
+        ALLOD     [label = "Cutaneous allodynia,\nphotophobia"];
+        MOH       [label = "Medication-overuse\nstate [MOH]", fillcolor = "#f3cfa8"];
+        ANALG     [label = "Analgesic / triptan\nexposure"];
+        MHD       [label = "Monthly headache days\n[MHD] 0–30", fillcolor = "#eebf8e", penwidth = 1.6];
+        MIGPHEN   [label = "Migraine phenotype,\nchronic daily headache"];
+    }
+
+    /* ============================================================
+       12. OTHER SYMPTOMS
+       ============================================================ */
+    subgraph cluster_sym {
+        label = "12. Non-visual, non-headache symptoms";
+        style = "filled"; fillcolor = "#f6f0f6"; color = "#a98cb0";
+        fontsize = 11; fontcolor = "#5c3a63";
+        node [fillcolor = "#ebdfec", color = "#9b7ba3"];
+
+        TINN      [label = "Pulsatile tinnitus\n[TINN] 0–10\n(reads the GRADIENT)", penwidth = 1.4, fillcolor = "#dfc9e2"];
+        DIPL      [label = "Abducens palsy,\nhorizontal diplopia\n[DIPL]"];
+        NECKPAIN  [label = "Neck, back and\nradicular pain"];
+        CSFLEAK   [label = "Spontaneous CSF\nrhinorrhoea / otorrhoea"];
+        OLFACT    [label = "Olfactory\ndysfunction"];
+        COGSYM    [label = "Cognitive slowing,\nfatigue, low mood"];
+        DIZZ      [label = "Dizziness,\nunsteadiness"];
+    }
+
+    /* ============================================================
+       13. CARBONIC ANHYDRASE INHIBITORS
+       ============================================================ */
+    subgraph cluster_ca {
+        label = "13. Carbonic anhydrase inhibitors: PK and the three arms";
+        style = "filled"; fillcolor = "#e9f3fb"; color = "#5d92c4";
+        fontsize = 11; fontcolor = "#1d4c7c";
+        node [fillcolor = "#d3e6f7", color = "#5182b4"];
+
+        ACZDOSE   [label = "Acetazolamide\n250–4000 mg/day PO"];
+        ACZG      [label = "Gut [AACZG]\nF ≈ 1, ka 1.2 /h"];
+        ACZP      [label = "Plasma [AACZP]\nVc 14 L, t½ 4–8 h"];
+        ACZR      [label = "Red-cell CA sink\n[AACZR] saturable"];
+        ACZREN    [label = "Renal excretion,\nunchanged drug"];
+        CAINH     [label = "CA-II / CA-XII\ninhibition, occupancy"];
+        PARES     [label = "Paraesthesia,\ndysgeusia, fatigue\n[PARES]"];
+        ADH       [label = "Adherence [ADH]\n0.95 → 0.57", fillcolor = "#b8d5f0", penwidth = 1.4];
+        KSTONE    [label = "Citrate depletion,\nnephrolithiasis [KSTONE]"];
+        SULFA     [label = "Sulfonamide reactions,\naplastic anaemia (rare)"];
+        TERATO    [label = "Pregnancy category,\nteratogenic signal"];
+        KCITRATE  [label = "Potassium citrate\nco-prescription"];
+    }
+
+    /* ============================================================
+       14. OTHER PHARMACOLOGY
+       ============================================================ */
+    subgraph cluster_drug2 {
+        label = "14. Other pharmacology";
+        style = "filled"; fillcolor = "#f0f7ec"; color = "#7fa864";
+        fontsize = 11; fontcolor = "#3c5f24";
+        node [fillcolor = "#dcecd2", color = "#74985c"];
+
+        TPMDOSE   [label = "Topiramate\n100–200 mg/day"];
+        TPMC      [label = "Topiramate plasma\n[ATPMC] t½ 21 h"];
+        TPMWT     [label = "Topiramate-driven\nweight loss (its main\nroute to lower ICP)"];
+        COGSL     [label = "Cognitive slowing\n[COGSL]"];
+        FURDOSE   [label = "Furosemide\n40–80 mg/day"];
+        FURC      [label = "Furosemide plasma\n[AFURC]"];
+        EXDOSE    [label = "Exenatide\n10 μg BID SC"];
+        EXC       [label = "Exenatide plasma\n[AEXC] t½ 2.4 h"];
+        SEMDOSE   [label = "Semaglutide /\ntirzepatide weekly"];
+        SEMC      [label = "Semaglutide plasma\n[ASEMC] t½ 165 h"];
+        AZDDOSE   [label = "AZD4017\n400 mg BID"];
+        AZDC      [label = "AZD4017 plasma\n[AAZDC]"];
+        PREDDOSE  [label = "Prednisolone,\nmethylprednisolone\n(bridge only)"];
+        PREDC     [label = "Prednisolone plasma\n[APRED]"];
+        OCTREO    [label = "Octreotide\n(historic, weak)"];
+        CGRPMAB   [label = "Anti-CGRP mAb /\ngepant (headache arm)"];
+    }
+
+    /* ============================================================
+       15. PROCEDURES
+       ============================================================ */
+    subgraph cluster_proc {
+        label = "15. Procedures: which term of the equation each one touches";
+        style = "filled"; fillcolor = "#fbeef4"; color = "#c07ba0";
+        fontsize = 11; fontcolor = "#7c2f56";
+        node [fillcolor = "#f5dbe8", color = "#b06d92"];
+
+        LP        [label = "Diagnostic /\ntherapeutic LP\n25 mL"];
+        LDRAIN    [label = "Temporary lumbar\ndrain"];
+        SHUNT     [label = "VP / LP / VA shunt\nR_shunt 2.5, valve 10 cmH2O"];
+        SHUNTFAIL [label = "Shunt obstruction,\nrevision 30–50 % at 2 y\n[SHUNTP]"];
+        OVERDRAIN [label = "Over-drainage,\nlow-pressure headache,\nsubdural collection"];
+        STENT     [label = "Venous sinus stenting\nR_ts → R_ts0 : removes\nthe AMPLIFIER [STENT]",
+                   fillcolor = "#eec2d8", penwidth = 1.6];
+        RESTEN    [label = "In-stent / adjacent\nrestenosis 10–15 %"];
+        ANTIPLAT  [label = "Dual antiplatelet\ncover"];
+        ONSF      [label = "Optic nerve sheath\nfenestration [ONSFS]\ndecouples PONS from ICP",
+                   fillcolor = "#eec2d8", penwidth = 1.6];
+        BARIATRIC [label = "Bariatric surgery\n(IIH:WT)"];
+        WTPROG    [label = "Supervised weight\nprogramme, very-low-\nenergy diet"];
+        SUBTEMP   [label = "Subtemporal\ndecompression\n(historic)"];
+    }
+
+    /* ============================================================
+       16. BODY-WEIGHT STATE
+       ============================================================ */
+    subgraph cluster_wt {
+        label = "16. Weight as a state";
+        style = "filled"; fillcolor = "#f9f6ec"; color = "#bfae72";
+        fontsize = 11; fontcolor = "#6f6023";
+        node [fillcolor = "#efe9d0", color = "#ac9c62"];
+
+        WT        [label = "Body weight [WT]\nτ 60 d diet /\n25 d surgery"];
+        BMIN      [label = "BMI = WT / HT²"];
+        STERGAIN  [label = "Steroid-induced\nweight gain\n(self-defeating bridge)"];
+        REGAIN    [label = "Weight regain\n→ relapse"];
+    }
+
+    /* ============================================================
+       17. MONITORING / DIAGNOSIS
+       ============================================================ */
+    subgraph cluster_mon {
+        label = "17. What is measured, and what it does and does not contain";
+        style = "filled"; fillcolor = "#eef0f2"; color = "#8d949b";
+        fontsize = 11; fontcolor = "#40474e";
+        node [fillcolor = "#dfe3e7", color = "#7f878f"];
+
+        OPENP     [label = "Lumbar opening pressure\nthreshold 25 cmH2O\n(single sample, pulsatile)"];
+        MRV       [label = "MRV / CTV transverse\nsinus stenosis\n(also in 10–25 % of controls)"];
+        VENOGRAM  [label = "Catheter venography\nPRESSURE GRADIENT\n(the measurable proxy for g)", penwidth = 1.4, fillcolor = "#cfd6dc"];
+        OCTMON    [label = "Serial OCT RNFL / GCIPL"];
+        PERIM     [label = "Automated perimetry\n(24-2 / 30-2)"];
+        FUNDUS    [label = "Fundoscopy,\nFrisen grading"];
+        ICPMON    [label = "Telemetric ICP\nmonitoring"];
+        DANDY     [label = "Modified Dandy /\nFriedman criteria"];
+        MISCLASS  [label = "Threshold misclassification\nfrom within-subject\nvariability"];
+    }
+
+    /* ============================================================
+       18. SYSTEMS-LEVEL CONSEQUENCES
+       ============================================================ */
+    subgraph cluster_sys {
+        label = "18. Consequences that follow from the loop, not from any drug";
+        style = "filled"; fillcolor = "#fdf6f6"; color = "#c58f8f";
+        fontsize = 11; fontcolor = "#7d2f2f";
+        node [fillcolor = "#f6e2e2", color = "#b57e7e"];
+
+        AMPCSF    [label = "Interventions on R_out·F_form\nare amplified by 1/(1−g)"];
+        AMPPCV    [label = "Interventions on P_cv\nare NOT amplified\n(coefficient ≈ 1)"];
+        RESPSPEC  [label = "'Responder / non-responder'\nfrom sinus mechanics alone"];
+        STATERESET[label = "Treat-and-withdraw remission\n= state reset across a fold,\nnot a maintained parameter"];
+        RELAPSE   [label = "Relapse when the state\nis returned above the\nupper fold"];
+        FULMIN    [label = "Fulminant IIH:\nno stable low branch →\nsurgery, not titration"];
+        TARGETEQ  [label = "Four therapies =\nfour terms of ONE equation"];
+        DISSOC    [label = "Endpoint dissociation:\npressure / gradient /\ngradient-at-the-disc / sensitisation"];
+    }
+
+    /* =====================================================================
+       EDGES
+       ===================================================================== */
+
+    /* ---- 1 -> 16 / 2 / 3 ---- */
+    OBESITY  -> WT        [label = "sets"];
+    WTGAIN   -> WT;
+    WT       -> BMIN;
+    BMIN     -> ADIPOSE;
+    BMIN     -> IAP       [label = "KIAP 0.35 mmHg/unit"];
+    FEMALE   -> AKR1C3;
+    PCOS     -> TESTO;
+    OSA      -> HYPERCAP;
+    HYPERCAP -> PACO2;
+    SLEEPPOS -> PCV       [label = "posture"];
+    ANAEMIA  -> CBFQV     [label = "compensatory CBF ↑"];
+    STERWD   -> HSD11B1;
+    GENSUS   -> PCRITN    [style = bold, color = "#8a6d1f"];
+    GENSUS   -> RTSC      [label = "PSTIFF"];
+    TETRA    -> ARACHG    [label = "impairs egress", style = dashed];
+    RETIN    -> ARACHG    [style = dashed];
+    LITHIUM  -> FFORM     [style = dashed];
+    GHRX     -> FFORM     [style = dashed];
+    CVT      -> RTSF      [label = "fixed obstruction", style = bold];
+    JUGCOMP  -> PCV       [style = bold];
+    DURALAV  -> SSS       [style = bold];
+
+    /* ---- 2 endocrine -> secretion ---- */
+    ADIPOSE  -> HSD11B1;
+    ADIPOSE  -> AKR1C3;
+    ADIPOSE  -> LEPTIN;
+    HSD11B1  -> CORTL;
+    CORTISOL -> CORTL;
+    CORTL    -> GR_CP;
+    AKR1C3   -> TESTO;
+    TESTO    -> CSFANDR;
+    CSFANDR  -> AR_CP;
+    AR_CP    -> NKCC1     [label = "+"];
+    AR_CP    -> NAKATP    [label = "+"];
+    GR_CP    -> NAKATP    [label = "+"];
+    GR_CP    -> AQP1      [label = "+"];
+    ALDO     -> NAKATP;
+    LEPTIN   -> CPEPI     [style = dashed];
+    GLP1R    -> NAKATP    [label = "−", color = "#2e7d32"];
+    GLP1R    -> NKCC1     [label = "−", color = "#2e7d32"];
+
+    /* ---- 3 mechanics ---- */
+    IAP      -> DIAPH;
+    DIAPH    -> ITP;
+    ITP      -> RAP;
+    RAP      -> PCV       [style = bold];
+    IAP      -> EPIDVEN;
+    EPIDVEN  -> SPINCOMP;
+    SPINCOMP -> COMPL     [label = "−"];
+
+    /* ---- 4 secretion machinery ---- */
+    CPEPI    -> NAKATP;
+    CPEPI    -> NKCC1;
+    CPEPI    -> AQP1;
+    CPEPI    -> CA2;
+    CA2      -> HCO3CP;
+    HCO3CP   -> NBCE2;
+    NBCE2    -> NAKATP;
+    NHE1     -> VATP;
+    VATP     -> CA2;
+    KCNJ13   -> NAKATP    [label = "K+ recycling"];
+    CFTR_CP  -> NKCC1;
+    NAKATP   -> FFORM     [style = bold];
+    NKCC1    -> FFORM     [style = bold];
+    AQP1     -> FFORM     [style = bold];
+    CA2      -> FFORM     [style = bold];
+    EPENDYM  -> FFORM     [style = dashed, label = "~30 %"];
+
+    /* ---- 5 egress ---- */
+    ARACHG   -> STARLING2;
+    MENLYMPH -> CERVLN;
+    CRIBRI   -> CERVLN;
+    GLYMPH   -> MENLYMPH;
+    ROOTSL   -> STARLING2;
+    CERVLN   -> STARLING2;
+    STARLING2 -> ROUT     [style = bold];
+    PCV      -> ROUT      [label = "KROUTP 1.69", style = bold, color = "#6a4fa0"];
+
+    /* ---- 6 the venous loop ---- */
+    CBFQV    -> GRAD      [label = "Q_v × R_ts", style = bold];
+    RTS0     -> GRAD;
+    RTSC     -> GRAD      [style = bold];
+    RTSF     -> GRAD      [style = bold];
+    GRAD     -> SSS       [style = bold];
+    PCV      -> SSS       [style = bold];
+    SSS      -> PTM;
+    PTM      -> RTSC      [label = "collapse when\nP_seg − ICP < −PCRIT",
+                           style = bold, color = "#c0392b"];
+    PCRITN   -> RTSC      [label = "−"];
+    RTSC     -> RTSF      [label = "KREM: chronic\ncompression →\nwall remodelling"];
+    SSS      -> SIGMOID;
+    SIGMOID  -> JUGVALV;
+    GRAD     -> TURBUL;
+    RTSC     -> LOOPG;
+    PTM      -> LOOPG;
+    LOOPG    -> FOLD      [label = "g → 1", style = bold, color = "#c0392b"];
+    LOOPG    -> BISTAB;
+    LOOPG    -> AMPCSF    [style = bold];
+    LOOPG    -> AMPPCV    [style = dashed, label = "does NOT\napply"];
+
+    /* ---- THE CLOSURE: the two heavy red edges ---- */
+    SSS      -> ICP       [label = "LOOP_A: ICP = P_sss + R_out·F_form",
+                           style = bold, penwidth = 2.4, color = "#c0392b",
+                           fontcolor = "#c0392b"];
+    ICP      -> PTM       [label = "LOOP_B: ICP compresses\nthe sinus from outside",
+                           style = bold, penwidth = 2.4, color = "#c0392b",
+                           fontcolor = "#c0392b"];
+    FFORM    -> ICP       [style = bold, penwidth = 1.8, color = "#2e7d32"];
+    ROUT     -> ICP       [style = bold, penwidth = 1.8, color = "#6a4fa0"];
+
+    /* ---- 7 acid-base / CBF ---- */
+    CAINH    -> CARENAL;
+    CARENAL  -> HCO3      [label = "−28 %"];
+    HCO3     -> ACIDOSIS;
+    ACIDOSIS -> PACO2     [label = "hyperventilation"];
+    ACIDOSIS -> VASODIL   [style = bold];
+    PACO2    -> VASODIL;
+    VASODIL  -> QVREL     [style = bold];
+    QVREL    -> CBFQV     [style = bold, color = "#b8860b"];
+    VASODIL  -> CBV;
+    CBV      -> COMPL     [label = "−"];
+    AUTOREG  -> VASODIL   [label = "buffers"];
+    CARENAL  -> HYPOKAL;
+    ACIDOSIS -> KSTONE;
+
+    /* ---- 8 compliance / ICP ---- */
+    MARMAROU -> COMPL;
+    ICP      -> COMPL     [label = "C falls as ICP rises"];
+    COMPL    -> PULSEAMP  [label = "−"];
+    COMPL    -> TAUREL;
+    ROUT     -> TAUREL;
+    PULSEAMP -> BWAVE;
+    PULSEAMP -> OPENP     [label = "sampling error"];
+    ICP      -> VENTRIC;
+    ICP      -> EMPTYSELL;
+    ICP      -> PONS      [style = bold, penwidth = 1.6];
+
+    /* ---- 9 optic nerve head ---- */
+    PONS     -> TLPD      [style = bold, penwidth = 1.6];
+    IOP      -> TLPD      [label = "−", style = bold, penwidth = 1.6,
+                           color = "#c0392b", fontcolor = "#c0392b"];
+    AQHUM    -> IOP;
+    SHEATHCOMP -> PONS;
+    LAMINA   -> STASIS;
+    TLPD     -> STASIS    [style = bold];
+    STASIS   -> MITOACC;
+    MITOACC  -> RNFLS;
+    TLPD     -> RNFLS     [label = "KSW·(TLPD−thr)", style = bold];
+    AXON     -> RNFLS     [label = "swelling needs\nliving axons",
+                           style = bold, color = "#1f5a72"];
+    STASIS   -> AXON      [label = "− KAXL·STASIS³", style = bold];
+    TLPD     -> ONHISCH   [label = "> 22 mmHg"];
+    ONHISCH  -> AXON      [label = "− KISCH", style = bold, color = "#c0392b"];
+    RNFLS    -> RNFLMEAS  [style = bold];
+    AXON     -> RNFLMEAS  [style = bold];
+    RNFLS    -> FRISEN;
+    RNFLS    -> PPWRINK;
+    AXON     -> GCLIPL    [label = "−"];
+    AXON     -> OPTATRO   [label = "−"];
+    RNFLMEAS -> OCTMON;
+
+    /* ---- 10 visual function ---- */
+    AXON     -> MD        [label = "SMD 0.30 dB/μm", style = bold];
+    STASIS   -> MD        [label = "reversible\ncomponent", style = dashed];
+    MD       -> BLINDSPOT;
+    MD       -> BLIND;
+    TLPD     -> CUMEXP    [style = bold];
+    CUMEXP   -> BLIND     [style = bold];
+    PULSEAMP -> TVO       [label = "posture-triggered\nONH ischaemia"];
+    GCLIPL   -> VA;
+    GCLIPL   -> COLCON;
+    MD       -> PERIM;
+    FRISEN   -> FUNDUS;
+
+    /* ---- 11 headache ---- */
+    ICP      -> DURAFF    [style = bold];
+    GRAD     -> VENDIST   [style = bold];
+    VENDIST  -> DURAFF    [style = bold];
+    DURAFF   -> TRPV1;
+    TRPV1    -> CGRP;
+    CGRP     -> TCC;
+    TCC      -> STG       [label = "KSENS"];
+    STG      -> CGRP      [label = "+ feed-forward"];
+    STG      -> ALLOD;
+    ANALG    -> MOH       [label = "KMOH"];
+    MOH      -> STG       [label = "blocks decay\n(FMOHDES 0.6)",
+                           style = bold, color = "#8a5410"];
+    STG      -> MHD       [style = bold];
+    MOH      -> MHD       [style = bold];
+    ICP      -> MHD       [style = bold];
+    GRAD     -> MHD;
+    MHD      -> MIGPHEN;
+    MHD      -> ANALG     [label = "+ vicious circle",
+                           style = bold, color = "#8a5410"];
+    CGRPMAB  -> CGRP      [label = "−", color = "#2e7d32"];
+
+    /* ---- 12 other symptoms ---- */
+    TURBUL   -> TINN      [style = bold, color = "#7c2f56"];
+    GRAD     -> TINN      [style = bold];
+    ICP      -> DIPL      [label = "> 26 mmHg"];
+    ICP      -> NECKPAIN;
+    ICP      -> CSFLEAK;
+    ICP      -> OLFACT;
+    ICP      -> DIZZ;
+    COGSL    -> COGSYM;
+    MHD      -> COGSYM;
+
+    /* ---- 13 acetazolamide ---- */
+    ACZDOSE  -> ACZG;
+    ADH      -> ACZG      [label = "× adherence",
+                           style = bold, color = "#1d4c7c"];
+    ACZG     -> ACZP;
+    ACZP     -> ACZR      [dir = both, label = "saturable"];
+    ACZP     -> ACZREN;
+    ACZP     -> CAINH     [style = bold];
+    CAINH    -> CA2       [label = "− EMAXCA 0.50",
+                           style = bold, color = "#2e7d32", penwidth = 1.6];
+    CAINH    -> AQHUM     [label = "− EMAXIOP 2.5 mmHg",
+                           style = bold, color = "#c0392b"];
+    ACZP     -> PARES     [style = bold];
+    PARES    -> ADH       [label = "− KADHPAR", style = bold,
+                           color = "#c0392b"];
+    KSTONE   -> ADH       [label = "−", style = dashed];
+    KCITRATE -> KSTONE    [label = "−", color = "#2e7d32"];
+    ACZP     -> SULFA     [style = dashed];
+    ACZDOSE  -> TERATO    [style = dashed];
+
+    /* ---- 14 other drugs ---- */
+    TPMDOSE  -> TPMC;
+    TPMC     -> CAINH     [label = "POTTPM 0.45\n(weak)"];
+    TPMDOSE  -> TPMWT     [style = bold];
+    TPMWT    -> WT        [label = "− up to 10 %",
+                           style = bold, color = "#2e7d32"];
+    TPMC     -> COGSL;
+    COGSL    -> ADH       [label = "− KADHCOG"];
+    TPMC     -> MHD       [label = "− migraine\nprophylaxis", style = dashed,
+                           color = "#2e7d32"];
+    FURDOSE  -> FURC;
+    FURC     -> NKCC1     [label = "− EMAXFUR 0.20", color = "#2e7d32"];
+    EXDOSE   -> EXC;
+    EXC      -> GLP1R     [style = bold, color = "#2e7d32"];
+    EXDOSE   -> WT        [label = "− modest"];
+    SEMDOSE  -> SEMC;
+    SEMC     -> GLP1R     [style = bold, color = "#2e7d32"];
+    SEMDOSE  -> WT        [label = "− 15 %", style = bold,
+                           color = "#2e7d32"];
+    AZDDOSE  -> AZDC;
+    AZDC     -> HSD11B1   [label = "− 85 % engagement",
+                           color = "#2e7d32"];
+    PREDDOSE -> PREDC;
+    PREDC    -> CORTL     [label = "+"];
+    PREDDOSE -> STERGAIN  [style = bold, color = "#c0392b"];
+    STERGAIN -> WT        [label = "+", style = bold, color = "#c0392b"];
+    OCTREO   -> FFORM     [label = "− weak", style = dashed];
+
+    /* ---- 15 procedures ---- */
+    LP       -> ICP       [label = "25 mL: − for ~30 min\n(τ = C·R_out)",
+                           style = dashed, color = "#7c2f56"];
+    LP       -> OPENP     [label = "the measurement"];
+    LDRAIN   -> ICP       [style = dashed];
+    SHUNT    -> ROUT      [label = "parallel conductance,\nvalve 10 cmH2O",
+                           style = bold, color = "#7c2f56"];
+    SHUNT    -> SHUNTFAIL;
+    SHUNTFAIL -> ROUT     [label = "patency loss", style = dashed];
+    SHUNT    -> OVERDRAIN [style = dashed];
+    STENT    -> RTSC      [label = "→ 0", style = bold, penwidth = 2.0,
+                           color = "#7c2f56"];
+    STENT    -> RTSF      [label = "→ 0", style = bold, penwidth = 2.0,
+                           color = "#7c2f56"];
+    STENT    -> LOOPG     [label = "removes the AMPLIFIER,\nnot a drive",
+                           style = bold, penwidth = 2.0, color = "#c0392b",
+                           fontcolor = "#c0392b"];
+    STENT    -> RESTEN;
+    RESTEN   -> RTSF      [label = "returns"];
+    ANTIPLAT -> STENT     [label = "enables"];
+    ONSF     -> PONS      [label = "decouples PONS\nfrom ICP", style = bold,
+                           penwidth = 2.0, color = "#7c2f56"];
+    BARIATRIC -> WT       [label = "− 21 %", style = bold,
+                           color = "#2e7d32"];
+    WTPROG   -> WT        [label = "− 12–16 %", style = bold,
+                           color = "#2e7d32"];
+    SUBTEMP  -> ICP       [style = dashed];
+    REGAIN   -> WT        [label = "+"];
+
+    /* ---- 17 monitoring ---- */
+    OPENP    -> DANDY;
+    MRV      -> DANDY;
+    OPENP    -> MISCLASS;
+    PULSEAMP -> MISCLASS;
+    GRAD     -> VENOGRAM  [style = bold];
+    LOOPG    -> VENOGRAM  [label = "r ≈ 0.9 in the\nvirtual cohort",
+                           style = dashed, color = "#40474e"];
+    VENOGRAM -> STENT     [label = "selects"];
+    ICPMON   -> ICP       [dir = back, style = dashed];
+    RTSF     -> MRV       [style = dashed];
+    RTSC     -> MRV       [label = "regresses when\nICP falls", style = dashed];
+
+    /* ---- 18 systems consequences ---- */
+    AMPCSF   -> RESPSPEC;
+    PCRITN   -> RESPSPEC;
+    BISTAB   -> STATERESET [style = bold];
+    STATERESET -> RELAPSE  [label = "if the state is\nre-crossed"];
+    REGAIN   -> RELAPSE;
+    FOLD     -> FULMIN     [style = bold];
+    FULMIN   -> STENT      [label = "urgent", style = bold];
+    FULMIN   -> SHUNT      [label = "urgent", style = bold];
+    FULMIN   -> ONSF       [label = "urgent", style = bold];
+    FFORM    -> TARGETEQ   [style = dashed];
+    ROUT     -> TARGETEQ   [style = dashed];
+    PCV      -> TARGETEQ   [style = dashed];
+    RTSC     -> TARGETEQ   [style = dashed];
+    ICP      -> DISSOC     [style = dashed];
+    GRAD     -> DISSOC     [style = dashed];
+    TLPD     -> DISSOC     [style = dashed];
+    STG      -> DISSOC     [style = dashed];
+    DISSOC   -> MISCLASS   [style = dashed];
+    RNFLMEAS -> DISSOC     [label = "non-monotonic", style = dashed];
+
+}
