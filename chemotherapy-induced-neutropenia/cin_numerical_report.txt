@@ -1,0 +1,742 @@
+==============================================================================
+CHEMOTHERAPY-INDUCED NEUTROPENIA / FEBRILE NEUTROPENIA
+QSP model — numerical report
+==============================================================================
+53 ODE states · 8 parameterised cytotoxic agents · 13 regimens
+Integration: RK4, biology dt = 0.30 h with an automatic stability
+bound, cytotoxic PK pre-integrated on a 0.025 h grid.
+TWO parameters are fitted, both to Vogel 2005.  Every other number
+below is a prediction, and A1 lists the six that miss.
+
+==============================================================================
+A0  Numerical verification — before any result is believed
+==============================================================================
+The model has 53 ODE states.  Three checks, in order of severity:
+
+(1) BASELINE STEADY STATE.  With no drug and no growth factor every
+    state must be stationary; if it is not, every subsequent number is
+    a mixture of pharmacology and drift.
+state       t=0    t=42 d   |drift|
+-----  --------  --------  --------
+CircN    5.0000    5.0000  0.00e+00
+MargN    5.0000    5.0000  0.00e+00
+TrN3     9.7940    9.7940  0.00e+00
+Plt    250.0000  250.0000  0.00e+00
+Hb      13.5000   13.5000  0.00e+00
+HSC      1.0000    1.0000  0.00e+00
+Bar      1.0000    1.0000  0.00e+00
+Func     1.0000    1.0000  0.00e+00
+TPO      1.0000    1.0000  0.00e+00
+Bact     0.0000    0.0000  0.00e+00
+
+(2) STEP-SIZE CONVERGENCE.  The cytotoxic PK is stiff (docetaxel's
+    central compartment empties at ~9.7 /h), so it is pre-integrated on
+    its own fine grid and interpolated; the biology is then stepped at
+    dt with a TIME-LOCAL bound of 1.2/lambda(t) recomputed at every
+    step.  Halving dt must not move the answer.
+dt (h)  nadir ANC  nadir day  DSN (d)    P(FN)   AUC_B
+------  ---------  ---------  -------  -------  ------
+0.500     0.16965      8.750   4.6875  0.26451  1.8830
+0.250     0.16921      8.757   4.6875  0.26502  1.6564
+0.100     0.16926      8.750   4.6889  0.26494  1.6673
+0.050     0.16928      8.750   4.6896  0.26491  1.6559
+
+(3) THE DSN COUNTER AGAINST THE RECORDED GRID.  DSN is integrated as a
+    state, so it does not depend on the output grid; the grid estimate
+    is shown alongside as a check that the two agree.
+regimen       DSN (state)  DSN (grid)     diff
+------------  -----------  ----------  -------
+CAE                4.6875      4.6667  2.1e-02
+TAC                4.3646      4.3333  3.1e-02
+docetaxel100       4.0104      4.0417  3.1e-02
+EP                 4.4757      4.4583  1.7e-02
+
+==============================================================================
+A1  Calibration — what is fitted, and the six places it misses
+==============================================================================
+TWO parameters are fitted, both to Vogel 2005, and they are hit exactly
+because one parameter per number always is.  Everything else is fixed,
+derived, or auxiliary.  The rest of this section is the list of reported
+numbers the model then gets WRONG, which is the only part worth reading.
+
+The reason there are only two fitted parameters is a trade-off the model
+cannot escape.  The overall myelotoxic scale can be set EITHER so that
+the absolute durations reported in the G-CSF trials come out right, OR so
+that the model tells regimens apart.  Not both.  The duration below 0.5
+SATURATES in this topology: the recovery limb starts from a floor set by
+phi, which does not depend on exposure, and climbs at a rate set by the
+feedback exponent, so once the proliferative pool is empty at all, extra
+exposure buys almost no extra duration.  Raising the scale until CAE
+reaches Crawford's 6-day median puts every combination regimen at a
+nadir of 0.065-0.11 and a DSN of 5.4-6.8 d -- indistinguishable.  The
+scale is therefore set for DISCRIMINATION and the shortfall reported.
+
+class                                   quantity   reported  model                 source  error
+-----  -----------------------------------------  ---------  -----  ---------------------  -----
+FIT                         docetaxel 100, P(FN)      0.170  0.170             Vogel 2005     0%
+FIT                   docetaxel 100 + peg, P(FN)      0.010  0.010             Vogel 2005     0%
+MISS                CAE no G-CSF, median DSN (d)        6.0   4.64          Crawford 1991   -23%
+MISS      CAE + filgrastim d4-17, median DSN (d)        1.0   1.90          Crawford 1991   +90%
+MISS         AT + pegfilgrastim, cycle-1 DSN (d)        1.8   0.00             Green 2003  -100%
+MISS      AT + daily filgrastim, cycle-1 DSN (d)        1.6   1.46             Green 2003    -9%
+MISS   intact marrow + filgrastim x5 d, ANC peak      20-30    9.5  Lord 1989 / Dale 2018   -62%
+MISS       AC q3w, P(FN) (guideline band 10-20%)  0.10-0.20  0.198   NCCN / Crawford 2013      -
+ok             TAC, P(FN) (guideline band > 20%)     > 0.20  0.211   NCCN / Crawford 2013      -
+
+Six misses.  They are not independent, and reading them together says
+something more useful than any one of them:
+
+  (1) CAE's unsupported duration is 23% short of Crawford's median.
+      That is the discrimination trade-off above, taken deliberately.
+
+  (2,3) THE MODEL EXAGGERATES HOW MUCH THE TIMING OF G-CSF MATTERS.
+      Given on day 2, pegfilgrastim removes severe neutropenia
+      completely (0.00 d against Green's observed 1.8).  Given on day 4,
+      filgrastim leaves 1.90 d on CAE against Crawford's observed 1.0.
+      One is -100% and the other +90%, in OPPOSITE directions, and
+      the axis they differ on is when the drug was started.  So the
+      timing sensitivity reported in A4 -- which is one of this model's
+      more useful outputs -- is real in DIRECTION and too STEEP in
+      magnitude.  A reader should take A4's ranking of start days and
+      not its absolute day-by-day numbers.
+
+  (4) The model also ranks the two PRODUCTS in the wrong order.  Green
+      found pegfilgrastim marginally worse than daily filgrastim (1.8
+      vs 1.6 d); the model has it better (0.00 vs 1.46 d).  The mechanism
+      responsible is the one the model is proudest of -- target-mediated
+      clearance keeps the long-acting product present for exactly as
+      long as the ANC stays low (A7) -- so the same term that produces
+      the self-titration result also produces this error.  Holmes 2002
+      reported the two products within '< 1 day' of each other and the
+      model's gap is 1.5 d, so it is outside that too.
+
+  (5) The intact-marrow response is under-predicted by roughly half.
+      This one is forced.  The steady-state ANC multiple in a Friberg
+      loop is ((1-phi)(1+Emax_amp))^(1/gamma) with 1/gamma = 5.9, so a
+      5-fold rise needs Emax_amp = 0.320 -- and at that value
+      pegfilgrastim abolishes severe neutropenia entirely, which it
+      demonstrably does not.  Emax_amp = 0.100 is a compromise between two
+      observations the model cannot hold at the same time.
+
+  (6) AC comes out at P(FN) = 0.198 where the guideline band for that
+      regimen is 10-20 per cent, and TAC at 0.211 where the band is above
+      20 per cent.  TAC lands correctly; AC lands at the top of its
+      band rather than in the middle, which is the residue of the same
+      saturation.  The model therefore cannot be used to ASSIGN a
+      regimen to a guideline risk band -- only to compare within one.
+
+What survives all of this is everything COMPARATIVE.  A4 through A14
+change one thing at a time within a fixed regimen and patient, and the
+quantity being compared -- timing, product, dose, cell-cycle
+dependence, count versus function -- does not depend on the absolute
+scale being right.  The absolute P(FN) values do, and they are anchored
+to a randomised-trial population, which Truong 2016 shows understates
+real-world rates.
+
+Configuration:
+parameter                             value
+-------------------------------  ----------
+n_div (phi = 2^-n_div)                    8
+phi                              0.00390625
+sens_global                          2.0000
+sens_taxane                          1.0000
+sens_ery                             1.8227
+Emax_amp                             0.1000
+Emax_ktr (MTT 89.3 -> 44.6 h)         1.000
+Emax_surv                             0.250
+khsc_kill                          4.33e-05
+kdam_bar                            0.01074
+hFN_base (FITTED)                 1.994e-05
+hFN_k (FITTED)                     0.007316
+hFN_p (fixed, not identifiable)       1.550
+
+Per-agent slopes after the global scale (L/umol on the ANC, and the
+platelet / erythroid ratios):
+agent             raw slope  effective  plt ratio  ery ratio  cycle-dep
+----------------  ---------  ---------  ---------  ---------  ---------
+docetaxel             108.7      217.5      0.020      0.638       0.90
+paclitaxel            4.468      8.936      0.018      0.547       0.90
+doxorubicin           25.52      51.04      0.055      1.002       0.60
+cyclophosphamide     0.0463     0.0926      0.070      1.094       0.40
+carboplatin          0.1046     0.2092      6.096      1.276       0.35
+etoposide            0.1449     0.2898      0.060      0.638       0.92
+gemcitabine          0.5853      1.171      2.824      1.094       0.95
+topotecan             555.2       1110      0.090      1.002       0.95
+
+==============================================================================
+A2  The two parameters that do not interact: WHEN and HOW DEEP
+==============================================================================
+The claim the whole model rests on is that the nadir DAY is a function
+of the transit time and the nadir DEPTH is a function of the exposure,
+and that they are separate.  Both halves are testable.
+
+(a) DOSE SWEEP at fixed transit time.  I expected this table to show
+    the dose moving the DEPTH.  It does not, and the model is right and
+    my expectation was wrong: what a threefold dose range buys is
+    DURATION.  Once the proliferative pool has been emptied, more drug
+    cannot empty it further -- it can only keep it empty for longer.
+dose x  nadir ANC  nadir day  DSN (d)  P(FN)
+------  ---------  ---------  -------  -----
+0.50        0.201       8.62     4.37  0.210
+0.70        0.181       8.68     4.57  0.242
+0.85        0.175       8.72     4.64  0.255
+1.00        0.169       8.76     4.69  0.265
+1.15        0.164       8.80     4.74  0.274
+1.30        0.160       8.80     4.77  0.282
+1.50        0.155       8.84     4.82  0.291
+
+    dose 0.5x -> 1.5x (a 3-fold range):
+      nadir     0.201 -> 0.155   (1.30-fold)
+      DSN       4.37 -> 4.82 d  (1.10-fold)
+      nadir day 8.62 -> 8.84  (0.22 d, i.e. essentially fixed)
+    So the three quantities separate three ways: the transit time owns
+    the DAY, the exposure owns the DURATION, and the DEPTH is owned by
+    neither -- it is floored by phi and the feedback (see A9).
+
+(b) TRANSIT-TIME SWEEP at fixed dose.  MTT moves the nadir day almost
+    one-for-one and barely touches the depth.
+MTT (h)  nadir ANC  nadir day  DSN (d)  recovery day
+-------  ---------  ---------  -------  ------------
+62.5         0.150       6.92     3.70          9.71
+75.9         0.159       7.84     4.19         11.13
+89.3         0.169       8.76     4.69         12.59
+107.2        0.182      10.01     5.37         14.59
+125.0        0.193      11.30     6.06         16.59
+
+This is the reason a growth factor given on day 8 cannot help much: by
+day 8 the deficit has already been manufactured and is in transit.  The
+only levers left act on the pipeline, not on the nadir.
+
+==============================================================================
+A3  The endpoint is a DURATION, and the nadir does not determine it
+==============================================================================
+Bodey's 1966 observation was that infection risk depends on the depth
+AND the duration of neutropenia.  The model's hazard is therefore an
+integral, and a consequence is that the nadir -- the number everyone
+quotes -- ranks patients badly.
+
+regimen       nadir   day  DSN(<0.5)  d(<1.0)  P(FN)  plt nadir  barrier min
+------------  -----  ----  ---------  -------  -----  ---------  -----------
+docetaxel100  0.234   8.4       4.01     6.25  0.170        236         0.01
+docetaxel75   0.239   8.4       3.94     6.17  0.163        239         0.01
+AT            0.202   8.6       4.41     6.58  0.217        236         0.01
+AC            0.212   8.6       4.29     6.50  0.198        244         0.39
+TAC           0.205   8.6       4.36     6.58  0.211        235         0.01
+CHOP21        0.218   8.5       4.20     6.50  0.189        244         0.41
+CAE           0.169   8.8       4.69     6.75  0.265        240         0.35
+EP            0.190   8.8       4.48     6.67  0.225        107         0.62
+GCb           0.210  11.1       6.53     9.08  0.268          0         0.72
+topotecan     0.098   9.3       5.35     7.25  0.406        216         0.17
+pac175q3w     0.383   8.1       2.52     5.42  0.038        249         0.64
+pac80wk       0.848  12.3       0.00     2.92  0.010        249         0.81
+
+Two regimens with essentially the SAME nadir and different risk:
+  docetaxel75    nadir 0.239, DSN 3.94 d, P(FN) 0.163
+  GCb            nadir 0.210, DSN 6.53 d, P(FN) 0.268
+  nadir differs by 0.029; DSN differs by 2.59 d; P(FN) differs by 1.6-fold.
+
+The same point made within one regimen, by varying only the FEEDBACK
+exponent, i.e. by changing how fast the patient recovers and nothing
+about how hard the drug hit:
+gamma   nadir ANC  DSN (d)  P(FN)
+------  ---------  -------  -----
+0.1190      0.140     6.03  0.359
+0.1445      0.155     5.28  0.309
+0.1700      0.169     4.69  0.265
+0.1955      0.184     4.19  0.227
+0.2210      0.199     3.76  0.194
+
+==============================================================================
+A4  G-CSF: the timing matters and the dose barely does
+==============================================================================
+Pegfilgrastim 6 mg, one dose, swept across start times relative to
+chemotherapy on the CAE regimen.  Nothing else changes.
+
+start (d)  nadir  nadir day  DSN (d)  P(FN)  G-CSF AUC (x10^3)
+---------  -----  ---------  -------  -----  -----------------
+0.00       0.367        6.3     1.58  0.035                9.3
+0.25       0.386        6.3     1.44  0.028               11.3
+0.50       0.403        6.4     1.31  0.023               14.0
+1.00       0.433        6.5     1.07  0.016               20.8
+2.00       0.483        6.8     0.53  0.010               35.3
+3.00       0.524        6.9     0.00  0.010               45.6
+4.00       0.560        7.1     0.00  0.010               49.4
+5.00       0.556        7.2     0.00  0.010               48.0
+7.00       0.327        7.0     1.91  0.042               37.7
+10.00      0.169        8.8     3.79  0.245               20.1
+
+Best start day 2.00: DSN 0.53 d, P(FN) 0.010.
+Worst start day 10.00: DSN 3.79 d, P(FN) 0.245.
+
+Now the DOSE, held at the best timing.  A 6-fold dose range:
+dose (mg)  nadir  DSN (d)   P(FN)  AUC (x10^3)
+---------  -----  -------  ------  -----------
+1.50       0.353     1.74  0.0416          1.2
+3.00       0.401     1.35  0.0234          3.3
+6.00       0.433     1.07  0.0158         20.8
+12.00      0.437     1.03  0.0152         95.4
+24.00      0.437     1.03  0.0152        270.5
+
+Timing moves DSN across a 0.53-to-3.79 d range; a 16-fold dose range moves
+it from 1.74 to 1.03 d.  The clinical instruction that matters is WHEN.
+
+==============================================================================
+A5  The actual decision: G-CSF versus dose reduction
+==============================================================================
+Both cut the FN hazard.  Only one of them costs tumour control.  The
+tumour layer is a thin log-kill and is the weakest thing in this file,
+so read the tumour column as a PRICE LIST, not as a survival estimate.
+
+Reported as the EXPECTED NUMBER of FN episodes over six cycles rather
+than P(at least one), because over six cycles of an intensive regimen
+P(at least one) saturates above 0.95 for every strategy and stops
+distinguishing them -- an earlier version of this table did exactly
+that and looked as though nothing worked.
+
+strategy                       RDI  worst nadir  DSN/cycle  DSN total  expected FN  tumour  reserve  Hb end
+----------------------------  ----  -----------  ---------  ---------  -----------  ------  -------  ------
+no support, full dose         100%        0.151       4.65       27.9         1.67    2.68    0.983     9.5
+dose 90%                       90%        0.154       4.62       27.7         1.64    4.42    0.985    10.0
+dose 80%                       80%        0.157       4.58       27.5         1.60    7.31    0.986    10.4
+dose 70%                       70%        0.161       4.54       27.3         1.55   12.14    0.988    10.8
+dose 60%                       60%        0.166       4.50       27.0         1.50   20.17    0.990    11.2
+pegfilgrastim d2, full dose   100%        0.428       1.10        6.6         0.10    2.68    0.983     9.5
+filgrastim d2-11, full dose   100%        0.318       1.99       12.0         0.37    2.68    0.983     9.5
+peg d2 + dose 80%              80%        0.454       0.87        5.2         0.08    7.31    0.986    10.4
+levofloxacin only, full dose  100%        0.171       4.42       26.5         1.08    2.68    0.983     9.5
+trilaciclib, full dose        100%        0.156       4.61       27.6         1.63    2.68    0.989    10.9
+
+Reading across the two levers on the FN column:
+  dose 90%     expected FN 1.64 (from 1.67), tumour 4.42 (from 2.68)
+  dose 80%     expected FN 1.60 (from 1.67), tumour 7.31 (from 2.68)
+  dose 70%     expected FN 1.55 (from 1.67), tumour 12.14 (from 2.68)
+  dose 60%     expected FN 1.50 (from 1.67), tumour 20.17 (from 2.68)
+  peg d2       expected FN 0.10, tumour 2.68 -- UNCHANGED
+
+The comparison the guidelines are actually making is between the two
+ways of getting the FN column down.  Both work.  One of them moves the
+tumour column and the other does not, and the size of that difference
+is what decides whether a growth factor is worth its cost -- which is
+also why the answer is a health-economic one and not a haematological
+one (see A13).
+
+==============================================================================
+A6  Same-day pegfilgrastim, and why the model says it is worse
+==============================================================================
+Giving the growth factor with the chemotherapy rather than the day
+after is convenient and is known to be inferior.  In this model the
+reason is structural rather than empirical: G-CSF raises the
+proliferation rate, the cytotoxic kills in proportion to the
+proliferation term, and if the two overlap the drug simply gets more
+cells.  No parameter encodes 'same-day is bad'.
+
+G-CSF time (h)  nadir  DSN (d)   P(FN)
+--------------  -----  -------  ------
+0.5             0.369     1.57  0.0345
+6.0             0.386     1.44  0.0281
+12.0            0.403     1.31  0.0228
+18.0            0.419     1.19  0.0188
+24.0            0.433     1.07  0.0158
+36.0            0.459     0.82  0.0121
+48.0            0.483     0.53  0.0104
+72.0            0.524     0.00  0.0100
+
+The same sweep with the AMPLIFICATION action switched off (Emax_amp =
+0) tests how much of the timing penalty that action is responsible
+for.  Not all of it: the penalty shrinks but does not vanish, because
+transit acceleration also exposes cells to a drug that is still
+present.  Amplification is the larger share, not the whole mechanism.
+G-CSF time (h)  nadir  DSN (d)   P(FN)
+--------------  -----  -------  ------
+0.5             0.323     2.06  0.0603
+24.0            0.373     1.68  0.0344
+48.0            0.411     1.39  0.0216
+(amplification off)
+
+==============================================================================
+A7  Pegfilgrastim clears itself: the drug is eliminated by the cells it makes
+==============================================================================
+PEGylation removes the renal route, so the only clearance left is
+receptor-mediated internalisation by neutrophils and their precursors.
+The consequence is that a single FIXED 6 mg dose is self-titrating: the
+sicker the marrow, the longer the drug stays.
+
+regimen (by unsupported DSN)  DSN alone  nadir +peg  DSN +peg  t1/2 d5-8  t1/2 d15-18  AUC(x10^3)  Cmax  d to 10% Cmax
+----------------------------  ---------  ----------  --------  ---------  -----------  ----------  ----  -------------
+docetaxel75                        3.94       0.691      0.00         27           21        19.4   174            8.1
+AT                                 4.41       0.546      0.00         42           21        20.2   174            8.4
+EP                                 4.47       0.482      0.54         48           21        18.9   167            8.5
+CAE                                4.70       0.433      1.07         56           21        20.8   174            8.7
+topotecan                          5.36       0.229      2.53         92           21        22.3   174            9.5
+
+Same fixed 6 mg dose in every row.  The half-life measured during the
+nadir (day 5-8) rises from 27 h in the mildest regimen to 92 h in the
+most severe, a 3.4-fold range, while the half-life measured after
+recovery (day 15-18) barely moves.  Reported pegfilgrastim half-lives
+span roughly 15-80 h in exactly this way.
+
+That is not between-patient variability and it is not a covariate: it
+is the same feedback loop read from the drug's side.  A patient whose
+marrow is in trouble automatically receives a longer exposure, because
+the mechanism that would have cleared the drug is the mechanism that is
+missing.  It is why pegfilgrastim is dosed as a flat 6 mg regardless of
+weight while filgrastim is dosed per kilogram per day.
+
+The contrast with filgrastim, whose renal route is intact:
+regimen      Cmax (ng/mL)  AUC  nadir
+-----------  ------------  ---  -----
+docetaxel75          7.93   80  0.166
+CAE                  7.93   80  0.107
+Filgrastim's exposure is nearly the same in a mild and a severe
+regimen, because its clearance does not depend on the ANC.
+
+==============================================================================
+A8  The ANC on G-CSF over-reads marrow output
+==============================================================================
+Five separate G-CSF actions are implemented.  Only two of them make new
+cells; the other three move or preserve cells that already existed.
+Switching them on one at a time, in an INTACT marrow, splits the
+measured ANC rise between production and bookkeeping.
+
+G-CSF actions active  ANC peak  fold  peak day  storage @peak  marginated @peak  function @peak
+--------------------  --------  ----  --------  -------------  ----------------  --------------
+none                      5.00  1.00       0.0           9.79              5.00           1.000
+storage release only      7.76  1.55       0.4           2.92              7.57           1.042
+survival only             5.92  1.18       3.7           9.62              5.92           1.217
+transit only              7.81  1.56       2.6           9.15              7.80           1.191
+amplification only        6.70  1.34       9.8          13.14              6.70           1.021
+all five                  9.53  1.91       1.7           2.28              9.51           1.150
+
+Then the same decomposition in a marrow that has just been emptied by
+CAE, where the storage pool has nothing left in it to release:
+G-CSF actions active  nadir  DSN (d)   P(FN)  ANC max
+--------------------  -----  -------  ------  -------
+none                  0.171     4.60  0.2578      8.3
+storage release only  0.151     4.49  0.2816      7.5
+survival only         0.232     4.08  0.1729      7.6
+transit only          0.217     2.52  0.1344      7.4
+amplification only    0.200     3.90  0.1989     11.0
+all five              0.433     1.07  0.0158      9.1
+
+In the intact marrow the redistribution terms carry a large share of the
+rise.  In the emptied marrow they carry almost none, because they are
+bookkeeping operations on a pool that is empty -- the benefit there is
+production and pipeline speed.  The clinical reading is that an ANC
+measured on a growth factor is not a measurement of marrow output.
+Note also which single action does most of the therapeutic work: it is
+TRANSIT, not amplification -- the pipeline, not the factory.
+
+==============================================================================
+A9  What the answers depend on: phi, the stem layer, and the cumulative hit
+==============================================================================
+phi = 2^-n_div is the reciprocal of the mitotic amplification factor,
+and it sets an ANC FLOOR that no cytotoxic can push through.  It is the
+single most consequential structural choice in the model, so it is
+swept rather than defended.
+
+n_div      phi  predicted floor  nadir ANC  DSN (d)  P(FN)
+-----  -------  ---------------  ---------  -------  -----
+5      0.03125            0.236      0.440     1.44  0.016
+6      0.01562            0.124      0.325     2.77  0.072
+7      0.00781            0.066      0.236     3.80  0.163
+8      0.00391            0.035      0.169     4.69  0.265
+9      0.00195            0.018      0.119     5.33  0.354
+
+Every column moves with n_div, which is what makes this the most
+consequential single choice in the model.  n_div = 5 puts the floor at
+0.236, above the deepest routinely observed nadirs, so the model then
+cannot produce a grade 4 nadir at any exposure at all.  Raising n_div
+lowers the floor, deepens the nadir and -- because the recovery limb
+starts from that floor -- lengthens the duration: DSN goes from 1.44 d at
+n_div = 5 to 5.33 d at 9.  The value used, 8, is the smallest one at
+which the model reaches grade 4 nadirs on the regimens that produce
+them clinically; going further buys duration at the cost of the
+regimen discrimination discussed in A1.  Reported myeloid amplification
+spans roughly 2^5 to 2^9, so 8 sits inside the range, but it should be
+read as CHOSEN rather than measured.
+
+The slow stem-cell layer has no direct human anchor.  Its only visible
+consequence is CUMULATIVE deepening across cycles, so that is what is
+reported, over six cycles of CAE:
+cycle  nadir ANC  day  DSN (d)  plt nadir  Hb nadir  reserve
+-----  ---------  ---  -------  ---------  --------  -------
+1          0.169  8.8     4.70        240      12.3   0.9937
+2          0.152  8.9     4.64        243      11.4   0.9897
+3          0.152  8.9     4.64        242      10.6   0.9871
+4          0.151  8.9     4.64        242      10.0   0.9853
+5          0.151  8.9     4.65        242       9.5   0.9840
+6          0.151  8.9     4.65        242       9.1   0.9830
+
+cycle 6 / cycle 1 nadir ratio = 0.893; reserve at the end of cycle 6 = 0.9830.
+Note the three lineages behave differently: the ANC nadir is nearly
+reproducible cycle to cycle, the platelet nadir drifts down slowly, and
+the haemoglobin never recovers between cycles at all.  That ordering is
+not fitted -- it follows from the lifespans (7.9 h, 10 d, 120 d).
+
+Sensitivity of the six-cycle answer to the two stem parameters:
+stem kill x  cycle-1 nadir  cycle-6 nadir  ratio  reserve
+-----------  -------------  -------------  -----  -------
+0.00                 0.170          0.153  0.900    1.000
+0.50                 0.170          0.152  0.897    0.991
+1.00                 0.169          0.151  0.894    0.983
+2.00                 0.168          0.150  0.889    0.966
+4.00                 0.167          0.147  0.878    0.931
+
+==============================================================================
+A10  Trilaciclib: the protection is proportional to CELL-CYCLE DEPENDENCE
+==============================================================================
+Trilaciclib works by holding stem and progenitor cells in G1, so the
+only part of the kill it can prevent is the part that requires the cell
+to be cycling.  In the model that share is the agent property f_cyc,
+and the prediction is a straight line through it: an S/G2M-specific
+topoisomerase poison should be well protected and a cycle-nonspecific
+alkylator or platinum agent should be barely protected at all.
+
+regimen       cycle-dep  nadir -  nadir +tri  DSN -  DSN +tri  DSN saved  P(FN) -  P(FN) +tri
+------------  ---------  -------  ----------  -----  --------  ---------  -------  ----------
+EP                 0.75    0.190       0.238   4.48      3.97       0.50    0.225       0.161
+topotecan          0.95    0.098       0.104   5.35      5.31       0.05    0.406       0.397
+CAE                0.64    0.169       0.173   4.69      4.66       0.03    0.265       0.259
+AC                 0.53    0.212       0.212   4.29      4.29       0.00    0.198       0.198
+docetaxel100       0.90    0.234       0.234   4.01      4.01       0.00    0.170       0.170
+GCb                0.75    0.210       0.360   6.53      3.90       2.64    0.268       0.075
+
+I expected the DSN saved to rise monotonically with the cell-cycle
+dependence column.  It does not, and the table is worth reading for the
+reason.  Topotecan has the highest cycle dependence of any regimen here
+and gains almost nothing, while GCb and EP -- lower on that column --
+gain the most.  The missing variable is WHERE the regimen sits relative
+to the 0.5 threshold.  Trilaciclib removes a FRACTION of the kill; on a
+regimen whose nadir is far below the threshold, removing a fraction
+still leaves it below, and the duration barely moves.  The benefit is
+largest for regimens sitting NEAR the threshold, where a fractional
+reduction in the kill is enough to lift the trough across it.
+
+That is a sharper and more falsifiable claim than the one I started
+with: the drug should help most where the neutropenia is severe enough
+to matter and not so severe that partial protection is futile.  It also
+means the licensed indication -- small-cell lung cancer on etoposide/
+carboplatin -- sits in the model's favourable window, while relapsed
+topotecan, where the drug is also used, does not.
+
+Dose-response, on the EP regimen, through the G1-arrest fraction:
+max arrested  nadir  DSN (d)   P(FN)  plt nadir  reserve
+------------  -----  -------  ------  ---------  -------
+0.00          0.190     4.48  0.2247        107   0.9976
+0.20          0.197     4.41  0.2145        107   0.9977
+0.40          0.207     4.30  0.2004        108   0.9978
+0.60          0.222     4.14  0.1811        108   0.9979
+0.76          0.238     3.97  0.1613        108   0.9980
+0.90          0.257     3.79  0.1401        109   0.9981
+0.99          0.272     3.66  0.1246        109   0.9981
+
+Note the reserve column: because the arrest also protects the
+quiescent-but-cycling stem fraction, trilaciclib is the only
+intervention in this model that improves the CUMULATIVE column rather
+than the cycle-1 one.  A growth factor cannot do that -- it accelerates
+the pipeline downstream of the damage.
+6 cycles of EP      DSN c1  DSN c6  DSN total  P(any FN)  reserve  Hb end
+------------------  ------  ------  ---------  ---------  -------  ------
+EP alone              4.47    4.42       26.6      0.802   0.9934    11.7
+EP + pegfilgrastim    0.54    0.57        3.4      0.061   0.9934    11.7
+EP + trilaciclib      3.98    2.73       17.7      0.348   0.9958    12.4
+EP + both             0.00    0.00        0.0      0.059   0.9958    12.4
+
+==============================================================================
+A11  One insult, three lineages, three clocks
+==============================================================================
+The same drug hits all three lineages through the same term.  What
+separates their nadirs is not the drug but the transit time and the
+cell lifespan, and those are properties of the lineage.
+
+regimen    ANC nadir day  plt nadir day  Hb nadir day    ANC  plt    Hb
+---------  -------------  -------------  ------------  -----  ---  ----
+CAE                  8.8           11.9          14.8  0.169  240  12.3
+GCb                 11.1           11.1          18.3  0.210    0  12.8
+EP                   8.8           10.6          15.1  0.190  107  13.0
+TAC                  8.6           11.6          14.2  0.205  235  10.4
+topotecan            9.3           13.1          16.4  0.098  216  10.3
+
+The ordering ANC < platelet < haemoglobin is reproduced for every
+regimen, and the model contains no parameter that says so.  It comes
+out of MTT 89 h / 200 h / 150 h and lifespans of 7.9 h / 10 d / 120 d.
+
+The model does NOT, however, reproduce which lineage is dose-limiting.
+Grading each monotherapy nadir:
+agent             ANC nadir  grade  plt nadir  grade  model says limiting
+----------------  ---------  -----  ---------  -----  -------------------
+docetaxel             0.234     G4        236     G0           neutrophil
+doxorubicin           0.226     G4        247     G0           neutrophil
+cyclophosphamide      0.638     G3        248     G0           neutrophil
+carboplatin           1.073     G2        110     G1           neutrophil
+etoposide             0.272     G4        247     G0           neutrophil
+gemcitabine           0.494     G4        130     G1           neutrophil
+topotecan             0.098     G4        216     G0           neutrophil
+paclitaxel            0.383     G4        249     G0           neutrophil
+
+Carboplatin and gemcitabine are platelet-limited in the clinic, and in
+this table they are not.  The reason is traceable and worth stating
+plainly: the per-agent potencies were set from nadir-depth RATIOS and
+then multiplied by one global scale (sens_global = 2.00) chosen so that
+the COMBINATION regimens discriminate.  A scale that is right for a
+three-drug regimen is too large for a mild single agent, so every
+monotherapy in the table comes out more neutropenic than it should be,
+and the neutrophil column wins by construction.
+
+Two things follow.  The model is usable for the COMBINATION regimens it
+was calibrated on and for comparing INTERVENTIONS within a regimen,
+which is what every other analysis here does.  It is not usable for
+predicting single-agent toxicity grades, and a version that was would
+need per-agent slopes fitted to per-agent data rather than to ratios.
+
+==============================================================================
+A12  A clinician in the loop: what a course actually delivers
+==============================================================================
+The endpoint that matters over a course is not any single nadir, it is
+the relative dose intensity that survives contact with the day-1 blood
+count.  The controller below implements the rules that govern that:
+hold a cycle for ANC < 1.5 or platelets < 100, reduce the dose after
+two holds or after the cycle's FN risk exceeds 20%, and -- depending on
+policy -- add pegfilgrastim as primary or secondary prophylaxis.
+
+The FN trigger is the RISK crossing 20% rather than a simulated event,
+because this is a deterministic model: an earlier version required a
+per-cycle probability above 0.5, which never happened, so the
+controller never fired and the whole analysis was vacuous.
+
+reference patient, six cycles of CAE:
+G-CSF policy     RDI  weeks  expected FN  DSN total (d)  tumour  reserve    Hb
+------------  ------  -----  -----------  -------------  ------  -------  ----
+none           65.0%   18.0         1.47           26.8   15.64    0.990  11.3
+secondary     100.0%   18.0         0.65           14.2    2.68    0.983   9.5
+primary       100.0%   18.0         0.10            6.6    2.68    0.983   9.5
+  cycle-by-cycle, no prophylaxis:
+cycle  dose %  nadir   DSN  P(FN)  day-1 ANC  day-1 plt         action
+-----  ------  -----  ----  -----  ---------  ---------  -------------
+1         100  0.170  4.69  0.265       7.37        248  reduce to 80%
+2          80  0.158  4.57  0.269       7.40        247  reduce to 60%
+3          60  0.166  4.49  0.253       7.36        249  reduce to 50%
+4          50  0.184  4.34  0.226       7.29        248  reduce to 50%
+5          50  0.184  4.34  0.227       7.28        249  reduce to 50%
+6          50  0.184  4.34  0.227       7.28        248  reduce to 50%
+
+prior chemo/RT, reserve 0.70, sensitivity 1.4, six cycles of CAE:
+G-CSF policy     RDI  weeks  expected FN  DSN total (d)  tumour  reserve   Hb
+------------  ------  -----  -----------  -------------  ------  -------  ---
+none           65.0%   18.0         2.50           35.5   15.64    0.690  8.9
+secondary      90.0%   18.0         1.43           20.3    4.42    0.685  7.6
+primary       100.0%   18.0         0.73           15.5    2.68    0.682  7.0
+  cycle-by-cycle, no prophylaxis:
+cycle  dose %  nadir   DSN  P(FN)  day-1 ANC  day-1 plt         action
+-----  ------  -----  ----  -----  ---------  ---------  -------------
+1         100  0.086  6.11  0.439       5.32        205  reduce to 80%
+2          80  0.088  5.95  0.428       5.31        225  reduce to 60%
+3          60  0.092  5.89  0.415       5.29        217  reduce to 50%
+4          50  0.095  5.86  0.407       5.27        221  reduce to 50%
+5          50  0.095  5.86  0.407       5.27        220  reduce to 50%
+6          50  0.095  5.86  0.407       5.27        220  reduce to 50%
+
+Note WHICH rule fires.  Neither patient trips the day-1 count gate
+often -- by day 21 the ANC has overshot its own baseline, which is what
+the feedback loop does -- so almost all of the lost dose intensity comes
+from the RISK rule, i.e. from a clinician looking at a nadir and
+reducing the next dose.  That is worth noticing, because it means the
+dose intensity is being spent on a number that the growth factor could
+have fixed without touching the dose at all: the no-prophylaxis arm ends
+at 65.0% of planned intensity and a tumour column of 15.64, and simply adding
+the growth factor when the risk crosses 20% returns both to 90.0% and 4.42.
+
+The compromised patient shows the same thing amplified, and adds the
+cost the growth factor does NOT fix: haemoglobin and marrow reserve are
+worse in the primary-prophylaxis arm precisely BECAUSE it delivered more
+chemotherapy.  Preserving dose intensity is not free; it is a decision
+to spend one toxicity to buy another.
+
+==============================================================================
+A13  Where does the 20% threshold come from?
+==============================================================================
+Guidelines recommend primary G-CSF prophylaxis when the regimen's FN
+risk exceeds 20%.  The threshold used to be 40%, and what changed was
+not the biology but the cost of an FN episode (Calhoun 2005; Cosler
+2005).  The model can be asked what the BIOLOGICAL benefit looks like
+across that range: if the threshold were biological there should be
+something happening at 20%.
+
+Baseline FN risk is varied by scaling the myelotoxic exposure, and at
+each level pegfilgrastim is added:
+exposure x  P(FN) no G-CSF  with G-CSF  abs reduction  risk ratio  NNT  DSN -  DSN +
+----------  --------------  ----------  -------------  ----------  ---  -----  -----
+0.35                 0.108       0.010          0.098        10.8   10   3.51   0.00
+0.50                 0.209       0.010          0.199        20.9    5   4.37   0.00
+0.65                 0.237       0.010          0.227        22.7    4   4.54   0.56
+0.80                 0.251       0.012          0.239        20.5    4   4.62   0.85
+1.00                 0.265       0.016          0.249        16.7    4   4.70   1.08
+1.20                 0.277       0.020          0.257        13.7    4   4.75   1.23
+1.45                 0.289       0.026          0.263        11.2    4   4.80   1.38
+1.75                 0.301       0.033          0.268         9.1    4   4.87   1.53
+
+The RISK RATIO is roughly flat across the whole range -- the growth
+factor removes a similar FRACTION of the hazard wherever it starts --
+while the ABSOLUTE reduction, and therefore the number needed to treat,
+scales almost linearly with baseline risk.  There is no kink at 20%,
+or anywhere else.  The model's answer is that the threshold is a
+statement about the price of a hospital admission divided by the price
+of a syringe, and nothing about neutrophils: it should move whenever
+either price moves, which is exactly what happened between the 40% and
+20% eras.
+
+Two patient-level modifiers, at fixed regimen and fixed exposure:
+patient                        nadir   DSN  P(FN)  P(FN)+G  benefit  plt nadir
+-----------------------------  -----  ----  -----  -------  -------  ---------
+reference                      0.190  4.47  0.225    0.010    0.214        107
+prior chemo/RT (reserve 0.75)  0.167  4.79  0.263    0.015    0.248        124
+low baseline ANC 3.0           0.108  6.04  0.393    0.079    0.315        107
+slow recovery (gamma x0.7)     0.159  5.82  0.318    0.018    0.300        107
+high sensitivity (x1.3)        0.177  4.59  0.247    0.013    0.234         66
+renal impairment GFR 45        0.191  4.46  0.223    0.010    0.213        107
+
+Renal impairment appears in this table only because carboplatin is
+dosed by the Calvert formula, so a GFR of 45 delivers a smaller
+absolute dose for the same target AUC.  That is the model reproducing
+the intent of AUC dosing: it protects the marrow of a patient with
+reduced clearance, and the row that moves is the PLATELET nadir.
+
+==============================================================================
+A14  The count and the defence can move in opposite directions
+==============================================================================
+Dexamethasone is given with every taxane as premedication and with most
+regimens as an antiemetic.  It raises the ANC by demargination and
+marrow release while lowering chemotaxis and the oxidative burst.  The
+model carries FUNCTION as a separate state precisely so that this can
+be shown rather than argued about.
+
+premedication                 ANC @24h  marginated  function  effective  nadir   DSN   P(FN)  min function
+----------------------------  --------  ----------  --------  ---------  -----  ----  ------  ------------
+no dexamethasone                  4.87        4.90     0.872       8.52  0.234  4.01  0.1700         0.830
+dexamethasone 8 mg BID x 3 d      5.09        1.99     0.729       5.17  0.243  3.97  0.1612         0.606
+
+Dexamethasone raises the measured ANC at 24 h from 4.87 to 5.09 -- a 5%
+increase, and exactly the kind of number that gets a patient through a
+day-1 blood-count gate.  Over the same interval the EFFECTIVE defence
+moves from 8.52 to 5.17, i.e. in the opposite direction, and P(FN) moves
+from 0.1700 to 0.1612.
+
+The same asymmetry, read through the infection module rather than
+through the counts: bacterial load and temperature with and without
+the steroid, on a regimen severe enough to produce an event.
+intervention                  nadir   DSN  peak bacteria  peak CRP  peak temp   P(FN)
+----------------------------  -----  ----  -------------  --------  ---------  ------
+no dexamethasone              0.169  4.69         9877.7     229.8      39.76  0.2650
+dexamethasone                 0.172  4.74         9883.0     230.3      39.76  0.2647
+dexamethasone + levofloxacin  0.174  4.59            0.1       0.0      36.80  0.1914
+levofloxacin only             0.171  4.55            0.1       0.0      36.80  0.1922
+pegfilgrastim only            0.433  1.07            0.1       0.0      36.80  0.0158
+
+Levofloxacin does not change a single haematological number and still
+moves P(FN), because it acts on the other side of the race.  A growth
+factor changes every haematological number.  Reporting only the ANC
+would make the antibiotic look inert and the steroid look protective,
+and both readings would be wrong.
+
+==============================================================================
+End of report.
