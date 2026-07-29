@@ -1,0 +1,368 @@
+==============================================================================
+FRONTOTEMPORAL DEMENTIA QSP MODEL — REFERENCE IMPLEMENTATION REPORT
+49 ODE states | dependency-free RK4 | every number below is computed
+==============================================================================
+
+Trial scenarios do NOT start from hand-set 'symptomatic baseline'
+initial conditions. Each genotype is run from a clinically silent
+carrier at age 30 until its CDR plus NACC-FTLD SB reaches 5.5, and
+that state becomes the trial baseline. Treated and untreated arms
+therefore share one continuous trajectory, and every baseline
+biomarker value is EARNED by the model rather than assumed.
+
+==============================================================================
+A. ONSET AGE AS A PREDICTION, NOT AN OFFSET
+==============================================================================
+A constant genetic deficit cannot by itself explain why a lifelong
+carrier stays well for decades, so the model carries an explicit AGE
+GATE (declining autophagic/lysosomal capacity and microglial priming,
+(age/62)^5). With it, onset AGE becomes an output. Observed values are
+cohort MEANS from Moore 2020 Lancet Neurol (PMID 31810826), n=3403
+carriers from 1492 families; the sporadic figure is the usual ~58 y.
+
+  genotype      predicted onset   observed   error
+  ----------------------------------------------------
+  MAPT                  50.5 y        49.5 y    +1.0 y
+  C9orf72               54.3 y        58.2 y    -3.9 y
+  GRN                   55.8 y        61.3 y    -5.5 y
+  sporadic              59.2 y        58.0 y    +1.2 y
+
+  MAPT lands within ~1 year of the reported mean and sporadic within
+  ~1.5. C9orf72 is ~4 y early. GRN is ~5.5 y early, and there the
+  reason is STRUCTURAL rather than a bad parameter: in this model PGRN
+  haploinsufficiency is a damage driver acting from birth, so it can
+  only ever move onset EARLIER than sporadic disease. The measured
+  ordering is the opposite — GRN onset 61.3 y is LATER than sporadic
+  bvFTD at ~58 y. NO monotone version of this model can produce that
+  ordering. Two candidate resolutions:
+    (i)  lifelong haploinsufficiency is developmentally compensated,
+         so the deficit is not rate-limiting until a second hit —
+         consistent with GRN's incomplete penetrance and its strong
+         dependence on modifiers such as TMEM106B;
+    (ii) the comparison is confounded by ascertainment: GRN carriers
+         are found by GENOTYPE regardless of severity, while
+         'sporadic bvFTD' is a clinically defined group enriched for
+         aggressive pathology. The two cohorts are not exchangeable.
+
+  The model does reproduce the modifier DIRECTION: the protective
+  TMEM106B haplotype shifts predicted GRN onset from 55.8 y to 57.1 y (later),
+  which is the direction reported for rs1990622. Note the model puts
+  TMEM106B on the lysosomal/age-vulnerability axis and NOT on PGRN
+  levels, which agrees with the 7071-person biofluid meta-analysis
+  (PMID 38539243) finding no association between plasma PGRN and
+  rs1990622 genotype. That was not fitted; it fell out of the wiring.
+
+==============================================================================
+B. NATURAL HISTORY vs PUBLISHED ANCHORS
+==============================================================================
+Measured over the 2 years following each genotype's own onset state.
+
+  genotype     slope/y   plasma NfL   CSF NfL   atrophy%/y   NPI
+  --------------------------------------------------------------
+  MAPT           1.58         42.7      2484        2.16     22
+  C9orf72        1.67         59.5      3402        2.20     25
+  GRN            1.76         57.5      3290        2.25     24
+  sporadic       1.69         56.1      3214        2.18     23
+
+  anchors: CDR+NACC-FTLD SB slope 1.5-2.5 /y symptomatic;
+           plasma NfL 50-80 pg/mL (control ~10); CSF NfL 3000-5000
+           (control ~700); frontal atrophy 2-3 %/y (control ~0.5);
+           NPI total 20-40 in symptomatic bvFTD.
+
+  Presymptomatic lead time — does NfL rise before the clinical score?
+
+    threshold on plasma NfL   age crossed   lead time before CDR=3
+    ------------------------------------------------------------
+     1.5x control            38.9 y                15.3 y
+     2.0x control            43.3 y                10.8 y
+     3.0x control            48.2 y                 5.9 y
+     4.0x control            51.7 y                 2.5 y
+     5.0x control            54.7 y                -0.5 y
+    CDR+NACC-FTLD SB reaches 3 at age 54.2.  Reported lead time ~1-2 y.
+
+    THIS IS A FAILURE, and it is the SAME failure as the GRN onset
+    error above. The model has no genuinely compensated latent phase:
+    damage begins at t=0 and accumulates monotonically, so NfL starts
+    drifting up decades early and only a very high threshold (~4-5x
+    control) recovers a plausible 1-2 y lead time. Real presymptomatic
+    carriers hold near-normal NfL and then rise steeply near
+    conversion. Reproducing that needs a compensated regime with a
+    threshold-crossing collapse, which this monotone structure lacks.
+
+==============================================================================
+C. THE CENTRAL ANALYTIC RESULT AND ITS NUMERICAL VERIFICATION
+==============================================================================
+Sortilin share of PLASMA PGRN clearance    f_plasma = 0.6300
+Sortilin share of CSF    PGRN clearance    f_CSF    = 0.7800
+Sortilin share of LYSOSOMAL PGRN delivery  p        = 0.5000  <-- NOT MEASURED
+
+Sortilin is BOTH the clearance route that sets extracellular PGRN AND
+a delivery route filling the lysosomal pool where PGRN acts. Blocking
+it raises the ligand and removes a delivery route simultaneously. At
+steady state:
+    CSF PGRN fold-rise       = 1 / (1 - f*theta)
+    lysosomal delivery ratio = (1 - p*theta) / (1 - f*theta)
+
+  latozinemab 60 mg/kg q4w, trough at 96 wk:
+    plasma      2804 nM      CSF   5.77 nM   (CSF/plasma 0.206%, reported ~0.1-0.3%)
+    sortilin occupancy: peripheral 0.9996   CNS 0.6579
+
+  quantity                 numeric    algebraic   residual
+  --------------------------------------------------------
+  plasma PGRN fold-rise     2.7011      2.7011     0.0000
+  CSF PGRN fold-rise        2.0758      2.0541     0.0217
+  LYSOSOMAL PGRN ratio      1.4016      1.3784     0.0232
+
+  Residuals are small and arise only because occupancy oscillates
+  within the dosing interval while the algebra assumes it constant.
+  The 49-state integration and the closed form agree, so what follows
+  is a property of the STRUCTURE, not of one solver run.
+
+==============================================================================
+D. THE BIOMARKER / TARGET DISSOCIATION
+==============================================================================
+Latozinemab 60 mg/kg IV q4w in a symptomatic GRN carrier, 96 weeks.
+
+  compartment       baseline   on drug     fold
+  ------------------------------------------------
+  PLASMA PGRN          35.0%     94.5%    2.70x
+  CSF    PGRN          35.0%     72.7%    2.08x
+  LYSOSOMAL PGRN       35.0%     49.1%    1.40x
+  (% of the wild-type level for that compartment)
+
+  The registrational biomarker is restored essentially to the control
+  range (95% of control). The pool where progranulin actually works
+  reaches only 49% of wild type.
+
+  96-week outcomes, treated vs untreated:
+
+  endpoint                  untreated    treated   difference
+  ------------------------------------------------------------
+  CDR+NACC-FTLD SB              8.719      8.698      -0.021
+  NPI total                    26.341     26.175      -0.166
+  plasma NfL pg/mL             66.632     64.662      -1.970
+  CSF NfL pg/mL              3790.303   3682.638    -107.665
+  frontal volume %             73.360     73.371      +0.011
+  synaptic density              0.621      0.626      +0.005
+  CSF C1q au                    0.371      0.331      -0.039
+  CSF C3 au                     0.370      0.330      -0.040
+  CSF BMP au                   58.571     39.042     -19.529
+  lysosomal function            0.515      0.717      +0.202
+
+  Untreated 96-week CDR progression = +3.22 points.
+  Treatment effect                  = -0.0210 points  (0.65% slowing).
+
+  A fraction-of-one-percent effect on a 0-24 scale over 96 weeks is
+  far below what any feasible trial can resolve. The model therefore
+  PREDICTS a failed clinical endpoint sitting on top of a clean,
+  unambiguous biomarker win — which is what the anti-sortilin phase 3
+  programme reported. Note the C1q/C3 and BMP columns: the PD effects
+  are real and measurable. Target engagement was never the problem.
+
+==============================================================================
+E. THE SIGN FLIP: SWEEPING THE PARAMETER NOBODY HAS MEASURED
+==============================================================================
+p = sortilin share of lysosomal PGRN delivery. Everything else fixed.
+Prediction: the sign flips exactly at p = f_CSF = 0.780, at ANY
+dose, and the theta->1 ceiling is (1-p)/(1-f_CSF).
+
+     p    LYSO pool  ratio  ceiling  plasma PGRN   dCDR@96wk  verdict
+  ----------------------------------------------------------------------
+  0.000     73.5%   2.100   4.545       94.5%    -0.0536  BENEFIT
+  0.200     63.7%   1.820   3.636       94.5%    -0.0402  BENEFIT
+  0.400     53.9%   1.541   2.727       94.5%    -0.0273  BENEFIT
+  0.500     49.1%   1.402   2.273       94.5%    -0.0210  BENEFIT
+  0.600     44.2%   1.262   1.818       94.5%    -0.0147  BENEFIT
+  0.700     39.3%   1.122   1.364       94.5%    -0.0084  BENEFIT
+  0.780     35.4%   1.011   1.000       94.5%    -0.0033  NEUTRAL  <== break-even
+  0.850     32.0%   0.913   0.682       94.5%    +0.0012  HARM
+  0.950     27.1%   0.773   0.227       94.5%    +0.0078  HARM
+
+  Read the plasma-PGRN column: 94.5% at EVERY value of p. The drug
+  looks identical on its registrational biomarker whether it is
+  helping, doing nothing, or making the target pool worse. That is
+  this model's sharpest claim — the biomarker is mathematically blind
+  to the parameter that decides the sign of the effect, and no amount
+  of dose escalation changes that, because raising occupancy raises
+  the ligand and removes delivery capacity in lockstep.
+
+==============================================================================
+F. GENE THERAPY IS NOT SUBJECT TO THE CEILING
+==============================================================================
+AAV-GRN raises PRODUCTION, so lysosomal delivery scales with transgene
+output and no receptor is removed. Same patient, same 96 weeks:
+
+  therapy         plasma   CSF    LYSOSOMAL   dCDR      dBMP
+  ------------------------------------------------------------
+  untreated        35.0%   35.0%      35.0%   +0.000     +0.00
+  latozinemab      94.5%   72.7%      49.1%   -0.021    -19.53
+  AAV-GRN single   80.3%   80.3%      80.3%   -0.060    -26.96
+
+  Gene therapy raises all three pools TOGETHER, because it adds
+  production instead of blocking a receptor. Its lysosomal
+  restoration is 1.64x the antibody's, and its predicted clinical
+  effect 2.9x — from a LOWER plasma PGRN level. A plasma-PGRN
+  biomarker would have RANKED THESE TWO THERAPIES BACKWARDS.
+
+==============================================================================
+G. WHAT TO MEASURE INSTEAD, AND THE RIVAL HYPOTHESIS
+==============================================================================
+CSF BMP (a lysosomal lipid) is in the model as the readout plasma
+PGRN cannot be. Across the p sweep above it moves with the LYSOSOMAL
+pool, not with the plasma pool — so it separates the cases plasma
+PGRN cannot. It is attenuated, though, because lysosomal function in
+this model also sees the extracellular pool (weight 0.2), so BMP is a
+better discriminator than plasma PGRN without being a perfect one.
+
+If progranulin acts mainly EXTRACELLULARLY rather than in the
+lysosome, the elevated CSF pool IS the therapeutic signal and
+blocking sortilin is straightforwardly good. Same drug, same doses,
+action weights swapped:
+
+  hypothesis                    dCDR@96wk    dNfL    dLYSO fn
+  ----------------------------------------------------------
+  lysosomal action (default)      -0.0210    -1.97    +0.2021
+  extracellular action            -0.0232    -2.55    +0.2695
+
+  The two hypotheses differ 1.1x in predicted clinical benefit and are
+  INDISTINGUISHABLE by plasma PGRN. They are distinguishable by
+  downstream lysosomal chemistry. That is a cheap, falsifiable
+  experiment the model recommends running before the next trial.
+
+==============================================================================
+H. SYMPTOMATIC PHARMACOLOGY, INCLUDING THE NULL/HARM ARM
+==============================================================================
+96 weeks in a symptomatic GRN carrier.
+
+  arm                     NPI    dNPI     CDR    dCDR    ACh tone
+  ----------------------------------------------------------------
+  untreated               26.3    +0.0    8.72  +0.000     0.950
+  SSRI 30 mg/d            20.2    -6.2    8.72  +0.000     0.950
+  trazodone 150 mg/d      20.5    -5.8    8.72  +0.000     0.950
+  SSRI + trazodone        15.1   -11.2    8.72  +0.000     0.950
+  donepezil 10 mg/d       29.5    +3.2    8.72  +0.000     1.663
+
+  trazodone dNPI = -5.8  (anchor: -6 to -10, Lebert 2004 crossover RCT)
+  donepezil dNPI = +3.2  (anchor: behaviour WORSE, Mendez 2007)
+
+  The AChEI null result is STRUCTURAL, not imposed. ACH_INTEGRITY is
+  0.95 because the cholinergic system is largely PRESERVED in FTD, so
+  donepezil does raise cholinergic tone (0.95 -> 1.66) —
+  and the cognitive endpoint does not depend on it, so dCDR is
+  EXACTLY zero while the agitation term makes behaviour worse. That
+  is the mechanistic contrast with Alzheimer's disease, where the
+  same drug acts on a genuinely depleted system.
+
+  Note also that no symptomatic drug moves CDR at all: in this
+  structure they act on neurotransmitter tone, which feeds the
+  behavioural axis only. Benefit and harm both emerge from the
+  wiring rather than from an imposed effect size.
+
+==============================================================================
+I. ASOs — TARGET ENGAGEMENT WITHOUT CLINICAL BENEFIT
+==============================================================================
+C9orf72 repeat-targeting ASO, intrathecal q12w x8:
+  repeat RNA          -49.8%
+  CSF poly-GP         -50.1%   (FOCUS-C9 reported up to ~50%)
+  poly-GR (toxic)     -50.3%
+  dCDR at 96 wk       -0.0351   (trial: no clinical benefit; discontinued)
+  dplasma NfL         -3.17 pg/mL
+
+  Why so little from ~50% target knockdown? In this structure the
+  repeat products are one of several parallel inputs. The same
+  genotype also carries a lysosomal penalty from C9orf72 protein
+  HAPLOINSUFFICIENCY, which an RNA-targeting ASO cannot touch, and
+  the TDP-43 loop is self-templating once started. Lowering poly-GP
+  after that loop has closed removes an initiator, not the engine.
+
+MAPT-lowering ASO, intrathecal q12w x8:
+  MAPT mRNA           -45.6%
+  soluble tau         -45.7%   (BIIB080 class: ~30-50%)
+  AGGREGATED tau      -17.4%
+  dCDR at 96 wk       -0.1387
+
+  Aggregated tau falls roughly a third as much as soluble tau:
+  blocking synthesis STARVES a self-templating deposit, it does not
+  CLEAR one. The model's implication is that MAPT-ASO trials should
+  be powered on presymptomatic or very early cohorts, while the
+  deposit is still small — and that its effect, though the largest
+  of any agent modelled here, is still ~1% of 96-week progression.
+
+==============================================================================
+J. WHERE THIS MODEL IS WEAK OR PROBABLY WRONG
+==============================================================================
+Stated rather than tuned away.
+
+1. P_LYS_SORT (p) has no human measurement, and the SIGN of the
+   anti-sortilin prediction depends entirely on it. The default 0.50
+   sits below f_CSF=0.78 and so gives the drug the benefit of the
+   doubt; a hostile choice would make it frankly harmful. What the
+   model constrains is the RELATIONSHIP p vs f, not the value of p.
+
+2. THE MODEL HAS NO COMPENSATED LATENT PHASE, and this single defect
+   causes two separate disagreements: GRN onset lands ~5 y early
+   (section A) and the presymptomatic NfL lead time is ~15 y instead
+   of ~1-2 y (section B). Both follow from damage accumulating
+   monotonically from t=0. The fix is not a parameter but a different
+   structure: a compensated regime that holds biomarkers near normal
+   until a threshold is crossed, then collapses. That is the single
+   most valuable change anyone could make to this model.
+
+3. KSYN_NMD=0.70 exists only to reconcile plasma PGRN at ~1/3 of
+   control with an allele dose of 1/2. It is a fitted stand-in for
+   nonsense-mediated decay plus lost autocrine recapture. Its
+   consequence is real though: plasma falls to ~33% while CSF falls
+   to ~50%, and no single gene-dose scalar fits both, which is itself
+   evidence the two compartments have different clearance structures.
+
+4. CNS antibody exposure is one well-stirred CSF compartment. Real
+   parenchymal distribution is regionally heterogeneous, and the
+   salience network is exactly where delivery matters. If cortical
+   exposure is below the CSF surrogate, theta_CNS is overestimated
+   and every anti-sortilin number here is optimistic.
+
+5. Poly-GP is treated as a marker in equilibrium with repeat RNA and
+   poly-GR as the toxic species. If the causal DPR is poly-GA instead
+   (proteasome impairment), the ASO prediction changes and the CSF
+   marker trials actually use would be tracking the wrong arm.
+
+6. Two lumped regions cannot express what actually determines FTD
+   phenotype, which is WHICH network fails first — a connectome
+   problem. The svPPA scenario is a weighting shift, not a mechanism.
+
+7. Sporadic FTLD gets the same TDP-43 machinery as GRN disease with
+   no genetic driver, so its trajectory rests on the age gate alone.
+   Real sporadic FTLD spans TDP-43 types A-C, FET and tau pathology;
+   one parameterisation cannot represent that heterogeneity.
+
+8. The age gate (age/62)^5 is phenomenological. It does real work —
+   it turns onset age into a prediction — but its exponent is fitted
+   to onset data, so the good agreement in section A is partly
+   calibration rather than pure prediction. The genotype ORDERING
+   and the TMEM106B direction are the parts that are not.
+
+==============================================================================
+K. HEADLINE NUMBERS
+==============================================================================
+ 1. Predicted onset ages MAPT 50.5 / C9orf72 54.3 / GRN 55.8 / sporadic 59.2 y
+    against Moore 2020 cohort means 49.5 / 58.2 / 61.3 and ~58: MAPT
+    within 1 y, sporadic within 1.5, C9orf72 4 y early, GRN 5.5 y early
+    — the last a structural miss the model explains rather than hides.
+ 2. f_plasma = 0.630, f_CSF = 0.780, fitted from the observed 2.70x
+    plasma and 2.08x CSF PGRN rises. Occupancy: peripheral 1.000, CNS 0.658.
+ 3. Plasma PGRN normalises 35% -> 95% of control while LYSOSOMAL PGRN
+    moves only 35% -> 49% of wild type.
+ 4. Predicted 96-week CDR slowing on latozinemab: 0.65% — a predicted
+    phase 3 miss coexisting with unambiguous target engagement.
+ 5. The sign of anti-sortilin benefit flips exactly at p = f_CSF = 0.780,
+    at ANY dose; ceiling (1-p)/(1-f_CSF) = 2.27x at the default p.
+ 6. Plasma PGRN is 94.5% at EVERY p in the sweep: the registrational
+    biomarker is blind to the parameter that decides the sign.
+ 7. AAV-GRN reaches 80% lysosomal PGRN vs 49% for the antibody,
+    from a LOWER plasma level — plasma PGRN ranks the two backwards.
+ 8. Trazodone dNPI -5.8; donepezil dNPI +3.2 with dCDR exactly 0.000 while
+    cholinergic tone rises 0.95 -> 1.66: the AChEI null is structural.
+ 9. C9 ASO: CSF poly-GP -50%, dCDR -0.035. Target engagement is
+    necessary and nowhere near sufficient.
+10. MAPT ASO: soluble tau -46% but aggregated tau only -17%:
+    synthesis blockade starves a deposit, it does not clear one.
