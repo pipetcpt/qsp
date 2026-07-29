@@ -1,0 +1,445 @@
+/* ==========================================================================
+ * flu_qsp_model.dot
+ * Influenza A infection -- Quantitative Systems Pharmacology mechanistic map
+ * --------------------------------------------------------------------------
+ * The map is laid out around ONE LOOP and the OPERATORS that touch it.
+ *
+ *     target cell  --beta-->  eclipse  --k-->  productive  --p-->  virion
+ *          ^                                                          |
+ *          +----------------------------------------------------------+
+ *
+ * Every therapy node is coloured by WHICH TERM of that loop it acts on, so
+ * that the colour of a drug tells you the shape of its effect in time and not
+ * merely its size:
+ *
+ *   ENTRY (beta)            pale blue     mucosal IgA, neutralising mAb
+ *   TRANSCRIPTION (E->I)    violet        baloxavir (PA endonuclease)
+ *   PRODUCTION/RELEASE (p)  orange        NAIs, baloxavir, favipiravir
+ *   MUTAGENESIS             brown         favipiravir
+ *   VIRION CLEARANCE (c)    green         mAb, convalescent plasma
+ *   TARGET PROTECTION (T->R) teal         type I/III interferon, ISGs
+ *   INFECTED-CELL DEATH     red           CD8 CTL, NK
+ *   IMMUNOPATHOLOGY DAMPING grey          corticosteroids (harmful here)
+ *
+ * Render:
+ *   dot -Tsvg flu_qsp_model.dot -o flu_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 flu_qsp_model.dot -o flu_qsp_model.png
+ * ========================================================================== */
+
+digraph influenza_qsp {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.22, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, bgcolor="white",
+         label=<<b>Influenza A — QSP mechanistic map</b><br/>
+                <font point-size="11">virus · innate and adaptive immunity · antiviral PK/PD · resistance · clinical endpoints</font><br/>
+                <font point-size="10">therapy nodes are coloured by which term of the replication loop they act on</font>>,
+         labelloc="t", fontsize=20, pad=0.4, compound=true, newrank=true];
+  /* newrank=true is required: the cluster-to-cluster edges here form
+     cycles (virus -> interferon -> virus, virus -> CD8 -> virus), which
+     the default local cluster ranking cannot order. */
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         penwidth=1.0, margin="0.07,0.04"];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, color="#4a4a4a"];
+
+  /* ---- palette -------------------------------------------------------- */
+  /* virus            #ffe0e0 | epithelium      #e8f0ff | innate  #e2f5ec   */
+  /* adaptive         #eae2f8 | cytokine        #fff2d6 | clinical #f3f3f3  */
+  /* PK               #dbeeff | resistance      #ffe9d0                     */
+
+  /* ======================================================================
+   * 1. EXPOSURE AND VIRION STRUCTURE
+   * ==================================================================== */
+  subgraph cluster_exposure {
+    label="1. Exposure · virion · receptor"; style="rounded,filled";
+    fillcolor="#fbfbfb"; color="#b0b0b0"; fontsize=13;
+    EXP   [label="Aerosol / droplet\nexposure", fillcolor="#ffe0e0"];
+    INOC  [label="Inoculum V0\n~10⁻² TCID50/mL equiv.", fillcolor="#ffe0e0"];
+    HA    [label="Haemagglutinin (HA)\nreceptor binding", fillcolor="#ffe0e0"];
+    NA    [label="Neuraminidase (NA)\nsialidase", fillcolor="#ffe0e0"];
+    M2    [label="M2 ion channel\nuncoating", fillcolor="#ffe0e0"];
+    RNP   [label="8 × vRNP segments\nPB2·PB1·PA·NP", fillcolor="#ffe0e0"];
+    SA26  [label="α2,6-sialic acid\nupper airway", fillcolor="#e8f0ff"];
+    SA23  [label="α2,3-sialic acid\nlower airway", fillcolor="#e8f0ff"];
+    MUC   [label="Airway mucin\nsialylated decoy", fillcolor="#e8f0ff"];
+    MCC   [label="Mucociliary\nclearance", fillcolor="#e8f0ff"];
+    SPD   [label="Surfactant protein D\ncollectin", fillcolor="#e2f5ec"];
+    EXP -> INOC -> HA;
+    HA -> SA26 [label="URT tropism"];
+    HA -> SA23 [label="LRT tropism"];
+    MUC -> HA [label="decoy binding", style=dashed, color="#8a8a8a"];
+    NA -> MUC [label="cleaves,\nfrees virion", color="#c47f00"];
+    MCC -> INOC [label="physical removal", style=dashed, color="#8a8a8a"];
+    SPD -> HA [label="aggregation", style=dashed, color="#2e8b57"];
+    HA -> M2 -> RNP;
+  }
+
+  /* ======================================================================
+   * 2. UPPER RESPIRATORY TRACT REPLICATION LOOP  (the core)
+   * ==================================================================== */
+  subgraph cluster_urt {
+    label="2. Upper respiratory tract — the replication loop"; style="rounded,filled";
+    fillcolor="#f7faff"; color="#7f9fd0"; fontsize=13;
+    TU    [label="T_U  susceptible\nciliated epithelium\n4×10⁸ cells", fillcolor="#e8f0ff", penwidth=2];
+    RU    [label="R_U  refractory\nISG antiviral state", fillcolor="#e2f5ec"];
+    EW    [label="E_W  eclipse\n(wild type)", fillcolor="#ffeaea"];
+    IW    [label="I_W  productively\ninfected (WT)", fillcolor="#ffd0d0", penwidth=2];
+    VW    [label="V_W  wild-type virion\nTCID50/mL nasal wash", fillcolor="#ffb8b8", penwidth=2];
+    ABORT [label="abortively infected\n(transcription blocked)", fillcolor="#f3f3f3"];
+    DU    [label="D_U  denuded\nepithelium", fillcolor="#ededed"];
+    REG   [label="basal cell\nproliferation / repair", fillcolor="#e8f0ff"];
+    TU -> EW [label="β·T·V\nENTRY", penwidth=2, color="#1f5fa8"];
+    EW -> IW [label="k·matu\nTRANSCRIPTION", penwidth=2, color="#7b3fa0"];
+    EW -> ABORT [label="k·(1−matu)", style=dashed, color="#7b3fa0"];
+    IW -> VW [label="p  PRODUCTION\n/ RELEASE", penwidth=2, color="#d97706"];
+    VW -> TU [label="new infection", penwidth=2, color="#1f5fa8"];
+    IW -> DU [label="δ  cytopathic\ndeath", color="#c0392b"];
+    ABORT -> DU;
+    TU -> RU [label="φ·F/(F+Kf)\nTARGET PROTECTION", color="#0e8f6f"];
+    RU -> TU [label="ρ  reversion", style=dashed];
+    DU -> REG -> TU [label="λ  resupply"];
+    VW -> CLR [label="c  virion decay", color="#2e8b57"];
+    CLR   [label="free-virion\nclearance", fillcolor="#e2f5ec"];
+  }
+
+  /* ======================================================================
+   * 3. RESISTANT SUBPOPULATION AND COMPETITIVE RELEASE
+   * ==================================================================== */
+  subgraph cluster_res {
+    label="3. Resistant subpopulation — mutation-selection balance"; style="rounded,filled";
+    fillcolor="#fff8ef"; color="#d99a4e"; fontsize=13;
+    MUT   [label="μ ≈ 2.5×10⁻⁵ per\nreplication (mutation)", fillcolor="#ffe9d0"];
+    EM    [label="E_M  eclipse\n(resistant)", fillcolor="#ffe9d0"];
+    IM    [label="I_M  productively\ninfected (resistant)", fillcolor="#ffdcae"];
+    VM    [label="V_M  resistant virion", fillcolor="#ffcf90", penwidth=2];
+    I38T  [label="PA / I38T·M·F\nEC50 ×20–50 (baloxavir)", fillcolor="#ffe9d0"];
+    H275  [label="NA / H275Y\nEC50 ×300 (oseltamivir)", fillcolor="#ffe9d0"];
+    E119  [label="NA / E119V, R292K\nsubtype-dependent NAI shift", fillcolor="#ffe9d0"];
+    S31N  [label="M2 / S31N\nadamantane resistance\n(near-universal)", fillcolor="#ffe9d0"];
+    COST  [label="replicative fitness cost\n(polymerase activity ↓)", fillcolor="#ffe9d0"];
+    PERM  [label="permissive secondary\nmutations restore fitness", fillcolor="#ffe9d0"];
+    CREL  [label="COMPETITIVE RELEASE\ndrug removes the competitor,\nspared T_U goes to the mutant", fillcolor="#ffb870", penwidth=2, shape=box3d];
+    MUT -> EM; EM -> IM [label="k·matu_M"]; IM -> VM [label="p·(1−cost)"];
+    VM -> EM [label="β·T·V_M"];
+    I38T -> IM [style=dashed]; H275 -> IM [style=dashed];
+    E119 -> IM [style=dashed]; S31N -> IM [style=dashed];
+    COST -> IM [label="−", style=dashed, color="#c0392b"];
+    PERM -> COST [label="abolishes", style=dashed];
+    CREL -> IM [label="+", penwidth=2, color="#d97706"];
+  }
+  IW -> MUT [label="μ of progeny", style=dashed, color="#d97706", lhead=cluster_res];
+  TU -> CREL [label="spared field", style=dashed, color="#d97706"];
+
+  /* ======================================================================
+   * 4. LOWER RESPIRATORY TRACT
+   * ==================================================================== */
+  subgraph cluster_lrt {
+    label="4. Lower respiratory tract — descent and alveolar injury"; style="rounded,filled";
+    fillcolor="#f7f9fb"; color="#8098aa"; fontsize=13;
+    DESC  [label="aspiration / descent\nα·V_U", fillcolor="#e8f0ff"];
+    TL    [label="T_L  alveolar type I/II\n+ bronchiolar epithelium", fillcolor="#e8f0ff"];
+    ILW   [label="I_L  productively\ninfected, LRT", fillcolor="#ffd0d0"];
+    VL    [label="V_L  LRT viral titre", fillcolor="#ffb8b8"];
+    DL    [label="D_L  denuded alveolar\nepithelium", fillcolor="#ededed"];
+    AECII [label="AT-II loss →\nsurfactant deficit", fillcolor="#ededed"];
+    EDEMA [label="alveolar-capillary\nbarrier failure · oedema", fillcolor="#ededed"];
+    SHUNT [label="intrapulmonary shunt\nV/Q mismatch", fillcolor="#f3f3f3"];
+    HYPOX [label="hypoxaemia\nSpO₂ ↓", fillcolor="#f3f3f3", penwidth=2];
+    ARDS  [label="viral pneumonitis → ARDS", fillcolor="#f3f3f3"];
+    DESC -> VL -> TL -> ILW -> VL;
+    ILW -> DL -> AECII -> EDEMA -> SHUNT -> HYPOX -> ARDS;
+    DL -> EDEMA;
+  }
+  VW -> DESC [penwidth=2, color="#1f5fa8"];
+
+  /* ======================================================================
+   * 5. INNATE SENSING AND INTERFERON
+   * ==================================================================== */
+  subgraph cluster_innate {
+    label="5. Innate sensing → type I/III interferon → antiviral state"; style="rounded,filled";
+    fillcolor="#f2fbf6"; color="#5ab08c"; fontsize=13;
+    RIGI  [label="RIG-I\n5′-ppp panhandle vRNA", fillcolor="#e2f5ec"];
+    MDA5  [label="MDA5", fillcolor="#e2f5ec"];
+    TLR3  [label="TLR3 / TLR7\nendosomal", fillcolor="#e2f5ec"];
+    MAVS  [label="MAVS\nmitochondrial adaptor", fillcolor="#e2f5ec"];
+    NLRP3 [label="NLRP3 inflammasome\n(PB1-F2, M2)", fillcolor="#e2f5ec"];
+    IRF3  [label="IRF3 / IRF7", fillcolor="#e2f5ec"];
+    NFKB  [label="NF-κB", fillcolor="#e2f5ec"];
+    IFNI  [label="F  type I IFN (α/β)", fillcolor="#a8e6c8", penwidth=2];
+    IFNL  [label="type III IFN (λ)\nepithelial-restricted", fillcolor="#a8e6c8"];
+    IFNAR [label="IFNAR1/2 → JAK1/TYK2\n→ STAT1/2 · IRF9", fillcolor="#e2f5ec"];
+    ISG   [label="ISG programme", fillcolor="#e2f5ec"];
+    MX1   [label="MxA / Mx1\nvRNP trap", fillcolor="#e2f5ec"];
+    IFITM [label="IFITM3\nblocks fusion", fillcolor="#e2f5ec"];
+    OAS   [label="OAS / RNase L", fillcolor="#e2f5ec"];
+    PKR   [label="PKR\ntranslation arrest", fillcolor="#e2f5ec"];
+    NS1   [label="NS1 viral antagonist\nblocks RIG-I / CPSF30", fillcolor="#ffd0d0"];
+    PDC   [label="plasmacytoid DC\nbulk IFN-α source", fillcolor="#e2f5ec"];
+    NK    [label="NK cell\nNCR / ADCC", fillcolor="#e2f5ec"];
+    AM    [label="alveolar macrophage", fillcolor="#e2f5ec"];
+    NEU   [label="neutrophil influx\nNETs", fillcolor="#e2f5ec"];
+    RIGI -> MAVS; MDA5 -> MAVS; TLR3 -> IRF3; MAVS -> IRF3; MAVS -> NFKB;
+    IRF3 -> IFNI; IRF3 -> IFNL; NFKB -> IFNI;
+    IFNI -> IFNAR -> ISG;
+    IFNL -> IFNAR;
+    ISG -> MX1; ISG -> IFITM; ISG -> OAS; ISG -> PKR;
+    NS1 -> RIGI [label="−", color="#c0392b", style=dashed];
+    NS1 -> IRF3 [label="−", color="#c0392b", style=dashed];
+    PDC -> IFNI; AM -> IFNI; NLRP3 -> NFKB;
+  }
+  IW -> RIGI [label="vRNA sensing", color="#0e8f6f"];
+  ILW -> RIGI [color="#0e8f6f"];
+  ISG -> RU [label="antiviral state", penwidth=2, color="#0e8f6f"];
+  IFNI -> NEU;
+  DL -> NEU;
+
+  /* ======================================================================
+   * 6. ADAPTIVE IMMUNITY
+   * ==================================================================== */
+  subgraph cluster_adaptive {
+    label="6. Adaptive immunity — the response that actually ends the infection"; style="rounded,filled";
+    fillcolor="#f7f4fd"; color="#9b86c8"; fontsize=13;
+    DC    [label="respiratory DC\nantigen uptake", fillcolor="#eae2f8"];
+    LN    [label="mediastinal lymph node\npriming", fillcolor="#eae2f8"];
+    AG    [label="AG  antigen load", fillcolor="#eae2f8"];
+    CD4   [label="CD4⁺ Th1 / Tfh", fillcolor="#eae2f8"];
+    CTL   [label="CTL  effector CD8⁺\nperforin · granzyme · FasL", fillcolor="#d6c6f0", penwidth=2];
+    TRM   [label="lung-resident memory\nCD8⁺ T_RM", fillcolor="#eae2f8"];
+    GC    [label="germinal centre", fillcolor="#eae2f8"];
+    PC    [label="PC  plasma cells", fillcolor="#eae2f8"];
+    AB    [label="AB  serum neutralising\nIgG (anti-HA head)", fillcolor="#d6c6f0", penwidth=2];
+    IGA   [label="IgA  mucosal\nsecretory dimer", fillcolor="#d6c6f0", penwidth=2];
+    STALK [label="anti-stalk / anti-NA\nbroadly reactive, ADCC", fillcolor="#eae2f8"];
+    OAS2  [label="original antigenic sin\nimprinting", fillcolor="#eae2f8"];
+    DC -> LN -> AG; AG -> CD4; AG -> CTL; CD4 -> GC -> PC;
+    PC -> AB; PC -> IGA; CTL -> TRM; AB -> STALK [style=dashed];
+    OAS2 -> AB [style=dashed, label="shapes\nspecificity"];
+  }
+  IW -> DC [label="antigen"];
+  ILW -> DC;
+  CTL -> IW [label="δ_T  INFECTED-CELL\nDEATH", penwidth=2, color="#c0392b"];
+  CTL -> ILW [color="#c0392b"];
+  AB -> CLR [label="opsonisation →\nVIRION CLEARANCE", penwidth=2, color="#2e8b57"];
+  AB -> TU [label="neutralisation\n(ENTRY block)", color="#1f5fa8"];
+  IGA -> TU [label="mucosal ENTRY block", penwidth=2, color="#1f5fa8"];
+  CTL -> DU [label="immunopathology", style=dashed, color="#c0392b"];
+
+  /* ======================================================================
+   * 7. CYTOKINES AND SYSTEMIC ILLNESS
+   * ==================================================================== */
+  subgraph cluster_cyto {
+    label="7. Cytokines → systemic illness behaviour"; style="rounded,filled";
+    fillcolor="#fffaf0"; color="#d7b45a"; fontsize=13;
+    IL6   [label="IL-6", fillcolor="#fff2d6", penwidth=2];
+    TNF   [label="TNF-α", fillcolor="#fff2d6"];
+    IL1B  [label="IL-1β\n(inflammasome)", fillcolor="#fff2d6"];
+    CXCL10[label="CXCL10 / IP-10", fillcolor="#fff2d6"];
+    CCL2  [label="CCL2 → inflammatory\nmonocytes", fillcolor="#fff2d6"];
+    IL8   [label="CXCL8 → neutrophils", fillcolor="#fff2d6"];
+    IL10  [label="IL-10\ncounter-regulation", fillcolor="#fff2d6"];
+    STORM [label="cytokine storm\n(H5N1 / H7N9 phenotype)", fillcolor="#ffd9a8"];
+    PGE2  [label="PGE₂ at OVLT\nhypothalamic set-point ↑", fillcolor="#fff2d6"];
+    SICK  [label="sickness behaviour\nmyalgia · anorexia · fatigue", fillcolor="#fff2d6"];
+    IL6 -> PGE2 -> SICK; IL6 -> STORM [style=dashed]; TNF -> STORM [style=dashed];
+    IL10 -> IL6 [label="−", style=dashed, color="#2e8b57"];
+  }
+
+  /* ======================================================================
+   * 8. CLINICAL ENDPOINTS
+   * ==================================================================== */
+  subgraph cluster_clin {
+    label="8. Clinical endpoints — what the trials actually measured"; style="rounded,filled";
+    fillcolor="#f4f4f4"; color="#909090"; fontsize=13;
+    SYM   [label="SYM  composite symptom score\n7 items × 0–3", fillcolor="#dcdcdc", penwidth=2];
+    TTAS  [label="TTAS  time to alleviation\nall items ≤1 for 21.5 h", fillcolor="#c8c8c8", penwidth=2, shape=box3d];
+    FEV   [label="fever / defervescence", fillcolor="#dcdcdc"];
+    COUGH [label="cough · sore throat\nnasal congestion", fillcolor="#dcdcdc"];
+    MYAL  [label="myalgia · headache\nfatigue", fillcolor="#dcdcdc"];
+    SHED  [label="time to cessation\nof viral shedding", fillcolor="#c8c8c8", penwidth=2, shape=box3d];
+    AUCV  [label="viral AUC\n(log₁₀·day)", fillcolor="#c8c8c8", penwidth=2, shape=box3d];
+    TRANS [label="onward household\ntransmission", fillcolor="#dcdcdc"];
+    HOSP  [label="hospitalisation ·\nICU · mortality", fillcolor="#dcdcdc"];
+    COMPL [label="complications:\notitis · sinusitis · bronchitis", fillcolor="#dcdcdc"];
+    SYM -> TTAS; SYM -> COUGH; SYM -> MYAL; FEV -> SYM;
+  }
+  IL6 -> SYM [label="cytokine drive\n(1−W)", penwidth=2, color="#c47f00"];
+  VW -> SYM [label="same-day viral drive\nW  (see analysis A8)", penwidth=2, color="#c0392b", style=dashed];
+  PGE2 -> FEV [penwidth=2];
+  VW -> AUCV; VW -> SHED;
+
+  /* ======================================================================
+   * 9. BACTERIAL SUPERINFECTION
+   * ==================================================================== */
+  subgraph cluster_bact {
+    label="9. Secondary bacterial infection"; style="rounded,filled";
+    fillcolor="#fdf6f6"; color="#c08a8a"; fontsize=13;
+    CARR  [label="nasopharyngeal carriage\nS. pneumoniae · S. aureus", fillcolor="#f6e2e2"];
+    ADH   [label="exposed basement membrane\n+ desialylated receptors\n→ adhesion ↑", fillcolor="#f6e2e2"];
+    NEUFN [label="IFN-mediated suppression\nof IL-17 / neutrophil function", fillcolor="#f6e2e2"];
+    BAC   [label="BAC  bacterial burden", fillcolor="#efc9c9", penwidth=2];
+    PNEU  [label="secondary bacterial\npneumonia", fillcolor="#efc9c9"];
+    CARR -> BAC; ADH -> BAC [label="growth ↑"]; NEUFN -> BAC [label="clearance ↓"];
+    BAC -> PNEU;
+  }
+  DU -> ADH [color="#c0392b"]; DL -> ADH [color="#c0392b"];
+  NA -> ADH [label="desialylation\nexposes receptors", style=dashed, color="#c47f00"];
+  IFNI -> NEUFN [color="#c0392b"];
+  PNEU -> HOSP;
+
+  /* ======================================================================
+   * 10. OSELTAMIVIR PK/PD
+   * ==================================================================== */
+  subgraph cluster_os {
+    label="10. Oseltamivir — prodrug PK, NAI pharmacology"; style="rounded,filled";
+    fillcolor="#f2f8ff"; color="#6f9fd8"; fontsize=13;
+    OSPO  [label="oseltamivir phosphate\n75 mg PO BID × 5 d", fillcolor="#dbeeff"];
+    OSGUT [label="gut depot\nka", fillcolor="#dbeeff"];
+    OSPRO [label="prodrug, plasma", fillcolor="#dbeeff"];
+    CES1  [label="hepatic CES1\nhydrolysis", fillcolor="#dbeeff"];
+    OCC   [label="oseltamivir carboxylate\ncentral, V/F 28 L", fillcolor="#bcdcff", penwidth=2];
+    OCP   [label="peripheral", fillcolor="#dbeeff"];
+    OCELF [label="ELF / effect site", fillcolor="#bcdcff"];
+    OAT1  [label="renal OAT1 tubular\nsecretion · CL/F 18.8 L/h", fillcolor="#dbeeff"];
+    RENAL [label="renal impairment →\ndose reduction", fillcolor="#dbeeff"];
+    NAINH [label="NA active-site inhibition\n→ progeny stay cell-bound", fillcolor="#ffd9b0", penwidth=2];
+    OSPO -> OSGUT -> OSPRO -> CES1 -> OCC -> OCP [dir=both];
+    OCC -> OCELF; OCC -> OAT1; RENAL -> OAT1 [label="−", style=dashed];
+    OCELF -> NAINH;
+  }
+  NAINH -> IW [label="RELEASE blockade\n(1−ε)·p", penwidth=2, color="#d97706"];
+  NAINH -> TU [label="weak ENTRY block\n(mucus penetration)", style=dashed, color="#1f5fa8"];
+  H275 -> NAINH [label="EC50 ×300", style=dashed, color="#c0392b"];
+
+  /* ======================================================================
+   * 11. BALOXAVIR PK/PD
+   * ==================================================================== */
+  subgraph cluster_bx {
+    label="11. Baloxavir marboxil — cap-snatching endonuclease inhibitor"; style="rounded,filled";
+    fillcolor="#f8f2ff"; color="#a07fd0"; fontsize=13;
+    BXM   [label="baloxavir marboxil\n40 mg (<80 kg) single PO", fillcolor="#ece0ff"];
+    BXHYD [label="ester hydrolysis →\nbaloxavir acid", fillcolor="#ece0ff"];
+    BXC   [label="BXA central\nCL/F 6.2 L/h · t½ 79 h", fillcolor="#dcc6ff", penwidth=2];
+    BXP   [label="peripheral", fillcolor="#ece0ff"];
+    BXFU  [label="free fraction 0.07\n(93 % protein bound)", fillcolor="#ece0ff"];
+    BXELF [label="ELF / intracellular\neffect site", fillcolor="#dcc6ff"];
+    UGT   [label="UGT1A3 · CYP3A4", fillcolor="#ece0ff"];
+    CHEL  [label="polyvalent cation\nchelation → absorption ↓", fillcolor="#ece0ff"];
+    PAEND [label="PA endonuclease\ncap-snatching blocked\n→ no viral mRNA", fillcolor="#e0c8ff", penwidth=2];
+    BXM -> BXHYD -> BXC -> BXP [dir=both];
+    BXC -> UGT; BXC -> BXFU -> BXELF -> PAEND;
+    CHEL -> BXM [label="−", style=dashed, color="#c0392b"];
+  }
+  PAEND -> EW [label="TRANSCRIPTION block\nE→I diverted to abortive", penwidth=2, color="#7b3fa0"];
+  PAEND -> IW [label="PRODUCTION block\n(1−ε)·p", penwidth=2, color="#d97706"];
+  I38T -> PAEND [label="EC50 ×20–50", style=dashed, color="#c0392b"];
+
+  /* ======================================================================
+   * 12. OTHER ANTIVIRALS AND BIOLOGICS
+   * ==================================================================== */
+  subgraph cluster_other {
+    label="12. Other antivirals and biologics"; style="rounded,filled";
+    fillcolor="#f6fbf6"; color="#7fb07f"; fontsize=13;
+    ZAN   [label="zanamivir\ninhaled 10 mg BID", fillcolor="#dbeeff"];
+    PER   [label="peramivir\n600 mg IV single", fillcolor="#dbeeff"];
+    LAN   [label="laninamivir\nlong-acting inhaled NAI", fillcolor="#dbeeff"];
+    FAV   [label="favipiravir\nRdRp · nonlinear PK", fillcolor="#e9dcc8"];
+    FAVM  [label="lethal mutagenesis\nnon-viable progeny ↑", fillcolor="#e9dcc8", penwidth=2];
+    PIM   [label="pimodivir (PB2)\ndevelopment discontinued", fillcolor="#e9e9e9"];
+    AMAN  [label="amantadine / rimantadine\nM2 — obsolete (S31N)", fillcolor="#e9e9e9"];
+    MAB   [label="anti-HA stalk mAb\nIV single dose", fillcolor="#d8f0e0"];
+    PLAS  [label="convalescent plasma\nhyperimmune IVIG", fillcolor="#d8f0e0"];
+    VACC  [label="vaccination\nIIV · LAIV · high-dose", fillcolor="#d8f0e0"];
+    STER  [label="corticosteroids\n(dexamethasone)", fillcolor="#e0e0e0"];
+    ANTIP [label="antipyretics\nparacetamol · NSAID", fillcolor="#e0e0e0"];
+    ABX   [label="empiric antibiotics\nfor superinfection", fillcolor="#e0e0e0"];
+    FAV -> FAVM;
+  }
+  ZAN -> NAINH; PER -> NAINH; LAN -> NAINH;
+  FAV -> IW [label="PRODUCTION block", color="#d97706"];
+  FAVM -> VW [label="MUTAGENESIS\ninfectivity ↓", color="#8b5a2b"];
+  AMAN -> M2 [label="blocked by S31N", style=dashed, color="#909090"];
+  PIM -> RNP [style=dashed, color="#909090"];
+  MAB -> CLR [label="VIRION CLEARANCE ↑", penwidth=2, color="#2e8b57"];
+  MAB -> TU [label="ENTRY block", color="#1f5fa8"];
+  PLAS -> CLR [color="#2e8b57"];
+  VACC -> IGA [label="mucosal priming", color="#1f5fa8"];
+  VACC -> TRM [label="cellular priming", color="#c0392b"];
+  STER -> IFNI [label="IMMUNOPATHOLOGY\nDAMPING  −", color="#909090", penwidth=2];
+  STER -> CTL [label="−", color="#909090"];
+  ANTIP -> FEV [label="−", color="#909090"];
+  ABX -> BAC [label="−", color="#909090"];
+
+  /* ======================================================================
+   * 13. HOST MODIFIERS AND EPIDEMIOLOGY
+   * ==================================================================== */
+  subgraph cluster_host {
+    label="13. Host modifiers · strain · epidemiology"; style="rounded,filled";
+    fillcolor="#fbfbf6"; color="#b0b080"; fontsize=13;
+    AGE   [label="age: infant · child ·\nadult · ≥65 y", fillcolor="#f0f0e0"];
+    PREG  [label="pregnancy\n(3rd trimester risk)", fillcolor="#f0f0e0"];
+    OBES  [label="obesity\nprolonged shedding", fillcolor="#f0f0e0"];
+    COPD  [label="COPD · asthma\nairway comorbidity", fillcolor="#f0f0e0"];
+    IMSUP [label="immunosuppression\ntransplant · chemo", fillcolor="#f0f0e0"];
+    IFITM3G[label="IFITM3 rs12252\nhost genetics", fillcolor="#f0f0e0"];
+    STRAIN[label="A(H1N1)pdm09 · A(H3N2)\nB/Victoria", fillcolor="#f0f0e0"];
+    DRIFT [label="antigenic drift / shift\nreassortment", fillcolor="#f0f0e0"];
+    ZOON  [label="zoonotic H5N1 · H7N9\nα2,3 tropism → LRT", fillcolor="#f0f0e0"];
+    R0EPI [label="household secondary\nattack rate", fillcolor="#f0f0e0"];
+  }
+
+  /* ======================================================================
+   * 14. THE TWO CONTROL QUANTITIES  (what the model is really about)
+   * ==================================================================== */
+  subgraph cluster_ctrl {
+    label="14. The two quantities that decide everything"; style="rounded,filled";
+    fillcolor="#fff4f4"; color="#c06060"; fontsize=13;
+    TRX   [label="t_rx  time of first dose", fillcolor="#ffdede", penwidth=2];
+    TFIELD[label="T(t_rx)  target-cell field\nstill standing at dosing", fillcolor="#ffc8c8", penwidth=2, shape=box3d];
+    RESID [label="R(t_rx)  residual viral AUC\nEXACT upper bound on benefit", fillcolor="#ff9f9f", penwidth=2, shape=box3d];
+    POT   [label="Emax  potency\n(bounded by R)", fillcolor="#ffdede"];
+    NOTE  [label="benefit ≤ R(t_rx)\nno molecule can cross this line", fillcolor="#ffeaea", shape=note];
+    TRX -> TFIELD; TRX -> RESID; TFIELD -> RESID [style=dashed];
+    POT -> RESID [label="approaches,\nnever exceeds", style=dashed];
+    RESID -> NOTE [style=dashed, arrowhead=none];
+  }
+  TU -> TFIELD [style=dashed, color="#c0392b"];
+  VW -> RESID [style=dashed, color="#c0392b"];
+  TFIELD -> CREL [label="the same field that\nfeeds resistance", style=dashed, color="#d97706"];
+  RESID -> AUCV [style=dashed];
+  OSPO -> TRX [style=dashed, color="#909090"];
+  BXM -> TRX [style=dashed, color="#909090"];
+
+  /* cross-cluster edges: declared outside every subgraph so that no node
+     is captured by two clusters (graphviz rejects that with init_rank) */
+  NK -> IW [label="early killing", color="#c0392b", style=dashed];
+  NEU -> DL [label="collateral injury", style=dashed, color="#c0392b"];
+  IFNI -> IL6 [penwidth=2, color="#c47f00"]; IFNI -> CXCL10;
+  IW -> TNF; DL -> IL1B; IL1B -> IL6; TNF -> IL6;
+  CCL2 -> DL [style=dashed]; IL8 -> DL [style=dashed];
+  SHED -> TRANS; AUCV -> TRANS; HYPOX -> HOSP; COMPL -> HOSP;
+  AGE -> CTL [style=dashed]; AGE -> AB [style=dashed];
+  IMSUP -> CTL [label="−", style=dashed, color="#c0392b"];
+  IMSUP -> AB [label="−", style=dashed, color="#c0392b"];
+  IFITM3G -> IFITM [style=dashed];
+  OBES -> VW [style=dashed]; COPD -> TL [style=dashed];
+  STRAIN -> HA [style=dashed]; DRIFT -> AB [label="escape", style=dashed, color="#c0392b"];
+  ZOON -> SA23 [style=dashed]; PREG -> TL [style=dashed];
+  TRANS -> R0EPI;
+
+  /* additional cross-links completing the map */
+  IFNI -> IL10 [label="counter-regulation"];
+  ISG -> IFITM;
+  NEU -> BAC [label="clearance", style=dashed, color="#2e8b57"];
+  TRM -> IW [label="rapid local recall", style=dashed, color="#c0392b"];
+  STALK -> CLR [label="ADCC / ADCP", style=dashed, color="#2e8b57"];
+  CD4 -> CTL [label="help", style=dashed];
+  AM -> DU [label="efferocytosis of\ninfected debris", style=dashed];
+  MCC -> VW [label="physical removal", style=dashed, color="#8a8a8a"];
+  SPD -> CLR [style=dashed, color="#2e8b57"];
+  AGE -> SYM [style=dashed];
+  RENAL -> OCC [label="accumulation", style=dashed, color="#c0392b"];
+  STORM -> HOSP [style=dashed, color="#c0392b"];
+  ARDS -> HOSP;
+  HYPOX -> SYM [style=dashed];
+  VL -> AUCV [style=dashed];
+  IL6 -> HOSP [label="severity marker", style=dashed];
+  VACC -> RESID [label="lowers the bound\nbefore exposure", style=dashed, color="#2e8b57"];
+}
