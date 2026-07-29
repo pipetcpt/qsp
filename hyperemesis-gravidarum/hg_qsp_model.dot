@@ -1,0 +1,728 @@
+// ============================================================================
+//  Hyperemesis Gravidarum (HG) — Mechanistic QSP Map
+//  ---------------------------------------------------------------------------
+//  Render:  dot -Tsvg hg_qsp_model.dot -o hg_qsp_model.svg
+//           dot -Tpng -Gdpi=150 hg_qsp_model.dot -o hg_qsp_model.png
+//
+//  The map is organised around three structural commitments that the companion
+//  mrgsolve model (hg_mrgsolve_model.R) turns into equations, and that the
+//  reference implementation (hg_reference_impl.py) tests numerically.
+//
+//   (1) THE DETECTOR IS A RATIO, NOT A LEVEL.  Cluster 3 is the crux of the
+//       whole map. The area postrema does not report how much GDF15 there is;
+//       it reports how much MORE there is than there used to be. The GFRAL
+//       axis carries an adapting set-point that tracks log(GDF15) with a time
+//       constant of ~4 weeks, so emetic drive is GDF15 / set-point.
+//       This is what lets one mechanism explain five otherwise awkward facts:
+//         - maternal GDF15 keeps RISING into the third trimester while nausea
+//           and vomiting peak at 9-11 weeks and remit by 16-20;
+//         - beta-thalassaemia, with chronically high GDF15, reports almost no
+//           NVP;
+//         - LOW pre-pregnancy GDF15 is a risk factor, not a protective one;
+//         - pre-conception metformin (which raises GDF15, and is stopped
+//           before the nausea starts) is associated with aRR 0.29;
+//         - pre-conception tobacco, which raises GDF15 less, gives aRR 0.51.
+//       Setting the adaptation completeness ALPHA to 0 collapses cluster 3 to
+//       a level detector and every one of those five predictions inverts.
+//
+//   (2) EFFICACY IS SET BY NODE POSITION.  Emetic drive reaches the emetic
+//       central pattern generator through the NTS (cluster 5), which sums a
+//       LARGE GFRAL/area-postrema term and a SMALL peripheral vagal/5-HT3 term.
+//       A drug cannot outperform the weight of the node it occupies.
+//       Ondansetron occupies ~98% of 5-HT3 and moved PUQE-24 by only -0.51 in
+//       the first placebo-controlled HG trial; mirtazapine, which spans
+//       several NTS receptor classes, moved it -1.86. The map therefore draws
+//       drugs onto SPECIFIC nodes rather than onto "emesis", and predicts the
+//       ordering ligand > alpha-2-delta > multi-receptor > single H1 >
+//       peripheral 5-HT3 > no node at all (corticosteroids, a published null).
+//
+//   (3) THE NUTRITIONAL CASCADE RUNS ON A DIFFERENT CLOCK.  Clusters 10-12
+//       are deliberately drawn as a separate limb hanging off vomiting rather
+//       than off nausea. Volume/Cl-/K+ loss produces a chloride-responsive
+//       alkalosis that will not correct until chloride is replaced, and a
+//       ~28 mg thiamine store with a ~15 day half-life empties on a timescale
+//       of weeks. So an antiemetic can normalise PUQE while Wernicke risk is
+//       still climbing, and IV dextrose given before thiamine makes it worse.
+//
+//  Colour key
+//    Pink       feto-placental source            Blue    GDF15 / GFRAL axis
+//    Violet     the adapting set-point           Green   hindbrain / CNS
+//    Peach      peripheral GI limb               Orange  drug / intervention
+//    Teal       endocrine & metabolic            Red     injury / toxicity
+//    Purple     biomarker                        Grey    clinical endpoint
+//    Yellow     genetic architecture
+// ============================================================================
+
+digraph HG_QSP {
+  rankdir=LR;
+  compound=true;
+  splines=spline;
+  nodesep=0.18;
+  ranksep=0.58;
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=22;
+  label=<<B>Hyperemesis Gravidarum — Mechanistic QSP Map</B><BR/>
+<FONT POINT-SIZE="13">Syncytiotrophoblast GDF15 → maternal circulation → <B>fold-change</B> comparison against an adapting GFRAL set-point → area postrema → NTS → emesis → volume/chloride/thiamine cascade<BR/>
+Pink = feto-placental source · Blue = GDF15/GFRAL axis · Violet = adapting set-point · Green = hindbrain/CNS · Peach = peripheral GI limb · Teal = endocrine/metabolic · Orange = drug · Purple = biomarker · Red = injury · Grey = endpoint · Yellow = genetics</FONT>>;
+  node [style="filled,rounded", shape=box, fontname="Helvetica", fontsize=10,
+        color="#666666", penwidth=0.8];
+  edge [fontname="Helvetica", fontsize=8, color="#5a5a5a", arrowsize=0.7];
+
+  // ==========================================================================
+  // 1. FETO-PLACENTAL UNIT — the source of the signal
+  // ==========================================================================
+  subgraph cluster_placenta {
+    label=<<B>1. Feto-placental unit — GDF15 source</B><BR/><FONT POINT-SIZE="9">mass rises to term; specific secretion is front-loaded by hypoxia</FONT>>;
+    style="filled,rounded"; fillcolor="#fff0f5"; color="#c2185b"; fontsize=13;
+    node [fillcolor="#f8bbd0"];
+
+    CONCEPT   [label="Conception\nGA ~2 wk"];
+    IMPLANT   [label="Implantation\nGA ~3 wk\ntrophoblast invasion"];
+    CTB       [label="Cytotrophoblast\nproliferative pool\npeaks GA 8-10 wk"];
+    STB       [label="Syncytiotrophoblast\nthe secretory\nsurface"];
+    EVT       [label="Extravillous\ntrophoblast\nspiral artery remodelling"];
+    PLAC_MASS [label="Placental mass\nlogistic to GA ~12 wk,\nthen slow rise to term"];
+    PLAC_PO2  [label="Intervillous pO2\n~20 mmHg until GA 10-12 wk\nthen perfusion opens"];
+    HIF1A     [label="HIF-1α\nhypoxia sensing"];
+    ISR       [label="Integrated stress\nresponse\nPERK / eIF2α"];
+    ATF4      [label="ATF4"];
+    CHOP      [label="CHOP / DDIT3"];
+    GDF15_GENE[label="GDF15 transcription\n(MIC-1 / NAG-1 / PLAB)\nISR target gene"];
+    GDF15_PRO [label="proGDF15 dimer\nfurin/PCSK cleavage"];
+    GDF15_SEC [label="GDF15 secretion\ninto maternal blood"];
+    HCG_SYN   [label="hCG synthesis\nsame secretory cell"];
+    IGFBP7    [label="IGFBP7\nplacental, appetite-linked\nGWAS locus"];
+    FETAL_SEX [label="Fetal sex\nfemale fetus →\nhigher NVP risk"];
+    MULTIPLE  [label="Multiple gestation\nlarger trophoblast mass"];
+    MOLAR     [label="Molar pregnancy\nextreme trophoblast\n→ extreme hCG/GDF15"];
+    TROPH_GAIN[label="TROPH_GAIN\nper-pregnancy secretory gain\n(the FETAL axis of risk)",
+               fillcolor="#f48fb1", penwidth=2.0, color="#880e4f"];
+
+    CONCEPT -> IMPLANT -> CTB -> STB;
+    IMPLANT -> EVT -> PLAC_PO2 [label="perfusion"];
+    CTB -> PLAC_MASS; STB -> PLAC_MASS;
+    PLAC_PO2 -> HIF1A [label="low pO2 ↑"];
+    HIF1A -> ISR -> ATF4 -> GDF15_GENE;
+    ATF4 -> CHOP -> GDF15_GENE;
+    GDF15_GENE -> GDF15_PRO -> GDF15_SEC;
+    PLAC_MASS -> GDF15_SEC [label="× mass"];
+    STB -> HCG_SYN; CTB -> HCG_SYN [label="peak GA 9-10 wk"];
+    STB -> IGFBP7;
+    FETAL_SEX -> TROPH_GAIN; MULTIPLE -> TROPH_GAIN; MOLAR -> TROPH_GAIN;
+    TROPH_GAIN -> GDF15_SEC; TROPH_GAIN -> HCG_SYN;
+  }
+
+  // ==========================================================================
+  // 2. GDF15 IN THE MATERNAL CIRCULATION
+  // ==========================================================================
+  subgraph cluster_gdf {
+    label=<<B>2. Maternal GDF15 — level</B><BR/><FONT POINT-SIZE="9">t½ ≈ 3 h; ~all of it is feto-placental in origin</FONT>>;
+    style="filled,rounded"; fillcolor="#eef4ff"; color="#1565c0"; fontsize=13;
+    node [fillcolor="#bbdefb"];
+
+    GDF15_PL  [label="Maternal plasma GDF15\n~250 pg/mL non-pregnant\n→ 10-15 ng/mL by GA 12 wk",
+               fillcolor="#64b5f6", penwidth=2.0, color="#0d47a1"];
+    GDF15_BAS [label="Basal (non-placental)\nGDF15 synthesis\nliver / kidney / marrow"];
+    GDF15_CL  [label="GDF15 clearance\nt½ ≈ 3 h"];
+    ERYTH     [label="Ineffective\nerythropoiesis\nerythroblast GDF15"];
+    THAL      [label="β-thalassaemia\nchronic GDF15 ↑↑\n(~10-15× basal)", fillcolor="#90caf9"];
+    SMOKE     [label="Tobacco smoking\nbasal GDF15 ↑ ~30%", fillcolor="#90caf9"];
+    METF_GDF  [label="Metformin\nbasal GDF15 ↑ ~2×", fillcolor="#90caf9"];
+    OBESITY   [label="BMI\ninverse assoc. with\nplacental biomarkers"];
+    MITO      [label="Mitochondrial /\nmetabolic stress\nGDF15 ↑"];
+    GDF15_FREE[label="FREE GDF15\nthe ligand that\nreaches GFRAL"];
+
+    GDF15_BAS -> GDF15_PL; ERYTH -> GDF15_BAS; THAL -> ERYTH;
+    SMOKE -> GDF15_BAS; METF_GDF -> GDF15_BAS; MITO -> GDF15_BAS;
+    OBESITY -> GDF15_PL [style=dashed];
+    GDF15_PL -> GDF15_CL; GDF15_PL -> GDF15_FREE;
+  }
+  GDF15_SEC -> GDF15_PL [lhead=cluster_gdf, label="dominant source", penwidth=2.0, color="#c2185b"];
+
+  // ==========================================================================
+  // 3. THE ADAPTING SET-POINT — the crux of the model
+  // ==========================================================================
+  subgraph cluster_setpoint {
+    label=<<B>3. THE FOLD-CHANGE DETECTOR</B><BR/><FONT POINT-SIZE="9">emetic drive = GDF15 ÷ adapted set-point, NOT GDF15</FONT>>;
+    style="filled,rounded"; fillcolor="#f6f0ff"; color="#6a1b9a"; fontsize=14;
+    penwidth=2.4;
+    node [fillcolor="#d1c4e9"];
+
+    PREPREG   [label="PRE-PREGNANCY GDF15\nexposure history",
+               fillcolor="#b39ddb", penwidth=2.0, color="#4a148c"];
+    SETPOINT  [label="Adapted set-point (SP)\ntracks log(GDF15)\nτ ≈ 4 weeks",
+               fillcolor="#9575cd", fontcolor="white", penwidth=2.4, color="#311b92"];
+    ALPHA     [label="ALPHA\nadaptation completeness\n1 = pure ratio · 0 = pure level",
+               shape=note, fillcolor="#ede7f6", penwidth=2.0, color="#4a148c"];
+    FOLD      [label="FOLD CHANGE\nGDF15 ÷ set-point\nTHE emetic drive",
+               fillcolor="#7e57c2", fontcolor="white", penwidth=2.4, color="#311b92"];
+    RAMPRATE  [label="Rate of the GDF15 ramp\ndoubling ~every 4 d,\nGA 5-9 wk"];
+    LAG       [label="Set-point LAG\nramp (days) outruns\nadaptation (weeks)"];
+    CATCHUP   [label="Set-point CATCH-UP\nGA 12-16 wk:\nratio → 1"];
+    DESENS    [label="Pre-conception\nDESENSITISATION\nhigh SP before the placenta"];
+    SENSITISE [label="Pre-conception\nSENSITISATION\nlow SP → large ratio"];
+    SENS_PAR  [label="SENS\nconstitutional GFRAL gain\n(the MATERNAL axis of risk)",
+               fillcolor="#b39ddb", penwidth=2.0, color="#4a148c"];
+
+    PREPREG -> SETPOINT; SETPOINT -> FOLD [label="÷", penwidth=2.0];
+    ALPHA -> FOLD [style=dashed, label="structural switch"];
+    RAMPRATE -> LAG -> FOLD [label="drive ↑↑", penwidth=2.0];
+    SETPOINT -> CATCHUP -> FOLD [label="drive ↓ (remission)", color="#2e7d32"];
+    PREPREG -> DESENS -> SETPOINT [label="SP ↑", color="#2e7d32"];
+    PREPREG -> SENSITISE -> SETPOINT [label="SP ↓", color="#c62828"];
+  }
+  GDF15_FREE -> FOLD [lhead=cluster_setpoint, label="numerator", penwidth=2.0, color="#1565c0"];
+  GDF15_PL -> SETPOINT [label="exposure memory", style=dashed];
+  THAL -> DESENS [color="#2e7d32"];
+  SMOKE -> DESENS [color="#2e7d32"];
+  METF_GDF -> DESENS [color="#2e7d32"];
+
+  // ==========================================================================
+  // 4. HINDBRAIN — GFRAL / area postrema
+  // ==========================================================================
+  subgraph cluster_ap {
+    label=<<B>4. Area postrema — GFRAL/RET receptor</B><BR/><FONT POINT-SIZE="9">the only site in the body that expresses GFRAL</FONT>>;
+    style="filled,rounded"; fillcolor="#f1f8f2"; color="#2e7d32"; fontsize=13;
+    node [fillcolor="#c8e6c9"];
+
+    BBB_CV    [label="Circumventricular\norgan — no blood-brain\nbarrier at the AP"];
+    GFRAL     [label="GFRAL\ncaudal brainstem only\n(AP + NTS)",
+               fillcolor="#81c784", penwidth=2.0, color="#1b5e20"];
+    RET       [label="RET co-receptor\nobligate for signalling"];
+    GFRAL_INT [label="Ligand-driven GFRAL\ninternalisation\nτ ≈ 2-3 d"];
+    ERK_AP    [label="ERK / AKT / PLCβ\ndownstream signalling"];
+    AP_NEUR   [label="AP neuron firing\nCALCA / CGRP subtype"];
+    CGRP_AP   [label="CGRP release\nAP → PBN"];
+    PBN       [label="Parabrachial nucleus\naversion / malaise"];
+    CEA       [label="Central amygdala\naffective nausea"];
+    IC_CTX    [label="Insular cortex\nconscious nausea"];
+    HYPO_ARC  [label="Arcuate nucleus\nPOMC / NPY\nappetite suppression"];
+    AVERSION  [label="Conditioned taste\naversion\nfood/odour intolerance"];
+
+    BBB_CV -> GFRAL; GFRAL -> RET -> ERK_AP -> AP_NEUR;
+    GFRAL -> GFRAL_INT [label="desensitises"];
+    GFRAL_INT -> GFRAL [label="⊣ receptor pool", color="#c62828", arrowhead=tee];
+    AP_NEUR -> CGRP_AP -> PBN -> CEA -> IC_CTX;
+    AP_NEUR -> HYPO_ARC; PBN -> AVERSION;
+  }
+  FOLD -> GFRAL [lhead=cluster_ap, label="effective ligand signal", penwidth=2.4, color="#6a1b9a"];
+  SENS_PAR -> AP_NEUR [style=dashed, label="gain"];
+  GDF15_PL -> GFRAL_INT [style=dashed];
+
+  // ==========================================================================
+  // 5. NTS INTEGRATOR AND EMETIC OUTPUT
+  // ==========================================================================
+  subgraph cluster_nts {
+    label=<<B>5. NTS integrator → emetic pattern generator</B><BR/><FONT POINT-SIZE="9">node weights decide what a drug can achieve</FONT>>;
+    style="filled,rounded"; fillcolor="#f1f8f2"; color="#2e7d32"; fontsize=13;
+    node [fillcolor="#a5d6a7"];
+
+    NTS       [label="NTS\nweighted sum of\nall emetic inputs",
+               fillcolor="#66bb6a", penwidth=2.4, color="#1b5e20"];
+    W_AP      [label="w_AP ≈ 0.88\nGFRAL / area postrema", shape=note, fillcolor="#e8f5e9"];
+    W_VAG     [label="w_VAG ≈ 0.034\nperipheral 5-HT3 limb\n← FITTED to ondansetron",
+               shape=note, fillcolor="#e8f5e9", penwidth=2.0, color="#1b5e20"];
+    W_VEST    [label="w_VEST ≈ 0.055\nvestibular / H1", shape=note, fillcolor="#e8f5e9"];
+    W_HCG     [label="w_hCG ≈ 0.030\nhCG-associated", shape=note, fillcolor="#e8f5e9"];
+    NTS_GLUT  [label="Presynaptic glutamate\nrelease (Cav α2δ)"];
+    NTS_NA    [label="Noradrenergic input\n(presynaptic α2)"];
+    NTS_H1    [label="Histaminergic input\n(H1)"];
+    NTS_5HT2  [label="Serotonergic input\n(5-HT2A/2C)"];
+    NTS_5HT3C [label="Central 5-HT3\nterminals"];
+    NTS_M1    [label="Muscarinic M1 input"];
+    NTS_NK1   [label="NK1 / substance P\n(central pattern generator)"];
+    CPG       [label="Emetic central\npattern generator\nvomiting rate",
+               fillcolor="#66bb6a", penwidth=2.0, color="#1b5e20"];
+    NAUSEA    [label="Nausea intensity\nhours per 24 h",
+               fillcolor="#66bb6a", penwidth=2.0, color="#1b5e20"];
+    RETCH     [label="Retching\n~1.45 × vomits"];
+    SALIV     [label="Salivation /\nptyalism"];
+    AUTONOMIC [label="Autonomic prodrome\npallor, tachycardia,\ncold sweat"];
+
+    W_AP -> NTS; W_VAG -> NTS; W_VEST -> NTS; W_HCG -> NTS;
+    NTS_GLUT -> NTS; NTS_NA -> NTS; NTS_H1 -> NTS; NTS_5HT2 -> NTS;
+    NTS_5HT3C -> NTS; NTS_M1 -> NTS;
+    NTS -> NK1_LINK [style=invis];
+    NTS -> NTS_NK1 -> CPG;
+    NTS -> CPG [label="threshold, Hill n≈7", penwidth=2.0];
+    NTS -> NAUSEA [label="lower threshold, n≈6", penwidth=2.0];
+    CPG -> RETCH; NTS -> SALIV; NTS -> AUTONOMIC;
+  }
+  NK1_LINK [style=invis, shape=point];
+  AP_NEUR -> W_AP [lhead=cluster_nts, penwidth=2.4, color="#2e7d32"];
+  PBN -> NAUSEA [style=dashed, label="affective component"];
+  IC_CTX -> NAUSEA [style=dashed];
+
+  // ==========================================================================
+  // 6. PERIPHERAL GI LIMB
+  // ==========================================================================
+  subgraph cluster_gi {
+    label=<<B>6. Peripheral GI limb — the small term</B><BR/><FONT POINT-SIZE="9">where ondansetron acts, and why that is not enough</FONT>>;
+    style="filled,rounded"; fillcolor="#fff8f0"; color="#e65100"; fontsize=13;
+    node [fillcolor="#ffe0b2"];
+
+    PROG      [label="Progesterone\nGA-dependent rise"];
+    ESTRA     [label="Oestradiol\nGA-dependent rise"];
+    GASTRIC   [label="Delayed gastric\nemptying / antral\nhypomotility"];
+    LES       [label="Lower oesophageal\nsphincter tone ↓"];
+    GERD_HG   [label="Reflux, oesophagitis,\nMallory-Weiss tear"];
+    DISTEND   [label="Gastric distension\nmechanoreceptors"];
+    ECCELL    [label="Enterochromaffin cells\nmucosal 5-HT release"];
+    VAGAL_AF  [label="Vagal afferent firing\nnodose ganglion"];
+    R5HT3_P   [label="Peripheral 5-HT3\nreceptors on vagal\nterminals"];
+    HPYLORI   [label="H. pylori infection\nassoc. with HG\n(meta-analysis)"];
+    MICROB    [label="Gut microbiome /\nbile acid signalling", style="filled,dashed"];
+    GLP1      [label="GLP-1 / PYY\nsatiety signals"];
+
+    PROG -> GASTRIC; ESTRA -> GASTRIC; PROG -> LES -> GERD_HG;
+    GASTRIC -> DISTEND -> ECCELL -> R5HT3_P -> VAGAL_AF;
+    HPYLORI -> ECCELL [style=dashed]; MICROB -> ECCELL [style=dashed];
+    GASTRIC -> GLP1 [style=dashed];
+  }
+  VAGAL_AF -> W_VAG [lhead=cluster_nts, color="#e65100"];
+  FOLD -> GASTRIC [style=dashed, label="GDF15-driven stasis"];
+
+  // ==========================================================================
+  // 7. VESTIBULAR AND HIGHER CNS
+  // ==========================================================================
+  subgraph cluster_vest {
+    label=<<B>7. Vestibular and cortical inputs</B>>;
+    style="filled,rounded"; fillcolor="#f1f8f2"; color="#2e7d32"; fontsize=13;
+    node [fillcolor="#dcedc8"];
+
+    VESTIB    [label="Vestibular nuclei\nH1 / M1 relay"];
+    MOTION    [label="Motion sensitivity\n/ migraine history"];
+    OLFACT    [label="Olfactory\nhypersensitivity"];
+    ANTICIP   [label="Anticipatory /\nconditioned nausea"];
+    PSYCH_L   [label="Psychological load\nanxiety, prior HG,\nfear of recurrence"];
+    SLEEP     [label="Sleep deprivation"];
+
+    MOTION -> VESTIB; OLFACT -> VESTIB; PSYCH_L -> ANTICIP;
+    SLEEP -> ANTICIP;
+  }
+  VESTIB -> W_VEST [lhead=cluster_nts, color="#2e7d32"];
+  ANTICIP -> NAUSEA [style=dashed];
+
+  // ==========================================================================
+  // 8. GENETIC ARCHITECTURE
+  // ==========================================================================
+  subgraph cluster_genetics {
+    label=<<B>8. Genetic architecture</B><BR/><FONT POINT-SIZE="9">GWAS loci converge on the same two axes</FONT>>;
+    style="filled,rounded"; fillcolor="#fffde7"; color="#f9a825"; fontsize=13;
+    node [fillcolor="#fff59d"];
+
+    GDF15_VAR [label="GDF15 locus variants\nH202D / C211G;\nlow basal GDF15 → HG risk",
+               penwidth=2.0, color="#f57f17"];
+    IGFBP7_V  [label="IGFBP7 locus\nGWAS-associated"];
+    PGR_V     [label="PGR\nprogesterone receptor"];
+    RYR2_V    [label="RYR2\nGWAS-associated"];
+    GFRAL_V   [label="GFRAL variants\nreceptor-side sensitivity"];
+    APPETITE  [label="Appetite / insulin-\nsignalling / brain-\nplasticity loci"];
+    FAMHX     [label="Family history\nsister/mother HG\n→ strong risk"];
+    RECUR     [label="Recurrence risk\nup to 89% in the\nnext pregnancy",
+               fillcolor="#ffe082"];
+
+    GDF15_VAR -> IGFBP7_V [style=invis];
+    FAMHX -> GDF15_VAR [style=dashed]; FAMHX -> GFRAL_V [style=dashed];
+  }
+  GDF15_VAR -> PREPREG [lhead=cluster_setpoint, label="low basal → low SP", color="#f57f17", penwidth=2.0];
+  GFRAL_V -> SENS_PAR [color="#f57f17"];
+  IGFBP7_V -> IGFBP7 [style=dashed, color="#f57f17"];
+  APPETITE -> SENS_PAR [style=dashed, color="#f57f17"];
+  PGR_V -> PROG [style=dashed, color="#f57f17"];
+  RYR2_V -> NTS [style=dashed, color="#f57f17"];
+
+  // ==========================================================================
+  // 9. ENDOCRINE — hCG, thyroid, gonadal steroids
+  // ==========================================================================
+  subgraph cluster_endo {
+    label=<<B>9. hCG → TSH receptor → transient thyrotoxicosis</B><BR/><FONT POINT-SIZE="9">tracks the FETAL-production axis, not maternal sensitivity</FONT>>;
+    style="filled,rounded"; fillcolor="#e0f7f7"; color="#00838f"; fontsize=13;
+    node [fillcolor="#b2ebf2"];
+
+    HCG_PL    [label="Maternal hCG\npeak GA 9-10 wk\n~50-100 kIU/L",
+               fillcolor="#4dd0e1", penwidth=2.0, color="#006064"];
+    HCG_VAR   [label="hCG isoform /\nglycosylation variants"];
+    TSHR      [label="TSH receptor\ncross-activation\n(weak agonist)"];
+    FT4       [label="Free T4 ↑"];
+    TSH       [label="TSH suppressed\n< 0.4 mIU/L in ~60%\nof HG admissions",
+               fillcolor="#80deea"];
+    GTT       [label="Gestational transient\nthyrotoxicosis\nnot Graves' disease",
+               fillcolor="#80deea"];
+    TRAB      [label="TRAb negative\ndiscriminates from Graves'"];
+    THYRO_STO [label="Thyroid storm\n(rare)", fillcolor="#ffcdd2"];
+    CORTISOL  [label="Cortisol / HPA axis\nactivation"];
+    LEPTIN    [label="Leptin / adiponectin\nshifts"];
+
+    HCG_PL -> TSHR -> FT4 -> TSH [arrowhead=tee, color="#c62828", label="⊣ feedback"];
+    HCG_VAR -> TSHR [style=dashed];
+    FT4 -> GTT; TSH -> GTT; GTT -> TRAB [style=dashed];
+    GTT -> THYRO_STO [style=dashed];
+  }
+  HCG_SYN -> HCG_PL [lhead=cluster_endo, color="#c2185b"];
+  HCG_PL -> W_HCG [lhead=cluster_nts, color="#00838f"];
+  PROG -> CORTISOL [style=invis];
+
+  // ==========================================================================
+  // 10. FLUID AND ELECTROLYTES
+  // ==========================================================================
+  subgraph cluster_fluid {
+    label=<<B>10. Volume and the chloride-responsive alkalosis</B><BR/><FONT POINT-SIZE="9">will not correct without chloride, whatever else is given</FONT>>;
+    style="filled,rounded"; fillcolor="#e0f7f7"; color="#00838f"; fontsize=13;
+    node [fillcolor="#b2dfdb"];
+
+    VOMIT_L   [label="Gastric juice loss\nCl⁻ ~140, H⁺ ~75,\nK⁺ ~11 mmol/L"];
+    ECF       [label="ECF volume ↓\n5-10% depletion"];
+    RAAS      [label="RAAS / aldosterone ↑"];
+    ADH       [label="ADH ↑ (non-osmotic)\n+ thirst"];
+    HYPOK     [label="Hypokalaemia\nK⁺ 2.8-3.4 mmol/L",
+               fillcolor="#80cbc4"];
+    HYPOCL    [label="Hypochloraemia\nCl⁻ 85-95 mmol/L",
+               fillcolor="#80cbc4", penwidth=2.0, color="#004d40"];
+    ALKALOSIS [label="Hypochloraemic\nmetabolic alkalosis\nHCO3⁻ 30-40 mmol/L",
+               fillcolor="#80cbc4", penwidth=2.0, color="#004d40"];
+    HCO3_URIN [label="Bicarbonaturia\nobligates Na⁺ loss"];
+    HYPONA    [label="Hyponatraemia\nNa⁺ 128-137 mmol/L",
+               fillcolor="#80cbc4"];
+    ODS       [label="Osmotic demyelination\nif corrected too fast",
+               fillcolor="#ffcdd2"];
+    PRERENAL  [label="Pre-renal AKI\nurea/creatinine ↑"];
+    ARRHYTH   [label="QT prolongation,\narrhythmia risk",
+               fillcolor="#ffcdd2"];
+    TETANY    [label="Hypocalcaemia /\nhypomagnesaemia,\ncarpopedal spasm"];
+
+    VOMIT_L -> ECF -> RAAS -> HYPOK; ECF -> ADH;
+    VOMIT_L -> HYPOCL -> ALKALOSIS;
+    ALKALOSIS -> HCO3_URIN -> HYPONA; ADH -> HYPONA;
+    HYPOCL -> ALKALOSIS [label="blocks renal HCO3⁻ excretion", penwidth=2.0];
+    RAAS -> ALKALOSIS [label="H⁺/K⁺ secretion"];
+    HYPONA -> ODS [style=dashed, label="over-rapid correction"];
+    ECF -> PRERENAL; HYPOK -> ARRHYTH; ALKALOSIS -> TETANY;
+  }
+  CPG -> VOMIT_L [lhead=cluster_fluid, penwidth=2.4, color="#2e7d32", label="vomiting rate"];
+
+  // ==========================================================================
+  // 11. NUTRITION, KETOSIS, LIVER
+  // ==========================================================================
+  subgraph cluster_nutrition {
+    label=<<B>11. Energy deficit, ketosis, liver</B>>;
+    style="filled,rounded"; fillcolor="#e0f7f7"; color="#00838f"; fontsize=13;
+    node [fillcolor="#b2dfdb"];
+
+    ORAL_IN   [label="Oral intake ↓↓\ncollapses steeply with\nhours of nausea"];
+    ENERGY    [label="Energy deficit\n+ adaptive\nthermogenesis"];
+    WTLOSS    [label="Weight loss ≥5%\n(Windsor criterion)",
+               fillcolor="#80cbc4", penwidth=2.0, color="#004d40"];
+    KETOSIS   [label="Starvation ketosis\nβ-hydroxybutyrate ↑,\nketonuria"];
+    KETOACID  [label="Starvation\nketoacidosis", fillcolor="#ffcdd2"];
+    MUSCLE    [label="Lean mass loss,\nsarcopenia"];
+    TRANSAM   [label="Transaminitis\nALT up to ~200 U/L",
+               fillcolor="#80cbc4"];
+    BILI      [label="Mild\nhyperbilirubinaemia"];
+    AMYLASE   [label="Amylase / lipase ↑\n(salivary origin)"];
+    MICRONUT  [label="Micronutrient deficits\nfolate, B12, iron,\nvitamin K, zinc"];
+    REFEED    [label="Refeeding syndrome\nPO4³⁻, K⁺, Mg²⁺ ↓",
+               fillcolor="#ffcdd2"];
+
+    ORAL_IN -> ENERGY -> WTLOSS; ENERGY -> KETOSIS -> KETOACID;
+    ENERGY -> MUSCLE; ENERGY -> TRANSAM -> BILI;
+    ORAL_IN -> MICRONUT; ENERGY -> AMYLASE [style=dashed];
+  }
+  NAUSEA -> ORAL_IN [lhead=cluster_nutrition, penwidth=2.0, color="#2e7d32"];
+  ECF -> WTLOSS [style=dashed, label="volume component"];
+
+  // ==========================================================================
+  // 12. THIAMINE AND WERNICKE — the slowest clock
+  // ==========================================================================
+  subgraph cluster_thiamine {
+    label=<<B>12. Thiamine — the slowest clock in the illness</B><BR/><FONT POINT-SIZE="9">a ~28 mg store with a ~15 day half-life; glucose empties it faster</FONT>>;
+    style="filled,rounded"; fillcolor="#ffebee"; color="#c62828"; fontsize=13;
+    node [fillcolor="#ffcdd2"];
+
+    THI_STORE [label="Whole-body thiamine\n~28 mg, t½ ≈ 15 d",
+               fillcolor="#ef9a9a", penwidth=2.0, color="#b71c1c"];
+    THI_DIET  [label="Dietary thiamine\n~1.4 mg/d absorbed"];
+    THI_CHO   [label="Carbohydrate-driven\nthiamine demand\n~0.5 mg / 1000 kcal"];
+    TPP       [label="Thiamine pyrophosphate\n(TPP)"];
+    PDH       [label="Pyruvate dehydrogenase\n+ α-KGDH + transketolase"];
+    LACTATE   [label="Lactate ↑,\nATP deficit"];
+    ASTRO_SW  [label="Astrocytic swelling,\nBBB breakdown\nmedial thalamus, mammillary\nbodies, periaqueductal grey"];
+    WE        [label="Wernicke\nencephalopathy\nataxia · ophthalmoplegia ·\nconfusion",
+               fillcolor="#e57373", fontcolor="white", penwidth=2.4, color="#b71c1c"];
+    KORSAKOFF [label="Korsakoff syndrome\npermanent amnesia",
+               fillcolor="#e57373", fontcolor="white"];
+    IV_DEX_BAD[label="IV DEXTROSE\nWITHOUT THIAMINE\naccelerates depletion",
+               fillcolor="#ff8a80", penwidth=2.4, color="#b71c1c"];
+
+    THI_DIET -> THI_STORE; THI_STORE -> TPP -> PDH;
+    PDH -> LACTATE [arrowhead=tee, color="#c62828"];
+    THI_CHO -> THI_STORE [arrowhead=tee, color="#c62828", label="⊣ consumes"];
+    LACTATE -> ASTRO_SW -> WE -> KORSAKOFF;
+    THI_STORE -> WE [arrowhead=tee, color="#2e7d32", label="⊣ protects"];
+    IV_DEX_BAD -> THI_CHO [penwidth=2.0, color="#b71c1c"];
+  }
+  ORAL_IN -> THI_DIET [lhead=cluster_thiamine, color="#00838f"];
+
+  // ==========================================================================
+  // 13. 5-HT3 ANTAGONISTS — the guideline drug on the small node
+  // ==========================================================================
+  subgraph cluster_5ht3 {
+    label=<<B>13. 5-HT3 antagonists</B><BR/><FONT POINT-SIZE="9">~98% receptor occupancy on a node carrying ~3% of the drive</FONT>>;
+    style="filled,rounded"; fillcolor="#fff3e0"; color="#e65100"; fontsize=13;
+    node [fillcolor="#ffcc80"];
+
+    OND_DOSE  [label="Ondansetron\n8 mg PO q8h"];
+    OND_PK    [label="PK: F 0.60, CL 660 L/d,\nV 160 L, t½ ≈ 4 h,\nfu 0.27"];
+    OND_OCC   [label="5-HT3 occupancy ≈ 98%\nKi 0.5 nM"];
+    OND_EFF   [label="ΔPUQE-24 vs placebo\n−0.51 (VOMIT trial)",
+               fillcolor="#ffb74d", penwidth=2.0, color="#e65100"];
+    OND_QT    [label="QT prolongation,\ndose-dependent",
+               fillcolor="#ffcdd2"];
+    OND_TERAT [label="Oral cleft / cardiac\nseptal signal —\nsmall absolute risk",
+               fillcolor="#ffcdd2"];
+    OND_CONST [label="Constipation,\nheadache"];
+
+    OND_DOSE -> OND_PK -> OND_OCC -> OND_EFF;
+    OND_DOSE -> OND_QT; OND_DOSE -> OND_TERAT; OND_DOSE -> OND_CONST;
+  }
+  OND_OCC -> R5HT3_P [lhead=cluster_gi, arrowhead=tee, color="#e65100", penwidth=2.0];
+  OND_OCC -> NTS_5HT3C [lhead=cluster_nts, arrowhead=tee, color="#e65100", style=dashed];
+
+  // ==========================================================================
+  // 14. ANTIHISTAMINES, DOPAMINE ANTAGONISTS, PHENOTHIAZINES
+  // ==========================================================================
+  subgraph cluster_first {
+    label=<<B>14. First-line: H1 / D2 / M1 blockers</B>>;
+    style="filled,rounded"; fillcolor="#fff3e0"; color="#e65100"; fontsize=13;
+    node [fillcolor="#ffcc80"];
+
+    DOX       [label="Doxylamine 10-20 mg\n+ pyridoxine\n(delayed release)"];
+    DOX_PK    [label="PK: t½ ≈ 11 h,\nH1 Ki 5 nM, Kp 0.8"];
+    B6        [label="Pyridoxine (B6)\nmodest independent\nbenefit"];
+    DOX_EFF   [label="ΔPUQE −0.9 vs placebo\nin moderate NVP",
+               fillcolor="#ffb74d"];
+    MCP       [label="Metoclopramide\n10 mg q6h"];
+    MCP_PK    [label="D2 Ki 200 nM,\nKp 0.25 → ~11%\ncentral occupancy"];
+    MCP_PRO   [label="Prokinetic\n(5-HT4 / D2)"];
+    MCP_EPS   [label="Extrapyramidal\nreactions, tardive\ndyskinesia", fillcolor="#ffcdd2"];
+    PMZ       [label="Promethazine\n25 mg q6h"];
+    PMZ_PK    [label="H1 Ki 2 nM, M1 60 nM,\nlarge Vd, Kp 2.0"];
+    SEDATION  [label="Sedation,\nanticholinergic load"];
+    DIMEN     [label="Dimenhydrinate /\ncyclizine\n(H1, vestibular)"];
+    GINGER    [label="Ginger\nsmall benefit for\nnausea, not vomiting"];
+    P6        [label="P6 acupressure\nequivocal evidence",
+               style="filled,dashed"];
+
+    DOX -> DOX_PK -> DOX_EFF; B6 -> DOX_EFF; DOX -> SEDATION;
+    MCP -> MCP_PK; MCP -> MCP_PRO; MCP -> MCP_EPS;
+    PMZ -> PMZ_PK; PMZ -> SEDATION; DIMEN -> SEDATION;
+  }
+  DOX_PK -> NTS_H1 [lhead=cluster_nts, arrowhead=tee, color="#e65100"];
+  DOX_PK -> VESTIB [lhead=cluster_vest, arrowhead=tee, color="#e65100"];
+  PMZ_PK -> NTS_H1 [lhead=cluster_nts, arrowhead=tee, color="#e65100"];
+  PMZ_PK -> NTS_M1 [lhead=cluster_nts, arrowhead=tee, color="#e65100"];
+  MCP_PK -> AP_NEUR [lhead=cluster_ap, arrowhead=tee, color="#e65100", style=dashed];
+  MCP_PRO -> GASTRIC [lhead=cluster_gi, arrowhead=tee, color="#e65100"];
+  GINGER -> NAUSEA [style=dashed, arrowhead=tee, color="#e65100"];
+  P6 -> NAUSEA [style=dashed, arrowhead=tee, color="#e65100"];
+
+  // ==========================================================================
+  // 15. CENTRAL MULTI-RECEPTOR AGENTS — the bigger nodes
+  // ==========================================================================
+  subgraph cluster_central {
+    label=<<B>15. Central agents on high-authority NTS nodes</B><BR/><FONT POINT-SIZE="9">α2δ and presynaptic α2 gate bulk transmission into the NTS</FONT>>;
+    style="filled,rounded"; fillcolor="#fff3e0"; color="#e65100"; fontsize=13;
+    node [fillcolor="#ffb74d"];
+
+    MIR       [label="Mirtazapine\n15-30 mg qHS"];
+    MIR_PK    [label="PK: t½ ≈ 29 h → steady\nstate ~day 5; H1 Ki 0.14,\n5-HT2 50, 5-HT3 8.1 nM"];
+    MIR_EFF   [label="ΔPUQE-24 −1.86 vs placebo,\nwidening after day 4",
+               fillcolor="#ff9800", penwidth=2.0, color="#e65100"];
+    MIR_APP   [label="Appetite gain\n(H1 / 5-HT2C)"];
+    MIR_A2    [label="α2 ANTAGONISM\nmodelled as NOT antiemetic\n(opposite sign to clonidine)",
+               shape=note, fillcolor="#fff8e1"];
+    GBP       [label="Gabapentin\n600 mg q8h"];
+    GBP_PK    [label="α2δ, CSF ≈ 10% of plasma,\n~46% site occupancy"];
+    GBP_EFF   [label="52% greater PUQE reduction\nthan active comparator",
+               fillcolor="#ff9800"];
+    CLO       [label="Clonidine\n5 mg transdermal patch"];
+    CLO_PK    [label="~0.15 mg/d systemic,\nα2A Ki 3 nM, Css ≈ 1.3 nM"];
+    CLO_EFF   [label="PUQE improvement\n95% CI 0.43-3.24",
+               fillcolor="#ff9800"];
+    CLO_BP    [label="BP ↓ 6/3 mmHg,\nsedation, dry mouth"];
+    OLANZ     [label="Olanzapine\nmulti-receptor,\nrefractory cases"];
+    APREP     [label="Aprepitant / NK1\nantagonist —\nUNTESTED in HG",
+               style="filled,dashed", fillcolor="#ffe0b2"];
+    STE       [label="Corticosteroids\nmethylprednisolone 125 mg\n+ prednisone taper"];
+    STE_NULL  [label="NO node on the\nemetic chain →\nnull on rehospitalisation\n(34% vs 35%)",
+               fillcolor="#eeeeee", penwidth=2.0, color="#616161"];
+    STE_HARM  [label="Cleft lip if used\n< 10 wk; glucose\nintolerance, adrenal\nsuppression", fillcolor="#ffcdd2"];
+
+    MIR -> MIR_PK -> MIR_EFF; MIR -> MIR_APP; MIR -> MIR_A2 [style=dashed];
+    GBP -> GBP_PK -> GBP_EFF; CLO -> CLO_PK -> CLO_EFF; CLO -> CLO_BP;
+    STE -> STE_NULL; STE -> STE_HARM;
+  }
+  MIR_PK -> NTS_H1 [lhead=cluster_nts, arrowhead=tee, color="#e65100", penwidth=1.6];
+  MIR_PK -> NTS_5HT2 [lhead=cluster_nts, arrowhead=tee, color="#e65100"];
+  MIR_PK -> NTS_5HT3C [lhead=cluster_nts, arrowhead=tee, color="#e65100"];
+  GBP_PK -> NTS_GLUT [lhead=cluster_nts, arrowhead=tee, color="#e65100", penwidth=2.0];
+  CLO_PK -> NTS_NA [lhead=cluster_nts, arrowhead=tee, color="#e65100", penwidth=2.0];
+  OLANZ -> NTS [lhead=cluster_nts, arrowhead=tee, color="#e65100", style=dashed];
+  APREP -> NTS_NK1 [lhead=cluster_nts, arrowhead=tee, color="#e65100", style=dashed];
+  MIR_APP -> ORAL_IN [lhead=cluster_nutrition, color="#e65100", style=dashed];
+  STE -> ORAL_IN [lhead=cluster_nutrition, color="#e65100", style=dashed, label="appetite only"];
+
+  // ==========================================================================
+  // 16. MECHANISM-BASED THERAPY — acting on clusters 2 and 3
+  // ==========================================================================
+  subgraph cluster_mech {
+    label=<<B>16. Mechanism-based therapy — and why timing decides the sign</B><BR/><FONT POINT-SIZE="9">the set-point can only be moved BEFORE the placenta arrives</FONT>>;
+    style="filled,rounded"; fillcolor="#fff3e0"; color="#bf360c"; fontsize=14;
+    penwidth=2.0;
+    node [fillcolor="#ffab91"];
+
+    METF_PRE  [label="METFORMIN\nPRE-CONCEPTION\nstopped at positive test",
+               fillcolor="#ff8a65", penwidth=2.4, color="#bf360c"];
+    METF_PRE_E[label="HG risk aRR 0.29\n(95% CI 0.12-0.71)",
+               fillcolor="#ffccbc", penwidth=2.0, color="#bf360c"];
+    METF_LATE [label="METFORMIN STARTED\nAT GA 6 wk\n→ NO benefit",
+               fillcolor="#eeeeee", penwidth=2.0, color="#616161"];
+    RGDF_PRE  [label="Recombinant long-acting\nGDF15, pre-conception\n(desensitiser)"];
+    RGDF_TITR [label="Titration nausea:\nthe prophylaxis provokes\nthe illness it prevents",
+               fillcolor="#ffcdd2", penwidth=2.0, color="#b71c1c"];
+    RGDF_LATE [label="rGDF15 in pregnancy\n→ AGONIST at the\ncausative receptor",
+               fillcolor="#ffcdd2", penwidth=2.0, color="#b71c1c"];
+    ANTI_GDF  [label="Anti-GDF15 mAb\n(ligand sequestration)\ne.g. ponsegromab class",
+               fillcolor="#ff8a65", penwidth=2.0, color="#bf360c"];
+    ANTI_EFF  [label="Largest predicted effect\nof any agent modelled —\nUNTESTED in pregnancy",
+               fillcolor="#ffccbc", penwidth=2.0, color="#bf360c"];
+    GFRAL_ANT [label="GFRAL-blocking antibody\nreceptor-side alternative",
+               style="filled,dashed"];
+    FETAL_SAF [label="FETAL SAFETY UNKNOWN\nGDF15 supports trophoblast\ninvasion; blockade in the\nfirst trimester is not a\nfree action",
+               fillcolor="#ffcdd2", penwidth=2.4, color="#b71c1c"];
+
+    METF_PRE -> METF_PRE_E; RGDF_PRE -> RGDF_TITR;
+    ANTI_GDF -> ANTI_EFF; ANTI_GDF -> FETAL_SAF;
+    GFRAL_ANT -> FETAL_SAF [style=dashed];
+    RGDF_LATE -> FETAL_SAF [style=dashed];
+  }
+  METF_PRE -> DESENS [lhead=cluster_setpoint, penwidth=2.4, color="#bf360c"];
+  RGDF_PRE -> DESENS [lhead=cluster_setpoint, penwidth=2.0, color="#bf360c"];
+  METF_LATE -> GDF15_PL [lhead=cluster_gdf, color="#616161", style=dashed, label="too late"];
+  RGDF_LATE -> GDF15_PL [lhead=cluster_gdf, color="#b71c1c"];
+  ANTI_GDF -> GDF15_FREE [lhead=cluster_gdf, arrowhead=tee, penwidth=2.4, color="#bf360c"];
+  GFRAL_ANT -> GFRAL [lhead=cluster_ap, arrowhead=tee, color="#bf360c", style=dashed];
+
+  // ==========================================================================
+  // 17. SUPPORTIVE CARE
+  // ==========================================================================
+  subgraph cluster_support {
+    label=<<B>17. Supportive care — order of operations matters</B>>;
+    style="filled,rounded"; fillcolor="#fff3e0"; color="#e65100"; fontsize=13;
+    node [fillcolor="#ffcc80"];
+
+    IV_SALINE [label="IV 0.9% saline\nCl⁻ 154 mmol/L —\nthe chloride is the\ntherapeutic bit",
+               penwidth=2.0, color="#e65100"];
+    IV_KCL    [label="IV KCl\n40 mmol/d"];
+    IV_THI    [label="IV thiamine\n100 mg/d BEFORE\nany glucose",
+               fillcolor="#ffb74d", penwidth=2.4, color="#bf360c"];
+    IV_DEX    [label="IV dextrose\n(only after thiamine)"];
+    ANTACID   [label="PPI / H2 blocker\nfor reflux and\noesophagitis"];
+    NG_FEED   [label="Nasogastric /\nnasojejunal feeding"];
+    TPN       [label="Parenteral nutrition\nlast resort;\nline sepsis, thrombosis",
+               fillcolor="#ffcdd2"];
+    DAYUNIT   [label="Ambulatory day-unit\nrehydration"];
+    ADMIT     [label="Inpatient admission"];
+    PSYCH_S   [label="Psychological support,\nvalidation of symptoms"];
+    TERMIN    [label="Termination for\nintractable HG",
+               fillcolor="#eeeeee"];
+
+    IV_THI -> IV_DEX [label="ORDER", penwidth=2.0, color="#bf360c"];
+    IV_SALINE -> IV_KCL; DAYUNIT -> ADMIT -> NG_FEED -> TPN;
+    ADMIT -> PSYCH_S; ADMIT -> TERMIN [style=dashed];
+  }
+  IV_SALINE -> HYPOCL [lhead=cluster_fluid, arrowhead=tee, penwidth=2.4, color="#e65100"];
+  IV_KCL -> HYPOK [lhead=cluster_fluid, arrowhead=tee, color="#e65100"];
+  IV_THI -> THI_STORE [lhead=cluster_thiamine, penwidth=2.4, color="#bf360c"];
+  IV_DEX -> THI_CHO [lhead=cluster_thiamine, color="#e65100", style=dashed];
+  NG_FEED -> ORAL_IN [lhead=cluster_nutrition, color="#e65100"];
+  ANTACID -> GERD_HG [lhead=cluster_gi, arrowhead=tee, color="#e65100"];
+
+  // ==========================================================================
+  // 18. CLINICAL ENDPOINTS
+  // ==========================================================================
+  subgraph cluster_endpoints {
+    label=<<B>18. Clinical endpoints and biomarkers</B>>;
+    style="filled,rounded"; fillcolor="#f5f5f5"; color="#424242"; fontsize=13;
+    node [fillcolor="#e0e0e0"];
+
+    PUQE      [label="PUQE-24 score, 3-15\nnausea hours + vomits\n+ retches",
+               fillcolor="#bdbdbd", penwidth=2.4, color="#212121"];
+    PUQE_CEIL [label="CEILING EFFECT\nPUQE saturates at 15,\nso severe-HG trials are\nstructurally insensitive",
+               shape=note, fillcolor="#fafafa", penwidth=2.0, color="#212121"];
+    HELP_SC   [label="HELP score\nHG-specific QoL"];
+    WINDSOR   [label="Windsor definition\nonset < 16 wk, nausea/\nvomiting, inability to eat\nor drink normally, ±5%\nweight loss",
+               fillcolor="#bdbdbd", penwidth=2.0, color="#212121"];
+    KETONURIA [label="Ketonuria\n(no longer diagnostic)"];
+    ADMISSION [label="Hospital admission /\nreadmission"];
+    GDF15_BIO [label="Maternal GDF15\nas a biomarker —\nmodel says the RATIO\nbeats the LEVEL",
+               fillcolor="#ce93d8", penwidth=2.0, color="#4a148c"];
+    PREPREG_B [label="PRE-PREGNANCY GDF15\nthe measurement nobody\ncurrently takes",
+               fillcolor="#ce93d8", penwidth=2.4, color="#4a148c"];
+    QOL       [label="Quality of life,\ninability to work"];
+    PTSD_HG   [label="Post-traumatic stress,\ndepression, fear of\nfuture pregnancy"];
+    SGA       [label="Small for gestational\nage, low birth weight"];
+    PRETERM   [label="Preterm birth"];
+    CHILD_LT  [label="Long-term child\nneurodevelopmental\noutcomes (sibling-design\nevidence is reassuring)"];
+    MORTALITY [label="Maternal death\n(now rare, was the\nleading cause pre-1940s)",
+               fillcolor="#ffcdd2"];
+
+    PUQE -> PUQE_CEIL [style=dashed]; PUQE -> WINDSOR; HELP_SC -> QOL;
+    WINDSOR -> ADMISSION -> QOL -> PTSD_HG;
+    GDF15_BIO -> PREPREG_B [style=dashed];
+  }
+  NAUSEA -> PUQE [lhead=cluster_endpoints, penwidth=2.4, color="#2e7d32"];
+  CPG -> PUQE [lhead=cluster_endpoints, penwidth=2.4, color="#2e7d32"];
+  RETCH -> PUQE [lhead=cluster_endpoints, color="#2e7d32"];
+  WTLOSS -> WINDSOR [lhead=cluster_endpoints, color="#00838f", penwidth=2.0];
+  KETOSIS -> KETONURIA [lhead=cluster_endpoints, color="#00838f"];
+  WE -> ADMISSION [lhead=cluster_endpoints, color="#c62828"];
+  WE -> MORTALITY [color="#c62828"];
+  ODS -> MORTALITY [color="#c62828", style=dashed];
+  ENERGY -> SGA [lhead=cluster_endpoints, color="#00838f"];
+  ENERGY -> PRETERM [lhead=cluster_endpoints, color="#00838f", style=dashed];
+  SGA -> CHILD_LT [style=dashed];
+  GDF15_PL -> GDF15_BIO [lhead=cluster_endpoints, color="#1565c0", style=dashed];
+  PREPREG -> PREPREG_B [lhead=cluster_endpoints, color="#6a1b9a", penwidth=2.0, style=dashed];
+  TSH -> ADMISSION [style=dashed, color="#00838f"];
+  RECUR -> PTSD_HG [style=dashed, color="#f57f17"];
+  OND_EFF -> PUQE [lhead=cluster_endpoints, style=dashed, color="#e65100"];
+  MIR_EFF -> PUQE [lhead=cluster_endpoints, style=dashed, color="#e65100"];
+  ANTI_EFF -> PUQE [lhead=cluster_endpoints, style=dashed, color="#bf360c"];
+  METF_PRE_E -> WINDSOR [lhead=cluster_endpoints, style=dashed, color="#bf360c"];
+
+  // ==========================================================================
+  // 19. DIFFERENTIAL DIAGNOSIS — what the model is NOT about
+  // ==========================================================================
+  subgraph cluster_ddx {
+    label=<<B>19. Differential diagnosis</B><BR/><FONT POINT-SIZE="9">HG is a diagnosis of exclusion after GA 16 wk onset</FONT>>;
+    style="filled,rounded"; fillcolor="#f5f5f5"; color="#424242"; fontsize=13;
+    node [fillcolor="#eeeeee"];
+
+    DDX_CHS   [label="Cannabinoid hyperemesis\nsyndrome"];
+    DDX_GASTRO[label="Gastroenteritis,\nappendicitis, cholecystitis,\npancreatitis"];
+    DDX_UTI   [label="Pyelonephritis,\nurolithiasis"];
+    DDX_NEURO [label="Raised intracranial\npressure, vestibular\ndisease, migraine"];
+    DDX_META  [label="DKA, Addison's disease,\nhypercalcaemia, uraemia"];
+    DDX_MOLAR [label="Molar / multiple\npregnancy"];
+    DDX_THYRO [label="Graves' disease\n(TRAb positive)"];
+    DDX_DRUG  [label="Drug-induced\n(iron, opioids)"];
+
+    DDX_CHS -> DDX_GASTRO [style=invis];
+    DDX_UTI -> DDX_NEURO [style=invis];
+  }
+  DDX_MOLAR -> MOLAR [style=dashed, color="#616161"];
+  DDX_THYRO -> TRAB [style=dashed, color="#616161"];
+  DDX_CHS -> CPG [style=dashed, color="#616161", label="phenocopy"];
+}
