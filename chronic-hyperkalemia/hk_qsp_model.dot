@@ -1,0 +1,514 @@
+/* ==========================================================================
+   CHRONIC HYPERKALAEMIA -- QSP MECHANISTIC MAP
+   Chronic hyperkalaemia of CKD and heart failure, and the RAASi dilemma
+   --------------------------------------------------------------------------
+   Companion to hk_mrgsolve_model.R / hk_reference_model.py / hk_shiny_app.R
+   Render:  dot -Tsvg hk_qsp_model.dot -o hk_qsp_model.svg
+            dot -Tpng -Gdpi=150 hk_qsp_model.dot -o hk_qsp_model.png
+
+   The organising idea of the map: serum potassium is a RATIO, not a pool.
+        K_total = Ce*V_ecf + Ci0*LAMrel*(Ce/Ce0)^alpha * V_icf
+   The left half of the map is everything that moves K_total (mass balance:
+   diet, kidney, colon, binders, dialysis).  The right-centre is everything
+   that moves LAMrel (partition: insulin, beta-2, pH, tonicity).  Therapies
+   are colour-coded by WHICH of the two they touch, because that -- not their
+   potency -- is what decides when each one is the right drug.
+   ========================================================================== */
+
+digraph chronic_hyperkalemia_qsp {
+    graph [ rankdir=TB, splines=spline, overlap=false, nodesep=0.30,
+            ranksep=0.60, fontname="Helvetica", fontsize=11,
+            labelloc="t", concentrate=false, compound=true,
+            label=<<B>Chronic Hyperkalaemia -- Quantitative Systems Pharmacology Map</B><BR/>
+<FONT POINT-SIZE="12">CKD / heart failure &#183; the kaliuresis reserve &#183; the RAAS-inhibitor potassium dilemma<BR/>
+K<SUB>total</SUB> = C<SUB>e</SUB>&#183;V<SUB>ECF</SUB> + C<SUB>i0</SUB>&#183;&#923;<SUB>rel</SUB>&#183;(C<SUB>e</SUB>/C<SUB>e0</SUB>)<SUP>&#945;</SUP>&#183;V<SUB>ICF</SUB> &#8195;&#8195;
+<B>blue</B> = mass-balance therapy (mmol removed) &#183; <B>orange</B> = partition therapy (0 mmol removed) &#183; <B>red</B> = membrane only</FONT>> ];
+
+    node [ shape=box, style="rounded,filled", fontname="Helvetica",
+           fontsize=10, margin="0.08,0.05", penwidth=1.1 ];
+    edge [ fontname="Helvetica", fontsize=8, arrowsize=0.65, penwidth=1.0,
+           color="#5a5a5a" ];
+
+    /* ---------------- colour key -----------------------------------------
+       physiology  #e8f0fb   pathology  #fde8e8   transporter #eaf7ec
+       hormone     #fff3d9   drug-PK    #ede4f7   drug-PD     #dcecff
+       endpoint    #ffe0f0   biomarker  #e6f7f9   partition   #ffe8d0
+       ------------------------------------------------------------------- */
+
+/* ======================================================================== */
+/* 1. DIET AND GASTROINTESTINAL POTASSIUM HANDLING                          */
+/* ======================================================================== */
+subgraph cluster_gut {
+    label=<<B>1. Dietary intake and gut handling</B><BR/><FONT POINT-SIZE="9">the only inflow, and the only place a binder can act</FONT>>;
+    style="rounded,filled"; fillcolor="#f7fbf7"; color="#88b088"; fontsize=12;
+
+    diet        [label="Dietary K intake\n70-100 mmol/day\n(fruit, potato, dairy,\nsalt substitutes = KCl)", fillcolor="#e8f0fb"];
+    meal        [label="Meal bolus\n20-40 mmol over 1-2 h", fillcolor="#e8f0fb"];
+    gutsensor   [label="Enteric K sensor\n(feedforward kaliuresis\nbefore serum K rises)", fillcolor="#eaf7ec"];
+    gutlumen    [label="Proximal luminal K\n(GUTK)", fillcolor="#e8f0fb"];
+    absorb      [label="Small-bowel absorption\n~90% of intake", fillcolor="#eaf7ec"];
+    colon_lum   [label="Colonic luminal K\n(COLK)", fillcolor="#e8f0fb"];
+    colon_bk    [label="Colonic BK (KCa1.1)\nsecretion\nUP-REGULATED in CKD", fillcolor="#eaf7ec"];
+    colon_reab  [label="Colonic reabsorption\n~50% of secreted K\n(H-K-ATPase)", fillcolor="#eaf7ec"];
+    stool       [label="Faecal K\n10 mmol/day normal\n30-40 in ESRD", fillcolor="#e6f7f9"];
+    lowKdiet    [label="Dietary K restriction\n(counselling, 50-60 mmol/d)\nceiling: cannot go below\nobligate protein sources", fillcolor="#dcecff"];
+}
+
+/* ======================================================================== */
+/* 2. BODY POTASSIUM DISTRIBUTION -- THE TWO-POOL BUFFER                    */
+/* ======================================================================== */
+subgraph cluster_pool {
+    label=<<B>2. Whole-body potassium distribution</B><BR/><FONT POINT-SIZE="9">98% intracellular; the ICF is a buffer, not a mirror</FONT>>;
+    style="rounded,filled"; fillcolor="#f5f8fd"; color="#7f9dc4"; fontsize=12;
+
+    ecf         [label="ECF potassium (Ke)\nV = 14 L, ~59 mmol\nSERUM K = Ke/V_ecf", fillcolor="#e8f0fb", penwidth=2.4, color="#2b5f9e"];
+    icf_fast    [label="Fast ICF pool (KIF)\nV = 6.3 L, t1/2 ~20 min\nliver, blood, splanchnic", fillcolor="#e8f0fb"];
+    icf_slow    [label="Slow ICF pool (KIS)\nV = 18.9 L, t1/2 ~2.5 d\nskeletal muscle (75% of body K)", fillcolor="#e8f0fb"];
+    ktot        [label="Total body K\n~3590 mmol (51 mmol/kg)", fillcolor="#e6f7f9"];
+    alpha       [label="Partition exponent alpha = 0.25\nCi_target = Ci0*LAMrel*(Ce/Ce0)^alpha", fillcolor="#ffe8d0", shape=note];
+    buf_chr     [label="Chronic buffer capacity\n224 mmol per mmol/L\n(predicts the classical\ndeficit nomogram)", fillcolor="#e6f7f9"];
+    buf_acu     [label="Acute buffer capacity\n66 mmol per mmol/L\n(why 40 mmol IV is lethal\nand 40 mmol eaten is not)", fillcolor="#e6f7f9"];
+}
+
+/* ======================================================================== */
+/* 3. TRANSCELLULAR PARTITION REGULATORS  (LAMrel)                          */
+/* ======================================================================== */
+subgraph cluster_shift {
+    label=<<B>3. Transcellular partition (&#923;<SUB>rel</SUB>)</B><BR/><FONT POINT-SIZE="9">moves potassium, removes none</FONT>>;
+    style="rounded,filled"; fillcolor="#fff8f0"; color="#c99a63"; fontsize=12;
+
+    lamrel      [label="LAMrel\nrelative ICF/ECF partition", fillcolor="#ffe8d0", penwidth=2.4, color="#c06000"];
+    insulin     [label="Insulin\n(basal 10 uU/mL does\nmost of the work)", fillcolor="#fff3d9"];
+    ir_pi3k     [label="INSR / IRS-1 / PI3K / Akt\n-> AS160 -> Na-K-ATPase\nalpha2 translocation", fillcolor="#eaf7ec"];
+    nka         [label="Na+/K+-ATPase\n(alpha1/alpha2-beta1)\nmuscle = largest sink", fillcolor="#eaf7ec"];
+    catechol    [label="Catecholamines\nbeta-2 adrenoceptor", fillcolor="#fff3d9"];
+    camp        [label="Gs / adenylyl cyclase\ncAMP / PKA\n-> phospholemman (FXYD1)", fillcolor="#eaf7ec"];
+    kir         [label="Inward-rectifier K channels\n(Kir2.1) -- efflux limb", fillcolor="#eaf7ec"];
+    acidosis_c  [label="Metabolic acidosis\nH+ in, K+ out\n(mineral > organic acid)", fillcolor="#fde8e8"];
+    tonicity    [label="Hyperosmolality\n(hyperglycaemia, mannitol)\nsolvent drag + cell shrinkage", fillcolor="#fde8e8"];
+    insulinopen [label="Insulinopenia\ntype 1 DM, DKA,\nfasting, somatostatin", fillcolor="#fde8e8"];
+    lysis       [label="Cell lysis\nrhabdomyolysis, tumour lysis,\nhaemolysis, burns\n(K OUT of the pool itself)", fillcolor="#fde8e8"];
+    exercise    [label="Exercise\ninterstitial K accumulation\n(transient, >1 mmol/L)", fillcolor="#fde8e8"];
+    digoxin     [label="Digoxin toxicity\nNa-K-ATPase inhibition", fillcolor="#fde8e8"];
+}
+
+/* ======================================================================== */
+/* 4. GLOMERULAR FILTRATION AND PROXIMAL / LOOP HANDLING                    */
+/* ======================================================================== */
+subgraph cluster_prox {
+    label=<<B>4. Filtration and proximal reabsorption</B>>;
+    style="rounded,filled"; fillcolor="#f5faff"; color="#7fa8c4"; fontsize=12;
+
+    gfr         [label="GFR / nephron mass\nfiltered K = GFR x Ce", fillcolor="#e8f0fb"];
+    filtload    [label="Filtered K load\n605 mmol/d at eGFR 100\n78 mmol/d at eGFR 12", fillcolor="#e6f7f9"];
+    pct         [label="Proximal tubule\n~65% reabsorbed\n(paracellular, solvent drag)", fillcolor="#eaf7ec"];
+    tal         [label="Thick ascending limb\nNKCC2 + ROMK recycling\n~25% reabsorbed", fillcolor="#eaf7ec"];
+    delivery    [label="Distal delivery\n~3% of filtered load\nreaches the ASDN", fillcolor="#e6f7f9"];
+    distflow    [label="Distal tubular flow\n(the BK-channel stimulus)", fillcolor="#e6f7f9"];
+    hyperfilt   [label="Single-nephron\nhyperfiltration\n(remnant nephron adaptation)", fillcolor="#e8f0fb"];
+}
+
+/* ======================================================================== */
+/* 5. THE ALDOSTERONE-SENSITIVE DISTAL NEPHRON  (the reserve)               */
+/* ======================================================================== */
+subgraph cluster_asdn {
+    label=<<B>5. Aldosterone-sensitive distal nephron -- the kaliuresis reserve</B><BR/><FONT POINT-SIZE="9">per-nephron secretory capacity up-regulates until it cannot</FONT>>;
+    style="rounded,filled"; fillcolor="#f2faf4"; color="#6fa87a"; fontsize=12;
+
+    wnk         [label="WNK1 / WNK4 - SPAK / OSR1\nthe distal K switch\n(K-sensing via Cl- and Kir4.1/5.1)", fillcolor="#eaf7ec"];
+    ncc         [label="NCC (DCT)\nhigh K -> NCC OFF\n-> more Na to the CNT/CCD", fillcolor="#eaf7ec"];
+    enac        [label="ENaC (alpha/beta/gamma)\nNa reabsorption ->\nlumen-negative voltage", fillcolor="#eaf7ec"];
+    voltage     [label="Lumen-negative\ntransepithelial voltage\n(the driving force for K)", fillcolor="#e6f7f9"];
+    romk        [label="ROMK (Kir1.1)\nbaseline K secretion", fillcolor="#eaf7ec"];
+    bk          [label="BK / Maxi-K (KCa1.1)\nflow-activated secretion", fillcolor="#eaf7ec"];
+    hkatp       [label="H+/K+-ATPase (type A IC)\nK RECLAMATION in\nK depletion and acidosis", fillcolor="#eaf7ec"];
+    pendrin     [label="Pendrin / NDCBE (type B IC)\nCl-/HCO3- exchange\nlinks acid-base to Na and K", fillcolor="#eaf7ec"];
+    rasdn       [label="ASDN transporter pool (RASDN)\ngenomic, t1/2 ~1.5 days\n-- why MRA hyperkalaemia\ntakes DAYS to appear", fillcolor="#eaf7ec", penwidth=2.0, color="#3d7c4d"];
+    scap        [label="Secretory capacity S_cap\n= S0 x (GFR/GFR0) x ADAPT\nADAPT ceiling ~6x", fillcolor="#e6f7f9", penwidth=2.0, color="#3d7c4d"];
+    ammonia     [label="Ammoniagenesis / NH4+\ncompetes with K in the TAL", fillcolor="#eaf7ec"];
+    ureaK       [label="Urine K excretion\n62 mmol/d at eGFR 100\n47 mmol/d at eGFR 12", fillcolor="#e6f7f9"];
+}
+
+/* ======================================================================== */
+/* 6. THE RENIN-ANGIOTENSIN-ALDOSTERONE AXIS                                */
+/* ======================================================================== */
+subgraph cluster_raas {
+    label=<<B>6. RAAS axis and mineralocorticoid receptor</B>>;
+    style="rounded,filled"; fillcolor="#fffbf0"; color="#c9ab63"; fontsize=12;
+
+    renin       [label="Renin (JG cells)\nmacula densa NaCl,\nrenal perfusion, beta-1", fillcolor="#fff3d9"];
+    angI        [label="Angiotensin I", fillcolor="#fff3d9"];
+    ace         [label="ACE\n(and chymase escape path)", fillcolor="#eaf7ec"];
+    angII       [label="Angiotensin II", fillcolor="#fff3d9"];
+    at1r        [label="AT1 receptor\n(zona glomerulosa)", fillcolor="#eaf7ec"];
+    cyp11b2     [label="CYP11B2 aldosterone synthase", fillcolor="#eaf7ec"];
+    aldo        [label="Plasma aldosterone (ALDO)\n12 ng/dL normal\n50 ng/dL at eGFR 12", fillcolor="#fff3d9", penwidth=2.0, color="#b08a2a"];
+    kdrive      [label="DIRECT K stimulus of\nzona glomerulosa\n(x2 per +0.53 mmol/L)\n-- the aldosterone-escape route", fillcolor="#fff3d9", penwidth=2.0, color="#b08a2a"];
+    mr          [label="Mineralocorticoid receptor\n(NR3C2)\noccupancy 0.60 at baseline", fillcolor="#eaf7ec"];
+    hsd11b2     [label="11beta-HSD2\nprotects MR from cortisol", fillcolor="#eaf7ec"];
+    sgk1        [label="SGK1 -> NEDD4-2\n-> ENaC / ROMK surface\nexpression (genomic)", fillcolor="#eaf7ec"];
+    hyporenin   [label="Hyporeninaemic\nhypoaldosteronism\n(type 4 RTA; diabetic CKD)", fillcolor="#fde8e8"];
+}
+
+/* ======================================================================== */
+/* 7. ACID-BASE                                                             */
+/* ======================================================================== */
+subgraph cluster_acid {
+    label=<<B>7. Acid-base -- a renal potassium mechanism, not a shift mechanism</B>>;
+    style="rounded,filled"; fillcolor="#fdf7fb"; color="#b088a8"; fontsize=12;
+
+    neap        [label="Net endogenous acid production\n~1 mmol/kg/day", fillcolor="#e8f0fb"];
+    nae         [label="Renal net acid excretion\nfalls with nephron mass", fillcolor="#eaf7ec"];
+    bonebuf     [label="Bone and muscle buffering\n(the price of CKD acidosis)", fillcolor="#fde8e8"];
+    hco3        [label="Serum HCO3\n24 normal, 19 at CKD 4", fillcolor="#e6f7f9"];
+    winters     [label="Respiratory compensation\npCO2 = 40 - 1.2 x (24-HCO3)", fillcolor="#e8f0fb"];
+    ph          [label="Arterial pH", fillcolor="#e6f7f9"];
+    naHCO3      [label="Oral NaHCO3 / Na citrate\n1950 mg TID", fillcolor="#dcecff"];
+    veverimer   [label="HCl binders (veverimer)\ninvestigational", fillcolor="#dcecff"];
+}
+
+/* ======================================================================== */
+/* 8. RAAS-INHIBITOR PHARMACOLOGY  (the cause of the dilemma)               */
+/* ======================================================================== */
+subgraph cluster_raasi {
+    label=<<B>8. RAAS inhibitors -- the benefit that creates the problem</B>>;
+    style="rounded,filled"; fillcolor="#f7f2fd"; color="#9b83c4"; fontsize=12;
+
+    acei        [label="ACE inhibitor\n(lisinopril, ramipril)\nka 1/h, CL 3 L/h, V 40 L", fillcolor="#ede4f7"];
+    arb         [label="ARB\n(losartan, valsartan)", fillcolor="#ede4f7"];
+    arni        [label="ARNI (sacubitril/valsartan)\nlower K signal than ACEi\nin PARADIGM-HF", fillcolor="#ede4f7"];
+    dri         [label="Direct renin inhibitor\n(aliskiren)", fillcolor="#ede4f7"];
+    mra_st      [label="Steroidal MRA\nspironolactone -> canrenone\neplerenone", fillcolor="#ede4f7"];
+    mra_ns      [label="Non-steroidal MRA\nfinerenone 10-20 mg\n(FIDELIO / FIGARO)", fillcolor="#ede4f7"];
+    raasi_dose  [label="PRESCRIBED RAASi DOSE (RD)\nfraction of guideline target", fillcolor="#dcecff", penwidth=2.4, color="#1f6bb8"];
+    titrate     [label="Clinician titration loop\ndown on K>5.5, up when safe\n(clinical inertia)", fillcolor="#fde8e8", penwidth=2.0];
+    raasi_ben   [label="RAASi benefit\nHR 0.78 at full dose;\neGFR slope +1.4 mL/min/yr", fillcolor="#dcecff"];
+}
+
+/* ======================================================================== */
+/* 9. POTASSIUM BINDERS  (mass-balance therapy)                             */
+/* ======================================================================== */
+subgraph cluster_binder {
+    label=<<B>9. Potassium binders -- the only oral mass-balance therapy</B>>;
+    style="rounded,filled"; fillcolor="#f0f6fd"; color="#5f8fc4"; fontsize=12;
+
+    sps         [label="Sodium polystyrene sulfonate\nold, unselective, Na load,\ncolonic necrosis signal", fillcolor="#ede4f7"];
+    patiromer   [label="Patiromer PK\nnon-absorbed Ca-polymer\nacts in the DISTAL COLON\nonset ~7 h", fillcolor="#ede4f7"];
+    szc         [label="SZC PK\nnon-absorbed Zr silicate\nK-selective micropore,\nacts from the STOMACH\nonset ~1-2 h", fillcolor="#ede4f7"];
+    phi         [label="Captured luminal fraction phi\nphi_max 0.42 (pat) / 0.45 (SZC)\nCEILING: phi_max x f_abs x intake", fillcolor="#dcecff", penwidth=2.4, color="#1f6bb8"];
+    binder_ca   [label="Ca2+ released by patiromer\n(hypercalcaemia, Mg binding)", fillcolor="#fde8e8"];
+    binder_na   [label="Na+ released by SZC\n~400 mg Na per 10 g\n(oedema signal in HF)", fillcolor="#fde8e8"];
+    enable      [label="RAASi ENABLEMENT\n(OPAL-HK part B, AMBER,\nDIAMOND)", fillcolor="#dcecff"];
+}
+
+/* ======================================================================== */
+/* 10. ACUTE RESCUE PHARMACOLOGY                                            */
+/* ======================================================================== */
+subgraph cluster_acute {
+    label=<<B>10. Acute rescue -- three different jobs, often confused</B>>;
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#c48383"; fontsize=12;
+
+    ca_glu      [label="Calcium gluconate/chloride\nMEMBRANE ONLY\n0 mmol removed, 0 mmol shifted", fillcolor="#ffd6d6", penwidth=2.4, color="#b03030"];
+    ins_dex     [label="Insulin 10 U + dextrose\nPARTITION\nnadir -0.85 at ~50 min", fillcolor="#ffe8d0", penwidth=2.0, color="#c06000"];
+    hypoglyc    [label="Iatrogenic hypoglycaemia\n15-20% of treated episodes", fillcolor="#fde8e8"];
+    salbut      [label="Salbutamol 10-20 mg neb\nPARTITION\n-0.7 at 2-4 h, tachycardia", fillcolor="#ffe8d0", penwidth=2.0, color="#c06000"];
+    loop        [label="Loop diuretic (furosemide)\nMASS BALANCE via\ndistal flow and BK channels", fillcolor="#dcecff"];
+    dialysis    [label="Haemodialysis\nMASS BALANCE, definitive\n(clearance >> any drug)", fillcolor="#dcecff", penwidth=2.0, color="#1f6bb8"];
+    rebound     [label="REBOUND\npartition therapies wear off\nwith K_total unchanged", fillcolor="#fde8e8", penwidth=2.0];
+}
+
+/* ======================================================================== */
+/* 11. AGGRAVATING AND PROTECTIVE CO-MEDICATION                             */
+/* ======================================================================== */
+subgraph cluster_comed {
+    label=<<B>11. Co-medication that moves the reserve</B>>;
+    style="rounded,filled"; fillcolor="#fbf7f2"; color="#b09a7a"; fontsize=12;
+
+    nsaid       [label="NSAIDs\nprostaglandin -> renin down\n+ afferent constriction", fillcolor="#fde8e8"];
+    tmpsmx      [label="Trimethoprim\namiloride-like ENaC block", fillcolor="#fde8e8"];
+    heparin     [label="Heparin\naldosterone synthesis block", fillcolor="#fde8e8"];
+    cni         [label="Calcineurin inhibitors\ntacrolimus -> NCC on,\ntype 4 RTA", fillcolor="#fde8e8"];
+    bblock      [label="Non-selective beta-blocker\nblunts the beta-2 shift", fillcolor="#fde8e8"];
+    ksparing    [label="Amiloride / triamterene\ndirect ENaC block", fillcolor="#fde8e8"];
+    saltsub     [label="'Low-sodium' salt substitute\n= KCl, up to 25 mmol per 5 g", fillcolor="#fde8e8"];
+    sglt2i      [label="SGLT2 inhibitor\nosmotic distal flow up,\naldosterone down\n(protective, ~16% RRR)", fillcolor="#dcecff"];
+    thiazide    [label="Thiazide\ndistal flow up", fillcolor="#dcecff"];
+    fludro      [label="Fludrocortisone\n(type 4 RTA rescue)", fillcolor="#dcecff"];
+}
+
+/* ======================================================================== */
+/* 12. CARDIAC ELECTROPHYSIOLOGY                                            */
+/* ======================================================================== */
+subgraph cluster_ecg {
+    label=<<B>12. Cardiac electrophysiology -- what the number actually does</B>>;
+    style="rounded,filled"; fillcolor="#fdf0f6"; color="#c483a8"; fontsize=12;
+
+    em          [label="Resting potential Em\n= 61.5 log10(Ce/Ci)\n-93.7 mV at K 4.2\n-80.8 mV at K 6.8", fillcolor="#e6f7f9"];
+    vth         [label="Threshold potential Vth\n-70 mV; RAISED by Ca2+\n(+15 mV per mmol/L ionised)", fillcolor="#e6f7f9"];
+    gap         [label="Excitability gap Vth - Em\n23.7 mV normal -> 10.8 at K 6.8", fillcolor="#e6f7f9", penwidth=2.0];
+    nav         [label="Na_v1.5 availability (h)\n0.93 -> 0.58 at K 7.0", fillcolor="#eaf7ec"];
+    conduction  [label="Conduction velocity\nQRS 90 -> 114 ms at K 7.0\n-> 132 ms at K 8.0", fillcolor="#e6f7f9"];
+    ikr         [label="IKr conductance up with [K]o\n-> faster phase 3", fillcolor="#eaf7ec"];
+    twave       [label="Peaked T waves\n(earliest, least reliable sign)", fillcolor="#ffe0f0"];
+    pwave       [label="P-wave flattening,\nPR prolongation", fillcolor="#ffe0f0"];
+    sinewave    [label="Sine-wave QRS-T fusion\n-> VF / asystole", fillcolor="#ffe0f0", penwidth=2.0, color="#b03030"];
+}
+
+/* ======================================================================== */
+/* 13. COMORBID DRIVERS                                                     */
+/* ======================================================================== */
+subgraph cluster_driver {
+    label=<<B>13. Drivers and populations</B>>;
+    style="rounded,filled"; fillcolor="#fdf2f2"; color="#c07a7a"; fontsize=12;
+
+    ckd         [label="Chronic kidney disease\nnephron loss", fillcolor="#fde8e8", penwidth=2.0];
+    hf          [label="Heart failure\nlow renal perfusion +\nmandatory RAASi/MRA", fillcolor="#fde8e8", penwidth=2.0];
+    diabetes    [label="Diabetes mellitus\ninsulinopenia + type 4 RTA\n+ hyperosmolality", fillcolor="#fde8e8"];
+    aki         [label="AKI on CKD\n(commonest cause of\nSEVERE hyperkalaemia)", fillcolor="#fde8e8", penwidth=2.0];
+    dka         [label="Diabetic ketoacidosis\nHIGH serum K with a\nWHOLE-BODY DEFICIT", fillcolor="#fde8e8"];
+    pseudo      [label="Pseudohyperkalaemia\nhaemolysis, fist clenching,\nleucocytosis, thrombocytosis", fillcolor="#fde8e8"];
+    transplant  [label="Kidney transplant\nCNI + trimethoprim + graft", fillcolor="#fde8e8"];
+}
+
+/* ======================================================================== */
+/* 14. CLINICAL ENDPOINTS AND OUTCOMES                                      */
+/* ======================================================================== */
+subgraph cluster_endpoint {
+    label=<<B>14. Clinical endpoints</B>>;
+    style="rounded,filled"; fillcolor="#fdf0f7"; color="#c07aa8"; fontsize=12;
+
+    serumK      [label="SERUM POTASSIUM\nthe measured endpoint", fillcolor="#ffe0f0", penwidth=2.6, color="#a02a72"];
+    hyperK_ev   [label="Hyperkalaemia event\nK > 5.5 / > 6.0", fillcolor="#ffe0f0"];
+    hypoK_ev    [label="Hypokalaemia\n(binder over-treatment, 5-6%)", fillcolor="#ffe0f0"];
+    arrhythmia  [label="Arrhythmia / cardiac arrest", fillcolor="#ffe0f0"];
+    hospital    [label="Emergency attendance\nand hospitalisation", fillcolor="#ffe0f0"];
+    raasi_stop  [label="RAASi DOSE REDUCTION\nOR DISCONTINUATION\n-- the hidden endpoint", fillcolor="#ffe0f0", penwidth=2.6, color="#a02a72"];
+    ckd_prog    [label="CKD progression\neGFR slope, ESKD", fillcolor="#ffe0f0"];
+    hf_out      [label="HF hospitalisation\nand CV death", fillcolor="#ffe0f0"];
+    mortality   [label="All-cause mortality\nU-shaped in K:\nHR 1.32 at 5.5, 4.4 at 7.0,\n2.5 at 3.0", fillcolor="#ffe0f0", penwidth=2.0];
+}
+
+/* ======================================================================== */
+/* 15. MODEL OBSERVABLES / BIOMARKERS                                       */
+/* ======================================================================== */
+subgraph cluster_biomarker {
+    label=<<B>15. Observables the model exposes</B>>;
+    style="rounded,filled"; fillcolor="#eef9fb"; color="#6fa8b0"; fontsize=12;
+
+    fek         [label="Fractional excretion of K\n10% -> 51% as eGFR 100 -> 12\nTHE RESERVE GAUGE", fillcolor="#e6f7f9", penwidth=2.4, color="#2f7f8c"];
+    ttkg        [label="TTKG / urine K:creatinine\n(bedside surrogate)", fillcolor="#e6f7f9"];
+    ukv         [label="24 h urine K\n(also a diet check)", fillcolor="#e6f7f9"];
+    plasma_aldo [label="Plasma aldosterone\nand renin activity", fillcolor="#e6f7f9"];
+    ktot_obs    [label="Total body K (unmeasurable\nin practice -- the whole problem)", fillcolor="#e6f7f9"];
+    thresh      [label="Threshold eGFR for K>5.5\n11.3 none / 12.0 ACEi /\n20.6 ACEi+MRA / 6.7 +binder", fillcolor="#e6f7f9", penwidth=2.4, color="#2f7f8c"];
+    tdi         [label="Time above 5.5 (days/5 yr)\nand mean composite hazard", fillcolor="#e6f7f9"];
+}
+
+/* ======================================================================================
+   EDGES
+   ====================================================================================== */
+
+/* --- 1 gut ------------------------------------------------------------- */
+diet -> meal;
+meal -> gutlumen;
+meal -> gutsensor [label="feedforward"];
+gutsensor -> rasdn [label="pre-emptive\nkaliuresis", style=dashed, color="#3d7c4d"];
+gutlumen -> absorb;
+absorb -> ecf [label="90% of intake", penwidth=1.8, color="#2b5f9e"];
+gutlumen -> colon_lum [label="transit"];
+colon_bk -> colon_lum [label="gross secretion"];
+ecf -> colon_bk;
+colon_lum -> colon_reab;
+colon_reab -> ecf [style=dashed];
+colon_lum -> stool;
+lowKdiet -> diet [label="reduces", color="#1f6bb8", penwidth=1.6, arrowhead=tee];
+saltsub -> diet [label="hidden KCl load", color="#b03030"];
+
+/* --- 2 pool ------------------------------------------------------------ */
+ecf -> icf_fast [dir=both, label="k_tc_f\nt1/2 20 min", penwidth=1.6];
+ecf -> icf_slow [dir=both, label="k_tc_s\nt1/2 2.5 d", penwidth=1.6];
+ecf -> ktot; icf_fast -> ktot; icf_slow -> ktot;
+alpha -> icf_fast [style=dotted]; alpha -> icf_slow [style=dotted];
+alpha -> buf_chr [style=dotted]; alpha -> buf_acu [style=dotted];
+icf_slow -> buf_chr [style=dotted];
+icf_fast -> buf_acu [style=dotted];
+ecf -> serumK [penwidth=2.4, color="#a02a72"];
+ktot -> ktot_obs [style=dotted];
+
+/* --- 3 partition ------------------------------------------------------- */
+insulin -> ir_pi3k -> nka;
+catechol -> camp -> nka;
+nka -> lamrel [label="uptake limb", penwidth=1.6];
+kir -> lamrel [label="efflux limb", arrowhead=tee];
+acidosis_c -> lamrel [arrowhead=tee, color="#b03030"];
+tonicity -> lamrel [arrowhead=tee, color="#b03030"];
+insulinopen -> lamrel [arrowhead=tee, color="#b03030"];
+digoxin -> nka [arrowhead=tee, color="#b03030"];
+bblock -> camp [arrowhead=tee, color="#b03030"];
+exercise -> lamrel [arrowhead=tee, style=dashed];
+lysis -> ecf [label="K OUT of the ICF pool", color="#b03030", penwidth=1.6];
+lamrel -> icf_fast [label="sets Ci_target", penwidth=2.0, color="#c06000"];
+lamrel -> icf_slow [penwidth=2.0, color="#c06000"];
+aldo -> nka [style=dashed, label="minor"];
+ph -> acidosis_c;
+tonicity -> diabetes [style=invis];
+
+/* --- 4 filtration ------------------------------------------------------ */
+gfr -> filtload; ecf -> filtload [label="x Ce"];
+filtload -> pct -> tal -> delivery;
+delivery -> distflow;
+ckd -> gfr [arrowhead=tee, penwidth=2.0, color="#b03030"];
+ckd -> hyperfilt; hyperfilt -> scap [label="per-nephron\nup-regulation", color="#3d7c4d"];
+distflow -> bk [label="flow activation", penwidth=1.6];
+delivery -> ureaK [label="delivery floor"];
+
+/* --- 5 ASDN ------------------------------------------------------------ */
+ecf -> wnk [label="Kir4.1/5.1\nbasolateral K sensing"];
+wnk -> ncc [arrowhead=tee, label="high K -> NCC off"];
+ncc -> enac [label="more Na distally"];
+enac -> voltage -> romk;
+voltage -> bk;
+sgk1 -> enac; sgk1 -> romk;
+mr -> sgk1 [penwidth=1.6];
+rasdn -> romk; rasdn -> enac;
+scap -> romk [style=dotted]; scap -> bk [style=dotted];
+romk -> ureaK [penwidth=1.8, color="#3d7c4d"];
+bk -> ureaK [penwidth=1.8, color="#3d7c4d"];
+hkatp -> ecf [label="K reclamation", style=dashed];
+acidosis_c -> romk [arrowhead=tee, color="#b03030", label="acidosis\ninhibits secretion"];
+acidosis_c -> hkatp;
+pendrin -> voltage [style=dashed];
+ammonia -> tal [style=dashed];
+hco3 -> ammonia;
+ureaK -> ukv;
+ureaK -> fek; filtload -> fek;
+scap -> fek [style=dotted];
+gfr -> scap [penwidth=1.6];
+
+/* --- 6 RAAS ------------------------------------------------------------ */
+renin -> angI; ace -> angII; angI -> angII;
+angII -> at1r -> cyp11b2 -> aldo;
+ecf -> kdrive [label="direct K sensing", penwidth=1.6];
+kdrive -> cyp11b2 [penwidth=2.0, color="#b08a2a"];
+aldo -> mr; hsd11b2 -> mr [label="protects", style=dashed];
+mr -> rasdn [penwidth=2.0, color="#3d7c4d"];
+aldo -> colon_bk [label="colonic secretion too"];
+hyporenin -> renin [arrowhead=tee, color="#b03030"];
+diabetes -> hyporenin [color="#b03030"];
+angII -> gfr [style=dashed, label="efferent tone"];
+
+/* --- 7 acid-base ------------------------------------------------------- */
+neap -> hco3 [arrowhead=tee];
+nae -> hco3; gfr -> nae [penwidth=1.6];
+hco3 -> bonebuf [dir=both, style=dashed];
+hco3 -> winters -> ph; hco3 -> ph;
+naHCO3 -> hco3 [color="#1f6bb8", penwidth=1.6];
+veverimer -> hco3 [color="#1f6bb8", style=dashed];
+hco3 -> romk [label="(HCO3/24)^n\nacidosis inhibits\ndistal K secretion", color="#3d7c4d", penwidth=1.8];
+
+/* --- 8 RAASi ----------------------------------------------------------- */
+acei -> ace [arrowhead=tee, penwidth=1.6, color="#7040a0"];
+arb -> at1r [arrowhead=tee, color="#7040a0"];
+arni -> at1r [arrowhead=tee, color="#7040a0"];
+dri -> renin [arrowhead=tee, color="#7040a0"];
+mra_st -> mr [arrowhead=tee, penwidth=2.0, color="#7040a0"];
+mra_ns -> mr [arrowhead=tee, penwidth=2.0, color="#7040a0"];
+raasi_dose -> acei; raasi_dose -> mra_st; raasi_dose -> mra_ns;
+raasi_dose -> raasi_ben [penwidth=1.8, color="#1f6bb8"];
+raasi_ben -> ckd_prog [arrowhead=tee, penwidth=1.8, color="#1f6bb8"];
+raasi_ben -> hf_out [arrowhead=tee, penwidth=1.8, color="#1f6bb8"];
+serumK -> titrate [label="K > 5.5", penwidth=2.0, color="#b03030"];
+titrate -> raasi_dose [arrowhead=tee, penwidth=2.4, color="#b03030"];
+titrate -> raasi_stop [penwidth=2.0, color="#b03030"];
+raasi_stop -> mortality [penwidth=1.8, color="#b03030"];
+hf -> raasi_dose [label="mandatory therapy", penwidth=1.6];
+ckd -> raasi_dose [label="mandatory therapy", penwidth=1.6];
+
+/* --- 9 binders --------------------------------------------------------- */
+sps -> phi; patiromer -> phi [penwidth=1.6]; szc -> phi [penwidth=1.6];
+phi -> absorb [arrowhead=tee, penwidth=2.0, color="#1f6bb8", label="blocks absorption"];
+phi -> colon_reab [arrowhead=tee, penwidth=2.0, color="#1f6bb8", label="blocks reabsorption\n(why it works fasting)"];
+phi -> stool [penwidth=1.8, color="#1f6bb8"];
+patiromer -> binder_ca; szc -> binder_na;
+binder_na -> hf [label="Na load", color="#b03030", style=dashed];
+phi -> enable [penwidth=1.6, color="#1f6bb8"];
+enable -> raasi_dose [label="allows full dose", penwidth=2.4, color="#1f6bb8"];
+phi -> hypoK_ev [style=dashed, color="#b03030"];
+
+/* --- 10 acute ---------------------------------------------------------- */
+ca_glu -> vth [penwidth=2.0, color="#b03030"];
+ins_dex -> insulin [penwidth=2.0, color="#c06000"];
+ins_dex -> hypoglyc [color="#b03030"];
+salbut -> catechol [penwidth=2.0, color="#c06000"];
+loop -> distflow [penwidth=1.8, color="#1f6bb8"];
+thiazide -> distflow [color="#1f6bb8"];
+sglt2i -> distflow [color="#1f6bb8"];
+sglt2i -> aldo [arrowhead=tee, color="#1f6bb8"];
+fludro -> mr [color="#1f6bb8"];
+dialysis -> ktot [arrowhead=tee, penwidth=2.4, color="#1f6bb8"];
+ins_dex -> rebound [penwidth=1.6, color="#b03030"];
+salbut -> rebound [penwidth=1.6, color="#b03030"];
+rebound -> serumK [label="K returns:\nK_total never changed", penwidth=2.0, color="#b03030"];
+
+/* --- 11 co-medication -------------------------------------------------- */
+nsaid -> renin [arrowhead=tee, color="#b03030"];
+tmpsmx -> enac [arrowhead=tee, color="#b03030"];
+ksparing -> enac [arrowhead=tee, color="#b03030"];
+heparin -> cyp11b2 [arrowhead=tee, color="#b03030"];
+cni -> ncc [color="#b03030", label="NCC ON -> less Na distally"];
+cni -> hyporenin [color="#b03030"];
+transplant -> cni;
+
+/* --- 12 ECG ------------------------------------------------------------ */
+ecf -> em [penwidth=1.8];
+icf_fast -> em [style=dotted];
+em -> gap; vth -> gap;
+em -> nav [arrowhead=tee] ; nav -> conduction [arrowhead=tee, penwidth=1.6];
+ecf -> ikr -> twave;
+conduction -> pwave; conduction -> sinewave [penwidth=1.6];
+gap -> arrhythmia [penwidth=1.8, color="#b03030"];
+sinewave -> arrhythmia [penwidth=2.0, color="#b03030"];
+twave -> hyperK_ev [style=dashed];
+
+/* --- 13/14 outcomes ---------------------------------------------------- */
+serumK -> hyperK_ev [penwidth=1.8];
+serumK -> mortality [label="U-shaped hazard", penwidth=2.0, color="#a02a72"];
+hypoK_ev -> mortality [penwidth=1.6];
+hyperK_ev -> hospital; hyperK_ev -> arrhythmia;
+arrhythmia -> mortality [penwidth=2.0, color="#b03030"];
+ckd_prog -> gfr [arrowhead=tee, penwidth=1.8, color="#b03030"];
+ckd_prog -> mortality;
+hf_out -> mortality;
+aki -> gfr [arrowhead=tee, penwidth=2.0, color="#b03030"];
+dka -> insulinopen; dka -> tonicity; dka -> acidosis_c;
+pseudo -> serumK [style=dashed, label="artefact", color="#b03030"];
+diabetes -> ckd; hf -> ckd [style=dashed];
+
+/* --- 15 observables ---------------------------------------------------- */
+fek -> thresh [style=dotted];
+scap -> thresh [style=dotted];
+raasi_dose -> thresh [style=dotted];
+phi -> thresh [style=dotted];
+serumK -> tdi [style=dotted]; raasi_dose -> tdi [style=dotted];
+aldo -> plasma_aldo [style=dotted];
+ureaK -> ttkg [style=dotted];
+
+/* --- the two headline loops, drawn heavy -------------------------------
+   These are annotation edges laid over relationships already present above,
+   so they carry constraint=false: they must not be allowed to influence the
+   ranking (a closed cycle across fifteen clusters makes dot's init_rank
+   fail outright).                                                          */
+edge [penwidth=2.8, color="#b03030", fontcolor="#b03030", fontsize=10,
+      style=bold, constraint=false];
+raasi_ben -> ckd_prog [label="THE RAASi-POTASSIUM VICIOUS CIRCLE:\nblock the RAAS -> potassium rises -> dose is cut\n-> protection is lost -> GFR falls -> reserve falls\n-> potassium rises further"];
+ckd_prog  -> gfr;
+gfr       -> scap;
+scap      -> ureaK;
+ureaK     -> serumK;
+
+edge [penwidth=2.8, color="#1f6bb8", fontcolor="#1f6bb8", style=bold,
+      constraint=false];
+phi   -> stool [label="THE ONLY LOOP THAT ACTUALLY\nREMOVES POTASSIUM FROM THE BODY"];
+stool -> ktot [dir=back];
+ktot  -> ecf [dir=none, style=dotted];
+}
