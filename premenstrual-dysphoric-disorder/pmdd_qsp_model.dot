@@ -1,0 +1,533 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Premenstrual Dysphoric Disorder (월경전 불쾌장애, PMDD)
+   Integrated QSP Mechanistic Map
+
+   STRUCTURAL POSITION OF THIS MAP
+   -------------------------------
+   PMDD is drawn here NOT as "too much progesterone" and NOT as "too little
+   serotonin", because neither survives contact with the data: luteal E2/P4/
+   allopregnanolone concentrations in PMDD are statistically indistinguishable
+   from those of asymptomatic controls, and the same physiological add-back
+   that reinstates symptoms in PMDD does nothing at all in controls
+   (Schmidt 1998; Schmidt 2017).
+
+   The map instead commits to a SENSITIVITY/GAIN architecture with two
+   structural features, both drawn explicitly:
+
+     (A) The transduction from neurosteroid load at GABA-A to affective
+         drive is NON-MONOTONIC (inverted-U, cluster 7).  Low-to-moderate
+         allopregnanolone is anxiogenic/dysphoric through extrasynaptic
+         alpha4-beta-delta receptors; high load is sedative.  The disease
+         parameter is the POSITION OF THE PEAK relative to the physiological
+         luteal range — not the range itself.
+     (B) The gain of that transduction is set by a SLOWLY ADAPTING GABA-A
+         subunit-composition state (cluster 6, days-scale), driven by
+         progesterone/ALLO exposure history and by the RATE OF WITHDRAWAL,
+         not by the instantaneous level.
+
+   Four things follow that a level-detector cannot produce, and each is
+   marked in the map with a [P#] prediction tag:
+     [P1] the symptom peak LAGS the ALLO peak by ~4-5 days (late-luteal,
+          perimenstrual), instead of coinciding with it;
+     [P2] a large ALLO reduction (dutasteride 2.5 mg) helps while a small one
+          (0.5 mg) does not — the top of the inverted U is locally FLAT;
+     [P3] an ALLO-RAISING drug (SSRI, via 3-alpha-HSD directional shift) also
+          helps, by pushing load onto the descending limb — opposite sign,
+          same benefit;
+     [P4] shortening the hormone-free interval (24/4 vs 21/7) helps, because
+          the withdrawal RATE, not the trough LEVEL, is the driver.
+
+   Rendering:  dot -Tsvg pmdd_qsp_model.dot -o pmdd_qsp_model.svg
+               dot -Tpng -Gdpi=150 pmdd_qsp_model.dot -o pmdd_qsp_model.png
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+digraph PMDD_QSP {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=11, labelloc=t,
+         label="Premenstrual Dysphoric Disorder (월경전 불쾌장애) — Integrated QSP Mechanistic Map\lHPO-axis cycle engine · progesterone→5α-DHP→allopregnanolone neurosteroidogenesis · GABA-A α4βδ subunit plasticity (slow) · NON-MONOTONIC (inverted-U) neurosteroid transduction · corticolimbic gain · DRSP symptom domains\lSSRI (luteal / continuous / symptom-onset) · drospirenone-EE 24/4 vs 21/7 · GnRH agonist ± E2/P4 add-back · sepranolone (isoallopregnanolone) · dutasteride 0.5 vs 2.5 mg · ulipristal · alprazolam · calcium · oophorectomy\l",
+         splines=polyline, overlap=false, nodesep=0.28, ranksep=0.62,
+         bgcolor="#fbfbfd", newrank=true];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         fillcolor="#ffffff", color="#7d8590"];
+  edge  [fontname="Helvetica", fontsize=9, color="#6e7681", arrowsize=0.7];
+
+  /* ═════════ 1. Predisposition: what is different BEFORE any hormone ═════ */
+  subgraph cluster_predis {
+    label="1. Predisposition — cellular sensitivity, not hormone level (DASH-MC framework)";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#f3f0ff"; fontsize=12;
+    ESC_EZ    [label="ESC/E(Z) chromatin complex\ndysregulated in PMDD lymphoblasts\n(Dubey 2017) — intrinsic, cell-autonomous\ndifference in steroid RESPONSE", fillcolor="#ede4ff"];
+    ESR1_SNP  [label="ESR1 (ERα) intron-4 haplotype\n× COMT Val158Met interaction\n(Huo 2007)"];
+    SRD5A_var [label="SRD5A1/2 · AKR1C1-4 allelic\nvariation → per-woman ALLO\nconversion efficiency"];
+    GABRA4    [label="GABRA4 / GABRD variants\n(δ- and α4-subunit genes)\nreceptor-plasticity set-point"];
+    BDNF_V66  [label="BDNF Val66Met\n(plasticity reserve)"];
+    HTR_var   [label="SLC6A4 5-HTTLPR / TPH2\nserotonergic reserve"];
+    TRAUMA    [label="Early-life adversity /\ntrauma load → HPA gain"];
+    HERIT     [label="Heritability of premenstrual\nsymptoms ≈ 30-56% (twin studies)"];
+    SENS_TRAIT[label="TRAIT: affective sensitivity to\nCHANGE in ovarian steroids\n(disease parameter of this model)", shape=box3d, fillcolor="#d9c8ff"];
+    NORM_HORM [label="Ovarian steroid LEVELS are NORMAL\n(E2, P4, ALLO ≈ controls)\n— excluded as the disease variable", shape=note, fillcolor="#fff0f0"];
+    ESC_EZ -> SENS_TRAIT; ESR1_SNP -> SENS_TRAIT; GABRA4 -> SENS_TRAIT;
+    SRD5A_var -> SENS_TRAIT [style=dashed]; BDNF_V66 -> SENS_TRAIT [style=dashed];
+    HTR_var -> SENS_TRAIT [style=dashed]; TRAUMA -> SENS_TRAIT [style=dashed];
+    HERIT -> SENS_TRAIT [style=dotted];
+    NORM_HORM -> SENS_TRAIT [style=dotted, label="forces a gain model"];
+  }
+
+  /* ═════════ 2. HPO axis / menstrual cycle engine ═══════════════════════ */
+  subgraph cluster_hpo {
+    label="2. HPO-axis cycle engine (28-day forcing function of the whole model)";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#fff4e6"; fontsize=12;
+    KNDy      [label="Arcuate KNDy neurons\n(kisspeptin·NKB·dynorphin)"];
+    GnRH_PG   [label="GnRH pulse generator\n(preoptic / arcuate)"];
+    GnRH_pul  [label="GnRH pulse frequency\nfollicular fast → luteal slow\n(P4-dependent slowing)"];
+    PIT_GON   [label="Pituitary gonadotropes\nGnRH-R density"];
+    FSH       [label="FSH\n(follicular recruitment)", fillcolor="#ffe8cc"];
+    LH        [label="LH\n(+ mid-cycle surge)", fillcolor="#ffe8cc"];
+    FOLL      [label="Dominant follicle mass\n(granulosa aromatase)", fillcolor="#ffe8cc"];
+    OVUL      [label="Ovulation (cycle day ~14)\nLH-surge gated", shape=hexagon, fillcolor="#ffd8a8"];
+    CL        [label="Corpus luteum mass\n(luteal P4 factory)", fillcolor="#ffe8cc"];
+    LUTEOL    [label="Luteolysis (functional)\nt½ ≈ 2.5-3 d → P4 withdrawal", fillcolor="#ffd8a8"];
+    MENSES    [label="Menses onset (cycle day 1)\nendometrial shedding", shape=hexagon, fillcolor="#ffd8a8"];
+    INHB      [label="Inhibin A/B\n(FSH negative feedback)"];
+    ANOV      [label="Anovulatory cycle\n(no CL → no luteal ALLO rise)", shape=note];
+    KNDy -> GnRH_PG -> GnRH_pul -> PIT_GON;
+    PIT_GON -> FSH; PIT_GON -> LH;
+    FSH -> FOLL -> OVUL -> CL -> LUTEOL -> MENSES;
+    LH -> OVUL [label="surge"];
+    FOLL -> INHB -> FSH [style=dashed, arrowhead=tee, label="−"];
+    ANOV -> CL [style=dashed, arrowhead=tee, label="− (symptoms absent)"];
+    MENSES -> FOLL [style=dotted, label="next cycle"];
+  }
+
+  /* ═════════ 3. Ovarian steroids & transport ════════════════════════════ */
+  subgraph cluster_steroid {
+    label="3. Ovarian steroids, binding proteins, and the two windows that matter";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#e6fcf5"; fontsize=12;
+    E2        [label="Estradiol (E2)\nbiphasic: preovulatory peak +\nmid-luteal shoulder", fillcolor="#c3fae8"];
+    P4        [label="Progesterone (P4)\n<1 ng/mL follicular →\n8-20 ng/mL mid-luteal", fillcolor="#c3fae8"];
+    SHBG      [label="SHBG / CBG binding\n→ free fractions"];
+    E2_FREE   [label="Free E2 (bioavailable)"];
+    P4_FREE   [label="Free P4 (bioavailable)"];
+    E2_WD     [label="E2 WITHDRAWAL window\n(late luteal fall)", shape=hexagon, fillcolor="#96f2d7"];
+    P4_WD     [label="P4 WITHDRAWAL window\n(late luteal fall, −60%/3 d)", shape=hexagon, fillcolor="#96f2d7"];
+    PR_AB     [label="PR-A / PR-B nuclear receptors\n(genomic, uterus + brain)"];
+    ERab      [label="ERα / ERβ\n(genomic + membrane-initiated)"];
+    mPR       [label="mPRα / PGRMC1\n(membrane, non-genomic)"];
+    LUT_LEN   [label="Luteal phase length\n(11-16 d) sets exposure duration"];
+    CL -> P4; FOLL -> E2; CL -> E2 [style=dashed, label="luteal shoulder"];
+    SHBG -> E2_FREE [arrowhead=tee]; SHBG -> P4_FREE [arrowhead=tee];
+    E2 -> E2_FREE; P4 -> P4_FREE;
+    LUTEOL -> P4_WD; LUTEOL -> E2_WD;
+    P4_FREE -> PR_AB; P4_FREE -> mPR; E2_FREE -> ERab;
+    LUT_LEN -> P4 [style=dotted];
+    P4 -> GnRH_pul [style=dashed, arrowhead=tee, label="pulse slowing"];
+    E2 -> LH [style=dashed, label="+ surge / − tonic"];
+  }
+
+  /* ═════════ 4. Neurosteroidogenesis — the metabolic core ═══════════════ */
+  subgraph cluster_neurosteroid {
+    label="4. Neurosteroidogenesis: P4 → 5α-DHP → allopregnanolone (the rate-limiting chemistry)";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#e7f5ff"; fontsize=12;
+    SRD5A1    [label="SRD5A1 (5α-reductase type 1)\nBRAIN-dominant isoform\nRATE-LIMITING step", fillcolor="#a5d8ff"];
+    SRD5A2    [label="SRD5A2 (type 2)\nprostate/liver-dominant\n(why 0.5 mg dutasteride ≠ 2.5 mg)"];
+    DHP       [label="5α-dihydroprogesterone\n(5α-DHP)", fillcolor="#d0ebff"];
+    AKR1C     [label="AKR1C1-4 / 3α-HSD\nreductive direction ⇄ oxidative", fillcolor="#a5d8ff"];
+    ALLO_P    [label="Allopregnanolone (ALLO), plasma\n1-2 nM follicular →\n4-8 nM mid-luteal", fillcolor="#74c0fc"];
+    ALLO_B    [label="Brain ALLO\n(plasma influx + de novo)\nEFFECTIVE ligand", shape=box3d, fillcolor="#4dabf7"];
+    DENOVO    [label="De novo brain synthesis\nStAR/TSPO → P450scc\n(stress-recruited)"];
+    PREGNANOL [label="Pregnanolone (3α,5β-THP)\nco-agonist at same site"];
+    ISOALLO   [label="Isoallopregnanolone (3β,5α-THP)\nENDOGENOUS ANTAGONIST\nat the ALLO site", fillcolor="#ffd8a8"];
+    THDOC     [label="THDOC (allotetrahydro-DOC)\nfrom deoxycorticosterone\nstress-inducible"];
+    PREGS     [label="Pregnenolone sulfate / DHEAS\nNEGATIVE GABA-A modulators\n(opposing tone)"];
+    SULF      [label="Sulfotransferase / sulfatase\n(ALLO-S ⇄ ALLO shuttle)"];
+    ALLO_CL   [label="ALLO clearance\n(glucuronidation, t½ ≈ 30-60 min)"];
+    PHASE_ALLO[label="ALLO tracks P4 with a\n~1-day transduction lag\n(peak ≈ cycle day 22-23)", shape=note];
+    P4_FREE -> SRD5A1 -> DHP -> AKR1C -> ALLO_P -> ALLO_B;
+    P4_FREE -> SRD5A2 [style=dashed];
+    SRD5A2 -> DHP [style=dashed];
+    DENOVO -> ALLO_B; AKR1C -> ISOALLO [label="3β-HSOR"];
+    ISOALLO -> ALLO_B [style=dashed, arrowhead=tee, label="competitive"];
+    P4_FREE -> PREGNANOL [style=dashed]; PREGNANOL -> ALLO_B [style=dashed, label="additive load"];
+    THDOC -> ALLO_B [style=dashed, label="additive load"];
+    SULF -> ALLO_B [style=dotted];
+    ALLO_P -> ALLO_CL [style=dotted];
+    ALLO_B -> PHASE_ALLO [style=dotted];
+  }
+
+  /* ═════════ 5. GABA-A receptor: the target ═════════════════════════════ */
+  subgraph cluster_gabar {
+    label="5. GABA-A receptor pharmacology — where ALLO acts (transmembrane β+/α− site)";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#f8f0fc"; fontsize=12;
+    GABA_SYN  [label="Synaptic GABA-A\nα1/α2 β γ2 → PHASIC IPSC"];
+    GABA_EXT  [label="Extrasynaptic GABA-A\nα4 β δ (and α5) → TONIC current", fillcolor="#eebefa"];
+    ALLO_SITE [label="Neurosteroid site\n(β(+)/α(−) transmembrane)\nALLO EC50 ≈ 10-100 nM", fillcolor="#eebefa"];
+    BZ_SITE   [label="Benzodiazepine site (α/γ2)\nABSENT from α4βδ receptors\n→ alprazolam loses efficacy\nwhen δ-receptors dominate"];
+    DELTA_R   [label="δ-subunit receptor abundance\n(state variable, τ ≈ 4-6 d)", shape=box3d, fillcolor="#e599f7"];
+    ALPHA4_R  [label="α4-subunit abundance\nWITHDRAWAL-INDUCED\n(Smith 1998 Nature, τ ≈ 2-3 d)", shape=box3d, fillcolor="#e599f7"];
+    TRAFFIC   [label="Receptor trafficking / phosphorylation\n(PKC, radixin anchoring of α5)"];
+    KCC2      [label="KCC2 / NKCC1 → intracellular Cl⁻\nsets the SIGN of GABA-A current\n(depolarizing if Cl⁻ high)", fillcolor="#eebefa"];
+    TONIC_I   [label="Tonic inhibitory conductance\n(net, δ-receptor mediated)"];
+    PARADOX_R [label="α4βδ PARADOX: δ-containing\nreceptors have LOW efficacy /\nreversed modulation at\nsub-saturating ALLO", shape=note, fillcolor="#ffe3e3"];
+    ALLO_B -> ALLO_SITE; ALLO_SITE -> GABA_SYN; ALLO_SITE -> GABA_EXT;
+    GABA_EXT -> TONIC_I; DELTA_R -> GABA_EXT; ALPHA4_R -> GABA_EXT;
+    TRAFFIC -> GABA_EXT [style=dotted]; TRAFFIC -> GABA_SYN [style=dotted];
+    KCC2 -> TONIC_I [style=dashed, label="sign"];
+    GABA_EXT -> PARADOX_R; ALPHA4_R -> PARADOX_R;
+    ALPHA4_R -> BZ_SITE [style=dashed, arrowhead=tee, label="− (no γ2)"];
+    PREGS -> ALLO_SITE [style=dashed, arrowhead=tee];
+  }
+
+  /* ═════════ 6. Receptor-composition PLASTICITY (slow state, structural) ═ */
+  subgraph cluster_plast {
+    label="6. GABA-A subunit PLASTICITY — the slow state that creates the lag [P1] and the HFI effect [P4]";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#fff0f6"; fontsize=12;
+    ALLO_MEM  [label="ALLO exposure MEMORY\nlow-pass of brain ALLO\n(τ ≈ 6 d)", shape=box3d, fillcolor="#ffdeeb"];
+    WD_SIGNAL [label="WITHDRAWAL SIGNAL\nW = max(0, (memory − current)/memory)\nRATE-, not level-, sensitive", shape=box3d, fillcolor="#fcc2d7"];
+    DELTA_UP  [label="Sustained ALLO → δ upregulation\n(chronic-P4 pseudopregnancy data)"];
+    A4_UP     [label="ALLO/P4 WITHDRAWAL → α4 upregulation\n(progesterone-withdrawal model of PMS)"];
+    SENS_G    [label="EFFECTIVE GAIN\nSENS = 1 + γδ·(δ−1) + γα4·(α4−1)", shape=box3d, fillcolor="#f783ac"];
+    TAU_MISMATCH[label="TIME-CONSTANT MISMATCH:\nALLO turns over in minutes,\nreceptor composition in DAYS\n→ symptom peak LAGS ALLO peak", shape=note, fillcolor="#ffe3e3"];
+    P1_TAG    [label="[P1] predicted symptom peak\ncycle day 26-27, i.e. 4-5 d AFTER\nthe ALLO peak (day 22)", shape=note, fillcolor="#fff9db"];
+    HFI       [label="Hormone-free interval (HFI)\nduration sets withdrawal RATE\n7 d (21/7) vs 4 d (24/4)"];
+    P4_TAG    [label="[P4] 24/4 > 21/7 because W\nscales with dALLO/dt, not trough", shape=note, fillcolor="#fff9db"];
+    ALLO_B -> ALLO_MEM -> WD_SIGNAL;
+    ALLO_B -> WD_SIGNAL [style=dashed, arrowhead=tee, label="current"];
+    ALLO_MEM -> DELTA_UP -> DELTA_R;
+    WD_SIGNAL -> A4_UP -> ALPHA4_R;
+    DELTA_R -> SENS_G; ALPHA4_R -> SENS_G;
+    SENS_TRAIT -> SENS_G [label="γ multipliers ↑ in PMDD", color="#d6336c", penwidth=1.6];
+    TAU_MISMATCH -> P1_TAG [style=dotted];
+    SENS_G -> TAU_MISMATCH [style=dotted];
+    HFI -> WD_SIGNAL [label="rate"]; HFI -> P4_TAG [style=dotted];
+  }
+
+  /* ═════════ 7. NON-MONOTONIC transduction — the headline structure ═════ */
+  subgraph cluster_invU {
+    label="7. NON-MONOTONIC (inverted-U) neurosteroid transduction — the model's central commitment";
+    style="filled,rounded"; color="#c92a2a"; fillcolor="#fff5f5"; fontsize=12; penwidth=2;
+    LOAD      [label="EFFECTIVE MODULATOR LOAD\nL = (ALLO_b + pregnanolone + BZ-equiv)\n÷ (1 + isoALLO/Ki)", shape=box3d, fillcolor="#ffc9c9"];
+    KP        [label="KP — LOAD AT WHICH THE\nANXIOGENIC RESPONSE PEAKS\n(the disease parameter)", shape=box3d, fillcolor="#ff8787"];
+    ASC_LIMB  [label="ASCENDING LIMB\nlow-moderate ALLO = anxiogenic,\nirritable, dysphoric (α4βδ paradox)", fillcolor="#ffe3e3"];
+    PEAK_FLAT [label="FLAT TOP (dNS/dL ≈ 0 at L = KP)\n→ small ALLO changes do NOTHING", fillcolor="#ffa8a8"];
+    DESC_LIMB [label="DESCENDING LIMB\nhigh ALLO = sedative, anxiolytic\n(benzodiazepine-like)", fillcolor="#ffe3e3"];
+    NS_DRIVE  [label="NS_DRIVE = SENS · (L/KP)·e^(1−L/KP)\nAFFECTIVE DRIVE OUTPUT", shape=box3d, fillcolor="#fa5252", fontcolor="#ffffff"];
+    PMDD_POS  [label="PMDD: KP sits INSIDE the\nphysiological luteal range\n→ luteal phase parked on the peak", fillcolor="#ffc9c9"];
+    CTRL_POS  [label="Control: KP well ABOVE the\nluteal range → same hormones,\nlow-limb operation only", fillcolor="#d3f9d8"];
+    BIPHASIC  [label="Empirical anchor: P4/ALLO show a\nBIPHASIC (alcohol/benzo-like)\ndose-response on mood and\nsaccadic eye velocity", shape=note];
+    P2_TAG    [label="[P2] dutasteride 2.5 mg works,\n0.5 mg does not — you must get\nOFF the flat top", shape=note, fillcolor="#fff9db"];
+    P3_TAG    [label="[P3] SSRIs RAISE ALLO and still\nhelp — descending-limb rescue", shape=note, fillcolor="#fff9db"];
+    ALLO_B -> LOAD; ISOALLO -> LOAD [arrowhead=tee, label="÷"];
+    PREGNANOL -> LOAD [style=dashed];
+    LOAD -> ASC_LIMB -> PEAK_FLAT -> DESC_LIMB;
+    KP -> PEAK_FLAT; SENS_G -> NS_DRIVE [color="#d6336c", penwidth=1.6];
+    ASC_LIMB -> NS_DRIVE; DESC_LIMB -> NS_DRIVE [arrowhead=tee];
+    KP -> NS_DRIVE; PMDD_POS -> KP; CTRL_POS -> KP [style=dashed];
+    BIPHASIC -> ASC_LIMB [style=dotted];
+    PEAK_FLAT -> P2_TAG [style=dotted]; DESC_LIMB -> P3_TAG [style=dotted];
+  }
+
+  /* ═════════ 8. Serotonergic system ═════════════════════════════════════ */
+  subgraph cluster_5ht {
+    label="8. Serotonergic system — fast (irritability) vs slow (depressive) branches";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#e6fffb"; fontsize=12;
+    TRP       [label="Tryptophan availability\n(depletion reinstates PMDD symptoms)"];
+    TPH2      [label="TPH2 — raphe 5-HT synthesis\n(E2-sensitive expression)"];
+    SERT      [label="SERT (SLC6A4) reuptake\ntarget of SSRIs"];
+    HT_EX     [label="Extracellular 5-HT\n(minutes-hours)", fillcolor="#99e9f2"];
+    AUTO_1A   [label="5-HT1A somatodendritic\nautoreceptor brake\n+ slow desensitization (τ ≈ 10-14 d)", shape=box3d];
+    HT2C      [label="5-HT2C — appetite, anxiety"];
+    HT2A      [label="5-HT2A — cortical excitability"];
+    HT3       [label="5-HT3 — nausea, limbic gating"];
+    BDNF_TRK  [label="BDNF/TrkB downstream plasticity\n(slow, τ ≈ 14 d) — DEPRESSIVE branch", shape=box3d];
+    LUT_5HT   [label="Luteal ↓ platelet/CNS 5-HT\nturnover in PMDD"];
+    FAST_BR   [label="FAST BRANCH: irritability/anger\nresponds to extracellular 5-HT\nwithin 24-48 h", fillcolor="#c5f6fa"];
+    SLOW_BR   [label="SLOW BRANCH: anhedonia/depressed\nmood need BDNF-TrkB plasticity\n→ weeks, continuous dosing", fillcolor="#c5f6fa"];
+    TRP -> TPH2 -> HT_EX; SERT -> HT_EX [arrowhead=tee, label="reuptake"];
+    HT_EX -> AUTO_1A -> TPH2 [arrowhead=tee, label="−"];
+    HT_EX -> HT2C; HT_EX -> HT2A; HT_EX -> HT3;
+    HT_EX -> BDNF_TRK; HT_EX -> FAST_BR; BDNF_TRK -> SLOW_BR;
+    LUT_5HT -> HT_EX [arrowhead=tee];
+    E2_FREE -> TPH2 [style=dashed, label="+"];
+    P4_WD -> LUT_5HT [style=dashed];
+  }
+
+  /* ═════════ 9. Corticolimbic circuit ═══════════════════════════════════ */
+  subgraph cluster_limbic {
+    label="9. Corticolimbic gain — where NS_DRIVE becomes affect";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#f4fce3"; fontsize=12;
+    AMY       [label="Amygdala reactivity\n(luteal ↑ to negative cues in PMDD)", fillcolor="#e9fac8"];
+    dACC      [label="dorsal ACC — conflict/salience"];
+    dlPFC     [label="dlPFC top-down control\n(E2/DA/COMT-dependent)", fillcolor="#e9fac8"];
+    OFC       [label="OFC — emotion regulation,\nluteal ↓ recruitment"];
+    INSULA    [label="Insula — interoception\n(bloating, breast, cramps)"];
+    HIPP      [label="Hippocampus — context,\nALLO-sensitive"];
+    VSTR      [label="Ventral striatum reward\n(luteal blunting → anhedonia)", fillcolor="#e9fac8"];
+    DA_TONE   [label="Mesolimbic dopamine tone\nE2-modulated"];
+    DMN       [label="Default-mode network\nrumination"];
+    AFF_LAB   [label="Affective LABILITY output\n(amygdala/PFC imbalance)"];
+    NS_DRIVE -> AMY [color="#fa5252", penwidth=1.6];
+    NS_DRIVE -> dlPFC [arrowhead=tee, color="#fa5252", penwidth=1.6];
+    NS_DRIVE -> VSTR [arrowhead=tee, color="#fa5252"];
+    HT_EX -> AMY [arrowhead=tee]; FAST_BR -> AMY [arrowhead=tee];
+    SLOW_BR -> VSTR [label="+"];
+    dlPFC -> AMY [arrowhead=tee, label="top-down"];
+    AMY -> dACC; dACC -> AFF_LAB; dlPFC -> AFF_LAB [arrowhead=tee];
+    E2_FREE -> DA_TONE -> VSTR; E2_FREE -> dlPFC [style=dashed, label="+"];
+    E2_WD -> DA_TONE [arrowhead=tee, style=dashed];
+    AMY -> INSULA [style=dotted]; AMY -> DMN; HIPP -> AMY [style=dotted];
+    ALLO_B -> HIPP [style=dashed];
+    OFC -> AMY [arrowhead=tee, style=dashed];
+  }
+
+  /* ═════════ 10. HPA axis & stress ══════════════════════════════════════ */
+  subgraph cluster_hpa {
+    label="10. HPA axis — the blunted stress response of PMDD";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#fff9db"; fontsize=12;
+    STRESS    [label="Psychosocial stressor load"];
+    CRH       [label="Hypothalamic CRH"];
+    ACTH      [label="Pituitary ACTH"];
+    CORT      [label="Cortisol", fillcolor="#ffec99"];
+    GR_MR     [label="GR / MR feedback sensitivity"];
+    BLUNT     [label="BLUNTED cortisol & ALLO\nstress response in PMDD\n(loss of ALLO's HPA brake)", shape=note, fillcolor="#ffe3e3"];
+    DOC       [label="Deoxycorticosterone → THDOC\n(stress neurosteroid)"];
+    ALLOSTAT  [label="Allostatic load\n(cycle-after-cycle accumulation)"];
+    STRESS -> CRH -> ACTH -> CORT -> GR_MR -> CRH [arrowhead=tee, label="−"];
+    STRESS -> DENOVO [style=dashed, label="TSPO recruit"];
+    CORT -> DOC -> THDOC;
+    ALLO_B -> CRH [arrowhead=tee, style=dashed, label="normal brake"];
+    SENS_G -> BLUNT [style=dotted]; BLUNT -> CORT [style=dotted, arrowhead=tee];
+    CORT -> AMY [style=dashed]; STRESS -> AMY [style=dashed];
+    CORT -> ALLOSTAT [style=dotted];
+  }
+
+  /* ═════════ 11. Autonomic, sleep, circadian ════════════════════════════ */
+  subgraph cluster_auto {
+    label="11. Autonomic · sleep · circadian";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#e3fafc"; fontsize=12;
+    HRV       [label="HRV / vagal tone ↓ luteal"];
+    SLEEP_ARCH[label="Sleep architecture\n(↓ REM latency, ↑ WASO)"];
+    MELAT     [label="Melatonin amplitude ↓ /\nphase advance in PMDD"];
+    CBT_TEMP  [label="Core body temperature\nluteal +0.3-0.5 °C (P4)"];
+    TNZ       [label="Thermoneutral zone width\n(E2-dependent) → hot flushes"];
+    INSOM     [label="Insomnia / hypersomnia\n(DSM-5 item)"];
+    LIGHT     [label="Bright-light therapy\n(circadian re-entrainment)"];
+    P4 -> CBT_TEMP; E2 -> TNZ; TNZ -> INSOM [style=dotted];
+    ALLO_B -> SLEEP_ARCH [style=dashed]; MELAT -> SLEEP_ARCH;
+    SLEEP_ARCH -> INSOM; NS_DRIVE -> SLEEP_ARCH [style=dashed];
+    AMY -> HRV [arrowhead=tee]; LIGHT -> MELAT [style=dashed];
+  }
+
+  /* ═════════ 12. Peripheral / somatic symptom generation ════════════════ */
+  subgraph cluster_somatic {
+    label="12. Somatic symptom generation (bloating · breast tenderness · cramps · craving)";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#ffe8cc"; fontsize=12;
+    RAAS      [label="RAAS activation\n(P4 competes at MR → renin ↑)"];
+    ALDO      [label="Aldosterone", fillcolor="#ffd8a8"];
+    MR        [label="Mineralocorticoid receptor\n(renal collecting duct)"];
+    NA_RET    [label="Na⁺ / water retention"];
+    ECFV      [label="Extracellular fluid volume\n→ BLOATING, weight +1-2 kg", fillcolor="#ffd8a8"];
+    PRL       [label="Prolactin (mild luteal ↑)"];
+    BREAST    [label="Breast tenderness / mastalgia\n(E2 ductal + P4 lobular)", fillcolor="#ffd8a8"];
+    PGF2A     [label="Endometrial PGF2α / PGE2\n(COX-2, P4-withdrawal induced)"];
+    UT_CONTR  [label="Uterine contractility →\ndysmenorrhoea, cramps"];
+    CRAVE     [label="Carbohydrate craving / appetite\n(ALLO + 5-HT2C + NPY)", fillcolor="#ffd8a8"];
+    HEADACHE  [label="Menstrual migraine\n(E2-withdrawal trigger, CGRP)"];
+    JOINT     [label="Joint / muscle aches"];
+    CA_PTH    [label="Calcium-PTH-vitamin D axis\n(luteal secondary hyperparathyroidism)"];
+    P4_FREE -> RAAS -> ALDO -> MR -> NA_RET -> ECFV;
+    P4_FREE -> MR [style=dashed, arrowhead=tee, label="partial antagonism"];
+    E2_FREE -> BREAST; P4_FREE -> BREAST; PRL -> BREAST;
+    P4_WD -> PGF2A -> UT_CONTR;
+    NS_DRIVE -> CRAVE; HT_EX -> CRAVE [arrowhead=tee];
+    E2_WD -> HEADACHE; ECFV -> JOINT [style=dotted];
+    CA_PTH -> NS_DRIVE [style=dotted, arrowhead=tee];
+    ECFV -> INSULA [style=dotted]; BREAST -> INSULA [style=dotted];
+  }
+
+  /* ═════════ 13. Symptom domains & DRSP scoring ═════════════════════════ */
+  subgraph cluster_symptoms {
+    label="13. DSM-5 symptom domains and DRSP scoring (the measurement model)";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#f1f3f5"; fontsize=12;
+    S_IRR     [label="Irritability / anger /\ninterpersonal conflict\n(most prominent in PMDD)", fillcolor="#dee2e6"];
+    S_DEP     [label="Depressed mood /\nhopelessness / self-deprecation", fillcolor="#dee2e6"];
+    S_ANX     [label="Anxiety / tension /\n'on edge'", fillcolor="#dee2e6"];
+    S_LAB     [label="Affective lability /\nrejection sensitivity", fillcolor="#dee2e6"];
+    S_ANH     [label="Anhedonia /\ndecreased interest", fillcolor="#dee2e6"];
+    S_COG     [label="Concentration difficulty"];
+    S_FAT     [label="Fatigue / lethargy"];
+    S_APP     [label="Appetite change / craving"];
+    S_SLP     [label="Insomnia / hypersomnia"];
+    S_OVR     [label="Feeling overwhelmed /\nout of control"];
+    S_PHY     [label="Physical: breast tenderness,\nbloating, headache, joint pain"];
+    DRSP      [label="DRSP total (Daily Record of\nSeverity of Problems)", shape=box3d, fillcolor="#adb5bd"];
+    DSM5_A    [label="DSM-5 criterion A: ≥5 symptoms,\n≥1 from the core affective four", shape=note];
+    DSM5_30   [label="Prospective ≥30% luteal-vs-follicular\nincrease over 2 cycles", shape=note];
+    IMPAIR    [label="Functional impairment\n(work/social, SDS)"];
+    SUICIDE   [label="Perimenstrual suicidality /\nself-harm risk window", fillcolor="#ffc9c9"];
+    AMY -> S_IRR; AMY -> S_ANX; AMY -> S_LAB; AFF_LAB -> S_LAB;
+    dlPFC -> S_IRR [arrowhead=tee]; dlPFC -> S_COG [label="+"];
+    VSTR -> S_ANH [arrowhead=tee]; SLOW_BR -> S_DEP [arrowhead=tee];
+    NS_DRIVE -> S_DEP; NS_DRIVE -> S_OVR; NS_DRIVE -> S_FAT;
+    SLEEP_ARCH -> S_SLP; SLEEP_ARCH -> S_FAT [style=dotted];
+    CRAVE -> S_APP; ECFV -> S_PHY; BREAST -> S_PHY; UT_CONTR -> S_PHY;
+    HEADACHE -> S_PHY [style=dotted];
+    S_IRR -> DRSP; S_DEP -> DRSP; S_ANX -> DRSP; S_LAB -> DRSP; S_ANH -> DRSP;
+    S_COG -> DRSP; S_FAT -> DRSP; S_APP -> DRSP; S_SLP -> DRSP; S_OVR -> DRSP;
+    S_PHY -> DRSP;
+    DRSP -> DSM5_A [style=dotted]; DRSP -> DSM5_30 [style=dotted];
+    DRSP -> IMPAIR; S_DEP -> SUICIDE [style=dashed]; S_OVR -> SUICIDE [style=dashed];
+  }
+
+  /* ═════════ 14. SSRI pharmacology ══════════════════════════════════════ */
+  subgraph cluster_ssri {
+    label="14. SSRIs — the ONLY drug class with two mechanisms pulling the same way [P3]";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#d3f9d8"; fontsize=12;
+    SERT_DOSE [label="Sertraline 50-100 mg PO\n(t½ ≈ 26 h; F ≈ 44%)", fillcolor="#b2f2bb"];
+    SERT_PK   [label="Sertraline central conc.\n+ desmethylsertraline\n(weakly active, t½ ≈ 62-104 h)"];
+    CYP2C19   [label="CYP2C19 / 2B6 / 2D6 genotype\n→ 2-3× exposure spread"];
+    FLX_DOSE  [label="Fluoxetine 20 mg PO\nt½ ≈ 4-6 d; norfluoxetine 4-16 d"];
+    PAROX     [label="Paroxetine CR 12.5-25 mg\n(short t½ → discontinuation risk)"];
+    ESCIT     [label="Escitalopram 10-20 mg"];
+    SERT_OCC  [label="SERT occupancy\n(80% at therapeutic exposure)"];
+    HSD_SHIFT [label="MECHANISM 2: SSRIs shift 3α-HSD\ntoward the REDUCTIVE direction\n→ brain ALLO ↑ (Griffin & Mellon 1999)", fillcolor="#8ce99a"];
+    DOSE_LUT  [label="LUTEAL-ONLY dosing\n(day 14 → menses)"];
+    DOSE_CONT [label="CONTINUOUS dosing"];
+    DOSE_ONSET[label="SYMPTOM-ONSET dosing\n(start when symptoms appear)"];
+    FAST_RESP [label="Response in 1-2 DAYS in PMDD\n(vs 2-4 weeks in MDD)", shape=note, fillcolor="#fff9db"];
+    SSRI_AE   [label="AEs: nausea, insomnia,\nsexual dysfunction (~15-25%),\ndiscontinuation symptoms"];
+    SERT_DOSE -> SERT_PK -> SERT_OCC -> SERT [arrowhead=tee, label="inhibit"];
+    CYP2C19 -> SERT_PK [style=dashed];
+    FLX_DOSE -> SERT_OCC [style=dashed]; PAROX -> SERT_OCC [style=dashed];
+    ESCIT -> SERT_OCC [style=dashed];
+    SERT_PK -> HSD_SHIFT -> AKR1C [label="+ reductive", color="#2f9e44", penwidth=1.6];
+    HSD_SHIFT -> LOAD [style=dashed, color="#2f9e44", label="pushes L up the\nDESCENDING limb"];
+    DOSE_LUT -> SERT_DOSE; DOSE_CONT -> SERT_DOSE; DOSE_ONSET -> SERT_DOSE;
+    SERT_OCC -> FAST_RESP [style=dotted]; HSD_SHIFT -> FAST_RESP [style=dotted];
+    DOSE_CONT -> BDNF_TRK [style=dashed, label="needed for the\nSLOW branch"];
+    SERT_PK -> SSRI_AE [style=dotted];
+  }
+
+  /* ═════════ 15. Ovulation suppression ══════════════════════════════════ */
+  subgraph cluster_oc {
+    label="15. Ovulation suppression — drospirenone/EE 24/4 vs 21/7 [P4], GnRH analogues, surgery";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#e5dbff"; fontsize=12;
+    DRSP_EE   [label="Drospirenone 3 mg / EE 20 µg\n24 active + 4 inert (24/4)", fillcolor="#d0bfff"];
+    DRSP_217  [label="Same, 21 active + 7 inert (21/7)\n→ longer withdrawal window"];
+    DRSP_CONT [label="Continuous / extended regimen\n(no HFI at all)"];
+    DRSP_PK   [label="Drospirenone PK\nt½ ≈ 30-31 h, F ≈ 76%"];
+    OVUL_SUPP [label="Gonadotropin suppression\n→ NO ovulation → NO corpus luteum\n→ NO endogenous ALLO surge", fillcolor="#b197fc"];
+    DRSP_MR   [label="Drospirenone = MR ANTAGONIST\n(spironolactone-like)\n→ less bloating/weight"];
+    DRSP_AR   [label="Drospirenone = anti-androgenic\n(acne benefit)"];
+    BTB       [label="Breakthrough bleeding\n(continuous regimens)"];
+    VTE_R     [label="VTE risk (drospirenone-containing\nCOC; absolute risk small)", fillcolor="#ffc9c9"];
+    LEUP      [label="Leuprolide 3.75 mg IM q28d\n(GnRH agonist)", fillcolor="#d0bfff"];
+    FLARE     [label="Initial FLARE (7-10 d)\n→ transient symptom worsening"];
+    PIT_DS    [label="Pituitary GnRH-R downregulation\n→ profound hypoestrogenism"];
+    ADDBACK   [label="ADD-BACK E2 ± P4\n(the Schmidt 1998 experiment)", fillcolor="#ffd8a8"];
+    REINST    [label="Add-back REINSTATES symptoms\nin PMDD but NOT in controls\n— the diagnostic experiment", shape=note, fillcolor="#ffe3e3"];
+    BMD_LOSS  [label="Lumbar BMD loss\n≈ 2-3% per 6 months", fillcolor="#ffc9c9"];
+    HOTFL     [label="Hot flushes / night sweats\n(hypoestrogenic AE)", fillcolor="#ffc9c9"];
+    OOPH      [label="Bilateral oophorectomy ± hysterectomy\n(definitive, last resort) + HRT"];
+    ULIP      [label="Ulipristal acetate 5 mg\n(SPRM — blocks PR, spares E2)"];
+    DRSP_EE -> DRSP_PK -> OVUL_SUPP; DRSP_217 -> DRSP_PK; DRSP_CONT -> DRSP_PK;
+    OVUL_SUPP -> CL [arrowhead=tee, color="#7048e8", penwidth=1.6];
+    DRSP_217 -> HFI [label="7 d"]; DRSP_EE -> HFI [label="4 d"];
+    DRSP_CONT -> HFI [arrowhead=tee, label="abolished"];
+    DRSP_PK -> DRSP_MR -> MR [arrowhead=tee]; DRSP_PK -> DRSP_AR;
+    DRSP_CONT -> BTB [style=dotted]; DRSP_PK -> VTE_R [style=dotted];
+    LEUP -> FLARE -> LH [style=dashed, label="transient ↑"];
+    LEUP -> PIT_DS -> PIT_GON [arrowhead=tee, color="#7048e8", penwidth=1.6];
+    PIT_DS -> BMD_LOSS [style=dotted]; PIT_DS -> HOTFL [style=dotted];
+    PIT_DS -> TNZ [style=dashed, arrowhead=tee];
+    ADDBACK -> E2 [style=dashed]; ADDBACK -> P4 [style=dashed];
+    ADDBACK -> REINST [style=dotted]; SENS_TRAIT -> REINST [style=dotted];
+    OOPH -> CL [arrowhead=tee, style=dashed]; OOPH -> BMD_LOSS [style=dotted];
+    ULIP -> PR_AB [arrowhead=tee]; ULIP -> SRD5A1 [arrowhead=tee, style=dashed, label="↓ substrate flux"];
+  }
+
+  /* ═════════ 16. Neurosteroid-directed pharmacology ═════════════════════ */
+  subgraph cluster_nsdrug {
+    label="16. Neurosteroid-directed pharmacology — the two directions that both work [P2][P3]";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#fff0f6"; fontsize=12;
+    SEPRA     [label="Sepranolone (UC1010, isoallopregnanolone)\n10-16 mg SC every 48 h, luteal", fillcolor="#fcc2d7"];
+    SEPRA_MEC [label="Competitive ANTAGONISM at the\nALLO site → effective L ↓\n(moves LEFT off the peak)"];
+    DUTA25    [label="Dutasteride 2.5 mg/d\n(blocks SRD5A1 + 2; t½ ≈ 5 wk)", fillcolor="#fcc2d7"];
+    DUTA05    [label="Dutasteride 0.5 mg/d\n— insufficient SRD5A1 blockade\n→ NO symptom benefit"];
+    DUTA_MEC  [label="Prevents the luteal ALLO rise\n→ L held below KP"];
+    FINAST    [label="Finasteride (SRD5A2-selective)\n→ weaker CNS effect"];
+    ALPZ      [label="Alprazolam 0.25 mg TID luteal\n(GABA-A PAM at the BZ site)"];
+    ALPZ_LIM  [label="Limited by α4βδ receptors\nlacking a BZ site + dependence risk"];
+    ZURAN     [label="Zuranolone / brexanolone\n(exogenous ALLO analogues, PPD)\n→ DESCENDING-limb sedation", fillcolor="#fcc2d7"];
+    PREG_HIGH [label="High-dose pregnanolone\n= anxiolytic (descending limb)\nvs low dose = anxiogenic", shape=note];
+    SEPRA -> SEPRA_MEC -> ISOALLO [label="+ antagonist"];
+    SEPRA_MEC -> LOAD [arrowhead=tee, color="#d6336c", penwidth=1.6];
+    DUTA25 -> DUTA_MEC; DUTA05 -> DUTA_MEC [style=dashed, label="sub-threshold"];
+    DUTA_MEC -> SRD5A1 [arrowhead=tee, color="#d6336c", penwidth=1.6];
+    FINAST -> SRD5A2 [arrowhead=tee, style=dashed];
+    ALPZ -> BZ_SITE [label="+ PAM"]; ALPZ -> ALPZ_LIM [style=dotted];
+    ALPZ -> LOAD [style=dashed, label="BZ-equivalent load"];
+    ZURAN -> LOAD [style=dashed, label="pushes L ≫ KP"];
+    ZURAN -> PREG_HIGH [style=dotted]; DUTA05 -> PEAK_FLAT [style=dotted, label="flat top"];
+  }
+
+  /* ═════════ 17. Adjunctive and non-pharmacological ═════════════════════ */
+  subgraph cluster_adj {
+    label="17. Adjunctive / non-pharmacological";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#e6fcf5"; fontsize=12;
+    CALCIUM   [label="Calcium carbonate 1200 mg/d\n(Thys-Jacobs 1998)"];
+    VITD      [label="Vitamin D status"];
+    CBT       [label="CBT / mindfulness\n(PFC top-down training)"];
+    EXERCISE  [label="Aerobic exercise\n(BDNF, HPA regulation)"];
+    NSAID     [label="NSAIDs (mefenamic acid)\n→ PG synthesis block"];
+    SPIRO     [label="Spironolactone 25-100 mg luteal\n(MR antagonist → bloating)"];
+    CHASTE    [label="Vitex agnus-castus\n(dopaminergic, PRL ↓)"];
+    DIET      [label="Reduced caffeine/alcohol/salt,\nregular sleep-wake"];
+    SNRI      [label="Venlafaxine / duloxetine\n(alternative when SSRI fails)"];
+    CALCIUM -> CA_PTH [label="+"]; VITD -> CA_PTH;
+    CBT -> dlPFC [label="+"]; EXERCISE -> BDNF_TRK [label="+"];
+    NSAID -> PGF2A [arrowhead=tee]; SPIRO -> MR [arrowhead=tee];
+    CHASTE -> PRL [arrowhead=tee]; DIET -> SLEEP_ARCH [style=dotted];
+    SNRI -> SERT [arrowhead=tee, style=dashed]; EXERCISE -> AMY [arrowhead=tee, style=dotted];
+  }
+
+  /* ═════════ 18. Endpoints, safety, and the falsification test ══════════ */
+  subgraph cluster_endpoints {
+    label="18. Clinical endpoints, safety, and the structural falsification test";
+    style="filled,rounded"; color="#5c6370"; fillcolor="#f8f9fa"; fontsize=12;
+    EP_DRSP   [label="Δ DRSP luteal total\n(primary endpoint of most trials)", fillcolor="#dee2e6"];
+    EP_AMP    [label="Luteal-follicular AMPLITUDE\n(the quantity treatment shrinks)", fillcolor="#dee2e6"];
+    EP_RESP   [label="Responder: ≥50% DRSP reduction\nor CGI-I 1-2"];
+    EP_LAG    [label="Timing of the symptom peak\n(cycle day) — [P1] test", fillcolor="#fff3bf"];
+    EP_ONSET  [label="Time to onset of benefit\n(days, not weeks)"];
+    EP_FUNC   [label="Work/social impairment (SDS),\nsick days, relationship conflict"];
+    EP_BMD    [label="DXA lumbar BMD change (%)\n— GnRH-agonist safety"];
+    EP_HF     [label="Hot flush frequency (per day)\n— GnRH-agonist safety"];
+    EP_BLEED  [label="Bleeding pattern / spotting days"];
+    EP_SEX    [label="Sexual function / libido"];
+    EP_SUIC   [label="Perimenstrual suicidality\nscreening", fillcolor="#ffc9c9"];
+    FALSIFY   [label="FALSIFICATION RUN: set γδ = γα4 = 0\nAND switch transduction to MONOTONE\n(NS = L/(KP+L))", shape=box3d, fillcolor="#ffc9c9"];
+    FALS_1    [label="→ symptom peak COLLAPSES onto\nthe ALLO peak (day ~22): [P1] lost", shape=note, fillcolor="#ffe3e3"];
+    FALS_2    [label="→ SSRIs make symptoms WORSE\n(they raise ALLO): [P3] inverted", shape=note, fillcolor="#ffe3e3"];
+    FALS_3    [label="→ dutasteride becomes DOSE-GRADED,\n0.5 mg ≈ half of 2.5 mg: [P2] lost", shape=note, fillcolor="#ffe3e3"];
+    FALS_4    [label="→ 24/4 and 21/7 become\nEQUIVALENT: [P4] lost", shape=note, fillcolor="#ffe3e3"];
+    DRSP -> EP_DRSP -> EP_RESP; DRSP -> EP_AMP; DRSP -> EP_LAG;
+    EP_DRSP -> EP_FUNC; SUICIDE -> EP_SUIC;
+    BMD_LOSS -> EP_BMD; HOTFL -> EP_HF; BTB -> EP_BLEED; SSRI_AE -> EP_SEX;
+    FAST_RESP -> EP_ONSET;
+    FALSIFY -> FALS_1 [style=dotted]; FALSIFY -> FALS_2 [style=dotted];
+    FALSIFY -> FALS_3 [style=dotted]; FALSIFY -> FALS_4 [style=dotted];
+    SENS_G -> FALSIFY [style=dashed, color="#c92a2a"];
+    NS_DRIVE -> FALSIFY [style=dashed, color="#c92a2a"];
+  }
+
+  /* ═════════ cross-cluster wiring that closes the loops ═════════════════ */
+  ALLO_B -> DELTA_R [style=dashed, label="chronic exposure"];
+  P4_WD -> WD_SIGNAL [color="#d6336c", penwidth=1.6, label="the actual trigger"];
+  MENSES -> ALLO_B [style=dotted, label="ALLO already low;\nsymptoms remit 2-3 d LATER"];
+  ALPHA4_R -> ALPZ_LIM [style=dotted];
+  DRSP -> DOSE_ONSET [style=dotted, label="triggers dosing"];
+  ALLOSTAT -> SENS_TRAIT [style=dotted, label="cycle-to-cycle"];
+  EP_AMP -> DSM5_30 [style=dotted];
+  CA_PTH -> S_PHY [style=dotted];
+  HOTFL -> S_SLP [style=dotted];
+  OVUL_SUPP -> ALLO_P [arrowhead=tee, style=dashed];
+  HT_EX -> S_IRR [arrowhead=tee, style=dashed, label="fast branch"];
+}
