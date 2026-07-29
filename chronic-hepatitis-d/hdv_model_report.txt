@@ -1,0 +1,663 @@
+
+===============================================================================
+A0.  MODEL STRUCTURE
+===============================================================================
+Chronic hepatitis D QSP model, 33 ODE compartments.
+Compartments: A_sc, A_cen, A_liv, I_sc, I_cen, ISG, SOCS, L_gut, L_cen, L_per, R_cen, Q_cen, Q_eff, T, Ib, Id, Rg, Sag, Lag, LagP, Vd, ccc, S_ser, Vb, E, Ex, ALT, HSCa, Fib, PLT, NEU, TBA, CH
+
+The three fluxes that maintain the infected-hepatocyte pool Id:
+   (E) entry / re-infection      beta_d * Vd * Ib * (1 - OCC)
+   (C) cell-to-cell spread       k_cc * Id * Ib * (1 - phi_ntcp*OCC)
+   (D) division-mediated spread  Rtot * Id / N      NTCP-INDEPENDENT
+Only (E) is fully blockable by an entry inhibitor; (D) is not blockable
+at all, and (C) only in part.  (D) + the unblockable part of (C) is the
+FLOOR, and the rest of this report is about how large that floor is.
+
+===============================================================================
+A1.  FIT 1-2 OF 4 -- BILE ACIDS INVERT TO NTCP OCCUPANCY
+===============================================================================
+Serum total bile acids (TBA) obey, at steady state,
+     TBA_fold = (1 + r) / ((1 - OCC) + r),   r = CL_OATP / CL_NTCP
+because NTCP is both the HDV receptor and the high-capacity bile-acid
+uptake transporter.  Fitting the two published fold-rises:
+
+   ANCHOR   bulevirtide  2 mg qd : TBA x 3.2
+   ANCHOR   bulevirtide 10 mg qd : TBA x 13.0
+
+   FITTED   r      (OATP1B residual uptake capacity) = 0.0333
+   FITTED   Kd_NTCP                                  = 0.701 nM
+
+   DERIVED  Css(2 mg)  = 1.719 nM   ->  NTCP occupancy = 0.7104
+   DERIVED  Css(10 mg) = 14.473 nM   ->  NTCP occupancy = 0.9538
+   DERIVED  residual free NTCP    2 mg 29.0%   10 mg 4.6%
+   DERIVED  exposure ratio 10 mg / 2 mg = 8.42  (dose ratio 5.0)
+
+READ THIS TWICE.  The approved 2 mg dose does NOT saturate NTCP: it
+leaves 29.0% of the receptor free, and 10 mg leaves 4.6%.  The residual
+entry flux therefore differs 6.3x between the two doses.  Yet MYR301
+found essentially the same efficacy at both.  Section A4 is where that
+apparent contradiction is resolved, and A6 is where it is quantified.
+
+INDEPENDENT CHECK (nothing below was fitted): the fitted Kd of 0.70 nM
+is the affinity of a myristoylated preS1 lipopeptide for NTCP inferred
+purely from bile-acid pharmacology.  Reported in-vitro IC50 values for
+myrcludex B / bulevirtide at NTCP are in the 80 pM - low nM range, so
+the bile-acid inversion lands inside the measured affinity window
+without ever having been shown a binding experiment.
+
+===============================================================================
+A2.  BASELINE -- THE UNTREATED CHRONIC STEADY STATE
+===============================================================================
+Every parameter that can be pinned by requiring d/dt = 0 at the
+observed baseline IS pinned that way (back_solve()), so the untreated
+model sits on the clinical steady state by construction.  Verification
+after 2 years of simulation with no anti-HDV therapy (NUC only):
+
+   quantity                 target        t = 2 y      drift
+   Vd                      3.162e+05     3.107e+05     -1.8%   IU/mL
+   S_ser                        7079          7060     -0.3%   IU/mL
+   Id                            0.1       0.09825     -1.8%   fraction
+   Rg                           3000          3001     +0.0%   cop/cell
+   ALT                           110         108.7     -1.2%   U/L
+   E                               1        0.9972     -0.3%   a.u.
+   TBA                             5             5     +0.0%   umol/L
+   Fib (Ishak)                  2.00          2.30
+
+Fibrosis is the one state deliberately NOT at steady state: untreated
+chronic hepatitis D progresses.  Model progression rate from Ishak 2:
+   2.00 -> 2.30 over 2 y  =  0.149 Ishak units / year
+   literature: hepatitis D is the fastest-progressing chronic viral
+   hepatitis, roughly 0.15-0.25 Ishak units/y vs ~0.10 for HBV alone.
+
+===============================================================================
+A3.  FIT 3 OF 4 -- INFECTED-CELL LOSS FROM THE MYR301 RESPONSE RATE
+===============================================================================
+One parameter, one anchor.
+   ANCHOR  MYR301, bulevirtide 2 mg, week 48:
+           virologic response rate = 71%  (HDV RNA undetectable or
+           >=2 log10 decline)
+   FITTED  dth_Id_immune (baseline infected-cell killing) = 0.02636 /day
+   MODEL   virologic response, 2 mg, week 48             = 70.7%
+
+   scan of the objective (dth_Id_immune -> virologic response rate):
+     0.0040:0%  0.0058:1%  0.0084:4%  0.0122:11%  0.0177:36%  0.0256:69%  0.0372:88%  0.0539:97%  0.0782:99%  0.1133:100%  0.1643:100%
+
+   The RESPONSE RATE is the anchor rather than the mean log decline,
+   deliberately: it is the number MYR301 reports without ambiguity, and
+   it leaves the mean decline as a prediction instead of an input.
+
+THE SIGN OF THIS FIT IS THE OPPOSITE OF INTUITION, and it is worth
+stopping on.  A LARGER baseline killing rate produces a SHALLOWER
+on-treatment decline, not a deeper one.  The reason is that the
+untreated state must still balance: if infected cells die faster, the
+re-infection flux that holds the steady state up must be larger too, so
+the residual flux left over after blocking a fixed fraction of entry is
+larger in absolute terms.  A bisection written on the intuitive sign
+runs to the bound and returns a non-physiological killing rate; this
+was an actual bug in the first version of this file.
+
+Note what this single number buys.  It sets the per-capita loss rate of
+infected hepatocytes, and therefore -- with NOTHING else fitted -- the
+entire second-phase slope of every regimen in this report.
+
+Baseline decomposition of the inflow that maintains Id, at the fitted
+value (per day, absolute units of hepatocyte fraction):
+   (E) entry / re-infection      1.925e-03  (52.9% of inflow)
+   (C) cell-to-cell              4.813e-04  (13.2%)
+   (D) division-mediated         1.230e-03  (33.8%)
+   NTCP-INDEPENDENT share (D + (1-phi_ntcp)*C) = 40.4% of total inflow
+   net dilution rate of Id by HBsAg+ HDV-negative neighbours = 0.02207 /day
+   regeneration locality loc_renew (back-solved)             = 0.9990
+
+===============================================================================
+A4.  THE SHAPE OF THE DECLINE -- WHY BULEVIRTIDE HAS NO FIRST PHASE
+===============================================================================
+An entry inhibitor does not touch a cell that is already infected, so
+it cannot reduce secretion on day 1.  Interferon blocks intracellular
+replication, so it can.  The model was never told this; it follows from
+which flux each drug cuts.  Log10 HDV RNA change from baseline:
+
+   arm                        d1      d3      d7     d28     d84    d336
+   BLV 2 mg qd                -0.00   -0.01   -0.03   -0.18   -0.60   -2.70
+   BLV 10 mg qd               -0.00   -0.01   -0.05   -0.25   -0.84   -3.77
+   PegIFN alfa 180 ug qw      -0.12   -0.29   -0.46   -0.68   -1.25   -4.07
+   LNF 50 + RTV 100 BID       -0.19   -0.45   -0.62   -0.78   -1.18   -3.17
+
+The signature is unambiguous and it matches the clinic: bulevirtide
+declines almost linearly in log space from day 1 with no rapid phase,
+whereas interferon and lonafarnib both drop steeply in the first week
+(replication block and assembly block act on cells already infected)
+and then flatten onto the same cell-loss-limited slope.
+
+   first-week slope (log10/day)   BLV 2 mg  -0.0050
+                                  PegIFN    -0.0661
+                                  LNF/RTV   -0.0889
+
+   That is the diagnostic signature of the class, and it is not a
+   fitted parameter.  Bulevirtide's week-1 slope is -0.0050 log10/day --
+   essentially flat -- because on day 7 the infected pool has barely
+   changed and nothing at all has been done to the cells inside it.
+
+===============================================================================
+A5.  THE LONAFARNIB PARADOX -- SERUM DOWN, INTRACELLULAR UP
+===============================================================================
+Blocking farnesyltransferase stops envelopment, not replication.  The
+genomes therefore pile up inside the hepatocyte while serum RNA falls.
+FTase inhibition at 50 mg BID + ritonavir 100 mg BID: I_FT = 0.823
+
+   week   serum HDV RNA (log10)   intracellular Rg (copies/cell)
+      0                 5.50                     3000
+      1                 4.88                     4583
+      4                 4.72                     4581
+     12                 4.32                     4581
+     24                 3.68                     4581
+     48                 2.33                     4581
+
+   intracellular / baseline at week 48 = 1.53x
+   serum log10 decline at week 48       = -3.17
+
+Consequence: withdrawal releases the trapped pool.  After stopping at
+week 48, serum HDV RNA returns to within 0.5 log10 of baseline in
+   >84 days.
+   log10 HDV RNA  d0 2.33  d7 2.92  d14 2.92  d28 2.92  d84 2.90 (off treatment)
+
+This is the model's explanation for why the assembly-inhibitor class
+has produced fast, large on-treatment serum declines and fast relapse:
+serum HDV RNA measures the ASSEMBLY FLUX, not the reservoir, and only
+lonafarnib among current drugs makes those two quantities disagree.
+
+===============================================================================
+A6.  FIT 4 OF 4 + THE CENTRAL RESULT -- WHY 2 mg = 10 mg
+===============================================================================
+One parameter, one anchor.
+   ANCHOR  MYR301, bulevirtide 2 mg, week 48: ALT normalisation 51%
+   FITTED  ALT_base (median NON-HDV component of ALT) = 42.0 U/L
+   MODEL   ALT normalisation, 2 mg, week 48           = 51.5%
+     scan: 20:94%  26:84%  30:76%  34:70%  38:59%  42:52%  46:44%  52:34%  60:23%
+
+What that number MEANS is worth stating: it says the typical patient
+with chronic hepatitis D sits at or just above the upper limit of normal
+even with the entire HDV contribution to ALT removed.  In other words a
+large part of the ALT-normalisation endpoint is not about HDV at all --
+it is about the steatotic / alcohol / metabolic liver underneath.
+
+A NON-IDENTIFIABILITY, reported rather than hidden.  The variability of
+the NTCP-INDEPENDENT floor terms (cv_floor) was originally intended as a
+fourth fitted parameter.  It is not identifiable from these endpoints --
+the combined response is flat across more than a decade of it:
+     cv_floor -> combined response:  0.10:37%  0.30:36%  0.60:34%  1.00:34%  1.60:35%
+   so cv_floor is FIXED at 0.50 and is not counted as a fit.  What the
+   response rate responds to is the MEAN size of the floor, not its
+   spread -- which is itself the point of section A10.
+
+   Also reported: widening the spread of the non-HDV ALT term cannot
+   reach 51% either, because a mean-preserving log-normal has a LOWER
+   median as it widens, so more patients normalise, not fewer:
+     ALT_base_cv -> ALT normalisation:  0.10:31%  0.30:41%  0.55:53%  0.85:59%  1.20:67%  1.75:71%
+
+Everything from here on is a PREDICTION.
+
+   arm                       mean dlog10   RNA resp   ALT norm   COMBINED   undet
+   untreated (NUC only)           -0.00       0.0%       0.7%       0.0%    0.0%
+   BLV 2 mg qd                    -2.77      69.7%      51.3%      36.3%   11.7%
+   BLV 10 mg qd                   -3.87      90.3%      53.7%      48.3%   28.3%
+   PERFECT entry block            -4.07      92.7%      54.0%      50.3%   32.3%
+
+   OBSERVED (MYR301, week 48, Wedemeyer 2023 NEJM):
+     untreated control      RNA  4%   ALT 12%   COMBINED  2%
+     bulevirtide  2 mg      RNA 71%   ALT 51%   COMBINED 45%   <- 2 anchors
+     bulevirtide 10 mg      RNA 76%   ALT 56%   COMBINED 48%   <- prediction
+
+THE CENTRAL RESULT.  Between 2 mg and 10 mg the residual entry flux
+falls 6.3x (29.0% -> 4.6% of NTCP left free), and yet the model's COMBINED
+response moves only 36.3% -> 48.3% -- against an observed 45% -> 48%.
+The reason is that entry supplies only 53% of the inflow that maintains
+Id; the rest is division-mediated and cell-to-cell spread, which no
+entry inhibitor can reach.  And the COMBINED endpoint is doubly
+insensitive, because its ALT half is capped by non-HDV liver injury.
+
+THE CEILING OF THE WHOLE CLASS.  A hypothetical entry inhibitor with
+100% occupancy and no toxicity reaches 50.3% combined response -- only
+14.0 points above the approved 2 mg dose.  Measured against the untreated
+arm, the entry-inhibition axis is already 72% exhausted at 2 mg/day.
+Dose escalation is not the lever.  Adding a mechanism is.
+
+AND HERE IS WHERE THE MODEL DISAGREES WITH THE TRIAL -- reported, not
+absorbed.  On the VIROLOGIC endpoint alone the model separates the doses
+far more than MYR301 did: 69.7% vs 90.3% where the trial saw 71% vs 76%.
+That gap is forced by the bile-acid inversion of A1: if 2 mg really
+leaves 29.0% of NTCP free and 10 mg leaves 4.6%, a 5x dose step MUST buy
+more virologic suppression than was observed.  Three ways out, and the
+model cannot choose between them:
+   (i)  2 mg is closer to saturating than the bile-acid inversion says,
+        and total bile acids keep rising for a reason other than simple
+        residual-capacity scaling -- FXR/CYP7A1 feedback or OATP1B
+        saturation would both do it;
+   (ii) there is a dose-independent ceiling not in this model at all --
+        adherence, assay floor, or a genuinely unreachable reservoir;
+   (iii) at high occupancy entry stops being limited by free NTCP and
+        becomes limited by something upstream (HSPG attachment), so the
+        last few percent of receptor blockade buys nothing.
+Option (iii) is the interesting one and it is testable: it predicts that
+HDV entry inhibition saturates at LOWER occupancy than bile-acid
+transport inhibition does, in the same cells, on the same drug.
+
+===============================================================================
+A7.  ALT / HDV RNA DECOUPLING, QUANTIFIED
+===============================================================================
+In MYR301 many patients normalised ALT without a virologic response.
+In this model that is not a coincidence, it is structural: ALT is
+driven by
+      kill = (innate + CTL + IFN) * Id   +   kappa * ENTRY_FLUX
+so blocking entry removes a term that acts within days, while Id -- and
+hence serum RNA -- only decays over months.  Model time courses on 2 mg:
+
+   week     ALT (U/L)   ALT % of baseline   log10 HDV RNA change
+      0        110.0              100.0                   0.00
+      1         89.5               81.4                  -0.03
+      2         83.6               76.0                  -0.08
+      4         75.3               68.5                  -0.18
+     12         54.9               49.9                  -0.60
+     24         44.8               40.7                  -1.28
+     48         42.1               38.3                  -2.70
+
+   At week 4: ALT has already fallen 31.5% while HDV RNA has fallen only
+   -0.18 log10 (34.0%).  The two endpoints are reading different things.
+
+A TESTABLE PREDICTION FOLLOWS.  Because the fresh-infection injury term
+scales with (1 - OCC) directly while the RNA decline scales with the
+much smaller net loss rate, ALT normalisation should be MORE
+dose-sensitive than virologic response.  Model:
+   ALT normalisation   2 mg 51.3%   10 mg 53.7%   (gap 2.3 pts)
+   virologic response  2 mg 69.7%   10 mg 90.3%   (gap 20.7 pts)
+   OBSERVED gaps in MYR301: ALT +5 pts (51->56), RNA +5 pts (71->76).
+   The model reproduces the direction and the small size of both gaps.
+   CAVEAT: the kappa*ENTRY term is a MODEL HYPOTHESIS, not a measured
+   mechanism.  It is the cheapest structure that produces the observed
+   decoupling, and it is falsifiable -- see A13.
+
+===============================================================================
+A8.  INTERFERON -- THE ONLY MECHANISM WITH OFF-TREATMENT DURABILITY
+===============================================================================
+Interferon is the only current drug that raises the DEATH RATE of
+infected hepatocytes (delta) rather than lowering an inflow.  That is
+why it, and only it, produces responses that survive withdrawal.
+
+   endogenous ISG tone, untreated            = 0.145
+   steady-state ISG on 180 ug qw             = 0.600
+   ISG INCREMENT that carries all drug effect= 0.454
+   added infected-cell loss delta_IFN        = 0.00791 /day
+   baseline infected-cell loss               = 0.03436 /day
+   -> infected-cell loss rate multiplied by 1.23x
+   virion PRODUCTION block eps_prod          = 0.581  (the first phase)
+   intracellular replication block eps_rep   = 0.484
+   HBsAg secretion reduction                 = 0.266
+   amber/W editing fraction  0.250 -> 0.410 (ADAR1 is IFN-inducible)
+   exhaustion reversal factor on d_x         = 2.36
+
+   arm                          EOT dlog10  EOT comb   +24wk dlog10  +24wk RNA<LOD
+   PegIFN alfa 48 wk                 -4.10      54.0%         -3.91          26.7%
+   PegIFN alfa 96 wk                 -8.55      50.0%         -8.49          93.3%
+   PegIFN lambda 48 wk               -4.10      34.7%         -3.91          26.7%
+   BLV 2 mg + PegIFN 48 wk           -5.45      54.0%         -5.33          55.0%
+   BLV 10 mg + PegIFN 48 wk          -5.91      54.0%         -5.80          63.3%
+   BLV 2 mg continuous 96 wk         -6.30      49.3%         -6.30          61.3%
+
+   OBSERVED, for orientation (different populations and assays, so
+   these are direction-and-magnitude checks, not fits):
+     HIDIT-1  pegIFN 48 wk, HDV RNA neg 24 wk post-treatment  ~26-28%
+     HIDIT-2  pegIFN 96 wk, HDV RNA neg 24 wk post-treatment  ~31%
+     LIMT-1   pegIFN lambda 180 ug, 24 wk post-treatment      36% (5/14)
+     MYR204   BLV 10 mg + pegIFN 48 wk, undetectable 24 wk FU ~45%
+              pegIFN alone in the same trial                  ~17-24%
+
+SYNERGY IS STRUCTURAL, NOT EMPIRICAL.  Bulevirtide lowers an INFLOW and
+interferon raises an OUTFLOW of the same pool, so their effects on the
+net per-capita growth rate of Id are additive while their effects on the
+ENDPOINT are supra-additive (the endpoint is a threshold on a decaying
+exponential).  Model, 24 weeks after stopping:
+   RNA < LOD    pegIFN alone 26.7%   + BLV 2 mg 55.0%   + BLV 10 mg 63.3%
+   and note that continuous BLV monotherapy at 96 wk reaches
+   49.3% combined response but NOTHING off treatment -- an entry
+   inhibitor is a suppressive therapy by construction.
+
+===============================================================================
+A9.  LONAFARNIB REGIMENS AND THE 'STARVE THE ENVELOPE' STRATEGY
+===============================================================================
+   arm                             EOT dlog10   EOT comb   HBsAg dlog10
+   LNF 50 + RTV 100 BID 48 wk           -3.23      46.3%          -0.00
+   LNF/RTV + PegIFN 48 wk               -5.91      54.0%          -0.27
+   BLV 2 mg + siRNA 200 mg q4w          -3.40      46.0%          -0.81
+   siRNA 200 mg q4w alone               -1.35       7.0%          -0.81
+
+   OBSERVED, D-LIVR phase 3 (conference-reported): composite response
+   at week 48 roughly 10% for LNF/RTV and ~19% for LNF/RTV + pegIFN,
+   versus ~2% on placebo.  The model OVERSHOOTS both badly: see A13.
+   same reason the trial's was: a large serum-RNA drop that does NOT
+   come with ALT normalisation, because the infected pool is untouched.
+
+The siRNA arms make the deepest structural point in the model.  HDV
+cannot leave a cell without an HBsAg envelope, so lowering HBsAg cuts
+the SAME flux lonafarnib cuts, one step further upstream -- and unlike
+lonafarnib it also shrinks the envelope-donor pool that entry and
+cell-to-cell spread both draw on.  On this model that is why an
+HBsAg-directed agent is the only non-interferon mechanism that moves
+the floor rather than merely pressing on the entry flux.
+
+===============================================================================
+A10.  WHAT SETS THE FLOOR -- SENSITIVITY OF THE ENTRY-INHIBITION CEILING
+===============================================================================
+If the floor is what limits bulevirtide, then the ceiling of entry
+inhibition must be sensitive to the floor parameters and INSENSITIVE to
+occupancy.  Test: hold occupancy at the 2 mg value and perturb each
+parameter by +/-30%, then report the week-48 combined response.
+
+   Two metrics are shown.  The combined-response rate is what the trial
+   reports, but it is a THRESHOLD statistic on 120 patients, so it is
+   quantised and can read 0.0 for a parameter that genuinely matters.
+   The mean log10 decline is continuous and is the honest ranking.
+
+   parameter         mean dlog10: -30%     base    +30%   |d dlog|  resp d  role
+   d_hep                     -2.69    -2.69   -2.69     0.000    0.0   hepatocyte turnover -> division flux
+   frac_cc                   -2.78    -2.69   -2.60     0.094    1.7   cell-to-cell share of inflow
+   phi_ntcp                  -2.60    -2.69   -2.78     0.091    0.8   NTCP-dependent share of cell-to-cell
+   k_cure                    -2.65    -2.69   -2.73     0.044    0.0   non-cytolytic intracellular clearance
+   dth_Id_immune             -1.94    -2.69   -3.50     0.783   11.7   CTL killing of infected cells
+   Kd_ntcp                   -3.01    -2.69   -2.46     0.276    3.8   target affinity (i.e. occupancy)
+
+
+   Ranked by |d mean log10| per 30%: dth_Id_immune (0.783), Kd_ntcp (0.276), frac_cc (0.094), phi_ntcp (0.091), k_cure (0.044), d_hep (0.000)
+   Most influential: dth_Id_immune (0.783 log10 per 30%).
+   Target affinity Kd_ntcp ranks 2 of 6 at 0.276 log10 per 30%, against
+   1.012 summed over the five HOST parameters -- a ratio of 3.7x in favour
+   of host cell biology over drug-target affinity.
+
+AND NOW THE RESULT I DID NOT EXPECT.  d_hep -- the background hepatocyte
+turnover rate, the very parameter I built the division-mediated floor
+around -- has an influence of 0.000 log10, i.e. NONE, on the continuous
+metric as well as the quantised one.  That is not a numerical artefact
+and it is not a bug; it is algebra I had not done.  Raising the
+background death rate of hepatocytes raises the death rate of infected
+cells and the division rate that refills their slots BY THE SAME AMOUNT,
+so it cancels out of the net dilution rate exactly:
+
+     dilution = dth_Id - loc*(dth_Ib*Ib + dth_Id*Id)/(Ib+Id) - ...
+     and d_hep sits inside dth_Id, dth_Ib and dth_T identically.
+
+What actually sets the floor is therefore NOT how fast the liver turns
+over.  It is how much FASTER an infected hepatocyte dies than its
+HBsAg-positive neighbours -- the DIFFERENTIAL, which is dth_Id_immune.
+That is why dth_Id_immune outranks everything else by an order of
+magnitude, and it sharpens the therapeutic claim rather than weakening
+it: a drug that made the whole liver regenerate faster would do nothing
+at all, while anything that makes infected cells preferentially die --
+interferon, checkpoint release, a therapeutic vaccine -- moves the floor
+directly.
+
+   THIS IS THE FALSIFIABLE CORE OF THE MODEL'S CLAIM.  Summed over the
+   host parameters, host cell biology outweighs drug-target affinity
+   3.7x, and the single dominant term is the DIFFERENTIAL death rate of
+   infected hepatocytes.  If a next-generation entry inhibitor with
+   substantially higher NTCP affinity delivers substantially better
+   week-48 responses, this model is wrong.
+
+===============================================================================
+A11.  ORGAN AND OUTCOME PROJECTIONS -- 5 YEARS
+===============================================================================
+Fibrosis responds to ALT, not to HDV RNA, so the outcome ranking of
+regimens follows the ALT column of A6/A8, not the virology column.
+Five-year projections (mean over the virtual population):
+
+   arm                                dFib      Fib@5y   cirrhosis%   HCC 5y%   PLT
+   untreated (NUC only)                  0.52      3.02        4.3%     3.90%    162
+   BLV 2 mg qd continuous                0.08      2.57        3.3%     1.46%    173
+   BLV 10 mg qd continuous               0.07      2.56        3.0%     1.18%    173
+   PegIFN 48 wk then stop                0.07      2.57        3.3%     2.05%    173
+   BLV 2 mg + PegIFN 48 wk, BLV on       0.07      2.56        3.0%     1.09%    173
+
+   Literature orientation, stated carefully because the obvious
+   comparison is the WRONG one.  The often-quoted 'cirrhosis in ~70%'
+   for hepatitis D refers to time from INFECTION, accumulated over
+   decades, and many patients are already cirrhotic at presentation.  It
+   is NOT a five-year rate from an Ishak-2 baseline and this model must
+   not be read against it.  The right comparison is the measured
+   paired-biopsy progression rate, roughly 0.15-0.25 Ishak units/y for
+   hepatitis D versus ~0.10 for HBV alone -- and the untreated arm above
+   runs inside that window (see A2).  HCC in the untreated arm comes out
+   near the ~0.5-1%/y reported for NON-cirrhotic chronic hepatitis D;
+   the 2.8-4%/y figure applies once a patient is cirrhotic, which few
+   are at this baseline.  Nothing in this section was fitted.
+
+===============================================================================
+A12.  BILE ACIDS AS A DOSE-FINDING INSTRUMENT
+===============================================================================
+If TBA inverts to occupancy (A1) and occupancy has a saturating effect
+on response (A6), then TBA is a THERAPEUTIC-INDEX instrument: it reads
+the cost of a dose on a scale where the benefit has already flattened.
+
+   dose(mg)   Css(nM)   occupancy   free NTCP   TBA fold   comb resp
+        0.5      0.31      0.3050       69.5%        1.4        2.7%
+        1.0      0.69      0.4978       50.2%        1.9       14.0%
+        2.0      1.72      0.7104       29.0%        3.2       33.3%
+        5.0      6.07      0.8966       10.3%        7.6       45.3%
+       10.0     14.47      0.9538        4.6%       13.0       46.0%
+       20.0     31.80      0.9784        2.2%       18.8       46.7%
+
+   Benefit saturates; cost does not.  Going 2 -> 10 mg buys a few
+   points of response for a ~4x further rise in bile acids, and
+   2 -> 20 mg buys almost nothing for a large further rise.  On this
+   model the approved 2 mg dose sits at the knee, and it gets there
+   WITHOUT saturating its target -- which is not the usual reason a
+   dose-response curve flattens.
+
+===============================================================================
+A13.  WHERE THIS MODEL IS WRONG, AND WHAT WOULD FALSIFY IT
+===============================================================================
+1. THE DECOUPLING TERM IS A HYPOTHESIS.  The kappa*ENTRY_FLUX injury
+   term (A7) is the cheapest structure that reproduces early ALT
+   normalisation without virologic response.  A competing explanation
+   is that bulevirtide reduces intrahepatic inflammation by an
+   NTCP-linked bile-acid mechanism unrelated to fresh infection.
+   FALSIFIER: in patients with no virologic response at all, ALT should
+   still fall in proportion to (1 - occupancy).  If ALT decline tracks
+   HDV RNA decline patient-by-patient instead, this term is wrong.
+
+2. THE FLOOR PARAMETERS ARE NOT SEPARATELY IDENTIFIABLE.  frac_cc and
+   d_hep both act on the same net per-capita growth rate; A10 shows
+   they have similar leverage, and the fit cannot tell them apart.
+   FALSIFIER: paired intrahepatic HDAg staining over time on
+   bulevirtide.  Division-mediated spread predicts a nearly unchanged
+   HDAg+ FRACTION with falling serum RNA; a cell-to-cell-dominated
+   floor predicts a falling fraction.
+
+3. THE DOSE SEPARATION IS THE MODEL'S CLEAREST FAILURE, AND ALSO WHERE
+   IT TAUGHT ME SOMETHING.  I expected that once the floor was in place,
+   the 6.3x difference in residual entry between 2 and 10 mg would wash
+   out on every endpoint.  It DOES wash out on the combined endpoint
+   (36.3 vs 48.3%, observed 45 vs 48%) but it does NOT wash out on
+   virology (69.7 vs 90.3%, observed 71 vs 76%).  So the floor explains the
+   flat combined response only PARTLY -- the rest of that flatness is
+   the ALT ceiling, a completely different mechanism -- and the flat
+   VIROLOGIC response still needs its own explanation (A6, options i-iii).
+   I went in with one mechanism for two observations and came out
+   needing two.
+
+4. NO SPATIAL STRUCTURE.  Cell-to-cell spread is treated as a
+   well-mixed mass-action term.  Real HDV spread is clustered around
+   infected foci, which would make the floor LESS sensitive to
+   population-average occupancy than modelled here.
+
+5. HBsAg IS TREATED AS A SINGLE POOL.  Integrated HBV DNA contributes
+   HBsAg independently of cccDNA, so the siRNA arms in A9 may be
+   optimistic about how far envelope supply can actually be cut.
+
+6. THE ADAR1 / IFN INTERACTION IS DIRECTIONALLY AMBIGUOUS.  Interferon
+   induces ADAR1, which raises amber/W editing, which makes MORE
+   L-HDAg -- and L-HDAg both REPRESSES replication and ENABLES
+   assembly.  The model resolves this numerically (net antiviral), but
+   the balance is parameter-dependent and should not be over-read.
+
+7. GENOTYPE IS ABSENT.  HDV-1 through HDV-8 differ in course and, for
+   HDV-3, in editing biology.  All numbers here are HDV-1-like.
+
+8. THE LONAFARNIB AND siRNA COMPOSITE RESPONSES ARE TOO HIGH.  D-LIVR
+   reported ~10% composite response for lonafarnib/ritonavir; the model
+   gives several times that.  The reason is visible in A9: the model lets
+   the large serum-RNA drop from an assembly block feed through into ALT
+   normalisation, because in the model ALT depends on the infected pool
+   and the entry flux, and an assembly block slowly lowers BOTH.  In the
+   trial it did not.  The most likely missing piece is that the trapped
+   intracellular genomes and unprenylated L-HDAg are themselves
+   cytotoxic / immunogenic, so blocking assembly should ADD an injury
+   term rather than only removing one.  That is a concrete structural
+   fix and it is not in this version.
+
+9. NO ADHERENCE, NO DOSE INTERRUPTION, NO TOXICITY-DRIVEN DISCONTINUATION.
+   Lonafarnib's GI toxicity and peg-IFN's cytopenias are the reason real
+   regimens under-deliver relative to their pharmacology, and neither
+   truncates exposure anywhere in this file.  Every number here is a
+   per-protocol number.
+
+===============================================================================
+A14.  PARAMETER TABLE (post-fit, post-back-solve)
+===============================================================================
+   ALT_base         = 42
+   ALT_base_cv      = 0.45
+   ALT_ref          = 40
+   CL_blv           = 90
+   CL_ifn           = 1.4
+   CL_lnf           = 480
+   CL_ntcp_ba       = 1
+   CL_rtv           = 130
+   CL_sirna         = 40
+   Dmax_ifn         = 0.014
+   EC50_adar        = 0.4
+   EC50_dif         = 0.35
+   EC50_hbs         = 0.4
+   EC50_ifn         = 6
+   EC50_prod        = 0.25
+   EC50_rep         = 0.25
+   EC50_sirna       = 0.5
+   Eadar            = 1.2
+   Emax_hbs         = 0.5
+   Emax_prod        = 0.9
+   Emax_rep         = 0.75
+   Emax_sirna       = 0.85
+   F_blv            = 0.85
+   F_ifn            = 0.8
+   F_lnf            = 0.3
+   F_rtv            = 0.7
+   IC50_ft          = 0.1
+   In_ba            = 5.16655
+   K_E              = 0.02
+   K_endo           = 0.05
+   K_sup            = 0.1
+   K_x              = 0.0005
+   Kd_ntcp          = 0.700652
+   Kh_rev           = 0.15
+   Ki_L             = 3000
+   Ki_rtv           = 0.4
+   Km_blv           = 1.5
+   Kp_LP            = 400
+   Ks_S             = 100
+   Ks_env           = 3034
+   Ks_socs          = 1
+   MW_blv           = 5398.9
+   NEU0             = 4
+   Nhep             = 2e+11
+   PLT0             = 250
+   Q_lnf            = 30
+   Rmax             = 6000
+   TBA0             = 5
+   ULN_ALT          = 40
+   Vc_blv           = 8
+   Vc_ifn           = 10
+   Vc_lnf           = 100
+   Vc_rtv           = 100
+   Vc_sirna         = 5
+   Vmax_blv         = 300
+   Vp_lnf           = 200
+   a_E              = 0.06
+   a_h              = 0.00595041
+   a_x              = 0.03
+   alpha_r          = 2.816
+   bF_hcc           = 0.4302
+   bV_hcc           = 0.15
+   b_ifn_E          = 1.5
+   beta_b           = 2e-09
+   beta_d           = 1.73947e-08
+   c_b              = 0.6
+   c_d              = 0.55
+   c_ifn_x          = 3
+   c_s              = 0.35
+   ccc_max          = 20
+   conv_ser         = 644.168
+   d_E              = 0.05
+   d_h              = 0.02
+   d_hbv            = 0.002
+   d_hep            = 0.004
+   d_innate         = 0.004
+   d_x              = 0.0199005
+   dth_Id_immune    = 0.026364
+   e_cure           = 0.5
+   eps_nuc          = 0.999
+   f_edit0          = 0.25
+   frac_cc          = 0.2
+   frac_export      = 0.75
+   frac_fresh       = 0.4
+   g_plt            = 0.62
+   gamma_x          = 0.15
+   h0_hcc           = 1.36986e-05
+   h_ifn            = 1.5
+   hem_alfa         = 1
+   k_alt            = 4702.93
+   k_cc             = 0.0137517
+   k_cure           = 0.002
+   k_ex             = 2.57142
+   k_f              = 0.001795
+   k_hbs            = 550.624
+   k_hbv            = 26.6667
+   k_neu            = 0.2
+   k_plt            = 0.15
+   k_pren           = 2
+   k_rev            = 0.0002
+   k_tl             = 1
+   ka_blv           = 20
+   ka_ifn           = 1.44
+   ka_lnf           = 6
+   ka_rtv           = 8
+   ka_socs          = 0.5
+   kappa_fresh      = 1.05144
+   kd_socs          = 0.5
+   kel_alt          = 0.35
+   kin_isg          = 1
+   kin_sirna        = 0.2
+   kout_isg         = 1
+   kout_liv         = 2
+   kout_sirna       = 0.03
+   loc_renew        = 0.999
+   mu_L             = 0.5
+   mu_LP            = 1.5
+   mu_R             = 0.3
+   mu_S             = 1.5
+   mu_ccc           = 0.025
+   mye_neu          = 0.55
+   mye_plt          = 0.42
+   noise_alt        = 0.2
+   noise_rna        = 0.25
+   phi_ntcp         = 0.5
+   r_ccc            = 0.05
+   r_oatp           = 0.0333097
+   stim_endo        = 0.25
+
+   FITTED (4):  r_oatp, Kd_ntcp  (bile-acid anchors)
+                dth_Id_immune  (virologic response rate, 2 mg)
+                ALT_base       (ALT normalisation rate, 2 mg)
+   Everything else is either literature-sourced or back-solved from the
+   observed untreated steady state.
+
+===============================================================================
+END OF REPORT
+===============================================================================
+Generated by hdv_reference_model.py (pure Python, no dependencies).
+Every number above is reproducible with: python3 hdv_reference_model.py

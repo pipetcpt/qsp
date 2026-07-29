@@ -1,0 +1,569 @@
+/* =========================================================================
+   CHRONIC HEPATITIS D (HDV) — QSP MECHANISTIC MAP
+   -------------------------------------------------------------------------
+   hdv_qsp_model.dot      render:  dot -Tsvg hdv_qsp_model.dot -o hdv_qsp_model.svg
+                                   dot -Tpng -Gdpi=150 hdv_qsp_model.dot -o hdv_qsp_model.png
+
+   THE ORGANISING IDEA OF THIS MAP
+   -------------------------------
+   HDV is not "one virus to be killed".  It is a TWO-SUBSTRATE ASSEMBLY LINE:
+
+       substrate 1  HDV genome   — made by the HOST (RNA Pol II, rolling
+                                    circle) inside the hepatocyte, entirely
+                                    independent of HBV replication
+       substrate 2  HBsAg envelope — made by HBV cccDNA, in the SAME cell or
+                                    supplied by the surrounding HBsAg+ pool
+
+   Therefore every therapy in this map is placed on the flux it cuts, not on
+   its potency.  Three fluxes maintain the infected-hepatocyte pool Id:
+
+       (E)  ENTRY / RE-INFECTION      NTCP-dependent   -> bulevirtide
+       (A)  ENVELOPMENT / EGRESS      FTase + HBsAg    -> lonafarnib, siRNA/NAP
+       (C)  INTRACELLULAR + CELL LOSS Pol II + immune  -> interferon alfa/lambda
+
+   and two of them — CELL DIVISION and CELL-TO-CELL SPREAD (cluster 7) — are
+   NTCP-INDEPENDENT.  That is the floor an entry inhibitor cannot cross, and
+   it is drawn deliberately as a thick red feedback loop.
+
+   Edge colour convention
+       black      constitutive / physiological flux
+       firebrick  pathogenic amplification
+       darkgreen  drug / therapeutic inhibition (tee arrowhead = block)
+       navy       immune effector action
+       purple     off-target / toxicity consequence
+       gray50     measurement / biomarker read-out
+   ========================================================================= */
+
+digraph HDV_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.30, ranksep=0.60,
+           fontname="Helvetica", fontsize=11, compound=true,
+           label=<<B>Chronic Hepatitis D (HDV) — Quantitative Systems Pharmacology Map</B><BR/>
+                  <I>two-substrate assembly line: host-made genome × HBV-made envelope · 18 clusters · 168 nodes</I><BR/>
+                  <FONT POINT-SIZE="9">therapies placed on the flux they cut — entry (bulevirtide) · envelopment (lonafarnib, siRNA/NAP) · intracellular + infected-cell loss (IFN-α/λ)</FONT>>,
+           labelloc=t, fontcolor="#111111", bgcolor=white];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+           fillcolor="#f7f7f7", color="#666666", penwidth=1.0, margin="0.08,0.05"];
+    edge  [fontname="Helvetica", fontsize=8, color="#555555", arrowsize=0.7];
+
+    /* ===================================================================
+       1. EPIDEMIOLOGY, GENOTYPE, ROUTE
+       =================================================================== */
+    subgraph cluster_epi {
+        label="① 역학·유전형 (Epidemiology · Genotype · Route)";
+        style="rounded,filled"; fillcolor="#eef4fb"; color="#4a76a8"; fontsize=12; fontcolor="#24486e";
+        HBsAg_pool   [label="HBsAg-positive population\n~254 M globally", fillcolor="#dce8f6"];
+        HDV_prev     [label="Anti-HDV+ among HBsAg+\n~4.5–5% (12–72 M)", fillcolor="#dce8f6"];
+        coinf        [label="Co-infection\nHBV + HDV simultaneously\n(mostly self-limiting)"];
+        superinf     [label="Super-infection\nHDV onto chronic HBsAg+ carrier\n(→ 80–90% chronicity)", fillcolor="#f9dede"];
+        GT1          [label="Genotype 1\nworldwide, moderate–severe"];
+        GT2_4        [label="Genotype 2 / 4\nEast Asia, milder course"];
+        GT3          [label="Genotype 3\nAmazon basin, fulminant", fillcolor="#f9dede"];
+        GT5_8        [label="Genotype 5–8\nWest / Central Africa"];
+        route        [label="Parenteral · sexual · PWID\nvertical (rare)"];
+        risk_grp     [label="Risk groups\nPWID · migrants from endemic areas\nHIV / HCV co-infection"];
+    }
+
+    /* ===================================================================
+       2. ENTRY — NTCP AXIS
+       =================================================================== */
+    subgraph cluster_entry {
+        label="② 세포 진입 (Entry: HSPG → NTCP/SLC10A1 → endocytosis)";
+        style="rounded,filled"; fillcolor="#f0f7f0"; color="#4a8a4a"; fontsize=12; fontcolor="#255025";
+        virion       [label="HDV virion\n36 nm · HBsAg envelope\n+ HDV RNP core", fillcolor="#f9dede"];
+        preS1        [label="HBsAg large protein\npreS1 2–48 (myristoylated)", fillcolor="#f9dede"];
+        HSPG         [label="Heparan sulfate proteoglycan\nglypican-5 — low-affinity attachment"];
+        NTCP         [label="NTCP / SLC10A1\nNa⁺-taurocholate cotransporter\nhigh-affinity receptor", fillcolor="#cfe6cf", penwidth=2.2];
+        NTCP_free    [label="FREE NTCP fraction\n(1 − occupancy)\n= rate-limiting for entry", fillcolor="#cfe6cf", shape=box, penwidth=2.0];
+        endocyt      [label="Clathrin/caveolin-dependent\nendocytosis"];
+        endosome     [label="Endosomal trafficking\npH-independent fusion"];
+        RNP_import   [label="RNP nuclear import\nHDAg NLS + importin-α"];
+        nucleus      [label="Hepatocyte nucleus\n(replication site)", shape=box3d, fillcolor="#e8e8f5"];
+    }
+
+    /* ===================================================================
+       3. INTRACELLULAR REPLICATION
+       =================================================================== */
+    subgraph cluster_repl {
+        label="③ 세포내 복제 (Host Pol II rolling-circle replication)";
+        style="rounded,filled"; fillcolor="#fdf4ec"; color="#c07a30"; fontsize=12; fontcolor="#7a4a15";
+        genome       [label="HDV genomic RNA\n1.7 kb circular, negative sense\nrod-like 70% base-paired", fillcolor="#f9e7d2", penwidth=2.0];
+        antigenome   [label="HDV antigenomic RNA\nreplication intermediate"];
+        Pol2         [label="Host RNA polymerase II\n(no viral polymerase!)", fillcolor="#f9e7d2", penwidth=2.0];
+        rollcirc     [label="Double rolling-circle\nreplication"];
+        ribozyme     [label="Self-cleaving ribozyme\ngenomic + antigenomic"];
+        ligase       [label="Host RNA ligase\ncircularisation"];
+        mRNA_HDAg    [label="0.8 kb HDAg mRNA\n(only viral mRNA)"];
+        SHDAg        [label="S-HDAg (p24)\n195 aa — REQUIRED for replication", fillcolor="#f9e7d2"];
+        ADAR1        [label="ADAR1-L (IFN-inducible)\nA→I editing of amber/W site", fillcolor="#f9e7d2", penwidth=2.0];
+        edit_site    [label="Amber/W UAG → UGG\nreadthrough +19 aa"];
+        LHDAg        [label="L-HDAg (p27)\n214 aa — CXXQ farnesylation motif", fillcolor="#f9e7d2"];
+        Lrepr        [label="L-HDAg represses replication\n(trans-dominant negative)", fillcolor="#e8e8f5"];
+        RNAcopies    [label="Intracellular HDV RNA\n~10³–10⁵ copies / cell", shape=box, fillcolor="#fff2cc"];
+        no_HBV_dep   [label="HDV replication is\nINDEPENDENT of HBV\n(NUCs do not touch it)", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       4. PRENYLATION AND ASSEMBLY
+       =================================================================== */
+    subgraph cluster_pren {
+        label="④ 프레닐화·조립 (Prenylation → envelopment → egress)";
+        style="rounded,filled"; fillcolor="#f5eef8"; color="#7d4a9a"; fontsize=12; fontcolor="#4d2662";
+        FTase        [label="Farnesyltransferase (FTase)\nFNTA/FNTB", fillcolor="#e6d6f0", penwidth=2.0];
+        FPP          [label="Farnesyl pyrophosphate\n(mevalonate pathway)"];
+        LHDAg_P      [label="Prenylated L-HDAg\nCys²¹¹-farnesyl\nASSEMBLY-COMPETENT", fillcolor="#e6d6f0", penwidth=2.2];
+        RNP          [label="HDV ribonucleoprotein\nRNA + ~200 HDAg copies"];
+        S_HBsAg_int  [label="Intracellular HBsAg\n(S protein dominant)", fillcolor="#f9dede"];
+        assembly     [label="Envelopment at ER/Golgi\nL-HDAg farnesyl ↔ HBsAg\ncytosolic loop", penwidth=2.0];
+        MVB          [label="Multivesicular body\nESCRT-independent egress"];
+        secretion    [label="Virion secretion flux φ\n= f(RNA × prenyl-L × HBsAg)", fillcolor="#e6d6f0", penwidth=2.2];
+        trap         [label="Assembly block traps genomes\n→ intracellular RNA RISES\nwhile serum RNA FALLS", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       5. HBV SIDE — THE ENVELOPE FACTORY
+       =================================================================== */
+    subgraph cluster_hbv {
+        label="⑤ HBV — 외피 공급원 (cccDNA → HBsAg envelope supply)";
+        style="rounded,filled"; fillcolor="#fdeeee"; color="#b04a4a"; fontsize=12; fontcolor="#7a2020";
+        cccDNA       [label="HBV cccDNA\nepisomal minichromosome", fillcolor="#f9dede", penwidth=2.0];
+        integr       [label="Integrated HBV DNA\nHBsAg source independent of cccDNA", fillcolor="#f9dede"];
+        pgRNA        [label="Pregenomic RNA 3.5 kb"];
+        HBV_pol      [label="HBV polymerase / RT", fillcolor="#f9dede"];
+        HBVDNA       [label="Serum HBV DNA\n(often low / undetectable in CHD)", shape=box, fillcolor="#fff2cc"];
+        preS_mRNA    [label="preS/S mRNA 2.4 / 2.1 kb"];
+        HBsAg_S      [label="S (small) HBsAg\n→ subviral particles (SVP)", fillcolor="#f9dede"];
+        HBsAg_L      [label="L (large) HBsAg\npreS1 — infectivity determinant", fillcolor="#f9dede"];
+        SVP          [label="Subviral particles\n10³–10⁶ excess over virions"];
+        HBsAg_serum  [label="Serum HBsAg (IU/mL)\n= ENVELOPE SUPPLY", shape=box, fillcolor="#fff2cc", penwidth=2.2];
+        HDV_suppr    [label="HDV suppresses HBV\nreplication (HBV DNA ↓)", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       6. INFECTED-CELL POOLS
+       =================================================================== */
+    subgraph cluster_pools {
+        label="⑥ 간세포 풀 (Hepatocyte compartments)";
+        style="rounded,filled"; fillcolor="#eef1f7"; color="#556699"; fontsize=12; fontcolor="#33406b";
+        T_cell_pool  [label="T — HBsAg-negative\nhepatocytes", fillcolor="#e2e8f4"];
+        Ib_pool      [label="Ib — HBsAg⁺ HDV⁻\nENVELOPE DONOR pool", fillcolor="#f2e2c8", penwidth=2.0];
+        Id_pool      [label="Id — HBsAg⁺ HDV⁺\nPRODUCTIVELY co-infected", fillcolor="#f9d0d0", penwidth=2.4];
+        liver_mass   [label="Total hepatocyte number\n~2 × 10¹¹ (Nhep)"];
+        regen        [label="Compensatory regeneration\nrate rp · (1 − N/Nmax)"];
+        cure_cell    [label="Non-cytolytic intracellular\nHDV clearance (Id → Ib)", fillcolor="#dcecdc"];
+    }
+
+    /* ===================================================================
+       7. NTCP-INDEPENDENT MAINTENANCE — THE FLOOR
+       =================================================================== */
+    subgraph cluster_spread {
+        label="⑦ NTCP-비의존 유지 경로 — 진입억제제의 바닥 (The floor an entry inhibitor cannot cross)";
+        style="rounded,filled"; fillcolor="#fff0f0"; color="#c02020"; fontsize=12; fontcolor="#8a0f0f"; penwidth=2.0;
+        entry_flux   [label="(E) ENTRY FLUX\nβd · Vd · Ib · (1 − occupancy)\nNTCP-DEPENDENT", fillcolor="#ffd9d9", penwidth=2.0];
+        div_flux     [label="(D) DIVISION-MEDIATED SPREAD\nId divides → both daughters HDV⁺\nNTCP-INDEPENDENT", fillcolor="#ffb3b3", penwidth=2.6];
+        cc_flux      [label="(C) CELL-TO-CELL SPREAD\npartially NTCP-independent (1−φ)", fillcolor="#ffc6c6", penwidth=2.2];
+        persistence  [label="HDV RNA persists through\nliver regeneration (Giersch 2019)", shape=note, fillcolor="#fff2cc"];
+        floor        [label="⇒ FLOOR:  even 100% NTCP blockade\nleaves div + (1−φ)·cc intact\n⇒ plateau, not clearance", shape=note, fillcolor="#ffe0e0", penwidth=2.0];
+    }
+
+    /* ===================================================================
+       8. INNATE IMMUNITY / IFN SIGNALLING
+       =================================================================== */
+    subgraph cluster_innate {
+        label="⑧ 선천면역 (MDA5 → IFN-β/λ → JAK-STAT → ISG · SOCS1 feedback)";
+        style="rounded,filled"; fillcolor="#eef7f7"; color="#3a8a8a"; fontsize=12; fontcolor="#1c5555";
+        MDA5         [label="MDA5 (IFIH1)\nsenses HDV replication intermediates", fillcolor="#d6ecec"];
+        RIGI         [label="RIG-I (DDX58)"];
+        MAVS         [label="MAVS → TBK1 → IRF3"];
+        IFNb         [label="Endogenous IFN-β"];
+        IFNl_endo    [label="Endogenous IFN-λ1/2/3\n(hepatocyte-dominant)"];
+        IFNAR        [label="IFNAR1/2 (type I receptor)", fillcolor="#d6ecec"];
+        IFNLR        [label="IFNLR1/IL10RB (type III)\nhepatocyte-restricted", fillcolor="#d6ecec"];
+        JAK_STAT     [label="JAK1/TYK2 → STAT1/2 → IRF9\n(ISGF3)"];
+        ISG          [label="ISG programme\nMxA · OAS · PKR · IFIT · ISG15", fillcolor="#d6ecec", penwidth=2.0];
+        SOCS1        [label="SOCS1 / USP18\nnegative feedback → tachyphylaxis", fillcolor="#e8e8f5", penwidth=2.0];
+        ADAR_ind     [label="ADAR1-L induction by IFN\n→ MORE amber/W editing", fillcolor="#fff2cc", penwidth=2.0];
+        isg_paradox  [label="Paradox: HDV persists despite\na strong, sustained ISG signature", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       9. ADAPTIVE IMMUNITY
+       =================================================================== */
+    subgraph cluster_adaptive {
+        label="⑨ 적응면역 (HDV-specific CD8 · exhaustion · humoral)";
+        style="rounded,filled"; fillcolor="#f0f0fa"; color="#5a5ab0"; fontsize=12; fontcolor="#2f2f7a";
+        DC           [label="Dendritic cell\nHDAg antigen presentation"];
+        CD4T         [label="HDAg-specific CD4⁺ T helper"];
+        CD8T         [label="HDV-specific CD8⁺ CTL\n(narrow, low-frequency repertoire)", fillcolor="#dcdcf5", penwidth=2.0];
+        exhaust      [label="Exhaustion\nPD-1 / TOX / CD39 high\n+ HLA class I escape mutations", fillcolor="#e8e8f5", penwidth=2.0];
+        NKcell       [label="NK cells\ndysfunctional CD56dim expansion"];
+        Bcell        [label="B cells → anti-HD IgM / IgG\n(non-neutralising)"];
+        antiHD_IgM   [label="Anti-HD IgM titre\n≈ activity marker", shape=box, fillcolor="#fff2cc"];
+        Treg         [label="Treg / IL-10\nlocal suppression"];
+        kill_flux    [label="Cytolytic killing flux\nδE · CD8 · Id", fillcolor="#dcdcf5", penwidth=2.2];
+    }
+
+    /* ===================================================================
+       10. HEPATOCYTE INJURY
+       =================================================================== */
+    subgraph cluster_injury {
+        label="⑩ 간세포 손상 (Injury → ALT/AST → DAMPs)";
+        style="rounded,filled"; fillcolor="#fdf0e8"; color="#b06030"; fontsize=12; fontcolor="#7a3a10";
+        apoptosis    [label="Hepatocyte apoptosis / necrosis\ncaspase-3/8 · granzyme B"];
+        DAMPs        [label="DAMPs: HMGB1 · ATP · dsDNA"];
+        Kupffer      [label="Kupffer cell / macrophage\nNF-κB → TNF-α, IL-6, IL-1β"];
+        ALT          [label="Serum ALT (U/L)\n∝ killing flux, NOT viral load", shape=box, fillcolor="#fff2cc", penwidth=2.2];
+        AST          [label="Serum AST · AST/ALT ratio"];
+        flare        [label="ALT flare\n(spontaneous or IFN-induced)", fillcolor="#f9dede"];
+        necroinflam  [label="Necroinflammatory grade\n(Ishak HAI 0–18)"];
+    }
+
+    /* ===================================================================
+       11. FIBROSIS
+       =================================================================== */
+    subgraph cluster_fib {
+        label="⑪ 섬유화 (HSC activation → collagen → portal hypertension)";
+        style="rounded,filled"; fillcolor="#f2f7ec"; color="#6a8a30"; fontsize=12; fontcolor="#3f5515";
+        HSC_q        [label="Quiescent hepatic stellate cell"];
+        HSC_a        [label="Activated HSC / myofibroblast\nα-SMA⁺", fillcolor="#e2eed2", penwidth=2.0];
+        TGFb         [label="TGF-β1 · PDGF · CTGF"];
+        collagen     [label="Collagen I/III deposition\nTIMP↑ / MMP↓"];
+        Fib_stage    [label="Fibrosis stage (Ishak 0–6)\nHDV: FASTEST progression\nof chronic viral hepatitis", shape=box, fillcolor="#fff2cc", penwidth=2.2];
+        LSM          [label="Liver stiffness (kPa)\nFibroScan / VCTE", shape=box, fillcolor="#fff2cc"];
+        portalHTN    [label="Portal hypertension\nHVPG ↑"];
+        PLT          [label="Platelet count\n(portal HTN surrogate)", shape=box, fillcolor="#fff2cc"];
+        varices      [label="Oesophageal varices"];
+        regression   [label="Fibrosis regression\nwhen inflammation is removed", fillcolor="#dcecdc"];
+    }
+
+    /* ===================================================================
+       12. CLINICAL OUTCOMES
+       =================================================================== */
+    subgraph cluster_clin {
+        label="⑫ 임상 결과 (Cirrhosis → decompensation → HCC → death)";
+        style="rounded,filled"; fillcolor="#f7eef2"; color="#a04a70"; fontsize=12; fontcolor="#6e2044";
+        cirrhosis    [label="Cirrhosis\n~70% within 5–10 y untreated", fillcolor="#f2d6e0", penwidth=2.0];
+        decomp       [label="Decompensation\nascites · HE · variceal bleed\n~3–4% / y", fillcolor="#f2d6e0"];
+        HCC          [label="Hepatocellular carcinoma\n~2.8–4% / y (2–6× HBV mono)", fillcolor="#f2d6e0", penwidth=2.0];
+        MELD         [label="MELD / Child-Pugh", shape=box, fillcolor="#fff2cc"];
+        OLT          [label="Liver transplantation\n(excellent HDV outcome)"];
+        death        [label="Liver-related death", fillcolor="#f2d6e0"];
+        Baveno       [label="Clinically significant portal HTN\n(Baveno criteria)"];
+    }
+
+    /* ===================================================================
+       13. BULEVIRTIDE
+       =================================================================== */
+    subgraph cluster_blv {
+        label="⑬ 불레비티드 (Bulevirtide — entry inhibitor, PK/PD)";
+        style="rounded,filled"; fillcolor="#e8f4e8"; color="#2f7a2f"; fontsize=12; fontcolor="#154a15";
+        BLV_dose     [label="Bulevirtide 2 mg SC qd\n(10 mg studied)", fillcolor="#c8e6c8", penwidth=2.0];
+        BLV_sc       [label="SC depot (ka)"];
+        BLV_plasma   [label="Plasma bulevirtide\nCmax ~0.5–1 h, t½ ~4–7 h"];
+        BLV_liver    [label="Hepatic (NTCP-bound) pool\nsaturable target-mediated uptake", fillcolor="#c8e6c8"];
+        BLV_occ      [label="NTCP occupancy\nOCC = C/(C+Kd)\nDERIVED, not assumed", fillcolor="#c8e6c8", penwidth=2.4];
+        BLV_nonprop  [label="More-than-dose-proportional PK\n(target-mediated clearance saturates)", shape=note, fillcolor="#fff2cc"];
+        BLV_effect   [label="Entry flux × (1 − OCC)", fillcolor="#c8e6c8", penwidth=2.0];
+        BLV_noresist [label="No classical resistance:\ntarget is a HOST transporter", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       14. BILE ACIDS — THE ON-TARGET READOUT
+       =================================================================== */
+    subgraph cluster_ba {
+        label="⑭ 담즙산 — 표적점유율의 생체표지자 (Bile acids as an NTCP-occupancy read-out)";
+        style="rounded,filled"; fillcolor="#fdfaea"; color="#a08a20"; fontsize=12; fontcolor="#6e5c05";
+        BA_synth     [label="Hepatic bile acid synthesis\nCYP7A1"];
+        BA_ileal     [label="Ileal reabsorption (ASBT)\nenterohepatic return"];
+        BA_NTCP      [label="NTCP-mediated hepatic uptake\nHIGH-capacity clearance", fillcolor="#f7f0c8", penwidth=2.0];
+        BA_OATP      [label="OATP1B1/1B3 backup uptake\nsmall residual capacity r", fillcolor="#f7f0c8"];
+        TBA          [label="Total serum bile acids\nfold-rise = (1+r)/((1−OCC)+r)", shape=box, fillcolor="#fff2cc", penwidth=2.4];
+        BA_asympt    [label="Asymptomatic elevation:\nno pruritus, no cholestasis", shape=note, fillcolor="#fff2cc"];
+        FXR          [label="FXR / FGF19 feedback\nsuppresses CYP7A1"];
+        BA_infer     [label="⇒ TBA fold-rise INVERTS to occupancy\n2 mg ≠ saturating; 10 mg ≈ saturating", shape=note, fillcolor="#fff6cc", penwidth=2.0];
+    }
+
+    /* ===================================================================
+       15. INTERFERONS
+       =================================================================== */
+    subgraph cluster_ifn {
+        label="⑮ 인터페론 (PegIFN alfa-2a · PegIFN lambda — PK/PD and toxicity)";
+        style="rounded,filled"; fillcolor="#e8f2f7"; color="#2f6a9a"; fontsize=12; fontcolor="#154566";
+        PEGa_dose    [label="PegIFN alfa-2a 180 µg SC qw\n48–96 weeks", fillcolor="#c8dcf0", penwidth=2.0];
+        PEGl_dose    [label="PegIFN lambda-1a 180 µg SC qw\n(hepatocyte-restricted receptor)", fillcolor="#c8dcf0"];
+        PEG_pk       [label="Peg-IFN PK\nt½ ~65–80 h, flat trough"];
+        PEG_isg      [label="ISG induction (effect compartment)\nwith SOCS1 desensitisation", fillcolor="#c8dcf0", penwidth=2.0];
+        eps_rep      [label="ε_rep: intracellular HDV\nreplication block", fillcolor="#c8dcf0"];
+        delta_boost  [label="δ_IFN: INFECTED-CELL LOSS ↑\n(the only durable mechanism)", fillcolor="#c8dcf0", penwidth=2.4];
+        eps_hbsag    [label="HBsAg secretion ↓\n(envelope supply ↓)", fillcolor="#c8dcf0"];
+        IFN_tox      [label="Toxicity: neutropenia ·\nthrombocytopenia · flu-like ·\ndepression · thyroiditis", fillcolor="#e6d6f0"];
+        IFNl_tox     [label="Lambda: less haematologic /\nflu-like; hyperbilirubinaemia,\nALT elevation risk", fillcolor="#e6d6f0"];
+        IFN_cirr     [label="Contraindicated in\ndecompensated cirrhosis", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       16. LONAFARNIB / RITONAVIR
+       =================================================================== */
+    subgraph cluster_lnf {
+        label="⑯ 로나파닙/리토나비르 (Lonafarnib + ritonavir boost — assembly inhibitor)";
+        style="rounded,filled"; fillcolor="#f5eef8"; color="#7d4a9a"; fontsize=12; fontcolor="#4d2662";
+        LNF_dose     [label="Lonafarnib 50 mg PO BID\n+ ritonavir 100 mg BID", fillcolor="#e6d6f0", penwidth=2.0];
+        RTV          [label="Ritonavir — CYP3A4 inhibition\n→ 4–5× LNF exposure boost", fillcolor="#e6d6f0"];
+        LNF_pk       [label="Lonafarnib PK\ncentral + peripheral, CYP3A4 CL"];
+        LNF_ft       [label="FTase inhibition\nI = C/(C + IC50)", fillcolor="#e6d6f0", penwidth=2.0];
+        LNF_block    [label="Prenylation block\n→ envelopment flux → 0", fillcolor="#e6d6f0", penwidth=2.2];
+        LNF_gi       [label="GI toxicity: diarrhoea, nausea,\nanorexia, weight loss\n(dose-limiting)", fillcolor="#e6d6f0"];
+        LNF_rebound  [label="Rapid post-treatment rebound\nfrom the trapped intracellular pool", shape=note, fillcolor="#fff2cc", penwidth=2.0];
+    }
+
+    /* ===================================================================
+       17. HBsAg-DIRECTED AND BACKGROUND THERAPY
+       =================================================================== */
+    subgraph cluster_hbsagtx {
+        label="⑰ HBsAg 표적·배경 치료 (NUC · siRNA/ASO · NAP · vaccine)";
+        style="rounded,filled"; fillcolor="#fdeeee"; color="#b04a4a"; fontsize=12; fontcolor="#7a2020";
+        NUC          [label="NUC: TDF / TAF / entecavir\nHBV DNA ↓↓, HDV RNA unchanged", fillcolor="#f9dede", penwidth=2.0];
+        siRNA        [label="siRNA (e.g. elebsiran)\nHBsAg transcript knockdown", fillcolor="#f9dede"];
+        ASO          [label="ASO (bepirovirsen)\nHBsAg mRNA degradation"];
+        NAP          [label="Nucleic acid polymer (REP 2139)\nblocks SVP assembly / release"];
+        HBsAg_loss   [label="Functional cure = HBsAg loss\n⇒ HDV cannot be enveloped\n(the only true HDV cure)", fillcolor="#fff2cc", penwidth=2.4];
+        HBvax        [label="HBV vaccination\n= the only HDV prophylaxis", fillcolor="#dcecdc"];
+        starve       [label="\"Starve the envelope\" strategy:\nBLV (entry) + siRNA (supply)", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       18. ENDPOINTS
+       =================================================================== */
+    subgraph cluster_end {
+        label="⑱ 임상 평가지표 (Endpoints and the decoupling between them)";
+        style="rounded,filled"; fillcolor="#eeeeee"; color="#555555"; fontsize=12; fontcolor="#222222";
+        EP_rna       [label="Serum HDV RNA\n≥2 log₁₀ decline or undetectable", shape=box, fillcolor="#e2e2e2", penwidth=2.0];
+        EP_alt       [label="ALT normalisation\n(ULN 34 F / 49 M)", shape=box, fillcolor="#e2e2e2", penwidth=2.0];
+        EP_comb      [label="COMBINED response\n(RNA response AND ALT normal)\nprimary endpoint of MYR301", shape=box, fillcolor="#d6d6d6", penwidth=2.4];
+        EP_svr       [label="Post-treatment durability\n(24–48 wk off therapy)", shape=box, fillcolor="#e2e2e2"];
+        EP_hist      [label="Histologic / non-invasive\nfibrosis improvement", shape=box, fillcolor="#e2e2e2"];
+        EP_hbsag     [label="HBsAg loss (functional cure)", shape=box, fillcolor="#e2e2e2"];
+        decouple     [label="DECOUPLING: ALT normalises in\nmany RNA non-responders — ALT reads\nthe INFLOW of newly infected cells,\nnot the total viral load", shape=note, fillcolor="#fff6cc", penwidth=2.2];
+        EP_lateflare [label="Late relapse after IFN\n(up to ~50% by long-term FU)", shape=note, fillcolor="#fff2cc"];
+    }
+
+    /* ===================================================================
+       EDGES — epidemiology
+       =================================================================== */
+    HBsAg_pool -> HDV_prev;
+    HDV_prev -> coinf;   HDV_prev -> superinf;
+    route -> coinf;      route -> superinf;   risk_grp -> route;
+    superinf -> virion [color=firebrick, penwidth=1.6, label="chronicity"];
+    coinf -> virion [style=dashed];
+    GT1 -> virion; GT2_4 -> virion; GT3 -> virion [color=firebrick]; GT5_8 -> virion;
+    GT3 -> flare [color=firebrick, style=dashed, label="fulminant"];
+    GT1 -> Fib_stage [style=dashed, color=firebrick, label="genotype\nmodifies rate"];
+
+    /* entry */
+    virion -> preS1 [arrowhead=none, style=dotted];
+    virion -> HSPG [label="attachment"];
+    HSPG -> NTCP;
+    preS1 -> NTCP [color=firebrick, penwidth=1.8, label="myristoyl\npreS1 2–48"];
+    NTCP -> NTCP_free [arrowhead=none, style=dotted, label="free = 1−OCC"];
+    NTCP_free -> endocyt [color=firebrick, penwidth=1.8];
+    endocyt -> endosome -> RNP_import -> nucleus;
+    NTCP_free -> entry_flux [color=firebrick, penwidth=2.0, lhead=cluster_spread];
+
+    /* replication */
+    nucleus -> genome [penwidth=1.6];
+    Pol2 -> rollcirc [penwidth=1.8, label="host enzyme"];
+    genome -> rollcirc -> antigenome;
+    antigenome -> ribozyme -> ligase -> genome [label="circularise"];
+    antigenome -> mRNA_HDAg -> SHDAg;
+    SHDAg -> rollcirc [color=firebrick, label="required"];
+    ADAR1 -> edit_site [penwidth=1.8];
+    antigenome -> edit_site [style=dotted];
+    edit_site -> LHDAg [penwidth=1.8];
+    LHDAg -> Lrepr -> rollcirc [color=navy, arrowhead=tee, label="represses"];
+    genome -> RNAcopies [arrowhead=none, style=dotted];
+    no_HBV_dep -> Pol2 [style=dotted, arrowhead=none];
+
+    /* prenylation + assembly */
+    FPP -> FTase [arrowhead=none, style=dotted];
+    LHDAg -> LHDAg_P [label="FTase, Cys²¹¹"];
+    FTase -> LHDAg_P [penwidth=1.8];
+    genome -> RNP; SHDAg -> RNP; LHDAg_P -> RNP;
+    RNP -> assembly [penwidth=1.6];
+    S_HBsAg_int -> assembly [color=firebrick, penwidth=1.8, label="envelope"];
+    LHDAg_P -> assembly [penwidth=2.0, label="farnesyl ↔ HBsAg"];
+    assembly -> MVB -> secretion [penwidth=1.8];
+    secretion -> virion [color=firebrick, penwidth=2.0, label="new virions"];
+    trap -> RNAcopies [style=dotted, arrowhead=none];
+
+    /* HBV */
+    cccDNA -> pgRNA -> HBV_pol -> HBVDNA;
+    cccDNA -> preS_mRNA; integr -> preS_mRNA [style=dashed, label="cccDNA-independent"];
+    preS_mRNA -> HBsAg_S; preS_mRNA -> HBsAg_L;
+    HBsAg_S -> SVP -> HBsAg_serum [penwidth=1.8];
+    HBsAg_L -> preS1 [penwidth=1.6];
+    HBsAg_S -> S_HBsAg_int [penwidth=1.8];
+    HBsAg_serum -> secretion [color=firebrick, penwidth=2.0, label="envelope supply\nsaturable"];
+    LHDAg -> HDV_suppr [style=dotted]; HDV_suppr -> pgRNA [color=navy, arrowhead=tee];
+
+    /* pools */
+    liver_mass -> T_cell_pool [arrowhead=none, style=dotted];
+    T_cell_pool -> Ib_pool [label="HBV entry (NTCP)"];
+    Ib_pool -> Id_pool [color=firebrick, penwidth=2.2, label="HDV super-infection"];
+    Id_pool -> cure_cell -> Ib_pool [color=darkgreen, label="non-cytolytic"];
+    regen -> T_cell_pool; regen -> Ib_pool; regen -> Id_pool [color=firebrick, penwidth=1.8];
+    cccDNA -> Ib_pool [arrowhead=none, style=dotted];
+    Id_pool -> RNAcopies [arrowhead=none, style=dotted];
+    Id_pool -> secretion [penwidth=2.0, label="× Id · Nhep"];
+
+    /* the floor */
+    entry_flux -> Id_pool [color=firebrick, penwidth=1.8];
+    div_flux -> Id_pool [color=firebrick, penwidth=2.6];
+    cc_flux -> Id_pool [color=firebrick, penwidth=2.2];
+    regen -> div_flux [penwidth=2.0];
+    Id_pool -> cc_flux [color=firebrick, style=dashed];
+    persistence -> div_flux [style=dotted, arrowhead=none];
+    div_flux -> floor [style=dotted, arrowhead=none];
+    cc_flux -> floor [style=dotted, arrowhead=none];
+    floor -> EP_rna [style=dotted, color=firebrick, label="plateau ≈ −2 log₁₀"];
+
+    /* innate */
+    antigenome -> MDA5 [color=firebrick, label="dsRNA-like rod"];
+    genome -> RIGI [style=dashed];
+    MDA5 -> MAVS; RIGI -> MAVS;
+    MAVS -> IFNb; MAVS -> IFNl_endo;
+    IFNb -> IFNAR; IFNl_endo -> IFNLR;
+    IFNAR -> JAK_STAT; IFNLR -> JAK_STAT;
+    JAK_STAT -> ISG [penwidth=1.8];
+    ISG -> SOCS1 -> JAK_STAT [color=navy, arrowhead=tee, penwidth=1.6, label="tachyphylaxis"];
+    ISG -> ADAR_ind -> ADAR1 [penwidth=1.8, label="↑ editing"];
+    ISG -> rollcirc [color=navy, arrowhead=tee, label="ε_rep"];
+    ISG -> isg_paradox [style=dotted, arrowhead=none];
+    ISG -> HBsAg_S [color=navy, arrowhead=tee, style=dashed];
+
+    /* adaptive */
+    Id_pool -> DC [label="HDAg"];
+    DC -> CD4T -> CD8T [penwidth=1.6];
+    ISG -> CD8T [color=navy, style=dashed, label="restores function"];
+    CD8T -> kill_flux [penwidth=2.0];
+    kill_flux -> Id_pool [color=navy, arrowhead=tee, penwidth=2.2];
+    Id_pool -> exhaust [color=firebrick, label="chronic antigen"];
+    exhaust -> CD8T [color=firebrick, arrowhead=tee, penwidth=1.8];
+    Treg -> CD8T [color=firebrick, arrowhead=tee];
+    NKcell -> Id_pool [color=navy, style=dashed];
+    DC -> Bcell -> antiHD_IgM;
+    antiHD_IgM -> ALT [style=dotted, color=gray50, label="tracks activity"];
+    kill_flux -> apoptosis [penwidth=2.0];
+
+    /* injury */
+    apoptosis -> DAMPs -> Kupffer;
+    Kupffer -> apoptosis [color=firebrick, style=dashed, label="bystander"];
+    apoptosis -> ALT [penwidth=2.2, label="ALT ∝ kill flux"];
+    apoptosis -> AST;
+    ALT -> necroinflam; flare -> ALT [color=firebrick, penwidth=1.6];
+    Kupffer -> flare [style=dashed];
+    apoptosis -> regen [penwidth=1.8, label="triggers regeneration"];
+
+    /* fibrosis */
+    Kupffer -> TGFb [penwidth=1.6];
+    HSC_q -> HSC_a [label="activation"];
+    TGFb -> HSC_a [penwidth=1.8];
+    necroinflam -> HSC_a [penwidth=1.8];
+    HSC_a -> collagen -> Fib_stage [penwidth=2.0];
+    Fib_stage -> LSM [style=dotted, color=gray50];
+    Fib_stage -> portalHTN -> PLT [style=dotted, color=gray50];
+    portalHTN -> varices; portalHTN -> Baveno [style=dotted, color=gray50];
+    Fib_stage -> regression [color=darkgreen, style=dashed];
+    regression -> Fib_stage [color=darkgreen, arrowhead=tee, label="when ALT normalises"];
+
+    /* clinical */
+    Fib_stage -> cirrhosis [penwidth=2.0];
+    cirrhosis -> decomp [penwidth=1.6]; cirrhosis -> HCC [penwidth=1.8];
+    Fib_stage -> HCC [style=dashed];
+    Id_pool -> HCC [style=dashed, color=firebrick, label="direct oncogenic\ncontribution"];
+    decomp -> MELD [style=dotted, color=gray50];
+    decomp -> OLT; HCC -> OLT; decomp -> death; HCC -> death;
+    PLT -> MELD [style=dotted, color=gray50];
+
+    /* bulevirtide */
+    BLV_dose -> BLV_sc -> BLV_plasma -> BLV_liver [penwidth=1.6];
+    BLV_plasma -> BLV_nonprop [style=dotted, arrowhead=none];
+    BLV_liver -> BLV_occ [penwidth=2.0];
+    BLV_occ -> NTCP [color=darkgreen, arrowhead=tee, penwidth=2.4, label="competitive\npreS1 mimicry"];
+    BLV_occ -> BLV_effect [penwidth=2.0];
+    BLV_effect -> entry_flux [color=darkgreen, arrowhead=tee, penwidth=2.4];
+    BLV_noresist -> BLV_dose [style=dotted, arrowhead=none];
+    BLV_effect -> Ib_pool [color=darkgreen, arrowhead=tee, style=dashed, label="also blocks HBV entry"];
+
+    /* bile acids */
+    BA_synth -> TBA; BA_ileal -> TBA [penwidth=1.6];
+    TBA -> BA_NTCP [arrowhead=none, style=dotted];
+    BA_NTCP -> BA_synth [style=invis];
+    NTCP -> BA_NTCP [penwidth=2.0, label="physiological\nsubstrate"];
+    BA_NTCP -> TBA [color=navy, arrowhead=tee, penwidth=2.0, label="high-capacity\nclearance"];
+    BA_OATP -> TBA [color=navy, arrowhead=tee, label="residual r"];
+    BLV_occ -> BA_NTCP [color=purple, arrowhead=tee, penwidth=2.2, label="OFF-TARGET\n(same protein)"];
+    TBA -> BA_asympt [style=dotted, arrowhead=none];
+    TBA -> FXR -> BA_synth [color=navy, arrowhead=tee];
+    TBA -> BA_infer [style=dotted, arrowhead=none, penwidth=1.6];
+    BA_infer -> BLV_occ [style=dotted, color=purple, penwidth=2.0, label="INVERT to estimate\noccupancy"];
+
+    /* interferon */
+    PEGa_dose -> PEG_pk; PEGl_dose -> PEG_pk;
+    PEG_pk -> PEG_isg [penwidth=1.8];
+    PEG_pk -> IFNAR [color=darkgreen, penwidth=1.6];
+    PEGl_dose -> IFNLR [color=darkgreen, penwidth=1.6];
+    PEG_isg -> ISG [penwidth=2.0];
+    PEG_isg -> eps_rep -> rollcirc [color=darkgreen, arrowhead=tee, penwidth=2.0];
+    PEG_isg -> delta_boost;
+    delta_boost -> Id_pool [color=darkgreen, arrowhead=tee, penwidth=2.4, label="δ ↑ = durability"];
+    PEG_isg -> eps_hbsag -> HBsAg_serum [color=darkgreen, arrowhead=tee, penwidth=1.8];
+    PEGa_dose -> IFN_tox [color=purple, penwidth=1.6];
+    PEGl_dose -> IFNl_tox [color=purple];
+    IFN_tox -> PLT [color=purple, arrowhead=tee, style=dashed];
+    IFN_tox -> flare [color=purple, style=dashed];
+    IFNl_tox -> ALT [color=purple, style=dashed];
+    IFN_cirr -> PEGa_dose [style=dotted, arrowhead=tee];
+    delta_boost -> EP_svr [color=darkgreen, style=dashed, penwidth=1.8, label="only durable\nmechanism"];
+    PEG_isg -> EP_lateflare [style=dotted, color=firebrick];
+
+    /* lonafarnib */
+    LNF_dose -> LNF_pk; RTV -> LNF_pk [color=purple, penwidth=1.8, label="CYP3A4 block\n→ 4–5× AUC"];
+    LNF_dose -> RTV [style=dotted, arrowhead=none];
+    LNF_pk -> LNF_ft [penwidth=1.8];
+    LNF_ft -> FTase [color=darkgreen, arrowhead=tee, penwidth=2.4];
+    LNF_ft -> LNF_block;
+    LNF_block -> secretion [color=darkgreen, arrowhead=tee, penwidth=2.4];
+    LNF_block -> trap [penwidth=1.8];
+    trap -> LNF_rebound [penwidth=1.8];
+    LNF_rebound -> virion [color=firebrick, style=dashed, penwidth=1.6];
+    LNF_pk -> LNF_gi [color=purple, penwidth=1.8];
+    LNF_gi -> LNF_dose [color=purple, arrowhead=tee, style=dashed, label="dose reduction /\ndiscontinuation"];
+    LNF_block -> ADAR1 [style=dashed, label="editing rate ↑\n(Verrier 2022)"];
+
+    /* HBsAg-directed */
+    NUC -> HBV_pol [color=darkgreen, arrowhead=tee, penwidth=2.0];
+    NUC -> RNAcopies [color=gray50, arrowhead=tee, style=dotted, label="NO effect"];
+    siRNA -> preS_mRNA [color=darkgreen, arrowhead=tee, penwidth=2.0];
+    ASO -> preS_mRNA [color=darkgreen, arrowhead=tee];
+    NAP -> SVP [color=darkgreen, arrowhead=tee];
+    siRNA -> HBsAg_serum [color=darkgreen, arrowhead=tee, penwidth=1.8];
+    HBsAg_serum -> HBsAg_loss [style=dotted];
+    HBsAg_loss -> secretion [color=darkgreen, arrowhead=tee, penwidth=2.4, label="envelope = 0\n⇒ true cure"];
+    HBvax -> HBsAg_pool [color=darkgreen, arrowhead=tee, penwidth=1.8];
+    starve -> siRNA [style=dotted, arrowhead=none];
+    starve -> BLV_dose [style=dotted, arrowhead=none];
+    HBsAg_loss -> EP_hbsag [style=dotted, color=gray50];
+
+    /* endpoints */
+    secretion -> EP_rna [style=dotted, color=gray50, penwidth=1.6];
+    ALT -> EP_alt [style=dotted, color=gray50, penwidth=1.6];
+    EP_rna -> EP_comb [penwidth=1.8]; EP_alt -> EP_comb [penwidth=1.8];
+    entry_flux -> EP_alt [style=dotted, color=gray50, label="inflow of newly\ninfected cells"];
+    decouple -> EP_comb [style=dotted, arrowhead=none, penwidth=1.6];
+    Fib_stage -> EP_hist [style=dotted, color=gray50];
+    EP_comb -> cirrhosis [color=darkgreen, arrowhead=tee, style=dashed, label="response →\nslower progression"];
+
+    /* cross-cluster anchors that carry the central argument */
+    Pol2   -> Ib_pool  [style=invis];
+    NTCP   -> Id_pool  [style=invis];
+    TBA    -> BLV_effect [style=invis];
+}
