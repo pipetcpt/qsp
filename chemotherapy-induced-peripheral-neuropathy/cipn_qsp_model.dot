@@ -1,0 +1,820 @@
+digraph CIPN_QSP {
+  rankdir=LR;
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=20;
+  label="Chemotherapy-Induced Peripheral Neuropathy (CIPN) — Mechanistic QSP Map\nNeurotoxic Drug Exposure (Cmax vs AUC vs Cumulative Dose) → DRG / Distal Axon Injury → Committed Degeneration & Coasting → Hyperexcitability → CIPN20 / TNSc / Dose Intensity / Tumour Control";
+  node [style=filled, fontname="Helvetica", fontsize=10, shape=box];
+  edge [fontname="Helvetica", fontsize=8];
+  newrank=true;
+
+  /* ======================================================================
+     1. NEUROTOXIC CHEMOTHERAPY CLASSES & DOSING SCHEDULE
+     ====================================================================== */
+  subgraph cluster_drugs {
+    label="1. Neurotoxic Chemotherapy: Class, Schedule & Cumulative Dose (the exposure the whole model is driven by)";
+    style=filled; color="#d8c6d8"; fillcolor="#f2e8f2";
+    Oxaliplatin [label="Oxaliplatin\n85 mg/m² q2w (FOLFOX)\n130 mg/m² q3w (CAPOX)", fillcolor="#e0b0e0"];
+    Cisplatin [label="Cisplatin\n75–100 mg/m² q3w", fillcolor="#e0b0e0"];
+    Carboplatin [label="Carboplatin\n(AUC 5–6 — minimally neurotoxic)"];
+    Paclitaxel [label="Paclitaxel\n80 mg/m² weekly ×12\n175 mg/m² q3w", fillcolor="#c9b0e8"];
+    Nab_paclitaxel [label="nab-Paclitaxel\n125 mg/m² d1,8,15"];
+    Docetaxel [label="Docetaxel\n75–100 mg/m² q3w"];
+    Bortezomib [label="Bortezomib\n1.3 mg/m² d1,4,8,11\nIV bolus vs SC", fillcolor="#b0c9e8"];
+    Carfilzomib [label="Carfilzomib\n(lower PN — irreversible epoxyketone)"];
+    Vincristine [label="Vincristine\n1.4 mg/m² (cap 2 mg) weekly", fillcolor="#c9b0e8"];
+    Thalidomide [label="Thalidomide / lenalidomide\n(length-dependent axonopathy)"];
+    Eribulin [label="Eribulin\n1.4 mg/m² d1,8"];
+    Brentuximab [label="Brentuximab vedotin\n(MMAE payload)"];
+    TDXd_ADC [label="Auristatin-payload ADCs\n(MMAE released in tissue)"];
+    Cumulative_dose [label="CUMULATIVE DOSE\n(mg/m², the dominant\nCIPN determinant)", fillcolor="#e8a0a0"];
+    Dose_per_cycle [label="Dose per cycle\n(→ Cmax)"];
+    Cycle_interval [label="Cycle interval\n(q1w / q2w / q3w →\nrecovery time between hits)", fillcolor="#f5d5a8"];
+    Infusion_duration [label="Infusion duration\n(2 h vs 3 h vs bolus vs SC)"];
+    Treatment_duration [label="Planned duration\n(3 vs 6 months — IDEA)", fillcolor="#f5d5a8"];
+    Route_SC_vs_IV [label="Route: SC vs IV bolus\n(same AUC, ~½ Cmax)", fillcolor="#bfe3f5"];
+    Cmax_metric [label="Peak concentration\nCmax", fillcolor="#f5c6c6"];
+    AUC_metric [label="Exposure\nAUC", fillcolor="#cfe8cf"];
+  }
+
+  /* ======================================================================
+     2. SYSTEMIC PK & PLASMA DISPOSITION
+     ====================================================================== */
+  subgraph cluster_pk {
+    label="2. Systemic Pharmacokinetics (plasma → tissue distribution)";
+    style=filled; color="#cddff0"; fillcolor="#e7f0fa";
+    PK_oxa_central [label="Oxaliplatin ultrafilterable Pt\ncentral cmt (Vc ≈ 13 L)"];
+    PK_oxa_periph [label="Peripheral cmt\n(Vp ≈ 260 L)"];
+    PK_pt_tissue [label="Long-lived tissue-bound Pt\n(t½ ≈ 273 days)", fillcolor="#f5c6c6"];
+    PK_pt_erythrocyte [label="Erythrocyte-bound Pt\n(irreversible, t½ = RBC lifespan)"];
+    Plasma_protein_binding [label="Plasma protein binding\n(Pt >85% irreversible)"];
+    PK_pac_central [label="Paclitaxel central cmt\n(Cremophor EL micelles)"];
+    PK_pac_p1 [label="Shallow peripheral\ncompartment"];
+    PK_pac_p2 [label="Deep peripheral\ncompartment"];
+    Saturable_pac [label="Saturable distribution &\nelimination (Michaelis–Menten)", fillcolor="#bfd8f0"];
+    Time_above_thresh [label="Time above 0.05 µmol/L\n(Tc>0.05 — taxane PD driver)", fillcolor="#f5d5a8"];
+    PK_btz_central [label="Bortezomib central cmt"];
+    PK_btz_periph [label="Very large Vd\n(≈ 500–1900 L)"];
+    CYP3A4 [label="CYP3A4/5 metabolism\n(paclitaxel 6α-OH, bortezomib)"];
+    CYP2C8 [label="CYP2C8 metabolism\n(paclitaxel — *3 variant)"];
+    Biliary_excretion [label="Biliary / faecal\nexcretion"];
+    Renal_excretion [label="Renal excretion\n(platinum ~50% in 48 h)"];
+    Hepatic_impairment [label="Hepatic impairment\n(↑ taxane exposure)"];
+    Renal_impairment [label="Renal impairment\n(↑ platinum exposure)"];
+  }
+
+  /* ======================================================================
+     3. TRANSPORTERS & THE UNPROTECTED DRG
+     ====================================================================== */
+  subgraph cluster_transport {
+    label="3. Why the DRG? Transporters & the Absent Blood–Nerve Barrier (the anatomical basis of selectivity)";
+    style=filled; color="#cfe6e0"; fillcolor="#e6f5f1";
+    BNB_intact [label="Blood–nerve barrier\n(intact along nerve trunk)", fillcolor="#cfe8cf"];
+    BNB_absent_DRG [label="BNB FENESTRATED at DRG\n& distal nerve terminals", fillcolor="#e8a0a0"];
+    Fenestrated_caps [label="Fenestrated capillaries\n(no tight junctions)"];
+    OCT2 [label="OCT2 / SLC22A2\n(oxaliplatin uptake into DRG)", fillcolor="#bfe3d8"];
+    CTR1 [label="CTR1 / SLC31A1\n(cisplatin & Pt uptake)", fillcolor="#bfe3d8"];
+    MATE1 [label="MATE1 / SLC47A1\n(Pt efflux)"];
+    ATP7A_ATP7B [label="ATP7A / ATP7B\n(Pt sequestration & efflux)"];
+    Pgp_ABCB1 [label="P-glycoprotein / ABCB1\n(taxane & vincristine efflux)", fillcolor="#bfe3d8"];
+    ABCC1_MRP [label="MRP1/ABCC1\n(conjugate efflux)"];
+    OATP1B1_1B3 [label="OATP1B1/1B3\n(hepatic uptake)"];
+    DRG_neuron_soma [label="DRG SENSORY NEURON SOMA\n(large-diameter Aβ most vulnerable)", fillcolor="#e8a0a0"];
+    Satellite_glia [label="Satellite glial cells\n(DRG)"];
+    Long_axon_burden [label="Longest axons first\n(length-dependent, feet→hands)", fillcolor="#f5d5a8"];
+    Metabolic_demand [label="High axonal metabolic\ndemand per unit length"];
+    Free_nerve_endings [label="Intraepidermal free\nnerve endings (C/Aδ)"];
+    Autonomic_ganglia [label="Autonomic ganglia\n(vincristine — ileus, orthostasis)"];
+    Motor_axon_relative_sparing [label="Motor axons relatively\nspared (BNB-protected)", fillcolor="#cfe8cf"];
+  }
+
+  /* ======================================================================
+     4. PLATINUM: DNA ADDUCTS & GENOTOXIC SOMA INJURY
+     ====================================================================== */
+  subgraph cluster_platinum {
+    label="4. Platinum Mechanism: Nuclear & Mitochondrial DNA Adducts in the Post-Mitotic Neuron";
+    style=filled; color="#e6d8c6"; fillcolor="#f7efe2";
+    Aquation [label="Aquation / activation\n(oxaliplatin → DACH-Pt)"];
+    Pt_GG_adduct [label="Pt–DNA 1,2-d(GpG)\nintrastrand crosslink", fillcolor="#e8c8a0"];
+    Pt_interstrand [label="Interstrand crosslinks\n(minority, most cytotoxic)"];
+    Nuclear_DNA_damage [label="Nuclear DNA damage\n(non-replicating neuron)"];
+    mtDNA_adducts [label="mtDNA adducts\n(no NER in mitochondria)", fillcolor="#e8a0a0"];
+    NER_ERCC1 [label="Nucleotide excision repair\n(ERCC1/XPD — repair capacity)", fillcolor="#cfe8cf"];
+    ATR_CHK1 [label="ATR–CHK1 damage\nsignalling"];
+    p53_activation [label="p53 activation\n(soma)"];
+    PUMA_BAX [label="PUMA / BAX\napoptotic priming"];
+    Nucleolar_stress [label="Nucleolar stress &\nribosome biogenesis arrest", fillcolor="#e8c8a0"];
+    Transcription_arrest [label="RNA Pol II stalling →\ntranscription arrest"];
+    Nucleolar_size [label="Reduced nucleolar volume\n(pathognomonic in DRG)"];
+    Protein_synth_down [label="Somal protein synthesis ↓\n(cannot resupply axon)", fillcolor="#e8a0a0"];
+    Soma_atrophy [label="DRG soma atrophy\n& chromatolysis"];
+    Neuronopathy_pattern [label="SENSORY NEURONOPATHY\n(ganglionopathy, non-length-dependent)", fillcolor="#e8a0a0"];
+    Oxalate_release [label="Oxalate release\n(oxaliplatin-specific)"];
+    Ca_chelation [label="Ca²⁺ chelation by oxalate\n→ acute channelopathy", fillcolor="#f5c6c6"];
+  }
+
+  /* ======================================================================
+     5. MICROTUBULE / AXONAL TRANSPORT FAILURE (TAXANES, VINCA, MMAE)
+     ====================================================================== */
+  subgraph cluster_microtubule {
+    label="5. Microtubule & Axonal Transport Failure (taxanes, vinca alkaloids, auristatin ADCs)";
+    style=filled; color="#d8d8c6"; fillcolor="#f2f2e2";
+    Beta_tubulin_binding [label="β-tubulin binding\n(taxane site / vinca domain)", fillcolor="#e0e0a0"];
+    MT_stabilization [label="Microtubule\nhyperstabilization (taxanes)"];
+    MT_depolymerization [label="Microtubule\ndepolymerization (vinca, MMAE)"];
+    MT_dynamics_loss [label="Loss of microtubule\ndynamic instability", fillcolor="#e0e0a0"];
+    TUBB_variants [label="TUBB2A / TUBB3\npromoter & coding variants"];
+    Kinesin_KIF5A [label="Kinesin-1 (KIF5A)\nanterograde transport"];
+    Dynein [label="Dynein / dynactin\nretrograde transport"];
+    Axonal_transport [label="AXONAL TRANSPORT CAPACITY\n(mitochondria, cargo, NGF signal)", fillcolor="#e8a0a0"];
+    Mito_trafficking [label="Mitochondrial trafficking\nto distal axon", fillcolor="#e0e0a0"];
+    Cargo_starvation [label="Distal cargo starvation\n(the 'dying-back' driver)", fillcolor="#e8a0a0"];
+    NGF_retrograde [label="NGF/TrkA retrograde\ntrophic signalling ↓"];
+    Bundling_MT [label="Aberrant microtubule\nbundles in axon"];
+    Axon_swelling_pathology [label="Axonal swellings &\ncytoskeletal disorganization"];
+    Mac_transport_block [label="Macrophage-independent\nprimary axonopathy", fillcolor="#e0e0a0"];
+    Axonopathy_pattern [label="DISTAL AXONOPATHY\n(length-dependent, stocking-glove)", fillcolor="#e8a0a0"];
+  }
+
+  /* ======================================================================
+     6. PROTEASOME INHIBITION (BORTEZOMIB)
+     ====================================================================== */
+  subgraph cluster_proteasome {
+    label="6. Proteasome Inhibition (bortezomib): Cmax-Driven, Partly Reversible";
+    style=filled; color="#c6d8e6"; fillcolor="#e2eff7";
+    Proteasome_20S [label="20S proteasome β5\nchymotrypsin-like site", fillcolor="#a0c8e8"];
+    Prot_inhibition [label="Proteasome inhibition\n(% — Cmax-driven)", fillcolor="#a0c8e8"];
+    Reversible_binding [label="Slowly reversible boronate\nbinding (t½ ≈ 110 min)"];
+    Ubiquitinated_aggregates [label="Ubiquitinated protein\naggregates in DRG"];
+    ER_stress_UPR [label="ER stress / unfolded\nprotein response"];
+    ATF4_CHOP [label="ATF4 / CHOP\napoptotic arm"];
+    Autophagy_block [label="Autophagic flux\nimpairment"];
+    Tubulin_polymer_btz [label="Secondary tubulin\npolymerization change"];
+    Sphingolipid_ceramide [label="Ceramide / S1P\ndysregulation"];
+    Schwann_myelin_btz [label="Schwann-cell &\nmyelin abnormality", fillcolor="#a0c8e8"];
+    Small_fiber_predom [label="Small-fibre predominant,\npainful phenotype"];
+    NFkB_block [label="NF-κB inhibition\n(anti-tumour arm)", fillcolor="#cfe8cf"];
+  }
+
+  /* ======================================================================
+     7. MITOCHONDRIAL DYSFUNCTION & OXIDATIVE STRESS (COMMON FINAL PATH)
+     ====================================================================== */
+  subgraph cluster_mito {
+    label="7. Mitochondrial Dysfunction & Oxidative Stress (the shared convergence node of all classes)";
+    style=filled; color="#e6c6c6"; fillcolor="#f7e2e2";
+    Complex_I [label="Complex I inhibition"];
+    Complex_IV [label="Complex II/IV\nactivity ↓"];
+    ETC_uncoupling [label="ETC uncoupling &\nmembrane potential loss"];
+    mPTP [label="mPTP opening\n(cyclophilin D)", fillcolor="#e8a0a0"];
+    ROS_generation [label="ROS / superoxide\ngeneration", fillcolor="#e8a0a0"];
+    Peroxynitrite [label="Peroxynitrite (ONOO⁻)\n& nitrotyrosine"];
+    Lipid_peroxidation [label="Lipid peroxidation\n(4-HNE, MDA)"];
+    SOD2_catalase [label="SOD2 / catalase /\nGPx antioxidant defence", fillcolor="#cfe8cf"];
+    GSH_pool [label="Glutathione pool\n(GSTP1 genotype)", fillcolor="#cfe8cf"];
+    NAD_NMNAT2 [label="NMNAT2 / NAD⁺\naxon-survival factor", fillcolor="#cfe8cf"];
+    SARM1_activation [label="SARM1 activation\n(NMN/NAD⁺ ratio sensor)", fillcolor="#e8a0a0"];
+    NAD_collapse [label="Axonal NAD⁺ collapse"];
+    ATP_axonal [label="Axonal ATP deficit\n(energy crisis)", fillcolor="#e8a0a0"];
+    NaK_ATPase_axon [label="Axonal Na⁺/K⁺-ATPase\nfailure"];
+    Ca_overload [label="Axoplasmic Ca²⁺\noverload"];
+    Calpain [label="Calpain activation\n(cytoskeletal proteolysis)"];
+    Megamitochondria [label="Swollen atypical / mega-\nmitochondria in axon"];
+    Mitophagy [label="PINK1/Parkin mitophagy\n(clearance capacity)", fillcolor="#cfe8cf"];
+    Bioenergetic_reserve [label="Bioenergetic reserve\n(pre-existing: age, diabetes)", fillcolor="#f5d5a8"];
+  }
+
+  /* ======================================================================
+     8. COMMITTED AXON DEGENERATION & THE COASTING PHENOMENON
+     ====================================================================== */
+  subgraph cluster_degeneration {
+    label="8. Committed Degeneration & COASTING (why CIPN worsens for weeks AFTER the last dose)";
+    style=filled; color="#e6b0b0"; fillcolor="#f7dede";
+    Axon_death_program [label="SARM1 axon-death\nEXECUTION program", fillcolor="#e8a0a0"];
+    Commitment_threshold [label="Commitment threshold\n(damage past this point\nproceeds without drug)", fillcolor="#e8a0a0"];
+    Latency_execution [label="Execution latency\n(weeks — slow, not Wallerian-fast)", fillcolor="#f5c6c6"];
+    Coasting [label="COASTING\n(peak severity 4–12 weeks\nAFTER last dose)", fillcolor="#e8a0a0"];
+    Residual_tissue_Pt [label="Residual tissue platinum\n(continues to drive injury)"];
+    Distal_axon_loss [label="Distal sensory axon loss\n(IENFD ↓)", fillcolor="#e8a0a0"];
+    IENFD [label="Intraepidermal nerve fibre\ndensity (fibres/mm)", fillcolor="#f5c6c6"];
+    Myelinated_fiber_loss [label="Large myelinated fibre\nloss (sural nerve)"];
+    Wallerian_like [label="Wallerian-like degeneration\nof distal segment"];
+    Regeneration_program [label="Axonal regeneration &\ncollateral sprouting", fillcolor="#cfe8cf"];
+    Regeneration_rate [label="Regeneration ≈ 1 mm/day\n(months for foot reinnervation)", fillcolor="#cfe8cf"];
+    Regen_capacity_age [label="Regenerative capacity\n(↓ with age, diabetes)", fillcolor="#f5d5a8"];
+    Incomplete_recovery [label="Incomplete recovery\n(~30–40% persistent at 6 yr)", fillcolor="#e8a0a0"];
+    Neuron_loss_irreversible [label="DRG neuron death\n(irreversible floor — platinum)", fillcolor="#e8a0a0"];
+    Reinnervation [label="Target reinnervation\n(skin, muscle spindle)", fillcolor="#cfe8cf"];
+  }
+
+  /* ======================================================================
+     9. ION CHANNEL REMODELLING & PERIPHERAL HYPEREXCITABILITY
+     ====================================================================== */
+  subgraph cluster_channels {
+    label="9. Ion-Channel Remodelling & Peripheral Hyperexcitability (fast, reversible — the ACUTE syndrome)";
+    style=filled; color="#c6e6d8"; fillcolor="#e2f7ef";
+    Nav16 [label="Nav1.6 / SCN8A\n(slowed inactivation — oxaliplatin)", fillcolor="#a0e8c8"];
+    Nav17 [label="Nav1.7 / SCN9A\n(threshold amplifier)"];
+    Nav18 [label="Nav1.8 / SCN10A\n(resurgent current)"];
+    Persistent_Na [label="Persistent / resurgent\nNa⁺ current", fillcolor="#a0e8c8"];
+    Kv7_KCNQ [label="Kv7.2/7.3 (KCNQ) M-current ↓\n(loss of brake)", fillcolor="#a0e8c8"];
+    K2P_TREK [label="K2P TREK-1 / TRAAK ↓\n(cold-sensing brake)"];
+    HCN1 [label="HCN1 Ih pacemaker ↑"];
+    Kir_channels [label="Kir / leak conductance ↓"];
+    TRPM8 [label="TRPM8 up-regulation\n(COLD allodynia)", fillcolor="#a0e8c8"];
+    TRPA1 [label="TRPA1 sensitization\n(oxidative-stress sensor)"];
+    TRPV1 [label="TRPV1 sensitization\n(heat, capsaicin target)"];
+    TRPV4 [label="TRPV4 (mechanical\nallodynia)"];
+    CaV32 [label="CaV3.2 T-type Ca²⁺\nchannel ↑"];
+    CaV_alpha2delta [label="CaV α2δ-1 subunit ↑\n(gabapentinoid target)", fillcolor="#a0e8c8"];
+    Ectopic_discharge [label="Ectopic spontaneous\ndischarge", fillcolor="#e8a0a0"];
+    Axonal_hyperexcitability [label="AXONAL HYPEREXCITABILITY\nINDEX", fillcolor="#e8a0a0"];
+    Acute_cold_allodynia [label="ACUTE cold allodynia\n(48–72 h, fully reversible)", fillcolor="#f5c6c6"];
+    Pharyngolaryngeal [label="Pharyngolaryngeal\ndysaesthesia (oxaliplatin)"];
+    Muscle_cramps [label="Muscle cramps &\nfasciculation"];
+    Nerve_excitability_studies [label="Threshold tracking /\nnerve excitability testing"];
+  }
+
+  /* ======================================================================
+     10. NEUROINFLAMMATION: DRG MACROPHAGES, SATELLITE GLIA, SCHWANN CELLS
+     ====================================================================== */
+  subgraph cluster_neuroinflam {
+    label="10. Peripheral Neuroinflammation (DRG macrophages, satellite glia, Schwann cells, mast cells)";
+    style=filled; color="#e6d8e6"; fillcolor="#f7eff7";
+    DAMPs [label="DAMPs (HMGB1, mtDNA,\nATP) from injured neuron", fillcolor="#e0b0e0"];
+    TLR4_MyD88 [label="TLR4 / MyD88\nsignalling", fillcolor="#e0b0e0"];
+    NLRP3 [label="NLRP3 inflammasome\n& caspase-1"];
+    DRG_macrophage [label="DRG macrophage\ninfiltration (CCR2⁺)", fillcolor="#e0b0e0"];
+    CX3CR1 [label="CX3CL1/CX3CR1\nneuron–macrophage axis"];
+    CXCL12_CXCR4 [label="CXCL12 / CXCR4\n(chronic maintenance)"];
+    IL1beta [label="IL-1β", fillcolor="#e0b0e0"];
+    TNFalpha [label="TNF-α"];
+    IL6 [label="IL-6"];
+    IL10_resolution [label="IL-10 / TGF-β\nresolution program", fillcolor="#cfe8cf"];
+    Mast_cells [label="Mast-cell degranulation\n(histamine, tryptase)"];
+    Satellite_glia_activation [label="Satellite glia activation\n(GFAP⁺, Cx43)"];
+    Schwann_dedifferentiation [label="Schwann-cell de-differentiation\n& myelin abnormality"];
+    Langerhans_cells [label="Epidermal Langerhans-cell\nactivation"];
+    Keratinocyte_signaling [label="Keratinocyte–nerve\nterminal signalling"];
+    T_cell_infiltration [label="CD8⁺ T-cell infiltration\n(chronic phase)"];
+    Sensitization_peripheral [label="PERIPHERAL SENSITIZATION\n(lowered nociceptor threshold)", fillcolor="#e8a0a0"];
+    Gut_microbiome [label="Gut microbiome / LPS tone\n(modulates TLR4 set-point)", fillcolor="#f5d5a8"];
+  }
+
+  /* ======================================================================
+     11. SPINAL DORSAL HORN & CENTRAL SENSITIZATION
+     ====================================================================== */
+  subgraph cluster_central {
+    label="11. Spinal Dorsal Horn & Descending Modulation (central amplification — the duloxetine target)";
+    style=filled; color="#c6c6e6"; fillcolor="#e2e2f7";
+    Primary_afferent_barrage [label="Primary afferent\nbarrage → dorsal horn"];
+    WDR_neurons [label="Wide-dynamic-range\nprojection neurons", fillcolor="#a0a0e8"];
+    Glutamate_NMDA [label="Glutamate / NMDA-R\n& AMPA-R"];
+    Microglia_spinal [label="Spinal microglia\nactivation (P2X4)", fillcolor="#a0a0e8"];
+    BDNF_TrkB [label="BDNF → TrkB\n→ KCC2 down-regulation"];
+    Disinhibition [label="GABA/glycine\ndisinhibition"];
+    Astrocyte_GLT1 [label="Astrocytic GLT-1\nglutamate uptake ↓"];
+    Wind_up [label="Wind-up & long-term\npotentiation"];
+    CENTRAL_SENS [label="CENTRAL SENSITIZATION\nGAIN", fillcolor="#e8a0a0"];
+    Descending_NA [label="Descending noradrenergic\ninhibition (LC → α2)", fillcolor="#cfe8cf"];
+    Descending_5HT [label="Descending serotonergic\nmodulation (RVM)", fillcolor="#cfe8cf"];
+    DNIC_loss [label="Loss of diffuse noxious\ninhibitory control (DNIC)"];
+    Thalamus_S1 [label="Thalamus → S1/S2\n(sensory-discriminative)"];
+    ACC_insula [label="ACC / insula\n(affective-motivational)"];
+    Catastrophizing [label="Pain catastrophizing,\nanxiety, poor sleep", fillcolor="#f5d5a8"];
+    Perceived_pain [label="PERCEIVED PAIN\n(BPI 0–10)", fillcolor="#e8a0a0"];
+  }
+
+  /* ======================================================================
+     12. RISK MODIFIERS & PHARMACOGENOMICS
+     ====================================================================== */
+  subgraph cluster_risk {
+    label="12. Host Risk Modifiers & Pharmacogenomics (why identical exposure gives different CIPN)";
+    style=filled; color="#e6e6c6"; fillcolor="#f7f7e2";
+    Age [label="Older age\n(↓ regenerative reserve)", fillcolor="#e8e8a0"];
+    Diabetes_baseline [label="Diabetes / prior\nsubclinical neuropathy", fillcolor="#e8e8a0"];
+    Baseline_reserve [label="BASELINE AXONAL RESERVE\n(the reserve that\ndetermines grade crossing)", fillcolor="#e8a0a0"];
+    Alcohol_hx [label="Alcohol use, B12 /\nfolate deficiency"];
+    Obesity_BSA [label="Obesity & BSA-capped\ndosing"];
+    Smoking [label="Smoking, vascular\ncomorbidity"];
+    Prior_neurotoxic [label="Prior neurotoxic\nchemotherapy exposure", fillcolor="#e8e8a0"];
+    CMT_carrier [label="Inherited neuropathy\n(CMT / PMP22) carrier", fillcolor="#e8a0a0"];
+    GSTP1 [label="GSTP1 Ile105Val\n(platinum detoxification)"];
+    ERCC1_var [label="ERCC1 / XPD variants\n(repair capacity)"];
+    CYP2C8_3 [label="CYP2C8*3\n(paclitaxel clearance ↓)"];
+    ABCB1_var [label="ABCB1 3435C>T\n(efflux)"];
+    SCN9A_var [label="SCN9A / SCN10A\ngain-of-function variants"];
+    EPHA_var [label="EPHA5/EPHA6\n(axon guidance) variants"];
+    Female_sex [label="Sex differences in\npain phenotype"];
+    Vitamin_D [label="Low vitamin D\n(taxane CIPN association)"];
+    Physical_activity [label="Baseline physical\nactivity / fitness", fillcolor="#cfe8cf"];
+  }
+
+  /* ======================================================================
+     13. PREVENTION STRATEGIES (EXPOSURE-LIMITING — MUST BE GIVEN PER CYCLE)
+     ====================================================================== */
+  subgraph cluster_prevention {
+    label="13. Prevention: Exposure-Limiting Strategies (must be applied AT EVERY infusion to work)";
+    style=filled; color="#c6e6c6"; fillcolor="#e2f7e2";
+    Cryotherapy [label="Frozen-glove / sock\ncryotherapy (limb cooling)", fillcolor="#a0e8a0"];
+    Vasoconstriction_local [label="Local vasoconstriction\n→ ↓ drug delivery to nerve", fillcolor="#a0e8a0"];
+    Compression_therapy [label="Surgical-glove compression\ntherapy", fillcolor="#a0e8a0"];
+    Limb_hypothermia_target [label="Skin temperature target\n(≈ 20–25 °C)"];
+    Exercise_program [label="Sensorimotor / balance\nexercise program", fillcolor="#a0e8a0"];
+    Exercise_mechanism [label="↑ mitochondrial biogenesis,\n↑ neurotrophins, ↓ inflammation"];
+    Dose_capping [label="Dose capping / cycle\nomission (planned)"];
+    Stop_and_go [label="Stop-and-go / OPTIMOX\nintermittent strategy", fillcolor="#a0e8a0"];
+    Duration_3mo [label="3-month rather than\n6-month adjuvant (IDEA)", fillcolor="#a0e8a0"];
+    SC_route [label="Subcutaneous route\n(bortezomib — ↓Cmax)", fillcolor="#a0e8a0"];
+    Weekly_lower_dose [label="Weekly lower dose\n(bortezomib d1,8,15,22)"];
+    Failed_CaMg [label="Ca²⁺/Mg²⁺ infusion\n(NEGATIVE — N08CB)", fillcolor="#d8d8d8"];
+    Failed_glutathione [label="Glutathione / amifostine\n(insufficient evidence)", fillcolor="#d8d8d8"];
+    Failed_vitE [label="Vitamin E\n(NEGATIVE)", fillcolor="#d8d8d8"];
+    Harmful_ALC [label="Acetyl-L-carnitine\n(HARMFUL — worse CIPN)", fillcolor="#f5a0a0"];
+    Failed_venlafaxine_prev [label="Venlafaxine prophylaxis\n(insufficient/conflicting)", fillcolor="#d8d8d8"];
+    Investigational_SARM1 [label="SARM1 inhibitors\n(investigational)", fillcolor="#bfe3f5"];
+    Investigational_HDAC6 [label="HDAC6 inhibitors\n(restore axonal transport)", fillcolor="#bfe3f5"];
+    Investigational_S1P [label="S1PR1 antagonists\n/ ceramide modulators", fillcolor="#bfe3f5"];
+  }
+
+  /* ======================================================================
+     14. SYMPTOMATIC TREATMENT PK/PD
+     ====================================================================== */
+  subgraph cluster_treatment {
+    label="14. Symptomatic Treatment PK/PD (treats the SYMPTOM, not the axon)";
+    style=filled; color="#c6d8d8"; fillcolor="#e2efef";
+    Duloxetine_dose [label="Duloxetine 30→60 mg PO\ndaily × 5 weeks", fillcolor="#a0c8c8"];
+    Dul_PK [label="Duloxetine PK\n(CYP1A2/2D6, t½ ≈ 12 h)"];
+    SERT_NET_block [label="SERT / NET reuptake\ninhibition", fillcolor="#a0c8c8"];
+    NA_tone_spinal [label="↑ Spinal noradrenergic\ntone → α2 inhibition", fillcolor="#a0c8c8"];
+    Dul_effect [label="Pain ↓ ~1.06 points\n(BPI, Smith 2013)", fillcolor="#cfe8cf"];
+    Dul_AE [label="Nausea, somnolence,\ninsomnia, fatigue"];
+    Pregabalin_dose [label="Pregabalin 150–600 mg/d\n(α2δ ligand)"];
+    Gabapentin_dose [label="Gabapentin 900–3600 mg/d\n(NEGATIVE in CIPN RCT)", fillcolor="#d8d8d8"];
+    A2d_binding [label="CaV α2δ-1 binding →\n↓ excitatory transmitter release"];
+    Venlafaxine_tx [label="Venlafaxine\n(SNRI alternative)"];
+    TCA_nortriptyline [label="TCAs (nortriptyline,\namitriptyline — weak evidence)", fillcolor="#d8d8d8"];
+    Topical_menthol [label="Topical menthol\n(TRPM8 desensitization)"];
+    Topical_capsaicin [label="8% capsaicin patch\n(TRPV1 defunctionalization)"];
+    Topical_baclofen_ket [label="Topical baclofen-amitriptyline\n-ketamine (BAK)"];
+    Scrambler [label="Scrambler therapy\n(transcutaneous)"];
+    Acupuncture [label="Acupuncture\n(emerging evidence)"];
+    Opioids [label="Opioids\n(limited benefit, avoid)", fillcolor="#d8d8d8"];
+    Physical_therapy [label="Balance / gait\nrehabilitation", fillcolor="#a0c8c8"];
+  }
+
+  /* ======================================================================
+     15. CLINICAL ENDPOINTS & FUNCTIONAL OUTCOMES
+     ====================================================================== */
+  subgraph cluster_endpoints {
+    label="15. Clinical Endpoints, Biomarkers & Functional Outcome";
+    style=filled; color="#f0d8b0"; fillcolor="#faeed8";
+    CIPN20_sensory [label="EORTC QLQ-CIPN20\nsensory subscale (0–100)", fillcolor="#f0b060"];
+    CIPN20_motor [label="CIPN20 motor\nsubscale"];
+    CIPN20_autonomic [label="CIPN20 autonomic\nsubscale"];
+    CTCAE_grade [label="NCI-CTCAE grade\n(0–4)", fillcolor="#f0b060"];
+    Grade2_plus [label="Grade ≥2 incidence\n(the trial endpoint)", fillcolor="#e8a0a0"];
+    Grade3_plus [label="Grade ≥3 incidence\n(dose-limiting)", fillcolor="#e8a0a0"];
+    TNSc [label="Total Neuropathy Score\nclinical (TNSc)", fillcolor="#f0b060"];
+    Vibration_threshold [label="Vibration perception\nthreshold (128 Hz / VPT)"];
+    Cold_detection [label="Cold detection threshold\n(QST)"];
+    Monofilament [label="Monofilament / pinprick\nsensation"];
+    Ankle_reflex [label="Ankle reflex loss"];
+    NCS_amplitude [label="Sural SNAP amplitude\n(µV)", fillcolor="#f0b060"];
+    NCS_velocity [label="Sensory conduction\nvelocity (m/s)"];
+    NFL_plasma [label="Plasma neurofilament\nlight (NfL, pg/mL)", fillcolor="#bfe3f5"];
+    Skin_biopsy [label="Skin biopsy IENFD\n(fibres/mm)", fillcolor="#bfe3f5"];
+    Corneal_confocal [label="Corneal confocal\nmicroscopy (nerve density)"];
+    Falls_risk [label="Falls & balance\nimpairment", fillcolor="#e8a0a0"];
+    Grooved_pegboard [label="Manual dexterity\n(Grooved Pegboard)"];
+    Gait_speed [label="Gait speed & Timed\nUp-and-Go"];
+    QoL_global [label="Global QoL\n(QLQ-C30)", fillcolor="#e8a0a0"];
+    Work_disability [label="Work disability &\nfinancial toxicity"];
+    Chronic_persistence [label="Persistence at 3–6 years\n(~30–40%)", fillcolor="#e8a0a0"];
+  }
+
+  /* ======================================================================
+     16. THE DOSE-INTENSITY DILEMMA: ONCOLOGIC OUTCOME
+     ====================================================================== */
+  subgraph cluster_oncology {
+    label="16. The Dose-Intensity Dilemma (every neuroprotective dose reduction is also an anti-tumour dose reduction)";
+    style=filled; color="#f0c0c0"; fillcolor="#fae0e0";
+    Dose_delay [label="Dose delay\n(cycle postponed)", fillcolor="#f0a0a0"];
+    Dose_reduction [label="Dose reduction\n(75% → 50%)", fillcolor="#f0a0a0"];
+    Early_discontinuation [label="Early discontinuation\n(oxaliplatin stop)", fillcolor="#f0a0a0"];
+    RDI [label="RELATIVE DOSE INTENSITY\n(RDI, % of planned)", fillcolor="#e8a0a0"];
+    Tumour_effective_exposure [label="Tumour-effective\ncumulative exposure", fillcolor="#cfe8cf"];
+    Tumour_kill [label="Tumour cell kill\n(log-kill / Norton–Simon)"];
+    Tumour_burden [label="Tumour burden /\nmicrometastatic residual", fillcolor="#f0a0a0"];
+    Resistance_clone [label="Resistant clone\noutgrowth"];
+    DFS [label="3-year disease-free\nsurvival (DFS)", fillcolor="#cfe8cf"];
+    OS [label="Overall survival", fillcolor="#cfe8cf"];
+    Risk_stratification [label="Risk stratification\n(T4/N2 high-risk vs T1-3N1)", fillcolor="#f5d5a8"];
+    Utility_tradeoff [label="NET UTILITY\n(DFS gain vs CIPN burden)", fillcolor="#e8a0a0"];
+    Monitoring_strategy [label="Biomarker-guided dose\nmodification strategy", fillcolor="#bfe3f5"];
+    Shared_decision [label="Shared decision-making\n(patient preference weight)"];
+  }
+
+  /* ======================================================================
+     EDGES — DOSING & PK
+     ====================================================================== */
+  Oxaliplatin -> Dose_per_cycle;
+  Oxaliplatin -> PK_oxa_central;
+  Cisplatin -> PK_oxa_central [style=dashed, label="Pt pool"];
+  Carboplatin -> PK_oxa_central [style=dashed];
+  Paclitaxel -> PK_pac_central;
+  Nab_paclitaxel -> PK_pac_central [style=dashed];
+  Docetaxel -> PK_pac_central [style=dashed];
+  Bortezomib -> PK_btz_central;
+  Carfilzomib -> PK_btz_central [style=dashed];
+  Vincristine -> Beta_tubulin_binding;
+  Thalidomide -> Axonal_transport [style=dashed];
+  Eribulin -> Beta_tubulin_binding [style=dashed];
+  Brentuximab -> TDXd_ADC;
+  TDXd_ADC -> MT_depolymerization [label="MMAE"];
+  Dose_per_cycle -> Cmax_metric;
+  Infusion_duration -> Cmax_metric [label="↓ with longer"];
+  Route_SC_vs_IV -> Cmax_metric [label="SC halves Cmax"];
+  Route_SC_vs_IV -> AUC_metric [label="AUC preserved"];
+  Dose_per_cycle -> AUC_metric;
+  Cycle_interval -> Cumulative_dose;
+  Treatment_duration -> Cumulative_dose;
+  Dose_per_cycle -> Cumulative_dose;
+  AUC_metric -> Cumulative_dose;
+
+  PK_oxa_central -> PK_oxa_periph [dir=both];
+  PK_oxa_central -> PK_pt_tissue [label="slow irreversible"];
+  PK_oxa_central -> PK_pt_erythrocyte;
+  PK_oxa_central -> Plasma_protein_binding;
+  PK_oxa_central -> Renal_excretion;
+  PK_pac_central -> PK_pac_p1 [dir=both];
+  PK_pac_central -> PK_pac_p2 [dir=both];
+  PK_pac_central -> Saturable_pac;
+  Saturable_pac -> Time_above_thresh;
+  PK_pac_central -> CYP3A4;
+  PK_pac_central -> CYP2C8;
+  CYP3A4 -> Biliary_excretion;
+  CYP2C8 -> Biliary_excretion;
+  PK_btz_central -> PK_btz_periph [dir=both];
+  PK_btz_central -> CYP3A4;
+  Hepatic_impairment -> PK_pac_central [label="↑ AUC"];
+  Renal_impairment -> PK_oxa_central [label="↑ AUC"];
+  CYP2C8_3 -> CYP2C8 [label="↓ clearance"];
+  ABCB1_var -> Pgp_ABCB1;
+
+  /* EDGES — TRANSPORT INTO DRG */
+  PK_oxa_central -> OCT2;
+  PK_oxa_central -> CTR1;
+  OCT2 -> DRG_neuron_soma [label="uptake"];
+  CTR1 -> DRG_neuron_soma [label="uptake"];
+  MATE1 -> DRG_neuron_soma [label="efflux", style=dashed, color=darkgreen];
+  ATP7A_ATP7B -> DRG_neuron_soma [label="sequester", style=dashed, color=darkgreen];
+  BNB_intact -> Motor_axon_relative_sparing;
+  BNB_absent_DRG -> DRG_neuron_soma [label="unprotected"];
+  Fenestrated_caps -> BNB_absent_DRG;
+  BNB_absent_DRG -> Free_nerve_endings;
+  PK_pac_central -> Pgp_ABCB1;
+  Pgp_ABCB1 -> Beta_tubulin_binding [label="efflux limits", style=dashed, color=darkgreen];
+  ABCC1_MRP -> DRG_neuron_soma [style=dashed, color=darkgreen];
+  OATP1B1_1B3 -> Biliary_excretion;
+  PK_pac_central -> Free_nerve_endings [label="terminal exposure"];
+  PK_btz_central -> DRG_neuron_soma;
+  Long_axon_burden -> Cargo_starvation;
+  Metabolic_demand -> ATP_axonal [label="demand"];
+  DRG_neuron_soma -> Satellite_glia;
+  Vincristine -> Autonomic_ganglia;
+
+  /* EDGES — PLATINUM MECHANISM */
+  DRG_neuron_soma -> Aquation;
+  Aquation -> Pt_GG_adduct;
+  Pt_GG_adduct -> Nuclear_DNA_damage;
+  Pt_GG_adduct -> Pt_interstrand;
+  Aquation -> mtDNA_adducts;
+  NER_ERCC1 -> Pt_GG_adduct [label="repair", style=dashed, color=darkgreen];
+  ERCC1_var -> NER_ERCC1;
+  GSTP1 -> GSH_pool;
+  GSH_pool -> Aquation [label="detoxify", style=dashed, color=darkgreen];
+  Nuclear_DNA_damage -> ATR_CHK1;
+  ATR_CHK1 -> p53_activation;
+  p53_activation -> PUMA_BAX;
+  Nuclear_DNA_damage -> Nucleolar_stress;
+  Nucleolar_stress -> Transcription_arrest;
+  Nucleolar_stress -> Nucleolar_size;
+  Transcription_arrest -> Protein_synth_down;
+  Protein_synth_down -> Soma_atrophy;
+  Protein_synth_down -> Cargo_starvation;
+  Soma_atrophy -> Neuronopathy_pattern;
+  PUMA_BAX -> Neuron_loss_irreversible;
+  mtDNA_adducts -> Complex_I;
+  mtDNA_adducts -> Complex_IV;
+  Oxaliplatin -> Oxalate_release;
+  Oxalate_release -> Ca_chelation;
+  Ca_chelation -> Nav16 [label="slowed inactivation"];
+  PK_pt_tissue -> Residual_tissue_Pt;
+  PK_pt_erythrocyte -> Residual_tissue_Pt [style=dashed];
+
+  /* EDGES — MICROTUBULE */
+  Paclitaxel -> Beta_tubulin_binding;
+  Beta_tubulin_binding -> MT_stabilization;
+  Beta_tubulin_binding -> MT_depolymerization;
+  TUBB_variants -> Beta_tubulin_binding;
+  MT_stabilization -> MT_dynamics_loss;
+  MT_depolymerization -> MT_dynamics_loss;
+  MT_dynamics_loss -> Kinesin_KIF5A [label="impaired track"];
+  MT_dynamics_loss -> Dynein;
+  Kinesin_KIF5A -> Axonal_transport;
+  Dynein -> Axonal_transport;
+  MT_dynamics_loss -> Bundling_MT;
+  Bundling_MT -> Axon_swelling_pathology;
+  Axonal_transport -> Mito_trafficking;
+  Mito_trafficking -> ATP_axonal;
+  Axonal_transport -> Cargo_starvation [label="failure →"];
+  Axonal_transport -> NGF_retrograde;
+  NGF_retrograde -> Soma_atrophy;
+  Cargo_starvation -> Axonopathy_pattern;
+  Mac_transport_block -> Axonopathy_pattern;
+  Time_above_thresh -> Beta_tubulin_binding [label="PD driver"];
+
+  /* EDGES — PROTEASOME */
+  Bortezomib -> Proteasome_20S;
+  Proteasome_20S -> Prot_inhibition;
+  Cmax_metric -> Prot_inhibition [label="Cmax-driven"];
+  Reversible_binding -> Prot_inhibition [style=dashed];
+  Prot_inhibition -> Ubiquitinated_aggregates;
+  Prot_inhibition -> ER_stress_UPR;
+  ER_stress_UPR -> ATF4_CHOP;
+  Prot_inhibition -> Autophagy_block;
+  Prot_inhibition -> Tubulin_polymer_btz;
+  Tubulin_polymer_btz -> MT_dynamics_loss;
+  Prot_inhibition -> Sphingolipid_ceramide;
+  Sphingolipid_ceramide -> Schwann_myelin_btz;
+  Prot_inhibition -> NFkB_block;
+  NFkB_block -> Tumour_kill;
+  Ubiquitinated_aggregates -> Small_fiber_predom;
+  ATF4_CHOP -> Neuron_loss_irreversible;
+  Schwann_myelin_btz -> NCS_velocity [label="↓"];
+  Small_fiber_predom -> Perceived_pain;
+
+  /* EDGES — MITOCHONDRIA & OXIDATIVE STRESS */
+  Complex_I -> ETC_uncoupling;
+  Complex_IV -> ETC_uncoupling;
+  ETC_uncoupling -> ROS_generation;
+  ETC_uncoupling -> ATP_axonal;
+  ETC_uncoupling -> mPTP;
+  mPTP -> Ca_overload;
+  ROS_generation -> Peroxynitrite;
+  ROS_generation -> Lipid_peroxidation;
+  SOD2_catalase -> ROS_generation [label="scavenge", style=dashed, color=darkgreen];
+  GSH_pool -> ROS_generation [label="scavenge", style=dashed, color=darkgreen];
+  ROS_generation -> TRPA1 [label="sensitize"];
+  Lipid_peroxidation -> TRPA1;
+  Peroxynitrite -> Complex_I [label="feed-forward"];
+  ATP_axonal -> NaK_ATPase_axon;
+  NaK_ATPase_axon -> Ca_overload;
+  Ca_overload -> Calpain;
+  Calpain -> Distal_axon_loss;
+  ATP_axonal -> NAD_NMNAT2 [label="supply"];
+  NAD_NMNAT2 -> SARM1_activation [label="inhibits", style=dashed, color=darkgreen];
+  Mito_trafficking -> NAD_NMNAT2 [label="delivers NMNAT2"];
+  SARM1_activation -> NAD_collapse;
+  NAD_collapse -> ATP_axonal [label="collapse"];
+  SARM1_activation -> Axon_death_program;
+  Megamitochondria -> ETC_uncoupling;
+  ROS_generation -> Megamitochondria;
+  Mitophagy -> Megamitochondria [label="clear", style=dashed, color=darkgreen];
+  Autophagy_block -> Mitophagy [label="blocks"];
+  Bioenergetic_reserve -> ATP_axonal;
+  ROS_generation -> DAMPs;
+
+  /* EDGES — COMMITTED DEGENERATION & COASTING */
+  Axon_death_program -> Commitment_threshold;
+  Commitment_threshold -> Latency_execution;
+  Latency_execution -> Coasting;
+  Residual_tissue_Pt -> Coasting [label="continued drive"];
+  Residual_tissue_Pt -> Pt_GG_adduct [label="ongoing adducts"];
+  Axon_death_program -> Distal_axon_loss;
+  Coasting -> Distal_axon_loss;
+  Distal_axon_loss -> IENFD [label="↓"];
+  Distal_axon_loss -> Myelinated_fiber_loss;
+  Distal_axon_loss -> Wallerian_like;
+  Distal_axon_loss -> NCS_amplitude [label="↓ SNAP"];
+  Distal_axon_loss -> NFL_plasma [label="release ↑"];
+  Regeneration_program -> Regeneration_rate;
+  Regeneration_rate -> Reinnervation;
+  Reinnervation -> IENFD [label="recovery", color=darkgreen];
+  Regen_capacity_age -> Regeneration_program;
+  Age -> Regen_capacity_age;
+  Diabetes_baseline -> Regen_capacity_age;
+  Neuron_loss_irreversible -> Incomplete_recovery;
+  Neuron_loss_irreversible -> Regeneration_program [label="no soma, no regrowth"];
+  Incomplete_recovery -> Chronic_persistence;
+  Distal_axon_loss -> Incomplete_recovery;
+  Exercise_mechanism -> Regeneration_program [color=darkgreen];
+
+  /* EDGES — CHANNELS & HYPEREXCITABILITY */
+  Nav16 -> Persistent_Na;
+  Nav17 -> Persistent_Na;
+  Nav18 -> Persistent_Na;
+  Persistent_Na -> Axonal_hyperexcitability;
+  Kv7_KCNQ -> Axonal_hyperexcitability [label="brake lost", style=dashed];
+  K2P_TREK -> Axonal_hyperexcitability [label="brake lost", style=dashed];
+  HCN1 -> Ectopic_discharge;
+  Kir_channels -> Axonal_hyperexcitability [style=dashed];
+  TRPM8 -> Acute_cold_allodynia;
+  TRPA1 -> Acute_cold_allodynia;
+  TRPV1 -> Perceived_pain;
+  TRPV4 -> Sensitization_peripheral;
+  CaV32 -> Ectopic_discharge;
+  CaV_alpha2delta -> CENTRAL_SENS;
+  Axonal_hyperexcitability -> Ectopic_discharge;
+  Ectopic_discharge -> Primary_afferent_barrage;
+  Axonal_hyperexcitability -> Acute_cold_allodynia;
+  Acute_cold_allodynia -> Pharyngolaryngeal;
+  Axonal_hyperexcitability -> Muscle_cramps;
+  Axonal_hyperexcitability -> Nerve_excitability_studies;
+  Ca_chelation -> Kv7_KCNQ [label="↓"];
+  ROS_generation -> Kv7_KCNQ [label="↓"];
+  Distal_axon_loss -> CaV_alpha2delta [label="injury-induced ↑"];
+  Distal_axon_loss -> Nav17 [label="↑ expression"];
+  SCN9A_var -> Nav17;
+  Acute_cold_allodynia -> Cold_detection;
+  Cmax_metric -> Axonal_hyperexcitability [label="peak-driven"];
+
+  /* EDGES — NEUROINFLAMMATION */
+  DAMPs -> TLR4_MyD88;
+  TLR4_MyD88 -> DRG_macrophage;
+  TLR4_MyD88 -> NLRP3;
+  NLRP3 -> IL1beta;
+  DRG_macrophage -> IL1beta;
+  DRG_macrophage -> TNFalpha;
+  DRG_macrophage -> IL6;
+  CX3CR1 -> DRG_macrophage;
+  CXCL12_CXCR4 -> DRG_macrophage [label="chronic"];
+  Gut_microbiome -> TLR4_MyD88;
+  IL1beta -> Sensitization_peripheral;
+  TNFalpha -> Sensitization_peripheral;
+  IL6 -> Sensitization_peripheral;
+  IL1beta -> Nav17 [label="↑"];
+  TNFalpha -> TRPV1;
+  IL10_resolution -> DRG_macrophage [label="resolve", style=dashed, color=darkgreen];
+  Mast_cells -> Sensitization_peripheral;
+  Satellite_glia_activation -> Sensitization_peripheral;
+  Schwann_dedifferentiation -> Distal_axon_loss;
+  Langerhans_cells -> Keratinocyte_signaling;
+  Keratinocyte_signaling -> Free_nerve_endings;
+  T_cell_infiltration -> Sensitization_peripheral;
+  DRG_macrophage -> ROS_generation;
+  Sensitization_peripheral -> Ectopic_discharge;
+  Sensitization_peripheral -> Primary_afferent_barrage;
+  DRG_neuron_soma -> DAMPs;
+  Free_nerve_endings -> IENFD;
+
+  /* EDGES — CENTRAL */
+  Primary_afferent_barrage -> WDR_neurons;
+  WDR_neurons -> Wind_up;
+  Primary_afferent_barrage -> Glutamate_NMDA;
+  Glutamate_NMDA -> Wind_up;
+  Primary_afferent_barrage -> Microglia_spinal;
+  Microglia_spinal -> BDNF_TrkB;
+  BDNF_TrkB -> Disinhibition;
+  Astrocyte_GLT1 -> Glutamate_NMDA [label="uptake ↓ →"];
+  Disinhibition -> CENTRAL_SENS;
+  Wind_up -> CENTRAL_SENS;
+  CENTRAL_SENS -> WDR_neurons [label="amplify"];
+  Descending_NA -> CENTRAL_SENS [label="inhibit", style=dashed, color=darkgreen];
+  Descending_5HT -> CENTRAL_SENS [style=dashed, color=darkgreen];
+  DNIC_loss -> CENTRAL_SENS;
+  CENTRAL_SENS -> Thalamus_S1;
+  Thalamus_S1 -> Perceived_pain;
+  CENTRAL_SENS -> ACC_insula;
+  ACC_insula -> Perceived_pain;
+  Catastrophizing -> ACC_insula;
+  Catastrophizing -> Perceived_pain;
+  Perceived_pain -> QoL_global;
+
+  /* EDGES — RISK MODIFIERS */
+  Age -> Baseline_reserve [label="↓"];
+  Diabetes_baseline -> Baseline_reserve [label="↓"];
+  Alcohol_hx -> Baseline_reserve;
+  Prior_neurotoxic -> Baseline_reserve;
+  CMT_carrier -> Baseline_reserve [label="↓↓"];
+  Obesity_BSA -> Dose_per_cycle;
+  Smoking -> Bioenergetic_reserve;
+  Vitamin_D -> Baseline_reserve;
+  Physical_activity -> Bioenergetic_reserve [color=darkgreen];
+  Baseline_reserve -> CTCAE_grade [label="determines grade\ncrossing", color=red];
+  Baseline_reserve -> IENFD [label="starting point"];
+  EPHA_var -> Regeneration_program;
+  Female_sex -> Perceived_pain;
+  Diabetes_baseline -> Bioenergetic_reserve;
+
+  /* EDGES — PREVENTION */
+  Cryotherapy -> Vasoconstriction_local;
+  Compression_therapy -> Vasoconstriction_local;
+  Limb_hypothermia_target -> Vasoconstriction_local;
+  Vasoconstriction_local -> Free_nerve_endings [label="↓ delivery", color=darkgreen];
+  Vasoconstriction_local -> Long_axon_burden [label="↓ distal exposure", color=darkgreen];
+  Exercise_program -> Exercise_mechanism;
+  Exercise_mechanism -> Bioenergetic_reserve [color=darkgreen];
+  Exercise_program -> Falls_risk [label="↓", color=darkgreen];
+  Dose_capping -> RDI;
+  Stop_and_go -> Cycle_interval;
+  Duration_3mo -> Treatment_duration;
+  SC_route -> Route_SC_vs_IV;
+  Weekly_lower_dose -> Dose_per_cycle;
+  Failed_CaMg -> Ca_chelation [style=dotted, label="no benefit"];
+  Failed_glutathione -> GSH_pool [style=dotted];
+  Failed_vitE -> Lipid_peroxidation [style=dotted];
+  Harmful_ALC -> Distal_axon_loss [label="worse", color=red];
+  Failed_venlafaxine_prev -> Descending_NA [style=dotted];
+  Investigational_SARM1 -> SARM1_activation [label="block", color=darkgreen];
+  Investigational_HDAC6 -> Axonal_transport [label="restore", color=darkgreen];
+  Investigational_S1P -> Sphingolipid_ceramide [color=darkgreen];
+
+  /* EDGES — SYMPTOMATIC TREATMENT */
+  Duloxetine_dose -> Dul_PK;
+  Dul_PK -> SERT_NET_block;
+  SERT_NET_block -> NA_tone_spinal;
+  NA_tone_spinal -> Descending_NA [color=darkgreen];
+  Descending_NA -> Dul_effect;
+  Dul_effect -> Perceived_pain [label="↓ 1.06 pts", color=darkgreen];
+  Dul_PK -> Dul_AE;
+  Pregabalin_dose -> A2d_binding;
+  Gabapentin_dose -> A2d_binding [style=dotted];
+  A2d_binding -> CENTRAL_SENS [label="↓", color=darkgreen];
+  Venlafaxine_tx -> SERT_NET_block;
+  TCA_nortriptyline -> SERT_NET_block [style=dotted];
+  Topical_menthol -> TRPM8 [label="desensitize", color=darkgreen];
+  Topical_capsaicin -> TRPV1 [label="defunctionalize", color=darkgreen];
+  Topical_baclofen_ket -> Sensitization_peripheral [color=darkgreen];
+  Scrambler -> CENTRAL_SENS [color=darkgreen];
+  Acupuncture -> Perceived_pain [color=darkgreen, style=dashed];
+  Opioids -> Perceived_pain [style=dotted];
+  Physical_therapy -> Gait_speed [color=darkgreen];
+  Physical_therapy -> Falls_risk [label="↓", color=darkgreen];
+
+  /* EDGES — ENDPOINTS */
+  IENFD -> CIPN20_sensory [label="structural basis"];
+  Axonal_hyperexcitability -> CIPN20_sensory;
+  Perceived_pain -> CIPN20_sensory;
+  Distal_axon_loss -> CIPN20_sensory;
+  Distal_axon_loss -> CIPN20_motor;
+  Autonomic_ganglia -> CIPN20_autonomic;
+  CIPN20_sensory -> CTCAE_grade;
+  CTCAE_grade -> Grade2_plus;
+  CTCAE_grade -> Grade3_plus;
+  CIPN20_sensory -> TNSc;
+  NCS_amplitude -> TNSc;
+  Vibration_threshold -> TNSc;
+  Ankle_reflex -> TNSc;
+  Monofilament -> TNSc;
+  Distal_axon_loss -> Vibration_threshold;
+  Distal_axon_loss -> Ankle_reflex;
+  Distal_axon_loss -> Monofilament;
+  IENFD -> Skin_biopsy;
+  IENFD -> Corneal_confocal;
+  NFL_plasma -> Monitoring_strategy [label="early signal"];
+  Skin_biopsy -> Monitoring_strategy;
+  Distal_axon_loss -> Falls_risk;
+  Vibration_threshold -> Falls_risk;
+  Distal_axon_loss -> Grooved_pegboard;
+  Falls_risk -> Gait_speed;
+  CIPN20_sensory -> QoL_global;
+  Grade2_plus -> Work_disability;
+  QoL_global -> Utility_tradeoff;
+  Chronic_persistence -> Work_disability;
+
+  /* EDGES — ONCOLOGIC TRADE-OFF */
+  Grade2_plus -> Dose_delay [label="triggers", color=red];
+  Grade2_plus -> Dose_reduction [color=red];
+  Grade3_plus -> Early_discontinuation [color=red];
+  Dose_delay -> RDI [label="↓"];
+  Dose_reduction -> RDI [label="↓"];
+  Early_discontinuation -> RDI [label="↓↓"];
+  Dose_reduction -> Cumulative_dose [label="↓", color=darkgreen];
+  Early_discontinuation -> Cumulative_dose [label="↓↓", color=darkgreen];
+  RDI -> Tumour_effective_exposure;
+  Tumour_effective_exposure -> Tumour_kill;
+  Tumour_kill -> Tumour_burden [label="↓"];
+  Tumour_burden -> Resistance_clone;
+  Resistance_clone -> Tumour_burden;
+  Tumour_burden -> DFS [label="↓ DFS"];
+  DFS -> OS;
+  Risk_stratification -> Treatment_duration [label="informs"];
+  Risk_stratification -> Utility_tradeoff;
+  DFS -> Utility_tradeoff;
+  Grade2_plus -> Utility_tradeoff [label="cost side"];
+  Monitoring_strategy -> Dose_reduction [label="earlier, smaller"];
+  Shared_decision -> Utility_tradeoff;
+  Duration_3mo -> DFS [style=dashed, label="non-inferior\n(low risk)"];
+  Duration_3mo -> Grade2_plus [label="↓↓", color=darkgreen];
+
+  /* CROSS-CLUSTER CORE SPINE (highlighted) */
+  Cumulative_dose -> DRG_neuron_soma [penwidth=3, color=red, label="CORE DRIVER"];
+  DRG_neuron_soma -> Axonal_transport [penwidth=2, color=red];
+  Axonal_transport -> ATP_axonal [penwidth=2, color=red];
+  ATP_axonal -> SARM1_activation [penwidth=3, color=red, label="energy crisis →\ncommitment"];
+  SARM1_activation -> Distal_axon_loss [penwidth=3, color=red];
+  Distal_axon_loss -> Grade2_plus [penwidth=3, color=red, label="STRUCTURAL\nENDPOINT"];
+  Grade2_plus -> RDI [penwidth=3, color=red];
+  RDI -> DFS [penwidth=3, color=red, label="ONCOLOGIC\nCOST"];
+}

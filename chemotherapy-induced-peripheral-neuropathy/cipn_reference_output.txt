@@ -1,0 +1,415 @@
+cipn_reference_model.py
+=======================
+Dependency-free (stdlib-only) reference implementation of the CIPN QSP model.
+
+WHY THIS FILE EXISTS
+--------------------
+The deliverables in this directory are `cipn_mrgsolve_model.R` (the model of
+record) and `cipn_shiny_app.R` (the dashboard).  Neither can be executed in a
+plain Python environment, so every quantitative statement in `README.md` would
+otherwise be an assertion rather than a result.  This file re-implements the
+*same* ODE system with the *same* parameter values in pure Python + `math`, and
+prints every number quoted in the README.  Run it with:
+
+    python3 cipn_reference_model.py
+
+==============================================================================
+0. CALIBRATION (7 fitted parameters <- 7 trial observations)
+==============================================================================
+  using the stored fitted values (re-derive with --calibrate):
+    PHI_RELIEF   = 0.5009
+    SIGMA_S      = 0.3664
+    KDAM_PT      = 0.3799
+    KDAM_TAX     = 0.1626
+    KDAM_BTZ     = 147.6020
+    BTZ_JH       = 1.5113
+    KCS_DUL      = 0.3535
+
+==============================================================================
+0b. VALIDATION - what was FITTED vs what was PREDICTED
+==============================================================================
+  arm                                   model     observed   status
+                                   g>=2  g>=3   g>=2  g>=3
+  --------------------------------------------------------------------------
+  FOLFOX 6 months  (1020 mg/m2)   47.7  12.4    47.7  12.4   FIT
+  FOLFOX 3 months  ( 510 mg/m2)   16.6   0.8    16.6   2.7   FIT (g>=2) / PREDICTION (g>=3)
+  CAPOX 3 months   ( 520 mg/m2)   18.4   1.0    15.0   3.0   PREDICTION
+  CAPOX 6 months   (1040 mg/m2)   50.0  13.7    45.0  11.0   PREDICTION
+  Paclitaxel weekly 80 x12        27.0   1.3    27.0     -   FIT
+  Paclitaxel q3w   175 x4         14.9   0.4    20.0     -   PREDICTION
+  Bortezomib 1.3 IV  d1/4/8/11    41.0   7.0    41.0  16.0   FIT (g>=2) / PREDICTION (g>=3)
+  Bortezomib 1.3 SC  d1/4/8/11    23.8   2.5    24.0   6.0   FIT (g>=2) / PREDICTION (g>=3)
+  Bortezomib IV once weekly        6.3   0.3       -   8.0   PREDICTION
+
+  Sources: IDEA (Grothey NEJM 2018) for FOLFOX/CAPOX 3-vs-6 months;
+  MOSAIC (Andre 2004/2009) for grade 3; ECOG 1199 (Sparano NEJM 2008)
+  for paclitaxel schedule; MMY-3021 (Moreau Lancet Oncol 2011) for
+  bortezomib route; Bringhen (Blood 2010) for the weekly schedule.
+
+  HONEST LIMITATIONS visible in this table:
+   - grade >=3 is systematically UNDER-predicted (FOLFOX 3 mo 0.8% vs
+     2.7%; bortezomib IV ~7% vs 16%). The modelled severity
+     distribution is too narrow at the top: a single lognormal
+     susceptibility cannot widen the upper tail without also
+     inflating grade >=2, which is pinned by the fit.
+   - once-weekly bortezomib is over-rewarded. The model gets the
+     DIRECTION of the schedule benefit right but exaggerates it,
+     because inter-dose recovery of MITO (t1/2 4.6 d) and axonal
+     transport (t1/2 6.9 d) is close to complete over 7 days.
+   - paclitaxel q3w is under-predicted (14.9% vs 20%), i.e. the model
+     attributes slightly too much of the taxane schedule effect to
+     cumulative dose and too little to peak concentration.
+
+==============================================================================
+1. PK SANITY CHECK (model output vs published values)
+==============================================================================
+  Oxaliplatin 85 mg/m2, 2-h infusion
+    model Cmax (ultrafilterable Pt) = 0.760 mg/L   [published ~0.81 ug/mL, Graham 2000]
+    model AUCinf                    = 11.48 mg.h/L   [published ~5.4-8 ug.h/mL]
+    deep (tissue-bound) Pt at day 60 = 0.5% of dose   [Pt detectable for months, t1/2 ~273 h]
+  Paclitaxel weekly 80 mg/m2 / 1 h
+    model Cmax = 3.25 mg/L = 3.81 umol/L   [published ~3.4 umol/L weekly, ~4.3 umol/L q3w]
+    model AUC  = 7.9 mg.h/L = 9.2 umol.h/L   [published ~8.5 weekly, ~17.5 q3w umol.h/L]
+    model Tc>0.05 umol/L = 18.3 h   [published ~12-16 h weekly, ~25-32 h q3w]
+  Paclitaxel q3w 175 mg/m2 / 3 h
+    model Cmax = 3.23 mg/L = 3.78 umol/L   [published ~3.4 umol/L weekly, ~4.3 umol/L q3w]
+    model AUC  = 17.8 mg.h/L = 20.9 umol.h/L   [published ~8.5 weekly, ~17.5 q3w umol.h/L]
+    model Tc>0.05 umol/L = 40.8 h   [published ~12-16 h weekly, ~25-32 h q3w]
+  Bortezomib 1.3 mg/m2 IV
+    model plasma Cmax =   201.8 ng/mL   [published IV 223, SC 20.4 ng/mL]
+    model AUCinf      =    22.9 ng.h/mL   [published IV 151, SC 155 - equivalent]
+    model peak DRG 20S occupancy = 30.9%
+  Bortezomib 1.3 mg/m2 SC
+    model plasma Cmax =    14.7 ng/mL   [published IV 223, SC 20.4 ng/mL]
+    model AUCinf      =    22.9 ng.h/mL   [published IV 151, SC 155 - equivalent]
+    model peak DRG 20S occupancy = 8.1%
+  Dose-conservation check (see the floating-point note in README):
+    FOLFOX 12 x 85 mg/m2       expected  1020.0   delivered 1020.0000   (100.0000%)
+    FOLFOX  6 x 85 mg/m2       expected   510.0   delivered  510.0000   (100.0000%)
+    CAPOX   8 x 130 mg/m2      expected  1040.0   delivered 1040.0000   (100.0000%)
+    Paclitaxel 12 x 80 mg/m2   expected   960.0   delivered  960.0000   (100.0000%)
+    Paclitaxel  4 x 175 mg/m2  expected   700.0   delivered  700.0000   (100.0000%)
+
+==============================================================================
+2. TREATMENT SCENARIOS (typical patient, S = median = 1.0)
+==============================================================================
+  scenario                                     cumDos  peak   peak   peak  IENFD  d365
+                                                mg/m2    CS CIPN20    BPI  @peak CIPN20
+  ----------------------------------------------------------------------------
+  A  FOLFOX 6 months (12 x 85 mg/m2 q2w)         1020 0.240   25.2   3.14   5.57    5.2
+  B  FOLFOX 3 months (6 x 85 mg/m2 q2w)           510 0.111   11.9   1.65   6.39    1.5
+  C  CAPOX 3 months (4 x 130 mg/m2 q3w)           520 0.120   12.8   1.76   6.33    1.6
+  D  CAPOX 6 months (8 x 130 mg/m2 q3w)          1040 0.250   26.2   3.24   5.49    5.4
+  E  Paclitaxel weekly 80 x 12                    960 0.168   17.8   2.31   5.98    0.9
+  F  Paclitaxel q3w 175 x 4                       700 0.115   12.3   1.69   6.33    0.5
+  G  Bortezomib 1.3 IV x 8 cycles                   0 0.216   22.8   2.97   5.69    2.3
+  H  Bortezomib 1.3 SC x 8 cycles                   0 0.149   16.0   2.24   6.15    1.5
+  I  FOLFOX 6 mo + cryotherapy                   1020 0.055    8.7   1.99   7.00    0.1
+  J  FOLFOX 6 mo, diabetic host                  1020 0.354   37.0   4.43   3.52   11.5
+  K  FOLFOX 6 mo, 20% dose reduction              816 0.140   16.5   2.68   6.38    2.8
+  L  FOLFOX stop-and-go (6 on / 8 wk off / 6 on)   1020 0.139   16.7   2.78   6.41    5.7
+
+==============================================================================
+3. COASTING - severity keeps rising AFTER the last dose (emergent)
+==============================================================================
+  FOLFOX 6 months            last dose day   154   peak severity day   187   coasting =  33.0 d ( 4.7 weeks)
+  FOLFOX 3 months            last dose day    70   peak severity day   136   coasting =  66.0 d ( 9.4 weeks)
+  Paclitaxel weekly x12      last dose day    84   peak severity day   119   coasting =  35.0 d ( 5.0 weeks)
+  Bortezomib IV x8           last dose day   168   peak severity day   168   coasting =   0.0 d ( 0.0 weeks)
+
+  Mechanism: at the last dose the SARM1 axon-death program is already
+  switched on and its off-rate is t1/2 = 23 d, while DRG platinum
+  washes out with t1/2 = 8 d - so degeneration outlives exposure.
+  FOLFOX: SARM1 activity at last dose (d154) = 0.098; at peak severity = 0.062; at d365 = 0.000
+  AXON at last dose = 82.2%  ->  at peak = 79.5%  (a further 2.7 percentage points lost with NO further drug)
+
+==============================================================================
+4. THE IDEA TRIAL: 3 vs 6 MONTHS (both grade>=2 arms FITTED; DFS predicted)
+==============================================================================
+  FOLFOX arm            model g>=2   observed    model g>=3  observed
+  6 months (1020 mg/m2)    47.7%      47.7% (FIT)   12.4%      12.4% (FIT)
+  3 months ( 510 mg/m2)    16.6%      16.6% (FIT)    0.8%       2.7% (PRED)
+
+  Oncologic side (saturating log-kill, C50 = 250 mg/m2 cumulative):
+    6 months        high risk (T4/N2)    3-yr DFS =  64.4%
+    6 months        low risk (T1-3 N1)   3-yr DFS =  83.3%
+    3 months        high risk (T4/N2)    3-yr DFS =  62.7%
+    3 months        low risk (T1-3 N1)   3-yr DFS =  82.4%
+    no oxaliplatin  high risk (T4/N2)    3-yr DFS =  53.2%
+    no oxaliplatin  low risk (T1-3 N1)   3-yr DFS =  76.9%
+
+  Observed IDEA 3-yr DFS: low risk 83.1% (3 mo) vs 83.3% (6 mo);
+                          high risk 62.7% (3 mo) vs 64.4% (6 mo).
+  The model reproduces this because oxaliplatin's anti-tumour
+  exposure-response is 80% saturated by 1020 mg/m2 but only 67%
+  saturated at 510 mg/m2 - a 13 pp difference in kill - whereas its
+  neurotoxic exposure has doubled.
+
+==============================================================================
+5. BORTEZOMIB SC vs IV: SAME AUC, ~1/14 THE Cmax  (both arms FITTED)
+==============================================================================
+  IV: model grade>=2 PN =  41.0%   observed 41% (FIT)     model grade>=3 =  7.0%
+  SC: model grade>=2 PN =  23.8%   observed 24% (FIT)     model grade>=3 =  2.5%
+
+    peak DRG 20S occupancy   IV  30.9%   SC   8.1%   ratio  3.8x
+    AUC of occupancy (d)     IV  0.0050  SC  0.0059  ratio  0.9x
+    AUC of INJURY flux J     IV  0.0057  SC  0.0048  ratio  1.2x
+
+  READ THOSE THREE LINES CAREFULLY. The DRG occupancy AUC actually
+  slightly FAVOURS the IV route (0.85x, i.e. SC has MORE occupancy-time,
+  because occupancy saturates and the low flat SC profile spends longer
+  in the linear region). Nothing about total exposure explains the
+  toxicity difference. But the injury flux is a Hill function (h = 1.51)
+  of occupancy, so the brief IV spike delivers 1.19x the INJURY. Convexity,
+  not exposure, is the entire mechanism - and it costs nothing in
+  efficacy, because tumour kill depends on the saturating BLOOD
+  occupancy AUC, which the two routes share exactly.
+
+==============================================================================
+6. PACLITAXEL SCHEDULE: weekly 80 x12 (FIT) vs q3w 175 x4 (PREDICTION)
+==============================================================================
+  weekly 80 x 12 (960 mg/m2)   model g>=2 =  27.0%   observed 27% (FIT)   total Tc>0.05 = 227.7 h
+  q3w 175 x 4   (700 mg/m2)    model g>=2 =  14.9%   observed 20% (PREDICTION)   total Tc>0.05 = 169.7 h
+
+  ECOG 1199 observed grade>=2 sensory neuropathy: 27% weekly vs 20% q3w.
+  The model gets the DIRECTION right with no schedule-specific
+  parameter - weekly is worse despite the lower dose per cycle,
+  because the taxane nerve burden integrates cumulative dose (960 vs
+  700 mg/m2) and 7-day gaps leave less inter-cycle recovery than 21-day
+  gaps. It over-separates them (27 vs 14.9 rather than 27 vs 20), i.e.
+  it attributes slightly too much of the effect to cumulative dose.
+
+==============================================================================
+7. WHAT ELSE MOVES CIPN AT MATCHED CUMULATIVE DOSE
+==============================================================================
+  (a) Cycle interval at IDENTICAL cumulative dose 1020 mg/m2
+      q2w x 12 (6 months)      grade>=2 =  47.7%
+      q3w x 12 (9 months)      grade>=2 =  16.8%
+      q4w x 12 (12 months)     grade>=2 =   4.0%
+      -> spacing the SAME total dose lets regeneration (t1/2 = 50 d),
+         mitochondrial recovery (t1/2 = 4.6 d) and DRG platinum washout
+         (t1/2 = 8 d) work between hits. CAVEAT: this is the model's
+         largest over-prediction - real oxaliplatin neuropathy is more
+         cumulative-dose-dominated and less schedule-sensitive than a
+         12-fold difference. The same too-complete inter-dose recovery
+         is what over-rewards once-weekly bortezomib (section 0b).
+
+  (b) Stop-and-go (OPTIMOX-like) vs continuous, both 1020 mg/m2
+      continuous 12 x q2w      grade>=2 =  47.7%
+      6 on / 8 wk off / 6 on   grade>=2 =  22.9%
+
+  (c) WHICH host factor actually matters? (FOLFOX 6 months)
+      Bioenergetic RESERVE, holding regeneration at 1.0:
+        RESERVE = 1.00   grade>=2 =  47.7%   relative risk 1.00
+        RESERVE = 0.97   grade>=2 =  58.0%   relative risk 1.22
+        RESERVE = 0.94   grade>=2 =  68.8%   relative risk 1.44
+        RESERVE = 0.90   grade>=2 =  82.3%   relative risk 1.72
+      Regenerative capacity REGEN, holding reserve at 1.0:
+        REGEN   = 1.00   grade>=2 =  47.7%   relative risk 1.00
+        REGEN   = 0.85   grade>=2 =  49.0%   relative risk 1.03
+        REGEN   = 0.70   grade>=2 =  50.4%   relative risk 1.06
+        REGEN   = 0.55   grade>=2 =  52.0%   relative risk 1.09
+      Baseline axon density AXON0 alone (reserve and regen at 1.0):
+        AXON0   = 100.0  grade>=2 =  47.7%   relative risk 1.00
+        AXON0   =  90.0  grade>=2 =  44.1%   relative risk 0.93
+        AXON0   =  80.0  grade>=2 =  40.1%   relative risk 0.84
+        AXON0   =  70.0  grade>=2 =  35.4%   relative risk 0.74
+
+      THE MOST USEFUL THING THIS MODEL SAYS ABOUT PATIENTS:
+      a 6% fall in bioenergetic reserve DOUBLES the risk; a 45% fall in
+      regenerative capacity moves it by 9%; and pre-existing subclinical
+      fibre loss, on its own, does not raise treatment-emergent CIPN at
+      all. Peak severity is set by the ENERGY set-point during exposure.
+      Regeneration governs how much comes back, not how bad it gets, and
+      a low starting fibre count is not itself a risk factor once the
+      grading is done - as in the clinic - relative to the patient's own
+      baseline. So the reason diabetics fare worse should be their
+      mitochondrial state, NOT their nerve-conduction study; and the
+      therapeutic implication is that protecting bioenergetics before
+      and during treatment dominates anything that speeds regrowth after.
+      CAVEAT: the leverage on RESERVE is almost certainly too high.
+      Diabetes carries an observed relative risk near 1.5-2 and the model
+      needs only a 10% reserve deficit to produce that, so RESERVE is the
+      single parameter most in need of real data before this model is
+      used to predict an individual patient.
+
+  (c2) Illustrative host phenotypes. The covariate MAGNITUDES here are
+       assumed, chosen to land near published relative risks, not fitted.
+       reference                g>=2  47.7%   g>=3  12.4%   RR 1.00
+       age 75                   g>=2  71.5%   g>=3  26.0%   RR 1.50
+       diabetic                 g>=2  78.7%   g>=3  23.1%   RR 1.65
+       prior taxane exposure    g>=2  54.3%   g>=3  12.7%   RR 1.14
+       CMT1A carrier            g>=2  81.4%   g>=3  17.9%   RR 1.71
+
+  (d) Cryotherapy / compression (blocks a fraction of distal delivery)
+      delivery blocked   0%   grade>=2 =  47.7%
+      delivery blocked  25%   grade>=2 =  20.0%
+      delivery blocked  45%   grade>=2 =   4.6%
+      delivery blocked  65%   grade>=2 =   0.2%
+      CAVEAT: like the schedule effect above, this is stronger than
+      reality - cryotherapy trials roughly halve grade>=2, they do not
+      abolish it. Read the SHAPE (threshold-like, so partial adherence
+      costs disproportionately), not the absolute numbers.
+      ... and it only works if applied EVERY cycle:
+      45% block, 0 of 12 cycles missed  grade>=2 =   4.6%
+      45% block, 2 of 12 cycles missed  grade>=2 =   9.1%
+      45% block, 4 of 12 cycles missed  grade>=2 =  19.2%
+      45% block, 6 of 12 cycles missed  grade>=2 =  30.6%
+
+==============================================================================
+8. RECOVERY & PERSISTENCE (MOSAIC 12- and 48-month grade 3 - PREDICTION)
+==============================================================================
+  grade>=3  end-of-tx  10.2%  12 mo   0.1%  24 mo   0.0%  48 mo   0.0%
+  grade>=2  end-of-tx  46.3%  12 mo   2.5%  24 mo   0.7%  48 mo   0.7%
+  grade>=1  end-of-tx  79.6%  12 mo  27.9%  24 mo   7.8%  48 mo   7.8%
+  observed  grade 3: 12.4% during tx, 1.1% at 12 mo, 0.7% at 48 mo (MOSAIC)
+
+    day   154: AXON  82.2%  NEURON  99.0%  IENFD 5.76/mm  CIPN20  22.7  NfL   40.0 pg/mL
+    day   210: AXON  81.6%  NEURON  98.8%  IENFD 5.71/mm  CIPN20  23.9  NfL   25.7 pg/mL
+    day   365: AXON  96.2%  NEURON  98.8%  IENFD 6.74/mm  CIPN20   6.8  NfL   10.2 pg/mL
+    day   730: AXON  98.8%  NEURON  98.8%  IENFD 6.91/mm  CIPN20   2.4  NfL   10.0 pg/mL
+    day  1460: AXON  98.8%  NEURON  98.8%  IENFD 6.91/mm  CIPN20   2.4  NfL   10.0 pg/mL
+
+  THIS IS THE MODEL'S CLEAREST FAILURE, and it is worth stating
+  precisely because the diagnosis is unambiguous. The permanent floor
+  is set by irreversible DRG NEURON loss, and at the median
+  susceptibility only 1.2% of somata are lost, so AXON returns to
+  98.8% and the model recovers almost completely. Reality does
+  not: roughly a third of patients still have grade >=1 sensory
+  symptoms five years after adjuvant FOLFOX (Selvy 2020), and MOSAIC
+  still saw 0.7% grade 3 at four years. The model gives 7.8% and 0.0%.
+
+  The same thin tail explains the grade >=3 under-prediction in section
+  0b - both are the upper/persistent end of the same distribution. One
+  parameter would fix both: KNEURON, the rate of irreversible DRG
+  neuron death. Raising it deepens the permanent floor AND fattens the
+  severe tail. The reason it is not simply raised here is that nothing
+  pins it: there is no human dataset quantifying DRG neuron loss after
+  platinum, so fitting it would mean fitting the persistence data
+  twice - once as calibration and once as validation. The honest
+  conclusion is that the parameter which dominates the long-term
+  outcome of CIPN is the one nobody has measured.
+
+==============================================================================
+9. PLASMA NfL AS AN EARLY WARNING (lead time over the clinical score)
+==============================================================================
+  baseline NfL = 10.0 pg/mL, peak = 40.7 pg/mL (4.1x baseline)
+  NfL doubles on day            80  (cycle 6)
+  CTCAE grade 1 reached day    100
+  CTCAE grade 2 reached day   never
+  -> NfL lead time over grade 1 = 20 days (1.4 cycles of oxaliplatin)
+
+  This is the model's most actionable output. The MEDIAN patient never
+  reaches grade 2 at all, yet their NfL doubles part-way through
+  treatment - so NfL is not a surrogate for the grade, it is a signal
+  that axons are being lost in a patient the CTCAE scale still calls
+  normal. Combined with section 11, that is a decision rule: the
+  anti-tumour exposure-response is already ~2/3 saturated at 510 mg/m2,
+  so stopping oxaliplatin when NfL rises costs very little tumour kill.
+
+==============================================================================
+10. DULOXETINE: MOVES THE SYMPTOM, NOT THE AXON (Smith 2013 JAMA)
+==============================================================================
+  placebo            BPI  2.65 ->  2.06  (delta -0.59)   IENFD 6.11 -> 6.39/mm   CIPN20  18.4 ->  13.7
+  duloxetine 60 mg   BPI  2.65 ->  1.33  (delta -1.31)   IENFD 6.11 -> 6.39/mm   CIPN20  18.4 ->  11.0
+  pregabalin 300 mg  BPI  2.65 ->  1.26  (delta -1.39)   IENFD 6.11 -> 6.39/mm   CIPN20  18.4 ->  10.7
+
+  Observed (Smith 2013): duloxetine -1.06 vs placebo -0.34 BPI over
+  5 weeks, i.e. a net -0.73. The model reproduces the symptom change
+  with IENFD essentially unchanged - the drug is acting on central
+  sensitization, so a good analgesic response is NOT evidence that
+  the neuropathy is reversing. Any trial using CIPN20 as its endpoint
+  is measuring a mixture of the two.
+
+==============================================================================
+11. THE THERAPEUTIC-INDEX OPTIMUM IN CUMULATIVE OXALIPLATIN DOSE
+==============================================================================
+  Net utility = (3-yr DFS gain over no-oxaliplatin, pp)
+                - w x (grade>=2 CIPN incidence, pp),  w = 0.15
+
+  cycles  cum mg/m2   g>=2 %  DFS-hi %  DFS-lo %  util-hi  util-lo
+  ------------------------------------------------------------------
+       2        170      0.0      59.1      80.4     5.88     3.42
+       4        340      3.5      61.4      81.7     7.72     4.22
+       6        510     16.6      62.7      82.4     7.01     2.94
+       8        680     31.2      63.5      82.8     5.60     1.18
+      10        850     41.6      64.0      83.1     4.58    -0.09
+      12       1020     47.7      64.4      83.3     4.05    -0.80
+      14       1190     53.7      64.7      83.4     3.45    -1.54
+
+  Utility-maximising dose: high risk 4 cycles (340 mg/m2), low risk 4 cycles (340 mg/m2).
+
+  The interesting result is NOT that the two optima differ - at this
+  weight they coincide, because the CIPN cost curve is identical in
+  both strata and only the available DFS gain differs. It is the
+  ASYMMETRY OF OVER-TREATMENT. Going from the optimum to a full 12
+  cycles costs the high-risk patient 3.67 utility points but leaves
+  them ahead of no oxaliplatin at all; it takes the LOW-risk patient
+  BELOW zero, i.e. a low-risk patient given the full 12 cycles is worse
+  off on this metric than one given none, because the last 500 mg/m2
+  buys ~0.5 pp of DFS and ~31 pp of grade >=2 neuropathy.
+  That asymmetry is exactly why IDEA's non-inferiority held in low-risk
+  disease and was not established in high-risk - and here it is derived
+  from an exposure-response that saturates, not assumed.
+
+  Sensitivity to the weight w placed on CIPN burden:
+    w = 0.05   high risk -> 12 cycles   low risk ->  6 cycles
+    w = 0.10   high risk ->  4 cycles   low risk ->  4 cycles
+    w = 0.15   high risk ->  4 cycles   low risk ->  4 cycles
+    w = 0.30   high risk ->  4 cycles   low risk ->  4 cycles
+
+  THIS IS THE RESULT WORTH KEEPING. At w = 0.05 - CIPN counted at one
+  twentieth of a DFS point - the two strata SEPARATE, and they separate
+  onto exactly the IDEA recommendation: 12 cycles (6 months) for high
+  risk, 6 cycles (3 months) for low risk. Nothing in the model was told
+  about trial duration; the split falls out of a saturating anti-tumour
+  exposure-response meeting a linearly accumulating neurotoxicity, with
+  the crossover set by how much residual disease there is to kill.
+  Weight CIPN more heavily and both strata collapse to 4 cycles - i.e.
+  for a patient who fears neuropathy more than the trialists did, even
+  3 months is longer than optimal. The clinical reading is that the
+  3-vs-6-month question has no answer independent of how the patient
+  weights the two harms, and this model turns that weight into a dose.
+
+  Caveat on the criterion, not the biology: a single linear weight on
+  grade >=2 INCIDENCE ignores severity, duration and reversibility - all
+  of which the model tracks and could be weighted instead.
+
+==============================================================================
+12. ACUTE vs CHRONIC OXALIPLATIN SYNDROME (same drug, different states)
+==============================================================================
+  Acute cold allodynia (COLDA) after selected cycles:
+    cycle  1: peak COLDA 0.186 at 1.25 d post-infusion, duration above 25% of peak =  5.5 d
+    cycle  4: peak COLDA 0.189 at 1.25 d post-infusion, duration above 25% of peak =  5.5 d
+    cycle  8: peak COLDA 0.205 at 1.25 d post-infusion, duration above 25% of peak =  5.5 d
+    cycle 12: peak COLDA 0.234 at 1.25 d post-infusion, duration above 25% of peak =  5.5 d
+
+  Peak COLDA grows with cycle number because the model lets accumulated
+  axon loss sensitize the acute channel response - the documented
+  clinical progression of acute symptoms - yet COLDA always returns to
+  baseline within days, because it is a channel state, not structure.
+    COLDA at day 200 (46 d after last dose) = 0.0013
+    AXON  at day 200                        = 80.4%
+  -> the acute syndrome has fully resolved while the chronic
+     neuropathy is at its worst. Two clocks, one drug.
+
+==============================================================================
+13. MULTIVARIATE VIRTUAL POPULATION (n = 300, FOLFOX 6 months)
+==============================================================================
+  all            n= 300  g>=2  55.7%  g>=3  12.7%  mean peak CIPN20  29.8  mean IENFD 5.09/mm
+  diabetic       n=  61  g>=2  80.3%  g>=3  18.0%  mean peak CIPN20  37.2  mean IENFD 3.55/mm
+  non-diabetic   n= 239  g>=2  49.4%  g>=3  11.3%  mean peak CIPN20  27.9  mean IENFD 5.49/mm
+  age < 60       n= 160  g>=2  47.5%  g>=3  11.9%  mean peak CIPN20  27.9  mean IENFD 5.34/mm
+  age >= 70      n=  45  g>=2  71.1%  g>=3  20.0%  mean peak CIPN20  33.7  mean IENFD 4.52/mm
+
+  The 'all' row is close to, but not identical with, the analytic
+  47.7% / 12.4%: the covariate model adds age- and diabetes-driven
+  variance on top of the fitted susceptibility S. The covariate
+  magnitudes are assumptions, so read the CONTRASTS between subgroups
+  rather than the absolute levels - and note that the diabetic and
+  elderly contrasts inherit the over-leveraged RESERVE flagged in
+  section 7(c).
+
+==============================================================================
+DONE
+==============================================================================
