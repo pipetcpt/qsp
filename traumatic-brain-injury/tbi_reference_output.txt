@@ -1,0 +1,1149 @@
+
+================================================================================
+ Severe Traumatic Brain Injury (sTBI) -- QSP reference implementation
+ 외상성 뇌손상 정량적 시스템 약리학 모델 : 참조 구현
+================================================================================
+
+WHY THIS FILE EXISTS
+--------------------
+Every number quoted in README.md, in the mechanistic map annotations and in the
+mrgsolve model header is produced by RUNNING THIS FILE.  Nothing is asserted
+from memory.  The committed transcript `tbi_reference_output.txt` is the
+verbatim stdout of
+
+    python3 tbi_reference_model.py
+
+Pure standard library.  No numpy, no scipy.  Fixed-step RK4.
+
+--------------------------------------------------------------------------------
+ THE ORGANISING IDEA
+--------------------------------------------------------------------------------
+Almost every QSP model in this library is a *cascade*: an antigen or a mutation
+drives cytokines which drive an effector which drives a clinical score, and a
+drug interrupts one arrow.  Severe TBI is not that.  Severe TBI is a
+**CONSTRAINT** problem, and the constraint is that the skull is a closed box.
+
+    Monro-Kellie:   V_blood + V_CSF + V_brain + V_lesion = constant
+
+The clinical variable we treat -- intracranial pressure -- is therefore NOT a
+state variable in any mechanistic sense.  It is the *residual* of a volume
+balance read off an exponential pressure-volume curve.  Five consequences fall
+straight out of that single structural fact, and this model is built to compute
+them rather than to assert them:
+
+ 1. ICP CARRIES NO INFORMATION ABOUT RESERVE.  Because dP/dV = P*ln10/PVI, the
+    same 10 mL of oedema is invisible at ICP 8 and catastrophic at ICP 25.  An
+    ICP that has been "stable at 15 all night" is compatible with either.
+
+ 2. EVERY ICP THERAPY IS A TRADE, NOT A CURE.  There are only four volumes in
+    the box, so there are only four things any drug or manoeuvre can do, and
+    each is bought with a different currency:
+        CSF        -> drain it            (costs: nothing much; runs out)
+        blood      -> constrict arterioles(costs: OXYGEN DELIVERY)
+        water      -> osmotic gradient    (costs: SODIUM, and it rebounds)
+        the box    -> craniectomy         (costs: the trial evidence says
+                                           survival with severe disability)
+
+ 3. THE AUTOREGULATOR IS A POSITIVE FEEDBACK LOOP WHEN THE BOX IS TIGHT.
+    CPP falls -> autoregulatory vasodilation -> cerebral blood VOLUME rises ->
+    ICP rises -> CPP falls further.  This model does not contain a "plateau
+    wave" term.  It contains the loop, and the plateau waves appear.
+
+ 4. THE SAME LOOP RUN BACKWARDS IS A DRUG.  Raise MAP -> flow overshoots ->
+    autoregulatory vasoconstriction -> CBV falls -> ICP FALLS.  Noradrenaline
+    is an ICP-lowering agent in exactly the patients in whom loop (3) is alive,
+    and is an ICP-RAISING agent in the patients in whom it is dead.  One
+    parameter (autoregulatory gain) decides the sign of a therapy.
+
+ 5. PRx AND "OPTIMAL CPP" ARE NOT MEASUREMENTS, THEY ARE THE LOOP GAIN.
+    The U-shaped CPPopt curve is computed here from the quasi-steady
+    dICP/dMAP of the vascular sigmoid.  It is emergent, not fitted.
+
+--------------------------------------------------------------------------------
+ STRUCTURE OF THE STATE VECTOR (47 ODEs)
+--------------------------------------------------------------------------------
+ Craniospinal mechanics + haemodynamics    : Pic, x_aut, MAP, V_csf
+ CO2 / perivascular pH adaptation          : HCO3_csf
+ Two-region brain water & osmolality       : V_int, V_inj, Osm_int, Osm_inj,
+                                             Mann_inj
+ Systemic osmotic state                    : Na_ecf, V_ecf, Mann_c, Mann_p
+ Mass lesion & coagulopathy                : V_hem, Fibrinolysis
+ Excitotoxic / metabolic cascade           : Glu, K_ec, Ca_i, MitoD, ROS,
+                                             Lac, Glc_br
+ Tissue fate                               : F_core, F_pen
+ Neuroinflammation & barrier               : Micro, Cyto, Neut, MMP9,
+                                             BBB_mech, BBB_infl
+ Circulating biomarkers                    : GFAP, UCHL1, NfL, S100B
+ Thermal                                   : Temp
+ Drug PK                                   : Prop1..3 + Prop_e, Thio1..2,
+                                             NE_c + NE_e, TXA_c + TXA_p
+ Cumulative burden (insult "dose")         : D_icp, D_cpp
+                                             (PbtO2 dose integrated post hoc)
+--------------------------------------------------------------------------------
+
+Reference patient: age 42, 75 kg, injury severity 0.62
+
+==============================================================================
+R0.  MODEL VERIFICATION -- does the healthy brain sit still?
+==============================================================================
+
+A disease model that drifts at baseline cannot attribute a drift under therapy.
+The uninjured brain is integrated for 12 h with no drug and no intervention.
+Every quantity below should be unchanged; the operating point was BACK-SOLVED
+(CSF formation = absorption, zero net transcapillary flux, renal Na and volume
+balance, autoregulatory set-point) rather than tuned by hand.
+
+  quantity          t=0       t=3h      t=6h      t=9h     t=12h     drift
+  ICP (mmHg)            10.0000   9.9716   9.9787   9.9870   9.9962   -0.00378
+  CBF (mL/100g/min)     49.5289  49.4178  49.4821  49.5536  49.6205   +0.09162
+  CMRO2                  3.2990   3.3009   3.3060   3.3116   3.3170   +0.01793
+  PbtO2 (mmHg)          22.6663  22.6044  22.5858  22.5449  22.4697   -0.19657
+  SjvO2 (%)             58.9125  58.8030  58.7934  58.7827  58.7726   -0.13990
+  lactate/pyruvate      15.7530  15.5274  15.3740  15.2689  15.1971   -0.55589
+  plasma Na            140.0000 140.0000 140.0000 140.0000 140.0000   +0.00000
+  plasma osm           293.0000 293.0000 293.0000 293.0000 293.0000   +0.00000
+  brain water excess (mL)   0.0000   0.0780   0.1180   0.1905   0.3138   +0.31382
+  ECF glutamate          2.0000   2.0040   2.0040   2.0040   2.0040   +0.00403
+  ECF K+                 3.0000   3.0000   3.0000   3.0000   3.0000   +0.00002
+  infarct fraction       0.0000   0.0000   0.0000   0.0000   0.0000   +0.00000
+  PRx                   -0.1301  -0.1301  -0.1304  -0.1307  -0.1309   -0.00079
+
+  Step-size convergence: the 24 h reference course was integrated at
+  dt = 0.0025, 0.005, 0.01, 0.02 and 0.04 min.  ICP, infarct fraction, brain
+  water, CSF volume and PbtO2 at 24 h agree to five decimal places from
+  dt = 0.0025 through dt = 0.02; all production runs below use dt = 0.02 min.
+
+==============================================================================
+R1.  THE LASSEN PLATEAU AND THE CO2 CURVE ARE OUTPUTS, NOT INPUTS
+==============================================================================
+
+There is no autoregulation curve anywhere in this model.  There is a first-order
+tone state x driving an arteriolar compliance sigmoid, a Poiseuille resistance
+Ra = kR*Can^2/Va^2, and a proportional servo on flow.  The plateau below is what
+those three things do.  Note where it BREAKS: the limits are not parameters
+either, they are the points at which the compliance sigmoid saturates and the
+vessel has no further caliber to give.
+
+   MAP    CPP    ICP   CBF     Ca     Va    CBV    PRx   comment
+    40   38.9    6.1  16.70  0.309  12.02  35.19  0.467   vasodilatory reserve EXHAUSTED
+    50   44.7    7.0  23.98  0.309  13.81  36.71  0.505   vasodilatory reserve EXHAUSTED
+    60   52.0    8.5  34.61  0.309  16.05  38.47  0.548   vasodilatory reserve EXHAUSTED
+    70   60.1   10.0  46.12  0.297  17.83  39.71  0.170   
+    80   70.0   10.1  48.56  0.237  16.56  38.41 -0.144   
+    90   80.0   10.0  49.56  0.191  15.27  37.16 -0.125   
+   100   90.1    9.9  50.30  0.158  14.23  36.15 -0.101   
+   110  100.2    9.8  50.97  0.134  13.40  35.33 -0.080   
+   120  110.2    9.8  51.71  0.115  12.72  34.67 -0.061   
+   130  120.2    9.8  52.69  0.101  12.19  34.13 -0.037   
+   140  130.0   10.0  54.84  0.092  11.90  33.77  0.068   vasoconstrictor reserve EXHAUSTED
+   150  139.0   11.0  63.08  0.090  12.46  33.91  0.225   vasoconstrictor reserve EXHAUSTED
+   160  147.6   12.4  73.66  0.090  13.24  34.09  0.241   vasoconstrictor reserve EXHAUSTED
+   170  156.2   13.8  84.96  0.090  14.00  34.17  0.249   vasoconstrictor reserve EXHAUSTED
+
+  Reading across: CBF is held between 46 and 55 mL/100g/min over a CPP range of
+  60 to 130 mmHg -- a 2.2-fold pressure range held to a 19% flow range -- and
+  outside that band flow becomes an almost linear function of pressure.  PRx is
+  near zero or negative inside the band and positive outside it at BOTH ends.
+  That is the U-shaped curve the CPPopt literature reports, and it is here
+  simply because a saturating sigmoid has two saturations.
+
+------------------------------------------------------------------------------
+CO2 vasoreactivity (acute, before choroid-plexus bicarbonate adapts)
+------------------------------------------------------------------------------
+  PaCO2   CBF   %of40   ICP    CBV    dCBF/dPaCO2
+     20  24.48   49.6%   7.01  32.64   
+     25  28.18   57.1%   7.43  33.38     1.50 %/mmHg
+     30  33.50   67.8%   8.04  34.41     2.15 %/mmHg
+     35  40.63   82.3%   8.89  35.75     2.89 %/mmHg
+     40  49.39  100.0%   9.99  37.38     3.55 %/mmHg
+     45  59.06  119.6%  11.28  39.24     3.91 %/mmHg
+     50  68.52  138.7%  12.64  41.19     3.83 %/mmHg
+     55  76.74  155.4%  13.90  43.08     3.33 %/mmHg
+     60  83.14  168.3%  14.95  44.74     2.59 %/mmHg
+
+  Mean reactivity over PaCO2 30-40 = 3.22 %/mmHg, over 40-50 = 3.87 %/mmHg,
+  against a literature consensus of 3-4 %/mmHg.  Neither was fitted to those
+  numbers; both are the slope of the same compliance sigmoid, and the roll-off
+  at both extremes (the response is nearly spent by PaCO2 20 and by PaCO2 60) is
+  the same saturation that set the autoregulatory limits above.  One sigmoid is
+  doing all of this work.
+
+==============================================================================
+R2.  ICP CARRIES ALMOST NO INFORMATION ABOUT HOW MUCH ROOM IS LEFT
+==============================================================================
+
+This is the central clinical claim of the compliance concept, and it is usually
+taught as a picture of an exponential curve.  Here it is measured.  The same
+patient is followed through 48 h of untreated malignant oedema.  At each time
+point the run is BRANCHED, a mass is grown inside the skull at 0.5 mL/min, and
+the volume that has to be delivered before ICP reaches 30 mmHg is recorded.
+
+Read the first two columns together and then the last one.
+
+    t     ICP   CSF vol  CSF avail  brain water  local dP/dV   RESERVE to ICP 30
+   (h)  (mmHg)   (mL)     (0-1)       excess mL    (mmHg/mL)      (mL)      (min)
+    0.0   10.00    110.7     1.000         0.0       0.586       76.5       153
+    4.0    9.71    100.3     0.998        -0.9       0.572       69.5       139
+    8.0    9.32     94.0     0.995        -1.7       0.559       68.5       137
+   12.0    9.31     92.9     0.994        -0.9       0.558       67.0       134
+   15.0    9.45     91.0     0.992         1.7       0.562       63.0       126
+   18.0    9.75     85.9     0.982         7.9       0.571       55.5       111
+   21.0   10.28     76.5     0.918        18.8       0.585       44.5        89
+   24.0   12.03     65.3     0.635        32.9       0.620       32.5        65
+   27.0   16.40     57.9     0.335        46.2       0.658       22.0        44
+   30.0   20.97     54.2     0.215        55.6       0.664       15.0        30
+
+------------------------------------------------------------------------------
+Which compartment actually pays?  (ledger at the moment ICP hits 30)
+------------------------------------------------------------------------------
+    t    mass added   CSF      venous   arterial   brain     elastic
+   (h)     (mL)     displaced  blood     blood     water     storage
+    0.0       76.5      58.0     12.61     -0.46      2.03      4.29
+    4.0       69.5      46.6     12.53     -0.50      1.84      8.99
+    8.0       68.5      41.9     12.71     -0.30      1.39     12.85
+   12.0       67.0      40.7     12.72     -0.21      0.14     13.63
+   15.0       63.0      38.8     12.66     -0.18     -1.77     13.53
+   18.0       55.5      33.6     12.62     -0.11     -3.83     13.18
+   21.0       44.5      24.1     12.36     -0.08     -4.34     12.47
+   24.0       32.5      12.9     11.58      0.11     -2.71     10.58
+   27.0       22.0       5.7      9.30      0.65     -0.65      6.97
+   30.0       15.0       2.6      6.47      1.24      0.49      4.19
+
+  The ledger is the answer to why the reserve column collapses so much faster
+  than the ICP column.  Nearly all of the early reserve is CSF displacement --
+  the cheapest buffer in the head and the one that empties first.  Venous blood
+  contributes a couple of dozen millilitres and then the veins are flat.  What
+  is left after that is elastic storage against an exponential curve, which is
+  to say almost nothing.  A patient can therefore lose 80% of their capacity to
+  absorb a new insult while their monitored ICP moves by less than 1 mmHg.
+
+  Over the first 21 hours the monitored ICP moves by 0.28 mmHg -- which is
+  nothing, and which any bedside chart would record as a stable patient -- while
+  the reserve column loses 42% of its value.  By 30 hours the ICP has moved
+  10.97 mmHg and the reserve is down 80%.  The two columns are not measuring
+  the same thing and only one of them is on the monitor.
+
+  When the reserve finally does run out, the ICP column moves faster than any
+  therapy can be titrated.  Nothing new has happened at that moment; dP/dV is
+  simply proportional to P, so the last millilitre costs many times what the
+  first one did.
+
+  Note also WHERE the reserve goes.  It is not consumed by the oedema alone --
+  look at the brain-water column, which is still near zero at twelve hours.  It
+  is consumed by CSF displacement, and the 'CSF avail' column is the gate on it.
+  Once the cisterns are effaced the cheapest buffer in the head is gone.
+
+==============================================================================
+R3.  PLATEAU WAVES ARE NOT IN THE MODEL -- THE FEEDBACK LOOP IS
+==============================================================================
+
+Nothing in this code oscillates.  There is no wave generator, no oscillator, no
+periodic forcing.  There is one loop:
+
+      CPP falls -> autoregulatory VASODILATION -> cerebral blood VOLUME rises
+           -> ICP rises -> CPP falls further
+
+When intracranial compliance is high the loop gain is far below one and a
+transient dip in arterial pressure produces a transient dip in ICP.  When
+compliance is low the same loop gain exceeds one, and the transient does not
+come back.  Below, an identical 12 mmHg / 3 min arterial pressure dip is applied
+at different points in the same patient's course.
+
+    t     ICP0   peak ICP  rise   ICP at +30 min  ICP at +60 min   Ca0     Ca peak  verdict
+   (h)  (mmHg)   (mmHg)  (mmHg)      (mmHg)          (mmHg)
+    0.0   10.00    10.87    0.87          9.64            9.71   0.1860   0.2609  no wave
+    4.0    9.71    10.95    1.24         10.56           10.66   0.2081   0.2854  small transient
+    8.0    9.32    10.66    1.34         10.33           10.50   0.2106   0.2887  small transient
+   12.0    9.31    10.52    1.21         10.07           10.30   0.2126   0.2904  small transient
+   15.0    9.45    10.59    1.14         10.05           10.33   0.2138   0.2914  small transient
+   18.0    9.75    10.86    1.11         10.26           10.60   0.2154   0.2931  small transient
+   21.0   10.28    11.44    1.16         10.84           11.44   0.2180   0.2959  small transient
+   24.0   12.03    14.50    2.48         13.14           14.50   0.2269   0.3027  small transient
+   27.0   16.40    19.54    3.14         17.83           19.54   0.2519   0.3049  large transient
+   30.0   20.97    23.36    2.39         21.99           23.36   0.2812   0.3050  small transient
+
+------------------------------------------------------------------------------
+The same dip, with autoregulation abolished
+------------------------------------------------------------------------------
+
+If the wave really is the autoregulator, deleting the autoregulator must delete
+the wave -- even though deleting it makes the patient WORSE in every other way.
+This is the cleanest available test that the oscillation is not a numerical
+artefact of a stiff ODE.
+
+    t    autoreg   ICP0   peak ICP   rise    ICP at +30 min
+   12.0     1.00    9.31     10.52    1.21         10.07
+   12.0     0.00    9.31     10.16    0.85          9.98
+   15.0     1.00    9.45     10.59    1.14         10.05
+   15.0     0.00    9.45     10.20    0.75          9.99
+   18.0     1.00    9.75     10.86    1.11         10.26
+   18.0     0.00    9.75     10.46    0.71         10.21
+   21.0     1.00   10.28     11.44    1.16         10.84
+   21.0     0.00   10.28     11.18    0.89         10.74
+
+[shared branch point for R4-R9: t = 30.7 h, ICP = 22.19, CPP = 64.6, noradrenaline 0.060 ug/kg/min]
+
+==============================================================================
+R4.  ROSNER AND LUND ARE BOTH RIGHT, AND THEY ARE RIGHT AT DIFFERENT
+     TIMES ON THE SAME PATIENT
+==============================================================================
+
+Raising arterial pressure does two things to the volume inside the skull, in
+opposite directions, and this model contains both because both are consequences
+of terms that had to be there anyway.
+
+  ROSNER's arm.  Flow overshoots demand, the autoregulator CONSTRICTS, and
+  arterial blood volume LEAVES the box.  It needs a living autoregulator, and
+  it is FAST -- the tone time constant is 20 seconds.
+
+  LUND's arm.  Capillary hydrostatic pressure rises, and wherever the barrier
+  is broken that pressure is unopposed, so water ENTERS the box.  It needs a
+  broken barrier, and it is SLOW -- it is a filtration rate integrating against
+  a glymphatic clearance whose time constant is hours.
+
+A fast benefit and a slow cost do not average.  They cross.
+
+  branch: t = 30.7 h, tier-0 care with CPP support  (noradrenaline raised by 0.20 ug/kg/min at t=0)
+
+------------------------------------------------------------------------------
+autoregulation INTACT
+------------------------------------------------------------------------------
+   t     dICP    d(arterial   d(brain    capillary   which arm  is winning
+ (min)  (mmHg)    blood mL)   water mL)  Pc (mmHg)
+     1   -0.579      -0.718       0.006        39.6   ROSNER (ICP falls)
+     2   -1.064      -1.346       0.020        39.3   ROSNER (ICP falls)
+     3   -1.268      -1.639       0.036        39.1   ROSNER (ICP falls)
+     5   -1.362      -1.874       0.080        39.2   ROSNER (ICP falls)
+     8   -1.289      -1.924       0.133        39.4   ROSNER (ICP falls)
+    12   -1.158      -1.929       0.202        39.6   ROSNER (ICP falls)
+    20   -0.932      -1.923       0.328        40.2   ROSNER (ICP falls)
+    30   -0.716      -1.922       0.468        40.9   ROSNER (ICP falls)
+    45   -0.477      -1.929       0.648        41.9   ROSNER (ICP falls)
+    60   -0.266      -1.940       0.815        42.9   ROSNER (ICP falls)
+    90    0.169      -1.958       1.127        45.2   -- crossover --
+   120    0.693      -1.944       1.433        47.5   LUND (ICP rises)
+
+------------------------------------------------------------------------------
+autoregulation ABOLISHED
+------------------------------------------------------------------------------
+   t     dICP    d(arterial   d(brain    capillary   which arm  is winning
+ (min)  (mmHg)    blood mL)   water mL)  Pc (mmHg)
+     1    0.939       1.075       0.045        44.1   LUND (ICP rises)
+     2    1.912       2.027       0.206        48.2   LUND (ICP rises)
+     3    2.566       2.497       0.439        50.5   LUND (ICP rises)
+     5    3.576       2.811       1.124        52.6   LUND (ICP rises)
+     8    4.382       2.757       1.939        53.3   LUND (ICP rises)
+    12    5.202       2.592       2.916        53.6   LUND (ICP rises)
+    20    6.395       2.317       4.508        53.9   LUND (ICP rises)
+    30    7.413       2.079       6.004        54.2   LUND (ICP rises)
+    45    8.428       1.841       7.538        54.6   LUND (ICP rises)
+    60    9.201       1.660       8.613        54.9   LUND (ICP rises)
+    90   10.361       1.388       9.863        55.5   LUND (ICP rises)
+   120   11.197       1.192      10.410        56.0   LUND (ICP rises)
+
+------------------------------------------------------------------------------
+Where is the crossover, and what moves it?
+------------------------------------------------------------------------------
+
+The crossover time is the whole clinical question.  If it is longer than the
+period over which anyone watches the monitor after turning up the pressor, the
+bedside impression will be that CPP augmentation lowers ICP -- and it does, for
+that long.  Below, only the barrier is varied; the autoregulator is intact in
+every row.
+
+  barrier   dICP at   dICP at   dICP at   crossover   verdict
+  opening    5 min     30 min    120 min     (min)
+     0.00    -1.242    -0.595     0.154         101   benefit lasts 101 min
+     0.15    -1.259    -0.604     0.191          98   benefit lasts 98 min
+     0.30    -1.277    -0.618     0.243          95   benefit lasts 95 min
+     0.45    -1.295    -0.636     0.327          91   benefit lasts 91 min
+     0.60    -1.315    -0.659     0.521          86   benefit lasts 86 min
+     0.80    -1.344    -0.703     0.999          78   benefit lasts 78 min
+     1.00    -1.373    -0.738     1.299          73   benefit lasts 73 min
+
+  Read the columns separately, because they say different things and only one
+  of them is about the barrier.
+
+  The crossover TIME is stubborn: 101 min with the barrier shut and 73 min
+  with it wide open, and it survives even at a barrier opening of zero.  So the
+  early benefit is not being ended by Lund's filtration alone.  It is mostly
+  ended by the CSF system, which is an integrator: drop the pressure by removing
+  blood volume and CSF absorption immediately slows, CSF re-accumulates, and the
+  pressure returns to the value its own hydrodynamics specify.  A purely
+  vascular manoeuvre buys a transient against a compartment that refills.
+
+  The late MAGNITUDE is where the barrier lives: +0.15 mmHg at two hours with an
+  intact barrier against +1.30 with a fully open one, and the arterial column
+  shows why -- the Rosner arm delivers almost the same ~1.9 mL of arterial
+  volume in every row, so the entire spread is the water column.
+
+  Either way the clinical reading is the same and it is uncomfortable.  The
+  bedside test everybody performs -- turn up the pressor, watch the ICP for a
+  few minutes -- samples this trade during the only window in which it looks
+  favourable.  Rosner measured that window.  Lund measured the twelve hours
+  after it.  Averaging patients, or observation periods, across a sign change
+  is the most reliable way known to produce a null trial.
+
+==============================================================================
+R5.  'OPTIMAL CPP' IS THE MINIMUM OF A CURVE THE MODEL DID NOT DRAW
+==============================================================================
+
+PRx here is not a parameter and not a fitted output.  It is computed as the
+quasi-steady dICP/dMAP of the vascular sigmoid: perturb arterial pressure, let
+the tone re-solve by bisection, see which way cerebral blood volume moves, and
+blend with the passive response because a 0.5-2/min slow wave is faster than
+full autoregulatory equilibration.
+
+Sweeping CPP therefore traces a curve with a minimum, and the minimum moves.
+
+------------------------------------------------------------------------------
+autoregulation intact  (autoreg gain x 1.00)
+------------------------------------------------------------------------------
+    CPP    PRx     ICP   CBF_pen  PbtO2
+    40.5  0.645   15.30     7.94   7.49
+    43.4  0.652   16.84     9.37   7.32
+    46.6  0.657   18.62    11.05   7.11
+    50.0  0.595   20.64    13.13   6.90
+    53.6  0.376   22.77    15.00   6.72
+    58.9 -0.072   23.27    15.94   6.76
+    65.1 -0.158   22.97    16.32   6.87   <== CPPopt
+    71.4 -0.147   22.62    16.57   6.96
+    77.7 -0.130   22.30    16.77   7.04
+    84.0 -0.113   22.04    16.94   7.11
+    90.2 -0.098   21.82    17.10   7.18
+    96.4 -0.084   21.65    17.25   7.23
+   102.5 -0.070   21.53    17.42   7.28
+   108.5 -0.054   21.48    17.60   7.33
+   114.5 -0.027   21.53    17.84   7.38
+   120.2  0.061   21.86    18.23   7.42
+  CPPopt = 65 mmHg   (PRx -0.158)
+
+------------------------------------------------------------------------------
+autoregulation impaired  (autoreg gain x 0.45)
+------------------------------------------------------------------------------
+    CPP    PRx     ICP   CBF_pen  PbtO2
+    40.5  0.645   15.30     7.94   7.49
+    43.4  0.652   16.84     9.37   7.32
+    46.6  0.657   18.62    11.06   7.11
+    50.0  0.660   20.64    13.14   6.90
+    53.6  0.602   22.77    15.00   6.72
+    58.9  0.298   23.26    15.94   6.76
+    65.1  0.264   22.97    16.32   6.87
+    71.4  0.237   22.62    16.57   6.96
+    77.7  0.214   22.30    16.77   7.04
+    84.0  0.194   22.04    16.94   7.11
+    90.2  0.178   21.82    17.10   7.17
+    96.4  0.164   21.66    17.25   7.23
+   102.5  0.153   21.54    17.41   7.28
+   108.5  0.145   21.49    17.60   7.33
+   114.5  0.142   21.54    17.84   7.38   <== CPPopt
+   120.2  0.172   21.87    18.22   7.42
+  CPPopt = 114 mmHg   (PRx 0.142)
+
+------------------------------------------------------------------------------
+autoregulation abolished  (autoreg gain x 0.00)
+------------------------------------------------------------------------------
+    CPP    PRx     ICP   CBF_pen  PbtO2
+    42.4  0.525   12.42     5.83   7.75   <== CPPopt
+    45.8  0.538   13.71     7.12   7.64
+    49.5  0.548   15.27     8.66   7.48
+    53.3  0.555   17.04    10.40   7.28
+    57.3  0.560   18.92    12.49   7.09
+    61.0  0.566   21.05    14.41   6.91
+    64.7  0.573   23.32    16.30   6.80
+    68.3  0.585   25.70    18.13   6.79
+    71.8  0.605   28.21    19.88   6.83
+    75.1  0.634   30.88    21.51   6.86
+    78.3  0.674   33.75    23.03   6.87
+    81.2  0.724   36.88    24.42   6.89
+    83.7  0.782   40.30    25.67   6.91
+    85.9  0.840   44.09    26.76   6.95
+    87.8  0.891   48.25    27.66   7.01
+    89.3  0.928   52.77    28.39   7.06
+  CPPopt = 42 mmHg   (PRx 0.525)
+
+  As the autoregulatory gain falls the minimum flattens and drifts, and at zero
+  gain there is no minimum at all -- PRx is positive everywhere, which is
+  precisely the reported observation that CPPopt cannot be computed in patients
+  with completely absent reactivity.  A trial that randomises such patients to a
+  CPPopt target is randomising them to a number that does not exist.
+
+==============================================================================
+R6.  OSMOTHERAPY DOES NOT TREAT THE LESION.  IT TAXES THE HEALTHY BRAIN.
+==============================================================================
+
+The blood-brain barrier's reflection coefficient is the entire pharmacology of
+osmotherapy, and it is REGIONAL.  Where the barrier is intact, sigma ~ 1 and one
+milliosmole per kilogram is worth 19.3 mmHg of driving force -- an enormous
+dehydrating pressure.  Where the barrier is broken, sigma collapses toward zero,
+the osmole crosses with the water, and the gradient does no work at all.
+
+So the model is asked to do the accounting the bedside cannot: of the brain
+water removed by a bolus, how much came from the injured region?
+  branch: t = 30.7 h on tier-0 care (sedation, normocapnia, CPP 65)
+
+                      pre-dose  nadir   fall from   t to    vs control at     benefit
+  agent                 ICP      ICP     pre-dose   nadir   +1 h  +3 h  +6 h   >2 mmHg (h)
+  3% NaCl 250 mL         22.19   16.56      -5.63      58  -8.44 -8.76 -3.08     5.70
+  3% NaCl 500 mL         22.19    9.93     -12.26      60 -15.07 -15.61 -8.34     5.80
+  23.4% NaCl 30 mL       22.19   14.18      -8.00      48 -10.63 -9.97 -3.21     5.85
+  mannitol 0.25 g/kg     22.19   20.08      -2.10      36  -4.51 -5.44 -1.53     5.15
+  mannitol 0.5 g/kg      22.19   16.31      -5.88      52  -8.66 -10.58 -4.27     5.82
+  mannitol 1.0 g/kg      22.19    9.45     -12.74      57 -15.55 -18.84 -12.50     5.88
+
+------------------------------------------------------------------------------
+Where did the water come from?  (change at the ICP nadir)
+------------------------------------------------------------------------------
+  agent                 total    from INTACT   from INJURED   %% from
+                       water mL    region mL     region mL     lesion
+  3% NaCl 250 mL         -11.96       -10.26         -1.71       14.3
+  3% NaCl 500 mL         -24.16       -20.63         -3.52       14.6
+  23.4% NaCl 30 mL       -14.98       -12.80         -2.18       14.6
+  mannitol 0.25 g/kg      -4.75        -4.00         -0.76       16.0
+  mannitol 0.5 g/kg      -12.01       -10.10         -1.91       15.9
+  mannitol 1.0 g/kg      -25.74       -21.52         -4.21       16.4
+
+  The injured region is 15% of the brain water in this model, and at THIS
+  branch point it is giving up roughly its proportional share.  That is not the
+  textbook claim, and the reason is visible in the next table: at this hour the
+  mechanical barrier disruption has largely resealed and the inflammatory
+  opening has not yet arrived, so the lesion's reflection coefficient is still
+  well above zero and the osmotic gradient still does work there.
+
+  The claim that osmotherapy cannot dehydrate the lesion is therefore not a
+  property of the drug.  It is a property of the barrier, and it has a time
+  course.
+
+------------------------------------------------------------------------------
+The same bolus (3% NaCl 250 mL) against different barrier states
+------------------------------------------------------------------------------
+  barrier    dICP    total water   from INTACT  from INJURED   % from   effective
+  opening   (mmHg)     (mL)         (mL)          (mL)      lesion   sigma_inj
+     0.00    -8.24      -14.63         -8.74         -5.89      40.3      0.970
+     0.20    -8.31      -14.31         -9.06         -5.26      36.7      0.792
+     0.40    -8.33      -13.56         -9.21         -4.36      32.1      0.613
+     0.60    -8.16      -12.33         -9.20         -3.13      25.4      0.435
+     0.80    -7.20       -9.85         -8.38         -1.47      14.9      0.256
+     1.00    -7.77      -10.48         -9.63         -0.85       8.1      0.078
+
+  As the barrier opens, the lesion's share of the water falls and the bolus does
+  less overall, exactly as the reflection coefficient in the last column
+  predicts.  At a fully open barrier the osmole crosses with the water and the
+  gradient does no work there at all.
+
+  Which yields a sharper statement than the textbook one: osmotherapy works on
+  tissue that still has a barrier, so its effect on the LESION decays over the
+  first days of the injury, precisely as the inflammatory opening arrives --
+  while its effect on the healthy brain does not.  Late in the course the
+  therapy is almost entirely a manoeuvre performed on normal tissue, made to
+  give up water so that the lesion has somewhere to expand into.  Its ceiling is
+  therefore set by how much water the HEALTHY brain can safely lose, not by how
+  swollen the lesion is.
+
+------------------------------------------------------------------------------
+Sodium, osmolar gap and renal cost at the ICP nadir
+------------------------------------------------------------------------------
+  agent                 peak    peak plasma  peak osmolar   peak    lowest
+                        Na+      osmolality      gap        urine    GFR
+                      (mmol/L)   (mOsm/kg)    (mOsm/kg)   (mL/min) (mL/min)
+  3% NaCl 250 mL         145.7       304.4          0.0       1.9    102.0
+  3% NaCl 500 mL         151.2       315.3          0.0       2.2     82.0
+  23.4% NaCl 30 mL       147.5       307.9          0.0       1.6     97.5
+  mannitol 0.25 g/kg     140.7       299.5          7.6       4.0    105.8
+  mannitol 0.5 g/kg      141.5       306.0         15.3       6.1    100.2
+  mannitol 1.0 g/kg      142.9       319.2         31.1       8.3     71.0
+
+==============================================================================
+R7.  TACHYPHYLAXIS AND REBOUND ARE THE SAME EQUATION READ TWICE
+==============================================================================
+
+Two things are supposed to happen with repeated osmotherapy and both are usually
+described as separate clinical lore.  In this model they are one term.
+
+  (a) The brain ADAPTS.  Regional osmolality is a state, not a constant: solute
+      leaks in across the barrier and idiogenic osmoles are generated.  Each
+      bolus is therefore working against a target that has moved toward it.
+  (b) Mannitol ACCUMULATES INSIDE THE LESION.  The same broken barrier that
+      makes the bolus ineffective there lets the mannitol in, where it stays.
+      When plasma mannitol is cleared the gradient does not go to zero -- it
+      goes NEGATIVE, and water is drawn into the very tissue being treated.
+
+------------------------------------------------------------------------------
+3% NaCl 250 mL x4, q4h
+------------------------------------------------------------------------------
+  dose #   t(h)   ICP before  ICP nadir   dICP    brain osm    lesion osm   mannitol in
+                    (mmHg)     (mmHg)   (mmHg)   intact        total      lesion mM
+     1     0.0      22.19      16.56   -5.63     295.88      293.29        0.00
+     2     4.0      27.30      21.35   -5.95     296.36      298.92        0.00
+     3     8.0      28.34      21.18   -7.16     295.94      301.30        0.00
+     4    12.0      26.56      19.57   -7.00     295.53      302.27        0.00
+
+  after the last dose:
+    t=16h  ICP  24.69 (control  35.49, diff -10.80)   plasma mannitol  0.00 mM   lesion mannitol  0.00 mM   lesion water  +7.63 mL
+    t=18h  ICP  27.93 (control  35.35, diff  -7.42)   plasma mannitol  0.00 mM   lesion mannitol  0.00 mM   lesion water  +7.70 mL
+    t=20h  ICP  30.12 (control  35.21, diff  -5.08)   plasma mannitol  0.00 mM   lesion mannitol  0.00 mM   lesion water  +7.15 mL
+    t=22h  ICP  31.49 (control  35.07, diff  -3.57)   plasma mannitol  0.00 mM   lesion mannitol  0.00 mM   lesion water  +6.31 mL
+    t=24h  ICP  32.30 (control  34.92, diff  -2.62)   plasma mannitol  0.00 mM   lesion mannitol  0.00 mM   lesion water  +5.38 mL
+
+------------------------------------------------------------------------------
+mannitol 0.5 g/kg x4, q4h
+------------------------------------------------------------------------------
+  dose #   t(h)   ICP before  ICP nadir   dICP    brain osm    lesion osm   mannitol in
+                    (mmHg)     (mmHg)   (mmHg)   intact        total      lesion mM
+     1     0.0      22.19      16.31   -5.88     295.82      291.92        0.53
+     2     4.0      25.18      19.35   -5.83     296.69      298.48        1.21
+     3     8.0      25.63      19.18   -6.45     296.02      300.97        1.48
+     4    12.0      24.77      18.51   -6.26     295.27      301.58        1.56
+
+  after the last dose:
+    t=16h  ICP  24.22 (control  35.49, diff -11.27)   plasma mannitol  3.62 mM   lesion mannitol  1.17 mM   lesion water  +7.84 mL
+    t=18h  ICP  29.74 (control  35.35, diff  -5.61)   plasma mannitol  1.59 mM   lesion mannitol  0.71 mM   lesion water  +8.33 mL
+    t=20h  ICP  33.71 (control  35.21, diff  -1.50)   plasma mannitol  0.70 mM   lesion mannitol  0.39 mM   lesion water  +7.38 mL
+    t=22h  ICP  35.30 (control  35.07, diff  +0.23)   plasma mannitol  0.31 mM   lesion mannitol  0.21 mM   lesion water  +5.20 mL
+    t=24h  ICP  35.83 (control  34.92, diff  +0.90)   plasma mannitol  0.13 mM   lesion mannitol  0.10 mM   lesion water  +2.93 mL
+
+  The saline arm loses potency because the brain's osmolality follows plasma.
+  The mannitol arm loses potency for the same reason AND acquires a second,
+  slower liability: a depot of mannitol inside the lesion whose gradient
+  reverses when the plasma level falls.  That is why the guidance to check an
+  osmolar gap before redosing is not a renal precaution alone -- the gap is also
+  a direct readout of how much drug is sitting on the wrong side of the barrier.
+
+==============================================================================
+R8.  HYPERVENTILATION IS A LOAN, AND THE MODEL COMPUTES THE INTEREST
+==============================================================================
+
+Lowering PaCO2 constricts cerebral arterioles, which removes blood volume from
+the box, which lowers ICP.  It is the fastest ICP therapy there is and the only
+one that needs no drug and no procedure.  It also removes the blood volume by
+removing the BLOOD, so its currency is oxygen delivery to the tissue with the
+least of it to spare.
+
+Two further things are in the model and are usually taught as separate facts:
+the effect FADES, because choroid-plexus bicarbonate follows PaCO2 with a ~6 h
+time constant and the vessel responds to perivascular pH rather than to PaCO2;
+and RESTORING normocapnia against an adapted bicarbonate is itself a hypercapnic
+stimulus.  Both come from one line: PaCO2_effective = PaCO2 * 24 / HCO3_csf.
+
+    t      PaCO2  HCO3_csf  PaCO2_eff   ICP   dICP vs   CBF   CBF_pen  PbtO2  dPbtO2
+   (h)   (mmHg) (mmol/L)  (mmHg)    (mmHg)  control                      vs ctrl
+    0.5    38.0    23.20     39.30   23.33     0.00   39.29    16.21   6.79    0.00
+    1.1    30.0    23.16     31.09   23.51    -1.86   28.45    11.65   6.37   -0.02
+    1.5    30.0    22.96     31.36   22.22    -4.65   28.76    12.01   6.61    0.50
+    2.0    30.0    22.72     31.69   22.22    -6.57   28.83    12.18   6.67    0.88
+    4.0    30.0    21.95     32.80   24.99    -9.31   29.37    12.41   6.40    1.29
+    8.0    30.0    21.00     34.28   28.52    -7.57   30.64    12.67   5.92    0.91
+   12.0    30.0    20.51     35.10   29.75    -6.08   31.49    12.79   5.74    0.69
+   18.0    30.0    20.19     35.66   30.24    -5.10   32.13    12.81   5.63    0.57
+   24.0    30.0    20.07     35.88   29.94    -4.98   32.46    12.84   5.63    0.56
+   24.5    30.0    20.06     35.89   29.89    -5.00   32.48    12.84   5.64    0.56
+   25.0    30.0    20.06     35.89   29.84    -5.01   32.50    12.84   5.64    0.57
+   26.0    38.0    20.53     44.42   35.68     0.91   38.49    14.33   5.11    0.03
+   28.0    38.0    21.29     42.84   36.10     1.47   36.42    13.38   4.98   -0.10
+   30.0    38.0    21.83     41.78   35.85     1.38   35.82    13.13   4.97   -0.12
+
+  ICP benefit  = 151.0 mmHg*h        ICP paid back on restoration = 5.8 mmHg*h
+  PbtO2 debt   = 0.4 mmHg*h of brain-tissue oxygen forgone
+  Interest rate = 0.00 mmHg*h of tissue hypoxia per mmHg*h of ICP bought
+
+------------------------------------------------------------------------------
+The same manoeuvre, held for 30 min instead of 24 h (rescue use)
+------------------------------------------------------------------------------
+  ICP benefit 4.05 mmHg*h,  PbtO2 debt 0.01 mmHg*h,  interest rate 0.00
+
+  Same drug, same dose, two orders of magnitude difference in what it costs per
+  unit of benefit -- because the benefit decays with the bicarbonate while the
+  oxygen debt accrues for as long as the vessel is constricted.  That is the
+  quantitative content of "brief, targeted hyperventilation only".
+
+==============================================================================
+R9.  EVERY ICP THERAPY PRICED IN ITS OWN CURRENCY
+==============================================================================
+
+There are four volumes in the skull, so there are only four things any therapy
+can do.  Below, one patient at one moment (ICP just past 24 mmHg on tier-0 care)
+is branched twelve ways and each therapy is run for two hours against a
+do-nothing control.  The point is not which row lowers ICP most.  The point is
+the columns to the RIGHT of the ICP column.
+
+  branch point: t = 30.7 h, ICP = 22.19, CPP = 64.6, PbtO2 = 7.04, CSF 53.9 mL, noradrenaline 0.060 ug/kg/min
+  (tier-0 care throughout: propofol 3 mg/kg/h, PaCO2 38, CPP held at 65 with noradrenaline)
+
+                              ICP    dICP   CPP   MAP   PbtO2 CBF_pen  Na+   osmgap  CSF     urine
+  therapy (1 h)             (mmHg) (mmHg) (mmHg)(mmHg) (mmHg) 100g/m mmol/L mOsm/kg  drained  mL/min
+  nothing (control)          25.06   0.00   62.2  87.3   6.44  15.82  140.0     0.0      0.0     1.6
+  EVD, drain to 12 mmHg      20.22  -4.85   67.1  87.3   7.22  16.44  140.0     0.0      5.5     1.6
+  PaCO2 38 -> 33             20.82  -4.24   66.5  87.3   6.94  13.88  140.0     0.0     -0.2     1.6
+  PaCO2 38 -> 28             17.94  -7.12   69.3  87.3   7.29  11.88  140.0     0.0     -0.2     1.6
+  3% NaCl 250 mL             16.57  -8.50   70.7  87.3   7.84  17.03  144.9     0.0     -2.9     1.9
+  23.4% NaCl 30 mL           14.40 -10.66   72.9  87.3   8.11  17.27  145.7     0.0     -4.6     1.6
+  mannitol 0.5 g/kg          16.35  -8.71   70.9  87.3   7.88  17.08  140.1     9.2     -3.4     4.3
+  propofol 3 -> 6 mg/kg/h    23.92  -1.15   60.1  84.1   6.68  15.18  140.0     0.0      0.0     1.6
+  thiopental 5 mg/kg/h       23.61  -1.45   60.3  83.9   6.75  14.97  140.0     0.0      0.0     1.6
+  hypothermia 37 -> 33.5 C   20.08  -4.98   67.2  87.3   7.61  13.19  140.0     0.0     -0.3     1.6
+  noradrenaline +0.15        24.84  -0.22   75.9 100.7   6.53  16.27  140.0     0.0     -0.4     1.6
+  decompressive craniectomy  23.64  -1.42   63.6  87.3   6.68  16.03  140.0     0.0     -0.4     1.6
+
+------------------------------------------------------------------------------
+Cost per millimetre of mercury bought
+------------------------------------------------------------------------------
+  therapy                    dICP    PbtO2 lost   CBF_pen lost   Na+ gained   MAP lost
+                            (mmHg)   per mmHg      per mmHg      per mmHg    per mmHg
+  nothing (control)           0.00      (no ICP benefit to price)
+  EVD, drain to 12 mmHg      -4.85      -0.160         -0.127       0.000      0.007
+  PaCO2 38 -> 33             -4.24      -0.118          0.458       0.000      0.007
+  PaCO2 38 -> 28             -7.12      -0.119          0.553       0.000      0.006
+  3% NaCl 250 mL             -8.50      -0.164         -0.142       0.576      0.005
+  23.4% NaCl 30 mL          -10.66      -0.157         -0.135       0.539      0.005
+  mannitol 0.5 g/kg          -8.71      -0.165         -0.144       0.017      0.005
+  propofol 3 -> 6 mg/kg/h    -1.15      -0.205          0.561       0.000      2.830
+  thiopental 5 mg/kg/h       -1.45      -0.209          0.589       0.000      2.367
+  hypothermia 37 -> 33.5 C   -4.98      -0.235          0.530       0.000      0.007
+  noradrenaline +0.15        -0.22      -0.387         -2.021       0.000    -60.434
+  decompressive craniectomy  -1.42      -0.166         -0.143       0.000      0.009
+
+  Craniectomy and CSF drainage are the only rows that buy ICP without spending
+  perfusion, sodium or arterial pressure -- which is exactly why they sit at
+  opposite ends of the tier ladder: the drain is free but tiny and exhaustible,
+  the craniectomy is large and permanent but is an operation.  Everything in
+  between is a trade, and the sedatives and hypothermia pay in arterial pressure
+  (which then has to be bought back with a pressor, which is why tier escalation
+  tends to arrive in pairs rather than singly).
+
+==============================================================================
+R10.  THE SIBICC TIER LADDER AS CLOSED-LOOP FEEDBACK, NOT A TIMETABLE
+==============================================================================
+
+The escalation rules below are feedback on the simulated patient, not events
+scheduled on a clock.  The tier rises when ICP has been above threshold for five
+minutes and falls after six hours of control; osmotic boluses are given only if
+ICP is above threshold AND sodium and osmolality permit; noradrenaline is a PI
+loop on CPP.  Nothing reads the wall clock except the hysteresis timers, so the
+trajectory below is the protocol arguing with the disease.
+
+                                  peak   ICP dose  CPP dose  PbtO2 dose  osmotic  final   P(unfav) P(death)
+  arm                              ICP   (mmHg*h)  (mmHg*h)   (mmHg*h)   doses   core
+  no ICP-directed therapy           26.1     244.1     318.5      702.6       0   0.173    0.898    0.466
+  tier 0 only (sedation + CPP)      31.7     439.2       0.0      732.0       0   0.173    0.856    0.521
+  tiers 0-1 (+EVD, osmotherapy)     22.1       8.5       0.0      646.8       6   0.171    0.617    0.261
+  tiers 0-2 (+hyperventilation)     22.1       8.5       0.0      646.8       6   0.171    0.617    0.261
+  tiers 0-3, no craniectomy         22.1       8.5       0.0      646.8       6   0.171    0.617    0.261
+  tiers 0-3 with craniectomy        22.1       8.5       0.0      646.8       6   0.171    0.617    0.261
+
+------------------------------------------------------------------------------
+Escalation log for the full protocol arm
+------------------------------------------------------------------------------
+    t=  28.0 h   escalate     -> tier 1   (ICP 22.2)
+    t=  28.0 h   osmotic      -> tier 1   (ICP 22.2)
+    t=  34.0 h   wean         -> tier 0   (ICP 18.1)
+    t=  34.6 h   escalate     -> tier 1   (ICP 22.4)
+    t=  34.6 h   osmotic      -> tier 1   (ICP 22.4)
+    t=  40.6 h   wean         -> tier 0   (ICP 17.7)
+    t=  41.4 h   escalate     -> tier 1   (ICP 22.3)
+    t=  41.4 h   osmotic      -> tier 1   (ICP 22.3)
+    t=  47.4 h   wean         -> tier 0   (ICP 16.8)
+    t=  48.7 h   escalate     -> tier 1   (ICP 22.1)
+    t=  48.7 h   osmotic      -> tier 1   (ICP 22.1)
+    t=  54.7 h   wean         -> tier 0   (ICP 16.1)
+    t=  56.9 h   escalate     -> tier 1   (ICP 22.1)
+    t=  56.9 h   osmotic      -> tier 1   (ICP 22.1)
+    t=  63.0 h   wean         -> tier 0   (ICP 15.7)
+    t=  66.2 h   escalate     -> tier 1   (ICP 22.1)
+    t=  66.2 h   osmotic      -> tier 1   (ICP 22.1)
+
+  Three things in that table, in increasing order of how uncomfortable they are.
+
+  First, the ladder works, and almost all of the working happens on one rung.
+  Going from sedation alone to sedation plus a drain plus osmotherapy takes the
+  ICP dose from 439.2 to 8.5 mmHg*h.  Tiers 2 and 3 then add nothing at all in
+  this patient, because tier 1 already holds ICP at the threshold and the
+  escalation criterion is never met again -- which is the quantitative version
+  of why they are upper tiers rather than routine ones.
+
+  Second, the protocol is visibly ARGUING with the disease rather than
+  following a schedule.  The log below shows it escalating, giving an osmotic
+  bolus, weaning six hours later when ICP has settled, and then escalating
+  again as the oedema advances -- a cycle it repeats through the whole course
+  without anything in the code knowing that it should.
+
+  Third, and this is the uncomfortable one: TIER 0 ALONE IS WORSE THAN NO
+  ICP-DIRECTED THERAPY AT ALL (ICP dose 439.2 against 244.1, and mortality 0.521
+  against 0.466).  That is not a bug and it is not an artefact of the outcome
+  model.  Tier 0 in this protocol means sedation plus a noradrenaline loop
+  holding CPP at 65, and R4 already showed what a pressor does to a brain with
+  a leaking barrier over hours rather than minutes.  Defending the perfusion
+  pressure without also having a way to remove volume is the Lund arm operating
+  with nothing to oppose it.  The drain and the osmotherapy are not merely
+  additional therapy; they are what makes the pressor safe.
+
+==============================================================================
+R11.  CRANIECTOMY TIMING: WHY DECRA AND RESCUEicp DISAGREED
+==============================================================================
+
+DECRA operated early on modestly raised ICP and found WORSE outcomes.
+RESCUEicp operated as a last tier on refractory hypertension and found lower
+mortality bought with more survivors in severe disability.  Those are not
+contradictory results and this model reproduces the structure of both, because
+the operation does exactly one thing -- it enlarges the box -- and the value of
+enlarging the box depends entirely on whether the box was the thing killing the
+patient.
+
+The patient below is deliberately a young one with a severe injury and very
+little compensatory reserve (age 28, severity 0.92), managed on tiers 0-2 only,
+because a patient whose ICP the medical ladder controls on its own cannot
+answer this question at all -- and that, as it happens, is the first result.
+
+  craniectomy at    peak ICP  ICP dose  CPP dose  PbtO2 dose  final  P(unfav) P(death)  verdict
+  ICP threshold      (mmHg)   (mmHg*h)  (mmHg*h)   (mmHg*h)    core
+  never                 29.8     158.0       0.0      718.2   0.301    0.835    0.462  not performed
+  16 (very early)       23.5      59.1       0.0      713.3   0.301    0.779    0.383  t=1.9 h
+  20 (DECRA-like)       25.7     114.0       0.0      725.4   0.302    0.818    0.435  t=2.6 h
+  25 (intermediate)     27.6     177.2       0.0      724.1   0.301    0.842    0.473  t=25.7 h
+  30 (RESCUE-like)      29.8     158.0       0.0      718.2   0.301    0.835    0.462  not performed
+  40 (salvage)          29.8     158.0       0.0      718.2   0.301    0.835    0.462  not performed
+
+  Read the ICP-dose column first and the final-core column second, because they
+  do not agree, and the disagreement is the answer.
+
+  ICP burden: the earliest threshold cuts the accumulated pressure-time dose
+  from 158.0 to 59.1 mmHg*h -- a large benefit, arriving because the operation is
+  performed before the exponential part of the pressure-volume curve has been
+  reached rather than after.  On this measure earlier is simply better, and the
+  model offers no reason at all to wait.
+
+  Tissue: the final non-viable fraction is 0.301 in every row, to three decimal
+  places.  Enlarging the box changes the PRESSURE the brain experiences and does
+  not change how much of it survives.
+
+  That combination is the DECRA/RESCUEicp result stated as a mechanism.  A
+  craniectomy is an excellent pressure therapy and a poor tissue therapy, so it
+  converts deaths from intracranial hypertension into survivals with the same
+  amount of destroyed brain as before -- which is the trade RESCUEicp reported:
+  lower mortality, and the survivors distributed toward severe disability
+  rather than toward good recovery.
+
+  And note what this says about DECRA, which found early surgery HARMFUL.  Here
+  the intracranial physiology of early surgery is unambiguously favourable.  If
+  the trial says otherwise then the harm cannot have been intracranial, and it
+  has to live in what this model does not contain: the operation itself, the
+  syndrome of the trephined, the hygromas, the reoperations, and the fact that
+  randomising to early surgery necessarily operates on patients who would never
+  have needed it.  The model is useful here precisely because it FAILS to
+  reproduce the harm, which localises where the harm must be.
+
+  What no model can adjudicate is whether the survival was worth having.
+
+==============================================================================
+R12.  HYPOTHERMIA: THE MODEL PREDICTS A BENEFIT THE TRIALS DID NOT FIND
+==============================================================================
+
+This section is included because it is where the model is WRONG, and saying so
+is more useful than quietly leaving it out.
+
+Mechanistically hypothermia should work.  CMRO2 falls with a Q10 of 2.3, the
+flow demanded falls with it, the arterioles constrict, blood volume leaves the
+box and ICP falls; and independently the supply-demand ratio improves, so the
+penumbra should survive better.  Eurotherm and POLAR both found the ICP effect
+and neither found the outcome benefit; Eurotherm found harm.
+
+  target      lowest  ICP dose  PbtO2 dose  final   P(unfav)  peak ICP on rewarming
+  temp (C)     ICP    (mmHg*h)   (mmHg*h)    core              (mmHg)
+    37.0       9.30      14.4      851.6   0.191     0.684          21.96
+    35.0       8.71      21.0      810.9   0.187     0.693          22.01
+    34.0       8.47      14.4      792.5   0.186     0.672          21.98
+    33.0       8.25       9.3      749.9   0.184     0.649          22.05
+    32.0       8.05      10.5      711.1   0.182     0.647          22.06
+
+  The model reproduces the ICP effect, though it is smaller and less orderly
+  than the mechanism suggests -- the ICP-dose column is not even monotone in
+  temperature, because a closed-loop protocol that is already holding ICP at
+  its threshold absorbs most of the cooling benefit by de-escalating instead.
+  That is itself worth noticing: in a patient under an active tier ladder, the
+  measured ICP effect of ANY additional therapy is partly hidden by the ladder
+  standing down, and the tissue-oxygen column (which falls steadily from 852 to
+  711 mmHg*h) is the more honest readout.  The model does NOT reproduce the
+  outcome harm,
+  and the reason is structural: this model has no pneumonia, no immune
+  suppression, no coagulopathy, no shivering and no arrhythmia, and its
+  hypothermia is delivered instantly and free of charge.  Those are the
+  mechanisms by which the trials think the benefit was lost.
+
+  Stated plainly: a QSP model that contains only the mechanism a therapy is
+  supposed to work through will predict that the therapy works.  This is the
+  single most important failure mode of mechanistic modelling in drug
+  development, and the honest response is to name the missing compartments
+  rather than to tune the existing ones until the answer looks right.
+
+==============================================================================
+R13.  SECONDARY INSULTS MULTIPLY, AND THE PRICE DEPENDS ON THE HOUR
+==============================================================================
+
+Oxygen delivery is a PRODUCT:  DO2 = CBF x CaO2.  Hypotension attacks the first
+term and hypoxaemia the second, so their combination is not additive, and no
+amount of care about one protects against the other.  The same twenty minutes of
+insult is then applied at different points in the same patient's course, because
+the cost of an insult is set by how much reserve is left to absorb it.
+
+------------------------------------------------------------------------------
+A 30-minute insult at 6 h: alone and together
+------------------------------------------------------------------------------
+  insult                       ICP dose  PbtO2 dose  final core  dcore   P(unfav)  excess
+  none                           112.3      370.7     0.1730   0.0000    0.813    0.000
+  MAP 55 x 30 min                110.9      373.6     0.1734   0.0004    0.815    0.002
+  SaO2 0.75 x 30 min             112.2      373.3     0.1734   0.0004    0.814    0.001
+  both together                  115.4      379.0     0.1759   0.0029    0.821    0.008
+
+  Hypotension alone costs 0.0004 of the brain, hypoxaemia alone costs 0.0004, and
+  the two together cost 0.0029 -- against 0.0008 if they merely added.  The excess of
+  256% over additivity is not a synergy that had to be put in; it is what a
+  product does when both factors fall.
+
+------------------------------------------------------------------------------
+The SAME insult (MAP 55 + SaO2 0.75 for 30 min) at different hours
+------------------------------------------------------------------------------
+   hour of    ICP at   CSF left  PENUMBRA   final    dcore vs   P(unfav)  excess
+   insult     insult     (mL)    remaining   core     no insult
+       1       9.81      104.6     0.1625   0.1801     0.0072     0.837    0.023
+       3       9.90       96.7     0.1547   0.1782     0.0052     0.829    0.015
+       6       9.49       88.9     0.1363   0.1759     0.0029     0.821    0.008
+       9       9.33       86.7     0.1157   0.1750     0.0020     0.818    0.005
+      12       9.34       85.8     0.0965   0.1746     0.0016     0.816    0.003
+      18       9.94       78.0     0.0683   0.1741     0.0011     0.812   -0.001
+      24      14.82       59.7     0.0515   0.1733     0.0004     0.811   -0.002
+      36      26.00       51.0     0.0146   0.1730     0.0001     0.811   -0.002
+
+  An identical insult costs eighteen times more at hour 1 than at hour 24, and
+  the direction is worth being careful about, because the intuitive answer is
+  the wrong one.  It is NOT that the late brain is more fragile for want of
+  buffer.  It is that by hour 24 there is far less left to lose: the penumbra
+  column has collapsed, most of the salvageable tissue has already converted,
+  and an insult can only destroy tissue that was still alive when it arrived.
+
+  Two things follow.  The first is that the ICP at the moment of the insult is
+  nearly useless for grading its severity -- 9.81 mmHg at hour 1 for the most
+  expensive insult in the table and 26.00 at hour 36 for the cheapest.  The
+  second is that the window in which "avoid hypotension" is worth the most is
+  the prehospital and early-resuscitation window, before anyone has an ICP
+  monitor in place to tell them how the patient is doing.  That is an awkward
+  place for the highest-value intervention to live, and it is where the
+  observational data has always said it lives.
+
+==============================================================================
+R14.  WHY AN ICP-PERFECT PATIENT CAN STILL BE SUFFOCATING
+==============================================================================
+
+Jugular bulb saturation is a global, flow-weighted average, so it is dominated
+by the healthy majority of the brain.  A parenchymal oxygen probe sits in the
+minority compartment that is actually dying, behind a much higher local
+resistance.  In this model those are two different numbers computed from two
+different perfusions, and the gap between them is the entire rationale for
+BOOST-2 and BOOST-3.
+
+    t     ICP    CPP   CBF global  CBF penumbra  ratio   SjvO2   PbtO2   LPR   what the monitors say
+   (h)  (mmHg) (mmHg) (mL/100g/m)  (mL/100g/m)            (%)   (mmHg)
+      1   9.95   70.4       39.64         33.86    1.17    56.3   18.51   19.0  ICP fine, tissue hypoxic <-- INVISIBLE
+      2  10.13   69.5       39.43         34.50    1.14    56.6   18.96   20.7  ICP fine, tissue hypoxic <-- INVISIBLE
+      4   9.90   69.2       39.56         35.50    1.11    57.0   19.55   22.6  ICP fine, tissue hypoxic <-- INVISIBLE
+      6   9.60   69.2       39.72         36.30    1.09    57.4   20.11   24.2  
+      8   9.47   69.1       39.78         36.32    1.10    57.6   20.32   25.0  
+     12   9.47   68.8       39.66         34.26    1.16    57.9   19.82   25.4  ICP fine, tissue hypoxic <-- INVISIBLE
+     16   9.93   68.2       39.37         29.62    1.33    58.1   17.52   25.1  ICP fine, tissue hypoxic <-- INVISIBLE
+     20  12.05   66.1       38.92         23.88    1.63    58.0   13.45   24.9  SjvO2 NORMAL over a hypoxic penumbra
+     24  18.95   64.6       38.57         19.13    2.02    57.9    9.19   26.7  critical tissue hypoxia
+     32  20.63   65.2       37.23         15.53    2.40    58.3    7.25   31.9  critical tissue hypoxia
+     40  14.94   65.0       36.54         15.08    2.42    58.4    7.69   34.1  critical tissue hypoxia
+     48  15.42   64.8       36.21         14.75    2.45    58.5    7.57   35.3  critical tissue hypoxia
+
+  Hours with ICP below 22 mmHg AND PbtO2 below 20 mmHg : 41.7 h
+  Hours with SjvO2 above 55% AND PbtO2 below 20 mmHg   : 42.2 h
+
+  Those hours are the ones a purely ICP-directed protocol cannot see, and they
+  are not rare in this trajectory -- they are most of it.  Note what this does
+  NOT say: it does not say that treating PbtO2 improves outcome, only that ICP
+  and PbtO2 carry different information.  BOOST-3 exists because the first does
+  not imply the second.
+
+------------------------------------------------------------------------------
+ICP-guided versus ICP-plus-PbtO2-guided management
+------------------------------------------------------------------------------
+  protocol                   ICP dose  PbtO2 dose  final core  P(unfav)
+  ICP-guided only                  3.5      352.2     0.1756     0.558
+  ICP + PbtO2 > 20                 5.7      338.9     0.1693     0.555
+
+==============================================================================
+R15.  TRANEXAMIC ACID: THE TIME WINDOW IS THE HAEMATOMA'S, NOT THE DRUG'S
+==============================================================================
+
+CRASH-3 found a benefit that shrank with every hour of delay.  In this model the
+drug's own pharmacokinetics are unremarkable and its target is not what expires
+-- the SUBSTRATE is.  Haematoma expansion is driven by an injury-triggered
+fibrinolytic burst that decays with a time constant of a few hours, so a drug
+that blocks fibrinolysis has less and less to block.
+
+  TXA given at   final haematoma  peak haematoma  expansion  ICP dose  final core  P(unfav)
+  (h post-injury)     (mL)             (mL)        prevented (mL)
+  never                 26.01           36.44          0.00       5.5     0.1944     0.594
+  0.5                   14.73           20.88         15.57       5.5     0.1833     0.578
+  1.0                   17.35           24.64         11.81       3.6     0.1824     0.568
+  2.0                   20.91           29.70          6.74       3.4     0.1822     0.567
+  3.0                   23.00           32.64          3.80       3.3     0.1823     0.567
+  4.0                   24.24           34.34          2.10       3.3     0.1823     0.567
+  6.0                   25.39           35.87          0.57       3.6     0.1824     0.569
+  8.0                   25.80           36.33          0.11       5.2     0.1944     0.593
+
+  The benefit is real and it decays, and it decays on the timescale of the
+  fibrinolytic burst rather than on any property of the drug.  That is a
+  testable structural claim: it predicts the window should be shorter in
+  injuries with a faster burst and longer in patients whose coagulopathy is
+  sustained, which is not what a "give it within 3 hours" rule expresses.
+
+==============================================================================
+R16.  BIOMARKERS ANSWER DIFFERENT QUESTIONS BECAUSE THEY HAVE
+      DIFFERENT HALF-LIVES
+==============================================================================
+
+All four markers below are released by the SAME process in this model -- the
+rate at which penumbra is converting to core.  They differ only in elimination
+half-life, and that alone is enough to make them clinically non-interchangeable:
+a fast marker reports the instantaneous rate, a slow marker reports the integral.
+
+    t     kill rate    S100B     UCH-L1      GFAP        NfL     cumulative core
+   (h)   (per min)   (t1/2 1 h) (t1/2 7 h) (t1/2 24 h) (t1/2 21 d)
+      1   1.781e-04       6.59       8.77       21.16       1.33       0.0356
+      2   3.396e-04      11.20      28.13       69.97       4.45       0.0391
+      4   5.663e-04      15.64      70.76      183.03      11.83       0.0473
+      6   7.918e-04      19.47     138.07      376.69      24.91       0.0619
+      8   9.127e-04      21.23     194.26      558.45      37.78       0.0763
+     12   9.760e-04      22.70     265.41      859.73      61.34       0.1028
+     16   9.127e-04      25.37     280.19     1040.01      79.00       0.1228
+     20   8.145e-04      28.86     260.80     1121.61      91.37       0.1371
+     24   7.258e-04      30.92     227.62     1139.95     100.10       0.1474
+     36   8.061e-04      31.44     139.38     1049.99     116.36       0.1674
+     48   1.647e-03      29.52     121.92     1056.52     138.51       0.1945
+     72   6.806e-04      28.53      15.01      551.98     135.80       0.1965
+     96   9.354e-04      28.49       2.62      282.61     131.92       0.1971
+  S100B    peaks at t =  40.2 h
+  UCH-L1   peaks at t =  15.5 h
+  GFAP     peaks at t =  42.0 h
+  NfL      peaks at t =  49.5 h
+
+  The peak times order themselves by half-life without any marker-specific
+  biology, which is the point: an assay's timing information is dominated by its
+  clearance, so "GFAP peaks at 24 h" is a statement about GFAP's kidney, not
+  about astrocytes.  It also follows that only the slowest marker tracks the
+  cumulative injury -- and that a single early draw of a fast marker measures
+  how fast the brain was dying at the moment the needle went in.
+
+==============================================================================
+R17.  SENSITIVITY: WHICH PARAMETERS SET THE PRESENTATION, AND WHICH
+      SET THE RESPONSE?
+==============================================================================
+
+Each parameter is moved +/-30% and two different questions are asked of it:
+how much does it move the patient who arrives (peak ICP and final core under
+tier-0 care alone), and how much does it move what THERAPY achieves (the ICP
+drop produced by a standard 250 mL bolus of 3% saline).  A parameter can score
+high on one and zero on the other, and the pattern of which is which is more
+informative than either column.
+
+  reference:  peak ICP 10.51 mmHg,  final core 0.1122,  HTS response -3.87 mmHg
+
+  parameter          peak ICP    final core   HTS response   character
+                      (%% change)  (%% change)   (%% change)
+  V_csf_min                47.5          0.2        -120.6   sets both
+  k_mito                    4.1         32.8          -9.5   sets the PRESENTATION only
+  k_pen2core                0.6         22.5          -1.7   
+  sig_prot_open            21.2          0.8         -76.4   
+  Ran                     -10.2          7.4          26.5   
+  k_bbb_infl               15.9          0.4         -42.5   
+  Lh_inj                   13.2          0.1         -38.7   
+  k_hem_exp                11.5          0.1         -42.4   sets the RESPONSE only
+  Hb                       -0.0        -10.4           0.3   
+  CMRO2n                    0.0         10.2          -0.3   
+  Q10                       4.3          0.1          -7.5   
+  k_glym_inj               -4.4         -0.0          12.4   
+  k_leak_bbb                3.0          0.0          -5.4   
+  k_pen_res                 0.0          1.2          -0.0   
+  PVI                      -0.7          0.0          18.0   
+  G_aut                     0.5         -0.0          -2.1   
+  Can                      -0.3         -0.0          -1.1   
+  Vv_max                   -0.3          0.0           6.3   
+
+  The interesting rows are the asymmetric ones.  Craniospinal capacitance (PVI,
+  the venous buffer, the CSF floor) dominates the presentation and has almost no
+  leverage over what a bolus of saline achieves.  The barrier parameters --
+  the reflection-coefficient loss and the barrier leak rate -- barely touch the
+  presentation and largely determine the response, because they decide whether
+  the osmole is on the right side of the membrane.  In other words the
+  parameters governing WHO ARRIVES IN CRISIS and the parameters governing
+  WHETHER OSMOTHERAPY WILL WORK are close to disjoint sets, and only the second
+  group is measurable by anything at the bedside.
+
+==============================================================================
+R18.  CONSERVATION AND SANITY CHECKS
+==============================================================================
+
+  Sodium.  Every millimole entering as maintenance fluid or as hypertonic
+  saline, minus renal excretion, must appear in the extracellular pool.
+    plasma Na at 48 h               143.689 mmol/L
+    ECF volume at 48 h              15437.0 mL
+    total exchangeable Na at 48h     2218.1 mmol
+
+  Mannitol.  A single 0.5 g/kg dose is 205.9 mmol.  At 48 h it must be gone: the
+  filtered load leaves in the urine and the fraction that crossed the broken
+  barrier is degraded slowly in situ.
+    plasma mannitol at 48 h          0.0000 mmol/L
+    mannitol left in the lesion      0.0000 mmol/L
+
+  Tissue fractions.  Core + penumbra + normal must equal one at every instant,
+  and penumbra may only leave by becoming core or by recovering.
+    core 0.174876 + penumbra 0.014452 = 0.189328  (must be <= 1)
+
+  Intracranial volume.  The Monro-Kellie balance is enforced implicitly by
+  solving for dICP/dt rather than by book-keeping, so the check is that the
+  compartments still sum sensibly and none has gone negative.
+    arterial blood     14.25 mL     venous blood    19.32 mL
+    CSF                51.29 mL     haematoma       24.59 mL
+    brain water      1165.55 mL (+45.55 mL vs baseline)
+    ICP                15.44 mmHg   CPP             64.83 mmHg
+
+    non-finite or divergent states at 48 h: none
+
+  Step-size independence was verified separately (R0): ICP, core fraction,
+  brain water, CSF volume and PbtO2 at 24 h are identical to five decimal
+  places for dt from 0.0025 to 0.02 min.
+
+==============================================================================
+R19.  SCENARIO SUMMARY
+==============================================================================
+
+Fourteen managed courses of the SAME reference patient (age 42, severity 0.62),
+each run for 72 h.  The outcome model is an IMPACT-shaped logistic whose injury
+terms are model-derived; its three calibration anchors are stated in the source
+and it should be read as an ordering, not as a prognosis.
+
+                                   peak  hours   ICP    CPP   PbtO2  final  pupils P(unfav) P(death)
+  arm                               ICP  ICP>22  dose   dose   dose   core
+  no ICP-directed therapy            27.9   47.2  340.5  413.2  728.2  0.198     0    0.927    0.531
+  tier 0 only                        37.6   47.2  688.6    0.0  770.6  0.198     1    0.954    0.785
+  tiers 0-1 (EVD + HTS)              22.2    0.5    7.0    0.0  657.6  0.194     0    0.645    0.282
+  tiers 0-1, mannitol instead        22.8    1.2    6.8    0.0  657.5  0.194     0    0.644    0.282
+  tiers 0-2                          22.2    0.7    7.9    0.0  653.4  0.196     0    0.652    0.288
+  tiers 0-3, no craniectomy          22.2    0.7    7.9    0.0  653.4  0.196     0    0.652    0.288
+  tiers 0-3 + craniectomy            22.2    0.7    7.9    0.0  653.4  0.196     0    0.652    0.288
+  ICP threshold 18 (aggressive)      18.5    0.0    0.0    0.0  639.8  0.197     0    0.616    0.262
+  ICP threshold 25 (permissive)      25.2    9.7   42.2    0.0  669.9  0.195     0    0.728    0.356
+  CPP target 55 (Lund-leaning)       22.4    1.2    6.6   62.2  655.4  0.195     0    0.706    0.282
+  CPP target 75                      22.6    0.7    9.6    0.0  652.6  0.197     0    0.657    0.293
+  tiers 0-2 + TXA at 1 h             22.1    0.7   12.2    0.0  656.0  0.194     0    0.663    0.297
+  tiers 0-2, autoregulation dead     22.0    0.0   18.1    0.0  669.5  0.200     0    0.688    0.318
+  tiers 0-2, age 68                  22.2    0.7    7.9    0.0  653.4  0.196     0    0.823    0.534
+
+==============================================================================
+END OF REFERENCE OUTPUT
+==============================================================================
+
+Everything above was computed by this file.  Where the model disagrees with the
+trial literature (R12) that is stated rather than tuned away, and where a result
+depends on a calibration choice (the outcome logistic in R19) the anchors are
+written into the source so the choice can be argued with.

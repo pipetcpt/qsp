@@ -1,0 +1,558 @@
+/* ============================================================================
+   Severe Traumatic Brain Injury (sTBI) -- QSP mechanistic map
+   외상성 뇌손상 정량적 시스템 약리학 기계론적 지도
+
+   Organising principle: the skull is a closed box (Monro-Kellie).  ICP is not a
+   node with its own biology -- it is the RESIDUAL of a volume balance read off
+   an exponential pressure-volume curve.  Every therapy in this map acts by
+   removing one of exactly four volumes, and the cluster it lives in names the
+   currency it spends.
+
+   Render:  dot -Tsvg tbi_qsp_model.dot -o tbi_qsp_model.svg
+            dot -Tpng -Gdpi=150 tbi_qsp_model.dot -o tbi_qsp_model.png
+   ========================================================================== */
+
+digraph sTBI_QSP {
+  graph [rankdir=TB, splines=polyline, overlap=false, newrank=true,
+         compound=true, nodesep=0.22, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, bgcolor="white",
+         label=<<b>Severe Traumatic Brain Injury — QSP mechanistic map</b><br/>
+<font point-size="10">중증 외상성 뇌손상 · 두개내압-관류-대사 통합 모델 · 236 nodes · 335 edges · 20 clusters</font><br/>
+<font point-size="9">The box is closed: every therapy removes one of four volumes, and each pays in a different currency</font>>,
+         labelloc="t"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         margin="0.07,0.04", penwidth=0.8];
+  edge  [fontname="Helvetica", fontsize=7, arrowsize=0.6, penwidth=0.8,
+         color="#555555"];
+
+  /* ---------- 1. PRIMARY INJURY ------------------------------------------ */
+  subgraph cluster_primary {
+    label="1. 일차 손상 · Primary (impact-instant) injury";
+    style="filled"; fillcolor="#fdecea"; color="#c0392b"; fontsize=11;
+    IMPACT   [label="Mechanical load\n가속-감속 / 충격", fillcolor="#f5b7b1"];
+    LINACC   [label="Linear acceleration\n→ contusion, EDH/SDH", fillcolor="#fadbd8"];
+    ROTACC   [label="Rotational acceleration\n→ diffuse axonal injury", fillcolor="#fadbd8"];
+    SHEAR    [label="Axonal shear\n축삭 전단", fillcolor="#fadbd8"];
+    MEMBR    [label="Mechanoporation\n막 투과성 급증", fillcolor="#fadbd8"];
+    VESSTEAR [label="Vessel tearing\n교정맥 / 피질동맥", fillcolor="#fadbd8"];
+    CORE0    [label="CORE\n비가역 괴사 조직\n(F_core, t=0)", fillcolor="#e6b0aa", shape=box3d];
+    PEN0     [label="PENUMBRA\n구제 가능 조직\n(F_pen, t=0)", fillcolor="#f9e79f", shape=box3d];
+    GCS      [label="GCS ≤ 8\nmotor score", fillcolor="#fadbd8"];
+    CTMARSH  [label="Marshall / Rotterdam\nCT classification", fillcolor="#fadbd8"];
+    IMPACT->LINACC; IMPACT->ROTACC; ROTACC->SHEAR; IMPACT->MEMBR;
+    LINACC->VESSTEAR; SHEAR->CORE0; LINACC->CORE0; MEMBR->PEN0; SHEAR->PEN0;
+    CORE0->GCS; CORE0->CTMARSH; PEN0->CTMARSH;
+  }
+
+  /* ---------- 2. MONRO-KELLIE / CRANIOSPINAL MECHANICS -------------------- */
+  subgraph cluster_mk {
+    label="2. 먼로-켈리 원리 · Monro-Kellie: the closed box  ⟵ THE CONSTRAINT";
+    style="filled"; fillcolor="#eaf2f8"; color="#1f618d"; fontsize=12;
+    VBLOOD   [label="V_blood\n동맥 + 정맥 혈액량", fillcolor="#aed6f1"];
+    VCSF     [label="V_CSF\n뇌척수액 (140 mL)", fillcolor="#aed6f1"];
+    VBRAIN   [label="V_brain\n뇌 조직 + 수분", fillcolor="#aed6f1"];
+    VLESION  [label="V_lesion\n혈종 + 좌상", fillcolor="#aed6f1"];
+    SUMV     [label="Σ V = constant\n두개강 총 용적 고정", fillcolor="#5dade2",
+              shape=octagon, fontsize=11];
+    PVCURVE  [label="Exponential P–V curve\nICP = P₀·10^(ΔV/PVI)\nPVI ≈ 26 mL",
+              fillcolor="#5dade2", shape=box3d, fontsize=10];
+    COMPL    [label="Compliance\nC = PVI /(ICP·ln10)\n★ falls as 1/ICP",
+              fillcolor="#85c1e9"];
+    RESERVE  [label="COMPENSATORY RESERVE\n보상 여력 (mL)\n★ invisible on the monitor",
+              fillcolor="#5dade2", shape=octagon];
+    ICP      [label="ICP\n두개내압 (mmHg)", fillcolor="#2e86c1",
+              fontcolor="white", shape=doubleoctagon, fontsize=13];
+    RAP      [label="RAP index\n(AMP–ICP correlation)", fillcolor="#d4e6f1"];
+    PULSEAMP [label="ICP pulse amplitude\n(AMP)", fillcolor="#d4e6f1"];
+    CSFSHIFT [label="CSF displacement\nto spinal sac\n★ cheapest buffer, finite",
+              fillcolor="#85c1e9"];
+    VENSQ    [label="Venous compression\n26 mL buffer", fillcolor="#85c1e9"];
+    CISTERN  [label="Cisternal effacement\n기저조 소실\n→ buffer exhausted",
+              fillcolor="#85c1e9"];
+    VBLOOD->SUMV; VCSF->SUMV; VBRAIN->SUMV; VLESION->SUMV;
+    SUMV->PVCURVE; PVCURVE->ICP; PVCURVE->COMPL; COMPL->RESERVE;
+    ICP->COMPL [label="dP/dV ∝ P", style=dashed, color="#c0392b", fontsize=8];
+    VCSF->CSFSHIFT; CSFSHIFT->RESERVE; VENSQ->RESERVE; CSFSHIFT->CISTERN;
+    CISTERN->RESERVE [label="gate closes", color="#c0392b"];
+    ICP->PULSEAMP; PULSEAMP->RAP; RESERVE->RAP [style=dashed];
+  }
+
+  /* ---------- 3. CEREBRAL HAEMODYNAMICS ----------------------------------- */
+  subgraph cluster_haemo {
+    label="3. 뇌혈류역학 · Cerebral haemodynamics";
+    style="filled"; fillcolor="#e8f8f5"; color="#117a65";
+    MAP      [label="MAP\n평균동맥압", fillcolor="#a3e4d7"];
+    CPP      [label="CPP = MAP − ICP\n뇌관류압", fillcolor="#48c9b0",
+              shape=doubleoctagon, fontsize=12];
+    RA       [label="Ra  arteriolar resistance\nRa = kR·Can²/Va²", fillcolor="#a3e4d7"];
+    RPV      [label="Rpv  post-capillary", fillcolor="#d1f2eb"];
+    RV       [label="Rv  cerebral venous", fillcolor="#d1f2eb"];
+    PC       [label="Pc capillary pressure\n≈ 32 mmHg", fillcolor="#d1f2eb"];
+    WATERFALL[label="Starling resistor\nP_down = max(P_sinus, ICP)\n★ outflow is ICP-referenced",
+              fillcolor="#a3e4d7"];
+    PSS      [label="Sagittal sinus\nP ≈ 6 mmHg", fillcolor="#d1f2eb"];
+    CBF      [label="CBF\n뇌혈류량 (mL/100g/min)", fillcolor="#48c9b0", shape=box3d];
+    CBV      [label="CBV\n뇌혈액용적", fillcolor="#48c9b0", shape=box3d];
+    VA       [label="Va = Ca·(MAP−ICP)\n동맥-세동맥 용적", fillcolor="#a3e4d7"];
+    VV       [label="Vv venous volume\ncollapsible", fillcolor="#a3e4d7"];
+    JUGVENT  [label="Jugular venous outflow\nhead-up 30°, collar", fillcolor="#d1f2eb"];
+    MAP->CPP; ICP->CPP [color="#c0392b"];
+    CPP->CBF; RA->CBF [label="q=(Pa−Pd)/ΣR"]; RPV->CBF; RV->CBF;
+    WATERFALL->RV; ICP->WATERFALL [color="#c0392b"]; PSS->WATERFALL;
+    CPP->VA; VA->RA [label="R ∝ 1/Va²"]; VA->CBV; VV->CBV;
+    ICP->VV [label="compresses", color="#c0392b"]; VV->VENSQ;
+    CBV->VBLOOD [color="#1f618d", penwidth=1.6];
+    CBF->PC; PC->RPV; JUGVENT->PSS;
+  }
+
+  /* ---------- 4. AUTOREGULATION ------------------------------------------- */
+  subgraph cluster_auto {
+    label="4. 자동조절 · Cerebral autoregulation  ⟵ THE FEEDBACK LOOP";
+    style="filled"; fillcolor="#fef9e7"; color="#b7950b"; fontsize=12;
+    XAUT     [label="Autoregulatory tone x\nτ ≈ 20 s", fillcolor="#f9e79f"];
+    CASIG    [label="Compliance sigmoid\nCa(x): 0.09 ↔ 0.31 mL/mmHg",
+              fillcolor="#f7dc6f"];
+    MYOG     [label="Myogenic (Bayliss)\nstretch response", fillcolor="#fcf3cf"];
+    METCPL   [label="Flow–metabolism coupling\nq_target ∝ CMRO2^0.9", fillcolor="#fcf3cf"];
+    NVU      [label="Neurovascular unit\nastrocyte endfoot · pericyte", fillcolor="#fcf3cf"];
+    NO       [label="eNOS / NO", fillcolor="#fcf3cf"];
+    KATP     [label="K_ATP / BK_Ca\nsmooth muscle", fillcolor="#fcf3cf"];
+    LASSEN   [label="Lassen plateau\nCPP 60–130 mmHg\n★ EMERGENT, not coded",
+              fillcolor="#f7dc6f", shape=box3d];
+    ULA      [label="Upper limit\nCa hits minimum", fillcolor="#fcf3cf"];
+    LLA      [label="Lower limit\nCa hits maximum", fillcolor="#fcf3cf"];
+    PRX      [label="PRx = corr(ABP, ICP)\n★ = the loop gain",
+              fillcolor="#f7dc6f", shape=octagon];
+    CPPOPT   [label="CPPopt\nminimum of the PRx–CPP curve",
+              fillcolor="#f7dc6f", shape=octagon];
+    VASOCASC [label="VASODILATORY CASCADE\nCPP↓→dilate→CBV↑→ICP↑→CPP↓\n★ positive feedback",
+              fillcolor="#e67e22", fontcolor="white", shape=octagon, fontsize=10];
+    PLATWAVE [label="Lundberg A / plateau waves\n★ EMERGENT when loop gain > 1",
+              fillcolor="#e67e22", fontcolor="white", shape=box3d];
+    LUNDBERGB[label="Lundberg B waves\n0.5–2 /min slow waves", fillcolor="#fcf3cf"];
+    CBF->XAUT [label="flow error", style=dashed];
+    METCPL->XAUT; MYOG->XAUT; NVU->METCPL; NO->CASIG; KATP->CASIG;
+    XAUT->CASIG; CASIG->VA [penwidth=1.4];
+    CASIG->LASSEN; LASSEN->ULA; LASSEN->LLA;
+    XAUT->PRX; CASIG->PRX; PRX->CPPOPT;
+    CPP->VASOCASC [color="#e67e22"]; VASOCASC->CASIG [color="#e67e22", penwidth=1.4];
+    CBV->VASOCASC [color="#e67e22"]; VASOCASC->PLATWAVE [color="#e67e22", penwidth=1.6];
+    COMPL->VASOCASC [label="low compliance\nraises loop gain", color="#c0392b"];
+    LUNDBERGB->PRX;
+  }
+
+  /* ---------- 5. CO2 / VENTILATION ---------------------------------------- */
+  subgraph cluster_co2 {
+    label="5. 이산화탄소 반응성 · CO₂ reactivity and its adaptation";
+    style="filled"; fillcolor="#f4ecf7"; color="#6c3483";
+    PACO2    [label="PaCO₂\n(ventilator-set)", fillcolor="#d7bde2"];
+    CSFHCO3  [label="CSF / brain HCO₃⁻\nchoroid plexus, τ ≈ 6 h", fillcolor="#e8daef"];
+    PHPV     [label="Perivascular pH\npH = 6.1 + log(HCO₃/0.03·PaCO₂)", fillcolor="#d7bde2"];
+    PACO2EFF [label="PaCO₂_effective\n= PaCO₂ · 24/HCO₃\n★ what the vessel sees",
+              fillcolor="#c39bd3", shape=box3d];
+    CO2SETPT [label="q_target modulation\n≈ 3.2 %/mmHg", fillcolor="#e8daef"];
+    CO2CAL   [label="Direct caliber action\n(moves the ceiling)", fillcolor="#e8daef"];
+    HVFADE   [label="Hyperventilation fade\nHCO₃ follows in ~6 h", fillcolor="#e8daef"];
+    HVREB    [label="Rebound on renormalisation\n★ low HCO₃ + normal PaCO₂ = acidosis",
+              fillcolor="#c39bd3"];
+    HYPOXVAS [label="Hypoxic vasodilation\nPaO₂ < 50 mmHg", fillcolor="#e8daef"];
+    PACO2->PHPV; CSFHCO3->PHPV; PHPV->PACO2EFF; PACO2->PACO2EFF;
+    PACO2EFF->CO2SETPT; PACO2EFF->CO2CAL;
+    CO2SETPT->XAUT; CO2CAL->CASIG [penwidth=1.3];
+    PACO2->CSFHCO3 [label="adaptation", style=dashed];
+    CSFHCO3->HVFADE; HVFADE->HVREB; HVREB->CASIG [color="#c0392b"];
+    HYPOXVAS->CASIG;
+  }
+
+  /* ---------- 6. METABOLISM AND OXYGEN ------------------------------------ */
+  subgraph cluster_metab {
+    label="6. 뇌 대사 · Cerebral metabolism and oxygen transport";
+    style="filled"; fillcolor="#eafaf1"; color="#1e8449";
+    CMRO2    [label="CMRO₂\n3.3 mL O₂/100g/min", fillcolor="#a9dfbf"];
+    Q10N     [label="Temperature Q₁₀ = 2.3\n≈ 6.5 %/°C", fillcolor="#d5f5e3"];
+    CAO2     [label="CaO₂ = 1.34·Hb·SaO₂\n+ 0.003·PaO₂", fillcolor="#a9dfbf"];
+    HB       [label="Haemoglobin\n(transfusion threshold)", fillcolor="#d5f5e3"];
+    SAO2     [label="SaO₂ / PaO₂\nairway, lung", fillcolor="#d5f5e3"];
+    DO2      [label="DO₂ = CBF × CaO₂\n★ a PRODUCT", fillcolor="#7dcea0", shape=box3d];
+    OEF      [label="OEF\noxygen extraction fraction", fillcolor="#a9dfbf"];
+    SJVO2    [label="SjvO₂ 55–75 %\n★ GLOBAL, flow-weighted",
+              fillcolor="#7dcea0", shape=octagon];
+    SUPPLY   [label="Supply adequacy r\n= CMRO₂_actual / demand", fillcolor="#7dcea0"];
+    GLYC     [label="Anaerobic glycolysis", fillcolor="#d5f5e3"];
+    LACT     [label="Brain lactate", fillcolor="#d5f5e3"];
+    LPR      [label="Lactate/pyruvate ratio\nmicrodialysis, >40 abnormal",
+              fillcolor="#a9dfbf", shape=octagon];
+    GLCBR    [label="Brain glucose\n<0.8 mmol/L critical", fillcolor="#d5f5e3"];
+    GLYCEMIA [label="Systemic glycaemia\n(NICE-SUGAR trade-off)", fillcolor="#d5f5e3"];
+    ATP      [label="ATP / energy charge", fillcolor="#a9dfbf"];
+    NAKATP   [label="Na⁺/K⁺-ATPase\npump capacity E_pump", fillcolor="#a9dfbf"];
+    IONFAIL  [label="IONIC PUMP FAILURE\nthreshold ≈ CBF 10–12", fillcolor="#7dcea0"];
+    Q10N->CMRO2; CBF->DO2 [penwidth=1.4]; CAO2->DO2 [penwidth=1.4];
+    HB->CAO2; SAO2->CAO2;
+    DO2->SUPPLY; CMRO2->SUPPLY; SUPPLY->OEF; OEF->SJVO2;
+    SUPPLY->ATP; ATP->NAKATP; NAKATP->IONFAIL;
+    SUPPLY->GLYC; GLYC->LACT; LACT->LPR; ATP->LPR;
+    GLYCEMIA->GLCBR; GLCBR->ATP;
+  }
+
+  /* ---------- 7. REGIONAL / PERICONTUSIONAL PERFUSION --------------------- */
+  subgraph cluster_regional {
+    label="7. 국소 관류 · Regional (pericontusional) perfusion  ⟵ WHY GLOBAL MONITORS LIE";
+    style="filled"; fillcolor="#fdf2e9"; color="#af601a"; fontsize=11;
+    PENRES   [label="Pericontusional resistance\n1 + f(oedema, collapse, SD)", fillcolor="#f5cba7"];
+    CBFPEN   [label="CBF_penumbra\ntypically 2× lower than global",
+              fillcolor="#e59866", shape=box3d];
+    MICROCOL [label="Microvascular collapse\ncapillary compression", fillcolor="#fae5d3"];
+    PERICYTE [label="Pericyte constriction\n(no-reflow)", fillcolor="#fae5d3"];
+    MICROTHR [label="Microthrombosis\nfibrin, platelet plugs", fillcolor="#fae5d3"];
+    PBTO2    [label="PbtO₂ 20–35 mmHg\n★ REGIONAL probe\n<20 hypoxia, <10 critical",
+              fillcolor="#e59866", shape=doubleoctagon, fontsize=11];
+    DIFFBAR  [label="O₂ diffusion barrier\noedema widens the path", fillcolor="#fae5d3"];
+    DISSOC   [label="★ SjvO₂ normal WHILE\nPbtO₂ critical\n(the BOOST rationale)",
+              fillcolor="#dc7633", fontcolor="white", shape=octagon, fontsize=10];
+    PENRES->CBFPEN; MICROCOL->PENRES; PERICYTE->PENRES; MICROTHR->PENRES;
+    ICP->MICROCOL [color="#c0392b"];
+    CBF->CBFPEN; CBFPEN->PBTO2; DIFFBAR->PBTO2; CAO2->PBTO2;
+    CBFPEN->SUPPLY [penwidth=1.4, label="the cascade reads THIS"];
+    SJVO2->DISSOC; PBTO2->DISSOC;
+  }
+
+  /* ---------- 8. EXCITOTOXICITY ------------------------------------------- */
+  subgraph cluster_excito {
+    label="8. 흥분독성 · Excitotoxic cascade";
+    style="filled"; fillcolor="#fdedec"; color="#943126";
+    GLUREL   [label="Glutamate release\nvesicular + reversed EAAT", fillcolor="#f5b7b1"];
+    GLUEC    [label="ECF glutamate\n2 → 50–100 µM", fillcolor="#f5b7b1"];
+    EAAT     [label="EAAT1/2 uptake\n(ATP-dependent)", fillcolor="#fadbd8"];
+    NMDAR    [label="NMDA receptor\nGluN2B", fillcolor="#fadbd8"];
+    AMPAR    [label="AMPA receptor", fillcolor="#fadbd8"];
+    CAI      [label="Intracellular Ca²⁺\n★ the common path", fillcolor="#f5b7b1"];
+    KEC      [label="ECF K⁺ 3 → 10–60 mM", fillcolor="#fadbd8"];
+    CALPAIN  [label="Calpain activation\nspectrin → SBDP", fillcolor="#fadbd8"];
+    NOS      [label="nNOS → NO → ONOO⁻", fillcolor="#fadbd8"];
+    MPTP     [label="Mitochondrial permeability\ntransition pore", fillcolor="#f5b7b1"];
+    MITOD    [label="Mitochondrial dysfunction\n★ LPR high with normal PbtO₂",
+              fillcolor="#e6b0aa", shape=box3d];
+    ROS      [label="ROS / lipid peroxidation\n4-HNE, F2-isoprostanes", fillcolor="#fadbd8"];
+    CYTC     [label="Cytochrome c release", fillcolor="#fadbd8"];
+    CASP     [label="Caspase-3 apoptosis", fillcolor="#fadbd8"];
+    NECROP   [label="Necroptosis (RIPK1/3)", fillcolor="#fadbd8"];
+    FERROP   [label="Ferroptosis\n(haem iron from clot)", fillcolor="#fadbd8"];
+    IONFAIL->GLUREL [penwidth=1.4]; GLUREL->GLUEC; EAAT->GLUEC [dir=back];
+    ATP->EAAT; GLUEC->NMDAR; GLUEC->AMPAR; NMDAR->CAI; AMPAR->CAI;
+    IONFAIL->KEC; CAI->CALPAIN; CAI->NOS; CAI->MPTP; ROS->MPTP;
+    MPTP->MITOD; MITOD->ROS; MITOD->CYTC; CYTC->CASP; MITOD->LPR;
+    NOS->ROS; MITOD->ATP [color="#c0392b", label="feed-back"];
+    CAI->NECROP; ROS->FERROP;
+  }
+
+  /* ---------- 9. SPREADING DEPOLARISATION ---------------------------------- */
+  subgraph cluster_sd {
+    label="9. 확산성 탈분극 · Cortical spreading depolarisation (COSBID)";
+    style="filled"; fillcolor="#f6f3f9"; color="#5b2c6f";
+    SDINIT   [label="SD initiation\nK⁺ / glutamate threshold", fillcolor="#d2b4de"];
+    SDPROP   [label="Propagating wave\n2–5 mm/min", fillcolor="#e8daef"];
+    SDCOST   [label="Massive pump demand\nCMRO₂ surcharge", fillcolor="#d2b4de"];
+    SDINV    [label="INVERSE haemodynamic response\nvasoconstriction, not hyperaemia",
+              fillcolor="#bb8fce", shape=box3d];
+    SDCLUST  [label="Clustered / isoelectric SD\n→ lesion expansion", fillcolor="#d2b4de"];
+    ECOG     [label="Subdural ECoG strip\n(the only way to see it)", fillcolor="#e8daef"];
+    KEC->SDINIT; GLUEC->SDINIT; SDINIT->SDPROP; SDPROP->SDCOST;
+    SDCOST->CMRO2 [color="#c0392b"]; SDPROP->SDINV; SDINV->PENRES [color="#c0392b"];
+    SDPROP->SDCLUST; SDCLUST->PEN0 [color="#c0392b", style=dashed]; SDPROP->ECOG;
+  }
+
+  /* ---------- 10. OEDEMA --------------------------------------------------- */
+  subgraph cluster_oedema {
+    label="10. 뇌부종 · Cerebral oedema: two mechanisms, two treatments";
+    style="filled"; fillcolor="#e8f6f3"; color="#0e6655"; fontsize=11;
+    CYTOX    [label="CYTOTOXIC oedema\npump failure → cell swelling", fillcolor="#a2d9ce"];
+    IDIO     [label="Idiogenic osmoles\ncatabolite accumulation", fillcolor="#d0ece7"];
+    AQP4     [label="AQP4 (astrocyte endfoot)\nwater conduit", fillcolor="#d0ece7"];
+    SUR1     [label="SUR1–TRPM4 channel\n★ glibenclamide target", fillcolor="#d0ece7"];
+    NKCC1    [label="NKCC1 cotransporter\n(bumetanide target)", fillcolor="#d0ece7"];
+    VASOG    [label="VASOGENIC oedema\n★ loss of the OPPOSING term,\nnot a rise in Pc",
+              fillcolor="#a2d9ce", shape=box3d];
+    SIGPROT  [label="Reflection coefficient σ\nintact ≈ 1 → broken ≈ 0", fillcolor="#76d7c4"];
+    STARLING [label="Starling flux\nJ = Lp[(Pc−ICP) − σ·π]", fillcolor="#76d7c4"];
+    OSMGRAD  [label="Osmotic gradient\n1 mOsm/kg ≡ 19.3 mmHg", fillcolor="#76d7c4"];
+    GLYMPH   [label="Glymphatic / ISF clearance\nimpaired in the lesion", fillcolor="#d0ece7"];
+    BRAINH2O [label="Brain water\n★ two regions with different σ",
+              fillcolor="#48c9b0", shape=box3d];
+    MIDSHIFT [label="Midline shift\n중앙선 편위 (mm)", fillcolor="#a2d9ce"];
+    IONFAIL->CYTOX [penwidth=1.4]; CYTOX->IDIO; IDIO->OSMGRAD; AQP4->CYTOX;
+    SUR1->CYTOX; NKCC1->CYTOX;
+    SIGPROT->STARLING [penwidth=1.4]; SIGPROT->VASOG [penwidth=1.4];
+    STARLING->BRAINH2O; OSMGRAD->STARLING; PC->STARLING; ICP->STARLING;
+    VASOG->BRAINH2O; CYTOX->BRAINH2O; GLYMPH->BRAINH2O [dir=back];
+    BRAINH2O->VBRAIN [color="#1f618d", penwidth=1.6];
+    BRAINH2O->MIDSHIFT; BRAINH2O->DIFFBAR;
+  }
+
+  /* ---------- 11. BLOOD-BRAIN BARRIER -------------------------------------- */
+  subgraph cluster_bbb {
+    label="11. 혈액뇌장벽 · Blood-brain barrier: biphasic opening";
+    style="filled"; fillcolor="#fef5e7"; color="#9c640c";
+    BBBMECH  [label="Phase 1: mechanical\n0–6 h, reseals t½ ≈ 3 h", fillcolor="#fad7a0"];
+    BBBINFL  [label="Phase 2: inflammatory\n24–72 h", fillcolor="#fad7a0"];
+    TJ       [label="Tight junctions\nclaudin-5, occludin, ZO-1", fillcolor="#fdebd0"];
+    MMP9     [label="MMP-2 / MMP-9\nbasal lamina digestion", fillcolor="#fdebd0"];
+    VEGFA    [label="VEGF-A\npermeability factor", fillcolor="#fdebd0"];
+    BRADYK   [label="Bradykinin B2", fillcolor="#fdebd0"];
+    PGLYCO   [label="Glycocalyx shedding\nsyndecan-1", fillcolor="#fdebd0"];
+    BBBOPEN  [label="BBB permeability\n★ sets σ, and therefore sets\nwhether osmotherapy works",
+              fillcolor="#f5b041", shape=box3d, fontsize=10];
+    MECHBRK  [label="Direct mechanical\ndisruption", fillcolor="#fdebd0"];
+    MEMBR->MECHBRK; MECHBRK->BBBMECH; MMP9->BBBINFL; VEGFA->BBBINFL;
+    BRADYK->BBBINFL; PGLYCO->BBBINFL; MMP9->TJ [dir=back];
+    BBBMECH->BBBOPEN; BBBINFL->BBBOPEN; TJ->BBBOPEN [dir=back];
+    BBBOPEN->SIGPROT [penwidth=1.6, color="#c0392b", label="σ collapses"];
+    BBBOPEN->VASOG [penwidth=1.4];
+  }
+
+  /* ---------- 12. NEUROINFLAMMATION ---------------------------------------- */
+  subgraph cluster_inflam {
+    label="12. 신경염증 · Neuroinflammation";
+    style="filled"; fillcolor="#fdeff2"; color="#922b53";
+    DAMPS    [label="DAMPs\nHMGB1, S100B, ATP, DNA", fillcolor="#f5c6d3"];
+    TLR4     [label="TLR4 / RAGE", fillcolor="#fadde6"];
+    MICROG   [label="Microglial activation\nM1 ↔ M2", fillcolor="#f5c6d3"];
+    NLRP3    [label="NLRP3 inflammasome\ncaspase-1", fillcolor="#fadde6"];
+    IL1B     [label="IL-1β", fillcolor="#fadde6"];
+    TNFA     [label="TNF-α", fillcolor="#fadde6"];
+    IL6      [label="IL-6", fillcolor="#fadde6"];
+    IL10     [label="IL-10 (counter-regulatory)", fillcolor="#fadde6"];
+    ASTROC   [label="Reactive astrogliosis\nGFAP↑", fillcolor="#fadde6"];
+    NEUTRO   [label="Neutrophil influx", fillcolor="#fadde6"];
+    MONO     [label="Monocyte / macrophage\ninfiltration", fillcolor="#fadde6"];
+    CENTFEV  [label="Central fever\n★ each °C costs 6.5% CMRO₂", fillcolor="#f5c6d3"];
+    CHRONINF [label="Chronic microglial priming\n→ post-traumatic epilepsy, CTE",
+              fillcolor="#fadde6"];
+    CORE0->DAMPS; DAMPS->TLR4; TLR4->MICROG; MICROG->NLRP3; NLRP3->IL1B;
+    MICROG->TNFA; MICROG->IL6; MICROG->IL10 [style=dashed];
+    IL1B->MMP9; TNFA->MMP9; IL1B->VEGFA; TNFA->NEUTRO; IL6->NEUTRO;
+    NEUTRO->ROS; NEUTRO->MMP9; MONO->MICROG; DAMPS->ASTROC;
+    IL1B->CENTFEV; IL6->CENTFEV; CENTFEV->CMRO2 [color="#c0392b", penwidth=1.3];
+    MICROG->CHRONINF;
+  }
+
+  /* ---------- 13. HAEMATOMA AND COAGULOPATHY -------------------------------- */
+  subgraph cluster_coag {
+    label="13. 혈종과 응고장애 · Haematoma expansion and TBI-induced coagulopathy";
+    style="filled"; fillcolor="#f2f4f4"; color="#566573";
+    TF       [label="Brain tissue factor\n(the richest source in the body)", fillcolor="#d5dbdb"];
+    CONSUMP  [label="Consumptive coagulopathy", fillcolor="#e5e8e8"];
+    HYPERFIB [label="Hyperfibrinolysis\ntPA release", fillcolor="#d5dbdb"];
+    PLTDYS   [label="Platelet dysfunction\n(and antiplatelet drugs)", fillcolor="#e5e8e8"];
+    ANTICOAG [label="Pre-injury anticoagulation\nDOAC / warfarin", fillcolor="#e5e8e8"];
+    HEMEXP   [label="Haematoma expansion\n★ burst decays over ~3–4 h",
+              fillcolor="#aeb6bf", shape=box3d];
+    EDH      [label="Extradural haematoma", fillcolor="#e5e8e8"];
+    SDH      [label="Acute subdural haematoma", fillcolor="#e5e8e8"];
+    CONTUS   [label="Contusion / ICH\nprogressive haemorrhagic injury", fillcolor="#e5e8e8"];
+    TSAH     [label="Traumatic SAH\n→ vasospasm risk", fillcolor="#e5e8e8"];
+    IVH      [label="Intraventricular haemorrhage\n→ hydrocephalus", fillcolor="#e5e8e8"];
+    HEMEIRON [label="Haem / iron release\n→ ferroptosis", fillcolor="#e5e8e8"];
+    VESSTEAR->EDH; VESSTEAR->SDH; LINACC->CONTUS; VESSTEAR->TSAH; IVH->VCSF;
+    CORE0->TF; TF->CONSUMP; TF->HYPERFIB; CONSUMP->HEMEXP; HYPERFIB->HEMEXP;
+    PLTDYS->HEMEXP; ANTICOAG->HEMEXP;
+    EDH->HEMEXP; SDH->HEMEXP; CONTUS->HEMEXP;
+    HEMEXP->VLESION [color="#1f618d", penwidth=1.6];
+    HEMEXP->MIDSHIFT; CONTUS->HEMEIRON; HEMEIRON->FERROP;
+    TSAH->MICROTHR;
+  }
+
+  /* ---------- 14. HERNIATION AND BRAINSTEM ---------------------------------- */
+  subgraph cluster_hernia {
+    label="14. 뇌탈출 · Herniation syndromes and the brainstem";
+    style="filled"; fillcolor="#fbeee6"; color="#873600";
+    UNCAL    [label="Uncal herniation\nCN III compression", fillcolor="#edbb99"];
+    PUPIL    [label="Pupillary dilation\n★ read off SUSTAINED ICP", fillcolor="#e59866"];
+    SUBFALC  [label="Subfalcine herniation\nACA compression", fillcolor="#f6ddcc"];
+    CENTRAL  [label="Central / transtentorial", fillcolor="#f6ddcc"];
+    TONSIL   [label="Tonsillar herniation\nmedullary compression", fillcolor="#f6ddcc"];
+    DURET    [label="Duret haemorrhage", fillcolor="#f6ddcc"];
+    CUSHING  [label="CUSHING REFLEX\nbrainstem hypoperfusion → sympathetic surge\n★ emergent CPP defence",
+              fillcolor="#dc7633", fontcolor="white", shape=octagon, fontsize=10];
+    HTNBRADY [label="Hypertension + bradycardia\n+ irregular respiration", fillcolor="#edbb99"];
+    PSH      [label="Paroxysmal sympathetic\nhyperactivity", fillcolor="#f6ddcc"];
+    NEUROPUL [label="Neurogenic pulmonary oedema", fillcolor="#f6ddcc"];
+    TAKOTS   [label="Neurogenic stunned myocardium", fillcolor="#f6ddcc"];
+    BRAINDTH [label="Circulatory arrest of the brain\nICP → MAP, CPP → 0", fillcolor="#ba4a00",
+              fontcolor="white", shape=doubleoctagon];
+    ICP->UNCAL [color="#c0392b"]; MIDSHIFT->UNCAL; UNCAL->PUPIL;
+    ICP->SUBFALC; ICP->CENTRAL; ICP->TONSIL; CENTRAL->DURET;
+    CPP->CUSHING [color="#c0392b", penwidth=1.4];
+    CUSHING->MAP [penwidth=1.4, color="#e67e22"]; CUSHING->HTNBRADY;
+    CUSHING->PSH; PSH->NEUROPUL; PSH->TAKOTS; NEUROPUL->SAO2 [color="#c0392b"];
+    ICP->BRAINDTH [color="#c0392b"]; CPP->BRAINDTH [color="#c0392b"];
+  }
+
+  /* ---------- 15. SYSTEMIC INSULTS ------------------------------------------ */
+  subgraph cluster_systemic {
+    label="15. 이차 전신 손상 · Secondary systemic insults  ⟵ DO₂ IS A PRODUCT";
+    style="filled"; fillcolor="#fdf6e3"; color="#7d6608";
+    HYPOTEN  [label="Hypotension\nSBP < 90 / MAP < 65", fillcolor="#f9e79f"];
+    HYPOXAEM [label="Hypoxaemia\nSaO₂ < 90 %", fillcolor="#f9e79f"];
+    ANAEMIA  [label="Anaemia", fillcolor="#fcf3cf"];
+    HYPERGLY [label="Hyperglycaemia / hypoglycaemia", fillcolor="#fcf3cf"];
+    HYPONA   [label="Hyponatraemia\nSIADH vs cerebral salt wasting", fillcolor="#fcf3cf"];
+    SEIZ     [label="Seizures / NCSE\n→ metabolic demand↑", fillcolor="#fcf3cf"];
+    FEVERSYS [label="Fever (any cause)", fillcolor="#fcf3cf"];
+    VAP      [label="Ventilator-associated pneumonia", fillcolor="#fcf3cf"];
+    MULTIPL  [label="★ MULTIPLICATIVE, not additive\n(both factors of a product fall)",
+              fillcolor="#f7dc6f", shape=octagon, fontsize=10];
+    HYPOTEN->CPP [color="#c0392b", penwidth=1.4];
+    HYPOXAEM->SAO2 [color="#c0392b", penwidth=1.4]; ANAEMIA->HB;
+    HYPOTEN->MULTIPL; HYPOXAEM->MULTIPL; MULTIPL->DO2 [color="#c0392b", penwidth=1.6];
+    HYPERGLY->GLYCEMIA; HYPONA->OSMGRAD [color="#c0392b"];
+    SEIZ->CMRO2 [color="#c0392b"]; FEVERSYS->CMRO2 [color="#c0392b"];
+    VAP->HYPOXAEM;
+  }
+
+  /* ---------- 16. TIER 1: CSF AND POSITIONING -------------------------------- */
+  subgraph cluster_tier1 {
+    label="16. 1단계 치료 · Tier 1 — remove CSF, cost ≈ nothing (but it runs out)";
+    style="filled"; fillcolor="#e3f2fd"; color="#0d47a1";
+    HEADUP   [label="Head elevation 30°\n+ neutral neck", fillcolor="#bbdefb"];
+    EVD      [label="External ventricular drain\n★ the only free ICP therapy",
+              fillcolor="#90caf9", shape=box3d];
+    SEDATION [label="Sedation / analgesia\npropofol, fentanyl", fillcolor="#bbdefb"];
+    PROPPK   [label="Propofol PK\n3-cpt + effect site, ke0 0.26/min", fillcolor="#e3f2fd"];
+    PROPCMR  [label="CMRO₂ suppression\nEmax 55%, EC50 3.4 µg/mL", fillcolor="#e3f2fd"];
+    PROPMAP  [label="★ COST: arterial pressure\n(then a pressor is needed)", fillcolor="#e3f2fd"];
+    PRIS     [label="Propofol infusion syndrome\n>4 mg/kg/h × >48 h", fillcolor="#e3f2fd"];
+    NORMOCAP [label="Normocapnia PaCO₂ 35–40", fillcolor="#bbdefb"];
+    SEIZPRO  [label="Levetiracetam / phenytoin\nseizure prophylaxis ×7 d", fillcolor="#bbdefb"];
+    NORMOTH  [label="Normothermia / fever control", fillcolor="#bbdefb"];
+    HEADUP->JUGVENT; EVD->VCSF [penwidth=1.6, color="#0d47a1"];
+    CISTERN->EVD [label="limits", style=dashed, color="#c0392b"];
+    SEDATION->PROPPK; PROPPK->PROPCMR; PROPCMR->CMRO2 [color="#0d47a1"];
+    PROPPK->PROPMAP; PROPMAP->MAP [color="#c0392b"]; PROPPK->PRIS;
+    NORMOCAP->PACO2; SEIZPRO->SEIZ [dir=back]; NORMOTH->CENTFEV [dir=back];
+  }
+
+  /* ---------- 17. TIER 2: OSMOTHERAPY AND CO2 --------------------------------- */
+  subgraph cluster_tier2 {
+    label="17. 2단계 치료 · Tier 2 — remove water (costs Na⁺) or blood (costs O₂)";
+    style="filled"; fillcolor="#e8f5e9"; color="#1b5e20";
+    HTS      [label="Hypertonic saline\n3% 250 mL · 23.4% 30 mL\nσ ≈ 1.0", fillcolor="#a5d6a7"];
+    MANNITOL [label="Mannitol 0.25–1 g/kg\nσ ≈ 0.9", fillcolor="#a5d6a7"];
+    MANNPK   [label="Mannitol PK\nVd ≈ ECF, CL = GFR, t½ ≈ 1.6 h", fillcolor="#c8e6c9"];
+    OSMPLAS  [label="Plasma osmolality\n2Na + glucose + urea + mannitol", fillcolor="#a5d6a7"];
+    NAPLAS   [label="★ COST: serum Na⁺\nceiling ~155 mmol/L", fillcolor="#c8e6c9"];
+    OSMGAP   [label="★ COST: osmolar gap\n>55 → AKI risk", fillcolor="#c8e6c9"];
+    OSMDIUR  [label="Osmotic diuresis\n→ hypovolaemia", fillcolor="#c8e6c9"];
+    AKI      [label="Acute kidney injury\nGFR falls → drug accumulates", fillcolor="#c8e6c9"];
+    MANNREB  [label="★ REBOUND\nmannitol trapped in the lesion\nreverses the gradient",
+              fillcolor="#81c784", shape=box3d];
+    TACHYPH  [label="★ TACHYPHYLAXIS\nbrain osmolality follows plasma", fillcolor="#81c784"];
+    HYPERVENT[label="Hyperventilation PaCO₂ 30–35\n★ A LOAN", fillcolor="#a5d6a7", shape=box3d];
+    HVCOST   [label="★ COST: PbtO₂ and CBF_pen\n(interest accrues while held)", fillcolor="#c8e6c9"];
+    HTS->NAPLAS; HTS->OSMPLAS; MANNITOL->MANNPK; MANNPK->OSMPLAS; MANNPK->OSMGAP;
+    OSMPLAS->OSMGRAD [penwidth=1.6, color="#1b5e20"];
+    MANNPK->OSMDIUR; OSMDIUR->HYPOTEN [color="#c0392b"]; OSMGAP->AKI; AKI->MANNPK [dir=back];
+    MANNPK->MANNREB; BBBOPEN->MANNREB [color="#c0392b", penwidth=1.4];
+    OSMPLAS->TACHYPH; TACHYPH->OSMGRAD [color="#c0392b", style=dashed];
+    HYPERVENT->PACO2 [penwidth=1.4]; HYPERVENT->HVCOST; HVCOST->PBTO2 [color="#c0392b"];
+    HVCOST->CBFPEN [color="#c0392b"];
+  }
+
+  /* ---------- 18. TIER 3: LAST RESORT ----------------------------------------- */
+  subgraph cluster_tier3 {
+    label="18. 3단계 치료 · Tier 3 — suppress metabolism, or change the box itself";
+    style="filled"; fillcolor="#fce4ec"; color="#880e4f";
+    BARB     [label="Barbiturate coma\nthiopental / pentobarbital", fillcolor="#f8bbd0"];
+    BURSTSUP [label="Burst suppression on EEG\n(the titration endpoint)", fillcolor="#fce4ec"];
+    BARBMAP  [label="★ COST: profound hypotension\n+ ileus, immunosuppression", fillcolor="#fce4ec"];
+    HYPOTHER [label="Therapeutic hypothermia 33–35 °C\nQ₁₀ = 2.3", fillcolor="#f8bbd0"];
+    REWARM   [label="★ REWARMING REBOUND\ndemand returns into a full box", fillcolor="#f48fb1"];
+    HYPOCOST [label="★ COST: coagulopathy, infection,\nshivering, arrhythmia\n(NOT in this model — see R12)",
+              fillcolor="#fce4ec"];
+    CRANI    [label="Decompressive craniectomy\n★ enlarges the box: PVI 26 → 95 mL",
+              fillcolor="#f06292", shape=box3d, fontsize=10];
+    DECRA    [label="DECRA: early, modest ICP\n→ WORSE outcome", fillcolor="#fce4ec"];
+    RESCUE   [label="RESCUEicp: last tier, refractory\n→ lower mortality, more\nsevere disability",
+              fillcolor="#fce4ec"];
+    TREPHINE [label="Syndrome of the trephined\nhygroma, cranioplasty", fillcolor="#fce4ec"];
+    HEMEVAC  [label="Haematoma evacuation\n(the definitive volume therapy)", fillcolor="#f8bbd0"];
+    BARB->BURSTSUP; BURSTSUP->CMRO2 [color="#880e4f", penwidth=1.3];
+    BARB->BARBMAP; BARBMAP->MAP [color="#c0392b"];
+    HYPOTHER->Q10N [penwidth=1.4]; HYPOTHER->REWARM; REWARM->ICP [color="#c0392b"];
+    HYPOTHER->HYPOCOST;
+    CRANI->PVCURVE [penwidth=1.8, color="#880e4f", label="PVI ↑ 3.7×"];
+    CRANI->DECRA; CRANI->RESCUE; CRANI->TREPHINE;
+    HEMEVAC->VLESION [color="#880e4f", penwidth=1.4];
+  }
+
+  /* ---------- 19. CPP MANAGEMENT AND HAEMOSTASIS ------------------------------- */
+  subgraph cluster_cpp {
+    label="19. 관류압 관리 · CPP management and haemostatic therapy";
+    style="filled"; fillcolor="#ede7f6"; color="#4527a0";
+    NORAD    [label="Noradrenaline\n(the usual first pressor)", fillcolor="#b39ddb"];
+    NORADPD  [label="Effect-site model\nEmax 55 mmHg, EC50 0.30", fillcolor="#d1c4e9"];
+    ROSNER   [label="ROSNER: CPP augmentation\n★ works ONLY if autoregulation is alive",
+              fillcolor="#9575cd", shape=box3d, fontsize=10];
+    LUND     [label="LUND concept: lower CPP,\nreduce capillary filtration", fillcolor="#d1c4e9"];
+    SIGNFLIP [label="★ SAME DRUG, OPPOSITE SIGN\nintact → ICP falls\ndead  → ICP rises",
+              fillcolor="#7e57c2", fontcolor="white", shape=octagon, fontsize=10];
+    ARDSRISK [label="Fluid loading → ARDS\n(the CPP-70 lesson)", fillcolor="#d1c4e9"];
+    TXA      [label="Tranexamic acid\n1 g bolus + 1 g / 8 h", fillcolor="#b39ddb"];
+    CRASH3   [label="CRASH-3: benefit decays\n★ the SUBSTRATE expires,\nnot the drug", fillcolor="#d1c4e9"];
+    REVERSAL [label="Anticoagulant reversal\nPCC, idarucizumab, andexanet", fillcolor="#d1c4e9"];
+    NORAD->NORADPD; NORADPD->MAP [penwidth=1.4];
+    NORAD->ROSNER; ROSNER->CASIG [color="#4527a0", penwidth=1.4];
+    PRX->SIGNFLIP [penwidth=1.4]; ROSNER->SIGNFLIP; SIGNFLIP->ICP [color="#4527a0"];
+    LUND->PC [color="#4527a0"]; NORAD->ARDSRISK;
+    TXA->HYPERFIB [color="#4527a0", penwidth=1.4]; TXA->CRASH3;
+    REVERSAL->ANTICOAG [dir=back];
+    CPPOPT->NORAD [style=dashed, label="target"];
+  }
+
+  /* ---------- 20. MONITORING, BIOMARKERS AND OUTCOME ---------------------------- */
+  subgraph cluster_out {
+    label="20. 감시 · 바이오마커 · 예후  Monitoring, biomarkers and outcome";
+    style="filled"; fillcolor="#eceff1"; color="#263238"; fontsize=11;
+    ICPMON   [label="ICP monitor\n(EVD or parenchymal bolt)", fillcolor="#cfd8dc"];
+    BESTTRIP [label="BEST:TRIP — monitoring alone\nis not the therapy", fillcolor="#eceff1"];
+    ICPDOSE  [label="ICP pressure-time dose\n∫max(0, ICP−20) dt\n★ Güiza curve",
+              fillcolor="#b0bec5", shape=box3d];
+    CPPDOSE  [label="CPP deficit dose\n∫max(0, 60−CPP) dt", fillcolor="#b0bec5"];
+    PBTDOSE  [label="PbtO₂ deficit dose\n∫max(0, 20−PbtO₂) dt", fillcolor="#b0bec5"];
+    TIL      [label="Therapy intensity level (TIL)", fillcolor="#cfd8dc"];
+    GFAPB    [label="GFAP  t½ ≈ 24 h\n→ the integral", fillcolor="#cfd8dc"];
+    UCHL1B   [label="UCH-L1  t½ ≈ 7 h\n→ the recent rate", fillcolor="#cfd8dc"];
+    NFLB     [label="NfL  t½ ≈ 3 weeks\n→ cumulative axonal loss", fillcolor="#cfd8dc"];
+    S100BB   [label="S100B  t½ ≈ 1 h\n→ the instantaneous rate", fillcolor="#cfd8dc"];
+    SBDP     [label="SBDP145/150, tau, NSE", fillcolor="#eceff1"];
+    MICRODIA [label="Cerebral microdialysis\nLPR, glucose, glutamate", fillcolor="#cfd8dc"];
+    CTPERF   [label="CT perfusion / MRI DWI-PWI", fillcolor="#eceff1"];
+    IMPACTM  [label="IMPACT / CRASH prognostic models\nage · motor · pupils · CT", fillcolor="#cfd8dc"];
+    GOSE     [label="GOS-E at 6 months\n★ the endpoint that matters",
+              fillcolor="#78909c", fontcolor="white", shape=doubleoctagon, fontsize=12];
+    MORTAL   [label="Mortality", fillcolor="#90a4ae"];
+    PTE      [label="Post-traumatic epilepsy", fillcolor="#eceff1"];
+    PITUIT   [label="Post-traumatic hypopituitarism", fillcolor="#eceff1"];
+    COGN     [label="Cognitive / behavioural sequelae", fillcolor="#eceff1"];
+    ICP->ICPMON; ICPMON->BESTTRIP; ICPMON->ICPDOSE; CPP->CPPDOSE; PBTO2->PBTDOSE;
+    ICPMON->TIL;
+    CORE0->GFAPB; CORE0->UCHL1B; CORE0->NFLB; CORE0->S100BB; CORE0->SBDP;
+    LPR->MICRODIA; GLCBR->MICRODIA; GLUEC->MICRODIA;
+    ICPDOSE->GOSE [penwidth=1.4]; CPPDOSE->GOSE; PBTDOSE->GOSE;
+    CORE0->GOSE [penwidth=1.8]; PUPIL->GOSE [penwidth=1.4]; IMPACTM->GOSE;
+    GCS->IMPACTM; CTMARSH->IMPACTM; PUPIL->IMPACTM;
+    CORE0->MORTAL; BRAINDTH->MORTAL [penwidth=1.4];
+    CHRONINF->PTE; CORE0->PITUIT; CORE0->COGN; NFLB->COGN;
+    CTPERF->CBFPEN [dir=back, style=dashed];
+  }
+
+  /* ---------- cross-cluster structural edges --------------------------------- */
+  PEN0->SUPPLY [style=dashed, color="#7d6608"];
+  SUPPLY->PEN0 [label="salvage vs conversion", color="#c0392b", penwidth=1.6];
+  PEN0->CORE0 [label="penumbra → core", color="#c0392b", penwidth=1.8];
+  MITOD->PEN0 [color="#c0392b"];
+  CAI->PEN0 [color="#c0392b"];
+  ICP->CBFPEN [color="#c0392b", style=dashed];
+  BRAINH2O->PENRES [color="#c0392b"];
+  CENTFEV->Q10N;
+}
