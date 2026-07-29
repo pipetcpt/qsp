@@ -1,0 +1,800 @@
+/*
+ * inph_qsp_model.dot
+ * ==================
+ * Mechanistic map for the idiopathic Normal Pressure Hydrocephalus (iNPH) QSP
+ * model.  20 subgraph clusters, >250 nodes.
+ *
+ * Reading order (the causal spine of the model):
+ *   CSF secretion -> circulation/absorption resistance -> craniospinal
+ *   biomechanics (where the pulse, not the mean, becomes the pathogenic
+ *   variable) -> transmantle gradient -> periventricular water & perfusion ->
+ *   white matter -> Hakim triad.  Interventions enter at three distinct
+ *   points: the SECRETION side (acetazolamide, loop diuretics), the
+ *   RESISTANCE side (shunt, ETV), and the CLEARANCE side (sleep/glymphatic).
+ *
+ * Edge conventions
+ *   solid black          mass / fluid flow
+ *   solid dark blue      activation or positive influence
+ *   dashed red           inhibition / negative influence
+ *   bold dark green      drug or device action
+ *   dotted grey          measurement / read-out relationship
+ *   dashed purple        hydrostatic (posture-dependent) term
+ *
+ * Render:
+ *   dot -Tsvg inph_qsp_model.dot -o inph_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 inph_qsp_model.dot -o inph_qsp_model.png
+ */
+
+digraph iNPH_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.26;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<FONT POINT-SIZE="40"><B>Idiopathic Normal Pressure Hydrocephalus (iNPH) — Quantitative Systems Pharmacology Map</B></FONT><BR/>
+<FONT POINT-SIZE="21">CSF secretion → outflow resistance → craniospinal compliance → <I>pulsatile</I> transmantle gradient → periventricular white matter → Hakim triad<BR/>
+Interventions act at three separable points: secretion (acetazolamide · loop diuretics), resistance (shunt valve · ETV), clearance (sleep · glymphatic)<BR/>
+Mean ICP is normal by definition; the pathogenic variables are RESISTANCE, COMPLIANCE and PULSATILITY</FONT>>;
+    fontsize = 24;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 15, penwidth = 1.2, margin = "0.10,0.055"];
+    edge [fontname = "Helvetica", fontsize = 12, penwidth = 1.15,
+          arrowsize = 0.75, color = "#1f3f70"];
+
+    /* ===================================================================== */
+    /* 1. CSF SECRETION — the choroid plexus                                 */
+    /* ===================================================================== */
+    subgraph cluster_secretion {
+        label = <<B>1 · CSF SECRETION — choroid plexus epithelium</B><BR/>
+<FONT POINT-SIZE="13">If ≈ 0.35 mL/min ≈ 504 mL/day · the numerator of every pressure in this model</FONT>>;
+        style = "filled,rounded"; fillcolor = "#eaf3fb"; color = "#4a7fb5";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#c9e2f7", color = "#3d6f9e"];
+
+        CP_epi     [label = "Choroid plexus\nepithelium\n(4 ventricles)"];
+        CP_blood   [label = "Choroidal\nblood flow\n~4 mL/min/g"];
+        NaK        [label = "Na⁺/K⁺-ATPase\n(apical, α1)"];
+        NKCC1_cp   [label = "NKCC1\n(apical, secretory\nin choroid plexus)"];
+        CAII       [label = "Carbonic\nanhydrase II\n(CA-II)"];
+        HCO3_sec   [label = "HCO₃⁻ / H⁺\ngeneration"];
+        AQP1       [label = "AQP1\n(apical water\nchannel)"];
+        NHE1       [label = "NHE1 · AE2\n(basolateral)"];
+        Kir71      [label = "Kir7.1\nK⁺ recycling"];
+        CFTR_cp    [label = "CFTR · anion\nconductance"];
+        TJ_cp      [label = "Tight junctions\n(blood–CSF barrier)"];
+        If_node    [label = "CSF formation\nrate  If", fillcolor = "#7fc0ef", penwidth = 2.4];
+        AVP_cp     [label = "AVP → V1a\n(↓ secretion)"];
+        ANP_cp     [label = "ANP → NPR-A\n(↓ secretion)"];
+        HT2C       [label = "5-HT₂C\nreceptor"];
+        SNS_cp     [label = "Sympathetic\ninnervation\n(β-adrenergic)"];
+        ICP_feedback [label = "Pressure-dependent\nsecretion\n(weak autoregulation)"];
+
+        CP_blood -> CP_epi;
+        NaK -> If_node; NKCC1_cp -> If_node; AQP1 -> If_node;
+        CAII -> HCO3_sec -> NaK;
+        NHE1 -> HCO3_sec; Kir71 -> NaK; CFTR_cp -> If_node;
+        CP_epi -> NaK; CP_epi -> AQP1; CP_epi -> CAII; CP_epi -> TJ_cp;
+        AVP_cp -> If_node [style = dashed, color = "#c0392b"];
+        ANP_cp -> If_node [style = dashed, color = "#c0392b"];
+        HT2C -> If_node [style = dashed, color = "#c0392b"];
+        SNS_cp -> If_node [style = dashed, color = "#c0392b"];
+        ICP_feedback -> If_node [style = dashed, color = "#c0392b"];
+    }
+
+    /* ===================================================================== */
+    /* 2. CSF CIRCULATION AND ABSORPTION — where the resistance lives        */
+    /* ===================================================================== */
+    subgraph cluster_circulation {
+        label = <<B>2 · CSF CIRCULATION &amp; ABSORPTION — the site of the lesion</B><BR/>
+<FONT POINT-SIZE="13">Rout normal &lt; 13 · iNPH 15–25 mmHg/(mL/min) — the primary abnormality</FONT>>;
+        style = "filled,rounded"; fillcolor = "#eef7ee"; color = "#4e8b4e";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#cfe9cf", color = "#417a41"];
+
+        Vent_lat   [label = "Lateral\nventricles"];
+        Vent_3     [label = "Third\nventricle"];
+        Aqueduct   [label = "Cerebral aqueduct\n(Sylvius)"];
+        Vent_4     [label = "Fourth\nventricle"];
+        Foramina   [label = "Foramina of\nMonro · Magendie\n· Luschka"];
+        Cisterns   [label = "Basal cisterns\n· prepontine"];
+        SAS_conv   [label = "Cortical convexity\nsubarachnoid space"];
+        SAS_spinal [label = "Spinal\nsubarachnoid space"];
+        Sylvian    [label = "Sylvian fissures\n(enlarged in DESH)"];
+        Arach_gran [label = "Arachnoid\ngranulations\n(villi)"];
+        Dural_lymph [label = "Meningeal (dural)\nlymphatic vessels\n(Louveau/Aspelund)"];
+        Cribriform [label = "Cribriform plate ·\nolfactory\nperineural route"];
+        Nerve_root [label = "Spinal nerve root\nsleeves"];
+        Cerv_LN    [label = "Deep cervical\nlymph nodes"];
+        Sag_sinus  [label = "Superior sagittal\nsinus  Pss ≈ 6.5 mmHg"];
+        Rout_node  [label = "CSF outflow\nresistance  Rout", fillcolor = "#8fd08f", penwidth = 2.4];
+        Qabs       [label = "Absorption flux\nQabs = (P−Pss)/Rout"];
+        Turnover   [label = "CSF turnover\n(If + Qsh)/Vcsf\n~3–4 ×/day"];
+
+        Vent_lat -> Vent_3 -> Aqueduct -> Vent_4 -> Foramina -> Cisterns;
+        Cisterns -> SAS_conv; Cisterns -> SAS_spinal; Cisterns -> Sylvian;
+        SAS_conv -> Arach_gran -> Sag_sinus;
+        SAS_conv -> Dural_lymph -> Cerv_LN;
+        Cisterns -> Cribriform -> Cerv_LN;
+        SAS_spinal -> Nerve_root -> Cerv_LN;
+        Arach_gran -> Rout_node [style = dotted, color = "#666666"];
+        Dural_lymph -> Rout_node [style = dotted, color = "#666666"];
+        Rout_node -> Qabs; Sag_sinus -> Qabs;
+        Qabs -> Turnover;
+    }
+
+    /* ===================================================================== */
+    /* 3. GENESIS OF THE OUTFLOW RESISTANCE                                  */
+    /* ===================================================================== */
+    subgraph cluster_fibrosis {
+        label = <<B>3 · GENESIS OF THE RESISTANCE — arachnoid &amp; perivascular fibrosis</B>>;
+        style = "filled,rounded"; fillcolor = "#f6f0fa"; color = "#8a5fae";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#e3d3f0", color = "#7a4f9e"];
+
+        Aging      [label = "Ageing\n(mean onset > 70 y)"];
+        Vasc_risk  [label = "Vascular risk\n(HTN · DM ·\nsmall-vessel disease)"];
+        Prior_SAH  [label = "Prior SAH ·\nmeningitis · trauma\n(secondary NPH)"];
+        TGFb1_ar   [label = "TGF-β1 in CSF"];
+        TGFBR      [label = "TGF-βR-II\n· SMAD2/3"];
+        Collagen_ar [label = "Collagen I/III\ndeposition"];
+        LOX_ar     [label = "LOX cross-linking"];
+        Arach_fib  [label = "Arachnoid\nfibrosis"];
+        Villi_loss [label = "Loss of functional\narachnoid villi"];
+        PVS_fib    [label = "Perivascular space\nfibrosis · CD44"];
+        Lymph_decl [label = "Age-related\nmeningeal-lymphatic\ndecline"];
+        Genetics   [label = "CWH43 · SFMBT1\nvariants"];
+
+        Aging -> Arach_fib; Aging -> Lymph_decl; Aging -> PVS_fib;
+        Vasc_risk -> PVS_fib; Prior_SAH -> TGFb1_ar;
+        TGFb1_ar -> TGFBR -> Collagen_ar -> Arach_fib;
+        Collagen_ar -> LOX_ar -> Arach_fib;
+        Arach_fib -> Villi_loss;
+        Genetics -> Arach_fib;
+        Villi_loss -> Rout_node [lhead = cluster_circulation, penwidth = 2.0];
+        Lymph_decl -> Rout_node [penwidth = 1.8];
+        PVS_fib -> Rout_node [penwidth = 1.6];
+    }
+
+    /* ===================================================================== */
+    /* 4. CRANIOSPINAL BIOMECHANICS — the transducer                          */
+    /* ===================================================================== */
+    subgraph cluster_biomech {
+        label = <<B>4 · CRANIOSPINAL BIOMECHANICS — the lossy transducer</B><BR/>
+<FONT POINT-SIZE="13">ICP = Pss + If·Rout (Davson) · C = 1/(E1·(P−P₀)) (Marmarou) · AMP = ΔV<SUB>pulse</SUB>/C</FONT>>;
+        style = "filled,rounded"; fillcolor = "#fff6e8"; color = "#c98a2e";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#ffe3b8", color = "#b3781f"];
+
+        MonroKellie [label = "Monro–Kellie\nconstraint\nVbrain+Vblood+Vcsf = const"];
+        Davson     [label = "Davson equation\nICP = Pss + If·Rout", fillcolor = "#ffcf85", penwidth = 2.4];
+        ICP_mean   [label = "Mean ICP\n9–14 mmHg\n(NORMAL by definition)", fillcolor = "#ffcf85", penwidth = 2.4];
+        PV_curve   [label = "Exponential\npressure–volume curve\nP = P₀·exp(E1·ΔV)"];
+        E1_node    [label = "Elastance\ncoefficient  E1"];
+        Compliance [label = "Craniospinal\ncompliance  C\n0.3–1.0 mL/mmHg", fillcolor = "#ffcf85", penwidth = 2.4];
+        PVI        [label = "Pressure–volume\nindex (PVI)"];
+        RAP        [label = "RAP index\ncorr(AMP, P)"];
+        Waveform   [label = "ICP waveform\nP1 percussion ·\nP2 tidal · P3 dicrotic"];
+        P2_P1      [label = "P2 > P1\n(rounded wave =\nlow compliance)"];
+        AMP_node   [label = "ICP pulse\namplitude  AMP\niNPH > 4 mmHg", fillcolor = "#ff9f40", penwidth = 3.0];
+        Tau_relax  [label = "Relaxation time\nτ = Rout · C\n≈ 8 min"];
+        dPtm_mean  [label = "MEAN transmantle\ngradient\n< 0.5 mmHg"];
+        dPtm_pulse [label = "PULSATILE transmantle\ngradient  κ·AMP·DESH", fillcolor = "#ff9f40", penwidth = 3.0];
+        Creep      [label = "Viscoelastic\nparenchymal creep\n(small force × long time)"];
+        Vv_node    [label = "Ventricular\nvolume  Vv"];
+        Vplast     [label = "Plastic (irreversible)\nventricular expansion"];
+        Evans      [label = "Evans index\n> 0.30"];
+        Callosal   [label = "Callosal angle\n< 90°"];
+        DESH_node  [label = "DESH morphology\ntight convexity +\nwide Sylvian"];
+
+        MonroKellie -> PV_curve; PV_curve -> Compliance; E1_node -> Compliance;
+        Davson -> ICP_mean; ICP_mean -> Compliance;
+        Compliance -> AMP_node [label = "AMP = ΔVp/C", fontsize = 11];
+        Compliance -> PVI [style = dotted, color = "#666666"];
+        AMP_node -> RAP [style = dotted, color = "#666666"];
+        AMP_node -> Waveform -> P2_P1;
+        Compliance -> Tau_relax; Rout_node -> Tau_relax;
+        AMP_node -> dPtm_pulse; DESH_node -> dPtm_pulse [penwidth = 1.8];
+        Rout_node -> dPtm_mean;
+        dPtm_pulse -> Creep [penwidth = 2.2]; dPtm_mean -> Creep;
+        Creep -> Vv_node -> Vplast;
+        Vv_node -> Evans [style = dotted, color = "#666666"];
+        Vv_node -> Callosal [style = dotted, color = "#666666"];
+        Vv_node -> DESH_node;
+        Rout_node -> Davson [penwidth = 2.2];
+        If_node -> Davson [penwidth = 2.2];
+        Sag_sinus -> Davson;
+    }
+
+    /* ===================================================================== */
+    /* 5. CEREBROVASCULAR PULSATILITY — the energy source                     */
+    /* ===================================================================== */
+    subgraph cluster_pulse {
+        label = <<B>5 · CEREBROVASCULAR PULSATILITY — the energy that drives the mantle</B>>;
+        style = "filled,rounded"; fillcolor = "#fdecec"; color = "#c0504d";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#f9d3d1", color = "#a94442"];
+
+        Cardiac    [label = "Cardiac stroke\nvolume"];
+        Aortic_st  [label = "Aortic / carotid\nstiffening (ageing)"];
+        Windkessel [label = "Arterial windkessel\n(Cart)"];
+        Vp_pulse   [label = "Intracranial arterial\npulse volume ΔVp\n~0.7–1.4 mL/beat", fillcolor = "#f4a9a5", penwidth = 2.4];
+        Art_pulse  [label = "Systolic arterial\nexpansion"];
+        Ven_outflow [label = "Venous outflow\n(jugular · vertebral)"];
+        Starling   [label = "Starling resistor\nat the sinus"];
+        Cort_vein  [label = "Cortical vein\ncompression\n(Greitz mechanism)"];
+        Cine_MRI   [label = "Aqueductal stroke\nvolume (cine PC-MRI)"];
+        CVR        [label = "Cerebrovascular\nreactivity (CO₂)"];
+        Autoreg    [label = "Cerebral\nautoregulation\nreserve"];
+        Compl_vasc [label = "Vascular component\nof craniospinal\ncompliance"];
+
+        Cardiac -> Windkessel; Aortic_st -> Windkessel [style = dashed, color = "#c0392b"];
+        Windkessel -> Vp_pulse [style = dashed, color = "#c0392b",
+                                label = "loss of buffering\n→ more pulse in", fontsize = 11];
+        Vp_pulse -> Art_pulse -> AMP_node [penwidth = 2.4];
+        Ven_outflow -> Starling -> Compl_vasc;
+        Compl_vasc -> Compliance;
+        Cort_vein -> Compl_vasc [style = dashed, color = "#c0392b"];
+        AMP_node -> Cort_vein;
+        AMP_node -> Cine_MRI [style = dotted, color = "#666666"];
+        dPtm_pulse -> Autoreg [style = dashed, color = "#c0392b", penwidth = 1.8];
+        Autoreg -> CVR [style = dotted, color = "#666666"];
+    }
+
+    /* ===================================================================== */
+    /* 6. GLYMPHATIC / PERIVASCULAR CLEARANCE                                */
+    /* ===================================================================== */
+    subgraph cluster_glymph {
+        label = <<B>6 · GLYMPHATIC / PERIVASCULAR CLEARANCE</B>>;
+        style = "filled,rounded"; fillcolor = "#e9f6f8"; color = "#3d8b96";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#c6e8ee", color = "#2f7580"];
+
+        AQP4_pol   [label = "AQP4 perivascular\npolarisation", fillcolor = "#9dd8e2", penwidth = 2.4];
+        Astro_endf [label = "Astrocyte\nend-feet"];
+        AQP4_misloc [label = "AQP4 mislocalisation\n(endfoot → soma)"];
+        PVS_influx [label = "Periarterial\nCSF influx"];
+        ISF_bulk   [label = "ISF bulk flow\nthrough neuropil"];
+        PVS_efflux [label = "Perivenous\nefflux"];
+        Sleep_SWS  [label = "Slow-wave sleep\n(≈2× glymphatic flow)"];
+        LC_NE      [label = "Locus coeruleus\nnoradrenaline"];
+        OSA_node   [label = "Sleep apnoea ·\nsleep fragmentation"];
+        Gly_flux   [label = "Glymphatic\nclearance flux  Jgly", fillcolor = "#9dd8e2", penwidth = 2.4];
+        DTI_ALPS   [label = "DTI-ALPS index\n(imaging surrogate)"];
+        Cell_debris [label = "Solute · protein ·\ndebris clearance"];
+
+        Astro_endf -> AQP4_pol; AQP4_misloc -> AQP4_pol [style = dashed, color = "#c0392b", penwidth = 2.0];
+        AQP4_pol -> Gly_flux [penwidth = 2.2];
+        PVS_influx -> ISF_bulk -> PVS_efflux -> Gly_flux;
+        Art_pulse -> PVS_influx [label = "pulsation-driven\npump", fontsize = 11];
+        Sleep_SWS -> Gly_flux [penwidth = 2.0];
+        LC_NE -> Sleep_SWS [style = dashed, color = "#c0392b"];
+        OSA_node -> Sleep_SWS [style = dashed, color = "#c0392b"];
+        Gly_flux -> Cell_debris;
+        Gly_flux -> DTI_ALPS [style = dotted, color = "#666666"];
+        PVS_efflux -> Dural_lymph;
+        Gly_flux -> Turnover;
+    }
+
+    /* ===================================================================== */
+    /* 7. PERIVENTRICULAR WHITE MATTER — the injured tissue                   */
+    /* ===================================================================== */
+    subgraph cluster_wm {
+        label = <<B>7 · PERIVENTRICULAR WHITE MATTER — the tissue that produces the symptoms</B><BR/>
+<FONT POINT-SIZE="13">two pools: a RECOVERABLE functional deficit and an IRREVERSIBLE axonal loss</FONT>>;
+        style = "filled,rounded"; fillcolor = "#fdf3e6"; color = "#b8752f";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#f8dcbd", color = "#a3671f"];
+
+        Wpv_node   [label = "Periventricular\ninterstitial water\nWpv", fillcolor = "#f0bd85", penwidth = 2.4];
+        Transep    [label = "Transependymal\nCSF flux"];
+        Epend_loss [label = "Ependymal\ndenudation ·\nloss of cilia"];
+        Cap_compress [label = "Capillary\ncompression"];
+        CBF_pv     [label = "Periventricular WM\nperfusion  CBFpv\n22 → 15 mL/100g/min", fillcolor = "#f0bd85", penwidth = 2.4];
+        Chronic_isch [label = "Chronic\nhypoperfusion"];
+        HIF1a      [label = "HIF-1α"];
+        Axon_stretch [label = "Axonal stretch ·\nradial distortion"];
+        Oligo      [label = "Oligodendrocyte\nstress"];
+        Myelin     [label = "Myelin integrity"];
+        MMP9_wm    [label = "MMP-9 ·\nBBB leakage"];
+        Nav_redist [label = "Nav channel\nredistribution ·\nconduction block"];
+        WMint      [label = "WM functional\nintegrity  WMint\n(RECOVERABLE)", fillcolor = "#f0a95c", penwidth = 3.0];
+        WMperm     [label = "Permanent axonal\nloss  WMperm\n(IRREVERSIBLE)", fillcolor = "#e08a3c", penwidth = 3.0];
+        CST_leg    [label = "Corticospinal tract\nLEG fibres\n(most medial =\nmost periventricular)"];
+        Frontal_sc [label = "Frontal–subcortical\ncircuits\n(anterior thalamic\nradiation)"];
+        Cing_bundle [label = "Cingulum ·\nsuperior longitudinal\nfasciculus"];
+        DTI_FA     [label = "DTI: FA ↓, MD ↑\nin corona radiata"];
+        WMH        [label = "Periventricular\nhyperintensities\n(FLAIR cap)"];
+
+        dPtm_mean -> Transep [penwidth = 2.0]; Transep -> Wpv_node [penwidth = 2.2];
+        Gly_flux -> Wpv_node [style = dashed, color = "#c0392b", penwidth = 2.2,
+                              label = "clearance", fontsize = 11];
+        Epend_loss -> Transep;
+        Wpv_node -> Cap_compress -> CBF_pv [style = dashed, color = "#c0392b", penwidth = 2.0];
+        dPtm_pulse -> CBF_pv [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Autoreg -> CBF_pv [penwidth = 1.8];
+        CBF_pv -> Chronic_isch [style = dashed, color = "#c0392b"];
+        Chronic_isch -> HIF1a; Chronic_isch -> Oligo; Chronic_isch -> MMP9_wm;
+        dPtm_pulse -> Axon_stretch [penwidth = 1.8];
+        Axon_stretch -> Nav_redist; Oligo -> Myelin [style = dashed, color = "#c0392b"];
+        Myelin -> WMint [penwidth = 1.8]; Nav_redist -> WMint [style = dashed, color = "#c0392b", penwidth = 1.8];
+        Chronic_isch -> WMint [style = dashed, color = "#c0392b", penwidth = 2.4];
+        Wpv_node -> WMint [style = dashed, color = "#c0392b", penwidth = 2.4];
+        WMint -> WMperm [label = "k_perm · injury\n(one-way)", fontsize = 11, penwidth = 2.4];
+        WMperm -> WMint [style = dashed, color = "#c0392b", penwidth = 2.4,
+                         label = "ceiling = 1 − WMperm", fontsize = 11];
+        WMint -> CST_leg; WMint -> Frontal_sc; WMint -> Cing_bundle;
+        WMint -> DTI_FA [style = dotted, color = "#666666"];
+        Wpv_node -> WMH [style = dotted, color = "#666666"];
+        WMperm -> Vv_node [label = "ex-vacuo\nenlargement", fontsize = 11];
+    }
+
+    /* ===================================================================== */
+    /* 8. NEUROINFLAMMATION AND GLIA                                         */
+    /* ===================================================================== */
+    subgraph cluster_inflam {
+        label = <<B>8 · NEUROINFLAMMATION &amp; REACTIVE GLIA</B>>;
+        style = "filled,rounded"; fillcolor = "#fdeef6"; color = "#b0518a";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#f7d3e6", color = "#9c447a"];
+
+        Microglia  [label = "Microglial\nactivation"];
+        M1_M2      [label = "M1 / M2\npolarisation balance"];
+        Astrogliosis [label = "Reactive\nastrogliosis (GFAP)", fillcolor = "#efb8d8", penwidth = 2.4];
+        NFkB       [label = "NF-κB"];
+        NLRP3      [label = "NLRP3\ninflammasome"];
+        IL1b       [label = "IL-1β"];
+        TNFa       [label = "TNF-α"];
+        IL6        [label = "IL-6"];
+        TGFb_wm    [label = "TGF-β1\n(local)"];
+        CD163      [label = "CD163⁺\nperivascular\nmacrophages"];
+        ROS_wm     [label = "ROS · oxidative\nstress"];
+        LRG_node   [label = "CSF LRG\n(leucine-rich\nα2-glycoprotein)"];
+        NfL_node   [label = "CSF neurofilament\nlight (NfL)"];
+        MBP_csf    [label = "CSF myelin\nbasic protein"];
+
+        Chronic_isch -> Microglia [penwidth = 1.8];
+        Wpv_node -> Microglia [penwidth = 1.8];
+        Microglia -> M1_M2 -> NFkB -> IL1b;
+        NFkB -> TNFa; NFkB -> IL6; NLRP3 -> IL1b; Microglia -> NLRP3;
+        IL1b -> Astrogliosis [penwidth = 1.8]; TNFa -> Astrogliosis;
+        Astrogliosis -> AQP4_misloc [penwidth = 2.4,
+                                     label = "loses endfoot\npolarity", fontsize = 11];
+        Astrogliosis -> LRG_node [style = dotted, color = "#666666"];
+        Wpv_node -> LRG_node [style = dotted, color = "#666666"];
+        WMint -> NfL_node [style = dotted, color = "#666666", label = "axonal release", fontsize = 11];
+        Myelin -> MBP_csf [style = dotted, color = "#666666"];
+        TNFa -> WMint [style = dashed, color = "#c0392b"];
+        Microglia -> ROS_wm -> Oligo;
+        CD163 -> Microglia; TGFb_wm -> Astrogliosis;
+        TGFb_wm -> TGFb1_ar;
+    }
+
+    /* ===================================================================== */
+    /* 9. AMYLOID / TAU COMORBIDITY AND THE DILUTION ARTEFACT                */
+    /* ===================================================================== */
+    subgraph cluster_ad {
+        label = <<B>9 · AMYLOID / TAU COMORBIDITY — and the CSF dilution artefact</B><BR/>
+<FONT POINT-SIZE="13">c = J(brain→CSF) / [(If+Qsh)/Vcsf + kdeg] — in iNPH BOTH terms fall, so Aβ42 AND p-tau read low</FONT>>;
+        style = "filled,rounded"; fillcolor = "#f1f0e6"; color = "#8a8a3f";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#e3e1c4", color = "#77772f"];
+
+        APP        [label = "APP → BACE1 → γ-secretase"];
+        Ab42_isf   [label = "ISF Aβ42"];
+        Ab_plaque  [label = "Cortical amyloid\nplaque load\n(20–75 % of iNPH\ncortical biopsies)"];
+        APOE4      [label = "APOE ε4"];
+        Tau_isf    [label = "ISF tau /\nphospho-tau"];
+        NFT        [label = "Neurofibrillary\ntangles"];
+        CSF_Ab42   [label = "CSF Aβ42\nconcentration\nLOW in iNPH", fillcolor = "#d4d1a4", penwidth = 2.4];
+        CSF_pTau   [label = "CSF p-tau181\nLOW in iNPH\n(unlike AD)", fillcolor = "#d4d1a4", penwidth = 2.4];
+        Dilution   [label = "DILUTION:\nVcsf enlarged", fillcolor = "#d4d1a4", penwidth = 2.4];
+        Flux_term  [label = "FLUX loss:\nglymphatic failure", fillcolor = "#d4d1a4", penwidth = 2.4];
+        Neurogran  [label = "CSF neurogranin\n(synaptic)"];
+        AD_burden  [label = "Alzheimer\ncomorbidity burden\n→ blunted shunt\nresponse"];
+        Amy_PET    [label = "Amyloid PET ·\ncortical biopsy"];
+
+        APP -> Ab42_isf; Ab42_isf -> Ab_plaque; APOE4 -> Ab_plaque [penwidth = 1.8];
+        Gly_flux -> Ab42_isf [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Ab_plaque -> Tau_isf -> NFT;
+        Ab42_isf -> CSF_Ab42; Tau_isf -> CSF_pTau;
+        Flux_term -> CSF_Ab42 [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Flux_term -> CSF_pTau [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Dilution -> CSF_Ab42 [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Dilution -> CSF_pTau [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Turnover -> Dilution; Vv_node -> Dilution [penwidth = 1.6];
+        Gly_flux -> Flux_term [style = dashed, color = "#c0392b"];
+        Ab_plaque -> AD_burden; NFT -> AD_burden;
+        Ab_plaque -> Amy_PET [style = dotted, color = "#666666"];
+        Tau_isf -> Neurogran [style = dotted, color = "#666666"];
+    }
+
+    /* ===================================================================== */
+    /* 10. CLINICAL TRIAD — the neural substrate                             */
+    /* ===================================================================== */
+    subgraph cluster_triad {
+        label = <<B>10 · HAKIM TRIAD — gait · cognition · continence</B><BR/>
+<FONT POINT-SIZE="13">three different tracts, three different time constants, one lesion</FONT>>;
+        style = "filled,rounded"; fillcolor = "#e8f0fa"; color = "#3e6ea8";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#c8dcf3", color = "#33608f"];
+
+        Gait_apraxia [label = "Gait apraxia\n(magnetic · wide-based ·\nshort stride ·\nen-bloc turning)", fillcolor = "#a8c8ee", penwidth = 2.6];
+        Gait_vel    [label = "Gait velocity\n0.6 → 0.85 m/s", fillcolor = "#a8c8ee", penwidth = 2.6];
+        TUG         [label = "Timed up-and-go\n(TUG, s)"];
+        Walk10      [label = "10-metre walk\ntime · steps"];
+        Postural    [label = "Postural instability ·\nretropulsion · falls"];
+        Cognition   [label = "Frontal-subcortical\ncognitive profile\n(psychomotor slowing,\nexecutive, attention)", fillcolor = "#a8c8ee", penwidth = 2.6];
+        MMSE        [label = "MMSE / MoCA"];
+        Pegboard    [label = "Grooved pegboard ·\nTrail-making · digit span"];
+        Apathy      [label = "Apathy · abulia"];
+        Urgency     [label = "Urinary urgency →\nurge incontinence", fillcolor = "#a8c8ee", penwidth = 2.6];
+        Detrusor    [label = "Detrusor\noveractivity"];
+        PMC         [label = "Pontine micturition\ncentre"];
+        PAG_mic     [label = "Periaqueductal grey ·\nfrontal micturition\ncentre (medial\nsuperior frontal)"];
+        iNPHGS      [label = "iNPH grading scale\n(iNPHGS 0–12)", fillcolor = "#8fb8e8", penwidth = 2.6];
+        mRS_node    [label = "mRS · Kiefer index ·\nBarthel"];
+        Fast_comp   [label = "FAST component\nτ ≈ 13 h\n(pressure-coupled)", fillcolor = "#8fb8e8", penwidth = 2.6];
+        Slow_comp   [label = "SLOW component\nτ ≈ 34 d\n(tissue repair)", fillcolor = "#8fb8e8", penwidth = 2.6];
+
+        CST_leg -> Gait_apraxia [penwidth = 2.4];
+        Frontal_sc -> Gait_apraxia [penwidth = 1.8];
+        Frontal_sc -> Cognition [penwidth = 2.4];
+        Cing_bundle -> Cognition;
+        Frontal_sc -> PAG_mic -> PMC -> Detrusor -> Urgency [penwidth = 1.8];
+        Gait_apraxia -> Gait_vel; Gait_vel -> TUG [style = dotted, color = "#666666"];
+        Gait_vel -> Walk10 [style = dotted, color = "#666666"];
+        Gait_apraxia -> Postural;
+        Cognition -> MMSE [style = dotted, color = "#666666"];
+        Cognition -> Pegboard [style = dotted, color = "#666666"];
+        Cognition -> Apathy;
+        Gait_vel -> iNPHGS [style = dotted, color = "#666666"];
+        MMSE -> iNPHGS [style = dotted, color = "#666666"];
+        Urgency -> iNPHGS [style = dotted, color = "#666666"];
+        iNPHGS -> mRS_node [style = dotted, color = "#666666"];
+        AMP_node -> Fast_comp [penwidth = 2.2, label = "acute ΔAMP", fontsize = 11];
+        WMint -> Slow_comp [penwidth = 2.2];
+        Fast_comp -> Gait_vel [penwidth = 2.2]; Slow_comp -> Gait_vel [penwidth = 2.2];
+        AD_burden -> Cognition [style = dashed, color = "#c0392b", penwidth = 2.0];
+        AD_burden -> Gait_vel [style = dashed, color = "#c0392b"];
+    }
+
+    /* ===================================================================== */
+    /* 11. DIAGNOSTIC PERTURBATIONS                                          */
+    /* ===================================================================== */
+    subgraph cluster_dx {
+        label = <<B>11 · DIAGNOSTIC PERTURBATIONS — each is a step input with its own duration</B>>;
+        style = "filled,rounded"; fillcolor = "#eff5e8"; color = "#6f9146";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#d6e8c2", color = "#5d7c38"];
+
+        Tap_test   [label = "Lumbar tap test\n30–50 mL removed\n(step in VOLUME)", fillcolor = "#bcd9a0", penwidth = 2.4];
+        ELD_node   [label = "External lumbar drain\n10 mL/h × 72 h\n(step in FLOW)", fillcolor = "#bcd9a0", penwidth = 2.4];
+        Infusion   [label = "Lumbar infusion test\n→ measures Rout"];
+        ICP_monitor [label = "Overnight ICP\nmonitoring → AMP"];
+        MRI_dx     [label = "MRI: Evans · callosal\nangle · DESH · WMH ·\nDTI-ALPS"];
+        Cisternogr [label = "Radionuclide\ncisternography"];
+        Gait_pre_post [label = "Pre/post gait &\ncognitive testing"];
+        Threshold  [label = "Detection threshold\n(e.g. ≥ 0.10 m/s or\n≥ 10 % improvement)", fillcolor = "#bcd9a0", penwidth = 2.4];
+        Sens_spec  [label = "Tap test: sensitivity\n26–61 %, high specificity\nELD: sensitivity 50–100 %"];
+
+        Tap_test -> Compliance [label = "ΔV / C", fontsize = 11, penwidth = 2.0];
+        Tap_test -> Tau_relax [style = dotted, color = "#666666",
+                               label = "decays with τ", fontsize = 11];
+        ELD_node -> If_node [style = dashed, color = "#c0392b", penwidth = 2.0,
+                             label = "net Qin = If − Qeld", fontsize = 11];
+        Infusion -> Rout_node [style = dotted, color = "#666666"];
+        ICP_monitor -> AMP_node [style = dotted, color = "#666666"];
+        MRI_dx -> Evans [style = dotted, color = "#666666"];
+        Cisternogr -> Rout_node [style = dotted, color = "#666666"];
+        Fast_comp -> Gait_pre_post [style = dotted, color = "#666666"];
+        Gait_pre_post -> Threshold; Threshold -> Sens_spec;
+        Tap_test -> Threshold [style = dotted, color = "#666666"];
+        ELD_node -> Threshold [style = dotted, color = "#666666"];
+    }
+
+    /* ===================================================================== */
+    /* 12. SHUNT HARDWARE                                                    */
+    /* ===================================================================== */
+    subgraph cluster_shunt {
+        label = <<B>12 · SHUNT HARDWARE — a pressure-controlled resistor in parallel</B><BR/>
+<FONT POINT-SIZE="13">Qsh = (ICP + h − Popen − Pdist)/Rsh · because Rsh &lt;&lt; Rout the VALVE sets the pressure</FONT>>;
+        style = "filled,rounded"; fillcolor = "#e6f2f0"; color = "#2f8177";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#c2e5df", color = "#256b62"];
+
+        VP_shunt   [label = "Ventriculoperitoneal\nshunt (VP)", fillcolor = "#93d3c9", penwidth = 2.6];
+        VA_shunt   [label = "Ventriculoatrial (VA)"];
+        LP_shunt   [label = "Lumboperitoneal (LP)"];
+        Vent_cath  [label = "Ventricular catheter"];
+        DP_valve   [label = "Differential-pressure\nvalve  Popen"];
+        Programmable [label = "Programmable valve\n(Codman Hakim 4–20 ·\nStrata · proGAV ·\nSophysa Polaris)", fillcolor = "#93d3c9", penwidth = 2.6];
+        Rsh_node   [label = "Shunt hydraulic\nresistance  Rsh\n≈ 2.5 mmHg/(mL/min)", fillcolor = "#93d3c9", penwidth = 2.6];
+        Grav_unit  [label = "GRAVITATIONAL unit\n(ShuntAssistant ·\nproSA) — adds Popen\nONLY when upright", fillcolor = "#6fc4b8", penwidth = 3.0];
+        ASD        [label = "Membrane anti-siphon\ndevice · SiphonGuard"];
+        Dist_cath  [label = "Distal (peritoneal)\ncatheter"];
+        Occl_node  [label = "Occlusion:\nchoroid plexus ·\nprotein · debris"];
+        Disconnect [label = "Disconnection ·\nfracture · migration"];
+        Infection  [label = "Shunt infection\n(3–6 %)"];
+        Qsh_node   [label = "Shunt flow  Qsh", fillcolor = "#6fc4b8", penwidth = 3.0];
+        Revision   [label = "Revision surgery\n(~20 % at 2 y)"];
+
+        VP_shunt -> Vent_cath -> DP_valve -> Dist_cath;
+        Programmable -> DP_valve; DP_valve -> Rsh_node; Dist_cath -> Rsh_node;
+        Grav_unit -> DP_valve [penwidth = 2.4]; ASD -> Rsh_node;
+        Rsh_node -> Qsh_node [penwidth = 2.4];
+        Occl_node -> Rsh_node [penwidth = 2.0, label = "Rsh/(1−occl)", fontsize = 11];
+        LRG_node -> Occl_node [style = dotted, color = "#666666"];
+        Disconnect -> Revision; Infection -> Revision; Occl_node -> Revision;
+        Qsh_node -> Qabs [style = dashed, color = "#c0392b",
+                          label = "parallel pathway\nsteals flux", fontsize = 11];
+        Qsh_node -> ICP_mean [style = dashed, color = "#c0392b", penwidth = 2.8];
+        Qsh_node -> Turnover [penwidth = 2.0];
+        VA_shunt -> Rsh_node; LP_shunt -> Rsh_node;
+    }
+
+    /* ===================================================================== */
+    /* 13. HYDROSTATICS — the posture term                                   */
+    /* ===================================================================== */
+    subgraph cluster_hydrostat {
+        label = <<B>13 · HYDROSTATICS — the term no biology in this model touches</B>>;
+        style = "filled,rounded"; fillcolor = "#f3ecfa"; color = "#7b4fa8";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#ddd0f0", color = "#6a3f97"];
+
+        Posture    [label = "Posture\n(f_up ≈ 0.60 of the day\nupright)", fillcolor = "#c6b0e6", penwidth = 2.6];
+        Hcol       [label = "Hydrostatic column\nventricle → peritoneum\n≈ 45 cmH₂O", fillcolor = "#c6b0e6", penwidth = 3.0];
+        HIP        [label = "Hydrostatic\nindifference point"];
+        Pss_up     [label = "Sinus / reference\npressure falls ≈ 8 mmHg\nwhen upright"];
+        Pabd       [label = "Intra-abdominal\npressure  Pdist\n5 → 10 cmH₂O"];
+        Siphon     [label = "SIPHONING\ndriving pressure\n+33 mmHg", fillcolor = "#b295df", penwidth = 3.0];
+        Overdrain  [label = "Over-drainage\n> 3× CSF production", fillcolor = "#b295df", penwidth = 3.0];
+        Height_pt  [label = "Patient height\n(sets the column)"];
+        Activity   [label = "Ambulatory activity\nlevel"];
+
+        Posture -> Hcol [penwidth = 2.4]; Height_pt -> Hcol; Activity -> Posture;
+        Hcol -> Siphon [penwidth = 3.0]; Posture -> Pss_up; Posture -> Pabd;
+        HIP -> Pss_up; Pss_up -> ICP_mean [style = dashed, color = "#8e44ad", penwidth = 2.0];
+        Pabd -> Qsh_node [style = dashed, color = "#8e44ad"];
+        Siphon -> Qsh_node [style = dashed, color = "#8e44ad", penwidth = 3.0];
+        Siphon -> Overdrain [penwidth = 2.8];
+        Grav_unit -> Siphon [style = dashed, color = "#c0392b", penwidth = 3.0,
+                             label = "cancels the column\nupright only", fontsize = 12];
+        ASD -> Siphon [style = dashed, color = "#c0392b", penwidth = 2.0];
+    }
+
+    /* ===================================================================== */
+    /* 14. OVER- AND UNDER-DRAINAGE COMPLICATIONS                            */
+    /* ===================================================================== */
+    subgraph cluster_complic {
+        label = <<B>14 · THE TWO-SIDED THERAPEUTIC WINDOW</B>>;
+        style = "filled,rounded"; fillcolor = "#fdeaea"; color = "#b03a3a";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#f7cccc", color = "#993030"];
+
+        Neg_ICP    [label = "Sub-atmospheric\ndaily-mean ICP"];
+        Subdural   [label = "Subdural hygroma →\nchronic subdural\nhaematoma", fillcolor = "#efa5a5", penwidth = 2.8];
+        Atrophy_sp [label = "Cortical atrophy →\nlarge subdural space"];
+        Antithromb [label = "Antiplatelet /\nanticoagulant use"];
+        Low_head   [label = "Low-pressure\n(orthostatic) headache"];
+        Slit_vent  [label = "Slit-ventricle\nsyndrome"];
+        Upward     [label = "Upward transtentorial\npressure gradient"];
+        Burr_hole  [label = "Burr-hole drainage ·\nvalve up-titration"];
+        Underdrain [label = "UNDER-drainage:\nno decompression,\nno benefit", fillcolor = "#efa5a5", penwidth = 2.8];
+        Seizure    [label = "Post-operative\nseizure · haemorrhage"];
+
+        Overdrain -> Neg_ICP [penwidth = 2.6]; Neg_ICP -> Subdural [penwidth = 2.8];
+        Atrophy_sp -> Subdural [penwidth = 2.0]; Antithromb -> Subdural;
+        Neg_ICP -> Low_head [penwidth = 2.0]; Neg_ICP -> Slit_vent;
+        Subdural -> Upward; Subdural -> Burr_hole;
+        Subdural -> Gait_vel [style = dashed, color = "#c0392b", penwidth = 2.4,
+                              label = "mass effect", fontsize = 11];
+        Subdural -> Cognition [style = dashed, color = "#c0392b", penwidth = 2.0];
+        Subdural -> ICP_mean [label = "V/Ccs raises P\n(self-limiting)", fontsize = 11];
+        Underdrain -> Slow_comp [style = dashed, color = "#c0392b", penwidth = 2.0];
+        DP_valve -> Underdrain [label = "Popen too high", fontsize = 11];
+        DP_valve -> Overdrain [label = "Popen too low", fontsize = 11];
+        VP_shunt -> Seizure;
+    }
+
+    /* ===================================================================== */
+    /* 15. ACETAZOLAMIDE PK/PD                                               */
+    /* ===================================================================== */
+    subgraph cluster_acz {
+        label = <<B>15 · ACETAZOLAMIDE — PK with saturable red-cell binding, PD with a hard ceiling</B>>;
+        style = "filled,rounded"; fillcolor = "#e8f5ee"; color = "#2f7d54";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#c6e8d4", color = "#256645"];
+
+        ACZ_dose   [label = "Acetazolamide\n250–500 mg PO BID", fillcolor = "#8fd4ac", penwidth = 2.6];
+        ACZ_gut    [label = "Gut depot\nF ≈ 0.90, ka 1.5 /h"];
+        ACZ_c      [label = "Plasma central\nV ≈ 14 L, 95 %\nprotein-bound"];
+        ACZ_rbc    [label = "Red-cell CA-I pool\nSATURABLE (Bmax)\n→ non-linear PK", fillcolor = "#8fd4ac", penwidth = 2.6];
+        ACZ_free   [label = "Free plasma\nconcentration"];
+        ACZ_renal  [label = "Renal secretion\n(unchanged drug)"];
+        ACZ_CAII   [label = "CA-II inhibition\nin choroid plexus", fillcolor = "#8fd4ac", penwidth = 2.6];
+        ACZ_Emax   [label = "Emax ≈ 0.50 of If\nEC50 ≈ 0.028 mg/L\n→ PLATEAU below\n250 mg BID"];
+        ACZ_acid   [label = "Metabolic acidosis\nHCO₃⁻ ↓"];
+        ACZ_K      [label = "Hypokalaemia"];
+        ACZ_paresth [label = "Paraesthesia ·\ndysgeusia · fatigue"];
+        ACZ_stone  [label = "Nephrolithiasis\n(alkaline urine,\n↓ citrate)"];
+
+        ACZ_dose -> ACZ_gut -> ACZ_c; ACZ_c -> ACZ_free;
+        ACZ_c -> ACZ_rbc [dir = both, penwidth = 2.0]; ACZ_free -> ACZ_renal;
+        ACZ_free -> ACZ_CAII [penwidth = 2.4];
+        ACZ_CAII -> CAII [style = dashed, color = "#c0392b", penwidth = 3.0,
+                          lhead = cluster_secretion];
+        ACZ_CAII -> ACZ_Emax; ACZ_Emax -> If_node [style = dashed, color = "#c0392b", penwidth = 3.0];
+        ACZ_CAII -> ACZ_acid [penwidth = 2.0]; ACZ_acid -> ACZ_paresth;
+        ACZ_CAII -> ACZ_K; ACZ_acid -> ACZ_stone;
+    }
+
+    /* ===================================================================== */
+    /* 16. OTHER PHARMACOLOGY                                                */
+    /* ===================================================================== */
+    subgraph cluster_pharm {
+        label = <<B>16 · OTHER PHARMACOLOGY — secretion, sleep, symptoms</B>>;
+        style = "filled,rounded"; fillcolor = "#eaf0f6"; color = "#43678f";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#cdddec", color = "#385877"];
+
+        Furos      [label = "Furosemide /\nbumetanide"];
+        NKCC1_inh  [label = "NKCC1 inhibition\n→ If ↓ ~20 %"];
+        Melatonin  [label = "Melatonin 2 mg\nnightly", fillcolor = "#a8c4e0", penwidth = 2.4];
+        Sleep_qual [label = "Sleep consolidation ·\nslow-wave enhancement"];
+        Solifen    [label = "Solifenacin /\nmirabegron\n(overactive bladder)", fillcolor = "#a8c4e0", penwidth = 2.4];
+        M3_block   [label = "Detrusor M₃\nblockade"];
+        M1_central [label = "Central M₁ blockade\n→ cognition ↓", fillcolor = "#a8c4e0", penwidth = 2.4];
+        Donepezil  [label = "Donepezil\n(comorbid AD)"];
+        AChE       [label = "AChE inhibition"];
+        Topiram    [label = "Topiramate\n(weak CA inhibitor)"];
+        Statin_ctl [label = "Vascular risk control\n(BP, lipids, glucose)"];
+        CPAP_node  [label = "CPAP for\nsleep apnoea"];
+
+        Furos -> NKCC1_inh -> If_node [style = dashed, color = "#c0392b", penwidth = 2.4];
+        NKCC1_inh -> NKCC1_cp [style = dashed, color = "#c0392b"];
+        Melatonin -> Sleep_qual -> Sleep_SWS [penwidth = 2.4];
+        CPAP_node -> Sleep_qual [penwidth = 2.0];
+        Solifen -> M3_block -> Detrusor [style = dashed, color = "#c0392b", penwidth = 2.4];
+        Solifen -> M1_central -> Cognition [style = dashed, color = "#c0392b", penwidth = 2.4];
+        Donepezil -> AChE -> Cognition [penwidth = 2.0];
+        Topiram -> CAII [style = dashed, color = "#c0392b"];
+        Statin_ctl -> Vasc_risk [style = dashed, color = "#c0392b"];
+    }
+
+    /* ===================================================================== */
+    /* 17. ENDOSCOPIC THIRD VENTRICULOSTOMY                                  */
+    /* ===================================================================== */
+    subgraph cluster_etv {
+        label = <<B>17 · ETV — the intervention with no hydrostatic column, and no benefit here</B>>;
+        style = "filled,rounded"; fillcolor = "#f7f2e4"; color = "#9a7a2e";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#e9dcbb", color = "#856823"];
+
+        ETV_node   [label = "Endoscopic third\nventriculostomy", fillcolor = "#d9c58f", penwidth = 2.6];
+        Stoma      [label = "Floor of the third\nventricle → prepontine\ncistern"];
+        Bypass     [label = "Bypasses INTRA-\nventricular resistance\n(aqueduct, foramina)"];
+        Downstream [label = "But Rout in iNPH is\nDOWNSTREAM of the\nstoma (arachnoid /\nglymphatic)", fillcolor = "#d9c58f", penwidth = 2.8];
+        No_siphon  [label = "No distal catheter →\nNO siphoning,\nNO subdural risk", fillcolor = "#d9c58f", penwidth = 2.6];
+        ETV_fail   [label = "Predicted near-zero\nbenefit in\nCOMMUNICATING iNPH"];
+        Obstructive [label = "(Contrast: OBSTRUCTIVE\nhydrocephalus / LOVA →\nETV works)"];
+
+        ETV_node -> Stoma -> Bypass -> Downstream -> ETV_fail [penwidth = 2.0];
+        ETV_node -> No_siphon [penwidth = 2.0];
+        Bypass -> Aqueduct [style = dashed, color = "#c0392b"];
+        Downstream -> Rout_node [style = dotted, color = "#666666",
+                                 label = "≈ 6 % reduction only", fontsize = 11];
+        Obstructive -> ETV_node [style = dotted, color = "#666666"];
+    }
+
+    /* ===================================================================== */
+    /* 18. DIFFERENTIAL DIAGNOSIS / MIMICS                                   */
+    /* ===================================================================== */
+    subgraph cluster_ddx {
+        label = <<B>18 · MIMICS — what the triad is not</B>>;
+        style = "filled,rounded"; fillcolor = "#f2f2f2"; color = "#777777";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#dedede", color = "#666666"];
+
+        AD_ddx     [label = "Alzheimer disease"];
+        VaD_ddx    [label = "Vascular dementia ·\nsubcortical SVD"];
+        PSP_ddx    [label = "Progressive\nsupranuclear palsy"];
+        PD_ddx     [label = "Parkinson disease ·\nvascular parkinsonism"];
+        DLB_ddx    [label = "Dementia with\nLewy bodies"];
+        Spond_ddx  [label = "Cervical / lumbar\nspondylotic myelopathy"];
+        B12_ddx    [label = "B12 deficiency ·\nhypothyroidism"];
+        Atrophy_ddx [label = "Ventriculomegaly\nex vacuo (atrophy)"];
+        SIH_ddx    [label = "Spontaneous\nintracranial hypotension"];
+
+        AD_ddx -> Cognition [style = dotted, color = "#666666"];
+        VaD_ddx -> Gait_apraxia [style = dotted, color = "#666666"];
+        PSP_ddx -> Postural [style = dotted, color = "#666666"];
+        PD_ddx -> Gait_apraxia [style = dotted, color = "#666666"];
+        DLB_ddx -> Cognition [style = dotted, color = "#666666"];
+        Spond_ddx -> Gait_apraxia [style = dotted, color = "#666666"];
+        B12_ddx -> Cognition [style = dotted, color = "#666666"];
+        Atrophy_ddx -> Evans [style = dotted, color = "#666666"];
+        SIH_ddx -> Low_head [style = dotted, color = "#666666"];
+    }
+
+    /* ===================================================================== */
+    /* 19. MODEL STRUCTURE — the 44 ODE compartments                          */
+    /* ===================================================================== */
+    subgraph cluster_model {
+        label = <<B>19 · MODEL STRUCTURE — 44 ODE states + 1 closed-form fast state</B>>;
+        style = "filled,rounded"; fillcolor = "#ecebf7"; color = "#5a55a3";
+        fontsize = 18; penwidth = 2.0;
+        node [shape = note, fillcolor = "#d5d3ee", color = "#4a4590"];
+
+        M_hydro    [label = "HYDRO / STRUCTURE (10)\nVv · Vsas · Vsdh · Rout · E1\nVplast · Wpv · AQ · Cart · Autoreg"];
+        M_wm       [label = "WHITE MATTER / GLIA (5)\nWMint · WMperm · Myel\nAstro · Micro"];
+        M_bio      [label = "BIOMARKERS (7)\nAb_isf · Ab_plq · Tau_isf\nA_ab · A_pt · A_nfl · A_lrg"];
+        M_pk       [label = "DRUG PK (11)\nacetazolamide gut/central/RBC\nbumetanide · solifenacin\ndonepezil · melatonin"];
+        M_safety   [label = "SYSTEMIC (2)\nHCO3 · K⁺"];
+        M_device   [label = "DEVICE (2)\nOccl · Vdr"];
+        M_clin     [label = "CLINICAL (7)\nGslow · Gfast · Cslow · Cfast\nUrin · Headx · SDHhaz"];
+        M_fast     [label = "CLOSED FORM\ndVac (tap-test volume,\nexact exponential step)\nP, Qsh, Qabs, C, AMP\n(algebraic flow balance)"];
+
+        M_hydro -> M_wm -> M_clin [style = invis];
+        M_bio -> M_pk [style = invis];
+        M_safety -> M_device [style = invis];
+    }
+
+    /* ===================================================================== */
+    /* 20. ENDPOINTS AND TRIALS                                              */
+    /* ===================================================================== */
+    subgraph cluster_trials {
+        label = <<B>20 · ENDPOINTS &amp; EVIDENCE ANCHORS</B>>;
+        style = "filled,rounded"; fillcolor = "#e6f7f2"; color = "#2e8b70";
+        fontsize = 18; penwidth = 2.0;
+        node [fillcolor = "#c2ebdf", color = "#237059";
+              shape = box, style = "rounded,filled"];
+
+        Ep_gait    [label = "PRIMARY: gait velocity\nor 10-m walk time"];
+        Ep_inphgs  [label = "iNPHGS · mRS ·\nKiefer index"];
+        Ep_mmse    [label = "MMSE / MoCA ·\nexecutive battery"];
+        Ep_cont    [label = "Continence diary"];
+        Ep_safety  [label = "Subdural collection ·\nrevision · infection"];
+        Tr_dutch   [label = "Dutch NPH Study\nlow vs medium\nvalve pressure"];
+        Tr_svasona [label = "SVASONA:\ngravitational unit\nvs programmable alone"];
+        Tr_sinphoni [label = "SINPHONI / SINPHONI-2\nDESH · LP shunt"];
+        Tr_place   [label = "PLACID / PENS\nplacebo-controlled\nshunt designs"];
+        Guide      [label = "Japanese iNPH\nguidelines · international\nevidence-based guidelines"];
+
+        Gait_vel -> Ep_gait [style = dotted, color = "#666666"];
+        iNPHGS -> Ep_inphgs [style = dotted, color = "#666666"];
+        MMSE -> Ep_mmse [style = dotted, color = "#666666"];
+        Urgency -> Ep_cont [style = dotted, color = "#666666"];
+        Subdural -> Ep_safety [style = dotted, color = "#666666"];
+        Revision -> Ep_safety [style = dotted, color = "#666666"];
+        Tr_dutch -> DP_valve [style = dotted, color = "#666666"];
+        Tr_svasona -> Grav_unit [style = dotted, color = "#666666"];
+        Tr_sinphoni -> DESH_node [style = dotted, color = "#666666"];
+        Tr_place -> Ep_gait [style = dotted, color = "#666666"];
+        Guide -> Tap_test [style = dotted, color = "#666666"];
+    }
+
+    /* ===================================================================== */
+    /* Cross-cluster spine (kept few, so the layout stays readable)           */
+    /* ===================================================================== */
+    If_node   -> Vent_lat   [penwidth = 2.6, label = "  secretion", fontsize = 12];
+    Vent_lat  -> Vv_node    [style = dotted, color = "#666666"];
+    Vv_node   -> Vent_lat   [style = dashed, color = "#c0392b",
+                             label = "enlargement\nsqueezes convexity", fontsize = 11];
+    Vv_node   -> SAS_conv   [style = dashed, color = "#c0392b", penwidth = 1.8];
+    Qsh_node  -> Vent_lat   [style = dashed, color = "#c0392b", penwidth = 2.4,
+                             label = "  CSF removed", fontsize = 12];
+    ICP_mean  -> Qabs       [penwidth = 2.0];
+    ICP_mean  -> Qsh_node   [penwidth = 2.4];
+    Wpv_node  -> Vp_pulse   [label = "oedema raises\npulse transmission", fontsize = 11];
+    AD_burden -> Slow_comp  [style = dashed, color = "#c0392b"];
+    Gly_flux  -> Astrogliosis [style = dashed, color = "#c0392b"];
+    E1_node   -> AMP_node   [penwidth = 2.4, label = "  stiffer → larger pulse", fontsize = 12];
+    ICP_mean  -> E1_node    [style = dashed, color = "#c0392b", penwidth = 2.0,
+                             label = "sustained decompression\n→ elastance recovers\n(months)", fontsize = 11];
+    Wpv_node  -> E1_node    [style = dashed, color = "#c0392b"];
+}

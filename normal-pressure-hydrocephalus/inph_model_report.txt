@@ -1,0 +1,600 @@
+==============================================================================
+idiopathic NORMAL PRESSURE HYDROCEPHALUS (iNPH)
+QSP reference implementation -- 44 ODE states + 1 closed-form fast state
+==============================================================================
+
+==============================================================================
+1. THE DISEASE IS INVISIBLE TO THE VARIABLE IT IS NAMED AFTER
+==============================================================================
+
+  Davson's equation makes mean ICP an AFFINE function of outflow resistance,
+        ICP = Pss + If * Rout,
+  and the intercept Pss (dural venous sinus pressure) carries no information
+  about the disease.  So the elasticity of mean ICP to Rout is
+        d ln ICP / d ln Rout = If*Rout / (Pss + If*Rout)  <  1   always.
+  Pulse amplitude has no such intercept: AMP = Vp/C with C = 1/(E1*(P-P0)), so
+  it inherits the pressure rise AND multiplies it by the elastance rise.
+
+                                   healthy 75 y         iNPH      ratio
+  --------------------------------------------------------------------
+  Rout  mmHg/(mL/min)                      9.00        19.00      2.11x
+  E1  1/mL                                0.156        0.222      1.42x
+  mean ICP supine  mmHg                    9.65        13.15      1.36x
+  mean ICP upright  mmHg                   1.65         5.15      3.12x
+  daily-mean ICP  mmHg                     4.85         8.35      1.72x
+  compliance supine  mL/mmHg              0.550        0.297      0.54x
+  ICP pulse amplitude  mmHg                2.00         4.81      2.41x
+  pulsatile transmantle  mmHg             0.052        0.268      5.17x
+  mean transmantle  mmHg                  0.000        0.128        n/a
+  Evans index                             0.200        0.445      2.23x
+  callosal angle  deg                     120.0         85.0      0.71x
+  periventricular CBF                      20.9         15.9      0.76x
+  Wpv interstitial water                   0.30         1.50      5.00x
+  AQP4 polarisation                       0.850        0.450      0.53x
+  gait velocity  m/s                       1.05         0.61      0.58x
+  MMSE                                     28.9         24.9      0.86x
+  iNPHGS  0-12                                0            7        n/a
+
+  elasticity d lnICP / d lnRout : iNPH 0.506, healthy 0.326
+
+  READ-OUT: outflow resistance is 2.11x elevated while mean supine ICP is only
+  1.36x elevated -- 13.1 mmHg, INSIDE the 7-15 mmHg range that the disease's own
+  name calls normal.  The same disease raises pulse amplitude 2.41x, crossing
+  the 4 mmHg threshold used to predict shunt response.  Mean pressure is a
+  lossy transducer whose loss term is a venous pressure unrelated to the
+  disease: 49% of the Rout signal is discarded at the iNPH operating point.
+==============================================================================
+
+  Davson's equation makes mean ICP an AFFINE function of outflow resistance,
+        ICP = Pss + If * Rout,
+  and the intercept Pss (dural venous sinus pressure) carries no information
+  about the disease.  So the elasticity of mean ICP to Rout is
+        d ln ICP / d ln Rout = If*Rout / (Pss + If*Rout)  <  1   always.
+  Pulse amplitude has no such intercept: AMP = Vp/C with C = 1/(E1*(P-P0)), so
+  it inherits the pressure rise AND multiplies it by the elastance rise.
+
+                                   healthy 75 y         iNPH      ratio
+  --------------------------------------------------------------------
+  Rout  mmHg/(mL/min)                      9.00        19.00      2.11x
+  E1  1/mL                                0.156        0.222      1.42x
+  mean ICP supine  mmHg                    9.65        13.15      1.36x
+  mean ICP upright  mmHg                   1.65         5.15      3.12x
+  daily-mean ICP  mmHg                     4.85         8.35      1.72x
+  compliance supine  mL/mmHg              0.550        0.297      0.54x
+  ICP pulse amplitude  mmHg                2.00         4.81      2.41x
+  pulsatile transmantle  mmHg             0.052        0.268      5.17x
+  mean transmantle  mmHg                  0.000        0.128        n/a
+  Evans index                             0.200        0.445      2.23x
+  callosal angle  deg                     120.0         85.0      0.71x
+  periventricular CBF                      20.9         15.9      0.76x
+  Wpv interstitial water                   0.30         1.50      5.00x
+  AQP4 polarisation                       0.850        0.450      0.53x
+
+  elasticity d lnICP / d lnRout : iNPH 0.506, healthy 0.326
+
+  READ-OUT: outflow resistance is 2.11x elevated while mean supine ICP is only
+  1.36x elevated -- 13.1 mmHg, INSIDE the 7-15 mmHg range that the disease's own
+  name calls normal.  The same disease raises pulse amplitude 2.41x, crossing
+  the 4 mmHg threshold used to predict shunt response.  Mean pressure is a
+  lossy transducer whose loss term is a venous pressure unrelated to the
+  disease: 49% of the Rout signal is discarded at the iNPH operating point.
+
+
+==============================================================================
+2. NATURAL HISTORY AND THE TWO CLOCKS
+==============================================================================
+  Untreated iNPH over 5 years
+
+   yr  ICPday    AMP     EI     CA    Wpv  CBFpv  WMint WMperm   gait   MMSE  urin  GS
+    0    8.35   4.81  0.445   85.0   1.50   15.9  0.680  0.100  0.614   24.9  1.09   7
+    1    8.60   5.19  0.448   84.5   1.53   15.8  0.660  0.131  0.597   24.7  1.14   7
+    2    8.83   5.60  0.452   84.0   1.60   15.5  0.623  0.163  0.555   24.4  1.27   7
+    3    9.04   6.03  0.456   83.4   1.68   15.1  0.583  0.196  0.509   23.9  1.40   7
+    4    9.22   6.48  0.461   82.7   1.76   14.8  0.544  0.230  0.465   23.5  1.54   8
+    5    9.38   6.96  0.466   82.0   1.83   14.4  0.506  0.264  0.424   23.1  1.67   8
+
+  healthy 75 y control at 5 y: gait 1.08 m/s, MMSE 29.1, EI 0.200
+
+  TWO CLOCKS.  Over 5 untreated years WMint (the RECOVERABLE pool) falls
+  0.680 -> 0.506 while WMperm (the IRREVERSIBLE pool) rises 0.100 -> 0.264.  A
+  shunt can move the first; against the second it can only stop the clock.
+  Gait falls 0.614 -> 0.424 m/s while the Evans index moves 0.445 -> 0.466 -- the
+  radiology saturates long before the disability does, which is why serial
+  imaging is a poor progression monitor in this disease.
+
+
+==============================================================================
+3. SIPHONING: THE COMPLICATION RATE IS A HYDROSTATICS PROBLEM
+==============================================================================
+
+  A ventriculoperitoneal shunt is a pressure-controlled resistor in parallel
+  with a broken absorption pathway.  Upright, the fluid column from ventricle
+  to peritoneum adds its full height to the driving pressure.  No biological
+  parameter in this model touches that term.
+
+  configuration                    ICPsup    ICPup   ICPday   Qsh mL/d   Qsh/If
+  ----------------------------------------------------------------------------
+  untreated                         13.15     5.15     8.35          0     0.00
+  valve 10 cmH2O, unprotected       11.28   -15.65    -4.88       1002     1.99
+  valve 10 + membrane ASD 60%       11.28     1.90     5.65        205     0.41
+  valve 10 + gravitational 30       11.28     3.85     6.82        116     0.23
+  valve 20 cmH2O, unprotected       13.15    -9.15    -0.23        650     1.29
+  ETV (no distal column at all)     12.75     4.75     7.95          0     0.00
+
+  Split by posture for the unprotected 10 cmH2O valve: SUPINE it drains
+  142 mL/day (28% of production) and holds ICP at 11.28 mmHg -- a
+  well-behaved device.  UPRIGHT it drains 1576 mL/day, 3.13x production, and
+  drives ICP to -15.65 mmHg.  The valve is not mis-specified; it is being asked
+  to work against 45 cmH2O of hydrostatic column it cannot sense.  A
+  gravitational unit is a posture-switched addition to the opening pressure
+  with no pharmacology in it whatsoever, and it is the entire fix.
+
+
+==============================================================================
+4. AFTER A SHUNT, ICP IS A DEVICE PROPERTY, NOT A DISEASE PROPERTY
+==============================================================================
+
+  With the valve open the flow balance is
+        If = (P-Pss)/Rout + (P + h - Popen - Pdist)/Rsh
+  so    P  = [ If + Pss/Rout + (Popen+Pdist-h)/Rsh ] / (1/Rout + 1/Rsh).
+  Because Rsh << Rout, every Rout term is down-weighted.  Sweeping disease
+  severity at a FIXED valve shows how much of it survives.
+
+      Rout ICPsup no shunt ICPsup shunted   dP/dRout no   dP/dRout sh
+  --------------------------------------------------------------------
+       9.0           9.65           9.65           nan           nan
+      13.0          11.05          11.03        0.3500        0.3457
+      19.0          13.15          11.28        0.3500        0.0405
+      23.0          14.55          11.37        0.3500        0.0246
+      26.0          15.60          11.43        0.3500        0.0186
+
+  Without a shunt the slope is exactly If = 0.350 mmHg per unit Rout, at every
+  severity.  With the shunt OPEN (Rout >= 19) the mean slope is 0.0279, so the
+  device absorbs 92.0% of the disease's remaining influence on mean pressure.
+  Note the first two rows: at Rout 9-13 the shunted and unshunted pressures are
+  identical because the valve never opens supine at all -- a 10 cmH2O valve
+  plus 5 cmH2O of abdominal pressure sits ABOVE a normal supine ICP.  So the
+  same hardware is inert in a mild patient and dominant in a severe one, and
+  post-operative ICP reports on the valve rather than on the patient.
+
+
+==============================================================================
+5. THE TITRATION MAP: A WINDOW WHOSE WIDTH IS SET BY POSTURE
+==============================================================================
+
+  Opening pressure swept over 24 months at f_up = 0.60 (14.4 h/day upright),
+  with and without a gravitational unit.  Utility = gait gain - 1.1 x SDH
+  incidence - 0.03 x headache index.
+
+  --- NO gravitational unit ---
+    Popen   ICPday    ICPup    AMP24     dGait     Vsdh   SDH24%     head  utility
+      2.0     1.58    -9.14     5.25    -0.336     91.8     53.6    10.14   -1.229
+      4.0     1.63    -9.09     5.27    -0.275     81.8     48.3    10.09   -1.109
+      6.0     1.67    -9.05     5.29    -0.215     71.9     42.3    10.05   -0.981
+      8.0     1.72    -9.00     5.31    -0.154     61.9     35.6    10.00   -0.846
+     10.0     1.76    -8.95     5.32    -0.093     51.9     28.2     9.95   -0.702
+     12.0     1.81    -8.90     5.34    -0.033     41.9     20.0     9.90   -0.549
+     14.0     1.85    -8.73     5.27    +0.026     32.7     12.2     9.73   -0.400
+     16.0     1.88    -8.19     4.99    +0.071     26.7      6.3     9.18   -0.274
+     20.0     1.93    -7.09     4.47    +0.163     14.7      0.0     8.09   -0.080
+     24.0     1.99    -6.00     3.99    +0.182      2.7      0.0     7.00   -0.028
+     28.0     3.20    -3.75     3.88    +0.187      0.0      0.0     4.75   +0.045
+     32.0     4.75    -1.18     3.90    +0.183      0.0      0.0     2.18   +0.117
+     36.0     6.29     1.39     4.21    +0.130      0.0      0.0     0.00   +0.130
+  optimum: Popen 36.0 cmH2O, dGait +0.130 m/s, SDH 0.0%, Vsdh 0.0 mL
+
+  --- gravitational unit 30 cmH2O ---
+    Popen   ICPday    ICPup    AMP24     dGait     Vsdh   SDH24%     head  utility
+      2.0     1.99    -0.98     1.96    +0.265      1.9      0.0     1.98   +0.205
+      4.0     3.06     0.09     2.26    +0.244      0.0      0.0     0.92   +0.217
+      6.0     4.35     1.38     2.67    +0.196      0.0      0.0     0.00   +0.196
+      8.0     5.64     2.66     3.19    +0.142      0.0      0.0     0.00   +0.142
+     10.0     6.92     3.95     3.96    +0.051      0.0      0.0     0.00   +0.051
+     12.0     8.19     5.22     5.11    -0.035      0.0      0.0     0.00   -0.035
+     14.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+     16.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+     20.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+     24.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+     28.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+     32.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+     36.0     8.83     5.63     5.60    -0.060      0.0      0.0     0.00   -0.060
+  optimum: Popen 4.0 cmH2O, dGait +0.244 m/s, SDH 0.0%, Vsdh 0.0 mL
+
+  The gravitational unit does not merely lower the complication rate at a
+  fixed setting -- it MOVES THE OPTIMUM.  Unprotected, the best setting is
+  36.0 cmH2O, yielding +0.130 m/s at 0.0% subdural risk; with a gravitational
+  unit the optimum falls to 4.0 cmH2O and yields +0.244 m/s at 0.0% risk.
+  The device buys 32 cmH2O of usable titration range, and +0.115 m/s of gait
+  is what that range is worth.
+
+  Note what BOTH arms do at their extremes, and that the model was not told to
+  do either.  Set too high, the valve stops opening supine at all and the
+  patient simply follows the natural history (the flat tail of the
+  gravitational arm reproduces S1's 24-month decline exactly).  Set too low
+  WITHOUT gravitational protection, gait ends up WORSE than no operation --
+  the subdural collection's mass effect and the low-pressure headache more
+  than cancel a genuine hydrodynamic repair.  The unprotected arm is forced
+  into the high, weakly-effective corner because it has no other safe option;
+  the gravitational arm is not.
+
+
+==============================================================================
+6. WHY THE TAP TEST MISSES RESPONDERS: A TIME-CONSTANT MISMATCH
+==============================================================================
+
+  A tap test is a step change in VOLUME.  Textbook treatment relaxes it with
+  tau = Rout*C, about 6 minutes -- but that is the LINEARISATION of the flow
+  balance, and it is wrong by an order of magnitude for a 40 mL perturbation.
+  Once the tap has driven pressure below the sinus pressure, absorption is zero
+  and the deficit can only be refilled at the rate the choroid plexus secretes.
+  The recovery is PRODUCTION-limited, not resistance-limited.
+
+  tau = Rout*C (linearised), iNPH      5.6 min
+  tau = Rout*C (linearised), healthy   5.0 min
+  BUT refill is production-limited:    0.35 mL/min
+  => 40 mL takes at least              114 min
+  gait fast arm: charge / discharge    29 min / 21.6 h
+
+  40 mL lumbar tap at t = 1 d:
+   t-tap (h)    ICPsup      AMP     gait      dGait
+        0.00     -2.00     0.48    0.614     +0.000
+        0.25     -1.99     0.48    0.639     +0.025
+        0.50     -1.98     0.48    0.654     +0.040
+        1.00     -1.81     0.48    0.669     +0.054
+        3.00     13.11     4.80    0.670     +0.056
+        6.00     13.12     4.80    0.663     +0.049
+       12.00     13.12     4.80    0.651     +0.037
+       24.00     13.12     4.80    0.636     +0.021
+       48.00     13.12     4.80    0.622     +0.007
+       72.00     13.12     4.80    0.617     +0.002
+      120.00     13.12     4.81    0.615     +0.000
+
+  Pressure sits at -1.8 mmHg for the first 114 minutes -- the tap has driven it
+  onto the flat foot of the P-V curve, where compliance saturates -- and then
+  snaps back to 13.1 mmHg.  Almost the whole recovery happens in the last few
+  millilitres, because the curve is exponential.  The gait peak (+0.060 m/s)
+  arrives at 1.6 h and is still +0.021 m/s at 24 h and +0.007 m/s at 48 h.  Mean
+  ICP is normal again long before the patient is, so mean pressure cannot be the
+  effector variable.
+
+  shunt gain at 12 months       +0.192 m/s
+  best tap-test gain            +0.060 m/s  (31% of shunt)
+  72 h ELD gain                 +0.031 m/s  (16% of shunt)
+  ELD supine ICP during drain   9.98 mmHg (vs 13.15 untreated)
+  threshold  tap: verdict / window  ELD: verdict / window 
+      +0.02  POSITIVE   25.1 h        POSITIVE   81.5 h
+      +0.05  POSITIVE    4.7 h        negative    0.0 h
+      +0.08  negative    0.0 h        negative    0.0 h
+      +0.10  negative    0.0 h        negative    0.0 h
+      +0.15  negative    0.0 h        negative    0.0 h
+
+  THE ROBUST CLAIM, and the one this section exists for: detection here is a
+  threshold-crossing problem, not a biological one.  The tap recovers 31% of
+  the eventual shunt benefit; at a 0.10 m/s threshold it reads NEGATIVE in a
+  patient who would gain 0.192 m/s from surgery -- a false negative manufactured
+  entirely by the measurement, in a model containing no responder /
+  non-responder covariate at all.
+
+  A MISS, REPORTED RATHER THAN TUNED AWAY: this model ranks a single 40 mL tap
+  (+0.060 m/s peak) ABOVE 72 h of external lumbar drainage (+0.031 m/s), which is
+  the OPPOSITE of the published sensitivity ordering (tap 26-61%, ELD
+  50-100%).  The reason is structural and worth stating.  The model's fast arm
+  responds to the DEPTH of the pulse-amplitude reduction, and a 40 mL bolus is
+  far deeper (AMP 4.81 -> 0.48) than a 10 mL/h drain (4.81 -> 3.77); meanwhile
+  the slow arm has tau_gait = 34 d and so converts almost none of 72 h of
+  sustained decompression into measurable gait.  So the model reproduces
+  DEPTH but not DURATION, and the real advantage of a drain is probably the
+  duration: three days of sustained improvement give many more assessments that
+  can clear the threshold, which is exactly what the window column above
+  measures and what this model gets wrong.  Fixing it would need either a
+  faster tissue-level arm or an explicit repeated-assessment model; neither was
+  added, because neither could be calibrated from the data at hand.
+
+
+==============================================================================
+7. EARLY vs LATE SHUNTING: THE REVERSIBLE READOUTS CONVERGE
+==============================================================================
+
+  One patient, one set of hardware (4 cmH2O + gravitational 30), shunted after
+  6 / 12 / 24 / 36 / 60 months of symptoms.  Every row is read 36 months AFTER
+  surgery, so post-operative exposure is identical.
+
+   delay(mo)      EI     AMP     Wpv   WMint   WMperm    gait    MMSE    GS
+  --------------------------------------------------------------------------
+           6   0.396    2.13    0.54   0.818    0.144   0.912    27.8     2
+          12   0.400    2.13    0.54   0.803    0.159   0.894    27.7     2
+          24   0.407    2.14    0.55   0.771    0.191   0.856    27.4     3
+          36   0.415    2.14    0.55   0.739    0.224   0.816    27.1     4
+          60   0.431    2.14    0.56   0.673    0.292   0.736    26.4     4
+
+  Between a 6-month and a 60-month delay the pulse amplitude ends within
+  0.01 mmHg (0.4%) and the interstitial water within 0.03 (4.8%) -- the
+  hydrodynamics are repaired either way.  What does not converge is the
+  permanent pool: WMperm 0.144 vs 0.292 (2.03x), and with it gait 0.912 vs 0.736
+  m/s (a loss of 0.176 m/s bought by waiting) and MMSE 27.8 vs 26.4.  The
+  readouts a clinician can see on the post-operative scan are precisely the
+  ones that forget the delay.
+
+
+==============================================================================
+8. ACETAZOLAMIDE: A CEILING SET BY ARITHMETIC, A DOSE THAT ONLY BUYS ACIDOSIS
+==============================================================================
+
+  Acetazolamide lowers If.  Since ICP = Pss + If*Rout, the most pressure it can
+  ever remove is Emax * If * Rout = 0.50 * 0.35 * 19.0 = 3.32 mmHg ACUTELY, and
+  it can never touch Pss at all.  After escape the sustained ceiling is
+  0.73 mmHg.  A shunt does not work on this axis: it replaces Rout itself.
+
+  regimen           Cfree   Eaz d3  Eaz d90    If d90   ICPsup  dGait90    HCO3      K
+  ----------------------------------------------------------------------------------
+  none              0.000      0.0      0.0       504    13.21   +0.001    24.0   4.20
+  125 mg BID        0.187     38.9     12.7       440    12.29   +0.019    22.1   4.00
+  250 mg BID        0.358     41.1     12.1       443    12.37   +0.018    20.9   3.88
+  500 mg BID        0.701     42.5     11.7       445    12.41   +0.017    19.5   3.72
+  1000 mg BID       1.391     43.2     11.5       446    12.43   +0.017    18.0   3.57
+
+  THREE things are happening at once and only one of them is dose-dependent.
+  (i) CHOROIDAL OCCUPANCY SATURATES.  EC50 = 0.028 mg/L free, so 125 mg BID
+      already sits high on the Hill curve; four more doublings add almost
+      nothing to the day-3 effect.
+  (ii) THE EFFECT ESCAPES.  Compare the day-3 and day-90 columns: the acute
+      reduction in CSF formation is largely gone by three months (tau_esc =
+      18 d, f_esc = 0.78).  Acetazolamide behaves like a temporary tap test,
+      not like a shunt -- which is why the chronic gait gain is a fraction of
+      what the acute hydrodynamics would predict.
+  (iii) THE ACIDOSIS DOES NOT ESCAPE, AND IT IS DOSE-DEPENDENT, because the
+      systemic acid-base EC50 (1.20 mg/L) is ~43x the choroidal one.
+  Put together: above 125-250 mg BID the therapeutic index degrades
+  monotonically for essentially no hydrodynamic gain.  That is a ceiling on one
+  axis and a slope on the other, not a titration.
+
+  Saturable red-cell binding -- why acetazolamide PK is non-linear:
+  dose BID         Ac mg    Arbc mg  RBC frac   Ctot mg/L  Cfree mg/L
+  62.5 mg          28.15      88.60     0.759       2.011      0.1005
+  125.0 mg         52.46     100.13     0.656       3.747      0.1874
+  250.0 mg        100.20     107.97     0.519       7.157      0.3579
+  500.0 mg        196.22     113.15     0.366      14.016      0.7008
+  1000.0 mg       389.55     116.30     0.230      27.825      1.3912
+
+==============================================================================
+9. CSF BIOMARKERS ARE MEASURED IN A DILUTED, POORLY-CLEARED SPACE
+==============================================================================
+
+  A CSF concentration is a flux divided by a clearance:
+        c = J(brain->CSF) / ( (If + Qsh)/Vcsf + kdeg ).
+  In iNPH the numerator FALLS (glymphatic failure) and the turnover term in the
+  denominator ALSO falls (Vcsf is larger).  These push c in opposite
+  directions, so a low Abeta42 and a low p-tau together are a statement about
+  which term wins -- not direct evidence of Alzheimer pathology.
+
+                               healthy 75 y         iNPH      ratio
+  ------------------------------------------------------------------
+  CSF volume  mL                      135.0        157.0      1.16x
+  CSF turnover  /day                  3.733        3.210      0.86x
+  AQP4 polarisation                   0.850        0.450      0.53x
+  cortical plaque load                0.116        0.228      1.97x
+  CSF Abeta42  pg/mL                    798          457      0.57x
+  CSF p-tau  pg/mL                     45.1         31.3      0.69x
+  CSF NfL  pg/mL                        814         1418      1.74x
+  CSF LRG  a.u.                        1.00         2.73      2.73x
+
+  Post-shunt trajectory (4 + gravitational 30 cmH2O):
+   month   turnover       AQ      Qsh      Ab42     p-tau       NfL
+       0      5.831    0.450      412       457      31.3      1387
+       1      5.911    0.458      411       274      18.6       685
+       3      5.993    0.490      411       291      19.6       659
+       6      6.049    0.538      411       315      21.0       629
+      12      6.077    0.615      410       352      22.9       583
+      24      6.067    0.698      408       387      24.2       540
+
+  PREDICTION, flagged as a prediction: shunting raises CSF turnover 5.831 ->
+  6.067 /day (+4% clearance) while the glymphatic flux term recovers, and
+  Abeta42 falls 457 -> 387 pg/mL.  The two effects land within a factor of 1.18
+  of each other, so the model does NOT claim the direction is robust; it claims
+  the SIGN is decided by one unmeasured ratio (kflux_ab x dAQ against
+  dQsh/Vcsf), and that a trial reporting "no significant change" is entirely
+  consistent with large changes in both underlying fluxes.
+
+
+==============================================================================
+10. THE 21 SCENARIOS
+==============================================================================
+  scenario                                      gait    dGait   MMSE  GS     EI    AMP   Vsdh   SDH%   head
+  ----------------------------------------------------------------------------------------------------------
+  S1  untreated iNPH, 24 mo                    0.554   -0.060   24.4   7  0.452   5.60    0.0    0.0   0.00
+  S2  healthy 75 y control, 24 mo              1.082   +0.031   29.1   0  0.200   2.03    0.0    0.0   0.00
+  S3  tap test 40 mL (t=3 d)                   0.619   +0.004   25.0   7  0.445   4.80    0.6    0.0   0.03
+  S4  ELD 10 mL/h x 72 h                       0.646   +0.032   25.2   7  0.445   3.76    0.0    0.0   0.00
+  S5  fixed valve 10, unprotected              0.535   -0.093   24.2   6  0.440   5.32   51.9   28.2   9.95
+  S6  valve 4 + gravitational 30 (well set)    0.871   +0.244   27.2   3  0.393   2.26    0.0    0.0   0.92
+  S6b valve 10 + gravitational 30 (under-drains)   0.669   +0.051   25.4   6  0.449   3.96    0.0    0.0   0.00
+  S7  programmable HIGH 16 cmH2O               0.554   -0.060   24.4   7  0.452   5.60    0.0    0.0   0.00
+  S8  LOW 4 cmH2O, NO gravitational unit       0.353   -0.275   22.7   8  0.437   5.27   81.8   48.3  10.09
+  S9  stepwise titration 16->8                 0.776   +0.161   26.4   4  0.448   2.87    0.0    0.0   0.00
+  S10 early shunt (6 mo delay), 48 mo          0.914   +0.299   27.9   2  0.396   2.14    0.0    0.0   0.81
+  S11 late shunt (36 mo delay), 48 mo          0.758   +0.143   26.2   4  0.415   2.21    0.0    0.0   0.97
+  S12 acetazolamide 250 mg BID                 0.592   -0.022   24.7   7  0.451   4.60    0.0    0.0   0.00
+  S13 acetazolamide 500 mg BID                 0.590   -0.024   24.7   7  0.451   4.64    0.0    0.0   0.00
+  S14 shunt + acetazolamide 250 BID            0.873   +0.246   27.2   3  0.393   2.23    0.0    0.0   1.02
+  S15 shunt, comorbid AD (APOE e4)             0.853   +0.226   26.6   3  0.393   2.26    0.0    0.0   0.92
+  S16 unprotected valve, f_up 0.80             0.300   -0.330   22.5   8  0.393   6.33   93.3   54.3   4.79
+  S17 shunt + solifenacin 5 mg                 0.871   +0.244   25.2   3  0.393   2.26    0.0    0.0   0.92
+  S18 shunt, occlusion 18 mo + revision        0.868   +0.241   27.3   3  0.394   2.21    0.0    0.0   0.84
+  S19 shunt + melatonin 2 mg nightly           0.959   +0.332   28.3   1  0.392   2.14    0.0    0.0   0.93
+  S20 ETV in communicating iNPH                0.563   -0.053   24.4   7  0.452   5.44    0.0    0.0   0.00
+  S21 full bundle (grav 4, melatonin, donepezil)   0.959   +0.332   29.9   1  0.392   2.14    0.0    0.0   0.93
+
+==============================================================================
+11. SENSITIVITY: WHICH UNMEASURED NUMBER OWNS THE ANSWER
+==============================================================================
+
+  One-at-a-time elasticities d ln(24-month gait gain) / d ln(parameter),
+  central difference at +/-10%, on the well-set shunt (4 + gravitational 30).
+
+  baseline 24-month gait gain = +0.2443 m/s
+
+  parameter             value     elasticity
+  ------------------------------------------
+  kW_out                  1.3         +2.273
+  Hcol_cm                  45         +1.653
+  kAQ_rec               0.008         +0.978
+  CBF_crit                 18         -0.379
+  k_rep                0.0165         +0.256
+  Rout_init                19         -0.138
+  Rsh                     2.5         -0.116
+  k_perm               0.0001         -0.096
+  kCBF_W                 0.12         +0.053
+  kappa_tm               0.06         -0.049
+  If0                    0.35         +0.042
+  DESH                   1.55         -0.041
+  kE1_rec                0.01         +0.036
+  f_up                    0.6         -0.015
+
+  THIS REFUTED THE EXPECTATION THE MODEL WAS BUILT AROUND, and the refutation is
+  left in rather than tidied away.  The structural centre of this model is the
+  pulsatile transmantle gradient, so kappa_tm was expected to dominate.  It does
+  not: it ranks 10 of 14 with elasticity -0.049.  What actually carries the
+  therapeutic effect is the WATER axis and the HYDROSTATIC axis:
+
+    1. kW_out      +2.273   the rate at which periventricular interstitial water clears
+    2. Hcol_cm     +1.653   the ventricle-to-peritoneum hydrostatic column, i.e. the PATIENT'S HEIGHT
+    3. kAQ_rec     +0.978   the rate at which AQP4 perivascular polarisation recovers
+
+  The reason kappa_tm drops out is a saturation the model was not designed to
+  produce.  The transmantle drive sits well above the creep yield threshold
+  dP_yield at every severity tested, so perturbing kappa_tm moves ventricular
+  creep without moving what limits white-matter recovery -- which is
+  periventricular water and the perfusion it costs.  kappa_tm decides the
+  MECHANISM; kW_out and kAQ_rec decide the ANSWER.
+
+  Two consequences worth stating plainly.  (i) Measuring kappa_tm better would
+  sharpen the story and change almost none of the predictions; measuring the
+  interstitial-water clearance axis would change them a lot -- so the model's
+  most-cited uncertainty is not its most important one.  (ii) Hcol_cm ranks 2,
+  above every pharmacological and every pulsatility parameter: in a model
+  containing five drugs, A PATIENT'S HEIGHT matters more to their two-year gait
+  than any of them, because it sets the siphon that the valve has to be chosen
+  against.  That is the same conclusion Section 3 reached from the hydraulics
+  alone, arrived at here by a completely independent route.
+
+
+==============================================================================
+12. CALIBRATION: WHAT WAS FITTED, WHAT IS MISSED, WHAT IS A GUESS
+==============================================================================
+
+  FITTED to a published number (9 parameters)
+  -------------------------------------------
+    Rout_init = 19     iNPH infusion-test outflow resistance; typical iNPH
+                       15-25 vs normal < 13 mmHg/(mL/min)
+    E1_init   = 0.222  jointly with Vp_init, to place the iNPH ICP pulse
+    Vp_init   = 1.35   amplitude near 4-5 mmHg and the healthy one near 2 mmHg
+                       (the reported shunt-response threshold is 4 mmHg)
+    kE1_rec   = 0.010  to reproduce a ~35-40% fall in pulse amplitude over the
+                       months after a working shunt
+    a_fast    = 0.075  to put the best tap-test gait gain in the 5-10% range
+                       at which a tap test is read as positive
+    kflux_ab  = 98000  so the healthy CSF Abeta42 concentration lands near
+    kflux_tau = 26400  800 pg/mL and p-tau near 45 pg/mL; the iNPH values are
+                       then predictions of the flux/dilution balance, not fits
+    k_creep   = 26     to make the untreated Evans index drift ~0.01/year
+                       instead of running away
+    k_sdh     = 1.55   to put the unprotected-valve subdural collection in the
+                       tens-of-mL range at which it becomes symptomatic
+
+  MISSES, reported rather than tuned away
+  ---------------------------------------
+    1. RESPONSE RATE.  The model makes almost every patient with an elevated
+       Rout a responder; its only non-responder mechanisms are WMperm and the
+       APOE/plaque term.  Real series report 60-80% improvement at 1 year.  The
+       model therefore OVERSTATES the value of shunting in an unselected
+       population, and S6/S21 should be read as best-case arms.
+    2. VENTRICULAR SIZE.  A successful shunt here shrinks the Evans index by
+       about 0.01-0.02.  Many published series report no significant change at
+       all, so the model still over-couples size to pressure.
+    3. ACETAZOLAMIDE.  The model gives a small but real gait gain (S12).  The
+       clinical evidence in iNPH is weaker than that; treat S12/S13 as an upper
+       bound on a drug that has never convincingly worked.
+    4. HEALTHY-CONTROL MMSE.  The control sits near 28-29 rather than 29-30,
+       because the amyloid block gives a 75-year-old a non-zero plaque load.
+    5. TAP-TEST SENSITIVITY.  The model manufactures a false negative at a
+       0.10 m/s threshold, which is the right qualitative behaviour, but a
+       single deterministic patient cannot reproduce the observed 26-61%
+       sensitivity RANGE -- that needs between-patient variability this run
+       does not carry.
+    6. TAP vs DRAIN ORDERING IS BACKWARDS.  The model ranks a single 40 mL tap
+       above 72 h of lumbar drainage on peak gait gain; published sensitivities
+       rank the drain higher.  The model captures the DEPTH of a perturbation
+       and not its DURATION (tau_gait = 34 d converts almost nothing out of
+       three days).  Section 6 quantifies the gap and declines to close it by
+       fitting.
+
+  NOT CALIBRATED -- structural guesses with no data behind them
+  -----------------------------------------------------------
+    kappa_tm (0.060)  the fraction of the ICP pulse appearing across the
+                      mantle; never measured in a human ventricle.  I expected
+                      this to be the most influential parameter in the model.
+                      Section 11 shows it is NOT -- it ranks 10th of 14, and
+                      the water-clearance axis (kW_out, kAQ_rec) and the
+                      hydrostatic column dominate instead.  The expectation and
+                      its refutation are both left in the report.
+    kW_out (1.300)    periventricular interstitial water clearance rate.  This
+                      is the parameter the answer actually hangs on, and it is
+                      an order-of-magnitude estimate.
+    kAQ_rec (0.008)   rate of AQP4 repolarisation after decompression.  No
+                      human measurement of this rate exists.
+    DESH (1.55)       morphology multiplier on kappa_tm.
+    k_perm (1.0e-4)   the rate at which reversible injury becomes permanent.
+                      This one parameter sets the whole of Section 7.
+    kflux_ab, kflux_tau, kdeg_csf   biomarker fluxes; Section 9's direction
+                      depends on their ratio and the section says so.
+    Hcol_cm (45)      ventricle-to-peritoneum column; scales with patient
+                      height and is the dominant term in Section 3.
+    k_haz (1.5e-5)    converts collection volume into a symptomatic-event
+                      hazard.  The SDH percentages in Section 5 are therefore
+                      ORDINAL, not calibrated incidences.
+    etv_dRout (0.06)  the claim that a third-ventriculostomy cannot help
+                      communicating hydrocephalus is structural (the
+                      resistance is downstream of the stoma), not measured.
+
+  DEFECTS FOUND BY THE MODEL'S OWN CHECKS, AND FIXED
+  --------------------------------------------------
+    a) The acute volume perturbation was applied as a LINEAR offset dVac/C and
+       solved by a 3-pass fixed point.  For a 40 mL tap that iteration does not
+       converge: it oscillated between -0.2 and -22.5 mmHg and settled on the
+       -30 mmHg clamp.  It now enters through the INTEGRATED Marmarou form
+       P = P0 + (Pbase-P0)*exp(E1*dV) -- explicit, monotone, reducing to dV/C
+       for small dV and saturating near P0 for a large removal.  The P-V
+       reference pressure moved to -2 mmHg and E1 was rescaled by 1.2 to hold
+       the pulse-amplitude calibration.
+    b) THE TAP TEST WAS REFILLING TWENTY TIMES TOO FAST -- the most
+       consequential defect found.  The deficit was relaxed with tau = Rout*C
+       ~ 6 min, the linearisation of the flow balance, which implies a refill
+       rate of 7 mL/min against a choroidal secretion rate of 0.35 mL/min.  The
+       pressure was therefore back to baseline in 30 minutes and the model
+       concluded -- wrongly -- that no tap test can ever be positive.  Using the
+       exact balance, absorption is ZERO below sinus pressure, so recovery is
+       PRODUCTION-limited and 40 mL takes 114 minutes.
+    b2) Even with the refill fixed, a SYMMETRIC first-order gait filter with
+       tau = 13 h integrates almost nothing out of a 2-hour perturbation.  The
+       fast arm is now asymmetric (charge 29 min, discharge 21.6 h).  That is a
+       modelling choice rather than a measurement -- but a falsifiable one: it
+       predicts fast onset and slow offset of tap-test improvement, which is
+       what is clinically reported.
+    c) Ventricular recoil had no plastic floor, so a shunted patient's
+       ventricles returned to a 25 mL normal volume within a year, the
+       opposite of every published series.  Vplast was added.
+    d) The valve-shut branch was missing, so at high opening pressures the
+       solver produced a NEGATIVE shunt flow -- fluid running from the
+       peritoneum into the ventricle -- and the high-Popen arm of Section 5
+       looked therapeutic.
+    e) The mean transmantle gradient depended on Rout alone, so it did not
+       respond to a shunt at all and periventricular water never cleared.  It
+       is now scaled by par_frac, the share of production still absorbed
+       through the high-resistance parenchymal route.
+    f) Reactive astrogliosis and microglial activation were given source rates
+       an order of magnitude too large for their sinks; the untreated
+       equilibrium was Astro = 20.7 on a 0-3 scale, which silently drove AQP4
+       polarisation to zero.
+==============================================================================
+end of report
+==============================================================================
