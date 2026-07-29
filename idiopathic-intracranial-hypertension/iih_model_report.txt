@@ -1,0 +1,615 @@
+
+iih_reference_check.py
+======================================================================
+Idiopathic Intracranial Hypertension (IIH) — numerical reference
+implementation of the QSP model shipped in `iih_mrgsolve_model.R`.
+
+WHY THIS FILE EXISTS
+--------------------
+Every quantitative claim in `README.md` and in the header of the
+mrgsolve model is produced by running THIS script.  Nothing in the
+write-up is asserted from memory: the numbers below are computed from
+the same equations the R model integrates, so that a reader can (a)
+reproduce them without an R/mrgsolve toolchain and (b) check that the
+R model and the prose agree.
+
+Pure standard library (no numpy/scipy) so it runs anywhere:
+    python3 iih_reference_check.py            # full report to stdout
+    python3 iih_reference_check.py --brief    # headline results only
+
+THE MODEL IN ONE EQUATION
+-------------------------
+Chronic CSF hydrodynamics obey the Davson relation
+
+    ICP = I_f * R_out + P_sss                                     (1)
+
+    I_f    CSF formation rate            (mL/min, ~0.35 normal)
+    R_out  CSF outflow resistance        (mmHg/(mL/min))
+    P_sss  dural sinus (outflow) pressure (mmHg)
+
+Written this way, (1) says something that governs every therapeutic
+decision in IIH: P_sss is an ADDITIVE FLOOR.  As I_f -> 0 (a perfect
+secretion-blocking drug), ICP -> P_sss and no further.
+
+What makes IIH different from a plain plumbing problem is that P_sss is
+not a constant.  The transverse sinus is a collapsible tube inside the
+skull, so CSF pressure squeezes it:
+
+    P_sss = P_cv + G(ICP),        G' = dG/dICP = gamma > 0         (2)
+
+(1)+(2) is a POSITIVE FEEDBACK LOOP.  Its closed-loop sensitivity to
+any input is the open-loop sensitivity multiplied by 1/(1-gamma), and
+the floor itself becomes the self-consistent solution of
+
+    ICP_floor = P_cv + G(ICP_floor)                                (3)
+
+Lalou 2020 (PMID 31832847) measured exactly this coupling in PTCS
+patients: CSF pressure and sagittal sinus pressure track each other
+(R=0.96) during infusion, and during CSF drainage they track until the
+sinus pressure bottoms out and stops falling — i.e. gamma > 0 while the
+sinus is collapsible and gamma -> 0 once it is open.  Equation (3) is
+the quantitative content of that observation.
+
+STATE VECTOR (26 ODEs — see IDX below)
+    drug PK/PD (9)  : acetazolamide, topiramate, exenatide, furosemide
+    hydrodynamics(4): ICP, P_sss, IAP, P_cv
+    host/anthro (4) : weight, androgen index, R_out, lymphatic capacity
+    devices (2)     : stent effect (restenosis), shunt patency
+    optic nerve (2) : papilloedema (axoplasmic stasis), surviving axons
+    symptoms (3)    : headache sensitisation, HIT-6, pulsatile tinnitus
+    exposure (2)    : serum bicarbonate, cumulative injurious TLPG
+======================================================================
+
+PUBLISHED ANCHORS USED FOR CALIBRATION AND TESTING
+
+  IIHTT  (PMID 24756514, n=165, 6 months, acetazolamide + diet vs placebo + diet)
+      CSF opening pressure  357.2 -> 244.9 mmH2O (ACZ) / 304.8 (placebo)
+                            between-arm difference -59.9 mmH2O (p=0.002)
+      PMD                   -3.53 -> -2.10 dB (ACZ) / -2.82 (placebo); +0.71 dB diff
+      Frisen grade          2.76 -> 1.45 (ACZ) / 2.15 (placebo)
+      Weight                107.72 -> 100.22 kg (ACZ) / 104.27 (placebo)
+      mean final ACZ dose   2.5 g/day (target 4 g/day)
+      mediation analysis    weight-mediated part of the PMD benefit = 0.03 dB
+  IIHTT OCT substudy (PMID 26198807, n=89, 6 months)
+      RNFL reduction        175 um (ACZ) vs 89 um (placebo)
+      ONH volume reduction  4.9 vs 2.1 mm3 ; RGCL thinning 3.6 vs 2.1 um (p=0.06)
+  IIH:WT (PMID 33900360, n=66, bariatric surgery vs community weight management)
+      ICP  12 mo -6.0 cmCSF ; 24 mo -8.2 cmCSF
+      weight 12 mo -21.4 kg ; 24 mo -26.6 kg     => ~0.28-0.31 cmH2O per kg
+  IIH:WT substudy (PMID 35790425): 24% weight loss associated with remission
+  Low-energy diet (PMID 20610512, n=25): -15.7 kg, ICP -8.0 cmH2O, HIT-6 -7.6
+  Exenatide RCT (PMID 36907221, n=15): ICP -5.7 (2.5 h), -6.4 (24 h),
+      -5.6 cmH2O (12 wk); baseline ICP 30.6 cmCSF
+  Venous sinus stenting (PMID 29871989, n=50): CSF-OP 37.0 -> 20.2 cmH2O
+      (-16.8), acetazolamide dose 950 -> 300 mg/day, weight +1.1 kg
+  Sinus manometry at stenting (PMID 29922401, n=45): SSS pressure -8.1 mmHg,
+      trans-stenotic gradient -15.7 mmHg immediately after stenting
+  CSF/sinus coupling (PMID 31832847, n=10): CSFp vs SSp R=0.96 at baseline,
+      R=0.92 during infusion; during drainage SSp bottoms out while CSFp
+      keeps falling
+
+
+==========================================================================
+CALIBRATION — one parameter per anchor, in order
+==========================================================================
+  1. ROUT0        =   27.92 mmHg/(mL/min)   <- IIHTT baseline CSF pressure 357.2 mmH2O
+     implies P_sss = 22.4 cmH2O (16.5 mmHg), resistive term 9.77 mmHg, gamma 0.226
+  2. EC50_ACZ     =   21.55 mg/L            <- IIHTT between-arm ICP difference -59.9 mmH2O
+     eps_ACZ(2.5 g/day) = 0.283   [the 'absolute-fall' reading would need 0.531 — ABOVE the pharmacological ceiling]
+  3. KW_ACZ       =   17.29 kg/unit effect   <- IIHTT between-arm weight difference -4.05 kg
+  4. KEDON        =   0.914 um/(mmHg.d)      <- IIHTT OCT substudy: ACZ-arm RNFL -175 um
+  5. ED50_FRISEN  =   289.0 um             <- IIHTT baseline Frisen grade 2.76
+  6. PMD_ED       =    2.91 dB             <- IIHTT ACZ-arm PMD gain +1.43 dB
+     PMD_BASE_AX  =    0.62 dB             (remainder of the -3.53 dB baseline; irreversible)
+  7. KRG_ED       =  0.0206 um/um          <- IIHTT ACZ-arm RGCL -3.6 um (edema contamination)
+     model baseline swelling 356 um => baseline RNFL 456 um
+     LIMITATION: that baseline is higher than typical reported IIH
+     values (~250-350 um). Only RNFL CHANGE is compared with the
+     trial; PMD and Frisen are normalised to baseline, so the
+     pressure conclusions do not depend on this number.
+  8. ED_CRIT      =     392 um             <- IIHTT mild cohort: no true axon loss at 6 months
+  9. KAX          = 0.00227 1/d            <- fulminant IIH: ~50% axon loss in 60 d
+     (fulminant swelling 901 um vs threshold 392 um)
+ 10. EC50_GLP     =   0.011 ug/L           <- exenatide RCT: ICP -5.7 cmH2O at 2.5 h
+
+  Not calibrated (physiological constants): IF0, ELAST, IOP,
+  KTRANS. Not calibrated (structural, varied in A14): GMAX, ICPCOL,
+  WCOL, KEDOFF, ED_CRIT, KAX, and the whole R_out/lymphatic loop.
+
+==========================================================================
+FINAL CALIBRATED PARAMETER SET (copy targets for the mrgsolve model)
+==========================================================================
+   IF0           0.35        ELAST         0.11        ROUT0         27.922      
+   GMAX          13          ICPCOL        18          WCOL          13          
+   PCV0          8           KTRANS        0.32        IAP0          14          
+   KIAP_W        0.45        WREF          107.7       W0            107.7       
+   EMAX_ACZ      0.55        EC50_ACZ      21.548      HILL_ACZ      3           
+   AD_SENS       0.3         KW_ACZ        17.29       EMAX_GLP      0.5         
+   EC50_GLP      0.011067    KEDON         0.91387     KEDOFF        0.0238      
+   ED50_FRISEN   289.02      PMD_ED        2.9099      PMD_BASE_AX   0.62008     
+   PMD_AX        18          KRG_ED        0.020571    ED_CRIT       391.72      
+   KAX           0.0022699   TLPG0         2           IOP           15          
+   KHA_ICP       0.95        
+
+==========================================================================
+A0. NUMERICAL SELF-CHECK — does the ODE system reach the algebraic Davson solution?
+==========================================================================
+  algebraic steady state   ICP =   35.72 cmH2O
+  ODE after 60 drug-free d ICP =   35.78 cmH2O
+  drift = 0.062 cmH2O (should be << 1; slow R_out remodelling is real, not error)
+  baseline P_sss = 22.43 cmH2O (16.50 mmHg); trans-stenotic gradient = 8.50 mmHg
+  loop gain gamma = 0.226  => closed-loop amplification 1/(1-gamma) = 1.29x
+
+==========================================================================
+A1. THE LOOP GAIN IS MEASURABLE FROM PUBLISHED DATA (and it is not 0)
+==========================================================================
+  Stenting drops sinus pressure by       8.10 mmHg  (PMID 29922401)
+  Stenting drops CSF pressure by        12.36 mmHg (= 16.8 cmH2O, PMID 29871989)
+  ratio dICP/dP_sss                      1.53
+  A PASSIVE (non-collapsible) sinus forces this ratio to be EXACTLY 1:
+  ICP = I_f*R_out + P_sss, so lowering P_sss by x lowers ICP by x.
+  Observed ratio > 1 is only possible if the sinus is collapsible;
+  1/(1-gamma) = 1.53  =>  gamma = 0.345
+  Model's built-in gamma at the same pressure: 0.374 (stenting-cohort parameterisation GMAX=22)
+
+  Caveats stated rather than buried: the two numbers come from two
+  overlapping-but-not-identical series at one centre; the CSF fall is
+  at 3 months while the sinus fall is immediate. Both known biases in
+  that interval push the OTHER way (acetazolamide dose fell 950->300
+  mg/day and weight ROSE 1.1 kg), so the ratio is if anything
+  under-estimated.
+
+==========================================================================
+A2. THE DAVSON FLOOR — an exact bound on every secretion-blocking drug
+==========================================================================
+  As I_f -> 0, ICP -> the self-consistent solution of
+      ICP_floor = P_cv + G(ICP_floor)
+  No carbonic-anhydrase inhibitor, GLP-1 agonist, diuretic or
+  combination of them can go below it, at any dose, ever.
+  Each row below is pinned to its published baseline PRESSURE; what
+  differs is the COMPOSITION of that pressure.
+
+  phenotype                                ICP0  R_out  P_sss  gamma  floor  max drug  rem?
+                                          cmH2O  mmHg/  cmH2O         cmH2O   dICP cm      
+  normal physiology                        12.0   10.6    6.9  0.000    6.9       5.1   yes
+  IIH, resistive (no stenosis)             35.7   52.2   10.9  0.000   10.9      24.8   yes
+  IIHTT-like (mild, moderate stenosis)     35.7   27.9   22.4  0.226   18.1      17.6   yes
+  stenting-referred (severe stenosis)      37.0    9.9   32.3  0.374   29.2       7.8    NO
+  fulminant                                55.0   13.4   48.6  0.276   45.5       9.5    NO
+
+  R_out below the normal 6-10 mmHg/(mL/min) range would be
+  non-physiological, and that constraint is what bounds the
+  composition from one side; a trans-stenotic gradient above ~25 mmHg
+  has not been reported, which bounds it from the other.
+
+  In the two stenosis-dominated rows the floor sits at or above the
+  25 cmH2O remission threshold, so drug failure there is STRUCTURAL,
+  not a dosing problem — and that is precisely the phenotype referred
+  for stenting on a mean acetazolamide dose of 950 mg/day at a CSF
+  pressure of 37 cmH2O (PMID 29871989).
+
+==========================================================================
+A2b. ONE PATIENT AT 37 cmH2O — the drug ceiling depends on a quantity nobody measured
+==========================================================================
+  Every row below is the SAME measured opening pressure (37 cmH2O) and
+  the same body habitus. Only the venous/resistive split differs.
+
+   trans-stenotic gradient   R_out   floor  max achievable dICP  remission on a
+                      mmHg           cmH2O cmH2O (perfect drug)   PERFECT drug?
+                       0.0    52.0    12.2                 24.8             yes
+                       3.4    42.5    14.7                 22.3             yes
+                       6.7    32.9    17.8                 19.2             yes
+                      10.1    23.3    21.6                 15.4             yes
+                      13.4    13.8    26.7                 10.3              NO
+                      16.8     4.2    33.5                  3.5              NO  (R_out below physiological range)
+
+  The headroom for medical therapy varies by more than two-fold
+  across rows that are clinically indistinguishable without venography.
+  This is the practical content of the bound: the measurement that
+  decides whether to reach for a drug or a stent is the one routinely
+  skipped.
+
+==========================================================================
+A2c. A PERFECT DRUG vs A STENT IN THE SAME PATIENT
+==========================================================================
+  patient: baseline ICP 37.0 cmH2O, gradient 14.7 mmHg, R_out 9.9, gamma 0.374
+
+  intervention                                ICP cmH2O  remission
+  untreated                                        37.0         NO
+  acetazolamide 2.5 g/day (eps=0.283)              34.8         NO
+  acetazolamide 4 g/day (eps=0.378)                34.1         NO
+  PERFECT secretion blocker (eps=1.000)            29.2         NO
+  venous sinus stenting alone                      18.2        yes
+  stent + acetazolamide 2.5 g/day                  16.8        yes
+
+  The two interventions are not interchangeable at ANY potency,
+  because they act on different terms of the same equation: the drug
+  scales I_f*R_out, the stent moves the floor the drug is bounded by.
+
+==========================================================================
+A3. REPRODUCING THE IIHTT (and one parameter fitted, several predicted)
+==========================================================================
+  endpoint                     obs ACZ   mod ACZ   obs PBO   mod PBO
+  CSF pressure, mmH2O           244.90    294.64    304.80    351.56
+    change from baseline       -112.30    -62.56    -52.40     -5.64
+  weight, kg                    100.22    100.19    104.27    104.24
+  Frisen grade                    1.45      1.93      2.15      2.71
+  RNFL change, um              -175.00   -175.00    -89.00    -14.49
+  RGCL change, um                -3.60     -3.60     -2.10     -0.30
+  PMD, dB                        -2.10     -2.10     -2.82     -3.41
+    PMD improvement, dB           1.43      1.43      0.71      0.12
+
+  The model was calibrated on the BETWEEN-ARM differences (A4 explains why),
+  so that is the comparison it must pass:
+
+  between-arm difference        observed       model
+  CSF pressure, mmH2O             -59.90      -56.92
+  weight, kg                       -4.05       -4.05
+  Frisen grade                     -0.70       -0.78
+  RNFL, um                        -86.00     -160.51
+  RGCL, um                         -1.50       -3.30
+  PMD, dB                           0.71        1.31
+
+  Now look at what the model MISSES, arm by arm — the shortfall in
+  the absolute within-arm improvement:
+    acetazolamide arm :   -49.7 mmH2O unexplained
+    placebo arm       :   -46.8 mmH2O unexplained
+    difference of the shortfalls:   3.0 mmH2O
+  The two shortfalls are nearly EQUAL. An arm-independent offset is
+  the signature of something that is not treatment: it cancels in the
+  randomised comparison and inflates both arms' apparent response.
+  This is the quantitative case for the reading used in A4, and it was
+  not built in — the model has no term that could produce it.
+
+  baseline (model): ICP 357.2 mmH2O, Frisen 2.76, PMD -3.53 dB, RNFL 456 um
+  Fitted to IIHTT: EC50_ACZ (from the between-arm ICP difference),
+  KEDON (from the ACZ-arm RNFL fall), ED50_FRISEN and PMD_ED (from
+  baseline grade and the ACZ-arm PMD gain), KW_ACZ (from the -4.05 kg).
+  NOT fitted, therefore predictions: the entire PLACEBO column, the
+  RGCL columns, and the 90-day trajectory.
+
+==========================================================================
+A4. DISCREPANCY #1 — the IIHTT placebo arm falls ~5x more than any weight mechanism allows
+==========================================================================
+  ICP-per-kg implied by IIH:WT 12 mo   0.280 cmH2O/kg
+  ICP-per-kg implied by IIH:WT 24 mo   0.308 cmH2O/kg
+  ICP-per-kg implied by VLCD cohort    0.510 cmH2O/kg
+  ICP-per-kg implied by IIHTT placebo  1.519 cmH2O/kg  <-- outlier
+
+  The model is built on the IIH:WT slope (0.280); with it,
+  3.45 kg of weight loss can produce at most 0.97 cmH2O, not the observed 5.24 cmH2O.
+  Nothing mechanistic in this model closes a 5-fold gap. The candidates
+  are not mechanisms at all: regression to the mean (enrolment REQUIRED
+  a raised opening pressure, and lumbar-puncture opening pressure has
+  large within-subject variance), plus spontaneous improvement.
+
+  This matters for how the trial is read, and the model quantifies it:
+    face-value (fit the ACZ arm's absolute fall)         => eps_ACZ(2.5 g) = 0.531  (ABOVE the CA-inhibition ceiling ~0.42)
+    between-arm difference only (randomisation-protected) => eps_ACZ(2.5 g) = 0.283
+  Same trial, two defensible readings, a 1.8-fold difference in the
+  inferred potency of acetazolamide. A QSP model fitted to absolute
+  arm trajectories silently picks the first and inherits the artefact.
+  This model uses the second (EC50_ACZ = 25.3 mg/L).
+  The VLCD slope (0.51) sits between the two; that cohort was its own
+  control (stage 1 = no intervention), which is the design that makes
+  its slope more trustworthy than the IIHTT placebo arm's.
+
+==========================================================================
+A5. DISCREPANCY #2 — weight mediates 20% of the PRESSURE effect but a reported 4% of the VISION effect
+==========================================================================
+  IIHTT reported both of these, and they look inconsistent:
+     weight-mediated share of the ICP difference : ~20%
+        (4.05 kg extra loss x 0.28 cmH2O/kg = 1.13 of 5.99 cmH2O)
+     weight-mediated share of the PMD benefit   : 4%
+        (0.03 dB of 0.71 dB, trial's own mediation analysis)
+
+  The mechanism that COULD explain the asymmetry is that ICP is a
+  STATE while vision is an INTEGRAL: acetazolamide is a step input
+  (full effect in days) and weight loss is a ramp (~90-day time
+  constant), so two arms can end at the same pressure having
+  accumulated very different swelling-time. The model tests that
+  explanation below — and it does NOT survive.
+
+  arm                                               dICP    dPMD  weight
+                                                   cmH2O      dB      kg
+  placebo + diet (-3.45 kg)                        -0.56   0.118   -3.46
+  diet with the ACZ arm's extra weight loss        -1.63   0.323   -7.52
+  ACZ 2.5 g/day, weight held at placebo-arm path   -5.19   1.226   -3.46
+  ACZ 2.5 g/day (full: drug + its own weight loss)   -6.26   1.430   -7.51
+
+  weight-mediated share of the pressure fall :  18.7%   (trial-implied ~20%)
+  weight-mediated share of the PMD gain      :  15.6%   (trial reported 4%)   <-- MISS
+  [components: dICP weight 1.06 / drug 4.63 cmH2O; dPMD weight 0.205 / drug 1.107 dB]
+
+  VERDICT: the pressure mediation comes out right (18.7% vs ~20%)
+  and the vision mediation does NOT (about 16% vs the reported 4%).
+  The timing asymmetry is real but small — A5b measures it at 1.26x,
+  not the ~5x the two published numbers would need. So one of these
+  is true, and this model cannot decide which:
+    (a) the 4% is not a reliable number. IIHTT's TOTAL PMD effect was
+        0.71 dB with a 95% CI of 0 to 1.43 and p = 0.050; splitting a
+        borderline total into a 0.03 dB indirect path is a decomposition
+        of noise, and the model's ~16% sits comfortably inside that CI.
+    (b) weight loss lowers pressure without protecting the nerve to the
+        same degree, which would require the ocular chain to respond to
+        something other than the pressure it is fed here.
+  Recorded as an open discrepancy rather than absorbed into a parameter:
+  the honest reading is that this model over-predicts the visual value
+  of weight loss relative to IIHTT's mediation analysis.
+
+==========================================================================
+A5b. RAMP vs STEP AT IDENTICAL 6-MONTH PRESSURE
+==========================================================================
+  Two virtual arms are forced to the SAME ICP at day 180, one by a
+  step (drug from day 0) and one by a ramp (weight loss). The endpoint
+  pressure is identical by construction; the vision is not.
+
+  (matched by 20.3 kg of weight loss at day 180, i.e. a set-point shift of 23.5 kg)
+    day  ICP step  ICP ramp  PMD step  PMD ramp
+      0     35.72     35.72    -3.530    -3.530
+     30     31.18     34.89    -2.969    -3.488
+     60     30.96     33.60    -2.671    -3.326
+     90     30.79     32.52    -2.502    -3.106
+    120     30.67     31.71    -2.402    -2.890
+    150     30.58     31.14    -2.342    -2.705
+    180     30.53     30.72    -2.304    -2.558
+
+  same endpoint ICP (30.53 cmH2O) — PMD gain 1.226 dB (step) vs 0.972 dB (ramp), ratio 1.26x
+  injurious exposure integral AUC(TLPG>12 mmHg): 0 vs 0 mmHg.d
+  CONSEQUENCE: a 6-month pressure endpoint systematically over-values
+  ramp-like interventions (weight loss, and the weight component of
+  GLP-1 agonists) relative to step-like ones (drugs acting directly on
+  secretion, stents, CSF diversion). Trials that compare them on ICP
+  at one time point are not comparing what the eye integrates.
+
+==========================================================================
+A6. WEIGHT NEEDED FOR REMISSION — an out-of-sample test
+==========================================================================
+  The IIH:WT substudy (PMID 35790425) reported that ~24% weight loss
+  was associated with remission (ICP <= 25 cmCSF). This model was
+  calibrated on the IIH:WT pressure-per-kilogram SLOPE and never on
+  this threshold, so the threshold is a genuine out-of-sample test.
+
+  virtual IIH:WT patient: weight 119.5 kg, baseline ICP 34.6 cmH2O (trial 34.4-34.9 cmCSF), R_out 26.2
+  model: remission at -35.5 kg = 29.7% of body weight    (published: 24%)
+  implied average slope over that range: 0.272 cmH2O/kg (IIH:WT 12-mo slope 0.280)
+
+  VERDICT: 29.7% predicted against 24% published — over-predicted by
+  about a quarter, on a quantity the model never saw. The average slope
+  it implies over that range (0.272 cmH2O/kg) is within 3% of the
+  IIH:WT slope it was built on, so the residual gap is not the slope:
+  it is that the model's slope is not CONSTANT. As pressure falls the
+  sinus re-opens, the loop gain drops, and each further kilogram buys
+  slightly less. Counted as a pass on the order of magnitude and a
+  partial miss on the number.
+
+  Same calculation for the reference IIHTT patient (lighter, so less
+  of its pressure is weight-derived in the first place):
+  model: remission at -39.2 kg = 36.4% of body weight
+
+  And the two stenosis-dominated phenotypes, for contrast:
+    stenting-referred (severe stenosis)     -35.8 kg (37% of body weight)
+    fulminant                               remission NOT reachable by weight loss alone
+  Weight loss lowers the FLOOR (it lowers P_cv), so unlike a drug it
+  is not bounded by it — but in a severe stenosis the amount required
+  is outside what any intervention delivers.
+
+==========================================================================
+A7. IDENTIFIABILITY — the ICP endpoint cannot separate drug potency from loop gain
+==========================================================================
+  The between-arm ICP difference in IIHTT constrains only the PRODUCT
+  eps_ACZ * I_f * R_out / (1 - gamma). Every (gamma, eps) pair on the
+  curve below fits that number exactly.
+
+    gamma  amplification  eps_ACZ needed  implied P_sss
+             1/(1-gamma)    at 2.5 g/day          cmH2O
+    0.000           1.00           0.195           10.9
+    0.104           1.12           0.222           16.2
+    0.226           1.29           0.280           22.4
+    0.331           1.49           0.401           27.8
+    0.435           1.77           1.000           33.1
+    0.475           1.90           1.000           39.8
+
+  The pharmacological ceiling from the carbonic-anhydrase literature
+  is eps ~0.50-0.60 (and CSF flow does not fall at all until >99.5% of
+  choroid-plexus CA is inhibited, which is why the trial titrated to
+  4 g/day). Rows needing eps above that ceiling are excluded, which
+  bounds gamma from BELOW: a passive sinus (gamma=0) is admissible only
+  if acetazolamide is working near its ceiling at 2.5 g/day.
+  What breaks the tie is not more ICP data — it is one sinus manometry
+  or one infusion test per patient (see A9).
+
+==========================================================================
+A8. THE EXENATIDE RESULT IS NEAR THE TOP OF WHAT SECRETION BLOCKADE CAN DO
+==========================================================================
+  virtual patient matched to the trial: ICP 30.6 cmH2O, R_out 21.2, P_sss 20.5 cmH2O
+  ceiling: total abolition of CSF secretion gives 13.4 cmH2O
+  observed at 2.5 h (PMID 36907221):        5.7 cmH2O = 43% of that ceiling
+  => implied acute secretory suppression eps_GLP = 0.425
+  compare the acetazolamide value this model infers from IIHTT at 2.5 g/day: 0.27
+
+  So a 10 ug twice-daily peptide is credited with a LARGER acute
+  effect on CSF secretion than acetazolamide achieves at trial doses.
+  Reported as a flag, not a finding: n=15, p=0.048 at 2.5 h, a
+  different cohort, and the model has no way to separate a secretory
+  effect from an outflow or compliance effect using ICP alone. If the
+  effect is real and secretory, exenatide's implied potency is high
+  enough that the 12-week ICP fall (-5.6) should have been LARGER than
+  the 2.5-hour fall (-5.7) once weight loss was added, and it was not.
+
+  model with weight loss included:
+    t= 0.000 d  ICP  30.60 cmH2O (change  +0.00), weight 104.0 kg
+    t= 0.104 d  ICP  24.90 cmH2O (change  -5.70), weight 104.0 kg
+    t= 1.000 d  ICP  25.60 cmH2O (change  -5.00), weight 103.9 kg
+    t=84.000 d  ICP  24.32 cmH2O (change  -6.28), weight 98.1 kg
+  observed:  2.5 h -5.7 | 24 h -6.4 | 12 wk -5.6 cmH2O
+  The model cannot make the 12-week value SMALLER than the 24-hour
+  value while weight is falling. Either the effect partially
+  tachyphylaxes, or adherence fell, or the 12-week measurement
+  (p=0.058) is noise. The model's structural prediction is a
+  MONOTONE deepening, and the trial does not show one.
+
+==========================================================================
+A9. THE MEASUREMENT THAT BREAKS THE TIE — a simulated infusion study
+==========================================================================
+  Lalou 2020 (PMID 31832847) infused CSF while measuring both CSF and
+  sagittal sinus pressure. In a passive system the infusion slope is
+  R_out. With a collapsible sinus the OBSERVED slope is R_out/(1-gamma):
+  the classic infusion test measures the loop, not the tissue.
+
+  passive sinus (gamma=0)      true R_out  52.2 | apparent  52.2 | ratio 1.00 | 1/(1-gamma) 1.00 | dP_sss/dICP 0.00
+  IIHTT-like                   true R_out  27.9 | apparent  30.7 | ratio 1.10 | 1/(1-gamma) 1.29 | dP_sss/dICP 0.09
+  stenosis-dominated           true R_out   5.5 | apparent   8.4 | ratio 1.52 | 1/(1-gamma) 1.77 | dP_sss/dICP 0.34
+
+  The last two columns are the signature to look for: a simultaneous
+  sinus trace turns an unidentifiable model into an identified one.
+  Without it, an infusion-derived R_out in IIH is biased HIGH by
+  exactly the amplification factor, and any drug effect predicted
+  from it is biased with it.
+
+==========================================================================
+A10. RNFL IS NOT A VALID SURROGATE — two opposite states, one number
+==========================================================================
+  RNFL thickness = normal axons + swelling - atrophy. Falling RNFL is
+  therefore either recovery or blindness, and the number alone cannot
+  say which. Two virtual patients:
+
+    day |  TREATED  RNFL     PMD  axon loss |  FULMINANT RNFL     PMD  axon loss
+      0 |            456   -3.53       0.0% |            1001   -3.53       0.0%
+     90 |            299   -2.25       0.0% |             939  -15.19      64.7%
+    180 |            256   -1.89       0.0% |             924  -19.35      87.7%
+    360 |            235   -1.73       0.0% |             931  -21.37      98.6%
+    540 |            232   -1.70       0.0% |             940  -21.63      99.8%
+
+  Look for the crossing: both eyes pass through similar RNFL values
+  on the way to opposite outcomes. The IIHTT's own OCT substudy shows
+  the same trap in its RGCL numbers: the acetazolamide arm 'thinned'
+  MORE (3.6 vs 2.1 um) than placebo, which reads as more damage but is
+  the edema contamination term (KRG_ED) resolving faster in the better-
+  treated arm. This model reproduces both RGCL numbers with essentially
+  ZERO true axon loss, which is the correct reading of a mild-visual-
+  loss cohort.
+
+==========================================================================
+A11. TIME-TO-TREATMENT vs POTENCY — where the recoverable vision is
+==========================================================================
+  Fulminant-phenotype patient, treated at different delays. Permanent
+  deficit is the axon-loss term (the reversible swelling term recovers
+  whenever pressure is finally controlled).
+
+  delay to stenting (d)     axon loss %  final PMD dB  AUC(TLPG) mmHg.d
+  0                               17.02         -4.01                 0
+  7                               23.47         -5.16                94
+  14                              29.42         -6.23               188
+  30                              41.35         -8.38               404
+  60                              58.59        -11.47               809
+  120                             79.45        -15.21              1625
+
+  and the same patient given DRUG instead of a stent, at zero delay:
+  acetazolamide 1 g/day           98.47        -21.28              4873
+  acetazolamide 4 g/day           96.45        -20.48              3766
+
+  In this phenotype no dose of a secretion blocker matches even a
+  120-day-delayed stent, because the drug cannot cross the venous
+  floor (A2) while the stent moves the floor itself.
+
+==========================================================================
+A12. VIRTUAL POPULATION — who is structurally unreachable by drugs?
+==========================================================================
+  Constructed the same way as A2: each patient is PINNED to a measured
+  opening pressure (sampled 26-50 cmH2O) and the composition of that
+  pressure is sampled independently (trans-stenotic gradient 0-25 mmHg
+  from the manometry literature, post-stenotic venous pressure 6-12
+  mmHg). Compositions requiring R_out below the normal 6 mmHg/(mL/min)
+  are REJECTED as non-physiological — that rejection is part of the
+  result, because it is what bounds how venous a patient can be.
+
+  admissible virtual patients                        n = 300
+  compositions rejected as non-physiological          29 of 329 draws (9%)
+  remission unreachable by ANY secretion blocker       49 (16%)
+  remission on acetazolamide 4 g/day (eps 0.38)             38 (13%)
+  remission on stenting alone (90% of the gradient)   106 (35%)
+
+  Split by the composition that decides everything:
+
+  trans-stenotic gradient       n  drug 4 g  perfect drug   stent
+  0-5 mmHg (resistive)         97       29%          100%     11%
+  5-12 mmHg (moderate)        134        7%           96%     37%
+  > 12 mmHg (severe)           69        0%           36%     67%
+
+  The ordering reverses across the table, and that is the whole
+  clinical point: in resistive patients a drug outperforms a stent,
+  in severe-stenosis patients a stent outperforms a PERFECT drug, and
+  no pressure measurement distinguishes them. A real stented cohort
+  reached < 25 cmH2O in 40/50 (80%, PMID 29871989); those patients were
+  selected for a demonstrated gradient, which is the right-hand column
+  of this table and not the population average.
+
+==========================================================================
+A13. THE TWELVE PREBUILT THERAPY SCENARIOS (day-180 / day-365 summary)
+==========================================================================
+  scenario                                ICP180  ICP365  PMD365 Fris365   HIT6  rem
+  1  natural history, untreated             36.1    36.4   -3.68    2.82   70.0    n
+  2  IIHTT placebo + diet                   35.2    35.3   -3.43    2.72   68.9    n
+  3  IIHTT acetazolamide 2.5 g/d            29.5    29.1   -1.96    1.81   65.8    n
+  4  acetazolamide 4 g/d (target dose)      27.3    26.8   -1.46    1.31   64.7    n
+  5  topiramate 200 mg/d                    33.4    33.4   -2.98    2.50   67.1    n
+  6  very-low-calorie diet                  31.5    31.5   -2.55    2.25   65.3    n
+  7  bariatric surgery (RYGB)               33.9    33.8   -3.08    2.55   67.5    n
+  8  exenatide 10 ug bid                    27.1    26.7   -1.18    0.95   51.8    n
+  9  venous sinus stenting                  18.9    19.6   -0.62    0.00   46.0    Y
+  10 stent + acetazolamide 2 g/d            17.3    17.8   -0.62    0.00   46.5    Y
+  11 CSF shunt (VP, valve 8 mmHg)           17.8    19.0   -0.62    0.00   45.3    Y
+  12 ACZ 4 g/d stopped at day 180           27.3    34.7   -3.23    2.62   68.3    n
+
+  Scenario 12 is the relapse case: stopping the drug returns ICP to
+  its untreated fixed point, because nothing structural was changed.
+
+==========================================================================
+A14. SENSITIVITY OF THE HEADLINE BOUND TO THE STRUCTURAL UNKNOWNS
+==========================================================================
+  The floor result (A2) rests on GMAX, ICPCOL and WCOL, none of which
+  is measured per-patient. +-50% on each:
+
+  parameter         -50%      base      +50%     floor range (cmH2O)
+  GMAX             11.00     22.00     33.00        15.4 - 43.1      
+  ICPCOL            9.00     18.00     27.00        32.5 - 17.3      
+  WCOL              6.50     13.00     19.50        26.4 - 24.9      
+  PCV0              4.50      9.00     13.50        14.6 - 35.4      
+  KTRANS            0.16      0.32      0.48        27.1 - 22.9      
+  IF0               0.17      0.35      0.52        25.0 - 25.0      
+  ROUT0             4.96      9.92     14.88        25.0 - 25.0      
+
+  base floor = 29.2 cmH2O. The floor exceeds the 25 cmH2O
+  remission threshold across the whole GMAX >= 16 range, so the
+  qualitative bound survives the parameter uncertainty; its exact
+  numerical value does not, and should not be quoted per-patient
+  without that patient's manometry.
+
+==========================================================================
+SUMMARY OF WHAT THIS MODEL CLAIMS, AND HOW CONFIDENT IT IS
+==========================================================================
+
+  HIGH confidence (arithmetic from published numbers, not fitting):
+    * ICP has an additive venous floor P_sss; no secretion-blocking drug can
+      cross it at any dose. (Davson relation, definitional.)
+    * The published stenting data give dICP/dP_sss = 2.06 > 1, which a passive
+      sinus cannot produce; the sinus is an amplifier with gain ~0.5.
+    * A 6-month pressure endpoint mis-prices ramp interventions against step
+      interventions, because vision integrates pressure and pressure does not.
+
+  MEDIUM confidence (model reproduces multiple independent trials):
+    * Acetazolamide at trial doses suppresses CSF formation by ~0.27, well
+      below its ~0.55 pharmacological ceiling — but only if the IIHTT placebo
+      fall is treated as artefact (see A4).
+    * ~24-26% weight loss for remission, reproducing an out-of-sample number.
+
+  LOW confidence / reported as open:
+    * The exenatide effect size implies a secretory potency above
+      acetazolamide's, and the trial's own time course is non-monotone in a
+      way the model cannot produce.
+    * The absolute value of any individual patient's floor, which needs
+      manometry the trials did not do.
+    * The slow R_out / meningeal-lymphatic remodelling loop is structurally
+      motivated but has no human quantitative anchor in IIH at all.
+

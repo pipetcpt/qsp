@@ -1,0 +1,448 @@
+/* ==========================================================================
+ * iih_qsp_model.dot
+ * Idiopathic Intracranial Hypertension (IIH / pseudotumour cerebri)
+ * Quantitative Systems Pharmacology mechanistic map
+ * --------------------------------------------------------------------------
+ * The map is laid out around ONE EQUATION and the operators that touch it.
+ *
+ *      ICP  =  I_f * R_out  +  P_sss            (Davson relation)
+ *               \______/        \___/
+ *              resistive term   VENOUS FLOOR
+ *
+ *   ...and the loop that makes IIH different from plumbing: the transverse
+ *   sinus is a COLLAPSIBLE tube inside the skull, so
+ *
+ *      P_sss = P_cv + G(ICP),      gamma = dG/dICP > 0
+ *
+ *   which turns the equation into positive feedback with closed-loop
+ *   sensitivity 1/(1-gamma) and a self-consistent floor
+ *
+ *      ICP_floor = P_cv + G(ICP_floor)
+ *
+ * Every therapy node is coloured by WHICH TERM it acts on, because that -
+ * not its potency - decides whether it can reach remission in a given
+ * patient:
+ *
+ *   SECRETION (I_f)        blue     acetazolamide, topiramate, GLP-1 RA,
+ *                                   furosemide, 11beta-HSD1 inhibition
+ *   OUTFLOW RESISTANCE     green    (no licensed drug acts here)
+ *   VENOUS FLOOR (P_sss)   orange   venous sinus stenting
+ *   ABDOMINAL/CENTRAL      pink     weight loss, bariatric surgery, negative
+ *     VENOUS PRESSURE               abdominal pressure device
+ *   BYPASS THE EQUATION    purple   CSF shunt, LP, optic nerve sheath
+ *                                   fenestration
+ *
+ * A blue drug is bounded by the orange term. That bound is the central
+ * quantitative content of this map: no secretion-blocking drug, at any dose,
+ * can take ICP below the venous floor.
+ *
+ * Render:
+ *   dot -Tsvg iih_qsp_model.dot -o iih_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 iih_qsp_model.dot -o iih_qsp_model.png
+ * ========================================================================== */
+
+digraph iih_qsp {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.20, ranksep=0.50,
+         fontname="Helvetica", bgcolor="white", compound=true, newrank=true,
+         label=<<b>Idiopathic Intracranial Hypertension — QSP mechanistic map</b><br/>
+                <font point-size="12">CSF secretion · outflow resistance · collapsible-sinus venous floor · abdominal–venous coupling · papilloedema · therapy PK/PD</font><br/>
+                <font point-size="11">therapy nodes are coloured by WHICH TERM of ICP = I_f·R_out + P_sss they act on</font><br/>
+                <font point-size="10">blue drugs are bounded by the orange term — that bound is the point of the map</font>>,
+         labelloc="t", fontsize=22, pad=0.4];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         penwidth=1.0, margin="0.07,0.04"];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, color="#4a4a4a"];
+
+  /* ---- palette --------------------------------------------------------
+     risk/host        #f0e6f6 | secretion       #dbeeff | outflow  #e2f5ec
+     venous           #ffe6cc | abdominal       #ffe0ea | pressure #ffe0e0
+     optic nerve      #fff2d6 | clinical        #f3f3f3 | PK       #e8f0ff
+     drug-secretion   #bcd9f5 | drug-venous     #ffcf9e | drug-abd #ffc0d4
+     drug-bypass      #e2d4f0 | biomarker       #eef7ff
+     -------------------------------------------------------------------- */
+
+  /* ======================================================================
+   * 1. HOST RISK AND THE ENDOCRINE SIGNATURE
+   * ==================================================================== */
+  subgraph cluster_risk {
+    label="1. Host risk · obesity · androgen signature"; style="rounded,filled";
+    fillcolor="#fcfbfd"; color="#b9a8c9"; fontsize=13;
+    OBESITY  [label="Central obesity\nBMI ≥ 30 (IIH:WT ≥ 35)", fillcolor="#f0e6f6"];
+    WTGAIN   [label="Recent weight GAIN\n(5–15% in prior year)\nstronger risk than BMI itself", fillcolor="#f0e6f6"];
+    FEMALE   [label="Female, reproductive age\n♀:♂ ≈ 9:1", fillcolor="#f0e6f6"];
+    ADIPOSE  [label="Visceral adipose tissue\nexpansion", fillcolor="#f0e6f6"];
+    HSD1     [label="11β-HSD1 activity\n(adipose + choroid plexus)\ncortisone → cortisol", fillcolor="#f0e6f6"];
+    ANDROGEN [label="11-oxygenated androgen\nexcess (CSF androstenedione,\ntestosterone ↑)", fillcolor="#f0e6f6"];
+    LEPTIN   [label="Leptin / adipokine\ndysregulation", fillcolor="#f0e6f6"];
+    RETINOL  [label="Retinol / vitamin A\nmetabolite excess\n(RBP4, retinoic acid)", fillcolor="#f0e6f6"];
+    PCOS     [label="PCOS · insulin resistance\ncomorbidity cluster", fillcolor="#f0e6f6"];
+    OSA      [label="Obstructive sleep apnoea\nnocturnal hypercapnia", fillcolor="#f0e6f6"];
+    SECOND   [label="Secondary causes to exclude\ntetracyclines · retinoids ·\nlithium · CVST · steroid withdrawal", fillcolor="#f3f3f3"];
+  }
+
+  /* ======================================================================
+   * 2. ABDOMINAL -> THORACIC -> CENTRAL VENOUS CHAIN  (the P_cv term)
+   * ==================================================================== */
+  subgraph cluster_abdo {
+    label="2. Abdominal → thoracic → central venous chain  (sets P_cv, the base of the floor)";
+    style="rounded,filled"; fillcolor="#fff7fa"; color="#e79ab5"; fontsize=13;
+    IAP     [label="Intra-abdominal pressure\nbladder pressure 22 ± 3 cmH₂O\n(vs normal ~6)", fillcolor="#ffe0ea"];
+    SAD     [label="Sagittal abdominal\ndiameter 29 ± 3 cm", fillcolor="#ffe0ea"];
+    PLEURAL [label="Pleural pressure ↑\n15 ± 10 mmHg", fillcolor="#ffe0ea"];
+    CVP     [label="Central venous pressure ↑\n20 ± 6 mmHg (intra-op)\nawake sinus/jugular 8–14", fillcolor="#ffe0ea"];
+    RAP     [label="Right atrial / PA occlusion\npressure ↑", fillcolor="#ffe0ea"];
+    JUGULAR [label="Jugular venous outflow\nimpedance ↑", fillcolor="#ffe0ea"];
+    PCV     [label="P_cv\npost-stenotic outflow pressure", fillcolor="#ffc9de", penwidth=2.0];
+  }
+
+  /* ======================================================================
+   * 3. CSF SECRETION AT THE CHOROID PLEXUS  (the I_f term)
+   * ==================================================================== */
+  subgraph cluster_secretion {
+    label="3. CSF secretion — choroid plexus epithelium  (sets I_f ≈ 0.35 mL/min)";
+    style="rounded,filled"; fillcolor="#f7fbff"; color="#7fb2e0"; fontsize=13;
+    CA        [label="Carbonic anhydrase II/XII\nCO₂ + H₂O ⇌ HCO₃⁻ + H⁺", fillcolor="#dbeeff"];
+    NKCC1     [label="NKCC1 (basolateral/apical)\nNa⁺-K⁺-2Cl⁻ cotransport", fillcolor="#dbeeff"];
+    NAK       [label="Na⁺/K⁺-ATPase (apical)\nprimary active step", fillcolor="#dbeeff"];
+    NBCE2     [label="NBCe2 · AE2 · NHE1\nHCO₃⁻/Cl⁻ exchange", fillcolor="#dbeeff"];
+    AQP1      [label="Aquaporin-1\nwater conductance", fillcolor="#dbeeff"];
+    CPBLOOD   [label="Choroid plexus blood flow\n(4× cortical, fenestrated)", fillcolor="#dbeeff"];
+    GLP1R     [label="GLP-1 receptor\non choroid plexus epithelium", fillcolor="#dbeeff"];
+    MR_CP     [label="Mineralocorticoid / androgen\nreceptors on choroid plexus", fillcolor="#dbeeff"];
+    IF        [label="I_f — CSF formation rate\n0.35 mL/min ≈ 500 mL/day\n(turns over CSF volume 3–4×/day)",
+               fillcolor="#a9d3f2", penwidth=2.0];
+  }
+
+  /* ======================================================================
+   * 4. CSF OUTFLOW  (the R_out term)
+   * ==================================================================== */
+  subgraph cluster_outflow {
+    label="4. CSF outflow pathways  (sets R_out; normal 6–10 mmHg/(mL/min))";
+    style="rounded,filled"; fillcolor="#f5fdf8"; color="#78c49b"; fontsize=13;
+    ARACH   [label="Arachnoid granulations\npressure-dependent bulk flow", fillcolor="#e2f5ec"];
+    DURALLY [label="Dural / meningeal\nlymphatic vessels", fillcolor="#e2f5ec"];
+    CRIB    [label="Cribriform plate →\nnasal lymphatics", fillcolor="#e2f5ec"];
+    GLYMPH  [label="Glymphatic (paravascular)\nclearance, AQP4-dependent", fillcolor="#e2f5ec"];
+    SPINAL  [label="Spinal / perineural\nabsorption", fillcolor="#e2f5ec"];
+    CLN     [label="Deep cervical lymph nodes", fillcolor="#e2f5ec"];
+    ROUT    [label="R_out — outflow resistance\nIIH: 15–40 mmHg/(mL/min)",
+             fillcolor="#b6e3cb", penwidth=2.0];
+    LYMPHRES[label="Lymphatic/glymphatic reserve\n(falls with obesity, ageing,\nchronic high pressure)", fillcolor="#e2f5ec"];
+  }
+
+  /* ======================================================================
+   * 5. THE COLLAPSIBLE SINUS — THE AMPLIFIER AND THE FLOOR
+   * ==================================================================== */
+  subgraph cluster_venous {
+    label="5. Dural venous sinus — collapsible tube, amplifier and FLOOR";
+    style="rounded,filled"; fillcolor="#fff9f2"; color="#e0a45f"; fontsize=13;
+    SSS     [label="Superior sagittal sinus\npressure P_sss\n(the CSF absorption pressure)", fillcolor="#ffe6cc", penwidth=2.0];
+    TSSTEN  [label="Transverse sinus stenosis\nbilateral in most IIH\n(Farb: 27/29 vs 4/59 controls)", fillcolor="#ffe6cc"];
+    STARLING[label="STARLING RESISTOR\nrising ICP compresses the sinus\n→ gradient rises → ICP rises", fillcolor="#ffd2a3", penwidth=2.0];
+    GRAD    [label="Trans-stenotic gradient G(ICP)\npre-stent ~15–25 mmHg\nfalls 15.7 mmHg after stenting", fillcolor="#ffe6cc"];
+    GAMMA   [label="LOOP GAIN γ = dG/dICP\namplification 1/(1−γ)\ndata imply γ ≈ 0.3–0.5", fillcolor="#ffc98a", penwidth=2.5];
+    FLOOR   [label="VENOUS FLOOR\nICP_floor = P_cv + G(ICP_floor)\nNO secretion-blocking drug\ncan cross it at any dose",
+             fillcolor="#ff9f4d", penwidth=3.0, shape=octagon];
+    COUPLING[label="Measured CSF–sinus coupling\nR = 0.96 baseline, 0.92 on infusion;\nsinus bottoms out on drainage\nwhile CSF keeps falling", fillcolor="#ffe6cc"];
+    CVST    [label="Cerebral venous sinus\nTHROMBOSIS (mimic, must exclude)", fillcolor="#f3f3f3"];
+  }
+
+  /* ======================================================================
+   * 6. INTRACRANIAL PRESSURE AND COMPLIANCE
+   * ==================================================================== */
+  subgraph cluster_icp {
+    label="6. Intracranial pressure · compliance · CSF pulsatility";
+    style="rounded,filled"; fillcolor="#fff6f6"; color="#dd8f8f"; fontsize=13;
+    ICP     [label="ICP\nIIH: > 25 cmH₂O (Friedman 2013)\nnormal 8–15 cmH₂O",
+             fillcolor="#ffb3b3", penwidth=3.0, shape=doubleoctagon];
+    DAVSON  [label="Davson relation (steady state)\nICP = I_f·R_out + P_sss", fillcolor="#ffe0e0", penwidth=2.0];
+    MARMAROU[label="Marmarou dynamics\ndP/dt = E·P·(I_f − I_out)\nelastance E ≈ 0.11 /mL", fillcolor="#ffe0e0"];
+    COMPL   [label="Craniospinal compliance ↓\n(exponential P–V curve)", fillcolor="#ffe0e0"];
+    PULSE   [label="CSF pulse amplitude ↑\nsinus pressure pulsatility", fillcolor="#ffe0e0"];
+    VENTR   [label="Ventricles NOT dilated\n(distinguishes from hydrocephalus)", fillcolor="#f3f3f3"];
+    SLITV   [label="Slit ventricles\n→ shunt targeting difficulty", fillcolor="#f3f3f3"];
+    EMPTYS  [label="Empty sella · optic nerve\nsheath distension · flattened globe\n(imaging signs)", fillcolor="#f3f3f3"];
+  }
+
+  /* ======================================================================
+   * 7. OPTIC NERVE — WHERE PRESSURE BECOMES BLINDNESS
+   * ==================================================================== */
+  subgraph cluster_optic {
+    label="7. Optic nerve head — pressure → axoplasmic stasis → axon loss";
+    style="rounded,filled"; fillcolor="#fffdf5"; color="#d8bd6a"; fontsize=13;
+    SHEATH  [label="Optic nerve sheath\ntransmits CSF pressure\nto the retrolaminar space", fillcolor="#fff2d6"];
+    IOP     [label="Intraocular pressure\n≈ 15 mmHg", fillcolor="#fff2d6"];
+    TLPG    [label="TRANSLAMINAR GRADIENT\nTLPG = ICP_retrolaminar − IOP\nthe actual insult", fillcolor="#ffe9a8", penwidth=2.0];
+    STASIS  [label="Axoplasmic transport stasis\nat the lamina cribrosa", fillcolor="#fff2d6"];
+    SWELL   [label="Axonal swelling · disc oedema\n(the REVERSIBLE channel)", fillcolor="#fff2d6"];
+    ISCHAEM [label="Prelaminar capillary\ncompression → ischaemia", fillcolor="#fff2d6"];
+    AXONLOSS[label="Axon / retinal ganglion cell\nDEATH (the IRREVERSIBLE channel)", fillcolor="#f5d98a", penwidth=2.0];
+    FOLDS   [label="Retinal & choroidal folds,\nperipapillary RPE deformation", fillcolor="#fff2d6"];
+    ATROPHY [label="Optic atrophy\n(late, pressure now irrelevant)", fillcolor="#fff2d6"];
+    INTEGRAL[label="AXON LOSS IS AN INTEGRAL\n∫ max(0, TLPG − threshold) dt\n— not a function of today's pressure",
+             fillcolor="#ffdf8f", penwidth=2.5, shape=note];
+  }
+
+  /* ======================================================================
+   * 8. BIOMARKERS AND WHY TWO OF THEM ARE AMBIGUOUS
+   * ==================================================================== */
+  subgraph cluster_biomarker {
+    label="8. Measured read-outs (and their traps)"; style="rounded,filled";
+    fillcolor="#f7fbff"; color="#9dc0dd"; fontsize=13;
+    FRISEN  [label="Frisén papilloedema grade 0–5\nIIHTT 2.76 → 1.45 (ACZ) / 2.15 (PBO)", fillcolor="#eef7ff"];
+    RNFL    [label="OCT RNFL thickness\n= axons + swelling − atrophy\nAMBIGUOUS: falling RNFL is\nrecovery OR blindness", fillcolor="#dcecfa", penwidth=2.0];
+    RGCL    [label="OCT ganglion cell layer\nIIHTT: thinned MORE on ACZ (3.6 vs 2.1 µm)\n— oedema resolution, not damage", fillcolor="#dcecfa", penwidth=2.0];
+    ONHV    [label="ONH volume\n−4.9 vs −2.1 mm³ at 6 mo", fillcolor="#eef7ff"];
+    PMD     [label="Perimetric mean deviation\nIIHTT −3.53 → −2.10 dB (ACZ)", fillcolor="#eef7ff"];
+    VA      [label="Visual acuity · contrast\nsensitivity (insensitive early)", fillcolor="#eef7ff"];
+    OPENP   [label="LP opening pressure\nlarge within-subject variance\n→ regression to the mean", fillcolor="#dcecfa"];
+    INFTEST [label="CSF infusion test\nmeasures R_out/(1−γ), NOT R_out\n— biased high by the loop", fillcolor="#dcecfa", penwidth=2.0];
+    MANOM   [label="Catheter venous manometry\nthe measurement that identifies\nthe model (rarely done)", fillcolor="#dcecfa", penwidth=2.0];
+  }
+
+  /* ======================================================================
+   * 9. SYMPTOMS
+   * ==================================================================== */
+  subgraph cluster_symptom {
+    label="9. Symptoms"; style="rounded,filled"; fillcolor="#fafafa";
+    color="#b0b0b0"; fontsize=13;
+    HEADACHE[label="Headache (>90%)\nHIT-6 impact score", fillcolor="#f3f3f3"];
+    SENSIT  [label="Central sensitisation\n+ medication overuse\n→ headache persists after\npressure is normalised", fillcolor="#f3f3f3", penwidth=2.0];
+    TINN    [label="Pulsatile tinnitus\ntracks the trans-stenotic gradient\n→ abolished by stenting", fillcolor="#f3f3f3"];
+    DIPLOP  [label="Diplopia — VI nerve palsy\n(pressure-threshold sign)", fillcolor="#f3f3f3"];
+    VISOBS  [label="Transient visual obscurations", fillcolor="#f3f3f3"];
+    NECKBACK[label="Neck / back pain, dizziness", fillcolor="#f3f3f3"];
+    COGN    [label="Cognitive impairment ·\nfatigue · reduced QoL", fillcolor="#f3f3f3"];
+  }
+
+  /* ======================================================================
+   * 10. DRUG PK
+   * ==================================================================== */
+  subgraph cluster_pk {
+    label="10. Drug pharmacokinetics"; style="rounded,filled";
+    fillcolor="#f6f9ff"; color="#93aede"; fontsize=13;
+    ACZ_GUT [label="Acetazolamide PO\n250 mg–4 g/day divided", fillcolor="#e8f0ff"];
+    ACZ_PL  [label="Acetazolamide plasma\nt½ 3–9 h · high RBC/CA binding", fillcolor="#e8f0ff"];
+    ACZ_CA  [label="CA inhibition effect site\nCSF flow falls only once\n>99.5% of CA is inhibited\n→ very steep exposure–response", fillcolor="#e8f0ff", penwidth=2.0];
+    TPM_PL  [label="Topiramate plasma\n100–200 mg/day · t½ ~21 h", fillcolor="#e8f0ff"];
+    GLP_SC  [label="Exenatide 10 µg SC bid\n(weekly analogues: semaglutide,\ntirzepatide — under study)", fillcolor="#e8f0ff"];
+    GLP_PL  [label="Exenatide plasma\nt½ ~2.4 h", fillcolor="#e8f0ff"];
+    FUR_PL  [label="Furosemide plasma\n(adjunct)", fillcolor="#e8f0ff"];
+    AZD_PL  [label="AZD4017 — 11β-HSD1 inhibitor\n(IIH:DT phase 2)", fillcolor="#e8f0ff"];
+    HCO3    [label="Serum HCO₃⁻ ↓\nmetabolic acidosis", fillcolor="#e8f0ff"];
+    SIDEFX  [label="Paraesthesia · dysgeusia ·\nfatigue · nausea\n48% could not reach 4 g/day", fillcolor="#e8f0ff"];
+    ADHERE  [label="ADHERENCE ↓\n→ effective dose ceiling below\nthe pharmacological ceiling", fillcolor="#e8f0ff", penwidth=2.0];
+  }
+
+  /* ======================================================================
+   * 11. THERAPY — COLOURED BY WHICH TERM IT ACTS ON
+   * ==================================================================== */
+  subgraph cluster_tx_secretion {
+    label="11a. Therapy acting on SECRETION (I_f) — bounded by the venous floor";
+    style="rounded,filled"; fillcolor="#eff7fe"; color="#5b9bd5"; fontsize=13;
+    TX_ACZ  [label="ACETAZOLAMIDE\nCA inhibition → I_f ↓\nε ≈ 0.28 at 2.5 g/day\n(ceiling ~0.55)", fillcolor="#bcd9f5", penwidth=2.0];
+    TX_TPM  [label="TOPIRAMATE\nweak CA inhibition + weight loss", fillcolor="#bcd9f5"];
+    TX_GLP  [label="GLP-1 RECEPTOR AGONIST\nNa⁺/K⁺-ATPase & NKCC1 ↓\nICP −5.7 cmH₂O by 2.5 h,\nbefore any weight change", fillcolor="#bcd9f5", penwidth=2.0];
+    TX_FUR  [label="FUROSEMIDE\nNKCC1 inhibition (adjunct)", fillcolor="#bcd9f5"];
+    TX_AZD  [label="11β-HSD1 INHIBITION\n(AZD4017 — did not meet\nits ICP endpoint)", fillcolor="#bcd9f5"];
+  }
+  subgraph cluster_tx_other {
+    label="11b. Therapy acting on the FLOOR, on P_cv, or bypassing the equation";
+    style="rounded,filled"; fillcolor="#fdf6ee"; color="#c98f5a"; fontsize=13;
+    TX_STENT[label="VENOUS SINUS STENTING\nabolishes G(ICP) → moves the FLOOR\nCSF-OP 37 → 20.2 cmH₂O with\nweight UP and drug dose DOWN",
+             fillcolor="#ffcf9e", penwidth=2.5];
+    TX_WT   [label="WEIGHT LOSS (diet)\nP_cv ↓ via IAP\n−15.7 kg → ICP −8.0 cmH₂O", fillcolor="#ffc0d4"];
+    TX_BARI [label="BARIATRIC SURGERY\n−21.4 kg → ICP −6.0 cmH₂O at 12 mo\n24% weight loss ≈ remission", fillcolor="#ffc0d4", penwidth=2.0];
+    TX_NAPD [label="Negative abdominal pressure\nIAP 19.1 → 12.5 cmH₂O;\nheadache & tinnitus fall in 5 min", fillcolor="#ffc0d4"];
+    TX_SHUNT[label="CSF SHUNT (VP/LP)\nadds a parallel outflow path\n→ bypasses R_out AND the floor", fillcolor="#e2d4f0", penwidth=2.0];
+    TX_LP   [label="Therapeutic lumbar puncture\n(temporary — CSF re-forms in hours)", fillcolor="#e2d4f0"];
+    TX_ONSF [label="OPTIC NERVE SHEATH FENESTRATION\nprotects the nerve, does NOT\nlower ICP", fillcolor="#e2d4f0", penwidth=2.0];
+    TX_STER [label="Corticosteroids\n(rebound on withdrawal — avoid)", fillcolor="#f3f3f3"];
+  }
+
+  /* ======================================================================
+   * 12. CLINICAL ENDPOINTS AND OUTCOMES
+   * ==================================================================== */
+  subgraph cluster_endpoint {
+    label="12. Clinical endpoints"; style="rounded,filled"; fillcolor="#f4f4f4";
+    color="#999999"; fontsize=13;
+    REMISS  [label="REMISSION\nICP ≤ 25 cmH₂O", fillcolor="#dff0df", penwidth=2.0];
+    VISLOSS [label="Permanent visual field loss\n(the outcome that matters)", fillcolor="#f9dcdc", penwidth=2.0];
+    FULMIN  [label="FULMINANT IIH\ndays-to-weeks to blindness\n→ mechanical decompression,\nnot dose escalation", fillcolor="#f6c9c9", penwidth=2.0];
+    RELAPSE [label="Relapse on drug withdrawal\n(nothing structural was changed)", fillcolor="#f4f4f4"];
+    RESTEN  [label="In-stent restenosis\n/ retreatment", fillcolor="#f4f4f4"];
+    SHUNTFAIL[label="Shunt failure / revision\n(higher with obesity)", fillcolor="#f4f4f4"];
+    QOL     [label="Quality of life (SF-36)\n+7.3 at 12 mo after surgery", fillcolor="#f4f4f4"];
+    CVRISK  [label="Long-term cardiovascular risk\n(IIH cohorts, women)", fillcolor="#f4f4f4"];
+  }
+
+  /* ======================================================================
+   * 13. THE MODELLING LESSONS THIS MAP ENCODES
+   * ==================================================================== */
+  subgraph cluster_lesson {
+    label="13. What the structure implies for trials and models";
+    style="rounded,filled"; fillcolor="#f2f7f2"; color="#8aa88a"; fontsize=13;
+    LESSON1 [label="BOUND: any secretion drug is capped\nby the floor. In stenosis-dominated\npatients that cap is ABOVE remission,\nso failure is structural, not dosing.",
+             fillcolor="#dff0df", shape=note];
+    LESSON2 [label="STATE vs INTEGRAL: ICP is a state,\nvision is an integral. A 6-month ICP\nendpoint over-values RAMP therapies\n(weight) vs STEP therapies (drug, stent).",
+             fillcolor="#dff0df", shape=note];
+    LESSON3 [label="IDENTIFIABILITY: the ICP endpoint\nconstrains only ε·I_f·R_out/(1−γ).\nPotency and loop gain are confounded\nuntil someone measures the sinus.",
+             fillcolor="#dff0df", shape=note];
+    LESSON4 [label="SURROGATE FAILURE: RNFL and RGCL\nmix a reversible and an irreversible\nchannel with opposite meanings.",
+             fillcolor="#dff0df", shape=note];
+  }
+
+  /* ======================================================================
+   * EDGES
+   * ==================================================================== */
+
+  /* --- host risk -> abdominal chain and endocrine drive --- */
+  OBESITY -> ADIPOSE;   WTGAIN -> ADIPOSE;   FEMALE -> ANDROGEN;
+  ADIPOSE -> SAD;       SAD -> IAP;          OBESITY -> IAP;
+  ADIPOSE -> HSD1;      HSD1 -> ANDROGEN;    ADIPOSE -> LEPTIN;
+  PCOS -> ANDROGEN;     PCOS -> OBESITY [style=dashed];
+  OSA -> CVP [label="hypercapnia\nvenous congestion", fontsize=7];
+  RETINOL -> ARACH [label="impairs\nabsorption", fontsize=7, style=dashed];
+  SECOND -> ROUT [style=dashed, label="drug-induced", fontsize=7];
+  CVST -> SSS [style=dashed, label="mimic:\noutflow occlusion", fontsize=7];
+
+  /* --- abdominal chain -> P_cv --- */
+  IAP -> PLEURAL;  PLEURAL -> CVP;  CVP -> RAP;  RAP -> JUGULAR;
+  JUGULAR -> PCV;  CVP -> PCV [penwidth=1.6];
+
+  /* --- endocrine -> secretion --- */
+  ANDROGEN -> MR_CP;   MR_CP -> NAK [label="↑ secretion", fontsize=7];
+  HSD1 -> MR_CP;       LEPTIN -> CPBLOOD [style=dashed];
+
+  /* --- secretion machinery -> I_f --- */
+  CA -> NBCE2;    NBCE2 -> NAK;   NKCC1 -> NAK;   NAK -> IF [penwidth=1.6];
+  AQP1 -> IF;     CPBLOOD -> IF;  CA -> IF [penwidth=1.4];
+  GLP1R -> NAK [label="⊣ inhibits", fontsize=7, arrowhead=tee];
+  GLP1R -> NKCC1 [arrowhead=tee, fontsize=7];
+
+  /* --- outflow machinery -> R_out --- */
+  ARACH -> ROUT [penwidth=1.4];  DURALLY -> ROUT;  CRIB -> ROUT;
+  GLYMPH -> ROUT;  SPINAL -> ROUT;  DURALLY -> CLN;  CRIB -> CLN;
+  LYMPHRES -> DURALLY;  LYMPHRES -> GLYMPH;  OBESITY -> LYMPHRES [arrowhead=tee];
+
+  /* --- THE DAVSON RELATION --- */
+  IF   -> DAVSON [penwidth=2.2, color="#3d7cb8", label="I_f", fontsize=9];
+  ROUT -> DAVSON [penwidth=2.2, color="#3a9a6b", label="R_out", fontsize=9];
+  SSS  -> DAVSON [penwidth=2.2, color="#e07b1a", label="P_sss", fontsize=9];
+  DAVSON -> ICP [penwidth=2.6];
+  MARMAROU -> ICP [penwidth=1.6, label="dynamics\n(minutes)", fontsize=7];
+  IF -> MARMAROU;  ROUT -> MARMAROU;
+  COMPL -> MARMAROU;  ICP -> COMPL [arrowhead=tee, label="compliance falls\nas ICP rises", fontsize=7];
+  ICP -> PULSE;  PULSE -> TINN;
+  ICP -> VENTR [style=dashed];  VENTR -> SLITV [style=dashed];
+  ICP -> EMPTYS;
+
+  /* --- THE POSITIVE FEEDBACK LOOP (the heart of the map) --- */
+  PCV -> SSS [penwidth=2.0, color="#e07b1a", label="base of the floor", fontsize=8];
+  TSSTEN -> STARLING;   ICP -> STARLING [penwidth=2.4, color="#cc0000",
+            label="CSF pressure\ncompresses the sinus", fontsize=8];
+  STARLING -> GRAD [penwidth=2.2, color="#e07b1a"];
+  GRAD -> SSS [penwidth=2.4, color="#cc0000", label="G(ICP) adds to P_sss", fontsize=8];
+  GRAD -> GAMMA;  GAMMA -> FLOOR [penwidth=2.0];
+  PCV -> FLOOR [penwidth=2.0, color="#e07b1a"];
+  FLOOR -> ICP [penwidth=2.6, color="#ff8c1a", style=bold,
+                label="ICP can never\ngo below this", fontsize=9];
+  COUPLING -> GAMMA [style=dashed, label="measured", fontsize=7];
+  ICP -> COUPLING [style=dashed];
+
+  /* --- chronicity: pressure damages its own outflow --- */
+  ICP -> LYMPHRES [arrowhead=tee, style=dashed, penwidth=1.4,
+        label="chronic high pressure\ndegrades outflow reserve", fontsize=7];
+
+  /* --- ICP -> optic nerve --- */
+  ICP -> SHEATH [penwidth=2.0];  SHEATH -> TLPG [penwidth=2.0];
+  IOP -> TLPG [arrowhead=tee];
+  TLPG -> STASIS [penwidth=2.0];  STASIS -> SWELL [penwidth=2.0];
+  SWELL -> ISCHAEM;  ISCHAEM -> AXONLOSS [penwidth=1.8];
+  SWELL -> AXONLOSS [penwidth=1.8, label="above a\ncritical swelling", fontsize=7];
+  TLPG -> INTEGRAL [penwidth=2.0, color="#cc7a00"];
+  INTEGRAL -> AXONLOSS [penwidth=2.2, color="#cc7a00"];
+  AXONLOSS -> ATROPHY;  SWELL -> FOLDS;
+
+  /* --- optic nerve -> biomarkers (note the two channels feeding each) --- */
+  SWELL -> FRISEN;      SWELL -> ONHV;
+  SWELL -> RNFL [penwidth=1.8, label="+ swelling", fontsize=7];
+  AXONLOSS -> RNFL [penwidth=1.8, arrowhead=tee, label="− atrophy", fontsize=7];
+  SWELL -> RGCL [label="+ contamination", fontsize=7];
+  AXONLOSS -> RGCL [arrowhead=tee, label="− true loss", fontsize=7];
+  SWELL -> PMD [label="reversible\nfield loss", fontsize=7];
+  AXONLOSS -> PMD [penwidth=1.8, label="permanent\nfield loss", fontsize=7];
+  AXONLOSS -> VA;  AXONLOSS -> VISLOSS [penwidth=2.2];
+  RNFL -> LESSON4 [style=dashed];  RGCL -> LESSON4 [style=dashed];
+  ICP -> OPENP;   ICP -> INFTEST;  GAMMA -> INFTEST [style=dashed,
+        label="inflates apparent R_out", fontsize=7];
+  SSS -> MANOM;   MANOM -> LESSON3 [style=dashed];
+
+  /* --- symptoms --- */
+  ICP -> HEADACHE [penwidth=1.8];  HEADACHE -> SENSIT;
+  SENSIT -> HEADACHE [penwidth=1.6, label="persists after\npressure control", fontsize=7];
+  GRAD -> TINN [penwidth=1.8];  ICP -> DIPLOP;  ICP -> VISOBS;
+  ICP -> NECKBACK;  HEADACHE -> COGN;  HEADACHE -> QOL [arrowhead=tee];
+  VISLOSS -> QOL [arrowhead=tee];
+
+  /* --- drug PK -> PD --- */
+  ACZ_GUT -> ACZ_PL;  ACZ_PL -> ACZ_CA;  ACZ_CA -> TX_ACZ;
+  ACZ_PL -> HCO3 [arrowhead=tee];  HCO3 -> SIDEFX;
+  SIDEFX -> ADHERE [arrowhead=tee];  ADHERE -> TX_ACZ [arrowhead=tee, penwidth=1.6,
+        label="caps the achievable\ndose, not the potency", fontsize=7];
+  SIDEFX -> HEADACHE [style=dashed];
+  TPM_PL -> TX_TPM;  GLP_SC -> GLP_PL;  GLP_PL -> TX_GLP;
+  FUR_PL -> TX_FUR;  AZD_PL -> TX_AZD;
+
+  /* --- therapy -> targets (the colour-coded point of the map) --- */
+  TX_ACZ  -> CA     [arrowhead=tee, penwidth=2.2, color="#2f6fa8"];
+  TX_TPM  -> CA     [arrowhead=tee, color="#2f6fa8"];
+  TX_GLP  -> GLP1R  [penwidth=2.2, color="#2f6fa8"];
+  TX_FUR  -> NKCC1  [arrowhead=tee, color="#2f6fa8"];
+  TX_AZD  -> HSD1   [arrowhead=tee, color="#2f6fa8"];
+  TX_TPM  -> TX_WT  [style=dashed, label="secondary\nweight loss", fontsize=7];
+  TX_GLP  -> TX_WT  [style=dashed, penwidth=1.6, label="ramp component", fontsize=7];
+  TX_ACZ  -> TX_WT  [style=dashed, label="IIHTT: −4.05 kg\nextra vs placebo", fontsize=7];
+
+  TX_STENT -> TSSTEN [arrowhead=tee, penwidth=2.6, color="#d2691e"];
+  TX_STENT -> GRAD   [arrowhead=tee, penwidth=2.6, color="#d2691e"];
+  TX_STENT -> FLOOR  [arrowhead=tee, penwidth=2.6, color="#d2691e",
+                      label="moves the bound itself", fontsize=8];
+  TX_STENT -> RESTEN [style=dashed];
+  TX_WT   -> IAP [arrowhead=tee, penwidth=2.0, color="#c2185b"];
+  TX_BARI -> IAP [arrowhead=tee, penwidth=2.2, color="#c2185b"];
+  TX_BARI -> ANDROGEN [arrowhead=tee, style=dashed];
+  TX_NAPD -> IAP [arrowhead=tee, penwidth=2.0, color="#c2185b"];
+  TX_SHUNT -> ICP [arrowhead=tee, penwidth=2.2, color="#7b52ab",
+                   label="parallel outflow:\nthe only drug-free way\nto bypass BOTH terms", fontsize=8];
+  TX_SHUNT -> SHUNTFAIL [style=dashed];  SLITV -> SHUNTFAIL [style=dashed];
+  TX_LP -> ICP [arrowhead=tee, color="#7b52ab", style=dashed];
+  TX_ONSF -> SWELL [arrowhead=tee, penwidth=2.0, color="#7b52ab"];
+  TX_STER -> ICP [style=dashed, label="rebound on\nwithdrawal", fontsize=7];
+
+  /* --- endpoints --- */
+  ICP -> REMISS [penwidth=1.8];  FLOOR -> REMISS [arrowhead=tee, penwidth=2.2,
+        color="#ff8c1a", label="if floor > 25 cmH₂O,\nremission is unreachable\nby ANY drug", fontsize=8];
+  TX_ACZ -> RELAPSE [style=dashed];  ICP -> FULMIN;
+  GAMMA -> FULMIN [penwidth=1.8, label="γ → 1: no stable\nfixed point", fontsize=7];
+  FULMIN -> VISLOSS [penwidth=2.2];  ICP -> CVRISK [style=dashed];
+
+  /* --- lessons --- */
+  FLOOR -> LESSON1 [style=dashed];
+  INTEGRAL -> LESSON2 [style=dashed];
+  TX_WT -> LESSON2 [style=dashed];
+  GAMMA -> LESSON3 [style=dashed];
+
+  /* ---- legend ---------------------------------------------------------- */
+  subgraph cluster_legend {
+    label="Legend — therapy colour = which term of ICP = I_f·R_out + P_sss it acts on";
+    style="rounded,filled"; fillcolor="#ffffff"; color="#888888"; fontsize=12;
+    L1 [label="acts on SECRETION I_f\n(bounded by the floor)", fillcolor="#bcd9f5"];
+    L2 [label="acts on OUTFLOW R_out\n(no licensed drug)", fillcolor="#b6e3cb"];
+    L3 [label="acts on the VENOUS FLOOR\n(stenting)", fillcolor="#ffcf9e"];
+    L4 [label="acts on P_cv via the abdomen\n(weight, NAPD)", fillcolor="#ffc0d4"];
+    L5 [label="BYPASSES the equation\n(shunt, LP, ONSF)", fillcolor="#e2d4f0"];
+    L6 [label="the bound itself", fillcolor="#ff9f4d", shape=octagon];
+    L1 -> L2 -> L3 -> L4 -> L5 -> L6 [style=invis];
+  }
+}
