@@ -1,0 +1,1033 @@
+// ============================================================================
+//  Arrhythmogenic Right Ventricular Cardiomyopathy (ARVC / arrhythmogenic
+//  cardiomyopathy) — Mechanistic QSP Map
+//  ---------------------------------------------------------------------------
+//  Render:  dot -Tsvg arvc_qsp_model.dot -o arvc_qsp_model.svg
+//           dot -Tpng -Gdpi=150 arvc_qsp_model.dot -o arvc_qsp_model.png
+//
+//  Companion files
+//    arvc_mrgsolve_model.R      the same structure as 54 ODEs
+//    arvc_reference_impl.py     dependency-free numerical twin (--check)
+//    arvc_references.md         every claim below, with PubMed links
+//
+//  ---------------------------------------------------------------------------
+//  WHAT THIS MAP IS ARGUING
+//  ---------------------------------------------------------------------------
+//  ARVC is usually drawn as a linear cascade: desmosomal variant -> junction
+//  failure -> myocyte death -> fibrofatty replacement -> arrhythmia.  That
+//  drawing is not wrong, but it cannot survive contact with five facts:
+//
+//   (A) PKP2 truncating variants are far commoner in the population than ARVC
+//       is; most carriers of ARVC-gene loss-of-function variants in an
+//       unselected biobank have no phenotype at all.  A linear cascade from
+//       genotype predicts complete penetrance.
+//       [Carruth 2019 PMID 31638835; Groeneweg 2015 PMID 25820315]
+//   (B) Exercise dose is graded and large: desmosomal carriers in the highest
+//       exercise tertile reached the phenotype far younger, with about a
+//       3-fold hazard of VT/death.  [James 2013 PMID 23871885;
+//       Ruwald 2015 PMID 25896080]
+//   (C) The same phenotype occurs in athletes with NO desmosomal variant, and
+//       those patients had done MORE exercise than the gene-positive ones.
+//       [Sawant 2014 PMID 25516436]
+//   (D) The right ventricle goes first, although PKP2 is expressed equally in
+//       both ventricles.  Left dominance is a DSP/FLNC phenomenon.
+//       [Corrado 2024 PMID 37844667; Brandao 2023 PMID 37048743]
+//   (E) The therapy hierarchy is upside down for a single-cascade disease:
+//       sotalol came out no better than nothing, flecainide (a class IC drug,
+//       in a structural cardiomyopathy) reduces VT as an add-on, endocardial
+//       ablation recurs where endo-epicardial ablation does not, and the ICD
+//       — which touches no part of the cascade — is the only therapy with an
+//       unambiguous mortality benefit.
+//       [Marcus 2009 PMID 19660690; Ermakov 2017 PMID 27939893;
+//        Santangeli 2015 PMID 26546346; Berruezo 2012 PMID 22205683]
+//
+//  So the map is built around three structural commitments instead.
+//
+//  ---------------------------------------------------------------------------
+//  COMMITMENT 1 — THE CLOCK IS CUMULATIVE MECHANICAL WORK, NOT TIME
+//       (clusters 3 and 4, the violet/red spine down the left)
+//  ---------------------------------------------------------------------------
+//  A desmosomal variant does not destroy myocardium.  It lowers the load at
+//  which the intercalated disc fails.  Myocyte loss is therefore drawn as a
+//  FATIGUE-FAILURE process — rate = beats x (wall stress / reserve)^4 — and
+//  genotype enters ONLY through the reserve term.  Age is not a variable in
+//  the model at all; it appears only as the integral of load.
+//
+//  The loop marked "AUTOCATALYSIS" is the reason ARVC has a concealed phase
+//  followed by rapid overt progression with no phase-transition parameter in
+//  the model: wall stress depends on wall thickness, wall thickness depends on
+//  how much myocardium is left, so every myocyte lost raises the price of the
+//  next beat.
+//
+//  This commitment has a clean experimental test it was NOT fitted to: in
+//  plakoglobin-deficient mice, LOAD-REDUCING THERAPY (furosemide + nitrate) —
+//  a regimen with no desmosomal, ion-channel or anti-fibrotic action whatever
+//  — prevented RV enlargement, preserved conduction and prevented the
+//  arrhythmic phenotype.  [Fabritz 2011 PMID 21292134;
+//  Kirchhof 2006 PMID 17030684]  It enters the map at node LOADRED.
+//
+//  ---------------------------------------------------------------------------
+//  COMMITMENT 2 — RV SELECTIVITY IS LAPLACE, NOT BIOLOGY
+//       (cluster 3, nodes SIG_RV / SIG_LV and the K_EX edges)
+//  ---------------------------------------------------------------------------
+//  No chamber-specific gene expression is used for PKP2 disease.  Two
+//  measured asymmetries do the work: the RV free wall is ~4 mm against the
+//  LV's ~9 mm, and during maximal exercise RV end-systolic wall stress rises
+//  about 125% while the LV rises about 14%, because pulmonary vascular
+//  resistance falls far less than systemic.  [La Gerche 2011 PMID 21085033;
+//  La Gerche 2012 PMID 22160404; La Gerche 2017 PMID 28957535]
+//  Raised to the fourth power that 125%-vs-14% gap becomes roughly fifteen-
+//  fold per exercising beat.  The RV therefore goes first, and — a prediction,
+//  not an input — the RV/LV gap WIDENS with training.  Left dominance needs
+//  the separate, genotype-specific edge KAPPA_LV, drawn dashed, which is
+//  switched on only for DSP and FLNC.
+//
+//  ---------------------------------------------------------------------------
+//  COMMITMENT 3 — TWO ARRHYTHMIA GENERATORS, AND A DRUG CANNOT OUTPERFORM
+//       THE GENERATOR IT OCCUPIES  (clusters 9, 10 and 17)
+//  ---------------------------------------------------------------------------
+//  GENERATOR I  (cluster 9, blue): early, catecholaminergic, and completely
+//    independent of structure.  PKP2 loss strips Nav1.5 and Cx43 from the
+//    intercalated disc and destabilises RyR2, so diastolic Ca leak and
+//    triggered activity exist in a structurally normal heart.  This is the
+//    concealed-phase arrhythmia, and it is why young carriers die during
+//    exertion with a normal echocardiogram.
+//    [Sato 2009 PMID 19661460; Cerrone 2014 PMID 24352520;
+//     van Opbergen 2019 PMID 31438494]
+//    Occupied by: beta-blockade, flecainide (RyR2 open-state block), and
+//    exercise restriction (which removes the catecholamine surges as well as
+//    the load).
+//  GENERATOR II (cluster 10, brown): late, re-entrant, scar-dependent.
+//    Maximal when viable myocardium and fibrofatty replacement interdigitate
+//    about 50/50 — a homogeneous scar has no conducting channels and neither
+//    does normal myocardium, which is exactly the principle ablation
+//    exploits.  Subepicardial before endocardial, which is why endocardial-
+//    only mapping under-reads the substrate.
+//    [Tschabrunn 2022 PMID 34883271; Berruezo 2012 PMID 22205683]
+//    Occupied by: epicardial ablation and amiodarone; NOT by beta-blockade.
+//
+//  Two consequences are drawn explicitly because they are the map's most
+//  falsifiable claims:
+//    * FLECAINIDE HAS TWO SIGNS.  It removes Generator I (RyR2 block) and it
+//      slows conduction (Nav1.5 block), which FEEDS Generator II.  Its sign
+//      therefore depends on where the patient sits on the trajectory — the
+//      CAST lesson arriving from geometry rather than from a warning label.
+//    * THE ICD IS ATTACHED TO THE OUTCOME, NOT TO EITHER GENERATOR.  That is
+//      simultaneously why it is the only unambiguous mortality therapy and
+//      why it cannot substitute for anything upstream of it.
+//
+//  ---------------------------------------------------------------------------
+//  COLOUR KEY
+//    Grey        genotype / desmosomal and non-desmosomal genes
+//    Violet      the mechanical clock (load, wall stress, fatigue dose)
+//    Red         myocyte injury and death
+//    Orange-red  innate immunity / the hot phase
+//    Tan         fibrogenesis
+//    Yellow      adipogenesis and its Wnt/Hippo switch
+//    Blue        GENERATOR I — Ca handling and triggered activity
+//    Brown       GENERATOR II — conduction, scar re-entry
+//    Teal        chamber mechanics and neurohormonal
+//    Light green diagnostics: ECG, imaging, Task Force Criteria
+//    Orange      drugs and interventions
+//    Pink        devices and procedures
+//    Dark green  clinical endpoints
+//
+//  Edge convention:  solid = activation/flux;  dashed red = inhibition;
+//  bold violet = the fatigue clock;  dotted = a switch that is off unless the
+//  genotype or scenario turns it on.
+//
+//  DISCLAIMER: educational / research QSP model.  Semi-quantitative, not
+//  independently validated, NOT for clinical decision-making.
+// ============================================================================
+
+digraph ARVC_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<B>Arrhythmogenic Right Ventricular Cardiomyopathy — Mechanistic QSP Map</B><BR/>
+<FONT POINT-SIZE="13">The clock is cumulative mechanical work, not time · RV selectivity is Laplace, not biology · two arrhythmia generators on different clocks</FONT><BR/>
+<FONT POINT-SIZE="11">54-ODE companion model: arvc_mrgsolve_model.R · numerical twin: arvc_reference_impl.py --check · references: arvc_references.md</FONT>>;
+    fontsize = 22;
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+          margin="0.09,0.05", penwidth=1.1];
+    edge [fontname="Helvetica", fontsize=8, arrowsize=0.65, color="#555555"];
+
+    // =======================================================================
+    //  CLUSTER 1 — GENOTYPE
+    // =======================================================================
+    subgraph cluster_geno {
+        label = "1. GENOTYPE — desmosomal and non-desmosomal substrates\n(the variant sets the PRICE per unit load, not the amount of damage)";
+        style = "filled,rounded"; fillcolor = "#f2f2f2"; color = "#9e9e9e";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#e0e0e0", color = "#757575"];
+
+        PKP2  [label="PKP2\nplakophilin-2\n~40-60% of ARVC\ntruncating >> missense", fillcolor="#bdbdbd", penwidth=2.0];
+        DSP   [label="DSP\ndesmoplakin\nleft-dominant, episodic\nmyocardial injury"];
+        DSG2  [label="DSG2\ndesmoglein-2\nbiventricular"];
+        DSC2  [label="DSC2\ndesmocollin-2"];
+        JUP   [label="JUP\nplakoglobin (γ-catenin)\nNaxos disease (recessive)"];
+        FLNC  [label="FLNC\nfilamin-C truncating\nleft-dominant + LGE ring"];
+        TMEM43 [label="TMEM43 p.S358L\nfully penetrant, male-lethal\nfounder variant"];
+        PLN   [label="PLN p.Arg14del\nSERCA regulation\nlow-voltage ECG"];
+        DES   [label="DES\ndesmin\nconduction disease"];
+        CTNNA3 [label="CTNNA3\nαT-catenin"];
+        GENE_ELUSIVE [label="GENE-ELUSIVE\nno variant found\n~40-50% of probands\nHIGHEST exercise dose", fillcolor="#ffe0b2", color="#e65100", penwidth=1.8];
+        PHENOCOPY [label="phenocopies\ncardiac sarcoidosis · myocarditis\nCPVT (RYR2) · LMNA · Chagas\nidiopathic RVOT VT", fillcolor="#eceff1"];
+
+        DESMO_RESERVE [label="DESMOSOMAL RESERVE\nload at which the intercalated\ndisc fails\n(the ONLY route from genotype\ninto this model)", shape=octagon, fillcolor="#9e9e9e", fontcolor="white", penwidth=2.2];
+    }
+
+    // =======================================================================
+    //  CLUSTER 2 — THE INTERCALATED DISC / CONNEXOME
+    // =======================================================================
+    subgraph cluster_id {
+        label = "2. THE INTERCALATED DISC AS ONE ORGANELLE (the 'connexome')\nmechanical, electrical and signalling functions share the same protein complex";
+        style = "filled,rounded"; fillcolor = "#eceff1"; color = "#607d8b";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#cfd8dc", color = "#546e7a"];
+
+        AREA_COMP [label="area composita\ndesmosome + adherens junction\nfused, cardiac-specific"];
+        DSM [label="desmosome core\nDSG2·DSC2–PKP2–DSP\n–desmin IF anchor"];
+        ADH [label="adherens junction\nN-cadherin–αT/β-catenin\n–actin"];
+        GJ [label="gap junction plaque\nCx43 (GJA1)"];
+        NAV_CPLX [label="Nav1.5 complex\nSCN5A–ankyrin-G–PKP2\nat the ID crest"];
+        KIR [label="Kir2.1 / SK3\nID-localised K+ channels"];
+        MECH_COUPL [label="mechanical continuity\nmyocyte-to-myocyte\nforce transmission", fillcolor="#b0bec5", penwidth=1.6];
+
+        PKP2_ID [label="PKP2 protein AT THE DISC\n(state variable PKP2_ID)\nhaploinsufficiency ≈ 0.5", shape=ellipse, fillcolor="#90a4ae", penwidth=1.8];
+        PG_NUC [label="nuclear plakoglobin\n(γ-catenin translocation)\nthe diagnostic 'signal loss'", shape=ellipse, fillcolor="#b39ddb", color="#5e35b1"];
+        NAV_ID [label="Nav1.5 AT THE DISC\nINa ↓ ~30% in PKP2-het", shape=ellipse, fillcolor="#90caf9", color="#1565c0"];
+        CX43_ID [label="Cx43 AT THE DISC\ncoupling ↓, lateralisation", shape=ellipse, fillcolor="#a5d6a7", color="#2e7d32"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 3 — THE MECHANICAL CLOCK  (COMMITMENT 1 + 2)
+    // =======================================================================
+    subgraph cluster_load {
+        label = "3. THE MECHANICAL CLOCK — COMMITMENTS 1 AND 2\nage is not a variable: it is the integral of load. RV selectivity is Laplace + the exercise stress asymmetry";
+        style = "filled,rounded"; fillcolor = "#f3e5f5"; color = "#6a1b9a";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#e1bee7", color = "#6a1b9a"];
+
+        EX_DOSE [label="EXERCISE DOSE\nMET-hours / week\nsedentary 6 · guideline 15\ncompetitive 60 · elite 100", shape=octagon, fillcolor="#ce93d8", penwidth=2.2];
+        DUTY [label="duty cycle f_ex\nfraction of the week at\nvigorous intensity"];
+        HR_BEATS [label="beat count\n62 bpm rest → 158 bpm exercise\n(the fatigue CYCLE count)"];
+        PRELOAD [label="venous return / preload\nRV filling ↑ 2-3× at max output"];
+        PVR [label="pulmonary vascular resistance\nfalls only modestly\n(the RV's Achilles heel)"];
+        PAP [label="pulmonary artery pressure\nmPAP 14 → 35-40 mmHg\nat maximal exercise"];
+        SVR [label="systemic vascular resistance\nfalls steeply\n→ LV afterload barely rises"];
+
+        H_RV [label="RV free-wall thickness\n~4 mm (load-bearing:\nmyocyte + 0.7·fibrous + 0.35·fat)"];
+        H_LV [label="LV wall thickness\n~9 mm"];
+        R_RV [label="RV chamber radius\n∝ RVEDV^(1/3)"];
+        R_LV [label="LV chamber radius"];
+
+        SIG_RV [label="RV WALL STRESS  σ_RV\nσ = P·r / 2h  (Laplace)\nEXERCISE: +125%", shape=ellipse, fillcolor="#ba68c8", fontcolor="white", penwidth=2.2];
+        SIG_LV [label="LV WALL STRESS  σ_LV\nEXERCISE: +14%", shape=ellipse, fillcolor="#d1c4e9", penwidth=1.6];
+
+        FATIGUE_RV [label="RV FATIGUE DOSE RATE\nbeats × (σ_RV)^NMECH\nNMECH = 4, fixed a priori\n(Basquin exponent range)", shape=doubleoctagon, fillcolor="#8e24aa", fontcolor="white", penwidth=2.6];
+        FATIGUE_LV [label="LV FATIGUE DOSE RATE\nbeats × (σ_LV)^4 × KAPPA_LV", shape=octagon, fillcolor="#b39ddb", penwidth=1.8];
+        D_RV [label="cumulative RV dose  D_RV\n(load-years)", shape=ellipse, fillcolor="#ce93d8"];
+        D_LV [label="cumulative LV dose  D_LV", shape=ellipse, fillcolor="#e1bee7"];
+        KAPPA_LV [label="KAPPA_LV\nLV-intrinsic vulnerability\nON only for DSP / FLNC\n(the only chamber-specific term\nin the whole model)", shape=hexagon, fillcolor="#fff9c4", color="#f9a825", penwidth=1.8];
+        PHI_EX [label="PHI_EX — THE FALSIFIER\nset to 0 and damage becomes\nload-INDEPENDENT: the model\nturns into a calendar clock\nand (A)–(D) all invert", shape=hexagon, fillcolor="#ffcdd2", color="#b71c1c", penwidth=2.2];
+    }
+
+    // =======================================================================
+    //  CLUSTER 4 — FATIGUE FAILURE AND MYOCYTE DEATH
+    // =======================================================================
+    subgraph cluster_death {
+        label = "4. FATIGUE FAILURE OF THE DISC → MYOCYTE DEATH\nrate = beats × (stress/reserve)^4 · the AUTOCATALYSIS loop needs no phase-transition parameter";
+        style = "filled,rounded"; fillcolor = "#ffebee"; color = "#c62828";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#ffcdd2", color = "#c62828"];
+
+        ID_STRAIN [label="strain concentrated at the disc\n(desmosome bears the peak load)"];
+        ID_RUPTURE [label="intercalated disc failure\ngap widening · desmosome\ndissolution on EM", penwidth=1.7];
+        MYO_DETACH [label="myocyte detachment\nfrom its neighbours"];
+        MYO_STRETCH [label="unopposed stretch of the\nsurviving myocytes\n(load transferred, not removed)"];
+        APOPT [label="apoptosis\ncaspase-3 activation"];
+        NECROP [label="necrosis / necroptosis\nRIPK3 · membrane rupture"];
+        MYO_LOSS [label="MYOCYTE LOSS\nstate variable MYO_RV\n(irreversible: no meaningful\nadult regeneration)", shape=ellipse, fillcolor="#ef5350", fontcolor="white", penwidth=2.2];
+        NEC_POOL [label="acutely injured pool\nNEC_RV — the DAMP source", shape=ellipse, fillcolor="#e57373"];
+        TNI_REL [label="troponin release\n(episodic, without\ncoronary disease)"];
+        WALL_THIN [label="wall thinning\n→ σ rises for the same pressure", penwidth=1.7];
+        ANEURYSM [label="regional aneurysm\nsubtricuspid · apex · infundibulum\n('triangle of dysplasia')"];
+        MYO_FLOOR [label="REGIONAL SPARING (MYO_FLOOR)\nthis is a lumped free-wall model but\nthe disease is regional: subtricuspid\nwall, apex and infundibulum carry the\nhighest local stress and go first,\nwhile septum-adjacent and outflow\nmyocardium stays subcritical\n→ the lumped average cannot reach 0,\nand this is what caps the runaway\nwithout a phase-transition parameter",
+                   shape=hexagon, fillcolor="#fff3e0", color="#bf360c", penwidth=1.8];
+        AUTOCAT [label="AUTOCATALYSIS\nmyocyte loss → thinner wall →\nhigher σ → faster loss\n= concealed phase, then\nrapid overt progression", shape=doubleoctagon, fillcolor="#b71c1c", fontcolor="white", penwidth=2.4];
+    }
+
+    // =======================================================================
+    //  CLUSTER 5 — Wnt / plakoglobin
+    // =======================================================================
+    subgraph cluster_wnt {
+        label = "5. CANONICAL Wnt / β-CATENIN — the adipogenic brake being released";
+        style = "filled,rounded"; fillcolor = "#ede7f6"; color = "#4527a0";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#d1c4e9", color = "#4527a0"];
+
+        PG_COMPETE [label="nuclear plakoglobin competes\nβ-catenin off TCF/LEF"];
+        GSK3B [label="GSK-3β\nphosphorylates β-catenin\n→ degradation", penwidth=1.6];
+        BCAT [label="β-catenin nuclear pool ↓"];
+        WNT_ACT [label="canonical Wnt activity ↓\n(state variable WNT_ACT)\nthe brake on adipogenesis", shape=ellipse, fillcolor="#b39ddb", penwidth=1.8];
+        TCF_TARGETS [label="TCF/LEF targets ↓\nc-Myc · cyclin D1 · Axin2"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 6 — Hippo / YAP and adipogenesis
+    // =======================================================================
+    subgraph cluster_adipo {
+        label = "6. HIPPO/YAP AND ADIPOGENESIS — why the replacement tissue is FAT\nboth switches must be thrown: Wnt suppressed AND Hippo activated";
+        style = "filled,rounded"; fillcolor = "#fffde7"; color = "#f9a825";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#fff9c4", color = "#f9a825"];
+
+        NF2_MST [label="NF2 / MST1 / LATS1-2\nHippo kinase cascade"];
+        HIPPO_ACT [label="Hippo pathway ACTIVE\n(state variable HIPPO)\ndriven by junction loss AND\nby mechanical load", shape=ellipse, fillcolor="#ffe082", penwidth=1.8];
+        YAP_SEQ [label="YAP phosphorylated,\nsequestered in cytoplasm\n(14-3-3 binding)"];
+        PPARG [label="PPARγ ↑"];
+        CEBPA [label="C/EBPα ↑"];
+        ADIPOQ [label="adiponectin · perilipin\nadipocyte gene programme"];
+        FAP [label="fibro-adipogenic progenitors\nPDGFRα+ cardiac mesenchyme\n(state variable FAP)", shape=ellipse, fillcolor="#ffcc80", color="#ef6c00", penwidth=1.7];
+        ADIPOCYTE [label="mature adipocyte"];
+        FAT_TISSUE [label="FATTY REPLACEMENT\nstate variable FAT_RV\nepicardium → endocardium,\nwavefront direction", shape=ellipse, fillcolor="#ffd54f", penwidth=2.0];
+        SPACE [label="vacated space\nreplacement fills the volume the\nmyocytes left — it does not\ncreate it", shape=hexagon, fillcolor="#f0f4c3"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 7 — fibrogenesis
+    // =======================================================================
+    subgraph cluster_fib {
+        label = "7. FIBROGENESIS — the other half of 'fibrofatty'";
+        style = "filled,rounded"; fillcolor = "#efebe9"; color = "#5d4037";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#d7ccc8", color = "#5d4037"];
+
+        TGFB [label="TGF-β1 ↑\n(TGFB3 is itself an ARVC locus)"];
+        SMAD [label="SMAD2/3 phosphorylation"];
+        CTGF [label="CTGF / CCN2"];
+        MYOFIB [label="myofibroblast\nαSMA+ · contractile"];
+        COL13 [label="collagen I / III deposition"];
+        LOX [label="lysyl oxidase\ncross-linking → stiffness"];
+        MMP_TIMP [label="MMP-2/9 vs TIMP-1\nmatrix turnover balance"];
+        FIB_TISSUE [label="FIBROUS REPLACEMENT\nstate variable FIB_RV\nbears load (0.7) but does not\ncontract", shape=ellipse, fillcolor="#a1887f", fontcolor="white", penwidth=2.0];
+        ALDO [label="aldosterone\nprofibrotic drive"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 8 — innate immunity / the hot phase
+    // =======================================================================
+    subgraph cluster_inf {
+        label = "8. INNATE IMMUNITY AND THE 'HOT PHASE'\nmyocyte death here is immunogenic — inflammation both follows injury AND feeds it";
+        style = "filled,rounded"; fillcolor = "#fbe9e7"; color = "#d84315";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#ffccbc", color = "#d84315"];
+
+        DAMPS [label="DAMPs\nmtDNA · HMGB1 · ATP"];
+        TLR [label="TLR4 / NLRP3 inflammasome"];
+        NFKB [label="NF-κB activation\n(also driven directly by\ndesmosome loss)", penwidth=1.7];
+        IL1B [label="IL-1β"];
+        IL6 [label="IL-6"];
+        TNFA [label="TNF-α"];
+        MACRO [label="macrophage infiltration\nCCR2+ monocyte recruitment"];
+        TCELL [label="T-cell infiltrate\n(myocarditis-like histology)"];
+        ANTI_HEART_AB [label="anti-heart / anti-intercalated\ndisc autoantibodies"];
+        INF_STATE [label="INFLAMMATORY STATE\nstate variable INF_RV\nthe injury AMPLIFIER (×PHI_INF)", shape=ellipse, fillcolor="#ff8a65", penwidth=2.0];
+        HOT_PHASE [label="HOT PHASE\nchest pain + troponin rise +\nnormal coronaries; often\nmisdiagnosed as myocarditis", shape=box, style="rounded,filled,bold", fillcolor="#ff7043", fontcolor="white", penwidth=1.8];
+        STUN [label="reversible contractile stunning\n(why RVEF can recover after\na hot phase)"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 9 — GENERATOR I
+    // =======================================================================
+    subgraph cluster_gen1 {
+        label = "9. GENERATOR I — TRIGGERED ACTIVITY, INDEPENDENT OF STRUCTURE\nthis is why a young carrier can die during exertion with a normal echocardiogram";
+        style = "filled,rounded"; fillcolor = "#e3f2fd"; color = "#0d47a1";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#bbdefb", color = "#0d47a1"];
+
+        RYR2 [label="RyR2 destabilisation\nPKP2 loss alters Ca-handling\ntranscriptome (Ryr2 · Ank2 ·\nCacna1c · Trdn)", penwidth=1.7];
+        RYR_LEAK [label="diastolic SR Ca²⁺ leak\nstate variable RYR_LEAK", shape=ellipse, fillcolor="#90caf9", penwidth=1.8];
+        CASR [label="SR Ca²⁺ load (CA_SR)"];
+        CAMKII [label="CaMKII autophosphorylation\n(feed-forward on RyR2)"];
+        PKA_P [label="PKA phosphorylation of\nRyR2-S2808 / PLN-S16"];
+        SERCA [label="SERCA2a / phospholamban\n(the PLN p.R14del route in)"];
+        CA_DIA [label="diastolic cytosolic Ca²⁺\nstate variable CA_DIA", shape=ellipse, fillcolor="#64b5f6"];
+        NCX [label="NCX forward mode\n→ transient inward current"];
+        DAD [label="delayed afterdepolarisation"];
+        SOURCE_SINK [label="source–sink relationship\nmyocyte loss REMOVES the\nelectrotonic suppression of\nectopy", penwidth=1.6];
+        PVC [label="PVC BURDEN / 24 h\nstate variable PVC24\n(>500/24h = TFC minor)", shape=ellipse, fillcolor="#42a5f5", fontcolor="white", penwidth=2.0];
+        NSVT_G1 [label="catecholaminergic\ncouplets · NSVT\n(exertional, RV morphology)"];
+        GEN1 [label="GENERATOR I DRIVE", shape=doubleoctagon, fillcolor="#1565c0", fontcolor="white", penwidth=2.4];
+    }
+
+    // =======================================================================
+    //  CLUSTER 10 — GENERATOR II
+    // =======================================================================
+    subgraph cluster_gen2 {
+        label = "10. GENERATOR II — SCAR RE-ENTRY\nmaximal at ~50/50 interdigitation: a homogeneous scar has no conducting channels either";
+        style = "filled,rounded"; fillcolor = "#efebe9"; color = "#4e342e";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#bcaaa4", color = "#4e342e"];
+
+        CV_RV [label="RV conduction velocity\nstate variable CV_RV\n55 → <25 cm/s\n∝ (gNa × coupling)^0.30", shape=ellipse, fillcolor="#a1887f", fontcolor="white", penwidth=1.9];
+        ANISO [label="anisotropy ↑\nzig-zag conduction between\nfibrofatty septa"];
+        ERP [label="effective refractory period\n(lengthened by IKr block)"];
+        WAVELENGTH [label="re-entrant wavelength\nλ = CV × ERP\nshort λ → re-entry fits", penwidth=1.7];
+        SCAR_HET [label="SCAR HETEROGENEITY\nstate variable SCAR_HET\n= 4 × fibrofatty × viable\n(peaks at 50/50)", shape=ellipse, fillcolor="#8d6e63", fontcolor="white", penwidth=2.0];
+        CHANNELS [label="conducting channels /\nisthmuses in the scar"];
+        SUBEPI [label="SUBEPICARDIAL onset\nthe substrate starts outside and\nworks inward — endocardial-only\nmapping under-reads it", penwidth=1.7];
+        LATE_POT [label="fragmented electrograms\nlate potentials on SAECG"];
+        DISPERSION [label="DISPERSION OF REPOLARISATION\nheterogeneous ERP across the scar\n→ re-entry INITIATION\n(the arm that cancels sotalol's\nwavelength benefit)", fillcolor="#a1887f", penwidth=1.8];
+        FF_THRESH [label="CIRCUIT-SIZE THRESHOLD\nre-entry needs a path longer than\nthe wavelength, so a few percent of\ndiffuse interstitial fibrosis cannot\nhost one — which is why ordinary\nage-related fibrosis is not\narrhythmogenic", shape=hexagon, fillcolor="#efebe9", penwidth=1.6];
+        SMVT [label="sustained monomorphic VT\nmultiple morphologies\n(multiple isthmuses)"];
+        GEN2 [label="GENERATOR II DRIVE", shape=doubleoctagon, fillcolor="#4e342e", fontcolor="white", penwidth=2.4];
+    }
+
+    // =======================================================================
+    //  CLUSTER 11 — autonomic
+    // =======================================================================
+    subgraph cluster_auto {
+        label = "11. AUTONOMIC DRIVE — the trigger that shares a cause with the clock";
+        style = "filled,rounded"; fillcolor = "#e8eaf6"; color = "#283593";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#c5cae9", color = "#283593"];
+
+        SNS [label="sympathetic tone\nstate variable SNS", shape=ellipse, fillcolor="#9fa8da"];
+        NE_SURGE [label="catecholamine surge\nexercise · emotion · competition"];
+        B1_REC [label="β1-adrenoceptor density\ndownregulates with chronic drive\n(state variable BETA1_D)"];
+        B1_SIG [label="β1 → Gs → AC → cAMP → PKA"];
+        BARO [label="baroreflex withdrawal\nas stroke volume falls"];
+        DENERV [label="regional sympathetic\ndenervation on ¹²³I-MIBG"];
+        EXERT_TRIGGER [label="EXERTIONAL TRIGGERING\nthe same exercise that drives the\nclock also fires the trigger —\nwhich is why restriction does\nboth jobs", shape=hexagon, fillcolor="#7986cb", fontcolor="white", penwidth=2.0];
+    }
+
+    // =======================================================================
+    //  CLUSTER 12 — RV chamber mechanics
+    // =======================================================================
+    subgraph cluster_rv {
+        label = "12. RV CHAMBER MECHANICS";
+        style = "filled,rounded"; fillcolor = "#e0f2f1"; color = "#00695c";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#b2dfdb", color = "#00695c"];
+
+        RV_CONT [label="RV contractile function\nstate variable RV_CONT\n∝ (viable myocyte)^1.3", shape=ellipse, fillcolor="#80cbc4"];
+        RVEDV [label="RVEDV / RVEDVi\nstate variable RVEDV\nTFC major ≥110 mL/m² (M)", shape=ellipse, fillcolor="#4db6ac", fontcolor="white", penwidth=1.8];
+        RVEF [label="RVEF\nTFC major ≤40%", shape=ellipse, fillcolor="#4db6ac", fontcolor="white"];
+        RVFAC [label="RV fractional area change\nTFC major ≤33%"];
+        TAPSE [label="TAPSE · RV free-wall strain"];
+        RVOT [label="RVOT dilatation\nPLAX ≥32 mm = TFC major"];
+        TR [label="functional tricuspid\nregurgitation → more preload"];
+        ATH_RV [label="athlete's RV\nPHYSIOLOGICAL dilatation —\nthe diagnostic trap, and a real\ncontributor to σ", fillcolor="#c8e6c9", color="#2e7d32"];
+        RV_FAIL [label="right heart failure\nascites · hepatic congestion ·\nlow output", penwidth=1.7];
+    }
+
+    // =======================================================================
+    //  CLUSTER 13 — LV involvement
+    // =======================================================================
+    subgraph cluster_lv {
+        label = "13. LEFT VENTRICULAR INVOLVEMENT\nlate and load-driven in PKP2 · early and genotype-driven in DSP / FLNC";
+        style = "filled,rounded"; fillcolor = "#e0f7fa"; color = "#00838f";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#b2ebf2", color = "#00838f"];
+
+        LV_CONT [label="LV contractile function\nstate variable LV_CONT", shape=ellipse, fillcolor="#80deea"];
+        LVEF [label="LVEF"];
+        LGE_RING [label="subepicardial / ring-like LGE\ninferolateral first\n(FLNC · DSP signature)"];
+        LV_FIB [label="LV fibrofatty replacement\nFIB_LV · FAT_LV", shape=ellipse, fillcolor="#4dd0e1"];
+        BIV [label="biventricular arrhythmogenic\ncardiomyopathy"];
+        LV_MORPH_VT [label="VT of LV morphology,\nsuperior axis\n= TFC MAJOR arrhythmia"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 14 — neurohormonal / heart failure
+    // =======================================================================
+    subgraph cluster_nh {
+        label = "14. NEUROHORMONAL AND HEART-FAILURE AXIS";
+        style = "filled,rounded"; fillcolor = "#e8f5e9"; color = "#1b5e20";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#c8e6c9", color = "#1b5e20"];
+
+        RAAS [label="RAAS activation\nrenin → Ang II → aldosterone"];
+        NTBNP [label="NT-proBNP\nstate variable NTBNP", shape=ellipse, fillcolor="#a5d6a7"];
+        CONGEST [label="venous congestion\n→ preload ↑ → σ ↑\n(a vicious loop into cluster 3)", penwidth=1.7];
+        NA_RET [label="sodium and water retention"];
+        CARDIORENAL [label="cardio-renal interaction\neGFR ↓"];
+        HF_DEATH_HAZ [label="HF-death hazard"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 15 — ECG / imaging phenotype
+    // =======================================================================
+    subgraph cluster_ecg {
+        label = "15. ELECTROCARDIOGRAPHIC AND IMAGING PHENOTYPE\nevery item here is an OUTPUT of the state variables, not an input";
+        style = "filled,rounded"; fillcolor = "#f1f8e9"; color = "#558b2f";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#dcedc8", color = "#558b2f"];
+
+        TWI [label="T-wave inversion V1-V3\n≥3 leads = TFC MAJOR\n2 leads = minor", penwidth=1.6];
+        EPSILON [label="epsilon wave V1-V3\nTFC MAJOR\n(model: CV_RV < 22 cm/s)"];
+        TAD [label="terminal activation duration\n≥55 ms = TFC minor\n(model: 32 ms × CV0/CV_RV)"];
+        SAECG [label="SAECG late potentials\nTFC minor"];
+        LOW_VOLT [label="low QRS voltage\n(PLN · advanced disease)"];
+        CMR_LGE [label="CMR: RV LGE ·\nregional dyssynchrony ·\nfat-suppression imaging"];
+        ECHO [label="echo: regional akinesia /\ndyskinesia / bulging"];
+        EAM [label="electroanatomic mapping\nlow-voltage areas,\nEPI ≫ ENDO"];
+        BIOPSY_N [label="endomyocardial biopsy\nresidual myocytes <60% = MAJOR\n60-75% = minor"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 16 — diagnosis
+    // =======================================================================
+    subgraph cluster_dx {
+        label = "16. DIAGNOSIS — 2010 TASK FORCE CRITERIA (implemented, not summarised)";
+        style = "filled,rounded"; fillcolor = "#f9fbe7"; color = "#827717";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#f0f4c3", color = "#827717"];
+
+        TFC_I [label="I. structure / function"];
+        TFC_II [label="II. tissue characterisation"];
+        TFC_III [label="III. repolarisation"];
+        TFC_IV [label="IV. depolarisation / conduction"];
+        TFC_V [label="V. arrhythmias"];
+        TFC_VI [label="VI. family history / genetics\n(a FREE major for any\nvariant carrier — which is why\nrelatives are diagnosed earlier)"];
+        TFC_CALL [label="DIAGNOSTIC CALL\ndefinite: 2 major, or 1 major +\n2 minor, or 4 minor\nborderline · possible · none", shape=doubleoctagon, fillcolor="#c0ca33", penwidth=2.2];
+        PADUA [label="Padua / 2024 European criteria\nadd LV tissue characterisation\nand LGE phenotypes"];
+        RISK_CALC [label="ARVC risk calculator inputs\nage · sex · syncope · NSVT ·\nPVC/24h · TWI leads · RVEF\n(the model EMITS all seven)", fillcolor="#e6ee9c", penwidth=1.6];
+    }
+
+    // =======================================================================
+    //  CLUSTER 17 — drugs
+    // =======================================================================
+    subgraph cluster_drug {
+        label = "17. DRUGS AND INTERVENTIONS — each attached to the NODE it occupies\nnot to 'arrhythmia' in general. This is where commitment 3 does its work.";
+        style = "filled,rounded"; fillcolor = "#fff3e0"; color = "#e65100";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#ffe0b2", color = "#e65100"];
+
+        RESTRICT [label="EXERCISE RESTRICTION\nthe only intervention that acts on\nthe CLOCK itself — and it also\nremoves the trigger\n(guideline: no competitive sport)", shape=octagon, fillcolor="#ff9800", penwidth=2.4];
+        LOADRED [label="LOAD-REDUCING THERAPY\nloop diuretic + nitrate, or ARNI\n26% ↓ RV volume set point\n→ σ ↓ → clock slows\n[Fabritz 2011: prevented the\nphenotype in mice]", shape=octagon, fillcolor="#ffb74d", penwidth=2.2];
+        BB [label="β-BLOCKER (nadolol)\nKd ≈ 4 nM · occupies\nGENERATOR I via β1\nno effect on the clock", penwidth=1.7];
+        FLEC [label="FLECAINIDE\nRyR2 open-state block (IC50 2.5 µM)\n→ Generator I ↓\nNav1.5 block (IC50 6 µM)\n→ CV ↓ → GENERATOR II ↑\nTWO SIGNS, ONE DRUG", fillcolor="#ffcc80", penwidth=2.2];
+        SOT [label="SOTALOL\nweak β1 (Kd 320 nM) + IKr block\nARM 1: lengthens λ → anti-Gen-II\nARM 2: dispersion of repolarisation\nin a HETEROGENEOUS substrate\n→ promotes re-entry INITIATION\nThe two arms cancel → NET ≈ 0,\nwhich is what the registry found", penwidth=1.9];
+        AMIO [label="AMIODARONE\nmulti-channel: Gen I AND Gen II\nVc 60 L · Vp 4600 L · t½ ≈ 58 d\nmost effective per year,\nworst 40-year bet"];
+        MRA [label="MRA (spironolactone)\nfibrogenesis ↓ 30%"];
+        ARNI_N [label="ARNI / ACE-i / ARB\nafterload + neurohormonal"];
+        IL1BLK [label="IL-1 blockade\nanakinra · canakinumab\n(hot phase / amplifier)"];
+        GC [label="corticosteroid\namplifier only — does NOT\ntouch the clock"];
+        GSK3I [label="GSK-3β INHIBITION\nSB216763: restores Wnt,\nlowers the adipogenic switch\n(preclinical)"];
+        AAV [label="AAV9-PKP2 GENE THERAPY\nrestores DESMOSOMAL RESERVE\n→ lowers the price per beat\nbut removes no existing scar\n→ TIMING dominates dose\n(TN-401 · RP-A601, phase 1)", shape=octagon, fillcolor="#ffab91", color="#bf360c", penwidth=2.2];
+        SGLT2 [label="SGLT2 inhibitor\n(HF background therapy)"];
+        NO_DRUG [label="what nothing here does:\nreverse established\nfibrofatty replacement", shape=note, fillcolor="#fbe9e7", color="#bf360c"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 18 — devices and procedures
+    // =======================================================================
+    subgraph cluster_dev {
+        label = "18. DEVICES AND PROCEDURES";
+        style = "filled,rounded"; fillcolor = "#fce4ec"; color = "#ad1457";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#f8bbd0", color = "#ad1457"];
+
+        ICD [label="ICD\nattached to the OUTCOME,\nnot to either generator\n→ all of the mortality benefit,\nexactly none of the disease", shape=octagon, fillcolor="#f06292", fontcolor="white", penwidth=2.4];
+        SICD [label="subcutaneous ICD\n(no bradycardia/ATP support)"];
+        ICD_COMP [label="lead failure · pocket infection ·\ninappropriate shocks\n(the cost of a device in a\n25-year-old)"];
+        ABL_ENDO [label="ENDOCARDIAL-ONLY ABLATION\nremoves ~35% of the Gen-II\nsubstrate — recurs, because the\nsubstrate is subepicardial"];
+        ABL_EPI [label="COMBINED ENDO-EPICARDIAL\nABLATION\n~78% of the substrate\nscar dechannelling", fillcolor="#f48fb1", penwidth=2.0];
+        SYMPATH [label="cardiac sympathetic\ndenervation (refractory VT)"];
+        TRANSPLANT [label="heart transplantation\n(refractory arrhythmia or\nRV failure)"];
+        RVAD [label="mechanical support\n(rarely feasible in an\nRV-dominant phenotype)"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 19 — endpoints
+    // =======================================================================
+    subgraph cluster_out {
+        label = "19. CLINICAL ENDPOINTS";
+        style = "filled,rounded"; fillcolor = "#e8f5e9"; color = "#1b5e20";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#a5d6a7", color = "#1b5e20"];
+
+        PALP [label="palpitations"];
+        SYNCOPE [label="syncope\n(a risk-calculator input)"];
+        SUST_VA [label="SUSTAINED VT / VF\n~10%/yr in definite disease\n~0.5-1%/yr before phenotype", shape=ellipse, fillcolor="#66bb6a", fontcolor="white", penwidth=2.0];
+        SCD [label="SUDDEN CARDIAC DEATH\noften the first presentation,\noften during exertion", shape=doubleoctagon, fillcolor="#2e7d32", fontcolor="white", penwidth=2.2];
+        SHOCKS [label="appropriate + inappropriate\nICD shocks"];
+        HFD [label="heart-failure death /\ntransplantation"];
+        SPORT_STOP [label="sports disqualification\n(the intervention patients\nresist most, and the one that\nmoves the trajectory most)"];
+        QOL [label="quality of life · anxiety ·\nfamily cascade screening"];
+        SURVIVAL [label="survival · VA-free survival", shape=ellipse, fillcolor="#81c784"];
+    }
+
+    // =======================================================================
+    //  CLUSTER 20 — the family
+    // =======================================================================
+    subgraph cluster_fam {
+        label = "20. THE FAMILY — where the model is actually used";
+        style = "filled,rounded"; fillcolor = "#f5f5f5"; color = "#616161";
+        fontsize = 12; fontname = "Helvetica-Bold";
+        node [fillcolor = "#e0e0e0", color = "#616161"];
+
+        CASCADE [label="cascade genetic testing\nof first-degree relatives"];
+        GPOS_PNEG [label="genotype-positive,\nphenotype-negative relative\n— the model's main clinical\nquestion: how much sport?"];
+        SERIAL [label="serial evaluation\nECG · echo · Holter · CMR\nevery 1-3 years"];
+        PRECONCEPT [label="reproductive counselling\n(autosomal dominant,\n50% transmission)"];
+    }
+
+    // =======================================================================
+    //  EDGES — genotype into the single reserve term
+    // =======================================================================
+    PKP2 -> DESMO_RESERVE [penwidth=2.0, color="#424242"];
+    DSP -> DESMO_RESERVE;
+    DSG2 -> DESMO_RESERVE;
+    DSC2 -> DESMO_RESERVE;
+    JUP -> DESMO_RESERVE;
+    CTNNA3 -> DESMO_RESERVE;
+    DES -> DESMO_RESERVE;
+    TMEM43 -> DESMO_RESERVE;
+    FLNC -> DESMO_RESERVE;
+    PLN -> DESMO_RESERVE [style=dotted];
+    GENE_ELUSIVE -> DESMO_RESERVE [label="reserve = normal\n(load alone must\ndo the work)", style=dashed, color="#e65100", fontcolor="#e65100"];
+    PHENOCOPY -> TFC_CALL [style=dotted, label="must be excluded", color="#9e9e9e"];
+
+    DSP -> KAPPA_LV [label="ON", style=dotted, color="#f9a825", penwidth=1.6];
+    FLNC -> KAPPA_LV [label="ON", style=dotted, color="#f9a825", penwidth=1.6];
+    PKP2 -> KAPPA_LV [label="OFF", style=dotted, color="#bdbdbd"];
+
+    PKP2 -> PKP2_ID [penwidth=1.8];
+    DESMO_RESERVE -> DSM [penwidth=1.6];
+    PKP2_ID -> DSM;
+    DSM -> AREA_COMP;
+    ADH -> AREA_COMP;
+    AREA_COMP -> MECH_COUPL [penwidth=1.8];
+    PKP2_ID -> NAV_CPLX [label="PKP2 scaffolds\nNav1.5", penwidth=1.6];
+    PKP2_ID -> GJ [label="PKP2 required for\nCx43 plaque"];
+    NAV_CPLX -> NAV_ID [penwidth=1.7];
+    GJ -> CX43_ID [penwidth=1.7];
+    KIR -> ERP [style=dotted];
+    DSM -> PG_NUC [label="junction failure\nreleases plakoglobin", color="#5e35b1", penwidth=1.6];
+    AREA_COMP -> ID_STRAIN;
+
+    // =======================================================================
+    //  EDGES — the mechanical clock (COMMITMENT 1 + 2)
+    // =======================================================================
+    EX_DOSE -> DUTY [penwidth=2.0, color="#6a1b9a"];
+    EX_DOSE -> HR_BEATS [penwidth=2.0, color="#6a1b9a"];
+    EX_DOSE -> PRELOAD [penwidth=1.8, color="#6a1b9a"];
+    EX_DOSE -> NE_SURGE [penwidth=1.8, color="#283593", label="the SAME exposure\nfires the trigger"];
+    PRELOAD -> PAP;
+    PVR -> PAP [label="falls only modestly", penwidth=1.7];
+    PAP -> SIG_RV [label="+125% at max\nexercise", penwidth=2.2, color="#6a1b9a"];
+    SVR -> SIG_LV [label="+14% only", penwidth=1.4];
+    H_RV -> SIG_RV [label="σ ∝ 1/h", arrowhead=tee, color="#c62828", style=dashed, penwidth=1.8];
+    H_LV -> SIG_LV [arrowhead=tee, color="#c62828", style=dashed];
+    R_RV -> SIG_RV [label="σ ∝ r", penwidth=1.7];
+    R_LV -> SIG_LV;
+    DUTY -> FATIGUE_RV [penwidth=2.0, color="#6a1b9a"];
+    HR_BEATS -> FATIGUE_RV [label="cycle count", penwidth=2.0, color="#6a1b9a"];
+    DUTY -> FATIGUE_LV;
+    HR_BEATS -> FATIGUE_LV;
+    SIG_RV -> FATIGUE_RV [label="(σ)^4", penwidth=2.6, color="#6a1b9a"];
+    SIG_LV -> FATIGUE_LV [label="(σ)^4", penwidth=1.8, color="#9575cd"];
+    KAPPA_LV -> FATIGUE_LV [style=dotted, color="#f9a825", penwidth=1.8];
+    DESMO_RESERVE -> FATIGUE_RV [label="÷ (reserve)^2\nthe ONLY genotype edge", arrowhead=tee, color="#424242", penwidth=2.2];
+    DESMO_RESERVE -> FATIGUE_LV [arrowhead=tee, color="#424242"];
+    PHI_EX -> SIG_RV [label="PHI_EX = 0 removes\nthe stress term", style=dashed, color="#b71c1c", arrowhead=tee, penwidth=2.0];
+    PHI_EX -> SIG_LV [style=dashed, color="#b71c1c", arrowhead=tee];
+    FATIGUE_RV -> D_RV [penwidth=2.2, color="#6a1b9a"];
+    FATIGUE_LV -> D_LV;
+
+    // clock -> death
+    FATIGUE_RV -> ID_STRAIN [penwidth=2.6, color="#6a1b9a", label="the clock enters\nthe tissue here"];
+    FATIGUE_LV -> LV_FIB [penwidth=1.6, color="#9575cd"];
+    ID_STRAIN -> ID_RUPTURE [penwidth=1.9];
+    MECH_COUPL -> ID_RUPTURE [arrowhead=tee, style=dashed, color="#c62828", label="intact coupling\nprotects"];
+    ID_RUPTURE -> MYO_DETACH [penwidth=1.8];
+    MYO_DETACH -> MYO_STRETCH;
+    MYO_STRETCH -> ID_STRAIN [label="load transferred to\nthe survivors", color="#b71c1c", penwidth=1.6];
+    MYO_DETACH -> APOPT;
+    MYO_DETACH -> NECROP;
+    APOPT -> MYO_LOSS [penwidth=1.8];
+    NECROP -> MYO_LOSS [penwidth=1.8];
+    NECROP -> NEC_POOL [penwidth=1.8];
+    NEC_POOL -> TNI_REL;
+    TNI_REL -> HOT_PHASE;
+    MYO_LOSS -> WALL_THIN [penwidth=2.0];
+    WALL_THIN -> H_RV [arrowhead=tee, color="#c62828", penwidth=2.0];
+    WALL_THIN -> ANEURYSM;
+    ANEURYSM -> R_RV [penwidth=1.6];
+    MYO_LOSS -> AUTOCAT [penwidth=2.2, color="#b71c1c"];
+    AUTOCAT -> SIG_RV [label="every myocyte lost raises\nthe price of the next beat", penwidth=2.4, color="#b71c1c"];
+    MYO_FLOOR -> MYO_LOSS [arrowhead=tee, style=dashed, color="#bf360c", penwidth=1.9,
+                           label="injury acts on\n(MYO − floor) only"];
+    MYO_FLOOR -> AUTOCAT [arrowhead=tee, style=dashed, color="#bf360c", penwidth=1.7];
+    MYO_LOSS -> SPACE [penwidth=1.8];
+    MYO_LOSS -> SOURCE_SINK [penwidth=1.7, color="#1565c0"];
+
+    // =======================================================================
+    //  EDGES — Wnt / Hippo / adipogenesis
+    // =======================================================================
+    PG_NUC -> PG_COMPETE [penwidth=1.7];
+    PG_COMPETE -> BCAT [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.7];
+    GSK3B -> BCAT [arrowhead=tee, style=dashed, color="#c62828"];
+    BCAT -> WNT_ACT [penwidth=1.8];
+    WNT_ACT -> TCF_TARGETS;
+    WNT_ACT -> PPARG [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.9, label="Wnt is the BRAKE\non adipogenesis"];
+    DESMO_RESERVE -> NF2_MST [arrowhead=tee, style=dashed, color="#c62828", label="junction loss\nactivates Hippo"];
+    FATIGUE_RV -> NF2_MST [label="load also\nactivates Hippo", color="#6a1b9a", penwidth=1.6];
+    NF2_MST -> HIPPO_ACT [penwidth=1.8];
+    HIPPO_ACT -> YAP_SEQ [penwidth=1.7];
+    YAP_SEQ -> PPARG [penwidth=1.8];
+    HIPPO_ACT -> WNT_ACT [arrowhead=tee, style=dashed, color="#c62828", label="cross-talk"];
+    PPARG -> CEBPA;
+    CEBPA -> ADIPOQ;
+    PPARG -> FAP [penwidth=1.8];
+    ADIPOQ -> ADIPOCYTE;
+    FAP -> ADIPOCYTE [penwidth=1.8];
+    ADIPOCYTE -> FAT_TISSUE [penwidth=2.0];
+    SPACE -> FAT_TISSUE [label="replacement fills\nvacated volume", penwidth=1.8];
+    SPACE -> FIB_TISSUE [penwidth=1.8];
+
+    // =======================================================================
+    //  EDGES — fibrogenesis
+    // =======================================================================
+    INF_STATE -> TGFB [penwidth=1.7];
+    NEC_POOL -> TGFB;
+    ALDO -> TGFB [penwidth=1.6];
+    TGFB -> SMAD [penwidth=1.7];
+    SMAD -> CTGF;
+    CTGF -> MYOFIB;
+    FAP -> MYOFIB [penwidth=1.8];
+    MYOFIB -> COL13 [penwidth=1.8];
+    COL13 -> LOX;
+    MMP_TIMP -> COL13;
+    LOX -> FIB_TISSUE [penwidth=1.7];
+    COL13 -> FIB_TISSUE [penwidth=2.0];
+    FIB_TISSUE -> H_RV [label="bears load (0.7)\nbut cannot contract\n= the brake on runaway", penwidth=1.7];
+    FAT_TISSUE -> H_RV [label="bulk only (0.35)", penwidth=1.3];
+
+    // =======================================================================
+    //  EDGES — inflammation
+    // =======================================================================
+    NEC_POOL -> DAMPS [penwidth=1.9];
+    DAMPS -> TLR [penwidth=1.8];
+    TLR -> NFKB [penwidth=1.8];
+    DESMO_RESERVE -> NFKB [arrowhead=tee, style=dashed, color="#d84315", label="desmosome loss\nprimes NF-κB directly"];
+    NFKB -> IL1B [penwidth=1.8];
+    NFKB -> IL6;
+    NFKB -> TNFA;
+    IL1B -> MACRO [penwidth=1.7];
+    TNFA -> MACRO;
+    MACRO -> INF_STATE [penwidth=1.9];
+    IL1B -> INF_STATE [penwidth=1.9];
+    TCELL -> INF_STATE;
+    MACRO -> TCELL;
+    ANTI_HEART_AB -> INF_STATE [style=dotted];
+    INF_STATE -> ID_STRAIN [label="× PHI_INF = 1.3\nthe AMPLIFIER, not the clock",
+                            color="#d84315", penwidth=1.9];
+    INF_STATE -> HOT_PHASE [penwidth=1.8];
+    INF_STATE -> STUN [penwidth=1.6];
+    STUN -> RV_CONT [arrowhead=tee, style=dashed, color="#c62828"];
+    HOT_PHASE -> SUST_VA [style=dashed, label="arrhythmic storms\ncluster in hot phases"];
+
+    // =======================================================================
+    //  EDGES — GENERATOR I
+    // =======================================================================
+    PKP2_ID -> RYR2 [arrowhead=tee, style=dashed, color="#0d47a1", penwidth=1.8,
+                     label="Ca-handling transcriptome"];
+    RYR2 -> RYR_LEAK [penwidth=2.0];
+    CAMKII -> RYR_LEAK [penwidth=1.7];
+    PKA_P -> RYR_LEAK [penwidth=1.8];
+    B1_SIG -> PKA_P [penwidth=1.9];
+    SERCA -> CASR [penwidth=1.7];
+    PLN -> SERCA [style=dotted, label="p.R14del"];
+    CASR -> RYR_LEAK [penwidth=1.6];
+    RYR_LEAK -> CA_DIA [penwidth=2.0];
+    RYR_LEAK -> CAMKII [label="feed-forward", color="#0d47a1"];
+    CA_DIA -> NCX [penwidth=1.8];
+    NCX -> DAD [penwidth=1.9];
+    DAD -> PVC [penwidth=2.0];
+    SOURCE_SINK -> PVC [label="loss of electrotonic\nsuppression", penwidth=1.8];
+    PVC -> NSVT_G1 [penwidth=1.8];
+    PVC -> GEN1 [penwidth=2.4, color="#1565c0"];
+    NSVT_G1 -> GEN1 [penwidth=1.8];
+    EXERT_TRIGGER -> GEN1 [penwidth=2.0, color="#283593"];
+
+    // =======================================================================
+    //  EDGES — GENERATOR II
+    // =======================================================================
+    NAV_ID -> CV_RV [label="∝ gNa^0.30", penwidth=2.0];
+    CX43_ID -> CV_RV [label="∝ coupling^0.30", penwidth=2.0];
+    FIB_TISSUE -> CV_RV [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.9,
+                         label="tortuosity"];
+    FAT_TISSUE -> CV_RV [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.9];
+    FIB_TISSUE -> ANISO [penwidth=1.7];
+    FAT_TISSUE -> ANISO [penwidth=1.7];
+    ANISO -> CHANNELS;
+    CV_RV -> WAVELENGTH [penwidth=2.0];
+    ERP -> WAVELENGTH [penwidth=1.7];
+    WAVELENGTH -> GEN2 [label="short λ → re-entry\nfits inside the scar",
+                        arrowhead=tee, style=dashed, color="#c62828", penwidth=2.0];
+    FIB_TISSUE -> SCAR_HET [penwidth=2.0];
+    FAT_TISSUE -> SCAR_HET [penwidth=2.0];
+    MYO_LOSS -> SCAR_HET [label="peaks at 50/50:\nboth normal myocardium and\nhomogeneous scar are SAFE",
+                          penwidth=1.9];
+    SCAR_HET -> CHANNELS [penwidth=1.9];
+    SUBEPI -> SCAR_HET [penwidth=1.7];
+    FAT_TISSUE -> SUBEPI [label="epicardium first", penwidth=1.7];
+    CHANNELS -> SMVT [penwidth=2.0];
+    SCAR_HET -> GEN2 [penwidth=2.4, color="#4e342e"];
+    FF_THRESH -> SCAR_HET [arrowhead=tee, style=dashed, color="#4e342e", penwidth=1.7,
+                           label="below threshold:\nno Generator II at all"];
+    DISPERSION -> GEN2 [penwidth=2.0, color="#4e342e"];
+    SCAR_HET -> DISPERSION [penwidth=1.6];
+    SMVT -> GEN2 [penwidth=1.8];
+    CV_RV -> LATE_POT [arrowhead=tee, style=dashed, color="#5d4037", penwidth=1.7];
+    CV_RV -> TAD [arrowhead=tee, style=dashed, color="#5d4037", penwidth=1.7];
+    CV_RV -> EPSILON [arrowhead=tee, style=dashed, color="#5d4037", penwidth=1.7];
+    SUBEPI -> EAM [penwidth=1.7];
+
+    // =======================================================================
+    //  EDGES — autonomic
+    // =======================================================================
+    NE_SURGE -> SNS [penwidth=1.9];
+    RV_CONT -> SNS [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.7];
+    BARO -> SNS;
+    SNS -> B1_SIG [penwidth=1.9];
+    SNS -> B1_REC [arrowhead=tee, style=dashed, color="#c62828",
+                   label="chronic drive downregulates"];
+    B1_REC -> B1_SIG [penwidth=1.8];
+    NE_SURGE -> EXERT_TRIGGER [penwidth=2.0];
+    SNS -> DENERV [style=dotted];
+    DENERV -> GEN1 [style=dotted];
+    SNS -> RAAS [penwidth=1.7];
+
+    // =======================================================================
+    //  EDGES — chamber mechanics
+    // =======================================================================
+    MYO_LOSS -> RV_CONT [arrowhead=tee, style=dashed, color="#c62828", penwidth=2.0];
+    FIB_TISSUE -> RV_CONT [arrowhead=tee, style=dashed, color="#c62828"];
+    RV_CONT -> RVEF [penwidth=2.0];
+    RV_CONT -> RVEDV [arrowhead=tee, style=dashed, color="#00695c", penwidth=1.9,
+                      label="dilates to defend\nstroke volume"];
+    ATH_RV -> RVEDV [penwidth=1.8];
+    EX_DOSE -> ATH_RV [penwidth=1.8, color="#6a1b9a"];
+    RVEDV -> R_RV [penwidth=2.0];
+    RVEDV -> RVOT;
+    RVEF -> RVFAC;
+    RV_CONT -> TAPSE;
+    RVEDV -> TR [penwidth=1.6];
+    TR -> PRELOAD [label="regurgitant volume\nre-enters the clock",
+                   color="#b71c1c", penwidth=1.8];
+    RV_CONT -> RV_FAIL [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.8];
+    RVEDV -> PAP [label="P_RV rises as the\nRV meets its afterload", penwidth=1.6];
+
+    // LV
+    FATIGUE_LV -> LV_CONT [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.7];
+    LV_FIB -> LV_CONT [arrowhead=tee, style=dashed, color="#c62828", penwidth=1.8];
+    LV_CONT -> LVEF [penwidth=1.9];
+    LV_FIB -> LGE_RING [penwidth=1.8];
+    LV_FIB -> LV_MORPH_VT [penwidth=1.8];
+    LV_FIB -> BIV;
+    MYO_LOSS -> BIV [style=dotted];
+    LV_MORPH_VT -> TFC_V [penwidth=1.8];
+    LV_FIB -> SCAR_HET [style=dotted];
+
+    // =======================================================================
+    //  EDGES — neurohormonal
+    // =======================================================================
+    RAAS -> ALDO [penwidth=1.8];
+    RAAS -> NA_RET [penwidth=1.7];
+    NA_RET -> CONGEST [penwidth=1.8];
+    RVEDV -> NTBNP [penwidth=1.8];
+    LV_CONT -> NTBNP [arrowhead=tee, style=dashed, color="#1b5e20"];
+    CONGEST -> PRELOAD [label="congestion feeds the\nclock — this is why load\nreduction works",
+                        color="#b71c1c", penwidth=2.0];
+    RV_FAIL -> CONGEST [penwidth=1.8];
+    RV_FAIL -> CARDIORENAL;
+    RV_FAIL -> HF_DEATH_HAZ [penwidth=1.9];
+    LV_CONT -> HF_DEATH_HAZ [arrowhead=tee, style=dashed, color="#1b5e20", penwidth=1.8];
+    HF_DEATH_HAZ -> HFD [penwidth=1.9];
+
+    // =======================================================================
+    //  EDGES — diagnostics
+    // =======================================================================
+    MYO_LOSS -> TWI [penwidth=1.8];
+    MYO_LOSS -> ECHO [penwidth=1.7];
+    FIB_TISSUE -> CMR_LGE [penwidth=1.7];
+    FAT_TISSUE -> CMR_LGE [penwidth=1.7];
+    MYO_LOSS -> BIOPSY_N [penwidth=1.7];
+    FIB_TISSUE -> BIOPSY_N;
+    FAT_TISSUE -> BIOPSY_N;
+    RVEF -> TFC_I [penwidth=1.9];
+    RVEDV -> TFC_I [penwidth=1.9];
+    RVFAC -> TFC_I;
+    RVOT -> TFC_I;
+    ECHO -> TFC_I;
+    CMR_LGE -> PADUA [penwidth=1.7];
+    LGE_RING -> PADUA [penwidth=1.7];
+    BIOPSY_N -> TFC_II [penwidth=1.9];
+    TWI -> TFC_III [penwidth=1.9];
+    EPSILON -> TFC_IV [penwidth=1.9];
+    TAD -> TFC_IV [penwidth=1.7];
+    SAECG -> TFC_IV [penwidth=1.7];
+    LATE_POT -> SAECG [penwidth=1.8];
+    LOW_VOLT -> PADUA [style=dotted];
+    PVC -> TFC_V [penwidth=1.9];
+    NSVT_G1 -> TFC_V [penwidth=1.8];
+    SMVT -> TFC_V [penwidth=1.8];
+    PKP2 -> TFC_VI [penwidth=1.9];
+    CASCADE -> TFC_VI [penwidth=1.7];
+    TFC_I -> TFC_CALL [penwidth=1.8];
+    TFC_II -> TFC_CALL [penwidth=1.8];
+    TFC_III -> TFC_CALL [penwidth=1.8];
+    TFC_IV -> TFC_CALL [penwidth=1.8];
+    TFC_V -> TFC_CALL [penwidth=1.8];
+    TFC_VI -> TFC_CALL [penwidth=1.8];
+    PADUA -> TFC_CALL [style=dotted];
+    SYNCOPE -> RISK_CALC;
+    PVC -> RISK_CALC;
+    TWI -> RISK_CALC;
+    RVEF -> RISK_CALC;
+    NSVT_G1 -> RISK_CALC;
+    RISK_CALC -> ICD [label="drives the primary-prevention\ndecision", penwidth=1.8];
+
+    // =======================================================================
+    //  EDGES — DRUGS, each onto the node it occupies (COMMITMENT 3)
+    // =======================================================================
+    RESTRICT -> EX_DOSE [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.6,
+                         label="THE CLOCK ITSELF"];
+    RESTRICT -> NE_SURGE [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.0,
+                          label="and the trigger"];
+    LOADRED -> RVEDV [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.4,
+                      label="−26% volume set point\n→ σ ↓ → clock slows"];
+    LOADRED -> CONGEST [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.8];
+    ARNI_N -> RVEDV [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.6];
+    ARNI_N -> RAAS [arrowhead=tee, style=dashed, color="#e65100"];
+    SGLT2 -> CONGEST [arrowhead=tee, style=dashed, color="#e65100"];
+    BB -> B1_SIG [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.2,
+                  label="Kd ≈ 4 nM"];
+    BB -> NO_DRUG [style=dotted, color="#bf360c"];
+    FLEC -> RYR_LEAK [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.2,
+                      label="RyR2 open state\nIC50 2.5 µM → Gen I ↓"];
+    FLEC -> CV_RV [arrowhead=tee, style=dashed, color="#b71c1c", penwidth=2.2,
+                   label="Nav1.5 IC50 6 µM\n→ CV ↓ → Gen II ↑\nTHE COST"];
+    SOT -> B1_SIG [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.4,
+                   label="weak, Kd 320 nM"];
+    SOT -> ERP [penwidth=1.9, label="IKr block\nlengthens λ"];
+    SOT -> DAD [penwidth=1.6, color="#b71c1c", label="EAD risk"];
+    SOT -> DISPERSION [penwidth=2.0, color="#b71c1c"];
+    AMIO -> DISPERSION [penwidth=1.0, color="#bdbdbd",
+                        label="much weaker: marked QT\nprolongation, low TdP rate"];
+    AMIO -> RYR_LEAK [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.8];
+    AMIO -> ERP [penwidth=1.9];
+    AMIO -> GEN2 [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.9];
+    AMIO -> ICD_COMP [style=dotted, label="thyroid · lung · liver ·\nskin toxicity accumulates\nover 40 years"];
+    MRA -> COL13 [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.9];
+    MRA -> ALDO [arrowhead=tee, style=dashed, color="#e65100"];
+    IL1BLK -> IL1B [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.0];
+    GC -> INF_STATE [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.7];
+    GC -> NO_DRUG [style=dotted, color="#bf360c", label="amplifier only"];
+    GSK3I -> GSK3B [arrowhead=tee, style=dashed, color="#e65100", penwidth=2.0];
+    GSK3I -> HIPPO_ACT [arrowhead=tee, style=dashed, color="#e65100", penwidth=1.8];
+    AAV -> PKP2_ID [penwidth=2.4, color="#bf360c",
+                    label="restores reserve →\nlowers the price per beat"];
+    AAV -> NO_DRUG [style=dotted, color="#bf360c",
+                    label="but removes no existing scar\n→ TIMING dominates dose"];
+
+    // =======================================================================
+    //  EDGES — devices
+    // =======================================================================
+    ICD -> SCD [arrowhead=tee, style=dashed, color="#ad1457", penwidth=2.6,
+                label="88% of episodes\nterminated"];
+    ICD -> SHOCKS [penwidth=1.8];
+    ICD -> ICD_COMP [penwidth=1.7];
+    ICD -> NO_DRUG [style=dotted, color="#bf360c",
+                    label="touches neither generator"];
+    SICD -> SCD [arrowhead=tee, style=dashed, color="#ad1457"];
+    ABL_ENDO -> SCAR_HET [arrowhead=tee, style=dashed, color="#ad1457", penwidth=1.7,
+                          label="−35%: recurs"];
+    ABL_EPI -> SCAR_HET [arrowhead=tee, style=dashed, color="#ad1457", penwidth=2.4,
+                         label="−78%"];
+    EAM -> ABL_EPI [penwidth=1.8];
+    SUBEPI -> ABL_EPI [label="the reason epicardial\naccess matters", penwidth=1.8];
+    SYMPATH -> SNS [arrowhead=tee, style=dashed, color="#ad1457"];
+    RV_FAIL -> TRANSPLANT [penwidth=1.7];
+    SMVT -> TRANSPLANT [style=dotted];
+    RV_FAIL -> RVAD [style=dotted];
+
+    // =======================================================================
+    //  EDGES — the two generators into the endpoints
+    // =======================================================================
+    GEN1 -> SUST_VA [penwidth=2.4, color="#1565c0"];
+    GEN2 -> SUST_VA [label="× LAM2 (fitted)", penwidth=2.4, color="#4e342e"];
+    GEN1 -> PALP;
+    SUST_VA -> SYNCOPE [penwidth=1.7];
+    SUST_VA -> SCD [penwidth=2.2, label="P(SCD | VA) ≈ 0.30\nwithout an ICD"];
+    SUST_VA -> SHOCKS [penwidth=1.8];
+    SCD -> SURVIVAL [arrowhead=tee, style=dashed, color="#1b5e20", penwidth=2.2];
+    HFD -> SURVIVAL [arrowhead=tee, style=dashed, color="#1b5e20", penwidth=1.9];
+    SUST_VA -> SURVIVAL [arrowhead=tee, style=dashed, color="#1b5e20"];
+    ICD_COMP -> QOL [arrowhead=tee, style=dashed, color="#1b5e20"];
+    SHOCKS -> QOL [arrowhead=tee, style=dashed, color="#1b5e20"];
+    RESTRICT -> SPORT_STOP [penwidth=1.8];
+    SPORT_STOP -> QOL [arrowhead=tee, style=dashed, color="#1b5e20",
+                       label="the cost patients\nactually feel"];
+    RV_FAIL -> QOL [arrowhead=tee, style=dashed, color="#1b5e20"];
+
+    // =======================================================================
+    //  EDGES — the family loop
+    // =======================================================================
+    PKP2 -> CASCADE [penwidth=1.7];
+    CASCADE -> GPOS_PNEG [penwidth=1.9];
+    GPOS_PNEG -> SERIAL [penwidth=1.8];
+    GPOS_PNEG -> RESTRICT [penwidth=2.0, color="#e65100",
+                           label="how much sport?\nthe model's main\nclinical question"];
+    GPOS_PNEG -> AAV [style=dotted, label="the concealed phase is\nwhere gene therapy\nhas its effect"];
+    SERIAL -> TFC_CALL [penwidth=1.7];
+    CASCADE -> PRECONCEPT;
+    GENE_ELUSIVE -> RESTRICT [style=dashed, color="#e65100",
+                              label="restriction still applies:\nload was the cause"];
+
+    // =======================================================================
+    //  LEGEND
+    // =======================================================================
+    subgraph cluster_legend {
+        label = "READING THIS MAP";
+        style = "filled,rounded"; fillcolor = "#ffffff"; color = "#000000";
+        fontsize = 13; fontname = "Helvetica-Bold";
+        node [shape=plaintext, fillcolor="#ffffff", style="", fontsize=10];
+
+        LEG1 [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+<TR><TD ALIGN="LEFT"><B>The three commitments, and where to attack them</B></TD></TR>
+<TR><TD ALIGN="LEFT">1. <B>The clock is cumulative mechanical work.</B>  Follow the bold violet spine: EX_DOSE → σ → (σ)⁴ → ID_STRAIN.</TD></TR>
+<TR><TD ALIGN="LEFT">    Genotype enters at exactly one edge (DESMO_RESERVE ⊣ FATIGUE).  Age is not a variable anywhere.</TD></TR>
+<TR><TD ALIGN="LEFT">    <B>Falsifier:</B> PHI_EX = 0.  Damage becomes load-independent, and exercise dose-response, incomplete</TD></TR>
+<TR><TD ALIGN="LEFT">    penetrance, gene-elusive ARVC, RV selectivity and the Fabritz load-reduction result all disappear at once.</TD></TR>
+<TR><TD ALIGN="LEFT">2. <B>RV selectivity is Laplace.</B>  Two measured numbers do it: +125% RV vs +14% LV wall stress on exercise.</TD></TR>
+<TR><TD ALIGN="LEFT">    No RV-specific biology is used.  KAPPA_LV — the one chamber-specific term — is ON only for DSP/FLNC.</TD></TR>
+<TR><TD ALIGN="LEFT">3. <B>Two generators, and a drug cannot outperform the one it occupies.</B>  Blue cluster 9 is trigger-driven and</TD></TR>
+<TR><TD ALIGN="LEFT">    exists before any structural change; brown cluster 10 is scar re-entry.  Every drug in cluster 17 is drawn</TD></TR>
+<TR><TD ALIGN="LEFT">    onto a specific node, which is why FLECAINIDE has an arrow into each generator with opposite sign, why</TD></TR>
+<TR><TD ALIGN="LEFT">    SOTALOL's two arrows cancel, and why the ICD's only arrow is into the outcome.</TD></TR>
+<TR><TD ALIGN="LEFT"> </TD></TR>
+<TR><TD ALIGN="LEFT"><B>Edges:</B>  solid = activation/flux · dashed with a bar = inhibition · bold violet = the fatigue clock ·</TD></TR>
+<TR><TD ALIGN="LEFT">dotted = a switch that is off unless the genotype or the scenario turns it on.</TD></TR>
+<TR><TD ALIGN="LEFT"><B>Shapes:</B>  octagon = an intervention point or an exposure · double octagon = a load-bearing claim ·</TD></TR>
+<TR><TD ALIGN="LEFT">ellipse = an ODE state variable in arvc_mrgsolve_model.R · hexagon = a switch parameter · note = a stated limit.</TD></TR>
+<TR><TD ALIGN="LEFT"> </TD></TR>
+<TR><TD ALIGN="LEFT"><B>Fitted:</B> only K_INJ, H0_VA, LAM2, K_DIL.  <B>Predicted:</B> the ~3× exercise hazard ratio, incomplete</TD></TR>
+<TR><TD ALIGN="LEFT">penetrance, gene-elusive ARVC, RV-before-LV, load-reduction efficacy, the sotalol null, flecainide's sign</TD></TR>
+<TR><TD ALIGN="LEFT">flip, the endo-vs-epi ablation gap, the ICD's outcome-only benefit, and gene-therapy timing.</TD></TR>
+</TABLE>>];
+    }
+}
