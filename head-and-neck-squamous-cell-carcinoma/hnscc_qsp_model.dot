@@ -1,0 +1,690 @@
+/* ===========================================================================
+   hnscc_qsp_model.dot
+   Head and Neck Squamous Cell Carcinoma (HNSCC) — mechanistic QSP map
+
+   ORGANISING THESIS (see README.md):
+
+     The benefit of a resistance-directed agent in HNSCC is not a property of
+     the AGENT.  It is the product of what the agent does and how much of the
+     resistance it targets the tumour still has left to lose:
+
+         Delta(log kill) = (agent effect on factor i) x (HEADROOM in factor i)
+
+     The map therefore does NOT draw "cetuximab is inferior to cisplatin in
+     HPV-positive disease", "hypoxia modifiers only help hypoxic tumours", or
+     "a treatment gap costs about 1 % of locoregional control per day" as
+     separate rules.  It draws FOUR resistance factors that all act on the same
+     log-kill product —
+
+         R_hypoxia      oxygen enhancement ratio x hypoxic fraction, where the
+                        hypoxic fraction follows perfusion and tumour size, so
+                        reoxygenation is an output rather than a parameter
+
+         R_repair       alpha and the sublethal-damage repair rate, both moving
+                        with NHEJ capacity, HR capacity and platinum adducts
+
+         R_repopulation clonogen birth, which accelerates once the damage
+                        signal has accumulated for about three weeks
+
+         R_immune       CD8 kill suppressed by PD-1 engagement, Treg, MDSC and
+                        HLA class-I loss
+
+     — and it draws each agent into the factor it actually reaches:
+
+         nimorazole / carbogen    -> R_hypoxia
+         cisplatin                -> R_repair        (adducts raise alpha,
+                                                      and block NHEJ)
+         cetuximab                -> R_repair  AND  R_repopulation
+                                     (nuclear-EGFR/NHEJ, and cyclin D1)
+         pembrolizumab / nivolumab-> R_immune
+         shortening treatment time-> R_repopulation
+
+     WHY FOUR AND NOT THREE.  The first version of this map grouped repair and
+     repopulation into a single factor, on the argument that cisplatin and
+     cetuximab would then share one headroom and their combination would be
+     sub-additive — which is what RTOG 0522 found.  Building the equations
+     showed that grouping is not supportable: cisplatin acts on alpha, and
+     cetuximab acts mostly on clonogen birth, and those are separable.  The
+     model consequently OVER-PREDICTS the cisplatin + cetuximab combination.
+     That failure, and the part of it that treatment-compliance accounts for,
+     are reported in README.md rather than hidden by re-drawing the map.
+
+     The immune axis is the one factor orthogonal to the other three, which is
+     why CPS — and not HPV status, and not the hypoxia signature — is the
+     biomarker that tracks checkpoint-inhibitor benefit.
+
+   Render:
+     dot -Tsvg hnscc_qsp_model.dot -o hnscc_qsp_model.svg
+     dot -Tpng -Gdpi=150 hnscc_qsp_model.dot -o hnscc_qsp_model.png
+   =========================================================================== */
+
+digraph HNSCC_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, newrank=true,
+         nodesep=0.26, ranksep=0.50, fontname="Helvetica", fontsize=11,
+         compound=true, labelloc="t", fontcolor="#1a1a2e",
+         label=<<B>Head &amp; Neck Squamous Cell Carcinoma — Quantitative Systems Pharmacology Map</B><BR/>
+                <FONT POINT-SIZE="11">two aetiologies (HPV16 vs tobacco/alcohol) · EGFR–PI3K–cell-cycle circuitry · linear-quadratic radiobiology with the 5 R's<BR/>
+                four resistance factors (hypoxia × repair × repopulation × immune escape) · platinum / cetuximab / checkpoint PK-PD<BR/>
+                normal-tissue toxicity as a competing clock (mucositis · xerostomia · oto- / nephro-toxicity · cachexia)</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         color="#33334d", penwidth=0.8, margin="0.07,0.04"];
+  edge  [fontname="Helvetica", fontsize=8, color="#5a5a72", arrowsize=0.6, penwidth=0.9];
+
+  /* ---------------------------------------------------------------- palette
+     carcinogen / genome     #efe4d2      HPV viral program   #e8e2f7
+     oncogenic signalling    #fde6d8      cell cycle / DDR    #fdf3d0
+     tumour populations      #f7dede      hypoxia / vessels   #dfeef7
+     radiotherapy            #e6e0f8      immune              #e2f0e2
+     drugs / PK              #d9f2e6      clinical endpoints  #d7e9ff
+     normal-tissue harm      #ffd9d9      biomarkers          #efefef
+     resistance factors      #ffe9c7
+     ---------------------------------------------------------------------- */
+
+  /* =====================================================================
+     1 · AETIOLOGY, EXPOSURE AND FIELD CANCERISATION
+     ===================================================================== */
+  subgraph cluster_aeti {
+    label="1 · Aetiology, exposure & field cancerisation"; style="rounded,filled";
+    fillcolor="#faf6ef"; color="#b8a67e"; fontsize=11; fontcolor="#6b5a33";
+
+    TOB   [label="Tobacco smoke\n(PAH, NNK, NNN)", fillcolor="#efe4d2"];
+    ETOH  [label="Ethanol →\nacetaldehyde (ADH1B/ALDH2)", fillcolor="#efe4d2"];
+    BETEL [label="Betel quid / areca nut\n(arecoline)", fillcolor="#efe4d2"];
+    HPVEX [label="Oral HPV16 acquisition\n(sexual behaviour, ♂ > ♀)", fillcolor="#e8e2f7"];
+    GERDX [label="Laryngopharyngeal reflux\n(cofactor, larynx)", fillcolor="#efe4d2"];
+    FANC  [label="Fanconi anaemia / DNA-repair\ngermline defect (rare, young)", fillcolor="#efe4d2"];
+    ADDUC [label="Bulky DNA adducts\n+ ROS / 8-oxo-dG", fillcolor="#efe4d2"];
+    MUTBURD [label="Mutational burden\nTMB (mut/Mb)", fillcolor="#efefef"];
+    FIELD [label="FIELD CANCERISATION\nmulticentric mucosal clones\n(→ 2nd primary 3–5 %/yr)", fillcolor="#efe4d2"];
+    DYSPL [label="Dysplasia → carcinoma\nin situ → invasive SCC", fillcolor="#efe4d2"];
+    SUBSITE [label="Subsite\noropharynx / oral cavity /\nlarynx / hypopharynx", fillcolor="#efefef"];
+
+    TOB   -> ADDUC;
+    ETOH  -> ADDUC  [label="acetaldehyde\ncrosslinks"];
+    BETEL -> ADDUC;
+    ADDUC -> MUTBURD;
+    FANC  -> MUTBURD [label="repair failure"];
+    ADDUC -> FIELD;
+    MUTBURD -> FIELD;
+    FIELD -> DYSPL;
+    GERDX -> DYSPL;
+    HPVEX -> DYSPL  [label="tonsillar crypt\nreticulated epithelium"];
+    SUBSITE -> DYSPL [style=dotted];
+  }
+
+  /* =====================================================================
+     2 · HPV16 ONCOGENIC PROGRAM  (the "repair-deficient" aetiology)
+     ===================================================================== */
+  subgraph cluster_hpv {
+    label="2 · HPV16 oncogenic program — E6/E7"; style="rounded,filled";
+    fillcolor="#f4f1fb"; color="#9b8bc4"; fontsize=11; fontcolor="#4b3f73";
+
+    INTEG [label="Viral integration /\nepisomal persistence", fillcolor="#e8e2f7"];
+    E6    [label="E6", fillcolor="#e8e2f7"];
+    E7    [label="E7", fillcolor="#e8e2f7"];
+    E6AP  [label="E6AP (UBE3A)\nubiquitin ligase", fillcolor="#e8e2f7"];
+    P53D  [label="p53 proteasomal\nDEGRADATION (wild-type gene)", fillcolor="#e8e2f7"];
+    RBIN  [label="pRb inactivation\n(E7–Rb binding)", fillcolor="#e8e2f7"];
+    P16   [label="p16INK4a OVEREXPRESSION\n(surrogate IHC ≥70 %)", fillcolor="#efefef"];
+    E2FR  [label="E2F release →\nunrestrained G1/S", fillcolor="#fdf3d0"];
+    HRDEF [label="Impaired homologous recombination\n(RAD51 mislocalisation, TIP60 loss)", fillcolor="#e8e2f7"];
+    HTERT [label="hTERT activation\n(E6 → TERT promoter)", fillcolor="#e8e2f7"];
+    APOB  [label="APOBEC3 mutagenesis\n(PIK3CA E542K/E545K hotspot)", fillcolor="#e8e2f7"];
+
+    INTEG -> E6; INTEG -> E7;
+    E6 -> E6AP -> P53D;
+    E6 -> HTERT;
+    E6 -> APOB;
+    E7 -> RBIN -> E2FR;
+    RBIN -> P16   [label="loss of feedback\nrepression"];
+    E7 -> HRDEF;
+    HPVEX -> INTEG;
+  }
+
+  /* =====================================================================
+     3 · TOBACCO-DRIVEN GENOMIC PROGRAM (the "resistant" aetiology)
+     ===================================================================== */
+  subgraph cluster_gen {
+    label="3 · Tobacco/alcohol-driven genomic program"; style="rounded,filled";
+    fillcolor="#faf6ef"; color="#b8a67e"; fontsize=11; fontcolor="#6b5a33";
+
+    TP53M [label="TP53 MISSENSE / TRUNCATING\n(~70–85 % of HPV-neg)", fillcolor="#efe4d2"];
+    CDKN2A[label="CDKN2A (p16) deletion\n9p21 LOH", fillcolor="#efe4d2"];
+    LOH3P [label="3p / 9p / 17p LOH\n(early field lesions)", fillcolor="#efe4d2"];
+    EGFRAMP[label="EGFR amplification /\noverexpression (~90 % ↑)", fillcolor="#efe4d2"];
+    CCND1A[label="CCND1 (11q13)\namplification", fillcolor="#efe4d2"];
+    NOTCH1[label="NOTCH1 loss-of-function\n(~15 %, tumour suppressor here)", fillcolor="#efe4d2"];
+    FAT1  [label="FAT1 / AJUBA loss →\nWnt–β-catenin ↑", fillcolor="#efe4d2"];
+    CASP8 [label="CASP8 mutation\n(HRAS co-mutant subgroup)", fillcolor="#efe4d2"];
+    PIK3CAM[label="PIK3CA mutation\n(~20 %; ~34 % HPV-pos)", fillcolor="#efe4d2"];
+    TERTP [label="TERT promoter mutation", fillcolor="#efe4d2"];
+    NRF2  [label="NFE2L2 / KEAP1 / CUL3\n→ NRF2 pathway ON", fillcolor="#efe4d2"];
+    ANEUP [label="Aneuploidy / chromosomal\ninstability", fillcolor="#efe4d2"];
+
+    MUTBURD -> TP53M; MUTBURD -> CDKN2A; MUTBURD -> LOH3P;
+    MUTBURD -> NOTCH1; MUTBURD -> CASP8; MUTBURD -> TERTP; MUTBURD -> NRF2;
+    LOH3P -> ANEUP; TP53M -> ANEUP;
+    ANEUP -> EGFRAMP; ANEUP -> CCND1A;
+    APOB  -> PIK3CAM;
+    FAT1  -> ANEUP [style=dotted];
+    MUTBURD -> FAT1;
+  }
+
+  /* =====================================================================
+     4 · EGFR / HER RECEPTOR SIGNALLING
+     ===================================================================== */
+  subgraph cluster_egfr {
+    label="4 · EGFR / HER signalling network"; style="rounded,filled";
+    fillcolor="#fdf3ee"; color="#d8a184"; fontsize=11; fontcolor="#8a4a28";
+
+    TGFA  [label="TGF-α / EGF / amphiregulin\n(autocrine ligand)", fillcolor="#fde6d8"];
+    EGFR  [label="EGFR (HER1) — surface", fillcolor="#fde6d8"];
+    HER2  [label="HER2 / HER3\nheterodimerisation", fillcolor="#fde6d8"];
+    PEGFR [label="p-EGFR (active dimer)", fillcolor="#fde6d8"];
+    EGFRN [label="Nuclear EGFR →\nDNA-PK, PCNA (radioresistance)", fillcolor="#fde6d8"];
+    EGFRV [label="EGFRvIII variant\n(minor, ligand-independent)", fillcolor="#fde6d8"];
+    RASRAF[label="RAS → RAF → MEK", fillcolor="#fde6d8"];
+    PERK  [label="p-ERK1/2", fillcolor="#fde6d8"];
+    PI3K  [label="PI3K (p110α)", fillcolor="#fde6d8"];
+    PTEN  [label="PTEN (loss ~30 %)", fillcolor="#fde6d8"];
+    PAKT  [label="p-AKT (S473)", fillcolor="#fde6d8"];
+    MTOR  [label="mTORC1 → S6K / 4E-BP1", fillcolor="#fde6d8"];
+    STAT3 [label="p-STAT3 (Y705)", fillcolor="#fde6d8"];
+    PLCG  [label="PLCγ1 → PKC", fillcolor="#fde6d8"];
+    METHGF[label="HGF → MET\n(bypass / CAF-driven)", fillcolor="#fde6d8"];
+    NFKBT [label="NF-κB (tumour cell)", fillcolor="#fadadd"];
+    SRC   [label="SRC family kinase", fillcolor="#fde6d8"];
+
+    TGFA -> EGFR -> PEGFR;
+    EGFRAMP -> EGFR [label="receptor density ↑"];
+    EGFRV -> PEGFR;
+    HER2 -> PEGFR;
+    PEGFR -> RASRAF -> PERK;
+    PEGFR -> PI3K; PIK3CAM -> PI3K [label="constitutive"];
+    PTEN -> PI3K [arrowhead=tee, label="dephos-\nphorylate"];
+    PI3K -> PAKT -> MTOR;
+    PEGFR -> STAT3; SRC -> STAT3; PEGFR -> SRC;
+    PEGFR -> PLCG;
+    PEGFR -> EGFRN;
+    METHGF -> PI3K; METHGF -> RASRAF;
+    PERK -> NFKBT; PAKT -> NFKBT;
+    STAT3 -> NFKBT [style=dotted];
+  }
+
+  /* =====================================================================
+     5 · CELL CYCLE AND DNA-DAMAGE RESPONSE
+     ===================================================================== */
+  subgraph cluster_cyc {
+    label="5 · Cell cycle · DNA-damage response · repair choice"; style="rounded,filled";
+    fillcolor="#fdfaea"; color="#cbb85e"; fontsize=11; fontcolor="#7a6a1d";
+
+    CCND1 [label="Cyclin D1 – CDK4/6", fillcolor="#fdf3d0"];
+    RBP   [label="Rb phosphorylation", fillcolor="#fdf3d0"];
+    E2F   [label="E2F transcription →\nS-phase entry", fillcolor="#fdf3d0"];
+    P53   [label="p53 (functional pool)", fillcolor="#fdf3d0"];
+    P21   [label="p21 / CDKN1A →\nG1 arrest", fillcolor="#fdf3d0"];
+    MDM2  [label="MDM2 (negative feedback)", fillcolor="#fdf3d0"];
+    DSB   [label="DNA double-strand breaks\n(γH2AX foci)", fillcolor="#fdf3d0"];
+    ATM   [label="ATM / ATR – CHK1/2", fillcolor="#fdf3d0"];
+    NHEJ  [label="NHEJ (DNA-PKcs, Ku70/80,\nLIG4) — fast repair", fillcolor="#fdf3d0"];
+    HR    [label="Homologous recombination\n(RAD51, BRCA) — slow, S/G2", fillcolor="#fdf3d0"];
+    LETHAL[label="Unrepaired / misrepaired lesions\n→ mitotic catastrophe", fillcolor="#f7dede"];
+    APOP  [label="Apoptosis (BAX / caspase-3)", fillcolor="#f7dede"];
+    SENES [label="Senescence / permanent arrest", fillcolor="#f7dede"];
+
+    CCND1A -> CCND1; PERK -> CCND1; MTOR -> CCND1;
+    CDKN2A -> CCND1 [label="p16 loss releases\nCDK4/6"];
+    CCND1 -> RBP -> E2F;
+    RBIN -> RBP [label="E7 substitutes for\nphosphorylation"];
+    P53 -> P21 -> CCND1 [arrowhead=tee];
+    P53 -> MDM2 -> P53 [arrowhead=tee, style=dashed, label="feedback"];
+    TP53M -> P53 [arrowhead=tee, label="loss of function"];
+    P53D  -> P53 [arrowhead=tee, label="E6-mediated\ndegradation"];
+    DSB -> ATM -> P53;
+    ATM -> NHEJ; ATM -> HR;
+    NHEJ -> DSB [arrowhead=tee];
+    HR   -> DSB [arrowhead=tee];
+    HRDEF -> HR [arrowhead=tee, label="HPV+ deficit"];
+    EGFRN -> NHEJ [label="DNA-PK\nstimulation"];
+    DSB -> LETHAL; LETHAL -> APOP; LETHAL -> SENES;
+    P53 -> APOP;
+  }
+
+  /* =====================================================================
+     6 · TUMOUR CELL POPULATIONS  (the state variables of the ODE model)
+     ===================================================================== */
+  subgraph cluster_pop {
+    label="6 · Tumour cell populations & clonogen accounting"; style="rounded,filled";
+    fillcolor="#fdf0f0"; color="#d09090"; fontsize=11; fontcolor="#8a3a3a";
+
+    CSC   [label="CANCER STEM CELLS\nCD44+ / ALDH1high / BMI1\n(clonogenic reservoir)", fillcolor="#f7dede", penwidth=1.6];
+    PROX  [label="Proliferating OXIC cells\n(pO₂ > 10 mmHg)", fillcolor="#f7dede", penwidth=1.6];
+    PRHYP [label="Quiescent HYPOXIC cells\n(pO₂ < 5 mmHg, radioresistant)", fillcolor="#f7dede", penwidth=1.6];
+    DOOM  [label="Lethally damaged pool\n(dies at next mitosis)", fillcolor="#f7dede"];
+    NECR  [label="Necrotic core", fillcolor="#f7dede"];
+    TVOL  [label="Gross tumour volume\n(GTV, cm³ → SLD mm)", fillcolor="#d7e9ff", penwidth=1.6];
+    SYMDIV[label="Symmetric CSC division\n(self-renewal fraction ρ)", fillcolor="#f7dede"];
+    REPOP [label="ACCELERATED REPOPULATION\nT_pot 45 d → T_eff ≈ 3–5 d\nafter kick-off T_k ≈ 21–28 d", fillcolor="#f7dede", penwidth=1.6];
+    EMT   [label="EMT (Snail, Twist, ZEB1)\n→ plasticity, CSC re-entry", fillcolor="#f7dede"];
+
+    CSC -> SYMDIV -> CSC;
+    CSC -> PROX  [label="asymmetric\ndivision"];
+    PROX -> PRHYP [label="O₂ gradient"];
+    PRHYP -> PROX [label="reoxygenation"];
+    PRHYP -> NECR [label="chronic anoxia"];
+    E2F -> PROX  [label="cycle entry rate"];
+    DOOM -> NECR;
+    PROX -> TVOL; PRHYP -> TVOL; NECR -> TVOL; DOOM -> TVOL;
+    LETHAL -> DOOM;
+    REPOP -> SYMDIV [label="ρ ↑, T_eff ↓"];
+    EMT -> CSC;
+    PERK -> EMT; PAKT -> EMT; STAT3 -> EMT;
+  }
+
+  /* =====================================================================
+     7 · HYPOXIA, METABOLISM AND ANGIOGENESIS   (resistance factor 1)
+     ===================================================================== */
+  subgraph cluster_hyp {
+    label="7 · Hypoxia · metabolism · angiogenesis (→ R_hypoxia)"; style="rounded,filled";
+    fillcolor="#eef7fc"; color="#7fa8c4"; fontsize=11; fontcolor="#2e5570";
+
+    VASC  [label="Microvascular density\n(functional perfusion)", fillcolor="#dfeef7", penwidth=1.4];
+    PO2   [label="Tumour pO₂ distribution\n(median, hypoxic fraction HF)", fillcolor="#dfeef7", penwidth=1.4];
+    HIF1  [label="HIF-1α stabilisation", fillcolor="#dfeef7"];
+    CAIX  [label="CA-IX / GLUT1 / LDHA\n(IHC + 15-gene signature)", fillcolor="#efefef"];
+    VEGFA [label="VEGF-A", fillcolor="#dfeef7"];
+    VEGFC [label="VEGF-C / VEGF-D →\nlymphangiogenesis", fillcolor="#dfeef7"];
+    LACT  [label="Lactate / acidosis\n(pH_e 6.5–7.0)", fillcolor="#dfeef7"];
+    OER   [label="OXYGEN ENHANCEMENT RATIO\nOER ≈ 2.5–3.0 → α, β ↓ in hypoxia", fillcolor="#ffe9c7", penwidth=1.6];
+    FMISO [label="[¹⁸F]-FMISO / FAZA PET\nhypoxia imaging (TBR)", fillcolor="#efefef"];
+    NIMO  [label="Nimorazole / carbogen+nicotinamide\n(hypoxic radiosensitiser)", fillcolor="#d9f2e6"];
+    ANEMIA[label="Anaemia / low Hb\n(< 12–13 g/dL)", fillcolor="#ffd9d9"];
+
+    VEGFA -> VASC; VASC -> PO2;
+    PO2 -> HIF1 [arrowhead=tee, label="pO₂ ↓ ⇒ HIF ↑"];
+    HIF1 -> VEGFA; HIF1 -> CAIX; HIF1 -> LACT; HIF1 -> VEGFC;
+    HIF1 -> PRHYP [label="glycolytic\nsurvival program"];
+    PO2 -> OER;
+    HF_dummy [style=invis, width=0.01, height=0.01, label=""];
+    PO2 -> HF_dummy [style=invis];
+    ANEMIA -> PO2 [arrowhead=tee, label="O₂ delivery ↓"];
+    PO2 -> FMISO [arrowhead=tee];
+    NIMO -> OER [arrowhead=tee, label="mimics O₂ at\nDNA radical"];
+    HIF1 -> EMT;
+    LACT -> TREG [label="immune\nsuppression", style=dashed];
+  }
+
+  /* =====================================================================
+     8 · RADIOTHERAPY — LINEAR-QUADRATIC MODEL AND THE 5 R's
+     ===================================================================== */
+  subgraph cluster_rt {
+    label="8 · Radiotherapy — LQ model and the 5 R's"; style="rounded,filled";
+    fillcolor="#f2f0fb"; color="#9188c9"; fontsize=11; fontcolor="#443a7a";
+
+    RTFX  [label="Fraction dose d (Gy)\n× number of fractions n\n(70 Gy / 35 fx standard)", fillcolor="#e6e0f8", penwidth=1.6];
+    OTT   [label="Overall treatment time OTT\n(days; gaps, machine downtime)", fillcolor="#e6e0f8", penwidth=1.4];
+    LQ    [label="SF = exp(−αD − βD²)\nα/β ≈ 10 Gy tumour, 3 Gy late", fillcolor="#e6e0f8", penwidth=1.6];
+    BED   [label="BED / EQD2\n(dose-equivalence bookkeeping)", fillcolor="#e6e0f8"];
+    R_REP [label="R1 · REPAIR of sublethal damage\n(T½ ≈ 0.3–1.5 h, inter-fraction)", fillcolor="#e6e0f8"];
+    R_RED [label="R2 · REDISTRIBUTION\nin the cell cycle", fillcolor="#e6e0f8"];
+    R_POP [label="R3 · REPOPULATION\n(see cluster 6)", fillcolor="#e6e0f8"];
+    R_OXY [label="R4 · REOXYGENATION\nbetween fractions", fillcolor="#e6e0f8"];
+    R_SEN [label="R5 · intrinsic RADIOSENSITIVITY\n(α; HPV+ α ↑ ≈ 1.3–1.6×)", fillcolor="#e6e0f8"];
+    FRACSCH[label="Fractionation schedule\nconventional / hyperfx (DAHANCA,\nEORTC 22851) / SIB-IMRT", fillcolor="#e6e0f8"];
+    IMRT  [label="IMRT / VMAT / proton\ndose sculpting (parotid, constrictor)", fillcolor="#e6e0f8"];
+    ELECT [label="Elective nodal irradiation\n(levels II–IV, 50–54 Gy)", fillcolor="#e6e0f8"];
+
+    RTFX -> LQ; LQ -> BED; RTFX -> OTT;
+    R_REP -> LQ [label="β term recovery"];
+    R_RED -> LQ; R_SEN -> LQ [label="α"];
+    OER  -> LQ  [label="divides α and β\nin hypoxic pool"];
+    R_OXY -> PO2;
+    OTT  -> R_POP [label="time for clonogen\nbirth"];
+    R_POP -> REPOP;
+    LQ -> LETHAL [label="lesion yield\nper fraction"];
+    FRACSCH -> RTFX; FRACSCH -> OTT;
+    IMRT -> RTFX; ELECT -> RTFX;
+    HRDEF -> R_SEN [label="HPV+ radiosensitivity"];
+    TP53M -> R_SEN [arrowhead=tee, label="apoptotic threshold ↑"];
+  }
+
+  /* =====================================================================
+     9 · TUMOUR IMMUNE MICROENVIRONMENT   (resistance factor 3)
+     ===================================================================== */
+  subgraph cluster_imm {
+    label="9 · Tumour immune microenvironment (→ R_immune)"; style="rounded,filled";
+    fillcolor="#eef7ee"; color="#7fae7f"; fontsize=11; fontcolor="#2d5c2d";
+
+    NEOAG [label="Neoantigens (TMB-derived)\n+ HPV E6/E7 viral antigens", fillcolor="#e2f0e2", penwidth=1.4];
+    ICD   [label="Immunogenic cell death\n(calreticulin, ATP, HMGB1)\nRT + platinum", fillcolor="#e2f0e2"];
+    DC    [label="Dendritic cell activation\n(cGAS–STING, type-I IFN)", fillcolor="#e2f0e2"];
+    LNPRIME[label="Draining-node priming\n→ CD8 clonal expansion", fillcolor="#e2f0e2", penwidth=1.4];
+    CD8T  [label="Intratumoural CD8+ T cells\n(effector, GZMB / PRF1)", fillcolor="#e2f0e2", penwidth=1.6];
+    TEX   [label="Exhausted CD8 (PD-1hi TOX+\nTIM-3, LAG-3)", fillcolor="#e2f0e2"];
+    IFNG  [label="IFN-γ", fillcolor="#e2f0e2"];
+    PDL1  [label="PD-L1 on tumour + myeloid\n(→ CPS score)", fillcolor="#efefef", penwidth=1.6];
+    PD1AX [label="PD-1 : PD-L1 engagement\n(SHP-2 → TCR signal ↓)", fillcolor="#e2f0e2"];
+    CTLA4 [label="CTLA-4 on Treg / priming", fillcolor="#e2f0e2"];
+    TREG  [label="FOXP3+ Treg", fillcolor="#e2f0e2"];
+    MDSC  [label="MDSC (CD33+ / Arg1 / iNOS)", fillcolor="#e2f0e2"];
+    TAM   [label="M2 TAM (CD163, CSF1R)", fillcolor="#e2f0e2"];
+    TGFB  [label="TGF-β1 (latent → active)", fillcolor="#e2f0e2"];
+    IDO1  [label="IDO1 → kynurenine", fillcolor="#e2f0e2"];
+    HLAL  [label="HLA class I / B2M loss\nAPM down-regulation", fillcolor="#e2f0e2"];
+    NKADCC[label="NK cells → ADCC\n(FcγRIIIa V158F polymorphism)", fillcolor="#e2f0e2"];
+    IL6T  [label="IL-6 / IL-8 / CXCL8", fillcolor="#fadadd"];
+    TILDENS[label="TIL density / immune-hot vs cold\n(HPV+ enriched hot)", fillcolor="#efefef"];
+
+    MUTBURD -> NEOAG; E6 -> NEOAG [label="viral epitopes"]; E7 -> NEOAG;
+    NEOAG -> DC; ICD -> DC; DC -> LNPRIME -> CD8T;
+    CD8T -> IFNG -> PDL1 [label="adaptive\ninduction"];
+    PDL1 -> PD1AX -> CD8T [arrowhead=tee];
+    PD1AX -> TEX; CD8T -> TEX [label="chronic antigen"];
+    TREG -> CD8T [arrowhead=tee]; MDSC -> CD8T [arrowhead=tee];
+    TAM -> CD8T [arrowhead=tee]; TGFB -> CD8T [arrowhead=tee];
+    IDO1 -> CD8T [arrowhead=tee];
+    CTLA4 -> LNPRIME [arrowhead=tee];
+    HLAL -> CD8T [arrowhead=tee, label="loss of\nrecognition"];
+    NFKBT -> IL6T; IL6T -> MDSC; STAT3 -> MDSC; STAT3 -> TREG;
+    TAM -> TGFB; TREG -> TGFB;
+    CD8T -> DOOM [label="granzyme-mediated\nkill"];
+    NKADCC -> DOOM;
+    CD8T -> TILDENS; NEOAG -> TILDENS;
+    IFNG -> IDO1;
+  }
+
+  /* =====================================================================
+     10 · INVASION, NODAL SPREAD AND STAGE
+     ===================================================================== */
+  subgraph cluster_inv {
+    label="10 · Invasion · nodal spread · staging"; style="rounded,filled";
+    fillcolor="#fdf0f0"; color="#d09090"; fontsize=11; fontcolor="#8a3a3a";
+
+    MMP   [label="MMP-2 / -9 / -14, uPA\n→ basement-membrane lysis", fillcolor="#f7dede"];
+    DOI   [label="Depth of invasion (mm)\n(T-stage driver, oral cavity)", fillcolor="#d7e9ff"];
+    PNI   [label="Perineural / lymphovascular\ninvasion", fillcolor="#f7dede"];
+    LYMPH [label="Lymphatic channels\n(VEGF-C driven)", fillcolor="#f7dede"];
+    LNMET  [label="Regional nodal metastasis\n(N1–N3, cystic HPV+ nodes)", fillcolor="#d7e9ff", penwidth=1.4];
+    ECS   [label="Extranodal extension (ENE)\n— adjuvant chemo-RT trigger", fillcolor="#d7e9ff"];
+    DMET  [label="Distant metastasis\n(lung > bone > liver)", fillcolor="#d7e9ff"];
+    STAGE [label="AJCC 8th stage\n(separate HPV+ / HPV− tables)", fillcolor="#d7e9ff", penwidth=1.6];
+    MARGIN[label="Surgical margin status\n(< 5 mm / positive)", fillcolor="#d7e9ff"];
+
+    EMT -> MMP -> DOI;
+    MMP -> PNI;
+    VEGFC -> LYMPH -> LNMET;
+    EMT -> LNMET;
+    LNMET -> ECS; LNMET -> DMET; PNI -> DMET;
+    DOI -> STAGE; LNMET -> STAGE; DMET -> STAGE;
+    P16 -> STAGE [label="HPV+ down-stages", style=dotted];
+    MARGIN -> STAGE [style=dotted];
+  }
+
+  /* =====================================================================
+     11 · DRUG PHARMACOKINETICS
+     ===================================================================== */
+  subgraph cluster_pk {
+    label="11 · Drug pharmacokinetics"; style="rounded,filled";
+    fillcolor="#eaf8f1"; color="#6fb894"; fontsize=11; fontcolor="#1f6045";
+
+    CISIV [label="CISPLATIN IV\n100 mg/m² q3w ×3  or  40 mg/m² weekly", fillcolor="#d9f2e6", penwidth=1.6];
+    CISFREE[label="Free (ultrafilterable) platinum\nt½α ≈ 20–30 min", fillcolor="#d9f2e6"];
+    CISBND[label="Protein-bound platinum\nt½ > 5 d (irreversible)", fillcolor="#d9f2e6"];
+    CISPER[label="Peripheral platinum\ndistribution", fillcolor="#d9f2e6"];
+    CISREN[label="Renal elimination\nCL ∝ CrCl (OCT2 / MATE1 secretion)", fillcolor="#d9f2e6"];
+    CARBO [label="CARBOPLATIN\nAUC 5 (Calvert formula)", fillcolor="#d9f2e6"];
+    FIVEFU[label="5-FLUOROURACIL\n1000 mg/m²/d CI ×4 d", fillcolor="#d9f2e6"];
+    DPD   [label="DPD (DPYD) catabolism\n> 80 % of dose; *2A / HapB3 variants", fillcolor="#d9f2e6"];
+    FDUMP [label="FdUMP / FUTP\nactive metabolites", fillcolor="#d9f2e6"];
+    DOCE  [label="DOCETAXEL 75 mg/m²\nCYP3A4 clearance", fillcolor="#d9f2e6"];
+    CETUX [label="CETUXIMAB\n400 → 250 mg/m² weekly IgG1", fillcolor="#d9f2e6", penwidth=1.6];
+    CETTMDD[label="Target-mediated disposition\n(EGFR sink, saturable)", fillcolor="#d9f2e6"];
+    PEMBRO[label="PEMBROLIZUMAB\n200 mg q3w / 400 mg q6w IgG4", fillcolor="#d9f2e6", penwidth=1.6];
+    NIVO  [label="NIVOLUMAB 3 mg/kg q2w\n(or 240 mg flat)", fillcolor="#d9f2e6"];
+    FCRN  [label="FcRn recycling → mAb\nt½ 14–22 d", fillcolor="#d9f2e6"];
+    TUMPEN[label="Tumour penetration\n(mAb: perfusion + K_p, small\nmolecule: diffusion)", fillcolor="#d9f2e6"];
+
+    CISIV -> CISFREE; CISFREE -> CISBND [label="thiol / albumin\nbinding"];
+    CISFREE -> CISPER; CISFREE -> CISREN;
+    CARBO -> CISFREE [style=dotted, label="platinum-equivalent\npathway"];
+    FIVEFU -> DPD; FIVEFU -> FDUMP;
+    CETUX -> CETTMDD; CETTMDD -> EGFR;
+    CETUX -> FCRN; PEMBRO -> FCRN; NIVO -> FCRN;
+    CETUX -> TUMPEN; PEMBRO -> TUMPEN; CISFREE -> TUMPEN; DOCE -> TUMPEN;
+    ANEMIA -> CISREN [style=invis];
+  }
+
+  /* =====================================================================
+     12 · DRUG PHARMACODYNAMICS — EACH AGENT INTO ONE RESISTANCE FACTOR
+     ===================================================================== */
+  subgraph cluster_pd {
+    label="12 · Pharmacodynamics — one agent, one resistance factor"; style="rounded,filled";
+    fillcolor="#eaf8f1"; color="#6fb894"; fontsize=11; fontcolor="#1f6045";
+
+    PTDNA [label="Pt–DNA intrastrand adducts\n(GpG 1,2-d(GpG))", fillcolor="#d9f2e6"];
+    ICLINK[label="Interstrand crosslinks →\nreplication-fork collapse", fillcolor="#d9f2e6"];
+    NER   [label="NER / ERCC1-XPF removal\n(ERCC1-low ⇒ platinum-sensitive)", fillcolor="#d9f2e6"];
+    GSHDT [label="GSH / metallothionein\ndetoxification", fillcolor="#d9f2e6"];
+    RADSENS[label="RADIOSENSITISATION\nα → α·(1 + φ·C_pt)\nsublethal-damage repair blocked", fillcolor="#ffe9c7", penwidth=1.6];
+    TSINH [label="Thymidylate synthase inhibition\n→ dTTP depletion", fillcolor="#d9f2e6"];
+    TUBUL [label="β-tubulin stabilisation →\nM-phase arrest", fillcolor="#d9f2e6"];
+    EGFRBL[label="EGFR ligand-binding blockade\n+ receptor internalisation", fillcolor="#d9f2e6", penwidth=1.4];
+    PD1BL [label="PD-1 receptor occupancy\n(> 95 % at ≥ 1 mg/kg)", fillcolor="#d9f2e6", penwidth=1.4];
+    RECOCC[label="Target occupancy → effect\nE = Emax·C/(EC50 + C)", fillcolor="#d9f2e6"];
+
+    CISFREE -> PTDNA -> ICLINK -> DSB;
+    NER -> PTDNA [arrowhead=tee]; GSHDT -> CISFREE [arrowhead=tee];
+    NRF2 -> GSHDT [label="NRF2 drives\nGSH synthesis"];
+    PTDNA -> RADSENS; RADSENS -> LQ [label="multiplies α"];
+    FDUMP -> TSINH -> DSB;
+    DOCE -> TUBUL -> LETHAL;
+    CETUX -> EGFRBL; EGFRBL -> PEGFR [arrowhead=tee];
+    CETUX -> NKADCC [label="Fc → FcγRIIIa\nADCC"];
+    PEMBRO -> PD1BL; NIVO -> PD1BL;
+    PD1BL -> PD1AX [arrowhead=tee];
+    PD1BL -> RECOCC; EGFRBL -> RECOCC;
+    CISFREE -> ICD; RTFX -> ICD;
+  }
+
+  /* =====================================================================
+     13 · THE THREE MULTIPLICATIVE RESISTANCE FACTORS  (the thesis)
+     ===================================================================== */
+  subgraph cluster_res {
+    label="13 · The four resistance factors — and their HEADROOM"; style="rounded,filled";
+    fillcolor="#fff6e6"; color="#d9a94a"; fontsize=12; fontcolor="#8a5a00";
+
+    RHYP  [label="R_hypoxia\n= 1 + (OER−1)·HF(clonogens)", fillcolor="#ffe9c7", penwidth=2.0];
+    RREP  [label="R_repair\n= α_max / α_effective", fillcolor="#ffe9c7", penwidth=2.0];
+    RPOP  [label="R_repopulation\n= clonogen birth × treatment time", fillcolor="#ffe9c7", penwidth=2.0];
+    RIMM  [label="R_immune\n= immune-escape fraction", fillcolor="#ffe9c7", penwidth=2.0];
+    RTOT  [label="RESISTANCE\nR = R_hyp × R_rep × R_pop × R_imm", fillcolor="#ffe9c7", penwidth=2.4];
+    HEAD  [label="HEADROOM measured, not assumed:\nsix counterfactual integrators run\nalongside the real one\nHD_i = 1 − LK_actual / LK_without_i", fillcolor="#ffe9c7", penwidth=2.4];
+    HPVPHEN[label="HPV+ phenotype\nHF low · HR-deficient · T_pot long · TIL-hot\nno EGFR amplification · Rb bypassed by E7\n⇒ SMALL hypoxia & EGFR headroom", fillcolor="#ffe9c7"];
+    SMKPHEN[label="HPV− smoker phenotype\nHF high · NHEJ intact · EGFR-amplified · cold\n⇒ LARGE headroom in all four", fillcolor="#ffe9c7"];
+    SUBADD[label="Two agents on the SAME factor\nshare one headroom ⇒ sub-additive.\nAgents on DIFFERENT factors\nadd in log kill.", fillcolor="#ffe9c7", penwidth=1.6];
+
+    OER -> RHYP; PO2 -> RHYP;
+    NHEJ -> RREP; HR -> RREP;
+    REPOP -> RPOP; OTT -> RPOP; PEGFR -> RPOP;
+    HLAL -> RIMM; TREG -> RIMM; MDSC -> RIMM; PD1AX -> RIMM; TILDENS -> RIMM [arrowhead=tee];
+    RHYP -> RTOT; RREP -> RTOT; RPOP -> RTOT; RIMM -> RTOT;
+    RTOT -> HEAD; HEAD -> SUBADD;
+    HPVPHEN -> HEAD; SMKPHEN -> HEAD;
+    NIMO   -> RHYP [arrowhead=tee, label="acts here only"];
+    RADSENS-> RREP [arrowhead=tee, label="cisplatin acts here"];
+    EGFRBL -> RREP [arrowhead=tee, label="cetuximab, weakly"];
+    EGFRBL -> RPOP [arrowhead=tee, label="cetuximab, mainly"];
+    PD1BL  -> RIMM [arrowhead=tee, label="checkpoint acts here"];
+    P16 -> HPVPHEN [style=dotted]; TP53M -> SMKPHEN [style=dotted];
+    RTOT -> LQ [label="divides effective\nlog kill", penwidth=1.4];
+  }
+
+  /* =====================================================================
+     14 · NORMAL TISSUE — ORAL MUCOSITIS (Sonis five phases)
+     ===================================================================== */
+  subgraph cluster_muc {
+    label="14 · Oral mucositis — the competing clock"; style="rounded,filled";
+    fillcolor="#fdeeee"; color="#cf8f8f"; fontsize=11; fontcolor="#8a2f2f";
+
+    MUCBAS[label="Basal keratinocyte stem cells\n(mucosal proliferative pool)", fillcolor="#ffd9d9", penwidth=1.4];
+    MUCTA [label="Transit-amplifying compartment\n(3–4 divisions, ~5 d transit)", fillcolor="#ffd9d9"];
+    MUCEP [label="Mucosal epithelial integrity\n(surface coverage)", fillcolor="#ffd9d9", penwidth=1.4];
+    MUCINI[label="Phase 1 · initiation:\nROS + DNA strand breaks", fillcolor="#ffd9d9"];
+    MUCNFK[label="Phase 2 · NF-κB / TNF-α / IL-1β\nprimary damage response", fillcolor="#ffd9d9"];
+    MUCAMP[label="Phase 3 · signal amplification\n(ceramide, MAPK, positive feedback)", fillcolor="#ffd9d9"];
+    MUCULC[label="Phase 4 · ULCERATION\n+ bacterial colonisation → PAMPs", fillcolor="#ffd9d9", penwidth=1.6];
+    MUCHEAL[label="Phase 5 · healing\n(ECM signalling from submucosa)", fillcolor="#ffd9d9"];
+    MUCGR [label="WHO / CTCAE mucositis grade 0–4\n(grade ≥3 in 40–60 % of CRT)", fillcolor="#d7e9ff", penwidth=1.6];
+    ORALPAIN[label="Oral pain → opioid requirement\n(morphine-equivalent mg/d)", fillcolor="#d7e9ff"];
+    NPO   [label="Inability to eat → PEG /\nNG tube, hospitalisation", fillcolor="#d7e9ff"];
+
+    MUCBAS -> MUCTA -> MUCEP;
+    LQ -> MUCINI [label="normal-tissue dose\n(α/β ≈ 10 acute)"];
+    PTDNA -> MUCINI [label="platinum adds\nto basal kill"];
+    MUCINI -> MUCBAS [arrowhead=tee, label="stem-cell kill"];
+    MUCINI -> MUCNFK -> MUCAMP -> MUCULC;
+    MUCAMP -> MUCBAS [arrowhead=tee];
+    MUCEP -> MUCULC [arrowhead=tee];
+    MUCULC -> MUCGR; MUCULC -> ORALPAIN; MUCULC -> NPO;
+    MUCHEAL -> MUCEP; MUCBAS -> MUCHEAL;
+    MUCULC -> IL6T [label="systemic\ninflammation"];
+    NPO -> OTT [label="treatment breaks ⇒ OTT ↑", penwidth=1.4, color="#b03030", fontcolor="#b03030"];
+  }
+
+  /* =====================================================================
+     15 · NORMAL TISSUE — SALIVARY, SWALLOWING, BONE, THYROID
+     ===================================================================== */
+  subgraph cluster_lateto {
+    label="15 · Late normal-tissue injury (salivary · swallowing · bone · thyroid)"; style="rounded,filled";
+    fillcolor="#fdeeee"; color="#cf8f8f"; fontsize=11; fontcolor="#8a2f2f";
+
+    PARDOSE[label="Mean parotid dose (Gy)\n(IMRT target < 26 Gy)", fillcolor="#e6e0f8", penwidth=1.4];
+    ACINAR[label="Serous acinar cell survival\n(+ stem cells in ducts)", fillcolor="#ffd9d9", penwidth=1.4];
+    SALFLOW[label="Stimulated salivary flow\n(mL/min; < 25 % ⇒ grade 2+)", fillcolor="#d7e9ff", penwidth=1.6];
+    XERO  [label="XEROSTOMIA\n(patient-reported, XQ score)", fillcolor="#d7e9ff"];
+    DENTAL[label="Radiation caries / dental loss", fillcolor="#ffd9d9"];
+    CONSTR[label="Pharyngeal-constrictor dose\n→ fibrosis (TGF-β driven)", fillcolor="#ffd9d9"];
+    DYSPH [label="DYSPHAGIA / aspiration\n(DIGEST grade, MBS)", fillcolor="#d7e9ff", penwidth=1.4];
+    TRISM [label="Trismus (masseter/TMJ fibrosis,\nMIO < 35 mm)", fillcolor="#d7e9ff"];
+    ORN   [label="Osteoradionecrosis of the mandible\n(mandible dose > 60 Gy)", fillcolor="#ffd9d9"];
+    HYPOTH[label="Radiation hypothyroidism\n(TSH ↑; 20–40 % at 5 yr)", fillcolor="#d7e9ff"];
+    CAROT [label="Carotid intima injury →\nlate stroke risk", fillcolor="#ffd9d9"];
+    LYMPHED[label="Cervical lymphoedema / fibrosis", fillcolor="#ffd9d9"];
+
+    IMRT -> PARDOSE [arrowhead=tee, label="sparing"];
+    RTFX -> PARDOSE;
+    PARDOSE -> ACINAR [arrowhead=tee, label="LQ, α/β ≈ 3 Gy"];
+    ACINAR -> SALFLOW -> XERO [arrowhead=tee];
+    SALFLOW -> DENTAL [arrowhead=tee];
+    RTFX -> CONSTR; TGFB -> CONSTR; CONSTR -> DYSPH;
+    MUCULC -> DYSPH [label="acute → late\ncontinuum"];
+    RTFX -> TRISM; RTFX -> ORN; SALFLOW -> ORN [arrowhead=tee];
+    RTFX -> HYPOTH; RTFX -> CAROT; RTFX -> LYMPHED;
+    DYSPH -> NPO;
+  }
+
+  /* =====================================================================
+     16 · SYSTEMIC DRUG TOXICITY
+     ===================================================================== */
+  subgraph cluster_tox {
+    label="16 · Systemic drug toxicity — what caps the dose"; style="rounded,filled";
+    fillcolor="#fdeeee"; color="#cf8f8f"; fontsize=11; fontcolor="#8a2f2f";
+
+    OCT2  [label="OCT2 uptake into\nproximal tubule", fillcolor="#ffd9d9"];
+    NEPHRO[label="NEPHROTOXICITY\ntubular necrosis, KIM-1 ↑, Mg wasting", fillcolor="#ffd9d9", penwidth=1.4];
+    EGFRD [label="eGFR decline\n(→ carboplatin substitution)", fillcolor="#d7e9ff"];
+    HAIRC [label="Cochlear outer hair cells\n(basal turn, high frequency)", fillcolor="#ffd9d9"];
+    OTOX  [label="OTOTOXICITY\nSIOP/CTCAE grade, 4–8 kHz shift\n(TPMT / ACYP2 variants)", fillcolor="#d7e9ff", penwidth=1.4];
+    NEURO [label="Peripheral sensory neuropathy\n(cumulative Pt > 300 mg/m²)", fillcolor="#d7e9ff"];
+    EMES  [label="Emesis (5-HT3 / NK1 mediated)", fillcolor="#d7e9ff"];
+    NEUTRO[label="Neutropenia\n(Friberg transit model, ANC nadir)", fillcolor="#d7e9ff", penwidth=1.4];
+    RASH  [label="Acneiform rash grade\n(EGFR in follicular keratinocytes;\ngrade ≥2 tracks efficacy)", fillcolor="#d7e9ff"];
+    HYPOMG[label="Hypomagnesaemia\n(TRPM6 blockade in DCT)", fillcolor="#d7e9ff"];
+    INFUS [label="Infusion reaction\n(pre-existing anti-α-gal IgE)", fillcolor="#ffd9d9"];
+    IRAE  [label="Immune-related AEs\nthyroiditis · colitis · pneumonitis · hepatitis", fillcolor="#d7e9ff", penwidth=1.4];
+    CUMPT [label="Cumulative cisplatin dose\n(≥200 mg/m² threshold for benefit)", fillcolor="#efefef", penwidth=1.6];
+
+    CISFREE -> OCT2 -> NEPHRO -> EGFRD;
+    EGFRD -> CISREN [arrowhead=tee, label="clearance falls ⇒\nexposure rises"];
+    NEPHRO -> HYPOMG;
+    CISFREE -> HAIRC [arrowhead=tee]; HAIRC -> OTOX;
+    CISFREE -> NEURO; CISFREE -> EMES;
+    CISFREE -> NEUTRO; DOCE -> NEUTRO; FIVEFU -> NEUTRO; CARBO -> NEUTRO;
+    DPD -> NEUTRO [arrowhead=tee, label="DPD deficiency ⇒\ntoxicity ↑"];
+    EGFRBL -> RASH; EGFRBL -> HYPOMG;
+    CETUX -> INFUS;
+    PD1BL -> IRAE;
+    CISIV -> CUMPT;
+    CUMPT -> OTOX; CUMPT -> NEPHRO; CUMPT -> NEURO;
+    NEUTRO -> OTT [label="dose delay", color="#b03030", fontcolor="#b03030"];
+    OTOX -> CUMPT [arrowhead=tee, label="dose stopped", style=dashed];
+  }
+
+  /* =====================================================================
+     17 · NUTRITION, CACHEXIA AND HOST STATE
+     ===================================================================== */
+  subgraph cluster_host {
+    label="17 · Host state — cachexia, performance status, comorbidity"; style="rounded,filled";
+    fillcolor="#f6f6f6"; color="#a0a0a0"; fontsize=11; fontcolor="#4a4a4a";
+
+    GDF15 [label="GDF-15 → GFRAL (hindbrain)\nanorexia", fillcolor="#fadadd"];
+    CACHEX[label="Cancer cachexia\n(muscle proteolysis, MuRF1/atrogin)", fillcolor="#fadadd", penwidth=1.4];
+    BW    [label="Body weight / BSA\n(> 5 % loss ⇒ replan)", fillcolor="#d7e9ff", penwidth=1.4];
+    ALB   [label="Serum albumin / prealbumin", fillcolor="#efefef"];
+    ECOG  [label="ECOG performance status", fillcolor="#d7e9ff"];
+    AGE   [label="Age / comorbidity (ACE-27)\n(no CRT benefit > 70 yr in MACH-NC)", fillcolor="#efefef"];
+    SMOKC [label="Continued smoking during RT\n→ tumour hypoxia ↑, HbCO ↑", fillcolor="#efe4d2"];
+    SARCO [label="Sarcopenia (L3 SMI)\n→ toxicity ↑ per mg/m²", fillcolor="#fadadd"];
+
+    IL6T -> CACHEX; IL6T -> GDF15; GDF15 -> CACHEX;
+    CACHEX -> BW [arrowhead=tee]; NPO -> BW [arrowhead=tee];
+    CACHEX -> ALB [arrowhead=tee]; CACHEX -> SARCO;
+    SARCO -> NEUTRO [label="less distribution\nvolume"];
+    BW -> ECOG [style=dotted]; CACHEX -> ECOG [arrowhead=tee];
+    AGE -> ECOG [style=dotted];
+    SMOKC -> PO2 [arrowhead=tee]; SMOKC -> ANEMIA;
+    ALB -> CISBND [label="binding capacity", style=dotted];
+  }
+
+  /* =====================================================================
+     18 · CLINICAL ENDPOINTS
+     ===================================================================== */
+  subgraph cluster_end {
+    label="18 · Clinical endpoints"; style="rounded,filled";
+    fillcolor="#eef4fd"; color="#7f9fc4"; fontsize=12; fontcolor="#25456e";
+
+    RECIST[label="RECIST 1.1 sum of diameters\n→ ORR / DCR", fillcolor="#d7e9ff", penwidth=1.4];
+    PCR   [label="Pathologic complete response\n(neoadjuvant / salvage neck)", fillcolor="#d7e9ff"];
+    LRC   [label="LOCOREGIONAL CONTROL\nat 2 / 3 / 5 yr", fillcolor="#d7e9ff", penwidth=2.0];
+    PFS   [label="Progression-free survival", fillcolor="#d7e9ff", penwidth=1.6];
+    OSS   [label="OVERALL SURVIVAL\n(HPV+ 3-yr ≈ 82 % vs HPV− ≈ 57 %)", fillcolor="#d7e9ff", penwidth=2.0];
+    SECOND[label="Second primary tumour\n(field cancerisation)", fillcolor="#d7e9ff"];
+    QOL   [label="EORTC QLQ-C30 / H&N35,\nFACT-H&N, MDADI", fillcolor="#d7e9ff", penwidth=1.4];
+    LARYNX[label="Laryngectomy-free survival\n(organ preservation)", fillcolor="#d7e9ff"];
+    TTF   [label="Time to treatment failure /\nsalvage surgery feasibility", fillcolor="#d7e9ff"];
+    CTDNA [label="HPV ctDNA (TTMV) clearance\nkinetics → early response readout", fillcolor="#efefef", penwidth=1.4];
+
+    TVOL -> RECIST; RECIST -> PCR;
+    CSC -> LRC [arrowhead=tee, label="one surviving clonogen\n⇒ recurrence", penwidth=1.4];
+    LRC -> PFS; DMET -> PFS [arrowhead=tee];
+    PFS -> OSS; STAGE -> OSS [style=dotted];
+    NEPHRO -> OSS [arrowhead=tee, style=dashed, label="competing\nmortality"];
+    ECOG -> OSS [style=dotted]; AGE -> OSS [style=dotted];
+    FIELD -> SECOND; SECOND -> OSS [arrowhead=tee];
+    XERO -> QOL [arrowhead=tee]; DYSPH -> QOL [arrowhead=tee];
+    MUCGR -> QOL [arrowhead=tee]; OTOX -> QOL [arrowhead=tee];
+    RASH -> QOL [arrowhead=tee]; TRISM -> QOL [arrowhead=tee];
+    LRC -> LARYNX; LRC -> TTF;
+    E6 -> CTDNA [style=dotted]; TVOL -> CTDNA;
+    OTT -> LRC [arrowhead=tee, label="≈ 1 % LRC lost\nper day of prolongation",
+                penwidth=1.6, color="#b03030", fontcolor="#b03030"];
+    HEAD -> LRC [label="benefit of any agent\n∝ headroom it removes",
+                 penwidth=1.8, color="#c07000", fontcolor="#8a5a00"];
+  }
+
+  /* =====================================================================
+     CROSS-CLUSTER RANK HINTS
+     ===================================================================== */
+  { rank=same; RHYP; RREP; RPOP; RIMM; }
+  { rank=same; LRC; OSS; }
+}
