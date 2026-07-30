@@ -1,0 +1,780 @@
+/* ===========================================================================
+   cinv_qsp_model.dot
+   Chemotherapy-Induced Nausea and Vomiting (CINV) — mechanistic QSP map
+
+   ORGANISING THESIS (see README.md):
+
+     A CINV endpoint is not a percentage that drugs shrink.  It is an
+     EXPONENTIAL OF AN INTEGRAL OF A HAZARD, and the hazard is driven by a SUM:
+
+         DRIVE(t) = SUM_j  w_j * A_j(t)          (additive, receptor-specific)
+         lambda(t) = HMAX * (DRIVE - DRIVE0)^n / (THR^n + (DRIVE - DRIVE0)^n)
+         CR(window) = E_S[ exp( -S * INTEGRAL lambda dt ) ]
+
+     Every antiemetic ever licensed removes ONE TERM A_j from that sum.  None
+     of them scales DRIVE.  Three consequences are therefore OUTPUTS of this
+     map and not rules written into it:
+
+       1. ADDITIVITY IS EXACT ONLY IN THE DRIVE.  Each drug deletes one term
+          of the sum and leaves the others where they were - that layer is
+          additive by construction.  But the chain drive -> lambda -> I -> CR
+          is a SATURATING THRESHOLD followed by an EXPONENTIAL, so additivity
+          is destroyed on the way to the endpoint: measured in this model, it
+          is already down to ~67% of the sum at the dI level.  The "synergy"
+          universally reported between a 5-HT3 RA, an NK1 RA, dexamethasone
+          and olanzapine is therefore additive pharmacology seen through a
+          nonlinear chain, not receptor interaction - and the ABSOLUTE benefit
+          of the fourth agent is a NON-MONOTONIC function of baseline risk.
+
+       2. THE ACUTE AND DELAYED PHASES ARE THE SAME EQUATION WITH A DIFFERENT
+          TERM DOMINATING.  The 5-HT3 term is a mucosal BURST (peaks 4-6 h,
+          gone by 24 h, trackable as urinary 5-HIAA).  The NK1 term is a
+          TRANSCRIPTIONAL RAMP (preprotachykinin induction, peaks 24-72 h).
+          A 5-HT3 antagonist deletes the term that dominates day 1 and is
+          nearly absent from day 3 — the delayed phase is not the drug wearing
+          off, it is a term the drug never addressed.
+
+       3. NAUSEA AND VOMITING DISSOCIATE BECAUSE THEY ARE TWO DIFFERENT
+          WEIGHTED SUMS.  The brainstem sum crosses a threshold (vomiting);
+          the cortical/insular sum is graded (nausea) and contains H1, M1,
+          5-HT2A, AVP, gastric-dysrhythmia and conditioned terms that no
+          5-HT3 or NK1 antagonist touches.  Olanzapine is the only agent in
+          the map that subtracts FOUR of the cortical terms at once, which is
+          why "no nausea" is the endpoint it owns.
+
+     A fourth structure is what makes 100% control impossible: the area
+     postrema has no blood-brain barrier, so circulating platinum drives an
+     input WAP*(FG + WAPD*FZ) that is downstream of NO receptor in the map.
+     It has an ACUTE part (FG, the mucosal burst) and a DELAYED part (FZ, the
+     transit signal), and the delayed part is why complete response in the
+     24-120 h window caps below 80% even on a four-drug regimen.  No
+     combination of antagonists can remove it; only the gain terms
+     (glucocorticoid, GABA-A, CB1) attenuate it.
+
+     FIFTH, AND IT IS A CORRECTION WORTH RECORDING: the tonic subtraction
+     happens INSIDE each term, before the gain is applied.  An earlier version
+     of this model subtracted a single tonic constant from the gain-scaled
+     total, which let dexamethasone alone push the sum below baseline and act
+     as a complete antiemetic.  Building the sum out of increments over
+     analytic drug-free values makes that failure structurally impossible and
+     removes two calibrated constants.
+
+   RENDER:
+     dot -Tsvg cinv_qsp_model.dot -o cinv_qsp_model.svg
+     dot -Tpng -Gdpi=150 cinv_qsp_model.dot -o cinv_qsp_model.png
+
+   LEGEND (edge semantics)
+     solid black  ->   mass flow / conversion / transcription
+     blue         ->   activation / positive influence
+     red (tee)    ->   inhibition / receptor blockade / competitive occupancy
+     green dashed ->   drug administration or PK linkage
+     purple dot   ->   the hazard / threshold mathematics (the thesis)
+     orange       ->   off-target or adverse consequence
+   =========================================================================== */
+
+digraph CINV {
+  graph [rankdir=TB, splines=true, newrank=true, nodesep=0.22, ranksep=0.48,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", label=<
+           <B>Chemotherapy-Induced Nausea and Vomiting — QSP mechanistic map</B><BR/>
+           <FONT POINT-SIZE="11">Every antiemetic subtracts ONE additive term from the emetic drive; every endpoint is exp(-&#8747;hazard).<BR/>
+           Additivity is exact only in the DRIVE; the saturating hazard and the exponential endpoint destroy it, which is where all reported synergy comes from.</FONT>
+         >, fontsize=20];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#4a4a4a", fillcolor="#f7f7f7", penwidth=1.0, margin="0.06,0.03"];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, penwidth=1.0];
+
+  /* ---------- edge classes ---------- */
+  /* act = blue, inh = red tee, pk = green dashed, math = purple dotted, adv = orange */
+
+  /* =====================================================================
+     1. CHEMOTHERAPY / EMETOGENIC STIMULUS
+     ===================================================================== */
+  subgraph cluster_chemo {
+    label="1 · Chemotherapy & emetogenic stimulus";
+    style="rounded,filled"; fillcolor="#eef4fb"; color="#2c5aa0"; fontcolor="#2c5aa0"; fontsize=13;
+    CISDOSE  [label="Cisplatin dose\n70–120 mg/m² IV 2 h", fillcolor="#d6e6f7"];
+    C_CIS    [label="C_CIS\nfree plasma platinum\n(t½α ≈ 25 min)", fillcolor="#d6e6f7"];
+    T_CIS    [label="T_CIS\ntissue-bound platinum\n(t½ ≈ 35 h, DNA adducts)", fillcolor="#d6e6f7"];
+    G_CIS    [label="G_CIS\nGI-mucosal platinum signal", fillcolor="#d6e6f7"];
+    FG       [label="FG = G^HG/(KG50^HG+G^HG)\nsigmoidal mucosal injury\n(HG = 2.5 → BURST, not tail)", fillcolor="#bcd8f2", shape=box, penwidth=2];
+    Z1       [label="Z1 transit", fillcolor="#d6e6f7"];
+    Z2       [label="Z2 delayed central signal\n(peaks ≈ 2/KZ ≈ 40 h)", fillcolor="#bcd8f2", penwidth=2];
+    ROS      [label="mucosal ROS / oxidative stress\nxanthine oxidase, NADPH ox."];
+    DNADAM   [label="enterocyte + EC-cell DNA damage\np53, apoptosis"];
+    EMETO_P  [label="EMETO_P\nperipheral emetogenicity\n(EC-cell release potency)", fillcolor="#bcd8f2"];
+    EMETO_C  [label="EMETO_C\ncentral emetogenicity\n(SP-induction potency)", fillcolor="#bcd8f2"];
+    HEC      [label="HEC  cisplatin, AC, carmustine\n(>90% risk)", fillcolor="#f9dede"];
+    MEC      [label="MEC  carboplatin, oxaliplatin,\nirinotecan, doxorubicin (30–90%)", fillcolor="#fdf0dd"];
+    LEC      [label="LEC / minimal  taxanes, 5-FU,\ngemcitabine, bleomycin (<30%)", fillcolor="#e7f6e7"];
+    RADIO    [label="concurrent radiotherapy\n(additive mucosal signal)"];
+  }
+
+  /* =====================================================================
+     2. ENTEROCHROMAFFIN CELL / SEROTONIN
+     ===================================================================== */
+  subgraph cluster_ec {
+    label="2 · Enterochromaffin cell — the ACUTE term";
+    style="rounded,filled"; fillcolor="#fdf3ec"; color="#c05a10"; fontcolor="#c05a10"; fontsize=13;
+    ECCELL   [label="enterochromaffin (EC) cell\nduodenal + jejunal mucosa\n(>90% of body 5-HT)", fillcolor="#fbe0cd"];
+    TPH1     [label="TPH1 tryptophan hydroxylase"];
+    TRP      [label="L-tryptophan"];
+    HTP5     [label="5-hydroxytryptophan"];
+    VMAT1    [label="VMAT1 (SLC18A1)\nvesicular loading"];
+    ECS      [label="ECS\nEC-cell 5-HT store\n(fraction of normal)", fillcolor="#fbe0cd"];
+    REL      [label="REL = KRE · EMETO_P · FG · ECS\nregulated exocytosis", fillcolor="#f7c9a6", penwidth=2];
+    SHT_G    [label="SHT_G\ngut interstitial 5-HT (nM)\npeak 4–6 h", fillcolor="#f7c9a6", penwidth=2];
+    SERT     [label="SERT (SLC6A4) reuptake"];
+    MAOA     [label="MAO-A oxidative deamination"];
+    SHT_P    [label="SHT_P\nplasma / platelet 5-HT"];
+    UHIAA    [label="urinary 5-HIAA excretion\n(OBSERVABLE acute biomarker)", fillcolor="#f7c9a6"];
+    ENTNEUR  [label="enteric neurons\n(SP, CGRP co-release)"];
+    HTR3B_P  [label="HTR3B −100_−102AAG variant\n(higher release / response)", fillcolor="#efe3f7"];
+  }
+
+  /* =====================================================================
+     3. VAGAL AFFERENT TERMINAL / 5-HT3 RECEPTOR
+     ===================================================================== */
+  subgraph cluster_vagal {
+    label="3 · Vagal afferent terminal — 5-HT3 receptor occupancy (KINETIC)";
+    style="rounded,filled"; fillcolor="#fbf1f1"; color="#a02c2c"; fontcolor="#a02c2c"; fontsize=13;
+    HTR3A    [label="HTR3A subunit"];
+    HTR3B    [label="HTR3B subunit"];
+    R3TOT    [label="5-HT3 receptor pool\nligand-gated cation channel\n(vagal terminal + AP + NTS)", fillcolor="#f4d4d4"];
+    FREE3    [label="FREE3 = 1 − ΣR3\navailable receptor", fillcolor="#f4d4d4"];
+    R3S      [label="R3S  5-HT-occupied\n= THE ACUTE SIGNAL", fillcolor="#eeb4b4", penwidth=2];
+    R3O      [label="R3O  ondansetron-occupied\n(Kd 2 nM, koff 4 /h)"];
+    R3G      [label="R3G  granisetron-occupied\n(Kd 0.5 nM)"];
+    R3P      [label="R3P  palonosetron-occupied\n(Kd 0.1 nM, koff 0.10 /h)"];
+    R3I      [label="R3I  INTERNALISED receptor\npalonosetron-triggered\n(krec 0.012 /h)", fillcolor="#eeb4b4"];
+    CAINF    [label="Ca²⁺ / Na⁺ influx\nterminal depolarisation"];
+    VAGFIRE  [label="VAG\nvagal afferent firing rate", fillcolor="#eeb4b4", penwidth=2];
+    NODOSE   [label="nodose ganglion\ncell bodies"];
+    ABDVAG   [label="abdominal vagal trunk"];
+    MECHAN   [label="gastric mechanoreceptors\n(distension)"];
+    NK1_PER  [label="peripheral NK1 on vagal terminals\n(equilibrium occupancy)"];
+  }
+
+  /* =====================================================================
+     4. SUBSTANCE P / NK1 — the DELAYED term
+     ===================================================================== */
+  subgraph cluster_sp {
+    label="4 · Substance P / NK1 — the DELAYED term (transcriptional ramp)";
+    style="rounded,filled"; fillcolor="#f2f0fa"; color="#5a3ca0"; fontcolor="#5a3ca0"; fontsize=13;
+    TAC1     [label="TAC1 (preprotachykinin-A) gene"];
+    PPT      [label="PPT\npreprotachykinin synthesis capacity\n(t½ ≈ 24 h ⇒ the DELAY)", fillcolor="#ddd6f3", penwidth=2];
+    SP_C     [label="SP_C\ncentral (NTS / AP) substance P"];
+    SP_P     [label="SP_P\nperipheral substance P\n(acute co-release + delayed ramp)"];
+    NEP      [label="neprilysin (MME) degradation"];
+    ACE_SP   [label="ACE / DPP4 secondary clearance"];
+    TACR1    [label="TACR1 → NK1 receptor pool\nGq-coupled 7TM", fillcolor="#ddd6f3"];
+    FREEN    [label="FREEN = 1 − ΣNK1\navailable receptor"];
+    N1S      [label="N1S  SP-occupied NK1\n= THE DELAYED SIGNAL", fillcolor="#c9bef0", penwidth=2];
+    N1A      [label="N1A  aprepitant-occupied\n(Kd 0.1 nM, koff 0.16 /h)"];
+    N1N      [label="N1N  netupitant-occupied\n(Kd 0.9 nM)"];
+    N1R      [label="N1R  rolapitant-occupied\n(Kd 0.03 nM, koff 0.033 /h)"];
+    PLCB     [label="PLCβ → IP₃ / DAG → Ca²⁺\nPKC, ERK"];
+    TACR1_P  [label="TACR1 polymorphism\n(NK1 RA response modifier)", fillcolor="#efe3f7"];
+  }
+
+  /* =====================================================================
+     5. DOPAMINE / AREA POSTREMA
+     ===================================================================== */
+  subgraph cluster_da {
+    label="5 · Dopamine & the area postrema (no blood-brain barrier)";
+    style="rounded,filled"; fillcolor="#eef7f2"; color="#1c7a4a"; fontcolor="#1c7a4a"; fontsize=13;
+    AP       [label="AREA POSTREMA\n(chemoreceptor trigger zone)\nFENESTRATED capillaries", fillcolor="#cceadb", penwidth=2];
+    DA_AP    [label="DA_AP\ndopamine tone at the AP"];
+    DRD2     [label="DRD2 receptor (Gi)"];
+    OCCD2    [label="occD2 = DA/(KD_DA·(1+ΣC/Ki)+DA)\ncompetitive, EQUILIBRIUM"];
+    WAPTERM  [label="WAP · (FG + WAPD·FZ)\nDIRECT platinum drive on the AP,\nACUTE + DELAYED\nDOWNSTREAM OF NO RECEPTOR", fillcolor="#8fd0b0", penwidth=3];
+    BBBGAP   [label="absent BBB at the AP\n⇒ blood-borne toxin access"];
+  }
+
+  /* =====================================================================
+     6. OTHER RECEPTOR INPUTS (equilibrium occupancy)
+     ===================================================================== */
+  subgraph cluster_rec {
+    label="6 · Other receptor inputs (fast ⇒ equilibrium occupancy)";
+    style="rounded,filled"; fillcolor="#f7f4ec"; color="#8a7220"; fontcolor="#8a7220"; fontsize=13;
+    H1R      [label="H1 histamine receptor\n(vestibular / cortical)"];
+    M1R      [label="M1 muscarinic receptor"];
+    HTR2A    [label="5-HT2A / 5-HT2C receptor"];
+    CB1R     [label="CB1 cannabinoid receptor\n(presynaptic, Gi)"];
+    GABAA    [label="GABA-A receptor\n(benzodiazepine site)"];
+    MOR      [label="µ-opioid receptor\n(pro-emetic at the AP)"];
+    OCCH1    [label="occH1"]; OCCM1 [label="occM1"]; OCC2A [label="occ5HT2A"];
+    OCCCB1   [label="occCB1"]; OCCGABA [label="occGABA"];
+  }
+
+  /* =====================================================================
+     7. NTS / BRAINSTEM EMETIC INTEGRATION — the SUM
+     ===================================================================== */
+  subgraph cluster_nts {
+    label="7 · NTS / brainstem integration — THE SUM";
+    style="rounded,filled"; fillcolor="#eaf0f7"; color="#1a3d6b"; fontcolor="#1a3d6b"; fontsize=13;
+    NTS      [label="NUCLEUS TRACTUS SOLITARII\nconvergence of all afferents", fillcolor="#c5d8ee", penwidth=2];
+    DMNV     [label="dorsal motor nucleus of the vagus"];
+    CPG      [label="emetic central pattern generator\n(medullary reticular formation)"];
+    GAINBS   [label="GAIN_BS = (1−EGABA·occGABA)\n×(1−ECB1·occCB1)\n×(1−EDEXBS·f(DEXN))", fillcolor="#a8c6e8"];
+    DRIVE    [label="DRIVE = GAIN_BS × Σ w_j ΔA_j\nWVAG·(VAG−VAG*) + WNKC·(N1S−N1S*)\n+ WD2·(occD2−occD2*) + WBLD·f(SHT_P)\n+ WAP·APT + WANT·ANTIC", fillcolor="#8fb4e0", penwidth=3];
+    DRIVE0   [label="tonic reference values VAG*, N1S*, occD2*\nANALYTIC in the parameters —\nnot fitted, not integrated", fillcolor="#a8c6e8"];
+    EBS      [label="EBS = max(0, DRIVE)\nevery term is an INCREMENT, so a\ndrug-free patient has EBS ≡ 0", fillcolor="#8fb4e0", penwidth=2];
+  }
+
+  /* =====================================================================
+     8. CORTICAL / INSULAR NAUSEA NETWORK — a DIFFERENT SUM
+     ===================================================================== */
+  subgraph cluster_ctx {
+    label="8 · Cortical / insular nausea network — a DIFFERENT weighted sum";
+    style="rounded,filled"; fillcolor="#f6eef7"; color="#7a2c7a"; fontcolor="#7a2c7a"; fontsize=13;
+    INSULA   [label="insular cortex\n(interoceptive representation)", fillcolor="#ecd4ee"];
+    ACC      [label="anterior cingulate cortex"];
+    AMYG     [label="amygdala"];
+    PBN      [label="parabrachial nucleus\n(relay to forebrain)"];
+    HYPOTH   [label="hypothalamic PVN\n(AVP, CRH)"];
+    CTX      [label="CTX = GAIN_CTX × Σ n_j ΔA_j\nNVAG·ΔVAG + NNK·ΔN1S + N2A·occ2A\n+ NH1·ΔoccH1 + NM1·ΔoccM1 + ND2·ΔoccD2\n+ NAVP·ΔAVP + NAP·APT\n+ NANT·(ANTIC+ΔANX) + NSW·(1−SWC)", fillcolor="#dbb6e0", penwidth=3];
+    CTX0     [label="tonic reference values\noccH1*, occM1*, AVP0, ANX0", fillcolor="#ecd4ee"];
+    ECT      [label="ECT = max(0, CTX)", fillcolor="#dbb6e0", penwidth=2];
+    NAUSEA   [label="NAUSEA (VAS 0–10)\nGRADED percept, not a threshold", fillcolor="#c893d0", penwidth=3];
+  }
+
+  /* =====================================================================
+     9. GASTRIC MOTILITY / VASOPRESSIN
+     ===================================================================== */
+  subgraph cluster_gastric {
+    label="9 · Gastric motility, dysrhythmia & vasopressin";
+    style="rounded,filled"; fillcolor="#f0f7f7"; color="#1c6a7a"; fontcolor="#1c6a7a"; fontsize=13;
+    ICC      [label="interstitial cells of Cajal\ngastric pacemaker (3 cpm)"];
+    SWC      [label="SWC\nslow-wave coupling index\n(1 = normal)", fillcolor="#cfe8ec"];
+    TACHY    [label="tachygastria / bradygastria\n(EGG abnormality)"];
+    GVOL     [label="GVOL\ngastric content volume"];
+    EMPT     [label="gastric emptying rate\n(D2-antagonist prokinesis)"];
+    GASTSTAS [label="gastric stasis → distension\nPOSITIVE FEEDBACK to VAG", fillcolor="#cfe8ec", penwidth=2];
+    AVP      [label="AVP (arginine vasopressin)\nplasma — nausea biomarker", fillcolor="#cfe8ec"];
+    V2R      [label="renal V2 receptor → water retention"];
+  }
+
+  /* =====================================================================
+     10. ANTICIPATORY CONDITIONING
+     ===================================================================== */
+  subgraph cluster_learn {
+    label="10 · Anticipatory nausea — associative learning (no receptor to block)";
+    style="rounded,filled"; fillcolor="#fdf7e8"; color="#9a7a10"; fontcolor="#9a7a10"; fontsize=13;
+    CUE      [label="clinic cues\n(smell, room, infusion sight)"];
+    ANTIC    [label="ANTIC\nconditioned association strength\nkacq·(NAUSEA/10)·(1−ANTIC)", fillcolor="#f7ecc8", penwidth=2];
+    ANX      [label="ANX\nanticipatory anxiety"];
+    HIPPO    [label="hippocampus / amygdala\nPavlovian consolidation"];
+    CARRY    [label="CYCLE-TO-CYCLE CARRYOVER\nkext ≪ kacq ⇒ failure is REMEMBERED", fillcolor="#f2df9e", penwidth=2];
+  }
+
+  /* =====================================================================
+     11. 5-HT3 RECEPTOR ANTAGONISTS
+     ===================================================================== */
+  subgraph cluster_5ht3ra {
+    label="11 · 5-HT3 receptor antagonists (PK)";
+    style="rounded,filled"; fillcolor="#eafaf1"; color="#157347"; fontcolor="#157347"; fontsize=13;
+    OND      [label="ONDANSETRON 8–16 mg\nt½ 4 h · CYP3A4/1A2/2D6", fillcolor="#c9f0da"];
+    GRA      [label="GRANISETRON 1–2 mg\nt½ 6–9 h · CYP3A4", fillcolor="#c9f0da"];
+    GRAER    [label="GRANISETRON ER-SC 10 mg\npolymer depot, ka 0.0115 /h ⇒ ≥5 d", fillcolor="#c9f0da"];
+    PAL      [label="PALONOSETRON 0.25 mg IV\nt½ 40 h · ALLOSTERIC, slow koff", fillcolor="#9fe3bd", penwidth=2];
+    TROP     [label="tropisetron / dolasetron /\nramosetron / azasetron"];
+    OND_A    [label="A_OND gut"]; OND_C [label="C_OND central"]; OND_P [label="P_OND peripheral"];
+    PAL_C    [label="C_PAL central"]; PAL_P [label="P_PAL peripheral"];
+    GRA_C    [label="C_GRA central"];
+    ALLOST   [label="allosteric binding + positive cooperativity\n⇒ receptor internalisation\n⇒ effect OUTLASTS plasma", fillcolor="#9fe3bd", penwidth=2];
+    XTALK    [label="palonosetron inhibits\n5-HT3 / NK1 CROSSTALK\n⇒ partial delayed cover", fillcolor="#9fe3bd"];
+  }
+
+  /* =====================================================================
+     12. NK1 RECEPTOR ANTAGONISTS
+     ===================================================================== */
+  subgraph cluster_nk1ra {
+    label="12 · NK1 receptor antagonists (PK)";
+    style="rounded,filled"; fillcolor="#f0eefb"; color="#4a2c9a"; fontcolor="#4a2c9a"; fontsize=13;
+    APR      [label="APREPITANT 125/80/80 mg PO\nt½ 11 h · CYP3A4 substrate\n+ MODERATE CYP3A4 INHIBITOR", fillcolor="#d9d0f5"];
+    FOS      [label="FOSAPREPITANT 150 mg IV\nphosphoramidate prodrug", fillcolor="#d9d0f5"];
+    NET      [label="NETUPITANT 300 mg PO\nt½ ≈ 88 h · CYP3A4 INHIBITOR", fillcolor="#d9d0f5"];
+    FOSNET   [label="FOSNETUPITANT IV\n(no polysorbate-80 vehicle)"];
+    ROL      [label="ROLAPITANT 180 mg PO\nt½ ≈ 180 h · CYP2D6 INHIBITOR\nNO CYP3A4 effect", fillcolor="#c3b4ef", penwidth=2];
+    NEPA     [label="NEPA (netupitant + palonosetron)\nsingle-capsule combination"];
+    APR_A    [label="A_APR gut"]; APR_C [label="C_APR central"]; APR_P [label="P_APR peripheral"];
+    NET_C    [label="C_NET central"]; ROL_C [label="C_ROL central"];
+    PETOCC   [label="PET striatal NK1 occupancy\n>85% sustained at 24 h\n(HELD-OUT validation)", fillcolor="#c3b4ef"];
+  }
+
+  /* =====================================================================
+     13. CORTICOSTEROID ARM
+     ===================================================================== */
+  subgraph cluster_dex {
+    label="13 · Dexamethasone — a SLOW GENOMIC arm (hence delayed-phase specific)";
+    style="rounded,filled"; fillcolor="#fbf0f5"; color="#a02c6a"; fontcolor="#a02c6a"; fontsize=13;
+    DEX      [label="DEXAMETHASONE\n20 mg d1 (12 mg with an NK1 RA)\n8 mg d2–4", fillcolor="#f4d4e4"];
+    DEX_A    [label="A_DEX gut"]; DEX_C [label="C_DEX plasma (t½ 4 h)"]; DEX_P [label="P_DEX peripheral"];
+    NR3C1    [label="NR3C1 glucocorticoid receptor\n(Kd ≈ 5 nM)"];
+    DEXGR    [label="DEXGR\nGR-ligand complex (FAST)"];
+    DEXN     [label="DEXN\nNUCLEAR / GENOMIC effect\nt½ ≈ 20 h — the SLOW step", fillcolor="#eeb4d0", penwidth=2];
+    NFKB     [label="NF-κB / AP-1 transrepression"];
+    DEXMECH  [label="three separable actions:\n① ↓5-HT synthesis & release\n② ↓TAC1 induction\n③ ↓NTS gain", fillcolor="#eeb4d0", penwidth=2];
+    DEXDELAY [label="slow transduction ⇒ dexamethasone\nis a DELAYED-PHASE drug\nBY ITS KINETICS, not by a rule", fillcolor="#eeb4d0"];
+  }
+
+  /* =====================================================================
+     14. OLANZAPINE — the multi-receptor arm
+     ===================================================================== */
+  subgraph cluster_ola {
+    label="14 · Olanzapine — subtracts FOUR cortical terms at once";
+    style="rounded,filled"; fillcolor="#fff4e8"; color="#b05c00"; fontcolor="#b05c00"; fontsize=13;
+    OLA      [label="OLANZAPINE 10 mg (or 5 mg)\nt½ ≈ 30 h · CYP1A2/UGT", fillcolor="#ffe0c0"];
+    OLA_A    [label="A_OLA gut"]; OLA_C [label="C_OLA central"]; OLA_P [label="P_OLA peripheral"];
+    OLA_D2   [label="D2  Ki ≈ 20 nM"];
+    OLA_2A   [label="5-HT2A Ki ≈ 4 nM"];
+    OLA_H1   [label="H1  Ki ≈ 7 nM"];
+    OLA_M1   [label="M1  Ki ≈ 26 nM"];
+    OLA_MULTI[label="FOUR cortical terms removed\n⇒ moves the NAUSEA endpoint\nwhen 5-HT3/NK1 RAs cannot", fillcolor="#ffcfa0", penwidth=3];
+  }
+
+  /* =====================================================================
+     15. DOPAMINE ANTAGONISTS / PROKINETICS
+     ===================================================================== */
+  subgraph cluster_d2ra {
+    label="15 · Dopamine antagonists & prokinetics";
+    style="rounded,filled"; fillcolor="#f2f7ea"; color="#5a7a10"; fontcolor="#5a7a10"; fontsize=13;
+    MCP      [label="METOCLOPRAMIDE 10–20 mg\n(high dose 2–3 mg/kg: also 5-HT3)", fillcolor="#e2eec8"];
+    DOMP     [label="domperidone\n(peripheral D2, does not cross BBB)"];
+    PROCHL   [label="prochlorperazine / promethazine"];
+    HALO     [label="haloperidol / droperidol"];
+    AMISUL   [label="amisulpride (D2/D3)"];
+    MCP_C    [label="C_MCP plasma"];
+    PROKIN   [label="peripheral D2 blockade\n→ PROKINESIS → ↓gastric stasis", fillcolor="#e2eec8"];
+  }
+
+  /* =====================================================================
+     16. GAIN MODULATORS (benzodiazepine / cannabinoid / other)
+     ===================================================================== */
+  subgraph cluster_gain {
+    label="16 · Gain modulators & adjuncts";
+    style="rounded,filled"; fillcolor="#eef7fb"; color="#1c5a7a"; fontcolor="#1c5a7a"; fontsize=13;
+    LOR      [label="LORAZEPAM 0.5–2 mg\nthe ONLY agent that reaches ANTIC", fillcolor="#cfe6f5", penwidth=2];
+    DRO      [label="DRONABINOL / nabilone\nCB1 agonist"];
+    LOR_C    [label="C_LOR plasma"]; DRO_C [label="C_DRO plasma"];
+    GABAPEN  [label="gabapentin / olanzapine adjunct"];
+    GINGER   [label="ginger / acupressure (P6)\n(adjunct evidence)"];
+    MIRTAZ   [label="mirtazapine (5-HT2/3, H1)"];
+    SCOP     [label="scopolamine (M1, vestibular)"];
+    BEHAV    [label="behavioural: progressive muscle\nrelaxation, systematic desensitisation\n(the ONLY anticipatory therapy)", fillcolor="#cfe6f5"];
+  }
+
+  /* =====================================================================
+     17. DRUG-DRUG INTERACTION NETWORK
+     ===================================================================== */
+  subgraph cluster_ddi {
+    label="17 · CYP DDI network — the dexamethasone dose is a COMPUTED quantity";
+    style="rounded,filled"; fillcolor="#fdeeee"; color="#a01c1c"; fontcolor="#a01c1c"; fontsize=13;
+    E3A4     [label="hepatic CYP3A4 pool\n(turnover t½ 24 h)", fillcolor="#f7cccc"];
+    E2D6     [label="hepatic CYP2D6 activity\n(no induction — genotype-set)", fillcolor="#f7cccc"];
+    ACT3A4   [label="ACT3A4 = E3A4/(1+C_APR/Ki+C_NET/Ki)\nreversible competitive inhibition"];
+    ACT2D6   [label="ACT2D6 = E2D6/(1+C_ROL/Ki)"];
+    DEXCL    [label="CL_DEX = CL0·(fm3A4·ACT3A4 + 1−fm3A4)\nfm3A4 ≈ 0.85", fillcolor="#f7cccc"];
+    DEXAUC   [label="dex AUC ×2.2 (aprepitant)\n×2.4 (netupitant) ×1.0 (rolapitant)\n⇒ 20 mg → 12 mg IS THE MODEL'S OUTPUT", fillcolor="#f0a0a0", penwidth=3];
+    ONDCL    [label="CL_OND = CL0·(fm2D6·ACT2D6 + 1−fm2D6)"];
+    DEXIND   [label="dexamethasone WEAKLY INDUCES CYP3A4\n(opposing its own inhibition)"];
+    DXMDDI   [label="rolapitant × dextromethorphan\nAUC ×3 — CYP2D6, not CYP3A4\n⇒ THE CLASS SPLITS", fillcolor="#f0a0a0", penwidth=2];
+  }
+
+  /* =====================================================================
+     18. PHARMACOGENOMICS
+     ===================================================================== */
+  subgraph cluster_pgx {
+    label="18 · Pharmacogenomics";
+    style="rounded,filled"; fillcolor="#f7f0fb"; color="#6a2c8a"; fontcolor="#6a2c8a"; fontsize=13;
+    CYP2D6G  [label="CYP2D6 genotype\nPM 0.1× · NM 1× · UM 2.5×", fillcolor="#e8d4f2"];
+    UMFAIL   [label="ULTRARAPID metaboliser\n⇒ ondansetron failure\n⇒ rescued by a NON-2D6 setron", fillcolor="#e8d4f2", penwidth=2];
+    ABCB1    [label="ABCB1 3435C>T\n(P-gp efflux, CNS exposure)"];
+    HTR3C    [label="HTR3C p.Asn163Lys"];
+    ERCC1    [label="ERCC1 / GSTP1 (platinum handling)"];
+  }
+
+  /* =====================================================================
+     19. EFFERENT EMETIC ACT
+     ===================================================================== */
+  subgraph cluster_efferent {
+    label="19 · Efferent emetic act";
+    style="rounded,filled"; fillcolor="#f7f7f7"; color="#4a4a4a"; fontsize=13;
+    RGC      [label="retrograde giant contraction\n(small bowel → stomach)"];
+    LESREL   [label="LES + crural diaphragm relaxation"];
+    ABDCON   [label="abdominal + intercostal contraction\n↑intra-abdominal pressure"];
+    RETCH    [label="retching (dry heaves)"];
+    EXPUL    [label="EXPULSION — one emetic episode", fillcolor="#e0e0e0", penwidth=2];
+    SALIV    [label="salivation, pallor, cold sweat,\ntachycardia (prodrome)"];
+  }
+
+  /* =====================================================================
+     20. THE HAZARD MATHEMATICS — the thesis, drawn
+     ===================================================================== */
+  subgraph cluster_math {
+    label="20 · THE THESIS — threshold hazard, exponential endpoint";
+    style="rounded,filled"; fillcolor="#f3eefb"; color="#5a1c9a"; fontcolor="#5a1c9a"; fontsize=14; penwidth=2;
+    LAM      [label="λ(t) = HMAX·EBS^n / (THR^n + EBS^n)\nemetic HAZARD (episodes/h)", fillcolor="#dcc8f5", penwidth=2];
+    LAMR     [label="λ_rescue(t) = f(NAUSEA)"];
+    LAMN     [label="λ_nausea(t) = KNAU·f(NAUSEA)"];
+    IINT     [label="I = ∫ (λ + λ_rescue) dt\nCUMULATIVE HAZARD", fillcolor="#dcc8f5", penwidth=2];
+    FRAILTY  [label="S ~ lognormal(0, ω²)\ninter-patient susceptibility", fillcolor="#dcc8f5"];
+    CREQ     [label="CR = E_S[ exp(−S·I) ]\nGauss-Hermite quadrature", fillcolor="#c3a0f0", penwidth=3];
+    ADDLOG   [label="ADDITIVE in log(CR)\nMULTIPLICATIVE in CR\nNEVER additive in CR%", fillcolor="#b088ea", penwidth=3];
+    OMEGAID  [label="CR(0–120) > CR(0–24)·CR(24–120)\n⇒ THE PUBLISHED GAP IDENTIFIES ω", fillcolor="#c3a0f0", penwidth=2];
+    NONMONO  [label="absolute benefit of the 4th agent\nis NON-MONOTONIC in baseline risk", fillcolor="#b088ea", penwidth=2];
+    MEANEP   [label="E[episodes] = I  (same integral)\none equation, two endpoints", fillcolor="#dcc8f5"];
+  }
+
+  /* =====================================================================
+     21. CLINICAL ENDPOINTS
+     ===================================================================== */
+  subgraph cluster_endpoints {
+    label="21 · Clinical endpoints";
+    style="rounded,filled"; fillcolor="#eaf7ee"; color="#0f5a2a"; fontcolor="#0f5a2a"; fontsize=13;
+    CRACUTE  [label="CR acute (0–24 h)", fillcolor="#c8ecd4"];
+    CRDELAY  [label="CR delayed (24–120 h)", fillcolor="#c8ecd4"];
+    CROVER   [label="CR overall (0–120 h)\nno emesis AND no rescue", fillcolor="#a8e0bc", penwidth=2];
+    NONAUS   [label="NO NAUSEA (0–120 h)\nthe endpoint olanzapine owns", fillcolor="#a8e0bc", penwidth=2];
+    TCONTROL [label="total control\n(no emesis, no rescue, no nausea)"];
+    RESCUE   [label="rescue medication use"];
+    FLIE     [label="FLIE quality-of-life score"];
+    TTF      [label="time to treatment failure"];
+    RDI      [label="RELATIVE DOSE INTENSITY\n(the endpoint that changes survival)", fillcolor="#a8e0bc", penwidth=2];
+  }
+
+  /* =====================================================================
+     22. OFF-TARGET / SAFETY
+     ===================================================================== */
+  subgraph cluster_safety {
+    label="22 · Off-target & safety";
+    style="rounded,filled"; fillcolor="#fdf0e8"; color="#a04a00"; fontcolor="#a04a00"; fontsize=13;
+    HERG     [label="hERG (KCNH2) block\nIC50 ≈ 1 µM (ondansetron)"];
+    QTC      [label="ΔΔQTcF\n≈5.6 ms @8 mg IV · ≈19.6 ms @32 mg IV\n⇒ the 32 mg IV withdrawal is an OUTPUT", fillcolor="#f7ccb0", penwidth=2];
+    TORSADE  [label="torsades risk (with hypoK⁺)"];
+    HYPERGLY [label="dexamethasone hyperglycaemia"];
+    INSOMNIA [label="dexamethasone insomnia, dyspepsia,\nmood change, myopathy"];
+    SED      [label="SEDATION (H1 + M1 + GABA-A)", fillcolor="#f7ccb0"];
+    EPS      [label="EPS / akathisia\n(D2 blockade above threshold)", fillcolor="#f7ccb0"];
+    CONSTIP  [label="constipation (gut 5-HT3 blockade)"];
+    HEADACHE [label="headache, hiccups, transaminitis"];
+    HYPOTEN  [label="fosaprepitant infusion-site reaction\n(polysorbate-80 vehicle)"];
+  }
+
+  /* =====================================================================
+     23. SYSTEMIC CONSEQUENCES
+     ===================================================================== */
+  subgraph cluster_systemic {
+    label="23 · Systemic consequences of uncontrolled emesis";
+    style="rounded,filled"; fillcolor="#f7f2ea"; color="#7a5a10"; fontcolor="#7a5a10"; fontsize=13;
+    ECFV     [label="ECF volume deficit"];
+    HYPOK    [label="hypokalaemia"];
+    ALKAL    [label="hypochloraemic metabolic alkalosis"];
+    NEPHRO   [label="cisplatin nephrotoxicity\nPOTENTIATED by volume depletion", fillcolor="#eee0c0", penwidth=2];
+    SCR      [label="serum creatinine ↑"];
+    MALNUT   [label="anorexia, weight loss, malnutrition"];
+    MALLORY  [label="Mallory-Weiss tear, aspiration"];
+    HOSPITAL [label="unplanned hospitalisation / ED visit"];
+    DOSEDELAY[label="dose delay & dose reduction"];
+    HYDRATION[label="pre/post-hydration + Mg²⁺/K⁺\n(protective)"];
+  }
+
+  /* =====================================================================
+     24. PATIENT RISK COVARIATES
+     ===================================================================== */
+  subgraph cluster_risk {
+    label="24 · Patient risk covariates (the Hesketh/Dranitsaris risk list, as a MODEL OUTPUT)";
+    style="rounded,filled"; fillcolor="#f0f0f7"; color="#3a3a7a"; fontcolor="#3a3a7a"; fontsize=13;
+    SEXF     [label="female sex  (+)"];
+    AGEY     [label="younger age  (+)"];
+    ALCOHOL  [label="chronic heavy alcohol use  (−)"];
+    MOTIONS  [label="motion sickness / pregnancy emesis  (+)"];
+    PRIORC   [label="CINV in a PREVIOUS cycle  (+)"];
+    ANXTRAIT [label="anxiety / expectancy  (+)"];
+    SUSC     [label="SUSC = exp(Σ β·covariate)\nmultiplies the HAZARD", fillcolor="#d0d0ea", penwidth=2];
+    SLEEPQ   [label="poor sleep quality, low BMI"];
+  }
+
+  /* =====================================================================
+     25. GUIDELINES / DECISION LAYER
+     ===================================================================== */
+  subgraph cluster_guide {
+    label="25 · Guideline decision layer";
+    style="rounded,filled"; fillcolor="#f7f7ee"; color="#6a6a10"; fontcolor="#6a6a10"; fontsize=13;
+    MASCC    [label="MASCC / ESMO"];
+    NCCN     [label="NCCN antiemesis"];
+    ASCO     [label="ASCO 2020 update"];
+    QUAD     [label="HEC: NK1 RA + 5-HT3 RA\n+ dex + olanzapine (QUADRUPLET)", fillcolor="#eeeec8", penwidth=2];
+    TRIPLE   [label="carboplatin AUC≥4: add an NK1 RA\n(MEC that behaves like HEC)", fillcolor="#eeeec8"];
+    DEXSPARE [label="dexamethasone-sparing\n(immunotherapy / diabetes)"];
+  }
+
+  /* =====================================================================
+     EDGES
+     ===================================================================== */
+
+  /* --- 1 chemo --- */
+  CISDOSE -> C_CIS [color="#157347", style=dashed];
+  C_CIS -> T_CIS [dir=both];
+  C_CIS -> G_CIS; G_CIS -> FG;
+  C_CIS -> Z1 -> Z2;
+  G_CIS -> ROS [color="#2c5aa0"]; ROS -> DNADAM [color="#2c5aa0"];
+  DNADAM -> ECCELL [color="#2c5aa0"];
+  HEC -> EMETO_P [color="#2c5aa0"]; HEC -> EMETO_C [color="#2c5aa0"];
+  MEC -> EMETO_P [color="#2c5aa0"]; MEC -> EMETO_C [color="#2c5aa0"];
+  LEC -> EMETO_P [color="#2c5aa0"]; LEC -> EMETO_C [color="#2c5aa0"];
+  RADIO -> FG [color="#2c5aa0"];
+  EMETO_P -> REL [color="#2c5aa0"]; EMETO_C -> PPT [color="#2c5aa0"];
+  FG -> REL [color="#2c5aa0", penwidth=2];
+  Z2 -> PPT [color="#2c5aa0", penwidth=2, label="TAC1 induction"];
+
+  /* --- 2 EC cell --- */
+  TRP -> HTP5 [label="TPH1"]; TPH1 -> HTP5 [color="#2c5aa0"];
+  HTP5 -> ECS; VMAT1 -> ECS [color="#2c5aa0"];
+  ECCELL -> ECS; ECS -> REL;
+  REL -> SHT_G [penwidth=2];
+  SHT_G -> SERT [color="#a02c2c", dir=none]; SERT -> MAOA;
+  SHT_G -> SHT_P; MAOA -> UHIAA; SHT_P -> UHIAA;
+  SHT_G -> UHIAA;
+  ECCELL -> ENTNEUR [color="#2c5aa0"]; ENTNEUR -> SP_P [color="#2c5aa0"];
+  FG -> SP_P [color="#2c5aa0", label="ACUTE SP\nco-release"];
+  HTR3B_P -> REL [color="#6a2c8a", style=dotted];
+
+  /* --- 3 vagal / 5-HT3 --- */
+  HTR3A -> R3TOT; HTR3B -> R3TOT;
+  R3TOT -> FREE3;
+  SHT_G -> R3S [color="#2c5aa0", penwidth=2, label="kon5·FREE3"];
+  FREE3 -> R3S; FREE3 -> R3O; FREE3 -> R3G; FREE3 -> R3P;
+  R3O -> FREE3 [color="#a02c2c", arrowhead=tee, label="competition"];
+  R3G -> FREE3 [color="#a02c2c", arrowhead=tee];
+  R3P -> FREE3 [color="#a02c2c", arrowhead=tee];
+  R3P -> R3I [label="kint"]; R3I -> FREE3 [color="#a02c2c", arrowhead=tee];
+  R3S -> CAINF [color="#2c5aa0"]; CAINF -> VAGFIRE [color="#2c5aa0", penwidth=2];
+  MECHAN -> VAGFIRE [color="#2c5aa0"]; NK1_PER -> VAGFIRE [color="#2c5aa0"];
+  SP_P -> NK1_PER [color="#2c5aa0"];
+  VAGFIRE -> NODOSE -> ABDVAG -> NTS [color="#2c5aa0", penwidth=2];
+
+  /* --- 4 SP / NK1 --- */
+  TAC1 -> PPT; PPT -> SP_C; PPT -> SP_P;
+  SP_C -> NEP [dir=none, color="#a02c2c"]; SP_P -> ACE_SP [dir=none, color="#a02c2c"];
+  TACR1 -> FREEN;
+  SP_C -> N1S [color="#2c5aa0", penwidth=2];
+  FREEN -> N1S; FREEN -> N1A; FREEN -> N1N; FREEN -> N1R;
+  N1A -> FREEN [color="#a02c2c", arrowhead=tee]; N1N -> FREEN [color="#a02c2c", arrowhead=tee];
+  N1R -> FREEN [color="#a02c2c", arrowhead=tee];
+  N1S -> PLCB [color="#2c5aa0"]; PLCB -> NTS [color="#2c5aa0"];
+  TACR1_P -> N1A [color="#6a2c8a", style=dotted];
+
+  /* --- 5 dopamine / AP --- */
+  BBBGAP -> AP; C_CIS -> AP [color="#2c5aa0", label="blood-borne"];
+  FG -> DA_AP [color="#2c5aa0"]; DA_AP -> OCCD2 [color="#2c5aa0"];
+  DRD2 -> OCCD2; AP -> NTS [color="#2c5aa0", penwidth=2];
+  FG -> WAPTERM [color="#2c5aa0", penwidth=3];
+  Z2 -> WAPTERM [color="#2c5aa0", penwidth=3, label="delayed floor:\nwhy CR(delayed) caps\nbelow 80%"];
+  AP -> WAPTERM;
+  SHT_P -> AP [color="#2c5aa0"];
+  MOR -> AP [color="#2c5aa0"];
+
+  /* --- 6 other receptors --- */
+  H1R -> OCCH1; M1R -> OCCM1; HTR2A -> OCC2A; CB1R -> OCCCB1; GABAA -> OCCGABA;
+  SHT_P -> OCC2A [color="#2c5aa0"];
+
+  /* --- 7 NTS sum --- */
+  VAGFIRE -> DRIVE [color="#2c5aa0", label="WVAG"];
+  N1S -> DRIVE [color="#2c5aa0", label="WNKC"];
+  OCCD2 -> DRIVE [color="#2c5aa0", label="WD2"];
+  SHT_P -> DRIVE [color="#2c5aa0", label="WBLD"];
+  WAPTERM -> DRIVE [color="#2c5aa0", penwidth=3, label="WAP"];
+  ANTIC -> DRIVE [color="#2c5aa0", label="WANT"];
+  GAINBS -> DRIVE [color="#5a1c9a"];
+  OCCGABA -> GAINBS [color="#a02c2c", arrowhead=tee];
+  OCCCB1 -> GAINBS [color="#a02c2c", arrowhead=tee];
+  DEXN -> GAINBS [color="#a02c2c", arrowhead=tee];
+  NTS -> DRIVE [color="#2c5aa0"]; NTS -> DMNV -> CPG [color="#2c5aa0"];
+  DRIVE -> EBS; DRIVE0 -> DRIVE [color="#a02c2c", arrowhead=tee, label="subtracted INSIDE\neach term, before the gain"];
+  EBS -> LAM [color="#5a1c9a", style=dotted, penwidth=2];
+
+  /* --- 8 cortical sum --- */
+  VAGFIRE -> CTX [color="#2c5aa0", label="NVAG"];
+  N1S -> CTX [color="#2c5aa0", label="NNK"];
+  OCC2A -> CTX [color="#2c5aa0", label="N2A"];
+  OCCH1 -> CTX [color="#2c5aa0", label="NH1"];
+  OCCM1 -> CTX [color="#2c5aa0", label="NM1"];
+  OCCD2 -> CTX [color="#2c5aa0", label="ND2"];
+  AVP -> CTX [color="#2c5aa0", label="NAVP"];
+  WAPTERM -> CTX [color="#2c5aa0", label="NAP"];
+  ANX -> CTX [color="#2c5aa0"]; ANTIC -> CTX [color="#2c5aa0", label="NANT"];
+  SWC -> CTX [color="#2c5aa0", label="NSW"];
+  PBN -> INSULA [color="#2c5aa0"]; NTS -> PBN [color="#2c5aa0"];
+  INSULA -> CTX [color="#2c5aa0"]; ACC -> CTX [color="#2c5aa0"]; AMYG -> CTX [color="#2c5aa0"];
+  HYPOTH -> AVP [color="#2c5aa0"];
+  CTX -> ECT; CTX0 -> CTX [color="#a02c2c", arrowhead=tee];
+  ECT -> NAUSEA [penwidth=3];
+  NAUSEA -> LAMN [color="#5a1c9a", style=dotted];
+  NAUSEA -> LAMR [color="#5a1c9a", style=dotted];
+
+  /* --- 9 gastric --- */
+  ICC -> SWC; DRIVE -> SWC [color="#a02c2c", arrowhead=tee];
+  SWC -> TACHY [color="#a02c2c", arrowhead=tee]; TACHY -> CTX [color="#2c5aa0"];
+  GVOL -> MECHAN [color="#2c5aa0"];
+  EMPT -> GVOL [color="#a02c2c", arrowhead=tee];
+  DRIVE -> EMPT [color="#a02c2c", arrowhead=tee];
+  GVOL -> GASTSTAS [color="#2c5aa0"]; GASTSTAS -> VAGFIRE [color="#2c5aa0", penwidth=2, label="POSITIVE\nFEEDBACK"];
+  DRIVE -> AVP [color="#2c5aa0"]; AVP -> V2R;
+  PROKIN -> EMPT [color="#2c5aa0", penwidth=2];
+
+  /* --- 10 learning --- */
+  CUE -> ANTIC [color="#2c5aa0"]; NAUSEA -> ANTIC [color="#2c5aa0", penwidth=2, label="kacq — acquisition"];
+  HIPPO -> ANTIC [color="#2c5aa0"]; ANTIC -> ANX [color="#2c5aa0"];
+  ANTIC -> CARRY [penwidth=2]; CARRY -> DRIVE [color="#2c5aa0"];
+  OCCGABA -> ANX [color="#a02c2c", arrowhead=tee];
+  BEHAV -> ANTIC [color="#a02c2c", arrowhead=tee, penwidth=2];
+
+  /* --- 11 5-HT3 RA PK --- */
+  OND -> OND_A [color="#157347", style=dashed]; OND_A -> OND_C; OND_C -> OND_P [dir=both];
+  OND_C -> R3O [color="#a02c2c", penwidth=2];
+  GRA -> GRA_C [color="#157347", style=dashed]; GRAER -> GRA_C [color="#157347", style=dashed, label="slow depot"];
+  GRA_C -> R3G [color="#a02c2c"];
+  PAL -> PAL_C [color="#157347", style=dashed]; PAL_C -> PAL_P [dir=both];
+  PAL_C -> R3P [color="#a02c2c", penwidth=2];
+  PAL -> ALLOST; ALLOST -> R3I [penwidth=2]; ALLOST -> XTALK;
+  XTALK -> N1S [color="#a02c2c", arrowhead=tee, style=dashed];
+  TROP -> R3TOT [color="#a02c2c"];
+  OND_C -> HERG [color="#d97706", penwidth=2];
+  R3O -> CONSTIP [color="#d97706"]; R3G -> CONSTIP [color="#d97706"]; R3P -> CONSTIP [color="#d97706"];
+  R3O -> HEADACHE [color="#d97706"];
+
+  /* --- 12 NK1 RA PK --- */
+  APR -> APR_A [color="#157347", style=dashed]; APR_A -> APR_C; APR_C -> APR_P [dir=both];
+  FOS -> APR_C [color="#157347", style=dashed, label="rapid conversion"];
+  APR_C -> N1A [color="#a02c2c", penwidth=2];
+  NET -> NET_C [color="#157347", style=dashed]; FOSNET -> NET_C [color="#157347", style=dashed];
+  NET_C -> N1N [color="#a02c2c"];
+  ROL -> ROL_C [color="#157347", style=dashed]; ROL_C -> N1R [color="#a02c2c", penwidth=2];
+  NEPA -> NET [color="#157347", style=dashed]; NEPA -> PAL [color="#157347", style=dashed];
+  N1A -> PETOCC; N1R -> PETOCC;
+  APR_C -> NK1_PER [color="#a02c2c", arrowhead=tee];
+  FOS -> HYPOTEN [color="#d97706"];
+
+  /* --- 13 dexamethasone --- */
+  DEX -> DEX_A [color="#157347", style=dashed]; DEX_A -> DEX_C; DEX_C -> DEX_P [dir=both];
+  DEX_C -> DEXGR [color="#2c5aa0"]; NR3C1 -> DEXGR;
+  DEXGR -> DEXN [penwidth=2, label="ktr (SLOW)"];
+  DEXN -> NFKB [color="#2c5aa0"]; NFKB -> DEXMECH;
+  DEXN -> DEXMECH [penwidth=2]; DEXMECH -> DEXDELAY;
+  DEXN -> REL [color="#a02c2c", arrowhead=tee, label="① ↓5-HT release"];
+  DEXN -> PPT [color="#a02c2c", arrowhead=tee, label="② ↓TAC1"];
+  DEXDELAY -> CRDELAY [color="#2c5aa0", penwidth=2];
+  DEXN -> HYPERGLY [color="#d97706", penwidth=2]; DEXN -> INSOMNIA [color="#d97706"];
+
+  /* --- 14 olanzapine --- */
+  OLA -> OLA_A [color="#157347", style=dashed]; OLA_A -> OLA_C; OLA_C -> OLA_P [dir=both];
+  OLA_C -> OLA_D2 [color="#a02c2c"]; OLA_C -> OLA_2A [color="#a02c2c"];
+  OLA_C -> OLA_H1 [color="#a02c2c"]; OLA_C -> OLA_M1 [color="#a02c2c"];
+  OLA_D2 -> OCCD2 [color="#a02c2c", arrowhead=tee];
+  OLA_2A -> OCC2A [color="#a02c2c", arrowhead=tee];
+  OLA_H1 -> OCCH1 [color="#a02c2c", arrowhead=tee];
+  OLA_M1 -> OCCM1 [color="#a02c2c", arrowhead=tee];
+  OLA_D2 -> OLA_MULTI; OLA_2A -> OLA_MULTI; OLA_H1 -> OLA_MULTI; OLA_M1 -> OLA_MULTI;
+  OLA_MULTI -> NONAUS [color="#2c5aa0", penwidth=3];
+  OLA_H1 -> SED [color="#d97706", penwidth=2]; OLA_M1 -> SED [color="#d97706"];
+  OLA_C -> QTC [color="#d97706"];
+  OLA_D2 -> EPS [color="#d97706"];
+
+  /* --- 15 D2 antagonists --- */
+  MCP -> MCP_C [color="#157347", style=dashed];
+  MCP_C -> OCCD2 [color="#a02c2c", arrowhead=tee]; MCP_C -> PROKIN [color="#2c5aa0"];
+  DOMP -> PROKIN [color="#2c5aa0"]; PROCHL -> OCCD2 [color="#a02c2c", arrowhead=tee];
+  HALO -> OCCD2 [color="#a02c2c", arrowhead=tee]; AMISUL -> OCCD2 [color="#a02c2c", arrowhead=tee];
+  MCP_C -> EPS [color="#d97706", penwidth=2]; MCP_C -> R3TOT [color="#a02c2c", style=dotted, label="high dose"];
+
+  /* --- 16 gain modulators --- */
+  LOR -> LOR_C [color="#157347", style=dashed]; LOR_C -> OCCGABA [color="#2c5aa0"];
+  LOR_C -> ANX [color="#a02c2c", arrowhead=tee, penwidth=2];
+  OCCGABA -> SED [color="#d97706"];
+  DRO -> DRO_C [color="#157347", style=dashed]; DRO_C -> OCCCB1 [color="#2c5aa0"];
+  MIRTAZ -> OCC2A [color="#a02c2c", arrowhead=tee]; SCOP -> OCCM1 [color="#a02c2c", arrowhead=tee];
+  GABAPEN -> CTX [color="#a02c2c", arrowhead=tee]; GINGER -> NAUSEA [color="#a02c2c", arrowhead=tee];
+
+  /* --- 17 DDI --- */
+  E3A4 -> ACT3A4; APR_C -> ACT3A4 [color="#a02c2c", arrowhead=tee, penwidth=2];
+  NET_C -> ACT3A4 [color="#a02c2c", arrowhead=tee, penwidth=2];
+  E2D6 -> ACT2D6; ROL_C -> ACT2D6 [color="#a02c2c", arrowhead=tee, penwidth=2];
+  ACT3A4 -> DEXCL; DEXCL -> DEX_C [color="#a02c2c", arrowhead=tee];
+  DEXCL -> DEXAUC [penwidth=2]; DEXAUC -> DEX [color="#5a1c9a", style=dotted, label="DOSE CORRECTION"];
+  ACT2D6 -> ONDCL; ONDCL -> OND_C [color="#a02c2c", arrowhead=tee];
+  DEXN -> DEXIND [color="#2c5aa0"]; DEXIND -> E3A4 [color="#2c5aa0"];
+  ACT2D6 -> DXMDDI; ROL_C -> DXMDDI;
+  ACT3A4 -> APR_C [color="#a02c2c", arrowhead=tee, style=dotted];
+
+  /* --- 18 PGx --- */
+  CYP2D6G -> E2D6 [color="#6a2c8a", penwidth=2];
+  CYP2D6G -> UMFAIL; UMFAIL -> ONDCL [color="#6a2c8a", penwidth=2];
+  UMFAIL -> PAL [color="#5a1c9a", style=dotted, label="rescue: non-2D6 setron"];
+  ABCB1 -> OND_C [color="#6a2c8a", style=dotted];
+  HTR3C -> R3TOT [color="#6a2c8a", style=dotted];
+  ERCC1 -> T_CIS [color="#6a2c8a", style=dotted];
+
+  /* --- 19 efferent --- */
+  CPG -> RGC [color="#2c5aa0"]; CPG -> LESREL [color="#2c5aa0"]; CPG -> ABDCON [color="#2c5aa0"];
+  CPG -> SALIV [color="#2c5aa0"];
+  RGC -> RETCH; LESREL -> EXPUL; ABDCON -> EXPUL; RETCH -> EXPUL;
+  LAM -> EXPUL [color="#5a1c9a", style=dotted, penwidth=2];
+
+  /* --- 20 the mathematics --- */
+  LAM -> IINT [color="#5a1c9a", penwidth=2]; LAMR -> IINT [color="#5a1c9a"];
+  FRAILTY -> CREQ [color="#5a1c9a", penwidth=2];
+  IINT -> CREQ [color="#5a1c9a", penwidth=3];
+  IINT -> MEANEP [color="#5a1c9a"];
+  CREQ -> ADDLOG [color="#5a1c9a", penwidth=3];
+  ADDLOG -> NONMONO [color="#5a1c9a", penwidth=2];
+  FRAILTY -> OMEGAID [color="#5a1c9a"]; CREQ -> OMEGAID [color="#5a1c9a"];
+  SUSC -> LAM [color="#3a3a7a", penwidth=2];
+  LAMN -> NONAUS [color="#5a1c9a", penwidth=2];
+
+  /* --- 21 endpoints --- */
+  CREQ -> CRACUTE [color="#0f5a2a", penwidth=2];
+  CREQ -> CRDELAY [color="#0f5a2a", penwidth=2];
+  CREQ -> CROVER [color="#0f5a2a", penwidth=3];
+  MEANEP -> RESCUE; LAMR -> RESCUE [color="#5a1c9a"];
+  CROVER -> TCONTROL; NONAUS -> TCONTROL;
+  NAUSEA -> FLIE [color="#a02c2c", arrowhead=tee]; EXPUL -> FLIE [color="#a02c2c", arrowhead=tee];
+  LAM -> TTF [color="#5a1c9a", style=dotted];
+  NAUSEA -> RDI [color="#a02c2c", arrowhead=tee, penwidth=2];
+  ADDLOG -> QUAD [color="#5a1c9a", style=dotted, penwidth=2];
+
+  /* --- 22 safety --- */
+  HERG -> QTC [color="#d97706", penwidth=2]; QTC -> TORSADE [color="#d97706"];
+  HYPOK -> TORSADE [color="#d97706", penwidth=2];
+  SED -> FLIE [color="#a02c2c", arrowhead=tee];
+  HYPERGLY -> DEXSPARE [color="#5a1c9a", style=dotted];
+
+  /* --- 23 systemic --- */
+  EXPUL -> ECFV [color="#d97706", penwidth=2]; EXPUL -> HYPOK [color="#d97706"];
+  EXPUL -> ALKAL [color="#d97706"]; EXPUL -> MALLORY [color="#d97706"];
+  ECFV -> NEPHRO [color="#d97706", penwidth=2]; T_CIS -> NEPHRO [color="#d97706"];
+  NEPHRO -> SCR [color="#d97706"];
+  NAUSEA -> MALNUT [color="#d97706"];
+  ECFV -> HOSPITAL [color="#d97706"]; NAUSEA -> HOSPITAL [color="#d97706"];
+  SCR -> DOSEDELAY [color="#d97706"]; NAUSEA -> DOSEDELAY [color="#d97706"];
+  DOSEDELAY -> RDI [color="#a02c2c", arrowhead=tee, penwidth=2];
+  HYDRATION -> ECFV [color="#a02c2c", arrowhead=tee]; HYDRATION -> NEPHRO [color="#a02c2c", arrowhead=tee];
+
+  /* --- 24 risk --- */
+  SEXF -> SUSC [color="#3a3a7a"]; AGEY -> SUSC [color="#3a3a7a"];
+  ALCOHOL -> SUSC [color="#3a3a7a", arrowhead=tee]; MOTIONS -> SUSC [color="#3a3a7a"];
+  PRIORC -> SUSC [color="#3a3a7a"]; ANXTRAIT -> SUSC [color="#3a3a7a"];
+  SLEEPQ -> SUSC [color="#3a3a7a"];
+  ANXTRAIT -> ANX [color="#2c5aa0"];
+  CARRY -> PRIORC [color="#3a3a7a", style=dotted, penwidth=2];
+
+  /* --- 25 guidelines --- */
+  MASCC -> QUAD; NCCN -> QUAD; ASCO -> QUAD;
+  NCCN -> TRIPLE; EMETO_C -> TRIPLE [color="#5a1c9a", style=dotted, label="carboplatin's\nCENTRAL potency"];
+  QUAD -> OLA [color="#157347", style=dashed];
+  QUAD -> APR [color="#157347", style=dashed]; QUAD -> PAL [color="#157347", style=dashed];
+  QUAD -> DEX [color="#157347", style=dashed];
+  DEXSPARE -> DEX [color="#a02c2c", arrowhead=tee];
+  NONMONO -> ASCO [color="#5a1c9a", style=dotted, label="who benefits\nfrom the 4th agent"];
+}
