@@ -1,0 +1,771 @@
+/* ===========================================================================
+   dlb_qsp_model.dot
+   Dementia with Lewy Bodies (DLB) — mechanistic QSP map
+
+   ORGANISING THESIS (see README.md):
+     Every therapeutic paradox in DLB is a consequence of ONE structural fact —
+     the presynaptic lesion is severe in all three ascending transmitter
+     systems, but the POSTSYNAPTIC receptor field is remodelled in a DIFFERENT
+     DIRECTION in each:
+
+        cholinergic   presynaptic loss severe   M1/M4 PRESERVED   -> ChEI works
+                                                                     BETTER
+                                                                     than in AD
+        dopaminergic  presynaptic loss severe   D2  NOT up-regulated
+                                                                  -> levodopa
+                                                                     works WORSE
+                                                                     than in PD
+                                                                     and D2
+                                                                     blockade has
+                                                                     NO reserve
+        serotonergic  presynaptic loss modest   5-HT2A UP-regulated
+                                                                  -> hallucinations,
+                                                                     and inverse
+                                                                     agonism works
+
+     The map therefore draws the same three-factor transducer
+     (presynaptic integrity x postsynaptic density x drug occupancy) three
+     times, with the receptor-plasticity edge carrying a different sign each
+     time.  Nothing about ChEI superiority, levodopa failure, neuroleptic
+     sensitivity or pimavanserin efficacy is drawn as a separate rule.
+
+   Render:
+     dot -Tsvg dlb_qsp_model.dot -o dlb_qsp_model.svg
+     dot -Tpng -Gdpi=150 dlb_qsp_model.dot -o dlb_qsp_model.png
+   =========================================================================== */
+
+digraph DLB_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, newrank=true, nodesep=0.28, ranksep=0.52,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", fontcolor="#1a1a2e",
+         label=<<B>Dementia with Lewy Bodies — Quantitative Systems Pharmacology Map</B><BR/>
+                <FONT POINT-SIZE="11">α-synuclein proteostasis · prion-like regional staging · three-transmitter presynaptic/postsynaptic dissociation<BR/>
+                cognitive fluctuation as the variance of a bistable attention state · PAD model of visual hallucinations · AD co-pathology · drug PK/PD</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         color="#33334d", penwidth=0.8, margin="0.07,0.04"];
+  edge  [fontname="Helvetica", fontsize=8, color="#5a5a72", arrowsize=0.6, penwidth=0.9];
+
+  /* ---------------------------------------------------------------- palette
+     protein/proteostasis  #e8e2f7   lysosome      #dfeef7
+     neuron populations    #fde6d8   transmitters  #fdf3d0
+     inflammation          #fadadd   network/EEG   #e2f0e2
+     clinical endpoints    #d7e9ff   biomarkers    #efefef
+     drugs                 #d9f2e6   harm/adverse  #ffd9d9
+     ---------------------------------------------------------------------- */
+
+  /* =====================================================================
+     1. GENETIC AND CONSTITUTIONAL RISK
+     ===================================================================== */
+  subgraph cluster_gen {
+    label="1 · Genetic & constitutional risk"; style="rounded,filled";
+    fillcolor="#f6f4fb"; color="#8e7cc3"; fontsize=12; fontcolor="#4a3b78";
+    G_SNCA   [label="SNCA locus\n(multiplication, 5'-UTR REP1,\n3' variants → ↑ α-syn dose)", fillcolor="#e8e2f7"];
+    G_GBA1   [label="GBA1 variants\n(N370S mild, L444P severe,\nE326K risk-only)\nOR ~8 for DLB — strongest\ncommon genetic risk", fillcolor="#e8e2f7"];
+    G_APOE4  [label="APOE ε4\nrisk for pure DLB AND for\nAβ co-pathology", fillcolor="#e8e2f7"];
+    G_TMEM   [label="TMEM175 p.M393T\n(lysosomal K⁺ channel,\nimpaired acidification)", fillcolor="#e8e2f7"];
+    G_LRRK2  [label="LRRK2 G2019S\n(kinase gain-of-function,\nRab10 hyper-phosphorylation)", fillcolor="#e8e2f7"];
+    G_SNCB   [label="SNCB / BIN1 / TPPP\nmodifier loci", fillcolor="#e8e2f7"];
+    G_AGE    [label="Age · male sex\n(DLB M:F ≈ 2:1)", fillcolor="#efefef"];
+    G_CYP    [label="CYP2D6 / CYP3A4 phenotype\n(donepezil, pimavanserin,\nrisperidone clearance)", fillcolor="#efefef"];
+    G_CHRNA  [label="CHRNA4 / CHRFAM7A\nnicotinic receptor variants", fillcolor="#e8e2f7"];
+  }
+
+  /* =====================================================================
+     2. α-SYNUCLEIN PROTEOSTASIS — the autocatalytic core
+     ===================================================================== */
+  subgraph cluster_asyn {
+    label="2 · α-Synuclein proteostasis (autocatalytic core)"; style="rounded,filled";
+    fillcolor="#f6f4fb"; color="#8e7cc3"; fontsize=12; fontcolor="#4a3b78";
+    A_SYN   [label="SNCA transcription →\nα-syn MONOMER\n(natively unfolded, presynaptic,\nSNARE chaperone)", fillcolor="#e8e2f7"];
+    A_MEMB  [label="Membrane-bound α-helical\nα-syn (synaptic vesicle,\nlipid-raft binding)", fillcolor="#e8e2f7"];
+    A_OLIG  [label="OLIGOMER\n(β-sheet, pore-forming —\nthe toxic species)", fillcolor="#d7c9f0"];
+    A_PROTO [label="Protofibril", fillcolor="#d7c9f0"];
+    A_FIB   [label="FIBRIL\n(amyloid, seeding-competent)", fillcolor="#c3aee8"];
+    A_LB    [label="Lewy body / Lewy neurite\n(fibril + membranes + organelles;\ninert sink OR active reservoir)", fillcolor="#c3aee8"];
+    A_PS129 [label="pS129 α-syn\n(PLK2/GRK/CK2 —\n>90% of LB α-syn)", fillcolor="#e8e2f7"];
+    A_TRUNC [label="C-terminal truncation\n(calpain, cathepsin D)\n→ ↑ aggregation propensity", fillcolor="#e8e2f7"];
+    A_NUC1  [label="PRIMARY nucleation\n(rate ~ [monomer]^n)", shape=ellipse, fillcolor="#efe8fb"];
+    A_NUC2  [label="SECONDARY nucleation\n(fibril surface–catalysed —\nrate ~ [monomer]·[fibril])\n★ the autocatalytic term", shape=ellipse, fillcolor="#efe8fb"];
+    A_FRAG  [label="Fibril fragmentation\n→ multiplies seed ENDS", shape=ellipse, fillcolor="#efe8fb"];
+    A_STRAIN[label="Conformational strains\n(DLB vs MSA vs PD folds —\ncryo-EM distinct)", fillcolor="#e8e2f7"];
+  }
+
+  /* =====================================================================
+     3. LYSOSOME / AUTOPHAGY — the GBA1 bistable switch
+     ===================================================================== */
+  subgraph cluster_lyso {
+    label="3 · Lysosomal–autophagic clearance (GBA1 positive-feedback loop)"; style="rounded,filled";
+    fillcolor="#eef7fc"; color="#4a90b8"; fontsize=12; fontcolor="#1f5c7a";
+    L_GCASE [label="Glucocerebrosidase (GCase)\nlysosomal activity", fillcolor="#dfeef7"];
+    L_ERGC  [label="ER → Golgi trafficking of\nGCase (LIMP-2/SCARB2)", fillcolor="#dfeef7"];
+    L_GLCC  [label="Glucosylceramide (GlcCer) ↑\n→ stabilises α-syn oligomer\nconformation", fillcolor="#c8e2f2"];
+    L_CMA   [label="Chaperone-mediated autophagy\n(LAMP2A · HSC70;\nKFERQ motif of α-syn)", fillcolor="#dfeef7"];
+    L_MACRO [label="Macroautophagy\n(LC3-II, p62/SQSTM1)", fillcolor="#dfeef7"];
+    L_UPS   [label="Ubiquitin–proteasome system", fillcolor="#dfeef7"];
+    L_TFEB  [label="TFEB nuclear translocation\n(master lysosomal-biogenesis TF)", fillcolor="#dfeef7"];
+    L_MTOR  [label="mTORC1", fillcolor="#dfeef7"];
+    L_ACID  [label="Lysosomal acidification\n(v-ATPase, TMEM175 K⁺ leak)", fillcolor="#dfeef7"];
+    L_CTSD  [label="Cathepsin D / B activity", fillcolor="#dfeef7"];
+    L_SWITCH[label="★ POSITIVE-FEEDBACK AMPLIFIER\nGCase↓ → GlcCer↑ → oligomer↑\n→ blocks GCase trafficking → GCase↓\nMEASURED loop gain ≈ 0.17–0.26 < 1\n⇒ MONOSTABLE, not a switch:\nwithdraw the chaperone and it relaxes back.\nEarlier rescue = longer lever arm,\nNOT a deadline. (The first draft of this\nmodel claimed a saddle-node; the numbers\ndid not support it, so the claim went.)",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+  }
+
+  /* =====================================================================
+     4. PRION-LIKE PROPAGATION AND REGIONAL STAGING
+     ===================================================================== */
+  subgraph cluster_spread {
+    label="4 · Cell-to-cell propagation & regional staging"; style="rounded,filled";
+    fillcolor="#f6f4fb"; color="#8e7cc3"; fontsize=12; fontcolor="#4a3b78";
+    S_EXO   [label="Unconventional secretion /\nexosomal release of seeds", fillcolor="#e8e2f7"];
+    S_ISF   [label="Interstitial seed pool\n(the propagation currency)", fillcolor="#d7c9f0"];
+    S_UPT   [label="Uptake: LAG3 · APLP1 ·\nheparan-sulfate proteoglycan ·\nFcγRIIB · macropinocytosis", fillcolor="#e8e2f7"];
+    S_TNT   [label="Tunnelling nanotubes /\ntrans-synaptic transfer", fillcolor="#e8e2f7"];
+    S_GLYM  [label="Glymphatic clearance\n(AQP4 polarity, sleep-dependent)", fillcolor="#dfeef7"];
+    S_GUT   [label="Enteric plexus → vagus →\ndorsal motor nucleus X\n(body-first subtype)", fillcolor="#e8e2f7"];
+    S_OLF   [label="Olfactory bulb\n(brain-first subtype)", fillcolor="#e8e2f7"];
+    R_BSTEM [label="STAGE I — brainstem\n(DMV, LC, raphe, SLD, PPN)", shape=folder, fillcolor="#fde6d8"];
+    R_LIMB  [label="STAGE II — limbic\n(amygdala, nbM, entorhinal,\ncingulate, transentorhinal)", shape=folder, fillcolor="#fde6d8"];
+    R_NEO   [label="STAGE III — neocortical\n(temporal → parietal → occipital\n→ frontal)", shape=folder, fillcolor="#fde6d8"];
+    R_ORDER [label="★ DLB ≠ PD:\nlimbic/neocortical burden is reached\nEARLY relative to nigral loss ⇒\ndementia precedes or accompanies\nparkinsonism (1-year rule)",
+             shape=note, fillcolor="#fff2cc"];
+  }
+
+  /* =====================================================================
+     5. MITOCHONDRIA, CALCIUM, OXIDATIVE STRESS
+     ===================================================================== */
+  subgraph cluster_mito {
+    label="5 · Mitochondrial & oxidative stress"; style="rounded,filled";
+    fillcolor="#fdf6ee"; color="#c98b4b"; fontsize=12; fontcolor="#8a5a20";
+    M_C1    [label="Complex I inhibition", fillcolor="#fde6d8"];
+    M_ROS   [label="Mitochondrial ROS ↑", fillcolor="#fde6d8"];
+    M_MITO  [label="Mitophagy (PINK1/Parkin)\nimpaired by α-syn oligomer", fillcolor="#fde6d8"];
+    M_CAV   [label="Cav1.3 L-type Ca²⁺ pacemaking\n(SNc, LC — autonomous,\nno Ca-buffer reserve)", fillcolor="#fde6d8"];
+    M_CA    [label="Cytosolic Ca²⁺ load", fillcolor="#fde6d8"];
+    M_DAQ   [label="Dopamine → DA-quinone /\nDOPAL (MAO-B) adducts\n— SNc-selective toxin", fillcolor="#fde6d8"];
+    M_ATP   [label="ATP deficit → axon-terminal\nenergy failure first", fillcolor="#fde6d8"];
+    M_NRF2  [label="NRF2 / antioxidant response", fillcolor="#fde6d8"];
+  }
+
+  /* =====================================================================
+     6. NEUROINFLAMMATION
+     ===================================================================== */
+  subgraph cluster_inflam {
+    label="6 · Neuroinflammation"; style="rounded,filled";
+    fillcolor="#fdeef0"; color="#c0607a"; fontsize=12; fontcolor="#8c2f4a";
+    I_MG    [label="Microglial activation\n(TLR2 / TLR4 sensing\nextracellular α-syn)", fillcolor="#fadadd"];
+    I_NLRP3 [label="NLRP3 inflammasome →\ncaspase-1 → IL-1β", fillcolor="#fadadd"];
+    I_CYT   [label="IL-1β · TNF-α · IL-6", fillcolor="#fadadd"];
+    I_PHAGO [label="Microglial phagocytic\nclearance of seeds\n(protective early, exhausted late)", fillcolor="#fadadd"];
+    I_A1    [label="Reactive (A1) astrocytes\n— C1q + IL-1α + TNF induced", fillcolor="#fadadd"];
+    I_C1Q   [label="Complement C1q/C3 →\nsynaptic pruning", fillcolor="#fadadd"];
+    I_TCELL [label="CD4⁺/CD8⁺ T-cell infiltration\n(α-syn epitopes, HLA-DRB1)", fillcolor="#fadadd"];
+    I_TSPO  [label="TSPO PET signal\n(imaging read-out)", fillcolor="#efefef"];
+  }
+
+  /* =====================================================================
+     7. CHOLINERGIC SYSTEM — presynaptic loss, postsynaptic PRESERVED
+     ===================================================================== */
+  subgraph cluster_ach {
+    label="7 · Cholinergic system  —  presynaptic ↓↓  ·  postsynaptic M1/M4 PRESERVED"; style="rounded,filled";
+    fillcolor="#fff9e8"; color="#c9a227"; fontsize=12; fontcolor="#8a6d10";
+    C_NBM   [label="Nucleus basalis of Meynert\nneuron count\n★ loss GREATER than in AD", fillcolor="#fde6d8"];
+    C_PPN   [label="Pedunculopontine / laterodorsal\ntegmental nucleus (PPN/LDT)\n→ thalamic cholinergic drive", fillcolor="#fde6d8"];
+    C_CHAT  [label="Cortical ChAT activity\n(↓ 50–70% in DLB)", fillcolor="#fdf3d0"];
+    C_VACHT [label="VAChT vesicular loading", fillcolor="#fdf3d0"];
+    C_ACH   [label="Synaptic ACh concentration\n= ChAT capacity × (1 − AChE inhib.)", fillcolor="#fdf3d0"];
+    C_ACHE  [label="AChE (G1/G4 forms)", fillcolor="#fdf3d0"];
+    C_BUCHE [label="BuChE\n(rises as AChE falls;\nglial, becomes dominant late)", fillcolor="#fdf3d0"];
+    C_M1    [label="Postsynaptic M1/M4 mAChR\n★ RELATIVELY PRESERVED\n(cf. AD, where they are lost)", fillcolor="#f7e39a"];
+    C_M2    [label="Presynaptic M2 autoreceptor", fillcolor="#fdf3d0"];
+    C_NIC   [label="α4β2 / α7 nAChR\n(α4β2 ↓ thalamus & cortex)", fillcolor="#fdf3d0"];
+    C_TRANS [label="★ CHOLINERGIC TRANSDUCER\nDrive = ChAT_capacity × M1_density\n× (1 − AChE inhibition)⁻¹",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+  }
+
+  /* =====================================================================
+     8. DOPAMINERGIC SYSTEM — presynaptic loss, postsynaptic NOT up-regulated
+     ===================================================================== */
+  subgraph cluster_da {
+    label="8 · Dopaminergic system  —  presynaptic ↓↓  ·  postsynaptic D2 NOT up-regulated"; style="rounded,filled";
+    fillcolor="#fff9e8"; color="#c9a227"; fontsize=12; fontcolor="#8a6d10";
+    D_SNC   [label="SNc dopaminergic neurons\n(loss less severe than PD at\ncomparable motor score)", fillcolor="#fde6d8"];
+    D_TH    [label="Tyrosine hydroxylase / AADC\ncapacity", fillcolor="#fdf3d0"];
+    D_DAT   [label="Striatal DAT density\n(DaTSCAN — reduced;\ndiagnostic indicative biomarker)", fillcolor="#fdf3d0"];
+    D_VMAT  [label="VMAT2 vesicular storage\n→ buffering of exogenous\nL-DOPA is LOST", fillcolor="#fdf3d0"];
+    D_DA    [label="Striatal dopamine", fillcolor="#fdf3d0"];
+    D_D2    [label="Postsynaptic striatal D2R\n★ NOT up-regulated\n(in PD it is — this is the\nsingle most consequential\ndifference)", fillcolor="#f7c9a0"];
+    D_D1    [label="D1R / direct pathway", fillcolor="#fdf3d0"];
+    D_MESO  [label="Mesolimbic / mesocortical DA\n(VTA) — apathy, hallucination\nsalience", fillcolor="#fdf3d0"];
+    D_TRANS [label="★ DOPAMINERGIC TRANSDUCER\nDrive = TH_capacity × D2_density\n× (1 − D2 blockade)",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+    D_A2A   [label="Adenosine A2A receptor\n(indirect pathway co-modulator)", fillcolor="#fdf3d0"];
+  }
+
+  /* =====================================================================
+     9. SEROTONERGIC — presynaptic modest loss, 5-HT2A UP-regulated
+     ===================================================================== */
+  subgraph cluster_5ht {
+    label="9 · Serotonergic  —  presynaptic ↓  ·  cortical 5-HT2A UP-REGULATED"; style="rounded,filled";
+    fillcolor="#fff9e8"; color="#c9a227"; fontsize=12; fontcolor="#8a6d10";
+    T_RAPHE [label="Dorsal raphe 5-HT neurons", fillcolor="#fde6d8"];
+    T_5HT   [label="Cortical 5-HT tone", fillcolor="#fdf3d0"];
+    T_2A    [label="5-HT2A receptor density,\nventral visual cortex (BA18/19)\n★ UP-REGULATED in DLB\nwith hallucinations", fillcolor="#f7c9a0"];
+    T_1A    [label="5-HT1A (raphe autoreceptor,\n↑ in DLB frontal cortex)", fillcolor="#fdf3d0"];
+    T_2AGQ  [label="5-HT2A → Gq → PLC →\nlayer-V pyramidal depolarisation\n→ ↑ spontaneous cortical gain", fillcolor="#fdf3d0"];
+    T_TRANS [label="★ SEROTONERGIC TRANSDUCER\nDrive = 5HT_tone × 5HT2A_density\n× (1 − inverse-agonist occupancy)",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+  }
+
+  /* =====================================================================
+     10. NORADRENERGIC / LOCUS COERULEUS
+     ===================================================================== */
+  subgraph cluster_ne {
+    label="10 · Noradrenergic (locus coeruleus)"; style="rounded,filled";
+    fillcolor="#fff9e8"; color="#c9a227"; fontsize=12; fontcolor="#8a6d10";
+    N_LC    [label="Locus coeruleus neurons\n(among the EARLIEST\nα-syn-affected populations)", fillcolor="#fde6d8"];
+    N_NE    [label="Cortical noradrenaline", fillcolor="#fdf3d0"];
+    N_A1    [label="α1-adrenoceptor (arousal,\nvascular tone)", fillcolor="#fdf3d0"];
+    N_A2    [label="α2-adrenoceptor", fillcolor="#fdf3d0"];
+    N_AROUS [label="Tonic arousal / vigilance level", fillcolor="#e2f0e2"];
+  }
+
+  /* =====================================================================
+     11. SLEEP–WAKE, REM ATONIA, OREXIN
+     ===================================================================== */
+  subgraph cluster_sleep {
+    label="11 · Sleep–wake architecture & REM atonia"; style="rounded,filled";
+    fillcolor="#eef7fc"; color="#4a90b8"; fontsize=12; fontcolor="#1f5c7a";
+    Z_SLD   [label="Sublaterodorsal nucleus (SLD)\nglutamatergic REM-on", fillcolor="#fde6d8"];
+    Z_GIV   [label="Ventral gigantocellular reticular n.\nglycine/GABA → spinal motoneuron\nhyperpolarisation", fillcolor="#fde6d8"];
+    Z_RBD   [label="REM sleep without atonia\n→ RBD\n(prodromal by 10–15 y;\nphenoconversion ~6%/yr)", fillcolor="#d7e9ff"];
+    Z_ORX   [label="Hypothalamic orexin/hypocretin\nneurons → CSF orexin ↓", fillcolor="#fde6d8"];
+    Z_EDS   [label="Excessive daytime sleepiness\n(ESS ≥ 10; a core supportive\nfeature)", fillcolor="#d7e9ff"];
+    Z_MEL   [label="Pineal melatonin / circadian\nSCN output", fillcolor="#fdf3d0"];
+    Z_SLEEPGLY [label="Sleep-dependent glymphatic\nseed washout", fillcolor="#dfeef7"];
+  }
+
+  /* =====================================================================
+     12. AUTONOMIC
+     ===================================================================== */
+  subgraph cluster_auto {
+    label="12 · Autonomic nervous system"; style="rounded,filled";
+    fillcolor="#eef7fc"; color="#4a90b8"; fontsize=12; fontcolor="#1f5c7a";
+    U_CARD  [label="Cardiac postganglionic\nsympathetic terminals\n(α-syn deposition)", fillcolor="#fde6d8"];
+    U_MIBG  [label="¹²³I-MIBG H/M ratio ↓\n★ indicative biomarker,\nsens ~69% spec ~87%", fillcolor="#efefef"];
+    U_BARO  [label="Baroreflex gain ↓", fillcolor="#fdf3d0"];
+    U_OH    [label="Neurogenic orthostatic\nhypotension (ΔSBP ≥ 20 mmHg)", fillcolor="#d7e9ff"];
+    U_SUPH  [label="Supine hypertension\n(the therapeutic bind)", fillcolor="#ffd9d9"];
+    U_ENS   [label="Enteric neuron α-syn →\nconstipation, delayed transit\n(prodromal by decades)", fillcolor="#d7e9ff"];
+    U_URIN  [label="Detrusor overactivity,\nurinary urgency", fillcolor="#d7e9ff"];
+    U_CBF   [label="Cerebral perfusion during\northostasis → transient\ncognitive dip", fillcolor="#e2f0e2"];
+  }
+
+  /* =====================================================================
+     13. ALZHEIMER CO-PATHOLOGY
+     ===================================================================== */
+  subgraph cluster_ad {
+    label="13 · Alzheimer co-pathology (present in ~50–80% of DLB)"; style="rounded,filled";
+    fillcolor="#fdeef0"; color="#c0607a"; fontsize=12; fontcolor="#8c2f4a";
+    B_APP   [label="APP → Aβ42 production", fillcolor="#fadadd"];
+    B_PLQ   [label="Amyloid plaque burden\n(amyloid-PET Centiloid)", fillcolor="#fadadd"];
+    B_TAU   [label="Tau hyperphosphorylation →\nneurofibrillary tangles", fillcolor="#fadadd"];
+    B_PTAU  [label="Plasma p-tau181 / p-tau217", fillcolor="#efefef"];
+    B_CROSS [label="★ CROSS-SEEDING\nAβ and tau template α-syn\nand vice versa — a bilinear\nterm, not additive", shape=octagon,
+             fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+    B_PHENO [label="Co-pathology shifts phenotype:\nmore amnestic, fewer VH,\nSHORTER survival, less ChEI benefit", shape=note, fillcolor="#fff2cc"];
+  }
+
+  /* =====================================================================
+     14. SYNAPSE AND NETWORK / ELECTROPHYSIOLOGY
+     ===================================================================== */
+  subgraph cluster_net {
+    label="14 · Synaptic integrity, network state & EEG"; style="rounded,filled";
+    fillcolor="#eef7ee"; color="#5a9e5a"; fontsize=12; fontcolor="#2f6b2f";
+    E_SYN   [label="Synaptic density (SV2A PET)\n— falls faster than neuron count", fillcolor="#e2f0e2"];
+    E_THAL  [label="Thalamocortical relay gain\n(driven by PPN/LDT ACh)", fillcolor="#e2f0e2"];
+    E_EEG   [label="EEG: dominant frequency ↓,\n'pre-alpha' 5.6–7.9 Hz,\nHIGH temporal variability\n★ supportive biomarker", fillcolor="#efefef"];
+    E_OCC   [label="Occipital hypometabolism\n(FDG-PET / perfusion SPECT)", fillcolor="#efefef"];
+    E_CING  [label="Cingulate island sign\n(posterior cingulate spared\nrelative to precuneus/cuneus)", fillcolor="#efefef"];
+    E_DMN   [label="Default-mode / dorsal-attention\nnetwork anticorrelation lost", fillcolor="#e2f0e2"];
+    E_GAIN  [label="Cortical excitation/inhibition\nbalance (E/I gain)", fillcolor="#e2f0e2"];
+    E_ATT   [label="★ ATTENTION STATE — modelled as\na BISTABLE variable, not a level.\nAs cholinergic + noradrenergic drive\nfalls toward the saddle-node, the\nVARIANCE rises faster than the mean.",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+    E_FLUC  [label="COGNITIVE FLUCTUATION\n(CAF / Mayo Fluctuation Scale)\n= σ of attention state", fillcolor="#d7e9ff"];
+  }
+
+  /* =====================================================================
+     15. VISUAL SYSTEM AND THE PAD MODEL OF HALLUCINATIONS
+     ===================================================================== */
+  subgraph cluster_vis {
+    label="15 · Visual pathway & Perception-and-Attention-Deficit (PAD) model of hallucinations"; style="rounded,filled";
+    fillcolor="#eef7ee"; color="#5a9e5a"; fontsize=12; fontcolor="#2f6b2f";
+    V_RET   [label="Retinal α-syn / thinning\n(OCT inner plexiform layer)", fillcolor="#e2f0e2"];
+    V_V1    [label="V1/V2 primary visual cortex", fillcolor="#e2f0e2"];
+    V_VENT  [label="Ventral stream (fusiform,\nlateral occipital) — object\nidentity", fillcolor="#e2f0e2"];
+    V_DORS  [label="Dorsal stream / frontoparietal\nattention network", fillcolor="#e2f0e2"];
+    V_BU    [label="BOTTOM-UP evidence fidelity\n(degraded by occipital\nhypometabolism + retinal loss)", fillcolor="#e2f0e2"];
+    V_TD    [label="TOP-DOWN prior weighting\n(over-weighted when bottom-up\nis weak)", fillcolor="#e2f0e2"];
+    V_PROTO [label="Proto-object competition\nfails to resolve", fillcolor="#e2f0e2"];
+    V_PAD   [label="★ P(hallucination) = f( ↓bottom-up fidelity,\n↓attentional binding, ↑5-HT2A gain )\nAll three must be low/high together —\na PRODUCT, which is why a single\nmechanism never explains VH",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+    V_VH    [label="Well-formed visual hallucinations\n(people/animals, ~80% of DLB)", fillcolor="#d7e9ff"];
+    V_PASS  [label="Passage / presence phenomena,\nillusions, misidentification\n(Capgras)", fillcolor="#d7e9ff"];
+    V_DEL   [label="Systematised delusions", fillcolor="#d7e9ff"];
+  }
+
+  /* =====================================================================
+     16. CHOLINESTERASE INHIBITORS — PK/PD
+     ===================================================================== */
+  subgraph cluster_chei {
+    label="16 · Cholinesterase inhibitors — PK/PD"; style="rounded,filled";
+    fillcolor="#e9f8f1"; color="#3f9e78"; fontsize=12; fontcolor="#1f6b4f";
+    K_RIVAPO[label="RIVASTIGMINE oral / patch\ndepot", fillcolor="#d9f2e6"];
+    K_RIVAC [label="Rivastigmine plasma\n(t½ ~1.5 h — but see below)", fillcolor="#d9f2e6"];
+    K_CARB  [label="★ CARBAMYLATED AChE/BuChE\nPseudo-irreversible: the PD half-life\n(~8–10 h) is set by ENZYME\nRESYNTHESIS, not by plasma t½.\nThis is why q12h dosing works.",
+             shape=octagon, fillcolor="#f7d9a0", color="#b8860b", penwidth=1.6];
+    K_DONG  [label="DONEPEZIL oral", fillcolor="#d9f2e6"];
+    K_DONC  [label="Donepezil plasma\n(t½ ~70 h, CYP2D6/3A4)", fillcolor="#d9f2e6"];
+    K_DONE  [label="Donepezil effect compartment\n(brain AChE occupancy)", fillcolor="#d9f2e6"];
+    K_GAL   [label="GALANTAMINE\n(AChE-I + nAChR allosteric\npotentiation)", fillcolor="#d9f2e6"];
+    K_CHOLAE[label="Peripheral cholinergic\nadverse effects: nausea, vomiting,\nbradycardia, syncope, ↑ falls", fillcolor="#ffd9d9"];
+    K_PATCH [label="Transdermal route flattens Cmax\n→ same AChE inhibition, less\nGI toxicity (IDEAL study)", shape=note, fillcolor="#fff2cc"];
+  }
+
+  /* =====================================================================
+     17. ANTIPSYCHOTIC / 5-HT2A PHARMACOLOGY — the sensitivity axis
+     ===================================================================== */
+  subgraph cluster_psych {
+    label="17 · Antipsychotic & 5-HT2A pharmacology — and neuroleptic sensitivity"; style="rounded,filled";
+    fillcolor="#e9f8f1"; color="#3f9e78"; fontsize=12; fontcolor="#1f6b4f";
+    P_PIMG  [label="PIMAVANSERIN 34 mg qd", fillcolor="#d9f2e6"];
+    P_PIMC  [label="Pimavanserin plasma\n+ active metabolite AC-279\n(t½ ~57 h; CYP3A4)", fillcolor="#d9f2e6"];
+    P_PIMOC [label="5-HT2A INVERSE-agonist occupancy\n(not merely antagonist — reduces\nCONSTITUTIVE Gq tone)", fillcolor="#d9f2e6"];
+    P_QT    [label="QTc prolongation (~+5–10 ms)\n· FDA boxed warning:\n↑ mortality in dementia psychosis", fillcolor="#ffd9d9"];
+    P_QUET  [label="QUETIAPINE (low, transient D2;\nlargely H1/α1 — sedation, falls)", fillcolor="#d9f2e6"];
+    P_CLOZ  [label="CLOZAPINE (very low D2\noccupancy at effective dose;\nagranulocytosis monitoring)", fillcolor="#d9f2e6"];
+    P_TYP   [label="HALOPERIDOL / RISPERIDONE / OLANZAPINE\n→ high striatal D2 occupancy", fillcolor="#ffd9d9"];
+    P_D2OCC [label="Striatal D2 receptor occupancy (%)", fillcolor="#d9f2e6"];
+    P_NSENS [label="★ SEVERE NEUROLEPTIC SENSITIVITY\n(~30–50%; 2–3× mortality)\nEMERGES: the EPS threshold is a\nfunction of RESIDUAL D2 SIGNAL =\nD2_density × (1 − occupancy).\nWith no D2 up-regulation the same\noccupancy leaves far less residual\nsignal than in PD or in AD.",
+             shape=octagon, fillcolor="#ffb3b3", color="#a00000", penwidth=1.8];
+    P_NMS   [label="Rigidity · autonomic instability ·\nfalls · irreversible decline · death", fillcolor="#ffd9d9"];
+  }
+
+  /* =====================================================================
+     18. MOTOR AND OTHER SYMPTOMATIC PHARMACOLOGY
+     ===================================================================== */
+  subgraph cluster_motor {
+    label="18 · Motor & other symptomatic pharmacology"; style="rounded,filled";
+    fillcolor="#e9f8f1"; color="#3f9e78"; fontsize=12; fontcolor="#1f6b4f";
+    X_LDG   [label="LEVODOPA / CARBIDOPA oral", fillcolor="#d9f2e6"];
+    X_LDC   [label="Levodopa plasma (t½ ~1.5 h\nwith DDCI; LNAA competition\nat gut & BBB)", fillcolor="#d9f2e6"];
+    X_LDB   [label="Brain L-DOPA → DA\n(needs residual AADC +\nVMAT2 storage)", fillcolor="#d9f2e6"];
+    X_ZON   [label="ZONISAMIDE 25–50 mg\n(MAO-B + T-type Ca; approved\nfor DLB parkinsonism in Japan)", fillcolor="#d9f2e6"];
+    X_IST   [label="ISTRADEFYLLINE (A2A antagonist)", fillcolor="#d9f2e6"];
+    X_MEM   [label="MEMANTINE 20 mg\n(uncompetitive NMDA, fast off-rate)", fillcolor="#d9f2e6"];
+    X_NMDA  [label="NMDA receptor / glutamatergic\nexcitotoxic tone", fillcolor="#fdf3d0"];
+    X_DROX  [label="DROXIDOPA · MIDODRINE ·\nFLUDROCORTISONE (OH)", fillcolor="#d9f2e6"];
+    X_MELCL [label="MELATONIN 3–12 mg /\nCLONAZEPAM 0.25–1 mg (RBD)", fillcolor="#d9f2e6"];
+    X_MOD   [label="MODAFINIL / ARMODAFINIL (EDS)", fillcolor="#d9f2e6"];
+    X_ANTIC [label="⚠ ANTICHOLINERGIC BURDEN\n(oxybutynin, TCA, 1st-gen\nantihistamine) — directly opposes\nthe M1 transducer", fillcolor="#ffd9d9"];
+    X_LDVH  [label="Levodopa worsens VH via\nmesolimbic DA → salience", fillcolor="#ffd9d9"];
+  }
+
+  /* =====================================================================
+     19. DISEASE-MODIFYING CANDIDATES
+     ===================================================================== */
+  subgraph cluster_dmt {
+    label="19 · Disease-modifying candidates"; style="rounded,filled";
+    fillcolor="#e9f8f1"; color="#3f9e78"; fontsize=12; fontcolor="#1f6b4f";
+    Y_AMB   [label="AMBROXOL (GCase pharmacological\nchaperone; CNS-penetrant,\n1.26 g/day trialled)", fillcolor="#d9f2e6"];
+    Y_VENG  [label="VENGLUSTAT (GCS inhibitor —\nreduces GlcCer synthesis upstream)", fillcolor="#d9f2e6"];
+    Y_MAB   [label="ANTI-α-SYN mAb\n(prasinezumab, cinpanemab)\nIgG1, t½ ~10–20 d,\nCSF:plasma ~0.1–0.3%", fillcolor="#d9f2e6"];
+    Y_TE    [label="Target engagement:\nfree interstitial seed ↓", fillcolor="#d9f2e6"];
+    Y_ASO   [label="SNCA-lowering ASO /\nsiRNA (intrathecal)", fillcolor="#d9f2e6"];
+    Y_LRRK  [label="LRRK2 kinase inhibitor", fillcolor="#d9f2e6"];
+    Y_ADUC  [label="Anti-amyloid mAb\n(lecanemab/donanemab) —\nacts only on the CO-PATHOLOGY arm;\nARIA risk with APOE ε4", fillcolor="#d9f2e6"];
+    Y_WIN   [label="★ LEVER ARM, NOT A DEADLINE\nBecause the GBA1 loop is monostable, the\nsame ambroxol exposure started earlier buys\nmore simply by acting for longer against a\nsmaller burden — there is no cliff to miss.\nThat is a weaker claim than a therapeutic\nwindow, and it is the one the model can\nactually support. Prodromal/RBD cohorts are\nstill the right trial population, for the\nordinary reason.",
+             shape=note, fillcolor="#fff2cc"];
+  }
+
+  /* =====================================================================
+     20. BIOMARKERS
+     ===================================================================== */
+  subgraph cluster_bio {
+    label="20 · Biomarkers"; style="rounded,filled";
+    fillcolor="#f4f4f4"; color="#888888"; fontsize=12; fontcolor="#444444";
+    W_SAA   [label="CSF / skin α-syn seed-amplification\nassay (RT-QuIC) — sens ~90%,\nspec ~95%", fillcolor="#efefef"];
+    W_DAT   [label="DaTSCAN (¹²³I-FP-CIT SPECT)", fillcolor="#efefef"];
+    W_PSG   [label="Polysomnography-confirmed\nRBD", fillcolor="#efefef"];
+    W_NFL   [label="Plasma NfL (axonal injury;\ntracks decline rate)", fillcolor="#efefef"];
+    W_GFAP  [label="Plasma GFAP (astrogliosis)", fillcolor="#efefef"];
+    W_ABRAT [label="CSF Aβ42/40 · p-tau217", fillcolor="#efefef"];
+    W_ORXC  [label="CSF orexin-A", fillcolor="#efefef"];
+    W_GCA   [label="Leucocyte / CSF GCase activity\n(ambroxol PD read-out)", fillcolor="#efefef"];
+  }
+
+  /* =====================================================================
+     21. CLINICAL ENDPOINTS
+     ===================================================================== */
+  subgraph cluster_clin {
+    label="21 · Clinical endpoints"; style="rounded,filled";
+    fillcolor="#e8f1fd"; color="#4a76b8"; fontsize=12; fontcolor="#1f4a7a";
+    F_MMSE  [label="MMSE / MoCA\n(global cognition)", fillcolor="#d7e9ff"];
+    F_CDR   [label="CDR-SB · CDR sum of boxes", fillcolor="#d7e9ff"];
+    F_ATT   [label="Attention & processing speed\n(CDR computerised battery,\nchoice-RT variability)", fillcolor="#d7e9ff"];
+    F_NPI   [label="NPI total / NPI-4\n(neuropsychiatric burden)", fillcolor="#d7e9ff"];
+    F_UPDRS [label="MDS-UPDRS Part III\n(parkinsonism)", fillcolor="#d7e9ff"];
+    F_ADL   [label="ADCS-ADL / instrumental ADL", fillcolor="#d7e9ff"];
+    F_FALL  [label="Falls, fractures,\nhospitalisation", fillcolor="#d7e9ff"];
+    F_CARE  [label="Caregiver burden (ZBI) →\ninstitutionalisation", fillcolor="#d7e9ff"];
+    F_SURV  [label="Survival\n(median ~4–7 y from diagnosis;\nshorter than AD)", fillcolor="#d7e9ff"];
+    F_CIBIC [label="CIBIC-plus / global impression", fillcolor="#d7e9ff"];
+  }
+
+  /* =====================================================================
+     ================  E D G E S  ========================================
+     ===================================================================== */
+
+  /* --- genetics into the core --------------------------------------- */
+  G_SNCA  -> A_SYN   [label="gene dosage", color="#8e7cc3"];
+  G_GBA1  -> L_ERGC  [label="misfolded GCase\nretained in ER", color="#8e7cc3"];
+  G_GBA1  -> L_GCASE [style=dashed, arrowhead=tee, label="activity ↓"];
+  G_TMEM  -> L_ACID  [arrowhead=tee];
+  G_LRRK2 -> L_CMA   [arrowhead=tee, label="Rab10-P"];
+  G_LRRK2 -> L_MACRO [arrowhead=tee];
+  G_APOE4 -> B_APP;
+  G_APOE4 -> A_FIB   [label="lipid-mediated\nseeding ↑", style=dashed];
+  G_AGE   -> L_CMA   [arrowhead=tee];
+  G_AGE   -> S_GLYM  [arrowhead=tee];
+  G_SNCB  -> A_OLIG  [style=dashed];
+  G_CHRNA -> C_NIC   [style=dashed];
+  G_CYP   -> K_DONC  [label="CL variability", style=dashed];
+  G_CYP   -> P_PIMC  [style=dashed];
+
+  /* --- aggregation cascade ------------------------------------------ */
+  A_SYN   -> A_MEMB;
+  A_MEMB  -> A_SYN   [style=dashed];
+  A_SYN   -> A_NUC1;
+  A_NUC1  -> A_OLIG;
+  A_OLIG  -> A_PROTO -> A_FIB -> A_LB;
+  A_FIB   -> A_NUC2  [label="catalytic surface", color="#a00000"];
+  A_SYN   -> A_NUC2;
+  A_NUC2  -> A_OLIG  [label="★ autocatalysis", color="#a00000", penwidth=1.6];
+  A_FIB   -> A_FRAG  -> A_FIB [label="more ends", color="#a00000"];
+  A_PS129 -> A_FIB   [style=dashed];
+  A_OLIG  -> A_PS129;
+  A_TRUNC -> A_NUC1;
+  A_FIB   -> A_STRAIN;
+  A_STRAIN-> R_NEO   [label="DLB-fold tropism", style=dashed];
+  A_LB    -> A_FIB   [style=dashed, label="reservoir"];
+
+  /* --- clearance ------------------------------------------------------ */
+  L_GCASE -> L_GLCC  [arrowhead=tee, label="hydrolyses"];
+  L_ERGC  -> L_GCASE;
+  L_GLCC  -> A_OLIG  [label="stabilises\noligomer", color="#a00000"];
+  A_OLIG  -> L_ERGC  [arrowhead=tee, label="blocks GCase\ntrafficking", color="#a00000"];
+  L_SWITCH-> L_GCASE [arrowhead=tee, style=bold, color="#b8860b"];
+  L_GLCC  -> L_SWITCH[color="#b8860b"];
+  A_OLIG  -> L_SWITCH[color="#b8860b"];
+  L_CMA   -> A_SYN   [arrowhead=tee, label="degrades monomer"];
+  A_OLIG  -> L_CMA   [arrowhead=tee, label="blocks LAMP2A"];
+  L_MACRO -> A_FIB   [arrowhead=tee];
+  L_UPS   -> A_SYN   [arrowhead=tee];
+  A_OLIG  -> L_UPS   [arrowhead=tee];
+  L_TFEB  -> L_MACRO;
+  L_TFEB  -> L_GCASE;
+  L_MTOR  -> L_TFEB  [arrowhead=tee];
+  L_ACID  -> L_CTSD;
+  L_CTSD  -> A_FIB   [arrowhead=tee];
+  L_CTSD  -> A_TRUNC [label="partial digestion", style=dashed];
+  L_ACID  -> L_GCASE;
+
+  /* --- propagation ---------------------------------------------------- */
+  A_FIB   -> S_EXO -> S_ISF;
+  A_OLIG  -> S_EXO;
+  S_ISF   -> S_UPT -> A_NUC2 [label="seeded conversion\nin recipient neuron", color="#a00000"];
+  S_ISF   -> S_TNT -> A_NUC2;
+  S_GLYM  -> S_ISF   [arrowhead=tee, label="washout"];
+  Z_SLEEPGLY -> S_GLYM;
+  S_GUT   -> R_BSTEM;
+  S_OLF   -> R_LIMB;
+  R_BSTEM -> R_LIMB  [label="ascending\nstaging"];
+  R_LIMB  -> R_NEO;
+  S_ISF   -> R_BSTEM; S_ISF -> R_LIMB; S_ISF -> R_NEO;
+  R_ORDER -> R_NEO   [style=dotted];
+  I_PHAGO -> S_ISF   [arrowhead=tee, label="microglial\nclearance"];
+
+  /* --- region -> neuron populations ----------------------------------- */
+  R_BSTEM -> N_LC    [arrowhead=tee];
+  R_BSTEM -> Z_SLD   [arrowhead=tee];
+  R_BSTEM -> T_RAPHE [arrowhead=tee];
+  R_BSTEM -> D_SNC   [arrowhead=tee];
+  R_BSTEM -> C_PPN   [arrowhead=tee];
+  R_BSTEM -> U_CARD  [arrowhead=tee];
+  R_BSTEM -> Z_ORX   [arrowhead=tee];
+  R_LIMB  -> C_NBM   [arrowhead=tee];
+  R_LIMB  -> E_SYN   [arrowhead=tee];
+  R_NEO   -> E_SYN   [arrowhead=tee];
+  R_NEO   -> V_VENT  [arrowhead=tee];
+  R_NEO   -> V_V1    [arrowhead=tee];
+  R_NEO   -> V_DORS  [arrowhead=tee];
+
+  /* --- mitochondria / oxidative --------------------------------------- */
+  A_OLIG  -> M_C1    [arrowhead=tee];
+  A_OLIG  -> M_MITO  [arrowhead=tee];
+  M_C1    -> M_ROS;
+  M_MITO  -> M_ROS   [arrowhead=tee];
+  M_CAV   -> M_CA -> M_ROS;
+  M_ROS   -> A_OLIG  [label="oxidative\nmodification"];
+  M_ROS   -> M_ATP   [arrowhead=tee];
+  M_C1    -> M_ATP   [arrowhead=tee];
+  M_ATP   -> E_SYN   [label="terminals fail\nfirst"];
+  D_DA    -> M_DAQ -> M_ROS;
+  M_NRF2  -> M_ROS   [arrowhead=tee];
+  M_ROS   -> M_NRF2;
+  M_CAV   -> D_SNC   [arrowhead=tee, label="pacemaking\nCa load"];
+  M_CAV   -> N_LC    [arrowhead=tee];
+  M_ROS   -> C_NBM   [arrowhead=tee];
+
+  /* --- inflammation ---------------------------------------------------- */
+  S_ISF   -> I_MG;
+  I_MG    -> I_NLRP3 -> I_CYT;
+  I_MG    -> I_PHAGO;
+  I_CYT   -> I_PHAGO [arrowhead=tee, label="chronic\nexhaustion"];
+  I_CYT   -> I_A1;
+  I_A1    -> E_SYN   [arrowhead=tee];
+  I_MG    -> I_C1Q -> E_SYN [arrowhead=tee, label="pruning"];
+  I_CYT   -> M_ROS;
+  I_TCELL -> I_MG;
+  A_PS129 -> I_TCELL [label="MHC-II epitope", style=dashed];
+  I_MG    -> I_TSPO  [style=dotted];
+  I_A1    -> W_GFAP  [style=dotted];
+  I_CYT   -> C_NBM   [arrowhead=tee];
+  I_CYT   -> D_SNC   [arrowhead=tee];
+
+  /* --- CHOLINERGIC transducer ------------------------------------------ */
+  C_NBM   -> C_CHAT;
+  C_PPN   -> E_THAL;
+  C_CHAT  -> C_VACHT -> C_ACH;
+  C_ACHE  -> C_ACH   [arrowhead=tee];
+  C_BUCHE -> C_ACH   [arrowhead=tee];
+  C_ACHE  -> C_BUCHE [arrowhead=tee, style=dashed, label="compensatory\nrise"];
+  C_ACH   -> C_M1;
+  C_ACH   -> C_M2 -> C_ACH [arrowhead=tee, label="autoinhibition"];
+  C_ACH   -> C_NIC;
+  C_CHAT  -> C_TRANS [color="#b8860b"];
+  C_M1    -> C_TRANS [color="#b8860b", penwidth=1.4];
+  C_ACHE  -> C_TRANS [color="#b8860b", arrowhead=tee];
+  C_TRANS -> E_ATT   [penwidth=1.4];
+  C_TRANS -> E_GAIN;
+  C_TRANS -> V_TD    [label="attentional\nbinding"];
+  C_NIC   -> E_THAL;
+  E_THAL  -> E_ATT;
+
+  /* --- DOPAMINERGIC transducer ----------------------------------------- */
+  D_SNC   -> D_TH -> D_DA;
+  D_SNC   -> D_DAT [style=dotted];
+  D_DAT   -> W_DAT [style=dotted];
+  D_SNC   -> D_VMAT;
+  D_DA    -> D_D2;
+  D_DA    -> D_D1;
+  D_TH    -> D_TRANS [color="#b8860b"];
+  D_D2    -> D_TRANS [color="#b8860b", penwidth=1.4];
+  P_D2OCC -> D_TRANS [color="#b8860b", arrowhead=tee, penwidth=1.4];
+  D_TRANS -> F_UPDRS [arrowhead=tee, penwidth=1.4];
+  D_A2A   -> D_TRANS [arrowhead=tee];
+  D_MESO  -> V_PAD   [label="aberrant\nsalience"];
+  D_SNC   -> D_MESO  [style=dashed];
+
+  /* --- SEROTONERGIC transducer ------------------------------------------ */
+  T_RAPHE -> T_5HT;
+  T_5HT   -> T_2A    [arrowhead=tee, style=dashed, label="denervation\nsupersensitivity"];
+  R_NEO   -> T_2A    [label="local up-regulation\nin BA18/19"];
+  T_2A    -> T_2AGQ -> E_GAIN;
+  T_5HT   -> T_TRANS [color="#b8860b"];
+  T_2A    -> T_TRANS [color="#b8860b", penwidth=1.4];
+  T_TRANS -> V_PAD   [penwidth=1.4];
+  T_1A    -> T_5HT   [arrowhead=tee];
+
+  /* --- NORADRENERGIC ----------------------------------------------------- */
+  N_LC    -> N_NE;
+  N_NE    -> N_A1; N_NE -> N_A2;
+  N_A1    -> N_AROUS;
+  N_AROUS -> E_ATT   [penwidth=1.2];
+  N_LC    -> U_BARO  [label="central baroreflex"];
+  N_NE    -> Z_RBD   [arrowhead=tee, style=dashed];
+
+  /* --- SLEEP ------------------------------------------------------------- */
+  Z_SLD   -> Z_GIV -> Z_RBD [arrowhead=tee, label="atonia intact\nwhen present"];
+  Z_ORX   -> Z_EDS   [arrowhead=tee];
+  Z_ORX   -> W_ORXC  [style=dotted];
+  Z_MEL   -> Z_RBD   [arrowhead=tee];
+  Z_EDS   -> E_ATT   [arrowhead=tee];
+  Z_RBD   -> W_PSG   [style=dotted];
+  Z_RBD   -> F_FALL  [label="injurious\nenactment"];
+  Z_SLEEPGLY -> Z_EDS [style=dashed];
+
+  /* --- AUTONOMIC --------------------------------------------------------- */
+  U_CARD  -> U_MIBG  [arrowhead=tee, style=dotted];
+  U_CARD  -> U_OH;
+  U_BARO  -> U_OH    [arrowhead=tee];
+  U_OH    -> U_CBF   [arrowhead=tee];
+  U_CBF   -> E_ATT   [label="transient dips →\nlooks like fluctuation"];
+  U_OH    -> F_FALL;
+  U_ENS   -> X_LDC   [arrowhead=tee, label="erratic gastric\nemptying"];
+  U_URIN  -> X_ANTIC [style=dashed, label="drives\nprescribing"];
+  X_DROX  -> U_OH    [arrowhead=tee];
+  X_DROX  -> U_SUPH;
+  U_SUPH  -> F_FALL  [style=dashed];
+
+  /* --- AD CO-PATHOLOGY ---------------------------------------------------- */
+  B_APP   -> B_PLQ;
+  B_PLQ   -> B_TAU;
+  B_TAU   -> B_PTAU  [style=dotted];
+  B_PLQ   -> B_CROSS [color="#b8860b"];
+  B_TAU   -> B_CROSS [color="#b8860b"];
+  A_FIB   -> B_CROSS [color="#b8860b"];
+  B_CROSS -> A_NUC2  [label="bilinear\nacceleration", color="#a00000", penwidth=1.4];
+  B_CROSS -> B_TAU;
+  B_TAU   -> E_SYN   [arrowhead=tee];
+  B_CROSS -> B_PHENO [style=dotted];
+  B_PHENO -> F_SURV  [arrowhead=tee, style=dashed];
+  B_PHENO -> V_VH    [arrowhead=tee, style=dashed];
+  B_PLQ   -> W_ABRAT [style=dotted];
+  B_TAU   -> C_NBM   [arrowhead=tee];
+
+  /* --- NETWORK / ATTENTION ------------------------------------------------ */
+  E_SYN   -> F_MMSE;
+  E_SYN   -> E_GAIN;
+  E_THAL  -> E_EEG;
+  E_ATT   -> E_EEG   [label="temporal\nvariability"];
+  E_ATT   -> E_FLUC  [label="★ σ, not μ", penwidth=1.6, color="#b8860b"];
+  E_ATT   -> F_ATT;
+  E_ATT   -> V_TD;
+  E_DMN   -> E_ATT;
+  E_GAIN  -> V_PROTO;
+  R_NEO   -> E_OCC   [style=dotted];
+  E_OCC   -> E_CING  [style=dotted];
+  E_OCC   -> V_BU    [arrowhead=tee];
+  E_SYN   -> E_DMN;
+
+  /* --- VISUAL / PAD -------------------------------------------------------- */
+  V_RET   -> V_BU    [arrowhead=tee];
+  V_V1    -> V_BU;
+  V_VENT  -> V_BU;
+  V_DORS  -> V_TD;
+  V_BU    -> V_PAD   [arrowhead=tee, penwidth=1.4];
+  V_TD    -> V_PAD   [arrowhead=tee, penwidth=1.4];
+  V_PROTO -> V_PAD;
+  V_PAD   -> V_VH    [penwidth=1.6];
+  V_PAD   -> V_PASS;
+  V_VH    -> V_DEL;
+  V_VH    -> F_NPI   [penwidth=1.4];
+  V_DEL   -> F_NPI;
+  V_VH    -> F_CARE;
+
+  /* --- ChEI PHARMACOLOGY ---------------------------------------------------- */
+  K_RIVAPO-> K_RIVAC -> K_CARB;
+  K_CARB  -> C_ACHE  [arrowhead=tee, penwidth=1.5];
+  K_CARB  -> C_BUCHE [arrowhead=tee, label="dual inhibition —\nmatters late"];
+  K_DONG  -> K_DONC -> K_DONE;
+  K_DONE  -> C_ACHE  [arrowhead=tee, penwidth=1.5];
+  K_GAL   -> C_ACHE  [arrowhead=tee];
+  K_GAL   -> C_NIC   [label="allosteric\npotentiation"];
+  K_RIVAC -> K_CHOLAE;
+  K_DONC  -> K_CHOLAE;
+  K_CHOLAE-> F_FALL;
+  K_PATCH -> K_RIVAPO [style=dotted];
+  K_PATCH -> K_CHOLAE [arrowhead=tee, style=dotted];
+  X_ANTIC -> C_M1    [arrowhead=tee, penwidth=1.4, color="#a00000"];
+
+  /* --- ANTIPSYCHOTIC / SENSITIVITY ------------------------------------------ */
+  P_PIMG  -> P_PIMC -> P_PIMOC;
+  P_PIMOC -> T_TRANS [arrowhead=tee, penwidth=1.5, color="#b8860b"];
+  P_PIMC  -> P_QT;
+  P_TYP   -> P_D2OCC [penwidth=1.5, color="#a00000"];
+  P_QUET  -> P_D2OCC [style=dashed, label="low, transient"];
+  P_CLOZ  -> P_D2OCC [style=dashed, label="very low"];
+  P_CLOZ  -> T_2A    [arrowhead=tee, label="5-HT2A\ninverse agonism"];
+  P_QUET  -> N_A1    [arrowhead=tee, label="→ orthostasis,\nsedation"];
+  D_D2    -> P_NSENS [color="#a00000", penwidth=1.6, label="RESIDUAL signal =\ndensity × (1−occ)"];
+  P_D2OCC -> P_NSENS [color="#a00000", penwidth=1.6];
+  P_NSENS -> P_NMS   [penwidth=1.4];
+  P_NMS   -> F_SURV  [arrowhead=tee, penwidth=1.4];
+  P_NMS   -> F_UPDRS [penwidth=1.4];
+  P_QT    -> F_SURV  [arrowhead=tee, style=dashed];
+  P_PIMOC -> V_PAD   [arrowhead=tee, penwidth=1.4];
+
+  /* --- MOTOR / OTHER --------------------------------------------------------- */
+  X_LDG   -> X_LDC -> X_LDB;
+  X_LDB   -> D_DA    [penwidth=1.2];
+  D_VMAT  -> X_LDB   [label="storage needed for\nsmooth conversion", style=dashed];
+  X_LDB   -> D_MESO  -> X_LDVH;
+  X_LDVH  -> V_VH    [color="#a00000"];
+  X_ZON   -> D_DA    [label="MAO-B inhibition"];
+  X_ZON   -> F_UPDRS [arrowhead=tee];
+  X_IST   -> D_A2A   [arrowhead=tee];
+  X_MEM   -> X_NMDA  [arrowhead=tee];
+  X_NMDA  -> E_SYN   [arrowhead=tee, label="excitotoxicity"];
+  X_MEM   -> F_NPI   [arrowhead=tee, style=dashed];
+  X_MELCL -> Z_RBD   [arrowhead=tee];
+  X_MOD   -> Z_EDS   [arrowhead=tee];
+  X_MOD   -> N_AROUS;
+
+  /* --- DISEASE MODIFICATION --------------------------------------------------- */
+  Y_AMB   -> L_ERGC  [label="chaperones GCase\nout of the ER", penwidth=1.3];
+  Y_AMB   -> W_GCA   [style=dotted];
+  Y_VENG  -> L_GLCC  [arrowhead=tee];
+  Y_MAB   -> Y_TE -> S_ISF [arrowhead=tee, penwidth=1.3];
+  Y_MAB   -> I_PHAGO [label="opsonisation →\nFcγR clearance"];
+  Y_ASO   -> A_SYN   [arrowhead=tee, penwidth=1.3];
+  Y_LRRK  -> L_CMA;
+  Y_ADUC  -> B_PLQ   [arrowhead=tee];
+  Y_ADUC  -> B_CROSS [arrowhead=tee, style=dashed];
+  Y_WIN   -> L_SWITCH[style=dotted];
+  L_SWITCH-> Y_WIN   [style=dotted];
+
+  /* --- BIOMARKERS ------------------------------------------------------------- */
+  S_ISF   -> W_SAA   [style=dotted];
+  A_FIB   -> W_SAA   [style=dotted];
+  E_SYN   -> W_NFL   [style=dotted, label="axonal loss"];
+  R_BSTEM -> W_PSG   [style=dotted];
+  E_EEG   -> F_ATT   [style=dotted];
+
+  /* --- CLINICAL ENDPOINT INTEGRATION -------------------------------------------- */
+  F_ATT   -> F_MMSE;
+  E_FLUC  -> F_ATT   [arrowhead=tee, penwidth=1.3];
+  E_FLUC  -> F_CARE;
+  F_MMSE  -> F_CDR   [arrowhead=tee];
+  F_MMSE  -> F_ADL;
+  F_UPDRS -> F_FALL;
+  F_UPDRS -> F_ADL   [arrowhead=tee];
+  F_NPI   -> F_ADL   [arrowhead=tee];
+  F_NPI   -> F_CARE;
+  F_FALL  -> F_SURV  [arrowhead=tee];
+  F_CARE  -> F_SURV  [arrowhead=tee, style=dashed, label="institutionalisation"];
+  F_MMSE  -> F_CIBIC;
+  F_NPI   -> F_CIBIC;
+  F_UPDRS -> F_CIBIC;
+  E_SYN   -> F_SURV;
+
+  /* --- the three transducers meet the endpoints ---------------------------------- */
+  C_TRANS -> F_MMSE  [penwidth=1.4, color="#b8860b"];
+  C_TRANS -> F_NPI   [arrowhead=tee, penwidth=1.4, color="#b8860b"];
+  C_TRANS -> E_FLUC  [arrowhead=tee, penwidth=1.6, color="#b8860b",
+                      label="★ largest single effect —\nfluctuation before mean"];
+  C_TRANS -> V_PAD   [arrowhead=tee, penwidth=1.3, color="#b8860b"];
+
+  /* --- an explanatory legend node ------------------------------------------------- */
+  LEGEND [shape=note, fillcolor="#fffbe6", color="#b8860b", fontsize=9,
+          label=<<B>Reading the map</B><BR ALIGN="LEFT"/>
+          ─▶  activates / increases<BR ALIGN="LEFT"/>
+          ─⊣  inhibits / decreases<BR ALIGN="LEFT"/>
+          ····▶ measured by (biomarker)<BR ALIGN="LEFT"/>
+          ★ octagon = a structural commitment of the model,<BR ALIGN="LEFT"/>
+          &#160;&#160;&#160;not a fitted parameter<BR ALIGN="LEFT"/><BR ALIGN="LEFT"/>
+          <B>The three transducers (clusters 7·8·9) are the same</B><BR ALIGN="LEFT"/>
+          <B>equation with a different sign on receptor plasticity.</B><BR ALIGN="LEFT"/>
+          ChEI superiority over AD, levodopa failure relative to PD,<BR ALIGN="LEFT"/>
+          neuroleptic sensitivity and pimavanserin efficacy are all<BR ALIGN="LEFT"/>
+          CONSEQUENCES of that, not separate rules.<BR ALIGN="LEFT"/>>];
+}
