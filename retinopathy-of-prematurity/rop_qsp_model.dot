@@ -1,0 +1,368 @@
+/* =====================================================================
+   Retinopathy of Prematurity (ROP) -- QSP mechanistic map
+   ---------------------------------------------------------------------
+   Organising principle: ROP is not a disease of "too much oxygen" or
+   "too little oxygen". It is the collision of two independently-set
+   quantities inside the avascular peripheral retina:
+
+        SUPPLY  = choroidal pO2 x diffusion reach   (set by the ventilator)
+        DEMAND  = retinal metabolic rate x thickness (set by maturation)
+
+   Their ratio determines the sign of every oxygen intervention, and the
+   crossing point (SUPPLY = DEMAND) is the phase 1 -> phase 2 switch.
+   Two spatially distinct VEGF pools read opposite sides of that
+   collision: a FRONT pool (local pO2 at the growing vascular edge, sets
+   vessel growth and survival) and a VITREOUS pool (area-integrated
+   hypoxic drive, sets neovascularisation and plus disease). Every drug
+   in the map acts on one pool, the other, or the geometry itself.
+   ===================================================================== */
+
+digraph ROP_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.22, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true, bgcolor="white",
+         label="Retinopathy of Prematurity — Quantitative Systems Pharmacology map\nsupply/demand collision in the avascular retina · two VEGF pools · anti-VEGF ocular vs systemic asymmetry",
+         labelloc="t", fontcolor="#1a1a1a"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=0.9, margin="0.08,0.05"];
+  edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.65, penwidth=0.9];
+
+  /* ---------- palette ------------------------------------------------ */
+  /* physiology  #E8F0FE   oxygen      #DDEBF7   signalling  #FFF2CC
+     vessels     #E2F0D9   pathology   #FBE5E5   drug        #EDE7F6
+     endpoint    #FFF8E1   systemic    #F1F3F4                        */
+
+  /* =================================================================== */
+  subgraph cluster_policy {
+    label="1 · Ventilator, oximeter and oxygen policy";
+    style="rounded,filled"; fillcolor="#F7FBFF"; color="#7799bb"; fontsize=12;
+    FIO2      [label="FiO2\ninspired O2 fraction", fillcolor="#DDEBF7"];
+    ALVO2     [label="Alveolar pO2\n(PAO2)", fillcolor="#DDEBF7"];
+    SHUNTF    [label="Intrapulmonary shunt\n+ V/Q mismatch", fillcolor="#DDEBF7"];
+    PAO2      [label="Arterial pO2\nPaO2  (mmHg)", fillcolor="#DDEBF7", penwidth=2.0];
+    SPO2      [label="SpO2 measured\nby pulse oximeter", fillcolor="#DDEBF7", penwidth=2.0];
+    TARGET    [label="Prescribed SpO2\ntarget range\n85–89 / 91–95 / 96–99", fillcolor="#EDE7F6"];
+    ACHIEVED  [label="ACHIEVED SpO2\ndistribution\n(time-in-range ≈ 50–60%)", fillcolor="#EDE7F6"];
+    ALARM     [label="Alarm limits &\nnurse titration", fillcolor="#F1F3F4"];
+    CLC       [label="Closed-loop / automated\nFiO2 control", fillcolor="#EDE7F6"];
+    IH        [label="Intermittent hypoxaemia\n(apnoea, desaturation events)", fillcolor="#DDEBF7"];
+    FLUCT     [label="SpO2 variability\n(swing amplitude)", fillcolor="#DDEBF7"];
+  }
+
+  subgraph cluster_odc {
+    label="2 · Oxygen carriage — why SpO2 is not pO2";
+    style="rounded,filled"; fillcolor="#F7FBFF"; color="#7799bb"; fontsize=12;
+    HBF       [label="Fetal haemoglobin\nfraction (HbF)", fillcolor="#DDEBF7", penwidth=2.0];
+    HBA       [label="Adult haemoglobin\n(HbA)", fillcolor="#DDEBF7"];
+    P50       [label="P50\nHbF 19 → HbA 26.6 mmHg", fillcolor="#DDEBF7", penwidth=2.0];
+    DPG       [label="2,3-DPG\nerythrocyte", fillcolor="#DDEBF7"];
+    PHCO2     [label="pH / PaCO2\n(Bohr shift)", fillcolor="#DDEBF7"];
+    ODC       [label="Oxyhaemoglobin\ndissociation curve\nHill n ≈ 2.7", fillcolor="#DDEBF7"];
+    TRANSF    [label="Packed RBC transfusion\n(adult HbA)", fillcolor="#EDE7F6"];
+    HBSWITCH  [label="Endogenous γ→β\nglobin switch", fillcolor="#E8F0FE"];
+    HCT       [label="Haematocrit /\nanaemia of prematurity", fillcolor="#F1F3F4"];
+    O2CONT    [label="Arterial O2 content\nCaO2", fillcolor="#DDEBF7"];
+  }
+
+  subgraph cluster_retox {
+    label="3 · Retinal oxygen microenvironment — the Krogh slab";
+    style="rounded,filled"; fillcolor="#F5FAFF"; color="#5588aa"; fontsize=12;
+    CHORFLOW  [label="Choroidal blood flow\n(not autoregulated)", fillcolor="#DDEBF7"];
+    PCHOR     [label="Choroidal pO2\nPCHOR ≈ 0.85 · PaO2", fillcolor="#DDEBF7", penwidth=2.0];
+    RETFLOW   [label="Retinal circulation\n(autoregulated, vasoconstricts\nin hyperoxia)", fillcolor="#E2F0D9"];
+    KDIFF     [label="Krogh diffusion constant\nk = D·α ≈ 4.7e-10\nmL O2 cm⁻¹s⁻¹mmHg⁻¹", fillcolor="#E8F0FE"];
+    MO2       [label="Retinal O2 consumption\nMO2 (rises with maturation)", fillcolor="#FBE5E5", penwidth=2.0];
+    PHOTOR    [label="Photoreceptor / inner-retinal\nmaturation (PMA-driven)", fillcolor="#E8F0FE"];
+    HRET      [label="Avascular retinal\nthickness h (105→185 µm)", fillcolor="#E8F0FE"];
+    PCRIT     [label="PCRIT = MO2·h² / 2k\nchoroidal pO2 required to\noxygenate the full thickness", fillcolor="#FBE5E5", penwidth=2.2];
+    LPEN      [label="Penetration depth\nL = √(2k·PCHOR/MO2)\n— square-root law", fillcolor="#FBE5E5", penwidth=2.0];
+    PINNER    [label="Inner avascular retinal pO2\nPINNER = max(0, PCHOR − PCRIT)", fillcolor="#FBE5E5", penwidth=2.2];
+    PFRONT    [label="pO2 at the growing\nVASCULAR FRONT\n(choroid − local consumption)", fillcolor="#E2F0D9", penwidth=2.2];
+    SWITCH    [label="PHASE 1 → PHASE 2 SWITCH\nPCHOR = PCRIT\n(PMA ≈ 32–35 wk)", shape=hexagon, fillcolor="#F8CBAD", penwidth=2.4];
+    SHIELD    [label="Maturational shielding:\nthe retina's own rising MO2\nprotects the front from hyperoxia", shape=note, fillcolor="#FFF2CC"];
+  }
+
+  subgraph cluster_hif {
+    label="4 · Hypoxia signalling and the two VEGF pools";
+    style="rounded,filled"; fillcolor="#FFFDF5"; color="#bb9944"; fontsize=12;
+    PHD       [label="PHD1/2/3 prolyl hydroxylases\nO2-dependent (high Km)", fillcolor="#FFF2CC"];
+    VHL       [label="pVHL–E3 ubiquitin ligase", fillcolor="#FFF2CC"];
+    HIF1A     [label="HIF-1α\nstabilisation", fillcolor="#FFF2CC", penwidth=2.0];
+    HIF2A     [label="HIF-2α", fillcolor="#FFF2CC"];
+    HRE       [label="HRE-driven transcription\n(cooperative, ~4th power)", fillcolor="#FFF2CC"];
+    ASTRO     [label="Astrocytes / Müller cells\nat the vascular front", fillcolor="#FFF2CC"];
+    VEGFFRONT [label="FRONT VEGF POOL\nlocal gradient guiding tip cells", fillcolor="#E2F0D9", penwidth=2.4];
+    VEGFVIT   [label="VITREOUS VEGF POOL\narea-integrated hypoxic drive\n(avascular area × intensity)", fillcolor="#FBE5E5", penwidth=2.4];
+    VEGF165   [label="VEGF-A165 / 121 / 189\nisoforms (45 kDa dimer)", fillcolor="#FFF2CC"];
+    VEGFB     [label="VEGF-A165b\nanti-angiogenic isoform", fillcolor="#FFF2CC"];
+    EPO       [label="Erythropoietin (retinal)\nHIF-driven", fillcolor="#FFF2CC"];
+    ANG2      [label="Angiopoietin-2\nvessel destabilisation", fillcolor="#FFF2CC"];
+    SDF1      [label="SDF-1 / CXCL12", fillcolor="#FFF2CC"];
+    IGFBP3    [label="IGFBP-3", fillcolor="#FFF2CC"];
+    SEMA3A    [label="Semaphorin-3A\nrepulsive guidance", fillcolor="#FFF2CC"];
+    SUCC      [label="Succinate → GPR91\nmetabolic angiogenic signal", fillcolor="#FFF2CC"];
+    WNTNOR    [label="Norrin / FZD4 / LRP5 / TSPAN12\nWnt-β-catenin", fillcolor="#FFF2CC"];
+  }
+
+  subgraph cluster_growth {
+    label="5 · Physiologic vascularisation (phase 1 target)";
+    style="rounded,filled"; fillcolor="#F4FBF0"; color="#66aa66"; fontsize=12;
+    TIPCELL   [label="Tip cell / filopodia\nVEGFR2 activation", fillcolor="#E2F0D9"];
+    DLL4      [label="DLL4–Notch\nstalk-cell selection", fillcolor="#E2F0D9"];
+    VEGFR2    [label="VEGFR2 (KDR)\nPI3K–AKT / ERK", fillcolor="#E2F0D9"];
+    VEGFR1    [label="VEGFR1 / sFlt-1\ndecoy", fillcolor="#E2F0D9"];
+    PERI      [label="Pericyte recruitment\nPDGF-B / PDGFRβ", fillcolor="#E2F0D9"];
+    IGF1      [label="Serum IGF-1\n(placental loss, nutrition)", fillcolor="#E2F0D9", penwidth=2.0];
+    IGF1R     [label="IGF1R — permissive gate\nfor VEGF signalling", fillcolor="#E2F0D9", penwidth=2.0];
+    NUTR      [label="Enteral / parenteral\nenergy & protein intake", fillcolor="#F1F3F4"];
+    WTGAIN    [label="Postnatal weight gain\n(IGF-1 surrogate)", fillcolor="#F1F3F4"];
+    VASC      [label="VASCULARISED retinal\nfraction  (VASC)", fillcolor="#E2F0D9", penwidth=2.4];
+    AVASC     [label="AVASCULAR retinal\nfraction  A = 1 − VASC − ablated", fillcolor="#FBE5E5", penwidth=2.4];
+    GROWGATE  [label="Growth gate\nVEGF_front > KG (≈300 pg/mL)", shape=diamond, fillcolor="#E2F0D9"];
+    ZONE      [label="ICROP zone I / II / III\n(from vascularised radius)", fillcolor="#FFF8E1"];
+  }
+
+  subgraph cluster_oblit {
+    label="6 · Vaso-obliteration (phase 1 injury)";
+    style="rounded,filled"; fillcolor="#FFF6F6"; color="#cc8888"; fontsize=12;
+    SURVGATE  [label="Survival gate\nVEGF_front < KSURV (≈180 pg/mL)", shape=diamond, fillcolor="#FBE5E5"];
+    ECAPOP    [label="Immature endothelial\napoptosis (caspase-3)", fillcolor="#FBE5E5"];
+    OBLIT     [label="VASO-OBLITERATION\nloss of nascent capillaries", fillcolor="#FBE5E5", penwidth=2.2];
+    SUSCEPT   [label="Susceptibility window\n(pericyte-poor, PMA < ~31 wk)", fillcolor="#FBE5E5"];
+    ROS       [label="Reactive oxygen species\nO2•⁻ / H2O2 / ONOO⁻", fillcolor="#FBE5E5"];
+    NOX       [label="NADPH oxidase (NOX1/2/4)\nRac1 signalling", fillcolor="#FBE5E5"];
+    ANTIOX    [label="Antioxidant immaturity\nSOD / catalase / GPx low", fillcolor="#FBE5E5"];
+    LIPPER    [label="Lipid peroxidation\n(PUFA-rich retina)", fillcolor="#FBE5E5"];
+    AADHA     [label="Arachidonic acid : DHA\nmembrane / mediator pool", fillcolor="#EDE7F6"];
+    NOEN      [label="eNOS / NO\nuncoupling", fillcolor="#FBE5E5"];
+  }
+
+  subgraph cluster_nv {
+    label="7 · Pathologic neovascularisation (phase 2)";
+    style="rounded,filled"; fillcolor="#FFF3F3"; color="#cc7777"; fontsize=12;
+    NVGATE    [label="NV ignition threshold\nVEGF_vit > KNV (steep, n≈4)", shape=diamond, fillcolor="#FBE5E5", penwidth=2.0];
+    RIDGE     [label="Demarcation line → ridge\n(stage 1 → 2)", fillcolor="#FBE5E5"];
+    SHUNTV    [label="Arteriovenous\nmesenchymal shunt", fillcolor="#FBE5E5"];
+    NV        [label="EXTRARETINAL fibrovascular\nproliferation (stage 3)", fillcolor="#FBE5E5", penwidth=2.4];
+    MMP       [label="MMP-2 / MMP-9\nILM breach", fillcolor="#FBE5E5"];
+    LEAK      [label="Vascular leakage\n(exudate, haemorrhage)", fillcolor="#FBE5E5"];
+    PLUS      [label="PLUS DISEASE\nposterior venous dilation +\narterial tortuosity", fillcolor="#FBE5E5", penwidth=2.2];
+    PREPLUS   [label="Pre-plus disease", fillcolor="#FBE5E5"];
+    APROP     [label="Aggressive posterior ROP\n(flat NV, zone I, no ridge)", fillcolor="#F8CBAD", penwidth=2.0];
+    VSEV      [label="Vascular severity score\n(i-ROP DL, 1–9)", fillcolor="#FFF8E1"];
+  }
+
+  subgraph cluster_fibro {
+    label="8 · Fibrovascular contraction and detachment";
+    style="rounded,filled"; fillcolor="#FFF6F0"; color="#cc9977"; fontsize=12;
+    TGFB      [label="TGF-β1 / CTGF", fillcolor="#FBE5E5"];
+    CRUNCH    [label="Abrupt VEGF withdrawal\n(post-anti-VEGF 'crunch')", fillcolor="#EDE7F6"];
+    MYOFIB    [label="Myofibroblast\ntransdifferentiation", fillcolor="#FBE5E5"];
+    FIBRO     [label="Fibrovascular membrane\n+ contraction", fillcolor="#FBE5E5", penwidth=2.0];
+    TRACT     [label="Vitreoretinal traction", fillcolor="#FBE5E5"];
+    DETACH    [label="Tractional detachment\nstage 4A / 4B / 5", fillcolor="#F8CBAD", penwidth=2.2];
+    MACDRAG   [label="Macular dragging /\nectopia", fillcolor="#FBE5E5"];
+    VITSURG   [label="Lens-sparing vitrectomy /\nscleral buckle", fillcolor="#EDE7F6"];
+  }
+
+  subgraph cluster_pk {
+    label="9 · Intravitreal anti-VEGF pharmacokinetics";
+    style="rounded,filled"; fillcolor="#F6F3FB"; color="#8877bb"; fontsize=12;
+    INJ       [label="Intravitreal injection\nbev 0.625 / ranib 0.2 /\naflib 0.4 mg", fillcolor="#EDE7F6", penwidth=2.0];
+    VVIT      [label="Vitreous volume\n1.1 mL preterm vs 4.0 mL adult", fillcolor="#EDE7F6", penwidth=2.2];
+    DVIT      [label="Free drug in vitreous\n(bev t½ 9.8 d, ranib 7.2 d adult;\nvolume-scaled in preterm eye)", fillcolor="#EDE7F6", penwidth=2.0];
+    VALENCY   [label="Valency: bev 2 sites/mol,\nranibizumab 1", fillcolor="#EDE7F6"];
+    KD        [label="Affinity Kd\nbev 0.06–1.1 nM, ranib ~0.05–0.2 nM,\naflibercept sub-pM", fillcolor="#EDE7F6"];
+    CPLXOC    [label="Drug·VEGF complex\n(vitreous)", fillcolor="#EDE7F6"];
+    AQ        [label="Anterior (aqueous) egress\n— main route for macromolecules", fillcolor="#EDE7F6"];
+    POST      [label="Posterior / retinal-choroidal\negress", fillcolor="#EDE7F6"];
+    FSYS      [label="Systemic bioavailability\nof ocular efflux", fillcolor="#EDE7F6"];
+    DCEN      [label="Plasma central compartment\n(≈50 mL in a 1 kg infant)", fillcolor="#F1F3F4", penwidth=2.0];
+    DPER      [label="Peripheral / interstitial\ncompartment", fillcolor="#F1F3F4"];
+    FCRN      [label="FcRn recycling (IgG Fc)\n→ bevacizumab serum t½ ≈ 21 d", fillcolor="#F1F3F4", penwidth=2.2];
+    FABCL     [label="Fab fragment (no Fc)\n→ rapid renal/catabolic clearance", fillcolor="#F1F3F4", penwidth=2.0];
+    CPLXSY    [label="Drug·VEGF complex (plasma)\ncleared ~17× slower than free VEGF", fillcolor="#F1F3F4", penwidth=2.0];
+    VEGFSER   [label="Serum free VEGF", fillcolor="#F1F3F4", penwidth=2.2];
+  }
+
+  subgraph cluster_systemic {
+    label="10 · Systemic consequences of VEGF blockade";
+    style="rounded,filled"; fillcolor="#F6F7F8"; color="#889099"; fontsize=12;
+    ALVEOL    [label="Alveolarisation\n(VEGF-dependent)", fillcolor="#F1F3F4"];
+    BPD       [label="Bronchopulmonary dysplasia", fillcolor="#F1F3F4", penwidth=2.0];
+    BRAINVASC [label="Cerebral angiogenesis /\nneurovascular coupling", fillcolor="#F1F3F4"];
+    NEURODEV  [label="Neurodevelopmental outcome\n(Bayley-III at 18–24 mo)", fillcolor="#FFF8E1", penwidth=2.0];
+    NEPHRO    [label="Nephrogenesis /\nglomerular VEGF", fillcolor="#F1F3F4"];
+    BONE      [label="Growth-plate\nangiogenesis", fillcolor="#F1F3F4"];
+    IGFSUP    [label="Serum IGF-1 suppression\nafter IVB", fillcolor="#F1F3F4"];
+  }
+
+  subgraph cluster_ablate {
+    label="11 · Ablative therapy and its structural cost";
+    style="rounded,filled"; fillcolor="#F6F3FB"; color="#8877bb"; fontsize=12;
+    LASER     [label="Diode laser photocoagulation\n(confluent, avascular retina)", fillcolor="#EDE7F6", penwidth=2.0];
+    CRYO      [label="Cryotherapy (historical)", fillcolor="#EDE7F6"];
+    ABLA      [label="Ablated retinal fraction\n— VEGF SOURCE DELETED", fillcolor="#EDE7F6", penwidth=2.2];
+    FIELD     [label="Peripheral visual\nfield loss", fillcolor="#FFF8E1", penwidth=2.0];
+    MYOPIA    [label="High / very high myopia\n(anterior segment arrest)", fillcolor="#FFF8E1", penwidth=2.0];
+    ASTIG     [label="Astigmatism /\nanisometropia", fillcolor="#FFF8E1"];
+    CATARACT  [label="Cataract, anterior\nsegment ischaemia", fillcolor="#FFF8E1"];
+    PAVR      [label="Persistent avascular retina\n(after anti-VEGF)", fillcolor="#FBE5E5", penwidth=2.0];
+    REACT     [label="REACTIVATION of ROP\n(drug washout + residual A)", fillcolor="#F8CBAD", penwidth=2.2];
+  }
+
+  subgraph cluster_comorb {
+    label="12 · Comorbidity, exposures and competing risk";
+    style="rounded,filled"; fillcolor="#F7F8F9"; color="#889099"; fontsize=12;
+    GA        [label="Gestational age /\nbirth weight", fillcolor="#F1F3F4", penwidth=2.0];
+    SEPSIS    [label="Late-onset sepsis / NEC\n(IL-6, TNF-α)", fillcolor="#F1F3F4"];
+    INFL      [label="Systemic inflammation", fillcolor="#F1F3F4"];
+    CHORIO    [label="Chorioamnionitis /\nantenatal steroids", fillcolor="#F1F3F4"];
+    EPOTX     [label="Erythropoiesis-stimulating\nagents (rhEPO)", fillcolor="#EDE7F6"];
+    CAFF      [label="Caffeine citrate\n(apnoea control)", fillcolor="#EDE7F6"];
+    DEATH     [label="Death before discharge\n— competing risk", fillcolor="#F8CBAD", penwidth=2.2];
+    HYPOXBUR  [label="Cumulative hypoxaemia\nburden", fillcolor="#F1F3F4"];
+    HYPEROXB  [label="Cumulative hyperoxia\nburden", fillcolor="#F1F3F4"];
+  }
+
+  subgraph cluster_endpoint {
+    label="13 · Classification, screening and clinical endpoints";
+    style="rounded,filled"; fillcolor="#FFFCF0"; color="#bbaa66"; fontsize=12;
+    STAGE     [label="ICROP3 stage 1–5", fillcolor="#FFF8E1", penwidth=2.0];
+    TYPE1     [label="ETROP TYPE 1 ROP\n→ treat within 72 h", shape=hexagon, fillcolor="#F8CBAD", penwidth=2.4];
+    TYPE2     [label="Type 2 ROP\n→ watch", fillcolor="#FFF8E1"];
+    THRESHOLD [label="CRYO-ROP 'threshold'\n(stage 3+, 5 contiguous clock h)", fillcolor="#FFF8E1"];
+    SCREEN    [label="Screening schedule\n(PMA 31 wk / 4 wk chronological)", fillcolor="#FFF8E1"];
+    WINROP    [label="WINROP / CHOP-ROP / G-ROP\nweight-gain prediction", fillcolor="#FFF8E1"];
+    STRUCT    [label="Unfavourable structural\noutcome (9.1% treated, ETROP)", fillcolor="#FFF8E1", penwidth=2.0];
+    VA        [label="Unfavourable visual acuity\n(14.5% treated, ETROP)", fillcolor="#FFF8E1", penwidth=2.0];
+    BLIND     [label="Childhood blindness /\nvisual impairment", fillcolor="#F8CBAD", penwidth=2.0];
+    REGRESS   [label="Spontaneous regression\n(into zone III / full vascularisation)", fillcolor="#E2F0D9", penwidth=2.0];
+  }
+
+  /* =================================================================== */
+  /* ----------------------- oxygen delivery chain --------------------- */
+  FIO2 -> ALVO2 -> PAO2;
+  SHUNTF -> PAO2 [label="↓", color="#aa4444"];
+  BPD -> SHUNTF; BPD -> FIO2 [label="O2 requirement"];
+  TARGET -> ALARM -> ACHIEVED; CLC -> ACHIEVED [label="narrows"];
+  ACHIEVED -> SPO2; TARGET -> ACHIEVED [style=dashed, label="only ~50–60%\nof time in range"];
+  PAO2 -> SPO2 [label="via ODC"]; ODC -> SPO2; P50 -> ODC;
+  HBF -> P50 [label="↓ P50 (left shift)", color="#2255aa"];
+  HBA -> P50 [label="↑ P50"]; DPG -> P50; PHCO2 -> P50;
+  HBSWITCH -> HBF [label="↓ over weeks", color="#aa4444"];
+  TRANSF -> HBA [label="dilutes HbF", color="#aa4444"]; TRANSF -> HBF [label="↓", color="#aa4444"];
+  HCT -> TRANSF; HCT -> O2CONT; HBF -> O2CONT;
+  IH -> HYPOXBUR; FLUCT -> IH; ACHIEVED -> FLUCT;
+  SPO2 -> TARGET [style=dotted, label="closes the loop:\nclinicians titrate to SpO2"];
+
+  /* ----------------------- retinal oxygen --------------------------- */
+  PAO2 -> PCHOR [penwidth=2.0, color="#2255aa"]; CHORFLOW -> PCHOR;
+  PHOTOR -> MO2 [penwidth=2.0]; PHOTOR -> HRET;
+  MO2 -> PCRIT [penwidth=2.0]; HRET -> PCRIT [label="h²", penwidth=2.0]; KDIFF -> PCRIT;
+  PCHOR -> PINNER [penwidth=2.0]; PCRIT -> PINNER [label="−", color="#aa4444", penwidth=2.0];
+  PCHOR -> LPEN; MO2 -> LPEN [label="−"]; KDIFF -> LPEN;
+  PCHOR -> PFRONT [penwidth=2.0]; MO2 -> PFRONT [label="− local consumption", color="#aa4444"];
+  MO2 -> SHIELD [style=dashed]; SHIELD -> PFRONT [style=dashed, label="protects"];
+  RETFLOW -> PFRONT; PAO2 -> RETFLOW [label="hyperoxic\nvasoconstriction"];
+  PCHOR -> SWITCH; PCRIT -> SWITCH [penwidth=2.0];
+  SWITCH -> PINNER [style=dashed, label="PINNER → 0"];
+
+  /* ----------------------- HIF and the two pools -------------------- */
+  PINNER -> PHD [penwidth=2.0]; PFRONT -> PHD [style=dashed];
+  PHD -> VHL -> HIF1A [label="degradation", color="#aa4444"];
+  PHD -> HIF1A [label="−", color="#aa4444", penwidth=2.0];
+  HIF1A -> HRE; HIF2A -> HRE; HRE -> VEGF165; HRE -> EPO; HRE -> ANG2; HRE -> SDF1;
+  ASTRO -> VEGFFRONT [penwidth=2.0]; PFRONT -> ASTRO [label="local O2 sensing", penwidth=2.0];
+  PFRONT -> VEGFFRONT [label="steep inverse (n≈4)", color="#2255aa", penwidth=2.4];
+  PINNER -> VEGFVIT [label="hypoxia intensity", color="#aa4444", penwidth=2.0];
+  AVASC -> VEGFVIT [label="× source AREA", color="#aa4444", penwidth=2.4];
+  VEGF165 -> VEGFVIT; VEGF165 -> VEGFFRONT; VEGFB -> VEGFVIT [label="−"];
+  SUCC -> VEGFVIT; WNTNOR -> TIPCELL; SEMA3A -> TIPCELL [label="−"];
+  IGFBP3 -> IGF1; EPO -> NV [label="co-mitogen"]; ANG2 -> PLUS; SDF1 -> NV;
+
+  /* ----------------------- growth vs obliteration ------------------- */
+  VEGFFRONT -> GROWGATE [penwidth=2.0]; GROWGATE -> TIPCELL;
+  TIPCELL -> VEGFR2 -> VASC [penwidth=2.0]; DLL4 -> TIPCELL [label="−"];
+  VEGFR1 -> VEGFR2 [label="− decoy"]; PERI -> VASC [label="stabilises"];
+  IGF1 -> IGF1R -> VEGFR2 [label="permissive", penwidth=2.0];
+  NUTR -> IGF1 [penwidth=2.0]; NUTR -> WTGAIN; WTGAIN -> WINROP;
+  IGF1 -> WTGAIN [style=dashed]; INFL -> IGF1 [label="−", color="#aa4444"];
+  GA -> VASC [label="initial vascularised area", penwidth=2.0];
+  VASC -> AVASC [label="A = 1 − VASC − ablated", penwidth=2.2];
+  VASC -> ZONE [penwidth=2.0]; VASC -> REGRESS [label="completes → regression", color="#22aa55", penwidth=2.0];
+  VEGFFRONT -> SURVGATE [penwidth=2.0]; SURVGATE -> ECAPOP -> OBLIT [penwidth=2.0];
+  SUSCEPT -> OBLIT [penwidth=2.0]; OBLIT -> VASC [label="−", color="#aa4444", penwidth=2.2];
+  PAO2 -> ROS; NOX -> ROS; ANTIOX -> ROS [label="− (immature)"]; ROS -> LIPPER;
+  ROS -> ECAPOP; LIPPER -> ECAPOP; NOEN -> ECAPOP;
+  AADHA -> LIPPER [label="−"]; AADHA -> ROS [label="−"];
+  HYPEROXB -> ROS; PAO2 -> HYPEROXB;
+
+  /* ----------------------- phase 2 pathology ------------------------ */
+  VEGFVIT -> NVGATE [penwidth=2.4]; NVGATE -> NV [penwidth=2.4];
+  AVASC -> NV [label="carrying capacity", penwidth=2.0];
+  VEGFVIT -> RIDGE -> SHUNTV -> NV; MMP -> NV; NV -> MMP;
+  NV -> LEAK; VEGFVIT -> PREPLUS -> PLUS [penwidth=2.0];
+  VEGFVIT -> PLUS [penwidth=2.0]; PLUS -> VSEV; NV -> VSEV;
+  AVASC -> APROP [label="zone I, very large A", penwidth=2.0]; VEGFVIT -> APROP;
+  RIDGE -> STAGE; NV -> STAGE [penwidth=2.0]; DETACH -> STAGE;
+  ZONE -> TYPE1 [penwidth=2.0]; STAGE -> TYPE1 [penwidth=2.0]; PLUS -> TYPE1 [penwidth=2.0];
+  ZONE -> TYPE2; STAGE -> TYPE2; STAGE -> THRESHOLD; PLUS -> THRESHOLD;
+  SCREEN -> TYPE1 [style=dotted, label="detection"]; WINROP -> SCREEN;
+
+  /* ----------------------- fibrosis / detachment -------------------- */
+  NV -> TGFB; CRUNCH -> TGFB [penwidth=2.0]; TGFB -> MYOFIB -> FIBRO [penwidth=2.0];
+  NV -> FIBRO; FIBRO -> TRACT -> DETACH [penwidth=2.0]; DETACH -> MACDRAG;
+  DETACH -> VITSURG; VITSURG -> STRUCT; MACDRAG -> VA;
+  DETACH -> STRUCT [penwidth=2.0]; STRUCT -> VA -> BLIND [penwidth=2.0];
+
+  /* ----------------------- drug PK/PD ------------------------------- */
+  INJ -> DVIT [penwidth=2.0]; VVIT -> DVIT [label="dose / volume\n= concentration", penwidth=2.2];
+  DVIT -> AQ [penwidth=2.0]; DVIT -> POST; AQ -> FSYS -> DCEN [penwidth=2.0];
+  POST -> DCEN; DCEN -> DPER [dir=both];
+  FCRN -> DCEN [label="recycles IgG → long t½", penwidth=2.2];
+  FABCL -> DCEN [label="rapid clearance", penwidth=2.0];
+  DVIT -> CPLXOC [penwidth=2.0]; VEGFVIT -> CPLXOC [penwidth=2.0];
+  VALENCY -> CPLXOC; KD -> CPLXOC [penwidth=2.0];
+  CPLXOC -> VEGFVIT [label="− free VEGF", color="#2255aa", penwidth=2.4];
+  CPLXOC -> VEGFFRONT [label="− free VEGF\n(same compartment!)", color="#2255aa", penwidth=2.2];
+  VEGFFRONT -> PAVR [style=dashed, label="if driven below\nthe growth gate"];
+  DCEN -> CPLXSY; VEGFSER -> CPLXSY; CPLXSY -> VEGFSER [label="− free", color="#2255aa", penwidth=2.2];
+  CPLXSY -> VEGFSER [style=dashed, label="+ total VEGF\n(protected from clearance)"];
+  DCEN -> IGFSUP; VEGFSER -> ALVEOL [penwidth=2.0]; ALVEOL -> BPD [label="−", color="#aa4444"];
+  VEGFSER -> BRAINVASC -> NEURODEV [penwidth=2.0]; VEGFSER -> NEPHRO; VEGFSER -> BONE;
+  IGFSUP -> WTGAIN [label="−"];
+
+  /* ----------------------- ablation --------------------------------- */
+  TYPE1 -> LASER [penwidth=2.0]; TYPE1 -> INJ [penwidth=2.0]; TYPE1 -> CRYO [style=dotted];
+  LASER -> ABLA [penwidth=2.2]; CRYO -> ABLA;
+  ABLA -> AVASC [label="− deletes the source", color="#22aa55", penwidth=2.4];
+  ABLA -> FIELD [penwidth=2.0]; ABLA -> MYOPIA [penwidth=2.2]; ABLA -> ASTIG; ABLA -> CATARACT;
+  MYOPIA -> VA; FIELD -> VA;
+  PAVR -> REACT [penwidth=2.2]; DVIT -> REACT [label="washout", style=dashed, penwidth=2.0];
+  AVASC -> REACT [penwidth=2.0]; REACT -> TYPE1 [label="retreatment", penwidth=2.0];
+  REACT -> INJ [style=dotted]; REACT -> LASER [style=dotted];
+  INJ -> CRUNCH [label="abrupt VEGF fall", penwidth=2.0];
+
+  /* ----------------------- comorbidity / competing risk ------------- */
+  GA -> MO2 [style=dashed]; GA -> HBF; GA -> BPD; GA -> DEATH [penwidth=2.0];
+  SEPSIS -> INFL -> VEGFVIT [label="+"]; SEPSIS -> DEATH; CHORIO -> INFL;
+  EPOTX -> EPO [penwidth=2.0]; CAFF -> IH [label="−"]; CAFF -> BPD [label="−"];
+  HYPOXBUR -> DEATH [penwidth=2.2]; BPD -> DEATH [penwidth=2.0];
+  DEATH -> BLIND [style=dotted, label="competing risk:\nthe eye never reaches\nan endpoint"];
+  HYPEROXB -> BPD [penwidth=2.0]; FIO2 -> HYPEROXB;
+  REGRESS -> STRUCT [label="favourable", color="#22aa55"];
+
+  /* ----------------------- the sign-flip annotation ----------------- */
+  FLIP [label="SIGN FLIP\nBefore the switch: ↑O2 → ↓front VEGF → arrested growth\n+ obliteration → LARGER avascular area → WORSE\nAfter the switch: ↑O2 → ↓vitreous VEGF → less NV → BETTER\nbut capped by the √ diffusion law (PaO2 ≈ 95 mmHg needed at PMA 35)",
+        shape=note, fillcolor="#FFF2CC", fontsize=10, penwidth=1.6];
+  SWITCH -> FLIP [style=dashed, arrowhead=none];
+  FLIP -> VEGFFRONT [style=dotted]; FLIP -> VEGFVIT [style=dotted];
+
+  ASYM [label="OCULAR/SYSTEMIC ASYMMETRY\nOcular effect ∝ dose / vitreous volume (1.1 mL)\nSystemic risk ∝ dose / body weight (1 kg)\nThe preterm eye gets 1.8× the adult ocular concentration\nwhile the preterm body gets 35× the adult dose per kg.\nEfficacy is logarithmic in dose; toxicity is linear.",
+        shape=note, fillcolor="#EDE7F6", fontsize=10, penwidth=1.6];
+  VVIT -> ASYM [style=dashed, arrowhead=none]; ASYM -> DCEN [style=dotted];
+
+  EXCHANGE [label="COMPETING-RISK EXCHANGE RATE\nLowering the SpO2 target (NeOProM, per 1000 infants):\n−40 ROP treatments, +28 deaths, +23 severe NEC\n≈ 7.7 deaths per unfavourable structural outcome avoided",
+        shape=note, fillcolor="#F1F3F4", fontsize=10, penwidth=1.6];
+  DEATH -> EXCHANGE [style=dashed, arrowhead=none]; EXCHANGE -> TARGET [style=dotted];
+}
