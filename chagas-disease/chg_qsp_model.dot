@@ -1,0 +1,651 @@
+/* ============================================================================
+   Chagas disease / Chronic Chagas Cardiomyopathy (CCC)
+   Quantitative Systems Pharmacology mechanistic map
+   ----------------------------------------------------------------------------
+   Organising idea (read this before reading the graph)
+   ----------------------------------------------------------------------------
+   Four randomised trials in this disease produced four results that look
+   mutually contradictory, and every one of them is a statement about a
+   DIFFERENT TIME-SCALE.  This map is drawn so that the three time-scales are
+   three physically separate objects, and so that each trial's result can be
+   read off the structure rather than argued about.
+
+     TIME-SCALE 1 — KILLING, hours to days.
+       Benznidazole and posaconazole both drive circulating trypomastigotes
+       below the qPCR limit within weeks.  STOP-CHAGAS: PCR negativity at day
+       30 was 93.3% on posaconazole and 89.7% on benznidazole — posaconazole
+       was the BETTER drug on this time-scale.
+       (cluster cl_pd_tryp, edges KILL_REP_*)
+
+     TIME-SCALE 2 — THE RESERVOIR, weeks to months.
+       A subset of intracellular amastigotes enters spontaneous, non-replicating
+       dormancy.  Dormant parasites are drug-TOLERANT, not drug-resistant: they
+       are missed by any agent whose target is only required during growth.
+       They wake stochastically with a mean latency of order two months.
+       Posaconazole's target (CYP51 / ergosterol biosynthesis) is a GROWTH
+       requirement, so its dormant-kill rate is ~0.  Benznidazole's target is
+       not: TcNTR-1 reduces the nitroimidazole to reactive glyoxal/nitroso
+       species that form DNA adducts in a cell that is not dividing.
+       That single asymmetry — one rate constant, KILL_DORM — is the whole
+       explanation of STOP-CHAGAS day 180 (posaconazole 13.3%, benznidazole
+       86.7%) and of CHAGASAZOL.
+       (cluster cl_parasite: P_DORM_* nodes and the k_dorm / k_wake edges)
+
+     TIME-SCALE 3 — REMODELLING, years to decades, AND SELF-SUSTAINING.
+       Myocardial damage is driven by a sum of two terms.  One is proportional
+       to parasite/antigen load.  The other — fibrosis raising wall stress
+       raising fibrosis, autoantibody raised by released cardiac myosin which
+       is itself released by autoantibody-driven damage, microvascular spasm
+       causing ischaemia causing more spasm — contains no parasite term at all
+       and is AUTOCATALYTIC.  The parasite-attributable fraction of the
+       instantaneous damage rate therefore FALLS with time since infection, not
+       because the parasite leaves, but because the denominator grows.
+       (clusters cl_fibrosis, cl_autoimm, cl_microvasc — every one of the three
+       loops marked LOOP+ closes without passing through a parasite node.)
+
+   The three trials then read directly off the map:
+
+     BENDITA  (benznidazole 2 vs 4 vs 8 weeks: 83% / 89% / 89%)
+       Cure is not an integral of exposure.  It is the question of whether the
+       total residual burden was pushed below the level at which the host
+       adaptive response finishes the job on its own (node STERILISE).  Once
+       below it, further weeks add only the two toxicity hazards, which is why
+       the 2-week arm had 0% discontinuation and the 8-week arm did not.
+
+     STOP-CHAGAS / CHAGASAZOL
+       Potency against the replicating pool and cure are different endpoints
+       separated by one node (P_DORM_H).  A more potent drug that cannot reach
+       that node cannot cure at any duration.
+
+     BENEFIT (PCR conversion 66.2% vs 33.5%; clinical HR 0.93, CI 0.81-1.07)
+       Enrolment required ESTABLISHED cardiomyopathy, i.e. patients already
+       deep into time-scale 3, where the parasite-attributable fraction of the
+       damage rate has decayed to a few per cent.  Removing the parasite
+       removes what it is attributable for.  The null is a PREDICTION of this
+       structure, not a failure of the aetiological hypothesis — and the map
+       makes the discriminating experiment obvious, because the same edge that
+       is nearly inert at age 55 carries almost all of the damage at age 25.
+
+   A fourth, independent structural claim is made about how patients die.
+   Arrhythmic death is NOT driven by the amount of fibrosis but by its SPATIAL
+   HETEROGENEITY and by sympathetic denervation (node SCAR_HET, node SYMP_DEN,
+   which is why arrhythmia severity tracks MIBG defect extent and not perfusion
+   defect extent), whereas pump-failure death is driven by ejection fraction.
+   These are two different nodes with two different hazards, and they COMPETE:
+   suppressing arrhythmic death with amiodarone or an ICD converts sudden
+   deaths into later pump-failure deaths, so the all-cause benefit is far
+   smaller than the mode-specific benefit.  Annual rates anchoring this:
+   all-cause 7.9%, heart failure 3.5%, sudden 2.6%, stroke 0.4%.
+
+   ----------------------------------------------------------------------------
+   Reading conventions
+   ----------------------------------------------------------------------------
+     solid arrow          = activation / flux / promotion
+     tee (odiamond head)  = inhibition / suppression / removal
+     dashed               = slow, cumulative, or irreversible process
+     bold red             = a step with NO reverse edge anywhere in the graph
+                            (irreversible: neuronal loss, replacement fibrosis,
+                            conduction tissue loss, aneurysm)
+     LOOP+ label          = a positive feedback that closes without a parasite
+     double octagon       = measured clinical or trial endpoint
+     note shape           = a numerical anchor taken from a named trial
+
+   Node count 231, edge count 397, clusters 30.
+   ============================================================================ */
+
+digraph CHAGAS_QSP {
+  graph [rankdir=TB, splines=true, nodesep=0.30, ranksep=0.62, fontname="Helvetica",
+         fontsize=11, compound=true, bgcolor="white", labelloc="t", fontcolor="#111111",
+         label=<<B>Chagas Disease / Chronic Chagas Cardiomyopathy — QSP mechanistic map</B><BR/>
+                <FONT POINT-SIZE="10">three time-scales (killing · reservoir · remodelling), three trial paradoxes, one structure</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         fillcolor="#F4F6F8", color="#8899AA", penwidth=1.0, margin="0.07,0.04"];
+  edge  [color="#667788", penwidth=1.0, arrowsize=0.62, fontname="Helvetica", fontsize=7.5];
+
+  /* ---------- 1. TRANSMISSION AND ACUTE PHASE ---------------------------- */
+  subgraph cluster_vector {
+    label="1 · Transmission routes and inoculum"; style="rounded,filled"; fillcolor="#FFF8E7"; color="#D6B86A"; fontsize=11;
+    VECTOR   [label="Triatomine vector\n(Triatoma infestans,\nRhodnius prolixus)", fillcolor="#FDF0C8"];
+    FAECES   [label="Metacyclic trypomastigotes\nin vector faeces"];
+    BITE     [label="Bite-site / mucosal\ninoculation"];
+    ORAL     [label="Oral transmission\n(açaí, sugarcane juice)\nhigh inoculum", fillcolor="#FDF0C8"];
+    CONGEN   [label="Congenital transmission\n(~4.7% of seropositive\npregnancies)"];
+    TRANSF   [label="Transfusion /\norgan transplant"];
+    REINF    [label="Repeated domestic\nre-exposure\n(inoculum load)"];
+    INOC     [label="Effective inoculum\nN0"];
+    VECTOR->FAECES; FAECES->BITE; BITE->INOC; ORAL->INOC; CONGEN->INOC; TRANSF->INOC;
+    VECTOR->REINF; REINF->INOC [style=dashed];
+  }
+
+  subgraph cluster_acute {
+    label="2 · Acute phase (weeks-months)"; style="rounded,filled"; fillcolor="#FFF1F1"; color="#D89898"; fontsize=11;
+    ACUTE    [label="Acute infection\n(~1% clinically apparent)"];
+    PATENT   [label="Patent parasitaemia\n10e3-10e5 par-eq/mL"];
+    CHAGOMA  [label="Chagoma / Romaña sign"];
+    ACMYO    [label="Acute myocarditis\n(rarely fatal, <5%)"];
+    SEROCONV [label="Seroconversion\nanti-T. cruzi IgG"];
+    CTLPRIME [label="CD8+ CTL priming\n(trans-sialidase epitopes)"];
+    CONTROL  [label="Immune control\nof parasitaemia\n(NOT clearance)", fillcolor="#F6DADA"];
+    ACUTE->PATENT; PATENT->CHAGOMA; PATENT->ACMYO; PATENT->SEROCONV; PATENT->CTLPRIME;
+    CTLPRIME->CONTROL; SEROCONV->CONTROL;
+  }
+
+  /* ---------- 3. PARASITE COMPARTMENTS: THE RESERVOIR --------------------- */
+  subgraph cluster_parasite {
+    label="3 · Parasite compartments — replicating vs DORMANT reservoir (the model's central structure)";
+    style="rounded,filled"; fillcolor="#EAF4FF"; color="#6699CC"; fontsize=11;
+    P_BLOOD  [label="P_BLOOD\ncirculating trypomastigotes\n(chronic: 0.1-10 par-eq/mL)", fillcolor="#CFE4FA"];
+    P_REP_H  [label="P_REP_H\nREPLICATING amastigotes\nin cardiomyocytes", fillcolor="#CFE4FA"];
+    P_REP_X  [label="P_REP_X\nreplicating amastigotes\nGI smooth muscle · skeletal\nmuscle · adipose", fillcolor="#CFE4FA"];
+    P_DORM_H [label="P_DORM_H\nDORMANT amastigotes (heart)\nnon-replicating · drug-TOLERANT", fillcolor="#9CC6EE", penwidth=2.2, color="#1F5C99"];
+    P_DORM_X [label="P_DORM_X\nDORMANT amastigotes\n(extracardiac reservoir)", fillcolor="#9CC6EE", penwidth=2.2, color="#1F5C99"];
+    NEST     [label="Amastigote pseudocyst\n(nest) rupture"];
+    KDORM    [label="k_dorm\nentry into dormancy\n~0.02 /day"];
+    KWAKE    [label="k_wake\nstochastic awakening\n~0.015 /day (mean ~67 d)", fillcolor="#CFE4FA"];
+    ANTIGEN  [label="ANTIGEN\npersistent T. cruzi antigen\n(GPI-mucin, trans-sialidase,\nshed and long-lived)", fillcolor="#CFE4FA"];
+    TISSUE_PCR [label="Tissue PCR positive in\n~60-100% of CCC hearts\ndespite <1 nest / 100 fields", shape=note, fillcolor="#FFFFFF"];
+    STERILISE [label="STERILISE\nhost adaptive response finishes\nclearance if total burden falls\nbelow extinction scale", fillcolor="#9CC6EE", penwidth=2.2, color="#1F5C99"];
+    P_BLOOD->P_REP_H; P_BLOOD->P_REP_X;
+    P_REP_H->NEST; NEST->P_BLOOD [label="release"];
+    P_REP_H->KDORM; KDORM->P_DORM_H [style=dashed];
+    P_REP_X->KDORM; KDORM->P_DORM_X [style=dashed];
+    P_DORM_H->KWAKE; P_DORM_X->KWAKE; KWAKE->P_REP_H; KWAKE->P_REP_X;
+    P_REP_H->ANTIGEN; NEST->ANTIGEN; P_DORM_H->ANTIGEN [style=dashed];
+    P_REP_H->TISSUE_PCR [style=dotted, arrowhead=none];
+    P_REP_H->STERILISE [style=dashed]; P_DORM_H->STERILISE [style=dashed];
+    P_REP_X->STERILISE [style=dashed]; P_DORM_X->STERILISE [style=dashed];
+    CONTROL->P_BLOOD [lhead=cluster_parasite, style=dashed];
+  }
+
+  subgraph cluster_strain {
+    label="4 · Parasite genetic background (DTU)"; style="rounded,filled"; fillcolor="#F2EAFB"; color="#A98BD0"; fontsize=11;
+    DTU_I    [label="TcI\nNorthern S. America, Colombia\nMexico, Central America"];
+    DTU_II   [label="TcII / TcV / TcVI\nSouthern Cone\nBrazil, Argentina, Bolivia"];
+    TROPISM  [label="Tissue tropism\n(cardiac vs digestive)"];
+    BZN_SENS [label="Intrinsic benznidazole\nsusceptibility (EC50 multiplier)"];
+    GEO_ANCH [label="BENEFIT geographic interaction:\nOR for PCR conversion at >=5 y\nBrazil 1.87 · Arg/Bol 2.79 ·\nCol/ElSal 0.96  (p<0.001 interaction)", shape=note, fillcolor="#FFFFFF"];
+    DTU_I->BZN_SENS [label="lower"]; DTU_II->BZN_SENS [label="higher"];
+    DTU_I->TROPISM; DTU_II->TROPISM;
+    BZN_SENS->GEO_ANCH [style=dotted, arrowhead=none];
+  }
+
+  /* ---------- 5-8. IMMUNITY ---------------------------------------------- */
+  subgraph cluster_innate {
+    label="5 · Innate sensing and macrophage activation"; style="rounded,filled"; fillcolor="#EAF7EE"; color="#77B58C"; fontsize=11;
+    TLR2     [label="TLR2 / TLR4\n(GPI anchors of mucins)"];
+    TLR9     [label="TLR9\n(parasite CpG DNA)"];
+    NLRP3    [label="NLRP3 inflammasome\n→ caspase-1"];
+    MYD88    [label="MyD88 → NF-kB"];
+    MPHI     [label="MPHI\nactivated macrophage\n(M1 polarised)", fillcolor="#CDE9D7"];
+    ROSNO    [label="ROS / iNOS → NO\nperoxynitrite"];
+    MITO     [label="Mitochondrial dysfunction\n(cardiomyocyte)"];
+    ANTIGEN->TLR2; ANTIGEN->TLR9; P_REP_H->NLRP3;
+    TLR2->MYD88; TLR9->MYD88; MYD88->MPHI; NLRP3->MPHI;
+    MPHI->ROSNO; ROSNO->MITO;
+  }
+
+  subgraph cluster_adaptive {
+    label="6 · Adaptive immunity — protective and pathogenic at once"; style="rounded,filled"; fillcolor="#EAF7EE"; color="#77B58C"; fontsize=11;
+    TH1      [label="TH1\nIFN-g+ CD4 / CD8 effector\ncardiac infiltrate", fillcolor="#CDE9D7"];
+    TH17     [label="Th17 (IL-17A)"];
+    TREG     [label="TREG\nFoxP3+ regulatory T cells\n(REDUCED in severe CCC)", fillcolor="#CDE9D7"];
+    CTL      [label="CD8+ cytotoxic T cell\n(perforin/granzyme)"];
+    EXHAUST  [label="T-cell exhaustion\n(PD-1+, CD28-, terminal\neffector accumulation)"];
+    KILL_INF [label="Killing of INFECTED\ncardiomyocyte\n(protective AND damaging)", fillcolor="#CDE9D7"];
+    BYSTAND  [label="Bystander killing of\nUNINFECTED myocytes"];
+    ANTIGEN->TH1; ANTIGEN->TH17; P_REP_H->CTL;
+    TH1->CTL; CTL->KILL_INF; CTL->BYSTAND;
+    TREG->TH1 [arrowhead=odiamond]; TREG->TH17 [arrowhead=odiamond];
+    TH1->EXHAUST [style=dashed]; EXHAUST->CTL [arrowhead=odiamond, style=dashed];
+    KILL_INF->P_REP_H [arrowhead=odiamond];
+    MPHI->P_REP_H [arrowhead=odiamond, label="phagocytic\nkilling"];
+  }
+
+  subgraph cluster_autoimm {
+    label="7 · Molecular mimicry and functional autoantibodies  (LOOP+ — closes without a parasite)";
+    style="rounded,filled"; fillcolor="#FDEDF5"; color="#CC7FAA"; fontsize=11;
+    B13      [label="T. cruzi B13 protein"];
+    CHA_AG   [label="T. cruzi Cha antigen"];
+    MYOSIN   [label="Cardiac myosin heavy chain\n(released by myocyte death)", fillcolor="#F8D6E7"];
+    MIMIC    [label="Molecular mimicry\ncross-reactive T / B clones"];
+    AAB_B1   [label="Anti-beta1-adrenoceptor\nagonist autoantibody", fillcolor="#F8D6E7"];
+    AAB_M2   [label="Anti-M2-muscarinic\nautoantibody", fillcolor="#F8D6E7"];
+    AAB_RIB  [label="Anti-ribosomal P /\nanti-Cha antibodies"];
+    CAMP_STIM[label="Chronic beta1 stimulation\n→ cAMP / CaMKII\n→ Ca2+ leak"];
+    EAD      [label="Early afterdepolarisations\ntriggered activity"];
+    B13->MIMIC; CHA_AG->MIMIC; MYOSIN->MIMIC;
+    MIMIC->AAB_B1; MIMIC->AAB_M2; MIMIC->AAB_RIB;
+    AAB_B1->CAMP_STIM; CAMP_STIM->EAD;
+  }
+
+  subgraph cluster_cyto {
+    label="8 · Cytokine / chemokine network"; style="rounded,filled"; fillcolor="#EAF7EE"; color="#77B58C"; fontsize=11;
+    IFNG     [label="IFN-gamma", fillcolor="#CDE9D7"];
+    TNFA     [label="TNF-alpha", fillcolor="#CDE9D7"];
+    IL1B     [label="IL-1beta"];
+    IL6      [label="IL-6"];
+    IL10     [label="IL-10 (regulatory)"];
+    TGFB     [label="TGF-beta1", fillcolor="#CDE9D7"];
+    CCL2     [label="CCL2 / CCL5 / CXCL9-10\nchemokine gradient"];
+    CCR5     [label="CCR5+ monocyte and\nT-cell recruitment"];
+    IL17     [label="IL-17A (protective in\nexperimental models)"];
+    TH1->IFNG; MPHI->TNFA; NLRP3->IL1B; MPHI->IL6; TREG->IL10; MPHI->TGFB; TH1->TGFB;
+    IFNG->MPHI [label="amplify"]; TNFA->CCL2; IFNG->CCL2; CCL2->CCR5; CCR5->MPHI;
+    IL10->TNFA [arrowhead=odiamond]; IL10->IFNG [arrowhead=odiamond];
+    TH17->IL17; IL17->MPHI [arrowhead=odiamond, style=dashed];
+  }
+
+  /* ---------- 9-11. MYOCARDIAL TISSUE ------------------------------------ */
+  subgraph cluster_myocyte {
+    label="9 · Cardiomyocyte injury and loss"; style="rounded,filled"; fillcolor="#FFF1E6"; color="#D9A06A"; fontsize=11;
+    CMYO     [label="CMYO\nviable cardiomyocyte mass", fillcolor="#FAD9BC"];
+    APOP     [label="Apoptosis / necroptosis"];
+    NECRO    [label="Necrosis (focal myocytolysis)"];
+    HYPER    [label="Compensatory hypertrophy\nof surviving myocytes"];
+    CA_HAND  [label="Ca2+ handling defect\nSERCA2a down, NCX up"];
+    CONTR    [label="Contractility\n(regional then global)", fillcolor="#FAD9BC"];
+    MYO_REL  [label="Release of cardiac myosin,\ntroponin, mitochondrial DAMPs", fillcolor="#FAD9BC"];
+    TNI      [label="hs-troponin I elevation\n(chronic, low-grade)"];
+    KILL_INF->APOP; BYSTAND->APOP; ROSNO->NECRO; MITO->APOP; TNFA->APOP; MITO->CA_HAND;
+    APOP->CMYO [arrowhead=odiamond, color="#B03030", penwidth=2.0];
+    NECRO->CMYO [arrowhead=odiamond, color="#B03030", penwidth=2.0];
+    CMYO->CONTR; CA_HAND->CONTR [arrowhead=odiamond];
+    APOP->MYO_REL; NECRO->MYO_REL; MYO_REL->TNI;
+    MYO_REL->MYOSIN [color="#CC3377", penwidth=1.8, label="LOOP+  autoantigen\nsupply is DOWNSTREAM\nof the damage"];
+    CMYO->HYPER [style=dashed]; HYPER->CONTR [style=dashed];
+  }
+
+  subgraph cluster_fibrosis {
+    label="10 · Fibroblast activation and ECM  (LOOP+ — autocatalytic, no parasite term)";
+    style="rounded,filled"; fillcolor="#FFF1E6"; color="#D9A06A"; fontsize=11;
+    FIBRO    [label="Resident cardiac fibroblast"];
+    MFB      [label="MFB\nactivated myofibroblast\n(alpha-SMA+)", fillcolor="#FAD9BC"];
+    COL13    [label="COL\ncollagen I / III deposition\n(interstitial + replacement)", fillcolor="#FAD9BC"];
+    MMPS     [label="MMP-2 / MMP-9"];
+    TIMP     [label="TIMP-1 / TIMP-2"];
+    LOX      [label="LOX cross-linking\n(stiffening)"];
+    SCAR     [label="Replacement scar\n(irreversible)", color="#B03030", penwidth=2.0];
+    SCAR_HET [label="SCAR_HET\nborder-zone / grey-zone\nHETEROGENEITY index\n(NOT total fibrosis)", fillcolor="#F2B98A", penwidth=2.2, color="#B03030"];
+    LGE      [label="LGE mass on CMR\n(76.1% prevalence,\n15.2 +/- 16.5 g)"];
+    STIFF    [label="Diastolic stiffness"];
+    TGFB->MFB; TNFA->FIBRO; FIBRO->MFB; MFB->COL13; MFB->TIMP;
+    TIMP->MMPS [arrowhead=odiamond]; MMPS->COL13 [arrowhead=odiamond]; COL13->LOX; LOX->STIFF;
+    COL13->SCAR [style=dashed, color="#B03030", penwidth=2.0];
+    SCAR->SCAR_HET; COL13->SCAR_HET; NECRO->SCAR_HET [label="patchy\nmyocytolysis"];
+    SCAR->LGE; COL13->LGE;
+    MFB->TGFB [color="#CC7700", penwidth=1.8, label="LOOP+ autocrine"];
+    COL13->STIFF;
+  }
+
+  subgraph cluster_microvasc {
+    label="11 · Microvascular dysfunction  (LOOP+)"; style="rounded,filled"; fillcolor="#FFF1E6"; color="#D9A06A"; fontsize=11;
+    ET1      [label="ET1\nendothelin-1", fillcolor="#FAD9BC"];
+    THROMBX  [label="Thromboxane A2\nplatelet aggregation"];
+    SPASM    [label="Microvascular spasm\ncapillary rarefaction"];
+    CFR      [label="Coronary flow reserve\nreduced"];
+    ISCH     [label="Focal ischaemia\n(perfusion defect, often\nREVERSIBLE on scintigraphy)", fillcolor="#FAD9BC"];
+    ENDOTH   [label="Endothelial dysfunction\nNO bioavailability down"];
+    P_REP_H->ET1; TNFA->ET1; ET1->SPASM; THROMBX->SPASM; SPASM->CFR;
+    CFR->ISCH [arrowhead=odiamond]; ISCH->NECRO; ISCH->ENDOTH; ENDOTH->ET1 [color="#CC7700", penwidth=1.8, label="LOOP+"];
+  }
+
+  /* ---------- 12-14. ELECTRICAL AND AUTONOMIC ---------------------------- */
+  subgraph cluster_autonomic {
+    label="12 · Autonomic denervation — early and irreversible"; style="rounded,filled"; fillcolor="#EFEFFA"; color="#8A8AC8"; fontsize=11;
+    INTRACARD [label="Intracardiac parasympathetic\nganglion neurons"];
+    PSYM_DEN [label="PSYM_DEN\nvagal denervation\n(HRV loss, chronotropic\nincompetence)", fillcolor="#D6D6F0", color="#B03030", penwidth=2.0];
+    SYMP_DEN [label="SYMP_DEN\nregional SYMPATHETIC denervation\n(123I-MIBG defect)", fillcolor="#C4C4EA", penwidth=2.2, color="#B03030"];
+    DENERV_SUPER [label="Denervation supersensitivity\n(regional beta-receptor up)"];
+    MIBG_ANCH [label="Arrhythmia severity tracks\nMIBG DEFECT EXTENT,\nnot perfusion defect extent", shape=note, fillcolor="#FFFFFF"];
+    PSYM_DEN_L [label="Loss of baroreflex\nbuffering"];
+    INTRACARD->PSYM_DEN [color="#B03030", penwidth=2.0];
+    CTL->INTRACARD [arrowhead=odiamond]; ISCH->SYMP_DEN; CTL->SYMP_DEN [arrowhead=odiamond];
+    SYMP_DEN->DENERV_SUPER; PSYM_DEN->PSYM_DEN_L;
+    SYMP_DEN->MIBG_ANCH [style=dotted, arrowhead=none];
+    AAB_M2->PSYM_DEN [style=dashed];
+  }
+
+  subgraph cluster_conduction {
+    label="13 · Conduction system — the earliest clinical marker"; style="rounded,filled"; fillcolor="#EFEFFA"; color="#8A8AC8"; fontsize=11;
+    RBB      [label="Right bundle branch\n(thin, single blood supply,\nmost vulnerable)"];
+    LAF      [label="Left anterior fascicle"];
+    AVN      [label="AV node / His bundle"];
+    SAN      [label="Sinus node"];
+    RBBB     [label="RBBB + LAFB\n(classic Chagas ECG signature)", fillcolor="#D6D6F0"];
+    AVB      [label="2nd / 3rd degree AV block"];
+    SSS      [label="Sick sinus syndrome\nbradyarrhythmia"];
+    LOWQRS   [label="Low QRS voltage\n(Rassi 2 points)"];
+    QRSD     [label="QRS duration >=120 ms\n(cardiomyopathy definition)"];
+    SCAR->RBB [color="#B03030", penwidth=2.0]; SCAR->LAF [color="#B03030", penwidth=2.0];
+    SCAR->AVN; SCAR->SAN; RBB->RBBB; LAF->RBBB; AVN->AVB; SAN->SSS;
+    RBBB->QRSD; SCAR->LOWQRS; PSYM_DEN->SSS [style=dashed];
+  }
+
+  subgraph cluster_arrhythmia {
+    label="14 · Arrhythmia substrate — heterogeneity, not amount"; style="rounded,filled"; fillcolor="#EFEFFA"; color="#8A8AC8"; fontsize=11;
+    REENTRY  [label="Anatomical re-entry circuits\n(surviving myocyte bundles\nthrough scar)"];
+    PVC      [label="Frequent PVCs"];
+    NSVT     [label="NSVT on 24 h Holter\n(Rassi 3 points)", fillcolor="#D6D6F0"];
+    SVT      [label="Sustained monomorphic VT"];
+    VF       [label="VF / electromechanical\ndissociation"];
+    TWA      [label="Microvolt T-wave alternans\n(repolarisation instability)"];
+    SCAR_HET->REENTRY [penwidth=2.0]; SYMP_DEN->REENTRY [penwidth=2.0]; DENERV_SUPER->PVC;
+    EAD->PVC; REENTRY->NSVT; PVC->NSVT; NSVT->SVT; SVT->VF; SCAR_HET->TWA;
+  }
+
+  /* ---------- 15-17. PUMP, NEUROHORMONAL, THROMBOEMBOLIC ----------------- */
+  subgraph cluster_remodel {
+    label="15 · LV remodelling and haemodynamics"; style="rounded,filled"; fillcolor="#FFF1E6"; color="#D9A06A"; fontsize=11;
+    EDV      [label="LV end-diastolic volume", fillcolor="#FAD9BC"];
+    ESV      [label="LV end-systolic volume", fillcolor="#FAD9BC"];
+    EF       [label="EF\nleft ventricular\nejection fraction", fillcolor="#F2B98A", penwidth=2.0];
+    WALL_STRESS [label="WALL_STRESS\nLaplace  sigma = P.r / 2h", fillcolor="#FAD9BC"];
+    APEX_THIN[label="APEX_THIN\napical thinning\n(thinnest wall, highest\nstress, watershed perfusion)", color="#B03030", penwidth=2.0];
+    ANEUR    [label="Apical aneurysm\n(~50% of CCC)", fillcolor="#FAD9BC", color="#B03030", penwidth=2.0];
+    CO       [label="Cardiac output"];
+    LVFP     [label="LV filling pressure"];
+    CONGEST  [label="Pulmonary and systemic\ncongestion"];
+    NYHA     [label="NYHA class III/IV\n(Rassi 5 points)"];
+    CMEG     [label="Cardiomegaly on CXR\n(Rassi 5 points)"];
+    CONTR->ESV [arrowhead=odiamond]; CMYO->CONTR; ESV->EF [arrowhead=odiamond]; EDV->EF;
+    CMYO->EDV [arrowhead=odiamond, label="loss → dilatation"];
+    EDV->WALL_STRESS; STIFF->LVFP; EF->CO;
+    WALL_STRESS->APEX_THIN [penwidth=1.6]; APEX_THIN->ANEUR [color="#B03030", penwidth=2.0];
+    APEX_THIN->WALL_STRESS [color="#CC7700", penwidth=1.8, label="LOOP+ thinner wall\n→ more stress"];
+    LVFP->CONGEST; CONGEST->NYHA; EDV->CMEG; CO->NYHA [arrowhead=odiamond];
+    WALL_STRESS->APOP [style=dashed];
+  }
+
+  subgraph cluster_neuro {
+    label="16 · Neurohormonal activation"; style="rounded,filled"; fillcolor="#E9F3F7"; color="#7FA8BE"; fontsize=11;
+    RAAS     [label="RAAS activation"];
+    ANG_II   [label="Angiotensin II", fillcolor="#CFE2EC"];
+    ALDO     [label="Aldosterone"];
+    SNS      [label="Sympathetic drive\n(plasma NE)", fillcolor="#CFE2EC"];
+    NTPROBNP [label="NT-proBNP\n(strong CCC prognostic marker)", fillcolor="#CFE2EC"];
+    NA_RET   [label="Na+ / water retention"];
+    CO->RAAS [arrowhead=odiamond]; RAAS->ANG_II; ANG_II->ALDO; CO->SNS [arrowhead=odiamond];
+    ALDO->NA_RET; NA_RET->EDV; ANG_II->WALL_STRESS [style=dashed];
+    LVFP->NTPROBNP; EDV->NTPROBNP; SNS->APOP [style=dashed]; ALDO->MFB;
+    SNS->PVC [style=dashed];
+  }
+
+  subgraph cluster_thrombo {
+    label="17 · Thromboembolism and stroke"; style="rounded,filled"; fillcolor="#E9F3F7"; color="#7FA8BE"; fontsize=11;
+    STASIS   [label="Blood stasis in aneurysm\nand dilated LV"];
+    AF       [label="Atrial fibrillation"];
+    LVTHR    [label="LV mural thrombus", fillcolor="#CFE2EC"];
+    EMBOL    [label="Systemic embolisation"];
+    IPEC     [label="IPEC-FIOCRUZ Chagas\nstroke risk score", shape=note, fillcolor="#FFFFFF"];
+    ANEUR->STASIS; EF->STASIS [arrowhead=odiamond]; STASIS->LVTHR; AF->LVTHR; LVTHR->EMBOL;
+    SSS->AF [style=dashed]; EDV->AF;
+    ANEUR->IPEC [style=dotted, arrowhead=none];
+  }
+
+  /* ---------- 18. DIGESTIVE FORM ----------------------------------------- */
+  subgraph cluster_gi {
+    label="18 · Digestive form (10-15%, Southern Cone predominant)"; style="rounded,filled"; fillcolor="#F5F0E6"; color="#B9A276"; fontsize=11;
+    MYENT    [label="Myenteric plexus neurons\n(Auerbach)"];
+    ENSLOSS  [label="Enteric neuronal loss\n(>50% required for\nclinical megaviscera)", color="#B03030", penwidth=2.0];
+    ACHAL    [label="Oesophageal achalasia-like\naperistalsis, LES failure\nto relax"];
+    MEGAE    [label="Megaoesophagus\n(dysphagia, regurgitation)"];
+    MEGAC    [label="Megacolon\n(constipation, volvulus,\nfaecaloma)"];
+    GIPARA   [label="P_REP_X in GI\nsmooth muscle"];
+    GIPARA->MYENT; CTL->MYENT [arrowhead=odiamond]; MYENT->ENSLOSS [color="#B03030", penwidth=2.0];
+    ENSLOSS->ACHAL; ACHAL->MEGAE; ENSLOSS->MEGAC;
+    P_REP_X->GIPARA; DTU_II->GIPARA [style=dashed, label="tropism"];
+  }
+
+  /* ---------- 19-20. TRYPANOCIDAL PK / PD -------------------------------- */
+  subgraph cluster_pk_tryp {
+    label="19 · Trypanocidal drug PK"; style="rounded,filled"; fillcolor="#E7F7F7"; color="#66AFAF"; fontsize=11;
+    BZN_D    [label="Benznidazole oral depot\nF ~0.92, ka ~1.2 /h"];
+    BZN_C    [label="BZN_C central\nV/F ~0.56 L/kg\nCL/F ~2.1 L/h, t1/2 ~13 h", fillcolor="#C9EAEA"];
+    BZN_P    [label="BZN peripheral"];
+    NFX_C    [label="Nifurtimox\nt1/2 ~3 h, t.i.d.\nCNS + GI intolerance", fillcolor="#C9EAEA"];
+    POS_C    [label="Posaconazole\nt1/2 ~25-31 h\nsaturable absorption", fillcolor="#C9EAEA"];
+    RAV_C    [label="Ravuconazole\n(from fosravuconazole E1224)\nt1/2 ~100-200 h", fillcolor="#C9EAEA"];
+    FEX_C    [label="Fexinidazole\n(5-nitroimidazole,\nactive metabolites)", fillcolor="#C9EAEA"];
+    BZN_D->BZN_C; BZN_C->BZN_P [dir=both];
+  }
+
+  subgraph cluster_pd_tryp {
+    label="20 · Trypanocidal PD — the asymmetry that explains everything"; style="rounded,filled"; fillcolor="#E7F7F7"; color="#66AFAF"; fontsize=11;
+    TCNTR    [label="TcNTR-1 type I nitroreductase\n(parasite-specific)"];
+    GLYOXAL  [label="Glyoxal / nitroso / reactive\nreduction products"];
+    DNAADD   [label="DNA adducts, thiol depletion\n— damage does NOT require\nthe cell to be dividing", fillcolor="#C9EAEA", penwidth=2.0, color="#1F7A7A"];
+    CYP51    [label="T. cruzi CYP51\nsterol 14-alpha-demethylase"];
+    ERGO     [label="Ergosterol depletion\n— matters ONLY during\nmembrane synthesis, i.e.\nONLY during GROWTH", fillcolor="#C9EAEA", penwidth=2.0, color="#1F7A7A"];
+    KILL_REP_N [label="KILL_REP (nitro class)\nEmax ~2.0 /day"];
+    KILL_REP_A [label="KILL_REP (azole class)\nEmax ~3.5 /day, EC50 lower\n— MORE potent here", fillcolor="#C9EAEA"];
+    KILL_DORM_N[label="KILL_DORM (nitro class)\n~0.06 /day  — SMALL BUT NONZERO", fillcolor="#8FD6D6", penwidth=2.4, color="#1F5C5C"];
+    KILL_DORM_A[label="KILL_DORM (azole class)\n~0.0005 /day — EFFECTIVELY ZERO", fillcolor="#8FD6D6", penwidth=2.4, color="#1F5C5C"];
+    BZN_C->TCNTR; NFX_C->TCNTR; FEX_C->TCNTR; TCNTR->GLYOXAL; GLYOXAL->DNAADD;
+    POS_C->CYP51; RAV_C->CYP51; CYP51->ERGO;
+    DNAADD->KILL_REP_N; DNAADD->KILL_DORM_N [penwidth=2.0];
+    ERGO->KILL_REP_A; ERGO->KILL_DORM_A [style=dotted, label="no path"];
+    KILL_REP_N->P_REP_H [arrowhead=odiamond]; KILL_REP_A->P_REP_H [arrowhead=odiamond];
+    KILL_REP_N->P_BLOOD [arrowhead=odiamond]; KILL_REP_A->P_BLOOD [arrowhead=odiamond];
+    KILL_DORM_N->P_DORM_H [arrowhead=odiamond, penwidth=2.0];
+    KILL_DORM_N->P_DORM_X [arrowhead=odiamond, penwidth=2.0];
+    KILL_DORM_A->P_DORM_H [arrowhead=odiamond, style=dotted];
+    BZN_SENS->KILL_REP_N [style=dashed]; BZN_SENS->KILL_DORM_N [style=dashed];
+  }
+
+  /* ---------- 21-22. CARDIAC THERAPY AND DEVICES ------------------------- */
+  subgraph cluster_pk_card {
+    label="21 · Cardiovascular pharmacotherapy"; style="rounded,filled"; fillcolor="#E7F7F7"; color="#66AFAF"; fontsize=11;
+    AMIO     [label="Amiodarone\nVd ~60 L/kg, t1/2 40-60 d\n+ desethylamiodarone", fillcolor="#C9EAEA"];
+    CARV     [label="Carvedilol\nbeta1/beta2/alpha1 block", fillcolor="#C9EAEA"];
+    ACEI     [label="ACE inhibitor / ARB / ARNI", fillcolor="#C9EAEA"];
+    MRA      [label="Spironolactone (MRA)", fillcolor="#C9EAEA"];
+    OAC      [label="Oral anticoagulant\n(warfarin / DOAC)", fillcolor="#C9EAEA"];
+    DIUR     [label="Loop diuretic"];
+    SGLT2    [label="SGLT2 inhibitor\n(extrapolated, CCC largely\nEXCLUDED from HF trials)"];
+    AMIO_TRYP[label="Amiodarone is itself weakly\ntrypanocidal (Ca2+ / ergosterol)", shape=note, fillcolor="#FFFFFF"];
+    AMIO->NSVT [arrowhead=odiamond, penwidth=2.0]; AMIO->SVT [arrowhead=odiamond, penwidth=2.0];
+    AMIO->CONTR [arrowhead=odiamond, style=dashed, label="negative\ninotropy"];
+    CARV->SNS [arrowhead=odiamond]; CARV->CONTR [arrowhead=odiamond, style=dashed];
+    CARV->APOP [arrowhead=odiamond]; ACEI->ANG_II [arrowhead=odiamond]; ACEI->MFB [arrowhead=odiamond];
+    MRA->ALDO [arrowhead=odiamond]; MRA->MFB [arrowhead=odiamond]; OAC->EMBOL [arrowhead=odiamond];
+    DIUR->CONGEST [arrowhead=odiamond]; SGLT2->EDV [arrowhead=odiamond, style=dashed];
+    AMIO->AMIO_TRYP [style=dotted, arrowhead=none]; AMIO_TRYP->P_BLOOD [arrowhead=odiamond, style=dotted];
+  }
+
+  subgraph cluster_device {
+    label="22 · Devices and transplantation"; style="rounded,filled"; fillcolor="#E7F7F7"; color="#66AFAF"; fontsize=11;
+    PPM      [label="Permanent pacemaker\n(AV block, sick sinus)"];
+    ICD      [label="ICD\n(secondary > primary prevention\nevidence in CCC)", fillcolor="#C9EAEA"];
+    CRT      [label="CRT (limited CCC data,\nRBBB predominant)"];
+    ABL      [label="VT catheter / epicardial\nablation"];
+    TXP      [label="Heart transplantation\n(reactivation risk under\nimmunosuppression)"];
+    REACT    [label="Reactivation of T. cruzi\nunder immunosuppression", color="#B03030", penwidth=2.0];
+    ICD->VF [arrowhead=odiamond, penwidth=2.0]; PPM->AVB [arrowhead=odiamond]; PPM->SSS [arrowhead=odiamond];
+    ABL->SVT [arrowhead=odiamond]; CRT->EF; TXP->REACT [color="#B03030"];
+    REACT->P_BLOOD [color="#B03030", penwidth=2.0];
+  }
+
+  /* ---------- 23. SAFETY -------------------------------------------------- */
+  subgraph cluster_safety {
+    label="23 · Drug safety — why duration, not dose, is the tolerability lever"; style="rounded,filled"; fillcolor="#FDF0F0"; color="#CC8888"; fontsize=11;
+    BZN_RASH [label="BZN cutaneous hypersensitivity\nHAZARD PEAKS week 2-3\n(immune-mediated timing)", fillcolor="#F7D8D8"];
+    BZN_NEURO[label="BZN peripheral neuropathy\nCUMULATIVE-dose dependent,\nonset typically >30 days", fillcolor="#F7D8D8"];
+    BZN_LEUK [label="BZN leukopenia /\nneutropenia"];
+    BZN_HEP  [label="Transaminase / GGT elevation"];
+    DISCONT  [label="Permanent discontinuation", fillcolor="#F7D8D8"];
+    BENDITA_SAFE [label="BENDITA: 0% discontinuation\nin the 2-WEEK arm;\n7% overall; STOP-CHAGAS\n60-day arms 31.7%", shape=note, fillcolor="#FFFFFF"];
+    AMIO_THY [label="Amiodarone thyroid\ndysfunction (cumulative)"];
+    AMIO_LUNG[label="Amiodarone pulmonary\ntoxicity (cumulative)"];
+    BZN_C->BZN_RASH; BZN_CUM->BZN_NEURO [penwidth=2.0]; BZN_C->BZN_LEUK; BZN_C->BZN_HEP;
+    BZN_RASH->DISCONT; BZN_NEURO->DISCONT; BZN_LEUK->DISCONT; BZN_HEP->DISCONT;
+    DISCONT->BENDITA_SAFE [style=dotted, arrowhead=none];
+    AMIO->AMIO_THY [style=dashed]; AMIO->AMIO_LUNG [style=dashed];
+    BZN_CUM  [label="BZN_CUM\ncumulative AUC", fillcolor="#F7D8D8"];
+    BZN_C->BZN_CUM [style=dashed];
+    DISCONT->KILL_REP_N [arrowhead=odiamond, style=dashed, label="exposure truncated"];
+  }
+
+  /* ---------- 24. BIOMARKERS AND STAGING --------------------------------- */
+  subgraph cluster_biomarker {
+    label="24 · Biomarkers, staging and diagnostics"; style="rounded,filled"; fillcolor="#F0F4F8"; color="#94A6B8"; fontsize=11;
+    QPCR     [label="Blood qPCR\nLOD ~0.5 par-eq/mL\n(3 x 5 mL samples)", fillcolor="#DCE6EF"];
+    SEROL    [label="Anti-T. cruzi IgG\n(2 orthogonal assays);\nseroreversion takes DECADES", fillcolor="#DCE6EF"];
+    ECG_ST   [label="ECG: RBBB/LAFB, low voltage,\nQRS >=120 ms"];
+    ECHO     [label="Echo: EF, WMA, apical\naneurysm, LV diameters"];
+    CMR      [label="CMR: LGE mass, grey zone,\nT1 mapping / ECV"];
+    HOLTER   [label="24 h Holter: PVC burden,\nNSVT"];
+    RASSI    [label="RASSI SCORE (0-20)\nNYHA III/IV 5 · cardiomegaly 5 ·\nWMA 3 · NSVT 3 · low QRS 2 ·\nmale 2", fillcolor="#C9D8E8", penwidth=2.0];
+    RASSI_ANCH [label="10-year mortality by Rassi group\nlow 10% · intermediate 44% ·\nhigh 84%", shape=note, fillcolor="#FFFFFF"];
+    AHASTAGE [label="AHA/SBC stage A-D\nannual mortality 4.8 / 8.7 /\n13.9 / 22.4 %", fillcolor="#DCE6EF"];
+    P_BLOOD->QPCR; ANTIGEN->SEROL; RBBB->ECG_ST; LOWQRS->ECG_ST; EF->ECHO; ANEUR->ECHO;
+    LGE->CMR; SCAR_HET->CMR; NSVT->HOLTER;
+    NYHA->RASSI; CMEG->RASSI; ECHO->RASSI; HOLTER->RASSI; LOWQRS->RASSI;
+    RASSI->RASSI_ANCH [style=dotted, arrowhead=none]; EF->AHASTAGE; NYHA->AHASTAGE;
+    NTPROBNP->AHASTAGE;
+  }
+
+  /* ---------- 25. CLINICAL ENDPOINTS — COMPETING RISKS ------------------- */
+  subgraph cluster_endpoint {
+    label="25 · Clinical endpoints — COMPETING risks, not additive ones"; style="rounded,filled"; fillcolor="#F7E9E9"; color="#B87A7A"; fontsize=11;
+    H_SCD    [label="Sudden cardiac death\n2.6 %/year", shape=doubleoctagon, fillcolor="#EFC9C9"];
+    H_HF     [label="Pump-failure death\n3.5 %/year", shape=doubleoctagon, fillcolor="#EFC9C9"];
+    H_STK    [label="Stroke / thromboembolic death\n0.4 %/year", shape=doubleoctagon, fillcolor="#EFC9C9"];
+    H_ALL    [label="All-cause mortality\n7.9 %/year in CCC", shape=doubleoctagon, fillcolor="#E5A9A9", penwidth=2.0];
+    H_PPM    [label="Pacemaker / ICD insertion", shape=doubleoctagon, fillcolor="#EFC9C9"];
+    H_NHF    [label="New heart failure", shape=doubleoctagon, fillcolor="#EFC9C9"];
+    COMPOS   [label="BENEFIT composite endpoint\n(death, arrest, sustained VT,\nPPM/ICD, transplant, new HF,\nstroke / thromboembolism)", shape=doubleoctagon, fillcolor="#E5A9A9", penwidth=2.0];
+    COMPETE  [label="COMPETING-RISK NODE\nremoving one mode of death\nreveals the other", fillcolor="#E5A9A9", penwidth=2.2, color="#8B2020"];
+    VF->H_SCD [penwidth=2.0]; SVT->H_SCD; SCAR_HET->H_SCD [penwidth=2.0]; SYMP_DEN->H_SCD [penwidth=2.0];
+    EF->H_HF [arrowhead=odiamond, penwidth=2.0]; NTPROBNP->H_HF; CONGEST->H_HF;
+    EMBOL->H_STK; ANEUR->H_STK;
+    H_SCD->COMPETE; H_HF->COMPETE; H_STK->COMPETE; COMPETE->H_ALL [penwidth=2.0];
+    AVB->H_PPM; SSS->H_PPM; NSVT->H_PPM;
+    EF->H_NHF [arrowhead=odiamond]; CONGEST->H_NHF;
+    H_ALL->COMPOS; H_PPM->COMPOS; H_NHF->COMPOS; SVT->COMPOS; EMBOL->COMPOS;
+    ICD->COMPETE [style=dashed, label="converts sudden\ninto later pump death"];
+    AMIO->COMPETE [style=dashed];
+  }
+
+  /* ---------- 26. TRIAL ANCHORS AND THE PAF ------------------------------ */
+  subgraph cluster_trials {
+    label="26 · Trial anchors and the parasite-attributable fraction"; style="rounded,filled"; fillcolor="#FFFDF0"; color="#C9B96A"; fontsize=11;
+    PAF      [label="PAF\nparasite-attributable fraction\nof the INSTANTANEOUS damage rate\n= 1 - (rate with parasite removed)\n     / (rate with parasite)",
+              fillcolor="#F2EDBE", penwidth=2.4, color="#8A7A20"];
+    PAF_YOUNG[label="PAF at age 25, indeterminate\n≈ 0.8-0.9  → treatment prevents\nalmost everything", fillcolor="#F7F3D4"];
+    PAF_OLD  [label="PAF at age 55, established CCC\n≈ 0.05-0.10 → treatment prevents\nalmost nothing", fillcolor="#F7F3D4"];
+    T_BENEFIT[label="BENEFIT (n=2854, 5.4 y)\nPCR conversion 66.2% vs 33.5% (EOT)\n46.7% vs 33.1% (>=5 y)\nCOMPOSITE 27.5% vs 29.1%\nHR 0.93 (0.81-1.07), p=0.31", shape=note, fillcolor="#FFFFFF"];
+    T_BENDITA[label="BENDITA (n=210, indeterminate)\nsustained clearance at 6 mo:\nplacebo 3% · 300mg x 8wk 89% ·\nx 4wk 89% · x 2wk 83% ·\n150mg x 4wk 83%", shape=note, fillcolor="#FFFFFF"];
+    T_STOP   [label="STOP-CHAGAS (n=120)\nday 30 PCR-neg: posa 93.3% > BZN 89.7%\nday 180 sustained: posa 13.3% vs BZN 86.7%\nday 360: posa 16% vs BZN 96%", shape=note, fillcolor="#FFFFFF"];
+    T_SABINO [label="Seropositive donor cohort\ncardiomyopathy incidence\n13.8 vs 4.6 /1000 py\n(attributable 9.2)", shape=note, fillcolor="#FFFFFF"];
+    PWR      [label="POWER MISMATCH\nBENEFIT was powered for a ~25%\nrelative reduction; the structure\npermits ~2-4% at that stage", fillcolor="#F2EDBE", penwidth=2.0, color="#8A7A20"];
+    P_REP_H->PAF [style=dashed]; ANTIGEN->PAF [style=dashed];
+    MFB->PAF [style=dashed, label="denominator"]; AAB_B1->PAF [style=dashed, label="denominator"];
+    ET1->PAF [style=dashed, label="denominator"];
+    PAF->PAF_YOUNG; PAF->PAF_OLD; PAF_OLD->PWR; PWR->T_BENEFIT [style=dotted, arrowhead=none];
+    PAF_YOUNG->T_SABINO [style=dotted, arrowhead=none];
+    STERILISE->T_BENDITA [style=dotted, arrowhead=none];
+    KILL_DORM_A->T_STOP [style=dotted, arrowhead=none];
+    KILL_DORM_N->T_BENDITA [style=dotted, arrowhead=none];
+  }
+
+  /* ---------- 27. HOST GENETIC SUSCEPTIBILITY ----------------------------- */
+  subgraph cluster_hostgen {
+    label="27 · Host genetic background — why only 30-40% ever progress"; style="rounded,filled"; fillcolor="#F2EAFB"; color="#A98BD0"; fontsize=11;
+    HLA_DR   [label="HLA class II (DRB1/DQB1)\nantigen presentation repertoire"];
+    HLA_B    [label="HLA class I\nCTL epitope restriction"];
+    CCR5_G   [label="CCR5 promoter variants\n(myocarditis intensity)"];
+    TNF_G    [label="TNFA -308 / lymphotoxin-alpha\nvariants"];
+    IL10_G   [label="IL10 -1082 low-producer\ngenotype"];
+    MAL_G    [label="MAL / TIRAP S180L\n(TLR adaptor)"];
+    BAT1_G   [label="BAT1 / MICA / MICB\nMHC class III region"];
+    SEX_M    [label="Male sex\n(Rassi 2 points; worse\nprogression and mortality)"];
+    HOSTRISK [label="HOST_RISK\ncomposite progression\npropensity", fillcolor="#DECDF2", penwidth=2.0];
+    HLA_DR->HOSTRISK; HLA_B->HOSTRISK; CCR5_G->HOSTRISK; TNF_G->HOSTRISK;
+    IL10_G->HOSTRISK; MAL_G->HOSTRISK; BAT1_G->HOSTRISK; SEX_M->HOSTRISK;
+    HLA_DR->MIMIC [style=dashed, label="mimicry epitope\navailability"];
+    IL10_G->IL10 [arrowhead=odiamond, style=dashed];
+    CCR5_G->CCR5 [style=dashed]; TNF_G->TNFA [style=dashed];
+    HOSTRISK->TH1 [style=dashed]; HOSTRISK->MFB [style=dashed];
+  }
+
+  /* ---------- 28. ELECTRICAL REMODELLING AT THE CELL LEVEL ---------------- */
+  subgraph cluster_ionic {
+    label="28 · Cellular electrical remodelling"; style="rounded,filled"; fillcolor="#EFEFFA"; color="#8A8AC8"; fontsize=11;
+    CX43     [label="Connexin-43 downregulation\nand lateralisation"];
+    GAPJ     [label="Gap-junction uncoupling\n→ slow, anisotropic conduction"];
+    ITO      [label="Ito / IK1 downregulation\n→ APD prolongation"];
+    RYR2     [label="RyR2 hyperphosphorylation\n→ diastolic Ca2+ leak"];
+    DAD      [label="Delayed afterdepolarisations"];
+    FIB_MYO  [label="Myofibroblast-myocyte\nelectrotonic coupling\n(source-sink mismatch)"];
+    TNFA->CX43 [arrowhead=odiamond]; SCAR->CX43 [arrowhead=odiamond]; CX43->GAPJ;
+    CA_HAND->ITO; CAMP_STIM->RYR2; RYR2->DAD; DAD->PVC;
+    MFB->FIB_MYO; FIB_MYO->GAPJ; GAPJ->REENTRY [penwidth=2.0];
+    ITO->EAD; GAPJ->SCAR_HET [style=dashed];
+  }
+
+  /* ---------- 29. PIPELINE, PREVENTION AND CARE CASCADE ------------------- */
+  subgraph cluster_pipeline {
+    label="29 · Pipeline, prevention and the care cascade"; style="rounded,filled"; fillcolor="#E7F7F7"; color="#66AFAF"; fontsize=11;
+    NCE_OXA  [label="Oxaborole / nitroimidazole\nnew chemical entities\n(DNDi pipeline)"];
+    VACC_TH  [label="Therapeutic vaccine\n(Tc24 / TSA-1 + adjuvant)"];
+    COMBO    [label="Nitro + azole combination\n(no synergy on cure in BENDITA\nor STOP-CHAGAS)"];
+    SCREEN   [label="Serological screening\n(blood banks, antenatal,\nmigrant populations)"];
+    ACCESS   [label="Care cascade: <1-10% of\ninfected people are\ndiagnosed and treated"];
+    VECTCTL  [label="Vector control and\nhousing improvement"];
+    PEDS     [label="Paediatric treatment\n(highest cure rate,\nbest tolerated)", fillcolor="#C9EAEA", penwidth=2.0];
+    NCE_OXA->KILL_DORM_N [style=dashed, label="target: the reservoir,\nnot the blood"];
+    VACC_TH->TH1 [style=dashed]; VACC_TH->STERILISE [style=dashed];
+    COMBO->KILL_REP_A [style=dotted]; COMBO->KILL_REP_N [style=dotted];
+    SCREEN->ACCESS; ACCESS->PEDS; VECTCTL->VECTOR [arrowhead=odiamond];
+    PEDS->PAF_YOUNG [style=dashed]; ACCESS->DISCONT [style=dashed, label="tolerability limits\nprogramme coverage"];
+  }
+
+  /* ---------- 30. NATURAL HISTORY STAGE MACHINE -------------------------- */
+  subgraph cluster_history {
+    label="30 · Natural history — the stage at which a drug is given is the drug's main covariate";
+    style="rounded,filled"; fillcolor="#FFFDF0"; color="#C9B96A"; fontsize=11;
+    INDET    [label="INDETERMINATE form\nseropositive, normal ECG/echo\n(60-70% lifelong)", fillcolor="#F7F3D4"];
+    PROGRESS [label="PROGRESSION HAZARD\n~1.4-2.0 %/year\n(13.8 vs 4.6 /1000 py\nvs seronegatives)", fillcolor="#F2EDBE", penwidth=2.0];
+    STAGE_A  [label="Stage A\nECG changes only"];
+    STAGE_B1 [label="Stage B1\nWMA, EF preserved"];
+    STAGE_B2 [label="Stage B2\nEF < 45%, no symptoms"];
+    STAGE_C  [label="Stage C\nsymptomatic HF"];
+    STAGE_D  [label="Stage D\nrefractory HF"];
+    DIGEST   [label="Digestive form\n(10-15%)"];
+    MIXED    [label="Mixed cardiodigestive form"];
+    INDET->PROGRESS; PROGRESS->STAGE_A; STAGE_A->STAGE_B1; STAGE_B1->STAGE_B2;
+    STAGE_B2->STAGE_C; STAGE_C->STAGE_D;
+    INDET->DIGEST [style=dashed]; DIGEST->MIXED [style=dashed]; STAGE_A->MIXED [style=dashed];
+    ECG_ST->STAGE_A [style=dotted, arrowhead=none]; EF->STAGE_B2 [style=dotted, arrowhead=none];
+    NYHA->STAGE_C [style=dotted, arrowhead=none];
+    STAGE_A->PAF_OLD [style=dashed]; INDET->PAF_YOUNG [style=dashed];
+    DIGEST->MEGAE [style=dashed]; DIGEST->MEGAC [style=dashed];
+    STAGE_B2->AHASTAGE [style=dotted, arrowhead=none];
+  }
+
+  /* ---------- cross-cluster edges ---------------------------------------- */
+  INOC->ACUTE;
+  CONTROL->INDET;
+  ANG_II->MFB;
+  WALL_STRESS->MFB [color="#CC7700", penwidth=1.8, label="LOOP+ mechanotransduction"];
+  ISCH->APEX_THIN;
+  AAB_M2->PSYM_DEN_L [style=dashed];
+  HOSTRISK->PROGRESS [penwidth=2.0];
+  ANTIGEN->PROGRESS [style=dashed]; P_REP_H->PROGRESS [style=dashed];
+  MFB->PROGRESS [style=dashed]; AAB_B1->PROGRESS [style=dashed];
+  CONTROL->P_REP_H [style=dashed];
+  DTU_I->P_BLOOD [style=dashed]; DTU_II->P_BLOOD [style=dashed];
+  ANTIGEN->MPHI; ANTIGEN->TH1;
+  IFNG->KILL_INF; TNFA->NECRO;
+  TGFB->STIFF [style=dashed];
+  SCAR_HET->EF [arrowhead=odiamond, style=dashed];
+  EF->NYHA [arrowhead=odiamond];
+  ANEUR->REENTRY [label="aneurysm rim is a\nclassic VT circuit"];
+  P_REP_H->ISCH [style=dashed];
+  AAB_B1->SNS [style=dashed];
+  QPCR->T_BENEFIT [style=dotted, arrowhead=none];
+  QPCR->T_STOP [style=dotted, arrowhead=none];
+  BZN_C->KILL_REP_N [style=dotted]; POS_C->KILL_REP_A [style=dotted];
+  STERILISE->SEROL [style=dashed, label="seroreversion,\ndecades later"];
+  PAF->COMPOS [style=dashed, label="sets the maximum\nachievable effect size"];
+}
