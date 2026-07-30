@@ -1,0 +1,733 @@
+/* ============================================================================
+   X-linked Adrenoleukodystrophy (X-ALD) — QSP mechanistic map
+   X-연관 부신백질형성장애 · 기계론적 지도
+
+   ORGANISING THESIS (조직 원리)
+   -----------------------------------------------------------------------------
+   One lesion (ABCD1 loss) -> TWO INDEPENDENT VARIABLES:
+
+     (1) VLCFA accumulation      : deterministic, dose-graded, MEASURABLE,
+                                   and reachable from the periphery.
+     (2) Cerebral inflammation   : BISTABLE (a switch, not a rate),
+                                   UNMEASURABLE until MRI, and reachable
+                                   ONLY from inside the CNS.
+
+   The coupling (1) -> (2) is drawn as a THRESHOLD gated by a stochastic
+   susceptibility term, not as a rate constant.  That single structural
+   choice is why:
+
+     * plasma C26:0 does not predict phenotype (brothers, identical
+       mutation, CCALD at 6 vs pure AMN at 40);
+     * Lorenzo's oil normalises the biomarker and does not stop the disease
+       (it cannot cross the BBB and it does not touch variable 2);
+     * HSCT / eli-cel stops the disease and barely moves the biomarker
+       (it replaces microglia, i.e. variable 2, and does not touch 1);
+     * the ~12-18 month post-transplant "lag window" exists at all
+       (microglial replacement is slow; the switch keeps running).
+
+   THE DRUG THAT FIXES THE BIOMARKER DOES NOT FIX THE DISEASE, AND THE DRUG
+   THAT FIXES THE DISEASE DOES NOT FIX THE BIOMARKER.
+
+   Nodes 169 · Edges 265 · Clusters 19 (18 mechanism + 1 legend)
+   Render:  dot -Tsvg xald_qsp_model.dot -o xald_qsp_model.svg
+            dot -Tpng -Gdpi=150 xald_qsp_model.dot -o xald_qsp_model.png
+   ========================================================================== */
+
+digraph XALD_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.28,
+           ranksep=0.55, compound=true, concentrate=false,
+           fontname="NanumGothic", fontsize=13, labelloc="t",
+           bgcolor="white", pad=0.4,
+           label=<<b>X-연관 부신백질형성장애 (X-ALD) — 정량적 시스템 약리학 지도</b><br/>
+<i>X-linked Adrenoleukodystrophy · Quantitative Systems Pharmacology map</i><br/>
+<font point-size="11">하나의 병변(ABCD1 소실), 두 개의 독립 변수 — 측정 가능한 VLCFA 축적(주변부에서 도달 가능) vs 측정 불가능한 이중안정 뇌염증 스위치(CNS 내부에서만 도달 가능)</font><br/>
+<font point-size="10">169 nodes · 265 edges · 18 mechanism clusters</font>>];
+
+    node [shape=box, style="rounded,filled", fontname="NanumGothic",
+          fontsize=10, margin="0.10,0.055", penwidth=1.0, color="#555555"];
+    edge [fontname="NanumGothic", fontsize=8, arrowsize=0.65,
+          color="#666666", penwidth=1.0];
+
+    /* ---------- edge semantics legend --------------------------------- */
+    subgraph cluster_legend {
+        label=<<b>범례 (Legend)</b>>;
+        style="rounded,filled"; fillcolor="#fafafa"; color="#bbbbbb";
+        fontsize=11;
+        node [shape=plaintext, style="", fillcolor="none", fontsize=9];
+        LEG [label=<<table border="0" cellborder="0" cellspacing="1">
+<tr><td align="left"><font color="#1a7f37">━━▶</font></td><td align="left">활성화 / 촉진 (activation)</td></tr>
+<tr><td align="left"><font color="#c0392b">━━⊣</font></td><td align="left">억제 / 차단 (inhibition)</td></tr>
+<tr><td align="left"><font color="#8e44ad">┅┅▶</font></td><td align="left">약물 작용 (drug action)</td></tr>
+<tr><td align="left"><font color="#e67e22">━━▶</font></td><td align="left">임상 판독값 (clinical readout)</td></tr>
+<tr><td align="left"><font color="#2471a3">━━▶</font></td><td align="left">질량 흐름 / 수송 (mass flux)</td></tr>
+<tr><td align="left"><b>굵은 테두리</b></td><td align="left">ODE 상태변수 (state variable)</td></tr>
+</table>>];
+    }
+
+    /* ================================================================== *
+     * 1. 유전자 · 전사 · 벡터                                             *
+     * ================================================================== */
+    subgraph cluster_gene {
+        label=<<b>1. ABCD1 유전자 · 상동체 중복성 · 유전자치료 벡터</b><br/><i>Gene, paralogue redundancy, vector</i>>;
+        style="rounded,filled"; fillcolor="#eef4fb"; color="#7fa8d4"; fontsize=11;
+        node [fillcolor="#d6e6f7"];
+
+        ABCD1     [label="ABCD1 유전자 (Xq28)\nABCD1 locus"];
+        MUT       [label="병원성 변이 900+ 종\nmissense·nonsense·frameshift·del"];
+        ALDP      [label="ALDP 반수송체\n(ABCD1 단백, 이량체)", penwidth=2.2];
+        ALDPD     [label="ALDP 기능 소실\n(불안정·미스폴딩·부재)", penwidth=2.2, fillcolor="#f7d6d6"];
+        ABCD2     [label="ABCD2 / ALDRP\n상동체 — 부분 중복 기능", penwidth=2.2];
+        ABCD3     [label="ABCD3 / PMP70"];
+        PEXMEM    [label="퍼옥시좀 막 온전성\nperoxisome membrane"];
+        LENTID    [label="Lenti-D 렌티바이러스\nABCD1 cDNA 벡터"];
+        VCN       [label="벡터 카피수 VCN\n(copies/genome)", penwidth=2.2];
+        XINACT    [label="X 불활성화 편향\nskewed X-inactivation"];
+        MOSAIC    [label="ALDP 결핍 세포 분율\n(여성 보유자 모자이크)", penwidth=2.2];
+        CROSSC    [label="세포 간 대사 상보\nmetabolic cross-correction"];
+    }
+
+    /* ================================================================== *
+     * 2. 퍼옥시좀 β-산화 vs 미세소체 신장 — 질량 균형                      *
+     * ================================================================== */
+    subgraph cluster_perox {
+        label=<<b>2. VLCFA 질량 균형 — 퍼옥시좀 분해 vs ELOVL1 신장</b><br/><i>Peroxisomal degradation vs microsomal elongation</i>>;
+        style="rounded,filled"; fillcolor="#eefbf3"; color="#63b98a"; fontsize=11;
+        node [fillcolor="#d3f0e0"];
+
+        DIET      [label="식이 VLCFA 유입\n(전체의 약 20%)"];
+        DENOVO    [label="내인성 신생 신장\n(약 80% — 지배적 유입)"];
+        ELOVL1    [label="ELOVL1 신장효소\nC22:0→C24:0→C26:0", penwidth=2.2];
+        ELONG     [label="신장 flux (elongation)", penwidth=2.2];
+        ACSVL1    [label="ACSVL1 / SLC27A2\nVLCFA→VLCFA-CoA 활성화"];
+        VLCFACOA  [label="VLCFA-CoA 세포질 풀\nC24:0/C26:0-CoA", penwidth=2.2];
+        IMPORT    [label="퍼옥시좀 내 수송\n(ALDP 절대 의존 단계)", penwidth=2.2, fillcolor="#f9e5c4"];
+        ACOX1     [label="ACOX1 아실-CoA 산화효소"];
+        DBP       [label="D-이중기능 단백 (HSD17B4)"];
+        SCPX      [label="SCPx 티올분해효소"];
+        BETAOX    [label="퍼옥시좀 β-산화 flux", penwidth=2.2];
+        SREBP     [label="SREBP / 지질생성 전사조절"];
+    }
+
+    /* ================================================================== *
+     * 3. VLCFA 조직 분포 · 지질종                                          *
+     * ================================================================== */
+    subgraph cluster_lipid {
+        label=<<b>3. VLCFA 조직 축적과 지질종 (lipidome)</b><br/><i>Tissue distribution and lipid species</i>>;
+        style="rounded,filled"; fillcolor="#fdf6e9"; color="#d9a94c"; fontsize=11;
+        node [fillcolor="#faeaca"];
+
+        C26PL     [label="혈장 C26:0\n정상 0.35 → ALD 1.3 μmol/L", penwidth=2.2, fillcolor="#f6d98a"];
+        C26LPC    [label="C26:0-lysoPC\n(DBS 선별 표지자, 약 10배)", penwidth=2.2, fillcolor="#f6d98a"];
+        C24C22    [label="C24:0/C22:0 비\n(진단 보조 지표)"];
+        C26CE     [label="콜레스테롤 에스터-C26:0\n(부신·뇌 저장 형태)", penwidth=2.2];
+        C26GANG   [label="강글리오사이드-C26:0"];
+        C26PC     [label="막 인지질-C26:0\n(PC/PE 아실 사슬)", penwidth=2.2];
+        C26ADR    [label="부신피질 VLCFA", penwidth=2.2];
+        C26BR     [label="뇌 백질 VLCFA", penwidth=2.2];
+        C26SC     [label="척수 백질 VLCFA", penwidth=2.2];
+        C26TEST   [label="고환 VLCFA"];
+        MEMB      [label="막 유동성 저하\n미세도메인(raft) 붕괴", penwidth=2.2];
+        LAMEL     [label="판상 세포질 봉입체\nlamellar inclusions"];
+    }
+
+    /* ================================================================== *
+     * 4. 세포 스트레스 — 산화 · 미토콘드리아 · 자가포식                     *
+     * ================================================================== */
+    subgraph cluster_stress {
+        label=<<b>4. 세포 스트레스 — 미토콘드리아 · ROS · 자가포식 · Nrf2</b><br/><i>Redox and organelle stress</i>>;
+        style="rounded,filled"; fillcolor="#fdeeee"; color="#d98080"; fontsize=11;
+        node [fillcolor="#f9d8d8"];
+
+        MITO      [label="미토콘드리아 막전위 탈분극", penwidth=2.2];
+        NOX       [label="NADPH 산화효소 (NOX2)"];
+        ROS       [label="ROS / 산화 스트레스", penwidth=2.2];
+        OXPROT    [label="산화 단백·8-OHdG\n(전임상 단계에서 이미 상승)"];
+        CA        [label="세포내 Ca²⁺ 항상성 붕괴", penwidth=2.2];
+        ER        [label="ER 스트레스 / UPR"];
+        AUTOPH    [label="자가포식 흐름 차단\n(autophagy block)", penwidth=2.2];
+        NRF2      [label="Nrf2-ARE 항산화 반응\n(X-ALD에서 감쇠)", penwidth=2.2];
+        SIRT1     [label="SIRT1 / PGC-1α\n미토콘드리아 생합성"];
+        ATPX      [label="축삭 ATP 결핍", penwidth=2.2];
+    }
+
+    /* ================================================================== *
+     * 5. 부신피질 축 — 세 번째 독립 축                                     *
+     * ================================================================== */
+    subgraph cluster_adrenal {
+        label=<<b>5. 부신피질 축 — CNS와 완전히 독립된 세 번째 축</b><br/><i>Adrenocortical axis: an independent third axis</i>>;
+        style="rounded,filled"; fillcolor="#f3eefb"; color="#9b7fd4"; fontsize=11;
+        node [fillcolor="#e2d6f7"];
+
+        CRH       [label="시상하부 CRH"];
+        ACTHP     [label="뇌하수체 ACTH", penwidth=2.2, fillcolor="#cfc0f0"];
+        MC2R      [label="MC2R / MRAP 수용체\n(막 미세도메인 의존)", penwidth=2.2];
+        STAR      [label="StAR 콜레스테롤 수송"];
+        STEROID   [label="스테로이드 생성 flux", penwidth=2.2];
+        ADMASS    [label="기능성 부신피질 질량", penwidth=2.2, fillcolor="#cfc0f0"];
+        CORT      [label="코르티솔", penwidth=2.2, fillcolor="#cfc0f0"];
+        ALDOS     [label="알도스테론", penwidth=2.2];
+        RENIN     [label="레닌-안지오텐신 반응성 상승", penwidth=2.2];
+        NAK       [label="Na⁺ 소실 · K⁺ 상승\n저혈압 · 탈수"];
+        MSH       [label="POMC / α-MSH\n→ 피부·점막 색소침착"];
+        ADCRISIS  [label="부신 위기 (adrenal crisis)\n— 첫 증상인 경우 다수", fillcolor="#f5b7b1"];
+        ACTHTESTR [label="ACTH 자극 최대 코르티솔\n< 500 nmol/L = 부신부족"];
+    }
+
+    /* ================================================================== *
+     * 6. 고환 · 기타 내분비                                                *
+     * ================================================================== */
+    subgraph cluster_gonad {
+        label=<<b>6. 고환 축</b><br/><i>Testicular axis</i>>;
+        style="rounded,filled"; fillcolor="#f3eefb"; color="#9b7fd4"; fontsize=11;
+        node [fillcolor="#e8dff8"];
+
+        LEYDIG    [label="라이디히 세포 기능", penwidth=2.2];
+        LH        [label="LH 상승 (보상)"];
+        TESTO     [label="테스토스테론", penwidth=2.2];
+        HYPOG     [label="성기능 저하 · 발기부전"];
+        SPERM     [label="정자형성 장애"];
+    }
+
+    /* ================================================================== *
+     * 7. 미세아교세포 — 스위치의 방아쇠                                     *
+     * ================================================================== */
+    subgraph cluster_mgl {
+        label=<<b>7. 미세아교세포 — 탈수초보다 먼저 죽는다 (병변 전 사건)</b><br/><i>Microglia: apoptosis PRECEDES demyelination</i>>;
+        style="rounded,filled"; fillcolor="#eaf6f8"; color="#5aa9b8"; fontsize=11;
+        node [fillcolor="#cfeaf0"];
+
+        MGL       [label="ALDP 결핍 상주 미세아교세포", penwidth=2.2, fillcolor="#aadbe6"];
+        TREM2     [label="TREM2 / 지질 감지 신호"];
+        MGLPHAG   [label="수초 잔해 포식 능력", penwidth=2.2];
+        MGLAP     [label="미세아교세포 세포자멸사\n(병변 전 단계, pre-lesional)", penwidth=2.2, fillcolor="#f5b7b1"];
+        MGLDEP    [label="병변 주변부 미세아교세포 고갈\nperi-lesional depletion", penwidth=2.2];
+        MGLPRO    [label="전염증 표현형 전환\n(pro-inflammatory switch)", penwidth=2.2];
+        DEBRIS    [label="처리되지 않은 수초 잔해 축적", penwidth=2.2];
+    }
+
+    /* ================================================================== *
+     * 8. 신경염증 자기증폭 루프 — 이중안정 코어                             *
+     * ================================================================== */
+    subgraph cluster_inflam {
+        label=<<b>8. 자기증폭 신경염증 루프 — 이중안정 스위치의 실체</b><br/><i>Self-amplifying loop = the bistable core</i>>;
+        style="rounded,filled"; fillcolor="#fdecec"; color="#cc5555"; fontsize=11;
+        node [fillcolor="#fad4d4"];
+
+        TNFA      [label="TNF-α", penwidth=2.2];
+        IL1B      [label="IL-1β", penwidth=2.2];
+        MCP1      [label="CCL2 / MCP-1", penwidth=2.2];
+        IFNG      [label="IFN-γ"];
+        INOS      [label="iNOS / NO·과산화아질산"];
+        MONOIN    [label="말초 단핵구 침윤", penwidth=2.2];
+        CD8T      [label="CD8⁺ 세포독성 T 침윤", penwidth=2.2];
+        PERF      [label="퍼포린 / 그랜자임 세포독성"];
+        MMP9      [label="MMP-9 (기저막 분해)"];
+        COMPL     [label="보체 활성 (C3d/C9)"];
+        ASTRO     [label="반응성 성상교세포", penwidth=2.2];
+        LOOP      [label="◆ 자기증폭 루프 이득 (loop gain)\nG > 1 이면 되돌릴 수 없다",
+                   shape=octagon, penwidth=3.0, fillcolor="#e74c3c", fontcolor="white"];
+    }
+
+    /* ================================================================== *
+     * 9. 혈액뇌장벽                                                        *
+     * ================================================================== */
+    subgraph cluster_bbb {
+        label=<<b>9. 혈액뇌장벽 — 약물이 넘지 못하는 선</b><br/><i>The line most drugs cannot cross</i>>;
+        style="rounded,filled"; fillcolor="#eef0fb"; color="#7f88d4"; fontsize=11;
+        node [fillcolor="#d8dcf7"];
+
+        TJ        [label="밀착연접 (claudin-5·occludin)", penwidth=2.2];
+        BBBP      [label="BBB 투과성", penwidth=2.2, fillcolor="#c2c8f0"];
+        VEGF      [label="VEGF / 혈관 투과 인자"];
+        GDENH     [label="가돌리늄 조영증강\n(활성 병변의 유일한 생체 표지)", penwidth=2.2, fillcolor="#f6d98a"];
+        PERIV     [label="혈관주위 림프구 침윤 (cuffing)"];
+    }
+
+    /* ================================================================== *
+     * 10. 수초 · 축삭 (대뇌)                                               *
+     * ================================================================== */
+    subgraph cluster_myelin {
+        label=<<b>10. 대뇌 수초 · 축삭 — Schaumburg 3구역 병변</b><br/><i>Cerebral myelin and axons</i>>;
+        style="rounded,filled"; fillcolor="#f0f0f0"; color="#888888"; fontsize=11;
+        node [fillcolor="#e0e0e0"];
+
+        OLG       [label="희소교세포 풀", penwidth=2.2];
+        OLGAP     [label="희소교세포 사멸", penwidth=2.2];
+        MYE       [label="대뇌 수초량", penwidth=2.2, fillcolor="#cccccc"];
+        DEMY      [label="탈수초 부피", penwidth=2.2, fillcolor="#cccccc"];
+        ZONE      [label="3구역 구조\n중심 반흔 / 활성 염증 / 외곽 탈수초"];
+        SPLENIUM  [label="뇌량 팽대부 (splenium)\n— 병변 시작점 (80%)"];
+        FRONTAL   [label="전두엽 우세 아형 (약 15%)"];
+        AXBR      [label="대뇌 축삭 완전성", penwidth=2.2];
+        GLIOSIS   [label="교세포 반흔 (gliosis)", penwidth=2.2];
+    }
+
+    /* ================================================================== *
+     * 11. 척수 축삭병증 (AMN)                                              *
+     * ================================================================== */
+    subgraph cluster_cord {
+        label=<<b>11. 척수 축삭병증 (AMN) — 길이 의존적 dying-back</b><br/><i>Adrenomyeloneuropathy: length-dependent axonopathy</i>>;
+        style="rounded,filled";
+        fillcolor="#eef8ee"; color="#77b877"; fontsize=11;
+        node [fillcolor="#d5edd5"];
+
+        CST       [label="피질척수로 (corticospinal)", penwidth=2.2];
+        DC        [label="후주 (dorsal column)", penwidth=2.2];
+        LENGTH    [label="길이 의존적 취약성\n(가장 긴 축삭이 먼저)"];
+        DISTAX    [label="원위부 축삭 변성 (dying-back)", penwidth=2.2];
+        MYESC     [label="척수 수초 (2차적 소실)", penwidth=2.2];
+        SPAST     [label="경직 · 보행장애"];
+        BLADDER   [label="배뇨 · 배변 장애"];
+        PERIPH    [label="말초신경 침범 (경증)"];
+    }
+
+    /* ================================================================== *
+     * 12. 표현형 결정 — 왜 형제가 다른 병에 걸리는가                        *
+     * ================================================================== */
+    subgraph cluster_pheno {
+        label=<<b>12. 표현형 결정 — 같은 변이, 다른 병 (모델의 핵심 주장)</b><br/><i>Phenotype determination: same mutation, different disease</i>>;
+        style="rounded,filled"; fillcolor="#fff4e6"; color="#e08a2e"; fontsize=11;
+        node [fillcolor="#ffe0b8"];
+
+        SWITCH    [label="◆ 뇌형 전환 스위치 (threshold)\nVLCFA는 필요조건, 충분조건이 아니다",
+                   shape=doubleoctagon, penwidth=3.0, fillcolor="#e67e22", fontcolor="white"];
+        SUSC      [label="감수성 계수 (susceptibility)\n수정유전자 + 환경 + 확률", penwidth=2.2, fillcolor="#ffd08a"];
+        MODGEN    [label="수정 유전자 후보\n(면역·산화·지질 경로)"];
+        HEADTR    [label="두부 외상 · 감염\n(전환 촉발 보고)"];
+        CONCORD   [label="일란성 쌍둥이 불일치\n= 유전자만으로 결정되지 않는다"];
+        NOCORR    [label="◆ 혈장 C26:0 ↔ 표현형 무상관\n(이 질환 최대의 음성 결과)",
+                   shape=note, penwidth=2.4, fillcolor="#fdebd0"];
+        CCALD     [label="소아 뇌형 (CCALD)\n약 35-40%, 4-8세 발병", penwidth=2.2, fillcolor="#f5b7b1"];
+        AMN       [label="AMN (성인 척수형)\n20-40대, 수십 년 경과", penwidth=2.2];
+        AMNCONV   [label="AMN → 뇌형 전환\n성인 AMN의 약 20%", penwidth=2.2, fillcolor="#f5b7b1"];
+        ADDIONLY  [label="애디슨 단독형\n(소아기 첫 표현형)"];
+        FEMALE    [label="여성 보유자 척수형\n60세까지 약 80%", penwidth=2.2];
+    }
+
+    /* ================================================================== *
+     * 13. 임상 판독값                                                      *
+     * ================================================================== */
+    subgraph cluster_clin {
+        label=<<b>13. 임상 엔드포인트</b><br/><i>Clinical endpoints</i>>;
+        style="rounded,filled"; fillcolor="#fdeef7"; color="#c07fa8"; fontsize=11;
+        node [fillcolor="#f7d6e8", shape=box];
+
+        LOES      [label="Loes MRI 중증도 (0-34)", penwidth=2.2];
+        NFS       [label="신경기능점수 NFS (0-25)", penwidth=2.2];
+        MFD       [label="주요 기능장애 MFD (6항목)", penwidth=2.2];
+        SURV      [label="무MFD 생존 (MFD-free survival)", penwidth=2.2];
+        EDSS      [label="EDSS / SSPROM (척수형)", penwidth=2.2];
+        SIXMWT    [label="6분 보행 거리 (6MWT)"];
+        COGN      [label="인지·행동 저하 (ADHD 유사 초기)"];
+        VISUAL    [label="시력 · 청력 저하"];
+        SEIZ      [label="경련"];
+        DEATH     [label="사망 / 식물상태", fillcolor="#e74c3c", fontcolor="white"];
+    }
+
+    /* ================================================================== *
+     * 14. 신생아 선별 · 진단                                               *
+     * ================================================================== */
+    subgraph cluster_dx {
+        label=<<b>14. 신생아 선별 · 감시 (조기 진단이 유일한 치료 창을 만든다)</b><br/><i>Newborn screening and surveillance</i>>;
+        style="rounded,filled"; fillcolor="#e9f7f4"; color="#4aa899"; fontsize=11;
+        node [fillcolor="#cfeee7"];
+
+        NBS       [label="신생아 선별 DBS\nC26:0-lysoPC", penwidth=2.2];
+        RUSP      [label="RUSP 등재 (미국 2016)"];
+        ABCD1SEQ  [label="ABCD1 시퀀싱 확진"];
+        MRISURV   [label="6-12개월 간격 MRI 감시", penwidth=2.2];
+        ACTHTEST  [label="연 1-2회 ACTH 자극검사"];
+        WINDOW    [label="◆ 치료 창 (therapeutic window)\nLoes ≤ 9 · NFS ≤ 1",
+                   shape=octagon, penwidth=2.6, fillcolor="#48c9b0"];
+        FALSEPOS  [label="위양성/불확정 (ACOX1·PEX 등)"];
+    }
+
+    /* ================================================================== *
+     * 15. 대사 표적 약물 — 주변부에서만 도달                                *
+     * ================================================================== */
+    subgraph cluster_drugmet {
+        label=<<b>15. 대사 표적 약물 — 변수 (1)에만 도달한다</b><br/><i>Metabolic drugs: reach variable (1) only</i>>;
+        style="rounded,filled"; fillcolor="#f5eafd"; color="#a05fd0"; fontsize=11;
+        node [fillcolor="#e7d0f7", shape=box, style="filled,rounded,bold"];
+
+        LO        [label="로렌조 오일\nGTE:GTO 4:1 (경구)", penwidth=2.2];
+        ERUC      [label="에루크산 C22:1\n(혈장, 활성 성분)", penwidth=2.2];
+        OLEIC     [label="올레산 C18:1"];
+        COMPINH   [label="ELOVL1 경쟁적 저해\n(기질 경쟁)", penwidth=2.2];
+        LOBBB     [label="⊘ BBB 통과 못함\n뇌 VLCFA 변화 없음",
+                   shape=note, fillcolor="#f5b7b1", penwidth=2.2];
+        ELOVLI    [label="ELOVL1 직접 저해제\n(전임상)"];
+        BEZA      [label="베자피브레이트 (ABCD2 유도 시도)"];
+        SOBE      [label="소베티롬 / Sob-AM2\nCNS 침투 티로미메틱", penwidth=2.2];
+        PBA       [label="4-페닐부티레이트 (ABCD2 유도)"];
+        LOWFAT    [label="VLCFA 제한식 (식이 유입 차단)"];
+    }
+
+    /* ================================================================== *
+     * 16. CNS · 항염 약물                                                  *
+     * ================================================================== */
+    subgraph cluster_drugcns {
+        label=<<b>16. CNS 침투 · 항염 약물 — 변수 (2)를 겨눈다</b><br/><i>CNS-penetrant / anti-inflammatory: aimed at variable (2)</i>>;
+        style="rounded,filled"; fillcolor="#eaf2fd"; color="#5f8fd0"; fontsize=11;
+        node [fillcolor="#d0e0f7", style="filled,rounded,bold"];
+
+        LERI      [label="레리글리타존 (MIN-102)\n혈장", penwidth=2.2];
+        LERIB     [label="레리글리타존 뇌 노출\n(CNS 침투 설계)", penwidth=2.2];
+        PPARG     [label="PPARγ 활성화", penwidth=2.2];
+        DMF       [label="디메틸푸마레이트 (Nrf2)"];
+        NAC       [label="항산화 3제\nNAC + α-토코페롤 + 리포산"];
+        STEROIDX  [label="⊘ 고용량 스테로이드\n뇌형 진행 억제 실패",
+                   shape=note, fillcolor="#f5b7b1"];
+        IMMSUPX   [label="⊘ 통상 면역억제\nCCALD 억제 실패",
+                   shape=note, fillcolor="#f5b7b1"];
+    }
+
+    /* ================================================================== *
+     * 17. HSCT / 유전자치료 — 변수 (2)를 실제로 고치는 유일한 수단           *
+     * ================================================================== */
+    subgraph cluster_hsct {
+        label=<<b>17. HSCT / 자가 유전자치료 — 대사가 아니라 미세아교세포를 바꾼다</b><br/><i>HSCT / ex-vivo gene therapy: replaces microglia, not metabolism</i>>;
+        style="rounded,filled"; fillcolor="#e9f0f7"; color="#4a7fb8"; fontsize=11;
+        node [fillcolor="#cfdff0"];
+
+        CD34      [label="자가 CD34⁺ 채집 (동원)"];
+        TRANSD    [label="Lenti-D 체외 형질도입"];
+        ALLOHSCT  [label="동종 HSCT (형제/비혈연)"];
+        BUSU      [label="부설판 조건화\n(AUC 목표 관리)", penwidth=2.2];
+        MYELOAB   [label="골수 제거 (myeloablation)", penwidth=2.2];
+        NEUT      [label="호중구 생착 (중간 약 13일)", penwidth=2.2];
+        HSCE      [label="교정 조혈모세포 생착", penwidth=2.2];
+        MONOCH    [label="말초 단핵구 키메리즘", penwidth=2.2];
+        MGLREP    [label="미세아교세포 치환\n(반감기 수개월~년 — 느리다)", penwidth=2.2, fillcolor="#f9e5c4"];
+        LAG       [label="◆ 치료 지체 창 12-18개월\n이식 후에도 Loes는 계속 오른다",
+                   shape=octagon, penwidth=2.8, fillcolor="#e67e22", fontcolor="white"];
+        GVHD      [label="이식편대숙주병 (동종 한정)", fillcolor="#f5b7b1"];
+        CLONAL    [label="삽입 돌연변이 클론 확장", penwidth=2.2, fillcolor="#f5b7b1"];
+        MDS       [label="MDS / AML (실측 안전성 신호)", fillcolor="#e74c3c", fontcolor="white"];
+        TRM       [label="이식 관련 사망률", fillcolor="#f5b7b1"];
+    }
+
+    /* ================================================================== *
+     * 18. 호르몬 보충 — 부신은 고치고 CNS는 못 고친다                       *
+     * ================================================================== */
+    subgraph cluster_horm {
+        label=<<b>18. 호르몬 보충 — 부신 축만 되돌린다</b><br/><i>Replacement: reverses the adrenal axis only</i>>;
+        style="rounded,filled"; fillcolor="#f7f2e9" ; color="#b89a5a"; fontsize=11;
+        node [fillcolor="#eee0c4", style="filled,rounded,bold"];
+
+        HC        [label="하이드로코르티손 (경구/응급 IV)", penwidth=2.2];
+        FLUDRO    [label="플루드로코르티손"];
+        TESTOR    [label="테스토스테론 보충"];
+        CORTREP   [label="총 코르티솔 노출 (대체 포함)", penwidth=2.2];
+    }
+
+    /* ================================================================================
+       EDGES
+       ================================================================================ */
+
+    /* ---- 1. gene -> protein ---- */
+    ABCD1  -> MUT      [label="변이", color="#2471a3"];
+    MUT    -> ALDPD    [label="기능 소실", color="#c0392b", arrowhead=tee];
+    ABCD1  -> ALDP     [label="전사·번역", color="#1a7f37"];
+    ALDPD  -> ALDP     [label="유효 ALDP 감소", color="#c0392b", arrowhead=tee, penwidth=1.8];
+    LENTID -> VCN      [label="형질도입", color="#8e44ad", style=dashed];
+    VCN    -> ALDP     [label="교정 ALDP 발현", color="#8e44ad", style=dashed, penwidth=1.8];
+    ABCD2  -> IMPORT   [label="부분 대체 수송", color="#1a7f37"];
+    ABCD3  -> PEXMEM   [color="#1a7f37"];
+    PEXMEM -> IMPORT   [color="#2471a3"];
+    ALDP   -> IMPORT   [label="C26:0-CoA 수송", color="#2471a3", penwidth=2.2];
+    XINACT -> MOSAIC   [label="편향 정도", color="#2471a3"];
+    MOSAIC -> ALDP     [label="세포 집단 평균 기능", color="#c0392b", arrowhead=tee];
+    MOSAIC -> CROSSC   [color="#1a7f37"];
+    CROSSC -> BETAOX   [label="정상 세포가 일부 보상", color="#1a7f37"];
+    MOSAIC -> FEMALE   [label="편향이 클수록 발현", color="#e67e22"];
+
+    /* ---- 2. mass balance ---- */
+    DIET     -> VLCFACOA [label="약 20%", color="#2471a3"];
+    DENOVO   -> ELONG    [color="#2471a3"];
+    ELOVL1   -> ELONG    [label="속도 결정", color="#1a7f37", penwidth=1.8];
+    ELONG    -> VLCFACOA [label="약 80% (지배적)", color="#2471a3", penwidth=2.2];
+    ACSVL1   -> VLCFACOA [label="CoA 활성화", color="#1a7f37"];
+    SREBP    -> ELOVL1   [label="전사 유도", color="#1a7f37"];
+    VLCFACOA -> IMPORT   [color="#2471a3", penwidth=2.0];
+    IMPORT   -> BETAOX   [label="기질 공급", color="#2471a3", penwidth=2.2];
+    ACOX1    -> BETAOX   [color="#1a7f37"];
+    DBP      -> BETAOX   [color="#1a7f37"];
+    SCPX     -> BETAOX   [color="#1a7f37"];
+    BETAOX   -> VLCFACOA [label="분해 (제거)", color="#c0392b", arrowhead=tee, penwidth=2.2];
+    LOWFAT   -> DIET     [label="식이 차단", color="#8e44ad", style=dashed, arrowhead=tee];
+
+    /* ---- 2->3 accumulation ---- */
+    VLCFACOA -> C26PL   [label="유출·혈장 평형", color="#2471a3", penwidth=2.2];
+    C26PL    -> C26LPC  [label="PC 리모델링 → lysoPC", color="#2471a3", penwidth=1.8];
+    C26PL    -> C24C22  [color="#e67e22"];
+    C26PL    -> C26CE   [label="에스터화", color="#2471a3"];
+    C26PL    -> C26PC   [color="#2471a3"];
+    C26PL    -> C26GANG [color="#2471a3"];
+    C26PL    -> C26ADR  [label="조직 분배", color="#2471a3", penwidth=1.8];
+    C26PL    -> C26BR   [label="조직 분배 (느림)", color="#2471a3", penwidth=1.8];
+    C26PL    -> C26SC   [color="#2471a3", penwidth=1.8];
+    C26PL    -> C26TEST [color="#2471a3"];
+    C26BR    -> C26PC   [color="#2471a3"];
+    C26CE    -> LAMEL   [label="봉입체 형성", color="#2471a3"];
+    C26PC    -> MEMB    [label="아실 사슬 길이 → 막 물성", color="#c0392b", penwidth=2.0];
+    C26GANG  -> MEMB    [color="#c0392b"];
+    LAMEL    -> MEMB    [color="#c0392b"];
+
+    /* ---- 3->4 stress ---- */
+    C26PC  -> MITO   [label="탈분극", color="#c0392b", penwidth=1.8];
+    MEMB   -> MITO   [color="#c0392b"];
+    MEMB   -> CA     [color="#c0392b"];
+    C26PL  -> NOX    [label="NOX2 활성화", color="#1a7f37"];
+    NOX    -> ROS    [color="#1a7f37", penwidth=1.8];
+    MITO   -> ROS    [color="#1a7f37", penwidth=1.8];
+    ROS    -> OXPROT [color="#e67e22"];
+    ROS    -> MITO   [label="양성 되먹임", color="#c0392b", style=bold, penwidth=1.6];
+    ROS    -> ER     [color="#1a7f37"];
+    ER     -> AUTOPH [color="#c0392b"];
+    ROS    -> AUTOPH [label="흐름 차단", color="#c0392b", arrowhead=tee];
+    AUTOPH -> C26CE  [label="제거 실패 → 축적", color="#c0392b", penwidth=1.6];
+    ROS    -> NRF2   [label="정상이면 유도되나\nX-ALD에서는 감쇠", color="#1a7f37", style=dotted];
+    NRF2   -> ROS    [label="항산화 방어", color="#c0392b", arrowhead=tee, penwidth=1.6];
+    SIRT1  -> MITO   [label="생합성 회복", color="#c0392b", arrowhead=tee];
+    MITO   -> ATPX   [color="#c0392b", penwidth=1.8];
+    CA     -> ATPX   [color="#c0392b"];
+    ROS    -> CA     [color="#1a7f37"];
+
+    /* ---- 5. adrenal axis ---- */
+    C26ADR  -> C26CE    [label="부신 저장 (최고 농도 조직)", color="#2471a3"];
+    C26ADR  -> MEMB     [color="#c0392b"];
+    MEMB    -> MC2R     [label="미세도메인 붕괴 → 수용체 커플링 저하",
+                         color="#c0392b", arrowhead=tee, penwidth=2.0];
+    C26ADR  -> ADMASS   [label="세포 손상·위축", color="#c0392b", arrowhead=tee, penwidth=2.0];
+    ROS     -> ADMASS   [color="#c0392b", arrowhead=tee];
+    CRH     -> ACTHP    [color="#1a7f37"];
+    ACTHP   -> MC2R     [label="리간드", color="#1a7f37"];
+    MC2R    -> STAR     [label="cAMP/PKA", color="#1a7f37", penwidth=1.8];
+    STAR    -> STEROID  [color="#1a7f37", penwidth=1.8];
+    ADMASS  -> STEROID  [label="용량 제한", color="#1a7f37", penwidth=2.0];
+    STEROID -> CORT     [color="#2471a3", penwidth=2.2];
+    STEROID -> ALDOS    [color="#2471a3"];
+    CORT    -> ACTHP    [label="음성 되먹임", color="#c0392b", arrowhead=tee, penwidth=2.0];
+    CORT    -> CRH      [label="음성 되먹임", color="#c0392b", arrowhead=tee];
+    ACTHP   -> MSH      [label="POMC 공통 전구체", color="#1a7f37", penwidth=1.6];
+    ALDOS   -> NAK      [label="Na⁺ 보존", color="#c0392b", arrowhead=tee, penwidth=1.8];
+    ALDOS   -> RENIN    [label="음성 되먹임", color="#c0392b", arrowhead=tee];
+    RENIN   -> ALDOS    [label="자극 (보상)", color="#1a7f37"];
+    CORT    -> ACTHTESTR[label="자극 후 최대치", color="#e67e22", penwidth=1.8];
+    NAK     -> ADCRISIS [color="#e67e22", penwidth=1.8];
+    CORT    -> ADCRISIS [label="결핍 시", color="#e67e22", arrowhead=tee, penwidth=1.8];
+    ADCRISIS-> DEATH    [label="미치료 시", color="#e67e22"];
+    HC      -> CORTREP  [label="대체", color="#8e44ad", style=dashed, penwidth=2.0];
+    CORT    -> CORTREP  [color="#2471a3"];
+    CORTREP -> ADCRISIS [label="예방", color="#8e44ad", style=dashed, arrowhead=tee, penwidth=1.8];
+    FLUDRO  -> NAK      [label="광질코르티코이드 대체", color="#8e44ad", style=dashed, arrowhead=tee];
+    CORTREP -> MSH      [label="색소침착 소실", color="#8e44ad", style=dashed, arrowhead=tee];
+    ACTHTEST-> ACTHTESTR[label="검사", color="#e67e22"];
+
+    /* ---- 6. gonad ---- */
+    C26TEST -> LEYDIG  [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    LEYDIG  -> TESTO   [color="#2471a3", penwidth=1.8];
+    TESTO   -> LH      [label="음성 되먹임", color="#c0392b", arrowhead=tee];
+    LH      -> LEYDIG  [label="자극", color="#1a7f37"];
+    TESTO   -> HYPOG   [color="#e67e22", arrowhead=tee];
+    LEYDIG  -> SPERM   [color="#1a7f37"];
+    TESTOR  -> TESTO   [label="보충", color="#8e44ad", style=dashed, penwidth=1.8];
+
+    /* ---- 7. microglia: the trigger ---- */
+    C26BR   -> MGL     [label="ALDP 결핍 + VLCFA 부하", color="#c0392b", penwidth=2.0];
+    MGL     -> MGLPHAG [color="#1a7f37", penwidth=1.6];
+    TREM2   -> MGLPHAG [color="#1a7f37"];
+    C26BR   -> MGLAP   [label="세포자멸사 유도", color="#1a7f37", penwidth=2.2];
+    ROS     -> MGLAP   [color="#1a7f37", penwidth=1.6];
+    MGLAP   -> MGL     [label="상주 풀 소실", color="#c0392b", arrowhead=tee, penwidth=2.2];
+    MGLAP   -> MGLDEP  [color="#1a7f37", penwidth=2.0];
+    MGLDEP  -> MGLPHAG [label="잔해 처리 능력 붕괴", color="#c0392b", arrowhead=tee, penwidth=2.0];
+    MGLPHAG -> DEBRIS  [label="제거", color="#c0392b", arrowhead=tee, penwidth=2.0];
+    DEBRIS  -> MGLPRO  [label="잔해가 표현형을 전환", color="#1a7f37", penwidth=2.0];
+    C26BR   -> MGLPRO  [color="#1a7f37"];
+    MGL     -> MGLPRO  [color="#2471a3"];
+
+    /* ---- 8. inflammatory loop ---- */
+    MGLPRO -> TNFA   [color="#1a7f37", penwidth=2.0];
+    MGLPRO -> IL1B   [color="#1a7f37", penwidth=2.0];
+    MGLPRO -> MCP1   [color="#1a7f37", penwidth=1.8];
+    MGLPRO -> INOS   [color="#1a7f37"];
+    MCP1   -> MONOIN [label="주화성", color="#1a7f37", penwidth=2.0];
+    MONOIN -> TNFA   [label="증폭", color="#1a7f37", penwidth=1.8];
+    TNFA   -> MMP9   [color="#1a7f37"];
+    TNFA   -> TJ     [label="연접 붕괴", color="#c0392b", arrowhead=tee, penwidth=2.0];
+    IL1B   -> VEGF   [color="#1a7f37"];
+    MMP9   -> TJ     [label="기저막 분해", color="#c0392b", arrowhead=tee, penwidth=1.8];
+    VEGF   -> BBBP   [color="#1a7f37", penwidth=1.8];
+    TJ     -> BBBP   [label="장벽 유지", color="#c0392b", arrowhead=tee, penwidth=2.2];
+    BBBP   -> MONOIN [label="유입 통로", color="#1a7f37", penwidth=2.2];
+    BBBP   -> CD8T   [color="#1a7f37", penwidth=1.8];
+    BBBP   -> GDENH  [label="조영제 누출", color="#e67e22", penwidth=2.2];
+    BBBP   -> PERIV  [color="#1a7f37"];
+    CD8T   -> PERF   [color="#1a7f37", penwidth=1.8];
+    CD8T   -> IFNG   [color="#1a7f37"];
+    IFNG   -> MGLPRO [label="증폭", color="#1a7f37", penwidth=1.8];
+    PERF   -> OLGAP  [label="세포독성 사멸", color="#1a7f37", penwidth=2.2];
+    TNFA   -> OLGAP  [color="#1a7f37", penwidth=2.0];
+    IL1B   -> OLGAP  [color="#1a7f37", penwidth=1.6];
+    INOS   -> OLGAP  [color="#1a7f37"];
+    COMPL  -> OLGAP  [color="#1a7f37"];
+    TNFA   -> ASTRO  [color="#1a7f37", penwidth=1.6];
+    ASTRO  -> MCP1   [label="증폭", color="#1a7f37", penwidth=1.8];
+    ASTRO  -> GLIOSIS[color="#1a7f37", penwidth=1.8];
+    MGLPRO -> COMPL  [color="#1a7f37"];
+
+    /* the loop-gain node: gathers the amplifying arms */
+    TNFA   -> LOOP   [color="#c0392b", penwidth=1.6];
+    MONOIN -> LOOP   [color="#c0392b", penwidth=1.6];
+    CD8T   -> LOOP   [color="#c0392b", penwidth=1.6];
+    DEBRIS -> LOOP   [color="#c0392b", penwidth=1.6];
+    ASTRO  -> LOOP   [color="#c0392b", penwidth=1.2];
+    LOOP   -> MGLPRO [label="G > 1 → 폭주", color="#c0392b", style=bold, penwidth=2.6];
+    LOOP   -> SWITCH [label="스위치 상태 결정", color="#e67e22", style=bold, penwidth=2.6];
+
+    /* ---- 10. myelin / axon ---- */
+    OLGAP    -> OLG      [color="#c0392b", arrowhead=tee, penwidth=2.2];
+    OLG      -> MYE      [label="수초 유지·재생", color="#1a7f37", penwidth=2.2];
+    MYE      -> DEMY     [label="소실 → 탈수초 부피", color="#c0392b", penwidth=2.2];
+    OLGAP    -> DEBRIS   [label="잔해 생성", color="#1a7f37", penwidth=2.0];
+    DEMY     -> ZONE     [color="#2471a3"];
+    ZONE     -> GLIOSIS  [color="#2471a3"];
+    SPLENIUM -> DEMY     [label="시작 부위", color="#2471a3"];
+    FRONTAL  -> DEMY     [label="아형", color="#2471a3", style=dotted];
+    DEMY     -> AXBR     [label="축삭 절단·손상", color="#c0392b", arrowhead=tee, penwidth=2.0];
+    ATPX     -> AXBR     [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    PERF     -> AXBR     [color="#c0392b", arrowhead=tee];
+    DEMY     -> LOES     [label="부피·부위 가중", color="#e67e22", penwidth=2.4];
+    GLIOSIS  -> LOES     [color="#e67e22"];
+    GDENH    -> LOES     [label="조영증강 가점", color="#e67e22", penwidth=1.6];
+    AXBR     -> NFS      [label="기능 소실", color="#e67e22", arrowhead=tee, penwidth=2.4];
+    AXBR     -> COGN     [color="#e67e22", arrowhead=tee, penwidth=1.8];
+    DEMY     -> VISUAL   [color="#e67e22", penwidth=1.6];
+    DEMY     -> SEIZ     [color="#e67e22"];
+    NFS      -> MFD      [label="역치 통과", color="#e67e22", penwidth=2.2];
+    MFD      -> SURV     [color="#e67e22", arrowhead=tee, penwidth=2.2];
+    NFS      -> DEATH    [label="말기", color="#e67e22", penwidth=1.8];
+
+    /* ---- 11. cord / AMN ---- */
+    C26SC  -> ATPX    [label="축삭 에너지 대사 손상", color="#c0392b", penwidth=1.8];
+    LENGTH -> CST     [label="가장 긴 축삭 우선", color="#2471a3", penwidth=1.8];
+    LENGTH -> DC      [color="#2471a3", penwidth=1.8];
+    ATPX   -> DISTAX  [label="원위부부터", color="#1a7f37", penwidth=2.2];
+    ROS    -> DISTAX  [color="#1a7f37", penwidth=1.6];
+    DISTAX -> CST     [color="#c0392b", arrowhead=tee, penwidth=2.2];
+    DISTAX -> DC      [color="#c0392b", arrowhead=tee, penwidth=2.2];
+    CST    -> MYESC   [label="2차 수초 소실", color="#c0392b", arrowhead=tee];
+    CST    -> SPAST   [color="#e67e22", arrowhead=tee, penwidth=2.0];
+    DC     -> SPAST   [color="#e67e22", arrowhead=tee];
+    CST    -> BLADDER [color="#e67e22", arrowhead=tee, penwidth=1.6];
+    DISTAX -> PERIPH  [color="#e67e22"];
+    SPAST  -> EDSS    [color="#e67e22", penwidth=2.2];
+    BLADDER-> EDSS    [color="#e67e22"];
+    SPAST  -> SIXMWT  [color="#e67e22", arrowhead=tee, penwidth=1.8];
+    EDSS   -> MFD     [color="#e67e22", style=dotted];
+
+    /* ---- 12. phenotype determination — the central claim ---- */
+    C26BR    -> SWITCH  [label="필요조건 (necessary)", color="#e67e22", penwidth=2.4];
+    SUSC     -> SWITCH  [label="충분조건을 결정 (sufficient)", color="#e67e22", penwidth=2.6];
+    MODGEN   -> SUSC    [color="#2471a3"];
+    HEADTR   -> SUSC    [label="촉발", color="#2471a3"];
+    HEADTR   -> BBBP    [label="장벽 일시 파괴", color="#1a7f37", style=dotted];
+    CONCORD  -> SUSC    [label="확률 성분의 증거", color="#2471a3", style=dotted];
+    SWITCH   -> MGLPRO  [label="점화 (ignition)", color="#e67e22", style=bold, penwidth=2.6];
+    SWITCH   -> CCALD   [label="ON (소아)", color="#e67e22", penwidth=2.2];
+    SWITCH   -> AMNCONV [label="ON (성인 AMN)", color="#e67e22", penwidth=2.0];
+    DISTAX   -> AMN     [label="OFF 경로", color="#e67e22", penwidth=2.2];
+    ADMASS   -> ADDIONLY[label="부신 단독 표현형", color="#e67e22", arrowhead=tee, penwidth=1.8];
+    CCALD    -> DEMY    [color="#e67e22", penwidth=2.2];
+    AMNCONV  -> DEMY    [color="#e67e22", penwidth=1.8];
+    AMN      -> EDSS    [color="#e67e22", penwidth=1.8];
+    FEMALE   -> DISTAX  [color="#e67e22", penwidth=1.6];
+    C26PL    -> NOCORR  [label="측정된다", color="#e67e22", style=dashed];
+    SWITCH   -> NOCORR  [label="측정되지 않는다", color="#e67e22", style=dashed];
+    NOCORR   -> MRISURV [label="그래서 MRI 감시가\n대체 불가능하다", color="#e67e22", penwidth=2.0];
+
+    /* ---- 14. screening ---- */
+    C26LPC   -> NBS      [label="DBS 정량", color="#e67e22", penwidth=2.2];
+    NBS      -> RUSP     [color="#2471a3", style=dotted];
+    NBS      -> ABCD1SEQ [label="2차 확진", color="#2471a3", penwidth=1.8];
+    NBS      -> FALSEPOS [label="타 퍼옥시좀 질환", color="#2471a3", style=dotted];
+    ABCD1SEQ -> MRISURV  [label="감시 등록", color="#2471a3", penwidth=1.8];
+    ABCD1SEQ -> ACTHTEST [color="#2471a3", penwidth=1.8];
+    MRISURV  -> LOES     [label="조기 포착", color="#e67e22", penwidth=1.8];
+    LOES     -> WINDOW   [label="≤ 9 이면 창 안", color="#e67e22", penwidth=2.2];
+    NFS      -> WINDOW   [label="≤ 1 이면 창 안", color="#e67e22", penwidth=2.2];
+    WINDOW   -> CD34     [label="이식 적응", color="#4a7fb8", penwidth=2.2];
+    WINDOW   -> ALLOHSCT [color="#4a7fb8", penwidth=1.8];
+    ACTHTEST -> HC       [label="조기 보충 개시", color="#8e44ad", style=dashed, penwidth=1.8];
+
+    /* ---- 15. metabolic drugs ---- */
+    LO      -> ERUC     [label="흡수·에스터 가수분해", color="#8e44ad", style=dashed, penwidth=2.0];
+    LO      -> OLEIC    [color="#8e44ad", style=dashed];
+    ERUC    -> COMPINH  [label="기질 경쟁", color="#8e44ad", style=dashed, penwidth=2.2];
+    OLEIC   -> COMPINH  [color="#8e44ad", style=dashed];
+    COMPINH -> ELOVL1   [label="경쟁적 저해 → 신장 flux 감소",
+                         color="#c0392b", arrowhead=tee, penwidth=2.4];
+    ERUC    -> LOBBB    [label="뇌로 가지 않는다", color="#c0392b", style=dashed, penwidth=2.0];
+    LOBBB   -> C26BR    [label="변화 없음 (효과 부재)", color="#c0392b", style=dotted, penwidth=2.0];
+    ELOVLI  -> ELOVL1   [label="직접 저해", color="#8e44ad", style=dashed, arrowhead=tee, penwidth=1.8];
+    BEZA    -> ABCD2    [label="유도 시도", color="#8e44ad", style=dashed];
+    PBA     -> ABCD2    [label="유도 시도", color="#8e44ad", style=dashed];
+    SOBE    -> ABCD2    [label="CNS 내 유도", color="#8e44ad", style=dashed, penwidth=2.0];
+    SOBE    -> C26BR    [label="뇌 VLCFA 직접 감소", color="#c0392b", style=dashed, arrowhead=tee, penwidth=2.0];
+    ABCD2   -> BETAOX   [label="대체 수송 → 분해 회복", color="#1a7f37", penwidth=1.8];
+
+    /* ---- 16. CNS drugs ---- */
+    LERI   -> LERIB   [label="BBB 통과 (설계된 침투)", color="#8e44ad", style=dashed, penwidth=2.2];
+    LERIB  -> PPARG   [color="#8e44ad", style=dashed, penwidth=2.0];
+    PPARG  -> SIRT1   [label="미토콘드리아 생합성", color="#1a7f37", penwidth=1.8];
+    PPARG  -> NRF2    [color="#1a7f37", penwidth=1.6];
+    PPARG  -> TNFA    [label="전사 억제", color="#c0392b", arrowhead=tee, penwidth=1.8];
+    PPARG  -> MCP1    [color="#c0392b", arrowhead=tee];
+    PPARG  -> TJ      [label="장벽 안정화", color="#1a7f37", penwidth=1.8];
+    DMF    -> NRF2    [color="#8e44ad", style=dashed, penwidth=1.8];
+    NAC    -> ROS     [color="#8e44ad", style=dashed, arrowhead=tee, penwidth=1.8];
+    STEROIDX-> TNFA   [label="일시적 감소, 진행은 못 막음",
+                       color="#8e44ad", style=dotted, arrowhead=tee];
+    IMMSUPX -> CD8T   [label="루프를 끊지 못함", color="#8e44ad", style=dotted, arrowhead=tee];
+    LERIB  -> LOOP    [label="이득 G 감소 (부분적)", color="#c0392b", arrowhead=tee, penwidth=1.8];
+
+    /* ---- 17. HSCT / gene therapy ---- */
+    CD34    -> TRANSD  [color="#4a7fb8", penwidth=1.8];
+    TRANSD  -> LENTID  [label="벡터 도입", color="#4a7fb8", penwidth=1.8];
+    TRANSD  -> HSCE    [color="#4a7fb8", penwidth=1.8];
+    ALLOHSCT-> HSCE    [label="공여자 세포", color="#4a7fb8", penwidth=1.8];
+    ALLOHSCT-> GVHD    [color="#4a7fb8"];
+    BUSU    -> MYELOAB [label="노출(AUC) 의존", color="#4a7fb8", penwidth=2.0];
+    MYELOAB -> NEUT    [label="일시적 무과립구증", color="#c0392b", arrowhead=tee, penwidth=1.8];
+    MYELOAB -> HSCE    [label="생착 공간 확보", color="#1a7f37", penwidth=2.0];
+    MYELOAB -> TRM     [label="독성", color="#c0392b"];
+    GVHD    -> TRM     [color="#c0392b"];
+    NEUT    -> TRM     [label="감염 위험", color="#c0392b", arrowhead=tee];
+    HSCE    -> MONOCH  [label="말초 재구성", color="#4a7fb8", penwidth=2.2];
+    HSCE    -> VCN     [color="#4a7fb8", penwidth=1.8];
+    MONOCH  -> MGLREP  [label="느린 치환 (율속 단계)", color="#4a7fb8", penwidth=2.4];
+    MGLREP  -> MGL     [label="교정 미세아교세포 공급", color="#1a7f37", penwidth=2.4];
+    MGLREP  -> MGLPHAG [label="잔해 처리 능력 회복", color="#1a7f37", penwidth=2.4];
+    MGLREP  -> LAG     [label="지체의 원인", color="#e67e22", penwidth=2.2];
+    LAG     -> LOES    [label="이식 후에도 상승", color="#e67e22", penwidth=2.2];
+    LAG     -> NFS     [color="#e67e22", penwidth=1.8];
+    MGLREP  -> LOOP    [label="이득 G < 1 로 되돌림", color="#c0392b", arrowhead=tee, penwidth=2.6];
+    VCN     -> CLONAL  [label="삽입 부위 의존", color="#c0392b", penwidth=1.8];
+    CLONAL  -> MDS     [color="#c0392b", penwidth=2.0];
+    MDS     -> DEATH   [color="#e67e22"];
+    TRM     -> DEATH   [color="#e67e22"];
+    HSCE    -> ALDP    [label="조혈계 한정 교정", color="#1a7f37", style=dashed];
+    MGLREP  -> C26BR   [label="뇌 VLCFA는 거의 그대로",
+                        color="#c0392b", style=dotted, penwidth=1.6];
+
+    /* ---- the two dissociation statements, drawn explicitly ---- */
+    COMPINH -> C26PL   [label="표지자는 정상화된다", color="#8e44ad", arrowhead=tee, penwidth=2.4];
+    COMPINH -> SWITCH  [label="스위치는 건드리지 못한다",
+                        color="#c0392b", style=dotted, penwidth=2.4];
+    MGLREP  -> SURV    [label="질병은 멈춘다", color="#1a7f37", penwidth=2.4];
+    MGLREP  -> C26PL   [label="표지자는 거의 그대로",
+                        color="#c0392b", style=dotted, penwidth=2.0];
+
+}
