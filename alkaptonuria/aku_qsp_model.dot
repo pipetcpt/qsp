@@ -1,0 +1,796 @@
+/* ============================================================================
+   Alkaptonuria (AKU) — Quantitative Systems Pharmacology mechanistic map
+   ----------------------------------------------------------------------------
+   Organising idea (read this before reading the graph)
+   ----------------------------------------------------------------------------
+   Alkaptonuria is NOT a disease of a rate. The tyrosine catabolic flux through
+   the ochronotic pathway is ~40 mmol/day and is set almost entirely by dietary
+   protein; HGD deficiency does not change it. What HGD deficiency changes is
+   which molecule that fixed flux is standing as while it waits to leave the
+   body — and homogentisic acid, unlike maleylacetoacetate, can auto-oxidise to
+   a benzoquinone that polymerises onto collagen and never leaves at all.
+
+   Three structural consequences are drawn as structure, not as annotations:
+
+   (1) MASS BALANCE IS CONSERVED ACROSS TREATMENT.  Nitisinone inhibits HPD,
+       one step UPSTREAM of the missing enzyme.  It therefore cannot reduce the
+       flux — it can only change the exit.  The same ~40 mmol/day that left as
+       urinary HGA must now leave as urinary HPPA, HPLA, tyrosine and its
+       conjugates, and the plasma tyrosine concentration is simply the pressure
+       head required to push that load through lower-capacity exits.  Hence the
+       central asymmetry of this map:  DOSE SETS HGA, DIET SETS TYROSINE.
+       (edges: J_TAT / J_ALT* / U_* — note that no nitisinone edge touches the
+       tyrosine exits, and no dietary edge touches HPD.)
+
+   (2) THE TOXIC FLUX IS INVISIBLE IN THE MASS BALANCE.  Of ~40 mmol/day of
+       HGA passing through, of the order of 0.6 umol/day (about 1.5e-5) is
+       diverted into ochronotic pigment.  Every gram of that diversion is
+       permanent, because articular collagen does not turn over.  So the
+       disease is an INTEGRAL of a flux too small to measure, and no drug can
+       act on the part of the integral already accrued (edges into PIG_* are
+       one-way; there is no return edge anywhere in cluster_pigment).
+
+   (3) PLASMA HGA IS CLEARANCE-LIMITED, NOT PRODUCTION-LIMITED.  Renal
+       clearance of HGA approaches renal plasma flow (net tubular secretion
+       plus intrarenal production), so it is at a ceiling and cannot buffer.
+       Any age- or CKD-related fall in renal plasma flow raises plasma HGA
+       ~1:1 at unchanged production, and plasma HGA is what pigments cartilage.
+       This is why urinary HGA (-99.7% on nitisinone 10 mg) and serum HGA
+       (-92.6%) diverge, and the pigmentation rate follows the serum number.
+
+   Rendering:
+     dot -Tsvg aku_qsp_model.dot -o aku_qsp_model.svg
+     dot -Tpng -Gdpi=150 aku_qsp_model.dot -o aku_qsp_model.png
+
+   Node shape / colour legend
+     ellipse  = metabolite / soluble species        box      = process, enzyme
+     hexagon  = drug or intervention                octagon  = clinical endpoint
+     diamond  = irreversible accumulation           parallelogram = modifier
+     component / house = organ-level structure
+     red edge = pathogenic  ·  blue edge = therapeutic  ·  green = physiological
+     dashed   = inferred / hypothesised  ·  bold = dominant flux
+   ============================================================================ */
+
+digraph AKU_QSP {
+  graph [rankdir=TB, splines=true, nodesep=0.30, ranksep=0.55, fontname="Helvetica",
+         labelloc="t", fontsize=30, compound=true, newrank=true,
+         label="Alkaptonuria (AKU) — QSP mechanistic map\nHGD deficiency · ochronosis · nitisinone HPD blockade · the flux is conserved, only its exit changes"];
+  node  [fontname="Helvetica", fontsize=11, style="filled,rounded", penwidth=1.2];
+  edge  [fontname="Helvetica", fontsize=9, arrowsize=0.65, penwidth=1.0];
+
+  /* ==========================================================================
+     1. GENETICS — the lesion
+     ========================================================================== */
+  subgraph cluster_gen {
+    label="1 · Genetics of the lesion (HGD, 3q13.33)"; style="filled"; color="#f4f1de"; fontsize=15;
+    HGD_GENE   [label="HGD gene\n3q13.33 · 14 exons", shape=box, fillcolor="#e9c46a"];
+    HGD_VAR    [label="pathogenic variants\n>270 reported", shape=box, fillcolor="#e9c46a"];
+    HGD_MISS   [label="missense variant\n(partial folding defect)", shape=box, fillcolor="#f0e0b0"];
+    HGD_NULL   [label="null / truncating\nvariant", shape=box, fillcolor="#f0e0b0"];
+    HGD_HEXA   [label="HGD hexamer\n(2 x trimer) assembly", shape=box, fillcolor="#f0e0b0"];
+    HGD_RES    [label="residual HGD activity\nRESACT 0–5%", shape=parallelogram, fillcolor="#d8e2dc"];
+    HGD_ENZ    [label="homogentisate\n1,2-dioxygenase (HGD)", shape=box, fillcolor="#e76f51", fontcolor=white];
+    FOUNDER    [label="founder clusters\nSlovakia ~1:19,000\nDominican Republic", shape=parallelogram, fillcolor="#d8e2dc"];
+    PREV       [label="global prevalence\n1:250,000–1:1,000,000", shape=parallelogram, fillcolor="#d8e2dc"];
+    AR_INH     [label="autosomal recessive\ninheritance", shape=parallelogram, fillcolor="#d8e2dc"];
+    CARRIER    [label="heterozygous carrier\n(asymptomatic)", shape=parallelogram, fillcolor="#d8e2dc"];
+  }
+
+  /* ==========================================================================
+     2. DIETARY INPUT — the only lever on total flux
+     ========================================================================== */
+  subgraph cluster_diet {
+    label="2 · Dietary input — the ONLY lever on total pathway flux"; style="filled"; color="#e8f4ea"; fontsize=15;
+    PROTEIN    [label="dietary protein\n0.6–1.6 g/kg/day", shape=parallelogram, fillcolor="#a8dadc"];
+    IN_PHE     [label="phenylalanine intake\n~4.6 g/100 g protein", shape=ellipse, fillcolor="#cdeac0"];
+    IN_TYR     [label="tyrosine intake\n~3.6 g/100 g protein", shape=ellipse, fillcolor="#cdeac0"];
+    PROT_TURN  [label="whole-body protein\nturnover (recycling)", shape=box, fillcolor="#cdeac0"];
+    PROT_POOL  [label="body protein\nTyr reservoir", shape=ellipse, fillcolor="#cdeac0"];
+    DIET_RX    [label="protein restriction\n0.8–0.9 g/kg by Tyr band", shape=hexagon, fillcolor="#457b9d", fontcolor=white];
+    AA_SUPP    [label="Phe/Tyr-free amino-acid\nsupplement (Tyr >900)", shape=hexagon, fillcolor="#457b9d", fontcolor=white];
+    DIETITIAN  [label="active dietetic\nmonitoring (NAC model)", shape=hexagon, fillcolor="#457b9d", fontcolor=white];
+  }
+
+  /* ==========================================================================
+     3. PHE/TYR CATABOLIC PATHWAY — the block and the step above it
+     ========================================================================== */
+  subgraph cluster_path {
+    label="3 · Phenylalanine–tyrosine catabolic pathway (the block, and the step above it)"; style="filled"; color="#fdf0d5"; fontsize=15;
+    PHE        [label="phenylalanine\nplasma ~55 umol/L", shape=ellipse, fillcolor="#ffd6a5"];
+    PAH        [label="phenylalanine\nhydroxylase (PAH)", shape=box, fillcolor="#ffd6a5"];
+    BH4        [label="BH4 cofactor", shape=ellipse, fillcolor="#ffe8cc"];
+    TYR        [label="TYROSINE\nplasma 54 umol/L (normal)\n780–875 on nitisinone", shape=ellipse, fillcolor="#ffb703", penwidth=2.5];
+    TAT        [label="tyrosine amino-\ntransferase (TAT)\nREVERSIBLE", shape=box, fillcolor="#ffd6a5"];
+    HPP        [label="4-hydroxyphenyl-\npyruvate (HPPA)", shape=ellipse, fillcolor="#ffd6a5"];
+    HPD        [label="4-HPP dioxygenase\n(HPD) — nitisinone target", shape=box, fillcolor="#fb8500", penwidth=2.5];
+    HGA        [label="HOMOGENTISIC ACID\n(HGA)\nplasma 26–30 umol/L", shape=ellipse, fillcolor="#e63946", fontcolor=white, penwidth=3];
+    MAA        [label="maleylacetoacetate", shape=ellipse, fillcolor="#ffd6a5"];
+    MAAI       [label="MAA isomerase\n(GSTZ1)", shape=box, fillcolor="#ffd6a5"];
+    FAA        [label="fumarylacetoacetate", shape=ellipse, fillcolor="#ffd6a5"];
+    FAH        [label="fumarylacetoacetate\nhydrolase (FAH)", shape=box, fillcolor="#ffd6a5"];
+    FUM        [label="fumarate +\nacetoacetate", shape=ellipse, fillcolor="#cdeac0"];
+    TCA        [label="TCA cycle /\nketone bodies", shape=ellipse, fillcolor="#cdeac0"];
+    HPLA       [label="4-hydroxyphenyl-\nlactate (HPLA)", shape=ellipse, fillcolor="#ffd6a5"];
+    HPPR       [label="HPP reductase /\nLDH (reversible)", shape=box, fillcolor="#ffe8cc"];
+    HPAC       [label="4-hydroxyphenyl-\nacetate", shape=ellipse, fillcolor="#ffe8cc"];
+  }
+
+  /* ==========================================================================
+     4. TYROSINE'S OTHER FATES — competing sinks that matter only when Tyr is high
+     ========================================================================== */
+  subgraph cluster_tyrfate {
+    label="4 · Competing tyrosine fates (dormant at 54 umol/L, load-bearing at 875)"; style="filled"; color="#eef7f9"; fontsize=15;
+    NACTYR     [label="N-acetyl-tyrosine", shape=ellipse, fillcolor="#a8dadc"];
+    NAT_E      [label="N-acetyltransferase", shape=box, fillcolor="#cfe8ee"];
+    TYRGLUC    [label="tyrosine-glucuronide", shape=ellipse, fillcolor="#a8dadc"];
+    UGT        [label="UGT conjugation", shape=box, fillcolor="#cfe8ee"];
+    TYRSULF    [label="tyrosine-sulfate", shape=ellipse, fillcolor="#a8dadc"];
+    SULT       [label="SULT conjugation", shape=box, fillcolor="#cfe8ee"];
+    DOPA       [label="L-DOPA", shape=ellipse, fillcolor="#cfe8ee"];
+    TH_ENZ     [label="tyrosine hydroxylase", shape=box, fillcolor="#cfe8ee"];
+    CATECH     [label="dopamine /\nnoradrenaline", shape=ellipse, fillcolor="#cfe8ee"];
+    MELANIN    [label="melanin\n(tyrosinase)", shape=ellipse, fillcolor="#cfe8ee"];
+    THYROID    [label="T4 / T3 synthesis", shape=ellipse, fillcolor="#cfe8ee"];
+    TYRPROT    [label="protein synthesis\n(reincorporation)", shape=box, fillcolor="#cfe8ee"];
+  }
+
+  /* ==========================================================================
+     5. HGA DISPOSITION — clearance at the renal-plasma-flow ceiling
+     ========================================================================== */
+  subgraph cluster_disp {
+    label="5 · HGA disposition — a clearance already at the renal-plasma-flow ceiling"; style="filled"; color="#fbe9e7"; fontsize=15;
+    HGA_PL     [label="plasma / TBW HGA\n(the pigmenting species)", shape=ellipse, fillcolor="#e63946", fontcolor=white, penwidth=2];
+    GFR_F      [label="glomerular filtration\nof HGA", shape=box, fillcolor="#f8c9c4"];
+    OAT13      [label="OAT1 / OAT3 net\ntubular SECRETION\n(dominant route)", shape=box, fillcolor="#f4978e", penwidth=2];
+    REN_PROD   [label="intrarenal HGA\nPRODUCTION (renal HPD)", shape=box, fillcolor="#f4978e", style="filled,dashed"];
+    CL_HGA     [label="CL_HGA ~ 600–900 mL/min\n≈ renal plasma flow\n→ NO reserve", shape=parallelogram, fillcolor="#f8c9c4", penwidth=2];
+    RPF        [label="renal plasma flow", shape=parallelogram, fillcolor="#d8e2dc"];
+    BILE       [label="biliary / intestinal\nelimination (proposed)", shape=box, fillcolor="#f8c9c4", style="filled,dashed"];
+    HGA_URINE  [label="urinary HGA\n1–8 g/day (24–48 mmol)", shape=ellipse, fillcolor="#c1121f", fontcolor=white];
+    DARK_U     [label="urine darkens on\nstanding / alkali\n(diagnostic since infancy)", shape=octagon, fillcolor="#8d99ae"];
+    HGA_SF     [label="synovial fluid HGA", shape=ellipse, fillcolor="#f4978e"];
+    HGA_CART   [label="cartilage interstitial HGA\n(avascular, long residence)", shape=ellipse, fillcolor="#f4978e", penwidth=2];
+    DIFF_C     [label="diffusion into\navascular matrix", shape=box, fillcolor="#f8c9c4"];
+  }
+
+  /* ==========================================================================
+     6. OXIDATION / POLYMERISATION — the irreversible branch
+     ========================================================================== */
+  subgraph cluster_ox {
+    label="6 · Oxidation and polymerisation — where the futile cycle competes with a one-way step"; style="filled"; color="#ede7f6"; fontsize=15;
+    AUTOX      [label="auto-oxidation\n(pH-dependent, O2)", shape=box, fillcolor="#c3b1e1"];
+    PPO        [label="tissue polyphenol\noxidase-like activity", shape=box, fillcolor="#c3b1e1"];
+    BQA        [label="benzoquinone acetic\nacid (BQA)", shape=ellipse, fillcolor="#7b2cbf", fontcolor=white];
+    POLY       [label="oxidative polymerisation\nIRREVERSIBLE", shape=box, fillcolor="#5a189a", fontcolor=white, penwidth=2.5];
+    ASC        [label="ascorbate", shape=hexagon, fillcolor="#457b9d", fontcolor=white];
+    REDOX      [label="BQA → HGA reduction\n(FUTILE CYCLE)", shape=box, fillcolor="#c3b1e1", style="filled,dashed"];
+    ROS        [label="ROS / superoxide", shape=ellipse, fillcolor="#c3b1e1"];
+    GSH        [label="glutathione depletion", shape=ellipse, fillcolor="#c3b1e1"];
+    LIPOX      [label="lipid peroxidation\n(MDA, 8-isoprostane)", shape=ellipse, fillcolor="#c3b1e1"];
+    SAA        [label="serum amyloid A\n(secondary amyloid risk)", shape=ellipse, fillcolor="#c3b1e1"];
+    OXALATE    [label="ascorbate → oxalate\n(iatrogenic stone risk)", shape=ellipse, fillcolor="#ffd6a5"];
+  }
+
+  /* ==========================================================================
+     7. OCHRONOTIC PIGMENT — one-way depots, no return edges anywhere
+     ========================================================================== */
+  subgraph cluster_pig {
+    label="7 · Ochronotic pigment depots — every edge in is one-way (no drug reverses these)"; style="filled"; color="#e0e0e0"; fontsize=15;
+    COLL2      [label="type II collagen\n(articular)", shape=ellipse, fillcolor="#adb5bd"];
+    COLL1      [label="type I collagen\n(disc, tendon, valve, sclera)", shape=ellipse, fillcolor="#adb5bd"];
+    COLL_TURN  [label="collagen turnover\nt1/2 decades → ~0 clearance", shape=parallelogram, fillcolor="#ced4da", penwidth=2];
+    PIG_CART   [label="PIGMENT: articular\ncartilage (knee, hip, shoulder)", shape=diamond, fillcolor="#212529", fontcolor=white, penwidth=2];
+    PIG_DISC   [label="PIGMENT: intervertebral\ndisc (earliest depot)", shape=diamond, fillcolor="#212529", fontcolor=white, penwidth=2];
+    PIG_VALVE  [label="PIGMENT: aortic valve\n& annulus", shape=diamond, fillcolor="#212529", fontcolor=white, penwidth=2];
+    PIG_TEND   [label="PIGMENT: tendon,\nligament, fascia", shape=diamond, fillcolor="#212529", fontcolor=white];
+    PIG_SCL    [label="PIGMENT: sclera\n(Osler sign)", shape=diamond, fillcolor="#212529", fontcolor=white];
+    PIG_EAR    [label="PIGMENT: ear cartilage,\ncerumen", shape=diamond, fillcolor="#212529", fontcolor=white];
+    PIG_SKIN   [label="PIGMENT: skin, sweat\nglands (axilla, groin)", shape=diamond, fillcolor="#212529", fontcolor=white];
+    PIG_OTHER  [label="PIGMENT: prostate,\nkidney, dura, larynx", shape=diamond, fillcolor="#212529", fontcolor=white];
+    PIG_DENS   [label="pigment density\nper unit collagen", shape=parallelogram, fillcolor="#ced4da", penwidth=2];
+  }
+
+  /* ==========================================================================
+     8. CARTILAGE MECHANICS — threshold, then feedback: this is where age 30 comes from
+     ========================================================================== */
+  subgraph cluster_cart {
+    label="8 · Cartilage mechanics — a threshold plus one feedback generates the 3rd-decade onset"; style="filled"; color="#e3f2fd"; fontsize=15;
+    CHONDRO    [label="chondrocyte", shape=box, fillcolor="#90caf9"];
+    AGGRECAN   [label="aggrecan / proteoglycan", shape=ellipse, fillcolor="#bbdefb"];
+    XLINK      [label="pigment–collagen\ncross-linking", shape=box, fillcolor="#64b5f6"];
+    BRITTLE    [label="matrix EMBRITTLEMENT\nHill threshold in PIG_DENS", shape=box, fillcolor="#1e88e5", fontcolor=white, penwidth=2.5];
+    STIFF      [label="loss of compressive\nresilience", shape=ellipse, fillcolor="#bbdefb"];
+    MECH_LOAD  [label="mechanical load\n(BMI, occupation, sport)", shape=parallelogram, fillcolor="#d8e2dc"];
+    FRAG       [label="matrix fragmentation\n→ pigmented shards", shape=box, fillcolor="#1565c0", fontcolor=white, penwidth=2];
+    CART_LOSS  [label="cartilage volume loss", shape=ellipse, fillcolor="#64b5f6"];
+    CHOND_DEATH[label="chondrocyte apoptosis", shape=box, fillcolor="#bbdefb"];
+    CART_CALC  [label="cartilage calcification\n/ mineralisation", shape=box, fillcolor="#bbdefb"];
+    REPAIR     [label="matrix repair capacity\n(near zero in adult)", shape=parallelogram, fillcolor="#ced4da"];
+  }
+
+  /* ==========================================================================
+     9. SYNOVITIS — the amplifier that makes progression accelerate
+     ========================================================================== */
+  subgraph cluster_syn {
+    label="9 · Synovial amplification loop (debris → cytokines → proteases → more debris)"; style="filled"; color="#fff3e0"; fontsize=15;
+    SHARD      [label="pigmented cartilage\nshards in joint space", shape=ellipse, fillcolor="#ffcc80"];
+    SYN_MAC    [label="synovial macrophage\nphagocytosis", shape=box, fillcolor="#ffcc80"];
+    NLRP3      [label="NLRP3 inflammasome", shape=box, fillcolor="#ffb74d"];
+    IL1B       [label="IL-1beta", shape=ellipse, fillcolor="#ffb74d"];
+    IL6        [label="IL-6", shape=ellipse, fillcolor="#ffb74d"];
+    TNFA       [label="TNF-alpha", shape=ellipse, fillcolor="#ffb74d"];
+    SYNOVITIS  [label="chronic synovitis /\neffusion", shape=box, fillcolor="#fb8c00", fontcolor=white, penwidth=2];
+    MMP313     [label="MMP-3 / MMP-13", shape=ellipse, fillcolor="#ffb74d"];
+    ADAMTS5    [label="ADAMTS-5", shape=ellipse, fillcolor="#ffb74d"];
+    CRP        [label="CRP / ESR\n(usually near-normal)", shape=ellipse, fillcolor="#ffe0b2"];
+    CHONDROCAL [label="secondary chondro-\ncalcinosis / CPPD", shape=box, fillcolor="#ffe0b2"];
+  }
+
+  /* ==========================================================================
+     10. JOINT — structural and functional endpoints
+     ========================================================================== */
+  subgraph cluster_joint {
+    label="10 · Large-joint ochronotic arthropathy"; style="filled"; color="#f1f8e9"; fontsize=15;
+    JSN        [label="joint space narrowing\n(K–L grade)", shape=ellipse, fillcolor="#c5e1a5"];
+    SUBCH      [label="subchondral sclerosis\n& cysts", shape=ellipse, fillcolor="#c5e1a5"];
+    OSTEOPH    [label="osteophytosis", shape=ellipse, fillcolor="#c5e1a5"];
+    KNEE       [label="knee arthropathy\n(most affected)", shape=house, fillcolor="#aed581"];
+    HIP        [label="hip arthropathy\n→ loss of rotation", shape=house, fillcolor="#aed581"];
+    SHOULDER   [label="shoulder arthropathy", shape=house, fillcolor="#aed581"];
+    ROM        [label="range-of-motion loss", shape=ellipse, fillcolor="#c5e1a5"];
+    JR         [label="joint replacement\nmean age 55 y", shape=octagon, fillcolor="#558b2f", fontcolor=white, penwidth=2];
+    REVISION   [label="revision / peri-\nprosthetic issues", shape=octagon, fillcolor="#8d99ae"];
+    HAQ        [label="HAQ / KOOS\nfunction", shape=octagon, fillcolor="#8d99ae"];
+  }
+
+  /* ==========================================================================
+     11. SPINE — the earliest radiographic depot
+     ========================================================================== */
+  subgraph cluster_spine {
+    label="11 · Spine — pigment's earliest radiographic footprint"; style="filled"; color="#ede7f6"; fontsize=15;
+    DISC       [label="intervertebral disc\n(nucleus pulposus)", shape=house, fillcolor="#b39ddb"];
+    DISC_CALC  [label="disc calcification\n(3rd decade, pathognomonic)", shape=ellipse, fillcolor="#9575cd"];
+    DISC_H     [label="disc height loss\n/ vacuum phenomenon", shape=ellipse, fillcolor="#b39ddb"];
+    LBP        [label="chronic low back pain\n(first symptom, ~age 30)", shape=octagon, fillcolor="#673ab7", fontcolor=white, penwidth=2];
+    KYPHOSIS   [label="thoracic kyphosis /\nheight loss", shape=ellipse, fillcolor="#b39ddb"];
+    ANKYLOSIS  [label="spinal ankylosis\n(bamboo-like)", shape=ellipse, fillcolor="#9575cd"];
+    STENOSIS   [label="spinal stenosis /\nradiculopathy", shape=octagon, fillcolor="#8d99ae"];
+    SIJ        [label="sacroiliac / symphysis\nchanges", shape=ellipse, fillcolor="#d1c4e9"];
+    FRACT_V    [label="vertebral fracture\n(osteopenic bone)", shape=octagon, fillcolor="#8d99ae"];
+  }
+
+  /* ==========================================================================
+     12. CARDIOVASCULAR
+     ========================================================================== */
+  subgraph cluster_cv {
+    label="12 · Cardiovascular ochronosis"; style="filled"; color="#ffebee"; fontsize=15;
+    AV_LEAF    [label="aortic valve leaflet\n(type I collagen)", shape=house, fillcolor="#ef9a9a"];
+    VIC        [label="valve interstitial cell\nosteogenic transition", shape=box, fillcolor="#ef9a9a"];
+    AV_FIB     [label="leaflet fibrosis\n& thickening", shape=ellipse, fillcolor="#ffcdd2"];
+    AV_CALC    [label="valve calcification", shape=ellipse, fillcolor="#e57373"];
+    AV_SCL     [label="aortic sclerosis\n18% of AKU cohort", shape=ellipse, fillcolor="#e57373"];
+    AV_STEN    [label="aortic stenosis\n13% of cohort · onset ~54 y", shape=octagon, fillcolor="#c62828", fontcolor=white, penwidth=2];
+    PMAX       [label="peak transaortic\ngradient (Pmax)", shape=octagon, fillcolor="#8d99ae"];
+    AVA        [label="aortic valve area", shape=octagon, fillcolor="#8d99ae"];
+    LVH        [label="LV hypertrophy →\ndiastolic dysfunction", shape=ellipse, fillcolor="#ffcdd2"];
+    AVR        [label="aortic valve\nreplacement", shape=octagon, fillcolor="#c62828", fontcolor=white];
+    CORON      [label="coronary artery\ncalcification ~59 y", shape=ellipse, fillcolor="#ffcdd2"];
+    MITRAL     [label="mitral annular\ncalcification", shape=ellipse, fillcolor="#ffcdd2"];
+    AORTA_D    [label="aortic root dilatation\n/ intimal pigment", shape=ellipse, fillcolor="#ffcdd2"];
+  }
+
+  /* ==========================================================================
+     13. RENAL / GENITOURINARY — the modifier that feeds back on the driver
+     ========================================================================== */
+  subgraph cluster_ren {
+    label="13 · Renal & genitourinary — and the feedback that closes on plasma HGA"; style="filled"; color="#e0f7fa"; fontsize=15;
+    U_SUPSAT   [label="urinary HGA\nsupersaturation", shape=ellipse, fillcolor="#80deea"];
+    STONE_R    [label="renal stones (black)\nmean age 64 y", shape=octagon, fillcolor="#00838f", fontcolor=white];
+    STONE_P    [label="prostate calculi", shape=octagon, fillcolor="#00838f", fontcolor=white];
+    OBSTRUCT   [label="obstruction /\npyelonephritis", shape=ellipse, fillcolor="#b2ebf2"];
+    CKD        [label="chronic kidney disease\n(acquired)", shape=box, fillcolor="#0097a7", fontcolor=white, penwidth=2];
+    RPF_DOWN   [label="renal plasma flow ↓\n(age ~0.8%/yr, CKD)", shape=parallelogram, fillcolor="#b2ebf2", penwidth=2];
+    URINE_PH   [label="urine pH / volume\n(alkalinisation, fluids)", shape=hexagon, fillcolor="#457b9d", fontcolor=white];
+    DIALYSIS   [label="dialysis / transplant\n(HGA poorly cleared)", shape=octagon, fillcolor="#8d99ae"];
+  }
+
+  /* ==========================================================================
+     14. EYE, EAR, SKIN — the visible, harmless markers
+     ========================================================================== */
+  subgraph cluster_ees {
+    label="14 · Ocular, aural, cutaneous signs (visible early, harmless)"; style="filled"; color="#fce4ec"; fontsize=15;
+    SCLERA     [label="scleral / conjunctival\nslate-blue pigment", shape=octagon, fillcolor="#f48fb1"];
+    OSLER      [label="Osler sign\n(interpalpebral, 3rd decade)", shape=octagon, fillcolor="#8d99ae"];
+    EAR_C      [label="ear cartilage\nblue-black discolouration", shape=octagon, fillcolor="#f48fb1"];
+    CERUMEN    [label="dark cerumen", shape=octagon, fillcolor="#8d99ae"];
+    HEARING    [label="sensorineural /\nconductive hearing loss", shape=octagon, fillcolor="#8d99ae"];
+    SKIN_AX    [label="axillary / inguinal\npigmentation", shape=octagon, fillcolor="#f48fb1"];
+    SWEAT      [label="dark sweat, stained\nclothing", shape=octagon, fillcolor="#8d99ae"];
+    NAIL       [label="nail / tooth\ndiscolouration", shape=octagon, fillcolor="#8d99ae"];
+  }
+
+  /* ==========================================================================
+     15. MUSCULOTENDINOUS
+     ========================================================================== */
+  subgraph cluster_tend {
+    label="15 · Tendon, ligament and bone"; style="filled"; color="#f9fbe7"; fontsize=15;
+    TEND_INT   [label="tendon tensile\nintegrity", shape=ellipse, fillcolor="#e6ee9c"];
+    ACH_RUPT   [label="Achilles / patellar\ntendon rupture", shape=octagon, fillcolor="#827717", fontcolor=white];
+    MUSC_RUPT  [label="spontaneous muscle\nrupture", shape=octagon, fillcolor="#8d99ae"];
+    OSTEOPEN   [label="osteopenia /\nosteoporosis", shape=ellipse, fillcolor="#e6ee9c"];
+    FRACT      [label="fragility fracture", shape=octagon, fillcolor="#8d99ae"];
+  }
+
+  /* ==========================================================================
+     16. PAIN — why late treatment cannot help symptoms even if it stops pigment
+     ========================================================================== */
+  subgraph cluster_pain {
+    label="16 · Pain processing — the component no HGA-lowering drug can reverse"; style="filled"; color="#eceff1"; fontsize=15;
+    NOCI       [label="peripheral nociceptor\ndrive (joint, disc)", shape=box, fillcolor="#b0bec5"];
+    PERIPH_S   [label="peripheral sensitisation\n(IL-1beta, NGF, PGE2)", shape=box, fillcolor="#b0bec5"];
+    DORSAL     [label="spinal dorsal horn\nwind-up", shape=box, fillcolor="#90a4ae"];
+    CENTRAL_S  [label="CENTRAL SENSITISATION\n(fixed once established)", shape=box, fillcolor="#546e7a", fontcolor=white, penwidth=2];
+    PAIN_VAS   [label="pain VAS", shape=octagon, fillcolor="#37474f", fontcolor=white];
+    SLEEP      [label="sleep disruption,\nlow mood", shape=ellipse, fillcolor="#cfd8dc"];
+    QOL        [label="SF-36 / EQ-5D\nquality of life", shape=octagon, fillcolor="#8d99ae"];
+    ANALG_USE  [label="analgesic escalation,\nopioid dependence", shape=octagon, fillcolor="#8d99ae"];
+  }
+
+  /* ==========================================================================
+     17. NITISINONE PK
+     ========================================================================== */
+  subgraph cluster_ntpk {
+    label="17 · Nitisinone pharmacokinetics (2 mg vs 10 mg once daily)"; style="filled"; color="#e8eaf6"; fontsize=15;
+    NT_DOSE    [label="nitisinone 2 or 10 mg\nonce daily, oral", shape=hexagon, fillcolor="#3949ab", fontcolor=white, penwidth=2];
+    NT_ABS     [label="absorption\n(tmax ~2 h, high F)", shape=box, fillcolor="#9fa8da"];
+    NT_CEN     [label="plasma nitisinone\n1.0 (2 mg) · 5.0–5.9 (10 mg) umol/L", shape=ellipse, fillcolor="#5c6bc0", fontcolor=white, penwidth=2];
+    NT_PER     [label="peripheral\ndistribution", shape=ellipse, fillcolor="#9fa8da"];
+    NT_CL      [label="clearance (CYP3A4)\nt1/2 ~54 h", shape=box, fillcolor="#9fa8da"];
+    NT_ADH     [label="adherence /\ninterruption", shape=parallelogram, fillcolor="#d8e2dc"];
+    NT_PROT    [label="high plasma protein\nbinding", shape=parallelogram, fillcolor="#d8e2dc"];
+  }
+
+  /* ==========================================================================
+     18. NITISINONE PD — the redirection, drawn as a redirection
+     ========================================================================== */
+  subgraph cluster_ntpd {
+    label="18 · Nitisinone pharmacodynamics — flux REDIRECTION, not flux reduction"; style="filled"; color="#e1f5fe"; fontsize=15;
+    HPD_INH    [label="competitive HPD inhibition\nIC50 ~40 nmol/L", shape=box, fillcolor="#0288d1", fontcolor=white, penwidth=2.5];
+    OCC        [label="target occupancy\n96% (2 mg) · 99% (10 mg)", shape=parallelogram, fillcolor="#81d4fa", penwidth=2];
+    HGA_DOWN   [label="HGA production ↓\nu-HGA24 −94% / −99.7%", shape=ellipse, fillcolor="#4fc3f7"];
+    SHGA_DOWN  [label="serum HGA ↓\n−85% (2 mg) / −92.6% (10 mg)", shape=ellipse, fillcolor="#4fc3f7", penwidth=2];
+    DIVERG     [label="URINE–SERUM DIVERGENCE\npigmentation follows serum", shape=box, fillcolor="#01579b", fontcolor=white, penwidth=2.5];
+    OAT_COMP   [label="HPPA/HPLA compete for\nOAT secretion → CL_HGA ↓", shape=box, fillcolor="#81d4fa", style="filled,dashed"];
+    UPSTREAM   [label="upstream back-pressure:\nHPP, HPLA, TYR accumulate", shape=box, fillcolor="#4fc3f7", penwidth=2];
+    PIG_RATE   [label="pigment deposition RATE ↓\n(future integral only)", shape=box, fillcolor="#0277bd", fontcolor=white, penwidth=2];
+  }
+
+  /* ==========================================================================
+     19. TYROSINAEMIA — the price, and who actually sets it
+     ========================================================================== */
+  subgraph cluster_tyrtox {
+    label="19 · Iatrogenic tyrosinaemia — set by INTAKE, not by dose"; style="filled"; color="#fff8e1"; fontsize=15;
+    TYR_HIGH   [label="plasma tyrosine\n782 (2 mg) vs 875 (10 mg) umol/L\nNOT dose-separated", shape=ellipse, fillcolor="#ffca28", penwidth=2.5];
+    TYR_CEIL   [label="ceiling set by dietary\nPhe+Tyr load", shape=parallelogram, fillcolor="#ffe082", penwidth=2];
+    ALT_EXIT   [label="alternative urinary exits\nHPPA x20 · HPLA x10 · NAc-Tyr x6\nTyr-gluc x8 · Tyr x4", shape=box, fillcolor="#ffb300", penwidth=2];
+    CORNEA     [label="corneal epithelium\ntyrosine crystals", shape=box, fillcolor="#ffca28"];
+    KERATO     [label="keratopathy\n5% (2 mg) vs 14.5% (10 mg)*\n*confounded by dietetic support", shape=octagon, fillcolor="#e65100", fontcolor=white, penwidth=2];
+    PHOTOPH    [label="photophobia, pain,\nreduced acuity", shape=octagon, fillcolor="#8d99ae"];
+    KERATOSIS  [label="palmoplantar\nkeratosis", shape=octagon, fillcolor="#8d99ae"];
+    NEUROCOG   [label="cognitive / behavioural\nconcern (uncertain)", shape=octagon, fillcolor="#8d99ae", style="filled,dashed"];
+    TYR_MON    [label="tyrosine monitoring\n>700 act · >900 escalate", shape=hexagon, fillcolor="#457b9d", fontcolor=white];
+    KERATO_REV [label="reversible on dose ↓\nor diet intensification", shape=box, fillcolor="#ffe082"];
+    LFT_PLT    [label="transaminitis,\nthrombocytopenia (label)", shape=octagon, fillcolor="#8d99ae"];
+    PHE_LOW    [label="relative hypo-\nphenylalaninaemia risk", shape=ellipse, fillcolor="#ffe082"];
+  }
+
+  /* ==========================================================================
+     20. OTHER AND FUTURE INTERVENTIONS
+     ========================================================================== */
+  subgraph cluster_tx {
+    label="20 · Other and investigational interventions"; style="filled"; color="#e8f5e9"; fontsize=15;
+    NSAID      [label="NSAID / COX-2\ninhibitor", shape=hexagon, fillcolor="#2e7d32", fontcolor=white];
+    PARA       [label="paracetamol", shape=hexagon, fillcolor="#2e7d32", fontcolor=white];
+    OPIOID     [label="opioid", shape=hexagon, fillcolor="#2e7d32", fontcolor=white];
+    PHYSIO     [label="physiotherapy,\nweight management", shape=hexagon, fillcolor="#2e7d32", fontcolor=white];
+    ARTHRO     [label="arthroplasty /\nspinal surgery", shape=hexagon, fillcolor="#2e7d32", fontcolor=white];
+    GENE_TX    [label="HGD gene therapy /\nmRNA (pre-clinical)", shape=hexagon, fillcolor="#1b5e20", fontcolor=white, style="filled,dashed"];
+    ERT        [label="HGD enzyme replacement\n(pre-clinical)", shape=hexagon, fillcolor="#1b5e20", fontcolor=white, style="filled,dashed"];
+    CHAPERONE  [label="pharmacological chaperone\n(missense variants)", shape=hexagon, fillcolor="#1b5e20", fontcolor=white, style="filled,dashed"];
+    HGA_DEG    [label="HGA-degrading enzyme /\ngut sink (hypothetical)", shape=hexagon, fillcolor="#1b5e20", fontcolor=white, style="filled,dashed"];
+    IDEAL      [label="IDEAL COMPARATOR:\nHGA block with no Tyr rise", shape=hexagon, fillcolor="#004d40", fontcolor=white, style="filled,dashed", penwidth=2];
+    SCREEN     [label="newborn / family\nscreening", shape=hexagon, fillcolor="#2e7d32", fontcolor=white];
+  }
+
+  /* ==========================================================================
+     21. ENDPOINTS AND SCORES
+     ========================================================================== */
+  subgraph cluster_end {
+    label="21 · Trial endpoints and composite scores"; style="filled"; color="#f5f5f5"; fontsize=15;
+    UHGA24     [label="u-HGA24\n(SONIA 1 & 2 primary)", shape=octagon, fillcolor="#616161", fontcolor=white, penwidth=2];
+    SHGA_E     [label="serum HGA\n(the causal quantity)", shape=octagon, fillcolor="#424242", fontcolor=white, penwidth=2];
+    STYR_E     [label="serum tyrosine", shape=octagon, fillcolor="#616161", fontcolor=white];
+    AKUSSI_C   [label="cAKUSSI (clinical)\n−8.6 points at 48 mo", shape=octagon, fillcolor="#212121", fontcolor=white, penwidth=2.5];
+    AKUSSI_J   [label="AKUSSI joint domain", shape=octagon, fillcolor="#616161", fontcolor=white];
+    AKUSSI_S   [label="AKUSSI spine domain", shape=octagon, fillcolor="#616161", fontcolor=white];
+    DELAY      [label="modelled disease delay\n23 y (2 mg) · 97 y (10 mg)", shape=octagon, fillcolor="#616161", fontcolor=white];
+    HEADROOM   [label="PREVENTABLE HEADROOM\n= 1 − accrued/lifetime integral", shape=parallelogram, fillcolor="#bdbdbd", penwidth=2.5];
+  }
+
+  /* ==========================================================================
+     22. PATIENT MODIFIERS
+     ========================================================================== */
+  subgraph cluster_mod {
+    label="22 · Patient-level modifiers"; style="filled"; color="#efebe9"; fontsize=15;
+    AGE        [label="age / duration of\nexposure", shape=parallelogram, fillcolor="#bcaaa4", penwidth=2];
+    SEX        [label="male sex\n(faster radiographic rise)", shape=parallelogram, fillcolor="#bcaaa4"];
+    BMI_M      [label="BMI / joint loading", shape=parallelogram, fillcolor="#bcaaa4"];
+    OCCUP      [label="physically demanding\noccupation", shape=parallelogram, fillcolor="#d7ccc8"];
+    AGE_INIT   [label="AGE AT TREATMENT\nINITIATION", shape=parallelogram, fillcolor="#5d4037", fontcolor=white, penwidth=2.5];
+    GUT_MB     [label="gut microbiome\n(HGA handling, uncertain)", shape=parallelogram, fillcolor="#d7ccc8", style="filled,dashed"];
+    CYP3A4_M   [label="CYP3A4 inducers /\ninhibitors", shape=parallelogram, fillcolor="#d7ccc8"];
+  }
+
+  /* ==========================================================================
+     23. THE THREE BALANCES — the model's spine, stated explicitly
+     ========================================================================== */
+  subgraph cluster_bal {
+    label="23 · The three balances that generate every prediction"; style="filled"; color="#fff9c4"; fontsize=16;
+    BAL1       [label="BALANCE 1 — FLUX IS CONSERVED\nintake ≈ 40 mmol/day must exit as HGA\nOR as Tyr/HPPA/HPLA/conjugates.\nNitisinone picks the exit; diet picks the size.", shape=note, fillcolor="#fff59d", penwidth=2];
+    BAL2       [label="BALANCE 2 — THE TOXIC BRANCH IS ~1.5e-5 OF FLUX\n~0.6 umol/day into pigment out of 40 mmol/day.\nInvisible in mass balance, and the entire disease.\nOne-way: no term removes it.", shape=note, fillcolor="#fff59d", penwidth=2];
+    BAL3       [label="BALANCE 3 — CLEARANCE HAS NO RESERVE\nCL_HGA ≈ renal plasma flow, so plasma HGA\n= production / RPF.  Ageing and CKD raise the\npigmenting concentration without touching production.", shape=note, fillcolor="#fff59d", penwidth=2];
+  }
+
+  /* ==========================================================================
+     EDGES — genetics
+     ========================================================================== */
+  HGD_GENE -> HGD_VAR [color="#e63946"];
+  HGD_VAR -> HGD_MISS [color="#e63946"];
+  HGD_VAR -> HGD_NULL [color="#e63946"];
+  HGD_MISS -> HGD_HEXA [label="misassembly", color="#e63946"];
+  HGD_NULL -> HGD_HEXA [label="no protein", color="#e63946"];
+  HGD_HEXA -> HGD_ENZ [color="#e63946"];
+  HGD_MISS -> HGD_RES [label="0.5–5%", color="#457b9d", style=dashed];
+  HGD_NULL -> HGD_RES [label="0%", color="#e63946"];
+  HGD_RES -> HGD_ENZ [color="#457b9d"];
+  AR_INH -> HGD_GENE [color="#2a9d8f"];
+  AR_INH -> CARRIER [color="#2a9d8f"];
+  FOUNDER -> PREV [color="#2a9d8f"];
+  HGD_VAR -> PREV [color="#2a9d8f"];
+  HGD_MISS -> CHAPERONE [label="rescuable target", color="#457b9d", style=dashed];
+  HGD_GENE -> GENE_TX [color="#457b9d", style=dashed];
+  HGD_ENZ -> ERT [color="#457b9d", style=dashed];
+  PREV -> SCREEN [color="#457b9d"];
+
+  /* diet → pathway */
+  PROTEIN -> IN_PHE [color="#2a9d8f", penwidth=2];
+  PROTEIN -> IN_TYR [color="#2a9d8f", penwidth=2];
+  IN_PHE -> PHE [color="#2a9d8f", penwidth=2];
+  IN_TYR -> TYR [color="#2a9d8f", penwidth=2];
+  PROT_TURN -> PROT_POOL [dir=both, color="#2a9d8f"];
+  PROT_POOL -> TYR [label="release", color="#2a9d8f"];
+  TYR -> TYRPROT [color="#2a9d8f"];
+  TYRPROT -> PROT_POOL [color="#2a9d8f"];
+  DIET_RX -> PROTEIN [label="lowers total flux", color="#457b9d", penwidth=2.5];
+  AA_SUPP -> PROTEIN [label="protein without Phe/Tyr", color="#457b9d", penwidth=2];
+  DIETITIAN -> DIET_RX [color="#457b9d"];
+  DIETITIAN -> AA_SUPP [color="#457b9d"];
+
+  /* canonical pathway */
+  PHE -> PAH [color="#2a9d8f"];
+  BH4 -> PAH [color="#2a9d8f"];
+  PAH -> TYR [color="#2a9d8f", penwidth=2];
+  TYR -> TAT [color="#2a9d8f", penwidth=2];
+  TAT -> HPP [color="#2a9d8f", penwidth=2];
+  HPP -> TAT [label="REVERSE\n(back-pressure)", color="#e63946", style=dashed, penwidth=2];
+  TAT -> TYR [color="#e63946", style=dashed];
+  HPP -> HPD [color="#2a9d8f", penwidth=2];
+  HPD -> HGA [color="#2a9d8f", penwidth=2.5];
+  HGA -> HGD_ENZ [color="#2a9d8f", penwidth=2];
+  HGD_ENZ -> MAA [label="BLOCKED in AKU", color="#e63946", style=dashed, penwidth=2.5];
+  MAA -> MAAI -> FAA -> FAH -> FUM -> TCA [color="#2a9d8f"];
+  HPP -> HPPR [color="#2a9d8f"];
+  HPPR -> HPLA [color="#2a9d8f"];
+  HPLA -> HPPR [color="#e63946", style=dashed];
+  HPP -> HPAC [color="#2a9d8f"];
+
+  /* tyrosine's other fates */
+  TYR -> NAT_E -> NACTYR [color="#2a9d8f"];
+  TYR -> UGT -> TYRGLUC [color="#2a9d8f"];
+  TYR -> SULT -> TYRSULF [color="#2a9d8f"];
+  TYR -> TH_ENZ -> DOPA -> CATECH [color="#2a9d8f"];
+  TYR -> MELANIN [color="#2a9d8f"];
+  TYR -> THYROID [color="#2a9d8f"];
+  TYR -> PAH [label="product inhibition", color="#e63946", style=dashed];
+
+  /* HGA disposition */
+  HGA -> HGA_PL [color="#e63946", penwidth=2.5];
+  HGA_PL -> GFR_F [color="#2a9d8f"];
+  HGA_PL -> OAT13 [color="#2a9d8f", penwidth=2.5];
+  REN_PROD -> HGA_URINE [label="bypasses plasma", color="#e63946", style=dashed, penwidth=2];
+  HPD -> REN_PROD [label="renal HPD activity", color="#e63946", style=dashed];
+  GFR_F -> HGA_URINE [color="#2a9d8f"];
+  OAT13 -> HGA_URINE [color="#2a9d8f", penwidth=2.5];
+  HGA_PL -> BILE [color="#2a9d8f", style=dashed];
+  GFR_F -> CL_HGA [color="#2a9d8f"];
+  OAT13 -> CL_HGA [color="#2a9d8f", penwidth=2];
+  RPF -> CL_HGA [label="hard ceiling", color="#e63946", penwidth=2.5];
+  CL_HGA -> HGA_PL [label="÷ CL sets concentration", color="#2a9d8f", penwidth=2.5];
+  HGA_URINE -> DARK_U [color="#e63946"];
+  HGA_URINE -> UHGA24 [color="#2a9d8f", penwidth=2];
+  HGA_PL -> SHGA_E [color="#2a9d8f", penwidth=2];
+  TYR_HIGH -> STYR_E [color="#2a9d8f"];
+  HGA_PL -> HGA_SF [color="#e63946", penwidth=2];
+  HGA_SF -> DIFF_C -> HGA_CART [color="#e63946", penwidth=2];
+  HGA_PL -> U_SUPSAT [color="#e63946"];
+
+  /* the ceiling feedback */
+  RPF_DOWN -> RPF [color="#e63946", penwidth=2.5];
+  AGE -> RPF_DOWN [color="#e63946", penwidth=2];
+  CKD -> RPF_DOWN [color="#e63946", penwidth=2.5];
+  STONE_R -> OBSTRUCT -> CKD [color="#e63946"];
+  U_SUPSAT -> STONE_R [color="#e63946", penwidth=2];
+  U_SUPSAT -> STONE_P [color="#e63946"];
+  PIG_OTHER -> STONE_P [color="#e63946"];
+  PIG_OTHER -> CKD [color="#e63946", style=dashed];
+  URINE_PH -> U_SUPSAT [label="reduces supersaturation", color="#457b9d"];
+  CKD -> DIALYSIS [color="#e63946"];
+  OXALATE -> STONE_R [color="#e63946", style=dashed];
+  ASC -> OXALATE [color="#e63946", style=dashed];
+
+  /* oxidation */
+  HGA_CART -> AUTOX [color="#e63946", penwidth=2];
+  HGA_CART -> PPO [color="#e63946"];
+  AUTOX -> BQA [color="#e63946", penwidth=2];
+  PPO -> BQA [color="#e63946"];
+  BQA -> POLY [color="#e63946", penwidth=2.5];
+  BQA -> REDOX [color="#457b9d"];
+  ASC -> REDOX [label="reduces BQA back to HGA", color="#457b9d", penwidth=2];
+  REDOX -> HGA_CART [label="futile: irreversible step\nis in parallel, not in series", color="#457b9d", style=dashed, penwidth=2];
+  AUTOX -> ROS [color="#e63946"];
+  BQA -> ROS [color="#e63946"];
+  ROS -> GSH [color="#e63946"];
+  ROS -> LIPOX [color="#e63946"];
+  ROS -> CHOND_DEATH [color="#e63946"];
+  LIPOX -> SYNOVITIS [color="#e63946"];
+  IL6 -> SAA [color="#e63946"];
+
+  /* pigment deposition */
+  POLY -> PIG_CART [color="#e63946", penwidth=2.5];
+  POLY -> PIG_DISC [color="#e63946", penwidth=2.5];
+  POLY -> PIG_VALVE [color="#e63946", penwidth=2];
+  POLY -> PIG_TEND [color="#e63946"];
+  POLY -> PIG_SCL [color="#e63946"];
+  POLY -> PIG_EAR [color="#e63946"];
+  POLY -> PIG_SKIN [color="#e63946"];
+  POLY -> PIG_OTHER [color="#e63946"];
+  COLL2 -> PIG_CART [label="binding substrate", color="#e63946"];
+  COLL1 -> PIG_DISC [color="#e63946"];
+  COLL1 -> PIG_VALVE [color="#e63946"];
+  COLL1 -> PIG_TEND [color="#e63946"];
+  COLL1 -> PIG_SCL [color="#e63946"];
+  COLL_TURN -> PIG_CART [label="no clearance term exists", color="#e63946", penwidth=2.5];
+  COLL_TURN -> PIG_DISC [color="#e63946", penwidth=2];
+  COLL_TURN -> PIG_VALVE [color="#e63946", penwidth=2];
+  PIG_CART -> PIG_DENS [color="#e63946", penwidth=2];
+  PIG_DISC -> PIG_DENS [color="#e63946"];
+  AGE -> PIG_DENS [label="integral of exposure", color="#e63946", penwidth=2.5];
+
+  /* cartilage mechanics */
+  PIG_DENS -> XLINK [color="#e63946", penwidth=2];
+  XLINK -> BRITTLE [color="#e63946", penwidth=2.5];
+  PIG_DENS -> BRITTLE [label="Hill threshold", color="#e63946", penwidth=2.5];
+  BRITTLE -> STIFF [color="#e63946"];
+  BRITTLE -> FRAG [color="#e63946", penwidth=2.5];
+  MECH_LOAD -> FRAG [color="#e63946", penwidth=2];
+  BMI_M -> MECH_LOAD [color="#e63946"];
+  OCCUP -> MECH_LOAD [color="#e63946"];
+  PHYSIO -> MECH_LOAD [label="load optimisation", color="#457b9d"];
+  CHONDRO -> AGGRECAN [color="#2a9d8f"];
+  CHONDRO -> COLL2 [color="#2a9d8f"];
+  CHOND_DEATH -> REPAIR [color="#e63946"];
+  REPAIR -> CART_LOSS [label="absent brake", color="#e63946"];
+  FRAG -> CART_LOSS [color="#e63946", penwidth=2.5];
+  FRAG -> SHARD [color="#e63946", penwidth=2.5];
+  BRITTLE -> CART_CALC [color="#e63946"];
+  CART_CALC -> CHONDROCAL [color="#e63946"];
+  AGGRECAN -> STIFF [color="#2a9d8f"];
+
+  /* synovial amplification loop */
+  SHARD -> SYN_MAC [color="#e63946", penwidth=2];
+  SYN_MAC -> NLRP3 [color="#e63946"];
+  NLRP3 -> IL1B [color="#e63946", penwidth=2];
+  SYN_MAC -> IL6 [color="#e63946"];
+  SYN_MAC -> TNFA [color="#e63946"];
+  IL1B -> SYNOVITIS [color="#e63946", penwidth=2];
+  IL6 -> SYNOVITIS [color="#e63946"];
+  TNFA -> SYNOVITIS [color="#e63946"];
+  SYNOVITIS -> MMP313 [color="#e63946", penwidth=2];
+  SYNOVITIS -> ADAMTS5 [color="#e63946"];
+  MMP313 -> CART_LOSS [label="AMPLIFYING FEEDBACK", color="#e63946", penwidth=2.5];
+  ADAMTS5 -> AGGRECAN [color="#e63946"];
+  CART_LOSS -> FRAG [label="feedback closes here", color="#e63946", style=dashed, penwidth=2];
+  IL6 -> CRP [color="#e63946"];
+  IL1B -> PERIPH_S [color="#e63946"];
+
+  /* joint endpoints */
+  CART_LOSS -> JSN [color="#e63946", penwidth=2];
+  CART_LOSS -> SUBCH [color="#e63946"];
+  SUBCH -> OSTEOPH [color="#e63946"];
+  JSN -> KNEE [color="#e63946", penwidth=2];
+  JSN -> HIP [color="#e63946", penwidth=2];
+  JSN -> SHOULDER [color="#e63946"];
+  KNEE -> ROM [color="#e63946"];
+  HIP -> ROM [color="#e63946"];
+  SHOULDER -> ROM [color="#e63946"];
+  ROM -> HAQ [color="#e63946"];
+  KNEE -> JR [color="#e63946", penwidth=2];
+  HIP -> JR [color="#e63946", penwidth=2];
+  JR -> REVISION [color="#8d99ae"];
+  ARTHRO -> JR [color="#457b9d"];
+  JSN -> AKUSSI_J [color="#616161", penwidth=2];
+  OSTEOPH -> AKUSSI_J [color="#616161"];
+  ROM -> AKUSSI_J [color="#616161"];
+  SEX -> FRAG [label="male faster", color="#e63946"];
+
+  /* spine */
+  PIG_DISC -> DISC [color="#e63946", penwidth=2];
+  DISC -> DISC_CALC [color="#e63946", penwidth=2.5];
+  DISC_CALC -> DISC_H [color="#e63946", penwidth=2];
+  DISC_H -> LBP [color="#e63946", penwidth=2.5];
+  DISC_H -> KYPHOSIS [color="#e63946"];
+  DISC_CALC -> ANKYLOSIS [color="#e63946", penwidth=2];
+  ANKYLOSIS -> STENOSIS [color="#e63946"];
+  DISC_CALC -> SIJ [color="#e63946"];
+  OSTEOPEN -> FRACT_V [color="#e63946"];
+  DISC_CALC -> AKUSSI_S [color="#616161", penwidth=2];
+  ANKYLOSIS -> AKUSSI_S [color="#616161"];
+  KYPHOSIS -> AKUSSI_S [color="#616161"];
+  LBP -> NOCI [color="#e63946", penwidth=2];
+
+  /* cardiovascular */
+  PIG_VALVE -> AV_LEAF [color="#e63946", penwidth=2];
+  AV_LEAF -> VIC [color="#e63946"];
+  VIC -> AV_CALC [color="#e63946", penwidth=2];
+  AV_LEAF -> AV_FIB [color="#e63946"];
+  AV_FIB -> AV_SCL [color="#e63946"];
+  AV_CALC -> AV_SCL [color="#e63946", penwidth=2];
+  AV_SCL -> AV_STEN [color="#e63946", penwidth=2.5];
+  AV_STEN -> PMAX [color="#e63946", penwidth=2];
+  AV_STEN -> AVA [color="#e63946"];
+  PMAX -> LVH [color="#e63946"];
+  AV_STEN -> AVR [color="#e63946", penwidth=2];
+  PIG_OTHER -> CORON [color="#e63946"];
+  PIG_VALVE -> MITRAL [color="#e63946"];
+  PIG_VALVE -> AORTA_D [color="#e63946"];
+  AV_STEN -> AKUSSI_C [color="#616161"];
+  ROS -> VIC [color="#e63946", style=dashed];
+
+  /* eye / ear / skin */
+  PIG_SCL -> SCLERA -> OSLER [color="#e63946"];
+  PIG_EAR -> EAR_C [color="#e63946"];
+  PIG_EAR -> CERUMEN [color="#e63946"];
+  PIG_EAR -> HEARING [color="#e63946"];
+  PIG_SKIN -> SKIN_AX [color="#e63946"];
+  PIG_SKIN -> SWEAT [color="#e63946"];
+  PIG_SKIN -> NAIL [color="#e63946"];
+  OSLER -> AKUSSI_C [color="#616161"];
+  EAR_C -> AKUSSI_C [color="#616161"];
+  SKIN_AX -> AKUSSI_C [color="#616161"];
+  HEARING -> AKUSSI_C [color="#616161"];
+
+  /* tendon / bone */
+  PIG_TEND -> TEND_INT [color="#e63946", penwidth=2];
+  TEND_INT -> ACH_RUPT [color="#e63946", penwidth=2];
+  TEND_INT -> MUSC_RUPT [color="#e63946"];
+  OSTEOPEN -> FRACT [color="#e63946"];
+  ACH_RUPT -> AKUSSI_C [color="#616161"];
+  ACH_RUPT -> NOCI [color="#e63946"];
+  SYNOVITIS -> OSTEOPEN [color="#e63946", style=dashed];
+
+  /* pain */
+  SHARD -> NOCI [color="#e63946"];
+  SYNOVITIS -> NOCI [color="#e63946", penwidth=2];
+  JSN -> NOCI [color="#e63946", penwidth=2];
+  PERIPH_S -> NOCI [color="#e63946"];
+  NOCI -> DORSAL [color="#e63946", penwidth=2];
+  DORSAL -> CENTRAL_S [color="#e63946", penwidth=2.5];
+  CENTRAL_S -> PAIN_VAS [color="#e63946", penwidth=2.5];
+  NOCI -> PAIN_VAS [color="#e63946", penwidth=2];
+  PAIN_VAS -> SLEEP [color="#e63946"];
+  SLEEP -> CENTRAL_S [color="#e63946", style=dashed];
+  PAIN_VAS -> QOL [color="#e63946"];
+  HAQ -> QOL [color="#e63946"];
+  PAIN_VAS -> ANALG_USE [color="#e63946"];
+  NSAID -> PERIPH_S [label="PGE2 block", color="#457b9d"];
+  NSAID -> SYNOVITIS [color="#457b9d"];
+  PARA -> PAIN_VAS [color="#457b9d"];
+  OPIOID -> DORSAL [color="#457b9d"];
+  OPIOID -> ANALG_USE [label="dependence", color="#e63946", style=dashed];
+  NSAID -> CKD [label="renal risk → raises HGA", color="#e63946", style=dashed, penwidth=2];
+  PHYSIO -> HAQ [color="#457b9d"];
+
+  /* nitisinone PK */
+  NT_DOSE -> NT_ABS -> NT_CEN [color="#457b9d", penwidth=2];
+  NT_CEN -> NT_PER [dir=both, color="#457b9d"];
+  NT_CEN -> NT_CL [color="#457b9d"];
+  NT_PROT -> NT_CEN [color="#457b9d"];
+  NT_ADH -> NT_CEN [color="#e63946", style=dashed];
+  CYP3A4_M -> NT_CL [color="#457b9d", style=dashed];
+
+  /* nitisinone PD — the redirection */
+  NT_CEN -> HPD_INH [color="#457b9d", penwidth=2.5];
+  HPD_INH -> OCC [color="#457b9d", penwidth=2];
+  OCC -> HPD [label="96% at 2 mg, 99% at 10 mg", color="#457b9d", penwidth=2.5];
+  HPD_INH -> HGA_DOWN [color="#457b9d", penwidth=2];
+  HGA_DOWN -> UHGA24 [color="#457b9d", penwidth=2];
+  HPD_INH -> UPSTREAM [color="#457b9d", penwidth=2.5];
+  UPSTREAM -> HPP [color="#e63946", penwidth=2];
+  UPSTREAM -> HPLA [color="#e63946", penwidth=2];
+  UPSTREAM -> TYR_HIGH [color="#e63946", penwidth=2.5];
+  HGA_DOWN -> SHGA_DOWN [color="#457b9d"];
+  OAT_COMP -> SHGA_DOWN [label="blunts serum fall", color="#e63946", style=dashed, penwidth=2];
+  HPP -> OAT_COMP [color="#e63946", style=dashed];
+  HPLA -> OAT_COMP [color="#e63946", style=dashed];
+  OAT_COMP -> CL_HGA [color="#e63946", style=dashed, penwidth=2];
+  HGA_DOWN -> DIVERG [color="#01579b", penwidth=2];
+  SHGA_DOWN -> DIVERG [color="#01579b", penwidth=2];
+  DIVERG -> PIG_RATE [label="use −92.6%, not −99.7%", color="#01579b", penwidth=2.5];
+  SHGA_DOWN -> HGA_PL [color="#457b9d", penwidth=2];
+  PIG_RATE -> POLY [label="rate only, never the stock", color="#457b9d", penwidth=2.5];
+  HGD_RES -> HGA [label="residual disposal", color="#457b9d", style=dashed];
+
+  /* tyrosinaemia arm */
+  TYR_HIGH -> TYR_CEIL [dir=both, color="#e65100", penwidth=2];
+  PROTEIN -> TYR_CEIL [label="THE determinant", color="#e65100", penwidth=2.5];
+  NT_DOSE -> TYR_CEIL [label="NOT a determinant\nabove ~2 mg", color="#8d99ae", style=dashed, penwidth=2];
+  TYR_HIGH -> ALT_EXIT [color="#e65100", penwidth=2.5];
+  ALT_EXIT -> NACTYR [color="#e65100"];
+  ALT_EXIT -> TYRGLUC [color="#e65100"];
+  ALT_EXIT -> TYRSULF [color="#e65100"];
+  ALT_EXIT -> HPLA [color="#e65100"];
+  ALT_EXIT -> HPP [color="#e65100"];
+  TYR_HIGH -> CORNEA -> KERATO [color="#e63946", penwidth=2];
+  KERATO -> PHOTOPH [color="#e63946"];
+  TYR_HIGH -> KERATOSIS [color="#e63946"];
+  TYR_HIGH -> NEUROCOG [color="#e63946", style=dashed];
+  TYR_MON -> DIET_RX [color="#457b9d", penwidth=2];
+  TYR_MON -> KERATO_REV [color="#457b9d"];
+  KERATO_REV -> KERATO [label="resolves", color="#457b9d", penwidth=2];
+  DIET_RX -> TYR_HIGH [label="the only effective lever", color="#457b9d", penwidth=2.5];
+  NT_DOSE -> LFT_PLT [color="#e63946", style=dashed];
+  TYR_HIGH -> PHE_LOW [color="#e63946", style=dashed];
+  AA_SUPP -> PHE_LOW [color="#e63946", style=dashed];
+  TYR_HIGH -> STYR_E [color="#616161"];
+
+  /* future therapy comparators */
+  GENE_TX -> HGD_ENZ [label="restores disposal,\nno Tyr rise", color="#457b9d", style=dashed, penwidth=2];
+  ERT -> HGA_PL [color="#457b9d", style=dashed];
+  CHAPERONE -> HGD_RES [color="#457b9d", style=dashed];
+  HGA_DEG -> HGA_PL [color="#457b9d", style=dashed];
+  IDEAL -> HGA_PL [label="isolates the Tyr penalty", color="#004d40", style=dashed, penwidth=2];
+  SCREEN -> AGE_INIT [label="moves initiation to infancy", color="#457b9d", penwidth=2.5];
+
+  /* endpoints and headroom */
+  AKUSSI_J -> AKUSSI_C [color="#212121", penwidth=2];
+  AKUSSI_S -> AKUSSI_C [color="#212121", penwidth=2];
+  PAIN_VAS -> AKUSSI_C [color="#616161"];
+  AKUSSI_C -> DELAY [color="#616161"];
+  AGE_INIT -> HEADROOM [color="#5d4037", penwidth=2.5];
+  PIG_DENS -> HEADROOM [label="accrued integral", color="#e63946", penwidth=2.5];
+  HEADROOM -> AKUSSI_C [label="caps achievable benefit", color="#5d4037", penwidth=2.5];
+  CENTRAL_S -> HEADROOM [label="not recoverable", color="#546e7a", penwidth=2];
+  AGE_INIT -> NT_DOSE [color="#457b9d"];
+  GUT_MB -> HGA_PL [color="#8d99ae", style=dashed];
+
+  /* the three balances anchor the whole graph */
+  BAL1 -> TYR_CEIL [color="#f4a261", penwidth=2, style=dashed];
+  BAL1 -> ALT_EXIT [color="#f4a261", penwidth=2, style=dashed];
+  BAL1 -> HPD_INH [color="#f4a261", penwidth=2, style=dashed];
+  BAL2 -> POLY [color="#f4a261", penwidth=2, style=dashed];
+  BAL2 -> HEADROOM [color="#f4a261", penwidth=2, style=dashed];
+  BAL2 -> COLL_TURN [color="#f4a261", penwidth=2, style=dashed];
+  BAL3 -> CL_HGA [color="#f4a261", penwidth=2, style=dashed];
+  BAL3 -> RPF_DOWN [color="#f4a261", penwidth=2, style=dashed];
+  BAL3 -> DIVERG [color="#f4a261", penwidth=2, style=dashed];
+}
