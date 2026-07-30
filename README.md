@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-345-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-346-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **345개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **346개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -103,7 +103,7 @@ shiny::runApp("<disease>/<abbr>_shiny_app.R")
 qsp/
 ├── README.md                     # 본 문서 (전체 모델 갤러리)
 ├── CLAUDE.md                     # 라이브러리 운영·생성 지침
-├── <disease>/                    # 질환별 디렉토리 (총 345개)
+├── <disease>/                    # 질환별 디렉토리 (총 346개)
 │   ├── README.md                 # 질환별 요약 문서
 │   ├── <abbr>_qsp_model.dot      # 기계론적 지도 소스
 │   ├── <abbr>_qsp_model.svg/.png # 렌더링 이미지
@@ -117,9 +117,9 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **345개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **346개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-**분류별 모델 수**: 신경 42 · 내분비·대사 41 · 종양 41 · 소화기·간담도 31 · 심혈관 24 · 신장·비뇨 24 · 혈액 23 · 호흡기 17 · 자가면역·류마티스 17 · 희귀·유전 16 · 정신·신경 14 · 피부 12 · 혈관염 10 · 감염 10 · 안과 7 · 근골격·신경근육 7 · 부인·생식 5 · 면역결핍 1 · 알레르기 1 · 신생아·소아 1 · 기타 1
+**분류별 모델 수**: 신경 42 · 내분비·대사 41 · 종양 41 · 소화기·간담도 31 · 심혈관 24 · 신장·비뇨 24 · 혈액 24 · 호흡기 17 · 자가면역·류마티스 17 · 희귀·유전 16 · 정신·신경 14 · 피부 12 · 혈관염 10 · 감염 10 · 안과 7 · 근골격·신경근육 7 · 부인·생식 5 · 면역결핍 1 · 알레르기 1 · 신생아·소아 1 · 기타 1
 
 | # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
 |---|------|------|----------|--------------|
@@ -468,6 +468,7 @@ qsp/
 | 343 | 희귀·유전 | [**X-연관 부신백질형성장애 (X-ALD)**<br><sub>X-linked Adrenoleukodystrophy · X-ALD</sub>](x-linked-adrenoleukodystrophy/) | <a href="x-linked-adrenoleukodystrophy/xald_qsp_model.svg"><img src="x-linked-adrenoleukodystrophy/xald_qsp_model.png" width="190" alt="xald"></a> | ABCD1 소실이라는 하나의 병변이 측정되는 VLCFA 축적과 측정되지 않는 이중안정 뇌염증 스위치라는 두 독립 변수를 만들어, 표지자를 고치는 약과 병을 고치는 약이 갈라지는 구조를 모델링.<br>[🗺️ 지도](x-linked-adrenoleukodystrophy/xald_qsp_model.svg) · [⚙️ mrgsolve](x-linked-adrenoleukodystrophy/xald_mrgsolve_model.R) · [📚 문헌](x-linked-adrenoleukodystrophy/xald_references.md) · [📄 README](x-linked-adrenoleukodystrophy/README.md) |
 | 344 | 신장·비뇨 | [**X-연관 저인산혈증 (XLH)**<br><sub>X-Linked Hypophosphatemia · PHEX gene Xp22.11 loss-of-function (X-linked dominant, ~20-30% de novo)</sub>](x-linked-hypophosphatemia/) | <a href="x-linked-hypophosphatemia/xlh_qsp_model.svg"><img src="x-linked-hypophosphatemia/xlh_qsp_model.png" width="190" alt="xlh"></a> | 가장 흔한 유전성 구루병/골연화증으로, PHEX 유전자(Xp22.11)의 기능소실 돌연변이에 의한 X-연관 우성 유전질환(약 20-30%는 de novo; ADHR은 FGF23 자체의 기능획득 변이, ARHR1/2는 각각 DMP1·ENPP1 기능소실, TIO는 중간엽 종양의 이상성 FGF23 분비로 유사 표현형을 유발).<br>[🗺️ 지도](x-linked-hypophosphatemia/xlh_qsp_model.svg) · [⚙️ mrgsolve](x-linked-hypophosphatemia/xlh_mrgsolve_model.R) · [📚 문헌](x-linked-hypophosphatemia/xlh_references.md) · [📄 README](x-linked-hypophosphatemia/README.md) |
 | 345 | 소화기·간담도 | [**졸링거-엘리슨 증후군 (가스트린종)**<br><sub>Zollinger-Ellison Syndrome · ZES</sub>](zollinger-ellison-syndrome/) | <a href="zollinger-ellison-syndrome/zes_qsp_model.svg"><img src="zollinger-ellison-syndrome/zes_qsp_model.png" width="190" alt="zes"></a> | 위산 분비량을 상태변수가 아니라 벽세포 질량 x 활성 펌프 분율 x 분비촉진 자극의 곱으로 기술하여, 고가스트린혈증이 1·3번 인자를 올리는데 모든 위산억제제는 2번만 건드린다는 비대칭에서 ZES의 고용량·짧은 투여간격 요구가 유도된다.<br>[🗺️ 지도](zollinger-ellison-syndrome/zes_qsp_model.svg) · [⚙️ mrgsolve](zollinger-ellison-syndrome/zes_mrgsolve_model.R) · [📚 문헌](zollinger-ellison-syndrome/zes_references.md) · [📄 README](zollinger-ellison-syndrome/README.md) |
+| 346 | 혈액 | [**유전성 출혈성 모세혈관확장증 (HHT)**<br><sub>Hereditary Haemorrhagic Telangiectasia · HHT</sub>](hereditary-hemorrhagic-telangiectasia/) | <a href="hereditary-hemorrhagic-telangiectasia/hht_qsp_model.svg"><img src="hereditary-hemorrhagic-telangiectasia/hht_qsp_model.png" width="190" alt="hht"></a> | 혈색소를 순 철공급과 출혈률의 비로 유도하여, 코피를 줄인 약이 임상의가 철을 줄이게 만들고 두 변화가 서로 상쇄되는 구조를 정량화한 모델.<br>[🗺️ 지도](hereditary-hemorrhagic-telangiectasia/hht_qsp_model.svg) · [⚙️ mrgsolve](hereditary-hemorrhagic-telangiectasia/hht_mrgsolve_model.R) · [📚 문헌](hereditary-hemorrhagic-telangiectasia/hht_references.md) · [📄 README](hereditary-hemorrhagic-telangiectasia/README.md) |
 
 ---
 
