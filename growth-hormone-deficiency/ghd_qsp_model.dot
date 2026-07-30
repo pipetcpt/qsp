@@ -1,0 +1,671 @@
+/* =====================================================================
+   Paediatric Growth Hormone Deficiency (GHD) — Mechanistic QSP Map
+   ---------------------------------------------------------------------
+   Organising principle: linear growth is NOT a state to be prescribed but
+   the OUTPUT of a cascade of gains, each of which can be broken
+   independently and each of which is a separate drug target:
+
+     hypothalamic drive (GHRH/SST/ghrelin oscillator)
+       x somatotroph secretory mass
+       x GH pharmacokinetics / free fraction (GHBP)
+       x GHR-JAK2-STAT5b transduction (SOCS2 brake)
+       x hepatic IGF-1 output and its BINDING state (IGFBP-3/ALS ternary)
+       x growth-plate responsiveness  x REMAINING proliferative reserve
+       = height velocity (cm/yr)
+
+   The last two terms are why the same mg/kg/wk buys 11 cm/yr in a 4-year-old
+   and 6 cm/yr in a 13-year-old: the multiplicand "remaining reserve" is a
+   consumable, and oestrogen spends it.
+
+   Render:
+     dot -Tsvg ghd_qsp_model.dot -o ghd_qsp_model.svg
+     dot -Tpng -Gdpi=150 ghd_qsp_model.dot -o ghd_qsp_model.png
+   ===================================================================== */
+
+digraph GHD_QSP {
+  rankdir=LR;
+  newrank=true;
+  fontname="Helvetica";
+  fontsize=11;
+  labelloc="t";
+  label=<<B>Paediatric Growth Hormone Deficiency (GHD) — Mechanistic QSP Map</B><BR/>Hypothalamic GHRH/SST oscillator → somatotroph → GH → GHR/JAK2/STAT5b → hepatic IGF-1 (ternary complex) → growth-plate chondrocyte engine → height velocity<BR/><FONT POINT-SIZE="10">Drug layer: daily somatropin · weekly long-acting GH (lonapegsomatropin / somatrogon / somapacitan) · mecasermin (rhIGF-1) · GnRH analogue · aromatase inhibitor · diagnostic secretagogues</FONT>>;
+  node [style="filled,rounded", shape=box, fontname="Helvetica", fontsize=9, color="#5b5b5b", penwidth=0.7];
+  edge [fontname="Helvetica", fontsize=7.5, color="#6b6b6b", arrowsize=0.6];
+  graph [nodesep=0.22, ranksep=0.60];
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_01 {
+    label="1. 유전·병인 (Genetic & Acquired Aetiology)"; style="filled"; color="#d8c6e6"; fillcolor="#f4eefa"; fontsize=11;
+    GH1 [label="GH1 (17q23)\ndeletion / dominant-negative\n(IGHD IA / II)", fillcolor="#ede0f7"];
+    GHRHR [label="GHRHR LoF\n(IGHD IB, consanguineous)", fillcolor="#ede0f7"];
+    POU1F1 [label="POU1F1 (Pit-1)\nGH+PRL+TSH deficiency", fillcolor="#ede0f7"];
+    PROP1 [label="PROP1\nevolving CPHD (+ACTH/LH/FSH)", fillcolor="#ede0f7"];
+    HESX1 [label="HESX1\nsepto-optic dysplasia", fillcolor="#ede0f7"];
+    LHX34 [label="LHX3 / LHX4\nrigid neck / Chiari", fillcolor="#ede0f7"];
+    SOX23 [label="SOX2 / SOX3\nanophthalmia / X-linked", fillcolor="#ede0f7"];
+    OTX2_GLI2 [label="OTX2 / GLI2 / ARNT2\nholoprosencephaly spectrum", fillcolor="#ede0f7"];
+    PSIS [label="Pituitary stalk interruption\nsyndrome (PSIS)\nectopic posterior lobe", fillcolor="#e3cdf4"];
+    CRANIO [label="Craniopharyngioma /\ngerminoma / glioma", fillcolor="#e3cdf4"];
+    XRT [label="Cranial irradiation\n(>18 Gy hypothalamus)\ndose- & time-dependent", fillcolor="#e3cdf4"];
+    TBI_HYPO [label="TBI / hypophysitis /\nhaemochromatosis-thalassaemia", fillcolor="#e3cdf4"];
+    IDIOP [label="Idiopathic isolated GHD\n(majority; MRI normal)", fillcolor="#e3cdf4"];
+    GHR_MUT [label="GHR LoF (Laron)\nSTAT5B / IGFALS / IGF1 /\nPAPPA2 mutation\n= GH INSENSITIVITY", fillcolor="#f7d4d4"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_02 {
+    label="2. 시상하부 조절 오실레이터 (Hypothalamic Oscillator)"; style="filled"; color="#bcd6ef"; fillcolor="#eaf3fb"; fontsize=11;
+    ARC_GHRH [label="Arcuate GHRH neurons", fillcolor="#d7e8f8"];
+    PeVN_SST [label="Periventricular\nsomatostatin (SST) neurons", fillcolor="#d7e8f8"];
+    GHRH_PORT [label="Portal GHRH\n(pulse generator)", fillcolor="#c3ddf5"];
+    SST_PORT [label="Portal somatostatin\n(trough generator)", fillcolor="#c3ddf5"];
+    RECIPROC [label="Reciprocal GHRH↔SST\nphase coupling\n→ 3–4 h interpulse interval", shape=octagon, fillcolor="#a9cdf0"];
+    GHREL [label="Gastric ghrelin\n(acyl-ghrelin, GOAT)", fillcolor="#d7e8f8"];
+    GHSR [label="GHS-R1a (Gq → IP3/Ca²⁺)\npulse amplifier", fillcolor="#d7e8f8"];
+    SWS [label="Slow-wave sleep\n(nocturnal surge, ~70% of\n24-h GH output)", fillcolor="#d7e8f8"];
+    EXERCISE [label="Exercise / stress\n(α2-adrenergic)", fillcolor="#d7e8f8"];
+    HYPOGLY [label="Hypoglycaemia\n(counter-regulatory)", fillcolor="#d7e8f8"];
+    FFA_INH [label="Elevated free fatty acids\n→ SST↑, GH secretion↓", fillcolor="#d7e8f8"];
+    OBESITY [label="Adiposity\n(functional GH hyposecretion —\ndiagnostic confounder)", fillcolor="#d7e8f8"];
+    LEPTIN_NPY [label="Leptin / NPY-AgRP\nnutritional gate", fillcolor="#d7e8f8"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_03 {
+    label="3. 뇌하수체 Somatotroph (Somatotroph Secretory Unit)"; style="filled"; color="#a8d8cc"; fillcolor="#e9f8f3"; fontsize=11;
+    GHRHR_GS [label="GHRH-R (Gs) → adenylate\ncyclase → cAMP → PKA", fillcolor="#d3f0e7"];
+    CREB_PIT1 [label="CREB → POU1F1 (Pit-1)\n→ GH1 transcription", fillcolor="#d3f0e7"];
+    SSTR25 [label="SSTR2 / SSTR5 (Gi)\n→ cAMP↓, K⁺ hyperpolarisation", fillcolor="#d3f0e7"];
+    CA_INFLUX [label="L-type Ca²⁺ influx\n→ granule exocytosis", fillcolor="#d3f0e7"];
+    GH_GRAN [label="Releasable GH\nsecretory granule pool", fillcolor="#bde7da"];
+    SOMATO_MASS [label="Somatotroph functional mass\n(≈50% of adenohypophysis;\nreduced/absent in CPHD, PSIS,\nprogressively lost post-XRT)", shape=octagon, fillcolor="#a2ddca"];
+    PULSE_AMP [label="Pulse amplitude\n(primary GHD defect)", fillcolor="#bde7da"];
+    PULSE_FREQ [label="Pulse frequency\n(6–10 pulses/24 h)", fillcolor="#bde7da"];
+    ISO_2022 [label="GH isoforms\n22 kDa (≈90%) / 20 kDa\n(assay heterogeneity)", fillcolor="#d3f0e7"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_04 {
+    label="4. GH 순환·결합·소실 (GH Disposition)"; style="filled"; color="#f0d2ac"; fillcolor="#fdf3e7"; fontsize=11;
+    GH_TOT [label="Plasma GH (total)", fillcolor="#fae5c8"];
+    GHBP [label="GHBP = shed GHR\nextracellular domain\n(binds ≈45–50% of GH)", fillcolor="#fae5c8"];
+    GH_FREE [label="FREE GH\n(the pharmacologically\nactive species)", shape=octagon, fillcolor="#f6cf9c"];
+    GH_PERIPH [label="Peripheral distribution\ncompartment", fillcolor="#fae5c8"];
+    CL_RECEPT [label="Receptor-mediated\n(saturable) clearance", fillcolor="#fae5c8"];
+    CL_RENAL [label="Renal / hepatic\nlinear clearance", fillcolor="#fae5c8"];
+    GH_T12 [label="Endogenous t½ ≈ 15–20 min;\nSC somatropin apparent\nt½ ≈ 2–4 h (flip-flop)", fillcolor="#fae5c8"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_05 {
+    label="5. GHR–JAK2–STAT5b 신호전달 (Transduction)"; style="filled"; color="#f3bcbc"; fillcolor="#fdeded"; fontsize=11;
+    GHR_DIM [label="GHR homodimerisation\n(site 1 + site 2;\nbell-shaped dose–response)", fillcolor="#fbd6d6"];
+    JAK2 [label="JAK2 trans-\nphosphorylation", fillcolor="#fbd6d6"];
+    STAT5B [label="STAT5b pY699\n→ dimer → nuclear import", shape=octagon, fillcolor="#f7b5b5"];
+    STAT13 [label="STAT1 / STAT3\n(secondary arms)", fillcolor="#fbd6d6"];
+    SHC_MAPK [label="SHC–GRB2–ERK1/2\n(proliferative arm)", fillcolor="#fbd6d6"];
+    PI3K_AKT [label="IRS-1–PI3K–AKT\n(metabolic arm)", fillcolor="#fbd6d6"];
+    GAS_IGF1 [label="GAS elements in IGF1,\nIGFBP3, IGFALS, SOCS2\npromoters", fillcolor="#fbd6d6"];
+    SOCS2 [label="SOCS2 / CIS\nfeedback brake\n(SOCS2⁻/⁻ = gigantism)", shape=octagon, fillcolor="#f7b5b5"];
+    SHP1_PTP1B [label="SHP-1 / PTP1B\ndephosphorylation", fillcolor="#fbd6d6"];
+    GHR_DOWN [label="Ligand-induced GHR\ninternalisation / down-\nregulation (ubiquitin, γ-secretase)", fillcolor="#fbd6d6"];
+    GHR_ISO [label="GHR exon-3-deleted (d3-GHR)\npolymorphism\n→ response modifier", fillcolor="#fbd6d6"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_06 {
+    label="6. IGF 시스템 및 결합 상태 (IGF System — Binding State Sets Bioactivity)"; style="filled"; color="#c9dfa8"; fillcolor="#f2f8e8"; fontsize=11;
+    IGF1_HEP [label="Hepatic IGF-1 synthesis\n(≈75% of circulating pool)", fillcolor="#e2eecd"];
+    IGF1_TOT [label="Serum total IGF-1\n(SDS = primary titration\nbiomarker)", shape=octagon, fillcolor="#cfe3ae"];
+    IGFBP3 [label="IGFBP-3\n(GH-dependent, 2–4 mg/L)", fillcolor="#e2eecd"];
+    ALS [label="Acid-labile subunit (IGFALS)", fillcolor="#e2eecd"];
+    TERNARY [label="150-kDa TERNARY complex\nIGF-1·IGFBP-3·ALS\n→ t½ 12–15 h (vs 10 min free)", shape=octagon, fillcolor="#cfe3ae"];
+    BINARY [label="50-kDa binary complexes\n(IGFBP-1,-2,-4,-5,-6)", fillcolor="#e2eecd"];
+    IGFBP1 [label="IGFBP-1\n(insulin-suppressed;\nfasting → free IGF-1↓)", fillcolor="#e2eecd"];
+    IGFBP2 [label="IGFBP-2", fillcolor="#e2eecd"];
+    PAPPA2 [label="PAPP-A2 protease\n(liberates free IGF-1;\nLoF → high total/low free)", fillcolor="#e2eecd"];
+    FREE_IGF1 [label="FREE (bioactive) IGF-1\n≈0.2–1% of total", shape=octagon, fillcolor="#bdd894"];
+    IGF1R [label="IGF-1R (β-subunit\nautophosphorylation)", fillcolor="#e2eecd"];
+    IRS1_AKT [label="IRS-1 → PI3K/AKT/mTOR\n+ ERK1/2", fillcolor="#e2eecd"];
+    IGF2_M6P [label="IGF-2 / IGF-2R (M6P)\nclearance receptor", fillcolor="#e2eecd"];
+    IGF1_LOCAL [label="Paracrine growth-plate IGF-1\n(GH-induced, local)", fillcolor="#cfe3ae"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_07 {
+    label="7. 성장판 연골세포 엔진 (Growth-Plate Chondrocyte Engine)"; style="filled"; color="#a9c9e8"; fillcolor="#ecf4fc"; fontsize=11;
+    RZ [label="Resting (stem-like) zone\n— FINITE proliferative reserve\n(GH acts DIRECTLY here:\ndual-effector hypothesis)", shape=octagon, fillcolor="#c6dcf4"];
+    PZ [label="Proliferative zone\nclonal columns\n(IGF-1-driven cell cycling)", shape=octagon, fillcolor="#c6dcf4"];
+    PREHYP [label="Prehypertrophic zone\n(IHH expression)", fillcolor="#dceafa"];
+    HZ [label="Hypertrophic zone\ncell volume enlargement\n(≈60–80% of elongation)", shape=octagon, fillcolor="#c6dcf4"];
+    IHH [label="Indian hedgehog (IHH)", fillcolor="#dceafa"];
+    PTHRP [label="PTHrP / PTH1R\n(IHH–PTHrP negative loop\nsets column length)", fillcolor="#dceafa"];
+    FGFR3 [label="FGF18–FGFR3\nBRAKE on proliferation\n(GoF = achondroplasia)", fillcolor="#dceafa"];
+    CNP [label="CNP (NPPC) – NPR2 – cGMP\nMAPK brake-release", fillcolor="#dceafa"];
+    SOX9 [label="SOX9 (chondrogenic\nmaster regulator)", fillcolor="#dceafa"];
+    RUNX2_MEF2C [label="RUNX2 / MEF2C\nhypertrophic commitment", fillcolor="#dceafa"];
+    COL10 [label="COL10A1 / MMP13 /\nVEGF-A", fillcolor="#dceafa"];
+    VASC_INV [label="Metaphyseal vascular\ninvasion → primary spongiosa", fillcolor="#dceafa"];
+    SENESC [label="Growth-plate senescence\n(reserve consumed by each\nreplicative cycle)", shape=octagon, fillcolor="#b3d2f0"];
+    FUSION [label="Epiphyseal fusion\n(oestrogen-driven;\ngrowth STOPS — irreversible)", shape=doubleoctagon, fillcolor="#9cc6ec"];
+    CATCHUP [label="Catch-up growth capacity\n= unspent reserve\n(why year-1 HV > year-3 HV)", shape=octagon, fillcolor="#b3d2f0"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_08 {
+    label="8. 뼈·미네랄 (Bone & Mineral)"; style="filled"; color="#dccfa8"; fillcolor="#f8f4e8"; fontsize=11;
+    OSTEOBLAST [label="Osteoblast\n(IGF-1-dependent)", fillcolor="#efe6c9"];
+    OSTEOCLAST [label="Osteoclast\n(coupled remodelling)", fillcolor="#efe6c9"];
+    RANKL_OPG [label="RANKL / OPG ratio", fillcolor="#efe6c9"];
+    P1NP_ALP [label="P1NP · osteocalcin · bone ALP\n(bone-formation markers\nrise within weeks of rhGH)", fillcolor="#efe6c9"];
+    REMOD_TRANS [label="Remodelling transient:\nBMD may DIP in months 0–6\nbefore net gain", fillcolor="#efe6c9"];
+    BMD [label="Bone mineral density /\ncontent Z-score", shape=octagon, fillcolor="#e6d9ae"];
+    CORT_THICK [label="Cortical thickness /\nperiosteal apposition", fillcolor="#efe6c9"];
+    PEAK_BONE [label="Peak bone mass\n(fracture risk in later life)", fillcolor="#efe6c9"];
+    SCFE [label="Slipped capital femoral\nepiphysis (physeal shear)", fillcolor="#f7d4d4"];
+    SCOLIO [label="Scoliosis progression\nduring rapid growth", fillcolor="#f7d4d4"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_09 {
+    label="9. 사춘기 축과 오에스트로겐 (Puberty & the Oestrogen Clock)"; style="filled"; color="#eec3dc"; fillcolor="#fdeff7"; fontsize=11;
+    KNDY [label="KNDy neurons\nkisspeptin / NKB / dynorphin", fillcolor="#f9dbec"];
+    MKRN3 [label="MKRN3 brake\n(LoF → central precocious puberty)", fillcolor="#f9dbec"];
+    GNRH_PULSE [label="GnRH pulse generator\n(reactivation)", shape=octagon, fillcolor="#f5c9e2"];
+    LH_FSH [label="LH / FSH", fillcolor="#f9dbec"];
+    GONAD [label="Testis (Leydig) /\novary (granulosa)", fillcolor="#f9dbec"];
+    TESTO [label="Testosterone\n(boys)", fillcolor="#f9dbec"];
+    AROM [label="Aromatase (CYP19A1)\nT → E2 conversion", shape=octagon, fillcolor="#f5c9e2"];
+    E2 [label="Oestradiol (E2)\nBIPHASIC: low → growth spurt;\nhigh/cumulative → fusion", shape=doubleoctagon, fillcolor="#f0b6d8"];
+    ERA [label="ERα (ESR1) in growth plate\n(aromatase- or ERα-null man\n= never-fusing plate, tall)", fillcolor="#f9dbec"];
+    SPURT [label="Pubertal growth spurt\n(E2 amplifies GH pulse\namplitude 2–3×)", fillcolor="#f9dbec"];
+    ADREN [label="Adrenarche / DHEAS\n(minor growth contribution)", fillcolor="#f9dbec"];
+    HYPOGON [label="Co-existing hypogonadotrophic\nhypogonadism in CPHD\n(no spurt without sex steroid)", fillcolor="#f9dbec"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_10 {
+    label="10. 체성분·중간대사 (Body Composition & Intermediary Metabolism)"; style="filled"; color="#bfd8d3"; fillcolor="#eef6f4"; fontsize=11;
+    LIPOLYSIS [label="Adipocyte HSL / ATGL\nlipolysis (direct GH effect)", fillcolor="#d9eae6"];
+    FFA_FLUX [label="Plasma FFA / glycerol flux", fillcolor="#d9eae6"];
+    FAT_MASS [label="Fat mass (kg, %)\n↓3–5% in year 1", shape=octagon, fillcolor="#c8e0da"];
+    LEAN_MASS [label="Lean body mass\n(IGF-1/AKT/mTOR\nprotein synthesis)", shape=octagon, fillcolor="#c8e0da"];
+    HEP_GNG [label="Hepatic gluconeogenesis\n/ glycogenolysis↑", fillcolor="#d9eae6"];
+    INS_RES [label="GH-induced insulin\nresistance (Randle / PKCε,\np85 competition)", shape=octagon, fillcolor="#c8e0da"];
+    FAST_INS [label="Fasting insulin ↑30–50%\nHOMA-IR ↑", fillcolor="#d9eae6"];
+    GLUCOSE [label="Fasting glucose\n(usually compensated;\nHbA1c stable)", fillcolor="#d9eae6"];
+    HYPOGLY_INF [label="Infantile hypoglycaemia\n(neonatal GHD ± ACTH\ndeficiency) — resolves on rhGH", fillcolor="#d9eae6"];
+    LIPIDS [label="LDL-C ↓ · HDL-C ↑\n(cardiovascular surrogate)", fillcolor="#d9eae6"];
+    REE [label="Resting energy\nexpenditure ↑", fillcolor="#d9eae6"];
+    NA_RETENTION [label="Renal Na⁺/water retention\n(oedema, carpal tunnel —\nmainly adult phenotype)", fillcolor="#d9eae6"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_11 {
+    label="11. 다른 뇌하수체 축과의 상호작용 (Cross-Axis Interactions)"; style="filled"; color="#cfc4e0"; fillcolor="#f2eff8"; fontsize=11;
+    D2_DEIOD [label="GH/IGF-1 ↑ type-2 deiodinase\n(T4 → T3)", fillcolor="#e3ddf1"];
+    FT4_FALL [label="Free T4 falls after starting rhGH\n→ UNMASKS central\nhypothyroidism", shape=octagon, fillcolor="#d7cfeb"];
+    THYROID_RX [label="Levothyroxine required to\nrealise growth response", fillcolor="#e3ddf1"];
+    HSD11B [label="GH ↓ 11β-HSD1 (cortisol\nregeneration) / shifts\ncortisol→cortisone", fillcolor="#e3ddf1"];
+    ADRENAL_UNMASK [label="Unmasked central adrenal\ninsufficiency → hydrocortisone\ndose review", shape=octagon, fillcolor="#d7cfeb"];
+    GC_SUPPRESS [label="Supraphysiological\nglucocorticoid = potent\nGROWTH SUPPRESSOR\n(GHR/IGF-1R post-receptor block)", fillcolor="#f7d4d4"];
+    PRL_ADH [label="Prolactin / ADH deficiency\n(CPHD completeness)", fillcolor="#e3ddf1"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_12 {
+    label="12. 약물 PK — 일일 소마트로핀 (Daily Somatropin PK)"; style="filled"; color="#9fc7ea"; fillcolor="#e9f2fb"; fontsize=11;
+    SC_DEPOT_D [label="SC depot (thigh/abdomen,\nsite rotation)", fillcolor="#cfe1f6"];
+    KA_D [label="ka ≈ 0.3–0.5 h⁻¹\nTmax 3–6 h", fillcolor="#cfe1f6"];
+    DOSE_D [label="0.025–0.035 mg/kg/day\n(= 0.16–0.24 mg/kg/wk;\nhigher in Turner/SGA/ISS)", fillcolor="#b9d4f2"];
+    CL_D [label="CL/F ≈ 130–200 mL/min/m²\nV/F ≈ 12 L/70 kg", fillcolor="#cfe1f6"];
+    FLIPFLOP [label="Absorption-rate-limited\n(flip-flop) disposition", fillcolor="#cfe1f6"];
+    DAILY_PROF [label="One supraphysiological peak\nper 24 h — mimics the\nnocturnal surge", fillcolor="#cfe1f6"];
+    ADHERE [label="Adherence decay\n(≈25–70% suboptimal;\ncosts 1–2 cm/yr)", fillcolor="#f7d4d4"];
+    DEVICE [label="Pen/auto-injector,\nneedle-free, e-device\nadherence tracking", fillcolor="#cfe1f6"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_13 {
+    label="13. 약물 PK — 주 1회 지속형 GH (Weekly Long-Acting GH)"; style="filled"; color="#8fbfe0"; fillcolor="#e4eff9"; fontsize=11;
+    LONAPEG [label="Lonapegsomatropin\n(TransCon: inert PEG carrier +\nautohydrolysing linker →\nreleases UNMODIFIED hGH)\n0.24 mg hGH/kg/wk", fillcolor="#c2dcf3"];
+    SOMATROGON [label="Somatrogon\n(hGH + 3× hCG C-terminal\npeptide; t½ ≈ 28–30 h)\n0.66 mg/kg/wk", fillcolor="#c2dcf3"];
+    SOMAPACITAN [label="Somapacitan\n(reversible non-covalent\nalbumin binding)\n0.16 mg/kg/wk", fillcolor="#c2dcf3"];
+    EFPEG [label="Efpegsomatropin /\nPEG-, Fc-, XTEN-fusion\nclass alternatives", fillcolor="#c2dcf3"];
+    RELEASE_K [label="Carrier→active release\n(rate-limiting step;\nprodrug ≫ active exposure)", shape=octagon, fillcolor="#a9cdec"];
+    PEAKTROUGH [label="Non-physiological\nGH peak:trough within week\n(sustained receptor occupancy)", fillcolor="#c2dcf3"];
+    IGF1_SWING [label="IGF-1 SDS swings within\ndosing interval:\npeak day 2–4, trough day 7\n→ SAMPLING TIME MATTERS", shape=octagon, fillcolor="#a9cdec"];
+    NONINF [label="Phase 3 non-inferiority on\nannualised HV (heiGHt, REAL4,\nsomatrogon global trial)", fillcolor="#c2dcf3"];
+    BURDEN [label="Injection burden 365→52/yr\n→ adherence & HRQoL gain", fillcolor="#c2dcf3"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_14 {
+    label="14. 약물 PK/PD — 메카세르민 rhIGF-1 (GH Insensitivity)"; style="filled"; color="#e8bfa0"; fillcolor="#fbefe4"; fontsize=11;
+    MECASERMIN [label="Mecasermin (rhIGF-1)\n40–120 µg/kg BID SC\nwith food", fillcolor="#f5dcc6"];
+    MECA_PK [label="Rapid absorption; t½ short\nunless complexed —\nno endogenous IGFBP-3/ALS\nreserve in Laron", fillcolor="#f5dcc6"];
+    MECA_HYPO [label="Hypoglycaemia\n(insulin-receptor cross-\nreactivity) — dose-limiting", fillcolor="#f7d4d4"];
+    MECA_TONSIL [label="Tonsillar/adenoid hypertrophy,\nlymphoid overgrowth", fillcolor="#f7d4d4"];
+    MECA_HV [label="Year-1 HV ≈ 8–9 cm/yr\n(less than rhGH in GHD —\nno direct growth-plate GH effect)", fillcolor="#f5dcc6"];
+    RHIGFBP3 [label="rhIGF-1/rhIGFBP-3 complex\n(investigational)", fillcolor="#f5dcc6"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_15 {
+    label="15. 보조·병용 약물 (Adjuvant Pharmacology)"; style="filled"; color="#d9c8b0"; fillcolor="#f7f2ea"; fontsize=11;
+    GNRHA [label="GnRH analogue (leuprolide\ndepot / triptorelin):\nsuppress pulse generator →\nBUY GROWING TIME", fillcolor="#ece0cd"];
+    AROMINH [label="Aromatase inhibitor\n(anastrozole 1 mg/d,\nletrozole 2.5 mg/d) — boys:\nblock T→E2, slow fusion", fillcolor="#ece0cd"];
+    OXAND [label="Oxandrolone\n(non-aromatisable androgen,\nTurner adjunct)", fillcolor="#ece0cd"];
+    MACIMOR [label="Macimorelin (oral GHS-R1a\nagonist) — DIAGNOSTIC", fillcolor="#ece0cd"];
+    SEX_PRIME [label="Low-dose sex-steroid priming\nbefore provocation testing\n(reduces false-positive GHD)", fillcolor="#ece0cd"];
+    NPR2_AGON [label="CNP analogue (vosoritide)\n— FGFR3-brake bypass\n(achondroplasia; adjacent class)", fillcolor="#ece0cd"];
+    GC_TAPER [label="Glucocorticoid minimisation\n(< growth-suppressive\nthreshold)", fillcolor="#ece0cd"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_16 {
+    label="16. 진단 검사 (Diagnostic Cascade)"; style="filled"; color="#c2c2c2"; fillcolor="#f0f0f0"; fontsize=11;
+    HV_6_12 [label="Height velocity over\n6–12 months (< −1 SD)", fillcolor="#dedede"];
+    HTSDS_SCREEN [label="Height SDS < −2, or\n> 1.5 SDS below\nmid-parental target", fillcolor="#dedede"];
+    IGF1_SDS_DX [label="IGF-1 SDS / IGFBP-3 SDS\n(age- & puberty-referenced;\nnormal does NOT exclude)", fillcolor="#dedede"];
+    PROVOC [label="GH provocation:\narginine · clonidine ·\nglucagon · insulin tolerance", fillcolor="#dedede"];
+    CUTOFF [label="Peak GH cut-off 7–10 µg/L\n— ASSAY- and standard-\ndependent (IS 98/574),\npoor reproducibility", shape=octagon, fillcolor="#cfcfcf"];
+    MRI [label="Pituitary MRI\n(hypoplasia, ectopic\nposterior lobe, tumour)", fillcolor="#dedede"];
+    BONEAGE [label="Bone age (Greulich-Pyle /\nTanner-Whitehouse)\n→ predicted adult height", fillcolor="#dedede"];
+    GENETIC_DX [label="Gene panel / WES\n(GH1, GHRHR, POU1F1,\nGHR, STAT5B, PAPPA2…)", fillcolor="#dedede"];
+    IGF1_GEN_TEST [label="IGF-1 generation test\n(distinguishes GH insensitivity)", fillcolor="#dedede"];
+    RETEST [label="Retesting at transition\n(≈70% of idiopathic isolated\nGHD normalise)", fillcolor="#dedede"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_17 {
+    label="17. 임상 엔드포인트 (Clinical Endpoints)"; style="filled"; color="#a8dcc0"; fillcolor="#eaf9f0"; fontsize=11;
+    HV_CM [label="Annualised height velocity\n(cm/yr) — PRIMARY\nregistration endpoint", shape=octagon, fillcolor="#c5ebd6"];
+    HTSDS [label="Height SDS", shape=octagon, fillcolor="#c5ebd6"];
+    DHTSDS1 [label="ΔHeight SDS year 1\n(≈ +0.6 to +0.8)", fillcolor="#d7f2e3"];
+    NAH [label="Near-adult height (NAH)\n— the endpoint that matters\nto the patient", shape=doubleoctagon, fillcolor="#aee0c4"];
+    MPH [label="Mid-parental (target)\nheight SDS", fillcolor="#d7f2e3"];
+    PAH_GAIN [label="Predicted-adult-height gain\n(bone-age-based)", fillcolor="#d7f2e3"];
+    BA_CA [label="Bone age / chronological\nage ratio (excess advance\nsteals final height)", fillcolor="#d7f2e3"];
+    HRQOL [label="HRQoL / QoLISSY,\ninjection-burden score", fillcolor="#d7f2e3"];
+    BODYCOMP_EP [label="Body-composition and\nlipid endpoints", fillcolor="#d7f2e3"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_18 {
+    label="18. 안전성·이상반응 (Safety & Monitoring)"; style="filled"; color="#eeb0b0"; fillcolor="#fdeaea"; fontsize=11;
+    IGF1_CAP [label="IGF-1 SDS > +2\n→ mandatory dose reduction", shape=octagon, fillcolor="#f9cfcf"];
+    BIH [label="Benign intracranial\nhypertension (CSF/Na⁺-water\nshift; early, dose-related)", fillcolor="#f9cfcf"];
+    IR_T2DM [label="Insulin resistance →\nT2DM (rare; risk if obese/\nTurner/Prader-Willi)", fillcolor="#f9cfcf"];
+    ADA [label="Anti-drug antibodies\n(rarely neutralising →\ngrowth attenuation)", fillcolor="#f9cfcf"];
+    INJ_SITE [label="Injection-site reaction /\nlipoatrophy (higher with\nsome LAGH)", fillcolor="#f9cfcf"];
+    APNOEA_PWS [label="Airway/OSA worsening\n(Prader-Willi, adenotonsillar\nhypertrophy)", fillcolor="#f9cfcf"];
+    NEOPLASIA [label="Second-neoplasm / recurrence\nsurveillance in cancer\nsurvivors", fillcolor="#f9cfcf"];
+    SAGHE [label="Long-term safety cohorts\n(SAGhE, KIGS, NordiNet,\nGeNeSIS)", fillcolor="#f9cfcf"];
+    HIP_PAIN [label="Hip/knee pain → screen SCFE", fillcolor="#f9cfcf"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_19 {
+    label="19. 반응 예측 인자 (Response Predictors — KIGS-type Covariates)"; style="filled"; color="#c9b8e0"; fillcolor="#f1ecf8"; fontsize=11;
+    AGE_START [label="Age at initiation\n(younger = larger ΔHtSDS —\nthe dominant modifiable factor)", shape=octagon, fillcolor="#ded2ef"];
+    DOSE_RESP [label="Dose (mg/kg/wk)\nlog-linear on year-1 HV", fillcolor="#ded2ef"];
+    GH_PEAK_PRED [label="Lower peak GH on provocation\n= more severe = LARGER\ntreatment response", fillcolor="#ded2ef"];
+    HT_DEFICIT [label="Height deficit vs\nmid-parental target\n(= unspent catch-up reserve)", fillcolor="#ded2ef"];
+    BIRTHWT [label="Birth weight / SGA status", fillcolor="#ded2ef"];
+    WEIGHT_SDS [label="Weight SDS at start", fillcolor="#ded2ef"];
+    D3GHR_PRED [label="d3-GHR genotype,\nIGFBP-3 promoter variants", fillcolor="#ded2ef"];
+    FIRSTYR_PRED [label="First-year response predicts\nlong-term outcome\n(index of responsiveness)", fillcolor="#ded2ef"];
+    KIGS_MODEL [label="KIGS / Ranke prediction\nmodels & Cologne\nresponsiveness score", fillcolor="#ded2ef"];
+  }
+
+  /* ---------------------------------------------------------------- */
+  subgraph cluster_20 {
+    label="20. 전환기·평생 관리 (Transition & Adult GHD)"; style="filled"; color="#b8cfc0"; fillcolor="#eef5f0"; fontsize=11;
+    STOP_CRITERIA [label="Stop paediatric dosing:\nHV < 2 cm/yr, bone age\n≈14 (girls)/16 (boys)", fillcolor="#d5e7db"];
+    RETEST_TRANS [label="Retest GH axis after\n≥1-month washout", fillcolor="#d5e7db"];
+    ADULT_GHD [label="Persistent adult GHD\n(low dose 0.2–0.4 mg/day,\nIGF-1-titrated)", fillcolor="#d5e7db"];
+    ADULT_PHENO [label="Adult phenotype: central\nadiposity, ↓lean mass,\n↓BMD, dyslipidaemia,\n↓QoL, ↑CV risk", fillcolor="#d5e7db"];
+    METAB_LEGACY [label="Cardio-metabolic legacy of\nuntreated childhood GHD", fillcolor="#d5e7db"];
+    TRANSITION_CARE [label="Structured paediatric→adult\nendocrine transition", fillcolor="#d5e7db"];
+  }
+
+  /* ================================================================
+     EDGES
+     ================================================================ */
+
+  /* --- 1 → 2/3: aetiology sets where the lesion is ---------------- */
+  GHRHR -> GHRHR_GS [label="no ligand response", color="#b03030"];
+  GH1 -> CREB_PIT1 [label="no/abnormal product", color="#b03030"];
+  POU1F1 -> CREB_PIT1 [label="TF loss", color="#b03030"];
+  PROP1 -> POU1F1 [label="upstream of Pit-1"];
+  HESX1 -> SOMATO_MASS [label="hypoplasia", color="#b03030"];
+  LHX34 -> SOMATO_MASS [color="#b03030"];
+  SOX23 -> SOMATO_MASS [color="#b03030"];
+  OTX2_GLI2 -> SOMATO_MASS [color="#b03030"];
+  PSIS -> GHRH_PORT [label="portal delivery lost", color="#b03030"];
+  PSIS -> SOMATO_MASS [color="#b03030"];
+  CRANIO -> SOMATO_MASS [color="#b03030"];
+  XRT -> SOMATO_MASS [label="progressive, dose-\nand time-dependent", color="#b03030"];
+  XRT -> ARC_GHRH [label="hypothalamic\nneuronal loss", color="#b03030"];
+  TBI_HYPO -> SOMATO_MASS [color="#b03030"];
+  IDIOP -> PULSE_AMP [label="amplitude-selective\ndysregulation", color="#b03030"];
+  PROP1 -> HYPOGON [label="evolving LH/FSH loss"];
+  PROP1 -> PRL_ADH;
+  POU1F1 -> PRL_ADH;
+  GHR_MUT -> GHR_DIM [label="receptor/post-receptor\nblock", color="#b03030"];
+  GHR_MUT -> STAT5B [color="#b03030"];
+  GHR_MUT -> ALS [label="IGFALS LoF"];
+  GHR_MUT -> PAPPA2 [label="PAPPA2 LoF"];
+
+  /* --- 2: hypothalamic oscillator --------------------------------- */
+  ARC_GHRH -> GHRH_PORT;
+  PeVN_SST -> SST_PORT;
+  GHRH_PORT -> RECIPROC;
+  SST_PORT -> RECIPROC;
+  RECIPROC -> PULSE_FREQ [label="sets interpulse\ninterval"];
+  GHREL -> GHSR;
+  GHSR -> ARC_GHRH [label="NPY/GHRH\namplification"];
+  GHSR -> CA_INFLUX [label="direct somatotroph\nGq signalling"];
+  SWS -> ARC_GHRH [label="+"];
+  SWS -> PeVN_SST [label="−", style=dashed, color="#2f6f9f"];
+  EXERCISE -> ARC_GHRH [label="+"];
+  HYPOGLY -> ARC_GHRH [label="+"];
+  HYPOGLY -> GHREL [label="+"];
+  FFA_INH -> PeVN_SST [label="+"];
+  FFA_INH -> GHRHR_GS [label="−", style=dashed, color="#2f6f9f"];
+  OBESITY -> FFA_INH;
+  OBESITY -> PULSE_AMP [label="functional\nhyposecretion", style=dashed, color="#2f6f9f"];
+  LEPTIN_NPY -> ARC_GHRH;
+  LEPTIN_NPY -> GHREL [label="reciprocal"];
+
+  /* --- 3: somatotroph -------------------------------------------- */
+  GHRH_PORT -> GHRHR_GS;
+  GHRHR_GS -> CREB_PIT1;
+  GHRHR_GS -> CA_INFLUX;
+  CREB_PIT1 -> GH_GRAN [label="GH1 mRNA →\ngranule filling"];
+  CREB_PIT1 -> SOMATO_MASS [label="trophic\n(hyperplasia)"];
+  SST_PORT -> SSTR25;
+  SSTR25 -> GHRHR_GS [label="cAMP↓", style=dashed, color="#2f6f9f"];
+  SSTR25 -> CA_INFLUX [label="hyperpolarise", style=dashed, color="#2f6f9f"];
+  CA_INFLUX -> GH_GRAN [label="exocytosis"];
+  GH_GRAN -> PULSE_AMP;
+  SOMATO_MASS -> PULSE_AMP [label="capacity term"];
+  SOMATO_MASS -> GH_GRAN;
+  PULSE_AMP -> GH_TOT;
+  PULSE_FREQ -> GH_TOT;
+  ISO_2022 -> GH_TOT [label="assay-dependent\nquantitation"];
+
+  /* --- 4: disposition -------------------------------------------- */
+  GH_TOT -> GH_FREE [label="1 − bound fraction"];
+  GHBP -> GH_FREE [label="sequestration\n(buffer + reservoir)", style=dashed, color="#2f6f9f"];
+  GH_TOT -> GH_PERIPH [label="Q"];
+  GH_PERIPH -> GH_TOT;
+  GH_FREE -> CL_RECEPT [label="target-mediated\ndisposition"];
+  GH_TOT -> CL_RENAL;
+  CL_RECEPT -> GH_T12;
+  CL_RENAL -> GH_T12;
+  GHR_DOWN -> GHBP [label="ECD shedding"];
+
+  /* --- 5: transduction ------------------------------------------- */
+  GH_FREE -> GHR_DIM [label="site1+site2\noccupancy"];
+  GHR_DIM -> JAK2;
+  JAK2 -> STAT5B;
+  JAK2 -> STAT13;
+  JAK2 -> SHC_MAPK;
+  JAK2 -> PI3K_AKT;
+  STAT5B -> GAS_IGF1;
+  GAS_IGF1 -> IGF1_HEP [label="IGF1 transcription"];
+  GAS_IGF1 -> IGFBP3;
+  GAS_IGF1 -> ALS;
+  GAS_IGF1 -> SOCS2;
+  SOCS2 -> JAK2 [label="− brake", style=dashed, color="#2f6f9f"];
+  SOCS2 -> GHR_DOWN [label="ubiquitin-directed\nturnover"];
+  SHP1_PTP1B -> STAT5B [label="−", style=dashed, color="#2f6f9f"];
+  GHR_DIM -> GHR_DOWN;
+  GHR_DOWN -> GHR_DIM [label="fewer receptors", style=dashed, color="#2f6f9f"];
+  GHR_ISO -> GHR_DIM [label="signalling\nefficiency modifier"];
+  SHC_MAPK -> RZ [label="direct growth-plate\nGH action"];
+  PI3K_AKT -> LIPOLYSIS;
+  PI3K_AKT -> INS_RES [label="p85 competition /\nPKCε", color="#b03030"];
+
+  /* --- 6: IGF system --------------------------------------------- */
+  IGF1_HEP -> IGF1_TOT;
+  IGF1_TOT -> TERNARY;
+  IGFBP3 -> TERNARY;
+  ALS -> TERNARY;
+  TERNARY -> IGF1_TOT [label="t½ 12–15 h\n= the serum reservoir"];
+  IGF1_TOT -> BINARY;
+  IGFBP1 -> BINARY;
+  IGFBP2 -> BINARY;
+  FAST_INS -> IGFBP1 [label="insulin suppresses\nIGFBP-1", style=dashed, color="#2f6f9f"];
+  TERNARY -> FREE_IGF1 [label="dissociation"];
+  BINARY -> FREE_IGF1 [label="dissociation"];
+  PAPPA2 -> FREE_IGF1 [label="proteolytic\nliberation"];
+  IGF1_TOT -> FREE_IGF1;
+  FREE_IGF1 -> IGF1R;
+  IGF1R -> IRS1_AKT;
+  IGF2_M6P -> FREE_IGF1 [label="clearance", style=dashed, color="#2f6f9f"];
+  GAS_IGF1 -> IGF1_LOCAL [label="local autocrine/\nparacrine induction"];
+  IGF1_LOCAL -> PZ;
+  IRS1_AKT -> PZ [label="cell-cycle entry"];
+  IRS1_AKT -> LEAN_MASS;
+  IRS1_AKT -> OSTEOBLAST;
+  FREE_IGF1 -> ARC_GHRH [label="long-loop −", style=dashed, color="#2f6f9f"];
+  FREE_IGF1 -> PeVN_SST [label="long-loop +\n(SST drive)"];
+  GH_FREE -> PeVN_SST [label="short-loop\nautofeedback"];
+
+  /* --- 7: growth plate engine ------------------------------------ */
+  RZ -> PZ [label="recruitment"];
+  PZ -> PREHYP;
+  PREHYP -> HZ;
+  PREHYP -> IHH;
+  IHH -> PTHRP [label="perichondrial\nrelay"];
+  PTHRP -> PZ [label="keeps cells\nproliferating (+)"];
+  PTHRP -> PREHYP [label="delays hypertrophic\ncommitment −", style=dashed, color="#2f6f9f"];
+  IHH -> PZ [label="+ proliferation"];
+  FGFR3 -> PZ [label="− brake", style=dashed, color="#2f6f9f"];
+  CNP -> FGFR3 [label="− antagonises MAPK", style=dashed, color="#2f6f9f"];
+  CNP -> HZ [label="+ hypertrophy"];
+  SOX9 -> PZ;
+  RUNX2_MEF2C -> HZ;
+  HZ -> COL10;
+  COL10 -> VASC_INV;
+  VASC_INV -> HV_CM [label="ossification →\nbone elongation"];
+  HZ -> HV_CM [label="dominant term:\ncell-volume × flux", penwidth=1.6, color="#1f5f8f"];
+  PZ -> HV_CM [label="column flux", penwidth=1.2, color="#1f5f8f"];
+  PZ -> SENESC [label="each replicative\ncycle spends reserve", color="#b03030"];
+  SENESC -> RZ [label="reserve depletion", style=dashed, color="#b03030"];
+  RZ -> CATCHUP [label="unspent reserve"];
+  CATCHUP -> HV_CM [label="supranormal HV\nwhile deficit persists", penwidth=1.4, color="#1f8f5f"];
+  SENESC -> FUSION;
+  FUSION -> HV_CM [label="growth ends", color="#b03030", style=dashed];
+  FUSION -> NAH [label="final height locked in", penwidth=1.4];
+
+  /* --- 8: bone --------------------------------------------------- */
+  OSTEOBLAST -> P1NP_ALP;
+  OSTEOCLAST -> RANKL_OPG [dir=back];
+  OSTEOBLAST -> RANKL_OPG;
+  RANKL_OPG -> OSTEOCLAST;
+  P1NP_ALP -> REMOD_TRANS;
+  REMOD_TRANS -> BMD [label="early dip,\nlater net gain"];
+  OSTEOBLAST -> BMD;
+  OSTEOCLAST -> BMD [label="−", style=dashed, color="#2f6f9f"];
+  BMD -> CORT_THICK;
+  CORT_THICK -> PEAK_BONE;
+  BMD -> PEAK_BONE;
+  HV_CM -> SCFE [label="rapid growth +\nphyseal shear", color="#b03030"];
+  HV_CM -> SCOLIO [label="curve progression\nrisk", color="#b03030"];
+  E2 -> BMD [label="pubertal mineral\naccrual"];
+
+  /* --- 9: puberty & oestrogen clock ------------------------------ */
+  KNDY -> GNRH_PULSE;
+  MKRN3 -> KNDY [label="− brake", style=dashed, color="#2f6f9f"];
+  FAT_MASS -> KNDY [label="leptin permissive"];
+  BONEAGE -> GNRH_PULSE [label="maturational\ntiming"];
+  GNRH_PULSE -> LH_FSH;
+  LH_FSH -> GONAD;
+  GONAD -> TESTO;
+  TESTO -> AROM;
+  AROM -> E2;
+  GONAD -> E2 [label="ovarian E2 (girls)"];
+  ADREN -> AROM [label="DHEAS substrate"];
+  E2 -> ERA;
+  ERA -> SPURT;
+  ERA -> SENESC [label="ACCELERATES reserve\nconsumption", color="#b03030", penwidth=1.4];
+  ERA -> FUSION [label="terminal fusion", color="#b03030", penwidth=1.6];
+  E2 -> PULSE_AMP [label="amplifies GH pulse\namplitude 2–3× (+)", penwidth=1.2];
+  SPURT -> HV_CM [label="peak height\nvelocity"];
+  HYPOGON -> E2 [label="no endogenous\nspurt", style=dashed, color="#2f6f9f"];
+  HYPOGON -> TESTO [style=dashed, color="#2f6f9f"];
+  E2 -> BA_CA [label="drives bone-age\nadvance", color="#b03030"];
+
+  /* --- 10: metabolism -------------------------------------------- */
+  GH_FREE -> LIPOLYSIS [label="direct adipocyte\naction (IGF-1-independent)"];
+  LIPOLYSIS -> FFA_FLUX;
+  FFA_FLUX -> FAT_MASS [label="−", style=dashed, color="#2f6f9f"];
+  FFA_FLUX -> INS_RES [label="Randle / lipid-\ninduced IR", color="#b03030"];
+  FFA_FLUX -> FFA_INH [label="feeds back on\nsecretion"];
+  INS_RES -> FAST_INS;
+  FAST_INS -> GLUCOSE [label="compensation"];
+  HEP_GNG -> GLUCOSE;
+  GH_FREE -> HEP_GNG;
+  LEAN_MASS -> REE;
+  FAT_MASS -> REE;
+  GH_FREE -> LIPIDS [label="LDL-C↓"];
+  INS_RES -> IR_T2DM [color="#b03030"];
+  GH_FREE -> NA_RETENTION;
+  NA_RETENTION -> BIH [label="CSF/water shift", color="#b03030"];
+  GH_FREE -> HYPOGLY_INF [label="corrects infantile\nhypoglycaemia", style=dashed];
+  FAT_MASS -> OBESITY;
+
+  /* --- 11: cross-axis -------------------------------------------- */
+  GH_FREE -> D2_DEIOD;
+  FREE_IGF1 -> D2_DEIOD;
+  D2_DEIOD -> FT4_FALL;
+  FT4_FALL -> THYROID_RX;
+  THYROID_RX -> HV_CM [label="required for full\ngrowth response", penwidth=1.2];
+  FT4_FALL -> HV_CM [label="untreated → blunted\nresponse", style=dashed, color="#b03030"];
+  GH_FREE -> HSD11B;
+  HSD11B -> ADRENAL_UNMASK;
+  GC_SUPPRESS -> GHR_DIM [label="post-receptor block", style=dashed, color="#b03030"];
+  GC_SUPPRESS -> PZ [label="direct chondrocyte\nsuppression", color="#b03030"];
+  GC_TAPER -> GC_SUPPRESS [label="−", style=dashed, color="#2f6f9f"];
+  ADRENAL_UNMASK -> GC_SUPPRESS [label="replacement dose\nmust stay physiological"];
+
+  /* --- 12: daily somatropin PK ----------------------------------- */
+  DOSE_D -> SC_DEPOT_D;
+  SC_DEPOT_D -> KA_D;
+  KA_D -> GH_TOT [label="exogenous input", penwidth=1.4, color="#1f5f8f"];
+  KA_D -> FLIPFLOP;
+  CL_D -> GH_T12;
+  FLIPFLOP -> DAILY_PROF;
+  DAILY_PROF -> GH_FREE;
+  ADHERE -> SC_DEPOT_D [label="missed doses →\nexposure loss", style=dashed, color="#b03030"];
+  DEVICE -> ADHERE [label="−", style=dashed, color="#2f6f9f"];
+
+  /* --- 13: weekly LAGH ------------------------------------------- */
+  LONAPEG -> RELEASE_K;
+  SOMATROGON -> RELEASE_K;
+  SOMAPACITAN -> RELEASE_K;
+  EFPEG -> RELEASE_K;
+  RELEASE_K -> GH_TOT [label="slow bioactive\nGH input", penwidth=1.4, color="#1f5f8f"];
+  RELEASE_K -> PEAKTROUGH;
+  PEAKTROUGH -> IGF1_SWING;
+  IGF1_SWING -> IGF1_TOT;
+  IGF1_SWING -> IGF1_SDS_DX [label="titration must use a\nFIXED sampling day"];
+  NONINF -> HV_CM;
+  BURDEN -> ADHERE [label="−", style=dashed, color="#2f6f9f"];
+  BURDEN -> HRQOL;
+  SOMAPACITAN -> GHBP [label="albumin-bound\ndepot analogy"];
+  LONAPEG -> INJ_SITE;
+
+  /* --- 14: mecasermin ------------------------------------------- */
+  MECASERMIN -> MECA_PK;
+  MECA_PK -> FREE_IGF1 [label="bypasses GH/GHR\nentirely", penwidth=1.4, color="#1f5f8f"];
+  MECA_PK -> MECA_HYPO [color="#b03030"];
+  MECASERMIN -> MECA_TONSIL [color="#b03030"];
+  MECA_PK -> MECA_HV;
+  MECA_HV -> HV_CM;
+  RHIGFBP3 -> TERNARY [label="restores complexed\nreservoir"];
+  GHR_MUT -> MECASERMIN [label="indication", style=dotted];
+  MECA_PK -> GH_TOT [label="IGF-1 feedback\nlowers GH", style=dashed, color="#2f6f9f"];
+
+  /* --- 15: adjuvants -------------------------------------------- */
+  GNRHA -> GNRH_PULSE [label="desensitisation −", style=dashed, color="#2f6f9f", penwidth=1.3];
+  GNRHA -> SENESC [label="slows reserve\nconsumption", style=dashed, color="#1f8f5f"];
+  AROMINH -> AROM [label="−", style=dashed, color="#2f6f9f", penwidth=1.3];
+  AROMINH -> BA_CA [label="slows bone-age\nadvance", style=dashed, color="#1f8f5f"];
+  AROMINH -> BMD [label="− (mineral accrual\ntrade-off)", style=dashed, color="#b03030"];
+  OXAND -> HV_CM [label="non-aromatisable\nadjunct"];
+  MACIMOR -> GHSR [label="oral secretagogue"];
+  MACIMOR -> PROVOC;
+  SEX_PRIME -> PROVOC [label="reduces false\n-positive GHD"];
+  NPR2_AGON -> CNP;
+
+  /* --- 16: diagnostics ------------------------------------------ */
+  HV_6_12 -> PROVOC [label="triggers work-up"];
+  HTSDS_SCREEN -> PROVOC;
+  IGF1_SDS_DX -> PROVOC;
+  PROVOC -> CUTOFF;
+  CUTOFF -> DOSE_D [label="diagnosis →\ntreatment"];
+  MRI -> GENETIC_DX;
+  MRI -> CRANIO [dir=back, label="identifies lesion"];
+  BONEAGE -> PAH_GAIN;
+  GENETIC_DX -> GH1 [dir=back, style=dotted];
+  IGF1_GEN_TEST -> GHR_MUT [label="separates insensitivity\nfrom deficiency"];
+  RETEST -> RETEST_TRANS;
+  IGF1_TOT -> IGF1_SDS_DX;
+  IGFBP3 -> IGF1_SDS_DX;
+
+  /* --- 17/18: endpoints & safety -------------------------------- */
+  HV_CM -> HTSDS [label="integrated over\ntime"];
+  HTSDS -> DHTSDS1;
+  HTSDS -> NAH;
+  MPH -> HTSDS [label="reference frame"];
+  MPH -> HT_DEFICIT;
+  BA_CA -> PAH_GAIN [label="−", style=dashed, color="#b03030"];
+  PAH_GAIN -> NAH;
+  HTSDS -> HRQOL;
+  FAT_MASS -> BODYCOMP_EP;
+  LEAN_MASS -> BODYCOMP_EP;
+  LIPIDS -> BODYCOMP_EP;
+  IGF1_TOT -> IGF1_CAP;
+  IGF1_CAP -> DOSE_D [label="dose reduction\n(closed-loop titration)", style=dashed, color="#2f6f9f", penwidth=1.3];
+  ADA -> GH_FREE [label="neutralisation", style=dashed, color="#b03030"];
+  ADA -> HV_CM [label="growth attenuation", style=dashed, color="#b03030"];
+  APNOEA_PWS -> SAGHE;
+  NEOPLASIA -> SAGHE;
+  IR_T2DM -> SAGHE;
+  BIH -> SAGHE;
+  SCFE -> HIP_PAIN [dir=back];
+
+  /* --- 19: predictors ------------------------------------------- */
+  AGE_START -> CATCHUP [label="more reserve left\nat younger age", penwidth=1.4, color="#1f8f5f"];
+  AGE_START -> NAH [penwidth=1.2];
+  DOSE_RESP -> HV_CM;
+  GH_PEAK_PRED -> HV_CM [label="severity ↑ →\nresponse ↑"];
+  HT_DEFICIT -> CATCHUP;
+  BIRTHWT -> HV_CM;
+  WEIGHT_SDS -> HV_CM;
+  D3GHR_PRED -> GHR_ISO;
+  FIRSTYR_PRED -> NAH;
+  DHTSDS1 -> FIRSTYR_PRED;
+  KIGS_MODEL -> FIRSTYR_PRED [label="empirical prediction\nvs mechanistic model"];
+  ADHERE -> DOSE_RESP [label="effective dose\n< prescribed", style=dashed, color="#b03030"];
+
+  /* --- 20: transition ------------------------------------------- */
+  HV_CM -> STOP_CRITERIA [label="HV < 2 cm/yr"];
+  FUSION -> STOP_CRITERIA;
+  STOP_CRITERIA -> RETEST_TRANS;
+  RETEST_TRANS -> ADULT_GHD [label="peak GH < 5–6 µg/L\n(adult criteria)"];
+  ADULT_GHD -> ADULT_PHENO [label="− if replaced", style=dashed, color="#2f6f9f"];
+  ADULT_PHENO -> METAB_LEGACY;
+  ADULT_GHD -> TRANSITION_CARE;
+  METAB_LEGACY -> TRANSITION_CARE;
+  ADULT_GHD -> IGF1_CAP [label="IGF-1-titrated\nadult dosing"];
+
+  /* --- cross-cluster reinforcement of the multiplicative chain --- */
+  STAT5B -> IGF1_TOT [label="the transduction gain", penwidth=1.2, color="#1f5f8f", style=dotted];
+  FREE_IGF1 -> HV_CM [label="the effector gain", penwidth=1.2, color="#1f5f8f", style=dotted];
+}
