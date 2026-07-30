@@ -1,0 +1,505 @@
+/* ============================================================================
+   nb_qsp_model.dot — High-Risk Neuroblastoma: Quantitative Systems Pharmacology
+   ----------------------------------------------------------------------------
+   ORGANISING THESIS (read this before the graph)
+
+   The map is drawn around ONE structural asymmetry and ONE delivery arithmetic.
+
+   (A) THE TWO Fc ARMS.  Dinutuximab's efficacy and its dose-limiting toxicity
+       are carried by two DIFFERENT Fc effector functions, in two DIFFERENT
+       compartments, with two DIFFERENT HILL COEFFICIENTS in bound IgG per cell:
+
+           ADCC on tumour/marrow   Hill n = 1   one Fc engages one FcgR
+           CDC  on the nociceptor  Hill n = 2   C1q must BRIDGE A PAIR of Fc
+
+       The therapeutic arm is linear in surface density; the dose-limiting toxic
+       arm is superlinear. Because the K322A Fc mutation removes C1q binding and
+       leaves FcgR binding intact, it is the only lever in this map that moves
+       one arm without moving the other.
+
+   (B) DELIVERY, NOT DOSE, SETS THE TUMOUR ARM.  GD2 sits at ~8e6 copies/cell,
+       i.e. 13.3 nmol of antigen per gram of tumour, against 373 nmol of
+       antibody per course. Antibody is NOT the scarce resource and fractional
+       site occupancy is NEVER the driver -- occupancy stays below 1% in solid
+       tumour at every clinical dose. What is scarce is capillary permeability,
+       and the three target compartments do not share it:
+
+           solid tumour   PS/g 0.020 L/(d*kg)  + an interstitial-pressure
+                                                 penalty that GROWS with size
+           bone marrow    PS/g 0.300 L/(d*kg)  sinusoidal, no barrier
+           DRG / nerve    PS/g 4.000 L/(d*kg)  fenestrated, NO blood-nerve
+                                                 barrier at the ganglion
+
+       A 200-fold spread. Running the model at the clinical dose, bound IgG per
+       cell comes out at 1.4e4 in solid tumour, 3.0e6 in marrow and 2.0e5 on
+       nerve, against thresholds of 2e4 (ADCC) and 5e4 (CDC). So the marrow arm
+       is SATURATED, the nerve arm is SATURATED, and the solid-tumour arm sits
+       just BELOW its own threshold. Every clinically distinctive feature of
+       anti-GD2 therapy follows: it clears marrow disease and not bulk soft
+       tissue; escalating the dose ten-fold multiplies solid-tumour ADCC 19-fold
+       while marrow ADCC moves 1.1-fold and pain 2.7-fold; and because dose and
+       permeability enter only as a PRODUCT, a 25-fold improvement in delivery
+       is worth exactly as much as a 25-fold dose escalation -- and costs
+       nothing in pain, because it does not touch the nerve compartment.
+
+   Everything else hangs off those two facts: why the four modalities must be
+   given in the order they are given (they differ in proliferation-dependence),
+   why IL-2 adds toxicity without efficacy while GM-CSF does the opposite, why
+   crizotinib fails in ALK-mutant neuroblastoma for a protein-binding reason
+   rather than a mutation reason, and why carrier-added 131I-MIBG spends
+   transporter capacity on cold drug.
+
+   Rendering:
+     dot -Tsvg nb_qsp_model.dot -o nb_qsp_model.svg
+     dot -Tpng -Gdpi=150 nb_qsp_model.dot -o nb_qsp_model.png
+
+   Node count: 162    Edge count: 247    Clusters: 14
+   ============================================================================ */
+
+digraph NB_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    concentrate = false;
+    splines = spline;
+    nodesep = 0.30;
+    ranksep = 0.55;
+    fontname = "Helvetica";
+    labelloc = "t";
+    labeljust = "l";
+    label = <<FONT POINT-SIZE="30"><B>High-Risk Neuroblastoma — QSP Mechanistic Map</B></FONT><BR/>
+             <FONT POINT-SIZE="17">Two Fc effector arms (ADCC Hill n=1 · CDC Hill n=2, in BOUND IgG PER CELL) ·
+             three target permeabilities spanning 200-fold · four modalities ordered by proliferation-dependence of kill</FONT><BR/>
+             <FONT POINT-SIZE="13">Solid arrow = activation/flux · dashed = inhibition/block · dotted = readout/measurement · bold = the two Fc arms</FONT>>;
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+          color="#555555", penwidth=1.0, margin="0.08,0.05"];
+    edge [fontname="Helvetica", fontsize=9, color="#666666", arrowsize=0.7];
+
+    /* ===================== 1. GENOMIC DRIVERS ============================ */
+    subgraph cluster_genome {
+        label = <<B>1. Genomic drivers — set the PD parameters, not a diagnosis label</B>>;
+        style = "filled"; fillcolor = "#F4ECF7"; color = "#7D3C98"; fontsize = 15; fontcolor = "#4A235A";
+        node [fillcolor = "#E8DAEF"];
+
+        MYCN      [label="MYCN amplification\n(2p24, >10 copies, ~22% of NB)\nsets kPROL ↑ and pRE-ENTRY ↑"];
+        MYCN_MHC  [label="MYCN represses MHC-I\n+ NKG2D ligands\n→ T-cell/NK-native evasion"];
+        ALKMUT    [label="ALK mutation (~8-10%)\nF1174L (TKI-resistant)\nR1275Q (TKI-sensitive)"];
+        ALKAMP    [label="ALK amplification\n(co-occurs with MYCN)"];
+        ATRX      [label="ATRX loss\n(adolescent, ALT+,\nindolent-but-incurable)"];
+        TERT      [label="TERT rearrangement\ntelomere maintenance"];
+        DEL1P     [label="1p36 deletion\n(CHD5, KIF1B loss)"];
+        DEL11Q    [label="11q deletion\nSCA-high, MYCN-nonamp HR"];
+        GAIN17Q   [label="17q gain\n(BIRC5/survivin)"];
+        SCA       [label="Segmental chromosomal\naberration burden\n→ regrowth rate kREG"];
+        TP53      [label="TP53 wild-type at diagnosis\n(>98%) — MDM2/p14ARF axis\nis the apoptotic gate"];
+        RASMAPK   [label="RAS-MAPK lesions\nenriched at RELAPSE\n(NF1, PTPN11, ALK)"];
+        LIN28B    [label="LIN28B / let-7 axis\n→ MYCN mRNA stabilised"];
+        TELOM     [label="Telomere maintenance\n= necessary condition\nfor high-risk behaviour"];
+
+        MYCN -> MYCN_MHC;
+        LIN28B -> MYCN [label="let-7 sequestration"];
+        ALKAMP -> ALKMUT [style=dotted, label="same locus"];
+        DEL1P -> SCA; DEL11Q -> SCA; GAIN17Q -> SCA;
+        TERT -> TELOM; ATRX -> TELOM [label="ALT"];
+        MYCN -> TELOM [label="TERT trans-activation"];
+        TP53 -> RASMAPK [style=dotted, label="intact at dx → relapse\nselects MAPK, not TP53"];
+    }
+
+    /* ============ 2. NEURAL-CREST IDENTITY / DIFFERENTIATION STATE ======== */
+    subgraph cluster_identity {
+        label = <<B>2. Neural-crest identity — the axis retinoids act on</B>>;
+        style = "filled"; fillcolor = "#FEF9E7"; color = "#B7950B"; fontsize = 15; fontcolor = "#7D6608";
+        node [fillcolor = "#FCF3CF"];
+
+        NCC       [label="Sympathoadrenal\nneural crest progenitor"];
+        ADRN      [label="ADRN identity\n(PHOX2B, HAND2, GATA3, DBH)\nproliferative, GD2-high"];
+        MES       [label="MES identity\n(PRRX1, YAP/TAZ, SNAI2)\nchemo-tolerant, GD2-LOW"];
+        PLASTIC   [label="ADRN⇄MES plasticity\n= a resistance route that\nESCAPES GD2 targeting"];
+        RARE      [label="RARE/RXR enhancer\noccupancy"];
+        DIFFGENE  [label="Differentiation programme\n(NEFL, GAP43, RET, TH↑,\nneurite outgrowth)"];
+        POSTMIT   [label="Post-mitotic state\n→ invisible to\nS/M-phase cytotoxics"];
+        GANGLIO   [label="Ganglioneuroma /\nSchwannian stroma-rich\nmaturation"];
+
+        NCC -> ADRN; NCC -> MES;
+        ADRN -> PLASTIC [dir=both]; MES -> PLASTIC [dir=both];
+        RARE -> DIFFGENE; DIFFGENE -> POSTMIT; POSTMIT -> GANGLIO;
+        ADRN -> DIFFGENE [style=dashed, label="MYCN blocks"];
+        MYCN -> DIFFGENE [style=dashed, label="represses"];
+    }
+
+    /* ============ 3. TUMOUR POPULATION DYNAMICS (STATE VARIABLES) ======== */
+    subgraph cluster_tumour {
+        label = <<B>3. Tumour cell populations — four pools with FOUR different drug sensitivities</B>>;
+        style = "filled"; fillcolor = "#FDEDEC"; color = "#C0392B"; fontsize = 15; fontcolor = "#922B21";
+        node [fillcolor = "#FADBD8"];
+
+        TP        [label="TP — proliferating neuroblasts\n(bulk primary + macro-mets)\ncytotoxic-sensitive, ADCC-sensitive", penwidth=2.2];
+        TQ        [label="TQ — quiescent / G0 pool\ncytotoxic-RESISTANT,\nADCC-sensitive", penwidth=2.2];
+        TD        [label="TD — retinoid-differentiated\npost-mitotic, cytotoxic-INVISIBLE,\nstill GD2+ → ADCC-sensitive", penwidth=2.2];
+        TM        [label="TM — marrow MRD pool\n(the compartment immunotherapy\nactually treats)", penwidth=2.2];
+        APOP      [label="Apoptosis / clearance"];
+        VTU       [label="VTU — tumour volume (cm³)\nlagged behind cell kill\n(necrotic clearance)"];
+        BURDEN    [label="Total burden\nTP+TQ+TD+TM\n→ antigen sink size", penwidth=2.0];
+        KREG      [label="Regrowth rate kREG\n= (1−kill)·kPROL\nNorton-Simon quantity"];
+
+        TP -> TQ [label="kQ  (entry to G0)"];
+        TQ -> TP [label="kRE (re-entry, MYCN↑)"];
+        TP -> TD [label="kDIFF (retinoid)"];
+        TP -> TM [label="dissemination"];
+        TM -> TP [label="re-seeding"];
+        TP -> APOP; TQ -> APOP; TD -> APOP; TM -> APOP;
+        TP -> VTU; TQ -> VTU; TD -> VTU;
+        TP -> BURDEN; TQ -> BURDEN; TD -> BURDEN; TM -> BURDEN;
+        TP -> KREG;
+        MYCN -> TP [label="kPROL ↑ (Td 24→17 h)"];
+        MYCN -> KREG [label="faster regrowth\n→ rapid response, rapid relapse"];
+        SCA -> KREG;
+        DIFFGENE -> TD;
+        MES -> TQ [label="chemo-tolerant\nreservoir"];
+    }
+
+    /* ============ 4. GD2 ANTIGEN BIOSYNTHESIS AND DENSITY ================ */
+    subgraph cluster_gd2 {
+        label = <<B>4. GD2 — antigen in such excess that DELIVERY, not antigen, is the limit</B>>;
+        style = "filled"; fillcolor = "#EAF2F8"; color = "#1F618D"; fontsize = 15; fontcolor = "#154360";
+        node [fillcolor = "#D4E6F1"];
+
+        LACCER    [label="Lactosylceramide"];
+        GM3       [label="GM3 (ST3GAL5)"];
+        GD3       [label="GD3 — ST8SIA1\n(GD3 synthase)"];
+        GD2S      [label="GD2 synthase\nB4GALNT1"];
+        GD2       [label="GD2 surface density\n≈ 8×10⁶ copies / cell\n(range 5-10×10⁶)", penwidth=2.4];
+        GD2SHED   [label="Shed GD2 / GD2 in\ncirculating exosomes\n= decoy antigen sink"];
+        GD2NORM   [label="Normal-tissue GD2:\nperipheral nerve, skin\nmelanocytes, DRG neurons", penwidth=2.0];
+        AGPERG    [label="ANTIGEN PER GRAM\n13.3 nmol/g at 8×10⁶/cell\nvs 373 nmol antibody / course", penwidth=2.6, fillcolor="#AED6F1"];
+        OCCTINY   [label="⇒ fractional site occupancy\nSTAYS BELOW 1% in solid tumour\nat EVERY clinical dose\n⇒ occupancy is the WRONG variable", penwidth=2.6, fillcolor="#85C1E9"];
+        BPCVAR    [label="THE RIGHT VARIABLE:\nBOUND IgG PER CELL\n(molecules/cell)", penwidth=2.8, fillcolor="#5DADE2", fontcolor="white"];
+        EZH2      [label="EZH2 / epigenetic\nsuppression of B4GALNT1\n→ antigen-loss escape"];
+        VORINO    [label="HDAC inhibition (vorinostat)\n→ GD2 re-expression"];
+
+        LACCER -> GM3 -> GD3 -> GD2S -> GD2;
+        GD2 -> GD2SHED; GD2SHED -> AGPERG [label="decoy"];
+        GD2 -> AGPERG; BURDEN -> AGPERG [label="× density"];
+        AGPERG -> OCCTINY -> BPCVAR;
+        EZH2 -> GD2S [style=dashed]; VORINO -> EZH2 [style=dashed];
+        MES -> GD2 [style=dashed, label="MES state = GD2-low"];
+        ADRN -> GD2 [label="GD2-high"];
+    }
+
+    /* ============ 5. DINUTUXIMAB PK AND TARGET BINDING =================== */
+    subgraph cluster_abpk {
+        label = <<B>5. Anti-GD2 antibody PK — THREE target compartments, THREE permeabilities (1 : 15 : 200)</B>>;
+        style = "filled"; fillcolor = "#E8F8F5"; color = "#148F77"; fontsize = 15; fontcolor = "#0E6251";
+        node [fillcolor = "#D1F2EB"];
+
+        ABDOSE    [label="Dinutuximab 17.5 mg/m²/d × 4 d\n(cycles 1-5) ≈ 93 nmol/course\nch14.18 IgG1, 150 kDa", penwidth=2.0];
+        ABC       [label="ABC — central plasma\nCmax ≈ 11.5 µg/mL ≈ 77 nM\nt½ ≈ 10 d"];
+        ABP       [label="ABP — peripheral\ntissue distribution"];
+        ABT       [label="ABT — SOLID TUMOUR interstitium\nPS/g 0.020 L/(d·kg)\nthe LOW-permeability compartment", penwidth=2.0];
+        ABM       [label="ABM — BONE MARROW interstitium\nPS/g 0.300 L/(d·kg)\nsinusoidal, no barrier", penwidth=2.4, fillcolor="#A3E4D7"];
+        ABN       [label="ABN — DRG / nerve interstitium\nPS/g 4.000 L/(d·kg)\nfenestrated, NO blood-nerve barrier", penwidth=2.4, fillcolor="#A3E4D7"];
+        KD        [label="Kd(GD2) ≈ 20 nM\n(reported 2-40 nM range)\nbinding is FAST — never limiting"];
+        BPCT      [label="BPC_tumour ≈ 1.4×10⁴ /cell\nJUST BELOW the ADCC threshold\n(2×10⁴)", penwidth=2.4];
+        BPCM      [label="BPC_marrow ≈ 3.0×10⁶ /cell\n150× the ADCC threshold\n⇒ SATURATED", penwidth=2.4, fillcolor="#A3E4D7"];
+        BPCN      [label="BPC_nerve ≈ 2.0×10⁵ /cell\n4× the CDC threshold (5×10⁴)\n⇒ SATURATED", penwidth=2.4, fillcolor="#A3E4D7"];
+        PRODUCT   [label="dose and permeability enter\nonly as a PRODUCT\n⇒ perfectly interchangeable for\nthe tumour arm, but only ONE of\nthem touches the nerve", penwidth=2.6, fillcolor="#76D7C4"];
+        FCVAR     [label="Fc variants:\nch14.18 (dinutuximab) — C1q intact\nhu14.18K322A — C1q ×0.1\nnaxitamab hu3F8 — short infusion", penwidth=2.0];
+        HAHA      [label="Anti-drug antibody (HACA/HAHA)\n→ accelerated clearance"];
+        NAXI      [label="Naxitamab 3 mg/kg\n30-60 min infusion\n→ high PEAK → Hill-n=2 CDC penalty"];
+
+        ABDOSE -> ABC; ABC -> ABP [dir=both]; ABC -> ABT; ABC -> ABM; ABC -> ABN;
+        ABC -> ABT [style=dashed, label="IFP opposes\nconvection"];
+        ABT -> BPCT; ABM -> BPCM; ABN -> BPCN;
+        KD -> BPCT [style=dotted]; KD -> BPCN [style=dotted];
+        BPCVAR -> BPCT [style=dotted, penwidth=2.0];
+        BPCVAR -> BPCM [style=dotted]; BPCVAR -> BPCN [style=dotted];
+        ABDOSE -> PRODUCT [style=dotted]; ABT -> PRODUCT [style=dotted, penwidth=2.0];
+        HAHA -> ABC [style=dashed, label="CL ↑"];
+        FCVAR -> ABDOSE [style=dotted]; NAXI -> BPCN [label="peak-driven"];
+        GD2 -> BPCT [style=dotted, label="density"];
+        GD2NORM -> BPCN [style=dotted, label="nerve GD2 ≈ 0.5×10⁶/cell"];
+    }
+
+    /* ============ 6. Fc ARM A — ADCC ON TUMOUR (∝ occ¹) ================== */
+    subgraph cluster_adcc {
+        label = <<B>6. Fc ARM A — ADCC: Hill n=1 in bound IgG/cell, then LIMITED BY EFFECTOR SUPPLY</B>>;
+        style = "filled"; fillcolor = "#E9F7EF"; color = "#1E8449"; fontsize = 15; fontcolor = "#145A32";
+        node [fillcolor = "#D5F5E3"];
+
+        NKB       [label="NKB — circulating NK cells\n(CD56+CD16+)"];
+        NKT       [label="NKT — tumour-infiltrating NK\nin-vivo E:T ≈ 1:100 - 1:10\n(assays use 10:1)", penwidth=2.0];
+        GRAN      [label="Granulocytes (ANC)\nFcγRIIa-mediated ADCC\n— the arm GM-CSF recruits", penwidth=2.0];
+        FCGR3A    [label="FCGR3A V158F\nV/V ≈ 1.8× ADCC vs F/F"];
+        FCGR2A    [label="FCGR2A H131R\nH/H favourable in ANBL0032"];
+        PERF      [label="Perforin / granzyme B\ndegranulation"];
+        TRAIL     [label="TRAIL / FasL\ndeath-receptor arm"];
+        ADCC      [label="ADCC KILL RATE\n= Kmax · BPC/(BPC+2×10⁴) · E/(E+K_E)\n· FcγR genotype · (1−exhaustion)", penwidth=3.0, fillcolor="#7DCEA0"];
+        ADCCSPLIT [label="SAME antibody, TWO answers:\nmarrow ADCC 0.16 /d (saturated)\nsolid ADCC 0.05 /d (below threshold)\n⇒ the optimal dose depends on\nWHERE the disease is", penwidth=2.8, fillcolor="#58D68D"];
+        ESAT      [label="Effector saturation point E*\nABOVE it, more NK buys NOTHING\n→ the IL-2 null result", penwidth=2.4, fillcolor="#A9DFBF"];
+        ADCP      [label="ADCP — macrophage\nphagocytosis (FcγRI/IIa)"];
+        SIZEDEP   [label="SIZE-DEPENDENCE comes from IFP:\nPS/g falls as the mass grows\n→ 5.9× less bound IgG per cell\nat 125 g than at ≤1 g", penwidth=2.2, fillcolor="#A9DFBF"];
+
+        NKB -> NKT [label="trafficking"];
+        NKT -> ADCC [penwidth=2.0]; GRAN -> ADCC [penwidth=2.0]; ADCP -> ADCC [style=dotted];
+        FCGR3A -> ADCC; FCGR2A -> ADCC;
+        BPCT -> ADCC [penwidth=3.0, label="Hill n=1\n(one Fc → one FcγR)"];
+        BPCM -> ADCC [penwidth=2.4, label="marrow arm"];
+        ADCC -> ADCCSPLIT [penwidth=2.4];
+        ADCC -> PERF -> APOP; ADCC -> TRAIL -> APOP;
+        NKT -> ESAT; GRAN -> ESAT; ESAT -> ADCC [style=dashed, label="ceiling"];
+        VTU -> SIZEDEP [style=dashed]; SIZEDEP -> ADCC [style=dashed, penwidth=2.0];
+        MYCN_MHC -> ADCC [style=dotted, label="MHC-independent →\nADCC still works in MYCN-amp"];
+        ADCC -> TM [style=dashed, penwidth=2.0, label="MRD is where\nthis arm is potent"];
+    }
+
+    /* ============ 7. Fc ARM B — CDC ON NOCICEPTOR (∝ occ²) =============== */
+    subgraph cluster_cdc {
+        label = <<B>7. Fc ARM B — complement on nociceptor: Hill n=2, needs NO effector cell</B>>;
+        style = "filled"; fillcolor = "#FDEBD0"; color = "#CA6F1E"; fontsize = 15; fontcolor = "#873600";
+        node [fillcolor = "#FAE5D3"];
+
+        C1Q       [label="C1q — must bridge a PAIR\nof adjacent Fc domains\n⇒ CDC Hill n = 2 in BPC", penwidth=2.6, fillcolor="#F5CBA7"];
+        C4C2      [label="C4 / C2 cleavage\nclassical pathway"];
+        C3B       [label="C3 → C3a + C3b\namplification loop"];
+        C5A       [label="C5a — potent\nnociceptor sensitiser"];
+        MAC       [label="C5b-9 MAC\nsublytic pore on\nnerve membrane"];
+        CPL       [label="CPL — functional complement\npool (consumed, then\nhepatically resynthesised)"];
+        NOCI      [label="Nociceptor / C-fibre\ndepolarisation"];
+        DRGNODE   [label="DRG cell body\nfenestrated capillaries =\nno blood-nerve barrier", penwidth=2.2];
+        ALLO      [label="Allodynia / neuropathic\nPAIN — grade 3-4 in\n~25-50%, dose-limiting", penwidth=3.0, fillcolor="#F0B27A"];
+        MORPH     [label="Morphine infusion\n+ gabapentin\n(mandatory co-therapy)"];
+        K322A     [label="K322A Fc mutation\nC1q binding ×0.1\nFcγR/ADCC PRESERVED", penwidth=2.6, fillcolor="#F5CBA7"];
+        TI        [label="THERAPEUTIC INDEX\nK322A: pain ÷4.5 at IDENTICAL ADCC\nDose cut to match that pain costs\n93% of solid ADCC but only 15%\nof MARROW ADCC", penwidth=3.0, fillcolor="#E59866"];
+        OTHERTOX  [label="Other on-target tox:\nhypotension, urticaria,\ncapillary leak, mydriasis,\nreversible neuropathy"];
+
+        BPCN -> C1Q [penwidth=3.0, label="Hill n=2\n(C1q needs a PAIR of Fc)"];
+        C1Q -> C4C2 -> C3B -> C5A; C3B -> MAC; C5A -> NOCI; MAC -> NOCI;
+        CPL -> C1Q; C1Q -> CPL [style=dashed, label="consumption"];
+        DRGNODE -> BPCN [style=dotted, penwidth=2.0];
+        NOCI -> ALLO; ALLO -> MORPH [style=dotted]; MORPH -> ALLO [style=dashed];
+        K322A -> C1Q [style=dashed, penwidth=2.6, label="×0.1"];
+        BPCT -> TI; BPCN -> TI [style=dashed];
+        ALLO -> TI [style=dotted]; ADCC -> TI [style=dotted];
+        C5A -> OTHERTOX; MAC -> OTHERTOX;
+        NAXI -> C1Q [label="peak-driven\nocc² penalty"];
+    }
+
+    /* ============ 8. IMMUNE MODULATION — IL-2, GM-CSF, Treg, exhaustion == */
+    subgraph cluster_immunomod {
+        label = <<B>8. Immune modulation — moving the effector arm, and why IL-2 failed</B>>;
+        style = "filled"; fillcolor = "#EBF5FB"; color = "#2874A6"; fontsize = 15; fontcolor = "#1B4F72";
+        node [fillcolor = "#D6EAF8"];
+
+        GMCSF     [label="GM-CSF 250 µg/m²/d SC\n(cycles 1,3,5)"];
+        IL2       [label="IL-2 3-4.5 MIU/m²/d\n(cycles 2,4 — COG)\nOMITTED in SIOPEN"];
+        NKEXP     [label="NK expansion / CD16↑\nADCC capacity ↑"];
+        TREG      [label="CD4+FOXP3+ Treg\nexpansion (IL-2 high-affinity\nCD25 receptor)", penwidth=2.0];
+        NKEX      [label="NK exhaustion\n(chronic IL-2, TIM-3/LAG-3)"];
+        CAPLEAK   [label="IL-2 capillary leak,\nfever, hypotension\n→ toxicity WITHOUT ADCC gain", penwidth=2.0];
+        SIOPRES   [label="SIOPEN HR-NBL1: IL-2 added\nNO EFS benefit, MORE toxicity\n⇒ E was already above E*", penwidth=2.4, fillcolor="#AED6F1"];
+        NKALLO    [label="Haploidentical NK /\nex-vivo expanded NK\n(raises E directly)"];
+        MDSC      [label="MDSC / TAM (CD163+)\narginase, IDO"];
+        CHECK     [label="Checkpoint axis\n(PD-L1 low in NB —\nwhy PD-1 mAbs fail here)"];
+
+        GMCSF -> GRAN [penwidth=2.0, label="ANC ↑ → E ↑"];
+        GMCSF -> NKEXP [style=dotted];
+        IL2 -> NKEXP [penwidth=2.0]; IL2 -> TREG [penwidth=2.0]; IL2 -> NKEX; IL2 -> CAPLEAK;
+        NKEXP -> NKB; TREG -> ADCC [style=dashed]; NKEX -> ADCC [style=dashed];
+        ESAT -> SIOPRES [style=dotted, penwidth=2.0]; IL2 -> SIOPRES [style=dotted];
+        NKALLO -> NKT; MDSC -> ADCC [style=dashed]; CHECK -> ADCC [style=dashed];
+        MYCN -> MDSC;
+    }
+
+    /* ============ 9. RETINOID PATHWAY AND CYP26 AUTOINDUCTION =========== */
+    subgraph cluster_retinoid {
+        label = <<B>9. Isotretinoin — differentiation, and an exposure that destroys itself</B>>;
+        style = "filled"; fillcolor = "#FEF5E7"; color = "#B9770E"; fontsize = 15; fontcolor = "#7E5109";
+        node [fillcolor = "#FDEBD0"];
+
+        RADOSE    [label="Isotretinoin (13-cis-RA)\n160 mg/m²/d ÷ BID × 14 d\n× 6 cycles"];
+        RAF       [label="Bioavailability F\nCapsule SWALLOWED F≈1.0\nCapsule OPENED in food F≈0.6", penwidth=2.2];
+        RAG       [label="RAG — gut depot\n(lipophilic, food-dependent)"];
+        RAC       [label="RAC — plasma 13-cis-RA\ntarget Cmax ≥ 2 µM", penwidth=2.0];
+        RAISO     [label="Isomerisation to\nall-trans / 4-oxo\nmetabolites"];
+        RARRXR    [label="RAR α/β/γ : RXR\nheterodimer"];
+        CYP26     [label="CYP26A1 AUTOINDUCTION\nexposure FALLS across the\n14-day course", penwidth=2.4, fillcolor="#F8C471"];
+        RATOX     [label="Retinoid toxicity:\ncheilitis, xerosis,\nhypercalcaemia, ↑ triglycerides,\npseudotumour cerebri"];
+        RAANTAG   [label="ANTAGONISM WITH CYTOTOXICS\nTD is post-mitotic ⇒ chemo\nkill ↓ if given CONCURRENTLY", penwidth=2.4, fillcolor="#F8C471"];
+        RASYN     [label="COMPATIBILITY WITH ADCC\nADCC is proliferation-INDEPENDENT\n⇒ safe/additive concurrently", penwidth=2.4, fillcolor="#F8C471"];
+        GD2RA     [label="RA → GD2 density?\nsign DISPUTED in literature\n(model runs both ways)", penwidth=2.0];
+
+        RADOSE -> RAF -> RAG -> RAC; RAC -> RAISO; RAC -> RARRXR -> RARE;
+        RAC -> CYP26 [penwidth=2.0]; CYP26 -> RAC [style=dashed, penwidth=2.0, label="CL ↑ → C ↓"];
+        RAC -> RATOX; RARRXR -> DIFFGENE [penwidth=2.0];
+        POSTMIT -> RAANTAG [penwidth=2.0]; RAANTAG -> TD [style=dotted];
+        RASYN -> ADCC [style=dotted, penwidth=2.0];
+        RAC -> GD2RA [style=dotted]; GD2RA -> GD2 [style=dotted];
+        TD -> RASYN [style=dotted];
+    }
+
+    /* ============ 10. CYTOTOXIC CHEMOTHERAPY, ASCT, HAEMATOPOIESIS ======= */
+    subgraph cluster_chemo {
+        label = <<B>10. Cytotoxics, high-dose consolidation and ASCT — the size-reducing modality</B>>;
+        style = "filled"; fillcolor = "#F2F4F4"; color = "#5D6D7E"; fontsize = 15; fontcolor = "#2E4053";
+        node [fillcolor = "#E5E8E8"];
+
+        INDUC     [label="Induction × 5-6 cycles\nRapid COJEC (SIOPEN) or\nCyclo/Topo → Cis/Etop → CAV"];
+        CTC       [label="CTC — cytotoxic central PK\n(generic 2-cpt driver)"];
+        CTP2      [label="CTP — peripheral"];
+        SPHASE    [label="S/M-phase-dependent kill\nEmax·C/(C+EC50) on TP ONLY", penwidth=2.0];
+        PLAT      [label="Platinum cumulative AUC\n(cisplatin + carboplatin)"];
+        SURG      [label="Surgical resection of\nprimary (IDRF-guided)"];
+        RT        [label="External beam RT 21.6 Gy\nto primary bed"];
+        HDCT      [label="High-dose consolidation\nCEM  vs  BuMel\n(HR-NBL1: BuMel superior)", penwidth=2.0];
+        TANDEM    [label="Tandem ASCT (ANBL0532)\n3-y EFS 61.6% vs 48.4%"];
+        ASCT      [label="Autologous stem-cell rescue\n= bolus into PROL pool", penwidth=2.0];
+        PROL      [label="PROL — marrow progenitors\n(Friberg proliferative pool)"];
+        TR1       [label="TR1 transit"];
+        TR2       [label="TR2 transit"];
+        ANC       [label="ANC — circulating neutrophils\nbaseline ≈ 4.0 ×10⁹/L", penwidth=2.0];
+        PLT       [label="Platelets\n(dose-limiting for MIBG)"];
+        FEBNEUT   [label="Febrile neutropenia /\ninfection / mucositis"];
+        SEQ       [label="WHY THIS ORDER:\ncytotoxics shrink SIZE (needed to\nget below the 7 g crossover);\nADCC then works on MRD", penwidth=2.6, fillcolor="#CCD1D1"];
+
+        INDUC -> CTC -> CTP2 [dir=both]; CTC -> SPHASE; SPHASE -> TP [style=dashed, penwidth=2.0, label="kill"];
+        SPHASE -> TQ [style=dashed, label="weak (G0)"];
+        SPHASE -> TD [style=dashed, style=dotted, label="≈ none (post-mitotic)"];
+        CTC -> PLAT; HDCT -> CTC; TANDEM -> HDCT; SURG -> VTU [style=dashed]; RT -> TP [style=dashed];
+        CTC -> PROL [style=dashed, label="Edrug"];
+        PROL -> TR1 -> TR2 -> ANC [label="ktr, MTT ≈ 110 h"];
+        ANC -> PROL [style=dashed, label="(Circ0/ANC)^γ feedback"];
+        PROL -> PLT; ANC -> FEBNEUT [style=dashed];
+        ASCT -> PROL [penwidth=2.0]; HDCT -> ASCT [style=dotted, label="mandates rescue"];
+        ANC -> GRAN [style=dotted, penwidth=2.0, label="ANC IS the granulocyte\nADCC effector"];
+        VTU -> SEQ [style=dotted]; SIZEDEP -> SEQ [style=dotted, penwidth=2.2]; SEQ -> ADCC [style=dotted, penwidth=2.0];
+    }
+
+    /* ============ 11. 131I-MIBG — TRANSPORTER-LIMITED RADIOTHERAPY ======= */
+    subgraph cluster_mibg {
+        label = <<B>11. ¹³¹I-MIBG — a dose that a competing molecule and a home medication can steal</B>>;
+        style = "filled"; fillcolor = "#F5EEF8"; color = "#8E44AD"; fontsize = 15; fontcolor = "#5B2C6F";
+        node [fillcolor = "#EBDEF0"];
+
+        MIBGDOSE  [label="¹³¹I-MIBG 18 mCi/kg (666 MBq/kg)\nor dosimetry-guided to 2-4 Gy WB\nt½(phys) = 8.02 d"];
+        SPECACT   [label="SPECIFIC ACTIVITY\nno-carrier-added ≫ carrier-added\ncold MIBG competes for NET", penwidth=2.4, fillcolor="#D7BDE2"];
+        NET       [label="NET / SLC6A2\nnoradrenaline transporter\n(uptake-1) — the delivery route", penwidth=2.2];
+        VMAT      [label="VMAT1/2 vesicular\nstorage → RETENTION\n(sets tumour residence time)"];
+        NETBLOCK  [label="NET-BLOCKING HOME MEDS:\nlabetalol, tricyclics,\nphenylephrine, tramadol,\nrisperidone — MUST be stopped", penwidth=2.4, fillcolor="#D7BDE2"];
+        MBC       [label="MBC — blood activity (MBq)"];
+        MBT       [label="MBT — tumour-retained activity"];
+        DWB       [label="DWB — cumulative WHOLE-BODY\ndose (Gy) ≈ 0.20 mGy/MBq\n2 Gy ⇒ stem-cell rescue needed", penwidth=2.2];
+        DTU       [label="DTU — cumulative TUMOUR dose\nmedian ~15-30 Gy,\nrange 1-300 Gy", penwidth=2.2];
+        THYR      [label="Thyroid ¹³¹I uptake\n→ hypothyroidism 30-60%\n(KI blockade mandatory)"];
+        MARROWTOX [label="Marrow toxicity is a\nWHOLE-BODY-dose phenomenon,\nnot a tumour-dose one", penwidth=2.0];
+        DOSIM     [label="Dosimetry-guided dosing:\ntitrate MBq to a fixed\nWHOLE-BODY Gy target", penwidth=2.0];
+
+        MIBGDOSE -> MBC; SPECACT -> NET [style=dashed, label="cold drug\nsaturates uptake"];
+        MBC -> NET -> MBT; MBT -> VMAT; VMAT -> MBT [label="retention"];
+        NETBLOCK -> NET [style=dashed, penwidth=2.4, label="Vmax ↓"];
+        MBC -> DWB; MBT -> DTU; MBC -> THYR;
+        DWB -> MARROWTOX -> PROL [style=dashed, penwidth=2.0];
+        DWB -> DOSIM [style=dotted]; DOSIM -> MIBGDOSE [style=dashed];
+        DTU -> TP [style=dashed, penwidth=2.0, label="radiation kill\n(β⁻, 0.4 mm path)"];
+        DTU -> TQ [style=dashed, label="G0 not spared\n— radiation ≠ chemo"];
+        THYR -> ENDOLATE [style=dotted];
+        MIBGDOSE -> ASCT [style=dotted, label="rescue if\nWB > 2 Gy"];
+    }
+
+    /* ============ 12. ALK INHIBITION — A PROTEIN-BINDING STORY ========== */
+    subgraph cluster_alk {
+        label = <<B>12. ALK inhibition — free fraction, not mutation, explains crizotinib's failure</B>>;
+        style = "filled"; fillcolor = "#E8F6F3"; color = "#117A65"; fontsize = 15; fontcolor = "#0B5345";
+        node [fillcolor = "#D0ECE7"];
+
+        CRIZ      [label="Crizotinib 280 mg/m² BID\nTOTAL Cmax ≈ 0.91 µM\nprotein binding 91%"];
+        LORLA     [label="Lorlatinib 95-115 mg/m²\nTOTAL Cmax ≈ 1.23 µM\nprotein binding ≈ 66%"];
+        FREEFRAC  [label="FREE fraction is the\npharmacologically active term\ncriz 0.09 · lorla 0.34", penwidth=2.4, fillcolor="#A2D9CE"];
+        FREECRIZ  [label="free criz ≈ 0.082 µM\nvs R1275Q IC50 0.3 µM\n⇒ 4× UNDER target", penwidth=2.2];
+        FREELORLA [label="free lorla ≈ 0.42 µM\nvs F1174L IC50 0.05 µM\n⇒ 8× OVER target", penwidth=2.2];
+        ALKPHOS   [label="ALK autophosphorylation\n→ PI3K/AKT + MAPK\n+ MYCN stabilisation"];
+        ADVL      [label="ADVL0912: crizotinib response\nin only 1/11 ALK-mutant NB\n— predicted by the arithmetic", penwidth=2.2, fillcolor="#A2D9CE"];
+        ALKANTI   [label="Anti-ALK antibody /\nALK CAR-T (emerging)"];
+
+        ALKMUT -> ALKPHOS; ALKAMP -> ALKPHOS; ALKPHOS -> TP [label="kPROL ↑"]; ALKPHOS -> MYCN;
+        CRIZ -> FREEFRAC; LORLA -> FREEFRAC;
+        FREEFRAC -> FREECRIZ; FREEFRAC -> FREELORLA;
+        FREECRIZ -> ALKPHOS [style=dashed, label="incomplete"];
+        FREELORLA -> ALKPHOS [style=dashed, penwidth=2.0, label="full block"];
+        FREECRIZ -> ADVL [style=dotted, penwidth=2.0];
+        ALKANTI -> ALKPHOS [style=dashed];
+    }
+
+    /* ============ 13. MICROENVIRONMENT AND DELIVERY BARRIERS ============ */
+    subgraph cluster_tme {
+        label = <<B>13. Microenvironment — the barriers that put BPC_tumour 200× below BPC_nerve</B>>;
+        style = "filled"; fillcolor = "#FBEEE6"; color = "#A04000"; fontsize = 15; fontcolor = "#6E2C00";
+        node [fillcolor = "#F6DDCC"];
+
+        IFP       [label="Elevated interstitial\nfluid pressure\n→ no convective mAb influx", penwidth=2.0];
+        BSB       [label="Binding-site barrier\nhigh-affinity mAb consumed\nat the vessel-proximal rim", penwidth=2.0];
+        HYPOX     [label="Hypoxia / HIF-1α\n→ MES shift, ADCC ↓"];
+        SCHWANN   [label="Schwannian stroma\n(favourable, differentiation-\npromoting)"];
+        ECM       [label="Dense collagen ECM\n→ mAb diffusion coefficient ↓"];
+        CAF       [label="Cancer-associated\nfibroblasts, IL-6"];
+        VASC      [label="Chaotic tumour vasculature\nheterogeneous perfusion"];
+        BMNICHE   [label="Bone-marrow niche\n(CXCL12/CXCR4)\nsanctuary for TM"];
+        NKINF     [label="NK infiltration is SPARSE —\nthis is the real ceiling on\nthe ADCC arm", penwidth=2.2];
+
+        IFP -> ABT [style=dashed, penwidth=2.0]; BSB -> ABT [style=dashed, penwidth=2.0];
+        ECM -> ABT [style=dashed]; VASC -> ABT [style=dashed];
+        HYPOX -> MES; HYPOX -> ADCC [style=dashed];
+        SCHWANN -> DIFFGENE; CAF -> ECM; CAF -> IFP;
+        BMNICHE -> TM [label="protects"]; BMNICHE -> NKINF [style=dashed];
+        NKINF -> NKT [style=dashed, penwidth=2.0]; NKINF -> ESAT [style=dotted];
+    }
+
+    /* ============ 14. CLINICAL ENDPOINTS AND BIOMARKERS ================= */
+    subgraph cluster_endpoints {
+        label = <<B>14. Endpoints and biomarkers — what the trials actually measured</B>>;
+        style = "filled"; fillcolor = "#F9EBEA"; color = "#943126"; fontsize = 15; fontcolor = "#641E16";
+        node [fillcolor = "#F2D7D5"];
+
+        HVA       [label="Urinary HVA / VMA\n(≈90% of NB secrete)\nturnover-limited biomarker"];
+        LDH       [label="Serum LDH, ferritin,\nNSE, chromogranin A"];
+        CURIE     [label="MIBG Curie score /\nSIOPEN score\npost-induction score is prognostic"];
+        MRDPCR    [label="Marrow MRD by RT-qPCR\n(PHOX2B, TH, DDC)\n→ reads TM directly", penwidth=2.0];
+        CTDNA     [label="ctDNA / cfDNA\n(ALK, RAS-MAPK at relapse)"];
+        INRG      [label="INRC response:\nCR / PR / MR / SD / PD"];
+        EFS       [label="Event-free survival\nANBL0032: 2-y EFS 66% vs 46%\n(immunoRx + isotretinoin)", penwidth=2.6, fillcolor="#E6B0AA"];
+        OS        [label="Overall survival\n5-y ≈ 50% in high-risk\ndespite all of the above", penwidth=2.2];
+        PAINSCORE [label="Pain score / opioid\nrequirement (mg/kg morphine)", penwidth=2.0];
+        HEARLOSS  [label="Hearing loss (Brock/SIOP)\nplatinum-cumulative;\nsodium thiosulfate protects", penwidth=2.0];
+        ENDOLATE  [label="Late endocrine effects:\nhypothyroidism, growth failure,\ngonadal failure, infertility"];
+        SMN       [label="Second malignancy\n(AML/MDS, thyroid ca)"];
+        STSTRADE  [label="Sodium thiosulfate:\nprotects cochlea BUT may\nprotect TUMOUR (ACCL0431)", penwidth=2.4, fillcolor="#E6B0AA"];
+
+        BURDEN -> HVA [style=dotted, penwidth=2.0]; BURDEN -> LDH [style=dotted]; VTU -> CURIE [style=dotted];
+        TM -> MRDPCR [style=dotted, penwidth=2.0]; RASMAPK -> CTDNA [style=dotted];
+        BURDEN -> INRG [style=dotted]; KREG -> EFS [style=dotted, penwidth=2.4];
+        BURDEN -> EFS [style=dotted, penwidth=2.0]; EFS -> OS [style=dotted];
+        ALLO -> PAINSCORE [style=dotted, penwidth=2.0]; MORPH -> PAINSCORE [style=dotted];
+        PLAT -> HEARLOSS [style=dotted, penwidth=2.0]; PLAT -> STSTRADE [style=dotted];
+        STSTRADE -> HEARLOSS [style=dashed, penwidth=2.0]; STSTRADE -> SPHASE [style=dashed, label="tumour protection?"];
+        ANC -> FEBNEUT [style=dotted]; HDCT -> SMN [style=dotted]; RT -> SMN [style=dotted];
+        HDCT -> ENDOLATE [style=dotted]; RT -> ENDOLATE [style=dotted];
+        ADCC -> EFS [style=dotted, penwidth=2.4]; TI -> EFS [style=dotted, penwidth=2.0];
+        DTU -> INRG [style=dotted]; MRDPCR -> EFS [style=dotted, label="strong surrogate"];
+    }
+
+    /* ===================== CROSS-CLUSTER SPINE =========================== */
+    /* The four modalities and the single quantity each of them moves. */
+    BPCVAR -> ADCC [style=dashed, penwidth=2.6, color="#1F618D",
+                    label="the driver is molecules per cell,\nnot fraction of sites bound"];
+    PRODUCT -> IFP [style=dotted, penwidth=2.2, color="#1F618D",
+                    label="raising THIS is the pain-free\nroute to the same ADCC"];
+    SEQ -> RAANTAG [style=dotted, label="same logic,\ndifferent mechanism"];
+    TI -> ABDOSE [style=dashed, penwidth=2.2, color="#CA6F1E",
+                  label="no dose satisfies both arms"];
+    K322A -> TI [penwidth=2.6, color="#CA6F1E", label="the ONLY lever\nthat moves TI"];
+    ESAT -> GMCSF [style=dotted, color="#2874A6", label="GM-CSF useful only\nBELOW E*"];
+    PLASTIC -> BPCT [style=dotted, label="antigen-low escape is a\nSECOND route to BPC below threshold"];
+    MRDPCR -> SEQ [style=dotted];
+    OTO_LINK [shape=plaintext, style="", label="", width=0.01, height=0.01];
+    PLAT -> OTO_LINK [style=invis];
+}
