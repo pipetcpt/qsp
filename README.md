@@ -2,9 +2,9 @@
 
 > 매일 **Claude Code Routine(CCR)** 이 질환 하나를 선택해 **정량적 시스템 약리학(Quantitative Systems Pharmacology, QSP)** 모델을 처음부터 끝까지 구축하고 `main`에 직접 커밋하는, **살아 있는(living) 오픈 모델 라이브러리**입니다.
 
-![models](https://img.shields.io/badge/models-336-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
+![models](https://img.shields.io/badge/models-337-blue) ![framework](https://img.shields.io/badge/QSP-mrgsolve%20%C2%B7%20Shiny%20%C2%B7%20Graphviz-success) ![automation](https://img.shields.io/badge/built%20by-Claude%20Code%20Routine-orange)
 
-현재 **336개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
+현재 **337개 질환**에 대한 완성된 QSP 모델이 수록되어 있으며, 각 모델은 ①기계론적 지도, ②mrgsolve ODE 모델, ③Shiny 대시보드, ④참고문헌의 네 가지 산출물로 구성됩니다. 아래 [모델 갤러리](#-모델-갤러리-model-gallery)에서 전체 목록을 확인할 수 있습니다.
 ---
 
 ## 1. 프로젝트 소개 (Overview)
@@ -103,7 +103,7 @@ shiny::runApp("<disease>/<abbr>_shiny_app.R")
 qsp/
 ├── README.md                     # 본 문서 (전체 모델 갤러리)
 ├── CLAUDE.md                     # 라이브러리 운영·생성 지침
-├── <disease>/                    # 질환별 디렉토리 (총 336개)
+├── <disease>/                    # 질환별 디렉토리 (총 337개)
 │   ├── README.md                 # 질환별 요약 문서
 │   ├── <abbr>_qsp_model.dot      # 기계론적 지도 소스
 │   ├── <abbr>_qsp_model.svg/.png # 렌더링 이미지
@@ -117,9 +117,9 @@ qsp/
 
 ## 📚 모델 갤러리 (Model Gallery)
 
-전체 **336개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
+전체 **337개** QSP 모델입니다. 모델명을 클릭하면 해당 디렉토리로, 그림을 클릭하면 확대 가능한 SVG 지도로 이동합니다. 각 행의 링크에서 기계론적 지도(🗺️), mrgsolve 모델(⚙️), 참고문헌(📚), 상세 README(📄)에 바로 접근할 수 있습니다.
 
-**분류별 모델 수**: 내분비·대사 41 · 신경 41 · 종양 40 · 소화기·간담도 29 · 신장·비뇨 24 · 심혈관 23 · 혈액 23 · 호흡기 17 · 자가면역·류마티스 17 · 정신·신경 14 · 희귀·유전 13 · 피부 12 · 혈관염 10 · 감염 9 · 안과 7 · 근골격·신경근육 7 · 부인·생식 5 · 면역결핍 1 · 알레르기 1 · 신생아·소아 1 · 기타 1
+**분류별 모델 수**: 내분비·대사 41 · 신경 41 · 종양 40 · 소화기·간담도 30 · 신장·비뇨 24 · 심혈관 23 · 혈액 23 · 호흡기 17 · 자가면역·류마티스 17 · 정신·신경 14 · 희귀·유전 13 · 피부 12 · 혈관염 10 · 감염 9 · 안과 7 · 근골격·신경근육 7 · 부인·생식 5 · 면역결핍 1 · 알레르기 1 · 신생아·소아 1 · 기타 1
 
 | # | 분류 | 모델 | 미리보기 | 요약 및 링크 |
 |---|------|------|----------|--------------|
@@ -459,6 +459,7 @@ qsp/
 | 334 | 종양 | [**발덴스트롬 거대글로불린혈증 (WM)**<br><sub>Waldenström's Macroglobulinemia · WM</sub>](waldenstrom-macroglobulinemia/) | <a href="waldenstrom-macroglobulinemia/wm_qsp_model.svg"><img src="waldenstrom-macroglobulinemia/wm_qsp_model.png" width="190" alt="wm"></a> | MYD88 L265P(~95%) 구성적 NF-κB 활성화 + CXCR4 WHIM 돌연변이(~35%) BM 체류 강화 → 림프형질세포 증식 → IgM 단클론 파라단백 → 과점도 증후군·한랭글로불린·항MAG 신경병증. BTK 억제제(이브루티닙/자누브루티닙)·리툭시맙·벤다무스틴·보르테조밉·베네토클락스 7개 시나리오.<br>[🗺️ 지도](waldenstrom-macroglobulinemia/wm_qsp_model.svg) · [⚙️ mrgsolve](waldenstrom-macroglobulinemia/wm_mrgsolve_model.R) · [📚 문헌](waldenstrom-macroglobulinemia/wm_references.md) · [📄 README](waldenstrom-macroglobulinemia/README.md) |
 | 335 | 희귀·유전 | [**윌슨병**<br><sub>Wilson's Disease · WD</sub>](wilsons-disease/) | <a href="wilsons-disease/wd_qsp_model.svg"><img src="wilsons-disease/wd_qsp_model.png" width="190" alt="wd"></a> | ATP7B 기능 소실 → 구리 대사 장애 — ATP7B*(P형 Cu-ATPase) 돌연변이(p.His1069Gln 유럽 35%·p.Arg778Leu 아시아 20%)로 담즙 구리 배출↓·아포세룰로플라스민 구리 적재 실패 → 간세포 구리 축적(>250 μg/g dw) → MT 포화 → NCBC(Non-Ceruloplasmin Bound Cop…<br>[🗺️ 지도](wilsons-disease/wd_qsp_model.svg) · [⚙️ mrgsolve](wilsons-disease/wd_mrgsolve_model.R) · [📚 문헌](wilsons-disease/wd_references.md) · [📄 README](wilsons-disease/README.md) |
 | 336 | 신장·비뇨 | [**X-연관 저인산혈증 (XLH)**<br><sub>X-Linked Hypophosphatemia · PHEX gene Xp22.11 loss-of-function (X-linked dominant, ~20-30% de novo)</sub>](x-linked-hypophosphatemia/) | <a href="x-linked-hypophosphatemia/xlh_qsp_model.svg"><img src="x-linked-hypophosphatemia/xlh_qsp_model.png" width="190" alt="xlh"></a> | 가장 흔한 유전성 구루병/골연화증으로, PHEX 유전자(Xp22.11)의 기능소실 돌연변이에 의한 X-연관 우성 유전질환(약 20-30%는 de novo; ADHR은 FGF23 자체의 기능획득 변이, ARHR1/2는 각각 DMP1·ENPP1 기능소실, TIO는 중간엽 종양의 이상성 FGF23 분비로 유사 표현형을 유발).<br>[🗺️ 지도](x-linked-hypophosphatemia/xlh_qsp_model.svg) · [⚙️ mrgsolve](x-linked-hypophosphatemia/xlh_mrgsolve_model.R) · [📚 문헌](x-linked-hypophosphatemia/xlh_references.md) · [📄 README](x-linked-hypophosphatemia/README.md) |
+| 337 | 소화기·간담도 | [**졸링거-엘리슨 증후군 (가스트린종)**<br><sub>Zollinger-Ellison Syndrome · ZES</sub>](zollinger-ellison-syndrome/) | <a href="zollinger-ellison-syndrome/zes_qsp_model.svg"><img src="zollinger-ellison-syndrome/zes_qsp_model.png" width="190" alt="zes"></a> | 위산 분비량을 상태변수가 아니라 벽세포 질량 x 활성 펌프 분율 x 분비촉진 자극의 곱으로 기술하여, 고가스트린혈증이 1·3번 인자를 올리는데 모든 위산억제제는 2번만 건드린다는 비대칭에서 ZES의 고용량·짧은 투여간격 요구가 유도된다.<br>[🗺️ 지도](zollinger-ellison-syndrome/zes_qsp_model.svg) · [⚙️ mrgsolve](zollinger-ellison-syndrome/zes_mrgsolve_model.R) · [📚 문헌](zollinger-ellison-syndrome/zes_references.md) · [📄 README](zollinger-ellison-syndrome/README.md) |
 
 ---
 

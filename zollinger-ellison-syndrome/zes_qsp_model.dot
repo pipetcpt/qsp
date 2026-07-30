@@ -1,0 +1,660 @@
+/* ===========================================================================
+   zes_qsp_model.dot
+   Zollinger–Ellison Syndrome (ZES) / gastrinoma — mechanistic QSP map
+
+   ORGANISING THESIS (see README.md):
+
+     Gastric acid output is not a state variable.  It is a PRODUCT of three
+     factors that live on three different time-scales and that break — and are
+     repaired — independently:
+
+         BAO  =  PCM        x   f_active        x   DRIVE
+                 parietal       fraction of         acute secretagogue
+                 cell mass      the pump pool       tone at CCK2R / H2 / M3
+                 (weeks)        that is active      (minutes–hours)
+                                (hours–days)
+
+     Every clinically important peculiarity of ZES follows from the fact that
+     hypergastrinaemia raises the FIRST and THIRD factors while every acid-
+     suppressing drug ever licensed acts only on the SECOND:
+
+       · a proton-pump inhibitor that removes the same FRACTION of the pump
+         pool leaves a far larger ABSOLUTE residual acid output when PCM and
+         DRIVE are both two- to three-fold raised — which is why the ZES
+         maintenance dose is 2–3x the reflux dose and not because gastrinoma
+         parietal cells are "resistant";
+
+       · the pump pool is refilled by DE NOVO SYNTHESIS with a half-life near
+         50 h, and gastrin up-regulates ATP4A/ATP4B transcription, so the pool
+         refills FASTER in ZES — which makes the DOSING INTERVAL, not the
+         total daily dose, the thing that fails first (nocturnal acid
+         breakthrough), and makes twice-daily beat once-daily at equal mg;
+
+       · a competitive antagonist at ONE of three parallel drive inputs (H2)
+         can be out-competed by raising the other two, so H2-receptor blockade
+         needs heroic doses and shows tachyphylaxis, whereas covalent pump
+         blockade sits DOWNSTREAM of all three inputs and cannot be
+         out-competed;
+
+       · an agent that lowers the tumour's gastrin output (somatostatin
+         analogue, cytoreduction, PRRT) attacks factors ONE and THREE, so its
+         acid benefit is additive with — not redundant to — a PPI, and it is
+         the only way to shrink the residual;
+
+       · withdrawal of acid suppression releases an ENLARGED pool of newly
+         synthesised pumps onto an ENLARGED parietal-cell mass, so rebound
+         hypersecretion is an output of the same three factors, not a
+         separate phenomenon.
+
+     Two sign inversions are drawn explicitly because they are diagnostic:
+
+       · SECRETIN inhibits the normal antral G cell and STIMULATES the
+         gastrinoma cell (loss of the inhibitory coupling, retention of the
+         secretin receptor) — the same hormone with opposite sign in two
+         compartments, which is why the secretin test works at all;
+
+       · luminal ACID inhibits the normal antral G cell (D-cell somatostatin
+         loop) but has NO feedback onto the tumour — so the physiological
+         brake that terminates every normal acid response is absent, and this
+         single missing edge, not a higher secretion rate per cell, is what
+         makes the hypersecretion unremitting.
+
+     The MEN1 arm is drawn as a calcium loop rather than a label: primary
+     hyperparathyroidism raises ionised calcium, calcium is itself a
+     secretagogue at the tumour and at the parietal cell, so parathyroidectomy
+     LOWERS fasting gastrin and basal acid output — an emergent consequence of
+     the loop, and the reason the parathyroids are operated on first.
+   =========================================================================== */
+
+digraph ZES_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, newrank=true,
+         nodesep=0.26, ranksep=0.50, fontname="Helvetica", fontsize=11,
+         compound=true, labelloc="t", fontcolor="#1a1a2e",
+         label=<<B>Zollinger–Ellison Syndrome / Gastrinoma — Quantitative Systems Pharmacology Map</B><BR/>
+                <FONT POINT-SIZE="11">acid output as a PRODUCT of parietal-cell mass × active-pump fraction × secretagogue drive<BR/>
+                gastrin biosynthesis and G17/G34 kinetics · H<SUP>+</SUP>/K<SUP>+</SUP>-ATPase lifecycle · PPI / P-CAB / H<SUB>2</SUB>RA pharmacology<BR/>
+                antitumour axis (SSA · everolimus · sunitinib · CAPTEM · <SUP>177</SUP>Lu-DOTATATE) · MEN1 calcium loop · long-term achlorhydria harms</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         color="#33334d", penwidth=0.8, margin="0.07,0.04"];
+  edge  [fontname="Helvetica", fontsize=8, color="#5a5a72", arrowsize=0.6, penwidth=0.9];
+
+  /* ---------------------------------------------------------------- palette
+     genetics / syndrome     #efe4d2      tumour populations   #f7dede
+     hormone species / PK    #e8e2f7      receptor signalling  #fde6d8
+     cell-mass trophism      #fdf3d0      pump lifecycle       #dfeef7
+     lumen / acid balance    #d7e9ff      mucosal defence      #e2f0e2
+     drugs / PK              #d9f2e6      clinical endpoints   #cfe4ff
+     harm / toxicity         #ffd9d9      diagnostics          #efefef
+     headroom / read-outs    #ffe9c7
+     ---------------------------------------------------------------------- */
+
+  /* =====================================================================
+     1 · GENETIC BACKGROUND, SITE AND SYNDROMIC CONTEXT
+     ===================================================================== */
+  subgraph cluster_gen {
+    label=<<B>1 · Genetic background · anatomical origin · syndromic context</B>>;
+    style="rounded,filled"; fillcolor="#faf6ef"; color="#b9a888"; fontsize=10;
+    MEN1G   [label="MEN1 germline LoF\n11q13 · menin\n20–25% of all ZES", fillcolor="#efe4d2"];
+    MENIN   [label="Menin protein loss\nJunD / MLL-H3K4me3\nCDKN1B(p27), CDKN2C(p18) ↓", fillcolor="#efe4d2"];
+    LOH11   [label="Somatic 2nd hit\nLOH 11q13 per lesion\n→ multicentric tumours", fillcolor="#efe4d2"];
+    SPORAD  [label="Sporadic ZES (75–80%)\nsolitary · MEN1 somatic mut ~30%\nCDKN1B, YY1, chr1/3p loss", fillcolor="#efe4d2"];
+    SITED   [label="Duodenal primary (60–80%)\nsubmucosal, 2–6 mm\noften multiple in MEN1", fillcolor="#efe4d2"];
+    SITEP   [label="Pancreatic primary (20–40%)\nlarger, head/gastrinoma triangle\nhigher metastatic potential", fillcolor="#efe4d2"];
+    SITELN  [label="Lymph-node primary\n(gastrinoma triangle, debated)", fillcolor="#efe4d2"];
+    GRADE   [label="WHO grade\nKi-67 <3% G1 · 3–20% G2 · >20% G3\ndrives growth constant", fillcolor="#efe4d2"];
+    VONHIP  [label="Other loci: VHL, NF1, TSC\n(rare pNET predisposition)", fillcolor="#efe4d2"];
+
+    MEN1G -> MENIN -> LOH11;
+    LOH11 -> SITED  [label="multiple micro-\ngastrinomas"];
+    MEN1G -> SITED;
+    SPORAD -> SITEP;
+    SPORAD -> SITED;
+    SITEP -> GRADE; SITED -> GRADE; SITELN -> GRADE;
+    VONHIP -> SITEP [style=dashed];
+  }
+
+  /* =====================================================================
+     2 · GASTRINOMA CELL BIOLOGY AND SECRETORY PHENOTYPE
+     ===================================================================== */
+  subgraph cluster_tum {
+    label=<<B>2 · Gastrinoma cell population · secretory phenotype · metastasis</B>>;
+    style="rounded,filled"; fillcolor="#fdf5f5"; color="#c79999"; fontsize=10;
+    TUM     [label="TUM — primary tumour burden\nGompertz growth, k_g(Ki-67)\nstate variable", fillcolor="#f7dede", penwidth=1.6];
+    MET     [label="MET — hepatic metastatic burden\nindependent growth + perfusion\nstate variable", fillcolor="#f7dede", penwidth=1.6];
+    RESCL   [label="RESCL — resistant clone fraction\nmTOR-independent escape\nstate variable", fillcolor="#f7dede"];
+    SPHEN   [label="SPHEN — gastrin secretion\nper viable cell (secretory phenotype)\nstate variable", fillcolor="#f7dede", penwidth=1.6];
+    GCHRA   [label="Chromogranin A release\n(burden marker, PPI-confounded)", fillcolor="#f7dede"];
+    SSTR2   [label="SSTR2 receptor density\n(70–90% of gastrinomas)\ndetermines SSA + PRRT effect", fillcolor="#fde6d8"];
+    MTORT   [label="PI3K–AKT–mTORC1 tone\nS6K1/4E-BP1 → proliferation", fillcolor="#fde6d8"];
+    VEGFT   [label="VEGF-A / PDGF-B secretion\n→ tumour microvessel density", fillcolor="#fde6d8"];
+    MGMT    [label="MGMT promoter methylation\n(~40%) → alkylator sensitivity", fillcolor="#fde6d8"];
+    APOPT   [label="Tumour cell loss\napoptosis + necrosis flux", fillcolor="#f7dede"];
+    PERFT   [label="Tumour perfusion\n(drug + radioligand delivery)", fillcolor="#dfeef7"];
+
+    GRADE -> TUM [label="k_g"];
+    TUM -> MET [label="portal\ndissemination"];
+    TUM -> RESCL [label="clonal\nselection"];
+    MET -> RESCL;
+    MTORT -> TUM [label="proliferation"];
+    VEGFT -> PERFT -> TUM;
+    PERFT -> MET;
+    TUM -> SPHEN [dir=none, style=dotted];
+    TUM -> GCHRA; MET -> GCHRA;
+    SSTR2 -> SPHEN [label="−", color="#2e7d32"];
+    APOPT -> TUM [label="−", color="#2e7d32"];
+    APOPT -> MET [label="−", color="#2e7d32"];
+    MGMT -> APOPT [label="− (repair)", color="#b03030"];
+  }
+
+  /* =====================================================================
+     3 · GASTRIN BIOSYNTHESIS, PROCESSING AND CIRCULATING SPECIES
+     ===================================================================== */
+  subgraph cluster_gastrin {
+    label=<<B>3 · Gastrin gene → progastrin processing → circulating G17 / G34</B>>;
+    style="rounded,filled"; fillcolor="#f7f4fd"; color="#a49bc4"; fontsize=10;
+    GASGENE [label="GAST transcription\npreprogastrin (101 aa)", fillcolor="#e8e2f7"];
+    PROGAS  [label="Progastrin (80 aa)\nnon-amidated, weakly trophic", fillcolor="#e8e2f7"];
+    PC12    [label="PC1/3, PC2 cleavage\nCPE + PAM amidation", fillcolor="#e8e2f7"];
+    G34     [label="G34 (big gastrin)\nt½ ≈ 42 min · dominates\nfasting immunoreactivity\nstate variable", fillcolor="#e8e2f7", penwidth=1.6];
+    G17     [label="G17 (little gastrin)\nt½ ≈ 5–7 min · 6x more potent\nper mole at CCK2R\nstate variable", fillcolor="#e8e2f7", penwidth=1.6];
+    GSULF   [label="Sulfated vs non-sulfated\n(no CCK2R potency difference)", fillcolor="#e8e2f7"];
+    GBIOACT [label="GBIO — bioactive gastrin\n= G17 + G34/6  (potency-weighted)", fillcolor="#e8e2f7", penwidth=1.6];
+    GCLEAR  [label="Clearance: renal + hepatic\n+ pulmonary endothelium\nCL falls in renal failure", fillcolor="#e8e2f7"];
+    FSG     [label="FSG — fasting serum gastrin\nassay read-out (pg/mL)\nnormal <100 · ZES often >1000", fillcolor="#efefef", penwidth=1.4];
+
+    GASGENE -> PROGAS -> PC12;
+    PC12 -> G34; PC12 -> G17;
+    G34 -> G17 [label="peripheral\nconversion"];
+    GSULF -> G17 [style=dotted];
+    G17 -> GBIOACT; G34 -> GBIOACT;
+    G34 -> GCLEAR; G17 -> GCLEAR;
+    G17 -> FSG; G34 -> FSG;
+    SPHEN -> GASGENE [label="tumour\nsecretion rate"];
+    TUM -> GASGENE; MET -> GASGENE;
+  }
+
+  /* =====================================================================
+     4 · ANTRAL G CELL AND THE MISSING ACID FEEDBACK
+     ===================================================================== */
+  subgraph cluster_antrum {
+    label=<<B>4 · Normal antral G cell · D-cell somatostatin brake · the missing feedback</B>>;
+    style="rounded,filled"; fillcolor="#f7f4fd"; color="#a49bc4"; fontsize=10;
+    GANT    [label="GANT — antral G-cell output\nphysiologically regulated\nstate variable", fillcolor="#e8e2f7", penwidth=1.6];
+    DCELL   [label="Antral D cell\nsomatostatin-14 paracrine", fillcolor="#e8e2f7"];
+    ACIDFB  [label="Luminal H+ (antral pH)\n→ D-cell SST release", fillcolor="#d7e9ff"];
+    GRP     [label="GRP / vagal cholinergic\nafferent stimulation of G cell", fillcolor="#fde6d8"];
+    AAROM   [label="Luminal peptides / amino acids\n(Phe, Trp) → G-cell stimulation", fillcolor="#d7e9ff"];
+    DISTEN  [label="Antral distension\nmechano-reflex", fillcolor="#d7e9ff"];
+    NOFB    [label="NO acid feedback onto tumour\n(D-cell brake absent)\n→ unremitting secretion", fillcolor="#ffe9c7", penwidth=1.6, shape=note];
+    ATROPH  [label="Antral G-cell atrophy\n(chronic acid load; also\nautoimmune gastritis → opposite)", fillcolor="#e8e2f7"];
+
+    GRP -> GANT; AAROM -> GANT; DISTEN -> GANT;
+    ACIDFB -> DCELL -> GANT [label="−", color="#2e7d32"];
+    GANT -> GASGENE [label="normal\ncontribution"];
+    ATROPH -> GANT [label="−", color="#2e7d32"];
+    NOFB -> SPHEN [label="brake absent", style=dashed, color="#b03030"];
+    ACIDFB -> NOFB [style=dotted, label="edge that\ndoes NOT exist\nfor the tumour"];
+  }
+
+  /* =====================================================================
+     5 · CCK2R SIGNALLING IN TARGET CELLS
+     ===================================================================== */
+  subgraph cluster_cck2r {
+    label=<<B>5 · CCK2R (gastrin receptor) signalling · the trophic and the acute arm</B>>;
+    style="rounded,filled"; fillcolor="#fef6f1"; color="#c9a284"; fontsize=10;
+    CCK2R   [label="CCK2R (CCKBR)\nGq-coupled, on ECL ≫ parietal", fillcolor="#fde6d8", penwidth=1.4];
+    PLCB    [label="PLCβ → IP3 + DAG\n→ Ca2+i rise", fillcolor="#fde6d8"];
+    PKCA    [label="PKC / CaMK\nacute exocytosis machinery", fillcolor="#fde6d8"];
+    ERKG    [label="ERK1/2 + PI3K\ntrophic arm (hours–weeks)", fillcolor="#fde6d8"];
+    EGRR    [label="Early genes: EGR1, JUN\nHDC, CHGA, VMAT2 induction", fillcolor="#fde6d8"];
+    RGSC    [label="Regulator of G-protein signalling\n+ receptor desensitisation", fillcolor="#fde6d8"];
+    NETAZ   [label="Netazepide / YF476\nCCK2R competitive antagonist", fillcolor="#d9f2e6"];
+
+    GBIOACT -> CCK2R -> PLCB;
+    PLCB -> PKCA; PLCB -> ERKG -> EGRR;
+    CCK2R -> RGSC -> CCK2R [label="−", color="#2e7d32"];
+    NETAZ -> CCK2R [label="−", color="#2e7d32"];
+  }
+
+  /* =====================================================================
+     6 · ECL CELL AND THE HISTAMINE AMPLIFIER
+     ===================================================================== */
+  subgraph cluster_ecl {
+    label=<<B>6 · ECL cell mass · histamine amplifier · gastric NET risk</B>>;
+    style="rounded,filled"; fillcolor="#fdfbf0"; color="#c2b880"; fontsize=10;
+    ECL     [label="ECL — enterochromaffin-like\ncell mass (fundic)\nτ ≈ 3–8 weeks · state variable", fillcolor="#fdf3d0", penwidth=1.6];
+    HDC     [label="Histidine decarboxylase\n(HDC) expression", fillcolor="#fdf3d0"];
+    HISST   [label="HIS — mucosal histamine\nstore (VMAT2 vesicles)\nstate variable", fillcolor="#fdf3d0", penwidth=1.6];
+    HISREL  [label="Histamine release flux\n(Ca2+-dependent exocytosis)", fillcolor="#fdf3d0"];
+    HRECEP  [label="H2 receptor on parietal cell\nGs → cAMP → PKA", fillcolor="#fde6d8", penwidth=1.4];
+    ECLHYP  [label="ECL hyperplasia\nlinear → micronodular → dysplasia", fillcolor="#fdf3d0"];
+    GNET    [label="Type-2 gastric NET\n(MEN1-ZES; 13–30% over decades)\nstate variable", fillcolor="#ffd9d9"];
+    SSTECL  [label="SSTR2 on ECL cell\n→ SSA suppresses ECL", fillcolor="#fdf3d0"];
+
+    ERKG -> ECL [label="trophic\n(gastrin)"];
+    ECL -> HDC -> HISST;
+    PKCA -> HISREL; HISST -> HISREL -> HRECEP;
+    ECL -> ECLHYP -> GNET;
+    SSTECL -> ECL [label="−", color="#2e7d32"];
+    NETAZ -> ECLHYP [label="−", color="#2e7d32"];
+  }
+
+  /* =====================================================================
+     7 · PARIETAL CELL MASS — FACTOR ONE OF THE PRODUCT
+     ===================================================================== */
+  subgraph cluster_pcm {
+    label=<<B>7 · FACTOR 1 — parietal cell mass (weeks time-scale)</B>>;
+    style="rounded,filled"; fillcolor="#fdfbf0"; color="#c2b880"; fontsize=10;
+    PCM     [label="PCM — parietal cell mass\nnormal ≈ 1.0 (10^9 cells)\nZES 2–6x · τ ≈ 4–8 weeks\nstate variable", fillcolor="#fdf3d0", penwidth=2.0];
+    STEMPC  [label="Isthmus progenitor\nproliferation (gastrin-driven)", fillcolor="#fdf3d0"];
+    PCAPOP  [label="Parietal cell apoptosis\nbaseline turnover ~2%/day", fillcolor="#fdf3d0"];
+    PCMASS  [label="Oxyntic mucosal thickening\nfundic gland hypertrophy\n(endoscopic prominent folds)", fillcolor="#fdf3d0"];
+    PCMFAC  [label="F1 = PCM / PCM_normal\nmultiplicative factor", fillcolor="#ffe9c7", penwidth=1.6];
+
+    ERKG -> STEMPC -> PCM;
+    PCAPOP -> PCM [label="−", color="#2e7d32"];
+    PCM -> PCMASS;
+    PCM -> PCMFAC;
+    GBIOACT -> STEMPC [style=dotted];
+  }
+
+  /* =====================================================================
+     8 · H+/K+-ATPase LIFECYCLE — FACTOR TWO OF THE PRODUCT
+     ===================================================================== */
+  subgraph cluster_pump {
+    label=<<B>8 · FACTOR 2 — H&#43;/K&#43;-ATPase pool lifecycle (hours–days) — the only factor any drug reaches</B>>;
+    style="rounded,filled"; fillcolor="#f2f8fc"; color="#8fb4cc"; fontsize=10;
+    PSYN    [label="ATP4A / ATP4B synthesis\nk_syn ↑ by gastrin (ZES ~1.6x)", fillcolor="#dfeef7", penwidth=1.4];
+    PUMPI   [label="PUMPI — inactive pool\ncytoplasmic tubulovesicles\nstate variable", fillcolor="#dfeef7", penwidth=1.6];
+    PUMPA   [label="PUMPA — ACTIVE pool\nfused to canalicular membrane\nstate variable", fillcolor="#dfeef7", penwidth=2.0];
+    PUMPB   [label="PUMPB — covalently blocked\ndisulfide-bonded PPI adduct\nstate variable", fillcolor="#dfeef7", penwidth=1.6];
+    PUMPR   [label="PUMPR — reversibly occupied\n(P-CAB, K+-competitive)\nstate variable", fillcolor="#dfeef7", penwidth=1.6];
+    PDEG    [label="Pump degradation\nt½ ≈ 50 h (~1.4%/h)", fillcolor="#dfeef7"];
+    TRAFF   [label="Trafficking / fusion\nezrin-, F-actin-dependent\ndriven by cAMP + Ca2+i", fillcolor="#dfeef7", penwidth=1.4];
+    ENDOC   [label="Endocytic retrieval\nback to tubulovesicles", fillcolor="#dfeef7"];
+    GSH     [label="Glutathione reduction\nslow reactivation of PPI adduct\n(minor in vivo)", fillcolor="#dfeef7"];
+    FACT2   [label="F2 = PUMPA / PUMPtotal_normal\nactive-pump fraction", fillcolor="#ffe9c7", penwidth=1.6];
+
+    PSYN -> PUMPI;
+    PUMPI -> PUMPA [label="TRAFF"];
+    PUMPA -> PUMPI [label="ENDOC"];
+    TRAFF -> PUMPA; ENDOC -> PUMPI;
+    PUMPA -> PUMPB [label="PPI covalent\nbinding (acid-activated)"];
+    PUMPB -> PUMPI [label="GSH (slow)", style=dashed];
+    GSH -> PUMPB [label="−", color="#2e7d32", style=dashed];
+    PUMPA -> PUMPR [dir=both, label="P-CAB on/off"];
+    PDEG -> PUMPA [label="−", color="#2e7d32"];
+    PDEG -> PUMPI [label="−", color="#2e7d32"];
+    PDEG -> PUMPB [label="−", color="#2e7d32"];
+    PUMPA -> FACT2;
+    ERKG -> PSYN [label="gastrin ↑ k_syn\n→ faster refill in ZES", color="#b03030"];
+  }
+
+  /* =====================================================================
+     9 · ACUTE SECRETAGOGUE DRIVE — FACTOR THREE OF THE PRODUCT
+     ===================================================================== */
+  subgraph cluster_drive {
+    label=<<B>9 · FACTOR 3 — acute secretagogue drive (minutes–hours) · three potentiating inputs</B>>;
+    style="rounded,filled"; fillcolor="#fef6f1"; color="#c9a284"; fontsize=10;
+    DGAST   [label="Gastrin arm\nCCK2R on parietal (weak, direct)\n+ ECL histamine (dominant)", fillcolor="#fde6d8", penwidth=1.4];
+    DHIST   [label="Histamine arm\nH2 → Gs → cAMP → PKA\nthe amplifier", fillcolor="#fde6d8", penwidth=1.4];
+    DACH    [label="Cholinergic arm\nvagal ACh → M3 → Ca2+i", fillcolor="#fde6d8", penwidth=1.4];
+    DCA     [label="Ionised calcium arm\nCa2+ is a direct secretagogue\n(relevant in MEN1)", fillcolor="#fde6d8"];
+    POTENT  [label="POTENTIATION\ndrive = (1+a·G)(1+b·H)(1+c·ACh)\nnot additive — why blocking one\ninput is out-competed", fillcolor="#ffe9c7", penwidth=1.8, shape=note];
+    SSTPAR  [label="Somatostatin (SST2) on parietal\nGi → cAMP ↓", fillcolor="#fde6d8"];
+    PGE2P   [label="PGE2 / EP3 on parietal\nGi → cAMP ↓ (NSAID removes)", fillcolor="#fde6d8"];
+    FACT3   [label="F3 = drive / drive_normal", fillcolor="#ffe9c7", penwidth=1.6];
+
+    GBIOACT -> DGAST; HRECEP -> DHIST; HISREL -> DHIST;
+    DACH -> POTENT; DGAST -> POTENT; DHIST -> POTENT; DCA -> POTENT;
+    SSTPAR -> DHIST [label="−", color="#2e7d32"];
+    PGE2P -> DHIST [label="−", color="#2e7d32"];
+    POTENT -> FACT3;
+    POTENT -> TRAFF [label="drives pump\ntrafficking"];
+  }
+
+  /* =====================================================================
+     10 · THE PRODUCT AND LUMINAL ACID BALANCE
+     ===================================================================== */
+  subgraph cluster_lumen {
+    label=<<B>10 · THE PRODUCT · luminal acid balance · meal buffering · intragastric pH</B>>;
+    style="rounded,filled"; fillcolor="#eff6ff"; color="#8ba9cc"; fontsize=10;
+    PRODUCT [label="BAO = F1 × F2 × F3 × BAO_ref\nbasal acid output (mEq/h)\nnormal 2–5 · ZES >15", fillcolor="#ffe9c7", penwidth=2.2, shape=doubleoctagon];
+    MAO     [label="MAO — maximal acid output\n(pentagastrin-stimulated)\nBAO/MAO ratio >0.6 in ZES", fillcolor="#cfe4ff"];
+    HLUM    [label="HLUM — luminal H+ amount\nstate variable", fillcolor="#d7e9ff", penwidth=1.6];
+    HCO3S   [label="HCO3− back-diffusion\n+ salivary / duodenal alkali", fillcolor="#d7e9ff"];
+    BUFOOD  [label="BUF — meal buffer capacity\nprotein + Ca salts\nstate variable", fillcolor="#d7e9ff", penwidth=1.6];
+    GEMPTY  [label="Gastric emptying\n(accelerated in ZES)", fillcolor="#d7e9ff"];
+    PHINT   [label="pH_intragastric = −log10([H+])\nread-out", fillcolor="#cfe4ff", penwidth=1.6];
+    TPH4    [label="Holding time pH > 4\n(% of 24 h) · read-out", fillcolor="#cfe4ff", penwidth=1.4];
+    NAB     [label="Nocturnal acid breakthrough\npH < 4 for >1 h overnight\n→ the interval-failure signature", fillcolor="#ffe9c7", penwidth=1.6];
+    VOLSEC  [label="Secretory volume\n(up to 10 L/day in severe ZES)", fillcolor="#d7e9ff"];
+    KLOSS   [label="K+ and Cl− loss in aspirate\n→ hypokalaemic alkalosis", fillcolor="#ffd9d9"];
+
+    PCMFAC -> PRODUCT; FACT2 -> PRODUCT; FACT3 -> PRODUCT;
+    PRODUCT -> HLUM; PRODUCT -> MAO;
+    HCO3S -> HLUM [label="−", color="#2e7d32"];
+    BUFOOD -> HLUM [label="−", color="#2e7d32"];
+    GEMPTY -> HLUM [label="−", color="#2e7d32"];
+    GEMPTY -> BUFOOD [label="−", color="#2e7d32"];
+    HLUM -> PHINT -> TPH4;
+    PHINT -> NAB;
+    PSYN -> NAB [style=dashed, label="faster refill\n→ earlier trough"];
+    PRODUCT -> VOLSEC -> KLOSS;
+    HLUM -> ACIDFB;
+  }
+
+  /* =====================================================================
+     11 · MUCOSAL DEFENCE AND INJURY
+     ===================================================================== */
+  subgraph cluster_muc {
+    label=<<B>11 · Mucosal defence · duodenal / oesophageal / jejunal injury</B>>;
+    style="rounded,filled"; fillcolor="#f1f8f1"; color="#8dbb8d"; fontsize=10;
+    MUCUS   [label="MUCUS — mucus–bicarbonate\ndefence index (PG-dependent)\nstate variable", fillcolor="#e2f0e2", penwidth=1.6];
+    BFLOW   [label="Mucosal blood flow\n(NO / CGRP-dependent)", fillcolor="#e2f0e2"];
+    EGFTF   [label="EGF / TFF2 restitution\nand epithelial migration", fillcolor="#e2f0e2"];
+    NSAIDX  [label="NSAID / aspirin exposure\nCOX-1 inhibition", fillcolor="#ffd9d9"];
+    HPYL    [label="H. pylori co-infection\n(often ABSENT in ZES —\na diagnostic clue)", fillcolor="#e2f0e2"];
+    DUODLD  [label="Duodenal acid load\n(post-pyloric H+ flux)", fillcolor="#d7e9ff", penwidth=1.4];
+    ULCD    [label="ULCD — duodenal / bulbar ulcer\nburden index\n>90% of ZES ulcers\nstate variable", fillcolor="#cfe4ff", penwidth=1.8];
+    ULCJ    [label="Post-bulbar / jejunal ulcer\n(pathognomonic when present)", fillcolor="#cfe4ff"];
+    ESOPH   [label="ESOPH — oesophageal injury\n(LA grade proxy; 60% of ZES)\nstate variable", fillcolor="#cfe4ff", penwidth=1.6];
+    STRICTUR  [label="Peptic stricture / Barrett's\nlate oesophageal outcome", fillcolor="#ffd9d9"];
+
+    MUCUS -> ULCD [label="−", color="#2e7d32"];
+    BFLOW -> MUCUS; EGFTF -> MUCUS;
+    NSAIDX -> MUCUS [label="−", color="#2e7d32"];
+    NSAIDX -> PGE2P [label="−", color="#2e7d32"];
+    HPYL -> MUCUS [label="−", color="#2e7d32", style=dashed];
+    HLUM -> DUODLD -> ULCD;
+    DUODLD -> ULCJ;
+    HLUM -> ESOPH -> STRICTUR;
+    PRODUCT -> DUODLD;
+  }
+
+  /* =====================================================================
+     12 · CLINICAL ENDPOINTS
+     ===================================================================== */
+  subgraph cluster_clin {
+    label=<<B>12 · Clinical endpoints</B>>;
+    style="rounded,filled"; fillcolor="#eef5ff"; color="#8ba9cc"; fontsize=10;
+    PAIN    [label="Abdominal pain / dyspepsia\n(75–98% at presentation)", fillcolor="#cfe4ff"];
+    DIARR   [label="DIARR — secretory + osmotic\ndiarrhoea (~70%; sole symptom 10%)\nstate variable", fillcolor="#cfe4ff", penwidth=1.6];
+    STEAT   [label="Steatorrhoea\nacid inactivation of pancreatic\nlipase + bile-acid precipitation", fillcolor="#cfe4ff"];
+    WTLOSS  [label="Weight loss / malnutrition", fillcolor="#cfe4ff"];
+    BLEED   [label="Ulcer haemorrhage / perforation\ncumulative hazard integrator", fillcolor="#ffd9d9", penwidth=1.6];
+    GERDSX  [label="Heartburn / regurgitation\n(oesophageal symptom score)", fillcolor="#cfe4ff"];
+    SURV    [label="Overall survival driver\ntumour burden ≫ acid disease\nonce acid is controlled", fillcolor="#cfe4ff", penwidth=1.8];
+    QOL     [label="Composite symptom /\nquality-of-life index", fillcolor="#cfe4ff"];
+
+    ULCD -> PAIN -> QOL;
+    ULCD -> BLEED; ULCJ -> BLEED;
+    HLUM -> DIARR; VOLSEC -> DIARR;
+    DIARR -> WTLOSS; STEAT -> WTLOSS;
+    HLUM -> STEAT;
+    ESOPH -> GERDSX -> QOL;
+    DIARR -> QOL; BLEED -> SURV;
+    MET -> SURV; TUM -> SURV;
+    WTLOSS -> SURV;
+  }
+
+  /* =====================================================================
+     13 · PROTON-PUMP INHIBITOR PHARMACOLOGY
+     ===================================================================== */
+  subgraph cluster_ppi {
+    label=<<B>13 · PPI PK–PD · the acid-activation trap · CYP2C19 · why the interval fails first</B>>;
+    style="rounded,filled"; fillcolor="#eefaf4"; color="#7fc4a3"; fontsize=10;
+    PPIDOSE [label="PPI dose (omeprazole-eq)\npo bd/tid or IV infusion\nZES median 60–80 mg/day", fillcolor="#d9f2e6", penwidth=1.4];
+    PPIGUT  [label="PPI_A — enteric-coated depot\nacid-labile prodrug\nstate variable", fillcolor="#d9f2e6"];
+    PPIC    [label="PPI_C — plasma prodrug\nt½ ≈ 1–1.5 h\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    CYP219  [label="CYP2C19 genotype\nUM / NM / IM / PM\nAUC ratio up to 5x", fillcolor="#d9f2e6", penwidth=1.4];
+    CYP3A4  [label="CYP3A4 secondary route\n(pantoprazole least 2C19-dependent)", fillcolor="#d9f2e6"];
+    PPICAN  [label="PPI_CAN — canalicular\nsulfenamide (activated)\nrequires pH < 4 to form\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    PPITRAP [label="ACID-ACTIVATION TRAP\nonly ACTIVE pumps make the acid\nthat activates the drug → drug\nneeds the target to be working", fillcolor="#ffe9c7", penwidth=1.8, shape=note];
+    PPICOV  [label="Covalent Cys813 / Cys892\ndisulfide adduct — irreversible", fillcolor="#d9f2e6", penwidth=1.4];
+    PPIMEAL [label="Meal timing (30–60 min before)\nrecruits pumps into the active pool", fillcolor="#d9f2e6"];
+    PPIIV   [label="IV pantoprazole / esomeprazole\ncontinuous infusion (peri-operative,\nnil-by-mouth ZES)", fillcolor="#d9f2e6"];
+
+    PPIDOSE -> PPIGUT -> PPIC;
+    PPIDOSE -> PPIIV -> PPIC;
+    CYP219 -> PPIC [label="CL"]; CYP3A4 -> PPIC [label="CL"];
+    PPIC -> PPICAN;
+    PHINT -> PPICAN [label="activation needs\nlow canalicular pH"];
+    PUMPA -> PPITRAP -> PPICAN;
+    PPICAN -> PPICOV -> PUMPB;
+    PPIMEAL -> TRAFF;
+    PPIMEAL -> PPICAN [style=dotted];
+  }
+
+  /* =====================================================================
+     14 · POTASSIUM-COMPETITIVE ACID BLOCKER
+     ===================================================================== */
+  subgraph cluster_pcab {
+    label=<<B>14 · P-CAB (vonoprazan / tegoprazan) · reversible but acid-stable</B>>;
+    style="rounded,filled"; fillcolor="#eefaf4"; color="#7fc4a3"; fontsize=10;
+    VONDOSE [label="Vonoprazan 20–40 mg\nonce daily", fillcolor="#d9f2e6"];
+    VONA    [label="VON_A — gut depot\nacid-stable, no enteric coat\nstate variable", fillcolor="#d9f2e6"];
+    VONC    [label="VON_C — plasma\nt½ ≈ 7–9 h\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    VONACC  [label="Canalicular accumulation\nhigh pKa (~9.4) → ion trapping\nno acid activation needed", fillcolor="#d9f2e6", penwidth=1.4];
+    VONK    [label="K+-competitive binding\nreversible, fast on/off", fillcolor="#d9f2e6"];
+    VONADV  [label="Consequence: inhibits RESTING\npumps too → less meal-timing\ndependence, faster day-1 effect", fillcolor="#ffe9c7", penwidth=1.6, shape=note];
+    VON2C19 [label="CYP3A4-dominant metabolism\n→ far less 2C19 sensitivity", fillcolor="#d9f2e6"];
+
+    VONDOSE -> VONA -> VONC -> VONACC -> VONK -> PUMPR;
+    VON2C19 -> VONC [label="CL"];
+    VONACC -> VONADV;
+    VONADV -> PUMPI [label="binds inactive\npool as well", style=dashed];
+  }
+
+  /* =====================================================================
+     15 · HISTAMINE H2-RECEPTOR ANTAGONISTS
+     ===================================================================== */
+  subgraph cluster_h2ra {
+    label=<<B>15 · H&#8322;-receptor antagonists · competitive blockade of ONE of three inputs</B>>;
+    style="rounded,filled"; fillcolor="#eefaf4"; color="#7fc4a3"; fontsize=10;
+    H2DOSE  [label="Famotidine / ranitidine\nZES doses 8–12x normal\n(up to 480 mg/day famotidine)", fillcolor="#d9f2e6"];
+    H2A     [label="H2_A — absorption depot\nstate variable", fillcolor="#d9f2e6"];
+    H2C     [label="H2_C — plasma\nt½ ≈ 2.5–3.5 h\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    H2OCC   [label="Competitive H2 occupancy\nIC50 shifts with histamine", fillcolor="#d9f2e6"];
+    TACHY   [label="Tachyphylaxis\nH2R up-regulation over days\n→ escape", fillcolor="#ffd9d9", penwidth=1.4];
+    H2LIMIT [label="Structural limit: blocking one\nfactor-3 input leaves (1+a·G)(1+c·ACh)\nintact → out-competed by\nhypergastrinaemia", fillcolor="#ffe9c7", penwidth=1.6, shape=note];
+
+    H2DOSE -> H2A -> H2C -> H2OCC -> HRECEP [label="−", color="#2e7d32"];
+    H2OCC -> TACHY -> H2OCC [label="−", color="#2e7d32"];
+    H2OCC -> H2LIMIT;
+    GBIOACT -> H2LIMIT [style=dotted];
+  }
+
+  /* =====================================================================
+     16 · SOMATOSTATIN ANALOGUES
+     ===================================================================== */
+  subgraph cluster_ssa {
+    label=<<B>16 · Somatostatin analogues · the only drugs that touch factors 1 AND 3</B>>;
+    style="rounded,filled"; fillcolor="#eefaf4"; color="#7fc4a3"; fontsize=10;
+    OCTDOSE [label="Octreotide LAR 30 mg q28d\nor lanreotide ATG 120 mg q28d", fillcolor="#d9f2e6", penwidth=1.4];
+    OCTD    [label="OCT_D — IM microsphere depot\nzero-order + first-order release\nstate variable", fillcolor="#d9f2e6"];
+    OCTC    [label="OCT_C — plasma octreotide\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    SSTOCC  [label="SSTR2 occupancy\n(SSTR5 secondary)", fillcolor="#d9f2e6"];
+    SSAANTI [label="Antiproliferative arm\nSHP-1/2 → cyclin D1 ↓, p27 ↑\n(CLARINET / PROMID)", fillcolor="#d9f2e6", penwidth=1.4];
+    SSASEC  [label="Antisecretory arm\ntumour gastrin release ↓ 40–60%", fillcolor="#d9f2e6", penwidth=1.4];
+    SSAGB   [label="Gallstones, glucose intolerance,\nsteatorrhoea (harm)", fillcolor="#ffd9d9"];
+    PASI    [label="Pasireotide (pan-SSTR)\nhigher hyperglycaemia burden", fillcolor="#d9f2e6"];
+
+    OCTDOSE -> OCTD -> OCTC -> SSTOCC;
+    SSTR2 -> SSTOCC;
+    SSTOCC -> SSASEC -> SPHEN [label="−", color="#2e7d32"];
+    SSTOCC -> SSAANTI -> APOPT;
+    SSTOCC -> SSTPAR; SSTOCC -> SSTECL;
+    OCTC -> SSAGB;
+    PASI -> SSTOCC;
+  }
+
+  /* =====================================================================
+     17 · ANTITUMOUR SYSTEMIC THERAPY
+     ===================================================================== */
+  subgraph cluster_anti {
+    label=<<B>17 · Antitumour systemic therapy · everolimus · sunitinib · CAPTEM</B>>;
+    style="rounded,filled"; fillcolor="#eefaf4"; color="#7fc4a3"; fontsize=10;
+    EVEDOSE [label="Everolimus 10 mg qd\nRADIANT-3", fillcolor="#d9f2e6"];
+    EVEC    [label="EVE_C — plasma everolimus\nt½ ≈ 30 h\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    EVEPD   [label="mTORC1 inhibition\nS6K1 ↓ · feedback AKT ↑\n(escape route)", fillcolor="#d9f2e6"];
+    EVEADV  [label="Stomatitis, hyperglycaemia,\nnon-infectious pneumonitis", fillcolor="#ffd9d9"];
+    SUNDOSE [label="Sunitinib 37.5 mg qd\ncontinuous", fillcolor="#d9f2e6"];
+    SUNC    [label="SUN_C — plasma sunitinib\n+ SU12662 active metabolite\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    SUNPD   [label="VEGFR1-3 / PDGFR / KIT / RET\ninhibition → antiangiogenic", fillcolor="#d9f2e6"];
+    SUNADV  [label="Hypertension, hand–foot,\nneutropenia, cardiac", fillcolor="#ffd9d9"];
+    CAPTEM  [label="CAPTEM: capecitabine 750 mg/m2 bd\nd1-14 + temozolomide 200 mg/m2 d10-14\nE2211", fillcolor="#d9f2e6"];
+    CAPC    [label="CAP_C / TMZ_C — plasma\nstate variables", fillcolor="#d9f2e6", penwidth=1.4];
+    ALKDAM  [label="O6-methylguanine adducts\n→ MMR-dependent DSB", fillcolor="#d9f2e6"];
+    SURGERY [label="Surgery: duodenotomy + LN clearance\n(cure ~34% sporadic; rarely MEN1)\nliver resection / ablation", fillcolor="#d9f2e6", penwidth=1.4];
+    TAE     [label="Hepatic artery embolisation /\nTACE for metastatic burden", fillcolor="#d9f2e6"];
+
+    EVEDOSE -> EVEC -> EVEPD -> MTORT [label="−", color="#2e7d32"];
+    EVEPD -> RESCL [label="selects", color="#b03030"];
+    EVEC -> EVEADV;
+    SUNDOSE -> SUNC -> SUNPD -> VEGFT [label="−", color="#2e7d32"];
+    SUNC -> SUNADV;
+    CAPTEM -> CAPC -> ALKDAM -> APOPT;
+    MGMT -> ALKDAM [label="−", color="#2e7d32"];
+    SURGERY -> TUM [label="−", color="#2e7d32"];
+    SURGERY -> MET [label="−", color="#2e7d32"];
+    TAE -> MET [label="−", color="#2e7d32"];
+    PERFT -> EVEC [style=dotted]; PERFT -> CAPC [style=dotted];
+  }
+
+  /* =====================================================================
+     18 · PEPTIDE RECEPTOR RADIONUCLIDE THERAPY
+     ===================================================================== */
+  subgraph cluster_prrt {
+    label=<<B>18 · &#185;&#8311;&#8311;Lu-DOTATATE PRRT · dosimetry-limited kill</B>>;
+    style="rounded,filled"; fillcolor="#eefaf4"; color="#7fc4a3"; fontsize=10;
+    PRRTD   [label="177Lu-DOTATATE 7.4 GBq\nx4 q8w (NETTER-1 schedule)", fillcolor="#d9f2e6", penwidth=1.4];
+    PRRTC   [label="PRRT_C — plasma activity\nfast renal clearance\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    PRRTT   [label="PRRT_T — tumour-bound activity\nSSTR2-mediated internalisation\nstate variable", fillcolor="#d9f2e6", penwidth=1.6];
+    PRRTK   [label="PRRT_K — renal cortical activity\nmegalin/cubilin reuptake\nstate variable", fillcolor="#ffd9d9", penwidth=1.4];
+    AALYS   [label="Amino-acid co-infusion\n(Lys/Arg) blocks renal reuptake", fillcolor="#d9f2e6"];
+    DOSET   [label="Absorbed tumour dose (Gy)\nlinear-quadratic kill\nstate variable (cumulative)", fillcolor="#d9f2e6", penwidth=1.6];
+    PRRTADV [label="Renal dose limit ~23 Gy\nmyelosuppression, MDS/AML (~2%)", fillcolor="#ffd9d9"];
+    GA68    [label="68Ga-DOTATATE PET/CT\nselects patients (SUV → SSTR2)", fillcolor="#efefef"];
+
+    PRRTD -> PRRTC;
+    PRRTC -> PRRTT [label="SSTR2 uptake"];
+    SSTR2 -> PRRTT; PERFT -> PRRTT;
+    PRRTC -> PRRTK; AALYS -> PRRTK [label="−", color="#2e7d32"];
+    PRRTT -> DOSET -> APOPT;
+    PRRTK -> PRRTADV;
+    GA68 -> PRRTD [style=dotted, label="eligibility"];
+    SSTOCC -> PRRTT [label="− (cold\ncompetition)", color="#b03030", style=dashed];
+  }
+
+  /* =====================================================================
+     19 · MEN1 CALCIUM–PTH LOOP
+     ===================================================================== */
+  subgraph cluster_ca {
+    label=<<B>19 · MEN1 calcium–PTH loop · why the parathyroids are operated on first</B>>;
+    style="rounded,filled"; fillcolor="#faf6ef"; color="#b9a888"; fontsize=10;
+    PHPT    [label="Primary hyperparathyroidism\n(>90% of MEN1, usually first)", fillcolor="#efe4d2", penwidth=1.4];
+    PTH     [label="PTH — plasma parathyroid hormone\nstate variable", fillcolor="#efe4d2", penwidth=1.6];
+    CAION   [label="CAION — ionised calcium\nstate variable", fillcolor="#efe4d2", penwidth=1.8];
+    CASR    [label="CaSR on tumour + G cell\nCa2+ → gastrin release", fillcolor="#fde6d8", penwidth=1.4];
+    PTX     [label="Subtotal parathyroidectomy\n(3.5-gland) — done BEFORE\ngastrinoma surgery", fillcolor="#d9f2e6", penwidth=1.4];
+    CINA    [label="Cinacalcet (calcimimetic)\nmedical alternative", fillcolor="#d9f2e6"];
+    VITD    [label="1,25-(OH)2 vitamin D\nintestinal Ca absorption", fillcolor="#efe4d2"];
+    CAEMERG [label="EMERGENT: PTX lowers fasting\ngastrin and BAO — a loop\nconsequence, not a coded rule", fillcolor="#ffe9c7", penwidth=1.8, shape=note];
+
+    MEN1G -> PHPT -> PTH -> CAION;
+    VITD -> CAION; PTH -> VITD;
+    CAION -> CASR -> GASGENE [label="+"];
+    CAION -> DCA;
+    PTX -> PTH [label="−", color="#2e7d32"];
+    CINA -> PTH [label="−", color="#2e7d32"];
+    PTX -> CAEMERG; CASR -> CAEMERG;
+  }
+
+  /* =====================================================================
+     20 · DIAGNOSTICS INCLUDING THE SECRETIN SIGN INVERSION
+     ===================================================================== */
+  subgraph cluster_dx {
+    label=<<B>20 · Diagnostics · the secretin sign inversion · assay pitfalls</B>>;
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#a0a0a0"; fontsize=10;
+    SECRETIN [label="Secretin 2 U/kg IV bolus", fillcolor="#efefef", penwidth=1.4];
+    SECRNORM [label="Normal antral G cell:\nsecretin INHIBITS gastrin", fillcolor="#efefef", penwidth=1.4];
+    SECRTUM  [label="Gastrinoma cell:\nsecretin STIMULATES gastrin\n(retained SCTR, lost inhibition)", fillcolor="#ffe9c7", penwidth=1.8];
+    SECRTEST [label="Δgastrin > 120 pg/mL at 2–10 min\nsensitivity ~94%, specificity ~100%", fillcolor="#efefef", penwidth=1.4];
+    PHTEST   [label="Gastric pH < 2 with high gastrin\n— mandatory to exclude achlorhydria", fillcolor="#efefef", penwidth=1.4];
+    PPIFALSE [label="PPI-induced hypergastrinaemia\nFALSE POSITIVE — the commonest\ndiagnostic error", fillcolor="#ffd9d9", penwidth=1.6];
+    CAINFUS  [label="Calcium infusion test\n(2nd line, ~62% sensitivity)", fillcolor="#efefef"];
+    EUS      [label="EUS + intra-operative\nduodenal transillumination", fillcolor="#efefef"];
+    IMAGING  [label="68Ga-DOTATATE PET/CT\n(supersedes 111In-octreotide)", fillcolor="#efefef"];
+
+    SECRETIN -> SECRNORM -> GANT [label="−", color="#2e7d32"];
+    SECRETIN -> SECRTUM -> SPHEN [label="+", color="#b03030"];
+    SECRTUM -> SECRTEST; SECRNORM -> SECRTEST;
+    PHTEST -> SECRTEST [style=dotted];
+    PPIFALSE -> FSG [label="confounds", color="#b03030"];
+    PPIDOSE -> PPIFALSE;
+    ACIDFB -> PPIFALSE [label="− (acid gone →\nD-cell brake off)", style=dashed];
+    CAION -> CAINFUS; CAINFUS -> SECRTEST [style=dotted];
+    EUS -> SURGERY; IMAGING -> SURGERY; IMAGING -> GA68;
+  }
+
+  /* =====================================================================
+     21 · LONG-TERM CONSEQUENCES OF PROFOUND ACID SUPPRESSION
+     ===================================================================== */
+  subgraph cluster_harm {
+    label=<<B>21 · Long-term consequences of decades of profound acid suppression</B>>;
+    style="rounded,filled"; fillcolor="#fdf1f1"; color="#cc9494"; fontsize=10;
+    B12     [label="B12 — cobalamin stores\nR-protein transfer needs acid+pepsin\nstate variable", fillcolor="#ffd9d9", penwidth=1.6];
+    IRON    [label="Non-haem iron absorption ↓\n(Fe3+→Fe2+ needs acid)", fillcolor="#ffd9d9"];
+    MG      [label="MG — serum magnesium\nTRPM6/7 paracellular uptake ↓\nstate variable", fillcolor="#ffd9d9", penwidth=1.4];
+    BMD     [label="BMD — bone mineral density\nCa carbonate solubility ↓\nstate variable", fillcolor="#ffd9d9", penwidth=1.4];
+    ENTINF  [label="Enteric infection risk\n(C. difficile, Salmonella, SIBO)", fillcolor="#ffd9d9"];
+    AKIINT  [label="Acute interstitial nephritis\n→ chronic kidney disease", fillcolor="#ffd9d9"];
+    GASTPOL [label="Fundic gland polyps\n+ ECL hyperplasia surveillance", fillcolor="#ffd9d9"];
+    RENALG  [label="CKD raises gastrin CL loss\n→ higher measured FSG", fillcolor="#e8e2f7"];
+    REBOUND [label="REBOUND hypersecretion on\nwithdrawal: enlarged PUMPI pool\n× enlarged PCM", fillcolor="#ffe9c7", penwidth=1.8, shape=note];
+
+    PHINT -> B12 [label="high pH →\nmalabsorption"];
+    PHINT -> IRON; PHINT -> MG; PHINT -> ENTINF;
+    MG -> BMD [style=dotted]; PHINT -> BMD;
+    B12 -> QOL [style=dotted];
+    PPIC -> AKIINT; AKIINT -> RENALG -> GCLEAR [label="−", color="#2e7d32"];
+    ECLHYP -> GASTPOL;
+    PUMPI -> REBOUND; PCM -> REBOUND; REBOUND -> PRODUCT [label="+", color="#b03030"];
+    BMD -> QOL [style=dotted];
+  }
+
+  /* =====================================================================
+     22 · HEADROOM COUNTERFACTUALS AND MODEL READ-OUTS
+     ===================================================================== */
+  subgraph cluster_head {
+    label=<<B>22 · Headroom counterfactuals — each factor's remaining contribution MEASURED, not assumed</B>>;
+    style="rounded,filled"; fillcolor="#fff8ec"; color="#d9b978"; fontsize=10;
+    HDPCM   [label="HD_PCM — BAO recomputed with\nparietal mass forced to normal\n(counterfactual integrator)", fillcolor="#ffe9c7", penwidth=1.6];
+    HDDRIVE [label="HD_DRIVE — BAO recomputed with\ngastrin drive forced to normal", fillcolor="#ffe9c7", penwidth=1.6];
+    HDPUMP  [label="HD_PUMP — BAO recomputed with\nno pump inhibition on board", fillcolor="#ffe9c7", penwidth=1.6];
+    ACIDAUC [label="AUC_ACID — cumulative acid load\nabove the mucosal-defence threshold", fillcolor="#ffe9c7", penwidth=1.4];
+    TBAO10  [label="T_BAO<10 — fraction of time the\ntreatment target is met (<5 if\nprior gastric surgery)", fillcolor="#ffe9c7", penwidth=1.6];
+    DOSEFIT [label="Predicted individual\nmaintenance dose", fillcolor="#ffe9c7", penwidth=1.4];
+
+    PCMFAC -> HDPCM; FACT3 -> HDDRIVE; FACT2 -> HDPUMP;
+    PRODUCT -> ACIDAUC -> ULCD;
+    PRODUCT -> TBAO10 -> DOSEFIT;
+    HDPCM -> DOSEFIT; HDDRIVE -> DOSEFIT; HDPUMP -> DOSEFIT;
+  }
+
+  /* =====================================================================
+     CROSS-CLUSTER LONG-RANGE EDGES
+     ===================================================================== */
+  SPHEN  -> FSG   [style=dotted, constraint=false];
+  GBIOACT -> PSYN [style=dotted, constraint=false, label="ATP4A/B\ninduction"];
+  SSASEC -> PRODUCT [style=dashed, color="#2e7d32", constraint=false,
+                     label="factor 1 + 3\n(additive with PPI)"];
+  SURGERY -> SPHEN  [style=dashed, color="#2e7d32", constraint=false];
+  PUMPB  -> FACT2 [style=dotted, constraint=false, label="pool removed\nfrom service"];
+  DOSET  -> SPHEN [style=dashed, color="#2e7d32", constraint=false];
+  ULCD   -> SURV  [style=dotted, constraint=false];
+  CAION  -> PRODUCT [style=dotted, constraint=false];
+  GNET   -> SURV  [style=dotted, constraint=false];
+  NETAZ  -> PRODUCT [style=dashed, color="#2e7d32", constraint=false];
+}
