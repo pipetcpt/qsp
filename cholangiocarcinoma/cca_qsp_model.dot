@@ -1,0 +1,783 @@
+/* =========================================================================
+   cca_qsp_model.dot
+   Cholangiocarcinoma (biliary tract cancer) — QSP mechanistic map
+   -------------------------------------------------------------------------
+   The map is NOT drawn as "risk factor -> mutation -> tumour grows ->
+   chemotherapy shrinks it -> patient lives longer".  That drawing cannot
+   survive the observations listed in cluster L_WHY.  Three structural
+   commitments are drawn instead, and each one is a CYCLE on this map, not
+   an arrow:
+
+     I.  THE DELIVERED DOSE IS AN OUTPUT (cluster c_gate, red cycle).
+         Bilirubin, ANC and creatinine clearance gate what is actually
+         infused, so obstruction -> held dose -> growth -> obstruction is a
+         closed positive-feedback loop.  Biliary drainage has NO antitumour
+         action and is nonetheless the highest-leverage node on the map,
+         because it is the only edge that cuts that loop.
+
+     II. RESISTANCE IS SELECTED, NOT INDUCED (cluster c_clone, purple).
+         The FGFR2 kinase-domain-mutant clone exists at t = 0 at a frequency
+         set by mutation rate x cell number.  Nothing on this map "becomes"
+         resistant under drug.
+
+    III. SURVIVAL HAS TWO COMPETING HAZARDS ON DIFFERENT CLOCKS
+         (cluster c_endpoint).  h_tumour is slow and burden-driven;
+         h_biliary is fast, recurrent and drainage-driven.  Median OS is a
+         mixture summary and is the wrong statistic for immunotherapy.
+
+   Rendering:
+     dot -Tsvg cca_qsp_model.dot -o cca_qsp_model.svg
+     dot -Tpng -Gdpi=150 cca_qsp_model.dot -o cca_qsp_model.png
+   ========================================================================= */
+
+digraph CCA_QSP {
+    rankdir       = TB;
+    compound      = true;
+    newrank       = true;
+    splines       = spline;
+    concentrate   = false;
+    nodesep       = 0.28;
+    ranksep       = 0.60;
+    fontname      = "Helvetica";
+    labelloc      = "t";
+    label         = <<B>Cholangiocarcinoma — Quantitative Systems Pharmacology map</B><BR/>
+                     <FONT POINT-SIZE="13">delivered dose as an output · resistance as a pre-existing clone · two competing hazards</FONT>>;
+    fontsize      = 26;
+    bgcolor       = "white";
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+          color="#37474F", penwidth=1.0, margin="0.08,0.05"];
+    edge [fontname="Helvetica", fontsize=8, color="#546E7A", arrowsize=0.7];
+
+    /* ==================================================================
+       0. WHY THIS MODEL EXISTS — the observations the simple cascade fails
+       ================================================================== */
+    subgraph cluster_why {
+        label = "0 · Observations the linear cascade cannot survive";
+        style = "filled"; fillcolor = "#FFFDE7"; color = "#F9A825"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#FFF9C4", shape=note];
+
+        OBS_A [label="(A) Response and survival are only loosely coupled\nABC-02 gem/cis: ORR ~26%, mPFS 8.0 mo, mOS 11.7 mo\nBSC-level tumour kinetics do not explain the death rate"];
+        OBS_B [label="(B) The commonest terminal event is biliary, not bulk\ncholangitis / obstructive liver failure kills before\ntumour volume becomes lethal, especially in pCCA/dCCA"];
+        OBS_C [label="(C) Drainage has zero antitumour activity\nyet without it no systemic therapy can be given at dose\n(bilirubin thresholds hold gemcitabine and cisplatin)"];
+        OBS_D [label="(D) FGFR2-fusion tumours nearly always progress on\npemigatinib via POLYCLONAL kinase-domain mutations\n(V564F, N550K...) detectable in ctDNA before imaging"];
+        OBS_E [label="(E) TOPAZ-1: durvalumab moved median OS 11.5 -> 12.8 mo\nbut 24-month OS 10.4% -> 24.9%.\nA mean-effect model cannot separate tails."];
+        OBS_F [label="(F) Ivosidenib in IDH1-mutant iCCA: ORR ~2%,\nyet mPFS 2.7 vs 1.4 mo, HR 0.37.\nBenefit with almost no shrinkage = cytostatic, not cytotoxic."];
+        OBS_G [label="(G) Anatomic subtype reorders the failure mode:\nFGFR2 fusions / IDH1 mutations are essentially confined\nto intrahepatic disease; hilar disease fails by obstruction"];
+    }
+
+    /* ==================================================================
+       1. AETIOLOGY AND CHRONIC BILIARY INJURY
+       ================================================================== */
+    subgraph cluster_aetiol {
+        label = "1 · Aetiology · chronic biliary injury";
+        style = "filled"; fillcolor = "#E8F5E9"; color = "#2E7D32"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#C8E6C9"];
+
+        RF_FLUKE  [label="Liver fluke\nOpisthorchis viverrini / Clonorchis sinensis\n(NE Thailand, Laos — highest world incidence)"];
+        RF_PSC    [label="Primary sclerosing cholangitis\n(lifetime CCA risk 5-15%, hazard front-loaded\nto the first 1-2 y after PSC diagnosis)"];
+        RF_STONE  [label="Hepatolithiasis / recurrent pyogenic cholangitis"];
+        RF_CYST   [label="Choledochal cyst · Caroli disease\npancreaticobiliary maljunction"];
+        RF_VIRAL  [label="HBV / HCV chronic infection\n(iCCA-selective risk)"];
+        RF_METAB  [label="MASLD · obesity · type 2 diabetes\ncirrhosis of any cause"];
+        RF_TOX    [label="Thorotrast · asbestos · dioxin\n1,2-dichloropropane (printing works)"];
+        RF_SMOKE  [label="Tobacco · alcohol"];
+        RF_IDIO   [label="No identifiable risk factor\n(the majority of Western iCCA)"];
+
+        INJ_CHOL  [label="Chronic cholangiocyte injury\nrepeated wound-healing cycles", fillcolor="#A5D6A7"];
+        INJ_BA    [label="Retained hydrophobic bile acids\n(taurocholate, glycochenodeoxycholate)"];
+        INJ_S1PR2 [label="S1PR2 signalling\n(bile-acid activated, ERK/AKT)"];
+        INJ_TGR5  [label="TGR5 (GPBAR1) — cAMP, proliferation"];
+        INJ_FXR   [label="FXR tone LOW\n(loss of anti-inflammatory brake)"];
+        INJ_NOS   [label="iNOS -> NO -> peroxynitrite\ndirect DNA damage + 8-oxo-dG"];
+        INJ_MGMT  [label="NO-mediated inhibition of\nDNA repair (MGMT, 8-oxoG glycosylase)"];
+        INJ_COX2  [label="COX-2 -> PGE2 -> EP receptors\nsurvival + proliferation"];
+        INJ_IL6   [label="IL-6 (autocrine + stromal)"];
+        INJ_STAT3 [label="STAT3 phosphorylation\nMcl-1 up, apoptosis threshold up"];
+        INJ_DUCT  [label="Ductular reaction\nbiliary tree stem/progenitor expansion"];
+    }
+
+    /* ==================================================================
+       2. CELL OF ORIGIN AND ANATOMIC SUBTYPE
+       ================================================================== */
+    subgraph cluster_subtype {
+        label = "2 · Cell of origin · anatomic subtype";
+        style = "filled"; fillcolor = "#E3F2FD"; color = "#1565C0"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#BBDEFB"];
+
+        COO_SMALL [label="Small-duct cholangiocyte / hepatic progenitor"];
+        COO_LARGE [label="Large-duct peribiliary gland stem cell"];
+        COO_HEP   [label="Hepatocyte transdifferentiation\n(Notch / AKT driven, murine + human evidence)"];
+
+        SUB_ICCA  [label="iCCA — intrahepatic (~20%)\nmass-forming; small-duct subtype carries\nFGFR2 fusions and IDH1 mutations", fillcolor="#90CAF9"];
+        SUB_PCCA  [label="pCCA — perihilar / Klatskin (~50-60%)\nperiductal-infiltrating; obstruction-dominant", fillcolor="#90CAF9"];
+        SUB_DCCA  [label="dCCA — distal (~20%)\nresembles pancreatic head cancer", fillcolor="#90CAF9"];
+        SUB_GB    [label="Gallbladder carcinoma\n(grouped in BTC trials; ERBB2-enriched)"];
+
+        SUB_GROWTH[label="Growth pattern\nmass-forming vs periductal-infiltrating\nvs intraductal-papillary"];
+        SUB_HILAR [label="HILAR POSITION FRACTION (f_hilar)\nthe single geometric parameter that decides\nwhether the patient fails by bulk or by obstruction",
+                   fillcolor="#FFCC80", shape=octagon];
+    }
+
+    /* ==================================================================
+       3. GENOMIC DRIVERS
+       ================================================================== */
+    subgraph cluster_genome {
+        label = "3 · Genomic drivers (actionable ~40% of iCCA, ~10% of eCCA)";
+        style = "filled"; fillcolor = "#F3E5F5"; color = "#6A1B9A"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#E1BEE7"];
+
+        GEN_FGFR2 [label="FGFR2 FUSION / rearrangement\n10-16% of iCCA; BICC1, AHCYL1, KIAA1598...\nconstitutive ligand-independent dimerisation", fillcolor="#CE93D8"];
+        GEN_IDH   [label="IDH1 R132 mutation (13% iCCA)\nIDH2 (rarer)", fillcolor="#CE93D8"];
+        GEN_BAP1  [label="BAP1 loss (~15-25% iCCA)"];
+        GEN_ARID  [label="ARID1A / PBRM1 chromatin remodellers"];
+        GEN_KRAS  [label="KRAS mutation (eCCA-enriched, ~20%)"];
+        GEN_TP53  [label="TP53 mutation"];
+        GEN_SMAD  [label="SMAD4 loss (eCCA, poor prognosis)"];
+        GEN_HER2  [label="ERBB2 amplification / HER2 overexpression\n(gallbladder + dCCA enriched, ~5-20%)"];
+        GEN_BRAF  [label="BRAF V600E (~1-5% iCCA)"];
+        GEN_NTRK  [label="NTRK fusion (<1%)"];
+        GEN_MSI   [label="MSI-H / dMMR (~1-3%)"];
+        GEN_RET   [label="RET fusion · ALK / ROS1 (rare)"];
+        GEN_TMB   [label="Tumour mutational burden\n(median low; MSI-H tail high)"];
+        GEN_CLONE [label="CLONAL ARCHITECTURE AT DIAGNOSIS\nN_cells ~1e9-1e11 x mutation rate\n=> resistant subclones ALREADY PRESENT",
+                   fillcolor="#FFCC80", shape=octagon];
+    }
+
+    /* ==================================================================
+       4. IDH1 -> 2-HG -> EPIGENETIC BLOCK
+       ================================================================== */
+    subgraph cluster_idh {
+        label = "4 · IDH1 neomorphic axis";
+        style = "filled"; fillcolor = "#FFF3E0"; color = "#E65100"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#FFE0B2"];
+
+        IDH_AKG   [label="alpha-ketoglutarate"];
+        IDH_2HG   [label="D-2-hydroxyglutarate (2-HG)\noncometabolite, mM intracellular", fillcolor="#FFB74D"];
+        IDH_TET   [label="TET2 dioxygenase INHIBITED"];
+        IDH_KDM   [label="KDM histone demethylases INHIBITED"];
+        IDH_METH  [label="DNA hypermethylation phenotype"];
+        IDH_DIFF  [label="Cholangiocyte differentiation BLOCK\n(HNF4A silencing)"];
+        IDH_PROLIF[label="Slow, differentiation-blocked proliferation\n(a cytostatic target, not a cytotoxic one)", fillcolor="#FFB74D"];
+        IDH_NADPH [label="NADPH consumption\nredox vulnerability"];
+    }
+
+    /* ==================================================================
+       5. FGFR2 SIGNALLING
+       ================================================================== */
+    subgraph cluster_fgfr {
+        label = "5 · FGFR2 signalling and the phosphate axis";
+        style = "filled"; fillcolor = "#E0F7FA"; color = "#00838F"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#B2EBF2"];
+
+        FGF_DIMER [label="Ligand-independent FGFR2 dimer\n(fusion partner coiled-coil domain)"];
+        FGF_FRS2  [label="FRS2 / GRB2 / SOS"];
+        FGF_RAS   [label="RAS -> RAF -> MEK -> ERK1/2"];
+        FGF_PI3K  [label="PI3K -> AKT -> mTORC1"];
+        FGF_PLCG  [label="PLC-gamma -> PKC"];
+        FGF_STAT  [label="STAT3"];
+        FGF_MYC   [label="MYC · CCND1 -> G1/S transit"];
+        FGF_SPRY  [label="SPRY / DUSP6 negative feedback\n(pharmacodynamic biomarkers)"];
+        FGF_FGF19 [label="FGF19 - FGFR4 - KLB axis\n(separate, HCC-overlapping)"];
+        FGF_FGF23 [label="FGF23 - FGFR1/Klotho in proximal tubule"];
+        FGF_NAPI  [label="NaPi-2a/2c cotransporter INHIBITION\n-> renal phosphate reabsorption UP", fillcolor="#80DEEA"];
+        FGF_PHOS  [label="SERUM PHOSPHATE UP\non-target class effect, ~60% of patients\n= a free pharmacodynamic readout of target engagement",
+                   fillcolor="#FFCC80", shape=octagon];
+        FGF_TOX   [label="Hyperphosphataemia sequelae\nnail/eye toxicity, retinal pigment epithelial\ndetachment, soft-tissue mineralisation"];
+    }
+
+    /* ==================================================================
+       6. DESMOPLASTIC STROMA — the drug-penetration barrier
+       ================================================================== */
+    subgraph cluster_stroma {
+        label = "6 · Desmoplastic stroma · interstitial pressure · drug penetration";
+        style = "filled"; fillcolor = "#EFEBE9"; color = "#4E342E"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#D7CCC8"];
+
+        STR_CAF   [label="Cancer-associated fibroblasts\n(alpha-SMA+, FAP+, PDGFRb+)\niCCA is among the most desmoplastic of tumours", fillcolor="#BCAAA4"];
+        STR_ICAF  [label="iCAF (IL-6 / LIF secreting)"];
+        STR_MCAF  [label="myCAF (matrix producing)"];
+        STR_HH    [label="Hedgehog (SHH -> SMO -> GLI)\ntumour-to-stroma paracrine"];
+        STR_PDGF  [label="PDGF-BB / PDGFRb"];
+        STR_TGFB  [label="TGF-beta1 (latent -> integrin activated)"];
+        STR_PERI  [label="Periostin (POSTN) — prognostic"];
+        STR_HA    [label="Hyaluronan accumulation"];
+        STR_COL   [label="Collagen I/III deposition\nLOX / LOXL2 crosslinking"];
+        STR_STIFF [label="Matrix stiffness -> YAP/TAZ nuclear\nmechanotransduction feed-forward"];
+        STR_IFP   [label="INTERSTITIAL FLUID PRESSURE UP\nvessel compression, convection abolished", fillcolor="#A1887F"];
+        STR_PEN   [label="DRUG PENETRATION FACTOR (f_pen)\ntumour exposure = plasma exposure x f_pen\nf_pen falls as stroma accumulates",
+                   fillcolor="#FFCC80", shape=octagon];
+        STR_HYP   [label="Hypoxia -> HIF-1alpha\nCAIX, glycolytic shift, radioresistance"];
+        STR_VEGF  [label="VEGF-A -> abnormal, leaky, compressed vasculature"];
+    }
+
+    /* ==================================================================
+       7. TUMOUR IMMUNE MICROENVIRONMENT
+       ================================================================== */
+    subgraph cluster_immune {
+        label = "7 · Tumour immune microenvironment";
+        style = "filled"; fillcolor = "#FCE4EC"; color = "#AD1457"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#F8BBD0"];
+
+        IMM_APC   [label="Dendritic cell priming in tumour-draining node"];
+        IMM_CD8   [label="CD8+ cytotoxic T cell (intratumoural)", fillcolor="#F48FB1"];
+        IMM_TRM   [label="Tissue-resident memory CD8 (CD103+)"];
+        IMM_TREG  [label="FOXP3+ regulatory T cell"];
+        IMM_MDSC  [label="Myeloid-derived suppressor cells"];
+        IMM_TAM   [label="Tumour-associated macrophage (M2 / CD163+)"];
+        IMM_PDL1  [label="Tumour + myeloid PD-L1 expression\n(~10-30% CPS>=1 in BTC)"];
+        IMM_PD1   [label="PD-1 on exhausted CD8"];
+        IMM_CTLA  [label="CTLA-4 / priming-phase checkpoint"];
+        IMM_TIM   [label="TIM-3 · LAG-3 co-inhibition"];
+        IMM_EXCL  [label="TGF-beta-driven T-cell EXCLUSION\nCD8 confined to the stromal rim"];
+        IMM_IFNG  [label="IFN-gamma -> JAK/STAT1 -> adaptive PD-L1"];
+        IMM_MIX   [label="IMMUNE-ENGAGED FRACTION (pi_immune)\na MIXTURE parameter, not a mean effect:\nonly a minority of tumours are immunologically hot",
+                   fillcolor="#FFCC80", shape=octagon];
+        IMM_TLS   [label="Tertiary lymphoid structures\n(favourable when intratumoural)"];
+        IMM_GUT   [label="Biliary / gut microbiome\ncholangitis-driven systemic inflammation"];
+    }
+
+    /* ==================================================================
+       8. TUMOUR CELL POPULATIONS — the clonal clock
+       ================================================================== */
+    subgraph cluster_clone {
+        label = "8 · Tumour cell populations — resistance is SELECTED, not induced";
+        style = "filled"; fillcolor = "#EDE7F6"; color = "#4527A0"; fontsize = 14; penwidth = 3;
+        node [fillcolor="#D1C4E9"];
+
+        TUM_S     [label="T_S — drug-sensitive clone\nbulk of the tumour at diagnosis", fillcolor="#B39DDB"];
+        TUM_P     [label="T_P — drug-tolerant persister\nslow-cycling, reversible, NOT mutated\n(explains rebound after drug holiday)"];
+        TUM_R     [label="T_R — FGFR2 kinase-domain mutant clone\nV564F / V564L gatekeeper, N550K molecular brake,\nE566A, K660M — POLYCLONAL in ctDNA", fillcolor="#B39DDB"];
+        TUM_D1    [label="damaged cell — transit 1"];
+        TUM_D2    [label="damaged cell — transit 2"];
+        TUM_D3    [label="damaged cell — transit 3 (cell loss)"];
+        TUM_MET   [label="Extrahepatic metastatic burden\nperitoneum · lung · bone · distant nodes"];
+        TUM_SEED  [label="SEEDING RULE (Goldie-Coldman)\nT_R(0) = T_total(0) x mu x g\nno 'resistance onset time' parameter exists",
+                   fillcolor="#FFCC80", shape=octagon];
+        TUM_CROSS [label="Cross-resistance matrix\ngatekeeper V564F: pemigatinib RESISTANT,\nfutibatinib (covalent, C491) PARTLY retained;\nN550K molecular-brake: futibatinib retained"];
+    }
+
+    /* ==================================================================
+       9. BILIARY OBSTRUCTION AND DRAINAGE
+       ================================================================== */
+    subgraph cluster_biliary {
+        label = "9 · Biliary obstruction · drainage · cholangitis";
+        style = "filled"; fillcolor = "#FFEBEE"; color = "#B71C1C"; fontsize = 14; penwidth = 3;
+        node [fillcolor="#FFCDD2"];
+
+        BIL_TUM   [label="Tumour mass at the hilum / duct wall"];
+        BIL_OBS   [label="BILIARY OBSTRUCTION FRACTION (OBS)\nfraction of liver whose drainage is blocked", fillcolor="#EF9A9A"];
+        BIL_SECT  [label="Sectoral / segmental isolation\n(Bismuth-Corlette III-IV)\ndrained volume matters more than stent count"];
+        BIL_STENT [label="Stent (plastic vs uncovered SEMS)\nendoscopic (ERCP) vs percutaneous (PTBD)", fillcolor="#EF9A9A"];
+        BIL_PAT   [label="STENT PATENCY (decaying state)\nbiofilm + sludge + tumour ingrowth\nplastic ~3 mo, SEMS ~6-9 mo"];
+        BIL_CHOL  [label="Ascending cholangitis\n(recurrent, each episode a hazard event)", fillcolor="#EF9A9A"];
+        BIL_SEP   [label="Biliary sepsis / septic shock\nthe commonest terminal event in pCCA"];
+        BIL_BA    [label="Serum bile acids UP -> pruritus (MRGPRX4)"];
+        BIL_BILI  [label="TOTAL BILIRUBIN\nthe gating variable of the whole model", fillcolor="#FFCC80", shape=octagon];
+        BIL_ALP   [label="ALP / GGT (cholestasis markers)"];
+        BIL_ATRO  [label="Segmental atrophy-hypertrophy complex"];
+        BIL_MAL   [label="Fat-soluble vitamin malabsorption\nvitamin K -> coagulopathy"];
+    }
+
+    /* ==================================================================
+       10. HEPATIC CONSEQUENCES
+       ================================================================== */
+    subgraph cluster_liver {
+        label = "10 · Hepatic reserve";
+        style = "filled"; fillcolor = "#F1F8E9"; color = "#558B2F"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#DCEDC8"];
+
+        LIV_TOX   [label="Cholestatic hepatocyte injury\n(bile-acid apoptosis / necrosis)"];
+        LIV_FIB   [label="Secondary biliary fibrosis"];
+        LIV_FLR   [label="FUNCTIONAL LIVER RESERVE (FLR)\nnon-tumour, drained, viable parenchyma", fillcolor="#C5E1A5"];
+        LIV_ALB   [label="Serum albumin (synthetic function)"];
+        LIV_ALBI  [label="ALBI grade = f(albumin, bilirubin)\nprognostic and dose-relevant"];
+        LIV_PHTN  [label="Portal hypertension / ascites\n(when cirrhosis coexists)"];
+        LIV_CYP   [label="Hepatic CYP3A4 / UGT capacity\nfalls with cholestasis -> altered clearance"];
+        LIV_FAIL  [label="Hepatic decompensation"];
+    }
+
+    /* ==================================================================
+       11. GEMCITABINE PK/PD
+       ================================================================== */
+    subgraph cluster_gem {
+        label = "11 · Gemcitabine PK/PD";
+        style = "filled"; fillcolor = "#E1F5FE"; color = "#0277BD"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#B3E5FC"];
+
+        GEM_IV    [label="Gemcitabine 1000 mg/m2 IV\nd1, d8 q21d (ABC-02 schedule)"];
+        GEM_PL    [label="Plasma dFdC\nt1/2 ~ 8-17 min, saturable"];
+        GEM_CDA   [label="Cytidine deaminase (CDA)\n-> dFdU (inactive), the main sink"];
+        GEM_HENT  [label="hENT1 / hCNT3 membrane transport\n(low hENT1 = resistance)"];
+        GEM_DCK   [label="Deoxycytidine kinase (dCK) — rate limiting"];
+        GEM_TP    [label="dFdCTP — intracellular, saturable,\nlong retention (the real effect driver)", fillcolor="#81D4FA"];
+        GEM_RRM1  [label="Ribonucleotide reductase (RRM1) inhibition\nself-potentiation via dCTP pool depletion"];
+        GEM_DNA   [label="Masked DNA chain termination\n(one extra base added, then stall)"];
+        GEM_APOP  [label="S-phase-restricted apoptosis"];
+        GEM_MYELO [label="Myelosuppression (neutropenia, thrombocytopenia)"];
+    }
+
+    /* ==================================================================
+       12. CISPLATIN PK/PD
+       ================================================================== */
+    subgraph cluster_cis {
+        label = "12 · Cisplatin PK/PD";
+        style = "filled"; fillcolor = "#EDEDED"; color = "#424242"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#E0E0E0"];
+
+        CIS_IV    [label="Cisplatin 25 mg/m2 IV d1, d8 q21d"];
+        CIS_FREE  [label="Free (ultrafilterable) platinum\nrapid aquation; protein-bound Pt is inactive"];
+        CIS_CTR1  [label="CTR1 / OCT2 uptake"];
+        CIS_GSH   [label="Glutathione + metallothionein conjugation\n(detoxification sink)"];
+        CIS_ADD   [label="Pt-1,2-intrastrand-d(GpG) DNA adducts", fillcolor="#BDBDBD"];
+        CIS_ERCC  [label="ERCC1 / nucleotide excision repair"];
+        CIS_ATR   [label="ATR-CHK1 checkpoint"];
+        CIS_APOP  [label="p53-dependent + independent apoptosis"];
+        CIS_NEPH  [label="Proximal tubular injury -> CrCl falls\n(cumulative, partially irreversible)"];
+        CIS_NEURO [label="Dorsal root ganglion Pt accumulation\n-> cumulative sensory neuropathy"];
+        CIS_OTO   [label="Cochlear outer hair cell loss"];
+        CIS_EMET  [label="Highly emetogenic — 5-HT3/NK1 axis"];
+    }
+
+    /* ==================================================================
+       13. FGFR INHIBITORS
+       ================================================================== */
+    subgraph cluster_fgfri {
+        label = "13 · FGFR inhibitors";
+        style = "filled"; fillcolor = "#E8EAF6"; color = "#283593"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#C5CAE9"];
+
+        DRG_PEMI  [label="Pemigatinib 13.5 mg PO\n2 weeks on / 1 week off\nreversible ATP-competitive", fillcolor="#9FA8DA"];
+        DRG_INFI  [label="Infigratinib 125 mg PO 21/28"];
+        DRG_FUTI  [label="Futibatinib 20 mg PO daily\nIRREVERSIBLE covalent (C491)", fillcolor="#9FA8DA"];
+        DRG_DERA  [label="Derazantinib · RLY-4008 (FGFR2-selective)"];
+        DRG_PEMPK [label="Oral absorption -> plasma\nCYP3A4 clearance (cholestasis-sensitive)"];
+        DRG_OCC   [label="FGFR2 kinase occupancy\n(reversible: Cp/(Cp+Ki); covalent: cumulative)"];
+        DRG_GATE  [label="Gatekeeper V564F -> steric loss of\nreversible binding; covalent inhibitor\nretains partial activity"];
+        DRG_HOLI  [label="The 1-week-off interval\nallows persister regrowth — a scheduling\nvariable with a testable consequence"];
+    }
+
+    /* ==================================================================
+       14. IDH1 INHIBITOR
+       ================================================================== */
+    subgraph cluster_idhi {
+        label = "14 · IDH1 inhibitor";
+        style = "filled"; fillcolor = "#FFF8E1"; color = "#FF8F00"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#FFECB3"];
+
+        DRG_IVO   [label="Ivosidenib 500 mg PO daily\n(ClarIDHy)", fillcolor="#FFD54F"];
+        DRG_IVOPK [label="Plasma ivosidenib (CYP3A4, autoinduction)"];
+        DRG_2HG   [label="Plasma 2-HG suppressed >90%\n(PD biomarker, achieved in nearly everyone)"];
+        DRG_CYTO  [label="Growth rate REDUCED, kill rate ~ 0\n=> PFS gain WITHOUT response\nthis is the model's stated prediction", fillcolor="#FFCC80", shape=octagon];
+    }
+
+    /* ==================================================================
+       15. IMMUNOTHERAPY
+       ================================================================== */
+    subgraph cluster_io {
+        label = "15 · Immune checkpoint blockade";
+        style = "filled"; fillcolor = "#F9FBE7"; color = "#9E9D24"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#F0F4C3"];
+
+        DRG_DURV  [label="Durvalumab 1500 mg IV q3w -> q4w\nanti-PD-L1 (TOPAZ-1)", fillcolor="#E6EE9C"];
+        DRG_PEMB  [label="Pembrolizumab (KEYNOTE-966 / MSI-H)"];
+        DRG_TREME [label="Tremelimumab (anti-CTLA-4)"];
+        DRG_MABPK [label="mAb PK: 2-compartment,\nCL ~0.2 L/d, t1/2 ~3 weeks"];
+        DRG_ROCC  [label="PD-L1 receptor occupancy > 95%\nat label dose (occupancy is NOT the\nlimiting step — engagement is)"];
+        DRG_SYN   [label="Chemo-induced immunogenic cell death\n(calreticulin, ATP, HMGB1) primes the\ncombination effect"];
+        DRG_IRAE  [label="Immune-related adverse events\n(thyroid, colitis, hepatitis, pneumonitis)"];
+        DRG_TAIL  [label="LONG-TERM TAIL\nonly the immune-engaged fraction\nreaches the plateau", fillcolor="#FFCC80", shape=octagon];
+    }
+
+    /* ==================================================================
+       16. OTHER TARGETED AND CYTOTOXIC AGENTS
+       ================================================================== */
+    subgraph cluster_other {
+        label = "16 · Other systemic agents";
+        style = "filled"; fillcolor = "#E0F2F1"; color = "#00695C"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#B2DFDB"];
+
+        DRG_CAP   [label="Capecitabine 1250 mg/m2 BID 14/21\nadjuvant (BILCAP)"];
+        DRG_5FU   [label="5-FU -> FdUMP -> thymidylate synthase block\nDPD determines exposure"];
+        DRG_FOLFOX[label="mFOLFOX6 second line (ABC-06)"];
+        DRG_NALIRI[label="Nal-IRI / 5-FU (NIFTY)"];
+        DRG_ZANI  [label="Zanidatamab (HER2 biparatopic, HERIZON-BTC-01)"];
+        DRG_TDXD  [label="Trastuzumab deruxtecan (HERB)"];
+        DRG_DABTR [label="Dabrafenib + trametinib (ROAR, BRAF V600E)"];
+        DRG_LARO  [label="Larotrectinib / entrectinib (NTRK fusion)"];
+        DRG_SELP  [label="Selpercatinib (RET fusion)"];
+        DRG_PEMBM [label="Pembrolizumab for MSI-H / dMMR"];
+    }
+
+    /* ==================================================================
+       17. LOCOREGIONAL AND SURGICAL
+       ================================================================== */
+    subgraph cluster_local {
+        label = "17 · Surgery and locoregional therapy";
+        style = "filled"; fillcolor = "#FBE9E7"; color = "#D84315"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#FFCCBC"];
+
+        LOC_RES   [label="R0 resection (the only curative option)\nmargin status dominates outcome"];
+        LOC_LND   [label="Regional lymphadenectomy (>=6 nodes)"];
+        LOC_FLRV  [label="Future liver remnant / PVE\n(hilar resections need major hepatectomy)"];
+        LOC_TXP   [label="Liver transplant for selected pCCA\nafter neoadjuvant chemoradiation (Mayo protocol)"];
+        LOC_HAI   [label="Hepatic arterial infusion floxuridine\n(high first-pass extraction, iCCA)"];
+        LOC_TARE  [label="Y-90 transarterial radioembolisation"];
+        LOC_TACE  [label="TACE / bland embolisation"];
+        LOC_ABL   [label="RFA / microwave ablation (small iCCA)"];
+        LOC_SBRT  [label="SBRT / proton EBRT"];
+        LOC_PDT   [label="Photodynamic therapy / intraductal RFA\n(patency-directed, pCCA)"];
+        LOC_ADJ   [label="Adjuvant capecitabine 6 months\n(BILCAP: the standard of care)"];
+    }
+
+    /* ==================================================================
+       18. TOXICITY AND DOSE MODIFICATION — the gate
+       ================================================================== */
+    subgraph cluster_gate {
+        label = "18 · THE DOSE GATE — delivered dose is a model OUTPUT";
+        style = "filled"; fillcolor = "#FFEBEE"; color = "#C62828"; fontsize = 15; penwidth = 4;
+        node [fillcolor="#FFCDD2"];
+
+        TOX_ANC   [label="ANC (Friberg myelosuppression model:\nproliferating pool -> 3 transit -> circulating,\nMTT ~ 120 h, feedback exponent gamma)"];
+        TOX_PLT   [label="Platelets"];
+        TOX_CRCL  [label="Creatinine clearance"];
+        TOX_NEUR  [label="Cumulative neuropathy grade"];
+        TOX_PS    [label="ECOG performance status (continuous 0-4)"];
+        TOX_CACH  [label="Cachexia / lean body mass loss\n(GDF-15, IL-6 driven)"];
+
+        GATE_BILI [label="RULE 1 — bilirubin threshold\nT.bili > ~1.5-2x ULN: hold or reduce\ngemcitabine AND cisplatin", fillcolor="#EF5350", fontcolor="white"];
+        GATE_ANC  [label="RULE 2 — ANC < 1.0 x 10^9/L: hold day-8 dose\n(the day-8 dose is the one most often lost)", fillcolor="#EF5350", fontcolor="white"];
+        GATE_CRCL [label="RULE 3 — CrCl < 45-50 mL/min: cisplatin omitted", fillcolor="#EF5350", fontcolor="white"];
+        GATE_PS   [label="RULE 4 — ECOG >= 3: therapy stopped", fillcolor="#EF5350", fontcolor="white"];
+        GATE_DEL  [label="DELIVERED RELATIVE DOSE INTENSITY (RDI)\nan emergent variable — never an input",
+                   fillcolor="#FFCC80", shape=octagon, penwidth=2];
+    }
+
+    /* ==================================================================
+       19. BIOMARKERS
+       ================================================================== */
+    subgraph cluster_bio {
+        label = "19 · Biomarkers";
+        style = "filled"; fillcolor = "#F5F5F5"; color = "#616161"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#EEEEEE"];
+
+        BIO_CA199 [label="CA 19-9\nCONFOUNDED BY CHOLESTASIS —\nrises with obstruction independent of tumour"];
+        BIO_CEA   [label="CEA"];
+        BIO_CTDNA [label="ctDNA variant allele fraction\nscales with burden x shedding;\nrises BEFORE RECIST progression"];
+        BIO_2HGB  [label="Plasma 2-HG (IDH1 target engagement)"];
+        BIO_PHOSB [label="Serum phosphate (FGFR target engagement)"];
+        BIO_ALBIB [label="ALBI grade"];
+        BIO_NLR   [label="Neutrophil-lymphocyte ratio"];
+        BIO_IMG   [label="RECIST 1.1 sum of diameters\n(needs 20% growth or 30% shrink —\na coarse, delayed instrument)"];
+    }
+
+    /* ==================================================================
+       20. CLINICAL ENDPOINTS AND THE TWO HAZARDS
+       ================================================================== */
+    subgraph cluster_endpoint {
+        label = "20 · Clinical endpoints — two competing hazards on different clocks";
+        style = "filled"; fillcolor = "#ECEFF1"; color = "#263238"; fontsize = 15; penwidth = 3;
+        node [fillcolor="#CFD8DC"];
+
+        END_ORR   [label="Objective response rate (RECIST 1.1)"];
+        END_PFS   [label="Progression-free survival"];
+        END_HAZT  [label="h_tumour — SLOW CLOCK\nliver replacement fraction + metastatic burden\n+ cachexia", fillcolor="#B0BEC5"];
+        END_HAZB  [label="h_biliary — FAST CLOCK\ncholangitis episodes x obstruction x ALBI\nrecurrent, and largely preventable", fillcolor="#B0BEC5"];
+        END_OS    [label="Overall survival\nS(t) = exp(-INT[h_tumour + h_biliary])", fillcolor="#90A4AE"];
+        END_TAIL  [label="24-month OS (the tail statistic)\nthe endpoint that separates when the median does not",
+                   fillcolor="#FFCC80", shape=octagon];
+        END_CFS   [label="Cholangitis-free survival"];
+        END_QOL   [label="QoL / pruritus / jaundice burden"];
+        END_TTF   [label="Time to treatment failure\n(shorter than PFS whenever the gate bites)"];
+    }
+
+    /* ==================================================================
+       21. FALSIFIERS
+       ================================================================== */
+    subgraph cluster_fals {
+        label = "21 · Falsifiers — one parameter each, refitted to the same anchor";
+        style = "filled"; fillcolor = "#FFF3E0"; color = "#BF360C"; fontsize = 14; penwidth = 2;
+        node [fillcolor="#FFE0B2", shape=note];
+
+        FAL_1 [label="F1: GATE_ON = 0\nbilirubin no longer gates dosing.\nPREDICTION: the drainage effect on survival\nmust collapse to nearly nothing."];
+        FAL_2 [label="F2: MU_RES = 0\nno pre-existing FGFR2-mutant clone.\nPREDICTION: pemigatinib PFS must run away\n(no progression mechanism remains)."];
+        FAL_3 [label="F3: PI_IMMUNE = 1\nevery tumour immune-engaged.\nPREDICTION: durvalumab must move the MEDIAN,\nwhich TOPAZ-1 says it does not."];
+        FAL_4 [label="F4: F_PEN fixed at 1\nno stromal penetration barrier.\nPREDICTION: gem/cis ORR must overshoot 26%."];
+    }
+
+    /* ==================================================================
+       EDGES
+       ================================================================== */
+
+    /* aetiology */
+    RF_FLUKE -> INJ_CHOL;  RF_PSC -> INJ_CHOL;  RF_STONE -> INJ_CHOL;
+    RF_CYST  -> INJ_CHOL;  RF_VIRAL -> INJ_CHOL; RF_METAB -> INJ_CHOL;
+    RF_TOX   -> INJ_CHOL;  RF_SMOKE -> INJ_CHOL; RF_IDIO -> INJ_CHOL [style=dashed];
+    RF_FLUKE -> INJ_NOS   [label="fluke antigen\n+ mechanical"];
+    INJ_CHOL -> INJ_BA;    INJ_BA -> INJ_S1PR2; INJ_BA -> INJ_TGR5; INJ_BA -> INJ_FXR [arrowhead=tee];
+    INJ_S1PR2 -> INJ_DUCT; INJ_TGR5 -> INJ_DUCT;
+    INJ_FXR  -> INJ_IL6   [arrowhead=tee, label="lost brake"];
+    INJ_CHOL -> INJ_IL6;   INJ_IL6 -> INJ_STAT3; INJ_STAT3 -> INJ_DUCT;
+    INJ_CHOL -> INJ_COX2;  INJ_COX2 -> INJ_DUCT;
+    INJ_CHOL -> INJ_NOS;   INJ_NOS -> INJ_MGMT [arrowhead=tee];
+    INJ_MGMT -> GEN_TP53  [label="mutation\naccumulation", color="#6A1B9A"];
+    INJ_NOS  -> GEN_CLONE [color="#6A1B9A"];
+
+    /* cell of origin */
+    INJ_DUCT -> COO_SMALL; INJ_DUCT -> COO_LARGE; INJ_DUCT -> COO_HEP [style=dashed];
+    COO_SMALL -> SUB_ICCA; COO_HEP -> SUB_ICCA [style=dashed];
+    COO_LARGE -> SUB_PCCA; COO_LARGE -> SUB_DCCA; COO_LARGE -> SUB_GB;
+    SUB_ICCA -> SUB_GROWTH; SUB_PCCA -> SUB_GROWTH; SUB_DCCA -> SUB_GROWTH;
+    SUB_PCCA -> SUB_HILAR [color="#E65100", penwidth=2];
+    SUB_DCCA -> SUB_HILAR [color="#E65100", penwidth=2];
+    SUB_ICCA -> SUB_HILAR [color="#E65100", style=dashed, label="low f_hilar"];
+
+    /* subtype -> genomics */
+    SUB_ICCA -> GEN_FGFR2 [color="#6A1B9A", penwidth=1.6];
+    SUB_ICCA -> GEN_IDH   [color="#6A1B9A", penwidth=1.6];
+    SUB_ICCA -> GEN_BAP1;  SUB_ICCA -> GEN_ARID;
+    SUB_PCCA -> GEN_KRAS;  SUB_DCCA -> GEN_KRAS; SUB_DCCA -> GEN_SMAD;
+    SUB_GB   -> GEN_HER2;  SUB_DCCA -> GEN_HER2;
+    SUB_ICCA -> GEN_BRAF;  SUB_ICCA -> GEN_NTRK; SUB_ICCA -> GEN_RET;
+    GEN_MSI  -> GEN_TMB;   GEN_TMB -> IMM_MIX [color="#AD1457"];
+    GEN_TP53 -> GEN_CLONE; GEN_ARID -> GEN_CLONE;
+
+    /* IDH axis */
+    GEN_IDH -> IDH_AKG [arrowhead=tee]; GEN_IDH -> IDH_2HG [penwidth=1.8];
+    IDH_2HG -> IDH_TET [arrowhead=tee]; IDH_2HG -> IDH_KDM [arrowhead=tee];
+    IDH_TET -> IDH_METH; IDH_KDM -> IDH_METH; IDH_METH -> IDH_DIFF;
+    IDH_DIFF -> IDH_PROLIF; GEN_IDH -> IDH_NADPH;
+    IDH_PROLIF -> TUM_S [color="#4527A0", label="slow growth"];
+    IDH_2HG -> BIO_2HGB;
+
+    /* FGFR axis */
+    GEN_FGFR2 -> FGF_DIMER [penwidth=1.8];
+    FGF_DIMER -> FGF_FRS2; FGF_FRS2 -> FGF_RAS; FGF_FRS2 -> FGF_PI3K;
+    FGF_DIMER -> FGF_PLCG; FGF_DIMER -> FGF_STAT;
+    FGF_RAS -> FGF_MYC; FGF_PI3K -> FGF_MYC; FGF_STAT -> FGF_MYC;
+    FGF_RAS -> FGF_SPRY; FGF_SPRY -> FGF_RAS [arrowhead=tee, style=dashed];
+    FGF_MYC -> TUM_S [color="#4527A0", penwidth=1.8, label="proliferation"];
+    FGF_FGF19 -> FGF_MYC [style=dashed];
+
+    /* stroma */
+    STR_TGFB -> STR_CAF [penwidth=1.6]; STR_PDGF -> STR_CAF; STR_HH -> STR_CAF;
+    TUM_S -> STR_HH   [color="#4E342E", label="paracrine SHH"];
+    TUM_S -> STR_PDGF [color="#4E342E"];
+    TUM_S -> STR_TGFB [color="#4E342E"];
+    STR_CAF -> STR_ICAF; STR_CAF -> STR_MCAF;
+    STR_ICAF -> INJ_IL6 [label="IL-6"]; STR_MCAF -> STR_COL; STR_MCAF -> STR_HA;
+    STR_MCAF -> STR_PERI;
+    STR_COL -> STR_STIFF; STR_STIFF -> STR_CAF [style=dashed, label="YAP/TAZ\nfeed-forward"];
+    STR_COL -> STR_IFP [penwidth=1.6]; STR_HA -> STR_IFP [penwidth=1.6];
+    STR_IFP -> STR_PEN [arrowhead=tee, penwidth=2, color="#4E342E"];
+    STR_IFP -> STR_HYP; STR_HYP -> STR_VEGF; STR_VEGF -> STR_IFP [style=dashed];
+    STR_HYP -> TUM_P [color="#4527A0", label="persister niche"];
+    STR_PERI -> TUM_S [style=dashed];
+
+    /* immune */
+    IMM_APC -> IMM_CD8; IMM_CD8 -> IMM_TRM;
+    IMM_CD8 -> TUM_S [color="#AD1457", penwidth=1.6, arrowhead=tee, label="cytotoxic kill"];
+    IMM_CD8 -> IMM_IFNG; IMM_IFNG -> IMM_PDL1;
+    IMM_PDL1 -> IMM_PD1; IMM_PD1 -> IMM_CD8 [arrowhead=tee, penwidth=1.6];
+    IMM_TREG -> IMM_CD8 [arrowhead=tee]; IMM_MDSC -> IMM_CD8 [arrowhead=tee];
+    IMM_TAM -> IMM_CD8 [arrowhead=tee]; IMM_TIM -> IMM_CD8 [arrowhead=tee];
+    IMM_CTLA -> IMM_APC [arrowhead=tee];
+    STR_TGFB -> IMM_EXCL [penwidth=1.6]; IMM_EXCL -> IMM_CD8 [arrowhead=tee, penwidth=1.6];
+    STR_CAF -> IMM_MDSC; STR_HYP -> IMM_TAM;
+    IMM_TLS -> IMM_CD8; IMM_MIX -> IMM_CD8 [penwidth=2, color="#AD1457"];
+    IMM_GUT -> IMM_MDSC [style=dashed];
+    BIL_CHOL -> IMM_GUT [color="#B71C1C", style=dashed];
+
+    /* tumour populations */
+    TUM_SEED -> TUM_R [penwidth=2.5, color="#4527A0"];
+    TUM_S -> TUM_P [label="reversible\nentry"]; TUM_P -> TUM_S [label="reversible\nexit"];
+    TUM_S -> TUM_D1 [label="kill"]; TUM_R -> TUM_D1 [label="chemo kill\n(chemo still works)"];
+    TUM_P -> TUM_D1 [style=dashed, label="reduced kill"];
+    TUM_D1 -> TUM_D2 -> TUM_D3;
+    TUM_S -> TUM_MET; TUM_R -> TUM_MET;
+    GEN_CLONE -> TUM_SEED [penwidth=2, color="#6A1B9A"];
+    TUM_CROSS -> TUM_R [style=dashed];
+    TUM_S -> BIO_CTDNA; TUM_R -> BIO_CTDNA [penwidth=1.6, label="mutant VAF"];
+    TUM_S -> BIO_CA199; TUM_S -> BIO_IMG; TUM_MET -> BIO_IMG;
+
+    /* tumour -> biliary */
+    TUM_S -> BIL_TUM [penwidth=1.6];
+    SUB_HILAR -> BIL_TUM [penwidth=2, color="#E65100", label="geometry\ndecides"];
+    BIL_TUM -> BIL_OBS [penwidth=2];
+    BIL_OBS -> BIL_SECT;
+    BIL_STENT -> BIL_OBS [arrowhead=tee, penwidth=2.5, color="#B71C1C", label="DRAINAGE\n(no antitumour action)"];
+    BIL_STENT -> BIL_PAT; BIL_PAT -> BIL_OBS [arrowhead=tee, penwidth=1.6];
+    BIL_PAT -> BIL_CHOL [arrowhead=tee, style=dashed, label="occlusion ->\ncholangitis"];
+    BIL_OBS -> BIL_CHOL [penwidth=1.6]; BIL_CHOL -> BIL_SEP [penwidth=1.6];
+    BIL_OBS -> BIL_BILI [penwidth=2.5, color="#B71C1C"];
+    BIL_OBS -> BIL_ALP; BIL_OBS -> BIL_BA; BIL_OBS -> BIL_MAL; BIL_OBS -> BIL_ATRO;
+    BIL_BILI -> BIO_CA199 [style=dashed, color="#B71C1C", label="CONFOUND"];
+
+    /* biliary -> liver */
+    BIL_BA -> LIV_TOX [penwidth=1.6]; LIV_TOX -> LIV_FIB; LIV_FIB -> LIV_FLR [arrowhead=tee];
+    BIL_OBS -> LIV_FLR [arrowhead=tee, penwidth=1.6];
+    TUM_S -> LIV_FLR [arrowhead=tee, label="parenchymal\nreplacement"];
+    LIV_FLR -> LIV_ALB [penwidth=1.4]; LIV_ALB -> LIV_ALBI; BIL_BILI -> LIV_ALBI;
+    LIV_FLR -> LIV_CYP; LIV_FLR -> LIV_FAIL [arrowhead=tee]; LIV_PHTN -> LIV_FAIL;
+    LIV_ALBI -> BIO_ALBIB;
+    LIV_CYP -> DRG_PEMPK [style=dashed, label="cholestasis alters\noral clearance"];
+    LIV_CYP -> DRG_IVOPK [style=dashed];
+
+    /* gemcitabine */
+    GEM_IV -> GEM_PL; GEM_PL -> GEM_CDA [penwidth=1.6]; GEM_PL -> GEM_HENT;
+    GEM_HENT -> GEM_DCK; GEM_DCK -> GEM_TP [penwidth=1.6];
+    GEM_TP -> GEM_RRM1; GEM_RRM1 -> GEM_TP [style=dashed, label="self-potentiation"];
+    GEM_TP -> GEM_DNA; GEM_DNA -> GEM_APOP;
+    GEM_APOP -> TUM_D1 [color="#0277BD", penwidth=1.8];
+    GEM_TP -> GEM_MYELO; GEM_MYELO -> TOX_ANC [penwidth=1.6]; GEM_MYELO -> TOX_PLT;
+    STR_PEN -> GEM_TP [penwidth=2, color="#4E342E", label="x f_pen"];
+
+    /* cisplatin */
+    CIS_IV -> CIS_FREE; CIS_FREE -> CIS_CTR1; CIS_CTR1 -> CIS_GSH [arrowhead=tee];
+    CIS_CTR1 -> CIS_ADD [penwidth=1.6]; CIS_ADD -> CIS_ERCC [arrowhead=tee];
+    CIS_ADD -> CIS_ATR; CIS_ATR -> CIS_APOP; CIS_ADD -> CIS_APOP;
+    CIS_APOP -> TUM_D1 [color="#424242", penwidth=1.8];
+    CIS_APOP -> DRG_SYN [style=dashed, label="immunogenic\ncell death"];
+    CIS_FREE -> CIS_NEPH; CIS_NEPH -> TOX_CRCL [arrowhead=tee, penwidth=1.6];
+    CIS_FREE -> CIS_NEURO; CIS_NEURO -> TOX_NEUR; CIS_FREE -> CIS_OTO; CIS_IV -> CIS_EMET;
+    STR_PEN -> CIS_ADD [penwidth=2, color="#4E342E", label="x f_pen"];
+    GEM_DNA -> CIS_ERCC [arrowhead=tee, style=dashed, label="repair\ninterference\n(synergy)"];
+
+    /* FGFR inhibitors */
+    DRG_PEMI -> DRG_PEMPK; DRG_INFI -> DRG_PEMPK; DRG_FUTI -> DRG_PEMPK; DRG_DERA -> DRG_PEMPK;
+    DRG_PEMPK -> DRG_OCC [penwidth=1.6];
+    DRG_OCC -> FGF_DIMER [arrowhead=tee, penwidth=2, color="#283593"];
+    DRG_OCC -> FGF_FGF23 [arrowhead=tee]; FGF_FGF23 -> FGF_NAPI [arrowhead=tee];
+    FGF_NAPI -> FGF_PHOS [penwidth=2]; FGF_PHOS -> FGF_TOX;
+    FGF_PHOS -> BIO_PHOSB;
+    DRG_GATE -> DRG_OCC [arrowhead=tee, penwidth=2, color="#4527A0"];
+    TUM_R -> DRG_GATE [penwidth=2, color="#4527A0"];
+    DRG_FUTI -> DRG_GATE [arrowhead=tee, style=dashed, label="covalent —\npartly retained"];
+    DRG_PEMI -> DRG_HOLI; DRG_HOLI -> TUM_P [label="regrowth window"];
+
+    /* IDH inhibitor */
+    DRG_IVO -> DRG_IVOPK; DRG_IVOPK -> DRG_2HG [arrowhead=tee, penwidth=1.6];
+    DRG_2HG -> IDH_2HG [arrowhead=tee, penwidth=1.6];
+    DRG_2HG -> DRG_CYTO; DRG_CYTO -> TUM_S [arrowhead=tee, color="#FF8F00", penwidth=2, label="growth rate down,\nkill rate ~ 0"];
+    DRG_2HG -> BIO_2HGB;
+
+    /* immunotherapy */
+    DRG_DURV -> DRG_MABPK; DRG_PEMB -> DRG_MABPK; DRG_TREME -> DRG_MABPK;
+    DRG_MABPK -> DRG_ROCC [penwidth=1.6];
+    DRG_ROCC -> IMM_PDL1 [arrowhead=tee, penwidth=2, color="#9E9D24"];
+    DRG_TREME -> IMM_CTLA [arrowhead=tee];
+    DRG_SYN -> IMM_APC [penwidth=1.4];
+    IMM_MIX -> DRG_TAIL [penwidth=2, color="#9E9D24"];
+    DRG_ROCC -> DRG_TAIL [penwidth=1.6];
+    DRG_MABPK -> DRG_IRAE; DRG_IRAE -> TOX_PS;
+    DRG_PEMBM -> DRG_MABPK [style=dashed];
+    GEN_MSI -> DRG_PEMBM [style=dashed];
+
+    /* other agents */
+    DRG_CAP -> DRG_5FU; DRG_5FU -> TUM_D1 [color="#00695C"];
+    DRG_FOLFOX -> TUM_D1 [color="#00695C"]; DRG_NALIRI -> TUM_D1 [color="#00695C"];
+    GEN_HER2 -> DRG_ZANI [style=dashed]; DRG_ZANI -> TUM_D1 [color="#00695C"];
+    GEN_HER2 -> DRG_TDXD [style=dashed]; DRG_TDXD -> TUM_D1 [color="#00695C"];
+    GEN_BRAF -> DRG_DABTR [style=dashed]; DRG_DABTR -> TUM_S [arrowhead=tee, color="#00695C"];
+    GEN_NTRK -> DRG_LARO [style=dashed]; DRG_LARO -> TUM_S [arrowhead=tee, color="#00695C"];
+    GEN_RET  -> DRG_SELP [style=dashed];
+    DRG_5FU -> TOX_ANC [style=dashed];
+
+    /* locoregional */
+    LOC_RES -> TUM_S [arrowhead=tee, penwidth=2, color="#D84315", label="debulk to\nmicroscopic"];
+    LOC_LND -> LOC_RES [style=dashed]; LOC_FLRV -> LOC_RES [style=dashed];
+    LOC_TXP -> TUM_S [arrowhead=tee, color="#D84315"];
+    LOC_HAI -> TUM_D1 [color="#D84315"]; LOC_TARE -> TUM_D1 [color="#D84315"];
+    LOC_TACE -> TUM_D1 [color="#D84315"]; LOC_ABL -> TUM_D1 [color="#D84315"];
+    LOC_SBRT -> TUM_D1 [color="#D84315"]; LOC_SBRT -> STR_HYP [arrowhead=tee, style=dashed];
+    LOC_PDT -> BIL_PAT [penwidth=1.6, color="#D84315", label="patency-directed"];
+    LOC_RES -> LOC_ADJ [style=dashed]; LOC_ADJ -> DRG_CAP;
+    LOC_FLRV -> LIV_FLR [style=dashed];
+
+    /* the gate */
+    BIL_BILI -> GATE_BILI [penwidth=3, color="#C62828"];
+    TOX_ANC  -> GATE_ANC  [penwidth=2.4, color="#C62828"];
+    TOX_CRCL -> GATE_CRCL [penwidth=2.4, color="#C62828"];
+    TOX_PS   -> GATE_PS   [penwidth=2.4, color="#C62828"];
+    GATE_BILI -> GATE_DEL [penwidth=3, color="#C62828"];
+    GATE_ANC  -> GATE_DEL [penwidth=2.4, color="#C62828"];
+    GATE_CRCL -> GATE_DEL [penwidth=2.4, color="#C62828"];
+    GATE_PS   -> GATE_DEL [penwidth=2.4, color="#C62828"];
+    GATE_DEL -> GEM_IV [penwidth=3, color="#C62828", label="what is ACTUALLY infused"];
+    GATE_DEL -> CIS_IV [penwidth=3, color="#C62828"];
+    GATE_DEL -> DRG_DURV [penwidth=1.6, color="#C62828", style=dashed];
+    GATE_DEL -> END_TTF [penwidth=1.6];
+
+    /* THE CLOSED LOOP — drawn explicitly */
+    TUM_S -> BIL_OBS [penwidth=2.6, color="#C62828", style=bold, label="  LOOP 1/4  "];
+    BIL_OBS -> BIL_BILI [penwidth=2.6, color="#C62828", style=bold, label="  LOOP 2/4  "];
+    GATE_BILI -> GATE_DEL [penwidth=2.6, color="#C62828", style=bold, label="  LOOP 3/4  "];
+    GATE_DEL -> TUM_S [penwidth=2.6, color="#C62828", style=bold, arrowhead=tee,
+                       label="  LOOP 4/4 — dose actually given  "];
+
+    /* host state */
+    INJ_IL6 -> TOX_CACH [penwidth=1.4]; TUM_MET -> TOX_CACH;
+    TOX_CACH -> TOX_PS [penwidth=1.6]; BIL_CHOL -> TOX_PS [penwidth=1.6];
+    BIL_BILI -> TOX_PS; LIV_FAIL -> TOX_PS [penwidth=1.6];
+    TOX_NEUR -> END_QOL; BIL_BA -> END_QOL; BIL_BILI -> END_QOL;
+    TOX_ANC -> BIL_CHOL [style=dashed, label="neutropenic\ninfection risk"];
+
+    /* endpoints */
+    BIO_IMG -> END_ORR [penwidth=1.6]; BIO_IMG -> END_PFS [penwidth=1.6];
+    BIO_CTDNA -> END_PFS [style=dashed, label="leads imaging\nby ~2 months"];
+    TUM_S -> END_HAZT; TUM_MET -> END_HAZT [penwidth=1.6];
+    LIV_FLR -> END_HAZT [arrowhead=tee, penwidth=1.6];
+    TOX_CACH -> END_HAZT;
+    BIL_CHOL -> END_HAZB [penwidth=2.4, color="#B71C1C"];
+    BIL_SEP -> END_HAZB [penwidth=2.4, color="#B71C1C"];
+    BIL_OBS -> END_HAZB [penwidth=1.6];
+    LIV_ALBI -> END_HAZB [penwidth=1.6];
+    END_HAZT -> END_OS [penwidth=2.4]; END_HAZB -> END_OS [penwidth=2.4];
+    END_OS -> END_TAIL [penwidth=1.6];
+    DRG_TAIL -> END_TAIL [penwidth=2.4, color="#9E9D24"];
+    BIL_STENT -> END_CFS [arrowhead=tee, style=bold, color="#B71C1C"];
+    END_CFS -> END_OS [style=dashed];
+    END_ORR -> END_OS [style=dashed, label="WEAK link —\nthis is observation (A)"];
+
+    /* why-box anchors */
+    OBS_A -> END_ORR   [style=dotted, color="#F9A825", constraint=false];
+    OBS_B -> END_HAZB  [style=dotted, color="#F9A825", constraint=false];
+    OBS_C -> GATE_DEL  [style=dotted, color="#F9A825", constraint=false];
+    OBS_D -> TUM_SEED  [style=dotted, color="#F9A825", constraint=false];
+    OBS_E -> IMM_MIX   [style=dotted, color="#F9A825", constraint=false];
+    OBS_F -> DRG_CYTO  [style=dotted, color="#F9A825", constraint=false];
+    OBS_G -> SUB_HILAR [style=dotted, color="#F9A825", constraint=false];
+
+    /* falsifier anchors */
+    FAL_1 -> GATE_DEL  [style=dotted, color="#BF360C", constraint=false];
+    FAL_2 -> TUM_SEED  [style=dotted, color="#BF360C", constraint=false];
+    FAL_3 -> IMM_MIX   [style=dotted, color="#BF360C", constraint=false];
+    FAL_4 -> STR_PEN   [style=dotted, color="#BF360C", constraint=false];
+
+    /* ------------------------------------------------------------------
+       LAYOUT ONLY — invisible edges that stack the therapy clusters into
+       tiers instead of letting dot fan all of them out side by side.
+       These carry no biological meaning.
+       ------------------------------------------------------------------ */
+    GEM_IV    -> DRG_PEMI [style=invis, weight=8];
+    DRG_PEMI  -> DRG_IVO  [style=invis, weight=8];
+    DRG_IVO   -> DRG_DURV [style=invis, weight=8];
+    DRG_DURV  -> DRG_CAP  [style=invis, weight=8];
+    DRG_CAP   -> LOC_RES  [style=invis, weight=8];
+    CIS_IV    -> DRG_FUTI [style=invis, weight=6];
+    OBS_A -> OBS_B -> OBS_C -> OBS_D -> OBS_E -> OBS_F -> OBS_G [style=invis, weight=10];
+    FAL_1 -> FAL_2 -> FAL_3 -> FAL_4 [style=invis, weight=10];
+    RF_FLUKE -> RF_PSC -> RF_STONE -> RF_CYST [style=invis, weight=4];
+    RF_VIRAL -> RF_METAB -> RF_TOX -> RF_SMOKE [style=invis, weight=4];
+    GEN_FGFR2 -> GEN_BAP1 -> GEN_KRAS -> GEN_BRAF [style=invis, weight=4];
+    GEN_IDH -> GEN_ARID -> GEN_SMAD -> GEN_NTRK [style=invis, weight=4];
+    LOC_LND -> LOC_TXP -> LOC_TARE -> LOC_ABL -> LOC_PDT [style=invis, weight=4];
+    DRG_FOLFOX -> DRG_ZANI -> DRG_DABTR -> DRG_SELP [style=invis, weight=4];
+    IMM_APC -> IMM_TREG -> IMM_TIM -> IMM_TLS [style=invis, weight=4];
+    STR_CAF -> STR_HH -> STR_PERI -> STR_STIFF [style=invis, weight=4];
+
+    /* biomarker feeds */
+    BIO_NLR -> END_HAZT [style=dashed];
+    BIO_CEA -> BIO_IMG  [style=dashed];
+    BIO_CA199 -> END_PFS [style=dashed, label="unreliable while\njaundiced"];
+}
