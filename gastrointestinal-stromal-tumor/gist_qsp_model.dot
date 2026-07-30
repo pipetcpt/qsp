@@ -1,0 +1,550 @@
+/*
+ * ============================================================================
+ *  Gastrointestinal Stromal Tumour (GIST) — QSP mechanistic map
+ * ============================================================================
+ *  Companion to  gist_mrgsolve_model.R  /  gist_python_twin.py
+ *
+ *  The map is organised around the three structural commitments of the model:
+ *
+ *   [C1] THE TUMOUR IS A POPULATION, NOT A SIZE.   cluster_clones holds the
+ *        clone vector; cluster_ec50 holds the drug x clone potency matrix.
+ *        Every drug edge into the tumour is drawn PER CLONE, because the
+ *        ranking of two drugs inverts between secondary-mutation classes.
+ *   [C2] OCCUPANCY IS FAST, KILLING IS SLOW.       cluster_fate separates
+ *        signalling (hours) -> cell-cycle exit (days) -> quiescent reservoir
+ *        (months-years), and cluster_imaging separates viable mass from
+ *        imaged mass.
+ *   [C3] EXPOSURE MATTERS WHERE THE GENOTYPE PUTS THE EC50.  cluster_pk_im
+ *        carries autoinduction, AGP binding and the active metabolite, and
+ *        feeds the same node that genotype feeds.
+ *
+ *  Legend
+ *    box, solid       = molecular species / cell state
+ *    ellipse          = drug or intervention
+ *    hexagon          = measured biomarker / clinical endpoint
+ *    diamond          = model switch (genotype, schedule, decision)
+ *    solid arrow      = activation / flux
+ *    dashed red arrow, tee head = inhibition
+ *    dotted arrow     = slow process (days-years) or observation
+ * ============================================================================
+ */
+
+digraph GIST_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.22, ranksep=0.52,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", label=<<B>Gastrointestinal Stromal Tumour — Quantitative Systems Pharmacology map</B><BR/>
+<FONT POINT-SIZE="10">clone-resolved KIT/PDGFRA signalling · five-drug PK/PD · quiescent reservoir · imaged-vs-viable mass · organ toxicity</FONT>>];
+  node  [fontname="Helvetica", fontsize=10, style="filled", penwidth=0.8];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.65, penwidth=0.9,
+         color="#4a4a4a"];
+
+  /* ---------- colour palette -------------------------------------------- */
+  /* driver #f7d9c4 | signalling #cfe3f7 | fate #d9f2d0 | clone #f6c6c6
+     PK #e6dbf5 | drug #ffffff | endpoint #fff3bf | tox #f9dede
+     micro #d8f0ef | mgmt #ececec                                          */
+
+  /* ====================================================================== */
+  subgraph cluster_origin {
+    label="1 · Cell of origin & lineage dependency";
+    style="rounded,filled"; fillcolor="#fbfbfb"; color="#9c9c9c"; fontsize=12;
+    ICC     [label="Interstitial cell of Cajal\n(precursor, gut pacemaker)", fillcolor="#d8f0ef"];
+    SCF     [label="Stem cell factor (KITLG)", fillcolor="#d8f0ef"];
+    KIT     [label="KIT receptor tyrosine kinase\n(CD117)", fillcolor="#cfe3f7", shape=box, penwidth=1.6];
+    PDGFRA  [label="PDGFRA receptor", fillcolor="#cfe3f7"];
+    ETV1    [label="ETV1\nlineage survival TF", fillcolor="#cfe3f7"];
+    ANO1    [label="ANO1 / DOG1\n(Ca-activated Cl− channel)", fillcolor="#d8f0ef"];
+    CD34    [label="CD34", fillcolor="#d8f0ef"];
+    GISTCELL[label="GIST tumour cell\n(spindle / epithelioid)", fillcolor="#f6c6c6", penwidth=1.6];
+    ICC -> GISTCELL [style=dotted, label="transformation"];
+    SCF -> KIT [label="ligand"];
+    KIT -> ETV1 [label="MAPK-stabilised"];
+    ETV1 -> GISTCELL [label="lineage programme"];
+    KIT -> ANO1; KIT -> CD34;
+    PDGFRA -> GISTCELL;
+    ETV1 -> KIT [label="feed-forward\ntranscription", style=dotted];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_driver {
+    label="2 · Primary oncogenic drivers (mutually exclusive genotypes)";
+    style="rounded,filled"; fillcolor="#fffaf5"; color="#c58b5c"; fontsize=12;
+    GENO      [label="GENOTYPE\n(model switch)", shape=diamond, fillcolor="#ffffff", penwidth=1.6];
+    EX11      [label="KIT exon 11 (65-70%)\ndel557-558 · V559D · W557R\njuxtamembrane autoinhibition lost", fillcolor="#f7d9c4"];
+    EX9       [label="KIT exon 9 (8-10%)\nA502_Y503dup\nextracellular D5 dimerisation", fillcolor="#f7d9c4"];
+    EX13P     [label="KIT exon 13 K642E (primary, 1%)", fillcolor="#f7d9c4"];
+    EX17P     [label="KIT exon 17 D820Y/N822K (primary, 1%)", fillcolor="#f7d9c4"];
+    PD842     [label="PDGFRA D842V (exon 18, 5%)\nactivation-loop", fillcolor="#f7d9c4"];
+    PD12      [label="PDGFRA exon 12 V561D", fillcolor="#f7d9c4"];
+    SDHX      [label="SDHA/B/C/D loss\n(SDH-deficient, 5-8%)", fillcolor="#f7d9c4"];
+    NF1       [label="NF1 loss (neurofibromatosis)", fillcolor="#f7d9c4"];
+    BRAFV     [label="BRAF V600E (<1%)", fillcolor="#f7d9c4"];
+    KRASM     [label="KRAS / NRAS mutation", fillcolor="#f7d9c4"];
+    FUSN      [label="FGFR1 / NTRK3 / RET fusion", fillcolor="#f7d9c4"];
+    QUADWT    [label="quadruple wild type", fillcolor="#f7d9c4"];
+    GENO -> EX11; GENO -> EX9; GENO -> PD842; GENO -> SDHX;
+    GENO -> EX13P; GENO -> EX17P; GENO -> PD12; GENO -> NF1;
+    GENO -> BRAFV; GENO -> KRASM; GENO -> FUSN; GENO -> QUADWT;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_struct {
+    label="3 · KIT structural switch control (why the drug classes differ)";
+    style="rounded,filled"; fillcolor="#f6fafe"; color="#5b87b5"; fontsize=12;
+    D1D5    [label="extracellular D1-D5\n(ligand binding, dimerisation)", fillcolor="#cfe3f7"];
+    JMD     [label="juxtamembrane domain\nautoinhibitory switch", fillcolor="#cfe3f7", penwidth=1.4];
+    ATPP    [label="ATP-binding pocket\n(exons 13-14)", fillcolor="#cfe3f7", penwidth=1.4];
+    ALOOP   [label="activation loop\n(exons 17-18, DFG motif)", fillcolor="#cfe3f7", penwidth=1.4];
+    SWPOCK  [label="switch pocket\n(ripretinib site)", fillcolor="#cfe3f7"];
+    DIMER   [label="receptor dimerisation", fillcolor="#cfe3f7"];
+    AUTOP   [label="autophosphorylation\nY568 · Y570 · Y703 · Y721 · Y900 · Y936", fillcolor="#cfe3f7"];
+    ACTCONF [label="ACTIVE conformation\n(DFG-in, loop extended)", fillcolor="#cfe3f7", penwidth=1.6];
+    INACONF [label="INACTIVE conformation\n(DFG-out, loop folded)", fillcolor="#eef4fb"];
+    D1D5 -> DIMER; DIMER -> AUTOP;
+    JMD -> INACONF [label="holds"];
+    ATPP -> ACTCONF [style=dotted]; ALOOP -> ACTCONF;
+    SWPOCK -> INACONF [label="stabilises"];
+    INACONF -> ACTCONF [dir=both, label="conformational\nequilibrium"];
+    ACTCONF -> AUTOP;
+    EX11 -> JMD [color="#c0392b", label="loss of\nautoinhibition"];
+    EX9  -> D1D5 [color="#c0392b", label="constitutive\ndimerisation"];
+    EX17P -> ALOOP [color="#c0392b"];
+    EX13P -> ATPP [color="#c0392b"];
+    PD842 -> ALOOP [color="#c0392b", label="PDGFRA\nequivalent"];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_signal {
+    label="4 · Downstream signalling network";
+    style="rounded,filled"; fillcolor="#f6fafe"; color="#5b87b5"; fontsize=12;
+    GRB2  [label="GRB2 / SOS1", fillcolor="#cfe3f7"];
+    RAS   [label="RAS-GTP", fillcolor="#cfe3f7"];
+    RAF   [label="BRAF / CRAF", fillcolor="#cfe3f7"];
+    MEK   [label="MEK1/2", fillcolor="#cfe3f7"];
+    ERK   [label="ERK1/2", fillcolor="#cfe3f7", penwidth=1.4];
+    PI3K  [label="PI3K p110α", fillcolor="#cfe3f7"];
+    PIP3  [label="PIP3", fillcolor="#cfe3f7"];
+    PTEN  [label="PTEN", fillcolor="#cfe3f7"];
+    AKT   [label="AKT", fillcolor="#cfe3f7", penwidth=1.4];
+    MTOR  [label="mTORC1", fillcolor="#cfe3f7"];
+    S6K   [label="p70-S6K / 4E-BP1", fillcolor="#cfe3f7"];
+    FOXO  [label="FOXO1/3", fillcolor="#cfe3f7"];
+    JAK   [label="JAK2", fillcolor="#cfe3f7"];
+    STAT3 [label="STAT3", fillcolor="#cfe3f7"];
+    STAT5 [label="STAT1/5", fillcolor="#cfe3f7"];
+    SRC   [label="SRC family", fillcolor="#cfe3f7"];
+    PLCG  [label="PLCγ1 / DAG", fillcolor="#cfe3f7"];
+    PKCT  [label="PKCθ", fillcolor="#cfe3f7"];
+    NFKB  [label="NF-κB", fillcolor="#cfe3f7"];
+    SIG   [label="KIT PATHWAY OUTPUT  SIG\n(0 = fully suppressed, 1 = untreated)",
+           fillcolor="#a9cdf0", shape=box, penwidth=2.0];
+    AUTOP -> GRB2; AUTOP -> PI3K; AUTOP -> JAK; AUTOP -> SRC; AUTOP -> PLCG;
+    GRB2 -> RAS -> RAF -> MEK -> ERK;
+    PI3K -> PIP3 -> AKT; PTEN -> PIP3 [color="#c0392b", arrowhead=tee, style=dashed];
+    AKT -> MTOR -> S6K; AKT -> FOXO [color="#c0392b", arrowhead=tee, style=dashed];
+    JAK -> STAT3; JAK -> STAT5; PLCG -> PKCT -> KIT [label="transcriptional\nsupport", style=dotted];
+    SRC -> RAS; NFKB -> GISTCELL [style=dotted];
+    PKCT -> NFKB;
+    ERK -> SIG; AKT -> SIG; STAT3 -> SIG; S6K -> SIG;
+    ERK -> ETV1 [label="stabilises"];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_pseudohyp {
+    label="5 · SDH-deficient / KIT-independent biology (why TKIs fail here)";
+    style="rounded,filled"; fillcolor="#fffaf5"; color="#c58b5c"; fontsize=12;
+    SUCC   [label="succinate accumulation", fillcolor="#f7d9c4"];
+    PHD    [label="prolyl hydroxylase (PHD1-3)", fillcolor="#f7d9c4"];
+    HIF1A  [label="HIF-1α stabilisation\n(pseudohypoxia)", fillcolor="#f7d9c4"];
+    METHYL [label="global DNA hypermethylation\n(TET inhibition)", fillcolor="#f7d9c4"];
+    IGF1R  [label="IGF1R overexpression", fillcolor="#f7d9c4"];
+    FGF4   [label="FGF4 / FGFR autocrine loop", fillcolor="#f7d9c4"];
+    SDHX -> SUCC -> PHD [color="#c0392b", arrowhead=tee, style=dashed];
+    PHD -> HIF1A [color="#c0392b", arrowhead=tee, style=dashed];
+    SUCC -> METHYL; HIF1A -> IGF1R; METHYL -> FGF4;
+    IGF1R -> AKT; FGF4 -> RAS;
+    HIF1A -> VEGFA;
+    NF1 -> RAS [color="#c0392b", label="GAP loss"];
+    BRAFV -> RAF; KRASM -> RAS; FUSN -> RAS;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_fate {
+    label="6 · Cell fate: proliferation, apoptosis and the quiescent reservoir  [C2]";
+    style="rounded,filled"; fillcolor="#f7fdf5"; color="#5f9e4a"; fontsize=12;
+    CCND1  [label="cyclin D1", fillcolor="#d9f2d0"];
+    CDK46  [label="CDK4/6", fillcolor="#d9f2d0"];
+    RB     [label="RB phosphorylation", fillcolor="#d9f2d0"];
+    E2F    [label="E2F targets", fillcolor="#d9f2d0"];
+    P27    [label="p27-KIP1 (nuclear)", fillcolor="#d9f2d0"];
+    MYC    [label="MYC", fillcolor="#d9f2d0"];
+    BIM    [label="BIM (BCL2L11)", fillcolor="#d9f2d0"];
+    MCL1   [label="MCL1", fillcolor="#d9f2d0"];
+    BCL2   [label="BCL2 / BAX", fillcolor="#d9f2d0"];
+    CASP   [label="caspase-9 → caspase-3", fillcolor="#d9f2d0"];
+    AUTOPH [label="autophagy (LC3-II, ATG5)\ncytoprotective", fillcolor="#d9f2d0"];
+    KPROL  [label="proliferation rate  kp\nthreshold in SIG (Hill 3, SIG50 0.35)",
+            fillcolor="#bfe6b2", penwidth=1.6];
+    KDEATH [label="death rate  kd\nCAPPED: apoptosis is the minor route",
+            fillcolor="#bfe6b2", penwidth=1.6];
+    NCYC   [label="CYCLING cells  N_c\n(drug-sensitive)", fillcolor="#bfe6b2", penwidth=1.6];
+    NQUI   [label="QUIESCENT reservoir  N_q\nDRUG-INSENSITIVE, dies at 0.05%/day",
+            fillcolor="#8fd07a", penwidth=2.0];
+    SIG -> CCND1 -> CDK46 -> RB -> E2F -> KPROL;
+    SIG -> MYC -> KPROL;
+    SIG -> P27 [color="#c0392b", arrowhead=tee, style=dashed, label="suppresses"];
+    P27 -> CDK46 [color="#c0392b", arrowhead=tee, style=dashed];
+    SIG -> BIM [color="#c0392b", arrowhead=tee, style=dashed];
+    SIG -> MCL1 [label="maintains"];
+    BIM -> BCL2 -> CASP -> KDEATH;
+    MCL1 -> CASP [color="#c0392b", arrowhead=tee, style=dashed];
+    SIG -> AUTOPH [color="#c0392b", arrowhead=tee, style=dashed];
+    AUTOPH -> NQUI [label="survival of\narrested cells"];
+    KPROL -> NCYC [label="+"];
+    KDEATH -> NCYC [label="−", color="#c0392b"];
+    NCYC -> NQUI [label="entry ∝ (1 − SIG)\nk 0.06/d"];
+    NQUI -> NCYC [label="exit ∝ SIG\nk 0.15/d"];
+    NQUI -> KI67N [style=dotted];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_clones {
+    label="7 · Clonal architecture: resistance is PRE-EXISTING and POLYCLONAL  [C1]";
+    style="rounded,filled"; fillcolor="#fff5f5"; color="#b04a4a"; fontsize=12;
+    C0     [label="CLONE 0 — primary genotype only\n(majority of cells at every line)",
+            fillcolor="#f6c6c6", penwidth=1.8];
+    C1     [label="CLONE 1 — ATP-binding pocket\nKIT V654A (exon 13) · T670I (exon 14)",
+            fillcolor="#f6c6c6", penwidth=1.8];
+    C2     [label="CLONE 2 — activation loop\nD816H/V · D820A/G/Y · N822K · Y823D (exons 17-18)",
+            fillcolor="#f6c6c6", penwidth=1.8];
+    C3     [label="CLONE 3 — KIT-independent bypass\nKIT loss · MET/AXL/FGFR · PI3K · RAS · CDKN2A",
+            fillcolor="#f6c6c6", penwidth=1.8];
+    MUFLUX [label="mutation flux per CELL DIVISION\nμ_ATP 1.1e-7 · μ_AL 1.6e-7 · μ_byp 1.2e-8",
+            fillcolor="#fbe0e0", penwidth=1.4];
+    PREEX  [label="PRE-EXISTING at diagnosis\n≈ μ · N · kp/(kp−kd)\n10^11 cells ⇒ 10^4-10^5 resistant cells",
+            fillcolor="#fbe0e0", penwidth=1.4];
+    KITAMP [label="KIT genomic amplification", fillcolor="#f6c6c6"];
+    POLY   [label="POLYCLONALITY\ndifferent secondary mutations in different nodules,\nand ≥2 within one nodule",
+            fillcolor="#fbe0e0", penwidth=1.6];
+    SELECT [label="drug-specific selection\n(each agent clears the clones it covers\nand enriches the ones it does not)",
+            fillcolor="#fbe0e0"];
+    SETCOV [label="EFFICACY = SET COVER\nprogression = growth of the LEAST-COVERED clone",
+            fillcolor="#f1a9a9", penwidth=2.0];
+    KPROL -> MUFLUX [label="divisions"];
+    MUFLUX -> C1; MUFLUX -> C2; MUFLUX -> C3;
+    C0 -> PREEX [style=dotted]; PREEX -> POLY;
+    C1 -> POLY; C2 -> POLY; C3 -> POLY; KITAMP -> POLY;
+    POLY -> SELECT -> SETCOV;
+    C1 -> ATPP [style=dotted]; C2 -> ALOOP [style=dotted];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_ec50 {
+    label="8 · Drug × clone potency matrix (the numbers that produce the crossover)";
+    style="rounded,filled"; fillcolor="#fff5f5"; color="#b04a4a"; fontsize=12;
+    EC_IM [label="IMATINIB EC50 (ng/mL)\nexon 11 185 · exon 9 720\nATP-pocket 4500 · loop 6500 · D842V 20000",
+           fillcolor="#fbe0e0", shape=note];
+    EC_SU [label="SUNITINIB EC50\nexon 11 55 · exon 9 40\nATP-pocket 28 · loop 380",
+           fillcolor="#fbe0e0", shape=note];
+    EC_RE [label="REGORAFENIB EC50\nexon 11 1400\nATP-pocket 9000 · loop 950",
+           fillcolor="#fbe0e0", shape=note];
+    EC_RI [label="RIPRETINIB EC50\nexon 11 210\nATP-pocket 2200 · loop 165 · D842V 600",
+           fillcolor="#fbe0e0", shape=note];
+    EC_AV [label="AVAPRITINIB EC50\nD842V 40 · loop 130\nATP-pocket 2700",
+           fillcolor="#fbe0e0", shape=note];
+    COVER [label="clone coverage  A_i = Π_d 1/(1 + C_d/EC50_{d,i})\nSIG_i = 1 − kitdep_i·(1 − A_i)",
+           fillcolor="#f1a9a9", penwidth=1.6];
+    EC_IM -> COVER; EC_SU -> COVER; EC_RE -> COVER; EC_RI -> COVER; EC_AV -> COVER;
+    COVER -> SIG [label="per clone"];
+    SETCOV -> COVER [style=dotted];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_pk_im {
+    label="9 · Imatinib pharmacokinetics  [C3]";
+    style="rounded,filled"; fillcolor="#f9f6fd"; color="#7a5ba6"; fontsize=12;
+    IMDOSE  [label="imatinib 400 / 600 / 800 mg qd", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    IMGUT   [label="gut (ka 12/d, F 0.98)", fillcolor="#e6dbf5"];
+    IMCEN   [label="central  V 250 L", fillcolor="#e6dbf5"];
+    IMPER   [label="peripheral  V 200 L", fillcolor="#e6dbf5"];
+    CYP3A4  [label="CYP3A4 / CYP2C8", fillcolor="#e6dbf5"];
+    CGP     [label="CGP74588\n(N-desmethyl, equipotent)", fillcolor="#e6dbf5"];
+    ENZIND  [label="CYP3A4 AUTOINDUCTION\n+28% clearance by 1 month", fillcolor="#e6dbf5", penwidth=1.4];
+    AGP     [label="α1-acid glycoprotein\n(acute-phase, rises with burden)", fillcolor="#e6dbf5", penwidth=1.4];
+    FREEIM  [label="free imatinib fraction\n(3-8%, inverse in AGP)", fillcolor="#e6dbf5", penwidth=1.4];
+    OCT1    [label="OCT1 uptake (SLC22A1)", fillcolor="#e6dbf5"];
+    ABCB1   [label="ABCB1 / ABCG2 efflux", fillcolor="#e6dbf5"];
+    CMIN    [label="steady-state trough  Cmin\nthreshold 1100 ng/mL", fillcolor="#d5c4ee", shape=hexagon, penwidth=1.6];
+    DDI     [label="CYP3A4 DDI\nrifampicin ↓ · ketoconazole ↑", shape=diamond, fillcolor="#ffffff"];
+    ADHERE  [label="adherence / dose interruption", shape=diamond, fillcolor="#ffffff"];
+    IMDOSE -> IMGUT -> IMCEN -> IMPER [dir=both];
+    IMCEN -> CYP3A4 -> CGP;
+    CYP3A4 -> ENZIND [dir=both, style=dotted];
+    ENZIND -> IMCEN [color="#c0392b", arrowhead=tee, style=dashed, label="clearance ↑"];
+    IMCEN -> CMIN; AGP -> FREEIM [color="#c0392b", arrowhead=tee, style=dashed];
+    FREEIM -> COVER [label="drives\noccupancy"];
+    OCT1 -> COVER [style=dotted, label="intracellular\navailability"];
+    ABCB1 -> COVER [color="#c0392b", arrowhead=tee, style=dashed];
+    DDI -> CYP3A4; ADHERE -> IMDOSE;
+    CGP -> COVER;
+    CMIN -> COVER [style=dotted];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_pk_other {
+    label="10 · Second-to-fourth-line drug pharmacokinetics";
+    style="rounded,filled"; fillcolor="#f9f6fd"; color="#7a5ba6"; fontsize=12;
+    SUDOSE [label="sunitinib 50 mg 4/2\nor 37.5 mg continuous", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    SUPK   [label="sunitinib PK\nCL/F 40 L/h · V 2000 L · t½ 50 h", fillcolor="#e6dbf5"];
+    SU12   [label="SU12662 (equipotent)", fillcolor="#e6dbf5"];
+    REDOSE [label="regorafenib 160 mg 3/1", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    REPK   [label="regorafenib PK\nUGT1A9 · CYP3A4", fillcolor="#e6dbf5"];
+    REM25  [label="M-2 / M-5 (equipotent)", fillcolor="#e6dbf5"];
+    RIDOSE [label="ripretinib 150 mg qd", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    RIPK   [label="ripretinib PK", fillcolor="#e6dbf5"];
+    DP5439 [label="DP-5439 (equipotent)", fillcolor="#e6dbf5"];
+    AVDOSE [label="avapritinib 300 → 200 mg qd", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    AVPK   [label="avapritinib PK", fillcolor="#e6dbf5"];
+    SCHED  [label="SCHEDULE\n(continuous vs intermittent)", shape=diamond, fillcolor="#ffffff"];
+    SUDOSE -> SUPK -> SU12; REDOSE -> REPK -> REM25;
+    RIDOSE -> RIPK -> DP5439; AVDOSE -> AVPK;
+    SCHED -> SUDOSE; SCHED -> REDOSE;
+    SUPK -> COVER; SU12 -> COVER; REPK -> COVER; REM25 -> COVER;
+    RIPK -> COVER; DP5439 -> COVER; AVPK -> COVER;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_micro {
+    label="11 · Microenvironment, vasculature and drug delivery";
+    style="rounded,filled"; fillcolor="#f2fbfa"; color="#3e8f8a"; fontsize=12;
+    VEGFA  [label="VEGF-A", fillcolor="#d8f0ef"];
+    VEGFR2 [label="VEGFR2 (KDR) on endothelium", fillcolor="#d8f0ef"];
+    PDGFRB [label="PDGFRβ on pericytes", fillcolor="#d8f0ef"];
+    MVD    [label="microvascular density  VASC", fillcolor="#d8f0ef", penwidth=1.4];
+    IFP    [label="interstitial fluid pressure", fillcolor="#d8f0ef"];
+    HYPOX  [label="tumour hypoxia", fillcolor="#d8f0ef"];
+    DELIV  [label="drug delivery factor\n(VASC/VASC0)^0.5", fillcolor="#a8ddd9", penwidth=1.6];
+    TAM    [label="tumour-associated macrophages\n(M2, CSF1R)", fillcolor="#d8f0ef"];
+    MAST   [label="mast cells (KIT-dependent)", fillcolor="#d8f0ef"];
+    CD8    [label="CD8+ T cells / IFN-γ", fillcolor="#d8f0ef"];
+    IDO    [label="IDO1 · PD-L1", fillcolor="#d8f0ef"];
+    ECM    [label="collagen / ECM stiffness", fillcolor="#d8f0ef"];
+    HYPOX -> VEGFA -> VEGFR2 -> MVD; PDGFRB -> MVD;
+    MVD -> DELIV; DELIV -> COVER [label="× concentration"];
+    MVD -> HYPOX [color="#c0392b", arrowhead=tee, style=dashed];
+    PDGFRB -> IFP; IFP -> DELIV [color="#c0392b", arrowhead=tee, style=dashed];
+    ECM -> IFP;
+    SIG -> TAM [style=dotted]; TAM -> IDO; IDO -> CD8 [color="#c0392b", arrowhead=tee, style=dashed];
+    SIG -> IDO [label="KIT-driven", style=dotted];
+    CD8 -> KDEATH [style=dotted, label="immune\ncontribution"];
+    KIT -> MAST;
+    NCYC -> HYPOX [style=dotted, label="burden"];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_imaging {
+    label="12 · Viable mass vs IMAGED mass: three different variables  [C2]";
+    style="rounded,filled"; fillcolor="#fffdf0"; color="#b39a2a"; fontsize=12;
+    VVIAB  [label="viable tumour volume\nΣ N / 1e9 mL", fillcolor="#fff3bf", penwidth=1.4];
+    VNEC   [label="NON-VIABLE tissue volume\n(necrosis, myxoid & cystic change, fibrosis)\nresorbed at 1%/day",
+            fillcolor="#fff3bf", penwidth=1.6];
+    VTOT   [label="imaged volume = viable + non-viable", fillcolor="#fff3bf", penwidth=1.4];
+    SLD    [label="SLD (mm) = 16.28 · Vtot^(1/3)\nRECIST 1.1", shape=hexagon, fillcolor="#ffe98a", penwidth=1.6];
+    SUVN   [label="FDG-PET SUVmax\nτ = 0.8 d — reads SIGNALLING, not size", shape=hexagon, fillcolor="#ffe98a", penwidth=1.6];
+    KI67N  [label="Ki67 index\nτ = 3 d — reads CYCLING FRACTION", shape=hexagon, fillcolor="#ffe98a"];
+    CTDNA  [label="ctDNA total copies/mL\nshed ∝ death flux, t½ 30 min", shape=hexagon, fillcolor="#ffe98a", penwidth=1.4];
+    VAF    [label="resistance-mutation VAF\nleads RECIST by months", shape=hexagon, fillcolor="#ffe98a", penwidth=1.6];
+    VFRAC  [label="VIABLE FRACTION of the imaged mass\nfalls with time on drug", fillcolor="#ffe98a", penwidth=1.6];
+    NCYC -> VVIAB; NQUI -> VVIAB;
+    KDEATH -> VNEC [label="dead-cell volume × 0.62"];
+    VVIAB -> VTOT; VNEC -> VTOT; VTOT -> SLD;
+    VVIAB -> VFRAC; VNEC -> VFRAC [color="#c0392b", arrowhead=tee, style=dashed];
+    SIG -> SUVN [label="GLUT1 / hexokinase-II\ndownstream of AKT"];
+    KPROL -> KI67N;
+    KDEATH -> CTDNA; C1 -> VAF; C2 -> VAF; C3 -> VAF; CTDNA -> VAF;
+    VFRAC -> TTPROG [label="sets the time to\nre-expand to +20% SLD", style=dotted, penwidth=1.4];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_endpoint {
+    label="13 · Clinical endpoints";
+    style="rounded,filled"; fillcolor="#fffdf0"; color="#b39a2a"; fontsize=12;
+    ORR    [label="objective response rate\n(SLD ≤ −30%)", shape=hexagon, fillcolor="#ffe98a"];
+    BESTR  [label="best SLD change", shape=hexagon, fillcolor="#ffe98a"];
+    TTPROG [label="RECIST progression\n(SLD ≥ +20% and ≥ +5 mm over nadir)", shape=hexagon, fillcolor="#ffe98a", penwidth=1.6];
+    PFS    [label="progression-free survival\n(per line of therapy)", shape=hexagon, fillcolor="#ffe98a", penwidth=1.6];
+    OS     [label="overall survival", shape=hexagon, fillcolor="#ffe98a"];
+    RFS    [label="recurrence-free survival\n(adjuvant setting)", shape=hexagon, fillcolor="#ffe98a", penwidth=1.4];
+    QOL    [label="patient-reported tolerability", shape=hexagon, fillcolor="#ffe98a"];
+    SLD -> BESTR -> ORR; SLD -> TTPROG -> PFS -> OS;
+    VAF -> TTPROG [style=dotted, label="precedes"];
+    PFS -> QOL [style=invis];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_marrow {
+    label="14 · Haematological toxicity (Friberg transit chain)";
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#b06a6a"; fontsize=12;
+    HSC   [label="haematopoietic progenitors", fillcolor="#f9dede"];
+    PROLP [label="proliferating pool  NPRO\nfeedback (ANC0/ANC)^0.16", fillcolor="#f9dede"];
+    TR1   [label="transit 1", fillcolor="#f9dede"];
+    TR2   [label="transit 2", fillcolor="#f9dede"];
+    ANCN  [label="absolute neutrophil count", shape=hexagon, fillcolor="#f4bcbc", penwidth=1.4];
+    ANAEM [label="anaemia (Hb ↓)", fillcolor="#f9dede"];
+    THROM [label="thrombocytopenia", fillcolor="#f9dede"];
+    FEBN  [label="febrile neutropenia risk", shape=hexagon, fillcolor="#f4bcbc"];
+    HSC -> PROLP -> TR1 -> TR2 -> ANCN;
+    ANCN -> PROLP [style=dotted, label="feedback"];
+    ANCN -> FEBN [color="#c0392b"];
+    SUPK -> PROLP [color="#c0392b", arrowhead=tee, style=dashed, label="strongest"];
+    IMCEN -> PROLP [color="#c0392b", arrowhead=tee, style=dashed, label="mild"];
+    REPK -> PROLP [color="#c0392b", arrowhead=tee, style=dashed];
+    RIPK -> PROLP [color="#c0392b", arrowhead=tee, style=dashed];
+    IMCEN -> ANAEM; SUPK -> THROM;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_cv {
+    label="15 · Cardiovascular toxicity of VEGFR2 blockade";
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#b06a6a"; fontsize=12;
+    NOEND  [label="endothelial NO synthase / NO", fillcolor="#f9dede"];
+    ET1    [label="endothelin-1", fillcolor="#f9dede"];
+    CAPRAR [label="capillary rarefaction", fillcolor="#f9dede"];
+    MAPN   [label="mean arterial pressure\n(+ up to 16 mmHg)", shape=hexagon, fillcolor="#f4bcbc", penwidth=1.4];
+    LVEF   [label="LVEF decline / heart failure", shape=hexagon, fillcolor="#f4bcbc"];
+    QTC    [label="QTc prolongation", shape=hexagon, fillcolor="#f4bcbc"];
+    ARTTHR [label="arterial thrombotic events", shape=hexagon, fillcolor="#f4bcbc"];
+    VEGFR2 -> NOEND [label="maintains"];
+    SUPK -> VEGFR2 [color="#c0392b", arrowhead=tee, style=dashed];
+    REPK -> VEGFR2 [color="#c0392b", arrowhead=tee, style=dashed];
+    RIPK -> VEGFR2 [color="#c0392b", arrowhead=tee, style=dashed, label="weak"];
+    NOEND -> MAPN [color="#c0392b", arrowhead=tee, style=dashed];
+    ET1 -> MAPN; CAPRAR -> MAPN;
+    VEGFR2 -> CAPRAR [color="#c0392b", arrowhead=tee, style=dashed];
+    MAPN -> LVEF [style=dotted]; SUPK -> LVEF; SUPK -> QTC; REPK -> ARTTHR;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_skin {
+    label="16 · Skin, appendage and mucosal toxicity";
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#b06a6a"; fontsize=12;
+    KERAT [label="palmoplantar keratinocyte stress\n(eccrine drug excretion, pressure)", fillcolor="#f9dede"];
+    HFSRN [label="hand-foot skin reaction grade", shape=hexagon, fillcolor="#f4bcbc", penwidth=1.4];
+    ALOP  [label="alopecia (ripretinib)", shape=hexagon, fillcolor="#f4bcbc"];
+    HYPOPG[label="hair / skin hypopigmentation\n(KIT in melanocytes)", shape=hexagon, fillcolor="#f4bcbc"];
+    MUCOS [label="stomatitis · diarrhoea", shape=hexagon, fillcolor="#f4bcbc"];
+    REPK -> KERAT [color="#c0392b", label="dominant"];
+    SUPK -> KERAT [color="#c0392b"]; RIPK -> KERAT [color="#c0392b"];
+    KERAT -> HFSRN; RIPK -> ALOP;
+    SUPK -> HYPOPG; IMCEN -> HYPOPG;
+    REPK -> MUCOS; SUPK -> MUCOS;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_fluid {
+    label="17 · Fluid retention, muscle and metabolic effects (imatinib class)";
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#b06a6a"; fontsize=12;
+    PDGFRBI [label="PDGFRβ inhibition in interstitium", fillcolor="#f9dede"];
+    OEDEMA  [label="periorbital / peripheral oedema", shape=hexagon, fillcolor="#f4bcbc", penwidth=1.4];
+    EFFUS   [label="pleural effusion · ascites", shape=hexagon, fillcolor="#f4bcbc"];
+    CRAMP   [label="muscle cramps", shape=hexagon, fillcolor="#f4bcbc"];
+    HYPOPH  [label="hypophosphataemia\n(PDGFR/bone remodelling)", shape=hexagon, fillcolor="#f4bcbc"];
+    HEPTOX  [label="transaminase elevation / hepatotoxicity", shape=hexagon, fillcolor="#f4bcbc"];
+    IMCEN -> PDGFRBI [color="#c0392b", arrowhead=tee, style=dashed];
+    PDGFRBI -> IFP; PDGFRBI -> OEDEMA; OEDEMA -> EFFUS;
+    IMCEN -> CRAMP; IMCEN -> HYPOPH; IMCEN -> HEPTOX; REPK -> HEPTOX [label="grade 3-4"];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_endoc {
+    label="18 · Endocrine and CNS effects";
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#b06a6a"; fontsize=12;
+    THYCAP [label="thyroid capillary regression", fillcolor="#f9dede"];
+    FT4N   [label="free T4", shape=hexagon, fillcolor="#f4bcbc"];
+    TSHN   [label="TSH (hypothyroidism)", shape=hexagon, fillcolor="#f4bcbc", penwidth=1.4];
+    FATIG  [label="fatigue / asthenia", shape=hexagon, fillcolor="#f4bcbc"];
+    COGN   [label="cognitive effects\n(avapritinib, dose-dependent)", shape=hexagon, fillcolor="#f4bcbc", penwidth=1.4];
+    ICH    [label="intracranial haemorrhage risk\n(avapritinib)", shape=hexagon, fillcolor="#f4bcbc"];
+    SUPK -> THYCAP [color="#c0392b", arrowhead=tee, style=dashed];
+    THYCAP -> FT4N [color="#c0392b", arrowhead=tee, style=dashed];
+    FT4N -> TSHN [color="#c0392b", arrowhead=tee, style=dashed, label="negative feedback"];
+    TSHN -> FATIG; MAPN -> FATIG [style=dotted];
+    AVPK -> COGN; AVPK -> ICH;
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_dosefeed {
+    label="19 · Toxicity → dose-intensity feedback (a loop that changes coverage)";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#777777"; fontsize=12;
+    TOXIDX [label="composite toxicity index\n0.6·neutropenia + 0.5·HFSR + 0.4·ΔMAP\n+ 0.3·oedema + 0.2·TSH",
+            fillcolor="#ececec", penwidth=1.4];
+    DIN    [label="ACHIEVED DOSE INTENSITY  DI\nclamped to 40-100%", fillcolor="#dcdcdc", penwidth=1.8];
+    INTERR [label="treatment interruption / discontinuation", fillcolor="#ececec"];
+    ANCN -> TOXIDX; HFSRN -> TOXIDX; MAPN -> TOXIDX; OEDEMA -> TOXIDX; TSHN -> TOXIDX;
+    TOXIDX -> DIN [color="#c0392b", arrowhead=tee, style=dashed, label="reduce"];
+    TOXIDX -> INTERR [color="#c0392b"];
+    DIN -> IMDOSE [label="× dose"]; DIN -> SUDOSE; DIN -> REDOSE; DIN -> RIDOSE;
+    DIN -> COVER [style=dotted, label="LESS COVERAGE\n⇒ faster selection", penwidth=1.4];
+    INTERR -> NQUI [style=dotted, label="reservoir re-enters cycle", penwidth=1.4];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_mgmt {
+    label="20 · Risk stratification, surgery and the adjuvant question";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#777777"; fontsize=12;
+    SIZE   [label="tumour size (cm)", fillcolor="#ececec"];
+    MITO   [label="mitotic index (/5 mm²)", fillcolor="#ececec"];
+    SITE   [label="site (gastric vs small bowel vs rectal)", fillcolor="#ececec"];
+    RUPT   [label="tumour rupture / peritoneal spill", fillcolor="#ececec", penwidth=1.4];
+    RISKM  [label="modified NIH / Miettinen-Lasota\nrecurrence risk", fillcolor="#dcdcdc", penwidth=1.4];
+    R0     [label="macroscopically complete resection (R0/R1)", shape=ellipse, fillcolor="#ffffff"];
+    NMICRO [label="OCCULT RESIDUAL BURDEN\n≈ 2.2e6 cells (fitted)", fillcolor="#dcdcdc", penwidth=1.6];
+    ADJDUR [label="ADJUVANT DURATION\n12 / 36 / 60 months", shape=diamond, fillcolor="#ffffff", penwidth=1.6];
+    NEOADJ [label="neoadjuvant imatinib\n(downstaging, organ preservation)", shape=ellipse, fillcolor="#ffffff"];
+    CYTORED[label="cytoreductive surgery of residual\n/ focally progressing nodules", shape=ellipse, fillcolor="#ffffff"];
+    SIZE -> RISKM; MITO -> RISKM; SITE -> RISKM; RUPT -> RISKM;
+    RISKM -> NMICRO; R0 -> NMICRO;
+    NMICRO -> NCYC [label="seeds the same\nclone vector", style=dotted, penwidth=1.4];
+    ADJDUR -> IMDOSE; ADJDUR -> RFS [style=dotted];
+    NEOADJ -> R0; CYTORED -> POLY [color="#c0392b", arrowhead=tee, style=dashed,
+                                   label="removes the\nleast-covered clone"];
+    NMICRO -> RFS [style=dotted];
+  }
+
+  /* ====================================================================== */
+  subgraph cluster_decision {
+    label="21 · Treatment sequence and the questions the model is used to ask";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#777777"; fontsize=12;
+    L1     [label="1st line: imatinib 400 mg\n(800 mg if KIT exon 9)", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    L2     [label="2nd line: sunitinib OR ripretinib\n— choose by ctDNA subclone class", shape=ellipse, fillcolor="#ffffff", penwidth=1.6];
+    L3     [label="3rd line: regorafenib", shape=ellipse, fillcolor="#ffffff"];
+    L4     [label="4th line: ripretinib", shape=ellipse, fillcolor="#ffffff"];
+    L5     [label="beyond: imatinib rechallenge · pimitespib\n· trial (bezuclastinib, NB003)", shape=ellipse, fillcolor="#ffffff"];
+    D842L  [label="PDGFRA D842V: avapritinib FIRST", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    WTL    [label="SDH-deficient / NF1 / fusion:\nTKI-insensitive — different drugs", shape=ellipse, fillcolor="#ffffff", penwidth=1.4];
+    QTDM   [label="Q: monitor imatinib trough and escalate\nwhen Cmin < 1100 ng/mL?", shape=diamond, fillcolor="#ffffff"];
+    QCTDNA [label="Q: pick 2nd line by ctDNA\nrather than by label order?", shape=diamond, fillcolor="#ffffff", penwidth=1.6];
+    QCOMBO [label="Q: cover the activation-loop clone\nUPFRONT instead of sequentially?", shape=diamond, fillcolor="#ffffff", penwidth=1.6];
+    QSTOP  [label="Q: can imatinib ever be stopped\nin a durable responder?", shape=diamond, fillcolor="#ffffff", penwidth=1.6];
+    L1 -> L2 -> L3 -> L4 -> L5 [label="at progression"];
+    GENO -> L1 [style=dotted]; PD842 -> D842L [style=dotted]; SDHX -> WTL [style=dotted];
+    D842L -> AVDOSE; L1 -> IMDOSE; L2 -> SUDOSE; L2 -> RIDOSE; L3 -> REDOSE; L4 -> RIDOSE;
+    CMIN -> QTDM; VAF -> QCTDNA; SETCOV -> QCOMBO; NQUI -> QSTOP;
+    QCTDNA -> L2 [style=dotted]; QCOMBO -> L1 [style=dotted];
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* cross-cluster edges that carry the argument                            */
+  /* ---------------------------------------------------------------------- */
+  EX11 -> C0 [style=dotted, label="clone 0 identity"];
+  EX9  -> C0 [style=dotted];
+  PD842 -> C0 [style=dotted];
+  SDHX -> C0 [style=dotted];
+  C0 -> COVER; C1 -> COVER; C2 -> COVER; C3 -> COVER;
+  SIG -> KPROL; SIG -> KDEATH;
+  AGP -> EC_IM [color="#c0392b", arrowhead=tee, style=dashed,
+                label="EC50 × (AGP/AGP0)^0.9"];
+  VNEC -> TTPROG [style=dotted, label="dilutes the growth signal"];
+  NQUI -> TTPROG [style=dotted, label="regrowth source after stopping"];
+  SUVN -> QCTDNA [style=invis];
+  DELIV -> EC_SU [style=invis];
+}
