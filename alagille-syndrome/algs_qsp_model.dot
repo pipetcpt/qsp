@@ -1,0 +1,782 @@
+/* =====================================================================
+   Alagille Syndrome (ALGS) — Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------
+   Organising principle of this map (and of algs_mrgsolve_model.R):
+
+   ALGS cholestasis is NOT one quantity.  It is the collision of two
+   independently-set fluxes that every clinical measurement mixes
+   together:
+
+     (1) DUCTAL CAPACITY  J_DUCT = k_duct * DPR
+         How much bile the liver can physically push into the gut.
+         Set developmentally by JAG1/NOTCH2 haploinsufficiency
+         (ductal plate malformation -> bile duct paucity, DPR<0.9)
+         and then SLOWLY REPAIRED postnatally by ductular reaction.
+         No drug in this map moves it.
+
+     (2) ENTEROHEPATIC RETURN  R = eps_ASBT * (delivered bile acid)
+         How much of that bile comes straight back to the hepatocyte.
+         This is the ONLY thing an IBAT inhibitor touches.
+
+   The fraction of the hepatocyte's bile acid load that arrived by
+   route (2) is PHI_EHC = R / (S + R).  It is the hard ceiling on any
+   IBAT inhibitor, it is a function of J_DUCT (i.e. of duct paucity),
+   and it is SOLVED from the ASSERT trial rather than assumed.
+   Node PHI_EHC below is that quantity; cluster 22 collects it with
+   the three other derived numbers the model turns on.
+
+   Rendering:
+     dot -Tsvg algs_qsp_model.dot -o algs_qsp_model.svg
+     dot -Tpng -Gdpi=150 algs_qsp_model.dot -o algs_qsp_model.png
+   ===================================================================== */
+
+digraph ALGS_QSP {
+
+  graph [
+    rankdir      = TB,
+    splines      = spline,
+    overlap      = false,
+    nodesep      = 0.30,
+    ranksep      = 0.62,
+    concentrate  = false,
+    compound     = true,
+    fontname     = "Helvetica",
+    fontsize     = 11,
+    labelloc     = "t",
+    labeljust    = "c",
+    bgcolor      = "white",
+    label        = <<FONT POINT-SIZE="30"><B>Alagille Syndrome (ALGS) — Quantitative Systems Pharmacology Map</B></FONT><BR/>
+<FONT POINT-SIZE="16">JAG1/NOTCH2 haploinsufficiency → bile duct paucity → cholestasis → pruritus, xanthoma, growth failure, biliary cirrhosis</FONT><BR/>
+<FONT POINT-SIZE="14"><B>Central quantity:</B> Φ<SUB>EHC</SUB> = R/(S+R), the fraction of the hepatocyte bile-acid load that arrived by enterohepatic return —<BR/>
+the hard ceiling on every IBAT inhibitor, itself a function of ductal capacity J<SUB>DUCT</SUB> = k<SUB>duct</SUB>·DPR, which no drug moves.</FONT><BR/>
+<FONT POINT-SIZE="12">Calibrated to ICONIC (maralixibat, n=31), ASSERT (odevixibat, n=52), GALA natural history (n=1433), MRX-vs-GALA event-free survival (n=84 vs 469)</FONT>>
+  ];
+
+  node [
+    shape     = box,
+    style     = "rounded,filled",
+    fontname  = "Helvetica",
+    fontsize  = 10,
+    margin    = "0.09,0.055",
+    penwidth  = 1.0
+  ];
+
+  edge [
+    fontname  = "Helvetica",
+    fontsize  = 8,
+    arrowsize = 0.66,
+    penwidth  = 1.0,
+    color     = "#5b6472"
+  ];
+
+  /* ===================================================================
+     1. GENETICS — NOTCH signalling axis
+     =================================================================== */
+  subgraph cluster_genetics {
+    label = "1. Genetics — JAG1/NOTCH2 haploinsufficiency";
+    style = "filled,rounded"; color = "#7c4dff"; fillcolor = "#f3edff";
+    fontsize = 14; fontcolor = "#4527a0"; penwidth = 2;
+
+    JAG1      [label = "JAG1 (20p12.2)\nligand — 94.3% of GALA\ngenotyped ALGS", fillcolor = "#d5c6ff"];
+    NOTCH2    [label = "NOTCH2 (1p12)\nreceptor — 2.5%\nof GALA genotyped", fillcolor = "#d5c6ff"];
+    DENOVO    [label = "de novo variant\n~60-70% of probands\n(mosaicism reported)", fillcolor = "#e8ddff"];
+    DEL20P    [label = "20p12 deletion\n~7% — whole-gene loss,\nmore extrahepatic disease", fillcolor = "#e8ddff"];
+    HAPLO     [label = "HAPLOINSUFFICIENCY\n~50% ligand dose\n(dominant, not dominant-negative)", fillcolor = "#c4b0ff"];
+    ADAM10    [label = "ADAM10 / ADAM17\nS2 ectodomain cleavage", fillcolor = "#ede5ff"];
+    GSEC      [label = "γ-secretase (PSEN1)\nS3 cleavage", fillcolor = "#ede5ff"];
+    NICD      [label = "NICD\nNotch intracellular domain", fillcolor = "#d5c6ff"];
+    RBPJ      [label = "RBPJ / CSL + MAML1\ntranscription complex", fillcolor = "#ede5ff"];
+    HES1      [label = "HES1", fillcolor = "#ede5ff"];
+    HEY12     [label = "HEY1 / HEY2", fillcolor = "#ede5ff"];
+    SOX9      [label = "SOX9\nmaster cholangiocyte\nfate determinant", fillcolor = "#d5c6ff"];
+    HNF1B     [label = "HNF1β / HNF6\nductal maturation", fillcolor = "#ede5ff"];
+    MODIFIER  [label = "genetic modifiers\n(THBS2, GGT1 …)\nexplain within-family variance", fillcolor = "#f0e9ff"];
+    VARIANCE  [label = "EXTREME phenotypic variance\nsame variant → transplant in infancy\nOR asymptomatic parent", fillcolor = "#f0e9ff", shape = note];
+  }
+
+  /* ===================================================================
+     2. BILIARY DEVELOPMENT & POSTNATAL REMODELLING
+     =================================================================== */
+  subgraph cluster_ducts {
+    label = "2. Ductal plate malformation & postnatal ductular repair — sets J_DUCT";
+    style = "filled,rounded"; color = "#00897b"; fillcolor = "#e0f2f1";
+    fontsize = 14; fontcolor = "#004d40"; penwidth = 2;
+
+    DPLATE    [label = "ductal plate\n(fetal wk 8-40)\nhepatoblast → cholangiocyte", fillcolor = "#b2dfdb"];
+    DPM       [label = "DUCTAL PLATE MALFORMATION\nfailed tubulogenesis /\nfailed remodelling", fillcolor = "#80cbc4"];
+    DPR       [label = "DPR — bile duct : portal tract ratio\nnormal 0.9-1.8 · ALGS < 0.9\n(often 0.0-0.4 in infancy)", fillcolor = "#4db6ac", shape = box3d];
+    JDUCT     [label = "J_DUCT = k_duct · DPR\nMAXIMUM BILIARY OUTPUT\n— no drug in this map moves it —", fillcolor = "#26a69a", shape = box3d, penwidth = 2.4];
+    DUCTREACT [label = "ductular reaction\nSOX9+ hepatocyte →\ncholangiocyte transdifferentiation", fillcolor = "#b2dfdb"];
+    YAPTAZ    [label = "YAP/TAZ\nmechano-transduction", fillcolor = "#c8e6e4"];
+    DPRAGE    [label = "POSTNATAL DPR RECOVERY\nspontaneous improvement\nafter age ~5-10 yr", fillcolor = "#80cbc4", shape = note];
+    PAUCITY   [label = "bile duct paucity\nbiopsy hallmark\n(may be absent < 6 months)", fillcolor = "#b2dfdb"];
+    CHOLPROL  [label = "cholangiocyte\nproliferation / apoptosis\nbalance", fillcolor = "#c8e6e4"];
+  }
+
+  /* ===================================================================
+     3. HEPATOCYTE BILE ACID TRANSPORT
+     =================================================================== */
+  subgraph cluster_transport {
+    label = "3. Hepatocyte bile-acid transporters";
+    style = "filled,rounded"; color = "#1565c0"; fillcolor = "#e3f2fd";
+    fontsize = 14; fontcolor = "#0d47a1"; penwidth = 2;
+
+    NTCP      [label = "NTCP (SLC10A1)\nbasolateral uptake\nNa+-dependent", fillcolor = "#bbdefb"];
+    OATP      [label = "OATP1B1/1B3\nNa+-independent uptake", fillcolor = "#bbdefb"];
+    BAHEP     [label = "BA_HEP\nhepatocyte bile-acid pool\n— THE INJURY VARIABLE —", fillcolor = "#64b5f6", shape = box3d, penwidth = 2.4];
+    BSEP      [label = "BSEP (ABCB11)\ncanalicular export\n— intact in ALGS —", fillcolor = "#bbdefb"];
+    MDR3      [label = "MDR3 (ABCB4)\nphosphatidylcholine flop\n(protects cholangiocytes)", fillcolor = "#bbdefb"];
+    MRP2      [label = "MRP2 (ABCC2)\nbilirubin-glucuronide export", fillcolor = "#bbdefb"];
+    MRP34     [label = "MRP3 / MRP4 (ABCC3/4)\nBASOLATERAL SPILLOVER\nadaptive escape valve", fillcolor = "#90caf9", penwidth = 1.8];
+    OSTAB     [label = "OSTα/OSTβ\nbasolateral efflux", fillcolor = "#bbdefb"];
+    ATP8B1    [label = "ATP8B1 (FIC1)\naminophospholipid flippase", fillcolor = "#d6e9fb"];
+    BILEFLOW  [label = "canalicular bile flow\nBA-dependent + BA-independent", fillcolor = "#bbdefb"];
+  }
+
+  /* ===================================================================
+     4. BILE ACID SYNTHESIS & FXR/FGF19 FEEDBACK
+     =================================================================== */
+  subgraph cluster_synth {
+    label = "4. Synthesis & FXR–SHP–FGF19 feedback — the compensation that caps IBAT inhibition";
+    style = "filled,rounded"; color = "#ef6c00"; fillcolor = "#fff3e0";
+    fontsize = 14; fontcolor = "#e65100"; penwidth = 2;
+
+    CHOLES    [label = "hepatic cholesterol", fillcolor = "#ffe0b2"];
+    CYP7A1    [label = "CYP7A1\nclassical pathway,\nRATE-LIMITING", fillcolor = "#ffcc80", penwidth = 1.8];
+    CYP8B1    [label = "CYP8B1\nsets CA : CDCA ratio", fillcolor = "#ffe0b2"];
+    CYP27A1   [label = "CYP27A1 / CYP7B1\nalternative (acidic) pathway", fillcolor = "#ffe0b2"];
+    BAAT      [label = "BACS / BAAT\nglycine & taurine conjugation", fillcolor = "#ffe0b2"];
+    SYNTH     [label = "S — de novo synthesis flux\nbaseline ~ 5 µmol/kg/h", fillcolor = "#ffb74d", shape = box3d];
+    FXRHEP    [label = "FXR (NR1H4)\nhepatocyte", fillcolor = "#ffe0b2"];
+    SHP       [label = "SHP (NR0B2)\n→ represses CYP7A1", fillcolor = "#ffe0b2"];
+    FXRGUT    [label = "FXR — ileal enterocyte", fillcolor = "#ffe0b2"];
+    FGF19     [label = "FGF19\nileal endocrine signal\n(the long feedback arm)", fillcolor = "#ffcc80", penwidth = 1.8];
+    FGFR4     [label = "FGFR4 / β-Klotho\nJNK-ERK → CYP7A1 ↓", fillcolor = "#ffe0b2"];
+    SYNRES    [label = "SYNTHESIS RESERVE\nCYP7A1 derepression, up to ~4-8×\n— DIVIDES every IBAT effect —", fillcolor = "#ffa726", shape = note, penwidth = 2];
+    C4        [label = "serum C4\n(7α-hydroxy-4-cholesten-3-one)\nsynthesis-rate biomarker", fillcolor = "#ffe9cc"];
+  }
+
+  /* ===================================================================
+     5. ENTEROHEPATIC CIRCULATION
+     =================================================================== */
+  subgraph cluster_ehc {
+    label = "5. Enterohepatic circulation — the drug-accessible loop";
+    style = "filled,rounded"; color = "#2e7d32"; fillcolor = "#e8f5e9";
+    fontsize = 14; fontcolor = "#1b5e20"; penwidth = 2;
+
+    GB        [label = "gallbladder\nstorage + CCK-driven\npostprandial ejection", fillcolor = "#c8e6c9"];
+    DUOD      [label = "BA_DUOD — duodenum/jejunum\nMICELLAR WINDOW\nfat & ADEK solubilisation", fillcolor = "#a5d6a7", penwidth = 1.8];
+    CMC       [label = "critical micellar conc.\n~2-5 mM · normal postprandial\nduodenal BA 5-15 mM", fillcolor = "#dcedc8"];
+    ILEUM     [label = "BA_ILEUM — terminal ileum\nDOWNSTREAM of the\nmicellar window", fillcolor = "#a5d6a7", penwidth = 1.8];
+    ASBT      [label = "ASBT / IBAT (SLC10A2)\nε ≈ 0.95 fractional\nreabsorption", fillcolor = "#81c784", penwidth = 1.8];
+    ILBP      [label = "ILBP (FABP6)\nenterocyte shuttle", fillcolor = "#dcedc8"];
+    OSTABG    [label = "OSTα/β — enterocyte\nbasolateral exit", fillcolor = "#dcedc8"];
+    PORTAL    [label = "BA_PORTAL\nportal venous return R", fillcolor = "#a5d6a7"];
+    FPE       [label = "hepatic first-pass extraction\n~80-90% per passage", fillcolor = "#dcedc8"];
+    COLON     [label = "BA_COLON\ncolonic bile acid load", fillcolor = "#c8e6c9"];
+    MICROB    [label = "gut microbiome\n7α-dehydroxylation\nBSH deconjugation", fillcolor = "#dcedc8"];
+    SECBA     [label = "secondary BA\nDCA / LCA (hydrophobic,\ncytotoxic)", fillcolor = "#c8e6c9"];
+    FECAL     [label = "faecal BA loss\n= S at steady state\n(the whole-body balance)", fillcolor = "#a5d6a7", shape = box3d];
+    BADIARR   [label = "colonic BA →\nsecretory diarrhoea\n(commonest IBAT-inhibitor AE)", fillcolor = "#dcedc8"];
+  }
+
+  /* ===================================================================
+     6. SYSTEMIC BILE ACID & SPILLOVER
+     =================================================================== */
+  subgraph cluster_systemic {
+    label = "6. Systemic compartment — what 'sBA' actually measures";
+    style = "filled,rounded"; color = "#00838f"; fillcolor = "#e0f7fa";
+    fontsize = 14; fontcolor = "#006064"; penwidth = 2;
+
+    SPILL     [label = "SPILLOVER Q\nhepatocyte → sinusoid\nwhen load > J_DUCT", fillcolor = "#80deea", penwidth = 1.8];
+    SBA       [label = "sBA — serum bile acids\nALGS baseline ~237-283 µmol/L\n(normal < 10)", fillcolor = "#4dd0e1", shape = box3d, penwidth = 2.4];
+    RENALBA   [label = "renal BA excretion\nminor, but the only\nroute left when J_DUCT→0", fillcolor = "#b2ebf2"];
+    SKINBA    [label = "dermal BA deposition", fillcolor = "#b2ebf2"];
+    PHIEHC    [label = "Φ_EHC = R / (S + R)\nfraction of hepatic load that\ncame BACK FROM THE GUT", fillcolor = "#26c6da", shape = box3d, penwidth = 2.6];
+  }
+
+  /* ===================================================================
+     7. IBAT INHIBITOR PK/PD
+     =================================================================== */
+  subgraph cluster_ibat {
+    label = "7. IBAT-inhibitor PK/PD — minimally absorbed, lumen-acting";
+    style = "filled,rounded"; color = "#c62828"; fillcolor = "#ffebee";
+    fontsize = 14; fontcolor = "#b71c1c"; penwidth = 2;
+
+    DOSE      [label = "oral dose\nmaralixibat 380 µg/kg/d\nodevixibat 120 µg/kg/d", fillcolor = "#ffcdd2"];
+    DEPOT     [label = "gut DEPOT\nstomach → duodenum", fillcolor = "#ffcdd2"];
+    DRUGLUM   [label = "luminal drug — terminal ileum\nSITE OF ACTION", fillcolor = "#ef9a9a", penwidth = 1.8];
+    DRUGSYS   [label = "systemic drug\n< 1% absorbed —\nnegligible exposure", fillcolor = "#ffcdd2"];
+    IC50      [label = "ASBT inhibition\nE = I_max·C/(IC50 + C)", fillcolor = "#ef9a9a"];
+    MRX       [label = "MARALIXIBAT\napproved ALGS ≥3 months", fillcolor = "#e57373"];
+    ODEV      [label = "ODEVIXIBAT\napproved ALGS", fillcolor = "#e57373"];
+    LINX      [label = "linerixibat\n(PBC pruritus programme)", fillcolor = "#ffcdd2"];
+    DRUGFEC   [label = "faecal drug elimination", fillcolor = "#ffcdd2"];
+  }
+
+  /* ===================================================================
+     8. NON-IBAT PHARMACOTHERAPY
+     =================================================================== */
+  subgraph cluster_otherdrug {
+    label = "8. Other pharmacotherapy — and where in the gut it acts";
+    style = "filled,rounded"; color = "#ad1457"; fillcolor = "#fce4ec";
+    fontsize = 14; fontcolor = "#880e4f"; penwidth = 2;
+
+    UDCA      [label = "UDCA 15-20 mg/kg/d\nhydrophilic pool shift,\ncholeresis", fillcolor = "#f8bbd0"];
+    CHOLEST   [label = "CHOLESTYRAMINE\nbinds BA in the PROXIMAL lumen\n— INSIDE the micellar window —", fillcolor = "#f48fb1", penwidth = 1.8];
+    RIFAMP    [label = "rifampicin 10 mg/kg/d\nPXR → CYP3A4/SULT2A1\n(hepatotoxicity risk)", fillcolor = "#f8bbd0"];
+    NALTREX   [label = "naltrexone\nµ-opioid antagonist", fillcolor = "#f8bbd0"];
+    SERT      [label = "sertraline / gabapentin\ncentral itch modulation", fillcolor = "#f8bbd0"];
+    ANTIH     [label = "antihistamine\n(sedation only —\nitch is not histaminergic)", fillcolor = "#fce4ec"];
+    ODEVCL    [label = "site-of-action contrast\nASBT is DISTAL to fat absorption;\nsequestrant is PROXIMAL to it", fillcolor = "#f48fb1", shape = note, penwidth = 2];
+  }
+
+  /* ===================================================================
+     9. SURGICAL / TRANSPLANT
+     =================================================================== */
+  subgraph cluster_surgery {
+    label = "9. Surgical interruption & transplantation";
+    style = "filled,rounded"; color = "#4527a0"; fillcolor = "#ede7f6";
+    fontsize = 14; fontcolor = "#311b92"; penwidth = 2;
+
+    PEBD      [label = "PEBD\npartial external biliary diversion\nε_ASBT → ~0", fillcolor = "#d1c4e9"];
+    ILEX      [label = "ileal exclusion", fillcolor = "#d1c4e9"];
+    LTX       [label = "LIVER TRANSPLANT\n10-yr patient survival 91.0%\n20-yr 88.0%", fillcolor = "#b39ddb"];
+    GRAFT     [label = "graft survival\n10-yr 86.3% · 20-yr 83.4%", fillcolor = "#d1c4e9"];
+    LTXIND    [label = "transplant indication SPLIT\nhepatic decompensation\nVS intractable pruritus/QoL", fillcolor = "#b39ddb", shape = note, penwidth = 2];
+  }
+
+  /* ===================================================================
+     10. CHOLESTATIC HEPATOCYTE INJURY
+     =================================================================== */
+  subgraph cluster_injury {
+    label = "10. Cholestatic hepatocyte injury";
+    style = "filled,rounded"; color = "#6d4c41"; fillcolor = "#efebe9";
+    fontsize = 14; fontcolor = "#3e2723"; penwidth = 2;
+
+    MITO      [label = "mitochondrial permeability\ntransition, ΔΨm loss", fillcolor = "#d7ccc8"];
+    ROS       [label = "ROS / oxidative stress", fillcolor = "#d7ccc8"];
+    ERSTRESS  [label = "ER stress / UPR", fillcolor = "#d7ccc8"];
+    APOP      [label = "hepatocyte apoptosis\n(Fas/CD95, caspase-3)", fillcolor = "#d7ccc8"];
+    NECRO     [label = "necrosis → DAMPs\n(HMGB1, ATP)", fillcolor = "#d7ccc8"];
+    ALT       [label = "ALT / AST release", fillcolor = "#e8e0dd"];
+    GGT       [label = "GGT — high in ALGS\n(distinguishes from PFIC1/2)", fillcolor = "#e8e0dd"];
+    BILI      [label = "BILI — total bilirubin\nDUCT-CAPACITY READOUT,\nnot a BA measure", fillcolor = "#bcaaa4", shape = box3d, penwidth = 2.2];
+  }
+
+  /* ===================================================================
+     11. INFLAMMATION & FIBROSIS
+     =================================================================== */
+  subgraph cluster_fibrosis {
+    label = "11. Portal inflammation → biliary fibrosis → cirrhosis";
+    style = "filled,rounded"; color = "#37474f"; fillcolor = "#eceff1";
+    fontsize = 14; fontcolor = "#263238"; penwidth = 2;
+
+    KUPFFER   [label = "Kupffer cell / MoMF\nactivation", fillcolor = "#cfd8dc"];
+    TNFIL6    [label = "TNF-α · IL-6 · IL-1β", fillcolor = "#cfd8dc"];
+    CCL2      [label = "CCL2 / CXCL8\nmonocyte & neutrophil influx", fillcolor = "#cfd8dc"];
+    HSC       [label = "hepatic stellate cell\nactivation (αSMA+)", fillcolor = "#b0bec5", penwidth = 1.6];
+    TGFB      [label = "TGF-β1 / PDGF-BB /\nCTGF", fillcolor = "#cfd8dc"];
+    COLLAGEN  [label = "collagen I/III deposition\nTIMP-1 ↑ / MMP-2,9", fillcolor = "#cfd8dc"];
+    FIB       [label = "FIB — fibrosis stage\nportal → bridging → biliary cirrhosis", fillcolor = "#90a4ae", shape = box3d, penwidth = 2.2];
+    REGRESS   [label = "fibrosis regression\nslow, partial", fillcolor = "#e0e5e8"];
+  }
+
+  /* ===================================================================
+     12. PORTAL HYPERTENSION
+     =================================================================== */
+  subgraph cluster_pht {
+    label = "12. Portal hypertension — the composite-endpoint driver";
+    style = "filled,rounded"; color = "#01579b"; fillcolor = "#e1f5fe";
+    fontsize = 14; fontcolor = "#01579b"; penwidth = 2;
+
+    SINRES    [label = "sinusoidal resistance ↑", fillcolor = "#b3e5fc"];
+    HVPG      [label = "portal pressure / HVPG", fillcolor = "#b3e5fc"];
+    VARICES   [label = "gastro-oesophageal varices", fillcolor = "#b3e5fc"];
+    VARBLEED  [label = "variceal haemorrhage\n(EFS component)", fillcolor = "#81d4fa"];
+    ASCITES   [label = "ascites requiring intervention\n(EFS component)", fillcolor = "#81d4fa"];
+    SPLENO    [label = "splenomegaly →\nhypersplenism, platelets ↓", fillcolor = "#b3e5fc"];
+    PHTEVENT  [label = "clinically evident\nPORTAL HYPERTENSION\nGALA: 51.5% by 10 yr, 66.0% by 18 yr", fillcolor = "#4fc3f7", penwidth = 1.8];
+  }
+
+  /* ===================================================================
+     13. PRURITUS — the second, partly independent axis
+     =================================================================== */
+  subgraph cluster_itch {
+    label = "13. Cholestatic pruritus — NOT a readout of sBA (proved by the ASSERT placebo arm)";
+    style = "filled,rounded"; color = "#f57f17"; fillcolor = "#fffde7";
+    fontsize = 14; fontcolor = "#f57f17"; penwidth = 2;
+
+    MRGPRX4   [label = "MRGPRX4\nprimate-specific BA receptor\non human DRG neurons", fillcolor = "#fff59d", penwidth = 1.8];
+    TGR5      [label = "TGR5 (GPBAR1)\nNOT expressed in human DRG —\nagonist fails to itch", fillcolor = "#fff9c4"];
+    ATXLPA    [label = "autotaxin → LPA\ntracks itch BETTER than BA\nin cholestasis", fillcolor = "#fff59d", penwidth = 1.8];
+    OPIOID    [label = "endogenous µ-opioid tone ↑\nκ-opioid tone ↓", fillcolor = "#fff9c4"];
+    SEROT     [label = "serotonergic modulation", fillcolor = "#fff9c4"];
+    DRG       [label = "DRG pruriceptor firing", fillcolor = "#fff9c4"];
+    SPINAL    [label = "spinal GRPR / NPRA\nsecond-order relay", fillcolor = "#fff9c4"];
+    CENTRAL   [label = "central sensitisation\n& scratch–itch cycle", fillcolor = "#fff9c4"];
+    ITCHSC    [label = "ITCH — ItchRO(Obs) 0-4 /\nPRUCISION scratching 0-4\nALGS baseline 2.8-3.0", fillcolor = "#ffee58", shape = box3d, penwidth = 2.4];
+    WEBER     [label = "Weber–Fechner coding\nitch ∝ log(pruritogen) —\nwhy % sBA drop ≠ % itch drop", fillcolor = "#fff176", shape = note, penwidth = 2];
+    SLEEP     [label = "sleep disturbance\n(the actual disability)", fillcolor = "#fff9c4"];
+    EXCOR     [label = "excoriation, mutilation,\ndisfigurement", fillcolor = "#fff9c4"];
+    ITCHINDEP [label = "BA-INDEPENDENT itch component\nSOLVED from ASSERT placebo arm\n(−0.8 of −1.7 points)", fillcolor = "#ffe082", shape = note, penwidth = 2];
+  }
+
+  /* ===================================================================
+     14. LIPIDS & XANTHOMA
+     =================================================================== */
+  subgraph cluster_lipid {
+    label = "14. Cholestatic dyslipidaemia & xanthoma";
+    style = "filled,rounded"; color = "#f9a825"; fillcolor = "#fff8e1";
+    fontsize = 14; fontcolor = "#ff6f00"; penwidth = 2;
+
+    LPX       [label = "lipoprotein X\nfree cholesterol + PC\nvesicles (regurgitated bile)", fillcolor = "#ffe082"];
+    TCHOL     [label = "total cholesterol\nALGS may exceed\n1000-2000 mg/dL", fillcolor = "#ffe082"];
+    LCAT      [label = "LCAT / ApoA-I\nremodelling", fillcolor = "#ffecb3"];
+    XANTH     [label = "XANTHOMA burden\nextensor surfaces, palms;\nregresses with sBA", fillcolor = "#ffca28", shape = box3d];
+    ATHERO    [label = "paradoxically LOW\natherosclerotic risk\n(LpX is not atherogenic)", fillcolor = "#ffecb3"];
+  }
+
+  /* ===================================================================
+     15. FAT-SOLUBLE VITAMINS, NUTRITION & GROWTH
+     =================================================================== */
+  subgraph cluster_nutrition {
+    label = "15. Micellar failure → malabsorption → growth failure (a DUCT problem, not a drug problem)";
+    style = "filled,rounded"; color = "#558b2f"; fillcolor = "#f1f8e9";
+    fontsize = 14; fontcolor = "#33691e"; penwidth = 2;
+
+    MICELLE   [label = "mixed micelle formation\nrequires duodenal BA > CMC", fillcolor = "#dcedc8", penwidth = 1.6];
+    FATABS    [label = "fat absorption coefficient\nnormal > 0.93 · severe ALGS < 0.6", fillcolor = "#c5e1a5"];
+    STEAT     [label = "steatorrhoea", fillcolor = "#dcedc8"];
+    MCT       [label = "MCT-enriched formula\nBA-independent absorption", fillcolor = "#dcedc8"];
+    VITA      [label = "vitamin A ↓\nxerophthalmia", fillcolor = "#dcedc8"];
+    VITD      [label = "25-OH vitamin D ↓\nrickets, fractures", fillcolor = "#dcedc8"];
+    VITE      [label = "vitamin E ↓ (E:lipid ratio)\nspinocerebellar degeneration,\nareflexia", fillcolor = "#dcedc8"];
+    VITK      [label = "vitamin K ↓ → INR ↑\nbleeding (confounds\nliver-failure INR)", fillcolor = "#dcedc8"];
+    ENERGY    [label = "energy deficit +\nresting energy expenditure ↑", fillcolor = "#dcedc8"];
+    GHRES     [label = "GH resistance\nIGF-1 / IGFBP-3 ↓", fillcolor = "#dcedc8"];
+    HTZ       [label = "HEIGHT z-score\nsevere growth failure;\nIMPROVES on IBAT inhibition", fillcolor = "#aed581", shape = box3d];
+  }
+
+  /* ===================================================================
+     16. CARDIAC
+     =================================================================== */
+  subgraph cluster_cardiac {
+    label = "16. Cardiac — JAG1 in cardiac neural crest & second heart field";
+    style = "filled,rounded"; color = "#d84315"; fillcolor = "#fbe9e7";
+    fontsize = 14; fontcolor = "#bf360c"; penwidth = 2;
+
+    NCREST    [label = "cardiac neural crest\nNotch-dependent\noutflow tract septation", fillcolor = "#ffccbc"];
+    PPS       [label = "peripheral pulmonary\nartery stenosis\n~67% of ALGS", fillcolor = "#ffab91"];
+    TOF       [label = "Tetralogy of Fallot\n~7-16%", fillcolor = "#ffab91"];
+    RVP       [label = "RV pressure overload", fillcolor = "#ffccbc"];
+    CARDDEATH [label = "CARDIAC MORTALITY\ndominates the first year", fillcolor = "#ff8a65", penwidth = 1.8];
+  }
+
+  /* ===================================================================
+     17. VASCULAR / CEREBROVASCULAR
+     =================================================================== */
+  subgraph cluster_vascular {
+    label = "17. Vasculopathy — the mortality nobody screens enough for";
+    style = "filled,rounded"; color = "#880e4f"; fillcolor = "#fce4ec";
+    fontsize = 14; fontcolor = "#880e4f"; penwidth = 2;
+
+    VASCJAG   [label = "JAG1 in vascular\nsmooth muscle / pericytes", fillcolor = "#f8bbd0"];
+    ANEUR     [label = "intracranial aneurysm\n& dolichoectasia", fillcolor = "#f8bbd0"];
+    MOYA      [label = "moyamoya-like\narteriopathy", fillcolor = "#f8bbd0"];
+    ICH       [label = "INTRACRANIAL HAEMORRHAGE\nleading non-cardiac\nnon-hepatic cause of death", fillcolor = "#f06292", penwidth = 1.8];
+    RENARTST  [label = "renal artery stenosis /\nmiddle aortic syndrome", fillcolor = "#f8bbd0"];
+    VASCDEATH [label = "VASCULAR MORTALITY\ncompeting risk —\ncaps any liver drug's benefit", fillcolor = "#f06292", penwidth = 1.8];
+  }
+
+  /* ===================================================================
+     18. RENAL & OTHER SYSTEM INVOLVEMENT
+     =================================================================== */
+  subgraph cluster_other {
+    label = "18. Renal, skeletal, ocular, facial";
+    style = "filled,rounded"; color = "#00695c"; fillcolor = "#e0f2f1";
+    fontsize = 14; fontcolor = "#004d40"; penwidth = 2;
+
+    RENDYS    [label = "renal dysplasia /\ncystic disease ~40%", fillcolor = "#b2dfdb"];
+    RTA       [label = "renal tubular acidosis", fillcolor = "#b2dfdb"];
+    EGFR      [label = "eGFR decline\n(limits calcineurin\ninhibitors post-LTx)", fillcolor = "#b2dfdb"];
+    BFLY      [label = "butterfly vertebrae\n~50%", fillcolor = "#b2dfdb"];
+    FRACT     [label = "fragility fracture\n(vit D + cholestatic bone disease)", fillcolor = "#b2dfdb"];
+    EMBRYO    [label = "posterior embryotoxon\n~80%", fillcolor = "#b2dfdb"];
+    FACIES    [label = "characteristic facies\nbroad forehead, pointed chin", fillcolor = "#b2dfdb"];
+    PANCR     [label = "pancreatic insufficiency\n(minority)", fillcolor = "#b2dfdb"];
+  }
+
+  /* ===================================================================
+     19. BIOMARKERS
+     =================================================================== */
+  subgraph cluster_biomarker {
+    label = "19. Biomarker panel";
+    style = "filled,rounded"; color = "#455a64"; fillcolor = "#eceff1";
+    fontsize = 14; fontcolor = "#263238"; penwidth = 2;
+
+    BMSBA     [label = "sBA (µmol/L)", fillcolor = "#cfd8dc"];
+    BMTB      [label = "total / conjugated bilirubin\nGALA prognostic strata", fillcolor = "#cfd8dc"];
+    BMGGT     [label = "GGT", fillcolor = "#cfd8dc"];
+    BMALT     [label = "ALT / AST", fillcolor = "#cfd8dc"];
+    BMPLT     [label = "platelet count\n(surrogate for PHT)", fillcolor = "#cfd8dc"];
+    BMINR     [label = "INR (vit-K corrected)", fillcolor = "#cfd8dc"];
+    BMFGF     [label = "serum FGF19", fillcolor = "#cfd8dc"];
+    BMC4      [label = "serum C4", fillcolor = "#cfd8dc"];
+  }
+
+  /* ===================================================================
+     20. CLINICAL ENDPOINTS
+     =================================================================== */
+  subgraph cluster_endpoint {
+    label = "20. Clinical endpoints as trials actually measure them";
+    style = "filled,rounded"; color = "#1a237e"; fillcolor = "#e8eaf6";
+    fontsize = 14; fontcolor = "#1a237e"; penwidth = 2;
+
+    EPITCH    [label = "ItchRO(Obs) / PRUCISION\nprimary endpoint — ASSERT\nΔ −0.9 (−1.4,−0.3) p=0.0024", fillcolor = "#c5cae9"];
+    EPSBA     [label = "serum bile acid\nASSERT Δ −113 µmol/L\nICONIC RWD Δ −117 µmol/L", fillcolor = "#c5cae9"];
+    EPQOL     [label = "PedsQL / sleep\ncaregiver burden", fillcolor = "#c5cae9"];
+    EPXANTH   [label = "xanthoma severity score", fillcolor = "#c5cae9"];
+    EPGROWTH  [label = "height / weight z-score", fillcolor = "#c5cae9"];
+    EPNLS     [label = "native liver survival\nGALA: 5y 66.8% · 10y 54.4% · 18y 40.3%", fillcolor = "#9fa8da", penwidth = 1.8];
+    EPEFS     [label = "EVENT-FREE SURVIVAL\nMRX vs GALA HR 0.305\n(0.189-0.491)", fillcolor = "#7986cb", penwidth = 2, shape = box3d];
+  }
+
+  /* ===================================================================
+     21. COMPETING RISKS
+     =================================================================== */
+  subgraph cluster_risk {
+    label = "21. Competing risks — the population ceiling on any liver therapy";
+    style = "filled,rounded"; color = "#424242"; fillcolor = "#f5f5f5";
+    fontsize = 14; fontcolor = "#212121"; penwidth = 2;
+
+    HZLIVER   [label = "h_liver — decompensation hazard\n∝ (cumulative BA_HEP exposure)^n", fillcolor = "#e0e0e0"];
+    HZQOL     [label = "h_QoL — transplant-for-pruritus hazard\ndriven by ITCH, not by fibrosis", fillcolor = "#e0e0e0"];
+    HZCARD    [label = "h_cardiac", fillcolor = "#e0e0e0"];
+    HZVASC    [label = "h_vascular", fillcolor = "#e0e0e0"];
+    SURVIVAL  [label = "all-cause survival", fillcolor = "#bdbdbd"];
+    CEILING   [label = "POPULATION CEILING\nno liver drug can move\nthe cardiac + vascular share", fillcolor = "#bdbdbd", shape = note, penwidth = 2];
+  }
+
+  /* ===================================================================
+     22. DERIVED QUANTITIES — what the model SOLVES rather than assumes
+     =================================================================== */
+  subgraph cluster_derived {
+    label = "22. Quantities SOLVED from published trial data (not assumed)";
+    style = "filled,rounded"; color = "#b71c1c"; fillcolor = "#fff5f5";
+    fontsize = 15; fontcolor = "#b71c1c"; penwidth = 2.6;
+
+    D_PHI     [label = "Φ_EHC — enterohepatic fraction\nsolved from ASSERT's −38% sBA\ngiven blockade efficiency & synthesis reserve", fillcolor = "#ffcdd2", penwidth = 1.8];
+    D_ITCH    [label = "f_BA-independent itch\nsolved from ASSERT placebo\n(−0.8 of −1.7 = 47%)", fillcolor = "#ffcdd2", penwidth = 1.8];
+    D_SLOPE   [label = "itch-per-µmol/L slope\nsingle-arm ICONIC 2.1× steeper\nthan controlled ASSERT", fillcolor = "#ffcdd2", penwidth = 1.8];
+    D_EXP     [label = "hazard exponent n\nGALA's OWN bilirubin strata give n≈1.5\nMRX HR 0.305 REQUIRES n≈2.5", fillcolor = "#ef9a9a", penwidth = 2.2];
+    D_GAP     [label = "THE CONTRADICTION\nn=1.5 predicts HR 0.49, not 0.305 —\nresidual HR 0.62 unexplained by bile acids", fillcolor = "#e57373", shape = note, penwidth = 2.6];
+  }
+
+  /* ===================================================================
+     EDGES
+     =================================================================== */
+
+  /* --- genetics --- */
+  DENOVO   -> JAG1;
+  DEL20P   -> JAG1;
+  JAG1     -> HAPLO;
+  NOTCH2   -> HAPLO;
+  DEL20P   -> VARIANCE   [style = dashed];
+  MODIFIER -> VARIANCE   [style = dashed];
+  HAPLO    -> VARIANCE   [style = dashed];
+  JAG1     -> ADAM10     [label = "ligand-receptor\npulling force"];
+  ADAM10   -> GSEC;
+  GSEC     -> NICD;
+  NOTCH2   -> NICD;
+  NICD     -> RBPJ;
+  RBPJ     -> HES1;
+  RBPJ     -> HEY12;
+  HES1     -> SOX9;
+  HEY12    -> SOX9;
+  SOX9     -> HNF1B;
+  HAPLO    -> NICD       [label = "≈50% signal", color = "#c62828", style = bold];
+
+  /* --- genetics -> duct development --- */
+  SOX9     -> DPLATE;
+  HNF1B    -> DPLATE;
+  DPLATE   -> DPM        [label = "insufficient\nNotch dose", color = "#c62828"];
+  DPM      -> PAUCITY;
+  PAUCITY  -> DPR        [color = "#c62828", style = bold];
+  DPR      -> JDUCT      [color = "#00695c", style = bold, penwidth = 2];
+  SOX9     -> DUCTREACT;
+  DUCTREACT-> CHOLPROL;
+  CHOLPROL -> DPR        [label = "slow postnatal\nrepair", color = "#2e7d32"];
+  YAPTAZ   -> DUCTREACT;
+  DPRAGE   -> DPR        [style = dashed, color = "#2e7d32"];
+  DUCTREACT-> DPRAGE     [style = dashed];
+  BAHEP    -> DUCTREACT  [label = "injury drives\nrepair", style = dashed];
+
+  /* --- transport --- */
+  NTCP     -> BAHEP;
+  OATP     -> BAHEP;
+  BAHEP    -> BSEP;
+  BSEP     -> BILEFLOW;
+  MDR3     -> BILEFLOW;
+  ATP8B1   -> BSEP       [style = dashed];
+  BILEFLOW -> JDUCT      [label = "must drain\nthrough ducts", color = "#00695c"];
+  BAHEP    -> MRP34      [label = "induced when\nload > capacity", color = "#1565c0"];
+  BAHEP    -> OSTAB;
+  MRP34    -> SPILL      [color = "#1565c0", style = bold];
+  OSTAB    -> SPILL;
+  MRP2     -> BILI       [style = dashed];
+
+  /* --- synthesis --- */
+  CHOLES   -> CYP7A1;
+  CYP7A1   -> SYNTH      [style = bold];
+  CYP8B1   -> SYNTH;
+  CYP27A1  -> SYNTH;
+  SYNTH    -> BAAT;
+  BAAT     -> BAHEP      [color = "#ef6c00", style = bold];
+  BAHEP    -> FXRHEP;
+  FXRHEP   -> SHP;
+  SHP      -> CYP7A1     [arrowhead = tee, color = "#ef6c00"];
+  FXRHEP   -> BSEP       [label = "induces"];
+  FXRHEP   -> MDR3;
+  ILEUM    -> FXRGUT     [color = "#2e7d32"];
+  FXRGUT   -> FGF19      [color = "#2e7d32"];
+  FGF19    -> FGFR4;
+  FGFR4    -> CYP7A1     [arrowhead = tee, color = "#ef6c00", style = bold, label = "long feedback arm"];
+  CYP7A1   -> C4         [style = dashed];
+  SYNRES   -> CYP7A1     [style = dashed, color = "#ef6c00"];
+  FGF19    -> SYNRES     [arrowhead = tee, style = dashed];
+
+  /* --- enterohepatic circulation --- */
+  JDUCT    -> GB         [color = "#00695c", style = bold];
+  GB       -> DUOD       [label = "CCK-driven\npostprandial"];
+  DUOD     -> CMC        [style = dashed];
+  DUOD     -> ILEUM      [label = "transit"];
+  ILEUM    -> ASBT;
+  ASBT     -> ILBP;
+  ILBP     -> OSTABG;
+  OSTABG   -> PORTAL     [color = "#2e7d32", style = bold];
+  PORTAL   -> FPE;
+  FPE      -> NTCP       [color = "#2e7d32", style = bold, label = "RETURN FLUX R"];
+  ILEUM    -> COLON      [label = "1 − ε_ASBT"];
+  COLON    -> MICROB;
+  MICROB   -> SECBA;
+  SECBA    -> COLON;
+  SECBA    -> PORTAL     [style = dashed, label = "passive"];
+  COLON    -> FECAL      [color = "#2e7d32", style = bold];
+  COLON    -> BADIARR;
+  FECAL    -> SYNTH      [style = dashed, label = "steady state:\nfaecal loss = S", color = "#ef6c00"];
+
+  /* --- systemic --- */
+  SPILL    -> SBA        [color = "#00838f", style = bold, penwidth = 2];
+  SBA      -> NTCP       [label = "re-uptake", style = dashed];
+  SBA      -> RENALBA;
+  SBA      -> SKINBA;
+  PORTAL   -> PHIEHC     [color = "#00838f"];
+  SYNTH    -> PHIEHC     [color = "#00838f"];
+  JDUCT    -> PHIEHC     [label = "paucity SHRINKS\nthe drug's target", color = "#c62828", style = bold, penwidth = 2];
+  BMSBA    -> SBA        [style = invis];
+
+  /* --- IBAT PK/PD --- */
+  DOSE     -> DEPOT;
+  DEPOT    -> DRUGLUM;
+  DEPOT    -> DRUGSYS    [label = "< 1%", style = dashed];
+  DRUGLUM  -> IC50;
+  IC50     -> ASBT       [arrowhead = tee, color = "#c62828", style = bold, penwidth = 2.2];
+  MRX      -> DOSE;
+  ODEV     -> DOSE;
+  LINX     -> DOSE       [style = dashed];
+  DRUGLUM  -> DRUGFEC;
+  IC50     -> BADIARR    [style = dashed, label = "dose-limiting"];
+  PHIEHC   -> IC50       [label = "CEILING on\nachievable effect", color = "#c62828", style = bold, penwidth = 2.2, dir = back];
+
+  /* --- other drugs --- */
+  UDCA     -> BILEFLOW   [label = "choleresis"];
+  UDCA     -> BAHEP      [label = "pool hydrophilicity ↑", arrowhead = tee];
+  CHOLEST  -> DUOD       [arrowhead = tee, color = "#ad1457", style = bold, label = "binds BA INSIDE\nthe micellar window"];
+  CHOLEST  -> FECAL;
+  RIFAMP   -> ITCHSC     [arrowhead = tee, style = dashed];
+  RIFAMP   -> ALT        [label = "hepatotoxicity", style = dashed, color = "#c62828"];
+  NALTREX  -> OPIOID     [arrowhead = tee];
+  SERT     -> CENTRAL    [arrowhead = tee];
+  ANTIH    -> SLEEP      [label = "sedation only", style = dashed];
+  ODEVCL   -> CHOLEST    [style = dashed];
+  ODEVCL   -> ASBT       [style = dashed];
+
+  /* --- surgery --- */
+  PEBD     -> ASBT       [arrowhead = tee, color = "#4527a0", style = bold, label = "ε → 0"];
+  ILEX     -> ASBT       [arrowhead = tee, style = dashed];
+  LTX      -> GRAFT;
+  LTXIND   -> LTX;
+  HZQOL    -> LTXIND     [color = "#f57f17"];
+  HZLIVER  -> LTXIND     [color = "#37474f"];
+
+  /* --- injury --- */
+  BAHEP    -> MITO       [color = "#6d4c41", style = bold];
+  BAHEP    -> ERSTRESS;
+  SECBA    -> MITO       [label = "DCA/LCA more\ncytotoxic", style = dashed];
+  MITO     -> ROS;
+  ROS      -> APOP;
+  ERSTRESS -> APOP;
+  APOP     -> ALT;
+  APOP     -> NECRO;
+  NECRO    -> ALT;
+  JDUCT    -> BILI       [arrowhead = tee, color = "#6d4c41", style = bold, penwidth = 2, label = "duct capacity\nsets bilirubin"];
+  BILEFLOW -> GGT        [style = dashed];
+  MDR3     -> GGT        [style = dashed];
+
+  /* --- fibrosis --- */
+  NECRO    -> KUPFFER;
+  KUPFFER  -> TNFIL6;
+  TNFIL6   -> CCL2;
+  CCL2     -> KUPFFER;
+  TNFIL6   -> HSC;
+  BAHEP    -> HSC        [label = "direct\nstellate activation", color = "#37474f"];
+  CHOLPROL -> HSC        [label = "ductular reaction\nis PROFIBROTIC", color = "#37474f", style = dashed];
+  HSC      -> TGFB;
+  TGFB     -> COLLAGEN;
+  TGFB     -> HSC;
+  COLLAGEN -> FIB        [color = "#37474f", style = bold, penwidth = 2];
+  FIB      -> REGRESS    [style = dashed];
+  REGRESS  -> FIB        [arrowhead = tee, style = dashed];
+
+  /* --- portal hypertension --- */
+  FIB      -> SINRES     [color = "#01579b", style = bold];
+  SINRES   -> HVPG;
+  HVPG     -> VARICES;
+  VARICES  -> VARBLEED;
+  HVPG     -> ASCITES;
+  HVPG     -> SPLENO;
+  SPLENO   -> BMPLT      [arrowhead = tee];
+  VARBLEED -> PHTEVENT;
+  ASCITES  -> PHTEVENT;
+  PHTEVENT -> HZLIVER    [color = "#01579b", style = bold];
+
+  /* --- pruritus --- */
+  SBA      -> MRGPRX4    [color = "#f57f17", style = bold];
+  SKINBA   -> MRGPRX4;
+  SBA      -> TGR5       [style = dashed];
+  TGR5     -> DRG        [style = dotted, label = "NOT in human DRG"];
+  MRGPRX4  -> DRG        [color = "#f57f17", style = bold];
+  ATXLPA   -> DRG        [color = "#f57f17", style = bold];
+  OPIOID   -> SPINAL;
+  SEROT    -> SPINAL;
+  DRG      -> SPINAL;
+  SPINAL   -> CENTRAL;
+  CENTRAL  -> ITCHSC     [color = "#f57f17", style = bold, penwidth = 2];
+  WEBER    -> ITCHSC     [style = dashed, color = "#f57f17"];
+  ITCHINDEP-> ITCHSC     [style = dashed, color = "#f57f17", penwidth = 1.8];
+  ATXLPA   -> ITCHINDEP  [style = dashed];
+  ITCHSC   -> SLEEP;
+  ITCHSC   -> EXCOR;
+  ITCHSC   -> CENTRAL    [label = "scratch-itch cycle", style = dashed];
+  SLEEP    -> EPQOL;
+  ITCHSC   -> HZQOL      [color = "#f57f17", style = bold];
+
+  /* --- lipids --- */
+  BILEFLOW -> LPX        [arrowhead = tee, label = "regurgitation\nwhen flow fails"];
+  BAHEP    -> LPX        [style = dashed];
+  LPX      -> TCHOL      [style = bold];
+  LCAT     -> LPX        [arrowhead = tee];
+  TCHOL    -> XANTH      [color = "#f9a825", style = bold];
+  TCHOL    -> ATHERO     [style = dashed];
+  SBA      -> XANTH      [style = dashed, label = "regress together"];
+
+  /* --- nutrition --- */
+  DUOD     -> MICELLE    [color = "#558b2f", style = bold];
+  CMC      -> MICELLE    [label = "threshold"];
+  MICELLE  -> FATABS     [color = "#558b2f", style = bold];
+  FATABS   -> STEAT      [arrowhead = tee];
+  MCT      -> ENERGY     [label = "bypasses\nmicelles"];
+  FATABS   -> VITA;
+  FATABS   -> VITD;
+  FATABS   -> VITE;
+  FATABS   -> VITK;
+  FATABS   -> ENERGY;
+  VITD     -> FRACT      [arrowhead = tee];
+  VITK     -> BMINR      [arrowhead = tee];
+  VITE     -> HTZ        [style = dashed];
+  ENERGY   -> HTZ        [color = "#558b2f", style = bold];
+  GHRES    -> HTZ        [arrowhead = tee];
+  BAHEP    -> GHRES      [style = dashed, label = "cholestasis →\nGH resistance"];
+  HTZ      -> EPGROWTH;
+  CHOLEST  -> MICELLE    [arrowhead = tee, color = "#ad1457", style = bold, penwidth = 2];
+  ASBT     -> MICELLE    [style = invis];
+
+  /* --- cardiac --- */
+  HAPLO    -> NCREST     [color = "#d84315"];
+  NCREST   -> PPS;
+  NCREST   -> TOF;
+  PPS      -> RVP;
+  TOF      -> RVP;
+  RVP      -> CARDDEATH;
+  CARDDEATH-> HZCARD;
+
+  /* --- vascular --- */
+  HAPLO    -> VASCJAG    [color = "#880e4f"];
+  VASCJAG  -> ANEUR;
+  VASCJAG  -> MOYA;
+  VASCJAG  -> RENARTST;
+  ANEUR    -> ICH;
+  MOYA     -> ICH;
+  ICH      -> VASCDEATH;
+  VASCDEATH-> HZVASC;
+  RENARTST -> EGFR       [arrowhead = tee];
+
+  /* --- other organs --- */
+  HAPLO    -> RENDYS     [color = "#00695c"];
+  HAPLO    -> BFLY;
+  HAPLO    -> EMBRYO;
+  HAPLO    -> FACIES;
+  RENDYS   -> EGFR       [arrowhead = tee];
+  RENDYS   -> RTA;
+  FATABS   -> PANCR      [style = invis];
+
+  /* --- biomarkers --- */
+  SBA      -> BMSBA;
+  BILI     -> BMTB;
+  GGT      -> BMGGT;
+  ALT      -> BMALT;
+  BMINR    -> HZLIVER    [style = dashed];
+  FGF19    -> BMFGF;
+  C4       -> BMC4;
+  BMTB     -> EPNLS      [label = "GALA strata:\nTB≥10 → LTx HR 15.6", color = "#1a237e", style = bold];
+
+  /* --- endpoints --- */
+  ITCHSC   -> EPITCH     [color = "#1a237e", style = bold];
+  SBA      -> EPSBA      [color = "#1a237e", style = bold];
+  XANTH    -> EPXANTH;
+  HZLIVER  -> EPNLS      [color = "#1a237e"];
+  EPNLS    -> EPEFS;
+  PHTEVENT -> EPEFS;
+  PEBD     -> EPEFS      [style = dashed, label = "counts AS an event"];
+  LTX      -> EPEFS      [style = dashed];
+
+  /* --- competing risks --- */
+  BAHEP    -> HZLIVER    [label = "cumulative exposure\n∫BA_HEP dt", color = "#424242", style = bold, penwidth = 2];
+  FIB      -> HZLIVER    [color = "#424242"];
+  HZLIVER  -> SURVIVAL   [arrowhead = tee];
+  HZQOL    -> SURVIVAL   [style = dashed];
+  HZCARD   -> SURVIVAL   [arrowhead = tee];
+  HZVASC   -> SURVIVAL   [arrowhead = tee];
+  HZCARD   -> CEILING    [style = dashed];
+  HZVASC   -> CEILING    [style = dashed];
+  CEILING  -> EPEFS      [style = dashed, color = "#424242"];
+
+  /* --- derived quantities --- */
+  PHIEHC   -> D_PHI      [color = "#b71c1c", style = bold, penwidth = 2];
+  EPSBA    -> D_PHI      [color = "#b71c1c", style = dashed];
+  SYNRES   -> D_PHI      [color = "#b71c1c", style = dashed];
+  ITCHINDEP-> D_ITCH     [color = "#b71c1c", style = bold];
+  EPITCH   -> D_ITCH     [color = "#b71c1c", style = dashed];
+  WEBER    -> D_SLOPE    [color = "#b71c1c", style = dashed];
+  EPITCH   -> D_SLOPE    [color = "#b71c1c", style = dashed];
+  EPSBA    -> D_SLOPE    [color = "#b71c1c", style = dashed];
+  BMTB     -> D_EXP      [color = "#b71c1c", style = dashed, label = "GALA strata → n≈1.5"];
+  EPEFS    -> D_EXP      [color = "#b71c1c", style = dashed, label = "HR 0.305 → n≈2.5"];
+  D_EXP    -> D_GAP      [color = "#b71c1c", style = bold, penwidth = 2.4];
+  D_PHI    -> D_GAP      [color = "#b71c1c", style = dashed];
+
+  /* --- cross-cluster reminders --- */
+  DPR      -> D_PHI      [style = dashed, color = "#00695c", label = "responder status is a\nDUCT property"];
+  BILI     -> PHIEHC     [style = dashed, color = "#6d4c41", label = "why high-TB patients\nare non-responders"];
+}
