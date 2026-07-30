@@ -1,0 +1,995 @@
+/* ===========================================================================
+   tts_qsp_model.dot
+   Takotsubo syndrome (stress-induced / catecholamine-mediated cardiomyopathy)
+   — mechanistic QSP map
+
+   ORGANISING THESIS (see README.md):
+
+     "Apical ballooning" is not a LOCATION. It is a THRESHOLD, crossed first
+     wherever the beta-adrenoceptor field is densest.
+
+     The map contains three myocardial segments (apex, mid, base) that differ
+     in EXACTLY ONE respect: beta-adrenoceptor density, and within that the
+     beta2/beta1 ratio (apex-to-base density ratio ~1.4, beta2 fraction 0.42
+     apically vs 0.24 basally).  A SINGLE agonist-concentration-dependent
+     Gs -> Gi switch function is applied identically to all three segments:
+
+         beta2-AR  --PKA/GRK2 phosphorylation-->  Gi coupling
+         (Ser261/262 + Ser345/346; Daaka 1997, Heubach 2004, Paur 2012)
+
+     Because the switch is driven by the SAME cAMP/PKA that the receptor
+     itself produces, it is a self-limiting positive feedback that terminates
+     in NEGATIVE inotropy — and the segment with the most receptors reaches
+     the switch first.  Nothing in this map codes "the apex balloons".  The
+     apical akinesis, the basal hypercontractility, the LVOT gradient and
+     the mid-ventricular variant are all read OUT of one equation evaluated
+     at three receptor densities and two agonists.
+
+     Two consequences are then forced rather than asserted:
+
+     (1) THE DRUG THAT TREATS EVERY OTHER CARDIOGENIC SHOCK DEEPENS THIS ONE.
+         Any agent that raises segmental cAMP - catecholamine (dobutamine,
+         adrenaline, dopamine) or PDE3 inhibitor (milrinone) - raises the
+         phosphorylation that creates the Gi coupling.  It buys basal
+         contractility and PAYS for it apically.  The paradox needs no extra
+         rule: it is the same feedback term read at two densities.
+
+     (2) THEREFORE THE BENEFIT OF AN INOTROPE IS A PRODUCT, NOT A DOSE:
+
+           benefit  =  (contractile drive added)  x  (fraction of that drive
+                        delivered WITHOUT raising receptor phosphorylation)
+
+         Levosimendan/OR-1896 (myofilament Ca2+ sensitisation, cTnC) has a
+         second factor of ~1.  Dobutamine has a second factor that is
+         NEGATIVE once the apex is past threshold.  The two are compared in
+         this model at MATCHED added contractile drive, not at matched dose,
+         which is the only comparison that isolates the routing.
+
+     A third, symmetric consequence covers beta-blockade.  Lowering occupancy
+     removes drive from the base (bad if the deficit is pump failure) and
+     removes phosphorylation from the apex (good if the deficit is the
+     switch).  Its net sign is therefore CONDITIONAL on which term dominates
+     — which in this map is the presence of an LVOT gradient.  The observed
+     split (short-acting beta-blockade helps TTS with dynamic LVOT
+     obstruction; beta-blockade does not reduce recurrence, whereas ACE
+     inhibition does) is a prediction of the routing, not a lookup table.
+
+   Small-troponin / large-EF-drop discordance, the NT-proBNP:troponin ratio
+   that separates TTS from STEMI, and the weeks-long (not months-long)
+   recovery all follow from the same premise: the primary lesion is a
+   SIGNALLING state of surviving myocytes, not lost myocytes.  A signalling
+   state reverses at the rate of receptor dephosphorylation and oedema
+   clearance; necrosis does not reverse at all.
+
+   Colour key
+     trigger / CNS            #ede7f6      catecholamines        #ffe0cc
+     receptor field           #fde2e4      Gs / Gi switch        #f8cdd4
+     cAMP-PKA                 #fff3cd      calcium               #dbeafe
+     myofilament / mechanics  #e2f0d9      energetics            #f0e6d2
+     microvascular            #fce4d6      injury / oedema       #fadadd
+     haemodynamics            #d7e9ff      neurohormonal         #e2f0e2
+     electrophysiology        #e8e8f8      thrombus              #f5d0c5
+     drugs (helpful route)    #d9f2e6      drugs (harm route)    #ffd9d9
+     mechanical support       #dcefe8      endpoints             #d7e9ff
+     inference / structure    #ecebe4
+
+   Render:
+     dot -Tsvg tts_qsp_model.dot -o tts_qsp_model.svg
+     dot -Tpng -Gdpi=150 tts_qsp_model.dot -o tts_qsp_model.png
+   =========================================================================== */
+
+digraph TTS_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, newrank=true, nodesep=0.28, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", fontcolor="#1a1a2e",
+         label=<<B>Takotsubo Syndrome — Quantitative Systems Pharmacology Map</B><BR/>
+                <FONT POINT-SIZE="11">apical ballooning as a THRESHOLD, not a location: one beta2-AR Gs&#8594;Gi switch evaluated at three receptor densities<BR/>
+                inotrope benefit = drive added &#215; fraction delivered without raising receptor phosphorylation &#183; drug PK/PD &#183; endpoints</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         color="#33334d", penwidth=0.8, margin="0.07,0.04"];
+  edge  [fontname="Helvetica", fontsize=8, color="#5a5a72", arrowsize=0.6, penwidth=0.9];
+
+  /* =====================================================================
+     1 · TRIGGER AND SUSCEPTIBILITY — the input, and who converts it
+     ===================================================================== */
+  subgraph cluster_trig {
+    label="1 · Trigger & susceptibility (the same surge does not produce the same disease in everybody)";
+    style="rounded,filled"; fillcolor="#f6f3fc"; color="#8e7cc3"; fontsize=12; fontcolor="#4a3b78";
+    T_EMO   [label="Emotional trigger (~28%)\nbereavement, fear, anger, panic;\nalso positive events ('happy heart')\n— InterTAK registry", fillcolor="#ede7f6"];
+    T_PHYS  [label="Physical trigger (~36%)\nsurgery, sepsis, asthma attack,\nfracture, chemotherapy, exercise", fillcolor="#ede7f6"];
+    T_NEURO [label="Neurologic trigger\nSAH, seizure, ischaemic stroke,\nTBI — largest measured surges;\ninsular/amygdala involvement", fillcolor="#ede7f6"];
+    T_IATRO [label="Iatrogenic catecholamine\nadrenaline for anaphylaxis,\nintraoperative bolus, dobutamine\nstress echo, beta2-agonist overdose", fillcolor="#ede7f6"];
+    T_PHEO  [label="Phaeochromocytoma / paraganglioma\nADRENALINE-secreting tumours\n(the natural experiment for the\nagonist-identity claim)", fillcolor="#ede7f6"];
+    T_NONE  [label="No identifiable trigger (~29%)\n— cumulative subclinical load", fillcolor="#ede7f6"];
+    S_SEX   [label="Female sex — 89-90% of cases\n(InterTAK n=1750)", fillcolor="#ede7f6"];
+    S_MENO  [label="Postmenopausal state\nmedian age 66-70 y;\n<5% under age 50", fillcolor="#ede7f6"];
+    S_E2    [label="Oestradiol tone (E2)\nsympatholytic + eNOS/ANP\nupregulating; sets the GAIN\nfrom trigger to surge", fillcolor="#ede7f6"];
+    S_PSY   [label="Neurologic/psychiatric comorbidity\n(~55%) — anxiety, depression;\nchronically raised sympathetic set-point", fillcolor="#ede7f6"];
+    S_GENE  [label="Candidate modifiers\nADRB1 Arg389Gly, ADRB2 Gln27Glu,\nGRK5 Leu41Gln, BAG3 variants\n— effect sizes unreplicated", fillcolor="#ecebe4"];
+    S_RECUR [label="Prior TTS episode\n— residual receptor phosphorylation\nand raised set-point", fillcolor="#ede7f6"];
+  }
+
+  /* =====================================================================
+     2 · BRAIN-HEART AXIS
+     ===================================================================== */
+  subgraph cluster_cns {
+    label="2 · Brain-heart axis (limbic appraisal &#8594; brainstem &#8594; efferent sympathetic burst)";
+    style="rounded,filled"; fillcolor="#f7f4fd"; color="#7e57c2"; fontsize=12; fontcolor="#4527a0";
+    C_AMYG  [label="Amygdala\nthreat appraisal;\nmetabolic activity predicts\nsubsequent TTS (FDG-PET)", fillcolor="#ede7f6"];
+    C_INS   [label="Insular cortex\nvisceral/autonomic representation;\nright-insular lesions bias\nsympathetic output", fillcolor="#ede7f6"];
+    C_ACC   [label="Anterior cingulate /\nmedial prefrontal cortex\n(reduced top-down inhibition\nin TTS survivors, fMRI)", fillcolor="#ede7f6"];
+    C_HYPO  [label="Paraventricular hypothalamus\nCRH neurons", fillcolor="#ede7f6"];
+    C_LC    [label="Locus coeruleus\ncentral noradrenergic burst", fillcolor="#ede7f6"];
+    C_RVLM  [label="Rostral ventrolateral medulla\nfinal common sympathetic\npremotor nucleus", fillcolor="#ede7f6"];
+    C_NTS   [label="Nucleus tractus solitarius\nbaroreflex afferent integration\n(loop gain, sets how much of the\nsurge is buffered)", fillcolor="#ede7f6"];
+    C_VAGAL [label="Vagal withdrawal\n(loss of the acetylcholine brake\non sinus node and atria)", fillcolor="#ede7f6"];
+    C_HPA   [label="HPA axis: ACTH &#8594; cortisol\npermissive for catecholamine\nvascular action", fillcolor="#ede7f6"];
+  }
+
+  /* =====================================================================
+     3 · SYMPATHOADRENAL OUTPUT AND CATECHOLAMINE KINETICS
+     ===================================================================== */
+  subgraph cluster_cat {
+    label="3 · Sympathoadrenal output &amp; catecholamine kinetics (the agonist IDENTITY matters, not just the level)";
+    style="rounded,filled"; fillcolor="#fff6ef"; color="#e07b39"; fontsize=12; fontcolor="#8a4a10";
+    K_ADRMED [label="Adrenal medulla chromaffin cells\nPNMT-dependent &#8594; ADRENALINE\n(the only large systemic source)", fillcolor="#ffe0cc"];
+    K_NERVE  [label="Cardiac sympathetic nerve terminals\nlocal NORADRENALINE release\n(interstitial >> plasma)", fillcolor="#ffe0cc"];
+    K_EPI    [label="Plasma adrenaline (EPI)\npeak 2-34 x normal in TTS;\nt1/2 ~2 min", fillcolor="#ffe0cc", penwidth=2.0, color="#8a4a10"];
+    K_NE     [label="Plasma noradrenaline (NE)\npeak 2-7 x normal;\nspillover-dominated", fillcolor="#ffe0cc", penwidth=2.0, color="#8a4a10"];
+    K_NEI    [label="Cardiac INTERSTITIAL NE\n(10-100 x plasma at the synapse;\nnot measurable clinically)", fillcolor="#ffe0cc"];
+    K_UPT1   [label="Uptake-1 (NET/SLC6A2)\nneuronal reuptake — saturable;\nsaturation is what makes the\ninterstitial spike nonlinear", fillcolor="#ffe0cc"];
+    K_UPT2   [label="Uptake-2 (OCT3) + capillary\nwashout", fillcolor="#ffe0cc"];
+    K_COMT   [label="COMT / MAO-A\n&#8594; metanephrine, normetanephrine,\nVMA (the retrospective assay)", fillcolor="#ffe0cc"];
+    K_AFFIN  [label="AFFINITY ASYMMETRY\nadrenaline: beta1 &#8776; beta2\nnoradrenaline: beta1 >> beta2\n(~10-30 x weaker at beta2)", fillcolor="#f8cdd4", penwidth=2.2, color="#8a1c2b"];
+    K_ALPHA  [label="alpha1-adrenoceptor occupancy\n(vascular + myocardial;\nNE-dominant)", fillcolor="#ffe0cc"];
+    K_EXO    [label="EXOGENOUS catecholamine input\n(adrenaline / noradrenaline /\ndobutamine / dopamine infusions)", fillcolor="#ffd9d9"];
+  }
+
+  /* =====================================================================
+     4 · THE ADRENOCEPTOR FIELD — the only thing that differs between segments
+     ===================================================================== */
+  subgraph cluster_field {
+    label="4 · Cardiac adrenoceptor FIELD — the apex-to-base density gradient is the ONLY inter-segment difference in this model";
+    style="rounded,filled"; fillcolor="#fdf2f4"; color="#c2185b"; fontsize=12; fontcolor="#880e4f";
+    R_GRAD   [label="APEX-TO-BASE beta-AR DENSITY GRADIENT\nrho_apex / rho_base &#8776; 1.4\n(receptor autoradiography, human\nand rodent LV)", fillcolor="#fde2e4", penwidth=2.4, color="#880e4f"];
+    R_B2FRAC [label="beta2 FRACTION of beta-AR pool\napex 0.42 &#183; mid 0.32 &#183; base 0.24\n— the gradient that makes the\nswitch regional", fillcolor="#fde2e4", penwidth=2.2, color="#880e4f"];
+    R_B1_AP  [label="beta1-AR density, APEX", fillcolor="#fde2e4"];
+    R_B1_MD  [label="beta1-AR density, MID", fillcolor="#fde2e4"];
+    R_B1_BS  [label="beta1-AR density, BASE", fillcolor="#fde2e4"];
+    R_B2_AP  [label="beta2-AR density, APEX\n(highest &#8594; crosses the switch first)", fillcolor="#fde2e4"];
+    R_B2_MD  [label="beta2-AR density, MID", fillcolor="#fde2e4"];
+    R_B2_BS  [label="beta2-AR density, BASE\n(lowest &#8594; stays Gs-coupled)", fillcolor="#fde2e4"];
+    R_INNERV [label="Sympathetic nerve density\nlower at apex\n(123I-MIBG innervation gradient)", fillcolor="#fde2e4"];
+    R_THIN   [label="Apical wall THINNESS\n(1/3 of basal thickness) &#8594; higher\nwall stress at equal pressure\n(Laplace)", fillcolor="#fde2e4"];
+    R_MIBG   [label="123I-MIBG defect, apical\n(clinical readout of the same\ngradient; persists after EF recovers)", fillcolor="#d7e9ff"];
+    R_DESENS [label="Receptor DOWNREGULATION\n(internalisation, days) —\nslower than phosphorylation", fillcolor="#fde2e4"];
+  }
+
+  /* =====================================================================
+     5 · THE SWITCH — beta2-AR stimulus trafficking Gs -> Gi
+     ===================================================================== */
+  subgraph cluster_switch {
+    label="5 · THE THRESHOLD: beta2-AR stimulus trafficking (Gs &#8594; Gi). One function, three densities.";
+    style="rounded,filled"; fillcolor="#fdeef1"; color="#ad1457"; fontsize=12; fontcolor="#6a0f34";
+    W_OCC2   [label="beta2-AR occupancy\n= [EPI]/([EPI]+Kd_b2)\n(NE contributes weakly — see\naffinity asymmetry)", fillcolor="#f8cdd4"];
+    W_GRK2   [label="GRK2 (beta-ARK1)\nagonist-occupancy-driven\nreceptor kinase; upregulated\nby the surge itself", fillcolor="#f8cdd4"];
+    W_PKAP   [label="PKA phosphorylation of beta2-AR\nSer261/262 &#183; Ser345/346\n&#8594; switches coupling to Gi\n(Daaka 1997)", fillcolor="#f8cdd4", penwidth=2.2, color="#6a0f34"];
+    W_BARR   [label="beta-arrestin-2 recruitment\n&#8594; G-protein-independent\nERK/Akt signalling (cardioprotective\narm; Paur 2012)", fillcolor="#f8cdd4"];
+    W_PHOS   [label="PHOS_i  =  phosphorylated (Gi-coupled)\nbeta2 fraction, per segment\n[STATE VARIABLE, 3 of them]", fillcolor="#f8cdd4", penwidth=2.4, color="#6a0f34"];
+    W_GS     [label="Gs coupling &#8594; adenylyl cyclase 5/6\n(positive inotropy)", fillcolor="#f8cdd4"];
+    W_GI     [label="Gi coupling &#8594; AC INHIBITION\n(negative inotropy in the SAME cell,\nfrom the SAME receptor)", fillcolor="#f8cdd4", penwidth=2.2, color="#6a0f34"];
+    W_FEEDBK [label="SELF-LIMITING POSITIVE FEEDBACK\ncAMP &#8594; PKA &#8594; phosphorylation &#8594; Gi\n&#8594; less cAMP.\nHigh density = early crossing.", fillcolor="#ecebe4", penwidth=2.2, color="#333333"];
+    W_THRESH [label="THRESHOLD CROSSED?\napex: yes at [EPI] &#8776; 1.4 nmol/L\nbase: no until &#8776; 3.1 nmol/L\n(model output, not an input)", fillcolor="#ecebe4", penwidth=2.4, color="#333333"];
+    W_PTX    [label="Pertussis toxin (Gi blockade)\n— the mechanistic control that\nABOLISHES apical negative inotropy\nin the rat model", fillcolor="#ecebe4"];
+  }
+
+  /* =====================================================================
+     6 · cAMP / PKA — per segment
+     ===================================================================== */
+  subgraph cluster_camp {
+    label="6 · cAMP-PKA compartment (per segment; the node every cAMP-route drug enters)";
+    style="rounded,filled"; fillcolor="#fffbea"; color="#c9a227"; fontsize=12; fontcolor="#8a6d0b";
+    P_AC     [label="Adenylyl cyclase 5/6", fillcolor="#fff3cd"];
+    P_CAMP   [label="cAMP_i  [STATE, per segment]\nthe scalar that both drives\ncontraction and creates the switch", fillcolor="#fff3cd", penwidth=2.2, color="#8a6d0b"];
+    P_PDE3   [label="PDE3A (cAMP hydrolysis;\nmilrinone/enoximone target)", fillcolor="#fff3cd"];
+    P_PDE4   [label="PDE4 (compartmentalised cAMP;\nlocal beta2 microdomain)", fillcolor="#fff3cd"];
+    P_PKA    [label="PKA (RI/RII holoenzyme)\nvia AKAP scaffolds", fillcolor="#fff3cd"];
+    P_EPAC   [label="Epac1/2 (cAMP, PKA-independent)\n&#8594; CaMKII, hypertrophic/\nmaladaptive arm", fillcolor="#fff3cd"];
+    P_PP1    [label="PP1 / PP2A phosphatases\n(the dephosphorylation rate that\nsets RECOVERY time)", fillcolor="#fff3cd", penwidth=2.0, color="#8a6d0b"];
+    P_I1     [label="Inhibitor-1 (PKA-activated,\namplifies PP1 inhibition)", fillcolor="#fff3cd"];
+  }
+
+  /* =====================================================================
+     7 · CALCIUM
+     ===================================================================== */
+  subgraph cluster_ca {
+    label="7 · Calcium handling &amp; Ca2+ overload (the second, injury-producing consequence of the surge)";
+    style="rounded,filled"; fillcolor="#eff6ff"; color="#1d6fb8"; fontsize=12; fontcolor="#0d3c61";
+    A_LTCC   [label="L-type Ca channel (Cav1.2)\nPKA-phosphorylated &#8594; I_CaL &#8593;", fillcolor="#dbeafe"];
+    A_RYR    [label="RyR2 (PKA + CaMKII Ser2814)\n&#8594; diastolic SR Ca leak", fillcolor="#dbeafe"];
+    A_SERCA  [label="SERCA2a &#183; phospholamban Ser16\n&#8594; SR reuptake &#8593;", fillcolor="#dbeafe"];
+    A_NCX    [label="NCX1 (forward/reverse)\n&#8594; arrhythmogenic Ca extrusion", fillcolor="#dbeafe"];
+    A_SR     [label="SR Ca2+ content", fillcolor="#dbeafe"];
+    A_CAI    [label="Cytosolic / diastolic Ca2+_i\n[STATE, per segment]\nCa OVERLOAD term", fillcolor="#dbeafe", penwidth=2.2, color="#0d3c61"];
+    A_CAMKII [label="CaMKII-delta autophosphorylation\n(oxidation-activated too)", fillcolor="#dbeafe"];
+    A_MITCA  [label="Mitochondrial Ca2+ uptake (MCU)\n&#8594; permeability transition pore", fillcolor="#dbeafe"];
+    A_CALP   [label="Calpain activation\n&#8594; cytoskeletal + troponin\nproteolysis (contractile protein loss\nwithout cell death)", fillcolor="#fadadd"];
+  }
+
+  /* =====================================================================
+     8 · MYOFILAMENT AND SEGMENTAL CONTRACTILITY
+     ===================================================================== */
+  subgraph cluster_myo {
+    label="8 · Myofilament &amp; segmental contractility (where levosimendan enters, bypassing cluster 6)";
+    style="rounded,filled"; fillcolor="#f2f8ee"; color="#4b8b3b"; fontsize=12; fontcolor="#2d5522";
+    M_TNC    [label="Troponin C Ca2+ binding site\n(the levosimendan target —\nno cAMP involved)", fillcolor="#e2f0d9", penwidth=2.2, color="#2d5522"];
+    M_TNI    [label="Troponin I Ser23/24 (PKA)\n&#8594; DEsensitises myofilament,\nspeeds relaxation", fillcolor="#e2f0d9"];
+    M_MLC    [label="Myosin light chain 2 /\nMyBP-C Ser282", fillcolor="#e2f0d9"];
+    M_XB     [label="Cross-bridge cycling rate\n&#183; actomyosin ATPase", fillcolor="#e2f0d9"];
+    M_TITIN  [label="Titin-based passive stiffness\n(PKA/PKG phosphorylation)", fillcolor="#e2f0d9"];
+    M_CONTAP [label="CONTRACTILITY, APEX\n= f(cAMP_apex, Ca, ATP, oedema,\n   Ca-sensitisation)", fillcolor="#e2f0d9", penwidth=2.2, color="#2d5522"];
+    M_CONTMD [label="CONTRACTILITY, MID", fillcolor="#e2f0d9"];
+    M_CONTBS [label="CONTRACTILITY, BASE", fillcolor="#e2f0d9", penwidth=2.0, color="#2d5522"];
+    M_STUN   [label="STUNNING pool, per segment\n[STATE] — contractile protein and\ncytoskeletal damage that outlasts\nthe signal", fillcolor="#fadadd", penwidth=2.0];
+  }
+
+  /* =====================================================================
+     9 · ENERGETICS
+     ===================================================================== */
+  subgraph cluster_energy {
+    label="9 · Energetics, mitochondria, oxidative stress (why the deficit outlives the catecholamine)";
+    style="rounded,filled"; fillcolor="#faf6ee"; color="#a1743b"; fontsize=12; fontcolor="#5c4020";
+    E_O2DEM  [label="Myocardial O2 demand\n(rate x wall stress x contractility)", fillcolor="#f0e6d2"];
+    E_FFA    [label="Substrate switch: FFA oxidation &#8593;\nglucose uptake &#8595;\n(FDG-PET apical defect with\nPRESERVED perfusion)", fillcolor="#f0e6d2"];
+    E_PCR    [label="Phosphocreatine / ATP ratio &#8595;\n(31P-MRS, human TTS)", fillcolor="#f0e6d2"];
+    E_ATP    [label="ATP availability, per segment\n[STATE] — gates contractility\nand membrane pumps", fillcolor="#f0e6d2", penwidth=2.0, color="#5c4020"];
+    E_ROS    [label="ROS: NOX2, uncoupled eNOS,\ncatecholamine autoxidation\n&#8594; aminochromes", fillcolor="#f0e6d2"];
+    E_MPTP   [label="Mitochondrial permeability\ntransition pore opening", fillcolor="#fadadd"];
+    E_UNCOUP [label="Mitochondrial uncoupling +\nlipotoxic intermediates", fillcolor="#f0e6d2"];
+    E_GLYC   [label="Anaerobic glycolysis / lactate\n(local acidosis lowers\nmyofilament Ca sensitivity)", fillcolor="#f0e6d2"];
+  }
+
+  /* =====================================================================
+     10 · CORONARY MICROVASCULATURE
+     ===================================================================== */
+  subgraph cluster_micro {
+    label="10 · Coronary microvascular function (a REAL contributor, but not sufficient on its own)";
+    style="rounded,filled"; fillcolor="#fdf1ea"; color="#d2691e"; fontsize=12; fontcolor="#8b4513";
+    V_A1CON  [label="alpha1-mediated arteriolar\nvasoconstriction", fillcolor="#fce4d6"];
+    V_IMR    [label="Index of microvascular resistance\n(IMR) &#8593; acutely, normalises\nwithin weeks", fillcolor="#fce4d6"];
+    V_CFR    [label="Coronary flow reserve &#8595;\n(TIMI frame count, Doppler)", fillcolor="#fce4d6"];
+    V_SPASM  [label="Epicardial spasm (minority)\n— acetylcholine-provocable", fillcolor="#fce4d6"];
+    V_PERF   [label="Segmental perfusion\n(only MILDLY reduced &#8212;\nthe perfusion/function MISMATCH\nis diagnostic)", fillcolor="#fce4d6", penwidth=2.0, color="#8b4513"];
+    V_NOEND  [label="Endothelial NO bioavailability\n(oestrogen-dependent)", fillcolor="#fce4d6"];
+    V_ADENO  [label="Adenosine / dipyridamole\nresponse (used to demonstrate\nreversibility)", fillcolor="#d9f2e6"];
+    V_MISM   [label="PERFUSION-CONTRACTION MISMATCH\ndemand-supply cannot explain the\nakinesis: the signal can", fillcolor="#ecebe4", penwidth=2.0];
+  }
+
+  /* =====================================================================
+     11 · SARCOLEMMAL INJURY / TROPONIN
+     ===================================================================== */
+  subgraph cluster_inj {
+    label="11 · Sarcolemmal injury &amp; troponin release (small rise, large dysfunction &#8212; the discordance is structural)";
+    style="rounded,filled"; fillcolor="#fdeef0"; color="#b03a4b"; fontsize=12; fontcolor="#701c28";
+    I_MEMB   [label="Sarcolemmal permeability\n(Ca overload + ROS + energy\ndeficit) &#8212; NOT necrosis in\nmost segments", fillcolor="#fadadd"];
+    I_CYTOSOL[label="Cytosolic free cTnI pool\n(6-8% of total troponin;\nreleased without cell death)", fillcolor="#fadadd", penwidth=2.0];
+    I_NECR   [label="Focal myocyte necrosis /\ncontraction-band necrosis\n(small fraction; autopsy and\nendomyocardial biopsy)", fillcolor="#fadadd"];
+    I_TNI    [label="Plasma hs-cTnI / hs-cTnT\n[STATE] &#8212; peaks EARLY and LOW\n(median ~7-10 x URL vs\n>100 x in STEMI)", fillcolor="#d7e9ff", penwidth=2.2];
+    I_CKMB   [label="CK-MB (disproportionately low\nrelative to the akinetic mass)", fillcolor="#d7e9ff"];
+    I_RATIO  [label="NT-proBNP : troponin RATIO\n&#8593;&#8593; in TTS vs STEMI\n(model OUTPUT: wall stress is high\nwhile cell loss is low)", fillcolor="#ecebe4", penwidth=2.2, color="#333333"];
+    I_LGE    [label="Absent/patchy LGE on CMR\n(no replacement fibrosis) —\nthe imaging corollary", fillcolor="#d7e9ff"];
+  }
+
+  /* =====================================================================
+     12 · OEDEMA AND TRANSIENT INFLAMMATION
+     ===================================================================== */
+  subgraph cluster_oed {
+    label="12 · Myocardial oedema &amp; transient inflammation (the slow term that sets the WEEKS timescale)";
+    style="rounded,filled"; fillcolor="#fdf0f2"; color="#a94064"; fontsize=12; fontcolor="#6c1f3c";
+    O_OED    [label="Myocardial oedema, per segment\n[STATE] — T2/T1 mapping,\nECV &#8593; without LGE", fillcolor="#fadadd", penwidth=2.2];
+    O_CAPLEAK[label="Capillary permeability &#8593;\n(VEGF, bradykinin, ROS)", fillcolor="#fadadd"];
+    O_MONO   [label="Monocyte/macrophage infiltration\n(CMR + biopsy; resolves by\n~3-4 months)", fillcolor="#fadadd"];
+    O_IL6    [label="IL-6 [STATE]\nacute rise, correlates with\nsymptom burden", fillcolor="#fadadd"];
+    O_CRP    [label="CRP [STATE] (downstream of IL-6,\n~12-24 h lag)", fillcolor="#d7e9ff"];
+    O_TNFA   [label="TNF-alpha, IL-1beta\n(NLRP3 inflammasome)", fillcolor="#fadadd"];
+    O_SYSINF [label="Systemic low-grade inflammation\npersisting for months\n(explains long-term symptoms\nwith normal EF)", fillcolor="#fadadd"];
+    O_FIBRO  [label="Transient interstitial collagen\nturnover (no scar)", fillcolor="#fadadd"];
+  }
+
+  /* =====================================================================
+     13 · REGIONAL MECHANICS -> BALLOONING GEOMETRY (EMERGENT)
+     ===================================================================== */
+  subgraph cluster_mech {
+    label="13 · Regional mechanics &#8594; ballooning geometry (EMERGENT: no node here is prescribed a region)";
+    style="rounded,filled"; fillcolor="#eef5fd"; color="#2a6099"; fontsize=12; fontcolor="#14385c";
+    G_SHAP   [label="Segmental shortening, APEX\n(goes NEGATIVE = systolic bulging)", fillcolor="#d7e9ff", penwidth=2.0];
+    G_SHMD   [label="Segmental shortening, MID", fillcolor="#d7e9ff"];
+    G_SHBS   [label="Segmental shortening, BASE\n(HYPERcontractile)", fillcolor="#d7e9ff", penwidth=2.0];
+    G_STRAIN [label="Global longitudinal strain (GLS)\nand apical circumferential strain", fillcolor="#d7e9ff"];
+    G_WMSI   [label="Wall Motion Score Index (WMSI)\n17-segment model", fillcolor="#d7e9ff"];
+    G_BALL   [label="BALLOONING INDEX\n= (basal shortening &#8722; apical\nshortening) &#8212; the emergent\nphenotype descriptor", fillcolor="#ecebe4", penwidth=2.4, color="#333333"];
+    G_VARIANT[label="MORPHOLOGICAL VARIANT (output)\napical &#183; midventricular &#183; basal\n(reverse) &#183; focal &#183; biventricular\n— selected by the AGONIST MIX", fillcolor="#ecebe4", penwidth=2.4, color="#333333"];
+    G_LVEDV  [label="LV end-diastolic volume [STATE]\n(acute dilatation of the akinetic\napex)", fillcolor="#d7e9ff"];
+    G_LVESV  [label="LV end-systolic volume", fillcolor="#d7e9ff"];
+    G_LVEF   [label="LVEF (%)\nnadir typically 35-40%,\nrecovers to >50% in 3-6 weeks", fillcolor="#d7e9ff", penwidth=2.4, color="#14385c"];
+    G_WSTR   [label="Apical wall stress (Laplace:\nP x r / 2h) — the BNP stimulus", fillcolor="#d7e9ff"];
+    G_RVIN   [label="RV apical involvement (~1/3)\n&#8594; worse congestion, longer stay", fillcolor="#d7e9ff"];
+  }
+
+  /* =====================================================================
+     14 · LVOT OBSTRUCTION
+     ===================================================================== */
+  subgraph cluster_lvot {
+    label="14 · Dynamic LVOT obstruction &amp; mitral regurgitation (the term that flips the sign of beta-blockade)";
+    style="rounded,filled"; fillcolor="#fdf3f1"; color="#b5651d"; fontsize=12; fontcolor="#7a3e0a";
+    L_HYPER  [label="Basal hypercontractility\n(the Gs-coupled segment doing\nall the work)", fillcolor="#fce4d6", penwidth=2.0];
+    L_NARROW [label="Geometric narrowing of the\nLV outflow tract\n(septal bulge + small LV cavity)", fillcolor="#fce4d6"];
+    L_SAM    [label="Systolic anterior motion of the\nmitral valve (Venturi effect)", fillcolor="#fce4d6"];
+    L_GRAD   [label="LVOT pressure gradient (mmHg)\npresent in 10-25% of TTS", fillcolor="#fce4d6", penwidth=2.2, color="#7a3e0a"];
+    L_MR     [label="Secondary mitral regurgitation\n(tethering + SAM) &#8594; further\nforward-flow loss", fillcolor="#fce4d6"];
+    L_PRELD  [label="Preload dependence of the gradient\n(hypovolaemia and vasodilators\nWORSEN it)", fillcolor="#fce4d6"];
+    L_AFTLD  [label="Afterload dependence\n(raising SVR REDUCES the gradient\n— basis for phenylephrine)", fillcolor="#fce4d6"];
+    L_SHOCK  [label="Obstruction-mediated shock\n(a mechanically DIFFERENT shock\nfrom pump failure)", fillcolor="#ffd9d9", penwidth=2.0];
+  }
+
+  /* =====================================================================
+     15 · GLOBAL HAEMODYNAMICS
+     ===================================================================== */
+  subgraph cluster_hemo {
+    label="15 · Global haemodynamics &amp; congestion";
+    style="rounded,filled"; fillcolor="#eef4fd"; color="#3b6fa8"; fontsize=12; fontcolor="#173a63";
+    H_SV     [label="Stroke volume\n= forward flow after LVOTO/MR loss", fillcolor="#d7e9ff"];
+    H_HR     [label="Heart rate (sinus tachycardia;\nsometimes bradycardia in\nneurogenic cases)", fillcolor="#d7e9ff"];
+    H_CO     [label="Cardiac output / cardiac index", fillcolor="#d7e9ff", penwidth=2.0];
+    H_SVR    [label="Systemic vascular resistance\n[STATE] (alpha1 tone + RAAS +\nET-1 &#8722; NO)", fillcolor="#d7e9ff"];
+    H_MAP    [label="Mean arterial pressure", fillcolor="#d7e9ff", penwidth=2.0];
+    H_PCWP   [label="Pulmonary capillary wedge pressure\n&#8594; pulmonary oedema", fillcolor="#d7e9ff"];
+    H_VOL    [label="Effective circulating volume\n[STATE]", fillcolor="#d7e9ff"];
+    H_CONG   [label="Congestion score / Killip class\n(acute heart failure in 12-45%)", fillcolor="#d7e9ff"];
+    H_LACT   [label="Lactate / tissue perfusion", fillcolor="#d7e9ff"];
+    H_SHOCK  [label="CARDIOGENIC SHOCK (6-20%)\n— the endpoint every inotrope\ndecision is made against", fillcolor="#ffd9d9", penwidth=2.2];
+  }
+
+  /* =====================================================================
+     16 · NEUROHORMONAL
+     ===================================================================== */
+  subgraph cluster_nh {
+    label="16 · Neurohormonal response (the arm that ACE inhibition &#8212; not beta-blockade &#8212; enters)";
+    style="rounded,filled"; fillcolor="#f0f7f0"; color="#3f7d3f"; fontsize=12; fontcolor="#24521f";
+    N_RENIN  [label="Renin release (beta1 on JG cells\n+ renal hypoperfusion)", fillcolor="#e2f0e2"];
+    N_ANGII  [label="Angiotensin II [STATE]\n&#8594; SVR, aldosterone,\nmyocyte AT1 signalling", fillcolor="#e2f0e2", penwidth=2.0];
+    N_ALDO   [label="Aldosterone [STATE]\n&#8594; Na retention, fibrotic signalling", fillcolor="#e2f0e2"];
+    N_AVP    [label="Arginine vasopressin\n(non-osmotic release)", fillcolor="#e2f0e2"];
+    N_ET1    [label="Endothelin-1", fillcolor="#e2f0e2"];
+    N_BNP    [label="BNP / NT-proBNP [STATE]\nwall-stress driven; peaks 24-48 h,\nvery high relative to troponin", fillcolor="#d7e9ff", penwidth=2.2];
+    N_ANP    [label="ANP (atrial stretch)\n&#8594; natriuresis, lipolysis", fillcolor="#e2f0e2"];
+    N_NOS    [label="eNOS/NO &#183; cGMP-PKG\n(oestrogen-dependent brake on\nthe whole cascade)", fillcolor="#e2f0e2"];
+    N_CORT   [label="Cortisol (permissive;\nalso raised by the trigger itself)", fillcolor="#e2f0e2"];
+  }
+
+  /* =====================================================================
+     17 · ELECTROPHYSIOLOGY
+     ===================================================================== */
+  subgraph cluster_ep {
+    label="17 · Electrophysiology: repolarisation, QT and torsade (the day-2-to-3 hazard window)";
+    style="rounded,filled"; fillcolor="#f2f2fb"; color="#5a5aa8"; fontsize=12; fontcolor="#2f2f6b";
+    Q_STELEV [label="Transient ST elevation (44%)\n/ ST depression — the STEMI mimic\nthat sends the patient to\nthe cath lab", fillcolor="#e8e8f8"];
+    Q_TINV   [label="Deep, wide T-wave inversion\n(days 2-3)", fillcolor="#e8e8f8"];
+    Q_IKS    [label="I_Ks / I_Kr repolarising reserve\n(reduced by oedema, Ca overload,\nlow K+/Mg2+, female sex)", fillcolor="#e8e8f8"];
+    Q_QTC    [label="QTc [STATE]\npeaks ~day 2-3 (often >500 ms\nin 10-20%)", fillcolor="#e8e8f8", penwidth=2.2];
+    Q_EAD    [label="Early afterdepolarisations\n(I_CaL reactivation)", fillcolor="#e8e8f8"];
+    Q_TDP    [label="Torsade de pointes / VF (2-5%)\n[HAZARD INTEGRATOR]", fillcolor="#ffd9d9", penwidth=2.0];
+    Q_AF     [label="Atrial fibrillation (5-15%)\n&#8594; adds thromboembolic risk", fillcolor="#e8e8f8"];
+    Q_BRADY  [label="Bradycardia / AV block\n(neurogenic and vagal cases)", fillcolor="#e8e8f8"];
+    Q_QTDRUG [label="QT-prolonging comedication\n(antiemetics, antipsychotics,\nfluoroquinolones, methadone)", fillcolor="#ffd9d9"];
+    Q_K      [label="Hypokalaemia / hypomagnesaemia\n(stress + diuretics)", fillcolor="#ffd9d9"];
+  }
+
+  /* =====================================================================
+     18 · THROMBUS
+     ===================================================================== */
+  subgraph cluster_thr {
+    label="18 · Apical thrombus &amp; embolism (stasis is a consequence of the geometry, so it is predictable)";
+    style="rounded,filled"; fillcolor="#fdf0ec"; color="#a0522d"; fontsize=12; fontcolor="#6b3410";
+    B_STASIS [label="Apical blood stasis\n(akinetic, dilated apex;\nlow apical velocity)", fillcolor="#f5d0c5", penwidth=2.0];
+    B_ENDO   [label="Endocardial surface activation\n(subendocardial injury, inflammation)", fillcolor="#f5d0c5"];
+    B_HYPERC [label="Acute hypercoagulability\n(catecholamine platelet activation,\nvWF release, PAI-1 &#8593;)", fillcolor="#f5d0c5"];
+    B_THROM  [label="LV apical thrombus [STATE]\n2-8% of TTS", fillcolor="#f5d0c5", penwidth=2.2];
+    B_EMB    [label="Systemic embolism / stroke\n[HAZARD]", fillcolor="#ffd9d9", penwidth=2.0];
+    B_RESOL  [label="Thrombus resolution\n(anticoagulant-accelerated;\nalso spontaneous as EF recovers)", fillcolor="#d9f2e6"];
+  }
+
+  /* =====================================================================
+     19 · RECOVERY
+     ===================================================================== */
+  subgraph cluster_rec {
+    label="19 · Recovery (a SIGNALLING lesion reverses; a necrotic one does not &#8212; hence weeks, not never)";
+    style="rounded,filled"; fillcolor="#f0f8f4"; color="#2e8b57"; fontsize=12; fontcolor="#1a5235";
+    Z_DEPHOS [label="beta2-AR DEphosphorylation (PP2A)\nt1/2 ~3-5 days &#8594; Gi coupling\nreverts to Gs", fillcolor="#d9f2e6", penwidth=2.2];
+    Z_RESENS [label="Receptor resensitisation and\nrecycling from endosomes", fillcolor="#d9f2e6"];
+    Z_OEDRES [label="Oedema resolution\nt1/2 ~7-10 days (T2 normalises\nby ~1 month)", fillcolor="#d9f2e6", penwidth=2.0];
+    Z_ENERGY [label="PCr/ATP restoration", fillcolor="#d9f2e6"];
+    Z_STUNR  [label="Stunning repair (protein\nresynthesis) t1/2 ~10-14 days", fillcolor="#d9f2e6"];
+    Z_EFREC  [label="LVEF normalisation\n(median 3-6 weeks; >95% by\n3 months)", fillcolor="#d7e9ff", penwidth=2.2];
+    Z_RESID  [label="RESIDUAL abnormality despite\nnormal EF: GLS, energetics,\nMIBG defect, exercise capacity\n(persists &#8805;1 year)", fillcolor="#ecebe4", penwidth=2.0];
+    Z_MIBGSL [label="Slowest-recovering variable is\nINNERVATION, not EF — which is\nwhy the recurrence hazard does not\nfall to zero", fillcolor="#ecebe4"];
+  }
+
+  /* =====================================================================
+     20 · DRUGS A — cAMP-route inotropes and pressors (the harm axis)
+     ===================================================================== */
+  subgraph cluster_drugA {
+    label="20 · Drugs A &#8212; cAMP-route inotropes/pressors: every one of these ADDS to the phosphorylation that made the disease";
+    style="rounded,filled"; fillcolor="#fdeeee"; color="#c0392b"; fontsize=12; fontcolor="#7b1f13";
+    X_DOB    [label="DOBUTAMINE\nbeta1 > beta2 partial agonist\nCL ~2.4 L/min/kg, t1/2 ~2 min\ninfusion 2.5-20 ug/kg/min", fillcolor="#ffd9d9"];
+    X_EPI    [label="ADRENALINE (exogenous)\nbeta1 = beta2 >> alpha1 at low dose\n— the agonist that CAUSES TTS", fillcolor="#ffd9d9", penwidth=2.2];
+    X_NEPI   [label="NORADRENALINE\nalpha1 >> beta1 >> beta2:\nraises SVR (helps LVOTO) but\nadds beta1 drive", fillcolor="#ffd9d9"];
+    X_DOPA   [label="DOPAMINE\nD1/beta1/alpha1 dose-dependent;\nno advantage, more tachyarrhythmia", fillcolor="#ffd9d9"];
+    X_MILR   [label="MILRINONE (PDE3 inhibitor)\nraises cAMP DOWNSTREAM of the\nreceptor — tests whether the harm\nis receptor-level or cAMP-level", fillcolor="#ffd9d9", penwidth=2.2];
+    X_ISO    [label="ISOPRENALINE\n(non-selective beta; the classic\nexperimental TTS inducer)", fillcolor="#ffd9d9"];
+    X_HARM1  [label="HARM PATHWAY 1\ndeeper apical Gi coupling\n&#8594; apical akinesis worsens", fillcolor="#ffd9d9", penwidth=2.0];
+    X_HARM2  [label="HARM PATHWAY 2\nbasal hypercontractility &#8593;\n&#8594; LVOT gradient &#8593;", fillcolor="#ffd9d9", penwidth=2.0];
+    X_HARM3  [label="HARM PATHWAY 3\nCa overload, O2 demand, QTc\n&#8594; arrhythmia and injury", fillcolor="#ffd9d9", penwidth=2.0];
+  }
+
+  /* =====================================================================
+     21 · DRUGS B — non-cAMP inotropy
+     ===================================================================== */
+  subgraph cluster_drugB {
+    label="21 · Drugs B &#8212; inotropy that bypasses the receptor (second factor of the product &#8776; 1)";
+    style="rounded,filled"; fillcolor="#eef8f2"; color="#2e8b57"; fontsize=12; fontcolor="#1a5235";
+    Y_LEVO   [label="LEVOSIMENDAN\nloading 6-12 ug/kg + 0.05-0.2\nug/kg/min x 24 h; parent t1/2 ~1 h", fillcolor="#d9f2e6", penwidth=2.2];
+    Y_OR1896 [label="OR-1896 (active metabolite)\nt1/2 ~75-80 h &#8594; effect persists\n7-9 days after a 24-h infusion", fillcolor="#d9f2e6", penwidth=2.0];
+    Y_CASENS [label="cTnC Ca2+ SENSITISATION\n(Ca-dependent, systolic-selective)", fillcolor="#d9f2e6"];
+    Y_KATP   [label="Sarcolemmal + mitochondrial\nK_ATP opening &#8594; vasodilatation,\npreconditioning", fillcolor="#d9f2e6"];
+    Y_NOCAMP [label="NO increase in segmental cAMP\n&#8594; NO increase in PHOS\n&#8594; the switch is not deepened", fillcolor="#ecebe4", penwidth=2.2, color="#333333"];
+    Y_CAUTION[label="CAUTION: vasodilatation lowers\nafterload &#8594; can WORSEN an\nLVOT gradient", fillcolor="#ffd9d9"];
+    Y_OMEC   [label="Omecamtiv mecarbil\n(myosin activator; untested in TTS)\n— the other non-cAMP route", fillcolor="#ecebe4"];
+  }
+
+  /* =====================================================================
+     22 · DRUGS C — beta-blockade and alpha1 agonism
+     ===================================================================== */
+  subgraph cluster_drugC {
+    label="22 · Drugs C &#8212; beta-blockade &amp; alpha1 agonism: a CONDITIONAL sign, decided by the LVOT gradient term";
+    style="rounded,filled"; fillcolor="#f0f6fb"; color="#2a6099"; fontsize=12; fontcolor="#14385c";
+    D_ESM    [label="ESMOLOL\nbeta1-selective, t1/2 ~9 min\n(RBC esterase) — titratable,\nreversible if it fails", fillcolor="#d9f2e6", penwidth=2.2];
+    D_LAND   [label="LANDIOLOL\nultra-short beta1 (t1/2 ~4 min),\nminimal negative inotropy", fillcolor="#d9f2e6"];
+    D_MET    [label="METOPROLOL (oral)\nCYP2D6, t1/2 3-7 h;\nchronic phase", fillcolor="#d9f2e6"];
+    D_CARV   [label="CARVEDILOL\nbeta1/beta2/alpha1 blockade +\nantioxidant", fillcolor="#d9f2e6"];
+    D_B2BLOCK[label="beta2 BLOCKADE also blocks the\nbeta-arrestin cardioprotective arm\n— the theoretical cost of\nnon-selectivity", fillcolor="#ecebe4"];
+    D_PHE    [label="PHENYLEPHRINE\npure alpha1 &#8594; SVR &#8593; &#8594; LVOT\ngradient &#8595; without touching\nany beta receptor", fillcolor="#d9f2e6", penwidth=2.2];
+    D_LVOTFX [label="LVOTO-PRESENT branch:\nlower basal contractility &#8594;\ngradient &#8595; &#8594; forward flow &#8593;\nNET BENEFIT", fillcolor="#d9f2e6", penwidth=2.0];
+    D_PUMPFX [label="NO-LVOTO branch:\nlower basal contractility from the\nONLY working segment &#8594;\nNET HARM", fillcolor="#ffd9d9", penwidth=2.0];
+  }
+
+  /* =====================================================================
+     23 · DRUGS D — RAAS blockade, decongestion, anticoagulation, adjuncts
+     ===================================================================== */
+  subgraph cluster_drugD {
+    label="23 · Drugs D &#8212; RAAS blockade, decongestion, anticoagulation, adjuncts";
+    style="rounded,filled"; fillcolor="#f2f8f2"; color="#4b8b3b"; fontsize=12; fontcolor="#2d5522";
+    F_RAMI   [label="RAMIPRIL &#8594; RAMIPRILAT\nACE inhibition; effective t1/2\n13-17 h; the ONLY agent associated\nwith lower 1-year recurrence", fillcolor="#d9f2e6", penwidth=2.2];
+    F_ARB    [label="ARB (valsartan/candesartan)\nAT1 blockade — same routing\nas ACEi in this model", fillcolor="#d9f2e6"];
+    F_MRA    [label="MRA (spironolactone/eplerenone)\naldosterone blockade", fillcolor="#d9f2e6"];
+    F_FURO   [label="FUROSEMIDE\nloop diuresis for congestion;\nCAUTION: preload &#8595; worsens\nan LVOT gradient", fillcolor="#d9f2e6"];
+    F_NITRO  [label="NITRATES / vasodilators\nCONTRAINDICATED with LVOTO\n(preload and afterload both fall)", fillcolor="#ffd9d9", penwidth=2.0];
+    F_APIX   [label="APIXABAN / heparin / warfarin\nfor apical thrombus or high stasis", fillcolor="#d9f2e6"];
+    F_SEDAT  [label="Anxiolysis / analgesia\n(benzodiazepine, opioid) &#8594;\ncuts the AFFERENT trigger", fillcolor="#d9f2e6"];
+    F_E2     [label="Oestradiol (experimental)\nrestores the NO/ANP brake in\novariectomised models", fillcolor="#ecebe4"];
+    F_KMG    [label="K+ / Mg2+ repletion\n(repolarisation reserve)", fillcolor="#d9f2e6"];
+    F_STATIN [label="Statin / aspirin — no TTS-specific\nbenefit (no plaque lesion to treat)", fillcolor="#ecebe4"];
+    F_NPPV   [label="Non-invasive ventilation /\noxygen for pulmonary oedema", fillcolor="#d9f2e6"];
+  }
+
+  /* =====================================================================
+     24 · MECHANICAL SUPPORT
+     ===================================================================== */
+  subgraph cluster_mcs {
+    label="24 · Mechanical support (the choice is decided by the SAME gradient term, not by shock severity)";
+    style="rounded,filled"; fillcolor="#eef7f4"; color="#2f7d6f"; fontsize=12; fontcolor="#1b4a41";
+    U_IABP   [label="IABP — afterload reduction\n&#8594; INCREASES an LVOT gradient\n(relatively contraindicated in\nobstructive TTS)", fillcolor="#ffd9d9", penwidth=2.0];
+    U_IMP    [label="IMPELLA — transvalvular LV unloading\n&#8594; direct forward flow independent\nof the failing apex", fillcolor="#dcefe8", penwidth=2.0];
+    U_ECMO   [label="VA-ECMO — for biventricular failure\nor refractory arrhythmic shock", fillcolor="#dcefe8"];
+    U_BRIDGE [label="Bridge-to-RECOVERY, not to\ntransplant: the lesion is\nself-limiting", fillcolor="#ecebe4", penwidth=2.0];
+  }
+
+  /* =====================================================================
+     25 · CLINICAL ENDPOINTS AND OUTCOME
+     ===================================================================== */
+  subgraph cluster_end {
+    label="25 · Clinical endpoints, InterTAK diagnostic score, outcome &amp; recurrence";
+    style="rounded,filled"; fillcolor="#eef4fd"; color="#1f4e79"; fontsize=12; fontcolor="#0d2f4d";
+    N_CP     [label="Chest pain (76%) &#183; dyspnoea (47%)\n&#183; syncope (8%)", fillcolor="#d7e9ff"];
+    N_INTERT [label="InterTAK diagnostic score\n(female, emotional/physical stress,\nno ST depression, psychiatric or\nneurologic disorder, QTc)", fillcolor="#d7e9ff"];
+    N_KILLIP [label="Killip class / acute heart failure\n(12-45%)", fillcolor="#d7e9ff"];
+    N_ICU    [label="In-hospital complication composite\n(shock, ventilation, TdP, death)\n~20% &#8212; equal to STEMI", fillcolor="#d7e9ff", penwidth=2.0];
+    N_MORT30 [label="30-day mortality 4-5%\n(in-hospital 4-5%; higher with\nphysical trigger)", fillcolor="#d7e9ff", penwidth=2.0];
+    N_MORT1Y [label="1-year mortality ~5.6%/yr\n(MACE ~9.9%/yr)", fillcolor="#d7e9ff"];
+    N_RECUR  [label="RECURRENCE 1-4%/year\n(cumulative ~5% at 6 y)\n[HAZARD INTEGRATOR]", fillcolor="#d7e9ff", penwidth=2.2];
+    N_QOL    [label="Persistent symptoms with normal EF\n(fatigue, exercise intolerance,\nreduced peak VO2) in up to 2/3", fillcolor="#d7e9ff"];
+    N_TRIGST [label="Trigger stratification drives outcome:\nphysical > none > emotional\n(the surge is not the only\nprognostic input)", fillcolor="#ecebe4"];
+  }
+
+  /* =====================================================================
+     26 · INFERENCE STRUCTURE — counterfactual headroom terms
+     ===================================================================== */
+  subgraph cluster_inf {
+    label="26 · Inference structure &#8212; four counterfactual integrators, so each mechanism's share is MEASURED not assumed";
+    style="rounded,filled"; fillcolor="#f4f4f0"; color="#666655"; fontsize=12; fontcolor="#333322";
+    J_HDGI   [label="HD_GI &#8212; EF recoverable if the\nGi switch were abolished\n(the pertussis-toxin counterfactual)", fillcolor="#ecebe4", penwidth=2.0];
+    J_HDOED  [label="HD_OED &#8212; EF recoverable if\noedema were zero", fillcolor="#ecebe4", penwidth=2.0];
+    J_HDATP  [label="HD_ATP &#8212; EF recoverable if\nenergetics were normal", fillcolor="#ecebe4", penwidth=2.0];
+    J_HDLVOT [label="HD_LVOT &#8212; forward flow recoverable\nif the gradient were zero", fillcolor="#ecebe4", penwidth=2.0];
+    J_PRODUCT[label="BENEFIT = DRIVE ADDED\n&#215; FRACTION DELIVERED WITHOUT\nRAISING PHOSPHORYLATION\n(the model's central product)", fillcolor="#ecebe4", penwidth=2.6, color="#333333"];
+    J_MATCH  [label="MATCHED-DRIVE COMPARISON\ndobutamine vs levosimendan titrated\nto the SAME added drive &#8212; the only\ncomparison that isolates routing", fillcolor="#ecebe4", penwidth=2.2];
+    J_AUC    [label="AUC_EPI &#8212; cumulative catecholamine\nexposure (the dose the myocardium\nactually saw)", fillcolor="#ecebe4"];
+    J_FALSIF [label="FALSIFICATION TESTS\n(1) NE-only surge must NOT produce\napical ballooning\n(2) PTX must abolish it\n(3) milrinone must reproduce\n    dobutamine's harm", fillcolor="#ecebe4", penwidth=2.2, color="#333333"];
+  }
+
+  /* =====================================================================
+     EDGES — 1: trigger to surge
+     ===================================================================== */
+  T_EMO   -> C_AMYG;
+  T_EMO   -> C_INS;
+  T_PHYS  -> C_HYPO;
+  T_PHYS  -> C_RVLM;
+  T_NEURO -> C_INS   [label="insular lesion"];
+  T_NEURO -> C_LC;
+  T_NONE  -> C_RVLM  [style=dashed];
+  T_IATRO -> K_EXO   [label="direct agonist", penwidth=1.6, color="#c0392b"];
+  T_PHEO  -> K_ADRMED[label="autonomous PNMT+\nsecretion", penwidth=1.4];
+  S_PSY   -> C_ACC   [label="&#8595; top-down inhibition"];
+  S_SEX   -> S_MENO;
+  S_MENO  -> S_E2    [label="&#8595;&#8595; E2"];
+  S_E2    -> N_NOS   [label="+ eNOS/ANP", color="#3f7d3f"];
+  S_E2    -> C_RVLM  [label="&#8722; sympathetic gain", color="#3f7d3f"];
+  S_GENE  -> R_GRAD  [style=dashed, label="unreplicated"];
+  S_RECUR -> W_PHOS  [style=dashed, label="residual PHOS"];
+
+  C_AMYG  -> C_HYPO;
+  C_INS   -> C_RVLM;
+  C_ACC   -> C_AMYG  [label="&#8722;", color="#3f7d3f"];
+  C_HYPO  -> C_LC;
+  C_HYPO  -> C_HPA;
+  C_LC    -> C_RVLM;
+  C_RVLM  -> K_ADRMED;
+  C_RVLM  -> K_NERVE;
+  C_NTS   -> C_RVLM  [label="&#8722; baroreflex buffer", color="#3f7d3f"];
+  C_RVLM  -> C_VAGAL;
+  C_HPA   -> N_CORT;
+  C_VAGAL -> H_HR;
+
+  /* 3: catecholamine kinetics */
+  K_ADRMED -> K_EPI   [penwidth=1.8, color="#e07b39"];
+  K_NERVE  -> K_NEI   [penwidth=1.8, color="#e07b39"];
+  K_NEI    -> K_NE    [label="spillover"];
+  K_UPT1   -> K_NEI   [label="&#8722; (saturable)", color="#3f7d3f"];
+  K_NEI    -> K_UPT1  [label="saturates it"];
+  K_UPT2   -> K_NE    [label="&#8722;", color="#3f7d3f"];
+  K_EPI    -> K_COMT;
+  K_NE     -> K_COMT;
+  K_EXO    -> K_EPI;
+  K_EXO    -> K_NE;
+  K_EPI    -> K_AFFIN [penwidth=1.6];
+  K_NE     -> K_AFFIN [penwidth=1.6];
+  K_NE     -> K_ALPHA;
+  K_EPI    -> K_ALPHA [style=dashed, label="high dose only"];
+  K_EPI    -> J_AUC;
+
+  /* 4-5: the field and the switch */
+  R_GRAD   -> R_B1_AP; R_GRAD -> R_B1_MD; R_GRAD -> R_B1_BS;
+  R_GRAD   -> R_B2_AP; R_GRAD -> R_B2_MD; R_GRAD -> R_B2_BS;
+  R_B2FRAC -> R_B2_AP [penwidth=1.6]; R_B2FRAC -> R_B2_MD; R_B2FRAC -> R_B2_BS [penwidth=1.6];
+  R_INNERV -> K_NEI   [label="lower apical NE delivery"];
+  R_INNERV -> R_MIBG;
+  R_THIN   -> G_WSTR  [penwidth=1.4];
+  R_DESENS -> W_OCC2  [label="&#8722; available receptor", color="#3f7d3f"];
+
+  K_AFFIN  -> W_OCC2  [label="EPI occupies beta2;\nNE largely does not",
+                       penwidth=2.0, color="#ad1457"];
+  R_B2_AP  -> W_OCC2  [penwidth=1.6];
+  R_B2_MD  -> W_OCC2;
+  R_B2_BS  -> W_OCC2;
+  W_OCC2   -> W_GS    [penwidth=1.6];
+  W_OCC2   -> W_GRK2;
+  W_GRK2   -> W_PKAP  [penwidth=1.4];
+  P_PKA    -> W_PKAP  [label="the feedback limb", penwidth=1.8, color="#ad1457"];
+  W_PKAP   -> W_PHOS  [penwidth=2.0];
+  W_PHOS   -> W_GI    [penwidth=2.0, color="#ad1457"];
+  W_PHOS   -> W_BARR;
+  W_BARR   -> M_STUN  [label="&#8722; (protective arm)", color="#3f7d3f"];
+  W_GI     -> P_AC    [label="&#8722;&#8722; AC inhibition", penwidth=2.0, color="#c0392b"];
+  W_GS     -> P_AC    [label="+", penwidth=1.6, color="#3f7d3f"];
+  W_PHOS   -> W_FEEDBK;
+  W_FEEDBK -> W_THRESH[penwidth=1.6];
+  R_B2FRAC -> W_THRESH[label="density sets WHERE\nthe crossing happens",
+                       penwidth=2.0, color="#ad1457"];
+  W_PTX    -> W_GI    [label="&#8722;&#8722; (control experiment)", color="#3f7d3f"];
+  W_THRESH -> J_HDGI;
+  P_PP1    -> W_PHOS  [label="&#8722; dephosphorylation", color="#3f7d3f", penwidth=1.4];
+
+  /* 6: cAMP */
+  R_B1_AP  -> P_AC [label="beta1 (no switch)"];
+  R_B1_MD  -> P_AC;
+  R_B1_BS  -> P_AC;
+  K_NE     -> R_B1_AP [label="NE drives beta1", color="#e07b39"];
+  K_NE     -> R_B1_BS [color="#e07b39"];
+  K_EPI    -> R_B1_AP [color="#e07b39"];
+  P_AC     -> P_CAMP  [penwidth=1.8];
+  P_PDE3   -> P_CAMP  [label="&#8722;", color="#3f7d3f"];
+  P_PDE4   -> P_CAMP  [label="&#8722; (local)", color="#3f7d3f"];
+  P_CAMP   -> P_PKA   [penwidth=1.8];
+  P_CAMP   -> P_EPAC;
+  P_PKA    -> P_I1;
+  P_I1     -> P_PP1   [label="&#8722;", color="#3f7d3f"];
+  P_EPAC   -> A_CAMKII;
+
+  /* 7: calcium */
+  P_PKA   -> A_LTCC   [penwidth=1.4];
+  P_PKA   -> A_RYR;
+  P_PKA   -> A_SERCA;
+  P_PKA   -> M_TNI    [penwidth=1.4];
+  P_PKA   -> M_MLC;
+  A_LTCC  -> A_CAI    [penwidth=1.6];
+  A_RYR   -> A_CAI    [label="diastolic leak", penwidth=1.4];
+  A_SERCA -> A_SR;
+  A_SR    -> A_CAI;
+  A_CAI   -> A_NCX;
+  A_CAI   -> A_CAMKII;
+  A_CAMKII-> A_RYR    [label="Ser2814, feed-forward", penwidth=1.4];
+  A_CAI   -> A_MITCA;
+  A_MITCA -> E_MPTP;
+  A_CAI   -> A_CALP   [penwidth=1.4];
+  A_CALP  -> M_STUN   [penwidth=1.6];
+  A_CALP  -> I_CYTOSOL[penwidth=1.4];
+  A_NCX   -> Q_EAD;
+
+  /* 8: contractility */
+  P_CAMP  -> M_CONTAP [label="+", penwidth=1.6];
+  P_CAMP  -> M_CONTMD;
+  P_CAMP  -> M_CONTBS [label="+", penwidth=1.6];
+  M_TNC   -> M_CONTAP [penwidth=1.4];
+  M_TNC   -> M_CONTBS;
+  M_TNI   -> M_CONTAP [label="&#8722; Ca sensitivity", color="#3f7d3f"];
+  M_XB    -> M_CONTAP;
+  M_MLC   -> M_XB;
+  M_TITIN -> G_LVEDV;
+  M_STUN  -> M_CONTAP [label="&#8722;&#8722;", color="#c0392b", penwidth=1.6];
+  M_STUN  -> M_CONTMD [label="&#8722;", color="#c0392b"];
+  E_ATP   -> M_XB     [penwidth=1.4];
+  E_ATP   -> M_CONTAP [label="gate", penwidth=1.4];
+  O_OED   -> M_CONTAP [label="&#8722; (dyssynchronous,\nstiffer)", color="#c0392b", penwidth=1.4];
+  E_GLYC  -> M_TNC    [label="&#8722; acidosis", color="#c0392b"];
+
+  /* 9: energetics */
+  M_CONTBS -> E_O2DEM [penwidth=1.4];
+  H_HR     -> E_O2DEM;
+  G_WSTR   -> E_O2DEM [penwidth=1.4];
+  E_O2DEM  -> E_ATP   [label="&#8722;", color="#c0392b", penwidth=1.6];
+  V_PERF   -> E_ATP   [label="+", color="#3f7d3f", penwidth=1.4];
+  K_EPI    -> E_FFA   [penwidth=1.4];
+  E_FFA    -> E_UNCOUP;
+  E_UNCOUP -> E_ATP   [label="&#8722;", color="#c0392b"];
+  E_ATP    -> E_PCR;
+  K_EPI    -> E_ROS   [label="autoxidation &#8594;\naminochromes", penwidth=1.4];
+  A_CAMKII -> E_ROS;
+  E_ROS    -> E_MPTP;
+  E_ROS    -> I_MEMB  [penwidth=1.4];
+  E_MPTP   -> E_ATP   [label="&#8722;&#8722;", color="#c0392b", penwidth=1.6];
+  E_MPTP   -> I_NECR;
+  E_ATP    -> E_GLYC  [label="&#8722;", color="#3f7d3f"];
+  E_ROS    -> A_CAMKII[label="ox-CaMKII", penwidth=1.2];
+
+  /* 10: microvascular */
+  K_ALPHA -> V_A1CON  [penwidth=1.6];
+  V_A1CON -> V_IMR    [penwidth=1.6];
+  V_IMR   -> V_CFR    [label="&#8722;", color="#c0392b"];
+  V_SPASM -> V_PERF   [label="&#8722;&#8722;", color="#c0392b"];
+  V_IMR   -> V_PERF   [label="&#8722;", color="#c0392b", penwidth=1.4];
+  V_NOEND -> V_A1CON  [label="&#8722;", color="#3f7d3f"];
+  N_NOS   -> V_NOEND  [penwidth=1.4];
+  V_ADENO -> V_IMR    [label="&#8722; (reversibility test)", color="#3f7d3f"];
+  V_PERF  -> V_MISM   [penwidth=1.4];
+  M_CONTAP-> V_MISM   [label="function << perfusion", penwidth=1.4];
+  V_MISM  -> J_HDGI   [style=dashed];
+  E_FFA   -> V_MISM   [style=dashed, label="FDG-PET defect"];
+
+  /* 11: injury and troponin */
+  A_CAI    -> I_MEMB  [penwidth=1.4];
+  E_ATP    -> I_MEMB  [label="&#8722; pump failure", color="#c0392b"];
+  I_MEMB   -> I_CYTOSOL[penwidth=1.6];
+  I_CYTOSOL-> I_TNI   [penwidth=2.0];
+  I_NECR   -> I_TNI   [label="small component", penwidth=1.2];
+  I_NECR   -> I_LGE   [style=dashed, label="patchy at most"];
+  I_TNI    -> I_CKMB  [style=dashed];
+  I_TNI    -> I_RATIO [penwidth=1.6];
+  N_BNP    -> I_RATIO [penwidth=1.8];
+  I_MEMB   -> O_CAPLEAK;
+
+  /* 12: oedema and inflammation */
+  O_CAPLEAK-> O_OED   [penwidth=1.8];
+  E_ROS    -> O_CAPLEAK;
+  I_NECR   -> O_MONO;
+  O_MONO   -> O_IL6   [penwidth=1.6];
+  O_IL6    -> O_CRP   [penwidth=1.6];
+  O_MONO   -> O_TNFA;
+  O_TNFA   -> O_CAPLEAK;
+  O_TNFA   -> M_CONTAP[label="&#8722; cytokine\nnegative inotropy", color="#c0392b"];
+  O_OED    -> Q_IKS   [label="&#8722; repolarisation\nreserve", color="#c0392b", penwidth=1.4];
+  O_MONO   -> O_FIBRO;
+  O_IL6    -> O_SYSINF;
+  O_SYSINF -> N_QOL   [penwidth=1.4];
+  O_OED    -> G_WSTR  [style=dashed];
+
+  /* 13: mechanics and geometry (EMERGENT) */
+  M_CONTAP -> G_SHAP  [penwidth=2.0];
+  M_CONTMD -> G_SHMD  [penwidth=1.6];
+  M_CONTBS -> G_SHBS  [penwidth=2.0];
+  G_SHAP   -> G_BALL  [penwidth=2.0, color="#2a6099"];
+  G_SHBS   -> G_BALL  [penwidth=2.0, color="#2a6099"];
+  G_SHAP   -> G_STRAIN; G_SHMD -> G_STRAIN; G_SHBS -> G_STRAIN;
+  G_SHAP   -> G_WMSI;  G_SHMD -> G_WMSI;   G_SHBS -> G_WMSI;
+  G_BALL   -> G_VARIANT[penwidth=2.2, color="#2a6099"];
+  K_AFFIN  -> G_VARIANT[label="agonist MIX selects\nthe variant", style=dashed,
+                        penwidth=1.6, color="#ad1457"];
+  G_SHAP   -> G_LVEDV [label="akinetic apex dilates", penwidth=1.4];
+  G_LVEDV  -> G_LVESV;
+  G_LVESV  -> G_LVEF  [penwidth=2.0];
+  G_LVEDV  -> G_LVEF  [penwidth=2.0];
+  G_LVEDV  -> G_WSTR  [penwidth=1.6];
+  H_MAP    -> G_WSTR;
+  G_WSTR   -> N_BNP   [penwidth=2.0, color="#3f7d3f"];
+  G_LVEF   -> H_SV    [penwidth=1.8];
+  G_RVIN   -> H_PCWP  [style=dashed];
+  G_RVIN   -> H_CONG  [penwidth=1.4];
+  W_PHOS   -> G_VARIANT[style=dashed];
+
+  /* 14: LVOTO */
+  M_CONTBS -> L_HYPER [penwidth=2.0];
+  L_HYPER  -> L_NARROW[penwidth=1.6];
+  G_LVEDV  -> L_NARROW[label="small basal cavity", style=dashed];
+  L_NARROW -> L_SAM;
+  L_SAM    -> L_GRAD  [penwidth=1.8];
+  L_NARROW -> L_GRAD  [penwidth=1.8];
+  L_SAM    -> L_MR    [penwidth=1.4];
+  L_GRAD   -> H_SV    [label="&#8722;&#8722; forward flow", color="#c0392b", penwidth=1.8];
+  L_MR     -> H_SV    [label="&#8722;", color="#c0392b"];
+  L_MR     -> H_PCWP  [penwidth=1.4];
+  L_PRELD  -> L_GRAD  [penwidth=1.4];
+  L_AFTLD  -> L_GRAD  [label="&#8722; (raising SVR helps)", color="#3f7d3f", penwidth=1.6];
+  H_SVR    -> L_AFTLD [penwidth=1.4];
+  H_VOL    -> L_PRELD [penwidth=1.4];
+  L_GRAD   -> L_SHOCK [penwidth=1.6];
+  L_GRAD   -> J_HDLVOT[penwidth=1.6];
+  L_SHOCK  -> H_SHOCK [penwidth=1.6];
+
+  /* 15: haemodynamics */
+  H_SV    -> H_CO     [penwidth=1.8];
+  H_HR    -> H_CO     [penwidth=1.4];
+  H_CO    -> H_MAP    [penwidth=1.8];
+  H_SVR   -> H_MAP    [penwidth=1.8];
+  H_VOL   -> G_LVEDV  [penwidth=1.6];
+  H_PCWP  -> H_CONG   [penwidth=1.6];
+  G_LVEDV -> H_PCWP   [penwidth=1.6];
+  H_CO    -> H_LACT   [label="&#8722;", color="#3f7d3f"];
+  H_MAP   -> H_SHOCK  [label="&#8722;", color="#3f7d3f", penwidth=1.4];
+  H_LACT  -> H_SHOCK  [penwidth=1.4];
+  H_CONG  -> N_KILLIP [penwidth=1.6];
+  H_MAP   -> N_RENIN  [label="&#8722;", color="#3f7d3f", penwidth=1.4];
+  H_CO    -> V_PERF   [penwidth=1.2];
+
+  /* 16: neurohormonal */
+  K_NE    -> N_RENIN  [label="beta1 on JG cells"];
+  N_RENIN -> N_ANGII  [penwidth=1.8];
+  N_ANGII -> N_ALDO   [penwidth=1.6];
+  N_ANGII -> H_SVR    [penwidth=1.6];
+  N_ALDO  -> H_VOL    [penwidth=1.4];
+  N_AVP   -> H_SVR;
+  N_AVP   -> H_VOL;
+  N_ET1   -> H_SVR    [penwidth=1.4];
+  E_ROS   -> N_ET1    [style=dashed];
+  N_BNP   -> H_VOL    [label="&#8722; natriuresis", color="#3f7d3f"];
+  N_ANP   -> H_SVR    [label="&#8722;", color="#3f7d3f"];
+  G_LVEDV -> N_ANP;
+  N_NOS   -> H_SVR    [label="&#8722;", color="#3f7d3f", penwidth=1.4];
+  N_CORT  -> H_SVR    [label="permissive"];
+  N_ANGII -> O_FIBRO  [style=dashed];
+  K_ALPHA -> H_SVR    [penwidth=1.8];
+
+  /* 17: electrophysiology */
+  A_CAI   -> Q_QTC    [penwidth=1.4];
+  Q_IKS   -> Q_QTC    [label="&#8722; reserve &#8594; QT &#8593;",
+                       color="#c0392b", penwidth=1.8];
+  W_PHOS  -> Q_TINV   [style=dashed, label="regional repolarisation\nheterogeneity"];
+  Q_STELEV-> N_INTERT [style=dashed];
+  Q_QTC   -> Q_EAD    [penwidth=1.6];
+  Q_EAD   -> Q_TDP    [penwidth=1.8];
+  Q_QTC   -> Q_TDP    [penwidth=1.6];
+  Q_QTDRUG-> Q_QTC    [penwidth=1.6, color="#c0392b"];
+  Q_K     -> Q_IKS    [label="&#8722;&#8722;", color="#c0392b", penwidth=1.6];
+  F_KMG   -> Q_K      [label="&#8722; (repletes)", color="#3f7d3f"];
+  Q_TDP   -> N_ICU    [penwidth=1.6];
+  Q_AF    -> B_HYPERC [style=dashed];
+  Q_BRADY -> H_CO     [label="&#8722;", color="#c0392b"];
+  C_VAGAL -> Q_BRADY  [style=dashed];
+  O_OED   -> Q_TINV   [penwidth=1.2];
+  H_HR    -> Q_QTC    [style=dashed, label="rate correction"];
+
+  /* 18: thrombus */
+  G_SHAP  -> B_STASIS [penwidth=1.8];
+  G_LVEDV -> B_STASIS [penwidth=1.4];
+  I_MEMB  -> B_ENDO;
+  O_MONO  -> B_ENDO   [style=dashed];
+  K_EPI   -> B_HYPERC [penwidth=1.4];
+  B_STASIS-> B_THROM  [penwidth=1.8];
+  B_ENDO  -> B_THROM  [penwidth=1.4];
+  B_HYPERC-> B_THROM  [penwidth=1.4];
+  B_THROM -> B_EMB    [penwidth=1.8];
+  B_RESOL -> B_THROM  [label="&#8722;", color="#3f7d3f", penwidth=1.6];
+  B_EMB   -> N_ICU    [penwidth=1.4];
+  F_APIX  -> B_RESOL  [penwidth=1.8, color="#2e8b57"];
+  F_APIX  -> B_THROM  [label="&#8722; formation", color="#3f7d3f", penwidth=1.4];
+
+  /* 19: recovery */
+  P_PP1    -> Z_DEPHOS[penwidth=1.6];
+  Z_DEPHOS -> W_PHOS  [label="&#8722;&#8722; (t1/2 3-5 d)",
+                       color="#2e8b57", penwidth=2.0];
+  Z_DEPHOS -> Z_RESENS;
+  Z_RESENS -> R_DESENS[label="&#8722;", color="#3f7d3f"];
+  Z_OEDRES -> O_OED   [label="&#8722;&#8722; (t1/2 7-10 d)",
+                       color="#2e8b57", penwidth=1.8];
+  Z_ENERGY -> E_ATP   [label="+", color="#2e8b57", penwidth=1.6];
+  Z_STUNR  -> M_STUN  [label="&#8722;&#8722; (t1/2 10-14 d)",
+                       color="#2e8b57", penwidth=1.8];
+  Z_DEPHOS -> Z_EFREC [penwidth=1.8];
+  Z_OEDRES -> Z_EFREC [penwidth=1.6];
+  Z_STUNR  -> Z_EFREC [penwidth=1.6];
+  G_LVEF   -> Z_EFREC [penwidth=1.6];
+  Z_EFREC  -> Z_RESID [label="EF normal, other\nvariables not"];
+  R_MIBG   -> Z_MIBGSL[penwidth=1.4];
+  Z_RESID  -> Z_MIBGSL;
+  Z_MIBGSL -> N_RECUR [penwidth=1.6];
+
+  /* 20: harm axis */
+  X_DOB  -> P_CAMP [label="beta1 &#8594; AC", penwidth=1.8, color="#c0392b"];
+  X_EPI  -> W_OCC2 [label="beta2 occupancy &#8593;&#8593;",
+                    penwidth=2.2, color="#c0392b"];
+  X_EPI  -> P_CAMP [penwidth=1.6, color="#c0392b"];
+  X_NEPI -> K_ALPHA[penwidth=1.8];
+  X_NEPI -> P_CAMP [label="beta1 component",
+                    penwidth=1.4, color="#c0392b"];
+  X_DOPA -> P_CAMP [penwidth=1.4, color="#c0392b"];
+  X_DOPA -> H_HR   [penwidth=1.4];
+  X_MILR -> P_PDE3 [label="&#8722;&#8722; inhibition",
+                    penwidth=1.8, color="#c0392b"];
+  X_ISO  -> W_OCC2 [style=dashed, label="experimental"];
+  P_CAMP -> X_HARM1[style=dashed];
+  W_PHOS -> X_HARM1[penwidth=1.8, color="#c0392b"];
+  X_HARM1-> M_CONTAP[label="&#8722;&#8722;", color="#c0392b", penwidth=1.8];
+  M_CONTBS-> X_HARM2[penwidth=1.4];
+  X_HARM2-> L_GRAD [penwidth=1.8, color="#c0392b"];
+  A_CAI  -> X_HARM3[style=dashed];
+  X_HARM3-> Q_QTC  [penwidth=1.6, color="#c0392b"];
+  X_HARM3-> I_MEMB [penwidth=1.4, color="#c0392b"];
+  X_MILR -> J_FALSIF[label="tests receptor-level\nvs cAMP-level harm",
+                     style=dashed, penwidth=1.4];
+
+  /* 21: non-cAMP inotropy */
+  Y_LEVO   -> Y_OR1896[label="metabolised (gut flora &#8594;\nOR-1855 &#8594; OR-1896)", penwidth=1.6];
+  Y_LEVO   -> Y_CASENS[penwidth=1.8];
+  Y_OR1896 -> Y_CASENS[label="long tail", penwidth=1.8];
+  Y_CASENS -> M_TNC   [penwidth=2.0, color="#2e8b57"];
+  Y_LEVO   -> Y_KATP;
+  Y_KATP   -> H_SVR   [label="&#8722; vasodilatation", color="#3f7d3f"];
+  Y_KATP   -> E_MPTP  [label="&#8722; preconditioning", color="#3f7d3f"];
+  Y_CASENS -> Y_NOCAMP[penwidth=1.8];
+  Y_NOCAMP -> W_PHOS  [label="NO increase",
+                       style=dashed, color="#2e8b57", penwidth=1.8];
+  Y_NOCAMP -> J_PRODUCT[penwidth=2.0, color="#2e8b57"];
+  Y_KATP   -> Y_CAUTION[style=dashed];
+  Y_CAUTION-> L_GRAD  [label="afterload &#8595;", color="#c0392b", penwidth=1.4];
+  Y_OMEC   -> M_XB    [style=dashed, label="untested route"];
+
+  /* 22: beta-blockade and alpha1 */
+  D_ESM  -> R_B1_BS [label="&#8722;&#8722; occupancy",
+                     color="#2e8b57", penwidth=1.8];
+  D_ESM  -> R_B1_AP [label="&#8722;", color="#2e8b57", penwidth=1.4];
+  D_LAND -> R_B1_BS [color="#2e8b57", penwidth=1.4];
+  D_MET  -> R_B1_BS [color="#2e8b57", penwidth=1.4];
+  D_CARV -> R_B1_BS [color="#2e8b57"];
+  D_CARV -> W_OCC2  [label="&#8722; beta2 too",
+                     color="#2e8b57", penwidth=1.4];
+  D_CARV -> D_B2BLOCK[style=dashed];
+  D_B2BLOCK-> W_BARR[label="&#8722; protective arm",
+                     color="#c0392b", style=dashed];
+  D_ESM  -> W_PHOS  [label="&#8722; phosphorylation\n(the intended effect)",
+                     color="#2e8b57", penwidth=1.8];
+  D_ESM  -> M_CONTBS[label="&#8722; (the cost)",
+                     color="#c0392b", penwidth=1.6];
+  M_CONTBS-> D_LVOTFX[style=dashed];
+  L_GRAD -> D_LVOTFX[penwidth=1.8, color="#2a6099"];
+  D_LVOTFX-> H_SV   [label="+ forward flow",
+                     color="#2e8b57", penwidth=1.8];
+  D_PUMPFX-> H_CO   [label="&#8722;&#8722;", color="#c0392b", penwidth=1.8];
+  M_CONTBS-> D_PUMPFX[style=dashed];
+  D_PHE  -> H_SVR   [penwidth=1.8, color="#2e8b57"];
+  D_PHE  -> L_AFTLD [penwidth=1.8, color="#2e8b57"];
+  D_LVOTFX-> J_HDLVOT[style=dashed];
+  D_PUMPFX-> J_PRODUCT[style=dashed];
+
+  /* 23: RAAS, decongestion, adjuncts */
+  F_RAMI -> N_ANGII [label="&#8722;&#8722; ACE",
+                     color="#2e8b57", penwidth=1.8];
+  F_ARB  -> N_ANGII [label="&#8722; AT1 signalling",
+                     color="#2e8b57", penwidth=1.4];
+  F_MRA  -> N_ALDO  [label="&#8722;", color="#2e8b57", penwidth=1.4];
+  F_RAMI -> H_SVR   [label="&#8722; afterload",
+                     color="#2e8b57", penwidth=1.4];
+  F_RAMI -> N_RECUR [label="&#8722;&#8722; the one signal in\nthe registry data",
+                     color="#2e8b57", penwidth=2.0];
+  F_FURO -> H_VOL   [label="&#8722;&#8722;", color="#2e8b57", penwidth=1.6];
+  F_FURO -> Q_K     [label="&#8722; K+ (the cost)",
+                     color="#c0392b", penwidth=1.4];
+  F_FURO -> L_PRELD [label="&#8722; (worsens gradient)",
+                     color="#c0392b", penwidth=1.4];
+  F_NITRO-> H_SVR   [label="&#8722;&#8722;", color="#c0392b", penwidth=1.6];
+  F_NITRO-> L_GRAD  [label="++ (contraindicated)",
+                     color="#c0392b", penwidth=1.8];
+  F_SEDAT-> C_AMYG  [label="&#8722; afferent drive",
+                     color="#2e8b57", penwidth=1.6];
+  F_E2   -> N_NOS   [color="#2e8b57", penwidth=1.4];
+  F_E2   -> C_RVLM  [label="&#8722;", color="#2e8b57", style=dashed];
+  F_NPPV -> H_PCWP  [label="&#8722; work of breathing",
+                     color="#2e8b57"];
+  F_STATIN-> N_RECUR[style=dashed, label="no measured effect"];
+
+  /* 24: mechanical support */
+  U_IABP -> H_SVR   [label="&#8722; afterload",
+                     color="#c0392b", penwidth=1.4];
+  U_IABP -> L_GRAD  [label="++ WORSENS obstruction",
+                     color="#c0392b", penwidth=2.0];
+  U_IMP  -> H_CO    [label="++ direct flow",
+                     color="#2e8b57", penwidth=1.8];
+  U_IMP  -> G_LVEDV [label="&#8722; unloading",
+                     color="#2e8b57", penwidth=1.4];
+  U_ECMO -> H_CO    [color="#2e8b57", penwidth=1.4];
+  U_IMP  -> U_BRIDGE; U_ECMO -> U_BRIDGE;
+  Z_EFREC-> U_BRIDGE[label="the target exists",
+                     color="#2e8b57", style=dashed];
+
+  /* 25: endpoints */
+  G_LVEF  -> N_CP     [style=dashed];
+  Q_STELEV-> N_CP;
+  N_KILLIP-> N_ICU    [penwidth=1.6];
+  H_SHOCK -> N_ICU    [penwidth=1.8];
+  H_SHOCK -> N_MORT30 [penwidth=1.8];
+  N_ICU   -> N_MORT30 [penwidth=1.6];
+  N_MORT30-> N_MORT1Y [penwidth=1.4];
+  T_PHYS  -> N_TRIGST [penwidth=1.4];
+  T_EMO   -> N_TRIGST;
+  N_TRIGST-> N_MORT1Y [penwidth=1.6];
+  N_RECUR -> N_MORT1Y [style=dashed];
+  W_PHOS  -> N_RECUR  [style=dashed, label="residual substrate"];
+  G_LVEF  -> N_INTERT [style=dashed];
+  N_QOL   -> N_MORT1Y [style=dashed];
+  I_RATIO -> N_INTERT [label="diagnostic discriminator",
+                       penwidth=1.4];
+
+  /* 26: inference wiring */
+  J_HDGI   -> J_PRODUCT[penwidth=1.6];
+  J_HDOED  -> J_PRODUCT[penwidth=1.4];
+  J_HDATP  -> J_PRODUCT[penwidth=1.4];
+  J_HDLVOT -> J_PRODUCT[penwidth=1.4];
+  O_OED    -> J_HDOED  [style=dashed];
+  E_ATP    -> J_HDATP  [style=dashed];
+  J_PRODUCT-> J_MATCH  [penwidth=1.8];
+  X_DOB    -> J_MATCH  [penwidth=1.6, color="#c0392b"];
+  Y_LEVO   -> J_MATCH  [penwidth=1.6, color="#2e8b57"];
+  J_AUC    -> J_HDGI   [style=dashed];
+  K_AFFIN  -> J_FALSIF [penwidth=1.6];
+  W_PTX    -> J_FALSIF [penwidth=1.6];
+  J_MATCH  -> J_FALSIF [style=dashed];
+  J_FALSIF -> G_VARIANT[label="falsified if NE alone\nballoons the apex",
+                        style=dashed, penwidth=1.4];
+}
