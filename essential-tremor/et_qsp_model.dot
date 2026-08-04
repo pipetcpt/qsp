@@ -1,0 +1,559 @@
+/* ============================================================================
+   Essential Tremor (본태성 떨림) — Quantitative Systems Pharmacology Map
+   ----------------------------------------------------------------------------
+   Central thesis encoded by this graph:  a tremor is not a LEVEL of anything.
+   It is a LIMIT CYCLE.  Every therapeutic node below therefore feeds one of
+   only three quantities:
+
+        (1) LOOP GAIN  G   -> sets AMPLITUDE   (r* = sqrt((G-1)/beta), G>1)
+        (2) LOOP DELAY tau -> sets FREQUENCY   (f = 1/tau_loop)
+        (3) LOOP TOPOLOGY  -> sets whether a branch can be bypassed at all
+
+   Drugs move (1).  Ageing and cerebellar degeneration move (2).  Surgery
+   moves (3).  The map is drawn so that the parallel/series distinction is
+   visible: the inferior-olive branch (cluster 3) sits in PARALLEL with the
+   cerebello-thalamic resonance (cluster 4a) but the Vim relay (cluster 4b)
+   sits in SERIES with both — which is the topological reason a T-type
+   calcium blocker has a ceiling and a Vim lesion does not.
+
+   Render:
+     dot -Tsvg et_qsp_model.dot -o et_qsp_model.svg
+     dot -Tpng -Gdpi=150 et_qsp_model.dot -o et_qsp_model.png
+   ========================================================================== */
+
+digraph EssentialTremor_QSP {
+  graph [rankdir=TB, splines=polyline, nodesep=0.30, ranksep=0.55,
+         newrank=true, clusterrank=local, concentrate=false,
+         fontname="Helvetica", fontsize=11, compound=true,
+         label=<<b>Essential Tremor — QSP Mechanistic Map</b><br/>
+                <i>Oscillator formulation: loop gain sets amplitude, loop delay sets frequency, loop topology sets the therapeutic ceiling</i><br/>
+                <font point-size="10">186 nodes · 18 clusters · gain-path (blue) / delay-path (orange) / topology-path (red) / drug (green) / endpoint (purple)</font>>,
+         labelloc=t, fontcolor="#12263f", bgcolor="#fbfcfe"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9.5,
+         fillcolor="#ffffff", color="#8a9bb0", penwidth=1.1, margin="0.09,0.05"];
+  edge  [color="#7b8aa0", penwidth=1.0, arrowsize=0.62, fontname="Helvetica", fontsize=8];
+
+  /* ---------- node classes -------------------------------------------------
+     risk    #f4e6d7  genetics / exposure
+     path    #ffd9d9  structural pathology
+     osc     #d6e4ff  oscillator machinery / gain terms
+     delay   #ffe3c2  delay / frequency terms
+     drug    #d8f3dc  drug or device
+     pk      #eaf7ee  PK compartment
+     tox     #f1e2f7  organ-system toxicity
+     end     #e6dcff  clinical endpoint
+     dx      #e9edf2  differential diagnosis
+  ----------------------------------------------------------------------- */
+
+  /* ===================================================================== */
+  subgraph cluster_gen {
+    label="① 유전·위험요인 (Genetics & Exposures)"; style="rounded,filled";
+    fillcolor="#fdf6ee"; color="#c9a227"; fontsize=11; fontcolor="#8a6d0b";
+    LINGO1   [label="LINGO1 rs9652490\nPurkinje 축삭 성장 억제", fillcolor="#f4e6d7"];
+    STK32B   [label="STK32B / PPARGC1A\n(GWAS, Müller 2016)", fillcolor="#f4e6d7"];
+    CTNNA3   [label="CTNNA3 / TENM4\n세포접착·축삭유도", fillcolor="#f4e6d7"];
+    FUSg     [label="FUS p.Q290X\n(가족성 ET 일부)", fillcolor="#f4e6d7"];
+    NOTCH2NL [label="NOTCH2NLC GGC 반복\n(ET-유사 표현형)", fillcolor="#f4e6d7"];
+    HS1BP3   [label="HS1BP3 / SORT1\n후보 유전자", fillcolor="#f4e6d7"];
+    FAMHX    [label="가족력 (50-70%)\n상염색체 우성 유형", fillcolor="#f4e6d7"];
+    AGEr     [label="연령 ↑\n유병률 4.6% (>65세)", fillcolor="#f4e6d7"];
+    HARMANE  [label="혈중 harmane ↑\nβ-carboline 알칼로이드", fillcolor="#f4e6d7"];
+    LEADx    [label="납 노출\n(역학적 연관)", fillcolor="#f4e6d7"];
+    HARMAL   [label="Harmaline (실험적)\nIO 진동 유발제", fillcolor="#f4e6d7"];
+  }
+
+  subgraph cluster_cbl {
+    label="② 소뇌 병리 (Cerebellar Degenerative Pathology)"; style="rounded,filled";
+    fillcolor="#fff2f2"; color="#c1121f"; fontsize=11; fontcolor="#9d0208";
+    PCLOSS   [label="Purkinje 세포 소실\n(논쟁적, 경도)", fillcolor="#ffd9d9"];
+    TORPEDO  [label="축삭 torpedo ↑\n(대조군 대비 4-8배)", fillcolor="#ffd9d9"];
+    PCARBOR  [label="PC 축삭 측부 발아\n비정상 재분지", fillcolor="#ffd9d9"];
+    HETPC    [label="Heterotopic PC\n(분자층 이소성)", fillcolor="#ffd9d9"];
+    CFPC     [label="등반섬유-PC 시냅스 병리\n분자층 과잉연장", fillcolor="#ffd9d9"];
+    BASKET   [label="Basket cell rosette\n'hairy basket'", fillcolor="#ffd9d9"];
+    DENDSW   [label="PC 수상돌기 팽대\n·가지 소실", fillcolor="#ffd9d9"];
+    GABAADN  [label="치아핵 GABA-A/B 수용체 ↓\n(PET·오토라디오그래피)", fillcolor="#ffd9d9"];
+    GRID2    [label="GluRδ2 (GRID2) ↓\n평행섬유 시냅스", fillcolor="#ffd9d9"];
+    PCINT    [label="PC 구조 완전성 PC_INT\n(상태변수, 서서히 ↓)", fillcolor="#d6e4ff"];
+    DNDIS    [label="치아핵 탈억제 DN_DISINH\n(상태변수 ↑)", fillcolor="#d6e4ff"];
+    EXCFB    [label="가설: 진동 자체의\n흥분독성 되먹임 (k_exc)", fillcolor="#ffd9d9", style="rounded,filled,dashed"];
+  }
+
+  subgraph cluster_io {
+    label="③ 하올리브핵 진동자 (Inferior Olive Pacemaker — PARALLEL branch, weight a_O≈0.35)";
+    style="rounded,filled"; fillcolor="#eef3ff"; color="#2c5aa0"; fontsize=11; fontcolor="#123a7a";
+    CAV31    [label="Cav3.1 (CACNA1G)\nT형 Ca²⁺ 전류 I_T", fillcolor="#d6e4ff"];
+    CAV32    [label="Cav3.2 / Cav3.3\n부수적 T형 아형", fillcolor="#d6e4ff"];
+    HCN1     [label="HCN1 / I_h\n탈분극 후 리바운드", fillcolor="#d6e4ff"];
+    CX36     [label="Connexin36 간극연접\nIO 뉴런 전기적 결합", fillcolor="#d6e4ff"];
+    SKCA     [label="SK 칼슘활성 K⁺ 전류\n(진동 진폭 조절)", fillcolor="#d6e4ff"];
+    IOSUB    [label="IO 아역치 진동\n(STO, 4-10 Hz)", fillcolor="#d6e4ff"];
+    IOSYNC   [label="IO 뉴런 동기화 지수\nφ_olive", fillcolor="#d6e4ff"];
+    CFDRIVE  [label="등반섬유 복합스파이크\n리드미컬 발화", fillcolor="#d6e4ff"];
+    GABAIO   [label="치아핵→IO GABA성\n음성 되먹임 (탈동기화)", fillcolor="#d6e4ff"];
+    HARMSITE [label="Harmaline 결합\n→ CX36 결합 ↑·I_T 촉진", fillcolor="#d6e4ff"];
+  }
+
+  subgraph cluster_ctc {
+    label="④a 소뇌-시상 공명 (Cerebello-Thalamic Resonance — PARALLEL branch, weight a_R≈0.65)";
+    style="rounded,filled"; fillcolor="#eef3ff"; color="#2c5aa0"; fontsize=11; fontcolor="#123a7a";
+    PFPC     [label="평행섬유-PC 시냅스\n(과립세포 입력)", fillcolor="#d6e4ff"];
+    PCOUT    [label="PC 단순스파이크\nGABA성 출력", fillcolor="#d6e4ff"];
+    DENT     [label="치아핵 (DCN)\n소뇌 출력 게이트", fillcolor="#d6e4ff"];
+    DNBURST  [label="DCN 리바운드 버스트\n(T형·탈억제 의존)", fillcolor="#d6e4ff"];
+    CTTRACT  [label="소뇌시상로 (CTT)\n상소뇌각 교차", fillcolor="#d6e4ff"];
+    PHICBL   [label="φ_cblthal\nGABA-A 민감 이득항", fillcolor="#d6e4ff"];
+  }
+
+  subgraph cluster_vim {
+    label="④b Vim 시상 중계 (Thalamic Relay — SERIES element: cannot be bypassed)";
+    style="rounded,filled"; fillcolor="#ffeaea"; color="#c1121f"; fontsize=11; fontcolor="#9d0208";
+    VIM      [label="Vim 시상 (VPLa/VA)\n운동 중계핵", fillcolor="#ffd9d9"];
+    VIMRHY   [label="Vim 뉴런 진동성 발화\n(수술 중 미세기록)", fillcolor="#ffd9d9"];
+    PSA      [label="후피막부/caudal zona\nincerta (PSA/cZi)", fillcolor="#ffd9d9"];
+    PHITH    [label="φ_thal (직렬 인자)\n= (1-LESION)(1-DBS)(1+REROUTE)", fillcolor="#ffd9d9"];
+    THALREROUTE [label="THAL_REROUTE\n병렬 경로 재구성(습관화)", fillcolor="#ffd9d9"];
+  }
+
+  subgraph cluster_ctx {
+    label="⑤ 피질-교뇌 하행지 (Cortical Limb & Descending Drive)"; style="rounded,filled";
+    fillcolor="#eef3ff"; color="#2c5aa0"; fontsize=11; fontcolor="#123a7a";
+    M1       [label="일차운동피질 M1\n피질척수 출력", fillcolor="#d6e4ff"];
+    SMA      [label="SMA / 전운동피질\n(fMRI 활성 ↑)", fillcolor="#d6e4ff"];
+    CTXCOH   [label="피질-근육 결합성\n(EEG-EMG coherence 4-8 Hz)", fillcolor="#d6e4ff"];
+    PONS     [label="교뇌핵 (CPN)\n피질→소뇌 되돌림", fillcolor="#d6e4ff"];
+    CSTOUT   [label="피질척수 하행 구동\n(α 운동뉴런)", fillcolor="#d6e4ff"];
+    PHICTX   [label="φ_ctx\n피질 이득항", fillcolor="#d6e4ff"];
+  }
+
+  subgraph cluster_periph {
+    label="⑥ 말초 신전반사 루프 (Peripheral Stretch-Reflex Loop — weight w_P≈0.30)";
+    style="rounded,filled"; fillcolor="#eef3ff"; color="#2c5aa0"; fontsize=11; fontcolor="#123a7a";
+    SPINDLE  [label="근방추 1차종말 (Ia)\n신장 민감도", fillcolor="#d6e4ff"];
+    B2SPIN   [label="방추 β₂ 아드레날린수용체\n(민감도 증강)", fillcolor="#d6e4ff"];
+    GAMMA    [label="γ 운동뉴런 구동\n(방추 바이어스)", fillcolor="#d6e4ff"];
+    IB       [label="Ib 골지힘줄기관\n(자가억제)", fillcolor="#d6e4ff"];
+    ALPHAMN  [label="α 운동뉴런 풀\n동기화 발화", fillcolor="#d6e4ff"];
+    NMJ      [label="신경근접합부\nSNAP-25 의존 방출", fillcolor="#d6e4ff"];
+    IARET    [label="Ia 구심 전도지연\n≈ 25-30 ms", fillcolor="#ffe3c2"];
+    PHISPIN  [label="φ_spindle\n= (1+E·OCC_β₂)/(1+E·OCC₀)", fillcolor="#d6e4ff"];
+    CATdrv   [label="순환 카테콜아민 CAT\n(스트레스·카페인·β₂작용제)", fillcolor="#d6e4ff"];
+  }
+
+  subgraph cluster_mech {
+    label="⑦ 효과기 기계역학 (Effector Biomechanics — where the neural drive becomes visible)";
+    style="rounded,filled"; fillcolor="#fff7ec"; color="#e07b39"; fontsize=11; fontcolor="#a34e0e";
+    JINERT   [label="관성 J (손-전완)\nJ = J₀ + J_load", fillcolor="#ffe3c2"];
+    KSTIFF   [label="관절 강성 K\n(근긴장 의존)", fillcolor="#ffe3c2"];
+    BDAMP    [label="점성 감쇠 B\n(감쇠비 ζ)", fillcolor="#ffe3c2"];
+    FRES     [label="기계적 공명 f₀\n= (1/2π)√(K/J)", fillcolor="#ffe3c2"];
+    HMAG     [label="전달함수 |H(f)|\n=1/√((1-(f/f₀)²)²+(2ζf/f₀)²)", fillcolor="#ffe3c2"];
+    MASSLOAD [label="질량 부하 시험\n(J ↑ → f₀ ∝ 1/√J)", fillcolor="#ffe3c2"];
+    NECKMECH [label="경부 효과기\nJ ↑↑ → f₀ ≈ 3 Hz", fillcolor="#ffe3c2"];
+    LARMECH  [label="후두 효과기\n성대 F0 변조", fillcolor="#ffe3c2"];
+    ARMLEN   [label="분절 길이 L\n각도 → cm 변환", fillcolor="#ffe3c2"];
+  }
+
+  subgraph cluster_osc {
+    label="⑧ 진동자 수학 — 이 모델의 심장부 (Oscillator Core: Hopf normal form)";
+    style="rounded,filled"; fillcolor="#e4ecff"; color="#1b3a6b"; penwidth=2.2;
+    fontsize=12; fontcolor="#0b2545";
+    GTOT     [label=<<b>루프 이득 G_total</b><br/>= G₀·[w_C·Φ_C + w_P·Φ_P]>, fillcolor="#b9cdf5", penwidth=1.8];
+    PHIC     [label=<<b>Φ_C</b> = (a_O·φ_olive + a_R·φ_cblthal)<br/>× φ_thal × φ_ctx<br/><i>병렬 합 → 직렬 곱</i>>, fillcolor="#b9cdf5", penwidth=1.6];
+    PHIP     [label=<<b>Φ_P</b> = φ_spindle × φ_nmj>, fillcolor="#b9cdf5", penwidth=1.6];
+    MU       [label=<<b>μ = G_total − 1</b><br/>분기 파라미터>, fillcolor="#9fbcf0", penwidth=1.8];
+    HOPF     [label=<<b>초임계 Hopf 분기</b><br/>μ&lt;0: 진동 없음 (생리적 떨림만)<br/>μ&gt;0: 한계순환 출현>, fillcolor="#9fbcf0", penwidth=1.8];
+    RENV     [label=<<b>진폭 포락선</b><br/>dr/dt = (1/τ_A)·r·(μ − β·r²)<br/>r* = √(μ/β)>, fillcolor="#9fbcf0", penwidth=1.8];
+    SQRTLAW  [label=<<b>√ 법칙의 결과</b><br/>같은 이득 감소가 경증에선 소멸,<br/>중증에선 −20%뿐>, fillcolor="#b9cdf5"];
+    TAULOOP  [label="루프 지연 τ_loop\n= τ_IO+τ_cbl+τ_thal+τ_ctx+τ_Ia", fillcolor="#ffe3c2"];
+    FNEUR    [label="신경 진동 주파수\nf = 1/τ_loop (4-8 Hz)", fillcolor="#ffe3c2"];
+    NOISEFL  [label="생리적 떨림 잡음 바닥\nA_phys (8-12 Hz, |H(f₀)| 필터)", fillcolor="#d6e4ff"];
+    AOBS     [label=<<b>관측 진폭</b><br/>A = √(A_lc² + A_phys²)>, fillcolor="#9fbcf0", penwidth=1.6];
+    FOBS     [label="관측 우세 주파수\n(진폭 가중 혼합)", fillcolor="#ffe3c2"];
+    SUBLIN   [label="병용요법의 열가법성\n이득은 가법·진폭은 √", fillcolor="#b9cdf5"];
+  }
+
+  subgraph cluster_prop {
+    label="⑨ 프로프라놀롤 PK/PD (Propranolol — and why β₁-selectivity fails)";
+    style="rounded,filled"; fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    PROPDOSE [label="프로프라놀롤 경구\n(LA 80-320 mg/일)", fillcolor="#d8f3dc"];
+    PROPABS  [label="흡수 ka\n(LA 서방형 지연)", fillcolor="#eaf7ee"];
+    PROP1ST  [label="초회통과 대사\nCYP2D6·1A2·2C19 (F≈0.25)", fillcolor="#eaf7ee"];
+    PROPPB   [label="단백결합 90%\n→ 유리분율 f_u=0.10", fillcolor="#eaf7ee"];
+    PROPC    [label="혈장 PROP_C\n(중심구획)", fillcolor="#eaf7ee"];
+    PROPP    [label="말초구획 PROP_P", fillcolor="#eaf7ee"];
+    PROPBR   [label="뇌 효과부위 PROP_BR\nlogP 3.0, Kp≈15", fillcolor="#eaf7ee"];
+    KIB1     [label="β₁ Ki ≈ 1.8 nM", fillcolor="#d8f3dc"];
+    KIB2     [label="β₂ Ki ≈ 0.6 nM\n(비선택적)", fillcolor="#d8f3dc"];
+    OCCB2    [label="β₂ 점유율 OCC_β₂\n(Gaddum 경쟁식)", fillcolor="#d8f3dc"];
+    OCCB1    [label="β₁ 점유율 OCC_β₁", fillcolor="#d8f3dc"];
+    ATEN     [label="아테놀롤 100 mg\nβ₁선택 35배 · Kp 0.1\n(음성 대조)", fillcolor="#d8f3dc"];
+    PROPCEIL [label="용량 천장\nβ₂ 점유 포화 → >240 mg 무익", fillcolor="#d8f3dc"];
+    B2REG    [label="B2_REG 상향조절\n(만성 차단 → 금단 반동)", fillcolor="#d8f3dc"];
+  }
+
+  subgraph cluster_prim {
+    label="⑩ 프리미돈 PK/PD (Primidone — the parent molecule is the active moiety)";
+    style="rounded,filled"; fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    PRIMDOSE [label="프리미돈 경구\n25 → 750 mg/일 적정", fillcolor="#d8f3dc"];
+    PRIMC    [label="프리미돈 PRIM_C\nt½ ≈ 8 h", fillcolor="#eaf7ee"];
+    PBC      [label="페노바르비탈 PB_C\nt½ ≈ 100 h (CYP2C9/2C19)", fillcolor="#eaf7ee"];
+    PEMAC    [label="PEMA\nt½ ≈ 16 h", fillcolor="#eaf7ee"];
+    PRIMBR   [label="프리미돈 뇌농도\nKp ≈ 0.9", fillcolor="#eaf7ee"];
+    PBBR     [label="페노바르비탈 뇌농도\nKp ≈ 0.7", fillcolor="#eaf7ee"];
+    PRIMFAST [label="첫 25 mg 후 수 시간 내 효과\n→ 모체가 활성 분자", fillcolor="#d8f3dc"];
+    PBWEAK   [label="페노바르비탈 단독은 약함\n(모델이 재현)", fillcolor="#d8f3dc"];
+    IND      [label="IND: CYP/UGT 유도\n(τ ≈ 2주)", fillcolor="#d8f3dc"];
+    GABAAP   [label="GABA-A 증강 P\n(모체+PB+PEMA 합산)", fillcolor="#d8f3dc"];
+    NACH     [label="전압의존 Na⁺ 채널\n반복발화 억제", fillcolor="#d8f3dc"];
+  }
+
+  subgraph cluster_other {
+    label="⑪ 기타 경구 치료 (Other Oral Agents)"; style="rounded,filled";
+    fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    TOPI     [label="토피라메이트 200-400 mg\nNa⁺·AMPA·GABA-A·CA", fillcolor="#d8f3dc"];
+    TOPC     [label="TOP_C 혈장\n(신배설, 유도에 민감)", fillcolor="#eaf7ee"];
+    GBP      [label="가바펜틴 1200-3600 mg\nα₂δ 결합", fillcolor="#d8f3dc"];
+    GBPC     [label="GBP_C (신배설\n포화성 흡수)", fillcolor="#eaf7ee"];
+    ZONI     [label="조니사미드 100-200 mg\nT형+Na⁺", fillcolor="#d8f3dc"];
+    BZD      [label="알프라졸람/클로나제팜\nGABA-A α1/α2 PAM", fillcolor="#d8f3dc"];
+    GAPAM    [label="δ-선택 GABA-A PAM\n(SAGE-324 유형)", fillcolor="#d8f3dc"];
+    PROPRA2  [label="기타 β차단제\n(소타롤·나돌롤 — β₂ 유지)", fillcolor="#d8f3dc"];
+  }
+
+  subgraph cluster_etoh {
+    label="⑫ 에탄올·옥탄올 — 억제와 반동의 산술 (Ethanol/Octanol: suppression and rebound)";
+    style="rounded,filled"; fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    ETOHDOSE [label="에탄올 1-4 표준잔\n(1잔 = 14 g)", fillcolor="#d8f3dc"];
+    ETOHGUT  [label="위·장 흡수\nka ≈ 3-6 /h (음식 의존)", fillcolor="#eaf7ee"];
+    ETOHC    [label="ETOH_C 체수분\nMichaelis-Menten 제거\nVmax 0.15 g/L/h, Km 0.08", fillcolor="#eaf7ee"];
+    ADH      [label="ADH/ALDH2\n(포화 대사)", fillcolor="#eaf7ee"];
+    ETOHGABA [label="GABA-A δ 함유 수용체\n강화", fillcolor="#d8f3dc"];
+    ETOHIO   [label="IO 간극연접 결합 ↓\n+ T형 억제", fillcolor="#d8f3dc"];
+    ADAPTF   [label="ADAPT_F 급성 대항적응\nτ ≈ 6 h → 반동", fillcolor="#d8f3dc"];
+    ADAPTS   [label="ADAPT_S 만성 내성\nτ ≈ 30 일", fillcolor="#d8f3dc"];
+    REBOUND  [label="반동 떨림\n(적응이 약물보다 오래 남음)", fillcolor="#d8f3dc"];
+    AUDTRAP  [label="자가투약 → 상용화 함정\n(ET의 AUD 위험 ↑)", fillcolor="#d8f3dc"];
+    OCT      [label="1-옥탄올 / 옥탄산\n비취성 억제 (Kp 분배 차이)", fillcolor="#d8f3dc"];
+  }
+
+  subgraph cluster_tt {
+    label="⑬ T형 칼슘 차단제 — 천장이 있는 표적 (T-type blockers: a ceiling by topology)";
+    style="rounded,filled"; fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    TTBDOSE  [label="CX-8998 / ulixacaltamide\n(PRAX-944) 경구", fillcolor="#d8f3dc"];
+    TTBC     [label="TTB_C 혈장\n뇌 Kp ≈ 2", fillcolor="#eaf7ee"];
+    TTBIC50  [label="Cav3.1 IC₅₀\n(상태의존적 차단)", fillcolor="#d8f3dc"];
+    TTBCEIL  [label=<<b>유도된 천장</b><br/>φ_olive→0.1이라도<br/>(a_O·0.1 + a_R) = 0.685>, fillcolor="#d8f3dc", penwidth=1.6];
+    HARMRAT  [label="Harmaline 랫 모델\na_O = 1.0 (순수 올리브성)", fillcolor="#d8f3dc"];
+    SPECDISC [label=<<b>종간 불일치의 유도</b><br/>랫 완치 · 사람 −36%<br/>단일 파라미터 a_O로 설명>, fillcolor="#d8f3dc", penwidth=1.6];
+  }
+
+  subgraph cluster_btx {
+    label="⑭ 보툴리눔 독소 — 창은 정밀도가 만든다 (BoNT: the window is spatial, not dose)";
+    style="rounded,filled"; fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    BTXDOSE  [label="onabotulinumtoxinA\n전완 주사 40-100 U", fillcolor="#d8f3dc"];
+    BTXSV2   [label="SV2 수용체 결합\n→ 내포작용", fillcolor="#eaf7ee"];
+    BTXLC    [label="경쇄 아연 프로테아제\nSNAP-25 절단", fillcolor="#eaf7ee"];
+    SNAPT    [label="SNAP25_T (떨림 우세근:\n수근굴근·신근)", fillcolor="#eaf7ee"];
+    SNAPG    [label="SNAP25_G (악력근:\n심수지굴근)", fillcolor="#eaf7ee"];
+    FSPILL   [label=<<b>확산 분율 f_spill</b><br/>0.15 (초음파/EMG 유도)<br/>vs 0.45 (비유도)>, fillcolor="#d8f3dc", penwidth=1.6];
+    SNAPREC  [label="SNAP-25 회복\nt½ ≈ 90 일", fillcolor="#eaf7ee"];
+    GRIPW    [label="악력 약화\n(SNAP25_G 유래)", fillcolor="#f1e2f7"];
+    BTXWIN   [label=<<b>치료창은 f_spill이 결정</b><br/>용량 감량은 둘 다 줄일 뿐>, fillcolor="#d8f3dc", penwidth=1.6];
+  }
+
+  subgraph cluster_surg {
+    label="⑮ 수술·신경조절 — 이득이 아니라 위상을 바꾼다 (Surgery: topology, not gain)";
+    style="rounded,filled"; fillcolor="#eefaf1"; color="#2d6a4f"; fontsize=11; fontcolor="#1b4332";
+    MRGFUS   [label="MRgFUS 시상절제\n(초음파 집속, 편측)", fillcolor="#d8f3dc"];
+    RFTHAL   [label="RF 시상절제술", fillcolor="#d8f3dc"];
+    DBS      [label="Vim 심부뇌자극\n(편측/양측)", fillcolor="#d8f3dc"];
+    LESVOL   [label="병변 부피\n(치료 강도 ↔ 부작용)", fillcolor="#d8f3dc"];
+    DBSFREQ  [label="자극 주파수 f_stim\nf₅₀≈80 Hz, Hill h≈4", fillcolor="#d8f3dc"];
+    DBSAMP   [label="자극 진폭·펄스폭\n(활성 조직 부피 VTA)", fillcolor="#d8f3dc"];
+    DBSENTR  [label="저주파 (<50 Hz) 동조\n→ 떨림 악화 가능", fillcolor="#d8f3dc"];
+    HABIT    [label="습관화·내성\n(구조적 재배선)", fillcolor="#d8f3dc"];
+    GAITAX   [label="보행 실조·구음장애\n(CTT 침범 · 양측 시 ↑)", fillcolor="#f1e2f7"];
+  }
+
+  subgraph cluster_tox {
+    label="⑯ 장기계 효과 및 이상반응 (Organ-System Effects)"; style="rounded,filled";
+    fillcolor="#faf0fd"; color="#7b2cbf"; fontsize=11; fontcolor="#5a189a";
+    HRT      [label="심박수 ↓\n(β₁ 점유 유래)", fillcolor="#f1e2f7"];
+    BPS      [label="수축기 혈압 ↓", fillcolor="#f1e2f7"];
+    FEV1     [label=<FEV₁ ↓ · 기관지수축<br/><i>효능과 같은 β₂ 점유율</i>>, fillcolor="#f1e2f7", penwidth=1.6];
+    HYPOGLY  [label="저혈당 자각증상 은폐\n(β₂ 매개)", fillcolor="#f1e2f7"];
+    FATIGUE  [label="운동 내성 ↓·피로", fillcolor="#f1e2f7"];
+    SEDAT    [label="졸림 (SED, 내성 발생)", fillcolor="#f1e2f7"];
+    SEDTOL   [label="SED_TOL 내성 상태\nτ ≈ 10 일", fillcolor="#f1e2f7"];
+    ATAXIA   [label="실조 지수\n(PB·에탄올·병변)", fillcolor="#f1e2f7"];
+    COGWF    [label="인지·어휘 인출 장애\n(토피라메이트)", fillcolor="#f1e2f7"];
+    HCO3     [label="HCO₃⁻ ↓ (CA 억제)\n→ 신결석 위험", fillcolor="#f1e2f7"];
+    WTLOSS   [label="체중 감소\n(토피라메이트)", fillcolor="#f1e2f7"];
+    BMD      [label="골밀도 ↓\n(PB → 25-OH-D ↓)", fillcolor="#f1e2f7"];
+    LFT      [label="ALT ↑ · 간손상\n(만성 에탄올)", fillcolor="#f1e2f7"];
+    INTOX    [label="취기 지수\n(피질 Kp × ETOH_BR)", fillcolor="#f1e2f7"];
+    WDRAW    [label="금단 반동\n(β 상향조절·GABA 적응)", fillcolor="#f1e2f7"];
+  }
+
+  subgraph cluster_end {
+    label="⑰ 임상 평가지표 — 로그 척도가 만드는 겉보기 불일치 (Endpoints: the log-scale artefact)";
+    style="rounded,filled"; fillcolor="#f2ecff"; color="#5a189a"; fontsize=11; fontcolor="#3c096c";
+    ACCEL    [label="가속도계 진폭 (cm)\n연속 선형 측정", fillcolor="#e6dcff"];
+    LOGMAP   [label=<<b>Elble 로그 변환</b><br/>등급 = a + 2·log₁₀(A)<br/>1점 ≈ 3.16배 진폭>, fillcolor="#d9c9ff", penwidth=1.8];
+    TETRASPS [label="TETRAS 수행 하위척도\n(0-64)", fillcolor="#e6dcff"];
+    TETRASADL[label="TETRAS ADL 하위척도\n(0-48)", fillcolor="#e6dcff"];
+    FTM      [label="Fahn-Tolosa-Marin\n(0-144)", fillcolor="#e6dcff"];
+    SPIRAL   [label="Archimedes 나선\n(0-4)", fillcolor="#e6dcff"];
+    BAINF    [label="Bain-Findley 척도\n(0-10)", fillcolor="#e6dcff"];
+    QUEST    [label="QUEST 삶의질\n(0-100)", fillcolor="#e6dcff"];
+    ADLSPOON [label="숟가락·컵 과제\n(흘림 여부)", fillcolor="#e6dcff"];
+    HEADTR   [label="두부 떨림 (yes-yes/no-no)", fillcolor="#e6dcff"];
+    VOICETR  [label="음성 떨림 (F0 변조 %)", fillcolor="#e6dcff"];
+    ARTEFACT [label=<<b>유도된 결론</b><br/>가속도 −50%가 항목당 −0.6점<br/>→ '불일치'는 로그일 뿐>, fillcolor="#d9c9ff", penwidth=1.6];
+    RESP     [label="반응자 정의\n(≥50% 진폭 vs ≥5점)", fillcolor="#e6dcff"];
+  }
+
+  subgraph cluster_state {
+    label="⑱ 상태·과제 조절 및 감별진단 (State Modulation & Differential Diagnosis)";
+    style="rounded,filled"; fillcolor="#f0f3f6"; color="#495867"; fontsize=11; fontcolor="#2f3e4d";
+    POSTURAL [label="자세성 떨림 (팔 뻗기)", fillcolor="#e9edf2"];
+    KINETIC  [label="운동성 떨림\n(손가락-코 검사)", fillcolor="#e9edf2"];
+    INTENT   [label="의도성 떨림\n(종말 접근 시 이득 ↑)", fillcolor="#e9edf2"];
+    VISDELAY [label="시각운동 되먹임 지연\n(추가 지연 경로)", fillcolor="#ffe3c2"];
+    ANXIETY  [label="불안·수행 스트레스", fillcolor="#e9edf2"];
+    CAFFEINE [label="카페인", fillcolor="#e9edf2"];
+    FATIG2   [label="피로·수면부족", fillcolor="#e9edf2"];
+    COOLING  [label="한랭 (냉각 → 진폭 ↓)", fillcolor="#e9edf2"];
+    EPT      [label=<<b>강화 생리적 떨림 (EPT)</b><br/>μ&lt;0 · 주파수 = f₀(기계적)<br/>진폭은 구동에 선형>, fillcolor="#e9edf2", penwidth=1.6];
+    THYRO    [label="갑상선기능항진증\n(CAT·β₂ 경로)", fillcolor="#e9edf2"];
+    B2AGON   [label="살부타몰·테르부탈린", fillcolor="#e9edf2"];
+    PDREST   [label="파킨슨 안정 떨림\n(4-6 Hz, 자세 시 감소)", fillcolor="#e9edf2"];
+    DYSTR    [label="근긴장이상 떨림\n(영점·방향성)", fillcolor="#e9edf2"];
+    ORTHOT   [label="기립성 떨림 (13-18 Hz)", fillcolor="#e9edf2"];
+    HOLMES   [label="Holmes/소뇌 떨림\n(2-4 Hz)", fillcolor="#e9edf2"];
+    LOADTEST [label=<<b>유도된 감별검사</b><br/>질량 부하 시 EPT 주파수 ↓↓<br/>ET 주파수는 거의 불변>, fillcolor="#e9edf2", penwidth=1.8];
+  }
+
+  /* ===================================================================== */
+  /* EDGES — genetics / pathology                                          */
+  /* ===================================================================== */
+  LINGO1 -> PCARBOR;  LINGO1 -> TORPEDO;
+  STK32B -> PCLOSS;   CTNNA3 -> CFPC;   FUSg -> PCLOSS;
+  NOTCH2NL -> PCLOSS; HS1BP3 -> PFPC;   FAMHX -> LINGO1 [style=dotted];
+  AGEr -> PCLOSS;     AGEr -> TORPEDO;
+  HARMANE -> HARMSITE; LEADx -> PCLOSS;  HARMAL -> HARMSITE;
+
+  PCLOSS -> PCINT [color="#c1121f"];  TORPEDO -> PCINT [color="#c1121f"];
+  DENDSW -> PCINT;  PCARBOR -> PCINT;  HETPC -> PCINT;
+  CFPC -> CFDRIVE [color="#2c5aa0"];  BASKET -> PCOUT;  GRID2 -> PFPC;
+  PCINT -> PCOUT [color="#2c5aa0", label="출력 ↓"];
+  PCINT -> DNDIS [color="#c1121f", label="탈억제 ↑"];
+  GABAADN -> DNDIS [color="#c1121f"];
+  DNDIS -> PHICBL [color="#c1121f", label="이득 ↑", penwidth=1.6];
+  EXCFB -> PCINT [style=dashed, color="#c1121f", label="가설"];
+  RENV -> EXCFB [style=dashed, color="#c1121f"];
+
+  /* IO branch */
+  CAV31 -> IOSUB [color="#2c5aa0"];  CAV32 -> IOSUB;  HCN1 -> IOSUB;
+  SKCA -> IOSUB;  CX36 -> IOSYNC [color="#2c5aa0"];  IOSUB -> IOSYNC;
+  HARMSITE -> CX36;  HARMSITE -> CAV31;
+  IOSYNC -> CFDRIVE [color="#2c5aa0"];  GABAIO -> IOSYNC [label="−"];
+  DENT -> GABAIO;   CFDRIVE -> PCOUT [color="#2c5aa0"];
+  IOSYNC -> PHIC [color="#2c5aa0", label="a_O = 0.35", penwidth=1.6];
+
+  /* cerebello-thalamic branch */
+  PFPC -> PCOUT;  PCOUT -> DENT [color="#2c5aa0", label="−"];
+  DENT -> DNBURST;  DNBURST -> CTTRACT;  CTTRACT -> VIM [color="#2c5aa0"];
+  DNDIS -> DNBURST;  PHICBL -> PHIC [color="#2c5aa0", label="a_R = 0.65", penwidth=1.6];
+  DENT -> PHICBL;
+
+  /* series thalamic element */
+  VIM -> VIMRHY;  VIMRHY -> M1 [color="#2c5aa0"];  PSA -> VIM;
+  VIM -> PHITH [color="#c1121f"];  THALREROUTE -> PHITH [color="#c1121f"];
+  PHITH -> PHIC [color="#c1121f", label="직렬 곱", penwidth=1.8];
+
+  /* cortical limb */
+  M1 -> CTXCOH;  SMA -> M1;  M1 -> CSTOUT [color="#2c5aa0"];
+  M1 -> PONS;  PONS -> PFPC [color="#2c5aa0", label="루프 폐쇄"];
+  CTXCOH -> ALPHAMN;  PHICTX -> PHIC [color="#2c5aa0", label="직렬 곱"];
+  M1 -> PHICTX;  CSTOUT -> ALPHAMN [color="#2c5aa0"];
+
+  /* peripheral loop */
+  CATdrv -> B2SPIN [color="#2c5aa0"];  B2SPIN -> SPINDLE [color="#2c5aa0"];
+  GAMMA -> SPINDLE;  SPINDLE -> ALPHAMN [color="#2c5aa0", label="Ia 흥분"];
+  IARET -> SPINDLE [color="#e07b39"];  IB -> ALPHAMN [label="−"];
+  ALPHAMN -> NMJ [color="#2c5aa0"];  NMJ -> JINERT [color="#2c5aa0", label="근력"];
+  SPINDLE -> PHISPIN [color="#2c5aa0"];  PHISPIN -> PHIP [color="#2c5aa0", penwidth=1.6];
+  NMJ -> PHIP [color="#2c5aa0", label="φ_nmj"];
+  JINERT -> SPINDLE [color="#2c5aa0", label="신장 되먹임", style=bold];
+
+  /* mechanics */
+  KSTIFF -> FRES [color="#e07b39"];  JINERT -> FRES [color="#e07b39", label="∝1/√J"];
+  BDAMP -> HMAG [color="#e07b39"];   FRES -> HMAG [color="#e07b39"];
+  MASSLOAD -> JINERT [color="#e07b39"];  ARMLEN -> AOBS;
+  HMAG -> AOBS [color="#e07b39", label="기계적 증폭", penwidth=1.6];
+  HMAG -> NOISEFL [color="#e07b39"];
+  NECKMECH -> HEADTR;  LARMECH -> VOICETR;
+  FRES -> LOADTEST [color="#e07b39"];  FNEUR -> LOADTEST [color="#e07b39"];
+
+  /* oscillator core */
+  PHIC -> GTOT [color="#1b3a6b", label="w_C = 0.70", penwidth=1.8];
+  PHIP -> GTOT [color="#1b3a6b", label="w_P = 0.30", penwidth=1.8];
+  GTOT -> MU [color="#1b3a6b", penwidth=1.8];
+  MU  -> HOPF [color="#1b3a6b", penwidth=1.8];
+  HOPF -> RENV [color="#1b3a6b", penwidth=1.8];
+  RENV -> SQRTLAW [color="#1b3a6b"];
+  SQRTLAW -> RESP [color="#5a189a", label="반응자 분리"];
+  RENV -> AOBS [color="#1b3a6b", penwidth=1.8];
+  NOISEFL -> AOBS [color="#1b3a6b"];
+  TAULOOP -> FNEUR [color="#e07b39", penwidth=1.6];
+  IARET -> TAULOOP [color="#e07b39"];  CTTRACT -> TAULOOP [color="#e07b39"];
+  IOSUB -> TAULOOP [color="#e07b39"];  PCINT -> TAULOOP [color="#e07b39", label="지연 ↑"];
+  AGEr -> TAULOOP [color="#e07b39", label="−0.06 Hz/년"];
+  FNEUR -> HMAG [color="#e07b39"];  FNEUR -> FOBS;  FRES -> FOBS;
+  AOBS -> FOBS [style=dotted];  SQRTLAW -> SUBLIN;
+  AOBS -> ACCEL [color="#5a189a", penwidth=1.6];
+
+  /* propranolol */
+  PROPDOSE -> PROPABS -> PROP1ST -> PROPC;
+  PROPC -> PROPP [dir=both];  PROPC -> PROPPB;  PROPPB -> OCCB2;
+  PROPC -> PROPBR [color="#2d6a4f"];
+  PROPC -> KIB1 [style=dotted];  PROPC -> KIB2 [style=dotted];
+  KIB2 -> OCCB2 [color="#2d6a4f", penwidth=1.6];  KIB1 -> OCCB1 [color="#2d6a4f"];
+  OCCB2 -> PHISPIN [color="#2d6a4f", label="방추 이득 ↓", penwidth=1.8];
+  PROPBR -> PHICBL [color="#2d6a4f", label="중추 성분(약)"];
+  OCCB2 -> PROPCEIL;  PROPCEIL -> PHISPIN [style=dotted, label="포화"];
+  OCCB1 -> HRT [color="#7b2cbf", penwidth=1.6];  OCCB1 -> BPS [color="#7b2cbf"];
+  OCCB1 -> FATIGUE [color="#7b2cbf"];
+  OCCB2 -> FEV1 [color="#7b2cbf", label="같은 점유율!", penwidth=1.8];
+  OCCB2 -> HYPOGLY [color="#7b2cbf"];
+  PROPBR -> SEDAT [color="#7b2cbf"];
+  ATEN -> OCCB1 [color="#2d6a4f", label="β₁만"];
+  ATEN -> PHISPIN [style=dotted, label="≈효과 없음"];
+  PROPC -> B2REG [color="#2d6a4f"];  B2REG -> WDRAW [color="#7b2cbf"];
+  PROPRA2 -> OCCB2 [style=dotted];
+  CATdrv -> OCCB2 [label="경쟁적 작용제"];
+
+  /* primidone */
+  PRIMDOSE -> PRIMC;  PRIMC -> PBC [color="#2d6a4f", label="CYP2C9/2C19"];
+  PRIMC -> PEMAC;  PRIMC -> PRIMBR;  PBC -> PBBR;
+  PRIMBR -> GABAAP [color="#2d6a4f", penwidth=1.8, label="주 기여"];
+  PBBR -> GABAAP [color="#2d6a4f", label="부 기여"];
+  PEMAC -> GABAAP [style=dotted];
+  PRIMBR -> PRIMFAST;  PRIMFAST -> GABAAP [style=dotted];
+  PBBR -> PBWEAK [style=dotted];
+  GABAAP -> PHICBL [color="#2d6a4f", label="이득 ↓", penwidth=1.8];
+  PRIMBR -> NACH;  NACH -> PHICTX [color="#2d6a4f"];
+  PBC -> IND [color="#2d6a4f"];  IND -> TOPC [color="#2d6a4f", label="CL ↑"];
+  IND -> BMD [color="#7b2cbf", label="25-OH-D ↓"];
+  PBBR -> SEDAT [color="#7b2cbf"];  PBBR -> ATAXIA [color="#7b2cbf"];
+  SEDAT -> SEDTOL [dir=both, color="#7b2cbf"];
+
+  /* other orals */
+  TOPI -> TOPC;  TOPC -> PHICTX [color="#2d6a4f"];  TOPC -> GABAAP [style=dotted];
+  TOPC -> COGWF [color="#7b2cbf"];  TOPC -> HCO3 [color="#7b2cbf"];
+  TOPC -> WTLOSS [color="#7b2cbf"];
+  GBP -> GBPC;  GBPC -> PHICTX [style=dotted];  GBPC -> SEDAT [color="#7b2cbf"];
+  ZONI -> TTBIC50 [style=dotted];  BZD -> GABAAP [color="#2d6a4f"];
+  BZD -> SEDAT [color="#7b2cbf"];  GAPAM -> GABAAP [color="#2d6a4f"];
+
+  /* ethanol */
+  ETOHDOSE -> ETOHGUT -> ETOHC;  ADH -> ETOHC [label="MM 제거"];
+  ETOHC -> ETOHGABA [color="#2d6a4f"];  ETOHC -> ETOHIO [color="#2d6a4f"];
+  ETOHGABA -> GABAAP [color="#2d6a4f", penwidth=1.6];
+  ETOHIO -> IOSYNC [color="#2d6a4f", label="탈동기화", penwidth=1.6];
+  ETOHC -> ADAPTF [color="#2d6a4f"];  ETOHC -> ADAPTS [color="#2d6a4f"];
+  ADAPTF -> GABAAP [color="#c1121f", label="적응 (분모)", penwidth=1.6];
+  ADAPTS -> GABAAP [color="#c1121f"];
+  ADAPTF -> REBOUND [color="#c1121f", penwidth=1.6];
+  REBOUND -> GTOT [color="#c1121f", label="기저선 초과"];
+  ADAPTS -> AUDTRAP;  AUDTRAP -> ETOHDOSE [style=dashed, color="#c1121f", label="증량 되먹임"];
+  ETOHC -> INTOX [color="#7b2cbf"];  ETOHC -> ATAXIA [color="#7b2cbf"];
+  ETOHC -> LFT [color="#7b2cbf"];
+  OCT -> ETOHGABA [color="#2d6a4f"];  OCT -> ETOHIO [color="#2d6a4f"];
+  OCT -> INTOX [style=dotted, label="Kp 낮음 → 취기 ↓"];
+
+  /* T-type */
+  TTBDOSE -> TTBC -> TTBIC50;
+  TTBIC50 -> CAV31 [color="#2d6a4f", label="차단", penwidth=1.6];
+  TTBIC50 -> IOSYNC [color="#2d6a4f"];
+  IOSYNC -> TTBCEIL [style=dotted];  TTBCEIL -> PHIC [color="#c1121f", penwidth=1.6];
+  HARMRAT -> TTBCEIL [style=dashed];  TTBCEIL -> SPECDISC [penwidth=1.6];
+  HARMAL -> HARMRAT;
+  TTBIC50 -> DNBURST [style=dotted, label="DCN T형도"];
+
+  /* botulinum */
+  BTXDOSE -> BTXSV2 -> BTXLC;
+  BTXLC -> SNAPT [color="#2d6a4f", penwidth=1.6];
+  BTXLC -> SNAPG [color="#c1121f", label="f_spill", penwidth=1.6];
+  FSPILL -> SNAPG [color="#c1121f", penwidth=1.8];
+  SNAPREC -> SNAPT [dir=both];  SNAPREC -> SNAPG [dir=both];
+  SNAPT -> NMJ [color="#2d6a4f", label="φ_nmj ↓", penwidth=1.6];
+  SNAPG -> GRIPW [color="#7b2cbf", penwidth=1.6];
+  FSPILL -> BTXWIN [penwidth=1.6];  SNAPT -> BTXWIN [style=dotted];
+  GRIPW -> ADLSPOON [color="#5a189a"];
+
+  /* surgery */
+  MRGFUS -> LESVOL [color="#2d6a4f"];  RFTHAL -> LESVOL;
+  LESVOL -> PHITH [color="#2d6a4f", label="→ 0.05", penwidth=1.8];
+  LESVOL -> GAITAX [color="#7b2cbf", label="같은 부피!", penwidth=1.6];
+  DBS -> DBSFREQ;  DBS -> DBSAMP;
+  DBSFREQ -> PHITH [color="#2d6a4f", label="Hill h=4, f₅₀=80 Hz", penwidth=1.6];
+  DBSAMP -> PHITH [color="#2d6a4f"];
+  DBSFREQ -> DBSENTR [style=dotted];  DBSENTR -> GTOT [color="#c1121f", label="저주파 악화"];
+  DBS -> HABIT;  HABIT -> THALREROUTE [color="#c1121f", penwidth=1.6];
+  DBSAMP -> GAITAX [color="#7b2cbf"];  GAITAX -> QUEST [color="#5a189a"];
+
+  /* state modulation */
+  ANXIETY -> CATdrv [color="#2c5aa0"];  CAFFEINE -> CATdrv [color="#2c5aa0"];
+  THYRO -> CATdrv;  B2AGON -> B2SPIN [color="#2c5aa0"];
+  FATIG2 -> PHICTX;  COOLING -> BDAMP [label="ζ ↑"];
+  POSTURAL -> GTOT [style=dotted];  KINETIC -> GTOT [style=dotted];
+  INTENT -> VISDELAY;  VISDELAY -> TAULOOP [color="#e07b39"];
+  VISDELAY -> GTOT [color="#2c5aa0", label="종말 이득 ↑"];
+
+  /* differential diagnosis */
+  CATdrv -> EPT [color="#495867"];  B2AGON -> EPT;  THYRO -> EPT;
+  EPT -> NOISEFL [color="#495867", label="μ<0, 잡음 구동", penwidth=1.6];
+  EPT -> LOADTEST [color="#495867", penwidth=1.6];
+  PDREST -> FOBS [style=dotted];  DYSTR -> FOBS [style=dotted];
+  ORTHOT -> FOBS [style=dotted];  HOLMES -> FOBS [style=dotted];
+  LOADTEST -> FOBS [color="#495867"];
+
+  /* endpoints */
+  ACCEL -> LOGMAP [color="#5a189a", penwidth=1.8];
+  LOGMAP -> TETRASPS [color="#5a189a", penwidth=1.8];
+  LOGMAP -> FTM [color="#5a189a"];  LOGMAP -> SPIRAL [color="#5a189a"];
+  LOGMAP -> BAINF [color="#5a189a"];
+  LOGMAP -> ARTEFACT [penwidth=1.6];
+  TETRASPS -> TETRASADL [style=dotted];
+  TETRASPS -> RESP [color="#5a189a"];  ACCEL -> RESP [color="#5a189a"];
+  TETRASADL -> QUEST [color="#5a189a"];  ADLSPOON -> TETRASADL;
+  HEADTR -> TETRASPS;  VOICETR -> TETRASPS;
+  AOBS -> ADLSPOON [color="#5a189a"];
+  SEDAT -> QUEST [color="#5a189a"];  COGWF -> QUEST [color="#5a189a"];
+  ATAXIA -> QUEST [color="#5a189a"];  INTOX -> QUEST [color="#5a189a"];
+  HRT -> FATIGUE;  FEV1 -> QUEST [color="#5a189a"];
+  HCO3 -> QUEST [style=dotted];  WTLOSS -> QUEST [style=dotted];
+  BMD -> QUEST [style=dotted];  WDRAW -> GTOT [color="#c1121f"];
+
+  /* head / voice effectors driven by the same core */
+  RENV -> NECKMECH [color="#1b3a6b"];  RENV -> LARMECH [color="#1b3a6b"];
+
+  /* ---- legend ---- */
+  subgraph cluster_legend {
+    label="범례 (Legend)"; style="rounded,filled"; fillcolor="#ffffff";
+    color="#8a9bb0"; fontsize=10;
+    L1 [label="이득 경로 (진폭 결정)", fillcolor="#d6e4ff", fontsize=9];
+    L2 [label="지연 경로 (주파수 결정)", fillcolor="#ffe3c2", fontsize=9];
+    L3 [label="위상/직렬 경로 (천장 결정)", fillcolor="#ffd9d9", fontsize=9];
+    L4 [label="약물·기기", fillcolor="#d8f3dc", fontsize=9];
+    L5 [label="PK 구획", fillcolor="#eaf7ee", fontsize=9];
+    L6 [label="장기계 이상반응", fillcolor="#f1e2f7", fontsize=9];
+    L7 [label="임상 평가지표", fillcolor="#e6dcff", fontsize=9];
+    L8 [label="감별진단·상태조절", fillcolor="#e9edf2", fontsize=9];
+    L1 -> L2 -> L3 -> L4 [style=invis];
+    L5 -> L6 -> L7 -> L8 [style=invis];
+  }
+}
