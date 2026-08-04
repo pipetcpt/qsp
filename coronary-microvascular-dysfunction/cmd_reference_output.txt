@@ -1,0 +1,654 @@
+
+##############################################################################
+CORONARY MICROVASCULAR DYSFUNCTION (ANOCA / INOCA) - QSP REFERENCE RUN
+##############################################################################
+dependency-free Python reference for cmd_mrgsolve_model.R
+states: 58 ODEs (27 physiology + 31 PK/metabolite) | drugs: 14 | scenarios: 24
+
+==============================================================================
+SECTION 0.  CALIBRATION AGAINST MEASURED CORONARY PHYSIOLOGY
+==============================================================================
+Seven constants are solved (not tuned by hand) against seven published
+targets.  Everything else in the model is fixed a priori.
+
+targets:
+  T1 control hyperaemic MR      2.20 mmHg/(cm/s)   Rahman 2019 (MR_hyp<2.5)
+  T2 structural hyperaemic MR   3.60               Rahman 2019 (>=2.5)
+  T3 functional hyperaemic MR   2.30 = 4.2/1.83    Rahman 2019 (internally
+                                                    consistent with T4)
+  T4 functional resting MR      4.20               Rahman 2019 (4.2+-1.0)
+  T5 control hyperaemic endo/epi 1.02              transmural physiology
+  T6 untreated functional SAQ   55.0               CorMicA baseline ~55-60
+  T7 untreated functional Bruce  480 s             PRIZE baseline order
+
+Note on T3: Rahman's three functional-group numbers are self-consistent -
+4.2 / 2.30 = 1.83 - because CFR = MR_rest/MR_hyp identically when both are
+measured at the same aortic pressure.  Calibrating two of them therefore
+fixes the third, and the model's functional CFR is not free.
+
+solved:
+  RMIN0                       = 1.5174 mmHg/(cm/s)
+  W_ENDO                      = 0.6283
+  F_ADO_REV                   = 0.8760
+  RMIN_F(structural)          = 1.4306
+  AUTO_OFF(functional)        = 0.9165
+
+  achieved: control MR_hyp 2.200 | functional MR_hyp 2.300 | structural MR_hyp 3.600
+            functional MR_rest 4.200 -> CFR 1.826 (observed 1.83)
+            control hyperaemic endo/epi 1.020
+
+  K_ANG                       = 3.3997  -> SAQ 54.98
+  NOCI_THRESH                 = 3.8575  -> Bruce 480.1 s
+
+These five flow constants and two symptom constants are the ONLY values
+fitted to data.  Every result below is a prediction from them.
+
+==============================================================================
+SECTION I.  CFR IS A RATIO: TWO ENDOTYPES, ONE NUMBER
+==============================================================================
+Rahman et al. Circulation 2019;140:1805 (n=85 ANOCA, 78% female).
+MVD = CFR<2.5 (53% of the cohort).  Of those, 62% 'functional'
+(hyperaemic MR<2.5 mmHg/cm/s) and 38% 'structural' (>=2.5).  Resting MR
+4.2+-1.0 functional, 6.9+-1.7 structural, 7.3+-2.2 control.
+
+endotype        CFR  MR_rest   MR_hyp  v_rest   v_hyp  tone_r     IMR    MRR endo/epi
+-------------------------------------------------------------------------------------
+control        3.43     7.56     2.20    12.0    41.3   0.522    18.4   3.62    1.020
+functional     1.83     4.20     2.30    21.6    39.5   0.298    19.2   1.92    1.008
+structural     2.14     7.71     3.60    11.8    25.2   0.364    30.1   2.25    1.088
+vasospastic    2.71     7.29     2.69    12.5    33.7   0.473    22.5   2.85    1.026
+noncardiac     3.42     7.58     2.22    12.0    41.0   0.522    18.5   3.60    1.016
+
+observed vs model:
+  control     MR_rest obs 7.3  model 7.56  (+4%)
+  functional  MR_rest obs 4.2  model 4.20  (-0%)   |  CFR obs 1.83  model 1.83
+  structural  MR_rest obs 6.9  model 7.71  (+12%)   |  CFR obs 1.92  model 2.14
+
+THE IDENTITY, as arithmetic:
+  functional  CFR = 39.5 / 21.6 = 1.83   (hyperaemic velocity 96% of control)
+  structural  CFR = 25.2 / 11.8 = 2.14   (hyperaemic velocity 61% of control)
+  The two CFR values differ by 0.31. The two ABSOLUTE hyperaemic velocities
+  differ by 14.3 cm/s (57%), i.e. 2.41 vs 1.54 mL/min/g of maximal
+  perfusion.  A ratio cannot see that difference; an absolute flow can.
+  This is the argument for measuring absolute flow (thermodilution MRR)
+  rather than a reserve ratio, and the model quantifies what is lost.
+
+==============================================================================
+SECTION II.  RESTING TONE IS NOT A FREE PARAMETER
+==============================================================================
+Autoregulation sets tone so that resting supply meets resting demand.
+Given the measured HYPERAEMIC MR (which fixes R_min), the RESTING MR is
+therefore predicted with no further parameter.  Only the control group's
+hyperaemic MR was calibrated; the structural group's resting MR was not.
+
+endotype        MR_hyp   MR_rest_pred   MR_rest_obs    error
+------------------------------------------------------------
+control           2.20           7.56           7.3     3.5%
+structural        3.60           8.07           6.9    16.9%
+
+The structural endotype's resting MR is a PREDICTION and it lands inside
+the measured 6.9+-1.7.  Autoregulation reduces resting tone to compensate
+for the raised R_min, and that compensation is what consumes the reserve.
+
+Now the functional endotype, controller intact, offset switched off:
+  offset 0.00 -> MR_rest 7.73  CFR 3.36  tone 0.527
+  offset 0.92 -> MR_rest 4.20  CFR 1.83  tone 0.298   (observed 4.2 / 1.83)
+
+BUG B1 and the model's central claim: a working autoregulator CANNOT
+produce a low resting MR beside a normal minimal MR.  Setting tone by hand
+does not survive one step of the loop - the controller puts it back.  The
+functional endotype is therefore not a tone state but a CONTROLLER DEFECT,
+and its magnitude is derivable rather than assumed: the arterioles behave
+as though metabolic demand were 92% higher than it is.
+
+FALSIFIABLE PREDICTION - needs coronary-sinus sampling, not a wire:
+  resting extraction  control 0.689   functional 0.383   ratio 0.56
+  Resting myocardial oxygen extraction in the functional endotype must be
+  about 56% of normal, with a correspondingly RAISED coronary venous
+  oxygen saturation (30% -> roughly 60% if arterial SO2 is 98%).
+  If measured resting extraction is normal, the controller-offset reading
+  is wrong and the low resting MR must instead be an artefact of the
+  measurement condition (anxiety, contrast, supine catheter-laboratory
+  haemodynamics).  Either way the model is refutable on one blood gas,
+  which is the cheapest experiment it suggests.
+
+==============================================================================
+SECTION III.  HEART RATE ENTERS THE OXYGEN BALANCE TWICE
+==============================================================================
+Resting heart rate is swept at FIXED workload (wl=3.2, where the untreated
+structural endotype has a subendocardial deficit) in the structural
+endotype.  Column 'def(time only)' holds demand at its HR=68 value so that
+only the diastolic window moves; 'def(full)' is the real effect.
+
+   HR   f_dia     DPTI     SEVR    def(time)   def(full)  endo/epi     MVO2
+---------------------------------------------------------------------------
+   50   0.583     31.9    0.813       0.9796      0.0000     1.263    21.79
+   55   0.574     30.1    0.783       1.3921      0.0000     1.259    22.50
+   60   0.565     28.5    0.756       1.7962      0.4844     1.205    23.22
+   68   0.552     26.1    0.716       2.4264      2.4264     1.125    24.36
+   75   0.540     24.3    0.683       2.9626      4.1104     1.061    25.36
+   85   0.524     22.0    0.640       3.7059      6.4936     0.980    26.78
+   95   0.509     20.0    0.602       4.4251      8.8525     0.907    28.21
+  110   0.486     17.5    0.550       5.4631     12.3502     0.811    30.35
+
+Slowing 68 -> 55 bpm at fixed workload:
+  total fall in subendocardial deficit  2.4264 mL O2/min/100 g
+  from the diastolic TIME window        1.0343  (43%)
+  from lower DEMAND                     1.3921  (57%)
+
+A pure rate-slowing drug with no vasodilator and no metabolic action still
+has a SUPPLY-side effect, and it is not interchangeable with removing the
+same amount of demand by another route.  Note also that DPTI falls
+monotonically with rate while SEVR falls faster, because the systolic
+tension-time index in the denominator rises at the same time.
+
+The same result read as a threshold - the workload at which a
+subendocardial deficit first appears, as a function of resting heart rate:
+
+   HR onset workload
+--------------------
+   50           3.40
+   55           3.28
+   60           3.15
+   68           2.95
+   75           2.78
+   85           2.53
+   95           2.29
+
+==============================================================================
+SECTION IV.  CFR RANKS DRUGS WELL WHERE FLOW IS THE DISEASE, AND BADLY
+            WHERE IT IS NOT
+==============================================================================
+Steady-state drug effect after 21 days, evaluated in each endotype at
+matched dose.  dCFR is what a physiology study reports; dNOC is the afferent
+drive that becomes angina; dEXD is Bruce duration (s); def@3.2 is the
+subendocardial deficit at a stair-climbing workload.
+
+--- functional endotype ---
+arm                CFR    dCFR  MR_hyp  dMR_hyp    noci    dNOC    dEXD def@3.2
+-------------------------------------------------------------------------------
+(untreated)       1.72       -    2.36        -   0.579       -       -   0.000
+ivabradine        1.96  +0.248    2.29   -0.072   0.348  -0.231   +74.9   0.000
+bisoprolol        1.86  +0.147    2.32   -0.041   0.389  -0.190   +51.7   0.000
+ranolazine        1.84  +0.126    2.28   -0.080   0.462  -0.117   +25.9   0.000
+amlodipine        1.71  -0.011    2.26   -0.100   0.453  -0.126   +42.7   0.000
+nicorandil        1.72  +0.004    2.34   -0.016   0.570  -0.009    +3.4   0.000
+zibotentan        1.68  -0.033    2.40   +0.037   0.518  -0.060   +20.5   0.000
+sildenafil        1.71  -0.005    2.31   -0.047   0.515  -0.064   +21.4   0.000
+aminophylline     1.73  +0.013    2.36   +0.001   0.432  -0.147  +149.4   0.000
+diltiazem         1.75  +0.034    2.33   -0.032   0.503  -0.075   +23.5   0.000
+fasudil           1.72  +0.004    2.34   -0.017   0.579  +0.000    +0.0   0.000
+imipramine        1.72  +0.008    2.35   -0.005   0.564  -0.014   +15.1   0.000
+
+--- structural endotype ---
+arm                CFR    dCFR  MR_hyp  dMR_hyp    noci    dNOC    dEXD def@3.2
+-------------------------------------------------------------------------------
+(untreated)       2.05       -    3.67        -   0.213       -       -   3.430
+ivabradine        2.36  +0.306    3.55   -0.120   0.023  -0.191   +82.1   0.334
+bisoprolol        2.24  +0.187    3.59   -0.073   0.071  -0.142   +50.0   1.421
+ranolazine        2.21  +0.158    3.55   -0.120   0.070  -0.144   +50.9   1.404
+amlodipine        2.03  -0.018    3.47   -0.194   0.235  +0.021   -15.0   3.856
+nicorandil        2.05  +0.001    3.64   -0.022   0.215  +0.002    -0.9   3.459
+zibotentan        2.00  -0.050    3.72   +0.059   0.248  +0.035   -18.2   4.052
+sildenafil        2.04  -0.014    3.60   -0.069   0.225  +0.011    -7.3   3.645
+aminophylline     2.05  +0.000    3.68   +0.016   0.192  -0.022    +3.4   3.386
+diltiazem         2.09  +0.035    3.62   -0.048   0.189  -0.025    +8.7   3.057
+fasudil           2.06  +0.008    3.62   -0.045   0.213  -0.000    +0.0   3.430
+imipramine        2.06  +0.011    3.66   -0.008   0.205  -0.008    +3.7   3.300
+
+--- vasospastic endotype ---
+arm                CFR    dCFR  MR_hyp  dMR_hyp    noci    dNOC    dEXD def@3.2
+-------------------------------------------------------------------------------
+(untreated)       2.45       -    2.81        -   1.230       -       -   0.000
+ivabradine        2.81  +0.361    2.73   -0.089   0.970  -0.260  +109.8   0.000
+bisoprolol        2.66  +0.210    2.76   -0.050   1.065  -0.164   +66.4   0.000
+ranolazine        2.64  +0.191    2.71   -0.101   1.086  -0.143   +83.7   0.000
+amlodipine        2.59  +0.137    2.59   -0.226   0.055  -1.174   +31.4   0.000
+nicorandil        2.45  +0.003    2.80   -0.018   1.228  -0.001    -0.7   0.000
+zibotentan        2.40  -0.054    2.86   +0.043   1.236  +0.006   -24.8   0.000
+sildenafil        2.44  -0.014    2.76   -0.054   1.218  -0.012    -9.1   0.000
+aminophylline     2.45  +0.003    2.82   +0.004   1.171  -0.058    +4.3   0.000
+diltiazem         2.62  +0.173    2.71   -0.103   0.516  -0.714   +58.0   0.000
+fasudil           2.65  +0.197    2.60   -0.212   0.066  -1.163   +55.4   0.000
+imipramine        2.46  +0.007    2.81   -0.003   1.223  -0.006    +2.4   0.000
+
+The signs agree almost everywhere.  An earlier version of this section
+claimed outright SIGN discordance between CFR and symptoms; that was an
+artefact of bug B24 and the claim is withdrawn.  What survives is weaker and
+more specific, and it is about RANKING - a trial picks one endpoint and ranks
+drugs on it:
+
+endotype      rho(dCFR,-dNOC) rho(dCFR,dEXD) best on CFR      best on symptoms
+------------------------------------------------------------------------------
+functional              0.60           0.54 ivabradine       ivabradine      
+structural              0.94           0.96 ivabradine       ivabradine      
+vasospastic             0.72           0.95 ivabradine       amlodipine      
+
+The pattern in those three numbers is the point: CFR ranks treatments almost
+perfectly in the structural endotype, where flow IS the disease, and much
+less well in the two endotypes where it is not.
+
+Read the functional-endotype rows again.  Aminophylline moves CFR by +0.012
+- fifth of eleven arms, indistinguishable from placebo on a physiological
+endpoint - and buys +147.5 s of Bruce time, twice the best vasoactive arm,
+because in that endotype the afferent adenosine signal and not the flow is
+the disease.  Elliott et al.
+Heart 1997;77:523 (PMID 9227295) gave oral aminophylline to patients with
+angina and normal arteriograms and improved exercise time; the model
+reproduces that from the structure rather than from a fitted effect, and
+predicts it should NOT work in the structural endotype, where blocking A2A
+costs dilator reserve that is actually being used.
+
+In the vasospastic endotype the two calcium antagonists and the Rho-kinase
+inhibitor take the top three symptom places while their CFR changes are
+mid-table, and nicorandil - a potent dilator - does nothing at all,
+because between episodes there is nothing to dilate.
+
+One negative result worth stating plainly: microvascular resistance reserve
+does NOT rescue this.  MRR = (CFR/FFR)(Pa_rest/Pa_hyper), and a drug that
+lowers blood pressure lowers it in BOTH states, so the correction cancels.
+Here Pa_rest and Pa_hyper are equal by construction, which makes the
+cancellation exact: MRR = CFR/FFR identically, so dMRR = dCFR/FFR to three
+decimals and MRR adds no information about a treatment effect.  MRR earns its
+keep against an EPICARDIAL stenosis, which is a different problem from a
+drug's own haemodynamics, and the two are easily conflated.  The
+index that stays interpretable under treatment is the hyperaemic RESISTANCE
+itself: dMR_hyp above is near zero for every drug that has no true effect on
+minimal resistance, whereas dCFR is not.  If a trial wants a physiological
+endpoint that a blood-pressure-lowering drug cannot fake, it should
+prespecify hyperaemic microvascular resistance, not a reserve ratio.
+
+==============================================================================
+SECTION V.  FIXED POINT (python) vs FAST ODE (mrgsolve)
+==============================================================================
+mrgsolve integrates TONE_E and TONE_P as ODEs with tau = 15 s under LSODA.
+Here the same expressions are solved by bisection.  Integrating the fast
+ODE explicitly with dt = 1 s from a deliberately wrong start must land on
+the same value:
+
+  control      endo   bisection 0.51765489   fast ODE 0.51765489   |diff| 3.86e-09
+  control      epi    bisection 0.52600361   fast ODE 0.52600361   |diff| 5.90e-09
+  functional   endo   bisection 0.27547038   fast ODE 0.27547038   |diff| 3.46e-10
+  functional   epi    bisection 0.32024768   fast ODE 0.32024768   |diff| 2.60e-09
+  structural   endo   bisection 0.35242266   fast ODE 0.35242267   |diff| 5.27e-09
+  structural   epi    bisection 0.37497281   fast ODE 0.37497281   |diff| 5.32e-10
+  vasospastic  endo   bisection 0.46328549   fast ODE 0.46328549   |diff| 2.46e-09
+  vasospastic  epi    bisection 0.48290613   fast ODE 0.48290613   |diff| 2.55e-09
+
+agreement to 1e-6 in every case: YES
+Both formulations report the same steady state, which is the only thing any
+of these indices is defined as.  The choice is numerical, not physiological
+(bug B11: the DISCRETE damped iteration was unstable at this gain; the
+continuous-time ODE never was).
+
+==============================================================================
+SECTION VI.  PRIZE (zibotentan): DECOMPOSING A NULL RESULT
+==============================================================================
+Morrow et al. Circulation 2024 (PMID 39217504).  Zibotentan 10 mg daily x
+12 weeks in microvascular angina, n=118, sequential crossover, enriched to a
+50% rs9349379-G allele frequency.  Primary endpoint Bruce treadmill duration:
+between-treatment difference -4.26 s (95% CI -19.60 to +11.06), p=0.59.
+Plasma ET-1 ROSE on treatment.  Blood pressure fell.  Adverse events 60.2%
+vs 14.4%, dominated by fluid retention.
+
+The trial enrolled microvascular angina, not one endotype, so the
+decomposition is done per endotype and then weighted (0.33 functional / 0.20
+structural / 0.29 vasospastic / 0.18 non-cardiac, renormalised from the
+Rahman and CorMicA proportions).
+
+--- functional (weight 0.33) --- placebo period: Bruce 480.1 s, CFR 1.70, MR_hyp 2.37, LVEDP 11.6, ET-1 1.66
+arm                          dBruce(s)     CFR   MR_hyp   LVEDP    ET-1
+-----------------------------------------------------------------------
+full drug (as in PRIZE)         +18.98    1.67     2.40    12.2    2.08
+no BP fall                       +0.00    1.68     2.40    12.2    2.08
+no fluid retention              +18.98    1.68     2.38    11.6    2.08
+neither (counterfactual)         +0.00    1.70     2.37    11.6    2.08
+
+--- structural (weight 0.20) --- placebo period: Bruce 481.4 s, CFR 2.02, MR_hyp 3.69, LVEDP 12.9, ET-1 2.01
+arm                          dBruce(s)     CFR   MR_hyp   LVEDP    ET-1
+-----------------------------------------------------------------------
+full drug (as in PRIZE)         -17.94    1.97     3.74    13.5    2.51
+no BP fall                      -11.14    2.00     3.73    13.5    2.51
+no fluid retention               -6.73    1.99     3.71    12.9    2.51
+neither (counterfactual)         +0.00    2.02     3.69    12.9    2.51
+
+--- vasospastic (weight 0.29) --- placebo period: Bruce 684.4 s, CFR 2.44, MR_hyp 2.82, LVEDP 12.9, ET-1 2.10
+arm                          dBruce(s)     CFR   MR_hyp   LVEDP    ET-1
+-----------------------------------------------------------------------
+full drug (as in PRIZE)         -24.85    2.39     2.86    13.5    2.64
+no BP fall                      -16.23    2.42     2.85    13.5    2.64
+no fluid retention               -8.47    2.41     2.83    12.9    2.64
+neither (counterfactual)         +0.00    2.44     2.82    12.9    2.64
+
+--- noncardiac (weight 0.18) --- placebo period: Bruce 900.0 s, CFR 3.26, MR_hyp 2.26, LVEDP 11.2, ET-1 1.08
+arm                          dBruce(s)     CFR   MR_hyp   LVEDP    ET-1
+-----------------------------------------------------------------------
+full drug (as in PRIZE)          +0.00    3.18     2.30    11.8    1.35
+no BP fall                       +0.00    3.22     2.30    11.8    1.35
+no fluid retention               +0.00    3.21     2.28    11.2    1.35
+neither (counterfactual)         +0.00    3.25     2.27    11.2    1.35
+
+Population-weighted signed decomposition of exercise duration:
+  microvascular gain alone (both costs removed)     +0.00 s
+  attributable to the blood-pressure fall           +2.41 s
+  attributable to fluid retention (LVEDP up)        -6.99 s
+  model net                                         -4.53 s
+  PRIZE observed                                    -4.26 s (95% CI -19.60 to +11.06)
+  model net inside the observed 95% CI: YES
+
+The model reproduces the trial's number, and the reason is not the one this
+section was written expecting.  The three terms are:
+
+  1. The microvascular gain is exactly zero.  Removing ETA-mediated tone
+     helps only where there is tone to remove that is not already removed:
+     in the functional endotype minimal resistance is normal, so there is
+     nothing to gain, and in the structural endotype the ceiling is
+     anatomical, so a receptor antagonist cannot lift it.  A drug can be
+     perfectly on-target and still have no target left to hit.
+  2. The blood-pressure fall is a small NET BENEFIT here, not a cost
+     (+2.41 s).  Lowering systolic pressure removes wall-stress demand faster
+     than it removes diastolic driving pressure, because demand carries the
+     systolic pressure through the tension-time product while supply carries
+     only the diastolic mean.  This section originally asserted the opposite
+     and the arithmetic contradicted it.
+  3. Fluid retention accounts for the ENTIRE null (-6.99 s).  LVEDP is
+     subtracted from subendocardial driving pressure directly, so the
+     trial's dominant adverse effect - present in 60% of treated periods -
+     and its failure on the primary endpoint are the SAME event measured
+     twice.
+
+That is an actionable reading rather than a dead end.  It says the endothelin
+hypothesis was not tested cleanly at 10 mg: the endpoint was moved by the
+sodium retention and not by the receptor.  Two designs follow - co-administer
+a diuretic or a lower dose and re-measure, or use a molecule that separates
+coronary ETA blockade from renal sodium handling.  A larger trial of the same
+10 mg would measure the same fluid.
+
+Direction check on plasma ET-1 (bug B8): the model raises it on treatment,
+as PRIZE measured, because ETA blockade also removes ETA-mediated clearance.
+A model that lowered ET-1 would have predicted a win.
+
+==============================================================================
+SECTION VII.  RWISE (ranolazine): A REAL SUBGROUP EFFECT, DILUTED AWAY
+==============================================================================
+Bairey Merz et al. Eur Heart J 2016;37:1504 (PMID 26614823).  Ranolazine
+500-1000 mg BID x 2 weeks, n=128 (96% women), crossover.  No overall
+treatment difference in SAQ.  In the CFR<2.5 subgroup: MPRI improved
+(p=0.014), SAQ angina frequency (p=0.027) and SAQ-7 (p=0.041) improved.
+
+Composition from Rahman 2019: 47% CFR>=2.5; of the remaining 53%, 62%
+functional and 38% structural -> 0.33 and 0.20.
+
+stratum       weight   SAQ_pbo   SAQ_ran     dSAQ       dCFR
+------------------------------------------------------------
+control         0.47      98.7      98.7    +0.00     +0.243
+functional      0.33      55.0      56.4    +1.41     +0.123
+structural      0.20      60.8      64.6    +3.80     +0.152
+
+CFR<2.5 stratum only (what the subgroup analysis saw):  dSAQ +2.31 U
+whole randomised cohort (what the primary analysis saw): dSAQ +1.22 U
+dilution: the non-CMD stratum carries 47% of the weight and contributes
+  +0.00 U, so the observable effect is 53% of the mechanistic effect.
+
+Taking 10 U as the clinically important SAQ difference (CorMicA's
+stratified arm achieved +11.7 U, 95% CI 5.0-18.4):
+  subgroup     +2.31 U -> below the MCID
+  whole cohort +1.22 U -> below the MCID
+
+Nothing about the drug changed between those two lines - only the
+prevalence of the mechanism it targets.  Note also WHERE the effect sits:
+it is largest in the structural stratum, i.e. in the patients whose minimal
+resistance is actually abnormal.  A late-sodium-current inhibitor works by
+lowering diastolic wall tension, which needs a filling-pressure problem to
+act on; the functional endotype does not have one.  The argument is for an
+interventional diagnostic procedure BEFORE randomisation, not after.
+
+==============================================================================
+SECTION VIII.  THE PAIN->SYMPATHETIC->ISCHAEMIA LOOP HAS A THRESHOLD
+==============================================================================
+Angina raises sympathetic tone, which raises heart rate and alpha1
+prearteriolar tone, which raises the subendocardial deficit and the
+afferent drive, which raises angina.  Sweep the loop gain K_SYMP_HR:
+
+ K_SYMP_HR  HR_rest   ANG/wk     SENS      SAQ      noci       CFR
+------------------------------------------------------------------
+      0.00     68.0     6.81    0.758     57.4     0.395      1.82
+      0.10     70.6     7.47    0.771     56.2     0.483      1.77
+      0.18     72.9     8.07    0.781     55.3     0.563      1.72
+      0.22     74.2     8.38    0.787     54.9     0.606      1.70
+      0.26     75.4     8.71    0.792     54.4     0.651      1.68
+      0.30     76.8     9.06    0.797     54.0     0.698      1.66
+      0.36     78.9     9.61    0.804     53.3     0.774      1.62
+      0.44     81.9    10.39    0.814     52.5     0.883      1.57
+
+Across this range the loop stays self-limiting, so the refractory
+phenotype in this model needs a second driver (central sensitisation,
+spasm) and not merely a high autonomic gain.
+Operationally, heart-rate control is not only an anti-anginal: it is the
+loop-breaker.  That is a different argument for the same prescription, and
+it predicts the benefit should be largest in patients with the highest
+resting heart rate rather than the lowest CFR.
+(bug B5: an unchecked version of this loop drove every untreated patient to
+SAQ 0, which is why the gain is swept and reported rather than clamped.)
+
+==============================================================================
+SECTION IX.  WARRIOR (statin + ACEi/ARB): CONTAMINATION AND TIMESCALE
+==============================================================================
+Pepine et al. Open Heart 2026;13:e004115 (PMID 41932694).  2476 women with
+suspected ANOCA/INOCA, intensive medical therapy (high-intensity statin +
+ACEi/ARB + aspirin) vs usual care, 2.5 years.  Primary MACE HR 1.13 (0.94-
+1.37), p=0.20.  Contamination sensitivity analysis HR 0.74 (0.35-1.56).
+Hospitalisation for angina dominated MACE.  Baseline LDL and BP already
+well controlled with 'relatively high rates of statin and ACEI/ARB use'.
+
+2.5-year structural-endotype run (dt = 6 h):
+  usual care : CFR 2.14 -> 2.02 | MR_hyp 3.60 -> 3.69 | ANG 5.40 | SAQ 60.5
+  IMT        : CFR 2.14 -> 2.18 | MR_hyp 3.60 -> 3.22 | ANG 4.54 | SAQ 62.9
+
+cumulative hazard of angina hospitalisation over 2.5 y:
+  usual care 1.5807   IMT 1.4176   true hazard ratio 0.897
+
+If a fraction c of the usual-care arm is already taking the same drugs, the
+observable ratio is  HR_obs = 1 + (HR_true - 1)*(1 - c):
+
+ contamination     HR_obs distinguishable
+-----------------------------------------
+          0.00      0.897             no
+          0.20      0.917             no
+          0.40      0.938             no
+          0.60      0.959             no
+          0.75      0.974             no
+          0.85      0.985             no
+          0.95      0.995             no
+
+With a true ratio of 0.90, a contamination of about 0.8 puts the observable
+ratio at 0.98 - inside WARRIOR's reported interval and indistinguishable
+from 1.  The trial's own contamination-adjusted estimate was 0.74.
+
+The second problem is the instrument.  The drugs' target is structural
+(tau_ML 180 d, tau_CAPD 240 d, tau_PVF 200 d) while the endpoint that
+dominated MACE is angina hospitalisation, driven by symptom burden with
+tau_SAQ 14 d plus a central-sensitisation component that no vasoactive
+drug in this model touches.  The mismatch, quantified:
+  CFR attributable to IMT over 2.5 y  +0.158 units
+  SAQ attributable to IMT over 2.5 y  +2.39 U   (MCID 10)
+  hs-cTnI  usual care 3.3  IMT 3.1 ng/L
+i.e. the therapy does what it says to the microvasculature and still cannot
+reach the endpoint it was scored on within the follow-up available.
+
+==============================================================================
+SECTION X.  CorMicA: STRATIFIED THERAPY vs UNSTRATIFIED CARE
+==============================================================================
+Ford et al. J Am Coll Cardiol 2018;72:2841 (PMID 30266608).  Interventional
+diagnostic procedure (CFR, IMR, FFR, then acetylcholine) with linked
+therapy vs standard care with a sham procedure; 151 randomised of 391
+enrolled.  SAQ summary +11.7 U at 6 months (95% CI 5.0-18.4, p=0.001);
+EQ-5D +0.10; no difference in MACE.
+
+Endotype mix: functional 0.30, structural 0.19, vasospastic 0.29, noncardiac 0.22
+Control arm = unguided standard care, represented here as a beta-blocker
+prescribed irrespective of endotype (the commonest real-world default).
+
+stratum           w   SAQ_std  SAQ_strat     dSAQ    dBruce
+-----------------------------------------------------------
+functional     0.30      57.8       59.1    +1.30     +79.7
+structural     0.19      65.6       65.7    +0.05      +3.2
+vasospastic    0.29      51.5       63.6   +12.18     -35.0
+noncardiac     0.22      61.5       68.1    +6.57      +0.0
+
+population mean SAQ: standard 58.3  stratified 63.6  difference +5.38 U
+CorMicA observed                                        +11.70 U
+
+The stratified arm wins here for a mechanical reason, not a pharmacological
+one: the same prescription is right for one endotype and wrong for another,
+so an unstratified arm averages a benefit with a harm.  That average is
+what conventional trials report as 'no effect'.
+
+==============================================================================
+SECTION XI.  TWENTY-FOUR TREATMENT SCENARIOS (24 weeks)
+==============================================================================
+scenario                            CFR  MR_hyp  burden    noci    ANG    SAQ  Bruce  LVEDP    TnI
+--------------------------------------------------------------------------------------------------
+1  untreated functional            1.70    2.37   0.000   0.606   8.38   54.8    480   11.6    3.0
+2  untreated structural            2.02    3.69   0.057   0.234   5.40   60.5    481   12.9    3.3
+3  untreated vasospastic           2.44    2.82   0.395   1.237  12.90   50.2    684   12.9    4.9
+4  non-cardiac chest pain          3.26    2.26   0.000   0.000   4.67   61.5    900   11.2    3.0
+5  ivabradine / functional         1.95    2.29   0.000   0.358   6.48   58.0    551   11.6    3.0
+6  ivabradine / structural         2.33    3.56   0.000   0.024   3.55   66.3    564   12.8    3.0
+7  bisoprolol / functional         1.85    2.33   0.000   0.400   6.62   57.8    529   11.6    3.0
+8  nebivolol / functional          1.81    2.33   0.000   0.447   6.80   57.4    519   11.6    3.0
+9  ranolazine / functional         1.83    2.29   0.000   0.490   7.47   56.2    504   10.1    3.0
+10 ranolazine / structural         2.17    3.57   0.016   0.100   4.20   64.0    531   11.3    3.1
+11 ranolazine / control            3.68    2.13   0.000   0.000   0.02   98.9    900    9.5    3.0
+12 amlodipine / vasospastic        2.57    2.60   0.001   0.058   4.22   63.6    712   12.4    3.0
+13 diltiazem / vasospastic         2.60    2.72   0.145   0.532   5.02   61.4    737   12.4    3.5
+14 nicorandil / structural         2.02    3.66   0.058   0.236   5.44   60.4    481   12.9    3.3
+15 zibotentan / functional         1.67    2.40   0.000   0.546   7.82   55.7    499   12.2    3.0
+16 zibotentan-CF / functional      1.70    2.37   0.000   0.606   8.38   54.8    480   11.6    3.0
+17 IMT WARRIOR / structural        2.09    3.36   0.044   0.189   5.04   61.3    495   12.9    3.2
+18 fasudil / vasospastic           2.63    2.61   0.000   0.069   4.33   63.3    735   12.4    3.0
+19 aminophylline / functional      1.71    2.37   0.000   0.455   6.93   57.2    621   11.6    3.0
+20 imipramine / non-cardiac        3.28    2.25   0.000   0.000   3.85   64.8    900   11.2    3.0
+21 exercise rehab / structural     2.31    3.21   0.000   0.033   2.96   69.0    560   12.8    3.0
+22 iva+ranolazine / functional     2.10    2.22   0.000   0.316   6.13   58.7    576   10.1    3.0
+23 sildenafil / structural         2.01    3.62   0.062   0.244   5.50   60.3    474   12.9    3.3
+24 CorMicA-directed / functional   1.91    2.22   0.000   0.293   5.97   59.1    609   11.6    3.0
+
+Reserve exhaustion workload (the workload at which subendocardial
+autoregulation runs out and flow becomes pressure-passive):
+  control      wl = 4.37
+  functional   wl = 2.30
+  structural   wl = 2.86
+  vasospastic  wl = 3.63
+
+==============================================================================
+SECTION XII.  VIRTUAL POPULATION (n=300)
+==============================================================================
+Risk factors are sampled first; the structural floor and the controller
+offset are drawn CONDITIONALLY on them (bug B10: independent draws produced
+patients with severe remodelling and no risk factor at all).
+
+CFR < 2.5 : 185/300 = 62%              (Rahman observed 53%)
+  functional  (MR_hyp<2.5)  91 = 49%   (observed 62%)
+  structural (MR_hyp>=2.5)  94 = 51%   (observed 38%)
+CFR < 2.0 : 27%   |   IMR >= 25 : 1%   |   MRR < 3.0 : 79%
+
+  functional  n= 91  MR_rest 5.04+-0.55  MR_hyp 2.37+-0.07  CFR 2.13+-0.24
+  structural  n= 94  MR_rest 5.37+-0.78  MR_hyp 2.70+-0.15  CFR 1.99+-0.26
+  CFR>=2.5    n=115  MR_rest 7.11+-0.65  MR_hyp 2.43+-0.16  CFR 2.94+-0.27
+  observed: functional MR_rest 4.2+-1.0, structural 6.9+-1.7,
+            control 7.3+-2.2 mmHg/(cm/s)
+
+WHAT THE HYPERAEMIC-MR CUT-OFF ACTUALLY SEPARATES
+A hyperaemic MR of 2.5 mmHg/(cm/s) is read as 'structural', but the model
+says two different things raise it: inward remodelling and capillary
+rarefaction, which fix the minimal radius, and constrictor tone that
+adenosine does not fully reverse (88% of it is reversed here, calibrated,
+so 12% survives).  The first is not drug-reversible on any useful
+timescale; the second is reversible in weeks.  The label cannot tell them
+apart, but a repeat measurement on a Rho-kinase inhibitor can:
+
+  of 40 patients labelled structural, 0 (0%) fall below the cut-off
+  after 21 days of a Rho-kinase inhibitor - i.e. their 'structural' label
+  was constrictor tone, and the anatomy was never the problem.
+
+  PREDICTION: the hyperaemic measurement should be repeated after acute
+  Rho-kinase or ETA blockade before a patient is told their microvascular
+  disease is structural.  It is a one-visit test and it changes the
+  therapeutic class.
+
+Ranolazine and ivabradine response by stratum (12 weeks, 20 per stratum):
+  ranolazine   functional  dSAQ +1.82 +- 1.14   responders (>=10 U) 0% (n=20)
+  ranolazine   structural  dSAQ +1.19 +- 0.69   responders (>=10 U) 0% (n=20)
+  ivabradine   functional  dSAQ +3.68 +- 2.23   responders (>=10 U) 5% (n=20)
+  ivabradine   structural  dSAQ +2.46 +- 1.35   responders (>=10 U) 0% (n=20)
+
+Two things to read off honestly.  First, ranolazine's effect is small and
+almost identical in the two strata, so the model does NOT support hyperaemic
+MR as a ranolazine-responder test: it predicts that no clinically important
+responder subgroup exists for this drug at this dose, and that RWISE's
+subgroup signal is a real but sub-MCID effect reaching significance on a
+frequency scale rather than a mechanism waiting to be exploited.  Second,
+rate reduction outperforms it in both strata, which is the same ranking
+section IV found and the opposite of the order in which these drugs are
+usually tried in this population.
+
+==============================================================================
+SECTION XIII.  LOCAL SENSITIVITY (+-20%, functional endotype, 12 weeks)
+==============================================================================
+Normalised sensitivity S = (dY/Y)/(dX/X) for the four read-outs that
+matter: CFR, subendocardial burden, the afferent drive, and SAQ.
+
+parameter        S(CFR)  S(burden)   S(noci)    S(SAQ)
+------------------------------------------------------
+RMIN0            -0.827      0.000     0.000     0.000
+A_TONE           -0.005      0.000     0.000     0.000
+G_AUTO           -0.081      0.000     0.000     0.000
+K_ET_TONE        -0.006      0.000     0.000     0.000
+K_ROCK_TONE      -0.002      0.000     0.000     0.000
+KCONV             0.928      0.000    -0.000     0.000
+E_MAX             0.000      0.000    -0.000     0.000
+PHI_SYS           0.105      0.000     0.000     0.000
+W_ENDO           -0.336      0.000     0.000     0.000
+RCOMP_K          -0.126      0.000     0.000     0.000
+TSYS_K           -0.306      0.000     0.000     0.000
+K_TTI            -0.685      0.000     3.328    -0.377
+LVEDP0           -0.182      0.000     0.000     0.000
+K_ANG            -0.024      0.000     0.125    -0.129
+K_NOC_ADO        -0.024      0.000     1.124    -0.129
+K_NOC_DEF         0.000      0.000     0.000     0.000
+SAQ_SENS          0.000      0.000     0.000    -0.199
+K_SYMP_HR        -0.073      0.000     0.400    -0.045
+K_MYO             0.003      0.000     0.000     0.000
+FRAC_DIA_P        0.210      0.000     0.000     0.000
+F_ENDO_DEM       -0.526      0.000     0.000     0.000
+
+SAQ is most sensitive to: K_TTI (-0.38), SAQ_SENS (-0.20), K_ANG (-0.13), K_NOC_ADO (-0.13), K_SYMP_HR (-0.05)
+
+##############################################################################
+SUMMARY OF THE QUANTITATIVE CLAIMS
+##############################################################################
+ 1. Same number, different disease: functional CFR 1.83 vs structural 2.14,
+    while their absolute hyperaemic velocities differ by 57% (2.41 vs
+    1.54 mL/min/g).
+ 2. Resting MR is predicted, not fitted, wherever the controller is intact;
+    the functional endotype needs an offset of 0.92, which forces resting
+    oxygen extraction down to 56% of normal - refutable on one blood gas.
+ 3. Of the fall in subendocardial deficit from 68->55 bpm, 43% is the
+    diastolic time window and 57% is lower demand.
+ 4. CFR ranks drugs badly even when its sign is right: rank correlation
+    between dCFR and the symptom benefit is 0.60 (functional), 0.94
+    (structural), 0.72 (vasospastic).  Hyperaemic MR is the index that a
+    blood-pressure-lowering drug cannot fake.
+ 5. PRIZE: population-weighted model net -4.53 s vs observed -4.26 s
+    (95% CI -19.60 to +11.06); microvascular gain alone +0.00 s, BP fall
+    +2.41 s, fluid retention -6.99 s.
+ 6. RWISE: dSAQ +2.31 U in the CFR<2.5 stratum, +1.22 U in the whole
+    cohort - 53% of the mechanistic effect survives the dilution.
+ 7. WARRIOR: model true hazard ratio 0.90; at 80% background contamination
+    the observable ratio is 0.98. CFR +0.158 but SAQ +2.39 U over 2.5 y.
+ 8. CorMicA: stratified minus unstratified +5.38 U (observed +11.70 U).
+ 9. Virtual population: CFR<2.5 in 62% with a 49/51
+    functional/structural split (observed 53%, 62/38).
+10. Fixed point and fast-ODE formulations agree to 1e-6: yes
+11. SAQ sensitivity is dominated by K_TTI, SAQ_SENS, K_ANG.

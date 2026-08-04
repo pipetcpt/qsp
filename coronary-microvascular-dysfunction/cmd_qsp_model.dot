@@ -1,0 +1,589 @@
+/* ===========================================================================
+   Coronary Microvascular Dysfunction (CMD) / ANOCA-INOCA
+   Quantitative Systems Pharmacology mechanistic map
+   ---------------------------------------------------------------------------
+   ORGANISING IDEA OF THIS MAP
+   ---------------------------------------------------------------------------
+   Every clinically used index of the coronary microcirculation is a RATIO or a
+   DIFFERENCE of two quantities that this map keeps deliberately separate:
+
+     CFR   = Q_hyper / Q_rest          -> a low value can come from a raised
+                                          DENOMINATOR (functional endotype) or
+                                          a floored NUMERATOR (structural)
+     MR    = Pd / v                    -> resistance, not flow
+     DPTI  = (Pd - LVEDP) x t_diastole -> supply is bought only in diastole
+     SPTI  = P_sys x t_systole         -> demand is spent only in systole
+     deficit = MVO2_demand - Q x CaO2 x E_max
+
+   Therefore the map routes SUPPLY and DEMAND to the same three sinks
+   (subendocardial deficit -> nociception -> angina/SAQ) but never merges them,
+   and it keeps DRIVING PRESSURE (Pa, LVEDP), TIME (heart rate, diastolic
+   fraction) and RESISTANCE (tone, structure) as three independent inputs to
+   flow. Most drug arms in this model move two of the three in OPPOSITE
+   directions - which is why several unambiguously "on-target" drugs
+   (zibotentan/PRIZE, ranolazine/RWISE, statin+ACEi/WARRIOR) produced null
+   trials. Those cancellations are drawn explicitly as red inhibitory edges
+   from the drug nodes back onto pressure and filling-pressure nodes.
+
+   Node shapes:  box       = state variable in the mrgsolve model
+                 ellipse   = mediator / signal
+                 hexagon   = drug or diagnostic agent
+                 diamond   = measured index / clinical endpoint
+                 octagon   = structural (slow, days-years) variable
+   Edge colours: black  = activation / flux
+                 red    = inhibition / opposing effect
+                 blue   = drug action
+                 green  = diagnostic read-out
+                 purple = slow structural remodelling
+   =========================================================================== */
+
+digraph CMD_QSP {
+    graph [rankdir=TB, newrank=true, splines=spline, overlap=false, nodesep=0.24, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, compound=true, labelloc="t",
+           label=<<B>Coronary Microvascular Dysfunction (ANOCA / INOCA) — Quantitative Systems Pharmacology Map</B><BR/>
+                  <FONT POINT-SIZE="11">관상동맥 미세혈관 기능장애 QSP 기계론적 지도 · 71-ODE mrgsolve model · 2 myocardial layers × 14 drugs · 19 clusters</FONT><BR/>
+                  <FONT POINT-SIZE="10">CFR = Q_hyper / Q_rest is a RATIO — the same low value arises from a raised resting DENOMINATOR (functional endotype) or a floored hyperaemic NUMERATOR (structural endotype)</FONT><BR/>
+                  <FONT POINT-SIZE="10">Supply is bought only in diastole (DPTI), demand is spent only in systole (SPTI) — heart rate therefore enters the oxygen balance twice, with the same sign</FONT><BR/>
+                  <FONT POINT-SIZE="10">black = flux/activation &#160;·&#160; red = inhibition or an opposing (cancelling) effect &#160;·&#160; blue = drug action &#160;·&#160; green = diagnostic read-out &#160;·&#160; purple = slow structural remodelling</FONT>>];
+    node  [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box,
+           fillcolor="#f7f7f7", color="#555555", penwidth=1.0];
+    edge  [fontname="Helvetica", fontsize=8, color="#444444", arrowsize=0.6];
+
+    /* ---------------------------------------------------------------- 1 */
+    subgraph cluster_risk {
+        label="1. 전신 위험인자·동인 (Systemic drivers)";
+        style="filled,rounded"; fillcolor="#fdf6e3"; color="#b58900"; fontsize=13;
+        RF_HTN   [label="고혈압\nHypertension\n(pulsatile load, LVH)"];
+        RF_DM    [label="당뇨·인슐린저항성\nDiabetes / IR\nHbA1c"];
+        RF_LDL   [label="LDL-C\ndyslipidaemia", shape=box];
+        RF_SMOKE [label="흡연\nsmoking"];
+        RF_OBES  [label="비만·내장지방\nobesity"];
+        RF_EAT   [label="심장외막 지방\nepicardial adipose\ntissue (EAT)"];
+        RF_MENO  [label="폐경·에스트로겐 소실\nmenopause / oestrogen loss"];
+        RF_INFL  [label="전신 염증\nIL-6 · TNFα · hsCRP", shape=ellipse, fillcolor="#ffe8e8"];
+        RF_CKD   [label="CKD·요독\nrenal dysfunction"];
+        RF_AUTOIMM [label="전신 염증질환\nRA · SLE · psoriasis"];
+        RF_GENE  [label="rs9349379-G (PHACTR1/EDN1)\nET-1 상승 유전형", fillcolor="#efe6ff"];
+        RF_MICROB [label="미세혈관 취약성\n(sex, age, genetics)"];
+    }
+
+    /* ---------------------------------------------------------------- 2 */
+    subgraph cluster_endo {
+        label="2. 내피 기능 (Endothelial signalling)";
+        style="filled,rounded"; fillcolor="#e8f4ff"; color="#268bd2"; fontsize=13;
+        EN_SHEAR [label="전단응력\nshear stress", shape=ellipse];
+        EN_eNOS  [label="eNOS\n(dimer, coupled)", shape=ellipse];
+        EN_BH4   [label="BH4\ntetrahydrobiopterin", shape=box, fillcolor="#eaf7ea"];
+        EN_BH2   [label="BH2 / 산화형\n(uncoupling)", shape=ellipse];
+        EN_ROS   [label="ROS · O2•−\nNOX2/4 · xanthine oxidase", shape=box, fillcolor="#ffe8e8"];
+        EN_NO    [label="NO 가용성\nNO bioavailability", shape=box, fillcolor="#eaf7ea"];
+        EN_ADMA  [label="ADMA\n(eNOS 경쟁적 억제)", shape=ellipse, fillcolor="#ffe8e8"];
+        EN_ARG   [label="L-arginine\n· arginase", shape=ellipse];
+        EN_ONOO  [label="ONOO−\nperoxynitrite", shape=ellipse, fillcolor="#ffe8e8"];
+        EN_PGI2  [label="PGI2\nprostacyclin", shape=ellipse];
+        EN_EDHF  [label="EDHF / H2O2\nendothelium-derived\nhyperpolarising factor", shape=ellipse];
+        EN_TXA2  [label="TXA2 · PGH2\n수축성 프로스타노이드", shape=ellipse, fillcolor="#ffe8e8"];
+        EN_VWF   [label="vWF · 내피 활성화\nadhesion molecules", shape=ellipse];
+        EN_GLYC  [label="glycocalyx 손상", shape=ellipse];
+        EN_ACHR  [label="M3 무스카린 수용체\n(ACh → NO)", shape=ellipse];
+    }
+
+    /* ---------------------------------------------------------------- 3 */
+    subgraph cluster_constrict {
+        label="3. 수축 매개체 (Constrictor axis)";
+        style="filled,rounded"; fillcolor="#ffeef0"; color="#dc322f"; fontsize=13;
+        CO_ET1   [label="ET-1\nendothelin-1", shape=box, fillcolor="#ffdede"];
+        CO_ETA   [label="ETA 수용체\n(SMC, 수축)", shape=ellipse, fillcolor="#ffdede"];
+        CO_ETB1  [label="ETB1 (내피)\n→ NO 방출·청소", shape=ellipse];
+        CO_ETB2  [label="ETB2 (SMC)\n수축", shape=ellipse, fillcolor="#ffdede"];
+        CO_ECE   [label="ECE-1\nbig-ET-1 → ET-1", shape=ellipse];
+        CO_A1    [label="α1-아드레날린 수용체\n(prearteriolar)", shape=ellipse];
+        CO_5HT   [label="5-HT2A\n(혈소판 유래)", shape=ellipse];
+        CO_AVP   [label="AVP · AngII\nV1a · AT1", shape=ellipse];
+        CO_RHOA  [label="RhoA\nGTP 결합", shape=ellipse];
+        CO_ROCK  [label="ROCK\nRho-kinase 활성", shape=box, fillcolor="#ffdede"];
+        CO_MLCP  [label="MLC phosphatase\n(MYPT1 억제)", shape=ellipse];
+        CO_CPI17 [label="CPI-17\nPKC 매개", shape=ellipse];
+        CO_SENS  [label="SMC 과수축성\nhypercontractility\n(Ca 비의존 감작)", shape=box, fillcolor="#ffdede"];
+    }
+
+    /* ---------------------------------------------------------------- 4 */
+    subgraph cluster_smc {
+        label="4. 세동맥 평활근 전기·칼슘 (Arteriolar SMC)";
+        style="filled,rounded"; fillcolor="#f3f0ff"; color="#6c71c4"; fontsize=13;
+        SM_KATP  [label="K_ATP 채널\n(대사성 확장)", shape=ellipse];
+        SM_KV    [label="Kv 채널", shape=ellipse];
+        SM_KCA   [label="BK_Ca 채널", shape=ellipse];
+        SM_VM    [label="막전위 Vm\nmembrane potential", shape=ellipse];
+        SM_CAL   [label="L-type Ca2+ 채널\n(Cav1.2)", shape=ellipse];
+        SM_CAI   [label="SMC [Ca2+]i", shape=box];
+        SM_MLCK  [label="MLCK\n(Ca-calmodulin)", shape=ellipse];
+        SM_MLC20 [label="p-MLC20\n(수축 상태)", shape=box, fillcolor="#ffdede"];
+        SM_CGMP  [label="cGMP\n(sGC)", shape=box, fillcolor="#eaf7ea"];
+        SM_PKG   [label="PKG", shape=ellipse];
+        SM_PDE5  [label="PDE5", shape=ellipse];
+        SM_CAMP  [label="cAMP\n(PGI2 · β2)", shape=ellipse];
+        SM_TONE  [label="세동맥 긴장도 TONE_A\n(0 = 최대확장, 1 = 최대수축)", shape=box, fillcolor="#dcd6ff", penwidth=2.0];
+        SM_RADIUS [label="세동맥 반경 r\nR ∝ 1/r⁴", shape=box, fillcolor="#dcd6ff"];
+    }
+
+    /* ---------------------------------------------------------------- 5 */
+    subgraph cluster_auto {
+        label="5. 대사성·근긴장성 자동조절 (Autoregulation)";
+        style="filled,rounded"; fillcolor="#e9f7ef"; color="#2aa198"; fontsize=13;
+        AU_DEFICIT [label="산소 결손 신호\nO2 supply−demand gap", shape=box, fillcolor="#ffe8e8"];
+        AU_ADO   [label="간질 아데노신\ninterstitial adenosine", shape=box, fillcolor="#dff5ef"];
+        AU_AMP   [label="AMP · 5′-nucleotidase", shape=ellipse];
+        AU_A2A   [label="A2A 수용체\n(SMC 확장)", shape=ellipse];
+        AU_A1    [label="A1 수용체\n(구심성 통각)", shape=ellipse];
+        AU_KEXT  [label="세포외 K+\n(재분극 유출)", shape=ellipse];
+        AU_PCO2  [label="조직 PCO2 · H+", shape=ellipse];
+        AU_PO2   [label="조직 PO2", shape=ellipse];
+        AU_MYO   [label="근긴장성 반응\nmyogenic (Bayliss)", shape=ellipse];
+        AU_GAIN  [label="자동조절 이득\nautoregulatory gain", shape=ellipse];
+        AU_RESERVE [label="확장 예비력\nvasodilator reserve", shape=diamond, fillcolor="#dff5ef"];
+    }
+
+    /* ---------------------------------------------------------------- 6 */
+    subgraph cluster_struct {
+        label="6. 미세혈관 구조 리모델링 (Structural remodelling — 느린 축)";
+        style="filled,rounded"; fillcolor="#f6e9ff"; color="#8e44ad"; fontsize=13;
+        ST_ML    [label="세동맥 media/lumen 비\ninward remodelling", shape=octagon, fillcolor="#eedcff"];
+        ST_CAPD  [label="모세혈관 밀도\ncapillary density\n(rarefaction)", shape=octagon, fillcolor="#eedcff"];
+        ST_PVF   [label="혈관주위 섬유화\nperivascular fibrosis", shape=octagon, fillcolor="#eedcff"];
+        ST_ICF   [label="간질 섬유화\ninterstitial fibrosis (ECV)", shape=octagon, fillcolor="#eedcff"];
+        ST_LVH   [label="좌심실 질량 LVMi\nhypertrophy", shape=octagon, fillcolor="#eedcff"];
+        ST_RMIN  [label="최소 미세혈관 저항 R_min\n(구조적 하한)", shape=box, fillcolor="#eedcff", penwidth=2.0];
+        ST_VEGF  [label="VEGF · angiopoietin\n혈관신생 신호", shape=ellipse];
+        ST_TGFB  [label="TGF-β · CTGF", shape=ellipse];
+        ST_PERI  [label="pericyte 소실", shape=ellipse];
+        ST_AGE   [label="AGE·RAGE\n기저막 두께 증가", shape=ellipse];
+    }
+
+    /* ---------------------------------------------------------------- 7 */
+    subgraph cluster_resist {
+        label="7. 관상동맥 저항 네트워크 (Resistance network)";
+        style="filled,rounded"; fillcolor="#eef6f9"; color="#00688b"; fontsize=13;
+        RS_PA    [label="대동맥압 Pa\naortic pressure", shape=box, fillcolor="#d6ecf5"];
+        RS_PD    [label="말초 관류압 Pd\ndistal coronary pressure", shape=box, fillcolor="#d6ecf5"];
+        RS_REPI  [label="심표면 동맥 저항 R_epi\n(비폐색: FFR ≈ 1)", shape=box];
+        RS_RPRE  [label="전세동맥 저항 R_pre\nprearteriolar (100–500 µm)", shape=box];
+        RS_RART  [label="세동맥 저항 R_art\narteriolar (<100 µm) — 조절 부위", shape=box, fillcolor="#d6ecf5", penwidth=2.0];
+        RS_RCAP  [label="모세혈관 저항 R_cap", shape=box];
+        RS_RVEN  [label="정맥 저항·Pv\nvenous outflow", shape=box];
+        RS_EXTRA [label="혈관외 압박\nextravascular compression\n(LVEDP · 수축기 압축)", shape=box, fillcolor="#ffe8e8"];
+        RS_RTOT  [label="총 미세혈관 저항 R_micro", shape=box, fillcolor="#d6ecf5", penwidth=2.0];
+        RS_Q     [label="관상동맥 혈류 Q\n(속도 v, cm/s)", shape=box, fillcolor="#d6ecf5", penwidth=2.0];
+        RS_LVEDP [label="LV 확장기말압 LVEDP", shape=box, fillcolor="#ffe8e8"];
+        RS_VOL   [label="혈장량·체액 보유\nplasma volume", shape=box];
+    }
+
+    /* ---------------------------------------------------------------- 8 */
+    subgraph cluster_demand {
+        label="8. 심근 산소 요구 (Myocardial oxygen demand)";
+        style="filled,rounded"; fillcolor="#fff3e0"; color="#cb4b16"; fontsize=13;
+        DM_HR    [label="심박수 HR", shape=box, fillcolor="#ffe0c0", penwidth=2.0];
+        DM_SBP   [label="수축기압 SBP\n(운동 시 상승)", shape=box, fillcolor="#ffe0c0"];
+        DM_CONTR [label="수축력 contractility\n(dP/dt)", shape=box];
+        DM_WALL  [label="수축기 벽응력 σ_sys\nLaplace (P·r/2h)", shape=box];
+        DM_DIAST [label="확장기 벽장력\ndiastolic wall tension", shape=box, fillcolor="#ffe0c0"];
+        DM_RPP   [label="심박수-혈압 곱 RPP\nrate-pressure product", shape=diamond];
+        DM_MVO2  [label="MVO2 심근 산소소비", shape=box, fillcolor="#ffe0c0", penwidth=2.0];
+        DM_SYMP  [label="교감신경 긴장도\nsympathetic tone", shape=box, fillcolor="#ffe0c0"];
+        DM_BARO  [label="압수용체 반사\nbaroreflex", shape=ellipse];
+        DM_EXER  [label="활동 강도\nexercise / ADL demand", shape=ellipse];
+        DM_SPTI  [label="SPTI = P_sys × t_systole\n수축기 장력-시간 지수", shape=diamond, fillcolor="#ffe0c0"];
+    }
+
+    /* ---------------------------------------------------------------- 9 */
+    subgraph cluster_window {
+        label="9. 이완기 관류 창 (Diastolic perfusion window)";
+        style="filled,rounded"; fillcolor="#f0f7e8"; color="#5a8f29"; fontsize=13;
+        WD_TS    [label="수축기 지속 t_sys\n≈ 0.30·√(60/HR) s", shape=ellipse];
+        WD_TD    [label="확장기 지속 t_dia\n= 60/HR − t_sys", shape=ellipse];
+        WD_FDIA  [label="확장기 시간분율 f_dia", shape=box, fillcolor="#e2f0cf", penwidth=2.0];
+        WD_DPTI  [label="DPTI = (Pd − LVEDP) × t_dia\n확장기 관류압-시간 지수", shape=diamond, fillcolor="#e2f0cf"];
+        WD_SEVR  [label="SEVR = DPTI / SPTI\nsubendocardial viability ratio", shape=diamond, fillcolor="#e2f0cf"];
+    }
+
+    /* --------------------------------------------------------------- 10 */
+    subgraph cluster_layer {
+        label="10. 층별 관류 분포 (Transmural distribution)";
+        style="filled,rounded"; fillcolor="#eaf6f6"; color="#1f7a7a"; fontsize=13;
+        LY_QEPI  [label="심표면층 혈류 Q_epi\n(전 심주기 관류)", shape=box];
+        LY_QENDO [label="심내막하 혈류 Q_endo\n(확장기에만 관류)", shape=box, fillcolor="#cdeaea", penwidth=2.0];
+        LY_RATIO [label="endo/epi 관류비\n(<1.0 = 유발성 허혈)", shape=diamond, fillcolor="#cdeaea", penwidth=2.0];
+        LY_SUPPLY [label="산소 공급 Q·CaO2·E_max", shape=box];
+        LY_DEF   [label="심내막하 산소 결손\nsubendocardial deficit", shape=box, fillcolor="#ffcccc", penwidth=2.0];
+        LY_CAO2  [label="CaO2 · Hb · SaO2", shape=ellipse];
+        LY_EXTR  [label="산소 추출률 E\n(안정 시 이미 ~75%)", shape=ellipse];
+    }
+
+    /* --------------------------------------------------------------- 11 */
+    subgraph cluster_energy {
+        label="11. 심근 에너지·이온 항상성 (Myocyte energetics)";
+        style="filled,rounded"; fillcolor="#fbf1e0"; color="#a9741a"; fontsize=13;
+        EG_ATP   [label="ATP / PCr 비", shape=box];
+        EG_LACT  [label="젖산 lactate", shape=box, fillcolor="#ffe8e8"];
+        EG_LATENA [label="지연 나트륨전류 late I_Na\n(NaV1.5 지속성분)", shape=box, fillcolor="#ffe8e8"];
+        EG_NAI   [label="세포내 [Na+]i", shape=box];
+        EG_NCX   [label="NCX 역방향 수송", shape=ellipse];
+        EG_CADIAST [label="확장기 [Ca2+]i 과부하", shape=box, fillcolor="#ffe8e8"];
+        EG_SERCA [label="SERCA2a · 이완", shape=ellipse];
+        EG_FFA   [label="유리지방산 산화\n(산소 비효율)", shape=ellipse];
+        EG_GLUC  [label="포도당 산화\n(3-KAT 억제 시 전환)", shape=ellipse];
+        EG_TNI   [label="hs-cTnI 유출", shape=box, fillcolor="#ffe8e8"];
+        EG_BNP   [label="NT-proBNP", shape=box];
+    }
+
+    /* --------------------------------------------------------------- 12 */
+    subgraph cluster_spasm {
+        label="12. 경련 표현형 (Vasospastic phenotypes)";
+        style="filled,rounded"; fillcolor="#ffecec"; color="#a01818"; fontsize=13;
+        SP_EPI   [label="심표면 혈관경련\nepicardial spasm\n(>90% 협착 + ST 변화)", shape=box, fillcolor="#ffd6d6"];
+        SP_MICRO [label="미세혈관 경련\nmicrovascular spasm\n(협착 없이 흉통·ST 변화)", shape=box, fillcolor="#ffd6d6"];
+        SP_ACH   [label="아세틸콜린 유발검사\nACh 2–100 µg", shape=hexagon, fillcolor="#e0e0ff"];
+        SP_THRESH [label="경련 문턱\nspasm threshold", shape=ellipse];
+        SP_MIXED [label="혼합 표현형\n(CMD + 경련 동반, ~20–40%)", shape=box, fillcolor="#ffd6d6"];
+        SP_ACHFR [label="ACh flow reserve\n내피 의존성 예비력", shape=diamond, fillcolor="#e2f0cf"];
+    }
+
+    /* --------------------------------------------------------------- 13 */
+    subgraph cluster_pain {
+        label="13. 통각·중추 감작 (Nociception & central sensitisation)";
+        style="filled,rounded"; fillcolor="#f2eaff"; color="#7d3c98"; fontsize=13;
+        PN_ADEL  [label="심장 A-δ · C 구심섬유", shape=ellipse];
+        PN_TRPV1 [label="TRPV1 · ASIC3\n(H+ · 젖산 감지)", shape=ellipse];
+        PN_P2X   [label="P2X · A1 수용체\n(ATP·아데노신)", shape=ellipse];
+        PN_SPINAL [label="척수 배각 T1–T4\ndorsal horn", shape=ellipse];
+        PN_CENTR [label="중추 감작 SENS\ncentral sensitisation", shape=box, fillcolor="#e6d9ff", penwidth=2.0];
+        PN_GAIN  [label="통각 이득\nnociceptive gain", shape=ellipse];
+        PN_CORT  [label="섬엽·전대상피질\ncortical processing", shape=ellipse];
+        PN_ANG   [label="협심증 발생률\nangina episode rate", shape=box, fillcolor="#e6d9ff", penwidth=2.0];
+    }
+
+    /* --------------------------------------------------------------- 14 */
+    subgraph cluster_loop {
+        label="14. 자율신경 되먹임 고리 (Ischaemia → pain → sympathetic → ischaemia)";
+        style="filled,rounded"; fillcolor="#fff0f5"; color="#c2185b"; fontsize=13;
+        LP_PAINSYMP [label="통증 → 교감 활성화", shape=ellipse, fillcolor="#ffd9e6"];
+        LP_HRUP  [label="HR·SBP 상승", shape=ellipse, fillcolor="#ffd9e6"];
+        LP_LOOP  [label="되먹임 이득 G_loop\n(>1 → 자기지속 상태)", shape=box, fillcolor="#ffd9e6", penwidth=2.0];
+        LP_ALPHA [label="α1 매개 전세동맥 수축", shape=ellipse, fillcolor="#ffd9e6"];
+    }
+
+    /* --------------------------------------------------------------- 15 */
+    subgraph cluster_dx {
+        label="15. 진단 지표 (Invasive & imaging indices)";
+        style="filled,rounded"; fillcolor="#eaffea"; color="#2e7d32"; fontsize=13;
+        DX_ADO   [label="아데노신 140 µg/kg/min\n(내피 비의존 최대확장)", shape=hexagon, fillcolor="#e0e0ff"];
+        DX_CFR   [label="CFR = Q_hyper / Q_rest\n(<2.0 또는 <2.5 이상)", shape=diamond, fillcolor="#c8f0c8", penwidth=2.0];
+        DX_MRREST [label="안정 MR = Pd / v_rest\n(mmHg/cm/s)", shape=diamond, fillcolor="#c8f0c8"];
+        DX_MRHYP [label="최대충혈 MR = Pd / v_hyper\n(≥2.5 = 구조적)", shape=diamond, fillcolor="#c8f0c8", penwidth=2.0];
+        DX_IMR   [label="IMR = Pd × Tmn_hyper\n(≥25 U)", shape=diamond, fillcolor="#c8f0c8"];
+        DX_MRR   [label="MRR = (CFR/FFR)·(Pa_r/Pa_h)\nmicrovascular resistance reserve", shape=diamond, fillcolor="#c8f0c8"];
+        DX_MPRI  [label="CMR MPRI\nmyocardial perfusion reserve index", shape=diamond, fillcolor="#c8f0c8"];
+        DX_PET   [label="PET MBF · MFR\n(mL/min/g)", shape=diamond, fillcolor="#c8f0c8"];
+        DX_EST   [label="운동 부하 ECG\nST 하강 ≥0.1 mV", shape=diamond, fillcolor="#c8f0c8"];
+        DX_ENDO  [label="Endotype 분류\n기능적 vs 구조적 vs 경련", shape=diamond, fillcolor="#a8e6a8", penwidth=2.0];
+    }
+
+    /* --------------------------------------------------------------- 16 */
+    subgraph cluster_pk {
+        label="16. 약물 PK (Pharmacokinetics)";
+        style="filled,rounded"; fillcolor="#eef0ff"; color="#3f51b5"; fontsize=13;
+        PK_RAN   [label="라놀라진 ranolazine\n500–1000 mg BID\nER, CYP3A4", shape=hexagon, fillcolor="#dcdcff"];
+        PK_IVA   [label="이바브라딘 ivabradine\n5–7.5 mg BID\n(+S18982 대사체)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_BB    [label="β차단제 bisoprolol\n2.5–10 mg qd\n(nebivolol: β3/NO)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_CCB   [label="칼슘차단제\namlodipine · diltiazem\n· verapamil", shape=hexagon, fillcolor="#dcdcff"];
+        PK_NIC   [label="니코란딜 nicorandil\n5–20 mg TID\n(K_ATP + NO)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_ZIB   [label="지보텐탄 zibotentan\n10 mg qd (ETA)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_ACEI  [label="ACEi/ARB\nramipril · valsartan", shape=hexagon, fillcolor="#dcdcff"];
+        PK_STAT  [label="스타틴 atorvastatin\n40–80 mg qd", shape=hexagon, fillcolor="#dcdcff"];
+        PK_FAS   [label="파수딜 fasudil\n(ROCK 억제)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_PDE5  [label="실데나필 sildenafil\n(PDE5 억제)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_NTG   [label="나이트레이트 nitrate\n(심표면 우세)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_AMI   [label="아미노필린 aminophylline\n(아데노신 수용체 차단)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_TMZ   [label="트리메타지딘 trimetazidine\n(3-KAT 억제)", shape=hexagon, fillcolor="#dcdcff"];
+        PK_IMI   [label="저용량 이미프라민\n(통증 조절)", shape=hexagon, fillcolor="#dcdcff"];
+    }
+
+    /* --------------------------------------------------------------- 17 */
+    subgraph cluster_endpoint {
+        label="17. 임상 엔드포인트 (Clinical endpoints)";
+        style="filled,rounded"; fillcolor="#f5f5f5"; color="#333333"; fontsize=13;
+        EP_SAQ   [label="SAQ 요약점수\nSeattle Angina Questionnaire\n(CorMicA Δ +11.7 U)", shape=diamond, fillcolor="#e8e8e8", penwidth=2.0];
+        EP_FREQ  [label="협심증 빈도\nSAQ angina frequency", shape=diamond, fillcolor="#e8e8e8"];
+        EP_EXDUR [label="트레드밀 운동 지속시간\n(PRIZE 1차 지표)", shape=diamond, fillcolor="#e8e8e8", penwidth=2.0];
+        EP_QOL   [label="EQ-5D · 삶의 질", shape=diamond, fillcolor="#e8e8e8"];
+        EP_HOSP  [label="협심증 입원\n(WARRIOR MACE 주 성분)", shape=diamond, fillcolor="#e8e8e8"];
+        EP_MACE  [label="MACE\n사망·MI·뇌졸중·입원", shape=diamond, fillcolor="#e8e8e8", penwidth=2.0];
+        EP_HFPEF [label="HFpEF 진행\n(장기 결과)", shape=diamond, fillcolor="#e8e8e8"];
+        EP_MORT  [label="사망률\n(CFR 0.1 단위당 HR 1.16)", shape=diamond, fillcolor="#e8e8e8"];
+    }
+
+    /* --------------------------------------------------------------- 18 */
+    subgraph cluster_dilution {
+        label="18. 시험 설계 희석 (Why on-target drugs produced null trials)";
+        style="filled,rounded"; fillcolor="#fffbe6"; color="#8d6e00"; fontsize=13;
+        TR_MIX   [label="혼합 모집단\n비-CMD 47% 포함", shape=box, fillcolor="#fff3c4"];
+        TR_CONTAM [label="배경 치료 오염\nbaseline statin/ACEi 사용률", shape=box, fillcolor="#fff3c4"];
+        TR_CANCEL [label="약물 내부 상쇄\nR_micro↓ vs Pa↓ · LVEDP↑", shape=box, fillcolor="#fff3c4", penwidth=2.0];
+        TR_TSCALE [label="시간규모 불일치\n구조 표적(년) vs 증상 종점(주)", shape=box, fillcolor="#fff3c4"];
+        TR_POWER [label="관측 효과크기\n= 참효과 × 유병분율 × (1−오염)", shape=diamond, fillcolor="#fff3c4", penwidth=2.0];
+    }
+
+    /* --------------------------------------------------------------- 19 */
+    subgraph cluster_strat {
+        label="19. 계층화 치료 논리 (Endotype-directed therapy — CorMicA)";
+        style="filled,rounded"; fillcolor="#e8f8f5"; color="#117864"; fontsize=13;
+        SR_FUNC  [label="기능적 CMD\nCFR<2.5, 최대충혈 MR<2.5\n안정 MR 4.2±1.0 (낮음)", shape=box, fillcolor="#d0f0e6"];
+        SR_STRUCT [label="구조적 CMD\nCFR<2.5, 최대충혈 MR≥2.5\n안정 MR 6.9±1.7", shape=box, fillcolor="#d0f0e6"];
+        SR_VASO  [label="경련성 협심증\nACh 양성", shape=box, fillcolor="#d0f0e6"];
+        SR_NONCARD [label="비심장성 흉통\nCFR·ACh 정상", shape=box, fillcolor="#d0f0e6"];
+        SR_RX1   [label="요구 감소 전략\nβ차단·이바브라딘·라놀라진", shape=box, fillcolor="#d0f0e6"];
+        SR_RX2   [label="공급·구조 전략\nACEi·스타틴·운동재활", shape=box, fillcolor="#d0f0e6"];
+        SR_RX3   [label="경련 전략\nCCB·나이트레이트·(ROCK)", shape=box, fillcolor="#d0f0e6"];
+        SR_RX4   [label="통증 조절 전략\n이미프라민·인지행동·SCS", shape=box, fillcolor="#d0f0e6"];
+    }
+
+    /* ==================== EDGES: risk factors -> mechanism ============= */
+    RF_HTN -> EN_ROS; RF_HTN -> ST_ML [color="#8e44ad"]; RF_HTN -> ST_LVH [color="#8e44ad"];
+    RF_HTN -> RS_PA; RF_HTN -> AU_MYO;
+    RF_DM -> EN_ROS; RF_DM -> ST_AGE [color="#8e44ad"]; RF_DM -> ST_CAPD [color="#8e44ad", label="rarefaction"];
+    RF_DM -> EN_ARG [color="#dc322f", label="arginase↑"];
+    RF_LDL -> EN_ROS; RF_LDL -> EN_NO [color="#dc322f"]; RF_LDL -> CO_ROCK [label="remnant lipoprotein"];
+    RF_SMOKE -> EN_ROS; RF_SMOKE -> CO_ROCK;
+    RF_OBES -> RF_EAT; RF_OBES -> RF_INFL;
+    RF_EAT -> RF_INFL [label="perivascular\ncytokines"]; RF_EAT -> ST_PVF [color="#8e44ad"];
+    RF_MENO -> EN_eNOS [color="#dc322f", label="oestrogen loss"];
+    RF_MENO -> RF_MICROB;
+    RF_INFL -> EN_ROS; RF_INFL -> EN_ADMA; RF_INFL -> ST_PERI [color="#8e44ad"];
+    RF_CKD -> EN_ADMA; RF_CKD -> RF_INFL;
+    RF_AUTOIMM -> RF_INFL;
+    RF_GENE -> CO_ET1 [label="EDN1 발현↑", color="#8e44ad"];
+    RF_MICROB -> ST_RMIN [color="#8e44ad"];
+
+    /* ==================== EDGES: endothelium ========================== */
+    EN_SHEAR -> EN_eNOS; EN_eNOS -> EN_NO; EN_BH4 -> EN_eNOS [label="coupling"];
+    EN_ROS -> EN_BH2 [label="BH4 산화"]; EN_BH2 -> EN_eNOS [color="#dc322f", label="uncoupling"];
+    EN_BH2 -> EN_ROS [label="futile cycle"];
+    EN_ADMA -> EN_eNOS [color="#dc322f"]; EN_ARG -> EN_eNOS [label="substrate"];
+    EN_ROS -> EN_NO [color="#dc322f", label="NO 소거"]; EN_NO -> EN_ONOO; EN_ROS -> EN_ONOO;
+    EN_ONOO -> EN_BH2; EN_ONOO -> EG_LATENA [label="지연 INa 증가"];
+    EN_NO -> SM_CGMP [label="sGC 활성화"]; EN_PGI2 -> SM_CAMP; EN_EDHF -> SM_KCA;
+    EN_TXA2 -> SM_CAI; EN_ROS -> EN_TXA2;
+    EN_ACHR -> EN_NO [label="정상 내피"]; EN_ACHR -> SM_CAI [color="#dc322f", label="내피 손상 시\n직접 M3 수축"];
+    EN_GLYC -> EN_SHEAR [color="#dc322f"]; EN_ROS -> EN_GLYC;
+    EN_VWF -> EP_MACE [style=dashed];
+    EN_NO -> CO_ET1 [color="#dc322f", label="ET-1 생성 억제"];
+
+    /* ==================== EDGES: constrictor axis ===================== */
+    CO_ECE -> CO_ET1; CO_ET1 -> CO_ETA; CO_ET1 -> CO_ETB1; CO_ET1 -> CO_ETB2;
+    CO_ETB1 -> EN_NO [label="내피 ETB → NO"]; CO_ETB1 -> CO_ET1 [color="#dc322f", label="폐 청소"];
+    CO_ETA -> SM_CAI; CO_ETA -> CO_RHOA; CO_ETB2 -> SM_CAI;
+    CO_A1 -> RS_RPRE [label="전세동맥 수축"]; CO_A1 -> CO_RHOA;
+    CO_5HT -> SM_CAI; CO_AVP -> SM_CAI;
+    CO_RHOA -> CO_ROCK; CO_ROCK -> CO_MLCP [color="#dc322f", label="MYPT1 인산화"];
+    CO_CPI17 -> CO_MLCP [color="#dc322f"]; CO_ROCK -> CO_CPI17;
+    CO_MLCP -> SM_MLC20 [color="#dc322f", label="탈인산화"];
+    CO_ROCK -> CO_SENS; CO_SENS -> SP_THRESH [color="#dc322f", label="문턱 하강"];
+    RF_INFL -> CO_ROCK;
+
+    /* ==================== EDGES: SMC electro-mechanics ================ */
+    SM_KATP -> SM_VM [label="과분극"]; SM_KV -> SM_VM; SM_KCA -> SM_VM;
+    SM_VM -> SM_CAL [color="#dc322f", label="과분극 → 폐쇄"];
+    SM_CAL -> SM_CAI; SM_CAI -> SM_MLCK; SM_MLCK -> SM_MLC20;
+    SM_CGMP -> SM_PKG; SM_PKG -> SM_KCA; SM_PKG -> SM_CAI [color="#dc322f"];
+    SM_PKG -> CO_ROCK [color="#dc322f"]; SM_PDE5 -> SM_CGMP [color="#dc322f"];
+    SM_CAMP -> SM_CAI [color="#dc322f"];
+    SM_MLC20 -> SM_TONE; CO_SENS -> SM_TONE [label="Ca 비의존 성분"];
+    SM_TONE -> SM_RADIUS [color="#dc322f"]; SM_RADIUS -> RS_RART [color="#dc322f", label="R ∝ r⁻⁴"];
+
+    /* ==================== EDGES: autoregulation ======================= */
+    LY_DEF -> AU_DEFICIT; AU_DEFICIT -> AU_AMP; AU_AMP -> AU_ADO;
+    AU_ADO -> AU_A2A; AU_A2A -> SM_KATP; AU_A2A -> SM_CAMP;
+    AU_ADO -> AU_A1; AU_A1 -> PN_P2X [label="통각 신호"];
+    AU_DEFICIT -> AU_KEXT; AU_KEXT -> SM_VM; AU_DEFICIT -> AU_PCO2; AU_PCO2 -> SM_TONE [color="#dc322f"];
+    AU_PO2 -> SM_KATP [color="#dc322f", label="PO2↓ → 개방"];
+    AU_MYO -> SM_TONE [label="압력 상승 시 수축"];
+    RS_PD -> AU_MYO;
+    AU_ADO -> SM_TONE [color="#dc322f", label="대사성 확장"];
+    AU_GAIN -> SM_TONE; AU_ADO -> AU_GAIN;
+    ST_RMIN -> AU_RESERVE [color="#dc322f", label="예비력 상한 제한"];
+    SM_TONE -> AU_RESERVE [label="안정 시 긴장도가\n예비력을 결정"];
+
+    /* ==================== EDGES: structure =========================== */
+    ST_TGFB -> ST_PVF [color="#8e44ad"]; ST_TGFB -> ST_ICF [color="#8e44ad"];
+    RF_INFL -> ST_TGFB; ST_AGE -> ST_ML [color="#8e44ad"];
+    ST_PERI -> ST_CAPD [color="#dc322f"]; ST_VEGF -> ST_CAPD [color="#8e44ad"];
+    ST_LVH -> ST_CAPD [color="#dc322f", label="질량/모세혈관 불균형"];
+    ST_LVH -> RS_EXTRA; ST_ICF -> RS_LVEDP;
+    ST_ML -> ST_RMIN [color="#8e44ad", label="내향 리모델링"];
+    ST_CAPD -> ST_RMIN [color="#8e44ad", label="R_min ∝ 1/밀도"];
+    ST_PVF -> ST_RMIN [color="#8e44ad"];
+    ST_RMIN -> RS_RART [color="#8e44ad", label="구조적 하한"];
+    ST_RMIN -> DX_MRHYP [color="#2e7d32", label="최대충혈 MR을 결정"];
+
+    /* ==================== EDGES: resistance network =================== */
+    RS_PA -> RS_PD; RS_REPI -> RS_PD [color="#dc322f"];
+    RS_RPRE -> RS_RTOT; RS_RART -> RS_RTOT; RS_RCAP -> RS_RTOT; RS_RVEN -> RS_RTOT;
+    RS_EXTRA -> RS_RTOT; RS_LVEDP -> RS_EXTRA; RS_VOL -> RS_LVEDP;
+    RS_RTOT -> RS_Q [color="#dc322f", label="Q = ΔP / R"];
+    RS_PD -> RS_Q [label="구동압"];
+    RS_Q -> LY_QEPI; RS_Q -> LY_QENDO;
+    RS_Q -> EN_SHEAR [label="유량 매개 확장"];
+    EG_CADIAST -> RS_LVEDP [label="이완 장애"];
+
+    /* ==================== EDGES: demand ============================== */
+    DM_EXER -> DM_SYMP; DM_SYMP -> DM_HR; DM_SYMP -> DM_SBP; DM_SYMP -> DM_CONTR;
+    DM_SYMP -> CO_A1; DM_BARO -> DM_SYMP [color="#dc322f"]; RS_PA -> DM_BARO;
+    DM_HR -> DM_RPP; DM_SBP -> DM_RPP; DM_RPP -> DM_MVO2;
+    DM_SBP -> DM_WALL; DM_WALL -> DM_MVO2; DM_CONTR -> DM_MVO2;
+    DM_DIAST -> DM_MVO2 [label="확장기 장력도\n산소를 소비"];
+    DM_HR -> DM_MVO2 [penwidth=2.0, label="① 요구 증가"];
+    DM_SBP -> DM_SPTI; DM_HR -> DM_SPTI; DM_SPTI -> DM_MVO2;
+    DM_MVO2 -> LY_DEF [label="요구 항"];
+    DM_SBP -> RS_PA;
+
+    /* ==================== EDGES: diastolic window ==================== */
+    DM_HR -> WD_TS [color="#dc322f"]; DM_HR -> WD_TD [color="#dc322f", penwidth=2.0, label="② 관류 시간 단축"];
+    WD_TS -> WD_TD [color="#dc322f"]; WD_TD -> WD_FDIA;
+    WD_FDIA -> LY_QENDO [penwidth=2.0, label="심내막하 공급의 시간 성분"];
+    RS_PD -> WD_DPTI; RS_LVEDP -> WD_DPTI [color="#dc322f"]; WD_TD -> WD_DPTI;
+    WD_DPTI -> WD_SEVR; DM_SPTI -> WD_SEVR [color="#dc322f"];
+    WD_SEVR -> LY_RATIO;
+
+    /* ==================== EDGES: transmural ========================== */
+    LY_CAO2 -> LY_SUPPLY; LY_EXTR -> LY_SUPPLY; LY_QENDO -> LY_SUPPLY;
+    LY_SUPPLY -> LY_DEF [color="#dc322f", label="공급 항"];
+    LY_QENDO -> LY_RATIO; LY_QEPI -> LY_RATIO [color="#dc322f", label="분모"];
+    RS_EXTRA -> LY_QENDO [color="#dc322f", label="심내막하에\n선택적으로 작용"];
+    LY_RATIO -> DX_EST [color="#2e7d32", label="<1.0 → ST 하강"];
+    LY_DEF -> EG_ATP [color="#dc322f"]; LY_DEF -> EG_LACT;
+
+    /* ==================== EDGES: energetics ========================== */
+    EG_ATP -> SM_KATP [color="#dc322f", label="ATP↓ → K_ATP 개방"];
+    EG_LATENA -> EG_NAI; EG_NAI -> EG_NCX; EG_NCX -> EG_CADIAST;
+    EG_CADIAST -> DM_DIAST [penwidth=2.0]; EG_CADIAST -> EG_SERCA [color="#dc322f"];
+    DM_DIAST -> RS_EXTRA [label="확장기 압축"];
+    EG_FFA -> DM_MVO2 [label="산소당 ATP 감소"]; EG_GLUC -> DM_MVO2 [color="#dc322f"];
+    LY_DEF -> EG_TNI; LY_DEF -> EG_BNP; EG_LACT -> PN_TRPV1;
+    LY_DEF -> EG_LATENA [label="허혈 → 지연 INa 증가"];
+
+    /* ==================== EDGES: spasm =============================== */
+    SP_ACH -> EN_ACHR [color="#2e7d32"]; SP_ACH -> SP_ACHFR [color="#2e7d32"];
+    SP_THRESH -> SP_EPI [color="#dc322f"]; SP_THRESH -> SP_MICRO [color="#dc322f"];
+    CO_SENS -> SP_EPI; CO_SENS -> SP_MICRO;
+    SP_EPI -> RS_REPI [penwidth=2.0]; SP_MICRO -> RS_RART [penwidth=2.0];
+    SP_MICRO -> LY_DEF; SP_EPI -> LY_DEF;
+    SP_MIXED -> SR_VASO; SP_EPI -> SP_MIXED; SP_MICRO -> SP_MIXED;
+    SP_ACHFR -> DX_ENDO [color="#2e7d32"];
+
+    /* ==================== EDGES: pain ================================ */
+    LY_DEF -> PN_ADEL; PN_TRPV1 -> PN_ADEL; PN_P2X -> PN_ADEL;
+    PN_ADEL -> PN_SPINAL; PN_SPINAL -> PN_CORT; PN_CENTR -> PN_GAIN;
+    PN_SPINAL -> PN_CENTR; PN_GAIN -> PN_ANG [penwidth=2.0];
+    PN_ADEL -> PN_ANG; PN_CORT -> PN_ANG;
+    PN_ANG -> EP_FREQ [color="#2e7d32"]; PN_ANG -> EP_SAQ [color="#2e7d32"];
+    PN_CENTR -> EP_SAQ [color="#dc322f", label="허혈과 무관한\n증상 성분"];
+
+    /* ==================== EDGES: autonomic vicious loop =============== */
+    PN_ANG -> LP_PAINSYMP; LP_PAINSYMP -> DM_SYMP [penwidth=2.0];
+    DM_SYMP -> LP_HRUP; LP_HRUP -> DM_HR; LP_HRUP -> DM_SBP;
+    DM_SYMP -> LP_ALPHA; LP_ALPHA -> RS_RPRE;
+    LP_LOOP -> PN_ANG [penwidth=2.0, label="G_loop>1 → 불응성 표현형"];
+    LP_HRUP -> LP_LOOP; LP_ALPHA -> LP_LOOP;
+
+    /* ==================== EDGES: diagnostics ========================= */
+    DX_ADO -> SM_TONE [color="#2e7d32", label="TONE → 0"];
+    DX_ADO -> AU_A2A [color="#2e7d32"];
+    RS_Q -> DX_CFR [color="#2e7d32", label="분자 = 최대충혈 유량"];
+    SM_TONE -> DX_CFR [color="#2e7d32", label="분모 = 안정 유량"];
+    RS_Q -> DX_MRREST [color="#2e7d32"]; RS_Q -> DX_MRHYP [color="#2e7d32"];
+    DX_MRHYP -> DX_IMR [color="#2e7d32"]; DX_CFR -> DX_MRR [color="#2e7d32"];
+    RS_PA -> DX_MRR [color="#2e7d32", label="압력 보정"];
+    DX_CFR -> DX_ENDO [color="#2e7d32"]; DX_MRHYP -> DX_ENDO [color="#2e7d32", penwidth=2.0];
+    DX_MRREST -> DX_ENDO [color="#2e7d32", penwidth=2.0];
+    RS_Q -> DX_MPRI [color="#2e7d32"]; RS_Q -> DX_PET [color="#2e7d32"];
+    DX_CFR -> EP_MORT [color="#2e7d32", label="0.1 단위당 HR 1.16"];
+    DX_ENDO -> SR_FUNC [color="#2e7d32"]; DX_ENDO -> SR_STRUCT [color="#2e7d32"];
+    DX_ENDO -> SR_VASO [color="#2e7d32"]; DX_ENDO -> SR_NONCARD [color="#2e7d32"];
+    LY_RATIO -> DX_MPRI [color="#2e7d32"];
+
+    /* ==================== EDGES: drug actions ======================== */
+    PK_RAN  -> EG_LATENA [color="#268bd2", penwidth=2.0, label="지연 INa 억제"];
+    PK_RAN  -> DM_HR [color="#268bd2", style=dashed, label="−3.6 bpm (RWISE)"];
+    PK_IVA  -> DM_HR [color="#268bd2", penwidth=2.0, label="I_f 차단 (SA node)"];
+    PK_IVA  -> WD_TD [color="#268bd2", penwidth=2.0, label="확장기 연장 (공급측 효과)"];
+    PK_BB   -> DM_HR [color="#268bd2"]; PK_BB -> DM_CONTR [color="#268bd2"];
+    PK_BB   -> CO_A1 [color="#268bd2", style=dashed, label="비선택적 시\nα1 무저항 수축 위험"];
+    PK_BB   -> EN_NO [color="#268bd2", style=dashed, label="nebivolol: β3 → NO"];
+    PK_CCB  -> SM_CAL [color="#268bd2", penwidth=2.0]; PK_CCB -> SP_EPI [color="#268bd2", penwidth=2.0];
+    PK_CCB  -> RS_PA [color="#dc322f", style=dashed, label="구동압 하강"];
+    PK_NIC  -> SM_KATP [color="#268bd2"]; PK_NIC -> SM_CGMP [color="#268bd2"];
+    PK_ZIB  -> CO_ETA [color="#268bd2", penwidth=2.0, label="ETA 선택적 차단"];
+    PK_ZIB  -> RS_PA [color="#dc322f", penwidth=2.0, label="혈압 하강 (상쇄①)"];
+    PK_ZIB  -> RS_VOL [color="#dc322f", penwidth=2.0, label="체액 보유 (상쇄②)"];
+    PK_ZIB  -> CO_ET1 [color="#dc322f", style=dashed, label="혈중 ET-1 상승\n(표적 매개)"];
+    PK_ACEI -> ST_ML [color="#268bd2", label="리모델링 역전(월∼년)"];
+    PK_ACEI -> EN_NO [color="#268bd2"]; PK_ACEI -> CO_AVP [color="#268bd2"];
+    PK_ACEI -> RS_PA [color="#dc322f", style=dashed];
+    PK_STAT -> EN_ROS [color="#268bd2"]; PK_STAT -> CO_ROCK [color="#268bd2", label="isoprenylation↓"];
+    PK_STAT -> RF_LDL [color="#268bd2"];
+    PK_FAS  -> CO_ROCK [color="#268bd2", penwidth=2.0];
+    PK_PDE5 -> SM_PDE5 [color="#268bd2"];
+    PK_NTG  -> RS_REPI [color="#268bd2", label="심표면 확장 우세"];
+    PK_NTG  -> SM_TONE [color="#268bd2", style=dashed, label="세동맥 효과는 약함"];
+    PK_NTG  -> DM_HR [color="#dc322f", style=dashed, label="반사성 빈맥"];
+    PK_AMI  -> AU_A1 [color="#268bd2", label="통각 신호 차단"];
+    PK_AMI  -> AU_A2A [color="#dc322f", style=dashed, label="확장 예비력도 차단"];
+    PK_TMZ  -> EG_FFA [color="#268bd2"]; PK_TMZ -> EG_GLUC [color="#268bd2"];
+    PK_IMI  -> PN_CENTR [color="#268bd2", penwidth=2.0];
+
+    /* ==================== EDGES: trial-design dilution ================ */
+    TR_MIX -> TR_POWER [color="#8d6e00", penwidth=2.0, label="유병분율"];
+    TR_CONTAM -> TR_POWER [color="#8d6e00", penwidth=2.0, label="(1 − 오염)"];
+    TR_CANCEL -> TR_POWER [color="#8d6e00", penwidth=2.0];
+    TR_TSCALE -> TR_POWER [color="#8d6e00"];
+    PK_ZIB -> TR_CANCEL [color="#8d6e00", style=dashed, label="PRIZE: −4.26 s"];
+    PK_RAN -> TR_MIX [color="#8d6e00", style=dashed, label="RWISE: 전체 null,\nCFR<2.5에서 유의"];
+    PK_STAT -> TR_CONTAM [color="#8d6e00", style=dashed, label="WARRIOR"];
+    PK_ACEI -> TR_CONTAM [color="#8d6e00", style=dashed];
+    PK_ACEI -> TR_TSCALE [color="#8d6e00", style=dashed];
+    TR_POWER -> EP_SAQ [color="#8d6e00"]; TR_POWER -> EP_MACE [color="#8d6e00"];
+    DX_ENDO -> TR_MIX [color="#8d6e00", label="계층화로 희석 제거"];
+
+    /* ==================== EDGES: stratified therapy =================== */
+    SR_FUNC -> SR_RX1 [color="#117864", penwidth=2.0];
+    SR_STRUCT -> SR_RX2 [color="#117864", penwidth=2.0];
+    SR_VASO -> SR_RX3 [color="#117864", penwidth=2.0];
+    SR_NONCARD -> SR_RX4 [color="#117864"];
+    SR_RX1 -> PK_IVA [color="#117864", style=dashed]; SR_RX1 -> PK_BB [color="#117864", style=dashed];
+    SR_RX1 -> PK_RAN [color="#117864", style=dashed];
+    SR_RX2 -> PK_ACEI [color="#117864", style=dashed]; SR_RX2 -> PK_STAT [color="#117864", style=dashed];
+    SR_RX3 -> PK_CCB [color="#117864", style=dashed]; SR_RX3 -> PK_NTG [color="#117864", style=dashed];
+    SR_RX4 -> PK_IMI [color="#117864", style=dashed];
+    SR_RX1 -> EP_SAQ [color="#117864"]; SR_RX2 -> EP_SAQ [color="#117864"];
+    SR_RX3 -> EP_SAQ [color="#117864"]; SR_RX4 -> EP_SAQ [color="#117864"];
+
+    /* ==================== EDGES: endpoints =========================== */
+    EP_FREQ -> EP_SAQ; EP_SAQ -> EP_QOL; LY_DEF -> EP_EXDUR [color="#dc322f"];
+    WD_SEVR -> EP_EXDUR; EP_FREQ -> EP_HOSP; EP_HOSP -> EP_MACE [penwidth=2.0, label="WARRIOR의 주 성분"];
+    EG_TNI -> EP_MACE; EG_BNP -> EP_HFPEF;
+    ST_ICF -> EP_HFPEF [color="#8e44ad"]; RS_LVEDP -> EP_HFPEF;
+    DX_CFR -> EP_MACE [color="#2e7d32", label="HR 3.42 (비정상 CFR)"];
+    EP_MACE -> EP_MORT;
+    ST_RMIN -> EP_MORT [color="#8e44ad", style=dashed];
+
+    /* ==================== cross-links that carry the argument ========= */
+    SM_TONE -> DX_MRREST [color="#2e7d32", penwidth=2.0,
+               label="기능적 endotype:\n안정 긴장도↓ → 안정 유량↑ → CFR 분모↑"];
+    ST_RMIN -> DX_CFR [color="#8e44ad", penwidth=2.0,
+               label="구조적 endotype:\n최대충혈 유량 상한 → CFR 분자↓"];
+    LY_QENDO -> LY_DEF [color="#dc322f", penwidth=2.0];
+    PK_IVA -> DX_CFR [color="#268bd2", style=dashed,
+               label="분모를 낮춰 CFR을 올림\n(절대 유량은 늘지 않음)"];
+    PK_NIC -> DX_CFR [color="#268bd2", style=dashed,
+               label="분자·분모를 함께 올림\n→ CFR 변화는 작을 수 있음"];
+}
