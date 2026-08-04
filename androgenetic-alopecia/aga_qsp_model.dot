@@ -1,0 +1,410 @@
+/* =====================================================================
+   ANDROGENETIC ALOPECIA (male & female pattern hair loss) — QSP map
+   162 nodes · 198 edges · 17 clusters · drug PK/PD, follicle cycle, systemic effects
+   Render:  dot -Tsvg aga_qsp_model.dot -o aga_qsp_model.svg
+            dot -Tpng -Gdpi=150 aga_qsp_model.dot -o aga_qsp_model.png
+
+   The map is organised around the claim the ODE model makes: AGA is not a
+   disease of hair NUMBER but of follicle SIZE, and the size change is
+   executed only at one moment of the cycle — telogen exit.  Everything on
+   the left of the map converges on the single node ARD (inhibitory drive),
+   and ARD acts on the cycle only through the transition probabilities
+   drawn in cluster 6.
+   ===================================================================== */
+digraph AGA {
+  rankdir=TB;
+  graph [fontname="Helvetica", fontsize=11, labelloc=t, nodesep=0.22,
+         ranksep=0.55, splines=true, overlap=false, compound=true,
+         label="ANDROGENETIC ALOPECIA — QSP mechanistic map\nfollicle miniaturisation ratchet · 5-alpha-reductase pharmacology · hair-cycle kinetics · clinical endpoints",
+         fontsize=20];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded",
+         shape=box, penwidth=1.1, margin="0.07,0.045"];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, penwidth=1.0,
+         color="#5a5a5a"];
+
+  /* ---------------------------------------------------------------- 1 */
+  subgraph cluster_gen {
+    label="1. GENETIC SUSCEPTIBILITY  (sets GS — the clock speed)";
+    style="filled,rounded"; color="#d9d2e9"; fillcolor="#f4f1fa"; fontsize=13;
+    node [fillcolor="#e5dcf5", color="#7c62b8"];
+    AR_CAG   [label="AR gene\nCAG/GGC repeat length\n(Xq12, strongest locus)"];
+    LOC20p11 [label="20p11 locus\n(PAX1/FOXA2)"];
+    EDA2R    [label="EDA2R\nX-linked, adjacent to AR"];
+    WNT10A   [label="WNT10A variants"];
+    HDAC9    [label="HDAC9, TWIST2,\nSRD5A2 V89L polymorphism"];
+    HERIT    [label="heritability ~80%\npolygenic score\n(>350 GWAS loci)"];
+    GS       [label="GS\nGENETIC SUSCEPTIBILITY\n(model parameter, 0–1.3)",
+              fillcolor="#c9b6ec", penwidth=2.2];
+    AGE      [label="chronological age\n(cumulative cycles)", fillcolor="#efe8fb"];
+  }
+  AR_CAG->GS; LOC20p11->GS; EDA2R->GS; WNT10A->GS; HDAC9->GS; HERIT->GS;
+
+  /* ---------------------------------------------------------------- 2 */
+  subgraph cluster_hpg {
+    label="2. HYPOTHALAMIC–PITUITARY–GONADAL AXIS  (systemic androgen supply)";
+    style="filled,rounded"; color="#c6d9f0"; fillcolor="#f2f7fd"; fontsize=13;
+    node [fillcolor="#d7e7f8", color="#3f6fa8"];
+    GNRH   [label="GnRH pulse generator"];
+    LH     [label="LH  (state)"];
+    FSH    [label="FSH"];
+    LEYDIG [label="Leydig cell\nsteroidogenesis"];
+    TST    [label="serum testosterone\nTST  (state)", penwidth=2.0, fillcolor="#b7d4f2"];
+    SHBG   [label="SHBG"];
+    FREET  [label="free testosterone"];
+    ADR    [label="adrenal DHEA-S /\nandrostenedione"];
+    AROM   [label="aromatase CYP19A1"];
+    EST    [label="estradiol  EST  (state)"];
+    FBACK  [label="negative feedback\n(0.70·T + 0.30·DHT)", shape=hexagon,
+            fillcolor="#eef5fc"];
+  }
+  GNRH->LH; GNRH->FSH; LH->LEYDIG; LEYDIG->TST; TST->SHBG [dir=both,label="binding"];
+  TST->FREET; SHBG->FREET [label="−"]; ADR->TST [style=dashed,label="precursor"];
+  TST->AROM; AROM->EST; TST->FBACK; FBACK->GNRH [label="−", color="#b03030"];
+
+  /* ---------------------------------------------------------------- 3 */
+  subgraph cluster_loc {
+    label="3. LOCAL ANDROGEN METABOLISM IN THE FOLLICLE";
+    style="filled,rounded"; color="#f4cccc"; fillcolor="#fdf3f3"; fontsize=13;
+    node [fillcolor="#fadbdb", color="#a83b3b"];
+    SRD5A2 [label="SRD5A2 — 5AR type II\ninner root sheath, dermal papilla\n(E2 / E2S states)",
+            penwidth=2.0, fillcolor="#f6bcbc"];
+    SRD5A1 [label="SRD5A1 — 5AR type I\nsebaceous gland, epidermis\n(E1 / E1S states)"];
+    SRD5A3 [label="SRD5A3\n(N-glycosylation, minor)"];
+    AKR1C  [label="AKR1C1/2 — 3α-HSD\nDHT → 3α-androstanediol"];
+    HSD17B [label="17β-HSD"];
+    BACK   [label="'backdoor' pathway\nandrostanedione → DHT\n(5AR-independent, W_ALT)"];
+    DHTS   [label="serum DHT  DHTS  (state)", penwidth=2.0, fillcolor="#f6bcbc"];
+    DHTC   [label="SCALP / FOLLICLE DHT\nDHTC  (state)\n0.52·local + 0.42·serum + 0.06·alt",
+            penwidth=2.4, fillcolor="#ef9a9a"];
+    AR_R   [label="androgen receptor (AR)\nHSP90 · FKBP52 chaperone"];
+    ARE    [label="AR–ARE binding\nco-activators SRC-1, β-catenin"];
+    ARN    [label="ARN — nuclear AR signal\n(state, τ½ 7 d)", penwidth=2.0];
+    OCC    [label="occipital follicle\nlow AR / low SRD5A2\n(donor dominance)", fillcolor="#fdeaea"];
+  }
+  TST->SRD5A2; TST->SRD5A1; SRD5A2->DHTS; SRD5A1->DHTS; BACK->DHTC;
+  SRD5A2->DHTC [penwidth=1.8]; SRD5A1->DHTC; DHTS->DHTC [label="uptake 0.42"];
+  DHTC->AR_R; AR_R->ARE; ARE->ARN; GS->ARN [label="× gain", color="#7c62b8"];
+  AKR1C->DHTC [label="−"]; DHTS->FBACK; SRD5A3->DHTC [style=dotted];
+  HSD17B->TST [style=dashed]; OCC->AR_R [style=dotted,label="spared"];
+
+  /* ---------------------------------------------------------------- 4 */
+  subgraph cluster_dp {
+    label="4. DERMAL PAPILLA PARACRINE OUTPUT  (the effector step)";
+    style="filled,rounded"; color="#ffe599"; fillcolor="#fffbf0"; fontsize=13;
+    node [fillcolor="#fff0c2", color="#b8860b"];
+    TGFB1 [label="TGF-β1 ↑\n(AR-driven, catagen inducer)"];
+    TGFB2 [label="TGF-β2 ↑"];
+    DKK1  [label="DKK-1 ↑\nDKK1  (state)\nWnt antagonist", penwidth=2.2, fillcolor="#ffe08a"];
+    IL6   [label="IL-6 ↑"];
+    IGF1  [label="IGF-1 ↓\n(anagen maintenance)"];
+    HGF   [label="HGF ↓"];
+    KGF   [label="KGF / FGF7 ↓"];
+    SCF   [label="SCF ↓ (pigment)"];
+    VEGFD [label="VEGF ↓\nperifollicular capillaries"];
+    WNTB  [label="Wnt / β-catenin / LEF1\nWNT  (state)", penwidth=2.0, fillcolor="#ffe08a"];
+    BMP   [label="BMP2/4 ↑\ntelogen refractory signal"];
+    DPCN  [label="dermal papilla cell NUMBER ↓\n(sets the size of the next hair)",
+           penwidth=2.0, fillcolor="#ffd966"];
+  }
+  ARN->TGFB1 [penwidth=1.6]; ARN->TGFB2; ARN->DKK1 [penwidth=2.0];
+  ARN->IL6; ARN->IGF1 [label="−"]; ARN->HGF [label="−"]; ARN->KGF [label="−"];
+  ARN->SCF [label="−"]; ARN->VEGFD [label="−"];
+  DKK1->WNTB [label="−", penwidth=1.6, color="#b03030"];
+  BMP->WNTB [label="−"]; WNTB->DPCN; TGFB1->DPCN [label="−"]; IGF1->DPCN;
+
+  /* ---------------------------------------------------------------- 5 */
+  subgraph cluster_pg {
+    label="5. PROSTAGLANDIN ARM";
+    style="filled,rounded"; color="#d9ead3"; fillcolor="#f4faf1"; fontsize=13;
+    node [fillcolor="#e2f0d9", color="#4a7c3f"];
+    COX2  [label="COX-2"];
+    PTGDS [label="PTGDS (lipocalin-type\nPGD2 synthase) ↑ in bald scalp"];
+    PGD2  [label="PGD2  (state)\n≈2× in bald vertex", penwidth=2.0, fillcolor="#cfe6c2"];
+    GPR44 [label="GPR44 / CRTH2 receptor"];
+    DPGJ  [label="15-Δ-PGJ2\ninhibits hair growth"];
+    PGE2  [label="PGE2 (growth-permissive)"];
+    PGF2A [label="PGF2α / FP receptor\nlatanoprost, bimatoprost"];
+  }
+  ARN->PTGDS; COX2->PGD2; PTGDS->PGD2; PGD2->GPR44; PGD2->DPGJ; GPR44->DPGJ;
+  PGF2A->WNTB [label="+", style=dashed]; PGE2->WNTB [style=dashed];
+
+  /* ---------------------------------------------------------------- 6 */
+  subgraph cluster_cyc {
+    label="6. HAIR-CYCLE MACHINERY AND THE MINIATURISATION RATCHET  (15 ODE states)";
+    style="filled,rounded"; color="#b6d7a8"; fillcolor="#eef7ea"; fontsize=13;
+    node [fillcolor="#d9ead3", color="#38761d"];
+    HFSC  [label="bulge stem cells (K15+)\nquiescence threshold"];
+    HGPRO [label="hair germ progenitors"];
+    MATRIX[label="matrix keratinocytes\nproliferation → shaft"];
+    ORS   [label="outer root sheath\n(SULT1A1 lives here)"];
+    IRS   [label="inner root sheath\n(SRD5A2 lives here)"];
+    SHEATH[label="dermal sheath cup"];
+    ANA   [label="ANAGEN  A1..A4b\nT_A = 1000 / 560 / 250 / 70 / 70 d",
+           penwidth=2.2, fillcolor="#c6e0b4"];
+    CAT   [label="CATAGEN  C1..C4b\nT_C = 17 d"];
+    TEL   [label="TELOGEN  T1..T4b\nT_T = 100 d", penwidth=2.0, fillcolor="#c6e0b4"];
+    EXO   [label="EXOGEN — club-hair release\n(the SHED)", fillcolor="#a9d18e"];
+    ARD   [label="ARD — TOTAL INHIBITORY DRIVE\n0.82·DKK1 + 0.18·PGD2sig + ARIND",
+           shape=hexagon, penwidth=2.6, fillcolor="#8fc06a"];
+    PDN   [label="p_down  = PDMAX·ARD\nshrink one class at telogen exit",
+           shape=parallelogram, penwidth=1.8, fillcolor="#ffd1a9", color="#b45f06"];
+    PUP   [label="p_up = PUMAX·(1−ARD)·w_i\nRESTITUTION (class-specific)",
+           shape=parallelogram, penwidth=1.8, fillcolor="#cfe2f3", color="#1155cc"];
+    PAGE  [label="p_age — recent vellus →\nestablished vellus (one-way)",
+           shape=parallelogram, fillcolor="#ead1dc", color="#a64d79"];
+    PLOSS [label="p_loss — follicle death",
+           shape=parallelogram, fillcolor="#f4cccc", color="#990000"];
+    C1N   [label="TERMINAL  78 µm", fillcolor="#a9d18e", penwidth=2.0];
+    C2N   [label="intermediate  60 µm"];
+    C3N   [label="small intermediate  43 µm"];
+    C4A   [label="VELLUS, recent  24 µm\n(RECOVERABLE POOL)", fillcolor="#ffe599"];
+    C4B   [label="vellus, established  24 µm\n(largely unrecoverable)", fillcolor="#f9cb9c"];
+    LOSTN [label="FIBROUS STREAMER\nfollicle lost — irreversible",
+           fillcolor="#e06666", fontcolor=white, penwidth=2.0];
+  }
+  HFSC->HGPRO->MATRIX; MATRIX->ORS; MATRIX->IRS; SHEATH->HFSC [style=dotted];
+  ANA->CAT [label="1/T_A"]; CAT->TEL [label="1/T_C"]; TEL->EXO [label="1/T_T"];
+  EXO->ANA [label="re-entry", penwidth=1.6];
+  DKK1->ARD [penwidth=2.0]; DPGJ->ARD [penwidth=1.4]; ARD->PDN [penwidth=1.8];
+  ARD->PUP [label="−", penwidth=1.8, color="#b03030"]; ARD->PLOSS;
+  ARD->ANA [label="− shortens T_A (×(1−0.30·ARD))", style=dashed];
+  WNTB->HFSC [label="+ anagen entry"]; BMP->TEL [label="+ maintains"];
+  DPCN->C1N [style=dotted,label="sets size"];
+  C1N->C2N [label="p_down", color="#b45f06", penwidth=1.6];
+  C2N->C3N [label="p_down", color="#b45f06", penwidth=1.6];
+  C3N->C4A [label="p_down", color="#b45f06", penwidth=1.6];
+  C2N->C1N [label="p_up", color="#1155cc"];
+  C3N->C2N [label="p_up", color="#1155cc"];
+  C4A->C3N [label="p_up·0.75", color="#1155cc", penwidth=1.6];
+  C4B->C3N [label="p_up·0.05", color="#1155cc", style=dashed];
+  C4A->C4B [label="p_age", color="#a64d79", penwidth=1.6];
+  C4A->LOSTN [label="p_loss", color="#990000"];
+  C4B->LOSTN [label="p_loss", color="#990000"];
+  PDN->C1N [style=dotted]; PUP->C4A [style=dotted]; PAGE->C4B [style=dotted];
+  PLOSS->LOSTN [style=dotted]; AGE->C1N [style=dotted,label="cycles accumulate"];
+
+  /* ---------------------------------------------------------------- 7 */
+  subgraph cluster_inf {
+    label="7. MICRO-INFLAMMATION AND PERIFOLLICULAR FIBROSIS";
+    style="filled,rounded"; color="#ead1dc"; fillcolor="#fbf3f7"; fontsize=13;
+    node [fillcolor="#f2dbe6", color="#a64d79"];
+    CUTI  [label="Cutibacterium acnes /\nMalassezia · sebum substrate"];
+    TLR2  [label="TLR2 / TLR4 activation"];
+    IL1A  [label="IL-1α, TNF-α\nkeratinocyte-derived"];
+    MAST  [label="mast cells, macrophages\nperifollicular lymphocytes"];
+    FIBR  [label="perifollicular fibrosis\ncollagen bundles"];
+    SEB   [label="sebum output  SEB  (state)\ntype-I 5AR readout"];
+  }
+  SEB->CUTI; CUTI->TLR2->IL1A->MAST->FIBR; FIBR->LOSTN [label="+", color="#990000"];
+  IL1A->ARD [style=dashed,label="ARIND"]; SRD5A1->SEB [penwidth=1.4];
+
+  /* ---------------------------------------------------------------- 8 */
+  subgraph cluster_ox {
+    label="8. OXIDATIVE STRESS, SENESCENCE, VASCULAR SUPPORT";
+    style="filled,rounded"; color="#cfe2f3"; fillcolor="#f3f8fd"; fontsize=13;
+    node [fillcolor="#dceaf7", color="#1155cc"];
+    ROS   [label="ROS / mitochondrial\ndysfunction in DP cells"];
+    P16   [label="p16INK4a senescence\nDP cell drop-out"];
+    HYPOX [label="perifollicular hypoxia"];
+    CAP   [label="capillary loop density ↓"];
+    ATP   [label="K-ATP channel (SUR2B/Kir6.1)\nvascular smooth muscle + ORS"];
+    ADEN  [label="adenosine A1 receptor\n→ VEGF, FGF7"];
+    SMOKE [label="smoking, UV,\nmetabolic syndrome"];
+  }
+  ROS->P16->DPCN [label="−"]; SMOKE->ROS; HYPOX->CAP; VEGFD->CAP;
+  CAP->MATRIX [label="+ substrate"]; ADEN->VEGFD; ATP->CAP;
+
+  /* ---------------------------------------------------------------- 9 */
+  subgraph cluster_pk5 {
+    label="9. DRUG PK — 5-ALPHA-REDUCTASE INHIBITORS";
+    style="filled,rounded"; color="#f9cb9c"; fillcolor="#fef6ee"; fontsize=13;
+    node [fillcolor="#fce5cd", color="#b45f06"];
+    FINPO  [label="FINASTERIDE 1 mg PO\nF 0.65 · t½ 6 h · V/F 76 L",
+            penwidth=2.0, fillcolor="#f6b26b"];
+    FING   [label="FING — gut depot"];
+    FINC   [label="FINC — plasma (ng/mL)\nC_avg 3.1 ng/mL at 1 mg", penwidth=1.8];
+    FINTOP [label="TOPICAL FINASTERIDE 0.25%\n2.5 mg/d · systemic F 0.6%"];
+    FINSK  [label="FINSK — scalp depot"];
+    FINT   [label="FINT — scalp tissue conc."];
+    CYP3A  [label="CYP3A4 metabolism"];
+    ADDUCT [label="enzyme–NADP–dihydro-\nfinasteride ADDUCT\nt½ 30 d ⇒ quasi-irreversible",
+            penwidth=2.0, fillcolor="#f6b26b"];
+    ERESYN [label="5AR protein resynthesis\nk_deg, t½ 2 d\n⇒ THE TARGET INTEGRATES",
+            penwidth=2.2, fillcolor="#ffd966"];
+    DUTPO  [label="DUTASTERIDE 0.5 mg PO\nF 0.60 · t½ ~5 wk · dual I+II",
+            penwidth=2.0, fillcolor="#f6b26b"];
+    DUTC   [label="DUTC/DUTP — 2-cpt plasma\nC_ss ≈ 40 ng/mL, ss at ~6 months"];
+  }
+  FINPO->FING->FINC; FINC->CYP3A; FINTOP->FINSK->FINT; FINC->FINT [dir=both,label="diffusion"];
+  FINTOP->FINC [style=dashed,label="0.6%"];
+  FINC->ADDUCT; FINT->ADDUCT; DUTPO->DUTC->ADDUCT;
+  ADDUCT->SRD5A2 [label="−  (k_on·C)", color="#b03030", penwidth=2.2];
+  ADDUCT->SRD5A1 [label="−  (k_on/2000 for FIN)", color="#b03030", style=dashed];
+  ERESYN->SRD5A2 [label="+"]; ERESYN->SRD5A1 [label="+"];
+  DUTC->SRD5A1 [label="− (equipotent)", color="#b03030"];
+
+  /* --------------------------------------------------------------- 10 */
+  subgraph cluster_mx {
+    label="10. DRUG PK/PD — MINOXIDIL  (a prodrug that needs a follicular enzyme)";
+    style="filled,rounded"; color="#a2c4c9"; fillcolor="#f0f7f8"; fontsize=13;
+    node [fillcolor="#d0e0e3", color="#20707d"];
+    MXTOP [label="TOPICAL MINOXIDIL 5%\n1 mL BID = 100 mg/d applied",
+           penwidth=2.0, fillcolor="#a2c4c9"];
+    MXSK  [label="MXSK — stratum corneum /\nvehicle depot (propylene glycol)"];
+    MXDF  [label="MXDF — follicular minoxidil"];
+    SULT  [label="SULT1A1 in outer root sheath\nACTIVITY IS BIMODAL ⇒ responder split",
+           penwidth=2.2, fillcolor="#76a5af"];
+    MXSF  [label="MXSF — MINOXIDIL SULFATE\nthe active species", penwidth=2.0];
+    MXORAL[label="ORAL MINOXIDIL 0.25–5 mg\nF 0.90 · t½ 4 h", penwidth=2.0,
+           fillcolor="#a2c4c9"];
+    MXDC  [label="MXDC — systemic plasma\ntopical ≈ 1.1% absorbed"];
+    KATP  [label="K-ATP channel opening\nhyperpolarisation, vasodilatation"];
+    MXPD  [label="mx = E_max signal:\n↓ telogen (T_T /(1+1.05·mx))\n↑ anagen (×(1+0.40·mx))\n↑ p_up (×(1+0.60·mx))",
+           shape=hexagon, penwidth=2.0, fillcolor="#b6d7a8"];
+  }
+  MXTOP->MXSK->MXDF; MXSK->MXDC [label="1.1%"]; MXORAL->MXDC;
+  MXDC->MXDF [label="systemic → follicle"];
+  MXDF->MXSF [label="SULT1A1"]; SULT->MXSF [penwidth=2.0];
+  MXSF->KATP; MXSF->MXPD [penwidth=2.0]; KATP->ATP; MXSF->ADEN;
+  MXPD->TEL [label="− shorten", color="#1155cc", penwidth=1.8];
+  MXPD->ANA [label="+ prolong", color="#1155cc", penwidth=1.8];
+  MXPD->PUP [label="+", color="#1155cc", penwidth=1.6];
+  MXPD->EXO [label="+ FORCED telogen exit\n⇒ the initial 'dread shed'",
+             color="#a64d79", penwidth=1.8];
+
+  /* --------------------------------------------------------------- 11 */
+  subgraph cluster_other {
+    label="11. OTHER PHARMACOLOGY";
+    style="filled,rounded"; color="#d5a6bd"; fillcolor="#faf1f5"; fontsize=13;
+    node [fillcolor="#e8c6d6", color="#a64d79"];
+    SPIRO  [label="SPIRONOLACTONE 100–200 mg\ncanrenone · AR antagonist"];
+    CPA    [label="cyproterone acetate\nAR antagonist + progestin"];
+    BICAL  [label="topical bicalutamide 0.5%"];
+    CLASC  [label="CLASCOTERONE 5% (cortexolone\n17α-propionate) topical AR antagonist"];
+    SETIP  [label="SETIPIPRANT\nGPR44/CRTH2 antagonist"];
+    JAKI   [label="JAK1/2 inhibitors\n(alopecia areata, not AGA)"];
+    KETO   [label="ketoconazole 2% shampoo\n(anti-Malassezia, weak anti-androgen)"];
+    LATA   [label="latanoprost / bimatoprost\nFP agonists"];
+    MELA   [label="melatonin 0.0033% topical"];
+    ADJ    [label="microneedling · PRP ·\nlow-level laser (650 nm)"];
+    TRANSP [label="follicular unit transplantation\n(donor-dominant occipital hair)"];
+  }
+  SPIRO->AR_R [label="−", color="#b03030"]; CPA->AR_R [label="−", color="#b03030"];
+  BICAL->AR_R [label="−", color="#b03030"]; CLASC->AR_R [label="−", color="#b03030"];
+  SETIP->GPR44 [label="−", color="#b03030"]; KETO->CUTI [label="−"];
+  LATA->PGF2A; MELA->ROS [label="−"]; ADJ->WNTB [label="+"]; JAKI->HFSC [style=dotted];
+  TRANSP->C1N [style=dashed,label="redistributes, does not create"];
+
+  /* --------------------------------------------------------------- 12 */
+  subgraph cluster_ae {
+    label="12. SYSTEMIC / OFF-TARGET CONSEQUENCES";
+    style="filled,rounded"; color="#f4cccc"; fillcolor="#fdf2f2"; fontsize=13;
+    node [fillcolor="#f9d5d5", color="#990000"];
+    PSA    [label="serum PSA ↓ ~45%\n'double the value' rule", penwidth=2.0];
+    PROST  [label="prostate volume ↓\n(BPH indication, 5 mg)"];
+    GYNE   [label="gynaecomastia (E2/T ratio ↑)"];
+    LIBIDO [label="libido ↓ / erectile dysfunction\n3.8% vs 2.1% placebo"];
+    EJAC   [label="ejaculate volume ↓"];
+    ALLOP  [label="allopregnanolone ↓\n(neurosteroid, 5AR-dependent)"];
+    MOOD   [label="depressive symptoms\n(post-finasteride debate)"];
+    TERAT  [label="TERATOGENIC — male fetus\nhypospadias · contraindicated\nin women of child-bearing age",
+            penwidth=2.0, fillcolor="#e06666", fontcolor=white];
+    HTR    [label="hypertrichosis\n(face, arms) — minoxidil"];
+    MAPN   [label="MAP ↓, reflex tachycardia,\noedema, pericardial effusion\n(oral minoxidil)"];
+  }
+  SRD5A2->PSA [label="−", color="#b03030"]; SRD5A2->PROST [label="−"];
+  EST->GYNE; DHTS->LIBIDO [style=dashed]; DHTS->EJAC [style=dashed];
+  SRD5A1->ALLOP; ALLOP->MOOD [label="−"]; FINPO->TERAT; DUTPO->TERAT;
+  MXDC->HTR [penwidth=1.6]; MXDC->MAPN [penwidth=1.6];
+
+  /* --------------------------------------------------------------- 13 */
+  subgraph cluster_fem {
+    label="13. FEMALE PATTERN HAIR LOSS — WHY THE SAME DRUG FAILS";
+    style="filled,rounded"; color="#d9d2e9"; fillcolor="#f6f4fb"; fontsize=13;
+    node [fillcolor="#e6dff2", color="#674ea7"];
+    MENO   [label="menopause: ovarian E2 ↓,\nrelative androgen excess"];
+    AROMF  [label="frontal follicle aromatase ↑\n(higher in women)"];
+    LOW5AR [label="follicular 5AR ~3–3.5× lower\nthan in men (LOC5AR)"];
+    ARIND  [label="ARIND — ANDROGEN-INDEPENDENT\nINHIBITORY DRIVE ↑ in FPHL\n(senescence, inflammation)",
+            penwidth=2.2, fillcolor="#d5c7ee"];
+    PCOS   [label="PCOS / hyperandrogenism\n(the subgroup that does respond)"];
+    FERR   [label="ferritin, thyroid,\nvitamin D — confounders"];
+    TE     [label="chronic telogen effluvium\n(diffuse, no miniaturisation)"];
+    LUDWIG [label="Ludwig I–III / Sinclair scale\ncentral part widening"];
+  }
+  MENO->ARIND; AROMF->DHTC [label="− diverts T"]; LOW5AR->DHTC [label="−"];
+  ARIND->ARD [penwidth=2.0, color="#674ea7"]; PCOS->TST; FERR->ARIND [style=dotted];
+  TE->TEL [style=dotted]; ARIND->LUDWIG [style=dotted];
+
+  /* --------------------------------------------------------------- 14 */
+  subgraph cluster_end {
+    label="14. CLINICAL ENDPOINTS  (what the trials actually measure)";
+    style="filled,rounded"; color="#b6d7a8"; fillcolor="#f0f8ec"; fontsize=13;
+    node [fillcolor="#d9ead3", color="#38761d"];
+    TAHC  [label="TARGET-AREA HAIR COUNT\nnon-vellus hairs in a 1-inch\n(5.07 cm²) circle · baseline 876",
+           penwidth=2.4, fillcolor="#a9d18e"];
+    HMI   [label="HAIR MASS INDEX / hair weight\nΣ N_i · d_i² · g_i  —  DIAMETER-WEIGHTED\n≈ 2× the signal of a count",
+           penwidth=2.2, fillcolor="#a9d18e"];
+    DIAM  [label="mean shaft diameter\nanisotrichosis >20% on trichoscopy"];
+    SHED  [label="daily shed = Σ T_i / T_T\nnormal 100/day (100 000 × 0.10 / 100)",
+           penwidth=2.0];
+    TELP  [label="trichogram telogen %\n= T_T/(T_A+T_C+T_T)"];
+    NORW  [label="Norwood–Hamilton stage\n(men)"];
+    GPA   [label="global photographic\nassessment (blinded panel)"];
+    PSAT  [label="patient self-assessment,\nHairdex / quality of life"];
+    PULL  [label="hair pull test, wash test"];
+  }
+  ANA->HMI [penwidth=1.4]; C1N->TAHC [penwidth=1.8]; C2N->TAHC; C3N->TAHC;
+  C4A->TAHC [style=dotted,label="not counted"]; C4B->TAHC [style=dotted];
+  C1N->HMI [penwidth=1.6]; C2N->HMI; C3N->HMI; DPCN->DIAM;
+  TEL->SHED [penwidth=1.8]; EXO->SHED [penwidth=1.8]; TEL->TELP;
+  TAHC->NORW; HMI->GPA; TAHC->GPA; DIAM->GPA; GPA->PSAT; SHED->PULL;
+  LOSTN->NORW [label="+ irreversible", color="#990000"];
+
+  /* --------------------------------------------------------------- 15 */
+  subgraph cluster_kin {
+    label="15. THE CLOCKS — why every AGA trial reads out at 6, 12 and 24 months";
+    style="filled,rounded"; color="#ffe599"; fillcolor="#fffdf5"; fontsize=13;
+    node [fillcolor="#fff2cc", color="#bf9000"];
+    CLK1 [label="drug PK clock\nfinasteride t½ 6 h"];
+    CLK2 [label="TARGET clock\n5AR resynthesis t½ 2 d\n⇒ 8× longer than the drug"];
+    CLK3 [label="DHT clock\nscalp DHT nadir in ~1–2 weeks"];
+    CLK4 [label="signalling clock\nARN/DKK-1 τ½ 5–7 d"];
+    CLK5 [label="TELOGEN clock — 100 d\nno hair can appear sooner",
+          penwidth=2.2, fillcolor="#ffe599"];
+    CLK6 [label="CYCLE clock\nclass 3: 367 d · class 1: 1117 d\n⇒ the terminal pool barely moves in 2 y",
+          penwidth=2.2, fillcolor="#ffe599"];
+    CLK7 [label="⇒ 6 months is the earliest honest\nread-out; 12 months is the real one",
+          shape=note, fillcolor="#fff2cc"];
+  }
+  CLK1->CLK2->CLK3->CLK4->CLK5->CLK6->CLK7;
+  FINC->CLK1 [style=dotted]; ERESYN->CLK2 [style=dotted]; DHTC->CLK3 [style=dotted];
+  TEL->CLK5 [style=dotted]; ANA->CLK6 [style=dotted];
+
+  /* --------------------------------------------------------------- 16 */
+  subgraph cluster_res {
+    label="16. WHAT THE MODEL PREDICTS THAT IS NOT PUT IN BY HAND";
+    style="filled,rounded"; color="#cfe2f3"; fillcolor="#f7fbfe"; fontsize=13;
+    node [shape=note, fillcolor="#eaf3fb", color="#1155cc"];
+    R1 [label="flat finasteride dose–response:\n0.2 mg already gives 90% of the\nscalp-DHT effect of 5 mg"];
+    R2 [label="5 mg beats 1 mg on SCALP DHT but\nnot on SERUM DHT — the extra\ncomes from partial type-I block"];
+    R3 [label="minoxidil's initial SHED is a\nforced telogen exit, not toxicity —\nand it is followed by net gain"];
+    R4 [label="the recoverable pool is the RECENT\nvellus follicle; it ages out, which\nis why late starts recover little"];
+    R5 [label="hair WEIGHT moves ~2× a hair COUNT\nbecause mass goes as d²"];
+    R6 [label="stopping finasteride restores DHT\nin ~2 weeks but loses the hair\nover ~12 months"];
+    R7 [label="topical finasteride: same scalp DHT,\n~1/3 of the systemic signal"];
+  }
+
+  /* --------------------------------------------------------------- 17 */
+  subgraph cluster_qsp {
+    label="17. MODEL STRUCTURE (50 ODE states)";
+    style="filled,rounded"; color="#d0cece"; fillcolor="#f7f7f7"; fontsize=13;
+    node [shape=note, fillcolor="#efefef", color="#666666"];
+    S1 [label="PK 12: FING FINC FINSK FINT\nDUTG DUTC DUTP MXSK MXDF\nMXSF MXDC SPIC"];
+    S2 [label="enzymes 8: E1 EI1 E2 EI2\nE1S EI1S E2S EI2S\n(systemic + scalp pools)"];
+    S3 [label="endocrine 4: LH TST DHTS DHTC"];
+    S4 [label="signalling 4: ARN DKK1 PGD2 WNT"];
+    S5 [label="readouts 5: PSA EST SEB MAP HTR"];
+    S6 [label="follicle 17: A1..A4b C1..C4b\nT1..T4b LOST CSHED"];
+  }
+}
