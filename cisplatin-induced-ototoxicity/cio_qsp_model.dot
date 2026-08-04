@@ -1,0 +1,456 @@
+/* ===========================================================================
+   cio_qsp_model.dot
+   Cisplatin-Induced Ototoxicity (CIO) — mechanistic QSP map
+   시스플라틴 유발 이독성 — 기계론적 QSP 지도
+
+   Reading order (left to right, top to bottom):
+     1  drug administration and systemic disposition
+     2  the two competing destinations: tumour vs kidney
+     3  the cochlear route — the cascade that creates the therapeutic window
+     4  intracellular platinum handling and the two-pool split
+     5  redox: the glutathione threshold that makes ototoxicity tonotopic
+     6  cell death, tonotopy, stria vascularis, ganglion
+     7  otoprotectants and their routes
+     8  clinical endpoints and grading scales
+
+   Colour key
+     drug / PK ............ light blue
+     tumour ............... light green
+     kidney ............... khaki
+     cochlear transport ... periwinkle
+     redox ................ orange
+     death / damage ....... salmon
+     protectants .......... pale turquoise
+     endpoints ............ pink
+     modifiers ............ lavender
+   =========================================================================== */
+
+digraph CIO_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.24, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, compound=true,
+           label=<<B>Cisplatin-Induced Ototoxicity — Quantitative Systems Pharmacology Map</B><BR/>
+                  <FONT POINT-SIZE="11">시스플라틴 유발 이독성 QSP 기계론적 지도 · 73-ODE mrgsolve model · 8 tonotopic bands</FONT><BR/>
+                  <FONT POINT-SIZE="10">solid arrow = mass flux / causal activation &#160;·&#160; dashed = modulation &#160;·&#160; red T-bar = inhibition</FONT>>,
+           labelloc="t"];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+           color="#555555", penwidth=1.0];
+    edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.65];
+
+    /* ---------------------------------------------------------------- 1 */
+    subgraph cluster_admin {
+        label="1. 투여 및 전신 약동학 (Administration & Systemic PK)";
+        style="rounded,filled"; fillcolor="#F2F8FD"; color="#4A90D9"; fontsize=12;
+        node [fillcolor="#CFE6F7"];
+
+        DOSE      [label="Cisplatin IV\n60–100 mg/m² q3w\n(1–6 h infusion)", shape=box3d];
+        INFUS     [label="Infusion rate\nD / T_inf"];
+        CISC      [label="CISC\nfree (ultrafilterable)\nplatinum, plasma\nC_max ≈ 13 µM", shape=ellipse, fillcolor="#9FD0EF"];
+        AQUA      [label="Aquation\ncis-[Pt(NH₃)₂(H₂O)Cl]⁺\nreactive electrophile"];
+        CLINTRA   [label="Low intracellular [Cl⁻]\ndrives aquation", shape=note, fillcolor="#E7F3FB"];
+        CISB      [label="CISB\nplatinum irreversibly\nbound to albumin /\nγ-globulin (inactive)", shape=ellipse];
+        KBIND     [label="KBIND 1.30 /h\nprotein binding"];
+        CISP      [label="CISP\ntissue-bound platinum\n(terminal sink)", shape=ellipse];
+        RENEX     [label="Renal excretion\nCLR = 0.054 × GFR"];
+        THALF     [label="free Pt t½ ≈ 22 min\nbound Pt t½ ≈ 5 d", shape=note, fillcolor="#E7F3FB"];
+        BSA       [label="BSA, age, weight\ndosing covariates", shape=note, fillcolor="#E7F3FB"];
+    }
+
+    DOSE -> INFUS -> CISC;
+    CISC -> AQUA;
+    CLINTRA -> AQUA [style=dashed, constraint=false];
+    CISC -> CISB [label="KBIND"];
+    KBIND -> CISB [style=dotted, arrowhead=none, constraint=false];
+    CISC -> CISP [label="K12"];
+    CISC -> RENEX [label="CLR"];
+    CISC -> THALF [style=dotted, arrowhead=none, constraint=false];
+    BSA -> DOSE [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 2a */
+    subgraph cluster_tumour {
+        label="2a. 종양 구획 — 효능 (Tumour Compartment — Efficacy)";
+        style="rounded,filled"; fillcolor="#F1FAF1"; color="#4CAF50"; fontsize=12;
+        node [fillcolor="#CDECCF"];
+
+        TUMPERF   [label="TUMPERF\ntumour perfusion\n1.0 localised\n0.15 disseminated", shape=note, fillcolor="#E6F6E7"];
+        TUMPT     [label="TUMPT\nfree platinum\nin tumour ISF", shape=ellipse];
+        TUMUP     [label="CTR1 / OCT2 / passive\ncellular uptake"];
+        TUMAD     [label="TUMAD\nPt–DNA intrastrand\n1,2-d(GpG) adducts", shape=ellipse, fillcolor="#A8DCAB"];
+        NER       [label="Nucleotide excision repair\nERCC1 / XPF\nKREPAIR 0.018 /h"];
+        HMGB      [label="HMGB1 / HMG-domain\nprotein shielding"];
+        DDR       [label="ATR / CHK1\nDNA damage response"];
+        P53T      [label="p53 stabilisation"];
+        APOPT     [label="Tumour apoptosis\nBAX / caspase-9"];
+        TUMLK     [label="TUMLK\ncumulative log-kill", shape=ellipse, fillcolor="#A8DCAB"];
+        RESIST    [label="Resistance:\n↑GSH, ↑MT, ↓CTR1,\n↑ERCC1", shape=note, fillcolor="#E6F6E7"];
+        EFFIC     [label="Tumour response\nEFS / OS", shape=hexagon, fillcolor="#8ED193"];
+    }
+
+    CISC -> TUMPT [label="QT × TUMPERF"];
+    TUMPERF -> TUMPT [style=dashed, constraint=false];
+    TUMPT -> TUMUP -> TUMAD [label="KADF"];
+    TUMAD -> NER [dir=back, label="removal"];
+    HMGB -> NER [color="#C0392B", arrowhead=tee, constraint=false];
+    TUMAD -> DDR -> P53T -> APOPT -> TUMLK;
+    TUMLK -> EFFIC;
+    RESIST -> TUMUP [color="#C0392B", arrowhead=tee, style=dashed, constraint=false];
+    RESIST -> NER [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 2b */
+    subgraph cluster_kidney {
+        label="2b. 신장 — 독성이자 증폭기 (Kidney — Toxicity and Amplifier)";
+        style="rounded,filled"; fillcolor="#FBF8ED"; color="#B8860B"; fontsize=12;
+        node [fillcolor="#EFE3B8"];
+
+        OCT2K     [label="OCT2 (SLC22A2)\nbasolateral uptake\nS3 proximal tubule"];
+        MATE1     [label="MATE1 (SLC47A1)\napical efflux"];
+        KIDPT     [label="KIDPT\ncortical platinum", shape=ellipse];
+        GGT       [label="γ-glutamyl transpeptidase\ncysteinyl-glycine conjugate\n→ reactive thiol"];
+        TUBROS    [label="Tubular mitochondrial\nROS, TNF-α, p53"];
+        TUBI      [label="TUBI\nproximal tubular injury\n(0–1)", shape=ellipse, fillcolor="#E3D290"];
+        KIM1      [label="KIM-1 / NGAL\ninjury biomarkers", shape=hexagon, fillcolor="#F6D6D6"];
+        MGWAST    [label="Renal Mg²⁺ / K⁺ wasting\nhypomagnesaemia", shape=hexagon, fillcolor="#F6D6D6"];
+        GFRL      [label="GFRL\nreversible GFR loss", shape=ellipse];
+        GPERM     [label="GPERM\npermanent nephron loss", shape=ellipse];
+        GFR       [label="GFR\n(mL/min)", shape=ellipse, fillcolor="#E3D290"];
+        HYDR      [label="Hydration + Mg²⁺\nsupplementation", shape=note, fillcolor="#F7F1DC"];
+    }
+
+    CISC -> OCT2K -> KIDPT;
+    KIDPT -> MATE1 [label="efflux"];
+    KIDPT -> GGT -> TUBROS -> TUBI;
+    TUBI -> KIM1;
+    TUBI -> MGWAST;
+    TUBI -> GFRL [label="KLOSS"];
+    TUBI -> GPERM [label="KPERM"];
+    GFRL -> GFR [color="#C0392B", arrowhead=tee, constraint=false];
+    GPERM -> GFR [color="#C0392B", arrowhead=tee, constraint=false];
+    GFR -> RENEX [style=dashed, label="CLR ∝ GFR", constraint=false];
+    HYDR -> TUBROS [color="#C0392B", arrowhead=tee, style=dashed, constraint=false];
+    MGWAST -> TUBI [style=dashed, label="feed-forward", constraint=false];
+
+    /* ---------------------------------------------------------------- 3 */
+    subgraph cluster_route {
+        label="3. 와우 도달 경로 — 치료 시간창을 만드는 캐스케이드 (Cochlear Route — the cascade that creates the therapeutic window)";
+        style="rounded,filled"; fillcolor="#F3F3FC"; color="#6C63C7"; fontsize=12;
+        node [fillcolor="#D6D5F2"];
+
+        BLB       [label="Blood–labyrinth barrier\ntight junctions +\npericytes"];
+        SVMARG    [label="Stria vascularis\nmarginal cells\nCTR1 / OCT2 / ATP7A"];
+        STRPT     [label="STRPT\nstrial platinum depot\npeak ≈ 1.9 h", shape=ellipse, fillcolor="#B9B7EA"];
+        PERI      [label="PERI\nperilymph platinum\npeak ≈ 6.9 h, t½ ≈ 5 h", shape=ellipse, fillcolor="#B9B7EA"];
+        ENDOL     [label="Endolymph / scala media\nK⁺-rich, +80 mV"];
+        LAGNOTE   [label="THE LAG:\nplasma t½ 22 min\nvs perilymph peak 6.9 h\n→ at 6 h, 0.004% of plasma\nplatinum but 79% of the\ncochlear load is still ahead",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+        OCUP      [label="Organ of Corti uptake\nCTR1, OCT2, TRPV1,\nmechanotransducer channel"];
+        MET       [label="MET channel open\nprobability\n(activity-dependent entry)"];
+    }
+
+    CISC -> BLB [label="KINBL"];
+    BLB -> SVMARG -> STRPT;
+    STRPT -> PERI [label="KSTP 0.15 /h"];
+    STRPT -> ENDOL [style=dashed, constraint=false];
+    PERI -> OCUP [label="KUPT × upt(x)"];
+    MET -> OCUP [style=dashed, constraint=false];
+    PERI -> LAGNOTE [style=dotted, arrowhead=none, constraint=false];
+
+    /* ---------------------------------------------------------------- 4 */
+    subgraph cluster_pools {
+        label="4. 세포내 백금의 두 저장고 (Two Intracellular Platinum Pools)";
+        style="rounded,filled"; fillcolor="#F3F3FC"; color="#6C63C7"; fontsize=12;
+        node [fillcolor="#D6D5F2"];
+
+        PTL       [label="PT (labile)\nredox-active platinum\nt½ ≈ 60 d\n★ this is what damages", shape=ellipse, fillcolor="#F5B7A6"];
+        PTB       [label="PTB (bound)\ncovalently sequestered\nt½ ≈ 2 y — carries\nnearly all the mass", shape=ellipse, fillcolor="#B9B7EA"];
+        BNDRXN    [label="Covalent binding to\nprotein thiols, mtDNA,\nnuclear DNA"];
+        MEASNOTE  [label="Mass spectrometry decades\nlater measures PTB.\nModel predicts PTB is a\nMARKER, not the agent:\nvarying its t½ 240-fold\nmoves the audiogram 0 dB",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+        MTDNA     [label="mtDNA adducts\n(no NER in mitochondria)"];
+        NODIV     [label="Hair cells are post-mitotic\nand never regenerate\n→ damage is a ratchet", shape=note, fillcolor="#EFEFFA"];
+    }
+
+    OCUP -> PTL;
+    PTL -> BNDRXN -> PTB;
+    PTB -> MEASNOTE [style=dotted, arrowhead=none, constraint=false];
+    PTL -> MTDNA;
+
+    /* ---------------------------------------------------------------- 5 */
+    subgraph cluster_redox {
+        label="5. 산화환원 — 이독성을 음조지형적으로 만드는 글루타티온 문턱 (Redox — the glutathione threshold that makes ototoxicity tonotopic)";
+        style="rounded,filled"; fillcolor="#FEF6EE"; color="#E67E22"; fontsize=12;
+        node [fillcolor="#FBDDBF"];
+
+        NOX3      [label="NOX3\ncochlea-specific\nNADPH oxidase"];
+        MITOROS   [label="Mitochondrial complex I/III\nsuperoxide"];
+        XO        [label="Xanthine oxidase"];
+        FLUX      [label="Oxidant flux\nFLUX = KROS × PT × env", shape=ellipse, fillcolor="#F6C48F"];
+        GSH       [label="GSH\nreduced glutathione\n(band-specific capacity)", shape=ellipse, fillcolor="#F6C48F"];
+        GSHSYN    [label="γ-GCS / GSS resynthesis\nKSYN 0.045 /h"];
+        GPX       [label="GPx1 / GSR\nperoxide removal"];
+        SOD       [label="SOD1 / SOD2 / catalase"];
+        NRF2      [label="NRF2 / KEAP1\nantioxidant response element"];
+        SATNOTE   [label="Consumption SATURATES:\nKCON·FLUX·G/(KMG+G)\n→ reserve collapses above\nPT* = KSYN·GMAX/(KCON·KROS)\n— a threshold, not a slope",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+        LPO       [label="Lipid peroxidation\n4-HNE, MDA"];
+        OX        [label="OX\noxidative stress\n= FLUX / (KSCV·GSH + KBOX)", shape=ellipse, fillcolor="#F0A868"];
+        CA        [label="Cytosolic Ca²⁺ overload\nTRPV1 / TRPA1"];
+        ERSTRESS  [label="ER stress / CHOP"];
+    }
+
+    PTL -> NOX3;
+    PTL -> MITOROS;
+    PTL -> XO;
+    NOX3 -> FLUX; MITOROS -> FLUX; XO -> FLUX;
+    FLUX -> GSH [label="KCON, saturating", color="#C0392B", arrowhead=tee, constraint=false];
+    GSHSYN -> GSH;
+    NRF2 -> GSHSYN [style=dashed, constraint=false];
+    GSH -> GPX [style=dashed, constraint=false];
+    GPX -> OX [color="#C0392B", arrowhead=tee, constraint=false];
+    SOD -> OX [color="#C0392B", arrowhead=tee, constraint=false];
+    FLUX -> OX;
+    GSH -> OX [color="#C0392B", arrowhead=tee, label="KSCV", constraint=false];
+    GSH -> SATNOTE [style=dotted, arrowhead=none, constraint=false];
+    OX -> LPO; OX -> CA; OX -> ERSTRESS;
+    MTDNA -> MITOROS [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 6a */
+    subgraph cluster_death {
+        label="6a. 세포사 경로 (Hair Cell Death Pathways)";
+        style="rounded,filled"; fillcolor="#FDF1EF"; color="#C0392B"; fontsize=12;
+        node [fillcolor="#F8C9BE"];
+
+        STAT1     [label="STAT1 Ser727\nphosphorylation"];
+        TNF       [label="TNF-α / IL-1β / IL-6"];
+        P53H      [label="p53 / PUMA"];
+        BAX       [label="BAX / BAK\nMOMP"];
+        CYTC      [label="Cytochrome c release"];
+        CASP9     [label="Caspase-9"];
+        CASP3     [label="Caspase-3/7\nexecution"];
+        AIF       [label="AIF / parthanatos\n(caspase-independent)"];
+        HZ        [label="HZ\ndeath hazard\nKAP·OX^n/(OXC^n+OX^n)", shape=ellipse, fillcolor="#F0A090"];
+        OHC       [label="OHC\nouter hair cells\n(3 rows, prestin)", shape=ellipse, fillcolor="#F0A090"];
+        IHC       [label="IHC\ninner hair cells\n(FIHC 0.30 × hazard)", shape=ellipse, fillcolor="#F0A090"];
+        SGN       [label="SGN\nspiral ganglion neurons\n+ secondary deafferentation", shape=ellipse, fillcolor="#F0A090"];
+        SYNAP     [label="Ribbon synapse loss\n(cochlear synaptopathy)"];
+        SUPPC     [label="Deiters / pillar\nsupporting cells"];
+        SCAR      [label="Phalangeal scar formation"];
+    }
+
+    OX -> STAT1 -> HZ;
+    OX -> P53H -> BAX -> CYTC -> CASP9 -> CASP3 -> HZ;
+    OX -> AIF -> HZ;
+    CA -> BAX [style=dashed, constraint=false];
+    LPO -> BAX [style=dashed, constraint=false];
+    ERSTRESS -> P53H [style=dashed, constraint=false];
+    TNF -> HZ [style=dashed, constraint=false];
+    HZ -> OHC [color="#C0392B", arrowhead=tee, constraint=false];
+    HZ -> IHC [color="#C0392B", arrowhead=tee, constraint=false];
+    HZ -> SGN [color="#C0392B", arrowhead=tee, constraint=false];
+    IHC -> SYNAP [dir=back];
+    SYNAP -> SGN [style=dashed, label="deafferentation", constraint=false];
+    OHC -> SUPPC [style=dashed, constraint=false];
+    SUPPC -> SCAR;
+
+    /* ---------------------------------------------------------------- 6b */
+    subgraph cluster_infl {
+        label="6b. 와우 염증 (Cochlear Inflammation)";
+        style="rounded,filled"; fillcolor="#FDF1EF"; color="#C0392B"; fontsize=12;
+        node [fillcolor="#F8C9BE"];
+
+        DAMP      [label="DAMPs: HMGB1,\nHSP70, ATP"];
+        MACRO     [label="Cochlear macrophages\nCX3CR1⁺ (spiral ligament,\nspiral ganglion)"];
+        NLRP3     [label="NLRP3 inflammasome\ncaspase-1 → IL-1β"];
+        INFL      [label="INFL\ninflammation index\n(GINFL × hazard)", shape=ellipse, fillcolor="#F0A090"];
+        MONO      [label="Monocyte infiltration\nacross the BLB"];
+    }
+
+    HZ -> DAMP -> MACRO -> NLRP3 -> TNF;
+    MACRO -> INFL; MONO -> MACRO;
+    INFL -> HZ [style=dashed, label="amplifies", constraint=false];
+    BLB -> MONO [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 6c */
+    subgraph cluster_tono {
+        label="6c. 음조지형 — 취약성은 두 기울기의 곱 (Tonotopy — vulnerability is a product of two gradients)";
+        style="rounded,filled"; fillcolor="#F3F3FC"; color="#6C63C7"; fontsize=12;
+        node [fillcolor="#D6D5F2"];
+
+        GREEN     [label="Greenwood map\nf = 165.4(10^2.1x − 0.88)\nx = 0 apex … 1 base", shape=note, fillcolor="#EFEFFA"];
+        UPTG      [label="Uptake gradient\nupt(x) = e^{BUPT(x−0.5)}\nbase/apex ≈ 1.98"];
+        RESG      [label="Reserve gradient\nGMAX(x) = GSH0·e^{−BGSH·x}\napex/base ≈ 2.63"];
+        VULN      [label="Vulnerability =\nPT*/uptake ∝ GMAX/upt\napex/base ≈ 5.20", shape=ellipse, fillcolor="#B9B7EA"];
+        BANDS     [label="8 tonotopic bands\n0.25 · 0.5 · 1 · 2 · 4 · 6 · 8 · 12.5 kHz\n(6 ODE states each)", shape=box3d, fillcolor="#B9B7EA"];
+        MARCH     [label="Reserve collapse sweeps\napex-ward with cumulative dose:\n12.5 kHz at cycle 2.0,\n8 kHz 2.1, 6 kHz 3.0,\n4 kHz 4.1, 2 kHz 10.1",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+        MITODENS  [label="Basal OHC: higher metabolic\nrate, lower GSH/GPx,\nfewer mitochondria per volume", shape=note, fillcolor="#EFEFFA"];
+    }
+
+    GREEN -> BANDS;
+    UPTG -> VULN; RESG -> VULN;
+    MITODENS -> RESG [style=dashed, constraint=false];
+    VULN -> BANDS;
+    BANDS -> MARCH [style=dotted, arrowhead=none, constraint=false];
+    UPTG -> OCUP [style=dashed, constraint=false];
+    RESG -> GSH [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 6d */
+    subgraph cluster_stria {
+        label="6d. 혈관조와 와우내전위 (Stria Vascularis and Endocochlear Potential)";
+        style="rounded,filled"; fillcolor="#F3F3FC"; color="#6C63C7"; fontsize=12;
+        node [fillcolor="#D6D5F2"];
+
+        SVATR     [label="Strial atrophy\nmarginal / intermediate\ncell loss"];
+        KCNQ1     [label="KCNQ1/KCNE1, KCNJ10\nK⁺ recycling"];
+        NAKATP    [label="Na⁺/K⁺-ATPase,\nNKCC1 (spiral ligament)"];
+        SVF       [label="SVF\nstrial functional integrity", shape=ellipse, fillcolor="#B9B7EA"];
+        EP        [label="EP\nendocochlear potential\n85 → 76 mV after 600 mg/m²", shape=ellipse, fillcolor="#B9B7EA"];
+        AMPGAIN   [label="Cochlear amplifier gain\namp = OHC × (EP/EP0)^GEP"];
+        PRESTIN   [label="Prestin / SLC26A5\nelectromotility"];
+    }
+
+    STRPT -> SVATR;
+    SVATR -> SVF [color="#C0392B", arrowhead=tee, constraint=false];
+    KCNQ1 -> SVF [style=dashed, constraint=false]; NAKATP -> SVF [style=dashed];
+    SVF -> EP;
+    EP -> AMPGAIN;
+    OHC -> AMPGAIN;
+    PRESTIN -> AMPGAIN [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 7a */
+    subgraph cluster_sts {
+        label="7a. 티오황산나트륨 (Sodium Thiosulfate — the delayed rescue)";
+        style="rounded,filled"; fillcolor="#EEFAFA"; color="#17A2A2"; fontsize=12;
+        node [fillcolor="#BFEBEB"];
+
+        STSDOSE   [label="Na₂S₂O₃ 20 g/m² IV\n15 min, 6 h after cisplatin", shape=box3d];
+        STSC      [label="STSC\nthiosulfate plasma\n≈ 7 mM peak, t½ 42 min", shape=ellipse];
+        STSPE     [label="STSPE\nthiosulfate perilymph\npeak ≈ 27 µM", shape=ellipse];
+        STSTU     [label="STSTU\nthiosulfate in tumour ISF", shape=ellipse];
+        K2RXN     [label="Pt + S₂O₃²⁻ → inert\nPt–thiosulfate complex\n2nd order, K2STS"];
+        SULFANE   [label="Sulfane sulfur / H₂S\n→ NRF2, ↑GSH capacity\n(BSTS 0.45)"];
+        WINDOW    [label="THE TRADE-OFF:\n0 h → 89% otoprotection\nbut 64% of log-kill lost.\n6 h → 56% otoprotection\nand 0.0% of log-kill lost\n(1.2% if poorly perfused)",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+    }
+
+    STSDOSE -> STSC;
+    STSC -> STSPE [label="KINBLS"];
+    STSC -> STSTU [label="QT × TUMPERF"];
+    STSC -> K2RXN; STSPE -> K2RXN; STSTU -> K2RXN;
+    K2RXN -> PERI [color="#C0392B", arrowhead=tee, label="scavenges", constraint=false];
+    K2RXN -> CISC [color="#C0392B", arrowhead=tee, constraint=false];
+    K2RXN -> TUMPT [color="#C0392B", arrowhead=tee, label="the cost", constraint=false];
+    STSPE -> SULFANE -> GSHSYN [style=dashed];
+    STSPE -> WINDOW [style=dotted, arrowhead=none, constraint=false];
+
+    /* ---------------------------------------------------------------- 7b */
+    subgraph cluster_local {
+        label="7b. 국소 투여 경로 (Local Delivery Routes)";
+        style="rounded,filled"; fillcolor="#EEFAFA"; color="#17A2A2"; fontsize=12;
+        node [fillcolor="#BFEBEB"];
+
+        ITD       [label="ITD\nintratympanic depot\n0.5 mL 8% Na₂S₂O₃\n= 161 µmol", shape=box3d];
+        RWM       [label="Round window membrane\nFRW ≈ 0.5% crosses"];
+        STSIT     [label="STSIT\nlocally delivered thiosulfate\nperilymph peak ≈ 1.2 mM", shape=ellipse];
+        ITGRAD    [label="Base-ward delivery gradient\nitg(x) = e^{BIT(x−0.5)}\nbase/apex ≈ 4.8"];
+        MATCH     [label="THE ROUTE ARGUMENT:\nprotection 21% at 0.25 kHz\nrising to 53% at 8 kHz —\nthe delivery gradient is\nco-located with the\nvulnerability gradient,\nwith zero tumour exposure",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+        NACC      [label="NACC\nN-acetylcysteine\nIV 150 mg/kg", shape=ellipse];
+        NACPE     [label="NACPE\nNAC in perilymph"];
+        AMIF      [label="Amifostine\n(WR-2721 → WR-1065)\nfails: does not reach\nthe cochlea"];
+        DMET      [label="D-methionine\n(preclinical)"];
+        NBUTHIO   [label="Other thiols:\nN-acetylcysteine amide,\nsodium 2-mercaptoethane-\nsulfonate"];
+    }
+
+    ITD -> RWM -> STSIT;
+    ITGRAD -> STSIT [style=dashed, constraint=false];
+    STSIT -> OCUP [color="#C0392B", arrowhead=tee, label="local block", constraint=false];
+    STSIT -> MATCH [style=dotted, arrowhead=none, constraint=false];
+    NACC -> NACPE -> GSHSYN [style=dashed];
+    AMIF -> BLB [color="#C0392B", arrowhead=tee, style=dashed, constraint=false];
+    DMET -> GSH [style=dashed, constraint=false];
+    NBUTHIO -> K2RXN [style=dashed, constraint=false];
+
+    /* ---------------------------------------------------------------- 7c */
+    subgraph cluster_mods {
+        label="7c. 위험 조절 인자 (Risk Modifiers)";
+        style="rounded,filled"; fillcolor="#F6F1FB"; color="#8E44AD"; fontsize=12;
+        node [fillcolor="#DFC9EE"];
+
+        AGE       [label="Age\nAGEMIN 0.62 in the neonate\n→ +6.8 dB PTA at 1 y"];
+        AMGLY     [label="Aminoglycoside\nco-exposure (FAG 0.26)\n→ +9.9 dB PTA"];
+        NOISE     [label="Noise ≥85 dBA\n(FNOISE 0.16)\n→ +5.8 dB PTA"];
+        FURO      [label="Loop diuretic\nopens the BLB\n(FUROF 1.45) → +17.7 dB"];
+        CKD       [label="Baseline GFR\n45 vs 100 → +2.5 dB"];
+        CRT       [label="Cranial / cochlear\nradiotherapy dose"];
+        GENET     [label="Pharmacogenetics:\nTPMT, COMT, ACYP2,\nSLC22A2, LRP2"];
+        SEX       [label="Sex, iron status,\nsmoking"];
+        SUPRA     [label="Five factors together:\n+56.0 dB vs +42.7 dB\nif they were additive\n(1.31× supra-additive)",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+    }
+
+    AGE -> RESG [color="#C0392B", arrowhead=tee, style=dashed, constraint=false];
+    AMGLY -> FLUX [style=dashed, constraint=false]; NOISE -> FLUX [style=dashed];
+    FURO -> BLB [style=dashed, label="↑permeability", constraint=false];
+    CKD -> GFR [color="#C0392B", arrowhead=tee, style=dashed, constraint=false];
+    CRT -> SVATR [style=dashed, constraint=false];
+    GENET -> OCUP [style=dashed, constraint=false]; GENET -> GSHSYN [style=dashed];
+    SEX -> FLUX [style=dashed, constraint=false];
+    AGE -> SUPRA [style=dotted, arrowhead=none, constraint=false];
+
+    /* ---------------------------------------------------------------- 8 */
+    subgraph cluster_endpoints {
+        label="8. 임상 종말점 및 등급 체계 (Clinical Endpoints and Grading Scales)";
+        style="rounded,filled"; fillcolor="#FDF0F5"; color="#C2185B"; fontsize=12;
+        node [fillcolor="#F8CFDF"];
+
+        TSDB      [label="Threshold shift per band\nTS = TSO(1−amp)^GTS + TSI(1−IHC)", shape=ellipse, fillcolor="#F1A9C4"];
+        AUDIO     [label="Pure-tone audiogram\n0.25 – 12.5 kHz", shape=hexagon, fillcolor="#F1A9C4"];
+        PTA       [label="Speech-frequency PTA\n0.5/1/2/4 kHz", shape=hexagon];
+        EHF       [label="Extended high-frequency\naudiometry (>8 kHz)\n— earliest signal", shape=hexagon];
+        DPOAE     [label="DPOAE amplitude\n(OHC-specific)", shape=hexagon];
+        BROCK     [label="Brock grade 0–4\n40 dB criterion", shape=hexagon];
+        SIOPB     [label="SIOP Boston scale 0–4\n20 dB criterion", shape=hexagon];
+        ASHA      [label="ASHA shift criteria", shape=hexagon];
+        CTCAE     [label="CTCAE v5.0 grade", shape=hexagon];
+        SNRL      [label="Speech-in-noise penalty\n(SNR-50) from IHC/SGN loss\n— invisible to pure tones", shape=hexagon];
+        TINN      [label="Tinnitus probability", shape=hexagon];
+        VESTIB    [label="Vestibulotoxicity\n(rare with cisplatin)", shape=hexagon];
+        LANG      [label="Speech and language\ndevelopment, schooling\n(< 5 y at treatment)", shape=hexagon, fillcolor="#EE8FB0"];
+        QOL       [label="Hearing-related QoL,\nhearing aid / cochlear\nimplant need", shape=hexagon, fillcolor="#EE8FB0"];
+        DOSEMOD   [label="Dose modification /\ndrug substitution\n→ efficacy trade-off", shape=hexagon, fillcolor="#EE8FB0"];
+        STAIR     [label="Grades are a STAIRCASE\non a continuous variable:\nBrock 0 to 500 mg/m²,\n1 at 600, 2 at 800",
+                   shape=note, fillcolor="#FFF3C4", color="#B8860B", penwidth=2];
+    }
+
+    AMPGAIN -> TSDB;
+    IHC -> TSDB [label="dead region"];
+    TSDB -> AUDIO -> PTA;
+    AUDIO -> EHF;
+    OHC -> DPOAE;
+    AUDIO -> BROCK; AUDIO -> SIOPB; AUDIO -> ASHA; AUDIO -> CTCAE;
+    SGN -> SNRL; SYNAP -> SNRL;
+    AUDIO -> TINN;
+    PERI -> VESTIB [style=dashed, constraint=false];
+    PTA -> LANG; SNRL -> LANG;
+    PTA -> QOL; TINN -> QOL; LANG -> QOL;
+    BROCK -> DOSEMOD; SIOPB -> DOSEMOD;
+    DOSEMOD -> EFFIC [color="#C0392B", arrowhead=tee, style=dashed, constraint=false];
+    BROCK -> STAIR [style=dotted, arrowhead=none, constraint=false];
+
+    /* -------------------------------------------------- cross-cluster ties */
+    GFR -> CISC [style=dashed, color="#B8860B", label="↓GFR ⇒ ↑AUC ⇒ ↑cochlear Pt\n(nephrotoxicity amplifies ototoxicity)", constraint=false];
+    TUMLK -> DOSEMOD [style=dashed, constraint=false];
+    INFL -> MONO [style=dashed, constraint=false];
+    STSC -> STSTU [style=invis];
+
+    /* legend */
+    subgraph cluster_legend {
+        label="범례 (Legend)";
+        style="rounded,filled"; fillcolor="#FAFAFA"; color="#999999"; fontsize=11;
+        node [shape=plaintext, fillcolor="#FAFAFA", fontsize=9];
+        LEG [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
+          <TR><TD BGCOLOR="#CFE6F7">약물 · PK</TD><TD BGCOLOR="#CDECCF">종양 (efficacy)</TD><TD BGCOLOR="#EFE3B8">신장</TD><TD BGCOLOR="#D6D5F2">와우 수송 · 음조지형</TD></TR>
+          <TR><TD BGCOLOR="#FBDDBF">산화환원</TD><TD BGCOLOR="#F8C9BE">세포사 · 염증</TD><TD BGCOLOR="#BFEBEB">보호제</TD><TD BGCOLOR="#F8CFDF">임상 종말점</TD></TR>
+          <TR><TD BGCOLOR="#DFC9EE">위험 조절 인자</TD><TD BGCOLOR="#FFF3C4">모델의 정량적 주장</TD><TD>실선 = 물질 이동/활성화</TD><TD>붉은 T = 억제</TD></TR>
+        </TABLE>>];
+    }
+}
