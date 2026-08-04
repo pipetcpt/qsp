@@ -1,0 +1,410 @@
+/* =====================================================================
+   Iron Deficiency Anaemia (IDA) -- QSP mechanistic map
+   ---------------------------------------------------------------------
+   Central thesis encoded by this graph: intestinal iron absorption is a
+   PRODUCT of three factors -- luminal soluble iron x apical DMT1 capacity
+   x basolateral export capacity -- and the third factor is set by the
+   hepcidin that the PREVIOUS dose generated. The dose therefore closes
+   the gate it must pass through. Downstream, haemoglobin is limited by a
+   DIFFERENT constraint (marrow iron delivery, dominated by macrophage
+   recycling), which is why absorbed iron and haemoglobin response come
+   apart at high doses.
+   Nodes marked [S] are state variables of ida_mrgsolve_model.R,
+   [P] are parameters, [E] are clinical endpoints.
+   ===================================================================== */
+digraph IDA_QSP {
+  graph [rankdir=TB, splines=true, newrank=true, nodesep=0.22, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true,
+         label="Iron Deficiency Anaemia — Quantitative Systems Pharmacology map\n[S] = mrgsolve state · [P] = parameter · [E] = clinical endpoint",
+         labelloc=t, fontcolor="#1a1a1a"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=1.0, margin="0.08,0.045"];
+  edge  [color="#666666", penwidth=1.0, arrowsize=0.7, fontname="Helvetica", fontsize=8];
+
+  /* ---------- colour key ------------------------------------------- */
+  subgraph cluster_key {
+    label="Key"; style="rounded,filled"; fillcolor="#fafafa"; color="#bbbbbb"; fontsize=11;
+    k1 [label="iron pool / flux", fillcolor="#ffe0b2"];
+    k2 [label="regulatory protein", fillcolor="#e1bee7"];
+    k3 [label="erythroid", fillcolor="#ffcdd2"];
+    k4 [label="drug / dosing", fillcolor="#c8e6c9"];
+    k5 [label="biomarker", fillcolor="#b3e5fc"];
+    k6 [label="clinical endpoint", fillcolor="#fff9c4"];
+    k7 [label="adverse effect", fillcolor="#d7ccc8"];
+    k1->k2->k3->k4->k5->k6->k7 [style=invis];
+  }
+
+  /* =================================================================
+     1. AETIOLOGY AND IRON LOSSES
+     ================================================================= */
+  subgraph cluster_aetio {
+    label="1. Aetiology — the iron drain"; style="rounded,filled";
+    fillcolor="#fff3e0"; color="#e65100"; fontsize=12;
+    MENORR  [label="Heavy menstrual bleeding\n> 80 mL/cycle", fillcolor="#ffe0b2"];
+    FIBROID [label="Uterine fibroids ·\nadenomyosis", fillcolor="#ffe0b2"];
+    GIBLEED [label="Occult GI blood loss\n(NSAID, angiodysplasia,\ncolorectal neoplasm)", fillcolor="#ffe0b2"];
+    HOOKWORM[label="Hookworm /\nschistosomiasis", fillcolor="#ffe0b2"];
+    PREG    [label="Pregnancy & lactation\n(+1000 mg demand)", fillcolor="#ffe0b2"];
+    GROWTH  [label="Adolescent growth spurt", fillcolor="#ffe0b2"];
+    DONOR   [label="Repeat blood donation", fillcolor="#ffe0b2"];
+    LOWINT  [label="Low bioavailable intake\n(vegetarian, poverty)\n[P] DIET · F_DIET", fillcolor="#ffe0b2"];
+    COELIAC [label="Coeliac disease\n(villous atrophy)", fillcolor="#ffe0b2"];
+    HPYLORI [label="H. pylori gastritis\n(achlorhydria)", fillcolor="#ffe0b2"];
+    ATROPHIC[label="Autoimmune atrophic\ngastritis", fillcolor="#ffe0b2"];
+    BARIATRIC[label="Gastrectomy / RYGB\n(duodenal bypass)", fillcolor="#ffe0b2"];
+    PPI     [label="PPI / H2RA\n(Fe3+ stays insoluble)", fillcolor="#c8e6c9"];
+    VBLEED_N[label="Blood loss rate\n[P] VBLEED (mL/day)", fillcolor="#ffcc80"];
+    LOSSB   [label="Obligatory epithelial loss\n~1 mg/day  [P] LOSS_BASAL", fillcolor="#ffcc80"];
+    NEGBAL  [label="NEGATIVE IRON BALANCE\nloss > absorption", fillcolor="#ffab91", penwidth=2.0];
+  }
+
+  /* =================================================================
+     2. LUMEN AND ENTEROCYTE — the gate
+     ================================================================= */
+  subgraph cluster_gut {
+    label="2. Duodenal lumen and enterocyte — the regulated gate"; style="rounded,filled";
+    fillcolor="#f1f8e9"; color="#33691e"; fontsize=12;
+    GASTRIC [label="Gastric acid\nFe3+ -> Fe2+ solubilisation", fillcolor="#e1bee7"];
+    ASC     [label="Ascorbate\n(reduces & chelates Fe)", fillcolor="#c8e6c9"];
+    PHYTATE [label="Phytate · polyphenols ·\ntannins · Ca2+ · zinc", fillcolor="#d7ccc8"];
+    ALUM    [label="Luminal soluble iron\n[S] A_LUM (mg)", fillcolor="#ffe0b2", penwidth=1.8];
+    KTR_N   [label="Duodenal transit out of\nabsorptive window [P] KTR", fillcolor="#ffcc80"];
+    DCYTB   [label="DCYTB (CYBRD1)\nferrireductase", fillcolor="#e1bee7"];
+    DMT1    [label="DMT1 / SLC11A2\napical Fe2+ uptake\n[P] VMAX_D · KM_D", fillcolor="#e1bee7", penwidth=1.8];
+    HCP1    [label="HCP1 / PCFT\nhaem-iron uptake", fillcolor="#e1bee7"];
+    HO1_ENT [label="HO-1 (enterocyte)\nhaem -> Fe2+", fillcolor="#e1bee7"];
+    AENT    [label="Enterocyte labile iron\n[S] A_ENT", fillcolor="#ffe0b2", penwidth=1.8];
+    AEFT    [label="Enterocyte FERRITIN iron\n[S] A_EFT — memory of the\nmucosal block", fillcolor="#ffe0b2", penwidth=2.0];
+    IRP     [label="IRP1/IRP2 — IRE\nDMT1 mRNA destabilised\n[P] K_IRP", fillcolor="#e1bee7"];
+    FPN_ENT [label="Enterocyte export capacity\n[S] FPN_ENT (ferroportin)\n[P] KSYN_FPE · KDEG_FPE", fillcolor="#ce93d8", penwidth=2.2];
+    HEPH    [label="Hephaestin\nFe2+ -> Fe3+ for Tf loading", fillcolor="#e1bee7"];
+    SHED    [label="Enterocyte shedding\n(iron never absorbed)\n[P] KSHED", fillcolor="#d7ccc8"];
+    VABS    [label="ABSORBED IRON FLUX\nV_ABS = KEXP x FPN_ENT x A_ENT", fillcolor="#ffab91", penwidth=2.2];
+  }
+
+  /* =================================================================
+     3. PLASMA TRANSPORT
+     ================================================================= */
+  subgraph cluster_plasma {
+    label="3. Plasma transport compartment"; style="rounded,filled";
+    fillcolor="#e3f2fd"; color="#0d47a1"; fontsize=12;
+    APOTF   [label="Apotransferrin\n(up-regulated when depleted)", fillcolor="#e1bee7"];
+    TIBC    [label="TIBC / total transferrin\n[S] TIBC (ug/dL)", fillcolor="#b3e5fc", penwidth=1.8];
+    ATF     [label="Transferrin-bound iron\n[S] A_TF -> serum iron", fillcolor="#ffe0b2", penwidth=2.2];
+    TSAT    [label="TRANSFERRIN SATURATION\nTSAT = SI / TIBC\nthe supply signal", fillcolor="#b3e5fc", penwidth=2.2];
+    NTBI    [label="Non-transferrin-bound iron\n[S] A_NTBI (TSAT > 75 %)", fillcolor="#ffe0b2"];
+    TFR1_P  [label="TfR1-mediated delivery\n(erythron, all tissues)", fillcolor="#e1bee7"];
+    ROS     [label="Labile iron -> Fenton ROS\nlipid peroxidation", fillcolor="#d7ccc8"];
+  }
+
+  /* =================================================================
+     4. HEPCIDIN — the controller
+     ================================================================= */
+  subgraph cluster_hep {
+    label="4. Hepatocyte hepcidin — the controller"; style="rounded,filled";
+    fillcolor="#f3e5f5"; color="#4a148c"; fontsize=12;
+    BMP6    [label="BMP6 / BMP2\n(sinusoidal endothelium,\niron-sensing)", fillcolor="#e1bee7"];
+    HJV     [label="Haemojuvelin (HFE2)\nBMP co-receptor", fillcolor="#e1bee7"];
+    ALK23   [label="ALK2/ALK3 · ActRIIA\ntype I/II BMP receptors", fillcolor="#e1bee7"];
+    SMAD    [label="SMAD1/5/8 — SMAD4\nBMP-RE on HAMP promoter", fillcolor="#e1bee7", penwidth=1.6];
+    HFE_TFR2[label="HFE · TfR2\nholo-transferrin sensor", fillcolor="#e1bee7", penwidth=1.6];
+    TMPRSS6 [label="TMPRSS6 / matriptase-2\ncleaves HJV -> lowers hepcidin\n[P] TMPRSS6", fillcolor="#e1bee7", penwidth=1.8];
+    IL6     [label="IL-6 / IL-1b / TNF\n[S] IL6", fillcolor="#e1bee7", penwidth=1.8];
+    IL6R    [label="IL6R — gp130\nJAK1/2 — STAT3\nSTAT3-BS on HAMP", fillcolor="#e1bee7"];
+    ERFE    [label="Erythroferrone (ERFE)\nBMP2/6 trap\n[S] ERFE", fillcolor="#e1bee7", penwidth=1.8];
+    HIF_H   [label="Hypoxia · HIF\nPDGF-BB", fillcolor="#e1bee7"];
+    TESTO   [label="Testosterone · EGF/HGF\n(suppress HAMP)", fillcolor="#e1bee7"];
+    HAMP    [label="HAMP transcription", fillcolor="#e1bee7"];
+    HEPC    [label="HEPCIDIN-25\n[S] HEP (ng/mL)\nt1/2 ~ 2.5 h", fillcolor="#ce93d8", penwidth=2.4];
+    RENAL_H [label="Renal filtration\nof hepcidin  [P] KOUT_HEP", fillcolor="#e1bee7"];
+    FPN_RES [label="Macrophage / hepatocyte\nferroportin  [S] FPN_RES\n[P] KSYN_FPR · KDEG_FPR", fillcolor="#ce93d8", penwidth=2.2];
+  }
+
+  /* =================================================================
+     5. MACROPHAGE RECYCLING AND STORAGE
+     ================================================================= */
+  subgraph cluster_res {
+    label="5. Macrophage recycling and storage — 85 % of marrow supply"; style="rounded,filled";
+    fillcolor="#fbe9e7"; color="#bf360c"; fontsize=12;
+    SENESC  [label="Senescent RBC\n(120-day lifespan)", fillcolor="#ffcdd2"];
+    EPHAGO  [label="Erythrophagocytosis\nspleen · liver · marrow\n~16 mg Fe/day", fillcolor="#ffe0b2", penwidth=1.8];
+    HO1     [label="HO-1 (HMOX1)\nhaem -> Fe2+ + biliverdin + CO", fillcolor="#e1bee7"];
+    SLC48A1 [label="HRG1 / SLC48A1\nphagolysosomal haem export", fillcolor="#e1bee7"];
+    ARES    [label="Macrophage storage iron\n[S] A_RES (ferritin H/L)", fillcolor="#ffe0b2", penwidth=1.8];
+    RECREL  [label="Direct recycling release\n(ferroportin-gated)\n[P] KM_FPN_REL", fillcolor="#ffcc80"];
+    NCOA4   [label="NCOA4 ferritinophagy\nferritin -> labile iron", fillcolor="#e1bee7"];
+    ALIV    [label="Hepatocyte storage iron\n[S] A_LIV", fillcolor="#ffe0b2", penwidth=1.8];
+    ATISS   [label="Non-erythroid tissue iron\n[S] A_TISS (~380 mg)", fillcolor="#ffe0b2", penwidth=1.8];
+    RESBLOCK[label="RETICULOENDOTHELIAL BLOCK\nhigh ferritin + low TSAT\n= functional iron deficiency", fillcolor="#ffab91", penwidth=2.0];
+  }
+
+  /* =================================================================
+     6. ERYTHROPOIESIS
+     ================================================================= */
+  subgraph cluster_ery {
+    label="6. Erythropoiesis — the demand side and its ceiling"; style="rounded,filled";
+    fillcolor="#ffebee"; color="#b71c1c"; fontsize=12;
+    REP     [label="Renal REP cells\nHIF-2a stabilisation", fillcolor="#e1bee7"];
+    EPO     [label="Erythropoietin\nlog-linear in Hb deficit\n[P] KEPO · EPO0", fillcolor="#e1bee7", penwidth=1.8];
+    EPOR    [label="EPOR — JAK2 — STAT5\nBcl-xL survival signal", fillcolor="#e1bee7"];
+    PROG    [label="BFU-E / CFU-E progenitors\n[S] PROG", fillcolor="#ffcdd2", penwidth=1.8];
+    FEXP    [label="IRON GATE ON EXPANSION\nF_EXP = TSAT/(TSAT+K_EXP_FE)\nEPO cannot expand a marrow\nit cannot supply", fillcolor="#ef9a9a", penwidth=2.2];
+    EB1     [label="Proerythroblast\n[S] N1 / H1", fillcolor="#ffcdd2"];
+    EB2     [label="Basophilic-polychromatic\n[S] N2 / H2", fillcolor="#ffcdd2"];
+    EB3     [label="Orthochromatic\n[S] N3 / H3", fillcolor="#ffcdd2"];
+    TFR1_E  [label="TfR1 (CD71)\nclathrin endocytosis", fillcolor="#e1bee7"];
+    STEAP3  [label="STEAP3 endosomal\nferrireductase", fillcolor="#e1bee7"];
+    DMT1_E  [label="DMT1 endosomal export", fillcolor="#e1bee7"];
+    MFRN1   [label="Mitoferrin-1 (SLC25A37)\nmitochondrial iron import", fillcolor="#e1bee7"];
+    ALAS2   [label="ALAS2 (rate-limiting,\nIRE-regulated)", fillcolor="#e1bee7"];
+    PPIX    [label="Protoporphyrin IX", fillcolor="#e1bee7"];
+    FECH    [label="Ferrochelatase\nFe2+ + PPIX -> haem", fillcolor="#e1bee7", penwidth=1.6];
+    ZPP     [label="Zinc protoporphyrin\n(Zn substitutes for Fe)", fillcolor="#b3e5fc"];
+    GLOBIN  [label="alpha/beta-globin synthesis\nHRI/eIF2a translational control", fillcolor="#e1bee7"];
+    HBSYN   [label="Hb SYNTHESIS PER CELL\nVHB x F_FE (pg/cell/h)", fillcolor="#ef9a9a", penwidth=2.0];
+    APOP    [label="Iron-restricted erythroblast\napoptosis [P] KAPO_MAX\n(iron recycled to macrophages)", fillcolor="#ffcdd2", penwidth=1.6];
+    RET     [label="Reticulocytes\n[S] NRET / HRET", fillcolor="#ffcdd2", penwidth=1.8];
+    RBC     [label="Circulating RBC + Hb mass\n[S] NRBC / HRBC", fillcolor="#ffcdd2", penwidth=2.2];
+  }
+
+  /* =================================================================
+     7. NON-ERYTHROID IRON FUNCTIONS
+     ================================================================= */
+  subgraph cluster_tissue {
+    label="7. Non-erythroid iron — why symptoms and Hb dissociate"; style="rounded,filled";
+    fillcolor="#efebe9"; color="#3e2723"; fontsize=12;
+    MYOGLOB [label="Muscle myoglobin ·\nFe-S respiratory complexes", fillcolor="#e1bee7"];
+    ACON    [label="Aconitase · succinate DH\noxidative capacity", fillcolor="#e1bee7"];
+    RNR     [label="Ribonucleotide reductase\n(proliferating cells)", fillcolor="#e1bee7"];
+    TH_DA   [label="Tyrosine hydroxylase ·\nD2 receptor · A11 dopamine", fillcolor="#e1bee7", penwidth=1.6];
+    TPO_T   [label="Thyroid peroxidase\n(haem enzyme)", fillcolor="#e1bee7"];
+    IMMUNE  [label="Lymphocyte proliferation ·\nNK and neutrophil function", fillcolor="#e1bee7"];
+  }
+
+  /* =================================================================
+     8. ORAL IRON PHARMACOLOGY
+     ================================================================= */
+  subgraph cluster_oral {
+    label="8. Oral iron pharmacology"; style="rounded,filled";
+    fillcolor="#e8f5e9"; color="#1b5e20"; fontsize=12;
+    FESO4   [label="Ferrous sulfate\n65 mg elemental / 325 mg", fillcolor="#c8e6c9", penwidth=1.8];
+    FEFUM   [label="Ferrous fumarate ·\ngluconate · bisglycinate", fillcolor="#c8e6c9"];
+    FEMALT  [label="Ferric maltol\n(Fe3+ held soluble)", fillcolor="#c8e6c9"];
+    SUCROSOM[label="Sucrosomial iron\n(M-cell bypass of DMT1)", fillcolor="#c8e6c9"];
+    IPC     [label="Iron polysaccharide complex", fillcolor="#c8e6c9"];
+    INTERVAL[label="DOSING INTERVAL\nq12h · q24h · q48h\nthe decisive design variable", fillcolor="#a5d6a7", penwidth=2.4];
+    FASTING [label="Fasting vs with food\n[P] F_ORAL", fillcolor="#c8e6c9"];
+    GIAE    [label="GI intolerance:\nnausea · epigastric pain ·\nconstipation · black stool\n[S] GI", fillcolor="#d7ccc8", penwidth=1.8];
+    ADHERE  [label="Non-adherence\n[P] EMAX_ADH · K50_ADH", fillcolor="#d7ccc8", penwidth=1.8];
+    MICROBIOME[label="Unabsorbed colonic iron ->\nEnterobacteriaceae bloom", fillcolor="#d7ccc8"];
+  }
+
+  /* =================================================================
+     9. INTRAVENOUS IRON PHARMACOLOGY
+     ================================================================= */
+  subgraph cluster_iv {
+    label="9. Intravenous iron — bypassing the gate"; style="rounded,filled";
+    fillcolor="#e0f2f1"; color="#004d40"; fontsize=12;
+    FCM     [label="Ferric carboxymaltose\n(FCM) 750-1000 mg\n[P] FCM_FGF = 1", fillcolor="#c8e6c9", penwidth=2.0];
+    FDI     [label="Ferric derisomaltose\n(iron isomaltoside) 1000 mg\n[P] FCM_FGF = 0", fillcolor="#c8e6c9", penwidth=2.0];
+    FERUMOX [label="Ferumoxytol 510 mg x2", fillcolor="#c8e6c9"];
+    IRSUC   [label="Iron sucrose 200 mg\n(repeat visits)", fillcolor="#c8e6c9"];
+    LMWID   [label="LMW iron dextran\n(total dose infusion)", fillcolor="#c8e6c9"];
+    ACOL    [label="Plasma iron-carbohydrate\ncolloid  [S] A_COL\nt1/2 ~ 10 h  [P] K_COL", fillcolor="#ffe0b2", penwidth=1.8];
+    RESUP   [label="RES phagocytic uptake\n[P] F_COL_RES", fillcolor="#ffcc80"];
+    LABILE  [label="Labile / weakly bound iron\nreleased directly", fillcolor="#d7ccc8"];
+    CARPA   [label="Complement activation-related\npseudo-allergy · Fishbane reaction", fillcolor="#d7ccc8"];
+    ANAPH   [label="Hypersensitivity /\nanaphylaxis (rare)", fillcolor="#d7ccc8"];
+    GANZ    [label="Ganz's paradox: IV iron\nraises hepcidin, shutting the\noral route it replaces", fillcolor="#b2dfdb", penwidth=1.6];
+  }
+
+  /* =================================================================
+     10. FGF23 - PHOSPHATE AXIS (the FCM-specific penalty)
+     ================================================================= */
+  subgraph cluster_fgf {
+    label="10. FGF23 — phosphate — vitamin D axis (carboxymaltose-specific)"; style="rounded,filled";
+    fillcolor="#fff8e1"; color="#f57f17"; fontsize=12;
+    OSTEO   [label="Osteocyte / osteoblast\nFGF23 synthesis", fillcolor="#e1bee7"];
+    CLEAV   [label="FGF23 cleavage (FAM20C ·\nsubtilisin-like proteases)\nINHIBITED by carboxymaltose\n[S] CLV", fillcolor="#e1bee7", penwidth=2.0];
+    IFGF23  [label="Intact FGF23\n[S] FGF23 (pg/mL)", fillcolor="#b3e5fc", penwidth=2.0];
+    KLOTHO  [label="alpha-Klotho — FGFR1c\nproximal tubule", fillcolor="#e1bee7"];
+    NAPI    [label="NaPi-2a / NaPi-2c\n(SLC34A1/A3) down-regulated", fillcolor="#e1bee7"];
+    PHOSURIA[label="Renal phosphate wasting\n(TmP/GFR falls)", fillcolor="#ffcc80"];
+    CYP27B1 [label="CYP27B1 suppressed ·\nCYP24A1 induced", fillcolor="#e1bee7"];
+    CTRIOL  [label="1,25(OH)2 vitamin D\n[S] CTRIOL", fillcolor="#b3e5fc", penwidth=1.8];
+    GUTPI   [label="Intestinal phosphate\nabsorption falls", fillcolor="#ffcc80"];
+    PHOS    [label="SERUM PHOSPHATE\n[S] PHOS (mg/dL)", fillcolor="#b3e5fc", penwidth=2.2];
+    PTH     [label="Secondary PTH rise\n[S] PTH", fillcolor="#b3e5fc"];
+    OSTEOMAL[label="Hypophosphataemic\nosteomalacia · insufficiency\nfractures · myopathy", fillcolor="#d7ccc8", penwidth=1.8];
+  }
+
+  /* =================================================================
+     11. DIAGNOSTIC BIOMARKERS
+     ================================================================= */
+  subgraph cluster_dx {
+    label="11. Diagnostic read-outs"; style="rounded,filled";
+    fillcolor="#e1f5fe"; color="#01579b"; fontsize=12;
+    FERR    [label="Serum ferritin\n[S] FERR — < 15 diagnostic,\nuninterpretable if inflamed", fillcolor="#b3e5fc", penwidth=2.0];
+    STFR    [label="Soluble transferrin receptor\n[S] STFR — inflammation-\nindependent", fillcolor="#b3e5fc", penwidth=1.8];
+    STFRI   [label="sTfR / log(ferritin) index", fillcolor="#b3e5fc"];
+    CHR     [label="Reticulocyte Hb content\nCHr / Ret-He — earliest\nfunctional read-out", fillcolor="#b3e5fc", penwidth=1.8];
+    MCHMCV  [label="MCH · MCV · RDW\nMentzer index", fillcolor="#b3e5fc"];
+    HEPDX   [label="Serum hepcidin\n(predicts oral responsiveness)", fillcolor="#b3e5fc", penwidth=1.6];
+  }
+
+  /* =================================================================
+     12. CLINICAL ENDPOINTS
+     ================================================================= */
+  subgraph cluster_end {
+    label="12. Clinical endpoints"; style="rounded,filled";
+    fillcolor="#fffde7"; color="#f9a825"; fontsize=12;
+    HB      [label="[E] HAEMOGLOBIN\ng/dL — primary endpoint", fillcolor="#fff59d", penwidth=2.4];
+    FATIGUE [label="[E] Fatigue — FACIT-F", fillcolor="#fff9c4", penwidth=1.8];
+    RLS     [label="[E] Restless legs — IRLS", fillcolor="#fff9c4", penwidth=1.8];
+    PICA    [label="[E] Pica / pagophagia", fillcolor="#fff9c4"];
+    VO2     [label="[E] Exercise capacity ·\nVO2max · 6MWD", fillcolor="#fff9c4"];
+    COGN    [label="[E] Attention · cognition ·\ninfant neurodevelopment", fillcolor="#fff9c4"];
+    KOILO   [label="[E] Koilonychia · angular\nstomatitis · glossitis", fillcolor="#fff9c4"];
+    PLUMMER [label="[E] Plummer-Vinson\noesophageal web", fillcolor="#fff9c4"];
+    HFOUT   [label="[E] Heart failure: 6MWD,\nKCCQ, hospitalisation", fillcolor="#fff9c4"];
+    PREGOUT [label="[E] Pregnancy: preterm birth,\nlow birth weight, PPH tolerance", fillcolor="#fff9c4"];
+    TRANSF  [label="[E] Transfusion avoidance ·\npre-operative optimisation", fillcolor="#fff9c4"];
+  }
+
+  /* =================================================================
+     EDGES — aetiology
+     ================================================================= */
+  MENORR->VBLEED_N; FIBROID->MENORR; GIBLEED->VBLEED_N; HOOKWORM->VBLEED_N;
+  DONOR->VBLEED_N; PREG->NEGBAL; GROWTH->NEGBAL; LOWINT->ALUM;
+  COELIAC->DMT1 [label="loses surface", style=dashed, color="#c62828"];
+  HPYLORI->GASTRIC [label="achlorhydria", style=dashed, color="#c62828"];
+  ATROPHIC->GASTRIC [style=dashed, color="#c62828"];
+  BARIATRIC->DMT1 [label="bypasses duodenum", style=dashed, color="#c62828"];
+  PPI->GASTRIC [label="inhibits", style=dashed, color="#c62828"];
+  VBLEED_N->NEGBAL; LOSSB->NEGBAL;
+  VBLEED_N->RBC [label="removes cells + Hb iron", color="#c62828"];
+  NEGBAL->ALIV [label="stores drain first", color="#c62828"];
+  NEGBAL->ARES [color="#c62828"];
+
+  /* EDGES — lumen / enterocyte gate */
+  GASTRIC->ALUM; ASC->ALUM [label="+"]; PHYTATE->ALUM [label="-", color="#c62828"];
+  ALUM->KTR_N; ALUM->DCYTB; DCYTB->DMT1; ALUM->HCP1; HCP1->HO1_ENT; HO1_ENT->AENT;
+  DMT1->AENT [label="V_DMT1", penwidth=1.8];
+  AENT->AEFT [label="KFT", penwidth=1.5]; AEFT->AENT [label="KMOB x FPN_ENT", style=dashed];
+  AEFT->SHED [label="iron lost with cell"];
+  AENT->HEPH; HEPH->VABS;
+  AENT->VABS [penwidth=1.8]; FPN_ENT->VABS [label="capacity factor", penwidth=2.2, color="#6a1b9a"];
+  AENT->IRP [label="local iron"]; AEFT->IRP;
+  IRP->DMT1 [label="- apical uptake", style=dashed, color="#c62828"];
+  HEPC->DMT1 [label="- (K_APIC)", style=dashed, color="#6a1b9a"];
+  HEPC->FPN_ENT [label="degrades export capacity\nslow recovery = MUCOSAL BLOCK",
+                 penwidth=2.4, color="#6a1b9a"];
+  VABS->ATF [label="systemic entry", penwidth=2.2];
+  ALUM->MICROBIOME [label="unabsorbed"]; ALUM->GIAE [label="luminal irritation"];
+  SHED->GIAE;
+
+  /* EDGES — plasma */
+  APOTF->TIBC; FERR->TIBC [label="- (repletion lowers TIBC)", style=dashed];
+  IL6->TIBC [label="-", style=dashed, color="#c62828"];
+  ATF->TSAT; TIBC->TSAT;
+  ATF->NTBI [label="above TSAT 75 %"]; NTBI->ROS; NTBI->ALIV; NTBI->ATISS;
+  ATF->TFR1_P; TSAT->HFE_TFR2 [label="holo-Tf sensed", penwidth=1.8, color="#6a1b9a"];
+  ATF->ALIV [label="hepatocyte uptake\n[P] K_LIV0 · K_LIV1"];
+  ATF->ATISS [label="[P] K_TISS"]; ATISS->ATF [style=dashed];
+
+  /* EDGES — hepcidin control */
+  ALIV->BMP6 [label="stores sensed", penwidth=1.8, color="#6a1b9a"];
+  BMP6->ALK23; HJV->ALK23; ALK23->SMAD; SMAD->HAMP [penwidth=1.6];
+  HFE_TFR2->SMAD [penwidth=1.6]; TMPRSS6->HJV [label="- cleaves", color="#00695c"];
+  IL6->IL6R; IL6R->HAMP [label="STAT3", penwidth=1.8, color="#c62828"];
+  ERFE->BMP6 [label="- traps BMP", style=dashed, color="#00695c", penwidth=1.8];
+  HIF_H->HAMP [label="-", style=dashed]; TESTO->HAMP [label="-", style=dashed];
+  HAMP->HEPC [penwidth=2.0]; HEPC->RENAL_H [label="clearance"];
+  HEPC->FPN_RES [label="degrades", penwidth=2.2, color="#6a1b9a"];
+  EPO->ERFE [label="erythroblast ERFE", penwidth=1.8]; EB1->ERFE; EB2->ERFE;
+
+  /* EDGES — recycling and storage */
+  RBC->SENESC; SENESC->EPHAGO; EPHAGO->SLC48A1; SLC48A1->HO1; HO1->ARES;
+  EPHAGO->RECREL [penwidth=1.8]; FPN_RES->RECREL [label="gates release", color="#6a1b9a", penwidth=1.8];
+  RECREL->ATF [label="~85 % of marrow supply", penwidth=2.2, color="#bf360c"];
+  ARES->ATF [label="mobilisation\n[P] K_RES_EXP x FPN_RES"];
+  FPN_RES->ARES [label="low FPN traps iron", style=dashed, color="#6a1b9a"];
+  ALIV->ATF [label="[P] K_LIV_EXP x FPN_RES"]; FPN_RES->ALIV [style=dashed, color="#6a1b9a"];
+  ARES->RESBLOCK; FPN_RES->RESBLOCK [color="#6a1b9a"]; RESBLOCK->TSAT [label="-", color="#c62828"];
+  ARES->FERR [penwidth=1.6]; ALIV->FERR [penwidth=1.6]; IL6->FERR [label="acute phase", color="#c62828"];
+  APOP->ARES [label="apoptotic erythroblast iron\nrecovered, not lost", style=dashed];
+
+  /* EDGES — erythropoiesis */
+  REP->HB [label="O2 sensing: low Hb -> HIF-2a", color="#b71c1c", style=dashed];
+  REP->EPO [penwidth=1.8]; IL6->EPO [label="- blunts", style=dashed, color="#c62828"];
+  EPO->EPOR; EPOR->PROG [penwidth=1.8];
+  TSAT->FEXP [penwidth=2.2, color="#b71c1c"]; FEXP->PROG [label="x expansion", penwidth=2.2, color="#b71c1c"];
+  IL6->PROG [label="- direct suppression", style=dashed, color="#c62828"];
+  PROG->EB1->EB2->EB3->RET->RBC [penwidth=1.8];
+  TFR1_P->TFR1_E; TFR1_E->STEAP3->DMT1_E; DMT1_E->MFRN1; MFRN1->FECH;
+  ALAS2->PPIX->FECH; FECH->GLOBIN [label="haem"]; GLOBIN->HBSYN;
+  TSAT->HBSYN [label="F_FE = TSAT/(TSAT+K_TSAT_FE)", penwidth=2.2, color="#b71c1c"];
+  FECH->ZPP [label="iron absent -> Zn used", style=dashed];
+  HBSYN->EB1 [style=dashed]; HBSYN->EB2 [style=dashed]; HBSYN->EB3 [style=dashed];
+  HBSYN->RET [label="sets CHr at release", style=dashed];
+  ATF->HBSYN [label="marrow iron consumption\n~13-16 mg/day", penwidth=2.2, color="#b71c1c"];
+  FEXP->APOP [label="restriction -> apoptosis", style=dashed];
+  EB2->APOP; EB3->APOP;
+  RET->CHR [penwidth=1.6]; RBC->MCHMCV; TFR1_E->STFR [penwidth=1.6];
+  RBC->HB [penwidth=2.4]; RET->HB;
+  IL6->SENESC [label="shortens RBC survival", style=dashed, color="#c62828"];
+
+  /* EDGES — non-erythroid */
+  ATISS->MYOGLOB; ATISS->ACON; ATISS->RNR; ATISS->TH_DA; ATISS->TPO_T; ATISS->IMMUNE;
+  MYOGLOB->VO2; ACON->VO2; ACON->FATIGUE [penwidth=1.8];
+  TH_DA->RLS [penwidth=1.8]; TH_DA->COGN; RNR->COGN; IMMUNE->FATIGUE;
+  ATISS->FATIGUE [label="tissue term of FACIT", penwidth=1.8];
+  ATISS->RLS [penwidth=1.8];
+
+  /* EDGES — oral pharmacology */
+  FESO4->ALUM [penwidth=1.8]; FEFUM->ALUM; FEMALT->ALUM; IPC->ALUM;
+  SUCROSOM->VABS [label="partial DMT1 bypass", style=dashed];
+  FASTING->ALUM; INTERVAL->FESO4 [penwidth=2.0];
+  INTERVAL->FPN_ENT [label="interval vs recovery time\nof export capacity",
+                     penwidth=2.4, color="#1b5e20"];
+  GIAE->ADHERE [penwidth=1.8]; ADHERE->FESO4 [label="- effective dose", color="#c62828", penwidth=1.8];
+  MICROBIOME->GIAE;
+
+  /* EDGES — IV pharmacology */
+  FCM->ACOL [penwidth=1.8]; FDI->ACOL [penwidth=1.8]; FERUMOX->ACOL; IRSUC->ACOL; LMWID->ACOL;
+  ACOL->RESUP [penwidth=1.8]; RESUP->ARES [label="~98 % of the dose", penwidth=2.0];
+  ACOL->LABILE; LABILE->NTBI; LABILE->ROS;
+  ACOL->CARPA; CARPA->ANAPH;
+  GANZ->HEPC [style=dashed, color="#00695c"];
+  ACOL->ATF [label="minor direct transfer", style=dashed];
+
+  /* EDGES — FGF23 axis */
+  FCM->CLEAV [label="inhibits cleavage", penwidth=2.2, color="#f57f17"];
+  FDI->CLEAV [label="no effect", style=dotted, color="#00695c"];
+  OSTEO->IFGF23; CLEAV->IFGF23 [label="intact fraction rises", penwidth=2.2];
+  IFGF23->KLOTHO; KLOTHO->NAPI [label="-"]; NAPI->PHOSURIA;
+  IFGF23->CYP27B1 [label="-"]; CYP27B1->CTRIOL; CTRIOL->GUTPI;
+  PHOSURIA->PHOS [label="-", penwidth=2.0, color="#c62828"];
+  GUTPI->PHOS [label="-", penwidth=1.8, color="#c62828"];
+  CTRIOL->PTH [label="- (low 1,25D raises PTH)", style=dashed]; PTH->PHOSURIA [label="+"];
+  PHOS->OSTEOMAL [label="prolonged < 2.0 mg/dL", color="#c62828", penwidth=1.8];
+
+  /* EDGES — diagnostics and endpoints */
+  FERR->STFRI; STFR->STFRI;
+  HEPDX->INTERVAL [label="high hepcidin ->\noral route futile",
+                   style=dashed, color="#6a1b9a", penwidth=1.8];
+  HEPDX->FCM [label="predicts need for\nthe IV route", style=dashed, color="#00695c", penwidth=1.8];
+  HB->FATIGUE [penwidth=1.8]; HB->VO2; HB->COGN; HB->HFOUT [penwidth=1.8];
+  HB->PREGOUT; HB->TRANSF [penwidth=1.8];
+  ATISS->PICA; ATISS->KOILO; ATISS->PLUMMER;
+
+  /* ---- the two rate-limiting constraints, stated explicitly -------- */
+  LIMIT1 [label="CONSTRAINT 1 — the gate\nabsorption = A_LUM x DMT1 capacity x FPN_ENT\nthe third factor is set by the previous dose",
+          shape=note, fillcolor="#ede7f6", penwidth=2.0, fontsize=11];
+  LIMIT2 [label="CONSTRAINT 2 — the ceiling\nmarrow supply is dominated by recycling (~85 %);\noral iron adds only a few mg/day, so beyond a\nthreshold extra iron becomes STORES, not Hb",
+          shape=note, fillcolor="#ffebee", penwidth=2.0, fontsize=11];
+  FPN_ENT->LIMIT1 [style=dotted, arrowhead=none, color="#6a1b9a"];
+  VABS->LIMIT1 [style=dotted, arrowhead=none, color="#6a1b9a"];
+  RECREL->LIMIT2 [style=dotted, arrowhead=none, color="#b71c1c"];
+  HBSYN->LIMIT2 [style=dotted, arrowhead=none, color="#b71c1c"];
+}
