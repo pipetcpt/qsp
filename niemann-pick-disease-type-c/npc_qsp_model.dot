@@ -1,0 +1,820 @@
+/* ============================================================================
+   Niemann-Pick Disease Type C (NPC) — QSP mechanistic map
+   니만-피크병 C형 · 기계론적 지도
+
+   ORGANISING THESIS (조직 원리)
+   -----------------------------------------------------------------------------
+   NPC has four drugs (two of them FDA-approved in the same month, Sep 2024)
+   acting at four different points of ONE causal chain.  The chain BRANCHES,
+   and neither branch is what the trials measured.
+
+   BRANCH POINT 1 — WHERE the storage is.
+     The plasma biomarkers (cholestane-3beta,5alpha,6beta-triol, lysoSM-509/
+     PPCS, trihydroxycholanoyl-glycine) are made by OXIDATION of stored sterol
+     in LIVER and SPLENIC macrophages.  They read the VISCERAL pool.
+     The disease that kills people is in the CEREBELLUM.  The two pools have
+     different drug accessibility (oral vs intrathecal), different turnover
+     (days vs years) and different reversibility.  So triol tracks severity
+     only weakly (rho = 0.265, PMID 33228797) — not because the assay is
+     noisy but because IT IS MEASURING A DIFFERENT COMPARTMENT.
+
+   BRANCH POINT 2 — WHICH pool of lost function.
+     Neurological function is written here as
+         FUNCTION = f( reversible dysfunction , IRREVERSIBLE neuron loss )
+     Two therapies with the SAME effect on lysosomal storage give completely
+     different trajectories depending on the split, because only the
+     reversible pool can be recovered.  This is the single structural choice
+     that separates a SYMPTOMATIC drug from a DISEASE-MODIFYING one.
+
+   CONSEQUENCE — the trial-design trap (cluster 22).
+     * Levacetylleucine was tested as a 12-week crossover on SARA
+       (-1.28 pt, PMID 39383461).  A 12-week window can ONLY see the
+       reversible pool: it has near-zero power for a rate effect.
+     * Arimoclomol was tested as a 12-month parallel trial on a rate
+       endpoint (-1.70 pt/yr on R4DNPCCSS, PMID 40520915).  A change-from-
+       baseline endpoint at 12 months CANNOT separate a constant offset
+       from a slope change.
+     EACH DRUG WAS TESTED WITH THE DESIGN THAT COULD ONLY SEE ITS OWN
+     ASSUMED MECHANISM, so the field has no evidence on the other half.
+
+   GENOTYPE x MECHANISM (cluster 2 -> clusters 18-20).
+     Arimoclomol works by HSP70-assisted FOLDING of mutant NPC1.  Its effect
+     is therefore multiplied by the amount of misfolding-competent protein:
+     large for I1061T, ZERO for null alleles and for NPC2 disease.
+     Cyclodextrin bypasses NPC1 entirely -> genotype-independent.
+     Miglustat lowers the substrate load the residual NPC1 must handle.
+     Arimoclomol x miglustat therefore act MULTIPLICATIVELY on the same flux
+     (yield x load), which is why the miglustat subgroup showed the LARGER
+     arimoclomol effect (-2.06 vs -1.40), not the smaller one.
+
+   MECHANISM-INSEPARABLE TOXICITY (cluster 20).
+     Cyclodextrin's efficacy IS cholesterol extraction from membranes; the
+     outer hair cell is a membrane whose cholesterol is load-bearing.  The
+     dose-limiting ototoxicity cannot be engineered away from the mechanism,
+     and the Ory trial had to score "NSS minus hearing" to see any effect.
+
+   Nodes 198 · Edges 287 · Clusters 22 (21 mechanism + 1 legend)
+   Render:  dot -Tsvg npc_qsp_model.dot -o npc_qsp_model.svg
+            dot -Tpng -Gdpi=150 npc_qsp_model.dot -o npc_qsp_model.png
+   ========================================================================== */
+
+digraph NPC_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.28,
+           ranksep=0.55, compound=true, concentrate=false,
+           fontname="NanumGothic", fontsize=13, labelloc="t",
+           bgcolor="white", pad=0.4,
+           label=<<b>니만-피크병 C형 (NPC) — 정량적 시스템 약리학 지도</b><br/>
+<i>Niemann-Pick Disease Type C · Quantitative Systems Pharmacology map</i><br/>
+<font point-size="11">혈장 표지자는 내장(간·비장) 저장을 읽고, 사람을 죽이는 병은 소뇌에 있다 — 두 구획은 약물 접근성·회전율·가역성이 모두 다르다</font><br/>
+<font point-size="11">기능 = f(가역적 기능이상, <b>비가역적 뉴런 소실</b>) — 이 한 줄의 구조가 대증약과 질병조절약을 가른다</font><br/>
+<font point-size="10">198 nodes · 287 edges · 21 mechanism clusters</font>>];
+
+    node [shape=box, style="rounded,filled", fontname="NanumGothic",
+          fontsize=10, margin="0.10,0.055", penwidth=1.0, color="#555555"];
+    edge [fontname="NanumGothic", fontsize=8, arrowsize=0.65,
+          color="#666666", penwidth=1.0];
+
+    /* ---------- edge semantics legend --------------------------------- */
+    subgraph cluster_legend {
+        label=<<b>범례 (Legend)</b>>;
+        style="rounded,filled"; fillcolor="#fafafa"; color="#bbbbbb";
+        fontsize=11;
+        node [shape=plaintext, style="", fillcolor="none", fontsize=9];
+        LEG [label=<<table border="0" cellborder="0" cellspacing="1">
+<tr><td align="left"><font color="#1a7f37">━━▶</font></td><td align="left">활성화 / 촉진 (activation)</td></tr>
+<tr><td align="left"><font color="#c0392b">━━⊣</font></td><td align="left">억제 / 차단 (inhibition)</td></tr>
+<tr><td align="left"><font color="#8e44ad">┅┅▶</font></td><td align="left">약물 작용 (drug action)</td></tr>
+<tr><td align="left"><font color="#e67e22">━━▶</font></td><td align="left">임상 판독값 (clinical readout)</td></tr>
+<tr><td align="left"><font color="#2471a3">━━▶</font></td><td align="left">질량 흐름 / 수송 (mass flux)</td></tr>
+<tr><td align="left"><font color="#7f8c8d">┅┅▶</font></td><td align="left">측정 · 시험 설계 (measurement)</td></tr>
+<tr><td align="left"><b>굵은 테두리</b></td><td align="left">ODE 상태변수 (state variable)</td></tr>
+<tr><td align="left"><font color="#c0392b"><b>붉은 채움</b></font></td><td align="left">비가역 (irreversible)</td></tr>
+</table>>];
+    }
+
+    /* ================================================================== *
+     * 2. 유전자 · 전사 · 단백질 접힘 (genotype -> foldable protein)        *
+     * ================================================================== */
+    subgraph cluster_gene {
+        label=<<b>2. NPC1/NPC2 유전자 · 접힘 품질관리</b><br/><font point-size="9">genotype → foldable protein · 아리모클로몰의 진입점</font>>;
+        style="rounded,filled"; fillcolor="#eef6fd"; color="#a9cce3"; fontsize=11;
+        node [fillcolor="#e8f4fd"];
+
+        NPC1_GENE   [label="NPC1 유전자\n18q11.2 · 25 exon\n1278 aa · 13 TM"];
+        NPC2_GENE   [label="NPC2 유전자\n14q24.3 · 소분비단백\n151 aa"];
+        MUT_MISFOLD [label="접힘결함 변이\nI1061T (~20% 대립)\nP1007A · 온도민감형", fillcolor="#fdf2e9"];
+        MUT_NULL    [label="무의미/틀이동 변이\nnull 대립 (~15-20%)\n단백질 없음", fillcolor="#fadbd8"];
+        MUT_NPC2    [label="NPC2 변이 (~4%)\n리소좀 내강 운반체 소실", fillcolor="#fadbd8"];
+        NPC1_MRNA   [label="NPC1 mRNA"];
+        NPC1_NASCENT[label="신생 NPC1 폴리펩타이드\nER 막 삽입"];
+        ER_QC       [label="ER 품질관리\ncalnexin · BiP"];
+        ERAD        [label="ERAD\nubiquitin-proteasome\n변이 NPC1 조기분해", fillcolor="#fdedec"];
+        NPC1_FOLDED [label="접힘 성공 NPC1\n(ER 탈출)", penwidth=2.2];
+        NPC1_LYSO   [label="리소좀 막 NPC1 단백질\n(기능 단위)", penwidth=2.2, fillcolor="#d6eaf8"];
+        NPC1_FUNC   [label="유효 NPC1 활성\nf_NPC1 = 유전형 × 접힘수율", penwidth=2.2, fillcolor="#d6eaf8"];
+        NPC2_PROT   [label="NPC2 단백질\n리소좀 내강", penwidth=2.2];
+        HSP70_FOLD  [label="HSP70 접힘 보조\n변이 NPC1 구제"];
+
+        NPC1_GENE -> NPC1_MRNA [color="#1a7f37"];
+        NPC1_MRNA -> NPC1_NASCENT [color="#2471a3"];
+        NPC1_NASCENT -> ER_QC [color="#2471a3"];
+        MUT_MISFOLD -> ER_QC [label="접힘 실패", color="#c0392b", arrowhead=tee];
+        MUT_NULL -> NPC1_MRNA [label="NMD / 단백질 부재", color="#c0392b", arrowhead=tee];
+        ER_QC -> ERAD [color="#c0392b"];
+        ER_QC -> NPC1_FOLDED [label="접힘 성공", color="#1a7f37"];
+        ERAD -> NPC1_FOLDED [color="#c0392b", arrowhead=tee];
+        HSP70_FOLD -> ER_QC [label="수율↑", color="#1a7f37"];
+        HSP70_FOLD -> ERAD [color="#c0392b", arrowhead=tee];
+        NPC1_FOLDED -> NPC1_LYSO [label="Golgi→LE/LY 수송", color="#2471a3"];
+        NPC1_LYSO -> NPC1_FUNC [color="#1a7f37"];
+        NPC2_GENE -> NPC2_PROT [color="#1a7f37"];
+        MUT_NPC2 -> NPC2_PROT [color="#c0392b", arrowhead=tee];
+        MUT_NULL -> HSP70_FOLD [label="구제 대상 없음\n(효과 = 0)", color="#c0392b", arrowhead=tee, style=dashed];
+    }
+
+    /* ================================================================== *
+     * 3. LDL 유입 · 리소좀 콜레스테롤 배출                                *
+     * ================================================================== */
+    subgraph cluster_egress {
+        label=<<b>3. LDL 유입 → 리소좀 콜레스테롤 배출</b><br/><font point-size="9">질환의 1차 병변 · NPC2→NPC1 소수성 손넘김</font>>;
+        style="rounded,filled"; fillcolor="#fef5ea"; color="#e5b880"; fontsize=11;
+        node [fillcolor="#fdf0e6"];
+
+        LDL_PLASMA  [label="혈장 LDL 입자"];
+        LDLR        [label="LDL 수용체\n(SREBP2 표적)"];
+        ENDOCYT     [label="수용체 매개 세포내섭취\nclathrin 소포"];
+        EE          [label="초기 엔도솜"];
+        LE_LY       [label="후기 엔도솜 / 리소좀\npH 4.5-5.0", penwidth=2.2];
+        LAL         [label="리소좀 산성 리파아제\nLIPA · CE→FC 가수분해"];
+        FC_LUMEN    [label="리소좀 내강 유리콜레스테롤", penwidth=2.2];
+        NPC2_BIND   [label="NPC2–콜레스테롤 복합체\n3β-OH 노출 배향"];
+        NTD_NPC1    [label="NPC1 N-말단 도메인 (NTD)\n소수성 손넘김 수용부"];
+        NPC1_TUNNEL [label="NPC1 내부 스테롤 터널\nSSD 경유 막 삽입"];
+        LY_MEMB_CHOL[label="리소좀 한계막 콜레스테롤", penwidth=2.2];
+        EGRESS_ER   [label="ER로의 배출\n(에스터화 · 감지)"];
+        EGRESS_PM   [label="원형질막으로의 직접 전달\nGRAMD1/Aster · STARD3"];
+        CHOL_STORE  [label="리소좀 콜레스테롤 저장량\nCHOL_LY (핵심 상태변수)", penwidth=2.6, fillcolor="#f9e79f"];
+        FILIPIN     [label="필리핀 염색 / 에스터화 결함\n(진단 세포지표)", fillcolor="#eaeded"];
+
+        LDL_PLASMA -> ENDOCYT [color="#2471a3"];
+        LDLR -> ENDOCYT [color="#1a7f37"];
+        ENDOCYT -> EE [color="#2471a3"];
+        EE -> LE_LY [label="성숙", color="#2471a3"];
+        LE_LY -> LAL [color="#1a7f37"];
+        LAL -> FC_LUMEN [color="#2471a3"];
+        FC_LUMEN -> NPC2_BIND [color="#2471a3"];
+        NPC2_PROT -> NPC2_BIND [color="#1a7f37"];
+        NPC2_BIND -> NTD_NPC1 [label="손넘김", color="#2471a3"];
+        NPC1_FUNC -> NTD_NPC1 [color="#1a7f37"];
+        NTD_NPC1 -> NPC1_TUNNEL [color="#2471a3"];
+        NPC1_TUNNEL -> LY_MEMB_CHOL [color="#2471a3"];
+        LY_MEMB_CHOL -> EGRESS_ER [color="#2471a3"];
+        LY_MEMB_CHOL -> EGRESS_PM [color="#2471a3"];
+        FC_LUMEN -> CHOL_STORE [label="배출 실패시 축적", color="#c0392b"];
+        NPC1_FUNC -> CHOL_STORE [label="배출 flux", color="#c0392b", arrowhead=tee, penwidth=1.8];
+        CHOL_STORE -> FILIPIN [color="#e67e22", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 4. 세포 콜레스테롤 항상성 (감지 실패의 역설)                        *
+     * ================================================================== */
+    subgraph cluster_homeo {
+        label=<<b>4. 세포 콜레스테롤 항상성</b><br/><font point-size="9">저장은 넘치는데 ER은 굶는다 — SREBP2 역설</font>>;
+        style="rounded,filled"; fillcolor="#fdfaec"; color="#d9c26a"; fontsize=11;
+        node [fillcolor="#fef9e7"];
+
+        ER_CHOL     [label="ER 콜레스테롤 풀\n(감지 구획)", penwidth=2.2];
+        SCAP_INSIG  [label="SCAP–INSIG 감지기"];
+        SREBP2      [label="SREBP2 절단·활성화"];
+        HMGCR       [label="HMG-CoA 환원효소\n신생합성↑"];
+        SOAT1       [label="ACAT1/SOAT1\nCE 에스터화"];
+        CE_POOL     [label="콜레스테릴 에스터 풀"];
+        LXR         [label="LXR 활성 저하\n(리간드 부족)"];
+        ABCA1       [label="ABCA1 유출 감소\nHDL 형성↓"];
+        PM_CHOL     [label="원형질막 콜레스테롤\n(뗏목 · 신호전달)"];
+        MITO_CHOL   [label="미토콘드리아 막 콜레스테롤↑", fillcolor="#fdedec"];
+
+        CHOL_STORE -> ER_CHOL [label="도달 못함", color="#c0392b", arrowhead=tee, penwidth=1.6];
+        EGRESS_ER -> ER_CHOL [color="#2471a3"];
+        EGRESS_PM -> PM_CHOL [color="#2471a3"];
+        ER_CHOL -> SCAP_INSIG [color="#1a7f37"];
+        SCAP_INSIG -> SREBP2 [label="저콜레스테롤 → 활성", color="#c0392b", arrowhead=tee];
+        SREBP2 -> HMGCR [color="#1a7f37"];
+        SREBP2 -> LDLR [label="수용체 발현↑\n(유입 더 증가)", color="#1a7f37"];
+        HMGCR -> ER_CHOL [color="#2471a3"];
+        ER_CHOL -> SOAT1 [color="#1a7f37"];
+        SOAT1 -> CE_POOL [color="#2471a3"];
+        LXR -> ABCA1 [color="#1a7f37"];
+        ER_CHOL -> LXR [color="#1a7f37"];
+        CHOL_STORE -> MITO_CHOL [label="LY-미토 접촉", color="#c0392b"];
+    }
+
+    /* ================================================================== *
+     * 5. 스핑고지질 · 당지질 대사 (미글루스타트의 진입점)                 *
+     * ================================================================== */
+    subgraph cluster_sphingo {
+        label=<<b>5. 스핑고지질 · 당지질 2차 축적</b><br/><font point-size="9">미글루스타트의 진입점 · 스핑고신 우선 가설</font>>;
+        style="rounded,filled"; fillcolor="#fdf2e9"; color="#e0a86a"; fontsize=11;
+        node [fillcolor="#fbe5d6"];
+
+        SM_LY       [label="리소좀 스핑고미엘린"];
+        ASM         [label="산성 스핑고미엘리나제\n(SMPD1)"];
+        CERAMIDE    [label="세라마이드"];
+        ACID_CERase [label="산성 세라미다제"];
+        SPHINGOSINE [label="스핑고신 축적\nSPH_LY (최초 축적 지질)", penwidth=2.4, fillcolor="#f9e79f"];
+        SPHK        [label="스핑고신 인산화효소\nS1P 생성"];
+        UGCG        [label="글루코실세라마이드 합성효소\nUGCG (Golgi)"];
+        GLCCER      [label="글루코실세라마이드\nGlcCer", penwidth=2.2];
+        LACCER      [label="락토실세라마이드"];
+        GM3         [label="GM3 갱글리오사이드", penwidth=2.2];
+        GM2         [label="GM2 갱글리오사이드\n수상돌기 축적", penwidth=2.2];
+        GBA1        [label="산성 β-글루코시다제\nGBA1 (분해)"];
+        BIS_BMP     [label="BMP/LBPA 내막 증가\n다층 소체"];
+        GSL_LOAD    [label="총 당지질 부하\nGSL_LY", penwidth=2.6, fillcolor="#f9e79f"];
+
+        SM_LY -> ASM [color="#1a7f37"];
+        ASM -> CERAMIDE [color="#2471a3"];
+        CERAMIDE -> ACID_CERase [color="#1a7f37"];
+        ACID_CERase -> SPHINGOSINE [color="#2471a3"];
+        SPHINGOSINE -> SPHK [color="#1a7f37"];
+        CERAMIDE -> UGCG [color="#2471a3"];
+        UGCG -> GLCCER [color="#2471a3", penwidth=1.6];
+        GLCCER -> LACCER [color="#2471a3"];
+        LACCER -> GM3 [color="#2471a3"];
+        GM3 -> GM2 [color="#2471a3"];
+        GBA1 -> GLCCER [color="#c0392b", arrowhead=tee];
+        GLCCER -> GSL_LOAD [color="#2471a3"];
+        GM2 -> GSL_LOAD [color="#2471a3"];
+        GM3 -> GSL_LOAD [color="#2471a3"];
+        CHOL_STORE -> SM_LY [label="분해 저해", color="#c0392b"];
+        CHOL_STORE -> GBA1 [label="막 조성 변화 → 활성↓", color="#c0392b", arrowhead=tee];
+        GSL_LOAD -> BIS_BMP [color="#1a7f37"];
+        GSL_LOAD -> CHOL_STORE [label="상호 강화 고리", color="#c0392b", penwidth=1.6];
+    }
+
+    /* ================================================================== *
+     * 6. 리소좀 Ca2+ · TRPML1 · 융합                                      *
+     * ================================================================== */
+    subgraph cluster_calcium {
+        label=<<b>6. 리소좀 Ca²⁺ 저장 · TRPML1 · 막 융합</b><br/><font point-size="9">스핑고신이 만드는 상류 병변 (Lloyd-Evans 2008)</font>>;
+        style="rounded,filled"; fillcolor="#eaf6f6"; color="#8fc0c0"; fontsize=11;
+        node [fillcolor="#e0f2f1"];
+
+        LY_CA_STORE [label="산성 Ca²⁺ 저장량\n(리소좀 내강)", penwidth=2.2];
+        CA_UPTAKE   [label="Ca²⁺ 재충전 기전\n(H⁺ 구배 의존)"];
+        TRPML1      [label="TRPML1 (MCOLN1)\nCa²⁺ 방출 채널"];
+        PI35P2      [label="PI(3,5)P₂\nTRPML1 활성 리간드"];
+        LY_CA_REL   [label="국소 Ca²⁺ 방출\n(융합 촉발)"];
+        SNARE       [label="SNARE 매개 LE-LY 융합"];
+        LY_TRAFFIC  [label="엔도리소좀 수송 정상화"];
+        LY_pH       [label="리소좀 내 pH 상승\n가수분해효소 활성↓", fillcolor="#fdedec"];
+        HYDROLASE   [label="리소좀 가수분해효소 총활성"];
+
+        SPHINGOSINE -> CA_UPTAKE [label="재충전 차단", color="#c0392b", arrowhead=tee, penwidth=1.8];
+        CA_UPTAKE -> LY_CA_STORE [color="#2471a3"];
+        LY_CA_STORE -> LY_CA_REL [color="#2471a3"];
+        TRPML1 -> LY_CA_REL [color="#1a7f37"];
+        PI35P2 -> TRPML1 [color="#1a7f37"];
+        CHOL_STORE -> TRPML1 [label="콜레스테롤 억제", color="#c0392b", arrowhead=tee];
+        LY_CA_REL -> SNARE [color="#1a7f37"];
+        SNARE -> LY_TRAFFIC [color="#1a7f37"];
+        LY_TRAFFIC -> CHOL_STORE [label="배출 보조", color="#c0392b", arrowhead=tee];
+        CHOL_STORE -> LY_pH [color="#c0392b"];
+        LY_pH -> HYDROLASE [color="#c0392b", arrowhead=tee];
+        HYDROLASE -> ASM [color="#1a7f37"];
+        HYDROLASE -> GBA1 [color="#1a7f37"];
+    }
+
+    /* ================================================================== *
+     * 7. 오토파지 · mTORC1 · TFEB                                         *
+     * ================================================================== */
+    subgraph cluster_autophagy {
+        label=<<b>7. 오토파지 흐름 차단 · mTORC1 · TFEB</b><br/><font point-size="9">기질 분해 실패가 뉴런에 축적을 만든다</font>>;
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#c39bd3"; fontsize=11;
+        node [fillcolor="#ebdef0"];
+
+        AUTOPHAGO   [label="오토파고솜 형성\nLC3-II↑ (유도는 정상/증가)"];
+        AUTOLYSO    [label="오토리소솜 형성\n(융합 단계)"];
+        PROTEOLYSIS [label="오토파지 기질 분해능", penwidth=2.2];
+        P62         [label="p62/SQSTM1 축적", fillcolor="#fdedec"];
+        MTORC1      [label="mTORC1 활성 이상\n리소좀 표면 신호"];
+        TFEB        [label="TFEB 핵 이동\n리소좀 생합성 프로그램"];
+        LY_BIOGEN   [label="리소좀 생합성"];
+        MITOPHAGY   [label="미토파지 결손", fillcolor="#fdedec"];
+        DAMAGED_MITO[label="손상 미토콘드리아 축적", penwidth=2.2, fillcolor="#fdedec"];
+
+        AUTOPHAGO -> AUTOLYSO [color="#2471a3"];
+        SNARE -> AUTOLYSO [color="#1a7f37"];
+        AUTOLYSO -> PROTEOLYSIS [color="#2471a3"];
+        HYDROLASE -> PROTEOLYSIS [color="#1a7f37"];
+        PROTEOLYSIS -> P62 [color="#c0392b", arrowhead=tee];
+        CHOL_STORE -> MTORC1 [color="#c0392b"];
+        MTORC1 -> TFEB [color="#c0392b", arrowhead=tee];
+        TFEB -> LY_BIOGEN [color="#1a7f37"];
+        LY_BIOGEN -> HYDROLASE [color="#1a7f37"];
+        PROTEOLYSIS -> MITOPHAGY [color="#1a7f37"];
+        MITOPHAGY -> DAMAGED_MITO [color="#c0392b", arrowhead=tee];
+    }
+
+    /* ================================================================== *
+     * 8. 미토콘드리아 · 산화 스트레스                                     *
+     * ================================================================== */
+    subgraph cluster_mito {
+        label=<<b>8. 미토콘드리아 기능 · 산화 스트레스</b><br/><font point-size="9">축적된 콜레스테롤의 산화가 바이오마커를 만든다</font>>;
+        style="rounded,filled"; fillcolor="#eafaf1"; color="#82c9a0"; fontsize=11;
+        node [fillcolor="#d5f5e3"];
+
+        ETC_CIII    [label="전자전달계 복합체 III\n활성 저하"];
+        ROS         [label="미토콘드리아 ROS\n산화 스트레스", penwidth=2.2];
+        GSH         [label="환원 글루타티온 고갈"];
+        ATP_NEURON  [label="뉴런 ATP 생산"];
+        LIPID_PEROX [label="지질 과산화"];
+        GLUC_METAB  [label="뇌 포도당 대사 효율\n(FDG-PET · 젖산)"];
+
+        MITO_CHOL -> ETC_CIII [color="#c0392b", arrowhead=tee];
+        DAMAGED_MITO -> ETC_CIII [color="#c0392b", arrowhead=tee];
+        ETC_CIII -> ROS [color="#c0392b"];
+        ETC_CIII -> ATP_NEURON [color="#1a7f37"];
+        ROS -> GSH [color="#c0392b", arrowhead=tee];
+        ROS -> LIPID_PEROX [color="#1a7f37"];
+        ATP_NEURON -> GLUC_METAB [color="#1a7f37"];
+    }
+
+    /* ================================================================== *
+     * 9. 산화 스테롤 · 바이오마커 생성 (내장 구획 판독)                   *
+     * ================================================================== */
+    subgraph cluster_biomarker {
+        label=<<b>9. 바이오마커 생성 — 내장 구획의 판독값</b><br/><font point-size="9">간·비장 저장의 산화 산물이지, 소뇌의 상태가 아니다</font>>;
+        style="rounded,filled"; fillcolor="#fdedec"; color="#e6a8a0"; fontsize=11;
+        node [fillcolor="#fadbd8"];
+
+        CHOL_VISC   [label="내장(간·비장) 리소좀\n콜레스테롤 저장량\nCHOL_VISC", penwidth=2.6, fillcolor="#f9e79f"];
+        OX_7KC      [label="7-케토콜레스테롤\n7-KC"];
+        OX_TRIOL    [label="cholestane-3β,5α,6β-triol\nC-triol (혈장)", penwidth=2.2];
+        LYSOSM      [label="lysoSM (리소스핑고미엘린)"];
+        PPCS        [label="lysoSM-509 / PPCS\nN-palmitoyl-O-phosphocholineserine", penwidth=2.2];
+        TCG_BILE    [label="담즙산 B / TCG\n3β,5α,6β-trihydroxy-cholanoyl-glycine", penwidth=2.2];
+        CYP7B1      [label="CYP7B1 / CYP27A1\n산화 스테롤 대사 경로"];
+        OHC24       [label="24(S)-하이드록시콜레스테롤\n(뇌 유래 · CYP46A1)", fillcolor="#eaf2f8"];
+        NFL_CSF     [label="CSF/혈장 신경필라멘트 경쇄\nNfL (뉴런 손상 판독)", penwidth=2.2, fillcolor="#eaf2f8"];
+        CALBINDIN   [label="CSF 칼빈딘-D28K\n(푸르킨예 소실 판독)", penwidth=2.2, fillcolor="#eaf2f8"];
+        FETUIN      [label="CSF 페투인-A"];
+
+        CHOL_VISC -> OX_7KC [color="#2471a3"];
+        ROS -> OX_7KC [label="비효소적 산화", color="#1a7f37"];
+        OX_7KC -> OX_TRIOL [color="#2471a3", penwidth=1.6];
+        CHOL_VISC -> TCG_BILE [color="#2471a3"];
+        CYP7B1 -> TCG_BILE [color="#1a7f37"];
+        SPHINGOSINE -> LYSOSM [color="#2471a3"];
+        CHOL_VISC -> PPCS [color="#2471a3", penwidth=1.6];
+        GSL_LOAD -> PPCS [color="#2471a3"];
+    }
+
+    /* ================================================================== *
+     * 10. 간 · 비장 (내장 표현형)                                         *
+     * ================================================================== */
+    subgraph cluster_visceral {
+        label=<<b>10. 간 · 비장 내장 표현형</b><br/><font point-size="9">신생아 담즙정체 → 간비대 · 비장비대</font>>;
+        style="rounded,filled"; fillcolor="#fef5e7"; color="#e0be7a"; fontsize=11;
+        node [fillcolor="#fdebd0"];
+
+        HEPATOCYTE  [label="간세포 리소좀 저장"];
+        KUPFFER     [label="쿠퍼세포 / 거품세포\nfoam cell 침윤", penwidth=2.2];
+        SPLEEN_MAC  [label="비장 대식세포 저장"];
+        NEO_CHOLE   [label="신생아 담즙정체성 황달\n(~50% · 대부분 자연소실)", fillcolor="#fdebd0"];
+        HEPATOMEG   [label="간비대 · 비장비대\n(내장 중증도)", penwidth=2.2];
+        LFT         [label="AST/ALT · 빌리루빈 상승"];
+        LIVER_FAIL  [label="영아 급성 간부전\n(early infantile형 사망원인)", fillcolor="#f5b7b1"];
+        FOAM_LUNG   [label="폐 대식세포 거품세포\n간질성 폐질환 (NPC2에서 두드러짐)", fillcolor="#fdebd0"];
+
+        CHOL_VISC -> HEPATOCYTE [color="#2471a3"];
+        CHOL_VISC -> KUPFFER [color="#2471a3"];
+        CHOL_VISC -> SPLEEN_MAC [color="#2471a3"];
+        HEPATOCYTE -> NEO_CHOLE [color="#e67e22"];
+        KUPFFER -> HEPATOMEG [color="#e67e22"];
+        SPLEEN_MAC -> HEPATOMEG [color="#e67e22"];
+        HEPATOCYTE -> LFT [color="#e67e22"];
+        NEO_CHOLE -> LIVER_FAIL [color="#c0392b"];
+        CHOL_VISC -> FOAM_LUNG [color="#2471a3"];
+        MUT_NPC2 -> FOAM_LUNG [label="폐 표현형 강화", color="#1a7f37", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 11. 뉴런 구획 — 소뇌 푸르킨예 세포                                  *
+     * ================================================================== */
+    subgraph cluster_neuron {
+        label=<<b>11. 뉴런 구획 — 소뇌 푸르킨예 세포</b><br/><font point-size="9">질환의 실제 무대 · 전엽→후엽 소실 구배</font>>;
+        style="rounded,filled"; fillcolor="#e8f8f5"; color="#7fc7b8"; fontsize=11;
+        node [fillcolor="#d1f2eb"];
+
+        CHOL_CNS    [label="뉴런 리소좀 콜레스테롤/GSL 부하\nCHOL_CNS", penwidth=2.6, fillcolor="#f9e79f"];
+        BBB         [label="혈액-뇌장벽\n약물 접근성의 관문", shape=hexagon, fillcolor="#eaeded"];
+        PC_HEALTHY  [label="건강한 푸르킨예 세포 풀\nPC (상태변수)", penwidth=2.6];
+        PC_STRESS   [label="스트레스 푸르킨예 세포\n(가역적 기능이상)", penwidth=2.4, fillcolor="#fdebd0"];
+        PC_LOST     [label="소실 푸르킨예 세포\nPC_LOST — 비가역", penwidth=2.6, fillcolor="#f5b7b1"];
+        AXON_SPHER  [label="축삭 구형체 · 근위축삭 팽대"];
+        MEGANEURITE [label="메가뉴라이트 · 이소성 수상돌기"];
+        GRANULE     [label="과립세포층 위축"];
+        DEEP_NUC    [label="심부 소뇌핵 (치아핵) 손상"];
+        CBL_VOL     [label="소뇌 부피 감소\n(MRI · 상소뇌 우세)", penwidth=2.2];
+        THAL_CORT   [label="시상 · 피질 회백질 위축\n(인지 · 정신증상 상관)"];
+        CC_THIN     [label="뇌량 · 백질 미세구조 손상\n(DTI FA↓)"];
+
+        CHOL_STORE -> CHOL_CNS [label="뉴런에서 동일 기전", color="#2471a3", penwidth=1.6];
+        BBB -> CHOL_CNS [style=invis];
+        CHOL_CNS -> PC_STRESS [label="세포자율 손상", color="#c0392b", penwidth=1.8];
+        GM2 -> MEGANEURITE [color="#c0392b"];
+        PC_HEALTHY -> PC_STRESS [color="#c0392b"];
+        PC_STRESS -> PC_HEALTHY [label="부하 제거시 회복 가능", color="#1a7f37", style=dashed];
+        PC_STRESS -> PC_LOST [label="k_die (되돌릴 수 없음)", color="#c0392b", penwidth=2.0];
+        ATP_NEURON -> PC_STRESS [color="#c0392b", arrowhead=tee];
+        ROS -> PC_STRESS [color="#c0392b"];
+        PC_STRESS -> AXON_SPHER [color="#c0392b"];
+        PC_LOST -> GRANULE [color="#c0392b"];
+        PC_LOST -> DEEP_NUC [color="#c0392b"];
+        PC_LOST -> CBL_VOL [color="#e67e22", penwidth=1.6];
+        PC_LOST -> CALBINDIN [label="칼빈딘 유출", color="#e67e22"];
+        CHOL_CNS -> THAL_CORT [color="#c0392b"];
+        CHOL_CNS -> CC_THIN [color="#c0392b"];
+        PC_LOST -> NFL_CSF [color="#e67e22"];
+        CHOL_CNS -> OHC24 [color="#2471a3", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 12. 타우 · APP · 2차 단백질병리                                     *
+     * ================================================================== */
+    subgraph cluster_tau {
+        label=<<b>12. 2차 단백질병리 (타우 · APP)</b><br/><font point-size="9">알츠하이머형 신경섬유매듭이 나타나는 리소좀병</font>>;
+        style="rounded,filled"; fillcolor="#f6eef8"; color="#c8a2c8"; fontsize=11;
+        node [fillcolor="#eeddf2"];
+
+        GSK3B       [label="GSK3β / CDK5 활성화"];
+        TAU_P       [label="과인산화 타우"];
+        NFT         [label="신경섬유매듭 (NFT)\n3R+4R · AD형", penwidth=2.2, fillcolor="#f5b7b1"];
+        APP_PROC    [label="APP 절단 변화\nβ/γ-secretase 국재 이동"];
+        ABETA       [label="세포내 Aβ 축적"];
+        SNCA        [label="α-시누클레인 응집 (일부)"];
+
+        CHOL_CNS -> GSK3B [color="#1a7f37"];
+        LY_CA_REL -> GSK3B [color="#c0392b", arrowhead=tee];
+        GSK3B -> TAU_P [color="#1a7f37"];
+        TAU_P -> NFT [color="#2471a3"];
+        PROTEOLYSIS -> TAU_P [color="#c0392b", arrowhead=tee];
+        CHOL_CNS -> APP_PROC [color="#1a7f37"];
+        APP_PROC -> ABETA [color="#2471a3"];
+        NFT -> PC_LOST [color="#c0392b"];
+        ABETA -> PC_STRESS [color="#c0392b"];
+        PROTEOLYSIS -> SNCA [color="#c0392b", arrowhead=tee];
+    }
+
+    /* ================================================================== *
+     * 13. 신경염증                                                        *
+     * ================================================================== */
+    subgraph cluster_inflam {
+        label=<<b>13. 신경염증 — 미세아교세포 · 보체</b><br/><font point-size="9">뉴런 소실을 증폭하는 되먹임 (원인이 아니라 증폭기)</font>>;
+        style="rounded,filled"; fillcolor="#fdf2f2"; color="#e8a2a2"; fontsize=11;
+        node [fillcolor="#fadbd8"];
+
+        MICROGLIA   [label="미세아교세포 활성화\n(CD68 · TSPO PET)", penwidth=2.2];
+        ASTROCYTE   [label="반응성 성상교세포 (GFAP↑)"];
+        TNF_IL1     [label="TNF-α · IL-1β · IL-6"];
+        C1Q_C3      [label="보체 C1q · C3 침착\n시냅스 표지"];
+        SYN_LOSS    [label="시냅스 프루닝 · 소실", penwidth=2.2];
+        CCL_CHEMO   [label="CCL3/CXCL10 케모카인"];
+        NEUROINFL   [label="신경염증 지수\nINFL (상태변수)", penwidth=2.6, fillcolor="#f9e79f"];
+
+        CHOL_CNS -> MICROGLIA [color="#1a7f37"];
+        PC_LOST -> MICROGLIA [label="사체 제거 자극", color="#1a7f37"];
+        MICROGLIA -> TNF_IL1 [color="#1a7f37"];
+        MICROGLIA -> C1Q_C3 [color="#1a7f37"];
+        MICROGLIA -> CCL_CHEMO [color="#1a7f37"];
+        TNF_IL1 -> ASTROCYTE [color="#1a7f37"];
+        C1Q_C3 -> SYN_LOSS [color="#1a7f37"];
+        MICROGLIA -> NEUROINFL [color="#1a7f37"];
+        TNF_IL1 -> NEUROINFL [color="#1a7f37"];
+        NEUROINFL -> PC_STRESS [label="증폭 되먹임", color="#c0392b", penwidth=1.8];
+        SYN_LOSS -> PC_STRESS [color="#c0392b"];
+    }
+
+    /* ================================================================== *
+     * 14. 기능 구조: 가역 vs 비가역 (모델의 핵심 구조)                    *
+     * ================================================================== */
+    subgraph cluster_reserve {
+        label=<<b>14. 기능 = f(가역적 기능이상, 비가역적 소실)</b><br/><font point-size="9">★ 모델의 핵심 구조 — 대증효과와 질병조절효과가 갈리는 지점</font>>;
+        style="rounded,filled"; fillcolor="#fbeee6"; color="#d98880"; fontsize=12; penwidth=2.0;
+        node [fillcolor="#fdebd0"];
+
+        STRESS_NODE [label="소뇌 스트레스 S\n(부하·염증·ROS·Ca²⁺·오토파지 합)", penwidth=2.2, fillcolor="#fdebd0"];
+        DAM_NODE    [label="누적 손상 적분\nDAM = ∫ S dt — 수선항 없음", penwidth=2.6, fillcolor="#f5b7b1"];
+        GATE_NODE   [label="예비능 관문\nDAM > D_reserve 일 때만 사멸 개시", shape=hexagon, penwidth=2.4, fillcolor="#f9e79f"];
+        VULN_NODE   [label="발달 취약성\n1 + v_dev·e^(−age/τ)", shape=note, fillcolor="#eaf2f8"];
+        LATENCY     [label="발병 지연 ∝ 1/S\n→ 유전형이 발병 연령을 정한다", shape=note, fillcolor="#d4efdf"];
+        SATRATE     [label="관문 통과 후 속도는 포화\n→ 기울기는 발병 연령과 무관", shape=note, fillcolor="#d4efdf"];
+        F_REV       [label="가역적 기능이상 성분\nD_rev — 시간상수 일 단위\n(부하·염증·대사에 즉시 반응)", penwidth=2.6];
+        F_IRREV     [label="비가역적 소실 성분\nD_irr — 시간상수 년 단위\n(뉴런 소실의 누적 적분)", penwidth=2.6, fillcolor="#f5b7b1"];
+        RESERVE     [label="기능적 예비능\n(임상 발현 전 완충)", penwidth=2.2];
+        NEURO_FUNC  [label="총 신경학적 기능\nFUNC = 1 − D_rev − D_irr", penwidth=2.8, fillcolor="#f9e79f"];
+        SYMPT_ARROW [label="대증 효과\n= D_rev 만 감소\n(중단시 되돌아감)", shape=note, fillcolor="#e8daef"];
+        DISMOD_ARROW[label="질병조절 효과\n= dD_irr/dt 감소\n(중단해도 유지)", shape=note, fillcolor="#d4e6f1"];
+
+        STRESS_NODE -> DAM_NODE [label="적분", color="#c0392b", penwidth=2.2];
+        DAM_NODE -> GATE_NODE [color="#c0392b", penwidth=2.0];
+        VULN_NODE -> GATE_NODE [color="#7f8c8d", style=dashed];
+        DAM_NODE -> LATENCY [color="#7f8c8d", style=dashed];
+        GATE_NODE -> SATRATE [color="#7f8c8d", style=dashed];
+        STRESS_NODE -> F_REV [label="포화 함수 (즉시)", color="#c0392b", penwidth=1.8];
+        NEUROINFL -> F_REV [color="#c0392b"];
+        GLUC_METAB -> F_REV [color="#c0392b", arrowhead=tee];
+        PC_LOST -> F_IRREV [color="#c0392b", penwidth=2.0];
+        SYN_LOSS -> F_IRREV [color="#c0392b"];
+        CBL_VOL -> F_IRREV [color="#c0392b"];
+        F_REV -> NEURO_FUNC [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        F_IRREV -> NEURO_FUNC [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        RESERVE -> NEURO_FUNC [color="#1a7f37"];
+        F_IRREV -> RESERVE [color="#c0392b", arrowhead=tee];
+        SYMPT_ARROW -> F_REV [color="#8e44ad", style=dashed];
+        DISMOD_ARROW -> F_IRREV [color="#8e44ad", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 15. 임상 엔드포인트                                                 *
+     * ================================================================== */
+    subgraph cluster_clinical {
+        label=<<b>15. 임상 엔드포인트 · 척도</b><br/><font point-size="9">SARA · NPCCSS(17/5/4-domain) · 생존</font>>;
+        style="rounded,filled"; fillcolor="#fef9e7"; color="#d9c26a"; fontsize=11;
+        node [fillcolor="#fcf3cf"];
+
+        VSGP        [label="수직성 초핵성 안구운동마비\nVSGP (병리진단적)", penwidth=2.2];
+        SACCADE     [label="수평 · 수직 사카드 최고속도\nHSEM velocity (VOG)", penwidth=2.2];
+        ATAXIA      [label="소뇌성 보행·체간 실조"];
+        SARA        [label="SARA 총점 0-40\n(레바세틸류신 1차 지표)", penwidth=2.6, fillcolor="#f9e79f"];
+        AMBUL       [label="보행 (NPCCSS 영역)"];
+        FINE_MOTOR  [label="미세운동 (9-hole peg)"];
+        SPEECH      [label="구음장애 · 언어"];
+        SWALLOW     [label="연하기능 (VFSS)", penwidth=2.2];
+        COGNITION   [label="인지 저하 (환경 의존적\n→ 4-domain에서 제외됨)", fillcolor="#eaeded"];
+        SEIZURE     [label="발작 (약물저항성)"];
+        CATAPLEXY   [label="발작성 웃음 유발 탈력\ngelastic cataplexy"];
+        PSYCH       [label="정신증상 (성인형 초발)"];
+        HEARING     [label="청력 (ABR · 순음)", penwidth=2.2];
+        NPCCSS17    [label="17-domain NPCCSS\n연 2.7-2.9점 진행", penwidth=2.4, fillcolor="#f9e79f"];
+        NPCCSS5     [label="5-domain NPCCSS\n연 1.5점 진행", penwidth=2.4, fillcolor="#f9e79f"];
+        NPCCSS4     [label="R4DNPCCSS (재채점 4영역)\n보행·미세운동·언어·연하", penwidth=2.4, fillcolor="#f9e79f"];
+        ASPIRATION  [label="흡인성 폐렴", fillcolor="#f5b7b1"];
+        SURVIVAL    [label="생존 · 사망연령", penwidth=2.6, fillcolor="#f5b7b1"];
+
+        F_IRREV -> VSGP [color="#e67e22"];
+        F_REV -> SACCADE [color="#e67e22"];
+        F_IRREV -> SACCADE [color="#e67e22"];
+        VSGP -> SACCADE [color="#e67e22"];
+        NEURO_FUNC -> ATAXIA [color="#e67e22", arrowhead=tee, penwidth=1.6];
+        ATAXIA -> SARA [color="#e67e22", penwidth=1.8];
+        NEURO_FUNC -> AMBUL [color="#e67e22", arrowhead=tee];
+        NEURO_FUNC -> FINE_MOTOR [color="#e67e22", arrowhead=tee];
+        NEURO_FUNC -> SPEECH [color="#e67e22", arrowhead=tee];
+        NEURO_FUNC -> SWALLOW [color="#e67e22", arrowhead=tee];
+        THAL_CORT -> COGNITION [color="#e67e22"];
+        THAL_CORT -> PSYCH [color="#e67e22"];
+        CHOL_CNS -> SEIZURE [color="#e67e22"];
+        CHOL_CNS -> CATAPLEXY [color="#e67e22"];
+        AMBUL -> NPCCSS5 [color="#e67e22"];
+        FINE_MOTOR -> NPCCSS5 [color="#e67e22"];
+        SPEECH -> NPCCSS5 [color="#e67e22"];
+        SWALLOW -> NPCCSS5 [color="#e67e22"];
+        COGNITION -> NPCCSS5 [color="#e67e22"];
+        AMBUL -> NPCCSS4 [color="#e67e22"];
+        FINE_MOTOR -> NPCCSS4 [color="#e67e22"];
+        SPEECH -> NPCCSS4 [color="#e67e22"];
+        SWALLOW -> NPCCSS4 [color="#e67e22"];
+        NPCCSS5 -> NPCCSS17 [color="#e67e22"];
+        HEARING -> NPCCSS17 [color="#e67e22"];
+        SEIZURE -> NPCCSS17 [color="#e67e22"];
+        CATAPLEXY -> NPCCSS17 [color="#e67e22"];
+        SWALLOW -> ASPIRATION [color="#c0392b", arrowhead=tee, penwidth=1.8];
+        ASPIRATION -> SURVIVAL [color="#c0392b", arrowhead=tee, penwidth=1.8];
+        SEIZURE -> SURVIVAL [color="#c0392b", arrowhead=tee];
+        LIVER_FAIL -> SURVIVAL [color="#c0392b", arrowhead=tee];
+    }
+
+    /* ================================================================== *
+     * 16. 미글루스타트 PK/PD                                              *
+     * ================================================================== */
+    subgraph cluster_miglustat {
+        label=<<b>16. 미글루스타트 (Zavesca) — 기질 감소</b><br/><font point-size="9">경구 200 mg tid · GCS 억제 · 유입 flux를 줄인다</font>>;
+        style="rounded,filled"; fillcolor="#f5eef8"; color="#a569bd"; fontsize=11;
+        node [fillcolor="#ebdef0", color="#8e44ad"];
+
+        MIG_DOSE    [label="미글루스타트 경구\n200 mg tid (성인) · BSA 기준 소아"];
+        MIG_GUT     [label="장관 흡수\nF ≈ 0.97 · Tmax 2-2.5 h", penwidth=2.2];
+        MIG_PLASMA  [label="혈장 농도\nCss ~11-14 μM · t½ 6-7 h", penwidth=2.2];
+        MIG_RENAL   [label="신 배설 (미변화체 우세)"];
+        MIG_BRAIN   [label="뇌 조직 농도\n뇌/혈장 비 ~0.3-0.6", penwidth=2.2];
+        MIG_GCS     [label="UGCG (GCS) 억제\nIC₅₀ ~20-50 μM"];
+        MIG_GI_AE   [label="설사 · 체중감소\n(장 이당분해효소 억제)", fillcolor="#fadbd8"];
+        MIG_TREMOR  [label="말초신경병증 · 진전", fillcolor="#fadbd8"];
+
+        MIG_DOSE -> MIG_GUT [color="#8e44ad", style=dashed];
+        MIG_GUT -> MIG_PLASMA [color="#2471a3"];
+        MIG_PLASMA -> MIG_RENAL [color="#2471a3"];
+        MIG_PLASMA -> MIG_BRAIN [color="#2471a3"];
+        MIG_BRAIN -> MIG_GCS [color="#8e44ad", style=dashed, penwidth=1.6];
+        MIG_PLASMA -> MIG_GCS [color="#8e44ad", style=dashed];
+        MIG_GCS -> UGCG [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        MIG_GUT -> MIG_GI_AE [color="#c0392b"];
+        MIG_PLASMA -> MIG_TREMOR [color="#c0392b"];
+        MIG_GI_AE -> MIG_DOSE [label="용량 감량 · 중단", color="#c0392b", arrowhead=tee, style=dotted];
+    }
+
+    /* ================================================================== *
+     * 17. 아리모클로몰 PK/PD                                              *
+     * ================================================================== */
+    subgraph cluster_arimoclomol {
+        label=<<b>17. 아리모클로몰 (Miplyffa) — HSP70 증폭</b><br/><font point-size="9">경구 tid · HSF1 공동유도 → 변이 NPC1 접힘 수율↑ (유전형 의존)</font>>;
+        style="rounded,filled"; fillcolor="#f5eef8"; color="#a569bd"; fontsize=11;
+        node [fillcolor="#ebdef0", color="#8e44ad"];
+
+        ARI_DOSE    [label="아리모클로몰 경구\n47/62/93/124 mg tid (체중별)"];
+        ARI_PLASMA  [label="혈장 농도\n선형 PK · t½ ~4 h", penwidth=2.2];
+        ARI_CSF     [label="CSF 농도\n용량 의존적 상승", penwidth=2.2];
+        ARI_HSF1    [label="HSF1 공동유도\n(스트레스 있을 때만 증폭)"];
+        ARI_HSP70   [label="HSP70 발현↑", penwidth=2.2];
+        ARI_LYSO    [label="리소좀 막 안정화\nBMP 결합 · 가수분해효소 활성↑"];
+        ARI_AE      [label="상기도 감염 · 어지럼\n체중감소", fillcolor="#fadbd8"];
+
+        ARI_DOSE -> ARI_PLASMA [color="#8e44ad", style=dashed];
+        ARI_PLASMA -> ARI_CSF [color="#2471a3"];
+        ARI_CSF -> ARI_HSF1 [color="#8e44ad", style=dashed, penwidth=1.6];
+        ARI_PLASMA -> ARI_HSF1 [color="#8e44ad", style=dashed];
+        ARI_HSF1 -> ARI_HSP70 [color="#1a7f37", penwidth=1.8];
+        ARI_HSP70 -> HSP70_FOLD [color="#1a7f37", penwidth=2.0];
+        ARI_HSP70 -> ARI_LYSO [color="#1a7f37"];
+        ARI_LYSO -> HYDROLASE [color="#1a7f37"];
+        ARI_PLASMA -> ARI_AE [color="#c0392b"];
+        MUT_MISFOLD -> ARI_HSP70 [label="구제 가능 기질 존재\n(효과의 전제)", color="#1a7f37", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 18. 레바세틸류신 PK/PD                                              *
+     * ================================================================== */
+    subgraph cluster_nal {
+        label=<<b>18. 레바세틸류신 (Aqneursa, N-acetyl-L-leucine)</b><br/><font point-size="9">경구 최대 4 g/일 · t½ ~1 h · 빠른 대증효과 + 대사 개선</font>>;
+        style="rounded,filled"; fillcolor="#f5eef8"; color="#a569bd"; fontsize=11;
+        node [fillcolor="#ebdef0", color="#8e44ad"];
+
+        NAL_DOSE    [label="레바세틸류신 경구\n체중별 · 최대 4 g/일 (분할)"];
+        NAL_PLASMA  [label="혈장 농도\nCmax ~8.3 μg/mL · t½ ~1 h\n축적 없음", penwidth=2.2];
+        NAL_BRAIN   [label="뇌 노출\n(아세틸화 아미노산 수송)", penwidth=2.2];
+        NAL_METAB   [label="뇌 포도당·젖산 대사 정상화\n(막 전위 · 소뇌 대사)"];
+        NAL_VEST    [label="전정·소뇌 보상 촉진\n(전정 대상성 회복 기전)"];
+        NAL_LYSO    [label="리소좀 기질 축적 완만화\n(마우스에서 진행 지연)"];
+        NAL_AE      [label="복통 · 연하곤란 · 구토", fillcolor="#fadbd8"];
+
+        NAL_DOSE -> NAL_PLASMA [color="#8e44ad", style=dashed];
+        NAL_PLASMA -> NAL_BRAIN [color="#2471a3"];
+        NAL_BRAIN -> NAL_METAB [color="#8e44ad", style=dashed, penwidth=1.6];
+        NAL_BRAIN -> NAL_VEST [color="#8e44ad", style=dashed];
+        NAL_BRAIN -> NAL_LYSO [color="#8e44ad", style=dashed];
+        NAL_METAB -> GLUC_METAB [color="#1a7f37", penwidth=1.8];
+        NAL_VEST -> F_REV [label="가역 성분만 즉시 감소\n(수일-수주)", color="#1a7f37", arrowhead=tee, penwidth=2.0];
+        NAL_LYSO -> CHOL_CNS [color="#c0392b", arrowhead=tee, style=dashed];
+        NAL_PLASMA -> NAL_AE [color="#c0392b"];
+    }
+
+    /* ================================================================== *
+     * 19. 사이클로덱스트린 (수막강내) PK/PD + 기전분리불가 독성            *
+     * ================================================================== */
+    subgraph cluster_cd {
+        label=<<b>19. 아드라베타덱스 (2-HPβCD, 수막강내)</b><br/><font point-size="9">NPC1을 우회하는 직접 추출 · 효능과 이독성이 같은 기전</font>>;
+        style="rounded,filled"; fillcolor="#f5eef8"; color="#a569bd"; fontsize=11;
+        node [fillcolor="#ebdef0", color="#8e44ad"];
+
+        CD_DOSE     [label="수막강내 2-HPβCD\n900-1200 mg q2wk"];
+        CD_CSF      [label="CSF 농도\n급속 소실 (t½ 수 시간)", penwidth=2.2];
+        CD_BRAIN_ECF[label="뇌 세포외액 노출\n(대류 확산 · 구배 존재)", penwidth=2.2];
+        CD_IV       [label="정맥 투여 시\nBBB 통과 거의 없음", fillcolor="#eaeded"];
+        CD_ENDOCYT  [label="세포내섭취 → LE/LY 도달"];
+        CD_EXTRACT  [label="막에서 콜레스테롤 직접 추출\n(포접 · NPC1 무관)", penwidth=2.2];
+        CD_OTO      [label="외유모세포 콜레스테롤 고갈\nprestin 기능 상실", fillcolor="#f5b7b1"];
+        CD_HEARING  [label="고주파 감각신경성 난청\n(용량 제한 독성)", penwidth=2.2, fillcolor="#f5b7b1"];
+        CD_LP_AE    [label="요추천자 관련 사건\n두통 · 감염 위험", fillcolor="#fadbd8"];
+
+        CD_DOSE -> CD_CSF [color="#8e44ad", style=dashed];
+        CD_CSF -> CD_BRAIN_ECF [color="#2471a3"];
+        CD_IV -> CD_BRAIN_ECF [color="#c0392b", arrowhead=tee, style=dashed];
+        CD_BRAIN_ECF -> CD_ENDOCYT [color="#2471a3"];
+        CD_ENDOCYT -> CD_EXTRACT [color="#8e44ad", style=dashed, penwidth=1.6];
+        CD_EXTRACT -> CHOL_CNS [color="#c0392b", arrowhead=tee, penwidth=2.2];
+        CD_IV -> CHOL_VISC [label="정맥 경로는 내장만", color="#c0392b", arrowhead=tee, style=dashed];
+        CD_EXTRACT -> CD_OTO [label="같은 기전, 다른 세포", color="#c0392b", penwidth=1.8];
+        CD_OTO -> CD_HEARING [color="#c0392b", penwidth=1.8];
+        CD_HEARING -> HEARING [color="#c0392b", arrowhead=tee, penwidth=1.8];
+        CD_DOSE -> CD_LP_AE [color="#c0392b"];
+    }
+
+    /* ================================================================== *
+     * 20. 개발 중 · 실험적 접근                                           *
+     * ================================================================== */
+    subgraph cluster_emerging {
+        label=<<b>20. 개발 중 접근</b><br/><font point-size="9">유전자치료 · HDAC 억제 · TRPML1 작용제</font>>;
+        style="rounded,filled"; fillcolor="#eaf2f8"; color="#7fb3d5"; fontsize=11;
+        node [fillcolor="#d6eaf8", color="#2471a3"];
+
+        AAV9_NPC1   [label="AAV9-NPC1 유전자 전달\n(IV / ICV)"];
+        HDACI       [label="HDAC 억제제 (보리노스탓 등)\nI1061T 통과 증가"];
+        TRPML1_AG   [label="TRPML1 작용제 (ML-SA1 등)\nCa²⁺ 방출 회복"];
+        HSCT        [label="조혈모세포 이식\n(내장 표현형에 국한)"];
+        SUBST_COMBO [label="병용: 기질감소 + 추출\n(마우스 상가효과)"];
+
+        AAV9_NPC1 -> NPC1_LYSO [color="#8e44ad", style=dashed, penwidth=1.8];
+        HDACI -> ERAD [color="#c0392b", arrowhead=tee, style=dashed];
+        TRPML1_AG -> TRPML1 [color="#1a7f37", style=dashed];
+        HSCT -> KUPFFER [color="#c0392b", arrowhead=tee, style=dashed];
+        SUBST_COMBO -> CHOL_CNS [color="#c0392b", arrowhead=tee, style=dashed];
+    }
+
+    /* ================================================================== *
+     * 21. 환자 이질성 · 발병 연령형                                       *
+     * ================================================================== */
+    subgraph cluster_hetero {
+        label=<<b>21. 환자 이질성 — 발병 연령형이 잔여 활성의 함수</b><br/><font point-size="9">같은 구조, 다른 f_NPC1 → 전혀 다른 표현형</font>>;
+        style="rounded,filled"; fillcolor="#f4f6f6"; color="#aab7b8"; fontsize=11;
+        node [fillcolor="#eaeded"];
+
+        FORM_PERI   [label="주산기형 (f_NPC1 ≈ 0)\n담즙정체 · 간부전 · 조기사망"];
+        FORM_EI     [label="조기영아형 (<2세)\n발달지연 · 저긴장"];
+        FORM_LI     [label="후기영아형 (2-6세)\n실조 · 인지저하 · 탈력"];
+        FORM_JUV    [label="청소년형 (6-15세)\n학습장애 · VSGP · 실조"];
+        FORM_ADULT  [label="성인형 (>15세, f_NPC1 최대)\n정신증상 · 완만한 실조"];
+        AGE_ONSET   [label="신경학적 발병 연령\n(생존의 최강 예측자)", penwidth=2.2];
+        SEX_MOD     [label="성별 · 환경 · 수정유전자"];
+
+        NPC1_FUNC -> FORM_PERI [color="#7f8c8d", style=dashed];
+        NPC1_FUNC -> FORM_EI [color="#7f8c8d", style=dashed];
+        NPC1_FUNC -> FORM_LI [color="#7f8c8d", style=dashed];
+        NPC1_FUNC -> FORM_JUV [color="#7f8c8d", style=dashed];
+        NPC1_FUNC -> FORM_ADULT [color="#7f8c8d", style=dashed];
+        FORM_LI -> AGE_ONSET [color="#e67e22"];
+        FORM_JUV -> AGE_ONSET [color="#e67e22"];
+        FORM_ADULT -> AGE_ONSET [color="#e67e22"];
+        AGE_ONSET -> SURVIVAL [color="#e67e22", penwidth=1.8];
+        SEX_MOD -> AGE_ONSET [color="#7f8c8d", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 22. 시험 설계가 볼 수 있는 것 (측정 구조)                           *
+     * ================================================================== */
+    subgraph cluster_trialdesign {
+        label=<<b>22. ★ 시험 설계 × 기전의 함정</b><br/><font point-size="9">각 약은 자기 가정된 기전만 볼 수 있는 설계로 시험되었다</font>>;
+        style="rounded,filled"; fillcolor="#fdf2e2"; color="#d68910"; fontsize=12; penwidth=2.0;
+        node [fillcolor="#fdebd0", color="#b9770e"];
+
+        TRIAL_12WK  [label="12주 교차설계 · SARA 변화\n(IB1001-301, n=60)\nΔ = −1.28점", penwidth=2.4];
+        TRIAL_12MO  [label="12개월 병렬설계 · NPCCSS 변화\n(arimoclomol, n=50, 2:1)\nΔ = −1.40 (5D) / −1.70 (4D)", penwidth=2.4];
+        TRIAL_OL    [label="공개 라벨 · 역사적 대조\n(Ory 2017 IT-HPβCD, n=14)\n21/21 vs 7/14 진행"];
+        TRIAL_SHAM  [label="무작위 · 위처치 대조\n(adrabetadex 2b/3)\n어떤 지표에서도 차이 없음", fillcolor="#f5b7b1"];
+        POWER_REV   [label="짧은 창 = 가역 성분에만 민감\n(대증효과를 본다)", shape=note, fillcolor="#fef9e7"];
+        POWER_IRREV [label="긴 창 + 기저치 대비 변화\n= 상수 편차와 기울기를 구분 못함", shape=note, fillcolor="#fef9e7"];
+        CONFOUND_OL [label="공개라벨 + 역사적 대조\n= 기울기 감소를 과대추정", shape=note, fillcolor="#fadbd8"];
+        WITHDRAW    [label="중단 후 재악화 여부\n= 두 성분을 가르는 유일한 설계", shape=note, fillcolor="#d4efdf"];
+
+        SARA -> TRIAL_12WK [color="#7f8c8d", style=dashed];
+        NPCCSS5 -> TRIAL_12MO [color="#7f8c8d", style=dashed];
+        NPCCSS4 -> TRIAL_12MO [color="#7f8c8d", style=dashed];
+        NPCCSS17 -> TRIAL_OL [color="#7f8c8d", style=dashed];
+        HEARING -> TRIAL_SHAM [label="청력 포함시\n효과 상쇄", color="#c0392b", style=dashed];
+        TRIAL_12WK -> POWER_REV [color="#7f8c8d", style=dashed];
+        TRIAL_12MO -> POWER_IRREV [color="#7f8c8d", style=dashed];
+        TRIAL_OL -> CONFOUND_OL [color="#7f8c8d", style=dashed];
+        TRIAL_OL -> TRIAL_SHAM [label="같은 약, 반대 결론", color="#c0392b", penwidth=1.8];
+        F_REV -> POWER_REV [color="#7f8c8d", style=dashed];
+        F_IRREV -> POWER_IRREV [color="#7f8c8d", style=dashed];
+        WITHDRAW -> F_REV [color="#7f8c8d", style=dashed];
+        WITHDRAW -> F_IRREV [color="#7f8c8d", style=dashed];
+        OX_TRIOL -> CHOL_VISC [label="ρ = 0.265 만 — 다른 구획을\n재고 있기 때문", color="#7f8c8d", style=dashed, dir=back];
+        OX_TRIOL -> NPCCSS5 [label="약한 상관", color="#7f8c8d", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 클러스터 간 연결: 스트레스 → 손상 적분 → 예비능 관문 → 사멸         *
+     * (클러스터 안에 두면 11↔14 사이에 순환이 생겨 rank 배정이 깨진다)     *
+     * ================================================================== */
+    CHOL_CNS   -> STRESS_NODE [color="#c0392b", penwidth=1.6];
+    NEUROINFL  -> STRESS_NODE [color="#c0392b"];
+    ROS        -> STRESS_NODE [color="#c0392b"];
+    LY_CA_STORE-> STRESS_NODE [label="결핍이 스트레스", color="#c0392b", arrowhead=tee];
+    AUTOPH     -> STRESS_NODE [style=invis];
+    GATE_NODE  -> PC_LOST     [label="사멸 개시 (관문이 열린 뒤)", color="#c0392b", penwidth=2.2];
+
+    /* ================================================================== *
+     * 구획 간 약물 접근성 (핵심 비대칭)                                   *
+     * ================================================================== */
+    MIG_PLASMA  -> CHOL_VISC [label="경구 → 내장 도달", color="#8e44ad", style=dashed];
+    MIG_BRAIN   -> CHOL_CNS  [label="BBB 통과 부분적", color="#8e44ad", style=dashed];
+    ARI_PLASMA  -> CHOL_VISC [color="#8e44ad", style=dashed];
+    ARI_CSF     -> CHOL_CNS  [color="#8e44ad", style=dashed];
+    CD_CSF      -> CHOL_VISC [label="수막강내는 내장에\n도달하지 않는다", color="#c0392b", arrowhead=tee, style=dotted];
+    CHOL_VISC   -> CHOL_STORE [style=invis];
+    NPC1_FUNC   -> CHOL_VISC [label="같은 병변, 다른 구획", color="#c0392b", arrowhead=tee];
+    NPC1_FUNC   -> CHOL_CNS  [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    BBB         -> MIG_BRAIN [style=invis];
+}
