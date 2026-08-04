@@ -1,0 +1,467 @@
+/* =====================================================================
+   CONTROLLED OVARIAN STIMULATION for IVF — QSP mechanistic map
+   조절 난소 자극 (COS) · 169 nodes · 215 edges · 17 clusters (16 mechanism + legend)
+   Render:  dot -Tsvg cos_qsp_model.dot -o cos_qsp_model.svg
+            dot -Tpng -Gdpi=150 cos_qsp_model.dot -o cos_qsp_model.png
+
+   The map is drawn around the claim the ODE model makes.  Two nodes carry
+   the whole argument and are drawn with heavy borders:
+
+     MG   — growing granulosa mass.  Oestradiol, trigger-day progesterone,
+            oocyte yield and ovarian VEGF output are FOUR ARROWS OUT OF THE
+            SAME NODE.  That is why the FSH dose cannot separate yield from
+            OHSS: it moves MG, and everything downstream of MG moves with it.
+
+     LHEQ — the single LH-equivalent ligand pool (endogenous LH + hCG +
+            pregnancy hCG).  It leaves through THREE kernels with different
+            affinities and different time-integrations (cluster 5):
+              support   K = 2  IU/L   basal pulses suffice
+              meiosis   K = 25 IU/L   needs the surge's leading EDGE only
+              VEGF      K = 40 IU/L   needs the AREA, days of it
+            hCG delivers edge AND area; a GnRH-agonist trigger delivers the
+            edge and 0.6 d of area.  Equal maturation, no OHSS.
+
+   Read the map as: cluster 9-12 (drugs) -> cluster 1-2 (axis, thresholds)
+   -> MG -> cluster 3-8 (the four read-outs) -> cluster 14 (endpoints).
+   ===================================================================== */
+digraph COS {
+  rankdir=TB;
+  graph [fontname="Helvetica", fontsize=11, labelloc=t, nodesep=0.22,
+         ranksep=0.52, splines=true, overlap=false, compound=true,
+         label="CONTROLLED OVARIAN STIMULATION (IVF) — QSP mechanistic map\nFSH threshold/window · one granulosa mass read four ways · one LHCGR ligand read by three kernels · OHSS · embryology · clinical endpoints",
+         fontsize=20];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded",
+         shape=box, penwidth=1.1, margin="0.07,0.045"];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, penwidth=1.0,
+         color="#5a5a5a"];
+
+  /* ================================================================ 1 */
+  subgraph cluster_hpo {
+    label="1. 시상하부–뇌하수체 축  Hypothalamic–pituitary axis (GnRH pulse generator)";
+    style="filled,rounded"; color="#c6d9f0"; fillcolor="#f2f7fd"; fontsize=13;
+    node [fillcolor="#dce9f8", color="#2f6fb5"];
+    KNDY   [label="KNDy neurons\nkisspeptin / NKB / dynorphin\n(arcuate pulse generator)"];
+    GNRHP  [label="GnRH pulse frequency\n(TONE — 1.0 normal, 1.7–1.8 PCOS)"];
+    GNRHR  [label="pituitary GnRH receptor\nGRR: availability 0–1"];
+    GRDOWN [label="agonist-induced receptor\nDOWN-REGULATION\n(k 3.0/d, recovery t½ 3.5 d)",
+            fillcolor="#c3dcf5"];
+    GONAD  [label="gonadotroph\nLH & FSH synthesis"];
+    SLHP   [label="SLH\nreleasable LH pool (IU)\nsaturable, capacity 12 000",
+            fillcolor="#bcd6f2", penwidth=1.8];
+    LHREL  [label="LH release\nk_rel × GnRH drive × SLH"];
+    LHPL   [label="plasma LH (IU/L)\nt½ 1 h", fillcolor="#a8c9ee", penwidth=1.6];
+    FSHPL  [label="endogenous plasma FSH (IU/L)\nt½ 4 h", fillcolor="#a8c9ee",
+            penwidth=1.6];
+    SURGE  [label="surge mode\nRS: readiness 0–1\n(E2 > 400 pg/mL for ~1.5 d)"];
+    P4BLK  [label="progesterone brake\non pulse frequency\n(K 12 ng/mL)", fillcolor="#c3dcf5"];
+    NEGFB  [label="E2 + inhibin B\nnegative feedback\non FSH secretion"];
+  }
+  KNDY->GNRHP; GNRHP->GONAD; GNRHR->GONAD; GRDOWN->GNRHR [arrowhead=tee];
+  GONAD->SLHP; SLHP->LHREL; LHREL->LHPL; GONAD->FSHPL;
+  SURGE->LHREL [label="×55 drive", color="#b8860b", penwidth=1.6];
+  P4BLK->GNRHP [arrowhead=tee, color="#8b1a1a"];
+  NEGFB->FSHPL [arrowhead=tee, color="#8b1a1a"];
+
+  /* ================================================================ 2 */
+  subgraph cluster_coh {
+    label="2. 난포 코호트와 FSH 임계값  Antral cohort and the FSH threshold/window";
+    style="filled,rounded"; color="#cfe2c6"; fillcolor="#f4faf1"; fontsize=13;
+    node [fillcolor="#e0f0d8", color="#3d7a2f"];
+    PRIM   [label="primordial pool\n(non-growing reserve)"];
+    PREANT [label="pre-antral / early antral\n(FSH-independent, ~70 d)"];
+    AFC    [label="AFC\nantral follicle count 2–9 mm\n(the ONLY cohort-size lever)",
+            fillcolor="#c8e6b8", penwidth=2.0];
+    SLOTS  [label="10 slots × AFC/10 follicles\nequal-probability quantiles",
+            fillcolor="#d4ecc7"];
+    THDIST [label="FSH threshold distribution\nlog-normal: T50 9 IU/L, σ 0.45\n(3.5 – 23 IU/L)",
+            fillcolor="#c8e6b8", penwidth=1.8];
+    THAMH  [label="AMH raises the threshold\n×(1 + 0.15·(AMH/2.5 − 1))"];
+    THSIZE [label="threshold FALLS with size\n×(1 − 0.45·Hill(D,10 mm))\n(FSHR density, IGF-1/2 amplification)"];
+    FSHTOT [label="FSHTOT = endogenous + exogenous\n(IU/L)", fillcolor="#bcdfa8",
+            penwidth=1.8];
+    DRIVE  [label="drive_i = Hill(FSHTOT / T_i, n 4)\n+ 0.75 · LHCGR_i · support",
+            fillcolor="#bcdfa8", penwidth=1.8];
+    WINDOW [label="FSH WINDOW\nthe time FSHTOT stays above T_i\n= how many follicles escape"];
+    SELECT [label="selection / dominance\nleader lowers its own threshold\nand switches to LH support"];
+    ATRES  [label="atresia\ndV/dt = −0.12·(1−drive)²·V\n(irreversible)"];
+    DIAM   [label="follicle diameter D_i (mm)\n0.9–1.8 mm/d, size-accelerating"];
+    GRAN   [label="granulosa mass G_i\ncapacity ∝ (D/20 mm)²"];
+    LHCGRA [label="LHCGR acquisition\n> 11 mm (granulosa)"];
+    ARREST [label="LH-tone arrest of\npre-LHCGR follicles\n(PCOS: LH 9–12 IU/L)"];
+    MG     [label="MG — GROWING GRANULOSA MASS\nΣ m_i · G_i · V_i\nONE state variable, FOUR read-outs",
+            fillcolor="#8fce74", penwidth=3.2, shape=box3d, fontsize=12];
+  }
+  PRIM->PREANT->AFC->SLOTS->THDIST; THAMH->THDIST; THSIZE->THDIST;
+  THDIST->DRIVE; FSHTOT->DRIVE; DRIVE->DIAM; DRIVE->GRAN;
+  DRIVE->ATRES [arrowhead=tee]; DIAM->LHCGRA; LHCGRA->DRIVE [color="#b8860b"];
+  ARREST->DRIVE [arrowhead=tee]; FSHTOT->WINDOW; WINDOW->SELECT;
+  SELECT->MG; GRAN->MG; ATRES->MG [arrowhead=tee]; DIAM->GRAN;
+  FSHPL->FSHTOT; LHPL->ARREST;
+
+  /* ================================================================ 3 */
+  subgraph cluster_ster {
+    label="3. 스테로이드 생성 — 2세포 2고나도트로핀  Two-cell two-gonadotropin steroidogenesis";
+    style="filled,rounded"; color="#f2d9b3"; fillcolor="#fdf6ec"; fontsize=13;
+    node [fillcolor="#fae5c8", color="#b5761f"];
+    THECA  [label="theca interna\nLH-dependent"];
+    STAR   [label="StAR / CYP11A1\ncholesterol → pregnenolone"];
+    CYP17  [label="CYP17A1\n17α-hydroxylase / 17,20-lyase"];
+    ANDRO  [label="androstenedione /\ntestosterone (substrate)"];
+    AROM   [label="CYP19A1 aromatase\n(granulosa, FSH-induced)"];
+    AROCOM [label="aromatase COMPETENCE\nHill(D, 12 mm, 3)\n— why 8 mm follicles make no E2",
+            fillcolor="#f6d9ac", penwidth=1.8];
+    E2     [label="oestradiol E2 (pg/mL)\nnatural peak ~400 · COS 1600–4000",
+            fillcolor="#f3cd93", penwidth=2.0];
+    INHB   [label="inhibin B (pg/mL)\ngranulosa, small-antral weighted"];
+    AMHN   [label="AMH (ng/mL)\npre-antral + small antral only\nfalls ~50% during COS",
+            fillcolor="#f3cd93", penwidth=1.6];
+    P4LEAK [label="granulosa P4 leak\n0.075 ng/mL/d per unit MG\nNO saturation → a follicle COUNTER",
+            fillcolor="#f3cd93", penwidth=2.0];
+    SHBG   [label="SHBG / albumin binding\nfree fraction"];
+    E2LIV  [label="hepatic E2 clearance\n(CYP3A4, glucuronidation)"];
+  }
+  THECA->STAR->CYP17->ANDRO->AROM->E2; AROCOM->AROM;
+  MG->AROM [color="#3d7a2f", penwidth=1.8];
+  MG->INHB [color="#3d7a2f"]; MG->P4LEAK [color="#3d7a2f", penwidth=1.8];
+  E2->SHBG; E2->E2LIV; E2->NEGFB; INHB->NEGFB; E2->SURGE [color="#b8860b"];
+  AMHN->THAMH;
+
+  /* ================================================================ 4 */
+  subgraph cluster_pkgon {
+    label="4. 고나도트로핀 약동학  Gonadotropin PK (the exogenous FSH window)";
+    style="filled,rounded"; color="#cfd3e8"; fillcolor="#f4f5fb"; fontsize=13;
+    node [fillcolor="#e0e3f4", color="#4a4f9c"];
+    RFSHA  [label="follitropin alfa / beta\n(r-hFSH, 75–450 IU/d s.c.)"];
+    RFSHD  [label="follitropin delta\nAMH + body-weight algorithm\n(6–12 µg/d)"];
+    HPHMG  [label="hp-hMG (menotropin)\nFSH + hCG-driven LH activity"];
+    UFSH   [label="urinary FSH / uFSH-HP"];
+    CORIF  [label="corifollitropin alfa\n100/150 µg single injection\nt½ 69 h (ENGAGE)"];
+    FSHDEP [label="s.c. depot\nka 2.5/d, F 0.80"];
+    FSHC   [label="central FSH\nV/F 26 L, t½ 42 h (steady state)"];
+    FSHCSS [label="Css ≈ 11 IU/L on 150 IU/d\n(+ endogenous 1–2 during COS)",
+            fillcolor="#d2d6ef", penwidth=1.6];
+    LHACT  [label="LH activity of hp-hMG\n(hCG-equivalent, 0.20 IU per IU)"];
+    RLH    [label="r-hLH (lutropin alfa)\n75–150 IU/d supplementation"];
+  }
+  RFSHA->FSHDEP; RFSHD->FSHDEP; UFSH->FSHDEP; HPHMG->FSHDEP; HPHMG->LHACT;
+  CORIF->FSHC [label="POTCO ×10"]; FSHDEP->FSHC->FSHCSS->FSHTOT;
+  RLH->LHACT;
+
+  /* ================================================================ 5 */
+  subgraph cluster_lhcgr {
+    label="5. LHCGR — 하나의 리간드, 세 개의 커널  ONE ligand pool, THREE response kernels";
+    style="filled,rounded"; color="#e8c6c6"; fillcolor="#fdf1f1"; fontsize=13;
+    node [fillcolor="#f7dada", color="#a52a2a"];
+    LHEQ   [label="LHEQ — LH-EQUIVALENT LIGAND POOL\nLH + hCG + pregnancy hCG (IU/L)",
+            fillcolor="#e79a9a", penwidth=3.2, shape=box3d, fontsize=12];
+    KSUP   [label="KERNEL 1 · SUPPORT\nLHEQ/(LHEQ+2)\nbasal pulses are enough",
+            fillcolor="#f0bcbc", penwidth=1.8];
+    KMEI   [label="KERNEL 2 · MEIOSIS\nHill(LHEQ, 25 IU/L, 6)\nneeds a surge — but only its EDGE",
+            fillcolor="#f0bcbc", penwidth=1.8];
+    KVEG   [label="KERNEL 3 · VEGF\nHill(LHEQ, 40 IU/L, 3)\nneeds the AREA, days of it",
+            fillcolor="#f0bcbc", penwidth=1.8];
+    COMMIT [label="commitment switch\n∫kernel-2 > 0.06 d (~2 h)"];
+    MCLK   [label="autonomous maturation clock\nTMAT 0.85 d after commitment\n(runs with NO further signal)",
+            fillcolor="#eeb0b0", penwidth=1.8];
+    ROV    [label="rupture integral\n∫kernel-2 ≥ 0.90 d AND clock 1.55 d\n= ovulation at ~38–40 h",
+            fillcolor="#eeb0b0", penwidth=1.8];
+    AREAV  [label="∫ kernel-3 dt = VEGF AREA\nhCG 10 000 IU: 5.8 d\nagonist 0.2 mg: 0.6 d",
+            fillcolor="#eeb0b0", penwidth=2.0];
+    THECAS [label="theca androgen support\nLHEQ/(LHEQ+0.4)"];
+    LUTSUP [label="corpus-luteum support\nlysis = 0.10 + 0.50·(1−support)²"];
+  }
+  LHPL->LHEQ [penwidth=1.6]; LHEQ->KSUP; LHEQ->KMEI; LHEQ->KVEG;
+  KMEI->COMMIT->MCLK; KMEI->ROV; KVEG->AREAV;
+  KSUP->THECAS->THECA [color="#b5761f"]; KSUP->LUTSUP;
+  LHCGRA->LHEQ [style=dashed, label="receptor present\n> 11 mm"];
+
+  /* ================================================================ 6 */
+  subgraph cluster_trig {
+    label="6. 트리거 약물  Trigger pharmacology (where yield and risk part company)";
+    style="filled,rounded"; color="#e0cdea"; fillcolor="#f9f4fb"; fontsize=13;
+    node [fillcolor="#eddcf4", color="#6b3fa0"];
+    HCG10  [label="u-hCG / r-hCG 10 000 IU i.m.\npeak 200–220 IU/L at 27 h, t½ 33 h",
+            fillcolor="#e3cbee"];
+    HCG5   [label="hCG 5 000 IU\npeak ~100 IU/L"];
+    HCG25  [label="hCG 2 500 IU\npeak ~51 IU/L"];
+    HCG15  [label="hCG 1 500 IU\npeak ~32 IU/L (marginal for kernel 2)"];
+    AGOTR  [label="GnRH-agonist trigger\ntriptorelin 0.2 mg / leuprolide 1 mg\nflare: LH peak 130–175 IU/L for ~6 h",
+            fillcolor="#e3cbee", penwidth=1.8];
+    DUAL   [label="dual trigger\nagonist + hCG 1 500 IU"];
+    AGOPK  [label="triptorelin PK\nka 40/d, t½ 3 h, EC50 0.05 ng/mL"];
+    FLARE  [label="flare = AMPA 44 × receptor occupancy\n× releasable pool SLH"];
+    ANTCOMP[label="antagonist COMPETES for the same\nGnRH receptor → blunts the flare"];
+    HCGDEP [label="i.m. / s.c. hCG depot\nka 1.4/d, F 0.70, V/F 20 L"];
+    PREGH  [label="pregnancy hCG (implantation d9)\ndoubling 2.0 d → the LATE-OHSS driver",
+            fillcolor="#e3cbee", penwidth=1.6];
+  }
+  HCG10->HCGDEP; HCG5->HCGDEP; HCG25->HCGDEP; HCG15->HCGDEP; DUAL->HCGDEP;
+  HCGDEP->LHEQ [penwidth=2.0, color="#6b3fa0"];
+  AGOTR->AGOPK->FLARE->SLHP [color="#6b3fa0", penwidth=1.8];
+  DUAL->AGOPK; ANTCOMP->AGOPK [arrowhead=tee];
+  AGOPK->GRDOWN [color="#6b3fa0"];
+  PREGH->LHEQ [style=dashed, color="#6b3fa0"];
+
+  /* ================================================================ 7 */
+  subgraph cluster_gnrh {
+    label="7. GnRH 조절제와 서지 예방  GnRH modulators — preventing the premature LH surge";
+    style="filled,rounded"; color="#c9e2e8"; fillcolor="#f2fafc"; fontsize=13;
+    node [fillcolor="#daeef3", color="#22707f"];
+    GANI   [label="ganirelix / cetrorelix 0.25 mg/d s.c.\nCmax 11.2 ng/mL at 1.1 h, t½ 13 h",
+            fillcolor="#c9e6ed", penwidth=1.8];
+    ANTOCC [label="GnRH-R occupancy\nC/(C + IC50 0.44 ng/mL) ≈ 0.87–0.96"];
+    ANTLH  [label="LH suppression 77%\n(5.0 → 1.2 IU/L)", fillcolor="#c9e6ed"];
+    ANTRS  [label="blocks ENTRY into surge mode\n(×(1 − 0.90·occupancy) on RS)",
+            fillcolor="#c9e6ed", penwidth=1.8];
+    FIXED  [label="fixed start CD 5–6\nvs flexible (lead follicle 14 mm)"];
+    LONGAG [label="long agonist protocol\ndown-regulation before stimulation"];
+    PPOSM  [label="PPOS — progestin priming\nMPA 10 mg / dydrogesterone\n(P4 brake replaces the antagonist)",
+            fillcolor="#c9e6ed"];
+    ANTLUT [label="luteal antagonist\n(OHSS rescue, luteolysis)"];
+    SURGERISK [label="premature LH surge\nmodel: LH 74 IU/L, cycle lost\n(no antagonist / start CD8 = too late)",
+            fillcolor="#f6cccc", color="#a52a2a", penwidth=1.8];
+  }
+  GANI->ANTOCC; ANTOCC->ANTLH; ANTOCC->ANTRS; ANTOCC->ANTCOMP;
+  ANTRS->SURGE [arrowhead=tee, penwidth=1.8, color="#22707f"];
+  ANTLH->LHPL [arrowhead=tee];
+  FIXED->GANI; LONGAG->GNRHR; PPOSM->P4BLK;
+  SURGE->SURGERISK [style=dashed, color="#a52a2a"];
+  ANTLUT->LUTSUP [arrowhead=tee];
+
+  /* ================================================================ 8 */
+  subgraph cluster_ooc {
+    label="8. 난자 성숙과 채취  Oocyte maturation and retrieval — a gap between two clocks";
+    style="filled,rounded"; color="#e3dcc3"; fillcolor="#faf8ee"; fontsize=13;
+    node [fillcolor="#efe9d4", color="#7d6b1f"];
+    GV     [label="germinal vesicle (prophase I)\nmeiotic arrest by cAMP / cGMP"];
+    NPR2   [label="NPR2 / CNP cGMP arrest\ngranulosa → oocyte gap junctions"];
+    EGFL   [label="EGF-like peptides\namphiregulin, epiregulin, BTC"];
+    PDE3A  [label="oocyte PDE3A ↑\ncAMP ↓ → MPF activation"];
+    GVBD   [label="GVBD → metaphase I"];
+    MII    [label="metaphase II\n(mature, fertilisable)", fillcolor="#e7dfc2"];
+    CUMEXP [label="cumulus expansion\nHAS2, PTX3, TNFAIP6"];
+    DSIZE  [label="follicle-size competence\nHill(D, 13 mm, 5)\n— why small follicles give immature eggs"];
+    OPU    [label="transvaginal aspiration (OPU)\n34–38 h after trigger", fillcolor="#e7dfc2",
+            penwidth=1.8];
+    RETEFF [label="recovery efficiency 0.88\nper aspirated follicle ≥ 11 mm"];
+    OOCN   [label="oocytes retrieved\nmodel: 8.0 (AFC 12) · 18.5 (AFC 32)",
+            fillcolor="#ddd2ae", penwidth=2.0];
+    MIIN   [label="MII oocytes (0.75–0.80 of retrieved)",
+            fillcolor="#ddd2ae", penwidth=1.8];
+    EMPTY  [label="premature ovulation\n> 39 h: 61% of follicles lost at 44 h",
+            fillcolor="#f6cccc", color="#a52a2a"];
+  }
+  GV->GVBD->MII; NPR2->GV [arrowhead=tee]; EGFL->PDE3A->GVBD;
+  MCLK->GVBD [penwidth=2.0, color="#a52a2a", label="edge only"];
+  KMEI->EGFL [color="#a52a2a"]; CUMEXP->OPU; KMEI->CUMEXP;
+  DSIZE->MIIN; OPU->RETEFF->OOCN->MIIN; MII->MIIN;
+  ROV->EMPTY [color="#a52a2a", penwidth=1.6]; EMPTY->OOCN [arrowhead=tee];
+  MG->OPU [color="#3d7a2f", penwidth=1.8, label="follicles ≥ 11 mm"];
+
+  /* ================================================================ 9 */
+  subgraph cluster_emb {
+    label="9. 수정·배아 배양·유전학  Fertilisation, embryology and ploidy";
+    style="filled,rounded"; color="#cfe0e8"; fillcolor="#f3f8fb"; fontsize=13;
+    node [fillcolor="#dfebf2", color="#2c6280"];
+    ICSI   [label="IVF / ICSI\n2PN rate 0.72 per MII"];
+    TWOPN  [label="2PN zygotes"];
+    CLEAV  [label="cleavage / compaction\n(day 3)"];
+    BLAST  [label="blastocyst\n0.55 per 2PN at age 33,\n−0.011 per year"];
+    ANEUP  [label="meiotic aneuploidy\ncohesin fatigue, SAC decay\n(oocyte age)"];
+    PGTA   [label="PGT-A (trophectoderm biopsy)"];
+    EUPL   [label="euploid blastocysts\n0.68 at 32 y · 0.42 at 38 y · 0.24 at 42 y",
+            fillcolor="#cfe0ea", penwidth=1.8];
+    VITRI  [label="vitrification / warming\nsurvival ~0.95"];
+    TRANS  [label="single euploid transfer\nLBR 0.52 per transfer"];
+    CLBR   [label="cumulative live birth rate\n1 − (1 − 0.52)^n_euploid",
+            fillcolor="#bcd3e0", penwidth=2.0];
+  }
+  MIIN->ICSI->TWOPN->CLEAV->BLAST->PGTA->EUPL->TRANS->CLBR;
+  ANEUP->EUPL [arrowhead=tee, penwidth=1.6]; VITRI->TRANS;
+
+  /* =============================================================== 10 */
+  subgraph cluster_lut {
+    label="10. 황체와 자궁내막  Corpus luteum, progesterone and endometrial receptivity";
+    style="filled,rounded"; color="#e8d5c6"; fillcolor="#fbf5f1"; fontsize=13;
+    node [fillcolor="#f2e0d3", color="#95552a"];
+    LUTEIN [label="luteinisation\ngranulosa + theca → luteal cells"];
+    CLM    [label="corpus luteum mass\n(from the granulosa NOT aspirated)",
+            fillcolor="#eed3c0", penwidth=1.8];
+    P4CL   [label="luteal progesterone\nsaturating: 12 ng/mL from 1 CL,\n37 ng/mL from 15 CL",
+            fillcolor="#eed3c0", penwidth=1.8];
+    LUTLYS [label="luteolysis\nintrinsic 0.10/d + LH-withdrawal 0.50/d"];
+    SELFKILL [label="the self-limiting loop\nmany CL → P4 35 ng/mL → LH 1.3 IU/L\n→ the luteal mass starves itself",
+            fillcolor="#f6cccc", color="#a52a2a", penwidth=1.8];
+    EXOP4  [label="luteal support\nvaginal P4 600 mg/d (+22 ng/mL)\nIM P4 · s.c. P4 · hCG boluses"];
+    ENDOM  [label="endometrial receptivity\nwindow of implantation"];
+    PRISE  [label="premature progesterone rise\n> 1.5 ng/mL on trigger day\n→ advanced endometrium",
+            fillcolor="#eed3c0", penwidth=1.8];
+    FREEZE [label="freeze-all / deferred transfer\n(removes fresh-transfer receptivity\nAND the pregnancy-hCG second hit)",
+            fillcolor="#d9f0d0", color="#3d7a2f", penwidth=1.8];
+    IMPL   [label="implantation"];
+  }
+  LUTEIN->CLM->P4CL; LUTLYS->CLM [arrowhead=tee]; LUTSUP->LUTLYS;
+  P4CL->SELFKILL->P4BLK [color="#a52a2a"];
+  EXOP4->ENDOM; P4CL->ENDOM; P4LEAK->PRISE [penwidth=1.8, color="#b5761f"];
+  PRISE->ENDOM [arrowhead=tee, penwidth=1.6]; PRISE->FREEZE;
+  ENDOM->IMPL->PREGH; FREEZE->IMPL [style=dashed];
+  MG->LUTEIN [color="#3d7a2f"]; OPU->LUTEIN [label="0.55 of granulosa\nremoved"];
+
+  /* =============================================================== 11 */
+  subgraph cluster_ohss {
+    label="11. OHSS — VEGF 매개 혈관 투과성  Ovarian hyperstimulation: the AREA read-out";
+    style="filled,rounded"; color="#f0c6c6"; fillcolor="#fdf0f0"; fontsize=13;
+    node [fillcolor="#f9dbdb", color="#96231f"];
+    VEGFA  [label="ovarian VEGF-A\n(granulosa + luteal, hCG-induced)",
+            fillcolor="#f2c0c0", penwidth=2.0];
+    VEGFR2 [label="VEGFR-2 (KDR)\nphosphorylation"];
+    SRC    [label="Src / VE-cadherin\nclaudin-5, occludin disassembly"];
+    PERM   [label="capillary permeability\n(τ 1.4 d up, 1.0 d down)",
+            fillcolor="#f2c0c0", penwidth=1.8];
+    THIRD  [label="third-space fluid\nascites (L), pleural effusion"];
+    HAEMO  [label="haemoconcentration\nHct = RBCV/(RBCV+plasma volume)",
+            fillcolor="#f2c0c0", penwidth=1.8];
+    RAAS   [label="renin–angiotensin activation\nintra-ovarian prorenin"];
+    OLIG   [label="oliguria, pre-renal azotaemia"];
+    HYPNA  [label="hyponatraemia, hypoproteinaemia"];
+    THROMB [label="thromboembolism\n(Hct × E2 × immobility)"];
+    ARDS   [label="pleural effusion / ARDS"];
+    TORS   [label="ovarian enlargement / torsion\n(volume from Σ D³ + oedema)"];
+    EARLY  [label="EARLY OHSS (d 3–7 after hCG)\nexogenous hCG",
+            fillcolor="#f2c0c0"];
+    LATE   [label="LATE OHSS (d 9–17)\npregnancy hCG — abolished by freeze-all",
+            fillcolor="#f2c0c0"];
+    GOLAN  [label="Golan grade (computed, not asserted)\n1 mild · 2 moderate · 3 severe (Hct ≥ 45%)\n· 4 critical (Hct ≥ 55%)",
+            fillcolor="#e79a9a", penwidth=2.0];
+  }
+  AREAV->VEGFA [penwidth=2.4, color="#a52a2a"];
+  MG->VEGFA [penwidth=2.4, color="#3d7a2f", label="the SAME mass"];
+  CLM->VEGFA [label="×1.5"];
+  VEGFA->VEGFR2->SRC->PERM->THIRD->HAEMO->GOLAN;
+  PERM->HAEMO; RAAS->PERM; VEGFA->RAAS; HAEMO->OLIG->HYPNA;
+  HAEMO->THROMB; THIRD->ARDS; MG->TORS [color="#3d7a2f"];
+  EARLY->PERM; LATE->PERM; PREGH->LATE [color="#6b3fa0", penwidth=1.6];
+  HCGDEP->EARLY [color="#6b3fa0"]; E2->THROMB [style=dashed];
+  FREEZE->LATE [arrowhead=tee, color="#3d7a2f", penwidth=1.8];
+
+  /* =============================================================== 12 */
+  subgraph cluster_adj {
+    label="12. 보조·예방 약물  Adjuvant and OHSS-prevention pharmacology";
+    style="filled,rounded"; color="#d3e8d0"; fillcolor="#f4fbf3"; fontsize=13;
+    node [fillcolor="#e2f2df", color="#2f7a3d"];
+    CABER  [label="cabergoline 0.5 mg/d from trigger\nD2 agonist → VEGFR-2 phosphorylation ↓\n(Emax 0.50)", fillcolor="#d0ecd0", penwidth=1.8];
+    QUINA  [label="quinagolide / bromocriptine"];
+    LETRO  [label="luteal letrozole 5 mg/d\naromatase inhibition (Emax 0.80)"];
+    ALBUM  [label="intravenous albumin 25%\n(oncotic, disputed)"];
+    HES    [label="hydroxyethyl starch"];
+    CAGLU  [label="calcium gluconate 10%\n(prorenin pathway)"];
+    METF   [label="metformin (PCOS)\ninsulin sensitisation"];
+    IVF    [label="supportive i.v. crystalloid\nparacentesis, thromboprophylaxis"];
+    COAST  [label="coasting — stop FSH, keep antagonist\n(kills small-follicle granulosa mass)"];
+    LOWDOSE[label="dose reduction / mild stimulation\n(moves MG — so it moves BOTH)"];
+  }
+  CABER->VEGFR2 [arrowhead=tee, penwidth=1.8, color="#2f7a3d"];
+  QUINA->VEGFR2 [arrowhead=tee]; LETRO->AROM [arrowhead=tee];
+  ALBUM->THIRD [arrowhead=tee]; HES->THIRD [arrowhead=tee];
+  CAGLU->RAAS [arrowhead=tee]; METF->ARREST [arrowhead=tee];
+  IVF->HAEMO [arrowhead=tee]; COAST->MG [arrowhead=tee, penwidth=1.6];
+  LOWDOSE->FSHCSS [arrowhead=tee, penwidth=1.6];
+
+  /* =============================================================== 13 */
+  subgraph cluster_pheno {
+    label="13. 환자 아형  Patient phenotypes (only four covariates differ)";
+    style="filled,rounded"; color="#e0dcc6"; fillcolor="#faf9f0"; fontsize=13;
+    node [fillcolor="#eeead6", color="#6f6a2a"];
+    PTNORM [label="normal responder\nAFC 12 · AMH 2.4 · T50 9\n→ 8.0 oocytes"];
+    PTPCOS [label="PCOS high responder\nAFC 25 · AMH 5.0 · LH tone 1.8\n→ 15.7 oocytes, severe OHSS on hCG",
+            fillcolor="#e8e2c8"];
+    PTXS   [label="extreme responder\nAFC 32 · AMH 6.3\n→ 18.5 oocytes"];
+    PTPOOR [label="POSEIDON 3/4 poor responder\nAFC 5 · AMH 1.0 · T50 12\n→ 3.7 oocytes on 300 IU"];
+    PTOLD  [label="age 41, AFC 8\n→ 6.1 oocytes, 0.45 euploid"];
+    PCOSMECH [label="PCOS mechanism in this model:\nAMH raises thresholds + LH tone\narrests pre-LHCGR follicles\n= arrest at 6–9 mm (polycystic morphology)",
+            fillcolor="#e8e2c8", penwidth=1.6];
+    FSHRP  [label="FSHR Ser680Asn, ESR2, AMH promoter\n(threshold covariates)"];
+    BMIN   [label="body weight / BMI\n(V/F of gonadotropins)"];
+  }
+  PTNORM->AFC; PTPCOS->AFC; PTXS->AFC; PTPOOR->AFC; PTOLD->AFC;
+  PTPCOS->PCOSMECH; PCOSMECH->ARREST; PCOSMECH->THAMH;
+  FSHRP->THDIST; BMIN->FSHC; PTOLD->ANEUP;
+
+  /* =============================================================== 14 */
+  subgraph cluster_mon {
+    label="14. 모니터링과 의사결정  Monitoring and decisions (the trigger day is an OUTPUT)";
+    style="filled,rounded"; color="#c6d0e8"; fillcolor="#f3f5fc"; fontsize=13;
+    node [fillcolor="#dbe2f6", color="#3a4a9c"];
+    USFOLL [label="transvaginal folliculometry\nfollicle-by-follicle diameters"];
+    E2MON  [label="serum E2 monitoring"];
+    P4MON  [label="trigger-day progesterone"];
+    LHMON  [label="LH monitoring (surge detection)"];
+    TRIGCRIT [label="trigger criterion\n≥ 3 follicles ≥ 17 mm\n→ days of stimulation 11–12 (predicted)",
+            fillcolor="#ccd6f2", penwidth=1.8];
+    CANCEL [label="cycle cancellation\n(premature surge, poor response)",
+            fillcolor="#f6cccc", color="#a52a2a"];
+    COASTD [label="coasting decision (E2 > 4 500 pg/mL)"];
+    FREEZED[label="freeze-all decision\n(P4 > 1.5 · > 18 follicles · Hct rising)"];
+    OPUTIME[label="retrieval scheduling\n34–38 h — between the two clocks",
+            fillcolor="#ccd6f2", penwidth=1.6];
+  }
+  DIAM->USFOLL; E2->E2MON; P4LEAK->P4MON; LHPL->LHMON;
+  USFOLL->TRIGCRIT; TRIGCRIT->HCG10; TRIGCRIT->AGOTR; TRIGCRIT->OPUTIME;
+  OPUTIME->OPU; LHMON->CANCEL; E2MON->COASTD->COAST;
+  P4MON->FREEZED; GOLAN->FREEZED; FREEZED->FREEZE;
+  SURGERISK->CANCEL;
+
+  /* =============================================================== 15 */
+  subgraph cluster_end {
+    label="15. 임상 엔드포인트  Clinical endpoints (all computed, none assumed)";
+    style="filled,rounded"; color="#b6d7a8"; fillcolor="#f0f8ec"; fontsize=13;
+    node [fillcolor="#d9ead3", color="#38761d"];
+    EP_DAYS [label="days of stimulation\n11.4 (AFC 12) · 12.4 (AFC 25)"];
+    EP_IU   [label="total gonadotropin IU"];
+    EP_E2   [label="peak E2 (pg/mL)"];
+    EP_OOC  [label="oocytes retrieved"];
+    EP_MII  [label="MII oocytes / maturation rate"];
+    EP_BL   [label="blastocysts · euploid blastocysts"];
+    EP_CLBR [label="cumulative live birth rate", fillcolor="#c6e0b4", penwidth=1.8];
+    EP_OHSS [label="OHSS incidence and grade", fillcolor="#f6cccc", color="#a52a2a",
+             penwidth=1.8];
+    EP_CANC [label="cancellation rate"];
+    EP_FRESH[label="fresh vs frozen transfer LBR"];
+    EP_SAFE [label="hospitalisation, thrombosis,\nparacentesis"];
+    EP_COST [label="cost per live birth\n(IU × price + cycles)"];
+  }
+  TRIGCRIT->EP_DAYS; FSHCSS->EP_IU; E2->EP_E2; OOCN->EP_OOC; MIIN->EP_MII;
+  EUPL->EP_BL; CLBR->EP_CLBR; GOLAN->EP_OHSS; CANCEL->EP_CANC;
+  ENDOM->EP_FRESH; THROMB->EP_SAFE; ARDS->EP_SAFE; EP_IU->EP_COST;
+  EP_CLBR->EP_COST;
+
+  /* =============================================================== 16 */
+  subgraph cluster_claim {
+    label="16. 이 지도가 주장하는 것  What the map asserts";
+    style="filled,rounded"; color="#999999"; fillcolor="#f7f7f7"; fontsize=13;
+    node [fillcolor="#ececec", color="#444444", shape=note];
+    CLAIM1 [label="MG has FOUR arrows out (E2, P4 leak, oocytes, VEGF).\nFSH dose moves MG — so it moves all four together.\n3× the dose: +15% oocytes, +125% ascites."];
+    CLAIM2 [label="LHEQ has THREE arrows out with different affinities\nand different time-integrations. Maturation takes the EDGE,\nOHSS takes the AREA. Only the trigger's SHAPE separates them."];
+    CLAIM3 [label="Nothing here is told how many follicles grow.\nMono-ovulation and 18-follicle growth are the same equations\nwith and without an exogenous FSH window."];
+    CLAIM4 [label="The 34–38 h retrieval window is the gap between\nan autonomous maturation clock and a signal-dependent\nrupture integral — not a scheduling convention."];
+  }
+
+  /* ---- invisible edges: stack peripheral clusters to compact the map --- */
+  EP_COST -> CLAIM1 [style=invis];
+  CLAIM4  -> LEG1   [style=invis];
+  PTOLD   -> USFOLL [style=invis];
+  LOWDOSE -> PTNORM [style=invis];
+  GOLAN   -> LOWDOSE [style=invis];
+  CLBR    -> EP_OOC [style=invis];
+  IMPL    -> VEGFA  [style=invis];
+  MIIN    -> ICSI   [style=invis];
+
+  /* ============================================================ legend */
+  subgraph cluster_legend {
+    label="LEGEND";
+    style="filled,rounded"; color="#bbbbbb"; fillcolor="#fbfbfb"; fontsize=12;
+    node [shape=plaintext, fillcolor="#fbfbfb", fontsize=9];
+    LEG1 [label="→  activation / flux            ⊣  inhibition / suppression\ndashed  conditional or context-dependent link\nbox3d + heavy border  the two nodes the whole model turns on\nred  danger read-outs        green  protective actions"];
+    LEG2 [label="Numbers on nodes are OUTPUTS of the 65-ODE model\n(cos_mrgsolve_model.R), independently reproduced in\ncos_reference_check.py — see cos_reference_output.txt.\nUnits: mm · IU/L · pg/mL (E2) · ng/mL (P4, AMH, peptides) · L (fluid)."];
+  }
+}
