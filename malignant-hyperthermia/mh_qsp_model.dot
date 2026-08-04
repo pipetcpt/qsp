@@ -1,0 +1,417 @@
+digraph Malignant_Hyperthermia_QSP_Model {
+  graph [
+    label=<<B>Malignant Hyperthermia — QSP Mechanistic Map</B><BR/><FONT POINT-SIZE="14">Malignant hyperthermia is not a fever. It is <B>ONE driver read through TWO stores of very different size</B>.<BR/>The driver is myoplasmic Ca²⁺; the two stores are the body's CO₂ store (60 mL·mmHg⁻¹) and the body's heat store (158 kJ·°C⁻¹). Divided by the same excess flux they give <B>0.15 min per mmHg of EtCO₂ and 17 min per °C of core temperature</B> —<BR/>so one degree of fever costs as much clock time as ~111 mmHg of EtCO₂, and the entire capnograph scale is exhausted before the thermometer moves. The diagnostic ordering is arithmetic, not convention.<BR/>Second axis: the volatile agent is the term that <B>STARTS</B> the event; ROS-driven redox sensitisation of RyR1 is the term that <B>SUSTAINS</B> it. Removing the agent deletes only the first — which is why turning the vaporiser off was never enough, and why dantrolene (which blocks the channel whatever opens it) took mortality from ~80% to &lt;5%.<BR/>Third axis: every non-dantrolene manoeuvre treats a READOUT. Hyperventilation normalises EtCO₂ and active cooling normalises temperature while the driver runs untouched — the model kills the patient in both arms with a normal-looking monitor.</FONT>>
+    labelloc=t fontsize=22 fontname="Helvetica"
+    rankdir=LR bgcolor="#F6F7F9"
+    splines=spline nodesep=0.26 ranksep=0.95
+    newrank=true compound=true concentrate=false
+  ]
+  node [fontname="Helvetica" fontsize=10 style="filled,rounded" shape=box margin="0.14,0.05"]
+  edge [fontname="Helvetica" fontsize=8 arrowsize=0.65 color="#5A6270"]
+
+  //==========================================================
+  // CLUSTER 1 : Genotype — enters as an EC50 SHIFT, not as a new mechanism
+  //==========================================================
+  subgraph cluster_gene {
+    label="🧬 1. Susceptibility genotype — the variant does NOT create a new pathway. It moves ONE number: the agent concentration at which RyR1 opens. Everyone has the machinery; MHS patients have a lower threshold"
+    style=filled fillcolor="#EDE7F6" color="#4527A0" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    G_ryr1     [label="★ RYR1 (19q13.2, 106 exons)\nskeletal ryanodine receptor / SR Ca²⁺ release channel\n~50-70% of MH-susceptible families\n>48 EMHG diagnostic variants" fillcolor="#B39DDB" color="#311B92" penwidth=2]
+    G_r614c    [label="p.Arg614Cys (R614C)\nthe archetypal high-penetrance variant\n(and the porcine halothane-sensitivity allele)" fillcolor="#D1C4E9" color="#311B92"]
+    G_g2434r   [label="p.Gly2434Arg (G2434R)\ncommon in UK/European pedigrees" fillcolor="#D1C4E9" color="#311B92"]
+    G_t4826i   [label="p.Thr4826Ile · p.Gly2435Arg\nC-terminal / pore-region variants" fillcolor="#D1C4E9" color="#311B92"]
+    G_hotspot  [label="Three mutational hot-spots:\nMH/CCD-1 (aa 35-614) · MH/CCD-2 (2163-2458)\nMH/CCD-3 (4136-4973, pore)" fillcolor="#D1C4E9" color="#311B92"]
+    G_cacna1s  [label="CACNA1S (1q32.1) — Ca_v1.1 / DHPR α1S\np.Arg1086His · p.Thr1354Ser  (~1%)\nvoltage sensor of E-C coupling" fillcolor="#D1C4E9" color="#311B92"]
+    G_stac3    [label="STAC3 (12q13.3)\np.Trp284Ser — Native American myopathy\nMH-susceptible phenotype" fillcolor="#D1C4E9" color="#311B92"]
+    G_casq1    [label="CASQ1 · TRDN · JPH1 (candidate)\nSR luminal Ca²⁺ buffering / triad" fillcolor="#D1C4E9" color="#311B92"]
+    G_pen      [label="Incomplete penetrance & variable expressivity\n→ a susceptible patient can have SEVERAL\nuneventful triggering anaesthetics" fillcolor="#D1C4E9" color="#311B92"]
+    G_prev     [label="Genetic prevalence of pathogenic RYR1\n≈ 1 : 2 000 – 1 : 3 000\nClinical event rate 1 : 10 000 – 1 : 250 000\n⇒ threshold, not switch" fillcolor="#D1C4E9" color="#311B92"]
+    G_ec50     [label="★ MODEL ENTRY POINT — EC50_VOL\nsevoflurane-equivalent vol% in muscle\nMHN 22 · low-penetrance 1.6 · CACNA1S 1.1\nhigh-penetrance 0.55 · RYR1-RM 0.35" fillcolor="#673AB7" fontcolor="white" color="#311B92" penwidth=3 shape=box3d]
+    G_pobase   [label="★ MODEL ENTRY POINT — PO_BASE\nRESTING open probability (leak)\nMHN 1.0e-4 → MHS 5.5e-4\n⇒ elevated resting myoplasmic Ca²⁺\n(0.10 → 0.27 µM) and higher baseline CK" fillcolor="#673AB7" fontcolor="white" color="#311B92" penwidth=3 shape=box3d]
+    G_socegain [label="★ MODEL ENTRY POINT — KSOCE\nstore-operated Ca²⁺ entry gain\nMHN 15 → MHS 48 µM/min\n(enhanced SOCE is a documented MHS trait)" fillcolor="#673AB7" fontcolor="white" color="#311B92" penwidth=3 shape=box3d]
+
+    G_hotspot -> G_ryr1; G_r614c -> G_ryr1; G_g2434r -> G_ryr1; G_t4826i -> G_ryr1
+    G_ryr1 -> G_ec50; G_ryr1 -> G_pobase; G_ryr1 -> G_socegain
+    G_cacna1s -> G_ec50; G_stac3 -> G_ec50; G_casq1 -> G_socegain
+    G_ec50 -> G_pen -> G_prev
+  }
+
+  //==========================================================
+  // CLUSTER 2 : Triggers — and why 1 MAC of different agents is NOT equipotent at RyR1
+  //==========================================================
+  subgraph cluster_trig {
+    label="💨 2. Triggering agents — MAC is a CNS potency scale. RyR1 does not read MAC, it reads molar concentration, and 1 MAC spans 0.75% → 6.0% vol. That 8-fold spread is why onset time is agent-specific"
+    style=filled fillcolor="#FFEBEE" color="#B71C1C" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    T_hal   [label="Halothane  (MAC 0.75%)\nRyR1 potency/vol% = 4.34\n⇒ 1 MAC delivers the MOST RyR1 drive\nmodel onset 35 min" fillcolor="#EF9A9A" color="#B71C1C" penwidth=2]
+    T_enf   [label="Enflurane (MAC 1.7%)\npotency/vol% 1.69 — onset 37 min" fillcolor="#FFCDD2" color="#B71C1C"]
+    T_iso   [label="Isoflurane (MAC 1.15%)\npotency/vol% 2.06 — onset 40 min" fillcolor="#FFCDD2" color="#B71C1C"]
+    T_sev   [label="Sevoflurane (MAC 2.0%)\npotency/vol% 1.00 (reference) — onset 44 min" fillcolor="#FFCDD2" color="#B71C1C"]
+    T_des   [label="Desflurane (MAC 6.0%)\npotency/vol% 0.25 — onset 52 min\n⇒ the WEAKEST trigger per MAC ⇒ latest,\nmost easily-missed presentation" fillcolor="#FFCDD2" color="#B71C1C"]
+    T_sux   [label="★ Succinylcholine\ndepolarisation → DHPR/RyR1 activation\n+ direct K⁺ efflux\nplasma t½ 47 s (butyrylcholinesterase)" fillcolor="#EF9A9A" color="#B71C1C" penwidth=2]
+    T_mmr   [label="Masseter muscle rigidity (MMR)\nan IMMEDIATE, self-limited Ca²⁺ transient\n— trismus with limb flaccidity;\n~15-30% of MMR is MH-susceptible" fillcolor="#FFCDD2" color="#B71C1C"]
+    T_safe  [label="NON-triggering (safe): propofol · ketamine ·\netomidate · benzodiazepines · opioids · N₂O ·\nnon-depolarising NMBA · local & regional\n⇒ TIVA is the definitive prophylaxis" fillcolor="#C8E6C9" color="#1B5E20" penwidth=2]
+    T_notmh [label="NOT triggers (common misconception):\namide local anaesthetics · nitrous oxide ·\nmetoclopramide · CCBs (but see dantrolene interaction)" fillcolor="#C8E6C9" color="#1B5E20"]
+    T_stress[label="Awake / non-anaesthetic triggers (RYR1-RM):\nexertional heat illness · exertional rhabdomyolysis ·\nfebrile illness — same channel, no vaporiser" fillcolor="#FFCDD2" color="#B71C1C"]
+
+    T_hal -> T_sev [style=invis]; T_sux -> T_mmr
+  }
+
+  //==========================================================
+  // CLUSTER 3 : Volatile agent PK — the machine is a reservoir, the muscle is a slow compartment
+  //==========================================================
+  subgraph cluster_pk {
+    label="⚗️ 3. Volatile PK — five gas-equivalent compartments. The muscle time constant (~2 h) is why MH onset is delayed and variable; the CIRCUIT time constant is why 'turn the vaporiser off' is not the same as 'remove the agent'"
+    style=filled fillcolor="#E1F5FE" color="#01579B" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    P_vap   [label="Vaporiser setting (vol%)\n+ fresh gas flow (L/min)" fillcolor="#B3E5FC" color="#01579B"]
+    P_circ  [label="★ CIRCUIT + soda lime + tubing/plastics\neffective capacity ≈ 120 L gas-equivalent\nτ = 12 min at 10 L/min flush" fillcolor="#4FC3F7" color="#01579B" penwidth=2]
+    P_alv   [label="Alveolar / arterial\nFRC + pulmonary blood ≈ 2.83 L\nλ blood:gas 0.65 (sevoflurane)" fillcolor="#B3E5FC" color="#01579B"]
+    P_vrg   [label="Vessel-rich group (6 L, Q 3.75 L/min)\nλ 1.7 — equilibrates in minutes" fillcolor="#B3E5FC" color="#01579B"]
+    P_musf  [label="★ MUSCLE, well-perfused fraction (8 L)\nλ 3.1 · Q 0.45 → up to 5 L/min\nTHE TRIGGER COMPARTMENT" fillcolor="#4FC3F7" color="#01579B" penwidth=2]
+    P_muss  [label="Muscle, bulk (25 L)\nreservoir; sustains exposure after the\nvaporiser is closed" fillcolor="#B3E5FC" color="#01579B"]
+    P_fat   [label="Fat (14.5 L, λ 48, Q 0.25 L/min)\nirrelevant acutely, matters for washout" fillcolor="#B3E5FC" color="#01579B"]
+    P_hyper [label="★ AUTOCATALYSIS\nmetabolic hyperaemia raises muscle Q up to 5×\n→ MORE agent delivered to the trigger tissue\n→ more hypermetabolism" fillcolor="#0288D1" fontcolor="white" color="#01579B" penwidth=3 shape=box3d]
+    P_flush [label="Vaporiser off + 10 L/min O₂\nmodel circuit: 8 472 → 868 → 81 ppm\nat 1 / 30 / 90 min — and it NEVER\nreaches 5 ppm because the PATIENT\nkeeps exhaling agent" fillcolor="#B3E5FC" color="#01579B"]
+    P_charc [label="★ Activated-charcoal filters (both limbs)\nscrub inspired AND exhaled agent\nmodel: 46 ppm at 1 min, <10 ppm by 5 min\n(published <5 ppm within ~90 s)" fillcolor="#4FC3F7" color="#01579B" penwidth=2]
+    P_newmc [label="Alternative: change to a clean machine /\nself-inflating bag — but this costs\nTIME, and time is the only currency" fillcolor="#B3E5FC" color="#01579B"]
+
+    P_vap -> P_circ -> P_alv
+    P_alv -> P_vrg; P_alv -> P_musf; P_alv -> P_muss; P_alv -> P_fat
+    P_alv -> P_circ [label="exhaled agent\n(the floor on flushing)" style=dashed]
+    P_flush -> P_circ [label="removes" color="#1B5E20"]
+    P_charc -> P_circ [label="removes ~700 L/min-equiv" color="#1B5E20" penwidth=2]
+    P_newmc -> P_circ [color="#1B5E20"]
+  }
+
+  //==========================================================
+  // CLUSTER 4 : THE SWITCH — RyR1 gating
+  //==========================================================
+  subgraph cluster_ryr {
+    label="🔓 4. THE SWITCH — RyR1 open probability. Hill coefficient 3.6 makes this a THRESHOLD, not a gradient: below it nothing happens at all, above it the event is committed"
+    style=filled fillcolor="#FFF3E0" color="#E65100" penwidth=3 fontsize=13 fontname="Helvetica-Bold"
+
+    R_act   [label="ACTIVATION TERM  ACT =\nQ10^((T−37)/10) × ( [agent]/EC50_VOL\n+ 0.45·SCh occupancy + [caffeine]/EC50_CAF\n+ 1.30·SENS )" fillcolor="#FFCC80" color="#E65100" penwidth=2]
+    R_po    [label="★ Po = Po_base + (Po_max − Po_base)·ACT³·⁶/(1+ACT³·⁶)\nPo_max 4.8e-3   Po_base 1.0e-4 (MHN) / 5.5e-4 (MHS)\nTHE SINGLE DRIVER OF EVERYTHING DOWNSTREAM" fillcolor="#FB8C00" fontcolor="white" color="#E65100" penwidth=3 shape=box3d]
+    R_q10   [label="★ POSITIVE FEEDBACK — Q10 = 2.6\nRyR1 gating is temperature-sensitive,\nso the fever the channel causes\nre-opens the channel" fillcolor="#FFB74D" color="#E65100" penwidth=2]
+    R_mg    [label="Mg²⁺ block of RyR1 (physiological brake)\nMHS channels are LESS inhibited by Mg²⁺" fillcolor="#FFE0B2" color="#E65100"]
+    R_dhpr  [label="DHPR (Ca_v1.1) voltage sensor\northograde E-C coupling + retrograde\nRyR1→DHPR signalling" fillcolor="#FFE0B2" color="#E65100"]
+    R_fkbp  [label="FKBP12 (calstabin-1) stabilises the closed state\ndepletion → leaky channel" fillcolor="#FFE0B2" color="#E65100"]
+    R_casq  [label="Calsequestrin-1 · triadin · junctin\nSR luminal Ca²⁺ sensing" fillcolor="#FFE0B2" color="#E65100"]
+    R_dansite[label="★ DANTROLENE BINDING SITE\nRyR1 aa 590-609 (N-terminal domain)\nrequires Mg²⁺/calmodulin\nmaximum achievable block ≈ 87%, NOT 100%" fillcolor="#66BB6A" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+
+    R_act -> R_po; R_q10 -> R_act; R_mg -> R_po [arrowhead=tee]
+    R_dhpr -> R_po; R_fkbp -> R_po [arrowhead=tee]; R_casq -> R_po
+    R_dansite -> R_po [arrowhead=tee color="#1B5E20" penwidth=3]
+  }
+
+  //==========================================================
+  // CLUSTER 5 : Calcium handling — WHERE THE SETPOINT ACTUALLY LIVES
+  //==========================================================
+  subgraph cluster_ca {
+    label="🧪 5. Ca²⁺ handling — a non-obvious result: at steady state SR release and SERCA uptake CANCEL, so the sustained myoplasmic Ca²⁺ level is set by the SARCOLEMMAL balance (SOCE in vs PMCA/NCX out). MH's plateau is an EXTRACELLULAR Ca²⁺ entry disease"
+    style=filled fillcolor="#E8F5E9" color="#1B5E20" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    C_sr    [label="SR Ca²⁺ store  CASR\nbaseline 1 400 µM (cytosol-referenced)\nfalls to ~300 µM during MH" fillcolor="#A5D6A7" color="#1B5E20"]
+    C_jryr  [label="J_RyR = 200 · Po · (CASR − CaM)\nthe ATP-free release flux" fillcolor="#A5D6A7" color="#1B5E20"]
+    C_serca [label="★ SERCA1a  V_max 371 µM/min, K_m 0.35 µM\nCOSTS 1 ATP per 2 Ca²⁺\n→ the FUTILE CYCLE that makes the heat" fillcolor="#66BB6A" color="#1B5E20" penwidth=2]
+    C_cam   [label="★ MYOPLASMIC FREE Ca²⁺  CaM\n0.10 µM (MHN) → 0.27 (MHS at rest)\n→ ~1.05 µM sustained during MH\nbuffering power κ = 60" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    C_pmca  [label="PMCA / NCX extrusion\n40 · (CaM − 0.1) /min\nATP-dependent → FAILS as ATP falls" fillcolor="#A5D6A7" color="#1B5E20"]
+    C_soce  [label="★ STORE-OPERATED Ca²⁺ ENTRY\nSTIM1 senses SR depletion → Orai1 / TRPC\nJ = KSOCE·(1 − CASR/1400)\nMHS gain 48 vs MHN 15 µM/min" fillcolor="#66BB6A" color="#1B5E20" penwidth=2]
+    C_extra [label="★ MODEL PREDICTION, TESTABLE\nremoving bath Ca²⁺ abolishes the halothane\ncontracture: 5.58 g → 2.85 → 0.87 → −0.03 g\nat 100 / 50 / 20 / 0 % extracellular Ca²⁺" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    C_mito  [label="Mitochondrial Ca²⁺ uptake (MCU)\n30·CaM/min; accumulates to ~675 µM" fillcolor="#A5D6A7" color="#1B5E20"]
+    C_mptp  [label="★ mPTP opening / UNCOUPLING\nefficiency = 1/(1+(CaMITO/700)²)\nSAME O₂ → LESS ATP → MORE HEAT" fillcolor="#66BB6A" color="#1B5E20" penwidth=2]
+    C_parv  [label="Parvalbumin · troponin C · ATP\ncytosolic Ca²⁺ buffers (fast, saturable)" fillcolor="#A5D6A7" color="#1B5E20"]
+
+    C_sr -> C_jryr -> C_cam
+    C_cam -> C_serca -> C_sr
+    C_cam -> C_pmca; C_soce -> C_cam; C_sr -> C_soce [label="depletion sensed" style=dashed]
+    C_cam -> C_mito -> C_mptp; C_cam -> C_parv
+    C_soce -> C_extra
+  }
+
+  //==========================================================
+  // CLUSTER 6 : THE SUSTAINING TERM — redox sensitisation
+  //==========================================================
+  subgraph cluster_redox {
+    label="🔥 6. THE SUSTAINING TERM — ROS/RNS oxidation of RyR1. This is the whole answer to 'why wasn't turning the vaporiser off enough?'. The agent starts the event; oxidised RyR1 keeps it running for hours afterwards"
+    style=filled fillcolor="#FCE4EC" color="#880E4F" penwidth=3 fontsize=13 fontname="Helvetica-Bold"
+
+    X_ros   [label="ROS source: NOX2/NOX4 · mitochondrial\ncomplex I/III · xanthine oxidase\nROS ∝ (CaM−0.30)/0.30 × CaMITO/700 × Q10" fillcolor="#F48FB1" color="#880E4F"]
+    X_rns   [label="RNS: nNOS(µ) → NO → peroxynitrite\nS-nitrosylation of RyR1 cysteines" fillcolor="#F8BBD0" color="#880E4F"]
+    X_cys   [label="Oxidation of hyper-reactive RyR1 thiols\n(Cys3635 and others) → loss of\ncalmodulin/FKBP12 stabilisation" fillcolor="#F8BBD0" color="#880E4F"]
+    X_sens  [label="★ SENS — RyR1 SENSITISATION STATE (0→1)\nd/dt = 0.022·ROS·(1−SENS) − 0.006·SENS\nt½ of reversal ≈ 116 min\nadds 1.30 activation units when fully oxidised" fillcolor="#AD1457" fontcolor="white" color="#880E4F" penwidth=3 shape=box3d]
+    X_selfsust[label="★ CONSEQUENCE — SELF-SUSTAINMENT\nwithdrawing the volatile agent at 45 min\nSTILL kills the untreated model at ~140 min:\nthe start term is gone, the sustain term is not" fillcolor="#AD1457" fontcolor="white" color="#880E4F" penwidth=3 shape=box3d]
+    X_recrud[label="Recrudescence (~20% of clinical events,\nmedian ~13 h) — SENS outlives the\nfirst dantrolene boluses\n⇒ 1 mg/kg q6h for 24-48 h" fillcolor="#F8BBD0" color="#880E4F"]
+    X_nac   [label="N-acetylcysteine / antioxidants\ntargets SENS, not the channel\n(explored in RYR1-related myopathy)" fillcolor="#F8BBD0" color="#880E4F"]
+    X_dansep[label="★ WHY DANTROLENE IS DIFFERENT\nit blocks the CHANNEL, so it is agnostic\nto WHICH term opened it — it is the only\nintervention that acts on the sustain term" fillcolor="#AD1457" fontcolor="white" color="#880E4F" penwidth=3 shape=box3d]
+
+    X_ros -> X_cys; X_rns -> X_cys -> X_sens -> X_selfsust -> X_recrud
+    X_nac -> X_sens [arrowhead=tee color="#1B5E20"]
+    X_sens -> X_dansep [style=dashed]
+  }
+
+  //==========================================================
+  // CLUSTER 7 : Contraction & energetics
+  //==========================================================
+  subgraph cluster_energy {
+    label="⚡ 7. Contraction and energetics — note that MH rigidity arises DOWNSTREAM of the neuromuscular junction, which is exactly why non-depolarising blockers cannot relieve it. When ATP runs out the rigidity becomes rigor, which is even less reversible"
+    style=filled fillcolor="#FFFDE7" color="#F57F17" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    E_force [label="★ Ca²⁺-activated force\nF = CaM³/(0.60³ + CaM³)\nsustained contracture, NOT tetanus" fillcolor="#FFF176" color="#F57F17" penwidth=2]
+    E_nmba  [label="★ Rocuronium / vecuronium act at the nAChR —\nUPSTREAM of RyR1. In this model they have\nEXACTLY ZERO effect on MH rigidity.\nMasseter spasm that persists after full\nblockade is therefore diagnostic, not paradoxical" fillcolor="#FFF59D" color="#F57F17" penwidth=2]
+    E_atpam [label="Actomyosin ATPase\nup to 3 600 µM/min at full activation" fillcolor="#FFF9C4" color="#F57F17"]
+    E_atpse [label="SERCA ATPase = J_SERCA / 2\nthe pump paying for the leak" fillcolor="#FFF9C4" color="#F57F17"]
+    E_basal [label="Resting muscle ATP turnover 400 µM/min" fillcolor="#FFF9C4" color="#F57F17"]
+    E_hep   [label="★ HIGH-ENERGY PHOSPHATE POOL\nATP 8 mM + PCr 25 mM\ncreatine-kinase clamp: PCr falls FIRST,\nATP is defended until PCr is gone" fillcolor="#FBC02D" color="#F57F17" penwidth=2]
+    E_gly   [label="Anaerobic glycolysis (≤900 µM ATP/min,\npH-inhibited) → 2 lactate per 3 ATP\nglycogen 85 mM depletes" fillcolor="#FFF9C4" color="#F57F17"]
+    E_rigor [label="★ RIGOR — ATP < 2 mM\ncross-bridges cannot detach.\nUnlike Ca²⁺-activated force, rigor costs\nNO further ATP and is irreversible" fillcolor="#FBC02D" color="#F57F17" penwidth=2]
+    E_natk  [label="Na⁺/K⁺-ATPase failure\n→ the K⁺ gradient is no longer defended" fillcolor="#FFF9C4" color="#F57F17"]
+
+    E_force -> E_atpam -> E_hep; E_atpse -> E_hep; E_basal -> E_hep
+    E_hep -> E_gly; E_hep -> E_rigor; E_hep -> E_natk
+    E_nmba -> E_force [arrowhead=tee style=dashed label="NO effect" color="#B71C1C"]
+  }
+
+  //==========================================================
+  // CLUSTER 8 : Perfusion — the contracture strangles its own blood supply
+  //==========================================================
+  subgraph cluster_perf {
+    label="🩸 8. Perfusion and O₂ delivery — two OPPOSING effects of the same contracture: metabolic hyperaemia opens the bed (×5) while mechanical compression closes it (−40%). Their product sets the aerobic ceiling"
+    style=filled fillcolor="#EFEBE9" color="#3E2723" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    F_hyper [label="Metabolic hyperaemia\nQ_mus = 0.9 → up to 5.0 L/min\n(adenosine · K⁺ · CO₂ · H⁺ · NO)" fillcolor="#D7CCC8" color="#3E2723"]
+    F_occl  [label="★ Contracture compresses capillaries\nQ × (1 − 0.40·FORCE)\n→ rising intramuscular pressure" fillcolor="#BCAAA4" color="#3E2723" penwidth=2]
+    F_do2   [label="O₂ delivery = Q × 200 mL/L × 0.85 extraction\nthe hard ceiling on aerobic ATP" fillcolor="#D7CCC8" color="#3E2723"]
+    F_svo2  [label="Mixed venous desaturation\n+ dark blood in the surgical field\n(an early, often-overlooked sign)" fillcolor="#D7CCC8" color="#3E2723"]
+    F_comp  [label="Compartment syndrome\n(a documented MH complication —\nnot merely a rhabdomyolysis by-product)" fillcolor="#D7CCC8" color="#3E2723"]
+    F_co    [label="Cardiac output 5 → 8-10 L/min\ntachycardia is OBLIGATORY, not incidental" fillcolor="#D7CCC8" color="#3E2723"]
+
+    F_hyper -> F_do2; F_occl -> F_do2 [arrowhead=tee]; F_do2 -> F_svo2
+    F_occl -> F_comp; F_co -> F_do2
+  }
+
+  //==========================================================
+  // CLUSTER 9 : READOUT 1 — the FAST store
+  //==========================================================
+  subgraph cluster_co2 {
+    label="📈 9. READOUT 1 (FAST) — CO₂. Store 60 mL·mmHg⁻¹ against an excess flux of ~390 mL/min ⇒ 0.15 min per mmHg. This, and nothing else, is why capnography is the first alarm"
+    style=filled fillcolor="#E3F2FD" color="#0D47A1" penwidth=3 fontsize=13 fontname="Helvetica-Bold"
+
+    K_vco2  [label="Muscle VCO₂ = VO₂ × RQ + CO₂ liberated\nwhen HCO₃⁻ buffers lactic acid\n38 → 430 mL/min" fillcolor="#BBDEFB" color="#0D47A1"]
+    K_rq    [label="★ RQ RISES ABOVE 1.0\nbecause bicarbonate buffering of lactate\nreleases CO₂ that never came from O₂.\nVCO₂ therefore rises MORE than VO₂" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    K_musst [label="Muscle CO₂ store 200 mL/mmHg\n(delays, then sustains, the signal —\nwhy EtCO₂ keeps climbing briefly\nAFTER dantrolene)" fillcolor="#BBDEFB" color="#0D47A1"]
+    K_blood [label="★ Fast body CO₂ store  60 mL/mmHg\n(blood + vessel-rich group)" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    K_va    [label="Alveolar ventilation — FIXED under\ncontrolled ventilation. Elimination =\nVA × PaCO₂ / 863" fillcolor="#BBDEFB" color="#0D47A1"]
+    K_etco2 [label="★ EtCO₂ — THE FIRST SIGN\n+10 mmHg at 8 min, +20 mmHg at 18 min\nventilation-limited plateau ≈ 150 mmHg\n(MHAUS/CGS threshold: >55 mmHg\nunder controlled ventilation)" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    K_absorb[label="Differential: exhausted CO₂ absorbent ·\nincompetent valve · rebreathing ·\nhypoventilation · laparoscopic CO₂ ·\ntourniquet release · light anaesthesia\n(all give a rise; none gives a rise that\nis IMMUNE to increased ventilation)" fillcolor="#BBDEFB" color="#0D47A1"]
+
+    K_vco2 -> K_musst -> K_blood -> K_etco2
+    K_rq -> K_vco2; K_va -> K_etco2 [arrowhead=tee]
+    K_absorb -> K_etco2 [style=dashed]
+  }
+
+  //==========================================================
+  // CLUSTER 10 : READOUT 2 — the SLOW store
+  //==========================================================
+  subgraph cluster_heat {
+    label="🌡️ 10. READOUT 2 (SLOW) — heat. Core store 158 kJ·°C⁻¹ against an excess of ~155 W ⇒ 17 min per °C. The word 'hyperthermia' names the LAST thing that happens"
+    style=filled fillcolor="#FFEBEE" color="#B71C1C" penwidth=3 fontsize=13 fontname="Helvetica-Bold"
+
+    H_prod  [label="Heat production = 20.1 kJ per L O₂\n+ 65 J per mmol anaerobic lactate\n+ 34 J per mmol phosphate split\n66 W → ~250 W" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_core  [label="★ CORE compartment 158 kJ/°C\n(65% of body mass)" fillcolor="#EF5350" fontcolor="white" color="#B71C1C" penwidth=2]
+    H_shell [label="SHELL compartment 73.5 kJ/°C\ncore→shell conductance 27 W/°C" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_loss  [label="Shell→ambient 5.15 W/°C\ndrapes, warming blankets and a warm OR\nall REDUCE this term" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_rate  [label="★ DERIVED RATE\n0.059 °C/min = 3.5 °C/h at 250 W\nThe textbook '1-2 °C every 5 min' requires\n500-1000 W of NET storage — reachable only\ntransiently, in the CORE, at maximal recruitment" fillcolor="#C62828" fontcolor="white" color="#B71C1C" penwidth=3 shape=box3d]
+    H_late  [label="★ Core +0.5 °C at 10 min · +1.5 °C at 30 min\n38.5 °C at 39 min\n⇒ waiting for fever costs ~30 min\nof unopposed rhabdomyolysis" fillcolor="#EF5350" fontcolor="white" color="#B71C1C" penwidth=2]
+    H_site  [label="Measurement site matters: skin/axillary lag\nthe core by 20-40 min. Nasopharyngeal,\noesophageal, bladder or PA only" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_cool  [label="Active cooling: cold saline 1 L at 4 °C\n= 138 kJ = 0.60 °C (3 L ⇒ 1.79 °C)\nsurface/lavage 200 W = 3.1 °C/h\n⇒ STOP at 38 °C to avoid overshoot" fillcolor="#C8E6C9" color="#1B5E20" penwidth=2]
+
+    H_prod -> H_core -> H_shell -> H_loss
+    H_core -> H_rate -> H_late; H_site -> H_late [style=dashed]
+    H_cool -> H_core [arrowhead=tee color="#1B5E20" penwidth=2]
+    H_core -> R_q10 [label="Q10 feedback" style=dashed color="#B71C1C" penwidth=2 ltail=cluster_heat lhead=cluster_ryr]
+  }
+
+  //==========================================================
+  // CLUSTER 11 : Acid-base
+  //==========================================================
+  subgraph cluster_acid {
+    label="🧯 11. Acid-base — MH is the classic MIXED acidosis, and the mixture is informative: the respiratory half tracks the CO₂ store, the metabolic half tracks the O₂ debt"
+    style=filled fillcolor="#F3E5F5" color="#4A148C" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    A_resp  [label="Respiratory acidosis\nPaCO₂ 40 → >100 mmHg" fillcolor="#E1BEE7" color="#4A148C"]
+    A_lac   [label="Lactic acidosis\nmuscle → systemic, up to 10-15 mmol/L" fillcolor="#E1BEE7" color="#4A148C"]
+    A_hco3  [label="HCO₃⁻ consumed buffering lactate\nbase deficit −8 to −15" fillcolor="#E1BEE7" color="#4A148C"]
+    A_ph    [label="★ Arterial pH 7.40 → 6.9-7.1\nMHAUS grading: pH < 7.25 with\nbase excess < −8 mEq/L" fillcolor="#8E24AA" fontcolor="white" color="#4A148C" penwidth=2]
+    A_bicarb[label="NaHCO₃ 1-2 mEq/kg — but it generates CO₂,\nso it REQUIRES the increased ventilation\nto be in place first" fillcolor="#E1BEE7" color="#4A148C"]
+    A_shift [label="★ Acidaemia drives K⁺ out of cells\n≈ 0.5 mmol/L per 0.1 pH unit\n— a SECOND, independent route to\nhyperkalaemia that has nothing to do\nwith muscle destruction" fillcolor="#8E24AA" fontcolor="white" color="#4A148C" penwidth=2]
+
+    A_resp -> A_ph; A_lac -> A_hco3 -> A_ph; A_ph -> A_shift
+    A_bicarb -> A_ph [arrowhead=tee color="#1B5E20"]
+  }
+
+  //==========================================================
+  // CLUSTER 12 : Muscle injury
+  //==========================================================
+  subgraph cluster_injury {
+    label="💥 12. Rhabdomyolysis — FOUR multiplicative drivers. Because they multiply, dropping any one of them (Ca²⁺, heat, ATP) buys more than its arithmetic share"
+    style=filled fillcolor="#FBE9E7" color="#BF360C" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    I_calpain[label="Ca²⁺-activated calpain-1/3 proteolysis\ndriver: (CaM − 0.45)^1.6" fillcolor="#FFCCBC" color="#BF360C"]
+    I_pla2  [label="Ca²⁺-dependent phospholipase A₂\n→ membrane phospholipid hydrolysis" fillcolor="#FFCCBC" color="#BF360C"]
+    I_heat  [label="Thermal protein denaturation\ndriver: 1 + 0.55·(T − 38.5)" fillcolor="#FFCCBC" color="#BF360C"]
+    I_atp   [label="ATP depletion → pump failure → swelling\ndriver: 1 + 2.5·(1 − ATP/ATP₀)" fillcolor="#FFCCBC" color="#BF360C"]
+    I_memb  [label="★ SARCOLEMMAL INTEGRITY  MEMB (1→0)\n0.14% destroyed with immediate dantrolene\n0.74% destroyed untreated" fillcolor="#E64A19" fontcolor="white" color="#BF360C" penwidth=3 shape=box3d]
+    I_ck    [label="★ Creatine kinase\n3 636 U/L treated at once →\n21 877 U/L untreated (still rising at death)\nMHAUS grading: CK > 20 000 after succinylcholine" fillcolor="#FF7043" color="#BF360C" penwidth=2]
+    I_mb    [label="Myoglobin → cola-coloured urine\nplasma t½ 2.5 h (so it is EARLY and BRIEF —\na normal myoglobin at 12 h excludes nothing)" fillcolor="#FFCCBC" color="#BF360C"]
+    I_k     [label="★ K⁺ efflux — 150 mmol/L intracellular\nacross 22.5 L of muscle water into 14 L of ECF\n⇒ destroying 1% of muscle raises serum K⁺\nby ~2.4 mmol/L before any acidotic shift" fillcolor="#FF7043" color="#BF360C" penwidth=2]
+    I_po4   [label="Hyperphosphataemia · hyperuricaemia\nearly hyperCa²⁺ then late hypoCa²⁺" fillcolor="#FFCCBC" color="#BF360C"]
+
+    I_calpain -> I_memb; I_pla2 -> I_memb; I_heat -> I_memb; I_atp -> I_memb
+    I_memb -> I_ck; I_memb -> I_mb; I_memb -> I_k; I_memb -> I_po4
+  }
+
+  //==========================================================
+  // CLUSTER 13 : Systemic complications
+  //==========================================================
+  subgraph cluster_complic {
+    label="🚨 13. Systemic complications — Larach's four registry outcomes (cardiac, renal, DIC, death). Note that the two fastest killers, hyperkalaemic arrest and DIC, are driven by DIFFERENT variables (K⁺ vs thermal dose)"
+    style=filled fillcolor="#ECEFF1" color="#263238" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    S_k     [label="★ HYPERKALAEMIC CARDIAC ARREST\npeaked T waves → wide QRS → sine wave → VF\nthe commonest immediate cause of death\n(and of MH first presenting as an arrest\nin an undiagnosed myopathic child)" fillcolor="#455A64" fontcolor="white" color="#263238" penwidth=3 shape=box3d]
+    S_arr   [label="Ventricular ectopy · VT\ndriven by K⁺, acidosis, catecholamines and heat.\nAVOID calcium-channel blockers with dantrolene\n(hyperkalaemia + cardiovascular collapse)" fillcolor="#CFD8DC" color="#263238"]
+    S_aki   [label="Pigment nephropathy → AKI\ncast obstruction + tubular haem toxicity +\nvasoconstriction; model GFR 1.00 → 0.47\nat 60 min of delay" fillcolor="#CFD8DC" color="#263238"]
+    S_dic   [label="★ DIC — driven by THERMAL DOSE, not by CK\ntime spent above 40 °C. In registry data DIC\nis among the strongest predictors of death" fillcolor="#455A64" fontcolor="white" color="#263238" penwidth=2]
+    S_cns   [label="Cerebral injury: seizures, coma\nthermal + acidotic; ~20% of survivors\nhave some residual deficit" fillcolor="#CFD8DC" color="#263238"]
+    S_liver [label="Hepatic dysfunction · transaminase rise" fillcolor="#CFD8DC" color="#263238"]
+    S_death [label="★ MORTALITY\n~70-80% before dantrolene (pre-1979)\n1.4-10% today\n⇒ the difference IS the sustain term" fillcolor="#B71C1C" fontcolor="white" color="#7F0000" penwidth=3 shape=box3d]
+
+    S_k -> S_arr -> S_death; S_aki -> S_death; S_dic -> S_death; S_cns -> S_death; S_liver -> S_death
+  }
+
+  //==========================================================
+  // CLUSTER 14 : Therapy
+  //==========================================================
+  subgraph cluster_rx {
+    label="💊 14. Therapy — exactly ONE agent acts on the driver. Everything else in this cluster acts on a readout or a consequence. The model's treatment arms make that distinction quantitative"
+    style=filled fillcolor="#E8F5E9" color="#1B5E20" penwidth=3 fontsize=13 fontname="Helvetica-Bold"
+
+    D_dose  [label="★ Dantrolene 2.5 mg/kg IV, repeat q5-10 min\nto ≥10 mg/kg (30 mg/kg has been used)\nthen 1 mg/kg q6h for 24-48 h" fillcolor="#66BB6A" color="#1B5E20" penwidth=2]
+    D_pk    [label="Dantrolene PK: Vss ≈ 0.8 L/kg\nCL 2.4 L/h · t½ 12-16 h\neffect-site t½ ~5 min · EC50 2.6 mg/L\ntherapeutic 2.8-4.2 µg/mL (75% twitch depression)" fillcolor="#A5D6A7" color="#1B5E20"]
+    D_prep  [label="★ Dantrium/Revonto: 20 mg per vial in 60 mL\nsterile water — 9 vials, 540 mL, ~18 min of shaking\nRyanodex: 250 mg in 5 mL, ~2 min\nSAME MOLECULE. The entire difference\nis an input DELAY, and delay is the outcome variable" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    D_azu   [label="Azumolene — 30× more water-soluble analogue,\nequipotent; investigational" fillcolor="#A5D6A7" color="#1B5E20"]
+    D_stop  [label="STOP the trigger: close the vaporiser,\ncharcoal filters, 10 L/min O₂,\nTIVA to finish/abandon the case" fillcolor="#C8E6C9" color="#1B5E20"]
+    D_vent  [label="Hyperventilate 2-3× minute volume\n— treats the READOUT and the acidosis,\nNOT the driver" fillcolor="#C8E6C9" color="#1B5E20"]
+    D_cool  [label="Cool to 38 °C then STOP\n— treats the READOUT, plus a genuine\nsecond-order benefit via the Q10 term" fillcolor="#C8E6C9" color="#1B5E20"]
+    D_kmgmt [label="Hyperkalaemia: calcium chloride/gluconate ·\ninsulin + glucose · bicarbonate · β₂ agonist ·\nhaemodialysis (NOT calcium-channel blockers)" fillcolor="#C8E6C9" color="#1B5E20"]
+    D_renal [label="Urine output >2 mL/kg/h · fluids ·\n(mannitol comes free: 3 g per 20 mg\ndantrolene vial)" fillcolor="#C8E6C9" color="#1B5E20"]
+    D_icu   [label="ICU ≥24 h · monitor for recrudescence ·\nCK q6h · MHAUS hotline · refer for\nIVCT/genetic testing · counsel family" fillcolor="#C8E6C9" color="#1B5E20"]
+
+    D_dose -> D_pk
+    D_pk -> R_dansite [lhead=cluster_ryr color="#1B5E20" penwidth=2]
+    D_prep -> D_dose; D_azu -> D_dose
+    D_stop -> P_circ [lhead=cluster_pk color="#1B5E20"]
+    D_vent -> K_etco2 [lhead=cluster_co2 color="#1B5E20" style=dashed label="masks"]
+    D_cool -> H_core [lhead=cluster_heat color="#1B5E20" style=dashed label="masks"]
+    D_kmgmt -> S_k [lhead=cluster_complic color="#1B5E20"]
+    D_renal -> S_aki [color="#1B5E20"]
+  }
+
+  //==========================================================
+  // CLUSTER 15 : Diagnostics
+  //==========================================================
+  subgraph cluster_dx {
+    label="🔬 15. Diagnosis — the contracture test measures exactly the parameter the genotype moves (EC50), which is why a functional assay still outperforms sequencing"
+    style=filled fillcolor="#E0F7FA" color="#006064" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    Q_cgs   [label="Clinical Grading Scale (Larach 1994)\nrigidity · muscle breakdown · respiratory\nacidosis · temperature · cardiac · family history\n→ raw score → rank 1-6" fillcolor="#B2EBF2" color="#006064"]
+    Q_ivct  [label="★ IVCT (Europe) / CHCT (North America)\nfresh viable muscle, within 5 h, ≥5 cm bundle\nMHS: ≥0.2 g threshold contracture at\n≤2% halothane OR ≤2 mM caffeine\nsensitivity ~99%, specificity ~94%" fillcolor="#4DD0E1" color="#006064" penwidth=2]
+    Q_model [label="★ MODEL REPRODUCES THE ASSAY\nhalothane 2% / caffeine 2 mM (g above baseline):\nMHN 0.11 / 0.00  → MHN\nlow-penetrance 4.11 / 3.01 → MHS\nCACNA1S 5.03 / 4.20 → MHS\nhigh-penetrance 5.58 / 5.49 → MHS" fillcolor="#00838F" fontcolor="white" color="#006064" penwidth=3 shape=box3d]
+    Q_gene  [label="RYR1/CACNA1S/STAC3 sequencing\nEMHG-accepted diagnostic variants only.\nA negative result does NOT exclude —\nit only fails to confirm" fillcolor="#B2EBF2" color="#006064"]
+    Q_mon   [label="Intra-operative: capnography (continuous) ·\nCORE temperature (not skin) · ABG · K⁺ ·\nCK q6h · myoglobin · coagulation screen" fillcolor="#B2EBF2" color="#006064"]
+    Q_hyper [label="Idiopathic hyperCKaemia · unexplained\nperi-operative rigidity · family history\n⇒ refer, do not re-challenge" fillcolor="#B2EBF2" color="#006064"]
+
+    Q_cgs -> Q_ivct -> Q_model; Q_gene -> Q_ivct [style=dashed]; Q_mon -> Q_cgs; Q_hyper -> Q_ivct
+  }
+
+  //==========================================================
+  // CLUSTER 16 : Differential diagnosis
+  //==========================================================
+  subgraph cluster_ddx {
+    label="🧭 16. Differential — every one of these raises EtCO₂ and/or temperature. The discriminator the model exposes: in MH the EtCO₂ rise is REFRACTORY to increased minute ventilation, because the source term, not the elimination term, has changed"
+    style=filled fillcolor="#FFF8E1" color="#FF6F00" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    N_nms   [label="Neuroleptic malignant syndrome\ncentral D2 blockade — days, not minutes;\ndantrolene helps but the lesion is in the CNS" fillcolor="#FFECB3" color="#FF6F00"]
+    N_ss    [label="Serotonin syndrome\nclonus + hyper-reflexia; cyproheptadine" fillcolor="#FFECB3" color="#FF6F00"]
+    N_heat  [label="Exertional heat stroke\noverlapping RYR1 genetics — arguably\nthe same channel without a vaporiser" fillcolor="#FFECB3" color="#FF6F00"]
+    N_ryr1rm[label="RYR1-related myopathies (central core disease,\nmulti-minicore, RYR1-RM) — treat as MHS" fillcolor="#FFECB3" color="#FF6F00"]
+    N_dmd   [label="Duchenne/Becker dystrophinopathy\nsuccinylcholine → hyperkalaemic arrest +\nrhabdomyolysis. NOT MH — dantrolene will not\nfix it, and the mechanism is a fragile membrane,\nnot a leaky channel" fillcolor="#FFECB3" color="#FF6F00"]
+    N_thyro [label="Thyroid storm · phaeochromocytoma ·\ncarcinoid crisis" fillcolor="#FFECB3" color="#FF6F00"]
+    N_sepsis[label="Sepsis · transfusion reaction ·\niatrogenic overwarming" fillcolor="#FFECB3" color="#FF6F00"]
+    N_light [label="Light anaesthesia · inadequate analgesia ·\ntourniquet release · laparoscopic CO₂ absorption\n(all respond to more ventilation — MH does not)" fillcolor="#FFECB3" color="#FF6F00"]
+    N_disc  [label="★ THE DISCRIMINATOR\nHyperventilate ×3. If the source term is normal,\nEtCO₂ normalises AND STAYS normal.\nIn MH it normalises and everything else\n— temperature, CK, K⁺, lactate — keeps going" fillcolor="#EF6C00" fontcolor="white" color="#FF6F00" penwidth=3 shape=box3d]
+
+    N_light -> N_disc; N_sepsis -> N_disc; N_thyro -> N_disc
+    N_nms -> N_disc; N_ss -> N_disc; N_heat -> N_ryr1rm; N_dmd -> N_disc
+  }
+
+  //==========================================================
+  // CLUSTER 17 : Clinical endpoints and the treatment-arm result
+  //==========================================================
+  subgraph cluster_out {
+    label="🎯 17. Endpoints — the model's own treatment arms (MHS_high, sevoflurane 2% + succinylcholine, first sign at 45 min). Read the 'monitor' column against the 'outcome' column"
+    style=filled fillcolor="#F1F8E9" color="#33691E" penwidth=3 fontsize=13 fontname="Helvetica-Bold"
+
+    O_none  [label="No treatment\nTmax 41.5 °C · EtCO₂ 121 · CK 21 877 · K⁺ 8.1\n☠ lethal physiology at 131 min" fillcolor="#FFCDD2" color="#B71C1C" penwidth=2]
+    O_vapoff[label="Vaporiser off + flush ONLY\nTmax 41.8 °C · CK 23 641 · ☠ at 140 min\n⇒ removing the START term alone does not rescue" fillcolor="#FFCDD2" color="#B71C1C" penwidth=2]
+    O_vent  [label="★ Hyperventilation ×3 ONLY\nEtCO₂ max 49 mmHg — A NORMAL-LOOKING MONITOR\nTmax 42.5 °C · CK 31 072 · ☠ at 154 min\nthe monitor was fixed; the patient was not" fillcolor="#E53935" fontcolor="white" color="#B71C1C" penwidth=3 shape=box3d]
+    O_cool  [label="★ Active cooling ONLY\nTmax 37.1 °C — A NORMAL TEMPERATURE\nEtCO₂ 122 · CK 15 028 · ☠ at 134 min\nthe same lesson from the other readout" fillcolor="#E53935" fontcolor="white" color="#B71C1C" penwidth=3 shape=box3d]
+    O_danonly[label="Dantrolene ONLY (trigger left running)\nCK 7 002 · survives 308 min then fails\n⇒ the driver must be blocked AND removed" fillcolor="#FFF9C4" color="#F57F17" penwidth=2]
+    O_nodan [label="Full bundle WITHOUT dantrolene\nsurvives, but CK 9 515 · GFR 0.57" fillcolor="#FFF9C4" color="#F57F17" penwidth=2]
+    O_full  [label="★ FULL BUNDLE + dantrolene at +2 min\nTmax 37.2 °C · EtCO₂ 49 · CK 3 636 · K⁺ 4.8\n0.14% of muscle destroyed · survives" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    O_delay [label="★ THE PRICE OF DELAY\nCK 3 636 → 5 184 → 10 711 → 21 877 U/L\nat 0 / 30 / 60 / 120 min to dantrolene;\nGFR 0.78 → 0.63 → 0.47" fillcolor="#558B2F" fontcolor="white" color="#33691E" penwidth=3 shape=box3d]
+    O_cgs   [label="Clinical endpoints scored: EtCO₂ · core temp ·\nmasseter/generalised rigidity · CK peak ·\ncola urine · arrhythmia · mixed acidosis ·\nCGS rank · ICU days · survival" fillcolor="#DCEDC8" color="#33691E"]
+  }
+
+  //==========================================================
+  // CROSS-CLUSTER WIRING — the causal spine
+  //==========================================================
+  G_ec50   -> R_act   [lhead=cluster_ryr ltail=cluster_gene penwidth=2]
+  T_sev    -> P_vap   [lhead=cluster_pk ltail=cluster_trig penwidth=2]
+  T_sux    -> R_act   [lhead=cluster_ryr penwidth=2]
+  P_musf   -> R_act   [label="[agent] at the trigger compartment" penwidth=2]
+  P_hyper  -> P_musf
+  R_po     -> C_jryr  [lhead=cluster_ca penwidth=3 label="THE DRIVER"]
+  C_cam    -> E_force [lhead=cluster_energy penwidth=2]
+  C_cam    -> X_ros   [lhead=cluster_redox penwidth=2]
+  C_mptp   -> E_hep   [label="less ATP per O₂"]
+  C_mptp   -> H_prod  [label="more heat per O₂" penwidth=2]
+  X_sens   -> R_act   [lhead=cluster_ryr penwidth=3 color="#880E4F" label="SUSTAIN"]
+  E_hep    -> F_do2   [lhead=cluster_perf]
+  E_force  -> F_occl
+  E_gly    -> A_lac   [lhead=cluster_acid]
+  E_hep    -> K_vco2  [lhead=cluster_co2 penwidth=2]
+  E_hep    -> H_prod  [lhead=cluster_heat penwidth=2]
+  F_do2    -> E_gly
+  C_cam    -> I_calpain [lhead=cluster_injury penwidth=2]
+  H_core   -> I_heat
+  E_hep    -> I_atp
+  I_k      -> S_k     [lhead=cluster_complic penwidth=2]
+  A_shift  -> S_k     [penwidth=2]
+  I_mb     -> S_aki
+  H_rate   -> S_dic   [label="thermal dose"]
+  A_ph     -> S_cns
+  K_etco2  -> Q_cgs   [lhead=cluster_dx]
+  H_late   -> Q_cgs
+  I_ck     -> Q_cgs
+  Q_cgs    -> N_disc  [lhead=cluster_ddx style=dashed]
+  D_dose   -> O_full  [lhead=cluster_out penwidth=2 color="#1B5E20"]
+  K_etco2  -> O_vent  [style=dashed]
+  H_core   -> O_cool  [style=dashed]
+  S_death  -> O_none  [style=dashed]
+  O_full   -> O_delay
+  O_delay  -> O_cgs
+  X_recrud -> D_icu   [lhead=cluster_rx style=dashed label="why 24-48 h"]
+  T_safe   -> O_full  [color="#1B5E20" style=dashed label="prophylaxis: no event at all"]
+}
