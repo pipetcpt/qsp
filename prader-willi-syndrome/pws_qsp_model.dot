@@ -1,0 +1,719 @@
+/* ===========================================================================
+   pws_qsp_model.dot
+   Prader-Willi Syndrome (PWS) — mechanistic QSP map
+   프래더-윌리 증후군 — 기계론적 QSP 지도
+
+   READING ORDER
+     1  the imprinted locus — one lesion, many silenced genes
+     2  the PROHORMONE CONVERTASE NODE — where the lesion becomes a pattern
+     3  the five branches, and the escape ratio that orders their failure
+     4  arcuate nucleus — AgRP/NPY versus POMC
+     5  PVN oxytocin — THE RELAY, and why the melanocortin arm is in series
+     6  the gut-brain periphery — ghrelin, and why it saturates
+     7  the satiety integrator — a HARMONIC MEAN
+     8  food-seeking — THE BISTABLE STATE, and its separatrix
+     9  reward, cue sensitization and behaviour
+    10  energy balance and body composition — intake is OFFERED, not chosen
+    11  somatotropic axis
+    12  upper airway — THE TWO CLOCKS
+    13  glucose, insulin and the metabolic paradox
+    14  gonadal axis — early gate, low amplitude
+    15  musculoskeletal, bone, thermoregulation, sleep
+    16  drug PK
+    17  drug targets, mapped onto which arm each one can reach
+    18  clinical endpoints
+    19  the food environment — the only intervention that changes which
+        states EXIST
+    20  the model's algebra, drawn explicitly
+
+   WHAT IS WRITTEN DIFFERENTLY HERE
+     (a) The lesion is ONE SCALAR (PC1/3 activity), not a list of hormone
+         deficits.  Each branch carries a single dimensionless escape ratio
+         eps_i, and eps_i alone decides both how much product that branch
+         loses and how much precursor it accumulates — in OPPOSITE directions
+         (cluster 3).  A branch that spills precursor is a branch that fails.
+     (b) alpha-MSH is NOT a parallel satiety arm.  It is a saturating input
+         gain on the PVN-oxytocin arm, because MC4R satiety signalling is
+         relayed through PVN oxytocin neurons.  PWS blocks pro-oxytocin
+         processing, i.e. BELOW MC4R.  So MC4R agonism is bounded above by
+         the very quantity PWS lacks (clusters 5 and 17).
+     (c) Satiety is a HARMONIC MEAN of five arms: the weakest arm rate-limits
+         and cannot be rescued by over-driving an intact one (cluster 7).
+     (d) Food-seeking is BISTABLE.  Food security does not lower the drive —
+         it restores the EXISTENCE of a low state (clusters 8 and 19).
+     (e) Growth hormone reaches the upper airway twice, on two different time
+         constants, and the transient risk window is the interference between
+         them (cluster 12).
+
+   Colour key
+     imprinted locus ....... lavender
+     convertase node ....... gold
+     precursors ............ khaki
+     products / tones ...... pale green
+     arcuate ............... light coral
+     PVN / oxytocin ........ plum
+     gut-brain ............. wheat
+     satiety integrator .... pale turquoise
+     bistable state ........ salmon
+     reward / behaviour .... thistle
+     energy balance ........ honeydew
+     somatotropic .......... light blue
+     airway ................ light cyan
+     glucose / insulin ..... peach
+     gonadal / bone ........ mistyrose
+     drug PK ............... light turquoise
+     drug targets .......... turquoise
+     endpoints ............. pink
+     environment ........... light yellow
+     algebra ............... grey
+   =========================================================================== */
+
+digraph PWS_QSP {
+    rankdir = TB;
+    compound = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.22;
+    ranksep = 0.42;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Prader-Willi Syndrome — Quantitative Systems Pharmacology map</b><br/>
+             <i>one convertase, five branches, a harmonic-mean satiety integrator, and a bistable food-seeking state</i><br/>
+             <font point-size="11">64-state ODE model · pws_mrgsolve_model.R · pws_reference_model.py</font>>;
+    fontsize = 22;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 10, margin = "0.08,0.045"];
+    edge [fontname = "Helvetica", fontsize = 8, arrowsize = 0.65,
+          color = "gray35"];
+
+    /* ---------------------------------------------------------------- 1 */
+    subgraph cluster_locus {
+        label = "1 · imprinted locus 15q11-q13 — one lesion, many silenced genes";
+        style = "filled"; fillcolor = "#f4f0fb"; fontsize = 13;
+        node [fillcolor = "#e6ddf5"];
+
+        DEL   [label = "paternal deletion\n15q11-q13\n~65-75% of cases"];
+        UPD   [label = "maternal uniparental\ndisomy (mUPD)\n~20-30%"];
+        IMPD  [label = "imprinting-centre\ndefect\n1-3%"];
+        TRANS [label = "balanced\ntranslocation\n<1%"];
+        PWSIC [label = "PWS-IC\n(SNURF-SNRPN\npromoter/exon 1)"];
+        SNRPN [label = "SNURF-SNRPN"];
+        SN116 [label = "SNORD116\ncluster\n(minimal critical region)"];
+        SN115 [label = "SNORD115"];
+        IPW   [label = "IPW\n(lncRNA)"];
+        NDN   [label = "NDN\n(necdin)"];
+        MAGEL [label = "MAGEL2"];
+        MKRN3 [label = "MKRN3\n(pubertal brake)"];
+        NIPA  [label = "NIPA1 / NIPA2\nCYFIP1 / TUBGCP5\n(non-imprinted,\ndeletion only)"];
+        OCA2  [label = "OCA2 / HERC2\nhypopigmentation\n(deletion only)"];
+        NHLH2 [label = "NHLH2\ntranscription factor"];
+
+        DEL -> PWSIC; UPD -> PWSIC; IMPD -> PWSIC; TRANS -> PWSIC;
+        PWSIC -> SNRPN; SNRPN -> SN116; SNRPN -> SN115; SNRPN -> IPW;
+        PWSIC -> NDN; PWSIC -> MAGEL; PWSIC -> MKRN3;
+        DEL -> NIPA; DEL -> OCA2;
+        SN116 -> NHLH2; NDN -> NHLH2; MAGEL -> NHLH2;
+    }
+
+    /* ---------------------------------------------------------------- 2 */
+    subgraph cluster_conv {
+        label = "2 · the prohormone convertase node — where one lesion becomes a PATTERN";
+        style = "filled"; fillcolor = "#fdf6d8"; fontsize = 13;
+        node [fillcolor = "#f7e79a"];
+
+        PC13  [label = "PC1/3  (PCSK1)\nACTIVITY = PC13\n\nPWS: 0.40 of normal", shape = box,
+               style = "rounded,filled,bold", fillcolor = "#f2d024", penwidth = 2.4];
+        PC2   [label = "PC2 (PCSK2)\npartially compensating"];
+        CPE   [label = "carboxypeptidase E\n(CPE)"];
+        SAAS  [label = "proSAAS / PCSK1N\nendogenous PC1/3 inhibitor"];
+        SEVB2 [label = "7B2\nPC2 chaperone"];
+        EPSDEF [label = "escape ratio\neps_i = d_i·Km_i / kcat_i\nprecursor escape ÷ processing",
+                shape = note, fillcolor = "#fffbe6"];
+
+        SAAS -> PC13 [arrowhead = tee, color = "#b8860b"];
+        SEVB2 -> PC2;
+        PC13 -> CPE [style = dotted, label = "sequential"];
+        PC2 -> CPE [style = dotted];
+        EPSDEF -> PC13 [style = dotted, arrowhead = none];
+    }
+
+    /* ---------------------------------------------------------------- 3 */
+    subgraph cluster_branch {
+        label = "3 · the five branches — eps_i alone orders their failure (and their precursor spill)";
+        style = "filled"; fillcolor = "#f7f7e8"; fontsize = 13;
+
+        node [fillcolor = "#efe7b8"];
+        PPOXT  [label = "pro-oxytocin\neps = 6.0\nprecursor 1.09x"];
+        PPOMC  [label = "POMC\neps = 1.5\nprecursor 1.32x"];
+        PPGHRH [label = "pro-GHRH\neps = 1.0\nprecursor 1.43x"];
+        PPINS  [label = "proinsulin\neps = 0.15\nprecursor 2.09x"];
+        PPGHR  [label = "proghrelin\neps = 0.10\nprecursor 2.20x"];
+
+        node [fillcolor = "#d7f0d7"];
+        OXT   [label = "OXYTOCIN\nproduct -56%", style = "rounded,filled,bold", penwidth = 1.8];
+        AMSH  [label = "alpha-MSH\nproduct -47%", style = "rounded,filled,bold", penwidth = 1.8];
+        GHRH  [label = "GHRH\nproduct -43%"];
+        INS0  [label = "insulin\nproduct -16%"];
+        AGHR0 [label = "acyl-ghrelin\nproduct -12%"];
+
+        node [fillcolor = "#e8e8e8"];
+        SPILL [label = "unprocessed precursor\nSECRETED / degraded\n(the 'escape' flux d_i)", shape = note];
+        ASSAY [label = "an assay that cross-reacts\nwith precursor + product\nmeasures the SYNTHESIS rate\nand is EXACTLY blind to PC13\n(ratio = 1.000000, all branches)",
+               shape = note, fillcolor = "#ffe9e9"];
+        ANTI  [label = "FORCED ANTICORRELATION\nhigh eps -> product falls, precursor does NOT accumulate\nlow  eps -> precursor accumulates, product barely falls\n=> precursor:product ratio cannot grade the branches that matter",
+               shape = note, fillcolor = "#fff0f5"];
+
+        PPOXT  -> OXT   [label = "PC13 · P", penwidth = 1.6];
+        PPOMC  -> AMSH  [label = "PC13 · P", penwidth = 1.6];
+        PPGHRH -> GHRH  [label = "PC13 · P"];
+        PPINS  -> INS0  [label = "PC13 · P"];
+        PPGHR  -> AGHR0 [label = "PC13 · P"];
+        PPOXT -> SPILL [style = dashed, color = "#b22222", label = "d·P dominates"];
+        PPINS -> SPILL [style = dashed, color = "#4682b4", label = "small"];
+        SPILL -> ASSAY [style = dotted];
+        ASSAY -> ANTI [style = invis];
+    }
+
+    PC13 -> PPOXT  [label = "kcat·PC13", color = "#b8860b", penwidth = 1.4];
+    PC13 -> PPOMC  [color = "#b8860b"];
+    PC13 -> PPGHRH [color = "#b8860b"];
+    PC13 -> PPINS  [color = "#b8860b"];
+    PC13 -> PPGHR  [color = "#b8860b"];
+
+    /* ---------------------------------------------------------------- 4 */
+    subgraph cluster_arc {
+        label = "4 · arcuate nucleus — the orexigenic side";
+        style = "filled"; fillcolor = "#fdeeec"; fontsize = 13;
+        node [fillcolor = "#f7c9c2"];
+
+        AGRPN [label = "AgRP / NPY neuron\n(arcuate)"];
+        AGRP  [label = "AgRP + NPY tone\nOREXIGENIC DRIVE\nPWS 2.0x", style = "rounded,filled,bold", penwidth = 1.8];
+        NPY1  [label = "NPY Y1 / Y5\nreceptors"];
+        GABAA [label = "GABA co-release\nonto PVN"];
+        KATPN [label = "K-ATP channel\nKir6.2 / SUR1\n(AgRP neuron)"];
+        GHSRN [label = "GHS-R1a\n(AgRP neuron)"];
+        LEPRA [label = "LEPR-b\n(arcuate)"];
+        POMCN [label = "POMC neuron\n(arcuate)"];
+        FAST  [label = "fasting signal\n(meal load < requirement)"];
+        AMPKN [label = "AMPK / mTOR\nnutrient sensing"];
+
+        AGRPN -> AGRP; AGRP -> NPY1; AGRPN -> GABAA;
+        KATPN -> AGRPN [label = "open = hyperpolarize", arrowhead = tee, color = "#1f6f4a"];
+        GHSRN -> AGRPN [label = "+"];
+        LEPRA -> AGRPN [arrowhead = tee, label = "-"];
+        LEPRA -> POMCN [label = "+"];
+        FAST -> AGRPN [label = "+"];
+        AMPKN -> AGRPN [label = "+"];
+    }
+    NHLH2 -> PC13 [label = "transcriptional\nsupport", color = "#7b5cbf"];
+    PPOMC -> POMCN [style = dotted, arrowhead = none];
+    POMCN -> AMSH [style = dotted, arrowhead = none];
+
+    /* ---------------------------------------------------------------- 5 */
+    subgraph cluster_pvn {
+        label = "5 · PVN oxytocin — THE RELAY.  Melanocortin satiety is IN SERIES with it, not parallel";
+        style = "filled"; fillcolor = "#f7edf7"; fontsize = 13;
+        node [fillcolor = "#e2c4e2"];
+
+        PVN    [label = "paraventricular nucleus\n(PVN)"];
+        OXTN   [label = "PVN oxytocin neuron\nnumber -42% in PWS\n(Swaab)", style = "rounded,filled,bold", penwidth = 1.8];
+        MC4R   [label = "MC4R\nON PVN NEURONS\n(post-synaptic)", style = "rounded,filled,bold",
+                fillcolor = "#cf9fd6", penwidth = 2.0];
+        SIM1   [label = "SIM1\nPVN development"];
+        OXTR   [label = "OXTR\n(NTS · VTA · amygdala)"];
+        V1A    [label = "V1a receptor\n(cross-activated at\nhigh carbetocin)"];
+        RELAY  [label = "RELAY GAIN\nrelay(MC) = (MC/(K+MC))·(K+1)\nSATURATES", shape = note, fillcolor = "#fbf0ff"];
+        SERIES [label = "MC4R sits ABOVE the block.\nPWS blocks pro-oxytocin processing,\nwhich is BELOW MC4R.\n=> MC4R agonism is bounded above by\nthe oxytocin availability PWS lacks.",
+                shape = note, fillcolor = "#fff0f5"];
+        X1     [label = "x1 = OXT · relay(MC) · (1+E_OXTR)\nsatiety arm 1  (w = 0.44)",
+                shape = box, style = "rounded,filled,bold", fillcolor = "#d6a8dd", penwidth = 2.0];
+        RI     [label = "RELAY INTEGRITY  RI = x1 / x1_control\nleptin's anorexigenic signal is transduced\nby this same relay => PWS is FUNCTIONALLY\nLEPTIN-RESISTANT with normal leptin and\nnormal receptors, at no extra parameter",
+                shape = note, fillcolor = "#eef7ee"];
+
+        PVN -> OXTN; SIM1 -> OXTN; OXTN -> OXTR; OXTR -> X1;
+        MC4R -> OXTN [label = "relayed", penwidth = 1.8, color = "#7b1fa2"];
+        RELAY -> MC4R [style = dotted, arrowhead = none];
+        SERIES -> MC4R [style = dotted, arrowhead = none];
+        V1A -> X1 [arrowhead = tee, color = "#b22222", label = "-"];
+        X1 -> RI;
+    }
+    OXT -> OXTN [penwidth = 1.6, color = "#7b1fa2"];
+    AMSH -> MC4R [penwidth = 1.6, color = "#2e7d32", label = "input gain\n(NOT its own arm)"];
+    AGRP -> MC4R [arrowhead = tee, label = "AgRP is an\nMC4R antagonist"];
+    GABAA -> OXTN [arrowhead = tee];
+    OXTR -> AGRPN [arrowhead = tee, penwidth = 1.6, color = "#7b1fa2",
+                   label = "PRE-synaptic\ninhibition of AgRP", constraint = false];
+
+    /* ---------------------------------------------------------------- 6 */
+    subgraph cluster_gut {
+        label = "6 · gut-brain periphery — and why the ghrelin arm cannot be rescued";
+        style = "filled"; fillcolor = "#fbf3e3"; fontsize = 13;
+        node [fillcolor = "#efdcb4"];
+
+        XA    [label = "gastric X/A cell\nsecretory drive\nPWS 2.2x"];
+        GOAT  [label = "GOAT\n(MBOAT4)\nacylation"];
+        AG    [label = "ACYL-GHRELIN (AG)\nPWS ~2x control", style = "rounded,filled,bold", penwidth = 1.8];
+        UAG   [label = "unacylated ghrelin\n(UAG)"];
+        BCHE  [label = "plasma esterases\nAG -> UAG"];
+        AGRAT [label = "AG : UAG ratio\nraised in PWS"];
+        OCC   [label = "GHS-R1a OCCUPANCY\nAG/(K+AG),  K = 300 pg/mL\nALREADY SATURATED at\nPWS concentrations",
+                shape = note, fillcolor = "#fff5e6"];
+        PYY   [label = "PYY 3-36\npost-prandial rise\nBLUNTED in PWS"];
+        GLP1  [label = "GLP-1\n(L cell)"];
+        CCK   [label = "CCK\n(I cell)"];
+        GE    [label = "gastric emptying\nDELAYED in PWS"];
+        VAGUS [label = "vagal afferent\ndistension signal\nreduced gain in PWS"];
+        NTS   [label = "NTS / area postrema"];
+        SALIV [label = "thick saliva ·\ndental erosion"];
+        SWAL  [label = "impaired swallow,\nchoking risk"];
+
+        XA -> GOAT; GOAT -> AG; XA -> UAG; AG -> BCHE; BCHE -> UAG;
+        AG -> AGRAT; UAG -> AGRAT; AG -> OCC;
+        GE -> VAGUS; VAGUS -> NTS; PYY -> NTS; GLP1 -> NTS; CCK -> NTS;
+        SALIV -> SWAL;
+    }
+    PPGHR -> XA [style = dotted, arrowhead = none];
+    AGHR0 -> AG [penwidth = 1.4];
+    OCC -> GHSRN [penwidth = 1.4, color = "#c07000", label = "arm/control = 1.27\nat AG 2x"];
+    NTS -> OXTR [color = "#7b1fa2"];
+
+    /* ---------------------------------------------------------------- 7 */
+    subgraph cluster_sat {
+        label = "7 · the satiety integrator — a HARMONIC MEAN: the weakest arm rate-limits";
+        style = "filled"; fillcolor = "#e8f6f6"; fontsize = 13;
+        node [fillcolor = "#bfe3e3"];
+
+        X2  [label = "x2 · vagal / distension\nw = 0.16   (FVAG 0.70)"];
+        X3  [label = "x3 · PYY3-36 -> Y2\nw = 0.13   (FPYY 0.60)"];
+        X4  [label = "x4 · GLP-1 -> GLP1R\nw = 0.14"];
+        X5  [label = "x5 · leptin / insulin CNS\nw = 0.13"];
+        SAT [label = "SAT = 1 / Σ (w_i / x_i)\nPWS 0.46   control 1.00",
+             shape = box, style = "rounded,filled,bold", fillcolor = "#7fc8c8", penwidth = 2.4];
+        HARM [label = "a harmonic mean CANNOT be rescued by its healthy terms:\nnormalizing ALL FOUR non-oxytocin arms moves SAT from\n0.46 to only 0.49 of a possible 1.00",
+              shape = note, fillcolor = "#e6ffff"];
+
+        X2 -> SAT; X3 -> SAT; X4 -> SAT; X5 -> SAT;
+        HARM -> SAT [style = dotted, arrowhead = none];
+    }
+    X1 -> SAT [penwidth = 2.2, color = "#00695c", label = "the rate-limiting arm"];
+    VAGUS -> X2; PYY -> X3; GLP1 -> X4;
+
+    /* ---------------------------------------------------------------- 8 */
+    subgraph cluster_seek {
+        label = "8 · food-seeking — A BISTABLE STATE with a separatrix";
+        style = "filled"; fillcolor = "#fdece7"; fontsize = 13;
+        node [fillcolor = "#f7b8a4"];
+
+        DRV   [label = "internal orexigenic drive\nDRVi = AgRP · (1 + K·(ghrelin arm - 1))\n· developmental gate"];
+        CUE   [label = "external food cue\nand ACCESS   (CUE)"];
+        DRVE  [label = "effective drive\nDRVe = DRVi · CUE"];
+        SEEK  [label = "SEEK\nFOOD-SEEKING STATE\n0 ... 1", shape = doublecircle,
+               style = "filled,bold", fillcolor = "#e8583c", fontcolor = "white", penwidth = 2.4];
+        SELFR [label = "self-sensitization\nK_self · S^4/(K^4+S^4)\nREINFORCED by food obtained", style = "rounded,filled,bold", penwidth = 1.8];
+        TERM  [label = "satiety termination\nK_off · S · SAT"];
+        FPS   [label = "fixed points at CUE = 0.28\n0.066 stable · 0.249 SADDLE · 0.733 stable",
+               shape = note, fillcolor = "#fff3ee"];
+        SADDLE [label = "SADDLE-NODE at CUE* = 0.58\nabove it the LOW STATE DOES NOT EXIST\nand no dose can hold a state the\nvector field has deleted",
+                shape = note, fillcolor = "#ffe3dc"];
+        THRESH [label = "the latched upper state disappears only at\nSAT >= 0.77, i.e. an oxytocin-arm gain of 2.4x.\nCarbetocin at its analytic optimum gives 1.49x.\nSHORTFALL 1.61x — a STATE problem, not a potency problem.",
+                shape = note, fillcolor = "#fff0f0"];
+
+        DRV -> DRVE; CUE -> DRVE; DRVE -> SEEK [penwidth = 1.6];
+        SEEK -> SELFR [style = dashed]; SELFR -> SEEK [penwidth = 2.0, color = "#c62828",
+                                                       label = "POSITIVE FEEDBACK"];
+        TERM -> SEEK [arrowhead = tee, penwidth = 1.8, color = "#00695c"];
+        FPS -> SEEK [style = dotted, arrowhead = none];
+        SADDLE -> CUE [style = dotted, arrowhead = none];
+        THRESH -> SELFR [style = dotted, arrowhead = none];
+    }
+    AGRP -> DRV [penwidth = 1.8];
+    OCC -> DRV [label = "small weight\nK = 0.10", style = dashed];
+    SAT -> TERM [penwidth = 1.8, color = "#00695c"];
+
+    /* ---------------------------------------------------------------- 9 */
+    subgraph cluster_rew {
+        label = "9 · reward, cue sensitization, behaviour and neuropsychiatry";
+        style = "filled"; fillcolor = "#f6eff8"; fontsize = 13;
+        node [fillcolor = "#dcc6e0"];
+
+        VTA   [label = "VTA dopamine"];
+        NAC   [label = "nucleus accumbens\nincentive salience"];
+        OFC   [label = "orbitofrontal cortex\nvalue"];
+        AMY   [label = "amygdala"];
+        INS_C [label = "insula\ninteroception"];
+        FRUST [label = "FRUSTRATION\n= (appetite ask - food given) / ask"];
+        BEH   [label = "maladaptive behaviour\nskin picking · temper outbursts\nrigidity · food stealing",
+               style = "rounded,filled,bold", penwidth = 1.8];
+        OCDL  [label = "OCD-like\nhoarding · rituals"];
+        ASDT  [label = "autism-spectrum traits\n(higher in mUPD)"];
+        PSY   [label = "psychosis\n(mUPD ~2.5x)"];
+        COG   [label = "cognitive profile\nIQ 60-70 · strong visual-spatial"];
+        SLEEPY [label = "excessive daytime\nsleepiness · REM-onset\n(orexin-independent)"];
+
+        VTA -> NAC; NAC -> OFC; AMY -> NAC; INS_C -> OFC;
+        FRUST -> BEH [penwidth = 1.8, color = "#c62828"];
+        BEH -> OCDL [style = dotted]; ASDT -> BEH [style = dotted];
+        PSY -> BEH [style = dotted]; COG -> BEH [style = dotted];
+    }
+    NAC -> SELFR [penwidth = 1.6, color = "#c62828", label = "cue sensitization"];
+    OXTR -> BEH [arrowhead = tee, penwidth = 1.6, color = "#7b1fa2",
+                 label = "same receptor as the drive term"];
+    UPD -> PSY [style = dotted, color = "#7b5cbf"];
+    DEL -> BEH [style = dotted, color = "#7b5cbf", label = "deletion:\nworse behaviour"];
+    SEEK -> NAC [style = dashed];
+
+    /* --------------------------------------------------------------- 10 */
+    subgraph cluster_energy {
+        label = "10 · energy balance and body composition — intake is OFFERED, not chosen";
+        style = "filled"; fillcolor = "#eef8ee"; fontsize = 13;
+        node [fillcolor = "#c9e8c9"];
+
+        EIREQ [label = "EIREQ(age)\nage-normative requirement\n(Schofield reference)"];
+        ASK   [label = "appetite ASK\nEIREQ·(base + K·SEEK + K·HQ)"];
+        OFFER [label = "portions OFFERED\nAVAIL · EIREQ · titration"];
+        EI    [label = "ENERGY INTAKE\nEI = min(ASK, OFFER)", style = "rounded,filled,bold", penwidth = 1.8];
+        REE   [label = "resting energy expenditure\nREE ∝ lean mass"];
+        AT    [label = "activity thermogenesis\nREE · PAL · ACT"];
+        DIT   [label = "diet-induced\nthermogenesis"];
+        TEE   [label = "TOTAL ENERGY EXPENDITURE\nPWS 0.72 of predicted", style = "rounded,filled,bold", penwidth = 1.8];
+        LFMT  [label = "LEAN-MASS TARGET\nIGF-1 drive × tone ×\nenergy sufficiency × gonadal"];
+        LFM   [label = "lean body mass\nPWS -16%", style = "rounded,filled,bold", penwidth = 1.8];
+        FM    [label = "FAT MASS\nthe ENERGY BUFFER", style = "rounded,filled,bold",
+               fillcolor = "#9fd89f", penwidth = 2.2];
+        LEP   [label = "leptin\nappropriate for fat mass"];
+        ADIP  [label = "adipocyte\nhypertrophy"];
+        ACT   [label = "physical activity\nlowered by hypotonia\nand by EXCESS fat"];
+        SURPL [label = "PHASE 2a IN ONE LINE:\na NORMAL intake is a SURPLUS when\nexpenditure is low.  Weight gain therefore\nPRECEDES hyperphagia, with no appetite\nparameter changing at all.",
+               shape = note, fillcolor = "#f0fff0"];
+
+        EIREQ -> ASK; EIREQ -> OFFER; ASK -> EI; OFFER -> EI;
+        REE -> TEE; AT -> TEE; DIT -> TEE; EI -> DIT;
+        REE -> AT; ACT -> AT; LFM -> REE [penwidth = 1.6]; FM -> REE [style = dashed];
+        LFMT -> LFM [penwidth = 1.6]; LFM -> ACT [style = dashed];
+        FM -> ACT [arrowhead = tee, label = "excess only"];
+        FM -> LEP; FM -> ADIP;
+        EI -> FM [penwidth = 1.8, label = "+"]; TEE -> FM [arrowhead = tee, penwidth = 1.8];
+        LFM -> FM [arrowhead = tee, style = dashed, label = "lean accretion\nis paid for first"];
+        SURPL -> EI [style = dotted, arrowhead = none];
+    }
+    SEEK -> ASK [penwidth = 1.4];
+    LEP -> LEPRA [penwidth = 1.4];
+    LEP -> X5;
+    RI -> LEP [arrowhead = tee, style = dashed, color = "#2e7d32",
+               label = "leptin feedback is\nGATED BY THE RELAY", constraint = false];
+    EI -> X2 [style = dashed, label = "meal load"];
+
+    /* --------------------------------------------------------------- 11 */
+    subgraph cluster_gh {
+        label = "11 · somatotropic axis";
+        style = "filled"; fillcolor = "#eaf2fb"; fontsize = 13;
+        node [fillcolor = "#c3d9f0"];
+
+        GHRHN [label = "GHRH neuron\n(arcuate)"];
+        SST   [label = "somatostatin\n(periventricular)"];
+        SOMAT [label = "pituitary somatotroph\nsecretory reserve\nPWS 0.75"];
+        GH    [label = "GH (plasma)\n24-h mean"];
+        GHBP  [label = "GH binding protein"];
+        GHR   [label = "GHR / JAK2 / STAT5\n(liver, muscle, bone)"];
+        IGF1  [label = "IGF-1\nSATURATING in GH", style = "rounded,filled,bold", penwidth = 1.8];
+        BP3   [label = "IGFBP-3 / ALS\nternary complex"];
+        IGFR  [label = "IGF1R"];
+        LIVER [label = "hepatic capacity\n(nutrition-dependent)"];
+        GHFB  [label = "IGF-1 negative feedback\non GH secretion"];
+        FATFB [label = "fat mass suppresses\nGH secretion"];
+
+        GHRHN -> SOMAT [label = "+"]; SST -> SOMAT [arrowhead = tee];
+        SOMAT -> GH; GH -> GHBP; GH -> GHR; GHR -> IGF1; LIVER -> IGF1;
+        IGF1 -> BP3; IGF1 -> IGFR; IGF1 -> GHFB; GHFB -> SOMAT [arrowhead = tee];
+        FATFB -> SOMAT [arrowhead = tee]; IGF1 -> SST [label = "+"];
+    }
+    GHRH -> GHRHN [penwidth = 1.6];
+    FM -> FATFB [style = dashed];
+    IGF1 -> LFMT [penwidth = 1.6, color = "#1565c0"];
+    IGFR -> ACT [style = dashed];
+
+    /* --------------------------------------------------------------- 12 */
+    subgraph cluster_air {
+        label = "12 · upper airway — THE TWO CLOCKS: growth hormone arrives twice";
+        style = "filled"; fillcolor = "#e6f7fa"; fontsize = 13;
+        node [fillcolor = "#b6e4ee"];
+
+        LYMPH [label = "adenotonsillar /\nlymphoid volume\ntau ~ 20 d  (FAST)", style = "rounded,filled,bold",
+               fillcolor = "#f4a582", penwidth = 2.0];
+        ADAPT [label = "adaptation / involution\ntau ~ 100 d"];
+        UAR   [label = "upper airway\nresistance"];
+        OSA   [label = "OBSTRUCTIVE apnoea"];
+        CSA   [label = "CENTRAL apnoea\nhypothalamic chemoreflex\nworst in infancy"];
+        RMS   [label = "respiratory muscle\nstrength\ntau ~ 75 d  (SLOW)", style = "rounded,filled,bold",
+               fillcolor = "#92c5de", penwidth = 2.0];
+        CHEST [label = "chest wall compliance\nscoliosis / hypotonia"];
+        HYPOV [label = "nocturnal\nhypoventilation"];
+        HYPOX [label = "intermittent hypoxia\nhypoxic burden"];
+        AHI   [label = "AHI  (events/h)", style = "rounded,filled,bold", penwidth = 1.8];
+        FOSA  [label = "airway vulnerability\n(anatomy, tonsils,\nrespiratory infection)"];
+        WINDOW [label = "THE WINDOW IS EMERGENT, NOT FITTED\ntau_LYMPH 20 d  <  tau_RMS 75 d  <  tau_fat (months)\nAHI peaks at WEEKS 4-8 then falls below baseline.\nVulnerability multiplies the WINDOW, not the plateau:\n11.2 -> 22.1 -> 4.2 events/h.\n=> polysomnography before, and 6-8 weeks after, starting GH;\n   do not start GH during a respiratory infection.",
+                shape = note, fillcolor = "#e6ffff"];
+        SUDD  [label = "sudden death\n(highest in the first\n9 months of GH)", fillcolor = "#f7a8a8"];
+
+        LYMPH -> UAR [penwidth = 1.6]; LYMPH -> ADAPT [style = dashed];
+        ADAPT -> LYMPH [arrowhead = tee, penwidth = 1.6, label = "involution"];
+        UAR -> OSA; RMS -> OSA [arrowhead = tee, penwidth = 1.6];
+        CHEST -> HYPOV; RMS -> HYPOV [arrowhead = tee];
+        OSA -> AHI [penwidth = 1.6]; CSA -> AHI; HYPOV -> HYPOX; OSA -> HYPOX;
+        AHI -> HYPOX; FOSA -> OSA [penwidth = 1.6, color = "#c62828"];
+        HYPOX -> SUDD; AHI -> SUDD;
+        WINDOW -> AHI [style = dotted, arrowhead = none];
+    }
+    IGF1 -> LYMPH [penwidth = 2.0, color = "#c62828", label = "FAST clock"];
+    LFM -> RMS [penwidth = 2.0, color = "#1565c0", label = "SLOW clock"];
+    FM -> UAR [penwidth = 1.4, label = "neck / pharyngeal fat"];
+    IGF1 -> RMS [style = dashed];
+    IGF1 -> CSA [arrowhead = tee, style = dashed, label = "GH improves\ncentral apnoea"];
+
+    /* --------------------------------------------------------------- 13 */
+    subgraph cluster_glu {
+        label = "13 · glucose, insulin and the metabolic paradox";
+        style = "filled"; fillcolor = "#fdf0e6"; fontsize = 13;
+        node [fillcolor = "#f6cfae"];
+
+        BETA  [label = "pancreatic beta cell"];
+        KATPB [label = "K-ATP channel\nKir6.2 / SUR1\n(beta cell)"];
+        INS   [label = "INSULIN\nRELATIVELY LOW for\nthe degree of adiposity", style = "rounded,filled,bold", penwidth = 1.8];
+        PROI  [label = "PROINSULIN\naccumulates 2.09x\nPI:I ratio 2.5x", style = "rounded,filled,bold", penwidth = 1.8];
+        GLU   [label = "plasma glucose"];
+        EGP   [label = "hepatic glucose\nproduction"];
+        SI    [label = "insulin sensitivity"];
+        ADPN  [label = "ADIPONECTIN\nHIGH for fat mass\n(PWS 1.45x)"];
+        A1C   [label = "HbA1c"];
+        T2D   [label = "type 2 diabetes\nLOWER prevalence than\nBMI-matched obesity", fillcolor = "#f9dfc9"];
+        PARAD [label = "THE PARADOX IS ONE PARAMETER, NOT TWO:\nthe convertase that starves the satiety arms also\nthrottles proinsulin processing.  Model at MATCHED\n68% body fat: insulin 13.1 vs 15.2 uU/mL,\nadiponectin 6.1 vs 3.8 ug/mL.",
+                shape = note, fillcolor = "#fff7ee"];
+
+        BETA -> INS; KATPB -> BETA [label = "closed = secrete"];
+        PROI -> INS [label = "PC1/3"];
+        INS -> SI [style = dotted]; SI -> GLU [arrowhead = tee];
+        EGP -> GLU; INS -> EGP [arrowhead = tee]; GLU -> BETA [label = "+"];
+        GLU -> A1C; SI -> T2D [arrowhead = tee]; ADPN -> SI [label = "+"];
+        A1C -> T2D; PARAD -> INS [style = dotted, arrowhead = none];
+    }
+    PPINS -> PROI [penwidth = 1.6]; INS0 -> INS [penwidth = 1.4];
+    INS -> XA [arrowhead = tee, penwidth = 1.6, color = "#c07000",
+               label = "insulin is GHRELIN'S BRAKE —\nthe lesion reaches ghrelin\nTWICE, with opposite signs", constraint = false];
+    FM -> SI [arrowhead = tee]; FM -> ADPN [arrowhead = tee]; ADIP -> ADPN;
+    INS -> X5;
+
+    /* --------------------------------------------------------------- 14 */
+    subgraph cluster_gonad {
+        label = "14 · gonadal axis — MKRN3 loss advances the gate, the hypothalamic lesion lowers its amplitude";
+        style = "filled"; fillcolor = "#fdeeee"; fontsize = 13;
+        node [fillcolor = "#f4cdcd"];
+
+        KNDY  [label = "KNDy neuron\nkisspeptin / NKB / dynorphin"];
+        GNRH  [label = "GnRH neuron\nAMPLITUDE reduced"];
+        LH    [label = "LH / FSH"];
+        GONAD [label = "gonad\n(testis / ovary)"];
+        SEX   [label = "testosterone / oestradiol\nPWS ~0.22 of normal", style = "rounded,filled,bold", penwidth = 1.8];
+        HYPOG [label = "hypogonadotropic\nhypogonadism"];
+        CRYPT [label = "cryptorchidism ·\nhypoplastic genitalia"];
+        ADREN [label = "premature adrenarche\n(~15-30%)"];
+        CPP   [label = "central precocious\npuberty (~4%)"];
+        NONPR [label = "PUBERTY IN PWS IS:\nearly in ONSET (MKRN3 brake gone)\nlow in AMPLITUDE (hypothalamic lesion)\nand NON-PROGRESSIVE.\nBoth signs come from the SAME deletion.",
+                shape = note, fillcolor = "#fff5f5"];
+
+        KNDY -> GNRH [label = "+"]; GNRH -> LH; LH -> GONAD; GONAD -> SEX;
+        GNRH -> HYPOG [style = dotted]; HYPOG -> CRYPT;
+        KNDY -> CPP [style = dotted]; ADREN -> CPP [style = dotted];
+        NONPR -> GNRH [style = dotted, arrowhead = none];
+    }
+    MKRN3 -> KNDY [arrowhead = tee, penwidth = 1.6, color = "#7b5cbf",
+                   label = "MKRN3 is the BRAKE;\nlosing it ADVANCES the gate"];
+    SEX -> LFMT [penwidth = 1.4];
+
+    /* --------------------------------------------------------------- 15 */
+    subgraph cluster_msk {
+        label = "15 · growth, musculoskeletal, bone, thermoregulation, autonomic";
+        style = "filled"; fillcolor = "#fdf0f0"; fontsize = 13;
+        node [fillcolor = "#f2d5d5"];
+
+        GVEL  [label = "height velocity\nlarge GH-INDEPENDENT floor"];
+        HT    [label = "height / adult height", style = "rounded,filled,bold", penwidth = 1.8];
+        BA    [label = "bone age\nadvanced by sex steroid"];
+        EPI   [label = "epiphyseal fusion\nLATER in PWS =>\nlate GH still buys height"];
+        TONE  [label = "MUSCLE TONE\nneonatal hypotonia,\nnever fully resolving", style = "rounded,filled,bold", penwidth = 1.8];
+        MYO   [label = "myofibre cross-section\ntype I predominance"];
+        SCOL  [label = "scoliosis\nCobb angle"];
+        HIPD  [label = "hip dysplasia"];
+        BMD   [label = "bone mineral density\nZ-score"];
+        FRAC  [label = "fracture risk"];
+        TEMP  [label = "thermoregulatory\ninstability"];
+        PAIN  [label = "high pain threshold\nreduced vomiting reflex\n=> late presentation of\nfractures and gastric injury", fillcolor = "#f9dede"];
+        GASTR [label = "gastric dilatation /\nrupture, necrosis"];
+        SLEEP [label = "sleep architecture\nSOREMPs · reduced\nsleep efficiency"];
+        CANCEL [label = "SCOLIOSIS: GH raises growth velocity (worse)\nAND muscle tone (better).  Modelled, the two\nNEARLY CANCEL — 12.5 vs 12.7 deg at 14 y for\n+18 cm of height.  Which is what the trials found.",
+                shape = note, fillcolor = "#fff5f5"];
+
+        GVEL -> HT [penwidth = 1.6]; BA -> EPI; EPI -> GVEL [arrowhead = tee];
+        TONE -> MYO; TONE -> SCOL [arrowhead = tee]; GVEL -> SCOL [penwidth = 1.4, label = "+"];
+        TONE -> HIPD [arrowhead = tee]; BMD -> FRAC [arrowhead = tee];
+        PAIN -> GASTR [style = dotted]; PAIN -> FRAC [style = dotted];
+        CANCEL -> SCOL [style = dotted, arrowhead = none];
+    }
+    IGF1 -> GVEL [penwidth = 1.8, color = "#1565c0"];
+    SEX -> BA [penwidth = 1.4]; SEX -> GVEL [label = "pubertal spurt\ngated by sex steroid"];
+    SEX -> BMD [penwidth = 1.6]; LFM -> BMD [label = "mechanical loading"];
+    IGF1 -> BMD [style = dashed]; LFM -> TONE [style = dashed]; IGF1 -> TONE [style = dashed];
+    TONE -> ACT [penwidth = 1.4]; SEEK -> GASTR [style = dotted, label = "binge -> rupture"];
+    PVN -> TEMP [style = dotted]; PVN -> SLEEP [style = dotted]; PVN -> PAIN [style = dotted];
+
+    /* --------------------------------------------------------------- 16 */
+    subgraph cluster_pk {
+        label = "16 · drug pharmacokinetics (apparent, day-scale; AUC-calibrated)";
+        style = "filled"; fillcolor = "#e6f7f5"; fontsize = 13;
+        node [fillcolor = "#b2e0da"];
+
+        GHD   [label = "somatropin SC\n0.035 mg/kg/d\ndepot -> central"];
+        LAGD  [label = "long-acting GH\nweekly SC\n(lonapegsomatropin,\nsomatrogon)"];
+        CBD   [label = "carbetocin\nINTRANASAL 3.2 mg TID\nF ~ 0.055"];
+        DZD   [label = "diazoxide choline ER\n(DCCR) 5.1 mg/kg/d PO\nt1/2 ~ 28 h"];
+        SMD   [label = "setmelanotide SC\n3 mg/d"];
+        SGD   [label = "semaglutide SC\n2.4 mg weekly\nt1/2 ~ 7 d"];
+        OCD   [label = "octreotide LAR\n30 mg q28d IM"];
+        LVD   [label = "livoletide (AZP-531)\n60 ug/kg/d SC"];
+        TSD   [label = "testosterone enanthate\n100 mg q14d IM"];
+        MFD   [label = "metformin\n1500 mg/d PO"];
+        PULS  [label = "PULSATILITY MATTERS: a smooth day-scale\nsurrogate for daily somatropin needs a potency\nfactor < 1 to land on the observed +1.5 to +2 SDS\nof IGF-1 — pulsatile GH is more IGF-1-efficient\nper unit AUC than a flat exposure.",
+               shape = note, fillcolor = "#e6fffb"];
+        PULS -> GHD [style = dotted, arrowhead = none];
+    }
+
+    /* --------------------------------------------------------------- 17 */
+    subgraph cluster_pd {
+        label = "17 · drug targets — mapped onto WHICH ARM each one can reach";
+        style = "filled"; fillcolor = "#dff5f2"; fontsize = 13;
+        node [fillcolor = "#8fd4ca"];
+
+        TGHR  [label = "GHR agonism\n-> IGF-1, lean mass,\nheight, airway (both clocks)"];
+        TOXTR [label = "OXTR agonism\nBOTH sides of the synapse:\npost-synaptic satiety arm\n+ PRE-synaptic AgRP inhibition",
+               style = "rounded,filled,bold", penwidth = 2.0];
+        TV1A  [label = "V1a cross-activation\nthe reason the dose-response\nINVERTS", fillcolor = "#f0a0a0"];
+        TMC4R [label = "MC4R agonism\nENTERS ABOVE THE BLOCK\n=> bounded by oxytocin", fillcolor = "#cfe8e2"];
+        TKATP [label = "K-ATP opening\nAgRP neuron (wanted)\nAND beta cell (the AE)"];
+        TGLP1 [label = "GLP-1R agonism\nsatiety arm + AgRP inhibition\n+ gastric emptying"];
+        TSSTR [label = "SSTR2/5 agonism\nlowers ghrelin AND\nlowers GH secretion"];
+        TGHSR [label = "acyl-ghrelin antagonism\ntargets an ALREADY\nSATURATED arm"];
+        TAR   [label = "androgen receptor"];
+        TAMPK [label = "AMPK / hepatic\ninsulin sensitization"];
+        ORTHO [label = "THE PANEL IS NEARLY ORTHOGONAL TO ITS BIOMARKER:\n  carbetocin 3.2 mg TID   dHQ-CT -1.85   AG   +1.5%\n  DCCR 5.1 mg/kg          dHQ-CT -1.54   AG   +5.3%\n  setmelanotide 3 mg      dHQ-CT -0.30   AG   +0.5%\n  livoletide 60 ug/kg     dHQ-CT -0.21   AG:UAG -21.9%\n  octreotide LAR 30 mg    dHQ-CT -0.50   AG   -72.5%\nThe agents that move the ghrelin biomarker most move the\nendpoint least.  Octreotide is the extreme case, and it also\nsuppresses the one axis PWS already lacks.",
+                shape = note, fillcolor = "#eefffb"];
+        FIXED [label = "DCCR's efficacy and its hyperglycaemia are the SAME\nchannel in two tissues, so their ratio is fixed once by\nEDZ50/EDZI50 = 0.68.  No dose separates them; only a\ntissue-selective opener could.",
+               shape = note, fillcolor = "#fff8ee"];
+        OPT   [label = "CARBETOCIN'S OPTIMUM IS ANALYTIC:\nE(C) = E1·C/(K1+C) - E2·C/(K2+C)\nC* = [K1·sqrt(E2K2) - K2·sqrt(E1K1)] / [sqrt(E1K1) - sqrt(E2K2)]\n   = 1.21 ng/mL;   3.2 mg TID -> 2.06 ng/mL (98% of E(C*))\n   9.6 mg TID -> 6.19 ng/mL (62% of E(C*))\nThe useful range is bounded on BOTH sides, from V1a\ncross-activation alone and no dose-specific parameter.",
+                shape = note, fillcolor = "#fff0f0"];
+
+        TOXTR -> TV1A [style = dashed, label = "same molecule"];
+        ORTHO -> TGHSR [style = dotted, arrowhead = none];
+        FIXED -> TKATP [style = dotted, arrowhead = none];
+        OPT -> TV1A [style = dotted, arrowhead = none];
+    }
+
+    GHD -> TGHR; LAGD -> TGHR; CBD -> TOXTR; CBD -> TV1A;
+    DZD -> TKATP; SMD -> TMC4R; SGD -> TGLP1; OCD -> TSSTR;
+    LVD -> TGHSR; TSD -> TAR; MFD -> TAMPK;
+
+    TGHR -> GHR [penwidth = 1.8, color = "#00695c"];
+    TOXTR -> OXTR [penwidth = 2.0, color = "#7b1fa2"];
+    TV1A -> V1A [penwidth = 1.6, color = "#c62828"];
+    TMC4R -> MC4R [penwidth = 1.6, color = "#00695c"];
+    TKATP -> KATPN [penwidth = 1.8, color = "#00695c"];
+    TKATP -> KATPB [penwidth = 1.6, color = "#c62828", label = "the same channel,\nthe wrong tissue"];
+    TGLP1 -> X4 [penwidth = 1.6]; TGLP1 -> AGRPN [arrowhead = tee];
+    TGLP1 -> GE [arrowhead = tee];
+    TSSTR -> XA [arrowhead = tee, penwidth = 1.6];
+    TSSTR -> SOMAT [arrowhead = tee, penwidth = 1.6, color = "#c62828",
+                    label = "and suppresses the axis\nPWS already lacks"];
+    TGHSR -> OCC [arrowhead = tee, penwidth = 1.4];
+    TAR -> SEX [penwidth = 1.4]; TAMPK -> SI [penwidth = 1.4];
+
+    /* --------------------------------------------------------------- 18 */
+    subgraph cluster_end {
+        label = "18 · clinical endpoints";
+        style = "filled"; fillcolor = "#fdeef4"; fontsize = 13;
+        node [fillcolor = "#f7c6d9"];
+
+        HQCT  [label = "HQ-CT\nHyperphagia Questionnaire\nfor Clinical Trials  (0-36)",
+               style = "rounded,filled,bold", penwidth = 2.0];
+        PBF   [label = "% body fat"];
+        BMIZ  [label = "BMI / BMI z-score"];
+        HTSDS [label = "height SDS ·\nadult height"];
+        IGFS  [label = "IGF-1 SDS\n(target +1 to +2)"];
+        AHIE  [label = "AHI / oxygen\ndesaturation index"];
+        A1CE  [label = "HbA1c · OGTT"];
+        BMDZ  [label = "BMD Z-score"];
+        COBBE [label = "Cobb angle"];
+        BEHS  [label = "behaviour scale ·\nquality of life"];
+        MORT  [label = "mortality\n(respiratory · obesity ·\ngastric rupture · choking)", fillcolor = "#f6a8bd"];
+        PHASE [label = "Miller nutritional phase\n0 · 1a · 1b · 2a · 2b · 3 · 4"];
+        BIMOD [label = "THE ENDPOINT MAY BE THE WRONG SUMMARY:\nbecause SEEK is bistable, HQ-CT response should be\nBIMODAL (latched vs not) rather than shifted.  A trial\npowered on MEAN HQ-CT can succeed while every patient\nremains on the upper branch.",
+                shape = note, fillcolor = "#fff0f5"];
+
+        HQCT -> BIMOD [style = invis];
+        PBF -> BMIZ; PBF -> AHIE; PBF -> A1CE;
+        AHIE -> MORT; PBF -> MORT; COBBE -> MORT [style = dotted];
+        BMDZ -> MORT [style = dotted];
+    }
+    SEEK -> HQCT [penwidth = 2.0, color = "#c62828"];
+    DRV -> HQCT [penwidth = 1.6];
+    FM -> PBF [penwidth = 1.6]; LFM -> PBF [penwidth = 1.4];
+    HT -> HTSDS [penwidth = 1.6]; IGF1 -> IGFS [penwidth = 1.6];
+    AHI -> AHIE [penwidth = 1.6]; A1C -> A1CE; BMD -> BMDZ; SCOL -> COBBE;
+    BEH -> BEHS; GASTR -> MORT; SUDD -> MORT;
+    EI -> PHASE [style = dotted]; HQCT -> PHASE [style = dotted];
+
+    /* --------------------------------------------------------------- 19 */
+    subgraph cluster_env {
+        label = "19 · the food environment — the only intervention that changes which STATES EXIST";
+        style = "filled"; fillcolor = "#fffdea"; fontsize = 13;
+        node [fillcolor = "#f5efb8"];
+
+        SEC   [label = "FOOD SECURITY\nlocked storage · supervised meals ·\nno unsupervised access",
+               style = "rounded,filled,bold", penwidth = 2.0];
+        PRESC [label = "prescription\n~10-11 kcal/cm/d for\nmaintenance, 8-9 to reduce"];
+        TITR  [label = "caregiver titration\nto the growth chart"];
+        EXER  [label = "structured exercise\n(raises lean mass and\nactivity thermogenesis)"];
+        CUEEX [label = "cue exposure\n(visible food, unstructured\nsettings, transitions)"];
+        EARLY [label = "PRE-EMPTIVE security, before phase 3:\nonce a patient has latched, restoring STANDARD\nmanagement removes the fat but NOT the state\n(SEEK 0.71 -> 0.69 over 24 months).\nThe cheap moment is before they ever get there.",
+               shape = note, fillcolor = "#fffff0"];
+        TRIAL [label = "AND IT GATES THE PHARMACOLOGY:\nevery agent in cluster 17 was tested in patients with a\nSTABLE FOOD-SECURE ENVIRONMENT as an entry condition.\nIn a free-access environment the low state does not exist,\nso those effect sizes must not be extrapolated to families\nwho do not have one.",
+                shape = note, fillcolor = "#fffff0"];
+
+        SEC -> PRESC; PRESC -> TITR; SEC -> CUEEX [arrowhead = tee, penwidth = 1.8];
+        EARLY -> SEC [style = dotted, arrowhead = none];
+        TRIAL -> SEC [style = dotted, arrowhead = none];
+    }
+    CUEEX -> CUE [penwidth = 2.0, color = "#c62828"];
+    TITR -> OFFER [penwidth = 1.8, color = "#8b8b00"];
+    SEC -> SELFR [arrowhead = tee, penwidth = 1.8, color = "#8b8b00",
+                  label = "removes the food that\nREINFORCES the state"];
+    EXER -> ACT [penwidth = 1.4]; EXER -> LFMT [style = dashed];
+    SEC -> FRUST [penwidth = 1.4, label = "the cost side\nof the trade-off"];
+
+    /* --------------------------------------------------------------- 20 */
+    subgraph cluster_alg {
+        label = "20 · the model's algebra, stated so it can be checked";
+        style = "filled"; fillcolor = "#f0f0f0"; fontsize = 13;
+        node [shape = note, fillcolor = "#e0e0e0"];
+
+        ALG1 [label = "Eq. A  product loss of branch i\n  L_i = 1 - (1+eps_i)/(1+eps_i/PC13)\nEq. B  precursor accumulation\n  R_i = (1+eps_i)/(PC13+eps_i)\nL rises with eps; R FALLS with eps."];
+        ALG2 [label = "conservation:  flux + escape = S\n=> total immunoreactivity is EXACTLY\nindependent of PC13 (1.000000).\nThis is why plasma and CSF 'oxytocin'\nstudies in PWS disagree with each other."];
+        ALG3 [label = "satiety:  SAT = 1 / Σ (w_i / x_i)\nharmonic mean => the weakest arm\nrate-limits and cannot be rescued\nby over-driving an intact arm."];
+        ALG4 [label = "food-seeking:\n dS/dt = k_on·DRVe·(1-S)\n       + K_self(REINF)·S^4/(K^4+S^4)·(1-S)\n       - k_off·S·SAT\nthree fixed points at food-secure inputs;\nthe LOW one is annihilated at CUE* = 0.58."];
+        ALG5 [label = "energy:  dFM/dt = (EI - TEE - rho_L·dLFM/dt)/rho_F\nfat is the BUFFER, lean follows a developmental\ntarget => energy is exactly conserved and PWS's\nlean deficit is DERIVED, not imposed."];
+        ALG6 [label = "airway:  two first-order clocks on one output\ntau_fast (lymphoid, 20 d) << tau_slow (muscle, 75 d)\n=> a non-monotone AHI with a peak at weeks 4-8."];
+        ALG7 [label = "WHAT IS CALIBRATED vs WHAT IS DERIVED\ncalibrated to trial outcomes: the ghrelin arm weight\n(K = 0.10), OXTR Emax, K-ATP Emax.\nDERIVED from structure: the phase sequence, the airway\nwindow, the inverted carbetocin dose-response, the\nbiomarker/endpoint orthogonality, the bimodality\nprediction, and the 2.4x oxytocin-arm gain a next-\ngeneration agonist would have to reach."];
+
+        ALG1 -> ALG2 [style = invis]; ALG2 -> ALG3 [style = invis];
+        ALG3 -> ALG4 [style = invis]; ALG4 -> ALG5 [style = invis];
+        ALG5 -> ALG6 [style = invis]; ALG6 -> ALG7 [style = invis];
+    }
+}
