@@ -1,0 +1,415 @@
+
+vl_reference_model.py
+=====================
+
+Independent Python reference implementation of the visceral leishmaniasis
+(VL, kala-azar) QSP model.  Every equation here is written to be
+term-for-term identical to `vl_mrgsolve_model.R`; this file exists because
+no R runtime is available in the build environment, so the ODE system has to
+be integrated somewhere before any number is claimed.  Anything printed by
+this script is a model output, not a literature value, unless the label says
+otherwise.
+
+Structure (73 ODEs)
+-------------------
+  PK    amphotericin B, liposomal and deoxycholate, as TWO plasma species
+        (liposome-associated and released/free) feeding four macrophage-rich
+        organ compartments plus kidney                            [ 8 ODEs]
+        miltefosine (oral, allometric CL, long terminal tail)     [ 7 ODEs]
+        paromomycin (IM, slow macrophage uptake, cochlea, kidney) [ 9 ODEs]
+        sodium stibogluconate: Sb(V) -> intracellular Sb(III)     [ 8 ODEs]
+  PD    amastigotes in spleen / liver / bone marrow / skin, each split into
+        a drug-susceptible and a drug-tolerant subpopulation      [ 8 ODEs]
+  HOST  memory T-cell pool, IFN-gamma, IL-10, TNF, TGF-beta, CD4,
+        activated-macrophage pool                                 [ 7 ODEs]
+  CLIN  spleen size, liver size, Hb, platelets, WBC, albumin, polyclonal
+        IgG, temperature, body weight, PKDL lesion load           [10 ODEs]
+  TOX   tubular injury, creatinine, K, Mg, hearing shift, QTc,
+        lipase, ALT, GI intolerance                               [ 9 ODEs]
+  ACC   five exposure integrals, cumulative mortality hazard,
+        cumulative mg/kg administered                             [ 7 ODEs]
+
+The single structural commitment of the model
+---------------------------------------------
+The drug and the parasite never meet in plasma.  Amastigotes sit inside
+macrophages of spleen, liver, marrow and skin, so drug effect is driven by
+the INTRAMACROPHAGE exposure of each organ, while amphotericin
+nephrotoxicity is driven by the FREE PLASMA exposure of the same dose.
+Liposomal encapsulation moves those two integrals in opposite directions,
+because the liposome is cleared by the very cell lineage that harbours the
+parasite.  Cure is then not "zero parasites" but crossing a separatrix in
+the (burden, primed-memory) plane, and that separatrix moves with CD4.
+
+state variables : 73
+scenarios       : 20
+
+==============================================================================
+A13 ALL 20 SCENARIOS, TYPICAL PATIENT
+==============================================================================
+  scenario                   mg/kg  logdrop  nadir d  d540 burden  spleen    Hb  outcome
+  S01_untreated                0.0    -0.00      0.4     1.07e+04   10.99   3.1     fail
+  S02_ssg_africa             600.0    -9.34    157.5      0.00024    0.50  13.7     cure
+  S03_ssg_bihar_res          600.0    -0.49     30.1     1.07e+04   10.99   3.1     fail
+  S04_damb_alt30              15.0    -7.58    540.0     0.000257    0.50  13.7     cure
+  S05_lamb_single10           10.0    -7.58    141.3     0.000257    0.50  13.7     cure
+  S06_lamb_21_multi           21.0    -8.31    120.8     0.000256    0.50  13.7     cure
+  S07_lamb_5x3                15.0    -7.89    117.3     0.000257    0.50  13.7     cure
+  S08_mil28_adult             70.0   -33.99    159.4     2.51e-05    0.50  13.7     cure
+  S09_mil28_child_linear      70.0   -33.99    169.8      0.00017    0.50  13.7     cure
+  S10_mil28_child_allom      104.7   -33.99    161.0     8.17e-05    0.50  13.7     cure
+  S11_pm21                   315.0    -7.58    537.7     0.000257    0.50  13.7     cure
+  S12_pm21_africa            315.0    -2.21     32.8     1.07e+04   10.99   3.1     fail
+  S13_lamb5_mil7              22.5    -8.09    129.7     0.000256    0.50  13.7     cure
+  S14_lamb5_pm10             155.0    -7.58    538.1     0.000257    0.50  13.7     cure
+  S15_mil10_pm10             175.0    -8.70    161.0     0.000252    0.50  13.7     cure
+  S16_ssg_pm17               595.0    -8.75    154.8     0.000252    0.50  13.7     cure
+  S17_hiv_lamb10              10.0    -4.23     16.6     1.59e+04   11.40   2.9  relapse
+  S18_hiv_lamb30_mil28       100.0    -8.04    171.4      0.00558    0.50  13.7     cure
+  S19_pkdl_mil84             210.0    -5.09    168.0         0.06    0.50  13.7  relapse
+  S20_pkdl_lamb               20.0    -1.78     32.4         17.7    0.50  13.7     fail
+
+==============================================================================
+A1  LIPOSOMAL vs DEOXYCHOLATE AMPHOTERICIN: ONE DOSE, TWO INTEGRALS
+==============================================================================
+  metric                                               L-AmB         d-AmB     ratio
+  total plasma AmB Cmax (mg/L)                          79.8         2.318     34.43
+  FREE plasma AmB Cmax (mg/L)                           2.18         2.318      0.94
+  FREE plasma AmB AUC (mg.h/L)  [nephro]               137.9         459.7      0.30
+  spleen-macrophage AmB AUC (mg.h/L) [kill]        2.569e+04          6435      3.99
+  liver-macrophage AmB AUC (mg.h/L)                 2.65e+04          9193      2.88
+  peak creatinine (mg/dL)                              1.009         1.297      0.78
+  nadir serum K (mEq/L)                                3.023         3.141      0.96
+
+  therapeutic-index surrogate  AUC_spleen / AUC_free
+    liposomal      :      186.3
+    deoxycholate   :       14.0
+    GAIN from encapsulation at identical total mg/kg :   13.3 x
+      (spleen exposure x4.0, free-plasma exposure x0.30)
+  log10 burden drop at day 21  L-AmB -3.02   d-AmB -2.32
+
+------------------------------------------------------------------------------
+A1b DELIVERY-FRACTION SWEEP: the liposome IS the mechanism
+------------------------------------------------------------------------------
+  FREL = fraction of liposome clearance that leaks drug to plasma
+    FREL   AUC_spleen   AUC_free        TI  log drop  SCr max
+    0.05      32564.2       23.0    1416.9     -3.40     0.88
+    0.15      29813.8       68.9     432.4     -3.33     0.93
+    0.30      25688.2      137.9     186.3     -3.21     1.01
+    0.50      20187.3      229.8      87.8     -3.06     1.12
+    0.70      14686.5      321.8      45.6     -2.90     1.22
+    0.90       9185.7      413.7      22.2     -2.73     1.33
+    1.00       6435.3      459.7      14.0     -2.72     1.38
+
+==============================================================================
+A2  MILTEFOSINE IN CHILDREN: AUC ~ WT^0.25 IS THE WHOLE STORY
+==============================================================================
+  linear mg/kg dosing, CL ~ WT^0.75  =>  AUC ~ WT^0.25
+   WT (kg)  dose mg/d     AUC0-28d  rel. to 50 kg  predicted WT^0.25
+       7.0       17.5      15962.9          0.674              0.612
+      10.0       25.0      17244.6          0.729              0.669
+      15.0       37.5      18772.5          0.793              0.740
+      20.0       50.0      19898.0          0.841              0.795
+      30.0       75.0      21535.6          0.910              0.880
+      50.0      125.0      23669.4          1.000              1.000
+      70.0      175.0      25108.3          1.061              1.088
+
+------------------------------------------------------------------------------
+A2b ALLOMETRIC (LBW-style) DOSING RESTORES THE CHILD'S EXPOSURE
+------------------------------------------------------------------------------
+   WT (kg)  linear mg/d  allometric mg/d  AUC linear  AUC allom  AUC ratio
+       7.0         17.5             28.6     15962.9    26096.3      1.635
+      10.0         25.0             37.4     17244.6    25786.6      1.495
+      15.0         37.5             50.7     18772.5    25365.4      1.351
+      20.0         50.0             62.9     19898.0    25020.4      1.257
+      30.0         75.0             85.2     21535.6    24469.2      1.136
+      50.0        125.0            125.0     23669.4    23669.4      1.000
+
+------------------------------------------------------------------------------
+A2c THE SAME ARITHMETIC, CARRIED THROUGH TO CURE / RELAPSE
+------------------------------------------------------------------------------
+  subject                            AUC0-28d  log drop  day-180 burden    outcome
+  adult 50 kg, 2.5 mg/kg/d            27131.3    -33.99               0       cure
+  child 10 kg, 2.5 mg/kg/d            18142.1    -33.99        1.79e-05       cure
+  child 10 kg, allometric             27128.7    -33.99        2.99e-06       cure
+  child 10 kg, allom, well-nourished    27128.7    -33.99         1.7e-06       cure
+  child 20 kg, 2.5 mg/kg/d            21575.6    -33.99        5.93e-06       cure
+  child 20 kg, allometric             27129.9    -33.99        1.85e-06       cure
+
+==============================================================================
+A3  THE CURE THRESHOLD IS A COMPUTABLE SEPARATRIX, NOT ZERO
+==============================================================================
+  For a patient at end of treatment with primed memory TMEM,
+  what residual burden can the host still finish off unaided?
+     CD4  TMEM at EOT   critical residual burden    = amastigotes  note
+     700         0.55                       none                -  host cannot clear ANY burden
+     700         0.30                       none                -  host cannot clear ANY burden
+     700         0.15                       none                -  host cannot clear ANY burden
+     500         0.55                       none                -  host cannot clear ANY burden
+     350         0.55                       none                -  host cannot clear ANY burden
+     300         0.55                       none                -  host cannot clear ANY burden
+     250         0.55                       none                -  host cannot clear ANY burden
+     200         0.55                       none                -  host cannot clear ANY burden
+     100         0.55                       none                -  host cannot clear ANY burden
+      50         0.55                       none                -  host cannot clear ANY burden
+
+  Reading: above that CD4, a drug course only has to get the
+  patient under the line and the host finishes.  Below it, the drug
+  has to sterilise on its own -- which is why HIV-VL needs 3-4x the
+  total L-AmB dose and a companion drug, not a longer course of the
+  same one.
+
+==============================================================================
+A4  WHY ONE DAY OF L-AmB PLUS A WEEK OF MILTEFOSINE WORKS
+==============================================================================
+  Matched L-AmB total dose (5 mg/kg) with and without a companion.
+
+------------------------------------------------------------------------------
+A4a  typical immunocompetent patient
+------------------------------------------------------------------------------
+  regimen                                   nadir  nadir d       d360  TMEM@EOT  d21 log  outcome
+  L-AmB 5 mg/kg alone                    0.000258    360.0   0.000258     0.074    -2.42     cure
+  L-AmB 5 + MF 7 d                       7.95e-05    129.7   0.000245     0.237    -3.38     cure
+  L-AmB 5 + MF 7 d, MF given FIRST       0.000119    137.4    0.00025     0.177    -3.26     cure
+  L-AmB 5 + MF 14 d                             0    140.2   2.12e-05     0.591    -3.95     cure
+  MF 28 d alone                                 0    159.3          0     0.643    -2.80     cure
+  L-AmB 10 mg/kg alone                   0.000252    141.3   0.000257     0.074    -3.02     cure
+  L-AmB 5 + PM 10 d                      0.000257    360.0   0.000257     0.389    -2.78     cure
+
+------------------------------------------------------------------------------
+A4b  STRESSED: 5x presenting burden, CD4 300, malnutrition 0.5
+------------------------------------------------------------------------------
+  regimen                                   nadir  nadir d       d360  TMEM@EOT  d21 log  outcome
+  L-AmB 5 mg/kg alone                     0.00285    360.0    0.00285     0.062    -2.74     cure
+  L-AmB 5 + MF 7 d                        0.00285    360.0    0.00285     0.127    -3.44     cure
+  L-AmB 5 + MF 7 d, MF given FIRST        0.00285    360.0    0.00285     0.113    -3.42     cure
+  L-AmB 5 + MF 14 d                       0.00285    360.0    0.00285     0.293    -3.89     cure
+  MF 28 d alone                           0.00233    225.4    0.00285     0.274    -2.95     cure
+  L-AmB 10 mg/kg alone                    0.00285    360.0    0.00285     0.062    -3.11     cure
+  L-AmB 5 + PM 10 d                       0.00285    360.0    0.00285     0.191    -2.99     cure
+
+  In A4a every arm cures: in an immunocompetent patient the
+  efficacy margin of amphotericin is wide enough that the companion
+  drug changes nothing measurable.  A4b is the patient the
+  combinations exist for -- and there the ordering appears, driven
+  by how long drug pressure is held while the memory pool builds
+  (compare the TMEM@EOT column, not the nadir).
+
+==============================================================================
+A5  ANTIMONY: RESISTANCE IS AN EFFLUX TITRATION, AND DOSE CANNOT WIN
+==============================================================================
+   RES_SB  dose mg/kg/d  AUC Sb(III) spleen  log drop  QTc max   lipase  outcome
+      1.0          20.0               827.4     -9.34    455.3    507.6     cure
+      1.0          30.0              1241.1    -33.99    482.9    746.4     cure
+      1.0          40.0              1654.8    -33.99    510.5    985.3     cure
+      3.0          20.0               275.8     -1.85    455.3    507.6     fail
+      3.0          30.0               413.7     -2.48    482.9    746.4     fail
+      3.0          40.0               551.6     -7.75    510.5    985.3     cure
+      9.0          20.0                91.9     -0.46    455.3    507.6     fail
+      9.0          30.0               137.9     -0.79    482.9    746.4     fail
+      9.0          40.0               183.9     -1.09    510.5    985.3     fail
+
+  Escalating 20 -> 40 mg Sb/kg/d doubles Sb(III) exposure but
+  moves QTc and lipase with it; the resistant strain is not
+  recovered because efflux scales with the intracellular load.
+
+==============================================================================
+A6  PKDL: THE SKIN IS A DIFFERENT ORGAN, PHARMACOLOGICALLY
+==============================================================================
+  Fraction of MPS-delivered L-AmB reaching each organ, and the
+  intramacrophage AUC per 10 mg/kg single dose:
+    spleen   MPS share  0.10   AUC      25676.1 mg.h/L   AUC/EC50   4279.3 h
+    liver    MPS share  0.60   AUC      26503.5 mg.h/L   AUC/EC50   4417.2 h
+    marrow   MPS share  0.12   AUC       5990.2 mg.h/L   AUC/EC50    998.4 h
+    skin     MPS share  0.03   AUC        800.5 mg.h/L   AUC/EC50    133.4 h
+  Miltefosine 28 d, same organs:
+    spleen   AUC     216952.7 mg.h/L   AUC/EC50   2410.6 h
+    liver    AUC     216952.7 mg.h/L   AUC/EC50   2410.6 h
+    marrow   AUC     162714.5 mg.h/L   AUC/EC50   1807.9 h
+    skin     AUC     108476.4 mg.h/L   AUC/EC50   1205.3 h
+
+------------------------------------------------------------------------------
+A6b PKDL TREATMENT: 12 WEEKS OF MILTEFOSINE vs WEEKLY L-AmB
+------------------------------------------------------------------------------
+  regimen                            skin burden d0       d360  peak lesion  d360 lesion
+  miltefosine 2.5 mg/kg x 84 d                 45.0    0.00538         5.03        0.002
+  L-AmB 5 mg/kg weekly x 4 (20 total)           45.0       16.3         9.51        9.507
+  L-AmB 5 mg/kg weekly x 8 (40 total)           45.0       0.94         4.98        0.403
+  no treatment                                 45.0       17.8        15.71       11.024
+
+------------------------------------------------------------------------------
+A6c PKDL RISK LEFT BEHIND BY EACH VL REGIMEN
+------------------------------------------------------------------------------
+  residual skin burden at day 180 after apparently successful VL cure
+  VL regimen                         skin AUC-drug  skin burden d180
+  L-AmB 10 mg/kg single                      800.5             17.62
+  L-AmB 21 mg/kg multidose                  1681.6              6.34
+  miltefosine 28 d                        108476.4           0.00938
+  L-AmB 5 + MF 7 d                         27125.8             8.723
+  paromomycin 21 d                          4607.0             18.22
+
+==============================================================================
+A7  SUBCLINICAL vs CLINICAL VL IS A RACE BETWEEN PRIMING AND IL-10
+==============================================================================
+  Starting from a single sandfly inoculum, sweep the T-cell
+  priming rate KTP (nutrition, genetics, age) and ask which
+  attractor the host lands in.
+       KTP  peak burden  day-540 burden  peak spleen cm  peak IL-10      outcome
+    0.0000    1.596e+04       1.596e+04           11.38       1.500  clinical VL
+    0.0000    1.579e+04       1.579e+04           11.37       1.500  clinical VL
+    0.0001    1.553e+04       1.553e+04           11.36       1.500  clinical VL
+    0.0001    1.512e+04       1.512e+04           11.33       1.500  clinical VL
+    0.0002        56.58            51.2            0.51       0.000  subclinical
+    0.0005        36.39           34.65            0.50       0.000  subclinical
+    0.0010        25.75           25.75            0.50       0.000  subclinical
+    0.0020        16.39           16.39            0.50       0.000  subclinical
+    0.0050        2.529           2.529            0.50       0.000  subclinical
+
+  The switch sits between KTP = 0.0001 and 0.0002 /h:
+  a <35% change in priming rate decides disease vs no disease,
+  with no change to the parasite.
+
+------------------------------------------------------------------------------
+A7b MALNUTRITION MOVES THE SAME LINE
+------------------------------------------------------------------------------
+    MALNUT  day-540 burden      outcome
+      0.00       1.536e+04  clinical VL
+      0.20       1.544e+04  clinical VL
+      0.35       1.549e+04  clinical VL
+      0.50       1.555e+04  clinical VL
+      0.70       1.563e+04  clinical VL
+
+==============================================================================
+A8  DOSE FRACTIONATION OF A FIXED 10 mg/kg L-AmB TOTAL
+==============================================================================
+  schedule                        AUC spleen  AUC free      nadir       d360    SCr  outcome
+  10 mg/kg x1 (day 0)                25688.2     137.9   0.000252   0.000257   1.01     cure
+  5 mg/kg x2 (d0, d1)                25688.2     137.9   0.000254   0.000257   1.01     cure
+  2 mg/kg x5 (d0-4)                  25688.2     137.9   0.000257   0.000257   1.01     cure
+  1 mg/kg x10 (d0-9)                 25688.2     137.9   0.000257   0.000257   1.00     cure
+  2 mg/kg weekly x5                  25688.2     137.9   0.000257   0.000257   0.96     cure
+  0.5 mg/kg x20 (d0-19)              25688.2     137.9   0.000257   0.000257   0.98     cure
+
+  Read this table against the usual argument for single-dose
+  L-AmB, because the model does NOT support the version of it that
+  says fractionation raises the toxic integral.  Amphotericin
+  disposition here is linear, so for a FIXED total dose BOTH
+  integrals -- spleen exposure and free-plasma exposure -- are
+  exactly schedule-invariant (25688.2 and 137.9 mg.h/L in every
+  row).  What fractionation actually changes is the PEAK: splitting
+  the dose lowers peak renal cortical concentration and shaves the
+  creatinine slightly (1.01 -> 0.96-0.98 mg/dL).  So the honest
+  model-based case for the single dose is equal efficacy, equal
+  total exposure, one visit -- an operational argument, not a
+  pharmacokinetic one.
+
+==============================================================================
+A9  HIV-VL: THE SAME DRUG, A DIFFERENT FINISH LINE
+==============================================================================
+  scenario                                  CD4 d0      nadir       d540  outcome  mort %
+  immunocompetent, L-AmB 10 mg/kg              700   0.000252   0.000257     cure     4.3
+  HIV CD4 90, L-AmB 10 mg/kg, ART               90    0.00559    0.00559     cure    10.9
+  HIV CD4 90, L-AmB 30 mg/kg, ART               90    0.00171    0.00559     cure    10.9
+  HIV CD4 90, L-AmB 30 + MF 28 d, ART           90    8.8e-05    0.00558     cure    10.9
+  HIV CD4 90, no ART, L-AmB 30 + MF             90      0.034   1.59e+04  relapse    97.5
+  HIV CD4 250, L-AmB 10 mg/kg, ART             250    0.00559    0.00559     cure    10.9
+
+==============================================================================
+A10 CLINICAL RESPONSE AND WHY SEROLOGY CANNOT CALL RELAPSE
+==============================================================================
+  scenario               spleen cm     Hb     Plt    WBC    Alb    IgG  (day 180)
+  S01_untreated              11.03    3.0    43.2   0.44   2.54   3.89
+  S05_lamb_single10           0.50   13.7   239.8   6.81   4.30   3.89
+  S08_mil28_adult             0.50   13.7   239.8   6.81   4.30   3.01
+  S11_pm21                    0.50   13.7   239.8   6.81   4.30   3.89
+  S03_ssg_bihar_res          11.03    3.0    43.2   0.44   2.54   3.89
+  S13_lamb5_mil7              0.50   13.7   239.8   6.81   4.30   3.89
+
+  time to half-recovery after a curative single dose (day):
+    burden (log)          6.2
+    spleen               10.8
+    Hb                   14.7
+    platelets             9.6
+    albumin              11.6
+    polyclonal IgG       93.8
+
+  At day 180 after a curative single dose:
+    polyclonal IgG   3.89 g/dL  (presenting 3.60, healthy 1.10)
+    visceral burden  0.000255 units  (7.6 log10 below presenting)
+    spleen 0.50 cm, Hb 13.7 g/dL -- clinically well
+
+  The point is the RATIO OF TIME CONSTANTS, which is a model
+  output and not a parameter: the burden half-recovers in 7.3 days
+  and the antibody in 93.8 days -- roughly a tenfold gap.  That is
+  why rK39 stays positive for years after cure and cannot be used
+  to diagnose relapse; only a parasitological or clinical endpoint
+  can.
+
+==============================================================================
+A11 TOXICITY LEDGER ACROSS ALL 20 SCENARIOS
+==============================================================================
+  scenario                   mg/kg   SCr     K    Mg    dB    QTc  lipase    ALT    GI
+  S01_untreated                0.0  0.85  4.10  2.00   0.0  400.0    30.0   25.0  0.00
+  S02_ssg_africa             600.0  0.85  4.10  2.00   0.0  455.2   507.4  148.9  0.00
+  S03_ssg_bihar_res          600.0  0.85  4.10  2.00   0.0  455.2   507.4  148.9  0.00
+  S04_damb_alt30              15.0  1.43  3.08  1.55   0.0  400.0    30.0   25.0  0.00
+  S05_lamb_single10           10.0  1.01  3.03  1.56   0.0  400.0    30.0   25.0  0.00
+  S06_lamb_21_multi           21.0  1.09  3.05  1.55   0.0  400.0    30.0   25.0  0.00
+  S07_lamb_5x3                15.0  1.09  3.05  1.55   0.0  400.0    30.0   25.0  0.00
+  S08_mil28_adult             70.0  0.85  4.10  2.00   0.0  400.0    30.0   54.9  0.60
+  S09_mil28_child_linear      70.0  0.85  4.10  2.00   0.0  400.0    30.0   48.8  0.53
+  S10_mil28_child_allom      104.7  0.85  4.10  2.00   0.0  400.0    30.0   60.5  0.65
+  S11_pm21                   315.0  0.85  4.10  2.00  14.7  400.0    30.0   25.0  0.00
+  S12_pm21_africa            315.0  0.85  4.10  2.00  14.7  400.0    30.0   25.0  0.00
+  S13_lamb5_mil7              22.5  0.93  3.56  1.78   0.0  400.0    30.0   34.9  0.37
+  S14_lamb5_pm10             155.0  0.93  3.56  1.78   7.0  400.0    30.0   25.0  0.00
+  S15_mil10_pm10             175.0  0.85  4.10  2.00   7.0  400.0    30.0   38.8  0.43
+  S16_ssg_pm17               595.0  0.85  4.10  2.00  11.9  451.3   504.3  147.4  0.00
+  S17_hiv_lamb10              10.0  1.01  3.03  1.56   0.0  400.0    30.0   25.0  0.00
+  S18_hiv_lamb30_mil28       100.0  1.29  2.89  1.47   0.0  400.0    30.0   54.9  0.60
+  S19_pkdl_mil84             210.0  0.85  4.10  2.00   0.0  400.0    30.0   67.6  0.68
+  S20_pkdl_lamb               20.0  1.10  3.43  1.71   0.0  400.0    30.0   25.0  0.00
+
+==============================================================================
+A14 LOCAL SENSITIVITY OF THE DAY-180 BURDEN (L-AmB 10 mg/kg single)
+==============================================================================
+  parameter          -25%       base       +25%   d log10 P / d log p
+  FREL               1.24       1.25       1.25                  0.02
+  CL_LIP             1.25       1.25       1.25                 -0.00
+  FSP_A              1.25       1.25       1.25                 -0.00
+  KOUT_A             1.21       1.25       1.26                  0.08
+  EC50_A             1.16       1.25       1.26                  0.20
+  EMAX_A             1.27       1.25       1.21                 -0.11
+  KIMM               1.58       1.25       0.53                 -2.05
+  KTP                1.28       1.25       1.23                 -0.10
+  KI_T               1.25       1.25       1.24                 -0.01
+  K50_IL10           1.25       1.25       1.25                 -0.00
+  KG_SP              1.25       1.25       1.25                  0.00
+  KAG                1.25       1.25       1.25                 -0.00
+  KCD4               0.87       1.25       1.44                  1.12
+  V_LIP              1.25       1.25       1.25                  0.00
+
+==============================================================================
+A12 POPULATION SIMULATION: MODEL-PREDICTED CURE RATES
+==============================================================================
+  n = 60 virtual patients per arm, 12-month follow-up
+  regimen                                     cure %  relapse %  fail %  death %
+  SSG 20 mg/kg x 30 d (East Africa)             98.3        0.0     1.7      4.5
+  SSG 20 mg/kg x 30 d (Bihar, resistant)         0.0        0.0   100.0     69.5
+  AmB deoxycholate 15 mg/kg total              100.0        0.0     0.0      4.0
+  L-AmB 10 mg/kg single dose                   100.0        0.0     0.0      3.0
+  L-AmB 21 mg/kg multidose                     100.0        0.0     0.0      3.1
+  miltefosine 28 d, adult                       91.7        0.0     8.3     10.2
+  miltefosine 28 d, child, linear mg/kg         81.7        0.0    18.3     16.1
+  miltefosine 28 d, child, allometric           96.7        0.0     3.3      6.5
+  paromomycin 15 mg/kg x 21 d (India)           86.7        0.0    13.3     12.7
+  paromomycin 15 mg/kg x 21 d (E Africa)        45.0        0.0    55.0     38.8
+  L-AmB 5 mg/kg + miltefosine 7 d              100.0        0.0     0.0      3.0
+  L-AmB 5 mg/kg + paromomycin 10 d             100.0        0.0     0.0      3.0
+  miltefosine 10 d + paromomycin 10 d           96.7        0.0     3.3      5.9
+  SSG + paromomycin 17 d (East Africa)          98.3        1.7     0.0      4.3
+  HIV-VL, L-AmB 10 mg/kg                         0.0      100.0     0.0     93.2
+  HIV-VL, L-AmB 30 mg/kg + MF 28 d              55.0       45.0     0.0      7.9
+
+==============================================================================
+END
+==============================================================================

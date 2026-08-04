@@ -1,0 +1,512 @@
+/* ===========================================================================
+   vl_qsp_model.dot
+   Visceral Leishmaniasis (kala-azar) — mechanistic QSP map
+   내장 리슈만편모충증(칼라아자르) — 기계론적 QSP 지도
+
+   The organising idea of the map
+     Read it as three horizontal bands.  The TOP band is where the drug is
+     (plasma).  The BOTTOM band is where the parasite is (inside macrophages
+     of spleen, liver, marrow, skin).  Everything interesting happens in the
+     MIDDLE band — the delivery step — because that step is different for
+     every one of the four antileishmanial drugs, and the therapeutic index
+     of each drug is decided there, not at its molecular target.
+
+   Reading order
+      1  vector, inoculum, and the neutrophil "Trojan horse"
+      2  entry into the macrophage and construction of the niche
+      3  macrophage effector arm — the killing the drug is trying to restore
+      4  adaptive immunity: the priming-vs-IL-10 race that decides disease
+      5  the four organ compartments, with their own drug access
+      6  amphotericin B: the liposome as a targeting device
+      7  amphotericin B molecular action and its renal cost
+      8  miltefosine: oral, allometric, long-tailed, dermotropic
+      9  paromomycin: slow in, slow out, and the cochlea
+     10  pentavalent antimony: prodrug reduction and thiol-dependent efflux
+     11  drug tolerance and resistance mechanisms
+     12  haematology — hypersplenism plus marrow occupancy
+     13  systemic disease and the mortality pathway
+     14  HIV co-infection: the finish line moves
+     15  post-kala-azar dermal leishmaniasis (PKDL)
+     16  diagnosis, test of cure, and why serology cannot call relapse
+     17  clinical endpoints and toxicity grading
+     18  pipeline agents and immunotherapy
+
+   Colour key
+     vector / parasite ......... pale green
+     macrophage / niche ........ light blue
+     innate effector ........... periwinkle
+     adaptive immunity ......... lavender
+     organ compartment ......... wheat
+     amphotericin B ............ salmon
+     miltefosine ............... light coral / peach
+     paromomycin ............... pale turquoise
+     antimony .................. khaki
+     resistance ................ grey
+     haematology ............... thistle
+     toxicity .................. light pink
+     endpoints ................. pink
+     pipeline .................. honeydew
+   =========================================================================== */
+
+digraph VL_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.22, ranksep=0.52,
+           fontname="Helvetica", fontsize=11, compound=true,
+           label=<<B>Visceral Leishmaniasis (Kala-azar) — Quantitative Systems Pharmacology Map</B><BR/>
+                  <FONT POINT-SIZE="11">내장 리슈만편모충증 QSP 기계론적 지도 · 73-ODE mrgsolve model · 4 organ compartments × 4 drugs</FONT><BR/>
+                  <FONT POINT-SIZE="10">solid arrow = mass flux / causal activation &#160;·&#160; dashed = modulation &#160;·&#160; red T-bar = inhibition &#160;·&#160; blue = drug delivery step</FONT>>,
+           labelloc="t"];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+           color="#555555", penwidth=1.0];
+    edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.65];
+
+    /* ================================================================ 1
+       Vector, inoculum, and the neutrophil Trojan horse
+       ================================================================ */
+    subgraph cluster_vector {
+        label=<<B>1 · Vector and inoculum</B><BR/><FONT POINT-SIZE="9">매개체와 접종량</FONT>>;
+        style="rounded,filled"; fillcolor="#EAF7E9"; color="#7FAF7F";
+        SANDFLY   [label="Phlebotomus argentipes / P. orientalis\nLutzomyia longipalpis (New World)\n모래파리 매개체", fillcolor="#D6EFD3"];
+        METACYC   [label="Metacyclogenesis in the fly gut\nprocyclic → metacyclic promastigote\nLPG side-chain elongation", fillcolor="#D6EFD3"];
+        BLOODMEAL [label="Bloodmeal / regurgitation\ninoculum 10–10⁵ metacyclics\n(highly variable, dose matters)", fillcolor="#D6EFD3"];
+        PPG       [label="Promastigote secretory gel (PSG)\nfilamentous proteophosphoglycan\nretains parasites at bite site", fillcolor="#D6EFD3"];
+        SALIVA    [label="Sandfly saliva\nmaxadilan, apyrase, hyaluronidase\nvasodilation + Th2 skew", fillcolor="#D6EFD3"];
+        PROMAST   [label="Metacyclic promastigote\nin dermis", fillcolor="#C4E8C0"];
+        NEUTRO    [label="Early neutrophil influx (0–6 h)\napoptotic PMN engulfed by macrophage\n= silent \"Trojan horse\" entry", fillcolor="#D6EFD3"];
+        COMPL     [label="Complement C3b / iC3b opsonisation\nLPG + GP63 resist lysis (C5b-9)", fillcolor="#D6EFD3"];
+        SANDFLY -> METACYC -> BLOODMEAL -> PROMAST;
+        BLOODMEAL -> PPG -> PROMAST;
+        BLOODMEAL -> SALIVA;
+        PROMAST -> NEUTRO;
+        PROMAST -> COMPL;
+    }
+
+    /* ================================================================ 2
+       Macrophage entry and construction of the intracellular niche
+       ================================================================ */
+    subgraph cluster_niche {
+        label=<<B>2 · Macrophage entry and the intracellular niche</B><BR/><FONT POINT-SIZE="9">대식세포 침입과 세포내 생존 지위</FONT>>;
+        style="rounded,filled"; fillcolor="#E8F1FB"; color="#7A9CC6";
+        CR3       [label="CR3 (CD11b/CD18), CR1, FcγR,\nmannose receptor, TLR2\nreceptor-mediated uptake", fillcolor="#D3E4F7"];
+        PHAGO     [label="Phagosome formation", fillcolor="#D3E4F7"];
+        LPG       [label="Lipophosphoglycan (LPG)\ndelays phagosome maturation,\nscavenges ROS, blocks PKC", fillcolor="#D3E4F7"];
+        GP63      [label="GP63 / leishmanolysin (zinc MMP)\ncleaves SNAREs, PTP, mTOR,\ndegrades C3b and AMPs", fillcolor="#D3E4F7"];
+        PLYSO     [label="Parasitophorous vacuole\nacidic pH 4.5–5.5, 37 °C\n→ signal for amastigote conversion", fillcolor="#C0D8F2"];
+        AMAST     [label="AMASTIGOTE\nnon-motile, obligate intracellular\ndoubling time ≈ 3–5 d in vivo", fillcolor="#A8C8EE"];
+        SHP1      [label="SHP-1 / PTP1B recruitment\ndephosphorylates JAK2, MAPK\n→ IFN-γ signalling blunted", fillcolor="#D3E4F7"];
+        SOCS      [label="SOCS-1/3 induction\nnegative feedback on STAT1", fillcolor="#D3E4F7"];
+        MIR       [label="Host miR-21, miR-155 modulation\nreprograms macrophage metabolism", fillcolor="#D3E4F7"];
+        NEUTRO -> CR3; COMPL -> CR3;
+        PROMAST -> CR3;
+        CR3 -> PHAGO -> PLYSO -> AMAST;
+        LPG -> PHAGO [style=dashed, color="#B03030", arrowhead=tee];
+        GP63 -> PHAGO [style=dashed, color="#B03030", arrowhead=tee];
+        AMAST -> LPG [style=dashed]; AMAST -> GP63 [style=dashed];
+        AMAST -> SHP1 -> SOCS;
+        AMAST -> MIR;
+    }
+
+    /* ================================================================ 3
+       Macrophage effector arm — the killing the drug tries to restore
+       ================================================================ */
+    subgraph cluster_effector {
+        label=<<B>3 · Innate effector arm — the host killing mechanism</B><BR/><FONT POINT-SIZE="9">대식세포 살상 기전 (모델의 KIMM·MACT)</FONT>>;
+        style="rounded,filled"; fillcolor="#EDEFFB"; color="#8385C0";
+        IFNGR     [label="IFN-γ receptor → JAK1/2 → STAT1", fillcolor="#DCDEF7"];
+        INOS      [label="iNOS (NOS2) induction\nL-arginine → NO", fillcolor="#DCDEF7"];
+        NO        [label="Nitric oxide + peroxynitrite\nthe dominant amastigote-killing effector", fillcolor="#C9CCF2"];
+        ARG1      [label="Arginase-1 (IL-4/IL-10-driven)\nsteals L-arginine → polyamines\n→ FEEDS the parasite", fillcolor="#DCDEF7"];
+        ROS       [label="NADPH oxidase (NOX2) ROS\nearly, partially LPG-resistant", fillcolor="#DCDEF7"];
+        NRAMP     [label="NRAMP1 (SLC11A1) iron efflux\nfrom phagosome; host genetics", fillcolor="#DCDEF7"];
+        AUTOPH    [label="Autophagy / LC3-associated\nphagocytosis", fillcolor="#DCDEF7"];
+        MACT      [label="MACT — activated-macrophage state\n(model state MPHA, 0–1)\nkill rate = KIMM × MACT", fillcolor="#B4B8EC", shape=box3d];
+        TRYPTH    [label="Parasite trypanothione / TryR\nT(SH)₂ detoxifies ROS and RNS", fillcolor="#DCDEF7"];
+        IFNGR -> INOS -> NO -> MACT;
+        ROS -> MACT; NRAMP -> MACT; AUTOPH -> MACT;
+        ARG1 -> INOS [style=dashed, color="#B03030", arrowhead=tee];
+        ARG1 -> AMAST [style=dashed, label="polyamines"];
+        TRYPTH -> NO [style=dashed, color="#B03030", arrowhead=tee];
+        AMAST -> TRYPTH [style=dashed];
+        MACT -> AMAST [color="#1F6FB2", penwidth=1.6, label="killing"];
+    }
+
+    /* ================================================================ 4
+       Adaptive immunity: the race that decides disease vs no disease
+       ================================================================ */
+    subgraph cluster_adaptive {
+        label=<<B>4 · Adaptive immunity — the priming vs IL-10 race (model claim 4)</B><BR/><FONT POINT-SIZE="9">획득면역: 프라이밍과 IL-10의 경쟁이 발병을 결정</FONT>>;
+        style="rounded,filled"; fillcolor="#F1EDFB"; color="#9285C0";
+        DC        [label="Dermal / splenic dendritic cell\nantigen presentation, IL-12p70", fillcolor="#E4DCF7"];
+        IL12      [label="IL-12 → Th1 commitment", fillcolor="#E4DCF7"];
+        CD4T      [label="CD4⁺ T cell pool\n(model state CD4, cells/µL)", fillcolor="#E4DCF7"];
+        TMEM      [label="TMEM — primed effector/memory pool\n(model state TMEM)\nbuilt at KTP, decays t½ ≈ 192 d, cap 2.0", fillcolor="#D2C6F2", shape=box3d];
+        IFNG      [label="IFN-γ (model state IFNG)\nrequires BOTH antigen and TMEM", fillcolor="#D2C6F2"];
+        TNFA      [label="TNF-α (model state TNFA)\ndrives fever and cachexia", fillcolor="#E4DCF7"];
+        IL10      [label="IL-10 (model state IL10)\nproduced only at HIGH burden, and only\nfrom the VISCERA (sigmoid, K50 = 60):\nPKDL patients are not immunosuppressed", fillcolor="#CBB8EE", shape=box3d];
+        IL10SRC   [label="IL-10 sources\nCD4⁺CD25⁻Foxp3⁻ Tr1, Treg,\nCD8 T, B cells, macrophage", fillcolor="#E4DCF7"];
+        TGFB      [label="TGF-β (model state TGFB)", fillcolor="#E4DCF7"];
+        PD1       [label="PD-1/PD-L1, CTLA-4, LAG-3\nT-cell exhaustion at high burden", fillcolor="#E4DCF7"];
+        IL27      [label="IL-27, IL-21, IL-32\nsecondary regulatory network", fillcolor="#E4DCF7"];
+        ANERGY    [label="Leishmanin (Montenegro) skin test\nNEGATIVE in active VL,\nCONVERTS after cure = TMEM readout", fillcolor="#E4DCF7"];
+        BCELL     [label="Polyclonal B-cell activation\nhypergammaglobulinaemia,\nrK39 antibody", fillcolor="#E4DCF7"];
+        AMAST -> DC -> IL12 -> CD4T;
+        CD4T -> TMEM [label="KTP · antigen · CD4/(CD4+K)"];
+        TMEM -> IFNG -> IFNGR;
+        CD4T -> IFNG; AMAST -> TNFA;
+        AMAST -> IL10SRC -> IL10;
+        IL10 -> TMEM [style=dashed, color="#B03030", arrowhead=tee, label="1/(1+IL10/KI_T)"];
+        IL10 -> MACT [style=dashed, color="#B03030", arrowhead=tee];
+        TGFB -> MACT [style=dashed, color="#B03030", arrowhead=tee];
+        IL10 -> ARG1 [style=dashed];
+        IL10SRC -> TGFB; IL10 -> PD1; PD1 -> IFNG [style=dashed, color="#B03030", arrowhead=tee];
+        IL10 -> IL27 [style=dashed];
+        TMEM -> ANERGY [style=dashed];
+        AMAST -> BCELL;
+        CD4T -> BCELL [style=dashed];
+    }
+
+    /* ================================================================ 5
+       The four organ compartments — each with its own drug access
+       ================================================================ */
+    subgraph cluster_organs {
+        label=<<B>5 · Four macrophage compartments, four different drug accesses</B><BR/><FONT POINT-SIZE="9">네 개 대식세포 구획 — 약물 접근성이 서로 다르다</FONT>>;
+        style="rounded,filled"; fillcolor="#FBF3E3"; color="#C0A070";
+        SPLEEN    [label="SPLEEN — red pulp macrophage\nP_SP_S / P_SP_R\nPmax 3×10⁹, V 0.25 L, MPS share 0.10", fillcolor="#F5E4C3", shape=box3d];
+        LIVER     [label="LIVER — Kupffer cell granuloma\nP_LI_S / P_LI_R\nPmax 10¹⁰, V 1.5 L, MPS share 0.60", fillcolor="#F5E4C3", shape=box3d];
+        MARROW    [label="BONE MARROW — stromal macrophage\nP_BM_S / P_BM_R\nPmax 3×10⁹, V 1.5 L, MPS share 0.12", fillcolor="#F5E4C3", shape=box3d];
+        SKIN      [label="DERMIS — dermal macrophage\nP_SK_S / P_SK_R\nPmax 10⁸, V 3.0 L, MPS share 0.03\nimmune killing only 0.12 × systemic", fillcolor="#F5E4C3", shape=box3d];
+        LN        [label="Draining lymph node,\nmesenteric nodes, lung MPS\n(sink, not tracked)", fillcolor="#F5E4C3"];
+        GRANU     [label="Hepatic granuloma maturation\nKupffer + monocyte + T cell;\nefficient in liver, FAILS in spleen", fillcolor="#F5E4C3"];
+        SPLDIS    [label="Splenic architecture disruption\nmarginal-zone macrophage loss,\nfollicular disorganisation,\nstromal remodelling (TNF-dependent)", fillcolor="#F5E4C3"];
+        MIGR      [label="ASYMMETRIC trafficking\nspleen/liver/marrow redistribute freely\n(KMIG 2×10⁻⁴ /h) but the dermis only\nRECEIVES (3×10⁻⁶ in, 3×10⁻⁷ out):\ndermal macrophages are resident.\nThis is why PKDL seeds transmission\nbut rarely seeds relapse.", fillcolor="#F5E4C3"];
+        AMAST -> SPLEEN; AMAST -> LIVER; AMAST -> MARROW; AMAST -> SKIN;
+        SPLEEN -> MIGR -> LIVER; MIGR -> MARROW; MIGR -> SKIN;
+        LIVER -> GRANU; GRANU -> LIVER [style=dashed, color="#B03030", arrowhead=tee, label="control"];
+        SPLEEN -> SPLDIS; SPLDIS -> GRANU [style=dashed, color="#B03030", arrowhead=tee];
+        SKIN -> LN [style=dashed];
+    }
+
+    /* ================================================================ 6
+       Amphotericin B — the liposome as a targeting device (claim 1)
+       ================================================================ */
+    subgraph cluster_amb_pk {
+        label=<<B>6 · Amphotericin B — the liposome IS the targeting mechanism (claim 1)</B><BR/><FONT POINT-SIZE="9">암포테리신 B — 리포솜 자체가 표적화 장치</FONT>>;
+        style="rounded,filled"; fillcolor="#FDEDE9"; color="#C08070";
+        LAMBDOSE  [label="Liposomal AmB (AmBisome) IV\n10 mg/kg × 1  or  3 mg/kg × 7", fillcolor="#FAD9D1"];
+        DAMBDOSE  [label="AmB deoxycholate IV\n1 mg/kg on alternate days × 30", fillcolor="#FAD9D1"];
+        ALIP      [label="A_LIP — intact liposome in plasma\nV = 0.10 L/kg (≈ plasma volume)\nCL = 0.50 L/h/70 kg", fillcolor="#F7C6BA", shape=box3d];
+        AFRE      [label="A_FRE — released / albumin- and\nLDL-bound AmB, V 0.50 L/kg,\nCL 1.40 L/h/70 kg", fillcolor="#F7C6BA", shape=box3d];
+        REL       [label="Liposome leakage\nFREL = 0.30 of liposome CL", fillcolor="#FAD9D1"];
+        MPSUP     [label="MPS PHAGOCYTOSIS of the liposome\n(1 − FREL) = 0.70 of liposome CL\n→ delivered INTO the infected cell", fillcolor="#EFA898", shape=box3d];
+        APER      [label="A_PER — peripheral tissue AmB\nV 3.0 L/kg", fillcolor="#FAD9D1"];
+        AMBSP     [label="AMB_SP / AMB_LI / AMB_BM / AMB_SK\nintramacrophage AmB\navailable-fraction egress t½ ≈ 3.5 d", fillcolor="#F7C6BA", shape=box3d];
+        AMBKID    [label="AMB_KID — renal cortex AmB\ndriven by FREE plasma drug only", fillcolor="#F7C6BA"];
+        KPPART    [label="Passive partition from free drug\nKp: liver 20, spleen 14, marrow 9,\nkidney 8, SKIN only 1.5", fillcolor="#FAD9D1"];
+        LAMBDOSE -> ALIP;
+        DAMBDOSE -> AFRE [color="#1F6FB2", penwidth=1.4, label="no liposome:\nstraight to free pool"];
+        ALIP -> REL -> AFRE;
+        ALIP -> MPSUP [color="#1F6FB2", penwidth=2.0];
+        MPSUP -> AMBSP [color="#1F6FB2", penwidth=2.0, label="0.10/0.60/0.12/0.03"];
+        AFRE -> APER; AFRE -> KPPART -> AMBSP;
+        AFRE -> AMBKID [penwidth=1.4];
+        AMBSP -> SPLEEN [color="#1F6FB2", penwidth=1.6, label="drug meets parasite HERE"];
+        AMBSP -> LIVER [color="#1F6FB2"]; AMBSP -> MARROW [color="#1F6FB2"];
+        AMBSP -> SKIN [color="#1F6FB2", style=dashed, label="weakly"];
+    }
+
+    /* ================================================================ 7
+       Amphotericin B molecular action and its renal cost
+       ================================================================ */
+    subgraph cluster_amb_pd {
+        label=<<B>7 · Amphotericin B action and the renal cost of the same dose</B><BR/><FONT POINT-SIZE="9">암포테리신 B 작용기전과 신독성</FONT>>;
+        style="rounded,filled"; fillcolor="#FDEDE9"; color="#C08070";
+        ERGO      [label="Ergosterol in the amastigote membrane\n(Leishmania makes ergosterol, we make\ncholesterol — the selectivity margin)", fillcolor="#FAD9D1"];
+        SPONGE    [label="Sterol \"sponge\" extramembranous\naggregate + transmembrane pore", fillcolor="#FAD9D1"];
+        KLEAK     [label="K⁺ / Mg²⁺ leak, osmotic lysis\nplus oxidative damage", fillcolor="#FAD9D1"];
+        AKILL     [label="AmB kill rate\nEMAX 0.060 /h, EC50 6 mg/L,\nHill 2 — the FASTEST of the four", fillcolor="#EFA898", shape=box3d];
+        TUBUL     [label="Proximal + distal tubular epithelium\ncholesterol pores → tubular injury\n(model state TUBI)", fillcolor="#FADCE4"];
+        AFFERENT  [label="Afferent arteriolar vasoconstriction\ntubuloglomerular feedback → ↓GFR", fillcolor="#FADCE4"];
+        SCRN      [label="↑ serum creatinine (SCR)\nreversible if drug stopped", fillcolor="#FADCE4"];
+        KWAST     [label="Distal tubular K⁺ and Mg²⁺ wasting\nhypokalaemia, hypomagnesaemia,\ntype-1 RTA", fillcolor="#FADCE4"];
+        INFUS     [label="Infusion reaction: fever, rigors,\nTNF/IL-1 from monocyte TLR2\n(much less with liposome)", fillcolor="#FADCE4"];
+        ANAEM_A   [label="Normochromic anaemia\n(erythropoietin suppression)", fillcolor="#FADCE4"];
+        AMBSP -> ERGO -> SPONGE -> KLEAK -> AKILL;
+        AKILL -> SPLEEN [color="#1F6FB2", penwidth=1.6, arrowhead=tee];
+        AMBKID -> TUBUL -> AFFERENT -> SCRN;
+        TUBUL -> KWAST;
+        AFRE -> INFUS [style=dashed];
+        TUBUL -> ANAEM_A [style=dashed];
+    }
+
+    /* ================================================================ 8
+       Miltefosine — oral, allometric, long-tailed, dermotropic
+       ================================================================ */
+    subgraph cluster_mil {
+        label=<<B>8 · Miltefosine — the allometry trap and the long tail (claim 2)</B><BR/><FONT POINT-SIZE="9">밀테포신 — 체중 지수 함정과 긴 말단 반감기</FONT>>;
+        style="rounded,filled"; fillcolor="#FDF0E6"; color="#C09060";
+        MILDOSE   [label="Miltefosine PO 2.5 mg/kg/d × 28 d\n(hexadecylphosphocholine)", fillcolor="#FBE0C8"];
+        MILG      [label="MIL_G — gut depot, ka 0.40 /h", fillcolor="#FBE0C8"];
+        MILC      [label="MIL_C — central, V1/F 40 L/70 kg\nCL/F 0.166 L/h/70 kg (≈4 L/d)", fillcolor="#F7CDA6", shape=box3d];
+        MILP      [label="MIL_P — peripheral, V2/F 52 L/70 kg\nterminal t½ ≈ 7 d, γ-phase ~1 month", fillcolor="#FBE0C8"];
+        ALLOM     [label="ALLOMETRY TRAP\ndose ∝ WT¹·⁰ but CL ∝ WT⁰·⁷⁵\n⇒ AUC ∝ WT⁰·²⁵\nchildren systematically underexposed", fillcolor="#EFA860", shape=box3d];
+        LBW       [label="Allometric / LBW-based dosing\nrestores paediatric exposure\n(fixed mg by weight band)", fillcolor="#FBE0C8"];
+        MILTISS   [label="MIL_SP/LI/BM/SK — intramacrophage\nKp 8 / 8 / 6 / 4 — the only drug\nwith real DERMAL exposure", fillcolor="#F7CDA6", shape=box3d];
+        LDMT      [label="LdMT (P4-ATPase) + LdRos3 β-subunit\nactive inward transport into parasite", fillcolor="#FBE0C8"];
+        MILPD     [label="Membrane phospholipid + sterol\nremodelling; PI3K/Akt inhibition;\napoptosis-like death (Ca²⁺, ΔΨm)", fillcolor="#FBE0C8"];
+        MKILL     [label="Miltefosine kill rate\nEMAX 0.034 /h, EC50 90 mg/L\n— slow, but with a long tail", fillcolor="#EFB878", shape=box3d];
+        MILGI     [label="GI intolerance: nausea, vomiting\n(model state GITX, driven by C_MIL)", fillcolor="#FADCE4"];
+        MILTERA   [label="Teratogenicity\n→ contraception for 5 months\nbecause of the terminal tail", fillcolor="#FADCE4"];
+        MILALT    [label="↑ ALT, ↑ creatinine (mild, reversible)", fillcolor="#FADCE4"];
+        MILDOSE -> MILG -> MILC -> MILP;
+        MILDOSE -> ALLOM [style=dashed]; ALLOM -> MILC [style=dashed, color="#B03030", arrowhead=tee, label="in children"];
+        LBW -> ALLOM [style=dashed, color="#2E7D32", arrowhead=tee];
+        MILC -> MILTISS -> LDMT -> MILPD -> MKILL;
+        MKILL -> SPLEEN [color="#1F6FB2", arrowhead=tee];
+        MKILL -> SKIN [color="#1F6FB2", penwidth=1.6, arrowhead=tee, label="the PKDL drug"];
+        MILC -> MILGI; MILP -> MILTERA [style=dashed]; MILC -> MILALT;
+    }
+
+    /* ================================================================ 9
+       Paromomycin — slow in, slow out, and the cochlea
+       ================================================================ */
+    subgraph cluster_pm {
+        label=<<B>9 · Paromomycin — slow pinocytosis is why it needs 21 days</B><BR/><FONT POINT-SIZE="9">파로모마이신 — 느린 세포내 유입이 21일 요법의 이유</FONT>>;
+        style="rounded,filled"; fillcolor="#E7F7F5"; color="#70B0A8";
+        PMDOSE    [label="Paromomycin IM 15 mg/kg/d × 21 d\n(aminosidine sulfate)", fillcolor="#CFEFEA"];
+        PMC       [label="PM_C — central, V 0.25 L/kg\nCL 5.5 L/h/70 kg (glomerular)\nplasma t½ ≈ 2–3 h", fillcolor="#BCE7E0", shape=box3d];
+        PMSLOW    [label="SLOW pinocytic entry KIN 0.020 /h,\nslow egress KOUT 0.004 /h\n⇒ effective Kp 5 with a multi-day lag", fillcolor="#A6DDD4", shape=box3d];
+        PMTISS    [label="PM_SP/LI/BM/SK\ndermal access only 0.25 × MPS organs", fillcolor="#BCE7E0"];
+        PM16S     [label="Binds 16S-like rRNA of the parasite\ncytosolic + mitochondrial ribosome\n→ mistranslation, ΔΨm collapse", fillcolor="#CFEFEA"];
+        PKILL     [label="Paromomycin kill rate\nEMAX 0.042 /h, EC50 25 mg/L\n(needs the longest course)", fillcolor="#A6DDD4", shape=box3d];
+        PMEAST    [label="East-African hyposensitivity\nEC50 × 1.9 → lower cure rate\nat identical dose", fillcolor="#CFEFEA"];
+        PMKID     [label="PM_KID — megalin-mediated proximal\ntubular uptake → mild nephrotoxicity", fillcolor="#FADCE4"];
+        PMCOC     [label="PM_COC — cochlear accumulation\nKIN 0.004 /h, KOUT 0.0004 /h:\nnearly IRREVERSIBLE", fillcolor="#FADCE4"];
+        PMHEAR    [label="Sensorineural hearing loss\n(model state HEAR, dB shift)\nouter hair cell, base → apex", fillcolor="#FADCE4"];
+        PMDOSE -> PMC -> PMSLOW -> PMTISS -> PM16S -> PKILL;
+        PKILL -> SPLEEN [color="#1F6FB2", arrowhead=tee];
+        PMEAST -> PKILL [style=dashed, color="#B03030", arrowhead=tee];
+        PMC -> PMKID; PMC -> PMCOC -> PMHEAR;
+    }
+
+    /* ================================================================ 10
+       Pentavalent antimony — prodrug reduction, thiol-dependent efflux
+       ================================================================ */
+    subgraph cluster_sb {
+        label=<<B>10 · Pentavalent antimony — a prodrug whose activation and\nescape share one chemistry (claim 5)</B><BR/><FONT POINT-SIZE="9">5가 안티몬 — 활성화와 배출이 같은 티올 화학을 공유</FONT>>;
+        style="rounded,filled"; fillcolor="#F7F4E0"; color="#B0A860";
+        SBDOSE    [label="Sodium stibogluconate / meglumine\nantimoniate 20 mg Sb⁵⁺/kg/d × 30 d", fillcolor="#EFEAC4"];
+        SB5C      [label="SB5_C — plasma Sb(V)\nV 0.22 L/kg, CL 7.0 L/h/70 kg\nt½ ≈ 2 h, renally cleared", fillcolor="#E4DDA6", shape=box3d];
+        SBDEP     [label="SB_DEP — deep tissue antimony depot\nterminal t½ ≈ 76 h; drives QTc", fillcolor="#E4DDA6"];
+        AQP1      [label="Parasite AQP1 aquaglyceroporin\nSb(III) uptake channel\n(loss → resistance)", fillcolor="#EFEAC4"];
+        SBRED     [label="Sb(V) → Sb(III) REDUCTION\ninside the phagolysosome and parasite\n(TDR1, ACR2, thiols) KRED 0.045 /h", fillcolor="#DCD388", shape=box3d];
+        SB3       [label="SB3_SP/LI/BM/SK — intracellular Sb(III)\nTHE ACTIVE SPECIES", fillcolor="#E4DDA6", shape=box3d];
+        SBTARGET  [label="Inhibits trypanothione reductase,\nzinc-finger proteins, DNA topoisomerase;\nthiol efflux → apoptosis-like death", fillcolor="#EFEAC4"];
+        SKILL     [label="Sb(III) kill rate\nEMAX 0.045 /h, EC50 0.50 mg/L", fillcolor="#DCD388", shape=box3d];
+        MRPA      [label="MRPA (ABCC3) + PGP-A efflux of\nSb–trypanothione conjugates;\nefflux KEFF × RES_SB", fillcolor="#EFEAC4"];
+        SBQTC     [label="QTc prolongation, T-wave inversion,\nsudden death at high cumulative Sb", fillcolor="#FADCE4"];
+        SBPANC    [label="Chemical pancreatitis\n↑ amylase / lipase", fillcolor="#FADCE4"];
+        SBHEP     [label="Hepatotoxicity ↑ALT,\nmyalgia, arthralgia", fillcolor="#FADCE4"];
+        SBDOSE -> SB5C -> SBDEP;
+        SB5C -> SBRED -> SB3 -> SBTARGET -> SKILL;
+        AQP1 -> SB3 [style=dashed];
+        SKILL -> SPLEEN [color="#1F6FB2", arrowhead=tee];
+        MRPA -> SB3 [style=dashed, color="#B03030", arrowhead=tee, label="efflux"];
+        SBDEP -> SBQTC; SB5C -> SBPANC; SB5C -> SBHEP;
+    }
+
+    /* ================================================================ 11
+       Drug tolerance and resistance
+       ================================================================ */
+    subgraph cluster_res {
+        label=<<B>11 · Tolerance and resistance — one subpopulation, four EC50 shifts</B><BR/><FONT POINT-SIZE="9">내약성·내성 — 약물별 EC50 배수가 다르다</FONT>>;
+        style="rounded,filled"; fillcolor="#EFEFEF"; color="#909090";
+        PRES      [label="QUIESCENT / persister pool P_*_R\na physiological state, not a genotype:\nFR0 = 5×10⁻⁴ at presentation,\nreplicates at 0.05 × KG,\nseen by the macrophage at 0.15 × KIMM", fillcolor="#DDDDDD", shape=box3d];
+        RFAC      [label="EC50 multipliers for QUIESCENT forms\nAmB × 20 · miltefosine × 25\nparomomycin × 30 · Sb(III) × 40\n(every drug needs an active cell)", fillcolor="#DDDDDD", shape=box3d];
+        THIOL     [label="↑ trypanothione, ↑ γ-GCS, ↑ ODC,\n↑ MRPA amplification → Sb resistance\n(Bihar: RES_SB ≈ 9 on EFFLUX only)", fillcolor="#DDDDDD"];
+        LDMTLOSS  [label="LdMT / LdRos3 point mutations\n→ miltefosine transporter loss\n(large EC50 shift, low fitness cost)", fillcolor="#DDDDDD"];
+        AMBSTEROL [label="Sterol pathway (C24-SMT, C14-DM)\nmutations → ergosterol replaced\nby cholestane; rare, unstable", fillcolor="#DDDDDD"];
+        ARSENIC   [label="Environmental arsenic in Bihar\ngroundwater — proposed co-selector\nof antimony resistance", fillcolor="#DDDDDD"];
+        ANEUPL    [label="Aneuploidy / mosaic karyotype,\ngene-dosage adaptation without\nclassical point mutation", fillcolor="#DDDDDD"];
+        PRES -> RFAC;
+        THIOL -> MRPA; THIOL -> RFAC;
+        LDMTLOSS -> LDMT [style=dashed, color="#B03030", arrowhead=tee];
+        AMBSTEROL -> ERGO [style=dashed, color="#B03030", arrowhead=tee];
+        ARSENIC -> THIOL [style=dashed]; ANEUPL -> RFAC [style=dashed];
+        RFAC -> SPLEEN [style=dashed, label="selection under\ndrug pressure"];
+    }
+
+    /* ================================================================ 12
+       Haematology — hypersplenism plus marrow occupancy
+       ================================================================ */
+    subgraph cluster_haem {
+        label=<<B>12 · Haematology — two independent mechanisms, not one</B><BR/><FONT POINT-SIZE="9">혈액학적 이상 — 비장 파괴와 골수 점거는 별개의 축</FONT>>;
+        style="rounded,filled"; fillcolor="#F5EDF7"; color="#A080B0";
+        HYPSPL    [label="Hypersplenism\ndestruction ∝ spleen size (cm)\nplatelets most sensitive", fillcolor="#E8DAF0"];
+        MARSUP    [label="Marrow occupancy + TNF suppression\nsuppression factor 1/(1+P_BM/K)", fillcolor="#E8DAF0"];
+        SPL       [label="SPL — spleen size, cm below costal\nmargin; relaxes with t½ ≈ 8 d", fillcolor="#DCC8EC", shape=box3d];
+        LIVS      [label="LIVS — liver size, cm", fillcolor="#E8DAF0"];
+        HGB       [label="HGB — haemoglobin g/dL", fillcolor="#DCC8EC", shape=box3d];
+        PLT       [label="PLT — platelets ×10⁹/L", fillcolor="#DCC8EC", shape=box3d];
+        WBCN      [label="WBC — leucocytes ×10⁹/L\nneutropenia → secondary infection", fillcolor="#DCC8EC", shape=box3d];
+        HLH       [label="Haemophagocytic lymphohistiocytosis\nferritin ↑↑, fibrinogen ↓, triglycerides ↑\n(VL is a classic secondary HLH trigger)", fillcolor="#E8DAF0"];
+        DILUT     [label="Plasma volume expansion\n(dilutional component of anaemia)", fillcolor="#E8DAF0"];
+        SPLEEN -> SPL -> HYPSPL;
+        LIVER -> LIVS;
+        MARROW -> MARSUP; TNFA -> MARSUP [style=dashed];
+        HYPSPL -> HGB [color="#B03030", arrowhead=tee];
+        HYPSPL -> PLT [color="#B03030", arrowhead=tee, penwidth=1.5];
+        HYPSPL -> WBCN [color="#B03030", arrowhead=tee];
+        MARSUP -> HGB [color="#B03030", arrowhead=tee];
+        MARSUP -> PLT [color="#B03030", arrowhead=tee];
+        MARSUP -> WBCN [color="#B03030", arrowhead=tee];
+        HYPSPL -> HLH [style=dashed]; DILUT -> HGB [style=dashed, color="#B03030", arrowhead=tee];
+    }
+
+    /* ================================================================ 13
+       Systemic disease and the mortality pathway
+       ================================================================ */
+    subgraph cluster_systemic {
+        label=<<B>13 · Systemic disease and the route to death</B><BR/><FONT POINT-SIZE="9">전신 질환과 사망 경로</FONT>>;
+        style="rounded,filled"; fillcolor="#FBEFF3"; color="#C08095";
+        FEVER     [label="TEMP — fever, classically twice-daily\ndriven by TNF-α", fillcolor="#F7DCE6"];
+        CACHEX    [label="BWTL — weight loss, muscle wasting\nup to 28 % of body weight", fillcolor="#F7DCE6"];
+        ALBN      [label="ALB — hypoalbuminaemia\n→ oedema, ascites", fillcolor="#F7DCE6"];
+        IGGN      [label="IGG — polyclonal hypergamma-\nglobulinaemia, t½ ≈ 96 d", fillcolor="#F7DCE6"];
+        DARK      [label="Skin hyperpigmentation\n(\"kala-azar\" = black fever)", fillcolor="#F7DCE6"];
+        BLEED     [label="Mucosal bleeding, epistaxis\n(thrombocytopenia + DIC)", fillcolor="#F7DCE6"];
+        SECINF    [label="Bacterial pneumonia, TB, dysentery,\nsepsis — the usual proximate cause\nof death in untreated VL", fillcolor="#F7DCE6"];
+        DEATH     [label="Cumulative mortality hazard CUMHAZ\ndriven by Hb, albumin, WBC, burden\nuntreated case fatality > 90 % at 2 y", fillcolor="#F0B8C8", shape=box3d];
+        TNFA -> FEVER; TNFA -> CACHEX; AMAST -> ALBN [style=dashed, color="#B03030", arrowhead=tee];
+        BCELL -> IGGN; AMAST -> DARK [style=dashed];
+        PLT -> BLEED [color="#B03030", arrowhead=tee]; WBCN -> SECINF [color="#B03030", arrowhead=tee];
+        HGB -> DEATH; ALBN -> DEATH; WBCN -> DEATH; SECINF -> DEATH; SPL -> DEATH [style=dashed];
+    }
+
+    /* ================================================================ 14
+       HIV co-infection: the finish line moves (claim 3)
+       ================================================================ */
+    subgraph cluster_hiv {
+        label=<<B>14 · HIV co-infection — the same drug, a different finish line (claim 3)</B><BR/><FONT POINT-SIZE="9">HIV 동반감염 — 같은 약, 다른 결승선</FONT>>;
+        style="rounded,filled"; fillcolor="#EDEFFB"; color="#8385C0";
+        HIV       [label="HIV-1 co-infection\nCD4 typically < 100 cells/µL", fillcolor="#DCDEF7"];
+        CD4LOSS   [label="CD4 depletion (HIV) plus\nburden-driven loss KCD4L", fillcolor="#DCDEF7"];
+        ART       [label="Antiretroviral therapy\nCD4 recovery KCD4R toward 900", fillcolor="#DCDEF7"];
+        SEPARAT   [label="SEPARATRIX — the critical residual\nburden the host can still finish alone.\nFalls steeply with CD4.", fillcolor="#B4B8EC", shape=box3d];
+        RELAPSE   [label="Relapse: regrowth from a residual\nburden that WOULD have been\ncurative in an immunocompetent host", fillcolor="#DCDEF7"];
+        SECPRO    [label="Secondary prophylaxis\n(L-AmB 3–5 mg/kg every 2–4 wk\nuntil CD4 > 200 and 6 mo cure)", fillcolor="#DCDEF7"];
+        IRIS      [label="Paradoxical worsening / IRIS\nafter ART-driven reconstitution", fillcolor="#DCDEF7"];
+        HIV -> CD4LOSS -> CD4T [color="#B03030", arrowhead=tee];
+        ART -> CD4T; AMAST -> CD4LOSS [style=dashed];
+        CD4T -> SEPARAT; TMEM -> SEPARAT;
+        SEPARAT -> RELAPSE; RELAPSE -> SPLEEN [style=dashed];
+        SECPRO -> RELAPSE [color="#2E7D32", arrowhead=tee];
+        ART -> IRIS [style=dashed];
+    }
+
+    /* ================================================================ 15
+       PKDL
+       ================================================================ */
+    subgraph cluster_pkdl {
+        label=<<B>15 · Post-kala-azar dermal leishmaniasis — a lesion made by\nRETURNING immunity (claim 6)</B><BR/><FONT POINT-SIZE="9">칼라아자르 후 피부 리슈만편모충증 — 회복된 면역이 만드는 병변</FONT>>;
+        style="rounded,filled"; fillcolor="#EAF7E9"; color="#7FAF7F";
+        SKRES     [label="Residual dermal amastigotes\nafter apparently successful VL cure\n(skin drug exposure was the lowest)", fillcolor="#D6EFD3"];
+        PKDLLES   [label="PKDL — hypopigmented macules →\npapules → nodules\nformation ∝ P_SK × MACT", fillcolor="#C4E8C0", shape=box3d];
+        PKDLTX    [label="Miltefosine 12 weeks (dermal Kp 4)\nvs L-AmB (dermal MPS share 0.03)\n— a pharmacokinetic, not a\nmicrobiological, difference", fillcolor="#D6EFD3"];
+        RESERV    [label="PKDL is the interepidemic HUMAN\nRESERVOIR — xenodiagnosis-positive,\nthreatens the elimination programme", fillcolor="#D6EFD3"];
+        SKIN -> SKRES -> PKDLLES;
+        MACT -> PKDLLES [label="requires returning immunity"];
+        PKDLTX -> PKDLLES [color="#2E7D32", arrowhead=tee];
+        PKDLLES -> RESERV -> SANDFLY [style=dashed, label="transmission"];
+    }
+
+    /* ================================================================ 16
+       Diagnosis, test of cure, and the serology trap
+       ================================================================ */
+    subgraph cluster_diag {
+        label=<<B>16 · Diagnosis and test of cure — and why serology cannot call relapse</B><BR/><FONT POINT-SIZE="9">진단과 치료판정 — 혈청검사로 재발을 진단할 수 없는 이유</FONT>>;
+        style="rounded,filled"; fillcolor="#FBEFF3"; color="#C08095";
+        RK39      [label="rK39 rapid test (kinesin antigen)\nsensitivity > 95 % in South Asia,\n~85 % in East Africa", fillcolor="#F7DCE6"];
+        DAT       [label="Direct agglutination test (DAT)\nsemi-quantitative titre", fillcolor="#F7DCE6"];
+        SPLASP    [label="Splenic aspirate parasite grade 0–6+\n(log scale, the reference standard;\n0.1 % risk of fatal haemorrhage)", fillcolor="#F7DCE6"];
+        QPCR      [label="Blood / marrow qPCR, kDNA\nquantitative, tracks burden,\nfalls with treatment", fillcolor="#F7DCE6"];
+        SEROTRAP  [label="SEROLOGY TRAP: IgG t½ ≈ 96 d, so\nrK39 stays positive for years after\ncure while burden has fallen > 5 logs.\nA MODEL OUTPUT, not an assumption.", fillcolor="#F0B8C8", shape=box3d];
+        TOC       [label="Test of cure at 6 months\n(definitive cure = no relapse to\nmonth 6–12) — why trials must\nfollow for a year", fillcolor="#F7DCE6"];
+        BCELL -> RK39; BCELL -> DAT; IGGN -> SEROTRAP;
+        SPLEEN -> SPLASP; SPLEEN -> QPCR;
+        RK39 -> SEROTRAP [style=dashed];
+        QPCR -> TOC; SPLASP -> TOC; SEROTRAP -> TOC [style=dashed, color="#B03030", arrowhead=tee];
+    }
+
+    /* ================================================================ 17
+       Clinical endpoints
+       ================================================================ */
+    subgraph cluster_end {
+        label=<<B>17 · Clinical endpoints of the model</B><BR/><FONT POINT-SIZE="9">모델의 임상 종말점</FONT>>;
+        style="rounded,filled"; fillcolor="#FCE7F0"; color="#C07090";
+        EP_CURE   [label="Initial cure at end of treatment\n(afebrile, spleen regressing,\nparasitological clearance)", fillcolor="#F8D3E2"];
+        EP_DEF    [label="DEFINITIVE CURE at 6–12 months\nthe only endpoint that matters", fillcolor="#F5BFD5", shape=box3d];
+        EP_REL    [label="Relapse rate", fillcolor="#F8D3E2"];
+        EP_MORT   [label="Case fatality", fillcolor="#F8D3E2"];
+        EP_SPL    [label="Spleen size regression (cm)", fillcolor="#F8D3E2"];
+        EP_HB     [label="Haemoglobin recovery (g/dL)", fillcolor="#F8D3E2"];
+        EP_NEPH   [label="Nephrotoxicity: ≥ 2× baseline\ncreatinine, K < 3.0, Mg < 1.4", fillcolor="#F8D3E2"];
+        EP_OTO    [label="Audiometric shift ≥ 20 dB\n(paromomycin)", fillcolor="#F8D3E2"];
+        EP_CARD   [label="QTc > 500 ms or ΔQTc > 60 ms\n(antimony)", fillcolor="#F8D3E2"];
+        EP_GI     [label="Grade ≥ 2 vomiting\n(miltefosine)", fillcolor="#F8D3E2"];
+        EP_PKDL   [label="PKDL incidence at 24 months", fillcolor="#F8D3E2"];
+        TOC -> EP_CURE -> EP_DEF; EP_REL -> EP_DEF [color="#B03030", arrowhead=tee];
+        RELAPSE -> EP_REL; DEATH -> EP_MORT; SPL -> EP_SPL; HGB -> EP_HB;
+        SCRN -> EP_NEPH; KWAST -> EP_NEPH; PMHEAR -> EP_OTO;
+        SBQTC -> EP_CARD; MILGI -> EP_GI; PKDLLES -> EP_PKDL;
+    }
+
+    /* ================================================================ 18
+       Pipeline and immunotherapy
+       ================================================================ */
+    subgraph cluster_pipe {
+        label=<<B>18 · Pipeline — what an oral, short-course, all-ages drug\nwould have to beat</B><BR/><FONT POINT-SIZE="9">개발 파이프라인</FONT>>;
+        style="rounded,filled"; fillcolor="#F0FBF0"; color="#80B080";
+        LXE       [label="LXE408 — oral kinetoplastid\nproteasome inhibitor (β5 subunit)", fillcolor="#DCF3DC"];
+        DNDI      [label="DNDI-6148 (oxaborole),\nDNDI-0690 (nitroimidazole),\nGSK3186899 (DDD853651)", fillcolor="#DCF3DC"];
+        FEXI      [label="Fexinidazole — oral nitroimidazole,\nactive but exposure-limited in VL", fillcolor="#DCF3DC"];
+        CHAD      [label="ChAd63-KH therapeutic vaccine\n(KMP-11 + HASPB) for PKDL", fillcolor="#DCF3DC"];
+        IMMUN     [label="Immunotherapy: IFN-γ, IL-10 blockade,\nPD-1 blockade, GM-CSF adjunct", fillcolor="#DCF3DC"];
+        ELIM      [label="WHO 2030 elimination target\n(< 1 case /10 000 per block);\nPKDL reservoir is the main threat", fillcolor="#DCF3DC"];
+        LXE -> SPLEEN [style=dashed, arrowhead=tee]; DNDI -> SPLEEN [style=dashed, arrowhead=tee];
+        FEXI -> SPLEEN [style=dashed, arrowhead=tee];
+        CHAD -> TMEM [style=dashed, color="#2E7D32"];
+        IMMUN -> IL10 [style=dashed, color="#2E7D32", arrowhead=tee];
+        IMMUN -> MACT [style=dashed, color="#2E7D32"];
+        RESERV -> ELIM [style=dashed, color="#B03030", arrowhead=tee];
+    }
+
+    /* ================================================================
+       Cross-cluster edges that carry the argument of the model
+       ================================================================ */
+    /* claim 1: one dose, two integrals, moving in opposite directions */
+    AUCSPLIT [label="THE SPLIT: one mg/kg of amphotericin makes TWO integrals\n∫C_spleen·dt  drives KILLING   ·   ∫C_free·dt  drives NEPHROTOXICITY\nEncapsulation multiplies the first and divides the second.",
+              shape=note, fillcolor="#FFF3C4", color="#B09030", fontsize=10];
+    MPSUP -> AUCSPLIT [style=dotted]; AFRE -> AUCSPLIT [style=dotted];
+    AUCSPLIT -> AKILL [style=dotted]; AUCSPLIT -> TUBUL [style=dotted];
+
+    /* the three-threshold structure */
+    THRESH [label="THREE SIGNALS, THREE THRESHOLDS, TWO SOURCES\lAG  antigen availability   K = 0.01 units (10⁴ amastigotes)   from the TOTAL burden\lAGH IL-10 switch          K = 60 units   (6×10⁷)             from the VISCERA only\lAGS systemic illness      K = 300 units  (3×10⁸)             from the VISCERA only\lKAG ≪ K50_IL10 is the claim: antigen is still abundant over a burden range in\lwhich IL-10 has already switched off. Getting the patient into that ~3.8-log\lwindow and holding them there is the whole job of a drug course.\l",
+             shape=note, fillcolor="#FFF3C4", color="#B09030", fontsize=10];
+    AMAST -> THRESH [style=dotted]; THRESH -> IL10 [style=dotted];
+    THRESH -> TMEM [style=dotted]; THRESH -> FEVER [style=dotted];
+
+    /* claim 4: the race */
+    RACE [label="THE RACE: TMEM builds at KTP·antigen; IL-10 rises only above\nburden K50 = 60 units. Whichever crosses first decides subclinical\ninfection versus clinical kala-azar — with no change to the parasite.",
+          shape=note, fillcolor="#FFF3C4", color="#B09030", fontsize=10];
+    TMEM -> RACE [style=dotted]; IL10 -> RACE [style=dotted];
+    RACE -> MACT [style=dotted];
+
+    /* claim 6: synergy in time */
+    TIMESYN [label="SYNERGY IN TIME, NOT IN CONCENTRATION: L-AmB drops the burden\nin days; the miltefosine tail (t½ 7 d) holds it down through the\nweeks the memory pool needs to build. Neither drug does both.",
+             shape=note, fillcolor="#FFF3C4", color="#B09030", fontsize=10];
+    AKILL -> TIMESYN [style=dotted]; MKILL -> TIMESYN [style=dotted];
+    TIMESYN -> SEPARAT [style=dotted];
+
+    /* ranking hints: drug on top, parasite at the bottom */
+    { rank=same; ALIP; MILC; PMC; SB5C; }
+    { rank=same; SPLEEN; LIVER; MARROW; SKIN; }
+}
