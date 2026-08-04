@@ -1,0 +1,448 @@
+/* =====================================================================
+   HIV-associated Cryptococcal Meningitis (CM) -- QSP mechanistic map
+   ---------------------------------------------------------------------
+   Central thesis encoded by this graph: this disease runs on TWO CLOCKS
+   that every trial endpoint conflates.
+
+     Clock 1 (fast, days)   viable yeast in CSF.  Amphotericin and
+                            flucytosine act here.  Early fungicidal
+                            activity measures ONLY this clock.
+     Clock 2 (slow, weeks)  the capsular polysaccharide (GXM) already in
+                            the CSF.  It sets outflow resistance, hence
+                            intracranial pressure, and it sets the antigen
+                            load that immune reconstitution reacts to.
+                            NO antifungal acts on it; only bulk removal
+                            (therapeutic lumbar puncture) and its own
+                            ~13-day half-life do.
+
+   Two further signs are encoded deliberately:
+     * ERGOSTEROL is a shared node with OPPOSITE signs.  Fluconazole
+       depletes it (ERG11/CYP51 inhibition), which is how the azole works
+       AND how it removes amphotericin's binding target.  This is why
+       flucytosine and fluconazole are not interchangeable partners.
+     * GFR is a shared node.  Amphotericin lowers it; flucytosine is
+       cleared by it.  The nephrotoxicity of one drug is the marrow
+       toxicity of the other.
+
+   Nodes marked [S] are state variables of cm_mrgsolve_model.R,
+   [P] are parameters, [E] are clinical endpoints, [X] are toxicities.
+   ===================================================================== */
+digraph CM_QSP {
+  graph [rankdir=TB, splines=true, newrank=true, nodesep=0.20, ranksep=0.50,
+         fontname="Helvetica", fontsize=11, compound=true,
+         label="HIV-associated Cryptococcal Meningitis — Quantitative Systems Pharmacology map\nTwo clocks: viable burden (days) vs capsular antigen (weeks)   ·   [S] = mrgsolve state · [P] = parameter · [E] = endpoint · [X] = toxicity",
+         labelloc=t, fontcolor="#1a1a1a"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=1.0, margin="0.08,0.045"];
+  edge  [color="#666666", penwidth=1.0, arrowsize=0.7, fontname="Helvetica", fontsize=8];
+
+  /* ---------- colour key -------------------------------------------- */
+  subgraph cluster_key {
+    label="Key"; style="rounded,filled"; fillcolor="#fafafa"; color="#bbbbbb"; fontsize=11;
+    k1 [label="fungal compartment / factor", fillcolor="#c5e1a5"];
+    k2 [label="antigen · capsule (slow clock)", fillcolor="#ffe0b2"];
+    k3 [label="host immune cell / cytokine", fillcolor="#e1bee7"];
+    k4 [label="drug · dose · PK", fillcolor="#b2dfdb"];
+    k5 [label="CSF hydrodynamics · ICP", fillcolor="#bbdefb"];
+    k6 [label="biomarker", fillcolor="#b3e5fc"];
+    k7 [label="clinical endpoint", fillcolor="#fff9c4"];
+    k8 [label="toxicity", fillcolor="#d7ccc8"];
+    k1->k2->k3->k4->k5->k6->k7->k8 [style=invis];
+  }
+
+  /* ==================================================================
+     1. EXPOSURE, PORTAL OF ENTRY AND DISSEMINATION
+     ================================================================== */
+  subgraph cluster_entry {
+    label="1 · Exposure, pulmonary portal and dissemination";
+    style="rounded,filled"; fillcolor="#f1f8e9"; color="#aed581"; fontsize=12;
+    ENV   [label="Environmental reservoir\nsoil · avian guano · Eucalyptus\nC. neoformans var. grubii (VNI)", fillcolor="#dcedc8"];
+    SPORE [label="Inhaled basidiospores /\ndesiccated yeast (<2 um)", fillcolor="#dcedc8"];
+    ALV   [label="Alveolar deposition", fillcolor="#dcedc8"];
+    AM    [label="Alveolar macrophage\nphagocytosis", fillcolor="#e1bee7"];
+    LATENT[label="Latent pulmonary\ngranuloma (dormancy)", fillcolor="#dcedc8"];
+    REACT [label="Reactivation when CD4 falls\n(<100 cells/uL)", fillcolor="#dcedc8"];
+    LUNG  [label="Pulmonary cryptococcosis\n(often subclinical)", fillcolor="#c5e1a5"];
+    FUNGAEM [label="Fungaemia\n(blood CrAg+ weeks before CNS)", fillcolor="#c5e1a5"];
+    SCREEN[label="Serum CrAg screening\n(pre-emptive fluconazole)", fillcolor="#b3e5fc"];
+    DISSEM[label="Extrapulmonary dissemination\nskin · prostate · eye · bone", fillcolor="#c5e1a5"];
+    ENV->SPORE->ALV->AM;
+    AM->LATENT [label="containment"];
+    LATENT->REACT [label="HIV-driven\nCD4 loss"];
+    REACT->LUNG->FUNGAEM->DISSEM;
+    FUNGAEM->SCREEN [style=dashed,label="detects the\nasymptomatic phase"];
+  }
+
+  /* ==================================================================
+     2. FUNGAL CELL BIOLOGY AND VIRULENCE FACTORS
+     ================================================================== */
+  subgraph cluster_viru {
+    label="2 · Fungal virulence programme — every arrow here is a drug-resistance mechanism in disguise";
+    style="rounded,filled"; fillcolor="#f9fbe7"; color="#c0ca33"; fontsize=12;
+    CAP    [label="Capsule synthesis\nCAP59 · CAP60 · CAP64 · CAS31", fillcolor="#c5e1a5"];
+    GXMs   [label="Glucuronoxylomannan (GXM)\n88% of capsule mass", fillcolor="#ffe0b2"];
+    GALXM  [label="Galactoxylomannan (GalXM)\nT-cell apoptosis", fillcolor="#ffe0b2"];
+    MP98   [label="Mannoproteins\n(the immunogenic minority)", fillcolor="#ffe0b2"];
+    LAC    [label="Laccase (LAC1) →\nmelanin in the cell wall", fillcolor="#c5e1a5"];
+    MEL    [label="Melanisation\n↓ oxidative killing, ↓ AmB binding", fillcolor="#c5e1a5"];
+    URE    [label="Urease (URE1)\n→ NH3, microvascular sequestration", fillcolor="#c5e1a5"];
+    PLB    [label="Phospholipase B1 (PLB1)\nmembrane lysis, dissemination", fillcolor="#c5e1a5"];
+    TITAN  [label="Titan cells (10–100 um)\npolyploid, phagocytosis-proof", fillcolor="#c5e1a5"];
+    ERG11n [label="ERG11 / CYP51\nlanosterol 14-α-demethylase", fillcolor="#c5e1a5"];
+    ERGO   [label="Membrane ERGOSTEROL [S]\nthe shared, oppositely-signed node", fillcolor="#a5d6a7", penwidth=2.4, color="#33691e"];
+    FCY2   [label="FCY2 cytosine permease\n(5FC uptake)", fillcolor="#c5e1a5"];
+    FCY1   [label="FCY1 cytosine deaminase\n5FC → 5-FU", fillcolor="#c5e1a5"];
+    FUR1   [label="FUR1 UPRT\n5-FU → 5-FUMP", fillcolor="#c5e1a5"];
+    HSP90  [label="Hsp90 / calcineurin\nthermotolerance at 37 °C", fillcolor="#c5e1a5"];
+    ANEUP  [label="Aneuploidy / heteroresistance\n(chr 1 duplication → ERG11+AFR1)", fillcolor="#c5e1a5"];
+    CAP->GXMs; CAP->GALXM; CAP->MP98;
+    LAC->MEL; MEL->ERGO [style=dashed,label="shields\nsterol"];
+    ERG11n->ERGO [label="synthesis"];
+    FCY2->FCY1->FUR1;
+    HSP90->TITAN [style=dashed];
+  }
+
+  /* ==================================================================
+     3. CROSSING THE BLOOD-BRAIN BARRIER
+     ================================================================== */
+  subgraph cluster_bbb {
+    label="3 · Blood–brain barrier crossing";
+    style="rounded,filled"; fillcolor="#eceff1"; color="#90a4ae"; fontsize=12;
+    ADHERE [label="Adhesion to brain microvascular\nendothelium (CD44 · hyaluronic acid)", fillcolor="#cfd8dc"];
+    TRANS  [label="Transcytosis\n(metalloprotease Mpr1)", fillcolor="#cfd8dc"];
+    TROJAN [label="Trojan-horse transit\ninside monocytes", fillcolor="#e1bee7"];
+    PARACEL[label="Paracellular leak\n(tight-junction disruption)", fillcolor="#cfd8dc"];
+    SEQ    [label="Urease-driven microvascular\nsequestration", fillcolor="#cfd8dc"];
+    SUBARACH[label="Subarachnoid space\nand Virchow–Robin spaces", fillcolor="#bbdefb"];
+    ADHERE->TRANS->SUBARACH;
+    ADHERE->TROJAN->SUBARACH;
+    ADHERE->PARACEL->SUBARACH;
+    SEQ->ADHERE;
+    URE->SEQ; PLB->PARACEL; AM->TROJAN [style=dashed,label="infected\nmonocyte"];
+    FUNGAEM->ADHERE;
+  }
+
+  /* ==================================================================
+     4. FUNGAL COMPARTMENTS IN THE CNS  (CLOCK 1 — fast)
+     ================================================================== */
+  subgraph cluster_fungal {
+    label="4 · CLOCK 1 — viable fungal compartments in the CNS (days).  Everything a CSF culture can see.";
+    style="rounded,filled"; fillcolor="#e8f5e9"; color="#66bb6a"; fontsize=12; penwidth=2.0;
+    Fe   [label="Fe [S]\nextracellular replicating yeast\n(CSF, 5FC-susceptible)", fillcolor="#a5d6a7", penwidth=2.0];
+    Fres [label="Fres [S]\n5FC-resistant subclone\n(FCY1/FUR1 loss)", fillcolor="#a5d6a7"];
+    Ft   [label="Ft [S]\nphenotypically tolerant\npersisters", fillcolor="#a5d6a7"];
+    Fi   [label="Fi [S]\nintracellular yeast\n(drug-shielded, macrophage)", fillcolor="#a5d6a7"];
+    Fp   [label="Fp [S]\nparenchymal / deep reservoir\n(cryptococcoma) — culture-invisible", fillcolor="#a5d6a7"];
+    GROW [label="Net growth g0 [P]\n0.35 /day, logistic to Fmax", fillcolor="#dcedc8"];
+    MUT  [label="kMut [P] mutation to\n5FC resistance", fillcolor="#dcedc8"];
+    CULT [label="Quantitative CSF culture\nlog10 CFU/mL [E]", fillcolor="#b3e5fc"];
+    EFA  [label="Early fungicidal activity\nEFA = d(log10 CFU)/dt [E]", fillcolor="#fff9c4", penwidth=2.0];
+    STER [label="CSF sterility\n(time to first negative culture) [E]", fillcolor="#fff9c4"];
+    RELAP[label="Relapse / persistent infection [E]", fillcolor="#fff9c4"];
+    SUBARACH->Fe;
+    GROW->Fe; Fe->MUT->Fres;
+    Fe->Ft [label="kPer"]; Ft->Fe [label="kRev"];
+    Fe->Fi [label="kPhag·MAC"]; Fi->Fe [label="kEsc"];
+    Fe->Fp [label="kSeed"]; Fp->Fe [label="kShed"];
+    Fe->CULT; Fres->CULT; Ft->CULT; Fi->CULT;
+    CULT->EFA->STER;
+    Fp->RELAP [label="regrows under\nfungistatic pressure", penwidth=1.6];
+    TITAN->Ft [style=dashed,label="phenotypic\ntolerance"];
+  }
+
+  /* ==================================================================
+     5. THE ANTIGEN POOL  (CLOCK 2 — slow)
+     ================================================================== */
+  subgraph cluster_antigen {
+    label="5 · CLOCK 2 — the capsular antigen pool (weeks).  No antifungal acts here.";
+    style="rounded,filled"; fillcolor="#fff8e1"; color="#ffb300"; fontsize=12; penwidth=2.4;
+    SHED  [label="sLive [P]\ncontinuous shedding by LIVE yeast", fillcolor="#ffe0b2"];
+    LYSIS [label="sLysis [P]\nwhole capsule released by DYING yeast", fillcolor="#ffe0b2"];
+    GXM   [label="GXM [S]\nCSF glucuronoxylomannan\nt½ ≈ 13 days — 20× the yeast's", fillcolor="#ffcc80", penwidth=2.4, color="#e65100"];
+    CRAG  [label="CSF / serum CrAg titre [E]\nlags culture conversion by weeks", fillcolor="#b3e5fc", penwidth=1.8];
+    GSAT  [label="KGsat [P]\ncapsule production saturates", fillcolor="#ffe0b2"];
+    CAPTH [label="Ex-vivo capsule thickness\n→ ↑ AmB EC50 (kCap [P])", fillcolor="#ffe0b2"];
+    IMMSUP[label="GXM immune subversion\n↓ phagocytosis · ↓ TLR signalling\n↓ leucocyte migration · ↑ IL-10", fillcolor="#ffe0b2"];
+    Fe->SHED; Fres->SHED; Ft->SHED; Fi->SHED; Fp->SHED;
+    SHED->GXM; LYSIS->GXM; GSAT->GXM [style=dashed,arrowhead=tee];
+    GXM->CRAG; GXM->CAPTH; GXM->IMMSUP;
+    GXMs->GXM [style=dashed];
+    GALXM->IMMSUP [style=dashed];
+  }
+
+  /* ==================================================================
+     6. INNATE IMMUNITY IN THE CNS
+     ================================================================== */
+  subgraph cluster_innate {
+    label="6 · Innate immunity in the CNS";
+    style="rounded,filled"; fillcolor="#f3e5f5"; color="#ba68c8"; fontsize=12;
+    PRR   [label="Pattern recognition\nDectin-1 · Dectin-3 · Mincle · TLR2/4/9 · MR", fillcolor="#e1bee7"];
+    COMPL [label="Complement C3b / MBL\nopsonisation", fillcolor="#e1bee7"];
+    MAC   [label="MAC [S]\nactivated microglia /\nCNS macrophage", fillcolor="#ce93d8", penwidth=2.0];
+    M1M2  [label="M1 (fungicidal) ↔ M2\npolarisation balance", fillcolor="#e1bee7"];
+    NLRP3 [label="NLRP3 inflammasome\n→ IL-1β", fillcolor="#e1bee7"];
+    NK    [label="NK cells\n(perforin-mediated killing)", fillcolor="#e1bee7"];
+    NEUT  [label="Neutrophil recruitment\n(scant in HIV-CM)", fillcolor="#e1bee7"];
+    PRR->MAC; COMPL->MAC; MAC->M1M2; MAC->NLRP3;
+    IMMSUP->PRR [arrowhead=tee, label="blocked by\ncapsule", penwidth=1.6];
+    IMMSUP->COMPL [arrowhead=tee];
+    MAC->Fi [label="phagocytosis"];
+    MAC->Fe [label="kImm · extracellular killing", penwidth=1.6];
+    NK->Fe; M1M2->Fp [label="kImmP"];
+  }
+
+  /* ==================================================================
+     7. ADAPTIVE IMMUNITY, HIV AND ART
+     ================================================================== */
+  subgraph cluster_adaptive {
+    label="7 · Adaptive immunity, HIV and antiretroviral therapy";
+    style="rounded,filled"; fillcolor="#ede7f6"; color="#9575cd"; fontsize=12;
+    HIV   [label="HIV-1 replication\nVL [S] log10 copies/mL", fillcolor="#d1c4e9"];
+    CD4   [label="CD4 [S]\nperipheral CD4 count\n(median 25/uL at presentation)", fillcolor="#d1c4e9", penwidth=2.0];
+    ART   [label="ART [P]\nTDF/3TC/DTG — start day", fillcolor="#b2dfdb", penwidth=2.0];
+    TH1   [label="TH1 [S]\nCNS Th1 effectors", fillcolor="#d1c4e9"];
+    TH17  [label="Th17 / IL-17A", fillcolor="#d1c4e9"];
+    TH2   [label="Th2 / IL-4 · IL-13\n(non-protective)", fillcolor="#d1c4e9"];
+    TREG  [label="Treg / IL-10 [S]", fillcolor="#d1c4e9"];
+    IFNG  [label="IFNG [S]\nCSF IFN-γ", fillcolor="#ce93d8", penwidth=1.8];
+    IMML  [label="IMML [S]\nlagged immune competence\n(its deficit = rate of recovery)", fillcolor="#d1c4e9"];
+    HIV->CD4 [label="depletion", arrowhead=tee, penwidth=1.6];
+    ART->HIV [arrowhead=tee, label="suppression"]; ART->CD4 [label="reconstitution", penwidth=1.6];
+    CD4->TH1; CD4->TH17; CD4->TH2; CD4->TREG;
+    TH1->IFNG; IFNG->MAC [label="classical\nactivation", penwidth=1.6];
+    TREG->MAC [arrowhead=tee];
+    CD4->IMML [style=dashed];
+    GXM->TH1 [style=dashed,label="antigen drive"];
+  }
+
+  /* ==================================================================
+     8. CSF CYTOKINE NETWORK AND THE PLEOCYTOSIS PARADOX
+     ================================================================== */
+  subgraph cluster_cyto {
+    label="8 · CSF cytokine network — and the pleocytosis paradox (low CSF WBC predicts DEATH)";
+    style="rounded,filled"; fillcolor="#fce4ec"; color="#f06292"; fontsize=12;
+    PROIN [label="PROIN [S]\nTNF-α · IL-6 · IL-1β composite", fillcolor="#f8bbd0"];
+    CXCL  [label="CXCL10 · CCL2 · IL-8\nchemokine gradient", fillcolor="#f8bbd0"];
+    WBC   [label="WBC [S]\nCSF leucocyte count\n<5/uL in ~50% of HIV-CM", fillcolor="#b3e5fc", penwidth=2.0];
+    PAUCI [label="Paucicellular CSF\n= failure of the clearance machinery,\nNOT protection from inflammation", fillcolor="#fff9c4", penwidth=1.8];
+    MAC->PROIN; GXM->PROIN [label="antigen × MAC"];
+    PROIN->CXCL->WBC; CD4->WBC [label="requires\nCD4 traffic", penwidth=1.6];
+    WBC->PAUCI [style=dashed]; WBC->MAC [style=dashed,label="effector\nsupply"];
+    IMMSUP->CXCL [arrowhead=tee];
+  }
+
+  /* ==================================================================
+     9. CSF HYDRODYNAMICS AND INTRACRANIAL PRESSURE
+     ================================================================== */
+  subgraph cluster_icp {
+    label="9 · CSF hydrodynamics — ICP is a RESIDUAL of a volume budget, never a state variable";
+    style="rounded,filled"; fillcolor="#e3f2fd"; color="#42a5f5"; fontsize=12; penwidth=2.4;
+    IFORM [label="Iform [P]\nCSF formation, choroid plexus\n≈ 0.35 mL/min = 504 mL/day", fillcolor="#bbdefb"];
+    ROUT  [label="Rout [S]\nCSF outflow resistance\narachnoid granulations", fillcolor="#90caf9", penwidth=2.4, color="#0d47a1"];
+    OBSTR [label="Polysaccharide obstruction of the\narachnoid outflow pathway (aG [P])", fillcolor="#bbdefb"];
+    VEX   [label="Vex [S]\nexcess CSF volume", fillcolor="#bbdefb"];
+    EDEMA [label="EDEMA [S]\ncerebral oedema (volume-equivalent)", fillcolor="#bbdefb"];
+    PEL   [label="Pel = Pel0·exp(Eel·(Vex+EDEMA))\npressure–volume exponential", fillcolor="#bbdefb"];
+    ICP   [label="ICP = Pss + Pel  [E]\nopening pressure, mmH2O", fillcolor="#64b5f6", penwidth=2.4, color="#0d47a1"];
+    IABS  [label="Absorption = Pel / Rout\n(Davson equation)", fillcolor="#bbdefb"];
+    CPP   [label="CPP = MAP − ICP\ncerebral perfusion pressure", fillcolor="#bbdefb"];
+    HERN  [label="Herniation · brainstem\ncompression [E]", fillcolor="#fff9c4"];
+    VIS   [label="Papilloedema · visual loss\nCN VI palsy · deafness [E]", fillcolor="#fff9c4"];
+    AMS   [label="Altered mental status / GCS [E]\n(OR 3.1 for 2-week death)", fillcolor="#fff9c4", penwidth=1.8];
+    GXM->OBSTR [penwidth=2.4, color="#e65100", label="THE COUPLING\nBETWEEN CLOCKS"];
+    WBC->OBSTR [label="aW"]; OBSTR->ROUT;
+    IFORM->VEX; VEX->PEL; EDEMA->PEL; PEL->ICP; PEL->IABS;
+    IABS->VEX [arrowhead=tee, label="drains"];
+    ROUT->IABS [arrowhead=tee, penwidth=1.6];
+    ICP->IFORM [arrowhead=tee, style=dashed, label="fSupp: formation falls\nas pressure rises"];
+    ICP->CPP [arrowhead=tee]; ICP->HERN; ICP->VIS; CPP->AMS; ICP->AMS;
+    PROIN->EDEMA;
+  }
+
+  /* ==================================================================
+     10. AMPHOTERICIN B — PK AND STEROL-SPONGE PD
+     ================================================================== */
+  subgraph cluster_amb {
+    label="10 · Amphotericin B — deoxycholate vs liposomal";
+    style="rounded,filled"; fillcolor="#e0f2f1"; color="#26a69a"; fontsize=12;
+    AMBD  [label="AmB deoxycholate\n0.7–1.0 mg/kg/day IV, 4-h infusion", fillcolor="#b2dfdb", penwidth=2.0];
+    AMBL  [label="Liposomal AmB (AmBisome)\nSINGLE 10 mg/kg dose", fillcolor="#b2dfdb", penwidth=2.0];
+    Ad    [label="Ad · Ad2 [S]\nAmB-d plasma / tissue\nVss ≈ 4 L/kg", fillcolor="#b2dfdb"];
+    Al    [label="Al · Al2 [S]\nL-AmB plasma / tissue\nCmax ≈ 120 ug/mL, t½ ≈ 10 d", fillcolor="#b2dfdb"];
+    Abr   [label="Abr [S]\nCNS effect-site AmB\nCLbrD ≫ CLbrL per unit plasma", fillcolor="#80cbc4", penwidth=2.0];
+    Akid  [label="Akid [S]\nrenal cortical AmB\nliposome-shielded 72×", fillcolor="#b2dfdb"];
+    SPONGE[label="Extramembranous STEROL SPONGE\nAmB extracts ergosterol from the bilayer", fillcolor="#80cbc4", penwidth=2.0];
+    KILLA [label="killA = KmaxA·C/(EC50A·cap/ERG^aERG + C)\nfirst-order in the achievable range", fillcolor="#80cbc4"];
+    AMBD->Ad; AMBL->Al;
+    Ad->Abr [label="CLbrD"]; Al->Abr [label="CLbrL"];
+    Ad->Akid [label="CLkdD (free drug)", penwidth=1.6]; Al->Akid [label="CLkdL"];
+    Abr->SPONGE->KILLA;
+    ERGO->SPONGE [label="the target", penwidth=2.4, color="#33691e"];
+    CAPTH->KILLA [arrowhead=tee, label="capsule raises EC50"];
+    MEL->KILLA [arrowhead=tee];
+    KILLA->Fe [arrowhead=tee, penwidth=2.0]; KILLA->Fres [arrowhead=tee];
+    KILLA->Ft [arrowhead=tee, label="× tolPers"];
+    KILLA->Fi [arrowhead=tee, label="× fIntra"];
+    KILLA->Fp [arrowhead=tee, label="× fParen"];
+    KILLA->LYSIS [penwidth=2.0, color="#e65100", label="killing FEEDS\nthe slow clock"];
+  }
+
+  /* ==================================================================
+     11. FLUCYTOSINE — PK, PD AND THE CLEARANCE TRAP
+     ================================================================== */
+  subgraph cluster_5fc {
+    label="11 · Flucytosine — and the clearance trap it shares with amphotericin";
+    style="rounded,filled"; fillcolor="#e0f7fa"; color="#00acc1"; fontsize=12;
+    FCDOSE[label="Flucytosine 25 mg/kg PO q6h\n(100 mg/kg/day)", fillcolor="#b2ebf2", penwidth=2.0];
+    FCc   [label="FCc [S] plasma 5FC\nRENALLY cleared", fillcolor="#b2ebf2"];
+    FCcsf [label="FCcsf [S] CSF 5FC\nCSF:plasma ≈ 0.74", fillcolor="#b2ebf2"];
+    FU    [label="5-fluorouracil → 5-FUMP → 5-FUTP\nRNA miscoding + thymidylate\nsynthase inhibition", fillcolor="#b2ebf2"];
+    KILLF [label="killF = KmaxF·C/(EC50F + C)\nINDEPENDENT of ergosterol", fillcolor="#80deea", penwidth=2.0];
+    FCRES [label="Resistance: FCY1 / FUR1 loss\n→ EC50 × 45 (RESFAC [P])", fillcolor="#b2ebf2"];
+    MARROW[label="Marrow suppression\n(concentration-dependent, >100 ug/mL)", fillcolor="#d7ccc8"];
+    FCDOSE->FCc->FCcsf;
+    FCcsf->FCY2->FCY1->FU; FU->KILLF;
+    KILLF->Fe [arrowhead=tee, penwidth=2.0]; KILLF->Fi [arrowhead=tee];
+    KILLF->Fp [arrowhead=tee, label="× fParen"];
+    KILLF->LYSIS [color="#e65100"];
+    FCRES->Fres [style=dashed];
+    FCc->MARROW [penwidth=1.6];
+  }
+
+  /* ==================================================================
+     12. FLUCONAZOLE — ONE NODE, TWO OPPOSITE SIGNS
+     ================================================================== */
+  subgraph cluster_flu {
+    label="12 · Fluconazole — the whole partner-drug question lives in one node";
+    style="rounded,filled"; fillcolor="#fff3e0"; color="#fb8c00"; fontsize=12; penwidth=2.4;
+    FLDOSE[label="Fluconazole 1200 mg/day\n(800–1200 induction, 400–800 consolidation)", fillcolor="#ffe0b2", penwidth=2.0];
+    FLc   [label="FLc [S] plasma fluconazole\nt½ ≈ 30 h", fillcolor="#ffe0b2"];
+    FLcsf [label="FLcsf [S] CSF fluconazole\nCSF:plasma ≈ 0.8", fillcolor="#ffe0b2"];
+    ERGDEP[label="ERG11 inhibition\n→ ergosterol depletion", fillcolor="#ffcc80", penwidth=2.0];
+    STASIS[label="Fungistasis: growth ∝ ERG^gERG\n(the benefit)", fillcolor="#ffcc80"];
+    ANTAG [label="EC50(AmB) ∝ 1/ERG^aERG\n(the price)", fillcolor="#ffcc80", penwidth=2.4, color="#bf360c"];
+    FLDOSE->FLc->FLcsf->ERG11n [arrowhead=tee, penwidth=2.0];
+    ERG11n->ERGDEP [style=dashed];
+    ERGDEP->ERGO [arrowhead=tee, penwidth=2.4, color="#33691e"];
+    ERGO->STASIS [label="low ERG →\nslow growth"];
+    ERGO->ANTAG  [label="low ERG →\nno AmB target", penwidth=2.4, color="#bf360c"];
+    STASIS->Fe [arrowhead=tee];
+    ANTAG->KILLA [arrowhead=tee, penwidth=2.4, color="#bf360c"];
+    ANEUP->ERG11n [style=dashed,label="heteroresistance"];
+  }
+
+  /* ==================================================================
+     13. ADJUNCTIVE AND FAILED ADJUNCTIVE THERAPIES
+     ================================================================== */
+  subgraph cluster_adj {
+    label="13 · Adjuncts — including the ones that failed, and why";
+    style="rounded,filled"; fillcolor="#efebe9"; color="#8d6e63"; fontsize=12;
+    LP    [label="Therapeutic lumbar puncture\ndrain to ≤50% of opening pressure", fillcolor="#b2dfdb", penwidth=2.4];
+    SHUNT [label="VP shunt / lumbar drain\n(refractory pressure)", fillcolor="#b2dfdb"];
+    ACET  [label="Acetazolamide · mannitol\n(harmful / no benefit)", fillcolor="#d7ccc8"];
+    DEX   [label="Dexamethasone 0.3 mg/kg/day\nCryptoDex: STOPPED for harm", fillcolor="#d7ccc8", penwidth=2.0];
+    SERT  [label="Sertraline 400 mg/day\nASTRO-CM: no benefit", fillcolor="#d7ccc8", penwidth=2.0];
+    SERTFREE[label="Free brain concentration ≈ 34 ng/mL\n= 0.6% of the in-vitro EC50", fillcolor="#d7ccc8"];
+    IFNX  [label="IFN-γ 100 ug SC ×6\nimproves EFA", fillcolor="#b2dfdb"];
+    TAM   [label="Tamoxifen (calmodulin inhibition)\nno mortality benefit", fillcolor="#d7ccc8"];
+    LP->VEX [arrowhead=tee, label="removes 15–30 mL", penwidth=2.0];
+    LP->GXM [arrowhead=tee, penwidth=2.4, color="#e65100", label="AND removes antigen —\nthe only therapy that\ntouches the slow clock"];
+    LP->Fe [arrowhead=tee]; LP->WBC [arrowhead=tee];
+    SHUNT->VEX [arrowhead=tee]; ACET->IFORM [arrowhead=tee, style=dashed];
+    DEX->PROIN [arrowhead=tee, penwidth=1.6];
+    DEX->WBC [arrowhead=tee]; DEX->MAC [arrowhead=tee, penwidth=1.6];
+    DEX->TH1 [arrowhead=tee];
+    SERT->SERTFREE; SERTFREE->Fe [arrowhead=tee, style=dashed, label="negligible"];
+    IFNX->IFNG [penwidth=1.6]; TAM->Fe [arrowhead=tee, style=dashed];
+  }
+
+  /* ==================================================================
+     14. IMMUNE RECONSTITUTION INFLAMMATORY SYNDROME
+     ================================================================== */
+  subgraph cluster_iris {
+    label="14 · IRIS — the product of a RATE and a STOCK";
+    style="rounded,filled"; fillcolor="#f8bbd0"; color="#ec407a"; fontsize=12; penwidth=2.0;
+    RECOV [label="Rate of immune recovery\n= immune competence − IMML", fillcolor="#f48fb1", penwidth=2.0];
+    IRIS  [label="IRISa [S]\nIRIS activity = RATE × ANTIGEN STOCK", fillcolor="#f48fb1", penwidth=2.4, color="#880e4f"];
+    PARAD [label="Paradoxical IRIS (~13–20%)\nworsening on effective therapy", fillcolor="#fff9c4"];
+    UNMASK[label="Unmasking IRIS\n(CM presenting after ART start)", fillcolor="#fff9c4"];
+    CD4->RECOV; IMML->RECOV [arrowhead=tee];
+    RECOV->IRIS [penwidth=2.0];
+    GXM->IRIS [penwidth=2.4, color="#e65100", label="the STOCK —\nwhy ART timing\nis an ANTIGEN question,\nnot a CD4 question"];
+    IRIS->PROIN [penwidth=1.6]; IRIS->EDEMA [penwidth=1.6]; IRIS->ROUT;
+    IRIS->PARAD; IRIS->UNMASK;
+    DEX->IRIS [arrowhead=tee, style=dashed];
+    ART->RECOV [penwidth=2.0];
+  }
+
+  /* ==================================================================
+     15. TOXICITY AND THE SHARED GFR NODE
+     ================================================================== */
+  subgraph cluster_tox {
+    label="15 · Toxicity — and the second shared, oppositely-signed node: GFR";
+    style="rounded,filled"; fillcolor="#efebe9"; color="#795548"; fontsize=12; penwidth=2.0;
+    TUB   [label="Proximal/distal tubular injury\nafferent arteriolar constriction", fillcolor="#d7ccc8"];
+    GFR   [label="GFR [S]\nglomerular filtration rate", fillcolor="#bcaaa4", penwidth=2.4, color="#3e2723"];
+    KWAST [label="Kser [S] renal K⁺ / Mg²⁺ wasting\n(distal tubular pore)", fillcolor="#d7ccc8"];
+    ANAEM [label="Hb [S] anaemia\n(EPO suppression + haemolysis)", fillcolor="#d7ccc8"];
+    ANC   [label="ANC [S] neutropenia\n(5FC, concentration-dependent)", fillcolor="#d7ccc8"];
+    ALT   [label="ALT [S] hepatotoxicity\n(azole + 5FC)", fillcolor="#d7ccc8"];
+    INFUS [label="Infusion reactions · phlebitis\n· rigors [X]", fillcolor="#d7ccc8"];
+    TRANSF[label="Transfusion requirement [E]", fillcolor="#fff9c4"];
+    Akid->TUB->GFR [arrowhead=tee, penwidth=2.0];
+    Akid->KWAST; Ad->ANAEM [penwidth=1.6]; Al->ANAEM [style=dashed,label="much less"];
+    GFR->FCc [label="clears 5FC — so AmB\nnephrotoxicity becomes\n5FC marrow toxicity",
+              arrowhead=tee, penwidth=2.4, color="#bf360c"];
+    MARROW->ANC [penwidth=1.6]; MARROW->ALT;
+    FLc->ALT; AMBD->INFUS; ANAEM->TRANSF;
+  }
+
+  /* ==================================================================
+     16. OUTCOME
+     ================================================================== */
+  subgraph cluster_out {
+    label="16 · Outcome — a hazard with separable terms, so the model can be asked WHICH clock killed the patient";
+    style="rounded,filled"; fillcolor="#fffde7"; color="#fbc02d"; fontsize=12; penwidth=2.0;
+    NEURn [label="NEUR [S]\nreversible neuronal injury", fillcolor="#fff9c4"];
+    DIS   [label="DIS [S]\npermanent disability (10-week) [E]", fillcolor="#fff59d", penwidth=2.0];
+    HAZ   [label="HAZ [S] cumulative hazard\nΣ burden · pressure · perfusion ·\nanaemia · neutropenia · hypoK ·\nGFR · IRIS · unsterile · steroid", fillcolor="#fff59d", penwidth=2.4, color="#f57f17"];
+    M2    [label="2-week mortality [E]", fillcolor="#fff59d"];
+    M10   [label="10-week mortality [E]\nthe primary endpoint of every trial", fillcolor="#fff59d", penwidth=2.0];
+    M26   [label="26-week mortality [E]\n(the ART-timing endpoint)", fillcolor="#fff59d"];
+    CULT->HAZ [label="hB · burden"]; STER->HAZ [label="hSTER"];
+    ICP->HAZ [label="hICP", penwidth=1.6]; CPP->HAZ [label="hCPP"];
+    ANAEM->HAZ; ANC->HAZ; KWAST->HAZ; GFR->HAZ; IRIS->HAZ [penwidth=1.6];
+    DEX->HAZ [label="hDEX", style=dashed];
+    ICP->NEURn; CPP->NEURn; PROIN->NEURn; CULT->NEURn; IRIS->NEURn;
+    DEX->NEURn [style=dashed,label="myopathy"];
+    NEURn->DIS; NEURn->HAZ;
+    HAZ->M2; HAZ->M10; HAZ->M26;
+    AMS->NEURn [style=dashed];
+    RELAP->HAZ;
+  }
+
+  /* ==================================================================
+     17. WHAT THE TRIALS MEASURED  (annotation layer)
+     ================================================================== */
+  subgraph cluster_trials {
+    label="17 · Calibration anchors";
+    style="rounded,filled"; fillcolor="#fafafa"; color="#bdbdbd"; fontsize=12;
+    T1 [label="Brouwer 2004 · Day 2013\nEFA by partner drug\n−0.31 / −0.32 / −0.42", fillcolor="#eeeeee"];
+    T2 [label="Bicanic 2008\nAmB 0.7 vs 1.0 mg/kg\nEFA −0.45 vs −0.56 → dose-linearity", fillcolor="#eeeeee"];
+    T3 [label="Nussbaum 2010 · Longley 2008\nfluconazole ± 5FC\nEFA −0.11 / −0.28", fillcolor="#eeeeee"];
+    T4 [label="ACTA 2018\n1 vs 2 weeks AmB; oral arm\n5FC vs FLU partner HR 0.62", fillcolor="#eeeeee"];
+    T5 [label="AMBITION 2022\nsingle 10 mg/kg L-AmB\n24.8% vs 28.7%; EFA −0.40 vs −0.42", fillcolor="#eeeeee"];
+    T6 [label="COAT 2014\nART 1–2 wk vs 5 wk\n45% vs 30%; WBC<5 HR 3.87", fillcolor="#eeeeee"];
+    T7 [label="CryptoDex 2016\ndexamethasone: slower clearance,\nworse disability", fillcolor="#eeeeee"];
+    T8 [label="Rolfes 2014\ntherapeutic LP: 11-day\nmortality RR 0.31", fillcolor="#eeeeee"];
+    T1->T2->T3->T4->T5->T6->T7->T8 [style=invis];
+  }
+  T1->EFA [style=dotted, color="#9e9e9e", constraint=false];
+  T2->KILLA [style=dotted, color="#9e9e9e", constraint=false];
+  T3->STASIS [style=dotted, color="#9e9e9e", constraint=false];
+  T4->ANTAG [style=dotted, color="#9e9e9e", constraint=false];
+  T5->Abr [style=dotted, color="#9e9e9e", constraint=false];
+  T6->IRIS [style=dotted, color="#9e9e9e", constraint=false];
+  T7->DEX [style=dotted, color="#9e9e9e", constraint=false];
+  T8->LP [style=dotted, color="#9e9e9e", constraint=false];
+}
