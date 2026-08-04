@@ -1,0 +1,618 @@
+/* =====================================================================
+   G6PD DEFICIENCY — drug- and fava-induced acute haemolysis
+   포도당-6-인산 탈수소효소 결핍증 · QSP mechanistic map
+   176 mechanism nodes · 234 edges · 17 clusters (16 mechanism + legend)
+   (+ 64 invisible edges at the end of the file that do layout only, no biology)
+
+   Render:  dot -Tsvg  g6pd_qsp_model.dot -o g6pd_qsp_model.svg
+            dot -Tpng -Gdpi=150 g6pd_qsp_model.dot -o g6pd_qsp_model.png
+
+   ---------------------------------------------------------------------
+   THE MAP IS DRAWN AROUND THE CLAIM THE ODE MODEL MAKES.
+   Three nodes carry the whole argument and are drawn with heavy borders.
+
+   EAGE — G6PD activity is not a number, it is a FUNCTION OF CELL AGE.
+          The mature erythrocyte has no nucleus and no ribosome: the enzyme
+          is loaded once in the erythroblast and then only decays.
+              E(a) = E0 · exp(-ln2 · a / tau)
+          The VARIANT IS THE SLOPE, not the intercept:
+              B (wild type)   E0 1.00   tau 62 d  -> a 120-d cell keeps 26%
+              A-  (Class III) E0 0.55   tau 13 d  -> a 120-d cell keeps 0.9%
+              Mediterranean   E0 0.06   tau  6 d  -> even a RETICULOCYTE is low
+          Everything below is a consequence of that one line.
+
+   ASTAR — a critical age a*(oxidant flux).  Cells older than a* cannot hold
+          GSH against the peroxide load and lyse.  Haemolysis is therefore a
+          THRESHOLD SWEEPING AN AGE DISTRIBUTION, not a rate constant.
+          In A- the age-activity curve is STEEP, so a* lands inside the
+          distribution and leaves a young, resistant survivor population:
+          Hb falls, then RECOVERS DESPITE CONTINUED DRUG (Dern 1954).
+          In Mediterranean the curve is FLAT AND LOW, so a* sweeps past the
+          whole distribution, no resistant subpopulation exists, and the
+          same drug at the same dose does not self-limit.
+          -> Same "activity <10% of normal" label, two different diseases.
+
+   NADPH — ONE pool, TWO consumers that the clinic treats as unrelated:
+              glutathione reductase        -> GSH  -> oxidant defence
+              NADPH-methaemoglobin reductase -> the pathway METHYLENE BLUE
+                                                needs to work at all
+          So the methylene blue contraindication is a DERIVATION, not a fact
+          to memorise: in G6PD deficiency MB cannot be reduced to leuco-MB,
+          it fails as an antidote AND acts as a fresh oxidant (cluster 11).
+
+   Read the map as:
+       cluster 13 (drug PK) -> cluster 5 (oxidant flux) -> cluster 2/3
+       (NADPH, GSH) -> EAGE/ASTAR (cluster 4) -> clusters 6-9 (damage and
+       the two haemolysis routes) -> cluster 10 (the reticulocyte rescue
+       that decides whether it self-limits) -> clusters 11/12/14 (readouts).
+   ===================================================================== */
+digraph G6PD {
+  rankdir=TB;
+  graph [fontname="Helvetica", fontsize=11, labelloc=t, nodesep=0.22,
+         ranksep=0.85, splines=true, overlap=false, compound=true,
+         label="G6PD DEFICIENCY (포도당-6-인산 탈수소효소 결핍증) — QSP mechanistic map\nenzyme activity as a function of CELL AGE · a critical age sweeping the age distribution · one NADPH pool read by two consumers\nprimaquine · tafenoquine · dapsone · rasburicase · methylene blue · favism · neonatal kernicterus",
+         fontsize=20];
+  node  [fontname="Helvetica", fontsize=10, style="filled,rounded",
+         shape=box, penwidth=1.1, margin="0.07,0.045"];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, penwidth=1.0,
+         color="#5a5a5a"];
+
+  /* ================================================================ 1
+     GENOTYPE — the variant is a decay slope, not a switch            */
+  subgraph cluster_gene {
+    label="1. 유전형 Genotype · WHO variant class  (X-linked, Xq28 — the variant sets tau, the enzyme half-life IN the cell)";
+    style="filled,rounded"; color="#b9a2d6"; fillcolor="#f7f3fb"; fontsize=13;
+    node [fillcolor="#e8dcf5", color="#6b4a99"];
+    GENE   [label="G6PD gene\nXq28 · 13 exons\n>230 missense variants"];
+    XLINK  [label="X-linked inheritance\nhemizygous male: one phenotype\nheterozygous female: MOSAIC"];
+    LYON   [label="Lyonisation (X-inactivation)\nfemale = TWO red-cell populations\nnormal fraction f, deficient 1-f\n(f ~ 0.5, range 0.05-0.95)",
+            fillcolor="#dcc9f0"];
+    VB     [label="B (wild type)\nClass IV · 100% activity\nE0 1.00 · tau 62 d"];
+    VAPLUS [label="A+ (A376G)\nClass IV · 85%\nE0 0.90 · tau 45 d"];
+    VAMIN  [label="A- (A376G+G202A)\nClass III · 10-20%\nE0 0.55 · tau 13 d\nAfrican · ~10% of Black males",
+            fillcolor="#d3bdec", penwidth=1.7];
+    VMED   [label="Mediterranean (C563T)\nClass II · <3%\nE0 0.06 · tau 6 d\nMediterranean/Middle East/India",
+            fillcolor="#d3bdec", penwidth=1.7];
+    VCANT  [label="Canton (G1376T) · Kaiping\nClass II · <5%\nEast Asian"];
+    VMAH   [label="Mahidol (G487A)\nClass III · 5-30%\nSE Asian"];
+    VCNSHA [label="Class I (e.g. Sunderland)\nsporadic · chronic non-spherocytic\nhaemolytic anaemia at BASELINE"];
+    WHOCL  [label="WHO/2022 class I-V\nreclassified on ACTIVITY (%)\nand clinical phenotype"];
+    UGTGT  [label="UGT1A1 promoter TA repeat\n(TA)6/6 = 1.00 · 6/7 = 0.70\n7/7 (Gilbert) = 0.35 conjugation",
+            fillcolor="#dcc9f0"];
+    NAT2   [label="NAT2 acetylator status\nslow acetylator -> more dapsone\nrouted to N-hydroxylation"];
+    CYP2D6 [label="CYP2D6 phenotype\nPM: primaquine NOT bioactivated\n-> no cure AND less haemolysis"];
+  }
+  GENE->XLINK; XLINK->LYON;
+  GENE->VB; GENE->VAPLUS; GENE->VAMIN; GENE->VMED; GENE->VCANT; GENE->VMAH;
+  GENE->VCNSHA; VB->WHOCL; VAMIN->WHOCL; VMED->WHOCL; VCNSHA->WHOCL;
+
+  /* ================================================================ 2
+     PENTOSE PHOSPHATE PATHWAY — the only NADPH source in the RBC     */
+  subgraph cluster_ppp {
+    label="2. 오탄당 인산 경로 Pentose phosphate pathway — the erythrocyte's ONLY NADPH source (no mitochondria)";
+    style="filled,rounded"; color="#8fbcd4"; fillcolor="#f1f8fb"; fontsize=13;
+    node [fillcolor="#d8ecf5", color="#26708f"];
+    GLU    [label="glucose\n(GLUT1 uptake, insulin-independent)"];
+    G6P    [label="glucose-6-phosphate\nbranch point: PPP vs glycolysis"];
+    G6PDE  [label="G6PD enzyme\nG6P + NADP+ -> 6PG + NADPH\nRATE-LIMITING · Km(NADP+) 4 uM",
+            fillcolor="#b9dced", penwidth=1.8];
+    SIXPG  [label="6-phosphogluconate"];
+    PGD    [label="6PGD\n2nd NADPH molecule\n(2 NADPH per G6P through PPP)"];
+    RU5P   [label="ribulose-5-P -> ribose-5-P\n(nucleotide salvage)"];
+    GLYCO  [label="glycolysis (Embden-Meyerhof)\nATP + NADH\n(the OTHER 90% of glucose flux)"];
+    ATPRBC [label="RBC ATP\nmembrane pumps, shape,\n2,3-BPG"];
+    NADPH  [label="NADPH POOL\nONE pool · TWO consumers\nturnover t1/2 seconds",
+            fillcolor="#8fc9e3", penwidth=2.4, shape=box, style="filled"];
+    NADPP  [label="NADP+ \n(reoxidised form)"];
+    PPPRES [label="PPP RESERVE CAPACITY\nnormal RBC can raise PPP flux\n20-30x on oxidant demand\ndeficient RBC: ~1-2x",
+            fillcolor="#b9dced", penwidth=1.7];
+  }
+  GLU->G6P; G6P->G6PDE; G6P->GLYCO; GLYCO->ATPRBC;
+  G6PDE->SIXPG; SIXPG->PGD; PGD->RU5P;
+  G6PDE->NADPH [penwidth=2.0]; PGD->NADPH; NADPH->NADPP [style=dashed];
+  NADPP->G6PDE [style=dashed, label="substrate"];
+  G6PDE->PPPRES; PPPRES->NADPH [style=dashed];
+
+  /* ================================================================ 3
+     GLUTATHIONE / PEROXIDE DISPOSAL NETWORK                          */
+  subgraph cluster_redox {
+    label="3. 글루타티온 산화환원망 Glutathione redox network — where NADPH is spent defending haemoglobin";
+    style="filled,rounded"; color="#7fbf9a"; fillcolor="#f2fbf6"; fontsize=13;
+    node [fillcolor="#d6f0e2", color="#22795a"];
+    GR     [label="glutathione reductase (GSR)\nGSSG + NADPH -> 2 GSH\nCONSUMER #1 of NADPH", penwidth=1.6];
+    GSH    [label="GSH (reduced glutathione)\n2.2 mmol/L RBC\nthe buffer that is spent first",
+            fillcolor="#b6e3cc", penwidth=1.8];
+    GSSG   [label="GSSG (oxidised)\nexported when GR cannot keep up\n= IRREVERSIBLE GSH loss"];
+    GPX1   [label="glutathione peroxidase 1\nH2O2 + 2GSH -> 2H2O + GSSG"];
+    PRX2   [label="peroxiredoxin-2\n3rd most abundant RBC protein\nfast, low-capacity H2O2 sink"];
+    TRX    [label="thioredoxin / TrxR\nre-reduces Prx2 — ALSO NADPH-dependent"];
+    CAT    [label="catalase\nhigh-Km H2O2 sink\n(needs bound NADPH to resist inactivation)"];
+    GCLC   [label="gamma-glutamylcysteine synthetase\nde-novo GSH synthesis\nNEGLIGIBLE in mature RBC",
+            fillcolor="#c4e9d7"];
+    GSHTHR [label="GSH THRESHOLD\nbelow ~30% of baseline the\nHb thiols are next in line",
+            fillcolor="#a6dcc0", penwidth=1.7];
+    H2O2   [label="intracellular H2O2 flux\nthe common currency of every\noxidant drug in cluster 5",
+            fillcolor="#ffe3c9", color="#b5651d", penwidth=1.7];
+    OSUP   [label="superoxide O2·-\nfrom Hb autoxidation +\nredox cycling metabolites"];
+    SOD1   [label="SOD1\nO2·- -> H2O2\n(converts one oxidant into another)"];
+  }
+  NADPH->GR [penwidth=2.0, label="  consumer 1"]; GR->GSH [penwidth=1.8];
+  GSH->GPX1; GPX1->GSSG; GSSG->GR; GSH->GSHTHR;
+  H2O2->GPX1; H2O2->PRX2; H2O2->CAT; PRX2->TRX; TRX->NADPH [dir=back, style=dashed];
+  OSUP->SOD1; SOD1->H2O2; GCLC->GSH [style=dashed];
+  GSSG->GSHTHR [style=dashed];
+
+  /* ================================================================ 4
+     THE THESIS — age-structured enzyme and the critical age          */
+  subgraph cluster_age {
+    label="4. 세포 연령 구조 Cell-age structure — THE ARGUMENT OF THIS MODEL";
+    style="filled,rounded"; color="#c94f4f"; fillcolor="#fdf2f2"; fontsize=13;
+    node [fillcolor="#f8d9d9", color="#a02c2c"];
+    NORIB  [label="mature RBC has NO nucleus,\nNO ribosome, NO protein synthesis\n=> enzyme is loaded ONCE and only decays"];
+    EAGE   [label="E(a) = E0 · exp(-ln2 · a / tau)\nG6PD ACTIVITY IS A FUNCTION OF CELL AGE\nthe VARIANT is the SLOPE tau, not the intercept",
+            fillcolor="#f3b3b3", penwidth=2.6, shape=box];
+    TAUB   [label="B: tau 62 d\n120-d cell keeps 26%"];
+    TAUA   [label="A-: tau 13 d\n120-d cell keeps 0.9%\nSTEEP -> young cells are safe"];
+    TAUM   [label="Mediterranean: tau 6 d, E0 0.06\nFLAT AND LOW -> even retics unsafe"];
+    AGEDIST[label="RBC age distribution\nuniform 0-120 d at steady state\n(12 transit bins in the ODE model)",
+            fillcolor="#f3b3b3", penwidth=1.7];
+    ASTAR  [label="a*(oxidant flux)  CRITICAL AGE\ncells older than a* cannot hold GSH -> lyse\nHAEMOLYSIS = A THRESHOLD SWEEPING\nAN AGE DISTRIBUTION",
+            fillcolor="#f3b3b3", penwidth=2.6];
+    SELFLIM[label="SELF-LIMITING (A-)\na* lands INSIDE the distribution\n-> resistant young survivors\n-> Hb recovers ON continued drug",
+            fillcolor="#e8f6e8", color="#2c7a2c", penwidth=1.8];
+    NOLIM  [label="NOT SELF-LIMITING (Mediterranean)\na* sweeps PAST the whole distribution\n-> no resistant subpopulation\n-> progressive fall, transfusion",
+            fillcolor="#fbe0e0", color="#a02c2c", penwidth=1.8];
+    MEANTRAP[label="whole-blood assay reports the\nAGE-WEIGHTED MEAN of E(a)\n= exactly the wrong statistic",
+            fillcolor="#ffeccc", color="#b5651d", penwidth=1.7];
+    FEMMOS [label="female mosaic: TWO age-enzyme curves\nin one circulation\n-> partial haemolysis, normal mean assay",
+            fillcolor="#f8d9d9"];
+  }
+  NORIB->EAGE [penwidth=1.6];
+  EAGE->TAUB; EAGE->TAUA; EAGE->TAUM;
+  VAMIN->TAUA [style=dashed, color="#6b4a99"];
+  VMED->TAUM [style=dashed, color="#6b4a99"];
+  VB->TAUB   [style=dashed, color="#6b4a99"];
+  LYON->FEMMOS [style=dashed, color="#6b4a99"];
+  EAGE->AGEDIST; AGEDIST->ASTAR [penwidth=1.6];
+  GSHTHR->ASTAR [penwidth=1.8, color="#22795a"];
+  H2O2->ASTAR [penwidth=1.8, color="#b5651d"];
+  TAUA->SELFLIM [penwidth=1.6]; TAUM->NOLIM [penwidth=1.6];
+  ASTAR->SELFLIM; ASTAR->NOLIM;
+  EAGE->MEANTRAP; FEMMOS->MEANTRAP;
+  G6PDE->EAGE [style=dashed, color="#26708f"];
+
+  /* ================================================================ 5
+     OXIDANT SOURCES                                                  */
+  subgraph cluster_ox {
+    label="5. 산화 스트레스원 Oxidant sources — every trigger enters the model as ONE quantity: intracellular H2O2 flux";
+    style="filled,rounded"; color="#d99b4a"; fillcolor="#fef7ee"; fontsize=13;
+    node [fillcolor="#fbe5c9", color="#a86520"];
+    PQOX   [label="primaquine 5,6-orthoquinone\nCYP2D6-derived · REDOX CYCLES\n(catalytic, not stoichiometric)", penwidth=1.5];
+    TQOX   [label="tafenoquine quinone metabolite\nsame chemistry, t1/2 15 DAYS\n-> cannot be withdrawn", penwidth=1.6];
+    DAPNOH [label="dapsone hydroxylamine (NHOH-DDS)\nCYP2C9/2E1 · co-oxidation cycle\nONE metabolite, TWO read-outs", penwidth=1.6];
+    RASH2O2[label="rasburicase H2O2\nurate + O2 + H2O -> allantoin + H2O2\nSTOICHIOMETRIC 1:1 — the oxidant dose\nis set by TUMOUR BURDEN, not drug dose",
+            penwidth=1.8, fillcolor="#f7d3a4"];
+    MBOX   [label="methylene blue (unreduced)\nan OXIDANT when it cannot be\nreduced to leuco-MB", penwidth=1.5];
+    DIVIC  [label="divicine / isouramil\n(fava bean beta-glycosides,\nvicine/convicine aglycones)", penwidth=1.5];
+    NITRO  [label="nitrofurantoin · nalidixic acid\nphenazopyridine · sulfamethoxazole\nrasburicase · methylene blue"];
+    NAPHT  [label="naphthalene (mothballs)\nmenthol · henna (lawsone)\nclassic NEONATAL triggers"];
+    INFECT [label="INFECTION / DKA / sepsis\nneutrophil oxidative burst +\nacidosis — the commonest real trigger",
+            penwidth=1.5];
+    HBAUTO [label="Hb autoxidation (baseline)\n0.5-3% of Hb per day\nthe load even without drug"];
+    OXFLUX [label="TOTAL OXIDANT FLUX\nsum of all sources above\n(the model's single input to redox)",
+            fillcolor="#f5c98d", penwidth=2.0];
+  }
+  PQOX->OXFLUX; TQOX->OXFLUX; DAPNOH->OXFLUX; RASH2O2->OXFLUX; MBOX->OXFLUX;
+  DIVIC->OXFLUX; NITRO->OXFLUX; NAPHT->OXFLUX; INFECT->OXFLUX; HBAUTO->OXFLUX;
+  OXFLUX->H2O2 [penwidth=2.2, color="#b5651d"];
+  OXFLUX->OSUP [color="#b5651d"];
+
+  /* ================================================================ 6
+     HAEMOGLOBIN OXIDATION CASCADE                                    */
+  subgraph cluster_hb {
+    label="6. 헤모글로빈 산화 연쇄 Haemoglobin oxidation cascade — what GSH was protecting";
+    style="filled,rounded"; color="#c96f9b"; fillcolor="#fdf3f8"; fontsize=13;
+    node [fillcolor="#f7d9e8", color="#98366a"];
+    HBFE2  [label="HbA (Fe2+, oxyhaemoglobin)\n5 mmol/L tetramer"];
+    HBTHIOL[label="Hb beta-93 cysteine thiol\nthe next reductant after GSH runs out"];
+    METHB  [label="methaemoglobin (Fe3+)\nno O2 carriage\nleft-shifts the remaining Hb",
+            fillcolor="#f0c2dc", penwidth=1.6];
+    SULFHB [label="sulfhaemoglobin\nirreversible (cell lifetime)\ndapsone-associated"];
+    HEMICH [label="HEMICHROME\nirreversibly denatured globin\n(reversible -> irreversible)",
+            fillcolor="#eeb6d5", penwidth=1.7];
+    HEINZ  [label="HEINZ BODY\nhemichrome precipitated on\nthe inner membrane leaflet",
+            fillcolor="#eeb6d5", penwidth=1.8];
+    HEMEREL[label="free haem released from\ndenatured globin\n(a pro-oxidant itself)"];
+    IRONREL[label="free Fe2+ -> Fenton chemistry\nH2O2 -> ·OH\nFEED-FORWARD LOOP", fillcolor="#f0c2dc"];
+    BITE   [label="'bite' and 'blister' cells\nfilm morphology after splenic pitting"];
+  }
+  GSHTHR->HBTHIOL [penwidth=1.6, color="#22795a", label=" GSH exhausted"];
+  HBFE2->HBTHIOL; HBTHIOL->METHB; HBFE2->METHB;
+  H2O2->METHB [color="#b5651d"]; METHB->HEMICH [penwidth=1.6];
+  HBTHIOL->SULFHB; HEMICH->HEINZ [penwidth=1.8];
+  HEMICH->HEMEREL; HEMEREL->IRONREL; IRONREL->H2O2 [style=dashed, color="#b5651d", label="Fenton"];
+  ASTAR->HEINZ [penwidth=1.8, color="#a02c2c"];
+  HEINZ->BITE;
+
+  /* ================================================================ 7
+     MEMBRANE INJURY / ERYPTOSIS                                      */
+  subgraph cluster_mem {
+    label="7. 막 손상 Membrane injury and eryptosis — how a Heinz body becomes a removal signal";
+    style="filled,rounded"; color="#9b8ec4"; fillcolor="#f6f4fc"; fontsize=13;
+    node [fillcolor="#e2ddf3", color="#5b4b96"];
+    BAND3  [label="band-3 (AE1) CLUSTERING\nHeinz body cross-links the\ncytoplasmic domain", penwidth=1.6];
+    NAB3   [label="naturally occurring anti-band-3 IgG\nbinds ONLY the clustered neo-epitope",
+            penwidth=1.5];
+    C3B    [label="C3b deposition\nclassical pathway on bound IgG"];
+    LIPOX  [label="membrane lipid peroxidation\nMDA · 4-HNE · loss of deformability"];
+    SPECT  [label="spectrin-actin oxidative cross-linking\n-> rigid, non-deformable cell"];
+    PSEXT  [label="phosphatidylserine externalisation\n(scramblase on, flippase off)", penwidth=1.6];
+    CAGARD [label="Ca2+ entry -> Gardos channel (KCNN4)\nK+ and water loss -> dehydration,\ndensity increase"];
+    ERYPT  [label="ERYPTOSIS\nthe RBC's suicide programme"];
+    DEFORM [label="deformability index\ndecides whether the cell survives\nthe splenic sinusoid slit (0.5-1 um)",
+            fillcolor="#d3ccec", penwidth=1.6];
+  }
+  HEINZ->BAND3 [penwidth=1.8]; BAND3->NAB3; NAB3->C3B;
+  H2O2->LIPOX [color="#b5651d"]; LIPOX->SPECT; LIPOX->PSEXT;
+  SPECT->DEFORM; CAGARD->DEFORM; PSEXT->ERYPT; CAGARD->ERYPT;
+  BAND3->DEFORM; ASTAR->PSEXT [color="#a02c2c"];
+
+  /* ================================================================ 8
+     EXTRAVASCULAR HAEMOLYSIS                                         */
+  subgraph cluster_extra {
+    label="8. 혈관외 용혈 Extravascular haemolysis — the spleen and liver route (dominant in A-, slow, days)";
+    style="filled,rounded"; color="#6fa8a0"; fillcolor="#f0f9f8"; fontsize=13;
+    node [fillcolor="#d2ecea", color="#2b6f68"];
+    SPLEEN [label="splenic red pulp\ncords -> sinusoid slits\nthe body's deformability filter"];
+    PITTING[label="'pitting': macrophage removes the\nHeinz body AND a piece of membrane\n-> bite cell, surface area lost", penwidth=1.5];
+    MACRO  [label="red-pulp macrophage\nFcgammaR (IgG) + CR1/CR3 (C3b) +\nTIM-4/BAI1 (PS) recognition", penwidth=1.6];
+    KUPFF  [label="hepatic Kupffer cells\nsecond-line clearance"];
+    EVHEM  [label="EXTRAVASCULAR HAEMOLYSIS RATE\nintact phagocytosis: no free plasma Hb,\nno haemoglobinuria",
+            fillcolor="#b4dedb", penwidth=1.8];
+    HEMEOX [label="HO-1 in the macrophage\nhaem -> biliverdin + CO + Fe2+"];
+    IRONREC[label="iron recycled via ferroportin\n-> transferrin -> marrow"];
+  }
+  DEFORM->SPLEEN [penwidth=1.6]; SPLEEN->PITTING; PITTING->BITE;
+  NAB3->MACRO; C3B->MACRO; PSEXT->MACRO; SPLEEN->MACRO;
+  MACRO->EVHEM [penwidth=1.8]; KUPFF->EVHEM; ERYPT->EVHEM;
+  EVHEM->HEMEOX; HEMEOX->IRONREC;
+
+  /* ================================================================ 9
+     INTRAVASCULAR HAEMOLYSIS                                         */
+  subgraph cluster_intra {
+    label="9. 혈관내 용혈 Intravascular haemolysis — the favism/rasburicase route (fast, hours, nephrotoxic)";
+    style="filled,rounded"; color="#c1554e"; fillcolor="#fdf1f0"; fontsize=13;
+    node [fillcolor="#f8d5d2", color="#963029"];
+    IVHEM  [label="INTRAVASCULAR LYSIS\ncell ruptures in the circulation\n(overwhelming, acute oxidant load)",
+            fillcolor="#f2b3ae", penwidth=1.8];
+    FREEHB [label="free plasma haemoglobin\ndimerises -> filtered", penwidth=1.6];
+    HAPTO  [label="haptoglobin\nbinding capacity ~1.3 g/L plasma Hb\nSATURABLE -> falls to ZERO first",
+            fillcolor="#f2b3ae", penwidth=1.6];
+    HPXHX  [label="hemopexin / haem-albumin\n2nd-line haem scavengers\n(also consumed)"];
+    CD163  [label="CD163 monocyte uptake of\nHb-haptoglobin complexes"];
+    NOSCAV [label="NO scavenging by free Hb\n-> vasoconstriction, pulmonary\nand systemic hypertension, priapism"];
+    HBURIA [label="haemoglobinuria\n'Coca-Cola'/port-wine urine\nthe favism hallmark", penwidth=1.6];
+    HEMOSID[label="haemosiderinuria\n(days later — tubular cell shedding)"];
+    TUBTOX [label="proximal tubule haem toxicity\ncast formation + oxidative injury\n+ renal vasoconstriction"];
+    AKI    [label="ACUTE KIDNEY INJURY\ncreatinine rise, oliguria\n(favism, rasburicase)",
+            fillcolor="#f2b3ae", penwidth=1.7];
+    LDHR   [label="LDH release\n(also from extravascular, less)"];
+  }
+  ASTAR->IVHEM [penwidth=1.8, color="#a02c2c"];
+  HEINZ->IVHEM; LIPOX->IVHEM;
+  IVHEM->FREEHB [penwidth=1.8]; FREEHB->HAPTO [penwidth=1.6];
+  HAPTO->CD163; FREEHB->HPXHX; FREEHB->NOSCAV;
+  FREEHB->HBURIA [penwidth=1.6, label=" Hp saturated"];
+  HBURIA->HEMOSID; HBURIA->TUBTOX; TUBTOX->AKI [penwidth=1.6];
+  NOSCAV->TUBTOX; IVHEM->LDHR; EVHEM->LDHR;
+
+  /* ================================================================ 10
+     ERYTHROPOIESIS — the rescue that decides self-limitation         */
+  subgraph cluster_epo {
+    label="10. 적혈구 생성 반응 Erythropoietic rescue — the arm that decides whether haemolysis self-limits (4-7 day lag)";
+    style="filled,rounded"; color="#4f8fc9"; fillcolor="#f1f7fd"; fontsize=13;
+    node [fillcolor="#d6e8f8", color="#25588c"];
+    HBCONC [label="haemoglobin concentration (g/dL)\nthe clinical state variable",
+            fillcolor="#a9cdee", penwidth=2.0];
+    TISSO2 [label="renal cortical pO2\nthe actual sensor"];
+    HIF2A  [label="HIF-2alpha stabilisation\nPHD2 inhibited at low pO2"];
+    EPO    [label="EPO (mIU/mL)\nlog-linear in Hb deficit\n3x per 1 g/dL fall", penwidth=1.6];
+    BFUE   [label="BFU-E / CFU-E\nEPOR -> JAK2/STAT5 -> Bcl-xL\nsurvival, not proliferation, is regulated"];
+    MARROW [label="marrow transit (3 compartments)\nnormal 5 d, stress-shortened to 2-3 d",
+            fillcolor="#c1dbf3"];
+    RETIC  [label="RETICULOCYTES\npeak day 5-8 of haemolysis\nHIGH G6PD (age 0 -> full E0)",
+            fillcolor="#a9cdee", penwidth=1.9];
+    SHIFT  [label="'shift' reticulocytes\nreleased early, higher MCV,\nlonger blood maturation (2 d)"];
+    NEWRBC [label="new RBC enters age bin 0\nRESETS the age clock",
+            fillcolor="#c1dbf3", penwidth=1.6];
+    FOLATE [label="folate / B12 / iron supply\nthe ceiling on the rescue"];
+    MARFAIL[label="parvovirus B19 / infection\naplastic crisis — removes the rescue\n-> A- behaves like Mediterranean",
+            fillcolor="#f8d9d9", color="#a02c2c"];
+  }
+  EVHEM->HBCONC [dir=back, penwidth=1.6, color="#2b6f68"];
+  IVHEM->HBCONC [dir=back, penwidth=1.6, color="#963029"];
+  HBCONC->TISSO2; TISSO2->HIF2A; HIF2A->EPO [penwidth=1.6];
+  EPO->BFUE [penwidth=1.6]; BFUE->MARROW; MARROW->RETIC [penwidth=1.6];
+  EPO->SHIFT [style=dashed]; SHIFT->RETIC;
+  RETIC->NEWRBC [penwidth=1.8]; NEWRBC->AGEDIST [penwidth=1.8, color="#a02c2c"];
+  FOLATE->MARROW; MARFAIL->MARROW [arrowhead=tee, penwidth=1.5];
+  RETIC->SELFLIM [penwidth=1.6, color="#2c7a2c"];
+  MARFAIL->SELFLIM [arrowhead=tee, color="#a02c2c"];
+  RETIC->MEANTRAP [style=dashed, penwidth=1.6, color="#b5651d",
+                   label=" retics RAISE the assay\n during haemolysis\n = FALSE NORMAL"];
+
+  /* ================================================================ 11
+     METHAEMOGLOBIN AND THE METHYLENE BLUE TRAP                       */
+  subgraph cluster_met {
+    label="11. 메트헤모글로빈과 메틸렌블루의 함정 — the second NADPH consumer, and why the antidote is contraindicated";
+    style="filled,rounded"; color="#5c7fc9"; fillcolor="#f2f4fd"; fontsize=13;
+    node [fillcolor="#dbe2f8", color="#2f4a91"];
+    CYB5R  [label="cytochrome b5 reductase (NADH)\nthe MAJOR physiological route\nG6PD-INDEPENDENT · t1/2 ~1 h", penwidth=1.5];
+    NADPHMR[label="NADPH-methaemoglobin reductase\n(NADPH diaphorase / FLAVIN reductase)\nnegligible physiologically", penwidth=1.5];
+    MBDRUG [label="methylene blue (MB) given as antidote\n1-2 mg/kg IV"];
+    LEUCOMB[label="leucomethylene blue (leuco-MB)\nthe ACTUAL reducing species\nrequires NADPH to be formed",
+            fillcolor="#c8d4f4", penwidth=1.8];
+    MBWORKS[label="MB WORKS: MetHb falls in 30-60 min\n(normal G6PD)",
+            fillcolor="#e8f6e8", color="#2c7a2c", penwidth=1.6];
+    MBFAILS[label="MB FAILS AND HARMS (G6PD deficient)\nno NADPH -> no leuco-MB\n-> MB stays oxidised -> MORE haemolysis",
+            fillcolor="#fbe0e0", color="#a02c2c", penwidth=1.9];
+    ASCORB [label="alternative: ascorbic acid,\nexchange transfusion, hyperbaric O2"];
+    METPCT [label="MetHb %\n>15% cyanosis · >30% symptoms\n>50-70% lethal", fillcolor="#c8d4f4", penwidth=1.6];
+    SPO2GAP[label="saturation gap\npulse oximeter pins near 85%\nco-oximetry needed"];
+  }
+  NADPH->NADPHMR [penwidth=2.0, label="  consumer 2"];
+  NADPHMR->LEUCOMB [penwidth=1.6]; MBDRUG->LEUCOMB [penwidth=1.6];
+  LEUCOMB->MBWORKS; LEUCOMB->METPCT [arrowhead=tee, penwidth=1.6];
+  MBDRUG->MBOX [style=dashed, color="#b5651d", label=" if not reduced"];
+  MBOX->MBFAILS [penwidth=1.6, color="#b5651d"];
+  EAGE->MBFAILS [style=dashed, penwidth=1.6, color="#a02c2c"];
+  METHB->METPCT [penwidth=1.6]; CYB5R->METPCT [arrowhead=tee];
+  METPCT->SPO2GAP; MBFAILS->ASCORB;
+  DAPNOH->METHB [penwidth=1.6, color="#b5651d", label=" co-oxidation"];
+
+  /* ================================================================ 12
+     BILIRUBIN AND NEONATAL KERNICTERUS                               */
+  subgraph cluster_bili {
+    label="12. 빌리루빈·신생아 핵황달 Bilirubin and neonatal kernicterus — a TWO-HIT product, not a sum";
+    style="filled,rounded"; color="#c9a227"; fillcolor="#fdfaef"; fontsize=13;
+    node [fillcolor="#f8eec4", color="#8f7212"];
+    HAEMLOAD[label="haem load from lysed cells\n1 g Hb -> 34 mg bilirubin"];
+    HO1    [label="HO-1 (inducible)\nhaem -> biliverdin + CO + Fe"];
+    BVR    [label="biliverdin reductase\n-> unconjugated bilirubin"];
+    UCB    [label="unconjugated bilirubin (UCB)\nPRODUCTION side (numerator)",
+            fillcolor="#f3e2a0", penwidth=1.6];
+    UGT1A1 [label="UGT1A1 glucuronidation\nCLEARANCE side (denominator)\nneonate: 1% of adult at birth",
+            fillcolor="#f3e2a0", penwidth=1.6];
+    TWOHIT [label="TSB = production / conjugation\nG6PD raises the NUMERATOR\nUGT1A1*28 lowers the DENOMINATOR\nEITHER ALONE IS SAFE — the PRODUCT is not",
+            fillcolor="#eede84", penwidth=2.2];
+    CONJB  [label="conjugated bilirubin -> bile"];
+    ENTERO [label="enterohepatic recirculation\nbeta-glucuronidase, delayed feeding"];
+    TSB    [label="total serum bilirubin (mg/dL)\nthe monitored endpoint", penwidth=1.6];
+    ALBBIND[label="albumin binding\nB/A ratio · displaced by\nsulfonamides, ceftriaxone"];
+    BFREE  [label="FREE bilirubin (Bf)\nthe species that crosses the BBB\n(not TSB)", fillcolor="#f3e2a0", penwidth=1.7];
+    BBBIMM [label="immature blood-brain barrier\n+ acidosis + sepsis"];
+    KERN   [label="KERNICTERUS / BIND\nbasal ganglia, CN VIII\nathetoid CP, deafness\nG6PD = leading cause worldwide",
+            fillcolor="#f0d97a", penwidth=1.9];
+    PHOTO  [label="phototherapy\nphotoisomerisation -> lumirubin\n(a CLEARANCE term)", fillcolor="#e8f6e8", color="#2c7a2c"];
+    EXCH   [label="exchange transfusion\nremoves bilirubin AND the\ndeficient red cells", fillcolor="#e8f6e8", color="#2c7a2c"];
+  }
+  EVHEM->HAEMLOAD; IVHEM->HAEMLOAD; HEMEOX->HAEMLOAD [style=dashed];
+  HAEMLOAD->HO1; HO1->BVR; BVR->UCB [penwidth=1.6];
+  UCB->TWOHIT [penwidth=1.8]; UGT1A1->TWOHIT [penwidth=1.8];
+  UGTGT->UGT1A1 [style=dashed, color="#6b4a99", penwidth=1.5];
+  TWOHIT->TSB [penwidth=1.8]; UGT1A1->CONJB; ENTERO->UCB;
+  TSB->ALBBIND; ALBBIND->BFREE [penwidth=1.6]; BFREE->KERN [penwidth=1.8];
+  BBBIMM->KERN; PHOTO->TSB [arrowhead=tee, penwidth=1.5];
+  EXCH->TSB [arrowhead=tee, penwidth=1.5]; EXCH->AGEDIST [arrowhead=tee, style=dashed];
+
+  /* ================================================================ 13
+     DRUG PK                                                          */
+  subgraph cluster_pk {
+    label="13. 약동학 Drug pharmacokinetics — the half-life IS the toxicology";
+    style="filled,rounded"; color="#7a8b99"; fillcolor="#f5f7f9"; fontsize=13;
+    node [fillcolor="#dfe6ec", color="#41525f"];
+    PQPO   [label="PRIMAQUINE p.o.\n15-30 mg/d or 45 mg WEEKLY\nF 0.96 · Tmax 2-3 h"];
+    PQCEN  [label="primaquine plasma\nt1/2 4-7 h · V 3-4 L/kg\nFAST OFF — withdrawal works",
+            fillcolor="#cfdae3", penwidth=1.6];
+    PQCPQ  [label="carboxyprimaquine (MAO-A)\ninactive, accumulates 10x"];
+    PQCYP  [label="CYP2D6 -> 5-hydroxy-PQ ->\n5,6-orthoquinone (ACTIVE both for\nradical cure AND for haemolysis)", penwidth=1.5];
+    TQPO   [label="TAFENOQUINE p.o.\n300 mg SINGLE DOSE\n(or 200 mg weekly prophylaxis)"];
+    TQCEN  [label="tafenoquine plasma\nt1/2 12-15 DAYS · V 1600 L\nSLOW OFF — CANNOT be withdrawn",
+            fillcolor="#cfdae3", penwidth=1.9];
+    DAPPO  [label="DAPSONE p.o. 100 mg/d\nF ~0.9 · t1/2 20-30 h"];
+    DAPCEN [label="dapsone plasma"];
+    DAPNAT [label="NAT2 acetylation -> MADDS\n(detoxifying branch)"];
+    RBXIV  [label="RASBURICASE IV 0.2 mg/kg\nt1/2 16-21 h · a uricase ENZYME"];
+    URATE  [label="plasma urate (mg/dL)\nTLS: 15-25 mg/dL\nTHE SUBSTRATE = the oxidant dose",
+            fillcolor="#cfdae3", penwidth=1.7];
+    FAVAPO [label="FAVA BEAN meal\nvicine/convicine -> gut glycosidase\n-> divicine bolus, 6-24 h"];
+    MBIV   [label="methylene blue IV 1-2 mg/kg"];
+    AUCEQ  [label="EQUAL AUC, UNEQUAL HARM\nsame total exposure delivered\nfast-off vs slow-off gives a\ncompletely different Hb nadir\nbecause the retic rescue takes 4-7 d",
+            fillcolor="#c4cfd8", penwidth=2.0];
+  }
+  PQPO->PQCEN; PQCEN->PQCPQ; PQCEN->PQCYP; PQCYP->PQOX [penwidth=1.6, color="#b5651d"];
+  CYP2D6->PQCYP [style=dashed, color="#6b4a99"];
+  TQPO->TQCEN; TQCEN->TQOX [penwidth=1.6, color="#b5651d"];
+  DAPPO->DAPCEN; DAPCEN->DAPNAT; DAPCEN->DAPNOH [penwidth=1.6, color="#b5651d"];
+  NAT2->DAPNAT [style=dashed, color="#6b4a99"];
+  RBXIV->URATE [arrowhead=tee, penwidth=1.6]; URATE->RASH2O2 [penwidth=1.8, color="#b5651d"];
+  RBXIV->RASH2O2 [penwidth=1.5, color="#b5651d"];
+  FAVAPO->DIVIC [penwidth=1.6, color="#b5651d"]; MBIV->MBDRUG;
+  PQCEN->AUCEQ [style=dashed]; TQCEN->AUCEQ [style=dashed, penwidth=1.6];
+
+  /* ================================================================ 14
+     CLINICAL ENDPOINTS                                               */
+  subgraph cluster_clin {
+    label="14. 임상 지표 Clinical endpoints";
+    style="filled,rounded"; color="#8a7f6d"; fillcolor="#faf8f4"; fontsize=13;
+    node [fillcolor="#eae4d8", color="#5d5445"];
+    HBDROP [label="Hb fall from baseline (%)\n>25% = protocol-defined event\n>=30% or <7 g/dL = transfuse",
+            fillcolor="#ddd4c2", penwidth=1.8];
+    NADIRD [label="day of nadir\nA- primaquine: day 7-8\nfavism: 24-48 h", penwidth=1.5];
+    RECOV  [label="recovery ON drug (yes/no)\nTHE discriminating endpoint\nbetween A- and Mediterranean",
+            fillcolor="#ddd4c2", penwidth=1.8];
+    RETICPK[label="reticulocyte peak (%)\n5-15% at day 5-8"];
+    TXFUS  [label="transfusion requirement\n(units, timing)"];
+    JAUND  [label="jaundice / scleral icterus\nTSB >2.5-3 mg/dL"];
+    DARKUR [label="dark urine / haemoglobinuria"];
+    BACKPN [label="back and abdominal pain,\nfever, rigors (acute crisis)"];
+    AKIEP  [label="AKI / dialysis (favism, severe)"];
+    KERNEP [label="kernicterus / exchange transfusion\n(neonatal)"];
+    RADCUR [label="P. vivax RADICAL CURE efficacy\nthe BENEFIT being traded against\nthe haemolysis risk", fillcolor="#e8f6e8", color="#2c7a2c", penwidth=1.6];
+    RELAPS [label="relapse rate if the 8-aminoquinoline\nis withheld (the cost of caution)",
+            fillcolor="#e8f6e8", color="#2c7a2c"];
+  }
+  HBCONC->HBDROP [penwidth=1.8]; HBDROP->NADIRD; SELFLIM->RECOV [penwidth=1.8];
+  NOLIM->RECOV [penwidth=1.8]; RETIC->RETICPK; HBDROP->TXFUS; NOLIM->TXFUS;
+  TSB->JAUND; HBURIA->DARKUR; IVHEM->BACKPN; AKI->AKIEP; KERN->KERNEP;
+  PQOX->RADCUR [color="#2c7a2c"]; TQOX->RADCUR [color="#2c7a2c"];
+  RADCUR->RELAPS [arrowhead=tee, color="#2c7a2c"];
+
+  /* ================================================================ 15
+     DIAGNOSTICS                                                      */
+  subgraph cluster_dx {
+    label="15. 진단 Diagnostics — why the test lies exactly when you need it";
+    style="filled,rounded"; color="#b5651d"; fillcolor="#fdf6ee"; fontsize=13;
+    node [fillcolor="#f9e3ca", color="#8c4c11"];
+    FLSPOT [label="fluorescent spot test (Beutler)\nqualitative · cheap\nMISSES heterozygous females"];
+    QUANT  [label="quantitative spectrophotometry\nU/g Hb · the reference method\nreports the POPULATION MEAN"];
+    POCT   [label="point-of-care quantitative\n(e.g. STANDARD G6PD)\nrequired before tafenoquine"];
+    CYTOFL [label="cytofluorometric / single-cell assay\nthe ONLY assay that sees the\nDISTRIBUTION rather than the mean",
+            fillcolor="#f5d2ab", penwidth=1.7];
+    GENOTYP[label="genotyping\ntells you tau — i.e. the SLOPE\nthat the activity assay cannot",
+            fillcolor="#f5d2ab", penwidth=1.6];
+    FALSNEG[label="FALSE-NORMAL RESULT\nassay done DURING or just after\nhaemolysis: old (deficient) cells are\ngone, retics (full E0) dominate",
+            fillcolor="#f2c391", penwidth=2.0];
+    RETEST [label="RETEST >=3 MONTHS after the episode\n(one full RBC lifespan)",
+            fillcolor="#e8f6e8", color="#2c7a2c", penwidth=1.5];
+    THR70  [label="FDA/WHO thresholds\ntafenoquine: >70% activity\nprimaquine daily: >30%\nweekly primaquine: any", penwidth=1.5];
+    FILM   [label="blood film: bite cells,\nblister cells, Heinz bodies\n(supravital crystal violet)"];
+    LABPAN [label="haemolysis panel: Hb, retic,\nLDH up, haptoglobin down,\nindirect bilirubin up, DAT NEGATIVE"];
+  }
+  QUANT->MEANTRAP [penwidth=1.6, color="#a02c2c"];
+  MEANTRAP->FALSNEG [penwidth=2.0, color="#a02c2c"];
+  RETIC->FALSNEG [penwidth=1.6, color="#25588c"];
+  FALSNEG->RETEST; CYTOFL->LYON [dir=back, style=dashed, color="#6b4a99"];
+  GENOTYP->EAGE [style=dashed, penwidth=1.5, color="#a02c2c"];
+  FLSPOT->QUANT; QUANT->POCT; POCT->THR70; THR70->TQPO [style=dashed];
+  BITE->FILM; HAPTO->LABPAN; LDHR->LABPAN; TSB->LABPAN;
+
+  /* ================================================================ 16
+     MANAGEMENT                                                       */
+  subgraph cluster_mgmt {
+    label="16. 관리 Management — every intervention acts on a named node above";
+    style="filled,rounded"; color="#2c7a2c"; fillcolor="#f1faf1"; fontsize=13;
+    node [fillcolor="#d7eed7", color="#1e5c1e"];
+    STOPDRUG[label="STOP the oxidant\nworks for primaquine (t1/2 6 h)\nDOES NOT work for tafenoquine (15 d)",
+             penwidth=1.7];
+    WEEKLY [label="WEEKLY primaquine 45 mg x 8 wk\neach pulse clears only the OLDEST cells;\nthe 7-day gap lets retics refill\n-> sawtooth, no progressive fall",
+            fillcolor="#c2e6c2", penwidth=1.9];
+    ASCEND [label="ascending-dose primaquine\n(let the age distribution adapt)"];
+    AVOIDL [label="avoidance list\n(drugs, fava, naphthalene, henna)"];
+    HYDRAT [label="aggressive hydration +/- alkalinisation\nprotects the tubule from free haem"];
+    TRANSF [label="packed RBC transfusion\ndonor cells have NORMAL tau\n= replaces the age-enzyme curve",
+            penwidth=1.5];
+    PHOTO2 [label="neonatal phototherapy / exchange\n(see cluster 12)"];
+    SCREEN [label="pre-prescription screening\nthe only intervention that acts\nBEFORE the oxidant"];
+    ALLOP  [label="allopurinol / febuxostat instead of\nrasburicase when G6PD unknown\n(no H2O2 is generated at all)",
+            penwidth=1.6];
+    VITE   [label="vitamin E / selenium: NOT effective\n(negative trials)", fillcolor="#f0f0f0", color="#777777"];
+  }
+  STOPDRUG->OXFLUX [arrowhead=tee, penwidth=1.7, color="#2c7a2c"];
+  WEEKLY->ASTAR [arrowhead=tee, penwidth=1.7, color="#2c7a2c"];
+  WEEKLY->RETIC [penwidth=1.5, color="#2c7a2c"];
+  ASCEND->ASTAR [arrowhead=tee, color="#2c7a2c"];
+  AVOIDL->OXFLUX [arrowhead=tee, color="#2c7a2c"];
+  HYDRAT->AKI [arrowhead=tee, color="#2c7a2c"];
+  TRANSF->HBCONC [penwidth=1.5, color="#2c7a2c"];
+  TRANSF->EAGE [style=dashed, color="#2c7a2c"];
+  SCREEN->THR70 [color="#2c7a2c"]; PHOTO2->KERN [arrowhead=tee, color="#2c7a2c"];
+  ALLOP->RASH2O2 [arrowhead=tee, penwidth=1.6, color="#2c7a2c"];
+  TQCEN->STOPDRUG [arrowhead=tee, style=dashed, penwidth=1.5, color="#a02c2c",
+                   label=" nothing to stop"];
+
+  /* ================================================================
+     LAYOUT SCAFFOLDING (invisible) — no biology in this block.
+     Several clusters are pure fan-outs (one gene -> seven variants) or
+     pure fan-ins (ten oxidant sources -> one flux node), and dot puts
+     every sibling on a single rank, which stretched the drawing into an
+     unreadable 8:1 strip.  These invisible edges only break those wide
+     sibling rows into 2-3 short columns.  They assert nothing causal.
+     ================================================================ */
+  { edge [style=invis];
+    /* 1. variants: 7 siblings -> 3 rows */
+    VB -> VMED; VAPLUS -> VCANT; VAMIN -> VMAH; VMED -> VCNSHA;
+    XLINK -> UGTGT; LYON -> NAT2; UGTGT -> CYP2D6;
+    /* 2. PPP side branches */
+    RU5P -> GLYCO; GLYCO -> PPPRES;
+    /* 3. redox: peroxide sinks into a column */
+    PRX2 -> CAT; CAT -> GCLC; OSUP -> PRX2; TRX -> SOD1;
+    /* 5. ten oxidant sources -> 4 rows of 2-3 */
+    PQOX -> RASH2O2; TQOX -> MBOX; DAPNOH -> DIVIC;
+    RASH2O2 -> NITRO; MBOX -> NAPHT; DIVIC -> INFECT;
+    NITRO -> HBAUTO;
+    /* 6. Hb cascade side products */
+    SULFHB -> HEMEREL; BITE -> IRONREL;
+    /* 7. membrane: parallel injury arms into a column */
+    LIPOX -> CAGARD; NAB3 -> LIPOX; C3B -> SPECT;
+    /* 9. intravascular side arms */
+    HPXHX -> CD163; CD163 -> NOSCAV; HEMOSID -> LDHR;
+    /* 10. marrow inputs */
+    FOLATE -> MARFAIL; SHIFT -> FOLATE;
+    /* 11. MetHb column */
+    CYB5R -> MBDRUG; MBWORKS -> ASCORB; METPCT -> SPO2GAP;
+    /* 12. bilirubin side arms */
+    CONJB -> ENTERO; ENTERO -> BBBIMM; PHOTO -> EXCH; ALBBIND -> PHOTO;
+    /* 13. six oral/IV drugs -> 3 rows of 2 */
+    PQPO -> DAPPO; TQPO -> RBXIV; DAPPO -> FAVAPO; RBXIV -> MBIV;
+    /* 14. endpoints into two columns */
+    NADIRD -> RETICPK; RECOV -> TXFUS; RETICPK -> JAUND; TXFUS -> DARKUR;
+    JAUND -> BACKPN; DARKUR -> AKIEP; BACKPN -> KERNEP; AKIEP -> RADCUR;
+    /* 15. diagnostics into two columns */
+    FLSPOT -> POCT; QUANT -> CYTOFL; POCT -> GENOTYP; CYTOFL -> THR70;
+    GENOTYP -> FILM; THR70 -> LABPAN; RETEST -> FILM;
+    /* 16. management into three columns */
+    STOPDRUG -> WEEKLY; WEEKLY -> ASCEND; ASCEND -> AVOIDL;
+    HYDRAT -> TRANSF; TRANSF -> PHOTO2; PHOTO2 -> SCREEN;
+    SCREEN -> ALLOP; ALLOP -> VITE;
+  }
+
+  /* ================================================================ LEGEND */
+  subgraph cluster_legend {
+    label="범례 Legend";
+    style="filled,rounded"; color="#999999"; fillcolor="#fbfbfb"; fontsize=13;
+    node [shape=plaintext, fillcolor="#ffffff", style="filled"];
+    LG1 [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">
+      <tr><td bgcolor="#e8dcf5">유전형 genotype / variant (tau)</td>
+          <td bgcolor="#d8ecf5">PPP · NADPH</td>
+          <td bgcolor="#d6f0e2">glutathione redox</td></tr>
+      <tr><td bgcolor="#f8d9d9">cell-age structure (THESIS)</td>
+          <td bgcolor="#fbe5c9">oxidant sources</td>
+          <td bgcolor="#f7d9e8">Hb oxidation</td></tr>
+      <tr><td bgcolor="#e2ddf3">membrane injury</td>
+          <td bgcolor="#d2ecea">extravascular haemolysis</td>
+          <td bgcolor="#f8d5d2">intravascular haemolysis</td></tr>
+      <tr><td bgcolor="#d6e8f8">erythropoietic rescue</td>
+          <td bgcolor="#dbe2f8">MetHb / methylene blue</td>
+          <td bgcolor="#f8eec4">bilirubin / kernicterus</td></tr>
+      <tr><td bgcolor="#dfe6ec">drug PK</td>
+          <td bgcolor="#eae4d8">clinical endpoints</td>
+          <td bgcolor="#f9e3ca">diagnostics</td></tr>
+      <tr><td bgcolor="#d7eed7">management</td>
+          <td>→ activation &nbsp;&nbsp; ⊣ inhibition</td>
+          <td>heavy border = thesis node</td></tr>
+    </table>>];
+    LG2 [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#f3b3b3"><b>THE ONE LINE THE WHOLE MAP HANGS ON</b></td></tr>
+      <tr><td align="left">E(a) = E0 · exp(−ln2 · a / τ)&nbsp;&nbsp;&nbsp; τ is the VARIANT<br/>
+        B 62 d&nbsp;·&nbsp;A− 13 d&nbsp;·&nbsp;Mediterranean 6 d (and E0 0.06)<br/>
+        <br/>
+        A steep τ leaves young survivors → haemolysis <b>self-limits</b><br/>
+        A flat, low curve leaves none → haemolysis <b>does not</b><br/>
+        Same "&lt;10% activity" label. Two different diseases.<br/>
+        <br/>
+        The whole-blood assay reports the age-weighted MEAN of E(a) —<br/>
+        which reticulocytosis raises, so it reads normal at the nadir.</td></tr>
+    </table>>];
+  }
+}
