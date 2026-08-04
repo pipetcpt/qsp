@@ -1,0 +1,357 @@
+digraph Postpartum_Haemorrhage_QSP_Model {
+  graph [
+    label=<<B>Primary Postpartum Haemorrhage — QSP Mechanistic Map</B><BR/><FONT POINT-SIZE="14">PPH is not a clotting disease. It is a <B>FLUX problem read against a store that pregnancy only made look large</B>, and the valve is mechanical.<BR/>Term uterine blood flow is ~750 mL/min. The whole blood-volume expansion of pregnancy (~2100 mL, 70 → 100 mL/kg) divided by that flow is <B>2.8 minutes</B> of unopposed flow; the model's totally atonic uterus reaches 516 mL/min, passes the class-III threshold (2100 mL) at <B>6 min</B> and exsanguinates at <B>10 min</B>.<BR/>Second axis — the valve is <B>Poiseuille, not linear</B>. Flow through a myometrium-compressed sinus goes as (1−tone)⁴, so the clinical band between "firm" and "boggy" is a few percent of contractile capacity: at ATN 0.60 the model loses 2218 mL and lives, at ATN 0.63 it dies at 70 min.<BR/>Third axis — <B>coagulation is locked out until the mechanics work</B>. Clot formation is shear-gated (fSH = 1/(1+(Q/80)²)): at 168 mL/min the gate is 0.19 and the placental-bed clot plateaus at 0.22, and a clot only becomes a DURABLE seal if it survives long enough at low shear to organise. Uterotonics and tamponade are therefore not alternatives to blood products — they are the precondition for them.<BR/>Fourth axis — <B>oxytocin destroys its own receptor</B> (OTR 1.00 → 0.09 by 120 min of infusion), so escalating the dose recovers 277 mL while crossing to an FP-receptor agonist recovers 925 mL. Fifth — <B>fibrinogen crosses its critical line first</B> (2.0/4.5 = 0.44 of baseline, vs 0.30 for factors and 0.20 for platelets), and the resuscitation that saves the circulation degrades the ligature: citrate-driven ionised hypocalcaemia and cold products cost tone directly.</FONT>>
+    labelloc=t fontsize=22 fontname="Helvetica"
+    rankdir=LR bgcolor="#F7F6F8"
+    splines=spline nodesep=0.26 ranksep=0.95
+    newrank=true compound=true concentrate=false
+  ]
+  node [fontname="Helvetica" fontsize=10 style="filled,rounded" shape=box margin="0.14,0.05"]
+  edge [fontname="Helvetica" fontsize=8 arrowsize=0.65 color="#5A6270"]
+
+  //==========================================================
+  // CLUSTER 1 : the third stage — what actually stops the bleeding
+  //==========================================================
+  subgraph cluster_third {
+    label="🩸 1. The third stage of labour — haemostasis at the placental bed is MECHANICAL. The spiral arteries are not ligated, sutured or clotted shut; they are squeezed shut by the myometrium contracting around them. Every drug in this map exists to make that squeeze happen"
+    style=filled fillcolor="#FCE4EC" color="#880E4F" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    T_plac    [label="★ Placental separation\ndecidua basalis shears at the\nspongy layer → ~120 spiral-artery\nstumps open directly onto the cavity" fillcolor="#F48FB1" color="#880E4F" penwidth=2]
+    T_bed     [label="Placental bed\n~15-20 cm diameter raw surface\nno vasoconstrictor tone of its own\n(spiral arteries are remodelled by EVT:\nendothelium + smooth muscle REPLACED)" fillcolor="#F8BBD0" color="#880E4F"]
+    T_evt     [label="Physiological consequence of\ntrophoblast remodelling:\nthe vessels CANNOT constrict\n⇒ no myogenic backup exists" fillcolor="#F8BBD0" color="#880E4F"]
+    T_ubf     [label="★ MODEL ENTRY — UBF0 = 750 mL/min\nterm uterine blood flow, 10-15% of a\n7 L/min cardiac output\n(pressure-passive: UBF ∝ MAP)" fillcolor="#AD1457" fontcolor="white" color="#4A0028" penwidth=3 shape=box3d]
+    T_lig     [label="★ The LIVING LIGATURE\ninterlacing myometrial bundles\n(figure-of-eight fibres) surround each\nradial/spiral artery — contraction\noccludes the lumen mechanically" fillcolor="#F48FB1" color="#880E4F" penwidth=2]
+    T_pois    [label="★ MODEL ENTRY — patency = (1−TONE)^NP, NP = 4\nPoiseuille: flow ∝ r⁴ through a compressed vessel\ntone 0.91 → 6e-5 (0.05 mL/min)\ntone 0.50 → 0.063 (47 mL/min)\ntone 0.20 → 0.41 (307 mL/min)" fillcolor="#AD1457" fontcolor="white" color="#4A0028" penwidth=3 shape=box3d]
+    T_invol   [label="Involution / retraction\nprogressive shortening of myometrial\nfibres, sustained for days\n(sets the LATE tone floor)" fillcolor="#F8BBD0" color="#880E4F"]
+    T_norm    [label="Normal third stage in the model\ntone 0.55 at separation → 0.91 target\ntotal loss 270 mL (250 mL separation\n+ ~20 mL while tone rises, t½ 1.4 min)" fillcolor="#C8E6C9" color="#1B5E20" penwidth=2]
+    T_def     [label="PPH definitions used as read-outs\n≥500 mL any birth · ≥1000 mL = PPH (ACOG)\n≥1500 mL = severe · ≥2500 mL = massive\n(measured loss underestimates by 30-50%)" fillcolor="#F8BBD0" color="#880E4F"]
+    T_auto    [label="Autotransfusion at delivery\nuterine involution returns 300-500 mL\nto the central circulation\n(partly masks early loss)" fillcolor="#F8BBD0" color="#880E4F"]
+
+    T_plac -> T_bed -> T_evt -> T_lig
+    T_bed -> T_ubf; T_lig -> T_pois; T_invol -> T_lig
+    T_pois -> T_norm; T_norm -> T_def; T_auto -> T_def [style=dashed]
+  }
+
+  //==========================================================
+  // CLUSTER 2 : why the ligature fails — the inputs to ONE parameter
+  //==========================================================
+  subgraph cluster_aeti {
+    label="🧬 2. Aetiology of atony — every risk factor in obstetrics enters this model through ONE number: ATN, the fractional loss of myometrial contractile capacity. ATN sets intrinsic drive (DRVI = 4.5·(1−ATN)) AND the ceiling drugs can push against (CAP = 1 − 0.45·ATN)"
+    style=filled fillcolor="#EDE7F6" color="#4527A0" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    A_over    [label="Overdistension\nmultiple pregnancy · polyhydramnios ·\nmacrosomia → myometrial fibres\nstretched past optimal length-tension" fillcolor="#D1C4E9" color="#311B92"]
+    A_prolong [label="Prolonged / obstructed labour\nmyometrial glycogen depletion,\nintracellular acidosis, fatigue\n(the commonest single cause)" fillcolor="#D1C4E9" color="#311B92"]
+    A_precip  [label="Precipitate labour\nhyperstimulated then exhausted\nmyometrium" fillcolor="#D1C4E9" color="#311B92"]
+    A_chorio  [label="Chorioamnionitis / intra-amniotic infection\nIL-1β, IL-6, TNF-α, NO/iNOS →\ndirect myometrial relaxation" fillcolor="#D1C4E9" color="#311B92"]
+    A_toco    [label="Tocolytics & anaesthetics\nMgSO₄ (Ca²⁺ channel antagonism) ·\nnifedipine · β₂-agonists · GTN ·\nhalogenated volatiles (dose-dependent)" fillcolor="#D1C4E9" color="#311B92"]
+    A_aug     [label="★ Oxytocin-augmented labour\nhours of agonist exposure →\nreceptor down-regulation\n(feeds CLUSTER 3, not ATN)" fillcolor="#B39DDB" color="#311B92" penwidth=2]
+    A_grand   [label="Grand multiparity\nfibrous replacement of myometrium\n→ lower CAP ceiling" fillcolor="#D1C4E9" color="#311B92"]
+    A_fibr    [label="Uterine fibroids / anomaly\nmechanically prevent uniform apposition\n(behaves like retained tissue)" fillcolor="#D1C4E9" color="#311B92"]
+    A_prev    [label="Previous PPH\nrecurrence risk ~3× — the strongest\nsingle predictor" fillcolor="#D1C4E9" color="#311B92"]
+    A_atn     [label="★ MODEL ENTRY — ATN (0-1)\n0.00 normal · 0.50 mild · 0.60 moderate\n0.74 severe · 0.88 uterotonic-refractory\n0.94 catastrophic · 1.00 total atony" fillcolor="#5E35B1" fontcolor="white" color="#311B92" penwidth=3 shape=box3d]
+    A_cap     [label="★ MODEL ENTRY — CAP = 1 − 0.45·ATN\nthe CEILING. Atony is not only 'less drive',\nit is less capacity to respond ⇒ this is why\nuterotonics have a failure fraction at all" fillcolor="#5E35B1" fontcolor="white" color="#311B92" penwidth=3 shape=box3d]
+
+    A_over -> A_atn; A_prolong -> A_atn; A_precip -> A_atn; A_chorio -> A_atn
+    A_toco -> A_atn; A_grand -> A_cap; A_fibr -> A_cap; A_prev -> A_atn
+    A_atn -> A_cap
+  }
+
+  //==========================================================
+  // CLUSTER 3 : the oxytocin receptor — a drug that deletes its own target
+  //==========================================================
+  subgraph cluster_otr {
+    label="🔁 3. Oxytocin receptor dynamics — the pharmacological heart of PPH. OTR is a Gq-coupled GPCR that internalises on agonist exposure and recovers over hours. The SAME molecule used for induction, augmentation, prophylaxis and treatment is the one that removes the target"
+    style=filled fillcolor="#E1F5FE" color="#01579B" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    O_otr     [label="★ OXTR (3p25.3) — Gq/11-coupled\nupregulated 100-300× at term;\ndensity is the gain of the whole system" fillcolor="#81D4FA" color="#01579B" penwidth=2]
+    O_plc     [label="PLCβ → IP₃ + DAG\nIP₃R-mediated SR Ca²⁺ release\n+ DAG/PKC" fillcolor="#B3E5FC" color="#01579B"]
+    O_ca      [label="[Ca²⁺]ᵢ rise → Ca²⁺-calmodulin\n→ MLCK → myosin light-chain\nphosphorylation → CONTRACTION" fillcolor="#B3E5FC" color="#01579B"]
+    O_rho     [label="RhoA/ROCK → MLC phosphatase\ninhibition = Ca²⁺ SENSITISATION\n(tone at constant [Ca²⁺]ᵢ)" fillcolor="#B3E5FC" color="#01579B"]
+    O_cox     [label="OTR also drives COX-2 → PGF2α\nlocal amplification loop" fillcolor="#B3E5FC" color="#01579B"]
+    O_grk     [label="★ Homologous desensitisation\nGRK/β-arrestin recruitment → internalisation\nmodel: KDES 0.08/min · occupancy-driven" fillcolor="#4FC3F7" color="#01579B" penwidth=2]
+    O_rec     [label="Receptor recovery\nrecycling + new synthesis\nKREC 0.0045/min (t½ ≈ 2.6 h)" fillcolor="#B3E5FC" color="#01579B"]
+    O_aug     [label="★ DERIVED — 8 h of augmentation at 12 mU/min\noccupancy 0.09 → steady-state OTR ≈ 0.39\n(matches the 30-60% loss of binding sites\nreported after oxytocin-augmented labour)" fillcolor="#0277BD" fontcolor="white" color="#01579B" penwidth=3 shape=box3d]
+    O_shift   [label="★ MODEL STRUCTURE — receptor loss enters as\nan EC50 RIGHT-SHIFT (EC50_eff = EC50/OTR)\nplus Emax loss only below OTR 0.4\n(operational model, spare-receptor reserve)" fillcolor="#0277BD" fontcolor="white" color="#01579B" penwidth=3 shape=box3d]
+    O_tachy   [label="★ DERIVED — treatment itself desensitises:\nfrom OTR 1.00, an infusion reaches\nOTR 0.09 by 120 min\n⇒ oxytocin has a built-in expiry" fillcolor="#0277BD" fontcolor="white" color="#01579B" penwidth=3 shape=box3d]
+    O_futile  [label="★ DERIVED — dose escalation is nearly futile:\nOTR 0.38, severe atony (2605 mL)\n→ DOUBLE dose 2462 mL (−143)\n→ QUADRUPLE dose 2328 mL (−277)" fillcolor="#FFCDD2" color="#B71C1C" penwidth=2]
+    O_cross   [label="★ DERIVED — crossing receptors is not futile:\nsame patient + carboprost (FP) 1680 mL (−925)\n+ ergometrine (α₁/5-HT₂A) 1781 mL (−824)\n+ misoprostol (EP2/EP3) 1953 mL (−652)" fillcolor="#C8E6C9" color="#1B5E20" penwidth=2]
+    O_water   [label="Cost of escalating oxytocin instead:\nV2-receptor antidiuresis → hyponatraemia,\nvasodilatation/hypotension, tachycardia,\ncoronary vasoconstriction (bolus)" fillcolor="#FFCDD2" color="#B71C1C"]
+
+    O_otr -> O_plc -> O_ca; O_plc -> O_rho -> O_ca; O_otr -> O_cox
+    O_otr -> O_grk -> O_rec -> O_otr
+    O_grk -> O_aug -> O_shift; O_grk -> O_tachy
+    O_shift -> O_futile; O_shift -> O_cross; O_futile -> O_water
+  }
+
+  //==========================================================
+  // CLUSTER 4 : uterotonic pharmacology — four receptors, one output
+  //==========================================================
+  subgraph cluster_drug {
+    label="💉 4. Uterotonic PK/PD — four independent receptor systems converging on ONE contractile drive term. Because they are independent, they ADD; because the drive enters a saturating Hill, additions near the top are worth little and additions near the bottom are worth everything"
+    style=filled fillcolor="#E8F5E9" color="#1B5E20" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    D_oxyp    [label="★ Oxytocin PK\nV 12 L · CL 2.08 L/min · t½ 4 min\n(oxytocinase/placental aminopeptidase)\n5 IU IV bolus → 0.42 IU/L; EC50 0.06 IU/L" fillcolor="#A5D6A7" color="#1B5E20" penwidth=2]
+    D_oxyd    [label="Oxytocin dosing in the model\nprophylaxis 10 IU IM · treatment 5 IU IV\n+ 40 IU/500 mL over 4 h (0.167 IU/min)\n⇒ Css 0.080 IU/L ≈ 1.3× EC50" fillcolor="#C8E6C9" color="#1B5E20"]
+    D_cbt     [label="★ Carbetocin (heat-stable)\nOTR agonist · V 22 L · t½ 40 min\n100 µg IV = single dose, no infusion\nCHAMPION: non-inferior to oxytocin" fillcolor="#A5D6A7" color="#1B5E20" penwidth=2]
+    D_erg     [label="★ Ergometrine / methylergometrine\nα₁-adrenergic + 5-HT₂A partial agonist\nIM 0.5 mg · ka 0.30/min · t½ 90 min\nEmax 1.6 · CONTRAINDICATED in hypertension,\npre-eclampsia, Raynaud (vasoconstrictor)" fillcolor="#A5D6A7" color="#1B5E20" penwidth=2]
+    D_pgf     [label="★ Carboprost (15-methyl-PGF2α)\nFP receptor (Gq) · IM 250 µg q15min, max 2 mg\nka 0.08/min · t½ 30 min · Emax 2.2\nbronchospasm — avoid in asthma" fillcolor="#A5D6A7" color="#1B5E20" penwidth=2]
+    D_mso     [label="★ Misoprostol (PGE1 analogue)\nEP2/EP3 · 800 µg SL (600 µg prophylaxis)\nka 0.05/min, Tmax ~30 min · t½ 30 min\nEmax 1.3 — WEAKEST and SLOWEST,\nbut needs no cold chain or needle" fillcolor="#A5D6A7" color="#1B5E20" penwidth=2]
+    D_mech    [label="★ Uterine massage / bimanual compression\nmechanoreceptor + direct apposition\ndrive 1.2 while applied, decays when\nstopped (KMECH 0.25/min) — free, immediate,\nand operator-dependent" fillcolor="#A5D6A7" color="#1B5E20" penwidth=2]
+    D_hill    [label="★ MODEL STRUCTURE — TONE_target =\nCAP · DRV²/(1.4²+DRV²) · M_Ca · M_pH · M_T · M_perf\nDRV = DRVI + CAP·Σ(drug drives + massage)\nsaturating ⇒ a fifth agent adds almost nothing" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    D_super   [label="★ DERIVED superadditivity at ATN 0.74:\nmassage alone DIES at 58 min\noxytocin alone DIES at 51 min\nBOTH TOGETHER: 2054 mL, survives\n(two sub-threshold drives cross a threshold)" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    D_ladder  [label="★ DERIVED escalation ladder (loss, mL):\nATN 0.60 → any single agent suffices (940-1078)\nATN 0.70 → oxytocin alone FAILS, +massage 1446\nATN 0.78 → only the 4-agent ladder holds (1877)\nATN 0.84+ → pharmacology cannot reach threshold" fillcolor="#2E7D32" fontcolor="white" color="#1B5E20" penwidth=3 shape=box3d]
+    D_amtsl   [label="★ DERIVED prophylaxis (AMTSL) on a\nuterus destined for moderate atony (2218 mL):\noxytocin 10 IU 1212 · carbetocin 946 ·\nmisoprostol 600 µg 1118 mL" fillcolor="#C8E6C9" color="#1B5E20"]
+
+    D_oxyp -> D_oxyd -> D_hill; D_cbt -> D_hill; D_erg -> D_hill
+    D_pgf -> D_hill; D_mso -> D_hill; D_mech -> D_hill
+    D_hill -> D_super -> D_ladder; D_hill -> D_amtsl
+  }
+
+  //==========================================================
+  // CLUSTER 5 : the four Ts as four INDEPENDENT leak terms
+  //==========================================================
+  subgraph cluster_4t {
+    label="🅃 5. The four Ts are not a differential-diagnosis list, they are four ALGEBRAICALLY INDEPENDENT terms. A drug that acts on one is invisible to the others — which is why failure to respond to uterotonics is diagnostic information, not a dosing problem"
+    style=filled fillcolor="#FFF3E0" color="#E65100" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    F_tone    [label="★ TONE (70-80% of PPH)\nQ_ut = UBF·(1−TONE)⁴·(1−SEAL)·(1−TAMP)\nthe only term uterotonics touch" fillcolor="#FFCC80" color="#E65100" penwidth=2]
+    F_trauma  [label="★ TRAUMA (~20%)\nQ_tr = KTR·(MAP/MAP0)·(1−clot)·(1−repaired)\ncervical/vaginal laceration · episiotomy ·\nuterine rupture · broad-ligament haematoma\nPRESSURE-driven, tone-independent" fillcolor="#FFCC80" color="#E65100" penwidth=2]
+    F_tissue  [label="★ TISSUE (~10%)\nTONE_max = 1 − RET\nretained placenta/cotyledon · accreta spectrum ·\nclots preventing apposition\ncaps the ceiling the drugs push against" fillcolor="#FFCC80" color="#E65100" penwidth=2]
+    F_thromb  [label="★ THROMBIN (~1%, but modifies all)\nenters the CLOT term, never the flow term:\nvWD · haemophilia carriers · ITP · DIC ·\nAFLP/HELLP · anticoagulants · dilution" fillcolor="#FFCC80" color="#E65100" penwidth=2]
+    F_ceil1   [label="★ DERIVED trauma futility — laceration 260 mL/min:\nuterotonics only → DEAD at 79 min (9920 mL)\n+ FULL uterotonic escalation → DEAD at 80 min\nsuture repair at 25 min → 3794 mL, survives\nrepair delayed to 60 min → 8179 mL" fillcolor="#E65100" fontcolor="white" color="#BF360C" penwidth=3 shape=box3d]
+    F_ceil2   [label="★ DERIVED tissue ceiling — RET 0.35 + full ladder:\nDEAD at 106 min (9954 mL)\nmanual removal at 30 min → 4407 mL, survives\n(the drug was never the missing element)" fillcolor="#E65100" fontcolor="white" color="#BF360C" penwidth=3 shape=box3d]
+    F_ceil3   [label="★ DERIVED thrombin term — fibrinogen 1.6 g/L\nat presentation, severe atony, full ladder:\nno replacement 2193 mL (nadir 0.89 g/L)\nreplacement to 2.5 g/L 1677 mL (−516)" fillcolor="#E65100" fontcolor="white" color="#BF360C" penwidth=3 shape=box3d]
+    F_inv     [label="Uterine inversion / rupture\nsets TONE_max ≈ 0 — no pharmacology\ncan act on a uterus that is not apposed" fillcolor="#FFE0B2" color="#E65100"]
+    F_praevia [label="Placenta praevia / accreta bed\nlower-segment implantation: fewer\ninterlacing fibres ⇒ a structurally\nweaker ligature at the same tone" fillcolor="#FFE0B2" color="#E65100"]
+
+    F_tone -> F_ceil1 [style=invis]
+    F_trauma -> F_ceil1; F_tissue -> F_ceil2; F_thromb -> F_ceil3
+    F_inv -> F_tissue; F_praevia -> F_tone
+  }
+
+  //==========================================================
+  // CLUSTER 6 : haemodynamics, oxygen debt, and the negative feedback
+  //==========================================================
+  subgraph cluster_haemo {
+    label="❤️ 6. Haemodynamics — haemorrhage is partly SELF-LIMITING because the uterine circulation is pressure-passive (UBF ∝ MAP): falling pressure closes the tap. The same falling pressure also starves the myometrium of ATP, which opens it. Which term wins is the whole prognosis"
+    style=filled fillcolor="#FFEBEE" color="#B71C1C" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    H_vol     [label="★ Blood volume V (mL)\nterm 100 mL/kg = 7000 mL\n(vs 70 mL/kg pre-pregnancy = 4900)\nExpansion 2100 mL = 2.8 min of flow" fillcolor="#EF9A9A" color="#B71C1C" penwidth=2]
+    H_refill  [label="Transcapillary refill\n≤12 mL/min, driven by the deficit —\ntoo slow to matter in the first hour" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_co      [label="Cardiac output\nCO = 7.0·(1 − 1.5·DEF) L/min\nterm CO is already 30-50% above baseline" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_map     [label="★ MAP = 85/(1 + (DEF/(0.36·M_vaso))⁶)\ncompensated to ~25% loss, then a cliff:\nDEF 0.30 → 65 · 0.35 → 48 · 0.40 → 30 mmHg\nM_vaso degrades with acidosis + hypocalcaemia" fillcolor="#EF9A9A" color="#B71C1C" penwidth=2]
+    H_comp    [label="Compensation\nsympathetic vasoconstriction, tachycardia,\nvenous reserve mobilisation\n— and the young obstetric patient\ncompensates until she suddenly does not" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_si      [label="Obstetric shock index = HR/SBP\n>0.9 abnormal · >1.0 predicts MTP\n(rises BEFORE the blood pressure falls)" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_do2     [label="★ DO₂ = CO·Hb·1.34·SaO₂·10\nbaseline 7.0 × 11.5 → 1057 mL O₂/min\nVO₂ requirement ~300 mL/min at term" fillcolor="#EF9A9A" color="#B71C1C" penwidth=2]
+    H_debt    [label="★ MODEL ENTRY — OXYGEN DEBT\ndODEBT/dt = max(0, VO₂ − 0.70·DO₂)\nlethal accumulation 120 mL/kg = 8400 mL\n(the mortality criterion, alongside 45% loss)" fillcolor="#C62828" fontcolor="white" color="#7F0000" penwidth=3 shape=box3d]
+    H_lac     [label="Lactate / base deficit\nproduction ∝ debt flux; clearance is\nliver-flow dependent (halves in shock)" fillcolor="#FFCDD2" color="#B71C1C"]
+    H_neg     [label="NEGATIVE feedback\nMAP ↓ → UBF ↓ → leak ↓\n'she stopped bleeding' can mean\n'she has no pressure left to bleed with'" fillcolor="#C5CAE9" color="#1A237E" penwidth=2]
+    H_pos     [label="★ POSITIVE feedback (the vicious cycle)\nMAP ↓ → myometrial perfusion ↓ →\nM_perf ↓ → TONE ↓ → leak ↑\nsteeper than the negative loop below MAP 45" fillcolor="#C62828" fontcolor="white" color="#7F0000" penwidth=3]
+    H_bist    [label="★ DERIVED BISTABILITY — the knife edge:\nATN 0.60 → 2218 mL, survives, MAP nadir 78\nATN 0.63 → DEAD at 70 min (3544 mL)\n3% of contractile capacity decides the outcome" fillcolor="#C62828" fontcolor="white" color="#7F0000" penwidth=3 shape=box3d]
+    H_press   [label="★ DERIVED — pushing the pressure up pushes\nthe bleeding up: crystalloid-first (70 mL/min)\nraises MAP AND UBF → 3953 mL vs 3489 mL\nfor goal-directed resuscitation" fillcolor="#FFCDD2" color="#B71C1C" penwidth=2]
+
+    H_vol -> H_co -> H_map -> H_comp; H_refill -> H_vol
+    H_map -> H_si; H_co -> H_do2 -> H_debt -> H_lac
+    H_map -> H_neg; H_map -> H_pos -> H_bist; H_neg -> H_bist
+    H_map -> H_press
+  }
+
+  //==========================================================
+  // CLUSTER 7 : coagulation at the placental bed — the shear gate
+  //==========================================================
+  subgraph cluster_clot {
+    label="🧫 7. Coagulation — the placental bed is the most hostile site in the body for a clot: 750 mL/min through 120 open stumps. Clot formation is SHEAR-GATED, and a clot only becomes durable if it survives long enough at low shear to organise. This is the lock that mechanics must open before biology can work"
+    style=filled fillcolor="#E0F2F1" color="#004D40" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    C_form    [label="★ Clot formation rate\nKFORM 0.18/min · fFIB · fPLT · fFCT ·\nM_Ca · M_pH · M_T · fSHEAR · (1−CLT)" fillcolor="#80CBC4" color="#004D40" penwidth=2]
+    C_shear   [label="★ MODEL ENTRY — THE SHEAR GATE\nfSH = 1/(1 + (Q/80 mL·min⁻¹)²)\nQ = 30 → 0.88 · 150 → 0.22 ·\n300 → 0.066 · 750 → 0.011" fillcolor="#00695C" fontcolor="white" color="#003D33" penwidth=3 shape=box3d]
+    C_fib     [label="★ fFIB = FIB³/(1.8³+FIB³)\n6.0 → 0.974 · 4.5 → 0.94 · 2.0 → 0.578\n1.5 → 0.367 · 1.0 → 0.146\nsteep cliff at 1.5-2.0 g/L" fillcolor="#80CBC4" color="#004D40" penwidth=2]
+    C_plt     [label="fPLT = PLT²/(60²+PLT²)\n250 → 0.946 · 100 → 0.735 · 50 → 0.41" fillcolor="#B2DFDB" color="#004D40"]
+    C_fct     [label="fFCT = FACT²/(0.35²+FACT²)\npooled II/V/VII/X activity\n1.0 → 0.891 · 0.5 → 0.671 · 0.3 → 0.42" fillcolor="#B2DFDB" color="#004D40"]
+    C_mat     [label="★ MODEL ENTRY — THROMBUS MATURATION\ndMAT/dt = 0.05·fSH·CLT·(1−MAT) − lysis\nfibrin cross-linking (FXIIIa) + spiral-artery\nretraction ⇒ the seal becomes durable" fillcolor="#00695C" fontcolor="white" color="#003D33" penwidth=3 shape=box3d]
+    C_seal    [label="★ MODEL ENTRY — SEAL EFFICACY\nSEAL = (0.35 + 0.65·max(TONE,MAT))·CLT\na clot over an UNCOMPRESSED sinus can\nonly ever take 35% of the patency" fillcolor="#00695C" fontcolor="white" color="#003D33" penwidth=3 shape=box3d]
+    C_lock    [label="★ DERIVED — the lock, at 10 min:\nnormal (Q 0.0) fSH 1.00, CLT→0.98, MAT→1.00\nmoderate (Q 39) fSH 0.81, CLT 0.83\nsevere UNTREATED (Q 168) fSH 0.19, CLT plateaus 0.22\nsevere TREATED (Q 22) fSH 0.93, CLT 0.87" fillcolor="#00695C" fontcolor="white" color="#003D33" penwidth=3 shape=box3d]
+    C_order   [label="★ DERIVED THERAPEUTIC ORDER\nBlood products cannot engage a bed\nthat is still flowing at >150 mL/min.\nUterotonics/tamponade FIRST is arithmetic,\nnot tradition" fillcolor="#00695C" fontcolor="white" color="#003D33" penwidth=3 shape=box3d]
+    C_preg    [label="Pregnancy's procoagulant state\nfibrinogen 4.5 (vs 3.0) g/L · FVII/VIII/X ↑ ·\nvWF ↑ · PAI-1 ↑ · protein S ↓\n⇒ a large margin, spent quickly" fillcolor="#B2DFDB" color="#004D40"]
+    C_te      [label="Viscoelastic read-outs the model maps to\nFIBTEM A5 (≈ fibrinogen) · EXTEM CT/CFT ·\nML/LI30 (lysis) — the basis of goal-directed care" fillcolor="#B2DFDB" color="#004D40"]
+
+    C_shear -> C_form; C_fib -> C_form; C_plt -> C_form; C_fct -> C_form
+    C_preg -> C_fib; C_form -> C_mat -> C_seal
+    C_shear -> C_lock -> C_order; C_seal -> C_lock
+    C_fib -> C_te [style=dashed]
+  }
+
+  //==========================================================
+  // CLUSTER 8 : fibrinolysis and tranexamic acid
+  //==========================================================
+  subgraph cluster_lysis {
+    label="🧪 8. Fibrinolysis — the placental bed and the shocked endothelium release tPA/uPA, so the clot is being destroyed while it forms. TXA does not make clot; it protects the clot that mechanics allowed to form. Its window is therefore not a fixed 3 hours — it is the duration of active bleeding"
+    style=filled fillcolor="#F3E5F5" color="#4A148C" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    L_tpa     [label="★ tPA / uPA release\ndTPA/dt = 0.14 + 1.4·(Q/750)\n+ 1.6·((65−MAP)/65)^1.5 − 0.14·TPA\ndecidua + shocked endothelium; t½ 5 min" fillcolor="#CE93D8" color="#4A148C" penwidth=2]
+    L_plg     [label="Plasminogen → PLASMIN\ndPLS/dt = 0.35·TPA·FACT·(1−TXA) − 0.35·PLS\nα2-antiplasmin keeps free plasmin t½ ~2 min" fillcolor="#E1BEE7" color="#4A148C"]
+    L_lyse    [label="Plasmin actions\n(1) clot lysis  KLYS 0.06/min per unit\n(2) FIBRINOGENOLYSIS  KFDEG 0.0045\n(3) FDP/D-dimer generation (which\nthemselves inhibit polymerisation)" fillcolor="#E1BEE7" color="#4A148C"]
+    L_excess  [label="★ MODEL STRUCTURE — only EXCESS plasmin\ncounts: PLSEFF = max(0, PLS − 1)\nbaseline lysis is balanced by synthesis,\nso a normal delivery is not coagulopathic" fillcolor="#6A1B9A" fontcolor="white" color="#38006B" penwidth=3 shape=box3d]
+    L_hyper   [label="★ DERIVED hyperfibrinolysis grading (PLSmax):\nnormal 1.0 · moderate atony 1.4 ·\nsevere treated 1.7 · severe untreated 4.1\n⇒ lysis is a consequence of FLOW, not a\nseparate disease" fillcolor="#6A1B9A" fontcolor="white" color="#38006B" penwidth=3 shape=box3d]
+    L_txapk   [label="★ TXA PK — 1 g IV over 10 min\nV1 10 L · V2 8 L · CL 0.11 L/min\nCmax ~100 mg/L; antifibrinolytic threshold\n~10 mg/L; repeat at 30 min if still bleeding" fillcolor="#CE93D8" color="#4A148C" penwidth=2]
+    L_txapd   [label="★ TXA PD — lysine-analogue: occupies the\nlysine-binding sites of plasmin(ogen)\n⇒ blocks fibrin binding\nmodel: activation −85%, clot protection −95%\n(IC50 8 mg/L)" fillcolor="#CE93D8" color="#4A148C" penwidth=2]
+    L_time    [label="★ DERIVED TXA TIMING (refractory atony,\nfull ladder + goal-directed resuscitation):\nno TXA 4099 mL · 5 min 3400 (−699) ·\n15 min 3645 (−454) · 30 min 4030 (−69) ·\n45/90/180 min 4099 (0)" fillcolor="#6A1B9A" fontcolor="white" color="#38006B" penwidth=3 shape=box3d]
+    L_why     [label="★ DERIVED — WHY the window closes:\nTXA can only protect a clot that still exists\nand a bed that is still bleeding. This patient's\nbleeding lasts ~40 min, so HER window is 40 min;\nWOMAN's 3 h is the population's bleeding duration" fillcolor="#6A1B9A" fontcolor="white" color="#38006B" penwidth=3 shape=box3d]
+    L_woman   [label="Calibration anchors\nWOMAN: death from bleeding 1.5% vs 1.9%\n(RR 0.81), benefit confined to ≤3 h\npooled IPD: ~10% of benefit lost per 15 min" fillcolor="#E1BEE7" color="#4A148C"]
+    L_ddim    [label="D-dimer / FDP rise\nuseful marker, useless target" fillcolor="#E1BEE7" color="#4A148C"]
+
+    L_tpa -> L_plg -> L_lyse -> L_excess -> L_hyper
+    L_txapk -> L_txapd -> L_time -> L_why; L_woman -> L_time [style=dashed]
+    L_lyse -> L_ddim
+  }
+
+  //==========================================================
+  // CLUSTER 9 : resuscitation — and what the products themselves cost
+  //==========================================================
+  subgraph cluster_resus {
+    label="🧊 9. Resuscitation — every product carries a penalty that lands on the LIGATURE: citrate chelates the Ca²⁺ that myometrium needs to contract, cold products cool the enzymes AND the muscle, and saline dilutes the one factor with the smallest relative margin. The fluid that saves the circulation can open the tap"
+    style=filled fillcolor="#E3F2FD" color="#0D47A1" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    R_rbc     [label="Red cells — 280 mL, 55 g Hb,\n3 mmol citrate, stored at 4 °C\n1 unit ≈ +1 g/dL Hb" fillcolor="#90CAF9" color="#0D47A1"]
+    R_ffp     [label="★ FFP — 250 mL, factor activity 0.8,\nFIBRINOGEN 2 g/L = 0.5 g per unit,\n12 mmol citrate" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    R_ffparith[label="★ DERIVED — FFP CANNOT RAISE A LOW FIBRINOGEN.\nRaising 7 L by 1 g/L needs 7 g = 14 units = 3.5 L of FFP.\nFFP's own concentration is 2 g/L, i.e. the\ntransfusion target itself ⇒ FFP drives fibrinogen\nTOWARD 2 g/L from either side" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_cryo    [label="Cryoprecipitate pool — 200 mL, ~2 g fibrinogen\nFibrinogen concentrate — 2 g in 100 mL\n(the only volume-efficient route)" fillcolor="#90CAF9" color="#0D47A1"]
+    R_plt     [label="Platelets — apheresis 250 mL,\n300×10⁹, 8 mmol citrate\ntarget >50-75×10⁹/L" fillcolor="#90CAF9" color="#0D47A1"]
+    R_cryst   [label="★ Crystalloid\nintravascular persistence t½ ~20 min\n(KESC 0.035/min); saline has NO buffer\n⇒ dilutional acidosis (model: HCO₃ term)" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    R_dilute  [label="★ DERIVED — WHICH FACTOR CROSSES FIRST\n(crystalloid-first arm, cumulative loss at crossing):\nFIBRINOGEN <2.0 g/L at 3476 mL ✓ FIRST\nHb <7 g/dL at 3555 mL\nplatelets <50: NEVER (nadir 71)\npooled factors <30%: NEVER (nadir 0.33)" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_ratio   [label="★ DERIVED — it is arithmetic on the RATIO of\ncritical to starting value, nothing else:\nfibrinogen 2.0/4.5 = 0.44 ← largest\nfactors 0.30/1.00 = 0.30\nplatelets 50/250 = 0.20" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_cit     [label="★ Citrate load\ndCIT/dt = Σ(product citrate) − Vmax 3 mmol/min·\n(CIT/(3+CIT))·M_liver\n⇒ metabolism is LIVER-BLOOD-FLOW dependent:\nshock makes the same load far more toxic" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    R_ca      [label="★ Ionised calcium\nCAI_eq = 1.15/(1 + CIT/70)\nModel MTP: 11-16 units → iCa 0.42-0.53 mmol/L\n(hypocalcaemia is near-universal in obstetric MTP)" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    R_cadual  [label="★ DERIVED — calcium is a DOUBLE hit,\nunique to obstetric haemorrhage:\nCa²⁺ is a coagulation cofactor AND the\ncontractile ion of the myometrium.\nNo calcium replacement: +922 mL and iCa 0.45" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_temp    [label="★ Temperature\ndTMP/dt = (metabolism − losses − 0.00418·\nΣ flow·(T−T_fluid))/245 kJ·°C⁻¹\n100 mL/min at 4 °C = 13.8 kJ/min = 2.8 °C/h" fillcolor="#64B5F6" color="#0D47A1" penwidth=2]
+    R_warm    [label="★ DERIVED — the fluid warmer is a\nHAEMOSTATIC drug: no warmer → 31.8 °C,\n12116 mL and 16 units, vs 36.9 °C, 9243 mL\nand 11 units with it (M_T hits clot AND tone)" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_triad   [label="★ The lethal triad, quantified\nM_pH(clot) 7.44→1.00, 7.20→0.90, 7.10→0.67, 7.00→0.33\nM_T(clot) = exp(−0.12·(37−T)): 34 °C → 0.70\nM_Ca(tone+clot): 1.15→1.00, 0.85→0.87, 0.70→0.76" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_gdr     [label="★ DERIVED strategy comparison (refractory atony):\ngoal-directed 1:1 + Fg + Ca + warmer  3489 mL\ncrystalloid-first, RBC only            3953 mL,\n  fibrinogen 1.37 g/L, 34.6 °C, pH 7.31, 6.2 units" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_obs2    [label="★ DERIVED — reproducing the OBS2 null result:\nempiric 4 g fibrinogen at 15 min in a patient\nwhose fibrinogen is 2.5-4 g/L: 3473 vs 3489 mL\n(16 mL). Above the cliff, fFIB is already 0.94 —\nclot formation is not fibrinogen-limited" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_hblast  [label="★ DERIVED — HAEMOGLOBIN IS THE LAST THING\nTO FALL. Untreated exsanguination reaches death\nwith Hb 11.2-11.4 g/dL: whole blood leaves at\nconstant concentration. Hb-triggered transfusion\nis structurally too late — trigger on RATE" fillcolor="#1565C0" fontcolor="white" color="#0D47A1" penwidth=3 shape=box3d]
+    R_mtp     [label="MTP activation in the model\nongoing loss >1500 mL AND Q >25 mL/min,\nnot a laboratory value" fillcolor="#90CAF9" color="#0D47A1"]
+
+    R_rbc -> R_cit; R_ffp -> R_cit; R_plt -> R_cit; R_ffp -> R_ffparith
+    R_cryst -> R_dilute; R_ffp -> R_dilute; R_ratio -> R_dilute
+    R_cit -> R_ca -> R_cadual; R_temp -> R_warm
+    R_ca -> R_triad; R_temp -> R_triad; R_cryst -> R_triad
+    R_cryo -> R_obs2; R_dilute -> R_gdr; R_warm -> R_gdr
+    R_rbc -> R_hblast; R_mtp -> R_rbc
+  }
+
+  //==========================================================
+  // CLUSTER 10 : mechanical and surgical escalation — buying the low-shear window
+  //==========================================================
+  subgraph cluster_mech {
+    label="🔧 10. Mechanical and surgical control — these do not act on tone at all. They subtract flow directly, which is why they work when the whole pharmacological ladder has failed: they buy the low-shear window in which a thrombus can organise into a permanent seal"
+    style=filled fillcolor="#FFFDE7" color="#F57F17" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    M_bim     [label="Bimanual uterine compression\nimmediate, free, effective, tiring\n(enters as mechanical drive 1.2)" fillcolor="#FFF59D" color="#F57F17"]
+    M_aoc     [label="★ External / manual aortic compression\nreduces the pressure term by 85%\nzero equipment, seconds to apply,\nnot definitive — a BRIDGE" fillcolor="#FFF176" color="#F57F17" penwidth=2]
+    M_bal     [label="★ Intrauterine balloon tamponade\n(Bakri / condom-catheter)\ndirect patency reduction ~80%, over ~3 min\n~85% success in the literature" fillcolor="#FFF176" color="#F57F17" penwidth=2]
+    M_time    [label="★ DERIVED — TIMING DOMINATES DEVICE.\nCatastrophic atony (ATN 0.94), full bundle:\nno mechanics → DEAD at 80 min (10044 mL)\nballoon at 20 min → 4528 mL, survives\nat 45 min → 7617 mL, survives, O₂ debt 1195\nat 75 min → DEAD at 150 min" fillcolor="#F57F17" fontcolor="white" color="#E65100" penwidth=3 shape=box3d]
+    M_bridge  [label="★ DERIVED — the bridge is worth more than\nthe definitive procedure performed later:\naortic compression 8-35 min + balloon at 35\n→ 2782 mL, no transfusion, no O₂ debt\n(vs 4528 mL for early balloon alone)" fillcolor="#F57F17" fontcolor="white" color="#E65100" penwidth=3 shape=box3d]
+    M_bl      [label="Compression sutures\nB-Lynch · Hayman · Cho square\napposes anterior and posterior walls" fillcolor="#FFF59D" color="#F57F17"]
+    M_ual     [label="Stepwise devascularisation\nuterine artery ligation (O'Leary) →\novarian anastomosis → internal iliac\nmodel: −45% of UBF0" fillcolor="#FFF59D" color="#F57F17"]
+    M_uae     [label="Uterine artery embolisation\n~90% success, fertility-sparing —\nbut needs a radiology suite and TIME" fillcolor="#FFF59D" color="#F57F17"]
+    M_reboa   [label="REBOA (zone III)\nemerging bridge in placenta accreta\nspectrum and refractory PPH" fillcolor="#FFF59D" color="#F57F17"]
+    M_hyst    [label="★ Peripartum hysterectomy\nsets the leak to zero — 100% effective,\n100% sterilising. The model's own\nverdict: at 60 min 8451 mL and survival;\nat 120 min it is a post-mortem procedure" fillcolor="#FFF176" color="#F57F17" penwidth=2]
+    M_futile  [label="★ DERIVED — devascularisation late is nearly\nfutile: uterine artery ligation at 50 min in\nthe same patient leaves 9624 mL, 10 units,\niCa 0.55 and an O₂ debt of 1527 mL" fillcolor="#F57F17" fontcolor="white" color="#E65100" penwidth=3 shape=box3d]
+
+    M_bim -> M_bal [style=invis]
+    M_aoc -> M_bridge; M_bal -> M_time; M_time -> M_bridge
+    M_bl -> M_ual -> M_uae -> M_hyst; M_reboa -> M_bridge
+    M_ual -> M_futile; M_hyst -> M_futile
+  }
+
+  //==========================================================
+  // CLUSTER 11 : endpoints and organ consequences
+  //==========================================================
+  subgraph cluster_end {
+    label="🎯 11. Clinical endpoints and organ consequences — what the model reports, and what the survivor is left with. Note that most of these are integrals of TIME SPENT below a perfusion threshold, not functions of the volume lost"
+    style=filled fillcolor="#ECEFF1" color="#263238" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    E_loss    [label="★ Cumulative blood loss (primary)\nplus time to 500/1000/1500/2500 mL" fillcolor="#B0BEC5" color="#263238" penwidth=2]
+    E_ctrl    [label="Haemostasis achieved?\nQ < 25 mL/min and alive" fillcolor="#CFD8DC" color="#263238"]
+    E_death   [label="★ Death from haemorrhage\n45% blood-volume loss OR\n120 mL/kg accumulated O₂ debt" fillcolor="#EF9A9A" color="#B71C1C" penwidth=2]
+    E_mtp     [label="Transfusion burden\nunits RBC/FFP/platelets, g fibrinogen,\nmmol calcium" fillcolor="#CFD8DC" color="#263238"]
+    E_aki     [label="Acute kidney injury\nmodel integrates time with MAP <65;\nATN from renal ischaemia + haemoglobinuria" fillcolor="#CFD8DC" color="#263238"]
+    E_sheehan [label="★ Sheehan syndrome\nthe enlarged, portal-perfused anterior\npituitary infarcts in prolonged hypotension —\nmodel integrates time with MAP <50\n(64 min in the untreated catastrophic arm)" fillcolor="#B0BEC5" color="#263238" penwidth=2]
+    E_ards    [label="Transfusion-related lung injury\nTRALI / TACO / ARDS after massive\nresuscitation" fillcolor="#CFD8DC" color="#263238"]
+    E_hyst    [label="Hysterectomy / loss of fertility\nthe endpoint the patient cares about\nand trials under-report" fillcolor="#CFD8DC" color="#263238"]
+    E_isch    [label="Myocardial ischaemia\ntroponin rise is common in severe PPH\n(demand ischaemia at Hb + MAP nadir)" fillcolor="#CFD8DC" color="#263238"]
+    E_ptsd    [label="Long-term morbidity\nanaemia, fatigue, breastfeeding failure,\npost-traumatic stress, subsequent-pregnancy fear" fillcolor="#CFD8DC" color="#263238"]
+    E_debt    [label="★ Oxygen debt (mL O₂) as the common currency\ncatastrophic + no mechanics 1791 · balloon at 75 min 8260\nballoon at 20 min 152 · aortic bridge 0" fillcolor="#B0BEC5" color="#263238" penwidth=2]
+
+    E_loss -> E_ctrl -> E_death; E_loss -> E_mtp -> E_ards
+    E_debt -> E_aki; E_debt -> E_sheehan; E_debt -> E_isch
+    E_death -> E_hyst [style=invis]; E_mtp -> E_hyst; E_aki -> E_ptsd
+  }
+
+  //==========================================================
+  // CLUSTER 12 : the model's own architecture
+  //==========================================================
+  subgraph cluster_arch {
+    label="⚙️ 12. Model architecture — 41 ODE compartments (10 drug PK · 31 disease/physiology), 12 scenario blocks, 70 kg term parturient, time in MINUTES"
+    style=filled fillcolor="#FAFAFA" color="#424242" penwidth=2 fontsize=13 fontname="Helvetica-Bold"
+
+    X_pk      [label="PK states (10)\nOXY · CBT · MSD/MSC · ERD/ERC ·\nPGD/PGC · TX1/TX2" fillcolor="#E0E0E0" color="#424242"]
+    X_flow    [label="Flow/volume states (5)\nV · CIV · LOSS · UO · ODEBT" fillcolor="#E0E0E0" color="#424242"]
+    X_blood   [label="Blood constituents (4)\nHBM · FBM · PLTM · FCT (as MASSES,\nso dilution is automatic)" fillcolor="#E0E0E0" color="#424242"]
+    X_ut      [label="Uterus states (4)\nTONE · OTR · RET · MECH\n(DRVI and CAP are algebraic in ATN)" fillcolor="#E0E0E0" color="#424242"]
+    X_clot    [label="Haemostasis states (5)\nCLT · CLTR · MAT · TPA · PLS" fillcolor="#E0E0E0" color="#424242"]
+    X_milieu  [label="Milieu states (5)\nCIT · CAI · TMP · LAC · HCO" fillcolor="#E0E0E0" color="#424242"]
+    X_count   [label="Counters (5)\nRBCU · FFPU · PLTU · FGCU · CAU\n+ TSEV/TAKI/XSEV exposure integrals (3)" fillcolor="#E0E0E0" color="#424242"]
+    X_fit     [label="FITTED (6): UBF0 and the tone→patency exponent\n(normal loss 270 mL); ATN→DRVI/CAP map (the\nescalation ladder); KFORM/QS50 (5-8 min normal\nclosure); KDES/KREC (30-60% receptor loss after\naugmentation); KFDEG/KLYS (fibrinogen <2 g/L in\nsevere PPH); citrate/calcium (iCa 0.7-0.9 in MTP)" fillcolor="#FFF9C4" color="#F57F17" penwidth=2]
+    X_der     [label="DERIVED, i.e. falsifiable output:\n· the 2.8-minute reserve and 6-min class-III crossing\n· the ATN 0.60/0.63 knife edge\n· the whole who-needs-what escalation ladder\n· dose-escalation futility vs receptor crossing\n· fibrinogen-crosses-first and the OBS2 null\n· TXA's window = the duration of bleeding\n· timing beats device for mechanical control\n· haemoglobin as the last variable to move" fillcolor="#C8E6C9" color="#1B5E20" penwidth=2]
+
+    X_pk -> X_fit [style=invis]
+    X_flow -> X_der [style=invis]
+  }
+
+  //==========================================================
+  // CROSS-CLUSTER EDGES — the actual causal skeleton
+  //==========================================================
+  T_ubf   -> F_tone     [label="UBF0" color="#880E4F" penwidth=2]
+  T_pois  -> F_tone     [label="(1−TONE)⁴" color="#880E4F" penwidth=2]
+  A_atn   -> D_hill     [label="DRVI" color="#4527A0" penwidth=2]
+  A_cap   -> D_hill     [label="ceiling" color="#4527A0" penwidth=2]
+  A_aug   -> O_aug      [label="hours of agonist" color="#4527A0" penwidth=2]
+  O_shift -> D_oxyp     [label="EC50 shift" color="#01579B" penwidth=2]
+  O_ca    -> T_lig      [label="MLCK → contraction" color="#01579B"]
+  D_hill  -> T_pois     [label="TONE target" color="#1B5E20" penwidth=2]
+  D_oxyd  -> O_grk      [label="occupancy drives desensitisation" color="#1B5E20" style=dashed]
+  F_tone  -> H_vol      [label="Q_ut" color="#E65100" penwidth=2]
+  F_trauma-> H_vol      [label="Q_tr" color="#E65100" penwidth=2]
+  H_map   -> T_ubf      [label="pressure-passive" color="#B71C1C" penwidth=2]
+  H_pos   -> D_hill     [label="M_perf" color="#B71C1C" penwidth=2]
+  F_tone  -> C_shear    [label="Q sets the gate" color="#E65100" penwidth=2]
+  C_seal  -> F_tone     [label="1−SEAL" color="#004D40" penwidth=2]
+  F_thromb-> C_fib      [label="starting fibrinogen" color="#E65100"]
+  F_tone  -> L_tpa      [label="flow-driven tPA" color="#E65100"]
+  H_map   -> L_tpa      [label="shock-driven tPA" color="#B71C1C"]
+  L_lyse  -> C_seal     [label="lyses clot AND maturation" color="#4A148C" penwidth=2]
+  L_txapd -> C_mat      [label="protects the immature clot" color="#4A148C" penwidth=2]
+  H_vol   -> R_mtp      [label="triggers MTP" color="#B71C1C"]
+  R_dilute-> C_fib      [label="dilution" color="#0D47A1" penwidth=2]
+  R_ca    -> D_hill     [label="M_Ca on TONE" color="#0D47A1" penwidth=2]
+  R_ca    -> C_form     [label="M_Ca on CLOT" color="#0D47A1" penwidth=2]
+  R_temp  -> C_form     [label="M_T" color="#0D47A1" penwidth=2]
+  R_temp  -> D_hill     [label="M_T on TONE" color="#0D47A1"]
+  R_cryst -> H_map      [label="raises MAP → raises UBF" color="#0D47A1" penwidth=2]
+  H_lac   -> R_triad    [label="acidosis" color="#B71C1C"]
+  R_triad -> H_map      [label="M_vaso" color="#0D47A1" penwidth=2]
+  M_aoc   -> T_ubf      [label="−85% pressure" color="#F57F17" penwidth=2]
+  M_bal   -> F_tone     [label="−80% patency" color="#F57F17" penwidth=2]
+  M_ual   -> T_ubf      [label="−45% UBF0" color="#F57F17" penwidth=2]
+  M_hyst  -> F_tone     [label="leak := 0" color="#F57F17" penwidth=2]
+  M_time  -> C_mat      [label="buys the low-shear window" color="#F57F17" penwidth=2]
+  H_debt  -> E_death    [label="120 mL/kg" color="#B71C1C" penwidth=2]
+  H_vol   -> E_loss     [color="#B71C1C"]
+  H_map   -> E_sheehan  [label="time <50 mmHg" color="#B71C1C" penwidth=2]
+  H_map   -> E_aki      [label="time <65 mmHg" color="#B71C1C"]
+  R_mtp   -> E_mtp      [color="#0D47A1"]
+  M_hyst  -> E_hyst     [color="#F57F17"]
+  C_order -> M_bal      [label="mechanics BEFORE products" color="#004D40" penwidth=2]
+  X_fit   -> X_der      [label="6 fitted numbers → 8 falsifiable claims" color="#F57F17" penwidth=2]
+}
