@@ -1,0 +1,821 @@
+/* ============================================================================
+   Hereditary Hemorrhagic Telangiectasia (HHT / Osler-Weber-Rendu)
+   유전성 출혈성 모세혈관확장증 — QSP 기계론적 지도
+
+   ORGANISING THESIS (조직 원리)
+   -----------------------------------------------------------------------------
+   HHT is usually drawn as "loss of a brake on angiogenesis".  That picture
+   cannot explain why the same germline lesion produces a 1 mm punctate
+   telangiectasia in the nose and a 3 cm arteriovenous malformation in the
+   liver, nor why anti-angiogenic drugs shrink the first and only dent the
+   second.  This map is built on a different claim.
+
+   CLAIM 1 — ALK1/ENG/SMAD4 IS THE ENDOTHELIAL SHEAR SET-POINT CONTROLLER,
+             AND LOSING IT INVERTS THE SIGN OF A FEEDBACK LOOP.
+     In normal endothelium a rise in wall shear stress drives INWARD
+     remodelling: the lumen narrows and shear returns to its set point.  That
+     is a NEGATIVE feedback and it is transduced by BMP9/BMP10-ALK1-endoglin
+     through SMAD1/5/8 (PMID 27646277, 32078368, 37490341, 38727966).
+     A two-hit lesion has no pathway left, so the same rise in shear now drives
+     OUTWARD remodelling.  One line of the model carries it (cluster 5):
+
+            REMOD = KSH * g(WSS) * (1 - 2*pSMAD_rel)
+
+     pSMAD_rel = 1 (intact)      -> term NEGATIVE -> inward, self-limiting
+     pSMAD_rel ~ 0.03 (2-hit)    -> term POSITIVE -> outward, self-amplifying
+
+     The disease is therefore not "too much angiogenesis".  It is a control
+     loop running with the wrong sign.
+
+   CLAIM 2 — WALL SHEAR IS NOT MONOTONE IN LUMEN SIZE, AND THAT IS WHAT
+             SEPARATES A TELANGIECTASIA FROM AN AVM.
+     Q = dP/(R_feeder + R_lesion) with R_lesion ~ S^-4, so
+            WSS ~ Q/S^3 ~ S / (1 + (S/S_feeder)^4)
+     Shear RISES while the lesion is the limiting resistance and FALLS once the
+     FEEDING VESSEL is.  A nasal mucosal ectasia is fed by an arteriole: shear
+     saturates at a small calibre, the positive branch is capped below the
+     inward-remodelling sink, and the lesion has a STABLE calibre that a drug
+     can pull back.  A hepatic or pulmonary shunt is fed by a conducting
+     artery: shear never saturates and the lesion runs to a floor no
+     anti-angiogenic dose can go below.  Same equation, two basins.
+
+   CLAIM 3 — ANAEMIA IS AN INPUT TO LESION GROWTH, NOT ONLY ITS OUTPUT.
+     Hb falls -> cardiac output rises to defend O2 delivery -> perfusion
+     pressure and wall shear rise -> outward remodelling -> larger lesions ->
+     more bleeding -> Hb falls.  The loop is closed on this map (cluster 16 ->
+     cluster 5).  Correcting the anaemia is therefore not purely supportive: it
+     withdraws the mechanical drive that enlarges the lesions.
+
+   CLAIM 4 — THE CLINICALLY DECISIVE VARIABLE IS A FLUX BALANCE, NOT A SCORE.
+     Iron in blood = 0.0347 x Hb[g/dL] mg per mL.  Steady state requires
+            absorbed - obligatory = 0.0347 x Hb x blood-loss rate
+     which inverts to a MAXIMUM BLOOD LOSS each iron strategy can sustain
+     (cluster 15): 8.4 mL/d on diet alone, 17.8 mL/d on oral supplements
+     (hepcidin-capped, so 200 mg/d buys nothing over 65 mg/d), 88 mL/d on
+     monthly IV iron.  Benefit in HHT is therefore THRESHOLD-LIKE in a way
+     the continuous Epistaxis Severity Score cannot show: a drug that halves
+     bleeding helps enormously if it crosses the ceiling and barely at all if
+     it does not.
+
+   WHAT THE DRUGS ACTUALLY TOUCH (clusters 17-21)
+     bevacizumab   VEGF-A ligand           -> angiogenic drive only
+     pazopanib     VEGFR2 (+ PDGFRbeta)    -> drive, MINUS a mural-cell penalty
+     pomalidomide  PDGF-B / mural cells    -> fragility, not calibre
+     tranexamic    plasmin                 -> clot only; cannot touch a lesion
+     iron / RBC    the flux balance        -> and, via CLAIM 3, the shear drive
+     embolisation  removes the flow itself -> the only lever on an AVM
+
+   Bold border = ODE state variable in hht_mrgsolve_model.R
+   ============================================================================ */
+
+digraph HHT_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.26,
+           ranksep=0.52, compound=true, concentrate=false,
+           fontname="NanumGothic", fontsize=13, labelloc="t",
+           bgcolor="white", pad=0.4,
+           label=<<b>유전성 출혈성 모세혈관확장증 (HHT) — 정량적 시스템 약리학 지도</b><br/>
+<i>Hereditary Hemorrhagic Telangiectasia · Osler-Weber-Rendu · QSP map</i><br/>
+<font point-size="11">ALK1/ENG/SMAD4는 내피 <b>전단응력 설정점</b> 조절자다 — 이를 잃으면 되먹임의 <b>부호가 뒤집혀</b> 안쪽 재형성이 바깥쪽 재형성이 된다</font><br/>
+<font point-size="11">전단응력은 내강 크기에 단조증가하지 않는다(공급혈관 한계) — 그래서 코 병변은 약으로 되돌릴 수 있고 간·폐 AVM은 되돌릴 수 없다</font><br/>
+<font point-size="11">빈혈은 결과일 뿐 아니라 <b>입력</b>이다: Hb↓ → 심박출↑ → 전단응력↑ → 병변 확대 → 출혈↑</font><br/>
+<font point-size="11">임상적 이득은 연속적이지 않고 <b>문턱값</b>이다: 철 흡수 상한(경구 17.8 mL/일)을 넘느냐가 수혈 의존을 가른다</font><br/>
+<font point-size="10">214 nodes · 22 mechanism clusters · 50 ODE states</font>>];
+
+    node [shape=box, style="rounded,filled", fontname="NanumGothic",
+          fontsize=10, margin="0.10,0.055", penwidth=1.0, color="#555555"];
+    edge [fontname="NanumGothic", fontsize=8, arrowsize=0.65,
+          color="#666666", penwidth=1.0];
+
+    /* ---------- legend ------------------------------------------------ */
+    subgraph cluster_legend {
+        label=<<b>범례 (Legend)</b>>;
+        style="rounded,filled"; fillcolor="#fafafa"; color="#bbbbbb"; fontsize=11;
+        node [shape=plaintext, style="", fillcolor="none", fontsize=9];
+        LEG [label=<<table border="0" cellborder="0" cellspacing="1">
+<tr><td align="left"><font color="#1a7f37">━━▶</font></td><td align="left">활성화 / 촉진 (activation)</td></tr>
+<tr><td align="left"><font color="#c0392b">━━⊣</font></td><td align="left">억제 / 차단 (inhibition)</td></tr>
+<tr><td align="left"><font color="#8e44ad">┅┅▶</font></td><td align="left">약물 작용 (drug action)</td></tr>
+<tr><td align="left"><font color="#e67e22">━━▶</font></td><td align="left">임상 판독값 (clinical readout)</td></tr>
+<tr><td align="left"><font color="#2471a3">━━▶</font></td><td align="left">질량 흐름 (mass flux)</td></tr>
+<tr><td align="left"><font color="#b03a2e"><b>━━▶</b></font></td><td align="left">기계적 되먹임 (mechanical feedback)</td></tr>
+<tr><td align="left"><b>굵은 테두리</b></td><td align="left">ODE 상태변수 (state variable)</td></tr>
+</table>>];
+    }
+
+    /* ================================================================== *
+     * 1. 유전자 · 생식세포 변이 · 체성 2차 타격                            *
+     * ================================================================== */
+    subgraph cluster_gene {
+        label=<<b>1. 유전형 · 이형접합 · 체성 2차 타격</b><br/><font point-size="9">germline haploinsufficiency + somatic second hit (PMID 39299239)</font>>;
+        style="rounded,filled"; fillcolor="#eef6fd"; color="#a9cce3"; fontsize=11;
+        node [fillcolor="#e8f4fd"];
+
+        G_ENG    [label="ENG (엔도글린) 9q34\nHHT1 · 전체의 ~53%\n보조수용체 CD105"];
+        G_ACVRL1 [label="ACVRL1 (ALK1) 12q13\nHHT2 · 전체의 ~39%\nI형 수용체 키나아제"];
+        G_SMAD4  [label="SMAD4 18q21\nJP-HHT 중복증후군 ~2%\n연소기용종증 동반", fillcolor="#fdf2e9"];
+        G_GDF2   [label="GDF2 (BMP9) 10q11\n초희귀 · HHT5 표현형", fillcolor="#fdf2e9"];
+        G_UNK    [label="유전자 미확인 ~2-5%\nCuraçao 임상진단"];
+        HAPLO    [label="생식세포 반수부족\n기능 대립유전자 1개 (GD=0.5)\n전신 내피 전체가 감작", penwidth=2.2, fillcolor="#d6eaf8"];
+        SOMHIT   [label="체성 2차 타격\n국소 클론에서 이대립 소실\n(PMID 39299239 · 41162588)", fillcolor="#fadbd8", penwidth=2.2];
+        TRIGGER  [label="혈관신생 유발자극\n외상 · 감염 · 염증 · 자외선\n(왜 병변이 국소적·불연속인가)"];
+        FIELD    [label="병변 전 내피 field\nGD=0.5 · 기능 유지\n(2차 타격 대기)", penwidth=2.2];
+        LESEC    [label="병변 내피\nGD_LES ≈ 0.055 (사실상 무기능)\npSMAD 경로 소실", penwidth=2.2, fillcolor="#fadbd8"];
+        MODGENE  [label="수식유전자 부하 ANGF\nVEGF축 다형성 · 표현형 변이\n(같은 변이, 다른 중증도)"];
+
+        G_ENG -> HAPLO [color="#c0392b", arrowhead=tee];
+        G_ACVRL1 -> HAPLO [color="#c0392b", arrowhead=tee];
+        G_SMAD4 -> HAPLO [color="#c0392b", arrowhead=tee];
+        G_GDF2 -> HAPLO [color="#c0392b", arrowhead=tee];
+        G_UNK -> HAPLO [style=dashed];
+        HAPLO -> FIELD [color="#1a7f37"];
+        FIELD -> SOMHIT [color="#2471a3"];
+        TRIGGER -> SOMHIT [color="#1a7f37", label="전환확률"];
+        SOMHIT -> LESEC [color="#c0392b", penwidth=1.6];
+        MODGENE -> FIELD [color="#1a7f37", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 2. BMP9/BMP10 - ALK1 - 엔도글린 수용체 복합체                        *
+     * ================================================================== */
+    subgraph cluster_recept {
+        label=<<b>2. BMP9/BMP10 — ALK1 — 엔도글린 수용체 복합체</b><br/><font point-size="9">circulating vascular quiescence factor (PMID 18309101)</font>>;
+        style="rounded,filled"; fillcolor="#eafaf1"; color="#a9dfbf"; fontsize=11;
+        node [fillcolor="#e8f8f0"];
+
+        BMP9     [label="BMP9 (GDF2) 순환 리간드\n간 성상세포 유래 · 2-12 ng/mL\n혈관 정지 인자", penwidth=2.2];
+        BMP10    [label="BMP10\n우심방 유래 · ALK1 동등 작용\n(PMID 36348215)"];
+        PROD_BMP [label="BMP9 프로도메인 결합형\n활성/비활성 평형"];
+        ENG_PROT [label="엔도글린 (CD105)\nI형 막단백 보조수용체\n리간드 제시 · 신호 증폭", penwidth=2.2];
+        SENG     [label="가용성 엔도글린 (sENG)\nMMP 절단 산물 · 리간드 소거\n(PMID 31431534)", fillcolor="#fdedec"];
+        ALK1     [label="ALK1 (ACVRL1)\nI형 세린/트레오닌 키나아제", penwidth=2.2];
+        BMPR2    [label="BMPR2 / ActRIIA / ActRIIB\nII형 수용체 (구성적 활성)"];
+        RCOMPLEX [label="활성 수용체 복합체\nBMP9·ALK1·BMPR2·ENG", penwidth=2.2, fillcolor="#d5f5e3"];
+        ALK5     [label="ALK5 / TGF-beta 경로\nSMAD2/3 · 경쟁 분기"];
+        ALK1AG   [label="ALK1 경로 회복 (가설)\n타크로리무스 · ALK1 작용제\n= 유일한 인과적 상류 치료", fillcolor="#f4ecf7"];
+
+        BMP9 -> PROD_BMP [dir=both, color="#2471a3"];
+        BMP9 -> RCOMPLEX [color="#1a7f37"];
+        BMP10 -> RCOMPLEX [color="#1a7f37"];
+        ENG_PROT -> RCOMPLEX [color="#1a7f37", label="증폭"];
+        ALK1 -> RCOMPLEX [color="#1a7f37"];
+        BMPR2 -> RCOMPLEX [color="#1a7f37"];
+        SENG -> BMP9 [color="#c0392b", arrowhead=tee, label="소거"];
+        RCOMPLEX -> ALK5 [color="#c0392b", arrowhead=tee, style=dashed];
+        ALK1AG -> RCOMPLEX [color="#8e44ad", style=dashed, penwidth=1.5];
+    }
+    G_ENG -> ENG_PROT [color="#1a7f37", lhead=cluster_recept];
+    G_ACVRL1 -> ALK1 [color="#1a7f37"];
+    G_GDF2 -> BMP9 [color="#1a7f37"];
+    LESEC -> RCOMPLEX [color="#c0392b", arrowhead=tee, penwidth=1.8, label="이대립 소실"];
+
+    /* ================================================================== *
+     * 3. SMAD1/5/8 전사 출력                                              *
+     * ================================================================== */
+    subgraph cluster_smad {
+        label=<<b>3. SMAD1/5/8 인산화 · 전사 출력</b><br/><font point-size="9">the quiescence program</font>>;
+        style="rounded,filled"; fillcolor="#eafaf1"; color="#a9dfbf"; fontsize=11;
+        node [fillcolor="#e8f8f0"];
+
+        PSMAD    [label="pSMAD1/5/8 활성\n= 병변 신호 상태변수 PS_n/g/h/p/c", penwidth=2.4, fillcolor="#d5f5e3"];
+        SMAD4P   [label="SMAD4 (공통 매개자)\n핵 전위 파트너", penwidth=2.2];
+        ID1      [label="ID1 전사체\n표준 판독 유전자", penwidth=2.2];
+        HEY_HES  [label="HEY1/HEY2 · HES1\n동맥 정체성 프로그램"];
+        SMAD67   [label="SMAD6 / SMAD7\n억제성 되먹임"];
+        ENG_TX   [label="ENG · ACVRL1 자가 유도\n(경로가 자기 수용체를 유지)"];
+        JAG_DLL  [label="DLL4 / JAG1\nNotch 리간드 전사"];
+        QUIESC   [label="내피 정지 표현형\n저증식 · 저이동 · 밀착연접 유지", penwidth=2.2, fillcolor="#d5f5e3"];
+
+        RCOMPLEX -> PSMAD [color="#1a7f37", penwidth=1.8];
+        PSMAD -> SMAD4P [color="#1a7f37"];
+        SMAD4P -> ID1 [color="#1a7f37"];
+        SMAD4P -> HEY_HES [color="#1a7f37"];
+        SMAD4P -> SMAD67 [color="#1a7f37"];
+        SMAD67 -> PSMAD [color="#c0392b", arrowhead=tee, style=dashed, label="음성되먹임"];
+        SMAD4P -> ENG_TX [color="#1a7f37"];
+        ENG_TX -> ENG_PROT [color="#1a7f37", style=dashed];
+        SMAD4P -> JAG_DLL [color="#1a7f37"];
+        SMAD4P -> QUIESC [color="#1a7f37", penwidth=1.6];
+        G_SMAD4 -> SMAD4P [color="#1a7f37"];
+    }
+
+    /* ================================================================== *
+     * 4. 전단응력 기계전달 — 정상 설정점                                   *
+     * ================================================================== */
+    subgraph cluster_mech {
+        label=<<b>4. 전단응력 기계전달 — 정상 설정점 회로</b><br/><font point-size="9">PECAM1/VEGFR2/VE-cadherin → SMAD1/5 (PMID 27646277 · 32078368)</font>>;
+        style="rounded,filled"; fillcolor="#fef5e7"; color="#f5cba7"; fontsize=11;
+        node [fillcolor="#fdf2e2"];
+
+        WSS      [label="벽면 전단응력 WSS\nWSS ∝ Q/S³", penwidth=2.4, fillcolor="#fae5d3"];
+        MECHSENS [label="기계감지 복합체\nPECAM1 · VE-cadherin · VEGFR2\nPlexinD1 · Piezo1"];
+        LPHN2    [label="Latrophilin-2 / Shank3\n유동 의존 SMAD1/5 활성화"];
+        CX37     [label="Connexin37 (Cx37)\n전단 하류 · 유동 정렬"];
+        KLF2     [label="KLF2 / KLF4\n층류 반응 전사인자"];
+        SETPOINT [label="전단응력 설정점\n정상: WSS↑ → 안쪽 재형성 → WSS 복귀\n(음성 되먹임)", penwidth=2.4, fillcolor="#d5f5e3"];
+        INWARD   [label="안쪽 재형성 (inward)\n내강 축소 · 자기제한적", fillcolor="#d5f5e3"];
+        ALIGN    [label="내피 유동 정렬\n세포 극성 · 이동 방향"];
+
+        WSS -> MECHSENS [color="#b03a2e", penwidth=1.8];
+        MECHSENS -> PSMAD [color="#1a7f37", penwidth=1.8, label="전단 의존 증폭"];
+        LPHN2 -> PSMAD [color="#1a7f37", style=dashed];
+        MECHSENS -> KLF2 [color="#1a7f37"];
+        PSMAD -> CX37 [color="#1a7f37"];
+        CX37 -> ALIGN [color="#1a7f37"];
+        PSMAD -> SETPOINT [color="#1a7f37", penwidth=1.8];
+        SETPOINT -> INWARD [color="#1a7f37"];
+        INWARD -> WSS [color="#b03a2e", arrowhead=tee, penwidth=1.8, label="설정점 복귀"];
+    }
+
+    /* ================================================================== *
+     * 5. ★ 부호 반전 — 이 지도의 중심                                      *
+     * ================================================================== */
+    subgraph cluster_flip {
+        label=<<b>5. ★ 되먹임 부호 반전 (THE SIGN FLIP)</b><br/><font point-size="9">REMOD = KSH · g(WSS) · (1 − 2·pSMAD_rel)</font>>;
+        style="rounded,filled"; fillcolor="#fdedec"; color="#e6b0aa"; fontsize=12;
+        node [fillcolor="#fadbd8"];
+
+        SIGNTERM [label="재형성 항\nREMOD = KSH·g(WSS)·(1 − 2·pSMAD_rel)", penwidth=2.6, fillcolor="#f5b7b1"];
+        NORMBR   [label="pSMAD_rel = 1 (정상)\nREMOD < 0 → 안쪽 재형성\n자기제한 · 병변 없음", fillcolor="#d5f5e3"];
+        LESBR    [label="pSMAD_rel ≈ 0.03 (2차 타격)\nREMOD > 0 → 바깥쪽 재형성\n자기증폭 · 병변 확대", fillcolor="#f5b7b1", penwidth=2.2];
+        FEEDER   [label="공급혈관 저항 한계\nWSS ∝ S/(1+(S/S_feed)⁴)\n전단응력은 단조증가하지 않는다", penwidth=2.4, fillcolor="#fdebd0"];
+        BASIN_T  [label="분지 1 — 모세혈관확장증\n세동맥 공급 → 전단 조기 포화\n안정 내강 · 약물 도달 가능", penwidth=2.2, fillcolor="#d4efdf"];
+        BASIN_A  [label="분지 2 — 동정맥기형 (AVM)\n전도동맥 공급 → 전단 무포화\n약물 불응성 바닥값 존재", penwidth=2.2, fillcolor="#f5b7b1"];
+        OUTWARD  [label="바깥쪽 재형성 (outward)\n내강 확대 · 벽 얇아짐", penwidth=2.2];
+
+        SIGNTERM -> NORMBR [color="#1a7f37"];
+        SIGNTERM -> LESBR [color="#c0392b", penwidth=1.8];
+        LESBR -> OUTWARD [color="#c0392b", penwidth=1.8];
+        FEEDER -> BASIN_T [color="#1a7f37"];
+        FEEDER -> BASIN_A [color="#c0392b"];
+        OUTWARD -> BASIN_T [style=dashed];
+        OUTWARD -> BASIN_A [style=dashed];
+        NORMBR -> INWARD [color="#1a7f37", style=dashed];
+    }
+    PSMAD -> SIGNTERM [color="#1a7f37", penwidth=2.0, label="부호 결정"];
+    WSS -> SIGNTERM [color="#b03a2e", penwidth=2.0];
+    WSS -> FEEDER [color="#b03a2e"];
+
+    /* ================================================================== *
+     * 6. PI3K/AKT · VEGF 신호 (혈관신생 구동)                              *
+     * ================================================================== */
+    subgraph cluster_vegf {
+        label=<<b>6. VEGF-A · VEGFR2 · PI3K/AKT — 혈관신생 구동</b><br/><font point-size="9">the drive that bevacizumab and pazopanib remove</font>>;
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#d2b4de"; fontsize=11;
+        node [fillcolor="#eee3f5"];
+
+        VEGFA    [label="조직 VEGF-A\npSMAD 소실 시 상승\n(PMID 15951295)", penwidth=2.4];
+        VEGFR1   [label="VEGFR1 (Flt-1)\n미끼 수용체 · HHT에서 발현 감소\n(PMID 30571259)", fillcolor="#fdedec"];
+        VEGFR2   [label="VEGFR2 (KDR)\n주 신호 수용체", penwidth=2.2];
+        VEGFFREE [label="유리 VEGF-A\n= 총 VEGF − 베바시주맙 결합", penwidth=2.4, fillcolor="#e8daef"];
+        PI3K     [label="PI3K / AKT\npSMAD에 의해 정상 억제", penwidth=2.4];
+        MTOR     [label="mTORC1\n내피 증식 · 크기"];
+        ERK      [label="ERK1/2\n증식 신호"];
+        ENOS     [label="eNOS / NO\n혈관확장 · 투과성"];
+        ANG2     [label="Angiopoietin-2 (ANGPT2)\nTie2 길항 · 벽세포 이탈"];
+        TIE2     [label="Tie2 / ANGPT1\n혈관 안정화 축"];
+        MMP9     [label="MMP-2 / MMP-9\n기저막 분해 · sENG 생성"];
+        ANGIO    [label="혈관신생 지수 ANGIO\n= VEGF신호 × AKT / (1+2.2·pSMAD)", penwidth=2.6, fillcolor="#e8daef"];
+        PROLIF   [label="내피 증식 · 이동\n출아 · 관강 확대"];
+        HYPOX    [label="저산소 (HIF-1α)\n폐 션트 → SpO2↓ → VEGF↑", fillcolor="#fdf2e9"];
+
+        VEGFA -> VEGFFREE [color="#2471a3"];
+        VEGFFREE -> VEGFR2 [color="#1a7f37"];
+        VEGFR1 -> VEGFFREE [color="#c0392b", arrowhead=tee, label="미끼"];
+        VEGFR2 -> PI3K [color="#1a7f37"];
+        VEGFR2 -> ERK [color="#1a7f37"];
+        PI3K -> MTOR [color="#1a7f37"];
+        PI3K -> ENOS [color="#1a7f37"];
+        PSMAD -> PI3K [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        PSMAD -> VEGFA [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        PSMAD -> VEGFR1 [color="#1a7f37", style=dashed];
+        VEGFR2 -> ANGIO [color="#1a7f37", penwidth=1.6];
+        PI3K -> ANGIO [color="#1a7f37", penwidth=1.6];
+        ANGIO -> PROLIF [color="#1a7f37"];
+        ANGIO -> ANG2 [color="#1a7f37"];
+        ANG2 -> TIE2 [color="#c0392b", arrowhead=tee];
+        ANGIO -> MMP9 [color="#1a7f37"];
+        MMP9 -> SENG [color="#1a7f37", style=dashed];
+        HYPOX -> VEGFA [color="#1a7f37"];
+        PROLIF -> OUTWARD [color="#c0392b"];
+    }
+
+    /* ================================================================== *
+     * 7. 벽세포 (주피세포/평활근) 피복 — 취약성의 결정자                   *
+     * ================================================================== */
+    subgraph cluster_mural {
+        label=<<b>7. 벽세포 피복 — 출혈 취약성의 결정자</b><br/><font point-size="9">PDGF-B / PDGFRβ · 탈리도마이드 계열의 표적 (PMID 20364125)</font>>;
+        style="rounded,filled"; fillcolor="#e8f6f3"; color="#a2d9ce"; fontsize=11;
+        node [fillcolor="#dff2ee"];
+
+        PDGFB    [label="내피 PDGF-B\n벽세포 동원 신호", penwidth=2.4];
+        PDGFRB   [label="주피세포 PDGFRβ\n동원 수용체", penwidth=2.2];
+        PERICYTE [label="주피세포 / 혈관평활근\n혈관벽 기계적 지지"];
+        MURAL    [label="벽세포 피복률 MU\n정상 ~0.80 · 병변 ~0.52", penwidth=2.6, fillcolor="#a9dfbf"];
+        BM       [label="기저막 두께 · 콜라겐 IV\n장력 지지"];
+        FRAG     [label="혈관 취약성 FRAG\n= (1 − MU)^1.55", penwidth=2.4, fillcolor="#fadbd8"];
+        MATURE   [label="혈관 성숙 (안쪽 성숙항)\nKMAT·MU → 내강 축소"];
+        TJ       [label="내피 밀착연접\nVE-cadherin · claudin-5"];
+
+        PSMAD -> PDGFB [color="#1a7f37", penwidth=1.6];
+        PDGFB -> PDGFRB [color="#1a7f37"];
+        PDGFRB -> PERICYTE [color="#1a7f37"];
+        PERICYTE -> MURAL [color="#1a7f37", penwidth=1.6];
+        MURAL -> BM [color="#1a7f37"];
+        MURAL -> FRAG [color="#c0392b", arrowhead=tee, penwidth=1.8, label="피복↑ → 취약성↓"];
+        MURAL -> MATURE [color="#1a7f37"];
+        MATURE -> INWARD [color="#1a7f37", style=dashed];
+        ANGIO -> MURAL [color="#c0392b", arrowhead=tee, label="벽세포 이탈"];
+        ANG2 -> PERICYTE [color="#c0392b", arrowhead=tee];
+        MURAL -> TJ [color="#1a7f37"];
+    }
+
+    /* ================================================================== *
+     * 8. 동정맥 정체성 · Notch                                            *
+     * ================================================================== */
+    subgraph cluster_av {
+        label=<<b>8. 동정맥 정체성 · 모세혈관층 소실</b><br/><font point-size="9">arteriovenous identity → direct shunt</font>>;
+        style="rounded,filled"; fillcolor="#fbeee6"; color="#edbb99"; fontsize=11;
+        node [fillcolor="#fae5d7"];
+
+        NOTCH    [label="Notch1 / DLL4\n동맥 정체성 유지"];
+        EFNB2    [label="EphrinB2 (동맥 표지)"];
+        EPHB4    [label="EphB4 (정맥 표지)"];
+        AVIDENT  [label="동정맥 경계 소실\n동맥·정맥 표지 혼재"];
+        CAPLOSS  [label="개재 모세혈관층 소실\n= 션트의 해부학적 정의", penwidth=2.2, fillcolor="#f5b7b1"];
+        DIRECTAV [label="직접 동정맥 연결\n저항 급감 · 유량 급증", penwidth=2.2, fillcolor="#f5b7b1"];
+
+        JAG_DLL -> NOTCH [color="#1a7f37"];
+        NOTCH -> EFNB2 [color="#1a7f37"];
+        PSMAD -> AVIDENT [color="#c0392b", arrowhead=tee];
+        NOTCH -> AVIDENT [color="#c0392b", arrowhead=tee];
+        AVIDENT -> CAPLOSS [color="#c0392b"];
+        EPHB4 -> AVIDENT [style=dashed];
+        CAPLOSS -> DIRECTAV [color="#c0392b", penwidth=1.6];
+        DIRECTAV -> WSS [color="#b03a2e", penwidth=1.8, label="유량↑"];
+        OUTWARD -> CAPLOSS [color="#c0392b", style=dashed];
+    }
+
+    /* ================================================================== *
+     * 9. 병변 개체군 — 개수 · 크기 · 회귀                                  *
+     * ================================================================== */
+    subgraph cluster_lesion {
+        label=<<b>9. 병변 개체군 동역학 — 개수 N, 평균 내강 S</b><br/><font point-size="9">severity tracks lesion NUMBER; calibre has a stable fixed point</font>>;
+        style="rounded,filled"; fillcolor="#fdedec"; color="#e6b0aa"; fontsize=11;
+        node [fillcolor="#fbe3e1"];
+
+        NLES     [label="병변 개수 N_n / N_g\n연령에 따라 수십 년에 걸쳐 축적", penwidth=2.6, fillcolor="#f5b7b1"];
+        SLES     [label="평균 내강 S_n / S_g\n안정 고정점 ≈ 2.3-3.6", penwidth=2.6, fillcolor="#f5b7b1"];
+        BIRTH    [label="병변 발생률\nKHIT·SEV·Hill(ANGIO_field)"];
+        INVOL    [label="병변 퇴축 (involution)\n구동 제거 시 가속\n(PMID 34910078 피부병변 소실)", fillcolor="#d4efdf"];
+        DILUT    [label="평균 희석항\n새 병변이 S_BIRTH로 진입"];
+        SMAXA    [label="해부학적 상한 SMAX\n점막 6 · 위장 7.5 · 간 48"];
+        AGEACC   [label="연령 의존 축적\n1/KREG ≈ 30년 시상수\n→ 50-60대 정체", fillcolor="#fdf2e9"];
+
+        BIRTH -> NLES [color="#1a7f37", penwidth=1.6];
+        INVOL -> NLES [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        ANGIO -> BIRTH [color="#1a7f37"];
+        ANGIO -> INVOL [color="#c0392b", arrowhead=tee, label="구동 제거 → 퇴축"];
+        SOMHIT -> BIRTH [color="#2471a3"];
+        SIGNTERM -> SLES [color="#c0392b", penwidth=1.8];
+        ANGIO -> SLES [color="#1a7f37", penwidth=1.6];
+        MATURE -> SLES [color="#c0392b", arrowhead=tee];
+        DILUT -> SLES [color="#c0392b", arrowhead=tee];
+        BIRTH -> DILUT [style=dashed];
+        SMAXA -> SLES [color="#c0392b", arrowhead=tee];
+        NLES -> AGEACC [color="#e67e22", style=dashed];
+        SLES -> WSS [color="#b03a2e", penwidth=1.8, label="크기 → 전단"];
+    }
+
+    /* ================================================================== *
+     * 10. 비강 점막 · 코출혈                                              *
+     * ================================================================== */
+    subgraph cluster_nose {
+        label=<<b>10. 비강 점막 병변 · 코출혈</b><br/><font point-size="9">95% of patients · the dominant symptom</font>>;
+        style="rounded,filled"; fillcolor="#fef9e7"; color="#f7dc6f"; fontsize=11;
+        node [fillcolor="#fdf6e3"];
+
+        NASMUC   [label="비중격 · Little 부위 점막\n외상 노출 · 건조 · 공기흐름"];
+        NASTEL   [label="비강 모세혈관확장증\n점막하 정맥총 확장"];
+        NASTRAUM [label="점막 외상 · 건조 · 가피\n출혈 유발 사건"];
+        EVRATE   [label="출혈 사건 빈도\n= KE_N · N_n · FRAG", penwidth=2.2];
+        EVDUR    [label="사건당 지속시간 (분)\n= TEV·S·(1+2.6·(1−MU))·용해인자", penwidth=2.2];
+        EVRATE2  [label="사건당 출혈속도 (mL/분)\n= RBLD·S²  (분출 강도)", penwidth=2.2];
+        EVVOL    [label="사건당 출혈량 (mL)\n= 속도 × 지속시간", penwidth=2.2];
+        BLRN     [label="비강 출혈률 BLR_N (mL/일)", penwidth=2.4, fillcolor="#fadbd8"];
+        MED      [label="월간 코출혈 지속시간 MED\n(분/월) — FDA 선호 종점", penwidth=2.4, fillcolor="#f9e79f"];
+
+        NASMUC -> NASTEL [style=dashed];
+        NLES -> NASTEL [color="#2471a3"];
+        NASTRAUM -> EVRATE [color="#1a7f37"];
+        FRAG -> EVRATE [color="#1a7f37", penwidth=1.6];
+        NLES -> EVRATE [color="#1a7f37", penwidth=1.6];
+        SLES -> EVDUR [color="#1a7f37"];
+        SLES -> EVRATE2 [color="#1a7f37"];
+        MURAL -> EVDUR [color="#c0392b", arrowhead=tee];
+        EVRATE2 -> EVVOL [color="#2471a3"];
+        EVDUR -> EVVOL [color="#2471a3"];
+        EVRATE -> BLRN [color="#2471a3", penwidth=1.6];
+        EVVOL -> BLRN [color="#2471a3", penwidth=1.6];
+        EVRATE -> MED [color="#e67e22"];
+        EVDUR -> MED [color="#e67e22"];
+    }
+
+    /* ================================================================== *
+     * 11. 위장관 혈관형성이상                                              *
+     * ================================================================== */
+    subgraph cluster_gi {
+        label=<<b>11. 위장관 혈관형성이상 — 지속적 삼출성 출혈</b><br/><font point-size="9">25-30% of patients; the reason some become transfusion-dependent</font>>;
+        style="rounded,filled"; fillcolor="#fef9e7"; color="#f7dc6f"; fontsize=11;
+        node [fillcolor="#fdf6e3"];
+
+        GITEL    [label="위·소장 모세혈관확장증\n다발성 · 내시경 진단"];
+        GIOOZE   [label="지속적 삼출 (연속 출혈)\n= KGB·N_g·FRAG·S_g³", penwidth=2.4, fillcolor="#fadbd8"];
+        GIOCC    [label="잠혈 · 무증상 만성 실혈\n(코출혈 없이도 빈혈 가능)"];
+        BLRG     [label="위장 출혈률 BLR_G (mL/일)", penwidth=2.4, fillcolor="#fadbd8"];
+        BLRTOT   [label="총 출혈률 BLR (mL/일)\n= BLR_N + BLR_G", penwidth=2.6, fillcolor="#f5b7b1"];
+
+        NLES -> GITEL [style=dashed];
+        GITEL -> GIOOZE [color="#2471a3"];
+        FRAG -> GIOOZE [color="#1a7f37"];
+        GIOOZE -> BLRG [color="#2471a3", penwidth=1.6];
+        GIOOZE -> GIOCC [color="#e67e22"];
+        BLRG -> BLRTOT [color="#2471a3", penwidth=1.8];
+        BLRN -> BLRTOT [color="#2471a3", penwidth=1.8];
+    }
+
+    /* ================================================================== *
+     * 12. 지혈 · 섬유소용해                                                *
+     * ================================================================== */
+    subgraph cluster_hemo {
+        label=<<b>12. 지혈 · 섬유소용해 — 트라넥삼산의 유일한 접점</b><br/><font point-size="9">TXA moves duration, not episode count (PMID 25040799)</font>>;
+        style="rounded,filled"; fillcolor="#eaf2f8"; color="#aed6f1"; fontsize=11;
+        node [fillcolor="#e2edf8"];
+
+        PLGN     [label="플라스미노겐"];
+        TPA      [label="tPA / uPA\n점막 국소 활성 높음"];
+        PLASMIN  [label="플라스민 활성 PLG", penwidth=2.4];
+        FIBRIN   [label="피브린 응괴"];
+        CLOTSTAB [label="응괴 안정성\n= 1/(1 + FLYS·PLG)", penwidth=2.2];
+        LYSSHARE [label="용해 기여분 FLYS = 0.256\n→ 완전 항섬유소용해의 이론 상한 −20.4%", fillcolor="#fdf2e9", penwidth=2.2];
+        PLTFN    [label="혈소판 기능 (정상)\nHHT는 응고장애가 아니다", fillcolor="#eaeded"];
+        VWF      [label="von Willebrand 인자 (정상)"];
+
+        PLGN -> PLASMIN [color="#1a7f37"];
+        TPA -> PLASMIN [color="#1a7f37"];
+        PLASMIN -> FIBRIN [color="#c0392b", arrowhead=tee];
+        FIBRIN -> CLOTSTAB [color="#1a7f37"];
+        PLASMIN -> CLOTSTAB [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        CLOTSTAB -> EVDUR [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        CLOTSTAB -> EVVOL [color="#c0392b", arrowhead=tee];
+        LYSSHARE -> CLOTSTAB [style=dashed];
+        PLTFN -> FIBRIN [color="#1a7f37", style=dashed];
+        VWF -> PLTFN [style=dashed];
+    }
+
+    /* ================================================================== *
+     * 13. 간 동정맥기형 · 고박출성 심부전                                  *
+     * ================================================================== */
+    subgraph cluster_liver {
+        label=<<b>13. 간 혈관기형 — 고박출성 심부전 경로</b><br/><font point-size="9">~74% of HHT2; the AVM basin (PMID 22396517)</font>>;
+        style="rounded,filled"; fillcolor="#f9ebea"; color="#e6b0aa"; fontsize=11;
+        node [fillcolor="#f6e0de"];
+
+        HEPAVM   [label="간 동정맥 션트 S_h\n간동맥 → 간정맥 직접 연결", penwidth=2.6, fillcolor="#f5b7b1"];
+        HEPPV    [label="간동맥 → 문맥 션트\n문맥압 항진 아형"];
+        HEPBIL   [label="담도 허혈\n담관병증 아형", fillcolor="#fdebd0"];
+        QSHUNT   [label="션트 유량 Q_shunt (L/분)\n= KSHUNT_H·S_h²", penwidth=2.4];
+        NODULAR  [label="결절성 재생성 과증식\n(간경변이 아님)"];
+        HEPFAIL  [label="간부전 · 간이식 적응증\n(유일한 근치 치료)", fillcolor="#f5b7b1"];
+
+        DIRECTAV -> HEPAVM [color="#c0392b"];
+        BASIN_A -> HEPAVM [color="#c0392b", penwidth=1.8];
+        HEPAVM -> QSHUNT [color="#2471a3", penwidth=1.8];
+        HEPAVM -> HEPPV [style=dashed];
+        HEPAVM -> HEPBIL [style=dashed];
+        HEPPV -> NODULAR [color="#e67e22"];
+        HEPBIL -> HEPFAIL [color="#c0392b"];
+        G_ACVRL1 -> HEPAVM [style=dashed, label="HHT2 우세"];
+    }
+
+    /* ================================================================== *
+     * 14. 폐 · 뇌 동정맥기형                                               *
+     * ================================================================== */
+    subgraph cluster_pavm {
+        label=<<b>14. 폐 · 뇌 동정맥기형 — 색전증과 출혈</b><br/><font point-size="9">PAVM ~50% of HHT1; embolisation, never drugs</font>>;
+        style="rounded,filled"; fillcolor="#f9ebea"; color="#e6b0aa"; fontsize=11;
+        node [fillcolor="#f6e0de"];
+
+        PAVM     [label="폐 동정맥기형 S_p\n우→좌 션트", penwidth=2.6, fillcolor="#f5b7b1"];
+        RLSHUNT  [label="우좌 션트 분율\n→ SpO2 저하", penwidth=2.2];
+        SPO2     [label="동맥혈 산소포화도 SpO2\n(기립성 저산소증 · platypnea)", penwidth=2.4, fillcolor="#f9e79f"];
+        PAREMB   [label="역설적 색전\n모세혈관 여과 소실", fillcolor="#f5b7b1"];
+        BRAINABS [label="뇌농양 (~1%/년 미치료)", fillcolor="#f5b7b1"];
+        ISCHSTR  [label="허혈성 뇌졸중 · TIA", fillcolor="#f5b7b1"];
+        CAVM     [label="뇌 동정맥기형 S_c (~10%)\n출혈률 ~0.4-1.0%/년\n(PMID 25858236)", penwidth=2.4, fillcolor="#f5b7b1"];
+        ICH      [label="뇌내출혈", fillcolor="#f5b7b1"];
+        SAVM     [label="척수 동정맥기형 (희귀)"];
+        POLYCY   [label="이차성 적혈구증가\n(저산소 보상)", fillcolor="#eaeded"];
+
+        BASIN_A -> PAVM [color="#c0392b", penwidth=1.8];
+        BASIN_A -> CAVM [color="#c0392b"];
+        PAVM -> RLSHUNT [color="#2471a3", penwidth=1.6];
+        RLSHUNT -> SPO2 [color="#c0392b", arrowhead=tee, penwidth=1.8];
+        RLSHUNT -> PAREMB [color="#c0392b", penwidth=1.6];
+        PAREMB -> BRAINABS [color="#c0392b"];
+        PAREMB -> ISCHSTR [color="#c0392b"];
+        CAVM -> ICH [color="#c0392b"];
+        PAVM -> SAVM [style=invis];
+        SPO2 -> HYPOX [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        SPO2 -> POLYCY [color="#e67e22", style=dashed];
+        G_ENG -> PAVM [style=dashed, label="HHT1 우세"];
+    }
+
+    /* ================================================================== *
+     * 15. ★ 철 대사 — 문턱값을 만드는 곳                                   *
+     * ================================================================== */
+    subgraph cluster_iron {
+        label=<<b>15. ★ 철 흐름 균형 — 임상적 문턱값의 근원</b><br/><font point-size="9">absorbed − obligatory = 0.0347 × Hb × blood loss</font>>;
+        style="rounded,filled"; fillcolor="#fdf2e9"; color="#f5b041"; fontsize=12;
+        node [fillcolor="#fceee0"];
+
+        FEDIET   [label="식이 철 섭취 ~15 mg/일\n분획흡수 7% → 35% (수요 의존)"];
+        HEPC     [label="헵시딘 HEP\n철저장·염증 ↑ / 에리트로페론 ↓", penwidth=2.4];
+        FPN      [label="페로포틴 (십이지장·대식세포)\n헵시딘의 표적"];
+        FEABS    [label="흡수 철 (mg/일)\n절대 상한 ≈ 10 mg/일", penwidth=2.4, fillcolor="#f8c471"];
+        FEORAL   [label="경구 철분제\n65 mg/일 이상은 무의미\n(흡수 상한 포화)", fillcolor="#f4ecf7"];
+        FEIV     [label="정맥 철 (ferric carboxymaltose)\n헵시딘 관문 우회", fillcolor="#f4ecf7"];
+        FEOBLIG  [label="의무적 손실 ~1 mg/일\n탈락상피 · 장 회전"];
+        FELOSS   [label="출혈 철 손실\n= 0.0347 × Hb × BLR", penwidth=2.4, fillcolor="#fadbd8"];
+        FESTORE  [label="철 저장 FES (페리틴 등가)\n먼저 고갈, 그 다음 Hb 하강", penwidth=2.6];
+        ERFE     [label="에리트로페론 (ERFE)\n적아구 유래 · 헵시딘 억제"];
+        CEIL     [label="★ 지속가능 최대 출혈률\n식이만 8.4 · 경구 17.8\n· 월 1 g IV 88.3 mL/일", penwidth=2.8, fillcolor="#f8c471"];
+        TSAT     [label="트랜스페린 포화도 · 페리틴\n(임상 판독)", fillcolor="#f9e79f"];
+
+        FEDIET -> FEABS [color="#2471a3"];
+        FEORAL -> FEABS [color="#8e44ad", style=dashed];
+        HEPC -> FPN [color="#c0392b", arrowhead=tee];
+        FPN -> FEABS [color="#1a7f37", penwidth=1.6];
+        FEIV -> FESTORE [color="#8e44ad", style=dashed, penwidth=1.5];
+        FEABS -> FESTORE [color="#2471a3", penwidth=1.6];
+        FEOBLIG -> FESTORE [color="#c0392b", arrowhead=tee];
+        BLRTOT -> FELOSS [color="#2471a3", penwidth=1.8];
+        FELOSS -> FESTORE [color="#c0392b", arrowhead=tee, penwidth=1.8];
+        FESTORE -> HEPC [color="#1a7f37"];
+        ERFE -> HEPC [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        FEABS -> CEIL [color="#e67e22", penwidth=1.8];
+        FEOBLIG -> CEIL [color="#e67e22"];
+        FESTORE -> TSAT [color="#e67e22"];
+        BLRTOT -> CEIL [color="#e67e22", style=dashed, label="넘느냐 마느냐"];
+    }
+
+    /* ================================================================== *
+     * 16. 적혈구 생성 · 빈혈                                               *
+     * ================================================================== */
+    subgraph cluster_ery {
+        label=<<b>16. 적혈구 생성 · 철결핍 빈혈</b><br/><font point-size="9">production is iron-FLUX limited, not store limited</font>>;
+        style="rounded,filled"; fillcolor="#fdf2e9"; color="#f5b041"; fontsize=11;
+        node [fillcolor="#fceee0"];
+
+        EPO      [label="에리트로포이에틴 EPO\nHb 하강에 지수적 반응", penwidth=2.4];
+        MARROW   [label="골수 적혈구계 능력\n최대 ~6.5배"];
+        FERY     [label="적혈구생성 가용 철\n= 재활용 + 흡수 − 의무손실 + 동원", penwidth=2.4];
+        RECYC    [label="노화 적혈구 철 재활용\n대식세포 · 거의 무손실"];
+        PROD     [label="적혈구 생산율\n= min(EPO 능력, 철 흐름 한계)", penwidth=2.6, fillcolor="#f8c471"];
+        RETIC    [label="망상적혈구 지수 RET", penwidth=2.2];
+        HB       [label="헤모글로빈 HB (g/dL)", penwidth=2.8, fillcolor="#f5b7b1"];
+        RBCLIFE  [label="적혈구 수명 ~110일"];
+        TXFUSION [label="적혈구 수혈\nHb < 7 g/dL 유발", fillcolor="#f4ecf7"];
+        TXDEP    [label="수혈 의존\n= 임상적으로 결정적인 상태", penwidth=2.4, fillcolor="#f5b7b1"];
+        FATIGUE  [label="피로 · 운동능력 저하\n삶의 질 주요 결정자", fillcolor="#f9e79f"];
+
+        HB -> EPO [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        EPO -> MARROW [color="#1a7f37"];
+        EPO -> ERFE [color="#1a7f37", penwidth=1.6];
+        FESTORE -> FERY [color="#2471a3", penwidth=1.6];
+        FEABS -> FERY [color="#2471a3"];
+        RECYC -> FERY [color="#2471a3"];
+        RBCLIFE -> RECYC [color="#2471a3"];
+        MARROW -> PROD [color="#1a7f37", penwidth=1.6];
+        FERY -> PROD [color="#1a7f37", penwidth=1.8, label="흐름 한계"];
+        PROD -> RETIC [color="#1a7f37"];
+        PROD -> HB [color="#2471a3", penwidth=1.8];
+        RBCLIFE -> HB [color="#c0392b", arrowhead=tee];
+        BLRTOT -> HB [color="#c0392b", arrowhead=tee, penwidth=1.8, label="직접 소실"];
+        TXFUSION -> HB [color="#8e44ad", style=dashed, penwidth=1.5];
+        TXFUSION -> TXDEP [color="#e67e22"];
+        CEIL -> TXDEP [color="#e67e22", penwidth=1.8, label="상한 초과 시"];
+        HB -> FATIGUE [color="#e67e22"];
+    }
+
+    /* ================================================================== *
+     * 17. ★ 심박출 — 빈혈이 병변으로 되돌아가는 고리                       *
+     * ================================================================== */
+    subgraph cluster_cardiac {
+        label=<<b>17. ★ 심박출 · 고박출성 심부전 — 되먹임을 닫는 곳</b><br/><font point-size="9">Hb ↓ → CO ↑ → WSS ↑ → lesion ↑ → bleeding ↑ → Hb ↓</font>>;
+        style="rounded,filled"; fillcolor="#fdedec"; color="#e6b0aa"; fontsize=12;
+        node [fillcolor="#fadbd8"];
+
+        DO2      [label="산소 운반 DO2\n= CO × Hb × 1.34 × SaO2", penwidth=2.4];
+        COANEM   [label="빈혈 보상 심박출\nCI = CI_ref·((Hb_ref·Sa_ref)/(Hb·Sa))^0.70", penwidth=2.6, fillcolor="#f5b7b1"];
+        CO       [label="심박출량 CO (L/분)\n= 빈혈 성분 + 션트 성분", penwidth=2.8, fillcolor="#f5b7b1"];
+        CI       [label="심계수 CI (L/분/m²)\n> 4.0 = 고박출 상태", penwidth=2.6, fillcolor="#f9e79f"];
+        PERFP    [label="관류 구동압 (CO_rel)\n전신 유량에 비례", penwidth=2.4];
+        LVR      [label="좌심실 재형성 LVR\n용적 부하 · 편심성 비대", penwidth=2.2];
+        RAP      [label="우심방압 · 정맥 울혈\n부종 · 복수", penwidth=2.2];
+        HOCF     [label="고박출성 심부전\n간이식 외 근치 없음", fillcolor="#f5b7b1"];
+        AF       [label="심방세동 (용적부하)", fillcolor="#fdebd0"];
+        PHTN     [label="폐고혈압\n(후모세혈관성 · 드물게 PAH)", fillcolor="#fdebd0"];
+
+        HB -> DO2 [color="#1a7f37", penwidth=1.6];
+        SPO2 -> DO2 [color="#1a7f37"];
+        DO2 -> COANEM [color="#c0392b", arrowhead=tee, penwidth=1.8, label="DO2 방어"];
+        COANEM -> CO [color="#2471a3", penwidth=1.8];
+        QSHUNT -> CO [color="#2471a3", penwidth=1.8];
+        RLSHUNT -> CO [color="#2471a3"];
+        CO -> CI [color="#e67e22", penwidth=1.6];
+        CO -> PERFP [color="#b03a2e", penwidth=2.0];
+        CO -> LVR [color="#1a7f37"];
+        CI -> RAP [color="#1a7f37"];
+        LVR -> HOCF [color="#c0392b"];
+        RAP -> HOCF [color="#c0392b"];
+        LVR -> AF [color="#c0392b", style=dashed];
+        RAP -> PHTN [color="#c0392b", style=dashed];
+        HOCF -> HEPFAIL [style=dashed];
+    }
+    PERFP -> WSS [color="#b03a2e", penwidth=2.4, label="★ 고리를 닫는 변"];
+
+    /* ================================================================== *
+     * 18. 베바시주맙 PK/PD (전신 vs 비강)                                  *
+     * ================================================================== */
+    subgraph cluster_bev {
+        label=<<b>18. 베바시주맙 — 전신은 되고 비강은 안 되는 이유</b><br/><font point-size="9">PMID 22396517 (IV, works) vs 27599328 / 27599329 (topical, futile)</font>>;
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#c39bd3"; fontsize=11;
+        node [fillcolor="#ede0f3"];
+
+        BEVIV    [label="베바시주맙 IV 5 mg/kg\n2주 간격 × 6회"];
+        BEVC     [label="중심 구획 BEV_C\nCL 0.207 L/일 · V1 2.9 L · t½ ~20일", penwidth=2.4];
+        BEVP     [label="말초 구획 BEV_P", penwidth=2.2];
+        BEVTISS  [label="조직 간질 농도\n분배계수 KP ≈ 0.055 (IgG)", penwidth=2.2];
+        BEVNAS   [label="비강 분무 25/50/75 mg", fillcolor="#f9ebea"];
+        BEVNS    [label="비강 표면 저류 BEVN_S\n점액섬모청소 t½ ~15분 (k=66.5/일)", penwidth=2.4, fillcolor="#f9ebea"];
+        BEVNT    [label="점막하 정맥총 BEVN_T\n전달분율 F ≈ 1% (149 kDa IgG)", penwidth=2.4, fillcolor="#f9ebea"];
+        BEVBIND  [label="VEGF-A 1:1 결합\nKD ≈ 1.1 nM · 몰 과량으로 작동", penwidth=2.2];
+        BEVFAIL  [label="★ 비강 경로 실패의 정량\n75 mg 국소 노출 ≪ 전신 노출\n용량 부족이 아니라 경로가 틀렸다", penwidth=2.4, fillcolor="#f5b7b1"];
+        BEVMAINT [label="유지요법 설계\n월 1회 5 mg/kg 권장\n(PMID 25751241)", fillcolor="#eaf2f8"];
+
+        BEVIV -> BEVC [color="#8e44ad", penwidth=1.6];
+        BEVC -> BEVP [dir=both, color="#2471a3"];
+        BEVC -> BEVTISS [color="#2471a3", penwidth=1.6];
+        BEVNAS -> BEVNS [color="#8e44ad"];
+        BEVNS -> BEVNT [color="#2471a3", label="F≈1%"];
+        BEVNS -> BEVFAIL [color="#c0392b", style=dashed, label="청소 t½ 15분"];
+        BEVNT -> BEVFAIL [color="#c0392b", style=dashed];
+        BEVTISS -> BEVBIND [color="#8e44ad", penwidth=1.6];
+        BEVNT -> BEVBIND [color="#8e44ad", style=dashed];
+        BEVBIND -> VEGFFREE [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        BEVC -> BEVMAINT [style=dashed];
+    }
+
+    /* ================================================================== *
+     * 19. 파조파닙 PK/PD                                                  *
+     * ================================================================== */
+    subgraph cluster_paz {
+        label=<<b>19. 파조파닙 — 두 표적, 반대 방향</b><br/><font point-size="9">VEGFR2 benefit vs PDGFRβ penalty → why 50-150 mg, not 800 mg</font>>;
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#c39bd3"; fontsize=11;
+        node [fillcolor="#ede0f3"];
+
+        PAZDOSE  [label="파조파닙 경구 50-150 mg/일\n(종양 용량 800 mg의 1/5 이하)"];
+        PAZA     [label="흡수 구획 PAZ_A", penwidth=2.2];
+        PAZC     [label="혈장 PAZ_C\nCL 10.1 L/일 · V 11.1 L", penwidth=2.4];
+        PAZFU    [label="유리 분율 fu ≈ 0.05%\n(>99.9% 단백결합)"];
+        PAZVR2   [label="VEGFR2 억제\nIC50 ≈ 1.2 ng/mL (유리)", penwidth=2.2, fillcolor="#d4efdf"];
+        PAZPDGFR [label="PDGFRβ 억제\nIC50 ≈ 14 ng/mL (유리)", penwidth=2.2, fillcolor="#f5b7b1"];
+        PAZNET   [label="★ 순효과의 역전\n고용량에서 벽세포 피복 손실이\n혈관신생 차단 이득을 잠식", penwidth=2.4, fillcolor="#f9e79f"];
+        PAZKIT   [label="c-Kit · FGFR (부수 표적)"];
+
+        PAZDOSE -> PAZA [color="#8e44ad"];
+        PAZA -> PAZC [color="#2471a3"];
+        PAZC -> PAZFU [color="#2471a3"];
+        PAZFU -> PAZVR2 [color="#8e44ad", penwidth=1.6];
+        PAZFU -> PAZPDGFR [color="#8e44ad", penwidth=1.6];
+        PAZFU -> PAZKIT [color="#8e44ad", style=dashed];
+        PAZVR2 -> VEGFR2 [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        PAZPDGFR -> MURAL [color="#c0392b", arrowhead=tee, penwidth=1.8, label="피복 손실"];
+        PAZVR2 -> PAZNET [color="#1a7f37"];
+        PAZPDGFR -> PAZNET [color="#c0392b"];
+    }
+
+    /* ================================================================== *
+     * 20. 면역조절제 (탈리도마이드 계열)                                   *
+     * ================================================================== */
+    subgraph cluster_imid {
+        label=<<b>20. 포말리도마이드 · 탈리도마이드 — 혈관 성숙 유도</b><br/><font point-size="9">PATH-HHT (PMID 39292928) · Lebrin 2010 (PMID 20364125)</font>>;
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#c39bd3"; fontsize=11;
+        node [fillcolor="#ede0f3"];
+
+        POMDOSE  [label="포말리도마이드 4 mg/일\nPATH-HHT 승인 근거"];
+        THALDOSE [label="탈리도마이드 50-200 mg/일\n(선구 약물 · 신경병증 제한)"];
+        POMA     [label="흡수 구획 POM_A", penwidth=2.2];
+        POMC     [label="혈장 POM_C\nCL 168 L/일 · t½ ~6시간", penwidth=2.4];
+        CRBN     [label="세레블론 (CRBN) E3 리가아제\n기질 분해 재배선"];
+        POMPDGF  [label="PDGF-B 발현 증가\n→ 벽세포 동원", penwidth=2.2, fillcolor="#d4efdf"];
+        POMVEGF  [label="VEGF 생성 완만한 감소\n(부수 효과)", fillcolor="#d4efdf"];
+        POMMECH  [label="★ 기전적 차별점\n내강을 줄이는 게 아니라\n혈관을 성숙시켜 취약성을 낮춘다", penwidth=2.4, fillcolor="#f9e79f"];
+
+        POMDOSE -> POMA [color="#8e44ad"];
+        THALDOSE -> POMA [color="#8e44ad", style=dashed];
+        POMA -> POMC [color="#2471a3"];
+        POMC -> CRBN [color="#8e44ad"];
+        CRBN -> POMPDGF [color="#1a7f37", penwidth=1.6];
+        CRBN -> POMVEGF [color="#c0392b"];
+        POMPDGF -> PDGFB [color="#1a7f37", penwidth=2.0];
+        POMVEGF -> VEGFA [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        POMPDGF -> POMMECH [style=dashed];
+    }
+
+    /* ================================================================== *
+     * 21. 트라넥삼산 · 국소 · 시술                                         *
+     * ================================================================== */
+    subgraph cluster_other {
+        label=<<b>21. 트라넥삼산 · 국소요법 · 시술</b><br/><font point-size="9">what each can and cannot reach</font>>;
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#c39bd3"; fontsize=11;
+        node [fillcolor="#ede0f3"];
+
+        TXADOSE  [label="트라넥삼산 경구 3 g/일\n(1 g 하루 3회)"];
+        TXAC     [label="혈장 TXA_C\nCss ≈ 11 µg/mL", penwidth=2.4];
+        TXAINH   [label="플라스민 억제\nIC50 6 µg/mL · Imax 0.92", penwidth=2.2];
+        TXATOP   [label="국소 TXA 40 mg/일\n전신 노출 무시 가능 → 무효", fillcolor="#f9ebea"];
+        LASER    [label="비강 레이저 소작 · KTP\n병변 개수 국소 감소"];
+        SEPTO    [label="비중격 피부이식 · Young 술식\n난치성 코출혈"];
+        HYDROGEL [label="비강 하이드로젤 · 습윤요법\n점막 외상 감소"];
+        EMBOL    [label="폐 AVM 코일 색전술\n★ 유량 자체를 제거하는 유일한 수단", penwidth=2.4, fillcolor="#d4efdf"];
+        LTX      [label="간이식\n고박출성 심부전 최종 치료", fillcolor="#d4efdf"];
+        ESTRO    [label="에스트로겐 · 바제독시펜\n점막 각화 유도 (근거 약함)", fillcolor="#eaeded"];
+        TIMOLOL  [label="티몰롤 비강 젤 (음성 시험)", fillcolor="#eaeded"];
+
+        TXADOSE -> TXAC [color="#8e44ad"];
+        TXATOP -> TXAC [color="#8e44ad", style=dashed, label="≈0"];
+        TXAC -> TXAINH [color="#8e44ad", penwidth=1.6];
+        TXAINH -> PLASMIN [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        LASER -> NLES [color="#c0392b", arrowhead=tee, penwidth=1.6];
+        SEPTO -> NASMUC [color="#c0392b", arrowhead=tee];
+        HYDROGEL -> NASTRAUM [color="#c0392b", arrowhead=tee];
+        EMBOL -> PAVM [color="#c0392b", arrowhead=tee, penwidth=2.0];
+        LTX -> HEPAVM [color="#c0392b", arrowhead=tee, penwidth=1.8];
+        ESTRO -> NASMUC [style=dashed];
+        TIMOLOL -> NASMUC [style=dashed];
+    }
+
+    /* ================================================================== *
+     * 22. 임상 종점 · 점수 · 이상반응                                      *
+     * ================================================================== */
+    subgraph cluster_end {
+        label=<<b>22. 임상 종점 · 점수 · 이상반응</b><br/><font point-size="9">ESS (Hoag) · MED · HHT-QOL · Curaçao</font>>;
+        style="rounded,filled"; fillcolor="#fef9e7"; color="#f4d03f"; fontsize=11;
+        node [fillcolor="#fcf3cf"];
+
+        ESS      [label="코출혈 중증도 점수 ESS (0-10)\n빈도·지속·강도·의료이용·수혈·빈혈 6영역\nMCID = 0.71 (PMID 26393959)", penwidth=2.8, fillcolor="#f9e79f"];
+        ESSDOM   [label="ESS 영역 구성\nF(빈도) D(지속) I(강도)\nA(의료이용) T(수혈) AN(빈혈)"];
+        HHTQOL   [label="HHT 특이 삶의 질 (0-16)\n(PMID 35877137)", penwidth=2.4, fillcolor="#f9e79f"];
+        NOSEHHT  [label="NOSE HHT 점수 (대안 도구)", fillcolor="#fdf6e3"];
+        CURACAO  [label="Curaçao 진단기준 4개\n코출혈 · 확장증 · 내장병변 · 가족력"];
+        TXBURDEN [label="수혈 · 정맥철 필요량\n(문턱값 종점)", penwidth=2.4, fillcolor="#f9e79f"];
+        IRONINDEP[label="★ 철 자립 (iron independence)\n= 연속 점수가 보여주지 못하는 종점", penwidth=2.6, fillcolor="#f8c471"];
+        AE_HTN   [label="고혈압 (베바시주맙·파조파닙)", fillcolor="#fadbd8"];
+        AE_PROT  [label="단백뇨 (항VEGF)", fillcolor="#fadbd8"];
+        AE_ALT   [label="간효소 상승 (파조파닙)", fillcolor="#fadbd8"];
+        AE_NEUT  [label="호중구감소 (포말리도마이드)", fillcolor="#fadbd8"];
+        AE_CONST [label="변비 · 발진 (포말리도마이드)", fillcolor="#fadbd8"];
+        AE_VTE   [label="정맥혈전 위험 (IMiD · TXA)", fillcolor="#fadbd8"];
+        AE_NEURO [label="말초신경병증 (탈리도마이드)", fillcolor="#fadbd8"];
+        AE_WOUND [label="상처 치유 지연 · 천공 (항VEGF)", fillcolor="#fadbd8"];
+
+        MED -> ESS [color="#e67e22", penwidth=1.6];
+        EVRATE -> ESSDOM [color="#e67e22"];
+        EVDUR -> ESSDOM [color="#e67e22"];
+        EVRATE2 -> ESSDOM [color="#e67e22"];
+        HB -> ESSDOM [color="#e67e22", penwidth=1.6];
+        TXFUSION -> ESSDOM [color="#e67e22"];
+        ESSDOM -> ESS [color="#e67e22", penwidth=1.8];
+        ESS -> HHTQOL [color="#e67e22", penwidth=1.6];
+        ESS -> NOSEHHT [style=dashed];
+        CURACAO -> ESS [style=invis];
+        TXFUSION -> TXBURDEN [color="#e67e22"];
+        FEIV -> TXBURDEN [color="#e67e22", style=dashed];
+        CEIL -> IRONINDEP [color="#e67e22", penwidth=2.0];
+        TXBURDEN -> IRONINDEP [color="#e67e22", penwidth=1.6];
+        BEVC -> AE_HTN [color="#c0392b", style=dashed];
+        PAZC -> AE_HTN [color="#c0392b", style=dashed];
+        BEVC -> AE_PROT [color="#c0392b", style=dashed];
+        BEVC -> AE_WOUND [color="#c0392b", style=dashed];
+        PAZC -> AE_ALT [color="#c0392b", style=dashed];
+        POMC -> AE_NEUT [color="#c0392b", style=dashed];
+        POMC -> AE_CONST [color="#c0392b", style=dashed];
+        POMC -> AE_VTE [color="#c0392b", style=dashed];
+        TXAC -> AE_VTE [color="#c0392b", style=dashed];
+        THALDOSE -> AE_NEURO [color="#c0392b", style=dashed];
+    }
+
+    BLRTOT -> ESS [style=invis];
+    SPO2 -> ESS [style=invis];
+}
