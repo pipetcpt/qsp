@@ -1,0 +1,659 @@
+/* ============================================================================
+ * com_qsp_model.dot — 만성 골수염 / 임플란트 연관 골감염 QSP 기계론적 지도
+ * Chronic Osteomyelitis & Implant-Associated Bone Infection
+ *
+ * 이 지도의 중심 주장 (the one claim this map is drawn to make):
+ *
+ *   만성 골수염에서 약과 세균은 같은 구획에 살지 않는다. 그리고 치료 실패는
+ *   서로 독립인 두 개의 벌점이 곱해져서 생긴다.
+ *
+ *     (1) 공간 벌점 — 격리골(sequestrum)과 임플란트 바이오필름은 관류가 없다.
+ *         약은 확산으로만 들어가므로 노출은 Thiele 계수 phi = L*sqrt(k/D)의
+ *         함수 eta = tanh(phi)/phi 로 깎인다. 이것은 용량으로 밀 수 있는
+ *         '농도' 문제다.
+ *
+ *     (2) 표현형 벌점 — 바이오필름 세균은 '느린 세균'이 아니다. 대부분의
+ *         항생제(베타락탐/글리코펩타이드/아미노글리코사이드)는 살균속도가
+ *         성장속도에 비례하므로 mu -> 0 에서 kill -> 0 이다. 즉 MBEC/MIC는
+ *         EC50 이동(potency shift)이 아니라 Emax 붕괴(efficacy ceiling)다.
+ *         이것은 용량으로 밀 수 없는 문제다.
+ *
+ *   리팜핀 계열만이 비성장 세균에서 Emax를 유지한다 -> 그래서 포도알균
+ *   임플란트 감염에서 리팜핀 병용이 규칙이 되고, 동시에 단독 사용이 금기가
+ *   된다(rpoB 돌연변이 빈도 1e-8 x 세균수 1e9 = 확정적 내성 출현).
+ *
+ *   따라서 세 가지 개입은 수학적으로 서로 다른 대상을 건드린다:
+ *     - 수술적 소파/제거 = 초기조건 변경 (basin change)  : P0 를 내린다
+ *     - 리팜핀 병용       = 살균천장 변경 (R_ster change) : 1보다 크게 만든다
+ *     - 투여기간          = 도달시간 변경 (time to reach) : 그 이상은 아니다
+ *   R_ster < 1 이면 기간을 무한히 늘려도 멸균되지 않는다(뼈 안의 지속 평형).
+ *
+ *   그리고 병태생리가 스스로 약동학 장벽을 만든다:
+ *     감염 -> 골수내압/혈전 -> Haversian 관류 소실 -> 격리골 -> 노출 소실
+ *          -> 감염 지속  (닫힌 악순환; 이 고리가 조기치료와 만성기의 완치율
+ *             차이를 만든다)
+ *
+ * 렌더:  dot -Tsvg com_qsp_model.dot -o com_qsp_model.svg
+ *        dot -Tpng -Gdpi=150 com_qsp_model.dot -o com_qsp_model.png
+ * ==========================================================================*/
+
+digraph COM_QSP {
+  graph [
+    rankdir      = LR,
+    newrank      = true,   /* 클러스터 간 되먹임 고리(감염→골괴사→관류소실→노출소실→감염)가
+                              있으므로 지역 클러스터 랭킹으로는 배치가 불가능하다. 전역 랭킹 필요. */
+    compound     = true,
+    splines      = spline,
+    overlap      = false,
+    concentrate  = false,
+    nodesep      = 0.24,
+    ranksep      = 0.8,
+    fontname     = "NanumGothic",
+    fontsize     = 11,
+    labelloc     = "t",
+    labeljust    = "c",
+    bgcolor      = "white",
+    pad          = 0.4,
+    label = <<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="1">
+      <TR><TD><FONT POINT-SIZE="26"><B>만성 골수염 · 임플란트 연관 골감염 — 정량적 시스템 약리학(QSP) 지도</B></FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="15"><I>Chronic Osteomyelitis &amp; Implant-Associated Bone Infection (Staphylococcus aureus 중심) · QSP map</I></FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="13"> </FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="14">약과 세균은 같은 구획에 살지 않는다 — 치료 실패는 <B>공간 벌점</B>(관류 없는 격리골로의 확산: eta = tanh(phi)/phi)과</FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="14"><B>표현형 벌점</B>(성장속도 의존 살균: mu→0 일 때 kill→0)이 <B>곱해져서</B> 생긴다</FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="14">전자는 용량으로 밀 수 있는 <B>EC50 이동</B>, 후자는 어떤 용량으로도 밀 수 없는 <B>Emax 붕괴</B> — 이 비대칭이 이 병의 치료 논리 전체다</FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="14">그래서 <B>소파술은 초기조건</B>을, <B>리팜핀은 살균천장</B>을, <B>기간은 도달시간</B>만을 바꾼다 — R_ster &lt; 1 이면 기간은 무한해도 멸균은 없다</FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="13"> </FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="12" COLOR="#7f1d1d">굵은 빨강 = 병 자체가 약동학 장벽을 만드는 악순환 · 굵은 초록 = 치료 개입 · 점선 = 되먹임/조절 · 파랑 = 측정 가능한 바이오마커</FONT></TD></TR>
+    </TABLE>>
+  ];
+
+  node [
+    fontname = "NanumGothic",
+    fontsize = 10,
+    shape    = box,
+    style    = "rounded,filled",
+    penwidth = 1.0,
+    margin   = "0.10,0.05"
+  ];
+  edge [
+    fontname = "NanumGothic",
+    fontsize = 8.5,
+    arrowsize = 0.6,
+    penwidth = 0.9,
+    color = "#475569"
+  ];
+
+  /* ==== 색 팔레트 =========================================================
+     감염원/세균  #fecaca / #ef4444    바이오필름   #fed7aa / #f97316
+     숙주면역     #ddd6fe / #8b5cf6    뼈/구조      #e7e5e4 / #78716c
+     관류/장벽    #fbcfe8 / #db2777    PK           #bfdbfe / #2563eb
+     표적부위PK   #a5f3fc / #0891b2    PD/살균      #bbf7d0 / #16a34a
+     수술         #d9f99d / #65a30d    독성         #fecdd3 / #e11d48
+     엔드포인트   #fef08a / #ca8a04    공변량       #f1f5f9 / #64748b
+     방정식       #fff7ed / #b45309
+     ====================================================================== */
+
+  /* ======================================================================
+     1. 감염 경로 · 접종 (Inoculation routes)
+     ====================================================================== */
+  subgraph cluster_inoc {
+    label = <<B>1. 감염 경로 · 접종량</B><BR/><FONT POINT-SIZE="9">Routes of inoculation — 접종량 N0 와 이물질 유무가 이후 모든 것을 결정</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fff5f5"; color = "#ef4444"; fontsize = 13; penwidth = 1.6;
+
+    inoc_hemato [label="혈행성 파종\nHematogenous seeding\n(소아 장골 대사부 · 성인 척추)", fillcolor="#fecaca"];
+    inoc_contig [label="인접 파급\nContiguous spread\n(개방골절 · 수술창 · 압박궤양)", fillcolor="#fecaca"];
+    inoc_direct [label="직접 접종\nDirect inoculation\n(관통상 · 관혈적 골접합)", fillcolor="#fecaca"];
+    inoc_dfo    [label="당뇨발 골감염\nDiabetic foot osteomyelitis\n(궤양→뼈 노출·probe-to-bone)", fillcolor="#fecaca"];
+    inoc_dose   [label="접종량 N0\nInoculum size\n(1e2 – 1e6 CFU)", fillcolor="#fca5a5"];
+    inoc_implant[label="이물질 표면 존재\nForeign body / implant surface\n(임계 접종량을 1e4배 낮춘다)", fillcolor="#fca5a5", penwidth=2.0];
+
+    pathogen_sa   [label="S. aureus (MSSA/MRSA)\n골수염 원인균 30–60%\nMSCRAMM 접착 · agr QS", fillcolor="#ef4444", fontcolor="white"];
+    pathogen_cons [label="Coagulase-negative staph\n(S. epidermidis)\n임플란트 감염 주범 · ica+", fillcolor="#f87171"];
+    pathogen_gnr  [label="그람음성균\nEnterobacterales · P. aeruginosa\n(당뇨발·척추·개방골절)", fillcolor="#f87171"];
+    pathogen_poly [label="복합균 감염\nPolymicrobial (혐기균 포함)\n당뇨발·압박궤양", fillcolor="#f87171"];
+    pathogen_cutib[label="Cutibacterium acnes\n지연발현 견관절 임플란트 감염", fillcolor="#fca5a5"];
+
+    inoc_hemato -> inoc_dose; inoc_contig -> inoc_dose;
+    inoc_direct -> inoc_dose; inoc_dfo    -> inoc_dose;
+    inoc_direct -> inoc_implant [style=dashed, weight=6];
+    inoc_dose -> pathogen_sa; inoc_dose -> pathogen_cons;
+    inoc_dose -> pathogen_gnr; inoc_dose -> pathogen_poly;
+    inoc_implant -> pathogen_cons [label="ica/PIA 부착", weight=6];
+    inoc_implant -> pathogen_cutib [weight=6];
+  }
+
+  /* ======================================================================
+     2. 세균 아집단 상태전이 (Bacterial subpopulation state transitions)
+        — 이 모델의 심장. 다섯 개의 상태는 서로 다른 약감수성을 갖는다.
+     ====================================================================== */
+  subgraph cluster_bact {
+    label = <<B>2. 세균 아집단 · 상태전이 (모델의 심장)</B><BR/><FONT POINT-SIZE="9">다섯 상태는 '많고 적음'이 아니라 <B>서로 다른 약감수성</B>이다 — 지속체 풀은 약이 닿지 않는 저수지</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fff7ed"; color = "#f97316"; fontsize = 13; penwidth = 1.6;
+
+    B_pl   [label="B_pl — 부유 증식 세균\nPlanktonic, mu ≈ mu_max\n혈관화 골간질 내\n【약감수성: 최대】", fillcolor="#fdba74", penwidth=1.8];
+    B_bfa  [label="B_bfa — 바이오필름 활성 변연\nBiofilm active rim\nmu ≈ 0.2–0.4 mu_max\n【약감수성: 중간】", fillcolor="#fb923c", penwidth=1.8];
+    B_bfp  [label="B_bfp — 바이오필름 지속체 심부\nBiofilm persisters / dormant core\nmu ≈ 0 · 대사 정지\n【성장의존 항생제: 감수성 0】", fillcolor="#ea580c", fontcolor="white", penwidth=2.6, shape=box3d];
+    B_ic   [label="B_ic — 세포내 세균 · SCV\nIntracellular in osteoblast/osteocyte\nSmall colony variant · hemB/menD\n【세포투과 약만 도달】", fillcolor="#fb923c", penwidth=1.8, shape=box3d];
+    B_res  [label="B_res — rpoB 내성 아집단\nRifampicin-resistant mutants\nf_mut ≈ 1e-8/division\n【리팜핀 감수성: 0】", fillcolor="#dc2626", fontcolor="white", penwidth=2.2];
+
+    mu_growth [label="mu(구획) — 국소 성장속도\n영양(포도당·아미노산)·산소장력\n·pH·세균밀도(QS)의 함수", fillcolor="#fed7aa", shape=ellipse];
+    nutrient  [label="영양·산소 구배\nO2 tension 격리골 심부 ≈ 0\n혐기 대사 전환", fillcolor="#fed7aa", shape=ellipse];
+    agr_qs    [label="agr 정족수 감지\nQuorum sensing (AIP-AgrA)\n고밀도→독소, 저밀도→접착", fillcolor="#fed7aa", shape=ellipse];
+    sigB      [label="sigB 스트레스 시그마인자\n지속체 형성 · 항생제 내성 표현형", fillcolor="#fed7aa", shape=ellipse];
+    tox_ta    [label="독소-항독소 모듈\nmazEF · relBE · (p)ppGpp\nstringent response", fillcolor="#fed7aa", shape=ellipse];
+
+    B_pl  -> B_bfa [label="부착 k_att\n(표면·이물질 의존)", penwidth=1.6, weight=6];
+    B_bfa -> B_pl  [label="이탈 k_det\n(파종·균혈증)", style=dashed, weight=6];
+    B_bfa -> B_bfp [label="k_dorm — 휴면 진입\n(영양 고갈·저산소)", penwidth=2.0, color="#c2410c", weight=6];
+    B_bfp -> B_bfa [label="k_wake — 각성\n0.01–0.05 /d\n★멸균 시간의 유일한 결정자★", penwidth=2.4, color="#b91c1c", fontcolor="#b91c1c", weight=6];
+    B_pl  -> B_ic  [label="osteoblast 내재화\nFnBP-integrin·Hsp60", style=dashed, weight=6];
+    B_ic  -> B_pl  [label="세포사멸 후 방출\n(재발의 씨앗)", style=dashed, color="#b91c1c", weight=6];
+    B_bfa -> B_res [label="f_mut x mu\n돌연변이 공급", color="#dc2626", weight=6];
+    B_pl  -> B_res [label="f_mut x mu", color="#dc2626", weight=6];
+
+    nutrient  -> mu_growth [style=dashed, weight=6];
+    agr_qs    -> mu_growth [style=dashed, weight=6];
+    mu_growth -> B_pl  [style=dashed, weight=6];
+    mu_growth -> B_bfa [style=dashed, weight=6];
+    sigB  -> B_bfp [style=dashed, label="지속체 형성↑", weight=6];
+    tox_ta-> B_bfp [style=dashed, weight=6];
+    nutrient -> sigB [style=dashed, weight=6];
+  }
+
+  /* ======================================================================
+     3. 바이오필름 구조 · MBEC (Biofilm architecture)
+     ====================================================================== */
+  subgraph cluster_biofilm {
+    label = <<B>3. 바이오필름 구조 · MBEC</B><BR/><FONT POINT-SIZE="9">EPS는 확산 지연(공간 벌점)을, 대사 정지는 Emax 붕괴(표현형 벌점)를 만든다 — 서로 다른 두 기전</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fffbeb"; color = "#d97706"; fontsize = 13; penwidth = 1.6;
+
+    bf_eps    [label="EPS 기질\nPIA/PNAG (ica 오페론)\n· eDNA · 단백질(Bap/SasG)", fillcolor="#fde68a"];
+    bf_thick  [label="바이오필름 두께 L_bf\n30–300 um\n확산 거리를 정한다", fillcolor="#fde68a"];
+    bf_bind   [label="약물 기질 결합·격리\n양전하 약물(아미노글리코사이드)\n음전하 eDNA에 포획", fillcolor="#fde68a"];
+    bf_ph     [label="바이오필름 심부 산성 pH\n아미노글리코사이드 활성 상실\n(pH 의존 흡수)", fillcolor="#fde68a"];
+    bf_efflux [label="적응성 유출·내성\nNorA/MepA 유출펌프\n표현형(비유전) 내성", fillcolor="#fde68a"];
+    bf_mbec   [label="MBEC / MBIC\n최소 바이오필름 박멸농도\nMIC의 100–1000배\n(실은 Emax 붕괴의 대리지표)", fillcolor="#f59e0b", penwidth=2.2];
+    bf_area   [label="임플란트 표면적 A_imp\n바이오필름 총량의 상한\n(제거하지 않으면 상수)", fillcolor="#fbbf24", penwidth=1.8];
+
+    bf_eps -> bf_thick; bf_eps -> bf_bind; bf_eps -> bf_ph;
+    bf_area -> bf_eps [label="부착 가능 면적", weight=6];
+    bf_bind  -> bf_mbec; bf_ph -> bf_mbec; bf_efflux -> bf_mbec;
+    bf_thick -> bf_mbec [weight=6];
+  }
+
+  /* ======================================================================
+     4. 숙주 면역 반응 (Host immune response)
+     ====================================================================== */
+  subgraph cluster_immune {
+    label = <<B>4. 숙주 면역 반응</B><BR/><FONT POINT-SIZE="9">호중구는 세균을 죽이지만 동시에 골파괴와 관류 소실을 일으킨다 — 방어가 곧 장벽의 원인</FONT>>;
+    style = "rounded,filled"; fillcolor = "#f5f3ff"; color = "#8b5cf6"; fontsize = 13; penwidth = 1.6;
+
+    im_pamp   [label="PAMP 인식\nTLR2 (리포테이코산) · NOD2\n· TLR9 (세균 DNA)", fillcolor="#ddd6fe"];
+    im_neut   [label="호중구 침윤 N_bone\n탐식·산화폭발\n(주요 살균 이펙터)", fillcolor="#c4b5fd", penwidth=1.6];
+    im_net    [label="NET 형성\nNeutrophil extracellular traps\n세균 포획 + 조직 손상", fillcolor="#ddd6fe"];
+    im_mac    [label="대식세포 M1/M2\n항원제시 · 골수 유래 전구체", fillcolor="#ddd6fe"];
+    im_il1    [label="IL-1beta\n(NLRP3 인플라마솜·caspase-1)", fillcolor="#c4b5fd"];
+    im_il6    [label="IL-6\n간 급성기반응 구동자", fillcolor="#c4b5fd"];
+    im_tnf    [label="TNF-alpha", fillcolor="#c4b5fd"];
+    im_il17   [label="IL-17 / gamma-delta T\n호중구 동원 유지", fillcolor="#ddd6fe"];
+    im_comp   [label="보체 활성화\nC3b 옵소닌화 · C5a 화학주성", fillcolor="#ddd6fe"];
+    im_abscess[label="농양 형성 V_pus\n골수내 · 골막하\n(호중구 사체 + 섬유성 벽)", fillcolor="#a78bfa", penwidth=1.8];
+    im_evade  [label="포도알균 면역회피\nprotein A · Spa · SCIN · CHIPS\n· leukocidin (LukAB/PVL)", fillcolor="#ede9fe"];
+    im_abx_immune [label="항생제-면역 상호작용\n리팜핀·클린다마이신 세포내 도달\n호중구 살균 보조", fillcolor="#ede9fe"];
+
+    im_pamp -> im_neut; im_pamp -> im_mac; im_pamp -> im_il1;
+    im_neut -> im_net; im_neut -> im_abscess;
+    im_mac  -> im_il1; im_mac -> im_il6; im_mac -> im_tnf;
+    im_il1  -> im_il6; im_il17 -> im_neut [style=dashed];
+    im_comp -> im_neut [style=dashed, weight=6];
+    im_evade -> im_neut [label="살균 차단", style=dashed, color="#b91c1c", weight=6];
+    im_net -> im_abscess [style=dashed, weight=6];
+  }
+
+  /* ======================================================================
+     5. 골 리모델링 · 격리골 형성 (Bone destruction & sequestrum)
+     ====================================================================== */
+  subgraph cluster_bone {
+    label = <<B>5. 골 파괴 · 격리골(sequestrum) 형성 — 병이 스스로 만드는 성역</B><BR/><FONT POINT-SIZE="9">감염이 뼈를 죽이고, 죽은 뼈는 관류가 없어 약이 닿지 않는다 — 병태생리가 곧 약동학 장벽</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fafaf9"; color = "#78716c"; fontsize = 13; penwidth = 1.6;
+
+    bn_ob      [label="골형성세포 OB\nOsteoblast (생존 수)\nRunx2 · ALP · 오스테오칼신", fillcolor="#e7e5e4"];
+    bn_obapop  [label="골형성세포 사멸\nS. aureus 유도 apoptosis\n(TRAIL·caspase-8)", fillcolor="#d6d3d1"];
+    bn_rankl   [label="RANKL\n골형성세포·T세포 유래", fillcolor="#d6d3d1"];
+    bn_opg     [label="OPG (디코이 수용체)\n감염 시 감소", fillcolor="#d6d3d1"];
+    bn_ratio   [label="RANKL/OPG 비\n골흡수 구동 신호", fillcolor="#a8a29e", penwidth=1.6];
+    bn_oc      [label="골파괴세포 OC\nOsteoclast (활성 수)\nNFATc1 · cathepsin K · TRAP", fillcolor="#a8a29e", penwidth=1.6];
+    bn_resorb  [label="피질골 흡수\nCortical resorption\n골밀도·구조 소실", fillcolor="#d6d3d1"];
+    bn_osteocyte[label="골세포 세균 저장소\nOsteocyte lacunae 내 세균\n(정착 · 약 접근 최악)", fillcolor="#d6d3d1"];
+    bn_press   [label="골수내압 상승\nIntramedullary pressure↑\n(농양·부종)", fillcolor="#d6d3d1"];
+    bn_thromb  [label="Haversian 혈관 혈전\nNutrient vessel thrombosis\n★관류 소실의 직접 원인★", fillcolor="#fca5a5", penwidth=2.0];
+    bn_periost [label="골막 박리\nPeriosteal stripping\n(외측 혈액공급 차단)", fillcolor="#d6d3d1"];
+    bn_seq     [label="격리골 SEQ\nSequestrum — 무혈성 사골\n관류 = 0 · 확산만 가능", fillcolor="#57534e", fontcolor="white", penwidth=2.8, shape=box3d];
+    bn_invol   [label="신생골막 involucrum\n격리골을 감싸는 반응성 신생골\n(확산 거리를 더 늘린다)", fillcolor="#d6d3d1"];
+    bn_sinus   [label="누공 sinus tract\n피부까지 배액 · 만성기 표지", fillcolor="#d6d3d1"];
+    bn_deadspace[label="사강 dead space\n소파술 후 남는 무혈 공간\n재감염의 온상", fillcolor="#d6d3d1"];
+    bn_union   [label="골 유합 / 위관절\nUnion vs infected nonunion\n기능적 결과", fillcolor="#a8a29e"];
+
+    bn_ob -> bn_obapop [label="세균 침입", weight=6];
+    bn_obapop -> bn_ob [label="OB 감소", color="#b91c1c", weight=6];
+    bn_ob -> bn_rankl; bn_ob -> bn_opg [label="정상 시 분비"];
+    bn_obapop -> bn_opg [label="OPG↓", color="#b91c1c", weight=6];
+    bn_rankl -> bn_ratio; bn_opg -> bn_ratio [label="분모", style=dashed];
+    bn_ratio -> bn_oc [penwidth=1.6]; bn_oc -> bn_resorb [penwidth=1.6, weight=6];
+    bn_resorb -> bn_thromb [style=dashed]; bn_press -> bn_thromb [penwidth=1.6, weight=6];
+    bn_periost -> bn_thromb [penwidth=1.4, weight=6];
+    bn_thromb -> bn_seq [penwidth=2.4, color="#b91c1c", weight=6];
+    bn_resorb -> bn_seq [penwidth=1.6, weight=6];
+    bn_seq -> bn_invol; bn_seq -> bn_sinus; bn_seq -> bn_deadspace [style=dashed];
+    bn_resorb -> bn_union [label="유합 실패", style=dashed, weight=6];
+    bn_osteocyte -> bn_seq [style=dashed, weight=6];
+  }
+
+  /* ======================================================================
+     6. 관류 · 확산 장벽 (Perfusion & diffusion barrier) — 공간 벌점
+     ====================================================================== */
+  subgraph cluster_perf {
+    label = <<B>6. 관류 · 확산 장벽 = 공간 벌점 (Thiele 계수)</B><BR/><FONT POINT-SIZE="9">eta = tanh(phi)/phi,  phi = L·sqrt(k_loss/D_eff) — 이것은 '농도' 문제이므로 용량·국소투여로 밀 수 있다</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fdf2f8"; color = "#db2777"; fontsize = 13; penwidth = 1.6;
+
+    pf_frac   [label="관류 분율 f_perf\n건강 1.0 → 만성 골수염 0.2–0.5\n→ 격리골 심부 0", fillcolor="#fbcfe8", penwidth=2.0];
+    pf_pad    [label="말초동맥질환 PAD\nABI · TcPO2\n(당뇨발에서 전신적 f_perf 하락)", fillcolor="#fbcfe8"];
+    pf_revasc [label="혈관재생술\nRevascularization / bypass\n★관류 회복 = 항생제 치료다★", fillcolor="#f9a8d4", penwidth=1.8];
+    pf_btsr   [label="골:혈청 AUC 비 (bone:serum)\n반코마이신 0.1–0.2\n베타락탐 0.15–0.3\nFQ 0.3–0.5 · 리네졸리드 0.4–0.5\n리팜핀 0.3–0.6 · 클린다마이신 0.4–0.8", fillcolor="#fbcfe8", shape=note];
+    pf_diff   [label="유효 확산계수 D_eff\n뼈 기질·EPS 내 D는 수용액의 1/10–1/100", fillcolor="#fbcfe8"];
+    pf_kloss  [label="국소 소실속도 k_loss\n결합·분해·세균 흡수", fillcolor="#fbcfe8"];
+    pf_L      [label="확산 거리 L\n격리골 반두께 + involucrum 두께\n1–10 mm", fillcolor="#fbcfe8"];
+    pf_thiele [label="Thiele 계수 phi = L·sqrt(k_loss/D_eff)\n침투 효율 eta = tanh(phi)/phi\nphi=1→eta 0.76 · phi=3→0.33 · phi=10→0.10", fillcolor="#ec4899", fontcolor="white", penwidth=2.6, shape=note];
+    pf_fu     [label="비결합 분율 fu\n알부민 결합\n(활성은 비결합 농도만)", fillcolor="#fbcfe8"];
+
+    pf_pad -> pf_frac [color="#b91c1c", weight=6];
+    pf_revasc -> pf_frac [label="회복", color="#16a34a", penwidth=1.8, weight=6];
+    pf_frac -> pf_btsr [penwidth=1.6, weight=6];
+    pf_diff -> pf_thiele; pf_kloss -> pf_thiele; pf_L -> pf_thiele [penwidth=1.6];
+  }
+
+  /* ======================================================================
+     7. 전신 PK · 상호작용 (Systemic PK & DDI)
+     ====================================================================== */
+  subgraph cluster_pk {
+    label = <<B>7. 전신 약동학 · 약물상호작용</B><BR/><FONT POINT-SIZE="9">OVIVA: 생체이용률이 충분하면 경로(IV vs 경구)는 결과를 바꾸지 않는다 — 중요한 것은 비결합 골 농도</FONT>>;
+    style = "rounded,filled"; fillcolor = "#eff6ff"; color = "#2563eb"; fontsize = 13; penwidth = 1.6;
+
+    pk_oral   [label="경구 depot A_gut\nF: 리팜핀 0.7 · 리네졸리드 1.0\n레보플록사신 0.99 · 클린다마이신 0.9", fillcolor="#bfdbfe"];
+    pk_iv     [label="IV 투여 / OPAT\n지속주입 vs 간헐투여", fillcolor="#bfdbfe"];
+    pk_central[label="중앙 구획 C_c (혈장)\nV1 · 단백결합 fu", fillcolor="#93c5fd", penwidth=1.6];
+    pk_periph [label="말초 구획 C_p\nQ (분포클리어런스)", fillcolor="#bfdbfe"];
+    pk_clr    [label="신 클리어런스 CL_r\n반코마이신·베타락탐 (eGFR 의존)", fillcolor="#bfdbfe"];
+    pk_clh    [label="간 클리어런스 CL_h\n리팜핀(자가유도)·리네졸리드·FQ", fillcolor="#bfdbfe"];
+    pk_ind    [label="CYP3A4/2C9 · P-gp 유도 E_ind\n리팜핀 구동 · t1/2 ≈ 2–3 d\n(자가유도 + 병용약 노출 감소)", fillcolor="#60a5fa", penwidth=2.0];
+    pk_ddi    [label="리팜핀 유도 DDI\n리네졸리드 AUC −30%\n목시플록사신 AUC −30%\n와파린/DOAC/스테로이드 −−", fillcolor="#3b82f6", fontcolor="white", penwidth=2.0];
+    pk_tdm    [label="TDM\n반코마이신 AUC24 400–600\n리네졸리드 트로프 2–7 mg/L", fillcolor="#bfdbfe", shape=note];
+    pk_renaldose [label="신기능 기반 용량조절\nAKI 시 노출 상승 → 독성 되먹임", fillcolor="#bfdbfe"];
+
+    pk_oral -> pk_central [label="ka·F", weight=6];
+    pk_iv   -> pk_central [weight=6];
+    pk_central -> pk_periph [dir=both, weight=6];
+    pk_central -> pk_clr; pk_central -> pk_clh;
+    pk_ind -> pk_clh [label="CL↑", penwidth=1.8, color="#b91c1c", weight=6];
+    pk_ind -> pk_ddi [penwidth=1.8, weight=6];
+    pk_ddi -> pk_central [label="병용약 노출↓", style=dashed, color="#b91c1c", weight=6];
+    pk_tdm -> pk_central [style=dashed, dir=back, weight=6];
+    pk_renaldose -> pk_central [style=dashed, weight=6];
+  }
+
+  /* ======================================================================
+     8. 표적 부위 PK (Target-site PK) — 세 개의 성역
+     ====================================================================== */
+  subgraph cluster_pkbone {
+    label = <<B>8. 표적 부위 약동학 — 세 개의 성역</B><BR/><FONT POINT-SIZE="9">혈장 → 혈관화 골간질 → 바이오필름/격리골 → 세포내: 각 단계마다 곱셈 벌점</FONT>>;
+    style = "rounded,filled"; fillcolor = "#ecfeff"; color = "#0891b2"; fontsize = 13; penwidth = 1.6;
+
+    tp_bone  [label="C_bone — 혈관화 골간질\n= fu · C_c · (bone:serum)\n관류 f_perf 에 비례", fillcolor="#a5f3fc", penwidth=1.8];
+    tp_seq   [label="C_seq — 격리골/바이오필름 심부\n= C_bone · eta(phi)\n【성역 1】", fillcolor="#67e8f9", penwidth=2.4, shape=box3d];
+    tp_ic    [label="C_ic — 세포내 (골형성세포/골세포)\n세포내:세포외 비\n리팜핀 5–10 · FQ 4–8 · 클린다 5–10\n반코마이신 <0.1 · 베타락탐 <0.1\n【성역 2】", fillcolor="#67e8f9", penwidth=2.4, shape=box3d];
+    tp_pus   [label="C_pus — 농양 내\n낮은 pH · 높은 단백 · 무혈성 중심\n【성역 3】", fillcolor="#67e8f9", penwidth=2.0, shape=box3d];
+    tp_local [label="국소 전달 depot A_loc\n항생제 함침 PMMA 시멘트\n· 황산칼슘 비드 · 수화젤", fillcolor="#22d3ee", penwidth=2.0];
+    tp_locel [label="국소 용출 동역학\n버스트(수시간) + 긴 꼬리(수주)\n창상액 농도 MIC의 100–1000배", fillcolor="#a5f3fc"];
+    tp_locsink[label="국소 소실\n창상 배액 · 전신 흡수", fillcolor="#a5f3fc"];
+
+    tp_bone -> tp_seq [label="eta(phi) 곱셈", penwidth=2.0, weight=6];
+    tp_bone -> tp_ic  [label="세포막 분배", penwidth=1.6, weight=6];
+    tp_bone -> tp_pus [weight=6];
+    tp_local -> tp_locel -> tp_seq [label="관류 벌점 우회", color="#16a34a", penwidth=2.0];
+    tp_locel -> tp_locsink [weight=6];
+    tp_locel -> tp_bone [style=dashed, label="전신 누출", weight=6];
+  }
+
+  /* ======================================================================
+     9. PD · 살균 동역학 (Killing kinetics) — 표현형 벌점
+     ====================================================================== */
+  subgraph cluster_pd {
+    label = <<B>9. 살균 동역학 = 표현형 벌점 (Emax 붕괴 vs EC50 이동)</B><BR/><FONT POINT-SIZE="9">KILL = C/(C+EC50) · [ Emax_gd·(mu/mu_max) + Emax_gi ] — Emax_gi 가 0이면 어떤 농도로도 지속체를 죽이지 못한다</FONT>>;
+    style = "rounded,filled"; fillcolor = "#f0fdf4"; color = "#16a34a"; fontsize = 13; penwidth = 1.6;
+
+    pd_eq     [label="살균 방정식\nKILL_j = C_j/(C_j+EC50_j) ×\n[ Emax_gd,j·(mu/mu_max) + Emax_gi,j ]", fillcolor="#86efac", penwidth=2.6, shape=note];
+    pd_gd     [label="성장의존 살균 Emax_gd\n베타락탐(PBP·세포벽 합성)\n반코마이신 · 다프토마이신\n아미노글리코사이드(호기 흡수)", fillcolor="#bbf7d0"];
+    pd_gi     [label="성장비의존 살균 Emax_gi\n★리팜핀/리파부틴(RNA pol)★\n일부: 다프토마이신·오리타반신\n(부분) · 리네졸리드(정균)", fillcolor="#4ade80", penwidth=2.4];
+    pd_mic    [label="MIC / MBC\n부유 세균 기준 감수성", fillcolor="#bbf7d0"];
+    pd_tmic   [label="시간의존 지표 %T>MIC\n베타락탐 목표 >50–70%", fillcolor="#bbf7d0"];
+    pd_auc    [label="농도의존 지표 fAUC/MIC\n반코마이신 400–600\nFQ 100–125 · 리네졸리드 80–120", fillcolor="#bbf7d0"];
+    pd_msw    [label="돌연변이 선택창 MSW\nMIC ~ MPC 구간\n내성 선택 구역", fillcolor="#fde68a", penwidth=1.8];
+    pd_syn    [label="병용 상호작용\n리팜핀+FQ/리네졸리드/코트리목사졸\n= 상승(성역 도달 + 내성 억제)", fillcolor="#bbf7d0"];
+    pd_ant    [label="병용 길항\n리팜핀 유도로 파트너 노출↓\n(같은 약이 주고 또 빼앗는다)", fillcolor="#fecaca", penwidth=1.6];
+    pd_pin    [label="지속효과 PAE / 재성장\n투여 간격 사이 회복", fillcolor="#bbf7d0"];
+    pd_rster  [label="★멸균비 R_ster★\n= Σ_j KILL_j(바이오필름) / (mu_bf + k_wake 공급)\nR_ster < 1 → 뼈 안의 지속 평형(기간 무의미)\nR_ster > 1 → 멸균 가능, 남은 것은 시간만", fillcolor="#15803d", fontcolor="white", penwidth=3.0, shape=note];
+    pd_tster  [label="멸균 소요시간\nT_ster ≈ ln(P0)/k_wake  (각성 제한)\nP0 를 내리는 것이 T 를 줄이는 유일한 길", fillcolor="#86efac", penwidth=2.2, shape=note];
+
+    pd_gd -> pd_eq; pd_gi -> pd_eq [penwidth=2.0];
+    pd_mic -> pd_eq [label="EC50 설정", weight=6];
+    pd_tmic -> pd_eq [style=dashed]; pd_auc -> pd_eq [style=dashed, weight=6];
+    pd_eq -> pd_rster [penwidth=2.4, weight=6];
+    pd_rster -> pd_tster [penwidth=2.0, weight=6];
+    pd_syn -> pd_rster [color="#16a34a", penwidth=1.8, weight=6];
+    pd_ant -> pd_rster [color="#b91c1c", penwidth=1.6, weight=6];
+    pd_msw -> pd_eq [style=dashed, weight=6];
+    pd_pin -> pd_eq [style=dashed, weight=6];
+  }
+
+  /* ======================================================================
+     10. 항생제 요법 (Antimicrobial regimens)
+     ====================================================================== */
+  subgraph cluster_abx {
+    label = <<B>10. 항생제 요법</B><BR/><FONT POINT-SIZE="9">골수염에서 약을 고르는 축은 MIC가 아니라 (골 침투 × 세포내 도달 × 비성장 살균력)의 곱</FONT>>;
+    style = "rounded,filled"; fillcolor = "#f7fee7"; color = "#65a30d"; fontsize = 13; penwidth = 1.6;
+
+    abx_naf   [label="나프실린/세파졸린\nMSSA 표준 백본\n골침투 낮음 · 세포내 도달 없음", fillcolor="#d9f99d"];
+    abx_vanco [label="반코마이신\nMRSA 백본 · AUC24 400–600\n골침투 0.1–0.2 · 세포내 <0.1\nEmax_gi ≈ 0 (바이오필름 취약)", fillcolor="#d9f99d"];
+    abx_dapto [label="다프토마이신\n6–10 mg/kg · 부분적 비성장 살균\nCPK 모니터", fillcolor="#d9f99d"];
+    abx_cefta [label="세프타롤린\nMRSA 활성 세팔로스포린", fillcolor="#d9f99d"];
+    abx_rif   [label="★리팜핀★ 300–450 mg bid\n비성장 세균 살균 (Emax_gi 큼)\n세포내 5–10배 축적\n단독 금기 (rpoB)", fillcolor="#65a30d", fontcolor="white", penwidth=2.6];
+    abx_lev   [label="레보플록사신/시프로플록사신\n경구 F≈1 · 골침투 0.3–0.5\n리팜핀 파트너 (Zimmerli 요법)", fillcolor="#d9f99d"];
+    abx_lin   [label="리네졸리드\nF=1 · 골침투 0.4–0.5 · 정균적\n>28일 혈소판감소·유산산증", fillcolor="#d9f99d"];
+    abx_clin  [label="클린다마이신\n골·세포내 우수 · 독소 억제\nC. difficile 위험", fillcolor="#d9f99d"];
+    abx_tmp   [label="코트리목사졸\n경구 · 저비용 · 리팜핀 파트너", fillcolor="#d9f99d"];
+    abx_dalba [label="달바반신/오리타반신\n장기 반감기 (주 1회·2회)\nOPAT 대체", fillcolor="#d9f99d"];
+    abx_gnr   [label="그람음성 요법\n세프트리악손·에르타페넴\n· FQ (경구 전환)", fillcolor="#d9f99d"];
+    abx_supp  [label="장기 억제요법\nChronic oral suppression\n(제거 불가 임플란트)", fillcolor="#bef264", penwidth=1.8];
+    abx_dur   [label="투여 기간\n장골 6주 · 척추 6–12주\nDAIR+리팜핀 12주 (고관절 3개월)\n당뇨발 절제 후 2–3주", fillcolor="#bef264", shape=note];
+    abx_route [label="경로: IV vs 경구 전환\nOVIVA — 6주 시점 비열등", fillcolor="#bef264", shape=note];
+
+    abx_rif -> abx_lev [label="병용", dir=both, color="#16a34a", penwidth=1.8, weight=6];
+    abx_rif -> abx_lin [label="병용", dir=both, color="#16a34a", weight=6];
+    abx_rif -> abx_tmp [label="병용", dir=both, color="#16a34a", weight=6];
+    abx_vanco -> abx_rif [label="병용", dir=both, color="#16a34a", weight=6];
+  }
+
+  /* ======================================================================
+     11. 수술적 개입 (Surgical interventions)
+     ====================================================================== */
+  subgraph cluster_surg {
+    label = <<B>11. 수술적 개입 — 초기조건(basin)을 바꾸는 유일한 수단</B><BR/><FONT POINT-SIZE="9">약은 R_ster 를, 수술은 P0 와 A_imp 를 바꾼다 — 수학적으로 서로 대체되지 않는다</FONT>>;
+    style = "rounded,filled"; fillcolor = "#f7fee7"; color = "#4d7c0f"; fontsize = 13; penwidth = 1.6;
+
+    sg_debride [label="근치적 소파술·사골절제\nRadical debridement / sequestrectomy\nP0: 1e9 → 1e2–1e4\n★멸균 시간의 최대 결정자★", fillcolor="#a3e635", penwidth=2.8];
+    sg_dair    [label="DAIR (임플란트 유지)\nDebridement, antibiotics,\nimplant retention\nA_imp 유지 → 바이오필름 천장 유지", fillcolor="#bef264", penwidth=1.8];
+    sg_one     [label="1단계 교체\nOne-stage exchange\n+ 항생제 함침 시멘트", fillcolor="#bef264"];
+    sg_two     [label="2단계 교체\nTwo-stage exchange\n스페이서 기간 + 재삽입\nA_imp → 0", fillcolor="#a3e635", penwidth=2.2];
+    sg_remove  [label="임플란트/고정물 제거\nHardware removal", fillcolor="#bef264"];
+    sg_dead    [label="사강 관리\nDead-space management\n근육/유리 피판 · 골이식 · Masquelet", fillcolor="#bef264"];
+    sg_flap    [label="유리 피판 · 근육 이식\n관류 f_perf 를 직접 올린다", fillcolor="#a3e635", penwidth=1.8];
+    sg_ilizarov[label="골운반 · Ilizarov\n분절 결손 재건", fillcolor="#bef264"];
+    sg_amput   [label="절단\nAmputation (구제 실패 시)", fillcolor="#d9f99d"];
+    sg_npwt    [label="음압창상치료 NPWT\n배액 · 육아 촉진", fillcolor="#d9f99d"];
+    sg_timing  [label="수술 시점\n조기(격리골 형성 전) vs 만성기\n완치율 차이의 근원", fillcolor="#ecfccb", shape=note];
+
+    sg_debride -> sg_dead; sg_dead -> sg_flap; sg_dead -> sg_ilizarov;
+    sg_dair -> sg_debride [style=dashed, weight=6];
+    sg_two -> sg_remove [penwidth=1.6]; sg_one -> sg_remove;
+    sg_debride -> sg_amput [label="반복 실패", style=dashed, weight=6];
+    sg_npwt -> sg_dead [style=dashed, weight=6];
+  }
+
+  /* ======================================================================
+     12. 독성 · 안전성 (Toxicity)
+     ====================================================================== */
+  subgraph cluster_tox {
+    label = <<B>12. 독성 — 기간이 필요한 효능 vs 기간이 만드는 독성</B><BR/><FONT POINT-SIZE="9">이 병에서 최적 기간은 효능 곡선과 독성 곡선의 교차점이며, 소파술은 그 교차점을 왼쪽으로 옮긴다</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fff1f2"; color = "#e11d48"; fontsize = 13; penwidth = 1.6;
+
+    tx_aki   [label="반코마이신 AKI\nAUC24 >600 에서 위험↑\neGFR 하락 → 노출 상승 되먹임", fillcolor="#fecdd3", penwidth=1.6];
+    tx_plt   [label="리네졸리드 혈소판감소\n>28일에서 급증 · 미토콘드리아 독성\n말초신경병증 · 유산산증", fillcolor="#fecdd3", penwidth=1.6];
+    tx_hep   [label="리팜핀 간독성\nALT 상승 · 담즙정체\n(+ 오렌지색 체액)", fillcolor="#fecdd3"];
+    tx_fq    [label="플루오로퀴놀론\n힘줄염·힘줄파열 · QT 연장\n대동맥 사건 · 중추 이상", fillcolor="#fecdd3"];
+    tx_cdiff [label="C. difficile 감염\n클린다마이신·베타락탐\n장기 투여 위험", fillcolor="#fecdd3"];
+    tx_cpk   [label="다프토마이신 CPK 상승\n근독성 · 호산구성 폐렴", fillcolor="#fecdd3"];
+    tx_line  [label="정맥로 합병증\nOPAT 카테터 감염·혈전", fillcolor="#fecdd3"];
+    tx_ag    [label="아미노글리코사이드\n신독성·이독성 (누적 용량)", fillcolor="#fecdd3"];
+    tx_util  [label="효능-독성 효용\nU(T) = P_cure(T) − Σ 독성위험(T)\n최적 기간의 정의", fillcolor="#fb7185", penwidth=2.0, shape=note];
+
+    tx_aki -> tx_util; tx_plt -> tx_util; tx_hep -> tx_util;
+    tx_fq -> tx_util; tx_cdiff -> tx_util; tx_cpk -> tx_util;
+    tx_line -> tx_util; tx_ag -> tx_util;
+  }
+
+  /* ======================================================================
+     13. 바이오마커 · 임상 엔드포인트
+     ====================================================================== */
+  subgraph cluster_clin {
+    label = <<B>13. 바이오마커 · 임상 엔드포인트</B><BR/><FONT POINT-SIZE="9">CRP(t1/2 19 h)는 빠르고 ESR은 수 주 뒤진다 — 같은 사건을 서로 다른 시간축에서 본다</FONT>>;
+    style = "rounded,filled"; fillcolor = "#fefce8"; color = "#ca8a04"; fontsize = 13; penwidth = 1.6;
+
+    cl_crp   [label="CRP\nIL-6 구동 · t1/2 ≈ 19 h\n조기 반응 지표", fillcolor="#fef08a", penwidth=1.6];
+    cl_esr   [label="ESR\n수 주의 지연 · 완치 판정에 부적합", fillcolor="#fef08a"];
+    cl_pct   [label="프로칼시토닌\n골감염에서 민감도 낮음", fillcolor="#fef9c3"];
+    cl_wbc   [label="백혈구수 · 호중구 분율", fillcolor="#fef9c3"];
+    cl_cult  [label="심부 조직 배양 · 초음파 분해\nSonication 배양 (임플란트)\n· 16S/차세대 시퀀싱", fillcolor="#fef9c3"];
+    cl_mri   [label="MRI (골수 신호 변화)\n· PET-CT · 백혈구 스캔\n· 단순촬영(2–3주 지연)", fillcolor="#fef9c3"];
+    cl_pain  [label="통증 NRS 0–10", fillcolor="#fef08a"];
+    cl_sinus [label="누공 배액 · 창상 치유", fillcolor="#fef08a"];
+    cl_cure  [label="완치 (재발 없는 생존)\n장골 소파술+6주 60–90%\n임플란트 유지 시 크게 하락", fillcolor="#facc15", penwidth=2.4];
+    cl_relapse[label="재발 hazard\n중단 후 6–24개월에 몰린다\n(지속체 저수지의 시간 서명)", fillcolor="#facc15", penwidth=2.2];
+    cl_func  [label="기능 · 보행 · 삶의 질\n· 골유합", fillcolor="#fef08a"];
+    cl_amp   [label="절단 없는 생존\nAmputation-free survival\n(당뇨발 핵심 엔드포인트)", fillcolor="#facc15", penwidth=1.8];
+    cl_mort  [label="사망률\n(척추 골수염·고령·균혈증)", fillcolor="#fef9c3"];
+
+    cl_crp -> cl_cure [style=dashed, label="정상화 = 반응", weight=6];
+    cl_esr -> cl_cure [style=dashed, weight=6];
+    cl_cult -> cl_cure [style=dashed, weight=6];
+    cl_mri -> cl_cure [style=dashed, weight=6];
+    cl_cure -> cl_relapse [label="사후 확률", dir=back, style=dashed, color="#b91c1c", weight=6];
+    cl_pain -> cl_func; cl_sinus -> cl_func; cl_cure -> cl_amp; cl_cure -> cl_mort;
+  }
+
+  /* ======================================================================
+     14. 환자 공변량 · 병기 (Covariates & staging)
+     ====================================================================== */
+  subgraph cluster_cov {
+    label = <<B>14. 환자 공변량 · 병기</B><BR/><FONT POINT-SIZE="9">Cierny-Mader B 숙주(전신/국소 손상)는 R_ster 와 P0 를 동시에 악화시킨다</FONT>>;
+    style = "rounded,filled"; fillcolor = "#f8fafc"; color = "#64748b"; fontsize = 13; penwidth = 1.6;
+
+    cv_cm    [label="Cierny-Mader 병기\n해부(I 골수·II 표면·III 국소·IV 미만성)\n× 숙주(A 정상·B 손상·C 치료위험>이득)", fillcolor="#e2e8f0", penwidth=1.8];
+    cv_dm    [label="당뇨병 (HbA1c)\n호중구 기능↓ · 미세혈관병", fillcolor="#f1f5f9"];
+    cv_smoke [label="흡연\n국소 관류↓ · 유합 지연", fillcolor="#f1f5f9"];
+    cv_immuno[label="면역억제 · 스테로이드 · 악성종양", fillcolor="#f1f5f9"];
+    cv_ckd   [label="신기능 eGFR\n용량·독성 결정", fillcolor="#f1f5f9"];
+    cv_mrsa  [label="MRSA 여부\n백본 약제 선택", fillcolor="#f1f5f9"];
+    cv_age   [label="연령 · 영양(알부민)\n· 비만", fillcolor="#f1f5f9"];
+    cv_impl  [label="임플란트 종류·시점\n조기(<3개월)/지연/후기\n· 골시멘트 여부", fillcolor="#f1f5f9"];
+    cv_prior [label="과거 수술 횟수 · 이전 항생제\n· 내성 이력", fillcolor="#f1f5f9"];
+  }
+
+  /* ======================================================================
+     15. 핵심 방정식 요약 (Core equations)
+     ====================================================================== */
+  subgraph cluster_eq {
+    label = <<B>15. 핵심 방정식 — 이 지도를 한 화면으로 압축하면</B>>;
+    style = "rounded,filled"; fillcolor = "#fffbeb"; color = "#b45309"; fontsize = 13; penwidth = 1.8;
+
+    eq_1 [shape=note, fillcolor="#fef3c7", label="① 공간 벌점 (용량으로 밀 수 있다)\nC_seq = fu · C_c · (bone:serum) · f_perf · eta(phi)\neta(phi) = tanh(phi)/phi,  phi = L·sqrt(k_loss/D_eff)"];
+    eq_2 [shape=note, fillcolor="#fef3c7", label="② 표현형 벌점 (용량으로 밀 수 없다)\nKILL_j = C_j/(C_j+EC50_j) · [ Emax_gd,j·(mu/mu_max) + Emax_gi,j ]\nEmax_gi = 0 이면 mu→0 에서 KILL→0 (농도 무관)"];
+    eq_3 [shape=note, fillcolor="#fef3c7", label="③ 멸균 조건\nR_ster = Σ_j KILL_j(바이오필름) / (mu_bf + k_wake·P/B)\nR_ster ≤ 1 → 안정한 비영 세균 평형 (기간 무의미)"];
+    eq_4 [shape=note, fillcolor="#fef3c7", label="④ 멸균 시간 (R_ster > 1 일 때)\nT_ster ≈ ln(P0) / k_wake\n소파술이 P0 를 7 log 내리면 T 는 7·ln10/k_wake 만큼 줄어든다"];
+    eq_5 [shape=note, fillcolor="#fef3c7", label="⑤ 내성 출현 확실성\nP(rpoB 돌연변이 존재) ≈ 1 − exp(−f_mut · B_total)\nf_mut=1e-8, B_total=1e9 → P ≈ 1.0 (리팜핀 단독 금기의 산술)"];
+    eq_6 [shape=note, fillcolor="#fef3c7", label="⑥ 리팜핀의 양면성\nΔR_ster = (+Emax_gi 기여) − (파트너 노출 −30%의 손실)\n파트너가 성장의존적일수록 순이득이 크다(파트너 몫이 애초에 작다)"];
+    eq_7 [shape=note, fillcolor="#fef3c7", label="⑦ 악순환 이득\nG = ∂(감염부하)/∂(f_perf) × ∂(f_perf)/∂(감염부하)\nG > 1 이면 자기유지 만성 상태 (조기치료가 유일한 탈출)"];
+    eq_8 [shape=note, fillcolor="#fef3c7", label="⑧ 최적 기간\nT* = argmax [ P_cure(T) − Σ_k w_k·Tox_k(T) ]\n소파술은 P_cure(T) 곡선을 왼쪽으로 밀어 T* 를 줄인다"];
+
+    eq_1 -> eq_2 [style=invis]; eq_2 -> eq_3 [style=invis]; eq_3 -> eq_4 [style=invis, weight=6];
+    eq_5 -> eq_6 [style=invis]; eq_6 -> eq_7 [style=invis]; eq_7 -> eq_8 [style=invis, weight=6];
+  }
+
+  /* ======================================================================
+     클러스터 간 연결 (Inter-cluster edges) — 여기서 이야기가 완성된다
+     ====================================================================== */
+
+  /* 감염원 → 세균 상태 */
+  pathogen_sa   -> B_pl [penwidth=1.8];
+  pathogen_cons -> B_pl;
+  pathogen_gnr  -> B_pl;
+  inoc_implant  -> bf_area [penwidth=2.0, label="바이오필름 면적 공급"];
+  pathogen_cutib -> B_bfa [style=dashed];
+
+  /* 세균 ↔ 바이오필름 구조 */
+  B_bfa -> bf_eps [label="EPS 생산"];
+  B_bfp -> bf_eps [label="확산 제한→휴면", style=dashed, penwidth=1.4, dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  bf_mbec -> pd_eq [label="Emax 붕괴로 관측된다", penwidth=1.8, color="#b45309"];
+  bf_thick -> pf_L [penwidth=1.6, label="확산 거리에 가산"];
+  agr_qs -> im_evade [style=dashed];
+
+  /* 세균 → 면역 */
+  B_pl -> im_pamp [penwidth=1.6];
+  B_bfa -> im_pamp;
+  B_pl -> im_neut [label="탐식 살균", color="#16a34a", penwidth=1.6, dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  B_bfa -> im_neut [label="바이오필름엔 비효율", style=dashed, color="#16a34a", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  B_ic -> im_evade [style=dashed, label="세포내 은닉"];
+
+  /* 면역 → 뼈 */
+  im_il1 -> bn_rankl [penwidth=1.6];
+  im_tnf -> bn_rankl [penwidth=1.6];
+  im_il6 -> bn_oc [style=dashed];
+  im_il17 -> bn_rankl [style=dashed];
+  im_abscess -> bn_press [penwidth=2.0];
+  im_neut -> bn_resorb [label="숙주 매개 골파괴", style=dashed, color="#b91c1c"];
+  B_pl -> bn_obapop [penwidth=1.6];
+  B_ic -> bn_osteocyte [penwidth=1.6];
+
+  /* 뼈 → 관류 (★ 악순환의 전반부) */
+  bn_thromb -> pf_frac [label="f_perf ↓↓", penwidth=2.6, color="#b91c1c"];
+  bn_seq -> pf_L [label="확산 거리 L", penwidth=2.4, color="#b91c1c"];
+  bn_invol -> pf_L [penwidth=1.6, color="#b91c1c"];
+  im_abscess -> pf_frac [style=dashed, color="#b91c1c"];
+
+  /* 관류 → 표적부위 PK (★ 악순환의 중반부) */
+  pf_frac -> tp_bone [label="노출 ∝ f_perf", penwidth=2.4, color="#b91c1c"];
+  pf_thiele -> tp_seq [label="eta 곱셈", penwidth=2.6, color="#b91c1c"];
+  pf_btsr -> tp_bone [penwidth=1.8];
+  pf_fu -> tp_bone [penwidth=1.4];
+  pk_central -> tp_bone [penwidth=2.0];
+  pk_central -> pf_fu [style=dashed];
+
+  /* 표적부위 PK → PD */
+  tp_seq -> pd_eq [label="C_seq", penwidth=2.4];
+  tp_ic  -> pd_eq [label="C_ic", penwidth=1.8];
+  tp_bone -> pd_eq [label="C_bone", penwidth=1.8];
+  tp_pus -> pd_eq [style=dashed];
+
+  /* PD → 세균 (★ 악순환의 후반부: 살균 실패) */
+  B_pl -> pd_eq [label="살균", color="#16a34a", penwidth=1.8];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  B_bfa -> pd_eq [label="살균(감쇠)", color="#16a34a", penwidth=1.6];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  B_bfp -> pd_eq [label="Emax_gi 없으면 0", color="#b91c1c", penwidth=2.2, style=dashed];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  B_ic -> pd_eq [label="세포투과 약만", color="#16a34a", style=dashed];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  mu_growth -> pd_eq [label="mu/mu_max 게이팅", penwidth=2.2, color="#b45309"];
+
+  /* ★ 악순환 폐쇄: 세균 부하 → 골파괴 → 관류 소실 → 노출 소실 → 세균 지속 */
+  B_bfp -> bn_resorb [label="만성 자극", penwidth=1.6, color="#b91c1c"];
+  B_bfp -> im_pamp [style=dashed, color="#b91c1c"];
+
+  /* 약제 → PK */
+  abx_vanco -> pk_iv; abx_naf -> pk_iv; abx_dapto -> pk_iv; abx_cefta -> pk_iv;
+  abx_rif -> pk_oral [penwidth=1.8]; abx_lev -> pk_oral; abx_lin -> pk_oral;
+  abx_clin -> pk_oral; abx_tmp -> pk_oral; abx_gnr -> pk_iv; abx_dalba -> pk_iv;
+  abx_rif -> pk_ind [label="유도자", penwidth=2.2, color="#b91c1c"];
+  abx_route -> pk_oral [style=dashed];
+
+  /* 약제 → PD 성질 */
+  abx_rif -> pd_gi [label="비성장 살균 제공", penwidth=2.6, color="#16a34a"];
+  abx_vanco -> pd_gd [penwidth=1.6];
+  abx_naf -> pd_gd; abx_dapto -> pd_gd [style=dashed];
+  abx_rif -> tp_ic [label="세포내 5–10배", penwidth=2.0, color="#16a34a"];
+  abx_lev -> tp_ic [penwidth=1.4, color="#16a34a"];
+  abx_clin -> tp_ic [penwidth=1.4, color="#16a34a"];
+  abx_lin -> pd_gd [style=dashed, label="정균적"];
+
+  /* 리팜핀 단독의 재앙 */
+  abx_rif -> B_res [label="단독 사용 시 선택", penwidth=2.2, color="#dc2626", style=dashed];
+  B_res -> pd_syn [label="파트너가 억제", color="#16a34a", penwidth=1.8, arrowtail=tee, dir=none];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  abx_lin -> pd_ant [style=dashed, color="#b91c1c", label="노출 −30%", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  pk_ddi -> pd_ant [penwidth=1.8];
+
+  /* 국소 전달 */
+  sg_debride -> tp_local [style=dashed, label="소파 시 삽입"];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  sg_one -> tp_local [penwidth=1.6]; sg_two -> tp_local [penwidth=1.6];
+
+  /* 수술 → 세균/구조 (basin change) */
+  sg_debride -> B_bfp [label="P0 를 7 log 내린다", penwidth=2.8, color="#16a34a", arrowhead=tee];
+  sg_debride -> bn_seq [label="사골 제거", penwidth=2.4, color="#16a34a", arrowhead=tee];
+  sg_debride -> im_abscess [label="배액", penwidth=1.8, color="#16a34a", arrowhead=tee];
+  sg_remove -> bf_area [label="A_imp → 0", penwidth=2.4, color="#16a34a", arrowhead=tee];
+  sg_dair -> bf_area [label="A_imp 유지", style=dashed, color="#b91c1c"];
+  sg_flap -> pf_frac [label="관류 회복", penwidth=2.0, color="#16a34a"];
+  sg_dead -> bn_deadspace [arrowhead=tee, color="#16a34a"];
+  pf_revasc -> tp_bone [label="노출 회복", style=dashed, color="#16a34a", penwidth=1.6];
+  sg_timing -> bn_seq [label="조기 = 격리골 전", style=dashed, color="#16a34a"];
+
+  /* PD → 임상 결과 */
+  pd_rster -> cl_cure [label="R_ster>1 필요조건", penwidth=2.4, color="#16a34a"];
+  abx_dur -> pd_tster [label="필요 기간을 정의", penwidth=2.0, dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  abx_dur -> cl_cure [penwidth=1.8];
+  B_bfp -> cl_relapse [label="저수지 → 재발", penwidth=2.6, color="#b91c1c"];
+  B_ic  -> cl_relapse [penwidth=1.8, color="#b91c1c"];
+  B_res -> cl_cure [label="치료 실패", penwidth=2.0, color="#b91c1c", arrowhead=tee];
+  abx_supp -> cl_relapse [label="평형을 임계 아래로", color="#16a34a", arrowhead=tee];
+
+  /* 염증 → 바이오마커 */
+  im_il6 -> cl_crp [penwidth=2.0];
+  im_il6 -> cl_esr [penwidth=1.4];
+  im_il1 -> cl_pct [style=dashed];
+  im_neut -> cl_wbc [style=dashed];
+  B_pl -> cl_cult [style=dashed];
+  bn_seq -> cl_mri [style=dashed];
+  bn_press -> cl_pain [penwidth=1.6];
+  im_il1 -> cl_pain [style=dashed];
+  bn_sinus -> cl_sinus [penwidth=1.6];
+  bn_union -> cl_func [penwidth=1.6];
+
+  /* 독성 */
+  pk_central -> tx_aki [style=dashed]; abx_vanco -> tx_aki [penwidth=1.6];
+  abx_lin -> tx_plt [penwidth=1.6]; abx_rif -> tx_hep [penwidth=1.4];
+  abx_lev -> tx_fq; abx_clin -> tx_cdiff; abx_dapto -> tx_cpk;
+  pk_iv -> tx_line [style=dashed];
+  pk_clr -> tx_aki [label="CL↓ → 노출↑", color="#b91c1c", penwidth=1.6, style=dashed, dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  cv_ckd -> tx_aki [style=dashed, dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  abx_dur -> tx_util [label="기간이 독성을 만든다", penwidth=2.0, color="#b91c1c"];
+  abx_dur -> tx_util [label="T* 결정", style=dashed, color="#16a34a", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+
+  /* 공변량 → 시스템 */
+  cv_dm -> im_neut [label="살균능↓", style=dashed, color="#b91c1c"];
+  cv_dm -> pf_pad [style=dashed, penwidth=1.6];
+  cv_smoke -> pf_frac [style=dashed, color="#b91c1c"];
+  cv_immuno -> im_neut [style=dashed, color="#b91c1c"];
+  cv_ckd -> pk_clr [style=dashed, penwidth=1.6];
+  cv_mrsa -> abx_vanco [style=dashed, penwidth=1.6];
+  cv_impl -> bf_area [style=dashed, penwidth=1.6];
+  cv_prior -> B_res [style=dashed];
+  cv_age -> cl_mort [style=dashed];
+  cv_cm -> sg_debride [style=dashed, penwidth=1.6, label="병기가 수술을 정한다"];
+  cv_cm -> cl_cure [style=dashed];
+  cv_dm -> inoc_dfo [style=dashed, dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  inoc_dfo -> cl_amp [style=dashed, penwidth=1.6];
+
+  /* 방정식 앵커 (읽는 순서를 강제하지 않도록 점선) */
+  tp_seq -> eq_1 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  pd_eq -> eq_2 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  pd_rster -> eq_3 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  pd_tster -> eq_4 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  B_res -> eq_5 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  pk_ind -> eq_6 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  bn_thromb -> eq_7 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+  abx_dur -> eq_8 [style=dotted, color="#b45309", dir=back];   /* 되먹임: 화살표 방향 유지, 랭킹만 정방향 */
+}
