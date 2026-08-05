@@ -1,0 +1,745 @@
+/* =====================================================================
+   mpm_qsp_model.dot
+   Malignant pleural mesothelioma (MPM / MPeM pleural form)
+   Quantitative Systems Pharmacology mechanistic map
+
+   THE ORGANISING IDEA OF THIS MAP
+   -------------------------------
+   Mesothelioma is not a mass.  It is a RIND: a sheet of tumour spread over
+   the parietal and visceral pleural surfaces, whose only geometric degree of
+   freedom is its THICKNESS.  Every quantity that matters clinically is a
+   different functional of that one sheet:
+
+       volume        = surface area  x  thickness          (linear in h)
+       mRECIST       = sum of six perpendicular thicknesses (linear in h)
+       drug reaching
+       the cells     = depth-average of an exponential      (SUBlinear in h)
+       lung trapping = stiffness x thickness of the VISCERAL leaf only
+       dyspnoea      = trapping + effusion, two separable causes
+
+   A sphere and a rind are not the same tumour with different shapes.  For a
+   sphere dV/dr = 4(pi)r^2 and a 30% diameter reduction is a 66% volume kill;
+   for a rind dV/dh = A, a constant, and a 30% thickness reduction is a 30%
+   volume kill.  The response criteria used in mesothelioma trials therefore
+   mean something different from the same number in any other solid tumour,
+   and this map is laid out so that the conversion is visible.
+
+   THREE FURTHER STRUCTURAL COMMITMENTS ARE DRAWN EXPLICITLY
+   ---------------------------------------------------------
+
+   (a) ONE COLLAGEN STATE, THREE CONSEQUENCES.  The desmoplastic fraction of
+       the rind is (i) the part that does not shrink when cells die, so it
+       biases every thickness-based response measurement downward; (ii) the
+       part that collapses microvessels and raises interstitial pressure, so
+       it shortens the drug penetration length; and (iii) the part that
+       stiffens the visceral leaf, so it traps the lung and blocks any
+       functional recovery that cytoreduction might otherwise deliver.  It is
+       drawn once, in cluster 7, with three outgoing arrows.
+
+   (b) TWO DELIVERY ROUTES WITH OPPOSITE GRADIENTS.  Systemic drug enters at
+       the VASCULARISED BASE of the rind and decays inward toward the free
+       surface; intrapleural drug enters at the FREE SURFACE and decays
+       toward the base.  Both have penetration lengths of a few millimetres
+       and the rind is a few millimetres thick, which is why intracavitary
+       therapy is only interpretable after cytoreduction to residual disease
+       thinner than the penetration length.
+
+   (c) HISTOLOGY IS A CONTINUOUS AXIS, NOT TWO DISEASES.  Epithelioid to
+       biphasic to sarcomatoid is drawn as ONE epithelial-mesenchymal axis
+       that simultaneously raises proliferation, raises chemoresistance,
+       raises collagen deposition and raises PD-L1 / T-cell infiltration.
+       Because the first three help chemotherapy less and the fourth helps
+       checkpoint blockade more, the SIGN of the treatment comparison is an
+       output of the axis rather than an input to it.
+
+   Rendering:
+     dot -Tsvg mpm_qsp_model.dot -o mpm_qsp_model.svg
+     dot -Tpng -Gdpi=150 mpm_qsp_model.dot -o mpm_qsp_model.png
+   ===================================================================== */
+
+digraph MesotheliomaQSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = true;
+    concentrate = false;
+    nodesep = 0.22;
+    ranksep = 0.50;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Malignant Pleural Mesothelioma &#8212; QSP mechanistic map</b><br/>
+<i>tumour as a rind whose only degree of freedom is thickness &#183;
+one collagen state with three consequences &#183;
+two delivery routes with opposite gradients &#183;
+histology as a continuous axis that flips the sign of the comparison</i>>;
+    fontsize = 26;
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica",
+          fontsize=10, margin="0.09,0.05", penwidth=1.1];
+    edge [fontname="Helvetica", fontsize=8, arrowsize=0.62, penwidth=1.0,
+          color="#5a6472"];
+
+    /* ---------- palette -------------------------------------------------
+       exposure   #ede4d8    inflammation #ffe9e6   genomics  #e8e2f5
+       signalling #e3f2ee    phenotype    #fdf0d5   stroma    #f6e6f2
+       geometry   #dfeaff    pleural space#e6f4fa   mechanics #eaf7e1
+       drug PK    #fff6da    drug PD      #ffe1dd   delivery  #e0f0e8
+       immune     #e9f0fb    procedure    #f0ece2   toxicity  #fde3e3
+       biomarker  #eef7fb    endpoint     #f1f1f1
+       ------------------------------------------------------------------ */
+
+/* =====================================================================
+   1. EXPOSURE, FIBRE BIOPERSISTENCE AND LATENCY
+   The initiating insult is not a dose, it is a BURDEN that never clears.
+   ===================================================================== */
+subgraph cluster_exposure {
+    label = "1. Asbestos exposure, fibre transport and biopersistence";
+    style = "rounded,filled"; color = "#c8b89a"; fillcolor = "#faf6f0";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#ede4d8"];
+
+    OCC        [label="Occupational / para-occupational\nexposure (insulation, shipyard,\nconstruction, textile, household)"];
+    AMPH       [label="Amphibole fibres\ncrocidolite, amosite, tremolite\n(high biopersistence)"];
+    CHRY       [label="Chrysotile (serpentine)\npartially soluble, shorter\npleural residence"];
+    ERIO       [label="Erionite (zeolite)\nCappadocia / Nevada\nnon-asbestos mineral fibre"];
+    FGEOM      [label="Fibre geometry\nlength > 8 um, diameter < 0.25 um\n(Stanton hypothesis)"];
+    CUMEXP     [label="Cumulative exposure\n(fibres/mL x years)"];
+    INHAL      [label="Inhalation and deposition\nin distal airways / alveoli"];
+    FRUSTR     [label="Frustrated phagocytosis\nby alveolar macrophages\n(fibre longer than the cell)"];
+    LYMPHT     [label="Retrograde transport to\nparietal pleura via lymphatics"];
+    STOMATA    [label="Parietal lymphatic stomata\n(2-12 um pores)\nfibre trapping at drainage sites"];
+    BLACKSPOT  [label="Anthracotic 'black spots'\nfocal fibre accumulation\non parietal pleura"];
+    FBURD      [label="PLEURAL FIBRE BURDEN\n(state variable, clearance ~ 0)", fillcolor="#dcc9a8", penwidth=2.2];
+    LATENCY    [label="Latency 30-50 yr\nmedian ~ 40 yr from first exposure"];
+    RTPRIOR    [label="Prior thoracic radiotherapy\n(Hodgkin, breast)\nalternative initiating insult"];
+    GERMBAP1   [label="Germline BAP1\ntumour predisposition syndrome\n(earlier onset, peritoneal bias)"];
+    AGE        [label="Age at presentation\nmedian 72-75 yr"];
+    SEX        [label="Male predominance (~4:1)\nexposure-driven, not biological"];
+
+    OCC -> CUMEXP; AMPH -> CUMEXP; CHRY -> CUMEXP; ERIO -> CUMEXP;
+    FGEOM -> FRUSTR; CUMEXP -> INHAL; INHAL -> FRUSTR;
+    INHAL -> LYMPHT; LYMPHT -> STOMATA; STOMATA -> BLACKSPOT;
+    BLACKSPOT -> FBURD; FRUSTR -> FBURD;
+    AMPH -> FBURD [label="biopersistent", style=bold];
+    CHRY -> FBURD [label="partially cleared", style=dashed];
+    FBURD -> LATENCY; LATENCY -> AGE; SEX -> CUMEXP;
+}
+
+/* =====================================================================
+   2. OXIDATIVE STRESS, DAMPs AND THE INFLAMMASOME
+   ===================================================================== */
+subgraph cluster_inflam {
+    label = "2. Chronic inflammation: frustrated phagocytosis, HMGB1, NLRP3";
+    style = "rounded,filled"; color = "#e0a9a0"; fillcolor = "#fff7f6";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#ffe9e6"];
+
+    FEIRON     [label="Surface iron of the fibre\nFenton chemistry"];
+    ROS        [label="ROS / RNS\nsuperoxide, H2O2, peroxynitrite"];
+    MESONEC    [label="Mesothelial cell necrosis\n(programmed necrosis, not apoptosis)"];
+    HMGB1      [label="HMGB1 release\nnuclear to extracellular\n(serum + pleural fluid marker)"];
+    RAGE       [label="RAGE / TLR4 engagement"];
+    NLRP3      [label="NLRP3 inflammasome\nassembly"];
+    ASC        [label="ASC speck / caspase-1\nactivation"];
+    IL1B       [label="IL-1 beta (mature)", penwidth=2.0];
+    IL1R       [label="IL-1R1 signalling\nautocrine amplification"];
+    NFKB       [label="NF-kB activation\n(survival, not just inflammation)", penwidth=2.0];
+    IL6        [label="IL-6\nthrombocytosis, fever,\nacute-phase response"];
+    TNFA       [label="TNF-alpha\npromotes mesothelial survival of\nfibre-damaged cells"];
+    COX2       [label="COX-2 / PGE2"];
+    MIF        [label="MIF, osteopontin\nmacrophage recruitment"];
+    M1         [label="M1 macrophages\nearly, fibre-reactive"];
+    M2         [label="M2 / TAM polarisation\nCD163+, CSF1R-dependent"];
+    CHRINF     [label="SUSTAINED INFLAMMATORY FIELD\nover the parietal pleura\n(decades)", penwidth=2.2, fillcolor="#f7cdc7"];
+
+    FEIRON -> ROS; ROS -> MESONEC; MESONEC -> HMGB1; HMGB1 -> RAGE;
+    RAGE -> NLRP3; NLRP3 -> ASC; ASC -> IL1B; IL1B -> IL1R; IL1R -> NFKB;
+    NFKB -> IL6; NFKB -> TNFA; NFKB -> COX2; NFKB -> IL1B [label="feed-forward"];
+    TNFA -> NFKB; IL6 -> CHRINF; TNFA -> CHRINF; COX2 -> CHRINF;
+    MIF -> M1; M1 -> M2; M2 -> CHRINF; IL1B -> MIF;
+    CHRINF -> M2;
+}
+
+/* =====================================================================
+   3. GENOMIC LESIONS - LOSS OF FUNCTION, NOT ONCOGENE ADDICTION
+   ===================================================================== */
+subgraph cluster_genomics {
+    label = "3. Genomic landscape: a tumour of tumour-suppressor LOSS";
+    style = "rounded,filled"; color = "#a99cc9"; fillcolor = "#f7f5fc";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#e8e2f5"];
+
+    BAP1       [label="BAP1 loss (~60%)\nnuclear deubiquitinase\nIHC loss = diagnostic", penwidth=2.0];
+    NF2        [label="NF2 / Merlin loss (~40%)", penwidth=2.0];
+    CDKN2A     [label="CDKN2A (9p21) homozygous\ndeletion (~50-70%)\nFISH = diagnostic", penwidth=2.0];
+    MTAP       [label="MTAP co-deletion\n(contiguous with CDKN2A)"];
+    TP53G      [label="TP53 mutation (~10-20%)"];
+    LATS2      [label="LATS2 mutation / loss"];
+    SETD2      [label="SETD2 loss\n(enriched in sarcomatoid)"];
+    TERTP      [label="TERT promoter mutation\n(~10-15%)"];
+    DDX3X      [label="DDX3X, ULK2, RDX\nlow-frequency drivers"];
+    TMBLOW     [label="LOW tumour mutational burden\n~1-2 mut/Mb\n(few neoantigens)", penwidth=2.0];
+    CHROMO     [label="Chromothripsis / near-haploidisation\nin a minority"];
+    PRC2       [label="BAP1 loss -> PRC2 / EZH2\ndependency (H3K27me3 gain)"];
+    PRMT5      [label="MTAP loss -> MTA accumulation\n-> PRMT5 / MAT2A dependency"];
+    ASS1       [label="ASS1 promoter methylation\n(~50%): arginine auxotrophy", penwidth=2.0];
+
+    CHRINF -> BAP1  [label="decades of DNA damage", ltail=cluster_inflam, lhead=cluster_genomics, style=bold, color="#b3564a"];
+    FBURD  -> ROS   [label="persistent stimulus", ltail=cluster_exposure, style=bold, color="#b3564a"];
+    BAP1 -> PRC2; CDKN2A -> MTAP; MTAP -> PRMT5;
+    BAP1 -> TMBLOW [style=dotted, label="not mutational"];
+    CDKN2A -> CHROMO [style=dotted];
+}
+
+/* =====================================================================
+   4. HIPPO-YAP, CELL CYCLE AND PROLIFERATION
+   ===================================================================== */
+subgraph cluster_hippo {
+    label = "4. Hippo-YAP mechanotransduction and cell-cycle release";
+    style = "rounded,filled"; color = "#8fc0b2"; fillcolor = "#f2faf8";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#e3f2ee"];
+
+    MERLIN     [label="Merlin (NF2 product)\ncortical scaffold"];
+    LATSK      [label="LATS1/2 kinase\nphosphorylates YAP S127"];
+    YAP        [label="YAP / TAZ nuclear translocation", penwidth=2.2];
+    TEAD       [label="TEAD1-4 transcription\n(YAP-TEAD interface = drug target)"];
+    CCN        [label="CCN1 (CYR61), CCN2 (CTGF)\nAXL, THBS1"];
+    CONTACT    [label="Loss of contact inhibition\nmonolayer becomes multilayer"];
+    MECHANO    [label="Matrix stiffness -> integrin -> FAK\n-> RhoA -> YAP (mechanical loop)", penwidth=2.0];
+    FAK        [label="FAK (PTK2) activation\nsynthetic-lethal with NF2 loss"];
+    P16        [label="p16-INK4a absent\n(CDKN2A deletion)"];
+    P14        [label="p14-ARF absent\n-> MDM2 unopposed -> p53 low"];
+    CDK46      [label="CDK4/6 - cyclin D1\nunrestrained"];
+    RBP        [label="RB1 hyperphosphorylation"];
+    E2F        [label="E2F release -> S phase"];
+    KI67       [label="Ki-67 index\n(prognostic in epithelioid)"];
+    PROLIF     [label="TUMOUR CELL PROLIFERATION RATE kg\n(model parameter, EMT-dependent)",
+                penwidth=2.4, fillcolor="#bfe3d8"];
+
+    MERLIN -> LATSK [arrowhead=normal]; LATSK -> YAP [arrowhead=tee, label="inhibits"];
+    NF2 -> MERLIN [arrowhead=tee, label="loss", color="#7a5ba6", style=bold];
+    LATS2 -> LATSK [arrowhead=tee, color="#7a5ba6"];
+    YAP -> TEAD; TEAD -> CCN; CCN -> CONTACT; YAP -> CONTACT;
+    MECHANO -> FAK; FAK -> YAP; YAP -> MECHANO [style=dashed, label="stiffening"];
+    CDKN2A -> P16 [arrowhead=tee, color="#7a5ba6", style=bold];
+    CDKN2A -> P14 [arrowhead=tee, color="#7a5ba6"];
+    P16 -> CDK46 [arrowhead=tee]; CDK46 -> RBP; RBP -> E2F; E2F -> KI67;
+    TEAD -> CDK46; KI67 -> PROLIF; E2F -> PROLIF;
+    P14 -> TP53G [style=dotted, label="functional p53 loss"];
+}
+
+/* =====================================================================
+   5. HISTOLOGY AS A CONTINUOUS EMT AXIS
+   ===================================================================== */
+subgraph cluster_emt {
+    label = "5. Histological subtype written as ONE continuous EMT axis";
+    style = "rounded,filled"; color = "#d9b878"; fillcolor = "#fffbf0";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#fdf0d5"];
+
+    MESOCELL   [label="Transformed mesothelial cell"];
+    CALRET     [label="Calretinin, WT1, D2-40, CK5/6\n(epithelioid markers)"];
+    MSLN       [label="Mesothelin (MSLN)\nGPI-anchored surface antigen\n= target + shed biomarker", penwidth=2.0];
+    MUC16      [label="MUC16 / CA-125\nbinding partner of mesothelin"];
+    ECAD       [label="E-cadherin (high in epithelioid)"];
+    ZEB        [label="ZEB1 / SNAIL / SLUG"];
+    VIM        [label="Vimentin (high in sarcomatoid)"];
+    EMTAX      [label="EMT AXIS  x in [0,1]\n0 = epithelioid  0.5 = biphasic\n1 = sarcomatoid",
+                penwidth=2.6, shape=box3d, fillcolor="#f2d492"];
+    EPIT       [label="Epithelioid (~60%)\nmedian OS ~ 14-19 mo"];
+    BIPH       [label="Biphasic (~25%)"];
+    SARC       [label="Sarcomatoid (~10-15%)\nmedian OS ~ 4-9 mo"];
+    DESMO      [label="Desmoplastic variant\n> 50% paucicellular collagen"];
+    NUCGR      [label="Nuclear grade (epithelioid)\n2-tier grading, prognostic"];
+
+    MESOCELL -> CALRET; MESOCELL -> MSLN; MSLN -> MUC16;
+    MESOCELL -> ECAD; ZEB -> ECAD [arrowhead=tee]; ZEB -> VIM;
+    SETD2 -> ZEB [style=dashed, color="#7a5ba6"];
+    ECAD -> EMTAX [arrowhead=tee]; VIM -> EMTAX; ZEB -> EMTAX;
+    EMTAX -> EPIT [style=dotted]; EMTAX -> BIPH [style=dotted]; EMTAX -> SARC [style=dotted];
+    SARC -> DESMO; EPIT -> NUCGR;
+    EMTAX -> PROLIF [label="kg x (1 + 0.9x)", style=bold, color="#c08a2e"];
+}
+
+/* =====================================================================
+   6. STROMA, DESMOPLASIA AND THE VASCULAR CONSEQUENCE
+   ===================================================================== */
+subgraph cluster_stroma {
+    label = "6. Desmoplastic stroma: the collagen state";
+    style = "rounded,filled"; color = "#c096b8"; fillcolor = "#fdf5fb";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#f6e6f2"];
+
+    CAF        [label="Cancer-associated fibroblasts\n(pleural fibroblast origin)"];
+    TGFB       [label="TGF-beta 1 / 2\nlatent -> active (integrin avb6, MMP)", penwidth=2.0];
+    PDGF       [label="PDGF-AA/BB, FGF-2"];
+    COL        [label="Collagen I / III deposition"];
+    HYAL       [label="Hyaluronan (also a pleural-fluid\ndiagnostic marker)"];
+    LOX        [label="LOX / LOXL2 cross-linking\n(irreversible on therapy timescale)"];
+    FCOL       [label="RIND COLLAGEN FRACTION  phi\n(model state; does NOT shrink\nwhen tumour cells die)",
+                penwidth=2.8, shape=box3d, fillcolor="#e6b8d8"];
+    STIFF      [label="Matrix stiffness (kPa)"];
+    IFP        [label="Interstitial fluid pressure\n(raised, no lymphatic drainage\ninside the rind)"];
+    MVD        [label="Microvessel density\nfalls as phi rises"];
+    VCOLL      [label="Vessel collapse / compression"];
+    HYPOX      [label="Hypoxia -> HIF-1a\n-> VEGF, GLUT1, CA-IX"];
+
+    CAF -> COL; TGFB -> CAF; TGFB -> COL; PDGF -> CAF;
+    COL -> FCOL; LOX -> FCOL [label="locks in"]; COL -> LOX; HYAL -> IFP;
+    FCOL -> STIFF; STIFF -> MECHANO [color="#a05a95", style=bold, label="stiffness -> YAP"];
+    FCOL -> IFP; IFP -> VCOLL; FCOL -> VCOLL; VCOLL -> MVD [arrowhead=tee];
+    MVD -> HYPOX [arrowhead=tee]; HYPOX -> VEGFA [color="#a05a95"];
+    HYPOX -> TGFB [style=dashed];
+    EMTAX -> TGFB [label="k_col x (1 + 1.2x)", style=bold, color="#c08a2e"];
+}
+
+/* =====================================================================
+   7. RIND GEOMETRY - THE CORE OF THE MODEL
+   ===================================================================== */
+subgraph cluster_geom {
+    label = "7. RIND GEOMETRY: the only degree of freedom is thickness";
+    style = "rounded,filled"; color = "#7f9dd1"; fillcolor = "#f2f7ff";
+    fontsize = 14; fontname = "Helvetica-Bold";
+    node [fillcolor="#dfeaff"];
+
+    APAR       [label="Parietal pleural surface area\nA_par ~ 1000 cm2 per hemithorax\nx coverage fraction actually\ncarrying tumour (~0.45 at diagnosis)"];
+    AVIS       [label="Visceral pleural surface area\nA_vis ~ 900 cm2 (lung surface)"];
+    AFIS       [label="Interlobar fissure + mediastinal +\ndiaphragmatic surface  A_fis ~ 400 cm2\nSANCTUARY: not resectable en bloc", penwidth=2.0];
+    RHO        [label="Tissue density rho ~ 1.05 g/cm3"];
+    TPAR       [label="Viable tumour mass, parietal leaf\nT_par (g)", penwidth=2.0];
+    TVIS       [label="Viable tumour mass, visceral leaf\nT_vis (g)", penwidth=2.0];
+    TFIS       [label="Viable tumour mass, fissural\nT_fis (g)", penwidth=2.0];
+    MPARM      [label="Matrix mass, parietal  M_par (g)"];
+    MVISM      [label="Matrix mass, visceral  M_vis (g)"];
+    NECR       [label="Necrotic / dying mass N (g)\ncleared slowly (weeks)"];
+    HPAR       [label="h_par = (T_par + M_par + N_par)\n/ (rho x A_par)", penwidth=2.4, shape=box3d, fillcolor="#b9d0f2"];
+    HVIS       [label="h_vis = (T_vis + M_vis + N_vis)\n/ (rho x A_vis)", penwidth=2.4, shape=box3d, fillcolor="#b9d0f2"];
+    VOLRIND    [label="Rind volume\nV = A_par h_par + A_vis h_vis + A_fis h_fis", penwidth=2.2];
+    DVDH       [label="dV/dh = A  (CONSTANT)\n1 mm over the FULL parietal pleura = 100 mL\n1 mm at 45% surface coverage = 45 mL\n(all three leaves: 96 mL per mm)", penwidth=2.4, fillcolor="#a8c4ee"];
+    MRECIST    [label="modified RECIST\nsum of 6 perpendicular thicknesses\n(2 per level, 3 levels)", penwidth=2.2];
+    RECFAIL    [label="RECIST 1.1 longest diameter\nnot defined on a sheet\n-> discordant response calls", fillcolor="#f7d8d8"];
+    VOLCT      [label="CT / MRI volumetry\n(research standard, not routine)"];
+    SPHERE     [label="Contrast: SPHERE\ndV/dr = 4 pi r^2\n30% diameter drop = 66% volume kill", fillcolor="#eeeeee", style="rounded,filled,dashed"];
+    RINDRESP   [label="RIND: 30% thickness drop\n= 30% volume kill\nSAME LABEL, DIFFERENT KILL", penwidth=2.4, fillcolor="#a8c4ee"];
+
+    APAR -> HPAR; AVIS -> HVIS; RHO -> HPAR; RHO -> HVIS;
+    TPAR -> HPAR; MPARM -> HPAR; NECR -> HPAR;
+    TVIS -> HVIS; MVISM -> HVIS; NECR -> HVIS;
+    AFIS -> TFIS;
+    HPAR -> VOLRIND; HVIS -> VOLRIND; TFIS -> VOLRIND;
+    APAR -> DVDH; DVDH -> VOLRIND;
+    HPAR -> MRECIST; HVIS -> MRECIST; MRECIST -> RINDRESP;
+    SPHERE -> RINDRESP [style=dashed, label="comparison"];
+    HPAR -> RECFAIL [style=dashed]; VOLRIND -> VOLCT;
+    PROLIF -> TPAR [style=bold, color="#3f6fb5"];
+    PROLIF -> TVIS [style=bold, color="#3f6fb5"];
+    PROLIF -> TFIS [style=bold, color="#3f6fb5"];
+    FCOL -> MPARM [style=bold, color="#a05a95", label="does not resolve"];
+    FCOL -> MVISM [style=bold, color="#a05a95"];
+}
+
+/* =====================================================================
+   8. DRUG DELIVERY INTO THE RIND - TWO OPPOSITE GRADIENTS
+   ===================================================================== */
+subgraph cluster_deliv {
+    label = "8. Delivery: two routes, opposite gradients, both a few millimetres";
+    style = "rounded,filled"; color = "#84b899"; fillcolor = "#f1faf5";
+    fontsize = 14; fontname = "Helvetica-Bold";
+    node [fillcolor="#e0f0e8"];
+
+    SYSROUTE   [label="SYSTEMIC ROUTE\nsource = chest-wall / intercostal\nvessels at the BASE of the rind", penwidth=2.0];
+    IPROUTE    [label="INTRAPLEURAL ROUTE\nsource = pleural fluid at the\nFREE SURFACE of the rind", penwidth=2.0];
+    PSCAP      [label="Capillary permeability x surface\n(PS), falls with MVD"];
+    LAMSM      [label="Penetration length, small molecule\nlambda_sm = sqrt(D/k)\n~ 2.5 mm at phi = 0", penwidth=2.0];
+    LAMAB      [label="Penetration length, IgG\nlambda_ab ~ 0.6 mm\n(binding-site barrier, MW 150 kDa)", penwidth=2.0];
+    LAMPHI     [label="lambda(phi) = lambda_0 (1 - phi)^1.5\ncollagen shortens BOTH", penwidth=2.2, fillcolor="#bcdfcb"];
+    FPEN       [label="Depth-averaged exposure fraction\nf = (lambda/h)(1 - exp(-h/lambda))\nSUBlinear in h", penwidth=2.6, shape=box3d, fillcolor="#a8d4bd"];
+    SANCT      [label="Pharmacological sanctuary\nthe inner core of a thick rind\nnever sees a cytotoxic concentration", penwidth=2.0, fillcolor="#f7d8d8"];
+    IPDEPTH    [label="Intracavitary penetration\nmeasured 3-5 mm at best\n(HIPEC/HITHOC literature)"];
+    RESID      [label="Residual disease thickness after\ncytoreduction  h_res\nMUST be < lambda for IP therapy\nto be interpretable", penwidth=2.2];
+    HYPERTH    [label="Hyperthermia 41-43 C\nraises D and raises k\n(net gain is modest)"];
+
+    SYSROUTE -> PSCAP; MVD -> PSCAP [color="#a05a95", style=bold];
+    PSCAP -> LAMSM; PSCAP -> LAMAB;
+    FCOL -> LAMPHI [style=bold, color="#a05a95", label="phi"];
+    LAMSM -> LAMPHI; LAMAB -> LAMPHI; LAMPHI -> FPEN;
+    HPAR -> FPEN [style=bold, color="#3f6fb5", label="h"];
+    HVIS -> FPEN [style=bold, color="#3f6fb5"];
+    FPEN -> SANCT; IPROUTE -> IPDEPTH; IPDEPTH -> RESID; HYPERTH -> IPDEPTH;
+    IPROUTE -> FPEN [label="same formula,\nopposite direction", style=dashed];
+}
+
+/* =====================================================================
+   9. CYTOTOXIC CHEMOTHERAPY PK AND PD
+   ===================================================================== */
+subgraph cluster_chemo {
+    label = "9. Platinum / antifolate PK and PD";
+    style = "rounded,filled"; color = "#d3ba6a"; fillcolor = "#fffdf3";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#fff6da"];
+
+    CISIV      [label="Cisplatin 75 mg/m2 q21d IV"];
+    CISFREE    [label="Free (ultrafilterable) platinum\nt1/2 ~ 0.5 h alpha, 1 h beta"];
+    CISPB      [label="Protein-bound platinum\nirreversible, t1/2 ~ 5 d\n(pharmacologically inert)"];
+    CISPER     [label="Peripheral tissue platinum"];
+    CARBO      [label="Carboplatin AUC 5\n(Calvert formula, renal-sparing)"];
+    AQUA       [label="Aquation in low-Cl- intracellular\nspace -> reactive species"];
+    ADDUCT     [label="Pt-DNA intrastrand adducts\n(GpG 65%, ApG 25%)", penwidth=2.0];
+    ERCC1      [label="ERCC1 / nucleotide excision repair\n(adduct removal rate)"];
+    PEMIV      [label="Pemetrexed 500 mg/m2 q21d IV"];
+    RFC        [label="RFC / SLC19A1 uptake\nalso folate receptor alpha"];
+    FPGS       [label="FPGS polyglutamation\n-> intracellular RETENTION\n(t1/2 in cell >> plasma)", penwidth=2.0];
+    TSINH      [label="Thymidylate synthase inhibition\n(primary target)", penwidth=2.0];
+    DHFRG      [label="DHFR + GARFT secondary\ninhibition"];
+    DTTP       [label="dTTP pool depletion\n-> thymineless death"];
+    FOLB12     [label="Folic acid + B12 supplementation\ncuts grade 3-4 toxicity ~ 60%\nwithout losing efficacy", penwidth=2.0];
+    GEMC       [label="Gemcitabine (alternative)\n-> dFdCTP chain termination"];
+    VINO       [label="Vinorelbine (2nd line, MiST/VIM)"];
+    KILLCHEM   [label="CHEMOTHERAPY KILL RATE\nEmax x f_pen x (1 - 0.55 x EMT)",
+                penwidth=2.6, shape=box3d, fillcolor="#f0d98f"];
+
+    CISIV -> CISFREE; CISFREE -> CISPB [label="irreversible"]; CISFREE -> CISPER;
+    CARBO -> CISFREE [style=dashed, label="equivalent Pt species"];
+    CISFREE -> AQUA; AQUA -> ADDUCT; ERCC1 -> ADDUCT [arrowhead=tee];
+    PEMIV -> RFC; RFC -> FPGS; FPGS -> TSINH; FPGS -> DHFRG;
+    TSINH -> DTTP; DHFRG -> DTTP; FOLB12 -> DTTP [arrowhead=tee, style=dashed, label="rescues normal tissue"];
+    ADDUCT -> KILLCHEM; DTTP -> KILLCHEM; GEMC -> KILLCHEM; VINO -> KILLCHEM;
+    FPEN -> KILLCHEM [style=bold, color="#4d8f6d", label="f_pen"];
+    EMTAX -> KILLCHEM [style=bold, color="#c08a2e", label="E x (1 - 0.55x)"];
+}
+
+/* =====================================================================
+   10. IMMUNE MICROENVIRONMENT
+   ===================================================================== */
+subgraph cluster_immune {
+    label = "10. Immune contexture: an inflamed tumour with few neoantigens";
+    style = "rounded,filled"; color = "#8ba4ce"; fillcolor = "#f4f7fd";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#e9f0fb"];
+
+    APC        [label="Dendritic cell / APC\nantigen uptake from dying tumour"];
+    LNPRIME    [label="Draining lymph-node priming\n(the CTLA-4 checkpoint acts HERE)", penwidth=2.0];
+    CD8        [label="Intratumoural CD8+ T cells\nT_eff (state)", penwidth=2.0];
+    TREG       [label="FOXP3+ Tregs\nhigh in MPM pleural fluid"];
+    MDSC       [label="MDSC / granulocytic"];
+    TAM        [label="TAM (M2) density\ninverse prognostic in epithelioid"];
+    IFNG       [label="IFN-gamma (state)"];
+    PDL1T      [label="Tumour PD-L1\nconstitutive + IFN-g inducible\n~20% epithelioid, ~60% sarcomatoid", penwidth=2.0];
+    PD1        [label="PD-1 on exhausted CD8"];
+    CTLA4      [label="CTLA-4 on Tregs and\nnewly primed T cells"];
+    EXH        [label="T-cell exhaustion\nTIM-3, LAG-3, TIGIT"];
+    MHCI       [label="MHC class I / antigen presentation\n(retained, unlike many tumours)"];
+    NLR        [label="Neutrophil-lymphocyte ratio\n> 5 = poor prognosis"];
+
+    APC -> LNPRIME; LNPRIME -> CD8; CD8 -> IFNG; IFNG -> PDL1T;
+    PDL1T -> PD1 [label="engages"]; PD1 -> EXH; EXH -> CD8 [arrowhead=tee];
+    TREG -> CD8 [arrowhead=tee]; MDSC -> CD8 [arrowhead=tee]; TAM -> CD8 [arrowhead=tee];
+    CTLA4 -> LNPRIME [arrowhead=tee]; MHCI -> CD8;
+    TMBLOW -> APC [arrowhead=tee, color="#7a5ba6", style=bold, label="few neoantigens"];
+    EMTAX -> PDL1T [style=bold, color="#c08a2e", label="PD-L1 x (1 + 2.0x)"];
+    EMTAX -> CD8   [style=bold, color="#c08a2e", label="infiltration x (1 + 1.0x)"];
+    TGFB -> CD8 [arrowhead=tee, color="#a05a95"];
+    NECR -> APC [label="immunogenic debris", style=dashed, color="#3f6fb5"];
+    CD8 -> NLR [arrowhead=tee, style=dotted];
+}
+
+/* =====================================================================
+   11. CHECKPOINT BLOCKADE PK AND PD
+   ===================================================================== */
+subgraph cluster_io {
+    label = "11. Checkpoint blockade: PK, receptor occupancy, two sites of action";
+    style = "rounded,filled"; color = "#dfa39a"; fillcolor = "#fff6f4";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#ffe1dd"];
+
+    NIVIV      [label="Nivolumab 3 mg/kg q2w\n(CheckMate 743: 360 mg q3w)"];
+    IPIIV      [label="Ipilimumab 1 mg/kg q6w"];
+    PEMBRO     [label="Pembrolizumab 200 mg q3w\n(IND227 / DREAM3R, with chemo)"];
+    DURVA      [label="Durvalumab 1500 mg q3w\n(DREAM / PrE0505)"];
+    MABC       [label="mAb central compartment\nV1 ~ 3.5 L, CL ~ 0.2 L/d"];
+    MABP       [label="mAb peripheral compartment"];
+    FCRN       [label="FcRn recycling\nt1/2 ~ 12-25 d"];
+    MABT       [label="mAb in rind interstitium\n(gated by f_pen with lambda_ab)", penwidth=2.0];
+    ROPD1      [label="PD-1 receptor occupancy\n> 70% sustained at 3 mg/kg"];
+    ROCTLA     [label="CTLA-4 occupancy in the\nlymph node (dose-limiting for irAE)"];
+    IORELEASE  [label="Release of CD8 effector function\n+ Treg depletion (ADCC, anti-CTLA-4)"];
+    KILLIO     [label="IMMUNE KILL RATE\nproportional to T_eff x contact area\n(SURFACE, not volume)",
+                penwidth=2.6, shape=box3d, fillcolor="#f6bcb2"];
+    ADA        [label="Anti-drug antibodies (low incidence)"];
+
+    NIVIV -> MABC; IPIIV -> MABC; PEMBRO -> MABC; DURVA -> MABC;
+    MABC -> MABP; MABP -> MABC; FCRN -> MABC [label="salvage"]; ADA -> MABC [arrowhead=tee];
+    MABC -> MABT; FPEN -> MABT [style=bold, color="#4d8f6d", label="lambda_ab ~ 0.6 mm"];
+    MABT -> ROPD1; MABC -> ROCTLA [label="LN is well perfused,\nno penetration barrier", style=dashed];
+    ROPD1 -> IORELEASE; ROCTLA -> IORELEASE; ROCTLA -> LNPRIME [color="#c25a4b", style=bold];
+    IORELEASE -> CD8 [color="#c25a4b", style=bold];
+    CD8 -> KILLIO [style=bold, color="#3d6fb5"];
+    PDL1T -> KILLIO [arrowhead=tee];
+}
+
+/* =====================================================================
+   12. ANTI-ANGIOGENIC AND TARGETED / EMERGING AGENTS
+   ===================================================================== */
+subgraph cluster_targeted {
+    label = "12. Anti-angiogenic and biology-directed agents";
+    style = "rounded,filled"; color = "#c3a86a"; fillcolor = "#fdfbf2";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#fff6da"];
+
+    VEGFA      [label="VEGF-A (tumour + pleural fluid)\nhighest of any solid tumour", penwidth=2.0];
+    VEGFR2     [label="VEGFR-2 on endothelium"];
+    ANGIO      [label="Angiogenesis / neovessels"];
+    BEVA       [label="Bevacizumab 15 mg/kg q3w\n(MAPS regimen)", penwidth=2.0];
+    NINT       [label="Nintedanib (VEGFR/PDGFR/FGFR)\nLUME-Meso: phase II positive,\nphase III negative"];
+    NORMAL     [label="Transient vascular normalisation\n-> IFP falls -> lambda rises\n(a delivery effect, not a kill effect)", penwidth=2.0];
+    ADIPEG     [label="ADI-PEG20 (pegargiminase)\narginine deiminase", penwidth=2.0];
+    ARGDEP     [label="Plasma arginine depletion\nlethal only if ASS1-negative"];
+    TAZE       [label="Tazemetostat (EZH2i)\nin BAP1-deficient tumours"];
+    DEFACT     [label="Defactinib (FAKi)\nphase II negative as maintenance"];
+    VS6766     [label="VS-6766 (RAF/MEK) +/- defactinib\nMiST / phase II"];
+    ANETU      [label="Anetumab ravtansine\nanti-mesothelin ADC (DM4)\nphase II negative vs vinorelbine"];
+    CART       [label="Mesothelin-directed CAR T\nintrapleural delivery\n(the rind is the reason)", penwidth=2.0];
+    TTF        [label="Tumour-treating fields (NovoTTF-100L)\nSTELLAR, HDE approval"];
+    PRMT5I     [label="PRMT5 / MAT2A inhibitors\nin MTAP-deleted disease"];
+
+    VEGFA -> VEGFR2; VEGFR2 -> ANGIO; ANGIO -> MVD;
+    BEVA -> VEGFA [arrowhead=tee, penwidth=2.0]; NINT -> VEGFR2 [arrowhead=tee];
+    BEVA -> NORMAL; NORMAL -> LAMPHI [color="#4d8f6d", style=bold, label="raises lambda"];
+    ADIPEG -> ARGDEP; ASS1 -> ARGDEP [color="#7a5ba6", style=bold, label="ASS1-negative = auxotroph"];
+    ARGDEP -> KILLCHEM [style=bold];
+    PRC2 -> TAZE [style=dashed, color="#7a5ba6"]; PRMT5 -> PRMT5I [style=dashed, color="#7a5ba6"];
+    FAK -> DEFACT [style=dashed]; MSLN -> ANETU [style=dashed]; MSLN -> CART [style=dashed];
+    CART -> IPROUTE [color="#4d8f6d", style=bold];
+    TTF -> PROLIF [arrowhead=tee, style=dashed];
+}
+
+/* =====================================================================
+   13. PLEURAL SPACE: FLUID, PRESSURE, DRAINAGE
+   ===================================================================== */
+subgraph cluster_pleural {
+    label = "13. The pleural space: effusion as a SECOND, separable cause of dyspnoea";
+    style = "rounded,filled"; color = "#84aec4"; fillcolor = "#f2f9fd";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#e6f4fa"];
+
+    FILTR      [label="Parietal capillary filtration\n~ 0.2-0.4 mL/kg/h normally"];
+    STOMDR     [label="Parietal stomatal lymphatic drainage\n(reserve ~ 20x normal formation)"];
+    STOMBLK    [label="Stomata OBSTRUCTED by tumour rind\n-> drainage capacity collapses", penwidth=2.2];
+    PLEFF      [label="PLEURAL EFFUSION VOLUME\n(state, up to 3-4 L)", penwidth=2.4, shape=box3d, fillcolor="#b7dcef"];
+    PLPROT     [label="Exudative fluid: high protein,\nLDH, hyaluronan, low glucose"];
+    PLPRES     [label="Pleural pressure\n(less negative, may become positive)"];
+    PLELAST    [label="Pleural elastance during drainage\n> 14.5 cmH2O/L = trapped lung", penwidth=2.0];
+    THORA      [label="Therapeutic thoracentesis\n(symptom relief hours-days)"];
+    IPCATH     [label="Indwelling pleural catheter\n(ambulatory drainage; auto-pleurodesis\n~ 45% by 6 weeks)"];
+    TALC       [label="Talc pleurodesis (poudrage/slurry)\nneeds lung apposition to work", penwidth=2.0];
+    SYMPH      [label="Pleural symphysis fraction\n(state, 0-1)"];
+    REEXP      [label="Re-expansion failure\nif visceral rind is stiff\n-> pleurodesis FAILS", penwidth=2.2, fillcolor="#f7d8d8"];
+    PLDRUG     [label="Intrapleural drug concentration\n(diluted by the effusion volume,\ncleared by residual lymphatics)"];
+
+    FILTR -> PLEFF; STOMDR -> PLEFF [arrowhead=tee]; STOMBLK -> STOMDR [arrowhead=tee];
+    HPAR -> STOMBLK [color="#3f6fb5", style=bold, label="parietal rind covers the stomata"];
+    PLEFF -> PLPROT; PLEFF -> PLPRES; PLPRES -> PLELAST;
+    THORA -> PLEFF [arrowhead=tee]; IPCATH -> PLEFF [arrowhead=tee];
+    TALC -> SYMPH; SYMPH -> PLEFF [arrowhead=tee];
+    HVIS -> REEXP [color="#3f6fb5", style=bold]; FCOL -> REEXP [color="#a05a95", style=bold];
+    REEXP -> SYMPH [arrowhead=tee, penwidth=2.0];
+    REEXP -> PLELAST;
+    IPROUTE -> PLDRUG; PLEFF -> PLDRUG [arrowhead=tee, label="dilution"];
+    PLDRUG -> IPDEPTH;
+}
+
+/* =====================================================================
+   14. LUNG MECHANICS, PAIN AND PERFORMANCE STATUS
+   ===================================================================== */
+subgraph cluster_mech {
+    label = "14. Mechanics and symptoms: trapping and effusion are separable";
+    style = "rounded,filled"; color = "#9ec97f"; fillcolor = "#f6fcf1";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#eaf7e1"];
+
+    TRAP       [label="TRAPPED LUNG\nvisceral rind acts as a\nnon-compliant peel", penwidth=2.4];
+    RESTR      [label="Chest-wall restriction\nfrom parietal rind + rib invasion"];
+    ELAST      [label="Added elastance\nE_add ~ k x phi x h_vis"];
+    VEXP       [label="Expandable lung volume fraction\n(state, slow, hysteretic)", penwidth=2.0];
+    FVC        [label="FVC (L and % predicted)\nprimary functional endpoint", penwidth=2.2];
+    TLC        [label="TLC, DLCO"];
+    DYSP       [label="Dyspnoea (VAS / mMRC / LCSS-Meso)", penwidth=2.2];
+    PAIN       [label="Chest wall pain\n(often the presenting symptom)"];
+    NERVE      [label="Intercostal nerve / chest wall invasion\n-> neuropathic component"];
+    OPIOID     [label="Opioids, neuropathic agents,\ncordotomy in refractory cases"];
+    CACHEX     [label="Cancer cachexia\nIL-6 driven weight loss"];
+    ECOG       [label="ECOG performance status\n(strongest single prognostic factor)", penwidth=2.2];
+    SHRINK     [label="Ipsilateral hemithorax contraction\n(mediastinal shift TOWARD the tumour)"];
+
+    HVIS -> TRAP [color="#3f6fb5", style=bold]; FCOL -> TRAP [color="#a05a95", style=bold];
+    HPAR -> RESTR [color="#3f6fb5"]; TRAP -> ELAST; RESTR -> ELAST;
+    ELAST -> VEXP [arrowhead=tee]; VEXP -> FVC; FVC -> TLC;
+    PLEFF -> FVC [arrowhead=tee, color="#4b8fb5", style=bold, label="removable cause"];
+    TRAP  -> FVC [arrowhead=tee, style=bold, label="NON-removable cause"];
+    FVC -> DYSP [arrowhead=tee]; PLEFF -> DYSP; NERVE -> PAIN; PAIN -> OPIOID;
+    IL6 -> CACHEX [color="#b3564a"]; CACHEX -> ECOG [arrowhead=tee];
+    DYSP -> ECOG [arrowhead=tee]; PAIN -> ECOG [arrowhead=tee];
+    TRAP -> SHRINK; HPAR -> NERVE [color="#3f6fb5"];
+}
+
+/* =====================================================================
+   15. SURGERY AND RADIOTHERAPY
+   ===================================================================== */
+subgraph cluster_surg {
+    label = "15. Local therapy: what a resection can and cannot remove";
+    style = "rounded,filled"; color = "#b5ab8e"; fillcolor = "#faf9f4";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#f0ece2"];
+
+    EPP        [label="Extrapleural pneumonectomy (EPP)\nremoves lung + both pleurae\n+ pericardium + diaphragm"];
+    EPD        [label="Extended pleurectomy / decortication\n(lung-sparing)"];
+    MCR        [label="Macroscopic complete resection\n= residual disease is MICROSCOPIC,\nnot absent", penwidth=2.2];
+    MARS       [label="MARS (2011): EPP feasibility trial\nhazard against EPP"];
+    MARS2      [label="MARS2 (2024): extended P/D + chemo\nvs chemo alone -> OS HR 1.28\nSURGERY DID NOT HELP", penwidth=2.2, fillcolor="#f7d8d8"];
+    HITHOC     [label="HITHOC: hyperthermic intrathoracic\nchemoperfusion after cytoreduction"];
+    RESIDMOD   [label="Model consequence:\nsurgery sets h -> h_res but leaves\nfissural + microscopic disease,\nand does NOT reset phi", penwidth=2.2];
+    IMRT       [label="Hemithoracic IMRT / IMPRINT\n(pleural IMRT after P/D)"];
+    SMART      [label="SMART protocol\n(short accelerated RT then EPP)"];
+    RTPNEUM    [label="Radiation pneumonitis in the\nremaining lung (dose-limiting)", fillcolor="#f7d8d8"];
+    TRACT      [label="Prophylactic tract irradiation\n(SMART, PIT: no benefit)"];
+
+    EPP -> MCR; EPD -> MCR; MCR -> RESID [color="#4d8f6d", style=bold];
+    MARS -> EPP [style=dashed]; MARS2 -> EPD [style=dashed];
+    MCR -> HITHOC; HITHOC -> IPROUTE [color="#4d8f6d"];
+    MCR -> RESIDMOD; RESIDMOD -> FCOL [style=dashed, label="phi unchanged"];
+    EPD -> IMRT; IMRT -> RTPNEUM; SMART -> EPP; IMRT -> TRACT [style=dotted];
+    AFIS -> MCR [arrowhead=tee, color="#3f6fb5", style=bold, label="fissural sanctuary"];
+    EPP -> FVC [arrowhead=tee, color="#5a8f3f", style=bold, label="removes a whole lung"];
+}
+
+/* =====================================================================
+   16. TOXICITY AND TREATMENT DELIVERY
+   ===================================================================== */
+subgraph cluster_tox {
+    label = "16. Toxicity: what limits the delivered dose intensity";
+    style = "rounded,filled"; color = "#dd9f9f"; fillcolor = "#fff5f5";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#fde3e3"];
+
+    NEUTPROL   [label="Proliferating marrow pool\n(Friberg transit model)"];
+    ANC        [label="Absolute neutrophil count\nnadir day 8-12, MTT ~ 110 h", penwidth=2.0];
+    FEBNEUT    [label="Febrile neutropenia\n-> dose delay / reduction"];
+    MUCOS      [label="Mucositis, rash\n(pemetrexed, folate-preventable)"];
+    NEPHRO     [label="Cisplatin nephrotoxicity\nproximal tubular platinum accumulation", penwidth=2.0];
+    EGFRD      [label="eGFR decline\n-> pemetrexed clearance falls\n-> toxicity rises (a feedback LOOP)", penwidth=2.2];
+    OTOTOX     [label="Cisplatin ototoxicity (cumulative,\nirreversible, outer hair cells)"];
+    NEUROP     [label="Peripheral neuropathy (cumulative)"];
+    EMESIS     [label="Highly emetogenic: NK1 + 5HT3 + dex"];
+    IRAECOL    [label="irAE colitis (CTLA-4 dominant)"];
+    IRAEPNEU   [label="irAE pneumonitis\n(confounds progression on CT)", penwidth=2.0];
+    IRAETHY    [label="irAE thyroiditis / hypophysitis"];
+    BEVHTN     [label="Bevacizumab: hypertension,\nproteinuria, thrombosis, haemorrhage"];
+    DISCONT    [label="Treatment discontinuation\n/ dose intensity actually delivered", penwidth=2.2];
+
+    KILLCHEM -> NEUTPROL [style=dashed]; NEUTPROL -> ANC; ANC -> FEBNEUT [arrowhead=tee];
+    FEBNEUT -> DISCONT; MUCOS -> DISCONT; FOLB12 -> MUCOS [arrowhead=tee, color="#c08a2e"];
+    CISFREE -> NEPHRO [color="#c08a2e", style=bold]; NEPHRO -> EGFRD;
+    EGFRD -> PEMIV [style=bold, color="#c25a4b", label="clearance falls"];
+    CISFREE -> OTOTOX; CISFREE -> NEUROP; CISIV -> EMESIS;
+    ROCTLA -> IRAECOL [color="#c25a4b", style=bold]; ROPD1 -> IRAEPNEU;
+    ROPD1 -> IRAETHY; BEVA -> BEVHTN;
+    IRAECOL -> DISCONT; IRAEPNEU -> DISCONT; BEVHTN -> DISCONT;
+    NEUROP -> ECOG [arrowhead=tee, style=dotted];
+}
+
+/* =====================================================================
+   17. BIOMARKERS
+   ===================================================================== */
+subgraph cluster_bio {
+    label = "17. Biomarkers: what actually tracks the rind";
+    style = "rounded,filled"; color = "#8fbcd0"; fillcolor = "#f4fbfd";
+    fontsize = 13; fontname = "Helvetica-Bold";
+    node [fillcolor="#eef7fb"];
+
+    SMRP       [label="Soluble mesothelin-related peptide\n(SMRP / MESOMARK)\ncut-off ~ 1.5-2.0 nM", penwidth=2.2];
+    SMRPVOL    [label="SMRP is a SHED SURFACE product:\nscales with viable cell mass,\nNOT with rind thickness", penwidth=2.4, fillcolor="#c3e2f0"];
+    FIBULIN    [label="Fibulin-3 (EFEMP1)\ninitially promising, poorly replicated"];
+    OPN        [label="Osteopontin\nsensitive to asbestos exposure,\nnot specific to tumour"];
+    HYALB      [label="Pleural fluid hyaluronan"];
+    BAP1IHC    [label="BAP1 IHC nuclear loss\n(benign vs malignant discriminator)"];
+    CDKFISH    [label="CDKN2A / p16 FISH homozygous deletion\n(specificity ~ 100%)"];
+    PDL1TPS    [label="PD-L1 TPS\n(prognostic, NOT predictive in\nCheckMate 743)", penwidth=2.0];
+    CTDNA      [label="ctDNA / methylation panels\n(low shedding tumour)"];
+    EORTC      [label="EORTC prognostic score\n(WBC, PS, sex, histology, diagnosis certainty)"];
+    CALGB      [label="CALGB prognostic groups\n(PS, age, Hb, WBC, LDH, chest pain)"];
+
+    TVIS -> SMRP [color="#3f6fb5"]; TPAR -> SMRP [color="#3f6fb5"]; MSLN -> SMRP;
+    SMRP -> SMRPVOL; EGFRD -> SMRP [style=dashed, label="renal clearance confound"];
+    BAP1 -> BAP1IHC [color="#7a5ba6"]; CDKN2A -> CDKFISH [color="#7a5ba6"];
+    PDL1T -> PDL1TPS; ECOG -> EORTC; IL6 -> EORTC [style=dotted];
+    EMTAX -> EORTC [style=dotted, color="#c08a2e"]; ECOG -> CALGB;
+    HYAL -> HYALB [color="#a05a95"];
+}
+
+/* =====================================================================
+   18. CLINICAL ENDPOINTS AND THE SURVIVAL MODEL
+   ===================================================================== */
+subgraph cluster_end {
+    label = "18. Clinical endpoints: three different functionals of one rind";
+    style = "rounded,filled"; color = "#9a9a9a"; fillcolor = "#fafafa";
+    fontsize = 14; fontname = "Helvetica-Bold";
+    node [fillcolor="#f1f1f1"];
+
+    RESP       [label="mRECIST response rate\n(pem/cis ~ 41%, nivo+ipi ~ 40%)", penwidth=2.0];
+    PFS        [label="Progression-free survival\n(pem/cis ~ 5.7-7.3 mo)", penwidth=2.0];
+    OS         [label="OVERALL SURVIVAL\npem/cis 12.1 mo (EMPHACIS)\n+ bev 18.8 mo (MAPS)\nnivo+ipi 18.1 mo (CM-743)", penwidth=2.6, shape=box3d, fillcolor="#d8d8d8"];
+    OS2Y       [label="2-year OS\n41% nivo+ipi vs 27% chemo"];
+    HREPI      [label="Epithelioid: IO vs chemo HR 0.86\n(CI crosses 1)", penwidth=2.0];
+    HRNONEPI   [label="Non-epithelioid: IO vs chemo HR 0.46", penwidth=2.0];
+    CROSS      [label="THE CROSSOVER IS AN OUTPUT:\nsign of  OS(IO) - OS(chemo)\nflips as x rises", penwidth=2.6, fillcolor="#cfd8e8"];
+    QOL        [label="EORTC QLQ-C30 / LC13,\nLCSS-Meso symptom score"];
+    FVCEND     [label="FVC change as a functional endpoint\n(MARS2 secondary)"];
+    HAZ        [label="Hazard = f(tumour burden, ECOG,\nrespiratory failure, cachexia)"];
+
+    RESP -> PFS [style=dotted]; PFS -> OS [style=dotted];
+    VOLRIND -> HAZ [color="#3f6fb5", style=bold]; ECOG -> HAZ [color="#5a8f3f", style=bold];
+    FVC -> HAZ [arrowhead=tee, color="#5a8f3f", style=bold];
+    CACHEX -> HAZ [color="#5a8f3f"];
+    HAZ -> OS; OS -> OS2Y;
+    KILLCHEM -> RESP [style=bold, color="#c08a2e"];
+    KILLIO -> RESP [style=bold, color="#c25a4b"];
+    EMTAX -> HREPI [style=dotted, color="#c08a2e"]; EMTAX -> HRNONEPI [style=dotted, color="#c08a2e"];
+    HREPI -> CROSS; HRNONEPI -> CROSS;
+    MRECIST -> RESP [color="#3f6fb5", style=bold];
+    FCOL -> RESP [arrowhead=tee, color="#a05a95", style=bold, label="collagen hides the kill"];
+    DYSP -> QOL [arrowhead=tee]; FVC -> FVCEND; PLEFF -> QOL [arrowhead=tee];
+    DISCONT -> OS [arrowhead=tee, style=dashed];
+}
+
+/* =====================================================================
+   19. THE THREE STRUCTURAL CLAIMS, DRAWN AS A LEGEND
+   ===================================================================== */
+subgraph cluster_claims {
+    label = "19. The three structural claims this map makes";
+    style = "rounded,filled"; color = "#6f7b8f"; fillcolor = "#eef1f6";
+    fontsize = 14; fontname = "Helvetica-Bold";
+    node [shape=note, fillcolor="#ffffff", fontsize=11];
+
+    CLAIM1     [label="CLAIM 1 - GEOMETRY\nA rind has dV/dh = A, a constant.\nmRECIST's 30% thickness threshold is a 30% VOLUME kill;\nRECIST's 30% diameter threshold on a sphere is a 66% volume kill.\nThe same words 'partial response' denote a 2.2-fold different cytoreduction."];
+    CLAIM2     [label="CLAIM 2 - ONE COLLAGEN STATE, THREE CONSEQUENCES\nphi biases the measurement (it does not shrink),\nphi shortens the penetration length (it collapses vessels),\nphi traps the lung (it stiffens the visceral leaf).\nA drug that killed every tumour cell would still leave\na thick rind, a low FVC and a failed pleurodesis."];
+    CLAIM3     [label="CLAIM 3 - THE HISTOLOGY AXIS FLIPS THE SIGN\nx raises proliferation, chemoresistance, collagen AND PD-L1.\nThe first three hurt chemotherapy, the fourth helps IO.\nThe crossover between the two regimens is therefore a\nCOMPUTED consequence of one parameter, not two disease models."];
+
+    CLAIM1 -> CLAIM2 [style=invis]; CLAIM2 -> CLAIM3 [style=invis];
+}
+
+/* ---------------- cross-cluster spine ------------------------------- */
+    TGFB -> ZEB [color="#a05a95", style=bold, label="TGF-beta drives EMT"];
+    HYPOX -> VEGFA [color="#a05a95", style=bold];
+    VEGFA -> PLEFF [color="#4d8f6d", style=bold, label="permeability -> effusion"];
+    FBURD -> CHRINF [style=bold, color="#b3564a", penwidth=2.0];
+    CHRINF -> MESOCELL [style=bold, color="#b3564a", penwidth=2.0, label="transformation"];
+    BAP1 -> MESOCELL [style=bold, color="#7a5ba6", penwidth=2.0];
+    NF2 -> YAP [style=bold, color="#7a5ba6"];
+    YAP -> PROLIF [style=bold, color="#3d8f77", penwidth=2.0];
+    KILLCHEM -> NECR [style=bold, color="#c08a2e", penwidth=2.0];
+    KILLIO -> NECR [style=bold, color="#c25a4b", penwidth=2.0];
+    NECR -> TPAR [arrowhead=tee, style=dashed, color="#3f6fb5"];
+    VOLRIND -> SMRP [style=dashed, color="#3f6fb5"];
+    HVIS -> KILLIO [arrowhead=tee, style=dashed, color="#c25a4b", label="thick rind = small\ncontact surface per gram"];
+}
