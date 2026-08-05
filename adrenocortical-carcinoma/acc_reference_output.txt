@@ -1,0 +1,272 @@
+
+==========================================================================
+ MODEL STRUCTURE
+==========================================================================
+ODE compartments : 52 
+Parameters       : 148 
+Scenarios        : 18 
+
+==========================================================================
+ 0. THE DEPOT IS REAL: where does the mitotane actually sit?
+==========================================================================
+Apparent Vss                 : 5966 L   (reported ~6,086 L, Arshad 2018)
+  of which adipose-dependent : 4466 L  (75%)
+Terminal t1/2, uninduced     : 86 d
+Terminal t1/2, fully induced : 42 d   (reported range 18-160 d)
+Fraction of body burden in the depot at day 180: 93.6%
+
+-> 94% of the drug in the body is in the depot. The measured plasma
+   level is a thin overflow film on top of a lipid reservoir, which is
+   why it responds to the reservoir SIZE and not just to the dose.
+
+==========================================================================
+ A. FAT SETS *WHEN*, NOT *WHERE*  (identical 6/4/3 g regimen)
+==========================================================================
+fat (kg)      Vss (L)  t->14mg/L      peak   Cp d360   Cp d480    d >20
+10               3530         20      21.6      15.8      15.8       51
+22               5966         34      18.1      15.8      15.8        0
+45              10635        110      15.7      15.6      15.7        0
+
+Same dose, same destination (Cp d480 within 0.3 mg/L across a 4.5-fold
+range of adipose mass) but a 5-fold spread in time-to-target -- and the
+LEAN patient is the one who overshoots 20 mg/L.
+
+Closed-form check (Css = D*F/CL, tau = Vss/CL):
+  fat 10 kg: Vss=  3530  Css= 16.7 mg/L  tau= 35.7 d  t1/2= 24.8 d  t->14=  65.1 d
+  fat 22 kg: Vss=  5966  Css= 16.7 mg/L  tau= 60.4 d  t1/2= 41.9 d  t->14= 110.0 d
+  fat 45 kg: Vss= 10635  Css= 16.7 mg/L  tau=107.6 d  t1/2= 74.6 d  t->14= 196.1 d
+Css is IDENTICAL across the three; only tau moves. That is the whole point.
+
+==========================================================================
+ B. WHAT THE DOSE-REGIMEN TRIAL WAS UP AGAINST
+==========================================================================
+High-dose start (6 g x 6wk -> 4 -> 3) vs low-dose ramp (1 -> 2 -> 3),
+time to first reach 14 mg/L, at three fixed adipose masses:
+
+ high  regimen:  fat 10 kg ->     20 d  fat 22 kg ->     34 d  fat 45 kg ->    110 d
+ low   regimen:  fat 10 kg ->     86 d  fat 22 kg ->    138 d  fat 45 kg ->    236 d
+
+Virtual population (n = 240 per arm; adipose mass lognormal around
+22 kg, clearance lognormal, together reproducing the reported ~80% CV
+on apparent volume):
+
+ high : ever reached target 195/240 (81%) | by day 90 76% | median t->14  35.0 d | Cp90  16.0 mg/L
+ low  : ever reached target 150/240 (62%) | by day 90 15% | median t->14 121.0 d | Cp90  10.5 mg/L
+
+HOW BIG IS EACH LEVER? Using Cp at day 90 -- a continuous outcome that
+every simulated patient has, so nothing is lost to censoring:
+
+  regimen      variance explained  37.7%
+  fat          variance explained  24.7%
+  clmult       variance explained  26.9%
+  Residuals    variance explained  10.7%
+
+  effect of regimen on median Cp90 : 5.5 mg/L
+  effect of fat P10->P90 within arm: 9.1 mg/L
+  correlation of Cp90 with adipose mass : r = -0.59
+
+-> Two separate readings, both true, and they must not be conflated:
+   VARIANCE SHARE. The regimen is the largest single term (37.7%), but the
+     two unmeasured PATIENT factors -- adipose mass 24.7% and clearance
+     26.9% -- together explain 51.6%, i.e. more than the dose does.
+   CONTRAST SIZE. Comparing like with like, switching regimen moves median
+     Cp90 by 5.5 mg/L, while moving adipose mass from its 10th to its 90th
+     percentile moves it by 9.1 mg/L -- a LARGER contrast than the dose
+     intervention produces, on a variable nobody randomised or measured.
+
+   So the trial did randomise the smaller of the two levers, but not
+   because the dose does not matter -- it does, and starting high is
+   right. It is because the dose contrast it tested is smaller than the
+   patient-to-patient contrast it left in the residual. Add the censoring
+   problem on top: the reported endpoint -- time to reach target -- drops
+   exactly the patients the covariate hurts most (the high-fat patients
+   who never get there at all), so the covariate is invisible in the very
+   analysis that would reveal it.
+
+   That reconciles a popPK model recommending the high-dose start with a
+   small RCT of the same comparison reporting no significant difference.
+   Actionable version: stratify on body composition, and read the trough
+   as a continuous exposure rather than a pass/fail at 14 mg/L.
+
+==========================================================================
+ C. HYPERCORTISOLISM DIGS THE HOLE IT SITS IN -- BEFORE TREATMENT STARTS
+==========================================================================
+First, the untreated secreting tumour. Cortisol excess adds adipose:
+
+day        freeCort   fat (kg)    Vss (L)  tumour mL
+0              0.23       22.0       5966        122
+90             2.28       25.2       6623        640
+180            2.55       26.5       6871       2047
+270            2.63       26.9       6959       4177
+
+So a patient who spent ~9 months Cushingoid before diagnosis arrives
+with 26.9 kg of fat instead of 22.0 -- a 993 L larger depot.
+Now give both patients the SAME high-dose regimen:
+
+                                         t->14 mg/L     Cp d90    Cp d480
+no pre-treatment Cushing (22.0 kg)               35       17.6       15.8
+Cushingoid before diagnosis (26.9 kg)            41       16.6       15.8
+
+And the feedback DURING treatment, for completeness:
+  fat at day 180: 22.1 kg (feedback on) vs 22.0 kg (off) -- only 0.1 kg
+
+-> The feedback is essentially SPENT by the time therapy begins: once
+   mitotane controls the cortisol, the fat stops accumulating, so during
+   treatment the loop contributes almost nothing. Its whole effect is
+   front-loaded into the pre-diagnosis period -- which is precisely when
+   nobody is measuring it. The disease lengthens its own treatment delay
+   before the first tablet is swallowed. The dose is right; the clock is
+   wrong, and it was set wrong before the patient arrived.
+
+==========================================================================
+ D. EDP-M IS WEAKEST WHERE MITOTANE IS STRONGEST
+==========================================================================
+Counterfactual: INDVIC=0 removes the etoposide/cortisol interaction while
+LEAVING mitotane autoinduction intact, so mitotane exposure is unchanged
+and the comparison isolates one mechanism.
+Etoposide AUC computed on a fine grid (delta 0.02 d) over one cycle.
+
+                               etoCLfold    AUC/cyc   best %   d180 %   resp    regain
+EDP-M victim induction ON           2.07       4.58    -38.2    -18.9     PR       225
+EDP-M victim induction OFF          1.00       8.86    -51.2    -16.8     PR       213
+EDP alone (no mitotane)             1.00       8.86    -62.3    -34.6     PR       266
+Sz-M (FIRM-ACT arm B)                  -          -     -4.7    +52.4     PD        12
+
+-> Induction costs ~half the etoposide exposure and a chunk of the depth
+   of response. EDP-M still beats Sz-M, reproducing FIRM-ACT's ordering,
+   but the combination is fighting itself through a SHARED state variable.
+   NOTE the RECIST artefact: a DEEPER nadir lowers the absolute bar for
+   +20%/+5 mm progression, so nadir-referenced PFS can look SHORTER for a
+   better responder. Time-to-regain-baseline is the fairer control metric.
+
+==========================================================================
+ E. TOTAL CORTISOL LIES: two independent errors, same direction
+==========================================================================
+Adrenalectomised / adrenolysed patient on replacement, day 300-360 mean:
+
+                                               CBG   total     FREE  %normal total/free
+HC 20 mg/d, NO mitotane (control)             1.00    8.47    0.501      100%      16.9
+HC 20 mg/d + mitotane                         1.81    6.53    0.175       35%      37.2
+HC 50 mg/d + mitotane                         1.81   11.64    0.422       84%      27.6
+
+-> The two errors are of DIFFERENT KINDS, and the decomposition below
+   separates them cleanly:
+     * INDUCTION is the error in the PATIENT. It doubles hydrocortisone
+       clearance and takes free cortisol to 35% of control. This is a
+       real deficit and it is the one that does the physiological harm.
+     * The CBG RISE is the error in the ASSAY. At steady state it barely
+       moves the free level (83% of control on its own), but it inflates
+       the total/free ratio from 16.9 to 37.2 -- so the TOTAL cortisol a
+       clinician actually orders reads reassuringly while free cortisol
+       has halved.
+   One error hides the other, and both point the clinician the same wrong
+   way. Doubling the dose to 50 mg/day restores free cortisol to 84%.
+   Measure free or salivary cortisol, not total.
+
+Decomposition -- which of the two errors does the damage?
+  both             free cortisol 0.175 ug/dL ( 35% of control)
+  CBG rise only    free cortisol 0.417 ug/dL ( 83% of control)
+  induction only   free cortisol 0.169 ug/dL ( 34% of control)
+  neither          free cortisol 0.411 ug/dL ( 82% of control)
+
+==========================================================================
+ F. CORTISOL IS AN IMMUNOSUPPRESSANT THE TUMOUR MAKES ITSELF
+==========================================================================
+                                             freeCort   TEFF   best %   d180 %   resp
+Pembrolizumab, NON-secreting ACC                 0.23   3.20    -43.8    -28.0     PR
+Pembrolizumab, cortisol-SECRETING ACC            2.45   1.28     +0.0    +93.6     PD
+Pembro + mitotane (steroid controlled)           0.15   2.58     -8.4     -0.3     SD
+No treatment, secreting (reference)              2.59   0.39     +0.0   +156.0     PD
+
+PD-1 receptor occupancy is >99% in ALL of these runs -- target engagement
+is never the problem. The effector cells the antibody would unleash have
+already been suppressed by the tumour's own steroid output. Controlling
+the steroid is a PREREQUISITE for immunotherapy, not an alternative.
+
+==========================================================================
+ G. A TARGET IN 90% OF TUMOURS THAT DID NOT DELIVER (linsitinib)
+==========================================================================
+                                   linsitinib    no drug
+linsitinib Css (mg/L)                    0.84       0.00
+IGF1R left unblocked (frac)              0.23       1.00
+metabolic IR-B left unblocked            0.29       1.00
+tumour IR-A left unblocked               0.64       1.00
+plasma glucose (mg/dL)                  108.5       92.0
+plasma insulin (rel)                     2.38       1.00
+IGF/AKT/mTOR signal (rel)                0.93       1.39
+tumour at day 300 (mL)                   1080       1460
+change at day 300 (%)                  +106.8     +128.7
+
+-> The drug engages IGF1R, but blocking the insulin receptor raises
+   glucose, which raises insulin, which re-drives the SAME PI3K-AKT node
+   through the partially-spared IR-A. Target engaged, pathway restored,
+   trial negative. Counterfactual with the escape route closed:
+   with IR-A blocked as potently as IGF1R: signal 0.44, tumour 695 mL
+
+==========================================================================
+ H. WITHDRAWAL: THE LONG TAIL (why you cannot wash this drug out)
+==========================================================================
+Mitotane stopped at day 240.
+
+day         Cp mg/L        ENZ    etoCLfold adrenal mass
+240           15.92       4.05         2.07        0.167
+270            9.90       3.59         1.91        0.196
+300            6.64       3.14         1.75        0.260
+360            3.26       2.38         1.48        0.414
+480            1.00       1.53         1.19        0.646
+600            0.36       1.21         1.07        0.775
+700            0.16       1.09         1.03        0.842
+
+Time for plasma to fall below 2 mg/L        : 167 d after stopping
+Time for CYP3A4 to return within 10% of base: 453 d after stopping
+Time for adrenal cortex to regain 50% of mass: 158 d after stopping
+Etoposide clearance still elevated 48% at 120 d after stopping
+
+-> The depot keeps dosing the patient for months, so the CYP3A4
+   induction (and the adrenal insufficiency) outlives the prescription.
+   There is no such thing as a mitotane washout before giving a CYP3A4
+   substrate.
+
+==========================================================================
+ I. TOXICITY AND SAFETY READOUTS (reference-fat, high-dose start, EDP-M)
+==========================================================================
+  peak plasma mitotane        : 19.6 mg/L
+  days above 20 mg/L          : 0
+  days in 14-20 mg/L window   : 370 (93% of 400)
+  peak CNS injury score       : 0.104
+  peak ALT                    : 56 U/L
+  free T4 nadir               : 0.88 ng/dL (baseline 1.20)
+  ANC nadir                   : 1.08 x10^9/L
+  LVEF at day 400             : 60.3% (baseline 62)
+  cumulative anthracycline    : 320 mg/m2
+  eGFR at day 400             : 81 mL/min/1.73m2
+  adrenal cortex remaining    : 4.6%
+  BMD at day 400              : 0.953 (rel)
+  CBG / SHBG fold rise        : 1.81 / 1.75
+
+==========================================================================
+ ALL 18 SCENARIOS (summary table)
+==========================================================================
+scenario                                              Cp d180   tumour freeCort
+01 High-dose start · reference fat (22 kg)              16.2      395     0.13
+02 High-dose start · LEAN (10 kg fat)                   16.0      339     0.13
+03 High-dose start · OBESE (45 kg fat)                  15.0      556     0.17
+04 Low-dose ramp · reference fat                        15.1      759     0.18
+05 Secreting ACC · mitotane monotherapy                 16.1      572     0.15
+06 Secreting ACC · NO mitotane (natural history)         0.0     2047     2.55
+07 EDP-M (FIRM-ACT arm A) · induction ON                16.0       65     0.08
+08 EDP-M · victim-drug induction OFF (counterfactual)     15.8       70     0.26
+09 EDP alone (no mitotane)                                0.0       34     0.64
+10 Sz-M (FIRM-ACT arm B)                                 16.0      432     0.14
+11 Mitotane + hydrocortisone 20 mg/day (standard dose)     16.2      392     0.02
+12 Mitotane + hydrocortisone 50 mg/day (doubled)         16.0      601     0.03
+13 Hydrocortisone 20 mg/day, NO mitotane (control)        0.0     1298     0.18
+14 Pembrolizumab · cortisol-SECRETING ACC                0.0      885     2.38
+15 Pembrolizumab · NON-secreting ACC                     0.0       46     0.23
+16 Pembrolizumab + mitotane (steroid controlled)         16.0      121     0.10
+17 Linsitinib monotherapy (GALACTIC)                      0.0     1766     2.53
+18 Mitotane stopped at day 240 (washout)                 16.2      395     0.13
+
+==========================================================================
+ DONE
+==========================================================================
