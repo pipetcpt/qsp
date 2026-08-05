@@ -1,0 +1,542 @@
+/*
+ * gsd1a_qsp_model.dot
+ * ===================
+ * Quantitative Systems Pharmacology map of Glycogen Storage Disease type Ia
+ * (von Gierke disease, G6PC1 deficiency) and its transporter counterpart
+ * type Ib (SLC37A4/G6PT deficiency).
+ *
+ * READ THE MAP THIS WAY.  Everything converges on one node -- hepatic
+ * glucose-6-phosphate -- because that is literally what the disease is.  Both
+ * routes of endogenous glucose production (glycogenolysis and
+ * gluconeogenesis) terminate at G6P, and only glucose-6-phosphatase can
+ * release free glucose from it.  Delete that one arrow and the carbon does
+ * not stop arriving; it leaves by the four side doors instead:
+ *
+ *      G6P --> glycogen   (allosteric activation of glycogen synthase)
+ *      G6P --> lactate    (glycolysis)
+ *      G6P --> lipid      (acetyl-CoA -> de novo lipogenesis)
+ *      G6P --> PRPP       (pentose phosphate pathway -> purines -> urate)
+ *
+ * The four side doors ARE the four clinical syndromes.  Nothing else in this
+ * map needs its own aetiology.
+ *
+ * Colour key
+ *   red      the primary genetic lesion and what it directly blocks
+ *   orange   pathological accumulation / overflow flux
+ *   blue     drugs and therapeutic manoeuvres
+ *   green    protective / compensatory routes (including the ones that
+ *            keep patients alive: debranching-enzyme free glucose, and
+ *            lactate as a cerebral fuel)
+ *   purple   measured biomarkers
+ *   grey     clinical endpoints
+ *
+ * Render:
+ *   dot -Tsvg gsd1a_qsp_model.dot -o gsd1a_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 gsd1a_qsp_model.dot -o gsd1a_qsp_model.png
+ */
+
+digraph GSD1a_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;   // global ranking: the clusters legitimately form cycles
+                      // (G6P -> lactate -> gluconeogenesis -> G6P), and dot
+                      // cannot rank cluster-by-cluster when that is true
+    splines = spline;
+    overlap = false;
+    nodesep = 0.24;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    fontsize = 30;
+    label = "Glycogen Storage Disease Type Ia (von Gierke) — QSP Mechanistic Map\nG6PC1 loss → hepatic glucose-6-phosphate branch point → four overflow syndromes\nincl. GSD Ib (SLC37A4) neutrophil arm · dietary, adjunctive, gene and mRNA therapy";
+    bgcolor = "white";
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, margin = "0.10,0.05", penwidth = 1.0];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.1,
+          arrowsize = 0.65, color = "#5b6470"];
+
+    /* =====================================================================
+       1. GENETIC LESION
+       ================================================================== */
+    subgraph cluster_gene {
+        label = "1 · Genetic lesion (G6PC1 17q21.31 · SLC37A4 11q23.3)";
+        style = "rounded,filled"; fillcolor = "#fdf1f1"; color = "#c0392b";
+        fontsize = 14; fontcolor = "#7b241c";
+
+        G6PC1     [label = "G6PC1 gene\n17q21.31 · 5 exons\nAR inheritance", fillcolor = "#f5b7b1"];
+        MUT_null  [label = "Null alleles\np.Arg83Cys · p.Gln347Ter\nresidual activity ≈ 0 %", fillcolor = "#f1948a"];
+        MUT_leaky [label = "Leaky alleles\np.Gly188Arg · p.Arg170Gln\nresidual 2–8 %", fillcolor = "#f8d3ce"];
+        G6Pase    [label = "Glucose-6-phosphatase-α\nER lumenal catalytic subunit\n357 aa · 9 TM domains", fillcolor = "#f5b7b1"];
+        SLC37A4   [label = "SLC37A4 / G6PT\nER G6P antiporter\n(GSD Ib)", fillcolor = "#f5b7b1"];
+        ER_UNIT   [label = "ER G6Pase COMPLEX\ntransporter + catalytic subunit\nmust BOTH work", fillcolor = "#ec7063", fontcolor = "white"];
+        ENZ_ACT   [label = "a(t) = fractional G6Pase activity\n(germline residual + transgene)", fillcolor = "#e74c3c", fontcolor = "white", shape = box3d];
+
+        G6PC1 -> MUT_null; G6PC1 -> MUT_leaky;
+        MUT_null -> G6Pase [label = "abolishes", color = "#c0392b"];
+        MUT_leaky -> G6Pase [label = "attenuates", color = "#c0392b", style = dashed];
+        G6Pase -> ER_UNIT; SLC37A4 -> ER_UNIT [label = "substrate entry"];
+        ER_UNIT -> ENZ_ACT;
+    }
+
+    /* =====================================================================
+       2. THE BRANCH POINT
+       ================================================================== */
+    subgraph cluster_branch {
+        label = "2 · Hepatic glucose-6-phosphate: the branch point that IS the disease";
+        style = "rounded,filled"; fillcolor = "#fff6e9"; color = "#d68910";
+        fontsize = 15; fontcolor = "#9c640c";
+
+        G6P      [label = "HEPATIC G6P\nnormal 0.2–0.3 µmol/g\nGSD Ia 1–14 µmol/g", fillcolor = "#f39c12", fontcolor = "white", shape = doubleoctagon, fontsize = 14];
+        GK       [label = "Glucokinase (GCK)\nKm 8 mM · Hill 1.7\nglucose IN — never reverses", fillcolor = "#fdebd0"];
+        GKRP     [label = "GKRP sequestration\nreleased by fructose-1-P\nand by high glucose", fillcolor = "#fdebd0"];
+        PYGL     [label = "Glycogen phosphorylase\n(liver, PYGL)", fillcolor = "#fdebd0"];
+        AGL      [label = "Debranching enzyme (AGL)\nα-1,6 residues → FREE glucose\n≈ 8–10 % of glycogenolysis", fillcolor = "#abebc4"];
+        GAA_LYS  [label = "Lysosomal acid-α-glucosidase\nglycophagy → free glucose\nbypasses G6Pase", fillcolor = "#abebc4"];
+        GNG      [label = "Gluconeogenesis\nPC → PEPCK → FBPase\nfrom lactate/alanine/glycerol", fillcolor = "#fdebd0"];
+        FBP1     [label = "Fructose-1,6-bisphosphatase", fillcolor = "#fdebd0"];
+        BLOCK    [label = "✖ G6P → free glucose\nBLOCKED", fillcolor = "#c0392b", fontcolor = "white", shape = octagon];
+        EGP      [label = "Endogenous glucose production\nnormal 5–6 mg/kg/min\nGSD Ia ≈ 1.0–1.5 mg/kg/min", fillcolor = "#d5f5e3"];
+
+        GK -> G6P [label = "hepatic uptake\nobligate, one-way", color = "#d68910", penwidth = 2.0];
+        GKRP -> GK [label = "−", arrowhead = tee];
+        PYGL -> G6P [label = "glucose-1-P → G6P"];
+        PYGL -> AGL [label = "branch points"];
+        AGL -> EGP [label = "the ONLY glycogen-derived\nglucose in GSD Ia", color = "#1e8449", penwidth = 2.0];
+        GAA_LYS -> EGP [color = "#1e8449"];
+        GNG -> FBP1 -> G6P [label = "converges on the SAME node"];
+        G6P -> BLOCK [color = "#c0392b", penwidth = 2.4];
+        BLOCK -> EGP [style = dashed, color = "#c0392b", label = "≈ 0"];
+    }
+
+    /* =====================================================================
+       3. OVERFLOW DOOR 1 — GLYCOGEN
+       ================================================================== */
+    subgraph cluster_glyc {
+        label = "3 · Overflow door 1 — glycogen (hepatomegaly)";
+        style = "rounded,filled"; fillcolor = "#fef5e7"; color = "#ca6f1e";
+        fontsize = 13; fontcolor = "#935116";
+
+        GYS2     [label = "Glycogen synthase 2\ncovalent (insulin) arm\n× allosteric (G6P) arm", fillcolor = "#fad7a0"];
+        GS_ALLO  [label = "G6P allosterically\nactivates GS-b\nEVEN when phosphorylated", fillcolor = "#f5cba7"];
+        GBE1     [label = "Branching enzyme GBE1\nnormal structure preserved\n(unlike GSD IV)", fillcolor = "#fdebd0"];
+        GLYCOGEN [label = "HEPATIC GLYCOGEN\nnormal ≈ 50 mg/g\nGSD Ia 90–140 mg/g", fillcolor = "#e67e22", fontcolor = "white"];
+        HEPATOM  [label = "Hepatomegaly\nliver 2–3 × normal volume\npalpable at 3–6 months", fillcolor = "#f8c471"];
+        NEPHROM  [label = "Nephromegaly\nrenal G6P/glycogen loading", fillcolor = "#f8c471"];
+        DOLLFACE [label = "Doll-like facies\ntruncal adiposity", fillcolor = "#f8c471"];
+
+        G6P -> GYS2 [label = "substrate + activator", color = "#ca6f1e", penwidth = 1.8];
+        G6P -> GS_ALLO -> GYS2 [color = "#ca6f1e"];
+        GYS2 -> GLYCOGEN; GBE1 -> GLYCOGEN;
+        GLYCOGEN -> PYGL [label = "futile cycle", style = dashed, dir = both];
+        GLYCOGEN -> HEPATOM; GLYCOGEN -> NEPHROM; GLYCOGEN -> DOLLFACE;
+    }
+
+    /* =====================================================================
+       4. OVERFLOW DOOR 2 — LACTATE
+       ================================================================== */
+    subgraph cluster_lac {
+        label = "4 · Overflow door 2 — lactate (acidosis, and a cerebral fuel)";
+        style = "rounded,filled"; fillcolor = "#eef7fb"; color = "#2471a3";
+        fontsize = 13; fontcolor = "#1a5276";
+
+        PFK1     [label = "PFK-1\nF2,6-BP activated\nSTRONGLY pH-inhibited", fillcolor = "#aed6f1"];
+        F26BP    [label = "Fructose-2,6-bisphosphate\nPFKFB1 · glucagon ↓", fillcolor = "#d4e6f1"];
+        PYRUVATE [label = "Pyruvate", fillcolor = "#d4e6f1"];
+        LDHA     [label = "LDH-A\nnear equilibrium\nL:P ratio NORMAL (~15)", fillcolor = "#d4e6f1"];
+        PDH      [label = "Pyruvate dehydrogenase\n→ acetyl-CoA", fillcolor = "#d4e6f1"];
+        LACTATE  [label = "BLOOD LACTATE\ntreated 2–5 mM\ncrisis 10–20 mM", fillcolor = "#3498db", fontcolor = "white"];
+        ACIDOSIS [label = "Lactic acidosis\nHCO₃⁻ ↓ · anion gap ↑\nKussmaul breathing", fillcolor = "#85c1e9"];
+        PFK_BRAKE[label = "Acidosis inhibits PFK-1\nthe ONLY negative feedback\nthat ends a crisis", fillcolor = "#a9dfbf"];
+        CORI     [label = "Cori cycle is BROKEN\nlactate → G6P → lactate\nnet lactate AMPLIFIER", fillcolor = "#f5b7b1"];
+        LAC_REN  [label = "Renal lactate loss\nabove ~5 mM threshold", fillcolor = "#d4e6f1"];
+        LAC_CNS  [label = "MCT1/MCT2 brain uptake\nat 7 mM lactate supplies\n~55–60 % of cerebral ATP", fillcolor = "#a9dfbf"];
+
+        G6P -> PFK1 [color = "#2471a3", penwidth = 1.8];
+        F26BP -> PFK1 [label = "+"];
+        PFK1 -> PYRUVATE -> LDHA -> LACTATE [color = "#2471a3", penwidth = 1.6];
+        PYRUVATE -> PDH;
+        LACTATE -> ACIDOSIS -> PFK_BRAKE;
+        PFK_BRAKE -> PFK1 [label = "−", arrowhead = tee, color = "#1e8449", penwidth = 1.6];
+        LACTATE -> GNG [label = "substrate"];
+        GNG -> CORI -> LACTATE [style = dashed, color = "#c0392b"];
+        LACTATE -> LAC_REN; LACTATE -> LAC_CNS;
+    }
+
+    /* =====================================================================
+       5. OVERFLOW DOOR 3 — LIPID
+       ================================================================== */
+    subgraph cluster_lipid {
+        label = "5 · Overflow door 3 — lipid (steatosis, hypertriglyceridaemia)";
+        style = "rounded,filled"; fillcolor = "#fdf2f8"; color = "#a93226";
+        fontsize = 13; fontcolor = "#78281f";
+
+        CHREBP   [label = "ChREBP / MLX\nactivated BY G6P + X5P\nnot by insulin", fillcolor = "#f5b7b1"];
+        SREBP1C  [label = "SREBP-1c\ninsulin-driven", fillcolor = "#fadbd8"];
+        ACC      [label = "Acetyl-CoA carboxylase", fillcolor = "#fadbd8"];
+        MALCOA   [label = "MALONYL-CoA\nstays HIGH even fasting", fillcolor = "#e6b0aa"];
+        FASN     [label = "Fatty acid synthase\nde novo lipogenesis", fillcolor = "#fadbd8"];
+        CPT1     [label = "CPT-1\nmalonyl-CoA inhibited", fillcolor = "#fadbd8"];
+        KETO     [label = "Ketogenesis SUPPRESSED\n→ HYPOketotic hypoglycaemia\n(discriminates from GSD 0/III/VI)", fillcolor = "#a9dfbf"];
+        TG_LIV   [label = "Hepatic triglyceride\nmacrovesicular steatosis", fillcolor = "#e59866"];
+        APOB     [label = "ApoB-100 secretion\nRATE-LIMITS VLDL export", fillcolor = "#fadbd8"];
+        VLDL     [label = "VLDL-TG output\n2–3 × normal", fillcolor = "#fadbd8"];
+        LPL      [label = "Lipoprotein lipase\nactivity ≈ 50 % of normal\nApoC-III elevated", fillcolor = "#f5b7b1"];
+        TG_PL    [label = "PLASMA TRIGLYCERIDE\n300–6000 mg/dL", fillcolor = "#cb4335", fontcolor = "white"];
+        CHOL     [label = "Total / LDL cholesterol ↑\nApoE-rich remnants", fillcolor = "#fadbd8"];
+        XANTH    [label = "Eruptive xanthomata", fillcolor = "#f2f3f4"];
+        PANCR    [label = "Acute pancreatitis risk\nsteep above ~1000 mg/dL", fillcolor = "#f2f3f4"];
+        FFA_POOL [label = "Plasma FFA\nlipolysis when insulin ↓", fillcolor = "#fadbd8"];
+
+        PDH -> ACC; G6P -> CHREBP [color = "#a93226", penwidth = 1.8];
+        CHREBP -> ACC; CHREBP -> FASN; SREBP1C -> FASN;
+        ACC -> MALCOA -> FASN -> TG_LIV;
+        MALCOA -> CPT1 [label = "−", arrowhead = tee];
+        CPT1 -> KETO [label = "−", arrowhead = tee];
+        FFA_POOL -> TG_LIV; TG_LIV -> APOB -> VLDL -> TG_PL;
+        LPL -> TG_PL [label = "−", arrowhead = tee];
+        TG_PL -> CHOL; TG_PL -> XANTH; TG_PL -> PANCR;
+    }
+
+    /* =====================================================================
+       6. OVERFLOW DOOR 4 — PURINES
+       ================================================================== */
+    subgraph cluster_urate {
+        label = "6 · Overflow door 4 — purines (hyperuricaemia)";
+        style = "rounded,filled"; fillcolor = "#f5eef8"; color = "#7d3c98";
+        fontsize = 13; fontcolor = "#4a235a";
+
+        G6PD_PPP [label = "Pentose phosphate pathway\nG6PD → 6PGD → ribulose-5-P", fillcolor = "#d7bde2"];
+        R5P      [label = "Ribose-5-phosphate", fillcolor = "#e8daef"];
+        PRPP     [label = "PRPP\n(PRPS1)", fillcolor = "#d7bde2"];
+        DENOVO   [label = "De novo purine synthesis\nPPAT flux ↑", fillcolor = "#e8daef"];
+        PI_TRAP  [label = "Pi trapping by G6P\nhepatic ATP ↓ · AMP ↑", fillcolor = "#f5b7b1"];
+        AMPD     [label = "AMP deaminase → IMP\nnucleotide catabolism", fillcolor = "#e8daef"];
+        XO       [label = "Xanthine oxidase\nhypoxanthine → xanthine → urate", fillcolor = "#e8daef"];
+        URAT1    [label = "URAT1 (SLC22A12)\nurate/anion exchanger\nlactate & ketones DRIVE reabsorption", fillcolor = "#d7bde2"];
+        UA       [label = "SERUM URATE\ntreated 5–7 · poor control 9–13 mg/dL", fillcolor = "#8e44ad", fontcolor = "white"];
+        GOUT     [label = "Gout · tophi\n(adolescence onward)", fillcolor = "#f2f3f4"];
+        UA_STONE [label = "Uric-acid nephrolithiasis", fillcolor = "#f2f3f4"];
+
+        G6P -> G6PD_PPP [color = "#7d3c98", penwidth = 1.8];
+        G6PD_PPP -> R5P -> PRPP -> DENOVO -> XO -> UA;
+        G6P -> PI_TRAP -> AMPD -> XO;
+        LACTATE -> URAT1 [label = "competes for\nexcretion", color = "#7d3c98"];
+        KETO -> URAT1 [style = dashed];
+        URAT1 -> UA [label = "reabsorption ↑"];
+        UA -> GOUT; UA -> UA_STONE;
+    }
+
+    /* =====================================================================
+       7. SYSTEMIC GLUCOSE & CEREBRAL FUEL
+       ================================================================== */
+    subgraph cluster_glucose {
+        label = "7 · Systemic glucose balance and the cerebral fuel budget";
+        style = "rounded,filled"; fillcolor = "#eafaf1"; color = "#1e8449";
+        fontsize = 14; fontcolor = "#145a32";
+
+        PLASMA_G [label = "PLASMA GLUCOSE\nVd ≈ 0.20 L/kg", fillcolor = "#27ae60", fontcolor = "white", shape = doubleoctagon, fontsize = 13];
+        GUR      [label = "Glucose utilisation rate\ninfant 6.5 → adult 2.1 mg/kg/min\nfalls with brain:body mass", fillcolor = "#a9dfbf"];
+        BRAIN_D  [label = "Cerebral ATP demand\n72 % of GUR at age 1\n45 % in adults", fillcolor = "#a9dfbf"];
+        GLUT1    [label = "GLUT1 at the BBB\nsaturable, Km(app) low", fillcolor = "#d5f5e3"];
+        PERIPH   [label = "Insulin-dependent\nmuscle / adipose uptake", fillcolor = "#d5f5e3"];
+        FAI      [label = "FUEL ADEQUACY INDEX\n(glucose + lactate) / demand\nneuroglycopenia below ≈ 0.83", fillcolor = "#16a085", fontcolor = "white"];
+        ISOFUEL  [label = "Iso-fuel glucose threshold\nlactate 0.8 mM → 2.8 mM glucose\nlactate 6 mM → ~1.3 mM glucose", fillcolor = "#a3e4d7"];
+        SEIZ     [label = "Neuroglycopenia\nseizure · coma · death", fillcolor = "#d5d8dc"];
+        RENAL_GL [label = "Renal glucose loss\nthreshold ~10 mM (SGLT2)", fillcolor = "#d5f5e3"];
+
+        EGP -> PLASMA_G [color = "#1e8449", penwidth = 1.8];
+        PLASMA_G -> GK [label = "hepatic trapping\n(a NET LOSS in GSD Ia)", color = "#c0392b", penwidth = 1.6];
+        GUR -> PLASMA_G [label = "−", arrowhead = tee];
+        BRAIN_D -> GLUT1 -> PLASMA_G [label = "−", arrowhead = tee];
+        PERIPH -> PLASMA_G [label = "−", arrowhead = tee];
+        PLASMA_G -> FAI; LAC_CNS -> FAI [label = "substitutes", color = "#1e8449", penwidth = 1.8];
+        FAI -> ISOFUEL; FAI -> SEIZ [label = "< 0.83"];
+        PLASMA_G -> RENAL_GL;
+    }
+
+    /* =====================================================================
+       8. COUNTERREGULATION
+       ================================================================== */
+    subgraph cluster_horm {
+        label = "8 · Counterregulation — intact, futile, and harmful";
+        style = "rounded,filled"; fillcolor = "#fef9e7"; color = "#b7950b";
+        fontsize = 13; fontcolor = "#7d6608";
+
+        ALPHA    [label = "Pancreatic α-cell", fillcolor = "#f9e79f"];
+        GLUCAGON [label = "GLUCAGON ↑↑\nchronically elevated", fillcolor = "#f4d03f"];
+        BETA     [label = "Pancreatic β-cell", fillcolor = "#f9e79f"];
+        INSULIN  [label = "Insulin\nlow when fasting,\nspikes when overfed", fillcolor = "#f9e79f"];
+        EPI      [label = "Epinephrine ↑", fillcolor = "#f9e79f"];
+        CORTISOL [label = "Cortisol ↑", fillcolor = "#f9e79f"];
+        GH_N     [label = "GH ↑ with GH resistance", fillcolor = "#f9e79f"];
+        IGF1_N   [label = "IGF-1 ↓", fillcolor = "#f9e79f"];
+        FUTILE   [label = "GLUCAGON RESPONSE IS FUTILE\nit mobilises glycogen into a\nBLOCKED pathway", fillcolor = "#e74c3c", fontcolor = "white"];
+        HARMFUL  [label = "…and therefore HARMFUL:\nconverts hypoglycaemia\ninto lactic acidosis", fillcolor = "#c0392b", fontcolor = "white"];
+
+        PLASMA_G -> ALPHA [label = "−", arrowhead = tee];
+        ALPHA -> GLUCAGON -> PYGL [label = "+ phosphorylase", color = "#b7950b", penwidth = 1.6];
+        GLUCAGON -> F26BP [label = "−", arrowhead = tee];
+        GLUCAGON -> GNG [label = "+"];
+        GLUCAGON -> FUTILE -> HARMFUL -> LACTATE [color = "#c0392b", penwidth = 1.8];
+        PLASMA_G -> BETA -> INSULIN -> PERIPH;
+        INSULIN -> GYS2 [label = "+"]; INSULIN -> SREBP1C [label = "+"];
+        PLASMA_G -> EPI [label = "−", arrowhead = tee];
+        EPI -> PYGL; EPI -> FFA_POOL;
+        PLASMA_G -> CORTISOL [label = "−", arrowhead = tee];
+        CORTISOL -> GNG; GH_N -> IGF1_N [label = "resistance", style = dashed];
+    }
+
+    /* =====================================================================
+       9. DIETARY THERAPY (the actual pharmacology)
+       ================================================================== */
+    subgraph cluster_diet {
+        label = "9 · Dietary therapy — a pharmacokinetic problem in disguise";
+        style = "rounded,filled"; fillcolor = "#e8f4fc"; color = "#21618c";
+        fontsize = 14; fontcolor = "#154360";
+
+        UCCS     [label = "Uncooked cornstarch (UCCS)\n1.6 g/kg q4h (young)\n1.4–1.7 g/kg q6h (older)", fillcolor = "#5dade2", fontcolor = "white"];
+        GLYCOSADE[label = "Glycosade / waxy-maize\nextended release · nocturnal\nslower kdis, flatter profile", fillcolor = "#5dade2", fontcolor = "white"];
+        DRIP     [label = "Continuous nasogastric /\ngastrostomy drip feed\n7–9 mg/kg/min in infants", fillcolor = "#5dade2", fontcolor = "white"];
+        AMYLASE  [label = "Pancreatic α-amylase\nslow amylolysis of raw granules\nkdis ≈ 0.45 /h (UCCS)", fillcolor = "#aed6f1"];
+        RESIST   [label = "Resistant-starch fraction\n~25 % escapes to colon\nSCFA · bloating · diarrhoea", fillcolor = "#d4e6f1"];
+        SGLT1    [label = "SGLT1 / GLUT2\nintestinal absorption", fillcolor = "#aed6f1"];
+        NOFRUCT  [label = "Restrict fructose + galactose\nthey enter BELOW the block\nand go straight to lactate", fillcolor = "#a9dfbf"];
+        MEALFREQ [label = "Meal frequency, not amount,\nsets the overnight trough", fillcolor = "#d4e6f1"];
+        SAFEWIN  [label = "SAFE FASTING INTERVAL\n= delivered glucose ÷ net deficit\ninfant ~2–3 h · adult ~8–10 h", fillcolor = "#1f618d", fontcolor = "white", shape = box3d];
+        PUMPFAIL [label = "Pump disconnection\nsevere hypoglycaemia in 1–2 h\n(a documented cause of death)", fillcolor = "#e6b0aa"];
+        OVERFEED [label = "OVERTREATMENT\nsurplus glucose is TRAPPED as G6P\n→ glycogen, lactate, fat, obesity", fillcolor = "#e6b0aa"];
+
+        UCCS -> AMYLASE; GLYCOSADE -> AMYLASE;
+        AMYLASE -> SGLT1 -> PLASMA_G [color = "#21618c", penwidth = 2.0];
+        AMYLASE -> RESIST;
+        DRIP -> PLASMA_G [color = "#21618c", penwidth = 2.0];
+        DRIP -> PUMPFAIL;
+        NOFRUCT -> LACTATE [label = "−", arrowhead = tee, color = "#1e8449"];
+        MEALFREQ -> SAFEWIN; UCCS -> SAFEWIN; GLYCOSADE -> SAFEWIN;
+        SAFEWIN -> PLASMA_G;
+        OVERFEED -> G6P [color = "#c0392b", style = dashed];
+        OVERFEED -> INSULIN;
+    }
+
+    /* =====================================================================
+       10. ADJUNCTIVE DRUG THERAPY
+       ================================================================== */
+    subgraph cluster_drugs {
+        label = "10 · Adjunctive pharmacotherapy";
+        style = "rounded,filled"; fillcolor = "#eaf2f8"; color = "#1f618d";
+        fontsize = 13; fontcolor = "#154360";
+
+        ALLO     [label = "Allopurinol\nt½ 1–2 h", fillcolor = "#85c1e9"];
+        OXYPUR   [label = "Oxypurinol (active)\nt½ 18–30 h · XO inhibition", fillcolor = "#85c1e9"];
+        ACEI     [label = "ACE inhibitor / ARB\nlisinopril · losartan", fillcolor = "#85c1e9"];
+        STATIN   [label = "Statin ± fenofibrate\nfish oil for extreme TG", fillcolor = "#85c1e9"];
+        CITRATE  [label = "Potassium citrate\nalkali · raises urinary citrate", fillcolor = "#85c1e9"];
+        VITD     [label = "Calcium + vitamin D\n± bisphosphonate", fillcolor = "#85c1e9"];
+        GCSF     [label = "G-CSF (GSD Ib)\nsplenomegaly · myeloid risk", fillcolor = "#85c1e9"];
+        EMPA     [label = "Empagliflozin (GSD Ib)\nSGLT2 inhibition →\nurinary 1,5-AG excretion ↑", fillcolor = "#2e86c1", fontcolor = "white"];
+        BICARB   [label = "IV dextrose ± bicarbonate\nfor acute decompensation", fillcolor = "#85c1e9"];
+
+        ALLO -> OXYPUR -> XO [label = "−", arrowhead = tee, color = "#1f618d", penwidth = 1.6];
+        STATIN -> TG_PL [label = "−", arrowhead = tee]; STATIN -> LPL [label = "+ (fibrate)"];
+        CITRATE -> ACIDOSIS [label = "−", arrowhead = tee];
+        BICARB -> ACIDOSIS [label = "−", arrowhead = tee];
+        BICARB -> PLASMA_G [label = "+"];
+    }
+
+    /* =====================================================================
+       11. GENE / mRNA THERAPY
+       ================================================================== */
+    subgraph cluster_gtx {
+        label = "11 · Gene and mRNA therapy — and why age at dosing is irreversible";
+        style = "rounded,filled"; fillcolor = "#eafaf1"; color = "#148f77";
+        fontsize = 14; fontcolor = "#0e6251";
+
+        DTX401   [label = "DTX401 — AAV8-G6PC\nsingle IV infusion\n2×10¹² – 1×10¹³ GC/kg", fillcolor = "#48c9b0", fontcolor = "white"];
+        TRANSD   [label = "Hepatocyte transduction\nepisomal, NON-integrating", fillcolor = "#a3e4d7"];
+        EXPR     [label = "Transgene G6Pase expression\nonset over ~1–6 weeks", fillcolor = "#a3e4d7"];
+        DILUTE   [label = "DILUTION BY LIVER GROWTH\nepisomes do not replicate;\na 2-y-old liver still grows ~4×", fillcolor = "#e74c3c", fontcolor = "white"];
+        SILENCE  [label = "Slow episome loss / silencing\n(second-order vs growth)", fillcolor = "#d1f2eb"];
+        ANTIAAV  [label = "Anti-capsid neutralising Ab\nREDOSING IMPOSSIBLE\n→ age at dosing is a one-shot bet", fillcolor = "#e74c3c", fontcolor = "white"];
+        STEROID  [label = "Prophylactic corticosteroid\nfor ALT elevation", fillcolor = "#d1f2eb"];
+        MRNA     [label = "mRNA-3745 — LNP hG6Pase-α mRNA\nIV every 2–4 weeks\nNOT diluted by growth", fillcolor = "#48c9b0", fontcolor = "white"];
+        LIVERTX  [label = "Liver transplantation\ncorrects hepatic phenotype,\nnot the renal one", fillcolor = "#d1f2eb"];
+        A_STAR   [label = "CRITICAL ACTIVITY a*\nstarch requirement falls LINEARLY in a\nfasting tolerance rises HYPERBOLICALLY", fillcolor = "#117864", fontcolor = "white", shape = box3d];
+
+        DTX401 -> TRANSD -> EXPR -> ENZ_ACT [color = "#148f77", penwidth = 2.0];
+        TRANSD -> DILUTE [color = "#c0392b", penwidth = 1.8];
+        DILUTE -> EXPR [label = "−", arrowhead = tee, color = "#c0392b", penwidth = 1.8];
+        SILENCE -> EXPR [label = "−", arrowhead = tee, style = dashed];
+        DTX401 -> ANTIAAV; ANTIAAV -> DTX401 [label = "blocks a 2nd dose", color = "#c0392b", style = dashed];
+        DTX401 -> STEROID;
+        MRNA -> ENZ_ACT [color = "#148f77", penwidth = 2.0];
+        LIVERTX -> ENZ_ACT;
+        ENZ_ACT -> A_STAR; A_STAR -> SAFEWIN [color = "#148f77", penwidth = 1.6];
+    }
+
+    /* =====================================================================
+       12. KIDNEY
+       ================================================================== */
+    subgraph cluster_kidney {
+        label = "12 · Renal disease";
+        style = "rounded,filled"; fillcolor = "#fef5e7"; color = "#b9770e";
+        fontsize = 13; fontcolor = "#7e5109";
+
+        HYPERFIL [label = "Glomerular hyperfiltration\nGFR ↑ 20–30 % in childhood", fillcolor = "#fad7a0"];
+        PODO     [label = "Podocyte stress\nfoot-process effacement", fillcolor = "#fdebd0"];
+        MICALB   [label = "Microalbuminuria\ntypically from adolescence", fillcolor = "#f8c471"];
+        PROT     [label = "Overt proteinuria\nFSGS-like lesion", fillcolor = "#f8c471"];
+        TUBINT   [label = "Tubulo-interstitial fibrosis", fillcolor = "#fdebd0"];
+        CKD_N    [label = "CKD → ESRD\nleading adult morbidity", fillcolor = "#d5d8dc"];
+        HYPOCIT  [label = "Hypocitraturia\nfrom chronic acidosis", fillcolor = "#fdebd0"];
+        NEPHROCA [label = "Nephrocalcinosis · stones", fillcolor = "#d5d8dc"];
+        FANCONI  [label = "Proximal tubular dysfunction\nhypophosphataemia · glycosuria", fillcolor = "#fdebd0"];
+        RTA_N    [label = "Distal RTA-like picture", fillcolor = "#fdebd0"];
+
+        LACTATE -> HYPERFIL; UA -> HYPERFIL; TG_PL -> PODO;
+        HYPERFIL -> PODO -> MICALB -> PROT -> TUBINT -> CKD_N;
+        ACIDOSIS -> HYPOCIT -> NEPHROCA;
+        UA -> NEPHROCA; NEPHROM -> FANCONI -> RTA_N;
+        ACEI -> MICALB [label = "−", arrowhead = tee, color = "#1f618d", penwidth = 1.6];
+        CITRATE -> NEPHROCA [label = "−", arrowhead = tee, color = "#1f618d"];
+    }
+
+    /* =====================================================================
+       13. LIVER TUMOURS
+       ================================================================== */
+    subgraph cluster_tumour {
+        label = "13 · Hepatocellular adenoma and malignant transformation";
+        style = "rounded,filled"; fillcolor = "#fdf2f8"; color = "#922b21";
+        fontsize = 13; fontcolor = "#641e16";
+
+        MCI      [label = "METABOLIC CONTROL INDEX\nintegral of lactate, TG, urate\nand hypoglycaemia over YEARS", fillcolor = "#e6b0aa"];
+        HCA_N    [label = "Hepatocellular adenoma\n16–75 % by adulthood\noften multiple", fillcolor = "#cd6155", fontcolor = "white"];
+        INFLAM   [label = "Inflammatory subtype\nIL-6/STAT3 · serum SAA/CRP ↑", fillcolor = "#f5b7b1"];
+        BCAT     [label = "β-catenin activated subtype\nhighest malignant risk", fillcolor = "#f5b7b1"];
+        HCC_N    [label = "Hepatocellular carcinoma\n~10 % of adenoma-bearing patients", fillcolor = "#d5d8dc"];
+        AFP      [label = "AFP / CA19-9\npoor sensitivity in GSD I", fillcolor = "#e8daef"];
+        MRI      [label = "Liver MRI surveillance\nfrom age 10–16, then annual", fillcolor = "#d4e6f1"];
+        BLEED    [label = "Adenoma haemorrhage / rupture", fillcolor = "#d5d8dc"];
+        ANAEMIA  [label = "Adenoma-associated anaemia\nectopic hepcidin", fillcolor = "#d5d8dc"];
+
+        LACTATE -> MCI; TG_PL -> MCI; UA -> MCI; PLASMA_G -> MCI;
+        MCI -> HCA_N [label = "supralinear\n(exponent ≈ 2.6)", color = "#922b21", penwidth = 1.8];
+        GLUCAGON -> HCA_N [style = dashed];
+        HCA_N -> INFLAM; HCA_N -> BCAT; BCAT -> HCC_N; INFLAM -> ANAEMIA;
+        HCA_N -> BLEED; MRI -> HCA_N [style = dotted]; AFP -> HCC_N [style = dotted];
+    }
+
+    /* =====================================================================
+       14. GROWTH, BONE, BLOOD, REPRODUCTION
+       ================================================================== */
+    subgraph cluster_systemic {
+        label = "14 · Growth, bone, haematology, reproduction";
+        style = "rounded,filled"; fillcolor = "#f4f6f7"; color = "#5d6d7e";
+        fontsize = 13; fontcolor = "#34495e";
+
+        GROWTH   [label = "Growth failure\nheight SDS −1 to −3\ncatch-up with good control", fillcolor = "#d5d8dc"];
+        PUBERTY  [label = "Delayed puberty", fillcolor = "#d5d8dc"];
+        OSTEOP   [label = "Osteopenia / osteoporosis\nlumbar BMD Z-score ↓", fillcolor = "#d5d8dc"];
+        BLEEDT   [label = "Bleeding tendency\nacquired platelet dysfunction\n(corrects with glucose)", fillcolor = "#d5d8dc"];
+        ANAEM2   [label = "Anaemia (multifactorial)", fillcolor = "#d5d8dc"];
+        PCOS_N   [label = "Polycystic ovaries\nusually normal fertility", fillcolor = "#d5d8dc"];
+        PULMHTN  [label = "Pulmonary hypertension\nrare, late, poorly understood", fillcolor = "#d5d8dc"];
+        MUSCLE   [label = "Muscle: normally spared\n(no muscle G6Pase to lose)", fillcolor = "#d5f5e3"];
+
+        IGF1_N -> GROWTH; ACIDOSIS -> GROWTH; ACIDOSIS -> OSTEOP;
+        LACTATE -> OSTEOP; GROWTH -> PUBERTY;
+        PLASMA_G -> BLEEDT [label = "−", arrowhead = tee];
+        HCA_N -> ANAEM2; TG_PL -> PULMHTN;
+    }
+
+    /* =====================================================================
+       15. GSD Ib NEUTROPHIL ARM
+       ================================================================== */
+    subgraph cluster_ib {
+        label = "15 · GSD Ib — the neutrophil arm (SLC37A4 / G6PT)";
+        style = "rounded,filled"; fillcolor = "#e8f8f5"; color = "#0e6655";
+        fontsize = 13; fontcolor = "#0b5345";
+
+        AG15_N   [label = "1,5-anhydroglucitol\ndietary polyol, glucose analogue", fillcolor = "#a2d9ce"];
+        HK_N     [label = "Neutrophil hexokinase\nphosphorylates 1,5-AG", fillcolor = "#d0ece7"];
+        AG6P_N   [label = "1,5-AG6P ACCUMULATES\nG6PT normally exports it —\nin Ib there is no exit", fillcolor = "#e74c3c", fontcolor = "white"];
+        HK_INH   [label = "Competitive hexokinase inhibition\nneutrophil G6P collapses", fillcolor = "#f5b7b1"];
+        NEUTRO   [label = "NEUTROPENIA\nANC often < 0.5 ×10⁹/L\ncyclical in some", fillcolor = "#48c9b0", fontcolor = "white"];
+        NEUTDYS  [label = "Neutrophil dysfunction\nchemotaxis · respiratory burst ↓", fillcolor = "#d0ece7"];
+        IBD_N    [label = "Crohn-like colitis\noral / perianal ulceration", fillcolor = "#d5d8dc"];
+        INFECT   [label = "Recurrent bacterial infection", fillcolor = "#d5d8dc"];
+        THYROID  [label = "Autoimmune thyroid disease\n(over-represented in Ib)", fillcolor = "#d5d8dc"];
+
+        SLC37A4 -> AG6P_N [label = "loss of exit route", color = "#0e6655", penwidth = 1.8];
+        AG15_N -> HK_N -> AG6P_N -> HK_INH -> NEUTRO;
+        NEUTRO -> NEUTDYS; NEUTRO -> IBD_N; NEUTRO -> INFECT; NEUTRO -> THYROID;
+        EMPA -> AG15_N [label = "−  urinary loss ↑", arrowhead = tee, color = "#2e86c1", penwidth = 2.0];
+        GCSF -> NEUTRO [label = "+"];
+    }
+
+    /* =====================================================================
+       16. BIOMARKERS AND MONITORING
+       ================================================================== */
+    subgraph cluster_biomarker {
+        label = "16 · Biomarkers and monitoring";
+        style = "rounded,filled"; fillcolor = "#f4ecf7"; color = "#6c3483";
+        fontsize = 13; fontcolor = "#4a235a";
+
+        CGM      [label = "Continuous glucose monitoring\ntime-in-range is the\nsingle most actionable metric", fillcolor = "#d2b4de"];
+        BOHB     [label = "β-hydroxybutyrate\nLOW — the discriminating test", fillcolor = "#d2b4de"];
+        LACPOC   [label = "Point-of-care lactate", fillcolor = "#d2b4de"];
+        ALT_N    [label = "ALT / AST mildly ↑", fillcolor = "#e8daef"];
+        AG_N     [label = "Anion gap · venous HCO₃⁻", fillcolor = "#e8daef"];
+        UACR_N   [label = "Urine albumin:creatinine", fillcolor = "#e8daef"];
+        USG      [label = "Liver ultrasound / MRI\nadenoma surveillance", fillcolor = "#e8daef"];
+        DXA      [label = "DXA lumbar spine", fillcolor = "#e8daef"];
+        GENET    [label = "G6PC1 / SLC37A4 sequencing\nreplaced liver biopsy", fillcolor = "#d2b4de"];
+
+        PLASMA_G -> CGM; KETO -> BOHB; LACTATE -> LACPOC; ACIDOSIS -> AG_N;
+        MICALB -> UACR_N; HCA_N -> USG; OSTEOP -> DXA; TG_LIV -> ALT_N;
+        G6PC1 -> GENET [style = dotted];
+    }
+
+    /* =====================================================================
+       17. CLINICAL ENDPOINTS
+       ================================================================== */
+    subgraph cluster_endpoint {
+        label = "17 · Clinical endpoints";
+        style = "rounded,filled"; fillcolor = "#eaeded"; color = "#566573";
+        fontsize = 14; fontcolor = "#212f3d";
+
+        EP_TIR   [label = "CGM time in range 3.9–8 mM", fillcolor = "#ccd1d1"];
+        EP_STAR  [label = "Daily cornstarch requirement\n(primary endpoint of DTX401)", fillcolor = "#ccd1d1"];
+        EP_FAST  [label = "Fasting tolerance (h)", fillcolor = "#ccd1d1"];
+        EP_LAC   [label = "Lactate / HCO₃⁻ / anion gap", fillcolor = "#ccd1d1"];
+        EP_TG    [label = "Triglyceride, urate", fillcolor = "#ccd1d1"];
+        EP_LIV   [label = "Liver volume, adenoma count", fillcolor = "#ccd1d1"];
+        EP_REN   [label = "eGFR, UACR", fillcolor = "#ccd1d1"];
+        EP_GROW  [label = "Height SDS, BMD Z", fillcolor = "#ccd1d1"];
+        EP_ANC   [label = "ANC, infection-free days (Ib)", fillcolor = "#ccd1d1"];
+        EP_QOL   [label = "Quality of life · night-time\ncaregiver burden", fillcolor = "#ccd1d1"];
+        EP_SURV  [label = "Survival free of transplant\nor malignancy", fillcolor = "#ccd1d1"];
+
+        CGM -> EP_TIR; SAFEWIN -> EP_FAST; A_STAR -> EP_STAR;
+        ACIDOSIS -> EP_LAC; TG_PL -> EP_TG; UA -> EP_TG;
+        HEPATOM -> EP_LIV; HCA_N -> EP_LIV; CKD_N -> EP_REN;
+        GROWTH -> EP_GROW; OSTEOP -> EP_GROW; NEUTRO -> EP_ANC;
+        DRIP -> EP_QOL; GLYCOSADE -> EP_QOL;
+        HCC_N -> EP_SURV; CKD_N -> EP_SURV; SEIZ -> EP_SURV;
+    }
+
+    /* =====================================================================
+       CROSS-CLUSTER EDGES
+       ================================================================== */
+    ENZ_ACT -> BLOCK [label = "a(t) reopens\nthis arrow", color = "#2471a3", style = bold, penwidth = 1.8];
+    GLYCOGEN -> AGL [label = "α-1,6 branch density\nsets residual EGP", color = "#1e8449", style = dashed];
+    G6P -> GNG [label = "product inhibition", arrowhead = tee, style = dashed];
+    INSULIN -> LPL [label = "+"];
+    FFA_POOL -> CPT1;
+    HEPATOM -> BLEEDT [style = dotted];
+    LAC_CNS -> SEIZ [label = "raises the\ntolerated glucose", arrowhead = tee, color = "#1e8449", penwidth = 1.6];
+    EMPA -> RENAL_GL [label = "lowers threshold"];
+    OVERFEED -> TG_LIV [style = dashed, color = "#c0392b"];
+    UCCS -> RESIST [style = dotted];
+    A_STAR -> EP_FAST;
+}
