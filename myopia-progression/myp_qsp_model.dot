@@ -1,0 +1,672 @@
+/* =====================================================================
+   myp_qsp_model.dot
+   Progressive (school) myopia and its pharmacological / optical control
+   Quantitative Systems Pharmacology mechanistic map
+
+   THE ORGANISING IDEA OF THIS MAP
+   -------------------------------
+   Spherical-equivalent refraction is NOT a node you can draw an arrow into.
+   It is the arithmetic difference between the eye's LENGTH and the eye's
+   total optical POWER, and those two quantities are produced by separate,
+   independently regulated machinery:
+
+       SER  =  f( axial length , corneal power , crystalline lens power )
+
+   The map is therefore laid out so that the three optical elements enter one
+   OPTICS cluster from three different directions, and so that every drug and
+   every lens design can be traced to the ONE element it actually moves.
+   Almost everything in myopia control moves element 1 (axial length) through
+   a single final common path -- posterior scleral creep under intra-ocular
+   pressure -- while the measured endpoint (refraction) is contaminated by
+   element 3 (the lens), which no treatment touches.
+
+   Two further structural commitments are drawn explicitly:
+
+   (a) TWO ACTUATORS, TWO TIME CONSTANTS.  The choroid (days, reversible,
+       tens of microns) and the sclera (months, cumulative, millimetres)
+       both change the distance from cornea to photoreceptors, and a
+       biometer cannot tell them apart.  Every "axial length" arrow in this
+       map is labelled with which of the two it comes from.
+
+   (b) TWO MUSCARINIC SITES THREE LOG UNITS APART.  The anterior sites
+       (iris sphincter, ciliary muscle) and the posterior growth-control
+       site have very different apparent affinities, which is why atropine's
+       efficacy and its side effects have different dose-response slopes and
+       cannot be separated by dose alone.
+
+   Rendering:
+     dot -Tsvg myp_qsp_model.dot -o myp_qsp_model.svg
+     dot -Tpng -Gdpi=150 myp_qsp_model.dot -o myp_qsp_model.png
+   ===================================================================== */
+
+digraph MyopiaQSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = true;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b>Progressive Myopia &#8212; QSP mechanistic map</b><br/>
+<i>refraction as the difference between axial length and total ocular power &#183;
+choroid vs sclera as two actuators on one measurement &#183;
+two muscarinic sites three log units apart</i>>;
+    fontsize = 26;
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica",
+          fontsize=10, margin="0.09,0.05", penwidth=1.1];
+    edge [fontname="Helvetica", fontsize=8, arrowsize=0.62, penwidth=1.0,
+          color="#5a6472"];
+
+    /* ---------- palette ------------------------------------------------ */
+    /* risk / environment  #e8eef7   signal  #e3f2ee   choroid #fdeee0
+       sclera #f6e6f2         biometry #e6ecfa   optics  #dfeaff
+       drug PK #fff6da        drug PD  #ffe9e6   device  #eaf7e1
+       endpoint #f1f1f1       complication #fde3e3  biomarker #eef7fb   */
+
+/* =====================================================================
+   1. GENETIC AND DEMOGRAPHIC SUSCEPTIBILITY
+   ===================================================================== */
+subgraph cluster_gen {
+    label = "1. Genetic & demographic susceptibility";
+    style = "filled"; fillcolor = "#f7f9fc"; color = "#9fb0c9"; fontsize = 13;
+    node [fillcolor="#e8eef7", color="#7a8fae"];
+
+    GWAS   [label="GWAS loci (>450)\nGJD2 · RASGRF1 · LAMA2\nBMP2 · KCNQ5 · PRSS56"];
+    GRS    [label="polygenic risk score\n(explains ~18% of variance)"];
+    PARENT [label="parental myopia\n0 / 1 / 2 affected parents"];
+    ETHN   [label="ancestry\nEast Asian ≫ European\n(prevalence 80% vs 30%)"];
+    AGEON  [label="AGE AT ONSET\nearlier onset → longer\nexposure to the growth window"];
+    SEX    [label="sex\n(female slightly earlier onset)"];
+    SYND   [label="syndromic / high myopia genes\nCOL2A1 (Stickler) · FBN1 (Marfan)\nARR3 · LRPAP1 · CTSH"];
+    PLAST  [label="PLASTICITY ENVELOPE  Φ(age)\nΦ = exp(−(age−7)/τ_age)\nsets how much of the growth\nintegral is still protectable",
+            fillcolor="#cfe0f5", penwidth=2.0];
+
+    GWAS -> GRS; PARENT -> GRS; SYND -> GRS;
+    GRS -> AGEON; ETHN -> AGEON; SEX -> AGEON;
+    AGEON -> PLAST [label="earlier onset =\nhigher Φ remaining"];
+}
+
+/* =====================================================================
+   2. VISUAL ENVIRONMENT
+   ===================================================================== */
+subgraph cluster_env {
+    label = "2. Visual environment (the modifiable input)";
+    style = "filled"; fillcolor = "#f7f9fc"; color = "#9fb0c9"; fontsize = 13;
+    node [fillcolor="#e8eef7", color="#7a8fae"];
+
+    OUTD  [label="time outdoors\nh/day (1.0 → 1.67 in\nthe 40-min trials)"];
+    LUX   [label="retinal illuminance\n10 000 lux outdoors vs\n300 lux indoors"];
+    NEARW [label="near work\nh/day · reading distance\n· continuous bout length"];
+    EDU   [label="educational intensity\n(Mendelian-randomisation\nevidence for causality)"];
+    URBAN [label="urbanisation\nliving space · screen time"];
+    SEASON[label="seasonal variation\nfaster progression in winter"];
+    SLEEP [label="sleep & circadian phase\ndisrupted diurnal AL rhythm"];
+    CHROM [label="chromatic environment\nLCA cue: red-defocused vs\nblue-defocused ambient"];
+
+    OUTD -> LUX; URBAN -> OUTD [label="−"]; SEASON -> LUX;
+    EDU -> NEARW; URBAN -> NEARW; NEARW -> EDU [style=dashed];
+    SLEEP -> LUX [style=dashed];
+}
+
+/* =====================================================================
+   3. RETINAL IMAGE FORMATION -- WHERE THE DEFOCUS SIGNAL IS BORN
+   ===================================================================== */
+subgraph cluster_img {
+    label = "3. Retinal image formation & the defocus signal";
+    style = "filled"; fillcolor = "#f4f8ff"; color = "#8fa8cf"; fontsize = 13;
+    node [fillcolor="#dfeaff", color="#7089b5"];
+
+    CORPOW [label="corneal power\nP_c = (n−1)/r\n≈ 43 D, static after age 3"];
+    LENPOW [label="crystalline lens power\n22.6 D at age 7, falling\n0.2–0.4 D/yr (LENS COMPENSATION)"];
+    AXL    [label="AXIAL LENGTH\ncornea → photoreceptor", fillcolor="#b9d2f7", penwidth=2.0];
+    FOCUS  [label="conjugate focal plane\nn_vit/(AL − d_H)"];
+    DEFC   [label="CENTRAL defocus\naccommodative lag at near\n(+0.5 to +1.2 D hyperopic)"];
+    DEFP   [label="PERIPHERAL defocus\nrelative peripheral refraction\nat 20–40° eccentricity",
+            fillcolor="#b9d2f7", penwidth=2.0];
+    PROLATE[label="prolate eye shape\naxial > equatorial growth →\nrelative peripheral HYPEROPIA"];
+    ACCLAG [label="accommodative lag\nlarger in myopes;\nabolished by cycloplegia"];
+    PUPIL  [label="pupil diameter\nsets depth of focus and\nthe area of imposed defocus"];
+    HOA    [label="higher-order aberrations\nspherical aberration ·\ncoma · contrast of the signal"];
+    LCA    [label="longitudinal chromatic\naberration (sign-of-defocus cue)"];
+    STIMSN [label="SIGNED DEFOCUS RESPONSE\nhyperopic → GO (saturating)\nmyopic → STOP (stronger)\nresp(D)=k·D/(1+|D|/D_sat)",
+            fillcolor="#a8c6f2", penwidth=2.2];
+
+    CORPOW -> FOCUS; LENPOW -> FOCUS; AXL -> FOCUS [label="element 1"];
+    FOCUS -> DEFC; FOCUS -> DEFP;
+    PROLATE -> DEFP [label="+ hyperopic\nin the periphery"];
+    ACCLAG -> DEFC; PUPIL -> DEFC [label="depth of focus"];
+    HOA -> STIMSN [style=dashed]; LCA -> STIMSN [style=dashed];
+    DEFC -> STIMSN [label="weight 0.30\n× near-work duty"];
+    DEFP -> STIMSN [label="weight 0.70\n(peripheral retina dominates)"];
+}
+
+/* =====================================================================
+   4. RETINAL DETECTION AND THE STOP/GO NETWORK
+   ===================================================================== */
+subgraph cluster_ret {
+    label = "4. Retinal detection & the STOP / GO network";
+    style = "filled"; fillcolor = "#f2fbf8"; color = "#8cc0b2"; fontsize = 13;
+    node [fillcolor="#e3f2ee", color="#6ea99a"];
+
+    CONE   [label="cone photoreceptors\nL/M/S contrast coding"];
+    IPRGC  [label="ipRGC / melanopsin\nOPN4 — ambient light integrator"];
+    BIPOL  [label="ON / OFF bipolar pathway\nasymmetric defocus decoding"];
+    AMAC   [label="amacrine cells\n(dopaminergic + glucagonergic)"];
+    DOPA   [label="RETINAL DOPAMINE\nlight-driven; D1/D2 receptors",
+            fillcolor="#c5e6dd", penwidth=2.0];
+    GLUC   [label="glucagon amacrine cells\nZENK / EGR-1 = STOP signal",
+            fillcolor="#c5e6dd", penwidth=2.0];
+    VIP    [label="VIP amacrine cells\nGO-associated"];
+    ZENK   [label="ZENK / EGR-1 expression\n↑ myopic defocus\n↓ hyperopic defocus"];
+    MELAT  [label="melatonin\ncircadian antiphase to dopamine"];
+    NOSRET [label="retinal NO (nNOS)\nrequired for the STOP signal\n(L-NAME blocks it)"];
+    GABA   [label="GABAergic modulation\nGABA-A/C antagonists slow myopia"];
+    MUSRET [label="retinal muscarinic receptors\nM1 / M4 on amacrine cells",
+            fillcolor="#c5e6dd"];
+    ADENR  [label="adenosine A1 / A2A\nreceptors (7-MX target)"];
+    RETCH  [label="retina → choroid\nrelay signal"];
+
+    CONE -> BIPOL; IPRGC -> DOPA [label="light → dopamine\nrelease"];
+    BIPOL -> AMAC; AMAC -> DOPA; AMAC -> GLUC; AMAC -> VIP;
+    GLUC -> ZENK; ZENK -> RETCH [label="STOP"];
+    VIP -> RETCH [label="GO"];
+    DOPA -> GLUC [label="+ STOP"]; DOPA -> MELAT [dir=both, style=dashed];
+    NOSRET -> RETCH [label="STOP"]; GABA -> AMAC [style=dashed];
+    MUSRET -> AMAC [style=dashed]; ADENR -> AMAC [style=dashed];
+}
+
+/* =====================================================================
+   5. RPE RELAY
+   ===================================================================== */
+subgraph cluster_rpe {
+    label = "5. Retinal pigment epithelium relay";
+    style = "filled"; fillcolor = "#f2fbf8"; color = "#8cc0b2"; fontsize = 13;
+    node [fillcolor="#e3f2ee", color="#6ea99a"];
+
+    RPE   [label="RPE monolayer\nobligatory relay: retina cannot\nreach sclera except through here"];
+    RAALD [label="RALDH2 → ALL-TRANS\nRETINOIC ACID\n↑ with GO signal",
+           fillcolor="#c5e6dd", penwidth=2.0];
+    RPEDA [label="RPE dopamine receptors\nD2-like"];
+    RPEMU [label="RPE muscarinic receptors\nM1 / M3"];
+    RPEBR [label="RPE barrier & ion transport\nchoroidal osmotic control"];
+    RPEZO [label="ZO-1 / tight junctions"];
+    RPEBMP[label="BMP2 / BMP4 from RPE\n↓ with hyperopic defocus"];
+
+    RPE -> RAALD; RPE -> RPEBR; RPEBR -> RPEZO;
+    RPEDA -> RPE; RPEMU -> RPE; RPE -> RPEBMP;
+}
+
+/* =====================================================================
+   6. CHOROID -- THE FAST, REVERSIBLE ACTUATOR
+   ===================================================================== */
+subgraph cluster_chor {
+    label = "6. Choroid — the FAST (days), REVERSIBLE actuator";
+    style = "filled"; fillcolor = "#fff7ef"; color = "#d8a875"; fontsize = 13;
+    node [fillcolor="#fdeee0", color="#c9955f"];
+
+    CHT   [label="CHOROIDAL THICKNESS\n300 µm at age 7\n−25 µm per mm of axial length\nτ ≈ 5 days",
+           fillcolor="#fbd9b6", penwidth=2.2];
+    CBF   [label="choroidal blood flow\n& perfusion"];
+    CHNO  [label="choroidal NO / eNOS\nvasodilation, thickening"];
+    CHOSM [label="osmotic / proteoglycan\nwater flux across choroid"];
+    CHLYM [label="non-vascular smooth muscle\n& lymphatic lacunae"];
+    CHHIF [label="choroidal hypoxia → HIF-1α\n(thin choroid ⇒ hypoxic sclera)",
+           fillcolor="#fbd9b6"];
+    CHGF  [label="choroid-derived growth factors\nreaching the sclera\n(TGF-β, FGF-2, ovotransferrin)"];
+    CHDIU [label="diurnal choroidal rhythm\nantiphase to the axial rhythm"];
+    CHMEAS[label="MEASUREMENT ARTEFACT\nbiometry reads cornea → RPE, so\n+10 µm of choroid looks like\n−0.010 mm of axial length",
+           fillcolor="#f8c48f", penwidth=2.0];
+
+    CHT -> CBF; CBF -> CHNO [dir=both]; CHNO -> CHT [label="+"];
+    CHOSM -> CHT; CHLYM -> CHT; CHDIU -> CHT [style=dashed];
+    CBF -> CHHIF [label="↓ flow → hypoxia"];
+    CHHIF -> CHGF; CHT -> CHGF;
+    CHT -> CHMEAS [label="direct optical\ncontribution", penwidth=1.8];
+}
+
+/* =====================================================================
+   7. SCLERA -- FIBROBLAST AND MATRIX BIOLOGY
+   ===================================================================== */
+subgraph cluster_scl {
+    label = "7. Posterior sclera — fibroblast & extracellular matrix";
+    style = "filled"; fillcolor = "#fbf2f9"; color = "#c691bc"; fontsize = 13;
+    node [fillcolor="#f6e6f2", color="#b578a9"];
+
+    SFIB  [label="scleral fibroblast\n→ myofibroblast\ntransdifferentiation (α-SMA)"];
+    TGFB  [label="TGF-β1 / β2\nDOWN-regulated in myopic sclera",
+           fillcolor="#eccfe6", penwidth=2.0];
+    SMAD  [label="SMAD2/3 signalling"];
+    MMP2  [label="MMP-2 (active)\nUP in myopic sclera",
+           fillcolor="#eccfe6", penwidth=2.0];
+    MMP14 [label="MMP-14 / MT1-MMP\npro-MMP-2 activation"];
+    TIMP2 [label="TIMP-2\nDOWN in myopic sclera",
+           fillcolor="#eccfe6", penwidth=2.0];
+    MTR   [label="MMP-2 : TIMP-2 BALANCE\nthe single scalar that sets\nmatrix turnover direction",
+           fillcolor="#e0b6d6", penwidth=2.2];
+    COL1  [label="collagen type I\nfibril diameter & density ↓"];
+    GAG   [label="aggrecan / decorin /\nbiglycan proteoglycans ↓"];
+    LOX   [label="lysyl oxidase crosslinks\n(target of scleral crosslinking)"];
+    INTEG [label="integrin α2β1 / α5β1\nmechanotransduction"];
+    HIFSC [label="scleral HIF-1α\nhypoxia-driven myofibroblast loss\nand matrix breakdown"];
+    HYPOX [label="scleral hypoxia\n(Wu 2018: hypoxia is\nsufficient to induce myopia)"];
+    ADM   [label="adenosine / A2A signalling\nin scleral fibroblasts"];
+    MUSSC [label="scleral muscarinic receptors\nM1 · low-affinity site for atropine",
+           fillcolor="#eccfe6"];
+    DOPSC [label="scleral dopamine D2\nreceptors"];
+
+    TGFB -> SMAD -> SFIB; SFIB -> COL1 [label="+"]; SFIB -> GAG [label="+"];
+    TGFB -> TIMP2 [label="+"]; TGFB -> LOX [label="+"];
+    MMP14 -> MMP2 [label="activates"];
+    MMP2 -> MTR; TIMP2 -> MTR [label="−"];
+    MTR -> COL1 [label="− degradation"]; MTR -> GAG [label="− degradation"];
+    HYPOX -> HIFSC -> MMP2 [label="+"]; HIFSC -> SFIB [label="−"];
+    INTEG -> SFIB [style=dashed]; ADM -> SFIB [style=dashed];
+    MUSSC -> MTR [style=dashed]; DOPSC -> MTR [style=dashed];
+}
+
+/* =====================================================================
+   8. SCLERAL BIOMECHANICS -- THE FINAL COMMON PATH
+   ===================================================================== */
+subgraph cluster_bio {
+    label = "8. Scleral biomechanics — the FINAL COMMON PATH (months)";
+    style = "filled"; fillcolor = "#fbf2f9"; color = "#c691bc"; fontsize = 13;
+    node [fillcolor="#f6e6f2", color="#b578a9"];
+
+    CREEP [label="SCLERAL CREEP RATE\ntime-dependent viscoelastic\nstretch under load\nτ ≈ 20 days",
+           fillcolor="#e0b6d6", penwidth=2.4];
+    IOP   [label="intra-ocular pressure\n15–16 mmHg — the LOAD\n(creep needs a force)"];
+    SCT   [label="posterior scleral thickness\n1000 µm → <500 µm\nin high myopia"];
+    STRESS[label="circumferential wall stress\nσ = P·r / 2t  (Laplace)\nrises as r ↑ and t ↓",
+           fillcolor="#e0b6d6", penwidth=2.0];
+    VICIRC[label="MECHANICAL VICIOUS CIRCLE\nlonger + thinner ⇒ more stress\n⇒ more creep ⇒ longer",
+           fillcolor="#d3a0c8", penwidth=2.2];
+    STAPH [label="posterior staphyloma\nlocalised outpouching, AL > 26.5 mm"];
+    DEFORM[label="optic disc tilt · peripapillary\natrophy · gamma / delta zone"];
+
+    IOP -> CREEP [label="load", penwidth=1.6];
+    CREEP -> STRESS [style=dashed];
+    SCT -> STRESS [label="thinner ⇒ higher σ"];
+    STRESS -> CREEP [label="+"]; CREEP -> VICIRC; STRESS -> VICIRC;
+    VICIRC -> CREEP [label="positive feedback", penwidth=1.6];
+    SCT -> STAPH; STAPH -> DEFORM;
+}
+
+/* =====================================================================
+   9. OCULAR BIOMETRY AND THE OPTICS OF THE OUTCOME
+   ===================================================================== */
+subgraph cluster_biom {
+    label = "9. Ocular biometry → refraction (the OUTPUT identity)";
+    style = "filled"; fillcolor = "#f4f6fd"; color = "#94a3d0"; fontsize = 13;
+    node [fillcolor="#e6ecfa", color="#7b8cbe"];
+
+    VCD   [label="vitreous chamber depth\nwhere essentially ALL myopic\nelongation occurs"];
+    ACD   [label="anterior chamber depth\n3.60 mm, +0.012 mm/yr\n(atropine deepens it)"];
+    LT    [label="lens thickness\n3.45 mm, thinning then\nthickening after ~age 10"];
+    CR    [label="corneal radius\n7.80 mm (ortho-K flattens\nthe central cornea)"];
+    ALCR  [label="AL / CR RATIO\n>3.0 ⇒ myopia even when\nrefraction is still plano",
+           fillcolor="#c9d5f2"];
+    OPTID [label="OPTICS IDENTITY (exact paraxial)\nL2 = n_vit/(AL−d1) − P_lens\nF_c = L2/(1+d1·L2/n) − P_cornea\nSER = F_c/(1+0.012·F_c)",
+           fillcolor="#b6c6ef", penwidth=2.4];
+    DSDA  [label="dSER/dAL ≈ −2.8 D/mm\nDERIVED, not assumed;\nfalls in longer eyes at the\ncorneal plane but the vertex\nconversion nearly cancels it",
+           fillcolor="#c9d5f2", penwidth=2.0];
+    LENSCOMP [label="LENS COMPENSATION\n−0.2 to −0.4 D/yr of lens power\nloss offsets axial elongation.\nNo treatment touches it, so it\nBIASES every SER endpoint",
+           fillcolor="#c9d5f2", penwidth=2.2];
+
+    VCD -> OPTID; ACD -> OPTID; LT -> OPTID; CR -> OPTID;
+    CR -> ALCR; LENSCOMP -> OPTID [label="element 3"];
+    OPTID -> DSDA;
+}
+
+/* =====================================================================
+   10. CRYSTALLINE LENS AND EMMETROPIZATION
+   ===================================================================== */
+subgraph cluster_lens {
+    label = "10. Crystalline lens — the second, forgotten regulator";
+    style = "filled"; fillcolor = "#f4f6fd"; color = "#94a3d0"; fontsize = 13;
+    node [fillcolor="#e6ecfa", color="#7b8cbe"];
+
+    LEQGR [label="lens equatorial growth\nstretches the lens thinner"];
+    LTHIN [label="lens thinning & flattening\nage 6 → 10"];
+    LGRIN [label="gradient refractive index\nredistribution"];
+    LSTOP [label="CESSATION of lens\ncompensation near myopia onset\n(Mutti 2012)"];
+    EMMET [label="EMMETROPIZATION\nnormal childhood: +0.10 mm/yr of\naxial growth (−0.28 D) is cancelled\nby −0.30 D/yr of lens power.\nStability is CANCELLATION, not stasis",
+           fillcolor="#c9d5f2", penwidth=2.2];
+    CILREL[label="chronic ciliary relaxation\n(cycloplegia) → lens flattens →\nextra hyperopic shift"];
+
+    LEQGR -> LTHIN -> LGRIN; LTHIN -> EMMET; LSTOP -> EMMET [label="−"];
+    CILREL -> LTHIN [label="+"];
+}
+
+/* =====================================================================
+   11. ACCOMMODATION AND THE CILIARY MUSCLE
+   ===================================================================== */
+subgraph cluster_acc {
+    label = "11. Accommodation & ciliary muscle";
+    style = "filled"; fillcolor = "#f4f6fd"; color = "#94a3d0"; fontsize = 13;
+    node [fillcolor="#e6ecfa", color="#7b8cbe"];
+
+    CILM  [label="ciliary muscle\nM3 receptors, LOW pigment ⇒\nlower apparent Kd than iris"];
+    AAMP  [label="amplitude of accommodation\n13.4 D untreated"];
+    ACCRESP[label="accommodative response\n& AC/A ratio"];
+    ZONUL [label="zonular tension\n& choroidal traction"];
+    ACCLAG2[label="accommodative lag ↑\nwith cycloplegia (near blur)"];
+
+    CILM -> AAMP; AAMP -> ACCRESP; ACCRESP -> ACCLAG2 [label="−"];
+    CILM -> ZONUL;
+}
+
+/* =====================================================================
+   12. ATROPINE OCULAR AND SYSTEMIC PHARMACOKINETICS
+   ===================================================================== */
+subgraph cluster_pk {
+    label = "12. Atropine PK — topical, nightly (0.01% – 1%)";
+    style = "filled"; fillcolor = "#fffdf2"; color = "#d4bd6a"; fontsize = 13;
+    node [fillcolor="#fff6da", color="#c0a648"];
+
+    DROP  [label="30 µL drop QHS\n0.01% = 10.4 nmol\n1%    = 1037 nmol"];
+    TEAR  [label="precorneal tear film 7 µL\nt½ = 2 min (turnover swamps\neverything else)"];
+    CORNP [label="cornea\n~2.3% transcorneal\nbioavailability"];
+    AQH   [label="aqueous humour 250 µL\nturnover 2.5 µL/min"];
+    IRISC [label="iris / ciliary body\nMELANIN BINDING\n(f_u ≈ 0.02 in dark irides)",
+           fillcolor="#fbeeb4", penwidth=2.0];
+    VITR  [label="vitreous 4 mL\npoor anterior→posterior\ntransfer"];
+    PERIOC[label="PERIOCULAR / TRANSSCLERAL route\nconjunctiva → sclera → choroid\nthe only meaningful path to the\nposterior growth-control site",
+           fillcolor="#fbeeb4", penwidth=2.0];
+    CHORD [label="choroid / RPE drug\nwell perfused, t½ ≈ 40 min"];
+    SCLD  [label="scleral drug depot"];
+    NASO  [label="nasolacrimal drainage\nF_sys ≈ 0.08"];
+    PLASM [label="plasma\nC_max 8 pg/mL at 0.01%\n765 pg/mL at 1%\nt½ = 3 h"];
+    SYSAE [label="systemic anticholinergic\nload (dry mouth · flushing ·\nCNS at 1%)"];
+
+    DROP -> TEAR; TEAR -> CORNP [label="k_cor"]; TEAR -> NASO [label="k_drain"];
+    TEAR -> PERIOC [label="k_tsc"];
+    CORNP -> AQH; AQH -> IRISC [dir=both]; AQH -> VITR; VITR -> CHORD;
+    PERIOC -> SCLD; SCLD -> CHORD [dir=both]; CHORD -> PLASM;
+    NASO -> PLASM; PLASM -> SYSAE;
+}
+
+/* =====================================================================
+   13. ATROPINE PHARMACODYNAMICS -- TWO SITES, THREE LOG UNITS APART
+   ===================================================================== */
+subgraph cluster_pd {
+    label = "13. Atropine PD — the therapeutic-index problem, drawn";
+    style = "filled"; fillcolor = "#fff4f2"; color = "#dd9a90"; fontsize = 13;
+    node [fillcolor="#ffe9e6", color="#c9776c"];
+
+    OCCI  [label="ANTERIOR site 1: iris sphincter\napparent Kd high (melanin)\n→ MYDRIASIS", fillcolor="#ffd3cc"];
+    OCCC  [label="ANTERIOR site 2: ciliary muscle\napparent Kd ~3× lower\n→ CYCLOPLEGIA", fillcolor="#ffd3cc"];
+    OCCP  [label="POSTERIOR site: growth control\nEC50 in the µM range —\nTHREE LOG UNITS above the\nisolated-receptor Ki",
+           fillcolor="#ffc2b8", penwidth=2.2];
+    EATR  [label="fractional suppression of the\nGO limb  E = Emax·O/(K+O)"];
+    NONM  [label="non-muscarinic contributions\nα2-adrenergic · nitric oxide\n(atropine works in chick, whose\nciliary muscle is nicotinic)"];
+    MRUP  [label="MUSCARINIC RECEPTOR\nUP-REGULATION under chronic\nblockade, τ ≈ 90 days\n⇒ withdrawal supersensitivity",
+           fillcolor="#ffc2b8", penwidth=2.2];
+    REBOU [label="REBOUND on stopping\n= choroidal step (fast)\n+ receptor supersensitivity (slow)\nboth scale with dose",
+           fillcolor="#ffc2b8", penwidth=2.0];
+    TIDX  [label="THERAPEUTIC INDEX\nefficacy and side effects have\nDIFFERENT dose-response slopes,\nso the optimum is a ratio, not\na threshold",
+           fillcolor="#ffd3cc", penwidth=2.0];
+
+    OCCP -> EATR; NONM -> EATR [style=dashed];
+    EATR -> MRUP [label="chronic blockade"]; MRUP -> REBOU;
+    OCCI -> TIDX; OCCC -> TIDX; EATR -> TIDX;
+}
+
+/* =====================================================================
+   14. OPTICAL AND DEVICE TREATMENTS
+   ===================================================================== */
+subgraph cluster_dev {
+    label = "14. Optical treatments — all acting on ONE variable";
+    style = "filled"; fillcolor = "#f4fbee"; color = "#9cc47f"; fontsize = 13;
+    node [fillcolor="#eaf7e1", color="#7fae5f"];
+
+    SVL   [label="single-vision spectacles\nleave (or slightly worsen)\nperipheral hyperopic defocus"];
+    DIMS  [label="DIMS spectacles\n+3.50 D lenslet honeycomb\n≈ −1.2 D area-weighted"];
+    HALL  [label="HAL / highly aspherical\nlenslets ≈ −2.2 D"];
+    MISI  [label="MiSight dual-focus SCL\n+2.00 D zones ≈ −0.9 D"];
+    ORTHO [label="orthokeratology\ncentral epithelial thinning +\nmid-peripheral steepening,\nτ ≈ 5 days, fully reversible"];
+    PAL   [label="progressive addition lenses\n≈ −0.3 D (weak, historical)"];
+    UNDER [label="UNDER-correction\nHISTORICAL ERROR: adds central\nhyperopic defocus, accelerates"];
+    OKCONF[label="ORTHO-K CONFOUND\nit flattens the cornea, so the\nrefraction changes with NO axial\nchange — which is why ortho-K\ntrials can only use axial length",
+           fillcolor="#d6eec4", penwidth=2.0];
+    RLRL  [label="repeated low-level red light\n650 nm, 3 min BID\nphotobiomodulation"];
+    RLCHO [label="RLRL mechanism\ncytochrome-c oxidase → choroidal\nperfusion and thickening\n(largest reversible component)"];
+
+    SVL -> UNDER [style=dashed]; ORTHO -> OKCONF; RLRL -> RLCHO;
+}
+
+/* =====================================================================
+   15. PHARMACOLOGICAL AGENTS BEYOND ATROPINE
+   ===================================================================== */
+subgraph cluster_drug2 {
+    label = "15. Other pharmacology & experimental targets";
+    style = "filled"; fillcolor = "#fffdf2"; color = "#d4bd6a"; fontsize = 13;
+    node [fillcolor="#fff6da", color="#c0a648"];
+
+    MX7   [label="7-methylxanthine\n400 mg/day oral, adenosine\nantagonist (licensed in Denmark)"];
+    PIRE  [label="pirenzepine 2% gel\nM1-selective; worked but was\nnot commercialised"];
+    LDOPA [label="levodopa / dopamine agonists\n(preclinical)"];
+    XLINK [label="scleral crosslinking\ngenipin · riboflavin-UVA\n→ raises LOX crosslinks"];
+    ATRO2 [label="atropine formulations\nNVK002 preservative-free\n(CHAMP) · SYD-101"];
+    TIMOL [label="timolol / IOP lowering\n(removes the mechanical load —\ntried, largely ineffective)"];
+    ANTIH [label="anti-hypoxia strategies\n(HIF-1α inhibition, preclinical)"];
+
+    MX7 -> PIRE [style=invis];
+}
+
+/* =====================================================================
+   16. ADHERENCE AND TOLERABILITY -- THE FEEDBACK THAT SETS REAL DOSE
+   ===================================================================== */
+subgraph cluster_adh {
+    label = "16. Tolerability → adherence → effective dose (a real feedback loop)";
+    style = "filled"; fillcolor = "#f1f1f1"; color = "#9a9a9a"; fontsize = 13;
+    node [fillcolor="#eaeaea", color="#828282"];
+
+    PHOTO [label="photophobia\n∝ pupil dilation"];
+    NEARB [label="near blur\n∝ accommodation loss"];
+    SPECT [label="compensating spectacles\nphotochromic + progressive add\n(mandatory above ~0.1%)"];
+    ADH   [label="ADHERENCE\ndrops actually instilled / prescribed",
+           fillcolor="#dcdcdc", penwidth=2.0];
+    EFFD  [label="EFFECTIVE DOSE\n= prescribed × adherence\nthe loop that flattens the top of\nthe dose-response curve",
+           fillcolor="#dcdcdc", penwidth=2.0];
+    ALLER [label="allergic / toxic\nfollicular conjunctivitis"];
+
+    PHOTO -> ADH [label="−"]; NEARB -> ADH [label="−"]; ALLER -> ADH [label="−"];
+    SPECT -> PHOTO [label="−"]; SPECT -> NEARB [label="−"];
+    ADH -> EFFD;
+}
+
+/* =====================================================================
+   17. CLINICAL ENDPOINTS
+   ===================================================================== */
+subgraph cluster_end {
+    label = "17. Clinical endpoints & trial design";
+    style = "filled"; fillcolor = "#f1f1f1"; color = "#9a9a9a"; fontsize = 13;
+    node [fillcolor="#f7f7f7", color="#828282"];
+
+    SER   [label="cycloplegic spherical\nequivalent refraction (D)",
+           fillcolor="#e4e4e4", penwidth=2.0];
+    ALEND [label="axial length (mm)\nthe preferred endpoint —\nno lens contamination, no\ncycloplegia needed",
+           fillcolor="#e4e4e4", penwidth=2.0];
+    INCID [label="incident myopia\n(≤ −0.50 D) — the prevention\nendpoint"];
+    HIGHM [label="incidence of HIGH myopia\n(≤ −6.00 D) or AL ≥ 26 mm\nthe endpoint that matters"];
+    CARE  [label="CARE — cumulative absolute\nreduction in elongation.\nPLATEAUS after 2–3 years\n(Brennan 2021)",
+           fillcolor="#e4e4e4", penwidth=2.0];
+    PCTR  [label="percentage reduction\nUNSTABLE: depends on the control\ngroup's progression rate, so it is\nnot comparable across trials",
+           fillcolor="#e4e4e4"];
+    RESP  [label="responder analyses\n(proportion progressing < 0.5 D)"];
+    POWER [label="STATISTICAL POWER\nsmall absolute effects in slowly\nprogressing (European) cohorts\nneed hundreds per arm"];
+
+    ALEND -> CARE; CARE -> PCTR [style=dashed]; SER -> RESP;
+    ALEND -> HIGHM; SER -> HIGHM; SER -> INCID;
+    PCTR -> POWER [style=dashed];
+}
+
+/* =====================================================================
+   18. PATHOLOGIC MYOPIA -- WHY ANY OF THIS MATTERS
+   ===================================================================== */
+subgraph cluster_path {
+    label = "18. Pathologic myopia — the reason the millimetres are worth buying";
+    style = "filled"; fillcolor = "#fdf2f2"; color = "#d89090"; fontsize = 13;
+    node [fillcolor="#fde3e3", color="#c47070"];
+
+    MMD   [label="myopic macular degeneration\nMETA-PM 0 → 4\ntessellation → diffuse →\npatchy → macular atrophy"];
+    LACQ  [label="lacquer cracks →\npatchy chorioretinal atrophy"];
+    MCNV  [label="myopic choroidal\nneovascularisation (5–11%)"];
+    RD    [label="retinal detachment\nOR 3.2 (≤−3 D) → 12.9 (>−6 D)\n(Haarman 2020)"];
+    MTM   [label="myopic traction maculopathy\nretinoschisis · macular hole"];
+    GLAU  [label="open-angle glaucoma\nOR ≈ 2 in high myopia;\ndiagnosis confounded by disc tilt"];
+    CATA  [label="earlier nuclear cataract\nand earlier surgery"];
+    VI    [label="LIFETIME VISUAL IMPAIRMENT\nby axial length (Tideman 2016)\n<24 mm 1.2% · 24–26 3.8% ·\n26–28 25% · ≥30 90%",
+           fillcolor="#f9c8c8", penwidth=2.4];
+    CONVEX[label="RISK IS CONVEX IN AXIAL LENGTH\n1 mm costs 1.1 pp of lifetime VI\nat AL 23 but 22.8 pp at AL 28.\nEqual millimetres are NOT equal\nbenefit — which is why % reduction\nis the wrong currency",
+           fillcolor="#f9c8c8", penwidth=2.4];
+
+    MMD -> LACQ -> MCNV; MMD -> MTM;
+    MMD -> VI; MCNV -> VI; RD -> VI; MTM -> VI; GLAU -> VI; CATA -> VI;
+    VI -> CONVEX;
+}
+
+/* =====================================================================
+   19. BIOMARKERS AND MONITORING
+   ===================================================================== */
+subgraph cluster_bmk {
+    label = "19. Biomarkers & monitoring";
+    style = "filled"; fillcolor = "#f2f9fc"; color = "#8ab6c9"; fontsize = 13;
+    node [fillcolor="#eef7fb", color="#6b9cb2"];
+
+    IOLM  [label="optical biometry\n(IOLMaster / Lenstar)\nreproducibility ±0.02 mm"];
+    OCTCH [label="EDI-OCT choroidal thickness\nthe only way to separate the two\nactuators in a living child"];
+    AXPCT [label="axial length percentile charts\n(Sanz-Diez / Truckenbrod)"];
+    PERIRX[label="peripheral refraction mapping\n(open-field autorefraction)"];
+    PUPMES[label="pupillometry (photopic /\nmesopic) — adherence proxy"];
+    ACCMES[label="accommodative amplitude\n& lag measurement"];
+    CYCLO [label="cycloplegic autorefraction\n(mandatory in children)"];
+    DIURN [label="diurnal timing of biometry\nAL varies 20–40 µm across the day"];
+    ADHMON[label="electronic drop monitors\n/ bottle weighing"];
+
+    IOLM -> AXPCT; OCTCH -> IOLM [style=dashed]; DIURN -> IOLM [style=dashed];
+    PUPMES -> ADHMON [style=dashed];
+}
+
+/* =====================================================================
+   CROSS-CLUSTER WIRING -- the causal spine
+   ===================================================================== */
+
+/* environment and genetics into the drive */
+LUX      -> DOPA    [label="10 000 lux ⇒ dopamine\nrelease", penwidth=1.7, color="#2f7d63"];
+NEARW    -> ACCLAG  [color="#2f7d63"];
+NEARW    -> DEFC    [label="duty cycle", style=dashed];
+PLAST    -> CREEP   [label="Φ(age) gates ALL growth", penwidth=2.0, color="#3b5aa0"];
+GRS      -> MTR     [label="constitutive drive", style=dashed, color="#3b5aa0"];
+ETHN     -> STIMSN  [label="baseline drive", style=dashed];
+
+/* the signal path: retina -> RPE -> choroid -> sclera */
+STIMSN   -> AMAC    [label="defocus decoded", penwidth=1.8, color="#2f7d63"];
+DOPA     -> RPE     [label="D2 relay", color="#2f7d63"];
+RETCH    -> RPE     [penwidth=1.6, color="#2f7d63"];
+RAALD    -> MTR     [label="retinoic acid ⇒\nmatrix turnover", penwidth=1.9, color="#a05a95"];
+RAALD    -> GAG     [label="− proteoglycan\nsynthesis", style=dashed, color="#a05a95"];
+RPEBR    -> CHOSM   [color="#c9955f"];
+RPEBMP   -> SFIB    [style=dashed];
+CHGF     -> TGFB    [label="choroid → sclera", penwidth=1.7, color="#c9955f"];
+CHHIF    -> HYPOX   [label="thin choroid ⇒\nhypoxic sclera", penwidth=1.8, color="#c9955f"];
+NOSRET   -> CHNO    [color="#2f7d63"];
+
+/* sclera -> biomechanics -> axial length */
+MTR      -> CREEP   [label="matrix turnover ⇒\nviscoelastic creep", penwidth=2.2, color="#a05a95"];
+GAG      -> CREEP   [label="−", color="#a05a95"];
+COL1     -> CREEP   [label="−", color="#a05a95"];
+LOX      -> CREEP   [label="− (crosslinks resist)", color="#a05a95"];
+HIFSC    -> CREEP   [style=dashed, color="#a05a95"];
+CREEP    -> VCD     [label="THE growth term", penwidth=2.4, color="#7b3f70"];
+CREEP    -> SCT     [label="stretch-thinning"];
+VCD      -> AXL     [penwidth=2.0, color="#3b5aa0"];
+CHMEAS   -> AXL     [label="the SAME measurement,\na different tissue", penwidth=2.0, style=dashed, color="#c9955f"];
+AXL      -> ALEND   [penwidth=1.8];
+AXL      -> PROLATE [label="axial ≫ equatorial", color="#3b5aa0"];
+AXL      -> CHT     [label="−25 µm per mm", style=dashed];
+AXL      -> STRESS  [label="r ↑ ⇒ σ ↑", penwidth=1.6];
+
+/* the optics identity */
+AXL      -> OPTID   [penwidth=2.0, color="#3b5aa0"];
+LENPOW   -> LENSCOMP[penwidth=1.8, color="#3b5aa0"];
+CORPOW   -> OPTID   [label="element 2"];
+EMMET    -> LENPOW  [color="#3b5aa0"];
+LTHIN    -> LT      ;
+OPTID    -> SER     [penwidth=2.2];
+SER      -> LSTOP   [label="onset switches lens\ncompensation off", style=dashed];
+SER      -> PROLATE [label="more myopia ⇒ more\nrelative peripheral hyperopia", style=dashed, color="#3b5aa0"];
+CR       -> CORPOW  ;
+
+/* atropine: PK -> the three sites -> effects */
+IRISC    -> OCCI    [penwidth=1.7, color="#b8564a"];
+IRISC    -> OCCC    [penwidth=1.7, color="#b8564a"];
+SCLD     -> OCCP    [label="the only route that\nmatters for efficacy", penwidth=2.0, color="#b8564a"];
+CHORD    -> OCCP    [penwidth=1.5, color="#b8564a"];
+OCCI     -> PUPIL   [label="mydriasis", penwidth=1.7, color="#b8564a"];
+OCCI     -> PHOTO   [color="#b8564a"];
+OCCC     -> CILM    [penwidth=1.7, color="#b8564a"];
+OCCC     -> CILREL  [color="#b8564a"];
+AAMP     -> NEARB   [label="−"];
+ACCLAG2  -> ACCLAG  [label="cycloplegia adds\ncentral hyperopic defocus", style=dashed, color="#b8564a"];
+EATR     -> RAALD   [label="suppresses the GO limb", penwidth=2.2, color="#b8564a"];
+EATR     -> MUSSC   [style=dashed, color="#b8564a"];
+EATR     -> CHT     [label="+ choroidal thickening\n(+12 µm at 0.01%)", penwidth=1.6, color="#b8564a"];
+MRUP     -> RAALD   [label="withdrawal\nsupersensitivity", style=dashed, penwidth=1.6, color="#b8564a"];
+EFFD     -> OCCP    [label="the dose that actually\nreaches the eye", penwidth=1.7];
+DROP     -> EFFD    [style=dashed];
+SYSAE    -> ADH     [style=dashed];
+
+/* devices into the ONE defocus variable */
+DIMS     -> DEFP    [label="imposed myopic defocus", penwidth=1.8, color="#568c3a"];
+HALL     -> DEFP    [penwidth=1.8, color="#568c3a"];
+MISI     -> DEFP    [penwidth=1.8, color="#568c3a"];
+ORTHO    -> DEFP    [penwidth=1.8, color="#568c3a"];
+PAL      -> DEFP    [color="#568c3a"];
+SVL      -> DEFP    [label="+0.15 D (slightly worse)", color="#568c3a"];
+UNDER    -> DEFC    [label="+ central hyperopic\ndefocus", color="#568c3a"];
+ORTHO    -> CR      [label="central flattening", color="#568c3a"];
+DIMS     -> HOA     [style=dashed];
+RLCHO    -> CBF     [label="+ perfusion", penwidth=1.8, color="#568c3a"];
+RLCHO    -> CHT     [label="+30–50 µm — mostly\nREVERSIBLE", penwidth=1.8, color="#568c3a"];
+RLRL     -> RAALD   [label="also suppresses the\nGO limb", style=dashed, color="#568c3a"];
+OUTD     -> LUX     [penwidth=1.6];
+
+/* other drugs */
+MX7      -> ADENR   [label="A1/A2A antagonism", color="#c0a648"];
+MX7      -> ADM     [style=dashed, color="#c0a648"];
+PIRE     -> MUSRET  [label="M1-selective", color="#c0a648"];
+LDOPA    -> DOPA    [style=dashed, color="#c0a648"];
+XLINK    -> LOX     [label="+ crosslinks ⇒\nstiffer sclera", penwidth=1.7, color="#c0a648"];
+TIMOL    -> IOP     [label="− load (ineffective\nin practice)", style=dashed, color="#c0a648"];
+ANTIH    -> HIFSC   [label="−", style=dashed, color="#c0a648"];
+ATRO2    -> DROP    [style=dashed, color="#c0a648"];
+
+/* endpoints and outcomes */
+ALEND    -> VI      [label="the ONLY variable that\nprices the outcome", penwidth=2.2, color="#b85a5a"];
+SER      -> RD      [penwidth=1.6, color="#b85a5a"];
+SER      -> GLAU    [color="#b85a5a"];
+SER      -> CATA    [color="#b85a5a"];
+STAPH    -> MMD     [penwidth=1.8, color="#b85a5a"];
+SCT      -> LACQ    [color="#b85a5a"];
+DEFORM   -> GLAU    [style=dashed];
+DSDA     -> PCTR    [label="the D/mm conversion is\nwhere trials disagree", style=dashed];
+LENSCOMP -> SER     [label="BIAS on the refractive\nendpoint",
+                     penwidth=1.8, style=dashed, color="#3b5aa0"];
+OKCONF   -> SER     [label="refraction changes with\nNO axial change", style=dashed, color="#568c3a"];
+PLAST    -> CARE    [label="the plateau comes from the\nAGE envelope, not the drug", penwidth=1.8, style=dashed, color="#3b5aa0"];
+CONVEX   -> HIGHM   [style=dashed, color="#b85a5a"];
+REBOU    -> ALEND   [label="washout-year\nacceleration", style=dashed, color="#b8564a"];
+
+/* monitoring */
+IOLM     -> ALEND   [style=dashed];
+OCTCH    -> CHT     [style=dashed];
+CYCLO    -> SER     [style=dashed];
+PERIRX   -> DEFP    [style=dashed];
+PUPMES   -> OCCI    [style=dashed];
+ACCMES   -> AAMP    [style=dashed];
+DIURN    -> CHDIU   [style=dashed];
+}
