@@ -1,0 +1,666 @@
+/*
+ * mbi_qsp_model.dot -- Major Thermal Burn Injury: mechanistic QSP map
+ * ===================================================================
+ * ONE insult, TWO clocks, and a CONTROLLER whose gain decays while it works.
+ *
+ * The map is laid out around three quantitative statements rather than
+ * around organ systems, because those statements are the model:
+ *
+ * (1) THE PRODUCT.  Intravascular volume is not what you infuse; it is
+ *
+ *          dVP = V_infused x f_ret ,      f_ret = f_ret( Pi_p )
+ *
+ *     and Pi_p (plasma colloid osmotic pressure) is a CONVEX function of
+ *     protein concentration -- Landis-Pappenheimer,
+ *
+ *          Pi = 2.1 C + 0.16 C^2 + 0.009 C^3      [C in g/dL, Pi in mmHg]
+ *
+ *     so halving total protein 7.0 -> 3.5 g/dL costs 25.6 -> 9.7 mmHg,
+ *     a 62% loss of oncotic pressure for a 50% dilution.  Every litre of
+ *     protein-free crystalloid therefore costs MORE than the litre before
+ *     it.  f_ret falls as the resuscitation proceeds.
+ *
+ * (2) THE CONTROLLER.  Burn resuscitation is a closed loop: the protocol
+ *     titrates infusion rate to urine output.
+ *
+ *          R(t+1) = R(t) . [ 1 + g . (UO_target - UO) / UO_target ]
+ *
+ *     Loop gain = dUO/dR = (dUO/dVP) . f_ret.  Because f_ret decays with
+ *     cumulative crystalloid (statement 1), the controller must push R
+ *     ever higher to hold the same UO.  "Fluid creep" is not a dosing
+ *     error -- it is the fixed point of a controller with decaying gain.
+ *     Its morbidity (abdominal / extremity compartment syndrome, ARDS,
+ *     ocular hypertension) is the price of that fixed point.
+ *     Colloid does not act by adding volume; it acts by RESTORING f_ret,
+ *     which is why albumin's signal in trials is a lower in:out ratio
+ *     rather than better haemodynamics.
+ *
+ * (3) THE TWO CLOCKS.  The same %TBSA drives two processes whose time
+ *     constants differ by three orders of magnitude:
+ *
+ *          capillary leak      tau ~   8 h     (closed by 24-36 h)
+ *          hypermetabolism     tau ~ 100 d     (persists 12-24 months)
+ *
+ *     and the SLOW clock is not driven by the original burn size but by
+ *     the OPEN WOUND AREA A_open(t).  That single substitution is why
+ *     early excision and grafting lowers resting energy expenditure:
+ *     it removes the driver.  Propranolol instead blocks the TRANSDUCER
+ *     (beta-adrenoceptor).  The two are therefore sub-additive, and
+ *     propranolol's marginal value is largest exactly where wound closure
+ *     is slowest.
+ *
+ * Node colour encodes WHICH TERM of the model a therapy touches, because
+ * the model's main claim is that these are not interchangeable:
+ *
+ *   crimson    Kf / sigma   -- reduces the conductance or opens sieving
+ *                             (high-dose ascorbate, early excision)
+ *   orange     Pi_p         -- restores the oncotic term (albumin, FFP)
+ *   gold       R(t)         -- changes the controller set-point/rate
+ *                             (Parkland vs Brooke vs ISBI, UO target)
+ *   royalblue  transducer   -- blocks signal, driver untouched
+ *                             (propranolol, ketoconazole)
+ *   seagreen   driver       -- removes the stimulus itself
+ *                             (excision + autograft, cultured epithelium)
+ *   purple     anabolic     -- raises the synthesis term of a difference
+ *                             (oxandrolone, rhGH, insulin, nutrition)
+ *   teal       exposure     -- alters drug exposure (ARC, Vd, fu)
+ *   grey60     measurement  -- what the clinician actually observes
+ *
+ * Render:
+ *   dot -Tsvg mbi_qsp_model.dot -o mbi_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 mbi_qsp_model.dot -o mbi_qsp_model.png
+ */
+
+digraph MBI_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  bgcolor = "white";
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 30;
+  label = "Major Thermal Burn Injury — Quantitative Systems Pharmacology Map\none insult · two clocks (leak tau~8 h, hypermetabolism tau~100 d) · a resuscitation controller whose loop gain decays while it works\n(18 clusters · 197 nodes · 287 edges · therapy nodes coloured by which TERM of the model they touch)";
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+        fontsize = 11, color = "gray40", fillcolor = "white", penwidth = 1.1];
+  edge [fontname = "Helvetica", fontsize = 9, color = "gray45", penwidth = 1.0];
+
+  /* ================================================================
+   * 0.  THE INSULT — thermal energy and the three zones
+   * ================================================================ */
+  subgraph cluster_insult {
+    label = "0 · THERMAL INSULT — Jackson's three zones\nthe zone of stasis is the only one that is still a decision variable";
+    style = "rounded,filled"; fillcolor = "#fff1ec"; color = "#c0392b"; fontsize = 15;
+
+    HEAT   [label = "Thermal energy transfer\nQ = h·A·(T_source − T_skin)·t\ncontact time × temperature", fillcolor = "#fadbd8"];
+    ZCOAG  [label = "Zone of COAGULATION\nirreversible protein denaturation\n(>45 °C, coagulative necrosis)", fillcolor = "#f5b7b1"];
+    ZSTAS  [label = "Zone of STASIS\nhypoperfused but viable\nconvertible either way", fillcolor = "#f9e79f"];
+    ZHYPER [label = "Zone of HYPERAEMIA\nvasodilated, recovers", fillcolor = "#d5f5e3"];
+    ESCHAR [label = "Eschar\ndenatured collagen, avascular\nbacterial substrate + DAMP source", fillcolor = "#e6b0aa"];
+    DEPTH  [label = "Burn DEPTH\nsuperficial-partial / deep-partial /\nfull thickness", fillcolor = "#fdebd0"];
+    TBSA   [label = "%TBSA\nrule of nines · Lund–Browder\n(the ONE number that enters both clocks)", fillcolor = "#f5cba7"];
+    INHAL  [label = "Inhalation injury\nupper airway oedema + tracheobronchitis\n+ CO/CN toxicity  (rBaux +17)", fillcolor = "#d7bde2"];
+    COHB   [label = "Carboxyhaemoglobin\nleft-shifts ODC, blocks cyt-a3", fillcolor = "#e8daef"];
+
+    HEAT -> ZCOAG; HEAT -> ZSTAS; HEAT -> ZHYPER;
+    HEAT -> DEPTH; DEPTH -> TBSA;
+    ZCOAG -> ESCHAR;
+    HEAT -> INHAL [style = dashed]; INHAL -> COHB;
+  }
+
+  /* ================================================================
+   * 1.  MICROVASCULAR STARLING BLOCK
+   * ================================================================ */
+  subgraph cluster_starling {
+    label = "1 · MICROVASCULAR EXCHANGE — the Starling equation, written per region\nJv = Kf · [ (Pc − Pi) − sigma·(Pi_p − Pi_i) ]     ·     Jprot = Jv·(1−sigma)·Cp + PS·(Cp − Ci)";
+    style = "rounded,filled"; fillcolor = "#eef4fb"; color = "#2471a3"; fontsize = 15;
+
+    KF     [label = "Kf  filtration coefficient\nburned tissue: ×3–10 within minutes\nunburned: ×1.3 if TBSA > 40 %", fillcolor = "#aed6f1"];
+    SIGMA  [label = "sigma  reflection coefficient\n0.90 → 0.15 in burned tissue\n(protein sieving lost)", fillcolor = "#aed6f1"];
+    PC     [label = "Pc  capillary hydrostatic\nrises with plasma volume\nPc = 17 + 8·(VP/VP0 − 1) mmHg", fillcolor = "#d6eaf8"];
+    PIB    [label = "Pi  interstitial hydrostatic — BURNED\ndrops to −20…−30 mmHg in <30 min\n(imbibition of denatured collagen)", fillcolor = "#f5b7b1"];
+    PIU    [label = "Pi  interstitial hydrostatic — UNBURNED\nslightly positive, high compliance", fillcolor = "#d6eaf8"];
+    IMBIB  [label = "IMBIBITION PRESSURE\nheat-denatured collagen/GAG\ngenerates osmotic suction\ntau ≈ 1.5 h — no infusion can win it", fillcolor = "#f5b7b1"];
+    COMPL  [label = "Interstitial COMPLIANCE\nburned tissue accepts litres\nfor a few mmHg → massive oedema", fillcolor = "#d6eaf8"];
+    LYMPH  [label = "Lymph return\nQl = L0·(1 + kL·Pi), saturable\n≤ ~10× baseline", fillcolor = "#d1f2eb"];
+    PSPROD [label = "PS  diffusive protein permeability\nrises with the same insult as Kf", fillcolor = "#aed6f1"];
+    JV     [label = "Jv  net filtration\nplasma → interstitium\npeaks 0–8 h", fillcolor = "#85c1e9"];
+    JPROT  [label = "Jprot  protein escape\nconvective (1−sigma) + diffusive\n→ interstitium becomes oncotically active", fillcolor = "#85c1e9"];
+
+    KF -> JV; SIGMA -> JV; PC -> JV; PIB -> JV; PIU -> JV;
+    IMBIB -> PIB; COMPL -> PIB; COMPL -> PIU;
+    JV -> LYMPH [label = "loads"]; LYMPH -> JV [style = dashed, label = "partially\noffsets"];
+    SIGMA -> JPROT; JV -> JPROT; PSPROD -> JPROT;
+  }
+
+  /* ================================================================
+   * 2.  ONCOTIC BLOCK — the convex function that drives everything
+   * ================================================================ */
+  subgraph cluster_oncotic {
+    label = "2 · COLLOID OSMOTIC PRESSURE — the convexity that makes each litre cost more than the last\nPi = 2.1·C + 0.16·C² + 0.009·C³   (Landis–Pappenheimer, C = total protein g/dL)";
+    style = "rounded,filled"; fillcolor = "#fef5e7"; color = "#b9770e"; fontsize = 15;
+
+    PPMASS [label = "Plasma protein MASS\nbaseline 210 g (7.0 g/dL × 3 L)\nfalls by escape, not by dilution", fillcolor = "#fdebd0"];
+    CPROT  [label = "Cp = PP / VP   [g/dL]\ndiluted by crystalloid\ndepleted by Jprot", fillcolor = "#fdebd0"];
+    PIP    [label = "Pi_p  plasma COP\n7.0 g/dL → 25.6 mmHg\n3.5 g/dL →  9.7 mmHg\n(−62 % for a −50 % dilution)", fillcolor = "#f8c471"];
+    PII    [label = "Pi_i  interstitial COP\nRISES as protein escapes\n→ gradient collapses from both sides", fillcolor = "#fdebd0"];
+    GRAD   [label = "Effective oncotic gradient\nsigma·(Pi_p − Pi_i)\nthe only term opposing filtration", fillcolor = "#f8c471"];
+    FRET   [label = "f_ret  RETENTION FRACTION\nfraction of infused volume still\nintravascular at 1 h\n0.45 early → 0.15 by hour 12", fillcolor = "#e59866"];
+    CONVEX [label = "CONVEXITY\ndPi/dC = 2.1 + 0.32C + 0.027C²\n= 3.6 mmHg per g/dL at C = 3.5\n= 5.7 mmHg per g/dL at C = 7.0", shape = note, fillcolor = "#fdf2e9"];
+    ALBSYN [label = "Hepatic albumin synthesis\nsuppressed by IL-6 (negative acute phase)\ncannot refill the pool for days", fillcolor = "#fdebd0"];
+
+    PPMASS -> CPROT; CPROT -> PIP; CPROT -> CONVEX [style = dotted];
+    CONVEX -> PIP [style = dotted, label = "slope"];
+    PIP -> GRAD; PII -> GRAD [label = "subtracts"]; GRAD -> FRET;
+    ALBSYN -> PPMASS;
+  }
+
+  /* ================================================================
+   * 3.  BODY FLUID COMPARTMENTS
+   * ================================================================ */
+  subgraph cluster_compart {
+    label = "3 · FLUID COMPARTMENTS — where the litres actually go";
+    style = "rounded,filled"; fillcolor = "#eafaf1"; color = "#1e8449"; fontsize = 15;
+
+    VP     [label = "VP  plasma volume\nbaseline 3000 mL\nfalls 20–40 % by 4 h untreated", fillcolor = "#a9dfbf"];
+    VIBURN [label = "VI_burn  interstitial, burned\nexpands 3–8× local baseline", fillcolor = "#f5b7b1"];
+    VIUNB  [label = "VI_unburn  interstitial, unburned\nexpands ONLY via COP dilution\n(the crystalloid tax)", fillcolor = "#f9e79f"];
+    VICF   [label = "VICF  intracellular\ncell swelling: Na/K-ATPase fails,\ntransmembrane potential −90 → −70 mV", fillcolor = "#d5f5e3"];
+    NAE    [label = "Extracellular Na⁺ mass\nsodium load is the real prescription\n0.5 mEq/kg/%TBSA (Brooke)", fillcolor = "#d5f5e3"];
+    WTGAIN [label = "Weight gain\n+20–30 % of body weight by 48 h\nmust all be excreted later", fillcolor = "#abebc6"];
+    HCT    [label = "Haematocrit\nacute haemoconcentration 55–60 %\nthen dilution + RBC loss", fillcolor = "#d5f5e3"];
+    EVLW   [label = "Extravascular lung water\nlung is spared early (intact sigma)\nuntil COP falls or ARDS supervenes", fillcolor = "#d6eaf8"];
+    ASCIT  [label = "Peritoneal / retroperitoneal fluid\nthe hidden third space", fillcolor = "#d6eaf8"];
+
+    VP -> VIBURN; VP -> VIUNB; VP -> VICF [style = dashed];
+    VP -> HCT; VIBURN -> WTGAIN; VIUNB -> WTGAIN;
+    VP -> EVLW [style = dashed]; VP -> ASCIT [style = dashed];
+    NAE -> VIUNB;
+  }
+
+  /* ================================================================
+   * 4.  THE RESUSCITATION CONTROLLER
+   * ================================================================ */
+  subgraph cluster_control {
+    label = "4 · THE RESUSCITATION CONTROLLER — a closed loop with decaying gain\nR(t+1) = R(t)·[1 + g·(UO_target − UO)/UO_target]     ·     loop gain = (dUO/dVP)·f_ret";
+    style = "rounded,filled"; fillcolor = "#fdf2e9"; color = "#af601a"; fontsize = 15;
+
+    PARK   [label = "PARKLAND / Baxter\n4 mL/kg/%TBSA lactated Ringer's / 24 h\nhalf in the first 8 h", fillcolor = "#f8c471"];
+    BROOKE [label = "MODIFIED BROOKE\n2 mL/kg/%TBSA / 24 h", fillcolor = "#f8c471"];
+    ISBI   [label = "ISBI / ABA 2016 start point\n2 mL/kg/%TBSA, titrate down\n\"the formula is a starting rate,\nnot a prescription\"", fillcolor = "#f8c471"];
+    RULE10 [label = "Rule of Ten (military)\n%TBSA × 10 mL/h", fillcolor = "#f8c471"];
+    UOTGT  [label = "SET-POINT: urine output\nadult 0.5 mL/kg/h · child 1.0\n(the ONLY feedback signal used)", fillcolor = "#f5cba7"];
+    RINF   [label = "R(t)  infusion rate\nadjusted hourly ±20–30 %", fillcolor = "#f8c471"];
+    GAIN   [label = "LOOP GAIN\ndUO/dR = (dUO/dVP)·f_ret\nfalls as f_ret falls", shape = note, fillcolor = "#fae5d3"];
+    CREEP  [label = "FLUID CREEP\nfixed point of a controller\nwhose gain is decaying\nin:out 1.4–1.6 × Parkland", fillcolor = "#e59866"];
+    OPIOID [label = "Opioid creep\nhigh-dose opioid → vasodilatation\n→ lower UO at the same VP\n(controller reads it as hypovolaemia)", fillcolor = "#f5cba7"];
+    COLLOI [label = "Colloid rescue\nalbumin 5 % from 8–12 h\nRAISES f_ret — does not add volume", fillcolor = "#f0b27a"];
+    HTS    [label = "Hypertonic saline / lactate\nfewer mL, same Na⁺ load\nhypernatraemia + renal failure risk", fillcolor = "#f8c471"];
+    PLASMA [label = "Fresh frozen plasma\nprotein + coagulation factors\n(paediatric practice in some centres)", fillcolor = "#f0b27a"];
+    MONITOR[label = "Alternative feedback signals\nlactate clearance · base deficit ·\nSVV/PPV · transpulmonary thermodilution", fillcolor = "#fdebd0"];
+
+    PARK -> RINF; BROOKE -> RINF; ISBI -> RINF; RULE10 -> RINF;
+    UOTGT -> RINF [label = "error"];
+    RINF -> GAIN [style = dotted]; GAIN -> RINF [style = dotted, label = "shrinks"];
+    RINF -> CREEP; OPIOID -> UOTGT [style = dashed, label = "corrupts\nthe signal"];
+    COLLOI -> CREEP [style = dashed, arrowhead = tee, label = "breaks\nthe loop"];
+    HTS -> RINF [style = dashed, arrowhead = tee];
+    PLASMA -> COLLOI [style = dotted];
+    MONITOR -> RINF [style = dotted];
+  }
+
+  /* ================================================================
+   * 5.  RESUSCITATION MORBIDITY
+   * ================================================================ */
+  subgraph cluster_morbid {
+    label = "5 · RESUSCITATION MORBIDITY — the price of the fixed point\n(everything here is caused by the TREATMENT, not by the burn)";
+    style = "rounded,filled"; fillcolor = "#fdedec"; color = "#922b21"; fontsize = 15;
+
+    IAH    [label = "Intra-abdominal hypertension\nIAP > 12 mmHg\nrisk rises steeply > 250 mL/kg/24 h", fillcolor = "#f5b7b1"];
+    ACS    [label = "ABDOMINAL COMPARTMENT SYNDROME\nIAP > 20 mmHg + new organ failure\nmortality 60–80 %", fillcolor = "#e6b0aa"];
+    EXTCS  [label = "Extremity compartment syndrome\n→ escharotomy / fasciotomy", fillcolor = "#f5b7b1"];
+    ORBIT  [label = "Orbital compartment syndrome\n→ lateral canthotomy", fillcolor = "#f5b7b1"];
+    PULMOE [label = "Pulmonary oedema / ARDS\nP/F ratio falls, ventilator days ↑", fillcolor = "#f5b7b1"];
+    CONVER [label = "BURN WOUND CONVERSION\nzone of stasis → coagulation\nunder- AND over-resuscitation both do it", fillcolor = "#e6b0aa"];
+    GRAFTF [label = "Graft failure\noedematous bed, shear, infection", fillcolor = "#f5b7b1"];
+    HYPERC [label = "Hyperchloraemic acidosis\n(0.9 % saline rather than LR)", fillcolor = "#fadbd8"];
+
+    IAH -> ACS; ACS -> PULMOE; ACS -> CONVER [style = dashed];
+    IAH -> EXTCS [style = dotted]; IAH -> ORBIT [style = dotted];
+    PULMOE -> GRAFTF [style = dotted]; CONVER -> GRAFTF;
+    HYPERC -> ACS [style = dotted];
+  }
+
+  /* ================================================================
+   * 6.  HAEMODYNAMICS AND KIDNEY
+   * ================================================================ */
+  subgraph cluster_haemo {
+    label = "6 · HAEMODYNAMICS AND KIDNEY — the ebb and the flow phase";
+    style = "rounded,filled"; fillcolor = "#eef4fb"; color = "#1f618d"; fontsize = 15;
+
+    EBB    [label = "EBB phase (0–48 h)\nCO ↓ 50 %, SVR ↑\nmyocardial depression (TNF-α, IL-1β)", fillcolor = "#aed6f1"];
+    FLOW   [label = "FLOW phase (> 48 h)\nCO ↑ 1.5–2.0 × normal\nhyperdynamic, low SVR", fillcolor = "#aed6f1"];
+    CO     [label = "Cardiac output", fillcolor = "#d6eaf8"];
+    MAP    [label = "Mean arterial pressure\n(a poor surrogate — preserved\nuntil late by vasoconstriction)", fillcolor = "#d6eaf8"];
+    RBF    [label = "Renal blood flow", fillcolor = "#d6eaf8"];
+    GFR    [label = "GFR", fillcolor = "#d6eaf8"];
+    ARC    [label = "AUGMENTED RENAL CLEARANCE\nCrCl > 130 mL/min from ~day 3\nprevalence 30–65 % in burns", fillcolor = "#a2d9ce"];
+    AKI    [label = "Acute kidney injury\nearly (hypoperfusion) or\nlate (sepsis, nephrotoxins)", fillcolor = "#f5b7b1"];
+    RHABDO [label = "Rhabdomyolysis / haemochromogens\n(electrical + deep muscle burns)", fillcolor = "#f5b7b1"];
+    UO     [label = "Urine output\nthe measured variable", fillcolor = "#d5dbdb"];
+    LACT   [label = "Lactate / base deficit\nperfusion adequacy\n(better resuscitation signal than UO)", fillcolor = "#d5dbdb"];
+    SCR    [label = "Serum creatinine\nlags 24–48 h; falsely low\nwhen muscle mass is lost", fillcolor = "#d5dbdb"];
+
+    EBB -> CO [arrowhead = tee]; FLOW -> CO;
+    CO -> MAP; CO -> RBF; RBF -> GFR; GFR -> UO;
+    FLOW -> ARC; ARC -> GFR;
+    RBF -> AKI [arrowhead = tee]; RHABDO -> AKI; AKI -> GFR [arrowhead = tee];
+    GFR -> SCR [arrowhead = tee]; CO -> LACT [arrowhead = tee];
+  }
+
+  /* ================================================================
+   * 7.  INNATE IMMUNE / CYTOKINE
+   * ================================================================ */
+  subgraph cluster_inflam {
+    label = "7 · STERILE INFLAMMATION — the largest DAMP release in clinical medicine";
+    style = "rounded,filled"; fillcolor = "#f4ecf7"; color = "#6c3483"; fontsize = 15;
+
+    DAMP   [label = "DAMPs from necrotic dermis\nHMGB1 · mtDNA · formyl peptides ·\nheat-shock proteins · hyaluronan", fillcolor = "#d7bde2"];
+    TLR    [label = "TLR2 / TLR4 / TLR9\n+ NLRP3 inflammasome", fillcolor = "#d7bde2"];
+    NFKB   [label = "NF-kB / AP-1", fillcolor = "#e8daef"];
+    IL1    [label = "IL-1beta\n(caspase-1 dependent)", fillcolor = "#e8daef"];
+    IL6    [label = "IL-6\npeak 100–1000× baseline at 12–24 h\nbest single severity marker", fillcolor = "#c39bd3"];
+    TNFA   [label = "TNF-alpha\nmyocardial depressant\n+ muscle proteolysis", fillcolor = "#c39bd3"];
+    IL8    [label = "IL-8 / CXCL8\nneutrophil chemotaxis", fillcolor = "#e8daef"];
+    IL10   [label = "IL-10\ncompensatory anti-inflammatory\n(CARS)", fillcolor = "#d4efdf"];
+    COMPL2 [label = "Complement C3a / C5a\nactivated within minutes", fillcolor = "#e8daef"];
+    PMN    [label = "Neutrophils\nprimed, then dysfunctional\n(NET release, ROS)", fillcolor = "#e8daef"];
+    ROS    [label = "ROS / lipid peroxidation\nxanthine oxidase + PMN burst\n→ the Kf lesion is largely oxidant", fillcolor = "#f5b7b1"];
+    ENDOTH [label = "Endothelial glycocalyx shedding\nsyndecan-1 · heparan sulfate\n→ sigma falls", fillcolor = "#f5b7b1"];
+    CRP    [label = "CRP / acute-phase proteins\npositive APP ↑, negative APP\n(albumin, transthyretin) ↓", fillcolor = "#d5dbdb"];
+    NO     [label = "iNOS → NO\nvasoplegia in the flow phase", fillcolor = "#e8daef"];
+
+    DAMP -> TLR; TLR -> NFKB; NFKB -> IL1; NFKB -> IL6; NFKB -> TNFA;
+    NFKB -> IL8; NFKB -> IL10 [style = dashed]; NFKB -> NO;
+    DAMP -> COMPL2; COMPL2 -> PMN; IL8 -> PMN; PMN -> ROS;
+    ROS -> ENDOTH; ENDOTH -> DAMP [style = dotted, label = "amplifies"];
+    IL6 -> CRP; IL1 -> IL6;
+  }
+
+  /* ================================================================
+   * 8.  IMMUNOPARALYSIS AND INFECTION
+   * ================================================================ */
+  subgraph cluster_infect {
+    label = "8 · IMMUNOPARALYSIS AND INFECTION — the leading cause of late death\n(the open wound is both the antigen source and the portal)";
+    style = "rounded,filled"; fillcolor = "#fbeee6"; color = "#935116"; fontsize = 15;
+
+    HLADR  [label = "Monocyte HLA-DR\nfalls with IL-10 / cortisol\n< 8000 mAb/cell = immunoparalysis", fillcolor = "#f6ddcc"];
+    TCELL  [label = "T-cell anergy\nTh2 shift, lymphocyte apoptosis", fillcolor = "#f6ddcc"];
+    BARRIER[label = "Loss of the cutaneous barrier\nA_open is the portal of entry", fillcolor = "#f6ddcc"];
+    GUTTR  [label = "Gut barrier failure\nbacterial translocation, splanchnic\nhypoperfusion in the ebb phase", fillcolor = "#f6ddcc"];
+    COLON  [label = "Wound colonisation\nS. aureus → P. aeruginosa →\nAcinetobacter · Candida", fillcolor = "#edbb99"];
+    INVAS  [label = "INVASIVE burn wound infection\n> 10⁵ CFU/g of viable tissue\n(the classic quantitative threshold)", fillcolor = "#dc7633"];
+    VAP    [label = "Ventilator-associated pneumonia\n(inhalation injury multiplies risk)", fillcolor = "#edbb99"];
+    CLABSI [label = "Catheter-related bloodstream infection", fillcolor = "#edbb99"];
+    SEPSIS [label = "BURN SEPSIS (ABA 2007 criteria)\ntemp · tachycardia · tachypnoea ·\nthrombocytopenia · hyperglycaemia · ileus", fillcolor = "#dc7633"];
+    MODS   [label = "Multiple organ dysfunction\nthe terminal common pathway", fillcolor = "#cb4335"];
+
+    HLADR -> INVAS [arrowhead = tee]; TCELL -> INVAS [arrowhead = tee];
+    BARRIER -> COLON; COLON -> INVAS; GUTTR -> SEPSIS;
+    INVAS -> SEPSIS; VAP -> SEPSIS; CLABSI -> SEPSIS; SEPSIS -> MODS;
+  }
+
+  /* ================================================================
+   * 9.  NEUROENDOCRINE STRESS AXIS — the transducer
+   * ================================================================ */
+  subgraph cluster_neuro {
+    label = "9 · NEUROENDOCRINE STRESS AXIS — the TRANSDUCER between the wound and the metabolism\nthis is the layer propranolol acts on; it does not touch the driver";
+    style = "rounded,filled"; fillcolor = "#e8f8f5"; color = "#117864"; fontsize = 15;
+
+    AFFER  [label = "Afferent nociceptive + humoral\nsignal from A_open", fillcolor = "#a3e4d7"];
+    HYPOTH [label = "Hypothalamus\nthermoregulatory set-point reset\nto ~38.5 °C", fillcolor = "#a3e4d7"];
+    SNS    [label = "Sympathetic outflow\nurinary catecholamines 10× normal\nfor months", fillcolor = "#76d7c4"];
+    EPI    [label = "Epinephrine / norepinephrine\nplasma 2–10× normal", fillcolor = "#76d7c4"];
+    B1B2   [label = "beta-1 / beta-2 adrenoceptors\ncardiac · hepatic · muscle · adipose", fillcolor = "#a3e4d7"];
+    CAMP   [label = "cAMP → PKA\nlipolysis · glycogenolysis ·\nproteolysis · thermogenesis", fillcolor = "#a3e4d7"];
+    HPA    [label = "HPA axis: CRH → ACTH → cortisol\n2–4× normal, diurnal rhythm lost", fillcolor = "#a3e4d7"];
+    CORT   [label = "Cortisol\nGR-mediated muscle catabolism\n+ hepatic gluconeogenesis", fillcolor = "#76d7c4"];
+    GLUCAG [label = "Glucagon ↑\ninsulin:glucagon ratio inverted", fillcolor = "#a3e4d7"];
+    LOWT3  [label = "Low-T3 syndrome\nT4→rT3 shunt; NOT thyrotoxicosis\n(hypermetabolism is adrenergic)", fillcolor = "#d1f2eb"];
+    GHIGF  [label = "GH resistance\nGH ↑ but IGF-1 / IGFBP-3 ↓", fillcolor = "#d1f2eb"];
+    SEXST  [label = "Sex steroids ↓\ntestosterone falls in men\n→ loss of an anabolic drive", fillcolor = "#d1f2eb"];
+    VITD   [label = "Vitamin D ↓\nskin 7-DHC → cholecalciferol lost", fillcolor = "#d1f2eb"];
+
+    AFFER -> HYPOTH; AFFER -> SNS; HYPOTH -> SNS; HYPOTH -> HPA;
+    SNS -> EPI; EPI -> B1B2; B1B2 -> CAMP;
+    HPA -> CORT; SNS -> GLUCAG; HPA -> LOWT3 [style = dotted];
+    CORT -> GHIGF [style = dotted, arrowhead = tee]; IL6 -> GHIGF [arrowhead = tee, style = dotted];
+    HPA -> SEXST [arrowhead = tee, style = dotted];
+  }
+
+  /* ================================================================
+   * 10.  HYPERMETABOLISM — the slow clock
+   * ================================================================ */
+  subgraph cluster_hyper {
+    label = "10 · HYPERMETABOLISM — the SLOW clock (tau ≈ 100 d, persists 12–24 months)\nREE/REE_pred = 1 + Emax · A_open^h/(A50^h + A_open^h) · adrenergic transduction";
+    style = "rounded,filled"; fillcolor = "#fef9e7"; color = "#9a7d0a"; fontsize = 15;
+
+    AOPEN  [label = "A_open  OPEN WOUND AREA\n*** THE DRIVER ***\nnot %TBSA at admission —\nthe area still open TODAY", fillcolor = "#f4d03f"];
+    REE    [label = "Resting energy expenditure\n120–180 % of Harris–Benedict\npeak day 5–14", fillcolor = "#f7dc6f"];
+    THRESH [label = "Threshold behaviour\nfull response needs > 40 % TBSA\n(A50 ≈ 25 % with Hill h ≈ 2.5)", shape = note, fillcolor = "#fcf3cf"];
+    EVAP   [label = "Evaporative water loss\n(25 + %TBSA) × BSA mL/h\n→ obligate heat loss ~0.58 kcal/mL", fillcolor = "#fcf3cf"];
+    UCP    [label = "UCP-1 / brown-adipose-like\nremodelling of white fat\n(browning; Patsouris/Sidossis)", fillcolor = "#fcf3cf"];
+    FUTILE [label = "Futile substrate cycling\ntriglyceride–fatty-acid cycle ×2–3\nglucose–lactate (Cori) cycle", fillcolor = "#fcf3cf"];
+    MITO   [label = "Mitochondrial uncoupling\nmuscle: ↑ O₂ consumption,\n↓ ATP-coupled respiration", fillcolor = "#fcf3cf"];
+    TCORE  [label = "Core temperature 38.0–38.5 °C\ndefended, not fever\n(cooling the room raises REE)", fillcolor = "#fcf3cf"];
+    AMBT   [label = "Ambient temperature 31–33 °C\nthe cheapest antimetabolic therapy", fillcolor = "#82e0aa"];
+    NUTR   [label = "Enteral nutrition\n25 kcal/kg + 40 kcal/%TBSA (Curreri)\nearly (<24 h) feeding", fillcolor = "#d2b4de"];
+
+    AOPEN -> REE; THRESH -> REE [style = dotted]; CAMP -> REE;
+    AOPEN -> EVAP; EVAP -> REE; UCP -> REE; FUTILE -> REE; MITO -> REE;
+    CAMP -> UCP; CAMP -> FUTILE; REE -> TCORE;
+    AMBT -> EVAP [arrowhead = tee]; NUTR -> REE [style = dotted];
+  }
+
+  /* ================================================================
+   * 11.  PROTEIN AND BODY COMPOSITION — a difference of two large numbers
+   * ================================================================ */
+  subgraph cluster_protein {
+    label = "11 · MUSCLE PROTEIN — net balance is a DIFFERENCE of two large, separately drugged fluxes\ndLBM/dt = S − B   (both elevated; a 20 % change in either flips the sign)";
+    style = "rounded,filled"; fillcolor = "#f5eef8"; color = "#7d3c98"; fontsize = 15;
+
+    SYNTH  [label = "S  muscle protein SYNTHESIS\nelevated but insufficient\nmTORC1 / p70S6K dependent", fillcolor = "#d2b4de"];
+    BREAK  [label = "B  muscle protein BREAKDOWN\nubiquitin–proteasome (MAFbx/MuRF1)\n+ autophagy + calpain", fillcolor = "#d2b4de"];
+    NETBAL [label = "NET BALANCE  S − B\nsmall difference of large numbers\n→ extreme parameter sensitivity", shape = note, fillcolor = "#ebdef0"];
+    LBM    [label = "Lean body mass\nfalls ~10 % in 2 weeks untreated\n(> 10 % loss impairs healing;\n> 30 % is usually lethal)", fillcolor = "#c39bd3"];
+    NITRO  [label = "Nitrogen balance\nurea nitrogen 20–40 g/day", fillcolor = "#e8daef"];
+    GLNPOOL[label = "Glutamine efflux from muscle\nfuel for enterocytes / lymphocytes", fillcolor = "#e8daef"];
+    FATMASS[label = "Fat mass\nlipolysis ↑, re-esterification ↑\n→ FFA delivered to liver", fillcolor = "#e8daef"];
+    HEPFAT [label = "Hepatic steatosis / hepatomegaly\nliver mass ×2 by 2 weeks\n(Jeschke: fatty liver = mortality)", fillcolor = "#f5b7b1"];
+    BONE   [label = "Bone: osteopenia\nresorption ↑ (cortisol, IL-1/IL-6)\nformation ↓ → BMD falls for years", fillcolor = "#e8daef"];
+    GROWTH [label = "Growth arrest (children)\nheight velocity ↓ for up to 2 years", fillcolor = "#e8daef"];
+    INSRES [label = "Insulin resistance\nGLUT4 translocation impaired,\nIRS-1 serine phosphorylation", fillcolor = "#e8daef"];
+    HYPERG [label = "Stress hyperglycaemia\ntarget 130–150 mg/dL (ABA)\n(tight 80–110 → hypoglycaemia)", fillcolor = "#d5dbdb"];
+
+    CAMP -> BREAK; CORT -> BREAK; TNFA -> BREAK; IL6 -> BREAK;
+    SYNTH -> NETBAL; BREAK -> NETBAL [arrowhead = tee]; NETBAL -> LBM;
+    LBM -> NITRO; LBM -> GLNPOOL;
+    CAMP -> FATMASS [arrowhead = tee]; FATMASS -> HEPFAT;
+    CORT -> BONE [arrowhead = tee]; IL6 -> BONE [arrowhead = tee];
+    GHIGF -> GROWTH [arrowhead = tee]; GHIGF -> SYNTH;
+    CORT -> INSRES; TNFA -> INSRES; INSRES -> HYPERG;
+    HYPERG -> INVAS [style = dotted, label = "impairs\nPMN function"];
+  }
+
+  /* ================================================================
+   * 12.  WOUND CLOSURE — the only thing that removes the driver
+   * ================================================================ */
+  subgraph cluster_wound {
+    label = "12 · WOUND CLOSURE — the ONLY intervention that removes the driver of the slow clock\nA_open(t) is a state variable, and every surgical decision is an input to its ODE";
+    style = "rounded,filled"; fillcolor = "#eafaf1"; color = "#196f3d"; fontsize = 15;
+
+    EXCIS  [label = "EARLY EXCISION (< 72 h)\ntangential (Janzekovic) or fascial\nremoves eschar = DAMP + bacteria source", fillcolor = "#82e0aa"];
+    AUTO   [label = "Split-thickness autograft\nmeshed 1:1 … 1:6\nthe definitive closure", fillcolor = "#82e0aa"];
+    DONOR  [label = "Donor site\na SECOND open wound\n(re-harvest every 10–14 d)", fillcolor = "#f9e79f"];
+    ALLO   [label = "Cadaveric allograft / xenograft\ntemporary closure, buys time\nrejected at 2–3 weeks", fillcolor = "#abebc6"];
+    CEA    [label = "Cultured epithelial autograft\n3 weeks to grow, fragile take", fillcolor = "#abebc6"];
+    DERMAL [label = "Dermal templates\nIntegra · Matriderm · Biobrane\ntwo-stage closure", fillcolor = "#abebc6"];
+    SPRAY  [label = "Autologous cell suspension (RECELL)\n1:80 expansion, less donor site", fillcolor = "#abebc6"];
+    REEPI  [label = "Spontaneous re-epithelialisation\nfrom adnexal remnants\n(partial thickness only)", fillcolor = "#d5f5e3"];
+    TAKE   [label = "Graft take fraction\nreduced by oedema, shear,\n>10⁵ CFU/g, malnutrition", fillcolor = "#d5f5e3"];
+    NPWT   [label = "Negative-pressure wound therapy\nbolsters grafts, removes exudate", fillcolor = "#abebc6"];
+    TOPANT [label = "Topical antimicrobials\nsilver sulfadiazine (retards healing) ·\nmafenide (penetrates eschar) · silver dressings", fillcolor = "#abebc6"];
+    SCAR   [label = "Hypertrophic scar\nmyofibroblast + TGF-beta1\nrisk ∝ time-to-closure > 21 days", fillcolor = "#f5b7b1"];
+    CONTRA [label = "Contracture\nfunctional endpoint, months–years", fillcolor = "#f5b7b1"];
+    PRURIT [label = "Pruritus / neuropathic pain\nlong-term quality-of-life driver", fillcolor = "#f5b7b1"];
+
+    EXCIS -> AUTO; AUTO -> DONOR; AUTO -> TAKE; TAKE -> AOPEN [arrowhead = tee];
+    DONOR -> AOPEN [label = "ADDS\narea"];
+    ALLO -> AOPEN [arrowhead = tee, style = dashed]; CEA -> AOPEN [arrowhead = tee, style = dashed];
+    DERMAL -> AUTO [style = dotted]; SPRAY -> DONOR [arrowhead = tee, style = dotted];
+    REEPI -> AOPEN [arrowhead = tee];
+    NPWT -> TAKE; TOPANT -> COLON [arrowhead = tee]; TOPANT -> REEPI [arrowhead = tee, style = dotted];
+    EXCIS -> ESCHAR [arrowhead = tee, label = "removes\nDAMP source"];
+    AOPEN -> SCAR [style = dotted, label = "time to\nclosure"]; SCAR -> CONTRA; SCAR -> PRURIT;
+  }
+
+  /* ================================================================
+   * 13.  PHARMACOLOGY — grouped by which TERM they touch
+   * ================================================================ */
+  subgraph cluster_pharm {
+    label = "13 · PHARMACOLOGY — grouped by WHICH TERM of the model each agent touches\n(the model's claim: agents in different groups are not substitutes for one another)";
+    style = "rounded,filled"; fillcolor = "#fef5e7"; color = "#7e5109"; fontsize = 15;
+
+    VITC   [label = "HIGH-DOSE ASCORBATE\n66 mg/kg/h × 24 h\nTERM: Kf (oxidant-mediated)\nTanaka 2000: 24-h volume −45 %\n(not replicated since)", fillcolor = "#cd5c5c", fontcolor = "white"];
+    ALBUM  [label = "ALBUMIN 5 % / 25 %\nTERM: Pi_p (restores f_ret)\nsignal = lower in:out ratio,\nnot better haemodynamics", fillcolor = "#e67e22", fontcolor = "white"];
+    PROPRA [label = "PROPRANOLOL 1–4 mg/kg/d PO\ntitrate to −20 % heart rate\nTERM: transducer (beta-blockade)\ndriver A_open untouched", fillcolor = "#4169e1", fontcolor = "white"];
+    OXAND  [label = "OXANDROLONE 10 mg PO BID\nTERM: S (synthesis)\nnon-aromatisable androgen;\nmonitor transaminases", fillcolor = "#8e44ad", fontcolor = "white"];
+    INSUL  [label = "INSULIN infusion\nTERM: S (anabolic) + glucose\ntarget 130–150 mg/dL", fillcolor = "#8e44ad", fontcolor = "white"];
+    RHGH   [label = "Recombinant human GH\nTERM: S via IGF-1\n(adult ICU mortality signal —\npaediatric burns only)", fillcolor = "#8e44ad", fontcolor = "white"];
+    METFOR [label = "Metformin\nTERM: hepatic glucose output\n(alternative to insulin)", fillcolor = "#8e44ad", fontcolor = "white"];
+    KETOCO [label = "Ketoconazole / etomidate\n(11-beta-hydroxylase block)\nTERM: transducer (cortisol)", fillcolor = "#4169e1", fontcolor = "white"];
+    EXCIS2 [label = "EARLY EXCISION + AUTOGRAFT\nTERM: driver (A_open itself)\nthe only class that does this", fillcolor = "#2e8b57", fontcolor = "white"];
+    OPIOID2[label = "Opioids / ketamine / dexmedetomidine\nTERM: afferent signal\n(and, unintendedly, the UO signal)", fillcolor = "#4169e1", fontcolor = "white"];
+    VANCO  [label = "VANCOMYCIN / beta-lactams\nTERM: exposure (see cluster 14)\nARC + ↑Vd + ↓albumin", fillcolor = "#17a2b8", fontcolor = "white"];
+    TXA    [label = "Tranexamic acid\nexcision blood loss\n(0.5–1.0 mL/cm² excised)", fillcolor = "#17a2b8", fontcolor = "white"];
+    ANTIOX [label = "Selenium · zinc · copper\nreplaces exudative trace-element loss", fillcolor = "#cd5c5c", fontcolor = "white"];
+    GLNSUP [label = "Glutamine supplementation\n(RE-ENERGIZE 2022: no benefit;\na negative result the model must not hide)", fillcolor = "#8e44ad", fontcolor = "white"];
+
+    VITC -> KF [arrowhead = tee, color = "#cd5c5c", penwidth = 2.0];
+    VITC -> ROS [arrowhead = tee, color = "#cd5c5c"];
+    ALBUM -> PPMASS [color = "#e67e22", penwidth = 2.0];
+    ALBUM -> FRET [color = "#e67e22", penwidth = 2.0, label = "restores"];
+    PROPRA -> B1B2 [arrowhead = tee, color = "#4169e1", penwidth = 2.0];
+    PROPRA -> REE [arrowhead = tee, color = "#4169e1", style = dashed];
+    PROPRA -> BREAK [arrowhead = tee, color = "#4169e1", penwidth = 2.0];
+    OXAND -> SYNTH [color = "#8e44ad", penwidth = 2.0];
+    INSUL -> SYNTH [color = "#8e44ad"]; INSUL -> HYPERG [arrowhead = tee, color = "#8e44ad"];
+    RHGH -> GHIGF [color = "#8e44ad"]; METFOR -> HYPERG [arrowhead = tee, color = "#8e44ad"];
+    KETOCO -> CORT [arrowhead = tee, color = "#4169e1"];
+    EXCIS2 -> EXCIS [color = "#2e8b57", penwidth = 2.5];
+    OPIOID2 -> AFFER [arrowhead = tee, color = "#4169e1"];
+    OPIOID2 -> OPIOID [color = "#4169e1", style = dashed];
+    VANCO -> INVAS [arrowhead = tee, color = "#17a2b8"];
+    TXA -> EXCIS [style = dotted, color = "#17a2b8"];
+    ANTIOX -> ROS [arrowhead = tee, color = "#cd5c5c"];
+    GLNSUP -> SYNTH [style = dashed, color = "#8e44ad"];
+  }
+
+  /* ================================================================
+   * 14.  BURN PHARMACOKINETICS
+   * ================================================================ */
+  subgraph cluster_pk {
+    label = "14 · BURN PHARMACOKINETICS — three alterations whose SIGNS differ for total vs free drug\nC_free = fu · C_total ; for a low-extraction drug CL = fu · CL_int, so ↓albumin moves TOTAL but not FREE at steady state";
+    style = "rounded,filled"; fillcolor = "#e8f6f3"; color = "#0e6655"; fontsize = 15;
+
+    VDUP   [label = "↑ Vd (hydrophilic drugs)\noedema expands the distribution space\n→ LOWER peak", fillcolor = "#a2d9ce"];
+    CLUP   [label = "↑ CL (augmented renal clearance)\nhyperdynamic flow phase\n→ LOWER AUC and trough", fillcolor = "#a2d9ce"];
+    ALBDOWN[label = "↓ albumin (2.0–2.5 g/dL)\n→ ↑ fu for highly bound drugs\n→ LOWER TOTAL, UNCHANGED FREE", fillcolor = "#a2d9ce"];
+    AAGUP  [label = "↑ alpha-1-acid glycoprotein\n→ ↓ fu for BASIC drugs\n(opposite direction to albumin)", fillcolor = "#a2d9ce"];
+    EXUD   [label = "Transdermal exudative drug loss\nnon-negligible for small hydrophilic drugs", fillcolor = "#d1f2eb"];
+    CYP    [label = "Hepatic CYP: phase I ↓ (inflammation),\nphase II relatively preserved", fillcolor = "#d1f2eb"];
+    ABSORB [label = "Erratic enteral absorption\ngastroparesis / ileus early;\nsubcutaneous route unreliable", fillcolor = "#d1f2eb"];
+    TDMTRAP[label = "THE TRAP\nTDM on TOTAL concentration\nover-diagnoses under-exposure for\nhighly-bound drugs, and\nunder-diagnoses it for ARC drugs", shape = note, fillcolor = "#d0ece7"];
+    PTAU   [label = "PK/PD target attainment\nvancomycin AUC24/MIC ≥ 400 ·\nbeta-lactam 100 % fT > MIC", fillcolor = "#d5dbdb"];
+
+    VDUP -> PTAU [arrowhead = tee]; CLUP -> PTAU [arrowhead = tee];
+    ALBDOWN -> TDMTRAP; AAGUP -> TDMTRAP; ALBDOWN -> PTAU [style = dotted];
+    EXUD -> CLUP [style = dotted]; CYP -> CLUP [style = dotted, arrowhead = tee];
+    ABSORB -> PROPRA [style = dotted, label = "erratic F"];
+    ARC -> CLUP [penwidth = 2.0];
+    VIBURN -> VDUP [penwidth = 1.6];
+    CPROT -> ALBDOWN [penwidth = 1.6];
+    PTAU -> INVAS [arrowhead = tee];
+  }
+
+  /* ================================================================
+   * 15.  INHALATION INJURY
+   * ================================================================ */
+  subgraph cluster_inhal {
+    label = "15 · INHALATION INJURY — an independent multiplier on both clocks";
+    style = "rounded,filled"; fillcolor = "#f4f6f6"; color = "#515a5a"; fontsize = 15;
+
+    UPPER  [label = "Upper airway oedema\npeaks 12–24 h → early intubation", fillcolor = "#d5dbdb"];
+    CASTS  [label = "Bronchial casts\nsloughed epithelium + fibrin\n→ obstruction, atelectasis", fillcolor = "#d5dbdb"];
+    NEBHEP [label = "Nebulised heparin + N-acetylcysteine\ndissolves casts (evidence mixed)", fillcolor = "#17a2b8", fontcolor = "white"];
+    PFRAT  [label = "P/F ratio ↓ → ARDS", fillcolor = "#f5b7b1"];
+    VFLUID [label = "Fluid requirement +40–50 %\nwith inhalation injury", fillcolor = "#f8c471"];
+    CNTOX  [label = "Cyanide toxicity\n(hydroxocobalamin)", fillcolor = "#d5dbdb"];
+
+    INHAL -> UPPER; INHAL -> CASTS; CASTS -> PFRAT; UPPER -> PFRAT [style = dotted];
+    NEBHEP -> CASTS [arrowhead = tee]; INHAL -> VFLUID; VFLUID -> RINF;
+    COHB -> CNTOX [style = dotted]; PFRAT -> MODS [style = dotted];
+  }
+
+  /* ================================================================
+   * 16.  CLINICAL ENDPOINTS
+   * ================================================================ */
+  subgraph cluster_end {
+    label = "16 · CLINICAL ENDPOINTS — what the model is scored against";
+    style = "rounded,filled"; fillcolor = "#f8f9f9"; color = "#34495e"; fontsize = 15;
+
+    RBAUX  [label = "Revised Baux score\nage + %TBSA + 17×(inhalation)\nLD50 ≈ 110 in modern series", fillcolor = "#aeb6bf"];
+    MORT   [label = "Mortality\n(computed mechanistically here,\nrBaux used only as validator)", fillcolor = "#85929e"];
+    INOUT  [label = "In:out ratio\ndelivered ÷ Parkland-predicted\nmodern series 1.2–1.6", fillcolor = "#aeb6bf"];
+    ML24   [label = "24-h volume mL/kg/%TBSA\nParkland 4.0 · observed 5.2–6.7", fillcolor = "#aeb6bf"];
+    LOSD   [label = "Length of stay\nclassically ~1 day per %TBSA;\nmodern centres 0.6–0.8", fillcolor = "#aeb6bf"];
+    REEPCT [label = "REE as % of predicted\n120–180 %", fillcolor = "#aeb6bf"];
+    LBMPCT [label = "Lean body mass change\n(DEXA, % from admission)", fillcolor = "#aeb6bf"];
+    VENTD  [label = "Ventilator-free days", fillcolor = "#aeb6bf"];
+    GRAFTT [label = "Graft take %", fillcolor = "#aeb6bf"];
+    SCARV  [label = "Vancouver Scar Scale / POSAS", fillcolor = "#aeb6bf"];
+    QOL    [label = "Burn-Specific Health Scale\nreturn to work", fillcolor = "#aeb6bf"];
+
+    RBAUX -> MORT [style = dotted, label = "validator"];
+    MODS -> MORT; ACS -> MORT; SEPSIS -> MORT;
+    LBM -> MORT [arrowhead = tee, style = dotted];
+    RINF -> INOUT; RINF -> ML24; PULMOE -> VENTD [arrowhead = tee];
+    TAKE -> GRAFTT; REE -> REEPCT; LBM -> LBMPCT;
+    AOPEN -> LOSD; SCAR -> SCARV; SCARV -> QOL; CONTRA -> QOL;
+  }
+
+  /* ================================================================
+   * 17.  SPECIAL POPULATIONS
+   * ================================================================ */
+  subgraph cluster_pop {
+    label = "17 · POPULATIONS — where the same equations take different parameters";
+    style = "rounded,filled"; fillcolor = "#fdf2e9"; color = "#a04000"; fontsize = 15;
+
+    PEDS   [label = "Children\nhigher BSA:mass ratio, glycogen\nreserve ~12 h → add maintenance\ndextrose; UO target 1 mL/kg/h", fillcolor = "#f5cba7"];
+    ELDER  [label = "Elderly\nthin dermis (deeper burn for the\nsame insult), lower reserve;\nrBaux dominated by age term", fillcolor = "#f5cba7"];
+    OBESE  [label = "Obesity\nuse adjusted body weight;\nParkland on total weight over-resuscitates", fillcolor = "#f5cba7"];
+    PREG   [label = "Pregnancy\nplasma volume already +45 %;\nfetal outcome tracks maternal TBSA", fillcolor = "#f5cba7"];
+    ELECTR [label = "Electrical injury\nsurface %TBSA understates the\nvolume injured → UO target 1–2 mL/kg/h", fillcolor = "#f5cba7"];
+    CHEM   [label = "Chemical burns\nongoing injury until decontaminated\n(hydrofluoric acid → hypocalcaemia)", fillcolor = "#f5cba7"];
+
+    PEDS -> UOTGT [style = dotted]; ELDER -> RBAUX [style = dotted];
+    OBESE -> PARK [style = dotted, label = "over-\nestimates"];
+    ELECTR -> RHABDO; CHEM -> ZSTAS [style = dotted];
+    PREG -> VP [style = dotted];
+  }
+
+  /* ================================================================
+   * MASTER CROSS-CLUSTER WIRING — the three statements, drawn
+   * ================================================================ */
+
+  /* insult -> microvasculature */
+  TBSA   -> KF     [penwidth = 2.4, color = "#c0392b", label = "  drives Kf, sigma\n  and the imbibition\n  pressure"];
+  TBSA   -> SIGMA  [penwidth = 2.0, color = "#c0392b"];
+  TBSA   -> IMBIB  [penwidth = 2.0, color = "#c0392b"];
+  ZSTAS  -> CONVER [style = dashed, color = "#c0392b", label = "converts"];
+  ESCHAR -> DAMP   [penwidth = 2.4, color = "#6c3483", label = "  DAMP flux ∝ necrotic mass"];
+  ESCHAR -> COLON  [penwidth = 1.8];
+
+  /* STATEMENT 1: the product */
+  JV     -> VIBURN [penwidth = 2.4, color = "#2471a3"];
+  JV     -> VIUNB  [penwidth = 1.6, color = "#2471a3"];
+  JV     -> VP     [arrowhead = tee, penwidth = 2.4, color = "#2471a3", label = "  removes"];
+  JPROT  -> PPMASS [arrowhead = tee, penwidth = 2.4, color = "#b9770e", label = "  protein leaves\n  the plasma"];
+  JPROT  -> PII    [penwidth = 2.0, color = "#b9770e"];
+  RINF   -> VP     [penwidth = 2.6, color = "#af601a", label = "  V_infused"];
+  RINF   -> CPROT  [arrowhead = tee, penwidth = 2.6, color = "#af601a", label = "  DILUTES  ← the tax"];
+  FRET   -> VP     [penwidth = 2.6, color = "#e59866", label = "  × f_ret\n  THE PRODUCT"];
+  PIP    -> JV     [arrowhead = tee, penwidth = 2.4, color = "#b9770e"];
+
+  /* STATEMENT 2: the controller */
+  VP     -> CO     [penwidth = 2.2, color = "#1f618d"];
+  UO     -> UOTGT  [penwidth = 2.6, color = "#af601a", label = "  measured →\n  compared to set-point"];
+  FRET   -> GAIN   [penwidth = 2.2, style = dotted, color = "#e59866", label = "  the decaying factor"];
+  CREEP  -> IAH    [penwidth = 2.4, color = "#922b21"];
+  CREEP  -> PULMOE [penwidth = 1.8, color = "#922b21"];
+  CREEP  -> EXTCS  [penwidth = 1.6, color = "#922b21"];
+  CREEP  -> ASCIT  [penwidth = 1.6, color = "#922b21"];
+  ASCIT  -> IAH    [penwidth = 1.8];
+  VIUNB  -> IAH    [penwidth = 1.6];
+  IAH    -> RBF    [arrowhead = tee, penwidth = 2.0, color = "#922b21", label = "  and this closes\n  a SECOND loop"];
+  IAH    -> UO     [arrowhead = tee, penwidth = 2.2, color = "#922b21", style = dashed,
+                    label = "  falling UO makes the\n  controller infuse MORE"];
+
+  /* STATEMENT 3: the two clocks */
+  TBSA   -> AOPEN  [penwidth = 2.4, color = "#9a7d0a", label = "  initial condition ONLY"];
+  AOPEN  -> AFFER  [penwidth = 2.4, color = "#117864", label = "  the driver of the\n  SLOW clock"];
+  AOPEN  -> BARRIER[penwidth = 2.0];
+  AOPEN  -> DAMP   [penwidth = 1.6, style = dashed];
+  CAMP   -> SNS    [style = dotted];
+  REE    -> BREAK  [penwidth = 1.6, style = dotted];
+  REE    -> NUTR   [style = dotted, dir = back, label = "targets"];
+  CORT   -> HLADR  [arrowhead = tee, penwidth = 1.8];
+  IL10   -> HLADR  [arrowhead = tee, penwidth = 2.0];
+  IL6    -> ALBSYN [arrowhead = tee, penwidth = 2.2, color = "#b9770e",
+                    label = "  albumin is a NEGATIVE\n  acute-phase protein"];
+  SEPSIS -> KF     [penwidth = 1.8, style = dashed, color = "#dc7633", label = "  a second leak,\n  weeks later"];
+  SEPSIS -> AOPEN  [penwidth = 1.4, style = dashed];
+  INVAS  -> TAKE   [arrowhead = tee, penwidth = 2.0];
+  LBM    -> INVAS  [arrowhead = tee, style = dotted, label = "  immune substrate"];
+  ROS    -> KF     [penwidth = 2.2, color = "#c0392b", label = "  the mechanistic\n  target of ascorbate"];
+  ENDOTH -> SIGMA  [arrowhead = tee, penwidth = 2.0, color = "#c0392b"];
+  HEPFAT -> ALBSYN [arrowhead = tee, penwidth = 1.6];
+  HEPFAT -> MORT   [style = dotted];
+  LOWT3  -> REE    [style = dotted, arrowhead = tee];
+  GLUCAG -> HYPERG [penwidth = 1.6];
+  HYPERG -> GLNPOOL [style = dotted];
+  INSRES -> SYNTH  [arrowhead = tee, penwidth = 1.6];
+  BONE   -> QOL    [style = dotted];
+  VICF   -> LACT   [style = dotted];
+  NAE    -> VICF   [arrowhead = tee, style = dotted];
+  EVAP   -> NAE    [style = dotted, label = "free water"];
+  AMBT   -> REE    [arrowhead = tee, penwidth = 1.6];
+  DONOR  -> COLON  [style = dotted];
+  GRAFTF -> AOPEN  [penwidth = 2.0, color = "#196f3d", label = "  re-opens\n  the driver"];
+
+  /* ---- the three thesis boxes, pinned bottom ---- */
+  subgraph cluster_thesis {
+    label = "MODEL THESIS — three statements the simulation has to earn";
+    style = "rounded,filled"; fillcolor = "#fcf3cf"; color = "#7d6608"; fontsize = 16;
+
+    T1 [shape = note, fillcolor = "white", fontsize = 12,
+        label = "① THE PRODUCT\ndVP = V_infused × f_ret(Pi_p)\nPi is CONVEX in protein, so f_ret decays\nwith cumulative crystalloid.\nTestable: in:out ratio must rise over the\n24 h even with a fixed protocol."];
+    T2 [shape = note, fillcolor = "white", fontsize = 12,
+        label = "② THE CONTROLLER\nUO-titrated resuscitation is a closed loop\nwhose gain is f_ret.  Fluid creep is its\nfixed point, not an error.\nTestable: albumin must reduce VOLUME more\nthan it improves haemodynamics, and IAH\nmust create a second, positive loop."];
+    T3 [shape = note, fillcolor = "white", fontsize = 12,
+        label = "③ THE TWO CLOCKS\nSame %TBSA, tau 8 h vs tau 100 d.\nThe slow clock is driven by A_open(t),\nnot by admission %TBSA.\nTestable: excision (driver) and propranolol\n(transducer) must be SUB-additive, and\npropranolol's benefit must be largest when\nclosure is slowest."];
+    T1 -> T2 [style = invis]; T2 -> T3 [style = invis];
+  }
+  CREEP -> T1 [style = invis];
+  GAIN  -> T2 [style = invis];
+  AOPEN -> T3 [style = invis];
+
+  /* ---- legend ---- */
+  subgraph cluster_legend {
+    label = "LEGEND — therapy colour = which TERM of the model it touches";
+    style = "rounded,filled"; fillcolor = "white"; color = "gray50"; fontsize = 14;
+    node [shape = box, fontsize = 11, style = "filled,rounded"];
+
+    L1 [label = "Kf / sigma — conductance & sieving", fillcolor = "#cd5c5c", fontcolor = "white"];
+    L2 [label = "Pi_p — the oncotic term", fillcolor = "#e67e22", fontcolor = "white"];
+    L3 [label = "R(t) — the controller set-point", fillcolor = "#f8c471"];
+    L4 [label = "transducer — blocks the signal", fillcolor = "#4169e1", fontcolor = "white"];
+    L5 [label = "driver — removes the stimulus", fillcolor = "#2e8b57", fontcolor = "white"];
+    L6 [label = "anabolic — raises the S term", fillcolor = "#8e44ad", fontcolor = "white"];
+    L7 [label = "exposure — alters drug concentration", fillcolor = "#17a2b8", fontcolor = "white"];
+    L8 [label = "measurement — what is observed", fillcolor = "#aeb6bf"];
+    L1 -> L2 -> L3 -> L4 [style = invis];
+    L5 -> L6 -> L7 -> L8 [style = invis];
+  }
+}
