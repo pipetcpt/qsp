@@ -1,0 +1,696 @@
+/*
+ * ============================================================================
+ *  DISTAL RENAL TUBULAR ACIDOSIS (dRTA) -- QSP MECHANISTIC MAP
+ * ============================================================================
+ *  Rendered with:
+ *    dot -Tsvg drta_qsp_model.dot -o drta_qsp_model.svg
+ *    dot -Tpng -Gdpi=150 drta_qsp_model.dot -o drta_qsp_model.png
+ *
+ *  READING THE MAP -- the four structural claims it is drawn to make
+ *  ----------------------------------------------------------------
+ *  1. THE CONTROLLER IS AN INTEGRATOR WITH A SATURATING ACTUATOR.
+ *     Cluster 5 is a feedback loop, not a pathway.  Plasma HCO3- is compared
+ *     with an age-specific setpoint; the error drives V-ATPase trafficking.
+ *     dRTA is not "low bicarbonate" -- it is ACTUATOR SATURATION.  Once the
+ *     command rails at 1.0 the loop has no reserve and the error is carried by
+ *     something else.
+ *  2. THE ACID GAP IS DISPOSED OF INTO THREE SINKS ON THREE TIMESCALES
+ *     (clusters 7, 8, 9): ECF bicarbonate (minutes), non-bicarbonate
+ *     intracellular/protein buffer (hours), BONE CARBONATE (years).  Only the
+ *     first is measured.  Plasma HCO3- is therefore a RATIO set by the bone
+ *     dose-response, not a flux -- which is why one visit can read
+ *     "HCO3- 22.0, near normal" and "lumbar BMD z -1.1, clearly abnormal".
+ *  3. ALKALI EFFICIENCY IS RATE MATCHING (cluster 14 -> 15).  Base arriving
+ *     faster than endogenous acid is produced crosses the proximal
+ *     reabsorptive threshold and is voided as bicarbonaturia.  That waste
+ *     bites hardest exactly AT the therapeutic target, so a schedule change
+ *     moves the RESPONDER RATE much more than it moves the MEAN.
+ *  4. THE TWO ENDPOINTS WANT OPPOSITE KINETICS (cluster 16).  Systemic
+ *     alkalinisation wants SLOW delivery (rate matching).  Citraturia wants
+ *     FAST delivery, because NaDC1 is Tm-limited and a bolus escapes
+ *     reabsorption.  Only a two-granule formulation optimises both.
+ *
+ *  Edge semantics:  solid black = mass/ion flux;  blue = stimulation/activation;
+ *  red tee-head = inhibition;  dashed green = drug action;  dashed grey =
+ *  measurement/readout;  bold purple = the saturating control loop.
+ * ============================================================================
+ */
+digraph dRTA_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  nodesep = 0.20;
+  ranksep = 0.42;
+  fontname = "Helvetica";
+  labelloc = "t";
+  label = <<FONT POINT-SIZE="30"><B>Distal Renal Tubular Acidosis — Quantitative Systems Pharmacology Map</B></FONT><BR/>
+           <FONT POINT-SIZE="17">α-intercalated-cell H⁺ pump as a <B>saturating actuator</B> · the acid gap partitioned into <B>three sinks on three timescales</B> ·<BR/>
+           alkali efficiency as <B>delivery-rate matching</B> · systemic alkalinisation and citraturia demanding <B>opposite kinetics</B></FONT><BR/>
+           <FONT POINT-SIZE="13" COLOR="#555555">177 nodes · 19 clusters · companion to drta_mrgsolve_model.R (56 ODEs) and drta_shiny_app.R (10 tabs)</FONT>>;
+  fontsize = 20;
+  bgcolor = "white";
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+        fontsize = 12, margin = "0.10,0.055", penwidth = 1.1];
+  edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.05,
+        arrowsize = 0.62, color = "#333333"];
+
+  /* ---------- 1. GENETIC / ACQUIRED AETIOLOGY --------------------------- */
+  subgraph cluster_gene {
+    label = <<B>1 · AETIOLOGY — the lesion enters the model as two numbers only</B><BR/>
+             <FONT POINT-SIZE="10">LES = retained H⁺-pump V</FONT><FONT POINT-SIZE="8">max</FONT><FONT POINT-SIZE="10"> (rate defect) · LES_grad = retained maximal blood→urine ΔpH (gradient defect)</FONT>>;
+    style = "filled,rounded"; color = "#8d6e63"; fillcolor = "#efebe9";
+    fontsize = 15; penwidth = 2.0;
+
+    ATP6V1B1  [label = "ATP6V1B1 (2p13)\nV-ATPase B1 subunit\nAR · early SNHL", fillcolor = "#d7ccc8"];
+    ATP6V0A4  [label = "ATP6V0A4 (7q34)\nV-ATPase a4 subunit\nAR · later SNHL", fillcolor = "#d7ccc8"];
+    SLC4A1    [label = "SLC4A1 (17q21)\nkAE1 / band 3\nAD & AR · haemolysis", fillcolor = "#d7ccc8"];
+    FOXI1     [label = "FOXI1 (5q35)\nIC transcription factor\nAR · SNHL", fillcolor = "#d7ccc8"];
+    WDR72     [label = "WDR72 (15q21)\ntrafficking\nAR · amelogenesis imperf.", fillcolor = "#d7ccc8"];
+    SJOGREN   [label = "Sjögren syndrome\nanti-V-ATPase / anti-CA II\nlymphocytic infiltration", fillcolor = "#ffe0b2"];
+    SLE_AI    [label = "SLE · RA · PBC\nautoimmune tubulointerstitial\nnephritis", fillcolor = "#ffe0b2"];
+    AMPHO     [label = "Amphotericin B\nmembrane pore →\nH⁺ back-leak", fillcolor = "#ffe0b2"];
+    IFOS      [label = "Ifosfamide · cisplatin\ntubular toxicity", fillcolor = "#ffe0b2"];
+    LITHIUM   [label = "Lithium\ndistal nephron\nacidification defect", fillcolor = "#ffe0b2"];
+    TOPI      [label = "Topiramate · acetazolamide\ncarbonic-anhydrase inhibition\n(mixed dRTA + pRTA)", fillcolor = "#ffe0b2"];
+    TENOF     [label = "Tenofovir · antiretrovirals\nproximal + distal injury", fillcolor = "#ffe0b2"];
+    OBSTRUCT  [label = "Obstructive uropathy\nreflux nephropathy\n(commonest paediatric cause)", fillcolor = "#ffe0b2"];
+    SICKLE    [label = "Sickle-cell disease\nmedullary infarction", fillcolor = "#ffe0b2"];
+
+    LES       [label = "LES\nrate defect\n(pump Vmax)", shape = octagon, fillcolor = "#a1887f", fontcolor = "white", penwidth = 2.2];
+    LESG      [label = "LES_grad\ngradient defect\n(H⁺ back-leak)", shape = octagon, fillcolor = "#a1887f", fontcolor = "white", penwidth = 2.2];
+  }
+
+  /* ---------- 2. alpha-INTERCALATED CELL -------------------------------- */
+  subgraph cluster_aic {
+    label = <<B>2 · α-INTERCALATED CELL — the broken actuator</B>>;
+    style = "filled,rounded"; color = "#c62828"; fillcolor = "#ffebee";
+    fontsize = 15; penwidth = 2.0;
+
+    CAII      [label = "Carbonic anhydrase II\nCO₂ + H₂O ⇌ H⁺ + HCO₃⁻", fillcolor = "#ffcdd2"];
+    VATP      [label = "Vacuolar H⁺-ATPase\napical, B1/a4 subunits\nELECTROGENIC pump", fillcolor = "#ef9a9a", penwidth = 2.0];
+    HKATP     [label = "H⁺/K⁺-ATPase\n(HKα2) — reclaims K⁺\nwhile secreting H⁺", fillcolor = "#ffcdd2"];
+    KAE1      [label = "kAE1 (SLC4A1)\nbasolateral Cl⁻/HCO₃⁻\nexchange — HCO₃⁻ exit", fillcolor = "#ffcdd2"];
+    RHCG      [label = "Rhcg\napical NH₃ channel\nco-localises with V-ATPase", fillcolor = "#ffcdd2"];
+    RHBG      [label = "Rhbg\nbasolateral NH₃ entry", fillcolor = "#ffcdd2"];
+    pHi_IC    [label = "α-IC intracellular pH\n(alkalinises if kAE1 fails)", fillcolor = "#ffcdd2"];
+    JH        [label = "J_H  distal H⁺ secretion\nJ_H = Jmax·LES·VH·(1 − 10^−(pH_u − pH_floor))", shape = box, fillcolor = "#e53935", fontcolor = "white", penwidth = 2.2];
+    PHFLOOR   [label = "pH_floor = pH_blood − ΔpH_max·LES_grad\nminimum ACHIEVABLE urine pH", shape = note, fillcolor = "#ffcdd2"];
+  }
+
+  /* ---------- 3. beta-INTERCALATED CELL / PENDRIN ----------------------- */
+  subgraph cluster_bic {
+    label = <<B>3 · β-INTERCALATED CELL — base secretion, the wrong-way valve</B>>;
+    style = "filled,rounded"; color = "#00838f"; fillcolor = "#e0f7fa";
+    fontsize = 15; penwidth = 2.0;
+
+    PENDRIN   [label = "Pendrin (SLC26A4)\napical Cl⁻/HCO₃⁻ exchange\nHCO₃⁻ SECRETION", fillcolor = "#b2ebf2"];
+    NDCBE     [label = "NDCBE (SLC4A8)\nNa⁺-driven Cl⁻/HCO₃⁻", fillcolor = "#b2ebf2"];
+    BICSEC    [label = "J_pend\nbase secreted into lumen\n(rises with alkali therapy)", fillcolor = "#80deea"];
+    ICPLAST   [label = "IC plasticity\nα ⇌ β interconversion\n(hensin / FOXI1)", fillcolor = "#b2ebf2"];
+  }
+
+  /* ---------- 4. PROXIMAL TUBULE / AMMONIAGENESIS ----------------------- */
+  subgraph cluster_pt {
+    label = <<B>4 · PROXIMAL TUBULE — buffer supply and the citrate valve</B>>;
+    style = "filled,rounded"; color = "#2e7d32"; fillcolor = "#e8f5e9";
+    fontsize = 15; penwidth = 2.0;
+
+    GLN       [label = "Glutamine\n(dietary protein supplies it)", fillcolor = "#c8e6c9"];
+    PDG       [label = "Phosphate-dependent\nglutaminase · GDH", fillcolor = "#c8e6c9"];
+    PEPCK     [label = "PEPCK\nα-ketoglutarate → glucose\n(regenerates HCO₃⁻)", fillcolor = "#c8e6c9"];
+    NH3POOL   [label = "NH₃ / NH₄⁺ medullary pool\nNH3P — ammoniagenic capacity\nrises 3–5× with acid load", fillcolor = "#a5d6a7", penwidth = 1.8];
+    NHE3      [label = "NHE3 (SLC9A3)\napical Na⁺/H⁺ exchange\nHCO₃⁻ reclamation", fillcolor = "#c8e6c9"];
+    NBCE1     [label = "NBCe1 (SLC4A4)\nbasolateral HCO₃⁻ exit", fillcolor = "#c8e6c9"];
+    THRESH    [label = "Proximal HCO₃⁻ threshold\nTHR ≈ setpoint + 1.05\n(LOWER in infants)", shape = note, fillcolor = "#a5d6a7", penwidth = 1.8];
+    NADC1     [label = "NaDC1 (SLC13A2)\napical citrate reabsorption\nTm-LIMITED", fillcolor = "#a5d6a7", penwidth = 1.8];
+    PHIPT     [label = "PT intracellular pH\nsenses the acid load\nfaster than plasma HCO₃⁻ does", fillcolor = "#c8e6c9"];
+    NAPI      [label = "NaPi-IIa / IIc\nphosphate reabsorption\n(PTH-inhibited)", fillcolor = "#c8e6c9"];
+  }
+
+  /* ---------- 5. THE CONTROL LOOP --------------------------------------- */
+  subgraph cluster_ctrl {
+    label = <<B>5 · THE CONTROL LOOP — integral control with a saturating actuator</B><BR/>
+             <FONT POINT-SIZE="10">dRTA is the SATURATION of this loop, not a missing pathway</FONT>>;
+    style = "filled,rounded"; color = "#4a148c"; fillcolor = "#f3e5f5";
+    fontsize = 15; penwidth = 2.6;
+
+    SETPT     [label = "Setpoint\nHCO₃_set = 21.0 + 4.0·age/(age+3)\ninfant ≈ 21.5 → adult ≈ 24.7", shape = note, fillcolor = "#e1bee7"];
+    ERR       [label = "error e = HCO₃_set − HCO₃⁻", shape = diamond, fillcolor = "#ce93d8"];
+    PROP      [label = "PROPORTIONAL arm\nkP·e — cell-pH / pCO₂ sensing\nτ ≈ hours", fillcolor = "#e1bee7"];
+    INTEG     [label = "INTEGRAL arm\ndVH/dt = kI·e\nV-ATPase trafficking, τ ≈ days", fillcolor = "#e1bee7"];
+    VHCMD     [label = "VH  actuator command\nclamped to [0, 1]", shape = octagon, fillcolor = "#7b1fa2", fontcolor = "white", penwidth = 2.4];
+    SAT       [label = "SATURATION\nVH railed at 1.0\n⇒ NO RESERVE", shape = doubleoctagon, fillcolor = "#4a148c", fontcolor = "white", penwidth = 2.6];
+    WINDUP    [label = "anti-windup\nintegration stops at the rail", shape = note, fillcolor = "#e1bee7"];
+    RESERVE   [label = "Acid-excretion reserve\nR = NAE_max / NEAP\nnormal ≈ 4–5×", fillcolor = "#e1bee7"];
+  }
+
+  /* ---------- 6. URINE ACIDIFICATION / TITRATION ------------------------ */
+  subgraph cluster_urine {
+    label = <<B>6 · LUMINAL PROTON BALANCE — urine pH is SOLVED, not fitted</B><BR/>
+             <FONT POINT-SIZE="10">J_H(pH_u) = ΔHCO₃⁻ delivered + titratable acid + NH₄⁺ trapped + citrate protonated</FONT>>;
+    style = "filled,rounded"; color = "#ef6c00"; fillcolor = "#fff3e0";
+    fontsize = 15; penwidth = 2.0;
+
+    UPH       [label = "URINE pH\nroot of J_H(pH) − Demand(pH) = 0", shape = doubleoctagon, fillcolor = "#e65100", fontcolor = "white", penwidth = 2.4];
+    TA        [label = "Titratable acid\nHPO₄²⁻ + H⁺ → H₂PO₄⁻\npKa 6.8 · 10–25 mEq/day", fillcolor = "#ffe0b2"];
+    NH4EXC    [label = "NH₄⁺ excretion\n= NH3P × trap(pH_u)\n30–60 mEq/day normal", fillcolor = "#ffe0b2"];
+    TRAP      [label = "NH₃ trapping efficiency\ntrap = 1/(1 + 10^((pH_u − 6.62)/0.62))\nFAILS when urine stays alkaline", fillcolor = "#ffcc80", penwidth = 1.8];
+    HCO3U     [label = "Urinary HCO₃⁻\n= V·0.0301·pCO₂ᵘ·10^(pH_u − 6.1)\nTHE WASTE CHANNEL", fillcolor = "#ffcc80", penwidth = 1.8];
+    UAG       [label = "Urine anion gap\n(Na+K) − Cl  POSITIVE\n= low NH₄⁺ (dRTA hallmark)", shape = note, fillcolor = "#ffe0b2"];
+    UOSMGAP   [label = "Urine osmolal gap\ndirect NH₄⁺ estimate\n(better than the anion gap)", shape = note, fillcolor = "#ffe0b2"];
+    UBPCO2    [label = "Urine-minus-blood pCO₂\nLOW in dRTA (<20 mmHg)\nafter HCO₃⁻ loading", shape = note, fillcolor = "#ffe0b2"];
+    FEHCO3    [label = "FE HCO₃⁻ < 3 %\n(vs > 15 % in proximal RTA)\nDISCRIMINATOR", shape = note, fillcolor = "#ffe0b2"];
+    NAE       [label = "NAE = TA + NH₄⁺ − HCO₃⁻ᵘ\nnormal 43–60 mEq/day\nmax 300–450 under load", shape = octagon, fillcolor = "#f57c00", fontcolor = "white", penwidth = 2.2];
+    ACIDTEST  [label = "NH₄Cl loading test\n0.05–0.1 g/kg\nnormal urine pH < 5.45", shape = note, fillcolor = "#ffe0b2"];
+    FURFLUD   [label = "Furosemide + fludrocortisone\ntest — safer alternative", shape = note, fillcolor = "#ffe0b2"];
+  }
+
+  /* ---------- 7. SINK 1: ECF BICARBONATE ------------------------------- */
+  subgraph cluster_sink1 {
+    label = <<B>7 · SINK 1 — ECF bicarbonate (MINUTES). The only sink that is measured.</B>>;
+    style = "filled,rounded"; color = "#1565c0"; fillcolor = "#e3f2fd";
+    fontsize = 15; penwidth = 2.2;
+
+    HCO3E     [label = "Plasma / ECF HCO₃⁻\nA RATIO, NOT A FLUX", shape = doubleoctagon, fillcolor = "#0d47a1", fontcolor = "white", penwidth = 2.6];
+    VECF      [label = "ECF volume ≈ 0.20 L/kg", fillcolor = "#bbdefb"];
+    PACO2     [label = "PaCO₂\n= 40 + 1.2·(HCO₃⁻ − 24)\nrespiratory compensation", fillcolor = "#bbdefb"];
+    PHBL      [label = "Blood pH\n= 6.10 + log₁₀(HCO₃⁻/0.0301·pCO₂)\nHenderson–Hasselbalch", shape = octagon, fillcolor = "#1976d2", fontcolor = "white", penwidth = 2.2];
+    CLPL      [label = "Plasma Cl⁻ ↑\nHYPERCHLORAEMIC\nnormal-anion-gap acidosis", fillcolor = "#bbdefb"];
+    AGAP      [label = "Serum anion gap NORMAL\n(distinguishes from ketoacidosis,\nlactate, toxic alcohols)", shape = note, fillcolor = "#bbdefb"];
+  }
+
+  /* ---------- 8. SINK 2: NON-BICARBONATE BUFFER ------------------------ */
+  subgraph cluster_sink2 {
+    label = <<B>8 · SINK 2 — intracellular / protein buffer (HOURS)</B>>;
+    style = "filled,rounded"; color = "#00695c"; fillcolor = "#e0f2f1";
+    fontsize = 15; penwidth = 2.2;
+
+    BUF       [label = "Non-bicarbonate buffer base\nhaemoglobin · plasma protein ·\nintracellular imidazole/phosphate", fillcolor = "#b2dfdb"];
+    CBUF      [label = "Buffer capacity C_buf\n≈ 0.30 L/kg, and it EXPANDS\nas HCO₃⁻ falls", fillcolor = "#80cbc4"];
+    SPACE     [label = "Apparent HCO₃⁻ space\n= 0.20 (ECF) + C_buf\n0.5 L/kg → 0.7–1.0 in severe acidosis", shape = note, fillcolor = "#b2dfdb"];
+    JBUF      [label = "J_buf  transient only —\nZERO flux at steady state\n(shapes dynamics, not balance)", fillcolor = "#b2dfdb"];
+  }
+
+  /* ---------- 9. SINK 3: BONE ------------------------------------------ */
+  subgraph cluster_sink3 {
+    label = <<B>9 · SINK 3 — BONE CARBONATE (YEARS). Where the unmet gap actually goes.</B><BR/>
+             <FONT POINT-SIZE="10">RECTIFIED in pH ⇒ CONVEX ⇒ a spiky HCO₃⁻ profile costs more bone than a flat one of the same MEAN (Jensen)</FONT>>;
+    style = "filled,rounded"; color = "#6a1b9a"; fillcolor = "#f3e5f5";
+    fontsize = 15; penwidth = 2.4;
+
+    JBONE     [label = "J_bone = (k_pc·BMIN·BLAB + k_cell·OC)\n× max(0, pH_ref − pH_blood)", shape = octagon, fillcolor = "#6a1b9a", fontcolor = "white", penwidth = 2.4];
+    PHYSCHEM  [label = "Physicochemical dissolution\nbone CaCO₃ / Ca₃(PO₄)₂\nreleases carbonate + phosphate", fillcolor = "#e1bee7"];
+    BLABP     [label = "Rapidly exchangeable\nbone base pool (BLAB)\nfirst to be spent", fillcolor = "#e1bee7"];
+    OCACT     [label = "Osteoclast activation\nPTH-INDEPENDENT\n(RANKL · PGE₂ · COX-2)", fillcolor = "#e1bee7"];
+    OBSUP     [label = "Osteoblast suppression\nreduced collagen /\nmineral apposition", fillcolor = "#e1bee7"];
+    BMIN      [label = "Bone mineral mass\nBMIN (fraction of expected)", fillcolor = "#ce93d8"];
+    OSTEOMAL  [label = "Osteomalacia / rickets\nunmineralised matrix\n+ hypophosphataemia", fillcolor = "#ce93d8"];
+    BMDZ      [label = "Lumbar BMD z-score\nB22CS: −1.1 → −0.8 over 6 y", shape = octagon, fillcolor = "#8e24aa", fontcolor = "white", penwidth = 2.2];
+    BALP      [label = "Bone ALP ↑\ncirculating turnover marker", fillcolor = "#e1bee7"];
+    FRACT     [label = "Fracture · bone pain ·\ngenu valgum · waddling gait", fillcolor = "#ce93d8"];
+    CUMBASE   [label = "Cumulative bone base withdrawn\nthe UNMEASURED integral", shape = note, fillcolor = "#e1bee7"];
+  }
+
+  /* ---------- 10. CALCIUM / PTH / VITAMIN D ---------------------------- */
+  subgraph cluster_ca {
+    label = <<B>10 · CALCIUM–PHOSPHATE–PTH AXIS</B>>;
+    style = "filled,rounded"; color = "#ad1457"; fillcolor = "#fce4ec";
+    fontsize = 15; penwidth = 2.0;
+
+    CAPL      [label = "Plasma ionised Ca²⁺\nNORMAL — the bone Ca²⁺ is\nspilled straight into the urine", fillcolor = "#f8bbd0"];
+    PTH       [label = "PTH\n(often normal or low —\nacidosis acts independently)", fillcolor = "#f8bbd0"];
+    CALCIDIOL [label = "25-OH vitamin D\nhypovitaminosis D common\n(13/30 in B22CS)", fillcolor = "#f8bbd0"];
+    CALCITRIOL[label = "1,25-(OH)₂ vitamin D\n1α-hydroxylase", fillcolor = "#f8bbd0"];
+    TRPV5     [label = "TRPV5 / claudin-14\ndistal Ca²⁺ reabsorption\nDIRECTLY inhibited by acid", fillcolor = "#f48fb1", penwidth = 1.8];
+    PIPL      [label = "Plasma phosphate\n↓ (PTH + tubular loss)", fillcolor = "#f8bbd0"];
+    UCA       [label = "URINE CALCIUM ↑\nhypercalciuria > 4 mg/kg/day", shape = octagon, fillcolor = "#c2185b", fontcolor = "white", penwidth = 2.2];
+    LEMANN    [label = "Lemann slope\ndUCa/dNAE = 0.035 mmol/mEq\n(PMID 9873210) — validation target", shape = note, fillcolor = "#f8bbd0"];
+  }
+
+  /* ---------- 11. CITRATE ---------------------------------------------- */
+  subgraph cluster_cit {
+    label = <<B>11 · CITRATE — the Tm-limited valve that makes bolus dosing GOOD</B>>;
+    style = "filled,rounded"; color = "#33691e"; fillcolor = "#f1f8e9";
+    fontsize = 15; penwidth = 2.2;
+
+    CITPL     [label = "Plasma citrate\n≈ 0.12 mmol/L", fillcolor = "#dcedc8"];
+    CITFILT   [label = "Filtered citrate load\n= GFR × [citrate]", fillcolor = "#dcedc8"];
+    CITREAB   [label = "NaDC1 reabsorption\nTm·FL/(Km+FL)  SATURABLE\n⇒ a BOLUS ESCAPES", fillcolor = "#c5e1a5", penwidth = 2.0];
+    NDC1UP    [label = "NaDC1 up-regulation\nby PT intracellular acidosis\n⇒ HYPOCITRATURIA", fillcolor = "#c5e1a5"];
+    UCIT      [label = "URINE CITRATE ↓\n< 1.7 mmol/day\n(floor: FE_cit ≈ 4 %)", shape = octagon, fillcolor = "#558b2f", fontcolor = "white", penwidth = 2.2];
+    CITOX     [label = "Hepatic citrate oxidation\n1 mmol citrate³⁻ → 3 mEq HCO₃⁻\nfirst-pass extraction ≈ 85 %", fillcolor = "#dcedc8"];
+    CACIT     [label = "Ca²⁺–citrate complexation\nchelates urinary Ca²⁺\n(the protective arm)", fillcolor = "#c5e1a5"];
+  }
+
+  /* ---------- 12. STONE / NEPHROCALCINOSIS ----------------------------- */
+  subgraph cluster_stone {
+    label = <<B>12 · CRYSTALLISATION — why dRTA makes CALCIUM-PHOSPHATE stones</B><BR/>
+             <FONT POINT-SIZE="10">the one acidosis whose urine is ALKALINE: high Ca²⁺ × high HPO₄²⁻ × low citrate</FONT>>;
+    style = "filled,rounded"; color = "#4e342e"; fillcolor = "#efebe9";
+    fontsize = 15; penwidth = 2.2;
+
+    SSCAP     [label = "Brushite supersaturation\nSS = Ca_free × HPO₄²⁻ / Ksp\nSS = 1 is the threshold", shape = doubleoctagon, fillcolor = "#4e342e", fontcolor = "white", penwidth = 2.4];
+    HPO4      [label = "Urinary HPO₄²⁻\n= Pi_u/(1 + 10^(6.8 − pH_u))\nRISES steeply with urine pH", fillcolor = "#d7ccc8"];
+    CAFREE    [label = "Free urinary Ca²⁺\n= Ca_tot/(1 + K·[citrate])", fillcolor = "#d7ccc8"];
+    UVOL      [label = "Urine volume\n↑ by hypokalaemic\nnephrogenic DI (dilution PROTECTS)", fillcolor = "#d7ccc8"];
+    CACITR    [label = "Urine Ca/citrate ratio\nlithogenic above ≈ 0.33\nB21CS primary stone endpoint", shape = octagon, fillcolor = "#5d4037", fontcolor = "white", penwidth = 2.2];
+    NEPHROCAL [label = "MEDULLARY NEPHROCALCINOSIS\ncumulative supersaturation-time", fillcolor = "#bcaaa4", penwidth = 1.8];
+    STONES    [label = "Nephrolithiasis\nCaP (brushite / apatite)\nrecurrent · bilateral", fillcolor = "#bcaaa4"];
+    COLIC     [label = "Renal colic · haematuria ·\nobstruction · UTI", fillcolor = "#d7ccc8"];
+    MEDCYST   [label = "Medullary cysts", fillcolor = "#d7ccc8"];
+  }
+
+  /* ---------- 13. CKD PROGRESSION -------------------------------------- */
+  subgraph cluster_ckd {
+    label = <<B>13 · THE VICIOUS LOOP — a tubular disease that ends as CKD</B><BR/>
+             <FONT POINT-SIZE="10">&gt; 80 % of ADULT dRTA patients have KDIGO stage ≥ 2 (B22CS)</FONT>>;
+    style = "filled,rounded"; color = "#b71c1c"; fillcolor = "#ffebee";
+    fontsize = 15; penwidth = 2.4;
+
+    FIBROSIS  [label = "Tubulo-interstitial fibrosis\ncrystal → inflammasome →\nmyofibroblast", fillcolor = "#ffcdd2"];
+    NEPHLOSS  [label = "Functional nephron loss\nNEPH ↓", fillcolor = "#ef9a9a", penwidth = 1.8];
+    EGFR      [label = "eGFR ↓\nB22CS with good control:\n105 → 104 over 6 y (STABLE)", shape = octagon, fillcolor = "#c62828", fontcolor = "white", penwidth = 2.2];
+    LESSCAP   [label = "FEWER NEPHRONS ⇒\nless NAE capacity ⇒\nWORSE acidosis", shape = box, fillcolor = "#e57373", penwidth = 2.2];
+    CKDACID   [label = "CKD acidosis adds to\nthe tubular defect\n(reduced NH₄⁺ + retained acid)", fillcolor = "#ffcdd2"];
+    ESRD      [label = "Kidney failure\ndialysis / transplant", fillcolor = "#ef9a9a"];
+  }
+
+  /* ---------- 14. DRUG PK ---------------------------------------------- */
+  subgraph cluster_pk {
+    label = <<B>14 · ALKALI PHARMACOKINETICS — the DELIVERY RATE is the active variable</B>>;
+    style = "filled,rounded"; color = "#01579b"; fillcolor = "#e1f5fe";
+    fontsize = 15; penwidth = 2.2;
+
+    NAHCO3    [label = "NaHCO₃ tablets/solution\nIR · ka ≈ 1.5 h⁻¹ · F ≈ 0.86\n(CO₂ lost in the stomach)", fillcolor = "#b3e5fc"];
+    KHCO3     [label = "KHCO₃ / K-citrate (IR)\nka ≈ 1.0–1.5 h⁻¹\n3–4 intakes/day", fillcolor = "#b3e5fc"];
+    SHOHL     [label = "Shohl's solution\nNa citrate + citric acid\nunpalatable", fillcolor = "#b3e5fc"];
+    MGSALT    [label = "Mg / Na-K citrate mixtures", fillcolor = "#b3e5fc"];
+    ADVCIT    [label = "ADV7103 FAST granules\npotassium citrate\nreleased over 2–3 h", fillcolor = "#4fc3f7", penwidth = 2.0];
+    ADVBIC    [label = "ADV7103 SLOW granules\npotassium bicarbonate\nreleased over 10–12 h", fillcolor = "#4fc3f7", penwidth = 2.0];
+    ADVBID    [label = "ADV7103 (Sibnayal®)\nTWICE daily · EMA-approved\n0.98–2.88 mEq/kg/day tested", shape = octagon, fillcolor = "#0277bd", fontcolor = "white", penwidth = 2.4];
+    DELRATE   [label = "DELIVERY RATE\nmEq/h reaching the ECF", shape = diamond, fillcolor = "#4fc3f7", penwidth = 2.0];
+    KCL       [label = "KCl supplement\nfor the K⁺ deficit alone\n(adds NO alkali)", fillcolor = "#b3e5fc"];
+    HCTZ      [label = "Thiazide (HCTZ)\nka 1.1 h⁻¹ · t½ ≈ 8 h\nhypocalciuric", fillcolor = "#b3e5fc"];
+    VITD      [label = "Cholecalciferol\n→ 25-OH-D (t½ ≈ 3 wk)", fillcolor = "#b3e5fc"];
+    IMMSUP    [label = "Rituximab · steroids\n(Sjögren-associated dRTA:\ntreat the CAUSE)", fillcolor = "#b3e5fc"];
+    VEVER     [label = "Veverimer (HCl binder)\ninvestigational — removes acid\ninstead of adding base", fillcolor = "#b3e5fc"];
+  }
+
+  /* ---------- 15. RATE MATCHING / WASTE -------------------------------- */
+  subgraph cluster_rate {
+    label = <<B>15 · RATE MATCHING — where a bolus of alkali is actually lost</B><BR/>
+             <FONT POINT-SIZE="10">the waste bites hardest AT the therapeutic target, so the RESPONDER RATE moves far more than the MEAN</FONT>>;
+    style = "filled,rounded"; color = "#e65100"; fillcolor = "#fff8e1";
+    fontsize = 15; penwidth = 2.6;
+
+    MATCH     [label = "Delivery rate vs NEAP rate\nmatched ⇒ retained\nfaster ⇒ WASTED", shape = diamond, fillcolor = "#ffb74d", penwidth = 2.2];
+    OVERSHOOT [label = "HCO₃⁻ transiently\nCROSSES the proximal threshold", fillcolor = "#ffe082"];
+    BICWASTE  [label = "BICARBONATURIA\nthe dose leaves in the urine", shape = octagon, fillcolor = "#ef6c00", fontcolor = "white", penwidth = 2.4];
+    UPHRISE   [label = "Urine pH rises FURTHER\n(both from bicarbonaturia and\nfrom the controller relaxing)", fillcolor = "#ffe082", penwidth = 1.8];
+    TROUGH    [label = "Pre-dose TROUGH\nwhy surveillance samples are\ntaken BEFORE the dose", fillcolor = "#ffe082"];
+    NIGHTGAP  [label = "Overnight gap\n3 intakes/day leave ~12 h\nuncovered", fillcolor = "#ffe082"];
+    RESPRATE  [label = "RESPONDER RATE\na threshold statistic —\nmoves much more than the mean", shape = doubleoctagon, fillcolor = "#e65100", fontcolor = "white", penwidth = 2.6];
+  }
+
+  /* ---------- 16. THE OPPOSING-KINETICS RESULT ------------------------- */
+  subgraph cluster_opp {
+    label = <<B>16 · THE TWO ENDPOINTS WANT OPPOSITE KINETICS</B>>;
+    style = "filled,rounded"; color = "#880e4f"; fillcolor = "#fce4ec";
+    fontsize = 15; penwidth = 2.6;
+
+    SLOWGOOD  [label = "SYSTEMIC ALKALINISATION\nwants SLOW delivery\n(rate matching ⇒ less waste)", fillcolor = "#f48fb1", penwidth = 2.2];
+    FASTGOOD  [label = "CITRATURIA\nwants FAST delivery\n(Tm escape at NaDC1)", fillcolor = "#f48fb1", penwidth = 2.2];
+    TWOGRAN   [label = "⇒ A TWO-GRANULE FORMULATION\nfast citrate + slow bicarbonate\nis the only schedule that does both", shape = doubleoctagon, fillcolor = "#880e4f", fontcolor = "white", penwidth = 2.6];
+    PHTRADE   [label = "pH trade-off\nalkali RAISES urine pH (bad for CaP)\nbut RAISES citrate (good)", fillcolor = "#f8bbd0", penwidth = 1.8];
+    SATURATED [label = "In COMPLETE dRTA the urine-pH arm\nis already saturated ⇒ alkali is\nunambiguously beneficial", shape = note, fillcolor = "#f8bbd0"];
+    HEADROOM  [label = "In INCOMPLETE dRTA / idiopathic\nCaP stone formers urine pH still has\nHEADROOM ⇒ benefit is NOT automatic", shape = note, fillcolor = "#f8bbd0"];
+  }
+
+  /* ---------- 17. POTASSIUM -------------------------------------------- */
+  subgraph cluster_k {
+    label = <<B>17 · POTASSIUM — the H⁺-pump lesion IS a K⁺-wasting lesion</B><BR/>
+             <FONT POINT-SIZE="10">plasma K⁺ is a ratio too: ~300 mmol of deficit per mmol/L</FONT>>;
+    style = "filled,rounded"; color = "#f9a825"; fillcolor = "#fffde7";
+    fontsize = 15; penwidth = 2.0;
+
+    ENAC      [label = "ENaC — distal Na⁺ reabsorption\nneeds an accompanying cation\nsecretion for electroneutrality", fillcolor = "#fff59d"];
+    HDEF      [label = "H⁺ NOT secreted\n⇒ K⁺ secreted instead", shape = diamond, fillcolor = "#ffe082", penwidth = 2.0];
+    ROMK      [label = "ROMK / BK channels\nK⁺ secretion", fillcolor = "#fff59d"];
+    ALDO      [label = "Aldosterone ↑\n(volume depletion +\nsalt wasting)", fillcolor = "#fff59d"];
+    KDEF      [label = "Total-body K⁺ deficit\nthe UNMEASURED store", fillcolor = "#ffe082"];
+    KPL       [label = "Plasma K⁺ ↓\nhypokalaemia", shape = octagon, fillcolor = "#f57f17", fontcolor = "white", penwidth = 2.2];
+    PARALYSIS [label = "Hypokalaemic paralysis\nflaccid paraparesis ·\nrhabdomyolysis · arrhythmia", fillcolor = "#ffe082"];
+    NDI       [label = "Nephrogenic DI\npolyuria · polydipsia ·\ndehydration episodes", fillcolor = "#fff59d"];
+    NASALT    [label = "SODIUM-based alkali\nDELIVERS Na⁺ distally ⇒\nAGGRAVATES K⁺ wasting", fillcolor = "#ffcc80", penwidth = 2.0];
+    KSALT     [label = "POTASSIUM-based alkali\nrepletes K⁺ and alkalinises\n(why dRTA alkali is K-based)", fillcolor = "#c5e1a5", penwidth = 2.0];
+  }
+
+  /* ---------- 18. GROWTH / EXTRARENAL --------------------------------- */
+  subgraph cluster_growth {
+    label = <<B>18 · GROWTH AND EXTRARENAL MANIFESTATIONS</B>>;
+    style = "filled,rounded"; color = "#00695c"; fillcolor = "#e0f2f1";
+    fontsize = 15; penwidth = 2.0;
+
+    GHRES     [label = "GH resistance\nreduced hepatic GH-receptor /\nJAK-STAT signalling", fillcolor = "#b2dfdb"];
+    IGF1      [label = "IGF-1 ↓\nand IGFBP profile shift", fillcolor = "#b2dfdb"];
+    GROWTHPL  [label = "Growth-plate chondrocyte\nproliferation ↓\n+ rachitic changes", fillcolor = "#b2dfdb"];
+    HZ        [label = "Height z-score\nB22CS: −0.6 → −0.3 over 6 y\n(p = 0.03)", shape = octagon, fillcolor = "#00796b", fontcolor = "white", penwidth = 2.2];
+    FTT       [label = "Failure to thrive\nvomiting · anorexia ·\nconstipation (infant presentation)", fillcolor = "#b2dfdb"];
+    SNHL      [label = "Sensorineural hearing loss\nendolymph acidification fails\n(ATP6V1B1 · ATP6V0A4 · FOXI1)", fillcolor = "#80cbc4"];
+    ENLARGED  [label = "Enlarged vestibular aqueduct\n(ATP6V0A4)", fillcolor = "#b2dfdb"];
+    HAEMOL    [label = "Hereditary haemolytic anaemia\nsome SLC4A1 variants\n(band 3 is the RBC protein)", fillcolor = "#b2dfdb"];
+    AMELO     [label = "Amelogenesis imperfecta\n(WDR72)", fillcolor = "#b2dfdb"];
+    MUSCLE    [label = "Muscle weakness\n(K⁺ + phosphate depletion)", fillcolor = "#b2dfdb"];
+  }
+
+  /* ---------- 19. ADHERENCE / CLINICAL ENDPOINTS ----------------------- */
+  subgraph cluster_out {
+    label = <<B>19 · ADHERENCE AND CLINICAL ENDPOINTS</B>>;
+    style = "filled,rounded"; color = "#37474f"; fillcolor = "#eceff1";
+    fontsize = 15; penwidth = 2.2;
+
+    NINTAKE   [label = "Number of daily intakes\nSoC median 3 → ADV7103 2", fillcolor = "#cfd8dc"];
+    GIAE      [label = "GI irritation\nosmotic load + CO₂ release\nfrom an IR bolus", fillcolor = "#cfd8dc"];
+    PALAT     [label = "Palatability\n(B21CS: +25 mm VAS)", fillcolor = "#cfd8dc"];
+    ADHER     [label = "ADHERENCE\n≥ 75 % in 79 % of patients\non ADV7103 at 24 months", shape = octagon, fillcolor = "#455a64", fontcolor = "white", penwidth = 2.2];
+    EFFDOSE   [label = "EFFECTIVE delivered dose\n= prescribed × adherence", shape = diamond, fillcolor = "#b0bec5", penwidth = 2.0];
+    QOL       [label = "Quality of life\nschool/work · family function\n(mean satisfaction 9/10)", fillcolor = "#cfd8dc"];
+    MONITOR   [label = "Surveillance\npre-dose venous blood gas /\ntotal CO₂ q3–4 months in infants", shape = note, fillcolor = "#cfd8dc"];
+    URINEMON  [label = "Annual urine Ca, citrate,\ncreatinine + renal ultrasound", shape = note, fillcolor = "#cfd8dc"];
+  }
+
+  /* ---------- DIET (outside clusters) --------------------------------- */
+  NEAP     [label = "NET ENDOGENOUS ACID PRODUCTION\nNEAP ≈ 1 mEq/kg/day adult,\n2–3 in infants · meal-linked diurnal", shape = doubleoctagon, style = "filled,rounded", fillcolor = "#ffab91", penwidth = 2.4];
+  PROTEIN  [label = "Dietary protein\n(sulphur amino acids)", fillcolor = "#ffccbc"];
+  DIETALK  [label = "Dietary alkali\n(fruit / vegetable K-citrate)", fillcolor = "#ffccbc"];
+  PRAL     [label = "PRAL / potential renal acid load\nthe modifiable input", shape = note, fillcolor = "#ffccbc"];
+  GROWTHACID [label = "Growth itself is acidifying\n(net H⁺ from mineral deposition)", fillcolor = "#ffccbc"];
+
+  /* ======================= EDGES ====================================== */
+
+  /* --- aetiology -> lesion parameters --- */
+  ATP6V1B1 -> LES;  ATP6V1B1 -> LESG;
+  ATP6V0A4 -> LES;  ATP6V0A4 -> LESG;
+  SLC4A1 -> LESG [label = "kAE1 mistrafficking"];
+  SLC4A1 -> LES;
+  FOXI1 -> LES [label = "fewer IC"];
+  WDR72 -> LES;
+  SJOGREN -> LES;  SJOGREN -> LESG;
+  SLE_AI -> LES;
+  AMPHO -> LESG [label = "H⁺ back-leak", color = "#c62828"];
+  IFOS -> LES;  LITHIUM -> LES;  TOPI -> LES;  TENOF -> LES;
+  OBSTRUCT -> LES;  SICKLE -> LES;
+  ATP6V1B1 -> SNHL [style = dashed, color = "#00695c"];
+  ATP6V0A4 -> SNHL [style = dashed, color = "#00695c"];
+  ATP6V0A4 -> ENLARGED [style = dashed, color = "#00695c"];
+  FOXI1 -> SNHL [style = dashed, color = "#00695c"];
+  SLC4A1 -> HAEMOL [style = dashed, color = "#00695c"];
+  WDR72 -> AMELO [style = dashed, color = "#00695c"];
+
+  /* --- alpha-IC machinery --- */
+  CAII -> VATP [label = "supplies H⁺", color = "#1565c0"];
+  CAII -> KAE1 [label = "supplies HCO₃⁻", color = "#1565c0"];
+  LES -> VATP [label = "reduces Vmax", color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  LESG -> PHFLOOR [label = "raises the floor", color = "#c62828", penwidth = 2.0];
+  KAE1 -> pHi_IC [label = "HCO₃⁻ exit", color = "#1565c0"];
+  pHi_IC -> VATP [label = "alkaline pHi stalls\nthe pump", color = "#c62828", arrowhead = tee];
+  VATP -> JH [penwidth = 2.0];
+  HKATP -> JH;
+  PHFLOOR -> JH [label = "thermodynamic ceiling", penwidth = 1.8];
+  VATP -> RHCG [label = "H⁺ gradient drives\nNH₃ exit", color = "#1565c0"];
+  RHBG -> RHCG;
+  HKATP -> KPL [label = "K⁺ reclaimed", color = "#1565c0"];
+
+  /* --- beta-IC --- */
+  PENDRIN -> BICSEC [penwidth = 1.6];
+  NDCBE -> BICSEC;
+  ICPLAST -> PENDRIN;  ICPLAST -> VATP;
+  FOXI1 -> ICPLAST;
+  BICSEC -> HCO3U [label = "adds base to the lumen", color = "#00838f", penwidth = 1.8];
+
+  /* --- proximal tubule --- */
+  PROTEIN -> GLN [color = "#2e7d32"];
+  GLN -> PDG -> NH3POOL [penwidth = 1.6];
+  PDG -> PEPCK -> HCO3E [label = "new HCO₃⁻", color = "#1565c0"];
+  NHE3 -> THRESH;  NBCE1 -> THRESH;
+  PHIPT -> NADC1 [label = "acid pHi UP-regulates\nNaDC1", color = "#c62828", penwidth = 1.8];
+  PHIPT -> PDG [label = "acid pHi stimulates\nammoniagenesis", color = "#1565c0"];
+  NAPI -> PIPL;
+  NADC1 -> CITREAB [penwidth = 1.8];
+
+  /* --- control loop --- */
+  SETPT -> ERR;  HCO3E -> ERR [color = "#4a148c", penwidth = 2.0];
+  ERR -> PROP [color = "#4a148c", penwidth = 1.8];
+  ERR -> INTEG [color = "#4a148c", penwidth = 1.8];
+  PROP -> VHCMD [color = "#4a148c", penwidth = 2.0];
+  INTEG -> VHCMD [color = "#4a148c", penwidth = 2.0];
+  VHCMD -> SAT [label = "when the command\nreaches 1.0", color = "#4a148c", penwidth = 2.4];
+  SAT -> WINDUP [color = "#4a148c"];
+  WINDUP -> INTEG [color = "#4a148c", style = dashed];
+  VHCMD -> VATP [label = "trafficking to\nthe apical membrane", color = "#4a148c", penwidth = 2.4];
+  SAT -> RESERVE [label = "reserve → 1×", color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  NAE -> RESERVE [style = dashed, color = "#777777"];
+  LES -> SAT [label = "SATURATES the loop\nat a normal acid load", color = "#c62828", penwidth = 2.4];
+
+  /* --- luminal proton balance --- */
+  JH -> UPH [penwidth = 2.2];
+  BICSEC -> UPH [label = "raises pH"];
+  THRESH -> HCO3U [label = "supra-threshold HCO₃⁻\nis delivered distally", penwidth = 1.8];
+  NAPI -> TA [label = "phosphate is the\nmain titratable buffer"];
+  UPH -> TA [dir = both, style = dotted];
+  UPH -> TRAP [penwidth = 1.8];
+  TRAP -> NH4EXC [penwidth = 1.8];
+  NH3POOL -> NH4EXC [penwidth = 1.8];
+  RHCG -> NH4EXC;
+  UPH -> HCO3U [penwidth = 1.8];
+  TA -> NAE [penwidth = 1.6];
+  NH4EXC -> NAE [penwidth = 1.6];
+  HCO3U -> NAE [label = "subtracts", color = "#c62828", arrowhead = tee, penwidth = 1.6];
+  NH4EXC -> UAG [style = dashed, color = "#777777", label = "low NH₄⁺ ⇒\nPOSITIVE gap"];
+  NH4EXC -> UOSMGAP [style = dashed, color = "#777777"];
+  JH -> UBPCO2 [style = dashed, color = "#777777"];
+  THRESH -> FEHCO3 [style = dashed, color = "#777777"];
+  ACIDTEST -> UPH [style = dashed, color = "#777777", label = "unmasks INCOMPLETE dRTA"];
+  FURFLUD -> UPH [style = dashed, color = "#777777"];
+
+  /* --- the three sinks --- */
+  NEAP -> HCO3E [label = "consumes base", color = "#c62828", arrowhead = tee, penwidth = 2.4];
+  NAE -> HCO3E [label = "regenerates base", color = "#1565c0", penwidth = 2.4];
+  PROTEIN -> NEAP [penwidth = 1.6];
+  DIETALK -> NEAP [color = "#2e7d32", arrowhead = tee];
+  PRAL -> NEAP [style = dashed, color = "#777777"];
+  GROWTHACID -> NEAP;
+  PROTEIN -> NH3POOL [label = "glutamine supply RAISES\nammoniagenic capacity", color = "#2e7d32", penwidth = 1.8];
+
+  HCO3E -> PHBL [penwidth = 2.2];
+  PACO2 -> PHBL [penwidth = 1.8];
+  HCO3E -> PACO2 [label = "respiratory\ncompensation", color = "#1565c0", penwidth = 1.8];
+  HCO3E -> CLPL [label = "Cl⁻ rises as\nHCO₃⁻ falls", penwidth = 1.6];
+  CLPL -> AGAP [style = dashed, color = "#777777"];
+  VECF -> HCO3E [style = dotted];
+
+  HCO3E -> JBUF [dir = both, color = "#00695c", penwidth = 1.8];
+  JBUF -> BUF [penwidth = 1.6];
+  CBUF -> JBUF [penwidth = 1.6];
+  HCO3E -> CBUF [label = "capacity EXPANDS\nas HCO₃⁻ falls", color = "#00695c"];
+  CBUF -> SPACE [style = dashed, color = "#777777"];
+  VECF -> SPACE [style = dashed, color = "#777777"];
+
+  PHBL -> JBONE [label = "RECTIFIED: max(0, pH_ref − pH)", color = "#6a1b9a", penwidth = 2.6];
+  JBONE -> HCO3E [label = "bone DEFENDS plasma HCO₃⁻", color = "#6a1b9a", penwidth = 2.6];
+  JBONE -> PHYSCHEM [penwidth = 1.8];
+  BLABP -> JBONE [penwidth = 1.6];
+  JBONE -> BLABP [label = "spends the pool", color = "#c62828", arrowhead = tee];
+  PHBL -> OCACT [label = "PTH-independent", color = "#6a1b9a", penwidth = 1.8];
+  PHBL -> OBSUP [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  OCACT -> JBONE [penwidth = 1.8];
+  OCACT -> BMIN [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  OBSUP -> BMIN [color = "#c62828", arrowhead = tee];
+  PHYSCHEM -> BMIN [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  BMIN -> BMDZ [penwidth = 2.2];
+  JBONE -> CUMBASE [style = dashed, color = "#777777", penwidth = 1.8];
+  OCACT -> BALP;  OBSUP -> BALP;
+  BMIN -> FRACT;  OSTEOMAL -> FRACT;
+  PIPL -> OSTEOMAL [color = "#c62828", arrowhead = tee, label = "hypophosphataemia\nimpairs mineralisation"];
+  CALCIDIOL -> OSTEOMAL [color = "#c62828", arrowhead = tee];
+  PHBL -> OSTEOMAL [color = "#6a1b9a"];
+  BMDZ -> QOL [style = dashed, color = "#777777"];
+
+  /* --- calcium --- */
+  PHYSCHEM -> CAPL [label = "Ca²⁺ released"];
+  JBONE -> UCA [label = "bone Ca²⁺ → urine", color = "#ad1457", penwidth = 2.0];
+  PHBL -> TRPV5 [label = "acid INHIBITS distal\nCa²⁺ reabsorption", color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  TRPV5 -> UCA [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  NEAP -> UCA [label = "Lemann: 0.035 mmol Ca\nper mEq acid load", color = "#ad1457", penwidth = 2.0];
+  LEMANN -> UCA [style = dashed, color = "#777777"];
+  CAPL -> PTH [color = "#c62828", arrowhead = tee];
+  PTH -> CALCITRIOL [color = "#1565c0"];
+  CALCIDIOL -> CALCITRIOL;
+  PTH -> NAPI [color = "#c62828", arrowhead = tee];
+  PTH -> OCACT [color = "#1565c0"];
+  CALCITRIOL -> CAPL [color = "#1565c0"];
+  CAPL -> UCA;
+  UCA -> CAFREE [penwidth = 1.8];
+
+  /* --- citrate --- */
+  CITPL -> CITFILT [penwidth = 1.8];
+  CITFILT -> CITREAB [penwidth = 1.6];
+  CITREAB -> UCIT [label = "what escapes\nreabsorption", color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  CITFILT -> UCIT [penwidth = 1.8];
+  NDC1UP -> CITREAB [penwidth = 1.8];
+  PHIPT -> NDC1UP [color = "#c62828", penwidth = 1.8];
+  CITPL -> CITOX [penwidth = 1.6];
+  CITOX -> HCO3E [label = "3 mEq HCO₃⁻ per\nmmol citrate³⁻", color = "#1565c0", penwidth = 2.0];
+  UCIT -> CACIT [penwidth = 1.8];
+  CACIT -> CAFREE [label = "chelation LOWERS\nfree Ca²⁺", color = "#2e7d32", arrowhead = tee, penwidth = 2.0];
+  UCIT -> CACITR [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  UCA -> CACITR [penwidth = 1.8];
+  UCIT -> UPH [label = "urinary buffer", style = dotted];
+
+  /* --- crystallisation --- */
+  CAFREE -> SSCAP [penwidth = 2.2];
+  HPO4 -> SSCAP [penwidth = 2.2];
+  UPH -> HPO4 [label = "alkaline urine ⇒\nmore HPO₄²⁻", color = "#c62828", penwidth = 2.2];
+  NAPI -> HPO4;
+  UVOL -> SSCAP [label = "dilution", color = "#2e7d32", arrowhead = tee, penwidth = 1.8];
+  KPL -> NDI [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  NDI -> UVOL [penwidth = 1.8];
+  SSCAP -> NEPHROCAL [label = "cumulative\nsupersaturation-time", penwidth = 2.2];
+  SSCAP -> STONES [penwidth = 2.0];
+  STONES -> COLIC;  NEPHROCAL -> MEDCYST;
+  CACITR -> STONES [style = dashed, color = "#777777", label = "clinical surrogate"];
+
+  /* --- CKD loop --- */
+  NEPHROCAL -> FIBROSIS [penwidth = 2.0];
+  STONES -> FIBROSIS;
+  FIBROSIS -> NEPHLOSS [penwidth = 2.0];
+  NEPHLOSS -> EGFR [penwidth = 2.2];
+  NEPHLOSS -> LESSCAP [penwidth = 2.2];
+  LESSCAP -> NAE [label = "capacity scales with\nnephron mass", color = "#c62828", arrowhead = tee, penwidth = 2.4];
+  LESSCAP -> CKDACID [penwidth = 1.8];
+  CKDACID -> HCO3E [color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  NEPHLOSS -> ESRD;
+  EGFR -> QOL [style = dashed, color = "#777777"];
+  NEPHLOSS -> NH3POOL [label = "less ammoniagenic mass", color = "#c62828", arrowhead = tee];
+
+  /* --- drug PK --- */
+  NAHCO3 -> DELRATE [label = "FAST", style = dashed, color = "#2e7d32", penwidth = 2.0];
+  KHCO3 -> DELRATE [label = "FAST", style = dashed, color = "#2e7d32", penwidth = 2.0];
+  SHOHL -> DELRATE [style = dashed, color = "#2e7d32"];
+  MGSALT -> DELRATE [style = dashed, color = "#2e7d32"];
+  ADVBID -> ADVCIT [penwidth = 2.0];
+  ADVBID -> ADVBIC [penwidth = 2.0];
+  ADVCIT -> CITPL [label = "citrate³⁻ spike\n2–3 h", style = dashed, color = "#2e7d32", penwidth = 2.2];
+  ADVBIC -> DELRATE [label = "SLOW, 10–12 h", style = dashed, color = "#2e7d32", penwidth = 2.2];
+  KHCO3 -> CITPL [style = dashed, color = "#2e7d32"];
+  DELRATE -> MATCH [penwidth = 2.2];
+  NEAP -> MATCH [label = "the rate to match", penwidth = 2.0];
+  DELRATE -> HCO3E [penwidth = 2.2];
+  KCL -> KPL [style = dashed, color = "#2e7d32", penwidth = 1.8];
+  HCTZ -> TRPV5 [label = "volume contraction ⇒\nproximal Ca²⁺ reabsorption",
+                 style = dashed, color = "#2e7d32", penwidth = 1.8];
+  HCTZ -> UCA [label = "hypocalciuric", style = dashed, color = "#2e7d32", arrowhead = tee, penwidth = 1.8];
+  HCTZ -> KPL [label = "BUT worsens\nhypokalaemia", style = dashed, color = "#c62828", arrowhead = tee, penwidth = 1.8];
+  VITD -> CALCIDIOL [style = dashed, color = "#2e7d32", penwidth = 1.8];
+  IMMSUP -> SJOGREN [style = dashed, color = "#2e7d32", arrowhead = tee, penwidth = 1.8];
+  VEVER -> NEAP [style = dashed, color = "#2e7d32", arrowhead = tee, penwidth = 1.8];
+
+  /* --- rate matching / waste --- */
+  MATCH -> OVERSHOOT [label = "delivery > production", penwidth = 2.0];
+  THRESH -> OVERSHOOT [penwidth = 1.8];
+  OVERSHOOT -> BICWASTE [penwidth = 2.4];
+  BICWASTE -> HCO3U [penwidth = 2.0];
+  BICWASTE -> UPHRISE [penwidth = 2.0];
+  SAT -> UPHRISE [label = "and the controller RELAXES\nwhen HCO₃⁻ is corrected",
+                  color = "#4a148c", style = dashed, penwidth = 2.0];
+  UPHRISE -> HPO4 [color = "#c62828", penwidth = 2.0];
+  NIGHTGAP -> TROUGH [penwidth = 1.8];
+  NINTAKE -> NIGHTGAP [penwidth = 1.8];
+  TROUGH -> JBONE [label = "the rectifier integrates\nTROUGHS, not the mean",
+                   color = "#6a1b9a", penwidth = 2.4];
+  BICWASTE -> RESPRATE [label = "waste is worst AT target", color = "#e65100", penwidth = 2.4];
+  TROUGH -> RESPRATE [penwidth = 2.0];
+  HCO3E -> RESPRATE [style = dashed, color = "#777777", penwidth = 1.8];
+  ADVBIC -> MATCH [label = "MATCHED delivery", style = dashed, color = "#2e7d32", penwidth = 2.2];
+
+  /* --- opposing kinetics --- */
+  MATCH -> SLOWGOOD [penwidth = 2.2];
+  CITREAB -> FASTGOOD [label = "Tm escape needs a SPIKE", penwidth = 2.2];
+  SLOWGOOD -> TWOGRAN [penwidth = 2.4];
+  FASTGOOD -> TWOGRAN [penwidth = 2.4];
+  ADVBID -> TWOGRAN [style = dashed, color = "#2e7d32", penwidth = 2.4];
+  UPHRISE -> PHTRADE [penwidth = 1.8];
+  UCIT -> PHTRADE [penwidth = 1.8];
+  PHTRADE -> SSCAP [penwidth = 2.0];
+  PHFLOOR -> SATURATED [style = dashed, color = "#777777"];
+  PHTRADE -> SATURATED [style = dashed, color = "#777777"];
+  PHTRADE -> HEADROOM [style = dashed, color = "#777777"];
+
+  /* --- potassium --- */
+  ENAC -> HDEF [penwidth = 1.8];
+  JH -> HDEF [label = "unsecreted H⁺", color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  HDEF -> ROMK [penwidth = 2.0];
+  ALDO -> ROMK [penwidth = 1.8];
+  ALDO -> ENAC [penwidth = 1.6];
+  VECF -> ALDO [color = "#c62828", arrowhead = tee, penwidth = 1.6];
+  ROMK -> KDEF [penwidth = 2.0];
+  KDEF -> KPL [label = "~300 mmol deficit\nper mmol/L", penwidth = 2.2];
+  PHBL -> KPL [label = "acidaemia shifts K⁺\nOUT of cells (masks the deficit)", penwidth = 1.8];
+  KPL -> PARALYSIS [color = "#c62828", penwidth = 2.0];
+  KPL -> MUSCLE [color = "#c62828"];
+  KPL -> NH3POOL [label = "hypokalaemia STIMULATES\nammoniagenesis", color = "#1565c0"];
+  NASALT -> ENAC [penwidth = 2.0];
+  NAHCO3 -> NASALT [style = dashed, color = "#2e7d32", penwidth = 2.0];
+  KSALT -> KPL [style = dashed, color = "#2e7d32", penwidth = 2.0];
+  ADVBID -> KSALT [style = dashed, color = "#2e7d32", penwidth = 2.2];
+  NDI -> VECF [color = "#c62828", arrowhead = tee];
+
+  /* --- growth --- */
+  PHBL -> GHRES [color = "#c62828", penwidth = 2.0];
+  GHRES -> IGF1 [color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  IGF1 -> GROWTHPL [penwidth = 2.0];
+  OSTEOMAL -> GROWTHPL [color = "#c62828", arrowhead = tee];
+  GROWTHPL -> HZ [penwidth = 2.2];
+  KPL -> FTT;  PHBL -> FTT [color = "#c62828"];
+  FTT -> HZ [color = "#c62828", arrowhead = tee];
+  HZ -> QOL [style = dashed, color = "#777777"];
+  GROWTHACID -> HZ [style = dotted];
+
+  /* --- adherence --- */
+  NINTAKE -> ADHER [label = "more intakes ⇒\nworse adherence", color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  DELRATE -> GIAE [label = "an IR BOLUS irritates", penwidth = 1.8];
+  GIAE -> ADHER [color = "#c62828", arrowhead = tee, penwidth = 2.0];
+  PALAT -> ADHER [penwidth = 1.8];
+  ADHER -> EFFDOSE [penwidth = 2.2];
+  EFFDOSE -> DELRATE [penwidth = 2.2];
+  ADVBID -> NINTAKE [label = "3 → 2", style = dashed, color = "#2e7d32", penwidth = 2.0];
+  ADVBID -> PALAT [style = dashed, color = "#2e7d32", penwidth = 1.8];
+  ADHER -> QOL [penwidth = 1.6];
+  HCO3E -> MONITOR [style = dashed, color = "#777777"];
+  TROUGH -> MONITOR [style = dashed, color = "#777777", penwidth = 1.8];
+  UCA -> URINEMON [style = dashed, color = "#777777"];
+  UCIT -> URINEMON [style = dashed, color = "#777777"];
+  NEPHROCAL -> URINEMON [style = dashed, color = "#777777"];
+
+  /* --- the dissociation that names the disease --------------------------- */
+  DISSOC [label = <<B>THE DISSOCIATION</B><BR/>plasma HCO₃⁻ 22.0 mmol/L  “near normal”<BR/>lumbar BMD z −1.1  “clearly abnormal”<BR/><I>same patient, same visit, same lesion</I>>,
+          shape = box, style = "filled,rounded,bold", fillcolor = "#fff59d",
+          color = "#f57f17", penwidth = 3.0, fontsize = 14];
+  HCO3E -> DISSOC [style = dashed, color = "#f57f17", penwidth = 2.4];
+  BMDZ  -> DISSOC [style = dashed, color = "#f57f17", penwidth = 2.4];
+  CUMBASE -> DISSOC [style = dashed, color = "#f57f17", penwidth = 2.0];
+
+  INCOMPL [label = <<B>INCOMPLETE dRTA — derived, not assumed</B><BR/>the actuator is ALREADY railed at a normal acid load,<BR/>so plasma HCO₃⁻ is normal, the acid-load test fails,<BR/>and the bone / citrate flux is <B>already non-zero</B>>,
+           shape = box, style = "filled,rounded,bold", fillcolor = "#e1bee7",
+           color = "#6a1b9a", penwidth = 3.0, fontsize = 14];
+  SAT -> INCOMPL [color = "#6a1b9a", penwidth = 2.4];
+  ACIDTEST -> INCOMPL [style = dashed, color = "#6a1b9a", penwidth = 2.0];
+  JBONE -> INCOMPL [style = dashed, color = "#6a1b9a", penwidth = 2.0];
+  UCIT -> INCOMPL [style = dashed, color = "#6a1b9a"];
+
+  /* --- rank hints ------------------------------------------------------- */
+  { rank = same; PROTEIN; DIETALK; GROWTHACID; }
+}
