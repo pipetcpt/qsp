@@ -1,0 +1,571 @@
+/* ===========================================================================
+   abm_qsp_model.dot
+   Acute Bacterial Meningitis (pneumococcal) — mechanistic QSP map
+   급성 세균성 수막염(폐렴균) — 기계론적 QSP 지도
+
+   The organising idea of the map
+     Read it as one product and two doors.
+
+     THE PRODUCT.  The quantity that injures the brain is not the bacterial
+     count.  It is
+
+           injury flux  =  k_kill(t) · N(t) · Y_lysis · (1 − E_dex(t))
+
+     — the rate at which organisms are being destroyed, times how much
+     pro-inflammatory cargo each destroyed organism spills, times whatever
+     is left of the host response after steroid.  Every arrow in clusters
+     2 → 4 → 5 is a factor in that product.  Because k_kill jumps from 0 to
+     E_max at the first antibiotic dose, while N is at its maximum exactly
+     then, the product PEAKS IN THE FIRST HOURS OF TREATMENT.  That single
+     fact orders the whole therapeutic map: the steroid has to be already on.
+
+     THE TWO DOORS.  Both are the same door — the blood–CSF barrier — read
+     in opposite directions.  Inflammation opens it, which is how hydrophilic
+     antibiotic gets in (cluster 13) and also how albumin, neutrophils and
+     water get in (clusters 6-7).  Dexamethasone closes it.  So the steroid
+     helps through cluster 5 and hurts through cluster 13, and the SIGN of
+     the net effect depends on how much C/MIC margin the antibiotic has:
+     enormous for ceftriaxone against a susceptible strain, almost none for
+     vancomycin against a cephalosporin-resistant one.
+
+   Reading order
+      1  host and risk factors — who gets it, and vaccination
+      2  colonisation, invasion, bacteraemia, and crossing into the CSF
+      3  pneumococcal virulence factors — the cargo that will be spilled
+      4  bacterial subpopulations in CSF and the antibiotic kill term
+      5  innate recognition: TLR / NOD / NLRP3 and complement
+      6  cytokine–chemokine network in the subarachnoid space
+      7  neutrophil recruitment and the proteolytic barrier attack
+      8  blood–brain / blood–CSF barrier integrity
+      9  CSF hydrodynamics, intracranial pressure, and compliance
+     10  cerebral perfusion, autoregulation, and ischaemia
+     11  CSF metabolism — glucose, lactate, and who eats the glucose
+     12  neuronal injury: cortical necrosis and dentate apoptosis
+     13  antibiotic PK — plasma, protein binding, and CSF penetration
+     14  antibiotic PD — MIC, lytic vs non-lytic killing, T>4×MIC
+     15  dexamethasone PK/PD and the timing window
+     16  adjunctive therapy — osmotherapy, drainage, anticonvulsant
+     17  cochlear injury and hearing loss
+     18  cerebrovascular complications
+     19  systemic sepsis, DIC, SIADH, organ failure
+     20  diagnostics and clinical endpoints
+
+   Colour key
+     host / risk ............... honeydew
+     bacteria / virulence ...... pale green → deep green
+     innate recognition ........ periwinkle
+     cytokines ................. lavender
+     neutrophil / protease ..... light blue
+     barrier ................... pale cyan
+     CSF hydrodynamics / ICP ... wheat
+     perfusion ................. peach
+     metabolism ................ pale yellow
+     neuronal injury ........... light salmon
+     ceftriaxone ............... light steel blue
+     vancomycin ................ pale turquoise
+     rifampin .................. khaki
+     dexamethasone ............. plum
+     adjunct ................... thistle
+     cochlea ................... misty rose
+     vascular .................. light grey blue
+     systemic .................. light grey
+     diagnostics ............... white smoke
+     endpoints ................. pink
+   =========================================================================== */
+
+digraph ABM_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.20, ranksep=0.50,
+           fontname="Helvetica", fontsize=11, compound=true,
+           label=<<B>Acute Bacterial Meningitis (Streptococcus pneumoniae) — Quantitative Systems Pharmacology Map</B><BR/>
+                  <FONT POINT-SIZE="11">급성 세균성 수막염 QSP 기계론적 지도 · 63-ODE mrgsolve model · 26 therapeutic scenarios</FONT><BR/>
+                  <FONT POINT-SIZE="10">injury flux = k_kill · N · Y_lysis · (1 − E_dex) &#160;—&#160; the product peaks at the FIRST antibiotic dose</FONT><BR/>
+                  <FONT POINT-SIZE="10">solid arrow = mass flux / causal activation &#160;·&#160; dashed = modulation &#160;·&#160; red T-bar = inhibition &#160;·&#160; blue = drug delivery step</FONT>>,
+           labelloc="t"];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+           color="#555555", penwidth=1.0];
+    edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.65];
+
+    /* ================================================================ 1
+       Host and risk factors
+       ================================================================ */
+    subgraph cluster_host {
+        label=<<B>1 · Host susceptibility and risk factors</B><BR/><FONT POINT-SIZE="9">숙주 감수성과 위험인자</FONT>>;
+        style="rounded,filled"; fillcolor="#F0FAF0"; color="#8FBF8F";
+        AGE      [label="Age extremes\n<2 y and >65 y\nimmature / senescent innate response", fillcolor="#E1F4E1"];
+        ASPLEN   [label="Asplenia / splenectomy\nsickle cell disease\nloss of IgM memory B cells", fillcolor="#E1F4E1"];
+        COMPDEF  [label="Complement deficiency\nC2/C3, properdin, MBL\n→ failed opsonophagocytosis", fillcolor="#E1F4E1"];
+        HYPOG    [label="Hypogammaglobulinaemia\nmyeloma, CLL, rituximab\nno anticapsular IgG", fillcolor="#E1F4E1"];
+        ALCOHOL  [label="Alcohol use disorder\ncirrhosis, malnutrition\nPMN dysfunction", fillcolor="#E1F4E1"];
+        CSFLEAK  [label="CSF leak / basilar skull fracture\ncochlear implant, VP shunt\n→ direct route", fillcolor="#E1F4E1"];
+        DIAB     [label="Diabetes, HIV, steroid use\nsolid organ transplant", fillcolor="#E1F4E1"];
+        OTITIS   [label="Contiguous focus\notitis media, sinusitis, mastoiditis\npneumonia (most common)", fillcolor="#E1F4E1"];
+        VACC     [label="PCV13 / PCV15 / PCV20, PPSV23\nherd effect → serotype replacement\n(19A, 22F, 33F, 3)", fillcolor="#D2EED2"];
+        HOSTDEF  [label="HOST DEFENCE INDEX\nhost_def ∈ [0.4, 1.0]\nscales phagocytosis + blood clearance", fillcolor="#BFE4BF", shape=box3d];
+        AGE -> HOSTDEF; ASPLEN -> HOSTDEF; COMPDEF -> HOSTDEF;
+        HYPOG -> HOSTDEF; ALCOHOL -> HOSTDEF; DIAB -> HOSTDEF;
+        VACC -> HOSTDEF [style=dashed];
+    }
+
+    /* ================================================================ 2
+       Colonisation → invasion → bacteraemia → CSF entry
+       ================================================================ */
+    subgraph cluster_invade {
+        label=<<B>2 · Colonisation, invasion, and entry into the subarachnoid space</B><BR/><FONT POINT-SIZE="9">집락형성 · 침습 · CSF 진입</FONT>>;
+        style="rounded,filled"; fillcolor="#EAF7E9"; color="#7FAF7F";
+        NASO    [label="Nasopharyngeal colonisation\ncarriage 20–60 % in children\nbiofilm on epithelium", fillcolor="#D6EFD3"];
+        EPIADH  [label="Epithelial adherence\nCbpA/PspC – pIgR, PAFr\nNanA sialidase unmasks receptors", fillcolor="#D6EFD3"];
+        TRANSL  [label="Epithelial translocation\npIgR-mediated transcytosis\nor paracellular after viral injury", fillcolor="#D6EFD3"];
+        BACT    [label="BACTERAEMIA  N_b\ncapsule resists phagocytosis\nmagnitude predicts CSF invasion", fillcolor="#C4E8C0"];
+        BCSFB   [label="Choroid plexus / BCSFB crossing\nCbpA–laminin receptor, PAFr,\npIgR on plexus epithelium", fillcolor="#D6EFD3"];
+        CSFENTRY[label="Subarachnoid seeding\nCSF is an immunological\nsanctuary: few opsonins", fillcolor="#C4E8C0"];
+        NCSF    [label="CSF FREE ORGANISMS  N_c\n10⁵–10⁸ CFU/mL at presentation\nμ_max 0.85 /h (doubling 49 min)", fillcolor="#A8DDA0", shape=box3d];
+        DIRECT  [label="Direct inoculation route\ntrauma, neurosurgery, otitis\n(bypasses bacteraemia)", fillcolor="#D6EFD3"];
+        NASO -> EPIADH -> TRANSL -> BACT -> BCSFB -> CSFENTRY -> NCSF;
+        OTITIS -> DIRECT -> CSFENTRY;
+        CSFLEAK -> DIRECT;
+        HOSTDEF -> BACT [style=dashed, color="#B03030", arrowhead=tee, label="clearance"];
+    }
+
+    /* ================================================================ 3
+       Pneumococcal virulence factors — the cargo
+       ================================================================ */
+    subgraph cluster_viru {
+        label=<<B>3 · Virulence factors — the cargo that lysis will spill</B><BR/><FONT POINT-SIZE="9">병독인자 — 용해 시 방출되는 화물</FONT>>;
+        style="rounded,filled"; fillcolor="#E4F4E2"; color="#7FAF7F";
+        CAPS    [label="Polysaccharide capsule\n>100 serotypes; 3, 19A, 23F\nanti-phagocytic, anti-complement", fillcolor="#D6EFD3"];
+        LTA     [label="Lipoteichoic acid (LTA)\nTLR2 agonist\nreleased on lysis", fillcolor="#CBE9C6"];
+        PGN     [label="Peptidoglycan fragments\nNOD1/NOD2 agonist\nreleased on lysis", fillcolor="#CBE9C6"];
+        PLY     [label="PNEUMOLYSIN (Ply)\ncholesterol-dependent cytolysin\npores → hair cell + neuron death,\nNLRP3 activation", fillcolor="#B7E0B0", shape=box3d];
+        LYTA    [label="Autolysin LytA\namidase; β-lactam-independent\nautolysis and Ply release", fillcolor="#CBE9C6"];
+        H2O2    [label="Pneumococcal H₂O₂ (SpxB)\nmitochondrial damage in neurons", fillcolor="#D6EFD3"];
+        PSPA    [label="PspA, PspC, PhtD\ncomplement evasion (factor H)", fillcolor="#D6EFD3"];
+        NEURAM  [label="NanA / NanB neuraminidase\ndesialylation of glycocalyx", fillcolor="#D6EFD3"];
+        CBP     [label="Choline-binding proteins\nCbpA adhesion to endothelium", fillcolor="#D6EFD3"];
+        CWU     [label="CELL-WALL POOL  CW\nCWU/mL; t½ ≈ 12 h in CSF\n(cargo persists after sterility)", fillcolor="#9FD897", shape=box3d];
+        NCSF -> CAPS; NCSF -> PSPA; NCSF -> NEURAM; NCSF -> CBP; NCSF -> H2O2;
+        NCSF -> LYTA; LYTA -> PLY;
+        LTA -> CWU; PGN -> CWU;
+        CAPS -> NCSF [style=dashed, label="survival"];
+    }
+
+    /* ================================================================ 4
+       Bacterial subpopulations and the kill term
+       ================================================================ */
+    subgraph cluster_kill {
+        label=<<B>4 · Subpopulations and the kill term — where the product is formed</B><BR/><FONT POINT-SIZE="9">세균 아집단과 살균항 — 곱이 만들어지는 자리</FONT>>;
+        style="rounded,filled"; fillcolor="#DFF2DC"; color="#6FA36F";
+        NADH    [label="Adherent / sequestered pool  N_adh\nependyma, plexus, biofilm\nkill × 0.35 (protected)", fillcolor="#C4E8C0"];
+        GROWTH  [label="Growth  μ = μ_max · Glc/(K+Glc) · (1−N/N_max)\nglucose-limited in CSF", fillcolor="#D6EFD3"];
+        PHAGCSF [label="CSF phagocytosis  k_phag\nk_phag,max only 0.15 /h\n(opsonin-poor compartment)", fillcolor="#D6EFD3"];
+        KILLT   [label="TOTAL KILL RATE  k_kill\n= k_cef + k_van + k_rif\nEmax on C_CSF/MIC", fillcolor="#B7E0B0", shape=box3d];
+        YLYS    [label="LYSIS YIELD  Y\nY_cef 1.00 · Y_van 0.90\nY_rif 0.15 · Y_phag 0.30", fillcolor="#B7E0B0", shape=box3d];
+        LYSFLUX [label="INJURY FLUX\n= k_kill · N · Y  +  autolysis · N\nthe quantity that inflames the brain", fillcolor="#8FD186", shape=doubleoctagon, penwidth=2.0];
+        NCSF -> NADH [dir=both, label="adhesion /\ndesorption"];
+        NCSF -> GROWTH [dir=back];
+        NCSF -> PHAGCSF; PHAGCSF -> NCSF [color="#B03030", arrowhead=tee];
+        KILLT -> LYSFLUX; YLYS -> LYSFLUX; NCSF -> LYSFLUX;
+        KILLT -> NCSF [color="#B03030", arrowhead=tee, penwidth=1.6];
+        KILLT -> NADH [color="#B03030", arrowhead=tee, style=dashed, label="×0.35"];
+        LYTA -> LYSFLUX [style=dashed, label="autolysis\n0.02 /h"];
+        LYSFLUX -> CWU [penwidth=1.6];
+        LYSFLUX -> PLY [penwidth=1.6];
+    }
+
+    /* ================================================================ 5
+       Innate recognition
+       ================================================================ */
+    subgraph cluster_innate {
+        label=<<B>5 · Innate recognition in the subarachnoid space</B><BR/><FONT POINT-SIZE="9">지주막하 공간의 선천면역 인식</FONT>>;
+        style="rounded,filled"; fillcolor="#EDEEFB"; color="#8A8FC7";
+        TLR2    [label="TLR2 / TLR6 – LTA\nMyD88 → IRAK4 → NF-κB", fillcolor="#DCDEF7"];
+        TLR4    [label="TLR4 – pneumolysin (partial)\nMyD88 / TRIF", fillcolor="#DCDEF7"];
+        TLR9    [label="TLR9 – bacterial CpG DNA\nendosomal", fillcolor="#DCDEF7"];
+        NOD     [label="NOD1 / NOD2 – peptidoglycan\nRIP2 → NF-κB", fillcolor="#DCDEF7"];
+        NLRP3   [label="NLRP3 inflammasome\nPly pore → K⁺ efflux → caspase-1\n→ IL-1β, IL-18 maturation", fillcolor="#CFD2F3"];
+        NFKB    [label="NF-κB nuclear translocation\nthe transcriptional hub\n(target of dexamethasone)", fillcolor="#C2C6EF", shape=box3d];
+        MGLIA   [label="MICROGLIA / MENINGEAL MACROPHAGE\nactivation state  Mg ∈ [0,1]\nresident, first responder", fillcolor="#CFD2F3", shape=box3d];
+        COMPCSF [label="Complement in CSF\nC3b/iC3b opsonisation, C5a\nlow baseline titre", fillcolor="#DCDEF7"];
+        CRP     [label="CRP, MBL, SP-A/D\nsoluble pattern recognition", fillcolor="#DCDEF7"];
+        CWU -> TLR2; CWU -> NOD; PLY -> TLR4; PLY -> NLRP3;
+        NCSF -> TLR9;
+        TLR2 -> NFKB; TLR4 -> NFKB; TLR9 -> NFKB; NOD -> NFKB;
+        NFKB -> MGLIA; NLRP3 -> MGLIA;
+        NCSF -> COMPCSF -> PHAGCSF;
+        COMPDEF -> COMPCSF [style=dashed, color="#B03030", arrowhead=tee];
+        CRP -> COMPCSF [style=dashed];
+    }
+
+    /* ================================================================ 6
+       Cytokine network
+       ================================================================ */
+    subgraph cluster_cyto {
+        label=<<B>6 · Cytokine and chemokine network (CSF)</B><BR/><FONT POINT-SIZE="9">CSF 사이토카인·케모카인 네트워크</FONT>>;
+        style="rounded,filled"; fillcolor="#F1EAF9"; color="#A187C1";
+        TNF     [label="TNF-α\nCSF 100–1,000 pg/mL\nt½ ≈ 1 h", fillcolor="#E5D8F3"];
+        IL1B    [label="IL-1β\nCSF 100–1,000 pg/mL\ncorrelates with outcome", fillcolor="#E5D8F3"];
+        IL6     [label="IL-6\nCSF 10⁴–10⁶ pg/mL\nacute phase, fever", fillcolor="#E5D8F3"];
+        IL8     [label="CXCL8 / IL-8\n10³–3×10⁴ pg/mL\nprincipal PMN chemoattractant", fillcolor="#E5D8F3"];
+        IL10    [label="IL-10\ncounter-regulatory\ndamps TNF/IL-1 transcription", fillcolor="#D9C9EE"];
+        MIF     [label="MIF, HMGB1, S100B\nlate-phase amplifiers", fillcolor="#E5D8F3"];
+        CCL2    [label="CCL2/CCL3, CXCL1/2\nmonocyte + PMN chemotaxis", fillcolor="#E5D8F3"];
+        PAF     [label="Platelet-activating factor\nprostaglandins (COX-2), LTB₄", fillcolor="#E5D8F3"];
+        MGLIA -> TNF; MGLIA -> IL1B; MGLIA -> IL6; MGLIA -> IL8; MGLIA -> IL10;
+        MGLIA -> MIF; MGLIA -> CCL2; MGLIA -> PAF;
+        NLRP3 -> IL1B [penwidth=1.5];
+        TNF -> IL6; IL1B -> IL6; TNF -> IL8; IL1B -> IL8;
+        IL10 -> TNF [color="#B03030", arrowhead=tee, style=dashed];
+        IL10 -> IL1B [color="#B03030", arrowhead=tee, style=dashed];
+    }
+
+    /* ================================================================ 7
+       Neutrophil recruitment and proteolysis
+       ================================================================ */
+    subgraph cluster_pmn {
+        label=<<B>7 · Neutrophil recruitment and the proteolytic attack on the barrier</B><BR/><FONT POINT-SIZE="9">호중구 유입과 단백분해성 장벽 공격</FONT>>;
+        style="rounded,filled"; fillcolor="#E8F1FB"; color="#7A9CC6";
+        ESEL    [label="E-selectin, P-selectin\nendothelial activation by TNF", fillcolor="#D3E4F7"];
+        ICAM    [label="ICAM-1 / VCAM-1 –\nCD11b/CD18 (Mac-1) firm adhesion", fillcolor="#D3E4F7"];
+        DIAPED  [label="Transendothelial diapedesis\ninto subarachnoid space", fillcolor="#D3E4F7"];
+        PMN     [label="CSF NEUTROPHILS  PMN\npeak 1,000–5,000 /µL\nturnover t½ ≈ 7 h", fillcolor="#BFD8F2", shape=box3d];
+        NETS    [label="NETs, elastase, cathepsin G\nMPO → HOCl", fillcolor="#D3E4F7"];
+        MMP9    [label="MMP-9 (gelatinase B), MMP-8\nCSF 100–1,000 ng/mL\nTIMP-1 insufficient", fillcolor="#C8DCF4"];
+        ROS     [label="ROS / RNS burst\nO₂⁻, H₂O₂, NO (iNOS)\n→ peroxynitrite ONOO⁻", fillcolor="#C8DCF4"];
+        PMNGLY  [label="PMN glycolysis\n~5 mg/dL/h per 1,000 /µL\nlactate co-product", fillcolor="#D3E4F7"];
+        IL8 -> DIAPED [penwidth=1.6]; TNF -> ESEL -> ICAM -> DIAPED -> PMN;
+        CCL2 -> DIAPED;
+        PMN -> NETS; PMN -> MMP9; PMN -> ROS; PMN -> PMNGLY;
+        PMN -> PHAGCSF [style=dashed];
+    }
+
+    /* ================================================================ 8
+       Barrier integrity
+       ================================================================ */
+    subgraph cluster_barrier {
+        label=<<B>8 · Blood–brain / blood–CSF barrier: the door that works both ways</B><BR/><FONT POINT-SIZE="9">혈액-뇌·혈액-CSF 장벽 — 양방향으로 작동하는 문</FONT>>;
+        style="rounded,filled"; fillcolor="#E6F6F8"; color="#6FA8B0";
+        TJ      [label="Tight junction complex\nclaudin-5, occludin, ZO-1\nphosphorylation → disassembly", fillcolor="#D2EEF2"];
+        TRANSCY [label="Increased transcytosis\npinocytotic vesicles\n(caveolin-1)", fillcolor="#D2EEF2"];
+        VEGF    [label="VEGF-A / Ang-2\nbarrier destabilisation", fillcolor="#D2EEF2"];
+        PB      [label="BARRIER PERMEABILITY  Pb\nmultiplier 1 → ~9 (severe)\nthe single most consequential state", fillcolor="#B6E4EA", shape=doubleoctagon, penwidth=2.0];
+        QALB    [label="CSF/serum albumin quotient Q_alb\nnormal <8 → meningitis 30–100+\n(the measurable read-out of Pb)", fillcolor="#D2EEF2"];
+        CSFPROT [label="CSF total protein\n100–500 mg/dL\n(IgG, fibrinogen follow)", fillcolor="#D2EEF2"];
+        MMP9 -> TJ [penwidth=1.6]; TNF -> TJ; PMN -> TJ [style=dashed];
+        TNF -> VEGF -> PB; TJ -> PB [penwidth=1.6]; TRANSCY -> PB;
+        ROS -> TJ [style=dashed];
+        PB -> QALB; PB -> CSFPROT;
+        PB -> DIAPED [style=dashed, label="amplifies"];
+    }
+
+    /* ================================================================ 9
+       CSF hydrodynamics and ICP
+       ================================================================ */
+    subgraph cluster_icp {
+        label=<<B>9 · CSF hydrodynamics, compliance, and intracranial pressure</B><BR/><FONT POINT-SIZE="9">CSF 역학 · 순응도 · 두개내압</FONT>>;
+        style="rounded,filled"; fillcolor="#FBF3E2"; color="#C4A46A";
+        QF      [label="CSF formation  Q_f\nchoroid plexus 0.35 mL/min\n(≈500 mL/day; falls at high ICP)", fillcolor="#F5E6C8"];
+        ARACH   [label="Arachnoid villi / lymphatic outflow\nglymphatic + cribriform route", fillcolor="#F5E6C8"];
+        ROUT    [label="OUTFLOW RESISTANCE  R_out\nnormal 0.167 → 1.2 mmHg/(mL/h)\nblocked by purulent exudate", fillcolor="#EEDAAE", shape=box3d];
+        PVI     [label="Pressure–volume index PVI ≈ 25 mL\nexponential compliance\ndP/dV = K·P,  K = 0.092 /mL", fillcolor="#F5E6C8"];
+        VASOG   [label="Vasogenic oedema\ndriven by Pb (protein-rich)", fillcolor="#F5E6C8"];
+        CYTOT   [label="Cytotoxic oedema\nATP failure, Na⁺/K⁺-ATPase,\nAQP4 water entry", fillcolor="#F5E6C8"];
+        INTERST [label="Interstitial oedema\nimpaired CSF absorption", fillcolor="#F5E6C8"];
+        VBR     [label="BRAIN WATER EXCESS  V_br\nmL; three oedema types summed", fillcolor="#EEDAAE"];
+        ICP     [label="INTRACRANIAL PRESSURE  ICP\ndICP/dt = K·ICP·(Q_f + dV_br/dt − (ICP−P_ss)/R_out)\nnormal 7–15 → 25–40 mmHg", fillcolor="#E5C98C", shape=doubleoctagon, penwidth=2.0];
+        HYDRO   [label="Communicating hydrocephalus\nventricular dilatation\n(may need shunt)", fillcolor="#F5E6C8"];
+        HERN    [label="Herniation\nuncal / tonsillar\nthe usual mode of early death", fillcolor="#F0D9A0"];
+        QF -> ICP; ARACH -> ROUT -> ICP [penwidth=1.6]; PVI -> ICP [style=dashed];
+        PB -> VASOG [penwidth=1.6]; VASOG -> VBR; CYTOT -> VBR; INTERST -> VBR;
+        VBR -> ICP [penwidth=1.6];
+        CSFPROT -> ROUT [penwidth=1.4]; PMN -> ROUT [penwidth=1.4];
+        ROUT -> INTERST; ROUT -> HYDRO;
+        ICP -> HERN; ICP -> QF [style=dashed, color="#B03030", arrowhead=tee];
+    }
+
+    /* ================================================================ 10
+       Perfusion, autoregulation, ischaemia
+       ================================================================ */
+    subgraph cluster_perf {
+        label=<<B>10 · Cerebral perfusion, autoregulation, and ischaemia</B><BR/><FONT POINT-SIZE="9">뇌관류 · 자동조절 · 허혈</FONT>>;
+        style="rounded,filled"; fillcolor="#FDEEE3"; color="#CF9A75";
+        MAP     [label="Mean arterial pressure MAP\nfalls with sepsis (TNF, IL-6)\nCushing rise when ICP >30", fillcolor="#F9DCC8"];
+        CPP     [label="CEREBRAL PERFUSION PRESSURE\nCPP = MAP − ICP\ntarget >60 mmHg", fillcolor="#F5C9A8", shape=box3d];
+        AUTOR   [label="Autoregulation integrity  AutoR\n1 → 0 with inflammation;\nflow becomes pressure-passive", fillcolor="#F9DCC8"];
+        CBF     [label="Cerebral blood flow CBF\n50 → <25 mL/100 g/min\n(ischaemic threshold)", fillcolor="#F9DCC8"];
+        ISCH    [label="ISCHAEMIA INDEX  Isch\n= 1 − CBF/CBF_crit\ndrives cortical necrosis", fillcolor="#F5C9A8", shape=box3d];
+        MAP -> CPP; ICP -> CPP [color="#B03030", arrowhead=tee, penwidth=1.6];
+        CPP -> CBF; AUTOR -> CBF [style=dashed];
+        TNF -> AUTOR [color="#B03030", arrowhead=tee, style=dashed];
+        TNF -> MAP [color="#B03030", arrowhead=tee];
+        IL6 -> MAP [color="#B03030", arrowhead=tee, style=dashed];
+        ICP -> MAP [style=dashed, label="Cushing"];
+        CBF -> ISCH [color="#B03030", arrowhead=tee];
+        ISCH -> CYTOT [penwidth=1.5]; ISCH -> ROS [style=dashed];
+    }
+
+    /* ================================================================ 11
+       CSF metabolism
+       ================================================================ */
+    subgraph cluster_metab {
+        label=<<B>11 · CSF metabolism — who actually eats the glucose</B><BR/><FONT POINT-SIZE="9">CSF 대사 — 포도당을 실제로 먹는 쪽</FONT>>;
+        style="rounded,filled"; fillcolor="#FCFAE2"; color="#BFB870";
+        GLUT1   [label="GLUT1 bidirectional carrier\nK_m ≈ 5–11 mmol/L; T_max reduced\n~30 % by inflammation", fillcolor="#F7F3C4"];
+        GLCCSF  [label="CSF GLUCOSE\n<40 mg/dL, CSF/plasma <0.4\nin ~70 % of pneumococcal cases", fillcolor="#F2ECA8", shape=box3d];
+        BACTGLC [label="Bacterial consumption\n≈2 mg/dL/h per 10⁷ CFU/mL\n(from biomass yield 25 g/mol)", fillcolor="#F7F3C4"];
+        PMNGLC  [label="Neutrophil consumption\n≈20 mg/dL/h at 4,000 /µL\n= 10× the bacterial term", fillcolor="#F2ECA8"];
+        LACT    [label="CSF LACTATE\n>3.5 mmol/L (often 6–12)\n2 lactate per glucose consumed", fillcolor="#F2ECA8", shape=box3d];
+        PHCSF   [label="CSF acidosis, pH ↓\nimpairs PMN function\nand autoregulation", fillcolor="#F7F3C4"];
+        ATPF    [label="Neuronal ATP failure\nNa⁺/K⁺-ATPase stalls", fillcolor="#F7F3C4"];
+        GLUT1 -> GLCCSF [penwidth=1.5];
+        GLCCSF -> GROWTH [penwidth=1.4];
+        BACTGLC -> GLCCSF [color="#B03030", arrowhead=tee];
+        PMNGLC -> GLCCSF [color="#B03030", arrowhead=tee, penwidth=1.6];
+        NCSF -> BACTGLC; PMNGLY -> PMNGLC;
+        BACTGLC -> LACT; PMNGLC -> LACT [penwidth=1.5]; ISCH -> LACT;
+        LACT -> PHCSF -> ATPF -> CYTOT;
+        PB -> GLUT1 [style=dashed, color="#B03030", arrowhead=tee, label="T_max ↓"];
+    }
+
+    /* ================================================================ 12
+       Neuronal injury
+       ================================================================ */
+    subgraph cluster_injury {
+        label=<<B>12 · Neuronal injury — two anatomically separate arms</B><BR/><FONT POINT-SIZE="9">신경 손상 — 해부학적으로 분리된 두 갈래</FONT>>;
+        style="rounded,filled"; fillcolor="#FDECE7"; color="#CE8A78";
+        GLUTAM  [label="Glutamate release, NMDA overactivation\nCa²⁺ influx → calpain", fillcolor="#F9D7CE"];
+        ONOO    [label="Peroxynitrite ONOO⁻\nlipid peroxidation, DNA strand breaks", fillcolor="#F9D7CE"];
+        PARP    [label="PARP-1 overactivation\nNAD⁺ depletion → parthanatos", fillcolor="#F9D7CE"];
+        MITO    [label="Mitochondrial permeability transition\ncytochrome c, AIF release", fillcolor="#F9D7CE"];
+        CASP3   [label="Caspase-3 activation\nclassical apoptosis", fillcolor="#F9D7CE"];
+        CORTEX  [label="CORTICAL NEURONES  N_cort\nischaemic/necrotic death\n→ focal deficit, seizures", fillcolor="#F5C0B2", shape=box3d];
+        DG      [label="HIPPOCAMPAL DENTATE GYRUS  N_dg\napoptosis of progenitors\n→ learning and memory deficit", fillcolor="#F5C0B2", shape=box3d];
+        SEIZ    [label="Seizure burden\ncortical excitability,\nhypoglycorrhachia lowers threshold", fillcolor="#F9D7CE"];
+        AXON    [label="Axonal injury, white matter\nNF-L, tau, S100B release", fillcolor="#F9D7CE"];
+        ISCH -> CORTEX [penwidth=1.8, color="#B03030", arrowhead=tee];
+        ROS -> ONOO -> PARP -> DG; ONOO -> MITO -> CASP3 -> DG [penwidth=1.5];
+        CWU -> DG [penwidth=1.6, color="#B03030", arrowhead=tee, label="cell wall"];
+        PLY -> DG [penwidth=1.6, color="#B03030", arrowhead=tee];
+        PLY -> MITO; H2O2 -> MITO;
+        GLUTAM -> CORTEX [color="#B03030", arrowhead=tee]; ISCH -> GLUTAM;
+        ROS -> CORTEX [color="#B03030", arrowhead=tee, style=dashed];
+        CORTEX -> SEIZ; GLCCSF -> SEIZ [style=dashed, label="low glucose"];
+        CORTEX -> AXON; DG -> AXON;
+    }
+
+    /* ================================================================ 13
+       Antibiotic PK — the delivery step
+       ================================================================ */
+    subgraph cluster_abxpk {
+        label=<<B>13 · Antibiotic PK — plasma, protein binding, and the CSF penetration step</B><BR/><FONT POINT-SIZE="9">항생제 PK — 혈장 · 단백결합 · CSF 침투 단계</FONT>>;
+        style="rounded,filled"; fillcolor="#EDF2FA"; color="#7E93BB";
+        CEFDOSE [label="CEFTRIAXONE 2 g IV q12h\n(or 4 g/day continuous)", fillcolor="#D8E4F6"];
+        CEFPL   [label="Ceftriaxone plasma (2-cpt)\nC_max ≈ 250 mg/L, t½ 6–9 h\nCL 1.0 L/h, V1 8 L", fillcolor="#D8E4F6"];
+        CEFBIND [label="SATURABLE albumin binding\nf_u 0.076 at 30 mg/L → 0.167 at 250\n(free fraction rises with dose)", fillcolor="#C9DAF2"];
+        CEFCSF  [label="Ceftriaxone CSF\n1–12 mg/L; penetration 2–10 %\nof total plasma", fillcolor="#C9DAF2"];
+        VANDOSE [label="VANCOMYCIN 15 mg/kg IV q6h\ntrough target 15–20 mg/L", fillcolor="#DDF2F2"];
+        VANPL   [label="Vancomycin plasma (2-cpt)\nf_u 0.50, CL 4 L/h", fillcolor="#DDF2F2"];
+        VANCSF  [label="Vancomycin CSF\n1–5 mg/L; penetration 2–13 %\nefflux transport present", fillcolor="#CBEAEA"];
+        RIFDOSE [label="RIFAMPIN 600 mg IV q12h\nlipophilic", fillcolor="#F4F0CE"];
+        RIFCSF  [label="Rifampin CSF\npenetration 10–20 %,\nnearly INDEPENDENT of Pb", fillcolor="#EDE7B4"];
+        PSTERM  [label="Penetration = PS·Pb / (PS·Pb + Q_bulk + E_eff)\nQ_bulk = 21 mL/h CSF turnover", fillcolor="#C9DAF2", shape=box3d];
+        MEROP   [label="Alternatives: meropenem, cefotaxime,\nampicillin (Listeria), moxifloxacin,\nlinezolid, intraventricular route", fillcolor="#D8E4F6"];
+        CEFDOSE -> CEFPL -> CEFBIND -> CEFCSF [color="#2A5DA8", penwidth=1.6];
+        VANDOSE -> VANPL -> VANCSF [color="#2A5DA8", penwidth=1.6];
+        RIFDOSE -> RIFCSF [color="#2A5DA8", penwidth=1.6];
+        PB -> PSTERM [penwidth=1.8, color="#2A5DA8"];
+        PSTERM -> CEFCSF [color="#2A5DA8"]; PSTERM -> VANCSF [penwidth=1.8, color="#2A5DA8"];
+        PSTERM -> RIFCSF [style=dashed, color="#2A5DA8", label="weak (a=0.1)"];
+    }
+
+    /* ================================================================ 14
+       Antibiotic PD
+       ================================================================ */
+    subgraph cluster_abxpd {
+        label=<<B>14 · Antibiotic PD — margin, lysis, and the resistance cliff</B><BR/><FONT POINT-SIZE="9">항생제 PD — 여유 · 용해 · 내성 절벽</FONT>>;
+        style="rounded,filled"; fillcolor="#E9EFF9"; color="#7E93BB";
+        MICS    [label="MIC / MBC\nsusceptible pneumococcus 0.03 mg/L\nPNSP / cephalosporin-R up to 4 mg/L", fillcolor="#D8E4F6"];
+        TGT     [label="T > 4×MIC (EC₅₀ of Emax model)\nthe discriminating PD index\n'10× MBC' rule of thumb", fillcolor="#C9DAF2"];
+        PBP     [label="PBP2x / PBP1a mosaic alteration\ntransformation-derived\n→ cephalosporin MIC step-up", fillcolor="#D8E4F6"];
+        LYTIC   [label="β-lactam killing is LYTIC\nautolysin-dependent murein hydrolysis\n→ maximal cargo release", fillcolor="#C9DAF2"];
+        NONLYT  [label="Rifampin killing is NON-LYTIC\nRNA polymerase inhibition\n→ Y = 0.15 of the β-lactam yield", fillcolor="#EDE7B4"];
+        SYNERG  [label="Vancomycin + ceftriaxone synergy\nrifampin added for resistant strains\nor delayed sterilisation", fillcolor="#D8E4F6"];
+        MICS -> TGT; PBP -> MICS [penwidth=1.5];
+        CEFCSF -> TGT; VANCSF -> TGT; RIFCSF -> TGT;
+        TGT -> KILLT [penwidth=1.8];
+        LYTIC -> YLYS [penwidth=1.6]; NONLYT -> YLYS [penwidth=1.6];
+        CEFCSF -> LYTIC; VANCSF -> LYTIC; RIFCSF -> NONLYT;
+        SYNERG -> KILLT [style=dashed];
+        MEROP -> MICS [style=dashed];
+    }
+
+    /* ================================================================ 15
+       Dexamethasone
+       ================================================================ */
+    subgraph cluster_dex {
+        label=<<B>15 · Dexamethasone — the shield, and the door it also closes</B><BR/><FONT POINT-SIZE="9">덱사메타손 — 방패, 그리고 함께 닫히는 문</FONT>>;
+        style="rounded,filled"; fillcolor="#F6EAF7"; color="#A87BB0";
+        DEXDOSE [label="DEXAMETHASONE 0.15 mg/kg IV q6h × 4 d\nfirst dose BEFORE or WITH antibiotic", fillcolor="#EBD7F0"];
+        DEXPL   [label="Dexamethasone plasma\nV 70 L, CL 16 L/h, t½ 3–4 h", fillcolor="#EBD7F0"];
+        DEXCSF  [label="Dexamethasone CSF\npenetration 15–30 %\n(lipophilic, Pb-insensitive)", fillcolor="#E2C6EA"];
+        GR      [label="Glucocorticoid receptor (NR3C1)\nligand binding → nuclear translocation", fillcolor="#EBD7F0"];
+        TRANSR  [label="Transrepression of NF-κB / AP-1\n+ IκBα induction\n+ mRNA destabilisation (TTP)", fillcolor="#E2C6EA"];
+        DEXTR   [label="TRANSCRIPTIONAL EFFECT  Dex_TR\nasymmetric: on t½ 1.5 h, off t½ 17 h\n(this asymmetry is why timing matters)", fillcolor="#D8B5E3", shape=box3d];
+        DEXBEN  [label="BENEFIT ARM\n↓TNF, IL-1β, IL-8, MMP-9\n↓PMN influx, ↓oedema, ↓ICP", fillcolor="#D8B5E3"];
+        DEXCOST [label="COST ARM\n↓Pb → ↓hydrophilic antibiotic CSF entry\n(+ hyperglycaemia, GI bleed, ↓dentate?)", fillcolor="#E9C0C0"];
+        DEXWIN  [label="TIMING WINDOW\ncytokine burst peaks 1–4 h after\nthe first antibiotic dose", fillcolor="#D8B5E3", shape=doubleoctagon, penwidth=2.0];
+        DEXDOSE -> DEXPL -> DEXCSF -> GR -> TRANSR -> DEXTR [color="#2A5DA8", penwidth=1.4];
+        DEXTR -> DEXBEN; DEXTR -> DEXCOST;
+        DEXBEN -> NFKB [color="#B03030", arrowhead=tee, penwidth=1.8];
+        DEXBEN -> TNF [color="#B03030", arrowhead=tee];
+        DEXBEN -> IL1B [color="#B03030", arrowhead=tee];
+        DEXBEN -> IL8 [color="#B03030", arrowhead=tee];
+        DEXBEN -> MMP9 [color="#B03030", arrowhead=tee];
+        DEXBEN -> ICAM [color="#B03030", arrowhead=tee, style=dashed];
+        DEXCOST -> PB [color="#B03030", arrowhead=tee, penwidth=1.8];
+        LYSFLUX -> DEXWIN [style=dashed, penwidth=1.5];
+        DEXWIN -> DEXTR [style=dashed];
+    }
+
+    /* ================================================================ 16
+       Adjunctive therapy
+       ================================================================ */
+    subgraph cluster_adj {
+        label=<<B>16 · Adjunctive and supportive therapy</B><BR/><FONT POINT-SIZE="9">보조·지지 요법</FONT>>;
+        style="rounded,filled"; fillcolor="#F4EEF8"; color="#9B8CB5";
+        MANN    [label="Mannitol 0.5 g/kg q6h\nosmotic gradient; efficacy ∝ 1/Pb\nrebound if it leaks into brain", fillcolor="#E7DDF2"];
+        GLYC    [label="Glycerol 6 g/kg/day PO\n(Latin-American paediatric trial)\nsmaller molecule, more leak", fillcolor="#E7DDF2"];
+        HTS     [label="Hypertonic saline 3 %\nreflection coefficient ≈1", fillcolor="#E7DDF2"];
+        DRAIN   [label="External ventricular drainage\n/ repeat LP; removes volume directly\n(caution: mass effect)", fillcolor="#E7DDF2"];
+        HEADUP  [label="Head elevation 30°, normocapnia,\nnormothermia, sedation", fillcolor="#E7DDF2"];
+        ANTICONV[label="Anticonvulsant (levetiracetam,\nphenytoin) — seizure control", fillcolor="#E7DDF2"];
+        ANTIPYR [label="Acetaminophen — fever control\nreduces CMRO₂ demand", fillcolor="#E7DDF2"];
+        GLYCTRL [label="Glycaemic control\n(dexamethasone raises glucose,\nwhich raises CSF glucose supply)", fillcolor="#E7DDF2"];
+        MANN -> VBR [color="#B03030", arrowhead=tee, penwidth=1.5];
+        GLYC -> VBR [color="#B03030", arrowhead=tee];
+        HTS -> VBR [color="#B03030", arrowhead=tee];
+        DRAIN -> ICP [color="#B03030", arrowhead=tee, penwidth=1.5];
+        HEADUP -> ICP [color="#B03030", arrowhead=tee, style=dashed];
+        ANTICONV -> SEIZ [color="#B03030", arrowhead=tee];
+        ANTIPYR -> ISCH [color="#B03030", arrowhead=tee, style=dashed];
+        PB -> MANN [style=dashed, color="#B03030", arrowhead=tee, label="leak ↓ efficacy"];
+        GLYCTRL -> GLUT1 [style=dashed];
+    }
+
+    /* ================================================================ 17
+       Cochlear injury
+       ================================================================ */
+    subgraph cluster_cochlea {
+        label=<<B>17 · Cochlear injury — the fastest irreversible endpoint</B><BR/><FONT POINT-SIZE="9">와우 손상 — 가장 빠르고 비가역적인 엔드포인트</FONT>>;
+        style="rounded,filled"; fillcolor="#FCEEF0"; color="#C98D97";
+        AQUED   [label="Cochlear aqueduct\ndirect CSF → scala tympani route", fillcolor="#F7DADF"];
+        SUPPLAB [label="Suppurative labyrinthitis\nPMN + bacteria in perilymph", fillcolor="#F7DADF"];
+        HAIRC   [label="Outer/inner hair cell loss\nPly pores + ROS\nbasal turn first (high frequency)", fillcolor="#F3C7CF"];
+        SPIRAL  [label="Spiral ganglion neurone loss\ndetermines cochlear implant benefit", fillcolor="#F3C7CF"];
+        OSSIF   [label="Labyrinthitis ossificans\nfibrosis → ossification of scala\nweeks; irreversible", fillcolor="#F3C7CF"];
+        HEARDB  [label="HEARING THRESHOLD SHIFT (dB)\nany loss 20–30 %, severe ~10 %\nin pneumococcal meningitis", fillcolor="#EFB3BE", shape=box3d];
+        IMPLANT [label="Cochlear implantation\nearly (before ossification)\nvs late failure", fillcolor="#F7DADF"];
+        PLY -> AQUED [style=dashed]; PMN -> AQUED [style=dashed];
+        AQUED -> SUPPLAB -> HAIRC -> SPIRAL;
+        PLY -> HAIRC [penwidth=1.8, color="#B03030", arrowhead=tee];
+        ROS -> HAIRC [penwidth=1.5, color="#B03030", arrowhead=tee];
+        HAIRC -> OSSIF; SUPPLAB -> OSSIF;
+        HAIRC -> HEARDB; SPIRAL -> HEARDB; OSSIF -> HEARDB;
+        OSSIF -> IMPLANT [color="#B03030", arrowhead=tee, label="window closes"];
+        DEXBEN -> HAIRC [style=dashed, color="#2A8A2A", label="protects"];
+    }
+
+    /* ================================================================ 18
+       Cerebrovascular complications
+       ================================================================ */
+    subgraph cluster_vasc {
+        label=<<B>18 · Cerebrovascular complications</B><BR/><FONT POINT-SIZE="9">뇌혈관 합병증</FONT>>;
+        style="rounded,filled"; fillcolor="#EDF0F4"; color="#8894A6";
+        VASCUL  [label="Purulent exudate encases vessels\n→ arteritis of subarachnoid arteries", fillcolor="#DCE2EA"];
+        SPASM   [label="Arterial narrowing / vasospasm\nTCD velocity ↑", fillcolor="#DCE2EA"];
+        INFARCT [label="Cerebral infarction\n15–25 % of pneumococcal cases", fillcolor="#D0D8E3"];
+        VTHROMB [label="Cortical vein / sinus thrombosis\nvenous infarct, haemorrhage", fillcolor="#DCE2EA"];
+        SAHM    [label="Mycotic aneurysm, SAH\n(rare)", fillcolor="#DCE2EA"];
+        PMN -> VASCUL; CSFPROT -> VASCUL;
+        VASCUL -> SPASM -> INFARCT; VASCUL -> VTHROMB -> INFARCT;
+        VASCUL -> SAHM;
+        INFARCT -> CORTEX [color="#B03030", arrowhead=tee, penwidth=1.5];
+        SPASM -> CBF [color="#B03030", arrowhead=tee];
+    }
+
+    /* ================================================================ 19
+       Systemic disease
+       ================================================================ */
+    subgraph cluster_sys {
+        label=<<B>19 · Systemic sepsis and extracranial organ failure</B><BR/><FONT POINT-SIZE="9">전신 패혈증과 두개외 장기 부전</FONT>>;
+        style="rounded,filled"; fillcolor="#F1F1F1"; color="#909090";
+        SIRS    [label="SIRS / sepsis\nfever 39–40 °C, tachycardia", fillcolor="#E2E2E2"];
+        SHOCK   [label="Septic shock\nvasoplegia, lactate ↑\nvasopressor requirement", fillcolor="#E2E2E2"];
+        DIC     [label="DIC / purpura fulminans\n(more typical of meningococcus)", fillcolor="#E2E2E2"];
+        SIADH   [label="SIADH / hyponatraemia\nfree water retention → oedema", fillcolor="#E2E2E2"];
+        AKI     [label="AKI — sepsis + vancomycin\nnephrotoxicity (AUC₂₄ >600)", fillcolor="#E2E2E2"];
+        ARDSN   [label="Pneumonia / ARDS\nthe commonest primary focus", fillcolor="#E2E2E2"];
+        SOFA    [label="SOFA score\norgan dysfunction burden", fillcolor="#D6D6D6", shape=box3d];
+        BACT -> SIRS -> SHOCK; TNF -> SIRS [style=dashed];
+        SIRS -> DIC; SIRS -> AKI; ARDSN -> BACT;
+        SIADH -> VBR [style=dashed]; SHOCK -> MAP [color="#B03030", arrowhead=tee, penwidth=1.5];
+        SIRS -> SOFA; SHOCK -> SOFA; AKI -> SOFA; DIC -> SOFA;
+        VANPL -> AKI [style=dashed, color="#B03030", label="AUC-driven"];
+    }
+
+    /* ================================================================ 20
+       Diagnostics and endpoints
+       ================================================================ */
+    subgraph cluster_dx {
+        label=<<B>20 · Diagnostics and clinical endpoints</B><BR/><FONT POINT-SIZE="9">진단 지표와 임상 엔드포인트</FONT>>;
+        style="rounded,filled"; fillcolor="#F8F8F8"; color="#9A9A9A";
+        LP      [label="Lumbar puncture (CT first if\nfocal deficit / GCS <10 / papilloedema)", fillcolor="#EDEDED"];
+        CSFPANEL[label="CSF panel: WBC, protein,\nglucose ratio, lactate, Gram stain", fillcolor="#EDEDED"];
+        CULT    [label="Culture + multiplex PCR\n(PCR stays positive after\nantibiotic sterilises culture)", fillcolor="#EDEDED"];
+        IMAGING [label="CT / MRI: oedema, infarct,\nhydrocephalus, empyema", fillcolor="#EDEDED"];
+        GCS     [label="GCS / consciousness level\nstrongest bedside predictor", fillcolor="#EDEDED"];
+        DEATH   [label="MORTALITY\npneumococcal adults 20–30 %\ncumulative hazard model", fillcolor="#F9C6D6", shape=box3d];
+        HEAROUT [label="HEARING LOSS\nany >25 dB · severe >60 dB", fillcolor="#F9C6D6", shape=box3d];
+        COGOUT  [label="COGNITIVE DEFICIT\nz-score; dentate-driven", fillcolor="#F9C6D6", shape=box3d];
+        FOCAL   [label="FOCAL NEUROLOGICAL DEFICIT\nhemiparesis, aphasia, ataxia", fillcolor="#F9C6D6", shape=box3d];
+        EPIL    [label="Post-meningitic epilepsy", fillcolor="#F9C6D6"];
+        GOS     [label="UNFAVOURABLE OUTCOME (GOS 1–4)\ndeath or any sequela\n~25 % with, ~50 % without steroid", fillcolor="#F5A9C0", shape=doubleoctagon, penwidth=2.0];
+        LP -> CSFPANEL -> CULT;
+        PMN -> CSFPANEL [style=dashed]; CSFPROT -> CSFPANEL [style=dashed];
+        GLCCSF -> CSFPANEL [style=dashed]; LACT -> CSFPANEL [style=dashed];
+        NCSF -> CULT [style=dashed];
+        ICP -> IMAGING [style=dashed]; HYDRO -> IMAGING [style=dashed];
+        ICP -> GCS [color="#B03030", arrowhead=tee]; CPP -> GCS [style=dashed];
+        HERN -> DEATH [penwidth=1.8]; SOFA -> DEATH [penwidth=1.5];
+        CORTEX -> DEATH [penwidth=1.5]; CORTEX -> FOCAL [penwidth=1.6];
+        HEARDB -> HEAROUT [penwidth=1.8];
+        DG -> COGOUT [penwidth=1.8];
+        SEIZ -> EPIL;
+        DEATH -> GOS; HEAROUT -> GOS; COGOUT -> GOS; FOCAL -> GOS; EPIL -> GOS;
+        HYDRO -> GOS [style=dashed];
+    }
+
+    /* ================================================================
+       Cross-cluster spine: the product and the two doors, stated once
+       ================================================================ */
+    LYSFLUX -> MGLIA  [penwidth=2.2, color="#1A6B1A", label="the product\ndrives everything"];
+    DEXTR   -> LYSFLUX [style=dashed, color="#B03030", arrowhead=tee,
+                        label="shield term (1 − E_dex)"];
+    KILLT   -> BACT   [color="#B03030", arrowhead=tee, style=dashed];
+    HOSTDEF -> PHAGCSF [style=dashed];
+    HOSTDEF -> NCSF [style=dashed];
+    ISCH -> ATPF [style=dashed];
+    TNF -> PB [style=dashed];
+    PB -> CEFCSF [style=invis];
+
+    /* legend */
+    subgraph cluster_legend {
+        label=<<B>Legend / 범례</B>>;
+        style="rounded,filled"; fillcolor="#FFFFFF"; color="#AAAAAA";
+        L1 [label="solid arrow = mass flux or causal activation", shape=plaintext, fillcolor="#FFFFFF"];
+        L2 [label="dashed arrow = modulation / scaling", shape=plaintext, fillcolor="#FFFFFF"];
+        L3 [label="red T-bar = inhibition", shape=plaintext, fillcolor="#FFFFFF"];
+        L4 [label="blue arrow = drug delivery step", shape=plaintext, fillcolor="#FFFFFF"];
+        L5 [label="box3d = state variable of the 63-ODE model", shape=plaintext, fillcolor="#FFFFFF"];
+        L6 [label="octagon = the four decisive quantities:\ninjury flux · barrier Pb · ICP · dexamethasone window", shape=plaintext, fillcolor="#FFFFFF"];
+        L1 -> L2 -> L3 -> L4 -> L5 -> L6 [style=invis];
+    }
+}
