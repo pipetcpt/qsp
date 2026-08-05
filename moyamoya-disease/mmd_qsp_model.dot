@@ -1,0 +1,474 @@
+/*
+ * mmd_qsp_model.dot
+ * =================
+ * Mechanistic QSP map of MOYAMOYA DISEASE (MMD) / moyamoya syndrome.
+ *
+ * ORGANISING IDEA.  The measured quantity in moyamoya is cerebral blood flow.
+ * The STATE variable is how much dilatory range the cortical arteriole has
+ * left.  The map is therefore laid out as a resistive network (cluster 4)
+ * with a floor, fed by four competing inlets (clusters 2 and 3), read out
+ * through an oxygen-extraction ceiling (cluster 5), and acted on by drugs
+ * and operations that -- with one exception -- touch the hazards rather than
+ * the geometry (clusters 8, 9).
+ *
+ * Node colour convention
+ *   lesion / genetics ............ #f9d0c4  (salmon)
+ *   collateral & angiogenesis .... #ffe6b3  (amber)
+ *   haemodynamic network ......... #cfe3ff  (blue)
+ *   oxygen / metabolism .......... #d7f0d0  (green)
+ *   injury & endpoints ........... #f6c6c6  (red)
+ *   drug PK / PD ................. #e6d5f5  (violet)
+ *   surgery ...................... #d4f0ef  (teal)
+ *   modifiers / triggers ......... #eeeeee  (grey)
+ *
+ * Edge convention
+ *   solid black  = mass / flow / activation
+ *   red          = inhibition or loss
+ *   blue dashed  = drug or surgical action
+ *   grey dotted  = feedback / regulatory
+ *
+ * Render:  dot -Tsvg mmd_qsp_model.dot -o mmd_qsp_model.svg
+ *          dot -Tpng -Gdpi=150 mmd_qsp_model.dot -o mmd_qsp_model.png
+ */
+
+digraph MMD_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.26,
+           ranksep=0.52, fontname="Helvetica", fontsize=11,
+           labelloc="t", compound=true, bgcolor="white",
+           label=<<B>Moyamoya Disease — Quantitative Systems Pharmacology Map</B><BR/>
+<FONT POINT-SIZE="11">RNF213 → intimal hyperplasia → inlet conductance collapse → autoregulatory reserve exhaustion →<BR/>
+watershed failure, periventricular anastomotic haemorrhage, and the surgical restoration of a parallel conductance</FONT><BR/>
+<FONT POINT-SIZE="9">Central identity: CBF = (MAP − ICP) / (1/g_S + R_art),  g_S = g_ICA + g_moya + g_PVA + g_bypass,  R_art ∈ [R_min, R_max]<BR/>
+Derived threshold: CBF_crit = CMRO₂ / (CaO₂ · OEF_max) — not a fitted parameter</FONT>>];
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica",
+          fontsize=10, penwidth=0.9, margin="0.07,0.045"];
+    edge [fontname="Helvetica", fontsize=8, arrowsize=0.65, penwidth=0.9,
+          color="#333333"];
+
+    /* =================================================================
+     * 1.  GENETICS AND THE INTIMAL LESION
+     * ================================================================= */
+    subgraph cluster_gene {
+        label=<<B>1. Genetics → intimal hyperplasia (the lesion)</B>>;
+        style="rounded,filled"; fillcolor="#fff5f2"; color="#c9765f";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#f9d0c4"];
+
+        RNF213      [label="RNF213 (17q25.3)\np.Arg4810Lys / c.14576G>A\nEast-Asian founder variant"];
+        MYSTERIN    [label="mysterin\nAAA+ ATPase +\nRING ubiquitin ligase"];
+        RNF_HOM     [label="homozygous R4810K\nearly onset, severe\n(gene dose effect)"];
+        LIPID_DROP  [label="lipid-droplet\nhomeostasis defect\n(mysterin loss)"];
+        ER_STRESS   [label="endothelial ER stress\nUPR activation"];
+        CAV1        [label="caveolin-1 ↓\n(endothelial\nmechanotransduction)", fillcolor="#f6e0da"];
+        SMPC        [label="circulating smooth-muscle\nprogenitor cells\n(abnormal phenotype)"];
+        ECFC        [label="endothelial colony-\nforming cells ↓\n(impaired repair)"];
+        PDGFB       [label="PDGF-BB ↑\n(local, intimal)"];
+        TGFB1       [label="TGF-β1 ↑\n(serum & CSF)"];
+        BFGF        [label="bFGF ↑ (CSF)\nHGF ↑"];
+        MMP9_N      [label="MMP-9 ↑ / TIMP\nimbalance"];
+        SMC_PROL    [label="luminal SMC\nproliferation & migration\n→ intimal thickening"];
+        IEL         [label="internal elastic lamina\ntortuous, duplicated,\nwaved"];
+        MEDIA_THIN  [label="attenuated media\n(NOT atheroma,\nNOT vasculitis)"];
+        STEN_ICA    [label="terminal ICA / M1 / A1\nprogressive stenosis\nSTEN (0→0.95)", fillcolor="#f1a891"];
+        SUZUKI      [label="Suzuki angiographic\nstage I → VI", fillcolor="#f6e0da"];
+
+        RNF213 -> MYSTERIN;
+        RNF213 -> RNF_HOM [style=dotted, color="#777777"];
+        MYSTERIN -> LIPID_DROP;
+        MYSTERIN -> ER_STRESS;
+        LIPID_DROP -> ER_STRESS;
+        ER_STRESS -> CAV1 [color="#c0392b", arrowhead=tee];
+        CAV1 -> SMC_PROL;
+        ER_STRESS -> SMPC;
+        ER_STRESS -> ECFC [color="#c0392b", arrowhead=tee];
+        SMPC -> SMC_PROL;
+        ECFC -> SMC_PROL [color="#c0392b", arrowhead=tee, label="loss of\nrepair"];
+        PDGFB -> SMC_PROL [label="principal\nmitogen"];
+        TGFB1 -> SMC_PROL;
+        BFGF -> SMC_PROL;
+        MMP9_N -> IEL;
+        MMP9_N -> PDGFB [style=dotted, color="#777777", label="matrix-bound\nGF release"];
+        SMC_PROL -> STEN_ICA;
+        IEL -> STEN_ICA;
+        MEDIA_THIN -> STEN_ICA;
+        SMC_PROL -> MEDIA_THIN;
+        STEN_ICA -> SUZUKI;
+    }
+
+    /* =================================================================
+     * 2.  SECONDARY / QUASI-MOYAMOYA DRIVERS
+     * ================================================================= */
+    subgraph cluster_sec {
+        label=<<B>2. Secondary drivers (quasi-moyamoya) — same lesion, no RNF213</B>>;
+        style="rounded,filled"; fillcolor="#f7f7f7"; color="#888888";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#eeeeee"];
+
+        NF1         [label="neurofibromatosis 1\n(NF1 haploinsufficiency)"];
+        DOWN        [label="trisomy 21"];
+        XRT         [label="cranial irradiation\n(optic glioma, ALL,\ncraniopharyngioma)"];
+        SCD_N       [label="sickle-cell disease\n(HbSS)"];
+        GRAVES      [label="Graves disease /\nthyroid autoantibodies"];
+        ATHERO      [label="intracranial\natherosclerosis\n(mimic, must exclude)"];
+        ACTA2       [label="ACTA2 R179H,\nGUCY1A3, SAMHD1"];
+        SEC_DRIVE   [label="secondary intimal drive\nSEC (0→1.3)", fillcolor="#dddddd"];
+
+        NF1 -> SEC_DRIVE; DOWN -> SEC_DRIVE; XRT -> SEC_DRIVE;
+        SCD_N -> SEC_DRIVE; GRAVES -> SEC_DRIVE; ACTA2 -> SEC_DRIVE;
+        ATHERO -> SEC_DRIVE [style=dashed, color="#999999", label="exclude"];
+    }
+    SEC_DRIVE -> PDGFB [lhead=cluster_gene, label="RNF213-independent\nlesion"];
+    RNF213 -> PDGFB;
+    GRAVES -> RNF213 [style=dotted, color="#777777",
+                      label="thyrotoxicosis unmasks\ncarriers"];
+
+    /* =================================================================
+     * 3.  THE FOUR COMPETING INLETS
+     * ================================================================= */
+    subgraph cluster_inlet {
+        label=<<B>3. Four inlets in parallel — g_S = g_ICA + g_moya + g_PVA + g_bypass</B>>;
+        style="rounded,filled"; fillcolor="#fffaf0"; color="#c99b3f";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#ffe6b3"];
+
+        G_ICA       [label="g_ICA = g₀·(1−STEN)⁴\nANTEGRADE supply\n(Poiseuille)", fillcolor="#ffd27f"];
+        HIF1A       [label="HIF-1α ↑\n(borderzone hypoxia)"];
+        VEGFA       [label="VEGF-A ↑\nAng-2 ↑, HGF ↑"];
+        MOYA_VES    [label="basal moyamoya vessels\ndilated lenticulostriate &\nthalamoperforating\ng_moya", fillcolor="#ffd27f"];
+        PVA         [label="PERIVENTRICULAR /\nCHOROIDAL anastomosis\ng_PVA — the BLEEDER", fillcolor="#f0a860"];
+        LEPTO       [label="leptomeningeal collateral\nfrom PCA → MCA cortex\ng_coll — the SAFE route", fillcolor="#ffd27f"];
+        ETHMOID     [label="ethmoidal moyamoya\n(ophthalmic → ACA)"];
+        VAULT       [label="vault moyamoya /\ntransdural (STA, MMA,\noccipital → pial)"];
+        PCA_INV_N   [label="PCA involvement\n(~30%): removes the SAFE\ndonor, forces the FRAGILE one", fillcolor="#f0a860"];
+        ANGIO_CAP   [label="angiogenic capacity ANGIO\nchild ≈ 1.0, adult ≈ 0.35–0.6"];
+        RNF_CAP_N   [label="RNF213 CAPS the\ncollateral ceiling\n(impaired hypoxic angiogenesis)", fillcolor="#f6c6a0"];
+        GS          [label="TOTAL INLET CONDUCTANCE\ng_S", shape=box, style="rounded,filled,bold",
+                     fillcolor="#f5b942", penwidth=1.8];
+
+        HIF1A -> VEGFA;
+        VEGFA -> MOYA_VES; VEGFA -> LEPTO; VEGFA -> PVA;
+        VEGFA -> ETHMOID; VEGFA -> VAULT;
+        ANGIO_CAP -> MOYA_VES; ANGIO_CAP -> LEPTO; ANGIO_CAP -> PVA;
+        RNF_CAP_N -> MOYA_VES [color="#c0392b", arrowhead=tee];
+        RNF_CAP_N -> LEPTO    [color="#c0392b", arrowhead=tee];
+        PCA_INV_N -> LEPTO    [color="#c0392b", arrowhead=tee, label="donor lost"];
+        PCA_INV_N -> PVA      [label="forced\nrecruitment"];
+        G_ICA -> GS; MOYA_VES -> GS; PVA -> GS; LEPTO -> GS;
+        ETHMOID -> GS; VAULT -> GS;
+    }
+    STEN_ICA -> G_ICA [label="4th power"];
+    RNF213 -> RNF_CAP_N;
+    MMP9_N -> VEGFA [style=dotted, color="#777777"];
+
+    /* =================================================================
+     * 4.  THE RESISTIVE NETWORK AND ITS FLOOR
+     * ================================================================= */
+    subgraph cluster_hemo {
+        label=<<B>4. Haemodynamic network — the autoregulator has a FLOOR</B>>;
+        style="rounded,filled"; fillcolor="#f2f7ff"; color="#4a76b8";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#cfe3ff"];
+
+        MAP_N       [label="MAP (systemic)"];
+        ICP_N       [label="ICP / venous\noutflow pressure"];
+        CPP         [label="CPP = MAP − ICP"];
+        P_A         [label="P_A — distal MCA\njunction pressure", fillcolor="#a9c9f5"];
+        P_B         [label="P_B — PCA cortical\nnode (the DONOR)", fillcolor="#a9c9f5"];
+        R_ART       [label="cortical arteriole R_art\nVARIABLE RESISTOR\nR_min ≤ R_art ≤ R_max", fillcolor="#8fb8ef"];
+        AUTOREG     [label="myogenic + metabolic\nautoregulation\n(holds CBF at demand)"];
+        FLOOR       [label="DILATORY FLOOR\nR_art = R_min\n⇒ reserve = 0", fillcolor="#f5b942", penwidth=1.8];
+        CVR_I       [label="intrinsic reserve\nCVR = CBF_max/CBF − 1"];
+        CVR_M       [label="MEASURED reactivity\n(donor dilates too\n→ STEAL)", fillcolor="#f0b0b0"];
+        PASSIVE     [label="PRESSURE-PASSIVE STATE\ndCBF/dMAP: 0 → 1/R_tot", fillcolor="#f5b942", penwidth=1.8];
+        CBF_A       [label="CBF_A (MCA territory)"];
+        CBF_WS      [label="CBF_watershed\n= CBF_A · [1 − k·(1 − antegrade\nfraction)]", fillcolor="#a9c9f5"];
+        REMOD_N     [label="chronic dilatation →\noutward remodelling →\nLOSS OF CONSTRICTIVE RANGE", fillcolor="#8fb8ef"];
+        GS_CRIT     [label="CRITICAL g_S*\nall three switch here", fillcolor="#f5b942", penwidth=1.8];
+
+        MAP_N -> CPP; ICP_N -> CPP;
+        CPP -> P_A; CPP -> P_B;
+        P_B -> P_A [label="leptomeningeal\nflow", style=dotted, color="#777777"];
+        AUTOREG -> R_ART;
+        R_ART -> CBF_A; P_A -> CBF_A;
+        R_ART -> FLOOR [label="exhausted"];
+        FLOOR -> CVR_I [color="#c0392b", arrowhead=tee];
+        FLOOR -> PASSIVE; FLOOR -> CVR_M;
+        FLOOR -> REMOD_N [label="sustained"];
+        REMOD_N -> R_ART [style=dotted, color="#777777",
+                          label="R_max ↓ (cannot\nconstrict)"];
+        CBF_A -> CBF_WS;
+        GS_CRIT -> FLOOR [style=dotted, color="#777777"];
+        CBF_A -> AUTOREG [style=dotted, color="#777777", label="error signal"];
+    }
+    GS -> P_A [ltail=cluster_inlet, label="1/g_S in series\nwith R_art", penwidth=1.4];
+    GS -> GS_CRIT;
+    G_ICA -> CBF_WS [label="antegrade fraction:\ncollateral flow reaches\nthe cortex FIRST"];
+
+    /* =================================================================
+     * 5.  OXYGEN, METABOLISM AND THE DERIVED THRESHOLD
+     * ================================================================= */
+    subgraph cluster_ox {
+        label=<<B>5. Oxygen extraction ceiling — where the infarct threshold comes from</B>>;
+        style="rounded,filled"; fillcolor="#f3fbf1"; color="#5a9c52";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#d7f0d0"];
+
+        HB_N        [label="haemoglobin\n(anaemia, HbSS,\ntransfusion)"];
+        SAO2_N      [label="SaO₂"];
+        CAO2_N      [label="CaO₂ = 1.34·Hb·SaO₂/100"];
+        DO2         [label="DO₂ = CBF · CaO₂"];
+        OEF_N       [label="OEF — rises first\n0.33 → 0.85 CEILING", fillcolor="#b6e0aa"];
+        CMRO2_N     [label="CMRO₂ = CBF·CaO₂·OEF"];
+        MISERY      [label="MISERY PERFUSION\nOEF at ceiling,\nCMRO₂ starts to fall", fillcolor="#f5d76e"];
+        CBFCRIT     [label="CBF_crit = CMRO₂/(CaO₂·OEF_max)\nHb 15 → 19.7\nHb 8 → 36.9 mL/100g/min",
+                     fillcolor="#f5b942", penwidth=1.8];
+        ELEC        [label="electrical failure\n(penumbra)"];
+        MEMB        [label="membrane-pump failure\n→ infarct core"];
+        GLYCO       [label="anaerobic glycolysis\nlactate ↑, tissue pH ↓"];
+
+        HB_N -> CAO2_N; SAO2_N -> CAO2_N;
+        CAO2_N -> DO2; CAO2_N -> CBFCRIT [label="inverse"];
+        DO2 -> OEF_N [style=dotted, color="#777777", label="compensation"];
+        OEF_N -> CMRO2_N; DO2 -> CMRO2_N;
+        OEF_N -> MISERY [label="ceiling reached"];
+        MISERY -> ELEC; ELEC -> MEMB;
+        CBFCRIT -> ELEC; MISERY -> GLYCO;
+    }
+    CBF_WS -> DO2 [ltail=cluster_hemo, lhead=cluster_ox, penwidth=1.4];
+    SCD_N -> HB_N [color="#c0392b", arrowhead=tee, label="Hb ↓ ⇒ threshold ↑"];
+
+    /* =================================================================
+     * 6.  PRECIPITANTS AND MODIFIERS
+     * ================================================================= */
+    subgraph cluster_trig {
+        label=<<B>6. Precipitants — they act on the network, not on the lesion</B>>;
+        style="rounded,filled"; fillcolor="#f7f7f7"; color="#888888";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#eeeeee"];
+
+        CRY         [label="crying, blowing,\nplaying wind instrument,\nhot noodles"];
+        HYPOCAP     [label="HYPOCAPNIA\nPaCO₂ 40 → 25"];
+        HYPERCAP    [label="hypercapnia /\nbreath-hold\nPaCO₂ 40 → 50"];
+        DEHYD       [label="dehydration,\nfever, sepsis"];
+        HYPOTEN     [label="hypotension\n(anaesthesia,\nover-treatment)"];
+        ANAEMIA_T   [label="anaemia,\niron deficiency"];
+        VALSALVA    [label="Valsalva,\nstraining"];
+        COLL_CON    [label="pial CONDUIT constriction\n(the collaterals are\nCO₂-reactive too)", fillcolor="#dddddd"];
+        DEMAND_M    [label="arteriolar DEMAND\nmodifier (CO₂, ACZ,\nactivation, fever)", fillcolor="#dddddd"];
+
+        CRY -> HYPOCAP;
+        HYPOCAP -> COLL_CON [label="g_coll, g_moya ↓"];
+        HYPOCAP -> DEMAND_M [color="#c0392b", arrowhead=tee, label="demand ↓"];
+        HYPERCAP -> COLL_CON [color="#2b6cb0", arrowhead=vee, label="conduits OPEN"];
+        HYPERCAP -> DEMAND_M;
+        DEHYD -> HYPOTEN; ANAEMIA_T -> HYPOTEN [style=invis];
+    }
+    COLL_CON -> GS [color="#c0392b", arrowhead=tee, lhead=cluster_inlet,
+                    label="direct supply cut —\nno autoregulatory defence"];
+    DEMAND_M -> AUTOREG [lhead=cluster_hemo];
+    HYPOTEN -> MAP_N [color="#c0392b", arrowhead=tee, lhead=cluster_hemo];
+    ANAEMIA_T -> HB_N [color="#c0392b", arrowhead=tee, lhead=cluster_ox];
+    VALSALVA -> ICP_N;
+
+    /* =================================================================
+     * 7.  INJURY, HAEMORRHAGE AND CLINICAL ENDPOINTS
+     * ================================================================= */
+    subgraph cluster_end {
+        label=<<B>7. Injury and clinical endpoints</B>>;
+        style="rounded,filled"; fillcolor="#fdf1f1"; color="#c0392b";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#f6c6c6"];
+
+        MARGIN      [label="MARGIN = CBF_ws − CBF_crit\nhazard ∝ exp(−margin/σ)", fillcolor="#f0a8a8"];
+        NOISE       [label="perfusion variability σ\nWIDER when pressure-passive"];
+        TIA         [label="TIA / transient\nhemiparesis, limb-shaking"];
+        WS_INF      [label="WATERSHED INFARCT\ndeep frontal / ACA-MCA\nborderzone", fillcolor="#f0a8a8"];
+        EMBOL_N     [label="low-shear thrombus\nin moyamoya vessels\n→ artery-to-artery emboli"];
+        LOWSHEAR    [label="stagnant flow in\ndilated perforators"];
+        SIGMA_N     [label="periventricular wall stress\nσ ≈ P_perf · dilatation^1.5", fillcolor="#f0a8a8"];
+        ANEU_N      [label="perforator\nmicroaneurysms"];
+        ICH_N       [label="INTRAVENTRICULAR /\ndeep INTRACEREBRAL\nHAEMORRHAGE", fillcolor="#e88a8a"];
+        SAH_N       [label="peripheral aneurysm\nrupture (rarer)"];
+        SEIZ_N      [label="seizures"];
+        HEADACHE_N  [label="headache\n(dilated dural &\npial collaterals)"];
+        COG_N       [label="frontal executive\ndysfunction\n(chronic hypoperfusion)"];
+        MRS_N       [label="mRS / disability", fillcolor="#e88a8a"];
+        VISUAL      [label="visual field loss\n(PCA involvement)"];
+        HYPERSYN    [label="post-op CEREBRAL\nHYPERPERFUSION SYNDROME\nseizure, TIA-mimic, ICH", fillcolor="#e88a8a"];
+        BBB_N       [label="BBB breakdown\n→ vasogenic oedema"];
+
+        NOISE -> MARGIN;
+        MARGIN -> TIA; MARGIN -> WS_INF;
+        LOWSHEAR -> EMBOL_N; EMBOL_N -> WS_INF;
+        SIGMA_N -> ANEU_N; ANEU_N -> ICH_N; SIGMA_N -> ICH_N;
+        SIGMA_N -> SAH_N;
+        WS_INF -> COG_N; WS_INF -> MRS_N; WS_INF -> SEIZ_N;
+        ICH_N -> MRS_N; COG_N -> MRS_N;
+        BBB_N -> HYPERSYN; HYPERSYN -> ICH_N; HYPERSYN -> SEIZ_N;
+        WS_INF -> MARGIN [style=dotted, color="#777777",
+                          label="infarct REMOVES demand\n⇒ CBF/g recovers\n(flow pinned at threshold)"];
+    }
+    CBF_WS -> MARGIN [ltail=cluster_hemo, lhead=cluster_end, penwidth=1.4];
+    CBFCRIT -> MARGIN [ltail=cluster_ox];
+    PASSIVE -> NOISE [label="MAP noise reaches\nthe tissue"];
+    MOYA_VES -> LOWSHEAR;
+    PVA -> SIGMA_N [penwidth=1.4, label="the fragile route"];
+    P_A -> SIGMA_N [label="P_perf = ½(MAP + P_A)"];
+    MMP9_N -> ANEU_N [label="wall degradation"];
+    LEPTO -> HEADACHE_N; VAULT -> HEADACHE_N;
+    PCA_INV_N -> VISUAL;
+    REMOD_N -> HYPERSYN [penwidth=1.4,
+                         label="cannot constrict when\nnormal pressure arrives"];
+
+    /* =================================================================
+     * 8.  SURGICAL REVASCULARISATION
+     * ================================================================= */
+    subgraph cluster_surg {
+        label=<<B>8. Revascularisation — the only intervention that changes g_S</B>>;
+        style="rounded,filled"; fillcolor="#eefaf9"; color="#3d8f8a";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#d4f0ef"];
+
+        STA_MCA     [label="DIRECT STA–MCA\nanastomosis\ng_byp immediate, τ ≈ 6 d", fillcolor="#a8e0dc"];
+        EDAS        [label="INDIRECT EDAS / EMS /\nEDAMS / omental\nVEGF- and ANGIO-gated"];
+        COMBINED    [label="COMBINED direct +\nindirect"];
+        MATSU       [label="Matsushima grade A–C\n(angiographic\nrevascularisation)"];
+        PATENCY     [label="graft patency\n> 95%"];
+        PERIOP      [label="peri-operative stroke\n4–7%"];
+        WATERSHIFT  [label="watershed SHIFT\n(new borderzone)"];
+        GRAD_COLL   [label="P_A ↑ ⇒ gradient across\nPVA collapses ⇒ VEGF ↓\n⇒ FRAGILE BED PRUNED", fillcolor="#a8e0dc"];
+        ANAESTH     [label="anaesthetic management:\nnormocapnia, normovolaemia,\navoid hypotension"];
+
+        STA_MCA -> MATSU; EDAS -> MATSU; COMBINED -> MATSU;
+        STA_MCA -> PATENCY; STA_MCA -> PERIOP; EDAS -> PERIOP;
+        STA_MCA -> COMBINED [style=invis]; EDAS -> COMBINED [style=invis];
+        MATSU -> WATERSHIFT;
+    }
+    STA_MCA -> GS [color="#2b6cb0", style=dashed, penwidth=1.6,
+                   lhead=cluster_inlet, label="parallel\nconductance"];
+    EDAS -> GS [color="#2b6cb0", style=dashed, lhead=cluster_inlet];
+    ANGIO_CAP -> EDAS [label="the patient must\nGROW the graft"];
+    P_A -> GRAD_COLL;
+    GRAD_COLL -> PVA [color="#c0392b", arrowhead=tee, lhead=cluster_inlet,
+                      penwidth=1.6, label="regression"];
+    GRAD_COLL -> SIGMA_N [color="#c0392b", arrowhead=tee, lhead=cluster_end,
+                          label="σ falls with it"];
+    STA_MCA -> HYPERSYN [color="#2b6cb0", style=dashed, lhead=cluster_end];
+    ANAESTH -> HYPOCAP [color="#c0392b", arrowhead=tee, lhead=cluster_trig];
+
+    /* =================================================================
+     * 9.  DRUG PK / PD
+     * ================================================================= */
+    subgraph cluster_drug {
+        label=<<B>9. Pharmacology — every agent acts on a HAZARD, not on g_S</B>>;
+        style="rounded,filled"; fillcolor="#f8f4fd"; color="#7b5aa6";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#e6d5f5"];
+
+        ASA         [label="ASPIRIN 100 mg/d\nka 12, ke 8.3 /d"];
+        COX1        [label="platelet COX-1\nIRREVERSIBLE\n→ TXA₂ ↓"];
+        PLT_POOL    [label="platelet pool\n10%/d turnover\n(effect compartment)"];
+        CILO        [label="CILOSTAZOL 200 mg/d\nt½ ≈ 11 h"];
+        PDE3        [label="PDE3 inhibition\n→ cAMP ↑"];
+        CILO_VD     [label="mild arteriolar\ndilatation +\nantiplatelet"];
+        NIF         [label="NIFEDIPINE GITS\n60 mg/d"];
+        LTYPE       [label="L-type Ca²⁺ channel\nblockade (NON-selective:\ndonor territory too)"];
+        NIF_MAP     [label="MAP ↓ 16%\n(harmful if\npressure-passive)", fillcolor="#f0d0d0"];
+        STATIN      [label="ATORVASTATIN 20 mg/d"];
+        PLEIO       [label="pleiotropic:\nRhoA/ROCK ↓, eNOS ↑,\nSMC proliferation ↓"];
+        MINO        [label="MINOCYCLINE 200 mg/d"];
+        MMP_INH     [label="MMP-9 inhibition\n→ wall repair ↑"];
+        EDARA       [label="edaravone\n(free-radical\nscavenger)"];
+        ACZ         [label="ACETAZOLAMIDE 1 g IV\nDIAGNOSTIC PROBE"];
+        CA_INH      [label="carbonic anhydrase\ninhibition — ARTERIOLE\nONLY, not the conduits", fillcolor="#d9c4ef"];
+        AHT         [label="antihypertensive\n(ARB / CCB)"];
+        ANTICOAG    [label="anticoagulation\n(generally avoided:\nhaemorrhage risk)", fillcolor="#f0d0d0"];
+        TRANSFUSE   [label="chronic TRANSFUSION\n(sickle-cell moyamoya)", fillcolor="#d0e8f5"];
+
+        ASA -> COX1 -> PLT_POOL;
+        CILO -> PDE3 -> CILO_VD;
+        NIF -> LTYPE; LTYPE -> NIF_MAP;
+        STATIN -> PLEIO; MINO -> MMP_INH;
+        ACZ -> CA_INH;
+    }
+    PLT_POOL -> EMBOL_N [color="#2b6cb0", style=dashed, arrowhead=tee,
+                         lhead=cluster_end, label="55% hazard\nreduction"];
+    CILO_VD -> EMBOL_N [color="#2b6cb0", style=dashed, arrowhead=tee,
+                        lhead=cluster_end];
+    CILO_VD -> DEMAND_M [color="#2b6cb0", style=dashed, lhead=cluster_trig];
+    LTYPE -> DEMAND_M [color="#2b6cb0", style=dashed, lhead=cluster_trig,
+                       label="dilates the DONOR\n→ steal"];
+    NIF_MAP -> MAP_N [color="#c0392b", arrowhead=tee, lhead=cluster_hemo];
+    AHT -> MAP_N [color="#2b6cb0", style=dashed, lhead=cluster_hemo,
+                  label="helps the bleeder,\nharms the ischaemic"];
+    PLEIO -> SMC_PROL [color="#2b6cb0", style=dashed, arrowhead=tee,
+                       lhead=cluster_gene, label="only agent that\ntouches the LESION"];
+    MMP_INH -> ANEU_N [color="#2b6cb0", style=dashed, arrowhead=tee,
+                       lhead=cluster_end];
+    MMP_INH -> MMP9_N [color="#2b6cb0", style=dashed, arrowhead=tee,
+                       lhead=cluster_gene];
+    EDARA -> MEMB [color="#2b6cb0", style=dashed, arrowhead=tee,
+                   lhead=cluster_ox];
+    CA_INH -> DEMAND_M [color="#2b6cb0", style=dashed, lhead=cluster_trig,
+                        label="probe: reveals steal"];
+    ANTICOAG -> ICH_N [color="#c0392b", lhead=cluster_end];
+    TRANSFUSE -> HB_N [color="#2b6cb0", style=dashed, lhead=cluster_ox,
+                       penwidth=1.6, label="moves the THRESHOLD —\nno vessel is touched"];
+
+    /* =================================================================
+     * 10.  DIAGNOSTICS AND STRATIFICATION
+     * ================================================================= */
+    subgraph cluster_dx {
+        label=<<B>10. Diagnostics — what each modality can and cannot see</B>>;
+        style="rounded,filled"; fillcolor="#f7f7f7"; color="#888888";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#eeeeee"];
+
+        DSA         [label="DSA / MRA\n→ STEN, Suzuki stage,\ncollateral map"];
+        IVYSIGN     [label="ivy sign (FLAIR)\n→ leptomeningeal\ncollateral load"];
+        SPECT_ACZ   [label="acetazolamide SPECT\n→ CBF + reserve\n(JET stage I–II)", fillcolor="#dddddd"];
+        PET_OEF     [label="¹⁵O-PET → OEF,\nCMRO₂ (misery perfusion)", fillcolor="#dddddd"];
+        BOLD_CVR    [label="BOLD-CVR /\nbreath-hold → conduit\nreactivity"];
+        ASL         [label="ASL (arterial transit\nartefact = collateral\ndelay)"];
+        PVA_GRADE   [label="periventricular\nanastomosis grade\n(Funaki) → BLEED RISK", fillcolor="#f0d0d0"];
+        RNF_TEST    [label="RNF213 R4810K\ngenotyping"];
+
+        DSA -> PVA_GRADE;
+    }
+    STEN_ICA -> DSA [ltail=cluster_gene, lhead=cluster_dx, style=dotted,
+                     color="#777777"];
+    LEPTO -> IVYSIGN [style=dotted, color="#777777", lhead=cluster_dx];
+    CVR_M -> SPECT_ACZ [style=dotted, color="#777777", lhead=cluster_dx];
+    OEF_N -> PET_OEF [style=dotted, color="#777777", lhead=cluster_dx];
+    COLL_CON -> BOLD_CVR [style=dotted, color="#777777", lhead=cluster_dx];
+    PVA -> PVA_GRADE [style=dotted, color="#777777", lhead=cluster_dx];
+    RNF213 -> RNF_TEST [style=dotted, color="#777777", lhead=cluster_dx];
+    SPECT_ACZ -> STA_MCA [color="#2b6cb0", style=dashed, lhead=cluster_surg,
+                          penwidth=1.6,
+                          label="SELECTION: reserve,\nnot angiography"];
+    DSA -> SUZUKI [style=invis];
+
+    /* =================================================================
+     * Legend
+     * ================================================================= */
+    subgraph cluster_legend {
+        label=<<B>Legend</B>>; style="rounded,filled"; fillcolor="#ffffff";
+        color="#555555"; fontsize=11;
+        node [shape=plaintext, style=none, fillcolor="none", fontsize=9];
+        LEG [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+<TR><TD BGCOLOR="#f9d0c4" WIDTH="14"></TD><TD ALIGN="LEFT">genetics / intimal lesion</TD>
+    <TD BGCOLOR="#ffe6b3" WIDTH="14"></TD><TD ALIGN="LEFT">collateral &amp; angiogenesis</TD></TR>
+<TR><TD BGCOLOR="#cfe3ff" WIDTH="14"></TD><TD ALIGN="LEFT">haemodynamic network</TD>
+    <TD BGCOLOR="#d7f0d0" WIDTH="14"></TD><TD ALIGN="LEFT">oxygen / metabolism</TD></TR>
+<TR><TD BGCOLOR="#f6c6c6" WIDTH="14"></TD><TD ALIGN="LEFT">injury / clinical endpoint</TD>
+    <TD BGCOLOR="#e6d5f5" WIDTH="14"></TD><TD ALIGN="LEFT">drug PK / PD</TD></TR>
+<TR><TD BGCOLOR="#d4f0ef" WIDTH="14"></TD><TD ALIGN="LEFT">surgery</TD>
+    <TD BGCOLOR="#f5b942" WIDTH="14"></TD><TD ALIGN="LEFT">switch / threshold node</TD></TR>
+<TR><TD ALIGN="LEFT" COLSPAN="2">— solid: flow / activation</TD>
+    <TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#c0392b">— red ⊣: inhibition / loss</FONT></TD></TR>
+<TR><TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#2b6cb0">-- blue dashed: drug / surgical action</FONT></TD>
+    <TD ALIGN="LEFT" COLSPAN="2"><FONT COLOR="#777777">·· grey dotted: feedback / read-out</FONT></TD></TR>
+</TABLE>>];
+    }
+}
