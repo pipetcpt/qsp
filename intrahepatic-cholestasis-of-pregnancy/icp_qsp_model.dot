@@ -1,0 +1,659 @@
+/* ==========================================================================
+   icp_qsp_model.dot
+   Intrahepatic Cholestasis of Pregnancy (ICP) -- QSP mechanistic map
+   임신성 간내 담즙정체 (ICP) 기계론적 지도
+
+   Reading order.  The map is laid out around the single structural claim of
+   the model: there are TWO causal chains out of the same lesion, and they end
+   in different places.
+
+     chain 1 (fetal death)  sex steroids -> BSEP inhibition -> maternal pool
+                            -> PLACENTAL CARRIER (cluster 8) -> fetal
+                            hydrophobic load -> Cx43 uncoupling + Ca overload
+                            -> arrhythmia -> stillbirth
+     chain 2 (itch)         sex steroids -> autotaxin -> LPA -> MRGPRX4/TRPV1
+                            -> spinal GRPR -> pruritus
+
+   Chain 2 does NOT pass through the bile acid pool except weakly and
+   saturably (the dashed grey edge into ATX).  That is why UDCA moves chain 1
+   and rifampicin moves chain 2, and why the two are so hard to study in one
+   trial.  Every drug in clusters 15-18 is drawn onto the chain it actually
+   acts on.
+
+   Node shapes:  box       = state variable in the mrgsolve model
+                 ellipse   = protein / transporter / enzyme
+                 hexagon   = drug or intervention
+                 diamond   = clinical endpoint
+                 octagon   = genetic susceptibility
+   Edge style:   solid black  = mass flux
+                 blue         = activation / induction
+                 red          = inhibition
+                 dashed       = weak or indirect coupling
+   ========================================================================== */
+
+digraph ICP_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    fontname = "Helvetica";
+    labelloc = "t";
+    fontsize = 30;
+    label = "임신성 간내 담즙정체 (Intrahepatic Cholestasis of Pregnancy) — QSP 기계론적 지도\n두 개의 인과 사슬: 담즙산 축(태아 사망) 과 오토탁신 축(가려움) 은 같은 병변에서 갈라져 서로 다른 약에 반응한다";
+    node [fontname = "Helvetica", fontsize = 11, style = "filled", penwidth = 1.2];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.1];
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_gen {
+        label = "1. 유전적 소인 (Genetic susceptibility — ICP is a genetic disease unmasked by pregnancy)";
+        style = "filled"; fillcolor = "#f2ecfa"; color = "#7b52ab"; fontsize = 15;
+        node [shape = octagon, fillcolor = "#e3d5f5"];
+        ABCB4 [label = "ABCB4 / MDR3\nphosphatidylcholine floppase\n(~15% of ICP, het LoF)"];
+        ABCB11 [label = "ABCB11 / BSEP\nc.1331T>C p.V444A\n(risk allele, common)"];
+        ATP8B1 [label = "ATP8B1 / FIC1\nPS flippase, membrane asymmetry"];
+        NR1H4 [label = "NR1H4 / FXR\n-1g>t, M1V hypomorphs"];
+        TJP2 [label = "TJP2\ntight-junction protein 2"];
+        ABCC2 [label = "ABCC2 / MRP2\ncanalicular organic anion"];
+        SLCO1B1 [label = "SLCO1B1 / OATP1B1\nsinusoidal uptake variants"];
+        SULT2A1g [label = "SULT2A1\nsteroid sulfotransferase activity"];
+        SERPINA1 [label = "SERPINA1 Z allele\n(over-represented in ICP)"];
+        HLA [label = "환경 인자\nselenium · vitamin D · winter · HCV"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_steroid {
+        label = "2. 태반 성호르몬 부하 (Placental sex-steroid load — the trigger, and the clock)";
+        style = "filled"; fillcolor = "#fdeef4"; color = "#c2185b"; fontsize = 15;
+        node [shape = box, fillcolor = "#fbd7e4"];
+        PLAC_STER [label = "태반 스테로이드 생성\nplacental steroidogenesis\n(rises exponentially to term)"];
+        E2 [label = "에스트라디올 E2\n20 → 70 nmol/L (20→40 wk)"];
+        P4 [label = "프로게스테론 P4\n200 → 600 nmol/L"];
+        E3 [label = "에스트리올 E3"];
+        node [shape = ellipse, fillcolor = "#f8c0d5"];
+        UGT1A1 [label = "UGT1A1\nsteroid glucuronidation"];
+        SULT2A1 [label = "SULT2A1\nsteroid sulfation"];
+        node [shape = box, fillcolor = "#fbd7e4"];
+        E2G [label = "E2-17β-glucuronide\ncis-inhibitor of BSEP"];
+        P4S [label = "프로게스테론 설페이트 P4-S\n(3β,5α-P-3-S, epiallopregnanolone-S)\ntrans-inhibitor of BSEP · FXR antagonist"];
+        TWIN [label = "쌍태 임신\n~1.5× steroid load\nICP 20% vs 2%"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_synth {
+        label = "3. 간세포 담즙산 합성과 그 음성 되먹임 (Hepatic synthesis and its feedback)";
+        style = "filled"; fillcolor = "#eef6ec"; color = "#2e7d32"; fontsize = 15;
+        node [shape = ellipse, fillcolor = "#cfe6cb"];
+        CYP7A1 [label = "CYP7A1\ncholesterol 7α-hydroxylase\n(rate-limiting)"];
+        CYP8B1 [label = "CYP8B1\n12α-hydroxylase → CA/CDCA ratio"];
+        CYP27A1 [label = "CYP27A1\nsterol 27-hydroxylase (acidic pathway)"];
+        CYP3A4 [label = "CYP3A4\n6α-hydroxylation → hyocholic acid"];
+        SULT2A1L [label = "SULT2A1 (hepatic)\nLCA sulfation — the LCA escape route"];
+        BAAT [label = "BAAT / BACS\ntaurine-glycine conjugation"];
+        node [shape = box, fillcolor = "#dcefd8"];
+        CHOL [label = "간 콜레스테롤\nhepatic cholesterol"];
+        CA [label = "콜산 CA\nw_tox 0.20"];
+        CDCA [label = "케노데옥시콜산 CDCA\nw_tox 0.60 · FXR ligand"];
+        DCA [label = "데옥시콜산 DCA\nw_tox 0.72"];
+        LCA [label = "리토콜산 LCA\nw_tox 1.00 (most cytotoxic)"];
+        HCA [label = "하이오콜산 HCA\nhydrophilic 6α-OH sink\n(counted by the 3α-HSD assay)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_nr {
+        label = "4. 핵수용체 신호 (Nuclear receptor network — FXR/PXR/CAR)";
+        style = "filled"; fillcolor = "#fff8e1"; color = "#f9a825"; fontsize = 15;
+        node [shape = ellipse, fillcolor = "#ffecb3"];
+        FXR [label = "FXR / NR1H4\nbile acid sensor"];
+        SHP [label = "SHP / NR0B2"];
+        LRH1 [label = "LRH-1 / NR5A2"];
+        HNF4A [label = "HNF4α"];
+        PXR [label = "PXR / NR1I2\nxenobiotic sensor"];
+        CAR [label = "CAR / NR1I3"];
+        VDR [label = "VDR (LCA sensor)"];
+        NRF2 [label = "NRF2 / KEAP1\noxidative stress response"];
+        FGF19 [label = "FGF19 (ileal)\n→ FGFR4/KLB → CYP7A1 ↓"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_transp {
+        label = "5. 간세포 담즙산 수송체 — 병변의 자리 (Hepatocyte transporters — where the lesion is)";
+        style = "filled"; fillcolor = "#e8f2fb"; color = "#1565c0"; fontsize = 15;
+        node [shape = ellipse, fillcolor = "#c5dcf2"];
+        NTCP [label = "NTCP / SLC10A1\nNa+-dependent sinusoidal uptake\n(DOWN-regulated in cholestasis)"];
+        OATP1B1 [label = "OATP1B1/1B3\nNa+-independent uptake"];
+        BSEP [label = "BSEP / ABCB11\ncanalicular bile salt export pump\n★ the inhibited step ★"];
+        MDR3 [label = "MDR3 / ABCB4\nphosphatidylcholine floppase"];
+        MRP2 [label = "MRP2 / ABCC2\ncanalicular anion export (UDCA route)"];
+        ABCG58 [label = "ABCG5/G8\nbiliary cholesterol"];
+        FIC1 [label = "FIC1 / ATP8B1"];
+        MRP3 [label = "MRP3 / ABCC3\nbasolateral escape valve"];
+        MRP4 [label = "MRP4 / ABCC4\nbasolateral escape valve"];
+        OSTAB [label = "OSTα-OSTβ / SLC51\nbasolateral efflux (induced 10-50×)"];
+        AE2 [label = "AE2 / SLC4A2\nbiliary HCO3- umbrella"];
+        node [shape = box, fillcolor = "#d6e8f7"];
+        HEPBA [label = "간세포내 담즙산 풀\nhepatocyte bile acid pool\n(5 species)"];
+        BILE [label = "담즙 / 담낭\nbile · gallbladder"];
+        BSPC [label = "담즙 담즙산:PC 비\nbiliary bile salt : PC ratio\n(canalicular detergency)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_ehc {
+        label = "6. 장간순환과 장내 미생물 (Enterohepatic circulation and the microbiome)";
+        style = "filled"; fillcolor = "#f1f8e9"; color = "#558b2f"; fontsize = 15;
+        node [shape = box, fillcolor = "#dcedc8"];
+        DUOD [label = "소장 내강\nsmall-intestinal lumen\n(mmol/L, micelle-forming)"];
+        ILEUM [label = "종말 회장\nterminal ileum"];
+        COLON [label = "대장 내강\ncolonic lumen"];
+        FECAL [label = "분변 손실\nfaecal loss = synthesis at steady state\n~400-500 µmol/d"];
+        MICELLE [label = "미셀 형성능\nmixed-micelle capacity\n→ 지용성 비타민 흡수"];
+        node [shape = ellipse, fillcolor = "#c5e1a5"];
+        ASBT [label = "ASBT / SLC10A2\nileal bile acid transporter"];
+        IBABP [label = "I-BABP / FABP6"];
+        OSTAB_I [label = "OSTα-β (ileal, basolateral)"];
+        BSH [label = "미생물 BSH\nbile salt hydrolase (deconjugation)"];
+        DEHYD7A [label = "7α-dehydroxylase (bai operon)\nCA→DCA · CDCA→LCA"];
+        DEHYD7B [label = "7β-dehydroxylase / epimerase\nUDCA→LCA ★ the UDCA liability ★"];
+        DYSB [label = "임신기 장내 미생물 변화\npregnancy dysbiosis"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_matplasma {
+        label = "7. 모체 혈중 담즙산 — 임상에서 측정하는 유일한 값 (Maternal serum bile acid: the only thing measured)";
+        style = "filled"; fillcolor = "#e0f7fa"; color = "#00838f"; fontsize = 15;
+        node [shape = box, fillcolor = "#b2ebf2"];
+        MATBA [label = "모체 혈중 담즙산 (종별)\nmaternal serum bile acid, 5 species"];
+        TBA_ASSAY [label = "총 담즙산 검사값 TBA\n3α-HSD enzymatic assay\n★ counts UDCA and HCA too ★"];
+        TBA_ENDO [label = "내인성 담즙산\nendogenous (non-UDCA) fraction"];
+        MCL [label = "모체 소수성 부하 MCL\nΣ w_tox · C_maternal"];
+        RENAL [label = "신 배설\nrenal excretion (sulfated, minor→major)"];
+        THRESH10 [label = "진단 문턱 ≥10 µmol/L\n(비공복 ≥19)"];
+        THRESH40 [label = "중증 ≥40 µmol/L"];
+        THRESH100 [label = "최중증 ≥100 µmol/L\n★ Ovadia 2019 stillbirth threshold ★"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_plac {
+        label = "8. 태반 수송 — 이 모델의 핵심 (Placental transfer: the mechanism this model proposes for the 100 µmol/L threshold)";
+        style = "filled"; fillcolor = "#fbe9e7"; color = "#d84315"; fontsize = 16; penwidth = 3;
+        node [shape = ellipse, fillcolor = "#ffccbc"];
+        pBSEP [label = "syncytiotrophoblast BSEP\n(apical, maternal-facing)"];
+        pOATP4A1 [label = "OATP4A1 / SLC22A11\nbasal (fetal-facing) uptake"];
+        pABCG2 [label = "ABCG2 / BCRP"];
+        pOSTAB [label = "OSTα-β (placental)"];
+        pMRP1 [label = "MRP1 / ABCC1"];
+        node [shape = box, fillcolor = "#ffd7cc"];
+        TROPHBA [label = "영양막세포 담즙산\nsyncytiotrophoblast bile acid"];
+        JF2M [label = "태아→모체 능동 배출 J_F2M\nV_P · saturable (K_MP)\n★ SATURATES near TBA 100 ★"];
+        JPASS [label = "확산성 양방향 이동 J_PASS\nPS_i · (C_mat − C_fet)\nhigher PS for hydrophobic species"];
+        CAPUTIL [label = "수송체 점유율\ncarrier utilisation\n= (PS·TBA + fetal synthesis) / V_P"];
+        UDCACOMP [label = "UDCA 의 수송체 경합\nUDCA competes at the same carrier\n(K_MP,UDCA · TRANSIN)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_fetal {
+        label = "9. 태아 담즙산 처리 (Fetal disposal: an immature liver and two small escape routes)";
+        style = "filled"; fillcolor = "#f3e5f5"; color = "#6a1b9a"; fontsize = 15;
+        node [shape = box, fillcolor = "#e1bee7"];
+        FETBA [label = "태아 혈중 담즙산 (종별)\nfetal plasma + ECF, 5 species"];
+        FCL [label = "태아 소수성 부하 FCL\nΣ w_tox · C_fetal\n★ the actual toxic driver ★"];
+        FETLIV [label = "태아 간\nimmature fetal liver\n(low CYP7A1, atypical hydroxylation)"];
+        FETBILE [label = "태아 담즙 → 태아 장"];
+        MECONIUM [label = "태변\nmeconium bile acid (accumulates)"];
+        FETURINE [label = "태아 요"];
+        AMNIO [label = "양수\namniotic fluid bile acid"];
+        CORDTBA [label = "제대혈 담즙산\ncord blood TBA (measurable at birth)"];
+        WBAR [label = "태아 풀 소수성도 w̄\nmean cytotoxicity weight\n(rises with severity)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_heart {
+        label = "10. 태아 심근 — 급성 사건의 기전 (Fetal myocardium: why fetal death in ICP is sudden and unpredicted by CTG)";
+        style = "filled"; fillcolor = "#ffebee"; color = "#b71c1c"; fontsize = 15;
+        node [shape = ellipse, fillcolor = "#ffcdd2"];
+        CX43 [label = "connexin-43 (Cx43)\ngap junction — taurocholate uncouples"];
+        MRECEPT [label = "M2 muscarinic receptor\n(taurocholate is a partial agonist)"];
+        TGR5c [label = "TGR5 / GPBAR1 (cardiac)"];
+        RYR2 [label = "RyR2 / SERCA2a\nCa2+ handling"];
+        node [shape = box, fillcolor = "#ffd7da"];
+        GJCOND [label = "심근 세포간 전기적 결합\nmyocyte電 coupling (GJ)"];
+        CAOVER [label = "칼슘 과부하 지수\nCa2+ overload index"];
+        DESYNC [label = "탈동기화\nmyocyte desynchronisation"];
+        ARRI [label = "부정맥 지수 ARRI\n= (1 − GJ) × Ca_index"];
+        FETARR [label = "태아 부정맥\nfetal arrhythmia (transient, unmonitored)"];
+        PR [label = "태아 PR 간격 연장\nfetal PR prolongation (observed)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_placvasc {
+        label = "11. 태반 혈관과 태아 저산소 (Placental vasculature and fetal hypoxia)";
+        style = "filled"; fillcolor = "#fff3e0"; color = "#e65100"; fontsize = 15;
+        node [shape = box, fillcolor = "#ffe0b2"];
+        CHORVEIN [label = "융모판 정맥 수축\nchorionic vein vasoconstriction\n(taurocholate, ex vivo)"];
+        TXA2 [label = "트롬복산 A2 / TXA2:PGI2 비"];
+        TROPHDMG [label = "영양막 손상\ntrophoblast apoptosis · S1P"];
+        PLACINF [label = "태반 염증\nplacental inflammation"];
+        HYPOX [label = "태아 저산소 지수\nfetal hypoxia index"];
+        PLACSTORE [label = "태반 예비능 감소\nreduced placental reserve"];
+        node [shape = ellipse, fillcolor = "#ffcc80"];
+        eNOSp [label = "eNOS / NO (placental)"];
+        ET1 [label = "endothelin-1"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_itch {
+        label = "12. 가려움 축 — 담즙산 축과 분리되어 있다 (The itch axis, which is NOT the bile acid axis)";
+        style = "filled"; fillcolor = "#e8eaf6"; color = "#283593"; fontsize = 16; penwidth = 3;
+        node [shape = ellipse, fillcolor = "#c5cae9"];
+        ENPP2 [label = "ENPP2 / autotaxin (ATX)\nlysoPLD — the serum marker that\nTRACKS itch (bile acid does not)"];
+        LPAR [label = "LPA receptors (LPAR1-6)"];
+        MRGPRX4 [label = "MRGPRX4\nprimate-specific bile acid itch receptor"];
+        TRPV1i [label = "TRPV1 / TRPA1\n(sensory transduction)"];
+        GRPR [label = "spinal GRPR\nitch-specific second order neuron"];
+        MOR [label = "μ-opioid receptor\n(endogenous opioid tone)"];
+        HT3 [label = "5-HT3 receptor"];
+        node [shape = box, fillcolor = "#d1d9f0"];
+        LPA [label = "LPA\nlysophosphatidic acid"];
+        ITCHC [label = "중추 가려움 상태\ncentral itch state (+ scratch loop)"];
+        SCRATCH [label = "긁기-가려움 되먹임\nscratch-itch positive feedback\nexcoriation · barrier damage"];
+        SLEEPD [label = "수면 장애\nsleep disturbance · fatigue"];
+        MOOD [label = "불안 · 우울\nanxiety · depression"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_liver {
+        label = "13. 모체 간세포 손상 (Maternal hepatocellular injury)";
+        style = "filled"; fillcolor = "#efebe9"; color = "#4e342e"; fontsize = 15;
+        node [shape = box, fillcolor = "#d7ccc8"];
+        ROSh [label = "간세포 산화 스트레스\nmitochondrial ROS · MPT"];
+        APOPT [label = "세포자멸사 / 페롭토시스\napoptosis · ferroptosis"];
+        ALT [label = "ALT / AST\n(2-10× ULN in ICP)"];
+        GGT [label = "GGT\n(정상 또는 낮음 — ABCB4 변이에서 상승)"];
+        BILI [label = "빌리루빈\n(mild, 25% of cases)"];
+        FIB [label = "장기 간 예후\nlater gallstone · PBC/PSC · HCC risk"];
+        node [shape = ellipse, fillcolor = "#bcaaa4"];
+        NLRP3 [label = "NLRP3 인플라마좀"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_vitk {
+        label = "14. 지용성 비타민과 응고 (Fat-soluble vitamins and coagulation)";
+        style = "filled"; fillcolor = "#e0f2f1"; color = "#00695c"; fontsize = 15;
+        node [shape = box, fillcolor = "#b2dfdb"];
+        STEAT [label = "지방변 / 지방 흡수 저하\nsteatorrhoea"];
+        VITK [label = "비타민 K 상태"];
+        GGCX [label = "γ-glutamyl carboxylase\n→ factors II, VII, IX, X"];
+        PIVKA [label = "PIVKA-II\nunder-carboxylated prothrombin"];
+        INR [label = "INR / PT 연장"];
+        PPH [label = "산후 출혈 위험\npostpartum haemorrhage"];
+        VITD [label = "비타민 D · A · E 결핍"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_uterus {
+        label = "15. 자궁 근육과 조산 (Myometrium and preterm labour)";
+        style = "filled"; fillcolor = "#fce4ec"; color = "#ad1457"; fontsize = 15;
+        node [shape = box, fillcolor = "#f8bbd0"];
+        OTR [label = "자궁근 옥시토신 수용체\nmyometrial OTR density ↑\n(bile acid-dependent)"];
+        MYOCONT [label = "자궁 수축력\nmyometrial contractility"];
+        PGF2A [label = "PGF2α · COX-2"];
+        CERVIX [label = "자궁경부 숙화"];
+        SPTB [label = "자연 조산\nspontaneous preterm labour"];
+        GUTMOT [label = "태아 장운동 (TGR5)\n→ 태변 배출"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_udca {
+        label = "16. 약물 1 — UDCA: 담즙산 축에만 작용한다 (UDCA acts on the bile acid axis only)";
+        style = "filled"; fillcolor = "#e3f2fd"; color = "#0d47a1"; fontsize = 15;
+        node [shape = hexagon, fillcolor = "#90caf9"];
+        UDCA_D [label = "우르소데옥시콜산 UDCA\n10-20 mg/kg/d PO (500 mg bid~)"];
+        node [shape = box, fillcolor = "#bbdefb"];
+        UDCA_GUT [label = "장내 UDCA (미흡수분)"];
+        UDCA_HL [label = "간세포 UDCA"];
+        UDCA_P [label = "혈중 UDCA 5-15 µmol/L\n★ counted in the TBA assay ★"];
+        UDCA_TRAF [label = "BSEP/MRP2 세포막 삽입\npost-translational carrier insertion\n(Ca2+/PKCα · PI3K)"];
+        UDCA_CHOL [label = "HCO3- 과다담즙분비\nbicarbonate-rich hypercholeresis"];
+        UDCA_CYTO [label = "세포보호 (TUDCA)\nanti-apoptotic · ER stress ↓"];
+        UDCA_LCA [label = "장내 세균에 의한 LCA 전환\nUDCA → LCA (7β-dehydroxylation)\n★ dose-proportional liability ★"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_rif {
+        label = "17. 약물 2 — 리팜피신: 가려움 축에 작용한다 (Rifampicin acts on the itch axis)";
+        style = "filled"; fillcolor = "#f9fbe7"; color = "#827717"; fontsize = 15;
+        node [shape = hexagon, fillcolor = "#e6ee9c"];
+        RIF_D [label = "리팜피신 rifampicin\n150-300 mg bid PO"];
+        node [shape = box, fillcolor = "#f0f4c3"];
+        RIF_PXR [label = "PXR 활성화"];
+        RIF_3A [label = "CYP3A4 유도 3-4×\n→ 6α-hydroxylation of CDCA/LCA"];
+        RIF_SULT [label = "SULT2A1 · UGT1A1 유도\n→ 담즙산 설페이트 신배설 ↑"];
+        RIF_MRP [label = "MRP2 · MRP3/4 유도"];
+        RIF_ATX [label = "오토탁신 발현 억제\nATX ↓ (PXR-dependent)\n★ the actual antipruritic mechanism ★"];
+        RIF_OATP [label = "OATP1B1 억제 (급성)\ntransient rise in bile acid/bilirubin"];
+        RIF_HEP [label = "간독성 위험 5-10%\nidiosyncratic hepatotoxicity"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_other {
+        label = "18. 약물 3 — 기타 및 가설적 치료 (Other and hypothetical agents)";
+        style = "filled"; fillcolor = "#ede7f6"; color = "#4527a0"; fontsize = 15;
+        node [shape = hexagon, fillcolor = "#b39ddb"];
+        CHOLE_D [label = "콜레스티라민 cholestyramine\n4 g q6h PO (담즙산 결합)"];
+        SAME_D [label = "SAMe 800-1000 mg IV"];
+        IBAT_D [label = "IBAT/ASBT 억제제 (가설)\nodevixibat · maralixibat\n(임신 적응증 없음)"];
+        NTX_D [label = "날트렉손 naltrexone 25-50 mg"];
+        AH_D [label = "항히스타민 (클로르페니라민)\n주로 진정 효과"];
+        SERT_D [label = "설트랄린 sertraline 25-100 mg"];
+        DEXA_D [label = "덱사메타손 (더 이상 권장 안 됨)"];
+        BETA_D [label = "베타메타손 12 mg × 2 IM\n(태아 폐성숙, 조기분만 시)"];
+        VITK_D [label = "비타민 K 10 mg/d PO"];
+        NBD [label = "비담도 배액 · MARS · 혈장교환\n(불응성 가려움)"];
+        DELIV [label = "분만 (유일한 근치)\ndelivery — the only cure"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_monitor {
+        label = "19. 감시와 분만 결정 (Monitoring and the delivery decision — an integral, not a threshold)";
+        style = "filled"; fillcolor = "#eceff1"; color = "#37474f"; fontsize = 15;
+        node [shape = box, fillcolor = "#cfd8dc"];
+        SERIAL [label = "주간 담즙산·간효소 추적\nserial TBA + LFT"];
+        CTG [label = "태아 심박동 감시 CTG\n★ does not predict the acute event ★"];
+        USG [label = "초음파 · 도플러\n(정상이어도 안심 못 함)"];
+        HAZINT [label = "누적 사산 위험 = ∫ h(t)dt\ncumulative stillbirth hazard"];
+        IATRO [label = "의인성 조산 비용\niatrogenic prematurity cost\nRDS · NICU (falls steeply with GA)"];
+        OPTGA [label = "최적 분만 주수\noptimal GA at delivery\n= argmin (hazard + morbidity)"];
+        SURF [label = "태아 폐성숙 / 계면활성제"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_out {
+        label = "20. 임상 엔드포인트 (Clinical endpoints)";
+        style = "filled"; fillcolor = "#fffde7"; color = "#f57f17"; fontsize = 16;
+        node [shape = diamond, fillcolor = "#fff59d"];
+        E_ITCH [label = "가려움 VAS 0-10\n(주 증상, 야간 악화, 손발바닥)"];
+        E_TBA [label = "담즙산 상승\n(생화학 엔드포인트)"];
+        E_ALT [label = "간효소 상승"];
+        E_SB [label = "사산 stillbirth\n0.13 / 0.28 / 3.44%\n(<40 / 40-99 / ≥100 µmol/L)"];
+        E_SPTB [label = "자연 조산\nspontaneous preterm birth"];
+        E_IPTB [label = "의인성 조산\niatrogenic preterm birth"];
+        E_MEC [label = "태변 착색 양수\nmeconium-stained fluid"];
+        E_NICU [label = "신생아집중치료실 입원 ≥4 h\n★ dominates the PITCHES composite ★"];
+        E_RDS [label = "신생아 호흡곤란"];
+        E_PPH [label = "산후 출혈"];
+        E_COMP [label = "PITCHES 복합 엔드포인트\nperinatal death OR PTB<37 OR NICU≥4h\n24.8% vs 27.8% (ns)"];
+        E_RECUR [label = "다음 임신 재발 60-90%"];
+        E_LATER [label = "모체 장기 예후\nhepatobiliary · cardiovascular · diabetes"];
+        E_RESOLVE [label = "분만 후 소실\nresolution within days-weeks"];
+    }
+
+    /* ======================================================================
+       EDGES
+       ====================================================================== */
+
+    /* --- genetics onto the machinery ----------------------------------- */
+    edge [color = "#7b52ab", style = dashed];
+    ABCB4 -> MDR3 [label = "capacity ↓"];
+    ABCB11 -> BSEP [label = "capacity ↓"];
+    ATP8B1 -> FIC1;
+    FIC1 -> BSEP [label = "membrane\nasymmetry"];
+    NR1H4 -> FXR [label = "hypomorph"];
+    TJP2 -> BSPC [label = "paracellular\nleak"];
+    ABCC2 -> MRP2;
+    SLCO1B1 -> OATP1B1;
+    SULT2A1g -> SULT2A1;
+    SERPINA1 -> ROSh;
+    HLA -> BSEP;
+
+    /* --- steroid trajectory ------------------------------------------- */
+    edge [color = "#c2185b", style = solid];
+    PLAC_STER -> E2; PLAC_STER -> P4; PLAC_STER -> E3;
+    TWIN -> PLAC_STER [label = "×1.5"];
+    E2 -> UGT1A1 [style = dashed]; E2 -> E2G [label = "UGT1A1"];
+    P4 -> SULT2A1 [style = dashed]; P4 -> P4S [label = "SULT2A1"];
+    UGT1A1 -> E2G; SULT2A1 -> P4S;
+    E3 -> E2G [style = dashed];
+
+    /* the two inhibitions that ARE the disease */
+    edge [color = "#d32f2f", style = solid, penwidth = 2.4];
+    E2G -> BSEP [label = "cis-inhibition\nKi ~11 nmol/L"];
+    P4S -> BSEP [label = "trans-inhibition\nKi ~140 nmol/L"];
+    P4S -> FXR [label = "antagonist"];
+
+    /* --- synthesis and feedback --------------------------------------- */
+    edge [color = "black", style = solid, penwidth = 1.1];
+    CHOL -> CYP7A1; CYP7A1 -> CA; CYP7A1 -> CDCA;
+    CYP8B1 -> CA [label = "12α-OH"]; CYP27A1 -> CDCA;
+    BAAT -> HEPBA [label = "conjugation"];
+    CA -> HEPBA; CDCA -> HEPBA; DCA -> HEPBA; LCA -> HEPBA;
+    CDCA -> HCA [label = "CYP3A4 6α-OH"];
+    LCA -> HCA [label = "CYP3A4 6α-OH"];
+    CYP3A4 -> HCA;
+    LCA -> SULT2A1L; SULT2A1L -> HCA [label = "sulfate → excreted"];
+    HCA -> TBA_ASSAY [label = "3α-OH:\nstill counted", color = "#00838f"];
+
+    edge [color = "#1565c0", style = solid];
+    HEPBA -> FXR [label = "CDCA-weighted"];
+    FXR -> SHP; SHP -> CYP7A1 [color = "#d32f2f", label = "represses\nvia LRH-1/HNF4α"];
+    SHP -> LRH1 [color = "#d32f2f"]; LRH1 -> CYP7A1; HNF4A -> CYP7A1;
+    FXR -> BSEP [label = "induces"];
+    FXR -> MDR3 [label = "induces"];
+    FXR -> MRP4; FXR -> MRP3; FXR -> OSTAB [label = "escape valve\ninduced 10-50×"];
+    FXR -> ASBT [color = "#d32f2f", label = "represses"];
+    ILEUM -> FGF19 [label = "ileal FXR"];
+    FGF19 -> CYP7A1 [color = "#d32f2f", label = "FGFR4/KLB"];
+    LCA -> VDR; VDR -> CYP3A4; LCA -> PXR;
+    ROSh -> NRF2; NRF2 -> MRP4;
+    CAR -> MRP4;
+
+    /* --- hepatocyte flux --------------------------------------------- */
+    edge [color = "black", style = solid, penwidth = 1.6];
+    HEPBA -> BILE [label = "J_BSEP\n(the inhibited flux)"];
+    BSEP -> HEPBA [style = dashed, color = "#1565c0", label = "V_max"];
+    UDCA_HL -> BILE [label = "J_MRP2\n(separate route)"];
+    MRP2 -> UDCA_HL [style = dashed, color = "#1565c0"];
+    MDR3 -> BSPC [label = "PC flux\n(denominator)"];
+    BILE -> BSPC [label = "bile salt flux\n(numerator)"];
+    BILE -> DUOD; DUOD -> ILEUM; ILEUM -> COLON; COLON -> FECAL;
+    ILEUM -> HEPBA [label = "J_ASBT → portal"];
+    ASBT -> ILEUM [style = dashed, color = "#1565c0"];
+    IBABP -> OSTAB_I; OSTAB_I -> HEPBA;
+    COLON -> HEPBA [label = "passive colonic\n(DCA, LCA)"];
+    NTCP -> HEPBA [style = dashed, color = "#1565c0", label = "uptake"];
+    OATP1B1 -> HEPBA [style = dashed, color = "#1565c0"];
+    HEPBA -> MATBA [label = "basolateral efflux\nMRP3/MRP4/OSTα-β"];
+    MRP3 -> MATBA [style = dashed, color = "#1565c0"];
+    MRP4 -> MATBA [style = dashed, color = "#1565c0"];
+    OSTAB -> MATBA [style = dashed, color = "#1565c0"];
+    MATBA -> HEPBA [label = "systemic re-uptake\n(NTCP, falls in cholestasis)"];
+    HEPBA -> NTCP [color = "#d32f2f", style = dashed, label = "load → NTCP ↓"];
+    MATBA -> RENAL; RENAL -> TBA_ASSAY [style = dashed];
+    AE2 -> BILE;
+    ABCG58 -> BILE [style = dashed];
+    DUOD -> MICELLE;
+
+    /* --- microbiome --------------------------------------------------- */
+    edge [color = "#558b2f", style = solid];
+    BSH -> COLON [label = "deconjugation"];
+    DEHYD7A -> DCA [label = "CA → DCA"];
+    DEHYD7A -> LCA [label = "CDCA → LCA"];
+    DEHYD7B -> LCA [label = "UDCA → LCA"];
+    COLON -> DEHYD7A; COLON -> DEHYD7B;
+    DYSB -> DEHYD7A [style = dashed]; DYSB -> BSH [style = dashed];
+
+    /* --- the maternal readouts ---------------------------------------- */
+    edge [color = "#00838f", style = solid, penwidth = 1.6];
+    MATBA -> TBA_ASSAY; MATBA -> TBA_ENDO; MATBA -> MCL;
+    UDCA_P -> TBA_ASSAY [label = "adds to the assay", penwidth = 2.0];
+    TBA_ASSAY -> THRESH10; TBA_ASSAY -> THRESH40; TBA_ASSAY -> THRESH100;
+    TBA_ASSAY -> E_TBA; TBA_ASSAY -> SERIAL;
+
+    /* --- placental transfer: the core claim --------------------------- */
+    edge [color = "#d84315", style = solid, penwidth = 2.6];
+    MATBA -> JPASS [label = "C_maternal"];
+    JPASS -> FETBA [label = "PS_i · ΔC\n(higher PS for LCA/DCA)"];
+    FETBA -> JPASS [label = "reverse when\nC_fet > C_mat", style = dashed];
+    FETBA -> TROPHBA; TROPHBA -> JF2M;
+    JF2M -> MATBA [label = "the only real\nfetal escape route"];
+    pOATP4A1 -> TROPHBA [style = dashed, color = "#1565c0"];
+    pBSEP -> JF2M [style = dashed, color = "#1565c0"];
+    pOSTAB -> JF2M [style = dashed, color = "#1565c0"];
+    pABCG2 -> JF2M [style = dashed, color = "#1565c0"];
+    pMRP1 -> JF2M [style = dashed, color = "#1565c0"];
+    MATBA -> CAPUTIL; FETLIV -> CAPUTIL [label = "fetal synthesis"];
+    CAPUTIL -> JF2M [color = "#d32f2f", penwidth = 3.0,
+                     label = "★ saturation: utilisation → 1\nas TBA → ~100 µmol/L ★"];
+    UDCA_P -> UDCACOMP; UDCACOMP -> JF2M [color = "#d32f2f",
+                        label = "competitive\nattenuation"];
+    THRESH100 -> CAPUTIL [style = dashed, color = "#d84315",
+                          label = "this is why the\nthreshold is there"];
+
+    /* --- fetal compartment ------------------------------------------- */
+    edge [color = "#6a1b9a", style = solid];
+    FETBA -> FCL [label = "Σ w_tox · C", penwidth = 2.0];
+    FETBA -> WBAR; WBAR -> FCL;
+    FETBA -> FETLIV; FETLIV -> FETBILE; FETBILE -> MECONIUM;
+    FETBA -> FETURINE; FETURINE -> AMNIO; AMNIO -> MECONIUM [style = dashed];
+    FETBA -> CORDTBA;
+    FETBILE -> GUTMOT;
+
+    /* --- fetal heart -------------------------------------------------- */
+    edge [color = "#b71c1c", style = solid, penwidth = 1.8];
+    FCL -> CX43 [color = "#d32f2f", label = "uncoupling\nIC50 ~30 (weighted)"];
+    CX43 -> GJCOND; GJCOND -> DESYNC [color = "#d32f2f"];
+    FCL -> MRECEPT; MRECEPT -> CAOVER; FCL -> TGR5c; TGR5c -> CAOVER;
+    RYR2 -> CAOVER; CAOVER -> DESYNC;
+    GJCOND -> ARRI; CAOVER -> ARRI;
+    ARRI -> FETARR [penwidth = 2.4]; ARRI -> PR;
+    FETARR -> E_SB [penwidth = 2.6, label = "acute, unpredicted\nby antenatal testing"];
+
+    /* --- placental vasculature --------------------------------------- */
+    edge [color = "#e65100", style = solid];
+    FCL -> CHORVEIN; FCL -> TXA2; TXA2 -> CHORVEIN;
+    FCL -> TROPHDMG; TROPHDMG -> PLACINF; PLACINF -> TROPHDMG;
+    CHORVEIN -> HYPOX; TROPHDMG -> HYPOX; ET1 -> CHORVEIN;
+    eNOSp -> CHORVEIN [color = "#1565c0", label = "opposes"];
+    HYPOX -> PLACSTORE; HYPOX -> E_SB [label = "amplifies\nthe hazard"];
+    HYPOX -> GUTMOT; HYPOX -> E_NICU;
+
+    /* --- itch axis: deliberately NOT downstream of the pool ----------- */
+    edge [color = "#283593", style = solid, penwidth = 2.0];
+    P4S -> ENPP2 [label = "★ the dominant drive ★", penwidth = 2.6];
+    E2 -> ENPP2;
+    MCL -> ENPP2 [style = dashed, color = "#9e9e9e",
+                  label = "weak, SATURABLE\n(why UDCA barely helps itch)"];
+    ENPP2 -> LPA [label = "lysoPLD activity"];
+    LPA -> LPAR; LPAR -> TRPV1i; MCL -> MRGPRX4 [style = dashed];
+    MRGPRX4 -> TRPV1i; TRPV1i -> GRPR; GRPR -> ITCHC;
+    MOR -> ITCHC; HT3 -> ITCHC;
+    ITCHC -> SCRATCH; SCRATCH -> ITCHC [label = "positive feedback", color = "#d32f2f"];
+    ITCHC -> E_ITCH [penwidth = 2.4]; ITCHC -> SLEEPD; SLEEPD -> MOOD;
+    ENPP2 -> E_ITCH [style = dashed, label = "serum ATX tracks itch\nbetter than TBA does"];
+
+    /* --- maternal liver injury --------------------------------------- */
+    edge [color = "#4e342e", style = solid];
+    HEPBA -> ROSh [label = "hydrophobic load"];
+    BSPC -> ROSh [label = "detergent injury\n(the ABCB4 mechanism)", penwidth = 1.8];
+    ROSh -> APOPT; ROSh -> NLRP3; NLRP3 -> APOPT;
+    APOPT -> ALT; ALT -> E_ALT; ROSh -> BILI;
+    BSPC -> GGT [label = "raised only when\nMDR3 is the lesion"];
+    ROSh -> FIB; FIB -> E_LATER;
+
+    /* --- vitamin K --------------------------------------------------- */
+    edge [color = "#00695c", style = solid];
+    MICELLE -> VITK [label = "absorption\nrequires micelles"];
+    MICELLE -> VITD; MICELLE -> STEAT [color = "#d32f2f"];
+    VITK -> GGCX; GGCX -> PIVKA [color = "#d32f2f", label = "carboxylates →\nPIVKA falls"];
+    PIVKA -> INR; INR -> PPH; PPH -> E_PPH;
+
+    /* --- myometrium -------------------------------------------------- */
+    edge [color = "#ad1457", style = solid];
+    MCL -> OTR [label = "bile acid raises\nOTR density"];
+    OTR -> MYOCONT; PGF2A -> MYOCONT; MYOCONT -> CERVIX;
+    MYOCONT -> SPTB; CERVIX -> SPTB; SPTB -> E_SPTB;
+    GUTMOT -> E_MEC; E_MEC -> E_NICU [style = dashed];
+
+    /* --- UDCA -------------------------------------------------------- */
+    edge [color = "#0d47a1", style = solid, penwidth = 1.6];
+    UDCA_D -> UDCA_GUT; UDCA_GUT -> UDCA_HL [label = "F ~0.4"];
+    UDCA_GUT -> COLON [label = "unabsorbed"];
+    UDCA_HL -> UDCA_P; UDCA_HL -> UDCA_TRAF;
+    UDCA_TRAF -> BSEP [color = "#1565c0", penwidth = 2.2,
+                       label = "V_max ↑ — the actual\ntherapeutic mechanism"];
+    UDCA_TRAF -> MRP2 [color = "#1565c0"];
+    UDCA_HL -> UDCA_CHOL; UDCA_CHOL -> BILE [color = "#1565c0"];
+    UDCA_HL -> UDCA_CYTO; UDCA_CYTO -> ROSh [color = "#2e7d32", label = "protects"];
+    COLON -> UDCA_LCA; UDCA_LCA -> LCA [color = "#d32f2f", penwidth = 2.0,
+                        label = "★ generates the most\ncytotoxic species ★"];
+    UDCA_LCA -> SULT2A1L [style = dashed, label = "detox route\nSATURATES"];
+    UDCA_D -> E_TBA [style = dashed, color = "#0d47a1", label = "assay falls ~35%"];
+    UDCA_D -> E_ITCH [style = dashed, color = "#9e9e9e",
+                      label = "−0.7 cm only (PITCHES)"];
+
+    /* --- rifampicin -------------------------------------------------- */
+    edge [color = "#827717", style = solid, penwidth = 1.6];
+    RIF_D -> RIF_PXR; RIF_PXR -> PXR;
+    RIF_PXR -> RIF_3A; RIF_3A -> CYP3A4 [color = "#1565c0", penwidth = 2.0];
+    RIF_PXR -> RIF_SULT; RIF_SULT -> SULT2A1L [color = "#1565c0"];
+    RIF_SULT -> RENAL [color = "#1565c0", label = "sulfated BA\nrenally excreted"];
+    RIF_PXR -> RIF_MRP; RIF_MRP -> MRP2 [color = "#1565c0"];
+    RIF_MRP -> MRP4 [color = "#1565c0"];
+    RIF_PXR -> RIF_ATX; RIF_ATX -> ENPP2 [color = "#d32f2f", penwidth = 2.8,
+                        label = "★ ATX ↓ 60% — this is why\nrifampicin works on itch ★"];
+    RIF_D -> RIF_OATP; RIF_OATP -> NTCP [color = "#d32f2f",
+                        label = "acute, transient"];
+    RIF_D -> RIF_HEP; RIF_HEP -> ROSh [color = "#d32f2f"];
+    RIF_SULT -> P4S [color = "#1565c0", style = dashed,
+                     label = "tension: also makes\nmore P4-sulfate"];
+    RIF_D -> MICELLE [color = "#d32f2f", style = dashed,
+                      label = "shrinks the pool\n→ vitamin K ↓"];
+
+    /* --- other agents ------------------------------------------------ */
+    edge [color = "#4527a0", style = solid];
+    CHOLE_D -> DUOD [color = "#d32f2f", label = "sequesters →\nfaecal loss ↑"];
+    CHOLE_D -> MICELLE [color = "#d32f2f", penwidth = 1.8,
+                        label = "★ lowers bile acid AND\nvitamin K — priced trade ★"];
+    SAME_D -> BSEP [color = "#1565c0", label = "membrane fluidity\ntransmethylation"];
+    SAME_D -> ROSh [color = "#2e7d32", label = "glutathione"];
+    IBAT_D -> ASBT [color = "#d32f2f", penwidth = 2.0,
+                    label = "blocks ileal reuptake —\nno placental carrier competition"];
+    NTX_D -> MOR [color = "#d32f2f"];
+    AH_D -> ITCHC [color = "#d32f2f", style = dashed, label = "sedation, not antipruritic"];
+    SERT_D -> HT3 [color = "#d32f2f", style = dashed];
+    DEXA_D -> PLAC_STER [color = "#d32f2f", style = dashed,
+                         label = "suppresses fetoplacental\noestrogen (ineffective in RCT)"];
+    BETA_D -> SURF [color = "#1565c0"];
+    VITK_D -> VITK [color = "#2e7d32"];
+    NBD -> ENPP2 [color = "#d32f2f", style = dashed,
+                  label = "removes ATX drive\n(refractory itch)"];
+    DELIV -> PLAC_STER [color = "#d32f2f", penwidth = 2.6,
+                        label = "★ ends steroid production ★"];
+    DELIV -> E_RESOLVE [penwidth = 2.0];
+
+    /* --- monitoring and the delivery decision ------------------------ */
+    edge [color = "#37474f", style = solid];
+    SERIAL -> OPTGA; CTG -> OPTGA [style = dashed, label = "poor sensitivity\nfor the acute event"];
+    USG -> OPTGA [style = dashed];
+    ARRI -> HAZINT [label = "h(t) ∝ ARRI^1.55"];
+    HYPOX -> HAZINT;
+    HAZINT -> OPTGA [penwidth = 2.0, label = "benefit of\ndelivering early"];
+    IATRO -> OPTGA [penwidth = 2.0, label = "cost of\ndelivering early"];
+    SURF -> IATRO [color = "#2e7d32"];
+    OPTGA -> DELIV [penwidth = 2.4, label = "36 wk if ≥100 · 37-38 if 40-99\n39-40 if <40 µmol/L"];
+    OPTGA -> E_IPTB;
+    IATRO -> E_RDS; IATRO -> E_NICU;
+
+    /* --- endpoints and the composite --------------------------------- */
+    edge [color = "#f57f17", style = solid, penwidth = 1.4];
+    E_SB -> E_COMP [label = "≈1% of the\ncomposite"];
+    E_SPTB -> E_COMP; E_IPTB -> E_COMP [penwidth = 2.4, label = "dominates"];
+    E_NICU -> E_COMP [penwidth = 2.4, label = "dominates"];
+    E_RESOLVE -> E_RECUR [style = dashed];
+    E_TBA -> E_RECUR [style = dashed];
+
+    /* --- layout hints ------------------------------------------------ */
+    { rank = same; ABCB4; ABCB11; ATP8B1; NR1H4; TJP2; }
+    { rank = same; E2; P4; E3; }
+    { rank = same; E2G; P4S; }
+    { rank = same; TBA_ASSAY; TBA_ENDO; MCL; }
+    { rank = same; FCL; WBAR; }
+    { rank = same; E_SB; E_SPTB; E_NICU; E_ITCH; }
+}
