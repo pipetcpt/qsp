@@ -1,0 +1,511 @@
+####################################################################################################
+#  OSTEOSARCOMA (OSA) QSP MODEL — REFERENCE OUTPUT
+#  osa_reference_model.py    (numerical mirror of osa_mrgsolve_model.R)
+#
+#  Cure is a Poisson bet on lesions nobody can see, paid for out of an
+#  exposure budget with three hard organ ceilings:
+#
+#      P(cure) = exp( -lambda0 * [1 - exp(-n0 * e^-K)] )
+#      K       = kill integral, bounded by kidney / heart / cochlea
+#
+#  and the methotrexate ceiling is not a constant, because the drug is
+#  cleared through the organ it destroys.
+####################################################################################################
+
+  states 55   parameters 141   scenarios 19   virtual population 8000
+
+====================================================================================================
+ SECTION 1 — THERAPY SCENARIOS
+====================================================================================================
+
+scenario                 Huvos%  log10   cure  TRM%   surv    HR sched%  RDI% MTX DOX CIS  IE eGFRnad  LVEF   dB ANCnad  MUC cumDOX
+----------------------------------------------------------------------------------------------------
+S01_surgery_only            1.2   0.00  0.170   0.9  0.168  3.44    100   100   0   0   0   0     100  62.0    0   4.00  0.0      0
+S02_MAP                    90.3   6.61  0.602   1.0  0.596  1.00    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S03_MAPIE                  90.3   6.93  0.659   3.0  0.639  0.86     76    90  12   5   3   5      62  59.2    9   0.06  2.9    356
+S04_MAP_pH60               89.6   6.56  0.592  38.1  0.366  1.94     64    88   6   6   4   0      29  58.5   11   0.47  2.6    450
+S05_MAP_pH75               90.3   6.61  0.602   1.0  0.596  1.00    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S06_MAP_lowhydration       93.3   7.02  0.674  11.7  0.595  1.00     91    78  12   6   2   0      47  58.5    6   0.38  2.7    450
+S07_MAP_pH66               88.4   6.49  0.578  22.6  0.447  1.55     73    93   6   6   4   0      39  58.5   12   0.49  2.6    450
+S07b_MAP_glucarpidase      88.2   6.47  0.575  22.4  0.446  1.56     73    93   6   6   4   0      39  58.5   12   0.50  2.6    450
+S08_MAP_dexrazoxane        90.3   6.61  0.602   1.0  0.596  1.00    100   100  12   6   4   0      92  59.8   12   0.39  2.1    450
+S09_MAP_dox600             89.6   6.91  0.655   3.2  0.635  0.88    100   114  12   6   4   0      92  57.3   12   0.33  2.1    600
+S10_MAP_dox600_dexra       89.6   6.91  0.655   1.0  0.649  0.83    100   114  12   6   4   0      92  59.3   12   0.33  2.1    600
+S11_MAP_zoledronate        90.4   6.61  0.601   1.0  0.595  1.00    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S12_MAP_denosumab          90.4   6.61  0.601   1.0  0.595  1.00    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S13_MAP_mifamurtide        90.3   6.69  0.616   1.0  0.610  0.95    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S14_AP_only                61.1   4.81  0.248   0.9  0.246  2.71    100   100   0   6   4   0      93  58.5   12   0.52  0.0    450
+S15_MAP_metastatic         90.3   6.61  0.325   1.0  0.322  2.19    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S16_MAP_resistant          75.2   3.81  0.176   1.0  0.174  3.38    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S17_MAP_regorafenib        89.2   6.60  0.598   1.0  0.593  1.01    100   100  12   6   4   0      92  58.5   12   0.39  2.1    450
+S18_MAP_dosedense          91.8   6.80  0.635   1.0  0.629  0.90    100   103  12   6   4   0      92  58.5   12   0.36  2.4    450
+
+  Huvos%  necrosis fraction of the resected primary at week 11
+  log10   cell kill delivered to the micrometastatic pool
+  cure    POPULATION cure fraction (mean K from this scenario, spread
+          from the virtual-population layer, CV 25%)
+  TRM%    treatment-related mortality (infection x mucositis, renal,
+          cardiac, plus a small baseline)
+  surv    overall survival fraction = cure x (1 - TRM).  THIS is the
+          column to read: several arms buy log-kill by damaging the
+          kidney, and the kill they buy is real, and they still lose.
+  HR      hazard ratio vs standard MAP on the survival fraction
+  sched%  courses given ON SCHEDULE at full dose (the number a
+          trial reports as 'completed protocol therapy')
+  RDI%    relative dose intensity actually delivered
+  MTX/DOX/CIS/IE  courses actually given (planned 12 / 6 / 4 / -)
+
+  Calibration checks:  MAP survival     0.596  (EURAMOS-1 5-y EFS 0.54-0.59, OS ~0.71)
+                       MAP TRM          1.0%   (reported toxic deaths ~1%)
+                       surgery alone     0.170  (historical amputation-only 0.15-0.20)
+                       MAP on schedule   100%    (EURAMOS-1 MAP completed protocol 76%)
+                       MAPIE on schedule 76%    (EURAMOS-1 MAPIE completed protocol 51%)
+                       relative dose intensity, MAP 100% / MAPIE 90%
+
+====================================================================================================
+ SECTION 2 — THE METHOTREXATE RENAL FEEDBACK LOOP
+====================================================================================================
+
+ Methotrexate is cleared through the organ it destroys.  86% of the
+ dose leaves by the kidney; the tubular concentration is
+
+     C_tub = CL_ren(KID) * C_plasma / UrineFlow(KID)
+
+ and everything above the pH-dependent solubility crystallises,
+ obstructs, and lowers both CL_ren and UrineFlow — which RAISES
+ C_tub.  Positive feedback with a loop gain, hence a bifurcation.
+
+ 2a. Solubility of methotrexate in tubular fluid
+     S(pH) = 0.86 * 10^(0.682*(pH-5)) mM   — log-linear fit to the
+     published table (0.39 / 1.55 / 9.04 mg/mL at pH 5 / 6 / 7)
+      pH    S (mM)   S (mg/mL)
+     5.0      0.86        0.39
+     5.5      1.89        0.86
+     6.0      4.14        1.88
+     6.5      9.07        4.12
+     7.0     19.88        9.04
+     7.5     43.60       19.81
+     8.0     95.61       43.45
+
+ 2b. A single 12 g/m2 course as a function of urine pH
+     (hydration 3 L/m2/day, leucovorin 15 mg/m2 q6h from +24 h)
+    pH  Cmax_uM  CtubPeak    C/S     C24     C48      C72  eGFR% crystal delayed   AKI
+----------------------------------------------------------------------------------------------------
+   6.0      990      38.1   9.22   82.11  15.541   3.0511   54.1    7.90    True  True
+   6.2      985      37.8   6.68   82.17  14.176   2.5220   56.4    7.15    True  True
+   6.4      978      37.3   4.81   79.04  12.073   1.8985   59.1    6.20    True  True
+   6.6      966      36.6   3.45   70.96   9.158   1.2303   62.9    5.01    True  True
+   6.8      948      35.4   2.44   55.51   5.628   0.6199   68.5    3.54    True  True
+   7.0      919      33.8   1.70   31.95   2.377   0.2107   78.2    1.82    True False
+   7.2      890      32.0   1.17   11.70   0.743   0.0566   94.4    0.29   False False
+   7.4      890      31.8   0.85    8.81   0.563   0.0418   99.5    0.00   False False
+   7.6      890      31.8   0.62    8.81   0.563   0.0418   99.5    0.00   False False
+   8.0      890      31.8   0.33    8.81   0.563   0.0418   99.5    0.00   False False
+
+     C24/C48/C72 are the monitoring concentrations in uM.  A course
+     is 'delayed' if C48 > 1 uM or C72 > 0.1 uM (the thresholds that
+     trigger rescue escalation in every modern protocol).
+
+ 2c. THE BIFURCATION
+     urine pH at which tubular fluid first supersaturates   7.30
+     urine pH below which elimination becomes delayed       7.15
+     urine pH below which the course causes AKI (>25% GFR)  6.95
+
+     The protocol instruction 'alkalinise the urine to pH >= 7.0 and
+     hydrate at 3 L/m2/day' is not a convention.  It is where this
+     loop changes sign.  Note that pH 7.0 sits +0.30 from the
+     supersaturation boundary, i.e. AT the edge and not comfortably
+     inside it — which is why 1-2% of courses still show delayed
+     elimination under full protocol compliance, and why the
+     escalation instruction on a rising creatinine is MORE
+     bicarbonate, not less methotrexate.
+
+ 2d. EXCHANGE RATES.  C_tub scales as dose / urine-flow, while
+     solubility scales as 10^(0.682*pH).  So any factor f applied to
+     C_tub is worth exactly log10(f)/0.682 pH units:
+       double the hydration           = 0.44 pH units
+       quadruple the hydration        = 0.88 pH units
+       halve the methotrexate dose    = 0.44 pH units
+       quarter the methotrexate dose  = 0.88 pH units
+     Read the other way: 1.00 pH unit = 4.81-fold change
+     in C_tub.  ONE UNIT OF URINE pH IS WORTH 4.8x THE FLUID, OR A
+     4.8-FOLD DOSE REDUCTION.  Alkalinisation is not adjunctive
+     supportive care; arithmetically it is the largest single lever
+     on high-dose methotrexate safety, larger than the dose itself.
+
+ 2e. The same statement, simulated (pH 6.6 held fixed):
+  hydration (L/m2/d)   C48_uM   eGFR%  delayed
+                 1.5   14.667    55.7     True
+                 3.0    9.158    62.9     True
+                 6.0    1.857    81.2     True
+                12.0    0.556    99.8    False
+     vs. pH 7.3 at the ORIGINAL 3 L/m2/day: C48 0.563 uM, eGFR 99.5%
+     — 0.7 of a pH unit does what quadrupling the fluid does.
+
+ 2f. LOOP GAIN.  Identical course at pH 6.6, but starting from a
+     kidney that a previous cisplatin cycle already shaved:
+ start eGFR%    C/S   C48_uM  AUC mM*h  end eGFR%  GFR lost  delayed
+----------------------------------------------------------------------------------------------------
+         100   3.45    9.158      8.58       62.9      37.1     True
+          90   3.55   11.884      9.30       60.9      29.1     True
+          80   3.66   15.485     10.14       59.0      21.0     True
+          70   3.77   20.244     11.12       57.2      12.8     True
+          60   3.90   26.547     12.28       55.4       4.6     True
+          50   4.03   34.919     13.66       53.7      -3.7     True
+
+     Halving the starting GFR multiplies the methotrexate AUC of the
+     SAME dose by 1.59x and C48 by 3.8x, and leaves the kidney at 53.7%
+     instead of 62.9%.  (The absolute GFR LOST is smaller simply because
+     there was less left to lose — the injury runs down toward a
+     common floor, which is the point: the floor is where twelve
+     courses take you.)  The loop gain rises as the kidney falls, so
+     course n changes the
+     pharmacokinetics of courses n+1 .. 12.  In a regimen that gives
+     twelve courses of methotrexate AND four of cisplatin, the two
+     nephrotoxins are not additive — they are multiplicative through
+     a shared state variable.
+
+ 2g. THE RESCUE IS DIAGNOSTICALLY GATED TO ARRIVE AFTER THE
+     EXPOSURE IT WOULD PREVENT.
+
+     Glucarpidase is triggered by a measured concentration, and the
+     concentration that triggers it is measured at 24, 48 and 72 h.
+     But the exposure integral is front-loaded: by the time the
+     trigger fires, most of the AUC has already been delivered.
+
+rescue timing              C48_uM    C72_uM  AUC mM*h  AUC removed  end eGFR%
+----------------------------------------------------------------------------------------------------
+none                       12.073    1.8985      8.92            -       59.1
+glucarpidase at 12 h        1.506    0.2513      6.34          29%       63.2
+glucarpidase at 24 h        1.017    0.3672      7.99          10%       60.5
+glucarpidase at 36 h        0.204    0.3428      8.55           4%       59.6
+glucarpidase at 48 h       12.073    0.1771      8.78           2%       59.3
+glucarpidase at 72 h       12.073    1.8985      8.90           0%       59.2
+
+     Rescue at 24 h removes 10% of the exposure; at 48 h, 2%; at 72 h,
+     0%.  The standard trigger is a 48-h or 72-h
+     concentration, i.e. the drug is given at the point where it can
+     still remove 2% of what is left and 98% has already landed.
+
+     End-of-course GFR is 59.1% with no rescue and 59.3% with rescue
+     at 48 h.  The tubular injury integral was paid in the first day,
+     before any monitoring threshold had been crossed.  Nothing
+     rescues the tubule retrospectively — which is why the only
+     intervention with real leverage is the one applied BEFORE the
+     infusion starts (2d), and why urine pH, not the rescue protocol,
+     is where the safety of this regimen actually lives.
+
+====================================================================================================
+ SECTION 3 — THE EXPOSURE BUDGET AND ITS THREE ORGAN CEILINGS
+====================================================================================================
+
+ 3a. Where MAP's log-kill actually comes from (single-agent
+     deletion, everything else held at protocol):
+arm                                log10 kill   delta  per course    cure     HR
+----------------------------------------------------------------------------------------------------
+full MAP                                 6.61    0.00         nan   0.602   1.00
+MAP minus methotrexate                   4.81   -1.81       0.150   0.248   2.74
+MAP minus doxorubicin                    5.46   -1.15       0.191   0.366   1.98
+MAP minus cisplatin                      6.61   -0.01       0.001   0.601   1.00
+
+     Twelve courses of methotrexate and six of doxorubicin are worth
+     comparable totals, but the PER-COURSE value differs several-fold
+     — and the two are limited by different organs, so they are not
+     interchangeable currency.
+
+ 3b. What standard MAP has already spent when it finishes:
+     doxorubicin cumulative      450 mg/m2   (cardiac risk rises steeply > 300-400)
+     LVEF                        58.5 %        (baseline 62.0)
+     eGFR nadir                  92 %         of baseline
+     high-frequency hearing      12.3 dB       threshold shift
+     neutrophil nadir            0.39 x10^9/L   (grade 4 < 0.5)
+     peak mucositis grade        2.1
+
+     Three of these are CUMULATIVE and essentially irreversible
+     (heart, cochlea, tubule).  They are the walls of the box, and
+     standard MAP already stands against all three.
+
+ 3c. DEXRAZOXANE MOVES THE WALL.  Everything else reallocates
+     inside it.
+arm                                       cumDOX   LVEF  log10   cure    HR
+----------------------------------------------------------------------------------------------------
+MAP — EURAMOS-1 arm A (reference standa      450   58.5   6.61  0.602  1.00
+MAP + dexrazoxane 10:1 before every dox      450   59.8   6.61  0.602  1.00
+MAP intensified to doxorubicin 600 mg/m      600   57.3   6.91  0.655  0.83
+MAP intensified to 600 mg/m2 WITH dexra      600   59.3   6.91  0.655  0.83
+
+     450 -> 600 mg/m2 costs 1.1 LVEF points unprotected and -0.8 with
+     dexrazoxane, i.e. the protectant returns 173% of the cardiac price
+     of the intensification.  In this model dexrazoxane is the only
+     agent that RAISES the budget rather than spending it, and it is
+     the only one that makes anthracycline intensification a
+     coherent strategy at all.
+
+ 3d. MAPIE: ESCALATION ARRIVES AFTER THE BET IS PLACED, AND IN
+     EXACTLY THE PATIENTS WHERE EXTRA DRUG IS WORTH LEAST.
+     (RES0 0.02 = good responder, never randomised to MAPIE;
+      RES0 0.20 = poor responder, the actual trial population)
+
+                                                log10   cure  TRM%   surv    HR sched%  eGFRnad  ANCnad  MUC
+----------------------------------------------------------------------------------------------------
+good responder (RES0 0.02) — MAP                 6.61  0.602   1.0  0.596  1.00    100       92    0.39  2.1
+good responder (RES0 0.02) — MAPIE               6.93  0.659   3.0  0.639  0.86     76       62    0.06  2.9
+POOR responder (RES0 0.20) — MAP                 4.09  0.185   1.0  0.183  1.00    100       92    0.39  2.1
+POOR responder (RES0 0.20) — MAPIE               4.30  0.197   3.0  0.191  0.98     76       62    0.06  2.9
+
+     Predicted EFS HR for MAPIE:  0.98 in poor responders,
+                                  0.86 in good responders.
+     EURAMOS-1 randomised MAPIE ONLY among poor responders and
+     reported HR 0.98 (95% CI 0.78-1.23).
+
+     Every kill term in the model carries the factor (1 - RES).  A
+     'poor responder' is by definition a patient in whom that factor
+     is small, so the escalation was tested in exactly the subgroup
+     where any added cytotoxic is worth least — and it had to buy the
+     ifosfamide/etoposide cycles by giving up one doxorubicin and one
+     cisplatin cycle out of a budget that was already at its walls.
+     The null result is the arithmetic of the design, not a surprise
+     about the drugs.
+
+====================================================================================================
+ SECTION 4 — THE FORTY-YEAR PLATEAU IS A VARIANCE RESULT
+====================================================================================================
+
+     Reference MAP: mean log-kill 15.23 nats (6.61 log10)
+     Between-patient CV of achieved log-kill: 25%  (SD 3.81 nats)
+     Sources of that spread: SLC19A1 / ABCC2 transporter genotype,
+     methotrexate clearance (CV ~30%), MTHFR, delivered dose
+     intensity after the go/no-go gates, and intrinsic
+     chemosensitivity.  None of them is randomised in any trial.
+
+ 4a. What a shift in the MEAN buys, at the real spread:
+ delta log10  cure fraction  abs gain   EFS HR
+----------------------------------------------------------------------------------------------------
+       -1.00          0.397    -0.204     1.82
+       -0.50          0.502    -0.099     1.35
+       -0.25          0.553    -0.048     1.17
+       -0.10          0.582    -0.019     1.06
+        0.00          0.602    +0.000     1.00
+        0.10          0.620    +0.019     0.94
+        0.25          0.647    +0.045     0.86
+        0.50          0.689    +0.087     0.73
+        1.00          0.760    +0.158     0.54
+
+ 4b. THE SAME MEAN SHIFT AGAINST DIFFERENT SPREADS.  This is the
+     whole argument:
+  CV of K  SD (nats)    cure  cure +0.5 log  abs gain     HR
+----------------------------------------------------------------------------------------------------
+     0.02       0.30   0.675          0.871    +0.196   0.35
+     0.05       0.76   0.659          0.849    +0.190   0.39
+     0.10       1.52   0.631          0.792    +0.160   0.51
+     0.15       2.28   0.616          0.744    +0.128   0.61
+     0.25       3.81   0.602          0.689    +0.087   0.73
+     0.35       5.33   0.595          0.660    +0.065   0.80
+     0.50       7.61   0.590          0.636    +0.046   0.86
+     0.65       9.90   0.588          0.623    +0.035   0.89
+
+     Half a log of extra kill is worth +20 points of cure in a
+     population with CV 2%, and only +4 points in one with CV 65% — a
+     5.5-fold difference produced entirely by the spread and
+     not at all by the drug.
+
+     Note carefully what this does NOT say.  Narrowing the spread at
+     constant mean barely moves the cure fraction itself (0.592 at
+     CV 45% vs 0.659 at CV 5%): the patients who gain and the
+     patients who lose very nearly cancel.  What the spread destroys
+     is DETECTABILITY.  Any realistic intensification moves the mean
+     by 0.1-0.3 log, and at CV 25% that is worth:
+
+  delta log10   abs gain in cure     HR   n per arm for 80% power
+----------------------------------------------------------------------------------------------------
+         0.10             +0.019   0.94                     10827
+         0.20             +0.037   0.88                      2764
+         0.30             +0.054   0.83                      1256
+         0.50             +0.087   0.73                       475
+
+     EURAMOS-1 randomised 618 poor responders to MAPIE.  On this
+     arithmetic that trial could only ever have detected a shift of
+     roughly 0.50 log or larger, and the escalation delivers about
+     0.2.  The trial was not underpowered by accident; it was
+     underpowered by the shape of the dose-response surface it was
+     built on top of.
+
+ 4b-ii. NOT THE MEAN, AND NOT THE TAIL EITHER — THE SHOULDER.
+
+     Because P(cure) saturates at both ends, the marginal value of an
+     extra log of kill is zero in patients who were already going to
+     be cured AND zero in patients no achievable dose can rescue.
+     Spend the same total extra log-kill on different parts of the
+     distribution and the answers are not close:
+
+     Achieved log-kill quartile bounds (log10): 0.74 / 5.49 / 6.60 / 7.72 / 12.52
+
+who gets the extra kill                   each gets    cure    gain     HR
+----------------------------------------------------------------------------------------------------
+everyone (uniform intensification)            0.25L   0.649  +0.048   0.85
+bottom quartile (worst responders)            1.00L   0.632  +0.030   0.90
+SECOND quartile (the near-misses)             1.00L   0.717  +0.116   0.65
+third quartile                                1.00L   0.632  +0.031   0.90
+top quartile (already cured)                  1.00L   0.604  +0.002   0.99
+bottom half                                   0.50L   0.672  +0.070   0.78
+middle half (25-75th percentile)              0.50L   0.688  +0.087   0.74
+
+     The same total drug is worth 2.4x more given to the
+     SECOND quartile (the near-misses) than spread over everyone, and giving it
+     to the WORST quartile is worth LESS than uniform (+0.030 vs
+     +0.048) — a full extra log does not rescue a patient who is
+     four logs short.
+
+ 4b-iii. WHERE THE MARGINAL VALUE ACTUALLY LIVES, BY DECILE:
+ decile of achieved log-kill     K range (log10)   marginal value
+----------------------------------------------------------------------------------------------------
+                           1         0.74 - 4.50            0.000  
+                           2         4.50 - 5.23            0.002  
+                           3         5.23 - 5.75            0.129  #########
+                           4         5.75 - 6.18            0.499  #################################
+                           5         6.18 - 6.60            0.592  #######################################
+                           6         6.60 - 7.04            0.412  ###########################
+                           7         7.04 - 7.47            0.186  ############
+                           8         7.47 - 7.98            0.072  #####
+                           9         7.98 - 8.67            0.022  #
+                          10        8.67 - 12.52            0.003  
+
+     The peak sits in decile 5 (K 6.18-6.60 log10) and the
+     value is essentially zero in the bottom two and the top two
+     deciles.  The patients worth escalating are the ones ALREADY
+     CLOSE to the threshold and just below it.
+
+     Now put that next to Section 5.  Necrosis correlates with
+     achieved log-kill at r = 0.97, so the marker CAN identify this
+     band — the near-misses at roughly 85-89% necrosis, not the 40%
+     necrosis patients.  EURAMOS-1 used the marker correctly as a
+     prognostic tool and then spent its escalation budget on the
+     group the marker had identified as LEAST salvageable.  The band
+     the arithmetic points at has never been randomised.
+
+ 4c. THE POISSON STRUCTURE.  Cure requires EVERY occult lesion to be
+     sterilised, so the exposure enters as a double exponential:
+
+       P(cure) = exp( -lambda0 * [1 - exp(-n0 * e^-K)] )
+
+   lambda0   P(no lesion at all)   cure with MAP  cure, MAP +1 log
+----------------------------------------------------------------------------------------------------
+       0.5                 0.607           0.831             0.900
+       1.0                 0.368           0.716             0.829
+       1.8                 0.165           0.602             0.760
+       3.0                 0.050           0.509             0.695
+       6.0                 0.002           0.418             0.625
+      15.0                 0.000           0.325             0.540
+
+     lambda0 = 1.80 was calibrated on one number: cure after
+     amputation ALONE is exp(-lambda0) = 0.165, and the historical
+     figure is 0.15-0.20.  Everything downstream — including the
+     6.5-log requirement on MAP — follows from that single anchor.
+
+     Note the last column: in overt metastatic disease (lambda0 = 15)
+     a full extra log of kill barely moves the cure fraction, because
+     cure needs all fifteen lesions and the product of fifteen
+     near-misses is still a miss.  Same drug, same log-kill,
+     different arithmetic.
+
+====================================================================================================
+ SECTION 5 — HUVOS NECROSIS IS A READ-OUT, NOT A LEVER
+====================================================================================================
+
+     Necrosis at week 11 and micrometastatic log-kill are two
+     integrals of the SAME sensitivity parameter over the SAME ten
+     weeks.  That is why necrosis is the strongest prognostic factor
+     in the disease — and also why changing therapy AFTER measuring
+     it cannot recover what the parameter already decided.
+
+   RES0   Huvos%   grade  log10 kill    cure  HR vs RES0=0.02
+----------------------------------------------------------------------------------------------------
+   0.00     95.5    good        9.01   0.884             0.24
+   0.02     90.3    good        6.61   0.602             1.00
+   0.05     86.1    poor        5.66   0.408             1.77
+   0.10     82.0    poor        4.91   0.263             2.62
+   0.15     79.3    poor        4.44   0.207             3.10
+   0.20     77.1    poor        4.09   0.185             3.32
+   0.30     73.5    poor        3.56   0.172             3.46
+   0.45     68.8    poor        2.93   0.170             3.49
+
+     Pearson r(Huvos%, micrometastatic log-kill) = 0.970
+     Pearson r(Huvos%, cure fraction)            = 0.917
+
+ 5b. THE SAME ESCALATION, MOVED EARLIER.  Poor-responder tumour
+     (RES0 = 0.20); the ONLY difference is when the ifosfamide/
+     etoposide cycles are given:
+arm                                            Huvos%   log10    cure     HR
+----------------------------------------------------------------------------------------------------
+MAP                                              77.1    4.09   0.185   1.00
+MAPIE — escalation AFTER surgery (as randomised)     77.1    4.30   0.197   0.96
+MAP + the same IE cycles given PRE-operatively     80.6    4.27   0.194   0.97
+
+     Moving the identical drug from after surgery to before it changes
+     the NECROSIS read-out by +3.5 points and the micrometastatic
+     log-kill by -0.03 log10.
+
+     That dissociation is the point, and it is worse for the surrogate
+     than a weak correlation would be.  Across the resistance sweep
+     above, necrosis tracks micrometastatic kill almost perfectly (r = 0.97),
+     so it is an excellent PROGNOSTIC marker.  But necrosis is an
+     integral over the primary, where drug penetration and matrix
+     TGF-beta apply, and cure is an integral over the lung, where they
+     do not.  Re-timing therapy moves the first without moving the
+     second, i.e. the marker can be improved without improving the
+     patient.  A marker that is prognostic but manipulable is exactly
+     the wrong thing to build a treatment decision on — and
+     response-adapted escalation is a design that reads the marker at
+     week 11 and then spends its budget in the window where the
+     integral has the least left to give.
+
+====================================================================================================
+ SECTION 6 — THE VICIOUS CYCLE IS A GROWTH TERM, NOT A SURVIVAL TERM
+====================================================================================================
+
+arm                                         OCLmax    ALP  Huvos%  log10   cure    HR
+----------------------------------------------------------------------------------------------------
+MAP — EURAMOS-1 arm A (reference standard     1.34  15.15    90.3   6.61  0.602  1.00
+MAP + zoledronate 4 mg q4w (OS2006 design     1.00   5.84    90.4   6.61  0.601  1.00
+MAP + denosumab 120 mg q4w                    1.00   7.34    90.4   6.61  0.601  1.00
+
+     Zoledronate cuts peak osteoclast drive by 25% and denosumab by 25%,
+     while micrometastatic log-kill moves by -0.00 and -0.00 log10 respectively.
+
+     The reason is structural rather than empirical.  In this model
+     the RANKL -> osteoclast -> matrix-TGF-beta loop multiplies the
+     tumour GROWTH rate (KG), whereas cure is decided by the KILL
+     integral, and during MAP the kill term is one to two orders of
+     magnitude larger than the growth term it would be modifying.
+     Suppressing the loop therefore does exactly what the trials
+     found it does: it changes osteolysis, ALP and radiographic
+     appearance, and it does not change survival.  OS2006 randomised
+     318 patients to zoledronate on top of chemotherapy and found no
+     EFS benefit with worse local control.  Two readouts, two
+     integrals; the marker moved and the disease did not.
+
+====================================================================================================
+ SUMMARY OF DERIVED NUMBERS
+====================================================================================================
+  critical urine pH (tubular supersaturation)                     7.30   protocol target >= 7.0
+  urine pH below which elimination is delayed                     7.15   
+  urine pH below which the course causes AKI                      6.95   
+  1 pH unit is worth this much hydration                         4.81x   or the same dose reduction
+  AUC multiplier when starting GFR is halved                     1.59x   same dose, same pH
+  MAP log-kill, micrometastatic pool                        6.61 log10   
+  MAP survival fraction (population)                             0.596   EURAMOS-1 5-y EFS 0.54-0.59
+  surgery-alone survival fraction                                0.168   historical 0.15-0.20
+  MAP / MAPIE courses given on schedule                     100% / 76%   EURAMOS-1 completed protocol 76% / 51%
+  MAP / MAPIE treatment-related mortality                  1.0% / 3.0%   reported ~1% overall
+  under-hydration: cure / TRM / survival           0.674 / 12% / 0.595   vs MAP survival 0.596
+  best arm in the whole set                      dox 600 + dexrazoxane   survival 0.649, HR 0.83
+  MAPIE predicted EFS HR, poor responders                         0.98   EURAMOS-1 0.98 (0.78-1.23)
+  MAPIE predicted EFS HR, good responders                         0.86   never randomised
+  r(Huvos%, micrometastatic log-kill)                            0.970   
+  cumulative doxorubicin delivered by MAP                    450 mg/m2   ceiling ~ 400
+  LVEF after MAP / MAP + dexrazoxane                     58.5 / 59.8 %   
+  value of +0.5 log kill at CV 2% / CV 65%             +20 / +4 points   variance dominates
+  n per arm to detect MAPIE's +0.2 log at 80% power                  2764   EURAMOS-1 randomised 618
+  same budget: uniform vs 2nd-quartile targeting      +0.048 vs +0.116   the shoulder, not the tail
+  marginal value peaks at this achieved log-kill         6.2-6.6 log10   ~85-89% necrosis, the near-misses
+

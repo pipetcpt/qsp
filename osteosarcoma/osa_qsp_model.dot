@@ -1,0 +1,738 @@
+/* ===========================================================================
+   osa_qsp_model.dot
+   Osteosarcoma (OSA) — mechanistic QSP map
+   골육종 (OSA) 기계론적 QSP 지도
+
+   ORGANISING THESIS (see README.md; every number below is computed in
+   osa_reference_model.py and printed in osa_reference_output.txt):
+
+     Cure in osteosarcoma is a POISSON BET ON LESIONS NOBODY CAN SEE, and it
+     is paid for out of an EXPOSURE BUDGET with three hard organ ceilings.
+
+         P(cure) = exp( -lambda0 * [ 1 - exp( -n0 * e^-K ) ] )
+                    \________/       \_______________________/
+                     how many          did THIS lesion die
+                     lesions           (n0 ~ 1e6 clonogens)
+
+         K = kill integral, subject to
+               E_DOX  <= heart,  E_CIS <= cochlea + tubule,
+               E_MTX  <= tubule
+
+     lambda0 = 1.80 is fixed by ONE historical number: cure after amputation
+     alone is exp(-lambda0) = 0.165, and the reported figure is 0.15-0.20.
+     Everything else follows.  To reach the 0.60 that MAP achieves, K must be
+     6.6 log10 — and the model delivers 6.61.
+
+     The structure has one more twist that makes the whole regimen strange:
+     METHOTREXATE IS CLEARED THROUGH THE ORGAN IT DESTROYS.  86% of the dose
+     leaves by the kidney, and the tubular concentration is
+
+         C_tub  =  CL_ren(KID) * C_plasma / UrineFlow(KID)
+         S(pH)  =  0.86 * 10^(0.682*(pH-5))  mM      [solubility]
+
+     Everything above S crystallises, obstructs, and lowers BOTH CL_ren and
+     UrineFlow — which raises C_tub.  Positive feedback, hence a critical
+     urine pH rather than a risk factor.
+
+   SEVEN CONSEQUENCES, ALL ARITHMETIC RATHER THAN ASSERTED:
+
+     A. A BIFURCATION, NOT A GUIDELINE.  Tubular fluid first supersaturates
+        at urine pH 7.30, elimination becomes delayed below 7.15, and the
+        course causes AKI below 6.95.  The protocol instruction "alkalinise
+        to pH >= 7.0, hydrate at 3 L/m2/day" is where this loop changes
+        sign — and pH 7.0 sits 0.30 units INSIDE the unstable region, which
+        is why delayed elimination still happens under full compliance and
+        why the escalation on a rising creatinine is more bicarbonate, not
+        less methotrexate.
+
+     B. ONE pH UNIT IS WORTH 4.81x THE FLUID.  C_tub scales as
+        dose/urine-flow while S scales as 10^(0.682*pH), so any factor f on
+        C_tub is worth log10(f)/0.682 pH units.  Doubling the hydration and
+        halving the dose are both worth 0.44 pH units; alkalinisation from
+        6.6 to 7.3 does what quadrupling the fluid does.  Arithmetically the
+        largest single lever on this regimen's safety is not the dose.
+
+     C. THE LOOP GAIN RISES AS THE KIDNEY FALLS.  Halving the starting GFR
+        multiplies the same course's AUC by 1.59x and C48 by 3.8x, and leaves
+        the kidney at 53.7% instead of 62.9%.  Twelve methotrexate courses and
+        four cisplatin courses are therefore not additive nephrotoxins — they
+        are multiplicative through one shared state variable, so course n
+        rewrites the pharmacokinetics of courses n+1..12.
+
+     D. THE RESCUE IS DIAGNOSTICALLY GATED TO ARRIVE AFTER THE EXPOSURE IT
+        WOULD PREVENT.  Glucarpidase is triggered by a 48-h or 72-h
+        concentration, but the AUC is front-loaded: rescue at 12 h removes
+        29% of the exposure, at 24 h 10%, at the standard 48-h trigger 2%, and
+        at 72 h nothing at all — and end-of-course GFR is unchanged whichever
+        you pick.  Nothing rescues the tubule retrospectively.
+
+     E. NECROSIS IS PROGNOSTIC AND MANIPULABLE AT THE SAME TIME.  Huvos
+        necrosis and micrometastatic log-kill are two integrals of the same
+        sensitivity parameter (r = 0.97), which is why necrosis is the
+        strongest prognostic factor in the disease.  But necrosis integrates
+        over the PRIMARY, where drug penetration and matrix TGF-beta apply,
+        and cure integrates over the LUNG, where they do not — so re-timing
+        the same total drug moves the marker without moving the patient.  A
+        marker that is prognostic but manipulable is the wrong thing to build
+        a treatment decision on, and response-adapted escalation does exactly
+        that.
+
+     F. MAPIE'S NULL RESULT IS THE ARITHMETIC OF ITS DESIGN.  Every kill term
+        carries the factor (1 - RES).  A "poor responder" is by definition a
+        patient in whom that factor is small, so the escalation was tested in
+        precisely the subgroup where extra cytotoxic is worth least; and it
+        had to buy its five ifosfamide/etoposide cycles by giving up one
+        doxorubicin and one cisplatin cycle from a budget already at its
+        walls.  Predicted EFS HR 0.98 in poor responders and 0.86 in good
+        responders (who were never randomised).  EURAMOS-1: 0.98 (0.78-1.23).
+
+     G. THREE PLATEAU MECHANISMS, NONE OF THEM THE DRUGS.
+
+        (i) DETECTABILITY.  At the real between-patient CV of achieved log-kill
+        (25%), a realistic +0.2 log intensification is worth +4 points of cure
+        and needs 2764 patients per arm; EURAMOS-1 randomised 618.  The same
+        half-log is worth +19.6 points at CV 2% and +3.5 at CV 65% — a 5.5-fold
+        difference produced entirely by the spread and not at all by the drug.
+        Nothing has ever randomised the spread.
+
+        (ii) INDIFFERENCE.  Under-hydration BUYS +0.4 log10 of kill through
+        delayed elimination and pays for it with 12% treatment-related
+        mortality, giving survival 0.595 against MAP's 0.596.  The regimen sits
+        on an indifference curve, so moves along it read as null however large
+        they are.  Only dexrazoxane MOVES the wall: doxorubicin 600 mg/m2 with
+        it is the best arm in the whole set (survival 0.649, HR 0.83).
+
+        (iii) THE WRONG RECIPIENT — NOT THE MEAN AND NOT THE TAIL, THE
+        SHOULDER.  P(cure) saturates at BOTH ends, so the same total extra
+        log-kill is worth +0.116 given to the SECOND quartile of achieved
+        exposure, +0.048 spread over everyone, and only +0.030 given to the
+        worst quartile.  The marginal value peaks at 6.2-6.6 log10 of achieved
+        kill and is zero in the bottom two and top two deciles.  Since necrosis
+        tracks achieved log-kill at r = 0.97 the marker CAN find that band — the
+        near-misses at roughly 85-89% necrosis.  EURAMOS-1 used the marker
+        correctly as a prognostic tool and then spent its escalation budget on
+        the group the marker had identified as LEAST salvageable.
+
+   RENDER:
+     dot -Tsvg osa_qsp_model.dot -o osa_qsp_model.svg
+     dot -Tpng -Gdpi=150 osa_qsp_model.dot -o osa_qsp_model.png
+   =========================================================================== */
+
+digraph osteosarcoma_qsp {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.22;
+    ranksep = 0.48;
+    fontname = "Helvetica";
+    labelloc = "t";
+    labeljust = "l";
+    label = <<b>Osteosarcoma — Quantitative Systems Pharmacology Map</b><br/>
+<font point-size="13">골육종 QSP 기계론적 지도 · MAP backbone (methotrexate · doxorubicin · cisplatin) + IE · bone-directed · immune · anti-angiogenic</font><br/>
+<font point-size="12">P(cure) = exp(−λ₀·[1 − exp(−n₀·e<sup>−K</sup>)]) &nbsp;·&nbsp; λ₀ = 1.80 occult lesions &nbsp;·&nbsp; K bounded by kidney / heart / cochlea</font><br/>
+<font point-size="12">Methotrexate is cleared through the organ it destroys: C_tub = CL_ren(KID)·C_p / UF(KID) &nbsp;vs&nbsp; S(pH) = 0.86·10<sup>0.682(pH−5)</sup> mM &nbsp;→&nbsp; critical urine pH 7.30</font>>;
+    fontsize = 20;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 10, penwidth = 1.0, margin = "0.07,0.04"];
+    edge [fontname = "Helvetica", fontsize = 8, arrowsize = 0.6,
+          penwidth = 0.9, color = "#5a5a5a"];
+
+    /* ===================================================================
+       1. GENOMICS AND CELL OF ORIGIN
+       =================================================================== */
+    subgraph cluster_genome {
+        label = "① 유전체 불안정성 · 기원세포 (Genomic catastrophe & cell of origin)";
+        style = "filled"; color = "#bfa5cf"; fillcolor = "#f4eef8";
+        fontsize = 12; fontcolor = "#4a2d5e";
+        node [fillcolor = "#e6d8f0", color = "#8e6aa8"];
+
+        TP53      [label = "TP53 loss\n(>90%; Li-Fraumeni)"];
+        RB1       [label = "RB1 loss\n(~30%; hereditary Rb)"];
+        CHROMO    [label = "Chromothripsis\n(massive rearrangement)"];
+        KATAEGIS  [label = "Kataegis\n(localised hypermutation)"];
+        ANEUPLOID [label = "Aneuploidy ·\ncomplex karyotype"];
+        MDM2      [label = "MDM2 amplification"];
+        CDK4      [label = "CDK4 / CCNE1\namplification"];
+        MYC       [label = "MYC 8q24 gain"];
+        ALT       [label = "ALT / telomere\nmaintenance"];
+        RECQL4    [label = "RECQL4\n(Rothmund–Thomson)"];
+        PAGET_2   [label = "Paget's disease ·\nprior radiation\n(secondary OS)"];
+        MSC       [label = "Osteoblastic\nmesenchymal progenitor\n(cell of origin)"];
+        GROWTH_SP [label = "Adolescent growth spurt\n(metaphyseal proliferation)"];
+        HRD       [label = "Homologous-recombination\ndeficiency (BRCAness)"];
+        CGAS      [label = "cGAS–STING\n(cytosolic dsDNA)"];
+
+        TP53 -> CHROMO; TP53 -> ANEUPLOID; RB1 -> ANEUPLOID;
+        CHROMO -> KATAEGIS; CHROMO -> MDM2; CHROMO -> CDK4; CHROMO -> MYC;
+        RECQL4 -> CHROMO; PAGET_2 -> CHROMO; ANEUPLOID -> ALT;
+        CHROMO -> HRD; ANEUPLOID -> CGAS;
+        GROWTH_SP -> MSC; MSC -> ANEUPLOID;
+    }
+
+    /* ===================================================================
+       2. TUMOUR CELL PROGRAM
+       =================================================================== */
+    subgraph cluster_tumour {
+        label = "② 종양세포 프로그램 (Tumour-cell program & osteoid production)";
+        style = "filled"; color = "#c9a37e"; fillcolor = "#fbf3ea";
+        fontsize = 12; fontcolor = "#6a4520";
+        node [fillcolor = "#f0dcc4", color = "#a97b4a"];
+
+        RUNX2     [label = "RUNX2\n(master osteoblast TF)"];
+        SP7       [label = "SP7 / osterix"];
+        WNT       [label = "Wnt / β-catenin"];
+        NOTCH     [label = "Notch (HES1)"];
+        HH        [label = "Hedgehog / GLI"];
+        IGF1R     [label = "IGF-1R → PI3K/AKT/mTOR"];
+        PRIM      [label = "PRIM\nviable primary tumour\n(mL; ~150 at diagnosis)",
+                   shape = box3d, fillcolor = "#e0b681"];
+        OSTEOID   [label = "Immature osteoid ·\nmineralisation\n(why volume does not shrink)"];
+        NEC       [label = "NEC\nnecrotic tumour volume\n(what the pathologist counts)",
+                   shape = box3d, fillcolor = "#e0b681"];
+        RES       [label = "RES\nresistant clone fraction\n(ABCB1 · ABCC2 · RFC loss)",
+                   shape = box3d, fillcolor = "#d99b5c"];
+        PROLIF    [label = "Proliferating fraction"];
+        QUIES     [label = "Quiescent / hypoxic\nsanctuary"];
+        ALPB      [label = "Serum ALP ↑\n(biomarker)", shape = ellipse,
+                   fillcolor = "#fff3d8"];
+        LDHB      [label = "Serum LDH ↑\n(biomarker)", shape = ellipse,
+                   fillcolor = "#fff3d8"];
+
+        RUNX2 -> SP7 -> OSTEOID; WNT -> RUNX2; NOTCH -> PROLIF; HH -> PROLIF;
+        IGF1R -> PROLIF; PROLIF -> PRIM; OSTEOID -> PRIM;
+        PRIM -> ALPB; PRIM -> LDHB; PRIM -> QUIES;
+        PRIM -> NEC [label = "kill", style = dashed];
+        PRIM -> RES [label = "selection", style = dashed];
+    }
+    MSC -> RUNX2; MYC -> PROLIF; CDK4 -> PROLIF; MDM2 -> PROLIF;
+
+    /* ===================================================================
+       3. BONE REMODELLING VICIOUS CYCLE
+       =================================================================== */
+    subgraph cluster_bone {
+        label = "③ 골 재형성 악순환 (The vicious cycle — a GROWTH term, not a SURVIVAL term)";
+        style = "filled"; color = "#9fb8d0"; fillcolor = "#eef4f9";
+        fontsize = 12; fontcolor = "#254a6b";
+        node [fillcolor = "#d6e5f2", color = "#5d87ad"];
+
+        RANKL     [label = "RANKL (TNFSF11)\ntumour-derived"];
+        OPG       [label = "OPG (TNFRSF11B)\ndecoy receptor"];
+        RANK      [label = "RANK on\nosteoclast precursor"];
+        MCSF      [label = "M-CSF / CSF1R"];
+        OCL       [label = "OCL\nosteoclast activity",
+                   shape = box3d, fillcolor = "#b9d2e8"];
+        CTSK      [label = "Cathepsin K · TRAP ·\nH⁺-ATPase"];
+        RESORB    [label = "Resorption lacuna ·\nosteolysis"];
+        TGFM      [label = "TGFM\nmatrix-liberated\nTGF-β / IGF-1 / BMP-2",
+                   shape = box3d, fillcolor = "#b9d2e8"];
+        PTHRP     [label = "PTHrP"];
+        IL6_11    [label = "IL-6 · IL-11"];
+        OBL       [label = "Osteoblast\n(aberrant new bone)"];
+        SCLERO    [label = "Sclerostin · DKK1"];
+        FRACTURE  [label = "Pathologic fracture ·\nCodman triangle ·\nsunburst periostitis",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        BONEPAIN  [label = "Bone pain (VAS)",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+
+        RANKL -> RANK; OPG -> RANKL [label = "sequesters", arrowhead = tee];
+        MCSF -> RANK; RANK -> OCL -> CTSK -> RESORB -> TGFM;
+        PTHRP -> RANKL; IL6_11 -> RANKL; OCL -> OBL; SCLERO -> OBL [arrowhead = tee];
+        RESORB -> FRACTURE; RESORB -> BONEPAIN; OBL -> FRACTURE;
+    }
+    PRIM -> RANKL [label = "tumour burden"]; PRIM -> PTHRP; PRIM -> IL6_11;
+    TGFM -> PROLIF [label = "×(1+0.45·TGFM)\nGROWTH only", color = "#b03030",
+                    fontcolor = "#b03030", penwidth = 1.4];
+    OCL -> ALPB;
+
+    /* ===================================================================
+       4. TUMOUR MICROENVIRONMENT AND IMMUNITY
+       =================================================================== */
+    subgraph cluster_immune {
+        label = "④ 종양 미세환경 · 면역 (Immune microenvironment — the only compartment mifamurtide touches)";
+        style = "filled"; color = "#8fc4a8"; fillcolor = "#eef8f2";
+        fontsize = 12; fontcolor = "#1f5c3d";
+        node [fillcolor = "#d2ecdd", color = "#4e9b73"];
+
+        TAM_M1    [label = "M1 tumour-associated\nmacrophage"];
+        M2        [label = "M2 / TAM\nimmunosuppressive",
+                   shape = box3d, fillcolor = "#b5dfc6"];
+        CTL       [label = "CTL\nCD8⁺ cytotoxic T cell",
+                   shape = box3d, fillcolor = "#b5dfc6"];
+        TREG      [label = "Treg (FOXP3⁺)"];
+        MDSC      [label = "MDSC"];
+        NK        [label = "NK cell"];
+        PDL1      [label = "PD-L1 / PD-1 axis\n(low TMB → checkpoint failure)"];
+        IFNG      [label = "IFN-γ"];
+        TGFB_I    [label = "TGF-β · IL-10\n(immune brake)"];
+        ALVMAC    [label = "Pulmonary ALVEOLAR\nmacrophage\n(the lung is where cure lives)"];
+        NOD2      [label = "NOD2 receptor\n(muramyl tripeptide sensor)"];
+        TNFA      [label = "TNF-α · IL-1β · IL-6"];
+        KILLIMM   [label = "km_imm\nimmune clearance of\nlung micrometastases\n(×LUNG_IMM = 4)",
+                   shape = box3d, fillcolor = "#9fd4b4"];
+
+        TAM_M1 -> IFNG -> CTL; M2 -> TGFB_I -> CTL [arrowhead = tee];
+        TREG -> CTL [arrowhead = tee]; MDSC -> CTL [arrowhead = tee];
+        M2 -> PDL1; PDL1 -> CTL [arrowhead = tee];
+        NOD2 -> ALVMAC -> TNFA; ALVMAC -> KILLIMM; CTL -> KILLIMM; NK -> KILLIMM;
+        M2 -> KILLIMM [arrowhead = tee];
+    }
+    CGAS -> IFNG [style = dashed]; ANEUPLOID -> PDL1 [style = dashed];
+
+    /* ===================================================================
+       5. ANGIOGENESIS, HYPOXIA AND DRUG PENETRATION
+       =================================================================== */
+    subgraph cluster_vasc {
+        label = "⑤ 혈관신생 · 저산소 · 약물 침투 (Angiogenesis, hypoxia and the penetration penalty)";
+        style = "filled"; color = "#d69f9f"; fillcolor = "#fbeeee";
+        fontsize = 12; fontcolor = "#6e2a2a";
+        node [fillcolor = "#f3d6d6", color = "#b06a6a"];
+
+        HIF1A     [label = "HIF-1α"];
+        VEGFA     [label = "VEGF-A"];
+        PDGFB     [label = "PDGF-B · FGF-2 ·\nANGPT2"];
+        VEGFR2    [label = "VEGFR2 / KDR"];
+        VASC      [label = "VASC\nfunctional vascular density",
+                   shape = box3d, fillcolor = "#eec4c4"];
+        HYP       [label = "HYP\nhypoxic fraction",
+                   shape = box3d, fillcolor = "#eec4c4"];
+        IFP       [label = "Interstitial fluid\npressure ↑ · mineralised matrix"];
+        PEN       [label = "PEN\ndrug penetration factor\n0.30 + 0.70·VASC/(VASC+0.55)",
+                   shape = box3d, fillcolor = "#e5a9a9"];
+
+        HIF1A -> VEGFA -> VEGFR2 -> VASC; PDGFB -> VASC;
+        VASC -> HYP [arrowhead = tee]; HYP -> HIF1A;
+        VASC -> PEN; IFP -> PEN [arrowhead = tee]; HYP -> QUIES;
+    }
+    PRIM -> VEGFA; PRIM -> IFP;
+    PEN -> PRIM [label = "primary only:\nmicromets are fully perfused",
+                 style = dashed, color = "#b03030", fontcolor = "#b03030"];
+
+    /* ===================================================================
+       6. THE METASTATIC CASCADE — WHERE CURE IS DECIDED
+       =================================================================== */
+    subgraph cluster_met {
+        label = "⑥ 전이 캐스케이드 · 포아송 구조 (The metastatic cascade — a Poisson bet on lesions nobody can see)";
+        style = "filled"; color = "#8f8fc4"; fillcolor = "#eeeef8";
+        fontsize = 12; fontcolor = "#2d2d6b";
+        node [fillcolor = "#d8d8f0", color = "#6a6aa8"];
+
+        EMT       [label = "EMT · SNAI2 · TWIST1"];
+        EZRIN     [label = "Ezrin (VIL2)\nmembrane–cytoskeleton link"];
+        CXCR4     [label = "CXCR4 / CXCL12 axis"];
+        MMP       [label = "MMP-2 · MMP-9 ·\nMT1-MMP"];
+        INTRA     [label = "Intravasation\n(thin-walled sinusoids)"];
+        CTC       [label = "Circulating tumour cell ·\nplatelet cloaking"];
+        LUNGARR   [label = "Pulmonary capillary arrest\n(first-pass organ)"];
+        DORMANT   [label = "Dormancy\n(angiogenesis-limited;\nKGM ≈ 0.35·KG)"];
+        LMET      [label = "LMET\nln(clonogens per lesion)\nstarts at ln(1e6) = 13.8",
+                   shape = box3d, fillcolor = "#c4c4e8"];
+        LAMBDA0   [label = "λ₀ = 1.80\noccult lesions at diagnosis\n(Poisson)",
+                   shape = doubleoctagon, fillcolor = "#b3b3e0"];
+        SURGALONE [label = "exp(−λ₀) = 0.165\ncure after amputation alone\n= THE CALIBRATION ANCHOR",
+                   shape = note, fillcolor = "#fff2c9", color = "#b08a20"];
+        KINT      [label = "K = 13.8 − LMET\nmicrometastatic log-kill\nMAP delivers 6.61 log10",
+                   shape = box3d, fillcolor = "#a8a8dc"];
+        CURE      [label = "P(cure) = exp(−λ₀·[1−exp(−n₀e^−K)])\nDOUBLE exponential in exposure",
+                   shape = doubleoctagon, fillcolor = "#9a9ad4"];
+        LUNGMET   [label = "Radiographic lung\nmetastases (RECIST) ·\nmetastasectomy",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        SKIPMET   [label = "Skip metastasis ·\nbone-to-bone spread",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+
+        EMT -> INTRA; EZRIN -> LUNGARR; CXCR4 -> LUNGARR; MMP -> INTRA;
+        INTRA -> CTC -> LUNGARR -> DORMANT -> LMET;
+        LAMBDA0 -> CURE; LAMBDA0 -> SURGALONE; LMET -> KINT -> CURE;
+        DORMANT -> LUNGMET; CTC -> SKIPMET;
+    }
+    PRIM -> EMT; PRIM -> MMP; HYP -> EMT; TGFM -> EMT;
+    KILLIMM -> KINT [label = "the only immune\nterm that counts",
+                     color = "#1f7a4d", fontcolor = "#1f7a4d", penwidth = 1.3];
+
+    /* ===================================================================
+       7. METHOTREXATE PK AND THE RENAL FEEDBACK LOOP
+       =================================================================== */
+    subgraph cluster_mtx {
+        label = "⑦ 고용량 메토트렉세이트 PK · 신장 양성 피드백 루프 (HDMTX 12 g/m² — the drug is cleared through the organ it destroys)";
+        style = "filled"; color = "#d8b44a"; fillcolor = "#fdf8e6";
+        fontsize = 12; fontcolor = "#6b5410";
+        node [fillcolor = "#faedbe", color = "#b3902c"];
+
+        MTXDOSE   [label = "HDMTX 12 g/m²\n4-h infusion ×12 courses",
+                   shape = invhouse, fillcolor = "#f2dc8e"];
+        A1        [label = "A1 central\nV1 = 18 L\nC_max ≈ 890 µM",
+                   shape = box3d, fillcolor = "#f5e3a3"];
+        A2        [label = "A2 peripheral\nV2 = 10 L"];
+        A3        [label = "A3 deep / third space\nV3 = 5 L (effusion, ascites)"];
+        CL_NR     [label = "Non-renal CL 1.2 L/h\n(7-OH-MTX, biliary,\nenterohepatic recycling)"];
+        RFC       [label = "SLC19A1 / RFC influx ·\nFPGS polyglutamation"];
+        ABC_MTX   [label = "ABCC2 · ABCG2 efflux"];
+        MPGT      [label = "MPGT\nMTX-polyglutamate,\ntumour",
+                   shape = box3d, fillcolor = "#f5e3a3"];
+        MPGM      [label = "MPGM\nMTX-polyglutamate,\nmarrow & mucosa",
+                   shape = box3d, fillcolor = "#f5e3a3"];
+        DHFR      [label = "DHFR inhibition"];
+        TS        [label = "Thymidylate synthase ·\nGART / AICAR block"];
+        DTMP      [label = "dUMP → dTMP block ·\nthymineless death"];
+        MTHFR     [label = "MTHFR C677T\n(pharmacogenetic)"];
+
+        GFR       [label = "GFR = 7.2 L/h × KID"];
+        CLREN     [label = "CL_ren = 7.5 L/h × KID\n× (1 − 0.85·OBS)\n86% of total clearance",
+                   fillcolor = "#f2dc8e"];
+        UF        [label = "Urine flow UF\n0.21 L/h at 3 L/m²/day\n× KID × (1 − 0.90·OBS)"];
+        CTUB      [label = "C_tub = CL_ren·C_p / UF\n≈ 32 mM at peak",
+                   shape = box3d, fillcolor = "#efd478"];
+        URINEPH   [label = "URINE pH\n(bicarbonate / acetazolamide)",
+                   shape = invhouse, fillcolor = "#f2dc8e"];
+        SOL       [label = "S(pH) = 0.86·10^{0.682(pH−5)} mM\n0.86 / 4.14 / 19.9 / 43.6\nat pH 5 / 6 / 7 / 7.5",
+                   shape = note, fillcolor = "#fff2c9", color = "#b08a20"];
+        PPT       [label = "PPT\ntubular crystal burden",
+                   shape = box3d, fillcolor = "#efd478"];
+        OBS       [label = "OBS = PPT/(PPT+2)\nintratubular obstruction"];
+        KID       [label = "KID\nkidney functional mass\n(the SHARED state variable)",
+                   shape = box3d, fillcolor = "#e8c455", penwidth = 1.6];
+        CRITPH    [label = "CRITICAL URINE pH\nsupersaturation 7.30\ndelayed elimination 7.15\nAKI 6.95",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+        EXCH      [label = "1 pH unit = 4.81× the fluid\n= a 4.81-fold dose cut\n(log10 f / 0.682)",
+                   shape = note, fillcolor = "#fff2c9", color = "#b08a20"];
+
+        MTXDOSE -> A1; A1 -> A2 [dir = both]; A1 -> A3 [dir = both];
+        A1 -> CL_NR; A1 -> RFC -> MPGT; A1 -> MPGM; ABC_MTX -> MPGT [arrowhead = tee];
+        MPGT -> DHFR -> TS -> DTMP; MTHFR -> TS;
+        A1 -> CLREN -> CTUB; GFR -> CLREN; UF -> CTUB [arrowhead = tee];
+        URINEPH -> SOL; SOL -> PPT [arrowhead = tee];
+        CTUB -> PPT [label = "excess above S"];
+        PPT -> OBS; OBS -> CLREN [arrowhead = tee, color = "#b03030", penwidth = 1.5];
+        OBS -> UF [arrowhead = tee, color = "#b03030", penwidth = 1.5];
+        PPT -> KID [arrowhead = tee, color = "#b03030", penwidth = 1.5];
+        CTUB -> KID [label = "direct tubular\ntoxicity", arrowhead = tee,
+                     color = "#b03030"];
+        KID -> GFR; KID -> CLREN; KID -> UF;
+        SOL -> CRITPH; CTUB -> CRITPH; SOL -> EXCH;
+    }
+    /* the loop, drawn as a loop */
+    KID -> CTUB [label = "  ⟲ POSITIVE FEEDBACK\n  injury → less clearance & less flow\n  → higher C_tub → more crystal",
+                 color = "#c00000", fontcolor = "#c00000", penwidth = 2.2,
+                 style = bold, constraint = false];
+
+    /* ===================================================================
+       8. LEUCOVORIN RESCUE AND GLUCARPIDASE
+       =================================================================== */
+    subgraph cluster_rescue {
+        label = "⑧ 류코보린 구조요법 · 글루카르피다제 (Rescue — a shared clock, and a rescue that arrives too late)";
+        style = "filled"; color = "#a8cf7e"; fillcolor = "#f4f9ec";
+        fontsize = 12; fontcolor = "#40621b";
+        node [fillcolor = "#e0efc9", color = "#7ba348"];
+
+        LV        [label = "Leucovorin 15 mg/m² q6h\nfrom +24 h × 48 h",
+                   shape = invhouse, fillcolor = "#d2e8b0"];
+        RFT       [label = "RFT\nreduced folate, tumour",
+                   shape = box3d, fillcolor = "#d2e8b0"];
+        RFM       [label = "RFM\nreduced folate, marrow\n(taken up 2.75× faster)",
+                   shape = box3d, fillcolor = "#d2e8b0"];
+        KIAPP     [label = "Apparent Ki = 1.10·(1 + RF/0.60)\nrescue RAISES the Ki\nin BOTH compartments"];
+        SHAREDCLK [label = "THE SHARED CLOCK\nrescue timing sets the\ntherapeutic window, and it\nrescues the tumour too",
+                   shape = note, fillcolor = "#fff2c9", color = "#b08a20"];
+        TDM       [label = "TDM: C24 < 10 µM,\nC48 < 1 µM, C72 < 0.1 µM\n(model: 8.8 / 0.56 / 0.04)",
+                   shape = ellipse, fillcolor = "#e8f4d8"];
+        GLUC      [label = "Glucarpidase 50 U/kg\n(carboxypeptidase G2)",
+                   shape = invhouse, fillcolor = "#d2e8b0"];
+        DAMPA     [label = "MTX → DAMPA + glutamate\n(adds ~90 L/h of CL)"];
+        LATE      [label = "TRIGGERED BY A 48-h VALUE\nremoves 11% of AUC at 24 h,\n2% at 48 h, <1% at 72 h,\nand 0 of the tubular injury",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+
+        LV -> RFT; LV -> RFM; RFT -> KIAPP; RFM -> KIAPP;
+        KIAPP -> SHAREDCLK; GLUC -> DAMPA; DAMPA -> LATE; TDM -> GLUC;
+    }
+    A1 -> TDM; RFT -> MPGT [arrowhead = tee, label = "competes"];
+    RFM -> MPGM [arrowhead = tee]; DAMPA -> A1 [arrowhead = tee];
+    KIAPP -> DTMP [arrowhead = tee];
+
+    /* ===================================================================
+       9. DOXORUBICIN AND THE CARDIAC CEILING
+       =================================================================== */
+    subgraph cluster_dox {
+        label = "⑨ 독소루비신 · 심장 천장 (Doxorubicin — the ceiling dexrazoxane can actually move)";
+        style = "filled"; color = "#cf7ea8"; fillcolor = "#fbeef4";
+        fontsize = 12; fontcolor = "#6b1f45";
+        node [fillcolor = "#f2d0e2", color = "#a8497b"];
+
+        DOXDOSE   [label = "Doxorubicin 75 mg/m²\n48-h infusion ×6\n= 450 mg/m² cumulative",
+                   shape = invhouse, fillcolor = "#e8b3cf"];
+        DOXC      [label = "DOXC central\nV = 25 L, CL = 45 L/h",
+                   shape = box3d, fillcolor = "#eec2d8"];
+        DOXP      [label = "DOXP peripheral\nV = 1200 L (deep tissue)"];
+        TOP2A     [label = "TOP2A poisoning\n→ DNA double-strand breaks"];
+        ROS_T     [label = "Redox cycling · ROS ·\nDNA intercalation"];
+        ABCB1     [label = "ABCB1 / P-gp efflux"];
+        CBR1      [label = "CBR1 / AKR1A1\n(carbonyl reduction)"];
+        DOXOL     [label = "DOXOL\ndoxorubicinol\n(the cardiotoxic metabolite)",
+                   shape = box3d, fillcolor = "#eec2d8"];
+        TOP2B     [label = "TOP2B in cardiomyocyte\n(the actual cardiac target)"];
+        FEDOX     [label = "Fe(III)–anthracycline\ncomplex · mitochondrial ROS"];
+        CMV       [label = "CMV\ncardiomyocyte viability\n(essentially irreversible)",
+                   shape = box3d, fillcolor = "#e8a8c8"];
+        DEXR      [label = "Dexrazoxane 10:1\n(iron chelation +\nTOP2B degradation)",
+                   shape = invhouse, fillcolor = "#e8b3cf"];
+        LVEF      [label = "LVEF\n62.0 → 58.5 after MAP\n→ 59.8 with dexrazoxane",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        TROPO     [label = "hs-troponin I ·\nNT-proBNP · GLS",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        CARDSTOP  [label = "PROTOCOL STOP RULE\nno more anthracycline\nbelow LVEF 50%",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+        LATECARD  [label = "Late cardiomyopathy ·\nheart failure decades on",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+
+        DOXDOSE -> DOXC; DOXC -> DOXP [dir = both]; DOXC -> TOP2A; DOXC -> ROS_T;
+        ABCB1 -> DOXC [arrowhead = tee]; DOXC -> CBR1 -> DOXOL;
+        DOXOL -> TOP2B -> CMV [arrowhead = tee]; DOXOL -> FEDOX -> CMV [arrowhead = tee];
+        DEXR -> FEDOX [arrowhead = tee, color = "#1f7a4d", penwidth = 1.6];
+        DEXR -> TOP2B [arrowhead = tee, color = "#1f7a4d", penwidth = 1.6];
+        CMV -> LVEF -> CARDSTOP; CMV -> TROPO; CMV -> LATECARD;
+    }
+    TOP2A -> PRIM [arrowhead = tee]; ROS_T -> PRIM [arrowhead = tee];
+
+    /* ===================================================================
+       10. CISPLATIN, THE TUBULE AND THE COCHLEA
+       =================================================================== */
+    subgraph cluster_cis {
+        label = "⑩ 시스플라틴 · 세뇨관 · 와우 (Cisplatin — two irreversible ceilings, one of them shared with methotrexate)";
+        style = "filled"; color = "#7eb8cf"; fillcolor = "#eef6fb";
+        fontsize = 12; fontcolor = "#1f4d63";
+        node [fillcolor = "#cee6f2", color = "#4a86a8"];
+
+        CISDOSE   [label = "Cisplatin 120 mg/m²\n72-h infusion ×4\n= 480 mg/m² cumulative",
+                   shape = invhouse, fillcolor = "#b0d4e8"];
+        CISC      [label = "CISC\nV = 18 L, CL = 30 L/h",
+                   shape = box3d, fillcolor = "#c2dcee"];
+        AQUA      [label = "Aquation → reactive\nmono/di-aqua species"];
+        ADDT      [label = "ADDT\nPt–DNA intrastrand adducts,\ntumour",
+                   shape = box3d, fillcolor = "#c2dcee"];
+        ERCC1     [label = "ERCC1 / XPF\nnucleotide-excision repair"];
+        GSH_MT    [label = "Glutathione ·\nmetallothionein\n(detoxification)"];
+        OCT2      [label = "OCT2 / SLC22A2 uptake\ninto proximal tubule"];
+        ADDK      [label = "ADDK\nPt adducts, tubule",
+                   shape = box3d, fillcolor = "#c2dcee"];
+        MG        [label = "Renal Mg²⁺ / K⁺ wasting",
+                   shape = ellipse, fillcolor = "#e8f0f8"];
+        OCT_COCH  [label = "Cochlear outer hair cell ·\nstria vascularis · TRPV1"];
+        ADDC      [label = "ADDC\nPt adducts, cochlea\n(repair t½ ≫ therapy)",
+                   shape = box3d, fillcolor = "#c2dcee"];
+        HL        [label = "High-frequency hearing loss\n12.2 dB after MAP\n(SIOP / Brock grade)",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        STS       [label = "Sodium thiosulfate\n(otoprotection; timing\nvs efficacy trade-off)",
+                   shape = invhouse, fillcolor = "#b0d4e8"];
+        AMIFOS    [label = "Amifostine · hydration ·\nMg supplementation",
+                   shape = invhouse, fillcolor = "#b0d4e8"];
+
+        CISDOSE -> CISC -> AQUA; AQUA -> ADDT; ERCC1 -> ADDT [arrowhead = tee];
+        GSH_MT -> AQUA [arrowhead = tee]; CISC -> OCT2 -> ADDK -> MG;
+        CISC -> OCT_COCH -> ADDC -> HL; STS -> ADDC [arrowhead = tee];
+        AMIFOS -> ADDK [arrowhead = tee];
+    }
+    ADDT -> PRIM [arrowhead = tee]; ADDT -> KINT [style = dashed];
+    ADDK -> KID [arrowhead = tee, color = "#c00000", penwidth = 1.8,
+                 label = "  the SHARED ceiling:\n  cisplatin lowers the\n  kidney that methotrexate\n  needs for 11 more courses",
+                 fontcolor = "#c00000"];
+
+    /* ===================================================================
+       11. IFOSFAMIDE / ETOPOSIDE — THE ESCALATION ARM
+       =================================================================== */
+    subgraph cluster_ie {
+        label = "⑪ 이포스파미드 · 에토포시드 (MAPIE escalation — buys cycles by giving up backbone)";
+        style = "filled"; color = "#b0b0b0"; fillcolor = "#f4f4f4";
+        fontsize = 12; fontcolor = "#3a3a3a";
+        node [fillcolor = "#e2e2e2", color = "#8a8a8a"];
+
+        IFODOSE   [label = "Ifosfamide 2.8 g/m²/d ×5\n×5 cycles (14 g/m²/cycle)",
+                   shape = invhouse, fillcolor = "#d0d0d0"];
+        CYP3A4    [label = "CYP3A4 / CYP2B6\n4-hydroxylation"];
+        IFOA      [label = "IFOA\n4-OH-ifosfamide →\nisophosphoramide mustard",
+                   shape = box3d, fillcolor = "#d8d8d8"];
+        ACROLEIN  [label = "Acrolein\n(haemorrhagic cystitis)"];
+        CAA       [label = "Chloroacetaldehyde\n(neuro- and nephrotoxic)"];
+        MESNA     [label = "Mesna",
+                   shape = invhouse, fillcolor = "#d0d0d0"];
+        ETODOSE   [label = "Etoposide 100 mg/m²/d ×5",
+                   shape = invhouse, fillcolor = "#d0d0d0"];
+        ETOC      [label = "ETOC\nTOP2 catalytic poison",
+                   shape = box3d, fillcolor = "#d8d8d8"];
+        SECAML    [label = "Secondary AML / MDS\n(11q23, balanced\ntranslocations)",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        FANCONI   [label = "Fanconi syndrome ·\nifosfamide encephalopathy",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        TRADEOFF  [label = "THE TRADE, NOT THE ADDITION\n−1 doxorubicin, −1 cisplatin,\n+5 IE cycles, RDI 90%,\ncourses on schedule 76%",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+
+        IFODOSE -> CYP3A4 -> IFOA; IFOA -> ACROLEIN; IFOA -> CAA;
+        MESNA -> ACROLEIN [arrowhead = tee]; ACROLEIN -> FANCONI; CAA -> FANCONI;
+        ETODOSE -> ETOC -> SECAML; IFOA -> TRADEOFF; ETOC -> TRADEOFF;
+    }
+    IFOA -> PRIM [arrowhead = tee]; ETOC -> PRIM [arrowhead = tee];
+    CAA -> KID [arrowhead = tee, color = "#b03030"];
+
+    /* ===================================================================
+       12. BONE-DIRECTED, IMMUNE AND ANTI-ANGIOGENIC AGENTS
+       =================================================================== */
+    subgraph cluster_other {
+        label = "⑫ 골표적 · 면역 · 항혈관 약제 (Bone-directed, immune and anti-angiogenic agents — the negative trials)";
+        style = "filled"; color = "#c4b08f"; fillcolor = "#f9f6ee";
+        fontsize = 12; fontcolor = "#5a4a20";
+        node [fillcolor = "#eae2cc", color = "#a89660"];
+
+        ZOL       [label = "Zoledronate 4 mg q4w\n(OS2006)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        DENO      [label = "Denosumab 120 mg q4w\n(anti-RANKL mAb)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        MIFA      [label = "Mifamurtide (L-MTP-PE)\n2 mg/m² 2×/wk → 1×/wk\n(INT-0133)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        REGO      [label = "Regorafenib · cabozantinib ·\nlenvatinib · apatinib\n(REGOBONE, CABONE)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        IFNA      [label = "Pegylated interferon α-2b\n(MAPifn arm, EURAMOS-1)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        CHECKPT   [label = "Pembrolizumab · nivolumab\n(low TMB, cold tumour)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        GEMDOC    [label = "Gemcitabine/docetaxel ·\nhigh-dose ifosfamide\n(relapse)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        SAMARIUM  [label = "¹⁵³Sm-EDTMP · ²²³Ra\n(bone-seeking radionuclide)",
+                   shape = invhouse, fillcolor = "#ddd2b0"];
+        TWOREAD   [label = "TWO READ-OUTS, TWO INTEGRALS\nzoledronate cuts osteoclast\ndrive 25% and ALP 61%,\nand moves log-kill by −0.00",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+
+        ZOL -> TWOREAD; DENO -> TWOREAD;
+    }
+    ZOL -> OCL [arrowhead = tee, penwidth = 1.3];
+    DENO -> RANKL [arrowhead = tee, penwidth = 1.3];
+    MIFA -> NOD2 [penwidth = 1.4, color = "#1f7a4d"];
+    MIFA -> M2 [arrowhead = tee, color = "#1f7a4d"];
+    REGO -> VEGFR2 [arrowhead = tee]; IFNA -> CTL; CHECKPT -> PDL1 [arrowhead = tee];
+    GEMDOC -> PRIM [arrowhead = tee]; SAMARIUM -> PRIM [arrowhead = tee];
+
+    /* ===================================================================
+       13. TOXICITY GOVERNOR — THE PROTOCOL GO / NO-GO GATES
+       =================================================================== */
+    subgraph cluster_tox {
+        label = "⑬ 독성 · 용량 강도 조절기 (The governor — go/no-go gates are where escalation SPENDS the budget)";
+        style = "filled"; color = "#cf9f7e"; fillcolor = "#fbf2ec";
+        fontsize = 12; fontcolor = "#6b3a1f";
+        node [fillcolor = "#f2ddcc", color = "#a86f49"];
+
+        PROL      [label = "PROL\nproliferating marrow\n(Friberg, MTT 125 h)",
+                   shape = box3d, fillcolor = "#eecdb4"];
+        TR123     [label = "TR1 → TR2 → TR3\nmaturation transit chain"];
+        CIRC      [label = "CIRC\ncirculating ANC\nnadir 0.39 ×10⁹/L on MAP",
+                   shape = box3d, fillcolor = "#eecdb4"];
+        FBK       [label = "Feedback (CIRC0/CIRC)^0.17 ·\nG-CSF"];
+        MUC       [label = "MUC\nmucositis grade 0–4\n(peak 2.1 on MAP)",
+                   shape = box3d, fillcolor = "#eecdb4"];
+        FN        [label = "Febrile neutropenia ·\nline sepsis",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        GATE      [label = "GO / NO-GO GATES\nMTX: ANC ≥ 0.75, MUC < 3, KID ≥ 0.60\nAP: ANC ≥ 1.0 · IE: ANC ≥ 1.0\nDOX: LVEF ≥ 50%",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+        DEFER     [label = "Deferral (≤2 wk) at −25% dose\n→ omission beyond that"];
+        RDI       [label = "Relative dose intensity\nMAP 100% · MAPIE 90%",
+                   shape = ellipse, fillcolor = "#fce8d8"];
+        TRM       [label = "TRM\ntreatment-related mortality\n= infection×mucositis + renal\n+ cardiac + baseline",
+                   shape = box3d, fillcolor = "#e8b48c"];
+
+        PROL -> TR123 -> CIRC -> FBK -> PROL; CIRC -> FN;
+        CIRC -> GATE; MUC -> GATE; GATE -> DEFER -> RDI;
+        CIRC -> TRM; MUC -> TRM;
+    }
+    MPGM -> PROL [arrowhead = tee]; MPGM -> MUC;
+    DOXC -> PROL [arrowhead = tee]; CISC -> PROL [arrowhead = tee];
+    ETOC -> PROL [arrowhead = tee]; IFOA -> PROL [arrowhead = tee];
+    KID -> GATE; KID -> TRM; LVEF -> GATE; CMV -> TRM;
+    RDI -> KINT [label = "the budget the\nescalation spends", style = dashed,
+                 color = "#c00000", fontcolor = "#c00000"];
+
+    /* ===================================================================
+       14. LOCAL CONTROL AND SURGERY
+       =================================================================== */
+    subgraph cluster_surg {
+        label = "⑭ 국소 치료 (Local control — where the primary leaves the model at week 11)";
+        style = "filled"; color = "#9f9fcf"; fillcolor = "#f0f0f9";
+        fontsize = 12; fontcolor = "#33336b";
+        node [fillcolor = "#dcdcf0", color = "#6f6fa8"];
+
+        SURGERY   [label = "Wide en-bloc resection,\nweek 11",
+                   shape = invhouse, fillcolor = "#c8c8e8"];
+        MARGIN    [label = "Margin status\n(R0 vs R1)"];
+        LIMBSALV  [label = "Limb salvage vs amputation ·\nendoprosthesis ·\nrotationplasty",
+                   shape = ellipse, fillcolor = "#e8e8f6"];
+        HUVOS     [label = "HUVOS NECROSIS %\n= NEC/(NEC+PRIM) at week 11\n≥ 90% = good responder\n(MAP: 90.3%)",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+        LOCALREC  [label = "Local recurrence",
+                   shape = ellipse, fillcolor = "#fde8e8"];
+        MSTS      [label = "MSTS / TESS\nfunctional score",
+                   shape = ellipse, fillcolor = "#e8e8f6"];
+        RT        [label = "Proton / carbon-ion RT\n(axial, unresectable)",
+                   shape = invhouse, fillcolor = "#c8c8e8"];
+
+        SURGERY -> MARGIN -> LOCALREC; SURGERY -> LIMBSALV -> MSTS;
+        MARGIN -> HUVOS [style = invis]; RT -> LOCALREC [arrowhead = tee];
+    }
+    PRIM -> SURGERY; NEC -> HUVOS; PRIM -> HUVOS;
+    HUVOS -> KINT [label = "  r = 0.97 — the SAME parameter,\n  read twice; PROGNOSTIC but\n  MANIPULABLE, so it must not\n  drive the treatment decision",
+                   style = bold, color = "#c00000", fontcolor = "#c00000",
+                   penwidth = 1.8, constraint = false];
+    ZOL -> LOCALREC [label = "OS2006:\nworse local control",
+                     color = "#b03030", fontcolor = "#b03030"];
+
+    /* ===================================================================
+       15. CLINICAL ENDPOINTS
+       =================================================================== */
+    subgraph cluster_end {
+        label = "⑮ 임상 종말점 (Clinical endpoints — read the SURVIVAL column, not the kill column)";
+        style = "filled"; color = "#cf7e7e"; fillcolor = "#fdeeee";
+        fontsize = 12; fontcolor = "#6b1f1f";
+        node [shape = ellipse, fillcolor = "#f8d8d8", color = "#a84949"];
+
+        EFS       [label = "EFS / RFS\n(the randomised endpoint)"];
+        OSURV     [label = "OVERALL SURVIVAL\n= cure × (1 − TRM)\nMAP 0.596 · surgery alone 0.168",
+                   shape = doubleoctagon, fillcolor = "#f0a0a0", color = "#8a2020"];
+        LATEEFF   [label = "Late effects: cardiomyopathy,\nhearing loss, CKD, infertility,\nsecondary malignancy"];
+        HRQOL     [label = "HRQoL · growth arrest ·\nlimb-length discrepancy"];
+        RELAPSE   [label = "Pulmonary relapse\n(median ~1.5 y)"];
+        INDIFF    [label = "THE INDIFFERENCE CURVE\nunder-hydration buys +0.4 log10\nof kill and pays 12% TRM:\nsurvival 0.595 vs 0.596",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+        POWER     [label = "THE DETECTABILITY WALL\n+0.2 log = +2 points of survival\n→ 2764 per arm needed;\nEURAMOS-1 randomised 618",
+                   shape = doubleoctagon, fillcolor = "#f0c03c", color = "#8a6a10"];
+        TAILFIX   [label = "WHAT WOULD WORK\nspend the same total log-kill\non the bottom quartile of\nachieved exposure, not on everyone",
+                   shape = note, fillcolor = "#e6f6e6", color = "#2f7a2f"];
+
+        EFS -> OSURV; RELAPSE -> EFS; LATEEFF -> HRQOL;
+        INDIFF -> OSURV; POWER -> EFS; TAILFIX -> OSURV;
+    }
+    CURE -> EFS; CURE -> OSURV; TRM -> OSURV [penwidth = 1.6, color = "#c00000"];
+    LMET -> RELAPSE; HL -> LATEEFF; LVEF -> LATEEFF; KID -> LATEEFF;
+    SECAML -> LATEEFF; LOCALREC -> EFS; LUNGMET -> EFS;
+    HUVOS -> EFS [label = "prognostic", style = dashed];
+    RDI -> POWER [style = dashed]; TRM -> INDIFF [style = dashed];
+
+    /* ===================================================================
+       LEGEND
+       =================================================================== */
+    subgraph cluster_legend {
+        label = "범례 (Legend)";
+        style = "filled"; color = "#9a9a9a"; fillcolor = "#fafafa";
+        fontsize = 12; fontcolor = "#333333";
+        node [fontsize = 9];
+
+        L1 [label = "ODE state variable", shape = box3d, fillcolor = "#ffffff",
+            color = "#666666"];
+        L2 [label = "Dose / intervention input", shape = invhouse,
+            fillcolor = "#ffffff", color = "#666666"];
+        L3 [label = "Derived result of the model", shape = doubleoctagon,
+            fillcolor = "#f0c03c", color = "#8a6a10"];
+        L4 [label = "Measured clinical endpoint", shape = ellipse,
+            fillcolor = "#f8d8d8", color = "#a84949"];
+        L5 [label = "Closed-form note / anchor", shape = note,
+            fillcolor = "#fff2c9", color = "#b08a20"];
+        L6 [label = "activation →   inhibition ⊣\nred = the destructive loop\ngreen = the protective term",
+            shape = plaintext, fillcolor = "#fafafa"];
+        L1 -> L2 -> L3 -> L4 -> L5 -> L6 [style = invis];
+    }
+}
