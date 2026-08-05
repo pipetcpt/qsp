@@ -1,0 +1,641 @@
+/* ===========================================================================
+   Pyruvate Kinase Deficiency (PKLR)  --  Congenital Non-Spherocytic
+   Haemolytic Anaemia
+   Quantitative Systems Pharmacology mechanistic map
+   ---------------------------------------------------------------------------
+   ORGANISING IDEA OF THIS MAP
+   ---------------------------------------------------------------------------
+   Pyruvate kinase is the LAST ATP-generating step of glycolysis, and it sits
+   DOWNSTREAM of the branch point (1,3-bisphosphoglycerate) that feeds the
+   Rapoport-Luebering shunt.  One lesion therefore drives two quantities in
+   OPPOSITE physiological directions:
+
+        PK activity DOWN  ->  ATP DOWN     ->  cation pumps fail, cell dies
+        PK activity DOWN  ->  2,3-BPG UP   ->  oxygen dissociation curve shifts
+                                               RIGHT, so every surviving gram
+                                               of haemoglobin delivers MORE O2
+
+   This map refuses to merge those two limbs into one "severity" axis.  They are
+   drawn as two separate trunks out of the same node (PK_R) and they arrive at
+   the clinical endpoints from opposite sides:
+
+     * the ATP trunk  -> haemolysis -> anaemia, bilirubin, iron, gallstones
+     * the 2,3-BPG trunk -> P50 -> tissue oxygen delivery
+
+   Consequence, drawn explicitly as the two red edges into O2_DELIVERY: a drug
+   that restores PK activity RAISES haemoglobin and LOWERS P50 at the same time.
+   Those effects on oxygen transport have opposite signs and partially cancel,
+   so HAEMOGLOBIN IS NOT A SUFFICIENT STATISTIC for the physiological benefit -
+   which matters, because haemoglobin response is the registrational endpoint of
+   every trial in this disease (ACTIVATE, ACTIVATE-T, DRIVE-PK).
+
+   The second organising choice is that CELL AGE is an explicit axis.  Mutant
+   PK-R protein is thermolabile and cannot be resynthesised in an anucleate
+   cell, so the lesion DEEPENS as a cell ages (RBC_AGE cluster).  Three
+   therapies act on three different parts of that axis, which is why they have
+   qualitatively different kinetics and different biomarker signatures:
+
+     splenectomy  -> removes a hazard aimed at the YOUNGEST cells
+     PK activator -> multiplies activity in cells that still HAVE protein
+     gene therapy -> replaces the axis, but only from the newest cohort onward
+
+   Node shapes:  box       = state variable in the mrgsolve model
+                 ellipse   = mediator / metabolite / signal
+                 hexagon   = drug or intervention
+                 octagon   = measured clinical endpoint / biomarker
+                 diamond   = genotype or constitutional modifier
+                 trapezium = physical / anatomical compartment
+
+   Edge colours: black  = mass flow / conversion
+                 blue   = activation, positive regulation
+                 red    = inhibition, destruction, negative regulation
+                 green  = drug action
+                 purple = the 2,3-BPG / oxygen-affinity trunk
+                 orange = iron and haem catabolism trunk
+                 grey   = measurement / assay relationship
+   ===========================================================================*/
+
+digraph PKD_QSP {
+  graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.24,
+         ranksep=0.52, fontname="Helvetica", fontsize=11, compound=true,
+         bgcolor="white", labelloc=t, fontsize=20,
+         label="Pyruvate Kinase Deficiency (PKLR) — QSP mechanistic map\nglycolytic ATP failure and the Rapoport–Luebering shunt as two opposing trunks from one lesion"];
+  node  [fontname="Helvetica", fontsize=10, style="filled", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, penwidth=1.0];
+
+  /* ======================= 1. GENOTYPE ================================== */
+  subgraph cluster_gene {
+    label="1 · PKLR locus and genotype";
+    style="filled,rounded"; fillcolor="#f4f0fa"; color="#6a4c93"; fontsize=13;
+    node [shape=diamond, fillcolor="#e6dcf5", color="#6a4c93"];
+    PKLR      [label="PKLR\n1q22, erythroid P1 promoter"];
+    MISSENSE  [label="missense variant\n(protein made, allosteric\nsite often intact)"];
+    NONMISS   [label="non-missense / null\n(splice, frameshift,\nlarge deletion)"];
+    COMPHET   [label="compound heterozygote\n(~2/3 of patients)"];
+    THERMO    [label="thermolability\nτ_PK of mutant protein"];
+    FBPBIND   [label="FBP-site variant\n(feed-forward loop lost)"];
+    ACTIVATABLE [label="activatable protein\nfraction  (0 if null)"];
+    UGT1A1    [label="UGT1A1 *28\nco-inherited Gilbert"];
+    ALPHATHAL [label="modifiers: α-thalassaemia,\nHFE, ATP7B"];
+    PKLR -> MISSENSE; PKLR -> NONMISS; PKLR -> COMPHET;
+    MISSENSE -> THERMO; MISSENSE -> FBPBIND;
+    MISSENSE -> ACTIVATABLE [color=blue];
+    NONMISS  -> ACTIVATABLE [color=red, label="no protein"];
+  }
+
+  /* ======================= 2. GLYCOLYSIS ================================ */
+  subgraph cluster_gly {
+    label="2 · Embden–Meyerhof pathway in the erythrocyte (the only ATP source)";
+    style="filled,rounded"; fillcolor="#eef6ff"; color="#1f6fb2"; fontsize=13;
+    node [shape=ellipse, fillcolor="#d9ecff", color="#1f6fb2"];
+    GLC   [label="glucose (GLUT1)"];
+    G6P   [label="glucose-6-P"];
+    F6P   [label="fructose-6-P"];
+    FBP   [label="fructose-1,6-BP\n(FBP)"];
+    TRIOSE[label="DHAP ⇄ GAP"];
+    BPG13 [label="1,3-BPG\nBRANCH POINT"];
+    PG3   [label="3-PG"];
+    PG2   [label="2-PG"];
+    PEP   [label="PEP"];
+    PYR   [label="pyruvate"];
+    LAC   [label="lactate → efflux"];
+    node [shape=box, fillcolor="#bcdcff", color="#14548a"];
+    HK    [label="hexokinase\n−1 ATP"];
+    PFK   [label="PFK-1\n−1 ATP"];
+    ALDO  [label="aldolase"];
+    GAPDH [label="GAPDH\nNAD⁺→NADH"];
+    PGK   [label="PGK\n+1 ATP  (near equilibrium)"];
+    PGAM  [label="phosphoglycerate mutase"];
+    ENO   [label="enolase"];
+    PK_R  [label="PYRUVATE KINASE R\n+1 ATP   ← THE LESION", fillcolor="#ff9d9d", color="#a01d1d", penwidth=2.4];
+    LDH   [label="LDH\nNADH→NAD⁺"];
+    GLC->HK->G6P->F6P; F6P->PFK->FBP->ALDO->TRIOSE->GAPDH->BPG13;
+    BPG13->PGK->PG3->PGAM->PG2->ENO->PEP->PK_R->PYR->LDH->LAC;
+  }
+
+  /* ================ 3. RAPOPORT–LUEBERING SHUNT ========================= */
+  subgraph cluster_shunt {
+    label="3 · Rapoport–Luebering shunt — the ATP-free bypass, and the oxygen-affinity trunk";
+    style="filled,rounded"; fillcolor="#f7effa"; color="#7b2d8e"; fontsize=13;
+    node [shape=box, fillcolor="#ecd6f5", color="#7b2d8e"];
+    BPGM_S [label="BPGM synthase\n1,3-BPG → 2,3-BPG\n(NO ATP made here)"];
+    BPGM_P [label="BPGM phosphatase\n2,3-BPG → 3-PG"];
+    node [shape=ellipse, fillcolor="#f0e0f8"];
+    DPG_F  [label="2,3-BPG  FREE\n(what the enzymes see)"];
+    DPG_B  [label="2,3-BPG bound to\ndeoxyHb central cavity"];
+    DPG_T  [label="2,3-BPG TOTAL\n(what the lab measures)"];
+    PHI    [label="shunt fraction φ\n= ATP yield sacrificed"];
+    BPGM_S -> DPG_F [color=purple];
+    DPG_F -> BPGM_P [color=purple];
+    DPG_F -> DPG_T [color=purple]; DPG_B -> DPG_T [color=purple];
+    DPG_F -> DPG_B [color=purple, dir=both, label="Kd≈30 µM"];
+    BPGM_S -> PHI [color=purple];
+  }
+
+  /* ============== 4. ADENYLATE POOL ===================================== */
+  subgraph cluster_aden {
+    label="4 · Adenylate pool — not conserved: the red cell can only lose it";
+    style="filled,rounded"; fillcolor="#fff8e8"; color="#b07d1a"; fontsize=13;
+    node [shape=ellipse, fillcolor="#ffeec2", color="#b07d1a"];
+    ATP   [label="ATP", fillcolor="#ffd980", penwidth=2.0];
+    ADP   [label="ADP"];
+    AMP   [label="AMP"];
+    ATOT  [label="total adenylate\n(falls with cell age)"];
+    IMP   [label="IMP → inosine →\nhypoxanthine  (EXPORTED,\nirreversible)"];
+    node [shape=box, fillcolor="#ffe0a0"];
+    AK    [label="adenylate kinase\n2 ADP ⇄ ATP + AMP"];
+    AMPD3 [label="AMP deaminase 3"];
+    NT5C3 [label="5′-nucleotidase"];
+    ATP->AK->ADP [dir=both]; AK->AMP [dir=both];
+    AMP->AMPD3->IMP [color=red]; AMP->NT5C3->IMP [color=red];
+    IMP->ATOT [color=red, label="pool drain"];
+    ATOT->ATP [color=blue];
+  }
+
+  /* ============== 5. REDOX / PENTOSE PHOSPHATE ========================== */
+  subgraph cluster_redox {
+    label="5 · Redox arm (parallel branch, shares the same G6P)";
+    style="filled,rounded"; fillcolor="#eefaf1"; color="#1e7a45"; fontsize=13;
+    node [shape=box, fillcolor="#c9eed6", color="#1e7a45"];
+    G6PD  [label="G6PD"];
+    GR    [label="glutathione reductase"];
+    GPX   [label="glutathione peroxidase"];
+    node [shape=ellipse, fillcolor="#ddf5e4"];
+    NADPH [label="NADPH"];
+    GSH   [label="GSH"];
+    ROS   [label="ROS / peroxide"];
+    METHB [label="methaemoglobin"];
+    MEMBOX[label="membrane lipid and\nband-3 oxidation"];
+    G6PD->NADPH->GR->GSH; GSH->GPX; GPX->ROS [color=red];
+    ROS->MEMBOX [color=red]; ROS->METHB [color=red];
+  }
+
+  /* ============== 6. CATION / VOLUME HOMEOSTASIS ======================== */
+  subgraph cluster_cation {
+    label="6 · Cation and volume homeostasis — how an ATP deficit becomes a dead cell";
+    style="filled,rounded"; fillcolor="#fdf0f0"; color="#a01d1d"; fontsize=13;
+    node [shape=box, fillcolor="#fbd5d5", color="#a01d1d"];
+    NAKATP [label="Na⁺/K⁺-ATPase"];
+    CAATP  [label="Ca²⁺-ATPase (PMCA)"];
+    GARDOS [label="Gárdos channel (KCNN4)"];
+    PIEZO  [label="PIEZO1"];
+    FLIP   [label="flippase (ATP-dependent)"];
+    node [shape=ellipse, fillcolor="#fde3e3"];
+    KLEAK  [label="K⁺ loss"];
+    NAIN   [label="Na⁺ gain"];
+    CAIN   [label="Ca²⁺ influx"];
+    DEHYD  [label="cell dehydration\nMCHC ↑, MCV ↓"];
+    DEFORM [label="loss of deformability"];
+    PSEXP  [label="phosphatidylserine\nexposure (eryptosis)"];
+    ECHINO [label="echinocytes,\nspiculated cells"];
+    NAKATP->KLEAK [color=red]; NAKATP->NAIN [color=red];
+    CAATP->CAIN [color=red]; CAIN->GARDOS [color=blue]; GARDOS->KLEAK [color=blue];
+    PIEZO->CAIN [color=blue];
+    KLEAK->DEHYD; NAIN->DEHYD; DEHYD->DEFORM; DEHYD->ECHINO;
+    FLIP->PSEXP [color=red]; CAIN->PSEXP [color=blue];
+  }
+
+  /* ============== 7. RED CELL AGE AXIS ================================== */
+  subgraph cluster_age {
+    label="7 · Red cell age axis — the lesion deepens with age (14 cohorts in the model)";
+    style="filled,rounded"; fillcolor="#f2f2f2"; color="#444444"; fontsize=13;
+    node [shape=box, fillcolor="#dcdcdc", color="#444444"];
+    RET1  [label="reticulocyte 0–0.5 d\nmitochondria present,\nhighest pump load"];
+    RET2  [label="reticulocyte 0.5–1 d"];
+    MAT_Y [label="young discocyte\n1–30 d"];
+    MAT_M [label="mid-life discocyte\n30–70 d"];
+    MAT_O [label="old discocyte\n70–120 d\nPK protein largely gone"];
+    SENESC[label="senescence / clearance"];
+    node [shape=ellipse, fillcolor="#eaeaea"];
+    PKDECAY [label="PK-R protein decay\nexp(−age/τ_PK)"];
+    MITORET [label="reticulocyte\nmitochondrial ATP subsidy\n(lost in hypoxia)"];
+    MATFAC  [label="maturation factor\n(shift reticulocytes:\nresidence 1 → 4 d)"];
+    RET1->RET2->MAT_Y->MAT_M->MAT_O->SENESC;
+    PKDECAY->MAT_O [color=red, label="deepening lesion"];
+    MATFAC->RET1 [color=blue];
+  }
+
+  /* ============== 8. SPLEEN ============================================= */
+  subgraph cluster_spleen {
+    label="8 · Splenic red pulp — a metabolic stress test, aimed at the youngest cells";
+    style="filled,rounded"; fillcolor="#f0f7ee"; color="#4a7c2f"; fontsize=13;
+    node [shape=trapezium, fillcolor="#d8ecc9", color="#4a7c2f"];
+    REDPULP [label="red pulp cords\nglucose-poor, acidotic,\nhypoxic, slow transit"];
+    SINUS   [label="sinusoidal slits\n(mechanical filter)"];
+    node [shape=ellipse, fillcolor="#e6f3dc"];
+    SPLATP  [label="ATP measured UNDER\nsplenic conditions"];
+    RETRET  [label="reticulocyte RETENTION\n(organelle stripping):\nexposure ×6"];
+    SPLTRAP [label="splenic trapping\n& destruction"];
+    node [shape=box, fillcolor="#cfe8bd"];
+    SPLVOL  [label="spleen volume\n(work-driven hypertrophy)"];
+    HYPERSPL[label="hypersplenism\n(cytopenias)"];
+    REDPULP->SPLATP [color=red]; SINUS->SPLTRAP;
+    SPLATP->SPLTRAP [color=red]; RETRET->SPLTRAP [color=red];
+    SPLTRAP->SPLVOL [color=blue]; SPLVOL->SPLTRAP [color=blue, label="positive feedback"];
+    SPLVOL->HYPERSPL;
+  }
+
+  /* ============== 9. LIVER / RES ======================================== */
+  subgraph cluster_res {
+    label="9 · Extravascular haemolysis outside the spleen (why splenectomy is only partial)";
+    style="filled,rounded"; fillcolor="#fff4ec"; color="#b5651d"; fontsize=13;
+    node [shape=trapezium, fillcolor="#ffe0c8", color="#b5651d"];
+    KUPFFER [label="hepatic Kupffer cells"];
+    MARROWMAC [label="marrow macrophages"];
+    node [shape=ellipse, fillcolor="#ffeadd"];
+    EXTRAV [label="extravascular\nhaemolysis (dominant)"];
+    INTRAV [label="intravascular haemolysis\n(~10%)"];
+    HAEM   [label="haem release"];
+    HO1    [label="haem oxygenase-1"];
+    KUPFFER->EXTRAV; MARROWMAC->EXTRAV; EXTRAV->HAEM; INTRAV->HAEM;
+    HAEM->HO1 [color=orange];
+  }
+
+  /* ============== 10. MARROW =========================================== */
+  subgraph cluster_marrow {
+    label="10 · Bone marrow erythropoiesis";
+    style="filled,rounded"; fillcolor="#fdf2f8"; color="#a3327c"; fontsize=13;
+    node [shape=box, fillcolor="#f9d6ea", color="#a3327c"];
+    BFUE  [label="BFU-E"];
+    CFUE  [label="CFU-E"];
+    EB_E  [label="early erythroblast\n(proliferating, ×64 max)"];
+    EB_L  [label="late erythroblast\n(mitochondria still present)"];
+    MARROWRET [label="marrow reticulocyte"];
+    node [shape=ellipse, fillcolor="#fbe4f2"];
+    AMPLIF [label="amplification\n(division number)"];
+    IEO    [label="ineffective erythropoiesis\n(erythroblast apoptosis)"];
+    MITOEB [label="oxidative ATP in erythroblasts\n→ PK lesion costs them LESS"];
+    EMH    [label="extramedullary\nhaematopoiesis"];
+    MARROWEXP [label="marrow cavity expansion\n→ skeletal change"];
+    BFUE->CFUE->EB_E->EB_L->MARROWRET;
+    AMPLIF->EB_E [color=blue]; IEO->EB_L [color=red];
+    MITOEB->IEO [color=red, label="protects"];
+    AMPLIF->EMH [color=blue]; AMPLIF->MARROWEXP [color=blue];
+  }
+
+  /* ============== 11. EPO ============================================== */
+  subgraph cluster_epo {
+    label="11 · Oxygen sensing and erythropoietin";
+    style="filled,rounded"; fillcolor="#eef4fd"; color="#2b4c8c"; fontsize=13;
+    node [shape=ellipse, fillcolor="#d6e4fa", color="#2b4c8c"];
+    RENALO2 [label="renal cortical PO₂"];
+    HIF2A   [label="HIF-2α / PHD2"];
+    EPO     [label="erythropoietin"];
+    EPOR    [label="EPO-R / JAK2-STAT5"];
+    RENALO2->HIF2A [color=red]; HIF2A->EPO [color=blue]; EPO->EPOR [color=blue];
+  }
+
+  /* ============== 12. OXYGEN TRANSPORT ================================= */
+  subgraph cluster_o2 {
+    label="12 · Haemoglobin–oxygen binding: where the two trunks meet and partially cancel";
+    style="filled,rounded"; fillcolor="#f3ecfa"; color="#5b2d8e"; fontsize=13;
+    node [shape=ellipse, fillcolor="#e2d3f5", color="#5b2d8e"];
+    P50    [label="P50\n(26.8 → 32–38 mmHg in PKD)", fillcolor="#cbb2ee", penwidth=2.0];
+    ODC    [label="O₂ dissociation curve\n(Hill, n≈2.7)"];
+    SAO2   [label="arterial SaO₂"];
+    SVO2   [label="venous SvO₂"];
+    EXTRACT[label="O₂ extraction per gram Hb"];
+    PVO2   [label="tissue / venous PO₂"];
+    HBEQ   [label="EQUIVALENT haemoglobin\n(Hb corrected for P50)"];
+    COREQ  [label="required cardiac output"];
+    node [shape=box, fillcolor="#d3c0ef"];
+    CO     [label="cardiac output\n(anaemia compensation)"];
+    BOHR   [label="Bohr effect (pH, CO₂)"];
+    P50->ODC [color=purple]; BOHR->ODC [color=purple];
+    ODC->SAO2 [color=purple]; ODC->SVO2 [color=purple];
+    SAO2->EXTRACT [color=purple]; SVO2->EXTRACT [color=purple];
+    EXTRACT->PVO2 [color=purple]; EXTRACT->HBEQ [color=purple];
+    EXTRACT->COREQ [color=purple]; CO->PVO2 [color=blue];
+  }
+
+  /* ============== 13. ERFE / HEPCIDIN ================================== */
+  subgraph cluster_hep {
+    label="13 · Erythroferrone–hepcidin axis: why PKD loads iron WITHOUT transfusion";
+    style="filled,rounded"; fillcolor="#fff7e6"; color="#a06a00"; fontsize=13;
+    node [shape=ellipse, fillcolor="#ffe9b8", color="#a06a00"];
+    ERFE   [label="erythroferrone (ERFE)\nfrom erythroblasts"];
+    HEPCIDIN [label="hepcidin", fillcolor="#ffd780", penwidth=2.0];
+    BMPSMAD [label="BMP6 / SMAD1-5-8\n(iron-sensing limb)"];
+    IL6    [label="IL-6 / STAT3"];
+    node [shape=box, fillcolor="#ffdf9c"];
+    FPN    [label="ferroportin\n(duodenum + macrophage)"];
+    DMT1   [label="DMT1 / DcytB\nduodenal uptake"];
+    TFR1   [label="transferrin receptor 1"];
+    node [shape=ellipse, fillcolor="#ffefcc"];
+    STFR   [label="soluble transferrin receptor"];
+    TSAT   [label="transferrin saturation"];
+    NTBI   [label="non-transferrin-bound iron"];
+    ERFE->HEPCIDIN [color=red, label="SUPPRESSES"];
+    BMPSMAD->HEPCIDIN [color=blue]; IL6->HEPCIDIN [color=blue];
+    HEPCIDIN->FPN [color=red, label="degrades"];
+    FPN->TSAT [color=orange]; DMT1->TSAT [color=orange];
+    TSAT->NTBI [color=orange, label="only above ~70%"];
+    TFR1->STFR;
+  }
+
+  /* ============== 14. IRON OVERLOAD ==================================== */
+  subgraph cluster_ironload {
+    label="14 · Iron overload and its target organs";
+    style="filled,rounded"; fillcolor="#fdeee6"; color="#8a4b18"; fontsize=13;
+    node [shape=box, fillcolor="#f7d6c2", color="#8a4b18"];
+    LIC    [label="liver iron concentration\n(mg Fe/g dry wt)"];
+    RESFE  [label="macrophage / RES iron"];
+    CARDFE [label="cardiac iron (T2*)"];
+    PANCFE [label="pancreatic / pituitary iron"];
+    node [shape=octagon, fillcolor="#f2c4a8"];
+    FERRITIN [label="serum ferritin"];
+    CIRRH  [label="fibrosis / cirrhosis"];
+    CARDIOMYO [label="iron cardiomyopathy,\narrhythmia"];
+    ENDOCRINOP [label="diabetes, hypogonadism,\nhypothyroidism"];
+    LIC->FERRITIN [color=orange]; LIC->CIRRH [color=orange];
+    CARDFE->CARDIOMYO [color=orange]; PANCFE->ENDOCRINOP [color=orange];
+    RESFE->FERRITIN [color=orange];
+  }
+
+  /* ============== 15. BILIRUBIN ======================================== */
+  subgraph cluster_bili {
+    label="15 · Bilirubin and the hepatobiliary consequences";
+    style="filled,rounded"; fillcolor="#fefbe6"; color="#8a7c10"; fontsize=13;
+    node [shape=ellipse, fillcolor="#f7f0b8", color="#8a7c10"];
+    BILIVERDIN [label="biliverdin"];
+    UCB    [label="unconjugated bilirubin"];
+    CB     [label="conjugated bilirubin"];
+    BILIRUBINOID [label="biliary bilirubin load"];
+    node [shape=box, fillcolor="#f2ea9c"];
+    BVR    [label="biliverdin reductase"];
+    UGT    [label="UGT1A1"];
+    node [shape=octagon, fillcolor="#efe58a"];
+    JAUNDICE [label="jaundice / scleral icterus"];
+    GALLSTONE [label="pigment gallstones (45%)"];
+    CHOLECYST [label="cholecystitis,\nbiliary obstruction"];
+    KERNICTERUS [label="neonatal kernicterus risk"];
+    BILIVERDIN->BVR->UCB; UCB->UGT->CB->BILIRUBINOID;
+    UCB->JAUNDICE; BILIRUBINOID->GALLSTONE [color=orange];
+    GALLSTONE->CHOLECYST; UCB->KERNICTERUS [color=red];
+  }
+
+  /* ============== 16. MITAPIVAT PK/PD ================================== */
+  subgraph cluster_mit {
+    label="16 · Mitapivat (AG-348): two limbs, two time constants";
+    style="filled,rounded"; fillcolor="#eaf7f0"; color="#0f7a52"; fontsize=13;
+    node [shape=hexagon, fillcolor="#a8e6c8", color="#0f7a52", penwidth=2.0];
+    MITAPIVAT [label="MITAPIVAT\n5 / 20 / 50 mg BID"];
+    node [shape=box, fillcolor="#c9eedc"];
+    MIT_GUT [label="gut / absorption"];
+    MIT_C   [label="plasma (central)"];
+    MIT_P   [label="peripheral"];
+    MIT_RBC [label="red cell compartment\n(site of action)"];
+    CYP3A   [label="CYP3A4\n(substrate AND inducer\n→ auto-induction)"];
+    node [shape=ellipse, fillcolor="#dbf4e8"];
+    ALLOSITE [label="dimer–dimer interface\nallosteric pocket"];
+    ACTIVATION [label="LIMB 1: V-type activation\n(hours; needs protein present)"];
+    STABILISE [label="LIMB 2: tetramer\nthermostabilisation\n→ τ_PK longer (weeks)"];
+    AROMATASE [label="aromatase (CYP19A1)\ninhibition"];
+    MITAPIVAT->MIT_GUT->MIT_C->MIT_P [dir=both];
+    MIT_C->MIT_RBC [color=green]; MIT_C->CYP3A [color=green, label="induces"];
+    CYP3A->MIT_C [color=red, label="clears itself faster"];
+    MIT_RBC->ALLOSITE [color=green];
+    ALLOSITE->ACTIVATION [color=green]; ALLOSITE->STABILISE [color=green];
+    MIT_C->AROMATASE [color=red];
+  }
+
+  /* ============== 17. OTHER ACTIVATORS ================================= */
+  subgraph cluster_other {
+    label="17 · Other PK-R activators";
+    style="filled,rounded"; fillcolor="#e8f4f8"; color="#12667a"; fontsize=13;
+    node [shape=hexagon, fillcolor="#b8e0ec", color="#12667a"];
+    ETAVOPIVAT [label="etavopivat (FT-4202)\nonce daily, RBC:plasma ≈ 12"];
+    TEBAPIVAT  [label="tebapivat (AG-946)\nsub-mg once daily"];
+    node [shape=box, fillcolor="#cfe9f2"];
+    ETA_RBC [label="etavopivat in RBC"];
+    TEB_RBC [label="tebapivat in RBC"];
+    ETAVOPIVAT->ETA_RBC [color=green]; TEBAPIVAT->TEB_RBC [color=green];
+  }
+
+  /* ============== 18. DEFINITIVE / SUPPORTIVE THERAPY ================== */
+  subgraph cluster_tx {
+    label="18 · Splenectomy, transfusion, chelation, gene therapy";
+    style="filled,rounded"; fillcolor="#f7f7ea"; color="#6b6b20"; fontsize=13;
+    node [shape=hexagon, fillcolor="#e4e4b8", color="#6b6b20"];
+    SPLENECTOMY [label="SPLENECTOMY\n(median +1.6 g/dL)"];
+    TRANSFUSION [label="RBC transfusion"];
+    CHELATION   [label="deferasirox / deferiprone"];
+    GENETHERAPY [label="lentiviral PKLR gene therapy\n/ base editing"];
+    HSCT        [label="allogeneic HSCT"];
+    CHOLECYSTECTOMY [label="cholecystectomy"];
+    PHOTOTHERAPY [label="phototherapy /\nexchange transfusion"];
+    FOLATE      [label="folate supplementation"];
+    VACCINE     [label="encapsulated-organism\nvaccination + prophylaxis"];
+    node [shape=box, fillcolor="#eeeed0"];
+    DONOR_RBC [label="donor red cells\nnormal PK, 2,3-BPG DEPLETED\nby storage"];
+    CORRECTED [label="corrected cohort\n(wild-type PK,\nonly from the newest cells)"];
+    TRANSFUSION->DONOR_RBC [color=green];
+    GENETHERAPY->CORRECTED [color=green]; HSCT->CORRECTED [color=green];
+    node [shape=octagon, fillcolor="#e0e0b0"];
+    OPSI [label="post-splenectomy sepsis"];
+    SPLTHROMB [label="post-splenectomy thrombosis (11%)"];
+    ALLOIMM [label="alloimmunisation"];
+    SPLENECTOMY->OPSI [color=red]; SPLENECTOMY->SPLTHROMB [color=red];
+    TRANSFUSION->ALLOIMM [color=red]; VACCINE->OPSI [color=red];
+  }
+
+  /* ============== 19. CLINICAL ENDPOINTS =============================== */
+  subgraph cluster_end {
+    label="19 · Clinical endpoints and biomarkers";
+    style="filled,rounded"; fillcolor="#fdecec"; color="#8c1c1c"; fontsize=13;
+    node [shape=octagon, fillcolor="#f9c9c9", color="#8c1c1c"];
+    HB       [label="HAEMOGLOBIN\n(the registrational endpoint)", fillcolor="#f5a3a3", penwidth=2.2];
+    HBRESP   [label="Hb response\n≥1.5 g/dL sustained"];
+    RETIC    [label="reticulocyte %"];
+    TOTBILI  [label="total / indirect bilirubin"];
+    LDH_E    [label="LDH"];
+    HAPTO    [label="haptoglobin"];
+    TXBURDEN [label="transfusion burden\n(units / 24 wk)"];
+    O2DELIV  [label="TISSUE OXYGEN DELIVERY\n(not measured in any trial)", fillcolor="#f5a3a3", penwidth=2.2];
+    FATIGUE  [label="PKDD / PKDIA\nfatigue scores"];
+    SPLSIZE  [label="spleen size"];
+    BMD_E    [label="bone mineral density"];
+    PHT_E    [label="pulmonary hypertension"];
+    LEGULCER [label="leg ulcers"];
+    APLASTIC [label="aplastic crisis (parvovirus B19)"];
+    PKASSAY  [label="assayed red cell PK activity\n(cohort-weighted → can read NORMAL)"];
+    GROWTH   [label="growth failure, pubertal delay"];
+    PREGOUT  [label="pregnancy: anaemia,\nprematurity, hydrops"];
+    HB->HBRESP;
+  }
+
+  /* ============== 20. PERINATAL ======================================== */
+  subgraph cluster_neo {
+    label="20 · Perinatal presentation";
+    style="filled,rounded"; fillcolor="#f0f0fb"; color="#3b3b8c"; fontsize=13;
+    node [shape=octagon, fillcolor="#d5d5f2", color="#3b3b8c"];
+    HYDROPS [label="hydrops fetalis"];
+    NEOJAUND [label="neonatal hyperbilirubinaemia\n(phototherapy 93%)"];
+    EXCHANGE [label="exchange transfusion (46%)"];
+    PREMAT  [label="prematurity"];
+    HBF     [label="HbF: LOW 2,3-BPG affinity\n→ mitigates the P50 shift"];
+    NEOJAUND->EXCHANGE;
+  }
+
+  /* =====================================================================
+     CROSS-CLUSTER WIRING — this is where the model's claims live
+     ===================================================================== */
+
+  /* --- genotype into the enzyme --- */
+  COMPHET -> PK_R  [color=red, penwidth=2.0, label="residual activity α"];
+  THERMO  -> PKDECAY [color=red, penwidth=1.6, label="sets τ_PK"];
+  FBPBIND -> FBP  [color=red, style=dashed, label="feed-forward lost"];
+  ACTIVATABLE -> ACTIVATION [color=green, penwidth=1.8];
+  ACTIVATABLE -> STABILISE  [color=green, penwidth=1.8];
+  UGT1A1 -> UGT [color=red, penwidth=1.6];
+  ALPHATHAL -> LIC [color=orange, style=dashed];
+
+  /* --- TRUNK A: the ATP limb --- */
+  PK_R -> ATP [color=blue, penwidth=2.6, label="TRUNK A: +2 ATP/glucose"];
+  PGK  -> ATP [color=blue, penwidth=1.8];
+  HK   -> ATP [color=red, dir=back, label="−1"];
+  PFK  -> ATP [color=red, dir=back, label="−1"];
+  ATP -> NAKATP [color=blue, penwidth=2.0];
+  ATP -> CAATP  [color=blue];
+  ATP -> FLIP   [color=blue];
+  ATP -> HK     [color=blue, style=dashed, label="substrate"];
+  ATP -> PFK    [color=blue, style=dashed];
+  ATP -> PK_R   [color=red, style=dashed, label="allosteric inhibitor"];
+  ADP -> PK_R   [color=blue, style=dashed, label="co-substrate"];
+  FBP -> PK_R   [color=blue, penwidth=2.0, label="allosteric ACTIVATOR\n(feed-forward)"];
+
+  /* --- TRUNK B: the 2,3-BPG limb --- */
+  BPG13 -> BPGM_S [color=purple, penwidth=2.6, label="TRUNK B: the ATP-free detour"];
+  BPGM_P -> PG3   [color=purple];
+  PEP -> PG2 [style=invis];
+  PG3 -> BPGM_P [color=red, penwidth=2.0, label="3-PG INHIBITS the phosphatase\n→ block also shuts the exit"];
+  ATP -> BPGM_S [color=blue, style=dashed, label="via PGK equilibrium\n(1,3-BPG ∝ 3-PG·ATP/ADP)"];
+  DPG_F -> HK [color=red, label="inhibits"];
+  DPG_F -> PFK [color=red];
+  PHI -> ATP [color=red, penwidth=2.0, label="ATP yield lost:\n2−2φ per glucose"];
+  DPG_T -> P50 [color=purple, penwidth=2.6, label="right shift"];
+  SVO2 -> DPG_B [color=purple, style=dashed, label="desaturation sequesters\n2,3-BPG → total ↑"];
+
+  /* --- adenylate --- */
+  ATP -> AK [style=invis];
+  ATOT -> PKDECAY [style=invis];
+  AMP -> ATOT [color=red, style=dashed];
+
+  /* --- redox shares G6P --- */
+  G6P -> G6PD [color=blue, label="parallel branch"];
+  MEMBOX -> DEFORM [color=red];
+  METHB -> ODC [color=red, style=dashed];
+
+  /* --- ATP failure -> destruction --- */
+  DEHYD -> SPLTRAP [color=red, penwidth=1.8];
+  DEFORM -> SINUS [color=red, penwidth=1.8];
+  PSEXP -> EXTRAV [color=red, penwidth=2.0, label="macrophage recognition"];
+  ATP -> MAT_O [color=red, style=dashed, label="ATP margin falls with age"];
+  MITORET -> RET1 [color=blue];
+  REDPULP -> MITORET [color=red, penwidth=1.8, label="hypoxia withdraws the subsidy\nexactly where load is highest"];
+  RET1 -> RETRET [color=red, penwidth=1.8];
+  SPLTRAP -> RET1 [color=red, penwidth=2.2, label="YOUNGEST cells\nare the target"];
+  SPLTRAP -> MAT_O [color=red, penwidth=1.4];
+  EXTRAV -> MAT_O [color=red, penwidth=1.8];
+  SENESC -> HAEM [color=orange];
+
+  /* --- destruction -> haem -> iron and bilirubin --- */
+  HO1 -> BILIVERDIN [color=orange, penwidth=1.8];
+  HO1 -> RESFE [color=orange, penwidth=1.8];
+  RESFE -> TSAT [color=orange, penwidth=1.8, label="recycling ~25 mg/d"];
+  TSAT -> LIC [color=orange]; NTBI -> LIC [color=orange, penwidth=1.6];
+  NTBI -> CARDFE [color=orange]; NTBI -> PANCFE [color=orange];
+  LIC -> BMPSMAD [color=blue];
+  DONOR_RBC -> RESFE [color=orange, penwidth=1.8, label="200 mg Fe / unit"];
+
+  /* --- anaemia -> EPO -> marrow --- */
+  HB -> RENALO2 [color=blue, penwidth=1.8];
+  PVO2 -> RENALO2 [color=blue, penwidth=1.6];
+  EPOR -> AMPLIF [color=blue, penwidth=2.2];
+  EPOR -> MATFAC [color=blue, penwidth=1.8, label="early release"];
+  MARROWRET -> RET1 [color=black, penwidth=2.0];
+  EB_E -> ERFE [color=blue, penwidth=2.2, label="marrow mass drives ERFE"];
+  EPO -> ERFE [color=blue];
+  EB_E -> TFR1 [color=blue];
+  PK_R -> MITOEB [style=invis];
+  ATP -> IEO [color=red, style=dashed, label="erythroblast ATP margin"];
+  IEO -> BILIVERDIN [color=orange, style=dashed, label="shunt bilirubin"];
+  IEO -> RESFE [color=orange, style=dashed];
+
+  /* --- the endpoint wiring: the model's central claim --- */
+  MAT_Y -> HB [color=black, penwidth=2.2];
+  MAT_M -> HB [color=black, penwidth=1.4];
+  MAT_O -> HB [color=black, penwidth=1.0];
+  DONOR_RBC -> HB [color=black, penwidth=1.6];
+  CORRECTED -> HB [color=black, penwidth=1.6];
+  DONOR_RBC -> DPG_T [color=purple, style=dashed, label="stored blood LOWERS whole-blood\n2,3-BPG for days"];
+  HB -> EXTRACT [color=blue, penwidth=2.4, label="(+) more carrier"];
+  P50 -> EXTRACT [color=purple, penwidth=2.4, label="(+) easier unloading"];
+  HB -> O2DELIV [color=blue, penwidth=2.4, label="(+)"];
+  P50 -> O2DELIV [color=purple, penwidth=2.4, label="(+)"];
+  ACTIVATION -> O2DELIV [color=red, penwidth=2.4, style=bold,
+                         label="THE CANCELLATION:\ndrug raises Hb but LOWERS P50"];
+  O2DELIV -> FATIGUE [color=blue, penwidth=2.0];
+  HB -> FATIGUE [color=blue, style=dashed, label="weak: not the right variable"];
+  HBEQ -> O2DELIV [color=purple];
+  COREQ -> O2DELIV [color=red, style=dashed];
+
+  /* --- other endpoints --- */
+  RET1 -> RETIC [color=grey, penwidth=1.8];
+  MATFAC -> RETIC [color=grey, penwidth=1.6, label="inflates the count"];
+  UCB -> TOTBILI [color=grey, penwidth=1.8];
+  INTRAV -> LDH_E [color=grey, penwidth=1.6];
+  INTRAV -> HAPTO [color=grey, dir=back, penwidth=1.6];
+  INTRAV -> PHT_E [color=red, label="cell-free Hb scavenges NO"];
+  PHT_E -> LEGULCER [color=red];
+  SPLVOL -> SPLSIZE [color=grey];
+  MARROWEXP -> BMD_E [color=red, penwidth=1.6];
+  AMPLIF -> GROWTH [color=red, style=dashed];
+  BFUE -> APLASTIC [color=red, dir=back, label="parvovirus B19 arrests"];
+  DONOR_RBC -> TXBURDEN [color=grey, penwidth=1.8];
+  MAT_Y -> PKASSAY [color=grey, penwidth=2.0,
+                    label="young cells dominate the assay\n→ diagnostic false negative"];
+  RET1 -> PKASSAY [color=grey, penwidth=2.2];
+  ERFE -> STFR [style=invis];
+  ENDOCRINOP -> GROWTH [color=red, style=dashed];
+
+  /* --- therapy wiring --- */
+  SPLENECTOMY -> SPLTRAP [color=green, penwidth=2.4, style=bold, label="removes it"];
+  SPLENECTOMY -> RETIC [color=green, penwidth=2.0, style=bold,
+                        label="RETICULOCYTES RISE\n(they were the victims)"];
+  ACTIVATION -> PK_R [color=green, penwidth=2.6, style=bold, label="×(1+Emax·C/(EC50+C))"];
+  STABILISE -> PKDECAY [color=green, penwidth=2.2, style=bold, label="lengthens τ_PK\n→ reaches OLD cells"];
+  ETA_RBC -> ACTIVATION [color=green, penwidth=1.8];
+  TEB_RBC -> ACTIVATION [color=green, penwidth=1.8];
+  CHELATION -> LIC [color=green, penwidth=2.0];
+  CHELATION -> CARDFE [color=green, penwidth=1.6];
+  CHOLECYSTECTOMY -> GALLSTONE [color=green, penwidth=1.8];
+  FOLATE -> AMPLIF [color=green, style=dashed];
+  PHOTOTHERAPY -> UCB [color=green, penwidth=1.8];
+  CORRECTED -> PKASSAY [color=grey, style=dashed];
+  ACTIVATION -> IEO [color=green, penwidth=1.8, label="relieves ineffective\nerythropoiesis"];
+  ACTIVATION -> ERFE [color=green, penwidth=2.0,
+                      label="→ hepcidin RISES → iron\noverload improves\n(a benefit invisible in Hb)"];
+  AROMATASE -> TESTOSTERONE [color=red, penwidth=1.6];
+
+  /* --- endocrine effect of the drug (male) --- */
+  node [shape=octagon, fillcolor="#f9c9c9", color="#8c1c1c"];
+  TESTOSTERONE [label="serum testosterone ↑,\nestrone/estradiol ↓ (males)"];
+  ALT_E [label="ALT / AST rise (37% on drug)"];
+  MIT_C -> ALT_E [color=red, style=dashed];
+
+  /* --- perinatal wiring --- */
+  UCB -> NEOJAUND [color=red, penwidth=1.8];
+  UGT1A1 -> NEOJAUND [color=red, penwidth=1.8, label="co-inheritance multiplies risk"];
+  EXTRAV -> HYDROPS [color=red, style=dashed];
+  HBF -> P50 [color=purple, style=dashed, label="fetal Hb barely binds 2,3-BPG"];
+  PREMAT -> NEOJAUND [color=red, style=dashed];
+  APLASTIC -> HB [color=red, penwidth=1.8];
+  PREGOUT -> HB [color=red, style=dashed, dir=back];
+
+  /* --- CYP interaction --- */
+  node [shape=hexagon, fillcolor="#a8e6c8", color="#0f7a52"];
+  CYP_COMED [label="strong CYP3A inducer/inhibitor\n(rifampicin, azoles),\nhormonal contraceptives"];
+  CYP_COMED -> CYP3A [color=red, penwidth=1.6, label="two-way interaction"];
+  CYP3A -> CYP_COMED [color=red, style=dashed, label="contraceptive failure risk"];
+}

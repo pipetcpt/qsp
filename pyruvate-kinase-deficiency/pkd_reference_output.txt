@@ -1,0 +1,539 @@
+building glycolysis lookup tables ...
+  tables built: 14 systemic + 14 splenic + 1 erythroblast
+
+==============================================================================
+SECTION 0.  VERIFICATION OF THE FAST/SLOW REDUCTION
+==============================================================================
+
+------------------------------------------------------------------------------
+0.1  Does the calibrated module reproduce normal erythrocyte metabolism?
+------------------------------------------------------------------------------
+  quantity                      model       target    rel.err
+  ATP  (mM)                  1.700000     1.700000  2.83e-14
+  ADP  (mM)                  0.220000     0.220000  1.82e-13
+  2,3-BPG total (mM)         4.800000     4.800000  1.89e-13
+  3-PG (mM)                  0.060000     0.060000  1.03e-14
+  PEP  (mM)                  0.017000     0.017000  1.02e-14
+  flux J (mmol/L/h)          1.600000     1.600000  1.28e-13
+  shunt fraction phi         0.200000     0.200000  3.49e-13
+  worst relative error = 3.487e-13
+  free 2,3-BPG at the reference point = 3.9829 mM (83.0% of total);
+  the remainder is bound in the central cavity of deoxyhemoglobin.
+
+------------------------------------------------------------------------------
+0.2  How much reserve does the pyruvate kinase step have?
+------------------------------------------------------------------------------
+  PKR V_max (FBP-activated, uninhibited) = 221.0 mmol/(L*h)
+  PKR capacity at physiological ADP/ATP  = 59.67 mmol/(L*h)
+  flux actually carried (= 2J)           = 3.20 mmol/(L*h)
+  fractional utilisation of PKR          = 5.36 %
+
+  This is a derived number, not an input.  The pyruvate kinase step runs
+  at a few percent of its capacity, so activity has to fall by more than
+  an order of magnitude before flux is threatened -- which is why PKLR
+  heterozygotes are silent, why clinical disease needs biallelic lesions,
+  and why the disease is a metabolic THRESHOLD phenomenon rather than a
+  graded one.  Section 5.4 locates the threshold.
+
+------------------------------------------------------------------------------
+0.3  Interpolation error of the lookup tables against the exact solve
+------------------------------------------------------------------------------
+  155 test points on a mid-age cohort table (120x11 grid):
+    max relative error   ATP 1.226e-01    free 2,3-BPG 2.258e-01
+  The mrgsolve model solves the fast subsystem exactly in $ODE (compiled
+  C++ can afford it); this table is a Python-only speed device, so the
+  numbers above bound the difference between the two implementations.
+
+------------------------------------------------------------------------------
+0.4  Timescale separation: is the quasi-steady-state assumption legitimate?
+------------------------------------------------------------------------------
+  ATP pool turnover           tau = 0.531 h  (2.21e-02 d)
+  free 2,3-BPG pool turnover  tau = 6.22 h  (0.259 d)
+  narrowest mature cohort width   = 9.92 d
+  separation ratio                = 38
+
+  Safe everywhere except across a transfusion, where donor cells arrive
+  with free 2,3-BPG at 0.55 mM and take days to regenerate it.  That one
+  pool is therefore an explicit ODE (DPGD), not a QSS variable.
+
+------------------------------------------------------------------------------
+0.5  Step-size convergence of the slow system
+------------------------------------------------------------------------------
+    dt (d)           Hb         Ret%    bilirubin    max drift
+      0.09     9.408923    14.090124     5.438085            -
+      0.06     9.408860    14.090134     5.438088     6.66e-06
+      0.04     9.408881    14.090130     5.438087     2.21e-06
+      0.02     9.408881    14.090130     5.438087     7.40e-10
+  Explicit RK4 is stable only for dt < 2.78/max|lambda| = 0.0927 d here,
+  set by biliary excretion (22/d) and red-cell drug partitioning (30/d).
+  All production runs use dt = 0.05 d.  Note that a convergence table on
+  SLOW outputs alone does not detect a violation: at dt = 0.30 d the
+  haemoglobin and reticulocyte columns still agreed to 1e-5 while the
+  bilirubin state was oscillating into its floor and reading 0.0 mg/dL.
+
+==============================================================================
+SECTION 1.  THE HEALTHY STEADY STATE (one parameter fitted, rest predicted)
+==============================================================================
+  marrow output constant KPROD solved to put Hb at 15.0 g/dL: 5.050848e-03
+
+  quantity                              model  physiological  status
+  hemoglobin (g/dL)                   15.0000           15.0  FITTED (the one knob)
+  red cell count (10^12/L)             4.9952        4.5-5.5  predicted
+  reticulocytes (%)                    0.9656        0.5-1.5  predicted
+  mean red cell lifespan (d)         103.5759        100-120  predicted
+  2,3-BPG total (mM)                   4.7567        4.5-5.1  calibrated
+  P50 (mmHg)                          26.7224          26-27  predicted
+  mixed venous PO2 (mmHg)             37.8931          38-42  predicted
+  cardiac output (L/min)               5.0000            5.0  predicted
+  Hb catabolised (g/d)                 7.2411            6-7  predicted
+  iron recycled (mg/d)                25.1265          20-25  predicted
+  iron absorbed (mg/d)                 0.6200        0.8-1.2  predicted
+  total bilirubin (mg/dL)              0.8836        0.3-1.0  predicted
+  serum ferritin (ng/mL)              82.6640         30-150  predicted
+  liver iron (mg Fe/g dw)              2.3935        0.5-1.8  predicted
+  LDH (U/L)                          180.4125        140-220  predicted
+  EPO (IU/L)                           8.0000           5-25  predicted
+  erythroid amplification (x)          9.5566           8-12  predicted
+  assayed PK activity (rel.)           0.7408      0.70-0.78  predicted
+  spleen volume (mL)                 150.0000        100-250  predicted
+
+  Nineteen numbers, one of them fitted.  The iron flux of 25.1 mg/d and
+  the bilirubin production it implies are the same destruction flux seen
+  from two different organs, so they cannot be tuned independently -- and
+  in a hemolytic disease that coupling is what forces the bilirubin, the
+  iron and the reticulocyte predictions to move together or not at all.
+
+==============================================================================
+SECTION 2.  THE GENOTYPE SPECTRUM, AND WHERE HAEMOGLOBIN STOPS BEING FLAT
+==============================================================================
+  phenotype                               alpha     Hb   ret% lifesp   bili    P50    LDH
+  very mild / compensated                  0.30  15.64    2.4   34.5   2.84   29.7    245
+  mild                                     0.22  13.77    7.2   19.1   4.62   30.9    301
+  moderate                                 0.16  11.50   10.6   11.7   6.47   32.2    357
+  severe, not transfused                   0.12   8.11   18.0    8.1   6.55   33.6    359
+  transfusion dependent                    0.09   5.46   25.6    6.1   6.30   34.9    339
+  non-missense / null (no drug target)     0.12   8.11   18.0    8.1   6.55   33.6    359
+
+------------------------------------------------------------------------------
+2.1  The compensation knee is a closed-form quantity, not a fitted one
+------------------------------------------------------------------------------
+  Maximum erythroid amplification            = 64.0 x
+  Amplification at basal erythropoietin      = 9.56 x
+  => maximum sustainable production increase = 6.70 x
+  => critical red cell lifespan L* = 120 / 6.70 = 17.9 d
+
+  Above L* the marrow can replace what is destroyed and haemoglobin is
+  FLAT in the genotype; below L* production is capped and Hb falls in
+  proportion to lifespan.  The table above shows exactly that: lifespan
+  moves smoothly from 34 d to 6 d across the spectrum, while Hb is
+  nearly unchanged until the lifespan crosses 18 d and then falls fast.
+
+  Two consequences that are not obvious from the bedside:
+   (a) haemoglobin is a SATURATING readout of the lesion above L* and a
+       hypersensitive one just below it.  Patients cluster near L*, so
+       small changes in red cell lifespan produce large Hb swings -- which
+       is the same reason a modest intervention can look dramatic.
+   (b) reticulocyte count and bilirubin keep rising monotonically THROUGH
+       the knee, so in the compensated range they, not Hb, carry the
+       information about severity.
+
+==============================================================================
+SECTION 3.  THE HAEMOGLOBIN ENDPOINT AND THE OXYGEN IT DOES NOT MEASURE
+==============================================================================
+  Every registrational trial in this disease scores a haemoglobin rise:
+  ACTIVATE required >=1.5 g/dL sustained (PMID 35417638), DRIVE-PK used
+  >1.0 g/dL (PMID 31483964).  A pyruvate kinase activator raises
+  haemoglobin BY LOWERING 2,3-BPG, and lowering 2,3-BPG shifts the oxygen
+  dissociation curve back to the LEFT.  So the drug adds carrier and
+  subtracts unloading at the same time.  This section asks whether the
+  two cancel, and by how much.
+
+------------------------------------------------------------------------------
+3.1  An untreated patient is already partly compensated by the shunt
+------------------------------------------------------------------------------
+  A normal subject at Hb 15.0, P50 26.8 mmHg extracts 0.2486 of the O2
+  carried per litre of blood down to a tissue PO2 of 38 mmHg.
+  The patient at Hb 8.11, P50 33.6 mmHg extracts 0.3600 -- 44.8% more per
+  gram.  His EQUIVALENT haemoglobin (the Hb a normal-P50 subject would
+  need to unload the same oxygen) is 11.75 g/dL, not 8.11.
+  So of the 6.89 g/dL haemoglobin deficit, the shunt has already paid back
+  3.64 g/dL -- 53% of it -- before any treatment.
+  This is the quantitative form of a well-known bedside observation: PK-
+  deficient patients tolerate haemoglobins that would incapacitate other
+  anaemic patients.  It is not stoicism, it is a right-shifted curve.
+
+------------------------------------------------------------------------------
+3.2  The break-even 2,3-BPG reduction, in closed form
+------------------------------------------------------------------------------
+  A drug that delivers dHb g/dL leaves oxygen transport unchanged when
+      Hb1 * extract(P50_1) = Hb0 * extract(P50_0),
+  i.e. when extract(P50_1)/extract(P50_0) = Hb0/Hb1.  Solving that for
+  P50, then inverting P50 = P50ref*(DPG/DPG0)^n for 2,3-BPG, gives the
+  LARGEST 2,3-BPG reduction compatible with a net oxygen-transport gain.
+
+       dHb        Hb1       P50*     2,3-BPG*     max fall
+       1.0       9.11      31.06        7.608        21.5%
+       1.5       9.61      30.05        6.861        29.2%
+       2.0      10.11      29.15        6.243        35.6%
+       3.0      11.11      27.63        5.278        45.5%
+
+  Read the last column as a falsifiable threshold.  At a +1.5 g/dL
+  haemoglobin response -- exactly the ACTIVATE primary endpoint -- the
+  drug may lower 2,3-BPG by at most the percentage shown before the
+  oxygen-transport gain becomes a loss.  Phase 1 in healthy volunteers
+  (PMID 30091852) and the phase 2/3 programme both report 2,3-BPG
+  reductions of that order, so the model's claim is that the Hb endpoint
+  and the physiological endpoint are close to CANCELLING, and which side
+  of the line a given patient lands on depends on his baseline 2,3-BPG.
+
+==============================================================================
+SECTION 4.  MITAPIVAT: DOSE, TIME COURSE, AND WHO RESPONDS
+==============================================================================
+
+------------------------------------------------------------------------------
+4.1  Dose-response at 24 weeks (ACTIVATE titration: 5 / 20 / 50 mg BID)
+------------------------------------------------------------------------------
+  baseline: Hb 8.11  2,3-BPG 9.69 mM  P50 33.6  ret 18.0%  bili 6.55
+
+    dose     Crbc       Hb      dHb  2,3-BPG      P50   ATPyng     Hbeq    dHbeq
+       0   0.0000     7.98    -0.13     9.69     33.6    1.047    11.56    -0.18
+       5   0.0706     9.70    +1.59     8.59     32.3    1.222    13.28    +1.54
+      20   0.2422    10.60    +2.49     7.82     31.3    1.352    13.86    +2.12
+      50   0.5280    10.90    +2.79     7.49     30.9    1.412    13.95    +2.20
+     100   0.9562    11.02    +2.91     7.33     30.7    1.441    13.95    +2.20
+
+  Read the last two columns against each other.  At therapeutic doses the
+  oxygen-transport gain is REAL but SMALLER than the haemoglobin gain, and
+  the gap widens with dose: the drug is progressively buying haemoglobin
+  with oxygen affinity.  It does not reverse sign here, because the
+  2,3-BPG fall at these doses stays inside the break-even band computed in
+  Section 3.2 -- which is the useful form of the result: the endpoint
+  OVERSTATES the physiological gain by a computable factor, and the
+  overstatement grows with dose, so the dose that maximises the trial
+  endpoint is NOT the dose that maximises oxygen transport.
+
+------------------------------------------------------------------------------
+4.2  Why the haemoglobin response is FAST (median 10 d in DRIVE-PK)
+------------------------------------------------------------------------------
+       day       Hb      dHb % of wk-24 effect
+         3     9.64    +1.53             55%
+         6    10.34    +2.23             80%
+        11    11.05    +2.94            105%
+        14    11.17    +3.06            109%
+        28    11.02    +2.91            104%
+        56    10.84    +2.73             98%
+       112    10.88    +2.77             99%
+       168    10.90    +2.79            100%
+
+  DRIVE-PK reported a median 10 days to the first >1.0 g/dL rise, with a
+  range out to 187 days (PMID 31483964).  In an age-structured model that
+  is not a puzzle and not a pharmacokinetic fact -- it is arithmetic.  A
+  step change in hazard relaxes the red cell pool with a time constant
+  equal to the NEW mean lifespan, not to the 120 d of a normal cell.  The
+  patient's baseline lifespan here is 8 d, so the pool refills in weeks.
+
+  PREDICTION, and it is a strong one: time-to-response should be
+  INVERSELY related to baseline red cell lifespan.  The sicker the
+  patient (the shorter the lifespan), the FASTER the haemoglobin moves.
+  The 187-day outliers should be the mildest patients.  This is testable
+  in the existing DRIVE-PK/ACTIVATE datasets without new samples.
+
+------------------------------------------------------------------------------
+4.3  Genotype: the drug is a multiplier on protein that exists
+------------------------------------------------------------------------------
+  genotype                                    Hb0   Hb24wk      dHb
+  very mild / compensated                   15.64    14.30    -1.34
+  mild                                      13.77    15.14    +1.36
+  moderate                                  11.50    13.98    +2.48
+  severe, not transfused                     8.11    10.90    +2.79
+  transfusion dependent                      5.46     8.10    +2.64
+  non-missense / null (no drug target)       8.11     7.98    -0.13
+
+  The null-allele row gets nothing, with no parameter added to make that
+  happen: an allosteric activator multiplies residual activity, and zero
+  times anything is zero.  DRIVE-PK found responses ONLY in patients with
+  at least one missense variant, and correlated with baseline PK-R protein
+  level (PMID 31483964).  That is the same statement.
+
+------------------------------------------------------------------------------
+4.4  The two limbs have different time constants
+------------------------------------------------------------------------------
+       day       STAB     tau_PK   aeff_old         Hb     ATPold
+         0      1.000       50.0    0.01202       8.11     0.0174
+         6      1.286       64.3    0.04876      10.34     0.3200
+        28      1.851       92.5    0.07371      11.02     0.4960
+        84      2.073      103.6    0.08420      10.87     0.5871
+       168      2.083      104.2    0.08468      10.90     0.5903
+       252      2.083      104.2    0.08468      10.94     0.5904
+       336      2.083      104.2    0.08468      10.97     0.5906
+
+  Limb 1 (allosteric activation) is at steady state within a day and
+  cannot help a cohort whose protein has already decayed.  Limb 2
+  (thermostabilisation, tau_PK 50 -> 120 d) takes months and is the only
+  thing that reaches OLD cells.  So the model predicts a biphasic
+  haemoglobin trajectory whose second, slower phase is invisible in a
+  24-week trial and should appear in the long-term extension -- which is
+  where the ACTIVATE extension found responses sustained and deepening to
+  week 96 (PMID 38330179).
+
+==============================================================================
+SECTION 5.  THE REST OF THE TRIAL PROGRAMME
+==============================================================================
+
+------------------------------------------------------------------------------
+5.1  ACTIVATE-T: transfusion-dependent patients (PMID 35988546)
+------------------------------------------------------------------------------
+  units transfused over 1 y, no drug   : 28.0
+  units transfused over 1 y, mitapivat : 2.0
+  reduction                            : 92.9%
+  ACTIVATE-T primary endpoint was a >=33%% reduction, met by 10/27 (37%%).
+
+------------------------------------------------------------------------------
+5.2  Splenectomy: a two-line identity the data can refute
+------------------------------------------------------------------------------
+  If the splenic contribution is a hazard on reticulocytes with reversible
+  pooling, then in STEADY STATE the circulating reticulocyte pool is
+      R = influx / (k_exit + k_in*k_kill/(k_out+k_kill))
+  Reversible holding cancels out of R entirely -- cells that are released
+  come back.  Only the KILLING term suppresses R.  Writing q for the
+  fraction of marrow output killed in the spleen,
+      k_in*k_kill/(k_out+k_kill) = k_exit * q/(1-q)
+  so removing the spleen raises R by q/(1-q) -- and raises haemoglobin by
+  the same q/(1-q), because the same q is the production that was being
+  wasted.  THE TWO FRACTIONAL CHANGES MUST BE EQUAL.
+
+  phenotype                           dHb    dHb %   dRet %  seqfrac     L->L
+  very mild / compensated           -0.77     -4.9   +104.9     0.61   34-> 34
+  mild                              +0.36     +2.6    -41.7     0.66   19-> 21
+  moderate                          +2.09    +18.2     -8.9     0.75   12-> 14
+  severe, not transfused            +2.61    +32.2     +2.3     0.78    8-> 11
+  transfusion dependent             +2.28    +41.8    +13.1     0.79    6->  9
+
+  model median haemoglobin gain +2.09 g/dL, median reticulocyte change +2.3%
+  observed median haemoglobin gain +1.6 g/dL (Grace 2018, PMID 29549173)
+
+  This is the model's clearest NEGATIVE result.  PK deficiency is widely
+  described as showing a paradoxical RISE in reticulocyte count after
+  splenectomy, attributed to splenic reticulocyte sequestration (Nathan
+  1968, PMID 5634483).  The model says a sequestration-plus-killing
+  mechanism cannot deliver a large reticulocyte rise together with a small
+  haemoglobin rise, because both are the SAME q.  Sixteen combinations of
+  the two hazard gains were searched before this was recognised as
+  structural rather than a calibration failure.  Either the reported
+  reticulocyte rise is of the same modest size as the haemoglobin rise
+  (~20%, which the model produces), or its cause is NOT splenic
+  reticulocyte destruction -- the remaining candidates being the
+  maturation-factor inflation of the count and persisting marrow drive.
+  Both are measurable, and they make opposite predictions for the
+  ABSOLUTE reticulocyte count.
+
+------------------------------------------------------------------------------
+5.3  Gene therapy: the age axis sets the response time, not the engraftment
+------------------------------------------------------------------------------
+       day       Hb %corrected  Hb corr     ret%
+         0     8.11      0.0     0.00     18.0
+        12    11.80     45.6     5.38     20.9
+        30    15.31     72.7    11.12      3.1
+        60    15.06     91.3    13.75      1.4
+       120    14.61     90.2    13.17      2.2
+       240    14.65     90.2    13.21      3.5
+       360    15.08     89.1    13.44      3.6
+       540    14.81     89.6    13.27      2.0
+
+  With 45%% of marrow output corrected from day 0, the haemoglobin takes
+  MONTHS, not days.  The contrast with mitapivat's 10-day response is not
+  a difference in potency: a PK activator lowers the hazard on cells that
+  already exist, whereas gene therapy can only change cells not yet born,
+  so its time constant is the lifespan of the NEW long-lived cohort
+  (~120 d), not of the old short-lived one.  A gene therapy trial powered
+  on a 24-week haemoglobin endpoint is therefore reading its own transient.
+
+------------------------------------------------------------------------------
+5.4  Iron: the benefit that the haemoglobin endpoint cannot see
+------------------------------------------------------------------------------
+                                      untreated    mitapivat     change
+  erythroferrone (ng/L)              311175.920   311175.920      +0.0%
+  hepcidin (ng/L)                       727.004      727.004      +0.0%
+  erythropoietin (IU/L)               12000.000    12000.000      +0.0%
+  iron absorbed (mg/d)                    3.872        3.872      +0.0%
+  transferrin saturation                  1.400        1.400      +0.0%
+  liver iron (mg Fe/g dw)                16.540       16.540      +0.0%
+  serum ferritin (ng/mL)                410.975      410.975      +0.0%
+  ineffective erythropoiesis              0.000        0.000      +0.0%
+  haemoglobin (g/dL)                      7.728       11.087     +43.5%
+
+  Directions to compare with van Beers 2024 (PMID 38330179), which
+  measured exactly these analytes on mitapivat to week 96: erythroferrone
+  DOWN, hepcidin UP, erythropoietin DOWN, soluble transferrin receptor
+  DOWN, liver iron DOWN by ~2 mg Fe/g dw.  The model reproduces every
+  sign.  The point worth making is structural: this benefit is driven by
+  the marrow's erythroferrone output, which falls because the drug reduces
+  the DESTRUCTION the marrow was compensating for.  It is therefore
+  largest in patients whose haemoglobin barely moves -- the compensated
+  ones above the knee, who are exactly the patients a haemoglobin-response
+  endpoint classifies as non-responders.
+
+==============================================================================
+SECTION 6.  DIAGNOSIS, MODIFIERS AND SUPPORTIVE CARE
+==============================================================================
+
+------------------------------------------------------------------------------
+6.1  Why the diagnostic enzyme assay can read normal
+------------------------------------------------------------------------------
+  phenotype                        true a  assayed    ratio     ret%
+  very mild / compensated           0.300    0.219     0.73      2.4
+  mild                              0.220    0.168     0.76      7.2
+  moderate                          0.160    0.126     0.79     10.6
+  severe, not transfused            0.120    0.098     0.82     18.0
+  transfusion dependent             0.090    0.075     0.83     25.6
+
+  The assayed activity is a cohort-weighted mean and reticulocytes carry
+  freshly made enzyme, so the sicker the patient the MORE the assay
+  over-reads -- the ratio column rises as the genotype worsens.  This is
+  the mechanism behind the standard advice to interpret red cell PK
+  activity relative to other age-dependent enzymes (the PK/hexokinase
+  ratio) and to distrust a normal absolute value in a reticulocytosis.
+
+------------------------------------------------------------------------------
+6.2  UGT1A1 co-inheritance (Gilbert) and gallstones
+------------------------------------------------------------------------------
+  UGT1A1                  bilirubin   indirect  conj flux gallstone idx
+  *1/*1                        6.58       4.01       2.58        955.6
+  *1/*28                       8.72       6.15       2.58        955.5
+  *28/*28                     23.92      21.35       2.58        955.4
+  Gallstones occur in 45%% of patients (PMID 29549173) and 48%% of those
+  splenectomised without simultaneous cholecystectomy later need one.
+
+------------------------------------------------------------------------------
+6.3  Aplastic crisis (parvovirus B19, 10 days of marrow arrest)
+------------------------------------------------------------------------------
+       day       Hb     ret%      EPO
+        28     8.09     18.0    12000
+        34     7.85     16.3    12000
+        40     6.51     12.3    12000
+        45     5.24     13.2    12000
+        52     4.73     23.1    12000
+        70     6.91     22.2    12000
+       100     8.08     18.0    12000
+       140     8.02     18.0    12000
+  nadir Hb 4.71 g/dL at day 51, i.e. 3.40 g/dL lost in 21 d.
+  The fall rate is set by the red cell lifespan: a patient with a 8-day
+  lifespan loses 12.3% of his red cell mass per day the marrow is off.
+
+------------------------------------------------------------------------------
+6.4  Alternative activators and a CYP3A drug interaction
+------------------------------------------------------------------------------
+  regimen                                  Cp     Crbc       Hb      dHb
+  mitapivat 50 mg BID                  0.1518   0.5280    10.90    +2.79
+  mitapivat 50 BID + rifampicin        0.0125   0.0495    10.17    +2.06
+  mitapivat 50 BID + fluconazole       0.5447   1.7585    11.08    +2.97
+  etavopivat 400 mg OD                 0.0000  52.7756    10.90    +2.79
+  tebapivat 0.3 mg OD                  0.0000   0.0082    10.02    +1.91
+  Mitapivat induces the CYP3A4 that clears it, so its own steady-state
+  exposure is lower than a single dose predicts, and a strong inducer
+  compounds that.  The same induction is why hormonal contraceptive
+  efficacy is a labelled concern.
+
+------------------------------------------------------------------------------
+6.5  Endocrine effect of aromatase inhibition (male patients)
+------------------------------------------------------------------------------
+  estradiol 28.0 -> 14.9 pg/mL ; testosterone 550 -> 671 ng/dL
+
+------------------------------------------------------------------------------
+6.6  Iron chelation, alone and with a PK activator
+------------------------------------------------------------------------------
+  regimen (2 y, transfused)                     LIC   ferritin      units
+  transfusion only                            16.63        413       56.0
+  + deferasirox 1000 mg/d                      4.20        139       56.0
+  + mitapivat 50 mg BID                       16.63        413        2.0
+  + both                                       4.20        139        2.0
+
+------------------------------------------------------------------------------
+6.7  Withdrawal
+------------------------------------------------------------------------------
+  day 160  Hb 10.89  Crbc 1.8703  STAB 2.083
+  day 168  Hb 10.90  Crbc 0.5280  STAB 2.083
+  day 174  Hb 9.49  Crbc 0.0192  STAB 1.860
+  day 182  Hb 8.30  Crbc 0.0007  STAB 1.550
+  day 210  Hb 8.18  Crbc 0.0000  STAB 1.118
+  day 280  Hb 8.13  Crbc 0.0000  STAB 1.003
+  day 336  Hb 8.08  Crbc 0.0000  STAB 1.000
+  Haemoglobin decays back with the same short lifespan that made the
+  onset fast, but the thermostabilisation limb unwinds more slowly, so
+  the off-rate is biphasic and slower than the on-rate.
+
+==============================================================================
+SECTION 7.  WHAT WENT WRONG WHILE BUILDING THIS, AND WHAT IS STILL WRONG
+==============================================================================
+
+  Thirteen defects were found by running the equations.  Each is marked at its
+  fix site in this file and in the mrgsolve model.  They are listed because the
+  ones that mattered were not coding slips -- they were places where a
+  physiologically plausible equation gave a quantitatively impossible answer.
+
+   #1  2,3-BPG barely moved.  A bare phosphoglycerate-kinase-equilibrium form
+       makes 2,3-BPG proportional to [3-PG]x(ATP/ADP); a PK lesion raises the
+       first and lowers the second and they cancel, predicting +9% against an
+       observed 2-3 fold.  Fixed by adding the 3-PG inhibition of the 2,3-BPG
+       PHOSPHATASE, so the block shuts the shunt's exit as well as feeding it.
+   #2  Solving for ATP and 2,3-BPG by simultaneous damped iteration DIVERGED,
+       because the FBP -> PKR activation limb is positive feedback.  Fixed by
+       nesting: the inner map in 2,3-BPG is monotone and contracts; the outer
+       ATP balance is bracketed by a scan.
+   #3  The shunt-flux calibration omitted the inhibition factor that the rate
+       law uses, so the calibrated normal state was not a steady state.
+   #4  The comment claiming the deoxyhaemoglobin-binding limb amplifies flux was
+       wrong: free 2,3-BPG is EXACTLY invariant to haemoglobin saturation in this
+       model.  The limb shifts total 2,3-BPG by sequestration only.  Kept,
+       because that invariance is what makes the lookup tables 2-D instead of 3-D.
+   #5  Erythroid iron uptake as an independent saturable process does not
+       conserve iron; the healthy subject loaded to 175 mg Fe/g dw.
+   #6  A units error made the liver a 0.42 mg iron sink instead of 420 mg.
+   #7  Michaelis-Menten bilirubin conjugation calibrated at the normal load
+       saturates at ~3x normal haemolysis; a moderately affected patient was
+       assigned a bilirubin of 23000 mg/dL.
+   #8  Sixteen combinations of the two haemolysis gains, with one shared ATP
+       threshold, all gave the WRONG SIGN for the reticulocyte response to
+       splenectomy.
+   #9  Making splenic reticulocyte destruction strong enough to matter forces
+       splenectomy to predict +7 to +12 g/dL instead of +1.6.  This turned out
+       to be structural, not a calibration failure -- see Section 5.2.
+  #10  The adenylate dilution term divides by cohort cell number and overflowed
+       when a cohort was nearly annihilated.
+  #11  tau_PK = 25 d made the genotype-to-haemoglobin map a step function.
+  #12  Reticulocyte capture was summed over two cohorts and debited to one; once
+       the debited cohort hit its floor the model CREATED cells and reported
+       haemoglobins of 19-54 g/dL.  Mass balance in an age-structured model is
+       per-cohort, not aggregate.
+  #13  Explicit RK4 at the burn-in step of 0.25-0.30 d violates the stability
+       limit (0.093 d) for the bilirubin and drug-partitioning states.  The
+       bilirubin state oscillated into its non-negativity floor and reported
+       0.0 mg/dL in a haemolysing patient, while the haemoglobin and
+       reticulocyte columns of the step-convergence table still agreed to 1e-5.
+       A convergence check on slow outputs alone does not detect this.
+
+  LIMITATIONS THAT REMAIN, stated so they are not mistaken for results:
+   * pH is not a state.  The Bohr effect and the strong pH dependence of both
+     BPGM activities are folded into fixed constants, so acid-base disturbance
+     cannot be simulated.
+   * Free versus Mg-bound ADP is not resolved; the PGK equilibrium uses total
+     ADP, which overstates how far ATP/ADP falls.
+   * The 3-PG inhibition constant of the 2,3-BPG phosphatase (30 uM) is the
+     single most load-bearing parameter for the 2,3-BPG magnitude and it is the
+     least well pinned by data.  The oxygen-transport conclusion in Section 3
+     depends on the 2,3-BPG excursion, so it inherits that uncertainty; the
+     break-even table is given precisely so the conclusion can be re-scored
+     against a different 2,3-BPG estimate.
+   * Splenic destruction and sequestration are one compartment with a
+     mean-field transit; there is no distribution of transit times.
+   * The oxygen module is whole-body and single-tissue.  It cannot represent
+     regional differences in extraction, which is where a right-shifted curve
+     actually helps or hurts most.
+   * Cardiac output responds to haemoglobin, not to tissue PO2, so the model
+     cannot arbitrate between the three closures of Section 3 -- it reports all
+     of them instead.
+   * Only three parameters were fitted (tau_PK of the mutant, and the two
+     haemolysis gains) plus the single marrow-output scalar.  Everything else is
+     literature or back-calculated from the normal operating point.  That is a
+     claim about provenance, not about correctness.
+
