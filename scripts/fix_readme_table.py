@@ -96,6 +96,12 @@ CATEGORY_RULES = [
     # organising variable is postnatal age, not an organ system.
     ("신생아", "신생아·소아"), ("소아", "신생아·소아"),
     ("부인", "부인·생식"), ("산과", "부인·생식"), ("생식", "부인·생식"),
+    # Envenoming, poisoning and environmental injury: first entry is snakebite
+    # envenoming (2026-08-05).  Kept as its own category rather than folded into
+    # 감염 because the agent is an injected protein toxin with its own
+    # pharmacokinetics, not a replicating organism — the therapeutic target is a
+    # binding reaction against a fixed dose, not a growth curve.
+    ("중독", "중독·환경"), ("교상", "중독·환경"), ("환경", "중독·환경"),
     ("희귀", "희귀·유전"), ("유전", "희귀·유전"),
 ]
 

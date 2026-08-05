@@ -1,0 +1,553 @@
+/* ===========================================================================
+   sbe_qsp_model.dot
+   Snakebite envenoming + antivenom — mechanistic QSP map
+   독사 교상(뱀독 중독) + 항독소 — 기계론적 QSP 지도
+
+   THE ORGANISING IDEA OF THE MAP
+     Read it as two vertical halves separated by one narrow bridge.
+
+       LEFT / TOP   = the VENOM CLOCK.  Everything measured in hours: the
+                      two bite-site depots, lymphatic absorption, plasma
+                      toxin, antivenom binding and clearance.
+       BRIDGE       = clusters 8, 12, 14 — the moment a toxin reaches its
+                      substrate.  This is the ONLY place antivenom can act,
+                      and it can only act on the arrow that has not yet been
+                      traversed.
+       RIGHT/BOTTOM = the SUBSTRATE CLOCK.  Everything measured in days:
+                      hepatic fibrinogen resynthesis, motor-terminal
+                      regeneration, nephron repair, muscle healing.  EVERY
+                      clinical endpoint hangs off this half.
+
+     Antivenom appears everywhere on the left and NOWHERE on the right.
+     That asymmetry is the whole model: antivenom binds, it does not undo.
+
+   READING ORDER
+      1  the bite itself — why "venom dose" is a distribution, not a number
+      2  the two bite-site depots and MW-sorted lymphatic absorption
+      3  the venom proteome: the toxin families and what each one does
+      4  systemic venom disposition — and why the terminal half-life is an
+         ABSORPTION half-life, which is the number antivenom must outlast
+      5  antivenom: what is in the vial, and the three fragment formats
+      6  antivenom disposition — and the recurrence inequality
+      7  antivenom-toxin binding, complex clearance, and where it fails
+      8  BRIDGE: venom-induced consumption coagulopathy (VICC)
+      9  coagulation read-outs and the 20-minute whole blood clotting test
+     10  bleeding endpoints
+     11  the two paralyses: presynaptic destruction vs postsynaptic occupancy
+     12  BRIDGE: the neuromuscular junction and its safety factor
+     13  neuromuscular endpoints and mechanical ventilation
+     14  BRIDGE: local myonecrosis, oedema and compartment syndrome
+     15  rhabdomyolysis and pigment nephropathy
+     16  venom-induced acute kidney injury as an integral
+     17  capillary leak, haemoconcentration and shock
+     18  systemic inflammation
+     19  antivenom adverse reactions — the cost side of the ledger
+     20  adjuncts, investigational agents, and what does NOT work
+     21  the clinical decision layer
+
+   EDGE SEMANTICS
+     solid black arrow ....... mass flux or causal activation
+     dashed arrow ............ modulation / signalling (no mass transfer)
+     red T-bar ............... inhibition or neutralisation
+     blue arrow .............. a drug / antivenom delivery step
+     thick dark red arrow .... an IRREVERSIBLE step — antivenom given after
+                               this arrow has fired cannot undo it
+     dotted grey ............. a measurement (state -> observable)
+
+   COLOUR KEY
+     bite / depot ............ wheat
+     toxin families .......... light salmon
+     venom PK ................ misty rose
+     antivenom ............... light steel blue
+     binding / neutralisation  pale turquoise
+     haemostasis ............. lavender
+     neuromuscular ........... light yellow
+     local tissue ............ peach puff
+     muscle / rhabdo ......... light pink
+     kidney .................. pale green
+     haemodynamics ........... light cyan
+     inflammation ............ light grey
+     antivenom toxicity ...... rosy brown
+     adjuncts ................ honeydew
+     endpoints ............... pink
+     decisions ............... white
+   =========================================================================== */
+
+digraph SBE_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.22, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, compound=true,
+           label=<<B>Snakebite Envenoming and Antivenom — Quantitative Systems Pharmacology Map</B><BR/>
+                  <FONT POINT-SIZE="11">독사 교상 + 항독소 QSP 기계론적 지도 · 50-ODE mrgsolve model · 4 toxin classes × 3 antivenom fragment formats × 8 snake archetypes</FONT><BR/>
+                  <FONT POINT-SIZE="10"><B>THESIS: antivenom binds; it does not undo.</B> A venom clock in hours (left) drives a substrate clock in days (right); every endpoint is read off the slow one.</FONT><BR/>
+                  <FONT POINT-SIZE="9">solid = mass flux / activation &#160;·&#160; dashed = modulation &#160;·&#160; red T-bar = inhibition &#160;·&#160; blue = drug delivery &#160;·&#160; <B>thick dark red = IRREVERSIBLE</B> &#160;·&#160; dotted grey = measurement</FONT>>,
+           labelloc="t"];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+           color="#555555", penwidth=1.0];
+    edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.65];
+
+    /* ================================================================ 1
+       The bite itself — why "venom dose" is a distribution, not a number
+       ================================================================ */
+    subgraph cluster_bite {
+        label=<<B>1 · The bite — venom dose is a distribution, not a number</B><BR/><FONT POINT-SIZE="9">교상 — 주입 독량은 하나의 값이 아니라 분포다</FONT>>;
+        style="rounded,filled"; fillcolor="#FBF3E2"; color="#C0A870";
+        SNAKE    [label="Snake species and size\nDaboia · Echis · Naja · Bungarus\nCrotalus · Bothrops · Bitis\n종/체구가 독액 조성을 결정", fillcolor="#F2E3C0"];
+        ONTOG    [label="Ontogenetic + geographic\nvenom variation\nsame species, different proteome\n(Sri Lankan vs Indian D. russelii)", fillcolor="#F2E3C0"];
+        GLAND    [label="Venom gland reservoir\ntotal milkable yield 20–700 mg\ndry weight", fillcolor="#F2E3C0"];
+        FANG     [label="Fang length and strike geometry\nsubcutaneous vs intramuscular vs\nintravascular (rare, catastrophic)", fillcolor="#F2E3C0"];
+        METER    [label="Venom metering\nvoluntary, partial expulsion\ndefensive vs predatory strike", fillcolor="#F2E3C0"];
+        DRYBITE  [label="DRY BITE\n0 mg injected\n20–50% of viperid, 10–30% of elapid\nbites — indistinguishable at t=0", fillcolor="#EBD59F"];
+        DOSE     [label="INJECTED VENOM MASS\nmedian ~10–90 mg protein\nlognormal, CV ≈ 55%\n(model: venom_mult)", fillcolor="#E5C687", penwidth=2.0];
+        SNAKE -> ONTOG -> GLAND;
+        SNAKE -> GLAND;
+        GLAND -> METER; FANG -> METER;
+        METER -> DOSE; METER -> DRYBITE;
+        ONTOG -> DOSE [style=dashed, label="proteome"];
+    }
+
+    /* ================================================================ 2
+       Bite-site depot and MW-sorted lymphatic absorption
+       ================================================================ */
+    subgraph cluster_depot {
+        label=<<B>2 · Bite-site depot — absorption sorted by molecular weight</B><BR/><FONT POINT-SIZE="9">교상부 저장고 — 분자량에 따라 분리되는 흡수</FONT>>;
+        style="rounded,filled"; fillcolor="#FBF3E2"; color="#C0A870";
+        DEPOT    [label="FAST BITE-SITE DEPOT  D_i\nsuperficial, well-drained tissue\nV_loc ≈ 0.15 L → local concentration\n100–200 mg/L, ~100× plasma\nabsorption t½ 0.6–2.8 h by MW", fillcolor="#E5C687", penwidth=2.0];
+        SLOWDEP  [label="SLOW / SEQUESTERED DEPOT  P_i\ndeep intramuscular and fascial planes\nf_slow 0.05–0.35 of the injected mass\nrelease t½ 6–58 h → THIS sets the venom's\napparent TERMINAL half-life (flip-flop):\nthe venom leaves the BODY faster than it\nleaves the BITE", fillcolor="#DCC178", penwidth=2.4];
+        HYAL     [label="Hyaluronidase (spreading factor)\ndepolymerises interstitial matrix\n→ accelerates its own absorption", fillcolor="#F2E3C0"];
+        LYMPH    [label="Lymphatic uptake\nthe route for >30 kDa proteins\nmuscle pump dependent", fillcolor="#F2E3C0"];
+        CAPIL    [label="Capillary uptake\navailable to <20 kDa toxins only", fillcolor="#F2E3C0"];
+        KAMW     [label="ka scales inversely with MW\nSVMP 50 kDa  t½,abs 2.8 h\nSVSP 30 kDa  t½,abs 2.0 h\nPLA2 14 kDa  t½,abs 1.4 h\n3FTx  7 kDa  t½,abs 0.6 h", fillcolor="#EBD59F"];
+        LOCDEG   [label="Local proteolysis / retention\nk_deg,d 0.010–0.020 /h\npart of the dose never leaves", fillcolor="#F2E3C0"];
+        PIB      [label="Pressure immobilisation bandage\nslows lymphatic flux\n(elapid: buys transport time;\nviperid: concentrates local injury)", fillcolor="#FFFFFF"];
+        TOURN    [label="Tourniquet / incision / suction\nHARMFUL — ischaemia + bolus release\non removal; no venom removed", fillcolor="#F5DCDC"];
+        DOSE -> DEPOT [label="1 − f_slow"];
+        DOSE -> SLOWDEP [label="f_slow", penwidth=1.8];
+        DEPOT -> HYAL [style=dashed];
+        HYAL -> LYMPH [style=dashed, label="↑ spread"];
+        DEPOT -> LYMPH; DEPOT -> CAPIL; DEPOT -> LOCDEG;
+        KAMW -> LYMPH [style=dashed]; KAMW -> CAPIL [style=dashed];
+        SLOWDEP -> LYMPH [penwidth=1.8, color="#8B3A3A", label="over DAYS"];
+        SLOWDEP -> LOCDEG;
+        PIB -> LYMPH [style=dashed, color="#B03030", arrowhead=tee];
+        TOURN -> DEPOT [style=dashed, label="bolus on release"];
+    }
+
+    /* ================================================================ 3
+       The venom proteome — five families, five different jobs
+       ================================================================ */
+    subgraph cluster_prot {
+        label=<<B>3 · The venom proteome — the four modelled classes and what they do</B><BR/><FONT POINT-SIZE="9">독액 단백질체 — 모델링된 4개 계열과 그 작용</FONT>>;
+        style="rounded,filled"; fillcolor="#FDEBE4"; color="#C98B72";
+        SVMP     [label="SVMP · snake venom metalloproteinase\nzinc-dependent, 20–100 kDa (P-I/II/III)\nprothrombin + FX activators, fibrinogenolysis,\nhaemorrhagins, basement-membrane digestion", fillcolor="#FAD5C6", penwidth=1.6];
+        SVSP     [label="SVSP · snake venom serine protease\nthrombin-like, ~30 kDa\ncleaves fibrinogen Aα → non-crosslinked\nfibrin; plasminogen activators; kininogenases", fillcolor="#FAD5C6", penwidth=1.6];
+        PLA2     [label="svPLA2 · secreted phospholipase A₂\n13–15 kDa, Ca²⁺-dependent (group I/II)\nmyotoxic · presynaptically neurotoxic ·\nanticoagulant · oedema-forming", fillcolor="#FAD5C6", penwidth=1.6];
+        TFTX     [label="3FTx · three-finger toxin\n6–8 kDa, four disulfide bonds\nα-neurotoxin (nAChR) · cytotoxin/cardiotoxin ·\nnon-immunogenic → antivenom's blind spot", fillcolor="#FAD5C6", penwidth=1.6];
+        OTHER    [label="Not resolved in this model:\nLAAO · CRISP · disintegrin · C-type lectin ·\nnatriuretic + bradykinin-potentiating peptides ·\nnerve growth factor · 5'-nucleotidase", fillcolor="#F6E2DA"];
+        COMP     [label="Composition matters more than mass\nEchis  68% SVMP → pure coagulopathy\nNaja   55% 3FTx → pure paralysis\nBungarus 66% PLA2 → presynaptic block\nDaboia 34% PLA2 + 28% SVMP → all of it", fillcolor="#F3C4B2"];
+        LYMPH -> SVMP; LYMPH -> SVSP; CAPIL -> PLA2; CAPIL -> TFTX;
+        LYMPH -> PLA2; LYMPH -> TFTX;
+        SNAKE -> COMP [style=dashed];
+        COMP -> SVMP [style=dashed]; COMP -> SVSP [style=dashed];
+        COMP -> PLA2 [style=dashed]; COMP -> TFTX [style=dashed];
+        SVMP -> OTHER [style=invis];
+    }
+
+    /* ================================================================ 4
+       Systemic venom disposition and the deep compartment
+       ================================================================ */
+    subgraph cluster_vpk {
+        label=<<B>4 · Systemic venom disposition — and the deep compartment that causes recurrence</B><BR/><FONT POINT-SIZE="9">전신 독소 동태 — 재발을 만드는 심부 구획</FONT>>;
+        style="rounded,filled"; fillcolor="#FDF0EE"; color="#C99A94";
+        VC       [label="CENTRAL (plasma) FREE TOXIN  V_i\nV_c 3.5–8 L\nthis is the ONLY pool antivenom sees", fillcolor="#F9DAD5", penwidth=2.0];
+        VSYS     [label="Systemic elimination half-life\n(what a plasma sample reports)\nSVMP 8.1 h · SVSP 6.1 h\nPLA2 3.1 h · 3FTx 1.8 h", fillcolor="#F9DAD5", penwidth=1.6];
+        VCL      [label="Irreversible clearance\nreticuloendothelial uptake +\nglomerular filtration of <30 kDa toxins\nCL 0.3–3.0 L/h", fillcolor="#F9DAD5"];
+        VTHALF   [label="APPARENT TERMINAL half-life\n= the SLOW DEPOT's release half-life\nSVMP 44.7 h · SVSP 36.5 h\nPLA2 19.3 h · 3FTx 6.0 h\nabsorption-limited, 5.5× longer than\nsystemic elimination — and THIS is the\nnumber an antivenom has to outlast", fillcolor="#F3C4B2", penwidth=2.2];
+        VAGN     [label="Venom antigen assay (EIA)\nmeasures FREE + ANTIVENOM-BOUND\n→ antigen can be high while the\npatient is fully protected", fillcolor="#FFFFFF"];
+        SVMP -> VC; SVSP -> VC; PLA2 -> VC; TFTX -> VC;
+        VC -> VCL;
+        VC -> VSYS [style=dotted, color="#999999"];
+        SLOWDEP -> VTHALF [style=dotted, color="#999999"];
+        VC -> VAGN [style=dotted, color="#999999"];
+    }
+
+    /* ================================================================ 5
+       What is actually in the vial
+       ================================================================ */
+    subgraph cluster_avmake {
+        label=<<B>5 · What is in the vial — three fragment formats, three different drugs</B><BR/><FONT POINT-SIZE="9">항독소 바이알의 내용 — 세 가지 절편 형식은 서로 다른 약이다</FONT>>;
+        style="rounded,filled"; fillcolor="#E7EFF8"; color="#7A9CC6";
+        HYPER    [label="Hyperimmunised horse or sheep\nwhole-venom or venom-pool immunogen\n→ polyclonal antivenom plasma", fillcolor="#D2E1F2"];
+        CAPRYL   [label="Caprylic acid / ammonium sulfate\nfractionation ± pepsin or papain digest", fillcolor="#D2E1F2"];
+        IGG      [label="WHOLE IgG  150 kDa\nIndian polyvalent ASV, SAIMR polyvalent\nV1 3.2 L · t½β 137 h · Fc intact\nhighest acute reaction rate", fillcolor="#BDD4EC", penwidth=1.6];
+        F2       [label="F(ab')₂  100 kDa  (pepsin)\nANAVIP, Antivipmyn, EchiTAb-Plus\nV1 3.5 L · t½β 127 h · no Fc", fillcolor="#BDD4EC", penwidth=1.6];
+        FAB      [label="Fab  50 kDa  (papain)\nCroFab, ViperaTAb (ovine)\nV1 4.0 L · t½β 22 h · best tissue entry,\nworst persistence", fillcolor="#BDD4EC", penwidth=1.6];
+        POTENCY  [label="LABELLED POTENCY\nthe only regulated number\nIndian ASV: 0.6 mg D. russelii venom\nneutralised per mL = 6 mgNE / 10-mL vial", fillcolor="#A9C6E5", penwidth=2.0];
+        SPECIFIC [label="Specific antibody fraction\nonly 10–20% of the protein in the vial\nbinds anything relevant\n→ the rest is a pure reaction risk", fillcolor="#D2E1F2"];
+        PARASP   [label="Paraspecificity\ncross-neutralisation of related species\ngood within genus, poor across families", fillcolor="#D2E1F2"];
+        HYPER -> CAPRYL;
+        CAPRYL -> IGG; CAPRYL -> F2; CAPRYL -> FAB;
+        HYPER -> SPECIFIC [style=dashed];
+        POTENCY -> IGG [style=dashed]; POTENCY -> F2 [style=dashed]; POTENCY -> FAB [style=dashed];
+        HYPER -> PARASP [style=dashed];
+    }
+
+    /* ================================================================ 6
+       Antivenom disposition and THE RECURRENCE INEQUALITY
+       ================================================================ */
+    subgraph cluster_avpk {
+        label=<<B>6 · Antivenom disposition — and the recurrence inequality</B><BR/><FONT POINT-SIZE="9">항독소 동태 — 재발 부등식</FONT>>;
+        style="rounded,filled"; fillcolor="#E7EFF8"; color="#7A9CC6";
+        AVIV     [label="Intravenous infusion\ndiluted, over 30–60 min\n(rate, not total dose, drives reactions)", fillcolor="#D2E1F2"];
+        AC       [label="ANTIVENOM CENTRAL  A_c\nunits: mgNE (labelled neutralising equivalents)", fillcolor="#BDD4EC", penwidth=2.0];
+        AP       [label="Antivenom peripheral  A_p\nV2 2.6–12 L", fillcolor="#D2E1F2"];
+        AT       [label="Antivenom in BITE-SITE TISSUE  A_t\nk_tis 0.012–0.050 /h\nan IgG barely enters oedematous,\npoorly-perfused, necrotic tissue", fillcolor="#D2E1F2"];
+        ACL      [label="Antivenom clearance\nFab: renal + catabolic, fast\nF(ab')₂ / IgG: catabolic, slow", fillcolor="#D2E1F2"];
+        INEQ     [label="THE RECURRENCE INEQUALITY\nt½(antivenom) vs t½(venom INPUT)\nFab 21.8 h / 44.7 h = 0.49 → LOSES\nF(ab')₂ 126.8 h / 44.7 h = 2.84 → WINS\nIgG 136.8 h / 44.7 h = 3.06 → WINS\nCover duration ≈ t½(fragment)·log₂(margin),\nso the vial COUNT is under-specified:\nwhether a patient recurs depends on how\nmuch venom the snake happened to inject", fillcolor="#95BADF", penwidth=2.4, shape=box];
+        AVIV -> AC [color="#1F5FA8", penwidth=1.6];
+        AC -> AP [label="Q_a"]; AP -> AC;
+        AC -> AT [color="#1F5FA8"];
+        AC -> ACL;
+        IGG -> AVIV [color="#1F5FA8"]; F2 -> AVIV [color="#1F5FA8"]; FAB -> AVIV [color="#1F5FA8"];
+        AC -> INEQ [style=dotted, color="#999999"];
+        VTHALF -> INEQ [style=dotted, color="#999999"];
+    }
+
+    /* ================================================================ 7
+       Binding, complex clearance, and the two places binding fails
+       ================================================================ */
+    subgraph cluster_bind {
+        label=<<B>7 · Neutralisation — near-instantaneous where it works, and the two places it does not</B><BR/><FONT POINT-SIZE="9">중화 — 작동하는 곳에서는 거의 순간적이며, 작동하지 않는 두 곳</FONT>>;
+        style="rounded,filled"; fillcolor="#E4F4F2"; color="#6FA9A2";
+        BINDP    [label="PLASMA NEUTRALISATION\nk_b0·ε·c_A·V_i ≈ 150 /h → t½ ≈ 15 s\neffectively STOICHIOMETRIC: free venom is\n~0 while a molar excess exists, and returns\nthe instant that excess is gone", fillcolor="#C9E9E4", penwidth=2.0];
+        CPLX     [label="Antivenom-toxin complex  C_i\ncleared by the reticuloendothelial system\nk_el 0.060 /h (t½ 11.6 h)\nstill detected by antigen assays", fillcolor="#C9E9E4"];
+        BINDL    [label="BITE-SITE NEUTRALISATION\nk_b,loc/k_b0 = 0.038 — a 27-fold penalty,\nand a further ×4 penalty in the SLOW depot\n→ intravenous antivenom neither prevents\nlocal necrosis nor drains the depot that\ncauses recurrence", fillcolor="#B4DFD8", penwidth=1.6];
+        EPS      [label="ε · class-specific potency\nmg toxin neutralised per mgNE\nSVMP 1.20 · SVSP 1.00\nPLA2 0.60 · 3FTx 0.35\n(antivenoms are raised against whole venom,\nwhose immunodominant parts are the LARGE\nenzymes → small toxins are covered worst)", fillcolor="#B4DFD8", penwidth=1.6];
+        STOICH   [label="STOICHIOMETRIC REQUIREMENT\nmgNE needed = Σ (mass_i / ε_i)\nDaboia 63 mg → 61.0 mgNE (10.2 vials)\nNaja   40 mg → 85.7 mgNE (14.3 vials)\nLESS venom, MORE antivenom — because of ε", fillcolor="#9FD5CC", penwidth=2.2];
+        NOREV    [label="WHAT BINDING CANNOT DO\ncannot strip a 3FTx off an nAChR\ncannot re-ligate a cleaved fibrinogen\ncannot rebuild a destroyed nerve terminal\ncannot un-necrose a muscle fibre", fillcolor="#8ECCC2", penwidth=2.4];
+        AC -> BINDP [color="#1F5FA8", penwidth=1.6];
+        VC -> BINDP;
+        BINDP -> CPLX; CPLX -> VCL;
+        AT -> BINDL [color="#1F5FA8"]; DEPOT -> BINDL; SLOWDEP -> BINDL;
+        BINDL -> CPLX;
+        EPS -> BINDP [style=dashed]; EPS -> STOICH [style=dashed];
+        DOSE -> STOICH [style=dashed];
+        POTENCY -> STOICH [style=dashed];
+        BINDP -> NOREV [style=dashed];
+    }
+
+    /* ================================================================ 8
+       BRIDGE — venom-induced consumption coagulopathy
+       ================================================================ */
+    subgraph cluster_vicc {
+        label=<<B>8 · BRIDGE · Venom-induced consumption coagulopathy (VICC) — the substrate clock starts here</B><BR/><FONT POINT-SIZE="9">독소 유발 소모성 응고장애 — 기질 시계가 시작되는 지점</FONT>>;
+        style="rounded,filled"; fillcolor="#EFEAF8"; color="#8A7CB8";
+        PTACT    [label="Prothrombin activators\ngroup A (ecarin, Echis) — Ca²⁺-independent\ngroup C (oscutarin, pseutarin)\n→ thrombin generated OUTSIDE the cascade", fillcolor="#DED5F0"];
+        FXACT    [label="FX activator (RVV-X, Daboia)\nP-IIId SVMP + C-type lectin chains", fillcolor="#DED5F0"];
+        THROMBIN [label="Uncontrolled thrombin burst\nunopposed by physiological\nantithrombin regulation", fillcolor="#D2C6EC"];
+        TLE      [label="Thrombin-like enzymes (SVSP)\nancrod, batroxobin, RVV-V\ncleave fibrinopeptide A only →\nfriable, non-crosslinked fibrin", fillcolor="#DED5F0"];
+        FGNOLYS  [label="Direct fibrinogenolysis (SVMP)\nAα/Bβ chain digestion\nproducts are not clottable", fillcolor="#DED5F0"];
+        FGCONS   [label="FIBRINOGEN CONSUMPTION\nMichaelis-Menten, K_m 4 g/L\nk_cat·c_SVSP + k_cat·c_SVMP\n→ up to 1.0 g/L per hour", fillcolor="#C7B8E8", penwidth=2.0];
+        FGSYN    [label="HEPATIC FIBRINOGEN SYNTHESIS\nk_syn·SYNUP, acute-phase up to ×3.2\nceiling ≈ 1.4 g/L per DAY\nTHE RECOVERY RATE — and antivenom\nappears nowhere in this term", fillcolor="#B9A6E2", penwidth=2.4];
+        FG       [label="FIBRINOGEN  (state)\nbaseline 2.8 g/L\nturnover t½ 96 h", fillcolor="#C7B8E8", penwidth=2.0];
+        FXS      [label="FACTOR X activity  (state)\nresynthesis t½ 40 h", fillcolor="#DED5F0"];
+        PLTC     [label="Platelet consumption\nincorporation into microthrombi +\nGPIb/GPVI-active C-type lectins +\nSVMP shedding of GPIbα", fillcolor="#DED5F0"];
+        PLT      [label="PLATELET COUNT  (state)\nmarrow response t½ 120 h", fillcolor="#DED5F0"];
+        PLASMIN  [label="Secondary fibrinolysis\nplasminogen activators + plasmin\n≈ 5% of total fibrinogen loss", fillcolor="#DED5F0"];
+        VC -> PTACT [style=dashed]; VC -> FXACT [style=dashed]; VC -> TLE [style=dashed];
+        SVMP -> PTACT [style=dashed]; SVMP -> FXACT [style=dashed]; SVMP -> FGNOLYS [style=dashed];
+        SVSP -> TLE [style=dashed]; SVSP -> PLASMIN [style=dashed];
+        PTACT -> THROMBIN; FXACT -> THROMBIN; FXACT -> FXS [color="#8B3A3A", penwidth=1.4];
+        THROMBIN -> FGCONS; TLE -> FGCONS; FGNOLYS -> FGCONS; PLASMIN -> FGCONS;
+        FGCONS -> FG [color="#8B3A3A", penwidth=2.0, arrowhead=tee, label="irreversible"];
+        FGSYN -> FG [penwidth=2.0];
+        THROMBIN -> PLTC; SVMP -> PLTC [style=dashed];
+        PLTC -> PLT [arrowhead=tee, color="#8B3A3A"];
+        FG -> FGSYN [style=dashed, label="deficit → SYNUP"];
+        BINDP -> FGCONS [style=dashed, color="#B03030", arrowhead=tee, penwidth=1.6, label="the only\npoint of attack"];
+    }
+
+    /* ================================================================ 9
+       Coagulation read-outs
+       ================================================================ */
+    subgraph cluster_coagout {
+        label=<<B>9 · Coagulation read-outs — and the test that costs nothing</B><BR/><FONT POINT-SIZE="9">응고 검사 지표 — 그리고 비용이 들지 않는 검사</FONT>>;
+        style="rounded,filled"; fillcolor="#F4F1FB"; color="#9A8FC4";
+        WBCT     [label="20-MINUTE WHOLE BLOOD CLOTTING TEST\npositive when fibrinogen < ~0.5 g/L\nglass tube, no reagent, no electricity\n→ the gate between dry bite and envenoming", fillcolor="#DED5F0", penwidth=2.2];
+        INR      [label="PT / INR prolonged\nnot specific — thrombin-like enzymes\nclot fibrinogen without the cascade", fillcolor="#EDE8F8"];
+        XDP      [label="D-dimer / FDP  (state)\ncleared t½ 8 h; rises with the\nCONSUMPTION RATE, not the level", fillcolor="#EDE8F8"];
+        APTT     [label="aPTT prolonged\nFX + fibrinogen depletion", fillcolor="#EDE8F8"];
+        TEG      [label="Viscoelastic testing (TEG/ROTEM)\nflat trace; MA collapse tracks both\nfibrinogen and platelets", fillcolor="#EDE8F8"];
+        FG -> WBCT [style=dotted, color="#999999"];
+        FG -> INR [style=dotted, color="#999999"]; FXS -> INR [style=dotted, color="#999999"];
+        FGCONS -> XDP [style=dotted, color="#999999"];
+        FG -> APTT [style=dotted, color="#999999"]; FXS -> APTT [style=dotted, color="#999999"];
+        FG -> TEG [style=dotted, color="#999999"]; PLT -> TEG [style=dotted, color="#999999"];
+    }
+
+    /* ================================================================ 10
+       Bleeding endpoints
+       ================================================================ */
+    subgraph cluster_bleed {
+        label=<<B>10 · Bleeding endpoints</B><BR/><FONT POINT-SIZE="9">출혈 종말점</FONT>>;
+        style="rounded,filled"; fillcolor="#FCE9F1"; color="#C77FA5";
+        HAEMORR  [label="Haemorrhagins (P-III SVMP)\ndigest capillary basement-membrane\ncollagen IV, laminin, nidogen\n→ the vessel leaks blood, not just plasma", fillcolor="#F8D6E5"];
+        GUMBL    [label="Gum, nose, venepuncture-site bleeding\nearliest and cheapest systemic sign", fillcolor="#F8D6E5"];
+        GIBL     [label="Gastrointestinal / genitourinary bleeding", fillcolor="#F8D6E5"];
+        ICH      [label="INTRACRANIAL HAEMORRHAGE\nthe dominant early cause of death in\nviperid envenoming; risk ∝ hours spent\nunclottable × thrombocytopenia", fillcolor="#F0BBD3", penwidth=2.0];
+        HBLD     [label="Cumulative bleeding hazard  H_bleed\n∫ h₀·f_unclot(FG)·(1+2·f_lowplt(PLT)) dt\nP(bleed) = 1 − exp(−H)", fillcolor="#F8D6E5", penwidth=1.6];
+        SVMP -> HAEMORR [style=dashed];
+        HAEMORR -> GUMBL; HAEMORR -> GIBL; HAEMORR -> ICH;
+        WBCT -> HBLD [style=dotted, color="#999999"]; PLT -> HBLD [style=dotted, color="#999999"];
+        HBLD -> ICH; HBLD -> GUMBL; HBLD -> GIBL;
+    }
+
+    /* ================================================================ 11
+       The two paralyses
+       ================================================================ */
+    subgraph cluster_twopara {
+        label=<<B>11 · The two paralyses — identical bedside picture, opposite pharmacology</B><BR/><FONT POINT-SIZE="9">두 가지 마비 — 같은 임상 소견, 정반대의 약리학</FONT>>;
+        style="rounded,filled"; fillcolor="#FDFAE0"; color="#BFB265";
+        ANEURO   [label="α-NEUROTOXIN (3FTx) — POSTSYNAPTIC\nlong-chain (α-cobratoxin, α-bungarotoxin) and\nshort-chain (erabutoxin) competitive nAChR block\napparent perijunctional K_d ≈ 0.06 mg/L", fillcolor="#F8F2BE", penwidth=1.6];
+        BNEURO   [label="β-NEUROTOXIN (PLA2) — PRESYNAPTIC\nβ-bungarotoxin, crotoxin, Mojave toxin,\ntaipoxin, textilotoxin\n3 phases: block → transient facilitation →\nirreversible terminal DESTRUCTION", fillcolor="#F8F2BE", penwidth=1.6];
+        REV      [label="REVERSIBLE OCCUPANCY\nk_off 0.020 /h (t½ 35 h)\nkrait α-bungarotoxin ×0.15 → 233 h\nDECAYS once free toxin is removed", fillcolor="#F3EA9A"];
+        IRREV    [label="IRREVERSIBLE DESTRUCTION\nk_des·f_pre·c_PLA2 · terminal\nRECOVERY ONLY BY REGENERATION\nk_rgn t½ = 5 DAYS", fillcolor="#EADF77", penwidth=2.4];
+        FPRE     [label="f_pre — fraction of the PLA2 mass that is\npresynaptically neurotoxic\nBungarus 1.00 · Daboia (Sri Lanka) 0.09\nNaja 0.05 · Echis 0.00", fillcolor="#F3EA9A"];
+        TFTX -> ANEURO [style=dashed]; PLA2 -> BNEURO [style=dashed];
+        VC -> ANEURO; VC -> BNEURO;
+        ANEURO -> REV; BNEURO -> IRREV [color="#8B3A3A", penwidth=2.4];
+        FPRE -> BNEURO [style=dashed];
+        BINDP -> ANEURO [style=dashed, color="#B03030", arrowhead=tee, label="works"];
+        BINDP -> BNEURO [style=dashed, color="#B03030", arrowhead=tee, label="works only\nBEFORE"];
+    }
+
+    /* ================================================================ 12
+       BRIDGE — the neuromuscular junction and its safety factor
+       ================================================================ */
+    subgraph cluster_nmj {
+        label=<<B>12 · BRIDGE · The neuromuscular junction — a threshold on a product, not a sum</B><BR/><FONT POINT-SIZE="9">신경근접합부 — 합이 아니라 곱에 대한 문턱값</FONT>>;
+        style="rounded,filled"; fillcolor="#FDFAE0"; color="#BFB265";
+        MOTOR    [label="Motor nerve action potential", fillcolor="#F8F2BE"];
+        CAV      [label="Presynaptic Ca²⁺ influx (P/Q-type)\nvesicle fusion, quantal release", fillcolor="#F8F2BE"];
+        TERM     [label="TERMINAL INTEGRITY  TERM  (state)\n0 = terminal destroyed, 1 = intact\nsets the quantal content available", fillcolor="#EADF77", penwidth=2.0];
+        ACH      [label="Acetylcholine in the cleft\nhydrolysed by junctional AChE", fillcolor="#F8F2BE"];
+        NACHR    [label="Postjunctional nAChR (α₁)₂β₁δε\ndensity 10⁴ /µm² at the crest", fillcolor="#F8F2BE"];
+        BR       [label="AChR OCCUPANCY  BR  (state)\nfraction blocked by 3FTx", fillcolor="#EADF77", penwidth=2.0];
+        SF       [label="SAFETY FACTOR\nSF = SF₀ · TERM · (1 − BR) · neostigmine\nSF₀ = 4.0; transmission fails at SF < 1\nA PRODUCT: zero in any factor is zero overall", fillcolor="#E3D65C", penwidth=2.4];
+        NEO      [label="Neostigmine ± glycopyrrolate\n0.5 mg IM q4h; t½ 50 min\nraises cleft ACh → out-competes a\nREVERSIBLE block only", fillcolor="#EAF6E2"];
+        MOTOR -> CAV -> ACH; TERM -> ACH [style=dashed, label="quantal content"];
+        ACH -> NACHR; NACHR -> SF [style=dashed];
+        BR -> SF [style=dashed]; TERM -> SF [style=dashed];
+        REV -> BR [penwidth=1.6]; IRREV -> TERM [color="#8B3A3A", penwidth=2.4, arrowhead=tee];
+        NEO -> ACH [color="#1F5FA8", penwidth=1.6]; NEO -> SF [style=dashed, color="#1F5FA8"];
+        ANEURO -> NACHR [arrowhead=tee, color="#8B3A3A"];
+        BNEURO -> CAV [arrowhead=tee, color="#8B3A3A"];
+    }
+
+    /* ================================================================ 13
+       Neuromuscular endpoints
+       ================================================================ */
+    subgraph cluster_neuroout {
+        label=<<B>13 · Neuromuscular endpoints — and what actually saves the patient</B><BR/><FONT POINT-SIZE="9">신경근 종말점 — 그리고 실제로 환자를 살리는 것</FONT>>;
+        style="rounded,filled"; fillcolor="#FCE9F1"; color="#C77FA5";
+        PTOSIS   [label="Ptosis (SF < 2.2)\nthe first and most sensitive sign;\nextraocular muscles have the\nlowest safety factor", fillcolor="#F8D6E5"];
+        OPHTH    [label="External ophthalmoplegia,\nbroken-neck sign, bulbar palsy,\nloss of gag reflex → aspiration", fillcolor="#F8D6E5"];
+        SBC      [label="Single-breath count\nSBC ≈ 42 · VC_frac\nbedside surrogate for vital capacity", fillcolor="#F8D6E5"];
+        RESPF    [label="RESPIRATORY FAILURE\nVC_frac < 0.15  (SF < 1.3)\ndiaphragm is the LAST muscle to fail\nand the only fatal one", fillcolor="#F0BBD3", penwidth=2.0];
+        VENT     [label="MECHANICAL VENTILATION\nsubstitutes for the failed junction\nfor as long as regeneration takes\n(5-day half-life → 4–10 days)\nTHE definitive treatment of a krait bite", fillcolor="#E8A6C6", penwidth=2.4];
+        SF -> PTOSIS [style=dotted, color="#999999"]; SF -> OPHTH [style=dotted, color="#999999"];
+        SF -> SBC [style=dotted, color="#999999"]; SF -> RESPF [style=dotted, color="#999999"];
+        RESPF -> VENT [color="#1F5FA8", penwidth=2.0];
+    }
+
+    /* ================================================================ 14
+       BRIDGE — local myonecrosis, oedema, compartment syndrome
+       ================================================================ */
+    subgraph cluster_local {
+        label=<<B>14 · BRIDGE · Local injury — the compartment antivenom cannot reach</B><BR/><FONT POINT-SIZE="9">국소 손상 — 항독소가 도달할 수 없는 구획</FONT>>;
+        style="rounded,filled"; fillcolor="#FDEEE0"; color="#C99A6A";
+        MYOTOX   [label="Myotoxic PLA2 (Lys49 / Asp49)\nsarcolemmal disruption within MINUTES\n— faster than any transport time", fillcolor="#F9DCC2"];
+        CYTOTOX  [label="Cytotoxin / cardiotoxin (3FTx)\nmembrane-lytic; the reason a cobra bite\ndigests a limb with almost no SVMP", fillcolor="#F9DCC2"];
+        BMDIG    [label="Basement-membrane digestion (SVMP)\nmicrovessel wall failure → ischaemia\nof the tissue the antivenom must enter", fillcolor="#F9DCC2"];
+        NEC      [label="MYONECROSIS  NEC  (state)\nhealing t½ 19 DAYS\nregeneration fails where the\nbasement-membrane scaffold is gone", fillcolor="#F3C79C", penwidth=2.2];
+        EDEMA    [label="Local oedema  EDEMA  (state)\nbradykinin, histamine, PLA2 eicosanoids\ndrainage k 0.020 /h", fillcolor="#F9DCC2"];
+        CP       [label="Compartment pressure\nCP = 8 + 58·E/(E+0.35) mmHg\nfasciotomy threshold 30 mmHg", fillcolor="#F3C79C"];
+        FASCIO   [label="Fasciotomy\nrarely indicated, frequently harmful\nin a coagulopathic patient\n— measure the pressure first", fillcolor="#EAF6E2"];
+        SECINF   [label="Secondary infection\nMorganella, Aeromonas, anaerobes\nfrom oral flora + necrotic substrate", fillcolor="#F9DCC2"];
+        AMPUT    [label="Debridement / skin graft / AMPUTATION\nthe dominant global disability burden:\n~400,000 survivors per year", fillcolor="#F0BBD3", penwidth=1.8];
+        DEPOT -> MYOTOX [penwidth=1.6]; DEPOT -> CYTOTOX [penwidth=1.6]; DEPOT -> BMDIG [penwidth=1.6];
+        MYOTOX -> NEC [color="#8B3A3A", penwidth=2.0]; CYTOTOX -> NEC [color="#8B3A3A", penwidth=2.0];
+        BMDIG -> NEC [color="#8B3A3A", penwidth=2.0];
+        MYOTOX -> EDEMA; BMDIG -> EDEMA;
+        EDEMA -> CP [style=dotted, color="#999999"];
+        CP -> FASCIO [style=dashed]; CP -> NEC [style=dashed, label="ischaemia"];
+        NEC -> SECINF -> AMPUT; NEC -> AMPUT;
+        BINDL -> MYOTOX [style=dashed, color="#B03030", arrowhead=tee, label="27× penalty"];
+        EDEMA -> AT [style=dashed, label="↑ convection,\nstill negligible"];
+    }
+
+    /* ================================================================ 15
+       Rhabdomyolysis and pigment nephropathy
+       ================================================================ */
+    subgraph cluster_rhabdo {
+        label=<<B>15 · Rhabdomyolysis — local and systemic myotoxicity</B><BR/><FONT POINT-SIZE="9">횡문근 융해 — 국소 및 전신 근독성</FONT>>;
+        style="rounded,filled"; fillcolor="#FCEAEE"; color="#C98793";
+        SYSMYO   [label="Systemic myotoxicity\ncirculating PLA2 reaching skeletal muscle\n(sea snakes, Pseudechis, some Daboia)", fillcolor="#F8D3DA"];
+        CK       [label="CREATINE KINASE  (state)\nrelease ∝ necrosis STOCK, not flux\n→ peak at 12–48 h; t½ 36 h", fillcolor="#F8D3DA", penwidth=1.6];
+        MB       [label="Myoglobin  (state)\nrenal clearance ∝ nephron mass\n→ a positive feedback with AKI", fillcolor="#F8D3DA", penwidth=1.6];
+        HYPERK   [label="Hyperkalaemia, hyperphosphataemia,\nhypocalcaemia, metabolic acidosis", fillcolor="#F8D3DA"];
+        MYOGLOB  [label="Myoglobinuria (cola-coloured urine)\nbedside sign of the coming AKI", fillcolor="#FFFFFF"];
+        PLA2 -> SYSMYO [style=dashed]; VC -> SYSMYO;
+        NEC -> CK [penwidth=1.6]; SYSMYO -> CK; NEC -> MB; SYSMYO -> MB;
+        NEC -> HYPERK; SYSMYO -> HYPERK;
+        MB -> MYOGLOB [style=dotted, color="#999999"];
+    }
+
+    /* ================================================================ 16
+       Venom-induced AKI as an integral
+       ================================================================ */
+    subgraph cluster_kidney {
+        label=<<B>16 · Venom-induced acute kidney injury — an integral, not a level</B><BR/><FONT POINT-SIZE="9">독소 유발 급성 신손상 — 수치가 아니라 적분</FONT>>;
+        style="rounded,filled"; fillcolor="#E9F6E7"; color="#7CB07A";
+        MICROTH  [label="Glomerular fibrin microthrombi\nflux ∝ the fibrinogen CONSUMPTION rate\n(not the fibrinogen level)", fillcolor="#D3EDCF", penwidth=1.6];
+        CASTS    [label="Pigment cast burden  CAST  (state)\nmyoglobin + haemoglobin casts;\nworse when urine flow is low", fillcolor="#D3EDCF"];
+        ISCH     [label="Ischaemic injury\nrenal hypoperfusion when MAP < 65", fillcolor="#D3EDCF"];
+        DIRECT   [label="Direct nephrotoxicity\nSVMP digestion of glomerular\nbasement membrane; mesangiolysis", fillcolor="#D3EDCF"];
+        NEPH     [label="FUNCTIONAL NEPHRON MASS  NEPH  (state)\nloss = ∫(fibrin + cast + ischaemia + direct)\nrepair k 0.006 /h (t½ 116 h)", fillcolor="#BFE4BA", penwidth=2.2];
+        CORTNEC  [label="Bilateral renal cortical necrosis\nthe irreversible end of the same integral\n(Daboia, Echis; ~1–3% of AKI cases)", fillcolor="#A9DBA3", penwidth=1.8];
+        FIBR     [label="Permanent interstitial fibrosis  FIBR\nsets the CEILING for recovery:\nNEPH can never exceed 1 − FIBR", fillcolor="#A9DBA3", penwidth=1.8];
+        SCR      [label="SERUM CREATININE  (state)\nequilibration t½ ≈ 38 h at NEPH 0.3\n→ peaks on DAY 3–5, long after venom\nis undetectable", fillcolor="#D3EDCF", penwidth=1.6];
+        DIAL     [label="Renal replacement therapy\nsubstitutes for the lost integral\nwhile the surviving nephrons repair", fillcolor="#EAF6E2"];
+        CKD      [label="Chronic kidney disease\nin survivors of severe venom AKI\n(the most under-counted sequela)", fillcolor="#F0BBD3", penwidth=1.6];
+        FGCONS -> MICROTH [penwidth=1.6];
+        MB -> CASTS [penwidth=1.6];
+        DIRECT -> NEPH [arrowhead=tee, color="#8B3A3A"];
+        SVMP -> DIRECT [style=dashed];
+        MICROTH -> NEPH [arrowhead=tee, color="#8B3A3A", penwidth=1.6];
+        CASTS -> NEPH [arrowhead=tee, color="#8B3A3A"];
+        ISCH -> NEPH [arrowhead=tee, color="#8B3A3A"];
+        NEPH -> SCR [style=dotted, color="#999999"];
+        NEPH -> FIBR [color="#8B3A3A", penwidth=1.6]; FIBR -> NEPH [style=dashed, label="ceiling"];
+        NEPH -> CORTNEC; FIBR -> CKD;
+        SCR -> DIAL [style=dashed]; DIAL -> SCR [color="#1F5FA8"];
+        NEPH -> MB [style=dashed, label="↓ clearance"];
+    }
+
+    /* ================================================================ 17
+       Capillary leak, haemoconcentration, shock
+       ================================================================ */
+    subgraph cluster_haemo {
+        label=<<B>17 · Capillary leak — plasma leaves the circulation before blood does</B><BR/><FONT POINT-SIZE="9">모세혈관 누출 — 혈액보다 혈장이 먼저 빠져나간다</FONT>>;
+        style="rounded,filled"; fillcolor="#E4F4F8"; color="#6FA1B0";
+        GLX      [label="Endothelial glycocalyx  GLX  (state)\nshed by SVMP + PLA2; repair t½ 35 h", fillcolor="#CDE9F1", penwidth=1.6];
+        LEAK     [label="Transcapillary plasma loss\nk_leak·(1 − GLX)·PV", fillcolor="#CDE9F1"];
+        PV       [label="PLASMA VOLUME  PV  (state)\nrefill k 0.060 /h from the interstitium", fillcolor="#CDE9F1", penwidth=1.6];
+        MAP      [label="MEAN ARTERIAL PRESSURE\nMAP = 92·(PV/PV₀)^1.6·(1 − anaphylaxis)", fillcolor="#B6DFEB", penwidth=1.6];
+        HCT      [label="HAEMOCONCENTRATION\nHct rises while the patient bleeds —\nthe classic Russell's viper paradox", fillcolor="#CDE9F1"];
+        FLUID    [label="Crystalloid resuscitation\nthe first intervention, before antivenom", fillcolor="#EAF6E2"];
+        SHOCK    [label="Hypovolaemic / distributive shock\nconjunctival oedema, serous effusions,\ncapillary leak syndrome (Bothrops, Daboia)", fillcolor="#F0BBD3", penwidth=1.6];
+        SVMP -> GLX [arrowhead=tee, color="#8B3A3A", style=dashed];
+        PLA2 -> GLX [arrowhead=tee, color="#8B3A3A", style=dashed];
+        GLX -> LEAK [style=dashed]; LEAK -> PV [arrowhead=tee, color="#8B3A3A"];
+        PV -> MAP [style=dotted, color="#999999"]; PV -> HCT [style=dotted, color="#999999"];
+        FLUID -> PV [color="#1F5FA8", penwidth=1.6];
+        MAP -> SHOCK; MAP -> ISCH [style=dashed];
+        HAEMORR -> LEAK [style=dashed];
+    }
+
+    /* ================================================================ 18
+       Systemic inflammation
+       ================================================================ */
+    subgraph cluster_infl {
+        label=<<B>18 · Systemic inflammation</B><BR/><FONT POINT-SIZE="9">전신 염증 반응</FONT>>;
+        style="rounded,filled"; fillcolor="#F0F0F0"; color="#909090";
+        DAMPS    [label="DAMPs from necrotic muscle\nHMGB1, mtDNA, uric acid", fillcolor="#E2E2E2"];
+        NLRP3    [label="NLRP3 inflammasome / caspase-1\nsvPLA2 and SVMP are direct activators", fillcolor="#E2E2E2"];
+        IL6      [label="IL-6  (state)  t½ 2 h\ndrives the hepatic acute-phase response", fillcolor="#E2E2E2", penwidth=1.6];
+        TNFA     [label="TNF-α  (state)  t½ 42 min", fillcolor="#E2E2E2"];
+        COMPLA   [label="Complement activation\nC3a / C5a — venom-driven, and again\nlater by the antivenom itself", fillcolor="#E2E2E2"];
+        FEVER    [label="Fever, leucocytosis, malaise\n— easily mistaken for sepsis", fillcolor="#FFFFFF"];
+        NEC -> DAMPS; SYSMYO -> DAMPS;
+        DAMPS -> NLRP3; PLA2 -> NLRP3 [style=dashed]; SVMP -> NLRP3 [style=dashed];
+        NLRP3 -> IL6; NLRP3 -> TNFA; DAMPS -> COMPLA;
+        IL6 -> FGSYN [style=dashed, label="acute phase\n→ SYNUP"];
+        IL6 -> FEVER; TNFA -> FEVER;
+        VC -> COMPLA [style=dashed];
+    }
+
+    /* ================================================================ 19
+       Antivenom adverse reactions — the cost side of the ledger
+       ================================================================ */
+    subgraph cluster_avae {
+        label=<<B>19 · Antivenom adverse reactions — the cost side of the ledger</B><BR/><FONT POINT-SIZE="9">항독소 이상반응 — 장부의 비용 쪽</FONT>>;
+        style="rounded,filled"; fillcolor="#F6E8E4"; color="#B08878";
+        RATE     [label="INFUSION RATE of foreign protein\nreaction driver is dRATE/dt, not the total\n→ slowing the infusion is a real intervention", fillcolor="#EBD3CB", penwidth=1.6];
+        MCA      [label="Anaphylactoid activation  MCA  (state)\ncomplement + direct mast-cell activation;\nmostly NOT IgE-mediated → a negative skin\ntest predicts nothing", fillcolor="#EBD3CB", penwidth=1.6];
+        RHO      [label="Product reactogenicity ρ\nwhole IgG 0.250 (Fc + aggregates)\nF(ab')₂ 0.060 · Fab 0.020", fillcolor="#EBD3CB"];
+        ANAPH    [label="Acute anaphylactic / anaphylactoid reaction\nurticaria → bronchospasm → hypotension\n5–80% depending on product and rate", fillcolor="#F0BBD3", penwidth=1.8];
+        ADREN    [label="Adrenaline (IM 0.5 mg)\nlow-dose subcutaneous prophylaxis reduces\nreactions in high-reactogenicity products", fillcolor="#EAF6E2"];
+        PYRO     [label="Pyrogenic reaction\nendotoxin contamination; fever, rigors,\nfebrile convulsion in children", fillcolor="#EBD3CB"];
+        ICPLX    [label="Circulating immune complexes  IC  (state)\nproportional to the antivenom PROTEIN load", fillcolor="#EBD3CB"];
+        SSICK    [label="SERUM SICKNESS  SS  (state)\nfever, rash, arthralgia, proteinuria\npeaks day 5–12 — after discharge, so it is\nunder-reported in every trial", fillcolor="#F0BBD3", penwidth=1.8];
+        SUPPLY   [label="Supply and cost\nregional potency mismatch, cold chain,\nout-of-pocket cost exceeding annual income\n→ the real determinant of outcome", fillcolor="#FFFFFF"];
+        AVIV -> RATE; RATE -> MCA; RHO -> MCA [style=dashed];
+        IGG -> RHO [style=dashed]; F2 -> RHO [style=dashed]; FAB -> RHO [style=dashed];
+        MCA -> ANAPH; MCA -> MAP [style=dashed, label="vasodilation"];
+        ADREN -> ANAPH [style=dashed, color="#B03030", arrowhead=tee];
+        AVIV -> PYRO;
+        AC -> ICPLX [style=dashed]; AP -> ICPLX [style=dashed];
+        ICPLX -> SSICK [penwidth=1.6];
+        SPECIFIC -> ICPLX [style=dashed, label="80–90% of the\nprotein is inert"];
+        IGG -> SUPPLY [style=dashed];
+    }
+
+    /* ================================================================ 20
+       Adjuncts, investigational agents, and what does NOT work
+       ================================================================ */
+    subgraph cluster_adj {
+        label=<<B>20 · Adjuncts and investigational agents — including what does NOT work</B><BR/><FONT POINT-SIZE="9">보조 및 연구 단계 치료 — 효과가 없는 것까지 포함</FONT>>;
+        style="rounded,filled"; fillcolor="#EAF6E2"; color="#7FAF7F";
+        VARES    [label="VARESPLADIB / varespladib-methyl\noral secretory-PLA2 inhibitor, IC₅₀ ~0.01 mg/L\nV_d 12 L → REACHES THE BITE SITE AND THE\nNERVE TERMINAL, which an IgG does not;\ncan be swallowed before transport", fillcolor="#D3EDCF", penwidth=2.0];
+        MARIM    [label="Marimastat / batimastat / DMPS (unithiol)\nSVMP metalloproteinase inhibitors —\nzinc chelation; oral, pre-hospital", fillcolor="#D3EDCF", penwidth=1.6];
+        MABS     [label="Recombinant human monoclonal antibodies\nand nanobodies against conserved 3FTx and\nSVMP epitopes — no animal plasma, no serum\nsickness, definable potency", fillcolor="#D3EDCF", penwidth=1.6];
+        CRYO     [label="Cryoprecipitate / FFP\nsubstitutes for the LIVER instead of\nwaiting for it — only after neutralisation,\nor it is consumed as fast as it is given", fillcolor="#D3EDCF"];
+        TXA      [label="TRANEXAMIC ACID — DOES NOT WORK HERE\nonly ~5% of the fibrinogen loss is\nplasmin-mediated; the other 95% is direct\nenzymatic cleavage that TXA cannot touch", fillcolor="#F5DCDC", penwidth=1.8];
+        HEPARIN  [label="HEPARIN — DOES NOT WORK HERE\nthe thrombin is generated outside the\ncascade heparin regulates; adds bleeding risk", fillcolor="#F5DCDC", penwidth=1.8];
+        ANTIBIO  [label="Prophylactic antibiotics\nnot routine; reserved for necrotic wounds\nand demonstrated infection", fillcolor="#D3EDCF"];
+        WOUND    [label="Wound care, tetanus prophylaxis,\nanalgesia (avoid NSAIDs while coagulopathic),\nlimb elevation, physiotherapy", fillcolor="#D3EDCF"];
+        VARES -> PLA2 [arrowhead=tee, color="#B03030", penwidth=2.0];
+        VARES -> MYOTOX [arrowhead=tee, color="#B03030", penwidth=2.0];
+        VARES -> BNEURO [arrowhead=tee, color="#B03030", penwidth=2.0];
+        MARIM -> SVMP [arrowhead=tee, color="#B03030", penwidth=1.6];
+        MABS -> BINDP [color="#1F5FA8", penwidth=1.6];
+        CRYO -> FG [color="#1F5FA8", penwidth=1.6];
+        TXA -> PLASMIN [arrowhead=tee, color="#B03030", style=dashed, label="5% only"];
+        HEPARIN -> THROMBIN [arrowhead=tee, color="#B03030", style=dashed, label="wrong\ntarget"];
+        SECINF -> ANTIBIO [style=dashed];
+        NEC -> WOUND [style=dashed];
+    }
+
+    /* ================================================================ 21
+       The clinical decision layer
+       ================================================================ */
+    subgraph cluster_decide {
+        label=<<B>21 · The clinical decision layer — the whole model reduced to four questions</B><BR/><FONT POINT-SIZE="9">임상 의사결정 층 — 전체 모델을 네 가지 질문으로 압축</FONT>>;
+        style="rounded,filled"; fillcolor="#FFFFFF"; color="#606060";
+        Q1       [label="Q1 · IS THIS AN ENVENOMING AT ALL?\n20WBCT + ptosis check + limb swelling.\nA dry bite treated as an envenoming gets\nall of the antivenom risk and none of the\nbenefit.  This question is free to ask.", fillcolor="#F2F2F2", penwidth=1.6];
+        Q2       [label="Q2 · HAS THE SUBSTRATE ALREADY GONE?\nAntivenom changes the DEPTH of the nadir.\nIt does not change the recovery SLOPE.\nLate antivenom still prevents the next\nfew hours of consumption — but only that.", fillcolor="#F2F2F2", penwidth=1.6];
+        Q3       [label="Q3 · WILL THE COVER OUTLAST THE VENOM?\nCompare t½(fragment) with t½(venom input).\nIf the fragment loses, plan a maintenance\nschedule at the time of the first dose —\nnot after the recurrence is discovered.", fillcolor="#F2F2F2", penwidth=1.6];
+        Q4       [label="Q4 · WHAT IS THE ACTUAL LIFE-SAVING ACT?\nviperid coagulopathy → antivenom\nelapid presynaptic paralysis → VENTILATION\ncapillary leak → fluid\nvenom AKI → dialysis\nAntivenom is necessary; it is rarely enough.", fillcolor="#EDEDED", penwidth=2.2];
+        WBCT -> Q1 [style=dashed]; PTOSIS -> Q1 [style=dashed]; DRYBITE -> Q1 [style=dashed];
+        FGSYN -> Q2 [style=dashed]; NOREV -> Q2 [style=dashed];
+        INEQ -> Q3 [style=dashed]; SLOWDEP -> Q3 [style=dashed];
+        VENT -> Q4 [style=dashed]; DIAL -> Q4 [style=dashed];
+        FLUID -> Q4 [style=dashed]; STOICH -> Q4 [style=dashed];
+        Q1 -> Q2 -> Q3 -> Q4 [style=invis];
+    }
+
+    /* ---------------- cross-cluster structural edges ---------------- */
+    NOREV -> FG [style=dashed, color="#8B3A3A", label="cannot re-ligate"];
+    NOREV -> BR [style=dashed, color="#8B3A3A", label="cannot strip"];
+    NOREV -> TERM [style=dashed, color="#8B3A3A", label="cannot rebuild"];
+    NOREV -> NEC [style=dashed, color="#8B3A3A", label="cannot un-necrose"];
+    STOICH -> INEQ [style=invis];
+}
