@@ -1,0 +1,768 @@
+/* ===========================================================================
+   rvo_qsp_model.dot
+   Retinal vein occlusion (CRVO / BRVO) macular oedema — mechanistic QSP map
+   망막정맥폐쇄(중심/분지) 황반부종 — 기계론적 QSP 지도
+
+   THE ORGANISING IDEA OF THE MAP
+     Read it as ONE equation with THREE inputs.  The centre of the map
+     (cluster 13) is the Starling flux across the inner blood-retina barrier:
+
+         Jv  =  Lp · S · [ (Pc - Pt)  -  sigma · (pi_c - pi_t) ]
+                \______/   \________/    \___________________/
+              PERMEABILITY   PRESSURE           ONCOTIC
+                  ARM          ARM                ARM
+
+     Everything on the LEFT of the map feeds the PRESSURE arm: the thrombus,
+     the resistance network, arterial inlet pressure, autoregulation, the
+     collateral clock.  Everything on the RIGHT feeds the PERMEABILITY and
+     ONCOTIC arms: hypoxia, HIF-1alpha, VEGF-A, IL-6, Ang-2, the tight
+     junction, the reflection coefficient.
+
+     EVERY anti-VEGF arrow in this map lands on the RIGHT.  Not one lands on
+     the left.  That asymmetry is the whole model: anti-VEGF is a multiplier
+     in front of a bracket it cannot change.  Hence
+
+         Pc* = Pt + sigma_max·(pi_c - pi_t)   (cluster 13, node PCSTAR)
+
+     is a hard threshold: above it the bracket stays positive with the
+     permeability arm already at its floor, and the macula cannot be dried by
+     any dose of any agent.  The only arrows that reach the left half are
+     systemic blood-pressure lowering (cluster 22), the collateral /
+     recanalisation clock (cluster 6), and surgery aimed at the outflow
+     (cluster 21).
+
+   READING ORDER
+      1  who occludes, and where — the two anatomies (AV crossing vs lamina)
+      2  systemic and ocular risk factors
+      3  thrombus biology (Virchow) and the natural lysis clock
+      4  the resistance network and retinal capillary pressure = PRESSURE ARM
+      5  autoregulation: the hypoxic vasodilatation feedback that WORSENS Pc
+      6  the collateral / recanalisation clock — the only endogenous cure
+      7  stasis, leukostasis and capillary non-perfusion
+      8  hypoxia sensing: HIF-1alpha
+      9  the VEGF-A axis and its receptors
+     10  the non-VEGF permeability mediators (IL-6, Ang-2/Tie2, and others)
+     11  the inner blood-retina barrier: junctions, transcytosis, glycocalyx
+     12  the outer barrier and the water pumps that fight the flux
+     13  THE STARLING NODE and the critical capillary pressure Pc*
+     14  retinal morphology: CST, cysts, SRF, DRIL, ellipsoid zone
+     15  vision as a sum of a reversible and an irreversible term
+     16  neovascularisation: posterior and anterior
+     17  intraocular pressure and neovascular glaucoma
+     18  anti-VEGF pharmacokinetics (vitreous / retina / plasma)
+     19  anti-VEGF pharmacodynamics and the suppression-duration equation
+     20  corticosteroids — the mediators anti-VEGF cannot reach, at a price
+     21  laser and surgery
+     22  systemic and adjunctive therapy — the only arrows into the left half
+     23  adverse effects: the cost side of the ledger
+     24  biomarkers and imaging
+     25  the clinical decision layer
+
+   EDGE SEMANTICS
+     solid black arrow ....... mass flux or causal activation
+     dashed arrow ............ modulation / signalling (no mass transfer)
+     red arrow, "-|" head .... inhibition / blockade
+     blue arrow .............. drug or intervention acting on the target
+     bold arrow .............. a term that appears explicitly in the ODEs
+     grey dotted ............. measurement / read-out
+   =========================================================================== */
+
+digraph RVO_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  nodesep = 0.28;
+  ranksep = 0.52;
+  fontname = "Helvetica";
+  labelloc = "t";
+  label = <<b>Retinal Vein Occlusion — Quantitative Systems Pharmacology Map</b><br/>
+<font point-size="13">망막정맥폐쇄(CRVO/BRVO) 황반부종 · 기계론적 QSP 지도</font><br/>
+<font point-size="11">J<sub>v</sub> = L<sub>p</sub>·S·[(P<sub>c</sub> − P<sub>t</sub>) − σ(π<sub>c</sub> − π<sub>t</sub>)] &nbsp;·&nbsp; anti-VEGF acts on L<sub>p</sub> and σ only &nbsp;·&nbsp; P<sub>c</sub>* = P<sub>t</sub> + σ<sub>max</sub>(π<sub>c</sub> − π<sub>t</sub>) = 31.3 mmHg</font>>;
+  fontsize = 20;
+
+  node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+        fontsize = 10, penwidth = 1.1, margin = "0.10,0.055"];
+  edge [fontname = "Helvetica", fontsize = 8, penwidth = 1.0,
+        arrowsize = 0.65, color = "#37474f"];
+
+  /* ---------- colour key ------------------------------------------------ */
+  subgraph cluster_key {
+    label = "0 · 범례 (Legend)";
+    style = "rounded,filled"; fillcolor = "#fafafa"; color = "#9e9e9e";
+    fontsize = 12;
+    K1 [label = "해부/혈역학\nanatomy · haemodynamics", fillcolor = "#ffe0b2"];
+    K2 [label = "허혈/신호전달\nhypoxia · signalling", fillcolor = "#ffcdd2"];
+    K3 [label = "장벽/체액\nbarrier · fluid", fillcolor = "#c8e6c9"];
+    K4 [label = "약물 PK\ndrug PK", fillcolor = "#bbdefb"];
+    K5 [label = "약물 PD/표적\ndrug PD · target", fillcolor = "#d1c4e9"];
+    K6 [label = "임상 종점\nclinical endpoint", fillcolor = "#fff9c4"];
+    K7 [label = "이상반응\nadverse effect", fillcolor = "#f8bbd0"];
+    K8 [label = "바이오마커\nbiomarker", fillcolor = "#e0e0e0"];
+    K1 -> K2 -> K3 -> K4 [style = invis];
+    K5 -> K6 -> K7 -> K8 [style = invis];
+  }
+
+  /* =====================================================================
+     1 · ANATOMY OF THE OCCLUSION
+     ===================================================================== */
+  subgraph cluster_1 {
+    label = "1 · 폐쇄 해부학 (Where the vein occludes)";
+    style = "rounded,filled"; fillcolor = "#fff8e1"; color = "#ff8f00"; fontsize = 12;
+    AVCROSS  [label = "동정맥 교차부\nArterio-venous crossing\n(shared adventitia, artery anterior)", fillcolor = "#ffe0b2"];
+    LAMINA   [label = "시신경 사판\nLamina cribrosa\n(central retinal vein, narrow canal)", fillcolor = "#ffe0b2"];
+    CRVSITE  [label = "중심망막정맥\nCentral retinal vein (CRV)\ndrains 100% of retina", fillcolor = "#ffe0b2"];
+    BRVSITE  [label = "분지망막정맥\nBranch retinal vein\ndrains 1 sector (~25–50%)", fillcolor = "#ffe0b2"];
+    HEMISITE [label = "반망막정맥폐쇄\nHemiretinal vein occlusion\n(congenital bifurcation)", fillcolor = "#ffe0b2"];
+    SECTOR   [label = "침범 분획 f_sec\nsector fraction of macula\nCRVO 1.00 · BRVO ≈ 0.45", fillcolor = "#ffcc80"];
+    AVCROSS -> BRVSITE  [label = "sclerotic artery\ncompresses vein"];
+    LAMINA  -> CRVSITE  [label = "canal narrowing\n+ glaucomatous cupping"];
+    LAMINA  -> HEMISITE;
+    CRVSITE -> SECTOR   [label = "f_sec = 1"];
+    BRVSITE -> SECTOR   [label = "f_sec < 1"];
+    HEMISITE -> SECTOR;
+  }
+
+  /* =====================================================================
+     2 · RISK FACTORS
+     ===================================================================== */
+  subgraph cluster_2 {
+    label = "2 · 위험인자 (Systemic and ocular risk)";
+    style = "rounded,filled"; fillcolor = "#fff8e1"; color = "#ff8f00"; fontsize = 12;
+    HTN     [label = "고혈압\nHypertension (63–73% of CRVO)", fillcolor = "#ffe0b2"];
+    DLP     [label = "이상지질혈증\nDyslipidaemia", fillcolor = "#ffe0b2"];
+    DM      [label = "당뇨병\nDiabetes mellitus", fillcolor = "#ffe0b2"];
+    AGE     [label = "연령 · 동맥경화\nAge, arteriolosclerosis", fillcolor = "#ffe0b2"];
+    GLC     [label = "녹내장 · 안압 상승\nGlaucoma, raised IOP\n(raises P_v at lamina)", fillcolor = "#ffe0b2"];
+    THROMB  [label = "혈액응고 이상\nFactor V Leiden · prothrombin G20210A\nantiphospholipid · hyperhomocysteinaemia", fillcolor = "#ffe0b2"];
+    VISCO   [label = "과점도\nHyperviscosity\npolycythaemia · myeloma · Waldenström", fillcolor = "#ffe0b2"];
+    OCP     [label = "경구 피임약 · 임신\nOCP, pregnancy (young patients)", fillcolor = "#ffe0b2"];
+    INFL    [label = "혈관염 · 염증\nVasculitis, Behçet, sarcoid", fillcolor = "#ffe0b2"];
+    HTN -> AVCROSS   [label = "arteriolar wall\nthickening", style = dashed];
+    DLP -> AVCROSS   [style = dashed];
+    AGE -> AVCROSS   [style = dashed];
+    DM  -> AVCROSS   [style = dashed];
+    GLC -> LAMINA    [label = "cup enlargement", style = dashed];
+    INFL -> AVCROSS  [style = dashed];
+  }
+
+  /* =====================================================================
+     3 · THROMBUS BIOLOGY
+     ===================================================================== */
+  subgraph cluster_3 {
+    label = "3 · 혈전 형성과 자연 용해 (Virchow triad and the lysis clock)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828"; fontsize = 12;
+    ENDO    [label = "내피 손상\nEndothelial injury\n(mechanical + oxidative)", fillcolor = "#ffcdd2"];
+    STASIS  [label = "혈류 정체\nStasis, turbulent flow", fillcolor = "#ffcdd2"];
+    HYPERC  [label = "과응고 상태\nHypercoagulability", fillcolor = "#ffcdd2"];
+    THR     [label = "정맥 내 혈전\nIntraluminal thrombus\n(fibrin + platelet + RBC)", fillcolor = "#ef9a9a"];
+    OCCST   [label = "★ OCC\nocclusion severity multiplier\nR_v = R_v0·(1+OCC)/(1+COLL)", fillcolor = "#e57373", penwidth = 2.2];
+    FIBRINO [label = "내인성 섬유소 용해\nEndogenous fibrinolysis\nplasmin, tPA, uPA", fillcolor = "#ffcdd2"];
+    KLYS    [label = "용해 속도상수 k_lys\nCRVO ~0.002–0.0035 /d (t½ 200–350 d)\nBRVO ~0.0075 /d (t½ ~90 d)", fillcolor = "#ffcdd2"];
+    ENDO   -> THR;
+    STASIS -> THR;
+    HYPERC -> THR;
+    THROMB -> HYPERC [style = dashed];
+    VISCO  -> STASIS [style = dashed];
+    OCP    -> HYPERC [style = dashed];
+    AVCROSS -> ENDO;
+    LAMINA  -> ENDO;
+    THR -> OCCST [penwidth = 2.0];
+    FIBRINO -> KLYS;
+    KLYS -> OCCST [label = "dOCC/dt = −k_lys·OCC", color = "#c62828", arrowhead = tee];
+  }
+
+  /* =====================================================================
+     4 · RESISTANCE NETWORK AND CAPILLARY PRESSURE  (PRESSURE ARM)
+     ===================================================================== */
+  subgraph cluster_4 {
+    label = "4 · 저항망과 모세혈관 압력 — 압력항 (Resistance network → P_c : the PRESSURE ARM)";
+    style = "rounded,filled"; fillcolor = "#fff3e0"; color = "#e65100"; fontsize = 13;
+    MAP     [label = "전신 평균동맥압\nSystemic MAP", fillcolor = "#ffe0b2"];
+    OPP     [label = "안관류압\nOcular perfusion pressure\nOPP = MAP − IOP", fillcolor = "#ffe0b2"];
+    PAIN    [label = "★ P_a\npost-arteriolar inlet pressure\n≈ 40 mmHg (model)", fillcolor = "#ffcc80", penwidth = 2.0];
+    RART    [label = "★ R_a\narteriolar resistance\nR_a = R_a0·(1 − 0.35·HIF)", fillcolor = "#ffcc80", penwidth = 2.0];
+    RVEN    [label = "★ R_v\nvenular + venous resistance\nR_v0 = 0.25 (healthy)", fillcolor = "#ffcc80", penwidth = 2.0];
+    PVEN    [label = "★ P_v\nvenous outflow pressure\nP_v ≈ IOP + 2 mmHg", fillcolor = "#ffcc80", penwidth = 2.0];
+    PCAP    [label = "★★ P_c — 모세혈관 정수압\nP_c = (P_a·R_v + P_v·R_a)/(R_a + R_v)\nnormal ≈ 21.6 · CRVO 34–38 mmHg",
+             fillcolor = "#ff8a65", penwidth = 2.8, shape = box3d];
+    QFLOW   [label = "★ Q — 망막 혈류\nQ = (P_a − P_v)/(R_a + R_v)\nQ_rel = Q/Q₀", fillcolor = "#ffcc80", penwidth = 2.0];
+    TRANSM  [label = "압력 전달계수\ndP_c/dP_a = R_v/(R_a+R_v)\nnormal 0.20 → occluded → 1.0", fillcolor = "#ffab91"];
+    MAP -> OPP;   GLC -> PVEN [style = dashed, label = "IOP"];
+    OPP -> PAIN;
+    MAP -> PAIN [penwidth = 1.8];
+    OCCST -> RVEN [penwidth = 2.4, label = "occlusion\nmultiplier"];
+    PAIN -> PCAP [penwidth = 2.2];
+    RVEN -> PCAP [penwidth = 2.4];
+    RART -> PCAP [penwidth = 2.2];
+    PVEN -> PCAP [penwidth = 1.8];
+    PAIN -> QFLOW; RVEN -> QFLOW [penwidth = 2.0]; RART -> QFLOW; PVEN -> QFLOW;
+    RVEN -> TRANSM [style = dashed];
+    RART -> TRANSM [style = dashed];
+    TRANSM -> PCAP [style = dashed, label = "sensitivity of P_c\nto systemic BP"];
+  }
+
+  /* =====================================================================
+     5 · AUTOREGULATION FEEDBACK
+     ===================================================================== */
+  subgraph cluster_5 {
+    label = "5 · 자동조절 되먹임 (Hypoxic vasodilatation: a feedback that WORSENS the pressure arm)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828"; fontsize = 12;
+    MYOG    [label = "근육긴장성 자동조절\nMyogenic autoregulation\n(Bayliss)", fillcolor = "#ffcdd2"];
+    NOEND   [label = "NO · 프로스타사이클린\nNO, PGI₂ from endothelium", fillcolor = "#ffcdd2"];
+    ADENO   [label = "아데노신 · 젖산 · H⁺\nAdenosine, lactate, H⁺", fillcolor = "#ffcdd2"];
+    VASODIL [label = "세동맥 확장\nArteriolar dilatation\nR_a ↓ up to 35%", fillcolor = "#ef9a9a"];
+    ET1     [label = "엔도텔린-1\nEndothelin-1 (ET-1) ↑\nlate vasoconstriction", fillcolor = "#ffcdd2"];
+    QFLOW -> ADENO [label = "↓ flow → ↑ metabolites", style = dashed];
+    ADENO -> VASODIL; NOEND -> VASODIL; MYOG -> VASODIL [style = dashed];
+    VASODIL -> RART [color = "#c62828", arrowhead = tee, penwidth = 2.0,
+                     label = "R_a ↓"];
+    RART -> PCAP [style = invis];
+    ET1 -> RART [style = dashed, label = "chronic\nvasoconstriction"];
+    VASODIL -> PCAP [style = dashed, color = "#c62828",
+                     label = "vicious circle:\nless R_a → more P_c"];
+  }
+
+  /* =====================================================================
+     6 · COLLATERAL / RECANALISATION CLOCK
+     ===================================================================== */
+  subgraph cluster_6 {
+    label = "6 · 우회로 · 재개통 시계 (The collateral clock — the only endogenous cure)";
+    style = "rounded,filled"; fillcolor = "#e8f5e9"; color = "#2e7d32"; fontsize = 12;
+    COLLAT  [label = "★ COLL — 우회 전도도\ncollateral conductance\ndCOLL/dt = k_coll(1+2·HIF)(COLL_max − COLL)", fillcolor = "#a5d6a7", penwidth = 2.0];
+    COLLMAX [label = "우회로 상한 COLL_max\nBRVO ≈ 5.0 (rich sectoral routes)\nCRVO ≈ 0.9–1.2 (few options)", fillcolor = "#c8e6c9"];
+    OPTOCIL [label = "시신경섬모 단락\nOptociliary shunt vessels\n(CRVO, uncommon)", fillcolor = "#c8e6c9"];
+    RECAN   [label = "혈전 재개통\nRecanalisation of the lumen", fillcolor = "#c8e6c9"];
+    COLLMAX -> COLLAT [penwidth = 1.8];
+    OPTOCIL -> COLLAT [style = dashed];
+    RECAN -> COLLAT [style = dashed];
+    KLYS -> RECAN;
+    COLLAT -> RVEN [color = "#2e7d32", arrowhead = tee, penwidth = 2.4,
+                    label = "R_v ↓ : the ONLY endogenous\nroute into the pressure arm"];
+    SECTOR -> COLLMAX [style = dashed, label = "BRVO has\nneighbours to drain into"];
+  }
+
+  /* =====================================================================
+     7 · STASIS, LEUKOSTASIS, NON-PERFUSION
+     ===================================================================== */
+  subgraph cluster_7 {
+    label = "7 · 정체 · 백혈구정체 · 비관류 (Stasis → leukostasis → capillary closure)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828"; fontsize = 12;
+    ICAM    [label = "ICAM-1 · VCAM-1 · P-selectin\nendothelial adhesion molecules ↑", fillcolor = "#ffcdd2"];
+    LEUKO   [label = "★ LEUK — 백혈구 정체\nleukostasis, CD18-mediated plugging", fillcolor = "#ef9a9a", penwidth = 2.0];
+    CAPDROP [label = "모세혈관 탈락\nCapillary dropout, acellular capillaries", fillcolor = "#ffcdd2"];
+    NPAREA  [label = "★ NP — 비관류 면적\nnon-perfusion, disc areas (DA)\nischaemic CRVO > 10 DA (30 DA on 7-field FA)", fillcolor = "#e57373", penwidth = 2.2];
+    MISCH   [label = "★ MI — 황반 허혈 지수\nmacular / foveal ischaemia\nFAZ enlargement, DCP loss", fillcolor = "#e57373", penwidth = 2.0];
+    QFLOW -> LEUKO [style = dashed, label = "Q_rel ↓"];
+    ICAM -> LEUKO [penwidth = 1.6];
+    LEUKO -> CAPDROP [penwidth = 1.6];
+    QFLOW -> NPAREA [penwidth = 2.0, label = "dNP/dt = k_NP·(0.45 − Q_rel)^1.2·(1+0.8·LEUK)"];
+    CAPDROP -> NPAREA [penwidth = 1.8];
+    QFLOW -> MISCH [penwidth = 1.8];
+    NPAREA -> MISCH [style = dashed];
+    COLLAT -> NPAREA [color = "#2e7d32", arrowhead = tee, label = "reperfusion"];
+  }
+
+  /* =====================================================================
+     8 · HYPOXIA SENSING
+     ===================================================================== */
+  subgraph cluster_8 {
+    label = "8 · 저산소 감지 (Hypoxia sensing — HIF-1α)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828"; fontsize = 12;
+    O2DEL   [label = "산소 전달\nO₂ delivery ∝ Q_rel", fillcolor = "#ffcdd2"];
+    PHD     [label = "PHD1-3 · FIH\nprolyl hydroxylases (O₂ sensors)", fillcolor = "#ffcdd2"];
+    VHL     [label = "pVHL · 유비퀴틴화\nubiquitin-proteasome degradation", fillcolor = "#ffcdd2"];
+    HIF1A   [label = "★ HIF — HIF-1α 안정화\nHIF-1α/HIF-2α + ARNT → HRE\ntau ≈ 2 d", fillcolor = "#e57373", penwidth = 2.4];
+    ROS     [label = "산화 스트레스\nROS, NOX, peroxynitrite", fillcolor = "#ffcdd2"];
+    QFLOW -> O2DEL [penwidth = 1.8];
+    O2DEL -> PHD [penwidth = 1.6];
+    PHD -> VHL;
+    VHL -> HIF1A [color = "#c62828", arrowhead = tee, label = "degrades HIF\nwhen O₂ present"];
+    O2DEL -> HIF1A [color = "#c62828", arrowhead = tee, penwidth = 2.0,
+                    label = "hypox = 1 − Q_rel^0.8"];
+    NPAREA -> HIF1A [style = dashed, label = "area of\nhypoxic retina"];
+    HIF1A -> ROS [style = dashed]; ROS -> ENDO [style = dashed];
+    HIF1A -> ADENO [style = invis];
+    HIF1A -> VASODIL [style = dashed, label = "hypoxic\nvasodilatation"];
+  }
+
+  /* =====================================================================
+     9 · VEGF-A AXIS
+     ===================================================================== */
+  subgraph cluster_9 {
+    label = "9 · VEGF-A 축 (The VEGF-A axis)";
+    style = "rounded,filled"; fillcolor = "#f3e5f5"; color = "#6a1b9a"; fontsize = 13;
+    VEGFGENE [label = "VEGFA 유전자 전사\nHRE-driven transcription\nMüller cells, RPE, endothelium, RGC", fillcolor = "#e1bee7"];
+    VEGFISO  [label = "동형체\nVEGF₁₂₁ · VEGF₁₆₅ · VEGF₁₈₉ · VEGF₂₀₆\n(165 dominant, heparin-binding)", fillcolor = "#e1bee7"];
+    VTONE    [label = "★ VTONE — VEGF-A 톤\nfree VEGF that WOULD be present\nnormal ≈ 3 pM (135 pg/mL)\nischaemic CRVO ≈ 39 pM (1750 pg/mL)",
+              fillcolor = "#ce93d8", penwidth = 2.4];
+    VACT     [label = "★★ VACT — 전달된 VEGF 신호\nVACT = VTONE / (1 + C_ret/(α·K_D))\nthe only VEGF node a drug can move",
+              fillcolor = "#ba68c8", penwidth = 2.8, shape = box3d];
+    VEGFR2   [label = "VEGFR2 (KDR)\nY951 · Y1175 autophosphorylation", fillcolor = "#e1bee7"];
+    VEGFR1   [label = "VEGFR1 (Flt-1)\ndecoy + PlGF receptor", fillcolor = "#e1bee7"];
+    NRP1     [label = "Neuropilin-1\nco-receptor, boosts VEGFR2", fillcolor = "#e1bee7"];
+    SRCPATH  [label = "Src → Vav2 → Rac1 → PAK\n+ eNOS, PLCγ→PKC, uPAR", fillcolor = "#e1bee7"];
+    PLGF     [label = "★ PTONE / PACT — PlGF\nVEGFR1 ligand, ~2 → 12 pM", fillcolor = "#ce93d8", penwidth = 1.8];
+    HIF1A -> VEGFGENE [penwidth = 2.4, label = "RV = RV₀(1 + 12·HIF)"];
+    VEGFGENE -> VEGFISO -> VTONE [penwidth = 2.0];
+    VTONE -> VACT [penwidth = 2.6];
+    VACT -> VEGFR2 [penwidth = 2.4];
+    VACT -> VEGFR1; VACT -> NRP1 [style = dashed];
+    NRP1 -> VEGFR2 [style = dashed];
+    VEGFR2 -> SRCPATH [penwidth = 2.0];
+    HIF1A -> PLGF [penwidth = 1.6]; PLGF -> VEGFR1 [penwidth = 1.6];
+  }
+
+  /* =====================================================================
+     10 · NON-VEGF PERMEABILITY MEDIATORS
+     ===================================================================== */
+  subgraph cluster_10 {
+    label = "10 · 비VEGF 매개체 (The mediators anti-VEGF does not touch)";
+    style = "rounded,filled"; fillcolor = "#f3e5f5"; color = "#6a1b9a"; fontsize = 12;
+    IL6N    [label = "★ IL6 — 인터루킨-6\n5 → 85 pg/mL (aqueous)\nSTAT3, trans-signalling via sIL-6R", fillcolor = "#ce93d8", penwidth = 2.0];
+    IL8     [label = "IL-8 · MCP-1 · IP-10\nchemokines ↑", fillcolor = "#e1bee7"];
+    ANG2    [label = "★ ATONE / AACT — Ang-2\n5 → 40 pM; Tie2 antagonist", fillcolor = "#ce93d8", penwidth = 2.0];
+    TIE2    [label = "Tie2 수용체\nAng-1/Tie2 = junction stabilising\nAng-2 = destabilising", fillcolor = "#e1bee7"];
+    VEPTP   [label = "VE-PTP\ndephosphorylates Tie2", fillcolor = "#e1bee7"];
+    PROSTA  [label = "프로스타글란딘\nPGE₂, COX-2", fillcolor = "#e1bee7"];
+    MMP9    [label = "MMP-2 · MMP-9\ndegrade occludin, claudin-5", fillcolor = "#e1bee7"];
+    TNF     [label = "TNF-α · IL-1β\nNF-κB axis", fillcolor = "#e1bee7"];
+    HIF1A -> IL6N [penwidth = 2.0, label = "IL6 = f(1 + 16·HIF)"];
+    HIF1A -> ANG2 [penwidth = 2.0];
+    HIF1A -> IL8 [style = dashed];
+    LEUKO -> TNF [style = dashed]; TNF -> ICAM [style = dashed];
+    ANG2 -> TIE2 [color = "#c62828", arrowhead = tee, penwidth = 2.0,
+                  label = "competitive\nantagonism"];
+    VEPTP -> TIE2 [color = "#c62828", arrowhead = tee];
+    IL6N -> ICAM [style = dashed]; IL6N -> VEGFGENE [style = dashed, label = "cross-induction"];
+    PROSTA -> IL6N [style = dashed]; MMP9 -> IL6N [style = invis];
+  }
+
+  /* =====================================================================
+     11 · INNER BLOOD-RETINA BARRIER
+     ===================================================================== */
+  subgraph cluster_11 {
+    label = "11 · 내측 혈액-망막 장벽 (Inner BRB: the junction complex)";
+    style = "rounded,filled"; fillcolor = "#e8f5e9"; color = "#2e7d32"; fontsize = 13;
+    OCCLU   [label = "Occludin Ser490 인산화\nubiquitination → internalisation", fillcolor = "#c8e6c9"];
+    CLAUD   [label = "Claudin-5 · ZO-1\ntight junction core", fillcolor = "#c8e6c9"];
+    VECAD   [label = "VE-cadherin Y658/Y685\nadherens junction", fillcolor = "#c8e6c9"];
+    CAVEOL  [label = "Caveolin-1 · PLVAP\ntranscytosis / vesicular route", fillcolor = "#c8e6c9"];
+    GLYCO   [label = "내피 당질층\nEndothelial glycocalyx\n(sets σ, the oncotic gate)", fillcolor = "#c8e6c9"];
+    PERI    [label = "혈관주위세포 탈락\nPericyte loss (PDGF-B/PDGFRβ)", fillcolor = "#c8e6c9"];
+    TJSTATE [label = "★★ TJ — 접합 완전성 (0–1)\ndTJ/dt = k_rep(TJ_max − TJ) − k_dis·DRIVE·TJ\nk_rep = 0.16·(1 + 0.5·Tie2_free)",
+             fillcolor = "#66bb6a", penwidth = 2.8, shape = box3d];
+    DRIVEN  [label = "★★ DRIVE — 투과성 구동력\n0.80·VACT/(12+VACT) + 0.08·IL6/(45+IL6)\n+ 0.06·AACT/(15+AACT) + 0.04·PACT/(8+PACT)\n+ 0.06·(P_c − 28)/12",
+             fillcolor = "#81c784", penwidth = 2.6, shape = box3d];
+    LPNODE  [label = "★★ L_p — 수력 전도도\nL_p,rel = 1 + 5.5·(1 − TJ)^1.3\n(1 → 6.5×)", fillcolor = "#66bb6a", penwidth = 2.6];
+    SIGNODE [label = "★★ σ — 반사계수\nσ = 0.92·TJ^0.55\nprotein leak → π_t ↑", fillcolor = "#66bb6a", penwidth = 2.6];
+    CHRONN  [label = "★ CHRON — 만성 재형성\nMüller gliosis, cyst walls, fibrosis\nTJ_max = 1 − 0.45·CHRON", fillcolor = "#a5d6a7", penwidth = 2.0];
+    SRCPATH -> OCCLU [penwidth = 2.0];
+    SRCPATH -> VECAD [penwidth = 2.0];
+    SRCPATH -> CAVEOL [style = dashed];
+    MMP9 -> CLAUD [penwidth = 1.6];
+    TIE2 -> VECAD [color = "#2e7d32", arrowhead = tee, label = "stabilises"];
+    PERI -> TJSTATE [color = "#c62828", arrowhead = tee];
+    VACT -> DRIVEN [penwidth = 2.8, label = "weight 0.80"];
+    IL6N -> DRIVEN [penwidth = 1.8, label = "0.08"];
+    ANG2 -> DRIVEN [penwidth = 1.8, label = "0.06"];
+    PLGF -> DRIVEN [penwidth = 1.4, label = "0.04"];
+    PCAP -> DRIVEN [penwidth = 1.6, style = dashed, label = "0.06 mechano-\ntransduction"];
+    DRIVEN -> TJSTATE [penwidth = 2.8, color = "#c62828", arrowhead = tee];
+    OCCLU -> TJSTATE [color = "#c62828", arrowhead = tee];
+    CLAUD -> TJSTATE [color = "#c62828", arrowhead = tee];
+    VECAD -> TJSTATE [color = "#c62828", arrowhead = tee];
+    TJSTATE -> LPNODE [penwidth = 2.6];
+    TJSTATE -> SIGNODE [penwidth = 2.6];
+    GLYCO -> SIGNODE [penwidth = 1.8];
+    CHRONN -> TJSTATE [color = "#c62828", arrowhead = tee, penwidth = 2.0,
+                       label = "ceiling on\nrecovery"];
+    TIE2 -> TJSTATE [color = "#2e7d32", label = "k_rep boost"];
+  }
+
+  /* =====================================================================
+     12 · WATER CLEARANCE
+     ===================================================================== */
+  subgraph cluster_12 {
+    label = "12 · 물 배출 기전 (What fights the flux: Müller cells and RPE)";
+    style = "rounded,filled"; fillcolor = "#e8f5e9"; color = "#2e7d32"; fontsize = 12;
+    AQP4    [label = "AQP4 (Müller 종말족)\nwater conduit; mislocalised in oedema", fillcolor = "#c8e6c9"];
+    KIR41   [label = "Kir4.1 (KCNJ10)\nK⁺ siphoning; downregulated in RVO", fillcolor = "#c8e6c9"];
+    MULLER  [label = "Müller 세포 부종 · 교종\nMüller swelling → cystoid spaces", fillcolor = "#c8e6c9"];
+    RPEPUMP [label = "RPE 능동 수송\nNa⁺/K⁺-ATPase, AQP1, CA-II\n(clears subretinal fluid)", fillcolor = "#c8e6c9"];
+    OUTERBRB[label = "외측 혈액-망막 장벽\nOuter BRB (RPE tight junctions)", fillcolor = "#c8e6c9"];
+    JOUTN   [label = "★★ J_out — 배출 플럭스\nJ_out = 0.10·W + 32·W/(45+W) µm/d\nsaturable → runaway above threshold",
+             fillcolor = "#66bb6a", penwidth = 2.6, shape = box3d];
+    AQP4 -> JOUTN [penwidth = 2.0]; KIR41 -> JOUTN [penwidth = 2.0];
+    RPEPUMP -> JOUTN [penwidth = 1.8];
+    OUTERBRB -> RPEPUMP [style = dashed];
+    MULLER -> AQP4 [color = "#c62828", arrowhead = tee, label = "mislocalisation"];
+    MULLER -> KIR41 [color = "#c62828", arrowhead = tee];
+    MULLER -> CHRONN [penwidth = 1.6];
+  }
+
+  /* =====================================================================
+     13 · THE STARLING NODE
+     ===================================================================== */
+  subgraph cluster_13 {
+    label = "13 · ★★★ STARLING 결절 — 모든 것이 만나는 하나의 식 (The Starling node)";
+    style = "rounded,filled"; fillcolor = "#e0f2f1"; color = "#00695c"; fontsize = 14;
+    PIC     [label = "π_c — 혈장 교질삼투압\nplasma colloid osmotic pressure\n≈ 25 mmHg", fillcolor = "#b2dfdb"];
+    PIT     [label = "★ π_t — 간질 교질삼투압\nπ_t = 4 + 21·(1 − σ/0.92)·0.75\n4 → 13 mmHg as protein leaks", fillcolor = "#80cbc4", penwidth = 2.0];
+    PTISS   [label = "P_t — 간질 정수압\n≈ 12 mmHg", fillcolor = "#b2dfdb"];
+    BRACK   [label = "★★ 괄호항 (the bracket)\n(P_c − P_t) − σ·(π_c − π_t)\nmmHg — anti-VEGF cannot change P_c",
+             fillcolor = "#4db6ac", penwidth = 2.6, shape = box3d];
+    JVNODE  [label = "★★★ J_v — 여과 플럭스\nJ_v = K_f · L_p,rel · bracket · f_sec\nK_f = 0.653 µm/(d·mmHg)",
+             fillcolor = "#26a69a", penwidth = 3.2, shape = doubleoctagon, fontsize = 11];
+    PCSTAR  [label = "★★★ P_c* — 임계 모세혈관압\nP_c* = P_t + σ_max·(π_c − π_t0) = 31.3 mmHg\nP_c > P_c* ⇒ 어떤 항VEGF 용량으로도 건조 불가\nP_c > P_c* ⇒ NO anti-VEGF dose can dry the macula",
+              fillcolor = "#ff7043", penwidth = 3.2, shape = octagon, fontsize = 11];
+    JVFLOOR [label = "★★ J_v,floor — 압력항 잔여 플럭스\nJ_v with L_p = 1 and σ = σ_max\n= the part no drug can remove", fillcolor = "#ffab91", penwidth = 2.4];
+    WSTATE  [label = "★★ W — 망막내 과잉 수분 (µm)\ndW/dt = J_v − J_out", fillcolor = "#4db6ac", penwidth = 2.8, shape = box3d];
+    SRFST   [label = "★ SRF — 망막하액 (µm)\ndSRF/dt = 0.18·J_v·(1−TJ) − clearance", fillcolor = "#80cbc4", penwidth = 2.0];
+    PCAP -> BRACK [penwidth = 2.8, label = "PRESSURE ARM"];
+    PTISS -> BRACK [penwidth = 1.6];
+    PIC -> BRACK [penwidth = 1.8, label = "ONCOTIC ARM"];
+    PIT -> BRACK [penwidth = 1.8];
+    SIGNODE -> BRACK [penwidth = 2.6];
+    SIGNODE -> PIT [penwidth = 2.0];
+    BRACK -> JVNODE [penwidth = 3.0];
+    LPNODE -> JVNODE [penwidth = 3.0, label = "PERMEABILITY ARM\n(multiplier)"];
+    SECTOR -> JVNODE [style = dashed, label = "f_sec"];
+    PIC -> PCSTAR [style = dashed]; PTISS -> PCSTAR [style = dashed];
+    PCAP -> PCSTAR [penwidth = 2.2, label = "compare"];
+    PCSTAR -> JVFLOOR [penwidth = 2.4];
+    JVFLOOR -> JVNODE [style = dashed, color = "#bf360c",
+                       label = "irreducible\ncomponent"];
+    JVNODE -> WSTATE [penwidth = 3.0];
+    JOUTN -> WSTATE [penwidth = 2.6, color = "#2e7d32", arrowhead = tee];
+    JVNODE -> SRFST [penwidth = 1.8];
+    WSTATE -> CHRONN [penwidth = 1.6, style = dashed];
+  }
+
+  /* =====================================================================
+     14 · MORPHOLOGY
+     ===================================================================== */
+  subgraph cluster_14 {
+    label = "14 · 형태학적 결과 (OCT morphology)";
+    style = "rounded,filled"; fillcolor = "#fffde7"; color = "#f9a825"; fontsize = 12;
+    CST     [label = "★★ CST — 중심 아분야 두께\nCST = 250 + W + 0.6·SRF (µm)\ntrial baselines 550–700 µm", fillcolor = "#fff59d", penwidth = 2.6];
+    CYST    [label = "낭포성 공간\nCystoid spaces, intraretinal cysts", fillcolor = "#fff9c4"];
+    HRF     [label = "고반사 병소\nHyper-reflective foci (microglia/lipid)", fillcolor = "#fff9c4"];
+    DRILN   [label = "★ DRIL\ndisorganisation of retinal inner layers\n(strongest structural predictor of BCVA)", fillcolor = "#fff59d", penwidth = 2.0];
+    EZONE   [label = "★★ EZ — 타원체구역 완전성 (0–1)\ndEZ/dt = repair − k_EZ·f(W)·(1+1.1·MI)·EZ\nIRREVERSIBLE loss", fillcolor = "#ffe082", penwidth = 2.8];
+    ELM     [label = "외경계막 · ONL 두께\nELM integrity, ONL thinning", fillcolor = "#fff9c4"];
+    WSTATE -> CST [penwidth = 2.8]; SRFST -> CST [penwidth = 2.0];
+    CST -> CYST [penwidth = 1.6]; CYST -> MULLER [penwidth = 1.6];
+    CST -> HRF [style = dashed];
+    CST -> DRILN [penwidth = 2.0];
+    CST -> EZONE [penwidth = 2.4, color = "#c62828",
+                  label = "damage ∝ W/(W+250)"];
+    MISCH -> EZONE [penwidth = 2.2, color = "#c62828", label = "×(1 + 1.1·MI)"];
+    EZONE -> ELM [style = dashed];
+    CHRONN -> CYST [style = dashed];
+  }
+
+  /* =====================================================================
+     15 · VISION
+     ===================================================================== */
+  subgraph cluster_15 {
+    label = "15 · 시기능 — 가역항 + 비가역항 (Vision = a reversible term plus an integral)";
+    style = "rounded,filled"; fillcolor = "#fffde7"; color = "#f9a825"; fontsize = 13;
+    LED     [label = "가역 손실 L_ed\n40·W_tot/(200 + W_tot) letters\nrecovers when the macula dries", fillcolor = "#fff59d"];
+    LPR     [label = "비가역 손실 L_pr\n42·(1 − EZ) letters\nNEVER recovers", fillcolor = "#ffcc80"];
+    LISCH   [label = "허혈 손실 L_isch\n22·MI/(1.2 + MI) letters", fillcolor = "#ffcc80"];
+    LCAT    [label = "백내장 손실 L_cat\n12·CAT letters (reversible by surgery)", fillcolor = "#fff9c4"];
+    BCVAN   [label = "★★★ BCVA (ETDRS letters)\n85 − L_ed − L_pr − L_isch − L_cat − L_prp\n10-day functional lag",
+             fillcolor = "#ffb74d", penwidth = 3.0, shape = doubleoctagon];
+    CUMEDN  [label = "★ CUMED — 누적 부종 노출\n∫ max(0, CST − 320) dt  (µm·d)\nthe integral that prices delay", fillcolor = "#ffe082", penwidth = 2.2];
+    SNELL   [label = "Snellen 등가\n20/x, logMAR", fillcolor = "#fff9c4"];
+    METAM   [label = "변시증 · 대비감도\nMetamorphopsia, contrast sensitivity,\nreading speed, NEI-VFQ-25", fillcolor = "#fff9c4"];
+    CST -> LED [penwidth = 2.4];
+    EZONE -> LPR [penwidth = 2.6];
+    MISCH -> LISCH [penwidth = 2.0];
+    LED -> BCVAN [penwidth = 2.4]; LPR -> BCVAN [penwidth = 2.6];
+    LISCH -> BCVAN [penwidth = 2.0]; LCAT -> BCVAN [penwidth = 1.6];
+    DRILN -> BCVAN [style = dashed];
+    CST -> CUMEDN [penwidth = 2.0];
+    CUMEDN -> EZONE [style = dashed, color = "#c62828", label = "the integral\ndrives the damage"];
+    BCVAN -> SNELL [style = dotted, color = "#616161"];
+    BCVAN -> METAM [style = dotted, color = "#616161"];
+  }
+
+  /* =====================================================================
+     16 · NEOVASCULARISATION
+     ===================================================================== */
+  subgraph cluster_16 {
+    label = "16 · 신생혈관 (Neovascularisation: posterior and anterior)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828"; fontsize = 12;
+    NVE     [label = "망막 신생혈관 (NVE)\n+ vitreous haemorrhage,\ntractional retinal detachment (BRVO)", fillcolor = "#ffcdd2"];
+    NVDISC  [label = "시신경 신생혈관 (NVD)", fillcolor = "#ffcdd2"];
+    NVISTATE[label = "★★ NVI — 홍채/각 신생혈관\ndNVI/dt = 0.030·NP/(NP+10)·VACT/(VACT+16)·(1−NVI)\n− 0.012·NVI·(1 − VACT/(VACT+16))",
+             fillcolor = "#e57373", penwidth = 2.6];
+    ANGLE   [label = "각 신생혈관 · 섬유혈관막\nAngle NV, fibrovascular membrane,\nectropion uveae", fillcolor = "#ffcdd2"];
+    REBOUND [label = "★ 반동 (rebound)\nstop the drug while NP persists\n→ VACT returns → NVI resumes", fillcolor = "#ef9a9a", penwidth = 2.0];
+    NPAREA -> NVISTATE [penwidth = 2.4, label = "the ischaemic\ndrive"];
+    VACT -> NVISTATE [penwidth = 2.4, label = "the signalling\ndrive"];
+    NPAREA -> NVE [penwidth = 1.8]; NPAREA -> NVDISC [penwidth = 1.6];
+    NVISTATE -> ANGLE [penwidth = 2.2];
+    NVISTATE -> REBOUND [style = dashed];
+    REBOUND -> NVISTATE [style = dashed, color = "#c62828"];
+  }
+
+  /* =====================================================================
+     17 · IOP AND NEOVASCULAR GLAUCOMA
+     ===================================================================== */
+  subgraph cluster_17 {
+    label = "17 · 안압과 신생혈관 녹내장 (IOP and neovascular glaucoma)";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828"; fontsize = 12;
+    TRABEC  [label = "섬유주 유출 저하\nTrabecular outflow obstruction", fillcolor = "#ffcdd2"];
+    IOPN    [label = "★★ IOP (mmHg)\n15 + 24·(NVI − 0.40)/0.60 + steroid term\ntau = 4 d", fillcolor = "#e57373", penwidth = 2.6];
+    NVG     [label = "★★ 신생혈관 녹내장 (NVG)\nNVI > 0.5 AND IOP > 25 mmHg\n90-day glaucoma; blinding, painful",
+             fillcolor = "#ff8a65", penwidth = 2.8, shape = doubleoctagon];
+    RNFL    [label = "시신경 손상\nRNFL loss, cupping, field loss", fillcolor = "#ffcdd2"];
+    ANGLE -> TRABEC [penwidth = 2.0]; TRABEC -> IOPN [penwidth = 2.4];
+    NVISTATE -> IOPN [penwidth = 2.4];
+    IOPN -> NVG [penwidth = 2.6]; NVISTATE -> NVG [penwidth = 2.4];
+    IOPN -> PVEN [penwidth = 1.8, style = dashed,
+                  label = "raises P_v →\nfeeds back on P_c"];
+    NVG -> RNFL [penwidth = 2.0]; RNFL -> BCVAN [penwidth = 2.0, color = "#c62828"];
+  }
+
+  /* =====================================================================
+     18 · ANTI-VEGF PHARMACOKINETICS
+     ===================================================================== */
+  subgraph cluster_18 {
+    label = "18 · 항VEGF 약동학 (Anti-VEGF PK: one depot, three compartments)";
+    style = "rounded,filled"; fillcolor = "#e3f2fd"; color = "#1565c0"; fontsize = 13;
+    IVT     [label = "유리체내 주사\nIntravitreal injection (30G, 0.05 mL)", fillcolor = "#bbdefb"];
+    DVITN   [label = "★★ DVIT — 유리체 저장고 (4.0 mL)\ndDVIT/dt = −k_el·DVIT\nRBZ t½ 7.2 d · BEV 9.8 d · AFL 9.1 d\nBRO 5.1 d · FAR 7.5 d",
+             fillcolor = "#90caf9", penwidth = 2.8, shape = box3d];
+    MOLAR   [label = "★ 몰 용량 (molar dose)\nRBZ 0.5 mg = 10.4 nmol\nAFL 2 mg = 17.4 nmol · AFL 8 mg = 69.6 nmol\nBRO 6 mg = 230.8 nmol · FAR 6 mg = 40.3 nmol",
+             fillcolor = "#90caf9", penwidth = 2.2];
+    FPEN    [label = "★ f_pen — 망막 침투 계수\nC_ret = f_pen · C_vit,  f_pen ≈ 0.08\n(ILM, Müller, size- and charge-dependent)", fillcolor = "#90caf9", penwidth = 2.2];
+    CRETN   [label = "★★ C_ret — 효과부위 농도 (pM)\nthe concentration that matters", fillcolor = "#64b5f6", penwidth = 2.6];
+    ANTCLR  [label = "전방 경로 배출\nanterior route: aqueous outflow", fillcolor = "#bbdefb"];
+    POSTCLR [label = "후방 경로 배출\nposterior route: RPE / choroid", fillcolor = "#bbdefb"];
+    ASYSN   [label = "★ ASYS — 전신 노출\nCp: AFL ≈ 0.03 µg/mL · RBZ ≈ 1.5 ng/mL\nflip-flop kinetics (absorption-limited)", fillcolor = "#90caf9", penwidth = 2.0];
+    VITRECT [label = "유리체절제 안 · 액화 유리체\nVitrectomised eye: t½ shortened 2–4×", fillcolor = "#bbdefb"];
+    IVT -> DVITN [penwidth = 2.8]; MOLAR -> DVITN [penwidth = 2.4];
+    DVITN -> FPEN [penwidth = 2.0]; FPEN -> CRETN [penwidth = 2.6];
+    DVITN -> ANTCLR [penwidth = 2.0]; DVITN -> POSTCLR [penwidth = 2.0];
+    ANTCLR -> ASYSN [penwidth = 1.8]; POSTCLR -> ASYSN [penwidth = 1.8];
+    VITRECT -> DVITN [color = "#c62828", arrowhead = tee, label = "faster loss"];
+  }
+
+  /* =====================================================================
+     19 · ANTI-VEGF PHARMACODYNAMICS
+     ===================================================================== */
+  subgraph cluster_19 {
+    label = "19 · 항VEGF 약력학과 억제 지속시간 (PD and the suppression-duration equation)";
+    style = "rounded,filled"; fillcolor = "#ede7f6"; color = "#4527a0"; fontsize = 13;
+    KDNODE  [label = "★ 고유 친화도 K_D (VEGF-A₁₆₅)\naflibercept 0.49 pM · ranibizumab 46 pM\nbevacizumab 58 pM · brolucizumab 28 pM", fillcolor = "#d1c4e9", penwidth = 2.2];
+    ALPHAN  [label = "★ α — 겉보기 계수 (calibrated = 120)\nIC50_app = α · K_D\nwhy: VEGFR2 competition, local flux,\ndiffusional limitation", fillcolor = "#d1c4e9", penwidth = 2.2];
+    SUPPR   [label = "★★ 억제비 (suppression ratio)\nR = 1 + C_ret/(α·K_D)\nVACT = VTONE / R", fillcolor = "#b39ddb", penwidth = 2.6];
+    TSUPN   [label = "★★★ 억제 지속시간\nt_sup = (t½/ln2)·ln[C₀,eff /((R−1)·α·K_D)]\nRBZ 24 d · BEV 26 d · BRO 43 d\nFAR 44 d · AFL 96 d · AFL 8 mg 114 d",
+             fillcolor = "#9575cd", penwidth = 3.0, shape = doubleoctagon];
+    LOGLIN  [label = "★ 왜 94배 친화도 차이가 4배 시간 차이인가\nduration is LOGARITHMIC in dose/affinity\nbut LINEAR in half-life", fillcolor = "#b39ddb", penwidth = 2.2];
+    DRYDAYS [label = "★★ 억제 ≠ 건조\nt_sup (pharmacology) vs days CST<310 (disease)\nratio < 1 ⇒ wet WHILE suppressed ⇒ pressure arm",
+             fillcolor = "#9575cd", penwidth = 2.8, shape = octagon];
+    RANI    [label = "라니비주맙 0.5 mg\nRanibizumab (Fab, 48 kDa)", fillcolor = "#bbdefb"];
+    AFLI    [label = "애플리버셉트 2 / 8 mg\nAflibercept (VEGFR1/2 Fc trap, 115 kDa)\nalso binds PlGF, VEGF-B", fillcolor = "#bbdefb"];
+    BEVA    [label = "베바시주맙 1.25 mg\nBevacizumab (IgG, off-label)", fillcolor = "#bbdefb"];
+    BROLU   [label = "브롤루시주맙 6 mg\nBrolucizumab (scFv, 26 kDa)\nhighest molar dose", fillcolor = "#bbdefb"];
+    FARI    [label = "파리시맙 6 mg\nFaricimab (bispecific VEGF-A × Ang-2)", fillcolor = "#bbdefb"];
+    CONBER  [label = "콘베르셉트 · 라니비주맙 바이오시밀러\nConbercept, biosimilars", fillcolor = "#bbdefb"];
+    PORTDEL [label = "포트 딜리버리 시스템\nPort delivery system (refillable reservoir)", fillcolor = "#bbdefb"];
+    GENETH  [label = "유전자 치료 (연구 단계)\nRGX-314, ABBV-RGX / ixo-vec\n(continuous intraocular anti-VEGF)", fillcolor = "#bbdefb"];
+    RANI -> IVT; AFLI -> IVT; BEVA -> IVT; BROLU -> IVT; FARI -> IVT;
+    CONBER -> IVT [style = dashed]; PORTDEL -> DVITN [style = dashed];
+    GENETH -> CRETN [style = dashed, label = "continuous\nproduction"];
+    KDNODE -> ALPHAN [penwidth = 2.0]; ALPHAN -> SUPPR [penwidth = 2.4];
+    CRETN -> SUPPR [penwidth = 2.8];
+    SUPPR -> VACT [color = "#1565c0", arrowhead = tee, penwidth = 3.0,
+                   label = "the ONE arrow\nfrom drug to disease"];
+    MOLAR -> TSUPN [penwidth = 2.0]; KDNODE -> TSUPN [penwidth = 2.0];
+    DVITN -> TSUPN [penwidth = 2.0, label = "t½"];
+    TSUPN -> LOGLIN [style = dashed];
+    TSUPN -> DRYDAYS [penwidth = 2.4];
+    CST -> DRYDAYS [penwidth = 2.0, style = dotted, color = "#616161"];
+    DRYDAYS -> PCSTAR [style = dashed, color = "#bf360c",
+                       label = "the diagnostic:\nwet + suppressed = floor"];
+    FARI -> ANG2 [color = "#1565c0", arrowhead = tee, penwidth = 2.0,
+                  label = "Ang-2 arm →\nTie2 unopposed"];
+    AFLI -> PLGF [color = "#1565c0", arrowhead = tee, penwidth = 1.8];
+  }
+
+  /* =====================================================================
+     20 · CORTICOSTEROIDS
+     ===================================================================== */
+  subgraph cluster_20 {
+    label = "20 · 스테로이드 — 항VEGF가 닿지 못하는 매개체, 그러나 대가가 있다 (Corticosteroids)";
+    style = "rounded,filled"; fillcolor = "#ede7f6"; color = "#4527a0"; fontsize = 13;
+    OZUR    [label = "덱사메타손 임플란트 0.7 mg\nDexamethasone implant (Ozurdex)\nPLGA, ~180 d release", fillcolor = "#bbdefb"];
+    IMPST   [label = "★ IMP → CDEX\ndIMP/dt = −0.0128·IMP\ndCDEX/dt = release/V_vit − 2.5·CDEX\nplateau ≈ 900 ng/mL", fillcolor = "#90caf9", penwidth = 2.2];
+    TRIAM   [label = "트리암시놀론 4 mg (SCORE)\nTriamcinolone acetonide", fillcolor = "#bbdefb"];
+    FLUO    [label = "플루오시놀론 임플란트 0.19 mg\nFluocinolone acetonide (36 mo)", fillcolor = "#bbdefb"];
+    GR      [label = "글루코코르티코이드 수용체\nGR → GRE / tethered NF-κB, AP-1", fillcolor = "#d1c4e9"];
+    ESTER   [label = "★★ ESTER — 스테로이드 효과\nESTER = CDEX/(120 + CDEX)\nVEGF −45% · IL-6 −80% · Ang-2 −50%",
+             fillcolor = "#b39ddb", penwidth = 2.6];
+    TJUP    [label = "접합 단백 상향\nOccludin / claudin-5 transcription ↑\n(a direct effect anti-VEGF lacks)", fillcolor = "#d1c4e9"];
+    OZUR -> IMPST [penwidth = 2.4]; TRIAM -> ESTER [style = dashed];
+    FLUO -> ESTER [style = dashed];
+    IMPST -> ESTER [penwidth = 2.6]; GR -> ESTER [penwidth = 2.0];
+    ESTER -> VEGFGENE [color = "#1565c0", arrowhead = tee, penwidth = 2.2, label = "−45%"];
+    ESTER -> IL6N [color = "#1565c0", arrowhead = tee, penwidth = 2.4, label = "−80%"];
+    ESTER -> ANG2 [color = "#1565c0", arrowhead = tee, penwidth = 2.0, label = "−50%"];
+    ESTER -> TJUP [penwidth = 2.0];
+    TJUP -> TJSTATE [color = "#2e7d32", penwidth = 2.0];
+  }
+
+  /* =====================================================================
+     21 · LASER AND SURGERY
+     ===================================================================== */
+  subgraph cluster_21 {
+    label = "21 · 레이저와 수술 (Laser and surgery)";
+    style = "rounded,filled"; fillcolor = "#e3f2fd"; color = "#1565c0"; fontsize = 12;
+    PRPN    [label = "범망막 광응고 (PRP)\nPanretinal photocoagulation\nABLA += 0.35 → VEGF production −72%·ABLA", fillcolor = "#bbdefb"];
+    GRID    [label = "격자 레이저 (BRVO)\nGrid macular laser (BVOS)", fillcolor = "#bbdefb"];
+    ANTIVEGF_PRP [label = "PRP는 부종을 낫게 하지 않는다\nPRP treats the NV drive, not the oedema", fillcolor = "#bbdefb"];
+    ILM     [label = "유리체절제 + ILM 제거\nVitrectomy with ILM peel\n(chronic refractory oedema)", fillcolor = "#bbdefb"];
+    ROTN    [label = "방사상 시신경절개술 (역사적)\nRadial optic neurotomy — attacks R_v\n(largely abandoned)", fillcolor = "#bbdefb"];
+    CRAA    [label = "망막맥락막 문합 (역사적)\nChorioretinal anastomosis — attacks R_v", fillcolor = "#bbdefb"];
+    AVSHEATH[label = "동정맥 초 절개 (BRVO, 역사적)\nArteriovenous sheathotomy", fillcolor = "#bbdefb"];
+    PRPN -> VEGFGENE [color = "#1565c0", arrowhead = tee, penwidth = 2.2,
+                      label = "ablate the\nhypoxic factory"];
+    PRPN -> NVISTATE [color = "#1565c0", arrowhead = tee, penwidth = 2.0];
+    PRPN -> ANTIVEGF_PRP [style = dashed];
+    NPAREA -> PRPN [style = dotted, color = "#616161", label = "indication:\nNP + NVI"];
+    GRID -> CST [color = "#1565c0", arrowhead = tee, style = dashed];
+    ILM -> JOUTN [color = "#1565c0", penwidth = 1.8, label = "raises clearance"];
+    ROTN -> RVEN [color = "#1565c0", arrowhead = tee, penwidth = 1.8,
+                  label = "the rare LEFT-half\nintervention"];
+    CRAA -> RVEN [color = "#1565c0", arrowhead = tee, penwidth = 1.8];
+    AVSHEATH -> RVEN [color = "#1565c0", arrowhead = tee, style = dashed];
+  }
+
+  /* =====================================================================
+     22 · SYSTEMIC AND ADJUNCTIVE THERAPY
+     ===================================================================== */
+  subgraph cluster_22 {
+    label = "22 · 전신 · 보조 치료 — 좌측(압력항)으로 가는 유일한 화살표 (Systemic therapy: the only arrows into the pressure arm)";
+    style = "rounded,filled"; fillcolor = "#e0f7fa"; color = "#00838f"; fontsize = 13;
+    BPRX    [label = "★★ 혈압 강하 치료\nACEi/ARB · CCB · thiazide\nlowers P_a — the pressure arm's input", fillcolor = "#80deea", penwidth = 2.6];
+    RAAS    [label = "RAAS · 조직 ACE\nAT1R on retinal vessels; local RAS", fillcolor = "#b2ebf2"];
+    STATIN  [label = "스타틴 · 지질 관리\nStatin, lipid control", fillcolor = "#b2ebf2"];
+    ANTIPLT [label = "항혈소판 · 항응고\nAspirin, DOAC — NO benefit for the\nestablished occlusion; bleeding risk", fillcolor = "#b2ebf2"];
+    TPA     [label = "tPA (전신/유리체내/정맥내 캐뉼러)\nHistorical; no proven benefit", fillcolor = "#b2ebf2"];
+    HEMOD   [label = "혈액희석 (isovolaemic haemodilution)\nlowers viscosity → lowers R_v\n(European trials, marginal)", fillcolor = "#b2ebf2"];
+    IOPRX   [label = "안압 강하제\nIOP-lowering drops / surgery\nlowers P_v", fillcolor = "#b2ebf2"];
+    OSA     [label = "수면무호흡 치료 · 금연 · 운동\nOSA treatment, smoking cessation", fillcolor = "#b2ebf2"];
+    HOMOCY  [label = "엽산 · B6 · B12\nfor hyperhomocysteinaemia", fillcolor = "#b2ebf2"];
+    BPRX -> PAIN [color = "#00838f", arrowhead = tee, penwidth = 3.0,
+                  label = "P_a 40 → 32 mmHg\n⇒ R_v* 1.65 → 21.1 (12.8×)"];
+    RAAS -> HTN [style = dashed]; BPRX -> RAAS [color = "#00838f", arrowhead = tee];
+    HEMOD -> RVEN [color = "#00838f", arrowhead = tee, penwidth = 1.8];
+    IOPRX -> PVEN [color = "#00838f", arrowhead = tee, penwidth = 2.0];
+    STATIN -> ENDO [color = "#00838f", arrowhead = tee, style = dashed];
+    ANTIPLT -> THR [color = "#00838f", arrowhead = tee, style = dashed,
+                    label = "prevention only"];
+    TPA -> THR [color = "#00838f", arrowhead = tee, style = dashed];
+    OSA -> HTN [color = "#00838f", arrowhead = tee, style = dashed];
+    HOMOCY -> HYPERC [color = "#00838f", arrowhead = tee, style = dashed];
+  }
+
+  /* =====================================================================
+     23 · ADVERSE EFFECTS
+     ===================================================================== */
+  subgraph cluster_23 {
+    label = "23 · 이상반응 — 원장의 비용 측면 (Adverse effects)";
+    style = "rounded,filled"; fillcolor = "#fce4ec"; color = "#ad1457"; fontsize = 12;
+    ENDOPH  [label = "안내염\nEndophthalmitis ~0.02–0.05% / injection\ncumulative with injection number", fillcolor = "#f8bbd0"];
+    IOPSPIKE[label = "주사 직후 안압 급상승\nTransient IOP spike (0.05 mL into 4 mL)", fillcolor = "#f8bbd0"];
+    STEROIOP[label = "★ 스테로이드 안압 상승\nIOP ≥ 10 mmHg rise in ~16% (GENEVA)\nglaucoma surgery ~1%", fillcolor = "#f48fb1"];
+    CATN    [label = "★★ CAT — 백내장\ndCAT/dt = 0.0024·CDEX/(150+CDEX) + age\n~30%/yr with implants; 68% at 3 yr (MEAD)", fillcolor = "#f48fb1", penwidth = 2.4];
+    IOI     [label = "안내 염증 · 폐색성 망막혈관염\nIntraocular inflammation / retinal\nvasculitis (brolucizumab ~4%)", fillcolor = "#f8bbd0"];
+    RPETEAR [label = "RPE 파열 · 유리체 출혈 · 망막 박리\nRPE tear, vitreous haemorrhage, RD", fillcolor = "#f8bbd0"];
+    SYSVEGF [label = "★ 전신 VEGF 억제\naflibercept: plasma free VEGF ~99% suppressed\nranibizumab: ~40%\n→ theoretical ATE / BP / renal signal", fillcolor = "#f48fb1", penwidth = 2.2];
+    GEOATR  [label = "위축 · 망막 얇아짐 (장기)\nMacular atrophy with chronic\nVEGF suppression (trophic role)", fillcolor = "#f8bbd0"];
+    TACHY   [label = "타키필락시스 · 항약물항체\nTachyphylaxis, anti-drug antibodies", fillcolor = "#f8bbd0"];
+    IVT -> ENDOPH [penwidth = 1.8]; IVT -> IOPSPIKE [penwidth = 1.6];
+    IVT -> RPETEAR [style = dashed]; BROLU -> IOI [penwidth = 1.8];
+    ESTER -> STEROIOP [penwidth = 2.2]; ESTER -> CATN [penwidth = 2.4];
+    STEROIOP -> IOPN [penwidth = 2.2]; CATN -> LCAT [penwidth = 2.4];
+    ASYSN -> SYSVEGF [penwidth = 2.2];
+    CRETN -> GEOATR [style = dashed]; DVITN -> TACHY [style = dashed];
+    ENDOPH -> BCVAN [color = "#c62828", style = dashed];
+  }
+
+  /* =====================================================================
+     24 · BIOMARKERS AND IMAGING
+     ===================================================================== */
+  subgraph cluster_24 {
+    label = "24 · 바이오마커 · 영상 (Biomarkers and imaging)";
+    style = "rounded,filled"; fillcolor = "#eceff1"; color = "#455a64"; fontsize = 12;
+    OCTM    [label = "OCT — CST · 낭포 · SRF · EZ · DRIL\nthe workhorse", fillcolor = "#e0e0e0"];
+    OCTA    [label = "OCT-A — FAZ 면적 · 혈관 밀도\nSCP / DCP perfusion, DCP loss\npredicts letters", fillcolor = "#e0e0e0"];
+    FA      [label = "형광안저촬영 (FA) — 비관류 면적\nUltra-widefield FA: DA of non-perfusion", fillcolor = "#e0e0e0"];
+    AQHUM   [label = "전방수 사이토카인\nAqueous VEGF, IL-6, IL-8, MCP-1, Ang-2\n(research; correlates with CST)", fillcolor = "#e0e0e0"];
+    ERGB    [label = "ERG b/a 비 · 동공 반응\nERG b-wave, RAPD (ischaemia marker)", fillcolor = "#e0e0e0"];
+    GONIO   [label = "전방각 검사 · 홍채 형광촬영\nGonioscopy (undilated!), iris FA", fillcolor = "#e0e0e0"];
+    BPMON   [label = "24시간 활동혈압 · 야간 강하\n24-h ABPM, nocturnal dip", fillcolor = "#e0e0e0"];
+    CST -> OCTM [style = dotted, color = "#616161"];
+    EZONE -> OCTM [style = dotted, color = "#616161"];
+    DRILN -> OCTM [style = dotted, color = "#616161"];
+    MISCH -> OCTA [style = dotted, color = "#616161"];
+    NPAREA -> FA [style = dotted, color = "#616161"];
+    VTONE -> AQHUM [style = dotted, color = "#616161"];
+    IL6N -> AQHUM [style = dotted, color = "#616161"];
+    ANG2 -> AQHUM [style = dotted, color = "#616161"];
+    MISCH -> ERGB [style = dotted, color = "#616161"];
+    NVISTATE -> GONIO [style = dotted, color = "#616161"];
+    PAIN -> BPMON [style = dotted, color = "#616161"];
+  }
+
+  /* =====================================================================
+     25 · CLINICAL DECISION LAYER
+     ===================================================================== */
+  subgraph cluster_25 {
+    label = "25 · 임상 의사결정 층 (The decision layer)";
+    style = "rounded,filled"; fillcolor = "#fffde7"; color = "#f9a825"; fontsize = 13;
+    LOAD    [label = "부하 요법\nLoading: q4w × 3–6 injections", fillcolor = "#fff59d"];
+    PRN     [label = "PRN (as-needed)\nmonthly monitoring, treat if wet", fillcolor = "#fff59d"];
+    TAE     [label = "치료-연장 (treat-and-extend)\nextend +4 w if dry, shorten −4 w if wet\ncap 16 w", fillcolor = "#fff59d"];
+    FIXEDQ  [label = "고정 간격 q8w\nFixed q8w maintenance", fillcolor = "#fff59d"];
+    SWITCH  [label = "약제 전환\nSwitch agent for persistent oedema\n★ useless if the eye is a FLOOR eye", fillcolor = "#ffe082", penwidth = 2.2];
+    ADDSTER [label = "스테로이드 추가\nAdd steroid for the non-VEGF mediators\n(pseudophakic, non-responder)", fillcolor = "#fff59d"];
+    NVGWATCH[label = "허혈 감시\nIschaemia surveillance: gonioscopy,\nwidefield FA, do NOT stop the drug\nwhile NP persists", fillcolor = "#ffe082", penwidth = 2.2];
+    UNDER   [label = "★ 실제 진료의 과소치료\nReal world: 4–5 injections/yr\n→ about half the trial letter gain", fillcolor = "#ffcc80", penwidth = 2.2];
+    SYSWORK [label = "전신 검사\nBP, lipids, glucose, CBC;\nthrombophilia only if young/bilateral", fillcolor = "#fff59d"];
+    FELLOW  [label = "반대 눈 위험\nFellow-eye RVO risk ~7–10% / 5 yr\n→ systemic risk control matters twice", fillcolor = "#fff59d"];
+    CST -> PRN [style = dotted, color = "#616161", label = "retreat if\nCST > 310 µm"];
+    CST -> TAE [style = dotted, color = "#616161"];
+    LOAD -> PRN; LOAD -> TAE; LOAD -> FIXEDQ;
+    PRN -> IVT [color = "#1565c0", style = dashed];
+    TAE -> IVT [color = "#1565c0", style = dashed];
+    FIXEDQ -> IVT [color = "#1565c0", style = dashed];
+    SWITCH -> IVT [color = "#1565c0", style = dashed];
+    DRYDAYS -> SWITCH [style = dashed, color = "#bf360c",
+                       label = "if wet WHILE suppressed,\ndo not switch"];
+    PCSTAR -> ADDSTER [style = dashed];
+    PCSTAR -> BPRX [style = dashed, color = "#00838f", penwidth = 2.0,
+                    label = "treat the LEFT half"];
+    NPAREA -> NVGWATCH [style = dotted, color = "#616161"];
+    REBOUND -> NVGWATCH [style = dashed, color = "#c62828"];
+    ADDSTER -> OZUR [color = "#1565c0", style = dashed];
+    UNDER -> BCVAN [color = "#c62828", style = dashed];
+    SYSWORK -> BPRX [style = dashed]; SYSWORK -> FELLOW [style = dashed];
+    HTN -> SYSWORK [style = dotted, color = "#616161"];
+  }
+
+  /* =====================================================================
+     GLOBAL LAYOUT HINTS
+     ===================================================================== */
+  { rank = same; PCAP; TJSTATE; }
+  { rank = same; BRACK; LPNODE; }
+  { rank = same; JVNODE; PCSTAR; }
+  { rank = same; CST; BCVAN; }
+}

@@ -1,0 +1,262 @@
+===============================================================================
+RETINAL VEIN OCCLUSION QSP MODEL — REFERENCE RUN
+망막정맥폐쇄 QSP 모델 — 참조 실행
+===============================================================================
+states = 27 ODEs   horizon = 1095 d   RK4 dt = 0.02 d
+
+-------------------------------------------------------------------------------
+PART 1.  THE CRITICAL CAPILLARY PRESSURE  Pc*  =  Pt + sigma*(pi_c - pi_t)
+-------------------------------------------------------------------------------
+  intact barrier:  Pt = 12.0, sigma = 0.92, pi_c - pi_t = 21.0 mmHg
+  Pc*  =  31.32 mmHg
+  Above this capillary pressure the Starling bracket is POSITIVE even with
+  the permeability arm at its floor: no anti-VEGF dose can dry the macula.
+
+  Critical venous resistance Rv* (Ra = 1.0, Pv = 17 mmHg), by inlet pressure:
+     Pa (mmHg)   Rv*        x baseline Rv0=0.25   dPc/dPa at Rv*
+        48.0     0.859          3.4x        0.462
+        44.0     1.129          4.5x        0.530
+        40.0     1.650          6.6x        0.623
+        36.0     3.060         12.2x        0.754
+        34.0     5.343         21.4x        0.842
+        32.0    21.059         84.2x        0.955
+        31.5    79.556        318.2x        0.988
+        31.0   unreachable  —                    —
+
+  Same table with hypoxic arteriolar dilatation (Ra = 0.65):
+     Pa = 40.0  ->  Rv* = 1.072  (4.3x baseline)
+     Pa = 36.0  ->  Rv* = 1.989  (8.0x baseline)
+     Pa = 32.0  ->  Rv* = 13.688  (54.8x baseline)
+
+  Same table for a chronically remodelled barrier that can no longer
+  fully re-seal (TJmax = 0.70 -> sigma = 0.75, pi_t = 8.1 mmHg):
+     sigma = 0.756, pi_t = 6.81  ->  Pc* = 25.76 mmHg
+     Rv* at Pa = 40 falls from 1.650 to 0.615  (2.68x lower)
+     -> chronicity converts previously dryable eyes into floor eyes.
+
+-------------------------------------------------------------------------------
+PART 2.  VEGF SUPPRESSION DURATION — DECOMPOSED
+-------------------------------------------------------------------------------
+  t_sup = (t_half / ln2) * ln( C0_eff / [(R-1) * ALPHA * KD] ),  R = 4.9
+  ALPHA = 120 (single global calibration constant), f_pen = 0.080
+
+  agent            molar dose  C0_vit    C0_eff     KD     threshold  t1/2   t_sup
+                      (nmol)    (uM)      (pM)     (pM)      (pM)      (d)    (d)
+  Ranibizumab 0.5 mg    10.4     2.60     208333    46.00      21528   7.19    23.5
+  Bevacizumab 1.25 mg     8.4     2.10     167785    58.00      27144   9.82    25.8
+  Aflibercept 2 mg     17.4     4.35     347826     0.49        229   9.10    96.2
+  Brolucizumab 6 mg   230.8    57.69    4615385    28.40      13291   5.10    43.0
+  Faricimab 6 mg       40.3    10.07     805369    30.00      14040   7.50    43.8
+  Aflibercept 8 mg     69.6    17.39    1391304     0.49        229   9.10   114.4
+
+  Decomposition of ln(C0_eff / threshold) into a RESERVOIR term and an
+  AFFINITY term, then scaled by the half-life multiplier t1/2/ln2:
+  agent            ln(C0_eff)  -ln(thr)   sum    t1/2/ln2   t_sup
+  Ranibizumab 0.5 mg    12.25     -9.98    2.27      10.37    23.5
+  Bevacizumab 1.25 mg    12.03    -10.21    1.82      14.17    25.8
+  Aflibercept 2 mg     12.76     -5.44    7.32      13.13    96.2
+  Brolucizumab 6 mg    15.34     -9.49    5.85       7.36    43.0
+  Faricimab 6 mg       13.60     -9.55    4.05      10.82    43.8
+  Aflibercept 8 mg     14.15     -5.44    8.71      13.13   114.4
+
+  aflibercept / ranibizumab suppression-duration ratio = 4.08x
+  ... while their intrinsic affinities differ by 94x.
+  A 94-fold affinity gap becomes a 4-fold time gap because duration is
+  LOGARITHMIC in concentration and LINEAR in half-life.
+
+-------------------------------------------------------------------------------
+PART 3.  SCENARIOS
+-------------------------------------------------------------------------------
+  3a. Trial-replication check (non-ischaemic CRVO, baseline = day of first dose)
+      scenario          inj  CST_base  CST_m6  dCST    BCVA_base  m6    m12   m24
+      NAT_NONISCH         0       613     499    -114       57.6    -4.4    -7.3  -12.4
+      RBZ_M6_PRN         23       613     282    -331       57.6   +12.3    +4.0   +5.3
+      BEV_M6_PRN         22       613     284    -329       57.6   +12.5   +10.4   +7.9
+      AFL_M6_Q8          15       613     261    -352       57.6   +17.8   +12.1  +17.4
+      FAR_TAE            21       613     262    -351       57.6   +17.3   +16.3   +7.6
+      BRO_TAE            26       613     266    -348       57.6   +16.8   +15.8  +15.2
+      AFL8_TAE           12       613     261    -352       57.6   +17.5   +17.7  +14.4
+      AFL_TAE_MIN        13       613     262    -351       57.6   +16.8   +16.5  +15.2
+
+  3b. BRVO
+      NAT_BRVO            0  CST 590 -> 378   BCVA 58.0 (  +5.3 at m6,  +11.2 at m24)
+      BRVO_AFL            7  CST 590 -> 255   BCVA 58.0 ( +19.4 at m6,  +14.3 at m24)
+      BRVO_RBZ            8  CST 590 -> 314   BCVA 58.0 ( +13.9 at m6,  +13.3 at m24)
+
+  3c. Deferral — the permanent price of waiting
+      scenario     start(d)  CST_base  BCVA_base  peak BCVA  m36 BCVA  EZ_m36
+      AFL_M6_Q8         42       613       57.6       80.0      73.8  0.898
+      DEFER3           133       544       54.7       80.0      68.5  0.846
+      DEFER6           224       499       53.2       80.0      69.8  0.802
+      DEFER12          407       454       50.2       80.0      66.2  0.722
+
+      letters permanently forfeited vs immediate treatment (month 36):
+        DEFER3     -5.4 letters   (EZ 0.846 vs 0.898)
+        DEFER6     -4.0 letters   (EZ 0.802 vs 0.898)
+        DEFER12    -7.6 letters   (EZ 0.722 vs 0.898)
+
+  3d. THE PRESSURE-ARM EXPERIMENT — infinite VEGF/PlGF/Ang-2 blockade
+      phenotype        Pc    Pc*    Jv_floor  CST_m6  CST_m36  dry?
+      PERFECT_MILD     20.9   30.8     -9.09     250      250   YES
+      PERFECT_BRVO     26.2   29.9     -3.76     251      250   YES
+      PERFECT_NONISCH  28.9   29.3     -2.14     254      250   YES
+      PERFECT_ISCH     37.2   26.6      5.09     291      286   YES
+
+
+      When does the eye cross BELOW its own critical pressure?
+      (untreated natural history; threshold = intact-barrier P_c* = 31.32 mmHg)
+      phenotype      P_c d42  P_c* d42  first day P_c < P_c*   days above P_c*
+      crvo_mild        28.6      31.3   day 42                    0
+      brvo             35.3      31.3   day 153                 111
+      crvo_nonisch     33.7      31.3   day 181                 139
+      crvo_isch        37.9      31.3   NEVER                  1054
+      Non-ischaemic CRVO crosses below its critical pressure as collaterals
+      mature; ischaemic CRVO never does.  That single crossing time, not the
+      choice of anti-VEGF agent, is what separates the two clinical courses.
+
+      Same eyes under the best REAL regimen (aflibercept T&E):
+        non-ischaemic CRVO  CST m36 = 257 um (perfect blockade 250 um)
+        ischaemic CRVO      CST m36 = 363 um (perfect blockade 286 um)
+        residual attributable to imperfect blockade: 7 um (non-ischaemic)
+        residual attributable to the PRESSURE ARM: 36 um (ischaemic)
+
+      THE PRESSURE ARM AMPLIFIES WHATEVER PERMEABILITY REMAINS.
+      Jv = Lp * bracket, so an identical residual elevation of Lp delivers
+      more fluid when the bracket is larger.  Cost of the SAME imperfect
+      blockade (real aflibercept T&E minus infinite blockade, month 36):
+        non-ischaemic (bracket small)     7.3 um
+        ischaemic     (bracket large)    77.2 um   = 10.6x
+      This is why switching agent fails in a high-pressure eye: the
+      pharmacological shortfall being amplified is already small.
+
+  3e. Ischaemic CRVO, neovascular glaucoma, and rebound
+      scenario          inj  NP(DA)  NVI    IOP   NVG  CST_m36  BCVA_m36
+      NAT_ISCH            0    55.6  0.838   32.5  YES     1130       0.0
+      ISCH_AFL_CONT      38    38.1  0.002   15.0   no      363      24.0
+      ISCH_AFL_STOP6      6    54.3  0.837   32.5  YES     1122       0.0
+      ISCH_AFL_PRP        6    53.2  0.793   30.7  YES     1091       0.0
+      ISCH_AFL_TAE       38    38.1  0.002   15.0   no      363      24.0
+
+  3f. Steroid vs anti-VEGF, and the lens
+      scenario        implants inj  CST_m6  BCVA_m6  CAT_m36  IOP_m36  BCVA_m36
+      DEX_PHAKIC            6    0     487     -6.9  0.828     19.6      29.4
+      DEX_PSEUDO            6    0     487     -3.9  0.084     19.6      39.3
+      AFL_M6_Q8             0   15     261    +17.8  0.084     15.0      73.8
+      AFL_PLUS_DEX          2   15     266    +17.3  0.084     15.0      74.5
+
+  3g. Blood pressure as an anti-oedema intervention
+      scenario           Pc(m36)  CST_m36  BCVA_m36  injections
+      AFL_M6_Q8            28.9      257      73.8      15
+      AFL_BP_LOW           24.7      250      77.4      15
+      BP_LOW_ALONE         24.7      296      61.5       0
+      NAT_NONISCH          28.9      432      40.4       0
+      ISCH_AFL_TAE         37.2      363      24.0      38
+      ISCH_AFL_BP_LOW      30.2      269      50.7      19
+      -> 8 mmHg lower inlet pressure is worth +3.5 letters and +0 injections over 36 months
+
+  3h. Real-world undertreatment
+      REALWORLD      11 inj  BCVA 57.6 -> 61.8 (+4.2)  CST 363 um  EZ 0.842  letters/injection +0.38
+      REALWORLD_LOW   7 inj  BCVA 57.6 -> 52.8 (-4.8)  CST 390 um  EZ 0.696  letters/injection -0.68
+      PROTOCOL T&E   15 inj  BCVA 57.6 -> 73.8 (+16.3)  CST 257 um  EZ 0.898  letters/injection +1.08
+      Undertreatment does not scale the benefit down, it inverts it: the
+      eye spends the gaps re-accumulating oedema, and the ellipsoid zone
+      integrates every one of those gaps.
+
+  3i. Suppression bookkeeping — days of adequate VEGF suppression vs days dry
+      scenario          inj  days suppressed  days CST<310  ratio
+      RBZ_M6_PRN         23              541           555  1.03
+      AFL_M6_Q8          15              974          1033  1.06
+      FAR_TAE            21              769           873  1.13
+      ISCH_AFL_CONT      38             1053             4  0.00
+      ISCH_AFL_TAE       38             1053             4  0.00
+      A ratio < 1 means the macula was WET while VEGF was still suppressed:
+      that gap is the pressure arm, and no change of agent addresses it.
+
+-------------------------------------------------------------------------------
+PART 4.  DELAY-RESPONSE AND DOSE-RESPONSE CURVES
+-------------------------------------------------------------------------------
+  4a. Permanent letter cost of delay (aflibercept T&E after the delay;
+      BCVA averaged over months 24-36 so the read-out does not land on an
+      arbitrary phase of the treat-and-extend cycle)
+      delay (mo)  BCVA at start  peak BCVA  mean m24-36  EZ m36  perm. loss
+             0.0           57.6       80.0         73.4  0.898   +0.0
+             0.5           56.4       80.0         72.9  0.888   -0.5
+             1.0           55.9       80.0         72.5  0.878   -0.9
+             2.0           55.3       80.0         71.6  0.859   -1.8
+             3.0           54.7       80.0         71.2  0.846   -2.2
+             4.0           54.2       80.0         70.5  0.834   -2.8
+             6.0           53.2       80.0         68.8  0.802   -4.6
+             9.0           51.7       80.0         66.8  0.758   -6.6
+            12.0           50.2       80.0         64.9  0.722   -8.5
+
+  4b. Dose-response in injections (aflibercept, capped total over 24 months)
+      max inj  actual  CST_m24  BCVA_m24  gain   letters/injection
+            0       0      432      45.2   -12.4   0.00
+            2       2      414      49.2    -8.4   -4.18
+            3       3      411      50.0    -7.5   -2.51
+            4       4      409      50.8    -6.7   -1.68
+            5       5      406      51.6    -6.0   -1.19
+            6       6      404      52.4    -5.2   -0.87
+            8       8      396      55.2    -2.3   -0.29
+           10      10      386      59.8    +2.3   0.23
+           12      12      254      75.0   +17.4   1.45
+           16      12      254      75.0   +17.4   1.45
+           20      12      254      75.0   +17.4   1.45
+
+  4c. Occlusion-severity response surface (aflibercept T&E, 24 months)
+      OCC0   Rv    Pc    Pc*   CST_base  CST_m24  dry?  inj  BCVA gain
+        2.0  0.32   22.6   26.7       297      250   YES   11      +5.7
+        3.5  0.45   24.3   25.4       368      250   YES   11     +11.5
+        5.0  0.57   25.6   24.5       443      253   YES   11     +14.9
+        7.0  0.74   27.2   23.5       525      263   YES   11     +16.1
+        9.0  0.90   28.5   27.5       587      252   YES   12     +15.9
+       12.0  1.15   30.0   26.6       657      258   YES   12     +16.7
+       16.0  1.48   31.6   25.8       719      268   YES   12     +14.6
+       22.0  1.98   33.3   25.4       779      282   YES   14      +9.7
+       30.0  2.65   35.0   24.7       825      302   YES   21      +3.9
+       45.0  3.90   36.7   23.7       872      346    no   25     -14.4
+
+-------------------------------------------------------------------------------
+PART 5.  VIRTUAL POPULATION (n = 400, 24 months, aflibercept T&E)
+-------------------------------------------------------------------------------
+  n = 400
+  mean baseline CST  533 um   mean baseline BCVA 61.1 letters
+  mean CST at m24    361 um   mean BCVA gain +4.0 letters
+  mean injections    9.6
+
+  dry macula (CST < 310 um) at month 24 ..............  65.5%
+  pressure-arm FLOOR present (Jv_floor > 0) ..........  19.2%
+  floor present AND still wet ........................  14.8%
+  no floor AND still wet (true pharmacological miss) ..  19.8%
+  gained >= 15 letters ...............................  18.2%
+  lost >= 15 letters .................................   8.5%
+  NVI > 0.5 (anterior neovascularisation) ............   5.0%
+
+  Stratified by whether the eye has a pressure-arm floor:
+    floor     n= 77  Pc  34.8  CST_m24   650  gain -13.2  inj 10.5  EZ 0.617
+    no floor  n=323  Pc  26.0  CST_m24   292  gain  +8.1  inj  9.3  EZ 0.894
+
+  Stratified by injection count actually received:
+    0-4 inj  n= 30  gain  -1.4  CST   406  EZ 0.778
+    5-6 inj  n= 30  gain  +0.3  CST   386  EZ 0.782
+    7-8 inj  n= 62  gain  -1.1  CST   395  EZ 0.781
+    9-12 inj  n=256  gain  +7.0  CST   329  EZ 0.882
+
+  Stratified by presentation delay.  NOTE: 'gain' is measured from the
+  BCVA on the day of the first injection, so a patient who presents early
+  is scored against a baseline that has not finished deteriorating.  That
+  is a MEASUREMENT artefact, not a benefit of waiting - it is also exactly
+  why trials that enrol sicker baselines report larger letter gains.  The
+  ellipsoid-zone column is the delay-sensitive quantity:
+    delay 0-25 d  n= 86  gain  -5.2  BCVA_m24  64.5  EZ 0.853
+    delay 25-45 d  n= 97  gain  +6.4  BCVA_m24  66.4  EZ 0.855
+    delay 45-70 d  n=154  gain  +7.2  BCVA_m24  65.9  EZ 0.842
+    delay 70-999 d  n= 63  gain  +4.9  BCVA_m24  61.7  EZ 0.799
+
+  Pearson r (Pc at m24  vs  residual CST at m24) = +0.816
+  Pearson r (injections vs  residual CST at m24) = -0.076
+  Capillary pressure explains residual thickness better than dose does.
+
+===============================================================================
+END OF REFERENCE RUN
+===============================================================================
