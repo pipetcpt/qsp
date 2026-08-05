@@ -1,0 +1,655 @@
+/* ===========================================================================
+   nec_qsp_model.dot
+   Necrotising Enterocolitis (NEC) of the preterm infant — QSP mechanistic map
+   신생아 괴사성 장염 — 정량적 시스템 약리학 기계론적 지도
+
+   Rendering:
+       dot -Tsvg nec_qsp_model.dot -o nec_qsp_model.svg
+       dot -Tpng -Gdpi=150 nec_qsp_model.dot -o nec_qsp_model.png
+
+   READING THE MAP
+   ---------------
+   The heavy crimson ring is THE CLOSED POSITIVE LOOP the ODE model is built
+   around:
+
+        villus integrity E  ->  permeability Pb  ->  translocation Jtr
+          ->  TLR4/NF-kB  ->  (apoptosis UP, crypt proliferation DOWN)  ->  E
+
+   Everything else on this map is either (a) a term that sets the GAIN of that
+   ring, (b) a term that sets its THRESHOLD, or (c) a downstream readout.
+   Drug and nutrition nodes are labelled with which of the two they move,
+   because in this model those are not interchangeable.
+
+   Edge grammar
+       solid black arrow   ..... activation / mass flow
+       red tee-headed      ..... inhibition
+       blue arrow          ..... pharmacological / nutritional intervention
+       heavy crimson       ..... the core positive-feedback ring
+       dashed grey         ..... measurement / clinical readout
+=========================================================================== */
+
+digraph NEC_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.22,
+           ranksep=0.55, fontname="Helvetica", fontsize=11, compound=true,
+           bgcolor="white", labelloc="t", pad=0.4,
+           label=<<B>Necrotising Enterocolitis (NEC) — QSP Mechanistic Map</B><BR/>
+<FONT POINT-SIZE="12">신생아 괴사성 장염 · 기계론적 지도 · 39-state mrgsolve model</FONT><BR/>
+<FONT POINT-SIZE="10">core ring (crimson): villus integrity → permeability → translocation → TLR4/NF-κB → epithelial loss → villus integrity</FONT>>];
+
+    node  [shape=box, style="rounded,filled", fontname="Helvetica",
+           fontsize=10, color="#40454d", fillcolor="#f6f7f9", penwidth=1.0];
+    edge  [color="#5a616b", arrowsize=0.62, penwidth=0.9];
+
+    /* ---------- reusable edge classes ------------------------------------ */
+    /* inhibition */  // edge [color="#c0392b", arrowhead=tee]
+    /* drug */        // edge [color="#1f6fb2", style=bold]
+
+    /* =====================================================================
+       1. PREMATURITY AND MUCOSAL MATURATION
+       ===================================================================== */
+    subgraph cluster_mat {
+        label="① 미숙성 · 성숙도 (Prematurity & mucosal maturation)";
+        style="rounded,filled"; fillcolor="#eef3fa"; color="#9db6d6";
+        fontsize=12; fontcolor="#2a4a75";
+        node [fillcolor="#dbe7f6", color="#7d9fc7"];
+
+        GA        [label="재태연령 GA\nGestational age 23–34 wk", shape=octagon,
+                   fillcolor="#c3d7ef"];
+        PMA       [label="교정연령 PMA\nGA + postnatal age"];
+        MAT       [label="점막 성숙도 MAT\nMAT = PMA⁶/(30.5⁶+PMA⁶)",
+                   shape=box, fillcolor="#b8cfe9", penwidth=1.6];
+        BW        [label="출생체중 BW\nVLBW / ELBW"];
+        IUGR      [label="자궁내 성장제한 IUGR\nabsent/reversed end-diastolic flow"];
+        CHORIO    [label="조직학적 융모양막염\nchorioamnionitis (fetal priming)"];
+        ANTESTER  [label="산전 스테로이드\nantenatal betamethasone"];
+        CSECT     [label="제왕절개 · 항생제 노출\n(seeding 경로 상실)"];
+        TLR4EXPR  [label="TLR4 과발현\nTLR4expr = 1 − 0.55·MAT\n(immature gut over-expresses TLR4)",
+                   fillcolor="#f6d9d5", color="#c08b84"];
+        PAFAH     [label="PAF-아세틸가수분해효소\nPAF-AH = 1.2 + 6·MAT\n(preterm deficiency)"];
+        IL10CAP   [label="IL-10 반응 능력\n∝ MAT (immature = deficient)"];
+        IAP       [label="장 알칼리인산분해효소 IAP\nLPS dephosphorylation"];
+        MOTIL     [label="장운동 미숙\nimmature motility → stasis"];
+    }
+
+    /* =====================================================================
+       2. ENTERAL NUTRITION
+       ===================================================================== */
+    subgraph cluster_nutr {
+        label="② 경장영양 (Enteral nutrition — the two-signed input)";
+        style="rounded,filled"; fillcolor="#eef7ef"; color="#a8ccab";
+        fontsize=12; fontcolor="#2f5f34";
+        node [fillcolor="#dcefdd", color="#8bb890"];
+
+        MOM       [label="모유 (친모)\nmother's own milk", shape=octagon,
+                   fillcolor="#c2e3c5"];
+        DM        [label="기증모유 (저온살균)\npasteurised donor milk"];
+        PASTEUR   [label="저온살균\nHolder pasteurisation\n(sIgA·lactoferrin·EGF 파괴, HMO 보존)"];
+        FORMULA   [label="미숙아 분유\npreterm formula", shape=octagon,
+                   fillcolor="#f3ddd9"];
+        FORTIF    [label="모유강화제 (우유 기반)\nbovine fortifier · osmolality↑"];
+        FEEDVOL   [label="수유량 FEED\nmL/kg/d"];
+        FEEDRATE  [label="증량 속도\nadvance rate mL/kg/d²",
+                   shape=octagon, fillcolor="#c2e3c5"];
+        TROPHIC   [label="최소 장영양\ntrophic / gut-priming feeds"];
+        NPO       [label="금식 NPO\ngut rest"];
+        TPN       [label="정맥영양 TPN\nparenteral nutrition"];
+        HMO       [label="모유 올리고당 HMO\n2′-FL · LNnT · 6′-SL  ~13 g/L",
+                   fillcolor="#c2e3c5", penwidth=1.5];
+        SIGA      [label="분비형 IgA\nsecretory IgA (immune exclusion)"];
+        LACTOF    [label="락토페린\nlactoferrin (Fe sequestration)"];
+        EGFMILK   [label="EGF · HB-EGF · TGF-β2\n(milk growth factors)"];
+        MFGM      [label="유지방구막 · 글루타민 · 아르기닌\nMFGM · glutamine · arginine"];
+        OSMOL     [label="삼투압 부하\nfeed osmolality > 450 mOsm/kg"];
+        SUB       [label="미흡수 발효기질 SUB\nunabsorbed fermentable substrate [g/kg]",
+                   fillcolor="#f6f0d0", color="#bda85f", penwidth=1.5];
+        SMUC      [label="숙주 유래 기질\nmucin O-glycans (NPO에도 0이 아니다)"];
+        MALABS    [label="흡수장애\nVabs = 14·E  → E↓ 이면 SUB↑",
+                   fillcolor="#f6d9d5", color="#c08b84"];
+    }
+
+    /* =====================================================================
+       3. LUMINAL ECOLOGY
+       ===================================================================== */
+    subgraph cluster_lumen {
+        label="③ 장내 생태 (Luminal ecology — the STATE variable)";
+        style="rounded,filled"; fillcolor="#fdf4e8"; color="#dcbd8a";
+        fontsize=12; fontcolor="#7a5418";
+        node [fillcolor="#f9e6cc", color="#c9a877"];
+
+        B         [label="병원균 부하 B\nEnterobacteriaceae\n(Klebsiella · E. coli · Enterobacter)",
+                   shape=box, fillcolor="#f2c9c0", color="#bd7a6c", penwidth=2.0];
+        C         [label="편성 혐기성 상재균 C\nBifidobacterium · Clostridiales",
+                   fillcolor="#cfe7d1", color="#7ea883", penwidth=1.6];
+        BINF      [label="B. infantis 보유 여부\nHMO-utilising strain\n(산업화 코호트 ~35 %만 보유)",
+                   shape=octagon, fillcolor="#cfe7d1"];
+        CPERF     [label="Clostridium perfringens\n· Cronobacter (독소 아형)"];
+        PROB      [label="프로바이오틱스 P\nB. infantis · L. rhamnosus · B. lactis",
+                   fillcolor="#cfe0f2", color="#7b9ec9"];
+        NICHE     [label="정착 니치 Ktot = 26\nα = 0.55 교차경쟁 → 공존 가능"];
+        FERM      [label="발효\nfermentation flux"];
+        SCFA      [label="단쇄지방산 SCFA\nbutyrate · acetate [mM]",
+                   fillcolor="#cfe7d1", color="#7ea883", penwidth=1.5];
+        PHLUM     [label="장내 pH↓\nfpH = 1/(1+(SCFA/10)²)"];
+        GAS       [label="장내 가스 GAS\nH₂ · CO₂ (수소 생성)"];
+        BILE      [label="담즙산 풀\nunconjugated bile acid toxicity"];
+        DYSB      [label="이상균총 (dysbiosis)\nEnterobacteriaceae bloom\n· 다양성 감소",
+                   fillcolor="#f2c9c0", color="#bd7a6c"];
+        BLOOM     [label="정착 경쟁의 결과가\n두 개의 안정 상태로 갈린다\n(Bifido-우세 vs Entero-우세)",
+                   shape=note, fillcolor="#fff8ea"];
+    }
+
+    /* =====================================================================
+       4. MUCOSAL BARRIER
+       ===================================================================== */
+    subgraph cluster_barrier {
+        label="④ 점막 장벽 (Mucosal barrier — the LOOP variable)";
+        style="rounded,filled"; fillcolor="#fdeeee"; color="#e0aaa4";
+        fontsize=12; fontcolor="#84302a";
+        node [fillcolor="#f9dcda", color="#cf9a92"];
+
+        CRYPT     [label="크립트 줄기세포 (Lgr5⁺)\ncrypt stem compartment"];
+        PROLIF    [label="장세포 증식\nprolif = kE(1−E)·Ftroph·block"];
+        BLOCK     [label="증식 차단\nblock = 1/(1+(INJ/0.25)²)",
+                   fillcolor="#f2c9c0", color="#bd7a6c"];
+        E         [label="장세포 · 융모 완전성  E\nenterocyte / villus integrity  [0–1]",
+                   shape=box, fillcolor="#e88f83", fontcolor="white",
+                   color="#a33a2c", penwidth=2.6];
+        APOP      [label="장세포 소실\nkA·INJ·E/(E+0.08)\napoptosis + necroptosis + 탈락"];
+        TJ        [label="밀착연접 TJ\nZO-1 · claudin-3 · occludin"];
+        MUC2      [label="점액층 MUC2\ngoblet cell mucin"];
+        GOBLET    [label="배상세포\ngoblet cell"];
+        PANETH    [label="파네트세포\nHD5 · HD6 · lysozyme"];
+        DEF       [label="디펜신 DEF\nα-defensin index"];
+        GLYCO     [label="당질피막\nglycocalyx · sialylation"];
+        AUTOPH    [label="자가포식\nautophagy (enterocyte survival)"];
+        PB        [label="투과성 Pb\nPb = 0.05 + 1.15·(1−BI)³",
+                   shape=box, fillcolor="#e88f83", fontcolor="white",
+                   color="#a33a2c", penwidth=2.0];
+        BI        [label="장벽 완전성 BI\nBI = E·(0.35+0.65·TJ)·(0.55+0.45·MUC)"];
+        JTR       [label="세균 전위 플럭스 Jtr\nJtr = Pb · B",
+                   shape=box, fillcolor="#e88f83", fontcolor="white",
+                   color="#a33a2c", penwidth=2.4];
+    }
+
+    /* =====================================================================
+       5. INNATE SENSING
+       ===================================================================== */
+    subgraph cluster_tlr {
+        label="⑤ 선천면역 인식 (Innate sensing — the THRESHOLD)";
+        style="rounded,filled"; fillcolor="#f4eefa"; color="#c3a8d8";
+        fontsize=12; fontcolor="#553170";
+        node [fillcolor="#e8dcf4", color="#a98cc4"];
+
+        LPS       [label="LPS · 펩티도글리칸 · 편모\nMAMPs"];
+        TLR4      [label="TLR4 / MD-2\n(장세포 apical + basolateral)"];
+        KTLR      [label="신호 문턱 Ktlr\nKtlr = 60 · (1+0.15·HMO/(HMO+0.4)) · (1+0.10·IgA)",
+                   shape=box, fillcolor="#d9c6ec", color="#8c6bad", penwidth=2.2];
+        MYD88     [label="MyD88 · IRAK4 · TRAF6"];
+        TRIF      [label="TRIF / IRF3"];
+        NFKB      [label="NF-κB 활성 TLR4s\nTLR4s = TLR4expr · Jtr/(Jtr+Ktlr)",
+                   shape=box, fillcolor="#c9b0e4", color="#7a5399", penwidth=2.2];
+        NLRP3     [label="NLRP3 인플라마솜\ncaspase-1 → IL-1β/IL-18"];
+        HMGB1     [label="HMGB1 · DAMPs\n(from necrotic tissue)"];
+        SIGIRR    [label="SIGIRR / IL-1R8\n음성 조절 (loss-of-function 변이)"];
+        A20       [label="A20 / TNFAIP3\nNF-κB brake"];
+        NOD2      [label="NOD2 (bacterial peptide)"];
+        TLR9      [label="TLR9 (CpG DNA, 보호적)"];
+    }
+
+    /* =====================================================================
+       6. CYTOKINES AND LIPID MEDIATORS
+       ===================================================================== */
+    subgraph cluster_cyto {
+        label="⑥ 사이토카인 · 지질 매개체 (Cytokines & lipid mediators)";
+        style="rounded,filled"; fillcolor="#fef6ec"; color="#e0bb8f";
+        fontsize=12; fontcolor="#7d4f14";
+        node [fillcolor="#fbe8d0", color="#cfa871"];
+
+        TNF       [label="TNF-α"];
+        IL1B      [label="IL-1β"];
+        IL6       [label="IL-6"];
+        IL8       [label="IL-8 / CXCL8\n(neutrophil chemokine)"];
+        IL17      [label="IL-17A (Th17)"];
+        IL18      [label="IL-18"];
+        IL10      [label="IL-10 (counter-regulatory)",
+                   fillcolor="#dcefdd", color="#8bb890"];
+        TGFB      [label="TGF-β / Smad (Treg)",
+                   fillcolor="#dcefdd", color="#8bb890"];
+        PAF       [label="혈소판활성인자 PAF\nplatelet-activating factor",
+                   fillcolor="#f2c9c0", color="#bd7a6c", penwidth=1.6];
+        LTB4      [label="LTB₄ · 5-LOX"];
+        RESOLV    [label="리졸빈 · 프로텍틴 D1\n(n-3 유래 소염 지질)",
+                   fillcolor="#dcefdd", color="#8bb890"];
+    }
+
+    /* =====================================================================
+       7. CELLULAR IMMUNITY
+       ===================================================================== */
+    subgraph cluster_immune {
+        label="⑦ 세포 면역 (Cellular immunity)";
+        style="rounded,filled"; fillcolor="#f1f6fb"; color="#a9c1d9";
+        fontsize=12; fontcolor="#28496b";
+        node [fillcolor="#dfeaf5", color="#8ba9c6"];
+
+        MACRO     [label="점막 대식세포\nM1 극성화"];
+        NEUT      [label="호중구 침윤 NEUT\nsaturating pool (NEUmax = 4)",
+                   fillcolor="#f2c9c0", color="#bd7a6c"];
+        NET       [label="호중구 세포외 덫\nNETs · elastase · MPO"];
+        TH17      [label="Th17 (RORγt)"];
+        TREG      [label="Treg (Foxp3)", fillcolor="#dcefdd", color="#8bb890"];
+        ILC3      [label="ILC3 · IL-22"];
+        DC        [label="수지상세포 · CX3CR1⁺"];
+        MAST      [label="비만세포 (mast cell)"];
+        EOSIN     [label="호산구"];
+    }
+
+    /* =====================================================================
+       8. SPLANCHNIC PERFUSION
+       ===================================================================== */
+    subgraph cluster_perf {
+        label="⑧ 장혈류 · 산소 수급 (Splanchnic perfusion & O₂ balance)";
+        style="rounded,filled"; fillcolor="#eef8fa"; color="#96c6d0";
+        fontsize=12; fontcolor="#1e5964";
+        node [fillcolor="#d6eef3", color="#7fb4c0";]
+
+        PERF      [label="장혈류 PERF\nmesenteric perfusion index",
+                   shape=box, fillcolor="#a9d9e4", color="#3f8896", penwidth=2.0];
+        DEMAND    [label="산소 요구 demand\ndemand = 1 + 0.40·FEED/200"];
+        SDR       [label="수급비 SDR = PERF/demand\nISCH = max(0, 1 − SDR/0.80)",
+                   shape=box, fillcolor="#a9d9e4", color="#3f8896", penwidth=2.0];
+        AUTOREG   [label="혈류 자동조절 미숙\nimmature autoregulation"];
+        ET1       [label="엔도텔린-1 ET-1\nvasoconstriction"];
+        ENOS      [label="eNOS → NO (vasodilator)",
+                   fillcolor="#dcefdd", color="#8bb890"];
+        INOS      [label="iNOS → NO 과다"];
+        ONOO      [label="퍼옥시나이트라이트 ONOO⁻\nnitrosative injury",
+                   fillcolor="#f2c9c0", color="#bd7a6c"];
+        PGE       [label="혈관확장 프로스타노이드 PGE\nPGE₂ · PGI₂ (COX-1/2)",
+                   fillcolor="#dcefdd", color="#8bb890"];
+        PDA       [label="동맥관 개존 PDA\ndiastolic steal", shape=octagon];
+        HYPOT     [label="저혈압 · 아프네아-서맥\nhypotension · A-B episodes",
+                   shape=octagon, fillcolor="#f2c9c0"];
+        ANEMIA    [label="빈혈 (Hb↓, O₂ 운반↓)"];
+        TRANSF    [label="농축적혈구 수혈 PRBC\ntransfusion-associated NEC",
+                   shape=octagon, fillcolor="#f2c9c0"];
+        IRINJ     [label="허혈-재관류 손상\nischaemia–reperfusion · XO · ROS"];
+    }
+
+    /* =====================================================================
+       9. THE LESION
+       ===================================================================== */
+    subgraph cluster_lesion {
+        label="⑨ 병변 (The lesion — irreversible above NECa_crit = INJth/wNEC)";
+        style="rounded,filled"; fillcolor="#fdecec"; color="#dc9d99";
+        fontsize=12; fontcolor="#7d2320";
+        node [fillcolor="#f7d3d0", color="#c3837e"];
+
+        INJ       [label="총 손상 INJ\nINJ = TLR4s + 0.35·NO + 0.90·ISCH + 1.80·NECa",
+                   shape=box, fillcolor="#e07a6d", fontcolor="white",
+                   color="#993226", penwidth=2.4];
+        MUCNEC    [label="점막 · 점막하 괴사\n(NECa < 0.10 은 재상피화 가능)"];
+        NECA      [label="전층 괴사 면적 NECa\ntransmural necrosis [0–1]",
+                   shape=box, fillcolor="#e07a6d", fontcolor="white",
+                   color="#993226", penwidth=2.2];
+        NOCRIT    [label="회복 불가점\nNECa_crit = 0.35/1.80 = 0.194\n괴사 자체가 손상을 유지한다",
+                   shape=doubleoctagon, fillcolor="#c8483a", fontcolor="white",
+                   color="#8a2418", penwidth=2.0];
+        PNEU      [label="장벽내 공기 (pneumatosis)\ngas dissects only if Pb > 0.20"];
+        PVGAS     [label="간문맥 가스\nportal venous gas"];
+        PERFOR    [label="천공 · 복막염\nperforation · peritonitis"];
+        STRIC     [label="후기 협착\npost-NEC stricture (~10–25 %)"];
+        SBS       [label="단장증후군 · 장기능부전\nshort bowel · intestinal failure"];
+        REPAIR    [label="육아 · 재상피화\nkrep·min(NECa, 0.10)·E",
+                   fillcolor="#dcefdd", color="#8bb890"];
+    }
+
+    /* =====================================================================
+       10. SYSTEMIC RESPONSE
+       ===================================================================== */
+    subgraph cluster_sys {
+        label="⑩ 전신 반응 (Systemic response)";
+        style="rounded,filled"; fillcolor="#f5f2fb"; color="#b9aed6";
+        fontsize=12; fontcolor="#413169";
+        node [fillcolor="#e5dff3", color="#a094c4"];
+
+        LPSP      [label="혈중 내독소 LPSp\nendotoxaemia · bacteraemia"];
+        SEPSIS    [label="후기발현 패혈증\nlate-onset sepsis"];
+        DIC       [label="파종성 혈관내 응고 DIC"];
+        PLT       [label="혈소판 PLT\nthrombocytopenia (< 100 ×10⁹/L)"];
+        CRP       [label="CRP · procalcitonin"];
+        LAC       [label="젖산 · 염기결핍\nlactate · base deficit"];
+        SHOCK     [label="쇼크 · 다장기부전"];
+        IFABP     [label="I-FABP (요/혈)\n장세포 손상 표지자"];
+        CALPRO    [label="분변 칼프로텍틴\nfaecal calprotectin"];
+    }
+
+    /* =====================================================================
+       11. DISTANT ORGANS
+       ===================================================================== */
+    subgraph cluster_organ {
+        label="⑪ 원격 장기 (Distant organ consequences)";
+        style="rounded,filled"; fillcolor="#f2f6f2"; color="#aec4ae";
+        fontsize=12; fontcolor="#38553a";
+        node [fillcolor="#e0ebe0", color="#93ab93"];
+
+        LIVER     [label="TPN 담즙정체 · IFALD\nconjugated bilirubin↑"];
+        BRAIN     [label="신경염증 NIN\nWMI · NDI at 18–24 mo"];
+        KIDNEY    [label="아미노글리코사이드 세뇨관 손상\nAKI · KIN index"];
+        LUNG      [label="기관지폐이형성증 BPD\n(inflammatory crosstalk)"];
+        BONE      [label="미숙아 대사성 골질환\nMBDP"];
+        GROWTH    [label="성장 실패\nweight z-score · EUGR"];
+        ROP       [label="미숙아 망막병증 ROP"];
+    }
+
+    /* =====================================================================
+       12. PHARMACOLOGY — WHICH FACTOR DOES IT MOVE?
+       ===================================================================== */
+    subgraph cluster_drug {
+        label="⑫ 약물 · 개입 (Pharmacology — threshold-movers vs state-movers)";
+        style="rounded,filled"; fillcolor="#eaf1f9"; color="#9cb7d5";
+        fontsize=12; fontcolor="#1f456f";
+        node [fillcolor="#cfe0f2", color="#7b9ec9"];
+
+        AMP       [label="암피실린 AMP\n100 mg/kg q12h  (혐기균에 강한 부작용)", shape=cds];
+        GEN       [label="젠타마이신 GEN\n4 mg/kg q36h  (B 살상 주력)", shape=cds];
+        MTZ       [label="메트로니다졸 MTZ\n7.5 mg/kg q24h  (C 파괴)", shape=cds];
+        VANCPIP   [label="반코마이신 · 피페라실린-타조박탐\n(2차 요법)", shape=cds];
+        ABXDUR    [label="경험적 항생제 투여기간\nempirical antibiotic DURATION",
+                   shape=octagon, fillcolor="#f2c9c0"];
+        PROBDRUG  [label="프로바이오틱스 (STATE-MOVER)\nB 부하를 낮춘다", shape=cds,
+                   fillcolor="#cfe7d1"];
+        HMODRUG   [label="합성 HMO 2′-FL/LNnT (THRESHOLD-MOVER)\nKtlr 을 올린다",
+                   shape=cds, fillcolor="#cfe7d1"];
+        BLF       [label="소 락토페린 bovine lactoferrin", shape=cds];
+        IAPSUP    [label="IAP 보충 (LPS 탈인산화)", shape=cds];
+        GLN       [label="글루타민 · 아르기닌 · 시트룰린", shape=cds];
+        PTX       [label="펜톡시필린 (PDE 억제)", shape=cds];
+        ANTITNF   [label="항TNF · IL-1Ra (실험적)", shape=cds];
+        DEX       [label="덱사메타손 · 하이드로코르티손\n(NF-κB 억제)", shape=cds];
+        INDO      [label="인도메타신 (PDA)\nCOX 억제 → PGE↓", shape=cds,
+                   fillcolor="#f2c9c0"];
+        IBU       [label="이부프로펜 (PDA)\n장혈류 영향 더 작음", shape=cds];
+        AFSC      [label="양막 유래 줄기세포 · EV (전임상)", shape=cds];
+        SURG      [label="수술: 배액 · 개복 · 절제\nperitoneal drain / laparotomy", shape=cds,
+                   fillcolor="#f2c9c0"];
+        NPORX     [label="금식 + 위감압 + 광범위 항생제\nBell ≥ II 표준 치료 (dx_lag = 1.2 d)", shape=cds];
+    }
+
+    /* =====================================================================
+       13. PHARMACOKINETICS
+       ===================================================================== */
+    subgraph cluster_pk {
+        label="⑬ 약동학 (Neonatal PK — PMA-scaled clearance)";
+        style="rounded,filled"; fillcolor="#f7f7f2"; color="#c6c6a9";
+        fontsize=12; fontcolor="#5b5b34";
+        node [fillcolor="#eeeee0", color="#b3b392"];
+
+        PKGUT     [label="장내 약물 농도\nluminal exposure"];
+        PKPLAS    [label="혈장 구획\nV ≈ 0.32–1.10 L/kg"];
+        PKPER     [label="말초 · 신피질 구획\ngentamicin accumulation"];
+        PKCL      [label="청소율 CL·(PMA/40)^1.3\nglomerular maturation"];
+        PKEMAX    [label="Emax 살상 모델\nEmax·C/(C+EC50)  per taxon"];
+    }
+
+    /* =====================================================================
+       14. CLINICAL ENDPOINTS
+       ===================================================================== */
+    subgraph cluster_clin {
+        label="⑭ 임상 종점 (Clinical endpoints)";
+        style="rounded,filled"; fillcolor="#f9f9f9"; color="#bcbcbc";
+        fontsize=12; fontcolor="#333333";
+        node [fillcolor="#ececec", color="#a6a6a6", shape=note];
+
+        FEEDINTOL [label="수유 부진 · 위잔류량↑\nfeeding intolerance"];
+        DISTEND   [label="복부 팽만 · 복벽 변색"];
+        BLOODST   [label="혈성 변\nhaematochezia"];
+        BELL1     [label="Bell I  의심 NEC"];
+        BELL2     [label="Bell II  확진 NEC\n(pneumatosis 또는 NECa > 0.10)"];
+        BELL3     [label="Bell III  진행 NEC\n(NECa > 0.28 또는 PLT<100 & Lac>4)"];
+        SURGRATE  [label="수술 필요 비율\nsurgical NEC"];
+        MORT      [label="사망률\ncase fatality (GA 의존)"];
+        DAYSFULL  [label="완전 경장영양 도달일\ndays to full feeds"];
+        LOS       [label="재원기간 LOS"];
+        NDI       [label="18–24개월 신경발달장애 NDI"];
+    }
+
+    /* =====================================================================
+       EDGES — maturation
+       ===================================================================== */
+    GA -> PMA; PMA -> MAT; GA -> BW; GA -> MAT;
+    IUGR -> BW; IUGR -> PERF [label="mesenteric flow↓", fontsize=8];
+    CHORIO -> NFKB [label="fetal priming", fontsize=8];
+    ANTESTER -> MAT [color="#1f6fb2", style=bold];
+    CSECT -> C [color="#c0392b", arrowhead=tee, label="seeding 실패", fontsize=8];
+    CSECT -> BINF [color="#c0392b", arrowhead=tee];
+    MAT -> TLR4EXPR [color="#c0392b", arrowhead=tee];
+    MAT -> PAFAH; MAT -> IL10CAP; MAT -> IAP;
+    MAT -> TJ; MAT -> MUC2; MAT -> PANETH;
+    GA -> MOTIL [color="#c0392b", arrowhead=tee];
+    MOTIL -> SUB [label="stasis → 기질 체류", fontsize=8];
+    MOTIL -> B;
+    TLR4EXPR -> NFKB [penwidth=1.6];
+    IL10CAP -> IL10;
+    PAFAH -> PAF [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    IAP -> LPS [color="#c0392b", arrowhead=tee];
+
+    /* ---------- nutrition ---------- */
+    MOM -> HMO [penwidth=1.6]; MOM -> SIGA; MOM -> LACTOF; MOM -> EGFMILK; MOM -> MFGM;
+    MOM -> C [label="Bifidobacterium seeding", fontsize=8];
+    DM -> PASTEUR; PASTEUR -> HMO [label="보존", fontsize=8];
+    PASTEUR -> SIGA [color="#c0392b", arrowhead=tee, label="파괴", fontsize=8];
+    PASTEUR -> EGFMILK [color="#c0392b", arrowhead=tee];
+    PASTEUR -> LACTOF [color="#c0392b", arrowhead=tee];
+    FORMULA -> SUB; FORMULA -> OSMOL;
+    FORTIF -> SUB; FORTIF -> OSMOL;
+    OSMOL -> TJ [color="#c0392b", arrowhead=tee];
+    FEEDRATE -> FEEDVOL; TROPHIC -> FEEDVOL; FEEDVOL -> SUB [penwidth=1.4];
+    FEEDVOL -> DEMAND [penwidth=1.4, label="산소 요구↑", fontsize=8];
+    FEEDVOL -> PROLIF [label="Ftroph↑ (영양 자극)", fontsize=8, penwidth=1.4];
+    NPO -> FEEDVOL [color="#c0392b", arrowhead=tee]; NPO -> TPN;
+    NPO -> PROLIF [color="#c0392b", arrowhead=tee, label="위축 (floor 0.25)", fontsize=8];
+    SMUC -> SUB [label="NPO 에도 남는 기질", fontsize=8];
+    E -> SMUC;
+    TPN -> LIVER; TPN -> GROWTH;
+    HMO -> KTLR [penwidth=1.8, label="decoy receptor", fontsize=8];
+    SIGA -> KTLR [penwidth=1.4, label="immune exclusion", fontsize=8];
+    SIGA -> B [color="#c0392b", arrowhead=tee];
+    LACTOF -> B [color="#c0392b", arrowhead=tee];
+    EGFMILK -> PROLIF [penwidth=1.4]; MFGM -> PROLIF;
+    HMO -> C [penwidth=1.8, label="B 가 못 쓰는 사유 기질", fontsize=8];
+    BINF -> C [penwidth=1.6];
+    E -> MALABS [color="#c0392b", arrowhead=tee];
+    MALABS -> SUB [penwidth=1.6, label="2차 양성 되먹임", fontsize=8, fontcolor="#b03a2e"];
+
+    /* ---------- ecology ---------- */
+    SUB -> B [penwidth=1.6]; SUB -> C; SUB -> PROB; SUB -> FERM;
+    NICHE -> B [color="#c0392b", arrowhead=tee]; NICHE -> C [color="#c0392b", arrowhead=tee];
+    B -> NICHE; C -> NICHE; PROB -> NICHE;
+    C -> FERM; PROB -> FERM; FERM -> SCFA [penwidth=1.5]; FERM -> GAS;
+    SCFA -> PHLUM; PHLUM -> B [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    SCFA -> PROLIF [penwidth=1.3, label="butyrate 영양", fontsize=8];
+    SCFA -> TJ; SCFA -> TREG;
+    B -> DYSB; DYSB -> B; CPERF -> B; B -> CPERF;
+    BILE -> E [color="#c0392b", arrowhead=tee];
+    GAS -> PNEU [penwidth=1.4];
+    PROB -> C; PROB -> B [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    DEF -> B [color="#c0392b", arrowhead=tee];
+    BLOOM -> DYSB [style=dashed, color="#999999"];
+
+    /* ---------- barrier: THE CORE RING ---------- */
+    CRYPT -> PROLIF; PROLIF -> E [color="#a33a2c", penwidth=2.6];
+    BLOCK -> PROLIF [color="#c0392b", arrowhead=tee, penwidth=2.2];
+    APOP -> E [color="#c0392b", arrowhead=tee, penwidth=2.6];
+    E -> BI [color="#a33a2c", penwidth=2.6];
+    TJ -> BI [penwidth=1.5]; MUC2 -> BI [penwidth=1.5];
+    GOBLET -> MUC2; PANETH -> DEF; DEF -> BI; GLYCO -> BI; AUTOPH -> E;
+    BI -> PB [color="#a33a2c", penwidth=2.6, label="Pb = 0.05+1.15(1−BI)³", fontsize=8];
+    PB -> JTR [color="#a33a2c", penwidth=2.6];
+    B -> JTR [color="#a33a2c", penwidth=2.4, label="× B", fontsize=9];
+    JTR -> LPS [penwidth=1.6]; JTR -> NFKB [color="#a33a2c", penwidth=2.6];
+    JTR -> LPSP [penwidth=1.4];
+    E -> CRYPT;
+
+    /* ---------- innate sensing ---------- */
+    LPS -> TLR4 [penwidth=1.5]; TLR4 -> MYD88; TLR4 -> TRIF;
+    MYD88 -> NFKB [penwidth=1.6]; TRIF -> NFKB;
+    KTLR -> NFKB [color="#c0392b", arrowhead=tee, penwidth=2.2,
+                  label="문턱 (threshold)", fontsize=9];
+    NFKB -> NLRP3; NLRP3 -> IL1B [penwidth=1.5]; NLRP3 -> IL18;
+    HMGB1 -> TLR4; NECA -> HMGB1 [penwidth=1.4];
+    SIGIRR -> NFKB [color="#c0392b", arrowhead=tee];
+    A20 -> NFKB [color="#c0392b", arrowhead=tee];
+    NOD2 -> NFKB; TLR9 -> A20;
+    NFKB -> INJ [color="#a33a2c", penwidth=2.4];
+
+    /* ---------- cytokines ---------- */
+    NFKB -> TNF [penwidth=1.5]; NFKB -> IL1B; NFKB -> IL6; NFKB -> IL8;
+    NFKB -> PAF [penwidth=1.5];
+    TNF -> IL8; IL1B -> IL8; TNF -> PAF;
+    TNF -> TJ [color="#c0392b", arrowhead=tee, penwidth=1.5];
+    IL1B -> TJ [color="#c0392b", arrowhead=tee];
+    TNF -> APOP [penwidth=1.5]; IL1B -> APOP;
+    IL8 -> NEUT [penwidth=1.8]; PAF -> NEUT [penwidth=1.4];
+    IL17 -> IL8; TH17 -> IL17; IL18 -> IL17;
+    IL10 -> NFKB [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    TGFB -> TREG; TREG -> IL10; RESOLV -> NEUT [color="#c0392b", arrowhead=tee];
+    LTB4 -> NEUT;
+    TNF -> IL10; IL1B -> IL10;
+    NEUT -> TNF [label="포화 되먹임 NEU/(1+NEU)", fontsize=8];
+    NEUT -> IL1B;
+
+    /* ---------- cellular ---------- */
+    NFKB -> MACRO; MACRO -> TNF; MACRO -> IL1B;
+    NEUT -> NET; NET -> MUC2 [color="#c0392b", arrowhead=tee];
+    NET -> E [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    DC -> TH17; ILC3 -> MUC2; MAST -> PAF; EOSIN -> IL8;
+    NEUT -> INOS;
+
+    /* ---------- perfusion ---------- */
+    PAF -> PERF [color="#c0392b", arrowhead=tee, penwidth=2.0];
+    ET1 -> PERF [color="#c0392b", arrowhead=tee];
+    PGE -> PERF [penwidth=1.6]; ENOS -> PERF;
+    PDA -> PERF [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    HYPOT -> PERF [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    ANEMIA -> SDR [color="#c0392b", arrowhead=tee];
+    TRANSF -> NFKB [label="수혈 관련 염증", fontsize=8];
+    TRANSF -> PERF [color="#c0392b", arrowhead=tee];
+    ANEMIA -> TRANSF;
+    AUTOREG -> PERF [color="#c0392b", arrowhead=tee];
+    PERF -> SDR [penwidth=2.0]; DEMAND -> SDR [color="#c0392b", arrowhead=tee, penwidth=2.0];
+    SDR -> INJ [penwidth=2.0, label="0.90 · ISCH", fontsize=9];
+    SDR -> IRINJ [color="#c0392b", arrowhead=tee]; IRINJ -> ONOO;
+    NFKB -> INOS; INOS -> ONOO [penwidth=1.5];
+    ONOO -> INJ [penwidth=1.8, label="0.35 · NO", fontsize=9];
+    ONOO -> TJ [color="#c0392b", arrowhead=tee];
+    NECA -> PERF [color="#c0392b", arrowhead=tee, penwidth=1.4];
+
+    /* ---------- lesion ---------- */
+    INJ -> BLOCK [color="#a33a2c", penwidth=2.4];
+    INJ -> APOP [color="#a33a2c", penwidth=2.4];
+    INJ -> MUCNEC [penwidth=1.6]; MUCNEC -> NECA [penwidth=1.8];
+    INJ -> NECA [penwidth=2.0, label="INJ > INJth = 0.35", fontsize=9];
+    NECA -> INJ [color="#a33a2c", penwidth=2.4,
+                 label="1.80 · NECa  (병변 자체가 자극)", fontsize=9, fontcolor="#993226"];
+    NECA -> NOCRIT [penwidth=1.6]; NOCRIT -> NECA [penwidth=1.6];
+    REPAIR -> NECA [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    E -> REPAIR; NOCRIT -> REPAIR [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    PB -> PNEU [penwidth=1.4, label="Pb > 0.20 필요", fontsize=8];
+    PNEU -> PVGAS; NECA -> PERFOR [penwidth=1.6]; PERFOR -> SHOCK;
+    NECA -> STRIC; STRIC -> SBS; SURG -> SBS;
+
+    /* ---------- systemic ---------- */
+    LPSP -> SEPSIS; LPSP -> PLT [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    NECA -> PLT [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    LPSP -> DIC; DIC -> PLT [color="#c0392b", arrowhead=tee];
+    TNF -> CRP; IL1B -> CRP; IL6 -> CRP;
+    SDR -> LAC [color="#c0392b", arrowhead=tee]; NECA -> LAC [penwidth=1.5];
+    LAC -> SHOCK; PLT -> DIC;
+    E -> IFABP [color="#c0392b", arrowhead=tee, style=dashed];
+    NEUT -> CALPRO [style=dashed];
+
+    /* ---------- distant organs ---------- */
+    LPSP -> BRAIN [penwidth=1.4]; TNF -> BRAIN; IL1B -> BRAIN;
+    BRAIN -> NDI [style=dashed, color="#999999"];
+    LIVER -> GROWTH; PKPER -> KIDNEY [penwidth=1.4];
+    TNF -> LUNG; IL8 -> LUNG; LUNG -> ROP;
+    TPN -> BONE; GROWTH -> NDI [style=dashed, color="#999999"];
+    E -> GROWTH [penwidth=1.4]; NECA -> GROWTH;
+
+    /* ---------- pharmacology ---------- */
+    AMP -> PKPLAS [color="#1f6fb2", style=bold];
+    GEN -> PKPLAS [color="#1f6fb2", style=bold];
+    MTZ -> PKPLAS [color="#1f6fb2", style=bold];
+    VANCPIP -> PKPLAS [color="#1f6fb2", style=bold];
+    INDO -> PKPLAS [color="#1f6fb2", style=bold];
+    IBU -> PKPLAS [color="#1f6fb2", style=bold];
+    DEX -> PKPLAS [color="#1f6fb2", style=bold];
+    PTX -> PKPLAS [color="#1f6fb2", style=bold];
+    PKPLAS -> PKPER; PKPLAS -> PKCL; PKPLAS -> PKGUT; PKGUT -> PKEMAX;
+    PKCL -> PKPLAS [color="#c0392b", arrowhead=tee];
+    PKEMAX -> B [color="#1f6fb2", arrowhead=tee, style=bold, penwidth=1.6];
+    PKEMAX -> C [color="#1f6fb2", arrowhead=tee, style=bold, penwidth=1.8,
+                 label="암피실린·메트로니다졸이\n혐기균을 더 죽인다", fontsize=8];
+    PKEMAX -> PROB [color="#1f6fb2", arrowhead=tee, style=bold];
+    ABXDUR -> AMP; ABXDUR -> GEN; ABXDUR -> MTZ;
+    ABXDUR -> C [color="#c0392b", arrowhead=tee, penwidth=1.8,
+                 label="투여기간이 길어지면 부호가 바뀐다", fontsize=8];
+    INDO -> PGE [color="#1f6fb2", arrowhead=tee, style=bold, penwidth=1.8];
+    IBU -> PGE [color="#1f6fb2", arrowhead=tee, style=bold];
+    DEX -> NFKB [color="#1f6fb2", arrowhead=tee, style=bold, penwidth=1.6];
+    PROBDRUG -> PROB [color="#1f6fb2", style=bold, penwidth=1.8];
+    HMODRUG -> HMO [color="#1f6fb2", style=bold, penwidth=1.8];
+    HMODRUG -> KTLR [color="#1f6fb2", style=bold, penwidth=1.6];
+    BLF -> LACTOF [color="#1f6fb2", style=bold];
+    IAPSUP -> IAP [color="#1f6fb2", style=bold];
+    GLN -> PROLIF [color="#1f6fb2", style=bold];
+    PTX -> TNF [color="#1f6fb2", arrowhead=tee, style=bold];
+    ANTITNF -> TNF [color="#1f6fb2", arrowhead=tee, style=bold];
+    AFSC -> PROLIF [color="#1f6fb2", style=bold];
+    NPORX -> NPO [color="#1f6fb2", style=bold];
+    NPORX -> AMP [color="#1f6fb2", style=bold];
+    SURG -> NECA [color="#1f6fb2", arrowhead=tee, style=bold];
+
+    /* ---------- clinical readouts ---------- */
+    SUB -> FEEDINTOL [style=dashed, color="#999999"];
+    GAS -> DISTEND [style=dashed, color="#999999"];
+    MUCNEC -> BLOODST [style=dashed, color="#999999"];
+    CRP -> BELL1 [style=dashed, color="#999999"];
+    FEEDINTOL -> BELL1 [style=dashed, color="#999999"];
+    PNEU -> BELL2 [style=dashed, color="#999999", penwidth=1.4];
+    NECA -> BELL2 [style=dashed, color="#999999", penwidth=1.4];
+    NECA -> BELL3 [style=dashed, color="#999999", penwidth=1.4];
+    PLT -> BELL3 [style=dashed, color="#999999"];
+    LAC -> BELL3 [style=dashed, color="#999999"];
+    BELL2 -> NPORX [style=dashed, color="#999999"];
+    BELL3 -> SURG [style=dashed, color="#999999"];
+    BELL3 -> SURGRATE [style=dashed, color="#999999"];
+    BELL3 -> MORT [style=dashed, color="#999999"];
+    GA -> MORT [style=dashed, color="#999999"];
+    NPO -> DAYSFULL [style=dashed, color="#999999"];
+    FEEDRATE -> DAYSFULL [style=dashed, color="#999999"];
+    SBS -> LOS [style=dashed, color="#999999"];
+    BELL2 -> LOS [style=dashed, color="#999999"];
+
+    /* ---------- legend ---------- */
+    subgraph cluster_legend {
+        label="범례 (Legend)";
+        style="rounded,filled"; fillcolor="#ffffff"; color="#bbbbbb"; fontsize=11;
+        node [shape=plaintext, fillcolor="white", style=""];
+        LEG [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="3">
+<TR><TD ALIGN="LEFT"><FONT COLOR="#a33a2c"><B>━━━</B></FONT></TD>
+    <TD ALIGN="LEFT">핵심 양성 되먹임 고리 (core positive-feedback ring)</TD></TR>
+<TR><TD ALIGN="LEFT"><B>───▶</B></TD><TD ALIGN="LEFT">활성화 / 물질 흐름</TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#c0392b"><B>───┤</B></FONT></TD>
+    <TD ALIGN="LEFT">억제 (inhibition)</TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#1f6fb2"><B>━━▶</B></FONT></TD>
+    <TD ALIGN="LEFT">약물 · 영양 개입 (intervention)</TD></TR>
+<TR><TD ALIGN="LEFT"><FONT COLOR="#999999"><B>- - ▶</B></FONT></TD>
+    <TD ALIGN="LEFT">임상 판독 (clinical readout)</TD></TR>
+<TR><TD ALIGN="LEFT"><B>⬡</B></TD><TD ALIGN="LEFT">외생 입력 / 노출 (exogenous input)</TD></TR>
+<TR><TD ALIGN="LEFT" COLSPAN="2"><BR/><B>STATE-MOVER</B> = B 를 움직인다 (프로바이오틱스)<BR/>
+<B>THRESHOLD-MOVER</B> = Ktlr 를 움직인다 (HMO · sIgA)<BR/>
+모유는 <B>둘 다</B> 이며, 그래서 대체 불가능하다.</TD></TR>
+</TABLE>>];
+    }
+}
