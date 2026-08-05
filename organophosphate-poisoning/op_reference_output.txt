@@ -1,0 +1,230 @@
+ACUTE ORGANOPHOSPHORUS INSECTICIDE SELF-POISONING -- QSP REFERENCE MODEL
+Independent Python/scipy re-implementation used to verify op_mrgsolve_model.R
+51 ODE states; 23 therapeutic scenarios
+
+==============================================================================
+1. THE OXIME SUFFICIENCY NUMBER  Omega = k_r_max / (k_i * C_oxon)
+==============================================================================
+Oxime reactivation SATURATES (Worek: k_r2 = k_r_max/(K_D + X)), so the
+best achievable free-enzyme fraction at UNLIMITED oxime is Omega/(1+Omega).
+
+OP (oxon)                 oxime           k_i   k_r_max  C_crit(30%)  C_crit(50%)
+                                      nM-1h-1       h-1           nM           nM
+------------------------------------------------------------------------------
+chlorpyrifos (diethyl)    2-PAM        0.1800      36.0          467          200
+chlorpyrifos (diethyl)    obidoxime    0.1800      48.0          622          267
+parathion (diethyl)       2-PAM        0.0840      36.0         1000          429
+parathion (diethyl)       obidoxime    0.0840      48.0         1333          571
+dimethoate (dimethyl)     2-PAM        0.0084      15.0         4167         1786
+dimethoate (dimethyl)     obidoxime    0.0084      30.0         8333         3571
+fenthion (dimethyl)       2-PAM        0.0500      15.0          700          300
+fenthion (dimethyl)       obidoxime    0.0500      30.0         1400          600
+
+==============================================================================
+2. CRITICAL INGESTED VOLUME (the dose at which the oxime runs out of ceiling)
+==============================================================================
+CYP desulfuration is saturable, so above C_thion >> Km the oxon plateau
+is dose-INDEPENDENT at Vmax/CL_oxon.  The oxime ceiling therefore becomes
+a CONSTANT for every large ingestion, no matter how large.
+
+'ceiling' is the best any dose of that oxime could do; 'achieved' is what
+the clinically attainable concentration (2-PAM 130 uM, obidoxime 20 uM)
+actually delivers.  The gap between the two columns is the reason a
+higher oxime dose is not the answer.
+
+OP / formulation                oxime       V_crit(30%)  plateau oxon  ceiling  achieved
+                                                     mL            nM        %         %
+----------------------------------------------------------------------------------------
+chlorpyrifos 20% EC             2-PAM             never           200     50.0      28.3
+chlorpyrifos 20% EC             obidoxime         never           200     57.1      30.8
+parathion 50% EC                2-PAM             never           190     69.2      47.0
+parathion 50% EC                obidoxime         never           190     75.0      50.0
+dimethoate 40% EC               2-PAM              10.4          5000     26.3      11.6
+dimethoate 40% EC               obidoxime         never          5000     41.7      12.5
+fenthion 50% EC                 2-PAM             never           444     40.3      19.3
+fenthion 50% EC                 obidoxime         never           444     57.4      20.6
+
+==============================================================================
+3. THE AGING RATCHET  phi = k_a/(k_a + k_s + k_r)
+==============================================================================
+phi is the probability that ONE inhibition event ends irreversibly.
+Dimethyl OPs age 9x faster than diethyl but ALSO reactivate spontaneously
+110x faster -- the classic teaching that 'dimethyl OPs are hopeless' is
+therefore NOT a statement about phi, it is a statement about how long the
+enzyme stays inhibited, i.e. about C_oxon.
+
+OP                 k_a h-1   k_s h-1  phi no oxime   phi 2-PAM 130uM  phi obi 20uM
+----------------------------------------------------------------------------------
+chlorpyrifos        0.0210    0.0090         0.700             0.001         0.001
+parathion           0.0210    0.0090         0.700             0.001         0.001
+dimethoate          0.1873    0.9902         0.159             0.033         0.030
+fenthion            0.1873    0.7702         0.196             0.034         0.031
+
+Cumulative irreversible loss is an INTEGRAL, not an event:
+      aged(T) = 1 - exp(-k_a * INTEGRAL f_EP dt)
+   chlorpyrifos   f_EP=1 for   6 h  ->  aged =  11.8 %
+   chlorpyrifos   f_EP=1 for  12 h  ->  aged =  22.3 %
+   chlorpyrifos   f_EP=1 for  24 h  ->  aged =  39.6 %
+   chlorpyrifos   f_EP=1 for  72 h  ->  aged =  78.0 %
+   dimethoate     f_EP=1 for   6 h  ->  aged =  67.5 %
+   dimethoate     f_EP=1 for  12 h  ->  aged =  89.4 %
+   dimethoate     f_EP=1 for  24 h  ->  aged =  98.9 %
+   dimethoate     f_EP=1 for  72 h  ->  aged = 100.0 %
+
+==============================================================================
+4. OXIME CONCENTRATION ACTUALLY REQUIRED, AND WHETHER IT EXISTS
+==============================================================================
+Target: 30% free AChE (the threshold below which muscarinic signs appear).
+
+OP              C_oxon nM   X* 2-PAM uM   X* obidoxime uM   achievable?     
+Achievable = reachable at 2-PAM 130 uM (WHO regimen) or obidoxime 20 uM.
+----------------------------------------------------------------------------
+chlorpyrifos           50            24                 3   yes             
+chlorpyrifos          200           150                19   obidoxime only  
+chlorpyrifos         1000    impossible        impossible   no              
+dimethoate           1000            63                10   yes             
+dimethoate           5000    impossible               131   no              
+dimethoate          10000    impossible        impossible   no              
+parathion              50            10                 2   yes             
+parathion             200            50                 7   yes             
+parathion             700           466                44   no              
+
+==============================================================================
+5. THE ATROPINE REQUIREMENT IS A HYPERBOLA IN ENZYME ACTIVITY
+==============================================================================
+Cleft ACh at steady state = (1+leak)/(E+leak); competitive antagonism then
+makes the atropine concentration needed to restore baseline occupancy
+        Ce* = KB * (ACh/ACh_0 - 1)
+so the atropine requirement scales as 1/E, not as (1-E).
+
+  AChE %   cleft ACh x normal    Ce* nM   bolus-equivalent mg  mg/h to hold
+----------------------------------------------------------------------------
+     100                 1.00       0.0                  0.00          0.00
+      50                 1.91       7.3                  0.42          0.10
+      30                 3.00      16.0                  0.93          0.21
+      20                 4.20      25.6                  1.48          0.34
+      10                 7.00      48.0                  2.78          0.64
+       5                10.50      76.0                  4.40          1.01
+       2                15.00     112.0                  6.48          1.49
+       0                21.00     160.0                  9.26          2.13
+
+==============================================================================
+6. STOICHIOMETRIC BIOSCAVENGER: AN ARITHMETIC IMPOSSIBILITY FOR INSECTICIDES
+==============================================================================
+Plasma-derived human BChE binds oxon 1:1.  Nerve-agent prophylaxis works
+because the agent dose is micromoles; an insecticide ingestion is
+millimoles of PARENT that keeps generating oxon for days.
+
+   chlorpyrifos  50 mL of 20% EC =    28.5 mmol parent;     200 mg BChE =   2.35 umol sites  ->  shortfall    12122-fold
+   chlorpyrifos  50 mL of 20% EC =    28.5 mmol parent;    1000 mg BChE =  11.76 umol sites  ->  shortfall     2424-fold
+   dimethoate    50 mL of 40% EC =    87.2 mmol parent;     200 mg BChE =   2.35 umol sites  ->  shortfall    37069-fold
+   dimethoate    50 mL of 40% EC =    87.2 mmol parent;    1000 mg BChE =  11.76 umol sites  ->  shortfall     7414-fold
+
+==============================================================================
+7. SCENARIO SIMULATIONS (51-state ODE system)
+==============================================================================
+scenario                                               AChE   AChE   aged    atr   vent   mort
+                                                      nadir    72h    72h     mg      h      %
+------------------------------------------------------------------------------------------------
+S01 CPF 50 mL - supportive only (atropine, ICU)         0.0    0.0   75.2    939    110   27.3
+S02 CPF 50 mL - atropine + 2-PAM (WHO 30+8 mg/kg/h)     0.0   34.6   47.0    768     85   26.1
+S03 CPF 50 mL - atropine + 2-PAM 1 g q6h bolus          0.0   11.0   61.7    866    148   27.8
+S04 CPF 50 mL - atropine + obidoxime (250 mg + 750      0.0   28.4   51.4    799    133   28.5
+S05 CPF 10 mL - atropine + 2-PAM (below the oxime c     0.1   67.2   24.5    273      0    7.2
+S06 CPF 10 mL - supportive only                         0.0    0.1   75.1    700     70   18.3
+S07 CPF 200 mL - atropine + 2-PAM (massive ingestio     0.0   17.3   58.6    970    263   38.5
+S08 Dimethoate 50 mL - supportive only                  0.1    0.1   96.6    260     39   13.3
+S09 Dimethoate 50 mL - atropine + 2-PAM                 1.0    1.0   95.8    255     35   13.1
+S10 Dimethoate 50 mL - atropine + obidoxime             0.6    0.6   96.1    257     37   13.2
+S11 CPF 50 mL - 2-PAM started at 0.5 h (early)          0.1   34.8   46.7    768     85   26.2
+S12 CPF 50 mL - 2-PAM started at 12 h (late)            0.0   31.6   51.0    795     79   21.2
+S13 CPF 50 mL - no ventilator available                 0.0   34.6   47.0    768      0   52.3
+S14 CPF 50 mL - standard (slow) atropine titration      0.0   34.6   47.0    257    335   39.0
+S15 CPF 50 mL - glycopyrrolate instead of atropine      0.0   34.6   47.0   1602    335   44.5
+S16 CPF 50 mL - + magnesium sulphate 4 g                0.0   34.6   47.0    767     84   26.1
+S17 CPF 50 mL - + activated charcoal at 1 h             0.0   54.9   32.6    484     40   15.1
+S18 CPF 50 mL - + activated charcoal at 6 h             0.0   37.0   45.1    741     81   23.4
+S19 CPF 50 mL - + 1 g plasma BChE bioscavenger          0.0   34.6   47.0    768     85   26.1
+S20 CPF 50 mL - PON1 Q192Q slow-hydrolyser              0.0   14.8   62.3    960    217   34.6
+S21 Fenthion 50 mL - atropine + 2-PAM                   0.0    0.0   96.7    858     64   24.3
+S22 Parathion 15 mL - atropine + obidoxime              0.1   45.5   39.1    468     25   10.8
+S23 Parathion 15 mL - supportive only                   0.0    0.1   75.1    750     89   20.8
+
+==============================================================================
+8. CONTRASTS THE MODEL PRODUCES WITHOUT BEING TOLD TO
+==============================================================================
+(a) Oxime benefit is a function of INGESTED DOSE, not of the drug:
+    50 mL chlorpyrifos     AChE72h   0.0% ->  34.6% | mortality  27.3% ->  26.1%
+    10 mL chlorpyrifos     AChE72h   0.1% ->  67.2% | mortality  18.3% ->   7.2%
+    15 mL parathion        AChE72h   0.1% ->  45.5% | mortality  20.8% ->  10.8%
+    50 mL dimethoate       AChE72h   0.1% ->   1.0% | mortality  13.3% ->  13.1%
+
+(b) Route of oxime administration matters more than the choice of oxime
+    2-PAM infusion (S02)  Css 292 uM  AChE72h 34.6%  mort 26.1%
+    2-PAM q6h bolus (S03) Cmax 159 uM AChE72h 11.0%  mort 27.8%
+    obidoxime      (S04)  Cmax 37 uM  AChE72h 28.4%  mort 28.5%
+
+(c) The ventilator is worth more than every drug in the list:
+    with ventilator (S02)  mortality 26.1%
+    without         (S13)  mortality 52.3%
+
+(d) Atropine titration speed, same total pharmacology:
+    rapid doubling  (S02)  atropine 33 mg/24h, mortality 26.1%
+    slow ad-hoc     (S14)  atropine 16 mg/24h, mortality 39.0%
+
+(e) A peripherally restricted antimuscarinic cannot protect the brain:
+    atropine        (S02)  peak seizure index 0.00, mortality 26.1%
+    glycopyrrolate  (S15)  peak seizure index 0.21, mortality 44.5%
+
+(f) Decontamination is a race against a first-order absorption constant:
+    charcoal at 1 h (S17)  AChE nadir 0.0%, mortality 15.1%
+    charcoal at 6 h (S18)  AChE nadir 0.0%, mortality 23.4%
+
+(g) PON1 genotype scales the oxon exposure, hence the aged fraction:
+    PON1 R192R (S02)  oxon24h 63 nM, aged72h 47.0%, mort 26.1%
+    PON1 Q192Q (S20)  oxon24h 181 nM, aged72h 62.3%, mort 34.6%
+
+(h) The bioscavenger changes nothing, as section 6 predicts:
+    no scavenger (S02) AChE nadir 0.03%
+    1 g BChE     (S19) AChE nadir 0.03%
+
+(i) Lipophilic dimethyl OP (fenthion): late, nicotinic, ventilator-hungry
+    S21 vent hours 64, peak nAChR block 0.55, IMS True, mortality 24.3%
+    S02 vent hours 85, peak nAChR block 0.52, IMS True
+
+(j) RBC AChE is a bad recovery marker because red cells cannot resynthesise:
+    S02: day-7 RBC AChE 28.7% vs day-7 NMJ AChE 37.0% (muscle enzyme is resynthesised, red cells are not)
+    S05: day-7 RBC AChE 64.6% vs day-7 NMJ AChE 70.3% (muscle enzyme is resynthesised, red cells are not)
+
+==============================================================================
+9. DOSE-RESPONSE SWEEP: WHERE THE OXIME STOPS WORKING
+==============================================================================
+ volume mL   plateau oxon nM  Omega(2-PAM)  ceiling %  AChE72h sup  AChE72h PAM  d mort %
+-----------------------------------------------------------------------------------------
+         2                14         13.88       93.3          0.7         88.8       4.4
+         5                33          6.15       86.0          0.3         78.7       9.0
+        10                56          3.58       78.2          0.1         67.2      11.1
+        20                87          2.29       69.6          0.1         53.1       8.8
+        35               115          1.74       63.5          0.0         41.4       6.9
+        50               132          1.52       60.2          0.0         34.6       1.2
+       100               159          1.26       55.7          0.0         24.0      -4.0
+       200               177          1.13       53.0          0.0         17.3      -4.9
+
+==============================================================================
+10. VIRTUAL TRIAL: what a randomised oxime trial would have measured
+==============================================================================
+A pragmatic trial enrols whoever arrives.  Ingested volume is log-normal
+and OP class is mixed; the model is run patient by patient and the two
+arms are compared on the endpoint the real trials used (death).
+
+   n = 60;  55% chlorpyrifos / 45% dimethoate;  median ingestion 31 mL
+   mortality  placebo 18.9%   pralidoxime 17.2%   RR 0.91   ARR 1.7 points
+   subgroup <= 15 mL  n= 11  placebo  11.6%  2-PAM   7.7%  RR 0.67
+   subgroup > 15 mL   n= 49  placebo  20.5%  2-PAM  19.3%  RR 0.94
+   subgroup chlorpyrifos n= 30  placebo  25.9%  2-PAM  22.5%  RR 0.87
+   subgroup dimethoate   n= 30  placebo  11.9%  2-PAM  11.8%  RR 0.99
+
+   The whole-trial RR sits close to 1 while a real, large effect exists in
+   the low-dose diethyl stratum.  Dilution by patients above the oxime
+   ceiling is sufficient to produce a null trial: no assumption about the
+   oxime being inactive is required.

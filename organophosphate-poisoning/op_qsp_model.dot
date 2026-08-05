@@ -1,0 +1,517 @@
+/* ===========================================================================
+   op_qsp_model.dot
+   Acute organophosphorus (OP) insecticide self-poisoning — QSP mechanistic map
+   급성 유기인계 살충제 중독 — 정량적 시스템 약리학 기계론적 지도
+
+   Rendering:
+       dot -Tsvg op_qsp_model.dot -o op_qsp_model.svg
+       dot -Tpng -Gdpi=150 op_qsp_model.dot -o op_qsp_model.png
+
+   READING THE MAP
+   ---------------
+   The heavy crimson path is THE THREE-STATE ESTERASE SWITCH that the whole
+   51-state ODE model is built around:
+
+        E (free AChE) --k_i*C_oxon--> EP (inhibited) --k_a--> EP_aged
+        E             <--k_s + k_r[X]-- EP                    (irreversible)
+
+   Every drug on this map does exactly one of four things, and the map says
+   which:
+       (1) lower  C_oxon      -> charcoal, PON1, CYP competition
+       (2) raise  k_r[X]      -> pralidoxime, obidoxime, HI-6
+       (3) bypass the enzyme  -> atropine, glycopyrrolate, magnesium, diazepam
+       (4) replace the organ  -> oxygen, mechanical ventilation
+
+   Only (2) is the "antidote" in the textbook sense, and only (2) has a
+   CEILING: because oxime reactivation saturates at k_r_max, the best
+   achievable free-enzyme fraction is Omega/(1+Omega) with the oxime
+   sufficiency number Omega = k_r_max/(k_i*C_oxon).  Nodes drawn with a double
+   border are the three quantities that fix Omega.
+
+   Edge grammar
+       solid black arrow   ..... activation / mass flow
+       red tee-headed      ..... inhibition / antagonism
+       blue bold arrow     ..... pharmacological intervention
+       heavy crimson       ..... the core esterase switch
+       dashed grey         ..... measurement / clinical readout
+       dotted purple       ..... host modifier (genotype, timing, resources)
+=========================================================================== */
+
+digraph OP_QSP {
+    graph [rankdir=TB, splines=spline, overlap=false, nodesep=0.20,
+           ranksep=0.50, fontname="Helvetica", fontsize=11, compound=true,
+           bgcolor="white", labelloc="t", pad=0.4,
+           label=<<B>Acute Organophosphorus Insecticide Self-Poisoning — QSP Mechanistic Map</B><BR/>
+<FONT POINT-SIZE="12">급성 유기인계 살충제 자의 중독 · 기계론적 지도 · 51-state mrgsolve model</FONT><BR/>
+<FONT POINT-SIZE="10">core switch (crimson): free AChE → phosphylated AChE → aged AChE; oxime reactivation competes with aging, and its ceiling is Ω/(1+Ω)</FONT>>];
+
+    node  [shape=box, style="rounded,filled", fontname="Helvetica",
+           fontsize=10, color="#40454d", fillcolor="#f6f7f9", penwidth=1.0];
+    edge  [color="#5a616b", arrowsize=0.60, penwidth=0.9];
+
+    /* =====================================================================
+       1. EXPOSURE AND FORMULATION
+       ===================================================================== */
+    subgraph cluster_exposure {
+        label=<<B>1. 노출 · 제형 (Exposure &amp; formulation)</B>>;
+        style="rounded,filled"; fillcolor="#fdf6ec"; color="#c8a06a";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        INGEST   [label="자의 음독 (deliberate self-poisoning)\nDeliberate ingestion\n5–250 mL of concentrate", fillcolor="#f7e3c8"];
+        EC       [label="유화농축제 (EC formulation)\n20–50% w/v active ingredient\n+ 50–60% v/v solvent"];
+        THION    [label="Thion (P=S) pro-toxicant\nchlorpyrifos · parathion\ndimethoate · fenthion", fillcolor="#f7e3c8"];
+        SOLVENT  [label="Hydrocarbon / cyclohexanone\nvehicle (xylene, naphtha)\nCNS depressant + cardiotoxin"];
+        EMESIS   [label="Spontaneous vomiting\n(reduces & randomises\nthe absorbed fraction)"];
+        GASTRIC  [label="Gastric emptying ↓\n(cholinergic pylorospasm →\nprolonged absorption)"];
+        KA       [label="Gut absorption k_a\n0.10–0.90 h⁻¹\n(vehicle-dependent)"];
+        EHC      [label="Enterohepatic / entero-enteric\nrecirculation of the thion"];
+        DERMAL   [label="Dermal / inhalational\nre-exposure of staff\n(secondary contamination)"];
+    }
+
+    /* =====================================================================
+       2. TOXICOKINETICS AND BIOACTIVATION
+       ===================================================================== */
+    subgraph cluster_tk {
+        label=<<B>2. 독성동태 · 생물학적 활성화 (Toxicokinetics &amp; bioactivation)</B>>;
+        style="rounded,filled"; fillcolor="#eef4fa"; color="#7d9dc0";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        THPL     [label="Plasma thion\nC_th (µM)", fillcolor="#dbe7f4"];
+        FAT      [label="Adipose / deep depot\nV_f = 140–1750 L\n(log P 0.8 → 5.0)", fillcolor="#dbe7f4"];
+        CYPDES   [label="CYP2B6 / 3A4 / 1A2\nDESULFURATION (P=S → P=O)\nsaturable: V_max, K_m", peripheries=2, fillcolor="#cfe0f2"];
+        CYPDEAR  [label="CYP dearylation\n→ TCP / p-nitrophenol\n(DETOXIFYING branch)"];
+        OXON     [label="OXON (P=O) — the only\nspecies that inhibits AChE\nC_oxon (nM)", peripheries=2, fillcolor="#b9d3ee"];
+        PON1     [label="PON1 (paraoxonase-1)\nA-esterase hydrolysis\nQ192R polymorphism"];
+        CARBEST  [label="Carboxylesterase + albumin\nstoichiometric scavenging\n(µmol capacity only)"];
+        OXTISS   [label="Tissue oxon\n(synapse, NMJ, brain)"];
+        RENAL    [label="Renal / biliary elimination\nof dialkylphosphate\nmetabolites (DMP, DEP)"];
+        REDIST   [label="Depot re-release\n(fat → plasma)\nsustains C_oxon for days", fillcolor="#dbe7f4"];
+    }
+
+    /* =====================================================================
+       3. THE ESTERASE SWITCH  — the core of the model
+       ===================================================================== */
+    subgraph cluster_esterase {
+        label=<<B>3. 에스터라제 스위치 (The three-state esterase switch) — 모델의 핵심</B>>;
+        style="rounded,filled"; fillcolor="#fdeeee"; color="#c0392b";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        EFREE    [label="E — free AChE\nSer203 hydroxyl available", fillcolor="#f8d7d5", penwidth=2.0];
+        EP       [label="EP — phosphylated AChE\n(reactivatable)", fillcolor="#f5c4c1", penwidth=2.0];
+        EAGED    [label="EP-aged — dealkylated\nIRREVERSIBLE\n(new enzyme only)", fillcolor="#e8a29d", penwidth=2.0];
+        KI       [label="k_i  inhibition\n0.008–0.18 nM⁻¹h⁻¹", peripheries=2, shape=ellipse, fillcolor="#fbe3e1"];
+        KA_AGE   [label="k_a  aging\ndiethyl t½ 33 h\ndimethyl t½ 3.7 h", shape=ellipse, fillcolor="#fbe3e1"];
+        KS       [label="k_s  spontaneous reactivation\ndiethyl t½ 77 h\ndimethyl t½ 0.7 h", shape=ellipse, fillcolor="#fbe3e1"];
+        KR       [label="k_r[X]  oxime reactivation\nk_r_max·X/(K_D+X)  ← SATURATES", peripheries=2, shape=ellipse, fillcolor="#fbe3e1"];
+        OMEGA    [label="Ω = k_r_max / (k_i·C_oxon)\nceiling of free enzyme = Ω/(1+Ω)", shape=octagon, fillcolor="#f6b8b2", penwidth=2.0];
+        PHI      [label="φ = k_a/(k_a+k_s+k_r)\nprobability one inhibition\nevent ends irreversibly", shape=octagon, fillcolor="#f6b8b2"];
+        RESYN    [label="De novo enzyme synthesis\nsynaptic t½ ≈ 5 d\nplasma BChE t½ ≈ 11 d"];
+        ERYTH    [label="Erythropoiesis\nRBC AChE replaced only at\n1%/day (no resynthesis)"];
+    }
+
+    /* =====================================================================
+       4. ESTERASE POOLS AND BIOMARKERS
+       ===================================================================== */
+    subgraph cluster_pools {
+        label=<<B>4. 에스터라제 구획 · 바이오마커 (Esterase pools &amp; biomarkers)</B>>;
+        style="rounded,filled"; fillcolor="#f2f7f2"; color="#6f9d6f";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        ACHE_RBC [label="RBC AChE\n(biomarker; surrogate for\nsynaptic AChE)", fillcolor="#dcecdc"];
+        ACHE_MUS [label="Peripheral muscarinic\ntarget-tissue AChE"];
+        ACHE_NMJ [label="Neuromuscular junction AChE\n(basal-lamina anchored, ColQ)"];
+        ACHE_CNS [label="Brain AChE\n— quaternary oximes reach\nonly ~5% of plasma k_r"];
+        BCHE     [label="Plasma BChE (pseudo-ChE)\nsensitive, non-specific\nmarker of exposure"];
+        NTE      [label="NTE (neuropathy target\nesterase, PNPLA6)"];
+        NTEAGED  [label="Aged NTE > 70%\n→ OPIDN commitment"];
+        SCAV     [label="Exogenous BChE bioscavenger\n1:1 stoichiometry\n(µmol vs mmol ingested)"];
+    }
+
+    /* =====================================================================
+       5. MUSCARINIC LIMB
+       ===================================================================== */
+    subgraph cluster_musc {
+        label=<<B>5. 무스카린성 증후군 (Muscarinic limb — DUMBELS / SLUDGE)</B>>;
+        style="rounded,filled"; fillcolor="#fff8e8"; color="#c9a227";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        ACHM     [label="Synaptic ACh (muscarinic)\n[ACh] = (1+leak)/(E+leak)\n→ HYPERBOLA in E", peripheries=2, fillcolor="#fdefc4"];
+        M1M5     [label="mAChR M1–M5 occupancy\nO_m = A/(A + K_A(1+C_atr/K_B))"];
+        MDOWN    [label="mAChR / nAChR down-regulation\n(t½ ≈ 2 d): why a patient weans\nwith AChE still < 10%", fillcolor="#fdefc4"];
+        SECR     [label="Bronchorrhoea + salivation\n(M3 exocrine)\n'the patient drowns'", fillcolor="#fdefc4"];
+        BRONCHO  [label="Bronchoconstriction (M3)"];
+        BRADY    [label="Sinus bradycardia, AV block\n(M2, SA/AV node)"];
+        MIOSIS   [label="Miosis (M3 iris sphincter)\npinpoint pupils"];
+        GI       [label="Vomiting, diarrhoea,\nabdominal colic (M3)"];
+        BLADDER  [label="Urinary incontinence\n(detrusor M3)"];
+        SWEAT    [label="Diaphoresis\n(sympathetic cholinergic)"];
+        LACRIM   [label="Lacrimation"];
+    }
+
+    /* =====================================================================
+       6. NICOTINIC LIMB
+       ===================================================================== */
+    subgraph cluster_nic {
+        label=<<B>6. 니코틴성 증후군 (Nicotinic limb — NMJ &amp; ganglia)</B>>;
+        style="rounded,filled"; fillcolor="#f3f0fa"; color="#8878bb";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        ACHN     [label="NMJ cleft ACh\n(same hyperbola, E_nmj)"];
+        NACHR    [label="Muscle nAChR (α1)₂β1δε\nendplate depolarisation"];
+        FASCIC   [label="Fasciculations,\nmuscle cramps"];
+        DEPBLOCK [label="Depolarising block +\nreceptor DESENSITISATION\n(slow, k_des ≈ 0.075 h⁻¹)", fillcolor="#e5dff5"];
+        SAFETY   [label="NMJ safety factor\nresting ventilation needs only\n~28% of maximal capacity", peripheries=2];
+        WEAK     [label="Proximal + neck flexor +\nrespiratory muscle weakness", fillcolor="#e5dff5"];
+        GANGLIA  [label="Autonomic ganglia (α3β4)\n→ tachycardia, hypertension,\nmydriasis (competing signs)"];
+        ADRENAL  [label="Adrenal medulla\ncatecholamine surge\n(early hyperglycaemia)"];
+    }
+
+    /* =====================================================================
+       7. CENTRAL NERVOUS SYSTEM
+       ===================================================================== */
+    subgraph cluster_cns {
+        label=<<B>7. 중추신경계 (Central nervous system)</B>>;
+        style="rounded,filled"; fillcolor="#eef7f7"; color="#5c9a9a";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        ACHB     [label="Brain ACh (E_cns)"];
+        M1CNS    [label="Central M1 / M2\n(atropine-REVERSIBLE limb)"];
+        NONREV   [label="Non-muscarinic brainstem\ncholinergic drive\n(atropine-IRREVERSIBLE limb)", peripheries=2, fillcolor="#d7ecec"];
+        PREBOT   [label="preBötzinger complex\nrespiratory rhythm generator", fillcolor="#d7ecec"];
+        RESPD    [label="Central respiratory drive\nRESPD (fraction of normal)", fillcolor="#d7ecec"];
+        COMA     [label="Depressed consciousness,\nGCS ↓, loss of airway reflexes"];
+        SEIZ     [label="Seizures → status epilepticus\n(cholinergic → glutamatergic\ntransition at ~30 min)"];
+        NMDA     [label="NMDA-mediated excitotoxicity\n→ hippocampal / piriform\nneuronal loss"];
+        COPIND   [label="Chronic OP-induced\nneuropsychiatric disorder\n(COPIND)"];
+        EXTRAPYR [label="Delayed extrapyramidal\nsyndrome (dystonia, rigidity)"];
+    }
+
+    /* =====================================================================
+       8. RESPIRATORY FAILURE — the final common path
+       ===================================================================== */
+    subgraph cluster_resp {
+        label=<<B>8. 호흡부전 (Respiratory failure — the final common path)</B>>;
+        style="rounded,filled"; fillcolor="#f7eef4"; color="#a86a94";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        VASPONT  [label="Spontaneous ventilation\nV̇A = min(drive, strength/SF)", peripheries=2, fillcolor="#eed7e6"];
+        ASPIR    [label="Aspiration of gastric content\nand hydrocarbon vehicle"];
+        LUNG     [label="Chemical pneumonitis / ARDS\nshunt fraction Q_s"];
+        PACO2    [label="PaCO₂ = 40 / V̇A\nhypercapnic narcosis", fillcolor="#eed7e6"];
+        PAO2     [label="PaO₂ = (1−Q_s)·P_AO₂ + Q_s·40\nhypoxaemia", fillcolor="#eed7e6"];
+        APNOEA   [label="Apnoea / respiratory arrest\nTHE mode of death", fillcolor="#e2bfd5", penwidth=2.0];
+        VAP      [label="Ventilator-associated\npneumonia, ICU complications\n(≈ 2.9%/day hazard)"];
+    }
+
+    /* =====================================================================
+       9. CARDIOVASCULAR
+       ===================================================================== */
+    subgraph cluster_cv {
+        label=<<B>9. 심혈관계 (Cardiovascular)</B>>;
+        style="rounded,filled"; fillcolor="#fdf0ee"; color="#c9705a";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        MAP      [label="Mean arterial pressure"];
+        VASODIL  [label="Muscarinic vasodilatation\n+ venodilatation"];
+        MYODEP   [label="Solvent myocardial depression\n(cyclohexanone ≫ xylene)", fillcolor="#f8dcd6"];
+        QT       [label="QTc prolongation\n→ torsades de pointes"];
+        SHOCK    [label="Distributive + cardiogenic shock\n(dimethoate phenotype)", fillcolor="#f8dcd6"];
+        ARRHY    [label="Bradyarrhythmia, AV block,\nasystole"];
+    }
+
+    /* =====================================================================
+       10. ANTIDOTES AND SUPPORTIVE CARE
+       ===================================================================== */
+    subgraph cluster_drugs {
+        label=<<B>10. 해독제 · 지지요법 (Antidotes &amp; supportive care) — PK/PD</B>>;
+        style="rounded,filled"; fillcolor="#e9f2fb"; color="#1f6fb2";
+        fontsize=12; fontname="Helvetica-Bold";
+        node [fillcolor="#d3e5f7", color="#1f6fb2"];
+
+        CHARCOAL [label="Activated charcoal 50 g\n(k_ac 1.8 h⁻¹ for ~2 h)\nvalue decays with delay"];
+        LAVAGE   [label="Gastric lavage\n(no benefit after ~1 h;\naspiration risk)"];
+        ATROPINE [label="ATROPINE\nV 200 L, CL 46 L/h, k_eo 6 h⁻¹\nK_B 8 nM, brain/plasma 0.35\nclosed-loop titration"];
+        RAPID    [label="Rapid doubling protocol\n1.8 → 3.6 → 7.2 mg q5 min\nvs slow ad-hoc titration"];
+        GLYCO    [label="Glycopyrrolate\nquaternary → brain/plasma 0.02\n(peripheral cover only)"];
+        PAM      [label="PRALIDOXIME (2-PAM)\n30 mg/kg load + 8 mg/kg/h\nCss ≈ 130 µM"];
+        OBI      [label="OBIDOXIME\n250 mg + 750 mg/24 h\nC ≈ 20 µM; k_r2 6× 2-PAM"];
+        HI6      [label="HI-6 / HLö-7\n(nerve-agent oximes; poor\nagainst dimethyl insecticides)"];
+        DIAZ     [label="DIAZEPAM / midazolam\nGABA-A: seizure control +\npresynaptic ACh damping"];
+        MGSO4    [label="Magnesium sulphate 4 g\npresynaptic Ca²⁺ block\n→ ACh release ↓"];
+        NAHCO3   [label="Sodium bicarbonate\n(alkalinisation; evidence weak)"];
+        CLONID   [label="Clonidine α2 agonist\n(presynaptic ACh release ↓;\nexperimental)"];
+        OXYGEN   [label="Supplemental O₂\nFiO₂ 0.6 — masks hypoxia,\nnot hypercapnia"];
+        VENT     [label="MECHANICAL VENTILATION\nthe organ-replacement therapy", penwidth=2.0];
+        ICU      [label="ICU nursing: suctioning,\nairway protection, monitoring"];
+    }
+
+    /* =====================================================================
+       11. DELAYED SYNDROMES
+       ===================================================================== */
+    subgraph cluster_delayed {
+        label=<<B>11. 지연 증후군 (Delayed syndromes)</B>>;
+        style="rounded,filled"; fillcolor="#f4f4ef"; color="#8f8f6a";
+        fontsize=12; fontname="Helvetica-Bold";
+
+        IMS      [label="Intermediate syndrome (IMS)\n24–96 h; proximal + resp weakness\nlasts 4–18 days", fillcolor="#e7e7d8"];
+        OPIDN    [label="OP-induced delayed\npolyneuropathy (OPIDN)\n1–3 weeks; distal axonopathy", fillcolor="#e7e7d8"];
+        REBOUND  [label="Re-inhibition rebound after\noxime withdrawal (lipophilic OPs)\n= recurrent cholinergic crisis"];
+        RELAPSE  [label="Late relapse from the fat depot\n(fenthion, chlorpyrifos)"];
+    }
+
+    /* =====================================================================
+       12. CLINICAL ENDPOINTS
+       ===================================================================== */
+    subgraph cluster_end {
+        label=<<B>12. 임상 종말점 (Clinical endpoints)</B>>;
+        style="rounded,filled"; fillcolor="#f0f0f4"; color="#6a6a86";
+        fontsize=12; fontname="Helvetica-Bold";
+        node [shape=note, fillcolor="#e3e3ec"];
+
+        POP      [label="Peradeniya OP Poisoning\nscale (POP 0–11)"];
+        ATRDOSE  [label="Cumulative atropine dose\n(mg / 24 h) — scales as 1/E"];
+        VENTDAYS [label="Ventilator-days"];
+        ICULOS   [label="ICU length of stay"];
+        RBCACHE  [label="RBC AChE % of baseline\n(the trial surrogate)"];
+        MORT     [label="Case fatality\n(the trial endpoint)", penwidth=2.0];
+        TTD      [label="Time to death\n(bimodal: <24 h vs >72 h)"];
+    }
+
+    /* =====================================================================
+       13. HOST AND SYSTEM MODIFIERS
+       ===================================================================== */
+    subgraph cluster_mod {
+        label=<<B>13. 숙주 · 의료체계 수식인자 (Host &amp; health-system modifiers)</B>>;
+        style="rounded,filled"; fillcolor="#f7f2f7"; color="#9a7ba0";
+        fontsize=12; fontname="Helvetica-Bold";
+        node [shape=hexagon, fillcolor="#ece1ee", fontsize=9];
+
+        PON1G    [label="PON1 Q192R genotype\n(≈3× CL_oxon)"];
+        CYPG     [label="CYP2B6 / 3A4 activity\n(bioactivation rate)"];
+        BCHEG    [label="BCHE variants\n(K, atypical)"];
+        AGE      [label="Age, nutrition,\nmuscle mass"];
+        ETOH     [label="Co-ingested ethanol\n(CNS + CYP interaction)"];
+        RENAL2   [label="Renal function\n(oxime clearance)"];
+        DELAY    [label="Pre-hospital delay\n(median 2–4 h in\nrural South Asia)"];
+        RESOURCE [label="Ventilator availability\nnurse:patient ratio"];
+        REG      [label="Regulation: banning WHO\nClass I / highly hazardous\nformulations"];
+    }
+
+    /* =====================================================================
+       EDGES — exposure to oxon
+       ===================================================================== */
+    INGEST  -> EC;
+    EC      -> THION;
+    EC      -> SOLVENT;
+    INGEST  -> EMESIS;
+    EMESIS  -> KA   [color="#c0392b", arrowhead=tee];
+    THION   -> KA;
+    KA      -> THPL;
+    SOLVENT -> KA   [label="vehicle slows\nabsorption", fontsize=8];
+    GASTRIC -> KA   [color="#c0392b", arrowhead=tee];
+    EHC     -> THPL;
+    THPL    -> EHC;
+    DERMAL  -> THPL [style=dashed];
+
+    THPL    -> FAT;
+    FAT     -> REDIST;
+    REDIST  -> THPL;
+    THPL    -> CYPDES;
+    THPL    -> CYPDEAR;
+    CYPDES  -> OXON  [penwidth=1.8];
+    CYPDEAR -> RENAL;
+    OXON    -> PON1;
+    PON1    -> RENAL;
+    OXON    -> CARBEST;
+    OXON    -> OXTISS;
+    OXTISS  -> OXON;
+    OXON    -> RENAL;
+
+    /* ---- the core esterase switch ------------------------------------- */
+    OXON   -> KI     [color="#a01d13", penwidth=2.0];
+    OXTISS -> KI     [color="#a01d13", penwidth=1.4];
+    KI     -> EP     [color="#a01d13", penwidth=2.4];
+    EFREE  -> EP     [color="#a01d13", penwidth=2.4, label="k_i·C_oxon", fontsize=9, fontcolor="#a01d13"];
+    EP     -> EAGED  [color="#a01d13", penwidth=2.4, label="k_a", fontsize=9, fontcolor="#a01d13"];
+    KA_AGE -> EAGED  [color="#a01d13", penwidth=1.4];
+    EP     -> EFREE  [color="#1f8a4c", penwidth=2.4, label="k_s + k_r[X]", fontsize=9, fontcolor="#1f8a4c"];
+    KS     -> EFREE  [color="#1f8a4c", penwidth=1.2];
+    KR     -> EFREE  [color="#1f8a4c", penwidth=1.8];
+    KI     -> OMEGA  [style=dotted];
+    KR     -> OMEGA  [style=dotted];
+    OXON   -> OMEGA  [style=dotted];
+    OMEGA  -> EFREE  [style=dashed, color="#a01d13", label="ceiling Ω/(1+Ω)", fontsize=9];
+    KA_AGE -> PHI    [style=dotted];
+    KS     -> PHI    [style=dotted];
+    KR     -> PHI    [style=dotted];
+    PHI    -> EAGED  [style=dashed, color="#a01d13"];
+    RESYN  -> EFREE;
+    EAGED  -> RESYN  [style=dashed, label="only route back", fontsize=8];
+    ERYTH  -> ACHE_RBC;
+
+    /* ---- pools --------------------------------------------------------- */
+    EFREE -> ACHE_RBC;
+    EFREE -> ACHE_MUS;
+    EFREE -> ACHE_NMJ;
+    EFREE -> ACHE_CNS;
+    OXON  -> BCHE   [color="#a01d13"];
+    BCHE  -> RBCACHE [style=dashed];
+    ACHE_RBC -> RBCACHE [style=dashed];
+    OXTISS -> NTE   [color="#a01d13"];
+    NTE   -> NTEAGED;
+    NTEAGED -> OPIDN [penwidth=1.6];
+    SCAV  -> OXON   [color="#c0392b", arrowhead=tee, style=bold,
+                     label="1:1 — µmol scavenger vs\nmmol ingested: futile", fontsize=8];
+
+    /* ---- muscarinic limb ----------------------------------------------- */
+    ACHE_MUS -> ACHM [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    ACHM  -> M1M5;
+    M1M5  -> SECR;
+    M1M5  -> BRONCHO;
+    M1M5  -> BRADY;
+    M1M5  -> MIOSIS;
+    M1M5  -> GI;
+    M1M5  -> BLADDER;
+    M1M5  -> SWEAT;
+    M1M5  -> LACRIM;
+    M1M5  -> VASODIL;
+    M1M5  -> MDOWN;
+    MDOWN -> M1M5    [color="#c0392b", arrowhead=tee, style=dashed,
+                      label="tolerance", fontsize=8];
+    MDOWN -> DEPBLOCK [color="#c0392b", arrowhead=tee, style=dashed];
+    MDOWN -> NONREV   [color="#c0392b", arrowhead=tee, style=dashed];
+    GI    -> EMESIS;
+    GI    -> GASTRIC;
+
+    /* ---- nicotinic limb ------------------------------------------------ */
+    ACHE_NMJ -> ACHN [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    ACHN  -> NACHR;
+    NACHR -> FASCIC;
+    NACHR -> DEPBLOCK;
+    DEPBLOCK -> WEAK [penwidth=1.6];
+    SAFETY -> WEAK   [color="#c0392b", arrowhead=tee,
+                      label="30% strength still\nventilates at rest", fontsize=8];
+    ACHN  -> GANGLIA;
+    GANGLIA -> ADRENAL;
+    GANGLIA -> ARRHY [style=dashed, label="tachycardia\nopposes M2", fontsize=8];
+    WEAK  -> IMS     [penwidth=1.6];
+    DEPBLOCK -> IMS;
+
+    /* ---- CNS ------------------------------------------------------------ */
+    ACHE_CNS -> ACHB [color="#c0392b", arrowhead=tee, penwidth=1.6];
+    ACHB  -> M1CNS;
+    ACHB  -> NONREV  [penwidth=1.6];
+    M1CNS -> PREBOT;
+    NONREV -> PREBOT [penwidth=1.6];
+    PREBOT -> RESPD  [penwidth=1.8];
+    ACHB  -> COMA;
+    ACHB  -> SEIZ;
+    SEIZ  -> NMDA;
+    NMDA  -> COPIND;
+    NMDA  -> EXTRAPYR;
+    SOLVENT -> COMA;
+    SOLVENT -> RESPD [color="#c0392b", arrowhead=tee];
+    COMA  -> ASPIR;
+
+    /* ---- respiratory ----------------------------------------------------- */
+    RESPD -> VASPONT [penwidth=1.8];
+    WEAK  -> VASPONT [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    BRONCHO -> VASPONT [color="#c0392b", arrowhead=tee];
+    SECR  -> ASPIR;
+    SECR  -> LUNG;
+    ASPIR -> LUNG    [penwidth=1.4];
+    SOLVENT -> ASPIR [label="hydrocarbon\npneumonitis", fontsize=8];
+    LUNG  -> PAO2    [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    VASPONT -> PACO2 [color="#c0392b", arrowhead=tee, penwidth=1.8];
+    VASPONT -> PAO2  [penwidth=1.4];
+    PACO2 -> APNOEA  [penwidth=1.8];
+    PAO2  -> APNOEA  [penwidth=1.4];
+    APNOEA -> MORT   [penwidth=2.2];
+    VENT  -> VAP;
+    VAP   -> MORT;
+
+    /* ---- cardiovascular --------------------------------------------------- */
+    VASODIL -> MAP  [color="#c0392b", arrowhead=tee];
+    SOLVENT -> MYODEP;
+    MYODEP  -> MAP  [color="#c0392b", arrowhead=tee, penwidth=1.4];
+    BRADY   -> ARRHY;
+    ARRHY   -> MAP  [color="#c0392b", arrowhead=tee];
+    OXON    -> QT   [style=dashed];
+    MGSO4   -> QT   [color="#c0392b", arrowhead=tee, style=bold, color="#1f6fb2"];
+    QT      -> ARRHY;
+    MAP     -> SHOCK [color="#c0392b", arrowhead=tee];
+    PAO2    -> MAP;
+    SHOCK   -> MORT  [penwidth=1.8];
+
+    /* ---- drugs ------------------------------------------------------------- */
+    edge [color="#1f6fb2", style=bold, penwidth=1.3];
+    CHARCOAL -> KA        [arrowhead=tee, label="only inside the\nabsorption window", fontsize=8];
+    LAVAGE   -> KA        [arrowhead=tee];
+    ATROPINE -> M1M5      [arrowhead=tee, penwidth=1.8];
+    ATROPINE -> M1CNS     [arrowhead=tee, label="brain/plasma 0.35", fontsize=8];
+    RAPID    -> ATROPINE;
+    GLYCO    -> M1M5      [arrowhead=tee];
+    GLYCO    -> M1CNS     [arrowhead=tee, style="bold,dashed",
+                           label="0.02 — cannot\nprotect the brain", fontsize=8];
+    PAM      -> KR        [penwidth=2.0];
+    OBI      -> KR        [penwidth=2.0];
+    HI6      -> KR;
+    PAM      -> ACHE_CNS  [style="bold,dashed", label="≈5% of plasma k_r", fontsize=8];
+    DIAZ     -> SEIZ      [arrowhead=tee, penwidth=1.6];
+    DIAZ     -> ACHB      [arrowhead=tee];
+    MGSO4    -> ACHM      [arrowhead=tee];
+    MGSO4    -> ACHN      [arrowhead=tee];
+    CLONID   -> ACHM      [arrowhead=tee, style="bold,dashed"];
+    NAHCO3   -> MAP       [style="bold,dashed"];
+    OXYGEN   -> PAO2      [penwidth=1.6];
+    VENT     -> PACO2     [arrowhead=tee, penwidth=2.2];
+    VENT     -> PAO2      [penwidth=1.6];
+    ICU      -> SECR      [arrowhead=tee, label="suctioning", fontsize=8];
+    ICU      -> ASPIR     [arrowhead=tee];
+    SCAV     -> BCHE;
+
+    /* ---- delayed syndromes and endpoints ----------------------------------- */
+    edge [color="#5a616b", style=solid, penwidth=0.9];
+    REDIST -> REBOUND;
+    PAM    -> REBOUND     [style=dashed, color="#1f6fb2",
+                           label="stopping the infusion\nre-inhibits", fontsize=8];
+    REBOUND -> RELAPSE;
+    RELAPSE -> WEAK;
+    IMS    -> VENTDAYS    [penwidth=1.4];
+    IMS    -> MORT;
+    OPIDN  -> ICULOS;
+    VASPONT -> VENTDAYS   [style=dashed];
+    VENT   -> VENTDAYS    [style=dashed];
+    VENTDAYS -> ICULOS    [style=dashed];
+    ACHM   -> ATRDOSE     [style=dashed, label="requirement ∝ 1/E", fontsize=8];
+    ATROPINE -> ATRDOSE   [style=dashed, color="#1f6fb2"];
+    SECR   -> POP         [style=dashed];
+    MIOSIS -> POP         [style=dashed];
+    FASCIC -> POP         [style=dashed];
+    COMA   -> POP         [style=dashed];
+    BRADY  -> POP         [style=dashed];
+    SEIZ   -> POP         [style=dashed];
+    POP    -> MORT        [style=dashed];
+    MORT   -> TTD         [style=dashed];
+    SHOCK  -> TTD         [style=dashed, label="early peak <24 h", fontsize=8];
+    IMS    -> TTD         [style=dashed, label="late peak >72 h", fontsize=8];
+
+    /* ---- modifiers ---------------------------------------------------------- */
+    edge [style=dotted, color="#8e5fa2", penwidth=1.1, arrowsize=0.5];
+    PON1G    -> PON1;
+    CYPG     -> CYPDES;
+    BCHEG    -> BCHE;
+    AGE      -> WEAK;
+    AGE      -> RESYN;
+    ETOH     -> COMA;
+    ETOH     -> CYPDES;
+    RENAL2   -> PAM;
+    RENAL2   -> OBI;
+    DELAY    -> CHARCOAL;
+    DELAY    -> PAM       [label="the oxime window\nis an integral, not\na deadline", fontsize=8];
+    DELAY    -> EAGED;
+    RESOURCE -> VENT;
+    RESOURCE -> ICU;
+    REG      -> EC        [label="removing dimethoate and\nparathion from sale is the\nonly intervention that\nmoved national mortality", fontsize=8];
+    REG      -> MORT;
+}
