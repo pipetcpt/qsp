@@ -1,0 +1,832 @@
+/* ===========================================================================
+   Generalized Anxiety Disorder (GAD) -- Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------------
+   The organising idea of this map is that generalized anxiety is ONE
+   dimensionless corticolimbic gain
+
+        Phi  =  (E_amy * S_glu) / (C_pfc * I_gaba)
+
+   and that this gain is a RATIO with two numerator factors and two denominator
+   factors.  Each of the four factors belongs to a different drug class, and --
+   this is the whole point -- each factor moves on a DIFFERENT CLOCK:
+
+     I_gaba   GABA-A mediated inhibitory efficacy.  Benzodiazepines.
+              Occupancy follows plasma within HOURS, so the clinical effect is
+              essentially instantaneous.  One adaptation state (DEPEND, tau
+              ~20 d) then produces BOTH the modest tolerance and, on
+              withdrawal, the rebound -- the same parameter, opposite sign.
+
+     S_glu    presynaptic glutamate release probability at limbic terminals.
+              Pregabalin via alpha2delta-1.  The drug binds in hours but the
+              functional effect builds over ~2 DAYS as alpha2delta trafficking
+              to the terminal falls, which is why pregabalin separates from
+              placebo in week 1 and not on day 1.
+
+     C_pfc    prefrontal top-down control capacity.  SSRIs / SNRIs and CBT.
+              This is the SLOW arm and it is slow TWICE OVER: SERT occupancy is
+              >80% within days, but forebrain 5-HT can only rise as the
+              somatodendritic 5-HT1A autoreceptor desensitises (tau ~13 d), and
+              the plasticity that raises C_pfc then has its own tau ~30 d.  Two
+              slow steps in series is what makes the SSRI onset curve SIGMOID
+              rather than exponential.
+
+     E_amy    amygdala / BNST excitatory drive.  Only extinction learning (CBT)
+              and sustained 5-HT elevation move it, on a tau of weeks.  It is
+              also the factor that does NOT return when a drug is stopped,
+              which is where relapse comes from.
+
+   And then everything is READ OUT through HAM-A, an instrument that carries a
+   FIFTH clock of its own -- expectancy plus regression to the mean -- which is
+   subtracted from every arm equally.  Because HAM-A is a SATURATING function
+   of Phi, a site with a large expectancy response has a genuinely smaller
+   measurable drug-placebo delta with no change whatever in the pharmacology.
+   That is assay sensitivity, derived rather than asserted.
+
+   Three consequences fall straight out of the algebra and are computed in
+   gad_python_reference.py:
+
+     (1) "Onset of action" is a property of WHICH FACTOR a drug moves, not of
+         the drug.  The measured onset difference is much smaller than the
+         pharmacological one because the placebo clock is the fastest of all.
+     (2) Flat and non-monotonic dose-response curves are derived, not fitted.
+         Escitalopram is flat because the SERT hyperbola is already at 0.80 at
+         10 mg; quetiapine XR 300 mg is WORSE than 150 mg because the H1/alpha1
+         sedation burden is still climbing after the anxiolytic term has
+         saturated.
+     (3) Because Phi is a ratio, drugs are MULTIPLICATIVE in Phi and
+         SUB-ADDITIVE on HAM-A, and the benefit of any drug scales with
+         baseline severity.
+
+   Rendering:
+       dot -Tsvg gad_qsp_model.dot -o gad_qsp_model.svg
+       dot -Tpng -Gdpi=150 gad_qsp_model.dot -o gad_qsp_model.png
+   =========================================================================== */
+
+digraph GAD_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.24;
+    ranksep = 0.46;
+    bgcolor = "#FFFFFF";
+    fontname = "Helvetica";
+    labelloc = "t";
+    label = <<b><font point-size="30">Generalized Anxiety Disorder &#183; Quantitative Systems Pharmacology map</font></b><br/>
+             <font point-size="17">One corticolimbic gain Phi = (E_amy &#215; S_glu) / (C_pfc &#215; I_gaba): four factors, four drug classes, four clocks &#8212; read out through an instrument that carries a fifth.<br/>
+             49-ODE mrgsolve model &#183; 206 nodes &#183; 19 mechanistic clusters &#183; PK/PD for 7 anxiolytics coupled to circuit, HPA, plasticity, autonomic and trial-machinery layers</font>>;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, margin = "0.09,0.055", penwidth = 1.1];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.05,
+          arrowsize = 0.62, color = "#555555"];
+
+    /* ---- palette ------------------------------------------------------- */
+    /* vulnerability #E8DDF2 | circuit #F9CDD2 | serotonin #FBE3C7
+       noradrenaline #FFF2B8 | GABA #CFE6F7   | glutamate #D8F0D2
+       HPA #F4C7DC          | plasticity #D3E8E4 | autonomic #E3E0D2
+       sleep #DCD3F0        | drug #C6E9E4      | AE #F7C9C9
+       trial #E0E0E8        | endpoint #FFFFFF  | equation #EFE2D0 */
+
+    /* =================================================================== */
+    subgraph cluster_vuln {
+        label = <<b>1. Trait vulnerability &#183; what sets DIS, the one severity knob</b>>;
+        style = "rounded,filled"; fillcolor = "#F7F2FC"; color = "#8E6FB5";
+        fontsize = 15; fontcolor = "#5B3E80";
+        node [fillcolor = "#E8DDF2", color = "#8E6FB5"];
+
+        v_herit  [label = "Heritability ~30%\npolygenic, largely shared with\nMDD and neuroticism"];
+        v_neuro  [label = "Neuroticism / negative affectivity\nthe strongest single trait predictor"];
+        v_ie     [label = "Intolerance of uncertainty\nthe cognitive core of GAD;\nturns ambiguity into threat"];
+        v_early  [label = "Early-life adversity\npersistent GR programming,\nhigher tonic CRH set-point"];
+        v_5htt   [label = "5-HTTLPR short allele\ngreater amygdala reactivity\n(gene x environment)"];
+        v_bdnfval[label = "BDNF Val66Met\nimpaired activity-dependent secretion\n-> slower extinction learning"];
+        v_comt   [label = "COMT Val158Met\nprefrontal dopamine tone,\nworry persistence"];
+        v_female [label = "Female sex (2:1)\novarian steroid modulation of\nallopregnanolone / GABA-A"];
+        v_chronic[label = "Chronic psychosocial stress\nthe input that keeps the loop lit"];
+        v_pregn  [label = "Pregnancy / postpartum\nallopregnanolone withdrawal at delivery"];
+        v_thyroid[label = "Thyroid dysfunction / caffeine\nsomatic mimics that inflate HAM-A\nwithout touching Phi"];
+        v_age    [label = "Age\nolder adults: more somatic items,\nmore benzodiazepine harm"];
+        v_DIS    [label = "DIS &#8212; disease severity parameter\nONE scalar in the model; it raises E_amy,\nlowers C_pfc and lowers baseline I_gaba",
+                  shape = note, fillcolor = "#CBB2E4", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_circ {
+        label = <<b>2. The threat circuit &#183; numerator factor E_amy and denominator factor C_pfc</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF3F4"; color = "#C46A78";
+        fontsize = 15; fontcolor = "#8E3D4B";
+        node [fillcolor = "#F9CDD2", color = "#C46A78"];
+
+        c_bla    [label = "Basolateral amygdala (BLA)\nassociative threat encoding"];
+        c_cea    [label = "Central amygdala (CeA)\nphasic fear output"];
+        c_bnst   [label = "BNST &#8212; extended amygdala\nSUSTAINED, unpredictable threat.\nThis, not CeA, is the GAD node",
+                  shape = note, fillcolor = "#F2A7B1", penwidth = 2.0];
+        c_itc    [label = "Intercalated GABAergic cells\nthe gate CBT trains"];
+        c_pag    [label = "Periaqueductal grey\nfreezing, autonomic bursts"];
+        c_ins    [label = "Anterior insula\ninteroception; converts a heartbeat\ninto evidence of catastrophe"];
+        c_dacc   [label = "Dorsal ACC\nthreat appraisal / conflict"];
+        c_vmpfc  [label = "vmPFC &#183; subgenual ACC\ntop-down inhibition of BLA/BNST"];
+        c_dlpfc  [label = "dlPFC\nworking-memory control of worry"];
+        c_hipp   [label = "Hippocampus\ncontextual safety; also the site of\nGR-mediated HPA feedback"];
+        c_habit  [label = "Habenula / raphe projection\nnegative-value signalling"];
+        c_Eamy   [label = "E_amy  (state)\nlimbic excitatory drive, logistic ceiling\nEAMAX = 3; tau ~20 d",
+                  shape = ellipse, fillcolor = "#F08A98", penwidth = 2.0];
+        c_Cpfc   [label = "C_pfc  (state)\nprefrontal control capacity; tau ~30 d\nDENOMINATOR of Phi",
+                  shape = ellipse, fillcolor = "#F08A98", penwidth = 2.0];
+        c_thal   [label = "Thalamic relay\nthe fast subcortical route to BLA"];
+        c_ofc    [label = "Orbitofrontal cortex\nvalue updating; poor in GAD"];
+        c_stri   [label = "Dorsal striatum\nhabitual avoidance; why worry persists\nafter it stops being informative"];
+        c_dmn    [label = "Default mode network\nself-referential processing;\nthe resting substrate of worry"];
+        c_worry  [label = "WORRY engine (state)\nself-reinforcing: worry recruits worry\n(rho = 0.55, saturating)"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_5ht {
+        label = <<b>3. Serotonin &#183; the SLOW arm, slow twice over</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF6EC"; color = "#C08A3E";
+        fontsize = 15; fontcolor = "#8A5C1E";
+        node [fillcolor = "#FBE3C7", color = "#C08A3E"];
+
+        s_drn    [label = "Dorsal raphe nucleus\n5-HT cell firing"];
+        s_rel    [label = "Vesicular 5-HT release"];
+        s_ex     [label = "Extracellular forebrain 5-HT\n(state SHT; normalised to 1 in health)",
+                  shape = ellipse, fillcolor = "#F5CE9E"];
+        s_sert   [label = "SERT &#183; serotonin transporter\nreuptake = kout &#215; (0.15 + 0.85(1 - Occ_SERT))"];
+        s_auto   [label = "5-HT1A somatodendritic autoreceptor\n(state AUTO, 1 = intact)\nDESENSITISES: tau ~13 d",
+                  shape = note, fillcolor = "#F2B66E", penwidth = 2.0];
+        s_gate   [label = "THE GATE\nAcute SSRI raises 5-HT only ~25%;\nafter autoreceptor desensitisation, ~62%.\nSame occupancy, different 5-HT",
+                  shape = note, fillcolor = "#F2B66E", penwidth = 2.0];
+        s_1apost [label = "Postsynaptic 5-HT1A\nhippocampal / cortical; anxiolytic"];
+        s_2a     [label = "5-HT2A\ncortical excitability; early activation"];
+        s_2c     [label = "5-HT2C\nearly anxiogenesis; desensitises"];
+        s_3      [label = "5-HT3\nnausea &#8212; the SSRI dropout mechanism"];
+        s_tph2   [label = "TPH2 &#183; rate-limiting synthesis"];
+        s_trp    [label = "Tryptophan availability\nkynurenine shunt under inflammation"];
+        s_mao    [label = "MAO-A degradation"];
+        s_post   [label = "SHT_post = SHT + 0.55 &#215; Occ(5-HT1A partial agonist)\nthe quantity plasticity actually reads",
+                  shape = ellipse, fillcolor = "#F5CE9E"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_ne {
+        label = <<b>4. Noradrenaline &#183; the double-edged arm</b>>;
+        style = "rounded,filled"; fillcolor = "#FFFCE8"; color = "#B8A33A";
+        fontsize = 15; fontcolor = "#7A6A16";
+        node [fillcolor = "#FFF2B8", color = "#B8A33A"];
+
+        n_lc     [label = "Locus coeruleus\nphasic + tonic NE firing"];
+        n_ex     [label = "Extracellular NE (state NE)",
+                  shape = ellipse, fillcolor = "#F2E28A"];
+        n_net    [label = "NET &#183; noradrenaline transporter\nSNRI target; NET occupancy needs\nHIGHER doses than SERT"];
+        n_a2auto [label = "alpha2 autoreceptor (state)\nnegative feedback on LC firing"];
+        n_a1     [label = "alpha1 postsynaptic\nprefrontal signal-to-noise (inverted U)"];
+        n_b1     [label = "beta1 peripheral\npalpitations, tremor"];
+        n_iu     [label = "Prefrontal inverted U\nmoderate NE helps C_pfc; high NE hurts it"];
+        n_bp     [label = "Blood pressure rise\nthe SNRI dose-limiting effect at 225-375 mg"];
+        n_split  [label = "NE IS TWO EFFECTS AT ONCE\n+ raises C_pfc via BDNF (good)\n+ raises sympathetic tone (early jitteriness)",
+                  shape = note, fillcolor = "#EFD870", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_gaba {
+        label = <<b>5. GABA-A &#183; denominator factor I_gaba, and the subunit that decides tolerance</b>>;
+        style = "rounded,filled"; fillcolor = "#EDF6FD"; color = "#4B87B8";
+        fontsize = 15; fontcolor = "#1F5580";
+        node [fillcolor = "#CFE6F7", color = "#4B87B8"];
+
+        g_int    [label = "Cortical / amygdalar GABA interneurons\nPV+ and SST+ populations"];
+        g_gad67  [label = "GAD67 &#183; GABA synthesis\nreduced cortical GABA on MRS in GAD"];
+        g_a1     [label = "GABA-A alpha1 subunit\nSEDATION, amnesia, ataxia"];
+        g_a2a3   [label = "GABA-A alpha2/alpha3 subunits\nANXIOLYSIS &#8212; the therapeutic subunit"];
+        g_a5     [label = "GABA-A alpha5 subunit\nhippocampal; required for SEDATIVE tolerance\n(van Rijnsoever 2004)"];
+        g_bzsite [label = "Benzodiazepine site\nalpha(1,2,3,5)+gamma2 interface;\npositive allosteric modulation"];
+        g_neuro  [label = "Neurosteroids\nallopregnanolone, delta-subunit tonic current;\nfalls in the luteal phase"];
+        g_mrs    [label = "Cortical GABA on 1H-MRS\nreduced in anxiety disorders"];
+        g_gat    [label = "GAT-1 reuptake (tiagabine target)"];
+        g_kcc2   [label = "KCC2 / chloride gradient\nsets the SIGN of GABA-A currents;\ncollapses under chronic stress"];
+        g_Ra1    [label = "R_a1 (state) &#183; alpha1 pool\nFAST tolerance, tau ~2.6 d\n-> sedation wears off in days",
+                  shape = ellipse, fillcolor = "#A8CFEE"];
+        g_Ra2    [label = "R_a2 (state) &#183; alpha2/3 pool\nSLOW tolerance, tau ~42 d\n-> anxiolysis largely retained",
+                  shape = ellipse, fillcolor = "#A8CFEE"];
+        g_dep    [label = "DEPEND (state) &#183; adaptation, tau ~20 d\nONE state, TWO signs: subtracts 20% of the\neffect on drug, and ALL of it after stopping",
+                  shape = note, fillcolor = "#8FBFE6", penwidth = 2.0];
+        g_Igaba  [label = "I_gaba (algebraic)\n= I0 &#215; (1 + 1.9 &#215; R_a2 &#215; (Occ_bz - 0.20 &#215; DEPEND))\nDENOMINATOR of Phi",
+                  shape = ellipse, fillcolor = "#8FBFE6", penwidth = 2.0];
+        g_reb    [label = "Discontinuation rebound\nOcc_bz -> 0 while DEPEND persists\n=> I_gaba falls BELOW the patient's own baseline",
+                  shape = note, fillcolor = "#8FBFE6", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_glu {
+        label = <<b>6. Glutamate and alpha2delta-1 &#183; numerator factor S_glu</b>>;
+        style = "rounded,filled"; fillcolor = "#EFFAEC"; color = "#5E9E4E";
+        fontsize = 15; fontcolor = "#33682A";
+        node [fillcolor = "#D8F0D2", color = "#5E9E4E";];
+
+        q_ca     [label = "Presynaptic Cav2.1 / Cav2.2\nvoltage-gated calcium channels"];
+        q_a2d1   [label = "alpha2delta-1 auxiliary subunit\nupregulated by stress and injury"];
+        q_traf   [label = "alpha2delta TRAFFICKING to the terminal\n(state TRAF, tau ~2 d)\nWHY pregabalin needs a week, not a day",
+                  shape = note, fillcolor = "#A9DC9C", penwidth = 2.0];
+        q_rel    [label = "Glutamate release probability"];
+        q_ampa   [label = "AMPA / NMDA on BLA principal cells"];
+        q_mglu   [label = "mGluR2/3 presynaptic autoreceptors"];
+        q_eaat   [label = "Astrocytic EAAT2 uptake\nthe clearance arm of glutamate tone"];
+        q_snare  [label = "SNARE / synaptotagmin release machinery"];
+        q_Sglu   [label = "S_glu (algebraic)\n= (1 + 0.35(E_amy - 1) + 0.20 &#215; excess cortisol)\n&#215; (1 - 0.42 &#215; TRAF)   NUMERATOR of Phi",
+                  shape = ellipse, fillcolor = "#8FCB80", penwidth = 2.0];
+        q_mt     [label = "Muscle tension\nthe HAM-A somatic item that tracks S_glu\nmost directly"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_hpa {
+        label = <<b>7. HPA axis &#183; the loop that had to be bounded</b>>;
+        style = "rounded,filled"; fillcolor = "#FDF0F6"; color = "#B85A8E";
+        fontsize = 15; fontcolor = "#7E3260";
+        node [fillcolor = "#F4C7DC", color = "#B85A8E"];
+
+        h_crh    [label = "Hypothalamic PVN &#183; CRH (state)\ndriven by a SATURATING function of Phi"];
+        h_avp    [label = "AVP co-secretion\nsustains ACTH under chronic stress"];
+        h_acth   [label = "Anterior pituitary &#183; ACTH (state)"];
+        h_cort   [label = "Adrenal cortex &#183; cortisol (state)\n~+19% at DIS = 1, not 3-fold"];
+        h_gr     [label = "Glucocorticoid receptor function (state)\nGR resistance under sustained cortisol"];
+        h_mr     [label = "Mineralocorticoid receptor\ntonic set-point control"];
+        h_fb     [label = "Negative feedback\nkcout &#215; CRH &#215; (1 + 0.55 &#215; GR &#215; cortisol)"];
+        h_diur   [label = "Diurnal slope / cortisol awakening response\nflattens as GR resistance develops"];
+        h_dst    [label = "Dexamethasone suppression\nthe clinical read-out of GR function"];
+        h_run    [label = "BOUNDED, DELIBERATELY\nCRH -> cortisol -> GR down -> weaker feedback\n-> more CRH has gain > 1 if excess cortisol\nenters linearly. It enters as x/(1+0.5x).",
+                  shape = note, fillcolor = "#E39CC0", penwidth = 2.0];
+        h_crhr1  [label = "CRHR1 in amygdala / BNST\nthe route by which the axis feeds\nBACK into E_amy"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_plast {
+        label = <<b>8. Neuroplasticity &#183; how a transporter block becomes a slow clinical effect</b>>;
+        style = "rounded,filled"; fillcolor = "#EDF7F5"; color = "#4E9188";
+        fontsize = 15; fontcolor = "#26605A";
+        node [fillcolor = "#D3E8E4", color = "#4E9188"];
+
+        p_bdnf   [label = "BDNF (state), tau ~5 d\nin = 0.55&#215;SHT_post + 0.25&#215;NE + 0.20 + CBT,\nscaled down by excess cortisol"];
+        p_trkb   [label = "TrkB signalling\nPLC-gamma / MAPK / PI3K"];
+        p_mtor   [label = "mTORC1 &#183; synaptic protein synthesis"];
+        p_spine  [label = "Dendritic remodelling\nPFC spines regrow; amygdala spines retract"];
+        p_ext    [label = "Extinction learning\nthe substrate CBT trains and the reason\nE_amy stays lower after treatment stops"];
+        p_infl   [label = "Low-grade neuroinflammation\nIL-6, CRP; suppresses BDNF and\nshunts tryptophan to kynurenine"];
+        p_epig   [label = "Epigenetic marking\nNR3C1 methylation after early adversity"];
+        p_hill   [label = "Hill gate on BDNF\nhill = BDNF^2/(BDNF^2 + 1)\nsecond slow step in series",
+                  shape = note, fillcolor = "#A9CFC9", penwidth = 2.0];
+        p_neurog [label = "Hippocampal neurogenesis\npermissive for behavioural effect in rodents"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_auto {
+        label = <<b>9. Autonomic and somatic layer &#183; the HAM-A somatic cluster</b>>;
+        style = "rounded,filled"; fillcolor = "#F5F4EE"; color = "#8F8B6A";
+        fontsize = 15; fontcolor = "#5C5940";
+        node [fillcolor = "#E3E0D2", color = "#8F8B6A"];
+
+        a_sns    [label = "Sympathetic tone (state SNS)\ndriven by bounded excess z and by NE"];
+        a_vagal  [label = "Vagal withdrawal\nreduced HRV / RSA"];
+        a_auton  [label = "AUTON (state)\nautonomic symptom load:\npalpitations, sweating, dry mouth, GI"];
+        a_trem   [label = "Tremor, restlessness"];
+        a_gi     [label = "GI symptoms\nIBS overlap; brain-gut axis"];
+        a_card   [label = "Cardiovascular risk\nlong-run consequence of low HRV"];
+        a_hrv    [label = "Heart-rate variability (RMSSD, HF power)\nthe most objective GAD biomarker available"];
+        a_startle[label = "Startle potentiation to UNPREDICTABLE threat\nBNST-dependent; the laboratory analogue of GAD"];
+        a_musc   [label = "Muscle tension / aches\nthe item pregabalin moves first"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_sleep {
+        label = <<b>10. Sleep &#183; a symptom that is also a cause</b>>;
+        style = "rounded,filled"; fillcolor = "#F3F1FB"; color = "#7A6BB5";
+        fontsize = 15; fontcolor = "#463A80";
+        node [fillcolor = "#DCD3F0", color = "#7A6BB5"];
+
+        z_lat    [label = "Sleep-onset latency\nworry at lights-out"];
+        z_frag   [label = "Sleep fragmentation / WASO"];
+        z_deficit[label = "SLEEPD (state), ceiling SLMAX = 4\nsleep-continuity deficit"];
+        z_amyg   [label = "Sleep loss RAISES amygdala reactivity\nkslp_amy &#215; SLEEPD feeds E_amy\n-> a closed loop inside the disease",
+                  shape = note, fillcolor = "#B7A8E0", penwidth = 2.0];
+        z_rem    [label = "REM fragmentation\nassociated with poorer overnight\nemotional-memory processing"];
+        z_h1     [label = "H1 blockade shortens latency\nquetiapine, hydroxyzine, mirtazapine"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_pk1 {
+        label = <<b>11. Serotonergic and noradrenergic drug PK/PD (measured occupancy anchors)</b>>;
+        style = "rounded,filled"; fillcolor = "#E9F7F5"; color = "#3E8F86";
+        fontsize = 15; fontcolor = "#1E5C55";
+        node [fillcolor = "#C6E9E4", color = "#3E8F86"];
+
+        d_esc    [label = "ESCITALOPRAM  10-20 mg QD\n2-cpt + brain effect site; CL/F 400 L/d,\nCss 20 ng/mL at 10 mg"];
+        d_escocc [label = "SERT EC50 = 5 ng/mL\n=> Occ 0.67 at 5 mg, 0.80 at 10 mg,\n0.89 at 20 mg. THE FLAT DOSE-RESPONSE\nIS THIS HYPERBOLA, not a fitted curve",
+                  shape = note, fillcolor = "#96D6CE", penwidth = 2.0];
+        d_ven    [label = "VENLAFAXINE ER  75-225 mg QD\nparent + O-desmethylvenlafaxine (ODV)"];
+        d_2d6    [label = "CYP2D6 &#183; fm = 0.70 EM / 0.15 PM / 0.85 UM\nchanges the parent:metabolite split, and so\nchanges the SERT:NET balance"];
+        d_venocc [label = "SERT EC50 22.5 ng/mL, NET EC50 260 ng/mL\n=> NET occupancy 26% at 75 mg, 51% at 225 mg\n(Arakawa 2019 measured 8-61%)"];
+        d_dlx    [label = "DULOXETINE  60-120 mg QD\nCss 31 ng/mL at 60 mg; SERT 0.80, NET 0.40"];
+        d_bus    [label = "BUSPIRONE  15 mg TID\nF 0.05 (first-pass); 5-HT1A PARTIAL agonist,\nintrinsic activity 0.35"];
+        d_pp1    [label = "1-PP metabolite\nalpha2-adrenergic antagonist -> raises NE;\nplasma level ~20x parent"];
+        d_2c19   [label = "CYP2C19 &#183; escitalopram\nPM raises Css ~2x; the model treats this\nas a CL/F covariate, and the flat occupancy\nhyperbola is why it barely matters"];
+        d_vort   [label = "Vortioxetine (not in the ODE set)\nSERT + 5-HT1A/3/7 multimodal;\nGAD evidence is mixed"];
+        d_agom   [label = "Agomelatine (not in the ODE set)\nMT1/MT2 agonist + 5-HT2C antagonist;\nranked highly in remission NMAs"];
+        d_bushead[label = "Buspirone acts on BOTH sides of the same receptor\nauto- (anxiogenic acutely) and postsynaptic (anxiolytic).\nNet effect is small and slow, and the model shows why",
+                  shape = note, fillcolor = "#96D6CE", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_pk2 {
+        label = <<b>12. GABAergic, alpha2delta and multireceptor drug PK/PD</b>>;
+        style = "rounded,filled"; fillcolor = "#E9F7F5"; color = "#3E8F86";
+        fontsize = 15; fontcolor = "#1E5C55";
+        node [fillcolor = "#C6E9E4", color = "#3E8F86"];
+
+        d_pgb    [label = "PREGABALIN  150-600 mg/d BID\nF 0.90, t1/2 6.3 h, CLEARED BY THE KIDNEY\n(CL scales with CrCl)"];
+        d_pgbocc [label = "alpha2delta EC50 = 2100 ng/mL\n=> Occ 0.55 at 300 mg, 0.65 at 450,\n0.71 at 600 -- a 29% gain for a 2x dose"];
+        d_lzp    [label = "LORAZEPAM  1 mg TID\nV 90 L, t1/2 14 h, Css 22.5 ng/mL"];
+        d_alp    [label = "ALPRAZOLAM  0.5 mg TID\nV 65 L, t1/2 12 h; converted to\nLORAZEPAM-EQUIVALENT concentration (x1.53)"];
+        d_bzocc  [label = "BZ-site EC50 = 96 ng/mL lorazepam-equivalent\n(Atack 2007, [11C]flumazenil microPET)\n=> only ~20% occupancy at anxiolytic doses",
+                  shape = note, fillcolor = "#96D6CE", penwidth = 2.0];
+        d_qtp    [label = "QUETIAPINE XR  50-300 mg QD\nCss 75 ng/mL at 150 mg; + norquetiapine"];
+        d_qtpocc [label = "H1 EC50 20 ng/mL (Occ 0.79 at 150 mg)\nNET EC50 60 ng/mL for norquetiapine\n=> sedation saturates BEFORE efficacy does"];
+        d_hydrox [label = "HYDROXYZINE (not in the ODE set)\npure H1 antagonist; the mechanistic control\nfor 'is sedation the same thing as anxiolysis?'",
+                  shape = note, fillcolor = "#96D6CE", penwidth = 2.0];
+        d_clon   [label = "CLONAZEPAM  0.5-2 mg/d\nlonger t1/2; slower DEPEND build-up\nand a gentler taper"];
+        d_taper  [label = "Taper schedule\nthe rate at which Occ_bz falls\nrelative to DEPEND's tau of 20 d"];
+        d_crcl   [label = "Renal function (CrCl)\nthe only covariate that changes\npregabalin exposure"];
+        d_adh    [label = "Adherence\nmultiplies every dose impulse"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_nonpharm {
+        label = <<b>13. Non-pharmacological therapy</b>>;
+        style = "rounded,filled"; fillcolor = "#EFFAEC"; color = "#5E9E4E";
+        fontsize = 15; fontcolor = "#33682A";
+        node [fillcolor = "#D8F0D2", color = "#5E9E4E"];
+
+        x_cbt    [label = "CBT (12 weekly sessions)\nenters at THREE places at once:\nBDNF, E_amy decay, WORRY decay"];
+        x_expos  [label = "Exposure / worry outcome monitoring\ndrives extinction, so E_amy"];
+        x_relax  [label = "Applied relaxation\nacts on the autonomic layer"];
+        x_mind   [label = "Mindfulness-based stress reduction\nreduces intolerance of uncertainty"];
+        x_exer   [label = "Aerobic exercise\nsmall and control-condition dependent\n(Bartley 2013 found no effect vs active controls)"];
+        x_icbt   [label = "Internet-delivered CBT\nsame mechanism, lower dose of contact\n-> smaller EXPECT impulses too"];
+        x_comb   [label = "Combined CBT + drug\nCBT moves E_amy, the drug moves C_pfc:\nDIFFERENT factors of the same ratio"];
+        x_persist[label = "WHY CBT'S GAIN OUTLASTS THE DRUG'S\nIt lowers E_amy, the factor a drug\ndoes not reach and that does not\nrebound when treatment stops",
+                  shape = note, fillcolor = "#A9DC9C", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_ae {
+        label = <<b>14. Adverse effects &#183; each with its own tolerance clock</b>>;
+        style = "rounded,filled"; fillcolor = "#FDF0F0"; color = "#C46A6A";
+        fontsize = 15; fontcolor = "#8E3D3D";
+        node [fillcolor = "#F7C9C9", color = "#C46A6A"];
+
+        e_nau    [label = "Nausea &#183; 5-HT3\nR_nau tolerates FAST (tau ~1 wk)\nbut dominates week-1 SSRI dropout"];
+        e_sex    [label = "Sexual dysfunction &#183; SERT\nBUILDS and does NOT tolerate;\nthe long-run adherence problem"];
+        e_act    [label = "Activation / jitteriness &#183; NE\nSNRI-specific; tolerates over ~2 wk"];
+        e_sed    [label = "Sedation / somnolence\nH1 &#215; R_h1 + BZ &#215; R_a1 + alpha2delta"];
+        e_dizz   [label = "Dizziness &#183; alpha2delta\nthe pregabalin dose-limiting effect"];
+        e_wt     [label = "Weight gain\npregabalin and quetiapine"];
+        e_cog    [label = "Psychomotor / cognitive impairment\nalpha1-mediated; driving risk"];
+        e_falls  [label = "Falls and fracture in older adults\nthe reason benzodiazepines are\nnot a maintenance strategy"];
+        e_disc   [label = "Discontinuation syndrome\nSSRI/SNRI: dizziness, electric shocks;\nBZD: rebound anxiety, seizures"];
+        e_qtc    [label = "QTc prolongation\nescitalopram (dose-capped in older adults)\nand quetiapine"];
+        e_hypona [label = "Hyponatraemia / SIADH\nSSRI in older adults; not dose-related"];
+        e_metab  [label = "Metabolic burden\nquetiapine: lipids, glucose, waist"];
+        e_bleed  [label = "Bleeding risk\nplatelet SERT depletion"];
+        e_burden [label = "AE_BURDEN (weighted sum)\nfeeds the dropout hazard, which is how\nan inverted-U dose-response can appear",
+                  shape = note, fillcolor = "#EFA0A0", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_trial {
+        label = <<b>15. Trial machinery &#183; the fifth clock, and why it is not a nuisance term</b>>;
+        style = "rounded,filled"; fillcolor = "#F2F2F6"; color = "#7A7A93";
+        fontsize = 15; fontcolor = "#45455C";
+        node [fillcolor = "#E0E0E8", color = "#7A7A93"];
+
+        t_enrol  [label = "Enrolment at a symptom PEAK\nentry criteria select the top of a fluctuation"];
+        t_fluct  [label = "FLUCT (state), tau ~13 d\nregression to the mean; ADDITIVE on the score,\nbecause it is a selection artefact, not biology"];
+        t_visit  [label = "Study visits (weeks 0,1,2,4,6,8)\neach visit is an expectancy impulse"];
+        t_expect [label = "EXPECT (state)\nexpectancy RAISES C_pfc &#215; (1 + e_ex &#215; EXPECT).\nModelled as REAL top-down control, not as bias",
+                  shape = note, fillcolor = "#BEBECF", penwidth = 2.0];
+        t_assay  [label = "ASSAY SENSITIVITY, DERIVED\nHAM-A saturates in Phi. A high-expectancy site\nalready sits on the flat part, so the SAME\npharmacology yields a smaller measured delta",
+                  shape = note, fillcolor = "#BEBECF", penwidth = 2.0];
+        t_drop   [label = "Dropout hazard\nh0 + b_ae &#215; AE_BURDEN"];
+        t_locf   [label = "LOCF endpoint\ndropout freezes the trajectory early,\nwhich penalises fast-toxicity arms twice"];
+        t_rater  [label = "Rater / baseline inflation\nnot separately identifiable from FLUCT;\nlumped, and said so"];
+        t_multi  [label = "Multicentre heterogeneity\nsites differ in e_ex, not in pharmacology"];
+        t_nma    [label = "Network meta-analysis\nborrows strength across trials that\ndiffer mostly in their placebo clocks"];
+        t_sever  [label = "Baseline severity\nbecause Phi is a ratio, the SAME drug effect\nis a LARGER HAM-A change at higher baseline"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_eq {
+        label = <<b>16. The equation the whole map exists to state</b>>;
+        style = "rounded,filled"; fillcolor = "#FAF5EC"; color = "#A08A5E";
+        fontsize = 15; fontcolor = "#6B5A33";
+        node [fillcolor = "#EFE2D0", color = "#A08A5E"];
+
+        m_phi    [label = "Phi = (E_amy &#215; S_glu) / (C_pfc(1 + e_ex&#183;EXPECT) &#215; I_gaba)\nhealthy Phi_n = 1.00 &#183; untreated GAD (DIS = 1) Phi_n = 3.89",
+                  shape = doubleoctagon, fillcolor = "#DCC79E", penwidth = 2.4, fontsize = 13];
+        m_z      [label = "z = (Phi_n - 1)/(1 + (Phi_n - 1)/ZMAX),  ZMAX = 3\nEVERY downstream consequence reads z, not Phi_n.\nThis is what makes the disease loop convergent",
+                  shape = note, fillcolor = "#DCC79E", penwidth = 2.0];
+        m_mult   [label = "MULTIPLICATIVE, NOT ADDITIVE\nTwo denominator drugs divide Phi twice.\nOn HAM-A the same pair is SUB-additive,\nbecause the readout saturates",
+                  shape = note, fillcolor = "#DCC79E", penwidth = 2.0];
+        m_psy    [label = "HAM-A psychic = 1.7 + 26.3 &#215; f(0.62&#183;WORRY + 0.30&#183;Phi_n + 0.26&#183;SLEEPD)"];
+        m_som    [label = "HAM-A somatic = 1.3 + 26.7 &#215; f(0.42&#183;AUTON + 0.30&#183;SNS + 0.30&#183;S_glu + 0.22&#183;SLEEPD)"];
+        m_sat    [label = "f(x) = (x - x0)/((x - x0) + K)\nTHE SATURATION IS THE POINT: it is why\nplacebo response destroys measurable effect\nand why severity amplifies it",
+                  shape = note, fillcolor = "#DCC79E", penwidth = 2.0];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_end {
+        label = <<b>17. Clinical endpoints</b>>;
+        style = "rounded,filled"; fillcolor = "#FFFFFF"; color = "#666666";
+        fontsize = 15; fontcolor = "#333333";
+        node [fillcolor = "#FFFFFF", color = "#666666"];
+
+        k_hama   [label = "HAM-A total (0-56)\nprimary endpoint of every trial cited here",
+                  penwidth = 2.0];
+        k_psy    [label = "HAM-A psychic cluster (items 1-6, 14)"];
+        k_som    [label = "HAM-A somatic cluster (items 7-13)"];
+        k_gad7   [label = "GAD-7 (0-21)\nthe primary-care instrument"];
+        k_pswq   [label = "PSWQ &#183; Penn State Worry Questionnaire\nreads the WORRY state most directly"];
+        k_cgi    [label = "CGI-I / CGI-S"];
+        k_resp   [label = "Response: HAM-A reduction &#8805; 50%"];
+        k_rem    [label = "Remission: HAM-A &#8804; 7"];
+        k_relap  [label = "Relapse: HAM-A &#8805; 15 (Allgulander 2006 definition)",
+                  penwidth = 2.0];
+        k_func   [label = "Functional impairment\nSheehan Disability Scale, work loss"];
+        k_qol    [label = "Quality of life"];
+        k_hours  [label = "Hours spent worrying per day\nthe most face-valid endpoint,\nalmost never the primary one"];
+        k_ntb    [label = "Number needed to treat\nresponse NNT ~5-6 for first-line drugs"];
+        k_madrs  [label = "MADRS &#183; comorbid depressive symptoms"];
+        k_psqi   [label = "PSQI &#183; sleep quality"];
+    }
+
+    /* =================================================================== */
+    subgraph cluster_comorb {
+        label = <<b>18. Comorbidity &#183; where GAD stops being one disease</b>>;
+        style = "rounded,filled"; fillcolor = "#F7F2FC"; color = "#8E6FB5";
+        fontsize = 15; fontcolor = "#5B3E80";
+        node [fillcolor = "#E8DDF2", color = "#8E6FB5"];
+
+        y_mdd    [label = "Major depressive disorder\n~60% lifetime co-occurrence;\nshares the C_pfc / BDNF arm"];
+        y_ins    [label = "Chronic insomnia disorder"];
+        y_pan    [label = "Panic disorder\nphasic CeA rather than sustained BNST"];
+        y_sad    [label = "Social anxiety disorder"];
+        y_aud    [label = "Alcohol use disorder\nself-medication of I_gaba;\nthen withdrawal raises it further"];
+        y_bzdep  [label = "Benzodiazepine dependence\nthe iatrogenic comorbidity"];
+        y_ibs    [label = "IBS / functional GI disorders"];
+        y_pain   [label = "Chronic pain / fibromyalgia\nshares the alpha2delta and SNRI arms"];
+        y_cvd    [label = "Cardiovascular disease\nvia sustained sympathetic tone"];
+    }
+
+    /* ===================================================================
+       EDGES
+       =================================================================== */
+
+    /* --- 1 vulnerability -> the severity knob --------------------------- */
+    v_herit  -> v_neuro   [color = "#8E6FB5"];
+    v_neuro  -> v_ie      [color = "#8E6FB5"];
+    v_5htt   -> v_DIS     [color = "#8E6FB5"];
+    v_bdnfval-> v_DIS     [color = "#8E6FB5"];
+    v_comt   -> v_DIS     [color = "#8E6FB5"];
+    v_early  -> v_DIS     [color = "#8E6FB5"];
+    v_female -> g_neuro   [color = "#8E6FB5", style = dashed];
+    v_ie     -> v_DIS     [color = "#8E6FB5"];
+    v_chronic-> v_DIS     [color = "#8E6FB5"];
+    v_early  -> h_gr      [color = "#8E6FB5", style = dashed, label = "GR programming"];
+    v_DIS    -> c_Eamy    [color = "#8E6FB5", penwidth = 1.8, label = "+0.80"];
+    v_DIS    -> c_Cpfc    [color = "#8E6FB5", penwidth = 1.8, style = dashed, label = "-1.14 loss"];
+    v_DIS    -> g_Igaba   [color = "#8E6FB5", penwidth = 1.6, style = dashed, label = "-0.12 baseline"];
+
+    /* --- 2 circuit internals -------------------------------------------- */
+    c_bla   -> c_cea      [color = "#C46A78"];
+    c_bla   -> c_bnst     [color = "#C46A78"];
+    c_bnst  -> c_pag      [color = "#C46A78"];
+    c_cea   -> c_pag      [color = "#C46A78"];
+    c_ins   -> c_bla      [color = "#C46A78"];
+    c_dacc  -> c_bla      [color = "#C46A78"];
+    c_vmpfc -> c_itc      [color = "#C46A78"];
+    c_itc   -> c_bla      [color = "#C46A78", arrowhead = tee, label = "inhibits"];
+    c_hipp  -> c_vmpfc    [color = "#C46A78"];
+    c_dlpfc -> c_worry    [color = "#C46A78", arrowhead = tee];
+    c_habit -> s_drn      [color = "#C46A78", style = dashed];
+    c_bla   -> c_Eamy     [color = "#C46A78", penwidth = 1.6];
+    c_bnst  -> c_Eamy     [color = "#C46A78", penwidth = 1.8];
+    c_vmpfc -> c_Cpfc     [color = "#C46A78", penwidth = 1.6];
+    c_dlpfc -> c_Cpfc     [color = "#C46A78", penwidth = 1.6];
+    c_Eamy  -> m_phi      [color = "#C46A78", penwidth = 2.0, label = "numerator"];
+    c_Cpfc  -> m_phi      [color = "#C46A78", penwidth = 2.0, label = "denominator"];
+    m_phi   -> c_worry    [color = "#A08A5E", label = "via z"];
+    c_worry -> c_worry    [color = "#C46A78", label = "rho = 0.55 self-recruitment"];
+    c_worry -> m_psy      [color = "#C46A78", penwidth = 1.6, label = "weight 0.62"];
+    c_worry -> k_pswq     [color = "#C46A78"];
+    c_Eamy  -> q_Sglu     [color = "#C46A78", label = "stress raises release prob."];
+
+    /* --- 3 serotonin ------------------------------------------------------ */
+    s_drn   -> s_rel      [color = "#C08A3E"];
+    s_rel   -> s_ex       [color = "#C08A3E"];
+    s_ex    -> s_sert     [color = "#C08A3E"];
+    s_sert  -> s_ex       [color = "#C08A3E", arrowhead = tee, label = "reuptake"];
+    s_ex    -> s_auto     [color = "#C08A3E", label = "sustained excess desensitises"];
+    s_auto  -> s_drn      [color = "#C08A3E", arrowhead = tee, label = "negative feedback"];
+    s_auto  -> s_gate     [color = "#C08A3E", penwidth = 1.6];
+    s_gate  -> s_ex       [color = "#C08A3E", style = dashed];
+    s_ex    -> s_post     [color = "#C08A3E", penwidth = 1.6];
+    s_post  -> s_1apost   [color = "#C08A3E"];
+    s_post  -> s_2a       [color = "#C08A3E"];
+    s_post  -> s_2c       [color = "#C08A3E"];
+    s_post  -> s_3        [color = "#C08A3E"];
+    s_3     -> e_nau      [color = "#C08A3E"];
+    s_post  -> p_bdnf     [color = "#C08A3E", penwidth = 1.8, label = "0.55"];
+    s_post  -> c_Eamy     [color = "#C08A3E", arrowhead = tee, penwidth = 1.5, label = "0.45 &#215; excess"];
+    s_post  -> c_worry    [color = "#C08A3E", arrowhead = tee, label = "0.35 &#215; excess"];
+    s_post  -> k_madrs    [color = "#C08A3E", arrowhead = tee];
+    s_2c    -> e_act      [color = "#C08A3E", style = dashed];
+
+    /* --- 4 noradrenaline --------------------------------------------------- */
+    n_lc    -> n_ex       [color = "#B8A33A"];
+    n_ex    -> n_net      [color = "#B8A33A"];
+    n_net   -> n_ex       [color = "#B8A33A", arrowhead = tee];
+    n_ex    -> n_a2auto   [color = "#B8A33A"];
+    n_a2auto-> n_lc       [color = "#B8A33A", arrowhead = tee];
+    n_ex    -> n_a1       [color = "#B8A33A"];
+    n_ex    -> n_b1       [color = "#B8A33A"];
+    n_ex    -> n_split    [color = "#B8A33A", penwidth = 1.6];
+    n_split -> p_bdnf     [color = "#B8A33A", label = "0.25"];
+    n_split -> a_sns      [color = "#B8A33A", label = "0.55 &#215; excess"];
+    n_ex    -> e_act      [color = "#B8A33A"];
+    n_b1    -> a_trem     [color = "#B8A33A"];
+
+    /* --- 5 GABA ------------------------------------------------------------- */
+    g_gad67 -> g_int      [color = "#4B87B8"];
+    g_int   -> g_a1       [color = "#4B87B8"];
+    g_int   -> g_a2a3     [color = "#4B87B8"];
+    g_int   -> g_a5       [color = "#4B87B8"];
+    g_neuro -> g_int      [color = "#4B87B8", style = dashed];
+    g_bzsite-> g_a1       [color = "#4B87B8"];
+    g_bzsite-> g_a2a3     [color = "#4B87B8"];
+    g_bzsite-> g_a5       [color = "#4B87B8"];
+    g_a1    -> g_Ra1      [color = "#4B87B8"];
+    g_a2a3  -> g_Ra2      [color = "#4B87B8"];
+    g_a5    -> g_Ra1      [color = "#4B87B8", style = dashed, label = "alpha5 required for\nsedative tolerance"];
+    g_Ra1   -> e_sed      [color = "#4B87B8", penwidth = 1.5];
+    g_Ra1   -> e_cog      [color = "#4B87B8"];
+    g_Ra2   -> g_Igaba    [color = "#4B87B8", penwidth = 1.8];
+    g_dep   -> g_Igaba    [color = "#4B87B8", arrowhead = tee, penwidth = 1.8, label = "-20% on drug"];
+    g_dep   -> g_reb      [color = "#4B87B8", penwidth = 1.8];
+    g_reb   -> g_Igaba    [color = "#4B87B8", arrowhead = tee, penwidth = 1.8, label = "-100% off drug"];
+    g_Igaba -> m_phi      [color = "#4B87B8", penwidth = 2.0, label = "denominator"];
+    g_Igaba -> a_auton    [color = "#4B87B8", arrowhead = tee];
+    g_reb   -> e_disc     [color = "#4B87B8"];
+    g_reb   -> y_bzdep    [color = "#4B87B8"];
+
+    /* --- 6 glutamate ---------------------------------------------------------- */
+    q_ca    -> q_rel      [color = "#5E9E4E"];
+    q_a2d1  -> q_ca       [color = "#5E9E4E"];
+    q_a2d1  -> q_traf     [color = "#5E9E4E"];
+    q_traf  -> q_rel      [color = "#5E9E4E", arrowhead = tee, penwidth = 1.6];
+    q_rel   -> q_ampa     [color = "#5E9E4E"];
+    q_mglu  -> q_rel      [color = "#5E9E4E", arrowhead = tee];
+    q_ampa  -> c_bla      [color = "#5E9E4E"];
+    q_rel   -> q_Sglu     [color = "#5E9E4E", penwidth = 1.6];
+    q_Sglu  -> m_phi      [color = "#5E9E4E", penwidth = 2.0, label = "numerator"];
+    q_Sglu  -> q_mt       [color = "#5E9E4E"];
+    q_mt    -> m_som      [color = "#5E9E4E", label = "weight 0.30"];
+    q_mt    -> a_musc     [color = "#5E9E4E"];
+
+    /* --- 7 HPA ------------------------------------------------------------------ */
+    m_phi   -> h_crh      [color = "#B85A8E", label = "via z (saturating)"];
+    h_crh   -> h_acth     [color = "#B85A8E"];
+    h_avp   -> h_acth     [color = "#B85A8E", style = dashed];
+    h_acth  -> h_cort     [color = "#B85A8E"];
+    h_cort  -> h_fb       [color = "#B85A8E"];
+    h_gr    -> h_fb       [color = "#B85A8E"];
+    h_mr    -> h_fb       [color = "#B85A8E", style = dashed];
+    h_fb    -> h_crh      [color = "#B85A8E", arrowhead = tee];
+    h_cort  -> h_gr       [color = "#B85A8E", arrowhead = tee, label = "GR downregulation"];
+    h_run   -> h_gr       [color = "#B85A8E", style = dashed];
+    h_crh   -> h_crhr1    [color = "#B85A8E"];
+    h_crhr1 -> c_Eamy     [color = "#B85A8E", penwidth = 1.5, label = "0.15 &#215; excess CRH"];
+    h_cort  -> p_bdnf     [color = "#B85A8E", arrowhead = tee, label = "-0.35"];
+    h_cort  -> c_Cpfc     [color = "#B85A8E", arrowhead = tee, label = "+0.45 loss"];
+    h_cort  -> q_Sglu     [color = "#B85A8E", label = "+0.20"];
+    h_cort  -> z_deficit  [color = "#B85A8E", label = "+0.30"];
+    h_cort  -> c_hipp     [color = "#B85A8E", arrowhead = tee, style = dashed];
+
+    /* --- 8 plasticity ------------------------------------------------------------- */
+    p_bdnf  -> p_hill     [color = "#4E9188", penwidth = 1.6];
+    p_hill  -> c_Cpfc     [color = "#4E9188", penwidth = 2.0, label = "growth term"];
+    p_bdnf  -> p_trkb     [color = "#4E9188"];
+    p_trkb  -> p_mtor     [color = "#4E9188"];
+    p_mtor  -> p_spine    [color = "#4E9188"];
+    p_spine -> c_vmpfc    [color = "#4E9188"];
+    p_spine -> p_ext      [color = "#4E9188"];
+    p_ext   -> c_itc      [color = "#4E9188"];
+    p_ext   -> c_Eamy     [color = "#4E9188", arrowhead = tee, penwidth = 1.5];
+    p_neurog-> c_hipp     [color = "#4E9188", style = dashed];
+
+    /* --- 9 autonomic ----------------------------------------------------------------- */
+    m_phi   -> a_sns      [color = "#8F8B6A", label = "via z"];
+    a_sns   -> a_auton    [color = "#8F8B6A", penwidth = 1.5];
+    a_sns   -> a_vagal    [color = "#8F8B6A"];
+    a_sns   -> a_trem     [color = "#8F8B6A"];
+    a_auton -> a_gi       [color = "#8F8B6A"];
+    a_vagal -> a_card     [color = "#8F8B6A"];
+    a_card  -> y_cvd      [color = "#8F8B6A"];
+    a_auton -> m_som      [color = "#8F8B6A", penwidth = 1.6, label = "weight 0.42"];
+    a_sns   -> m_som      [color = "#8F8B6A", label = "weight 0.30"];
+    a_gi    -> y_ibs      [color = "#8F8B6A"];
+
+    /* --- 10 sleep ------------------------------------------------------------------- */
+    m_phi   -> z_lat      [color = "#7A6BB5", label = "via z"];
+    z_lat   -> z_deficit  [color = "#7A6BB5"];
+    z_frag  -> z_deficit  [color = "#7A6BB5"];
+    z_deficit-> z_amyg    [color = "#7A6BB5", penwidth = 1.6];
+    z_amyg  -> c_Eamy     [color = "#7A6BB5", penwidth = 1.8, label = "0.18 &#215; SLEEPD"];
+    z_deficit-> m_psy     [color = "#7A6BB5", label = "0.26"];
+    z_deficit-> m_som     [color = "#7A6BB5", label = "0.22"];
+    z_deficit-> k_psqi    [color = "#7A6BB5"];
+    z_h1    -> z_deficit  [color = "#7A6BB5", arrowhead = tee];
+    z_deficit-> y_ins     [color = "#7A6BB5"];
+
+    /* --- 11 serotonergic / noradrenergic drugs ---------------------------------------- */
+    d_esc   -> d_escocc   [color = "#3E8F86", penwidth = 1.6];
+    d_escocc-> s_sert     [color = "#3E8F86", arrowhead = tee, penwidth = 1.8];
+    d_ven   -> d_2d6      [color = "#3E8F86"];
+    d_2d6   -> d_venocc   [color = "#3E8F86"];
+    d_venocc-> s_sert     [color = "#3E8F86", arrowhead = tee];
+    d_venocc-> n_net      [color = "#3E8F86", arrowhead = tee, penwidth = 1.6];
+    d_dlx   -> s_sert     [color = "#3E8F86", arrowhead = tee];
+    d_dlx   -> n_net      [color = "#3E8F86", arrowhead = tee];
+    d_bus   -> s_auto     [color = "#3E8F86", label = "partial agonist, IA 0.35"];
+    d_bus   -> s_post     [color = "#3E8F86", label = "postsynaptic component"];
+    d_bus   -> d_pp1      [color = "#3E8F86"];
+    d_pp1   -> n_a2auto   [color = "#3E8F86", arrowhead = tee, label = "raises NE"];
+    d_bushead-> d_bus     [color = "#3E8F86", style = dashed];
+    d_esc   -> e_nau      [color = "#3E8F86", style = dashed];
+    d_esc   -> e_sex      [color = "#3E8F86", style = dashed];
+    d_ven   -> e_act      [color = "#3E8F86", style = dashed];
+    d_ven   -> e_disc     [color = "#3E8F86", style = dashed];
+
+    /* --- 12 GABAergic / alpha2delta / multireceptor drugs ------------------------------ */
+    d_pgb   -> d_pgbocc   [color = "#3E8F86", penwidth = 1.6];
+    d_crcl  -> d_pgb      [color = "#3E8F86", label = "CL scales with CrCl"];
+    d_pgbocc-> q_traf     [color = "#3E8F86", penwidth = 1.8];
+    d_pgbocc-> e_dizz     [color = "#3E8F86"];
+    d_pgbocc-> e_wt       [color = "#3E8F86"];
+    d_lzp   -> d_bzocc    [color = "#3E8F86"];
+    d_alp   -> d_bzocc    [color = "#3E8F86"];
+    d_bzocc -> g_bzsite   [color = "#3E8F86", penwidth = 1.8];
+    d_bzocc -> g_dep      [color = "#3E8F86", penwidth = 1.6];
+    d_qtp   -> d_qtpocc   [color = "#3E8F86"];
+    d_qtpocc-> z_h1       [color = "#3E8F86"];
+    d_qtpocc-> e_sed      [color = "#3E8F86", penwidth = 1.6];
+    d_qtpocc-> n_net      [color = "#3E8F86", arrowhead = tee, label = "norquetiapine"];
+    d_qtpocc-> e_wt       [color = "#3E8F86"];
+    d_hydrox-> z_h1       [color = "#3E8F86", style = dashed];
+    d_adh   -> d_esc      [color = "#3E8F86", style = dashed];
+    d_adh   -> d_pgb      [color = "#3E8F86", style = dashed];
+
+    /* --- 13 non-pharmacological -------------------------------------------------------- */
+    x_cbt   -> p_bdnf     [color = "#5E9E4E", label = "0.30"];
+    x_cbt   -> c_Eamy     [color = "#5E9E4E", arrowhead = tee, penwidth = 1.6, label = "0.55 decay"];
+    x_cbt   -> c_worry    [color = "#5E9E4E", arrowhead = tee, penwidth = 1.6, label = "0.80 decay"];
+    x_expos -> p_ext      [color = "#5E9E4E"];
+    x_relax -> a_sns      [color = "#5E9E4E", arrowhead = tee];
+    x_mind  -> v_ie       [color = "#5E9E4E", arrowhead = tee];
+    x_exer  -> p_bdnf     [color = "#5E9E4E", style = dashed];
+    x_cbt   -> x_persist  [color = "#5E9E4E", penwidth = 1.6];
+    x_persist-> k_relap   [color = "#5E9E4E", arrowhead = tee, style = dashed];
+
+    /* --- 14 adverse effects ------------------------------------------------------------- */
+    e_nau   -> e_burden   [color = "#C46A6A"];
+    e_sex   -> e_burden   [color = "#C46A6A"];
+    e_act   -> e_burden   [color = "#C46A6A"];
+    e_sed   -> e_burden   [color = "#C46A6A", penwidth = 1.5];
+    e_dizz  -> e_burden   [color = "#C46A6A", penwidth = 1.5];
+    e_sed   -> e_cog      [color = "#C46A6A"];
+    e_cog   -> e_falls    [color = "#C46A6A"];
+    e_burden-> t_drop     [color = "#C46A6A", penwidth = 1.8];
+    e_wt    -> t_drop     [color = "#C46A6A", style = dashed];
+    e_disc  -> t_drop     [color = "#C46A6A", style = dashed];
+
+    /* --- 15 trial machinery --------------------------------------------------------------- */
+    t_enrol -> t_fluct    [color = "#7A7A93", penwidth = 1.6];
+    t_fluct -> k_hama     [color = "#7A7A93", penwidth = 1.6, label = "ADDITIVE"];
+    t_visit -> t_expect   [color = "#7A7A93", penwidth = 1.6];
+    t_expect-> c_Cpfc     [color = "#7A7A93", penwidth = 1.8, label = "&#215; (1 + 0.55&#183;EXPECT)"];
+    t_rater -> t_fluct    [color = "#7A7A93", style = dashed];
+    m_sat   -> t_assay    [color = "#A08A5E", penwidth = 1.6];
+    t_expect-> t_assay    [color = "#7A7A93", penwidth = 1.6];
+    t_assay -> k_hama     [color = "#7A7A93", style = dashed, label = "shrinks the MEASURED delta"];
+    t_drop  -> t_locf     [color = "#7A7A93", penwidth = 1.6];
+    t_locf  -> k_hama     [color = "#7A7A93", label = "freezes early trajectory"];
+    t_sever -> k_hama     [color = "#7A7A93", style = dashed];
+    m_sat   -> t_sever    [color = "#A08A5E", style = dashed];
+
+    /* --- 16 the equation ---------------------------------------------------------------- */
+    m_phi   -> m_z        [color = "#A08A5E", penwidth = 2.0];
+    m_z     -> m_psy      [color = "#A08A5E", label = "0.30 &#215; Phi_n"];
+    m_phi   -> m_mult     [color = "#A08A5E", style = dashed];
+    m_psy   -> m_sat      [color = "#A08A5E"];
+    m_som   -> m_sat      [color = "#A08A5E"];
+    m_psy   -> k_psy      [color = "#A08A5E", penwidth = 1.8];
+    m_som   -> k_som      [color = "#A08A5E", penwidth = 1.8];
+    k_psy   -> k_hama     [color = "#666666", penwidth = 1.8];
+    k_som   -> k_hama     [color = "#666666", penwidth = 1.8];
+
+    /* --- 17 endpoints -------------------------------------------------------------------- */
+    k_hama  -> k_resp     [color = "#666666"];
+    k_hama  -> k_rem      [color = "#666666"];
+    k_hama  -> k_relap    [color = "#666666"];
+    k_hama  -> k_cgi      [color = "#666666"];
+    k_hama  -> k_gad7     [color = "#666666", style = dashed];
+    k_hama  -> k_func     [color = "#666666"];
+    k_func  -> k_qol      [color = "#666666"];
+    k_madrs -> k_func     [color = "#666666", style = dashed];
+
+    /* --- 18 comorbidity -------------------------------------------------------------------- */
+    c_Cpfc  -> y_mdd      [color = "#8E6FB5", arrowhead = tee, style = dashed];
+    y_mdd   -> k_madrs    [color = "#8E6FB5"];
+    y_ins   -> z_deficit  [color = "#8E6FB5", style = dashed];
+    y_pan   -> c_cea      [color = "#8E6FB5", style = dashed];
+    y_sad   -> c_bnst     [color = "#8E6FB5", style = dashed];
+    y_aud   -> g_Igaba    [color = "#8E6FB5", style = dashed, label = "acute up, chronic down"];
+    y_bzdep -> g_dep      [color = "#8E6FB5", style = dashed];
+
+    /* --- edges for the added nodes ------------------------------------------------------- */
+    v_pregn  -> g_neuro   [color = "#8E6FB5", style = dashed];
+    v_thyroid-> k_som     [color = "#8E6FB5", style = dashed, label = "inflates the score,\nnot the disease"];
+    v_age    -> e_falls   [color = "#8E6FB5", style = dashed];
+    v_age    -> e_hypona  [color = "#8E6FB5", style = dashed];
+    c_thal   -> c_bla     [color = "#C46A78"];
+    c_ofc    -> c_vmpfc   [color = "#C46A78"];
+    c_dmn    -> c_worry   [color = "#C46A78"];
+    c_stri   -> c_worry   [color = "#C46A78", label = "habit"];
+    s_trp    -> s_tph2    [color = "#C08A3E"];
+    s_tph2   -> s_rel     [color = "#C08A3E"];
+    s_mao    -> s_ex      [color = "#C08A3E", arrowhead = tee];
+    p_infl   -> s_trp     [color = "#4E9188", arrowhead = tee, label = "kynurenine shunt"];
+    p_infl   -> p_bdnf    [color = "#4E9188", arrowhead = tee];
+    p_epig   -> h_gr      [color = "#4E9188", arrowhead = tee, style = dashed];
+    n_ex     -> n_iu      [color = "#B8A33A"];
+    n_iu     -> c_Cpfc    [color = "#B8A33A", style = dashed];
+    n_ex     -> n_bp      [color = "#B8A33A"];
+    n_bp     -> e_burden  [color = "#B8A33A", style = dashed];
+    g_gat    -> g_int     [color = "#4B87B8", arrowhead = tee];
+    g_kcc2   -> g_int     [color = "#4B87B8", style = dashed];
+    g_mrs    -> g_Igaba   [color = "#4B87B8", style = dashed];
+    q_eaat   -> q_rel     [color = "#5E9E4E", arrowhead = tee];
+    q_snare  -> q_rel     [color = "#5E9E4E"];
+    h_gr     -> h_dst     [color = "#B85A8E"];
+    h_gr     -> h_diur    [color = "#B85A8E"];
+    a_vagal  -> a_hrv     [color = "#8F8B6A"];
+    c_bnst   -> a_startle [color = "#C46A78", style = dashed];
+    z_frag   -> z_rem     [color = "#7A6BB5"];
+    d_2c19   -> d_esc     [color = "#3E8F86", label = "CL/F covariate"];
+    d_vort   -> s_sert    [color = "#3E8F86", style = dashed, arrowhead = tee];
+    d_agom   -> s_2c      [color = "#3E8F86", style = dashed, arrowhead = tee];
+    d_clon   -> d_bzocc   [color = "#3E8F86", style = dashed];
+    d_taper  -> g_reb     [color = "#3E8F86", arrowhead = tee, penwidth = 1.5];
+    x_icbt   -> x_cbt     [color = "#5E9E4E", style = dashed];
+    x_comb   -> x_cbt     [color = "#5E9E4E", style = dashed];
+    x_comb   -> d_esc     [color = "#5E9E4E", style = dashed];
+    e_qtc    -> e_burden  [color = "#C46A6A", style = dashed];
+    e_metab  -> e_burden  [color = "#C46A6A", style = dashed];
+    e_bleed  -> e_burden  [color = "#C46A6A", style = dashed];
+    e_hypona -> e_burden  [color = "#C46A6A", style = dashed];
+    t_multi  -> t_expect  [color = "#7A7A93", style = dashed];
+    t_nma    -> t_assay   [color = "#7A7A93", style = dashed];
+    k_hama   -> k_ntb     [color = "#666666", style = dashed];
+    c_worry  -> k_hours   [color = "#C46A78", style = dashed];
+    y_pain   -> q_a2d1    [color = "#8E6FB5", style = dashed];
+
+    /* --- the four clocks, drawn as one comparison ------------------------------------------ */
+    subgraph cluster_clock {
+        label = <<b>The four clocks, side by side &#8212; and the fifth</b>>;
+        style = "rounded,filled"; fillcolor = "#FAF5EC"; color = "#A08A5E";
+        fontsize = 15; fontcolor = "#6B5A33";
+        node [fillcolor = "#EFE2D0", color = "#A08A5E", shape = box];
+
+        w_bz   [label = "I_gaba: hours\nbenzodiazepine\n(then -20% over ~40 d)"];
+        w_pgb  [label = "S_glu: ~2 days\npregabalin\n(no tolerance term)"];
+        w_ssri [label = "C_pfc: ~13 d gate + ~30 d growth\nSSRI / SNRI\n(sigmoid, not exponential)"];
+        w_amy  [label = "E_amy: weeks\nCBT and sustained 5-HT\n(and it does not rebound)"];
+        w_pbo  [label = "EXPECT + FLUCT: FASTEST OF ALL\n53% of the 8-week placebo effect is\nalready present at week 1 (Khan 2011)",
+                shape = note, fillcolor = "#DCC79E", penwidth = 2.0];
+        w_bz -> w_pgb -> w_ssri -> w_amy [style = invis];
+        w_amy -> w_pbo [style = invis];
+    }
+    g_Igaba -> w_bz   [style = dashed, color = "#A08A5E"];
+    q_Sglu  -> w_pgb  [style = dashed, color = "#A08A5E"];
+    c_Cpfc  -> w_ssri [style = dashed, color = "#A08A5E"];
+    c_Eamy  -> w_amy  [style = dashed, color = "#A08A5E"];
+    t_expect-> w_pbo  [style = dashed, color = "#A08A5E"];
+}
