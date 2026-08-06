@@ -1,0 +1,648 @@
+/* ===========================================================================
+   Carbon Monoxide Poisoning -- Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------------
+   The organising idea of this map is that carbon monoxide creates TWO
+   occupancies with two different time constants:
+
+     (i)  an INTRAVASCULAR one -- carboxyhaemoglobin -- which is fast,
+          responds to oxygen within minutes, and is the only one measured; and
+     (ii) an INTRACELLULAR one -- CO on myoglobin and on the reduced a3 haem of
+          cytochrome c oxidase -- which is slow, is protected by tissue PO2 in
+          a way COHb is not, and is what actually generates injury.
+
+   Every clinical paradox on this map (a normal SpO2, a normal COHb in a
+   patient who will deteriorate, delayed neurological sequelae weeks later,
+   two randomised trials of hyperbaric oxygen that disagree) is a consequence
+   of monitoring and treating (i) while the disease is being written by (ii).
+
+   Rendering:
+     dot -Tsvg co_qsp_model.dot -o co_qsp_model.svg
+     dot -Tpng -Gdpi=150 co_qsp_model.dot -o co_qsp_model.png
+   =========================================================================== */
+
+digraph CO_Poisoning_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.26;
+    ranksep = 0.52;
+    fontname = "Helvetica";
+    labelloc = "t";
+    fontsize = 30;
+    label = <<b>Carbon Monoxide Poisoning &#8212; Quantitative Systems Pharmacology Map</b><br/>
+             <font point-size="17">Two occupancies, two clocks: carboxyhaemoglobin is fast and measured; cytochrome c oxidase is slow and unmeasured.<br/>
+             45-ODE mrgsolve model &#183; 152 nodes &#183; 17 mechanistic clusters &#183; Coburn&#8211;Forster&#8211;Kane pulmonary exchange coupled to a bistable autoimmune demyelination switch</font>>;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, margin = "0.09,0.055", penwidth = 1.1];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.05,
+          arrowsize = 0.62, color = "#555555"];
+
+    /* ---- palette ------------------------------------------------------- */
+    /* exposure  #E8DDF2 | lung #CFE6F7 | blood #F9CDD2 | tissueCO #FBE3C7
+       mito #D8F0D2      | haemo #D3E8E4 | energy #FFF2B8 | oxidative #FAD4C0
+       innate #F4C7DC    | adaptive #DCD3F0 | heart #F7C9C9 | muscle #E3E0D2
+       cyanide #C9DED0   | therapy #C6E9E4 | monitor #E0E0E8 | endpoint #FFFFFF
+       special #EFE2D0 */
+
+    /* =================================================================== */
+    subgraph cluster_exposure {
+        label = <<b>1. Exposure &#183; source, environment, dose</b>>;
+        style = "rounded,filled"; fillcolor = "#F7F2FC"; color = "#8E6FB5";
+        fontsize = 15; fontcolor = "#5B3E80";
+        node [fillcolor = "#E8DDF2", color = "#8E6FB5"];
+
+        src_engine   [label = "Internal combustion engine\n(car in closed garage,\n>30 000 ppm)"];
+        src_gen      [label = "Portable generator\n(post-storm, post-disaster)"];
+        src_heater   [label = "Unvented heater / brazier\ncharcoal briquette"];
+        src_furnace  [label = "Faulty furnace,\nblocked flue"];
+        src_fire     [label = "Structure fire smoke\n(CO + HCN + irritants)"];
+        src_narghile [label = "Waterpipe / hookah,\nmethylene chloride\n(hepatic CO release)"];
+        Cenv         [label = "Ambient CO\nC_env (ppm)", shape = ellipse, fillcolor = "#D9C6EC"];
+        Vroom        [label = "Enclosed volume\nV_room, air changes ACH"];
+        PIco         [label = "Inspired CO tension\nP_I,CO = ppm x 1e-6 x P_L", shape = ellipse, fillcolor = "#D9C6EC"];
+        dose_int     [label = "DOSE IS A TIME INTEGRAL\n&#8747; P_I,CO dt\n(not the COHb on arrival)",
+                      shape = note, fillcolor = "#CBB2E4", penwidth = 2.0];
+        endo_CO      [label = "Endogenous CO\nhaem oxygenase, 0.007 mL/min\nCOHb 0.4-0.8%"];
+    }
+
+    subgraph cluster_lung {
+        label = <<b>2. Pulmonary exchange &#183; the Coburn&#8211;Forster&#8211;Kane equation</b>>;
+        style = "rounded,filled"; fillcolor = "#EFF8FE"; color = "#3F7FAF";
+        fontsize = 15; fontcolor = "#255A80";
+        node [fillcolor = "#CFE6F7", color = "#3F7FAF"];
+
+        VA        [label = "Alveolar ventilation\nV&#775;_A (4.2 L/min at rest)"];
+        DLco      [label = "Membrane diffusing capacity\nD_L,CO (25 mL/min/mmHg)"];
+        PL        [label = "Barometric &#8211; water vapour\nP_L = 760xATA &#8211; 47"];
+        Bres      [label = "CO transfer resistance\nB = 1/D_L + P_L/V&#775;_A", shape = ellipse, fillcolor = "#B2D8F2"];
+        Bsplit    [label = "81% of B is VENTILATION,\n19% is membrane diffusion\n&#8658; the lung, not the alveolar wall,\nis rate limiting",
+                   shape = note, fillcolor = "#9FCCEC"];
+        Haldane   [label = "Haldane relation\nM = 245\n(CO affinity / O2 affinity)"];
+        PcO2      [label = "Mean pulmonary capillary PO2\nP_c,O2 (100 &#8594; 2183 mmHg)", shape = ellipse, fillcolor = "#B2D8F2"];
+        cfk       [label = "CFK MASS BALANCE\nV_b d[COHb]/dt = V&#775;_CO\n&#8211; ([COHb]P_c,O2/(M[O2Hb]) &#8211; P_I,CO)/B",
+                   shape = box, fillcolor = "#8FC2E8", penwidth = 2.2];
+        floor     [label = "ANALYTIC FLOOR\nATA&#8594;&#8734;: P_c,O2/B &#8594; V&#775;_A\nt&#189;_min = ln2 M[O2Hb]V_b/V&#775;_A = 31 min\nno chamber pressure beats it",
+                   shape = note, fillcolor = "#7FB6E2", penwidth = 2.0];
+        thalf     [label = "Elimination half-life\nair 313 &#183; mask 72 &#183; HBO 39 min\n(observed 320 / 74 / ~20)", shape = ellipse, fillcolor = "#B2D8F2"];
+    }
+
+    subgraph cluster_blood {
+        label = <<b>3. Haemoglobin &#183; the two hits of one ligand</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF3F5"; color = "#C4566A";
+        fontsize = 15; fontcolor = "#8E2F42";
+        node [fillcolor = "#F9CDD2", color = "#C4566A"];
+
+        Hb        [label = "Haemoglobin\n[Hb] g/dL"];
+        COHb      [label = "CARBOXYHAEMOGLOBIN\nF_COHb (fast pool, measured)",
+                   shape = box, fillcolor = "#F0A9B2", penwidth = 2.2];
+        O2Hb      [label = "Oxyhaemoglobin\n[O2Hb] = cap x (1 &#8211; F_COHb)"];
+        hit1      [label = "HIT 1: carrying capacity\nCaO2 = 1.34 Hb SaO2 (1&#8211;F_COHb)\n+ 0.003 PaO2"];
+        hit2      [label = "HIT 2: allosteric left shift\nP50_eff = P50 (1 &#8211; 0.75 F_COHb)\nthe residual Hb will not let go",
+                   fillcolor = "#F0A9B2"];
+        odc       [label = "Oxyhaemoglobin dissociation curve\nHill P50 26.8, n 2.7"];
+        worse     [label = "COHb 40% = anaemia Hb 9.0 g/dL\nby CONTENT, but tissue PO2\n20.8 vs 29.7 mmHg\n&#8658; 8.9 mmHg worse than the\nequivalent anaemia",
+                   shape = note, fillcolor = "#E792A0", penwidth = 2.0];
+        MetHb     [label = "Methaemoglobin,\nsulfhaemoglobin\n(co-oximetry differential)"];
+        CaO2      [label = "Arterial O2 content\nCaO2 (mL/dL)", shape = ellipse, fillcolor = "#F2B7BE"];
+        dissolved [label = "Dissolved O2\n0.003 x PaO2\n(1.96 &#8594; 6.52 mL/dL)", shape = ellipse, fillcolor = "#F2B7BE"];
+    }
+
+    subgraph cluster_tissueCO {
+        label = <<b>4. Tissue CO distribution &#183; the slow reservoir</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF6EC"; color = "#C98A34";
+        fontsize = 15; fontcolor = "#8A5A12";
+        node [fillcolor = "#FBE3C7", color = "#C98A34"];
+
+        Pbr    [label = "Brain tissue CO\n&#964; = 9 min (no myoglobin)"];
+        Pht    [label = "Myocardial tissue CO\n&#964; = 45 min"];
+        Pmu    [label = "Skeletal muscle CO\n&#964; = 320 min\n(the reservoir)", fillcolor = "#F6CE9C"];
+        Prest  [label = "Splanchnic / other\n&#964; = 120 min"];
+        MbHt   [label = "Cardiac myoglobin-CO\nMbCO fraction (M_Mb = 36)"];
+        MbMu   [label = "Skeletal myoglobin-CO\nMbCO fraction"];
+        rebound[label = "Muscle back-diffusion\n&#8658; COHb plateau / rebound\nafter oxygen is stopped",
+                shape = note, fillcolor = "#F0BE85"];
+        kappa  [label = "Tissue loading is driven by blood CO\nCONTENT, not by the Haldane free\ntension (which rises 20x inside a\nchamber and would pump CO INWARD)",
+                shape = note, fillcolor = "#F0BE85", penwidth = 1.8];
+    }
+
+    subgraph cluster_mito {
+        label = <<b>5. Mitochondrial terminal oxidase &#183; the slow occupancy that matters</b>>;
+        style = "rounded,filled"; fillcolor = "#EEF9EC"; color = "#4E9440";
+        fontsize = 15; fontcolor = "#2F6624";
+        node [fillcolor = "#D8F0D2", color = "#4E9440"];
+
+        CcO_a3    [label = "Cytochrome c oxidase\nhaem a3 (Complex IV)"];
+        redox     [label = "CO binds ONLY the REDUCED a3\n&#8658; occupancy &#8733; 1/(1 + PtO2/K_O)\noxygen is the competitive protector",
+                   fillcolor = "#BEE4B5", penwidth = 2.0];
+        CcOb      [label = "BRAIN CcO INHIBITION\nf_CcO (slow pool, unmeasured)",
+                   shape = box, fillcolor = "#A9DA9E", penwidth = 2.2];
+        CcOh      [label = "Myocardial CcO inhibition"];
+        koff      [label = "Off-rate &#964; &#8776; 455 min\n(hours, not minutes)"];
+        vicious   [label = "VICIOUS CIRCLE\nCO &#8595; O2 delivery &#8594; PtO2 &#8595;\n&#8594; a3 more reduced &#8594; more CO bound\n&#8594; oxidative phosphorylation &#8595;",
+                   shape = note, fillcolor = "#94D186", penwidth = 2.2];
+        etc       [label = "Electron transport chain\nComplex I&#8211;III backing up"];
+        mptp      [label = "Mitochondrial permeability\ntransition pore"];
+        cytc      [label = "Cytochrome c release\n&#8594; apoptosis"];
+        clock     [label = "TWO CLOCKS\nCOHb <5% at 337 min\nCcO still 17% inhibited then,\nand not <5% of peak until 4654 min\n(13.8x later)",
+                   shape = note, fillcolor = "#7FC96F", penwidth = 2.4];
+    }
+
+    subgraph cluster_haemo {
+        label = <<b>6. Cerebral haemodynamics &#183; the compensations and their price</b>>;
+        style = "rounded,filled"; fillcolor = "#EDF6F4"; color = "#3E8C82";
+        fontsize = 15; fontcolor = "#22625A";
+        node [fillcolor = "#D3E8E4", color = "#3E8C82"];
+
+        CBF      [label = "Cerebral blood flow\nCBF (50 mL/100g/min)"];
+        autoreg  [label = "Autoregulation:\nflow defends DELIVERY\n(up to 2.4x baseline)"];
+        PaCO2    [label = "PaCO2\n(CBF ~3%/mmHg)"];
+        hypervent[label = "Hyperventilation trade-off\nfaster CO clearance (B&#8595;)\nbut CBF&#8595; from hypocapnia",
+                  fillcolor = "#B6D8D2", penwidth = 1.8];
+        carbogen [label = "CARBOGEN 95% O2 / 5% CO2\nraises V&#775;_A while CLAMPING PaCO2\n&#8658; converts the trade-off into a gain",
+                  fillcolor = "#A3CEC7", penwidth = 2.0];
+        NOrel    [label = "CO displaces NO from haem\n&#8594; free NO, peroxynitrite\n&#8594; vasodilatation + nitrosative stress"];
+        gpwater  [label = "Globus pallidus / deep white matter\nWATERSHED: sits lower on its own O2\nsupply curve &#8658; STEEPER, not handicapped",
+                  fillcolor = "#A3CEC7", penwidth = 1.8];
+        PtO2     [label = "Tissue PO2\n(Fick on the left-shifted curve)", shape = ellipse, fillcolor = "#BCDDD8"];
+        hypotens [label = "Hypotension, syncope,\nloss of consciousness\n(removes the CBF reserve)"];
+    }
+
+    subgraph cluster_energy {
+        label = <<b>7. Energy metabolism &#183; where the lesion is decided</b>>;
+        style = "rounded,filled"; fillcolor = "#FFFBE8"; color = "#B79A16";
+        fontsize = 15; fontcolor = "#7A6608";
+        node [fillcolor = "#FFF2B8", color = "#B79A16";];
+
+        ATPb    [label = "Brain energy charge\nATP_brain"];
+        ATPgp   [label = "WATERSHED energy charge\nATP_gp (globus pallidus)", fillcolor = "#F8E58A"];
+        ATPh    [label = "Myocardial energy charge\nATP_heart"];
+        krogh   [label = "Supply uses a TISSUE-level\nO2 constant (K_m 12 mmHg,\nKrogh diffusion field edge),\nnot the mitochondrial K_m (~1)",
+                 shape = note, fillcolor = "#F3DB6E"];
+        glyco   [label = "Anaerobic glycolysis"];
+        Lac     [label = "Lactate\n(the CO/CN discriminator)", shape = ellipse, fillcolor = "#F8E58A"];
+        acidosis[label = "Metabolic acidosis,\nbase deficit"];
+        reserve [label = "8% ENERGY RESERVE\nbefore the oxidative cascade ignites\n(ATP_thr = 0.92)",
+                 shape = note, fillcolor = "#F3DB6E", penwidth = 1.8];
+        Necb    [label = "Globus pallidus necrosis,\ndeep white matter lesions", fillcolor = "#F0D149"];
+        Edema   [label = "Cytotoxic cerebral oedema"];
+        ICP     [label = "Intracranial pressure"];
+    }
+
+    subgraph cluster_ox {
+        label = <<b>8. Reoxygenation injury &#183; the burst that treatment creates</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF1EA"; color = "#C2673A";
+        fontsize = 15; fontcolor = "#8B401B";
+        node [fillcolor = "#FAD4C0", color = "#C2673A"];
+
+        XDH     [label = "Xanthine dehydrogenase"];
+        XO      [label = "XANTHINE OXIDASE\n(converted during energy failure)", fillcolor = "#F4B698"];
+        hypox   [label = "Hypoxanthine / xanthine\naccumulation"];
+        ROS     [label = "ROS burst\nO2&#8226;&#8211;, H2O2, &#8226;OH", fillcolor = "#F4B698"];
+        needO2  [label = "ROS NEEDS BOTH: prior energy failure\nto make the enzyme AND restored O2\nas substrate &#8658; the burst is generated\nBY reoxygenation, i.e. by the treatment",
+                 shape = note, fillcolor = "#EE9E79", penwidth = 2.2];
+        NOx     [label = "NO / peroxynitrite\n(3-nitrotyrosine)"];
+        GSH     [label = "Glutathione\n(consumed)"];
+        HO1     [label = "Haem oxygenase-1 induction\n&#8594; MAKES MORE CO\n(a positive feedback)", fillcolor = "#F4B698"];
+        HIF     [label = "HIF-1&#945; stabilisation"];
+        LPO     [label = "LIPID PEROXIDATION\nMDA, 4-HNE, myelin lipids", fillcolor = "#F0A882"];
+    }
+
+    subgraph cluster_innate {
+        label = <<b>9. Innate immune amplification</b>>;
+        style = "rounded,filled"; fillcolor = "#FDF0F6"; color = "#B85A8A";
+        fontsize = 15; fontcolor = "#822F5C";
+        node [fillcolor = "#F4C7DC", color = "#B85A8A"];
+
+        b2int   [label = "&#946;2 integrin (CD11b/CD18)\nactivation"];
+        Neut    [label = "Neutrophil adherence to\nbrain microvascular endothelium", fillcolor = "#EDAFCB"];
+        MPO     [label = "Myeloperoxidase release\n(degranulation)"];
+        plt     [label = "Platelet&#8211;neutrophil\naggregates"];
+        prot    [label = "Proteases, elastase"];
+        micro   [label = "Microglial activation\n(TSPO PET signal)"];
+        astro   [label = "Reactive astrogliosis,\nS100B release"];
+        hboadh  [label = "HBO DIRECTLY blocks &#946;2 integrin\nadhesion &#8212; an effect that is NOT\noxygen delivery and NOT CO clearance",
+                 shape = note, fillcolor = "#E699BC", penwidth = 2.2];
+    }
+
+    subgraph cluster_adaptive {
+        label = <<b>10. Adaptive autoimmunity &#183; the bistable switch that IS delayed neurological sequelae</b>>;
+        style = "rounded,filled"; fillcolor = "#F4F1FB"; color = "#6E5AAE";
+        fontsize = 15; fontcolor = "#453286";
+        node [fillcolor = "#DCD3F0", color = "#6E5AAE"];
+
+        MBP     [label = "Myelin basic protein"];
+        MBPad   [label = "MBP ADDUCT (the antigen)\ncharge-modified by lipid peroxidation",
+                 shape = box, fillcolor = "#C6B8E8", penwidth = 2.2];
+        APC     [label = "Antigen presentation\n(cervical nodes, microglia)"];
+        Tcell   [label = "Autoreactive lymphocyte clone\nT (expands or contracts)", fillcolor = "#C6B8E8"];
+        thr     [label = "COMPUTABLE THRESHOLD\nexpands iff T_prol H(MBPad) > T_death\n&#8658; MBPad_crit = 0.4425\nnothing below it, latch above it",
+                 shape = note, fillcolor = "#B3A2E0", penwidth = 2.4];
+        spread  [label = "EPITOPE SPREADING\ndemyelination liberates more antigen\n&#8658; the loop LATCHES", fillcolor = "#B3A2E0"];
+        Demy    [label = "DEMYELINATION\n(periventricular, centrum semiovale)",
+                 shape = box, fillcolor = "#B3A2E0", penwidth = 2.2];
+        latency [label = "LATENCY IS DERIVED, NOT IMPOSED\nclone doubling time sets 2&#8211;6 weeks;\nthe lucid interval is the time the\nswitch takes to climb",
+                 shape = note, fillcolor = "#A492DA", penwidth = 2.0];
+        remyel  [label = "Remyelination / repair\n(partial, months)"];
+        popn    [label = "WITHIN a patient the response is a STEP.\nThe graded incidence in cohorts is a\nDISTRIBUTION OF THRESHOLDS across\npatients, not a graded dose-response",
+                 shape = note, fillcolor = "#A492DA", penwidth = 2.2];
+    }
+
+    subgraph cluster_heart {
+        label = <<b>11. Myocardium</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF0F0"; color = "#C05555";
+        fontsize = 15; fontcolor = "#8B2C2C";
+        node [fillcolor = "#F7C9C9", color = "#C05555"];
+
+        demand  [label = "High extraction, low reserve\n(myocardium runs at 70% extraction)"];
+        stun    [label = "Myocardial stunning,\nregional dysfunction"];
+        TnI     [label = "Troponin I release"];
+        EF      [label = "LV ejection fraction &#8595;"];
+        arrhy   [label = "Arrhythmia, QT prolongation,\nischaemic ECG change"];
+        mortcv  [label = "Excess cardiovascular mortality\nat 7 years (Henry 2006)"];
+    }
+
+    subgraph cluster_muscle {
+        label = <<b>12. Skeletal muscle &#183; kidney</b>>;
+        style = "rounded,filled"; fillcolor = "#F6F5EE"; color = "#8A8663";
+        fontsize = 15; fontcolor = "#5D5A3E";
+        node [fillcolor = "#E3E0D2", color = "#8A8663"];
+
+        rhabdo  [label = "Rhabdomyolysis\n(MbCO + immobility + pressure)"];
+        CK      [label = "Creatine kinase"];
+        myogl   [label = "Myoglobinuria"];
+        AKI     [label = "Acute kidney injury,\ncreatinine &#8593;"];
+        compart [label = "Compartment syndrome,\npressure necrosis"];
+    }
+
+    subgraph cluster_cyanide {
+        label = <<b>13. Fire smoke &#183; cyanide on the same enzyme</b>>;
+        style = "rounded,filled"; fillcolor = "#EDF5F0"; color = "#3F8560";
+        fontsize = 15; fontcolor = "#215C3C";
+        node [fillcolor = "#C9DED0", color = "#3F8560";];
+
+        HCN     [label = "Hydrogen cyanide\n(polyurethane, wool, silk pyrolysis)"];
+        CNbl    [label = "Blood cyanide"];
+        CNtis   [label = "Tissue cyanide"];
+        rhod    [label = "Rhodanese\n(thiosulfate-dependent)"];
+        sameax  [label = "ONE AXIS, TWO LIGANDS\nf_total = 1 &#8211; (1&#8211;f_CO)(1&#8211;f_CN)\nindistinguishable at the bedside,\nbut the antidotes share NOTHING",
+                 shape = note, fillcolor = "#AECFBB", penwidth = 2.2];
+        lacdisc [label = "Lactate that will NOT fall on 100% O2\n= the discriminator", fillcolor = "#AECFBB"];
+        irritant[label = "Airway irritants, soot,\nthermal injury, ARDS"];
+    }
+
+    subgraph cluster_therapy {
+        label = <<b>14. Therapeutics</b>>;
+        style = "rounded,filled"; fillcolor = "#E9F7F5"; color = "#2F8C84";
+        fontsize = 15; fontcolor = "#186059";
+        node [fillcolor = "#C6E9E4", color = "#2F8C84"];
+
+        removal [label = "REMOVAL FROM SOURCE\n(the only intervention that\nchanges the integral)", penwidth = 2.0, fillcolor = "#A8DCD5"];
+        nrb     [label = "Normobaric 100% O2\ntight non-rebreather mask"];
+        intub   [label = "Intubation, FiO2 1.0,\ncontrolled ventilation"];
+        HBO     [label = "HYPERBARIC OXYGEN\n2.4&#8211;3.0 ATA", fillcolor = "#A8DCD5", penwidth = 2.0];
+        hbo3    [label = "HBO acts by THREE separable routes:\n1. faster CO clearance (small, early)\n2. dissolved O2 covers demand outright\n3. &#946;2-integrin blockade (immune)",
+                 shape = note, fillcolor = "#93D2CA", penwidth = 2.2];
+        hbowin  [label = "THE WINDOW IS THE ADDUCT, NOT THE COHb\nbenefit ~maximal at 1 h, halved by 6&#8211;8 h,\ngone by 24 h &#8212; while COHb is <5% in every\narm beyond 6 h",
+                 shape = note, fillcolor = "#93D2CA", penwidth = 2.4];
+        trials  [label = "Weaver 2002 (first session median ~4 h): POSITIVE\nScheinkestel 1999 (after ICU stabilisation, often >12 h): NULL\nsame drug, opposite sides of a window",
+                 shape = note, fillcolor = "#7FC8BF", penwidth = 2.0];
+        OHCbl   [label = "Hydroxocobalamin 5 g\n(cyanide only &#8212; cannot touch CO)"];
+        thiosulf[label = "Sodium thiosulfate\n(rhodanese substrate)"];
+        NAC     [label = "N-acetylcysteine\n(glutathione repletion, adjunct)"];
+        allo    [label = "Allopurinol / oxypurinol\n(xanthine oxidase, experimental)"];
+        hypoth  [label = "Targeted temperature management\n(demand reduction)"];
+        ecmo    [label = "V-A ECMO\n(refractory cardiogenic shock)"];
+        pregmgt [label = "Pregnancy: treat to the FETAL clock,\nnot the maternal COHb", fillcolor = "#A8DCD5"];
+    }
+
+    subgraph cluster_monitor {
+        label = <<b>15. Measurement model &#183; why the monitor lies</b>>;
+        style = "rounded,filled"; fillcolor = "#F1F1F6"; color = "#6B6B85";
+        fontsize = 15; fontcolor = "#43435C";
+        node [fillcolor = "#E0E0E8", color = "#6B6B85"];
+
+        spo2    [label = "Two-wavelength pulse oximeter\n660 / 940 nm"];
+        extinct [label = "&#949;_COHb(660) &#8776; &#949;_O2Hb(660)\n&#949;_COHb(940) &#8776; 0"];
+        spo2lie [label = "SpO2 REPORTS O2Hb + COHb\nCOHb 40% &#8594; SpO2 reads 90.8%\nwhile SaO2 is 58.2%\n&#8658; the sicker the patient,\nthe more reassuring the number",
+                 shape = note, fillcolor = "#CACADA", penwidth = 2.4];
+        satgap  [label = "SATURATION GAP\nSpO2 &#8211; SaO2 &#8776; F_COHb", fillcolor = "#CACADA"];
+        cooxi   [label = "Multi-wavelength CO-oximetry\n(the only instrument that sees CO)"];
+        breathCO[label = "Breath CO monitor\n(triage, screening)"];
+        pao2    [label = "PaO2 on blood gas is NORMAL\n(dissolved O2 is unaffected)"];
+        mri     [label = "MRI: globus pallidus T2 signal,\nDWI, white matter change"];
+        neuro   [label = "CO neuropsychological\nscreening battery (Weaver)"];
+        s100b   [label = "S100B, NSE, GFAP\n(candidate biomarkers)"];
+    }
+
+    subgraph cluster_special {
+        label = <<b>16. Special populations</b>>;
+        style = "rounded,filled"; fillcolor = "#FAF4EA"; color = "#A5824B";
+        fontsize = 15; fontcolor = "#6E552A";
+        node [fillcolor = "#EFE2D0", color = "#A5824B"];
+
+        fetHb   [label = "Fetal haemoglobin\n~1.8x CO affinity"];
+        fetCO   [label = "FETAL COHb\nlags, peaks higher, clears 3.7x slower", fillcolor = "#E4CFB2"];
+        fetrule [label = "Maternal COHb <5% at 204 min\nbut FETAL not until 755 min\n&#8658; the '5x' bedside rule is\nDERIVED, not asserted",
+                 shape = note, fillcolor = "#DBC29D", penwidth = 2.0];
+        anaemia [label = "Anaemia: same COHb%,\nless absolute O2 capacity"];
+        cad     [label = "Coronary / cerebrovascular disease\n(no reserve to spend)"];
+        infant  [label = "Infants: higher V&#775;_A/kg,\nfaster loading AND unloading"];
+        elderly [label = "Elderly: lower CBF reserve,\nhigher DNS risk"];
+        smoker  [label = "Smoker: baseline COHb 4-9%\n(shifts the starting point)"];
+    }
+
+    subgraph cluster_endpoints {
+        label = <<b>17. Clinical endpoints</b>>;
+        style = "rounded,filled"; fillcolor = "#FFFFFF"; color = "#333333";
+        fontsize = 15; fontcolor = "#222222";
+        node [fillcolor = "#FFFFFF", color = "#333333", shape = box, penwidth = 1.5];
+
+        e_head  [label = "Headache, nausea,\ndizziness"];
+        e_conf  [label = "Confusion, ataxia,\nsyncope"];
+        e_coma  [label = "Coma, seizures"];
+        e_death [label = "Death\n(acute)"];
+        e_dns   [label = "DELAYED NEUROLOGICAL SEQUELAE\ncognitive, affective, parkinsonism\n(2&#8211;40 days)", penwidth = 2.2];
+        e_cog   [label = "Neurocognitive score\nat 6 weeks / 6 / 12 months"];
+        e_park  [label = "Parkinsonism, dystonia,\ngait apraxia"];
+        e_mi    [label = "Myocardial injury,\nlate cardiovascular death"];
+        e_fet   [label = "Fetal loss, neurological\nmalformation"];
+    }
+
+    /* ================= exposure -> lung ================================= */
+    src_engine   -> Cenv;
+    src_gen      -> Cenv;
+    src_heater   -> Cenv;
+    src_furnace  -> Cenv;
+    src_fire     -> Cenv;
+    src_narghile -> COHb  [style = dashed, label = "hepatic"];
+    Vroom        -> Cenv  [label = "dilution, ACH"];
+    Cenv         -> PIco;
+    PL           -> PIco;
+    PIco         -> dose_int;
+    dose_int     -> cfk   [penwidth = 2.0, color = "#7B4FA8"];
+    PIco         -> cfk   [penwidth = 1.6];
+    endo_CO      -> cfk   [style = dashed, label = "V&#775;_CO"];
+    src_fire     -> HCN   [penwidth = 1.8, color = "#2F7A55"];
+    src_fire     -> irritant;
+
+    VA   -> Bres;
+    DLco -> Bres;
+    PL   -> Bres;
+    Bres -> Bsplit [style = dotted];
+    Bres -> cfk    [penwidth = 1.8];
+    PL   -> PcO2;
+    PcO2 -> cfk    [penwidth = 1.8];
+    Haldane -> cfk [penwidth = 1.6];
+    cfk  -> COHb   [penwidth = 2.4, color = "#B03050"];
+    cfk  -> thalf;
+    Bres -> floor  [style = dotted];
+    VA   -> floor  [style = dotted, label = "the only lever\nleft in a chamber"];
+    floor -> thalf [style = dotted];
+
+    /* ================= blood ============================================ */
+    Hb    -> COHb;
+    Hb    -> O2Hb;
+    COHb  -> O2Hb  [arrowhead = tee, label = "occupies sites"];
+    COHb  -> hit1  [penwidth = 1.8];
+    COHb  -> hit2  [penwidth = 1.8];
+    hit2  -> odc   [label = "P50 &#8595;"];
+    hit1  -> CaO2;
+    odc   -> CaO2;
+    CaO2  -> worse [style = dotted];
+    hit2  -> worse [style = dotted];
+    O2Hb  -> cfk   [label = "back-pressure", style = dashed];
+    MetHb -> cooxi [style = dashed];
+    PcO2  -> dissolved;
+    dissolved -> CaO2;
+
+    /* ================= tissue CO ======================================== */
+    COHb -> Pbr   [penwidth = 1.8];
+    COHb -> Pht   [penwidth = 1.6];
+    COHb -> Pmu   [penwidth = 1.6];
+    COHb -> Prest;
+    COHb -> kappa [style = dotted];
+    Pmu  -> rebound;
+    rebound -> COHb [style = dashed, color = "#C98A34", label = "plateau after\noxygen stops"];
+    Pht  -> MbHt;
+    Pmu  -> MbMu;
+    Pbr  -> CcO_a3 [penwidth = 1.8];
+    Pht  -> CcOh;
+
+    /* ================= mitochondria ===================================== */
+    CcO_a3 -> redox;
+    redox  -> CcOb  [penwidth = 2.0];
+    PtO2   -> redox [arrowhead = tee, penwidth = 1.8, color = "#2F6624", label = "O2 protects\nthe a3 haem"];
+    CcOb   -> koff  [style = dotted];
+    koff   -> clock [style = dotted];
+    COHb   -> clock [style = dotted];
+    CcOb   -> vicious [penwidth = 1.8];
+    vicious -> PtO2 [style = dashed, arrowhead = tee, color = "#2F6624"];
+    vicious -> CcOb [style = dashed, color = "#2F6624", label = "amplifies"];
+    CcOb   -> etc;
+    etc    -> ATPb  [arrowhead = tee, penwidth = 2.0];
+    CcOb   -> ATPb  [arrowhead = tee, penwidth = 2.2, color = "#2F6624"];
+    CcOb   -> ATPgp [arrowhead = tee, penwidth = 2.0];
+    CcOh   -> ATPh  [arrowhead = tee, penwidth = 1.8];
+    MbHt   -> ATPh  [arrowhead = tee, label = "impairs intracellular\nO2 diffusion"];
+    CcOb   -> mptp;
+    mptp   -> cytc;
+    cytc   -> Necb;
+
+    /* ================= haemodynamics ==================================== */
+    CaO2    -> autoreg [arrowhead = tee];
+    autoreg -> CBF     [penwidth = 1.8];
+    PaCO2   -> CBF     [penwidth = 1.8];
+    CBF     -> PtO2    [penwidth = 1.8];
+    CaO2    -> PtO2    [penwidth = 2.0];
+    hit2    -> PtO2    [arrowhead = tee, penwidth = 1.8, label = "unloading\nimpaired"];
+    VA      -> PaCO2   [arrowhead = tee, label = "hypocapnia"];
+    VA      -> hypervent [style = dotted];
+    PaCO2   -> hypervent [style = dotted];
+    hypervent -> carbogen [style = dotted];
+    carbogen  -> PaCO2 [label = "clamped"];
+    carbogen  -> VA;
+    COHb    -> NOrel;
+    NOrel   -> NOx     [penwidth = 1.6];
+    NOrel   -> CBF     [label = "vasodilatation"];
+    PtO2    -> gpwater [style = dotted];
+    gpwater -> ATPgp   [penwidth = 1.8];
+    hypotens -> CBF    [arrowhead = tee, penwidth = 1.8];
+    e_conf  -> hypotens [style = dashed];
+
+    /* ================= energy =========================================== */
+    PtO2  -> ATPb  [penwidth = 1.8];
+    krogh -> ATPb  [style = dotted];
+    krogh -> ATPgp [style = dotted];
+    ATPb  -> glyco [arrowhead = tee];
+    ATPh  -> glyco [arrowhead = tee];
+    glyco -> Lac   [penwidth = 1.8];
+    Lac   -> acidosis;
+    ATPb  -> reserve [style = dotted];
+    ATPgp -> Necb  [arrowhead = tee, penwidth = 2.2, label = "below ATP_crit 0.42"];
+    Necb  -> Edema [penwidth = 1.8];
+    ATPgp -> Edema [arrowhead = tee];
+    Edema -> ICP   [penwidth = 1.8];
+    ICP   -> CBF   [arrowhead = tee, label = "perfusion\npressure &#8595;"];
+
+    /* ================= oxidative ======================================== */
+    ATPb  -> XDH   [arrowhead = tee];
+    XDH   -> XO    [penwidth = 2.0, label = "conversion during\nenergy failure"];
+    reserve -> XO  [style = dotted];
+    ATPb  -> hypox [arrowhead = tee];
+    hypox -> ROS   [label = "substrate"];
+    XO    -> ROS   [penwidth = 2.2];
+    PtO2  -> ROS   [penwidth = 1.8, label = "co-substrate:\nO2 is REQUIRED"];
+    XO    -> needO2 [style = dotted];
+    PtO2  -> needO2 [style = dotted];
+    ROS   -> GSH   [arrowhead = tee, penwidth = 1.6];
+    GSH   -> ROS   [arrowhead = tee, style = dashed];
+    NOx   -> LPO;
+    ROS   -> LPO   [penwidth = 2.0];
+    ROS   -> HO1;
+    COHb  -> HO1;
+    HO1   -> endo_CO [style = dashed, color = "#C2673A", penwidth = 1.6, label = "makes more CO"];
+    ATPb  -> HIF   [arrowhead = tee];
+    HIF   -> CBF   [style = dashed];
+
+    /* ================= innate =========================================== */
+    ROS   -> b2int [penwidth = 1.8];
+    NOx   -> b2int;
+    b2int -> Neut  [penwidth = 2.0];
+    plt   -> Neut;
+    ROS   -> plt;
+    Neut  -> MPO   [penwidth = 1.8];
+    Neut  -> prot;
+    MPO   -> LPO   [penwidth = 2.2, color = "#B85A8A"];
+    prot  -> LPO;
+    Neut  -> micro;
+    micro -> astro;
+    micro -> Demy  [penwidth = 1.6];
+    astro -> s100b [style = dashed];
+    hboadh -> b2int [arrowhead = tee, penwidth = 2.2, color = "#822F5C"];
+
+    /* ================= adaptive ========================================= */
+    LPO   -> MBP   [style = dashed];
+    MBP   -> MBPad;
+    LPO   -> MBPad [penwidth = 2.4, color = "#6E5AAE", label = "charge modification"];
+    MBPad -> APC;
+    APC   -> Tcell [penwidth = 1.8];
+    MBPad -> Tcell [penwidth = 2.2, color = "#6E5AAE", label = "Hill n=6"];
+    MBPad -> thr   [style = dotted];
+    thr   -> Tcell [style = dotted];
+    Tcell -> Demy  [penwidth = 2.4, color = "#6E5AAE"];
+    Demy  -> spread [penwidth = 1.8];
+    spread -> MBPad [penwidth = 2.2, color = "#453286", label = "LATCH"];
+    Tcell -> latency [style = dotted];
+    thr   -> popn  [style = dotted];
+    Demy  -> remyel;
+    remyel -> Demy [arrowhead = tee, style = dashed];
+    Demy  -> e_dns [penwidth = 2.4];
+    Demy  -> e_cog [penwidth = 2.0];
+    Necb  -> e_cog [penwidth = 1.8];
+    Necb  -> e_park [penwidth = 1.8];
+    Necb  -> mri;
+    Demy  -> mri;
+    e_cog -> neuro [style = dashed];
+
+    /* ================= heart ============================================ */
+    demand -> ATPh [arrowhead = tee];
+    ATPh  -> stun  [arrowhead = tee, penwidth = 1.8];
+    stun  -> TnI   [penwidth = 1.8];
+    stun  -> EF    [penwidth = 1.8];
+    ATPh  -> arrhy [arrowhead = tee];
+    EF    -> hypotens [penwidth = 1.6];
+    TnI   -> e_mi;
+    EF    -> e_mi;
+    arrhy -> e_death;
+    e_mi  -> mortcv;
+    EF    -> ecmo  [style = dashed];
+
+    /* ================= muscle / kidney ================================== */
+    MbMu   -> rhabdo [penwidth = 1.8];
+    e_coma -> rhabdo [style = dashed, label = "immobility,\npressure"];
+    rhabdo -> CK     [penwidth = 1.8];
+    rhabdo -> myogl;
+    myogl  -> AKI    [penwidth = 1.8];
+    rhabdo -> compart;
+
+    /* ================= cyanide ========================================== */
+    HCN   -> CNbl  [penwidth = 1.8];
+    CNbl  -> CNtis [penwidth = 1.8];
+    rhod  -> CNbl  [arrowhead = tee];
+    CNtis -> CcO_a3 [penwidth = 2.2, color = "#2F7A55", label = "same terminal\noxidase"];
+    CNtis -> sameax [style = dotted];
+    CcOb  -> sameax [style = dotted];
+    sameax -> Lac  [style = dotted];
+    Lac   -> lacdisc [style = dotted];
+    CNtis -> Lac   [penwidth = 1.8];
+    irritant -> PcO2 [arrowhead = tee, style = dashed, label = "ARDS,\nshunt"];
+
+    /* ================= therapy ========================================== */
+    removal -> PIco  [arrowhead = tee, penwidth = 2.4, color = "#186059"];
+    removal -> dose_int [arrowhead = tee, penwidth = 2.0, color = "#186059"];
+    nrb   -> PcO2  [penwidth = 2.0, color = "#2F8C84"];
+    intub -> PcO2  [penwidth = 1.8];
+    intub -> VA    [penwidth = 1.6];
+    HBO   -> PcO2  [penwidth = 2.2, color = "#2F8C84"];
+    HBO   -> PL    [penwidth = 1.8, label = "raises BOTH driving\nforce and resistance"];
+    HBO   -> dissolved [penwidth = 2.4, color = "#186059", label = "6.5 mL/dL at 3 ATA\n= 1.03x cerebral demand"];
+    HBO   -> koff  [penwidth = 1.8, label = "CcO off-rate"];
+    HBO   -> hboadh [penwidth = 2.0];
+    HBO   -> hbo3  [style = dotted];
+    HBO   -> hbowin [style = dotted];
+    MBPad -> hbowin [style = dotted];
+    hbowin -> trials [style = dotted];
+    dissolved -> PtO2 [penwidth = 2.0, color = "#186059"];
+    OHCbl -> CNbl  [arrowhead = tee, penwidth = 2.0, color = "#2F7A55"];
+    thiosulf -> rhod [penwidth = 1.6];
+    NAC   -> GSH   [penwidth = 1.8];
+    allo  -> XO    [arrowhead = tee, penwidth = 1.8];
+    hypoth -> demand [arrowhead = tee];
+    hypoth -> ATPb [style = dashed];
+    ecmo  -> CaO2  [style = dashed];
+    pregmgt -> fetCO [arrowhead = tee, penwidth = 1.8];
+
+    /* ================= monitoring ======================================= */
+    COHb    -> spo2 [penwidth = 1.6];
+    extinct -> spo2;
+    spo2    -> spo2lie [penwidth = 2.0];
+    spo2lie -> satgap;
+    COHb    -> satgap [penwidth = 1.6];
+    cooxi   -> COHb  [style = dashed, dir = back, label = "the only\ntrue reading"];
+    breathCO -> COHb [style = dashed, dir = back];
+    dissolved -> pao2 [style = dashed];
+    pao2    -> spo2lie [style = dotted, label = "blood gas also\nlooks normal"];
+    COHb    -> neuro  [style = dotted, label = "does NOT\npredict"];
+
+    /* ================= special populations ============================== */
+    fetHb   -> fetCO  [penwidth = 1.8];
+    COHb    -> fetCO  [penwidth = 1.8, label = "placental transfer,\n&#964; = 250 min"];
+    fetCO   -> fetrule [style = dotted];
+    fetCO   -> e_fet  [penwidth = 1.8];
+    anaemia -> hit1   [penwidth = 1.6];
+    anaemia -> Hb     [arrowhead = tee];
+    cad     -> autoreg [arrowhead = tee, penwidth = 1.6];
+    cad     -> demand  [penwidth = 1.4];
+    infant  -> VA;
+    elderly -> autoreg [arrowhead = tee];
+    elderly -> e_dns   [penwidth = 1.4];
+    smoker  -> COHb    [label = "baseline offset"];
+
+    /* ================= symptom ladder =================================== */
+    PtO2  -> e_head [penwidth = 1.6];
+    ATPb  -> e_conf [arrowhead = tee, penwidth = 1.8];
+    ATPb  -> e_coma [arrowhead = tee, penwidth = 1.8];
+    ATPgp -> e_coma [arrowhead = tee];
+    ATPh  -> e_death [arrowhead = tee];
+    e_coma -> e_dns [style = dashed, penwidth = 1.8, label = "loss of consciousness is\nthe strongest predictor"];
+    acidosis -> e_coma [style = dashed];
+    ICP   -> e_death [penwidth = 1.6];
+    AKI   -> e_death [style = dashed];
+
+    /* ---- rank hints ---------------------------------------------------- */
+    { rank = same; src_engine; src_gen; src_heater; src_furnace; src_fire; src_narghile; }
+    { rank = same; e_head; e_conf; e_coma; e_death; e_dns; e_cog; e_park; e_mi; e_fet; }
+}
