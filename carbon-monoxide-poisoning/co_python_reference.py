@@ -3,21 +3,40 @@
 =============================================================================
 
 This file is the cross-check for co_mrgsolve_model.R.  It is not a port: it was
-written first, executed, and then transcribed into mrgsolve, so that the R model
-is a transcription of something that has actually been run.  Running this file
-regenerates co_reference_output.txt, which is the source of every number quoted
-in README.md.
+written first, executed, and only then transcribed into mrgsolve, so that the R
+model is a transcription of something that has actually been run.  Running this
+file regenerates co_reference_output.txt, which is the source of every number
+quoted in README.md.
 
     python3 co_python_reference.py > co_reference_output.txt
 
-The cross-check found and fixed six defects in the course of development; they
-are documented in README.md under "What the independent implementation caught",
-and the two most consequential are commented in place below (the tissue CO
-driving force, and adduct clearance).
+The cross-check found and fixed nine defects during development.  They are listed
+in README.md under "What the independent implementation caught"; the four most
+consequential are commented in place below:
+
+  * the tissue CO driving force (the Haldane free tension is a lung-exchange
+    construct and using it here made hyperbaric oxygen pump CO INTO muscle);
+  * adduct clearance on a myelin-turnover rather than a days timescale (without
+    which delayed sequelae were structurally unreachable at every dose);
+  * the strict unknown-parameter check in P(), which exists because a silent
+    CN_rate/CN_dose mismatch had been running the whole fire-smoke scenario with
+    no cyanide in it, and which then immediately caught a second such divergence;
+  * the non-uniform output grid in run(), because a uniform grid over a 90-day
+    horizon samples every ~108 min, misses every acute peak, and had inverted a
+    conclusion about the timing of an antidote.
+
+Structure of this file:
+  1. parameters, helpers and the 45-ODE right-hand side
+  2. closed-form derivations (results 1, 2, 3, 9, measurement model)
+  3. the scenario / population / sensitivity driver
 
 Requires numpy and scipy only.
 =============================================================================
 """
+import numpy as np
+from scipy.integrate import solve_ivp
+from scipy.optimize import brentq
+import sys as _sys
 
 # Independent Python/scipy reference implementation of the CO poisoning QSP model.
 # 
@@ -72,9 +91,6 @@ Requires numpy and scipy only.
 #  43  FetCO    fetal COHb fraction
 #  44  ATPgp    watershed (globus pallidus) energy charge
 
-import numpy as np
-from scipy.integrate import solve_ivp
-from scipy.optimize import brentq
 
 NS = 45
 PH2O = 47.0
@@ -85,12 +101,12 @@ def P(**kw):
         # --- subject
         Hb=15.0, Vb=5500.0, WT=70.0,
         # --- CFK
-        DL=25.0, VA=4200.0, MHald=245.0, Vco_endo=0.007,
+        DL=25.0, VA=4200.0, MHald=245.0, Vco_endo=0.007, shunt=0.72,
         # --- exposure / environment
         Rsrc=0.0, Vroom=30000.0, ACH=0.5, texp=0.0, ppm_fix=-1.0,
         # --- therapy
         FiO2=0.21, ATA=1.0, thbo_start=1e9, thbo_dur=90.0, nhbo=1, hbo_gap=480.0,
-        to2_start=1e9, to2_stop=1e9, VAtrt=4200.0, FiCO2=0.0,
+        to2_start=1e9, to2_stop=1e9, FiO2_trt=0.85, VAtrt=4200.0, FiCO2=0.0,
         ppm_amb=1.5,
         # --- tissue CO kinetics (min)  brain has no Mb, muscle is the reservoir
         tau_br=9.0, tau_ht=45.0, tau_mu=320.0, tau_rest=120.0,
@@ -129,7 +145,7 @@ def P(**kw):
         # --- outcome weights
         wDemy=0.62, wNec=0.55, tau_cog=4320.0, kHaz=0.02,
         # --- cyanide (fire smoke)
-        CN_dose=0.0, CN_tau=25.0, CL_cn=0.55, V_cn=25.0, k_rhod=0.0075,
+        CN_rate=0.0, CN_tau=25.0, CL_cn=0.55, V_cn=25.0, k_rhod=0.0075,
         k_cnt=0.045, lam_cn=2.2, k_ohcbl=0.085,
         # --- drug PK
         ohcbl_dose=0.0, ohcbl_t=1e9, CL_ohc=0.30, V_ohc=18.0,
@@ -141,6 +157,10 @@ def P(**kw):
         # --- misc switches
         hypothermia=0.0,
     )
+    bad = [k for k in kw if k not in p]
+    if bad:
+        raise KeyError(f"unknown parameter(s): {bad}")   # silent typos are how the
+        # fire-smoke scenario once ran with no cyanide in it at all
     p.update(kw)
     return p
 
@@ -162,7 +182,7 @@ def po2_of_sat(s, p50, n):
 def therapy(t, p):
     """Return (FiO2, ATA, VA, PaCO2_target, in_chamber, since_hbo)."""
     inO2 = (t >= p['to2_start']) and (t < p['to2_stop'])
-    FiO2 = 0.85 if inO2 else p['FiO2']
+    FiO2 = p['FiO2_trt'] if inO2 else p['FiO2']
     VA   = p['VAtrt'] if inO2 else p['VA']
     ata, chamber, since = 1.0, 0.0, 1e9
     for i in range(int(p['nhbo'])):
@@ -173,7 +193,7 @@ def therapy(t, p):
             ata, chamber, FiO2 = p['ATA'], 1.0, 1.0
     return FiO2, ata, VA, chamber, since
 
-def PcO2_of(FiO2, ata, PaCO2, shunt=0.72):
+def PcO2_of(FiO2, ata, PaCO2, shunt):
     """Mean pulmonary capillary O2 tension.  `shunt` folds venous admixture and
     mask leak into one efficiency factor, calibrated ONCE on Weaver's 74 min."""
     PA = FiO2*(760.0*ata - PH2O) - PaCO2/0.8
@@ -208,7 +228,7 @@ def rhs(t, y, p):
     COHb  = ACO/p['Vb']                        # mL CO / mL blood
     FCOHb = min(max(COHb/cap, 0.0), 0.98)
     O2Hb  = max(cap - COHb, 1e-9)
-    PcO2  = PcO2_of(FiO2, ata, PaCO2)
+    PcO2  = PcO2_of(FiO2, ata, PaCO2, p['shunt'])
     Bres  = 1.0/p['DL'] + PL/max(VA, 500.0)
     Vco   = p['Vco_endo']*(1.0 + 1.9*HO1)      # HO-1 makes CO: a positive feedback
     d[1]  = Vco - (COHb*PcO2/(p['MHald']*O2Hb) - PIco)/Bres
@@ -327,11 +347,14 @@ def rhs(t, y, p):
     d[35] = p['kHaz']*Demy + 0.5*p['kHaz']*Necb
 
     # ---- 36-38. cyanide -----------------------------------------------------
-    cn_in = p['CN_dose']/p['CN_tau'] if t < p['CN_tau'] else 0.0
-    d[36] = cn_in - (p['CL_cn']/p['V_cn'])*CNbl - p['k_rhod']*CNbl \
-            - p['k_ohcbl']*OHCbl*CNbl - p['k_cnt']*(CNbl - CNtis/p['lam_cn'])
-    d[37] = p['k_cnt']*(CNbl - CNtis/p['lam_cn'])*(p['V_cn']/40.0) - 0.010*CNtis
-    d[38] = -(p['CL_ohc']/p['V_ohc'])*OHCbl - p['k_ohcbl']*OHCbl*CNbl
+    cn_in = p['CN_rate'] if t < p['CN_tau'] else 0.0
+    cnb  = max(CNbl, 0.0)
+    ohc  = max(OHCbl, 0.0)
+    scav = p['k_ohcbl']*ohc*cnb
+    d[36] = cn_in - (p['CL_cn']/p['V_cn'])*cnb - p['k_rhod']*cnb \
+            - scav - p['k_cnt']*(cnb - CNtis/p['lam_cn'])
+    d[37] = p['k_cnt']*(cnb - CNtis/p['lam_cn'])*(p['V_cn']/40.0) - 0.010*CNtis
+    d[38] = -(p['CL_ohc']/p['V_ohc'])*ohc - scav
 
     # ---- 39-42. drugs -------------------------------------------------------
     d[39] = -(p['CL_nac']/p['V1_nac'])*NACc - (p['Q_nac']/p['V1_nac'])*NACc \
@@ -374,8 +397,16 @@ def run(p, tend=60*24*45, npt=4000, y0=None, doses=None):
     """doses: list of (time_min, state_index, amount) bolus additions."""
     y = y0_of(p) if y0 is None else np.array(y0, float)
     doses = sorted(doses or [], key=lambda z: z[0])
-    tgrid = np.unique(np.concatenate([np.linspace(0, tend, npt),
-                                      np.array([d[0] for d in doses] or [0.0])]))
+    # Peak statistics are read off this grid, so it must be DENSE where the fast
+    # variables move.  A uniform grid over a 90-day horizon samples every ~108 min
+    # and silently misses the acute peaks entirely -- which once made a well-timed
+    # antidote look as though it RAISED tissue cyanide (an artefact of the missed
+    # peak in the comparator arm, not of the drug).
+    tgrid = np.unique(np.concatenate([
+        np.linspace(0.0, 720.0, 481),            # first 12 h, every 1.5 min
+        np.linspace(720.0, 4320.0, 241),         # to day 3, every 15 min
+        np.linspace(4320.0, tend, max(npt, 2)),  # the long tail
+        np.array([d[0] for d in doses] or [0.0])]))
     tgrid = tgrid[tgrid <= tend]
     out_t, out_y, t0 = [], [], 0.0
     breaks = sorted(set([0.0] + [d[0] for d in doses] + [tend]))
@@ -393,139 +424,252 @@ def cohb(y, p):  return y[1]/(cap_of(p)*p['Vb'])
 
 
 # =============================================================================
-# DRIVER: reproduces co_reference_output.txt
+# SELF-ALIAS: the two blocks below were developed as separate scripts
 # =============================================================================
-import sys as _sys
 C = _sys.modules[__name__]
 
-"""Full result set for the CO poisoning QSP model.  Output is committed verbatim
-as co_reference_output.txt so every number in the README is traceable."""
-D = 1440.0
 
-def run(ppm, mins, tend=90*D, npt=3000, **kw):
+# =============================================================================
+# CLOSED-FORM DERIVATIONS (results 1, 2, 3, 9 and the measurement model)
+# =============================================================================
+
+def cfk_only(t, A, PcO2, p):
+    """The CFK sub-system alone, extracted from the full model's dxdt_ACO."""
+    COHb = A[0]/p['Vb']
+    O2Hb = max(C.cap_of(p) - COHb, 1e-9)
+    B    = 1.0/p['DL'] + p['PL_'] /max(p['VA_'], 500.0)
+    return [p['Vco_endo'] - (COHb*PcO2/(p['MHald']*O2Hb))/B]
+
+def halflife(PcO2, ata=1.0, VA=None, F0=0.30, **kw):
+    p = C.P(**kw)
+    p['PL_'] = 760.0*ata - PH2O
+    p['VA_'] = VA if VA else p['VA']
+    A0 = F0*C.cap_of(p)*p['Vb']; tgt = 0.5*A0
+    ev = lambda t, y, *a: y[0]-tgt; ev.terminal, ev.direction = True, -1
+    s = solve_ivp(cfk_only, (0, 60000), [A0], args=(PcO2, p), events=ev,
+                  rtol=1e-11, atol=1e-13, max_step=10.0)
+    return s.t_events[0][0] if len(s.t_events[0]) else np.inf
+
+p0 = C.P()
+B  = 1.0/p0['DL'] + (760.0-PH2O)/p0['VA']
+print("="*80)
+print("RESULT 1.  What sets the CO elimination half-life, and the hyperbaric floor")
+print("="*80)
+print(f"  B = 1/DL + PL/VA = {1/p0['DL']:.5f} + {(760.0-PH2O)/p0['VA']:.5f} = {B:.5f} mmHg.min/mL")
+print(f"  ventilation is {100*((760.0-PH2O)/p0['VA'])/B:.1f}% of the CO transfer resistance,"
+      f" membrane diffusion {100*(1/p0['DL'])/B:.1f}%")
+print()
+print("   delivery                     PcO2 (mmHg)   model t1/2   observed")
+for nm, PcO2, obs in [("room air, FiO2 0.21", 100.0, "320 min"),
+                      ("nasal cannula 6 L/min", 250.0, "-"),
+                      ("non-rebreather mask", 432.0, "74 min"),
+                      ("intubated, FiO2 1.0", 560.0, "-")]:
+    print(f"   {nm:28s} {PcO2:8.0f}      {halflife(PcO2):8.1f} min   {obs}")
+print("   (Weaver 2000, Chest: room air 320 min, tight 100% O2 mask 74 min)")
+print()
+print("   -- hyperbaric: pressure raises the driving force AND the resistance --")
+for ata in [1.5, 2.0, 2.4, 2.8, 3.0, 6.0, 20.0]:
+    PcO2 = 760.0*ata - PH2O - 50.0
+    Bh   = 1.0/p0['DL'] + (760.0*ata-PH2O)/p0['VA']
+    print(f"   HBO {ata:5.1f} ATA  PcO2 {PcO2:8.0f}  B {Bh:.4f} ({Bh/B:5.2f}x air)"
+          f"   t1/2 = {halflife(PcO2, ata=ata):6.1f} min")
+O2Hb  = C.cap_of(p0)*(1-0.30)
+kfl   = p0['VA']/(p0['MHald']*O2Hb*p0['Vb'])
+tfl   = np.log(2)/kfl
+print()
+print("   ANALYTIC FLOOR.  As ATA -> inf, PcO2 -> 760*ATA and PL/VA -> 760*ATA/VA, so")
+print("      PcO2/B -> VA   and   k -> VA/(M [O2Hb] Vb)")
+print(f"      = {p0['VA']:.0f}/({p0['MHald']:.0f} x {O2Hb:.4f} x {p0['Vb']:.0f})"
+      f" = {kfl:.5f} /min   ->   t1/2_min = {tfl:.1f} min")
+print("      Depends ONLY on alveolar ventilation, haemoglobin and blood volume.")
+print(f"      Observed ~20 min at 2.5-3 ATA is {100*(1-20/tfl):.0f}% BELOW this floor:")
+print("      CFK is FALSIFIED at hyperbaric pressure.  Reported, not fitted away.")
+print("      Corollary: inside a chamber the only remaining lever is ventilation.")
+for VAL in [4.2, 6, 8, 10, 12]:
+    k = VAL*1000.0/(p0['MHald']*O2Hb*p0['Vb'])
+    print(f"         VA {VAL:5.1f} L/min -> floor t1/2 {np.log(2)/k:5.1f} min")
+
+print()
+print("="*80)
+print("RESULT 2.  HBO works before it has removed any CO")
+print("="*80)
+def diss(ata, FiO2=1.0, PaCO2=40.0, Aa=10.0):
+    PAO2 = FiO2*(760.0*ata - PH2O) - PaCO2/0.8
+    return 0.003*(PAO2-Aa), PAO2-Aa
+avdo2, cmro2_av = 4.6, 6.3
+for ata in [1.0, 2.0, 2.4, 2.8, 3.0]:
+    d, pao2 = diss(ata)
+    print(f"  {ata:.1f} ATA 100% O2: PaO2 {pao2:7.0f} mmHg  dissolved {d:5.2f} mL/dL"
+          f"  = {d/avdo2:5.2f}x whole-body A-V diff, {d/cmro2_av:5.2f}x cerebral")
+astar = brentq(lambda a: diss(a)[0] - cmro2_av, 1.0, 5.0)
+print(f"  -> dissolved O2 alone covers the entire cerebral demand at {astar:.2f} ATA.")
+print("     The therapeutic effect PRECEDES the pharmacokinetics.")
+
+print()
+print("="*80)
+print("RESULT 3.  CO is worse than the anaemia with the identical arterial O2 content")
+print("="*80)
+P50, nH, alpha = p0['P50'], p0['nHill'], p0['alphaCO2']
+inv  = lambda s, p50: p50*(s/(1.0-s))**(1.0/nH)
+CaO2 = lambda Hb, F: 1.34*Hb*0.97*(1.0-F) + 0.003*95.0
+def pvo2(Hb, F, ext=5.0):
+    cap = 1.34*Hb*(1.0-F); Cv = CaO2(Hb, F) - ext
+    Sv  = min(max((Cv - 0.12)/cap, 1e-6), 1-1e-6)
+    return inv(Sv, P50*(1.0 - alpha*F))
+print("  COHb   CaO2   equivalent   P50eff   PvO2 with CO   PvO2 of that   deficit")
+print("          mL/dL  anaemia Hb   mmHg       mmHg          anaemia       mmHg")
+for F in [0.0, 0.10, 0.20, 0.30, 0.40, 0.50]:
+    ca = CaO2(15.0, F)
+    Hbeq = brentq(lambda h: CaO2(h, 0.0) - ca, 0.5, 25.0)
+    print(f"  {100*F:4.0f}% {ca:6.2f}   {Hbeq:6.2f}    {P50*(1-alpha*F):6.2f}   "
+          f"{pvo2(15.0,F):9.1f}     {pvo2(Hbeq,0.0):9.1f}     {pvo2(Hbeq,0.0)-pvo2(15.0,F):6.1f}")
+print("  -> at COHb 40% the content equals Hb 9.0 g/dL, a level nobody transfuses")
+print("     urgently, yet the tissue PO2 is ~9 mmHg lower.  Two hits from one ligand.")
+
+print()
+print("="*80)
+print("RESULT 9.  The fetal compartment sets the treatment duration")
+print("="*80)
+def matfet(t, y, PcO2, p):
+    A, Ff = y
+    dA = cfk_only(t, [A], PcO2, p)[0]
+    Fm = A/(C.cap_of(p)*p['Vb'])
+    return [dA, (p['fet_ratio']*Fm - Ff)/p['fet_tau']]
+def cross(tt, v, thr=0.05):
+    ix = np.where(v < thr)[0]
+    return tt[ix[0]] if len(ix) else np.nan
+for nm, PcO2 in [("room air", 100.0), ("non-rebreather mask", 432.0),
+                 ("intubated FiO2 1.0", 560.0)]:
+    p = C.P(); p['PL_'] = 760.0-PH2O; p['VA_'] = p['VA']
+    F0 = 0.30
+    s = solve_ivp(matfet, (0, 6000), [F0*C.cap_of(p)*p['Vb'], p['fet_ratio']*F0],
+                  args=(PcO2, p), rtol=1e-10, atol=1e-12, dense_output=True, max_step=5.0)
+    tt = np.linspace(0, 6000, 60000)
+    Fm = s.sol(tt)[0]/(C.cap_of(p)*p['Vb']); Ff = s.sol(tt)[1]
+    tm, tf = cross(tt, Fm), cross(tt, Ff)
+    print(f"  {nm:22s} maternal COHb<5% at {tm:6.1f} min, FETAL at {tf:6.1f} min -> {tf/tm:4.2f}x")
+print("  -> the bedside 'treat for ~5x the maternal clearance time' rule is DERIVED.")
+print("     Note the direction: the better the maternal treatment, the LARGER the gap.")
+
+print()
+print("="*80)
+print("MEASUREMENT MODEL.  Pulse oximetry reports the poison as if it were oxygen")
+print("="*80)
+E6 = {'O2': 0.081, 'HH': 0.845, 'CO': 0.083}
+E9 = {'O2': 0.290, 'HH': 0.170, 'CO': 0.010}
+def spo2(FCO):
+    fO2 = (1-FCO)*0.97; fHH = (1-FCO)*0.03
+    R = (fO2*E6['O2']+fHH*E6['HH']+FCO*E6['CO'])/(fO2*E9['O2']+fHH*E9['HH']+FCO*E9['CO'])
+    f = lambda s: (s*E6['O2']+(1-s)*E6['HH'])/(s*E9['O2']+(1-s)*E9['HH']) - R
+    return brentq(f, 1e-9, 1-1e-9), fO2
+print("   true SaO2   COHb    SpO2 displayed   saturation gap")
+for FCO in [0.0, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60]:
+    sp, tru = spo2(FCO)
+    print(f"   {100*tru:7.1f}%  {100*FCO:5.1f}%     {100*sp:7.1f}%       {100*(sp-tru):6.1f} points")
+print("   -> SpO2 tracks (O2Hb + COHb): the more CO the patient carries, the more")
+print("      reassuring the monitor becomes.  The gap IS the COHb.")
+
+
+# =============================================================================
+# SCENARIO, VIRTUAL POPULATION AND SENSITIVITY DRIVER
+# =============================================================================
+D = 1440.0
+PPM = {'mild': (538., 60), 'moderate': (1409., 60), 'severe': (2298., 60),
+       'critical': (4198., 45)}
+PPM_S, PPM_C = PPM['severe'][0], PPM['critical'][0]
+MASK = dict(to2_start=90., to2_stop=450.)
+
+def sim(ppm, mins, tend=90*D, npt=700, doses=None, **kw):
     p = C.P(ppm_fix=ppm, texp=mins, **kw)
-    t, y = C.run(p, tend=tend, npt=npt)
+    t, y = C.run(p, tend=tend, npt=npt, doses=doses)
     F = np.array([C.cohb(y[:, i], p) for i in range(y.shape[1])])
     return p, t, y, F
 
 def Q(t, y, F):
     return dict(COHb=100*F.max(), CcO=100*y[8].max(), ATP=y[10].min(), GP=y[44].min(),
-                Lac=y[12].max(), PtO2=None, LPO=y[20].max(), MBP=y[21].max(),
-                Tc=y[22].max(), Demy=y[24, -1], Nec=y[27, -1], ICP=y[29].max(),
-                TnI=y[30].max(), EF=y[31].min(), CK=y[32].max(), Cog=y[34, -1],
-                DNS=y[24, -1] > 0.05)
-
-MASK = dict(to2_start=90.0, to2_stop=90+360.0)
-ppm_for = lambda tgt, mins: brentq(
-    lambda x: max(C.cohb(C.run(C.P(ppm_fix=x, texp=mins), tend=mins, npt=200)[1][:, i],
-                          C.P(ppm_fix=x, texp=mins))
-                  for i in range(200)) - tgt, 1.0, 30000.0, xtol=0.5)
+                Lac=y[12].max(), LPO=y[20].max(), MBP=y[21].max(), Tc=y[22].max(),
+                Demy=y[24, -1], Nec=y[27, -1], TnI=y[30].max(), CK=y[32].max(),
+                Cog=y[34, -1])
 
 print("#"*80)
 print("#  CARBON MONOXIDE POISONING QSP MODEL -- reference output")
-print("#  45 ODEs, independent Python/scipy implementation (copoison.py)")
+print("#  45 ODEs, independent Python/scipy implementation")
+print("#  Re-run after three analysis-pipeline fixes: a uniform output grid that")
+print("#  undersampled every acute peak, `shunt` promoted from a function default to a")
+print("#  real parameter, and a CN_rate/CN_dose name mismatch that had been silently")
+print("#  running the fire-smoke scenario with no cyanide in it.")
 print("#"*80)
 
-# ---------------------------------------------------------------- exposure scale
 print("\n" + "="*80); print("EXPOSURE SCALE"); print("="*80)
-EXP = {}
-for lab, tgt, mins in [("mild", 0.10, 60), ("moderate", 0.25, 60),
-                       ("severe", 0.40, 60), ("critical", 0.55, 45)]:
-    ppm = ppm_for(tgt, mins)
-    EXP[lab] = (ppm, mins)
-    print(f"  {lab:9s} {ppm:7.0f} ppm x {mins:3d} min  ->  peak COHb {100*tgt:.0f}%")
-print("  reference points: OSHA 8-h PEL 50 ppm | NIOSH IDLH 1200 ppm |"
-      " petrol engine in a closed garage >30000 ppm")
-ppmS, minS = EXP['severe']
-ppmC, minC = EXP['critical']
-ppmM, minM = EXP['moderate']
+for k, (ppm, mins) in PPM.items():
+    p, t, y, F = sim(ppm, mins, tend=float(mins), npt=50)
+    print(f"  {k:9s} {ppm:7.0f} ppm x {mins:3d} min  ->  peak COHb {100*F.max():5.1f}%")
+print("  OSHA 8-h PEL 50 ppm | NIOSH IDLH 1200 ppm | engine in a closed garage >30000 ppm")
 
-# ---------------------------------------------------------------- 14 scenarios
 print("\n" + "="*80); print("TREATMENT SCENARIOS"); print("="*80)
 S = [
- ("01 severe, no treatment",        ppmS, minS, {}),
- ("02 severe, nasal cannula",       ppmS, minS, dict(to2_start=90., to2_stop=450., FiO2=0.44)),
- ("03 severe, O2 mask 6 h",         ppmS, minS, MASK),
- ("04 severe, O2 mask 24 h",        ppmS, minS, dict(to2_start=90., to2_stop=90+1440.)),
- ("05 severe, intubated + hypervent",ppmS, minS, dict(to2_start=90., to2_stop=450., VAtrt=8000.)),
- ("06 severe, carbogen 5% CO2",     ppmS, minS, dict(to2_start=90., to2_stop=450.,
-                                                     VAtrt=8000., FiCO2=0.05)),
- ("07 severe, HBO x1 @2h 3ATA",     ppmS, minS, dict(**MASK, thbo_start=120., ATA=3.0, nhbo=1)),
- ("08 severe, HBO x3 @2h (Weaver)", ppmS, minS, dict(to2_start=90., to2_stop=90+2880.,
-                                                     thbo_start=120., ATA=3.0, nhbo=3)),
- ("09 severe, HBO x3 @20h",         ppmS, minS, dict(to2_start=90., to2_stop=90+2880.,
-                                                     thbo_start=1200., ATA=3.0, nhbo=3)),
- ("10 severe, HBO 2.0 ATA x3 @2h",  ppmS, minS, dict(to2_start=90., to2_stop=90+2880.,
-                                                     thbo_start=120., ATA=2.0, nhbo=3)),
- ("11 critical, O2 mask",           ppmC, minC, dict(to2_start=60., to2_stop=60+1440.)),
- ("12 critical, HBO x3 early",      ppmC, minC, dict(to2_start=60., to2_stop=60+2880.,
-                                                     thbo_start=90., ATA=3.0, nhbo=3)),
- ("13 severe + anaemia Hb 9",       ppmS, minS, dict(**MASK, Hb=9.0)),
- ("14 severe + NAC 150 mg/kg",      ppmS, minS, dict(**MASK, nac_dose=1.0)),
+ ("01 severe, no treatment",         PPM_S, 60, {}, None),
+ ("02 severe, nasal cannula",        PPM_S, 60, dict(to2_start=90., to2_stop=450., FiO2_trt=0.44), None),
+ ("03 severe, O2 mask 6 h",          PPM_S, 60, MASK, None),
+ ("04 severe, O2 mask 24 h",         PPM_S, 60, dict(to2_start=90., to2_stop=90+1440.), None),
+ ("05 severe, intubated+hypervent",  PPM_S, 60, dict(to2_start=90., to2_stop=450., VAtrt=8000.), None),
+ ("06 severe, carbogen 5% CO2",      PPM_S, 60, dict(to2_start=90., to2_stop=450., VAtrt=8000., FiCO2=0.05), None),
+ ("07 severe, HBO x1 @2h 3ATA",      PPM_S, 60, dict(**MASK, thbo_start=120., ATA=3.0, nhbo=1), None),
+ ("08 severe, HBO x3 @2h (Weaver)",  PPM_S, 60, dict(to2_start=90., to2_stop=90+2880., thbo_start=120., ATA=3.0, nhbo=3), None),
+ ("09 severe, HBO x3 @20h",          PPM_S, 60, dict(to2_start=90., to2_stop=90+2880., thbo_start=1200., ATA=3.0, nhbo=3), None),
+ ("10 severe, HBO x3 @2h 2.0ATA",    PPM_S, 60, dict(to2_start=90., to2_stop=90+2880., thbo_start=120., ATA=2.0, nhbo=3), None),
+ ("11 critical, O2 mask",            PPM_C, 45, dict(to2_start=60., to2_stop=60+1440.), None),
+ ("12 critical, HBO x3 early",       PPM_C, 45, dict(to2_start=60., to2_stop=60+2880., thbo_start=90., ATA=3.0, nhbo=3), None),
+ ("13 severe + anaemia Hb 9",        PPM_S, 60, dict(**MASK, Hb=9.0), None),
+ ("14 severe + NAC 150 mg/kg",       PPM_S, 60, MASK, (90.0, 39, 150.0*70/12.0)),
 ]
 hdr = (f"{'scenario':32s}{'COHb%':>7s}{'CcO%':>6s}{'ATPb':>6s}{'ATPgp':>6s}{'Lac':>6s}"
        f"{'LPO':>6s}{'MBPad':>7s}{'Demy':>7s}{'Nec':>6s}{'TnI':>6s}{'CK':>7s}{'Cog':>6s}{'DNS':>5s}")
 print(hdr); print("-"*len(hdr))
-SC = {}
-for lab, ppm, mins, kw in S:
-    doses = [(90.0, 39, 150.0*70/12.0)] if kw.pop('nac_dose', 0) else None
-    p, t, y, F = run(ppm, mins, **kw)
-    if doses:
-        p2 = C.P(ppm_fix=ppm, texp=mins, **kw)
-        t, y = C.run(p2, tend=90*D, npt=3000, doses=doses)
-        F = np.array([C.cohb(y[:, i], p2) for i in range(y.shape[1])])
-    q = Q(t, y, F); SC[lab] = (q, t, y, F)
+for lab, ppm, mins, kw, dose in S:
+    p, t, y, F = sim(ppm, mins, doses=[dose] if dose else None, **kw)
+    q = Q(t, y, F)
     print(f"{lab:32s}{q['COHb']:7.1f}{q['CcO']:6.1f}{q['ATP']:6.3f}{q['GP']:6.3f}"
           f"{q['Lac']:6.1f}{q['LPO']:6.2f}{q['MBP']:7.3f}{q['Demy']:7.3f}{q['Nec']:6.3f}"
-          f"{q['TnI']:6.1f}{q['CK']:7.0f}{q['Cog']:6.3f}{'YES' if q['DNS'] else '.':>5s}")
+          f"{q['TnI']:6.1f}{q['CK']:7.0f}{q['Cog']:6.3f}"
+          f"{'YES' if q['Demy']>0.05 else '.':>5s}")
 
-# ---------------------------------------------------------------- two clocks
 print("\n" + "="*80)
 print("RESULT A.  Two occupancies, two clocks -- COHb is the one that is measured")
 print("="*80)
-q, t, y, F = SC["03 severe, O2 mask 6 h"]
+p, t, y, F = sim(PPM_S, 60, npt=1500, **MASK)
 def tfrac(sig, fr):
-    i0 = int(np.argmax(sig)); idx = np.where(sig[i0:] < fr*sig.max())[0]
-    return t[i0+idx[0]] if len(idx) else np.nan
+    i0 = int(np.argmax(sig)); ix = np.where(sig[i0:] < fr*sig.max())[0]
+    return t[i0+ix[0]] if len(ix) else np.nan
 for nm, sig in [("COHb (blood, measured)", F), ("brain tissue CO", y[2]),
                 ("cardiac myoglobin-CO", y[6]), ("skeletal muscle CO", y[4]),
                 ("brain cytochrome c oxidase", y[8])]:
     print(f"  {nm:28s} peak {sig.max():9.4g}  t(50%) {tfrac(sig,.5):7.1f} min"
           f"  t(10%) {tfrac(sig,.1):8.1f} min")
-def xafter(sig, thr):
-    i0 = int(np.argmax(sig)); ix = np.where(sig[i0:] < thr)[0]
-    return t[i0+ix[0]] if len(ix) else np.nan
-tN = xafter(F, 0.05); tC = xafter(y[8], 0.05*y[8].max())
-print(f"  -> COHb reaches the 'normal' 5% at {tN:.0f} min ({tN/60:.1f} h).  At that moment brain")
-print(f"     cytochrome c oxidase is still {100*np.interp(tN,t,y[8]):.1f}% CO-inhibited, and it does not")
-print(f"     fall to 5% of its own peak until {tC:.0f} min ({tC/60:.1f} h) -- {tC/tN:.1f}x later.")
-print("     The instrument that decides disposition is measuring the fast pool.")
+i0 = int(np.argmax(F)); ix = np.where(F[i0:] < 0.05)[0]; tN = t[i0+ix[0]]
+print(f"  -> COHb reaches the 'normal' 5% at {tN:.0f} min ({tN/60:.1f} h); brain cytochrome c")
+print(f"     oxidase is still {100*np.interp(tN,t,y[8]):.1f}% inhibited at that moment, and reaches 10% of")
+print(f"     its own peak only at {tfrac(y[8],.1):.0f} min -- {tfrac(y[8],.1)/tfrac(F,.1):.1f}x later than COHb does.")
 
-# ---------------------------------------------------------------- DNS threshold
 print("\n" + "="*80)
-print("RESULT B.  DNS is a bistable switch, and its threshold is computable")
+print("RESULT B.  DNS is a bistable switch with a computable threshold")
 print("="*80)
-p0 = C.P()
-Hc = p0['Tdeath']/p0['Tprol']
+p0 = C.P(); Hc = p0['Tdeath']/p0['Tprol']
 Mc = p0['theta']*(Hc/(1.0-Hc))**(1.0/p0['nT'])
-print(f"  clone expands iff Tprol*H(MBPad) > Tdeath  =>  H > {Hc:.4f}")
-print(f"  MBPad_crit = theta*(H/(1-H))^(1/n) = {p0['theta']}*({Hc:.4f}/{1-Hc:.4f})^(1/{p0['nT']:.0f})"
-      f" = {Mc:.5f}")
-print("  and demyelination feeds antigen back (epitope spreading), so above the threshold")
-print("  the loop LATCHES: that is what supplies the weeks-long latency and the")
-print("  all-or-none character, neither of which was written into the model.")
-print("\n  within-patient dose-response (60 min exposure, O2 mask from 30 min, 90 d follow-up):")
+print(f"  expands iff Tprol*H(MBPad) > Tdeath => H > {Hc:.4f};  MBPad_crit = {Mc:.5f}")
 print("    ppm   peak COHb   peak LPO   peak MBPad   /crit   Tcell   Demy   Cog    DNS")
-for ppm in [700, 1100, 1500, 1900, 2300, 2700, 3200, 4000]:
-    p, t, y, F = run(ppm, 60, npt=2000, **MASK)
-    q = Q(t, y, F)
+for ppm in [700, 1100, 1500, 1700, 1900, 2300, 3200, 4000]:
+    p, t, y, F = sim(ppm, 60, **MASK); q = Q(t, y, F)
     print(f"  {ppm:5.0f}   {q['COHb']:7.1f}%   {q['LPO']:8.2f}   {q['MBP']:9.3f}  "
           f"{q['MBP']/Mc:6.2f}x  {q['Tc']:6.3f} {q['Demy']:6.3f} {q['Cog']:6.3f}   "
-          f"{'YES' if q['DNS'] else 'no':>4s}")
-print("  -> within one patient the response is a STEP, not a gradient.  The graded incidence")
-print("     seen in cohorts must therefore come from between-patient variation in where the")
-print("     step sits, which is testable and is simulated next.")
+          f"{'YES' if q['Demy']>0.05 else 'no':>4s}")
 
+
+
+# =============================================================================
+# VIRTUAL POPULATION (RESULT C).  This block dominates the runtime:
+# 150 subjects x 90-day horizon x 7 arms.
+# =============================================================================
 # ---------------------------------------------------------------- virtual population
 print("\n" + "="*80)
 print("RESULT C.  Virtual population: the clinical incidence curve is a threshold DISTRIBUTION")
@@ -544,113 +688,96 @@ def vpop(ppm, mins, n=N, **kw):
             CBF0    = float(np.clip(rng.normal(50, 7), 32, 68)),
             kXOon   = float(p0['kXOon']*np.exp(rng.normal(0, 0.30))),
         )
-        p, t, y, F = run(ppm, mins, tend=90*D, npt=700, **kv, **kw)
+        p, t, y, F = sim(ppm, mins, tend=90*D, npt=700, **kv, **kw)
         hits += int(y[24, -1] > 0.05); cogs.append(y[34, -1])
     return 100.0*hits/n, float(np.mean(cogs))
 print("   exposure           n    DNS incidence   mean cognitive score at 90 d")
-for lab, ppm, mins in [("mild  (COHb 10%)", EXP['mild'][0], 60),
-                       ("moderate (COHb 25%)", ppmM, minM),
-                       ("severe  (COHb 40%)", ppmS, minS),
-                       ("critical (COHb 55%)", ppmC, minC)]:
+for lab, ppm, mins in [("mild  (COHb 10%)", PPM['mild'][0], 60),
+                       ("moderate (COHb 25%)", PPM['moderate'][0], 60),
+                       ("severe  (COHb 40%)", PPM_S, 60),
+                       ("critical (COHb 55%)", PPM_C, 45)]:
     inc, cg = vpop(ppm, mins, **MASK)
     print(f"   {lab:20s} {N:4d}   {inc:8.1f}%        {cg:.3f}")
 print("  observed: DNS in 10-40% of symptomatic patients (Weaver 2007; Pepe 2011; Choi 1983)")
 print("\n   same populations, with early HBO x3:")
-for lab, ppm, mins in [("moderate (COHb 25%)", ppmM, minM), ("severe  (COHb 40%)", ppmS, minS),
-                       ("critical (COHb 55%)", ppmC, minC)]:
+for lab, ppm, mins in [("moderate (COHb 25%)", PPM['moderate'][0], 60), ("severe  (COHb 40%)", PPM_S, 60),
+                       ("critical (COHb 55%)", PPM_C, 45)]:
     inc, cg = vpop(ppm, mins, to2_start=90., to2_stop=90+2880.,
                    thbo_start=120., ATA=3.0, nhbo=3)
     print(f"   {lab:20s} {N:4d}   {inc:8.1f}%        {cg:.3f}")
 
-# ---------------------------------------------------------------- HBO window
 print("\n" + "="*80)
-print("RESULT D.  The HBO window is set by the adduct, not by the carboxyhaemoglobin")
+print("RESULT D.  The HBO window is set by the adduct, not the carboxyhaemoglobin")
 print("="*80)
-pB, tB, yB, FB = run(ppmC, minC, to2_start=60., to2_stop=60+2880.)
-qB = Q(tB, yB, FB)
-print(f"   {'HBO start':>11s} {'COHb then':>10s} {'peak MBPad':>11s} {'Demy':>7s} {'Cog':>7s} {'recovered':>10s}")
-print(f"   {'none':>11s} {'-':>10s} {qB['MBP']:11.3f} {qB['Demy']:7.3f} {qB['Cog']:7.3f} {'--':>10s}")
-for th in [65, 90, 120, 180, 240, 360, 480, 720, 1080, 1440, 2160]:
-    p, t, y, F = run(ppmC, minC, to2_start=60., to2_stop=60+2880.,
+p, t, y, F = sim(PPM_C, 45, to2_start=60., to2_stop=60+2880.); qb = Q(t, y, F)
+print(f"   {'HBO start':>11s} {'COHb then':>10s} {'peak MBPad':>11s} {'Demy':>7s} {'Cog':>7s}")
+print(f"   {'none':>11s} {'-':>10s} {qb['MBP']:11.3f} {qb['Demy']:7.3f} {qb['Cog']:7.3f}")
+for th in [65, 90, 120, 150, 180, 210, 240, 300, 360, 480, 720, 1440]:
+    p, t, y, F = sim(PPM_C, 45, to2_start=60., to2_stop=60+2880.,
                      thbo_start=float(th), ATA=3.0, nhbo=3)
     q = Q(t, y, F)
-    rec = 100*(q['Cog']-qB['Cog'])/max(1e-9, 1-qB['Cog'])
-    print(f"   {th:8.0f} min {100*np.interp(th,t,F):9.1f}% {q['MBP']:11.3f} {q['Demy']:7.3f}"
-          f" {q['Cog']:7.3f} {rec:9.1f}%")
-print("  -> the benefit is nearly maximal at 1 h, has halved by ~6-8 h and is gone by ~24 h,")
-print("     while COHb at the moment of treatment is already <5% for every arm beyond 6 h.")
-print("     Weaver 2002 gave the first session at a median ~4 h (positive); Scheinkestel 1999")
-print("     treated after ICU stabilisation, frequently >12 h (null).  Same drug, opposite")
-print("     sides of a window the trials did not know they were straddling.")
+    print(f"   {th:8.0f} min {100*np.interp(th,t,F):9.1f}% {q['MBP']:11.3f} "
+          f"{q['Demy']:7.3f} {q['Cog']:7.3f}")
 
-# ---------------------------------------------------------------- HBO mechanism split
 print("\n" + "="*80)
-print("RESULT E.  Which of HBO's actions carries the benefit?")
+print("RESULT E.  HBO's actions are REDUNDANT, not additive")
 print("="*80)
 base = dict(to2_start=60., to2_stop=60+2880., thbo_start=90., ATA=3.0, nhbo=3)
-p, t, y, F = run(ppmC, minC, npt=1500, to2_start=60., to2_stop=60+2880.); qn = Q(t, y, F)
-p, t, y, F = run(ppmC, minC, npt=1500, **base); qf = Q(t, y, F)
-span = qf['Cog'] - qn['Cog']
-print(f"   normobaric oxygen only                      Cog {qn['Cog']:.3f}  MBPad {qn['MBP']:.3f}")
-print(f"   full HBO x3 at 3.0 ATA from 90 min          Cog {qf['Cog']:.3f}  MBPad {qf['MBP']:.3f}"
-      f"   (benefit span {span:+.3f})")
-for lab, kw in [("HBO with the anti-adhesion action REMOVED", dict(hbo_adh=0.0)),
-                ("HBO at 1.35 ATA (adhesion kept, little extra O2)", dict(ATA=1.35)),
-                ("HBO at 1.35 ATA AND no anti-adhesion", dict(ATA=1.35, hbo_adh=0.0)),
-                ("HBO x1 instead of x3", dict(nhbo=1)),
-                ("HBO x6 instead of x3", dict(nhbo=6))]:
+p, t, y, F = sim(PPM_C, 45, to2_start=60., to2_stop=60+2880.); qn = Q(t, y, F)
+print(f"   normobaric oxygen only                        Cog {qn['Cog']:.3f}  MBPad {qn['MBP']:.3f}")
+for lab, kw in [("full HBO x3 at 3.0 ATA", {}),
+                ("3.0 ATA, anti-adhesion action REMOVED", dict(hbo_adh=0.0)),
+                ("1.35 ATA, anti-adhesion KEPT", dict(ATA=1.35)),
+                ("1.35 ATA AND no anti-adhesion", dict(ATA=1.35, hbo_adh=0.0)),
+                ("2.0 ATA", dict(ATA=2.0)),
+                ("x1 session instead of x3", dict(nhbo=1)),
+                ("x6 sessions instead of x3", dict(nhbo=6))]:
     kk = dict(base); kk.update(kw)
-    p, t, y, F = run(ppmC, minC, npt=1500, **kk); q = Q(t, y, F)
-    frac = 100*(q['Cog']-qn['Cog'])/span if abs(span) > 1e-9 else float('nan')
-    print(f"   {lab:44s} Cog {q['Cog']:.3f}  MBPad {q['MBP']:.3f}   {frac:5.1f}% of full effect")
-print("  -> the anti-adhesion action, which is neither CO clearance nor oxygen delivery,")
-print("     carries most of the benefit; a chamber at 1.35 ATA keeps it.")
+    p, t, y, F = sim(PPM_C, 45, **kk); q = Q(t, y, F)
+    print(f"   {lab:45s} Cog {q['Cog']:.3f}  MBPad {q['MBP']:.3f}")
+print("  -> either action alone is SUFFICIENT; only removing both loses the benefit.")
+print("     Session number is irrelevant in the model: x1 = x3 = x6.")
 
-# ---------------------------------------------------------------- fire smoke
 print("\n" + "="*80)
 print("RESULT F.  Fire smoke: CO and cyanide converge on the SAME enzyme")
 print("="*80)
-print("   arm                                  CcO_CO%  CcO_tot%  ATPb   Lac   Demy   Cog")
-for lab, kw in [("CO alone (COHb 30%)",              dict(CN_dose=0.0)),
-                ("CN alone (100 uM/25 min)",         dict(CN_dose=100.0)),
-                ("CO + CN (fire smoke)",             dict(CN_dose=100.0)),
-                ("CO + CN + hydroxocobalamin 5 g",   dict(CN_dose=100.0, ohc=1)),
-                ("CO + CN + HBO only",               dict(CN_dose=100.0, hbo=1))]:
-    ppm = 0.0 if lab.startswith("CN alone") else ppm_for(0.30, 60)
-    kk = dict(to2_start=90., to2_stop=90+1440.)
-    if kw.pop('ohc', 0): pass
-    if kw.pop('hbo', 0): kk.update(thbo_start=120., ATA=3.0, nhbo=3)
-    doses = [(95.0, 38, 5.0e3/1355.0*1e3/18.0)] if "hydroxocobalamin" in lab else None
-    p2 = C.P(ppm_fix=ppm, texp=60, **kk, **kw)
-    t, y = C.run(p2, tend=90*D, npt=2000, doses=doses)
-    F = np.array([C.cohb(y[:, i], p2) for i in range(y.shape[1])])
-    cn_inh = (y[37].max()/(y[37].max()+p2['Kc_cn'])) if y[37].max() > 0 else 0.0
-    tot = 1-(1-y[8].max())*(1-cn_inh)
-    print(f"   {lab:36s} {100*y[8].max():7.1f} {100*tot:9.1f} {y[10].min():6.3f}"
-          f" {y[12].max():5.1f} {y[24,-1]:6.3f} {y[34,-1]:6.3f}")
-print("  -> CO and CN occupy the same terminal oxidase, so their effects compose on ONE axis")
-print("     (1-(1-fCO)(1-fCN)) and each looks like the other at the bedside -- yet the")
-print("     antidotes share nothing: oxygen cannot displace cyanide and cobalamin cannot")
-print("     displace CO.  A lactate that will not fall on 100% O2 is the discriminator.")
+print("   arm                                      CcO_CO% CcO_tot% ATPb   Lac   MBPad   Cog")
+for lab, ppm, cn, extra, dose in [
+   ("CO alone (COHb ~30%)",           1700., 0.0, {}, None),
+   ("CN alone (2 uM/min x 25 min)",      0., 2.0, {}, None),
+   ("CO + CN (fire smoke)",           1700., 2.0, {}, None),
+   ("CO + CN + OHCbl 5 g at 5 min",   1700., 2.0, {}, (5.0, 38, 205.0)),
+   ("CO + CN + OHCbl 5 g at 25 min",  1700., 2.0, {}, (25.0, 38, 205.0)),
+   ("CO + CN + OHCbl 5 g at 50 min",  1700., 2.0, {}, (50.0, 38, 205.0)),
+   ("CO + CN + early HBO x3 (no OHCbl)", 1700., 2.0,
+        dict(thbo_start=120., ATA=3.0, nhbo=3), None)]:
+    kk = dict(to2_start=90., to2_stop=90+1440.); kk.update(extra)
+    p, t, y, F = sim(ppm, 60, CN_rate=cn, doses=[dose] if dose else None, **kk)
+    ct = y[37].max(); fcn = ct/(ct + p['Kc_cn'])
+    tot = 1-(1-y[8].max())*(1-fcn)
+    print(f"   {lab:40s} {100*y[8].max():7.1f} {100*tot:8.1f} {y[10].min():5.3f} "
+          f"{y[12].max():5.1f} {y[21].max():6.3f} {y[34,-1]:6.3f}")
+print("  -> the occupancies compose on ONE axis, 1-(1-fCO)(1-fCN).  Oxygen cannot displace")
+print("     cyanide and cobalamin cannot displace CO, and the antidote's value collapses")
+print("     with delay: full at 5 min, none by 50.")
 
-# ---------------------------------------------------------------- sensitivity
 print("\n" + "="*80)
-print("RESULT G.  Sensitivity of the 45-day cognitive score (severe, O2 mask)")
+print("RESULT G.  Sensitivity of the 90-day cognitive score (severe, O2 mask)")
 print("="*80)
-p, t, y, F = run(ppmS, minS, npt=1200, **MASK); ref = Q(t, y, F)['Cog']
+p, t, y, F = sim(PPM_S, 60, **MASK); ref = Q(t, y, F)['Cog']
 sens = []
 for k in ['kappa','kon_cco','koff_cco','Kc','Ko','ATPthr','kXOon','kROS','kadh','kMPO',
           'kLPO','kAd','kSpread','kAdClr','theta','Tprol','Tdeath','kDemy','Hb','VA',
-          'DL','MHald','f_wshed','Km_o2','CBF0','hbo_adh','CMRO2','kRepair']:
-    v = p0[k]
-    out = []
+          'DL','MHald','f_wshed','Km_o2','CBF0','hbo_adh','CMRO2','kRepair','shunt']:
+    v = p0[k]; o = []
     for f in (0.8, 1.25):
-        pp, tt, yy, FF = run(ppmS, minS, npt=1000, **{k: v*f}, **MASK)
-        out.append(Q(tt, yy, FF)['Cog'])
-    sens.append((k, abs(out[1]-out[0])/max(1e-9, abs(ref)), out[0], out[1]))
+        pp, tt, yy, FF = sim(PPM_S, 60, npt=600, **{k: v*f}, **MASK)
+        o.append(Q(tt, yy, FF)['Cog'])
+    sens.append((k, abs(o[1]-o[0])/max(1e-9, abs(ref)), o[0], o[1]))
 sens.sort(key=lambda z: -z[1])
 print(f"   {'parameter':12s} {'|dCog|/Cog':>11s}   {'-20%':>7s} {'+25%':>7s}")
-for k, s, lo, hi in sens[:16]:
+for k, s, lo, hi in sens[:18]:
     print(f"   {k:12s} {s:11.4f}   {lo:7.3f} {hi:7.3f}")
 print(f"   (reference Cog = {ref:.3f})")
-print("  -> the top of the list is the ADDUCT/immune arm, not the CO pharmacokinetics.")
+zero = [k for k, s, _, _ in sens if s < 1e-6]
+print(f"   no influence on the 90-day score: {', '.join(zero) if zero else 'none'}")

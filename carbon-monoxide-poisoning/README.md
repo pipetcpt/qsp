@@ -19,7 +19,7 @@ that reached opposite conclusions.
 The model is 45 ODEs coupling a Coburn–Forster–Kane pulmonary mass balance to a
 bistable autoimmune demyelination switch. Every equation was implemented twice —
 once in `co_mrgsolve_model.R` and once, independently, in Python/scipy — and the
-cross-check found and fixed six defects, listed at the end.
+cross-check found and fixed nine defects, listed at the end.
 
 ---
 
@@ -136,15 +136,15 @@ treated with a mask, the pools separate cleanly:
 
 | pool | t(50% of peak) | t(10% of peak) |
 |---|---|---|
-| COHb — *the measured one* | 173 min | 389 min |
-| brain tissue CO | 173 min | 389 min |
-| cardiac myoglobin-CO | 259 min | 562 min |
-| skeletal muscle CO | 648 min | 6093 min |
-| **brain cytochrome c oxidase** | **778 min** | **7519 min** |
+| COHb — *the measured one* | 153 min | 366 min |
+| brain tissue CO | 168 min | 383 min |
+| cardiac myoglobin-CO | 237 min | 533 min |
+| skeletal muscle CO | 620 min | 6075 min |
+| **brain cytochrome c oxidase** | **750 min** | **7580 min** |
 
-COHb reaches the "normal" 5% at **346 min (5.8 h)**. At that moment brain
-cytochrome c oxidase is still **19.9% CO-inhibited**, and it does not reach 10%
-of its own peak until **7519 min (5.2 days)** — 19× later than COHb does.
+COHb reaches the "normal" 5% at **333 min (5.5 h)**. At that moment brain
+cytochrome c oxidase is still **20.3% CO-inhibited**, and it does not reach 10%
+of its own peak until **7580 min (5.3 days)** — **20.7× later** than COHb does.
 (It never reaches 5% of peak, because the endogenous CO occupancy of the enzyme
 is itself about 1%, which is roughly 5% of the poisoned peak: the floor is
 physiological, not a numerical artefact.) **The instrument that decides
@@ -180,17 +180,22 @@ the threshold the loop **latches**. Below it, the transient adduct decays and th
 clone contracts to its naive frequency.
 
 The dose-response within one patient is consequently a **step**, and the model
-puts it between COHb 26% and 33% for a 1-hour exposure treated promptly with a
-mask:
+puts it between COHb 30% and 33% for a 1-hour exposure treated promptly with a
+mask. Note the 1700 ppm row: the adduct peak is 1.11× the threshold and there is
+still no DNS — so it is not the *peak* that decides but the **time spent above
+the threshold**, i.e. whether the primed clone can outrun antigen clearance. The
+separatrix lives in the (peak × duration) plane, and `MBPad_crit` is a necessary
+but not sufficient condition:
 
 | ambient CO | peak COHb | peak MBPad | ÷ threshold | clone | demyelination | cognitive | DNS |
 |---|---|---|---|---|---|---|---|
-| 700 ppm | 12.7% | 0.024 | 0.05× | 0.004 | 0.000 | 1.000 | no |
-| 1100 | 19.5% | 0.078 | 0.18× | 0.004 | 0.000 | 1.000 | no |
-| 1500 | 26.3% | 0.368 | 0.83× | 0.006 | 0.000 | 1.000 | no |
-| **1900** | **32.9%** | **0.833** | **1.88×** | **0.517** | **0.495** | **0.693** | **YES** |
-| 2300 | 39.5% | 0.833 | 1.88× | 0.517 | 0.495 | 0.693 | YES |
-| 3200 | 53.7% | 0.833 | 1.88× | 0.517 | 0.495 | 0.693 | YES |
+| 700 ppm | 12.8% | 0.024 | 0.05× | 0.004 | 0.000 | 1.000 | no |
+| 1100 | 19.7% | 0.078 | 0.18× | 0.004 | 0.000 | 1.000 | no |
+| 1500 | 26.6% | 0.368 | 0.83× | 0.006 | 0.000 | 1.000 | no |
+| 1700 | 30.0% | 0.492 | 1.11× | 0.025 | 0.000 | 1.000 | no |
+| **1900** | **33.3%** | **0.833** | **1.88×** | **0.517** | **0.495** | **0.693** | **YES** |
+| 2300 | 40.0% | 0.833 | 1.88× | 0.517 | 0.495 | 0.693 | YES |
+| 3200 | 54.7% | 0.833 | 1.88× | 0.517 | 0.495 | 0.693 | YES |
 
 Note that every latched arm lands on the *same* attractor — 0.495 demyelination,
 0.693 cognitive score — regardless of how much CO was inhaled. Severity above the
@@ -219,19 +224,62 @@ moving the threshold at all — which is how the latency was fixed.
 This is the model's sharpest testable claim. Because the switch is bistable,
 **no individual has a graded dose-response** — a patient either latches or does
 not. The graded incidence seen in cohorts therefore cannot be a within-patient
-dose-response; it must be between-patient variation in *where the step sits*. A
-virtual population varying haemoglobin, ventilation, adduct-formation gain, clone
-proliferation, terminal-oxidase sensitivity, cerebral flow reserve and xanthine
-oxidase conversion reproduces incidences in the reported 10–40% band, and the
-scatter of individual outcomes against the computed threshold is bimodal, not
-continuous (see RESULT C, and tab 11 of the Shiny app).
+dose-response; it must be between-patient variation in *where the step sits*.
+
+A virtual population of 150 (varying haemoglobin, alveolar ventilation,
+adduct-formation gain, clone proliferation, terminal-oxidase sensitivity,
+cerebral flow reserve and xanthine oxidase conversion), all treated with a mask:
+
+| exposure | DNS incidence | mean cognitive score at 90 d |
+|---|---|---|
+| mild (COHb 10%) | 8.7% | 0.967 |
+| moderate (COHb 25%) | **28.7%** | 0.903 |
+| severe (COHb 40%) | 75.3% | 0.754 |
+| critical (COHb 55%) | 96.0% | 0.669 |
+
+The same populations given early hyperbaric oxygen:
+
+| exposure | DNS, mask only | DNS, early HBO ×3 | mean cognitive score |
+|---|---|---|---|
+| moderate (COHb 25%) | 28.7% | **5.3%** | 0.980 |
+| severe (COHb 40%) | 75.3% | **23.3%** | 0.921 |
+
+**This is a partial calibration success, and the pattern of the miss is
+informative.** Against Weaver 2002 — 46% cognitive sequelae at six weeks with
+normobaric oxygen, 25% with hyperbaric — the model's **treated** arm is nearly
+exact (23.3% against 25%) while its **untreated** arm badly over-predicts (75.3%
+against 46%). So the model is not simply over-sensitive everywhere: it gets the
+floor right and the ceiling wrong. **The switch is too easy to cross at high dose
+in the absence of treatment**, which inflates the apparent treatment effect (69%
+relative reduction against an observed 46%) even though the post-treatment rate
+is right.
+
+The mild arm (8.7%) and moderate arm (28.7%) both sit inside the reported 10–40%
+band; the critical arm's 96% is not credible. No attempt has been made to tune
+this away by widening the population variability until the numbers matched.
 
 ### 7. Why the hyperbaric trials disagree: the window is the adduct, not the carboxyhaemoglobin
 
 The benefit of hyperbaric oxygen in the model decays on the timescale of adduct
-formation — near-maximal within the first hour or two, roughly halved by 6–8 h,
-gone by 24 h. **Carboxyhaemoglobin is already below 5% in every arm beyond about
-6 h**, so it cannot be what the window is tracking.
+formation, and because the outcome is bistable the decay presents as a **cliff**:
+
+| first session at | COHb then | peak MBPad | demyelination | cognitive |
+|---|---|---|---|---|
+| none | – | 0.833 | 0.495 | 0.693 |
+| 65 min | 48.3% | 0.282 | 0.000 | **1.000** |
+| 120 min | 26.4% | 0.493 | 0.000 | **1.000** |
+| 180 min | 15.6% | 0.563 | 0.002 | **0.999** |
+| **210 min** | **12.2%** | **0.833** | **0.495** | **0.693** |
+| 360 min | 4.1% | 0.833 | 0.495 | 0.693 |
+| 1440 min | 0.5% | 0.833 | 0.495 | 0.693 |
+
+Full benefit up to about 3 hours, none at all from 3.5 hours onward. Two things
+about that table matter more than the cliff's exact position. First, **the COHb
+column runs the wrong way**: it is *highest* (48.3%) in the arm that works best
+and already below 5% in every arm that fails, so carboxyhaemoglobin cannot be
+what the window is tracking. Second, the model's window is *narrower* than the
+6-hour figure in practice guidelines — bistable systems give sharp edges, and the
+real edge is presumably blurred by the between-patient variation in result 6.
 
 That is a structural account of a famous discordance. Weaver 2002 delivered the
 first session at a median of roughly 4 h and gave three within 24 h: positive.
@@ -241,17 +289,29 @@ straddling. The model does not settle whether hyperbaric oxygen works — it
 offers a reason why two competent trials would disagree, which is a hypothesis
 about the trials rather than evidence about the therapy.
 
-The model also separates hyperbaric oxygen's three actions, which is worth doing
-because they have different windows:
+The model also separates hyperbaric oxygen's three actions:
 
 1. faster CO clearance — small, early, and capped by the floor in result 1;
 2. dissolved oxygen covering demand outright — instant, and the mechanism in result 2;
-3. **direct blockade of β2-integrin neutrophil adhesion** — neither CO clearance
-   nor oxygen delivery, persisting for hours after the patient leaves the
-   chamber, and in the model the action that carries most of the benefit.
+3. direct blockade of β2-integrin neutrophil adhesion — neither CO clearance nor
+   oxygen delivery, persisting for hours after the patient leaves the chamber.
 
-If (3) dominates, a low-pressure chamber should retain most of the effect —
-which the model predicts and which is testable.
+Knocking these out one at a time gives a result that **contradicted what the
+author expected**, and the expectation was wrong rather than the model:
+**the actions are redundant, not additive.** At 3.0 ATA, deleting the
+anti-adhesion action entirely still prevents delayed sequelae (adduct peak rises
+from 0.423 to 0.513, outcome unchanged). At 1.35 ATA — barely any extra dissolved
+oxygen — keeping the anti-adhesion action still prevents them (0.542). Only
+removing *both* fails (0.833, full latch). Either mechanism alone is sufficient,
+which is why 2.0 ATA works as well as 3.0 and why the effect is robust to which
+of the two you believe in.
+
+The same sweep says something awkward about protocol: **session number makes no
+difference at all** — one session, three and six give identical outcomes and
+adduct peaks agreeing to three decimals. The Weaver protocol's three sessions
+have no rationale inside this model. Either the model is missing whatever the
+repeat sessions do, or they do nothing; the model cannot tell which, but it does
+make the question sharp.
 
 ### 8. The monitor becomes more reassuring as the patient becomes more poisoned
 
@@ -294,11 +354,30 @@ one place where prolonging normobaric oxygen past COHb clearance is not futile.
 ### 10. Fire smoke: two toxins on one axis, two antidotes with nothing in common
 
 Cyanide inhibits the same terminal oxidase, so the occupancies compose on a
-single axis, `f_total = 1 − (1 − f_CO)(1 − f_CN)`, and the two poisonings are
-close to indistinguishable at the bedside. Their treatments share nothing:
-oxygen cannot displace cyanide and hydroxocobalamin cannot displace carbon
-monoxide. A lactate that will not fall on 100% oxygen is the discriminator, and
-in the model it is the only one.
+single axis, `f_total = 1 − (1 − f_CO)(1 − f_CN)`:
+
+| arm | CcO from CO | CcO total | ATP brain | lactate | MBPad | cognitive |
+|---|---|---|---|---|---|---|
+| CO alone (COHb 30%) | 16.3% | 16.3% | 0.835 | 4.6 | 0.467 | **1.000** |
+| CN alone | 3.1% | 66.8% | 0.351 | 18.1 | 0.833 | 0.684 |
+| **CO + CN (fire smoke)** | 16.3% | **71.3%** | 0.318 | 20.0 | 0.833 | 0.669 |
+| + hydroxocobalamin at 5 min | 16.3% | **24.0%** | 0.819 | 4.8 | 0.495 | **1.000** |
+| + hydroxocobalamin at 25 min | 16.3% | 65.6% | 0.439 | 13.8 | 0.833 | 0.693 |
+| + hydroxocobalamin at 50 min | 16.3% | 71.3% | 0.320 | 18.5 | 0.833 | 0.677 |
+| **+ early HBO ×3, no cobalamin** | 12.8% | **70.1%** | 0.318 | 20.0 | 0.833 | **0.669** |
+
+The last row is the one that matters. **Early hyperbaric oxygen — the
+intervention that prevents delayed sequelae in every pure-CO arm in this
+model — does nothing at all here** (0.669, identical to no treatment), because it
+addresses the 16% of the enzyme that CO is holding and cannot touch the 67% that
+cyanide is. Conversely cobalamin, which rescues completely at 5 minutes, cannot
+displace carbon monoxide. The two antidotes are not interchangeable and not
+additive; each is useless against the other's ligand, while the bedside picture
+is nearly the same. A lactate of 20 that will not fall on 100% oxygen is the
+discriminator, and in the model it is the only one.
+
+Note also how fast the cobalamin window closes: complete rescue at 5 minutes,
+none by 50. Like everything else in this disease, it is decided early.
 
 ### 11. Hyperventilation buys pharmacokinetics and pays in perfusion
 
@@ -310,46 +389,82 @@ delivery. The escape is to decouple them: carbogen raises V̇_A while clamping
 PaCO₂ with inspired CO₂, which converts the trade-off into a gain (scenario 06
 against scenario 05).
 
+### 12. The long-term outcome is almost completely insensitive to the CO pharmacokinetics
+
+Perturbing each parameter by ±20/25% and reading the 90-day cognitive score:
+
+| parameter | \|ΔCog\|/Cog | −20% | +25% | what it is |
+|---|---|---|---|---|
+| `ATPthr` | **0.574** | 1.000 | 0.602 | energy reserve before the cascade ignites |
+| `theta` | **0.446** | 0.690 | 0.999 | tolerance threshold for clonal expansion |
+| `Hb` | **0.442** | 0.693 | 0.999 | haemoglobin |
+| `kRepair` | 0.101 | 0.658 | 0.728 | remyelination |
+| `Tprol` / `Tdeath` | 0.099 | — | — | clone kinetics |
+| `kDemy` | 0.077 | 0.719 | 0.666 | demyelination rate |
+| `kAdClr`, `kSpread` | 0.002 | — | — | adduct clearance, epitope spreading |
+| `kon_cco`, `Kc`, `Ko`, `kappa`, `MHald`, `koff_cco` | **0.0002** | 0.693 | 0.693 | **the entire CO pharmacokinetic block** |
+| `f_wshed`, `hbo_adh` | **0** | — | — | no influence at all |
+
+Every parameter governing how carbon monoxide is taken up, distributed, bound and
+eliminated — including the Haldane ratio itself — moves the 90-day cognitive
+score by 0.02%. The parameters that matter are the energy-failure threshold, the
+immunological tolerance threshold, and haemoglobin.
+
+This needs one honest caveat: because the outcome is bistable, these derivatives
+mostly measure *whether a parameter flips the switch*, and the reference arm is
+already latched. So the correct reading is not "CO kinetics are unimportant in
+CO poisoning" — they set the troponin, the lactate and the rhabdomyolysis, as the
+scenario table shows. It is that **once the switch has been crossed, the
+pharmacokinetics no longer have any purchase on the neurological outcome**, which
+is the same conclusion as results 7 and 11 arrived at from different directions.
+It also means the model's most consequential parameters are the two least
+constrained by data — stated plainly in the limits below.
+
 ---
 
 ## Scenario table
 
 14 arms, from `co_reference_output.txt`. The severe exposure is 2298 ppm × 60 min
-(calibrated peak COHb 40%); the critical exposure is 4198 ppm × 45 min (55%).
-Peak COHb in this table is read off the 90-day output grid and so slightly
-under-reads the true peak; the calibrated values are the authoritative ones.
+and the critical one 4198 ppm × 45 min; both reproduce their calibration targets
+(peak COHb 40.0% and 55.0%) exactly.
 
-| scenario | CcO peak | ATP brain | ATP watershed | lactate | MBPad | demyel. | troponin | CK | cognitive | DNS |
-|---|---|---|---|---|---|---|---|---|---|---|
-| 01 severe, no treatment | 35.0% | 0.616 | 0.597 | 11.8 | 0.946 | 0.495 | 17.3 | 7450 | 0.693 | **YES** |
-| 02 severe, nasal cannula | 19.2% | 0.816 | 0.790 | 5.8 | 0.832 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
-| 03 severe, O₂ mask 6 h | 22.0% | 0.768 | 0.719 | 6.7 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
-| 04 severe, O₂ mask 24 h | 22.0% | 0.768 | 0.719 | 6.7 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
-| 05 severe, intubated + hyperventilation | 22.6% | 0.707 | 0.666 | 8.2 | 0.833 | 0.495 | 1.2 | 100 | 0.693 | **YES** |
-| 06 severe, carbogen 95/5 | 19.9% | 0.763 | 0.713 | 6.0 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
-| 07 severe, HBO ×1 at 2 h, 3.0 ATA | 17.2% | 0.768 | 0.719 | 5.6 | **0.300** | **0.000** | 0.0 | 100 | **1.000** | – |
-| 08 severe, HBO ×3 at 2 h (Weaver) | 17.2% | 0.768 | 0.719 | 5.6 | **0.292** | **0.000** | 0.0 | 100 | **1.000** | – |
-| 09 severe, HBO ×3 delayed to 20 h | 22.0% | 0.768 | 0.719 | 6.7 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
-| 10 severe, HBO ×3 at 2.0 ATA | 17.8% | 0.768 | 0.719 | 5.9 | **0.378** | **0.000** | 0.0 | 100 | **1.000** | – |
-| 11 critical, O₂ mask | 26.7% | 0.731 | 0.706 | 8.4 | 0.833 | 0.495 | 2.7 | 760 | 0.693 | **YES** |
-| 12 critical, HBO ×3 early | 20.8% | 0.738 | 0.706 | 6.7 | **0.423** | **0.000** | 0.4 | 264 | **1.000** | – |
-| 13 severe **+ anaemia Hb 9** | **47.6%** | **0.352** | **0.290** | **14.9** | 0.981 | **0.623** | 13.2 | 916 | **0.592** | **YES** |
-| 14 severe + N-acetylcysteine | 22.0% | 0.762 | 0.714 | 6.7 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
+| scenario | COHb | CcO peak | ATP brain | ATP watershed | lactate | MBPad | demyel. | troponin | CK | cognitive | DNS |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 01 severe, no treatment | 40.0% | 35.0% | 0.616 | 0.597 | 11.8 | 0.946 | 0.495 | 17.4 | 7458 | 0.693 | **YES** |
+| 02 severe, nasal cannula | 40.0% | 27.9% | 0.708 | 0.695 | 9.1 | 0.896 | 0.495 | 5.0 | 2353 | 0.693 | **YES** |
+| 03 severe, O₂ mask 6 h | 40.0% | 22.0% | 0.762 | 0.714 | 6.8 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
+| 04 severe, O₂ mask 24 h | 40.0% | 22.0% | 0.762 | 0.714 | 6.8 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
+| 05 severe, intubated + hyperventilation | 40.0% | 22.7% | 0.705 | 0.656 | 8.3 | 0.833 | 0.495 | 1.3 | 100 | 0.693 | **YES** |
+| 06 severe, carbogen 95/5 | 40.0% | 19.9% | 0.757 | 0.708 | 6.1 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
+| 07 severe, HBO ×1 at 2 h, 3.0 ATA | 40.0% | 18.3% | 0.762 | 0.714 | 5.9 | **0.300** | **0.000** | 0.0 | 100 | **1.000** | – |
+| 08 severe, HBO ×3 at 2 h (Weaver) | 40.0% | 18.3% | 0.762 | 0.714 | 5.9 | **0.292** | **0.000** | 0.0 | 100 | **1.000** | – |
+| 09 severe, HBO ×3 delayed to 20 h | 40.0% | 22.0% | 0.762 | 0.714 | 6.8 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
+| 10 severe, HBO ×3 at 2.0 ATA | 40.0% | 18.3% | 0.762 | 0.714 | 5.9 | **0.378** | **0.000** | 0.0 | 100 | **1.000** | – |
+| 11 critical, O₂ mask | 55.0% | 26.8% | 0.691 | 0.621 | 8.4 | 0.833 | 0.495 | 2.8 | 761 | 0.693 | **YES** |
+| 12 critical, HBO ×3 early | 55.0% | 21.4% | 0.691 | 0.621 | 6.9 | **0.423** | **0.000** | 0.5 | 267 | **1.000** | – |
+| 13 severe **+ anaemia Hb 9** | **60.8%** | **47.7%** | **0.350** | **0.286** | **14.9** | 0.981 | **0.623** | 13.3 | 925 | **0.592** | **YES** |
+| 14 severe + N-acetylcysteine | 40.0% | 22.0% | 0.762 | 0.714 | 6.8 | 0.833 | 0.495 | 0.0 | 100 | 0.693 | **YES** |
 
-Four things in this table are worth reading carefully.
+Five things in this table are worth reading carefully.
 
+- **Oxygen is graded on the acute markers and useless on the neurological one.**
+  Going from nothing (01) to cannula (02) to mask (03) walks CcO inhibition down
+  35.0 → 27.9 → 22.0%, abolishes the troponin rise (17.4 → 5.0 → 0.0) and the
+  rhabdomyolysis (7458 → 2353 → 100), and moves the neurological outcome not at
+  all. Every one of those arms latches to the same 0.693. **That dissociation is
+  the whole model in three rows.**
 - **Arms 03 and 04 are identical.** Extending normobaric oxygen from 6 to 24
   hours changes nothing, because COHb is long gone either way. The one exception
   is pregnancy (result 9), where the fetal compartment is still loaded.
-- **Arm 10 keeps almost the whole effect at 2.0 ATA**, which is what result 7
-  predicts if the anti-adhesion action rather than the pressure is doing the work.
-- **Arm 13 is the worst in the table** despite an unremarkable exposure. Anaemia
-  is the comorbidity the model punishes hardest, and it is the only arm that
-  produces frank necrosis.
-- **Arm 01 is the only arm with myocardial injury and rhabdomyolysis**, and arm 02
-  abolishes both — oxygen is highly effective at the things COHb drives directly,
-  and ineffective at the thing that determines the neurological outcome. That
-  dissociation is the whole model in one row-pair.
+- **Arm 10 keeps the whole effect at 2.0 ATA**, consistent with the redundancy
+  finding in result 7.
+- **Arm 13 is the worst in the table.** The same exposure at Hb 9 reaches COHb
+  60.8% rather than 40.0% — because the same *amount* of CO occupies a larger
+  *fraction* of a smaller haemoglobin pool — and it is the only arm that produces
+  frank necrosis. Anaemia is the comorbidity the model punishes hardest.
+- **Arm 13 is also the only arm where anything moves the demyelination number
+  upward** (0.623 against the universal 0.495). Above the switch, dose stops
+  mattering; only added necrosis makes it worse.
 
 ---
 
@@ -440,11 +555,40 @@ produced confident, wrong results:
    anything reachable, and **N-acetylcysteine's peripheral compartment had the
    wrong volume scaling** in the two-compartment transfer term.
 
-The cross-check also refuted a prior expectation of the author's: hyperbaric
-oxygen's benefit was assumed to come mainly from accelerated CO clearance. The
-floor derivation in result 1 and the mechanism split in result 7 both say it
-does not, and that the anti-adhesion action — the one that is neither clearance
-nor oxygenation — carries most of it.
+Three more were found late, in the *analysis pipeline* rather than the model, and
+they are the most instructive of the set because each produced a plausible number
+rather than an obvious failure:
+
+7. **The fire-smoke scenario had been running with no cyanide in it.** The driver
+   passed `CN_rate` while the Python model read `CN_dose`; the dictionary update
+   silently accepted the unknown key. Every CO+CN arm was numerically identical to
+   CO alone and nobody would have noticed from the output. The fix was to make the
+   parameter constructor **reject unknown keys**, and that check immediately found
+   the next one.
+8. **The "nasal cannula" arm was simulating a different exposure, not a different
+   therapy.** The Python model had no `FiO2_trt` (the treatment oxygen fraction
+   was hard-coded at 0.85) while the R file exposed it as a parameter, so passing
+   `FiO2 = 0.44` changed what the patient breathed *during the poisoning*. The arm
+   showed a lower peak COHb, which looked like a plausible result for a weaker
+   oxygen mask and was in fact a different experiment. `shunt` had drifted the
+   same way — a function default in one implementation, a parameter in the other.
+9. **A uniform output grid was missing every acute peak.** Over a 90-day horizon a
+   uniform grid samples every ~108 minutes, so all "peak" statistics were read off
+   points that straddled the real maximum. This did not merely add noise — it
+   inverted a conclusion, making a well-timed dose of hydroxocobalamin appear to
+   *raise* peak tissue cyanide (11.22 with the drug against 5.57 without), because
+   adding a dose event added grid points that caught more of the comparator's
+   missed peak. The grid is now dense over the first 12 hours. After the fix, the
+   exposure calibration reproduces its targets exactly (10.0 / 25.0 / 40.0 / 55.0%)
+   where it had been reading 37.1% for a 40% target.
+
+The cross-check also **refuted a prior expectation of the author's, twice.**
+Hyperbaric oxygen's benefit was assumed to come mainly from accelerated CO
+clearance; the floor derivation in result 1 says it cannot. It was then assumed to
+come mainly from the anti-adhesion action instead; the mechanism split in result 7
+says that is also wrong, because the two actions are *redundant* — either alone
+suffices and only removing both loses the effect. Both hypotheses were stated
+before the simulations were run, and both were wrong.
 
 ---
 
@@ -456,10 +600,24 @@ nor oxygenation — carries most of it.
 - **The DNS mechanism is a strong commitment to an animal model.** Immune-mediated
   demyelination after CO rests principally on rodent work from one group. If it
   is wrong, results 5–7 go with it.
-- **The tolerance threshold's functional form is invented.** A Hill function with
-  n = 6 gives bistability; the true shape is unknown. The sensitivity analysis
-  shows the 90-day cognitive score depends more on this arm than on the CO
-  pharmacokinetics, which is uncomfortable and honest.
+- **The model's two most influential parameters are its two least constrained.**
+  The sensitivity analysis puts `ATPthr` (the energy reserve before the oxidative
+  cascade ignites) and `theta` (the immunological tolerance threshold) at the top
+  of the list, ahead of haemoglobin and far ahead of every CO pharmacokinetic
+  parameter. Neither has direct experimental support; the Hill exponent of 6 was
+  chosen because it gives bistability, not because the shape is known. Results
+  5–7 and 11 should be read as conditional on these two numbers.
+- **DNS incidence is over-predicted at high dose.** 75.3% at COHb 40% against
+  Weaver's observed 46%, and 96% at COHb 55%. The switch is too easy to cross.
+  The moderate-exposure arm (28.7%) is well calibrated; the severe one is not.
+- **The HBO benefit is over-stated, but only through the control arm.** The
+  treated rate at severe exposure (23.3%) nearly matches Weaver's 25%; the
+  untreated rate (75.3%) over-predicts his 46%, which inflates the relative
+  effect to 69% against an observed 46%.
+- **The therapeutic window is too sharp.** Bistable systems give cliff edges, and
+  the model's is at ~3.5 h against the ~6 h in practice guidelines. The real edge
+  is presumably blurred by between-patient variation the single-subject runs do
+  not show.
 - **N-acetylcysteine, allopurinol and carbogen are hypotheses**, included because
   they are the mechanistically obvious targets, not because human outcome
   evidence supports them.
