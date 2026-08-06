@@ -1,0 +1,407 @@
+/* =====================================================================
+   Bile Acid Diarrhoea / Bile Acid Malabsorption (BAM) — QSP map
+   ---------------------------------------------------------------------
+   ORGANISING IDEA
+   The enterohepatic circulation is a negative-feedback loop whose SENSOR
+   (ileal FXR -> FGF19) measures the ABSORBED flux, while the SYMPTOM is
+   produced by the SPILLED flux.  At steady state, spillage == hepatic
+   synthesis exactly.  Therefore
+
+        colonic bile-acid load  =  S  =  hepatic synthesis rate
+
+   and malabsorption BY ITSELF cannot raise the colonic load.  It raises
+   it only through the feedback it disinhibits.  Two independent lesions
+   are needed to write the disease:
+
+        phi    surviving fraction of ileal ASBT absorptive capacity
+        kappa  gain of the ileal FGF19 sensor
+
+   and the two routine tests read them SEPARATELY:
+        SeHCAT 7-day retention  ->  phi   alone
+        serum C4 / faecal BA    ->  S     (phi AND kappa)
+
+   Every therapy in this map is classified by where it enters:
+        on phi  (ASBT inhibitors -- iatrogenic BAM, the mirror image)
+        on the SENSOR (FXR agonists -- additive, phi-independent)
+        on the LUMINAL LOAD (sequestrants -- but they LOWER the sensor
+                             signal, so their own escape is structural)
+        on TRANSIT (loperamide -- buys colonic absorption time; the
+                    hypothesised positive loop turned out NEGATIVE)
+        on POTENCY (rifaximin -- 7a-dehydroxylation, CA -> DCA)
+
+   Render:  dot -Tsvg bam_qsp_model.dot -o bam_qsp_model.svg
+            dot -Tpng -Gdpi=150 bam_qsp_model.dot -o bam_qsp_model.png
+   ===================================================================== */
+digraph BAM_QSP {
+  rankdir=TB;
+  compound=true;
+  newrank=true;
+  splines=spline;
+  bgcolor="white";
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=30;
+  label=<<B>Bile Acid Diarrhoea / Malabsorption (BAM) — Quantitative Systems Pharmacology Map</B><BR/>
+        <FONT POINT-SIZE="17">a feedback loop that measures what is ABSORBED while the symptom is made by what is SPILLED —<BR/>
+        two lesions (<I>&#966;</I> = ileal ASBT capacity, <I>&#954;</I> = FGF19 sensor gain), two tests (SeHCAT reads <I>&#966;</I>, C4 reads <I>S</I>)</FONT>>;
+  node [fontname="Helvetica", fontsize=11, style="filled,rounded", shape=box,
+        penwidth=1.1, margin="0.07,0.045"];
+  edge [fontname="Helvetica", fontsize=9, color="#5a6472", penwidth=1.0,
+        arrowsize=0.65];
+
+  /* ---------- colour key ----------
+     hepatocyte/synthesis  #ffe0e0    FXR-FGF19 signalling  #d9c9f0
+     gallbladder/biliary   #f6e2a8    small bowel lumen     #cfe8d4
+     ileal enterocyte      #d8f0d8    portal/systemic       #d9ecf7
+     colon lumen/microbe   #e2d5c3    colonocyte secretion  #ffd9b3
+     drug                  #c9e6ff    endpoint              #ffcc99
+     diagnostic            #e0f0d8    adverse               #f2c4d8
+     aetiology/lesion      #f0d0f0
+     -------------------------------- */
+
+  /* ================== 1. AETIOLOGY — the two lesion axes ============== */
+  subgraph cluster_aeti {
+    label=<<B>1 · Aetiology — every cause is a way of writing &#966; or &#954; (or neither)</B>>;
+    style="filled,rounded"; fillcolor="#fdf3fd"; color="#a05aa0"; fontsize=15; penwidth=2;
+    node [fillcolor="#f0d0f0"];
+    RESECT   [label="ileal resection\n(Crohn, tumour, trauma)\nφ = exp(-L/60 cm)"];
+    CROHN    [label="ileal Crohn disease\nmucosal ASBT loss\nφ 0.2-0.5, ENTMASS ↓"];
+    RADIAT   [label="pelvic radiation ileitis\nφ ↓, microbiome shift"];
+    BYPASS   [label="ileal bypass / pouch\nφ ↓↓"];
+    IDIO     [label="TYPE 2 — idiopathic\n(primary) BAD\nileum INTACT: φ ≈ 1\nκ ↓ (low fasting FGF19)"];
+    KLB      [label="KLB / FGFR4 variants\nhepatic resistance to FGF19\n= functional κ ↓"];
+    CHOLE    [label="TYPE 3 — cholecystectomy\nno storage: continuous\ndelivery, cycles ↑"];
+    SIBO     [label="small-bowel bacterial\novergrowth: premature\ndeconjugation, φ_eff ↓"];
+    CELIAC   [label="coeliac / microscopic colitis\nmucosal + transit lesion"];
+    CPANC    [label="chronic pancreatitis\nlipase loss → FFA load\n(potentiates, φ normal)"];
+    METF     [label="TYPE 4 — metformin\nASBT interference +\nmicrobiome shift"];
+    VAGOT    [label="vagotomy / gastric surgery\nmotility + emptying lesion"];
+    ASBTMUT  [label="SLC10A2 (ASBT) variants\nprimary BA malabsorption\nφ ↓↓ (rare, paediatric)"];
+    RESECT -> PHI; CROHN -> PHI; RADIAT -> PHI; BYPASS -> PHI;
+    ASBTMUT -> PHI; METF -> PHI; SIBO -> PHI; CELIAC -> PHI;
+    IDIO -> KAPPA; KLB -> KAPPA;
+  }
+
+  PHI   [label=<<B>&#966;</B>  surviving ileal<BR/>ASBT capacity  (0-1)>,
+         fillcolor="#e8b0e8", shape=octagon, fontsize=14, penwidth=2.2];
+  KAPPA [label=<<B>&#954;</B>  ileal FGF19<BR/>sensor gain  (0-1)>,
+         fillcolor="#c9a8ea", shape=octagon, fontsize=14, penwidth=2.2];
+
+  /* ================== 2. HEPATIC SYNTHESIS =========================== */
+  subgraph cluster_liver {
+    label=<<B>2 · Hepatocyte — the classical and alternative synthesis pathways</B>>;
+    style="filled,rounded"; fillcolor="#fff5f5"; color="#c47070"; fontsize=15; penwidth=2;
+    node [fillcolor="#ffe0e0"];
+    CHOL     [label="hepatic cholesterol\n(free pool, SREBP-2 controlled)"];
+    CYP7A1   [label="CYP7A1\ncholesterol 7α-hydroxylase\nRATE-LIMITING · t½ ≈ 4 h\nstrong circadian rhythm"];
+    CYP8B1   [label="CYP8B1\nsterol 12α-hydroxylase\nsets CA : CDCA ratio"];
+    CYP27A1  [label="CYP27A1\nsterol 27-hydroxylase\n(alternative pathway)"];
+    CYP7B1   [label="CYP7B1\noxysterol 7α-hydroxylase"];
+    HSD3B7   [label="HSD3B7 · AKR1D1 · AKR1C4\nring modification"];
+    BACS     [label="BACS (SLC27A5) + BAAT\ntaurine / glycine conjugation\n(G:T ≈ 3:1 in humans)"];
+    CAsyn    [label="cholic acid (CA)\ntri-OH · weak secretagogue"];
+    CDCAsyn  [label="chenodeoxycholic acid (CDCA)\ndi-OH · strong secretagogue\nmost potent natural FXR ligand"];
+    SPOOL    [label=<<B>S</B> = hepatic synthesis flux<BR/>normal ≈ 700 &#181;mol/day (0.35 g/d)<BR/><B>ceiling &#8776; 6 &#215; basal</B>>,
+              fillcolor="#f7b8b8", shape=box, penwidth=2];
+    BSEP     [label="BSEP (ABCB11)\ncanalicular export"];
+    NTCP     [label="NTCP (SLC10A1)\nsinusoidal re-uptake"];
+    OATP     [label="OATP1B1 / 1B3\nNa-independent uptake"];
+    MRP3     [label="MRP3 / MRP4 / OSTαβ\nbasolateral efflux (overflow)"];
+    LDLR     [label="LDL receptor\n(SREBP-2 driven)"];
+    CHOL -> CYP7A1 -> HSD3B7 -> BACS;
+    CYP7A1 -> CYP8B1 [style=dotted, label="branch"];
+    CHOL -> CYP27A1 -> CYP7B1 -> HSD3B7;
+    CYP8B1 -> CAsyn; HSD3B7 -> CDCAsyn;
+    BACS -> SPOOL; CAsyn -> SPOOL; CDCAsyn -> SPOOL;
+    SPOOL -> BSEP;
+    CHOL -> LDLR [style=dotted, dir=back, label="depletion\n→ LDLR ↑"];
+  }
+
+  /* ================== 3. FXR / FGF19 / SHP — the sensor ================ */
+  subgraph cluster_fxr {
+    label=<<B>3 · The sensor — ileal FXR &#8594; FGF19 &#8594; hepatic CYP7A1 (it measures the ABSORBED flux)</B>>;
+    style="filled,rounded"; fillcolor="#f7f3ff"; color="#8e6fc4"; fontsize=15; penwidth=2;
+    node [fillcolor="#d9c9f0"];
+    FXRi     [label="ileal FXR (NR1H4) + RXRα\nligand: enterocyte CDCA > DCA > CA\nEC50 ≈ 26 µM (CDCA-equivalent)"];
+    IBABP    [label="IBABP / FABP6\ncytosolic shuttle"];
+    FGF19g   [label="FGF19 transcription\n(ileal enterocyte)\ngain = κ"];
+    FGF19p   [label=<plasma FGF19<BR/>fasting ≈ 230 pg/mL · t&#189; ≈ 30 min<BR/><B>postprandial peak 90-120 min</B>>,
+              fillcolor="#bfa8e6", penwidth=2];
+    KLBn     [label="β-Klotho (KLB) + FGFR4\nhepatocyte co-receptor"];
+    ERK      [label="FGFR4 → ERK1/2 →\nrepression of CYP7A1 promoter"];
+    JNK      [label="JNK1/2 arm\n(inflammatory modulation)"];
+    FXRh     [label="hepatic FXR\n(ligand: returning bile acid)"];
+    SHP      [label="SHP (NR0B2)\nrepresses LRH-1 / HNF4α"];
+    LRH1     [label="LRH-1 (NR5A2) · HNF4α\nCYP7A1 activators"];
+    PXR      [label="PXR · VDR · CAR\nLCA-sensing detox arm"];
+    SULT     [label="SULT2A1 · UGT2B4\nsulfation / glucuronidation"];
+    FXRi -> FGF19g -> FGF19p -> KLBn -> ERK;
+    FXRi -> IBABP;
+    FGF19p -> JNK [style=dotted];
+    FXRh -> SHP -> LRH1 [arrowhead=tee];
+    LRH1 -> CYP7A1 [color="#2e7d32", label="+", ltail=cluster_fxr, lhead=cluster_liver];
+    ERK -> CYP7A1 [arrowhead=tee, color="#b3272d", penwidth=2.0, label="dominant\nrepression"];
+    SHP -> CYP7A1 [arrowhead=tee, color="#b3272d", label="second arm"];
+    ERK -> CYP8B1 [arrowhead=tee, style=dashed, label="12α-OH ↓"];
+    PXR -> SULT;
+  }
+
+  /* ================== 4. BILIARY / GALLBLADDER ========================= */
+  subgraph cluster_bili {
+    label=<<B>4 · Biliary tree and gallbladder — the timing element</B>>;
+    style="filled,rounded"; fillcolor="#fffbea"; color="#c9a227"; fontsize=15; penwidth=2;
+    node [fillcolor="#f6e2a8"];
+    CANAL    [label="canalicular bile\nBA-dependent flow"];
+    GB       [label="GALLBLADDER\nstores 30-50 % of the pool\nbetween meals"];
+    CCK      [label="CCK from duodenal I-cells\n(fat / protein sensing)"];
+    GBM      [label="gallbladder smooth muscle\nCCK1 receptor contraction"];
+    ODDI     [label="sphincter of Oddi\nrelaxation"];
+    MMC      [label="MMC phase II/III · motilin\ninterdigestive dribble (~25 %)"];
+    FGF19gb  [label="FGF19 → gallbladder filling\n(relaxation between meals)"];
+    CYCLES   [label=<enterohepatic cycling<BR/><B>&#8776; 4-6 cycles/day</B><BR/>20-40 mmol/day to duodenum>,
+              fillcolor="#eccf78", penwidth=2];
+    CANAL -> GB; CANAL -> MMC;
+    CCK -> GBM -> GB [arrowhead=tee, label="ejection"];
+    CCK -> ODDI;
+    GB -> CYCLES; MMC -> CYCLES;
+    FGF19p -> FGF19gb -> GB [style=dotted, label="refilling"];
+  }
+
+  /* ================== 5. SMALL BOWEL LUMEN / MICELLES ================== */
+  subgraph cluster_si {
+    label=<<B>5 · Small-intestinal lumen — micellar solubilisation (the fat-absorption constraint)</B>>;
+    style="filled,rounded"; fillcolor="#f2fbf4"; color="#4f9d69"; fontsize=15; penwidth=2;
+    node [fillcolor="#cfe8d4"];
+    DUOL     [label=<duodenal lumen<BR/>postprandial [BA] 5-15 mM<BR/><B>CMC &#8776; 1.5-2 mM</B>>, penwidth=2];
+    MICELLE  [label="mixed micelles\nBA + phospholipid + MG + FFA"];
+    LIPASE   [label="pancreatic lipase +\ncolipase → 2-MG + FFA"];
+    NPC1L1   [label="NPC1L1 · CD36 · FATP4\nenterocyte lipid uptake"];
+    FATABS   [label="fat absorption efficiency\n= f([BA]duo ; CMC)"];
+    ADEK     [label="fat-soluble vitamins\nA · D · E · K"];
+    JEJL     [label="jejunal lumen\npassive (unconjugated) uptake\n~2-5 % per pass"];
+    DEC1     [label="premature deconjugation\n(SIBO): glycine/taurine\nsplit → passive loss"];
+    DUOL -> MICELLE -> NPC1L1 -> FATABS;
+    LIPASE -> MICELLE;
+    MICELLE -> ADEK;
+    DUOL -> JEJL; JEJL -> DEC1 [style=dotted];
+    CYCLES -> DUOL;
+  }
+
+  /* ================== 6. ILEAL ENTEROCYTE — the phi node ============== */
+  subgraph cluster_ile {
+    label=<<B>6 · Terminal ileum — active conservation (this is where &#966; lives)</B>>;
+    style="filled,rounded"; fillcolor="#f0fbf0"; color="#3f8f4f"; fontsize=15; penwidth=2;
+    node [fillcolor="#d8f0d8"];
+    ILEL1    [label="terminal ileum tank 1\n[BA] ≈ 4-7 mM (near Kₘ)"];
+    ILEL2    [label="terminal ileum tank 2\n[BA] ≈ 1-2 mM"];
+    ILEL3    [label="terminal ileum tank 3\n[BA] < 1 mM (depleted outlet)"];
+    ASBT     [label=<<B>ASBT (SLC10A2)</B><BR/>apical Na&#8314;/BA co-transporter<BR/>V&#8348;&#8339;&#8339; &#215; <B>&#966;</B> · K&#8344; &#8776; 6 mM<BR/>distally weighted density>,
+              fillcolor="#a8dfa8", penwidth=2.2];
+    ENTC     [label="ileal enterocyte cytosol\nfree BA → FXR ligand pool"];
+    OSTAB    [label="OSTα/β (SLC51A/B)\nbasolateral export"];
+    MRP3i    [label="MRP3 (ABCC3)\nminor basolateral route"];
+    ENTMASS  [label="functional enterocyte mass\n(Crohn / radiation / coeliac)"];
+    TJ       [label="tight junction integrity\nclaudin-2 / ZO-1"];
+    CONTACT  [label=<ileal <B>contact time</B><BR/>(transit-dependent)>, fillcolor="#bfe8bf"];
+    FPASS    [label=<<B>f</B> = per-pass conservation<BR/>normal &#8776; 0.97<BR/>f = 1 - (k&#8348;/(k&#8336;&#8347;&#8347;+k&#8348;))&#179;>,
+              fillcolor="#8ed08e", shape=box, penwidth=2.2];
+    ILEL1 -> ILEL2 -> ILEL3;
+    ILEL1 -> ASBT; ILEL2 -> ASBT; ILEL3 -> ASBT;
+    ASBT -> ENTC -> OSTAB;
+    ENTC -> MRP3i;
+    ENTC -> FXRi [lhead=cluster_fxr, color="#6a3fa0", penwidth=1.8, label="ligand"];
+    ENTMASS -> ASBT; TJ -> ENTC [style=dotted];
+    ASBT -> FPASS; CONTACT -> FPASS;
+    PHI -> ASBT [color="#a05aa0", penwidth=2.4, style=bold];
+    KAPPA -> FGF19g [color="#6a3fa0", penwidth=2.4, style=bold, lhead=cluster_fxr];
+    JEJL -> ILEL1 [ltail=cluster_si];
+  }
+
+  /* ================== 7. PORTAL / SYSTEMIC ============================ */
+  subgraph cluster_port {
+    label=<<B>7 · Portal return and systemic spillover</B>>;
+    style="filled,rounded"; fillcolor="#f2f9fd"; color="#4b87b5"; fontsize=15; penwidth=2;
+    node [fillcolor="#d9ecf7"];
+    PORTAL   [label="portal blood\n[BA] 20-50 µM postprandial"];
+    FIRSTP   [label="hepatic first-pass extraction\n≈ 90 % (NTCP + OATP)"];
+    SYSBA    [label="systemic serum bile acid\nfasting 2-5 µM\n(rises in BAM and cholestasis)"];
+    PRURIT   [label="MRGPRX4 / TGR5 on\nsensory neurons → pruritus"];
+    RENALBA  [label="renal ASBT (ISBT)\ntubular reclamation"];
+    PORTAL -> FIRSTP;
+    FIRSTP -> NTCP [lhead=cluster_liver];
+    PORTAL -> SYSBA -> PRURIT;
+    SYSBA -> RENALBA;
+    OSTAB -> PORTAL [ltail=cluster_ile];
+  }
+
+  /* ================== 8. COLONIC MICROBIOME =========================== */
+  subgraph cluster_micro {
+    label=<<B>8 · Colonic microbiome — it does not change the LOAD, it changes the POTENCY</B>>;
+    style="filled,rounded"; fillcolor="#faf6ee"; color="#a08050"; fontsize=15; penwidth=2;
+    node [fillcolor="#e2d5c3"];
+    COLL     [label=<colonic lumen<BR/>total [BA] 0.5-2 mM (normal)<BR/><B>load = S at steady state</B>>, penwidth=2];
+    BSH      [label="bile salt hydrolase (BSH)\nLactobacillus · Bifidobacterium\ndeconjugation (fast, near-complete)"];
+    BAI      [label="7α-dehydroxylation (bai operon)\nClostridium scindens / hiranonis\nRATE-LIMITING for DCA"];
+    CAc      [label="cholate (CA)\nw = 0.15"];
+    CDCAc    [label="chenodeoxycholate (CDCA)\nw = 1.00"];
+    DCAc     [label="deoxycholate (DCA)\nw = 1.15 (most potent)"];
+    LCAc     [label="lithocholate (LCA)\nw = 0.30 (insoluble,\nCa-salt precipitation)"];
+    EPIM     [label="HSDH epimerisation\n→ UDCA / iso-BA (inert)"];
+    PASSCOL  [label="passive colonic re-absorption\nof unconjugated di-OH BA\n→ portal (this is how DCA\nenters the pool, ~20 %)"];
+    COLL -> BSH -> CAc; BSH -> CDCAc;
+    CAc -> BAI -> DCAc;
+    CDCAc -> BAI; BAI -> LCAc;
+    CAc -> EPIM; DCAc -> PASSCOL; CDCAc -> PASSCOL;
+    PASSCOL -> PORTAL [lhead=cluster_port, style=dashed];
+    ILEL3 -> COLL [ltail=cluster_ile, penwidth=2.0, color="#8a6d3b",
+                   label="SPILLAGE\n= (1-f) × cycling flux"];
+  }
+
+  /* ================== 9. COLONOCYTE SECRETION & MOTILITY ============== */
+  subgraph cluster_colon {
+    label=<<B>9 · Colonocyte — the secretory threshold and the transit positive-feedback loop</B>>;
+    style="filled,rounded"; fillcolor="#fff7ef"; color="#c07a30"; fontsize=15; penwidth=2;
+    node [fillcolor="#ffd9b3"];
+    DS       [label=<<B>D&#8348;</B> secretory drive (mM CDCA-eq)<BR/>&#931; w&#7522;[BA&#7522;] &#215; free fraction<BR/><B>threshold &#8776; 3 mM</B> (Mekhjian/Hofmann)>,
+              penwidth=2.2, fillcolor="#ffbf80"];
+    TGR5     [label="TGR5 / GPBAR1\nbasolateral + EC-cell"];
+    ECCELL   [label="enterochromaffin cell\n5-HT release"];
+    HT3      [label="5-HT3 / 5-HT4 receptors\nsubmucosal + myenteric"];
+    CAMP     [label="adenylate cyclase → cAMP → PKA"];
+    CFTR     [label="CFTR apical Cl⁻ secretion"];
+    NKCC1    [label="NKCC1 basolateral Cl⁻ loading"];
+    CACC     [label="Ca²⁺-activated Cl⁻ channels\n(TMEM16A)"];
+    AQP      [label="aquaporin 3/8 water flux"];
+    PERM     [label="epithelial permeability ↑\n(claudin remodelling)"];
+    HAPC     [label="high-amplitude propagating\ncontractions → urgency"];
+    TRANSIT  [label=<colonic <B>transit</B> velocity<BR/>normal 20-40 h>, fillcolor="#ffcf9a"];
+    WATER    [label="net colonic water balance\nin 1500 mL/day → out ~130 mL/day"];
+    DS -> TGR5 -> ECCELL -> HT3;
+    TGR5 -> CAMP -> CFTR; NKCC1 -> CFTR;
+    DS -> CACC; CFTR -> AQP; CACC -> AQP; AQP -> WATER;
+    DS -> PERM;
+    HT3 -> HAPC -> TRANSIT;
+    HT3 -> CFTR [style=dotted];
+    COLL -> DS [ltail=cluster_micro];
+    DCAc -> DS [style=bold, color="#b3272d"];
+    CDCAc -> DS; CAc -> DS [style=dotted]; LCAc -> DS [style=dotted];
+    TRANSIT -> WATER [arrowhead=tee, label="less contact\n→ less absorption"];
+    TRANSIT -> CONTACT [arrowhead=tee, color="#7a7a7a", penwidth=2.0, style=dashed,
+                        lhead=cluster_ile,
+                        label=" transit → ileal contact\n (hypothesised positive loop;\n MEASURED gain is NEGATIVE,\n L = -0.18 to -1.6 — dilution\n beats extra spillage, so\n the disease cannot latch)"];
+  }
+
+  /* ================== 10. PHARMACOLOGY ================================ */
+  subgraph cluster_drug {
+    label=<<B>10 · Pharmacology — four different places to enter the same loop</B>>;
+    style="filled,rounded"; fillcolor="#eef7ff"; color="#3f78a8"; fontsize=15; penwidth=2;
+    node [fillcolor="#c9e6ff"];
+    COLESEV  [label="COLESEVELAM 1.875 g BID\nnon-absorbed polymer\ncapacity ≈ 1.5 µmol BA/mg\nhigh glycocholate affinity"];
+    CHOLESTY [label="COLESTYRAMINE 4 g TID\ncapacity ≈ 2.2 µmol/mg\ngritty, poor adherence"];
+    COLESTIP [label="COLESTIPOL 5 g BID"];
+    OCA      [label="OBETICHOLIC ACID 25 mg QD\n6α-ethyl-CDCA\nFXR EC50 ≈ 0.16 µM (≈100× CDCA)\npartly ASBT-dependent uptake"];
+    TROPI    [label="TROPIFEXOR 90 µg QD\nnon-steroidal FXR agonist\nsystemically delivered →\nileal FXR WITHOUT ASBT"];
+    ELOBI    [label="ELOBIXIBAT 10 mg QD\nluminal ASBT INHIBITOR\n= pharmacological φ lesion\n(licensed for constipation)"];
+    ODEVIX   [label="ODEVIXIBAT · MARALIXIBAT\nIBAT inhibitors for cholestatic\npruritus — same lesion, on purpose"];
+    LOPER    [label="LOPERAMIDE 2 mg BID-QID\nperipheral µ-opioid agonist\nslows transit → LOWERS LOOP GAIN"];
+    ONDAN    [label="ONDANSETRON 4 mg BID\n5-HT3 antagonist\n(blocks the EC-cell arm)"];
+    RIFAX    [label="RIFAXIMIN 550 mg TID\nsuppresses bai operon\n→ CA stays CA (w 0.15)"];
+    UDCAd    [label="UDCA\nhydrophilic displacement\n(no FXR agonism)"];
+    ALOSE    [label="ALOSETRON / ELUXADOLINE\nsymptomatic IBS-D options"];
+    GLP1     [label="GLP-1 RA (liraglutide)\nslows transit, alters BA pool"];
+    COLESEV -> BINDLUM; CHOLESTY -> BINDLUM; COLESTIP -> BINDLUM;
+    OCA -> FXRAG; TROPI -> FXRAG;
+    ELOBI -> ASBTBLK; ODEVIX -> ASBTBLK;
+    LOPER -> TRANSBLK; ONDAN -> TRANSBLK; ALOSE -> TRANSBLK; GLP1 -> TRANSBLK;
+    RIFAX -> POTBLK; UDCAd -> POTBLK;
+  }
+
+  BINDLUM  [label=<<B>class A</B> — bind the luminal load<BR/>lowers D&#8348; <B>and</B> lowers the sensor signal<BR/><I>structural escape: C4 rises</I>>,
+            fillcolor="#9fd0f5", shape=box, penwidth=2.2];
+  FXRAG    [label=<<B>class B</B> — supply the missing signal<BR/>ADDITIVE at FXR, independent of <B>&#966;</B><BR/><I>lowers S; raises SeHCAT without repairing the ileum</I>>,
+            fillcolor="#9fd0f5", shape=box, penwidth=2.2];
+  ASBTBLK  [label=<<B>class C</B> — lower <B>&#966;</B> on purpose<BR/>iatrogenic BAM (the mirror image)>,
+            fillcolor="#9fd0f5", shape=box, penwidth=2.2];
+  TRANSBLK [label=<<B>class D</B> — lower the loop gain<BR/>not merely symptomatic: longer ileal<BR/>contact raises f and lowers spillage>,
+            fillcolor="#9fd0f5", shape=box, penwidth=2.2];
+  POTBLK   [label=<<B>class E</B> — lower the POTENCY<BR/>same load, weaker secretagogue>,
+            fillcolor="#9fd0f5", shape=box, penwidth=2.2];
+
+  BINDLUM -> DS [arrowhead=tee, color="#1f6fb2", penwidth=2.0];
+  BINDLUM -> ASBT [arrowhead=tee, style=dashed, color="#b3272d",
+                   label="also removes the\nsensor's ligand"];
+  FXRAG -> FXRi [color="#2e7d32", penwidth=2.2, label="+"];
+  ASBTBLK -> ASBT [arrowhead=tee, color="#b3272d", penwidth=2.0];
+  TRANSBLK -> TRANSIT [arrowhead=tee, color="#1f6fb2", penwidth=2.0];
+  POTBLK -> BAI [arrowhead=tee, color="#1f6fb2", penwidth=2.0];
+
+  /* ================== 11. DIAGNOSTICS ================================= */
+  subgraph cluster_dx {
+    label=<<B>11 · Diagnostics — the two tests do not measure the same thing</B>>;
+    style="filled,rounded"; fillcolor="#f4faf0"; color="#6a9a4a"; fontsize=15; penwidth=2;
+    node [fillcolor="#e0f0d8"];
+    SEHCAT   [label=<<B>SeHCAT 7-day retention</B><BR/>R&#8327; = exp(-7 &#215; faecal loss / pool)<BR/>&gt;15 normal · 10-15 mild<BR/>5-10 moderate · &lt;5 severe<BR/><B>reads &#966; ONLY</B>>, penwidth=2.2, fillcolor="#c8e8b8"];
+    C4TEST   [label=<<B>serum C4</B> (7&#945;-hydroxy-4-cholesten-3-one)<BR/>surrogate for CYP7A1 flux<BR/>normal &lt;30 · cut-off &#8776; 48 ng/mL<BR/><B>reads S = f(&#966;, &#954;)</B>>, penwidth=2.2, fillcolor="#c8e8b8"];
+    FGF19t   [label="fasting plasma FGF19\ncontrols ≈ 230 pg/mL\nlow in type-2 BAD"];
+    FECBA    [label="48-h total faecal bile acid\n+ primary BA fraction\n(> 4 % CA+CDCA suggests BAM)"];
+    TRIAL    [label="empirical sequestrant trial\n(pragmatic but confounded:\nit changes the tests)"];
+    BREATH   [label="¹³C / ¹⁴C-glycocholate breath test\n(historical)"];
+    TRANSTEST[label="wireless motility capsule /\nradio-opaque marker transit"];
+    CALPRO   [label="faecal calprotectin\n(exclude inflammation)"];
+    SEHCAT -> PHI [style=dashed, color="#6a9a4a", dir=back, penwidth=1.8, label="measures"];
+    C4TEST -> SPOOL [style=dashed, color="#6a9a4a", dir=back, penwidth=1.8, label="measures"];
+    FECBA -> SPOOL [style=dashed, color="#6a9a4a", dir=back];
+    FGF19t -> KAPPA [style=dashed, color="#6a9a4a", dir=back];
+  }
+
+  /* ================== 12. CLINICAL ENDPOINTS ========================== */
+  subgraph cluster_end {
+    label=<<B>12 · Clinical endpoints and organ-system consequences</B>>;
+    style="filled,rounded"; fillcolor="#fff4e6"; color="#cc8400"; fontsize=15; penwidth=2;
+    node [fillcolor="#ffcc99"];
+    STOOLF   [label="stool frequency\n(BM/day; normal 1-2)"];
+    BRISTOL  [label="Bristol stool form 6-7\nwatery, yellow, floating"];
+    URGENCY  [label="urgency · faecal incontinence\n(the symptom patients rank worst)"];
+    NOCT     [label="nocturnal stool\n(distinguishes from IBS-D)"];
+    POSTPRAN [label="post-prandial and post-cholecystectomy\ntiming of attacks"];
+    QOL      [label="quality of life · work absence\n(IBS-D misdiagnosis for years)"];
+    STEATO   [label=<<B>STEATORRHOEA</B><BR/>faecal fat &gt; 7 g/day<BR/>appears when the pool can no longer<BR/>hold duodenal [BA] above CMC>,
+              fillcolor="#ffb066", penwidth=2.2];
+    OXAL     [label="enteric hyperoxaluria\n→ calcium oxalate stones\n(fat binds Ca, oxalate free)"];
+    VITDEF   [label="vitamin A / D / E / K deficiency\nosteomalacia, coagulopathy"];
+    GALLST   [label="cholesterol gallstones\n(pool depletion + stasis)"];
+    LDLEND   [label="LDL-C\n↓ with sequestrants (-15 to -20 %)\n↑ with FXR agonists"];
+    COLCA    [label="secondary BA (DCA) exposure\n→ colonic proliferation signal\n(long-horizon risk)"];
+    PRUR2    [label="pruritus (systemic BA ↑)"];
+    DEHYD    [label="dehydration · hypokalaemia\n· hypomagnesaemia"];
+    STOOLF -> QOL; BRISTOL -> QOL; URGENCY -> QOL; NOCT -> QOL;
+    WATER -> STOOLF [ltail=cluster_colon]; WATER -> BRISTOL;
+    HAPC -> URGENCY; TRANSIT -> NOCT;
+    FATABS -> STEATO [arrowhead=tee, ltail=cluster_si, penwidth=1.8];
+    STEATO -> OXAL; STEATO -> VITDEF;
+    PERM -> OXAL [style=dotted];
+    SPOOL -> LDLEND [style=dashed, label="cholesterol sink"];
+    DCAc -> COLCA [style=dotted];
+    SYSBA -> PRUR2 [ltail=cluster_port];
+    STOOLF -> DEHYD;
+    GB -> GALLST [style=dotted, ltail=cluster_bili];
+  }
+
+  /* ================== THE CENTRAL IDENTITY ============================ */
+  IDENTITY [label=<<B>THE STEADY-STATE IDENTITY</B><BR/><BR/>
+      colonic load &#8801; faecal loss &#8801; <B>S</B> (hepatic synthesis)<BR/><BR/>
+      sensor sees the ABSORBED flux &#8733; &#954; &#183; x &#183; S,&nbsp; x = f/(1-f)<BR/>
+      &#8658; &nbsp; <B>S = S</B><SUB>max</SUB> <B>/ (1 + (a&#183;&#954;&#183;x&#183;S)</B><SUP>h</SUP><B>)</B><BR/><BR/>
+      <I>Freeze the loop and malabsorption changes the colonic load by 0 %.<BR/>
+      The diarrhoea is made by the answer, not by the injury.</I>>,
+      shape=box, style="filled,rounded", fillcolor="#fff2b8", color="#b38f00",
+      penwidth=3, fontsize=15];
+
+  SPOOL -> IDENTITY [style=dashed, color="#b38f00", penwidth=2.0, ltail=cluster_liver];
+  IDENTITY -> COLL [style=dashed, color="#b38f00", penwidth=2.0, lhead=cluster_micro];
+  FPASS -> IDENTITY [style=dashed, color="#b38f00", penwidth=1.6, ltail=cluster_ile];
+
+  /* ---------- layout hints ---------- */
+  { rank=same; PHI; KAPPA; }
+  { rank=same; BINDLUM; FXRAG; ASBTBLK; TRANSBLK; POTBLK; }
+}
