@@ -1,0 +1,440 @@
+/* ===================================================================
+   Congenital Hyperinsulinism (CHI) — QSP mechanistic map
+   -------------------------------------------------------------------
+   Organising idea: the disease is ONE number — the fraction g of
+   beta-cell K_ATP conductance that survives.  g sets the resting
+   membrane potential, which sets Ca influx, which sets insulin
+   secretion at ANY glucose.  Every therapy in this map is classified
+   by how it depends on g:
+       * MULTIPLICATIVE in g  (diazoxide: opens channels that must exist)
+       * ADDITIVE in conductance (octreotide: brings its own K channel)
+       * INDEPENDENT of g     (glucagon, dextrose, ersodetug, surgery)
+   The second, independent axis is that insulin does not merely lower
+   glucose — it deletes the brain's backup fuel (ketones), so the
+   cerebral fuel margin is lost twice over.
+   Render:  dot -Tsvg chi_qsp_model.dot -o chi_qsp_model.svg
+            dot -Tpng -Gdpi=150 chi_qsp_model.dot -o chi_qsp_model.png
+   =================================================================== */
+digraph CHI_QSP {
+  rankdir=TB;
+  compound=true;
+  newrank=true;
+  splines=spline;
+  concentrate=false;
+  bgcolor="white";
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=30;
+  label=<<B>Congenital Hyperinsulinism (CHI) — Quantitative Systems Pharmacology Map</B><BR/>
+        <FONT POINT-SIZE="17">the disease as one number: residual beta-cell K<SUB>ATP</SUB> conductance <I>g</I> — and the three ways a drug can depend on it</FONT>>;
+  node [fontname="Helvetica", fontsize=11, style="filled,rounded", shape=box,
+        penwidth=1.1, margin="0.07,0.045"];
+  edge [fontname="Helvetica", fontsize=9, color="#5a6472", penwidth=1.0,
+        arrowsize=0.65];
+
+  /* ---------- colour key ----------
+     gene/lesion      #d9c9f0     beta-cell electrical  #ffd9b3
+     metabolism       #cfe8d4     islet paracrine       #f6e2a8
+     liver            #ffe0e0     adipose/ketone        #e2d5c3
+     muscle           #d9ecf7     brain                 #f9c6c6
+     counterregul.    #e8e0f8     drug                  #c9e6ff
+     endpoint         #ffcc99     diagnostic            #e0f0d8
+     adverse          #f2c4d8
+     -------------------------------- */
+
+  /* ==================== 1. GENETIC LESIONS ==================== */
+  subgraph cluster_gene {
+    label=<<B>1 · Molecular lesions — all of them are ways of writing one number</B>>;
+    style="filled,rounded"; fillcolor="#f7f3ff"; color="#8e6fc4"; fontsize=15; penwidth=2;
+    node [fillcolor="#d9c9f0"];
+    ABCC8   [label="ABCC8 (SUR1) 11p15.1\nbiallelic recessive LoF\n→ g ≈ 0–0.05"];
+    KCNJ11  [label="KCNJ11 (Kir6.2) 11p15.1\nLoF / trafficking defect\n→ g ≈ 0–0.05"];
+    ABCC8d  [label="ABCC8 dominant\nmilder / partial LoF\n→ g ≈ 0.5–0.8"];
+    LOH11p  [label="paternal UPD 11p15\n(focal, somatic 2nd hit)\n→ g≈0 in a CLONE only"];
+    GLUD1   [label="GLUD1 activating\n(loss of GTP inhibition)\n→ GDH-HI / HI-HA"];
+    GCKa    [label="GCK activating\n(lower glucose S₀.₅)\n→ set-point shift"];
+    HADH    [label="HADH (SCHAD) LoF\n→ leucine sensitivity"];
+    HNF4A   [label="HNF4A / HNF1A\ntransient, later MODY"];
+    SLC16A1 [label="SLC16A1 (MCT1)\npromoter gain\n→ exercise-induced HI"];
+    UCP2    [label="UCP2 LoF\n→ raised ATP yield"];
+    CACNA1D [label="CACNA1D gain\n(Ca_v1.3)"];
+    INSRg   [label="INSR / AKT2 / PIK3CA\nreceptor-level HI"];
+    SYNDR   [label="syndromic:\nBeckwith–Wiedemann,\nKabuki, Turner, CDG-PMM2,\nUsher, Sotos"];
+    PERINAT [label="TRANSIENT / perinatal-stress HI\nIUGR · maternal diabetes ·\nbirth asphyxia · large-for-GA"];
+  }
+
+  /* ============ 2. BETA-CELL K_ATP & ELECTRICAL CORE ============ */
+  subgraph cluster_katp {
+    label=<<B>2 · Beta-cell K<SUB>ATP</SUB> / electrical core — where g becomes a voltage</B>>;
+    style="filled,rounded"; fillcolor="#fff6ec"; color="#d98c2b"; fontsize=15; penwidth=2;
+    node [fillcolor="#ffd9b3"];
+    SUR1    [label="SUR1 · Kir6.2 hetero-octamer\n(4+4) at the plasma membrane"];
+    TRAFFIC [label="ER export / surface trafficking\n(most recessive alleles fail HERE)"];
+    NCHAN   [label=<<B>g = surface channel density</B><BR/>fraction of normal<BR/><I>THE DISEASE AXIS</I>>,
+              fillcolor="#ff9c3f", penwidth=2.6];
+    ATPADP  [label="ATP / ADP ratio  R\n(metabolic signal)"];
+    MGADP   [label="MgADP at NBD2 of SUR1\n(the diazoxide co-factor)"];
+    POPEN   [label="channel open probability\nP_open = 1/(1+(R/R₅₀)ⁿ)"];
+    GK_COND [label=<G<SUB>KATP</SUB> = g · g<SUB>max</SUB> · P<SUB>open</SUB>>, fillcolor="#ffbe73"];
+    GIRK    [label=<G<SUB>GIRK</SUB> — G-protein-gated K⁺<BR/>a SECOND, g-independent conductance>,
+              fillcolor="#ffbe73"];
+    GLEAK   [label="background depolarising leak\n(Na⁺ / TRPM / NALCN)"];
+    VM      [label=<<B>resting V<SUB>m</SUB></B><BR/>conductance divider<BR/>−75 mV ⟵ … ⟶ −20 mV>,
+              fillcolor="#ff9c3f", penwidth=2.2];
+    CAV     [label="Ca_v1.2 / 1.3 opening\n(V₅₀ ≈ −50 mV)"];
+    CAI     [label="cytosolic Ca²⁺"];
+    EXO     [label="granule exocytosis\n(triggering pathway)"];
+    KATPOFF [label=<<B>loss of the OFF switch</B><BR/>secretion continues at ANY glucose>,
+              fillcolor="#ff7f50", penwidth=2.2];
+  }
+
+  /* ============ 3. METABOLIC / AMPLIFYING PATHWAY ============ */
+  subgraph cluster_metab {
+    label=<<B>3 · Fuel sensing and the K<SUB>ATP</SUB>-independent amplifying pathway</B>>;
+    style="filled,rounded"; fillcolor="#eef8f0"; color="#3f8f5b"; fontsize=15; penwidth=2;
+    node [fillcolor="#cfe8d4"];
+    GLUT1B  [label="GLUT1 / GLUT2 uptake"];
+    GCK     [label="glucokinase (flux-limiting)\nS₀.₅ ≈ 8 mM, Hill 1.7"];
+    GLYCOL  [label="glycolysis → pyruvate"];
+    PDH     [label="PDH → acetyl-CoA → TCA"];
+    ANAPL   [label="anaplerosis (PC, GDH)\nTCA cataplerosis"];
+    OXPHOS  [label="oxidative phosphorylation\n→ ATP"];
+    UCP2n   [label="UCP2 proton leak\n(sets ATP yield per glucose)"];
+    GDHn    [label="glutamate dehydrogenase\nGTP-inhibited (normally)"];
+    LEU     [label="leucine (dietary protein)\nallosteric GDH activator"];
+    SCHAD   [label="SCHAD — normally restrains\nGDH via a protein interaction"];
+    MCT1n   [label="MCT1 pyruvate/lactate entry\n(silenced in normal beta-cells)"];
+    NADPH   [label="NADPH / redox signal"];
+    AMPLIFY [label=<<B>amplifying pathway</B><BR/>glucose-dependent efficacy of Ca²⁺<BR/>(35 % floor at low glucose)>,
+              fillcolor="#a9d8b8"];
+    CAMP    [label="cAMP / PKA / Epac2\n(incretin amplification)"];
+    GLP1R   [label="GLP-1R (endogenous GLP-1)"];
+    SSTR2   [label="SSTR2 — Gi-coupled\n↓cAMP  AND  ↑G_GIRK"];
+  }
+
+  /* ==================== 4. ISLET PARACRINE ==================== */
+  subgraph cluster_islet {
+    label=<<B>4 · Islet paracrine — why counterregulation is blunted from within</B>>;
+    style="filled,rounded"; fillcolor="#fdf7e3"; color="#c9a227"; fontsize=15; penwidth=2;
+    node [fillcolor="#f6e2a8"];
+    ACELL   [label="alpha-cell"];
+    GCGSEC  [label="glucagon secretion"];
+    DCELL   [label="delta-cell somatostatin"];
+    INSPARA [label="intra-islet insulin\n(tonic alpha-cell brake)"];
+    ZINC    [label="Zn²⁺ / GABA co-release"];
+    ALPHAFAIL [label=<<B>blunted glucagon response</B><BR/>an EMERGENT consequence of<BR/>high local insulin, not a<BR/>separate lesion>, fillcolor="#efd07a"];
+    BMASS   [label="beta-cell mass B\n(diffuse: all islets;\nfocal: adenomatous clone)"];
+    HISTOL  [label="histology: nucleomegaly,\nenlarged beta-cells,\nreduced apoptosis"];
+  }
+
+  /* ==================== 5. LIVER ==================== */
+  subgraph cluster_liver {
+    label=<<B>5 · Liver — the glycogen that never gets spent</B>>;
+    style="filled,rounded"; fillcolor="#fff0f0"; color="#c0504d"; fontsize=15; penwidth=2;
+    node [fillcolor="#ffe0e0"];
+    HIR     [label="hepatic insulin receptor\n→ IRS → PI3K → AKT"];
+    FOXO1   [label="FOXO1 ⊣  (PEPCK, G6Pase)"];
+    GSK3    [label="GSK3β ⊣ → glycogen synthase ON"];
+    GS      [label="glycogen synthase"];
+    GLYCOGEN [label=<<B>hepatic glycogen store</B><BR/>state variable, ~2000 mg/kg at term>,
+              fillcolor="#ffc9c9"];
+    PHOSPH  [label="glycogen phosphorylase\n(PKA-activated, PP1-inactivated)"];
+    GLYCOLYSIS_L [label="glycogenolysis flux"];
+    GNG     [label="gluconeogenesis\n(PEPCK, FBPase, G6Pase)"];
+    G6PASE  [label="glucose-6-phosphatase\n→ hepatic glucose output"];
+    GCGR    [label="glucagon receptor → Gs → cAMP → PKA"];
+    IC50SEP [label=<<B>the IC₅₀ separation</B><BR/>lipolysis 12 &lt; ketogenesis 15<BR/>&lt; glycogenolysis 30 &lt; GNG 45 µU/mL>,
+              fillcolor="#ffb3b3", penwidth=2.2];
+    HEPATOM [label="hepatomegaly / glycogen loading\n(chronic hyperinsulinaemia)"];
+  }
+
+  /* ============ 6. ADIPOSE & KETOGENESIS ============ */
+  subgraph cluster_fat {
+    label=<<B>6 · Adipose &amp; ketogenesis — the deleted backup fuel</B>>;
+    style="filled,rounded"; fillcolor="#f6f1e8"; color="#8a7355"; fontsize=15; penwidth=2;
+    node [fillcolor="#e2d5c3"];
+    ADIR    [label="adipocyte insulin receptor"];
+    HSL     [label="HSL / ATGL\n(most insulin-sensitive step\nin the whole body)"];
+    LIPO    [label="lipolysis → glycerol + FFA"];
+    FFA     [label="plasma free fatty acids"];
+    CPT1    [label="CPT1 (malonyl-CoA inhibited)\nmitochondrial FA entry"];
+    HMGCS2  [label="HMG-CoA synthase 2\n(ketogenic switch)"];
+    HEPSW   [label=<<B>hepatic fasting switch</B><BR/>armed only when glycogen is SPENT<BR/>— in CHI it never arms>,
+              fillcolor="#cbb99a", penwidth=2.0];
+    BOHB    [label=<<B>beta-hydroxybutyrate</B><BR/>&lt;0.2 mM in CHI hypoglycaemia>,
+              fillcolor="#cbb99a"];
+    GLYCEROL [label="glycerol → gluconeogenic substrate"];
+  }
+
+  /* ==================== 7. PERIPHERAL DISPOSAL ==================== */
+  subgraph cluster_muscle {
+    label=<<B>7 · Muscle / peripheral glucose disposal</B>>;
+    style="filled,rounded"; fillcolor="#eef7fc"; color="#3f7fa6"; fontsize=15; penwidth=2;
+    node [fillcolor="#d9ecf7"];
+    MIR     [label="muscle insulin receptor → AKT"];
+    AS160   [label="AS160 / TBC1D4"];
+    GLUT4   [label="GLUT4 translocation"];
+    UID     [label="insulin-dependent uptake U_id\n(max ~18–20 mg/kg/min in infancy)"];
+    MGLY    [label="muscle glycogen synthesis"];
+    UII     [label="insulin-independent uptake\n(RBC, renal, splanchnic)"];
+  }
+
+  /* ==================== 8. BRAIN FUEL ==================== */
+  subgraph cluster_brain {
+    label=<<B>8 · Cerebral fuel supply — the organ that actually fails</B>>;
+    style="filled,rounded"; fillcolor="#fdeeee"; color="#b5423f"; fontsize=15; penwidth=2;
+    node [fillcolor="#f9c6c6"];
+    BBBGLUT [label="BBB GLUT1 transport\n(Km ≈ 40 mg/dL)"];
+    CBF     [label="CBF autoregulation\n(+35 % max as glucose falls)"];
+    CMRGLC  [label="cerebral glucose oxidation\n≈ 4.2 mg/kg/min in the neonate"];
+    MCT12   [label="MCT1 / MCT2 ketone transport\n(Km ≈ 6 mM — the limiting step)"];
+    CMRKET  [label="cerebral ketone oxidation\nup to ~75 % of demand"];
+    CMRLAC  [label="cerebral lactate use (minor)"];
+    FUELSUM [label=<<B>total cerebral fuel supply</B><BR/>glucose + ketone + lactate<BR/>vs demand ≈ 4.0 mg/kg/min>,
+              fillcolor="#f39c9c", penwidth=2.4];
+    NEUROGLY [label="neuroglycopenia\n(supply &lt; demand)"];
+    EEG     [label="EEG suppression / burst,\nelectrographic seizure"];
+    SEIZ    [label="clinical seizure, apnoea,\nhypotonia, poor feeding"];
+    INJURY  [label="parieto-occipital white-matter\ninjury (watershed pattern)"];
+    NDD     [label="neurodevelopmental impairment\n(25–50 % of severe CHI)"];
+    ADREN   [label="autonomic warning symptoms\n— ABSENT in neonates"];
+  }
+
+  /* ==================== 9. COUNTERREGULATION ==================== */
+  subgraph cluster_cr {
+    label=<<B>9 · Counterregulation</B>>;
+    style="filled,rounded"; fillcolor="#f2eefb"; color="#6c5ba8"; fontsize=15; penwidth=2;
+    node [fillcolor="#e8e0f8"];
+    VMH     [label="VMH / hypothalamic glucose sensing\n(uses the same K_ATP channel)"];
+    SYMP    [label="sympathoadrenal outflow"];
+    EPI     [label="epinephrine"];
+    CORT    [label="cortisol (HPA)"];
+    GHc     [label="growth hormone"];
+    CRFAIL  [label=<<B>counterregulatory failure</B><BR/>glucagon ⊣ by insulin,<BR/>and VMH K_ATP is itself mutated>,
+              fillcolor="#cfc2ee"];
+  }
+
+  /* ==================== 10. AMMONIA / GDH AXIS ==================== */
+  subgraph cluster_nh3 {
+    label=<<B>10 · The GDH axis — hyperinsulinism/hyperammonaemia</B>>;
+    style="filled,rounded"; fillcolor="#eef8f0"; color="#3f8f5b"; fontsize=15; penwidth=2;
+    node [fillcolor="#cfe8d4"];
+    GDHL    [label="hepatic GDH (same activating allele)"];
+    GLUTAM  [label="glutamate → alpha-ketoglutarate + NH₄⁺"];
+    NAGS    [label="↓N-acetylglutamate\n→ ↓CPS1 activation"];
+    NH3     [label=<<B>plasma ammonia 100–200 µmol/L</B><BR/>3–5 × normal>, fillcolor="#a9d8b8"];
+    NH3DISS [label=<<B>the dissociation</B><BR/>ammonia is NOT glucose-linked<BR/>and does NOT respond to diazoxide>,
+              fillcolor="#8fc9a3", penwidth=2.2];
+    ABSENCE [label="no encephalopathy at these levels\n(no glutamine rise / no urea-cycle block)"];
+  }
+
+  /* ==================== 11. DRUGS ==================== */
+  subgraph cluster_drug {
+    label=<<B>11 · Pharmacology — classified by how the effect depends on g</B>>;
+    style="filled,rounded"; fillcolor="#eaf5ff"; color="#2f6f9f"; fontsize=15; penwidth=2;
+    node [fillcolor="#c9e6ff"];
+    DZX     [label=<<B>DIAZOXIDE</B> (PO, t½ ≈ 20 h)<BR/>K_ATP opener via SUR1-NBD2<BR/>shifts the ATP/ADP set-point<BR/><I>effect ∝ g — MULTIPLICATIVE</I>>,
+              fillcolor="#93cdf7", penwidth=2.4];
+    OCT     [label=<<B>OCTREOTIDE / LANREOTIDE</B> (SC)<BR/>SSTR2 agonist → ↓cAMP + ↑G_GIRK<BR/><I>brings its own K⁺ conductance —<BR/>ADDITIVE, works at g = 0</I>>,
+              fillcolor="#93cdf7", penwidth=2.4];
+    GCGD    [label=<<B>GLUCAGON / DASIGLUCAGON</B> (IV/SC)<BR/>hepatic PKA → phosphorylase<BR/><I>substrate supply — g-independent</I>>];
+    DEXT    [label=<<B>IV DEXTROSE / high-calorie feeds</B><BR/>GIR titrated to glucose<BR/><I>g-independent, non-curative</I>>];
+    ERS     [label=<<B>ERSODETUG (RZ358)</B> (IV mAb)<BR/>allosteric insulin-receptor antagonist<BR/><I>downstream — g-independent,<BR/>effect grows with insulin level</I>>,
+              fillcolor="#93cdf7"];
+    SIRO    [label="SIROLIMUS (mTOR inhibitor)\nmechanism in CHI poorly defined"];
+    NIFED   [label="NIFEDIPINE (Ca_v blocker)\nbeta-cell EC₅₀ ≫ tolerated plasma level"];
+    EX939   [label="EXENDIN(9-39)\nGLP-1R antagonist (investigational)"];
+    CORNST  [label="uncooked cornstarch /\ncontinuous gastric feeds"];
+    SURG    [label=<<B>SURGERY</B><BR/>focal lesionectomy (curative)<BR/>vs near-total pancreatectomy<BR/><I>reduces B, leaves g untouched</I>>,
+              fillcolor="#93cdf7", penwidth=2.2];
+    PKDZX   [label="diazoxide PK: F≈0.9, V≈0.25 L/kg,\n>90 % protein bound, t½ 9–30 h"];
+    PKOCT   [label="octreotide PK: t½ ≈ 1.7 h,\nq6h SC or LAR depot"];
+    PKERS   [label="ersodetug PK: IgG, t½ ≈ 2 wk,\nq2–4 wk IV"];
+    TACHY   [label="SSTR2 desensitisation\n(tachyphylaxis over days)"];
+  }
+
+  /* ==================== 12. DIAGNOSTICS ==================== */
+  subgraph cluster_dx {
+    label=<<B>12 · Diagnostics — each test reads a different term of the model</B>>;
+    style="filled,rounded"; fillcolor="#f0f8ea"; color="#5c8a3a"; fontsize=15; penwidth=2;
+    node [fillcolor="#e0f0d8"];
+    CRITSAMP [label="critical sample at glucose <50 mg/dL:\ninsulin detectable, C-peptide ↑,\nBOHB ↓, FFA ↓"];
+    ICRATIO [label="insulin : C-peptide molar ratio\n(separates endogenous from injected)"];
+    GCGTEST [label=<<B>glucagon stimulation test</B><BR/>rise &gt;30 mg/dL proves the<BR/>glycogen was never spent>,
+              fillcolor="#c9e6b8", penwidth=2.0];
+    GIRDX   [label="GIR >8 mg/kg/min to hold euglycaemia\n= the working definition of CHI"];
+    FDOPA   [label="¹⁸F-DOPA PET/CT\nfocal vs diffuse discrimination"];
+    GENETIC [label="rapid gene panel\n(ABCC8/KCNJ11 first)"];
+    FASTTOL [label="supervised safety fast\n(the discharge criterion)"];
+    CGM     [label="CGM / interstitial lag\n(≈10 min behind plasma)"];
+  }
+
+  /* ==================== 13. ENDPOINTS ==================== */
+  subgraph cluster_end {
+    label=<<B>13 · Clinical endpoints</B>>;
+    style="filled,rounded"; fillcolor="#fff4e6"; color="#cc7a00"; fontsize=15; penwidth=2;
+    node [fillcolor="#ffcc99"];
+    E_G     [label="plasma glucose nadir"];
+    E_GIR   [label="glucose infusion rate required\n(mg/kg/min)"];
+    E_TBR   [label="time below range (<70 / <54 mg/dL)"];
+    E_FAST  [label="fasting tolerance (h)"];
+    E_SEIZ  [label="hypoglycaemic seizure"];
+    E_NDD   [label="neurodevelopmental outcome"];
+    E_DM    [label="post-pancreatectomy diabetes\n(≈50 % by adolescence)"];
+    E_EXO   [label="exocrine pancreatic insufficiency"];
+    E_NH3   [label="plasma ammonia"];
+    E_REMIT [label="spontaneous remission\n(transient / HNF4A forms)"];
+  }
+
+  /* ==================== 14. ADVERSE EFFECTS ==================== */
+  subgraph cluster_ae {
+    label=<<B>14 · Treatment-limiting toxicity</B>>;
+    style="filled,rounded"; fillcolor="#fdeef5"; color="#a8467a"; fontsize=15; penwidth=2;
+    node [fillcolor="#f2c4d8"];
+    AE_HYPER [label="hypertrichosis (near-universal)"];
+    AE_FLUID [label="fluid retention / oedema\n(thiazide co-prescribed)"];
+    AE_PH    [label="pulmonary hypertension\n(FDA warning, 2015)"];
+    AE_NEUT  [label="neutropenia / thrombocytopenia"];
+    AE_HYPERG [label="iatrogenic hyperglycaemia\n(model: normal beta-cell → ~135 mg/dL\nat 10 mg/kg/day)"];
+    AE_NEC   [label="necrotising enterocolitis\n(octreotide, neonates)"];
+    AE_GB    [label="cholelithiasis / biliary sludge"];
+    AE_GROWTH [label="GH/IGF-1 suppression → growth"];
+    AE_TACHY [label="loss of effect (tachyphylaxis)"];
+    AE_DMSURG [label="surgical diabetes + malabsorption"];
+  }
+
+  /* ================= EDGES: genotype → g ================= */
+  ABCC8 -> TRAFFIC; KCNJ11 -> TRAFFIC; ABCC8d -> SUR1; LOH11p -> BMASS;
+  TRAFFIC -> NCHAN [label="failed surface delivery", color="#b03030", penwidth=1.6];
+  SUR1 -> NCHAN; NCHAN -> GK_COND [color="#b03030", penwidth=2.0];
+  GLUD1 -> GDHn [label="loss of GTP brake", color="#2f7f4f"];
+  GLUD1 -> GDHL;
+  GCKa -> GCK [label="↓S₀.₅", color="#2f7f4f"];
+  HADH -> SCHAD; SCHAD -> GDHn [label="⊣ restraint lost", style=dashed, color="#2f7f4f"];
+  HNF4A -> BMASS; SLC16A1 -> MCT1n; UCP2 -> UCP2n; CACNA1D -> CAV;
+  INSRg -> MIR; SYNDR -> NCHAN [style=dotted]; PERINAT -> NCHAN [style=dotted, label="reversible"];
+
+  /* ================= EDGES: beta-cell core ================= */
+  GLUT1B -> GCK -> GLYCOL -> PDH -> OXPHOS -> ATPADP;
+  GLYCOL -> ANAPL; GDHn -> ANAPL; LEU -> GDHn; ANAPL -> OXPHOS;
+  MCT1n -> GLYCOL [label="lactate/pyruvate\nbypass"]; UCP2n -> OXPHOS [style=dashed, label="⊣"];
+  ATPADP -> POPEN [label="⊣ closes channel", color="#b03030"];
+  ATPADP -> MGADP [style=dashed, label="inverse"];
+  MGADP -> POPEN [label="opens channel"];
+  POPEN -> GK_COND; GK_COND -> VM [color="#b03030", penwidth=2.0];
+  GIRK -> VM [color="#2f6f9f", penwidth=2.0]; GLEAK -> VM [label="depolarising"];
+  VM -> CAV [label="depolarisation past −50 mV", color="#b03030", penwidth=1.6];
+  CAV -> CAI -> EXO;
+  AMPLIFY -> EXO [label="× efficacy", color="#3f8f5b"];
+  GLYCOL -> AMPLIFY; ANAPL -> AMPLIFY; NADPH -> AMPLIFY; OXPHOS -> NADPH;
+  CAMP -> EXO [label="× amplification"]; GLP1R -> CAMP; SSTR2 -> CAMP [label="⊣", style=dashed];
+  SSTR2 -> GIRK [label="Gβγ opens GIRK", color="#2f6f9f", penwidth=1.6];
+  EXO -> KATPOFF [style=invis];
+  VM -> KATPOFF [label="tonically depolarised\nwhen g → 0", color="#b03030", penwidth=2.2];
+  BMASS -> EXO [label="× mass"]; HISTOL -> BMASS;
+
+  /* ================= EDGES: secretion → plasma insulin ================= */
+  KATPOFF -> INS_P [color="#b03030", penwidth=2.4];
+  EXO -> INS_P [color="#b03030", penwidth=1.6];
+  INS_P [label=<<B>PLASMA INSULIN</B><BR/>inappropriate for the glucose>,
+         fillcolor="#ff7f50", shape=box, style="filled,rounded", penwidth=2.6, fontsize=13];
+  CPEP_P [label="plasma C-peptide\n(t½ 30 min — the stable read-out)", fillcolor="#ffcc99"];
+  EXO -> CPEP_P;
+  INS_P -> INSPARA -> ACELL [label="⊣ tonic brake", style=dashed, color="#b03030"];
+  ACELL -> GCGSEC -> ALPHAFAIL [style=invis];
+  INS_P -> ALPHAFAIL [color="#b03030"]; ALPHAFAIL -> CRFAIL;
+  DCELL -> SSTR2 [label="endogenous SST"]; ZINC -> ACELL [style=dotted];
+
+  /* ================= EDGES: insulin action ================= */
+  INS_P -> HIR; INS_P -> ADIR; INS_P -> MIR;
+  HIR -> FOXO1 [label="⊣"]; FOXO1 -> GNG [label="⊣ →↓", style=dashed];
+  HIR -> GSK3 [label="⊣"]; GSK3 -> GS [label="⊣ lifted → ON"];
+  GS -> GLYCOGEN [label="synthesis (needs portal glucose)"];
+  HIR -> PHOSPH [label="⊣ via PP1", color="#b03030"];
+  GCGR -> PHOSPH [label="PKA activates", color="#2f6f9f", penwidth=1.6];
+  GCGR -> IC50SEP [label="raises the insulin IC₅₀\nfor glycogenolysis", color="#2f6f9f"];
+  PHOSPH -> GLYCOLYSIS_L; GLYCOGEN -> GLYCOLYSIS_L [label="substrate"];
+  GLYCOLYSIS_L -> G6PASE; GNG -> G6PASE; G6PASE -> GLU_P [penwidth=1.8];
+  IC50SEP -> HSL [style=dotted]; IC50SEP -> PHOSPH [style=dotted]; IC50SEP -> HMGCS2 [style=dotted];
+  ADIR -> HSL [label="⊣ IC₅₀ 12 µU/mL", color="#b03030", penwidth=1.6];
+  HSL -> LIPO -> FFA; LIPO -> GLYCEROL -> GNG;
+  FFA -> CPT1 -> HMGCS2 -> BOHB;
+  HIR -> HMGCS2 [label="⊣ IC₅₀ 15 µU/mL", color="#b03030", penwidth=1.6];
+  GLYCOGEN -> HEPSW [label="depletion ARMS the switch", color="#8a7355", penwidth=1.6];
+  HEPSW -> HMGCS2 [label="× ketogenic capacity", color="#8a7355", penwidth=1.6];
+  GLYCOGEN -> HEPATOM [style=dotted];
+  MIR -> AS160 -> GLUT4 -> UID; MIR -> MGLY;
+  UID -> GLU_P [label="⊣ disposal", color="#b03030", penwidth=1.8];
+  UII -> GLU_P [label="⊣"];
+
+  /* ================= central plasma glucose node ================= */
+  GLU_P [label=<<B>PLASMA GLUCOSE</B><BR/>the only variable anyone measures>,
+         fillcolor="#ff9c3f", penwidth=2.6, fontsize=13];
+  GLUI_P [label="interstitial glucose (CGM)", fillcolor="#ffcc99"];
+  GLU_P -> GLUI_P [label="≈10 min lag"]; GLUI_P -> CGM;
+  GLU_P -> GLUT1B [label="substrate for secretion", style=dashed];
+  GLU_P -> GCK [style=invis];
+
+  /* ================= EDGES: brain fuel ================= */
+  GLU_P -> BBBGLUT -> CMRGLC -> FUELSUM;
+  CBF -> BBBGLUT [label="× (+35 % max)"]; GLU_P -> CBF [label="⊣ falling glucose\nraises CBF", style=dashed];
+  BOHB -> MCT12 -> CMRKET -> FUELSUM [color="#8a7355", penwidth=1.8];
+  CMRLAC -> FUELSUM;
+  FUELSUM -> NEUROGLY [label="supply < demand", color="#b03030", penwidth=2.0];
+  NEUROGLY -> EEG -> SEIZ; NEUROGLY -> INJURY -> NDD; SEIZ -> NDD;
+  ADREN -> SEIZ [style=dotted, label="warning absent →\npresentation is late"];
+  BOHB -> FUELSUM [style=invis];
+
+  /* ================= EDGES: counterregulation ================= */
+  GLU_P -> VMH [label="⊣"]; VMH -> SYMP -> EPI; VMH -> CORT; VMH -> GHc;
+  EPI -> LIPO [label="+"]; EPI -> PHOSPH [label="+"]; CORT -> GNG [label="+"];
+  NCHAN -> VMH [label="the SAME channel is\nmutated in the hypothalamus",
+                style=dashed, color="#b03030"];
+  CRFAIL -> GLU_P [label="⊣ no rescue", color="#b03030"];
+  ALPHAFAIL -> GCGSEC [label="⊣"]; GCGSEC -> GCGR;
+
+  /* ================= EDGES: ammonia ================= */
+  GDHL -> GLUTAM -> NH3; GLUTAM -> NAGS -> NH3 [label="↓urea-cycle priming"];
+  NH3 -> NH3DISS; NH3 -> ABSENCE; NH3DISS -> E_NH3;
+
+  /* ================= EDGES: drugs ================= */
+  PKDZX -> DZX; PKOCT -> OCT; PKERS -> ERS;
+  DZX -> MGADP [label="↑ADP sensitivity", color="#2f6f9f", penwidth=1.6];
+  DZX -> POPEN [label="shifts R₅₀ right", color="#2f6f9f", penwidth=2.2];
+  DZX -> NCHAN [label="REQUIRES surviving channels\n→ zero effect at g≈0",
+                style=dashed, color="#b03030", penwidth=2.2];
+  OCT -> SSTR2 [color="#2f6f9f", penwidth=2.2]; OCT -> TACHY -> AE_TACHY;
+  TACHY -> SSTR2 [label="⊣ desensitisation", style=dashed];
+  GCGD -> GCGR [color="#2f6f9f", penwidth=1.8];
+  DEXT -> GLU_P [color="#2f6f9f", penwidth=2.0]; CORNST -> GLU_P [color="#2f6f9f"];
+  ERS -> MIR [label="⊣ allosteric", color="#2f6f9f", penwidth=2.0];
+  ERS -> HIR [label="⊣", color="#2f6f9f"]; ERS -> ADIR [label="⊣", style=dashed];
+  SIRO -> BMASS [label="⊣ proliferation"]; SIRO -> EXO [label="⊣ weakly"];
+  NIFED -> CAV [label="⊣ (unreachable EC₅₀)", style=dashed];
+  EX939 -> GLP1R [label="⊣"];
+  SURG -> BMASS [label="⊣ removes MASS, not g", color="#2f6f9f", penwidth=2.2];
+  SURG -> E_DM; SURG -> E_EXO; SURG -> AE_DMSURG;
+
+  /* ================= EDGES: adverse ================= */
+  DZX -> AE_HYPER; DZX -> AE_FLUID; DZX -> AE_PH; DZX -> AE_NEUT; DZX -> AE_HYPERG;
+  OCT -> AE_NEC; OCT -> AE_GB; OCT -> AE_GROWTH;
+
+  /* ================= EDGES: diagnostics ================= */
+  INS_P -> CRITSAMP; CPEP_P -> CRITSAMP; BOHB -> CRITSAMP [label="suppressed"];
+  FFA -> CRITSAMP [label="suppressed"]; INS_P -> ICRATIO; CPEP_P -> ICRATIO;
+  GLYCOGEN -> GCGTEST [label="preserved store\n= positive test", color="#5c8a3a", penwidth=1.8];
+  GCGD -> GCGTEST; E_GIR -> GIRDX;
+  LOH11p -> FDOPA [label="focal uptake"]; BMASS -> FDOPA;
+  ABCC8 -> GENETIC; KCNJ11 -> GENETIC; GENETIC -> SURG [label="biallelic → expect diffuse"];
+  FDOPA -> SURG [label="focal → lesionectomy cures"];
+  GLU_P -> FASTTOL; FASTTOL -> E_FAST;
+
+  /* ================= EDGES: endpoints ================= */
+  GLU_P -> E_G; GLU_P -> E_TBR; DEXT -> E_GIR; UID -> E_GIR;
+  SEIZ -> E_SEIZ; NDD -> E_NDD; PERINAT -> E_REMIT; HNF4A -> E_REMIT;
+  BMASS -> E_DM [label="mass below the\ndiabetes threshold"];
+
+  /* ================= layout hints ================= */
+  { rank=same; NCHAN; GDHn; }
+  { rank=same; GLU_P; INS_P; }
+}
