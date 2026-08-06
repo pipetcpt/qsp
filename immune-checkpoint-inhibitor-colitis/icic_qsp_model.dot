@@ -1,0 +1,664 @@
+/*
+ * icic_qsp_model.dot
+ * ==================
+ * Mechanistic QSP map of IMMUNE CHECKPOINT INHIBITOR-INDUCED COLITIS (ICI colitis,
+ * immune-mediated diarrhoea and colitis, IMDC).
+ *
+ * ORGANISING IDEA.  ICI colitis is not "too much inflammation".  It is the
+ * behaviour of a RATIO whose denominator can be depleted:
+ *
+ *        Phi_col  =  (Teff * a_eff  +  Trm * a_trm) / (Treg * a_reg + kappa)
+ *
+ * Everything the two checkpoint drugs do is a statement about that fraction, and
+ * the two drugs enter it in structurally different places:
+ *
+ *   - Anti-PD-1 multiplies the NUMERATOR's per-cell activity by a receptor
+ *     occupancy term O = C_t/(C_t + KD).  With KD ~ 1 nM and clinical tissue
+ *     concentrations of 2-200 nM, O runs from 0.854 to 0.995 across a
+ *     THIRTYFOLD dose range, and the numerator MULTIPLIER only by 6.7%.  The numerator is therefore already saturated at the lowest
+ *     clinical dose --> anti-PD-1 colitis has NO dose-response.
+ *
+ *   - Anti-CTLA-4 divides by the DENOMINATOR: FcgammaRIIIa-dependent ADCC removes
+ *     CTLA-4-high colonic Tregs with an effective EC50 that is 10-100x the binding
+ *     KD (Fc-mediated killing needs immune-complex DENSITY, not just occupancy),
+ *     and tissue free drug is only 10-20% of plasma.  EC50_ADCC therefore sits in
+ *     the MIDDLE of the clinical exposure range --> ipilimumab colitis is
+ *     dose-proportional (1 -> 3 -> 10 mg/kg).
+ *
+ * A ratio with a saturated numerator and a depletable denominator is the whole
+ * reason one class of checkpoint drug has a dose-toxicity curve and the other
+ * does not, and the reason ipi+nivo colitis is approximately ipi-mono colitis
+ * rather than the sum of the two.
+ *
+ * SECOND IDEA (why the symptom is a bad instrument).  The colon is presented with
+ * ~1.5-2.0 L/day of ileal effluent against a maximal absorptive capacity of
+ * ~4.5 L/day: a 2.5-3x RESERVE.  Stool output = L_presented - A_max*S(t), so
+ * diarrhoea is identically zero until the absorptive surface function S falls
+ * below L/A_max ~ 0.38.  Grade is a CENSORED read-out of a continuous lesion;
+ * calprotectin and endoscopy are not censored, which is why they move weeks
+ * earlier and why symptom-triggered treatment is structurally late.
+ *
+ * THIRD IDEA (the cascade has depth, and depth is onset time).  Rescue agents act
+ * at different distances from epithelial apoptosis: TNF neutralisation is the
+ * terminal step (response in 2-3 d), corticosteroid acts on effector programme
+ * and transcription (4-6 d), alpha4beta7 blockade acts on TRAFFICKING and cannot
+ * touch cells already resident (14-21 d).  The observed ordering of response
+ * times is a consequence of cascade depth, not of potency.
+ *
+ * FOURTH IDEA (selectivity is the currency).  The same primed clones that damage
+ * the colon kill the tumour.  Rescue therapy subtracts from tumour control in
+ * proportion to its NON-gut-selectivity chi: steroid chi ~ 1.0, infliximab
+ * chi ~ 0.6, vedolizumab chi ~ 0.1 (alpha4beta7/MAdCAM-1 is a gut-homing address
+ * the tumour does not use).  Gut-selective rescue buys the same colitis control
+ * at a fraction of the oncological cost.
+ *
+ * FIFTH IDEA (the disease eats its own antidote).  Severe colitis causes a
+ * protein-losing enteropathy; hypoalbuminaemia and high CRP are the two dominant
+ * covariates on monoclonal-antibody clearance.  CL_ifx rises as albumin falls, so
+ * a fixed 5 mg/kg dose delivers the LOWEST exposure to the SICKEST patient --
+ * a negative feedback loop from disease severity onto rescue drug exposure.
+ *
+ * Node colour convention
+ *   genetics / host modifiers .......... #eeeeee  (grey)
+ *   microbiome / lumen ................. #ffe6b3  (amber)
+ *   priming / lymph node ............... #f9d0c4  (salmon)
+ *   effector immunity .................. #f6c6c6  (red)
+ *   regulatory immunity ................ #d7f0d0  (green)
+ *   cytokines / chemokines ............. #ffd9ec  (pink)
+ *   epithelium / barrier ............... #cfe3ff  (blue)
+ *   water & electrolyte transport ...... #d4f0ef  (teal)
+ *   checkpoint drug PK/PD .............. #e6d5f5  (violet)
+ *   rescue drug PK/PD .................. #cdbdf0  (deep violet)
+ *   complications ...................... #f5b7b1  (deep red)
+ *   endpoints / biomarkers ............. #fdebd0  (sand)
+ *
+ * Edge convention
+ *   solid black   = mass flux / differentiation / activation
+ *   red           = inhibition, killing, depletion, loss
+ *   blue dashed   = drug or procedural action
+ *   grey dotted   = feedback / regulatory / covariate
+ *   green         = protective / restorative
+ *
+ * Render:  dot -Tsvg icic_qsp_model.dot -o icic_qsp_model.svg
+ *          dot -Tpng -Gdpi=110 icic_qsp_model.dot -o icic_qsp_model.png
+ */
+
+digraph ICIC_QSP {
+    graph [rankdir=TB, splines=polyline, overlap=false, newrank=true, nodesep=0.34,
+           ranksep=0.70, fontname="Helvetica", fontsize=11,
+           labelloc="t", compound=true, bgcolor="white",
+           label=<<B>Immune Checkpoint Inhibitor-Induced Colitis — Quantitative Systems Pharmacology Map</B><BR/>
+<FONT POINT-SIZE="11">CTLA-4 blockade depletes the denominator · PD-1 blockade saturates the numerator · the colon spends a 2.5x absorptive reserve<BR/>
+before the first loose stool · and every rescue drug trades colitis control against the tumour in proportion to how systemic it is</FONT><BR/>
+<FONT POINT-SIZE="9">Central identity:  &#934;<SUB>col</SUB> = (T<SUB>eff</SUB>·a<SUB>eff</SUB> + T<SUB>rm</SUB>·a<SUB>trm</SUB>) / (T<SUB>reg</SUB>·a<SUB>reg</SUB> + &#954;)&#8195;·&#8195;a<SUB>eff</SUB> &#8733; 1/(1&#8722;O<SUB>PD1</SUB>), O = C<SUB>t</SUB>/(C<SUB>t</SUB>+K<SUB>D</SUB>) &#8776; 1&#8195;·&#8195;dT<SUB>reg</SUB>/dt &#8722;= k<SUB>ADCC</SUB>·&#966;<SUB>FCGR</SUB>·C<SUB>ipi,t</SUB>/(C<SUB>ipi,t</SUB>+EC50<SUB>ADCC</SUB>)·T<SUB>reg</SUB><BR/>
+Censored read-out:  Stool = max(0, L<SUB>presented</SUB> &#8722; A<SUB>max</SUB>·S)&#8195;&#8658;&#8195;grade &#8801; 0 while S &gt; L/A<SUB>max</SUB> &#8776; 0.38&#8195;·&#8195;Oncological cost = &#967;<SUB>drug</SUB> · &#8747; suppression dt</FONT>>];
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica",
+          fontsize=10, penwidth=0.9, margin="0.07,0.045"];
+    edge [fontname="Helvetica", fontsize=8, arrowsize=0.65, penwidth=0.9,
+          color="#333333"];
+
+    /* =================================================================
+     * 1.  HOST AND GENETIC SUSCEPTIBILITY (the setpoint before dose 1)
+     * ================================================================= */
+    subgraph cluster_host {
+        label=<<B>1. Host susceptibility — the setpoint that exists before the first infusion</B>>;
+        style="rounded,filled"; fillcolor="#fafafa"; color="#8a8a8a";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#eeeeee"];
+
+        FCGR3A   [label="FCGR3A V158F\nV/V high-affinity FcγRIIIa\n→ ADCC efficiency φ = 1.6\nV/F φ = 1.0 · F/F φ = 0.55"];
+        HLA_RISK [label="HLA-DQB1*03:01 / DRB1*11\nreported irAE risk alleles\n(TCR repertoire shaping)"];
+        IL7_SNP  [label="IL7 rs16906115 A allele\n↑ IL-7 → larger naive pool\n(GWAS: all-irAE risk)"];
+        PRIOR_IBD[label="pre-existing IBD or\nmicroscopic colitis\nbaseline S₀ < 1, Trm₀ > 0"];
+        AUTOAB   [label="pre-existing autoantibody /\nsubclinical enteropathy\n(latent primed clones)"];
+        NSAID    [label="NSAID exposure\nCOX inhibition → ↓PGE₂\n→ ↓ epithelial restitution"];
+        ABX      [label="antibiotic exposure\n(≤60 d before ICI)\n→ ↓ microbial diversity"];
+        PPI      [label="PPI use\n↑ small-bowel bacterial load\n→ ↑ luminal antigen"];
+        AGE_SEX  [label="age, sex, BMI\n(covariates on CL and\non naive/memory balance)"];
+        TUMOR_TYPE[label="tumour type & PD-L1\n(melanoma > RCC > NSCLC\nfor colitis incidence)"];
+    }
+
+    /* =================================================================
+     * 2.  MICROBIOME, LUMINAL ANTIGEN, AND SHORT-CHAIN FATTY ACIDS
+     * ================================================================= */
+    subgraph cluster_micro {
+        label=<<B>2. Lumen — antigen drive and butyrate, the two opposite exports of the microbiome</B>>;
+        style="rounded,filled"; fillcolor="#fffaf0"; color="#c9a227";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#ffe6b3"];
+
+        MICRO_DIV [label="microbial α-diversity D\n(Shannon; state variable)"];
+        BACTEROID [label="Bacteroidetes / polyamine-\ntransport & B-vitamin pathways\nDubin 2016: colitis-PROTECTIVE"];
+        FAECALI   [label="Faecalibacterium prausnitzii\n& Firmicutes bloom\nChaput 2017: ↑response AND ↑colitis"];
+        BFRAGILIS [label="Bacteroides fragilis\nrequired for anti-CTLA-4\nantitumour effect (Vétizou 2015)"];
+        AKKERM    [label="Akkermansia muciniphila\n↑ anti-PD-1 response\n(Routy 2018)"];
+        SCFA      [label="butyrate / propionate\nSCFA pool B\n(state variable)"];
+        BUT_FUEL  [label="butyrate = ~70% of\ncolonocyte ATP\n(β-oxidation, hypoxic crypt)"];
+        BUT_TREG  [label="butyrate → HDAC inhibition\n→ FOXP3 acetylation\n→ pTreg induction"];
+        LUM_AG    [label="luminal antigen load Ag\ncommensal + cross-reactive\ntumour-shared epitopes"];
+        MUC_LAYER [label="mucus bilayer\n(MUC2, goblet cells)\nphysical antigen exclusion"];
+        SIGA      [label="secretory IgA\nantigen neutralisation"];
+        BILE_AC   [label="secondary bile acids\n(deconjugation; ↓ with\nlow diversity → secretory drive)"];
+        LPS_TRANS [label="microbial translocation\nLPS / flagellin → TLR4/5\nFEED-FORWARD amplifier"];
+    }
+
+    /* =================================================================
+     * 3.  PRIMING IN THE DRAINING LYMPH NODE (the CTLA-4 compartment)
+     * ================================================================= */
+    subgraph cluster_prime {
+        label=<<B>3. Draining lymph node — CD28/CTLA-4 competition sets how many clones are licensed</B>>;
+        style="rounded,filled"; fillcolor="#fff5f2"; color="#c9765f";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#f9d0c4"];
+
+        DC_MIG   [label="migratory CD103⁺ DC\nantigen transport lumen → mLN"];
+        MHC_TCR  [label="MHC-II/I : TCR signal 1"];
+        CD80_86  [label="CD80 / CD86 on APC\nshared ligand, limiting supply"];
+        CD28     [label="CD28 (signal 2)\nK_D ~ 4 µM for CD80"];
+        CTLA4    [label="CTLA-4 on Teff & Treg\nK_D ~ 0.2-0.4 µM for CD80\n(10-20× tighter than CD28)"];
+        TRANSENDO[label="CTLA-4 trans-endocytosis\nTreg strips CD80/86 off APC\n(cell-extrinsic brake)"];
+        NAIVE_P  [label="naive / stem-memory pool Tn\nself- and commensal-reactive\nprecursors"];
+        CLONE_N  [label="licensed clone count N_clone\n∫ priming rate dt\n(a CUMULATIVE, not instantaneous, variable)"];
+        TCR_DIV  [label="TCR repertoire diversification\n↑ clonality of colonic CD8\n(Oh 2017: shared with tumour)"];
+        PRIME_OUT[label="activated effector output\nα4β7⁺ CCR9⁺ gut-imprinted\n(retinoic acid from CD103⁺ DC)"];
+        THYMIC   [label="thymic Treg (tTreg)\nCTLA-4-high, the ADCC target"];
+    }
+
+    /* =================================================================
+     * 4.  CHECKPOINT INHIBITOR PK AND TARGET ENGAGEMENT
+     * ================================================================= */
+    subgraph cluster_icipk {
+        label=<<B>4. Checkpoint inhibitor PK/PD — a saturated numerator and an unsaturated denominator</B>>;
+        style="rounded,filled"; fillcolor="#f7f2fd"; color="#7d5ba6";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#e6d5f5"];
+
+        IPI_DOSE [label="ipilimumab 1 / 3 / 10 mg/kg q3w\nIgG1 (ADCC-competent)"];
+        IPI_C    [label="ipilimumab central A_ipi,c\nCL 0.37 L/d · V_c 4.4 L\nt½ 15.4 d"];
+        IPI_P    [label="ipilimumab peripheral\nQ 0.6 L/d · V_p 2.8 L"];
+        IPI_T    [label="colonic tissue C_ipi,t\nbiodistribution coeff. 0.10-0.20\n(inflammation-dependent)"];
+        IPI_OCC  [label="CTLA-4 occupancy\nK_D 5.25 nM → saturated\n(NOT the dose-limiting term)"];
+        ADCC     [label="FcγRIIIa⁺ macrophage ADCC\nEC50_ADCC ≈ 30 µg/mL-equivalent\n= 10-100× K_D → UNSATURATED"];
+        TREG_DEP [label="colonic Treg depletion rate\nk_ADCC · φ_FCGR · C/(C+EC50)\nTHE dose-dependent step"];
+        PD1_DOSE [label="nivolumab 3 mg/kg q2w / 240 mg\npembrolizumab 200 mg q3w\n(also 0.1-10 mg/kg phase 1)"];
+        PD1_C    [label="anti-PD-1 central A_pd1,c\nCL 0.23 L/d · V_c 8.0 L\nt½ 25 d (nivo)"];
+        PD1_P    [label="anti-PD-1 peripheral"];
+        PD1_T    [label="colonic tissue C_pd1,t\n2-200 nM at clinical doses"];
+        PD1_OCC  [label="PD-1 occupancy O\n= C/(C+K_D), K_D ~1 nM\n0.854 → 0.995 over 30× dose"];
+        PDL1_EPI [label="PD-L1 on colonic epithelium\n& lamina propria APC\nIFN-γ-inducible (feedback brake)"];
+        FLAT     [label="⇒ FLAT dose-toxicity for anti-PD-1\n(pembro 2 vs 10 mg/kg: identical irAE)\nvs DOSE-PROPORTIONAL for ipilimumab", shape=note, fillcolor="#fff3cd"];
+        ADA      [label="anti-drug antibodies\n(low incidence; ↑CL)"];
+    }
+
+    /* =================================================================
+     * 5.  COLONIC EFFECTOR COMPARTMENT (the numerator)
+     * ================================================================= */
+    subgraph cluster_eff {
+        label=<<B>5. Colonic lamina propria — the numerator, and the resident pool that outlives the drug</B>>;
+        style="rounded,filled"; fillcolor="#fdf0f0"; color="#c0392b";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#f6c6c6"];
+
+        HOMING   [label="α4β7 : MAdCAM-1 adhesion\nCCR9 : CCL25\ngut-selective ADDRESS"];
+        TEFF     [label="Teff_col — CD8⁺ / Th1\nrecirculating effectors\n(state variable)"];
+        TRM      [label="Trm_col — CD69⁺CD103⁺\nTISSUE-RESIDENT MEMORY\nself-renewing (IL-15/IL-7)\n⇒ HYSTERESIS", penwidth=2.2, color="#7b241c"];
+        TEFF_PROL[label="in-situ proliferation\n(antigen + IL-2/IL-15)"];
+        TH17     [label="Th17_col / IL-17A\n(IL-23-driven;\nIL-17 blockade WORSENS colitis)"];
+        MAC_M1   [label="M1 macrophage\nCD16⁺ · principal TNF-α source\nalso the ADCC effector cell"];
+        NEUT     [label="neutrophil influx\nCXCL1/8 · calprotectin source\ncrypt abscess"];
+        ILC1     [label="ILC1 / NK\nIFN-γ, perforin"];
+        PLASMA_B [label="plasma cells\n(↑IgG, anti-enteric)"];
+        GZMB     [label="granzyme B / perforin\nFasL–Fas\ndirect epithelial killing"];
+        CLONAL_EX[label="clonal expansion index\nTCR-seq: ↑ CD8 clonality\nprecedes symptoms by ~2 wk"];
+        EXHAUST  [label="exhaustion / contraction\n(k_off, activation-induced\ncell death)"];
+    }
+
+    /* =================================================================
+     * 6.  REGULATORY ARM (the depletable denominator)
+     * ================================================================= */
+    subgraph cluster_reg {
+        label=<<B>6. Regulatory arm — the denominator that anti-CTLA-4 removes</B>>;
+        style="rounded,filled"; fillcolor="#f2fbf0"; color="#3c8c40";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#d7f0d0"];
+
+        TREG     [label="Treg_col — FOXP3⁺ CD25⁺\nCTLA-4-HIGH (ADCC target)\n(state variable, DEPLETABLE)", penwidth=2.2, color="#1e5c22"];
+        PTREG    [label="peripherally induced pTreg\nbutyrate/TGF-β-dependent\n(supply term)"];
+        IL10     [label="IL-10\nepithelial & effector restraint"];
+        TGFB     [label="TGF-β\npTreg induction · fibrosis"];
+        CD39_73  [label="CD39 / CD73 → adenosine\nA2A receptor suppression"];
+        IL2_SINK [label="CD25 IL-2 consumption\n(competitive deprivation)"];
+        TR1      [label="Tr1 / LAG-3⁺ regulatory\n(secondary brake)"];
+        REG_CAP  [label="regulatory capacity\na_reg · Treg + κ\nκ = non-Treg floor"];
+        PD1_TREG [label="PD-1 on Treg\n(blockade can also\nRELEASE Treg function — bidirectional)"];
+    }
+
+    /* =================================================================
+     * 7.  CYTOKINE / CHEMOKINE NETWORK
+     * ================================================================= */
+    subgraph cluster_cyto {
+        label=<<B>7. Cytokine network — IFN-γ sets the programme, TNF-α executes it</B>>;
+        style="rounded,filled"; fillcolor="#fff5fa"; color="#c2185b";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#ffd9ec"];
+
+        IFNG     [label="IFN-γ\nJAK1/2-STAT1\nthe PROGRAMME"];
+        TNFA     [label="TNF-α\nTNFR1 → caspase-8\nthe TERMINAL EXECUTOR", penwidth=2.0, color="#880e4f"];
+        IL6      [label="IL-6 → STAT3\nCRP driver, Th17 support"];
+        IL23     [label="IL-23 (p19/p40)\nTh17 maintenance"];
+        IL1B     [label="IL-1β\ninflammasome (NLRP3)"];
+        IL15     [label="IL-15 (epithelial)\nTrm SURVIVAL — the\nhysteresis fuel"];
+        CXCL910  [label="CXCL9/10/11 → CXCR3\nIFN-γ-inducible recruitment\nAMPLIFYING LOOP"];
+        CCL25    [label="CCL25 (epithelial) → CCR9"];
+        MADCAM   [label="MAdCAM-1 (endothelium)\nTNF-inducible → ↑homing\nSECOND amplifying loop"];
+        JAKSTAT  [label="JAK/STAT signalling hub\n(target of tofacitinib/\nupadacitinib in refractory ICI colitis)"];
+        NFKB     [label="NF-κB\nepithelial & myeloid"];
+        IL17A    [label="IL-17A\nepithelial repair AND\nneutrophil recruitment (dual)"];
+    }
+
+    /* =================================================================
+     * 8.  EPITHELIUM: CRYPT REGENERATION VS APOPTOSIS
+     * ================================================================= */
+    subgraph cluster_epi {
+        label=<<B>8. Epithelium — a regenerative flux balance; the barrier is the difference of two large numbers</B>>;
+        style="rounded,filled"; fillcolor="#f2f7ff"; color="#2e6da4";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#cfe3ff"];
+
+        ISC      [label="LGR5⁺ intestinal stem cell\ncrypt base (state variable)"];
+        TA_CELL  [label="transit-amplifying cells\n4-5 divisions"];
+        ENT      [label="colonocyte mass S\nabsorptive SURFACE FUNCTION\nturnover 3-5 d (state variable)", penwidth=2.2, color="#1a4a7a"];
+        GOBLET   [label="goblet cells → MUC2"];
+        TUFT     [label="tuft & enteroendocrine cells\n(5-HT → secretion, motility)"];
+        APOP     [label="epithelial apoptosis\ncaspase-3/8; ↑↑ with TNF+IFN-γ\nhistology: apoptotic bodies"];
+        CRYPT_LOSS[label="crypt distortion / dropout\n(the histological severity axis)"];
+        TJ       [label="tight junction integrity\nclaudin-2↑ / occludin↓ / ZO-1↓\npore & leak pathway"];
+        WNT      [label="WNT/R-spondin niche\n(ISC self-renewal)"];
+        EGF_PGE2 [label="EGF · PGE₂ · IL-22\nrestitution signals\n(NSAID blocks PGE₂)"];
+        HIF_BUT  [label="butyrate → HIF-1α\n→ barrier gene programme"];
+        REGEN_CAP[label="regenerative reserve\nISC pool × mitotic rate\n(what steroids do NOT restore)"];
+    }
+
+    /* =================================================================
+     * 9.  ION AND WATER TRANSPORT — THE CENSORING THRESHOLD
+     * ================================================================= */
+    subgraph cluster_water {
+        label=<<B>9. Water &amp; electrolytes — a 2.5x reserve, therefore a censored symptom</B>>;
+        style="rounded,filled"; fillcolor="#eefbfa"; color="#17807a";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#d4f0ef"];
+
+        L_PRES   [label="ileal effluent presented\nL ≈ 1500-2000 mL/day"];
+        A_MAX    [label="maximal colonic absorption\nA_max ≈ 4500 mL/day\n⇒ RESERVE ≈ 2.5-3×", penwidth=2.0, color="#0e5c58"];
+        NHE3     [label="NHE3 (Na⁺/H⁺)\nIFN-γ/TNF-α → ↓ surface expression"];
+        ENAC     [label="ENaC (aldosterone-driven)\ndistal colon Na⁺ capture"];
+        DRA_CL   [label="DRA/SLC26A3 Cl⁻/HCO₃⁻\n↓ in inflammation"];
+        CFTR_SEC [label="CFTR / CaCC anion secretion\n↑ with 5-HT, PGE₂, bile acids"];
+        AQP      [label="aquaporin 3/8\nparacellular + transcellular water"];
+        S_EFF    [label="effective absorptive function\nS_eff = S · f(TJ) · f(NHE3)"];
+        THRESH   [label="THRESHOLD S* = L/A_max ≈ 0.38\nstool ≡ normal while S_eff > S*", shape=note, fillcolor="#fff3cd", penwidth=1.6];
+        STOOL_V  [label="stool water volume\n= max(0, L − A_max·S_eff)"];
+        STOOL_F  [label="stool frequency\n≈ baseline + ΔV / 150 mL"];
+        DEHYD    [label="dehydration · hypokalaemia\nmetabolic acidosis (HCO₃⁻ loss)"];
+    }
+
+    /* =================================================================
+     * 10.  RESCUE THERAPY PK/PD — CASCADE DEPTH SETS ONSET TIME
+     * ================================================================= */
+    subgraph cluster_rescue {
+        label=<<B>10. Rescue therapy — depth in the cascade sets onset; gut-selectivity sets oncological cost</B>>;
+        style="rounded,filled"; fillcolor="#f4f0fc"; color="#5b3fa6";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#cdbdf0"];
+
+        PRED     [label="prednisolone / methylpred\n1-2 mg/kg/day, then taper\nGR → ↓NF-κB, ↓AP-1"];
+        PRED_PK  [label="prednisolone PK\nF 0.8 · t½ 2-3 h\n(effect t½ ~ 12-24 h, genomic)"];
+        PRED_ON  [label="onset 4-6 days\nresponse ~60-70%\nrefractory 30-40%", shape=note, fillcolor="#fff3cd"];
+        BUDESO   [label="budesonide MMX\n90% hepatic first pass\n(gut-selective steroid)"];
+        IFX      [label="infliximab 5 mg/kg\nTNF-α neutralisation\n= TERMINAL step"];
+        IFX_PK   [label="infliximab PK\nCL 0.4 L/d · V 5.5 L · t½ 8-10 d\nCL ∝ ALB^−0.5 · (1+k·CRP)"];
+        IFX_ON   [label="onset 2-3 days\nresponse ~80-85%\nχ (systemic cost) ≈ 0.6", shape=note, fillcolor="#fff3cd"];
+        VDZ      [label="vedolizumab 300 mg\nwk 0/2/6\nα4β7 blockade = TRAFFICKING"];
+        VDZ_PK   [label="vedolizumab PK\nCL 0.16 L/d · t½ 25 d\nsaturable α4β7 target-mediated"];
+        VDZ_ON   [label="onset 14-21 days\nsteroid-free remission ~85%\nχ ≈ 0.1 — GUT-SELECTIVE", shape=note, fillcolor="#d5f5e3"];
+        TOCI     [label="tocilizumab 4-8 mg/kg\nIL-6R blockade\n(refractory / overlap irAE)"];
+        UST      [label="ustekinumab\nIL-12/23 p40\n(Th17-dominant refractory)"];
+        JAKI     [label="tofacitinib / upadacitinib\nJAK1/3 · rapid, oral\n(case series in refractory ICIC)"];
+        FMT      [label="faecal microbiota transplant\nresets D and B\n= the ANTIGEN/SCFA reset", penwidth=1.8, color="#2e7d32"];
+        ICI_HOLD [label="ICI interruption / discontinuation\nremoves the TRIGGER,\nnot the Trm STATE", penwidth=1.6];
+    }
+
+    /* =================================================================
+     * 11.  COMPLICATIONS AND THE DRUG-CLEARANCE FEEDBACK
+     * ================================================================= */
+    subgraph cluster_comp {
+        label=<<B>11. Complications — and the loop by which severity lowers the exposure of its own antidote</B>>;
+        style="rounded,filled"; fillcolor="#fdeeec"; color="#a93226";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#f5b7b1"];
+
+        ULCER    [label="deep ulceration depth U\n(Mayo endoscopic subscore 3)\npredicts steroid-refractoriness"];
+        PERF     [label="perforation / toxic megacolon\nhazard ∝ U · (1 − S)\n~1-2% of ipilimumab-treated"];
+        COLECT   [label="colectomy\n(historical ipilimumab-era\nsalvage endpoint)"];
+        PLE      [label="protein-losing enteropathy\nfaecal α1-antitrypsin loss\n→ ALBUMIN ↓", penwidth=1.8, color="#7b241c"];
+        ALB      [label="serum albumin\ncovariate on mAb clearance\n(the feedback node)"];
+        CMV      [label="CMV reactivation\n5-15% of steroid-refractory\n(mimics/aggravates)"];
+        CDIFF    [label="C. difficile superinfection\n(must be excluded)"];
+        INFECT   [label="opportunistic infection hazard\n∝ ∫ steroid + biologic dt\n(PJP prophylaxis > 4 wk)"];
+        STER_TOX [label="steroid toxicity\nhyperglycaemia · myopathy\nBMD loss · adrenal suppression"];
+        VTE      [label="venous thromboembolism\n(inflammation + immobility)"];
+    }
+
+    /* =================================================================
+     * 12.  CLINICAL ENDPOINTS, BIOMARKERS AND THE TUMOUR TRADE-OFF
+     * ================================================================= */
+    subgraph cluster_end {
+        label=<<B>12. Endpoints — the censored symptom, the uncensored biomarkers, and the tumour</B>>;
+        style="rounded,filled"; fillcolor="#fffaf0"; color="#b9770e";
+        fontsize=12; penwidth=1.4;
+        node [fillcolor="#fdebd0"];
+
+        CTCAE    [label="CTCAE diarrhoea grade\nG1 <4 · G2 4-6 · G3 ≥7 stools/day\nCENSORED below S*", penwidth=1.8, color="#7e5109"];
+        COL_GRADE[label="CTCAE colitis grade\n(symptoms + endoscopy + imaging)"];
+        MAYO_E   [label="Mayo endoscopic subscore 0-3\nUNCENSORED lesion read-out"];
+        HISTO    [label="histology: apoptosis count,\ncrypt distortion, IEL,\nneutrophilic cryptitis"];
+        CALPRO   [label="faecal calprotectin\n>150-200 µg/g = active\nmoves ~2 wk BEFORE symptoms", penwidth=1.8, color="#7e5109"];
+        LACTOFER [label="faecal lactoferrin\n(alternative neutrophil marker)"];
+        CRP_OUT  [label="CRP (IL-6-driven)"];
+        CT_IMG   [label="CT: mesenteric hyperaemia,\nbowel wall thickening\n(pancolitis vs left-sided)"];
+        PRO      [label="patient-reported outcome\n(urgency, incontinence,\nabdominal pain, blood)"];
+        TUMOR    [label="tumour burden T\nkill ∝ intratumoural effector pool\n(SHARED clones with colon)", penwidth=1.8, color="#7e5109"];
+        TUM_COST [label="oncological cost of rescue\n= χ_drug · ∫ suppression dt\nsteroid 1.0 · IFX 0.6 · VDZ 0.1", shape=note, fillcolor="#d5f5e3", penwidth=1.6];
+        RECUR    [label="recurrence on taper\n30-40% — Trm-driven\n(the state, not the trigger)"];
+        REINTRO  [label="ICI re-challenge\nrecurrence risk: anti-PD-1 mono\nsafer than ipi re-exposure"];
+    }
+
+    /* =================================================================
+     * EDGES — 1. host modifiers into the system
+     * ================================================================= */
+    edge [color="#777777", style=dotted];
+    FCGR3A   -> ADCC        [label="φ_FCGR"];
+    HLA_RISK -> NAIVE_P     [label="repertoire"];
+    IL7_SNP  -> NAIVE_P     [label="pool size"];
+    AGE_SEX  -> IPI_C       [label="CL, V covariates"];
+    AGE_SEX  -> PD1_C;
+    TUMOR_TYPE -> LUM_AG;
+    PRIOR_IBD -> TRM        [label="Trm₀ > 0"];
+    PRIOR_IBD -> ENT        [label="S₀ < 1"];
+    AUTOAB   -> CLONE_N     [label="latent clones"];
+    ABX      -> MICRO_DIV   [color="#c0392b", style=solid, label="↓D"];
+    PPI      -> LUM_AG      [style=solid, label="↑load"];
+    NSAID    -> EGF_PGE2    [color="#c0392b", style=solid, label="↓PGE₂"];
+
+    /* --- 2. microbiome internal and outward --- */
+    edge [color="#333333", style=solid];
+    MICRO_DIV -> BACTEROID;
+    MICRO_DIV -> FAECALI;
+    MICRO_DIV -> AKKERM;
+    MICRO_DIV -> BFRAGILIS;
+    FAECALI  -> SCFA        [label="butyrate producer"];
+    MICRO_DIV -> SCFA;
+    SCFA     -> BUT_FUEL;
+    SCFA     -> BUT_TREG;
+    BUT_FUEL -> ENT         [color="#2e7d32", label="ATP for\nrepair"];
+    BUT_FUEL -> HIF_BUT;
+    HIF_BUT  -> TJ          [color="#2e7d32"];
+    BUT_TREG -> PTREG       [color="#2e7d32", label="FOXP3"];
+    MICRO_DIV -> LUM_AG     [dir=none, style=dashed, label="composition\nsets epitopes"];
+    LUM_AG   -> DC_MIG;
+    MUC_LAYER -> LUM_AG     [color="#c0392b", label="exclusion"];
+    SIGA     -> LUM_AG      [color="#c0392b"];
+    GOBLET   -> MUC_LAYER;
+    BILE_AC  -> CFTR_SEC    [label="secretory"];
+    MICRO_DIV -> BILE_AC;
+    BACTEROID -> REG_CAP    [color="#2e7d32", style=dotted, label="protective\nsignature"];
+    FAECALI  -> CLONE_N     [style=dotted, label="↑response\nAND ↑colitis"];
+    BFRAGILIS -> PRIME_OUT  [style=dotted, label="required for\nipi efficacy"];
+    AKKERM   -> TUMOR       [style=dotted, color="#2e7d32", label="↑ anti-PD-1\nresponse"];
+    LPS_TRANS -> MAC_M1     [label="TLR4"];
+    LPS_TRANS -> IL1B;
+    TJ       -> LPS_TRANS   [color="#c0392b", label="barrier\nkeeps it out"];
+
+    /* --- 3. priming --- */
+    DC_MIG   -> MHC_TCR;
+    MHC_TCR  -> NAIVE_P     [dir=back];
+    NAIVE_P  -> CLONE_N     [label="priming rate"];
+    CD80_86  -> CD28        [label="signal 2"];
+    CD80_86  -> CTLA4       [label="competes,\n10-20× tighter"];
+    CTLA4    -> CD28        [color="#c0392b", label="ligand\nsequestration"];
+    CTLA4    -> TRANSENDO;
+    TRANSENDO -> CD80_86    [color="#c0392b", label="strips ligand\noff APC"];
+    CD28     -> CLONE_N     [label="licensing"];
+    CLONE_N  -> PRIME_OUT;
+    CLONE_N  -> TCR_DIV;
+    PRIME_OUT -> HOMING     [label="α4β7⁺ CCR9⁺"];
+    THYMIC   -> TREG        [label="tTreg supply"];
+    CTLA4    -> THYMIC      [dir=none, style=dotted, label="CTLA-4-high\n= ADCC target"];
+
+    /* --- 4. checkpoint drug PK/PD --- */
+    edge [color="#5b3fa6", style=dashed];
+    IPI_DOSE -> IPI_C;
+    IPI_C    -> IPI_P       [dir=both, color="#333333", style=solid, label="Q"];
+    IPI_C    -> IPI_T       [color="#333333", style=solid, label="BDC 0.10-0.20"];
+    IPI_T    -> IPI_OCC;
+    IPI_T    -> ADCC        [label="C/(C+EC50)"];
+    IPI_OCC  -> CTLA4       [color="#c0392b", label="blocks brake"];
+    ADCC     -> TREG_DEP;
+    TREG_DEP -> TREG        [color="#c0392b", penwidth=2.0, label="THE dose-\ndependent step"];
+    MAC_M1   -> ADCC        [color="#333333", style=solid, label="FcγRIIIa⁺\neffector cell"];
+    IPI_OCC  -> CLONE_N     [label="↑ licensing\n(saturating)"];
+    PD1_DOSE -> PD1_C;
+    PD1_C    -> PD1_P       [dir=both, color="#333333", style=solid];
+    PD1_C    -> PD1_T       [color="#333333", style=solid];
+    PD1_T    -> PD1_OCC;
+    PD1_OCC  -> TEFF        [label="a_eff ∝ 1/(1−O)\nSATURATED"];
+    PDL1_EPI -> TEFF        [color="#c0392b", style=solid, label="brake\n(IFN-γ-induced)"];
+    PD1_OCC  -> PDL1_EPI    [color="#c0392b", label="blocks\nepithelial brake"];
+    PD1_OCC  -> PD1_TREG    [label="bidirectional"];
+    IPI_C    -> ADA         [dir=both, color="#777777", style=dotted];
+    ADA      -> IPI_C       [color="#777777", style=dotted, label="↑CL"];
+    PD1_OCC  -> FLAT        [color="#b9770e", style=dotted];
+    TREG_DEP -> FLAT        [color="#b9770e", style=dotted];
+
+    /* --- 5. effector compartment --- */
+    edge [color="#333333", style=solid];
+    HOMING   -> TEFF        [label="influx k_hom,col"];
+    TEFF     -> TEFF_PROL   [dir=both];
+    TEFF     -> TRM         [label="residency\nprogramme (TGF-β, IL-15)"];
+    IL15     -> TRM         [color="#2e7d32", label="self-renewal\nFUEL"];
+    TRM      -> TEFF        [label="local\nreactivation"];
+    TEFF     -> EXHAUST     [label="contraction"];
+    TEFF     -> IFNG;
+    TRM      -> IFNG;
+    ILC1     -> IFNG;
+    TEFF     -> GZMB;
+    TRM      -> GZMB;
+    GZMB     -> APOP        [color="#c0392b", label="direct killing"];
+    MAC_M1   -> TNFA;
+    NEUT     -> CALPRO      [label="S100A8/A9"];
+    NEUT     -> LACTOFER;
+    TH17     -> IL17A;
+    IL23     -> TH17;
+    IL17A    -> NEUT        [label="CXCL1/8"];
+    IL17A    -> ENT         [color="#2e7d32", style=dotted, label="ALSO repair\n(dual role)"];
+    PLASMA_B -> ULCER       [style=dotted];
+    TEFF     -> CLONAL_EX;
+    TRM      -> CLONAL_EX;
+    CLONAL_EX -> CALPRO     [style=dotted, label="precedes\nsymptoms ~2 wk"];
+
+    /* --- 6. regulatory arm --- */
+    TREG     -> IL10        [color="#2e7d32"];
+    TREG     -> TGFB        [color="#2e7d32"];
+    TREG     -> CD39_73     [color="#2e7d32"];
+    TREG     -> IL2_SINK    [color="#2e7d32"];
+    PTREG    -> TREG;
+    TREG     -> REG_CAP;
+    TR1      -> REG_CAP;
+    REG_CAP  -> TEFF        [color="#c0392b", penwidth=2.0, label="DENOMINATOR\nof Φ_col"];
+    REG_CAP  -> MAC_M1      [color="#c0392b"];
+    IL10     -> TNFA        [color="#c0392b"];
+    IL10     -> APOP        [color="#c0392b"];
+    CD39_73  -> TEFF        [color="#c0392b", label="adenosine/A2A"];
+    IL2_SINK -> TEFF_PROL   [color="#c0392b"];
+    TGFB     -> PTREG       [color="#2e7d32"];
+    PD1_TREG -> REG_CAP     [style=dotted, color="#777777", label="±"];
+
+    /* --- 7. cytokine network --- */
+    IFNG     -> JAKSTAT;
+    IL6      -> JAKSTAT;
+    JAKSTAT  -> CXCL910;
+    IFNG     -> CXCL910     [label="STAT1"];
+    CXCL910  -> HOMING      [label="CXCR3 recruitment\nAMPLIFYING LOOP", penwidth=1.6];
+    TNFA     -> MADCAM      [label="endothelial\nactivation"];
+    MADCAM   -> HOMING      [penwidth=1.6, label="2nd AMPLIFYING\nLOOP"];
+    TNFA     -> NFKB;
+    NFKB     -> IL6;
+    NFKB     -> IL23;
+    IL1B     -> IL6;
+    IFNG     -> APOP        [color="#c0392b", label="sensitises\nto TNFR1"];
+    TNFA     -> APOP        [color="#c0392b", penwidth=2.2, label="caspase-8\nEXECUTION"];
+    TNFA     -> TJ          [color="#c0392b", label="claudin-2↑\nMLCK"];
+    IFNG     -> TJ          [color="#c0392b"];
+    IFNG     -> PDL1_EPI    [label="IFN-γ-inducible\n(negative feedback)"];
+    IL6      -> CRP_OUT;
+    ENT      -> IL15        [label="epithelial source"];
+    ENT      -> CCL25;
+    CCL25    -> HOMING;
+    IFNG     -> NHE3        [color="#c0392b", label="↓ surface\nexpression"];
+    TNFA     -> NHE3        [color="#c0392b"];
+    IFNG     -> DRA_CL      [color="#c0392b"];
+    IL1B     -> CFTR_SEC    [label="↑ secretion"];
+    TUFT     -> CFTR_SEC    [label="5-HT"];
+
+    /* --- 8. epithelium --- */
+    WNT      -> ISC         [color="#2e7d32"];
+    ISC      -> TA_CELL;
+    TA_CELL  -> ENT         [label="k_diff\n(3-5 d transit)"];
+    TA_CELL  -> GOBLET;
+    TA_CELL  -> TUFT;
+    APOP     -> ENT         [color="#c0392b", penwidth=2.0, label="k_apop · S"];
+    APOP     -> ISC         [color="#c0392b", label="crypt-base\nkilling"];
+    APOP     -> CRYPT_LOSS;
+    CRYPT_LOSS -> REGEN_CAP [color="#c0392b", label="permanent\nloss of units"];
+    ISC      -> REGEN_CAP;
+    REGEN_CAP -> ENT        [color="#2e7d32", label="repair flux"];
+    EGF_PGE2 -> ENT         [color="#2e7d32"];
+    EGF_PGE2 -> ISC         [color="#2e7d32"];
+    ENT      -> TJ;
+    CRYPT_LOSS -> ULCER;
+    ULCER    -> PERF        [color="#c0392b"];
+    ULCER    -> PLE         [color="#c0392b"];
+    CRYPT_LOSS -> HISTO     [style=dotted, color="#777777"];
+    APOP     -> HISTO       [style=dotted, color="#777777", label="apoptotic\nbody count"];
+
+    /* --- 9. water transport and the threshold --- */
+    ENT      -> S_EFF       [penwidth=1.6];
+    TJ       -> S_EFF       [label="leak pathway"];
+    NHE3     -> S_EFF;
+    ENAC     -> S_EFF;
+    DRA_CL   -> S_EFF;
+    CFTR_SEC -> S_EFF       [color="#c0392b", label="secretory\noffset"];
+    AQP      -> S_EFF;
+    A_MAX    -> STOOL_V     [label="capacity"];
+    S_EFF    -> STOOL_V     [penwidth=1.6, label="A_max·S_eff"];
+    L_PRES   -> STOOL_V     [label="load L"];
+    THRESH   -> STOOL_V     [style=dotted, color="#b9770e", label="S* = L/A_max"];
+    S_EFF    -> THRESH      [style=dotted, color="#b9770e"];
+    STOOL_V  -> STOOL_F;
+    STOOL_F  -> CTCAE       [penwidth=1.8, label="grade\nmapping"];
+    STOOL_V  -> DEHYD;
+    DEHYD    -> ENAC        [style=dotted, color="#777777", label="aldosterone\ncompensation"];
+    STOOL_V  -> PRO;
+
+    /* --- 10. rescue therapy actions --- */
+    edge [color="#5b3fa6", style=dashed];
+    PRED     -> PRED_PK;
+    PRED_PK  -> NFKB        [color="#c0392b", style=dashed, label="GR:NF-κB\ntethering"];
+    PRED_PK  -> TEFF        [color="#c0392b", style=dashed, label="apoptosis,\n↓ programme"];
+    PRED_PK  -> IFNG        [color="#c0392b", style=dashed];
+    PRED_PK  -> TNFA        [color="#c0392b", style=dashed];
+    PRED_PK  -> TUMOR       [color="#b9770e", style=dashed, label="χ = 1.0\nSYSTEMIC cost"];
+    PRED_PK  -> STER_TOX    [color="#c0392b", style=dashed];
+    PRED_PK  -> INFECT      [color="#c0392b", style=dashed];
+    PRED     -> PRED_ON     [style=dotted, color="#b9770e"];
+    BUDESO   -> NFKB        [color="#c0392b", style=dashed, label="gut-local,\nlow systemic"];
+    IFX      -> IFX_PK;
+    IFX_PK   -> TNFA        [color="#c0392b", style=dashed, penwidth=2.2, label="NEUTRALISE\nterminal step"];
+    IFX_PK   -> TUMOR       [color="#b9770e", style=dashed, label="χ ≈ 0.6"];
+    IFX_PK   -> INFECT      [color="#c0392b", style=dashed];
+    IFX      -> IFX_ON      [style=dotted, color="#b9770e"];
+    VDZ      -> VDZ_PK;
+    VDZ_PK   -> HOMING      [color="#c0392b", style=dashed, penwidth=2.2, label="α4β7 blockade\nINFLUX only"];
+    VDZ_PK   -> TRM         [style=dotted, color="#777777", label="CANNOT touch\nresident cells\n⇒ slow onset"];
+    VDZ      -> VDZ_ON      [style=dotted, color="#2e7d32"];
+    VDZ_PK   -> TUM_COST    [style=dotted, color="#2e7d32", label="χ ≈ 0.1"];
+    TOCI     -> IL6         [color="#c0392b", style=dashed];
+    UST      -> IL23        [color="#c0392b", style=dashed];
+    JAKI     -> JAKSTAT     [color="#c0392b", style=dashed, label="JAK1/3"];
+    FMT      -> MICRO_DIV   [color="#2e7d32", style=dashed, penwidth=1.8, label="reset D"];
+    FMT      -> SCFA        [color="#2e7d32", style=dashed, label="reset B"];
+    ICI_HOLD -> IPI_DOSE    [color="#c0392b", style=dashed, label="removes\nTRIGGER"];
+    ICI_HOLD -> PD1_DOSE    [color="#c0392b", style=dashed];
+    ICI_HOLD -> TRM         [color="#777777", style=dotted, label="STATE persists\n⇒ hysteresis"];
+
+    /* --- 11. complications and the clearance feedback --- */
+    edge [color="#333333", style=solid];
+    PLE      -> ALB         [color="#c0392b", penwidth=1.8, label="faecal protein\nloss"];
+    ALB      -> IFX_PK      [color="#7b241c", style=dotted, penwidth=2.0,
+                             label="↓ALB ⇒ ↑CL_ifx\nSICKEST PATIENT,\nLOWEST EXPOSURE"];
+    CRP_OUT  -> IFX_PK      [color="#7b241c", style=dotted, label="↑CL"];
+    ALB      -> VDZ_PK      [color="#7b241c", style=dotted];
+    INFECT   -> CMV;
+    CMV      -> ULCER       [color="#c0392b", label="aggravates,\nmimics"];
+    CDIFF    -> STOOL_V     [color="#c0392b", style=dotted, label="confounder"];
+    STER_TOX -> INFECT      [color="#c0392b"];
+    STOOL_V  -> VTE         [style=dotted, color="#777777"];
+    PERF     -> COLECT      [color="#c0392b"];
+
+    /* --- 12. endpoints, biomarkers and the tumour --- */
+    CALPRO   -> MAYO_E      [dir=none, style=dotted, color="#777777", label="correlated,\nboth UNCENSORED"];
+    APOP     -> CALPRO      [style=dotted, color="#777777"];
+    NEUT     -> MAYO_E      [style=dotted, color="#777777"];
+    ULCER    -> MAYO_E      [penwidth=1.6];
+    CTCAE    -> COL_GRADE;
+    MAYO_E   -> COL_GRADE;
+    CT_IMG   -> COL_GRADE   [style=dotted, color="#777777"];
+    ULCER    -> CT_IMG      [style=dotted, color="#777777"];
+    CLONE_N  -> TUMOR       [color="#c0392b", penwidth=1.8, label="SHARED clones:\nkill the tumour"];
+    TEFF     -> TUMOR       [color="#c0392b", label="effector kill"];
+    TUM_COST -> TUMOR       [style=dotted, color="#b9770e", penwidth=1.6];
+    TRM      -> RECUR       [penwidth=2.0, label="taper flare\n30-40%"];
+    RECUR    -> CTCAE       [style=dotted, color="#777777"];
+    RECUR    -> REINTRO     [dir=none, style=dotted, color="#777777"];
+    REINTRO  -> PD1_DOSE    [style=dashed, color="#5b3fa6", label="anti-PD-1 mono\nsafer than ipi"];
+    COL_GRADE -> ICI_HOLD   [style=dashed, color="#5b3fa6", label="G2+ hold,\nG3+ discontinue"];
+    COL_GRADE -> PRED       [style=dashed, color="#5b3fa6", label="G2+ steroid"];
+    CALPRO   -> PRED        [style=dashed, color="#5b3fa6",
+                             label="EARLY, uncensored\ntrigger — the\nmonitoring argument"];
+    PRED_ON  -> IFX         [style=dashed, color="#5b3fa6", label="if refractory\n(3-5 d)"];
+    PRED_ON  -> VDZ         [style=dashed, color="#5b3fa6"];
+    IFX_ON   -> JAKI        [style=dashed, color="#5b3fa6", label="if IFX-refractory"];
+    IFX_ON   -> FMT         [style=dashed, color="#5b3fa6", label="if biologic-refractory"];
+
+    /* --- Cross-cluster invariants shown as annotation nodes --- */
+    PHI [shape=note, fillcolor="#fff3cd", style=filled, penwidth=1.6, fontsize=10,
+         label=<<B>The ratio Φ<SUB>col</SUB></B><BR ALIGN="LEFT"/>
+numerator saturated by anti-PD-1 (O ≈ 1)<BR ALIGN="LEFT"/>
+denominator depleted by anti-CTLA-4 (ADCC)<BR ALIGN="LEFT"/>
+⇒ ipi dose-response, PD-1 flat,<BR ALIGN="LEFT"/>
+⇒ combo ≈ ipi-mono, NOT additive<BR ALIGN="LEFT"/>>];
+    TEFF -> PHI [style=dotted, color="#b9770e"];
+    REG_CAP -> PHI [style=dotted, color="#b9770e"];
+    PHI -> APOP [style=dotted, color="#b9770e", label="drives injury"];
+
+    RESERVE [shape=note, fillcolor="#d4f0ef", style=filled, penwidth=1.6, fontsize=10,
+         label=<<B>The censoring reserve</B><BR ALIGN="LEFT"/>
+L ≈ 1750 mL/d, A<SUB>max</SUB> ≈ 4500 mL/d<BR ALIGN="LEFT"/>
+S* = 0.39 ⇒ 61% of absorptive<BR ALIGN="LEFT"/>
+function can be lost silently<BR ALIGN="LEFT"/>
+⇒ grade is a late, lossy instrument<BR ALIGN="LEFT"/>>];
+    S_EFF -> RESERVE [style=dotted, color="#0e5c58"];
+    RESERVE -> CTCAE [style=dotted, color="#0e5c58"];
+
+}

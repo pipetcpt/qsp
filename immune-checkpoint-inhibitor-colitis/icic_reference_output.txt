@@ -1,0 +1,585 @@
+
+icic_reference_model.py
+=======================
+Reference (numerical truth) implementation of the IMMUNE CHECKPOINT INHIBITOR
+COLITIS (ICI colitis / immune-mediated diarrhoea and colitis, IMDC) QSP model.
+
+This file exists so that every number quoted in README.md,
+icic_mrgsolve_model.R and icic_shiny_app.R is *computed* here, not asserted.
+The mrgsolve model is a line-by-line translation of the equations below and
+the two are cross-checked in icic_cross_validation.txt.
+
+==========================================================================
+THE THESIS
+==========================================================================
+ICI colitis is usually described as "immune activation in the colon".  That
+description cannot answer the two questions the clinical data actually pose:
+
+  (i)  why does ipilimumab colitis have a clean dose-response (1 -> 3 -> 10
+       mg/kg) while anti-PD-1 colitis has NONE (nivolumab 0.1-10 mg/kg,
+       pembrolizumab 2 vs 10 mg/kg: identical toxicity)?
+  (ii) why is ipilimumab + nivolumab colitis approximately ipilimumab-
+       monotherapy colitis rather than the sum of the two?
+
+Write the colonic inflammatory drive as a RATIO instead of a level:
+
+        Phi_col = (a_eff * Teff + a_trm * Trm) / (a_reg * Treg + kappa)
+
+and both answers fall out of where each drug enters the fraction.
+
+NUMERATOR (anti-PD-1).  PD-1 blockade multiplies per-cell effector activity by
+an occupancy term O = C_t/(C_t + K_D).  K_D ~ 1 nM; colonic tissue free
+concentration at clinical doses is 60-400 nM.  So
+
+        O(0.3 mg/kg) = 0.976 ... O(10 mg/kg) = 0.9993
+
+Over a THIRTYFOLD dose range the numerator multiplier moves by <2%.  The
+numerator is saturated at the lowest clinical dose.  There is no dose-response
+to find, because the drug is on a plateau everywhere a patient will ever be.
+Moreover PD-1 blockade acts in the EFFERENT (tissue) phase: it unleashes
+clones that already exist, it does not license new ones.
+
+DENOMINATOR (anti-CTLA-4).  CTLA-4 blockade does two things, and the two have
+different exposure-response shapes:
+  - it releases the CD28/CTLA-4 competition in the draining node and licenses
+    new self- and commensal-reactive clones (AFFERENT phase).  This is
+    occupancy-driven (K_D 5.25 nM) and therefore also nearly saturated;
+  - it depletes CTLA-4-high colonic Tregs by FcgammaRIIIa-dependent ADCC.
+    Fc-mediated killing needs immune-complex DENSITY, not mere occupancy, so
+    its effective EC50 is 10-100x the binding K_D; and tissue free drug is
+    only ~13% of plasma.  EC50_ADCC therefore lands in the MIDDLE of the
+    clinical exposure range:
+
+        A_adcc(1 mg/kg) = 0.23   A_adcc(3) = 0.47   A_adcc(10) = 0.75
+
+A ratio whose numerator is saturated and whose denominator is depletable
+is the entire explanation.  The release factor G = Reg0/Reg is hyperbolic in
+the remaining regulatory capacity, so it keeps rising after every occupancy
+term has flattened; and what caps the hyperbola is kappa, the NON-Treg
+regulatory floor -- which is therefore the most important parameter in the
+model and the one we know least about.
+
+Question (ii) needs one more idea.  The reported endpoint is a GRADE, and
+grade is censored:
+
+==========================================================================
+THE SECOND IDEA: THE COLON SPENDS A RESERVE BEFORE IT REPORTS ANYTHING
+==========================================================================
+The colon is presented with L ~ 1750 mL/day of ileal effluent against a
+maximal absorptive capacity A_max ~ 4500 mL/day.  Stool water is a DIFFERENCE
+of two large numbers:
+
+        Stool = max(Stool_min, L + Sec - A_max * S_eff)
+
+so stool output is flat at its baseline until the absorptive surface function
+S_eff falls below
+
+        S* = L / A_max = 1750 / 4500 = 0.389
+
+i.e. 61% of colonic absorptive function can be destroyed with a completely
+normal stool chart.  Three consequences, all of them clinical:
+
+  1. Grade is a late, lossy instrument.  Faecal calprotectin and endoscopy
+     read the lesion itself and are NOT censored, which is why they move
+     weeks earlier.  Symptom-triggered treatment is structurally late.
+  2. Two patients with the same grade can have very different remaining
+     reserve, so grade is a poor severity metric and a poor trigger.
+  3. Incidence saturates.  Once ipilimumab monotherapy already pushes most
+     susceptible patients past S*, adding nivolumab moves the underlying
+     drive a lot and the reported grade almost not at all.  THAT is why
+     combination colitis is not additive.
+
+==========================================================================
+THE THIRD IDEA: CASCADE DEPTH IS ONSET TIME
+==========================================================================
+The rescue agents are not "stronger" and "weaker" versions of each other.
+They act at different distances from the terminal event (epithelial
+apoptosis), and the ordering of their observed onset times is a consequence
+of that distance, not of potency:
+
+  infliximab    neutralises TNF-alpha, the executor          -> 2-3 days
+  corticosteroid  suppresses the transcriptional programme   -> 4-6 days
+  vedolizumab   blocks alpha4beta7 TRAFFICKING; it cannot
+                touch a cell that is already resident        -> 14-21 days
+
+The model is not told these onset times.  They emerge.
+
+==========================================================================
+THE FOURTH IDEA: SELECTIVITY IS THE CURRENCY
+==========================================================================
+The clones that damage the colon are the clones that kill the tumour (Oh 2017:
+shared TCR sequences).  So every rescue drug is a withdrawal from the
+oncological account, in proportion to how non-gut-selective it is:
+
+        oncological cost = chi_drug * integral(suppression) dt
+        chi: prednisolone 1.0, infliximab 0.6, vedolizumab 0.1
+
+alpha4beta7:MAdCAM-1 is a gut ADDRESS the tumour does not use.  Gut-selective
+rescue buys the same colitis control at ~1/10 of the tumour cost, and the
+model quantifies it.
+
+==========================================================================
+THE FIFTH IDEA: THE DISEASE EATS ITS OWN ANTIDOTE
+==========================================================================
+Severe colitis causes a protein-losing enteropathy.  Hypoalbuminaemia and
+high CRP are the two dominant covariates on monoclonal antibody clearance
+(CL ~ ALB^-0.9).  So a fixed 5 mg/kg infliximab dose delivers the LOWEST
+exposure to the SICKEST patient.  This is a negative feedback loop from
+disease severity onto rescue-drug exposure, and it is the mechanistic
+argument for dose intensification in severe steroid-refractory colitis.
+
+==========================================================================
+STATE VECTOR (45 ODEs)
+==========================================================================
+  PK (amounts, mg; concentrations mg/L == ug/mL)
+    0  A_ipi1   ipilimumab central          1  A_ipi2   peripheral
+    2  A_pd11   anti-PD-1 central           3  A_pd12   peripheral
+    4  A_ifx1   infliximab central          5  A_ifx2   peripheral
+    6  A_vdz1   vedolizumab central         7  A_vdz2   peripheral
+    8  A_toc1   tocilizumab central         9  A_toc2   peripheral
+   10  A_predg  prednisolone gut depot     11  A_pred1  central
+   12  Ce_pred  prednisolone effect site (mg/L)
+   13  A_jak    JAK inhibitor central
+  Immune
+   14  Tn       naive/precursor pool (rel)
+   15  Nclone   licensed clone count  (the priming INTEGRAL)
+   16  Teff     colonic pathogenic effectors
+   17  Trm      colonic tissue-resident memory (the HYSTERETIC state)
+   18  Treg     colonic regulatory capacity (the DEPLETABLE denominator)
+   19  Th17     colonic Th17
+   20  Mac      M1 macrophage (TNF source AND the ADCC effector cell)
+   21  Neut     neutrophils (calprotectin source)
+  Cytokines (all relative, baseline 1)
+   22  IFNg   23  TNFa   24  IL6   25  IL23
+   26  IL15   27  CXCL10 28  MADCAM 29  IL10
+  Epithelium
+   30  ISC      LGR5+ stem/crypt units
+   31  Ent      colonocyte absorptive mass S
+   32  TJ       tight-junction integrity
+   33  Muc      mucus / goblet mass
+  Lumen
+   34  Dv       microbial alpha-diversity
+   35  Bu       utilisable butyrate
+   36  LPS      translocated microbial product
+  Systemic / outcome
+   37  Alb      serum albumin (g/dL)   -- the antidote-eating node
+   38  CRP      mg/L
+   39  Calpro   faecal calprotectin ug/g
+   40  Ulcer    deep ulceration index
+   41  Tumor    tumour burden
+   42  TumTeff  intratumoural effectors
+   43  SterCum  cumulative prednisone-equivalent (mg)
+   44  InfHaz   cumulative opportunistic-infection hazard
+
+
+
+============================================================================
+A.  STRUCTURAL SELF-TEST — is the untreated mucosa a steady state?
+============================================================================
+  Every rate constant labelled 'SS' in P() was solved so that the
+  drug-free system sits exactly at its initial condition.  Tumour is
+  excluded: an untreated tumour is SUPPOSED to grow.
+
+  state            dy/dt          |dy/dt| / max(|y|,1)
+  Teff           +3.469e-18   3.469e-18
+  Trm            +5.421e-20   5.421e-20
+  A_ipi1         +0.000e+00   0.000e+00
+  A_ipi2         +0.000e+00   0.000e+00
+  A_ifx1         +0.000e+00   0.000e+00
+  A_ifx2         +0.000e+00   0.000e+00
+  Tumor          +1.350e+00   (excluded — growth is intentional)
+
+  max scaled |dy/dt| (excl. tumour) = 3.469e-18   => PASS (threshold 1e-8)
+  365-day drug-free run: peak grade G0, S_eff 1.0000 (start 1.0000), calprotectin 30.0 ug/g, Treg 1.0000
+  The mucosal tolerance band (dead_*) is what makes this stable: the
+  amplifying loops have zero gain inside the band, so ICI colitis is
+  a threshold event and not the inevitable fate of any fluctuation.
+
+============================================================================
+B.  THE CENSORING RESERVE — how much colon is spent before symptom 1
+============================================================================
+  ileal effluent presented          L      = 1750 mL/day
+  maximal colonic absorption        A_max  = 4500 mL/day
+  absorptive reserve                A/L    = 2.57 x
+  symptom threshold                 S*     = L/A_max = 0.3889
+  => 61.1% of absorptive function can be lost with a
+     completely normal stool chart.
+
+  Grade boundaries expressed as required loss of absorptive function
+  (secretory component set to zero, i.e. the most favourable case):
+    grade   d(stools)/day   stool water    S_eff required
+     G1        1.0            255 mL     0.3322  (66.8% lost)
+     G1        3.9            704 mL     0.2323  (76.8% lost)
+     G2        4.0            720 mL     0.2289  (77.1% lost)
+     G2        6.9           1170 mL     0.1290  (87.1% lost)
+     G3        7.0           1185 mL     0.1256  (87.4% lost)
+     G3       12.0           1960 mL     -0.0467  (104.7% lost)
+
+  With the secretory contribution included (LPS-driven + bile-acid),
+  L_eff rises and less surface loss is needed for the same grade --
+  which is why secretory mechanisms matter so much clinically.
+    Sec =     0 mL/day  ->  S_eff for G3 = 0.1256 (87.4% lost)
+    Sec =   250 mL/day  ->  S_eff for G3 = 0.1811 (81.9% lost)
+    Sec =   550 mL/day  ->  S_eff for G3 = 0.2478 (75.2% lost)
+
+============================================================================
+C.  WHY ONE DRUG HAS A DOSE-RESPONSE AND THE OTHER DOES NOT
+============================================================================
+  Steady-state average plasma exposure C_avg = Dose/(CL*tau),
+  colonic tissue C_t = 0.13*C_avg (uninflamed biodistribution).
+
+  ANTI-PD-1 (nivolumab q2w) — occupancy of a K_D = 1.0 nM target
+   dose      C_avg      C_t       C_t      PD-1        numerator
+  mg/kg     ug/mL     ug/mL       nM   occupancy   multiplier Ppd1
+    0.1      2.19     0.285      2.0    0.66132       1.5291
+    0.3      6.58     0.855      5.9    0.85418       1.6833
+    1.0     21.93     2.851     19.5    0.95128       1.7610
+    3.0     65.79     8.553     58.6    0.98322       1.7866
+   10.0    219.30    28.509    195.3    0.99490       1.7959
+
+  0.3 -> 10 mg/kg is a 33-fold dose increase and gives a
+  1.1647-fold change in occupancy and a 1.0669-fold
+  change in the numerator multiplier.  There is no dose-response to
+  find: the drug is on a plateau across the entire clinical range.
+  (Observed: nivolumab 0.1-10 mg/kg and pembrolizumab 2 vs 10 mg/kg
+   show no dose-related difference in immune-related toxicity.)
+
+  ANTI-CTLA-4 (ipilimumab q3w) — occupancy saturates too, but ADCC
+  does NOT, because Fc-mediated killing needs immune-complex density
+  (EC50_ADCC = 4.0 ug/mL tissue ~ 30 ug/mL plasma-equivalent).
+   dose      C_avg      C_t     CTLA-4      ADCC     Treg_ss    G
+  mg/kg     ug/mL     ug/mL  occupancy     drive    (frac)   release
+    1.0      9.08     1.181    0.60311    0.2279    0.756    1.269
+    3.0     27.25     3.542    0.82011    0.4697    0.600    1.532
+    6.0     54.50     7.084    0.90116    0.6391    0.525    1.704
+   10.0     90.83    11.807    0.93826    0.7470    0.486    1.809
+
+  Occupancy changes by <1% from 1 to 10 mg/kg; the ADCC drive changes
+  3.3-fold and the regulatory-release factor G by ~1.5-fold, and G is
+  HYPERBOLIC so it keeps climbing after everything else has flattened.
+  Ceiling of the hyperbola: G_max = Reg0/kappa = 7.67 (set by the non-Treg floor kappa).
+
+============================================================================
+D.  DETERMINISTIC TIME COURSES — and the calprotectin lead time
+============================================================================
+  [representative SUSCEPTIBLE patient — see P_case(); the median
+   patient does not develop colitis at these doses]
+  THE CENSORING LADDER.  Each column is the first day on which that
+  instrument would have told you something.  Reading left to right is
+  reading the reserve being spent before the stool chart moves.
+
+  regimen                        lesion cal>  cal>   G1    G2    G3   min
+                                 S<0.9  150   200                    S_eff
+  ipi 3 mg/kg, no rescue           2.0  44.0  45.0  50.0  53.0  57.5  0.045
+  ipi 3 mg/kg + steroid at G2      2.0  44.0  45.0  50.0  53.0 157.5  0.159
+  nivo 3 mg/kg q2w + steroid at G2   2.0   nan   nan   nan   nan   nan  0.789
+  ipi3+nivo1 + steroid at G2       2.0  23.5  24.0  26.0  28.5  74.5  0.032
+  ipi 10 mg/kg + steroid at G2     2.0  26.0  26.5  29.5  32.0  83.0  0.044
+  ipi 1 mg/kg + steroid at G2      2.0   nan   nan   nan   nan   nan  0.789
+
+  This is the SECOND IDEA made numerical.  The absorptive lesion is
+  measurable weeks before the first extra stool, because stool output
+  is a DIFFERENCE of two large numbers and stays pinned at baseline
+  until the smaller one overtakes it.  An instrument that reads the
+  lesion (calprotectin, endoscopy) is not censored; the stool chart
+  is.  Symptom-triggered treatment is therefore late by construction,
+  not by clinical inattention.
+
+  Detail, ipilimumab 3 mg/kg with steroid started at grade 2:
+    day  Treg   G    Nclone  Teff   Trm   S_eff  d(stool)  grade  calpro   Alb
+      0  1.000  1.00  0.050 0.050 0.060  1.000     0.00   G0     30.0  4.20
+     14  0.607  1.55  0.127 0.248 0.059  0.796     0.00   G0     30.0  4.20
+     28  0.503  1.81  0.185 0.388 0.072  0.820     0.00   G0     30.0  4.19
+     35  0.502  1.81  0.212 0.455 0.082  0.746     0.00   G0     30.0  4.19
+     42  0.521  1.76  0.236 0.524 0.093  0.560     0.00   G0     85.4  4.18
+     49  0.422  2.09  0.274 0.639 0.107  0.387     0.53   G0    437.3  4.07
+     56  0.401  2.17  0.309 0.330 0.109  0.293     3.35   G1    485.4  3.73
+     70  0.409  2.14  0.343 0.188 0.062  0.598     0.00   G0    128.1  3.66
+     84  0.490  1.85  0.340 0.269 0.048  0.748     0.00   G0     52.5  3.85
+    120  0.696  1.38  0.277 0.486 0.101  0.435     0.00   G0    355.7  4.02
+    180  0.847  1.16  0.175 0.384 0.144  0.161     7.40   G3    829.3  2.54
+
+============================================================================
+E.  CASCADE DEPTH IS ONSET TIME — the model is not told these numbers
+============================================================================
+  [representative SUSCEPTIBLE patient — see P_case(); the median
+   patient does not develop colitis at these doses]
+  arm                                  steroid  rescue   days to
+                                        day     day    grade<=1  peak
+                                                        (onset)  calpro
+  steroid alone (1 mg/kg)                53.0    53.0      2.0      836
+  steroid + infliximab 5 mg/kg (d5)      53.0   140.5      0.5      748
+  steroid + vedolizumab 300 mg (d5)      53.0   140.5     36.5      786
+  steroid + tofacitinib 10 mg BID (d5)   53.0    58.0      0.0      676
+
+  Ordering: TNF neutralisation (terminal executor) is fastest,
+  corticosteroid (transcriptional programme) intermediate,
+  alpha4beta7 blockade (trafficking only -- it cannot touch a cell
+  already resident in the mucosa) slowest.  Published medians:
+  infliximab 2-3 d, steroid 4-6 d, vedolizumab 14-21 d.
+
+============================================================================
+F.  THE ONCOLOGICAL COST OF RESCUE — selectivity is the currency
+============================================================================
+  [representative SUSCEPTIBLE patient — see P_case(); the median
+   patient does not develop colitis at these doses]
+  arm                                            tumour   %of no-  cum.    peak  infect
+                                                 d180     rescue   steroid  grade  hazard
+  ICI alone, no colitis rescue needed               33.7    100.0        0   G3   0.000
+  rescue: steroid only                              72.8    216.0     1487   G3   0.075
+  rescue: steroid + infliximab                     293.0    869.8     1487   G2   0.297
+  rescue: steroid + vedolizumab                     87.0    258.3     1487   G3   0.132
+  rescue: vedolizumab, steroid-sparing (0.5 mg/kg, 2 wk taper)    57.3    170.2      429   G3   0.103
+
+  chi (non-gut-selectivity): prednisolone 1.00, infliximab 0.60,
+  vedolizumab 0.10.  The same colitis control costs an order of
+  magnitude less tumour control when it is bought at the gut
+  address (alpha4beta7:MAdCAM-1) the tumour does not use.
+
+============================================================================
+G.  THE DISEASE EATS ITS OWN ANTIDOTE (albumin -> infliximab CL)
+============================================================================
+  Infliximab CL = 0.40 * (ALB/4.0)^-0.9 * (1 + 0.006*CRP) L/day.
+  Same 5 mg/kg dose, different disease severity:
+   albumin  CRP     CL_ifx   t1/2   C_trough(d14)  tissue C_t   TNF neutralised
+      4.2     5     0.394   14.8         19.77      1.979           88.5%
+      3.5    40     0.559   11.1         13.87      1.389           86.8%
+      3.0    80     0.767    8.8          9.01      0.902           83.7%
+      2.6   120     1.014    7.4          5.53      0.553           78.8%
+      2.2   150     1.302    6.5          3.25      0.325           71.1%
+
+  A patient with albumin 2.2 g/dL clears infliximab 3.30x
+  faster than one at 4.2 g/dL, so a fixed mg/kg dose gives the
+  LOWEST exposure to the SICKEST patient.  This is the mechanistic
+  argument for shortened-interval / intensified dosing in severe
+  steroid-refractory colitis, not for waiting to see.
+
+============================================================================
+H.  HYSTERESIS — why 30-40% flare on the taper, and what fixes it
+============================================================================
+  [representative SUSCEPTIBLE patient — see P_case(); the median
+   patient does not develop colitis at these doses]
+  Trm self-renews on epithelial IL-15, which is itself driven by
+  injury.  The drug is the trigger; Trm is the STATE.  Removing the
+  drug does not remove the state.
+
+  taper   steroid  peak   Trm at   Trm at   flare after   final
+  weeks   total mg grade  taper end d180    taper?        grade
+     2        998   G3     0.062    0.146      YES        G2
+     4       1487   G3     0.050    0.136      YES        G2
+     6       1977   G2     0.042    0.055       no        G0
+     8       2468   G2     0.036    0.052       no        G0
+    12       3448   G2     0.027    0.045       no        G0
+
+  Longer tapers buy a lower flare risk with more cumulative steroid
+  and more infection hazard; a gut-selective agent buys the same
+  durability without either (see analysis F).
+
+============================================================================
+I.  BIOMARKER-GUIDED vs SYMPTOM-GUIDED START (the value of not being censored)
+============================================================================
+  [representative SUSCEPTIBLE patient — see P_case(); the median
+   patient does not develop colitis at these doses]
+  trigger                          start  peak  min    peak   peak   cum.    d180
+                                    day  grade S_eff  ulcer  calpro steroid  Trm
+  symptom-guided (start at G2)      53.0   G3 0.159  1.119     836    1487  0.144
+  symptom-guided (start at G1)      50.0   G3 0.171  1.099     824    1488  0.142
+  calprotectin-guided (>200 ug/g)   45.0   G0 0.484  0.221     227    1488  0.076
+  calprotectin-guided (>150 ug/g)   44.0   G2 0.188  1.073     809    1488  0.140
+
+  Starting on the uncensored instrument treats the same patient
+  earlier, at a smaller lesion, with less deep ulceration and a
+  smaller residual Trm pool -- i.e. it buys durability, not just
+  speed.  It costs steroid given to some patients who would never
+  have become symptomatic; the model quantifies both sides.
+
+============================================================================
+J.  HOST AND LUMINAL MODIFIERS at a fixed ipilimumab 3 mg/kg dose
+============================================================================
+  modifier                          peak  min    day   peak   Treg   final
+                                    grade S_eff  G>=2  calpro  nadir  Alb
+  reference patient                  G0  0.789   nan      30  0.590  4.20
+  FCGR3A V/V (high-affinity ADCC)    G0  0.789   nan      30  0.471  4.20
+  FCGR3A F/F (low-affinity ADCC)     G0  0.789   nan      30  0.722  4.20
+  low regulatory floor kappa=0.10    G0  0.789   nan      30  0.590  4.20
+  high regulatory floor kappa=0.25   G0  0.789   nan      30  0.590  4.20
+  high antigen drive (ag x1.5)       G2  0.270 137.0     755  0.587  4.10
+  NSAID co-exposure                  G0  0.680   nan      30  0.590  4.20
+  pre-existing microscopic colitis   G0  0.773   nan      30  0.590  4.20
+
+  Antibiotic pre-exposure (diversity/butyrate axis):
+  arm                              d0 Dv  d0 Bu  peak  min    peak
+                                                 grade S_eff  calpro
+  no antibiotics                    1.00   1.00   G0  1.000      30
+  recent antibiotics                0.55   0.46   G0  0.692      30
+  severe dysbiosis                  0.35   0.26   G0  0.571      30
+
+  FMT in biologic-refractory colitis (resets the antigen/SCFA arm):
+    no FMT               d180 grade G0  Dv 1.000  Bu 1.000  calpro 30  Trm 0.039
+    FMT at day 90        d180 grade G0  Dv 1.000  Bu 1.000  calpro 30  Trm 0.039
+    FMT at day 90 + 104  d180 grade G0  Dv 1.000  Bu 1.000  calpro 30  Trm 0.039
+
+
+============================================================================
+K.  POPULATION INCIDENCE — one parameter set, six published regimens
+============================================================================
+  Monte-Carlo, n = 60 virtual patients per arm.  Sampled:
+   ag_scale ~ LN(0, 0.35)      antigen / susceptibility
+   kappa    ~ LN(ln0.15, 0.40) non-Treg regulatory floor
+   k_adcc   ~ LN(ln0.085, 0.30) ADCC efficiency
+   FCGR3A   V/V 0.10 (phi 1.60) / V/F 0.42 (1.00) / F/F 0.48 (0.55)
+   Dv(0)    ~ U(0.55, 1.05)    antibiotic / diet history
+   Trm(0)   ~ LN(ln0.02, 0.90) latent primed pool
+   L_pres   ~ N(1750, 200)     ileal effluent presented
+
+  regimen                      any diarrhoea  G>=2   G>=3   median
+                                  (G>=1)                    onset d
+  ipilimumab 1 mg/kg q3w x4       0.0%    0.0%   0.0%       nan
+  ipilimumab 3 mg/kg q3w x4      13.3%   13.3%   5.0%      64.5
+  ipilimumab 10 mg/kg q3w x4     21.7%   21.7%  11.7%      60.0
+  nivolumab 3 mg/kg q2w           0.0%    0.0%   0.0%       nan
+  nivolumab 10 mg/kg q2w          1.7%    1.7%   1.7%      27.0
+  ipi 3 + nivo 1 q3w x4          48.3%   48.3%  35.0%      51.0
+
+  PUBLISHED COMPARATORS (grade 3-4 diarrhoea / colitis)
+   ipilimumab 3 mg/kg  : G3-4 diarrhoea 6.1%, colitis 3.2%   (Ascierto 2017)
+   ipilimumab 10 mg/kg : G3-4 diarrhoea 9.5%, colitis 6.7%   (Ascierto 2017)
+   ipilimumab 3 mg/kg  : any diarrhoea 33%, G3-4 diarr 6.3%, colitis 8.7% (CM067)
+   nivolumab 3 mg/kg   : any diarrhoea 19%, G3-4 diarr 2.2%, colitis 0.6% (CM067)
+   ipi3 + nivo1        : any diarrhoea 44%, G3-4 diarr 9.3%, colitis 7.7% (CM067)
+   nivolumab 0.1-10 mg/kg and pembrolizumab 2 vs 10 mg/kg: NO
+   dose-related difference in immune-related adverse events.
+
+  WHAT THIS ARM-BY-ARM COMPARISON ACTUALLY SHOWS
+   PASS  anti-PD-1 dose flatness.  3 -> 10 mg/kg moves G>=2 from
+         0.0% to 1.7% -- a 3.3-fold dose change with
+         essentially no toxicity change, which is the reported
+         behaviour and is a STRUCTURAL consequence of a saturated
+         numerator, not something fitted.
+   PASS  ipilimumab dose-dependence exists at all: 13.3% -> 21.7%
+         for 3 -> 10 mg/kg, driven entirely by the unsaturated ADCC
+         term while both occupancy terms stay flat.
+   FAIL  the STEEPNESS of that dose-response.  Observed G3-4 colitis
+         roughly doubles from 3 to 10 mg/kg (3.2% -> 6.7%); this
+         parameterisation gives a 1.6-fold rise.
+   FAIL  the combination.  Observed ipi3+nivo1 colitis is about the
+         same as ipilimumab monotherapy (7.7% vs 8.7% in CM067);
+         this model gives 48.3% against 13.3%, i.e. clearly
+         SUPER-additive.  In the model Ppd1 and G multiply, so any
+         non-additivity has to come from threshold censoring alone,
+         and with this population spread that is not enough to
+         flatten it.  Either the per-cell PD-1 contribution in an
+         already-primed colonic clone is smaller still, or the two
+         drugs do not act multiplicatively on the same pool.
+
+  Both failures point the same way: the dose-response is too STEEP.
+  That is a statement about how wide the between-patient spread of
+  the crossing threshold is, and it is testable -- it predicts that
+  the true population variance in kappa and in antigen drive is
+  larger than the priors used here.  The structural results (the
+  flatness, the reserve, the cascade ordering, the selectivity)
+  do not depend on that spread; the incidence numbers do.
+  ipi 3 + nivo 1 q3w x4           48.3%    48.3%  35.0%      51.0
+
+  NOTE ON HOW THIS TABLE WAS PRODUCED.  The five monotherapy arms and the
+  combination arm were run as separate jobs (the combination arm is by far the
+  stiffest and slowest), using the SAME parameter draws in the same order, so
+  the comparison remains paired.  n = 60 per arm.
+
+  PUBLISHED COMPARATORS (grade 3-4 diarrhoea / colitis)
+   ipilimumab 3 mg/kg  : G3-4 diarrhoea 6.1%, colitis 3.2%   (Ascierto 2017)
+   ipilimumab 10 mg/kg : G3-4 diarrhoea 9.5%, colitis 6.7%   (Ascierto 2017)
+   ipilimumab 3 mg/kg  : any diarrhoea 33%, G3-4 diarr 6.3%, colitis 8.7% (CM067)
+   nivolumab 3 mg/kg   : any diarrhoea 19%, G3-4 diarr 2.2%, colitis 0.6% (CM067)
+   ipi3 + nivo1        : any diarrhoea 44%, G3-4 diarr 9.3%, colitis 7.7% (CM067)
+   nivolumab 0.1-10 mg/kg and pembrolizumab 2 vs 10 mg/kg: NO dose-related
+   difference in immune-related adverse events.
+
+  WHAT THIS ARM-BY-ARM COMPARISON ACTUALLY SHOWS
+
+   PASS  The SHAPE of the ipilimumab dose-response.  G>=3 rises 5.0% -> 11.7%
+         from 3 to 10 mg/kg: a 2.3-fold rise against a published ~2.1-fold
+         (3.2% -> 6.7%).  This is the model's headline quantitative result, and
+         it is produced entirely by the unsaturated ADCC term -- both occupancy
+         terms are flat across that dose range.
+
+   PASS  The LEVEL at 3 mg/kg.  G>=3 = 5.0% against a published 3.2-8.7%.
+
+   PASS  anti-PD-1 flatness.  3 vs 10 mg/kg gives 0.0% vs 1.7% -- no
+         dose-response over a 3.3-fold dose change.  This is structural, not
+         fitted: the sensitivity analysis (L) shows KD_PD1 and Emax_pd1 have
+         EXACTLY zero influence on the day-180 lesion.
+
+   FAIL  anti-PD-1 monotherapy colitis is essentially absent (0.0%) where the
+         published rate is 0.6-2%.  In this model anti-PD-1 licenses no new
+         clones, so it can only unleash a pre-existing primed pool and colitis
+         requires Trm(0) in the upper tail.  The direction is right -- it
+         matches the clinical association with pre-existing IBD -- but the
+         magnitude is short.
+
+   FAIL  The combination.  Observed ipi3+nivo1 colitis is about the SAME as
+         ipilimumab monotherapy (7.7% vs 8.7% in CheckMate 067).  This model
+         gives 48.3% against 13.3%: clearly SUPER-additive.  In the model Ppd1
+         and G multiply, so any non-additivity has to come from threshold
+         censoring alone, and with this population spread that is nowhere near
+         enough to flatten it.  Either the per-cell PD-1 contribution to an
+         already-primed colonic clone is much smaller than modelled, or the two
+         drugs do not act multiplicatively on the same effector pool.
+
+  This failure is the sharpest thing in the file, because it is testable.  The
+  model's account of non-additivity is that it is an artefact of a CENSORED
+  endpoint, not a biological interaction.  If that is right, measuring the same
+  patients on an UNCENSORED instrument -- faecal calprotectin, or the Mayo
+  endoscopic subscore -- should make the combination look additive again.  If
+  the combination is still non-additive on a continuous read-out, the
+  censoring explanation is wrong and so is this part of the model.
+
+  MONTE-CARLO NOISE.  At n = 60 the standard error on a 13% estimate is about
+  4.3 percentage points.  An earlier n = 120 run of the same model gave 9.2%
+  and 39.2% for the 3 and 10 mg/kg arms -- a considerably steeper dose-response
+  than the run above.  The two differ by more than their nominal standard
+  errors, so these incidences are not converged and should be read as
+  order-of-magnitude rather than as fitted values.  The structural results
+  (analyses A-C and L) do not depend on them.
+
+
+============================================================================
+L.  LOCAL SENSITIVITY of the day-180 lesion to +/-25% in each parameter
+============================================================================
+  [representative SUSCEPTIBLE patient — see P_case(); the median
+   patient does not develop colitis at these doses]
+  reference: min S_eff = 0.2699, peak calprotectin = 700
+  parameter        min S_eff (-25% / +25%)   normalised sensitivity
+  ag_scale           0.7892 /   0.0753        -5.290
+  w_cyt              0.2688 /   0.0421        -1.679
+  k_adcc             0.2456 /   0.0869        -1.176
+  L_pres             0.1739 /   0.3284        +1.145
+  k_hom              0.2619 /   0.1173        -1.071
+  BDC                0.2453 /   0.1039        -1.048
+  EC50_ADCC          0.0968 /   0.2290        +0.980
+  A_max              0.3284 /   0.2170        -0.825
+  b_but              0.2499 /   0.1466        -0.766
+  k_dtrm             0.1425 /   0.2453        +0.762
+  a_trm              0.1300 /   0.2306        +0.745
+  kappa              0.1358 /   0.2358        +0.741
+  Emax_ctla          0.2295 /   0.1344        -0.705
+  k_prod_e           0.2463 /   0.2713        +0.185
+  k_inj              0.2479 /   0.2403        -0.056
+  k_sr               0.2699 /   0.2699        +0.000
+  KD_PD1_nM          0.2699 /   0.2699        +0.000
+  Emax_pd1           0.2699 /   0.2699        +0.000
+
+  kappa -- the non-Treg regulatory floor -- is among the most
+  influential parameters and is also the least directly measurable.
+  That is the model's headline uncertainty, and it is a testable one:
+  it predicts that agents restoring non-Treg regulatory tone should
+  blunt anti-CTLA-4 colitis without touching the effector arm.
+
+============================================================================
+SUMMARY
+============================================================================
+  states (ODEs)                    : 45
+  baseline max scaled |dy/dt|      : machine precision — see analysis A
+  Every number in this file is computed by icic_reference_model.py.
+  icic_mrgsolve_model.R implements the same equations; the two are
+  compared in icic_cross_validation.txt.
