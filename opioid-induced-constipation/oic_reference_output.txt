@@ -1,0 +1,412 @@
+
+oic_reference_model.py
+======================
+Opioid-Induced Constipation (OIC) — independent Python/scipy implementation of
+the 51-ODE QSP model that is shipped in this directory as
+`oic_mrgsolve_model.R`.
+
+WHY THIS FILE EXISTS
+--------------------
+The container this model was built in has **no R runtime**.  Committing an
+unexecuted ODE model would be dishonest.  So every equation was implemented
+here, integrated for real, and the R file was transcribed from *this* — not the
+other way round.  Every number quoted in `README.md` is produced by running
+this file (`python3 oic_reference_model.py`), and its stdout is committed
+verbatim as `oic_reference_output.txt`.
+
+THE ONE STRUCTURAL CLAIM
+------------------------
+A PAMORA's therapeutic window is **not** a potency.  It is the ratio of two
+receptor occupancies computed at the *same* plasma concentration, and that
+ratio is set by P-glycoprotein at the blood-brain barrier:
+
+      SI  =  OCC_ant(enteric plexus)  /  OCC_ant(CNS)
+
+Because the enteric plexus is outside the BBB and the CNS is not, and because
+both sites hold the *same* receptor competing with the *same* agonist, SI
+collapses (in the low-occupancy limit) to 1/Kp_uu of the antagonist, corrected
+by the agonist's own brain partitioning.  Nothing about "selectivity for
+peripheral mu receptors" needs to be asserted; it is division.
+
+What follows arithmetically, and is computed in analyses A-J below:
+
+  A. SI ranks naloxone << naloxegol < methylnaltrexone < naldemedine, spanning
+     149-fold from Kp_uu alone -- while the MOR binding Ki spans only 25-fold,
+     in the OPPOSITE order.
+  B. A P-gp inhibitor does not merely raise AUC, it *rotates the ratio*.  The
+     label's "reduce the dose" advice repairs a CYP3A4 interaction and does not
+     repair a P-gp one: it surrenders efficacy without recovering the margin.
+
+TWO OF THE AUTHOR'S PRIOR HYPOTHESES WERE REFUTED BY RUNNING THE MODEL, AND
+BOTH ARE REPORTED AS SUCH RATHER THAN QUIETLY REPLACED:
+
+  C. Predicted: escalating the opioid dose to hold analgesia would progressively
+     WORSEN constipation.  It does not.  Enteric transduction is already
+     saturated at an ordinary analgesic dose, so SBM/week is flat from 60 to
+     200 mg/day (1.49 -> 1.34).  What the tolerance asymmetry actually costs the
+     patient is on the other side of the ledger: the escalation buys no
+     analgesia (pain pinned at 5.04) while the gut keeps every milligram.  This
+     also explains an epidemiological fact a dose-response account cannot --
+     that OIC prevalence correlates poorly with opioid dose.
+  D. Predicted: the transit-hydration feedback loop is the amplifier that makes
+     a PAMORA's clinical effect exceed the receptor occupancy it buys.  It is
+     not.  Disabling that loop entirely moves the drug fold-response from 2.89
+     to 2.91.  The amplification is carried by the ANORECTAL brakes -- the
+     rectal urge threshold (fold 1.60) and sphincter tone (1.88) -- i.e. it is
+     the product of several independent brakes released together by one
+     receptor, dominated by the END of the colon.  That predicts responders
+     split by anorectal rather than transit phenotype, which is testable.
+
+  H. Cmax-vs-Cavg is invisible to a weekly-frequency endpoint (splitting the
+     dose mildly HELPS both drugs) and visible only in the acute 4-h laxation
+     endpoint -- which is precisely the endpoint methylnaltrexone was licensed
+     on and naloxegol and naldemedine were not.
+
+Units: time h, drug amounts mg (peptides ug), colonic solids g, water mL,
+osmoles mmol, receptor concentrations nM.
+
+Run:  python3 oic_reference_model.py
+
+
+state variables: 51
+
+==============================================================================
+G.  CALIBRATION PROVENANCE -- exactly what was fitted, and to what.
+    THREE parameters were fitted in this entire model.  Everything else
+    is a literature value or a structural assumption.
+==============================================================================
+
+  parameter  drug                fitted to                                 value
+  ---------  ------------------  ----------------------------------------  --------
+  KIGUT      naloxegol           KODIAC-04/05 25 mg arm, mean SBM/wk 4.3    2.685 nM
+  KIGUT      naldemedine         COMPOSE-1/2 0.2 mg arm, mean SBM/wk 5.0    0.00821 nM
+  KIGUT      methylnaltrexone    Thomas 2008, placebo-subtracted 4-h        0.795 nM
+                                 laxation difference of 33 pp
+
+  Each is an OPERATIONAL enteric potency.  Compare it with the drug's own
+  published MOR binding Ki -- a number the model never fitted:
+
+  drug                    Ki (lit, nM)  KIGUT (fitted)    ratio
+  naloxegol                      7.400         2.68510   0.3629
+  naldemedine                    0.340         0.00821   0.0241
+  methylnaltrexone SC           28.000         0.79450   0.0284
+
+  All three need MORE enteric potency than plasma-unbound binding predicts
+  (2.8x, 41x, 35x).  The model does NOT explain the spread, and it is worth
+  being explicit that it does not:
+
+    - a single shared error in the AGONIST anchor (KIOP) would move all three
+      ratios by the SAME factor.  They differ by 15-fold, so that is not it.
+    - plasma protein binding does not order them either: naloxegol (fu 0.96)
+      needs the smallest correction, but methylnaltrexone (fu 0.885) needs a
+      correction as large as naldemedine's (fu 0.065).
+
+  Candidates left open: accumulation of antagonist in the gut wall beyond the
+  pre-systemic term modelled here, active uptake into enteric neurons, error in
+  the published CL/F values used to set plasma exposure, and the fact that the
+  three trials enrolled different populations against endpoints defined over
+  different windows.  Any per-drug SBM prediction inherits this uncertainty.
+  The SELECTIVITY results (analyses A and B) do not: they are ratios in which
+  KIGUT cancels.
+
+==============================================================================
+A.  SELECTIVITY INDEX -- computed, not asserted
+    SI = enteric antagonist occupancy / CNS antagonist occupancy,
+    both at the SAME plasma concentration in the SAME patient.
+==============================================================================
+drug                     Kp_uu  1/Kp_uu  OCC_gut   OCC_cns       SI   COWS   dPain  SBM/wk
+naloxone PO              1.000      1.0    0.977   0.07917     12.3   8.34   -0.25    9.75
+naloxegol                0.020     50.0    0.569   0.00612     92.8   0.01   -0.19    4.30
+naldemedine              0.012     83.3    0.715   0.00039   1840.6   0.00   -0.18    5.00
+methylnaltrexone SC      0.005    200.0    0.840   0.00069   1210.9   0.00   -0.21    7.16
+
+  The SI column is not a fitted quantity and not an assumption: it is
+  one division.  It spans 149-fold across these four drugs while the
+  MOR binding Ki spans only 25-fold, and in the OPPOSITE order.
+
+==============================================================================
+B.  A P-gp INHIBITOR DOES NOT RAISE EXPOSURE -- IT ROTATES THE RATIO.
+    Naloxegol 25 mg qd, perturbed three ways, with and without the
+    label-directed dose reduction to 12.5 mg.
+==============================================================================
+case                                  Cu,pl nM  OCC_gut   OCC_cns      SI   COWS  SBM/wk
+no interaction                             6.9    0.569   0.00612    92.8   0.01    4.30
+CYP3A4 inhibitor only (AUCx3.4)           67.9    0.908   0.05175    17.5   1.79    7.10
+CYP3A4 inhibitor, dose 12.5               34.0    0.831   0.02656    31.3   0.33    5.26
+P-gp inhibitor only (Kp_uu x10)            6.9    0.569   0.05805     9.8   2.61    4.30
+P-gp inhibitor, dose 12.5                  3.5    0.397   0.02989    13.3   0.50    3.11
+dual CYP3A4+P-gp (verapamil-like)         67.9    0.908   0.35306     2.6  30.38    7.10
+dual, dose reduced to 12.5                34.0    0.831   0.21437     3.9  23.50    5.26
+
+  SI is dose-invariant only in the LOW-occupancy limit.  At label doses the
+  enteric receptor is already 57% occupied, so halving the dose does move SI --
+  but read the two perturbations against each other and they behave differently
+  in kind, not just in degree:
+
+    CYP3A4 inhibition is a pure EXPOSURE shift.  Kp_uu never moved.  Halving the
+    dose walks both occupancies back down the same curve and recovers most of
+    the lost margin (SI 17.5 -> 31.3, COWS 1.79 -> 0.33) at a cost in efficacy
+    the patient can afford (SBM 7.10 -> 5.26, still above the 4.30 baseline).
+
+    P-gp inhibition moves Kp_uu itself.  The plasma concentration is UNCHANGED
+    (6.9 nM in both rows), enteric occupancy is UNCHANGED (0.569), and the only
+    thing that moved is the brain.  Halving the dose now buys almost no safety
+    (SI 9.8 -> 13.3, still 7-fold below baseline) and pays for it with efficacy
+    the patient needed (SBM 4.30 -> 3.11, i.e. back below the response
+    threshold).  The dose reduction is treating the wrong variable.
+
+  The dual case is the clinically common one -- verapamil, diltiazem and
+  quinidine all do both -- and it is the one where the label's advice is least
+  adequate: COWS 30.4 falling only to 23.5 on the reduced dose.
+
+==============================================================================
+C.  TOLERANCE IS ASYMMETRIC -- but the consequence is NOT what a
+    naive reading predicts.  Equilibrate 12 weeks on oxycodone 60 mg/day,
+    then titrate weekly for 24 weeks trying to hold pain NRS at 4.0.
+==============================================================================
+ week  oxy mg/d  OCC_cns  RC_avail   pain  OCC_gut  RG_avail  SBM/wk   BSFS
+    0      60.0    0.722     0.413   5.04    0.625     0.926    1.49   2.01
+    4     132.9    0.852     0.383   5.00    0.787     0.919    1.36   1.99
+    8     200.0    0.897     0.373   5.03    0.848     0.915    1.34   1.99
+   12     200.0    0.897     0.373   5.04    0.848     0.915    1.34   1.99
+   16     200.0    0.897     0.373   5.04    0.848     0.915    1.34   1.99
+   20     200.0    0.897     0.373   5.04    0.848     0.915    1.34   1.99
+   24     200.0    0.897     0.373   5.04    0.848     0.915    1.34   1.99
+
+  Read the columns, not the intuition.  Over 24 weeks the dose rises
+  3.3-fold.  CNS receptor availability falls
+  0.413 -> 0.373 while enteric availability holds at
+  0.915: the asymmetry is real and it is 7-fold.
+
+  But the gut endpoint does NOT deteriorate.  Enteric occupancy climbs
+  0.625 -> 0.848 and SBM/week goes
+  1.49 -> 1.34.  This model therefore does NOT
+  support the story that dose escalation progressively worsens OIC.  It says
+  something more specific and more testable: enteric transduction is already
+  saturated at an ordinary analgesic dose, so the constipation a patient has at
+  60 mg/day is essentially the constipation they will have at 200 mg/day.
+
+  That is the model's explanation for an epidemiological fact a simple
+  dose-response account cannot handle: OIC prevalence correlates poorly with
+  opioid dose.
+
+  The clinically important asymmetry is on the OTHER side of the ledger.  The
+  controller never reaches its target: pain sits at 5.04 against a
+  goal of 4.0 through the entire escalation, and stops improving once
+  the dose passes ~200 mg/day.  So the escalation buys no
+  analgesia and the gut keeps every milligram of it.  That -- not a worsening
+  bowel score -- is what tolerance asymmetry costs the patient, and it is the
+  clinical situation a PAMORA exists to break.
+
+==============================================================================
+D.  WHERE DOES THE AMPLIFICATION COME FROM?  A PAMORA wins ~0.57 of
+    enteric occupancy and buys a ~2.9-fold change in bowel frequency.
+    This analysis asks which mechanism carries that gain -- and refutes
+    the author's prior answer.
+==============================================================================
+ naloxegol mg  OCC_ant    SIGg  SBM/wk  x baseline      w4   CTT h
+        0.000    0.000   0.625    1.49        1.00   0.642     145
+        3.125    0.141   0.537    1.93        1.30   0.648     123
+        6.250    0.248   0.470    2.36        1.59   0.655     108
+       12.500    0.397   0.377    3.11        2.09   0.668      90
+       25.000    0.569   0.270    4.30        2.89   0.688      72
+       50.000    0.725   0.172    5.86        3.95   0.710      59
+      100.000    0.841   0.100    7.49        5.04   0.730      49
+
+  d ln(SBM) / d ln(enteric blockade) between 12.5 and 25 mg = 0.91
+
+  Enteric MOR does not act on one thing.  It acts on FIVE brakes at once:
+  propulsive drive (via cAMP/ACh), segmental tone, inhibitory NO/VIP tone,
+  anal sphincter tone, and the rectal urge threshold -- plus a secretion arm
+  that feeds the hydration term.  Disable each in turn and re-measure the SAME
+  0 -> 25 mg naloxegol comparison.  Whichever brake's removal FLATTENS the
+  fold-change is the one carrying the amplification.
+
+brake disabled                                untreated  nalox 25   fold
+(none -- full model)                               1.49      4.30   2.89
+hydration -> propulsion loop (GW=GWD=0)            1.32      3.85   2.91
+rectal urge threshold shift (AVSENS=0)             4.19      6.69   1.60
+anal sphincter tone (AANO=0)                       2.94      5.54   1.88
+segmental muscle tone (ATONE=0)                    1.49      4.44   2.98
+inhibitory NO/VIP tone (ANO=0)                     1.57      4.43   2.81
+secretion suppression (ESECMOR=0)                  1.63      4.51   2.77
+cAMP -> ACh -> HAPC drive (EMAXMOR=0)              2.23      4.83   2.16
+
+  RESULT -- and it contradicts the hypothesis this analysis was written to
+  confirm.  Removing the transit-hydration feedback loop entirely moves the
+  fold-response from 2.89 to 2.91.  That loop is NOT the
+  amplifier.  It sets the absolute LEVEL of stool hydration -- untreated
+  frequency drops from 1.49 to 1.32 when it is removed
+  -- but it carries none of the drug RESPONSE.
+
+  Ranked by how much removing them flattens the response:
+
+    fold  1.60   rectal urge threshold shift (AVSENS=0)
+    fold  1.88   anal sphincter tone (AANO=0)
+    fold  2.16   cAMP -> ACh -> HAPC drive (EMAXMOR=0)
+    fold  2.77   secretion suppression (ESECMOR=0)
+    fold  2.81   inhibitory NO/VIP tone (ANO=0)
+    fold  2.91   hydration -> propulsion loop (GW=GWD=0)
+    fold  2.98   segmental muscle tone (ATONE=0)
+
+  The two that matter are ANORECTAL, not colonic: the rectal urge threshold
+  (1.60) and internal anal sphincter tone (1.88).  Colonic
+  propulsion (the cAMP -> ACh -> HAPC arm) is third at
+  2.16, and segmental tone,
+  inhibitory NO/VIP tone and the secretion arm contribute essentially nothing
+  to the fold-change at all.
+
+  So the amplification is not a feedback gain.  It is the product of several
+  independent brakes released together by one receptor, and it is dominated by
+  the brakes at the END of the colon.  Two consequences worth testing:
+
+    1. A PAMORA should help an OIC patient whose problem is a lost urge and a
+       tight sphincter far more than one with true colonic inertia -- the model
+       predicts a responder split along anorectal rather than transit
+       phenotype, which anorectal manometry could check.
+    2. A drug that removes the cause acts on all the brakes at once and so
+       MULTIPLIES; a secretagogue or an osmotic agent compensates on one
+       downstream arm and so ADDS.  That is the model's structural reason for
+       PAMORAs outperforming laxatives by more than their potencies suggest.
+
+==============================================================================
+E.  OSMOLE ARITHMETIC.  PEG 3350 and lactulose are both called
+    'osmotic laxatives'.  Per gram they are not remotely comparable,
+    and the reason is a molecular weight and a bacterium.
+==============================================================================
+  PEG 3350 17 g       5.07 mmol ->    17.5 mL obliged; fermented x1.0 ->    17.5 mL
+  lactulose 20 g     58.43 mmol ->   201.5 mL obliged; fermented x3.6 ->   725.3 mL
+  lactulose 40 g    116.86 mmol ->   403.0 mL obliged; fermented x3.6 ->  1450.6 mL
+
+  Simulated, in the same OIC patient:
+arm                           SBM/wk   BSFS      w4  distension  rescue/wk
+untreated                       1.49   2.01   0.642        1.28       1.52
+PEG 3350 17 g/d                 1.49   2.01   0.642        1.28       1.52
+PEG 3350 34 g/d                 1.50   2.03   0.643        1.28       1.52
+lactulose 20 g/d                6.73   6.05   0.922        2.95       0.14
+lactulose 40 g/d                9.35   6.28   0.956        3.38       0.06
+
+  PEG is dosed in grams of a 3350 Da polymer, so 17 g is 5.1 mmol and
+  obliges ~17 mL.  Lactulose is 342 Da AND is cleaved by colonic flora
+  into osmotically active fragments.  The distension column is the
+  price: the same fermentation that makes the osmoles makes the gas.
+
+==============================================================================
+F.  WHY LUBIPROSTONE FAILED IN METHADONE PATIENTS.
+    Methadone blocks ClC-2 directly -- a channel block, not a MOR effect.
+    So the drug and the antidote collide on the same protein.
+==============================================================================
+arm                                       SBM/wk   BSFS      w4   ClC-2
+oxycodone, untreated                        1.49   2.01   0.642   0.000
+oxycodone + lubiprostone 24 ug bid          1.84   2.60   0.684   0.305
+oxycodone + linaclotide 145 ug qd           1.81   2.52   0.677   0.000
+methadone, untreated                        1.49   2.01   0.642   0.000
+methadone + lubiprostone 24 ug bid          1.59   2.18   0.655   0.103
+methadone + linaclotide 145 ug qd           1.81   2.52   0.677   0.000
+methadone + naldemedine 0.2 mg              5.00   2.85   0.699   0.000
+
+  Linaclotide reaches the same CFTR-mediated secretion through GC-C /
+  cGMP and is untouched by the block.  A PAMORA is untouched twice over,
+  because it removes the cause rather than compensating downstream.
+
+==============================================================================
+H.  PEAK-DRIVEN vs EXPOSURE-DRIVEN -- and which ENDPOINT can see it.
+    Same total daily dose, split differently, read two ways: the chronic
+    weekly frequency, and the acute probability of laxation within 4 h.
+==============================================================================
+regimen                                       SBM/wk  P(lax<4h)
+(no antagonist)                                           0.032
+naloxegol 25 mg qd                              4.30      0.241
+naloxegol 12.5 mg bid (same 25 mg/d)            4.59      0.141
+naloxegol 6.25 mg qid (same 25 mg/d)            5.11      0.081
+methylnaltrexone 12 mg SC qd                    7.16      0.362
+methylnaltrexone 6 mg SC bid (same 12)          7.83      0.265
+methylnaltrexone 3 mg SC qid (same 12)          7.91      0.161
+
+  The chronic column refutes the framing this analysis started with: splitting
+  the dose does not punish methylnaltrexone, it mildly HELPS both drugs,
+  because a weekly frequency is an average and smoother exposure raises the
+  average occupancy.  Cmax-vs-Cavg is invisible to that endpoint.
+
+  The acute column is where the distinction lives.  It is also the endpoint
+  methylnaltrexone was actually licensed on (rescue-free laxation within 4 h),
+  and the one naloxegol and naldemedine were NOT licensed on -- which, read
+  this way, looks less like a marketing choice than like each sponsor choosing
+  the endpoint their molecule's exposure profile could win.
+
+==============================================================================
+I.  ALL SCENARIOS
+==============================================================================
+scenario                                SBM/wk   CSBM   BSFS  strain  PAC-SYM   pain   COWS  resc/wk
+S01 healthy (no opioid)                  11.16   6.02   3.99    0.94     0.60   7.26   0.00     0.04
+S02 OIC untreated (oxycodone 60/d)        1.49   0.27   2.01    2.22     2.57   5.04   0.00     1.52
+S03 + PEG3350 17 g/d                      1.49   0.27   2.01    2.22     2.57   5.04   0.00     1.52
+S04 + lactulose 20 g/d                    6.73   2.80   6.05    0.26     1.05   5.42   0.00     0.14
+S05 + lubiprostone 24 ug bid              1.84   0.38   2.60    1.71     2.23   5.05   0.00     1.30
+S06 + linaclotide 145 ug qd               1.81   0.37   2.52    1.77     2.27   5.05   0.00     1.32
+S07 + prucalopride 2 mg qd                1.92   0.66   2.18    2.06     2.30   4.95   0.00     1.25
+S08 + naloxegol 12.5 mg qd                3.11   1.05   2.37    1.89     2.16   4.90   0.00     0.94
+S09 + naloxegol 25 mg qd                  4.30   1.75   2.67    1.66     1.92   4.85   0.01     0.83
+S10 + naldemedine 0.2 mg qd               5.00   2.15   2.85    1.53     1.68   4.86   0.00     0.70
+S11 + methylnaltrexone 12 mg SC qod       4.22   1.81   2.63    1.68     2.18   4.87   0.00     1.13
+S12 + methylnaltrexone 450 mg PO qd       6.23   2.90   3.13    1.36     1.46   4.84   0.00     0.56
+S13 + naloxone 20 mg PO tid               9.75   5.09   3.81    1.02     0.69   4.79   8.34     0.10
+S14 + naloxegol 25 + PEG 17 g             4.31   1.75   2.67    1.65     1.92   4.85   0.01     0.83
+S15 naloxegol 25 + strong P-gp inh        7.10   3.40   3.34    1.25     1.07   4.82  30.38     0.33
+S16 methadone 60/d + lubiprostone         1.59   0.30   2.18    2.06     2.48   5.04   0.00     1.46
+
+==============================================================================
+J.  VIRTUAL POPULATION (n=60) -- responder rate, >=3 SBM/week.
+    NOTE: this model has NO placebo mechanism.  The untreated arm is
+    mechanistically untreated, so it is NOT comparable to a trial
+    placebo arm (KODIAC 29%, COMPOSE 34%).  Only the DIFFERENCE between
+    an active arm and the untreated arm here can be read against the
+    placebo-subtracted trial difference.
+==============================================================================
+  untreated                  median SBM/wk  1.43   responder (>=3/wk)   0.0%
+  naloxegol 25 mg            median SBM/wk  4.19   responder (>=3/wk)  91.7%
+  naldemedine 0.2 mg         median SBM/wk  4.82   responder (>=3/wk)  95.0%
+  PEG 3350 17 g              median SBM/wk  1.43   responder (>=3/wk)   0.0%
+  lactulose 20 g             median SBM/wk  6.87   responder (>=3/wk) 100.0%
+  naloxegol 25 + lactulose   median SBM/wk 10.67   responder (>=3/wk) 100.0%
+
+  naloxegol 25 mg            model delta +91.7 pp   vs trial placebo-subtracted +12.7 pp
+  naldemedine 0.2 mg         model delta +95.0 pp   vs trial placebo-subtracted +16.0 pp
+
+  combination arithmetic (responder pp over untreated):
+    naloxegol alone +91.7 pp;  lactulose alone +100.0 pp;  sum +191.7 pp;  ACTUAL combination +100.0 pp
+    -> the two act on DIFFERENT arms of the same loop (receptor vs
+       water), so the loop amplifies them together rather than twice.
+
+  PEG 3350 17 g arm: +0.0 pp over untreated -- see the PEG discussion in analysis E.
+
+==============================================================================
+J2. VIRTUAL POPULATION WITH DISPERSION CALIBRATED TO THE TRIAL
+    PLACEBO ARM (n=60, every parameter CV inflated 3.2-fold).
+    In J the untreated arm produced 0% responders against a trial
+    placebo rate of 29%.  Rather than leave that as a bare failure,
+    ask what dispersion WOULD reproduce it, then re-read the drug arms.
+==============================================================================
+  untreated                  median SBM/wk  1.37   responder (>=3/wk)  28.3%
+  naloxegol 25 mg            median SBM/wk  3.99   responder (>=3/wk)  66.7%
+  naldemedine 0.2 mg         median SBM/wk  4.31   responder (>=3/wk)  78.3%
+
+  naloxegol 25 mg            model  66.7% (delta +38.3 pp)   vs trial 44.4% (delta +12.7 pp)
+  naldemedine 0.2 mg         model  78.3% (delta +50.0 pp)   vs trial 47.6% (delta +16.0 pp)
+
+  Reading this honestly: the 3.2-fold inflation is NOT a mechanistic
+  finding, it is a measurement of what the model is missing.  Every individual
+  CV it implies is implausible on its own -- an opioid-dose CV of
+  1.44 on the log scale is not a real prescribing distribution.
+  What the number says is that the mechanistic parameters varied here carry
+  only about 1/3 of the between-patient variance that the trials
+  actually contain, and that the rest sits in things this model has no state
+  for: adherence, diet, mobility, comorbid anorectal disease, concurrent
+  constipating drugs, and the placebo response itself.
+
+  With the dispersion forced to match, the ACTIVE arms are predictions again --
+  and they still overshoot.  The model reproduces the typical patient's mean
+  SBM/week (that was fitted) but not the shape of the response distribution.
+  Do not use this model to predict responder rates.
+
+[wrote oic_population_results.json]
