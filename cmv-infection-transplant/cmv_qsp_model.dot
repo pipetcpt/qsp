@@ -1,0 +1,704 @@
+/* ===========================================================================
+   cmv_qsp_model.dot
+   Cytomegalovirus infection and disease in transplant recipients
+   이식 후 거대세포바이러스(CMV) 감염 — 기계론적 QSP 지도
+
+   ORGANISING THESIS (see README.md)
+
+     Write the systemic virus as a target-cell-limited process and read the
+     net exponent of the infected-cell pool:
+
+        r = KPROD*(1-e_pol)*(1-e_pack) - DELI - KE8*E8 - KENK*NK
+
+     Two measured clinical numbers fix KPROD: an untreated DNAemia doubling
+     time of ~1.2 d (r0 = 0.578/d) and an on-treatment decline half-life of
+     ~2.4 d (DELI = 0.289/d).  Everything in this map then hangs off TWO
+     thresholds and ONE clock:
+
+       THRESHOLD 1 (drug)    e* = r0/(r0+DELI) = 0.667
+                             -- the fraction of virion production a regimen
+                                must remove for the exponent to change sign.
+                                Potency, resistance, renal dose reduction and
+                                drug-drug interaction are all the SAME
+                                question asked of this one number.
+       THRESHOLD 2 (immune)  E8* = r0/KE8 = 4.8 CMV-specific CD8 per uL
+                             -- control WITHOUT any drug.  This is the actual
+                                endpoint of the illness.  No drug moves it.
+       THE CLOCK             monitoring interval dt -> 2^(dt/1.2) fold rise
+                             between draws.  A weekly PCR turns a nominal
+                                1000 IU/mL trigger into a 57,000 IU/mL trigger.
+
+     And the coupling that makes the disease interesting: E8's expansion term
+     is proportional to ANTIGEN, which is the infected-cell pool the drug just
+     removed.  Clearing threshold 1 therefore SLOWS the approach to threshold
+     2.  Late-onset CMV after prophylaxis is not bolted on; it is what this
+     coupling does when the drug stops.
+
+   FOUR STRUCTURAL DECISIONS, visible in the graph as separate edge colours
+
+     [1] MEASURED DNAemia IS TWO SPECIES.  Vv = encapsidated virion DNA (the
+         only infectious species).  Vl = non-encapsidated DNA shed by dying
+         infected cells (most of what a plasma PCR reports).  Polymerase
+         inhibitors cut both; terminase/kinase inhibitors cut only Vv and
+         RAISE the DNA per dying cell (uncleaved concatemer).  Consequence:
+         letermovir working perfectly barely moves plasma CMV DNA.
+
+     [2] GANCICLOVIR'S ACTIVATION STEP IS A VIRAL GENE PRODUCT.  pUL97 makes
+         GCV-MP; maribavir inhibits pUL97; so maribavir enters the ganciclovir
+         arm through the ACTIVATION term and the pair is antagonistic by
+         construction.  UL97 GCV-resistance = loss of KINASE efficiency (not a
+         polymerase EC50 shift), which is why it spares maribavir.
+
+     [3] THE NEUTROPENIA LOOP CLOSES THROUGH THE KIDNEY.  CrCl -> GCV exposure
+         -> Friberg marrow chain -> ANC rule -> dose cut -> e below e* ->
+         selection window for UL97 mutants.
+
+     [4] RESISTANCE IS A SHAPE, NOT A POTENCY.  One UL56 mutation takes
+         letermovir from e = 0.97 to e = 0.01.  One UL97 mutation takes
+         ganciclovir from 0.89 to 0.11.  Both are "one mutation"; only the
+         second leaves anything to escalate.
+
+   RENDER
+     dot -Tsvg cmv_qsp_model.dot -o cmv_qsp_model.svg
+     dot -Tpng -Gdpi=150 cmv_qsp_model.dot -o cmv_qsp_model.png
+   =========================================================================== */
+
+digraph CMV_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  concentrate = false;
+  nodesep = 0.22;
+  ranksep = 0.52;
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 26;
+  label = <<b>이식 후 거대세포바이러스(CMV) 감염 — 정량적 시스템 약리학 지도</b><br/>
+<font point-size="17">Cytomegalovirus in transplant recipients · QSP mechanistic map · 45 ODEs</font><br/>
+<font point-size="14">THRESHOLD 1 (drug) e* = r0/(r0+DELI) = 0.667 · THRESHOLD 2 (immune) E8* = r0/KE8 = 4.8 CD8/µL · CLOCK 2^(Δt/1.2 d) per PCR interval</font><br/>
+<font point-size="13">measured DNAemia = virion DNA (Vv) + lysis DNA (Vl) — polymerase inhibitors cut both, terminase/kinase inhibitors cut only Vv</font>>;
+
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+        margin="0.07,0.045", penwidth=1.1];
+  edge [fontname="Helvetica", fontsize=9, arrowsize=0.65, penwidth=1.0,
+        color="#5a5a5a"];
+
+  /* ---- palette -------------------------------------------------------- */
+  /* virus            #d9e8f7 / border #2f6fa8
+     latency          #e9e2f7
+     host cell        #e6f4ea
+     immune           #fdf1d6
+     immunosuppression#f1e0e0
+     drug PK          #fde4d0
+     drug PD/target   #ffd9c2
+     resistance       #f8d2d2
+     marrow           #e4e4f0
+     kidney           #dff1f4
+     tissue/organ     #f6e7d8
+     endpoint         #e8e8e8 / border #333
+     threshold/algebra#fff9c4 */
+
+  /* =====================================================================
+     0. THE ALGEBRA — the three numbers the rest of the map serves
+     ===================================================================== */
+  subgraph cluster_algebra {
+    label = <<b>0 · 모델의 축: 두 개의 역치와 하나의 시계 (the spine: two thresholds, one clock)</b>>;
+    style = "filled,rounded"; color = "#c9a227"; fillcolor = "#fffdf0";
+    fontsize = 14;
+
+    ALG_KPROD [label="KPROD = r0 + DELI = 0.866 /d\n(virion production per infected cell)\nfixed by doubling 1.2 d + decline t½ 2.4 d",
+               fillcolor="#fff9c4", color="#c9a227", shape=box3d];
+    ALG_R     [label="r = KPROD·(1−e_pol)(1−e_pack)\n    − DELI − KE8·E8 − KENK·NK\nNET EXPONENT of infected-cell pool",
+               fillcolor="#fff59d", color="#c9a227", shape=box3d, penwidth=2.2];
+    ALG_E1    [label="THRESHOLD 1 (drug)\ne* = r0/KPROD = 0.667\nbelow it → breakthrough, whatever the label says",
+               fillcolor="#fff9c4", color="#b8860b", penwidth=2.0];
+    ALG_E2    [label="THRESHOLD 2 (immune)\nE8* = r0/KE8 = 4.8 CD8/µL\ncontrol with NO drug — the real endpoint",
+               fillcolor="#fff9c4", color="#b8860b", penwidth=2.0];
+    ALG_CLOCK [label="THE CLOCK\nfold-rise between PCR draws = 2^(Δt/1.2 d)\nq3.5d → 7.6×   q7d → 57×   q14d → 3251×",
+               fillcolor="#fff9c4", color="#b8860b", penwidth=2.0];
+    ALG_COUP  [label="THE COUPLING\nd(E8)/dt ∝ ANTIGEN = the infected cells\nthe drug just removed\n⇒ clearing e* delays reaching E8*",
+               fillcolor="#ffe082", color="#b8860b", penwidth=2.2];
+
+    ALG_KPROD -> ALG_R [color="#c9a227"];
+    ALG_R -> ALG_E1 [color="#c9a227", label="set r=0, E8=0"];
+    ALG_R -> ALG_E2 [color="#c9a227", label="set r=0, e=0"];
+    ALG_E1 -> ALG_COUP [color="#b8860b", style=bold];
+    ALG_E2 -> ALG_COUP [color="#b8860b", style=bold, dir=back];
+  }
+
+  /* =====================================================================
+     1. VIRAL GENETICS AND THE GENE PRODUCTS THAT ARE DRUG TARGETS
+     ===================================================================== */
+  subgraph cluster_virol {
+    label = <<b>1 · CMV 유전자 산물과 약물 표적 (viral gene products = the drug targets)</b>>;
+    style = "filled,rounded"; color = "#2f6fa8"; fillcolor = "#f2f8fd";
+    fontsize = 14;
+
+    V_GENOME [label="CMV dsDNA genome\n235 kbp · >170 ORFs", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_MIEP   [label="MIEP\nmajor immediate-early promoter\n(the latency switch)", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_IE1    [label="IE1 / IE2 (UL123/UL122)\nimmediate-early transactivators", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_UL54   [label="pUL54\nDNA polymerase catalytic subunit\n← GCV-TP, FOS, CDV-PP", fillcolor="#d9e8f7", color="#2f6fa8", penwidth=2.0];
+    V_UL44   [label="pUL44\npolymerase processivity factor", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_UL97   [label="pUL97\nviral protein kinase\n← MARIBAVIR   ← activates GCV", fillcolor="#d9e8f7", color="#2f6fa8", penwidth=2.4];
+    V_UL56   [label="pUL56 / pUL89 / pUL51\nTERMINASE complex\n← LETERMOVIR", fillcolor="#d9e8f7", color="#2f6fa8", penwidth=2.4];
+    V_PP65   [label="pp65 (UL83)\ndominant CD8 antigen · antigenaemia assay", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_GB     [label="gB (UL55) / gH-gL\nentry glycoproteins · Ab target", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_PENT   [label="Pentamer gH/gL/UL128/130/131A\nepithelial-endothelial tropism · neutralising target",
+              fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_US2    [label="US2-US11\nMHC-I down-regulation (CD8 evasion)", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_UL40   [label="UL40 signal peptide → HLA-E\n(NKG2A inhibition, NKG2C priming)", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_UL16   [label="UL16 / UL142 / miR-UL112\nNKG2D ligand (MICA/B, ULBP) sequestration",
+              fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_UL111  [label="UL111A → cmvIL-10\nviral IL-10 homologue", fillcolor="#d9e8f7", color="#2f6fa8"];
+    V_UL138  [label="UL138 / LUNA / UL144\nlatency-associated transcripts", fillcolor="#e9e2f7", color="#7b5ea7"];
+
+    V_GENOME -> V_MIEP; V_MIEP -> V_IE1 [label="reactivation"];
+    V_IE1 -> V_UL54; V_IE1 -> V_UL97; V_IE1 -> V_UL56; V_IE1 -> V_UL44;
+    V_UL54 -> V_UL44 [dir=both, style=dashed, label="holoenzyme"];
+    V_GENOME -> V_UL138 [style=dashed, label="latency programme"];
+    V_IE1 -> V_PP65; V_IE1 -> V_GB; V_GB -> V_PENT [style=dashed];
+    V_IE1 -> V_US2; V_IE1 -> V_UL40; V_IE1 -> V_UL16; V_IE1 -> V_UL111;
+  }
+
+  /* =====================================================================
+     2. LATENCY AND REACTIVATION
+     ===================================================================== */
+  subgraph cluster_latency {
+    label = <<b>2 · 잠복과 재활성화 (latency and the reactivation flux)</b>>;
+    style = "filled,rounded"; color = "#7b5ea7"; fillcolor = "#f7f4fc";
+    fontsize = 14;
+
+    L_LAT   [label="LAT — latent reservoir\nCD34+ progenitors, CD14+ monocytes,\nendothelium (normalised genome copies)",
+             fillcolor="#e9e2f7", color="#7b5ea7", shape=box3d, penwidth=1.8];
+    L_GRAFT [label="DONOR GRAFT as inoculum\n(D+/R− has NO host memory —\nthis is primary infection, not reactivation)",
+             fillcolor="#e9e2f7", color="#7b5ea7", penwidth=1.8];
+    L_TNF   [label="TNF-α / IL-6 / catecholamines\n→ NF-κB, cAMP-PKA → MIEP", fillcolor="#e9e2f7", color="#7b5ea7"];
+    L_ALLO  [label="allogeneic stimulation\n(rejection, GVHD, HLA mismatch)", fillcolor="#e9e2f7", color="#7b5ea7"];
+    L_SEPSIS[label="sepsis / surgery / critical illness\nINFL forcing term", fillcolor="#e9e2f7", color="#7b5ea7"];
+    L_DIFF  [label="myeloid differentiation\nmonocyte → macrophage / DC\n(permissive chromatin at MIEP)", fillcolor="#e9e2f7", color="#7b5ea7"];
+    L_REACT [label="REACT = KREACT·LAT·(1+6·ISI)·(1+3·INFL)\nreactivation flux into the infected pool",
+             fillcolor="#dcd0f0", color="#7b5ea7", penwidth=2.2];
+
+    L_TNF -> L_DIFF; L_ALLO -> L_TNF; L_SEPSIS -> L_TNF;
+    L_LAT -> L_REACT; L_DIFF -> L_REACT [label="chromatin\nde-repression"];
+    L_GRAFT -> L_REACT [label="primary\ninfection"];
+    V_UL138 -> L_LAT [ltail="cluster_virol", style=dashed];
+    L_REACT -> V_MIEP [lhead="cluster_virol", style=dashed, color="#7b5ea7"];
+  }
+
+  /* =====================================================================
+     3. REPLICATION CYCLE IN A PERMISSIVE CELL
+     ===================================================================== */
+  subgraph cluster_repl {
+    label = <<b>3 · 허용세포 내 복제주기 — 약물이 끼어드는 지점 (replication cycle: where each drug intervenes)</b>>;
+    style = "filled,rounded"; color = "#2e8b57"; fillcolor = "#f1f9f3";
+    fontsize = 14;
+
+    R_TC    [label="TC — permissive target cells\nfibroblast · endothelium · epithelium ·\nsmooth muscle (normalised, renewal LAMT)",
+             fillcolor="#e6f4ea", color="#2e8b57", shape=box3d, penwidth=1.8];
+    R_ENTRY [label="attachment / entry\nEGFR · PDGFRα · NRP2 · integrins ·\nmacropinocytosis (epithelial)", fillcolor="#e6f4ea", color="#2e8b57"];
+    R_UNCOAT[label="capsid transport → nuclear pore\ngenome release, circularisation", fillcolor="#e6f4ea", color="#2e8b57"];
+    R_IE    [label="IE → E → L cascade", fillcolor="#e6f4ea", color="#2e8b57"];
+    R_DNA   [label="rolling-circle DNA synthesis\n→ head-to-tail CONCATEMER\n(pUL54/pUL44) ★ polymerase step",
+             fillcolor="#c8e6c9", color="#2e8b57", penwidth=2.2];
+    R_CLEAV [label="terminase cleavage at pac sites\n→ UNIT-LENGTH genome\n★ terminase step",
+             fillcolor="#c8e6c9", color="#2e8b57", penwidth=2.2];
+    R_PACK  [label="encapsidation into procapsid", fillcolor="#e6f4ea", color="#2e8b57"];
+    R_EGRESS[label="nuclear egress complex\npUL97 phosphorylates lamin A/C\n★ kinase step",
+             fillcolor="#c8e6c9", color="#2e8b57", penwidth=2.2];
+    R_ENV   [label="secondary envelopment (cytoplasm)\ntegument acquisition", fillcolor="#e6f4ea", color="#2e8b57"];
+    R_REL   [label="virion release / cell-to-cell spread", fillcolor="#e6f4ea", color="#2e8b57"];
+    R_I     [label="I — productively infected cells\nIW (wild type) · IA (UL97 mut) · IB (UL56 mut)",
+             fillcolor="#a5d6a7", color="#2e8b57", shape=box3d, penwidth=2.2];
+    R_CPE   [label="cytopathic effect / apoptosis\nloss rate LOSS = DELI + KE8·E8 + KENK·NK",
+             fillcolor="#e6f4ea", color="#2e8b57"];
+
+    R_TC -> R_ENTRY -> R_UNCOAT -> R_IE -> R_DNA -> R_CLEAV -> R_PACK -> R_EGRESS -> R_ENV -> R_REL;
+    R_IE -> R_I [style=bold]; R_I -> R_CPE; R_REL -> R_I [style=invis];
+    V_UL54 -> R_DNA [ltail="cluster_virol", color="#2f6fa8", style=dashed];
+    V_UL56 -> R_CLEAV [ltail="cluster_virol", color="#2f6fa8", style=dashed];
+    V_UL97 -> R_EGRESS [ltail="cluster_virol", color="#2f6fa8", style=dashed];
+    V_PENT -> R_ENTRY [ltail="cluster_virol", color="#2f6fa8", style=dashed];
+    L_REACT -> R_I [ltail="cluster_latency", color="#7b5ea7", style=bold, label="react"];
+  }
+
+  /* =====================================================================
+     4. THE TWO MEASURED DNA SPECIES  [structural decision 1]
+     ===================================================================== */
+  subgraph cluster_dnaemia {
+    label = <<b>4 · 혈장 DNA는 두 종류다 [구조적 결정 1] (measured DNAemia is TWO species)</b>>;
+    style = "filled,rounded"; color = "#1565c0"; fillcolor = "#eef5fd";
+    fontsize = 14;
+
+    D_VV   [label="Vv — ENCAPSIDATED virion DNA\nd/dt = PVIR·(1−e_pol)(1−e_pack)·I − CVIR·Vv\nTHE ONLY INFECTIOUS SPECIES",
+            fillcolor="#bbdefb", color="#1565c0", shape=box3d, penwidth=2.2];
+    D_VL   [label="Vl — LYSIS-DERIVED free DNA\nd/dt = QLYS·LOSS·I·(1−e_pol)(1+AMPPK·e_pack) − CLYS·Vl\n(fragmented, non-infectious)",
+            fillcolor="#bbdefb", color="#1565c0", shape=box3d, penwidth=2.2];
+    D_MEAS [label="MEASURED plasma CMV DNA (IU/mL)\nVmeas = Vv + Vl     Vl:Vv ≈ 2:1 untreated\n⇒ ~67% of the PCR result is NOT virion",
+            fillcolor="#90caf9", color="#0d47a1", penwidth=2.4];
+    D_WHO  [label="WHO 1st International Standard\nIU/mL harmonisation (plasma vs whole blood,\nlab-to-lab 1–2 log10 spread)", fillcolor="#e3f2fd", color="#1565c0"];
+    D_LLOQ [label="assay LLOQ ≈ 137 IU/mL\nlinear range, log-normal noise ~0.15 log10", fillcolor="#e3f2fd", color="#1565c0"];
+    D_KIN  [label="kinetic read-outs\ndoubling time 1.2 d (untreated)\ndecline t½ 2.4 d (on polymerase inhibitor)",
+            fillcolor="#e3f2fd", color="#1565c0"];
+    D_CONS [label="CONSEQUENCE (derived, not assumed)\na terminase inhibitor working perfectly\ndrops Vmeas by ≤0.2 log10\n⇒ prophylaxis drug, not treatment drug",
+            fillcolor="#ffcdd2", color="#b71c1c", penwidth=2.2];
+
+    R_I -> D_VV [ltail="cluster_repl", color="#1565c0", style=bold, label="PVIR"];
+    R_CPE -> D_VL [ltail="cluster_repl", color="#1565c0", style=bold, label="QLYS·LOSS"];
+    D_VV -> D_MEAS; D_VL -> D_MEAS [penwidth=2.0];
+    D_MEAS -> D_WHO [dir=both, style=dashed]; D_MEAS -> D_LLOQ [dir=both, style=dashed];
+    D_MEAS -> D_KIN; D_VL -> D_CONS [style=bold, color="#b71c1c"];
+    D_VV -> R_ENTRY [lhead="cluster_repl", label="β·TC·Vv\n(infection)", color="#1565c0", style=bold];
+  }
+
+  /* =====================================================================
+     5. GANCICLOVIR / VALGANCICLOVIR  [structural decision 2]
+     ===================================================================== */
+  subgraph cluster_gcv {
+    label = <<b>5 · 발간시클로버 → 간시클로버: 활성화 단계가 바이러스 유전자 산물이다 [구조적 결정 2]</b>>;
+    style = "filled,rounded"; color = "#e07b39"; fillcolor = "#fff6ef";
+    fontsize = 14;
+
+    G_DOSE [label="valganciclovir PO\n900 mg od (prophylaxis) · 900 mg BID (treatment)\nrenal dose bands 60/40/25/10 mL/min",
+            fillcolor="#fde4d0", color="#e07b39"];
+    G_EST  [label="intestinal + hepatic esterase\nvalGCV → ganciclovir, F = 0.60", fillcolor="#fde4d0", color="#e07b39"];
+    G_PL   [label="GCV — plasma ganciclovir (µM)\nV 60 L · CL 13 L/h at CrCl 100 · t½ 3.2 h\nCavg 4.9 µM at 900 mg od",
+            fillcolor="#fde4d0", color="#e07b39", shape=box3d, penwidth=1.8];
+    G_REN  [label="renal elimination = 90% of CL\nCL = 13·(0.9·CrCl/100 + 0.1) L/h\n⇒ CrCl is the exposure knob",
+            fillcolor="#fde4d0", color="#e07b39", penwidth=1.8];
+    G_MP   [label="GCV → GCV-MP\nPHOSPHORYLATED BY pUL97\n(the rate-limiting, VIRAL, step)",
+            fillcolor="#ffd9c2", color="#bf360c", penwidth=2.4];
+    G_TP   [label="GTP — GCV-triphosphate (µM-eq)\nKPHOS·GCV·f_kin − KDEGTP·GTP,  t½ 18 h\n66 µM at 900 od · 133 µM at 900 BID",
+            fillcolor="#ffd9c2", color="#bf360c", shape=box3d, penwidth=2.2];
+    G_PD   [label="e_GCV = (GTP/EC50)^2 / (1+(GTP/EC50)^2)\nEC50 = 23.4 µM-eq, Hill 2 (chain termination)\ne = 0.89 (od) · 0.97 (BID)",
+            fillcolor="#ffd9c2", color="#bf360c", penwidth=2.2];
+    G_MYE  [label="marrow toxicity driver\nEdrug = 0.85·GCV/(6.0+GCV)\n(plasma GCV, NOT the triphosphate)",
+            fillcolor="#ffd9c2", color="#bf360c", penwidth=1.8];
+
+    G_DOSE -> G_EST -> G_PL -> G_MP -> G_TP -> G_PD;
+    G_PL -> G_REN [dir=both]; G_PL -> G_MYE [style=bold];
+    V_UL97 -> G_MP [ltail="cluster_virol", color="#bf360c", style=bold, label="ACTIVATION\n(viral kinase)"];
+    G_PD -> R_DNA [lhead="cluster_repl", color="#bf360c", style=bold,
+                   label="e_pol ⟂ chain\ntermination"];
+  }
+
+  /* =====================================================================
+     6. LETERMOVIR
+     ===================================================================== */
+  subgraph cluster_ltv {
+    label = <<b>6 · 레테르모비르 (letermovir — terminase inhibitor)</b>>;
+    style = "filled,rounded"; color = "#e07b39"; fillcolor = "#fff6ef";
+    fontsize = 14;
+
+    T_DOSE [label="letermovir 480 mg od PO/IV\n240 mg with cyclosporine (OATP inhibition)", fillcolor="#fde4d0", color="#e07b39"];
+    T_PL   [label="LTV — plasma (µM), F 0.94\nV 45 L · CL 2.6 L/h · t½ 12 h\n99% protein bound → free 0.126 µM",
+            fillcolor="#fde4d0", color="#e07b39", shape=box3d, penwidth=1.8];
+    T_MET  [label="UGT1A1/1A3 · CYP3A minor ·\nOATP1B1/3 uptake · P-gp / BCRP efflux", fillcolor="#fde4d0", color="#e07b39"];
+    T_DDI  [label="DDI: letermovir is a CYP3A + OATP1B1\ninhibitor →  tacrolimus AUC ×2.4,\nsirolimus ×3, cyclosporine ↑, statins ↑",
+            fillcolor="#f8d2d2", color="#b71c1c", penwidth=2.0];
+    T_PD   [label="e_LTV = free/(free + 0.004 µM)\ne = 0.97 (480) · 0.94 (240)\nblocks pac-site CLEAVAGE, not DNA synthesis",
+            fillcolor="#ffd9c2", color="#bf360c", penwidth=2.2];
+    T_NOM  [label="NO myelosuppression\nEdrug = 0 in the Friberg chain", fillcolor="#c8e6c9", color="#2e8b57", penwidth=1.8];
+    T_NOH  [label="NO activity against HSV/VZV/EBV\n(loses the herpes-group cover valGCV gave)", fillcolor="#f8d2d2", color="#b71c1c"];
+    T_SANC [label="poor sanctuary penetration\nPEN 0.05 (CNS/retina)", fillcolor="#f8d2d2", color="#b71c1c"];
+
+    T_DOSE -> T_PL -> T_PD; T_PL -> T_MET [dir=both]; T_MET -> T_DDI;
+    T_PL -> T_NOM; T_PL -> T_NOH [style=dashed]; T_PL -> T_SANC [style=dashed];
+    V_UL56 -> T_PD [ltail="cluster_virol", color="#bf360c", style=bold, label="target"];
+    T_PD -> R_CLEAV [lhead="cluster_repl", color="#bf360c", style=bold, label="e_pack"];
+    T_PD -> D_VL [lhead="cluster_dnaemia", color="#b71c1c", style=dashed,
+                  label="uncleaved concatemer\n⇒ +AMPPK·e_pack DNA per dying cell"];
+  }
+
+  /* =====================================================================
+     7. MARIBAVIR — and the antagonism it creates
+     ===================================================================== */
+  subgraph cluster_mbv {
+    label = <<b>7 · 마리바비르와 간시클로버 길항작용 (maribavir, and the antagonism it creates)</b>>;
+    style = "filled,rounded"; color = "#e07b39"; fillcolor = "#fff6ef";
+    fontsize = 14;
+
+    M_DOSE [label="maribavir 400 mg BID PO", fillcolor="#fde4d0", color="#e07b39"];
+    M_PL   [label="MBV — plasma (µM), F 0.90\nV 27 L · CL 3.5 L/h · t½ ~5 h\n98% bound → free 0.46 µM",
+            fillcolor="#fde4d0", color="#e07b39", shape=box3d, penwidth=1.8];
+    M_MET  [label="CYP3A4 substrate ·\nrifampicin/carbamazepine contraindicated", fillcolor="#fde4d0", color="#e07b39"];
+    M_PD   [label="e_MBV = free/(free + 0.12 µM) = 0.79\nblocks pUL97 → egress AND encapsidation",
+            fillcolor="#ffd9c2", color="#bf360c", penwidth=2.2];
+    M_ANT  [label="ANTAGONISM, BY CONSTRUCTION\nf_kin = 1/(1 + free_MBV/Ki),  Ki = 0.12 µM\n⇒ GCV-TP 133 → 28 µM-eq, e_GCV 0.97 → 0.58",
+            fillcolor="#f8d2d2", color="#b71c1c", penwidth=2.4];
+    M_NET  [label="net when combined with GCV 900 BID\ne(GCV alone) 0.970 · e(MBV alone) 0.792\ne(both) 0.913  → WORSE than GCV alone",
+            fillcolor="#f8d2d2", color="#b71c1c", penwidth=2.2];
+    M_AE   [label="dysgeusia ~37% · nausea · TAC AUC ×1.5", fillcolor="#fde4d0", color="#e07b39"];
+
+    M_DOSE -> M_PL -> M_PD; M_PL -> M_MET [dir=both]; M_PL -> M_AE;
+    M_PD -> M_ANT [style=bold, color="#b71c1c"]; M_ANT -> M_NET [style=bold, color="#b71c1c"];
+    V_UL97 -> M_PD [ltail="cluster_virol", color="#bf360c", style=bold, label="target"];
+    M_ANT -> G_MP [lhead="cluster_gcv", color="#b71c1c", style=bold,
+                   label="INHIBITS THE\nACTIVATION STEP"];
+    M_PD -> R_EGRESS [lhead="cluster_repl", color="#bf360c", style=bold, label="e_pack"];
+  }
+
+  /* =====================================================================
+     8. FOSCARNET, CIDOFOVIR, IMMUNOGLOBULIN, CELL THERAPY
+     ===================================================================== */
+  subgraph cluster_other {
+    label = <<b>8 · 포스카넷 · 시도포비어 · 면역글로불린 · 세포치료 (salvage agents and immunotherapy)</b>>;
+    style = "filled,rounded"; color = "#e07b39"; fillcolor = "#fff6ef";
+    fontsize = 14;
+
+    F_DOSE [label="foscarnet 90 mg/kg IV q12h\n(pyrophosphate analogue)", fillcolor="#fde4d0", color="#e07b39"];
+    F_PL   [label="FOS — plasma (µM)\nV 40 L · CL 6.5 L/h (95% renal) · Cavg ~640 µM",
+            fillcolor="#fde4d0", color="#e07b39", shape=box3d];
+    F_PD   [label="e_FOS = C/(C+250 µM) = 0.72\nbinds the pol PPi site — NEEDS NO ACTIVATION\n⇒ fully active on UL97 mutants",
+            fillcolor="#ffd9c2", color="#bf360c", penwidth=2.2];
+    F_TOX  [label="nephrotoxicity (30%) · Mg/K/Ca/PO4 wasting ·\nseizures · genital ulceration", fillcolor="#f8d2d2", color="#b71c1c", penwidth=1.8];
+    C_DOSE [label="cidofovir 5 mg/kg weekly + probenecid", fillcolor="#fde4d0", color="#e07b39"];
+    C_PL   [label="CDV plasma → OAT1 uptake →\nCDV-PP intracellular, t½ 17–65 h\n(weekly dosing possible)", fillcolor="#fde4d0", color="#e07b39"];
+    C_TOX  [label="proximal tubular necrosis · Fanconi ·\nuveitis · neutropenia", fillcolor="#f8d2d2", color="#b71c1c"];
+    I_CMVIG[label="CMV hyperimmune globulin\n→ raises AB, lowers effective β", fillcolor="#fdf1d6", color="#c9a227"];
+    I_ACT  [label="adoptive CMV-specific T cells\n(third-party or donor-derived)\n→ direct injection into E8", fillcolor="#fdf1d6", color="#c9a227", penwidth=1.8];
+    I_VAC  [label="candidate vaccines (gB/MF59, mRNA-1647,\npp65 DNA) — not in the ODEs", fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+
+    F_DOSE -> F_PL -> F_PD; F_PL -> F_TOX [style=bold];
+    C_DOSE -> C_PL -> C_TOX; C_PL -> F_PD [style=dashed, label="CDV-PP\n→ same pol"];
+    F_PD -> R_DNA [lhead="cluster_repl", color="#bf360c", style=bold, label="e_pol"];
+  }
+
+  /* =====================================================================
+     9. RESISTANCE — the SHAPE of the single-step jump  [decision 4]
+     ===================================================================== */
+  subgraph cluster_res {
+    label = <<b>9 · 내성: 한 번의 돌연변이가 남기는 것의 크기 [구조적 결정 4] (resistance is a SHAPE, not a potency)</b>>;
+    style = "filled,rounded"; color = "#b71c1c"; fillcolor = "#fdeeee";
+    fontsize = 14;
+
+    X_MUT   [label="mutation flux\nMU = 3×10⁻⁵ per infection event\n(pre-existing minority variants + selection)",
+             fillcolor="#f8d2d2", color="#b71c1c"];
+    X_UL97  [label="UL97 GCV-resistance\nM460V/I · H520Q · C592G · A594V · L595S · C603W\n⇒ LOSS OF KINASE EFFICIENCY (FK = 0.125)",
+             fillcolor="#f8d2d2", color="#b71c1c", penwidth=2.2];
+    X_UL54  [label="UL54 polymerase mutants\nV715M · A809V · del981-982 · L501I\n⇒ GCV+CDV cross-resistance, FOS variable\n(in the map and the table; NOT a separate ODE strain)",
+             fillcolor="#f8d2d2", color="#b71c1c", style="filled,rounded,dashed"];
+    X_UL56  [label="UL56 letermovir resistance\nC325Y/W/F · V236M · R369S\n⇒ >3000-fold, single step, no fitness cost",
+             fillcolor="#f8d2d2", color="#b71c1c", penwidth=2.2];
+    X_UL27  [label="UL27 · UL97 T409M/H411Y/C480F\n⇒ maribavir resistance (DIFFERENT residues\nfrom the GCV-resistance positions)",
+             fillcolor="#f8d2d2", color="#b71c1c", penwidth=1.8];
+    X_FIT   [label="replicative fitness cost\nUL97 mut 0.85 · UL56 C325Y 0.95\n(why UL56 mutants persist off drug)", fillcolor="#f8d2d2", color="#b71c1c"];
+    X_IA    [label="IA — UL97-mutant infected cells\ne(GCV) 0.89 → 0.11 at 900 od\n0.97 → 0.33 at 900 BID (still below e*)",
+             fillcolor="#ef9a9a", color="#b71c1c", shape=box3d, penwidth=2.0];
+    X_IB    [label="IB — UL56-mutant infected cells\ne(LTV) 0.97 → 0.01  (TOTAL loss)",
+             fillcolor="#ef9a9a", color="#b71c1c", shape=box3d, penwidth=2.0];
+    X_SHAPE [label="THE POINT\nboth are ONE mutation.  Only the ganciclovir one\nleaves anything to escalate — and even there the\nrequired GCV-TP is 2.0× the licensed treatment dose,\nso the drug must be CHANGED, not increased.",
+             fillcolor="#ffcdd2", color="#7f0000", penwidth=2.6];
+    X_WIN   [label="THE SELECTION WINDOW\nsub-threshold e (0 < e < e*) — created by\nrenal dose bands, ANC dose cuts, poor adherence,\nand sanctuary compartments",
+             fillcolor="#ffcdd2", color="#7f0000", penwidth=2.2];
+    X_SEQ   [label="genotypic resistance testing\nSanger (>20% variant) vs NGS/ddPCR (>2%)\nturnaround vs the 1.2-day doubling time",
+             fillcolor="#f8d2d2", color="#b71c1c"];
+
+    X_MUT -> X_UL97 -> X_IA; X_MUT -> X_UL56 -> X_IB; X_MUT -> X_UL54 [style=dashed];
+    X_MUT -> X_UL27 [style=dashed];
+    X_FIT -> X_IA [style=dashed]; X_FIT -> X_IB [style=dashed];
+    X_IA -> X_SHAPE; X_IB -> X_SHAPE [penwidth=2.0];
+    X_WIN -> X_MUT [style=bold, color="#7f0000", label="selects"];
+    X_IA -> X_SEQ [style=dashed]; X_IB -> X_SEQ [style=dashed];
+    X_UL97 -> G_MP [lhead="cluster_gcv", color="#b71c1c", style=bold,
+                    label="kinase efficiency\nFK = 0.125"];
+    X_UL56 -> T_PD [lhead="cluster_ltv", color="#b71c1c", style=bold, label="EC50 ×3000"];
+    X_UL27 -> M_PD [lhead="cluster_mbv", color="#b71c1c", style=dashed];
+    F_PD -> X_IA [ltail="cluster_other", color="#2e8b57", style=bold,
+                  label="FOSCARNET keeps\nfull effect"];
+    M_PD -> X_IA [ltail="cluster_mbv", color="#2e8b57", style=bold,
+                  label="MARIBAVIR keeps\nfull effect"];
+  }
+
+  /* =====================================================================
+     10. ADAPTIVE IMMUNITY — the real endpoint
+     ===================================================================== */
+  subgraph cluster_adapt {
+    label = <<b>10 · 적응면역 — 병을 끝내는 것은 약이 아니다 (adaptive immunity: the actual endpoint)</b>>;
+    style = "filled,rounded"; color = "#c9a227"; fillcolor = "#fffdf3";
+    fontsize = 14;
+
+    A_AG   [label="AG — antigen load = IW + IA + IB + 0.5·IT\n(THE SIGNAL THE DRUG REMOVES)",
+            fillcolor="#ffe082", color="#c9a227", penwidth=2.4];
+    A_APC  [label="DC / macrophage antigen presentation\nHLA-I (pp65, IE1) and HLA-II", fillcolor="#fdf1d6", color="#c9a227"];
+    A_E8   [label="E8 — CMV-specific CD8 (cells/µL)\nρ·E8·(AG/(AG+KAG))·help·f_IS·(1−E8/E8MAX)\n− DE8·E8 + precursors",
+            fillcolor="#ffe082", color="#c9a227", shape=box3d, penwidth=2.4];
+    A_E4   [label="E4 — CMV-specific CD4 (cells/µL)\nlicenses durable CD8 memory (help term)",
+            fillcolor="#ffe082", color="#c9a227", shape=box3d, penwidth=1.8];
+    A_NK   [label="NKA — adaptive NKG2C+ NK cells\nless CNI-sensitive → partial control when T cells are gone",
+            fillcolor="#fdf1d6", color="#c9a227", shape=box3d, penwidth=1.8];
+    A_AB   [label="AB — neutralising antibody (gB / pentamer)\nβ_eff = β/(1 + AB/KNAB)", fillcolor="#fdf1d6", color="#c9a227", shape=box3d];
+    A_EXH  [label="exhaustion: PD-1 / TIGIT / CD57 ·\nmemory inflation on chronic antigen", fillcolor="#fdf1d6", color="#c9a227"];
+    A_ASSAY[label="CMI assays\nQuantiFERON-CMV · ELISPOT · ICS ·\nImmuKnow ATP", fillcolor="#fdf1d6", color="#c9a227"];
+    A_THR  [label="E8* = r0/KE8 = 4.8 CD8/µL\nthe count at which the exponent is negative\nWITH NO DRUG",
+            fillcolor="#ffe082", color="#b8860b", penwidth=2.4];
+    A_LATE [label="LATE-ONSET CMV (derived)\nvalGCV 200 d arm leaves E8 far below E8*\nwhen the drug stops → the exponent restarts",
+            fillcolor="#ffcdd2", color="#b71c1c", penwidth=2.4];
+
+    A_AG -> A_APC -> A_E8; A_APC -> A_E4; A_E4 -> A_E8 [label="help"];
+    A_AG -> A_NK; A_E4 -> A_AB; A_E8 -> A_EXH [style=dashed];
+    A_E8 -> A_ASSAY [style=dashed]; A_E8 -> A_THR; A_THR -> A_LATE [style=bold, color="#b71c1c"];
+    R_I -> A_AG [ltail="cluster_repl", color="#c9a227", style=bold];
+    A_E8 -> R_CPE [lhead="cluster_repl", color="#c9a227", style=bold, label="KE8·E8·I"];
+    A_NK -> R_CPE [lhead="cluster_repl", color="#c9a227", label="KENK·NK·I"];
+    A_AB -> D_VV [lhead="cluster_dnaemia", color="#c9a227", style=dashed, label="neutralisation"];
+    V_US2 -> A_APC [ltail="cluster_virol", color="#b71c1c", style=dashed, label="MHC-I evasion"];
+    V_UL40 -> A_NK [ltail="cluster_virol", color="#b71c1c", style=dashed];
+    V_UL16 -> A_NK [ltail="cluster_virol", color="#b71c1c", style=dashed];
+    V_UL111 -> A_E4 [ltail="cluster_virol", color="#b71c1c", style=dashed, label="cmvIL-10"];
+    I_CMVIG -> A_AB [ltail="cluster_other", color="#c9a227"];
+    I_ACT -> A_E8 [ltail="cluster_other", color="#c9a227", style=bold];
+    G_PD -> A_AG [lhead="cluster_adapt", color="#b71c1c", style=bold,
+                  label="THE COUPLING:\nremoving virus removes\nthe training signal", dir=back];
+  }
+
+  /* =====================================================================
+     11. IMMUNOSUPPRESSION — the net state
+     ===================================================================== */
+  subgraph cluster_is {
+    label = <<b>11 · 면역억제의 총량 (the net state of immunosuppression, ISI)</b>>;
+    style = "filled,rounded"; color = "#a05252"; fillcolor = "#fdf3f3";
+    fontsize = 14;
+
+    S_ATG  [label="rabbit ATG / alemtuzumab induction\nATGC, t½ 6 d", fillcolor="#f1e0e0", color="#a05252"];
+    S_LYM  [label="LYM — lymphocyte count (10³/µL)\ndepletion KDEPL·ATGC·LYM,\nrepopulation t½ 173 d", fillcolor="#f1e0e0", color="#a05252", shape=box3d, penwidth=1.8];
+    S_TAC  [label="TAC — tacrolimus trough (ng/mL)\ntarget 9 → 6 ng/mL\ncalcineurin → NFAT → IL-2 ✗", fillcolor="#f1e0e0", color="#a05252", shape=box3d, penwidth=1.8];
+    S_MPA  [label="mycophenolate (MPA)\nIMPDH ✗ — lymphocyte AND marrow", fillcolor="#f1e0e0", color="#a05252"];
+    S_STER [label="STER — prednisone equivalent (mg)\n20 → 10 → 5 mg taper", fillcolor="#f1e0e0", color="#a05252", shape=box3d];
+    S_MTOR [label="mTOR inhibitor (sirolimus/everolimus)\nPARADOXICALLY PROTECTIVE:\nbetter CMV-specific memory, ↓ reactivation",
+             fillcolor="#c8e6c9", color="#2e8b57", penwidth=2.0];
+    S_ISI  [label="ISI = 0.55·TAC/8 + 0.80·(1−LYM/LYM0)\n     + 0.25·STER/20 + 0.40·MPA − 0.35·mTOR\nTHE NET STATE OF IMMUNOSUPPRESSION",
+             fillcolor="#e6bdbd", color="#7f0000", shape=box3d, penwidth=2.4];
+    S_BAL  [label="THE CLINICIAN'S DILEMMA\nlowering ISI helps the virus arm and\nraises the rejection hazard — the model prices both",
+             fillcolor="#e6bdbd", color="#7f0000", penwidth=2.0];
+
+    S_ATG -> S_LYM [style=bold]; S_LYM -> S_ISI; S_TAC -> S_ISI; S_MPA -> S_ISI;
+    S_STER -> S_ISI; S_MTOR -> S_ISI [label="−", color="#2e8b57"];
+    S_ISI -> S_BAL;
+    S_ISI -> L_REACT [lhead="cluster_latency", color="#a05252", style=bold, label="(1+6·ISI)"];
+    S_ISI -> A_E8 [lhead="cluster_adapt", color="#a05252", style=bold,
+                   label="f_IS = 1/(1+ISI/KISE)"];
+    S_MPA -> G_MYE [lhead="cluster_gcv", color="#a05252", style=dashed, label="additive\nmarrow toxicity"];
+    T_DDI -> S_TAC [ltail="cluster_ltv", color="#b71c1c", style=bold,
+                    label="TAC AUC ×2.4\n⇒ letermovir raises ISI\nunless the dose is cut"];
+    M_AE -> S_TAC [ltail="cluster_mbv", color="#b71c1c", style=dashed, label="×1.5"];
+  }
+
+  /* =====================================================================
+     12. MARROW — Friberg chain  [decision 3, first half]
+     ===================================================================== */
+  subgraph cluster_marrow {
+    label = <<b>12 · 골수억제 (Friberg 5-구획 모델) [구조적 결정 3 · 전반부]</b>>;
+    style = "filled,rounded"; color = "#5c6bc0"; fillcolor = "#f2f3fa";
+    fontsize = 14;
+
+    B_PROL [label="PROL — proliferating pool\nktr·PROL·((1−Edrug)·(CIRC0/ANC)^γ − 1)\nγ = 0.17", fillcolor="#e4e4f0", color="#5c6bc0", shape=box3d];
+    B_TR1  [label="transit 1", fillcolor="#e4e4f0", color="#5c6bc0"];
+    B_TR2  [label="transit 2", fillcolor="#e4e4f0", color="#5c6bc0"];
+    B_TR3  [label="transit 3", fillcolor="#e4e4f0", color="#5c6bc0"];
+    B_ANC  [label="ANC — circulating neutrophils (10⁹/L)\nMTT 125 h · CIRC0 4.5", fillcolor="#c5cae9", color="#5c6bc0", shape=box3d, penwidth=2.2];
+    B_RULE [label="THE CLINICAL RULE (implemented, not described)\nANC <1.0 → 50% dose cut + G-CSF\nANC <0.5 → hold ganciclovir",
+            fillcolor="#c5cae9", color="#283593", penwidth=2.4];
+    B_GCSF [label="G-CSF: ktr ×(1+0.60)", fillcolor="#e4e4f0", color="#5c6bc0"];
+    B_LTV0 [label="letermovir contributes ZERO to Edrug\n— the entire marrow argument for switching",
+            fillcolor="#c8e6c9", color="#2e8b57", penwidth=2.0];
+
+    B_PROL -> B_TR1 -> B_TR2 -> B_TR3 -> B_ANC;
+    B_ANC -> B_PROL [style=dashed, label="(CIRC0/ANC)^γ\nfeedback"];
+    B_ANC -> B_RULE [style=bold]; B_GCSF -> B_PROL [style=dashed];
+    B_RULE -> B_GCSF [style=dashed];
+    G_MYE -> B_PROL [ltail="cluster_gcv", color="#5c6bc0", style=bold, label="Edrug"];
+    T_NOM -> B_LTV0 [ltail="cluster_ltv", color="#2e8b57", style=dashed];
+    B_RULE -> G_DOSE [lhead="cluster_gcv", color="#283593", style=bold,
+                      label="DOSE CUT\n(closes the loop)"];
+  }
+
+  /* =====================================================================
+     13. KIDNEY — the other half of the loop  [decision 3, second half]
+     ===================================================================== */
+  subgraph cluster_kidney {
+    label = <<b>13 · 신장: 노출을 정하는 손잡이이자 독성의 표적 [구조적 결정 3 · 후반부]</b>>;
+    style = "filled,rounded"; color = "#00838f"; fillcolor = "#effafb";
+    fontsize = 14;
+
+    K_GFR  [label="GFR — allograft eGFR (mL/min/1.73)\nKRECG·(set−GFR) − KINJG·TUBI", fillcolor="#dff1f4", color="#00838f", shape=box3d, penwidth=2.0];
+    K_CRCL [label="CrCl = 1.10 × eGFR\n→ ganciclovir / foscarnet / cidofovir clearance", fillcolor="#dff1f4", color="#00838f", penwidth=2.0];
+    K_TUBI [label="TUBI — proximal tubular injury burden\n0.50·FOS/1000 + 0.08·CDV-PP/10\n+ 0.03·max(0,TAC−12)/4 − 0.05·TUBI",
+            fillcolor="#dff1f4", color="#00838f", shape=box3d];
+    K_MG   [label="MG — serum magnesium (mg/dL)\nKMGIN − KMGOUT·MG·(1+1.2·FOS/400)\n⇒ foscarnet drives it to ~0.9", fillcolor="#dff1f4", color="#00838f", shape=box3d];
+    K_ELEC [label="K⁺ / Ca²⁺ / PO₄³⁻ wasting · seizures", fillcolor="#dff1f4", color="#00838f"];
+    K_BAND [label="RENAL DOSE BANDS ARE A TWO-EDGED FIX\nthey protect the marrow but spend the margin over e*\n450 q2d at CrCl 30 → e = 0.77 (margin +0.10)\n450 2×/wk at CrCl 20 → e = 0.66 (BELOW e*)",
+            fillcolor="#b2ebf2", color="#006064", penwidth=2.4];
+    K_ERR  [label="the opposite error: NOT reducing the dose\nCrCl 30 on 900 od → GCV Cavg 13.2 µM,\ne = 0.98 but ANC → 0.97 (grade 3)",
+            fillcolor="#ffcdd2", color="#b71c1c", penwidth=2.2];
+
+    K_GFR -> K_CRCL [style=bold]; K_TUBI -> K_GFR [label="−", style=bold];
+    K_TUBI -> K_MG [style=dashed]; K_MG -> K_ELEC;
+    K_CRCL -> K_BAND; K_BAND -> K_ERR [dir=both, style=dashed, label="the two failure modes"];
+    K_CRCL -> G_REN [lhead="cluster_gcv", color="#00838f", style=bold,
+                     label="sets GCV exposure"];
+    F_TOX -> K_TUBI [ltail="cluster_other", color="#00838f", style=bold];
+    C_TOX -> K_TUBI [ltail="cluster_other", color="#00838f", style=bold];
+    K_BAND -> X_WIN [lhead="cluster_res", color="#7f0000", style=bold,
+                     label="sub-threshold e\n= selection window"];
+    B_RULE -> X_WIN [lhead="cluster_res", ltail="cluster_marrow", color="#7f0000",
+                     style=bold, label="dose cuts do\nthe same"];
+  }
+
+  /* =====================================================================
+     14. TISSUE, SANCTUARY AND END-ORGAN DISEASE
+     ===================================================================== */
+  subgraph cluster_tissue {
+    label = <<b>14 · 조직 구획과 장기 질환 (tissue compartment, sanctuary sites, end-organ disease)</b>>;
+    style = "filled,rounded"; color = "#8d6e63"; fillcolor = "#faf5f0";
+    fontsize = 14;
+
+    O_TT   [label="TT — tissue permissive cells (gut, lung)\nBETAT = 0.35·β", fillcolor="#f6e7d8", color="#8d6e63", shape=box3d];
+    O_IT   [label="IT — tissue infected cells\nloss = LOSST + KE8T·E8", fillcolor="#f6e7d8", color="#8d6e63", shape=box3d];
+    O_VT   [label="VT — tissue viral load (IU/g)\nthe variable the DISEASE hazard reads", fillcolor="#e0c9b0", color="#8d6e63", shape=box3d, penwidth=2.2];
+    O_VS   [label="VS — SANCTUARY load (retina / CNS)\npenetration: GCV 0.30 · FOS 0.20 · MBV 0.40 · LTV 0.05\n⇒ can rise while plasma PCR is negative",
+            fillcolor="#e0c9b0", color="#8d6e63", shape=box3d, penwidth=2.2];
+    O_GI   [label="CMV colitis / oesophagitis\n(commonest SOT end-organ disease)", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_PNE  [label="CMV pneumonitis\n(commonest and most lethal after HSCT / lung Tx)", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_HEP  [label="CMV hepatitis (liver Tx)", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_RET  [label="CMV retinitis (late, sanctuary)", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_ENC  [label="CMV encephalitis / polyradiculopathy", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_NEPH [label="CMV allograft nephropathy", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_SYN  [label="CMV SYNDROME\nfever + leukopenia/thrombocytopenia,\nno end-organ biopsy", fillcolor="#f6e7d8", color="#8d6e63"];
+    O_COMP [label="COMPARTMENTALISED DISEASE\ntissue-positive, plasma-PCR-negative\n(why a negative plasma PCR does not exclude colitis)",
+            fillcolor="#ffcdd2", color="#b71c1c", penwidth=2.0];
+
+    O_TT -> O_IT -> O_VT; O_VT -> O_GI; O_VT -> O_PNE; O_VT -> O_HEP;
+    O_VT -> O_NEPH; O_VT -> O_SYN; O_VS -> O_RET; O_VS -> O_ENC;
+    O_VS -> O_COMP; O_VT -> O_COMP;
+    D_VV -> O_TT [ltail="cluster_dnaemia", color="#8d6e63", style=bold, label="seeding"];
+    A_E8 -> O_IT [ltail="cluster_adapt", color="#c9a227", style=bold, label="KE8T·E8"];
+    T_SANC -> O_VS [ltail="cluster_ltv", color="#b71c1c", style=dashed];
+  }
+
+  /* =====================================================================
+     15. INDIRECT EFFECTS AND THE ALLOGRAFT
+     ===================================================================== */
+  subgraph cluster_indirect {
+    label = <<b>15 · 간접효과와 이식장기 (indirect effects: the alloimmune consequences of CMV)</b>>;
+    style = "filled,rounded"; color = "#6a1b9a"; fillcolor = "#f8f3fb";
+    fontsize = 14;
+
+    N_ENDO [label="endothelial infection / injury\nadhesion molecules ↑", fillcolor="#ede0f5", color="#6a1b9a"];
+    N_CYT  [label="IL-6 / TNF-α / IFN-γ · HLA-DR up-regulation\n→ enhanced allorecognition", fillcolor="#ede0f5", color="#6a1b9a"];
+    N_REJ  [label="ACUTE REJECTION hazard\nH0·(1+0.55·log10 Vmeas)·exp(−0.55·ISI)",
+             fillcolor="#d9c2ea", color="#6a1b9a", shape=box3d, penwidth=2.2];
+    N_CHR  [label="chronic allograft injury\nIFTA (kidney) · CLAD/BOS (lung) ·\ncardiac allograft vasculopathy", fillcolor="#ede0f5", color="#6a1b9a"];
+    N_NODAT[label="new-onset diabetes after transplant", fillcolor="#ede0f5", color="#6a1b9a"];
+    N_OI   [label="other opportunistic infection\n(CMV as a global immunomodulator)", fillcolor="#ede0f5", color="#6a1b9a"];
+    N_PTLD [label="EBV / PTLD interaction", fillcolor="#ede0f5", color="#6a1b9a"];
+    N_LOOP [label="THE VICIOUS CIRCLE\nCMV → rejection → more immunosuppression\n→ more CMV.  And treating the neutropenia by\ncutting MMF lowers ISI → rejection.",
+             fillcolor="#d1c4e9", color="#4a148c", penwidth=2.4];
+
+    N_ENDO -> N_CYT -> N_REJ; N_REJ -> N_CHR; N_REJ -> N_LOOP;
+    N_CYT -> N_NODAT [style=dashed]; N_CYT -> N_OI [style=dashed];
+    N_CYT -> N_PTLD [style=dashed]; N_LOOP -> N_CHR;
+    D_MEAS -> N_ENDO [ltail="cluster_dnaemia", color="#6a1b9a", style=bold];
+    S_ISI -> N_REJ [ltail="cluster_is", color="#6a1b9a", style=bold, label="exp(−0.55·ISI)"];
+    N_LOOP -> S_ISI [lhead="cluster_is", color="#4a148c", style=bold, label="↑ISI"];
+    N_REJ -> K_GFR [lhead="cluster_kidney", color="#6a1b9a", style=bold, label="eGFR set-point"];
+    N_CYT -> L_TNF [lhead="cluster_latency", color="#6a1b9a", style=bold, label="reactivation\ntrigger"];
+  }
+
+  /* =====================================================================
+     16. PREVENTION STRATEGY — where the CLOCK lives
+     ===================================================================== */
+  subgraph cluster_strategy {
+    label = <<b>16 · 예방전략: 감시간격은 용량이다 (prevention strategy — the monitoring interval IS a dose)</b>>;
+    style = "filled,rounded"; color = "#00695c"; fillcolor = "#eff7f5";
+    fontsize = 14;
+
+    P_RISK [label="risk stratification by serostatus\nD+/R− ≫ D+/R+ ≈ D−/R+ ≫ D−/R−\n(HSCT: R+ is the high-risk group — reversed)",
+            fillcolor="#d5ece7", color="#00695c", penwidth=2.0];
+    P_UNIV [label="UNIVERSAL PROPHYLAXIS\nvalGCV 100 d vs 200 d · letermovir 200 d\n(no PCR while on drug)", fillcolor="#d5ece7", color="#00695c", penwidth=2.0];
+    P_PRE  [label="PRE-EMPTIVE THERAPY\nPCR every Δt, treat at a trigger,\nstop after 2 negatives", fillcolor="#d5ece7", color="#00695c", penwidth=2.0];
+    P_HYB  [label="hybrid / sequential\nprophylaxis then surveillance", fillcolor="#d5ece7", color="#00695c"];
+    P_CMI  [label="immune-guided (CMI-guided)\nstop prophylaxis when E8 crosses E8*\n— the strategy the model argues for",
+            fillcolor="#a7d7cc", color="#004d40", penwidth=2.4];
+    P_CLOCK[label="THE CLOCK, PRICED\nΔt = 3.5 d → 7.6× rise between draws\nΔt = 7 d → 57×\nΔt = 14 d → 3251×\n⇒ a 1000 IU/mL trigger read weekly IS a 57,000 trigger",
+            fillcolor="#a7d7cc", color="#004d40", penwidth=2.6];
+    P_LATE [label="late-onset CMV\nthe cost of prophylaxis, in the model's own terms:\nthe drug removed the antigen that builds E8",
+            fillcolor="#ffcdd2", color="#b71c1c", penwidth=2.2];
+    P_SEC  [label="secondary prophylaxis after treatment ·\nrelapse when E8 is still below E8*", fillcolor="#d5ece7", color="#00695c"];
+    P_ADH  [label="adherence · drug interruption for cytopenia\n→ sub-threshold e", fillcolor="#d5ece7", color="#00695c"];
+
+    P_RISK -> P_UNIV; P_RISK -> P_PRE; P_UNIV -> P_HYB -> P_PRE;
+    P_PRE -> P_CLOCK [style=bold]; P_UNIV -> P_LATE [style=bold, color="#b71c1c"];
+    P_CMI -> P_LATE [label="avoids", color="#2e8b57", style=bold];
+    P_PRE -> P_SEC; P_UNIV -> P_ADH [style=dashed]; P_ADH -> P_SEC [style=dashed];
+    A_THR -> P_CMI [ltail="cluster_adapt", color="#004d40", style=bold,
+                    label="stop rule = E8 > E8*"];
+    A_LATE -> P_LATE [ltail="cluster_adapt", color="#b71c1c", style=bold];
+    P_CLOCK -> D_MEAS [lhead="cluster_dnaemia", color="#004d40", style=bold,
+                       label="trigger read on\na Δt grid"];
+    P_ADH -> X_WIN [lhead="cluster_res", color="#7f0000", style=dashed];
+    P_UNIV -> G_DOSE [lhead="cluster_gcv", color="#00695c"];
+    P_UNIV -> T_DOSE [lhead="cluster_ltv", color="#00695c"];
+    P_PRE -> G_DOSE [lhead="cluster_gcv", color="#00695c", style=dashed];
+  }
+
+  /* =====================================================================
+     17. CLINICAL ENDPOINTS
+     ===================================================================== */
+  subgraph cluster_end {
+    label = <<b>17 · 임상 평가변수 (clinical endpoints the model reports)</b>>;
+    style = "filled,rounded"; color = "#333333"; fillcolor = "#f4f4f4";
+    fontsize = 14;
+
+    E_DET  [label="time to first PCR-detected DNAemia", fillcolor="#e8e8e8", color="#333333"];
+    E_CS   [label="clinically significant CMV infection (cs-CMVi)\nDNAemia ≥ trigger, or CMV disease", fillcolor="#e8e8e8", color="#333333", penwidth=1.8];
+    E_PEAK [label="peak plasma DNAemia (log10 IU/mL)", fillcolor="#e8e8e8", color="#333333"];
+    E_AUC  [label="DNAemia AUC and days >1000 IU/mL", fillcolor="#e8e8e8", color="#333333"];
+    E_DIS  [label="CMV DISEASE probability\n1 − exp(−∫ KDIS·VT²/(VT²+KD50²)/(1+E8/EDIS) dt)",
+            fillcolor="#d5d5d5", color="#111111", shape=box3d, penwidth=2.2];
+    E_REJ  [label="acute rejection probability", fillcolor="#e8e8e8", color="#333333"];
+    E_NEU  [label="ANC nadir · days ANC <1.0 ·\ndiscontinuation for cytopenia", fillcolor="#e8e8e8", color="#333333"];
+    E_RES  [label="peak resistant-strain share of virion DNA", fillcolor="#e8e8e8", color="#333333"];
+    E_GFR  [label="eGFR at 1 year · graft loss", fillcolor="#e8e8e8", color="#333333"];
+    E_MG   [label="serum magnesium (foscarnet arms)", fillcolor="#e8e8e8", color="#333333"];
+    E_COST [label="drug days · number of PCRs · total cost", fillcolor="#e8e8e8", color="#333333"];
+    E_MORT [label="all-cause mortality (not modelled — stated)", fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+
+    D_MEAS -> E_DET [ltail="cluster_dnaemia", color="#333333"];
+    D_MEAS -> E_CS [ltail="cluster_dnaemia", color="#333333"];
+    D_MEAS -> E_PEAK [ltail="cluster_dnaemia", color="#333333"];
+    D_MEAS -> E_AUC [ltail="cluster_dnaemia", color="#333333"];
+    O_VT -> E_DIS [ltail="cluster_tissue", color="#333333", style=bold];
+    A_E8 -> E_DIS [ltail="cluster_adapt", color="#c9a227", style=dashed, label="1/(1+E8/EDIS)"];
+    N_REJ -> E_REJ [ltail="cluster_indirect", color="#333333"];
+    B_ANC -> E_NEU [ltail="cluster_marrow", color="#333333"];
+    X_IA -> E_RES [ltail="cluster_res", color="#333333"];
+    K_GFR -> E_GFR [ltail="cluster_kidney", color="#333333"];
+    K_MG -> E_MG [ltail="cluster_kidney", color="#333333"];
+    P_CLOCK -> E_COST [ltail="cluster_strategy", color="#333333"];
+    E_DIS -> E_MORT [style=dashed, color="#888888"];
+  }
+
+  /* =====================================================================
+     18. WHAT IS DEFERRED — stated so the omissions are visible
+     ===================================================================== */
+  subgraph cluster_gaps {
+    label = <<b>18 · 모델에 없는 것 (deliberate omissions, stated rather than hidden)</b>>;
+    style = "filled,rounded,dashed"; color = "#888888"; fillcolor = "#fbfbfb";
+    fontsize = 13;
+
+    Z1 [label="UL54 mutants as a separate ODE strain\n(present in the map and cross-resistance table only)",
+        fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+    Z2 [label="inter-individual variability / population PK\n(one deterministic virtual patient per arm)",
+        fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+    Z3 [label="mechanistic alloimmune model\n(rejection and eGFR are reduced-form hazards)",
+        fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+    Z4 [label="AMPPK has no direct human measurement\n(swept over 0–1 in the reference output)",
+        fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+    Z5 [label="vaccines, adoptive T-cell dosing schedules,\nHSCT-specific engraftment kinetics",
+        fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+    Z6 [label="whole-blood vs plasma assay conversion,\ninter-laboratory 1–2 log10 spread",
+        fillcolor="#eeeeee", color="#888888", style="filled,rounded,dashed"];
+  }
+}
