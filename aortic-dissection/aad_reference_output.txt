@@ -1,0 +1,258 @@
+==========================================================================================================================
+ACUTE TYPE B AORTIC DISSECTION - QSP REFERENCE MODEL  (Python/scipy, LSODA)
+53 ODEs, 22 scenarios.  Every number below is integrated, none is asserted.
+==========================================================================================================================
+
+The model is built around one product:
+
+    ASI = (sigma_FL_sys / sigma_ref) x (dP/dt_max / dPdt_ref)
+
+sigma carries the PRESSURE, dP/dt carries the IMPULSE, and the two are set by
+different physiology.  Sections 1-3 test whether a drug that lowers only the
+first can be worse than no drug at all.
+
+### 1. ACUTE PHASE (72 h) - state at the titrated steady state
+
+scenario               SBP    DBP    HR  dP/dt  sig_FL    ASI  ASIfl  pain   %tgt
+---------------------------------------------------------------------------------
+S01-untreated        153.9  102.0  71.0   1463   214.9  2.257  0.669   4.7    0.0
+S02-vd-only          121.1   66.9  83.4   1472   161.1  1.703  0.809   2.8    0.0
+S03-bb-only          111.3   70.9  57.0    975   155.8  1.091  0.270   2.6   45.1
+S04-bb-then-vd       113.4   71.6  58.7   1017   158.2  1.155  0.299   2.8   35.1
+S05-snp-only         122.2   76.4  80.3   1486   166.3  1.775  0.683   3.0    0.0
+S06-snp-bb           109.8   69.5  60.0   1028   152.8  1.128  0.301   2.5   43.4
+S07-labetalol        110.3   69.4  58.0    989   153.9  1.093  0.281   2.5   75.9
+S08-clev-esm         109.7   68.3  59.9   1020   152.4  1.117  0.305   2.5   28.4
+S09-analgesia        142.7   91.9  68.2   1357   198.6  1.935  0.577   2.1    0.0
+S10-analg-bb-vd      109.7   68.4  57.0    972   153.1  1.069  0.273   1.2   65.9
+S11-overshoot        140.4   93.8  78.9   1483   201.3  2.144  0.685   4.3    0.0
+S12-malperf-std      140.4   93.8  78.9   1483   201.3  2.144  0.685   4.3    0.0
+S13-snp-toxic        134.1   95.8  77.5   1468   194.2  2.048  0.563   4.0    0.1
+S21-vd-forced        118.4   63.4  84.8   1468   156.4  1.649  0.829   2.6    0.0
+
+### 2. THE DISSOCIATION - what a pure vasodilator actually buys
+
+scenario               SBP   dP/dt  d%dPdt     ASI   ASIfl   tear+% mort72h%
+----------------------------------------------------------------------------
+S01-untreated        153.9    1463     0.0   2.257   0.669     6.00     2.34
+S02-vd-only          121.1    1472     0.6   1.703   0.809    12.31     4.68
+S21-vd-forced        118.4    1468     0.3   1.649   0.829    13.32     5.07
+S05-snp-only         122.2    1486     1.6   1.775   0.683     8.44     3.36
+S09-analgesia        142.7    1357    -7.2   1.935   0.577     3.81     1.58
+S03-bb-only          111.3     975   -33.3   1.091   0.270     0.04     0.07
+S07-labetalol        110.3     989   -32.4   1.093   0.281     0.05     0.08
+S04-bb-then-vd       113.4    1017   -30.5   1.155   0.299     0.98     0.59
+S06-snp-bb           109.8    1028   -29.7   1.128   0.301     0.38     0.28
+S08-clev-esm         109.7    1020   -30.3   1.117   0.305     0.77     0.49
+S10-analg-bb-vd      109.7     972   -33.5   1.069   0.273     0.31     0.24
+
+  Matched-pressure comparison (nicardipine forced to SBP 118 vs esmolol-first
+  regimen at SBP 113 - a difference of 5.1 mmHg):
+      dP/dt max               1468  vs    1017   (+44%)
+      ASI                    1.649  vs   1.155   (+43%)
+      flap stress-impulse    0.829  vs   0.299   (2.8x)
+      entry tear growth     13.32%  vs   0.98%   (14x)
+      72-h mortality         5.07%  vs   0.59%   (8.6x)
+  Untreated 72-h mortality is 2.34%.  Both vasodilator-monotherapy arms are
+  therefore WORSE than no antihypertensive at all, while every arm containing a
+  beta-blocker is better - and the arms are ordered by ASI, not by pressure.
+
+### 3. WHY THE REFLEX WINS - the terms behind the table above
+
+scenario               SNA     HR     PP  PP_FL P_FLsys   TL-FL sig_flp   mobil
+-------------------------------------------------------------------------------
+S01-untreated        1.173   71.0   51.9   35.0   140.7    13.2    61.0    1.03
+S02-vd-only          1.418   83.4   54.2   33.9   105.7    15.4    73.2    1.06
+S21-vd-forced        1.446   84.8   55.1   34.2   102.7    15.8    75.3    1.06
+S05-snp-only         1.355   80.3   45.8   29.0   109.1    13.1    61.1    1.04
+S03-bb-only          1.384   57.0   40.3   29.9   102.3     9.0    40.0    1.00
+S04-bb-then-vd       1.332   58.7   41.8   30.6   103.9     9.4    42.2    1.00
+
+  A vasodilator raises heart rate, which shortens the cardiac cycle relative to
+  the false lumen's RC time constant (tau_FL = 0.14 s here), so MORE of the
+  pulse is filtered out of the false lumen and the systolic pressure DIFFERENCE
+  across the intimal flap grows even as the pressure itself falls.  Tachycardia
+  is not merely a cosmetic side effect of vasodilatation in a dissected aorta;
+  it is a second, independent mechanism of flap loading.
+
+### 4. FALSE LUMEN ANATOMY -> PHENOTYPE (5-year runs)
+
+scenario             A_en0  G_re0  P_FLd   flow  thrFL   D_ao  mm/yr T55(y)  surv5y  sig/S
+------------------------------------------------------------------------------------------
+S14-fl-patent           42   2.40   65.4  0.717   0.05   46.0   3.96    nan   0.813   0.41
+S15-fl-partial          42   0.05   67.9  0.197   0.47   59.7   6.68   4.74   0.613   0.66
+S16-fl-complete          9   0.05    9.0  0.000   1.00   25.1  -0.23    nan   0.890   0.05
+S17-tevar               42   0.05    9.0  0.000   1.00   25.1  -0.24    nan   0.878   0.05
+S18-marfan-los          42   0.05   65.0  0.209   0.45   67.6   8.28   1.95   0.000   1.33
+S19-marfan-nolos        42   0.05   69.8  0.199   0.47   67.7   8.29   2.00   0.000   1.34
+S20-nonadherent         42   0.05   82.5  0.214   0.44   65.9   7.94   3.21   0.275   0.86
+S22-tevar-map           42   0.05    9.0  0.000   1.00   25.1  -0.23    nan   0.860   0.05
+
+  Nothing in the code says partial thrombosis is dangerous.  Two anatomical
+  numbers were changed - the entry tear area and the distal re-entry
+  conductance - and the rest is the divider:
+
+    large re-entry  -> brisk through-flow, no thrombus, FL diastolic 65 mmHg,
+                       growth 3.96 mm/y, 5-y survival 0.813
+    no re-entry     -> blind sac: no outflow so no pressure drop, the pulse is
+                       filtered out so FL DIASTOLIC pressure rises to 68 mmHg,
+                       the stagnant distal sac clots to 47% while the entry tear
+                       stays wide open, growth 6.68 mm/y, 5-y survival 0.613
+    small entry     -> the whole sac clots, the entry seals, the false lumen
+                       depressurises to 9 mmHg, growth -0.23 mm/y,
+                       5-y survival 0.890
+
+  Implied hazard ratio, partial vs patent = 2.36.  The reported adjusted
+  hazard ratio in the IRAD cohort that first described this (Tsai 2007) is 2.69.
+
+### 5. VERIFICATION - the growth maximum has a closed form
+
+  Growth ∝ (1 + A*THR)^n * (1 - s*THR) with n = EXP_GROW = 1.9,
+  s = THR_SUPPORT = 0.85, A = KTHR_H = 1.0 (thrombus thins the wall it
+  supports).  dg/dTHR = 0 gives THR* = (n*A - s) / ((1+n)*s*A).
+
+         THR   rel. growth
+       0.000         1.000
+       0.100         1.097
+       0.200         1.174
+       0.300         1.226
+       0.400         1.251
+       0.426         1.252
+       0.500         1.242
+       0.600         1.197
+       0.700         1.110
+       0.850         0.893
+       1.000         0.560
+
+  numerical argmax = 0.425   analytic optimum = 0.426   agreement 99.8%
+  The interior maximum is the model's explanation of the paradox: a
+  thrombus supports the wall LINEARLY and thins it under a Laplace
+  exponent, so the worst possible false lumen is a half-clotted one.
+
+### 6. MALPERFUSION, THE RENIN TRAP, AND CYANIDE
+
+scenario                SBP  vd mg/h    Qren    PRA  creat   lact  CN mg/L     SCN
+----------------------------------------------------------------------------------
+S04-bb-then-vd        113.4     0.01   1.021   0.74   1.03   1.14    0.000     0.0
+S12-malperf-std       140.4    32.00   0.484   2.60   2.17   1.13    0.000     0.0
+S11-overshoot         140.4    32.00   0.484   2.60   2.17   1.13    0.000     0.0
+S06-snp-bb            109.8     1.18   1.008   0.76   1.04   1.15    0.190     8.9
+S13-snp-toxic         134.1    45.00   0.494   2.52   2.12   2.28    0.633    71.7
+
+  The same regimen at the same target reaches SBP 140 in the patient whose
+  renal artery is fed by the false lumen and SBP 113 in the one whose is not.
+  The vasodilator is already at its ceiling (32.0 vs 0.01 mg/h): renal
+  hypoperfusion (Q_ren 0.48) drives renin to 2.6x normal, and the
+  angiotensin II it makes puts the resistance back.  Refractory hypertension in
+  aortic dissection is a diagnosis, not a dosing failure - and the model's
+  advice is to open the kidney, not to add a fourth vasodilator.
+
+  Nitroprusside at 45 mg/h (10.0 ug/kg/min) for 72 h with that same kidney
+  reaches CN- 0.63 mg/L (toxic threshold 1.0) and SCN- 72 mg/L, and the
+  lactate it produces (2.28 mmol/L) is indistinguishable at the bedside from
+  the mesenteric ischaemia everyone is watching for.
+
+### 7. SPINAL CORD - the collateral network as a clock
+
+scenario                MAP   Q_spi  collat  SCI max   para p   surv5y
+----------------------------------------------------------------------
+S14-fl-patent          80.6   1.019    0.28     0.11    0.019    0.813
+S15-fl-partial         79.9   0.950    0.40     0.25    0.019    0.613
+S16-fl-complete        71.0   0.902    0.48     0.24    0.019    0.890
+S17-tevar              71.0   0.769    0.69     0.74    0.023    0.878
+S22-tevar-map          79.2   0.849    0.57     0.37    0.020    0.860
+
+  Covering the entry tear costs 30% of the segmental supply and thrombosing the
+  false lumen costs more, so the cord depends on a collateral network that has to
+  be RECRUITED.  Sustained pressure augmentation halves the ischaemic burden
+  (0.74 -> 0.37 index.h) but does not improve 5-year survival (0.878 ->
+  0.860), because the pressure that perfuses the cord also loads the aorta.
+  The model's reading: augmentation belongs to the coverage window, not to the
+  discharge prescription.
+
+### 8. CHRONIC MEDICAL THERAPY, GENETICS, ADHERENCE
+
+scenario               SBP   MMP9 AT1blk    PRA   mm/yr  T55(y)   sig/S  surv5y
+-------------------------------------------------------------------------------
+S14-fl-patent        110.1   1.74   0.91   1.54    3.96     nan    0.41   0.813
+S20-nonadherent      132.6   2.04   0.71   1.42    7.94    3.21    0.86   0.275
+S18-marfan-los       115.9   4.52   0.91   1.55    8.28    1.95    1.33   0.000
+S19-marfan-nolos     119.6   4.57   0.00   0.73    8.29    2.00    1.34   0.000
+
+  Adding losartan to a beta-blocked patient lowers systolic pressure by
+  3.7 mmHg and blocks 91% of AT1, yet moves the time to 55 mm from
+  2.00 y to 1.95 y - a difference of 17 days, in the WRONG direction.
+  The model's arithmetic: beta-blockade has already suppressed renin (PRA 1.55),
+  so there is little angiotensin II left for the ARB to act on, and what AT1
+  blockade does reach the wall removes TGF-beta-driven adventitial collagen -
+  the only negative feedback the aorta has - as well as Ang II-driven MMP-9.
+  The two effects cancel.  This is a PREDICTION, and it is the model's most
+  exposed one; it happens to agree with the randomised trials that failed to
+  show losartan superior to a beta-blocker on aortic growth, but the model was
+  not fitted to them and the cancellation could be an artefact of the
+  TGF-beta/collagen coupling.  Flagged accordingly.
+
+### 9. DRUG EXPOSURE AND RECEPTOR OCCUPANCY AT STEADY STATE
+
+scenario                 esm      nic      snp      lab      clv   occB occDHP  occNO   (all concentrations mg/L)
+-------------------------------------------------------------------------------------
+S01-untreated          0.000   0.0000  0.00000   0.0000   0.0000  0.000  0.000  0.000
+S02-vd-only            0.000   0.3749  0.00000   0.0000   0.0000  0.000  0.872  0.000
+S03-bb-only            1.052   0.0000  0.00000   0.0000   0.0000  0.657  0.000  0.000
+S04-bb-then-vd         0.701   0.0030  0.00000   0.0000   0.0000  0.561  0.052  0.000
+S05-snp-only           0.000   0.0000  0.04639   0.0000   0.0000  0.000  0.000  0.699
+S06-snp-bb             0.701   0.0000  0.00406   0.0000   0.0000  0.561  0.000  0.169
+S07-labetalol          0.000   0.0000  0.00000   0.2070   0.0000  0.614  0.000  0.000
+S08-clev-esm           0.701   0.0000  0.00000   0.0000   0.0075  0.561  0.201  0.000
+S09-analgesia          0.000   0.0000  0.00000   0.0000   0.0000  0.000  0.000  0.000
+S10-analg-bb-vd        0.701   0.0002  0.00000   0.0000   0.0000  0.561  0.003  0.000
+S11-overshoot          0.701   0.7999  0.00000   0.0000   0.0000  0.561  0.936  0.000
+S12-malperf-std        0.701   0.7999  0.00000   0.0000   0.0000  0.561  0.936  0.000
+S13-snp-toxic          0.701   0.0000  0.15464   0.0000   0.0000  0.561  0.000  0.885
+S21-vd-forced          0.000   0.7499  0.00000   0.0000   0.0000  0.000  0.932  0.000
+
+### 10. 72-h OUTCOME INTEGRALS
+
+scenario               cumHaz     mort% ASI.AUC/h     sig/S   D-dimer
+---------------------------------------------------------------------
+S01-untreated          0.0236      2.34     2.390     0.402     11.41
+S02-vd-only            0.0478      4.68     2.010     0.312     12.59
+S03-bb-only            0.0005      0.07     1.314     0.303      9.80
+S04-bb-then-vd         0.0057      0.59     1.219     0.313     10.08
+S05-snp-only           0.0340      3.36     2.060     0.321     11.58
+S06-snp-bb             0.0026      0.28     1.245     0.302      9.95
+S07-labetalol          0.0006      0.08     1.085     0.304      9.81
+S08-clev-esm           0.0048      0.49     1.232     0.302     10.13
+S09-analgesia          0.0157      1.58     2.044     0.376     11.09
+S10-analg-bb-vd        0.0022      0.24     1.135     0.303      9.86
+S11-overshoot          0.0253      2.54     2.185     0.374     11.45
+S12-malperf-std        0.0252      2.53     2.185     0.374     11.45
+S13-snp-toxic          0.0155      1.57     2.098     0.363     10.65
+S21-vd-forced          0.0519      5.07     1.952     0.304     12.78
+
+==========================================================================================================================
+SCENARIO KEY
+==========================================================================================================================
+  S01-untreated       Untreated acute type B (natural history, 72 h)
+  S02-vd-only         Vasodilator monotherapy (nicardipine to 15 mg/h max)
+  S03-bb-only         Beta-blocker monotherapy (esmolol to 300 ug/kg/min max, on SBP)
+  S04-bb-then-vd      Guideline order: esmolol (to HR 60) then nicardipine (to SBP)
+  S05-snp-only        Nitroprusside monotherapy (to 3 ug/kg/min max)
+  S06-snp-bb          Nitroprusside + esmolol (the classic Wheat regimen)
+  S07-labetalol       Labetalol monotherapy (0.5-2 mg/min, titrated on SBP)
+  S08-clev-esm        Clevidipine (to 21 mg/h) + esmolol
+  S09-analgesia       Analgesia only (fentanyl 75 ug/h), no antihypertensive
+  S10-analg-bb-vd     Fentanyl + esmolol + nicardipine (full protocol)
+  S11-overshoot       Aggressive target SBP 95 with a renal branch off the FL
+  S12-malperf-std     Renal malperfusion, standard target SBP 110
+  S13-snp-toxic       Nitroprusside 72 h at high rate with renal impairment
+  S14-fl-patent       Chronic 5 y: large re-entry (FL stays patent)
+  S15-fl-partial      Chronic 5 y: no distal re-entry (partial thrombosis, blind sac)
+  S16-fl-complete     Chronic 5 y: small entry tear (9 mm2) -> complete FL thrombosis
+  S17-tevar           Chronic 5 y: TEVAR entry-tear coverage at day 14
+  S18-marfan-los      Marfan-like wall (MMP x2.2) on losartan + metoprolol, 5 y
+  S19-marfan-nolos    Marfan-like wall, beta-blocker only, 5 y
+  S20-nonadherent     Chronic 5 y: 25% adherence to antihypertensives
+  S21-vd-forced       Nicardipine pushed ABOVE label (30 mg/h) to match the SBP
+  S22-tevar-map       TEVAR at day 14 WITH spinal perfusion-pressure augmentation
+
