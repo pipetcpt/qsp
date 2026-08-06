@@ -1,0 +1,406 @@
+/* ===========================================================================
+   onfh_qsp_model.dot
+   Osteonecrosis of the Femoral Head (ONFH) - QSP mechanistic map
+   ---------------------------------------------------------------------------
+   Render:
+     dot -Tsvg onfh_qsp_model.dot -o onfh_qsp_model.svg
+     dot -Tpng -Gdpi=150 onfh_qsp_model.dot -o onfh_qsp_model.png
+
+   Reading the map
+   ---------------
+   The spine runs left to right in three clocks:
+
+     PERFUSION (hours-days)  ->  REPAIR (months)  ->  FATIGUE (months-years)
+
+   The disease is not in the first clock, which has stopped before anyone
+   knows it started, and not in the necrotic bone, which is fully mineralised
+   and mechanically intact.  It is at the CONICAL INTERFACE (cluster 9), where
+   creeping substitution resorbs before it forms, and where the entire load
+   collected by the necrotic cap has to leave through an area that grows only
+   as sin(alpha) while the cap grows as (1 - cos alpha).
+   =========================================================================== */
+
+digraph ONFH {
+    graph [rankdir=LR, splines=spline, overlap=false, nodesep=0.20,
+           ranksep=0.62, fontname="Helvetica", fontsize=11, compound=true,
+           bgcolor="white", labelloc="t", fontcolor="#111111",
+           label=<<B>Osteonecrosis of the Femoral Head — QSP mechanistic map</B><BR/>
+                  <FONT POINT-SIZE="10">three clocks: perfusion (hours) · repair (months) · fatigue (years) — collapse is a failure of the repair, not of the necrosis</FONT>>];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica",
+           fontsize=9, penwidth=0.8, color="#5b6470", margin="0.06,0.035"];
+    edge  [fontname="Helvetica", fontsize=8, color="#67707c", penwidth=0.9,
+           arrowsize=0.62];
+
+    /* -------- palette -------------------------------------------------- */
+    /* etiology      #f3d9d4   molecular    #e8dcf2   marrow/fat  #fdeecf
+       coagulation   #f6d7e4   vascular     #d6e6f7   cell death  #e2e2e2
+       repair        #d8efdc   bone cells   #cfeae7   mechanics   #ffe9c4
+       failure       #f9c9c2   joint        #ffd9ea   imaging     #dfe3ea
+       clinical      #cfe0ff   drug         #d9f2e6   surgery     #ffe0b8
+       pain          #f0dcc8                                              */
+
+    /* ==================================================================== */
+    subgraph cluster_etio {
+        label="1 · Aetiology and risk (the insult)";
+        style="rounded,filled"; fillcolor="#fdf4f3"; color="#c98a80"; fontsize=11;
+        GC_EXP   [label="Glucocorticoid exposure\n(peak daily dose > 40 mg PE,\ncumulative > 2 g in 3 months)", fillcolor="#f3d9d4"];
+        SLE      [label="SLE · vasculitis · nephrotic\nsyndrome · transplant", fillcolor="#f3d9d4"];
+        SARS     [label="Post-viral high-dose pulse\n(SARS/COVID cohorts)", fillcolor="#f3d9d4"];
+        ETOH     [label="Alcohol\n(> 400 mL ethanol/week)", fillcolor="#f3d9d4"];
+        TRAUMA   [label="Femoral neck fracture ·\nhip dislocation", fillcolor="#f3d9d4"];
+        SICKLE   [label="Sickle cell disease ·\nthalassaemia", fillcolor="#f3d9d4"];
+        DYSBAR   [label="Dysbaric (caisson) disease", fillcolor="#f3d9d4"];
+        RADIO    [label="Radiation · chemotherapy", fillcolor="#f3d9d4"];
+        GAUCHER  [label="Gaucher disease\n(glucocerebroside-laden\nmacrophages)", fillcolor="#f3d9d4"];
+        IDIOP    [label="Idiopathic (~10-20%)", fillcolor="#f3d9d4"];
+        SLE -> GC_EXP; SARS -> GC_EXP;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_mol {
+        label="2 · Glucocorticoid molecular signalling in the marrow";
+        style="rounded,filled"; fillcolor="#f7f3fb"; color="#8f7bb0"; fontsize=11;
+        GR       [label="Glucocorticoid receptor\n(NR3C1) · 11β-HSD1", fillcolor="#e8dcf2"];
+        PPARG    [label="PPARγ2 ↑\n(adipogenic master switch)", fillcolor="#e8dcf2"];
+        RUNX2    [label="RUNX2 / osterix ↓\n(osteogenic switch)", fillcolor="#e8dcf2"];
+        WNT      [label="Wnt / β-catenin ↓", fillcolor="#e8dcf2"];
+        DKK1     [label="DKK1 ↑ · sclerostin ↑", fillcolor="#e8dcf2"];
+        MSCFATE  [label="MSC lineage shift\nadipocyte ⇄ osteoblast", fillcolor="#e8dcf2"];
+        AUTOPH   [label="Autophagy dysregulation ·\nER stress (CHOP)", fillcolor="#e8dcf2"];
+        OCYAPO   [label="Direct osteocyte apoptosis\n(caspase-3, non-ischaemic)", fillcolor="#e8dcf2"];
+        BMP2     [label="BMP-2 / TGF-β ↓", fillcolor="#e8dcf2"];
+        VEGFsup  [label="VEGF suppression ·\nangiogenic arrest", fillcolor="#e8dcf2"];
+        GR -> PPARG; GR -> RUNX2 [arrowhead=tee]; GR -> DKK1; DKK1 -> WNT [arrowhead=tee];
+        WNT -> RUNX2; PPARG -> MSCFATE; RUNX2 -> MSCFATE;
+        GR -> AUTOPH -> OCYAPO; GR -> BMP2 [arrowhead=tee]; BMP2 -> RUNX2;
+        GR -> VEGFsup;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_fat {
+        label="3 · Marrow adipogenesis and the closed compartment";
+        style="rounded,filled"; fillcolor="#fffaf0"; color="#c9a253"; fontsize=11;
+        ADIPO    [label="Adipocyte number ↑\nand hypertrophy", fillcolor="#fdeecf"];
+        MARVOL   [label="Marrow volume ↑\n(rigid cortical shell,\nno room to expand)", fillcolor="#fdeecf"];
+        PIO      [label="Intraosseous pressure ↑\n16 → 40-55 mmHg", fillcolor="#fdeecf"];
+        SINUS    [label="Sinusoidal / venous\ncompression", fillcolor="#fdeecf"];
+        EDEMA    [label="Bone marrow oedema\n(interstitial fluid ↑)", fillcolor="#fdeecf"];
+        WATERF   [label="Starling resistor:\nQ = (Pa − max(Pv, Pio)) / R", fillcolor="#fdeecf"];
+        FATEMB   [label="Systemic fat emboli\n→ subchondral arterioles", fillcolor="#fdeecf"];
+        HYPERLIP [label="Hyperlipidaemia ·\nhepatic steatosis", fillcolor="#fdeecf"];
+        MSCFATE -> ADIPO; ETOH -> ADIPO; GAUCHER -> MARVOL;
+        ADIPO -> MARVOL -> PIO -> SINUS -> WATERF;
+        EDEMA -> PIO; ADIPO -> HYPERLIP -> FATEMB;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_coag {
+        label="4 · Hypofibrinolysis and intravascular occlusion";
+        style="rounded,filled"; fillcolor="#fdf2f7"; color="#c07fa1"; fontsize=11;
+        PAI1     [label="PAI-1 ↑ (glucocorticoid-\ninduced) · tPA ↓", fillcolor="#f6d7e4"];
+        THROMBOP [label="Inherited thrombophilia\nFVL · prothrombin G20210A\nprotein C/S deficiency", fillcolor="#f6d7e4"];
+        LPA      [label="Lipoprotein(a) ↑ ·\nhomocysteine ↑", fillcolor="#f6d7e4"];
+        APLA     [label="Antiphospholipid antibodies", fillcolor="#f6d7e4"];
+        MICROTHR [label="Microvascular thrombosis\nof subchondral arterioles", fillcolor="#f6d7e4"];
+        SICKLING [label="Erythrocyte sickling ·\nvaso-occlusive crisis", fillcolor="#f6d7e4"];
+        NBUBBLE  [label="Nitrogen bubble embolism", fillcolor="#f6d7e4"];
+        ENDOF    [label="Endothelial dysfunction\neNOS ↓ · NO ↓ · ET-1 ↑", fillcolor="#f6d7e4"];
+        GR -> PAI1; PAI1 -> MICROTHR; THROMBOP -> MICROTHR; LPA -> MICROTHR;
+        APLA -> MICROTHR; SICKLE -> SICKLING -> MICROTHR;
+        DYSBAR -> NBUBBLE -> MICROTHR; GR -> ENDOF; ENDOF -> MICROTHR;
+        FATEMB -> MICROTHR;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_vasc {
+        label="5 · Vascular supply of the femoral head (why it is a watershed)";
+        style="rounded,filled"; fillcolor="#eff6fd"; color="#6f9dc9"; fontsize=11;
+        MFCA     [label="Medial femoral\ncircumflex artery", fillcolor="#d6e6f7"];
+        DEEPBR   [label="Deep branch (dominant supply,\ndivided by femoral neck fracture)", fillcolor="#d6e6f7"];
+        LATEPI   [label="Lateral epiphyseal arteries\n(supply the superolateral\nweight-bearing dome)", fillcolor="#d6e6f7"];
+        RETIN    [label="Retinacular vessels\n(subsynovial, tethered)", fillcolor="#d6e6f7"];
+        LIGTER   [label="Artery of ligamentum teres\n(< 20% of supply in adults)", fillcolor="#d6e6f7"];
+        WATERSH  [label="Superolateral watershed:\nend-arterial, no collaterals", fillcolor="#d6e6f7"];
+        PERF     [label="Femoral head perfusion Q", fillcolor="#d6e6f7"];
+        PO2      [label="Tissue pO₂\n(normal 35 mmHg)", fillcolor="#d6e6f7"];
+        MFCA -> DEEPBR -> LATEPI -> WATERSH;
+        RETIN -> LATEPI; LIGTER -> PERF [style=dashed];
+        TRAUMA -> DEEPBR [arrowhead=tee, label="tamponade / tear"];
+        WATERSH -> PERF; WATERF -> PERF; MICROTHR -> PERF [arrowhead=tee];
+        PERF -> PO2;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_death {
+        label="6 · Ischaemia → cell death (clock 1: hours to days)";
+        style="rounded,filled"; fillcolor="#f4f4f4"; color="#8d8d8d"; fontsize=11;
+        HIF      [label="HIF-1α ↑ · ATP ↓ ·\nlactate ↑", fillcolor="#e2e2e2"];
+        ROS      [label="Oxidative stress ·\nlipid peroxidation", fillcolor="#e2e2e2"];
+        HEMDEATH [label="Haematopoietic marrow death\n(6-12 h — the earliest event)", fillcolor="#e2e2e2"];
+        ADIPDTH  [label="Adipocyte death (12-48 h)\n→ free fatty acid release", fillcolor="#e2e2e2"];
+        OCYDTH   [label="Osteocyte death (2-3 d)\n→ EMPTY LACUNAE\n(the histological diagnosis)", fillcolor="#e2e2e2"];
+        DAMP     [label="DAMPs · HMGB1 ·\nsterile inflammation", fillcolor="#e2e2e2"];
+        NECZONE  [label="NECROTIC SEQUESTRUM\nfully mineralised, normal stiffness,\nNO living cells", fillcolor="#cfcfcf", penwidth=1.8, color="#4a4a4a"];
+        NOSIG    [label="No osteocyte signalling\n⇒ targeted remodelling = 0\n⇒ microdamage is PERMANENT", fillcolor="#cfcfcf", penwidth=1.6, color="#4a4a4a"];
+        PO2 -> HIF; HIF -> ROS;
+        PO2 -> HEMDEATH [label="< 15 mmHg"];
+        PO2 -> ADIPDTH; PO2 -> OCYDTH [label="< 9 mmHg"];
+        OCYAPO -> OCYDTH; ROS -> OCYDTH;
+        HEMDEATH -> DAMP; ADIPDTH -> DAMP;
+        OCYDTH -> NECZONE -> NOSIG;
+        ADIPDTH -> PIO [style=dashed, label="oedema"];
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_repair {
+        label="7 · Creeping substitution — the repair that weakens (clock 2: months)";
+        style="rounded,filled"; fillcolor="#f0f9f2"; color="#5da372"; fontsize=11;
+        VEGF     [label="VEGF · angiogenesis\nat the viable margin", fillcolor="#d8efdc"];
+        GRANUL   [label="Fibrovascular granulation\ntissue invades", fillcolor="#d8efdc"];
+        FRONT    [label="REPARATIVE FRONT\nadvances ~0.5-1 mm/month\ninto the sequestrum", fillcolor="#b8e2c2", penwidth=1.6, color="#3f7a52"];
+        OCREC    [label="Osteoclast recruitment\n(RANKL from the dead-bone\ninterface)", fillcolor="#d8efdc"];
+        CAVITY   [label="RESORPTION CAVITIES\nopen porosity at the interface", fillcolor="#b8e2c2", penwidth=1.6, color="#3f7a52"];
+        REVERSAL [label="Reversal phase\n(the lag that costs the hip)", fillcolor="#d8efdc"];
+        OBFILL   [label="Osteoblast refill\n→ woven bone", fillcolor="#d8efdc"];
+        MINER    [label="Primary then secondary\nmineralisation (t½ ~ 35 d)", fillcolor="#d8efdc"];
+        LAMEL    [label="Woven → lamellar\nremodelling", fillcolor="#d8efdc"];
+        RIM      [label="Reactive sclerotic rim\nin the LIVING bone\n(MRI low-signal line)", fillcolor="#d8efdc"];
+        DBLLINE  [label="Double-line sign\n(sclerosis + granulation)", fillcolor="#d8efdc"];
+        FIBROUS  [label="Fibrous non-union of the\ninterface (failed repair)", fillcolor="#d8efdc"];
+        RENEW    [label="FRONT RENEWAL\nthe zone is continuously reset:\nrepair stays mid-cycle while\nthe front is still crossing", fillcolor="#b8e2c2", penwidth=1.6, color="#3f7a52"];
+        NECZONE -> VEGF; DAMP -> VEGF; VEGF -> GRANUL -> FRONT;
+        FRONT -> OCREC -> CAVITY -> REVERSAL -> OBFILL -> MINER -> LAMEL;
+        FRONT -> RENEW; RENEW -> CAVITY [label="resets to\nun-excavated"];
+        OBFILL -> FIBROUS [style=dashed, label="if progenitors\nare scarce"];
+        GRANUL -> RIM -> DBLLINE;
+        VEGFsup -> VEGF [arrowhead=tee];
+        RUNX2 -> OBFILL;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_cells {
+        label="8 · Bone-cell signalling at the interface";
+        style="rounded,filled"; fillcolor="#eef8f7"; color="#559b95"; fontsize=11;
+        RANKL    [label="RANKL ↑", fillcolor="#cfeae7"];
+        OPG      [label="OPG", fillcolor="#cfeae7"];
+        RANK     [label="RANK · NF-κB · NFATc1", fillcolor="#cfeae7"];
+        MCSF     [label="M-CSF / c-Fms", fillcolor="#cfeae7"];
+        CTSK     [label="Cathepsin K · TRAP ·\nH⁺-ATPase (resorption)", fillcolor="#cfeae7"];
+        FPPS     [label="Farnesyl pyrophosphate\nsynthase (mevalonate path)", fillcolor="#cfeae7"];
+        OPRO     [label="Osteoprogenitor pool\n(CFU-F density)", fillcolor="#cfeae7"];
+        COUPLE   [label="COUPLING: formation follows\nresorbed surface\n(so antiresorptives also\nremove the formation stimulus)", fillcolor="#cfeae7"];
+        PTH1R    [label="PTH1R · cAMP/PKA", fillcolor="#cfeae7"];
+        RANKL -> RANK; OPG -> RANKL [arrowhead=tee]; MCSF -> RANK;
+        RANK -> CTSK; FPPS -> CTSK; CTSK -> CAVITY;
+        NECZONE -> RANKL; RUNX2 -> OPG;
+        OPRO -> OBFILL; CAVITY -> COUPLE -> OBFILL;
+        PTH1R -> OBFILL; PTH1R -> RANKL [style=dashed];
+        MSCFATE -> OPRO;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_mech {
+        label="9 · Biomechanics — one cone, two areas (the core of the model)";
+        style="rounded,filled"; fillcolor="#fff6e6"; color="#c98f2e"; fontsize=11;
+        BW       [label="Body weight · activity\n(≈5000 gait cycles/hip/day)", fillcolor="#ffe9c4"];
+        HJRF     [label="Hip joint reaction force\n2.5-3.5 × BW walking", fillcolor="#ffe9c4"];
+        PFIELD   [label="Contact pressure field\np(θ) = p₀cos θ, θ < 50°\np₀ ≈ 2.5 MPa", fillcolor="#ffe9c4"];
+        CONE     [label="NECROTIC CONE\napex at head centre,\nhalf-angle α, axis tilt φ", fillcolor="#ffd79a", penwidth=1.8, color="#a86f14"];
+        ACAP     [label="Loaded cap area\nA_cap = 2πR²(1 − cos α)\n— grows like α²", fillcolor="#ffe9c4"];
+        AINT     [label="Conical interface area\nA_int = πR² sin α\n— grows only like α", fillcolor="#ffe9c4"];
+        AMP      [label="GEOMETRIC AMPLIFICATION\nA_cap/A_int = 2 tan(α/2)\nevery newton on the cap must\nleave through the interface", fillcolor="#ffcf85", penwidth=2.0, color="#8f5c00"];
+        LNEC     [label="Load collected by the lesion\nL = ∫_cap∩contact p cos θ dA\n(this is where LOCATION enters)", fillcolor="#ffe9c4"];
+        BUTTRESS [label="Lateral buttress:\nliving bone lateral to the lesion\nsheds part of the load", fillcolor="#ffe9c4"];
+        RIMLOAD  [label="Acetabular rim edge loading\nχ ≈ 1.35 (→1.9 if the rim sits\non the sequestrum: JIC C2)", fillcolor="#ffe9c4"];
+        SIGINT   [label="INTERFACE TRACTION\nσ_int = L_eff / A_int", fillcolor="#ffcf85", penwidth=1.8, color="#8f5c00"];
+        BETA     [label="Interface bone volume fraction\nβ = 1 − CAV − 0.65·NB·(1 − MINZ)", fillcolor="#ffe9c4"];
+        SINT     [label="Interface strength\nS_int = S₀ β²   (S₀ ≈ 9.5 MPa)", fillcolor="#ffe9c4"];
+        EINT     [label="Interface modulus\nE_int = E₀ β^2.5", fillcolor="#ffe9c4"];
+        SINK     [label="Plug sinks by w = σ_int/k_seg", fillcolor="#ffe9c4"];
+        PLATEB   [label="Subchondral plate bending\nover the step w\nσ_pl = E t w / λ²", fillcolor="#ffe9c4"];
+        WINKLER  [label="Winkler foundation\nλ = (4D/k)^¼ ≈ 2.1 mm healthy", fillcolor="#ffe9c4"];
+        RATIO    [label="STRESS / STRENGTH\nσ_int / S_int", fillcolor="#ffcf85", penwidth=2.0, color="#8f5c00"];
+        BW -> HJRF -> PFIELD;
+        CONE -> ACAP; CONE -> AINT; ACAP -> AMP; AINT -> AMP;
+        PFIELD -> LNEC; ACAP -> LNEC; AMP -> SIGINT; LNEC -> SIGINT;
+        BUTTRESS -> SIGINT [arrowhead=tee]; RIMLOAD -> SIGINT;
+        CAVITY -> BETA [arrowhead=tee]; MINER -> BETA; LAMEL -> BETA;
+        BETA -> SINT; BETA -> EINT; EINT -> SINK; SIGINT -> SINK;
+        SINK -> PLATEB; WINKLER -> PLATEB;
+        SIGINT -> RATIO; SINT -> RATIO [arrowhead=tee];
+        NECZONE -> CONE;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_fail {
+        label="10 · Fatigue and structural failure (clock 3)";
+        style="rounded,filled"; fillcolor="#fdf0ee"; color="#c4675a"; fontsize=11;
+        SN       [label="Power-law S-N law\ndD/dt = k N (σ/S)^m\nm = 4 (structural surrogate,\nnot the material 12-16)", fillcolor="#f9c9c2"];
+        DINT     [label="Microdamage at the interface\n(remodelling CAN clear it —\nbut the tissue is weak)", fillcolor="#f9c9c2"];
+        DNEC     [label="Microdamage in necrotic bone\n(tissue is strong — but NOTHING\nclears it: no osteocytes)", fillcolor="#f9c9c2"];
+        DPL      [label="Microdamage in the\nsubchondral plate", fillcolor="#f9c9c2"];
+        DRIM     [label="Microdamage under the\nacetabular rim", fillcolor="#f9c9c2"];
+        ENDUR    [label="Endurance limit emerges:\nproduction vs targeted removal\n⇒ collapse is a THRESHOLD", fillcolor="#f9c9c2"];
+        COALES   [label="Crack coalescence\n(damage accelerates damage)", fillcolor="#f9c9c2"];
+        CRESC    [label="SUBCHONDRAL FRACTURE\n= crescent sign (ARCO III)", fillcolor="#f4a79c", penwidth=1.8, color="#8f2f22"];
+        COLLAPSE [label="Segmental collapse\nhead depression ≥ 2 mm", fillcolor="#f4a79c", penwidth=1.8, color="#8f2f22"];
+        FLATTEN  [label="Head flattening ·\nloss of sphericity", fillcolor="#f9c9c2"];
+        FEEDBK   [label="POSITIVE FEEDBACK\nincongruity → contact area ↓\n→ pressure ↑ → more damage", fillcolor="#f4a79c", penwidth=1.6, color="#8f2f22"];
+        RATIO -> SN; SN -> DINT; SN -> DPL; SN -> DRIM;
+        NOSIG -> DNEC [label="no removal term"];
+        SN -> DNEC; DINT -> ENDUR; ENDUR -> COALES;
+        DINT -> CRESC; DPL -> CRESC; DRIM -> CRESC; DNEC -> CRESC [style=dashed];
+        COALES -> CRESC -> COLLAPSE -> FLATTEN;
+        COLLAPSE -> FEEDBK; FEEDBK -> PFIELD [label="χ_depr"];
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_joint {
+        label="11 · Post-collapse joint destruction";
+        style="rounded,filled"; fillcolor="#fff2f8"; color="#c07f9e"; fontsize=11;
+        INCONG   [label="Femoro-acetabular\nincongruity", fillcolor="#ffd9ea"];
+        CARTLOAD [label="Cartilage contact\npressure ↑", fillcolor="#ffd9ea"];
+        CARTDEG  [label="Cartilage degradation\nMMP-13 · ADAMTS-5 ·\naggrecan loss", fillcolor="#ffd9ea"];
+        SUBCYST  [label="Subchondral cysts ·\nacetabular changes", fillcolor="#ffd9ea"];
+        SYNOV    [label="Synovitis · effusion ·\nIL-1β · TNF-α", fillcolor="#ffd9ea"];
+        SECOA    [label="Secondary osteoarthritis\n(ARCO stage IV)", fillcolor="#ffd9ea"];
+        ROMLOSS  [label="Range-of-motion loss ·\nfixed flexion · limb shortening", fillcolor="#ffd9ea"];
+        FLATTEN -> INCONG -> CARTLOAD -> CARTDEG -> SECOA;
+        INCONG -> SUBCYST; CARTDEG -> SYNOV -> CARTDEG;
+        SECOA -> ROMLOSS;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_pain {
+        label="12 · Pain generation";
+        style="rounded,filled"; fillcolor="#faf1e8"; color="#b08b5e"; fontsize=11;
+        IONOCI   [label="Intraosseous nociceptors\n(pressure-sensitive)", fillcolor="#f0dcc8"];
+        RESTPAIN [label="REST / NIGHT PAIN\n(the compartment symptom —\nrelieved by decompression)", fillcolor="#f0dcc8"];
+        MECHPAIN [label="Mechanical groin pain\non weight bearing", fillcolor="#f0dcc8"];
+        PERIOST  [label="Periosteal / capsular\nAδ and C fibres", fillcolor="#f0dcc8"];
+        SENSIT   [label="Central sensitisation\n(chronic cases)", fillcolor="#f0dcc8"];
+        VAS      [label="VAS pain 0-10", fillcolor="#f0dcc8"];
+        PIO -> IONOCI -> RESTPAIN; EDEMA -> IONOCI;
+        CRESC -> MECHPAIN; COLLAPSE -> MECHPAIN; SYNOV -> PERIOST -> MECHPAIN;
+        RESTPAIN -> VAS; MECHPAIN -> VAS; SENSIT -> VAS; MECHPAIN -> SENSIT;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_img {
+        label="13 · Imaging and staging (what each system actually measures)";
+        style="rounded,filled"; fillcolor="#f2f4f7"; color="#7d8798"; fontsize=11;
+        MRI      [label="MRI T1 low-signal band ·\nT2 double-line sign\n(sensitivity ~99%)", fillcolor="#dfe3ea"];
+        BME      [label="Bone marrow oedema on MRI\n(pain, not necrosis)", fillcolor="#dfe3ea"];
+        XRAY     [label="Radiograph: sclerosis,\ncrescent sign, flattening", fillcolor="#dfe3ea"];
+        CTSCAN   [label="CT: earliest subchondral\nfracture detection", fillcolor="#dfe3ea"];
+        FICAT    [label="Ficat–Arlet I-IV", fillcolor="#dfe3ea"];
+        ARCO     [label="ARCO 2019 I-IV\n(IIIA <2 mm, IIIB ≥2 mm)", fillcolor="#dfe3ea"];
+        STEIN    [label="Steinberg: % head volume\n— measures α ONLY", fillcolor="#dfe3ea"];
+        JIC      [label="JIC A/B/C1/C2\n— measures LOCATION relative\nto the acetabular edge", fillcolor="#dfe3ea"];
+        KERB     [label="Kerboull combined necrotic\nangle = AP arc + lateral arc\n= 4α  (<190° low risk)", fillcolor="#dfe3ea"];
+        NECZONE -> MRI; RIM -> MRI; DBLLINE -> MRI; EDEMA -> BME;
+        CRESC -> XRAY; CRESC -> CTSCAN; COLLAPSE -> XRAY;
+        MRI -> FICAT; XRAY -> FICAT -> ARCO;
+        CONE -> STEIN; CONE -> KERB; CONE -> JIC; PFIELD -> JIC;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_clin {
+        label="14 · Clinical endpoints";
+        style="rounded,filled"; fillcolor="#eef3ff"; color="#6d86bd"; fontsize=11;
+        HHS      [label="Harris Hip Score\n(pain 44 · function 47 ·\ndeformity 4 · ROM 5)", fillcolor="#cfe0ff"];
+        WOMAC    [label="WOMAC · UCLA activity", fillcolor="#cfe0ff"];
+        CFS      [label="COLLAPSE-FREE SURVIVAL\n(the primary endpoint of\nevery head-preserving trial)", fillcolor="#cfe0ff"];
+        THAFREE  [label="THA-free survival", fillcolor="#cfe0ff"];
+        THA      [label="Total hip arthroplasty\n(and revision burden in\npatients aged 35-50)", fillcolor="#cfe0ff"];
+        BILAT    [label="Bilateral disease\n(50-80% of non-traumatic cases)", fillcolor="#cfe0ff"];
+        VAS -> HHS; ROMLOSS -> HHS; COLLAPSE -> CFS; HHS -> WOMAC;
+        SECOA -> THA; VAS -> THA; CFS -> THAFREE -> THA;
+        GC_EXP -> BILAT [style=dashed];
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_drug1 {
+        label="15 · Antiresorptive and anabolic pharmacology";
+        style="rounded,filled"; fillcolor="#eefaf4"; color="#4fa07c"; fontsize=11;
+        ALN_PO   [label="Alendronate 70 mg weekly PO\n(F ≈ 0.6%)", fillcolor="#d9f2e6"];
+        ALN_PL   [label="Plasma alendronate", fillcolor="#d9f2e6"];
+        ALN_SURF [label="Bone-SURFACE alendronate\n(the pharmacologically\nactive pool)", fillcolor="#d9f2e6"];
+        ALN_BUR  [label="Buried in bone\n(terminal t½ > 10 y, inert)", fillcolor="#d9f2e6"];
+        DMAB     [label="Denosumab 60 mg SC q6m\n(reversible, no bone burial)", fillcolor="#d9f2e6"];
+        TPTD     [label="Teriparatide 20 µg SC daily\n(intermittent PTH1R signalling)", fillcolor="#d9f2e6"];
+        ANAB     [label="Anabolic window:\nformation ↑ before resorption ↑", fillcolor="#d9f2e6"];
+        ALN_PO -> ALN_PL -> ALN_SURF -> ALN_BUR;
+        ALN_SURF -> FPPS [arrowhead=tee, label="IC50 ≈ 0.55 µmol/kg"];
+        DMAB -> RANKL [arrowhead=tee];
+        TPTD -> PTH1R -> ANAB; ANAB -> MINER; ANAB -> OBFILL;
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_drug2 {
+        label="16 · Vascular, lipid and rheological pharmacology";
+        style="rounded,filled"; fillcolor="#eefaf4"; color="#4fa07c"; fontsize=11;
+        STATIN   [label="Statin (rosuvastatin /\nlovastatin) — prophylaxis", fillcolor="#d9f2e6"];
+        HMG      [label="HMG-CoA reductase ↓\n→ mevalonate ↓", fillcolor="#d9f2e6"];
+        ENOX     [label="Enoxaparin 60 mg/d ×12 wk\n(thrombophilic ONFH)", fillcolor="#d9f2e6"];
+        ILOP     [label="Iloprost IV ×5 d\n(prostacyclin analogue)", fillcolor="#d9f2e6"];
+        VASODIL  [label="Vasodilation · oedema\nresorption · Pio ↓", fillcolor="#d9f2e6"];
+        WARF     [label="Warfarin / DOAC\n(secondary prevention)", fillcolor="#d9f2e6"];
+        GCTAPER  [label="Steroid-sparing strategy:\nlower PEAK dose\n(the dominant modifiable risk)", fillcolor="#d9f2e6"];
+        STATIN -> HMG; HMG -> PPARG [arrowhead=tee]; HMG -> RUNX2;
+        ENOX -> MICROTHR [arrowhead=tee]; WARF -> MICROTHR [arrowhead=tee];
+        ILOP -> VASODIL -> PIO [arrowhead=tee]; VASODIL -> ENDOF [arrowhead=tee];
+        GCTAPER -> GC_EXP [arrowhead=tee];
+    }
+
+    /* ==================================================================== */
+    subgraph cluster_surg {
+        label="17 · Mechanical and surgical interventions";
+        style="rounded,filled"; fillcolor="#fff4e3"; color="#c1873c"; fontsize=11;
+        CD       [label="Core decompression\n(single 8-10 mm track)", fillcolor="#ffe0b8"];
+        MULTIDR  [label="Multiple small drilling\n(3 mm × 3)", fillcolor="#ffe0b8"];
+        CDVENT   [label="Vents the compartment\n— but clock 1 has stopped", fillcolor="#ffe0b8"];
+        CDCHAN   [label="Opens a channel for repair", fillcolor="#ffe0b8"];
+        CDCOST   [label="REMOVES load-bearing bone\n— the cost scales with lesion size", fillcolor="#ffc98a", penwidth=1.6, color="#8f5c00"];
+        BMAC     [label="Bone marrow aspirate\nconcentrate (CFU-F dose\ndependence, Hernigou)", fillcolor="#ffe0b8"];
+        FIBULA   [label="Vascularised fibular graft", fillcolor="#ffe0b8"];
+        TANTAL   [label="Porous tantalum rod /\nstructural allograft", fillcolor="#ffe0b8"];
+        OSTEOT   [label="Transtrochanteric rotational\nosteotomy (moves the lesion\nOUT of the loaded arc)", fillcolor="#ffe0b8"];
+        PWB      [label="Protected weight bearing\n(reduces N, not σ/S)", fillcolor="#ffe0b8"];
+        ESWT     [label="Shockwave · hyperbaric\noxygen · pulsed EMF", fillcolor="#ffe0b8"];
+        THAOP    [label="Arthroplasty", fillcolor="#ffe0b8"];
+        CD -> CDVENT -> PIO [arrowhead=tee];
+        CD -> CDCHAN -> FRONT; CD -> CDCOST -> AINT [arrowhead=tee];
+        MULTIDR -> CDVENT; MULTIDR -> CDCHAN;
+        BMAC -> OPRO; FIBULA -> OPRO; FIBULA -> SIGINT [arrowhead=tee];
+        TANTAL -> SIGINT [arrowhead=tee];
+        OSTEOT -> LNEC [arrowhead=tee, label="changes φ"];
+        PWB -> BW [arrowhead=tee]; ESWT -> VEGF;
+        THAOP -> THA;
+    }
+
+    /* ==================================================================== */
+    /*  cross-cluster spine                                                 */
+    GC_EXP -> GR [penwidth=1.6, color="#a03a2a"];
+    ETOH -> GR [style=dashed];
+    RADIO -> OCYDTH [style=dashed];
+    IDIOP -> MICROTHR [style=dashed];
+    PERF -> EDEMA;
+    OCREC -> RANKL [dir=back];
+    FIBROUS -> BETA [arrowhead=tee, label="repair fails,\nβ never recovers"];
+    ADIPO -> OPRO [arrowhead=tee, label="lineage steal"];
+    SINT -> ENDUR;
+
+    /* the three clocks, drawn as an explicit legend chain */
+    subgraph cluster_legend {
+        label="The three clocks";
+        style="rounded,filled"; fillcolor="#ffffff"; color="#333333"; fontsize=11;
+        CL1 [label="CLOCK 1 · PERFUSION\nhours to days\nover before diagnosis\n→ only PROPHYLAXIS can reach it",
+             shape=note, fillcolor="#d6e6f7"];
+        CL2 [label="CLOCK 2 · REPAIR\nmonths\nresorption precedes formation\n→ the interface is weakest\nwhile it heals",
+             shape=note, fillcolor="#d8efdc"];
+        CL3 [label="CLOCK 3 · FATIGUE\nmonths to years\nnecrotic bone cannot clear damage\n→ sets the endpoint alone",
+             shape=note, fillcolor="#f9c9c2"];
+        CL1 -> CL2 -> CL3 [penwidth=2.0, color="#333333"];
+    }
+}
