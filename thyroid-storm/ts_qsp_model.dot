@@ -1,0 +1,650 @@
+/* =====================================================================
+   ts_qsp_model.dot — THYROID STORM (갑상선 폭풍) QSP mechanistic map
+   ---------------------------------------------------------------------
+   Organising idea: thyroid storm is drawn here NOT as "more thyrotoxicosis"
+   but as the CLOSURE OF THREE POSITIVE-FEEDBACK RINGS.  The rings are drawn
+   in red and labelled A, B, C.  Everything else on the map is either
+   (i) what sets the OPERATING POINT of those rings (the hormone machinery),
+   (ii) what multiplies their GAIN (the precipitant), or
+   (iii) where each drug inserts itself — and the map is arranged so that
+   input-changing drugs and gain-changing drugs are visibly different objects.
+
+     ring A   fT3 -> BMR & beta1 density -> lipolysis -> NEFA
+                   -> displacement from TBG -> free fraction -> fT3
+     ring B   Tc -> Q10 amplification of metabolism -> heat -> Tc
+     ring C   Tc -> hypothalamic injury -> loss of heat-loss effector -> Tc
+
+   Structure of this file: ALL clusters are declared first, so that every node
+   is owned by its cluster; every cross-cluster edge is declared afterwards.
+
+   Render:
+     dot -Tsvg ts_qsp_model.dot -o ts_qsp_model.svg
+     dot -Tpng -Gdpi=150 ts_qsp_model.dot -o ts_qsp_model.png
+   ===================================================================== */
+
+digraph thyroid_storm {
+  rankdir = TB;
+  compound = true;
+  splines = spline;
+  nodesep = 0.26;
+  ranksep = 0.55;
+  fontname = "Helvetica";
+  bgcolor = "white";
+  labelloc = "t";
+  label = <<FONT POINT-SIZE="32"><B>THYROID STORM — Quantitative Systems Pharmacology map</B></FONT><BR/>
+           <FONT POINT-SIZE="18">갑상선 폭풍 · 갑상선 중독 위기 (thyrotoxic crisis)</FONT><BR/>
+           <FONT POINT-SIZE="15" COLOR="#B00020"><B>Storm = the closure of three positive-feedback rings (A, B, C) — not a higher hormone level.</B></FONT><BR/>
+           <FONT POINT-SIZE="12" COLOR="#444444">Serum T4/T3 do not separate storm from uncomplicated thyrotoxicosis. The loop gain L does: L &lt; 1 = severe thyrotoxicosis, L ≥ 1 = storm.</FONT><BR/>
+           <FONT POINT-SIZE="11" COLOR="#666666">Drugs that change the INPUT act over weeks (the gland holds a 2-month reservoir). Drugs that change the GAIN act in hours. β-blockade acts on the gain twice.</FONT>>;
+
+  node [fontname="Helvetica", fontsize=11, style="filled,rounded",
+        shape=box, penwidth=1.1, margin="0.08,0.05"];
+  edge [fontname="Helvetica", fontsize=9, penwidth=1.0, color="#5A5A5A",
+        arrowsize=0.65];
+
+  /* ================================================================= *
+   *  0.  PRECIPITANT — the gain multiplier.  Nothing here is a hormone. *
+   * ================================================================= */
+  subgraph cluster_precip {
+    label = <<B>0. PRECIPITANT — the ring-closing input</B><BR/><FONT POINT-SIZE="9">identifiable in 70–90% of storms · worth 10 BWPS points on its own · this is what a hormone assay cannot see</FONT>>;
+    style="filled,rounded"; color="#8D6E63"; fillcolor="#EFEBE9"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#D7CCC8", color="#6D4C41"];
+    P_inf   [label="Infection\npneumonia · urosepsis · cholangitis"];
+    P_surg  [label="Surgery / anaesthesia\nthyroid or non-thyroid"];
+    P_rai   [label="¹³¹I therapy · vigorous\ngland palpation"];
+    P_stop  [label="Thionamide withdrawal\n(non-adherence — the commonest single cause)"];
+    P_iodld [label="Iodine load\nCT contrast · amiodarone"];
+    P_ob    [label="Labour / delivery ·\npre-eclampsia · hyperemesis"];
+    P_dka   [label="DKA · trauma · burn ·\nstroke · PE · myocardial infarction"];
+    P_drug  [label="Sympathomimetics · ketamine ·\npseudoephedrine · ICI thyroiditis"];
+    P_hub   [label="PRECIPITANT INTENSITY   Prec", fillcolor="#A1887F", color="#3E2723",
+             fontcolor="white", fontsize=15, style="filled,rounded,bold", penwidth=3];
+    P_inf -> P_hub; P_surg -> P_hub; P_rai -> P_hub; P_stop -> P_hub;
+    P_iodld -> P_hub; P_ob -> P_hub; P_dka -> P_hub; P_drug -> P_hub;
+  }
+
+  /* ================================================================= *
+   *  1.  HYPOTHALAMIC–PITUITARY–THYROID AXIS                          *
+   * ================================================================= */
+  subgraph cluster_hpt {
+    label = <<B>1. HPT AXIS</B><BR/><FONT POINT-SIZE="9">the feedback loop that is already fully open (TSH &lt; 0.01) before the storm begins — it has no reserve left to help</FONT>>;
+    style="filled,rounded"; color="#4527A0"; fillcolor="#EDE7F6"; fontsize=13; penwidth=2;
+    node [fillcolor="#D1C4E9", color="#311B92"];
+    TRH     [label="Hypothalamic TRH"];
+    TSH_pit [label="Pituitary TSH\n1.5 → <0.01 mIU/L (saturated)", penwidth=2];
+    D2_pit  [label="Pituitary D2\nlocal T4→T3 sets the feedback"];
+    TRH -> TSH_pit; D2_pit -> TSH_pit [arrowhead=tee, label="negative\nfeedback"];
+  }
+
+  /* ================================================================= *
+   *  2.  THE GLAND — the input machinery and the RESERVOIR             *
+   * ================================================================= */
+  subgraph cluster_gland {
+    label = <<B>2. GLAND — the input machinery, and a 2-MONTH RESERVOIR</B><BR/><FONT POINT-SIZE="9">Graves ≈ 60–80% of storms · toxic adenoma / MNG · thyroiditis · TSHoma · struma ovarii · metastatic follicular carcinoma</FONT>>;
+    style="filled,rounded"; color="#00796B"; fillcolor="#E0F2F1"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#B2DFDB", color="#00695C"];
+    HLA     [label="HLA-DR3 / DQA1*0501\nCTLA4 · PTPN22 · CD40 · smoking"];
+    Bcell   [label="Autoreactive B cell\nintrathyroidal germinal centre"];
+    TRAb    [label="TRAb\nthyroid-STIMULATING IgG", fillcolor="#80CBC4", penwidth=2.2];
+    TSHR    [label="TSHR (Gs-coupled)", fillcolor="#4DB6AC"];
+    cAMP    [label="adenylyl cyclase → cAMP → PKA"];
+    NIS     [label="NIS (SLC5A5)\nbasolateral iodide pump", fillcolor="#4DB6AC"];
+    PDS     [label="Pendrin / anoctamin-1\napical iodide efflux"];
+    TPO     [label="TPO + H₂O₂ (DUOX2/DUOXA2)\nORGANIFICATION and coupling",
+             fillcolor="#4DB6AC", penwidth=2.6];
+    Tg      [label="Thyroglobulin\nMIT/DIT coupling → T4, T3"];
+    S_store [label="COLLOID HORMONE STORE   S\n≈ 8 000 nmol T4-eq  =  60–90 DAYS of supply\n(falls to ~2–5 days in florid untreated Graves)",
+             fillcolor="#FFCC80", color="#E65100", penwidth=3.4, fontsize=14,
+             shape=box3d, style="filled"];
+    Megalin [label="Megalin-mediated\ncolloid endocytosis + proteolysis"];
+    Rel     [label="RELEASE (secretion)\nT4 : T3 = 92 : 8 → 83 : 17 when stimulated",
+             fillcolor="#80CBC4", penwidth=2.4];
+    Goitre  [label="VEGF · IGF-1 → goitre,\nvascular bruit, thrill"];
+    Somatic [label="Somatic activating TSHR /\nGNAS mutation (toxic nodule)", style="filled,dashed"];
+    HLA -> Bcell -> TRAb -> TSHR -> cAMP;
+    Somatic -> cAMP [style=dashed];
+    cAMP -> NIS; cAMP -> TPO; cAMP -> Tg; cAMP -> Goitre; cAMP -> Megalin;
+    NIS -> PDS;
+    TPO -> Tg -> S_store;
+    S_store -> Megalin -> Rel;
+  }
+
+  /* ================================================================= *
+   *  3.  IODIDE AND WOLFF–CHAIKOFF                                    *
+   * ================================================================= */
+  subgraph cluster_iodide {
+    label = <<B>3. IODIDE — the one drug whose SIGN depends on the order of administration</B><BR/><FONT POINT-SIZE="9">release block (the acute benefit) vs organification SUBSTRATE (Jod-Basedow, the harm) · escape by NIS down-regulation at 10–14 days</FONT>>;
+    style="filled,rounded"; color="#5E35B1"; fillcolor="#EDE7F6"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#D1C4E9", color="#4527A0"];
+    I_diet   [label="Dietary iodide 150 µg/d"];
+    I_plasma [label="Plasma inorganic iodide\n0.015 → ~100 µmol/L on SSKI", penwidth=2.2];
+    I_thy    [label="INTRATHYROIDAL IODIDE   I_thy", penwidth=2.4];
+    WC       [label="WOLFF–CHAIKOFF term\nI_thy² / (IC² + I_thy²)", fillcolor="#B39DDB", penwidth=2.6];
+    WC_rel   [label="RELEASE inhibition (≤78%)\n— the acute benefit, within hours",
+              fillcolor="#7E57C2", fontcolor="white", penwidth=2.4];
+    WC_org   [label="ORGANIFICATION inhibition (≤90%)",
+              fillcolor="#9575CD", fontcolor="white"];
+    Escape   [label="WOLFF–CHAIKOFF ESCAPE\nNIS down-regulation, τ ≈ 3.5 d\n→ the benefit decays away",
+              fillcolor="#CE93D8", penwidth=2.4];
+    I_ren    [label="Renal iodide clearance 2.1 L/h"];
+    I_diet -> I_plasma;
+    I_plasma -> I_ren [style=dashed];
+    I_plasma -> I_thy [label="NIS × CL_thy"];
+    I_thy -> WC;
+    WC -> WC_rel; WC -> WC_org;
+    I_plasma -> Escape [label="I_plasma / K_NIS"];
+  }
+
+  /* ================================================================= *
+   *  4.  BOUND RESERVOIR AND THE FREE FRACTION  (2nd half of ring A)  *
+   * ================================================================= */
+  subgraph cluster_bind {
+    label = <<B>4. THE BOUND RESERVOIR — 99.7% of T3 is invisible to the tissues</B><BR/><FONT POINT-SIZE="9">the SECOND AXIS: doubling the free FRACTION is arithmetically identical to doubling the total hormone — and only one of the two is measured</FONT>>;
+    style="filled,rounded"; color="#1565C0"; fillcolor="#E3F2FD"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#BBDEFB", color="#0D47A1"];
+    T4_tot [label="TOTAL T4\n100 → 260 nmol/L", penwidth=2.4, fillcolor="#90CAF9"];
+    T3_tot [label="TOTAL T3\n1.8 → 5.4 nmol/L", penwidth=2.4, fillcolor="#90CAF9"];
+    TBG    [label="TBG 75% · transthyretin 10%\nalbumin 15%", penwidth=2.2];
+    Displ  [label="DISPLACEMENT   Fd\n= (1 + NEFA term + salicylate term) / TBG",
+            fillcolor="#EF9A9A", color="#B00020", penwidth=2.8, fontsize=13];
+    phi    [label="FREE FRACTION   φ₃ = 0.30% × Fd",
+            fillcolor="#64B5F6", penwidth=2.8, fontsize=13];
+    fT4    [label="free T4  20 pmol/L"];
+    fT3    [label="FREE T3   fT3\n5.4 → 16–31 pmol/L",
+            fillcolor="#1565C0", fontcolor="white", penwidth=3.4, fontsize=16];
+    MCT8   [label="MCT8 (SLC16A2) · OATP1C1\ncellular uptake"];
+    Tg_p   [label="serum thyroglobulin\n(destructive vs hyperfunctioning)", style="filled,dashed"];
+    T4_tot -> TBG [dir=both, style=dashed];
+    T3_tot -> TBG [dir=both, style=dashed];
+    TBG   -> phi [arrowhead=tee, label="binding\ncapacity"];
+    Displ -> phi [color="#B00020", penwidth=3.0];
+    phi -> fT4;
+    phi -> fT3 [penwidth=2.6];
+    T3_tot -> fT3 [penwidth=2.6];
+    T4_tot -> fT4;
+    fT3 -> MCT8 [penwidth=2.2];
+  }
+
+  /* ================================================================= *
+   *  5.  PERIPHERAL DEIODINATION — the 80% pathway, the FAST axis      *
+   * ================================================================= */
+  subgraph cluster_deiod {
+    label = <<B>5. PERIPHERAL DEIODINATION — 80% of circulating T3 is made OUTSIDE the thyroid</B><BR/><FONT POINT-SIZE="9">this is the FAST axis (T3 t½ = 24 h) that PTU, glucocorticoid, iopanoic acid and propranolol attack.  Methimazole does not touch it.</FONT>>;
+    style="filled,rounded"; color="#00838F"; fillcolor="#E0F7FA"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#B2EBF2", color="#006064"];
+    D1  [label="D1 (DIO1) — selenoenzyme\nliver, kidney, thyroid\n≈53% of T3 production",
+         penwidth=2.8, fillcolor="#4DD0E1"];
+    D2  [label="D2 (DIO2)\nskeletal muscle, brain, BAT, pituitary\n≈27% of T3 production",
+         penwidth=2.4, fillcolor="#80DEEA"];
+    D3  [label="D3 (DIO3)\ninner-ring, INACTIVATING"];
+    rT3 [label="reverse T3\n↑↑ = proof that a D1 block is working",
+         fillcolor="#80DEEA", penwidth=2.2];
+    Conj[label="Hepatic sulfation and\nglucuronidation (UGT1A1, SULT1A1)"];
+    EHC [label="ENTEROHEPATIC RECYCLING\n60% of biliary T4 is reabsorbed", penwidth=2.4];
+    Fecal[label="Faecal loss"];
+    Se  [label="Selenium status\n(D1/D2 are selenoenzymes)", style="filled,dashed"];
+    D3 -> rT3;
+    Conj -> EHC;
+    EHC -> Fecal [style=dashed];
+    Se -> D1 [style=dashed]; Se -> D2 [style=dashed];
+  }
+
+  /* ================================================================= *
+   *  6.  NUCLEAR RECEPTOR SIGNAL                                      *
+   * ================================================================= */
+  subgraph cluster_tr {
+    label = <<B>6. NUCLEAR RECEPTOR SIGNAL   Sig</B><BR/><FONT POINT-SIZE="9">saturating: TR occupancy is ALREADY ~50% at normal fT3, so the tissue response is never proportional to the assay result</FONT>>;
+    style="filled,rounded"; color="#6A1B9A"; fillcolor="#F3E5F5"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#E1BEE7", color="#4A148C"];
+    TRa  [label="TRα1 (THRA)\nheart, bone, skeletal muscle, gut", penwidth=2.2];
+    TRb  [label="TRβ1/β2 (THRB)\nliver, pituitary, cochlea, kidney"];
+    TRE  [label="TR : RXR heterodimer on TREs\nSRC-1 / NCoR exchange"];
+    SIG  [label="TISSUE SIGNAL   Sig = 2·fT3ₙ / (1 + fT3ₙ)\n( = 1 normal · → 2 maximal )",
+          fillcolor="#8E24AA", fontcolor="white", penwidth=3.2, fontsize=14];
+    G_nak [label="Na⁺/K⁺-ATPase ↑\nobligatory thermogenesis"];
+    G_ucp [label="UCP2 / UCP3 ↑\nmitochondrial uncoupling"];
+    G_serca[label="SERCA2a ↑ · phospholamban ↓\nfaster Ca²⁺ cycling"];
+    G_myh [label="MYH6 ↑ / MYH7 ↓ · HCN2 (Iƒ) ↑\nintrinsic sinus rate ↑"];
+    G_adrb[label="ADRB1 transcription ↑ · Gi ↓\n= ADRENERGIC SENSITISATION",
+           fillcolor="#BA68C8", fontcolor="white", penwidth=2.8];
+    G_hsl [label="HSL / ATGL / perilipin ↑\nthe LIPOLYTIC machinery",
+           fillcolor="#BA68C8", fontcolor="white", penwidth=2.8];
+    G_cyp [label="Hepatic 5α/6β-reductase ↑\ncortisol clearance ×2", penwidth=2.2];
+    G_bone[label="RANKL / IL-6 ↑\nosteoclastic bone resorption"];
+    G_shbg[label="SHBG ↑ · ferritin ↑ · ACE ↑\n(peripheral markers of tissue action)"];
+    TRa -> TRE; TRb -> TRE; TRE -> SIG;
+    SIG -> G_nak; SIG -> G_ucp; SIG -> G_serca; SIG -> G_myh;
+    SIG -> G_adrb [penwidth=2.8]; SIG -> G_hsl [penwidth=2.8];
+    SIG -> G_cyp; SIG -> G_bone; SIG -> G_shbg;
+  }
+
+  /* ================================================================= *
+   *  RING A                                                            *
+   * ================================================================= */
+  subgraph cluster_ringA {
+    label = <<B>RING  A — the free-fraction ring</B><BR/><FONT POINT-SIZE="9">fT3 → β1 density &amp; lipolytic machinery → NEFA → displacement from TBG → free fraction → fT3.<BR/>Its gain is proportional to the β-signal, which is why β-blockade cuts it.</FONT>>;
+    style="filled,rounded"; color="#B00020"; fillcolor="#FFEBEE"; fontsize=15; penwidth=3.4;
+    node [fillcolor="#FFCDD2", color="#B00020"];
+    A_lab [label="A", shape=circle, fillcolor="#B00020", fontcolor="white",
+           fontsize=26, width=0.5, fixedsize=true, penwidth=0];
+    Lipo  [label="LIPOLYSIS\nβ1/β2/β3 → PKA → HSL, ATGL", penwidth=2.6];
+    NEFA  [label="PLASMA NEFA\n0.4 → 2.0–3.0 mmol/L",
+           fillcolor="#D32F2F", fontcolor="white", penwidth=3.2, fontsize=14];
+    Lipo -> NEFA [penwidth=2.8, color="#B00020"];
+  }
+
+  /* ================================================================= *
+   *  7.  ADRENERGIC LIMB                                               *
+   * ================================================================= */
+  subgraph cluster_sns {
+    label = <<B>7. ADRENERGIC LIMB — sensitisation, not more transmitter</B><BR/><FONT POINT-SIZE="9">plasma catecholamines are NORMAL or LOW in thyrotoxicosis; the β-signal rises because RECEPTOR DENSITY rises.  The model therefore has no T3 → catecholamine arrow.</FONT>>;
+    style="filled,rounded"; color="#EF6C00"; fillcolor="#FFF3E0"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#FFE0B2", color="#E65100"];
+    SNS   [label="Sympathetic outflow (NE / Epi)\nset by the PRECIPITANT, not by T3", penwidth=2.4];
+    Rb    [label="β1-adrenoceptor density   Rb\n1.0 → 1.7 ×  (τ ≈ 36 h)", penwidth=2.4];
+    Bsig  [label="β-SIGNAL\nBsig = SNS × Rb × (1 − β-blocker occupancy)",
+           fillcolor="#FB8C00", fontcolor="white", penwidth=3.2, fontsize=14];
+    Alpha [label="α1 tone / vasoconstriction\n(unopposed if β2 is blocked)"];
+    SNS -> Bsig [penwidth=2.6];
+    Rb -> Bsig [penwidth=2.6];
+    SNS -> Alpha [style=dashed];
+  }
+
+  /* ================================================================= *
+   *  RING B                                                            *
+   * ================================================================= */
+  subgraph cluster_ringB {
+    label = <<B>RING  B — the Q10 ring</B><BR/><FONT POINT-SIZE="9">every +10 °C doubles metabolic rate (Q10 = 2), and metabolism is precisely what heats the core</FONT>>;
+    style="filled,rounded"; color="#B00020"; fillcolor="#FFEBEE"; fontsize=15; penwidth=3.4;
+    node [fillcolor="#FFCDD2", color="#B00020"];
+    B_lab [label="B", shape=circle, fillcolor="#B00020", fontcolor="white",
+           fontsize=26, width=0.5, fixedsize=true, penwidth=0];
+    Qprod [label="HEAT PRODUCTION   Q_prod\n= 80 W × M_thy × 2^((Tc−37)/10) × M_sns × M_uncoupling",
+           fillcolor="#D32F2F", fontcolor="white", penwidth=3.2, fontsize=13];
+    Tcore [label="CORE TEMPERATURE   Tc\n37.0 → 37.4 °C (thyrotoxicosis) → 39–41.5 °C (STORM)",
+           fillcolor="#8E0000", fontcolor="white", penwidth=3.6, fontsize=17];
+    Qprod -> Tcore [penwidth=3.2, color="#B00020"];
+    Tcore -> Qprod [penwidth=3.2, color="#B00020", label="Q10 = 2"];
+  }
+
+  /* ================================================================= *
+   *  8.  HEAT-LOSS EFFECTOR                                            *
+   * ================================================================= */
+  subgraph cluster_effector {
+    label = <<B>8. HEAT-LOSS EFFECTOR — the high-gain regulator that normally wins</B><BR/><FONT POINT-SIZE="9">h can rise 7-fold (8 → 60 W/K).  Storm happens when this effector is CRIPPLED (ring C, hypovolaemia), not merely outrun.</FONT>>;
+    style="filled,rounded"; color="#0277BD"; fillcolor="#E1F5FE"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#B3E5FC", color="#01579B"];
+    PGE2  [label="PGE₂ (COX-2 at the OVLT)\npresent ONLY if the precipitant is infectious", penwidth=2.2];
+    Tset  [label="Hypothalamic setpoint\n37.4 °C + 1.2 × PGE₂", penwidth=2.2];
+    Eff   [label="EFFECTOR   E\nskin blood flow + sweating\nE = σ((Tc − Tset)/0.35) × (1 − 0.6 · CNSx)",
+           fillcolor="#4FC3F7", penwidth=2.8, fontsize=12];
+    hcond [label="HEAT-LOSS COEFFICIENT   h\n= (8 + 52·E) × Vol^1.5 × (1 + cooling)", penwidth=2.4];
+    Qloss [label="HEAT LOSS   Q_loss = h × (Tc − 33 °C)",
+           fillcolor="#4FC3F7", penwidth=2.6];
+    Sweat [label="Insensible + sweat losses\n→ hypovolaemia", penwidth=2.2];
+    PGE2 -> Tset [penwidth=2.2];
+    Tset -> Eff [arrowhead=tee, penwidth=2.2];
+    Eff -> hcond -> Qloss;
+    Eff -> Sweat;
+  }
+
+  /* ================================================================= *
+   *  RING C                                                            *
+   * ================================================================= */
+  subgraph cluster_ringC {
+    label = <<B>RING  C — the hypothalamic-failure ring</B><BR/><FONT POINT-SIZE="9">why storm hyperthermia becomes irreversible: the thermostat is itself heat-labile</FONT>>;
+    style="filled,rounded"; color="#B00020"; fillcolor="#FFEBEE"; fontsize=15; penwidth=3.4;
+    node [fillcolor="#FFCDD2", color="#B00020"];
+    C_lab [label="C", shape=circle, fillcolor="#B00020", fontcolor="white",
+           fontsize=26, width=0.5, fixedsize=true, penwidth=0];
+    CNSx  [label="CNS / HYPOTHALAMIC DYSFUNCTION   CNSx\nagitation → delirium / psychosis → seizure → coma",
+           fillcolor="#D32F2F", fontcolor="white", penwidth=3.2, fontsize=14];
+  }
+
+  /* ================================================================= *
+   *  9.  CARDIOVASCULAR                                                *
+   * ================================================================= */
+  subgraph cluster_cv {
+    label = <<B>9. CARDIOVASCULAR — high-output failure, and the β-blockade trap</B><BR/><FONT POINT-SIZE="9">HR ≥ 140 in storm · AF in 10–35% · CHF in ~25% · β-blocking a rate-dependent heart can precipitate cardiogenic shock</FONT>>;
+    style="filled,rounded"; color="#C62828"; fillcolor="#FBE9E7"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#FFCCBC", color="#BF360C"];
+    HR    [label="HEART RATE\n70 → 115 (thyrotoxic) → 140–170 (STORM)",
+           fillcolor="#FF8A65", penwidth=2.8, fontsize=13];
+    Contr [label="Contractility / stroke volume\nSERCA2a · MYH6 · β-signal", penwidth=2.2];
+    CO    [label="Cardiac output\n(high-output state, low SVR)", penwidth=2.2];
+    Wload [label="Cardiac work index\nW = contractility × HR / 70"];
+    CRes  [label="CONTRACTILE RESERVE   CR\ndepletes whenever W > W_crit = 2.35", penwidth=2.6];
+    AF    [label="ATRIAL FIBRILLATION\nIƒ ↑ · APD ↓ · atrial stretch\n(thromboembolic risk)", penwidth=2.2];
+    HOF   [label="High-output cardiac failure\n→ pulmonary oedema"];
+    Perf  [label="PERFUSION RATIO\n= cardiac output / metabolic demand", penwidth=2.4];
+    Shock [label="CIRCULATORY SHOCK\nperfusion < 0.70 × demand",
+           fillcolor="#D84315", fontcolor="white", penwidth=2.8];
+    Vol   [label="VOLUME STATUS   Vol\n1.00 → 0.60–0.85", penwidth=2.2];
+    HR -> CO; Contr -> CO;
+    Vol -> CO [label="preload"];
+    HR -> Wload; Contr -> Wload;
+    Wload -> CRes [arrowhead=tee, penwidth=2.4];
+    CRes -> Contr [penwidth=2.4];
+    CRes -> HOF; HOF -> Shock;
+    CO -> Perf;
+    Perf -> Shock [arrowhead=tee, penwidth=2.4];
+  }
+
+  /* ================================================================= *
+   * 10.  HEPATIC AND GI                                                *
+   * ================================================================= */
+  subgraph cluster_liver {
+    label = <<B>10. HEPATIC &amp; GI — jaundice is the single worst prognostic sign</B><BR/><FONT POINT-SIZE="9">bilirubin &gt; 3 mg/dL = 20 BWPS points and an independent mortality predictor · vomiting/diarrhoea make the ORAL ROUTE fail</FONT>>;
+    style="filled,rounded"; color="#F9A825"; fillcolor="#FFFDE7"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#FFF59D", color="#F57F17"];
+    Hypo  [label="Centrilobular hypoxia\ndemand ≫ supply"];
+    Cong  [label="Hepatic venous congestion\nright-sided failure"];
+    Bili  [label="TOTAL BILIRUBIN\n0.8 → > 3 mg/dL = jaundice",
+           fillcolor="#FBC02D", penwidth=3.0, fontsize=13];
+    ALP   [label="ALP ↑ (bone + liver) ·\nferritin ↑ · transaminases ↑"];
+    GIx   [label="GI DYSFUNCTION   GIx\nvomiting · diarrhoea · abdominal pain", penwidth=2.6];
+    RouteFail [label="THE ORAL ROUTE FAILS\n→ nasogastric tube, RECTAL PTU suspension,\nIV esmolol, IV hydrocortisone",
+               fillcolor="#FFE082", color="#E65100", penwidth=2.8, fontsize=12];
+    Hypo -> Bili [penwidth=2.4];
+    Cong -> Bili [penwidth=2.2];
+    GIx -> RouteFail [penwidth=2.4];
+  }
+
+  /* ================================================================= *
+   * 11.  HPA AXIS                                                      *
+   * ================================================================= */
+  subgraph cluster_hpa {
+    label = <<B>11. HPA AXIS — thyroid hormone creates its own steroid deficit</B><BR/><FONT POINT-SIZE="9">cortisol clearance is roughly DOUBLED by T3 at the same moment the stress requirement rises: a scissor, not a coincidence</FONT>>;
+    style="filled,rounded"; color="#455A64"; fillcolor="#ECEFF1"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#CFD8DC", color="#263238"];
+    Cort      [label="PLASMA CORTISOL   400 nmol/L", penwidth=2.6];
+    Cort_need [label="Stress cortisol requirement\n× 1.9 with a precipitant", penwidth=2.2];
+    AdrRes    [label="Adrenal reserve   AR\n(reduced by coexisting APS-2 Addison)"];
+    RAI       [label="RELATIVE ADRENAL\nINSUFFICIENCY", fillcolor="#78909C",
+               fontcolor="white", penwidth=2.8];
+    AdrRes -> Cort;
+    Cort_need -> RAI [penwidth=2.2];
+    Cort -> RAI [arrowhead=tee, penwidth=2.6];
+  }
+
+  /* ================================================================= *
+   * 12.  NEUROMUSCULAR AND METABOLIC                                   *
+   * ================================================================= */
+  subgraph cluster_nm {
+    label = <<B>12. NEUROMUSCULAR &amp; METABOLIC</B><BR/><FONT POINT-SIZE="9">thyrotoxic periodic paralysis is strongly Asian-male-predominant (KCNJ18) and is a hypokalaemic emergency in its own right</FONT>>;
+    style="filled,rounded"; color="#2E7D32"; fillcolor="#E8F5E9"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#C8E6C9", color="#1B5E20"];
+    Myop  [label="Proximal myopathy\n(CK is usually NORMAL)"];
+    TPP   [label="Thyrotoxic periodic paralysis\nNa⁺/K⁺-ATPase-driven K⁺ shift, KCNJ18", penwidth=2.2];
+    Kplus [label="Serum K⁺ ↓↓\n(intracellular SHIFT, not depletion)", penwidth=2.2];
+    Gluc  [label="Glycogenolysis ↑ · insulin resistance\n→ hyperglycaemia · lactate ↑"];
+    Bone  [label="Bone resorption ↑ · hypercalcaemia\n· osteoporosis"];
+    Wt    [label="Weight loss despite\nincreased food intake"];
+    TPP -> Kplus [penwidth=2.4];
+  }
+
+  /* ================================================================= *
+   * D1.  THIONAMIDES                                                   *
+   * ================================================================= */
+  subgraph cluster_thio {
+    label = <<B>D1. THIONAMIDES — they change the INPUT, and the input feeds a 2-MONTH RESERVOIR</B><BR/><FONT POINT-SIZE="9">PTU is preferred in storm for exactly ONE reason: it ALSO inhibits D1, i.e. it also attacks the fast axis.  Nothing else distinguishes it.</FONT>>;
+    style="filled,rounded"; color="#2E7D32"; fillcolor="#F1F8E9"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#C5E1A5", color="#33691E"];
+    PTU   [label="PROPYLTHIOURACIL\n600–1 000 mg load, then 200–250 mg q4h\nt½ 1.5 h · PO / NG / PR",
+           penwidth=2.8, style="filled,rounded,bold"];
+    MMI   [label="METHIMAZOLE / CARBIMAZOLE\n20–25 mg q4–6h · t½ 5 h\nNO D1 activity", penwidth=2.4];
+    PTU_TPO [label="TPO inhibition", shape=ellipse, fillcolor="#AED581"];
+    PTU_D1  [label="D1 inhibition\n(PTU ONLY)", shape=ellipse, fillcolor="#689F38",
+             fontcolor="white", penwidth=2.8];
+    Agran [label="Agranulocytosis 0.2–0.5%\n(both drugs) · aplastic anaemia",
+           fillcolor="#F8BBD0", color="#AD1457"];
+    PTUhep[label="PTU hepatotoxicity (black-box,\nfulminant) · ANCA vasculitis",
+           fillcolor="#F8BBD0", color="#AD1457"];
+    Emb   [label="MMI embryopathy in T1 /\nPTU preferred in the 1st trimester",
+           fillcolor="#F8BBD0", color="#AD1457", style="filled,dashed"];
+    PTU -> PTU_TPO; MMI -> PTU_TPO;
+    PTU -> PTU_D1 [penwidth=2.8];
+    PTU -> PTUhep [style=dashed];
+    PTU -> Agran [style=dashed]; MMI -> Agran [style=dashed];
+    MMI -> Emb [style=dashed];
+  }
+
+  /* ================================================================= *
+   * D2.  BETA BLOCKADE — the GAIN drug                                 *
+   * ================================================================= */
+  subgraph cluster_beta {
+    label = <<B>D2. β-BLOCKADE — the GAIN drug.  It acts on ring A TWICE.</B><BR/><FONT POINT-SIZE="9">(1) it removes the β term from heart rate and from the thermogenic term; (2) it removes the β term from LIPOLYSIS,<BR/>so the FREE FRACTION falls without a single molecule of hormone being removed.</FONT>>;
+    style="filled,rounded"; color="#1B5E20"; fillcolor="#F1F8E9"; fontsize=14; penwidth=3;
+    node [fillcolor="#A5D6A7", color="#1B5E20"];
+    PROP  [label="PROPRANOLOL\n60–80 mg q4h PO, or 0.5–1 mg IV boluses\nNON-SELECTIVE (blocks β2 lipolysis too) · t½ 4 h",
+           penwidth=3.0, style="filled,rounded,bold"];
+    ESM   [label="ESMOLOL\n250–500 µg/kg load, then 50–200 µg/kg/min\nβ1-selective · t½ 9 MINUTES — titratable, reversible",
+           penwidth=2.8];
+    DILT  [label="Diltiazem / digoxin\nwhen β-blockade is contraindicated\n(severe asthma, decompensated HF)"];
+    RESER [label="Reserpine · guanethidine\n(historical, for β-blockade failure)", style="filled,dashed"];
+    BetaOcc [label="β-receptor occupancy\n(Emax 0.90)", shape=ellipse, fillcolor="#66BB6A",
+             fontcolor="white", penwidth=2.8];
+    PROPd1  [label="weak D1 inhibition\n(15–25% at high dose)", shape=ellipse,
+             fillcolor="#A5D6A7"];
+    BShock [label="β-BLOCKADE-INDUCED\nCARDIOGENIC SHOCK\nin a rate-dependent heart",
+            fillcolor="#F8BBD0", color="#AD1457", penwidth=2.8];
+    PROP -> BetaOcc [penwidth=3.0]; ESM -> BetaOcc [penwidth=2.8];
+    PROP -> PROPd1;
+    PROP -> BShock [style=dashed, penwidth=2.2];
+  }
+
+  /* ================================================================= *
+   * D3.  EVERYTHING ELSE, SORTED BY WHICH FACTOR IT MULTIPLIES         *
+   * ================================================================= */
+  subgraph cluster_other {
+    label = <<B>D3. THE REST — sorted by WHICH FACTOR OF THE MODEL THEY MULTIPLY</B><BR/><FONT POINT-SIZE="9">iodide / glucocorticoid / iopanoic acid / cholestyramine change the INPUT · cooling and fluids change the GAIN of rings B and C · plasma exchange is the only lever on the BOUND reservoir</FONT>>;
+    style="filled,rounded"; color="#00695C"; fillcolor="#E0F2F1"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#A5D6A7", color="#1B5E20"];
+    SSKI  [label="SSKI 250 mg iodide q6h / Lugol 8 drops q8h\nGIVE ≥ 1 h AFTER the thionamide",
+           penwidth=2.8, style="filled,rounded,bold"];
+    HC    [label="HYDROCORTISONE 100 mg q8h IV\n(or dexamethasone 2 mg q6h)", penwidth=2.8];
+    IOPAN [label="Iopanoic acid / iohexol 1 g q8h\npotent D1 AND D2 inhibitor", penwidth=2.4];
+    CHOL  [label="Cholestyramine 4 g q6h\ninterrupts enterohepatic recycling", penwidth=2.4];
+    COOL  [label="EXTERNAL COOLING\ncooling blanket · cold IV fluid · ice packs",
+           fillcolor="#B3E5FC", color="#01579B", penwidth=2.8];
+    APAP  [label="ACETAMINOPHEN\nthe ONLY acceptable antipyretic here", penwidth=2.4];
+    ASA   [label="ASPIRIN / SALICYLATE\nCONTRAINDICATED", fillcolor="#F8BBD0",
+           color="#AD1457", penwidth=3.0, style="filled,rounded,bold"];
+    FLUID [label="Volume resuscitation + dextrose\n+ thiamine · electrolytes · K⁺",
+           fillcolor="#B3E5FC", color="#01579B", penwidth=2.4];
+    TPE   [label="THERAPEUTIC PLASMA EXCHANGE\n1–1.5 plasma volumes (ASFA cat. III)", penwidth=2.8];
+    THX   [label="Emergency total thyroidectomy\n(refractory · amiodarone-induced)", penwidth=2.4];
+    LI    [label="Lithium 300 mg q6h\nwhen iodide cannot be given", style="filled,dashed"];
+    ECMO  [label="VA-ECMO / IABP\nfor refractory cardiogenic shock", style="filled,dashed"];
+    RAIdef[label="Definitive therapy after recovery:\n¹³¹I or thyroidectomy", style="filled,dashed"];
+  }
+
+  /* ================================================================= *
+   * 13.  ENDPOINTS                                                     *
+   * ================================================================= */
+  subgraph cluster_end {
+    label = <<B>13. CLINICAL ENDPOINTS</B><BR/><FONT POINT-SIZE="9">BWPS ≥ 45 = storm · Japan Thyroid Association criteria · mortality 8–25% treated, 80–90% untreated</FONT>>;
+    style="filled,rounded"; color="#F57F17"; fillcolor="#FFFDE7"; fontsize=14; penwidth=2.4;
+    node [fillcolor="#FFF176", color="#F57F17"];
+    BWPS  [label="BURCH–WARTOFSKY POINT SCALE\nthermoregulatory 0–30 · CNS 0–30 · GI-hepatic 0–20\nheart rate 0–25 · CHF 0–15 · AF 0/10 · precipitant 0/10\n≥ 45 STORM · 25–44 impending · < 25 unlikely",
+           fillcolor="#FDD835", penwidth=3.2, fontsize=12];
+    JTA   [label="Japan Thyroid Association criteria\nTS1 / TS2 — thyrotoxicosis PLUS CNS,\nfever ≥ 38 °C, HR ≥ 130, CHF, or GI-hepatic", penwidth=2.2];
+    LOOPG [label="LOOP GAIN   L   (this model)\nL < 1 = severe thyrotoxicosis\nL ≥ 1 = STORM",
+           fillcolor="#EF9A9A", color="#B00020", penwidth=3.2, fontsize=14];
+    MORT  [label="MORTALITY HAZARD\nBWPS · shock · jaundice · Tc > 40.5 °C\n· relative adrenal insufficiency",
+           fillcolor="#FFAB91", color="#BF360C", penwidth=3.0, fontsize=13];
+    SEQ   [label="Survivor sequelae\ncerebral infarction · disuse atrophy ·\npsychosis · hypoxic encephalopathy"];
+    LABS  [label="Laboratory panel\nfT4 / fT3 ↑ · TSH < 0.01 · TRAb ·\nrT3 · NEFA · bilirubin · K⁺ · lactate", style="filled,dashed"];
+    BWPS -> MORT [penwidth=3.0];
+    BWPS -> JTA [style=dashed, dir=both, label="concordant,\nnot identical"];
+    MORT -> SEQ [style=dashed];
+  }
+
+  /* ================================================================= *
+   *  LEGEND                                                            *
+   * ================================================================= */
+  subgraph cluster_legend {
+    label = <<B>LEGEND</B>>;
+    style="filled,rounded"; color="#9E9E9E"; fillcolor="#FAFAFA"; fontsize=13;
+    node [shape=plaintext, fillcolor="none", style="", fontsize=10];
+    LEG [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+      <TR><TD BGCOLOR="#FFCDD2"><B>red</B></TD><TD ALIGN="LEFT">positive-feedback ring (A, B, C) — the GAIN of the disease</TD></TR>
+      <TR><TD BGCOLOR="#BBDEFB"><B>blue</B></TD><TD ALIGN="LEFT">hormone pools, protein binding, free fraction</TD></TR>
+      <TR><TD BGCOLOR="#B2DFDB"><B>teal</B></TD><TD ALIGN="LEFT">gland, synthesis, storage, release</TD></TR>
+      <TR><TD BGCOLOR="#E1BEE7"><B>purple</B></TD><TD ALIGN="LEFT">nuclear receptor signalling and its target genes</TD></TR>
+      <TR><TD BGCOLOR="#FFE0B2"><B>orange</B></TD><TD ALIGN="LEFT">adrenergic and cardiovascular physiology</TD></TR>
+      <TR><TD BGCOLOR="#B3E5FC"><B>light blue</B></TD><TD ALIGN="LEFT">thermoregulatory effector and supportive care</TD></TR>
+      <TR><TD BGCOLOR="#C5E1A5"><B>green</B></TD><TD ALIGN="LEFT">drug or intervention</TD></TR>
+      <TR><TD BGCOLOR="#F8BBD0"><B>pink</B></TD><TD ALIGN="LEFT">iatrogenic harm / adverse effect</TD></TR>
+      <TR><TD BGCOLOR="#FFF176"><B>yellow</B></TD><TD ALIGN="LEFT">clinical endpoint or score</TD></TR>
+      <TR><TD>———▸</TD><TD ALIGN="LEFT">activation / flux</TD></TR>
+      <TR><TD>———⊤</TD><TD ALIGN="LEFT">inhibition / removal</TD></TR>
+      <TR><TD>- - - ▸</TD><TD ALIGN="LEFT">modulatory, slow, or conditional</TD></TR>
+    </TABLE>>];
+  }
+
+  /* =================================================================== *
+   *                                                                     *
+   *   CROSS-CLUSTER EDGES  (declared last so that every node above is   *
+   *   owned by its own cluster)                                         *
+   *                                                                     *
+   * =================================================================== */
+
+  /* ---- precipitant fans out into the GAIN terms, not the hormone ---- */
+  P_hub -> SNS       [color="#B00020", penwidth=2.8, label="catecholamine\noutflow ↑"];
+  P_hub -> PGE2      [color="#B00020", penwidth=2.2, label="IL-1β / IL-6\n→ PGE₂"];
+  P_hub -> TBG       [style=dashed, label="acute phase:\nTBG ↓ 28%"];
+  P_hub -> Cort_need [penwidth=2.0, label="stress cortisol\nrequirement ↑"];
+  P_hub -> GIx       [style=dashed];
+  P_hub -> BWPS      [style=dashed, label="10 pts"];
+  P_stop  -> S_store  [style=dashed, color="#6D4C41", label="unopposed synthesis\nrefills the reservoir"];
+  P_iodld -> I_plasma [color="#6D4C41", penwidth=2.0, label="Jod-Basedow\nsubstrate"];
+
+  /* ---- HPT axis ---- */
+  TSH_pit -> TSHR [style=dashed, label="suppressed to\n< 0.01 mIU/L"];
+  fT3     -> D2_pit [style=dashed];
+  T4_tot  -> D2_pit [style=dashed];
+
+  /* ---- gland output feeds the plasma pools ---- */
+  Rel -> T4_tot [penwidth=2.2];
+  Rel -> T3_tot [penwidth=1.7];
+  Rel -> Tg_p   [style=dashed];
+
+  /* ---- iodide arms ---- */
+  WC_rel -> Rel [color="#4527A0", penwidth=2.6, arrowhead=tee,
+                 label="blocks release of\nPREFORMED hormone"];
+  WC_org -> TPO [color="#4527A0", penwidth=2.2, arrowhead=tee];
+  Escape -> NIS [arrowhead=tee, style=dashed, color="#7E57C2"];
+  I_thy  -> TPO [color="#C62828", penwidth=2.8, style=bold,
+                 label="SUBSTRATE, if TPO is not\nALREADY blocked = Jod-Basedow"];
+
+  /* ---- deiodination ---- */
+  T4_tot -> D1 [penwidth=2.4]; T4_tot -> D2 [penwidth=2.0]; T4_tot -> D3;
+  D1 -> T3_tot [penwidth=2.8, color="#006064", label="the 53%"];
+  D2 -> T3_tot [penwidth=2.2, color="#006064", label="the 27%"];
+  T4_tot -> Conj;
+  EHC -> T4_tot [label="recycled"];
+
+  /* ---- signal ---- */
+  MCT8 -> TRa [penwidth=2.0]; MCT8 -> TRb;
+  fT3  -> SIG [penwidth=3.0, color="#B00020"];
+
+  /* ---- RING A ---- */
+  G_hsl  -> Lipo  [penwidth=2.4, color="#B00020"];
+  G_adrb -> Rb    [penwidth=2.8];
+  Bsig   -> Lipo  [penwidth=2.8, color="#B00020", label="β-driven"];
+  NEFA   -> Displ [penwidth=3.2, color="#B00020",
+                   label="oleate / palmitate compete\nfor the TBG binding site"];
+
+  /* ---- RING B ---- */
+  SIG   -> Qprod [penwidth=2.6, label="M_thy = 1 + (Sig − 1)\nBMR + 60…100%"];
+  G_nak -> Qprod [penwidth=2.2]; G_ucp -> Qprod [penwidth=2.2];
+  Bsig  -> Qprod [penwidth=2.0, label="M_sns: shivering, BAT"];
+  Qloss -> Tcore [arrowhead=tee, penwidth=3.0, color="#01579B", label="cools"];
+  Tcore -> Eff   [penwidth=2.6, color="#01579B", label="the NEGATIVE feedback\nthat normally wins"];
+
+  /* ---- RING C ---- */
+  Tcore -> CNSx [penwidth=3.2, color="#B00020",
+                 label="thermal injury above 38.5 °C,\namplified by Sig"];
+  CNSx  -> Eff  [penwidth=3.2, color="#B00020", arrowhead=tee,
+                 label="the thermostat itself fails\n(−60% effector)"];
+  CNSx  -> Sweat [style=dashed, arrowhead=tee, label="cannot drink"];
+  SIG   -> CNSx  [style=dashed, label="lowers the\nthermal threshold"];
+
+  /* ---- cardiovascular ---- */
+  Bsig  -> HR    [penwidth=2.8];
+  SIG   -> HR    [penwidth=2.2, label="direct SA-node\nIƒ effect"];
+  Tcore -> HR    [label="+10 bpm / °C"];
+  Bsig  -> Contr; SIG -> Contr;
+  Qprod -> Perf  [arrowhead=tee, penwidth=2.2, label="metabolic demand"];
+  SIG   -> AF    [penwidth=2.2]; Bsig -> AF;
+  Kplus -> AF    [style=dashed, label="arrhythmogenic"];
+  Sweat -> Vol   [arrowhead=tee, penwidth=2.2];
+  GIx   -> Vol   [arrowhead=tee, penwidth=2.0];
+  Vol   -> hcond [penwidth=2.4, color="#01579B",
+                  label="dehydration cripples\nheat loss"];
+  Vol   -> SNS   [style=dashed, label="baroreflex"];
+  Perf  -> CNSx  [arrowhead=tee, style=dashed, label="hypoperfusion\nencephalopathy"];
+  CRes  -> BShock [style=dashed, penwidth=2.2, label="LOW reserve\n= the trap"];
+
+  /* ---- hepatic / GI ---- */
+  Perf  -> Hypo [arrowhead=tee, penwidth=2.2];
+  CRes  -> Cong [penwidth=2.0];
+  SIG   -> Bili; SIG -> ALP; SIG -> GIx [penwidth=2.2];
+  RouteFail -> PTU [style=dashed, arrowhead=tee, label="PO absorption\nunreliable"];
+  RouteFail -> ESM [style=dashed, label="use the IV route"];
+
+  /* ---- HPA ---- */
+  G_cyp -> Cort [arrowhead=tee, penwidth=2.6, label="clearance × 2"];
+
+  /* ---- neuromuscular ---- */
+  G_nak -> TPP [penwidth=2.2]; Bsig -> TPP;
+  SIG -> Myop; SIG -> Gluc; G_bone -> Bone; Qprod -> Wt;
+
+  /* ---- drug insertion points ---- */
+  PTU_TPO -> TPO [arrowhead=tee, penwidth=2.6, color="#33691E"];
+  PTU_D1  -> D1  [arrowhead=tee, penwidth=3.0, color="#33691E",
+                  label="the ONLY reason PTU\nbeats MMI in a storm"];
+  BetaOcc -> Bsig [arrowhead=tee, penwidth=3.4, color="#1B5E20",
+                   label="CUTS THE GAIN"];
+  PROPd1  -> D1  [arrowhead=tee, style=dashed, color="#1B5E20"];
+  DILT    -> HR  [arrowhead=tee, style=dashed];
+  RESER   -> SNS [arrowhead=tee, style=dashed];
+  SSKI    -> I_plasma [penwidth=3.0, color="#1B5E20", label="≈ 2 000 µmol per dose"];
+  HC      -> D1   [arrowhead=tee, penwidth=2.4, color="#1B5E20"];
+  HC      -> D2   [arrowhead=tee, penwidth=2.4, color="#1B5E20"];
+  HC      -> Cort [penwidth=2.8, color="#1B5E20", label="replaces the deficit"];
+  HC      -> RAI  [arrowhead=tee, penwidth=2.6];
+  IOPAN   -> D1   [arrowhead=tee, penwidth=2.6, color="#1B5E20"];
+  IOPAN   -> D2   [arrowhead=tee, penwidth=2.6, color="#1B5E20"];
+  CHOL    -> EHC  [arrowhead=tee, penwidth=2.6, color="#1B5E20"];
+  COOL    -> hcond [penwidth=3.0, color="#01579B",
+                    label="raises h directly\n= cuts the gain of rings B and C"];
+  APAP    -> PGE2 [arrowhead=tee, penwidth=2.4, color="#1B5E20"];
+  ASA     -> Displ [penwidth=3.0, color="#AD1457",
+                    label="HARM 1: displaces T3\n→ free fraction ↑"];
+  ASA     -> Qprod [penwidth=3.0, color="#AD1457",
+                    label="HARM 2: uncouples oxidative\nphosphorylation → heat ↑"];
+  FLUID   -> Vol  [penwidth=2.6, color="#01579B"];
+  TPE     -> T4_tot [arrowhead=tee, penwidth=2.8, color="#1B5E20",
+                     label="removes the BOUND pool —\nthe only intervention that can"];
+  TPE     -> T3_tot [arrowhead=tee, penwidth=2.8, color="#1B5E20"];
+  THX     -> S_store [arrowhead=tee, penwidth=2.6, color="#1B5E20",
+                      label="removes the reservoir itself"];
+  LI      -> Rel  [arrowhead=tee, style=dashed];
+  ECMO    -> Shock [arrowhead=tee, style=dashed];
+  THX     -> RAIdef [style=dashed];
+
+  /* ---- endpoints ---- */
+  Tcore -> BWPS [penwidth=2.4]; HR -> BWPS [penwidth=2.4];
+  CNSx  -> BWPS [penwidth=2.4]; Bili -> BWPS [penwidth=2.4];
+  GIx   -> BWPS; CRes -> BWPS; AF -> BWPS;
+  Shock -> MORT [penwidth=2.6];
+  Bili  -> MORT [penwidth=2.6, label="jaundice = the worst\nindependent predictor"];
+  RAI   -> MORT [penwidth=2.4];
+  Tcore -> MORT [label="> 40.5 °C"];
+  NEFA  -> LOOPG [style=dashed]; Tcore -> LOOPG [style=dashed];
+  CNSx  -> LOOPG [style=dashed]; Bsig -> LOOPG [style=dashed];
+  fT3   -> LABS [style=dashed]; rT3 -> LABS [style=dashed];
+  NEFA  -> LABS [style=dashed]; Kplus -> LABS [style=dashed];
+}
