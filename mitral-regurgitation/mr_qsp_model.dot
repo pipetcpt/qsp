@@ -1,0 +1,580 @@
+/* ===========================================================================
+   Mitral Regurgitation -- Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------------
+   The organising idea of this map is that a regurgitant orifice produces ONE
+   quantity that echocardiography reports -- the regurgitant volume -- and that
+   this quantity means nothing until it has been divided by something.  Mitral
+   regurgitation is therefore not one disease but a family of diseases indexed
+   by the DENOMINATOR:
+
+     RVol / C_LA(operating)  -> PRESSURE.  Sets congestion.  A virgin atrium
+        sits high on a steep pressure-volume curve, so 60 mL it has never seen
+        produces a giant v wave and floods the lung; a chronically dilated
+        atrium has shifted that curve right and flattened it, so the identical
+        60 mL is nearly silent.  Same lesion, opposite presentation.
+
+     RVol / SV_total  -> REGURGITANT FRACTION.  How much of the heart's work is
+        thrown away.  Note the trap: in a low-output patient a modest RVol is
+        a large fraction, so the grade rises as the ventricle fails.
+
+     RVol / LVEDV  -> PROPORTIONALITY.  Decides whether the VALVE or the
+        VENTRICLE is the disease, and therefore whether closing the valve can
+        possibly help.  This is the COAPT / MITRA-FR axis.
+
+     the afterload the leak REMOVES  -> CONTRACTILITY IS HIDDEN.  Ejection
+        fraction is computed against a stroke volume that includes the leak,
+        which is ejected into a low-pressure sink.  EF therefore overstates the
+        ventricle, which is why the operative threshold in primary MR has to be
+        moved up from 50% to 60%, and why EF FALLS after a successful repair.
+
+     EROA_true / k_PISA  -> THE MEASUREMENT HAS A DENOMINATOR TOO.  PISA assumes
+        a hemispheric flow convergence zone.  A degenerative orifice is round
+        and PISA is close to right; a functional orifice is a crescent along the
+        coaptation line and PISA overstates it.  The 0.4 cm2 severity threshold
+        was calibrated on the round one and is then applied to the crescent.
+
+   Every controversy in this disease is a disagreement about which denominator
+   applies.  Two clusters on this map are feedback loops rather than pathways:
+   cluster 6 (the coaptation reserve) and cluster 7 (the vortex).  MR begets MR
+   because dilation displaces the papillary muscles, tethering demands more
+   leaflet than the leaflets can grow, and the resulting orifice adds volume
+   load that dilates further.  That loop has a gain, and the gain can be
+   computed and can exceed one.
+
+   Rendering:
+     dot -Tsvg mr_qsp_model.dot -o mr_qsp_model.svg
+     dot -Tpng -Gdpi=150 mr_qsp_model.dot -o mr_qsp_model.png
+   =========================================================================== */
+
+digraph MitralRegurgitation_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    nodesep = 0.26;
+    ranksep = 0.54;
+    fontname = "Helvetica";
+    labelloc = "t";
+    fontsize = 30;
+    label = <<b>Mitral Regurgitation &#8212; Quantitative Systems Pharmacology Map</b><br/>
+             <font point-size="17">One regurgitant volume, five denominators: atrial compliance sets congestion, total stroke volume sets the grade,<br/>
+             ventricular volume decides whether the valve or the ventricle is the disease, the removed afterload hides contractility, and PISA geometry inflates the measurement.<br/>
+             43-ODE mrgsolve model &#183; 178 nodes &#183; 18 mechanistic clusters &#183; closed-loop elastance circulation coupled to growth, remodelling and device therapy</font>>;
+
+    node [shape = box, style = "rounded,filled", fontname = "Helvetica",
+          fontsize = 11, margin = "0.09,0.055", penwidth = 1.1];
+    edge [fontname = "Helvetica", fontsize = 9, penwidth = 1.05,
+          arrowsize = 0.62, color = "#555555"];
+
+    /* ---- palette ------------------------------------------------------- */
+    /* aetiology #E8DDF2 | geometry #FBE3C7 | valve #F9CDD2 | flow #CFE6F7
+       LV #F7C9C9        | LA #D3E8E4      | lung #CFE6F7  | RV #E3E0D2
+       growth #D8F0D2    | neuro #F4C7DC   | kidney #FFF2B8 | drug #C6E9E4
+       device #DCD3F0    | measure #E0E0E8 | endpoint #FFFFFF | key #EFE2D0 */
+
+    /* =================================================================== */
+    subgraph cluster_aet {
+        label = <<b>1. Aetiology &#183; two diseases that share one name</b>>;
+        style = "rounded,filled"; fillcolor = "#F7F2FC"; color = "#8E6FB5";
+        fontsize = 15; fontcolor = "#5B3E80";
+        node [fillcolor = "#E8DDF2", color = "#8E6FB5"];
+
+        aet_myx    [label = "PRIMARY / degenerative\nmyxomatous degeneration\nBarlow disease, FED"];
+        aet_prol   [label = "Leaflet prolapse\n(billowing beyond annular plane)"];
+        aet_flail  [label = "Flail segment\nchordal elongation / rupture"];
+        aet_rheum  [label = "Rheumatic\nleaflet retraction + commissural fusion"];
+        aet_ie     [label = "Infective endocarditis\nleaflet perforation, vegetation"];
+        aet_cong   [label = "Congenital\ncleft leaflet, parachute MV"];
+        aet_hcm    [label = "HCM with SAM\ndynamic, systolic anterior motion"];
+        aet_drug   [label = "Drug / radiation valvulopathy\nergot, radiation fibrosis"];
+        aet_sec    [label = "SECONDARY / functional\nthe VALVE IS NORMAL;\nthe ventricle or the atrium moved",
+                    shape = note, fillcolor = "#CBB2E4", penwidth = 2.0];
+        aet_isch   [label = "Ischaemic\ninfarct, regional papillary displacement"];
+        aet_dcm    [label = "Non-ischaemic DCM\nglobal dilation, symmetric tethering"];
+        aet_amr    [label = "ATRIAL functional MR\nAF -> annular dilation with a\nNORMAL-sized ventricle"];
+        aet_acute  [label = "ACUTE severe MR\npapillary rupture (post-MI),\nchordal rupture, endocarditis",
+                    shape = note, fillcolor = "#CBB2E4", penwidth = 2.0];
+        aet_gene   [label = "Genetic substrate\nFLNA, DCHS1, DZIP1;\nTGF-beta signalling in MVP"];
+    }
+
+    subgraph cluster_geom {
+        label = <<b>2. Ventricular geometry &#183; where tethering comes from</b>>;
+        style = "rounded,filled"; fillcolor = "#FEF6EC"; color = "#C08A3E";
+        fontsize = 15; fontcolor = "#8A5C1E";
+        node [fillcolor = "#FBE3C7", color = "#C08A3E"];
+
+        g_V0d    [label = "Chamber dilation\nV0d (EDPVR volume intercept)", shape = ellipse, fillcolor = "#F5CE9E"];
+        g_edv    [label = "LV end-diastolic volume\nV_ed = V0d + ln(1+P_ed/A)/B"];
+        g_rad    [label = "Cavity radius\nr = (3V/4pi)^(1/3)"];
+        g_sph    [label = "Sphericity index\nSI rises with dilation"];
+        g_pap    [label = "Papillary muscle displacement\napical + lateral"];
+        g_cd     [label = "Coaptation depth / tenting\nCD = CD0 x (r/r0) x (SI/SI0)^k", shape = ellipse, fillcolor = "#F5CE9E"];
+        g_tent   [label = "Tenting area\nleaflets pulled apically"];
+        g_ann    [label = "Annular area\nAnn (cm2)", shape = ellipse, fillcolor = "#F5CE9E"];
+        g_annsad [label = "Loss of annular saddle shape\nflattening, loss of systolic contraction"];
+        g_dyssyn [label = "Mechanical dyssynchrony\nlate activation of papillary segment"];
+        g_wall   [label = "Wall thickness\nh from mass and cavity volume"];
+        g_lap    [label = "Laplace wall stress\nsigma = P x r / (2h)", shape = ellipse, fillcolor = "#F5CE9E"];
+        g_sed    [label = "End-diastolic stress sigma_ed\nthe DILATION signal"];
+        g_ses    [label = "End-systolic stress sigma_es\nthe HYPERTROPHY signal\n(FALLS in MR -- see cluster 8)"];
+    }
+
+    subgraph cluster_valve {
+        label = <<b>3. The orifice &#183; a geometric deficit, not a hole</b>>;
+        style = "rounded,filled"; fillcolor = "#FDF0F1"; color = "#C0566A";
+        fontsize = 15; fontcolor = "#8E2B3F";
+        node [fillcolor = "#F9CDD2", color = "#C0566A"];
+
+        v_areq   [label = "Coaptation area DEMANDED\nA_req = Ann x (1 + kt x (CD - CD0))", shape = ellipse, fillcolor = "#F2A9B4"];
+        v_aleaf  [label = "Leaflet area SUPPLIED\nA_leaf", shape = ellipse, fillcolor = "#F2A9B4"];
+        v_resv   [label = "COAPTATION RESERVE\nR = A_leaf - A_req\nMR exists only when R < 0",
+                  shape = note, fillcolor = "#EE8D9C", penwidth = 2.2];
+        v_erosec [label = "Functional orifice\nEROA_sec = k_o x max(0, -R)"];
+        v_eropri [label = "Degenerative orifice\nEROA_pri (prolapse / flail)"];
+        v_ero    [label = "EROA total\n(bounded by the annulus itself)", shape = ellipse, fillcolor = "#F2A9B4"];
+        v_close  [label = "Closing force\nLV systolic pressure x leaflet area"];
+        v_teth   [label = "Tethering force\nchordal tension, apical vector"];
+        v_bal    [label = "Force balance\nclosing vs tethering"];
+        v_dyn    [label = "EROA IS DYNAMIC\nbiphasic in secondary MR;\nload-dependent, so it changes with\nafterload before anything remodels"];
+    }
+
+    subgraph cluster_leaf {
+        label = <<b>4. Leaflet plasticity &#183; why speed matters, not only size</b>>;
+        style = "rounded,filled"; fillcolor = "#F2FAF0"; color = "#4F8F4A";
+        fontsize = 15; fontcolor = "#2F6B2C";
+        node [fillcolor = "#D8F0D2", color = "#4F8F4A"];
+
+        l_stretch [label = "Chronic leaflet stretch\n(tethering strain)"];
+        l_endo    [label = "Endothelial-to-mesenchymal\ntransition; TGF-beta"];
+        l_vic     [label = "Valve interstitial cell activation\nalpha-SMA+, proliferative"];
+        l_grow    [label = "Leaflet AREA GROWS\nmeasured +15-20% under tethering"];
+        l_partial [label = "Adaptation is PARTIAL\nrecovers only phi ~ 0.35 of the\nexcess demand, never all of it",
+                   shape = note, fillcolor = "#B6E0AC", penwidth = 2.0];
+        l_rate    [label = "Growth is RATE-LIMITED\ncap ~ 0.003 cm2/day"];
+        l_thick   [label = "Leaflet thickening + fibrosis\nstiffer, less able to coapt"];
+        l_fast    [label = "FAST dilation (infarct)\ndeficit = the WHOLE excess demand\n-> MR appears",
+                   shape = note, fillcolor = "#B6E0AC", penwidth = 2.0];
+        l_slow    [label = "SLOW dilation\nleaflets keep up; deficit only\n(1-phi) of excess -> LESS MR at the\nSAME final ventricular size",
+                   shape = note, fillcolor = "#B6E0AC", penwidth = 2.0];
+    }
+
+    subgraph cluster_flow {
+        label = <<b>5. Regurgitant flow &#183; the numerator</b>>;
+        style = "rounded,filled"; fillcolor = "#EFF8FE"; color = "#3F7FAF";
+        fontsize = 15; fontcolor = "#255A80";
+        node [fillcolor = "#CFE6F7", color = "#3F7FAF"];
+
+        f_grad  [label = "Systolic transmitral gradient\ndP = c_s x P_es - P_LA"];
+        f_bern  [label = "Simplified Bernoulli\nv = 50 x sqrt(dP) cm/s\n(dP 100 mmHg -> 5 m/s jet)"];
+        f_tr    [label = "Regurgitant duration\nT_r = LVET + isovolumic\n(no true isovolumic phase in MR)"];
+        f_vti   [label = "Regurgitant VTI\nintegral of v dt (~130-150 cm)"];
+        f_rvol  [label = "REGURGITANT VOLUME\nRVol = EROA x VTI", shape = ellipse, fillcolor = "#A9D3F0", penwidth = 2.0];
+        f_svtot [label = "Total stroke volume\nSV_tot = SV_fwd + RVol"];
+        f_svf   [label = "FORWARD stroke volume\nSV_fwd -- the only one the body uses", shape = ellipse, fillcolor = "#A9D3F0"];
+        f_rf    [label = "DENOMINATOR 2\nRegurgitant fraction RF = RVol / SV_tot",
+                 shape = note, fillcolor = "#8CC4E8", penwidth = 2.2];
+        f_par   [label = "A PARALLEL low-impedance path\nthe leak competes with the aorta\nfor every millilitre"];
+        f_hr    [label = "Heart rate\nsets T_r per beat AND beats per minute\n-- opposite signs (see cluster 15)"];
+    }
+
+    subgraph cluster_lv {
+        label = <<b>6. LV pump &#183; time-varying elastance, solved to steady state</b>>;
+        style = "rounded,filled"; fillcolor = "#FDF1F1"; color = "#BF5B5B";
+        fontsize = 15; fontcolor = "#8C2F2F";
+        node [fillcolor = "#F7C9C9", color = "#BF5B5B"];
+
+        lv_ees  [label = "End-systolic elastance E_es\nCONTRACTILITY", shape = ellipse, fillcolor = "#F0A6A6"];
+        lv_espvr[label = "ESPVR\nP_es = E_es x (V_es - V0s)"];
+        lv_edpvr[label = "EDPVR\nP_ed = A x (exp(B(V-V0d)) - 1)"];
+        lv_bed  [label = "Diastolic stiffness B\nrises with interstitial collagen"];
+        lv_ea   [label = "Arterial elastance E_a\nE_a = c x R_sys / T"];
+        lv_coup [label = "Ventriculo-arterial coupling\nE_es / E_a"];
+        lv_solve[label = "BEAT SOLVED IMPLICITLY\nP_es = E_es(V_ed - P_es/E_a - RVol(P_es) - V0s)\nmonotone -> unique root",
+                 shape = note, fillcolor = "#EB9494", penwidth = 2.0];
+        lv_ef   [label = "LVEF = SV_tot / V_ed\ncontains the leak", shape = ellipse, fillcolor = "#F0A6A6"];
+        lv_effw [label = "Forward EF = SV_fwd / V_ed\nwhat the body actually gets"];
+        lv_hide [label = "DENOMINATOR 4\nMR REMOVES AFTERLOAD, so E_es can fall\nfar while EF still looks normal.\nEF 60% is the operative threshold BECAUSE\nof this, not by convention",
+                 shape = note, fillcolor = "#E57C7C", penwidth = 2.4];
+        lv_mism [label = "Afterload mismatch\nclose the leak and EF FALLS at\nunchanged contractility"];
+        lv_work [label = "Stroke work and PVA\noxygen cost per useful litre rises"];
+    }
+
+    subgraph cluster_vortex {
+        label = <<b>7. The vortex &#183; MR begets MR, and the loop gain is computable</b>>;
+        style = "rounded,filled"; fillcolor = "#FFF6F0"; color = "#C2663A";
+        fontsize = 15; fontcolor = "#8E3F18";
+        node [fillcolor = "#FAD4C0", color = "#C2663A"];
+
+        x_load  [label = "Volume load on the LV\nSV_tot must rise to keep SV_fwd"];
+        x_sed   [label = "End-diastolic stress rises"];
+        x_dil   [label = "Chamber dilates (V0d up)"];
+        x_teth  [label = "Papillary displacement, tenting up"];
+        x_areq  [label = "Coaptation demand A_req up"];
+        x_def   [label = "Reserve R crosses zero\n-> orifice opens / widens"];
+        x_gain  [label = "LOOP GAIN\nG = d(dV0d/dt)/dV0d, valve-mediated\nplus direct.  G > 0 -> runaway",
+                 shape = note, fillcolor = "#F5B694", penwidth = 2.4];
+        x_af    [label = "AF onset -> annular dilation\nadds a SECOND arm to the loop"];
+        x_ring  [label = "Annuloplasty cuts the ANNULAR arm\nbut leaves the TETHERING arm\n-> recurrence",
+                 shape = note, fillcolor = "#F5B694", penwidth = 2.0];
+    }
+
+    subgraph cluster_growth {
+        label = <<b>8. Growth and remodelling &#183; the compensation that is also the disease</b>>;
+        style = "rounded,filled"; fillcolor = "#F2FAF0"; color = "#4F8F4A";
+        fontsize = 15; fontcolor = "#2F6B2C";
+        node [fillcolor = "#D8F0D2", color = "#4F8F4A"];
+
+        gr_ecc  [label = "ECCENTRIC hypertrophy\nmass tracks cavity size;\nsarcomeres added in series"];
+        gr_con  [label = "CONCENTRIC term\ndriven by SYSTOLIC stress"];
+        gr_neg  [label = "IN MR THE CONCENTRIC TERM IS NEGATIVE\nthe leak unloads systole, so the wall never\nthickens enough -- the hypertrophy of MR\ndoes not protect the ventricle",
+                 shape = note, fillcolor = "#B6E0AC", penwidth = 2.2];
+        gr_fib  [label = "Interstitial collagen\nfibroblast -> myofibroblast"];
+        gr_tgf  [label = "TGF-beta / CTGF, galectin-3"];
+        gr_mmp  [label = "MMP / TIMP imbalance\nmatrix turnover"];
+        gr_titin[label = "Titin isoform shift, phosphorylation"];
+        gr_ees  [label = "Contractility LOST\nenergetic deficit, oxidative stress,\nbeta-receptor downregulation"];
+        gr_rev  [label = "Reverse remodelling\nSLOWER than forward -- hysteresis"];
+        gr_irr  [label = "Irreversible component\nreplacement fibrosis does not regress"];
+    }
+
+    subgraph cluster_la {
+        label = <<b>9. Left atrium &#183; DENOMINATOR 1, the acute/chronic switch</b>>;
+        style = "rounded,filled"; fillcolor = "#EEF7F5"; color = "#3F8F84";
+        fontsize = 15; fontcolor = "#1F6B60";
+        node [fillcolor = "#D3E8E4", color = "#3F8F84";]
+
+        la_pv   [label = "LA pressure-volume law\nP = A(exp(B(V-V0)) - 1)\nEXPONENTIAL, not linear"];
+        la_cop  [label = "OPERATING compliance\nC_op = 1 / (B x (P_LA + A))", shape = ellipse, fillcolor = "#AFD6D0", penwidth = 2.0];
+        la_v    [label = "v WAVE\nv = xi x RVol / C_op", shape = ellipse, fillcolor = "#AFD6D0"];
+        la_acute[label = "ACUTE: virgin atrium, steep curve\nC_op ~ 0.8 mL/mmHg\n-> GIANT v wave, flash oedema,\nnormal-sized LA on echo",
+                 shape = note, fillcolor = "#93C6BE", penwidth = 2.2];
+        la_chron[label = "CHRONIC: curve shifted right AND\nflattened, C_op ~ 2-3 mL/mmHg\n-> same RVol, small v wave,\nyears of no symptoms",
+                 shape = note, fillcolor = "#93C6BE", penwidth = 2.2];
+        la_dil  [label = "LA dilation V0la\nstretch-driven, with a deadband"];
+        la_fib  [label = "LA fibrosis (atrial myopathy)\nSTIFFENS the atrium again"];
+        la_late [label = "Late decompensation with an\nUNCHANGED valve lesion\n-- the denominator moved, not the numerator",
+                 shape = note, fillcolor = "#93C6BE", penwidth = 2.0];
+        la_af   [label = "Atrial fibrillation\nsubstrate = size + fibrosis"];
+        la_kick [label = "Loss of atrial transport\n-8% filling"];
+        la_stasis[label = "Stasis -> thromboembolism\nCHA2DS2-VASc, anticoagulation"];
+        la_pcwp [label = "Effective pulmonary capillary pressure\nP_pcw = P_LA + f x v", shape = ellipse, fillcolor = "#AFD6D0"];
+    }
+
+    subgraph cluster_lung {
+        label = <<b>10. Lung &#183; congestion and the second barrier</b>>;
+        style = "rounded,filled"; fillcolor = "#EFF8FE"; color = "#3F7FAF";
+        fontsize = 15; fontcolor = "#255A80";
+        node [fillcolor = "#CFE6F7", color = "#3F7FAF"];
+
+        p_star  [label = "Starling filtration\nP_pcw vs oncotic + lymphatic"];
+        p_oed   [label = "Alveolar oedema when\nP_pcw > P_crit"];
+        p_lymph [label = "Lymphatic adaptation\nRAISES P_crit over weeks\n-- why chronic patients tolerate\na wedge that would drown a virgin lung"];
+        p_pvr   [label = "PULMONARY VASCULAR REMODELLING\nmedial hypertrophy, intimal fibrosis"];
+        p_pvrfix[label = "IRREVERSIBLE component\ndoes not regress after repair", shape = note, fillcolor = "#A9D3F0", penwidth = 2.0];
+        p_ppa   [label = "PA pressure\nP_pa = P_LA + PVR x Q"];
+        p_barrier[label = "THE SECOND BARRIER\nfix the valve late and the lung has\nbecome the disease",
+                  shape = note, fillcolor = "#8CC4E8", penwidth = 2.2];
+        p_v25   [label = "Vasodilator-responsive vs fixed\ncomponent (combined post-capillary PH)"];
+    }
+
+    subgraph cluster_rv {
+        label = <<b>11. Right ventricle &#183; the chamber that decides survival</b>>;
+        style = "rounded,filled"; fillcolor = "#F6F5EE"; color = "#8A8560";
+        fontsize = 15; fontcolor = "#5C5838";
+        node [fillcolor = "#E3E0D2", color = "#8A8560"];
+
+        r_ees   [label = "RV elastance E_es,rv"];
+        r_coup  [label = "RV-PA coupling\nE_es,rv / E_a,rv  (TAPSE/PASP)"];
+        r_fail  [label = "RV failure\nafterload-induced contractile loss"];
+        r_dil   [label = "RV dilation, TR, annular stretch"];
+        r_cvp   [label = "Systemic venous pressure\nCVP from the RV EDPVR", shape = ellipse, fillcolor = "#CFCBB6"];
+        r_inter [label = "Ventricular interdependence\npericardial constraint"];
+        r_cong  [label = "Congestive nephropathy\nand hepatopathy"];
+    }
+
+    subgraph cluster_neuro {
+        label = <<b>12. Neurohormonal and renal &#183; the volume that fills the lung</b>>;
+        style = "rounded,filled"; fillcolor = "#FDF2F7"; color = "#B4568C";
+        fontsize = 15; fontcolor = "#84245C";
+        node [fillcolor = "#F4C7DC", color = "#B4568C"];
+
+        n_baro [label = "Baroreflex\ndriven by cardiac INDEX, saturating"];
+        n_ne   [label = "Sympathetic drive\nHR up, E_es up acutely, toxic chronically"];
+        n_raas [label = "Renin-angiotensin\nangiotensin II"];
+        n_ald  [label = "Aldosterone"];
+        n_na   [label = "Renal sodium and water retention"];
+        n_esc  [label = "Pressure natriuresis / escape\nbounds the overload"];
+        n_vol  [label = "Total blood volume V_tot", shape = ellipse, fillcolor = "#E9A8C6"];
+        n_gfr  [label = "eGFR: forward perfusion DOWN\nplus venous congestion UP"];
+        n_bnp  [label = "BNP / NT-proBNP\nwall stress + wedge"];
+        n_np   [label = "Natriuretic peptide axis\ncGMP, venodilation, natriuresis"];
+    }
+
+    subgraph cluster_drug {
+        label = <<b>13. Pharmacology &#183; PK and where each agent enters</b>>;
+        style = "rounded,filled"; fillcolor = "#EDF8F6"; color = "#3E8F86";
+        fontsize = 15; fontcolor = "#1F6B62";
+        node [fillcolor = "#C6E9E4", color = "#3E8F86"];
+
+        d_fur  [label = "Furosemide / torsemide\nNKCC2; depot + central PK;\nbraking phenomenon"];
+        d_arni [label = "Sacubitril / valsartan\nLBQ657 t1/2 ~11.5 h + valsartan"];
+        d_nepi [label = "Neprilysin inhibition\nNP up -> venodilation, natriuresis,\nanti-fibrotic"];
+        d_arb  [label = "AT1 blockade\nR_sys down, fibrosis down"];
+        d_bb   [label = "Beta-blocker (metoprolol, carvedilol)\nHR down; E_es down acutely,\nRECOVERED chronically"];
+        d_mra  [label = "MRA (spironolactone -> canrenone)\nANTI-FIBROTIC + mild natriuresis"];
+        d_sglt [label = "SGLT2 inhibitor (dapagliflozin)\nlowers the volume SETPOINT ~6%"];
+        d_snp  [label = "Nitroprusside (IV)\nR_sys down 40% -- the ACUTE MR bridge"];
+        d_dob  [label = "Dobutamine (IV)\nE_es up, HR up"];
+        d_ivab [label = "Ivabradine\nHR without inotropy -- lets the HR\nquestion be asked cleanly"];
+        d_ac   [label = "Anticoagulation for AF\nDOAC / warfarin"];
+        d_shift[label = "AFTERLOAD REDUCTION IS ANTI-MR\nthe leak and the aorta are in PARALLEL,\nso lowering R_sys redistributes flow\nFORWARD before anything remodels",
+                shape = note, fillcolor = "#A6DBD3", penwidth = 2.2];
+    }
+
+    subgraph cluster_device {
+        label = <<b>14. Device and surgery &#183; which arm of the loop is cut</b>>;
+        style = "rounded,filled"; fillcolor = "#F5F2FC"; color = "#7E6BB5";
+        fontsize = 15; fontcolor = "#4E3B80";
+        node [fillcolor = "#DCD3F0", color = "#7E6BB5"];
+
+        s_teer  [label = "TEER / MitraClip, PASCAL\nedge-to-edge, double orifice"];
+        s_teerx [label = "TRADE-OFF: EROA down\nBUT mitral resistance UP\n(iatrogenic gradient 3-4 mmHg)",
+                 shape = note, fillcolor = "#C4B6E6", penwidth = 2.0];
+        s_ring  [label = "Surgical annuloplasty ring\nCLAMPS the annulus"];
+        s_rep   [label = "Leaflet repair\nresection, neochordae, cleft closure"];
+        s_mvr   [label = "Replacement\nchordal-sparing vs not"];
+        s_scaf  [label = "Lose the chordae, lose the\nventricular scaffold: E_es falls"];
+        s_crt   [label = "CRT / resynchronisation\nrestores closing force -> EROA down"];
+        s_revasc[label = "Revascularisation\nregional papillary function"];
+        s_tmvr  [label = "Transcatheter replacement (TMVR)\nabolishes the orifice, adds a gradient"];
+        s_lvad  [label = "LVAD / transplant\nwhen the ventricle is the disease"];
+        s_timing[label = "TIMING IS THE INTERVENTION\nthe same procedure at year 1 and year 5\nare different treatments",
+                 shape = note, fillcolor = "#C4B6E6", penwidth = 2.2];
+    }
+
+    subgraph cluster_prop {
+        label = <<b>15. DENOMINATOR 3 &#183; proportionality, and why two trials disagreed</b>>;
+        style = "rounded,filled"; fillcolor = "#FFF8E8"; color = "#B08A20";
+        fontsize = 15; fontcolor = "#7A5C00";
+        node [fillcolor = "#FFF2B8", color = "#B08A20"];
+
+        pr_def   [label = "RVol relative to LVEDV\nis MR big FOR THIS VENTRICLE?", shape = ellipse, fillcolor = "#F2DE86", penwidth = 2.0];
+        pr_dis   [label = "DISPROPORTIONATE\nlarge orifice, moderately dilated LV\n-> the VALVE is the disease\n-> abolishing it helps",
+                  shape = note, fillcolor = "#EBD268", penwidth = 2.2];
+        pr_pro   [label = "PROPORTIONATE\nmodest orifice, hugely dilated LV\n-> the VENTRICLE is the disease\n-> abolishing MR changes little",
+                  shape = note, fillcolor = "#EBD268", penwidth = 2.2];
+        pr_coapt [label = "COAPT\nEROA ~0.41 cm2, LVEDVi ~101 mL/m2\nHFH 35.8 vs 67.9 /pt-yr\ndeath 29.1% vs 46.1% at 24 mo"];
+        pr_mitra [label = "MITRA-FR\nEROA ~0.31 cm2, LVEDVi ~135 mL/m2\ndeath or HFH 54.6% vs 51.3% at 12 mo\n(no difference)"];
+        pr_same  [label = "SAME DEVICE, SAME EROA REDUCTION.\nThe treatment effect changes SIGN\nbecause the denominator changed",
+                  shape = note, fillcolor = "#E5C64A", penwidth = 2.4];
+        pr_hr    [label = "HEART RATE, both ways\nslower -> longer T_r -> MORE RVol per beat\nbut FEWER beats -> less per minute.\nThe optimum is computable"];
+        pr_lowflow[label = "The low-flow trap\nas SV_tot falls, the SAME RVol becomes\na HIGHER grade -- severity rises\nbecause the ventricle failed"];
+    }
+
+    subgraph cluster_meas {
+        label = <<b>16. DENOMINATOR 5 &#183; the measurement has its own bias</b>>;
+        style = "rounded,filled"; fillcolor = "#F4F4F8"; color = "#6E6E86";
+        fontsize = 15; fontcolor = "#41415C";
+        node [fillcolor = "#E0E0E8", color = "#6E6E86"];
+
+        m_pisa  [label = "PISA\nEROA = 2 pi r2 x V_alias / V_max\nASSUMES A HEMISPHERE"];
+        m_cres  [label = "Functional orifice is a CRESCENT\nalong the coaptation line"];
+        m_kpisa [label = "k_PISA > 1 for secondary MR\nreported EROA is INFLATED",
+                 shape = note, fillcolor = "#C9C9D8", penwidth = 2.2];
+        m_vol   [label = "Volumetric method\nSV_tot - SV_fwd (3D, or LVOT Doppler)"];
+        m_disc  [label = "The two methods DISAGREE\nin secondary MR"];
+        m_thr   [label = "The 0.4 cm2 threshold was calibrated\non ROUND primary orifices and is then\napplied to crescentic functional ones",
+                 shape = note, fillcolor = "#C9C9D8", penwidth = 2.0];
+        m_cmr   [label = "CMR reference\nRVol = LV SV - aortic forward flow"];
+        m_ecc   [label = "Eccentric jet, multiple jets,\nCoanda effect -> colour Doppler misleads"];
+        m_3d    [label = "3D TOE planimetry of the\nanatomic regurgitant orifice"];
+    }
+
+    subgraph cluster_end {
+        label = <<b>17. Clinical endpoints</b>>;
+        style = "rounded,filled"; fillcolor = "#FFFFFF"; color = "#666666";
+        fontsize = 15; fontcolor = "#333333";
+        node [fillcolor = "#FFFFFF", color = "#666666"];
+
+        e_dysp  [label = "Dyspnoea, orthopnoea, NYHA class"];
+        e_kccq  [label = "KCCQ / quality of life"];
+        e_6mwd  [label = "6-minute walk distance"];
+        e_hfh   [label = "HF hospitalisation\n(a RATE, recurrent events)"];
+        e_death [label = "All-cause mortality"];
+        e_af    [label = "New atrial fibrillation"];
+        e_stroke[label = "Stroke / systemic embolism"];
+        e_ph    [label = "Pulmonary hypertension"];
+        e_rvf   [label = "Right heart failure, ascites, oedema"];
+        e_renal [label = "Worsening renal function"];
+        e_oedema[label = "Acute pulmonary oedema\n(the acute MR presentation)"];
+        e_shock [label = "Cardiogenic shock\n(papillary rupture)"];
+        e_recur [label = "Recurrent MR after repair"];
+        e_grad  [label = "Iatrogenic mitral stenosis"];
+    }
+
+    subgraph cluster_key {
+        label = <<b>18. Reading this map</b>>;
+        style = "rounded,filled"; fillcolor = "#FBF6EE"; color = "#9A7B4F";
+        fontsize = 15; fontcolor = "#6B5230";
+        node [fillcolor = "#EFE2D0", color = "#9A7B4F"];
+
+        k_num  [label = "ONE numerator: RVol (cluster 5)"];
+        k_d1   [label = "DENOMINATOR 1  C_LA operating  -> congestion (cluster 9)"];
+        k_d2   [label = "DENOMINATOR 2  SV_total        -> grade (cluster 5)"];
+        k_d3   [label = "DENOMINATOR 3  LVEDV           -> valve or ventricle (cluster 15)"];
+        k_d4   [label = "DENOMINATOR 4  removed afterload -> hidden contractility (cluster 6)"];
+        k_d5   [label = "DENOMINATOR 5  k_PISA          -> the measurement itself (cluster 16)"];
+        k_loop [label = "Clusters 6-7 are LOOPS, not pathways:\nthe gain can exceed one"];
+        k_num -> k_d1 [style=invis]; k_d1 -> k_d2 [style=invis];
+        k_d2 -> k_d3 [style=invis]; k_d3 -> k_d4 [style=invis];
+        k_d4 -> k_d5 [style=invis]; k_d5 -> k_loop [style=invis];
+    }
+
+    /* =================================================================== */
+    /* aetiology -> lesion                                                 */
+    aet_myx -> aet_prol; aet_myx -> aet_flail; aet_gene -> aet_myx;
+    aet_prol -> v_eropri; aet_flail -> v_eropri;
+    aet_rheum -> v_eropri; aet_ie -> v_eropri; aet_cong -> v_eropri;
+    aet_hcm -> v_dyn; aet_drug -> l_thick;
+    aet_sec -> aet_isch; aet_sec -> aet_dcm; aet_sec -> aet_amr;
+    aet_isch -> g_pap [label="regional"]; aet_isch -> g_dyssyn;
+    aet_dcm -> g_V0d; aet_amr -> g_ann [label="AF-driven"];
+    aet_acute -> v_eropri [label="step change"]; aet_acute -> la_acute;
+    aet_isch -> gr_ees [label="infarct"];
+
+    /* geometry chain                                                      */
+    g_V0d -> g_edv; g_edv -> g_rad; g_V0d -> g_sph; g_rad -> g_pap;
+    g_sph -> g_pap; g_pap -> g_cd; g_dyssyn -> g_cd; g_cd -> g_tent;
+    g_cd -> v_areq; g_ann -> v_areq; g_annsad -> v_areq;
+    g_ann -> g_annsad; g_rad -> g_lap; g_wall -> g_lap;
+    g_lap -> g_sed; g_lap -> g_ses; g_edv -> g_lap;
+
+    /* orifice                                                             */
+    v_areq -> v_resv [label="demand"]; v_aleaf -> v_resv [label="supply"];
+    v_resv -> v_erosec [label="only if R<0", style=bold];
+    v_erosec -> v_ero; v_eropri -> v_ero;
+    v_close -> v_bal; v_teth -> v_bal; v_bal -> v_dyn; v_dyn -> v_ero;
+    g_cd -> v_teth; lv_ees -> v_close; g_ann -> v_ero [style=dashed, label="bounds"];
+
+    /* leaflet plasticity                                                  */
+    v_areq -> l_stretch; l_stretch -> l_endo -> l_vic -> l_grow;
+    l_grow -> v_aleaf [style=bold]; l_partial -> l_grow; l_rate -> l_grow;
+    l_vic -> l_thick; l_thick -> v_aleaf [label="stiffer", style=dashed];
+    l_fast -> v_resv [style=bold]; l_slow -> v_resv [style=bold];
+    l_rate -> l_fast; l_partial -> l_slow; g_V0d -> l_fast [style=dashed];
+
+    /* flow                                                                */
+    v_ero -> f_rvol [style=bold]; f_grad -> f_bern -> f_vti; f_tr -> f_vti;
+    f_vti -> f_rvol; f_rvol -> f_svtot; f_svtot -> f_svf;
+    f_rvol -> f_rf; f_svtot -> f_rf; f_par -> f_rvol; f_hr -> f_tr;
+    lv_solve -> f_grad; la_pcwp -> f_grad [label="- P_LA"];
+
+    /* LV pump                                                             */
+    lv_ees -> lv_espvr; lv_espvr -> lv_solve; lv_edpvr -> g_edv;
+    lv_bed -> lv_edpvr; lv_ea -> lv_solve; lv_ea -> lv_coup; lv_ees -> lv_coup;
+    f_par -> lv_solve [label="parallel drain", style=bold];
+    lv_solve -> f_svf; f_svtot -> lv_ef; f_svf -> lv_effw;
+    lv_ef -> lv_hide; lv_effw -> lv_hide; lv_ees -> lv_hide;
+    lv_hide -> lv_mism [style=bold]; lv_mism -> s_timing;
+    lv_solve -> lv_work; lv_work -> gr_ees;
+    g_ses -> lv_solve [style=dashed];
+
+    /* the vortex                                                          */
+    f_rvol -> x_load [style=bold]; x_load -> x_sed -> x_dil -> x_teth
+        -> x_areq -> x_def -> x_load [style=bold, color="#C2663A", penwidth=1.9];
+    x_dil -> g_V0d; x_def -> v_ero; x_gain -> x_dil;
+    x_af -> g_ann [style=bold]; la_af -> x_af; x_ring -> x_af [style=dashed];
+    s_ring -> x_ring; x_areq -> x_gain [style=dashed];
+
+    /* growth                                                              */
+    g_sed -> gr_ecc [style=bold]; g_ses -> gr_con; gr_con -> gr_neg [style=bold];
+    gr_neg -> g_wall [label="thin wall", style=bold];
+    gr_ecc -> g_wall; gr_ecc -> g_V0d;
+    n_raas -> gr_fib; n_ald -> gr_fib; g_ses -> gr_fib; gr_tgf -> gr_fib;
+    gr_mmp -> gr_fib; gr_titin -> lv_bed; gr_fib -> lv_bed [style=bold];
+    gr_fib -> gr_irr; gr_ees -> lv_ees [style=bold]; n_ne -> gr_ees;
+    gr_rev -> g_V0d [style=dashed]; gr_irr -> gr_rev [style=dashed];
+
+    /* left atrium -- denominator 1                                        */
+    f_rvol -> la_v [style=bold]; la_pv -> la_cop [style=bold];
+    la_cop -> la_v [style=bold, label="DIVIDE BY THIS"];
+    la_v -> la_pcwp; la_dil -> la_pv [label="shift right + flatten"];
+    la_fib -> la_pv [label="stiffen again"]; la_pcwp -> la_dil;
+    la_acute -> la_cop; la_chron -> la_cop; la_dil -> la_chron;
+    la_fib -> la_late [style=bold]; la_late -> la_pcwp;
+    la_dil -> la_af; la_fib -> la_af; la_af -> la_kick; la_af -> la_stasis;
+    la_kick -> g_edv [style=dashed]; la_stasis -> e_stroke;
+    n_ald -> la_fib; la_af -> e_af;
+
+    /* lung                                                                */
+    la_pcwp -> p_star [style=bold]; p_star -> p_oed; p_lymph -> p_oed [style=dashed];
+    la_pcwp -> p_lymph; p_oed -> e_oedema;
+    la_pcwp -> p_pvr [style=bold]; p_pvr -> p_pvrfix; p_pvr -> p_ppa;
+    la_pcwp -> p_ppa; p_pvrfix -> p_barrier [style=bold];
+    p_barrier -> s_timing [style=bold]; p_pvr -> p_v25; p_ppa -> e_ph;
+
+    /* right heart                                                         */
+    p_ppa -> r_coup [style=bold]; r_ees -> r_coup; r_coup -> r_fail;
+    r_fail -> r_dil; r_fail -> r_cvp [style=bold]; r_dil -> r_cvp;
+    r_cvp -> r_cong; r_cong -> n_gfr [style=bold]; r_cvp -> e_rvf;
+    r_inter -> g_edv [style=dashed]; r_dil -> r_inter; r_fail -> e_death;
+
+    /* neurohormonal / renal                                               */
+    f_svf -> n_baro [label="cardiac index"]; n_baro -> n_ne; n_baro -> n_raas;
+    n_raas -> n_ald -> n_na -> n_vol [style=bold]; n_esc -> n_vol [style=dashed];
+    n_vol -> la_pcwp [style=bold, label="fills the lung"];
+    n_vol -> g_edv; n_ne -> f_hr; n_raas -> lv_ea [label="R_sys up"];
+    n_gfr -> n_na; n_np -> n_na [style=dashed]; g_sed -> n_bnp; la_pcwp -> n_bnp;
+    n_gfr -> e_renal;
+
+    /* drugs                                                               */
+    d_fur -> n_na [arrowhead=tee, style=bold]; d_fur -> n_raas [label="activates"];
+    d_arni -> d_nepi; d_arni -> d_arb;
+    d_nepi -> n_np [style=bold]; d_nepi -> gr_fib [arrowhead=tee];
+    d_nepi -> n_bnp [label="BNP UP, NT-proBNP DOWN", style=dashed];
+    d_arb -> n_raas [arrowhead=tee]; d_arb -> lv_ea [arrowhead=tee];
+    d_bb -> f_hr [arrowhead=tee]; d_bb -> lv_ees [label="down acutely, UP chronically"];
+    d_mra -> gr_fib [arrowhead=tee, style=bold]; d_mra -> la_fib [arrowhead=tee];
+    d_sglt -> n_vol [arrowhead=tee, style=bold];
+    d_snp -> lv_ea [arrowhead=tee, style=bold]; d_snp -> d_shift;
+    d_dob -> lv_ees; d_ivab -> f_hr [arrowhead=tee]; d_ivab -> pr_hr;
+    d_ac -> e_stroke [arrowhead=tee];
+    d_shift -> f_rvol [arrowhead=tee, style=bold, color="#3E8F86", penwidth=1.9];
+    d_shift -> f_svf [style=bold, color="#3E8F86"];
+    lv_ea -> f_par [style=bold];
+
+    /* devices                                                             */
+    s_teer -> v_ero [arrowhead=tee, style=bold]; s_teer -> s_teerx;
+    s_teerx -> e_grad; s_teerx -> f_grad [style=dashed];
+    s_ring -> g_ann [arrowhead=tee, style=bold]; s_rep -> v_aleaf;
+    s_mvr -> v_ero [arrowhead=tee]; s_mvr -> s_scaf; s_scaf -> lv_ees [arrowhead=tee];
+    s_crt -> v_close [style=bold]; s_crt -> g_dyssyn [arrowhead=tee];
+    s_revasc -> g_pap [arrowhead=tee]; s_tmvr -> v_ero [arrowhead=tee];
+    s_lvad -> g_V0d [arrowhead=tee]; s_ring -> e_recur;
+    s_timing -> e_hfh [style=bold]; s_timing -> e_death [style=bold];
+
+    /* proportionality -- denominator 3                                    */
+    f_rvol -> pr_def [style=bold]; g_edv -> pr_def [style=bold, label="DIVIDE BY THIS"];
+    pr_def -> pr_dis; pr_def -> pr_pro;
+    pr_dis -> pr_coapt; pr_pro -> pr_mitra;
+    pr_coapt -> pr_same; pr_mitra -> pr_same;
+    pr_same -> s_teer [style=bold, color="#B08A20", penwidth=1.9];
+    f_hr -> pr_hr; pr_hr -> f_rvol [style=dashed];
+    f_rf -> pr_lowflow; f_svtot -> pr_lowflow [style=dashed];
+    pr_pro -> s_lvad [style=dashed]; pr_dis -> s_ring [style=dashed];
+
+    /* measurement -- denominator 5                                        */
+    v_ero -> m_pisa; m_cres -> m_pisa [style=bold]; v_erosec -> m_cres;
+    m_pisa -> m_kpisa [style=bold]; m_kpisa -> pr_coapt [style=dashed];
+    m_kpisa -> pr_mitra [style=dashed]; m_vol -> m_disc; m_pisa -> m_disc;
+    m_kpisa -> m_thr; m_cmr -> m_disc [style=dashed]; m_ecc -> m_pisa;
+    m_3d -> m_cres [style=dashed]; m_disc -> pr_def [style=dashed];
+
+    /* endpoints                                                           */
+    la_pcwp -> e_dysp [style=bold]; f_svf -> e_dysp;
+    e_dysp -> e_kccq; e_dysp -> e_6mwd;
+    la_pcwp -> e_hfh [style=bold]; f_svf -> e_hfh [style=bold];
+    la_pcwp -> e_death; f_svf -> e_death; r_cvp -> e_death;
+    f_svf -> e_shock [style=bold]; la_acute -> e_oedema [style=bold];
+    x_def -> e_recur [style=bold];
+}

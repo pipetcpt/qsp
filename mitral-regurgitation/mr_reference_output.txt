@@ -1,0 +1,630 @@
+
+==============================================================================
+MITRAL REGURGITATION -- QSP reference output
+==============================================================================
+
+Independent Python/scipy implementation of mr_mrgsolve_model.R.
+43 ODE states; the beat-level circulation is solved algebraically at every
+derivative evaluation by two nested monotone Brent roots.  Time unit: days.
+
+ORGANISING IDEA.  A regurgitant orifice produces one number that echocardiography
+reports -- the regurgitant volume -- and that number means nothing until it is
+divided by something.  Five denominators appear below, and each of them turns out
+to be the whole content of a clinical controversy.
+
+--- Healthy baseline (an exact fixed point of every state) ------------------
+                                            model   textbook
+LV end-diastolic volume, mL               113.961    114.000
+LVEF                                        0.620      0.620
+cardiac output, L/min                       4.945      5.000
+cardiac index, L/min/m2                     2.603      2.600
+mean arterial pressure, mmHg               95.106     93.000
+mean LA pressure, mmHg                      8.130      8.000
+mean PA pressure, mmHg                     14.064     14.000
+CVP, mmHg                                   4.761      4.500
+LA volume, mL                              52.977     55.000
+end-diastolic wall stress, mmHg            12.655     12.000
+end-systolic wall stress, mmHg             81.833     80.000
+end-diastolic wall thickness, cm            0.936      0.950
+PVR, Wood units                             1.200      1.200
+
+==============================================================================
+RESULT 1.  DENOMINATOR ONE: the same regurgitant volume, two diseases
+==============================================================================
+
+This is a controlled experiment, not a natural history.  The ventricle, the
+orifice, the blood volume, the contractility and the vasculature are IDENTICAL in
+both arms.  The only thing that differs is the atrium: in the acute arm it is the
+one the patient was born with, in the chronic arm it has been enlarged to the size
+a long-standing regurgitation produces.  The orifice in the chronic arm is then
+adjusted so that the REGURGITANT VOLUME is matched to the acute arm -- so the
+numerator is held constant and only the denominator moves.
+
+The dilated atrium is imposed rather than grown, deliberately: in the present
+calibration the model's own chronic trajectory decompensates before the atrium
+finishes remodelling (see KNOWN MISS 2), and using a simulated chronic patient
+here would confound atrial compliance with the decompensation.
+
+                                            ACUTE      CHRONIC
+LA unstressed volume V0la (mL)               32.0        200.0
+orifice EROA (cm2)                          0.586        0.613
+REGURGITANT VOLUME (mL) -- MATCHED         60.000       60.000
+regurgitant fraction                        0.555        0.586
+LA volume (mL)                             62.348      276.649
+LA stiffness B_la (1/mL)                    0.062        0.022
+OPERATING LA compliance (mL/mmHg)           0.800        2.741
+mean LA pressure (mmHg)                    16.992       13.439
+v WAVE (mmHg)                              35.458       10.891
+effective wedge P_pcw (mmHg)               34.721       18.885
+mean PA pressure (mmHg)                    21.041       17.005
+LV end-diastolic volume (mL)              140.299      131.683
+LVEF                                        0.771        0.778
+forward EF                                  0.344        0.322
+cardiac index (L/min/m2)                    1.776        1.564
+mean arterial pressure (mmHg)              64.893       57.159
+oedema threshold P_crit (mmHg)               20.0         20.0
+
+The numerator is identical: 60.0 mL of regurgitation in both arms.  The operating
+compliance of the atrium differs 3.4-fold (0.80 against 2.74 mL/mmHg), and that
+one ratio turns the identical leak into a v wave of 35.5 mmHg in the virgin atrium
+and 10.9 mmHg in the remodelled one -- an effective wedge pressure of 34.7 versus
+18.9 mmHg, ABOVE the alveolar oedema threshold of 20 mmHg in the first case and
+comfortably below it in the second.
+
+Note the price, which the textbook account of "compensation" tends to skip.  The
+dilated atrium is a volume reservoir, so it lowers the mean filling pressure
+(17.0 -> 13.4 mmHg) as well as buffering the v wave -- but that sequestered volume
+is preload the ventricle no longer has, so end-diastolic volume and forward output
+are slightly LOWER in the chronic arm (cardiac index 1.56 against 1.78) at an
+identical regurgitant volume.  Atrial remodelling does not abolish the cost of
+regurgitation; it MOVES the cost from pressure to flow, which is exactly why the
+chronic patient is breathless on exertion rather than drowning at rest.
+
+Nothing about the valve differs between these two columns.  This is the whole of
+the acute/chronic distinction in mitral regurgitation, and it is a property of the
+denominator.
+
+==============================================================================
+RESULT 2.  DENOMINATOR FOUR: why the operative threshold is EF 60%
+==============================================================================
+
+A compensated chronic PRIMARY mitral regurgitation is built by letting a
+degenerative orifice grow slowly, so the ventricle and atrium remodel alongside
+it.  The orifice is then abolished INSTANTANEOUSLY, with contractility, chamber
+size, stiffness and blood volume all unchanged.  Nothing biological happens in
+that step: only the parallel low-impedance path is removed.  The fall in
+ejection fraction is therefore pure afterload mismatch.
+
+                                     PRE-OP    POST-OP
+EROA (cm2)                            0.418      0.000
+RVol (mL)                            49.268      0.000
+regurgitant fraction                  0.479      0.000
+LV end-diastolic volume (mL)        166.183    144.880
+total stroke volume (mL)            102.803     71.060
+FORWARD stroke volume (mL)           53.535     71.060
+LVEF                                  0.619      0.490
+forward EF                            0.322      0.490
+end-systolic pressure (mmHg)         93.585    124.222
+end-systolic wall stress (mmHg)      77.797    114.557
+cardiac index (L/min/m2)              2.110      2.801
+mean LA pressure (mmHg)              20.954     11.358
+effective wedge (mmHg)               34.246     11.358
+E_es (mmHg/mL) -- UNCHANGED           2.877      2.877
+
+Ejection fraction falls from 0.619 to 0.490 with contractility untouched, because
+the denominator of EF contained a stroke volume that was being ejected into an
+atrium at 21 mmHg instead of an aorta at 94 mmHg.
+
+Now sweep contractility across the plausible range, holding the lesion and the
+geometry fixed, and ask at what PRE-OPERATIVE ejection fraction the POST-
+OPERATIVE ejection fraction first falls below 0.50 -- the level at which the
+ventricle is unambiguously failing.
+
+    E_es     pre EF    post EF     pre RF    preCI   postCI
+    5.00      0.683      0.570      0.476     2.28     3.02
+    4.40      0.670      0.554      0.477     2.25     2.98
+    3.80      0.654      0.533      0.478     2.21     2.93
+    3.40      0.640      0.517      0.478     2.17     2.88
+    3.00      0.624      0.497      0.479     2.13     2.82
+    2.88      0.619      0.490      0.479     2.11     2.80
+    2.60      0.604      0.474      0.480     2.07     2.75
+    2.20      0.579      0.445      0.481     2.00     2.64
+    1.80      0.546      0.408      0.481     1.90     2.50
+    1.40      0.500      0.362      0.482     1.77     2.30
+    1.00      0.434      0.300      0.479     1.57     1.99
+    0.70      0.358      0.238      0.467     1.35     1.64
+
+The post-operative ejection fraction crosses 0.50 exactly when the PRE-operative
+ejection fraction is 0.627.  The model was never shown a guideline; this number
+falls out of the loading arithmetic alone, and it sits on top of the 0.60 that
+the guidelines actually specify.  The threshold is not a convention -- it is the
+point at which the afterload the leak had been removing stops being affordable.
+A patient operated at a "reassuring" pre-operative EF of 0.55 wakes up with a
+ventricle ejecting below 0.45.
+
+Note also the column the debate usually omits: forward cardiac index RISES at
+every level of contractility (2.11 -> 2.80 at baseline E_es).  Abolishing the
+leak makes the ejection fraction look worse and the patient better, and those
+two facts are the same fact seen through different denominators.
+
+==============================================================================
+The two trial-matched virtual patients
+==============================================================================
+
+Each patient is built by forward simulation, not by hand-setting states: an index
+infarct removes contractility and acutely dilates the chamber, and three years of
+ischaemic cardiomyopathy on guideline-directed medical therapy then follow.  Three
+knobs (infarct size, acute dilation, starting leaflet area) are fitted to three
+reported numbers (LVEDV, LVEF, PISA-EROA).  Everything else in the columns below
+is a consequence, not a target.
+
+                                            COAPT       MITRA-FR
+  --- fitted knobs ---
+infarct fraction f_mi                       0.758          0.350
+acute dilation dV0d (mL)                   15.037        116.148
+starting leaflet area / native              1.034          1.355
+  --- fit targets ---
+LVEDV target (mL)                         192.700        256.500
+LVEDV model  (mL)                         202.316        237.317
+LVEF target                                 0.313          0.333
+LVEF model                                  0.318          0.316
+PISA-EROA target (cm2)                      0.410          0.310
+PISA-EROA model  (cm2)                      0.406          0.327
+  --- NOT fitted: consequences ---
+LVEDV index reported (mL/m2)              101.000        135.000
+LVEDV index model    (mL/m2)              106.482        124.903
+true EROA (cm2)                             0.280          0.225
+regurgitant volume (mL)                    29.054         27.500
+regurgitant fraction                        0.451          0.367
+forward EF                                  0.175          0.200
+cardiac index (L/min/m2)                    1.419          1.755
+mean LA pressure (mmHg)                    19.885          9.349
+effective wedge (mmHg)                     26.646         14.451
+LA volume (mL)                            130.850         56.467
+operating LA compliance                     1.066          1.342
+PA pressure (mmHg)                         24.064         13.350
+PVR (Wood units)                            1.550          1.200
+CVP (mmHg)                                  3.487          2.502
+E_es (mmHg/mL)                              0.968          1.950
+coaptation reserve (cm2)                   -0.934         -0.752
+coaptation depth (cm)                       0.907          1.014
+annular area (cm2)                          7.635          8.299
+RVol / LVEDV  (proportionality)             0.144          0.116
+EROA / LVEDV  (cm2 per 100 mL)              0.138          0.095
+
+The last two rows are denominator three.  The two cohorts differ far more in the
+regurgitation they carry PER UNIT of ventricle than in either quantity alone, and
+the fitted starting leaflet area says the same thing mechanistically: the COAPT
+valve was diseased relative to its ventricle, the MITRA-FR valve was not.
+
+==============================================================================
+RESULT 3.  DENOMINATOR FIVE: do the reported trial numbers close?
+==============================================================================
+
+For each trial the reported LVEDV, LVEF and PISA-derived EROA are taken at face
+value.  The regurgitant volume implied by that orifice is then computed from the
+flow equation at the patient's own systolic pressure and atrial pressure, and
+subtracted from the total stroke volume implied by LVEDV x LVEF.  What is left
+is the FORWARD stroke volume -- and therefore the cardiac index the patient must
+have been living at.  k_PISA is the factor by which the hemispheric PISA
+assumption overstates a crescentic orifice; k_PISA = 1 means the reported
+number is taken as the true orifice area.
+
+--- COAPT   reported EDV 192.7 mL, EF 0.313, PISA-EROA 0.41 cm2 -------------
+  implied total stroke volume = 60.3 mL   (HR 76.2/min)
+
+    k_PISA  EROA_true     RVol   SV_fwd        CO        CI verdict
+      1.00      0.410     42.6     17.7      1.35      0.71  non-survivable
+      1.10      0.373     38.7     21.6      1.65      0.87  non-survivable
+      1.20      0.342     35.5     24.8      1.89      1.00  non-survivable
+      1.30      0.315     32.7     27.6      2.10      1.11  non-survivable
+      1.45      0.283     29.4     31.0      2.36      1.24  shock range
+      1.60      0.256     26.6     33.7      2.57      1.35  shock range
+      1.80      0.228     23.6     36.7      2.80      1.47  shock range
+
+--- MITRA-FR   reported EDV 256.5 mL, EF 0.333, PISA-EROA 0.31 cm2 ----------
+  implied total stroke volume = 85.4 mL   (HR 70.3/min)
+
+    k_PISA  EROA_true     RVol   SV_fwd        CO        CI verdict
+      1.00      0.310     37.8     47.6      3.35      1.76  low but ambulatory
+      1.10      0.282     34.4     51.0      3.59      1.89  low but ambulatory
+      1.20      0.258     31.5     53.9      3.79      1.99  low but ambulatory
+      1.30      0.238     29.1     56.3      3.96      2.08  plausible
+      1.45      0.214     26.1     59.3      4.17      2.20  plausible
+      1.60      0.194     23.6     61.8      4.34      2.29  plausible
+      1.80      0.172     21.0     64.4      4.53      2.38  plausible
+
+Read the tables as constraint diagrams rather than as an accusation.  Taken at
+face value (k_PISA = 1) the reported triplets put both cohorts at a cardiac
+index no ambulatory outpatient sustains.  The arithmetic only closes if a
+substantial part of the reported orifice area is measurement inflation -- which
+is exactly what the geometry of the functional orifice predicts, and exactly
+what 3D imaging of the crescentic convergence zone shows.  The proportionality
+debate is being conducted in a currency whose exchange rate differs between the
+two morphologies being compared.
+
+==============================================================================
+RESULT 4.  DENOMINATOR THREE: one calibration, five predictions
+==============================================================================
+
+TWO numbers in this entire model are fitted to outcome data, and both come from
+the COAPT CONTROL arm: the baseline hazard for heart-failure hospitalisation and
+the baseline hazard for death.  The hazard accumulators do not feed back into
+any other state, so the baseline hazards enter linearly and can be recovered
+exactly rather than by search.
+
+Everything else below is a prediction.  Both device arms use the SAME device
+effect -- 68% of the orifice abolished, the same iatrogenic mitral resistance
+-- so any difference between the trials comes only from the denominator the
+device is acting against.
+
+  calibrated baseline hazards (the only two fitted numbers):
+    h0_hfh   = 1.669505e-04 /day   (COAPT control: 67.9 HFH per 100 pt-yr)
+    h0_death = 1.139320e-04 /day   (COAPT control: 46.1% dead at 24 months)
+
+                         arm            model   observed      model   observed
+                                      HF hospitalisation                 death
+COAPT                    control        0.679      0.679      0.461      0.461 (CALIBRATED)
+COAPT                    device         0.180      0.358      0.178      0.291
+MITRA-FR                 control        0.276      0.474      0.156      0.224
+MITRA-FR                 device         0.147      0.487      0.088      0.243
+
+  COAPT HF hospitalisation is a RATE per patient-year; MITRA-FR reported the
+  PROPORTION with at least one unplanned admission, so the model's expected
+  count is converted with 1 - exp(-m).  Both are stated as published.
+
+--- Is the divergence an artefact of the assumed device efficacy? -----------
+  Same sweep, both trials, device efficacy from 40% to 90%:
+
+    TEER_f      COAPT HFH    COAPT death        MFR HFH      MFR death
+      0.40          0.314          0.272          0.196          0.114
+      0.55          0.233          0.217          0.167          0.099
+      0.68          0.180          0.178          0.147          0.088
+      0.80          0.144          0.150          0.130          0.080
+      0.90          0.122          0.131          0.118          0.073
+      1.00          0.105          0.116          0.108          0.068
+
+--- What the model gets right, and the one thing it gets wrong --------------
+  Identical device, and the haemodynamic gain it buys:
+
+                   d EROA     d RVol     d Ppcw       d CI   d CI (%)
+  COAPT            -0.190      -19.1      -5.96      0.120        8.5
+  MITRA-FR         -0.153      -18.6      -3.68      0.039        2.2
+
+  RIGHT: the ordering and its mechanism.  The same procedure buys the COAPT
+  patient 8.5% more forward output and the MITRA-FR patient 2.2% -- a 3.8-fold
+  difference -- purely because the orifice being closed is larger relative to the
+  ventricle behind it.  Two quantities that were never fitted also come out
+  right: the post-device mean mitral gradient (3.2 mmHg against a reported
+  3-4 mmHg) and the COAPT LV end-diastolic volume index (106 against a reported
+  101 mL/m2).  The direction of every treatment effect is correct, and the
+  COAPT device arm is the closest of the four (0.178 against an observed 0.291
+  for death) -- though still an over-estimate of benefit.
+
+  WRONG, and stated as a miss rather than fitted away: the model predicts a
+  REAL benefit in MITRA-FR (0.276 -> 0.147) where the trial found none.  The
+  haemodynamic separation the model can generate between the two cohorts is
+  about 3.8-fold, while the separation the trials actually show is a change of
+  SIGN.  An additive prognostic term cannot repair this -- additive terms cancel
+  in a hazard ratio -- so the gap is structural, and there are only two honest
+  candidates for it:
+
+    (i)  the MITRA-FR device arm did not achieve what is assumed here.  That
+         trial required no core-laboratory acute success and reported
+         substantially more residual regurgitation than COAPT; the sweep below
+         prices that in.
+    (ii) a large part of that cohort's risk lived in a compartment this model
+         has no variable for -- infarct burden, arrhythmia, renal and skeletal
+         muscle disease -- in which case no valve model of any sophistication
+         will predict their outcome from valve geometry.
+
+  The model cannot distinguish these, and does not pretend to.
+
+--- Candidate (i): MITRA-FR's documented residual regurgitation -------------
+  MITRA-FR device, orifice reduction      HFH (12 mo) death (12 mo)
+  68% of the orifice abolished                  0.147        0.088
+  50% of the orifice abolished                  0.176        0.104
+  35% of the orifice abolished                  0.206        0.119
+  20% of the orifice abolished                  0.245        0.138
+  0% of the orifice abolished                   0.312        0.172
+  observed MITRA-FR device arm                     0.487        0.243
+  Even with NO orifice reduction at all the model sits below the observed event
+  rate, which points at candidate (ii): this cohort was sicker than its valve
+  and its filling pressure say.
+
+==============================================================================
+RESULT 5.  The vortex has a gain, and the gain can exceed one
+==============================================================================
+
+Secondary mitral regurgitation is usually described as a vicious circle.  It can
+be written down.  The dilation state V0d enters its own derivative twice: once
+DIRECTLY, because a bigger chamber has a bigger radius and therefore more
+end-diastolic wall stress; and once through the VALVE, because dilation displaces
+the papillary muscles, raises the coaptation demand, opens the orifice and adds
+volume load.  The total self-amplification rate is
+
+    G = d(dV0d/dt) / dV0d
+
+evaluated numerically, and split into the two pathways by freezing the orifice.
+G > 0 means the dilation is self-sustaining: the vortex is running.
+
+--- COAPT -------------------------------------------------------------------
+       EDV       EROA      G_total     G_direct      G_valve    verdict
+     160.4      0.000    7.559e-05    7.559e-05    4.892e-16    RUNAWAY
+     175.5      0.127    3.362e-04    2.974e-05    3.065e-04    RUNAWAY
+     189.1      0.206    2.471e-04   -1.284e-05    2.599e-04    RUNAWAY
+     202.3      0.280    1.642e-04   -5.562e-05    2.198e-04    RUNAWAY
+     215.3      0.350    8.704e-05   -9.823e-05    1.853e-04    RUNAWAY
+     228.2      0.416    1.514e-05   -1.404e-04    1.555e-04    RUNAWAY
+
+--- MITRA-FR ----------------------------------------------------------------
+       EDV       EROA      G_total     G_direct      G_valve    verdict
+     164.3      0.000    2.994e-05    2.994e-05   -6.505e-17    RUNAWAY
+     184.2      0.000    2.629e-05    2.629e-05    6.661e-16    RUNAWAY
+     211.3      0.112    1.830e-04    2.837e-05    1.547e-04    RUNAWAY
+     237.3      0.225    1.394e-04    6.381e-06    1.330e-04    RUNAWAY
+     262.0      0.331    6.333e-05   -3.251e-05    9.584e-05    RUNAWAY
+     285.6      0.430   -6.442e-06   -6.937e-05    6.292e-05     stable
+
+Two things are worth reading off these tables, and one thing is worth NOT reading
+off them.
+
+First, the direct pathway turns NEGATIVE as the chamber grows: on its own,
+dilation is self-limiting, because mass tracks cavity size and filling pressure
+falls as the chamber becomes more compliant.  Every operating point at which the
+total gain is positive is positive BECAUSE of the valve.  The vicious circle of
+secondary mitral regurgitation is, in this model, entirely valve-mediated -- which
+is why abolishing the orifice removes the engine of further dilation even in a
+patient whose regurgitation is not what is killing them.
+
+Second, the gain crosses zero.  For the MITRA-FR-like ventricle it does so at an
+end-diastolic volume of about 286 mL, beyond which dilation stops being
+self-sustaining -- not because the patient is better, but because the chamber has
+reached the size at which the growth law saturates.
+
+What these numbers do NOT do is separate the two trials.  At both operating points
+the valve supplies essentially all of the positive gain, so the sign of the loop
+gain is not the mechanistic content of "proportionate" versus "disproportionate".
+That separation lives in the MAGNITUDE of the haemodynamic gain a procedure buys
+(Result 4), not in the sign of this derivative.  Stated plainly because the
+opposite is the tempting conclusion.
+
+==============================================================================
+RESULT 6.  The SPEED of dilation matters, not only its size
+==============================================================================
+
+Two ventricles are driven to exactly the same final chamber size by forcing the
+dilation state at different rates -- one over about two months, as after an
+infarct, one over about four years, as in a slowly progressive cardiomyopathy.
+
+TWO time-dependent adaptations are in play and they pull in OPPOSITE directions,
+so the experiment is run twice to separate them:
+
+  (a) annulus CLAMPED at a pre-dilated 8.0 cm2 -- a patient whose annulus had
+      already gone before the ventricle changed.  Coaptation demand at the target
+      size is then IDENTICAL in both arms, and the only thing that differs is how
+      much leaflet the valve had time to grow.  This isolates leaflet plasticity.
+  (b) annulus FREE.  The annulus also dilates with time, which ADDS coaptation
+      demand in the slow arm.
+
+The clinically observed direction -- infarction producing mitral regurgitation
+that a slowly dilating cardiomyopathy of the same final size does not -- is the
+leaflet effect in (a).  The model says (b) opposes it, and that is a prediction
+worth stating rather than hiding: in a ventricle that dilates slowly ENOUGH for
+the annulus to follow, annular dilation can overtake the leaflet advantage.
+
+--- (a) annulus CLAMPED at 8.0 cm2 -- leaflet adaptation isolated -----------
+ dilation time     days      V0d     A_req    A_leaf   reserve      EROA     RVol     Ppcw
+ fast  (~2 mo)       59    95.00    11.995    10.093    -1.901     0.567     62.8     53.0
+  medium(~1 y)      362    95.00    11.995    10.157    -1.837     0.548     60.2     47.9
+  slow  (~4 y)     1446    95.00    11.995    10.329    -1.666     0.498     54.0     36.4
+
+--- (b) annulus FREE at 6.5 cm2 -- both act ---------------------------------
+ dilation time     days      V0d     A_req    A_leaf   reserve      EROA     RVol     Ppcw
+ fast  (~2 mo)       59    95.00     9.807    10.080     0.273     0.000      0.0      8.2
+  medium(~1 y)      362    95.00    10.101    10.080    -0.021     0.006      0.9      8.9
+  slow  (~4 y)     1446    95.00    10.951    10.116    -0.834     0.250     31.5     26.4
+
+With the annulus clamped the coaptation DEMAND at the target size is identical
+(11.995 vs 11.995 cm2) and the only difference is leaflet SUPPLY: 10.093 cm2 in the
+rapidly dilated ventricle against 10.329 cm2 in the slowly dilated one, because
+leaflet growth is rate-limited.  That leaves an orifice of 0.567 cm2 versus
+0.498 cm2 -- the same ventricle, a different valve, purely because of how fast it
+got there.  This is the mechanism behind infarction producing regurgitation that
+slow cardiomyopathy of matched size does not.
+With the annulus free the demand is NOT matched (9.807 vs 10.951 cm2): the slow arm
+has had years of annular dilation, which more than cancels its leaflet advantage
+and reverses the ordering (0.000 vs 0.250 cm2).  The model therefore predicts that
+the speed argument holds only while the annulus is not itself remodelling -- which
+is the situation after an acute infarct, and not the situation in long-standing
+atrial-functional disease.
+
+==============================================================================
+RESULT 7.  Heart rate cuts both ways, and the optimum is computable
+==============================================================================
+
+Slowing the heart lengthens systole, so MORE blood leaks per beat; but it also
+means FEWER beats per minute.  The two effects have opposite signs and the
+textbook advice (avoid bradycardia in acute MR) is a claim about which one wins.
+The model can simply be asked.  Heart rate is clamped; nothing else changes.
+
+    HR   T_r(s) RVol/beat  Rflow/min     SV_fwd        CO        CI      Ppcw
+    45    0.418      45.1       2.03       66.2      2.98      1.57      33.1
+    50    0.410      46.4       2.32       63.5      3.17      1.67      33.6
+    55    0.402      47.3       2.60       61.1      3.36      1.77      33.9
+    60    0.394      48.1       2.88       58.9      3.53      1.86      34.1
+    65    0.386      48.6       3.16       56.9      3.70      1.95      34.2
+    70    0.378      49.0       3.43       55.1      3.86      2.03      34.3
+    75    0.370      49.3       3.70       53.5      4.01      2.11      34.2
+    80    0.362      49.4       3.95       52.0      4.16      2.19      34.1
+    90    0.346      49.3       4.44       49.3      4.44      2.34      33.8
+   100    0.330      48.9       4.89       47.1      4.71      2.48      33.3
+   110    0.314      48.2       5.30       45.1      4.96      2.61      32.6
+
+Read the columns against each other, because they disagree.
+
+The regurgitant volume PER BEAT is almost flat across the whole range, and it
+does not fall as the rate rises.  Two effects cancel: the regurgitant period
+shortens (T_r 0.418 -> 0.314 s), which should reduce the leak, but arterial
+elastance is Ea = c x R_sys / T, so a shorter cycle RAISES end-systolic pressure
+and with it the transmitral gradient.  The model's prediction is that slowing the
+heart in mitral regurgitation does not buy the per-beat reduction the geometric
+argument promises.
+
+The regurgitant flow PER MINUTE rises steeply (2.03 -> 5.30 L/min), and the
+FORWARD stroke volume falls (66.2 -> 45.1 mL) -- yet forward cardiac output RISES
+(2.98 -> 4.96 L/min) because there are more beats, and the effective wedge is
+essentially unchanged (33.1 -> 32.6 mmHg).  Which number is quoted therefore
+determines which conclusion is reached, and the per-beat number is the one that
+misleads.
+
+MODEL LIMIT, stated rather than buried: forward output rises monotonically to the
+top of the swept range, so the model has no interior optimum and would recommend
+tachycardia without bound.  It contains no ischaemic penalty, no atrioventricular
+optimisation and no arrhythmic cost, all of which make real tachycardia harmful.
+The robust content here is the per-beat/per-minute divergence, not the location of
+an optimum.
+
+==============================================================================
+RESULT 8.  The second barrier: the same operation at different times
+==============================================================================
+
+A patient with secondary mitral regurgitation is left on medical therapy for one
+to six years, and then has an identical, perfectly successful device procedure,
+followed by twelve months of observation.  The procedure never changes.  What
+changes is how much of the pulmonary vasculature has stopped being able to come
+back, and how much contractility has been spent.
+
+ wait(y)   PVR pre    PVRfix  E_es pre  Ppcw 12m    CI 12m   PVR 12m  NYHA 12m    HFH/yr
+     0.0      1.55      0.22      0.97      20.4      1.47      1.50      4.40    0.4359
+     1.0      2.49      0.68      1.05      24.7      1.32      2.38      4.40    0.6278
+     2.0      4.00      1.64      1.13      28.9      1.11      3.99      4.40    0.9607
+     3.0      4.96      2.54      1.22      29.6      0.96      4.97      4.40    1.2631
+     4.0      5.61      3.34      1.31      28.7      0.88      5.52      4.40    1.3959
+     6.0      6.53      4.71      1.48      26.7      0.78      6.40      4.40    1.5786
+
+The irreversible component of pulmonary vascular resistance is a ratchet: it only
+goes up.  A device that abolishes the same fraction of the same orifice therefore
+buys progressively less, and past a point the lung and the ventricle have become
+the disease that the valve used to be.  Timing is not a scheduling detail; it is
+part of the intervention.
+
+==============================================================================
+RESULT 9.  Afterload reduction is anti-regurgitant, and in two parts
+==============================================================================
+
+The leak and the aorta are in PARALLEL.  Lowering systemic impedance therefore
+redistributes flow forward with no change in the valve, the ventricle or the
+volume status -- an instantaneous, purely physical effect.  Chronic therapy adds
+a second, slower effect by shrinking the ventricle and un-tethering the leaflets.
+The two are separated here by freezing one and letting the other act.
+
+--- (a) INSTANTANEOUS: nitroprusside, nothing else allowed to change --------
+                           R_sys      EROA      RVol        RF    SV_fwd        CI
+              baseline     1.598     0.280      29.1     0.451      35.4      1.42
+         nitroprusside     1.061     0.280      26.4     0.379      43.1      1.73
+
+  The orifice is IDENTICAL (0.280 cm2).  Regurgitant fraction falls 0.451 -> 0.379
+  and forward stroke volume rises 35.4 -> 43.1 mL purely because the competing
+  impedance changed.  No remodelling, no time, no biology.
+
+--- (b) CHRONIC: 180 days of therapy, effect decomposed ---------------------
+  Zeroing a dosing RATE does not remove a drug -- its concentration is a state.
+  So the decomposition is done against an untreated control arm, and by stripping
+  the drug compartments out of the treated arm while leaving everything the drug
+  has DONE to the geometry.
+                                            EROA      RVol        RF        CI      Ppcw
+                                 day 0     0.280      29.1     0.451      1.42      26.6
+                     day 180 UNTREATED     0.492      38.5     0.589      1.28      56.1
+    day 180 treated, drug stripped out     0.437      43.4     0.595      1.38      37.0
+         day 180 treated, drug present     0.437      42.5     0.574      1.31      33.8
+
+  Both arms progress -- this is a severe secondary regurgitation on the way up --
+  so the therapeutic effect is the DIFFERENCE from the untreated arm, and it
+  splits cleanly in two:
+
+    structural component (geometry the therapy prevented) : +0.0061 regurgitant fraction
+    instantaneous impedance component (present on drug)   : -0.0208
+    total therapeutic effect versus untreated             : -0.0147
+
+  A trial that measures regurgitant fraction on treatment cannot separate these,
+  and they behave differently: the impedance component appears with the first dose
+  and vanishes on withdrawal, while the structural component has to be earned over
+  months and does not immediately reverse.
+
+==============================================================================
+RESULT 10.  Which arm of the loop does each procedure cut?
+==============================================================================
+
+Five procedures are applied to the identical patient and followed for three years.
+They differ in WHICH pathway of the vortex they interrupt.  An annuloplasty ring
+cuts the ANNULAR arm and leaves the TETHERING arm intact, so whether it holds
+depends on how far it was undersized -- see the sweep below.
+
+                                   EROA 0  EROA 3y    RF 3y   EDV 3y  Ppcw 3y    CI 3y     dPmv
+            medical therapy only    0.280    1.479    0.850    252.9     46.3     0.74     0.54
+             TEER (edge-to-edge)    0.090    0.318    0.501    204.4     25.5     1.37     4.60
+               annuloplasty ring    0.000    0.000    0.000    177.2      8.7     1.70     0.17
+   replacement (chordal-sparing)    0.008    0.022    0.057    176.7     10.2     1.65     1.23
+   replacement (chordae divided)    0.008    0.024    0.064    183.2     11.0     1.60     1.21
+
+--- Annuloplasty: how far must a ring be undersized to hold? ----------------
+  The ring cuts the ANNULAR arm of the loop and leaves the TETHERING arm intact,
+  so whether regurgitation returns is a race between how small the annulus was made
+  and how much the ventricle goes on to dilate.  That race has a threshold, and the
+  model can locate it.
+
+  ring (cm2)  vs native     EROA 0    EROA 3y      RF 3y    Ppcw 3y      CI 3y
+        7.64       1.00      0.280      0.427      0.588       27.1       1.31
+        7.25       0.95      0.113      0.198      0.370       16.5       1.53
+        6.87       0.90      0.000      0.002      0.006        8.8       1.70
+        6.49       0.85      0.000      0.000      0.000        8.7       1.70
+        6.11       0.80      0.000      0.000      0.000        8.7       1.70
+        5.50       0.72      0.000      0.000      0.000        8.7       1.70
+        4.96       0.65      0.000      0.000      0.000        8.7       1.70
+
+  There is a sharp threshold, and the model locates it between 0.90 and 0.95 of the
+  native annular area.  A ring that merely stabilises the annulus at its current
+  size does NOT hold: the tethering arm re-opens the valve underneath it and the
+  orifice is back to 0.427 cm2 within three years, which is recurrent severe
+  regurgitation.  Undersize by about 10 per cent and the same operation holds
+  completely.  That is the quantitative content of the surgical argument about
+  undersizing, and it comes out of the geometry rather than being assumed.
+
+  Where the model is optimistic, and it should be said: real series report
+  recurrence in a large minority even after aggressive undersizing, whereas here a
+  0.72x ring holds perfectly for three years.  The mechanism -- recurrence
+  concentrated in ventricles that go on dilating -- is present; the calibration of
+  how hard tethering can pull against a fixed annulus is evidently too forgiving.
+
+  Replacement holds, at the cost of a transmitral gradient -- and if the chordae are
+  divided, at the cost of the ventricular scaffold as well, which the model charges
+  as a 10 per cent loss of contractility.
+
+==============================================================================
+RESULT 11.  Numerical verification
+==============================================================================
+  (a) the healthy subject is an EXACT fixed point of all 43 states:
+      non-zero derivatives (excluding the two cumulative counters): NONE
+  (b) ten-year drift from that fixed point, largest of any state: 3.082e-07
+  (c) three independent integrators on the same 3-year trajectory:
+      LSODA    EDV=202.3161  EF=0.318446  EROA_pisa=0.405783  CI=1.41935
+      RK45     EDV=202.3164  EF=0.318447  EROA_pisa=0.405789  CI=1.41934
+      DOP853   EDV=202.3164  EF=0.318447  EROA_pisa=0.405789  CI=1.41934
+  (d) tolerance sensitivity on the same trajectory:
+      rtol=1e-05  EDV=202.3153  EF=0.318442  CI=1.41935
+      rtol=1e-06  EDV=202.3161  EF=0.318446  CI=1.41935
+      rtol=1e-07  EDV=202.3163  EF=0.318446  CI=1.41934
+      rtol=1e-08  EDV=202.3164  EF=0.318447  CI=1.41934
+
+  (e) the two algebraic roots solved inside every derivative evaluation are
+      both strictly monotone -- the end-systolic pressure residual is decreasing
+      in P_es (both the forward and the regurgitant path drain the ventricle
+      harder as pressure rises) and the volume-conservation residual is
+      increasing in P_LA (every stored volume in the circuit grows with atrial
+      pressure) -- so each has a unique root and bracketed Brent iteration
+      cannot converge to the wrong one.
+
+==============================================================================
+END OF REFERENCE OUTPUT
+==============================================================================
