@@ -1,0 +1,705 @@
+/* =====================================================================
+   csdh_qsp_model.dot
+   Chronic Subdural Haematoma (cSDH) -- Quantitative Systems Pharmacology
+   만성 경막하 혈종 (cSDH) 정량적 시스템 약리학 기계론적 지도
+
+   READING THE MAP.  The three heavy arrows converging on HAEMATOMA
+   VOLUME are the whole disease:
+        dV/dt = J_exudation + J_rebleed - J_absorption
+   A cSDH is not a clot failing to resorb; it is a SECRETING ORGAN whose
+   neomembrane filters plasma into the subdural space faster than the
+   meningeal lymphatics can clear it.  Every therapy on this map is a
+   claim about which of those three terms it touches -- and the 2024-25
+   randomised trials disagree precisely because surgery empties the
+   STOCK while embolisation starves the SOURCE.
+
+   Two loops carry the pathology, both drawn in red:
+     L1  haem -> macrophage -> VEGF -> immature vessel -> rebleed -> haem
+     L2  immature endothelium -> tPA -> plasmin -> FDP -> clot failure
+         -> rebleed -> more fibrin to lyse
+   L1 has a Hill-2 threshold, which is why the disease is BISTABLE and
+   why "irrigate until clear" is a curative manoeuvre rather than a
+   cosmetic one.
+
+   Render:
+     dot -Tsvg csdh_qsp_model.dot -o csdh_qsp_model.svg
+     dot -Tpng -Gdpi=150 csdh_qsp_model.dot -o csdh_qsp_model.png
+   ===================================================================== */
+
+digraph cSDH_QSP {
+    rankdir = TB;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    concentrate = false;
+    nodesep = 0.26;
+    ranksep = 0.52;
+    fontname = "Helvetica,Arial,sans-serif";
+    labelloc = "t";
+    label = <<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0">
+      <TR><TD><FONT POINT-SIZE="30"><B>만성 경막하 혈종 (cSDH) QSP 기계론적 지도</B></FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="17">Chronic Subdural Haematoma — Quantitative Systems Pharmacology Map</FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="14" COLOR="#8B0000">dV/dt = J_exudation + J_rebleed − J_absorption  ·  the haematoma is a secreting organ, not a failing clot</FONT></TD></TR>
+      <TR><TD><FONT POINT-SIZE="12" COLOR="#444444">red = the two self-sustaining loops · blue = drug action · green = clearance · thick = the volume balance</FONT></TD></TR>
+    </TABLE>>;
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica,Arial,sans-serif",
+          fontsize=11, margin="0.10,0.055", penwidth=1.1];
+    edge [fontname="Helvetica,Arial,sans-serif", fontsize=9, color="#5a5a5a",
+          arrowsize=0.65, penwidth=1.0];
+
+    /* ---------- palette ------------------------------------------- */
+    /* trauma        #F2E3D5   inflammation  #FFE0E0   vessels #FFD9EC
+       fluid/physics #DCEBFA   fibrinolysis  #E6DBF5   clearance #D9F2E4
+       mechanics     #FFF4CC   drug          #D6E9F8   surgery #E0E0E0
+       endpoint      #FFE9B8   toxicity      #F8D7DA                     */
+
+    /* =================================================================
+       1.  TRAUMA AND THE INITIAL LESION
+       ================================================================= */
+    subgraph cluster_trauma {
+        label = "① 외상 및 초기 병변 (Trauma & Initial Lesion)";
+        style = "rounded,filled"; fillcolor = "#FDF7F2"; color = "#B08968";
+        fontsize = 15; fontcolor = "#7F5539";
+        node [fillcolor="#F2E3D5", color="#B08968"];
+
+        TRAUMA   [label="경미한 두부 외상\nMinor head injury\n(50–70% 병력 불명확)"];
+        ACCEL    [label="가속-감속 전단력\nAcceleration–deceleration\nshear"];
+        ATROPHY0 [label="뇌 위축 (노화·알코올)\nCerebral atrophy\n→ 가교정맥 신장"];
+        BRIDGE   [label="가교정맥 파열\nBridging vein tear\n(low-pressure venous bleed)"];
+        DBCL     [label="경막경계세포층 분리\nDural border cell layer\ncleavage (진성 강 아님)"];
+        CSFLEAK  [label="지주막 열상 → CSF 유입\nArachnoid tear → CSF influx\n(subdural hygroma)"];
+        ASDH     [label="급성 경막하 혈종\nAcute SDH (thin film)\nHU 60–80"];
+        SUBACUTE [label="아급성기 (1–3주)\nSubacute phase\nclot liquefaction"];
+        SPONTRES [label="자연 흡수 (다수)\nSpontaneous resolution\n대부분의 얇은 혈종"];
+    }
+
+    /* =================================================================
+       2.  NEOMEMBRANE FORMATION
+       ================================================================= */
+    subgraph cluster_memb {
+        label = "② 신생막 형성 (Neomembrane Formation)";
+        style = "rounded,filled"; fillcolor = "#FBF6FF"; color = "#9B7BB8";
+        fontsize = 15; fontcolor = "#6A4C93";
+        node [fillcolor="#EFE3F8", color="#9B7BB8"];
+
+        FIBROBL  [label="경막측 섬유아세포 활성화\nDural fibroblast activation\n(TGF-β1 · PDGF-BB)"];
+        COL13    [label="I/III형 콜라겐 침착\nCollagen I/III deposition\nLOX 교차결합"];
+        MEMOUT   [label="외막 (경막측)\nOUTER membrane\n두껍고 혈관 풍부 ★"];
+        MEMIN    [label="내막 (지주막측)\nINNER membrane\n얇고 혈관 거의 없음"];
+        SEPT     [label="격막·다구획화\nSeptation / loculation\n→ 배액 실패·재발↑"];
+        MEMEXT   [label="막 확장 범위 (A_EXT)\nMembrane EXTENT\n배액해도 사라지지 않음 ★"];
+        FUSION   [label="양막 융착 (치유)\nMembrane fusion\n= 해부학적 치유"];
+    }
+
+    /* =================================================================
+       3.  NEOVASCULARISATION -- the leak
+       ================================================================= */
+    subgraph cluster_vessel {
+        label = "③ 신생혈관 형성과 성숙 (Neovascularisation & Maturation)";
+        style = "rounded,filled"; fillcolor = "#FFF5FB"; color = "#C9548A";
+        fontsize = 15; fontcolor = "#9B2C62";
+        node [fillcolor="#FFD9EC", color="#C9548A"];
+
+        VEGF     [label="VEGF-A\n(혈종액 농도 ≫ 혈장)"];
+        VEGFR2   [label="VEGFR2 / KDR\nphosphorylation"];
+        ANG2     [label="Angiopoietin-2 ↑\nTie2 길항 → 불안정화"];
+        ANG1     [label="Angiopoietin-1 / Tie2\n혈관 안정화"];
+        SPROUT   [label="내피 발아 (sprouting)\nEndothelial sprouting"];
+        NCAP     [label="미성숙 신생모세혈관 (N_CAP)\nIMMATURE neocapillary\n창(fenestra)·틈새접합 결손 ★"];
+        GAPJ     [label="틈새접합 결손\nGap junction defect\ntight junction 미형성"];
+        PERI     [label="혈관주위세포 피복\nPericyte coverage\nα-SMA · NG2"];
+        NMAT     [label="성숙 혈관 (N_MAT)\nMATURE vessel\nLp 12배↓ · σ 0.85"];
+        MATSUPP  [label="성숙 억제\nMaturation SUPPRESSED\n활성 질환이 미성숙 유지 ★"];
+        EPHRIN   [label="EphB4 / ephrin-B2\n혈관 정체성"];
+    }
+
+    /* =================================================================
+       4.  INFLAMMATION -- the switch
+       ================================================================= */
+    subgraph cluster_infl {
+        label = "④ 염증: 헴이 켜는 스위치 (Inflammation — the Haem Switch)";
+        style = "rounded,filled"; fillcolor = "#FFF4F4"; color = "#C1666B";
+        fontsize = 15; fontcolor = "#A03E44";
+        node [fillcolor="#FFE0E0", color="#C1666B"];
+
+        RBCLYS   [label="적혈구 용해\nRBC lysis"];
+        HAEM     [label="유리 헴 / 헤모글로빈 (C_HB)\nFree haem / haemoglobin\n= 스위치 입력 ★"];
+        HILL2    [label="Hill n=2 문턱\nHaem drive = hb²/(1+hb²)\n→ 쌍안정성의 근원 ★★"];
+        HO1      [label="Heme oxygenase-1\n→ biliverdin · Fe²⁺ · CO"];
+        IRON     [label="유리 철 → Fenton 반응\nFree iron → ROS"];
+        NLRP3    [label="NLRP3 인플라마솜\ncaspase-1 → IL-1β"];
+        MAC      [label="대식세포 침윤 (N_MAC)\nMacrophage infiltration\nM1 우세"];
+        EOS      [label="호산구 침윤\nEosinophil infiltration\n(cSDH 특징적)"];
+        MASTC    [label="비만세포 / 트립타제\nMast cell · tryptase"];
+        IL6      [label="IL-6\n(혈종액 ≫ 혈장)"];
+        IL8      [label="IL-8 / CXCL8\n호중구·호산구 유인"];
+        MCP1     [label="MCP-1 / CCL2\n단핵구 유인"];
+        TNFA     [label="TNF-α"];
+        IL10     [label="IL-10 (항염)\nanti-inflammatory"];
+        NFKB     [label="NF-κB 활성화"];
+        MMP9     [label="MMP-9 / MMP-2\n기저막 분해 → 취약성 ★"];
+        TIMP     [label="TIMP-1/2\nMMP 억제"];
+        COX2     [label="COX-2 → PGE₂\n혈관 확장·투과성"];
+        BRADY    [label="Bradykinin / KKS\n투과성 증가"];
+    }
+
+    /* =================================================================
+       5.  STARLING EXCHANGE -- the exudation term
+       ================================================================= */
+    subgraph cluster_starling {
+        label = "⑤ Starling 교환: 유출항 J_ex (Exudation)";
+        style = "rounded,filled"; fillcolor = "#F2F8FF"; color = "#4A7FB5";
+        fontsize = 15; fontcolor = "#2C5F8D";
+        node [fillcolor="#DCEBFA", color="#4A7FB5"];
+
+        PCAP     [label="막 모세혈관 정수압\nP_cap ≈ 25 mmHg"];
+        LP       [label="수력전도도 Lp\nHydraulic conductivity\nLp = Lp_imm·N_CAP + Lp_mat·N_MAT"];
+        SIGMA    [label="반사계수 σ\nReflection coefficient\nσ_imm 0.25 vs σ_mat 0.85 ★"];
+        PIPL     [label="혈장 교질삼투압\nπ_plasma ≈ 25 mmHg"];
+        PIHEM    [label="혈종액 교질삼투압\nπ_hem = 3.6 × 단백(g/dL)"];
+        CPROT    [label="혈종액 단백 4–7 g/dL\nCavity protein\n(질량수지의 결과 ★)"];
+        DPNET    [label="순 여과압 ΔP\nΔP = (P_cap − ICP) − σ(π_pl − π_hem)"];
+        AREA     [label="교환 면적 A_mem\nExchange area\n≈ 130–150 cm²"];
+        PATENCY  [label="공간 개방성 f_pat\nCavity patency\n뇌가 경막에 닿으면 → 0 ★"];
+        JEX      [label="J_ex  유출 플럭스\nEXUDATION FLUX\n≈ 8–11 mL/day"];
+    }
+
+    /* =================================================================
+       6.  FIBRINOLYSIS -- loop L2
+       ================================================================= */
+    subgraph cluster_fibrin {
+        label = "⑥ 국소 과섬유소용해 루프 L2 (Local Hyperfibrinolysis)";
+        style = "rounded,filled"; fillcolor = "#F7F2FF"; color = "#7B5EA7";
+        fontsize = 15; fontcolor = "#553C7B";
+        node [fillcolor="#E6DBF5", color="#7B5EA7"];
+
+        TPA      [label="t-PA (내피 유래)\ntissue plasminogen activator\n혈종액 ≫ 혈장 ★"];
+        PAI1     [label="PAI-1\nt-PA 억제"];
+        UPA      [label="u-PA / uPAR"];
+        PLG      [label="Plasminogen\n(lysine binding site)"];
+        PLASMIN  [label="Plasmin 활성\nPlasmin activity"];
+        A2AP     [label="α₂-antiplasmin\nplasmin 억제"];
+        FIB      [label="Fibrin 응고물\nFibrin clot\n(재출혈마다 재형성)"];
+        FDP      [label="FDP / D-dimer\n혈종액 100–1000 μg/mL\n그 자체가 항응고성 ★★"];
+        FXIII    [label="Factor XIII 소모\nFXIII depletion\n교차결합 실패"];
+        HCOMP    [label="지혈 능력 H\nHaemostatic competence\nH = f(FDP)·f(항응고제)·f(혈소판)"];
+        TAFI     [label="TAFI / carboxypeptidase U\n용해 저항성"];
+    }
+
+    /* =================================================================
+       7.  REBLEED -- closes loop L1
+       ================================================================= */
+    subgraph cluster_rebleed {
+        label = "⑦ 재출혈: 루프를 닫는 항 J_rb (Rebleeding)";
+        style = "rounded,filled"; fillcolor = "#FFF0F0"; color = "#B03A48";
+        fontsize = 15; fontcolor = "#8B2635";
+        node [fillcolor="#FFD6D6", color="#B03A48"];
+
+        FRAGIL   [label="막 혈관 취약성 φ\nMembrane fragility\n= f(MMP-9, Ang-2)"];
+        MICROBL  [label="반복 미세출혈\nRepeated microhaemorrhage\n(현미경적)"];
+        MACROBL  [label="급성 재출혈 (acute-on-chronic)\nAcute-on-chronic bleed\nHU↑ · 급격한 악화"];
+        JRB      [label="J_rb  재출혈 플럭스\nREBLEED FLUX\n≈ 4–7 mL/day"];
+        BPSURGE  [label="혈압 변동·기침·변비\nBP surge · Valsalva"];
+    }
+
+    /* =================================================================
+       8.  CLEARANCE -- the absorption term
+       ================================================================= */
+    subgraph cluster_clear {
+        label = "⑧ 청소 경로: 흡수항 J_abs (Clearance)";
+        style = "rounded,filled"; fillcolor = "#F0FBF5"; color = "#3E8E5A";
+        fontsize = 15; fontcolor = "#276749";
+        node [fillcolor="#D9F2E4", color="#3E8E5A"];
+
+        MENLYMPH [label="경막 림프관\nMeningeal (dural) lymphatics\n주된 배출로 ★"];
+        DCLN     [label="심부 경부 림프절\nDeep cervical lymph nodes"];
+        ARACHG   [label="지주막 융기\nArachnoid granulations\n→ 정맥 부비동"];
+        GLYMPH   [label="Glymphatic / AQP4\n뇌간질 유출"];
+        SINUSP   [label="상시상 정맥압\nSagittal sinus pressure\n≈ 1–5 mmHg (sink)"];
+        PDRIVE   [label="압력 구배\nPressure drive\n(ICP − P_sink)"];
+        JABS     [label="J_abs  흡수 플럭스\nABSORPTION FLUX\n≈ 12–16 mL/day"];
+    }
+
+    /* =================================================================
+       9.  MMA SUPPLY -- the embolisation target
+       ================================================================= */
+    subgraph cluster_mma {
+        label = "⑨ 중경막동맥 공급 (Middle Meningeal Artery Supply)";
+        style = "rounded,filled"; fillcolor = "#FFF7EF"; color = "#C87F3A";
+        fontsize = 15; fontcolor = "#9C5B1E";
+        node [fillcolor="#FBE3C8", color="#C87F3A"];
+
+        MMA      [label="중경막동맥 (MMA)\nMiddle meningeal artery\n외막 신생혈관의 공급원 ★"];
+        MMAANT   [label="전분지 (anterior division)\nfrontal branch"];
+        MMAPOST  [label="후분지 (posterior division)\nparietal branch"];
+        PETROSQ  [label="Petrosquamosal 분지\n(청력 위험 문합)"];
+        OPHTHAN  [label="안동맥 문합\nOphthalmic anastomosis\n(시력 위험 — 회피)"];
+        DURALART [label="경막-신생막 동맥망\nDural–membrane\narteriolar network"];
+        PMMA     [label="막 관류 P_MMA\nMembrane perfusion\n색전 후 → 0.05 ★"];
+        RECAN    [label="재개통·측부 발달\nRecanalisation / collaterals\nτ ≈ 250 d"];
+    }
+
+    /* =================================================================
+       10.  INTRACRANIAL MECHANICS -- the two-signed covariate
+       ================================================================= */
+    subgraph cluster_mech {
+        label = "⑩ 두개내 역학: 위축이라는 양날의 변수 (Intracranial Mechanics)";
+        style = "rounded,filled"; fillcolor = "#FFFDF0"; color = "#C9A227";
+        fontsize = 15; fontcolor = "#8C6D1F";
+        node [fillcolor="#FFF4CC", color="#C9A227"];
+
+        MONRO    [label="Monro–Kellie 원리\nMonro–Kellie doctrine"];
+        VRES     [label="두개내 예비공간 V_res\nIntracranial RESERVE (위축)\n★★ 모델에 두 번, 반대 부호로"];
+        CSFDISP  [label="CSF·정맥혈 전위\nCSF / venous displacement\n= 1차 완충"];
+        VCOMP    [label="뇌 압박 결손 V_comp\nBrain compression deficit\n빨리 눌리고 늦게 펴진다 ★"];
+        REEXP    [label="뇌 재팽창 k_reexp\nBrain re-expansion\n= k₀·exp(−V_res/λ)  위축 ⇒ 느림 ★"];
+        ICP      [label="두개내압 ICP\n양방향: 배액 후엔 기저 이하 ★"];
+        COMPL    [label="두개내 순응도\nIntracranial compliance"];
+        MLS      [label="정중선 전위 MLS\nMidline shift (mm)"];
+        RESIDSP  [label="잔존 경막하 공간\nResidual subdural space\n= 재발의 기질 ★★"];
+        HERNIA   [label="경천막 탈출 (드묾)\nTranstentorial herniation"];
+    }
+
+    /* =================================================================
+       11.  BRAIN INJURY AND SYMPTOMS
+       ================================================================= */
+    subgraph cluster_brain {
+        label = "⑪ 피질 손상과 증상 (Cortical Injury & Symptoms)";
+        style = "rounded,filled"; fillcolor = "#F5F5FF"; color = "#5C6BC0";
+        fontsize = 15; fontcolor = "#3949AB";
+        node [fillcolor="#DDE3FA", color="#5C6BC0"];
+
+        CORTCOMP [label="피질 압박\nCortical compression"];
+        CBF      [label="국소 뇌혈류 감소\n↓ regional CBF"];
+        NEURDYS  [label="신경세포 기능장애\nNeuronal dysfunction\n(가역적 > 비가역적)"];
+        SPREADEP [label="피질 확산성 억제\nCortical spreading depression\n→ 일시적 신경학적 발작"];
+        SEIZ     [label="발작 / 경련\nSeizure"];
+        HEADACHE [label="두통\nHeadache"];
+        HEMIPAR  [label="반대측 운동약화\nContralateral hemiparesis"];
+        COGDECL  [label="인지 저하·혼동\nCognitive decline · confusion\n(가성 치매)"];
+        GAIT     [label="보행장애·낙상\nGait disturbance · falls"];
+    }
+
+    /* =================================================================
+       12.  DEXAMETHASONE
+       ================================================================= */
+    subgraph cluster_dex {
+        label = "⑫ 덱사메타손 PK/PD (Dexamethasone) — Dex-CSDH";
+        style = "rounded,filled"; fillcolor = "#EFF6FD"; color = "#3D7EA6";
+        fontsize = 15; fontcolor = "#1F5C82";
+        node [fillcolor="#D6E9F8", color="#3D7EA6"];
+
+        DEXPO    [label="Dexamethasone 8 mg bid\n2주 감량 (Dex-CSDH)"];
+        DEXPK    [label="2-구획 PK\nV1 35 L · CL 250 L/d\nt½ ≈ 4 h"];
+        DEXGR    [label="글루코코르티코이드 수용체\nGR (NR3C1) 결합\nke0 = 1.2/d (유전체 지연)"];
+        DEXNFKB  [label="NF-κB / AP-1 전사 억제\ntransrepression"];
+        DEXVEGF  [label="VEGF 전사 억제\n↓ VEGF (최대 70%)"];
+        DEXLP    [label="직접 투과성 감소\n↓ Lp (비성숙화 경로 아님) ★"];
+    }
+
+    /* =================================================================
+       13.  ATORVASTATIN
+       ================================================================= */
+    subgraph cluster_atv {
+        label = "⑬ 아토르바스타틴 PK/PD (Atorvastatin) — ATOCH";
+        style = "rounded,filled"; fillcolor = "#F0F9F4"; color = "#3E8E5A";
+        fontsize = 15; fontcolor = "#276749";
+        node [fillcolor="#D9F2E4", color="#3E8E5A"];
+
+        ATVPO    [label="Atorvastatin 20 mg qd\n8주 (ATOCH)"];
+        ATVPK    [label="PK: F 0.14 · CL/F 8000 L/d\nCYP3A4 · 활성 대사체"];
+        ATVEFF   [label="효과구획 ke0 = 0.08/d\nτ ≈ 12 d (수주에 걸친 효과)"];
+        ATVRHO   [label="RhoA / Rac1 prenylation ↓\n(pleiotropic)"];
+        ATVEPC   [label="내피전구세포 동원\nEPC mobilisation\nAkt/eNOS"];
+        ATVMAT   [label="혈관 성숙 촉진 ★★\nPromotes MATURATION\n(k_mat ×(1+E))"];
+        ATVMMP   [label="MMP-9 ↓ · Treg ↑\nanti-inflammatory"];
+    }
+
+    /* =================================================================
+       14.  TRANEXAMIC ACID
+       ================================================================= */
+    subgraph cluster_txa {
+        label = "⑭ 트라넥삼산 PK/PD (Tranexamic Acid)";
+        style = "rounded,filled"; fillcolor = "#FAF4FF"; color = "#7B5EA7";
+        fontsize = 15; fontcolor = "#553C7B";
+        node [fillcolor="#E6DBF5", color="#7B5EA7";]
+
+        TXAPO    [label="TXA 750 mg/day\n(경구, F ≈ 0.34)"];
+        TXAPK    [label="혈장 PK: t½ ≈ 3 h\nCL 180 L/d · 신배설"];
+        TXAHEM   [label="혈종 내 TXA\n유출액에 실려 들어간다 ★★\n부위 t½ = V/J_abs ≈ 6 d"];
+        TXALYS   [label="Plasminogen lysine\nbinding site 차단"];
+    }
+
+    /* =================================================================
+       15.  ANTITHROMBOTICS
+       ================================================================= */
+    subgraph cluster_anticoag {
+        label = "⑮ 항혈전제와 그 재개 (Antithrombotics & Resumption)";
+        style = "rounded,filled"; fillcolor = "#FFF4F5"; color = "#B03A48";
+        fontsize = 15; fontcolor = "#8B2635";
+        node [fillcolor="#FFDDE1", color="#B03A48"];
+
+        DOAC     [label="DOAC (아픽사반 5 mg bid)\nFXa 억제"];
+        WARF     [label="Warfarin / VKA\nINR 2–3"];
+        APLT     [label="항혈소판제\nAspirin · clopidogrel"];
+        DOACHEM  [label="혈종 내 항응고제\nDOAC in cavity\n(유출액과 함께)"];
+        REVERSAL [label="역전: andexanet · PCC\n비타민K · 혈소판 수혈"];
+        RESUME   [label="재개 시점 결정\nResumption timing\n출혈 vs 혈전 상충 ★"];
+        THROMB   [label="혈전색전증 위험\nThromboembolic risk\n(AF · 기계판막)"];
+    }
+
+    /* =================================================================
+       16.  SURGERY AND EMBOLISATION
+       ================================================================= */
+    subgraph cluster_surg {
+        label = "⑯ 수술·중재 치료 (Surgical & Endovascular Treatment)";
+        style = "rounded,filled"; fillcolor = "#F4F4F4"; color = "#666666";
+        fontsize = 15; fontcolor = "#333333";
+        node [fillcolor="#E0E0E0", color="#666666"];
+
+        BURR     [label="천공 배액술\nBurr-hole craniostomy\n(표준)"];
+        TWIST    [label="Twist-drill 배액\nbedside, 국소마취"];
+        CRANI    [label="개두술 + 막 제거\nCraniotomy + membranectomy\n(격막형·재발례)"];
+        IRRIG    [label="세척 (irrigation)\n★ 헴 스위치를 끈다\n= 농도를 낮추는 조작"];
+        DRAIN    [label="경막하 배액관 48 h\nSubdural drain\n(Santarius: 재발 24%→9.3%)"];
+        MIDPOS   [label="체위·수분·경막외 배액\nPosition · hydration"];
+        MMAE     [label="MMA 색전술 (MMAE)\nOnyx · nBCA · 입자\n★ STOCK 아니라 SOURCE를 없앤다"];
+        EVACSTOCK[label="STOCK 제거\nEmpties the stock\n막은 그대로 남는다 ★★"];
+    }
+
+    /* =================================================================
+       17.  STEROID TOXICITY
+       ================================================================= */
+    subgraph cluster_tox {
+        label = "⑰ 스테로이드 전신 독성 (Systemic Steroid Harm)";
+        style = "rounded,filled"; fillcolor = "#FDF2F3"; color = "#C1666B";
+        fontsize = 15; fontcolor = "#A03E44";
+        node [fillcolor="#F8D7DA", color="#C1666B"];
+
+        HYPERGLY [label="고혈당\nHyperglycaemia"];
+        INFECT   [label="감염 (폐렴·창상)\nInfection"];
+        MYOPATH  [label="스테로이드 근병증\nSteroid myopathy"];
+        DELIRIUM [label="섬망·정신증상\nDelirium · psychosis"];
+        GIBLEED  [label="위장관 출혈\nGI haemorrhage"];
+        SAE      [label="중대이상반응 SAE\nDex-CSDH: 16.0% vs 6.4%"];
+    }
+
+    /* =================================================================
+       18.  CLINICAL ENDPOINTS
+       ================================================================= */
+    subgraph cluster_end {
+        label = "⑱ 임상 엔드포인트 (Clinical Endpoints)";
+        style = "rounded,filled"; fillcolor = "#FFFAF0"; color = "#B8860B";
+        fontsize = 15; fontcolor = "#8B6914";
+        node [fillcolor="#FFE9B8", color="#B8860B", shape=box,
+              style="rounded,filled,bold"];
+
+        RECUR    [label="재발 / 잔존 (>10 mm)\nRecurrence / residual"];
+        REOP     [label="재수술\nReoperation / surgical rescue\nEMBOLISE: 4.1% vs 11.3%"];
+        MRS      [label="mRS 0–3 (양호)\nFavourable outcome\nDex-CSDH: 83.9% vs 90.3% ★"];
+        MMSE     [label="인지 회복\nCognitive recovery"];
+        LOS      [label="재원기간·요양시설\nLOS · institutionalisation"];
+        MORT     [label="사망\nMortality"];
+    }
+
+    /* =================================================================
+       CENTRAL STATE -- the volume balance
+       ================================================================= */
+    VHEM [label=<<B>혈종 부피  V_HEM</B><BR/><FONT POINT-SIZE="12">HAEMATOMA VOLUME (mL)</FONT><BR/>
+           <FONT POINT-SIZE="11" COLOR="#8B0000">dV/dt = J_ex + J_rb − J_abs</FONT>>,
+          shape=box, style="rounded,filled,bold", fillcolor="#FFD8A8",
+          color="#8B0000", penwidth=3.2, fontsize=16];
+    THICK [label="최대 두께 d_max (mm)\nMax thickness\n>10 mm = 수술 문턱",
+           fillcolor="#FFE9B8", color="#B8860B"];
+    HUDENS [label="CT 밀도 (HU)\nDensity: hypo/iso/hyper\n= 헴 + 단백의 함수",
+            fillcolor="#FFE9B8", color="#B8860B"];
+
+    /* =================================================================
+       EDGES
+       ================================================================= */
+
+    /* --- initiation --------------------------------------------- */
+    TRAUMA -> ACCEL;
+    ATROPHY0 -> BRIDGE [label="정맥 신장"];
+    ACCEL -> BRIDGE;
+    ACCEL -> DBCL;
+    BRIDGE -> ASDH;
+    DBCL -> CSFLEAK;
+    CSFLEAK -> ASDH;
+    ASDH -> SUBACUTE;
+    SUBACUTE -> SPONTRES [label="대부분", style=dashed, color="#3E8E5A"];
+    SUBACUTE -> FIBROBL [label="막 형성 개시"];
+    ASDH -> RBCLYS;
+    ATROPHY0 -> VRES [lhead=cluster_mech, color="#C9A227", penwidth=1.8];
+
+    /* --- membrane ------------------------------------------------ */
+    FIBROBL -> COL13;
+    COL13 -> MEMOUT;
+    COL13 -> MEMIN;
+    MEMOUT -> MEMEXT;
+    MEMOUT -> SEPT;
+    SEPT -> MEMEXT [style=dotted];
+    MAC -> FIBROBL [label="TGF-β1", color="#C1666B"];
+    MEMOUT -> SPROUT [label="혈관 침입"];
+    FUSION -> SPONTRES [style=dashed, color="#3E8E5A"];
+
+    /* --- the haem switch : LOOP L1 ------------------------------- */
+    RBCLYS -> HAEM;
+    HAEM -> HILL2 [color="#8B0000", penwidth=2.0];
+    HILL2 -> MAC [label="문턱 초과 시", color="#8B0000", penwidth=2.0];
+    HAEM -> HO1;
+    HO1 -> IRON;
+    IRON -> NLRP3;
+    NLRP3 -> IL6;
+    HAEM -> NFKB;
+    NFKB -> IL6; NFKB -> IL8; NFKB -> TNFA; NFKB -> MCP1; NFKB -> COX2;
+    MCP1 -> MAC; IL8 -> EOS; IL8 -> MAC;
+    MAC -> IL6; MAC -> IL8; MAC -> TNFA; MAC -> MMP9; MAC -> VEGF;
+    EOS -> IL6; EOS -> VEGF;
+    MASTC -> BRADY; MASTC -> VEGF;
+    IL6 -> NFKB [style=dotted];
+    IL10 -> NFKB [arrowhead=tee, color="#3E8E5A"];
+    MAC -> IL10 [style=dotted];
+    TIMP -> MMP9 [arrowhead=tee, color="#3E8E5A"];
+    COX2 -> LP [label="PGE₂", color="#C1666B"];
+    BRADY -> LP [color="#C1666B"];
+    TNFA -> GAPJ;
+
+    /* --- angiogenesis -------------------------------------------- */
+    VEGF -> VEGFR2;
+    VEGFR2 -> SPROUT [penwidth=1.6];
+    VEGF -> GAPJ [label="틈새접합 붕괴"];
+    SPROUT -> NCAP [penwidth=1.8];
+    GAPJ -> NCAP;
+    NCAP -> ANG2;
+    MAC -> ANG2;
+    ANG2 -> MATSUPP [color="#8B0000", penwidth=1.6];
+    ANG1 -> PERI; ANG1 -> NMAT;
+    ANG2 -> ANG1 [arrowhead=tee];
+    HILL2 -> MATSUPP [label="활성 질환", color="#8B0000", penwidth=2.0];
+    MATSUPP -> NMAT [arrowhead=tee, color="#8B0000", penwidth=2.0,
+                     label="성숙 차단 ★"];
+    NCAP -> NMAT [label="k_mat (억제 가능)"];
+    PERI -> NMAT [penwidth=1.4];
+    PERI -> SIGMA [label="σ ↑", color="#3E8E5A"];
+    EPHRIN -> NMAT [style=dotted];
+    MMP9 -> NMAT [arrowhead=tee, label="리모델링 파괴", color="#C1666B"];
+
+    /* --- Starling / exudation ------------------------------------ */
+    NCAP -> LP [label="Lp_imm (12×)", penwidth=1.8, color="#4A7FB5"];
+    NMAT -> LP [label="Lp_mat", style=dashed, color="#4A7FB5"];
+    NCAP -> SIGMA [arrowhead=tee, label="σ 0.25 ★", penwidth=1.6, color="#4A7FB5"];
+    NMAT -> SIGMA [label="σ 0.85", color="#3E8E5A"];
+    PCAP -> DPNET [penwidth=1.4];
+    ICP -> DPNET [arrowhead=tee, penwidth=1.6, label="배압"];
+    PIPL -> DPNET [arrowhead=tee];
+    PIHEM -> DPNET [label="+"];
+    CPROT -> PIHEM;
+    SIGMA -> DPNET [penwidth=1.4];
+    MEMEXT -> AREA [penwidth=1.6];
+    THICK -> PATENCY [penwidth=1.4];
+    LP -> JEX [penwidth=2.0, color="#4A7FB5"];
+    DPNET -> JEX [penwidth=2.0, color="#4A7FB5"];
+    AREA -> JEX [penwidth=1.6, color="#4A7FB5"];
+    PATENCY -> JEX [penwidth=1.6, color="#4A7FB5"];
+    JEX -> CPROT [label="(1−σ)·C_pl 유입", style=dotted];
+    JEX -> VHEM [penwidth=3.4, color="#2C5F8D",
+                 label=<<B>+ J_ex</B>>, fontsize=13, fontcolor="#2C5F8D"];
+
+    /* --- fibrinolysis : LOOP L2 ---------------------------------- */
+    NCAP -> TPA [label="미성숙 내피가 분비", penwidth=1.8, color="#7B5EA7"];
+    MEMOUT -> UPA;
+    PAI1 -> TPA [arrowhead=tee];
+    MAC -> PAI1 [style=dotted];
+    TPA -> PLASMIN [penwidth=1.6, color="#7B5EA7"];
+    UPA -> PLASMIN;
+    PLG -> PLASMIN;
+    A2AP -> PLASMIN [arrowhead=tee, color="#3E8E5A"];
+    TAFI -> PLASMIN [arrowhead=tee, style=dotted];
+    PLASMIN -> FIB [arrowhead=tee, label="용해", penwidth=1.6, color="#7B5EA7"];
+    FIB -> FDP [label="분해산물", penwidth=1.8, color="#7B5EA7"];
+    FXIII -> FIB [arrowhead=tee, style=dotted, label="교차결합 실패"];
+    PLASMIN -> FXIII [arrowhead=tee];
+    FDP -> HCOMP [arrowhead=tee, penwidth=2.4, color="#8B0000",
+                  label="★★ 스스로 응고를 막는다"];
+    HCOMP -> FIB [label="응고 형성", style=dotted];
+
+    /* --- rebleed closes both loops ------------------------------- */
+    MMP9 -> FRAGIL [penwidth=1.8, color="#B03A48"];
+    ANG2 -> FRAGIL [penwidth=1.4, color="#B03A48"];
+    NCAP -> FRAGIL [penwidth=1.6, color="#B03A48"];
+    FRAGIL -> MICROBL [penwidth=1.8];
+    HCOMP -> MICROBL [arrowhead=tee, penwidth=2.0, color="#8B0000"];
+    BPSURGE -> MICROBL;
+    PMMA -> MICROBL [label="공급", penwidth=1.6, color="#C87F3A"];
+    MICROBL -> JRB [penwidth=2.0];
+    MICROBL -> MACROBL [style=dotted];
+    MACROBL -> JRB [penwidth=1.6];
+    PATENCY -> JRB [penwidth=1.4];
+    JRB -> VHEM [penwidth=3.4, color="#8B2635",
+                 label=<<B>+ J_rb</B>>, fontsize=13, fontcolor="#8B2635"];
+    JRB -> RBCLYS [label="새 적혈구 공급 → 루프 L1 닫힘",
+                   penwidth=2.4, color="#8B0000", style=bold];
+    JRB -> FIB [label="새 피브린 → 루프 L2 닫힘",
+                penwidth=2.0, color="#8B0000"];
+    JRB -> HUDENS [label="HU ↑"];
+
+    /* --- clearance ----------------------------------------------- */
+    MENLYMPH -> DCLN;
+    DCLN -> JABS [penwidth=1.8, color="#3E8E5A"];
+    ARACHG -> JABS [penwidth=1.4, color="#3E8E5A"];
+    GLYMPH -> MENLYMPH [style=dotted];
+    MEMIN -> ARACHG [label="내막 통과"];
+    SINUSP -> PDRIVE [arrowhead=tee, label="sink"];
+    ICP -> PDRIVE [penwidth=1.6];
+    PDRIVE -> JABS [penwidth=2.0, color="#3E8E5A"];
+    AREA -> JABS [penwidth=1.4, color="#3E8E5A"];
+    PATENCY -> JABS [penwidth=1.4, color="#3E8E5A"];
+    SEPT -> JABS [arrowhead=tee, label="격막 → 흡수 ↓", color="#C1666B"];
+    MENLYMPH -> JABS [penwidth=1.6, color="#3E8E5A"];
+    JABS -> VHEM [penwidth=3.4, color="#276749", arrowhead=tee,
+                  label=<<B>− J_abs</B>>, fontsize=13, fontcolor="#276749"];
+
+    /* --- MMA supply ---------------------------------------------- */
+    MMA -> MMAANT; MMA -> MMAPOST; MMA -> PETROSQ; MMA -> OPHTHAN;
+    MMAANT -> DURALART; MMAPOST -> DURALART;
+    DURALART -> PMMA [penwidth=1.8, color="#C87F3A"];
+    PMMA -> SPROUT [label="새 발아에 필수 ★", penwidth=1.8, color="#C87F3A"];
+    RECAN -> PMMA [label="서서히 회복", style=dashed, color="#C87F3A"];
+
+    /* --- mechanics ----------------------------------------------- */
+    MONRO -> CSFDISP;
+    VRES -> CSFDISP [penwidth=1.6];
+    CSFDISP -> VCOMP [penwidth=1.4];
+    VHEM -> VCOMP [label="빠른 적재 (τ≈5 d)", penwidth=1.8];
+    VCOMP -> REEXP [label="느린 해제", penwidth=1.6];
+    VRES -> REEXP [arrowhead=tee, penwidth=2.4, color="#8B0000",
+                   label="★ 위축 ⇒ 재팽창 느림 (부호 ②)"];
+    REEXP -> VCOMP [arrowhead=tee];
+    VCOMP -> ICP [arrowhead=tee, label="유효 예비 = V_res + V_comp"];
+    VRES -> ICP [arrowhead=tee, penwidth=2.4, color="#8B0000",
+                 label="★ 위축 ⇒ 압력 완충 (부호 ①)"];
+    VHEM -> ICP [penwidth=2.0];
+    ICP -> COMPL [arrowhead=tee];
+    VHEM -> MLS [penwidth=1.8];
+    VRES -> MLS [arrowhead=tee, penwidth=1.6, color="#C9A227"];
+    VCOMP -> RESIDSP [penwidth=2.0, color="#8B0000",
+                      label="★★ 배액 후 남는 공간"];
+    RESIDSP -> JEX [label="여과할 공간이 있다", penwidth=1.8, color="#8B0000"];
+    RESIDSP -> RECUR [penwidth=2.2, color="#8B0000"];
+    ICP -> HERNIA [style=dotted];
+    MLS -> HERNIA [style=dotted];
+
+    /* --- geometry ------------------------------------------------ */
+    VHEM -> THICK [penwidth=1.8];
+    AREA -> THICK [arrowhead=tee, label="d = V / A"];
+    VHEM -> HUDENS [style=dotted];
+    HAEM -> HUDENS; CPROT -> HUDENS;
+    THICK -> REOP [penwidth=2.0, label=">10 mm + 증상"];
+
+    /* --- brain injury -------------------------------------------- */
+    MLS -> CORTCOMP [penwidth=1.8];
+    ICP -> CORTCOMP;
+    CORTCOMP -> CBF [arrowhead=tee, penwidth=1.6];
+    CBF -> NEURDYS [arrowhead=tee, penwidth=1.6];
+    NEURDYS -> COGDECL; NEURDYS -> HEMIPAR; NEURDYS -> GAIT;
+    CORTCOMP -> SPREADEP; SPREADEP -> SEIZ;
+    ICP -> HEADACHE; MLS -> HEADACHE;
+    NEURDYS -> SEIZ [style=dotted];
+
+    /* --- dexamethasone : helps locally, harms globally ------------ */
+    DEXPO -> DEXPK; DEXPK -> DEXGR; DEXGR -> DEXNFKB;
+    DEXNFKB -> DEXVEGF; DEXNFKB -> DEXLP;
+    DEXVEGF -> VEGF [arrowhead=tee, penwidth=2.2, color="#1F5C82"];
+    DEXLP -> LP [arrowhead=tee, penwidth=2.0, color="#1F5C82"];
+    DEXNFKB -> NFKB [arrowhead=tee, penwidth=1.8, color="#1F5C82"];
+    DEXNFKB -> MMP9 [arrowhead=tee, color="#1F5C82"];
+    DEXGR -> HYPERGLY [color="#A03E44", penwidth=1.6];
+    DEXGR -> INFECT [color="#A03E44", penwidth=1.6];
+    DEXGR -> MYOPATH [color="#A03E44"];
+    DEXGR -> DELIRIUM [color="#A03E44"];
+    DEXGR -> GIBLEED [color="#A03E44", style=dotted];
+    HYPERGLY -> SAE; INFECT -> SAE; MYOPATH -> SAE; DELIRIUM -> SAE;
+    GIBLEED -> SAE;
+    SAE -> MRS [arrowhead=tee, penwidth=2.4, color="#8B0000",
+                label="★ 국소적으로 이롭고 전신적으로 해롭다"];
+    SAE -> MORT [penwidth=1.4];
+    DEXVEGF -> REOP [arrowhead=tee, style=dashed, color="#1F5C82",
+                     label="재수술 1.7% vs 7.1%"];
+
+    /* --- atorvastatin -------------------------------------------- */
+    ATVPO -> ATVPK; ATVPK -> ATVEFF; ATVEFF -> ATVRHO;
+    ATVRHO -> ATVEPC; ATVRHO -> ATVMAT; ATVRHO -> ATVMMP;
+    ATVMAT -> NCAP [arrowhead=tee, penwidth=2.2, color="#276749",
+                    label="k_mat ×(1+E) ★★"];
+    ATVMAT -> NMAT [penwidth=2.2, color="#276749"];
+    ATVEPC -> PERI [penwidth=1.6, color="#276749"];
+    ATVMMP -> MMP9 [arrowhead=tee, penwidth=1.8, color="#276749"];
+    ATVMMP -> MAC [arrowhead=tee, style=dotted, color="#276749"];
+
+    /* --- tranexamic acid ----------------------------------------- */
+    TXAPO -> TXAPK;
+    TXAPK -> TXAHEM [label="유출액에 실려 (J_ex·C_pl)", penwidth=1.8,
+                     color="#553C7B"];
+    JEX -> TXAHEM [style=dotted, color="#553C7B", label="운반체"];
+    JABS -> TXAHEM [arrowhead=tee, style=dotted, color="#553C7B",
+                    label="세척 제거"];
+    TXAHEM -> TXALYS;
+    TXALYS -> PLASMIN [arrowhead=tee, penwidth=2.2, color="#553C7B",
+                       label="루프 L2 차단"];
+
+    /* --- antithrombotics ----------------------------------------- */
+    DOAC -> DOACHEM [label="유출액과 함께"];
+    WARF -> HCOMP [arrowhead=tee, penwidth=1.6, color="#8B2635"];
+    APLT -> HCOMP [arrowhead=tee, penwidth=1.4, color="#8B2635"];
+    DOACHEM -> HCOMP [arrowhead=tee, penwidth=2.0, color="#8B2635"];
+    REVERSAL -> DOACHEM [arrowhead=tee, color="#3E8E5A"];
+    REVERSAL -> HCOMP [color="#3E8E5A"];
+    RESUME -> DOAC;
+    RESUME -> THROMB [arrowhead=tee, label="재개하면 혈전 ↓"];
+    RESUME -> MICROBL [label="재개하면 재출혈 ↑", color="#8B2635"];
+    THROMB -> MRS [arrowhead=tee, style=dashed];
+    THROMB -> MORT [style=dashed];
+
+    /* --- surgery ------------------------------------------------- */
+    BURR -> EVACSTOCK [penwidth=2.0];
+    TWIST -> EVACSTOCK; CRANI -> EVACSTOCK;
+    CRANI -> MEMOUT [arrowhead=tee, label="막 제거", color="#666666"];
+    CRANI -> SEPT [arrowhead=tee, color="#666666"];
+    EVACSTOCK -> VHEM [arrowhead=tee, penwidth=2.8, color="#333333",
+                       label=<<B>STOCK ↓</B>>];
+    EVACSTOCK -> MEMEXT [style=dashed, label="막은 남는다 ★★", color="#8B0000"];
+    IRRIG -> HAEM [arrowhead=tee, penwidth=2.6, color="#8B0000",
+                   label="★★ 농도를 낮춰 스위치를 끈다"];
+    IRRIG -> FDP [arrowhead=tee, penwidth=2.0, color="#8B0000"];
+    DRAIN -> VHEM [arrowhead=tee, penwidth=2.0, color="#333333"];
+    DRAIN -> HAEM [arrowhead=tee, penwidth=1.6, color="#8B0000",
+                   label="계속 세척"];
+    MIDPOS -> REEXP [penwidth=1.4, color="#3E8E5A"];
+    BURR -> SEIZ [style=dotted, label="드문 합병증"];
+    MMAE -> PMMA [arrowhead=tee, penwidth=3.0, color="#9C5B1E",
+                  label=<<B>SOURCE ↓ (→0.05)</B>>];
+    MMAE -> PETROSQ [style=dotted, label="회피해야 하는 문합", color="#9C5B1E"];
+    MMAE -> OPHTHAN [style=dotted, color="#9C5B1E"];
+
+    /* --- endpoints ----------------------------------------------- */
+    VHEM -> RECUR [penwidth=2.0];
+    THICK -> RECUR [penwidth=1.8];
+    RECUR -> REOP [penwidth=2.2];
+    MLS -> MRS [arrowhead=tee, penwidth=1.8];
+    COGDECL -> MMSE [arrowhead=tee, penwidth=1.6];
+    COGDECL -> MRS [arrowhead=tee];
+    HEMIPAR -> MRS [arrowhead=tee, penwidth=1.6];
+    GAIT -> MRS [arrowhead=tee];
+    SEIZ -> MRS [arrowhead=tee, style=dotted];
+    REOP -> LOS [penwidth=1.4];
+    REOP -> MRS [arrowhead=tee, style=dashed];
+    MRS -> LOS [arrowhead=tee, style=dotted];
+    NEURDYS -> MORT [style=dotted];
+    HERNIA -> MORT [penwidth=1.6];
+    INFECT -> MORT [style=dotted];
+
+    /* --- layout hints -------------------------------------------- */
+    { rank = same; JEX; JRB; JABS; }
+}
