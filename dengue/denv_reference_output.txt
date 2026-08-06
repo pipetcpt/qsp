@@ -1,0 +1,237 @@
+===============================================================================
+ DENGUE / SEVERE DENGUE QSP MODEL -- PYTHON/SciPy REFERENCE RUN
+ 45 ODEs, LSODA -- every number below is solver output, not an assertion
+===============================================================================
+
+0. BASELINE SELF-TEST (uninfected host, 14 days)
+-------------------------------------------------------------------------------
+   dVp=+1.864  dVi=-33.826  dTP=+0.004  dHct=-0.016  dMAP=+0.012  dJv=-0.176  dPLT=+1.356  dTemp=+0.000
+
+A. ANTIBODY-DEPENDENT ENHANCEMENT -- THE ENTRY FACTOR E(titre)
+-------------------------------------------------------------------------------
+   peak enhancement       E = 12.83  at reciprocal titre 1:57
+   E crosses 1.0 again at   1:696   (net protection above this)
+   E(1:20) 11.81   E(1:40) 12.69   E(1:80) 12.65   E(1:320) 4.85
+   E(1:1280) 0.231   E(1:2560) 0.042   E(1:5120) 0.0074
+   Salje 2018 Nature: risk raised at 1:21-1:80, protection above 1:1280.
+
+B. INFANT DENGUE -- THE AGE OF PEAK SEVERITY IS A DIVISION PROBLEM
+-------------------------------------------------------------------------------
+   cord titre 1:1280, maternal IgG t1/2 = 43 d
+   half-lives down to the peak-enhancement titre 1:57 = 4.49
+   predicted age of maximum enhancement = 193 d = 6.3 months
+   observed peak of infant DHF: 6-8 months (Kliks 1988; Chau 2009).
+   Two inputs, no infant data: a cord titre and an IgG half-life.
+
+C. WHAT A 20 % HAEMATOCRIT RISE ACTUALLY COSTS
+-------------------------------------------------------------------------------
+   baseline Hct 41.7 %  ->  WHO leak threshold 50.0 %
+   plasma volume at that haematocrit = 2000 mL
+   plasma already gone = 800 mL = 28.6 % of the compartment
+
+D. THE STARLING TABLE -- sigma IS THE DISEASE
+-------------------------------------------------------------------------------
+    sigma   net filtration P    J_v (mL/h)   J_v - lymph_baseline
+    0.97         1.525 mmHg         140             +0
+    0.95         1.913 mmHg         176            +36
+    0.90         2.881 mmHg         264           +124
+    0.85         3.848 mmHg         353           +213
+    0.80         4.816 mmHg         442           +302
+    0.75         5.784 mmHg         531           +391
+    0.70         6.752 mmHg         620           +480
+    0.65         7.720 mmHg         708           +568
+    0.60         8.688 mmHg         797           +657
+    0.55         9.656 mmHg         886           +746
+   Kf = 91.8 mL/(h*mmHg) is fixed by requiring baseline J_v to
+   equal baseline lymph flow (140 mL/h); lymph ceiling 1100 mL/h.
+
+E. SCENARIOS
+-------------------------------------------------------------------------------
+   untreated secondary case defervesces at t = 89.5 h (illness day 3.7);
+   it first shows three WHO warning signs at t = 48 h (illness day 2.0),
+   and that -- not a chosen hour -- is when every treatment scenario starts.
+
+   scenario                        Hct+%  PPmin  shk_h PLTmin  eff_mL  lact   AST    sev
+   -------------------------------------------------------------------------------------
+   S01_primary_naive                13.2   24.6    0.0     77     480  1.03   135  0.001
+   S02_secondary_untreated          21.7   10.8   66.0     32    1825  4.35   556  0.372
+   S03_secondary_WHO_fluids         17.0   17.3   15.0     32    2359  1.09   184  0.249
+   S04_under_resuscitation_50       17.7   16.6   34.5     32    2188  1.63   258  0.254
+   S05_over_resuscitation_200       17.0   17.3    4.5     32    2561  1.09   176  0.269
+   S06_colloid_rescue               17.0   17.3    4.5     32    2306  1.09   176  0.222
+   S07_albumin_rescue               17.0   17.3   18.5     32    2132  1.09   187  0.226
+   S08_prophylactic_platelets       17.0   17.3   15.0     44    2359  1.09   184  0.237
+   S09_steroid_at_presentation      17.0   17.3    7.5     35    2346  1.09   176  0.223
+   S09b_steroid_at_fever_onset      13.1   22.2    0.0     35    2320  1.04   193  0.195
+   S10_antiviral_day2_illness       17.0   17.3   15.0     32    2359  1.09   184  0.249
+   S11_antiviral_at_present         17.0   17.3   15.0     33    2359  1.09   184  0.249
+   S12_vaccine_seronegative         21.7   10.8   66.0     32    1825  4.37   558  0.373
+   S13_vaccine_seropositive          6.3   31.0    0.0    130     566  1.00    25  0.001
+   S14_tertiary_high_titre           6.4   31.0    0.0    129     581  1.00    25  0.001
+   S15_paracetamol_high_dose        17.0   17.3   15.0     32    2361  1.09   184  0.249
+   S16_anti_NS1_mab                 15.1   19.6    1.0     38    2348  1.05   170  0.212
+   S17_early_oral_rehydration       13.1   22.3    0.0     32    2533  1.05   170  0.251
+   S18_delayed_presentation_8h      19.9   13.4   27.0     32    2366  2.24   269  0.286
+
+F. PRIMARY vs SECONDARY -- SAME VIRUS, SAME HOST, ONE TITRE APART
+-------------------------------------------------------------------------------
+                              primary   secondary    ratio
+   fever_onset_h                 0.00        0.00      nan
+   defervescence_h             108.50       89.50     0.82
+   peak_viraemia_log10           7.56        7.86     1.04
+   peak_NS1                    432.25      642.96     1.49
+   NS1_AUC                   13911.30    15622.62     1.12
+   IC_AUC                        2.83        4.45     1.57
+   peak_ABN                    182.26      619.72     3.40
+   max_TNF                      27.65      181.12     6.55
+   max_IL10                    304.54      692.97     2.28
+   max_CHYM                      7.75       15.52     2.00
+   min_GLX                       0.70        0.24     0.35
+   min_sigma                     0.81        0.62     0.76
+   max_Jv                      318.81      818.72     2.57
+   max_netleak                  33.00       25.11     0.76
+   hct_rise_pct                 13.17       21.72     1.65
+   plasma_loss_pct              19.95       30.59     1.53
+   min_TP                        6.77        5.21     0.77
+   min_PP                       24.61       10.80     0.44
+   min_MAP                      84.44       74.36     0.88
+   max_Vser                    480.04     1824.50     3.80
+   min_PLT                      77.16       32.40     0.42
+   min_WBC                       2.05        2.12     1.04
+   max_AST                     135.04      556.28     4.12
+   max_lactate                   1.03        4.35     4.23
+   shock_hours                   0.00       66.00      nan
+   max_warnsigns                 2.00        6.00     3.00
+   severity_index                0.00        0.37   267.29
+
+G. FLUID DOSE-RESPONSE -- THE OPTIMUM IS INTERIOR
+-------------------------------------------------------------------------------
+    x WHO    IV mL  shock h  effusion  lactate   bleed  severity
+     0.00        0     66.0      1825     4.35   0.499     0.372
+     0.25     1671     47.5      2031     2.50   0.494     0.289
+     0.50     3342     34.5      2188     1.63   0.491     0.254
+     0.75     5014     24.0      2293     1.14   0.490     0.249
+     1.00     6685     15.0      2359     1.09   0.490     0.249
+     1.25     8356      6.5      2404     1.09   0.490     0.251
+     1.50    10028      4.5      2456     1.09   0.491     0.256
+     2.00    13370      4.5      2561     1.09   0.491     0.269
+     2.50    16712      4.5      2648     1.09   0.492     0.283
+     3.00    20055      4.5      2737     1.09   0.492     0.297
+   minimum severity at 0.75 x the WHO ladder = 5014 mL IV
+
+H. ANTIVIRAL START TIME -- WHY DAY-5 TRIALS CANNOT WORK
+-------------------------------------------------------------------------------
+    start h  illness d   NS1 AUC  % untx   IC AUC   Hct+%  shock h  severity  % benefit
+          0        0.0       972     6.2      0.5    12.8      0.0     0.187       25.0
+          6        0.2      2023    12.9      1.0    13.7      0.0     0.187       25.2
+         12        0.5      4764    30.5      1.6    14.7      0.0     0.198       20.6
+         18        0.8      9395    60.1      2.6    15.9      2.5     0.219       12.2
+         24        1.0     13058    83.6      3.4    16.6      7.0     0.234        6.2
+         30        1.2     14792    94.7      3.9    16.9     12.0     0.242        3.0
+         36        1.5     15393    98.5      4.2    17.0     14.0     0.246        1.4
+         48        2.0     15608    99.9      4.4    17.0     15.0     0.249        0.2
+         60        2.5     15621   100.0      4.4    17.0     15.0     0.249        0.0
+         72        3.0     15622   100.0      4.5    17.0     15.0     0.249        0.0
+         96        4.0     15623   100.0      4.5    17.0     15.0     0.249        0.0
+        120        5.0     15623   100.0      4.5    17.0     15.0     0.249        0.0
+   untreated reference: NS1 AUC 15623 ng/mL*h, severity 0.249
+
+I. PRE-INFECTION TITRE vs OUTCOME -- A MODEL OUTPUT, NOT AN INPUT
+-------------------------------------------------------------------------------
+        titre      E   peakV   NS1pk  Hct+%  PPmin  PLTmin  severity  vs naive
+   1:0          1.00    7.58     435   14.3   23.6      79     0.002    +0.000
+   1:10        10.28    7.76     546   22.2    9.9      32     0.401    +0.399
+   1:20        11.81    7.83     592   22.2    9.9      32     0.399    +0.397
+   1:40        12.69    7.85     611   22.2   10.0      32     0.396    +0.394
+   1:55        12.83    7.84     609   22.2   10.0      32     0.394    +0.392
+   1:80        12.65    7.80     592   22.1   10.1      33     0.391    +0.388
+   1:160       10.31    7.60     468   21.9   10.6      34     0.376    +0.373
+   1:320        4.85    6.94     143   19.9   13.8      40     0.287    +0.285
+   1:640        1.21    5.44       6   13.3   23.3      72     0.072    +0.069
+   1:1280       0.23    4.33       1    0.3   37.1     250     0.000    -0.002
+   1:2560       0.04    1.70       0    0.3   37.1     250     0.000    -0.002
+   1:5120       0.01    1.70       0    0.3   37.1     250     0.000    -0.002
+   1:10240      0.00    1.70       0    0.3   37.1     250     0.000    -0.002
+
+J. COLLOID vs CRYSTALLOID -- THE ADVANTAGE IS PROPORTIONAL TO sigma
+-------------------------------------------------------------------------------
+   moderate leak   sigma_min 0.656 | crystalloid: shock   0.0 h sev 0.195 | colloid: shock   0.0 h sev 0.179 | delta -0.016
+   severe leak     sigma_min 0.616 | crystalloid: shock  15.0 h sev 0.249 | colloid: shock   4.5 h sev 0.222 | delta -0.027
+   profound leak   sigma_min 0.594 | crystalloid: shock  29.5 h sev 0.292 | colloid: shock   8.0 h sev 0.262 | delta -0.030
+   Wills 2005 NEJM randomised 512 children and found NO overall difference
+   between Ringer's lactate, dextran-70 and 6 % starch, but a colloid
+   advantage confined to the narrowest-pulse-pressure stratum.  The model
+   reproduces that pattern without being told: the colloid margin is small
+   and grows monotonically with the depth of the sigma defect, because the
+   oncotic term it adds enters the Starling equation multiplied by sigma.
+
+K. HOW MANY mL OF CRYSTALLOID BUY 1 mL OF RETAINED PLASMA
+-------------------------------------------------------------------------------
+     x WHO  IV given 12 h  Vp at +12 h   gain mL  mL per mL
+      0.50           1662         2085       113       14.7
+      1.00           3325         2177       206       16.2
+      1.50           4988         2235       264       18.9
+      2.00           6650         2268       297       22.4
+      3.00           9975         2308       336       29.7
+   control, same patient with sigma held at 0.97: 3325 mL buys 606 mL, i.e. 5.5 mL per mL
+   (no-IV reference plasma volume at the same instant: 1972 mL)
+
+L. DEFERVESCENCE AND LEAK ONSET ARE ONE EVENT
+-------------------------------------------------------------------------------
+   peak viraemia                          t =    17.5 h
+   peak NS1                               t =    23.0 h
+   steepest rise of neutralising IgG      t =    59.5 h
+   peak immune-complex load               t =    40.0 h
+   defervescence (T < 37.8 C)             t =    89.5 h
+   peak serosal leak (J_ser - drainage)   t =    44.0 h   (24 mL/h)
+   peak haematocrit                       t =    69.0 h   (50.7 %)
+   narrowest pulse pressure               t =    68.0 h   (10.8 mmHg)
+   -> narrowest pulse pressure minus defervescence = -21.5 h;
+      peak haematocrit minus defervescence          = -20.5 h;
+      peak serosal filtration rate minus defervescence = -45.5 h.
+   Temperature is computed from hypothalamic PGE2 driven by interferon;
+   the leak is computed from a glycocalyx driven by NS1, TNF, VEGF and
+   chymase.  The two chains share no equation after the antibody rise,
+   yet the clinical nadir and the fever break land within a day of each
+   other, because both are that antibody rise seen from a different side.
+
+L2. WHY PROPHYLACTIC PLATELET TRANSFUSION DOES NOTHING
+-------------------------------------------------------------------------------
+   platelet nadir      32  ->  44 x10^9/L (+12 after three pools)
+   bleeding index      0.490  ->  0.444
+   bleeding sub-score  0.619  ->  0.534
+   severity            0.249  ->  0.237
+   Haemostasis is written as a PRODUCT of four requirements -- platelet
+   count, fibrinogen, vessel-wall integrity and perfusion -- so the worst
+   term sets the answer.  At the nadir the vessel-wall term is the worst,
+   and platelets are not the vessel wall.  AAPT (Lye 2017, Lancet) found
+   prophylactic transfusion did not prevent bleeding; the model agrees for
+   a structural reason rather than by fitting the trial.
+
+L3. CORTICOSTEROID START TIME -- THE SAME CLIFF AS THE ANTIVIRAL
+-------------------------------------------------------------------------------
+    start h  illness d  peak TNF  min GLX   Hct+%  shock h   NS1 AUC  severity
+          0        0.0     129.0    0.324    13.1      0.0     21120     0.195
+         12        0.5     119.8    0.347    13.4      0.0     18443     0.190
+         24        1.0     140.1    0.328    14.8      0.0     16030     0.196
+         36        1.5     159.0    0.307    16.4      2.5     15662     0.210
+         48        2.0     181.1    0.277    17.0      7.5     15626     0.223
+         60        2.5     181.1    0.260    17.0     14.0     15623     0.232
+         72        3.0     181.1    0.242    17.0     15.0     15623     0.237
+         96        4.0     181.1    0.241    17.0     15.0     15623     0.246
+   reference without steroid: severity 0.249, NS1 AUC 15623
+   Methylprednisolone helps in this model ONLY if it is given before the
+   glycocalyx has integrated its mediator load.  Tam 2012 (Clin Infect Dis)
+   enrolled within 72 h of fever onset and found no benefit; the model
+   agrees at every start time a trial could realistically achieve, and
+   disagrees only in a window that ends before patients seek care.
+
+M. WHICH LIMB OF THE LEAK MATTERS -- LESION-BY-LESION
+-------------------------------------------------------------------------------
+   variant                      plasma loss %   min TP   PPmin  effusion  severity
+   full model                            30.6     5.21    10.8      1825     0.372
+   sigma frozen at 0.97                   6.6     6.94    30.7        77     0.091
+   Kf frozen at baseline                 27.6     5.15    14.8      1768     0.262
+   protein sieving off (PS=0)            31.3     5.86    10.3      1420     0.337
+   serosal drain uncapped                28.8     5.29    13.3      1128     0.261
+   no baroreflex (SVR fixed)             29.8     5.51     9.7      1117     0.661

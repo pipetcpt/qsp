@@ -1,0 +1,513 @@
+/* =========================================================================
+   DENGUE / SEVERE DENGUE (DSS) -- QSP MECHANISTIC MAP
+   =========================================================================
+   Dengue drawn as ONE antibody response read through TWO channels of
+   opposite sign.
+
+     channel 1 (protective)   neutralising IgG clears virions -> viraemia
+                              falls -> interferon falls -> the fever breaks
+     channel 2 (destructive)  the SAME IgG binds NS1 and virion -> immune
+                              complexes -> complement + mast cell + cross-
+                              reactive T cell -> the endothelial glycocalyx
+                              is stripped -> the reflection coefficient
+                              sigma falls -> plasma leaves the circulation
+
+   Because both channels hang off one driver, "the patient defervesces and
+   then deteriorates" is not two events -- it is one event observed twice,
+   and the 24-48 h critical phase is the width of the antibody rise.
+
+   Reading the map
+   ---------------
+     * the single red root node (top left) is the only exogenous input:
+       the antibody titre the host was carrying when the mosquito bit
+     * SOLID black arrows   = mass / pressure / flux
+     * BLUE arrows          = stimulatory signalling
+     * RED arrows           = inhibitory / neutralising
+     * GREEN arrows         = drug or fluid action
+     * ORANGE dashed        = positive feedback (the loops that make DSS
+                              self-amplifying)
+     * PURPLE dashed        = negative feedback / physiological defence
+     * GREY dotted          = an observable, i.e. something measured at
+                              the bedside rather than a mechanism
+
+   129 nodes, 17 clusters, 225 edges.
+   Render:  dot -Tsvg denv_qsp_model.dot -o denv_qsp_model.svg
+            dot -Tpng -Gdpi=150 denv_qsp_model.dot -o denv_qsp_model.png
+   ========================================================================= */
+
+digraph DENV_QSP {
+  rankdir = TB;
+  compound = true;
+  clusterrank = local;
+  splines = spline;
+  nodesep = 0.30;
+  ranksep = 0.62;
+  fontname = "Helvetica";
+  bgcolor = "white";
+  labelloc = "t";
+  label = <<FONT POINT-SIZE="30"><B>Dengue and Dengue Shock Syndrome — Quantitative Systems Pharmacology Map</B></FONT><BR/>
+           <FONT POINT-SIZE="17">one antibody response, two channels of opposite sign · the fever break and the plasma leak are the same event seen twice</FONT><BR/>
+           <FONT POINT-SIZE="13">antibody-dependent enhancement E(titre) = (1−N)·[1+(Φ−1)·A/(A+K)] · Starling J = Kf·[(Pc−Pi) − σ(Πp−Πi)] · the leak stops only when the circulation fails</FONT>>;
+
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+        margin="0.10,0.055", penwidth=1.1, color="#5b6570"];
+  edge [fontname="Helvetica", fontsize=9, color="#333333", penwidth=1.0,
+        arrowsize=0.7];
+
+  /* ---------- palette --------------------------------------------------
+     serostatus  #ffcdd2 | virology  #d1c4e9 | ADE      #f8bbd0
+     innate      #b3e5fc | adaptive  #c8e6c9 | cytokine #ffe0b2
+     endothelium #b2dfdb | Starling  #b2ebf2 | serosa   #b3e5fc
+     haemodyn    #cfd8dc | haem      #f8bbd0 | liver    #d7ccc8
+     fever       #f0f4c3 | fluids    #c5e1a5 | drugs    #c5e1a5
+     endpoints   #ffcc80 | vaccine   #e1bee7                          */
+
+  /* ===================================================================== */
+  subgraph cluster_sero {
+    label = "① SEROSTATUS — the only exogenous variable";
+    style = "rounded,filled"; fillcolor = "#fff8e1"; color = "#c62828";
+    fontsize = 15; penwidth = 2.0;
+
+    ABH   [label="Pre-existing heterotypic IgG\nreciprocal PRNT₅₀ titre A\nprior infection · vaccine · maternal", fillcolor="#ef9a9a", penwidth=2.4];
+    HIST  [label="Infection history\nprimary / secondary / tertiary\nserotype DENV-1…4", fillcolor="#ffcdd2"];
+    WANE  [label="IgG waning\nt½ ≈ 43 d (maternal)\nt½ ≈ 21 d (adult catabolism)", fillcolor="#ffcdd2"];
+    MATAB [label="Maternal transplacental IgG\ncord titre ≈ 1:1280\ninfant enters the window at ~6 months", fillcolor="#ffcdd2"];
+    VACC  [label="CYD-TDV / TAK-003 / TV003\nvaccine acts by SETTING A\nnot by a new mechanism", fillcolor="#e1bee7", penwidth=1.8];
+    SERO  [label="Baseline serostatus test\nIgG ELISA · PRNT₅₀\npre-vaccination screening", fillcolor="#e1bee7", style="rounded,filled,dashed"];
+  }
+
+  subgraph cluster_ade {
+    label = "② ANTIBODY-DEPENDENT ENHANCEMENT — one pool, two occupancies";
+    style = "rounded,filled"; fillcolor = "#fce4ec"; color = "#ad1457";
+    fontsize = 15; penwidth = 2.0;
+
+    AEFF  [label="Neutralising-equivalent titre\nA_eff = 3·IgG_homotypic + 0.12·IgG_hetero\nheterotypic IgG is 8× weaker", fillcolor="#f8bbd0"];
+    AOPZ  [label="Opsonising titre\nA_opz = IgG_homotypic + IgG_hetero\nONE IgG per virion ligates FcγR", fillcolor="#f8bbd0"];
+    NEUT  [label="Neutralised fraction N\nN = A_eff^2.5 / (A_eff^2.5 + 30^2.5)\nmulti-hit stoichiometry", fillcolor="#f48fb1"];
+    OPS   [label="Opsonised-not-neutralised O\nO = (1−N)·A_opz/(A_opz+4)", fillcolor="#f48fb1"];
+    FCGR  [label="FcγRIIa on monocyte / macrophage\nimmune-complex uptake\namplification Φ ≈ 14", fillcolor="#f8bbd0"];
+    EADE  [label="ENTRY FACTOR\nE = (1−N)·[1+(Φ−1)·A_opz/(A_opz+K)]\nE=1 naive · peak 12.8 at 1:57 · E<1 above 1:696", fillcolor="#ec407a", fontcolor="white", penwidth=2.6];
+    EXTR  [label="EXTRINSIC ADE\nmore cells infected\nβ_eff = β₀·E", fillcolor="#f8bbd0"];
+    INTR  [label="INTRINSIC ADE\nLILRB1 / FcγRIIB co-ligation\nIFN response suppressed → bigger burst", fillcolor="#f8bbd0"];
+    BELL  [label="The curve is a BELL because it is a\nrising saturating term × a falling Hill term\nnot because a bell was assumed", fillcolor="#fff0f4", style="rounded,filled,dashed"];
+  }
+
+  subgraph cluster_viro {
+    label = "③ VIROLOGY — target-cell-limited replication";
+    style = "rounded,filled"; fillcolor = "#ede7f6"; color = "#4527a0";
+    fontsize = 15; penwidth = 2.0;
+
+    MOSQ  [label="Aedes aegypti / albopictus bite\ninoculum in skin\nintrinsic incubation 4–7 d", fillcolor="#d1c4e9"];
+    TGT   [label="Susceptible FcγR⁺ target cells\nmonocyte · macrophage · dendritic cell\nT₀ ≈ 2×10⁴ /mL infectable", fillcolor="#d1c4e9"];
+    ECL   [label="Eclipse-phase infected cell\n4 h", fillcolor="#d1c4e9"];
+    INFC  [label="Productively infected cell\nlifespan ~24 h, shortened by CTL", fillcolor="#b39ddb"];
+    VIR   [label="Plasma viraemia V\npeak 10^7.6 primary · 10^7.9 secondary\ncleared by day 5", fillcolor="#9575cd", fontcolor="white", penwidth=2.0];
+    NS1   [label="Secreted NS1 hexamer\npeak 430 (DF) vs 640 ng/mL (DSS)\nt½ 7 h · persists after viraemia", fillcolor="#b39ddb", penwidth=2.0];
+    ESAT  [label="FcγR uptake saturation\nβVT / (1 + V/1.5×10⁷)", fillcolor="#d1c4e9"];
+    STRUC [label="E / prM / NS3 / NS5\nE-protein DIII → serotype-specific epitopes\nprM antibodies are poorly neutralising", fillcolor="#d1c4e9"];
+    SERT  [label="Serotype and genotype\nDENV-2 Asian/American · DENV-3 III\nreplicative fitness differences", fillcolor="#d1c4e9"];
+  }
+
+  subgraph cluster_innate {
+    label = "④ INNATE SENSING";
+    style = "rounded,filled"; fillcolor = "#e1f5fe"; color = "#01579b";
+    fontsize = 15; penwidth = 2.0;
+
+    RIG   [label="RIG-I / MDA5 → MAVS\nTLR3 / TLR7 endosomal", fillcolor="#b3e5fc"];
+    IFNI  [label="Type-I interferon IFN-α/β\nthe dominant endogenous pyrogen here", fillcolor="#81d4fa", penwidth=1.8];
+    NS5AN [label="NS5 → STAT2 degradation\nNS4B → STAT1 block\nviral IFN antagonism", fillcolor="#b3e5fc"];
+    ISG   [label="ISGs · viperin · IFIT1\nsuppress viral production\nIC₅₀ ≈ 250 pg/mL", fillcolor="#b3e5fc"];
+    COMP  [label="Complement activation\nNS1 + anti-NS1 → C3a / C5a\nNS1 also binds C4b/C1s directly", fillcolor="#81d4fa", penwidth=1.8];
+    MAST  [label="Mast cell degranulation\nchymase · tryptase · VEGF · LTs\nserum chymase tracks severity", fillcolor="#b3e5fc", penwidth=1.8];
+    PLTAC [label="Platelet activation\nP-selectin · platelet-leukocyte aggregates", fillcolor="#b3e5fc"];
+  }
+
+  subgraph cluster_adapt {
+    label = "⑤ ADAPTIVE RESPONSE — the shared driver of both channels";
+    style = "rounded,filled"; fillcolor = "#e8f5e9"; color = "#1b5e20";
+    fontsize = 15; penwidth = 2.0;
+
+    MEMB  [label="Memory B cell\nanswers in 1–2 d\nvs 5–7 d for a naive B cell", fillcolor="#c8e6c9"];
+    PBL   [label="Plasmablast\nup to 30 % of circulating lymphocytes", fillcolor="#c8e6c9"];
+    ASC   [label="Antibody-secreting cell\nmaturation lag ≈ 33 h\nTHIS LAG SETS THE CRITICAL PHASE", fillcolor="#a5d6a7", penwidth=2.4];
+    ABN   [label="De-novo neutralising IgG\nhomotypic, quaternary-epitope (EDE)\npeak 1:180 primary · 1:620 secondary", fillcolor="#66bb6a", penwidth=2.2];
+    CTL   [label="CD8⁺ T cells\nsecondary: cross-reactive, low avidity", fillcolor="#c8e6c9"];
+    OAS   [label="ORIGINAL ANTIGENIC SIN\ncross-reactive T cells kill at 45 %\nbut make 3.1× the TNF", fillcolor="#a5d6a7", penwidth=2.0];
+    ICPX  [label="IMMUNE COMPLEXES\nIC = f(IgG) × f(NS1, V)\nrising × falling ⇒ peaks BETWEEN them", fillcolor="#66bb6a", fontcolor="white", penwidth=2.6];
+    APLT  [label="Anti-NS1 / anti-prM antibodies\ncross-react with platelets and endothelium", fillcolor="#c8e6c9"];
+  }
+
+  subgraph cluster_cyto {
+    label = "⑥ MEDIATOR STORM";
+    style = "rounded,filled"; fillcolor = "#fff3e0"; color = "#e65100";
+    fontsize = 15; penwidth = 2.0;
+
+    TNF   [label="TNF-α\n28 pg/mL (DF) vs 181 (DSS)", fillcolor="#ffcc80", penwidth=1.8];
+    IL6   [label="IL-6 · IL-1β\nacute-phase drive", fillcolor="#ffe0b2"];
+    IL10  [label="IL-10\n305 vs 693 pg/mL\ncounter-regulatory but tracks severity", fillcolor="#ffe0b2"];
+    VEGFA [label="VEGF-A ↑ / soluble VEGFR2 ↓\ndirect junctional permeability", fillcolor="#ffe0b2", penwidth=1.8];
+    CHYM  [label="Mast-cell chymase\n7.8 vs 15.5 ng/mL", fillcolor="#ffe0b2", penwidth=1.8];
+    IL8   [label="IL-8 · MIF · HMGB1", fillcolor="#ffe0b2"];
+    HEPAR [label="Heparanase-1 ↑\nsheds heparan sulfate", fillcolor="#ffe0b2"];
+    SIALI [label="NS1 → cathepsin L → sialidase\nsheds sialic acid", fillcolor="#ffe0b2"];
+  }
+
+  subgraph cluster_endo {
+    label = "⑦ ENDOTHELIUM — the glycocalyx is a STRUCTURE, so it integrates";
+    style = "rounded,filled"; fillcolor = "#e0f2f1"; color = "#004d40";
+    fontsize = 15; penwidth = 2.0;
+
+    GLX   [label="Endothelial glycocalyx G (0–1)\nsyndecan-1 · heparan sulfate · hyaluronan\nnadir 0.70 (DF) vs 0.24 (DSS)", fillcolor="#4db6ac", fontcolor="white", penwidth=2.6];
+    GSYN  [label="Glycocalyx regeneration\nt½ ≈ 107 h — recovery is slow", fillcolor="#b2dfdb"];
+    GDEG  [label="Stripping = Σ wᵢ·Hill₂(mediatorᵢ)\nNS1 0.20 · TNF 0.36 · VEGF 0.12 · chymase 0.32", fillcolor="#b2dfdb"];
+    SIG   [label="REFLECTION COEFFICIENT σ\nσ = 0.55 + 0.42·G^1.30\n0.97 well → 0.62 in DSS", fillcolor="#26a69a", fontcolor="white", penwidth=2.6];
+    KFX   [label="Hydraulic conductance Kf\nrises up to 2.2× as junctions open", fillcolor="#b2dfdb"];
+    SDC1  [label="Plasma syndecan-1\nthe measurable shed fragment", fillcolor="#b2dfdb", style="rounded,filled,dashed"];
+    TJ    [label="VE-cadherin / ZO-1 / claudin-5\nRhoA–ROCK contraction", fillcolor="#b2dfdb"];
+    INTEG [label="THE GLYCOCALYX INTEGRATES\ntime constant 20–30 h, so the leak lands\n~1 day AFTER the cytokine peak", fillcolor="#e0f7fa", style="rounded,filled,dashed"];
+  }
+
+  subgraph cluster_star {
+    label = "⑧ SYSTEMIC STARLING BED — protected by lymph";
+    style = "rounded,filled"; fillcolor = "#e0f7fa"; color = "#006064";
+    fontsize = 15; penwidth = 2.0;
+
+    PCAP  [label="Capillary pressure Pc\nPc = (MAP + r·Pv)/(1+r), r = R_pre/R_post\nbaseline 17.3 mmHg", fillcolor="#b2ebf2", penwidth=1.8];
+    PINT  [label="Interstitial pressure Pi\n−3.0 mmHg → ceiling +2.6", fillcolor="#b2ebf2"];
+    PIP   [label="Plasma COP Πp\nLandis–Pappenheimer on TOTAL protein\n27.4 → 21 mmHg", fillcolor="#b2ebf2"];
+    PII   [label="Interstitial COP Πi\n8.0 mmHg and RISING as protein leaks", fillcolor="#b2ebf2"];
+    JV    [label="J_v = Kf·[(Pc−Pi) − σ(Πp−Πi)]\nbaseline 140 mL/h\nDSS peak 819 mL/h", fillcolor="#4dd0e1", penwidth=2.2];
+    LYMPH [label="Lymph return\n140 → 1100 mL/h ceiling\nrises steeply with Pi", fillcolor="#b2ebf2", penwidth=1.8];
+    PROT  [label="Protein flux\n(1−σ)·J_v·Cp + PS·(Cp−Ci)\nsolvent drag + diffusion", fillcolor="#b2ebf2"];
+    VINT  [label="Interstitial volume\noedema · gallbladder wall thickening", fillcolor="#b2ebf2"];
+  }
+
+  subgraph cluster_ser {
+    label = "⑨ SEROSAL BED — the one that has no drain";
+    style = "rounded,filled"; fillcolor = "#e1f5fe"; color = "#0277bd";
+    fontsize = 15; penwidth = 2.0;
+
+    JSER  [label="Serosal filtration J_ser\nsame σ, but Pser = −5 mmHg (pleural)\nso the driving pressure is 5 mmHg higher", fillcolor="#4fc3f7", penwidth=2.2];
+    DSER  [label="Parietal + diaphragmatic lymphatics\nCEILING ≈ 46 mL/h (0.65 mL/kg/h)\ntwo orders below systemic lymph", fillcolor="#81d4fa", penwidth=2.4];
+    VSER  [label="Pleural effusion + ascites\n480 mL (DF) vs 1825 mL (DSS)", fillcolor="#29b6f6", fontcolor="white", penwidth=2.4];
+    PSER  [label="Serosal pressure Pser\n−5 + V/150 mmHg\nTHIS is what finally stops the filling", fillcolor="#81d4fa", penwidth=1.8];
+    USG   [label="Right-lateral-decubitus ultrasound\npleural effusion index · ascites\ngallbladder wall > 3 mm", fillcolor="#b3e5fc", style="rounded,filled,dashed"];
+    RESPD [label="Respiratory distress\nthe iatrogenic endpoint of over-resuscitation", fillcolor="#ffcc80", penwidth=2.0];
+  }
+
+  subgraph cluster_haemo {
+    label = "⑩ HAEMODYNAMICS — compensated shock is a narrow pulse pressure";
+    style = "rounded,filled"; fillcolor = "#eceff1"; color = "#263238";
+    fontsize = 15; penwidth = 2.0;
+
+    VP    [label="Plasma volume Vp\n2800 → 1944 mL in DSS (−31 %)", fillcolor="#b0bec5", penwidth=2.2];
+    SV    [label="Stroke volume\nFrank–Starling on the stressed volume", fillcolor="#cfd8dc"];
+    PPULSE[label="PULSE PRESSURE = SV / C_art\n38 → 10.8 mmHg\nPP ≤ 20 mmHg IS the DSS definition", fillcolor="#ff8a65", fontcolor="white", penwidth=2.6];
+    MAPN  [label="Mean arterial pressure\n88 → 74 mmHg — barely moves\nwhich is exactly why DSS is missed", fillcolor="#cfd8dc", penwidth=1.8];
+    BARO  [label="Baroreflex\nSVR ×2.55 ceiling · tachycardia to 120", fillcolor="#cfd8dc"];
+    RRAT  [label="Pre/post-capillary ratio ↑\nAUTOTRANSFUSION: protects Pc\nthe leak's only brake", fillcolor="#b0bec5", penwidth=2.0];
+    VASOP [label="Cytokine vasoplegia\nTNF erodes the SVR ceiling → decompensation", fillcolor="#cfd8dc"];
+    MYOC  [label="Dengue myocarditis\ncontractility −28 % at peak TNF", fillcolor="#cfd8dc"];
+    DO2   [label="Oxygen delivery\nCO × Hb × 1.34 × SaO₂", fillcolor="#cfd8dc"];
+    LACT  [label="Arterial lactate\n1.0 (DF) vs 4.4 mmol/L (DSS)", fillcolor="#ffab91", penwidth=1.8];
+    CRT   [label="Capillary refill · cold extremities\nnarrow PP · restlessness", fillcolor="#cfd8dc", style="rounded,filled,dashed"];
+  }
+
+  subgraph cluster_haem {
+    label = "⑪ HAEMATOLOGY — haemostasis is a PRODUCT";
+    style = "rounded,filled"; fillcolor = "#fce4ec"; color = "#880e4f";
+    fontsize = 15; penwidth = 2.0;
+
+    HCT   [label="HAEMATOCRIT\n41.7 → 50.7 % (+21.7 %)\n+20 % = 800 mL of plasma ALREADY gone", fillcolor="#f48fb1", penwidth=2.4];
+    MKC   [label="Megakaryocyte suppression\ndirect marrow infection", fillcolor="#f8bbd0"];
+    PLT   [label="Platelets\nnadir 77 (DF) vs 32 ×10⁹/L (DSS)\nday 6–7, i.e. AFTER defervescence", fillcolor="#f48fb1", penwidth=2.0];
+    PLTD  [label="Immune platelet destruction\nanti-NS1 cross-reactive IgG + splenic clearance", fillcolor="#f8bbd0"];
+    WBCN  [label="Leukopenia\n6.5 → 2.1 ×10⁹/L\nthe earliest laboratory sign", fillcolor="#f8bbd0"];
+    FIBN  [label="Fibrinogen 300 → 174 mg/dL\nprolonged aPTT", fillcolor="#f8bbd0"];
+    BLEED [label="BLEEDING INDEX = 1 − Π(1−fᵢ)\nplatelets × fibrinogen × VESSEL WALL × perfusion\nthe worst term decides", fillcolor="#ec407a", fontcolor="white", penwidth=2.4];
+    HYPOA [label="Hypoproteinaemia\ntotal protein 7.3 → 5.2 g/dL\nalbumin 4.2 → 3.0", fillcolor="#f8bbd0", penwidth=1.8];
+  }
+
+  subgraph cluster_liver {
+    label = "⑫ LIVER AND OTHER ORGANS";
+    style = "rounded,filled"; fillcolor = "#efebe9"; color = "#4e342e";
+    fontsize = 15; penwidth = 2.0;
+
+    HEP   [label="Hepatocyte injury\ndirect infection + shock liver", fillcolor="#d7ccc8"];
+    ASTN  [label="AST 135 (DF) vs 556 U/L (DSS)\nAST > ALT — myositis contributes", fillcolor="#d7ccc8", penwidth=1.8];
+    ALTN  [label="ALT 89 vs 404 U/L\n>1000 U/L = severe dengue criterion", fillcolor="#d7ccc8"];
+    APAPH [label="Paracetamol above 22 mg/L\nadds to an already-injured liver", fillcolor="#d7ccc8"];
+    AKIN  [label="Acute kidney injury\nprerenal → ATN", fillcolor="#d7ccc8"];
+    ENCEP [label="Dengue encephalopathy\nhyperammonaemia · cerebral oedema", fillcolor="#d7ccc8"];
+    MYOS  [label="Myositis · rhabdomyolysis\nCK ↑ ('breakbone fever')", fillcolor="#d7ccc8"];
+  }
+
+  subgraph cluster_fever {
+    label = "⑬ THERMOREGULATION — the OTHER channel";
+    style = "rounded,filled"; fillcolor = "#f9fbe7"; color = "#827717";
+    fontsize = 15; penwidth = 2.0;
+
+    PYR   [label="Pyrogen load\nIFN-α/β + 0.06·TNF", fillcolor="#f0f4c3"];
+    COX2  [label="Hypothalamic COX-2 → PGE₂\nOVLT / preoptic area", fillcolor="#f0f4c3"];
+    TSET  [label="Thermoregulatory set point\n37.0 → 39.2 °C", fillcolor="#f0f4c3"];
+    TEMP  [label="Core temperature\nfebrile phase 2–7 d", fillcolor="#e6ee9c", penwidth=1.8];
+    DEFER [label="DEFERVESCENCE\nday 3.7 (DSS) · day 4.5 (DF)\nthe entry ticket to the critical phase", fillcolor="#ffcc80", penwidth=2.6];
+    ANOR  [label="Anorexia · vomiting\nintake ↓, insensible loss ↑ with fever", fillcolor="#f0f4c3"];
+  }
+
+  subgraph cluster_fluid {
+    label = "⑭ FLUID THERAPY — the paradox";
+    style = "rounded,filled"; fillcolor = "#f1f8e9"; color = "#33691e";
+    fontsize = 15; penwidth = 2.0;
+
+    CRYS  [label="Crystalloid (Ringer's lactate)\nWHO ladder 10→6→4→2.5→1.5→1 mL/kg/h\n≈ 6.7 L over 48 h", fillcolor="#c5e1a5", penwidth=2.0];
+    COLL  [label="Colloid: dextran-70 · 6 % starch\nadds Πp — but that term is MULTIPLIED BY σ", fillcolor="#c5e1a5", penwidth=2.0];
+    ALB   [label="20 % human albumin\noncotic + protein replacement", fillcolor="#c5e1a5"];
+    ORS   [label="Oral rehydration in the febrile phase\nthe cheapest intervention that works", fillcolor="#c5e1a5"];
+    EFFIC [label="RESUSCITATION EFFICIENCY\n5.5 mL per mL retained with σ = 0.97\n16.2 mL per mL at the leak nadir", fillcolor="#aed581", penwidth=2.4];
+    OVER  [label="Fluid overload\nrises Pc, dilutes Πp — BOTH raise J_v", fillcolor="#c5e1a5", penwidth=2.0];
+    UCURV [label="U-SHAPED DOSE-RESPONSE\noptimum 0.75× the WHO ladder\ntoo little = shock, too much = effusion", fillcolor="#ffcc80", penwidth=2.4];
+  }
+
+  subgraph cluster_drug {
+    label = "⑮ PHARMACOLOGY — and why most of it arrives too late";
+    style = "rounded,filled"; fillcolor = "#f1f8e9"; color = "#558b2f";
+    fontsize = 15; penwidth = 2.0;
+
+    AVIR  [label="NS4B inhibitor (JNJ-1802 / mosnodenvir)\nE_max 0.965 on viral production", fillcolor="#c5e1a5", penwidth=1.8];
+    BALA  [label="Balapiravir · celgosivir · chloroquine\nall enrolled at 48–72 h — all negative", fillcolor="#dcedc8"];
+    WINDW [label="THERAPEUTIC WINDOW\n25 % benefit at fever onset\n6 % at 24 h · 0.2 % at 48 h", fillcolor="#ffcc80", penwidth=2.4];
+    STER  [label="Methylprednisolone 500 mg\ncuts TNF but delays viral clearance\n(NS1 AUC 15.6k → 21.1k)", fillcolor="#c5e1a5"];
+    PLTTX [label="Prophylactic platelet transfusion\n+12 ×10⁹/L, bleeding index 0.490 → 0.444", fillcolor="#c5e1a5"];
+    APAP  [label="Paracetamol\nCOX inhibition — the only safe antipyretic", fillcolor="#c5e1a5"];
+    NSAID [label="NSAIDs / aspirin CONTRAINDICATED\nplatelet inhibition + gastric + renal", fillcolor="#ffab91", penwidth=1.8];
+    NS1MB [label="Anti-NS1 monoclonal (experimental)\nremoves one of four damage terms", fillcolor="#c5e1a5"];
+    STAT  [label="Lovastatin (Whitehorn 2016)\nnegative — glycocalyx already committed", fillcolor="#dcedc8"];
+  }
+
+  subgraph cluster_end {
+    label = "⑯ CLINICAL ENDPOINTS — WHO 2009";
+    style = "rounded,filled"; fillcolor = "#fff3e0"; color = "#e65100";
+    fontsize = 15; penwidth = 2.0;
+
+    DF    [label="Dengue without warning signs\nfever · rash · myalgia · retro-orbital pain", fillcolor="#ffe0b2"];
+    DWWS  [label="Dengue WITH warning signs\nabdominal pain · vomiting · effusion\nmucosal bleed · lethargy · liver > 2 cm · Hct↑ with PLT↓", fillcolor="#ffcc80", penwidth=2.0];
+    SEVD  [label="SEVERE DENGUE\nshock · fluid accumulation with distress\nAST/ALT ≥ 1000 · organ impairment", fillcolor="#ff8a65", fontcolor="white", penwidth=2.6];
+    WARN  [label="Warning-sign count\n2 (DF) vs 6 (DSS) — computed, not assigned", fillcolor="#ffe0b2", style="rounded,filled,dashed"];
+    RECOV [label="Recovery / reabsorptive phase\nday 7–10 · third space returns\npulmonary oedema risk · convalescent rash", fillcolor="#ffe0b2"];
+    MORT  [label="Case fatality\n<1 % treated · 10–20 % untreated shock", fillcolor="#ff8a65"];
+  }
+
+  subgraph cluster_epi {
+    label = "⑰ THE POPULATION CONSEQUENCE OF ONE BELL CURVE";
+    style = "rounded,filled"; fillcolor = "#f3e5f5"; color = "#4a148c";
+    fontsize = 15; penwidth = 2.0;
+
+    SALJE [label="Salje 2018 Nature\nrisk ↑ at 1:21–1:80, protection above 1:1280\nthe model's bell, measured in a cohort", fillcolor="#e1bee7", penwidth=2.0];
+    INFANT[label="INFANT DENGUE\nlog₂(1280/57) × 43 d = 6.3 months\nobserved peak 6–8 months", fillcolor="#ce93d8", penwidth=2.4];
+    CYDNEG[label="CYD-TDV in the SERONEGATIVE\nvaccine leaves A in the enhancing band\nexcess hospitalisation (Sridhar 2018)", fillcolor="#e1bee7", penwidth=2.0];
+    CYDPOS[label="CYD-TDV in the SEROPOSITIVE\nvaccine pushes A past 1:696 → protection", fillcolor="#e1bee7"];
+    TERT  [label="Third and fourth infections\nbroad high titre → mild disease\nwhy DHF is a disease of the SECOND infection", fillcolor="#e1bee7"];
+    SCREEN[label="Pre-vaccination screening (WHO 2018)\nthe policy that the bell curve forces", fillcolor="#ce93d8", penwidth=2.0];
+  }
+
+  /* ===================== EDGES ========================================= */
+
+  /* serostatus -> ADE */
+  HIST -> ABH; WANE -> ABH [color="#c62828", style=dashed];
+  MATAB -> ABH; VACC -> ABH [color="#2e7d32", penwidth=1.8];
+  SERO -> VACC [style=dotted, color="#7b1fa2"];
+  ABH -> AEFF [penwidth=1.8]; ABH -> AOPZ [penwidth=1.8];
+  ABN -> AEFF [color="#1565c0", penwidth=1.6, label="×3 avidity"];
+  ABN -> AOPZ [color="#1565c0"];
+  AEFF -> NEUT [penwidth=1.6]; AOPZ -> OPS [penwidth=1.6];
+  NEUT -> OPS [color="#c62828", label="(1−N)"];
+  FCGR -> OPS [color="#1565c0"]; OPS -> EADE [penwidth=2.0];
+  NEUT -> EADE [color="#c62828", penwidth=2.0];
+  EADE -> EXTR [penwidth=1.8]; OPS -> INTR [color="#1565c0", penwidth=1.6];
+  EADE -> BELL [style=dotted, color="#7b1fa2"];
+
+  /* virology */
+  MOSQ -> VIR [penwidth=1.6]; SERT -> VIR [color="#1565c0"];
+  STRUC -> AEFF [color="#1565c0"]; STRUC -> NS1;
+  EXTR -> ECL [color="#1565c0", penwidth=2.0, label="β_eff = β₀·E"];
+  VIR -> ECL [penwidth=1.4]; TGT -> ECL [penwidth=1.4];
+  ESAT -> ECL [color="#c62828", style=dashed];
+  VIR -> ESAT [color="#7b1fa2", style=dashed];
+  ECL -> INFC [penwidth=1.6]; INFC -> VIR [penwidth=2.0, label="burst p"];
+  INFC -> NS1 [penwidth=2.0]; INTR -> VIR [color="#1565c0", label="bigger burst"];
+  ABN -> VIR [color="#c62828", penwidth=2.0, label="opsonic clearance"];
+  ABN -> NS1 [color="#c62828", penwidth=1.4];
+  TGT -> TGT [style=invis];
+
+  /* innate */
+  INFC -> RIG [color="#1565c0"]; RIG -> IFNI [color="#1565c0", penwidth=1.8];
+  NS5AN -> IFNI [color="#c62828", penwidth=1.6];
+  INTR -> IFNI [color="#c62828", penwidth=1.8, label="intrinsic ADE"];
+  IFNI -> ISG [color="#1565c0"]; ISG -> VIR [color="#c62828", penwidth=1.6];
+  NS1 -> COMP [color="#1565c0", penwidth=1.8];
+  ICPX -> COMP [color="#1565c0", penwidth=1.8];
+  COMP -> MAST [color="#1565c0", penwidth=1.8, label="C3a / C5a"];
+  ICPX -> MAST [color="#1565c0"];
+  ICPX -> PLTAC [color="#1565c0"];
+
+  /* adaptive */
+  ABH -> MEMB [color="#1565c0", penwidth=1.8, label="memory"];
+  VIR -> PBL [color="#1565c0", penwidth=1.6]; MEMB -> PBL [color="#1565c0", penwidth=1.8];
+  PBL -> ASC [penwidth=2.0]; ASC -> ABN [penwidth=2.4];
+  INFC -> CTL [color="#1565c0"]; ABH -> OAS [color="#1565c0", penwidth=1.6];
+  OAS -> CTL [color="#c62828", label="avidity 0.45"];
+  CTL -> INFC [color="#c62828", penwidth=1.6, label="killing"];
+  ABN -> ICPX [penwidth=2.4]; NS1 -> ICPX [penwidth=2.4];
+  VIR -> ICPX [penwidth=1.4]; ABN -> APLT [color="#1565c0"];
+  NS1 -> APLT [color="#1565c0"];
+
+  /* cytokines */
+  ICPX -> TNF [color="#1565c0", penwidth=2.0];
+  OAS -> TNF [color="#1565c0", penwidth=2.2, label="×3.1 TNF"];
+  CTL -> TNF [color="#1565c0"];
+  ICPX -> IL10 [color="#1565c0"]; ICPX -> VEGFA [color="#1565c0", penwidth=1.6];
+  MAST -> CHYM [color="#1565c0", penwidth=2.0];
+  MAST -> VEGFA [color="#1565c0"]; TNF -> IL6 [color="#1565c0"];
+  TNF -> IL8 [color="#1565c0"]; TNF -> VEGFA [color="#1565c0"];
+  NS1 -> SIALI [color="#1565c0", penwidth=1.6];
+  TNF -> HEPAR [color="#1565c0"]; CHYM -> HEPAR [color="#1565c0"];
+
+  /* endothelium */
+  NS1 -> GDEG [color="#1565c0", penwidth=1.8, label="w 0.20"];
+  TNF -> GDEG [color="#1565c0", penwidth=2.0, label="w 0.36"];
+  VEGFA -> GDEG [color="#1565c0", penwidth=1.4, label="w 0.12"];
+  CHYM -> GDEG [color="#1565c0", penwidth=1.8, label="w 0.32"];
+  SIALI -> GDEG [color="#1565c0"]; HEPAR -> GDEG [color="#1565c0"];
+  GDEG -> GLX [color="#c62828", penwidth=2.4];
+  GSYN -> GLX [color="#7b1fa2", style=dashed, penwidth=1.8];
+  GLX -> SIG [penwidth=2.6]; GLX -> KFX [color="#c62828", penwidth=1.8];
+  GLX -> SDC1 [style=dotted, color="#7b1fa2"];
+  TNF -> TJ [color="#1565c0"]; VEGFA -> TJ [color="#1565c0"];
+  TJ -> KFX [color="#1565c0"];
+  GLX -> INTEG [style=dotted, color="#7b1fa2"];
+
+  /* Starling systemic */
+  SIG -> JV [penwidth=2.6, color="#c62828", label="σ(Πp−Πi)"];
+  KFX -> JV [penwidth=1.8]; PCAP -> JV [penwidth=2.0];
+  PINT -> JV [color="#7b1fa2", style=dashed];
+  PIP -> JV [color="#7b1fa2", style=dashed, penwidth=1.8];
+  PII -> JV [penwidth=1.4];
+  JV -> VINT [penwidth=1.8]; VINT -> PINT [color="#7b1fa2", style=dashed];
+  PINT -> LYMPH [color="#7b1fa2", style=dashed, penwidth=1.8];
+  LYMPH -> VP [color="#7b1fa2", style=dashed, penwidth=1.8];
+  JV -> PROT [penwidth=1.6]; SIG -> PROT [color="#c62828", penwidth=1.8];
+  PROT -> PII [penwidth=1.8]; PROT -> PIP [color="#c62828", penwidth=1.8];
+  PIP -> HYPOA [style=dotted, color="#7b1fa2"];
+  PII -> JV [color="#e65100", style=dashed, penwidth=1.8, label="feedback +"];
+  PIP -> JV [color="#e65100", style=dashed, penwidth=1.8, label="feedback +"];
+
+  /* Starling serosal */
+  SIG -> JSER [penwidth=2.4, color="#c62828"];
+  PCAP -> JSER [penwidth=1.8]; PSER -> JSER [color="#7b1fa2", style=dashed, penwidth=2.0];
+  KFX -> JSER [penwidth=1.4];
+  JSER -> VSER [penwidth=2.4]; DSER -> VSER [color="#c62828", penwidth=2.0];
+  VSER -> PSER [color="#7b1fa2", style=dashed, penwidth=2.0];
+  VSER -> USG [style=dotted, color="#7b1fa2"];
+  VSER -> RESPD [penwidth=2.0]; VSER -> VP [color="#c62828", penwidth=2.2, label="the sink"];
+  JV -> VP [color="#c62828", penwidth=2.0];
+
+  /* haemodynamics */
+  VP -> SV [penwidth=2.0]; SV -> PPULSE [penwidth=2.4];
+  SV -> MAPN [penwidth=1.6]; BARO -> MAPN [color="#7b1fa2", style=dashed, penwidth=1.8];
+  MAPN -> BARO [color="#7b1fa2", style=dashed];
+  BARO -> SV [color="#1565c0"]; BARO -> RRAT [color="#7b1fa2", style=dashed, penwidth=2.0];
+  RRAT -> PCAP [color="#7b1fa2", style=dashed, penwidth=2.4, label="autotransfusion"];
+  MAPN -> PCAP [penwidth=1.6]; VP -> PCAP [penwidth=1.8, label="via Pv"];
+  TNF -> VASOP [color="#1565c0"]; VASOP -> BARO [color="#c62828", penwidth=1.8];
+  TNF -> MYOC [color="#1565c0"]; MYOC -> SV [color="#c62828"];
+  SV -> DO2 [penwidth=1.4]; HCT -> DO2 [penwidth=1.2];
+  DO2 -> LACT [color="#c62828", penwidth=1.8];
+  PPULSE -> CRT [style=dotted, color="#7b1fa2"];
+  MAPN -> CRT [style=dotted, color="#7b1fa2"];
+
+  /* haematology */
+  VP -> HCT [color="#c62828", penwidth=2.4];
+  VIR -> MKC [color="#c62828", penwidth=1.6]; MKC -> PLT [penwidth=1.8];
+  APLT -> PLTD [color="#1565c0", penwidth=1.8]; PLTD -> PLT [color="#c62828", penwidth=2.0];
+  GLX -> PLT [color="#c62828", label="consumption"];
+  VIR -> WBCN [color="#c62828", penwidth=1.6];
+  GLX -> FIBN [color="#c62828"]; HEP -> FIBN [color="#c62828"];
+  PLT -> BLEED [penwidth=1.8]; FIBN -> BLEED [penwidth=1.4];
+  GLX -> BLEED [penwidth=2.2, label="vessel wall"];
+  MAPN -> BLEED [penwidth=1.4]; PLTAC -> PLTD [color="#1565c0"];
+
+  /* liver */
+  VIR -> HEP [color="#c62828", penwidth=1.6];
+  LACT -> HEP [color="#c62828"]; MAPN -> HEP [penwidth=1.6, label="shock liver"];
+  APAPH -> HEP [color="#c62828", penwidth=1.6];
+  HEP -> ASTN [penwidth=2.0]; HEP -> ALTN [penwidth=2.0];
+  MYOS -> ASTN [penwidth=1.4]; HEP -> ENCEP; MAPN -> AKIN [penwidth=1.4];
+  VIR -> MYOS [color="#1565c0"];
+
+  /* fever */
+  IFNI -> PYR [color="#1565c0", penwidth=2.2];
+  TNF -> PYR [color="#1565c0", penwidth=1.2];
+  PYR -> COX2 [color="#1565c0", penwidth=2.0]; COX2 -> TSET [penwidth=2.0];
+  TSET -> TEMP [penwidth=2.2]; TEMP -> DEFER [penwidth=2.4];
+  TEMP -> ANOR [penwidth=1.4]; ANOR -> VP [color="#c62828", penwidth=1.4];
+  APAP -> COX2 [color="#2e7d32", penwidth=2.0];
+
+  /* the coincidence */
+  ABN -> DEFER [color="#e65100", style=dashed, penwidth=2.4, label="channel 1: clears virus"];
+  ABN -> ICPX [color="#e65100", style=dashed, penwidth=2.4, label="channel 2: makes complexes"];
+  DEFER -> SEVD [style=dotted, color="#7b1fa2", penwidth=1.6];
+
+  /* fluids */
+  CRYS -> VP [color="#2e7d32", penwidth=2.4];
+  COLL -> VP [color="#2e7d32", penwidth=2.0]; COLL -> PIP [color="#2e7d32", penwidth=2.0];
+  ALB -> PIP [color="#2e7d32", penwidth=1.8]; ORS -> VP [color="#2e7d32", penwidth=1.6];
+  SIG -> COLL [color="#c62828", style=dashed, penwidth=2.0, label="σ scales the benefit"];
+  CRYS -> PCAP [color="#e65100", style=dashed, penwidth=2.0, label="raises Pc"];
+  CRYS -> PIP [color="#e65100", style=dashed, penwidth=1.8, label="dilutes Πp"];
+  CRYS -> OVER [penwidth=1.6]; OVER -> JSER [color="#e65100", style=dashed, penwidth=2.0];
+  OVER -> RESPD [penwidth=2.0];
+  SIG -> EFFIC [penwidth=2.0]; EFFIC -> UCURV [penwidth=1.8];
+  OVER -> UCURV [penwidth=1.8]; PPULSE -> UCURV [penwidth=1.8];
+
+  /* drugs */
+  AVIR -> INFC [color="#2e7d32", penwidth=2.2, label="E_max 0.965"];
+  AVIR -> WINDW [style=dotted, color="#7b1fa2"];
+  BALA -> WINDW [style=dotted, color="#7b1fa2"];
+  NS1 -> WINDW [style=dotted, color="#7b1fa2", label="NS1 AUC already spent"];
+  STER -> TNF [color="#2e7d32", penwidth=2.0];
+  STER -> CTL [color="#2e7d32", penwidth=1.6, label="and delays clearance"];
+  STER -> ASC [color="#2e7d32", penwidth=1.4];
+  PLTTX -> PLT [color="#2e7d32", penwidth=1.8];
+  PLTTX -> BLEED [color="#c62828", style=dashed, label="barely moves"];
+  NSAID -> BLEED [color="#c62828", penwidth=1.8];
+  APAP -> APAPH [color="#c62828", penwidth=1.4];
+  NS1MB -> NS1 [color="#2e7d32", penwidth=1.8];
+  STAT -> GLX [color="#2e7d32", style=dashed];
+
+  /* endpoints */
+  TEMP -> DF [penwidth=1.4]; HCT -> DWWS [penwidth=1.8];
+  PLT -> DWWS [penwidth=1.6]; VSER -> DWWS [penwidth=1.8];
+  ASTN -> DWWS [penwidth=1.4]; PPULSE -> SEVD [penwidth=2.6];
+  RESPD -> SEVD [penwidth=2.0]; BLEED -> SEVD [penwidth=1.8];
+  ALTN -> SEVD [penwidth=1.6]; LACT -> SEVD [penwidth=1.8];
+  DWWS -> WARN [style=dotted, color="#7b1fa2"];
+  SEVD -> MORT [penwidth=2.0]; UCURV -> MORT [penwidth=1.8];
+  GLX -> RECOV [color="#7b1fa2", style=dashed, penwidth=1.8, label="σ recovers"];
+  VSER -> RECOV [penwidth=1.4];
+
+  /* epidemiology */
+  EADE -> SALJE [style=dotted, color="#7b1fa2", penwidth=2.0];
+  WANE -> INFANT [penwidth=2.0]; MATAB -> INFANT [penwidth=2.2];
+  EADE -> INFANT [penwidth=2.2];
+  VACC -> CYDNEG [penwidth=2.0]; VACC -> CYDPOS [penwidth=2.0];
+  EADE -> CYDNEG [color="#c62828", penwidth=2.0];
+  EADE -> CYDPOS [color="#2e7d32", penwidth=2.0];
+  ABH -> TERT [penwidth=1.6]; EADE -> TERT [penwidth=1.6];
+  CYDNEG -> SCREEN [penwidth=2.0]; SALJE -> SCREEN [penwidth=1.6];
+  SEVD -> SALJE [style=dotted, color="#7b1fa2"];
+
+  /* ------------------------------------------------------------------ */
+  { rank = same; ABH; }
+  { rank = same; JV; JSER; }
+}
