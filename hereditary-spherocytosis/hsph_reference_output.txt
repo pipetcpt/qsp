@@ -1,0 +1,513 @@
+==============================================================================
+HEREDITARY SPHEROCYTOSIS QSP MODEL -- REFERENCE OUTPUT
+all numbers below are produced by executing hsph_python_reference.py
+==============================================================================
+
+==============================================================================
+1. THE GEOMETRY KERNEL, CHECKED AGAINST PUBLISHED NUMBERS
+==============================================================================
+   A red cell of membrane area S and volume V can be squeezed into a
+   cylinder no narrower than D_c, the smallest positive root of
+        V = S*D/4 - pi*D^3/12
+   which has the closed form  D_c = 2*sqrt(S/pi)*cos(arccos(-s)/3 - 2pi/3)
+   with s = V/V_sph and V_sph = S^1.5/(6 sqrt(pi)).  Nothing here is fitted.
+
+   (S um^2, V um^3)                s       SI   D_c um   V_sph/V  OF %NaCl       EMA
+   normal young 140, 90       0.5778   0.6937    2.722     1.731     0.418     1.000
+   normal old   125, 82       0.6248   0.7308    2.817     1.601     0.452     0.895
+   mild HS      128, 89       0.6536   0.7531    3.003     1.530     0.483     0.914
+   moderate     118, 86       0.7135   0.7985    3.208     1.402     0.537     0.843
+   severe       106, 80       0.7796   0.8470    3.411     1.283     0.600     0.757
+   cordal cell   98, 78       0.8550   0.9009    3.745     1.170     0.679     0.700
+
+   Published anchors, none of them used to fit anything:
+     minimum cylindrical diameter of a normal red cell  ~2.8 um
+       -> the formula gives 2.72-3.06 across the measured spread of
+          normal (S, V); 2.72 at S=140/V=90, 3.06 at S=138/V=98.
+     50%% osmotic lysis, normal                          0.40-0.45 %%NaCl
+       -> derived 0.418 at S=140, V=90, MCHC 33.3
+     50%% osmotic lysis, HS                              0.55-0.65 %%NaCl
+       -> derived 0.537 at S=118, V=86
+     EMA reduction diagnostic cut-off                   16-21%%
+       -> a 118 um^2 membrane is a 15.7% reduction
+
+   THE POINT THAT IS NOT IN THE TEXTBOOKS.  Waugh 1992 measured a
+   50-day-old red cell losing 10.5%% of its AREA and 8.4%% of its
+   VOLUME, and concluded there is 'little change in sphericity'.
+   Run the same area loss with and without the matching volume loss:
+     start                     s = 0.5778  D_c = 2.722 um
+     -10.5% area, -8.4% volume  s = 0.6251  D_c = 2.819 um   (ageing)
+     -10.5% area, volume kept   s = 0.6824  D_c = 3.129 um   (HS)
+   The SAME membrane loss is 2.21x more spherocytising when the
+   volume underneath it is not lost with it.  What makes an HS
+   vesicle pathogenic is not that there are more of them; it is
+   that they are haemoglobin-free.
+
+==============================================================================
+2. THE CALIBRATION LEDGER -- SEVEN NUMBERS, ONE OF THEM AN HS PHENOTYPE
+==============================================================================
+   STAGE 1, the normal red cell (nothing about HS):
+      tau50      =      211.238
+      kv_base    =  0.000923326
+      kd_base    =   0.00366211
+      k_ph       =    0.0302021
+   mean red cell lifespan (target 120 d)  119.678
+   end-of-life area  (target 125.3 um^2)  125.505
+   end-of-life volume (target 82.4 um^3)   86.152
+
+   STAGE 2, the reference moderate HS patient (ONE number):
+      fdef_mod   =     0.419651  <- Hb 10.5 g/dL
+      i.e. a spectrin content of 58% of normal, against the
+      published ~70% for moderate HS.  The same 12.0-point
+      displacement is applied to the trait, mild and severe bands,
+      so those three genotypes are predictions, not fits.
+      cordamp = 1 (cordal stripping off; see section 5).
+
+   STAGE 3, the opsonic arm (Reliene 2002):
+      K_cl       =      0.17589
+      k_ops      =   0.00906356
+
+   NOT fitted, tied to the normal-arm constants:
+      kv_def     =   0.00307772
+      kd_def     =    0.0244142
+      kd_cord    =     0.150146
+      a_ent_def  =            1
+
+   Everything below this line is a prediction.
+
+==============================================================================
+3. THE SEVERITY SPECTRUM IS AN AREA-DEFICIT SPECTRUM
+==============================================================================
+   fdef is the published spectrin-content band shifted by the ONE
+   fitted HS number (-0.120).  Only the moderate-HS haemoglobin was
+   used; every other cell in this table is a prediction.
+
+   phenotype                      Hb   ret%   life    MCV   MCHC    RDW   TBIL    D_c    spl
+   normal                      15.10   0.89  119.7   89.3  33.60    3.9   0.72  2.915    150
+   HS trait (carrier)          14.33   1.44   75.5   84.3  35.59    6.8   1.09  3.147    177
+   mild HS                     13.16   2.74   42.0   83.4  35.95    8.0   1.79  3.215    250
+   moderate HS (ANK1)          10.50   8.75   17.5   85.1  35.26   11.7   3.30  3.316    386
+   severe HS (SPTA1)            3.06  60.27    1.7  105.0  28.56   11.4   4.46  4.092    528
+   moderate HS (SLC4A1 band 3)   8.79  18.49   11.2   89.5  33.53   14.0   3.90  3.337    567
+
+   Published bands (Eber/Perrotta severity classification):
+      trait     Hb normal,   retic <3%,   bilirubin <1 mg/dL
+      mild      Hb 11-15,    retic 3-6%,  bilirubin 1-2
+      moderate  Hb  8-12,    retic >6%,   bilirubin >2
+      severe    Hb  6-8,     retic >10%,  bilirubin >3
+
+==============================================================================
+4. WHERE THE MEMBRANE IS LOST, AND WHERE THE CELL DIES
+==============================================================================
+   In the BASE model membrane loss is spleen-independent: the cord
+   is where cells are eaten, not where membrane is stripped
+   (cordamp = 1).  What the spleen changes is the HAZARD, and the
+   fraction of a cell's life spent in the cords is the reason.
+
+   phenotype                      R_cord   x normal     D_c um
+   normal                         0.0020        1.0      2.915
+   mild HS                        0.1123       56.6      3.215
+   moderate HS (ANK1)             0.2931      147.6      3.316
+   severe HS (SPTA1)              0.6000      302.1      4.092
+
+   phenotype                      geom  opsonic   senesc  hepatic    lysis
+   normal                        0.010    0.000    0.763    0.147    0.000
+   HS trait (carrier)            0.373    0.000    0.252    0.349    0.000
+   mild HS                       0.672    0.000    0.044    0.280    0.000
+   moderate HS (ANK1)            0.806    0.000    0.003    0.191    0.000
+   severe HS (SPTA1)             0.943    0.000    0.000    0.057    0.000
+   moderate HS (SLC4A1 band 3)    0.599    0.266    0.001    0.134    0.000
+
+   The normal red cell dies of molecular tagging (senescence).
+   The HS red cell dies of its shape.  Same organ, different
+   mechanism -- which is why splenectomy is curative for one and
+   irrelevant for the other.
+
+==============================================================================
+5. THE AMPLIFIER HYPOTHESIS, TESTED AND NOT ADOPTED
+==============================================================================
+   The model was built around an idea: that the splenic cords do not
+   merely EAT spherocytes, they MAKE them -- hypoxic, acidotic,
+   glucose-poor, and the place a rigid cell spends the most time, so the
+   place it should shed the most membrane.  That closes a loop:
+
+        area loss -> D_c up -> longer cordal residence -> area loss
+
+   whose gain is the parameter cordamp: membrane shedding inside the cord
+   as a multiple of the circulating rate.  cordamp = 1 means off.
+
+   cordamp          Hb     ret%     life     area      D_c  splenic %
+   1.00          10.50     8.75    17.48    110.7    3.316        0.0
+   1.50          10.03    10.68    15.47    110.5    3.335       14.1
+   2.00           9.54    13.22    13.64    110.4    3.357       27.1
+   3.00           8.53    19.32    10.56    110.1    3.408       48.7
+   5.00           6.64    26.62     6.97    109.7    3.524       70.6
+   10.00          5.00    36.35     4.43    109.0    3.706       84.4
+   20.00          3.82    48.01     2.74    107.8    3.899       91.9
+
+   THE HYPOTHESIS IS NOT REFUTED -- IT IS REDUNDANT.  Turning the
+   gain up moves the phenotype smoothly and monotonically toward
+   severity, which is exactly what turning fdef up does.  Inside
+   this model the two are degenerate: any severity the amplifier
+   produces can be produced by a slightly larger membrane defect,
+   and there is only ONE HS number available to fit (and it is
+   already spent on nothing -- see section 2).  So cordamp = 1 in
+   the base model, and the HS phenotype in section 3 owes nothing
+   to splenic conditioning.
+
+   A REAL DEFECT WAS FOUND HERE AND IS WORTH RECORDING.  While this
+   experiment was being built the same parameter set produced a mean
+   red cell lifespan of 15.5, 18.6 or 30.8 days depending only on
+   the ODE solver's maximum step size.  The cause was not cordamp:
+   it was splenic hypertrophy.  Splenic blood flow had been written
+   as proportional to splenic mass, which closes a SECOND loop --
+   hazard -> erythrophagocytic workload -> splenic mass -> flow ->
+   hazard -- with a gain above one, so the spleen ran to its ceiling
+   and the steady state stopped being unique.  Flow per gram falls
+   in a big spleen; writing flow ~ mass^0.35 with a 1.6x ceiling
+   drops the gain below one and the model now gives identical
+   answers at max_step 4, 6 and 8 (checked in section 18).
+
+   WHAT THE SPLEEN IS, THEN.  Switch off the two splenic functions
+   separately on the same moderate HS patient:
+   spleen                            Hb    ret%    life    area    TBIL
+   A intact                       10.50    8.75    17.5   110.7    3.30
+   B eats but cannot retain       12.45    3.83    31.7   108.4    2.23
+   C retains but cannot eat       13.89    1.88    59.1   104.3    1.34
+   D splenectomised               12.45    3.83    31.7   108.4    2.23
+
+   Total splenectomy benefit                  +1.95 g/dL
+   B eats but cannot retain                  +1.95 g/dL  (100%)
+   C retains but cannot eat                  +3.39 g/dL  (174%)
+
+   Both single knock-outs recover most of the benefit, because the
+   geometric hazard is a PRODUCT of retention and phagocytosis:
+   f_pass x p_slow(D_c) x (1 - exp(-k_ph*MAC*tau_c*visc)).  Remove
+   either factor and the term goes.  That is the honest answer to
+   'sink or amplifier': in this model the spleen is a sink whose two
+   halves are multiplicative, and no experiment inside the model
+   assigns credit between them.
+
+==============================================================================
+6. SPLENECTOMY: CURES THE ANAEMIA, DOES NOT CURE THE CELL
+==============================================================================
+
+   mild HS
+                                          pre       post    change
+      haemoglobin g/dL                 13.16     13.38     +0.22
+      reticulocytes %                   2.74      2.46     -0.28
+      red cell lifespan d               42.0      46.3     +4.25
+      total bilirubin mg/dL             1.79      1.65     -0.14
+      bilirubin production mg/d          518       479    -38.38
+      membrane area um^2               113.5     113.0     -0.57
+      D_c um                           3.215     3.488     +0.27
+      MCHC g/dL                        35.95     34.09     -1.86
+      EMA MFI ratio                    0.811     0.807     -0.00
+      50% lysis %NaCl                  0.547     0.599     +0.05
+      spleen volume mL                   250         0   -249.70
+
+   moderate HS (ANK1)
+                                          pre       post    change
+      haemoglobin g/dL                 10.50     12.45     +1.95
+      reticulocytes %                   8.75      3.83     -4.92
+      red cell lifespan d               17.5      31.7    +14.21
+      total bilirubin mg/dL             3.30      2.23     -1.06
+      bilirubin production mg/d          932       642   -289.77
+      membrane area um^2               110.7     108.4     -2.29
+      D_c um                           3.316     3.756     +0.44
+      MCHC g/dL                        35.26     33.77     -1.49
+      EMA MFI ratio                    0.791     0.774     -0.02
+      50% lysis %NaCl                  0.571     0.655     +0.08
+      spleen volume mL                   386         0   -385.81
+
+   severe HS (SPTA1)
+                                          pre       post    change
+      haemoglobin g/dL                  3.06     11.92     +8.87
+      reticulocytes %                  60.27      4.82    -55.45
+      red cell lifespan d                1.7      26.4    +24.77
+      total bilirubin mg/dL             4.46      2.55     -1.91
+      bilirubin production mg/d         1237       730   -507.71
+      membrane area um^2               105.9     100.1     -5.79
+      D_c um                           4.092     4.405     +0.31
+      MCHC g/dL                        28.56     33.73     +5.16
+      EMA MFI ratio                    0.757     0.715     -0.04
+      50% lysis %NaCl                  0.713     0.767     +0.05
+      spleen volume mL                   528         0   -528.36
+
+   Published: splenectomy in HS normalises or near-normalises the
+   haemoglobin and drops reticulocytes to ~2-3%, while spherocytes
+   and an abnormal osmotic fragility PERSIST on the post-operative
+   film.  The model reproduces the dissociation because haemolysis
+   depends on p_slow(D_c) x pi_dest, which is spleen-owned, while
+   EMA and osmotic fragility depend on (S, V), which is not.
+
+==============================================================================
+7. GENOTYPE x SPLENECTOMY: A PREDICTION THAT FAILS, AND BY HOW MUCH
+==============================================================================
+   Reliene 2002 (Blood 100:2208) reported two things.  First, that
+   band 3-deficient red cells carry up to 140 IgG molecules per cell while
+   spectrin/ankyrin-deficient cells and controls carry <= 60.  Second, that
+   splenectomy helps spectrin/ankyrin-deficient cells MORE than band
+   3-deficient ones.  In this model one parameter separates the genotypes:
+   whether band 3 leaves the cell inside the shed vesicle.  Only the first
+   of the two findings was used in calibration (stage 3).
+
+                          IgG pre  IgG post   Hb pre  Hb post      dHb life pre life post
+   spectrin/ankyrin            45        45    10.50    12.45     1.95     17.5     31.7
+   band 3                     151       161     8.79    12.27     3.48     11.2     29.7
+
+   THE FIRST FINDING IS REPRODUCED: 45 IgG per cell in the
+   spectrin/ankyrin arm (Reliene: control level, <=60) against
+   151 pre- and 161 post-splenectomy in the band 3 arm (Reliene:
+   up to 140).  The mechanism is the accounting rule alone: if band
+   3 leaves with the vesicle then band-3 SURFACE DENSITY is
+   conserved as area falls, and the clusters that low-affinity
+   natural antibody needs never form.
+
+   THE SECOND FINDING IS NOT REPRODUCED.  The model has the band 3
+   arm gaining MORE from splenectomy (+3.48 g/dL) than the
+   spectrin/ankyrin arm (+1.95), the opposite of Reliene's
+   direction.  The reason is a single number that was assumed rather
+   than measured: the model gives the spleen 72%% of opsonic
+   clearance and the liver 28%%, so removing the spleen removes most
+   of the opsonic arm too.  Because the spectrin/ankyrin arm has NO
+   opsonic clearance at all (IgG below threshold), that number acts
+   only on the band 3 arm, and it can be solved for.
+
+   hepatic share   dHb sp/ank  dHb band 3 dLife sp/ank dLife band3
+   0.28                  1.95        3.48        14.2        18.6
+   0.50                  1.95        2.96        14.2        16.0
+   0.65                  1.95        2.59        14.2        14.1
+   0.80                  1.95        2.21        14.2        12.3
+   0.90                  1.95        1.98        14.2        11.1
+   0.97                  1.95        1.83        14.2        10.3
+
+   The ordering inverts once the LIVER carries at least 97% of
+   opsonic clearance.  That is the model's quantitative reading
+   of Reliene: their result is not evidence about spherocytes,
+   it is evidence that clearance of heavily IgG-coated red cells
+   is mostly hepatic.  The base model keeps the assumed 28%% and
+   reports the failure rather than tuning to it.
+
+==============================================================================
+8. PARTIAL SPLENECTOMY AND THE REGROWTH CLOCK
+==============================================================================
+                                   Hb 0.5y    Hb 2y    Hb 5y spleen 5y
+   no surgery                        10.50    10.50    10.50      387
+   subtotal, 20% remnant             11.30    11.31    11.33       68
+   subtotal, 10% remnant             11.51    11.52    11.54       34
+   total splenectomy                 12.45    12.45    12.45        0
+
+   The remnant regrows toward the workload-determined target, so
+   the benefit of a subtotal operation is a DECAYING one.  The
+   model's clock is the regrowth rate, not the fraction left.
+
+==============================================================================
+9. PARVOVIRUS B19: THE ARITHMETIC OF AN APLASTIC CRISIS
+==============================================================================
+   A production arrest of D days costs a fraction D/lifespan of the
+   red cell mass, because that is how much of it would have been
+   replaced.  Nothing else is needed to explain why the same virus
+   is trivial in a normal child and life-threatening in HS.
+
+                               Hb pre    life predicted Hb nadir     drop     day
+   normal                       15.10   119.7     1.01    14.39     0.72    30.0
+   mild HS                      13.16    42.0     2.51    11.80     1.37    27.5
+   moderate HS (ANK1)           10.50    17.5     4.81     8.49     2.01    26.2
+   severe HS (SPTA1)             3.06     1.7    14.66     1.48     1.58    23.8
+
+   'predicted' is the back-of-envelope Hb x 8 / lifespan; 'drop' is
+   what the 72-ODE model actually does.  Published HS aplastic
+   crisis nadirs are commonly 3-5 g/dL from a baseline of 9-11.
+
+==============================================================================
+10. THE COUNTERFACTUAL VESICLE: WHAT IF HS SHED HAEMOGLOBIN TOO?
+==============================================================================
+   Same defect, same vesiculation rate, same spleen.  The only
+   change is the haemoglobin content of the vesicle, i.e. how much
+   VOLUME leaves with each unit of AREA.
+
+   vesicle haemoglobin                 Hb    life    area     MCV    MCHC     D_c
+   HS: haemoglobin-free (0.05)      10.50    17.5   110.7    85.1   35.26   3.316
+   half-loaded (0.50)               12.47    33.0   106.6    78.3   37.08   3.211
+   iso-dense, volume tracks area    14.09    85.9    98.9    62.4   37.06   2.675
+
+   With volume tracking area the same membrane defect produces a
+   MICROCYTE, not a spherocyte, and the splenic filter barely sees
+   it.  The disease is in the vesicle's cargo manifest.
+
+==============================================================================
+11. THE DIAGNOSTIC TESTS, PREDICTED (none of them fitted)
+==============================================================================
+   phenotype                    EMA MFI  EMA %red  OF %NaCl      MCHC
+   normal                         0.937       6.3     0.464     33.60
+   HS trait (carrier)             0.835      16.5     0.528     35.59
+   mild HS                        0.811      18.9     0.547     35.95
+   moderate HS (ANK1)             0.791      20.9     0.571     35.26
+   severe HS (SPTA1)              0.757      24.3     0.713     28.56
+   moderate HS (SLC4A1 band 3)     0.800      20.0     0.572     33.53
+
+   Reported cut-offs: EMA reduction >=16-21%; MCF 0.55-0.65 %NaCl
+   in HS against 0.40-0.45 normal; MCHC >=35.4 g/dL with RDW >=14
+   as a CBC-only screen.
+
+   POST-SPLENECTOMY, the assays should get WORSE, not better,
+   because the cell now has 100+ days to keep shedding membrane:
+                                EMA pre  EMA post   OF post
+   mild HS                        0.811     0.807     0.599
+   moderate HS (ANK1)             0.791     0.774     0.655
+   severe HS (SPTA1)              0.757     0.715     0.767
+
+==============================================================================
+12. BILIRUBIN AND GILBERT SYNDROME: A PREDICTION THAT MISSES
+==============================================================================
+   ugt_f = 0.287 is NOT free: it is the UGT1A1*28 homozygote
+   activity that reproduces an isolated Gilbert bilirubin of
+   2.2 mg/dL at a normal haemolytic load.
+
+                                      BR prod mg/d       TBIL   x normal
+   normal                                    213       0.72       1.00
+   Gilbert alone                             213       2.06       2.86
+   moderate HS                               932       3.30       4.57
+   moderate HS + Gilbert                     932      11.18      15.50
+   severe HS + Gilbert                      1237      16.57      22.96
+
+   HONEST MISS.  Published HS+Gilbert bilirubins cluster around
+   4-7 mg/dL, not the ~10 the model gives.  The model combines the
+   two insults MULTIPLICATIVELY because conjugation is the only
+   disposal step it has; the data say they combine
+   SUB-multiplicatively.  That is a structural statement, not a
+   tuning error: bilirubin disposal must have a load-inducible
+   component (uptake, MRP2 export, alternative conjugates) that
+   UGT1A1 kinetics alone do not provide.  It is left in.
+
+==============================================================================
+13. PIGMENT GALLSTONES OVER A LIFETIME
+==============================================================================
+                                           10 y      20 y      30 y      40 y
+   normal                                  2.0%      3.9%      5.8%      7.6%
+   moderate HS                            20.7%     37.1%     50.2%     60.5%
+   moderate HS + Gilbert                  57.2%     81.7%     92.2%     96.7%
+   moderate HS, splenectomised at 6 y     11.1%     21.0%     29.8%     37.6%
+
+   Reported: gallstones in 40-60% of HS adults, and roughly a
+   5-fold excess when Gilbert is co-inherited.  The stone index is
+   scaled so that untreated moderate HS reaches ~50% at 30 years;
+   the Gilbert ratio and the splenectomy effect are predictions.
+
+==============================================================================
+14. MITAPIVAT: A DRUG THAT ACTS ON THE VESICLE, NOT THE SPLEEN
+==============================================================================
+   dose (BID)                   Cmax      ATP  2,3-DPG       Hb      dHb     ret%
+   0 mg                            0    0.973    1.000    10.50    +0.00     8.75
+   5 mg                           59    1.019    0.966    10.58    +0.08     8.47
+   20 mg                         235    1.122    0.890    10.72    +0.22     7.99
+   50 mg                         589    1.244    0.801    10.83    +0.33     7.62
+   100 mg                       1177    1.348    0.726    10.90    +0.40     7.41
+
+   combination                                    Hb      dHb
+   splenectomy alone                           12.45    +1.95
+   mitapivat 100 mg alone                      10.90    +0.40
+   both                                        12.58    +2.08
+
+   The two act on DIFFERENT terms.  Mitapivat lowers the
+   vesiculation rate through ATP, so it changes the cell's geometry;
+   splenectomy leaves the geometry alone and removes the hazard that
+   reads it.  The model therefore expects them to be roughly
+   additive in Hb, and the drug to do little in an already
+   splenectomised patient, because the hazard whose input it
+   improves has already been removed.
+
+==============================================================================
+15. TRANSFUSION, IRON LOADING AND CHELATION (severe HS)
+==============================================================================
+                                             Hb 2y   LIC 2y ferritin     ret%
+   no transfusion                             3.06     3.76      593    60.28
+   2 units q4w                                8.73    16.81     2471    19.78
+   2 units q4w + deferasirox                  8.73    16.46     2423    19.78
+   splenectomy instead                       11.92     3.00      482     4.82
+
+   LIC is mg/g dry weight; >7 is the usual chelation threshold and
+   >15 the threshold for cardiac risk.  Note that the transfused
+   cells have NORMAL geometry, so a transfusion in HS is a
+   substrate dilution as well as a haemoglobin top-up.
+
+==============================================================================
+16. THE NEONATAL COURSE: TWO DIFFERENT PROBLEMS, EIGHT WEEKS APART
+==============================================================================
+   Week 1  : bilirubin, because UGT1A1 is immature.
+   Week 3-8: anaemia, because the physiological EPO nadir removes
+             the compensation the haemolysis depends on.
+
+                                  peak TBIL Hb nadir nadir day
+   term neonate, HS                          13.33    10.50     70.0
+   term neonate, HS + Gilbert                81.90    10.50     70.0
+   HS + blunted EPO (physiological nadir)    13.45     9.32     28.5
+   HS + rhEPO support                        14.63    10.50      0.0
+
+   The model has no fetal-to-adult haemoglobin switch and no
+   neonatal blood-volume expansion, so these are the ADULT
+   equations run with a neonatal UGT1A1 and a neonatal EPO set
+   point.  They are illustrative, not a neonatal model.
+
+==============================================================================
+17. VIRTUAL POPULATION AND SENSITIVITY
+==============================================================================
+   n = 60 virtual patients (fdef ~ N(0.28, 0.09), 22% band 3,
+   12%% Gilbert homozygous)
+                               p10   median      p90     mean
+   haemoglobin g/dL          11.06    13.02    14.46    12.68
+   reticulocytes %            1.33     2.94     6.92     4.64
+   total bilirubin            1.03     2.04     4.18     2.29
+   lifespan d                20.37    39.67    81.52    45.74
+   EMA reduction %           15.04    17.89    20.03    17.47
+
+   severity mix:  Hb>11 90%   8-11 5%   <8 5%
+   EMA reduction >=16% would identify 73% of them.
+
+   LOCAL SENSITIVITY of haemoglobin, +/-20% on each parameter
+   parameter          -20%       +20%      range
+   A0                 1.89      14.89      13.01
+   V0                13.58       2.12      11.46
+   D50                9.08      12.53       3.45
+   w_esc              9.33      11.01       1.68
+   k_ph              11.18       9.84       1.34
+   Emax_mar           9.87      10.97       1.10
+   kd_cord           10.00      10.92       0.93
+   f_pass0           10.95      10.08       0.87
+   tau0              10.95      10.08       0.87
+   kv_def            10.88      10.17       0.72
+   kv_base           10.77      10.26       0.51
+   cordamp           10.68      10.32       0.36
+   wD                10.47      10.54       0.07
+   tau50             10.50      10.50       0.01
+   k_sen             10.50      10.50       0.00
+   k_ops             10.50      10.50       0.00
+
+==============================================================================
+18. STRUCTURAL CHECKS
+==============================================================================
+   solver tolerance  rtol 1e-7 vs 1e-10 : Hb 10.509082 vs 10.509082 (diff 6.80e-11)
+   steady state drift over a further 200 d : Hb -7.98e-04 g/dL
+   steady state |d(sum N)/dt| = 2.55e-06 1e12/L/d (destruction flux 0.1827)
+   largest |dy/dt| over all 72 states: 6.17e-02
+   bilirubin: 34 mg/g x (0.1827 x 30.0 pg x 5 L) = 932 mg/d, model 932 mg/d
+   identity Hb = MCH x RBC / 10 : 10.499277 vs 10.499277
+   identity MCHC = 100 MCH / MCV: 35.262486 vs 35.262486
+
+   CONDITIONING LOOP GAIN  d ln(kv) / d ln(area).  In the base
+   model cordamp = 1 and this is identically zero -- membrane loss
+   does not depend on splenic residence, so there is no loop.  The
+   second column shows what the gain WOULD be at cordamp = 4, the
+   regime section 5 declines to adopt.
+      normal                      cordamp 1:  +0.000    cordamp 4:  -0.318
+      mild HS                     cordamp 1:  +0.000    cordamp 4: -14.104
+      moderate HS (ANK1)          cordamp 1:  +0.000    cordamp 4:  -7.027
+      severe HS (SPTA1)           cordamp 1:  +0.000    cordamp 4:  +0.000
+
+   A NEGATIVE gain here means 'losing area RAISES the loss rate'
+   (the sign convention is d ln kv / d ln A, so negative = unstable
+   in the direction of area loss); magnitude > 1 is a runaway.
+
+==============================================================================
+END

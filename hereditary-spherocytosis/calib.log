@@ -1,0 +1,156 @@
+Calibration ledger for the HS model.  SEVEN numbers are spent, in three
+stages, and everything reported afterwards is a prediction.
+
+STAGE 1 -- the normal red cell.  FOUR numbers, none of them about HS.
+  tau50     <- mean red cell lifespan 120 d
+  kv_base   <- membrane area falls 10.5% over the lifespan   (Waugh 1992)
+  kd_base   <- cell volume falls  8.4% over the lifespan     (Waugh 1992)
+  k_ph      <- geometric (cord-retention) clearance accounts for 1% of normal
+               red cell removal, i.e. splenectomy in a healthy person barely
+               changes red cell survival
+
+STAGE 2 -- ONE number: the genotype of the reference patient.
+  fdef_mod  <- haemoglobin 10.5 g/dL in the reference "moderate HS" patient.
+               fdef is 1 - (spectrin content / normal), so this fit reports a
+               spectrin content, and that number can be compared with the
+               published one (~70% for moderate HS).  Everything else about
+               the patient -- reticulocytes, lifespan, MCHC, bilirubin,
+               osmotic fragility, spleen size, splenectomy response -- stays a
+               prediction, and the mild and severe genotypes are obtained by
+               scaling the published spectrin bands, not by refitting.
+
+  This started as a three-number stage (membrane area to the 16% EMA deficit,
+  lifespan to 20 days, MCHC to 35.5) and shrank to nothing, in three steps
+  that are each worth recording:
+
+  * The membrane-area target had to go because it is structurally
+    incompatible with a 20-day lifespan.  A cell whose area is 16% below
+    normal has a D_c deep inside the splenic filter and cannot live 20 days.
+    The circulating population always looks milder than the destroyed one,
+    because the destroyed one is destroyed.
+
+  * The MCHC target had to go because it was not needed once the cation leak
+    was written as a property of the membrane (see lesson 1 below).
+
+  * The lifespan target had to go with cordamp, the cordal
+    membrane-stripping gain that it was being used to fit.  Above a gain of
+    about 2 the per-cell loop  area loss -> D_c up -> longer cordal residence
+    -> area loss  becomes supercritical, the POPULATION acquires two stable
+    steady states at the same parameter values, and which one you land on
+    depends on the ODE solver's maximum step size: max_step 6 gave a mean
+    lifespan of 12.6 days and max_step 8 gave 20.0, for the same parameters.
+    That is not a phenotype, it is an artefact of a bistable model being
+    calibrated on one branch and read on the other.  cordamp is therefore
+    set to 1 (stripping OFF) in the base model, and the amplifier hypothesis
+    is examined as an explicit experiment in section 5 of hsph_analysis.py
+    instead of being assumed.  It turns out not to be needed.
+
+STAGE 3 -- the opsonic arm.  TWO numbers, from Reliene 2002.
+  K_cl      <- 140 IgG molecules per cell in splenectomised band 3-deficient
+               HS (controls and spectrin/ankyrin HS <= 60)
+  k_ops     <- opsonic clearance carries half the destruction in an
+               unsplenectomised band 3-deficient patient
+
+Structural choices that are NOT fitted and are stated instead:
+  kv_def   = 3.33 x kv_base, i.e. fdef = 0.30 doubles the cell's intrinsic
+             (extrasplenic) vesiculation rate
+  kd_def   = 6.67 x kd_base, i.e. fdef = 0.30 doubles the basal dehydration
+             rate -- the constitutive cation leak of the defective membrane
+  a_ent_def= 1.0, i.e. the membrane-area deficit already present when the
+             cell is released is 0.42 x fdef (12.6% for moderate HS)
+  kd_cord  = 41 x kd_base, i.e. the cord is assumed to be a fixed multiple
+             worse for hydration; the equivalent multiple for MEMBRANE is
+             cordamp, which is fitted
+  visc_k   = ln2/3 = 0.231 per g/dL, the published slope of cytoplasmic
+             viscosity against MCHC
+  k_lys, s_lys: intravascular lysis is constrained to be a minor route,
+             because HS haemolysis is >95% extravascular
+
+TWO STRUCTURAL LESSONS WERE LEARNED THE HARD WAY AND ARE RECORDED HERE
+BECAUSE THEY ARE RESULTS, NOT BUGS.
+
+(1) The cation leak had to be a property of the MEMBRANE, not of the spleen.
+    An earlier version put the whole leak in the cordal term and could not
+    raise the circulating MCHC at any parameter value, including absurd ones:
+    if dehydration only happens inside the spleen then the cells that are
+    dehydrated are precisely the cells about to be eaten, and the survivors --
+    the ones the blood count measures -- are the ones it did not happen to.
+    A splenic leak is self-erasing.  The high MCHC of HS is therefore evidence
+    that the leak is constitutive.
+
+(2) Cytoplasmic viscosity had to act on the EXTRACTION step, not the exposure
+    step.  Surface-to-volume geometry on its own says dehydration PROTECTS the
+    HS cell, because losing volume at fixed area raises the excess-area
+    reserve and LOWERS D_c.  Viscosity is the standard answer, but if it is
+    written as a longer cordal DWELL then dehydration also increases membrane
+    stripping, and the resulting loop is supercritical for normal red cells
+    too -- the normal arm of the calibration stopped converging.  Written as a
+    harder time getting through the SLIT it only raises the destruction
+    probability, and normal cells stay safely subcritical.
+
+WHY BISECTION AND NOT LEAST SQUARES.  Multi-parameter least squares was tried
+first and repeatedly converged on degenerate corners -- kv_def driven to zero
+with all the clearance loaded onto k_ph, or a viscosity coefficient 56x the
+published value -- because the residual surface is nearly flat along one
+direction and warm-started steady states are only approximately converged,
+which is enough noise to mislead a gradient.  Each target below is monotone in
+its own parameter, so one-dimensional bisection cannot go anywhere degenerate.
+
+STAGE 1  the normal red cell
+   tau50   =   211.2382 d      -> mean lifespan         119.57 d (target 120)
+   kv_base =   0.000923 /d     -> end-of-life area      125.35 um^2 (target 125.30)
+   kd_base =   0.003662 /d     -> end-of-life volume     86.14 um^3 (target 86.10)
+   k_ph    =   0.030202 /d     -> geometric share       0.0100 (target 0.010)
+   NOT fitted: kv_def  = 3.333 x kv_base = 0.003078 /d
+   NOT fitted: kd_def  = 6.667 x kd_base = 0.024414 /d
+   NOT fitted: kd_cord = 41    x kd_base = 0.150146 /d
+   NOT fitted: a_ent_def = 1.0 (release deficit = 0.42 x fdef)
+   the normal population mean membrane area is 131.06 um^2; a 16%
+   EMA deficit against that would be 110.09 um^2 (not a target)
+   normal Hb 15.09 g/dL, MCV 89.3 fL, MCHC 33.60 g/dL, retic 0.89%, bilirubin 0.72 mg/dL
+
+
+STAGE 2  the reference moderate HS patient
+   fdef_mod  =   0.4197        -> haemoglobin          10.50 g/dL (target 10.5)
+   i.e. the model needs a spectrin content of 58% of normal
+   to produce a textbook moderate phenotype.  The published
+   figure for moderate HS is about 70%%, so the model's severity
+   mapping is displaced by -12 percentage points of spectrin --
+   it needs a BIGGER defect than the literature implies.
+   cordamp = 1 (cordal membrane stripping off, see section 5).
+
+   PREDICTED, nothing fitted to any of these:
+      haemoglobin              10.50 g/dL   (moderate HS: 8-12)
+      reticulocytes             8.75 %      (moderate HS: >6)
+      total bilirubin           3.30 mg/dL  (moderate HS: >2)
+      MCV                       85.1 fL
+      MCHC                     35.26 g/dL   (HS: >=35.4 is the screen)
+      RDW                       11.7 %      (HS: >=14 is the screen)
+      mean membrane area      110.68 um^2
+      EMA reduction             15.5 %      (diagnostic cut-off 16-21)
+      50% osmotic lysis        0.571 %NaCl (HS: 0.55-0.65)
+      spleen volume              385 mL     (HS: 300-800)
+      mean D_c                 3.316 um
+      mean lifespan            17.48 d      (HS: 10-30)
+      time in splenic cords   0.2930        (normal ~0.002)
+      geometric share of destruction   0.806
+
+STAGE 3  the opsonic arm (band 3 genotype)
+   K_cl    =   0.175890      -> IgG/cell after splenectomy  140.0 (target 140)
+   k_ops   =   0.009064 /d   -> opsonic share before it     0.500 (target 0.50)
+
+written hsph_calibration.json
+{
+  "tau50": 211.23821576403728,
+  "kv_base": 0.0009233262621509361,
+  "kd_base": 0.0036621070205819332,
+  "k_ph": 0.030202060109974276,
+  "kd_def": 0.024414168874113573,
+  "cordamp": 1.0,
+  "a_ent_def": 1.0,
+  "kv_def": 0.003077723429627715,
+  "kd_cord": 0.15014638784385925,
+  "fdef_mod": 0.419650843049095,
+  "K_cl": 0.17589013261667455,
+  "k_ops": 0.009063558044026823
+}
