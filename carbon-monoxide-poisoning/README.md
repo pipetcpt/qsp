@@ -243,6 +243,7 @@ The same populations given early hyperbaric oxygen:
 |---|---|---|---|
 | moderate (COHb 25%) | 28.7% | **5.3%** | 0.980 |
 | severe (COHb 40%) | 75.3% | **23.3%** | 0.921 |
+| critical (COHb 55%) | 96.0% | **63.3%** | 0.788 |
 
 **This is a partial calibration success, and the pattern of the miss is
 informative.** Against Weaver 2002 — 46% cognitive sequelae at six weeks with
@@ -255,8 +256,12 @@ relative reduction against an observed 46%) even though the post-treatment rate
 is right.
 
 The mild arm (8.7%) and moderate arm (28.7%) both sit inside the reported 10–40%
-band; the critical arm's 96% is not credible. No attempt has been made to tune
-this away by widening the population variability until the numbers matched.
+band; the critical arm's 96% is not credible. Note too that hyperbaric oxygen's
+effect *decays with severity* in the model — 82% relative reduction at moderate
+exposure, 69% at severe, 34% at critical — which is the opposite of the intuition
+that the sickest patients have the most to gain, and follows from the same
+too-easily-crossed switch. No attempt has been made to tune any of this away by
+widening the population variability until the numbers matched.
 
 ### 7. Why the hyperbaric trials disagree: the window is the adduct, not the carboxyhaemoglobin
 
