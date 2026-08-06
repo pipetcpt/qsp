@@ -1,0 +1,547 @@
+/* =========================================================================
+   INVASIVE PULMONARY ASPERGILLOSIS (IPA) -- QSP MECHANISTIC MAP
+   =========================================================================
+   Invasive aspergillosis drawn around ONE arithmetic asymmetry:
+
+       dB/dt = k_grow * (1 - I_azole) * B  -  (k_host * N_eff + k_cidal) * B
+               \_______ triazoles act HERE ______/   \___ neutrophils and
+                                                          polyenes act HERE __/
+
+   A triazole multiplies the growth term; it never enters the removal term.
+   So in a host with no neutrophils and no polyene, dB/dt is bounded below by
+   k_grow*(1 - Imax) > 0 and the burden ALWAYS rises, only more slowly. Every
+   clinical fact on this map -- the dominance of neutrophil recovery over drug
+   choice, the critical time-to-treatment, the value of TDM, why galactomannan
+   and burden disagree in week 1 -- descends from that one structural fact
+   The perfusion loop drawn in orange is a real part of the disease, but the
+   ablation reported in README shows it is not what sets the time-to-treatment
+   threshold; that is set by the burden a growth-rate inhibitor must hold.
+
+   Reading the map
+   ---------------
+     * the red root node (top left) is the only exogenous input: inhaled conidia
+     * SOLID black arrows  = mass flux / differentiation
+     * BLUE arrows         = stimulatory signalling
+     * RED arrows          = inhibitory / suppressive
+     * GREEN arrows        = drug action (growth inhibition vs killing is
+                             deliberately drawn to two DIFFERENT targets)
+     * ORANGE dashed       = the angioinvasion positive feedback: hyphae destroy
+                             the vessels that deliver the drug that would kill
+                             the hyphae. NOTE: this loop drives perfusion,
+                             oxygenation and the mortality hazard, but deleting
+                             its effect on drug delivery does NOT move the
+                             time-to-treatment cliff -- see README, "a
+                             hypothesis of my own that did not survive".
+     * PURPLE dashed       = negative feedback / host defence
+     * GREY dotted         = measurement / biomarker readout
+
+   171 nodes, 17 clusters, 259 edges.
+   Render:  dot -Tsvg ipa_qsp_model.dot -o ipa_qsp_model.svg
+            dot -Tpng -Gdpi=150 ipa_qsp_model.dot -o ipa_qsp_model.png
+   ========================================================================= */
+
+digraph IPA_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  nodesep = 0.30;
+  ranksep = 2.2;
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 30;
+  label = "Invasive Pulmonary Aspergillosis — QSP Mechanistic Map\nfungistatic azoles multiply the GROWTH term; only neutrophils and polyenes enter the REMOVAL term";
+
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+        margin="0.08,0.05", penwidth=1.1];
+  edge [fontname="Helvetica", fontsize=9, arrowsize=0.65, penwidth=1.0];
+
+  /* ================= 1. EXPOSURE AND THE FUNGAL LIFE CYCLE ============== */
+  subgraph cluster_exposure {
+    label = "1 · Exposure and the airway barrier";
+    style = "filled"; fillcolor = "#fff4f4"; color = "#c94040"; fontsize = 15;
+    EXPOSE   [label="Inhaled A. fumigatus conidia\n(2–3 µm; 10²–10³ per day)", fillcolor="#e74c3c", fontcolor=white, penwidth=2.2];
+    CONSTRUC [label="Construction / soil / compost\npotted plants · water damage", fillcolor="#fadbd8"];
+    HEPA     [label="HEPA filtration · laminar flow\nN95 outside the room", fillcolor="#d5f5e3"];
+    MUCO     [label="Mucociliary escalator", fillcolor="#fdebd0"];
+    EPI      [label="Airway epithelium\n(barrier + internalisation)", fillcolor="#fdebd0"];
+    ALVEOL   [label="Alveolar deposition\n(small size reaches alveoli)", fillcolor="#fadbd8"];
+    CON      [label="CON — resting/swollen conidia\n[ODE state]", fillcolor="#f5b7b1"];
+    GERM     [label="GERM — germlings\n(committed, pre-hyphal)\n[ODE state]", fillcolor="#f5b7b1"];
+    HYW      [label="HYW — hyphal biomass\nazole-susceptible\n[ODE state]", fillcolor="#e74c3c", fontcolor=white, penwidth=2.0];
+    HYR      [label="HYR — hyphal biomass\ncyp51A azole-resistant\n[ODE state]", fillcolor="#922b21", fontcolor=white, penwidth=2.0];
+    KGROW    [label="k_grow ≈ 0.095 /h\n(≈0.99 log10/day, td ≈ 7.3 h)", fillcolor="#fadbd8", shape=ellipse];
+    BMAX     [label="Carrying capacity\nB_max ≈ 3×10¹⁰ CFUe/lobe", fillcolor="#fadbd8", shape=ellipse];
+  }
+
+  /* ================= 2. FUNGAL VIRULENCE PROGRAMME ====================== */
+  subgraph cluster_fungal {
+    label = "2 · Fungal virulence and cell-wall programme";
+    style = "filled"; fillcolor = "#fdf6ec"; color = "#b9770e"; fontsize = 15;
+    CWALL    [label="Cell wall", fillcolor="#fdebd0"];
+    BG13     [label="β-1,3-glucan\n(FKS1 product — echinocandin target)", fillcolor="#fdebd0"];
+    CHITIN   [label="Chitin\n(compensatory ↑ under echinocandin)", fillcolor="#fdebd0"];
+    GALMAN   [label="Galactomannan (GM)\nshed by ELONGATING hyphae", fillcolor="#f9e79f"];
+    GAG      [label="Galactosaminogalactan (GAG)\nadhesive matrix", fillcolor="#fdebd0"];
+    BIO      [label="BIO — hyphal matrix / biofilm\n[ODE state]", fillcolor="#f8c471"];
+    ERG      [label="Ergosterol\n(membrane sterol)", fillcolor="#fdebd0"];
+    CYP51A   [label="cyp51A / Erg11\nlanosterol 14α-demethylase\n— TRIAZOLE TARGET", fillcolor="#f5cba7", penwidth=2.0];
+    GLIO     [label="Gliotoxin\n(NADPH-oxidase inhibition, apoptosis)", fillcolor="#fdebd0"];
+    SIDERO   [label="Siderophores (TAFC, ferricrocin)\niron piracy", fillcolor="#fdebd0"];
+    IRON     [label="Host iron availability\n(overload · chelation)", fillcolor="#fdebd0"];
+    SRBA     [label="SrbA hypoxia adaptation\n(grows in the infarct it made)", fillcolor="#fdebd0"];
+    THERM    [label="Thermotolerance 37–50 °C", fillcolor="#fdebd0"];
+    LAENA    [label="LaeA secondary-metabolite regulator", fillcolor="#fdebd0"];
+  }
+
+  /* ================= 3. INNATE DEFENCE — MACROPHAGE ==================== */
+  subgraph cluster_innate {
+    label = "3 · Resident defence: the conidial checkpoint";
+    style = "filled"; fillcolor = "#eef7fb"; color = "#2874a6"; fontsize = 15;
+    MAC      [label="MAC — alveolar macrophage\n[ODE state]", fillcolor="#aed6f1"];
+    DECTIN   [label="Dectin-1 → CARD9 → Syk", fillcolor="#d6eaf8"];
+    TLR      [label="TLR2 / TLR4 / MyD88", fillcolor="#d6eaf8"];
+    PTX3     [label="Pentraxin-3 (PTX3)\nopsonin; d3H haplotype ↑ risk", fillcolor="#d6eaf8"];
+    SPD      [label="Surfactant protein A / D", fillcolor="#d6eaf8"];
+    COMPL    [label="Complement opsonisation", fillcolor="#d6eaf8"];
+    PHAGO    [label="Phagocytosis of conidia", fillcolor="#d6eaf8"];
+    LAP      [label="LC3-associated phagocytosis\n(conidial killing in the phagosome)", fillcolor="#d6eaf8"];
+    ROSM     [label="NADPH oxidase (gp91phox)\nphagosomal ROS", fillcolor="#d6eaf8"];
+    KHOSTB   [label="k_host,base — constitutive surveillance\n(why daily inhalation is harmless)", fillcolor="#85c1e9", penwidth=2.0];
+  }
+
+  /* ================= 4. INNATE DEFENCE — NEUTROPHIL ==================== */
+  subgraph cluster_neut {
+    label = "4 · The hyphal checkpoint: neutrophils are the only host term that removes biomass";
+    style = "filled"; fillcolor = "#e8f8f5"; color = "#148f77"; fontsize = 15;
+    MARROW   [label="MAR — marrow granulocyte reserve\n[ODE state]", fillcolor="#a3e4d7"];
+    ANC      [label="ANC — blood neutrophil count\n[ODE state]", fillcolor="#48c9b0", penwidth=2.0];
+    CHEMO    [label="Chemotaxis / margination\ndriven by fungal signal, not lesion size", fillcolor="#a3e4d7"];
+    NLES     [label="NLES — neutrophils in the lesion\n[ODE state]", fillcolor="#48c9b0", penwidth=2.0];
+    NETS     [label="NETs (hyphae are too big to phagocytose)", fillcolor="#a3e4d7"];
+    CALPRO   [label="Calprotectin — Zn/Mn starvation", fillcolor="#a3e4d7"];
+    LACTOF   [label="Lactoferrin — Fe starvation", fillcolor="#a3e4d7"];
+    NROS     [label="Neutrophil oxidative burst", fillcolor="#a3e4d7"];
+    KHOST    [label="k_host · N_eff\nHYPHAL KILLING FLUX", fillcolor="#17a589", fontcolor=white, penwidth=2.4];
+    GCSF     [label="G-CSF / filgrastim\n[ODE state GCSF_c]", fillcolor="#a9dfbf"];
+    GRANTX   [label="Granulocyte transfusion", fillcolor="#a9dfbf"];
+  }
+
+  /* ================= 5. ADAPTIVE / IMMUNOPARALYSIS ===================== */
+  subgraph cluster_adaptive {
+    label = "5 · Adaptive tone and immunoparalysis";
+    style = "filled"; fillcolor = "#f4ecf7"; color = "#7d3c98"; fontsize = 15;
+    TH1      [label="IFNG — Th1 / IFN-γ axis\n[ODE state]", fillcolor="#d7bde2"];
+    TH17     [label="Th17 / IL-17", fillcolor="#e8daef"];
+    TREG     [label="Treg", fillcolor="#e8daef"];
+    IL10     [label="IL10 — immunoparalysis arm\n[ODE state]", fillcolor="#d7bde2"];
+    IL6      [label="IL6 — systemic inflammation\n[ODE state]", fillcolor="#d7bde2"];
+    CRP      [label="CRP\n[ODE state]", fillcolor="#d7bde2"];
+    MHLADR   [label="Monocyte HLA-DR ↓", fillcolor="#e8daef"];
+    IFNGRX   [label="Adjunctive IFN-γ (recombinant)", fillcolor="#d2b4de"];
+  }
+
+  /* ================= 6. HOST RISK / THE DEFECT ========================= */
+  subgraph cluster_risk {
+    label = "6 · What breaks the host: the risk factors ARE the model parameters";
+    style = "filled"; fillcolor = "#fdedec"; color = "#a93226"; fontsize = 15;
+    INDUCT   [label="Induction chemotherapy (AML/MDS)", fillcolor="#f5b7b1"];
+    ALLOHSCT [label="Allogeneic HSCT", fillcolor="#f5b7b1"];
+    GVHD     [label="Acute / chronic GVHD", fillcolor="#f5b7b1"];
+    NEUTPEN  [label="NEUTROPENIA depth × duration\n(sets T_ANC_REC)", fillcolor="#cb4335", fontcolor=white, penwidth=2.4];
+    GCS      [label="Corticosteroids\n[ODE state GCS_c]", fillcolor="#cb4335", fontcolor=white, penwidth=2.0];
+    CNI      [label="Calcineurin inhibitors\n(tacrolimus, ciclosporin)", fillcolor="#f5b7b1"];
+    BTKI     [label="Ibrutinib / BTK inhibitors", fillcolor="#f5b7b1"];
+    CART     [label="CAR-T · alemtuzumab · ATG", fillcolor="#f5b7b1"];
+    SOT      [label="Lung / heart / liver transplant", fillcolor="#f5b7b1"];
+    COPDR    [label="COPD + inhaled/systemic steroid", fillcolor="#f5b7b1"];
+    CIRRH    [label="Decompensated cirrhosis · ICU", fillcolor="#f5b7b1"];
+    IAPA     [label="Influenza-associated (IAPA)\nCAPA after severe COVID-19", fillcolor="#f5b7b1"];
+    CGD      [label="Chronic granulomatous disease\n(NADPH oxidase loss)", fillcolor="#f5b7b1"];
+    CARD9G   [label="CARD9 deficiency · PTX3 d3H\nTLR4 S4/T399I · DECTIN1 Y238X", fillcolor="#f5b7b1"];
+    FSTER    [label="f_steroid = 1/(1 + C_GCS/IC50)\nphagocyte burst multiplier", fillcolor="#e6b0aa", shape=ellipse];
+  }
+
+  /* ================= 7. ANGIOINVASION AND PERFUSION ==================== */
+  subgraph cluster_angio {
+    label = "7 · Angioinvasion: real loop, but NOT the cause of the treatment-delay cliff (ablation refuted it)";
+    style = "filled"; fillcolor = "#fef5e7"; color = "#ca6f1e"; fontsize = 15;
+    ANG      [label="ANG — angioinvasion / vessel damage\n[ODE state]", fillcolor="#f0b27a", penwidth=2.0];
+    ENDOTH   [label="Endothelial invasion and injury", fillcolor="#fae5d3"];
+    TF       [label="Tissue factor → local thrombosis", fillcolor="#fae5d3"];
+    INFARCT  [label="Haemorrhagic infarction", fillcolor="#fae5d3"];
+    PERF     [label="PERF — lesion perfusion index\n[ODE state]", fillcolor="#e67e22", fontcolor=white, penwidth=2.4];
+    DELIV    [label="C_site = C_ELF × (f_floor + (1−f_floor)·PERF^γ)\nDRUG DELIVERY TO THE HYPHAE\n(f_floor = 0.25: diffusion to the viable rim)", fillcolor="#dc7633", fontcolor=white, penwidth=2.4];
+    VLES     [label="VLES — lesion volume\n[ODE state]", fillcolor="#f8c471"];
+    NEC      [label="NEC — infarcted (non-perfused) volume\n[ODE state]", fillcolor="#f8c471"];
+    HALO     [label="CT halo sign (early)", fillcolor="#fdebd0"];
+    CRESC    [label="Air-crescent sign (on ANC recovery)", fillcolor="#fdebd0"];
+    HEMOPT   [label="Haemoptysis / vessel erosion", fillcolor="#fdebd0"];
+    DISSEM   [label="Haematogenous dissemination", fillcolor="#fae5d3"];
+    BRB      [label="BRB — cerebral fungal burden\n[ODE state]", fillcolor="#e59866"];
+  }
+
+  /* ================= 8. VORICONAZOLE PK ================================ */
+  subgraph cluster_vrcpk {
+    label = "8 · Voriconazole PK — where the therapeutic window actually comes from";
+    style = "filled"; fillcolor = "#eaf2f8"; color = "#1f618d"; fontsize = 15;
+    VRCDOSE  [label="Voriconazole 6 mg/kg ×2 then 4 mg/kg q12h", fillcolor="#aed6f1"];
+    VRCGUT   [label="VRC_gut (oral, F ≈ 0.96)\n[ODE state]", fillcolor="#d4e6f1"];
+    VRCC     [label="VRC_c — central plasma\n[ODE state]", fillcolor="#5dade2", fontcolor=white, penwidth=2.0];
+    VRCP     [label="VRC_p — peripheral\n[ODE state]", fillcolor="#d4e6f1"];
+    C19      [label="CYP2C19 diplotype\n*17/*17 UM … *2/*2 PM", fillcolor="#2e86c1", fontcolor=white, penwidth=2.2];
+    MM       [label="SATURABLE CYP2C19 path\nVmax·C/(Km+C), Km ≈ 3 mg/L", fillcolor="#85c1e9", penwidth=2.0];
+    LIN      [label="Linear CYP3A4 / FMO3 path\n(genotype-neutral; sets the PM ceiling)", fillcolor="#d4e6f1"];
+    NOXIDE   [label="Voriconazole N-oxide", fillcolor="#d4e6f1"];
+    INFLAM   [label="Inflammation phenoconversion\nCRP ↑ → CYP2C19 activity ↓", fillcolor="#85c1e9"];
+    VRCELF   [label="VRC_elf — ELF, Kp ≈ 7\n[ODE state]", fillcolor="#5dade2", fontcolor=white];
+    VRCBRAIN [label="VRC_brain — CSF/brain, Kp ≈ 0.5\n[ODE state]", fillcolor="#5dade2", fontcolor=white];
+    TDM      [label="TDM: trough 1–5.5 mg/L\n(the only way to collapse the genotype spread)", fillcolor="#2e86c1", fontcolor=white, penwidth=2.2];
+    SUPRA    [label="Supraproportionality:\n2× dose ⇒ >2× AUC", fillcolor="#aed6f1", shape=ellipse];
+  }
+
+  /* ================= 9. THE OTHER ANTIFUNGALS ========================== */
+  subgraph cluster_otherpk {
+    label = "9 · The rest of the armamentarium";
+    style = "filled"; fillcolor = "#e8f6f3"; color = "#0e6655"; fontsize = 15;
+    ISA      [label="Isavuconazole\n(ISA_c/_p/_elf) t½ ≈ 130 h, no cyclodextrin", fillcolor="#a2d9ce"];
+    POS      [label="Posaconazole DR tablet\n(POS_c/_p/_elf) prophylaxis + salvage", fillcolor="#a2d9ce"];
+    ITRA     [label="Itraconazole (legacy)", fillcolor="#d1f2eb"];
+    AMB      [label="Liposomal amphotericin B\n(AMB_c/_p/_elf/_brain)", fillcolor="#76d7c4", penwidth=2.0];
+    DAMB     [label="Amphotericin B deoxycholate\n(comparator arm, 2002)", fillcolor="#d1f2eb"];
+    ECH      [label="Echinocandin (anidula-/caspo-/micafungin)\n(ECH_c/_p/_elf)", fillcolor="#a2d9ce"];
+    OLORO    [label="Olorofim (DHODH inhibitor)\ninvestigational", fillcolor="#d1f2eb"];
+    FOSMAN   [label="Fosmanogepix (Gwt1/GPI anchor)\ninvestigational", fillcolor="#d1f2eb"];
+    IBREX    [label="Ibrexafungerp (oral glucan synthase)", fillcolor="#d1f2eb"];
+    REZA     [label="Rezafungin (long-acting echinocandin)", fillcolor="#d1f2eb"];
+    SURG     [label="Surgical resection\n(massive haemoptysis · single lesion)", fillcolor="#d1f2eb"];
+  }
+
+  /* ================= 10. PHARMACODYNAMICS — THE SPLIT ================== */
+  subgraph cluster_pd {
+    label = "10 · The split that organises the whole disease: growth term vs removal term";
+    style = "filled"; fillcolor = "#eafaf1"; color = "#1e8449"; fontsize = 15;
+    AZPD     [label="TRIAZOLE PD\nergosterol depletion → elongation slows\nI_azole, Imax ≈ 0.955 < 1", fillcolor="#82e0aa", penwidth=2.4];
+    GROWTERM [label="GROWTH TERM\nk_grow·(1 − I_azole)·B", fillcolor="#28b463", fontcolor=white, penwidth=2.6];
+    AMBPD    [label="POLYENE PD\nergosterol binding → pore + oxidative damage\nk_cidal, FUNGICIDAL", fillcolor="#82e0aa", penwidth=2.4];
+    ECHPD    [label="ECHINOCANDIN PD\napical β-1,3-glucan synthase block\ngrowth-only, Imax ≈ 0.52", fillcolor="#a9dfbf"];
+    PARADOX  [label="Paradoxical (Eagle) effect\nefficacy falls above ~12 mg/L", fillcolor="#a9dfbf"];
+    REMTERM  [label="REMOVAL TERM\n(k_host·N_eff + k_cidal)·B", fillcolor="#239b56", fontcolor=white, penwidth=2.6];
+    FLOOR    [label="GROWTH FLOOR\nk_grow·(1 − Imax) > 0\n⇒ an azole alone can never clear\na host with N_eff = 0", fillcolor="#145a32", fontcolor=white, penwidth=2.8];
+    BLISS    [label="Bliss independence for combinations\n1 − (1−I_az)(1−I_ech)", fillcolor="#a9dfbf", shape=ellipse];
+    AUCMIC   [label="fAUC24/MIC — the azole PK/PD index", fillcolor="#a9dfbf", shape=ellipse];
+    CMAXMIC  [label="Cmax/MIC — the polyene index", fillcolor="#a9dfbf", shape=ellipse];
+  }
+
+  /* ================= 11. RESISTANCE ==================================== */
+  subgraph cluster_resist {
+    label = "11 · Azole resistance";
+    style = "filled"; fillcolor = "#f9ebea"; color = "#922b21"; fontsize = 15;
+    AGRI     [label="Agricultural azole fungicides\n(environmental route)", fillcolor="#f2d7d5"];
+    TR34     [label="TR34/L98H — pan-azole MIC ↑", fillcolor="#e6b0aa", penwidth=2.0];
+    TR46     [label="TR46/Y121F/T289A — voriconazole MIC ≥16", fillcolor="#e6b0aa", penwidth=2.0];
+    NONCYP   [label="Non-cyp51A: hmg1, hapE", fillcolor="#f2d7d5"];
+    EFFLUX   [label="Efflux pumps AtrF / Cdr1B / Mdr1", fillcolor="#f2d7d5"];
+    INPAT    [label="In-patient selection under\nlong azole exposure", fillcolor="#f2d7d5"];
+    KMUT     [label="k_mut ≈ 2×10⁻⁸ per replication", fillcolor="#f2d7d5", shape=ellipse];
+    MICSHIFT [label="MIC shift ⇒ EC50 = coef × MIC\n(the ONLY place resistance enters)", fillcolor="#cd6155", fontcolor=white, penwidth=2.0];
+  }
+
+  /* ================= 12. DRUG-DRUG INTERACTIONS ======================== */
+  subgraph cluster_ddi {
+    label = "12 · Drug–drug interactions (the azole is a CYP3A4 inhibitor before it is an antifungal)";
+    style = "filled"; fillcolor = "#f5eef8"; color = "#6c3483"; fontsize = 15;
+    CYP3A4   [label="CYP3A4 inhibition\n1/(1 + ΣC/Ki)", fillcolor="#d2b4de", penwidth=2.0];
+    TACRO    [label="TAC_c — tacrolimus\n[ODE state]", fillcolor="#d2b4de"];
+    SIRO     [label="Sirolimus (contraindicated with VRC)", fillcolor="#e8daef"];
+    VINCA    [label="Vincristine — neurotoxicity", fillcolor="#e8daef"];
+    VENE     [label="Venetoclax · midostaurin dose reduction", fillcolor="#e8daef"];
+    RIFAM    [label="Rifampicin · phenytoin (inducers)\nazole exposure collapses", fillcolor="#e8daef"];
+    PPI      [label="PPI ↑ voriconazole exposure", fillcolor="#e8daef"];
+    QTDRUG   [label="Co-administered QT-prolonging drugs", fillcolor="#e8daef"];
+  }
+
+  /* ================= 13. BIOMARKERS ==================================== */
+  subgraph cluster_bio {
+    label = "13 · Biomarkers — and why they disagree with the burden";
+    style = "filled"; fillcolor = "#fef9e7"; color = "#9a7d0a"; fontsize = 15;
+    GMLES    [label="GMles — galactomannan in the lesion\n[ODE state]", fillcolor="#f9e79f"];
+    GMSER    [label="GMser — serum GM index\n[ODE state]", fillcolor="#f7dc6f", penwidth=2.0];
+    GMBAL    [label="BAL galactomannan (higher sensitivity)", fillcolor="#fcf3cf"];
+    BDG      [label="BDG — serum (1,3)-β-D-glucan\n[ODE state]", fillcolor="#f9e79f"];
+    PCRS     [label="PCRs — serum Aspergillus PCR\n[ODE state]", fillcolor="#f9e79f"];
+    LFD      [label="Lateral-flow device (point of care)", fillcolor="#fcf3cf"];
+    GMPROD   [label="GM release = k_growth·(GROWTH flux)\n + k_lysis·(KILLING flux)", fillcolor="#d4ac0d", fontcolor=white, penwidth=2.4];
+    GMABS    [label="Absorption into blood ∝ perfusion", fillcolor="#fcf3cf"];
+    GMFALSE  [label="False positives: piperacillin-tazobactam\n(historic), Bifidobacterium, other moulds", fillcolor="#fcf3cf"];
+    CTSCAN   [label="Thin-section chest CT", fillcolor="#fcf3cf"];
+    EORTC    [label="EORTC/MSGERC proven·probable·possible", fillcolor="#fcf3cf"];
+  }
+
+  /* ================= 14. TOXICITY ====================================== */
+  subgraph cluster_tox {
+    label = "14 · Toxicity — the other half of the therapeutic window";
+    style = "filled"; fillcolor = "#fdedec"; color = "#b03a2e"; fontsize = 15;
+    ALT      [label="ALT — hepatotoxicity\n[ODE state]", fillcolor="#f5b7b1"];
+    NEUROE   [label="NEUROE — visual disturbance,\nhallucination, encephalopathy\n[ODE state]", fillcolor="#f5b7b1"];
+    QTC      [label="QTC — QT prolongation\n[ODE state]", fillcolor="#f5b7b1"];
+    PHOTO    [label="Phototoxicity → cutaneous SCC\n(long-term voriconazole)", fillcolor="#fadbd8"];
+    PERIOST  [label="Fluoride excess → periostitis", fillcolor="#fadbd8"];
+    SCR      [label="SCR — polyene nephrotoxicity\n[ODE state]", fillcolor="#f5b7b1"];
+    KMG      [label="KMG — K⁺/Mg²⁺ tubular wasting\n[ODE state]", fillcolor="#f5b7b1"];
+    INFRXN   [label="Infusion reactions (L-AmB)", fillcolor="#fadbd8"];
+    CYCLO    [label="IV cyclodextrin accumulation in renal failure", fillcolor="#fadbd8"];
+  }
+
+  /* ================= 15. PHYSIOLOGY / ORGAN ============================ */
+  subgraph cluster_organ {
+    label = "15 · Organ-level consequences";
+    style = "filled"; fillcolor = "#eaeded"; color = "#566573"; fontsize = 15;
+    PFR      [label="PFR — PaO2/FiO2\n[ODE state]", fillcolor="#d5dbdb"];
+    TEMP     [label="TEMP — fever\n[ODE state]", fillcolor="#d5dbdb"];
+    RESPFAIL [label="Respiratory failure · mechanical ventilation", fillcolor="#d5dbdb"];
+    CNSDIS   [label="Cerebral aspergillosis\n(abscess, infarct, mycotic aneurysm)", fillcolor="#d5dbdb"];
+    SINUS    [label="Sinonasal / rhino-orbital extension", fillcolor="#d5dbdb"];
+    TRACH    [label="Tracheobronchitis (lung transplant)", fillcolor="#d5dbdb"];
+    ENDOCARD [label="Endocarditis · osteomyelitis", fillcolor="#d5dbdb"];
+  }
+
+  /* ================= 16. CLINICAL ENDPOINTS ============================ */
+  subgraph cluster_end {
+    label = "16 · Clinical endpoints";
+    style = "filled"; fillcolor = "#e8daef"; color = "#4a235a"; fontsize = 15;
+    RESPONSE [label="Global response at week 6\n(DRC-adjudicated)", fillcolor="#c39bd3"];
+    MORT6    [label="6-week all-cause mortality", fillcolor="#bb8fce"];
+    MORT12   [label="12-week all-cause mortality", fillcolor="#a569bd", fontcolor=white, penwidth=2.2];
+    HAZ      [label="HAZ — cumulative hazard\nS(t) = exp(−HAZ)\n[ODE state]", fillcolor="#8e44ad", fontcolor=white, penwidth=2.4];
+    BREAKTHR [label="Breakthrough IA on prophylaxis", fillcolor="#c39bd3"];
+    RELAPSE  [label="Relapse on subsequent chemotherapy\n(secondary prophylaxis)", fillcolor="#c39bd3"];
+  }
+
+  /* ================= 17. THE MODEL'S OWN ARITHMETIC ==================== */
+  subgraph cluster_model {
+    label = "17 · What the model computes";
+    style = "filled"; fillcolor = "#f2f4f4"; color = "#212f3d"; fontsize = 15;
+    ODE      [label="53 ODEs · 5 antifungals · 2 co-medications", fillcolor="#d5d8dc"];
+    BIFURC   [label="Time-to-treatment bifurcation\n(sterilise vs never sterilise)", fillcolor="#aeb6bf", penwidth=2.0];
+    LEVER    [label="Host lever vs drug lever\n(mortality points attributable to each)", fillcolor="#aeb6bf", penwidth=2.0];
+    VPOP     [label="Virtual population (n = 600)\ncovariate ranking", fillcolor="#aeb6bf"];
+    TDMVAL   [label="Value of TDM in exposure and in toxicity", fillcolor="#aeb6bf"];
+  }
+
+  /* ===================== EDGES: exposure and life cycle ================= */
+  CONSTRUC -> EXPOSE [color="#c0392b"];
+  HEPA -> EXPOSE [color="#27ae60", style=dashed, label="prevention"];
+  EXPOSE -> MUCO;
+  MUCO -> ALVEOL [label="escape"];
+  EXPOSE -> ALVEOL [label="2–3 µm"];
+  EPI -> ALVEOL [style=dashed, color="#8e44ad"];
+  ALVEOL -> CON;
+  CON -> GERM [label="k_germ"];
+  GERM -> HYW [label="k_mat"];
+  GERM -> HYR [label="k_mat · resistant fraction"];
+  HYW -> HYR [label="k_mut", color="#922b21"];
+  KGROW -> HYW [style=dotted];
+  KGROW -> HYR [style=dotted];
+  BMAX -> HYW [style=dotted, color="#7f8c8d", label="logistic"];
+
+  /* ===================== EDGES: fungal programme ======================= */
+  HYW -> CWALL; HYR -> CWALL;
+  CWALL -> BG13; CWALL -> CHITIN; CWALL -> GALMAN; CWALL -> GAG;
+  CWALL -> ERG;
+  CYP51A -> ERG [label="14α-demethylation"];
+  ERG -> HYW [style=dashed, color="#8e44ad", label="membrane integrity"];
+  GAG -> BIO;
+  BIO -> KHOST [color="#c0392b", label="shields hyphae", style=dashed];
+  HYW -> GLIO; GLIO -> ROSM [color="#c0392b"]; GLIO -> NROS [color="#c0392b"];
+  HYW -> SIDERO; IRON -> SIDERO [color="#2980b9"]; SIDERO -> HYW [color="#2980b9"];
+  LACTOF -> SIDERO [color="#c0392b"];
+  SRBA -> HYW [color="#2980b9", label="grows in its own infarct"];
+  INFARCT -> SRBA [color="#2980b9"];
+  THERM -> HYW [color="#2980b9"]; LAENA -> GLIO [color="#2980b9"];
+  CALPRO -> HYW [color="#c0392b", label="Zn/Mn starvation"];
+
+  /* ===================== EDGES: innate defence ========================= */
+  CON -> PHAGO; DECTIN -> PHAGO [color="#2980b9"]; TLR -> PHAGO [color="#2980b9"];
+  PTX3 -> COMPL [color="#2980b9"]; SPD -> COMPL [color="#2980b9"]; COMPL -> PHAGO [color="#2980b9"];
+  MAC -> PHAGO [color="#2980b9"]; PHAGO -> LAP; LAP -> ROSM;
+  ROSM -> CON [color="#c0392b", label="conidial killing"];
+  ROSM -> GERM [color="#c0392b"];
+  MAC -> KHOSTB [color="#2980b9"]; ANC -> KHOSTB [color="#2980b9"];
+  KHOSTB -> KHOST [color="#148f77"];
+  MAC -> CON [color="#c0392b", label="k_mac·MAC"];
+
+  /* ===================== EDGES: neutrophils ============================ */
+  MARROW -> ANC [label="k_tr"];
+  ANC -> CHEMO; HYW -> CHEMO [color="#2980b9", label="fungal signal"];
+  CHEMO -> NLES; NLES -> NETS; NLES -> NROS; NLES -> CALPRO; NLES -> LACTOF;
+  NETS -> KHOST [color="#148f77"]; NROS -> KHOST [color="#148f77"];
+  NLES -> KHOST [color="#148f77", penwidth=2.0];
+  KHOST -> HYW [color="#c0392b", penwidth=2.2, label="removal"];
+  KHOST -> HYR [color="#c0392b", penwidth=2.2];
+  GCSF -> MARROW [color="#2980b9", label="Emax 3.6"];
+  GRANTX -> NLES [color="#2980b9"];
+  KHOST -> REMTERM [color="#148f77", penwidth=2.2];
+  NLES -> VLES [color="#8e44ad", style=dashed, label="resolution"];
+  NLES -> PERF [color="#8e44ad", style=dashed, label="healing"];
+
+  /* ===================== EDGES: adaptive =============================== */
+  HYW -> IL6 [color="#2980b9"]; IL6 -> CRP [color="#2980b9"]; IL6 -> IL10 [color="#2980b9"];
+  IL6 -> TEMP [color="#2980b9"]; IL10 -> MHLADR [color="#c0392b"];
+  MHLADR -> KHOST [color="#c0392b", style=dashed];
+  DECTIN -> TH1 [color="#2980b9"]; TH1 -> KHOST [color="#2980b9", style=dashed];
+  TH17 -> NLES [color="#2980b9"]; TREG -> TH1 [color="#c0392b"];
+  IFNGRX -> TH1 [color="#27ae60"];
+  CRP -> INFLAM [color="#2980b9", penwidth=2.0];
+
+  /* ===================== EDGES: host risk ============================== */
+  INDUCT -> NEUTPEN [color="#c0392b", penwidth=2.0];
+  ALLOHSCT -> NEUTPEN [color="#c0392b"]; ALLOHSCT -> GVHD;
+  GVHD -> GCS [color="#c0392b"]; SOT -> CNI; SOT -> GCS;
+  NEUTPEN -> MARROW [color="#c0392b", penwidth=2.2, label="sets T_ANC_REC"];
+  NEUTPEN -> ANC [color="#c0392b", penwidth=2.2];
+  GCS -> FSTER [color="#c0392b", penwidth=2.0];
+  FSTER -> KHOST [color="#c0392b", penwidth=2.2, label="×f_steroid"];
+  FSTER -> ROSM [color="#c0392b"]; FSTER -> CHEMO [color="#c0392b"];
+  CNI -> TH1 [color="#c0392b"]; BTKI -> MAC [color="#c0392b"];
+  CART -> TH1 [color="#c0392b"]; COPDR -> GCS [color="#c0392b"];
+  CIRRH -> MAC [color="#c0392b"]; IAPA -> EPI [color="#c0392b"];
+  IAPA -> GCS [color="#c0392b"];
+  CGD -> ROSM [color="#c0392b"]; CGD -> NROS [color="#c0392b"];
+  CARD9G -> DECTIN [color="#c0392b"]; CARD9G -> PTX3 [color="#c0392b"];
+
+  /* ===================== EDGES: angioinvasion loop ===================== */
+  HYW -> ENDOTH [penwidth=1.6]; HYR -> ENDOTH;
+  ENDOTH -> ANG [penwidth=1.6]; ENDOTH -> TF; TF -> INFARCT;
+  ANG -> PERF [color="#e67e22", penwidth=2.4, style=dashed, label="perfusion loss"];
+  ANG -> INFARCT; INFARCT -> NEC; PERF -> NEC [color="#e67e22"];
+  HYW -> VLES; VLES -> NEC;
+  PERF -> DELIV [color="#e67e22", penwidth=2.6, style=dashed, label="C_site = C_ELF·PERF^γ"];
+  DELIV -> AZPD [color="#e67e22", penwidth=2.2, style=dashed];
+  DELIV -> AMBPD [color="#e67e22", penwidth=2.2, style=dashed];
+  DELIV -> ECHPD [color="#e67e22", penwidth=2.2, style=dashed];
+  HYW -> HALO; HALO -> CRESC; NLES -> CRESC [color="#2980b9"];
+  ANG -> HEMOPT; ANG -> DISSEM; DISSEM -> BRB;
+  BRB -> CNSDIS; ANG -> BRB [style=dashed];
+  VLES -> PFR [color="#c0392b"]; NEC -> PFR [color="#c0392b"];
+  PFR -> RESPFAIL [color="#c0392b"];
+  HYW -> SINUS; HYW -> TRACH; DISSEM -> ENDOCARD;
+
+  /* ===================== EDGES: voriconazole PK ======================== */
+  VRCDOSE -> VRCGUT; VRCDOSE -> VRCC [label="IV"];
+  VRCGUT -> VRCC [label="k_a · F"];
+  VRCC -> VRCP [dir=both];
+  VRCC -> MM; VRCC -> LIN; MM -> NOXIDE; LIN -> NOXIDE;
+  C19 -> MM [color="#2980b9", penwidth=2.4, label="× Vmax"];
+  INFLAM -> MM [color="#c0392b", penwidth=2.0, label="phenoconversion"];
+  MM -> SUPRA [style=dotted]; SUPRA -> TDM [style=dotted];
+  C19 -> TDM [style=dotted, color="#2874a6"];
+  VRCC -> VRCELF [label="Kp ≈ 7"];
+  VRCC -> VRCBRAIN [label="Kp ≈ 0.5"];
+  VRCELF -> DELIV [penwidth=2.0];
+  VRCBRAIN -> BRB [color="#27ae60", penwidth=2.0, label="the reason VRC is first line in CNS disease"];
+  TDM -> VRCDOSE [color="#27ae60", style=dashed, label="dose adjustment"];
+  PPI -> VRCC [color="#2980b9"]; RIFAM -> MM [color="#2980b9", label="induction"];
+
+  /* ===================== EDGES: other drugs ============================ */
+  ISA -> AZPD [color="#27ae60"]; POS -> AZPD [color="#27ae60"];
+  ITRA -> AZPD [color="#27ae60"];
+  AMB -> AMBPD [color="#27ae60", penwidth=2.0];
+  DAMB -> AMBPD [color="#27ae60"];
+  ECH -> ECHPD [color="#27ae60"];
+  REZA -> ECHPD [color="#27ae60"]; IBREX -> ECHPD [color="#27ae60"];
+  OLORO -> GROWTERM [color="#27ae60", style=dashed, label="pyrimidine synthesis"];
+  FOSMAN -> CWALL [color="#27ae60", style=dashed, label="GPI anchor"];
+  SURG -> VLES [color="#27ae60", style=dashed];
+
+  /* ===================== EDGES: the PD split =========================== */
+  AZPD -> CYP51A [color="#c0392b", penwidth=2.4, label="inhibits"];
+  CYP51A -> GROWTERM [style=dashed, color="#8e44ad"];
+  AZPD -> GROWTERM [color="#27ae60", penwidth=2.6, label="MULTIPLIES growth"];
+  ECHPD -> BG13 [color="#c0392b", penwidth=2.0];
+  ECHPD -> GROWTERM [color="#27ae60", penwidth=2.0];
+  BG13 -> CHITIN [color="#2980b9", style=dashed, label="compensation"];
+  ECHPD -> PARADOX [style=dotted]; PARADOX -> ECHPD [color="#c0392b", style=dashed];
+  AMBPD -> ERG [color="#c0392b", penwidth=2.0, label="binds"];
+  AMBPD -> REMTERM [color="#27ae60", penwidth=2.6, label="ADDS killing"];
+  GROWTERM -> HYW [penwidth=2.4];
+  REMTERM -> HYW [color="#c0392b", penwidth=2.4];
+  GROWTERM -> FLOOR [penwidth=2.2];
+  FLOOR -> MORT12 [color="#c0392b", style=dashed, penwidth=2.2, label="the structural claim"];
+  NEUTPEN -> FLOOR [color="#c0392b", penwidth=2.2];
+  AUCMIC -> AZPD [style=dotted]; CMAXMIC -> AMBPD [style=dotted];
+  BLISS -> GROWTERM [style=dotted];
+  ECHPD -> BLISS [style=dotted]; AZPD -> BLISS [style=dotted];
+
+  /* ===================== EDGES: resistance ============================= */
+  AGRI -> TR34 [color="#c0392b"]; AGRI -> TR46 [color="#c0392b"];
+  INPAT -> NONCYP [color="#c0392b"]; INPAT -> TR34 [color="#c0392b"];
+  KMUT -> HYR [style=dotted];
+  TR34 -> MICSHIFT [penwidth=2.0]; TR46 -> MICSHIFT [penwidth=2.0];
+  NONCYP -> MICSHIFT; EFFLUX -> MICSHIFT;
+  MICSHIFT -> AZPD [color="#c0392b", penwidth=2.4, label="EC50 = coef × MIC"];
+  HYR -> BREAKTHR [color="#c0392b"];
+  POS -> TR34 [color="#27ae60", style=dashed, label="partial retention"];
+  AMB -> MICSHIFT [color="#27ae60", style=dashed, label="unaffected"];
+
+  /* ===================== EDGES: DDI ==================================== */
+  VRCC -> CYP3A4 [color="#c0392b", penwidth=2.0, label="Ki 1.3 mg/L"];
+  ISA -> CYP3A4 [color="#c0392b", label="Ki 10"];
+  POS -> CYP3A4 [color="#c0392b", label="Ki 0.45"];
+  CYP3A4 -> TACRO [color="#c0392b", penwidth=2.0, label="clearance ↓"];
+  CYP3A4 -> SIRO [color="#c0392b"]; CYP3A4 -> VINCA [color="#c0392b"];
+  CYP3A4 -> VENE [color="#c0392b"];
+  TACRO -> CNI; QTDRUG -> QTC [color="#c0392b"];
+
+  /* ===================== EDGES: biomarkers ============================= */
+  GROWTERM -> GMPROD [penwidth=2.2, label="growth flux"];
+  REMTERM -> GMPROD [penwidth=2.2, label="killing flux"];
+  GALMAN -> GMPROD;
+  GMPROD -> GMLES [penwidth=2.0];
+  GMLES -> GMBAL [style=dotted, color="#7f8c8d"];
+  GMLES -> GMSER [penwidth=2.0, label="k_abs · PERF"];
+  GMABS -> GMSER [style=dotted]; PERF -> GMABS [color="#e67e22", style=dashed];
+  BG13 -> BDG [style=dotted, color="#7f8c8d"];
+  REMTERM -> BDG [style=dotted, color="#7f8c8d"];
+  HYW -> PCRS [style=dotted, color="#7f8c8d"];
+  GMSER -> LFD [style=dotted, color="#7f8c8d"];
+  GMSER -> EORTC [style=dotted, color="#7f8c8d"];
+  CTSCAN -> EORTC [style=dotted, color="#7f8c8d"];
+  HALO -> CTSCAN [style=dotted, color="#7f8c8d"];
+  GMFALSE -> GMSER [style=dotted, color="#c0392b"];
+  GMSER -> RESPONSE [style=dotted, color="#7f8c8d", label="surrogate — but see the week-1 dissociation"];
+
+  /* ===================== EDGES: toxicity =============================== */
+  VRCC -> ALT [color="#c0392b", label="> 4 mg/L"];
+  VRCC -> NEUROE [color="#c0392b", label="Cmax-driven"];
+  VRCC -> QTC [color="#c0392b"]; POS -> QTC [color="#c0392b"];
+  VRCC -> PHOTO [color="#c0392b"]; VRCC -> PERIOST [color="#c0392b"];
+  AMB -> SCR [color="#c0392b", penwidth=2.0]; AMB -> KMG [color="#c0392b"];
+  AMB -> INFRXN [color="#c0392b"];
+  VRCDOSE -> CYCLO [color="#c0392b", style=dashed, label="IV vehicle"];
+  ALT -> HAZ [color="#c0392b", style=dashed];
+  SCR -> HAZ [color="#c0392b", style=dashed];
+  TDM -> ALT [color="#27ae60", style=dashed, label="avoids"];
+  TDM -> NEUROE [color="#27ae60", style=dashed];
+
+  /* ===================== EDGES: endpoints ============================== */
+  HYW -> HAZ [color="#c0392b", penwidth=2.0, label="log10 burden"];
+  PERF -> HAZ [color="#c0392b", penwidth=2.0];
+  PFR -> HAZ [color="#c0392b", penwidth=2.0];
+  BRB -> HAZ [color="#c0392b"];
+  ANC -> HAZ [color="#c0392b", style=dashed, label="ANC < 0.5"];
+  HAZ -> MORT6; HAZ -> MORT12 [penwidth=2.2];
+  HYW -> RESPONSE; VLES -> RESPONSE;
+  RESPONSE -> MORT12 [style=dashed];
+  POS -> BREAKTHR [color="#27ae60", style=dashed, label="prophylaxis"];
+  BREAKTHR -> HYR [color="#c0392b"];
+  RELAPSE -> EXPOSE [style=dashed, color="#c0392b"];
+
+  /* ===================== EDGES: what the model computes ================ */
+  ODE -> BIFURC [style=dotted]; ODE -> LEVER [style=dotted];
+  ODE -> VPOP [style=dotted]; ODE -> TDMVAL [style=dotted];
+  DELIV -> BIFURC [color="#7f8c8d", style=dotted, penwidth=1.6, label="ablated: no effect"];
+  NEUTPEN -> LEVER [color="#c0392b", style=dashed, penwidth=2.0];
+  C19 -> TDMVAL [style=dashed, color="#2874a6"];
+  MICSHIFT -> VPOP [style=dashed, color="#922b21"];
+}
