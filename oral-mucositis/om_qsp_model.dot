@@ -1,0 +1,720 @@
+/* ===========================================================================
+   Oral Mucositis (OM) -- Quantitative Systems Pharmacology map
+   Chemotherapy- and radiotherapy-induced oral mucositis
+   ---------------------------------------------------------------------------
+   THE ORGANISING IDEA OF THIS MAP
+
+   Oral mucositis is not a toxicity that a drug "has".  It is a BALANCE-SHEET
+   FAILURE OF A RENEWING EPITHELIUM.  The oral mucosa is a conveyor belt:
+
+        S  ->  P1 -> P2 -> P3  ->  D  ->  shed
+        |          transit-         post-
+        clonogenic  amplifying      mitotic
+        basal pool  generations     barrier
+
+   An ulcer exists exactly while D has fallen below the threshold at which the
+   barrier is continuous.  Every cytotoxic insult -- alkylator, antimetabolite,
+   photon -- acts on the PROLIFERATIVE end of the belt (S, P) and spares the
+   POST-MITOTIC end (D).  That single asymmetry is the whole disease:
+
+     * the insult is INVISIBLE for one barrier lifetime, and then the barrier
+       collapses because nothing arrived to replace what was shed.  The latent
+       period is not a mystery of signalling, it is 1/k_shed;
+
+     * the ulcer persists until the belt REFILLS, which takes as long as the
+       clonogen pool needs to regrow and the transit needs to run.
+
+   Hence the TWO CLOCKS that organise everything downstream of this map:
+
+        ONSET    is set by the INSULT term       (hours to days)
+        DURATION is set by the REGENERATION term (days to weeks)
+
+   and the two terms belong to DIFFERENT DRUGS:
+
+        insult arm       cryotherapy, dose reduction, fractionation,
+                         amifostine, dose-rate
+        regeneration arm palifermin (KGF/FGF7), photobiomodulation,
+                         glutamine, growth factors
+
+   An agent aimed at the wrong term cannot buy the other endpoint no matter how
+   large its effect size.  Three non-obvious consequences fall out of this and
+   are COMPUTED (not asserted) in om_analysis.py:
+
+   (1) THE CRYOTHERAPY CRITERION.  Ice only acts while it is in the mouth, so
+       its benefit is (1 - f_cryo) x (fraction of the insult AUC that falls
+       inside the icing window).  For a drug eliminated with half-life t_half
+       and an ice window of length T starting at the dose, that fraction is
+       1 - 2^(-T/t_half).  Melphalan (t_half 1.2 h) and bolus 5-FU (12 min)
+       are covered; a 96-hour 5-FU infusion cannot be.  The MASCC/ISOO
+       recommendation pattern is DERIVED, not looked up.
+
+   (2) THE PALIFERMIN TARGET-ENLARGEMENT PENALTY, AND WHERE IT DOES *NOT*
+       APPLY.  KGF raises the proliferative rate, which is the point -- but a
+       larger cycling pool is a LARGER TARGET for a CYCLE-ACTIVE cytotoxic.
+       Running the model refuted this map author's first framing: in an
+       ALKYLATOR / PHOTON conditioning regimen the penalty is structurally
+       ABSENT, because neither carries a cycle-specific term and the kill is
+       first-order in the pool, so the FRACTION killed does not change.  The
+       penalty is large where the agent IS cycle-active (bolus 5-FU): with
+       the coupling switched off palifermin nearly abolishes the ulceration
+       it otherwise barely dents.  And there the penalty cannot be scheduled
+       away either, because a 5-day cytotoxic course cannot be separated
+       from a growth factor whose effect pool has a 2-day half-life.  That
+       asymmetry -- conditioning is an IMPULSE one can schedule around, a
+       multi-day course is not -- is the model's account of where this drug
+       class can and cannot work.
+
+   (3) THE WHO SCALE SATURATES.  Grade 4 is an absorbing category: once the
+       area exceeds ~0.7 the instrument stops moving while the biology keeps
+       moving.  Trials with WHO endpoints therefore lose assay sensitivity
+       exactly where the disease is worst.
+
+   ---------------------------------------------------------------------------
+   The five clinical "phases" of Sonis are drawn here as what they are in the
+   equations -- not five sequential events but ONE fast signalling loop
+   (ROS -> NF-kB -> TNF -> NF-kB) riding on top of ONE slow tissue variable
+   (the belt).  The loop is drawn with its gain explicitly < 1; the model
+   diverges if it is not, and an earlier build did.
+
+   Rendering:  dot -Tsvg om_qsp_model.dot -o om_qsp_model.svg
+               dot -Tpng -Gdpi=150 om_qsp_model.dot -o om_qsp_model.png
+   =========================================================================== */
+
+digraph OralMucositis {
+    graph [rankdir=TB, splines=ortho, nodesep=0.30, ranksep=0.62,
+           fontname="Helvetica", fontsize=11, compound=true,
+           bgcolor="#fbfbfd", labelloc=t, fontcolor="#1a1a2e",
+           label=<<B>Oral Mucositis — QSP mechanistic map</B><BR/>
+                  <FONT POINT-SIZE="11">구강점막염 · 항암화학요법 / 방사선치료 유발<BR/>
+                  ONE asymmetry: every cytotoxic hits the PROLIFERATIVE end of the epithelial belt and spares the POST-MITOTIC barrier<BR/>
+                  → onset is set by the INSULT term, duration by the REGENERATION term, and the two belong to different drugs</FONT>>];
+    node  [shape=box, style="rounded,filled", fontname="Helvetica",
+           fontsize=10, penwidth=1.1, color="#5b5b77"];
+    edge  [fontname="Helvetica", fontsize=8, color="#6b6b85", penwidth=1.0,
+           arrowsize=0.7];
+
+    /* ---------------------------------------------------------------- */
+    /* 1. THE INSULT: cytotoxic regimens                                 */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_regimen {
+        label="① 세포독성 부하 · The insult (regimens)";
+        style="rounded,filled"; fillcolor="#fde8e8"; color="#c0392b";
+        fontsize=12; fontcolor="#7b241c";
+        node [fillcolor="#fadbd8"];
+
+        HDM      [label="High-dose melphalan\n200 mg/m² IV 30 min\n(autologous HSCT, myeloma)"];
+        BEAM     [label="BEAM / BuCy / TBI-Cy-VP16\nconditioning blocks"];
+        TBI      [label="Fractionated TBI\n12 Gy / 8 fx over 4 d"];
+        RTdef    [label="Definitive H&N RT\n70 Gy / 35 fx, 2 Gy/fx, 5 fx/wk"];
+        RThyper  [label="Hyperfractionation\n1.2 Gy b.i.d. → 81.6 Gy"];
+        RTaccel  [label="Accelerated fractionation\n6 fx/wk, concomitant boost"];
+        IMRT     [label="IMRT / proton\nmucosa-sparing dose painting"];
+        CIS      [label="Cisplatin 100 mg/m² q3w\nconcurrent"];
+        FU_B     [label="5-FU bolus 425 mg/m² d1-5\n(+ leucovorin)"];
+        FU_CI    [label="5-FU 96-h continuous infusion\n1000 mg/m²/d"];
+        MTXg     [label="Methotrexate\nGVHD prophylaxis d+1,3,6,11"];
+        VP16     [label="Etoposide 60 mg/kg\n+ cyclophosphamide 100 mg/kg"];
+        MTOR     [label="mTOR inhibitors\neverolimus · sirolimus\n(stomatitis, distinct entity)"];
+        EGFRi    [label="EGFR inhibitors\ncetuximab · afatinib"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 2. SYSTEMIC PK                                                    */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_pk {
+        label="② 전신 약동학 · Systemic PK";
+        style="rounded,filled"; fillcolor="#eaf2fb"; color="#2471a3";
+        fontsize=12; fontcolor="#1a5276";
+        node [fillcolor="#d6e6f7"];
+
+        PK_mel   [label="Melphalan 2-cpt\nt½ 1.2 h · V 0.5 L/kg\nCmax ≈ 10 µg/mL\nAUC ≈ 12–16 µg·h/mL"];
+        PK_5fu   [label="5-FU 1-cpt + saturable DPD\nbolus t½ 12 min\nCI Css ≈ 0.6 µg/mL"];
+        DPD      [label="DPYD / dihydropyrimidine\ndehydrogenase\n(Vmax, Km)"];
+        PK_mtx   [label="Methotrexate 3-cpt\nlong terminal phase"];
+        PK_cis   [label="Cisplatin: free\n(ultrafilterable) platinum\nt½ 20–30 min"];
+        PK_pal   [label="Palifermin (rHuKGF)\n2-cpt · t½ 4.5 h\nVss ≈ 5 L/kg"];
+        PK_mor   [label="Morphine 2-cpt + effect site\nke0 · EC50 25 ng/mL"];
+        LV       [label="Leucovorin\nternary-complex stabiliser"];
+        GLUC     [label="Glucuronidation / renal CL\nage · GFR covariates"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 3. MUCOSAL DELIVERY — where cryotherapy lives                     */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_delivery {
+        label="③ 점막 전달 · Mucosal delivery (the cryotherapy compartment)";
+        style="rounded,filled"; fillcolor="#e8f8f5"; color="#148f77";
+        fontsize=12; fontcolor="#0e6251";
+        node [fillcolor="#d0ece7"];
+
+        Qmuc     [label="Oral mucosal blood flow\n0.3–0.6 mL/min/g"];
+        Cmuc     [label="Perfusion-limited mucosal\ncompartment\ndCm/dt = keq·(Cp − Cm/Kp)\nkeq ≈ 500/d (t_eq ≈ 2 min)"];
+        Kp       [label="Tissue:plasma partition Kp\nmel 0.75 · 5-FU 0.90\nMTX 0.55 · cis 0.45"];
+        CRYO     [label="Oral cryotherapy (ice chips)\n30 min before → 4–6 h after"];
+        VASOC    [label="Local vasoconstriction\nQ → 0.22 × basal"];
+        TEMPQ    [label="Mucosal temperature ↓ ~13 °C\nQ10 ≈ 2.5 on alkylation\nand cell-cycle rate"];
+        WINDOW   [label="ICE-WINDOW OVERLAP\nbenefit = (1−f_cryo) ×\n(1 − 2^(−T_ice/t½))", fillcolor="#a3e4d7", penwidth=2.0];
+        SALIVA   [label="Salivary flow · pellicle\nmucosal residence of topicals"];
+        XERO     [label="Radiation xerostomia\nsalivary gland dose"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 4. DNA DAMAGE AND CLONOGENIC DEATH                                */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_dna {
+        label="④ DNA 손상 · Clonogenic death";
+        style="rounded,filled"; fillcolor="#f4ecf7"; color="#7d3c98";
+        fontsize=12; fontcolor="#4a235a";
+        node [fillcolor="#e8daef"];
+
+        DSB      [label="DNA double-strand breaks\ninterstrand crosslinks"];
+        LQ       [label="Linear-quadratic kill\nSF = exp(−αd − βd²)\nmucosa α/β ≈ 10 Gy"];
+        SLDR     [label="Sublethal damage repair\nt½ ≈ 0.5–1.5 h\n(the b.i.d. interval problem)"];
+        TS       [label="Thymidylate synthase\ninhibition (FdUMP)\nS-phase specific"];
+        RNAinc   [label="FUTP → RNA incorporation\n(the other 5-FU lesion)"];
+        DHFR     [label="DHFR inhibition\n→ folate depletion"];
+        ATM      [label="ATM / ATR → CHK1/2"];
+        P53      [label="p53 stabilisation"];
+        APOP     [label="Basal-cell apoptosis\ncaspase-3/9"];
+        ABORT    [label="Abortive mitosis\ndoomed clonogens Sd\nstill divide ~1–2 ×", fillcolor="#d7bde2"];
+        CYCSPEC  [label="CYCLE SPECIFICITY\n5-FU, MTX kill ∝ cycling fraction\nmelphalan, photons do not", fillcolor="#d7bde2", penwidth=2.0];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 5. THE EPITHELIAL CONVEYOR BELT — the spine of the model          */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_epi {
+        label="⑤ 상피 컨베이어 벨트 · The renewing epithelium (THE SPINE)";
+        style="rounded,filled"; fillcolor="#fef5e7"; color="#b9770e";
+        fontsize=13; fontcolor="#7e5109";
+        node [fillcolor="#fdebd0"];
+
+        BM       [label="Basement membrane\nlaminin-332 · collagen IV\nintegrin α6β4"];
+        S        [label="S — clonogenic basal cells\nnormalised to 1\ndS/dt = λ·f_reg·S(1−S) − k·S", fillcolor="#f8c471", penwidth=2.2];
+        Sd       [label="Sd — lethally hit basal cells\n(present, doomed)\nk_ab ≈ 0.55/d", fillcolor="#f8c471"];
+        P1       [label="P1 transit-amplifying"];
+        P2       [label="P2 transit-amplifying"];
+        P3       [label="P3 transit-amplifying"];
+        D        [label="D — post-mitotic barrier\nspinous + granular layers\nNO cytotoxic term", fillcolor="#f5b041", penwidth=2.2];
+        SHED     [label="Desquamation k_shed ≈ 0.30/d\nbarrier lifetime ≈ 3.3 d"];
+        TRANSIT  [label="Total transit 9–14 d\n(buccal, non-keratinised)"];
+        KPE      [label="Transit ACCELERATION\nk_p ↑ with regenerative drive\n(Dörr, repopulation)"];
+        ULC      [label="ULCER\nA = σ((D_crit − D)/w)\nD_crit ≈ 0.34", fillcolor="#e59866", penwidth=2.4];
+        TJ       [label="Tight junctions · desmosomes\nbarrier continuity"];
+        PSEUDO   [label="Pseudomembrane\nfibrin + neutrophils"];
+        ATROPHY  [label="Epithelial atrophy\n(erythema, WHO 1)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 6. PHASE 1 — INITIATION: ROS                                      */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_ros {
+        label="⑥ Sonis 1기 개시 · Initiation (ROS/RNS)";
+        style="rounded,filled"; fillcolor="#fdedec"; color="#cb4335";
+        fontsize=12; fontcolor="#943126";
+        node [fillcolor="#fadbd8"];
+
+        ROS      [label="ROS · superoxide, ·OH\nradiolysis + redox cycling"];
+        RNS      [label="RNS · peroxynitrite\niNOS"];
+        LIPID    [label="Lipid peroxidation\n4-HNE · MDA"];
+        NOX      [label="NADPH oxidase (NOX)"];
+        MITO     [label="Mitochondrial dysfunction\ncytochrome c release"];
+        GSH      [label="Glutathione depletion\nNrf2 / ARE response"];
+        AMIF     [label="Amifostine (WR-2721)\nfree-radical scavenger\nalk-phos activated"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 7. PHASE 2/3 — PRIMARY DAMAGE RESPONSE AND AMPLIFICATION          */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_nfkb {
+        label="⑦ Sonis 2·3기 · Primary damage response and signal amplification";
+        style="rounded,filled"; fillcolor="#fef9e7"; color="#b7950b";
+        fontsize=12; fontcolor="#7d6608";
+        node [fillcolor="#fcf3cf"];
+
+        IKK      [label="IKKβ → IκBα degradation"];
+        NFKB     [label="NF-κB (p65/p50)\ncentral transcriptional hub", fillcolor="#f7dc6f", penwidth=2.0];
+        MAPK     [label="MAPK / JNK / p38"];
+        ASM      [label="Acid sphingomyelinase\n(aSMase)"];
+        CER      [label="Ceramide\n→ apoptosis of POST-MITOTIC\nbarrier cells", fillcolor="#f7dc6f"];
+        TNF      [label="TNF-α"];
+        IL1B     [label="IL-1β (NLRP3 inflammasome)"];
+        IL6      [label="IL-6"];
+        COX2     [label="COX-2 → PGE₂"];
+        MMP      [label="MMP-1/3/9\nbasement-membrane digestion"];
+        FNECT    [label="Fibronectin breakdown\n→ macrophage activation"];
+        LOOP     [label="AMPLIFICATION LOOP\nNF-κB → TNF → NF-κB\nGAIN MUST BE < 1", fillcolor="#f9e79f", penwidth=2.4];
+        TGFB     [label="TGF-β1\n(also a proliferation BRAKE)"];
+        NEUT     [label="Neutrophil / macrophage\ninfiltration"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 8. PHASE 4 — ULCERATION AND MICROBIAL COLONISATION                */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_micro {
+        label="⑧ Sonis 4기 궤양 · Ulceration and the oral microbiome";
+        style="rounded,filled"; fillcolor="#eaeded"; color="#566573";
+        fontsize=12; fontcolor="#2c3e50";
+        node [fillcolor="#d5dbdb"];
+
+        BIOFILM  [label="Oral biofilm shift\ngram-negative overgrowth"];
+        LPS      [label="LPS / PAMPs"];
+        TLR4     [label="TLR4 → MyD88 → NF-κB"];
+        CAND     [label="Candida albicans\nsecondary colonisation"];
+        HSV      [label="HSV-1 reactivation\n(clinical mimic)"];
+        PORTAL   [label="ULCER AS PORTAL OF ENTRY\nbacteraemia hazard\n∝ A_ulc × MB / ANC", fillcolor="#aeb6bf", penwidth=2.0];
+        CHX      [label="Chlorhexidine\n(NOT recommended for OM\nprophylaxis in RT)"];
+        DENT     [label="Pre-treatment dental\nevaluation · oral care protocol"];
+        PERIO    [label="Pre-existing periodontitis\nbaseline PAMP load"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 9. PHASE 5 — HEALING AND THE REGENERATION ARM                     */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_heal {
+        label="⑨ Sonis 5기 치유 · Healing — the REGENERATION arm";
+        style="rounded,filled"; fillcolor="#e9f7ef"; color="#1e8449";
+        fontsize=13; fontcolor="#145a32";
+        node [fillcolor="#d4efdf"];
+
+        FREG     [label="f_reg — regeneration multiplier\n1 + g·deficit/(K+deficit)\ncapped at f_max ≈ 6", fillcolor="#7dcea0", penwidth=2.2];
+        DEFICIT  [label="Barrier deficit signal\n(1 − D)"];
+        FIBRO    [label="Submucosal fibroblasts\nECM signalling"];
+        EGF      [label="EGF · TGF-α → EGFR"];
+        KGF      [label="Endogenous KGF/FGF7\nfrom mesenchyme"];
+        REPOP    [label="Accelerated repopulation\nEMERGENT here, not imposed\n(lag = belt transit time)", fillcolor="#a9dfbf", penwidth=2.0];
+        ANGIO    [label="Angiogenesis · VEGF"];
+        REEP     [label="Re-epithelialisation\nmigration + proliferation"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 10. PALIFERMIN / KGFR AXIS — and the scheduling paradox           */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_kgf {
+        label="⑩ Palifermin (KGF) 축 · The regeneration drug — and its scheduling paradox";
+        style="rounded,filled"; fillcolor="#e8f6f3"; color="#117864";
+        fontsize=12; fontcolor="#0b5345";
+        node [fillcolor="#d1f2eb"];
+
+        PAL      [label="Palifermin 60 µg/kg/d IV\n×3 d BEFORE conditioning\n×3 d AFTER transplant"];
+        KGFR     [label="KGFR = FGFR2-IIIb\nepithelium-restricted"];
+        PI3K     [label="PI3K / AKT survival"];
+        NRF2     [label="Nrf2 → detoxifying enzymes"];
+        THICK    [label="Epithelial thickening\n↑ basal proliferation"];
+        KGFE     [label="KGF effect pool (KGFe)\nturnover t½ ≈ 2 d\n→ effect outlasts the PK"];
+        PARADOX  [label="TARGET-ENLARGEMENT PENALTY\nKGF enlarges the CYCLING POOL\n= a larger target, but ONLY for a\nCYCLE-ACTIVE cytotoxic\n(absent for alkylators / photons)", fillcolor="#76d7c4", penwidth=2.4];
+        SEP24    [label="Scheduling separation\nfeasible for an IMPULSE insult,\nNOT for a multi-day course"];
+        TUMSAFE  [label="Tumour-safety question\nFGFR2b on epithelial tumours"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 11. PHOTOBIOMODULATION                                            */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_pbm {
+        label="⑪ 광생체조절 · Photobiomodulation (low-level laser)";
+        style="rounded,filled"; fillcolor="#fdf2e9"; color="#af601a";
+        fontsize=12; fontcolor="#784212";
+        node [fillcolor="#fae5d3"];
+
+        PBM      [label="PBM 630–830 nm\n2–6 J/cm² per site, daily"];
+        CCO      [label="Cytochrome c oxidase\nphotoacceptor"];
+        ATPX     [label="↑ ATP · ↓ mitochondrial ROS"];
+        NOREL    [label="NO release from CCO\n→ local vasodilation"];
+        PBMPROL  [label="↑ keratinocyte proliferation\nand migration"];
+        PBMANAL  [label="Analgesic effect\n(independent of area)"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 12. TOPICAL AND SUPPORTIVE AGENTS                                 */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_topical {
+        label="⑫ 국소 · 지지요법 · Topical and supportive agents";
+        style="rounded,filled"; fillcolor="#f6f3f9"; color="#6c3483";
+        fontsize=12; fontcolor="#4a235a";
+        node [fillcolor="#ebdef0"];
+
+        BZD      [label="Benzydamine mouthwash\nNSAID-like, NF-κB / TNF ↓\n(moderate-dose H&N RT)"];
+        GLN      [label="Oral glutamine (Saforis)\nepithelial fuel"];
+        DOXEP    [label="Doxepin 0.5% rinse\n(pain only)"];
+        MORPH    [label="Morphine 0.2% rinse\n(topical analgesia)"];
+        MAGIC    [label="'Magic mouthwash'\nno mechanism, no benefit"];
+        HONEY    [label="Honey / zinc\nweak evidence"];
+        SUCRAL   [label="Sucralfate\n(recommended AGAINST)"];
+        BICARB   [label="Bland rinses\nsaline / bicarbonate"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 13. PAIN                                                          */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_pain {
+        label="⑬ 통증 · Nociception and analgesia";
+        style="rounded,filled"; fillcolor="#fdebd0"; color="#ca6f1e";
+        fontsize=12; fontcolor="#873600";
+        node [fillcolor="#fae5d3"];
+
+        NOCI     [label="Exposed nociceptor terminals\nin the ulcer bed"];
+        TRPV1    [label="TRPV1 · ASIC3\nacid + heat sensing"];
+        NAV      [label="Nav1.7 / Nav1.8\nectopic excitability"];
+        BK       [label="Bradykinin · PGE₂\nperipheral sensitisation"];
+        NS       [label="Sensitisation state NS\nτ ≈ 2 d"];
+        VAS      [label="Pain VAS 0–10", fillcolor="#f0b27a"];
+        OPI      [label="Opioid requirement\nmorphine-equivalent mg/d", fillcolor="#f0b27a"];
+        PCA      [label="Patient-controlled analgesia\n(HSCT standard)"];
+        CENTRAL  [label="Central sensitisation\nwith prolonged ulceration"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 14. MYELOSUPPRESSION AND INFECTION                                */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_marrow {
+        label="⑭ 골수억제 · Myelosuppression (Friberg) and infection";
+        style="rounded,filled"; fillcolor="#eaf2f8"; color="#2e86c1";
+        fontsize=12; fontcolor="#1b4f72";
+        node [fillcolor="#d4e6f1"];
+
+        PROL     [label="Proliferating marrow pool\nE_drug = slope × C"];
+        TR1      [label="Transit 1"];
+        TR2      [label="Transit 2"];
+        TR3      [label="Transit 3"];
+        ANC      [label="Circulating ANC\nMTT ≈ 125 h · γ 0.161", fillcolor="#aed6f1"];
+        FEBN     [label="Febrile neutropenia"];
+        BACT     [label="Bacteraemia\n(viridans streptococci)"];
+        GCSF     [label="G-CSF\nshortens the neutropenic window"];
+        GRAFT    [label="Stem-cell rescue\nengraftment ~d+12"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 15. HOST AND TREATMENT COVARIATES                                 */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_host {
+        label="⑮ 숙주 · 치료 공변량 · Host and treatment covariates";
+        style="rounded,filled"; fillcolor="#f2f4f4"; color="#7f8c8d";
+        fontsize=12; fontcolor="#515a5a";
+        node [fillcolor="#e5e8e8"];
+
+        DPYD     [label="DPYD variants\n*2A · c.2846A>T · HapB3"];
+        MTHFR    [label="MTHFR C677T"];
+        TNFPOLY  [label="TNF-α / IL-1β promoter\npolymorphisms"];
+        ATMv     [label="ATM / DNA-repair variants"];
+        AGE      [label="Age · performance status"];
+        SMOKE    [label="Smoking · alcohol"];
+        BMI      [label="Nutrition · albumin · BMI"];
+        FIELD    [label="RT field: volume of oral\nmucosa in the high-dose region"];
+        SENS     [label="Individual sensitivity 'sens'\n(the IIV handle)", fillcolor="#ccd1d1"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 16. THE REST OF THE ALIMENTARY TRACT                              */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_gi {
+        label="⑯ 위장관 점막염 · The rest of the alimentary tract";
+        style="rounded,filled"; fillcolor="#f9ebea"; color="#a93226";
+        fontsize=12; fontcolor="#78281f";
+        node [fillcolor="#f2d7d5"];
+
+        GIM      [label="GI mucositis\n(same belt, faster turnover)"];
+        DIARR    [label="Diarrhoea · malabsorption"];
+        BT       [label="Bacterial translocation"];
+        ESOPH    [label="Oesophagitis\n(thoracic RT)"];
+        CIT      [label="Plasma citrulline\nenterocyte-mass biomarker"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 17. CLINICAL ENDPOINTS AND INSTRUMENTS                            */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_endpoints {
+        label="⑰ 임상 평가변수 · Endpoints — and the instruments that read them";
+        style="rounded,filled"; fillcolor="#eaf4fb"; color="#1f618d";
+        fontsize=13; fontcolor="#154360";
+        node [fillcolor="#d4e6f1"];
+
+        WHO      [label="WHO grade 0–4\nORDINAL, SATURATES AT 4", fillcolor="#a9cce3", penwidth=2.2];
+        OMAS     [label="OMAS 0–5 × 9 sites\ncontinuous, area-based", fillcolor="#a9cce3"];
+        CTCAE    [label="NCI-CTCAE v5\nclinician-reported"];
+        PROCT    [label="PRO-CTCAE · OMDQ\npatient-reported"];
+        SATUR    [label="ASSAY SENSITIVITY LOSS\nWHO 4 is absorbing: area can\ndouble with no score change", fillcolor="#7fb3d5", penwidth=2.4];
+        TPN      [label="Total parenteral nutrition\nfeeding-tube days"];
+        HOSP     [label="Hospital days · readmission"];
+        BREAK    [label="Unplanned RT treatment breaks"];
+        TCP      [label="Tumour control probability\nBED loss ≈ 0.6–0.9 Gy/day\nof unplanned gap", fillcolor="#a9cce3"];
+        QOL      [label="Quality of life · cost"];
+        WTLOSS   [label="Weight loss > 5%"];
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* 18. THE TWO CLOCKS (annotation)                                   */
+    /* ---------------------------------------------------------------- */
+    subgraph cluster_clocks {
+        label="⑱ 두 개의 시계 · The two clocks — the organising claim";
+        style="rounded,filled"; fillcolor="#fdf6e3"; color="#9a7d0a";
+        fontsize=13; fontcolor="#7d6608";
+        node [shape=note, fillcolor="#fcf3cf"];
+
+        CLOCK1   [label="CLOCK 1 — INSULT\nhours to days\nowns ONSET and INCIDENCE\ncryotherapy · dose · fractionation\n· amifostine", penwidth=2.2];
+        CLOCK2   [label="CLOCK 2 — REGENERATION\ndays to weeks\nowns DURATION\npalifermin · photobiomodulation\n· glutamine", penwidth=2.2];
+        RULE     [label="An agent aimed at the wrong clock\ncannot buy the other endpoint,\nhowever large its effect size.", penwidth=2.4];
+        LATENT   [label="The latent period is 1/k_shed,\nnot a mystery of signalling."];
+    }
+
+    /* ================================================================ */
+    /* EDGES                                                             */
+    /* ================================================================ */
+
+    /* regimen -> PK */
+    HDM   -> PK_mel;
+    BEAM  -> PK_mel;
+    VP16  -> PK_mel  [style=dashed, label="alkylator-\nequivalent"];
+    FU_B  -> PK_5fu;
+    FU_CI -> PK_5fu;
+    MTXg  -> PK_mtx;
+    CIS   -> PK_cis;
+    LV    -> TS      [label="stabilises"];
+    DPD   -> PK_5fu  [label="Vmax/Km", color="#2471a3"];
+    DPYD  -> DPD     [color="#7f8c8d"];
+    GLUC  -> PK_mor;
+    MTHFR -> PK_mtx  [color="#7f8c8d"];
+
+    /* PK -> mucosal compartment */
+    PK_mel -> Cmuc;
+    PK_5fu -> Cmuc;
+    PK_mtx -> Cmuc;
+    PK_cis -> Cmuc;
+    Qmuc   -> Cmuc  [label="keq"];
+    Kp     -> Cmuc;
+    CRYO   -> VASOC;
+    CRYO   -> TEMPQ;
+    VASOC  -> Qmuc  [color="#148f77", label="×0.22"];
+    TEMPQ  -> WINDOW [color="#148f77"];
+    VASOC  -> WINDOW [color="#148f77", style=dashed, label="small"];
+    WINDOW -> CYCSPEC [style=invis];
+    SALIVA -> BZD   [style=dashed];
+    XERO   -> SALIVA [color="#c0392b"];
+    RTdef  -> XERO;
+
+    /* insult -> DNA damage */
+    Cmuc   -> DSB;
+    Cmuc   -> TS;
+    Cmuc   -> DHFR;
+    TS     -> DSB;
+    RNAinc -> APOP;
+    PK_5fu -> RNAinc;
+    DHFR   -> DSB;
+    RTdef  -> LQ;
+    RThyper-> LQ;
+    RTaccel-> LQ;
+    TBI    -> LQ;
+    IMRT   -> LQ    [label="dose\npainting", style=dashed];
+    LQ     -> DSB;
+    SLDR   -> LQ    [label="incomplete repair\nat short b.i.d. intervals",
+                     color="#7d3c98"];
+    RThyper-> SLDR  [color="#7d3c98"];
+    DSB    -> ATM -> P53 -> APOP;
+    ATM    -> ABORT;
+    DSB    -> ABORT;
+    CYCSPEC-> TS    [style=dashed];
+    CYCSPEC-> DHFR  [style=dashed];
+    ATMv   -> ATM   [color="#7f8c8d"];
+
+    /* DNA damage -> the belt */
+    APOP   -> S     [color="#c0392b", label="kill"];
+    ABORT  -> Sd    [color="#c0392b"];
+    LQ     -> S     [color="#c0392b"];
+    APOP   -> P1    [color="#c0392b"];
+    APOP   -> P2    [color="#c0392b", style=dashed];
+    APOP   -> P3    [color="#c0392b", style=dashed];
+
+    /* the belt itself */
+    BM  -> S;
+    S   -> P1  [label="a_S·f_reg"];
+    Sd  -> P1  [label="abortive\nflux ×0.35", style=dashed];
+    S   -> Sd  [label="lethal hit", color="#c0392b"];
+    P1  -> P2  [label="k_p"];
+    P2  -> P3  [label="k_p"];
+    P3  -> D   [label="k_p"];
+    D   -> SHED [label="k_shed"];
+    D   -> TJ;
+    TJ  -> ULC [label="loss of\ncontinuity"];
+    D   -> ULC [label="D < D_crit", color="#b9770e", penwidth=2.0];
+    D   -> ATROPHY [style=dashed];
+    KPE -> P1  [style=dashed, color="#1e8449"];
+    KPE -> P2  [style=dashed, color="#1e8449"];
+    KPE -> P3  [style=dashed, color="#1e8449"];
+    TRANSIT -> D [style=dashed, label="9–14 d"];
+    ULC -> PSEUDO;
+    MMP -> BM  [color="#b7950b", label="digest"];
+
+    /* ROS phase */
+    LQ    -> ROS;
+    Cmuc  -> ROS;
+    NOX   -> ROS;
+    MITO  -> ROS;
+    ROS   -> RNS;
+    ROS   -> LIPID;
+    ROS   -> GSH  [label="depletes"];
+    GSH   -> ROS  [label="buffers", color="#1e8449"];
+    AMIF  -> ROS  [label="scavenges", color="#1e8449"];
+    ROS   -> DSB;
+    ROS   -> ASM;
+
+    /* NF-kB hub */
+    ROS   -> IKK;
+    DSB   -> IKK;
+    IKK   -> NFKB;
+    NFKB  -> TNF;
+    NFKB  -> IL1B;
+    NFKB  -> IL6;
+    NFKB  -> COX2;
+    NFKB  -> MMP;
+    NFKB  -> MAPK [dir=both];
+    TNF   -> NFKB [label="POSITIVE FEEDBACK\ngain < 1", color="#b7950b",
+                   penwidth=2.0];
+    TNF   -> LOOP [style=dashed];
+    NFKB  -> LOOP [style=dashed];
+    ASM   -> CER;
+    NFKB  -> CER;
+    ROS   -> CER;
+    CER   -> D    [label="apoptosis of the\nPOST-MITOTIC layer",
+                   color="#c0392b", penwidth=1.6];
+    TNF   -> S    [label="extra basal\napoptosis", color="#c0392b"];
+    COX2  -> BK;
+    FNECT -> NEUT;
+    MMP   -> FNECT;
+    TNF   -> NEUT;
+    IL1B  -> NEUT;
+    TGFB  -> S    [label="brake", color="#7f8c8d", style=dashed];
+    TNFPOLY -> TNF [color="#7f8c8d"];
+
+    /* microbial phase */
+    ULC     -> BIOFILM;
+    BIOFILM -> LPS -> TLR4 -> NFKB [color="#566573"];
+    BIOFILM -> CAND;
+    ULC     -> HSV [style=dashed];
+    ULC     -> PORTAL;
+    BIOFILM -> PORTAL;
+    ANC     -> BIOFILM [label="clearance", color="#2e86c1"];
+    ANC     -> PORTAL  [label="1/ANC", color="#2e86c1"];
+    PORTAL  -> BACT -> FEBN;
+    CHX     -> BIOFILM [style=dashed, label="no OM benefit"];
+    DENT    -> PERIO;
+    PERIO   -> LPS;
+    BICARB  -> BIOFILM [style=dashed];
+
+    /* healing / regeneration */
+    D       -> DEFICIT [label="1 − D", dir=back];
+    DEFICIT -> FREG;
+    FREG    -> S    [label="λ·f_reg", color="#1e8449", penwidth=2.0];
+    FREG    -> KPE  [color="#1e8449"];
+    FREG    -> REPOP;
+    REPOP   -> S    [color="#1e8449", style=dashed];
+    FIBRO   -> KGF;
+    KGF     -> KGFR;
+    EGF     -> REEP;
+    ANGIO   -> REEP;
+    REEP    -> D    [color="#1e8449"];
+    FIBRO   -> ANGIO;
+    ULC     -> FIBRO [label="wound signal"];
+    EGFRi   -> EGF   [label="blocks", color="#c0392b"];
+    MTOR    -> S     [label="stomatitis\n(separate entity)", style=dashed,
+                      color="#c0392b"];
+
+    /* palifermin */
+    PAL   -> PK_pal -> KGFR;
+    KGFR  -> PI3K -> THICK;
+    KGFR  -> NRF2 -> GSH;
+    KGFE  -> THICK;
+    PK_pal-> KGFE  [label="effect pool\nt½ 2 d"];
+    THICK -> S     [color="#1e8449", penwidth=1.8, label="↑ proliferation"];
+    THICK -> PARADOX [color="#c0392b"];
+    PARADOX -> CYCSPEC [color="#c0392b", penwidth=2.0,
+                        label="acts ONLY through the\ncycle-specific term"];
+    SEP24 -> PAL   [style=dashed];
+    PARADOX -> SEP24 [color="#c0392b", label="motivates"];
+    KGFR  -> TUMSAFE [style=dashed];
+
+    /* photobiomodulation */
+    PBM -> CCO -> ATPX -> PBMPROL;
+    CCO -> NOREL;
+    PBMPROL -> FREG [color="#1e8449"];
+    PBM -> PBMANAL -> VAS [color="#af601a", label="area-independent"];
+    ATPX -> ROS [label="↓", color="#1e8449", style=dashed];
+
+    /* topicals */
+    BZD   -> NFKB [label="↓ production", color="#6c3483", penwidth=1.6];
+    BZD   -> TNF  [color="#6c3483", style=dashed];
+    GLN   -> FREG [color="#6c3483"];
+    DOXEP -> VAS  [color="#6c3483"];
+    MORPH -> VAS  [color="#6c3483"];
+    MAGIC -> VAS  [style=dotted, label="no effect"];
+    HONEY -> FREG [style=dotted];
+    SUCRAL-> ULC  [style=dotted, label="recommended\nAGAINST"];
+
+    /* pain */
+    ULC   -> NOCI;
+    NOCI  -> TRPV1;
+    NOCI  -> NAV;
+    BK    -> TRPV1;
+    IL1B  -> NS;
+    TRPV1 -> NS;
+    NAV   -> NS;
+    NS    -> VAS;
+    ULC   -> VAS  [label="area", penwidth=1.6];
+    VAS   -> OPI  [label="titrate to\nVAS ≤ 4"];
+    OPI   -> PK_mor -> VAS [label="Emax 6.5", color="#1e8449"];
+    PCA   -> OPI;
+    NS    -> CENTRAL [style=dashed];
+
+    /* marrow */
+    PK_mel -> PROL [color="#c0392b"];
+    PK_cis -> PROL [color="#c0392b"];
+    PK_5fu -> PROL [color="#c0392b"];
+    PK_mtx -> PROL [color="#c0392b"];
+    PROL -> TR1 -> TR2 -> TR3 -> ANC;
+    ANC  -> PROL [label="feedback (ANC₀/ANC)^γ", color="#2e86c1"];
+    GCSF -> PROL [color="#1e8449"];
+    GRAFT-> PROL [color="#1e8449"];
+    ANC  -> FEBN;
+    HDM  -> GRAFT [style=dashed];
+
+    /* host covariates */
+    AGE   -> SENS;
+    SMOKE -> SENS;
+    BMI   -> SENS;
+    FIELD -> SENS;
+    TNFPOLY -> SENS;
+    SENS  -> LQ   [color="#7f8c8d"];
+    SENS  -> APOP [color="#7f8c8d"];
+
+    /* GI */
+    Cmuc -> GIM;
+    LQ   -> ESOPH;
+    GIM  -> DIARR;
+    GIM  -> BT -> BACT;
+    GIM  -> CIT [label="↓ citrulline", dir=back];
+
+    /* endpoints */
+    ULC  -> WHO;
+    ULC  -> OMAS;
+    ULC  -> CTCAE;
+    VAS  -> PROCT;
+    WHO  -> SATUR [color="#1f618d", penwidth=1.8];
+    OMAS -> SATUR [style=dashed, label="does NOT\nsaturate", color="#1e8449"];
+    VAS  -> TPN;
+    ULC  -> WTLOSS;
+    OPI  -> HOSP;
+    FEBN -> HOSP;
+    WHO  -> BREAK;
+    BREAK-> TCP  [label="BED loss", color="#c0392b", penwidth=1.8];
+    TCP  -> QOL  [style=invis];
+    HOSP -> QOL;
+    TPN  -> QOL;
+
+    /* the two clocks */
+    CLOCK1 -> WINDOW  [style=dashed, color="#9a7d0a"];
+    CLOCK1 -> LQ      [style=dashed, color="#9a7d0a"];
+    CLOCK2 -> FREG    [style=dashed, color="#9a7d0a"];
+    CLOCK2 -> PBMPROL [style=dashed, color="#9a7d0a"];
+    CLOCK2 -> THICK   [style=dashed, color="#9a7d0a"];
+    SHED   -> LATENT  [style=dashed, color="#9a7d0a"];
+    CLOCK1 -> RULE    [style=dashed, color="#9a7d0a"];
+    CLOCK2 -> RULE    [style=dashed, color="#9a7d0a"];
+}

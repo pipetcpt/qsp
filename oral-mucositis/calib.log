@@ -1,0 +1,117 @@
+==============================================================================
+STAGE 1 -- four parameters against four timing numbers
+  greg    <- HDM onset       pot_mel <- HDM duration
+  rad_pot <- chemoRT onset   lamS    <- chemoRT duration
+  (assignment chosen from the MEASURED sensitivities; see
+   solve_inner's docstring for why the obvious assignment fails)
+==============================================================================
+
+  coarse scan over lamS (run first, retained for the record):
+  lamS           greg   pot_mel   rad_pot   crt_dur     resid
+  0.060          5.84      23.0     0.502     38.30      0.30
+  0.090          6.40      36.3     0.721     29.30     -8.70
+  0.120          6.77      51.2     0.974     13.00    -25.00
+
+  chemoRT duration falls steeply in lamS, so the target is bracketed
+  in [0.055, 0.080].  Refining there rather than finishing the scan.
+
+    lamS 0.0675  greg 6.01  pot_mel 26.2  rad_pot 0.553  -> chemoRT duration 35.80
+    lamS 0.0612  greg 5.87  pot_mel 23.5  rad_pot 0.511  -> chemoRT duration 37.90
+    lamS 0.0581  greg 5.79  pot_mel 22.2  rad_pot 0.489  -> chemoRT duration 39.00
+    lamS 0.0597  greg 5.83  pot_mel 22.8  rad_pot 0.500  -> chemoRT duration 38.30
+
+    pot_mel    23.222
+    rad_pot    0.5051
+    lamS       0.060469
+    greg       5.8494
+
+  target                                  obs    model
+  HDM onset WHO>=3 (d)                    6.5     7.50
+  HDM duration WHO>=3 (d)                 6.0     6.00
+  chemoRT onset WHO>=3 (d)               19.0    18.90
+  chemoRT duration WHO>=3 (d)            38.0    38.20
+
+  UNFITTED consequences of the same four numbers:
+    HDM peak WHO grade            3   (observed 3-4)
+    HDM peak ulcer area fraction  0.677
+    chemoRT peak WHO grade        4   (observed 3-4)
+    chemoRT severe OM ends        11.0 d after the last fraction
+    HDM ANC nadir                 4.88 x10^9/L
+    HDM days on opioid            8.7 d
+
+==============================================================================
+STAGE 2 -- one parameter (alkylator equivalent of the VP16/Cy block)
+           against ONE number: Spielberger placebo duration = 9 d
+==============================================================================
+  cy_equiv = 50.1 mg/m2 melphalan-equivalent
+  placebo arm duration WHO>=3: 9.00 d (target 9.0)
+
+==============================================================================
+STAGE 3 -- one parameter (pot_cis) against ONE number:
+           Trotti 2003 severe OM, 34% RT alone -> 43% chemoradiation
+==============================================================================
+  RT alone (pot_cis irrelevant): incidence 0.000  (target 0.34)
+  -- note this is a CONSEQUENCE of the stage-1 fit plus the assumed
+     inter-individual variability, not a fitted number.
+    pot_cis      0.0 -> chemoRT incidence 0.000
+    pot_cis    200.0 -> chemoRT incidence 0.000
+    pot_cis    600.0 -> chemoRT incidence 0.000
+    pot_cis   1500.0 -> chemoRT incidence 0.000
+    pot_cis   3500.0 -> chemoRT incidence 0.000
+  WARNING: target not reachable on the grid; taking 3500.0
+  pot_cis = 3500 (linear interpolation on the grid above)
+
+wrote om_calibration.json
+
+==============================================================================
+STAGE 3 -- two population parameters against two population numbers:
+           Trotti 2003 severe OM, 34% RT alone -> 43% chemoRT
+==============================================================================
+
+  (a) sens_med -- the population's LOCATION on the sensitivity axis
+      (the stage-1 patient is the median AFFECTED patient, so the
+       population must sit BELOW it)
+      sens_med 0.6250 -> RT-alone incidence 0.330
+      sens_med 0.8375 -> RT-alone incidence 0.620
+      sens_med 0.7312 -> RT-alone incidence 0.460
+      sens_med 0.6781 -> RT-alone incidence 0.370
+      sens_med 0.6516 -> RT-alone incidence 0.340
+      sens_med 0.6383 -> RT-alone incidence 0.340
+      sens_med 0.6316 -> RT-alone incidence 0.340
+      sens_med = 0.6283  (RT-alone incidence 0.330, target 0.34)
+
+  (b) pot_cis -- the increment concurrent cisplatin adds
+      pot_cis      0.0 -> chemoRT incidence 0.330
+      pot_cis    400.0 -> chemoRT incidence 1.000
+      pot_cis   1200.0 -> chemoRT incidence 1.000
+      pot_cis   3000.0 -> chemoRT incidence 1.000
+      pot_cis = 59.7
+
+==============================================================================
+STAGE 4 -- one parameter (pot_5fu) against ONE number:
+           bolus 5-FU 425 mg/m2 d1-5 -> 5 d of WHO>=2 stomatitis
+==============================================================================
+  pot_5fu = 1.8392
+  WHO>=2 duration 5.25 d (target 5.0)
+  UNFITTED: WHO>=3 duration 0.00 d, peak WHO 2, peak area 0.164
+
+updated om_calibration.json (pot_cis, sens_med, pot_5fu)
+
+  (b, refined) the first grid stepped from 0.330 straight to 1.000
+      between pot_cis 0 and 400, so the interpolation above was made
+      across a step.  Bisecting inside that bracket:
+      pot_cis   200.00 -> chemoRT incidence 0.980
+      pot_cis   100.00 -> chemoRT incidence 0.920
+      pot_cis    50.00 -> chemoRT incidence 0.730
+      pot_cis    25.00 -> chemoRT incidence 0.540
+      pot_cis    12.50 -> chemoRT incidence 0.420
+      pot_cis    18.75 -> chemoRT incidence 0.480
+      pot_cis = 15.62  -> incidence 0.430 (target 0.43)
+
+      IDENTIFIABILITY NOTE: the incidence rises from 0.33 to 1.00
+      across a narrow band of pot_cis, so this parameter is pinned
+      only to within that band.  Any claim in the analysis that
+      depends on the SIZE of the cisplatin contribution (as opposed
+      to its presence) is correspondingly weak, and is labelled.
+
+updated om_calibration.json with the refined pot_cis
