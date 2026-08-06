@@ -1,0 +1,582 @@
+/* ===========================================================================
+   cgd_qsp_model.dot — Chronic Granulomatous Disease (만성 육아종병)
+   Quantitative Systems Pharmacology mechanistic map
+
+   READ THE MAP THIS WAY.  Everything in this diagram hangs off ONE arrow:
+   the electron flux through NOX2 (cluster 1, node ELECTRON).  Set it to zero
+   and follow the consequences left to right.  The map is drawn so that the
+   three things CGD is actually made of end up in three different places:
+
+       the KILLING failure           clusters 3-6   (phagosome chemistry)
+       the RESOLUTION failure        clusters 9-11  (efferocytosis, IL-1beta)
+       the two ways to put the       clusters 15-16 (HSCT, gene therapy)
+       electron flux back
+
+   Solid black  = mass flow / conversion
+   Blue         = activation, stimulation
+   Red          = inhibition, blockade, destruction
+   Dashed green = drug action
+   Dotted grey  = the paths that FAIL in CGD (drawn, so their absence is visible)
+
+   Rendered:  dot -Tsvg cgd_qsp_model.dot -o cgd_qsp_model.svg
+              dot -Tpng -Gdpi=150 cgd_qsp_model.dot -o cgd_qsp_model.png
+   =========================================================================== */
+
+digraph CGD_QSP {
+    rankdir = LR;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    overlap = false;
+    nodesep = 0.22;
+    ranksep = 0.85;
+    fontname = "Helvetica";
+    labelloc = "t";
+    fontsize = 26;
+    label = "Chronic Granulomatous Disease — QSP mechanistic map\nNADPH oxidase (NOX2) deficiency: from one electron flux to granuloma, aspergillosis and death";
+    bgcolor = "white";
+
+    node [fontname="Helvetica", fontsize=10, style="filled,rounded", shape=box,
+          penwidth=1.1, margin="0.07,0.045"];
+    edge [fontname="Helvetica", fontsize=8, penwidth=1.0, color="#333333",
+          arrowsize=0.65];
+
+    /* ---------------- 1. GENETICS AND OXIDASE ASSEMBLY ------------------- */
+    subgraph cluster_gene {
+        label = "1 · Genotype and NADPH oxidase assembly";
+        style = "filled,rounded"; fillcolor = "#F2F0FA"; color = "#6A5ACD";
+        fontsize = 13; fontcolor = "#4B0082";
+        node [fillcolor="#E3DFF5", color="#6A5ACD"];
+
+        CYBB      [label="CYBB (Xp21.1)\ngp91phox / NOX2\n~65% of cases, X-linked"];
+        CYBA      [label="CYBA (16q24)\np22phox\n~5%, AR"];
+        NCF1      [label="NCF1 (7q11.23)\np47phox\n~25%, AR, GT deletion"];
+        NCF2      [label="NCF2 (1q25)\np67phox\n~5%, AR"];
+        NCF4      [label="NCF4 (22q12)\np40phox\n<1%, AR, colitis-predominant"];
+        RAC2      [label="RAC2\nGTPase, GDI release"];
+        CYBC1     [label="CYBC1 / EROS\nchaperone for gp91-p22\nnewest CGD gene"];
+        FLAVO     [label="FAD + NADPH\nbinding domains\nof gp91phox"];
+        HEME      [label="two haem groups\ngp91phox\nb558 spectrum"];
+        CYTOSOL   [label="cytosolic complex\np47-p67-p40\nassembles on\nPKC phosphorylation"];
+        MEMB      [label="flavocytochrome b558\ngp91phox + p22phox\nspecific granule membrane"];
+        ASSEMBLY  [label="ASSEMBLED OXIDASE\non the phagosomal membrane", fillcolor="#C9BFF0", penwidth=2.0];
+        HYPO      [label="hypomorphic missense\nresidual activity phi\nKuhns 2010 continuum", fillcolor="#D8CDEF"];
+        LYON      [label="X-inactivation\n(lyonisation) in carriers\nBIMODAL DHR", fillcolor="#D8CDEF"];
+    }
+
+    /* ---------------- 2. STIMULUS AND PHAGOCYTOSIS ----------------------- */
+    subgraph cluster_stim {
+        label = "2 · Recognition and phagocytosis";
+        style = "filled,rounded"; fillcolor = "#EFF6FF"; color = "#2E75B6";
+        fontsize = 13; fontcolor = "#1F4E79";
+        node [fillcolor="#DCEAF7", color="#2E75B6"];
+
+        PAMP    [label="PAMPs\nLPS, lipoteichoic acid\nbeta-glucan, zymosan"];
+        TLR     [label="TLR2 / TLR4 / dectin-1"];
+        FCGR    [label="FcgammaR / CR3 (CD11b)\nopsonic uptake"];
+        C3B     [label="complement C3b\nopsonisation"];
+        IGG     [label="specific IgG"];
+        PKC     [label="PKC / p38 MAPK\nphosphorylates p47phox\n(8 serines)"];
+        PI3K    [label="PI3K -> PI(3,4,5)P3\nPX domain docking"];
+        PHAGO   [label="PHAGOSOME formed\n1.2 fL around one coccus", penwidth=1.8, fillcolor="#BFDCF2"];
+        ELECTRON[label="ELECTRON FLUX phi\nNADPH -> FAD -> haem -> O2\n2.0 mM/s at phi = 1\nTHE ONE NUMBER CGD CHANGES",
+                 shape=octagon, fillcolor="#FFD966", color="#BF8F00", penwidth=3.0, fontsize=12];
+    }
+
+    /* ---------------- 3. PHAGOSOMAL OXIDANT CHEMISTRY -------------------- */
+    subgraph cluster_ox {
+        label = "3 · Phagosomal oxidant chemistry (the kernel — cgd_kernel.py)";
+        style = "filled,rounded"; fillcolor = "#FFF4E6"; color = "#D9822B";
+        fontsize = 13; fontcolor = "#8A4B08";
+        node [fillcolor="#FDE7CD", color="#D9822B"];
+
+        O2       [label="O2\nsubstrate"];
+        SUPEROX  [label="O2•−  superoxide\nsteady state ~1.5 uM", penwidth=1.6];
+        DISMUT   [label="spontaneous dismutation\n5e5 /M/s at pH 7\nSTRONGLY pH-dependent"];
+        MPOSOD   [label="MPO as superoxide dismutase\nMPO -> Cpd III -> MPO\n2 O2•− -> H2O2 + O2"];
+        H2O2     [label="H2O2\nthe currency the\norganism can also supply", penwidth=1.6];
+        MPO      [label="myeloperoxidase\n1 mM haem in the phagosome\nazurophil granule"];
+        CPD1     [label="MPO Compound I"];
+        CPD2     [label="MPO Compound II\n(a dead end without O2•−)"];
+        CPD3     [label="MPO Compound III\n37% of MPO at steady state"];
+        CL       [label="Cl−  0.10 M\nfalls to 0.076 M\n(CLC-3 resupply)"];
+        HOCL     [label="HOCl  hypochlorous acid\n~7e7 molecules delivered\nper ingested bacterium",
+                  penwidth=2.0, fillcolor="#F9C784"];
+        AH       [label="1-electron donors\ntyrosine, urate, ascorbate\ndivert Cpd I from chlorination"];
+        CHLORAM  [label="chloramines\nRNH-Cl, taurine chloramine"];
+        SINGLET  [label="1O2, •OH\nminor secondary oxidants"];
+        PROTOX   [label="protein Met / Cys\noxidation, chlorination\n3e7 /M/s"];
+    }
+
+    /* ---------------- 4. PHAGOSOMAL ION AND pH MILIEU -------------------- */
+    subgraph cluster_ion {
+        label = "4 · Charge compensation, pH and the granule matrix";
+        style = "filled,rounded"; fillcolor = "#F0FAF4"; color = "#2E8B57";
+        fontsize = 13; fontcolor = "#12633B";
+        node [fillcolor="#D6F0E1", color="#2E8B57"];
+
+        HVCN1   [label="HVCN1 / Hv1\nvoltage-gated H+ channel\ncarries most of the charge"];
+        KCHAN   [label="BKCa / K+ channels\nK+ influx"];
+        KPHAG   [label="phagosomal K+\n0.14 -> 0.50 M\n(Reeves 2002)", penwidth=1.6];
+        VATP    [label="V-ATPase\npumps H+ IN\nfloor pH 6.0"];
+        PHPHAG  [label="phagosomal pH\nNORMAL rises to 7.8\nCGD falls to 6.0\nTHRESHOLD at phi ~ 0.57",
+                 penwidth=2.0, fillcolor="#B7E4C7"];
+        MATRIX  [label="sulphated proteoglycan\ngranule matrix\n(anionic, binds proteases)"];
+        SEGAL   [label="CONTESTED\nSegal 1981 vs\nJankowski/Grinstein 2002", shape=note, fillcolor="#FFF2CC", color="#BF8F00"];
+    }
+
+    /* ---------------- 5. NON-OXIDATIVE KILLING --------------------------- */
+    subgraph cluster_nonox {
+        label = "5 · Non-oxidative killing — the arm CGD keeps";
+        style = "filled,rounded"; fillcolor = "#F7F0F7"; color = "#9B4F96";
+        fontsize = 13; fontcolor = "#6B2C67";
+        node [fillcolor="#EBDCEA", color="#9B4F96"];
+
+        ELAST   [label="neutrophil elastase\nalkaline optimum pH 8\nCGD closes it twice"];
+        CATG    [label="cathepsin G\nproteinase 3"];
+        DEFENS  [label="alpha-defensins HNP1-4\nACID optimum\nBETTER in CGD"];
+        BPI     [label="BPI\nbactericidal/permeability\nincreasing protein"];
+        LACTO   [label="lactoferrin\niron sequestration"];
+        LYSO    [label="lysozyme\ncathepsins B / D / L\nacid hydrolases"];
+        NRAMP   [label="NRAMP1 / SLC11A1\ndivalent cation efflux"];
+        NONOXK  [label="NON-OXIDATIVE KILL\ntwo arms, OPPOSITE pH dependence", penwidth=1.8, fillcolor="#DEC7DC"];
+    }
+
+    /* ---------------- 6. THE ORGANISM AND ITS DEFENCES ------------------- */
+    subgraph cluster_org {
+        label = "6 · The organism — and the catalase question";
+        style = "filled,rounded"; fillcolor = "#FDF0F0"; color = "#C0504D";
+        fontsize = 13; fontcolor = "#8B1A1A";
+        node [fillcolor="#F8DADA", color="#C0504D"];
+
+        BACT    [label="ingested organism\nS. aureus, Serratia,\nBurkholderia, Nocardia", penwidth=1.6];
+        CATALASE[label="bacterial catalase\n3.4e7 /M/s\ncaptures <5% of H2O2"];
+        AHPC    [label="peroxiredoxin AhpC\nbacterial thiol peroxidase"];
+        SODB    [label="bacterial SOD\ncytoplasmic — NO access\nto luminal O2•−"];
+        PEROXG  [label="PEROXIGENIC organisms\npneumococcus, streptococci,\nlactobacilli: 4.6 mM/s H2O2\nSELF-ARM THE CGD PHAGOSOME",
+                 penwidth=2.0, fillcolor="#F2B6B6"];
+        SURV    [label="s(phi) = surviving fraction\nper phagocytic event", shape=octagon,
+                 fillcolor="#FFD966", color="#BF8F00", penwidth=2.2];
+        SHELTER [label="SHELTERED ORGANISMS\ninside phagocytes that\nfailed to kill them\n= a sanctuary, not a corpse",
+                 penwidth=2.0, fillcolor="#F2B6B6"];
+        MESSINA [label="katA-negative S. aureus is\nSTILL virulent in CGD mice\n(Messina 2002)", shape=note,
+                 fillcolor="#FFF2CC", color="#BF8F00"];
+    }
+
+    /* ---------------- 7. NETs -------------------------------------------- */
+    subgraph cluster_net {
+        label = "7 · NETosis";
+        style = "filled,rounded"; fillcolor = "#F4F4F8"; color = "#5B5B8A";
+        fontsize = 13; fontcolor = "#33335C";
+        node [fillcolor="#E2E2EE", color="#5B5B8A"];
+
+        PADI4   [label="PAD4 citrullination"];
+        NETFORM [label="NET release\nROS-DEPENDENT\nabsent in CGD"];
+        NETDNA  [label="extracellular DNA\nhistones, elastase"];
+        HYPHNET [label="NETs are the ONLY way\nto attack a structure too\nbig to swallow", shape=note,
+                 fillcolor="#FFF2CC", color="#BF8F00"];
+    }
+
+    /* ---------------- 8. ASPERGILLUS ------------------------------------- */
+    subgraph cluster_asp {
+        label = "8 · Aspergillus fumigatus — why CGD is above all a mould disease";
+        style = "filled,rounded"; fillcolor = "#F3F7E8"; color = "#7F9F2F";
+        fontsize = 13; fontcolor = "#4F6B00";
+        node [fillcolor="#E6EFCE", color="#7F9F2F"];
+
+        CONID   [label="inhaled conidia\n2-3 um, ingestible\nhandled by macrophages"];
+        SWELL   [label="conidial swelling\nmelanin/DHN shed"];
+        GERM    [label="germination", penwidth=1.4];
+        HYPHA   [label="HYPHA\nTOO LARGE TO INGEST\nattack only from outside", penwidth=2.0, fillcolor="#D5E4AE"];
+        ANGIO   [label="angioinvasion\ninfarction, dissemination"];
+        GALACT  [label="galactomannan\nserum / BAL index"];
+        MULCH   [label="A. nidulans, mulching,\ndecaying vegetation\nCGD-specific exposure"];
+        OSTEO   [label="rib / vertebral osteomyelitis\ncontiguous chest wall spread"];
+    }
+
+    /* ---------------- 9. NEUTROPHIL LIFE CYCLE --------------------------- */
+    subgraph cluster_gran {
+        label = "9 · Granulopoiesis and neutrophil traffic";
+        style = "filled,rounded"; fillcolor = "#EFF3F8"; color = "#41729F";
+        fontsize = 13; fontcolor = "#274472";
+        node [fillcolor="#DBE5F0", color="#41729F"];
+
+        HSC     [label="haematopoietic stem cell"];
+        PROG    [label="marrow mitotic pool\ntransit 6 d"];
+        RES     [label="marrow reserve\ntransit 5 d"];
+        ANC     [label="blood neutrophils\nANC 4000/uL, t1/2 7 h", penwidth=1.6];
+        GCSF    [label="G-CSF\nneutrophil-consumed\n(closes the loop)"];
+        MARG    [label="marginated pool"];
+        NEUTT   [label="neutrophils at the focus"];
+        MONO    [label="blood monocytes"];
+        MACRO   [label="tissue macrophage"];
+        EPI     [label="epithelioid cells\nmultinucleated giant cells"];
+    }
+
+    /* ---------------- 10. THE RESOLUTION FAILURE ------------------------- */
+    subgraph cluster_resolve {
+        label = "10 · The resolution failure — why CGD inflames without an organism";
+        style = "filled,rounded"; fillcolor = "#FFF0F5"; color = "#B03060";
+        fontsize = 13; fontcolor = "#7B1E3C";
+        node [fillcolor="#F8DCE6", color="#B03060"];
+
+        APOPT   [label="neutrophil apoptosis"];
+        PSEXT   [label="phosphatidylserine externalisation\nis itself an OXIDATION event", penwidth=1.6];
+        EFFERO  [label="efferocytosis\nby macrophages\nMerTK / GAS6"];
+        CORPSE  [label="UNCLEARED APOPTOTIC CELL\nboth an IL-1beta stimulus AND\nthe missing source of IL-10",
+                 penwidth=2.0, fillcolor="#F2BFD1"];
+        LAP     [label="LC3-associated phagocytosis\nNOX2-dependent\nabsent in CGD"];
+        AUTOPH  [label="autophagy / p62 turnover"];
+        SECOND  [label="secondary necrosis\nDAMPs, HMGB1"];
+    }
+
+    /* ---------------- 11. INFLAMMASOME AND CYTOKINES --------------------- */
+    subgraph cluster_cyto {
+        label = "11 · Inflammasome and cytokine network";
+        style = "filled,rounded"; fillcolor = "#FFF8E7"; color = "#C79100";
+        fontsize = 13; fontcolor = "#7F5F00";
+        node [fillcolor="#FDEFC8", color="#C79100"];
+
+        NLRP3   [label="NLRP3 inflammasome\nRESTRAINED by NOX2-derived ROS\nDISINHIBITED in CGD", penwidth=1.8];
+        CASP1   [label="caspase-1"];
+        IL1B    [label="IL-1beta\n3-5x amplified in CGD", penwidth=1.8, fillcolor="#FBE3A0"];
+        IL18    [label="IL-18"];
+        TNF     [label="TNF-alpha"];
+        IL6     [label="IL-6"];
+        CRP     [label="CRP / ESR\nacute phase"];
+        IL17    [label="IL-17 / Th17 skewing"];
+        IL10    [label="IL-10\nefferocytosis-derived\nBRAKE"];
+        IFNG    [label="endogenous IFN-gamma"];
+        NRF2    [label="Nrf2 / KEAP1\nredox-sensing brake"];
+        IDO     [label="IDO1 -> kynurenine\nCONTESTED: Romani 2008\ndid not replicate", shape=note, fillcolor="#FFF2CC"];
+        TRP     [label="tryptophan"];
+    }
+
+    /* ---------------- 12. GRANULOMA AND ORGAN DISEASE -------------------- */
+    subgraph cluster_organ {
+        label = "12 · Granuloma and organ manifestations";
+        style = "filled,rounded"; fillcolor = "#F5F0EA"; color = "#8B5A2B";
+        fontsize = 13; fontcolor = "#5C3A17";
+        node [fillcolor="#EADFD1", color="#8B5A2B"];
+
+        GRANULOMA [label="STERILE GRANULOMA\nno organism required", penwidth=2.0, fillcolor="#DCC9B0"];
+        COLITIS   [label="granulomatous colitis\n~35% of X-CGD\nCrohn-like"];
+        GIOBS     [label="gastric outlet obstruction\nantral narrowing"];
+        GUOBS     [label="bladder / ureteric\ngranuloma, obstruction"];
+        FIBROSIS  [label="fibrosis, stricture"];
+        LUNG      [label="pneumonia, empyema\nfibrosing lung disease"];
+        LIVERAB   [label="hepatic abscess\ndense, requires surgery"];
+        LYMPH     [label="suppurative adenitis"];
+        SKINAB    [label="skin / perianal abscess"];
+        GROWTH    [label="growth failure\nchronic inflammation + steroids"];
+        MORTAL    [label="MORTALITY\n~5%/yr untreated\n~1%/yr on triple prophylaxis",
+                   shape=octagon, fillcolor="#E6B8AF", color="#843C0C", penwidth=2.2];
+    }
+
+    /* ---------------- 13. DIAGNOSTICS ------------------------------------ */
+    subgraph cluster_dx {
+        label = "13 · Diagnostics — and what the DHR assay cannot see";
+        style = "filled,rounded"; fillcolor = "#EAF7F7"; color = "#2F8F8F";
+        fontsize = 13; fontcolor = "#175E5E";
+        node [fillcolor="#D2EDED", color="#2F8F8F"];
+
+        DHR      [label="DHR-123 flow cytometry\nPMA-stimulated\nreported as ONE number", penwidth=1.8];
+        DHRHIST  [label="DHR HISTOGRAM\nbimodal = mosaic\nshifted = hypomorph\nTHE SUFFICIENT STATISTIC",
+                  penwidth=2.2, fillcolor="#A9DEDE"];
+        NBT      [label="nitroblue tetrazolium\n(historic)"];
+        FERRI    [label="ferricytochrome c reduction\nquantitative superoxide"];
+        WBIMMUNO [label="immunoblot / flow for\ngp91, p22, p47, p67"];
+        GENETIC  [label="genetic confirmation\nCYBB / NCF1 / NCF2 / CYBA / NCF4"];
+        GMASSAY  [label="serum galactomannan\nbeta-D-glucan, CT chest"];
+    }
+
+    /* ---------------- 14. ANTIMICROBIAL PK/PD ---------------------------- */
+    subgraph cluster_drug {
+        label = "14 · Antimicrobial and immunomodulatory PK/PD";
+        style = "filled,rounded"; fillcolor = "#EDF7ED"; color = "#3C8C3C";
+        fontsize = 13; fontcolor = "#1E5B1E";
+        node [fillcolor="#D6EED6", color="#3C8C3C"];
+
+        TMPSMX  [label="co-trimoxazole\nTMP 5 mg/kg/d\nCss free 0.57 mg/L"];
+        TMPPD   [label="folate pathway block\nDHFR + DHPS\nkill 3.2/d"];
+        ITRA    [label="itraconazole 200 mg BID\n+ OH-itraconazole\nCss 0.76 mg/L"];
+        VORI    [label="voriconazole\nSATURABLE CYP2C19\nMichaelis-Menten"];
+        AZOLPD  [label="14-alpha-demethylase\nERG11 block\nhyphal extension arrest"];
+        IFNB    [label="interferon gamma-1b\n50 ug/m2 SC 3x/week"];
+        IFNPD   [label="boosts the OXIDASE-INDEPENDENT arm\nDOES NOT restore superoxide\n(1991 trial found none)",
+                 penwidth=1.8, fillcolor="#BEE3BE"];
+        PRED    [label="prednisolone 1 mg/kg/d"];
+        PREDPD  [label="NF-kB / AP-1 suppression\nAND impaired migration\n= benefit with a penalty"];
+        ANAK    [label="anakinra 2 mg/kg/d SC\nIL-1 receptor antagonist"];
+        ANAKPD  [label="IL-1R1 blockade\nde Luca 2014"];
+        CYP3A   [label="CYP3A4 interaction\nazole + steroid + statin"];
+        HEPTOX  [label="ALT rise\nazole hepatotoxicity"];
+    }
+
+    /* ---------------- 15. TRANSPLANT ------------------------------------- */
+    subgraph cluster_hsct {
+        label = "15 · Allogeneic HSCT";
+        style = "filled,rounded"; fillcolor = "#F0EDF7"; color = "#6A4C93";
+        fontsize = 13; fontcolor = "#432466";
+        node [fillcolor="#DED7EE", color="#6A4C93"];
+
+        COND     [label="conditioning\nbusulfan / treosulfan / RIC\nserotherapy"];
+        DONOR    [label="matched sibling /\nmatched unrelated donor"];
+        CHIM     [label="MYELOID CHIMERISM\nthe clinically actionable\nnumber", penwidth=2.0, fillcolor="#C9BFE8"];
+        GVHD     [label="acute / chronic GvHD\nTRM"];
+        REJECT   [label="graft failure\nmixed chimerism drift"];
+        RESOLVE  [label="resolution of colitis\nand of granuloma"];
+    }
+
+    /* ---------------- 16. GENE THERAPY ----------------------------------- */
+    subgraph cluster_gt {
+        label = "16 · Autologous gene therapy";
+        style = "filled,rounded"; fillcolor = "#FDF2F8"; color = "#B5179E";
+        fontsize = 13; fontcolor = "#7A0F6B";
+        node [fillcolor="#F6DCEF", color="#B5179E"];
+
+        LENTI    [label="lentiviral vector\nchimeric myeloid promoter\nself-inactivating"];
+        GRV      [label="gamma-retroviral vector\nHISTORIC: MDS by\nMECOM/EVI1 activation", fillcolor="#F0C4E4"];
+        VCN      [label="vector copy number\nper cell"];
+        DHRPOS   [label="% DHR-positive neutrophils\n16-46% at 12 months\n(Kohn 2020)", penwidth=1.8];
+        MARKLOSS [label="loss of marking\nover time"];
+        INSMUT   [label="insertional mutagenesis\nclonal tracking"];
+    }
+
+    /* ---------------- 17. THE MODEL'S OWN OBJECTS ------------------------ */
+    subgraph cluster_model {
+        label = "17 · The quantitative objects this model computes";
+        style = "filled,rounded"; fillcolor = "#FFFBE6"; color = "#A67C00";
+        fontsize = 13; fontcolor = "#6B5000";
+        node [fillcolor="#FFF3BF", color="#A67C00", shape=octagon];
+
+        KPHI    [label="K(phi)\nlog10 kill per phagosome\nNO THRESHOLD, convex", penwidth=2.0];
+        SENC    [label="s_enc = f·s(1) + (1−f)·s(r)\nMIXTURE, not mean", penwidth=2.0];
+        NCRIT   [label="N_crit\ncritical inoculum\nthe clearance/disease boundary", penwidth=2.2];
+        EXPOSE  [label="exposure distribution\nlambda, log-normal inoculum"];
+        RATE    [label="infection rate =\nlambda · P(N0 > N_crit)", penwidth=2.0];
+        THRESH  [label="correction threshold\n~12% halves mortality\n~44% removes 90%", penwidth=2.0];
+    }
+
+    /* ===================== EDGES: genotype -> oxidase ===================== */
+    CYBB  -> MEMB     [color="#2E75B6"];
+    CYBA  -> MEMB     [color="#2E75B6"];
+    CYBC1 -> MEMB     [label="chaperones", color="#2E75B6"];
+    HEME  -> MEMB;
+    FLAVO -> MEMB;
+    NCF1  -> CYTOSOL  [color="#2E75B6"];
+    NCF2  -> CYTOSOL  [color="#2E75B6"];
+    NCF4  -> CYTOSOL  [color="#2E75B6"];
+    RAC2  -> ASSEMBLY [color="#2E75B6"];
+    MEMB  -> ASSEMBLY;
+    CYTOSOL -> ASSEMBLY;
+    CYBB  -> HYPO     [style=dashed, color="#6A5ACD"];
+    CYBB  -> LYON     [style=dashed, color="#6A5ACD"];
+    HYPO  -> ELECTRON [label="phi in (0,1)", color="#6A5ACD"];
+    LYON  -> SENC     [label="f normal cells\n(1−f) at zero", color="#6A5ACD"];
+    ASSEMBLY -> ELECTRON [penwidth=2.4, color="#BF8F00"];
+
+    /* ===================== stimulus ====================================== */
+    PAMP -> TLR;  TLR -> PKC [color="#2E75B6"];
+    C3B -> FCGR;  IGG -> FCGR;
+    FCGR -> PKC   [color="#2E75B6"];
+    FCGR -> PHAGO;
+    PKC  -> CYTOSOL [label="p47phox\nphosphorylation", color="#2E75B6"];
+    PI3K -> CYTOSOL [color="#2E75B6"];
+    PHAGO -> ASSEMBLY;
+    PHAGO -> BACT   [label="ingestion"];
+
+    /* ===================== oxidant chemistry ============================= */
+    ELECTRON -> SUPEROX [label="2.0 mM/s", penwidth=2.4, color="#BF8F00"];
+    O2 -> SUPEROX;
+    SUPEROX -> DISMUT;
+    SUPEROX -> MPOSOD;
+    DISMUT -> H2O2;
+    MPOSOD -> H2O2   [label="the dominant route"];
+    MPO -> MPOSOD;
+    H2O2 -> CPD1     [label="k1 2.3e7 /M/s"];
+    MPO  -> CPD1;
+    CPD1 -> HOCL     [label="+ Cl−, k2 2.5e4"];
+    CL   -> HOCL;
+    CPD1 -> CPD2     [label="+ AH, k3 2.0e7", color="#C0504D"];
+    AH   -> CPD2     [color="#C0504D"];
+    CPD2 -> MPO      [label="rescued by O2•−\nk4 1.2e6"];
+    SUPEROX -> CPD2  [style=dotted];
+    MPO -> CPD3      [label="k6"];
+    CPD3 -> MPO      [label="k7 + O2•−"];
+    HOCL -> CHLORAM;
+    HOCL -> PROTOX;
+    HOCL -> SINGLET;
+    HOCL -> BACT     [label="~7e7 molecules", penwidth=2.2, color="#C0504D"];
+    PROTOX -> BACT   [color="#C0504D"];
+    CHLORAM -> BACT  [color="#C0504D"];
+
+    /* ===================== ions and pH =================================== */
+    ELECTRON -> HVCN1 [label="charge must be\ncompensated", color="#2E8B57"];
+    ELECTRON -> KCHAN [color="#2E8B57"];
+    KCHAN -> KPHAG;
+    DISMUT -> PHPHAG  [label="2 H+ consumed\nper H2O2", color="#2E8B57"];
+    MPOSOD -> PHPHAG  [color="#2E8B57"];
+    VATP -> PHPHAG    [label="pumps H+ in", color="#C0504D"];
+    HVCN1 -> PHPHAG;
+    SEGAL -> PHPHAG   [style=dotted, color="#BF8F00"];
+    KPHAG -> MATRIX   [label="displaces cationic\nproteases", color="#2E8B57"];
+    MATRIX -> ELAST   [color="#2E8B57"];
+    MATRIX -> CATG    [color="#2E8B57"];
+    PHPHAG -> ELAST   [label="alkaline optimum", color="#2E8B57"];
+    PHPHAG -> DEFENS  [label="ACID optimum:\nBETTER in CGD", color="#B03060"];
+    PHPHAG -> LYSO    [color="#B03060"];
+
+    /* ===================== non-oxidative killing ========================= */
+    ELAST -> NONOXK;  CATG -> NONOXK;  DEFENS -> NONOXK;
+    BPI -> NONOXK;    LACTO -> NONOXK; LYSO -> NONOXK;  NRAMP -> NONOXK;
+    NONOXK -> BACT [penwidth=1.8, color="#9B4F96"];
+
+    /* ===================== organism defences ============================= */
+    CATALASE -> H2O2 [label="captures <5%", color="#C0504D", style=dotted];
+    AHPC -> H2O2     [color="#C0504D", style=dotted];
+    SODB -> SUPEROX  [label="NO luminal access", color="#C0504D", style=dotted];
+    BACT -> CATALASE; BACT -> AHPC; BACT -> SODB;
+    MESSINA -> CATALASE [style=dotted, color="#BF8F00"];
+    PEROXG -> H2O2   [label="4.6 mM/s:\nMORE than NOX2", penwidth=2.2, color="#2E75B6"];
+    PEROXG -> MPO    [label="arms MPO even at phi = 0", color="#2E75B6"];
+    BACT -> SURV     [penwidth=2.0];
+    SURV -> SHELTER  [label="the survivors", penwidth=2.0, color="#C0504D"];
+    SHELTER -> BACT  [label="released alive\nwhen the host cell dies", color="#C0504D"];
+
+    /* ===================== NETs and Aspergillus ========================== */
+    SUPEROX -> NETFORM [label="ROS-dependent", color="#2E75B6"];
+    PADI4 -> NETFORM;
+    NETFORM -> NETDNA;
+    NETDNA -> HYPHA [label="the only reachable\nweapon", color="#C0504D"];
+    HYPHNET -> NETDNA [style=dotted, color="#BF8F00"];
+    MULCH -> CONID;
+    CONID -> SWELL -> GERM -> HYPHA;
+    MACRO -> CONID  [label="ingest;\nfate = s(phi)", color="#7F9F2F"];
+    SURV -> GERM    [label="survivors germinate", color="#C0504D"];
+    HYPHA -> ANGIO; HYPHA -> GALACT; HYPHA -> OSTEO;
+    NEUTT -> HYPHA  [label="hyphal damage\nfrom outside only", color="#7F9F2F"];
+    HYPHA -> LUNG;
+    ANGIO -> MORTAL [color="#C0504D", penwidth=1.6];
+
+    /* ===================== granulopoiesis ================================ */
+    HSC -> PROG -> RES -> ANC;
+    GCSF -> RES [label="accelerates release", color="#2E75B6"];
+    ANC -> GCSF [label="receptor-mediated\nclearance", color="#C0504D"];
+    ANC -> MARG; ANC -> NEUTT;
+    MONO -> MACRO -> EPI;
+    IL1B -> GCSF [color="#2E75B6"];
+    BACT -> NEUTT [label="recruitment", color="#2E75B6"];
+    NEUTT -> PHAGO;
+    MACRO -> PHAGO;
+
+    /* ===================== resolution failure ============================ */
+    NEUTT -> APOPT;
+    SUPEROX -> PSEXT [label="PS externalisation is\nan OXIDATION event", color="#2E75B6"];
+    APOPT -> PSEXT;
+    PSEXT -> EFFERO  [color="#2E75B6"];
+    EFFERO -> IL10   [label="the brake", color="#2E75B6"];
+    APOPT -> CORPSE  [label="when PS is not\nexternalised", color="#B03060", penwidth=1.8];
+    EFFERO -> CORPSE [label="clears", color="#C0504D"];
+    CORPSE -> SECOND -> NLRP3 [color="#B03060"];
+    CORPSE -> NLRP3  [penwidth=1.8, color="#B03060"];
+    SUPEROX -> LAP   [color="#2E75B6"];
+    LAP -> AUTOPH -> NLRP3 [label="restrains", color="#C0504D"];
+
+    /* ===================== cytokines ===================================== */
+    SUPEROX -> NLRP3 [label="RESTRAINS\n(absent in CGD)", color="#C0504D", penwidth=1.8];
+    SUPEROX -> NRF2  [color="#2E75B6"];
+    NRF2 -> NLRP3    [color="#C0504D"];
+    NLRP3 -> CASP1 -> IL1B;
+    CASP1 -> IL18;
+    BACT -> TNF [color="#2E75B6"];
+    HYPHA -> TNF [color="#2E75B6"];
+    IL1B -> IL6 [color="#2E75B6"];
+    TNF  -> IL6 [color="#2E75B6"];
+    IL6  -> CRP;
+    IL1B -> IL17 [color="#2E75B6"];
+    IL18 -> IFNG [color="#2E75B6"];
+    IL10 -> IL1B [label="brake", color="#C0504D"];
+    IFNG -> IDO  [color="#2E75B6"];
+    TRP -> IDO;
+
+    /* ===================== organ disease ================================= */
+    IL1B -> GRANULOMA [penwidth=2.0, color="#B03060"];
+    IL17 -> GRANULOMA [color="#B03060"];
+    EPI  -> GRANULOMA;
+    GRANULOMA -> COLITIS;
+    GRANULOMA -> GIOBS;
+    GRANULOMA -> GUOBS;
+    GRANULOMA -> FIBROSIS;
+    FIBROSIS -> MORTAL [color="#C0504D"];
+    BACT -> LIVERAB; BACT -> LYMPH; BACT -> SKINAB; BACT -> LUNG;
+    IL1B -> GROWTH; PRED -> GROWTH [style=dashed, color="#C0504D"];
+    LUNG -> MORTAL [color="#C0504D"];
+    LIVERAB -> MORTAL [color="#C0504D"];
+
+    /* ===================== diagnostics =================================== */
+    ELECTRON -> DHR [label="what the assay\nactually measures", color="#2F8F8F"];
+    DHR -> DHRHIST  [label="the shape, not\nthe mean", penwidth=2.0, color="#2F8F8F"];
+    LYON -> DHRHIST [label="BIMODAL", color="#2F8F8F"];
+    HYPO -> DHRHIST [label="uniformly SHIFTED", color="#2F8F8F"];
+    ELECTRON -> NBT; ELECTRON -> FERRI;
+    CYBB -> WBIMMUNO [style=dotted]; CYBB -> GENETIC [style=dotted];
+    GALACT -> GMASSAY;
+    DHRHIST -> SENC [penwidth=2.0, color="#2F8F8F"];
+
+    /* ===================== drugs ========================================= */
+    TMPSMX -> TMPPD [style=dashed, color="#3C8C3C"];
+    TMPPD -> BACT   [style=dashed, color="#3C8C3C", penwidth=1.6, label="3.2/d"];
+    ITRA -> AZOLPD  [style=dashed, color="#3C8C3C"];
+    VORI -> AZOLPD  [style=dashed, color="#3C8C3C"];
+    AZOLPD -> HYPHA [style=dashed, color="#3C8C3C", penwidth=1.6];
+    ITRA -> HEPTOX  [style=dashed, color="#C0504D"];
+    VORI -> HEPTOX  [style=dashed, color="#C0504D"];
+    ITRA -> CYP3A   [style=dashed]; VORI -> CYP3A [style=dashed];
+    CYP3A -> PRED   [style=dashed, label="exposure up"];
+    IFNB -> IFNPD   [style=dashed, color="#3C8C3C"];
+    IFNPD -> NONOXK [style=dashed, color="#3C8C3C", penwidth=2.0];
+    IFNPD -> NEUTT  [style=dashed, color="#3C8C3C", label="recruitment"];
+    IFNB -> ELECTRON [style=dotted, color="#C0504D", label="NOT this route\n(1991 trial)"];
+    PRED -> PREDPD  [style=dashed, color="#3C8C3C"];
+    PREDPD -> IL1B  [style=dashed, color="#C0504D"];
+    PREDPD -> NEUTT [style=dashed, color="#C0504D", label="impairs migration"];
+    PREDPD -> GRANULOMA [style=dashed, color="#C0504D"];
+    ANAK -> ANAKPD  [style=dashed, color="#3C8C3C"];
+    ANAKPD -> IL1B  [style=dashed, color="#C0504D", penwidth=1.8, label="receptor blockade"];
+    ANAKPD -> COLITIS [style=dashed, color="#C0504D", penwidth=1.8];
+    HEPTOX -> MORTAL [style=dotted];
+
+    /* ===================== HSCT and gene therapy ========================= */
+    COND -> CHIM [style=dashed, color="#6A4C93"];
+    DONOR -> CHIM [style=dashed, color="#6A4C93"];
+    COND -> GVHD [style=dashed, color="#C0504D"];
+    GVHD -> MORTAL [color="#C0504D"];
+    CHIM -> REJECT [style=dotted];
+    CHIM -> HSC   [label="donor myelopoiesis", penwidth=2.0, color="#6A4C93"];
+    CHIM -> SENC  [label="raises f", penwidth=2.0, color="#6A4C93"];
+    CHIM -> RESOLVE;
+    RESOLVE -> GRANULOMA [color="#C0504D", penwidth=1.6];
+    LENTI -> VCN [style=dashed, color="#B5179E"];
+    GRV -> INSMUT [style=dashed, color="#C0504D"];
+    VCN -> DHRPOS [style=dashed, color="#B5179E"];
+    DHRPOS -> SENC [label="raises f", penwidth=2.0, color="#B5179E"];
+    DHRPOS -> MARKLOSS [style=dotted];
+    VCN -> INSMUT [style=dotted];
+
+    /* ===================== the model's own objects ======================= */
+    SURV -> KPHI [penwidth=2.0, color="#A67C00"];
+    KPHI -> SENC [penwidth=2.0, color="#A67C00"];
+    SENC -> NCRIT [penwidth=2.0, color="#A67C00"];
+    SHELTER -> NCRIT [label="the convex term:\nwhere the clinical\nTHRESHOLD comes from",
+                      penwidth=2.2, color="#C0504D"];
+    NEUTT -> NCRIT [color="#A67C00"];
+    TMPPD -> NCRIT [style=dashed, color="#3C8C3C"];
+    AZOLPD -> NCRIT [style=dashed, color="#3C8C3C"];
+    NCRIT -> RATE [penwidth=2.2, color="#A67C00"];
+    EXPOSE -> RATE [penwidth=2.0, color="#A67C00"];
+    RATE -> MORTAL [penwidth=2.2, color="#843C0C"];
+    NCRIT -> THRESH [penwidth=2.0, color="#A67C00"];
+    CHIM -> THRESH [style=dotted, color="#6A4C93"];
+    DHRPOS -> THRESH [style=dotted, color="#B5179E"];
+}
