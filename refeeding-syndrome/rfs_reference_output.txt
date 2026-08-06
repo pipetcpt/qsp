@@ -1,0 +1,406 @@
+
+==============================================================================
+REFEEDING SYNDROME QSP MODEL - PYTHON REFERENCE IMPLEMENTATION
+==============================================================================
+Reference subject   62 kg (FFM 48, FM 14), BMI 22.0, GFR 6.0 L/h
+Total body P        22780 mmol = bone 19550 + ICF 3216 + ECF 14.3
+Total body K        3508 mmol = ICF 3456 + ECF 52.1
+Total body Mg (exch)361 mmol = ICF 350 + ECF 10.5
+
+  ** THE RATIO THAT DEFINES THE DISEASE **
+     the compartment the laboratory measures is 0.063 % of total body
+     phosphorus.  A refeeding demand of 60 mmol/d is 4.2 times the
+     ENTIRE measured compartment, per day.
+
+Derived (not fitted) from the balance conditions:
+   TmP/GFR                     0.962 mmol/L      (normal 0.80-1.35)
+   urinary P / K / Mg          29.1 / 69.5 / 4.88 mmol/d
+   insulin sensitivity SI      11.16 L/h, fed glucose turnover 80.8 mmol/h
+   incretin share of secretion 35 % at the fed reference
+
+EMERGENT CHECK - thiamine.  The store (100 umol = 26.5 mg) and the
+   14 d biological half-life were taken from tracer studies.  The daily
+   requirement was NOT: the model computes it from those two numbers as
+   1.42 mg/d, against a published RDA of 1.1-1.4 mg/d.
+
+------------------------------------------------------------------------------
+TEST 1   healthy steady state (should be numerically exact)
+------------------------------------------------------------------------------
+   max |dy/dt| over the 44 physiological states = 6.155e-15  (PTH)
+   (the four cumulative counters are excluded: they are meant to grow)
+
+------------------------------------------------------------------------------
+TEST 2   the starvation phase - THE MODEL'S FIRST REAL TEST
+------------------------------------------------------------------------------
+The claim being tested is that the pools empty while the BLOOD TESTS
+STAY NORMAL.  If serum phosphate fell during starvation, admission
+phosphate would be a useful triage test and refeeding syndrome would
+not be dangerous.  The deficit here is SIMULATED, never asserted.
+
+phenotype at day 60     BMI   FFM |     P     K    Mg    Ca |  ICF-P  ICF-K ICF-Mg |  thiam
+                               kg | mmol/L                   |  %norm  %norm  %norm | %store
+anorexia/starvation    17.9  41.1 |  1.02  3.60  0.72  1.15 |   85.4   75.6   81.1 |   18.5
+alcohol use disorder   18.4  42.0 |  0.84  3.63  0.64  1.19 |   87.5   77.9   74.9 |    5.6
+diuretic + cardiac     17.9  41.1 |  1.02  3.46  0.80  1.15 |   85.4   73.6   85.7 |   25.6
+purging / GI losses    18.0  41.4 |  1.02  3.18  0.42  1.12 |   86.3   70.2   59.1 |   23.9
+
+VERDICT: serum phosphate is 0.8-1.1 mmol/L in every phenotype - inside
+   or at the edge of the reference interval - after two months of
+   starvation.  Serum potassium and magnesium are only mildly low.
+   Meanwhile the thiamine store is down to 5-25 % and the intracellular
+   cation pools are down by 20-40 %.  The admission blood panel does
+   not see the disease.  This is why NICE triages on HISTORY - body
+   mass index, weight loss, days without intake, alcohol - and not on
+   the laboratory result.
+
+------------------------------------------------------------------------------
+TEST 3   the flux arithmetic at the moment of refeeding
+------------------------------------------------------------------------------
+   admission ECF phosphate pool          12.6 mmol
+   day-1 demand  J_demand                25.7 mmol/d
+   day-1 supply  J_supply                25.8 mmol/d
+      of which absorbed from the feed    18.2 mmol/d
+      of which net bone efflux            7.6 mmol/d
+   day-1 Lambda_P = demand / supply      1.00
+
+   urinary phosphate, admission         13.78 mmol/d
+   urinary phosphate, day 1              0.84 mmol/d
+   urinary phosphate, day 3              0.80 mmol/d
+
+   Renal excretion is a THRESHOLD, GFR x max(0, Pser - TmP/GFR), so the
+   kidney's entire contribution is to stop excreting.  That is worth
+   13.8 mmol/d and it is SINGLE-USE: it is fully spent within a day,
+   after which the kidney has nothing further to offer no matter how
+   low the phosphate goes.  Against a demand of 26 mmol/d the whole
+   renal reserve is worth about 13 hours.
+
+------------------------------------------------------------------------------
+TEST 4   scenario panel (16 regimens, one virtual patient each)
+------------------------------------------------------------------------------
+All 16 share the SAME simulated starvation history unless the name
+says otherwise, so every difference below is caused by the regimen.
+
+regimen               Pnad  day  P d3  K d3 Mg d3   QTc   lac mort%   WE%  kcal
+S01_NICE              1.01  4.3  1.12  4.62  0.92   423   3.9  0.36     0 17641
+S02_ASPEN             1.02  0.0  1.05  3.99  0.94   423   3.9  0.36     0 19967
+S03_FULL_NOTHING      0.45  2.2  0.46  2.75  0.67   449   5.0  1.07     4 21066
+S04_FULL_ELEC_ONLY    1.02  0.0  1.13  4.12  0.95   428   4.5  0.54     4 21066
+S05_FULL_THIA_ONLY    0.45  2.2  0.46  2.74  0.67   449   3.9  0.51     0 21032
+S06_FULL_BOTH         1.02  0.0  1.13  4.11  0.94   427   3.9  0.36     0 21032
+S07_SLOW_NOTHING      0.49  6.0  0.99  3.45  0.76   443   3.9  0.82     7 17652
+S08_DEXTROSE_ONLY     0.07  6.7  0.09  2.48  0.58   455  10.5  5.75    33 13864
+S09_ENTERAL_MATCHED   0.19  3.5  0.19  2.87  0.68   439   6.9  3.73     8 13864
+S10_MIXED_FUEL        1.00  0.2  1.03  3.33  0.74   433   4.0  0.64     6 13864
+S11_ALCOHOL_NOTH      0.74  0.7  0.87  3.11  0.61   440   5.6  1.33    10 17934
+S12_ALCOHOL_IVTH      0.77  1.1  0.88  3.10  0.61   440   5.0  0.39     0 17877
+S13_ALCOHOL_POTH      0.74  0.7  0.87  3.11  0.61   440   5.0  0.45     0 17934
+S14_MG_BOLUS          0.93  0.5  0.99  3.81  0.72   436   4.2  0.66     6 13864
+S15_MG_INFUSION       0.94  0.4  0.98  3.86  0.88   436   4.2  0.66     6 13864
+S16_K_ONLY_NO_MG      0.93  0.5  0.99  3.77  0.65   436   4.2  0.66     6 13864
+
+------------------------------------------------------------------------------
+RESULT 1   the 2x2: which prophylaxis is doing the work?
+------------------------------------------------------------------------------
+Full-rate feeding (30 kcal/kg/d from hour zero) in the same patient,
+crossing electrolyte repletion with thiamine.
+
+                            P nadir  lactate   mort % Wernicke %
+neither                        0.45      5.0     1.07        4
+electrolytes only              1.02      4.5     0.54        4
+thiamine only                  0.45      3.9     0.51        0
+both                           1.02      3.9     0.36        0
+
+The two prophylaxes are NOT interchangeable and they do not overlap:
+electrolytes fix the phosphate nadir and do nothing for Wernicke;
+thiamine fixes Wernicke and the lactate and does NOTHING for the
+phosphate.  Each closes a channel the other leaves open, which is why
+giving one and not the other still leaves the patient exposed.
+
+------------------------------------------------------------------------------
+RESULT 2   NICE 2006 vs ASPEN 2020 - the calorie-restriction question
+------------------------------------------------------------------------------
+                        NICE-like ASPEN-like
+start kcal/kg/d              10.0       15.0
+phosphate nadir              1.01       1.02
+potassium day 3              4.62       3.99
+kcal delivered / 14 d       17641      19967
+mortality %                  0.36       0.36
+lean mass change kg         -0.70      -0.45
+
+The faster ramp delivers 13 % more energy at indistinguishable risk, PROVIDED the
+repletion is prescribed alongside it.  The model's reading of the
+NICE/ASPEN disagreement is therefore that the calorie cap was never
+the active ingredient - the repletion was.  Compare:
+   slow ramp WITHOUT repletion:  P nadir 0.49, mortality 0.82 %,
+      Wernicke 7 % (worse than the fast ramp WITH repletion, and
+      the low-calorie period prolongs the thiamine-deficient window)
+
+------------------------------------------------------------------------------
+RESULT 3   the feed itself is a phosphate prescription
+------------------------------------------------------------------------------
+Three regimens at an IDENTICAL 20 kcal/kg/d and identical patient.
+
+                                    P nadir      GIR  lactate   mort %
+intravenous dextrose, 100 % CHO        0.07     3.47     10.5     5.75
+enteral formula, 100 % CHO             0.19     3.47      6.9     3.73
+enteral formula, 40 % CHO              1.00     1.39      4.0     0.64
+
+Same calories, same patient, three different diseases.  A complete
+enteral formula carries ~22 mmol phosphate, 38 mmol potassium, 6 mmol
+magnesium and thiamine per 1000 kcal; a bag of intravenous dextrose
+carries NONE of them unless somebody adds them.  Substituting the
+route while holding the calories fixed moves the phosphate nadir from
+0.07 to 0.19 mmol/L.  Dropping the carbohydrate fraction from 100 % to
+40 % at the same energy moves it again, to 1.00, because the demand
+tracks the GLUCOSE, not the calories.
+
+------------------------------------------------------------------------------
+RESULT 4   admission phosphate is nearly uninformative
+------------------------------------------------------------------------------
+Six patients presented for refeeding.  Their starvation histories
+differ; their ADMISSION PHOSPHATE is essentially the same number.
+Every one is then fed on the identical unprophylaxed regimen.
+
+history                      adm P     adm K   ICF-K %   P nadir   mort %
+30 d at 50 % energy           1.03      4.08      82.7      0.68     0.41
+45 d at 40 % energy           1.02      3.87      78.9      0.52     0.56
+60 d at 32 % energy           1.02      3.60      75.6      0.45     1.07
+75 d at 28 % energy           1.02      3.34      73.7      0.46     1.28
+90 d at 25 % energy           1.02      3.08      72.4      0.51     1.29
+120 d at 22 % energy          1.02      2.62      71.8      0.71     1.46
+
+Admission phosphate spans 1.02-1.03 mmol/L across a FOUR-FOLD range of
+starvation duration - a spread of 0.02 mmol/L, well inside assay noise
+and entirely inside the reference interval - while modelled mortality
+varies %.1f-fold over the same six patients.  The number on the
+admission panel does not carry the information.  The history does.
+
+UNEXPECTED, and reported because it runs against the obvious guess:
+the phosphate nadir is NOT monotone in starvation duration.  It
+deepens to 0.45 at 60-75 days and then becomes SHALLOWER again at 120
+days (0.71).  The most wasted patients have the least lean mass and the
+most insulin resistance, so they cannot mount the glycolytic flux that
+generates the demand.  Their mortality still rises, because it is
+driven by potassium, magnesium and thiamine rather than by phosphate.
+A shallow nadir in a very wasted patient is therefore NOT reassurance;
+it is the model predicting that serum phosphate is the wrong marker in
+exactly the patients who are most at risk.
+
+------------------------------------------------------------------------------
+RESULT 5   the demand tracks glucose, so there is a GIR threshold
+------------------------------------------------------------------------------
+Carbohydrate is swept at a FIXED total energy of 25 kcal/kg/d, so
+only the glucose infusion rate changes.  No repletion is given.
+
+   CHO %      GIR  Lambda_P   P nadir   K day 3   mort %
+      20     0.87      0.00      1.02      3.16     0.56
+      30     1.30      0.27      1.02      3.12     0.58
+      40     1.74      0.89      0.96      3.09     0.60
+      50     2.17      1.54      0.64      3.03     0.71
+      60     2.60      2.18      0.42      2.93     1.29
+      75     3.26      3.01      0.25      2.75     3.11
+      90     3.91      3.71      0.16      2.60     5.23
+     100     4.34      4.12      0.13      2.51     6.44
+
+The energy is constant down every row.  Only the glucose changes, and
+the phosphate nadir moves across the whole clinical range.  'How many
+calories' is the wrong question; 'how much glucose per minute' is the
+right one.
+
+------------------------------------------------------------------------------
+RESULT 6   phosphate repletion has an optimum, not a maximum
+------------------------------------------------------------------------------
+Prophylactic intravenous phosphate is swept in a full-rate refeed.
+Too little leaves Lambda_P above 1; too much exceeds the calcium-
+phosphate solubility product and precipitates, taking the ionised
+calcium down with it.
+
+mmol/kg/d   P nadir   P day 7  Ca nadir  max CaxP   mort %
+    0.00      0.45      0.72      1.15      1.28     1.07
+    0.15      0.61      1.04      1.15      1.33     0.71
+    0.30      0.79      1.09      1.15      1.37     0.61
+    0.50      0.97      1.15      1.15      1.43     0.58
+    0.80      1.02      1.24      1.15      1.52     0.57
+    1.20      1.02      1.36      1.14      1.63     0.57
+    2.00      1.02      1.60      1.11      1.85     0.57
+    3.00      1.02      1.90      1.08      2.13     0.58
+    5.00      1.02      2.54      1.03      2.73     0.63
+    8.00      1.02      3.56      1.03      3.79     0.63
+   12.00      1.02      4.90      0.89      4.46     0.85  <- supersaturated
+
+HONEST READING, including where the model FAILS to show what was
+expected.  The benefit saturates: essentially all of it is bought by
+the first 0.5 mmol/kg/d, which is the band the guidelines recommend and
+which the model was never shown.  Beyond that the mortality curve is
+FLAT to within the resolution of the hazard model.
+
+The U-shape this section was written to demonstrate is REAL but it lies
+far outside clinical practice.  The calcium-phosphate product only
+crosses the 4.4 mmol^2/L^2 solubility limit at 12 mmol/kg/d - twenty
+times the recommended dose - and only there does ionised calcium fall
+and mortality turn back up.  At every dose a clinician would actually
+write, the precipitation term never engages.
+
+So the asymmetry inside this model is stark and one-sided: UNDER-
+repletion costs 0.50 percentage points of mortality, while over-
+repletion costs nothing measurable until the dose becomes absurd.  If
+that is right it favours the ASPEN posture of repleting generously and
+not withholding feed.  The caveat is that the model has no soft-tissue
+calcification, no phosphate-infusion arrhythmia and fixed renal
+function, all three of which are the real reasons clinicians cap the
+rate - so the flat top of this curve should be read as 'this model
+cannot see the harm', not as 'there is none'.
+
+------------------------------------------------------------------------------
+RESULT 7   the two clocks - thiamine in hours, phosphate in days
+------------------------------------------------------------------------------
+Same patient, same feed.  Only the TIMING of a 300 mg intravenous
+thiamine dose relative to the first glucose is changed, and separately
+the timing of phosphate.
+
+                                      lactate Wernicke %     mort %
+thiamine 1 h BEFORE glucose               3.9          0       0.51
+thiamine with the glucose                 3.9          0       0.51
+thiamine 6 h after                        4.5          1       0.55
+thiamine 24 h after                       5.0          2       0.72
+thiamine 72 h after                       5.0          3       0.99
+no thiamine at all                        5.0          4       1.07
+
+                                      P nadir    P day 3     mort %
+phosphate started on day 0               0.97       1.06       0.58
+phosphate started on day 1               0.48       1.04       0.73
+phosphate started on day 2               0.45       1.03       0.89
+phosphate started on day 4               0.45       0.46       1.01
+phosphate never started                  0.45       0.46       1.07
+
+Two readings, and the first one contradicts the teaching:
+
+(a) the famous 'thiamine BEFORE the glucose' rule buys nothing at the
+    one-hour timescale on which it is usually taught - giving thiamine
+    an hour early and giving it with the feed are indistinguishable
+    here.  What the model does support is the WEAKER, and probably
+    the real, version of the rule: thiamine must be given on DAY ZERO.
+    Six hours late already costs; a day late costs more.
+
+(b) phosphate is the opposite shape.  Starting it on day 0 abolishes
+    the nadir; starting it 24 h later does not, because by then the
+    cells have already taken what they needed out of a 13 mmol pool.
+    Late phosphate still repairs the day-7 number, so it rescues the
+    LABORATORY promptly and the PATIENT slowly - which is exactly the
+    trap of treating this syndrome reactively.
+
+------------------------------------------------------------------------------
+RESULT 8   oral vs intravenous thiamine - A PREDICTION THAT FAILED
+------------------------------------------------------------------------------
+The intestinal thiamine carriers (ThTR-1/ThTR-2) saturate: the model's
+maximum absorption rate is 7.5 umol/h (~2.0 mg/h) whatever dose is
+swallowed.  Intravenous dosing has no such ceiling.
+
+This section was written to show that oral thiamine cannot replete an
+acutely deficient patient.  THE MODEL DOES NOT AGREE, and the
+disagreement is reported rather than tuned away.
+
+                             TK 3 h  TK 12 h  TK 24 h    TK d3     WE %
+no thiamine                    0.01     0.02     0.04     0.26       10
+oral 100 mg/d                  0.16     0.95     1.00     1.00        0
+oral 300 mg/d                  0.23     0.97     1.00     1.00        0
+oral 1500 mg/d                 0.28     0.98     1.00     1.00        0
+IV 100 mg/d                    0.70     1.00     1.00     1.00        0
+IV 500 mg/d                    1.00     1.00     1.00     1.00        0
+oral 300, vomiting             0.01     0.04     0.14     0.69        5
+IV 100, vomiting               0.70     1.00     1.00     1.00        0
+
+The saturable carrier turns out not to be the binding constraint.  Its
+ceiling is 7.5 umol/h = 48 mg/d of absorbed thiamine, and the daily
+REQUIREMENT is only 1.4 mg.  Saturated absorption still delivers
+roughly thirty times what the patient needs, so an intact gut repletes
+the store within a day whatever the route.  Raising the oral dose from
+300 to 1500 mg/d changes nothing, exactly as predicted - but so does
+switching to the vein, which was NOT predicted.
+
+The intravenous route earns its place on the last two rows instead: if
+absorption is impaired - vomiting, ileus, an alcohol-damaged mucosa -
+the oral arm collapses and the intravenous arm does not.  The model's
+verdict is that 'IV because oral cannot deliver enough' is the wrong
+reason, and 'IV because you cannot rely on this patient's gut' is the
+right one.  Since that is precisely the population in question, the
+clinical recommendation survives with its justification replaced.
+
+------------------------------------------------------------------------------
+RESULT 9   magnesium: how you give it, and what it unlocks
+------------------------------------------------------------------------------
+(a) the same 0.4 mmol/kg/d as a 2 h bolus or as a 24 h infusion
+      bolus      Mg day 3 0.72 mmol/L
+      infusion   Mg day 3 0.88 mmol/L
+    Renal magnesium handling is a THRESHOLD, so the peak of a bolus is
+    excreted rather than retained.  The prescription chart shows the
+    same daily dose; the patient does not receive it.
+
+(b) potassium repletion with and without magnesium repletion
+      K 2 mmol/kg/d alone         K day 3 3.77, Mg day 3 0.65
+      K 2 mmol/kg/d + Mg          K day 3 3.86, Mg day 3 0.88
+    Hypomagnesaemia releases the intracellular magnesium block on ROMK,
+    so the distal nephron wastes potassium.  The effect is real in the
+    model but MODEST at this repletion rate (3.77 vs 3.86 mmol/L on day
+    3): a 2 mmol/kg/d potassium infusion is large enough to outrun the
+    leak it is fighting.  The model therefore supports 'correct the
+    magnesium' as good practice but does NOT reproduce the textbook
+    picture of potassium that is refractory until magnesium is given -
+    and that is a place where the model may be understating a real and
+    frequently reported clinical phenomenon.
+    Magnesium matters through a second, quieter route as well: it is
+    required for PTH secretion, and PTH is what makes bone donate
+    phosphate, so magnesium sits upstream of the phosphate supply line.
+
+------------------------------------------------------------------------------
+RESULT 10  the ventilatory cost of feeding on glucose alone
+------------------------------------------------------------------------------
+                                   RQ     VCO2     PaCO2    mort %
+100 % carbohydrate               0.95    0.214      98.2      3.73
+40 % carbohydrate                0.87    0.196      77.9      0.64
+
+    Substituting fat for carbohydrate at constant energy lowers the
+    respiratory quotient, but note the SIZE of the two terms before
+    accepting the usual explanation: carbon dioxide production differs
+    by only about a tenth between these arms, while the modelled PaCO2
+    differs by a quarter.  Most of the gap is not the CO2 load at all -
+    it is the ventilatory pump, because the same glucose load has
+    driven the phosphate down and taken the diaphragm's energetics with
+    it.  The carbohydrate is not mainly overloading the lungs; it is
+    weakening them, and then loading them.  A prediction that follows:
+    the ventilatory benefit of a lipid-based feed should be largest in
+    exactly the patients who are phosphate-depleted, and small in those
+    who are not.
+
+------------------------------------------------------------------------------
+LIMITATIONS - stated, not buried
+------------------------------------------------------------------------------
+   The worst scenario (phosphate-free intravenous dextrose, no repletion
+     at all) bottoms out near 0.07 mmol/L.  Real reported nadirs in that
+     setting are 0.10-0.30.  The model has no rescue behaviour by a real
+     clinician, and its only brakes are transport saturation and the
+     glycolytic block, so it over-shoots at the extreme.
+   Mortality is a hazard model with ONE fitted scale.  The split between
+     arrhythmic, cardiac-failure and respiratory death is structural, not
+     fitted, and should not be read as three separately validated numbers.
+   There is no sepsis, no organ failure, no delirium, no re-feeding
+     induced hepatic steatosis and no vitamin deficiency other than
+     thiamine.  Real refeeding deaths often involve those.
+   The starvation phase assumes a constant intake fraction.  Real
+     histories are episodic, and a binge-restrict pattern would deplete
+     thiamine faster than this model does.
+   Bone is a single well-mixed compartment with a PTH-driven efflux.
+     Osteopenia of chronic starvation is not represented, so the model
+     probably OVERSTATES the skeletal buffer in the most chronic cases.
+   Intracellular phosphate is one soft-tissue pool.  Erythrocyte 2,3-DPG,
+     myocardium and diaphragm are read off serum phosphate rather than
+     given their own compartments.
+   The insulin submodel is a minimal model calibrated at two points.  It
+     is adequate for the direction and rough size of the refeeding insulin
+     rise, and is not a glucose-kinetics model.
+   Renal function is fixed.  Acute kidney injury, which is common in
+     these patients, would change every threshold in the model.
+
+==============================================================================
+END OF REFERENCE OUTPUT
+==============================================================================

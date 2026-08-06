@@ -1,0 +1,513 @@
+/* =====================================================================
+   rfs_qsp_model.dot
+   Refeeding Syndrome (RFS) - mechanistic QSP map
+
+   Reading order.  The map is organised around ONE ratio, drawn in the
+   centre as LAMBDA_P = J_demand / J_supply.  Everything to the left of it
+   is the numerator, which the CLINICIAN sets by choosing a glucose
+   infusion rate.  Everything to the right is the denominator, which the
+   PATIENT'S HISTORY sets, and which the same clinician can top up by
+   prescribing.  Refeeding syndrome is what happens when the two are set
+   by people who are not talking to each other.
+
+   Edge colours
+     black   mass flux (a substance actually moves)
+     blue    regulatory / signalling influence
+     red     pathological amplification
+     green   therapeutic action
+     purple  measurement / clinical readout
+
+   Node shapes
+     box3d       a pool with real mass (mmol, umol, kg)
+     box         a flux, a rate, or a process
+     ellipse     a signal, hormone or dimensionless state
+     hexagon     a drug, nutrient or prescribed intervention
+     octagon     a clinical endpoint
+     diamond     a threshold or switch
+   ===================================================================== */
+
+digraph RFS {
+    rankdir = LR;
+    graph [fontname="Helvetica", fontsize=11, labelloc="t", nodesep=0.22,
+           ranksep=0.75, compound=true, splines=spline, bgcolor="white",
+           label=<<B>REFEEDING SYNDROME &#183; Quantitative Systems Pharmacology map</B><BR/>
+<I>The disease is a flux mismatch: &#923;<SUB>P</SUB> = J<SUB>demand</SUB> / J<SUB>supply</SUB>. The clinician sets the numerator, the starvation history sets the denominator.<BR/>
+The compartment the laboratory measures (ECF phosphate, 14 mmol) is 0.06 % of the pool at risk (total body phosphorus, 22 800 mmol).</I>>];
+    node  [fontname="Helvetica", fontsize=10, style="filled", penwidth=1.1];
+    edge  [fontname="Helvetica", fontsize=8, penwidth=1.0, color="grey25"];
+
+    /* ============================================================== */
+    subgraph cluster_hx {
+        label="1 &#183; STARVATION HISTORY  (sets the denominator, invisible in blood)";
+        style="filled,rounded"; fillcolor="#f4ecff"; color="#7a4fb5"; fontcolor="#4a2d70";
+        node [fillcolor="#e6d8fb", color="#7a4fb5", shape=ellipse];
+
+        HX_DUR   [label="days of\nreduced intake"];
+        HX_FRAC  [label="intake fraction\nof requirement"];
+        HX_QUAL  [label="diet QUALITY\n(refined CHO, alcohol\ncarry no thiamine)"];
+        HX_ETOH  [label="alcohol use", fillcolor="#d9c2f7"];
+        HX_DIUR  [label="loop / thiazide\ndiuretic", fillcolor="#d9c2f7"];
+        HX_GI    [label="vomiting, purging,\ndiarrhoea, fistula", fillcolor="#d9c2f7"];
+        HX_BMI   [label="BMI, %weight loss\n(NICE risk criteria)", shape=diamond, fillcolor="#cbb0f2"];
+        HX_NPO   [label="post-operative\nnil by mouth", fillcolor="#d9c2f7"];
+        HX_ONC   [label="cancer anorexia,\ncachexia", fillcolor="#d9c2f7"];
+        HX_BARI  [label="bariatric surgery,\nhyperemesis", fillcolor="#d9c2f7"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_body {
+        label="2 &#183; BODY COMPOSITION AND ENERGY BALANCE";
+        style="filled,rounded"; fillcolor="#eef6ff"; color="#2f6fae"; fontcolor="#1d4a76";
+        node [fillcolor="#d6e9fb", color="#2f6fae"];
+
+        E_INTAKE [label="energy intake\nkcal/d", shape=box];
+        E_REE    [label="REE\n370 + 21.6 &#215; FFM", shape=box];
+        E_AT     [label="adaptive\nthermogenesis\n(floor 0.78)", shape=ellipse];
+        E_BAL    [label="energy balance\nkcal/d", shape=box];
+        C_FFM    [label="FAT-FREE MASS\nkg", shape=box3d, fillcolor="#b9d9f6"];
+        C_FM     [label="FAT MASS\nkg", shape=box3d, fillcolor="#b9d9f6"];
+        C_FORBES [label="Forbes partition\ndFFM/dFM = f(FM)", shape=box];
+        C_CAT    [label="CATABOLIC STATE\n1 - intake/TEE", shape=ellipse, fillcolor="#f9d5d5", color="#b03030"];
+        C_LVM    [label="LV MASS\n(atrophies with FFM,\n3-week time constant)", shape=box3d, fillcolor="#b9d9f6"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_feed {
+        label="3 &#183; THE PRESCRIPTION  (sets the numerator)";
+        style="filled,rounded"; fillcolor="#eafaf0"; color="#2e8b57"; fontcolor="#1d5c39";
+        node [fillcolor="#cdf0dc", color="#2e8b57", shape=hexagon];
+
+        RX_KCAL  [label="caloric ramp\nkcal/kg/d"];
+        RX_CHO   [label="CARBOHYDRATE\nfraction"];
+        RX_FAT   [label="lipid fraction"];
+        RX_PRO   [label="protein"];
+        RX_ROUTE [label="ROUTE\nenteral formula\nvs IV dextrose", shape=diamond, fillcolor="#a9e3c4"];
+        RX_GIR   [label="GLUCOSE INFUSION RATE\nmg/kg/min", shape=box, fillcolor="#8fd9b3", penwidth=2.2];
+        RX_NICE  [label="NICE 2006\n10 kcal/kg/d, slow"];
+        RX_ASPEN [label="ASPEN 2020\n100-150 g dextrose,\nadvance 33 %/d"];
+        RX_NA    [label="sodium and fluid\nload"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_rx2 {
+        label="4 &#183; REPLETION AND PROPHYLAXIS  (tops up the denominator)";
+        style="filled,rounded"; fillcolor="#eafaf0"; color="#2e8b57"; fontcolor="#1d5c39";
+        node [fillcolor="#b7ead0", color="#2e8b57", shape=hexagon];
+
+        RX_P     [label="IV phosphate\n0.3-0.6 mmol/kg/d"];
+        RX_K     [label="IV potassium\n2-4 mmol/kg/d"];
+        RX_MG    [label="IV magnesium\n0.2-0.4 mmol/kg/d"];
+        RX_MGRATE[label="BOLUS vs INFUSION\n(threshold excretion\nwastes the peak)", shape=diamond, fillcolor="#a9e3c4"];
+        RX_THIV  [label="IV thiamine\n100-500 mg/d"];
+        RX_THPO  [label="oral thiamine\n(saturable uptake)"];
+        RX_TIME  [label="TIMING\nday 0 vs day 2", shape=diamond, fillcolor="#a9e3c4"];
+        RX_RESC  [label="reactive rescue\nwhen P < 0.65"];
+        RX_MULTI [label="multivitamin,\ntrace elements"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_gut {
+        label="5 &#183; GUT AND ABSORPTION";
+        style="filled,rounded"; fillcolor="#fff8e8"; color="#c08a1e"; fontcolor="#8a6114";
+        node [fillcolor="#ffeec4", color="#c08a1e"];
+
+        G_CHO   [label="luminal\ncarbohydrate", shape=box3d];
+        G_P     [label="luminal phosphate\n22 mmol / 1000 kcal", shape=box3d];
+        G_K     [label="luminal potassium\n38 mmol / 1000 kcal", shape=box3d];
+        G_MG    [label="luminal magnesium\n6 mmol / 1000 kcal", shape=box3d];
+        G_TH    [label="luminal thiamine", shape=box3d];
+        G_NAPI  [label="NaPi-IIb / PiT\n1,25-D dependent\nF = 0.65", shape=box];
+        G_THTR  [label="ThTR-1 / ThTR-2\nSATURABLE\nV_max ~ 2 mg/h", shape=box, fillcolor="#ffd98a"];
+        G_FAIL  [label="vomiting / ileus /\nmucosal damage", shape=diamond, fillcolor="#f6c9c9", color="#b03030"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_glu {
+        label="6 &#183; GLUCOSE - INSULIN - INCRETIN AXIS";
+        style="filled,rounded"; fillcolor="#fdeef6"; color="#b03878"; fontcolor="#7c2754";
+        node [fillcolor="#fbd6e8", color="#b03878"];
+
+        GL_RA    [label="Ra, gut glucose\nappearance", shape=box];
+        GL_GLU   [label="PLASMA GLUCOSE", shape=box3d, fillcolor="#f7bcd8"];
+        GL_EGP   [label="hepatic glucose\noutput (EGP)", shape=box];
+        GL_GLY   [label="GLYCOGEN", shape=box3d, fillcolor="#f7bcd8"];
+        GL_INC   [label="INCRETIN signal\nGLP-1 / GIP\n(enteral only)", shape=ellipse, fillcolor="#f9c8e0"];
+        GL_INS   [label="PLASMA INSULIN", shape=box3d, fillcolor="#f3a5cb", penwidth=2.0];
+        GL_X     [label="insulin effect\ncompartment X", shape=ellipse, fillcolor="#f3a5cb"];
+        GL_GCG   [label="glucagon", shape=ellipse];
+        GL_SI    [label="INSULIN RESISTANCE\nof the adapted state\n('starvation diabetes')", shape=ellipse, fillcolor="#f6c9c9", color="#b03030"];
+        GL_U     [label="GLYCOLYTIC FLUX\ninsulin-mediated\nglucose uptake", shape=box, fillcolor="#ef8fbe", penwidth=2.2];
+        GL_FFA   [label="NEFA", shape=ellipse];
+        GL_BHB   [label="ketones", shape=ellipse];
+        GL_LIP   [label="de novo\nlipogenesis", shape=box];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_thia {
+        label="7 &#183; THIAMINE, TPP AND THE PYRUVATE GATE";
+        style="filled,rounded"; fillcolor="#fff0ea"; color="#c05a2a"; fontcolor="#8a3d1a";
+        node [fillcolor="#ffdcc9", color="#c05a2a"];
+
+        TH_P    [label="plasma thiamine", shape=box3d];
+        TH_T    [label="TISSUE THIAMINE STORE\n~26 mg, t&#189; 14 d", shape=box3d, fillcolor="#ffc9a8", penwidth=2.0];
+        TH_CARR [label="carrier-mediated\ntissue uptake\n(saturable)", shape=box];
+        TH_PASS [label="PASSIVE DIFFUSION\nonly at supra-\nphysiological levels", shape=box, fillcolor="#ffc9a8"];
+        TH_TPK  [label="thiamine pyrophospho-\nkinase (inhibited by\nethanol)", shape=box];
+        TH_TPP  [label="TPP\ncofactor pool", shape=box3d, fillcolor="#ffc9a8"];
+        TH_PDH  [label="PYRUVATE\nDEHYDROGENASE", shape=box, penwidth=1.8];
+        TH_KGDH [label="&#945;-ketoglutarate\ndehydrogenase", shape=box];
+        TH_TK   [label="TRANSKETOLASE\n(the assay)", shape=box, fillcolor="#ffc9a8"];
+        TH_CHO  [label="carbohydrate load\nRAISES the requirement", shape=box, fillcolor="#f6c9c9", color="#b03030"];
+        TH_LAC  [label="LACTATE\ntype B acidosis", shape=box3d, fillcolor="#f6c9c9", color="#b03030"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_pdem {
+        label="8 &#183; PHOSPHATE DEMAND  (the numerator of &#923;)";
+        style="filled,rounded"; fillcolor="#fdecec"; color="#b03030"; fontcolor="#7c1f1f";
+        node [fillcolor="#f9d5d5", color="#b03030"];
+
+        PD_SET  [label="CELLULAR ORGANIC-P SET-POINT\nrises with glycolytic flux", shape=box, fillcolor="#f3b4b4", penwidth=2.2];
+        PD_G6P  [label="G6P, F1,6-bisP\nglycolytic intermediates", shape=box3d];
+        PD_ATP  [label="ATP resynthesis", shape=box3d];
+        PD_PCR  [label="phosphocreatine\nresynthesis", shape=box3d];
+        PD_DPG  [label="2,3-DPG\nresynthesis", shape=box3d];
+        PD_NEW  [label="P laid down in\nNEW lean tissue\n67 mmol / kg", shape=box3d];
+        PD_FILL [label="J_demand\nmmol/d", shape=box, fillcolor="#ef9a9a", penwidth=2.2];
+        PD_NAPI [label="cellular Na-Pi\ncotransport\n(saturable, K_m)", shape=box];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_ppool {
+        label="9 &#183; PHOSPHATE POOLS  -  note the scale difference";
+        style="filled,rounded"; fillcolor="#f2f2f2"; color="#555555"; fontcolor="#333333";
+        node [fillcolor="#dedede", color="#555555", shape=box3d];
+
+        PP_ECF  [label="ECF PHOSPHATE\n14 mmol\n= 0.06 % of body P\nTHIS IS WHAT WE MEASURE", fillcolor="#ffd0d0", color="#b03030", penwidth=2.4];
+        PP_ICF  [label="INTRACELLULAR P\n3 200 mmol\n67 mmol / kg FFM", fillcolor="#cfcfcf"];
+        PP_BONE [label="BONE PHOSPHORUS\n19 550 mmol\n(85 % of the body)", fillcolor="#cfcfcf"];
+        PP_SER  [label="SERUM PHOSPHATE\nmmol/L", shape=octagon, fillcolor="#e5cff5", color="#7a4fb5"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_psup {
+        label="10 &#183; PHOSPHATE SUPPLY  (the denominator of &#923;)";
+        style="filled,rounded"; fillcolor="#eef7ee"; color="#3d8b3d"; fontcolor="#265226";
+        node [fillcolor="#d6ecd6", color="#3d8b3d"];
+
+        PS_DIET [label="absorbed dietary P\n(the FEED is itself\na phosphate prescription)", shape=box, fillcolor="#bfe3bf"];
+        PS_IV   [label="prescribed IV P", shape=box];
+        PS_BONE [label="net bone efflux\n~10 mmol/d, PTH-driven\nSLOW", shape=box];
+        PS_REN  [label="renal phosphate SAVED\nby switching excretion off", shape=box, fillcolor="#bfe3bf"];
+        PS_SUM  [label="J_supply\nmmol/d", shape=box, fillcolor="#9fd89f", penwidth=2.2];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_kidney {
+        label="11 &#183; RENAL HANDLING  -  every route is a THRESHOLD";
+        style="filled,rounded"; fillcolor="#eef6ff"; color="#2f6fae"; fontcolor="#1d4a76";
+        node [fillcolor="#d6e9fb", color="#2f6fae"];
+
+        KD_GFR  [label="GFR", shape=ellipse];
+        KD_TMP  [label="TmP/GFR THRESHOLD\nexcretion = GFR &#215; max(0, P - TmP)", shape=diamond, fillcolor="#b9d9f6", penwidth=2.0];
+        KD_PEX  [label="urinary phosphate\n-> 0 once P < TmP\nRESERVE IS SINGLE-USE", shape=box, fillcolor="#f6c9c9", color="#b03030"];
+        KD_ROMK [label="ROMK / BK\ndistal K secretion", shape=box];
+        KD_KADP [label="K-depletion\nadaptation (days,\nnever complete)", shape=box];
+        KD_KEX  [label="urinary potassium", shape=box];
+        KD_TMMG [label="TmMg THRESHOLD\n-> a BOLUS is\nlargely excreted", shape=diamond, fillcolor="#b9d9f6"];
+        KD_MGEX [label="urinary magnesium", shape=box];
+        KD_ALD  [label="ALDOSTERONE\n(potassium is its main\nsecretagogue)", shape=ellipse, fillcolor="#c6e0f7"];
+        KD_NARE [label="insulin-driven\nproximal Na retention", shape=box, fillcolor="#f6c9c9", color="#b03030"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_bone {
+        label="12 &#183; BONE - PTH - VITAMIN D - FGF23";
+        style="filled,rounded"; fillcolor="#f7f2e8"; color="#8a6d3b"; fontcolor="#5c4826";
+        node [fillcolor="#eadfc8", color="#8a6d3b"];
+
+        BN_PTH  [label="PTH", shape=ellipse, penwidth=1.8];
+        BN_CASR [label="calcium-sensing\nreceptor", shape=box];
+        BN_MGPT [label="MAGNESIUM IS REQUIRED\nFOR PTH SECRETION", shape=diamond, fillcolor="#f6c9c9", color="#b03030", penwidth=2.0];
+        BN_CA   [label="IONISED CALCIUM", shape=box3d, fillcolor="#e0d2b4"];
+        BN_CTD  [label="1,25(OH)&#8322;D", shape=ellipse];
+        BN_FGF  [label="FGF23", shape=ellipse];
+        BN_RES  [label="osteoclastic\nresorption", shape=box];
+        BN_FORM [label="mineral deposition", shape=box];
+        BN_KSP  [label="Ca &#215; P solubility\nproduct 4.4 mmol&#178;/L&#178;", shape=diamond, fillcolor="#e0d2b4"];
+        BN_PREC [label="metastatic\nprecipitation", shape=box, fillcolor="#f6c9c9", color="#b03030"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_k {
+        label="13 &#183; POTASSIUM";
+        style="filled,rounded"; fillcolor="#f0f7fb"; color="#3a7d9a"; fontcolor="#255468";
+        node [fillcolor="#d3e9f2", color="#3a7d9a"];
+
+        K_ECF  [label="ECF POTASSIUM\n52 mmol", shape=box3d];
+        K_ICF  [label="INTRACELLULAR K\n3 456 mmol\n72 mmol / kg FFM", shape=box3d];
+        K_PUMP [label="Na&#8314;/K&#8314;-ATPase\ninsulin-stimulated", shape=box, fillcolor="#bcdcea"];
+        K_LEAK [label="passive leak", shape=box];
+        K_NEW  [label="K into new\nlean tissue", shape=box];
+        K_SER  [label="SERUM POTASSIUM", shape=octagon, fillcolor="#e5cff5", color="#7a4fb5"];
+        K_MGK  [label="hypomagnesaemia\nreleases the Mg block\non ROMK", shape=box, fillcolor="#f6c9c9", color="#b03030"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_mg {
+        label="14 &#183; MAGNESIUM";
+        style="filled,rounded"; fillcolor="#f5f0fa"; color="#7a5aa0"; fontcolor="#523a70";
+        node [fillcolor="#e2d6f0", color="#7a5aa0"];
+
+        MG_ECF [label="ECF MAGNESIUM\n10.5 mmol", shape=box3d];
+        MG_ICF [label="EXCHANGEABLE Mg\n350 mmol", shape=box3d];
+        MG_PMP [label="insulin-stimulated\ncellular uptake", shape=box];
+        MG_SER [label="SERUM MAGNESIUM", shape=octagon, fillcolor="#e5cff5", color="#7a4fb5"];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_energ {
+        label="15 &#183; ORGAN ENERGETICS  (where low phosphate becomes illness)";
+        style="filled,rounded"; fillcolor="#fdecec"; color="#b03030"; fontcolor="#7c1f1f";
+        node [fillcolor="#f9d5d5", color="#b03030"];
+
+        EN_OXP  [label="oxidative\nphosphorylation\n(needs Pi AND TPP)", shape=box, penwidth=1.8];
+        EN_ATPM [label="MYOCARDIAL ATP", shape=box3d];
+        EN_PCRM [label="myocardial\nphosphocreatine", shape=box3d];
+        EN_DPG  [label="ERYTHROCYTE 2,3-DPG", shape=box3d];
+        EN_P50  [label="LEFT-SHIFTED O&#8322;\ndissociation curve\n-> tissue hypoxia\nwith a normal SaO&#8322;", shape=box];
+        EN_ATPD [label="DIAPHRAGM\nenergetics", shape=box3d];
+        EN_GAPD [label="GAPDH needs Pi:\nglycolysis THROTTLES\nITSELF at very low P", shape=box, fillcolor="#f3b4b4", penwidth=2.0];
+        EN_RHAB [label="rhabdomyolysis,\nhaemolysis", shape=box];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_cvresp {
+        label="16 &#183; CARDIOVASCULAR, VOLUME AND RESPIRATORY";
+        style="filled,rounded"; fillcolor="#eef6ff"; color="#2f6fae"; fontcolor="#1d4a76";
+        node [fillcolor="#d6e9fb", color="#2f6fae"];
+
+        CV_CONT [label="contractility", shape=box];
+        CV_VOL  [label="ECF VOLUME\nexpansion", shape=box3d];
+        CV_OED  [label="REFEEDING OEDEMA", shape=box];
+        CV_CONG [label="congestion index\nvolume load on an\nATROPHIC ventricle", shape=box, fillcolor="#f6c9c9", color="#b03030"];
+        CV_QTC  [label="QTc\n= f(K, Mg, Ca)", shape=box];
+        RS_RQ   [label="respiratory quotient\n1.0 on glucose,\n0.71 on fat", shape=box];
+        RS_VCO2 [label="CO&#8322; production", shape=box];
+        RS_VA   [label="ventilatory capacity\n(diaphragm-limited)", shape=box];
+        RS_CO2  [label="PaCO&#8322;", shape=box];
+    }
+
+    /* ============================================================== */
+    subgraph cluster_out {
+        label="17 &#183; CLINICAL ENDPOINTS";
+        style="filled,rounded"; fillcolor="#f4ecff"; color="#7a4fb5"; fontcolor="#4a2d70";
+        node [fillcolor="#e5cff5", color="#7a4fb5", shape=octagon];
+
+        O_HYPOP [label="REFEEDING\nHYPOPHOSPHATAEMIA\nP < 0.65 mmol/L", penwidth=2.0];
+        O_ARR   [label="ventricular\narrhythmia"];
+        O_CF    [label="cardiac failure"];
+        O_RF    [label="hypercapnic\nrespiratory failure"];
+        O_WE    [label="WERNICKE\nENCEPHALOPATHY"];
+        O_LAC   [label="lactic acidosis"];
+        O_SEIZ  [label="seizure, delirium"];
+        O_DEATH [label="MORTALITY", fillcolor="#d0b3ea", penwidth=2.4];
+        O_LEAN  [label="lean mass\nrestored"];
+        O_KCAL  [label="energy actually\ndelivered"];
+    }
+
+    /* ============================================================== */
+    /*  THE CENTRAL RATIO                                             */
+    /* ============================================================== */
+    LAMBDA [label=<<B>&#923;<SUB>P</SUB>&#160;=&#160;J<SUB>demand</SUB>&#160;/&#160;J<SUB>supply</SUB></B><BR/><FONT POINT-SIZE="9">&#62;&#160;1 &#8594; the ECF pool drains<BR/>and it holds only 14 mmol</FONT>>,
+            shape=doubleoctagon, style="filled", fillcolor="#ffe08a",
+            color="#b8860b", penwidth=3.0, fontsize=13];
+
+    /* ===================== EDGES ================================== */
+
+    /* -- history -> composition and pools -- */
+    HX_DUR  -> E_INTAKE [color="#7a4fb5"];
+    HX_FRAC -> E_INTAKE [color="#7a4fb5"];
+    HX_QUAL -> G_P  [label="poor P", color="#7a4fb5"];
+    HX_QUAL -> G_TH [label="no thiamine", color="#7a4fb5", penwidth=1.8];
+    HX_ETOH -> G_THTR [label="impairs uptake", color="#b03030"];
+    HX_ETOH -> TH_TPK [label="inhibits", color="#b03030"];
+    HX_ETOH -> KD_TMP [label="renal P wasting", color="#b03030"];
+    HX_ETOH -> KD_TMMG [label="renal Mg wasting", color="#b03030"];
+    HX_DIUR -> KD_KEX  [color="#b03030"];
+    HX_DIUR -> KD_MGEX [color="#b03030"];
+    HX_GI   -> K_ECF  [label="loss", color="#b03030"];
+    HX_GI   -> MG_ECF [label="loss", color="#b03030"];
+    HX_GI   -> G_FAIL [color="#b03030"];
+    HX_NPO  -> HX_DUR; HX_ONC -> HX_FRAC; HX_BARI -> HX_QUAL;
+    HX_BMI  -> RX_NICE [label="triage on HISTORY,\nnot on the blood test",
+                        color="#7a4fb5", style=bold, fontcolor="#7a4fb5"];
+
+    /* -- energy balance -- */
+    E_INTAKE -> E_BAL; E_REE -> E_BAL [color="#2f6fae"];
+    E_AT -> E_REE [color="#2f6fae"]; E_BAL -> E_AT [color="#2f6fae"];
+    E_BAL -> C_FORBES; C_FORBES -> C_FFM; C_FORBES -> C_FM;
+    C_FFM -> E_REE [color="#2f6fae"]; C_FM -> C_FORBES [color="#2f6fae"];
+    E_BAL -> C_CAT [color="#2f6fae"]; C_FFM -> C_LVM;
+    C_FFM -> PP_ICF [label="67 mmol P/kg"];
+    C_FFM -> K_ICF  [label="72 mmol K/kg"];
+    C_FFM -> MG_ICF [label="7.3 mmol Mg/kg"];
+    C_CAT -> PP_ECF [label="catabolic release\nKEEPS SERUM NORMAL", color="#b03030"];
+    C_CAT -> K_ECF  [color="#b03030"];
+    E_AT -> GL_SI [label="slow recovery", color="#2f6fae"];
+
+    /* -- prescription -> glucose -- */
+    RX_KCAL -> E_INTAKE [color="#2e8b57"];
+    RX_KCAL -> RX_GIR [color="#2e8b57"]; RX_CHO -> RX_GIR [color="#2e8b57", penwidth=2.0];
+    RX_NICE -> RX_KCAL [color="#2e8b57"]; RX_ASPEN -> RX_KCAL [color="#2e8b57"];
+    RX_ASPEN -> RX_P [label="replete, do not\nwithhold feed", color="#2e8b57", style=bold];
+    RX_ROUTE -> G_CHO [label="enteral"]; RX_ROUTE -> GL_GLU [label="IV dextrose\nbypasses the gut"];
+    RX_ROUTE -> G_P  [label="formula carries P,\ndextrose carries NONE", penwidth=2.0, fontcolor="#2e8b57"];
+    RX_ROUTE -> G_K; RX_ROUTE -> G_MG; RX_ROUTE -> G_TH;
+    RX_ROUTE -> GL_INC [label="incretin only\nif enteral", color="#b03878"];
+    RX_FAT -> RS_RQ [color="#2e8b57"]; RX_PRO -> C_FORBES; RX_NA -> KD_NARE;
+    RX_GIR -> GL_RA [penwidth=2.0];
+    RX_MULTI -> G_TH [color="#2e8b57"];
+
+    /* -- gut -- */
+    G_CHO -> GL_RA; G_P -> G_NAPI; G_NAPI -> PS_DIET [penwidth=1.6];
+    G_K -> K_ECF; G_MG -> MG_ECF; G_TH -> G_THTR; G_THTR -> TH_P;
+    G_FAIL -> G_THTR [label="collapses the\noral route", color="#b03030", penwidth=1.8];
+    BN_CTD -> G_NAPI [color="#8a6d3b"];
+
+    /* -- glucose / insulin -- */
+    GL_RA -> GL_GLU; GL_EGP -> GL_GLU; GL_GLY -> GL_EGP; GL_GLU -> GL_GLY;
+    GL_GLU -> GL_INS [label="secretion", color="#b03878", penwidth=1.6];
+    GL_INC -> GL_INS [label="35 % of the\nfed signal", color="#b03878", penwidth=1.6];
+    GL_RA -> GL_INC [color="#b03878"];
+    GL_INS -> GL_X [color="#b03878", penwidth=1.6];
+    GL_X -> GL_EGP [label="suppresses", color="#b03878"];
+    GL_X -> GL_U [penwidth=2.2, color="#b03878"];
+    GL_SI -> GL_U [label="limits", color="#b03030", penwidth=1.6];
+    GL_X -> GL_GCG [color="#b03878"]; GL_GCG -> GL_EGP [color="#b03878"];
+    GL_X -> GL_FFA [label="suppresses lipolysis", color="#b03878"];
+    GL_FFA -> GL_BHB; GL_U -> GL_LIP [label="if flux exceeds\noxidative capacity"];
+    GL_LIP -> RS_VCO2 [label="RQ > 1"];
+    GL_X -> K_PUMP [penwidth=2.0, color="#b03878"];
+    GL_X -> MG_PMP [color="#b03878"];
+    GL_X -> KD_NARE [penwidth=1.8, color="#b03878"];
+
+    /* -- THE NUMERATOR -- */
+    GL_U -> PD_SET [penwidth=2.6, color="#b03030",
+                    label="THE DEMAND IS SET BY\nGLYCOLYTIC FLUX,\nNOT BY CALORIES", fontcolor="#b03030"];
+    PD_SET -> PD_G6P; PD_SET -> PD_ATP; PD_SET -> PD_PCR; PD_SET -> PD_DPG;
+    C_FFM -> PD_NEW [label="anabolism"];
+    PD_G6P -> PD_FILL; PD_ATP -> PD_FILL; PD_PCR -> PD_FILL;
+    PD_DPG -> PD_FILL; PD_NEW -> PD_FILL;
+    PD_NAPI -> PD_FILL [label="saturable\nuptake"];
+    PP_ECF -> PD_NAPI [label="substrate"];
+    PD_FILL -> LAMBDA [penwidth=3.0, color="#b03030", label="J_demand"];
+    PD_FILL -> PP_ICF [penwidth=2.0];
+    PP_ECF -> PP_ICF [label="transcellular SHIFT", penwidth=2.4, color="#b03030"];
+
+    /* -- THE DENOMINATOR -- */
+    PS_DIET -> PS_SUM; PS_IV -> PS_SUM; PS_BONE -> PS_SUM; PS_REN -> PS_SUM;
+    RX_P -> PS_IV [color="#2e8b57", penwidth=2.0];
+    PP_BONE -> PS_BONE; BN_RES -> PS_BONE [color="#8a6d3b"];
+    KD_PEX -> PS_REN [label="switching this off\nis the whole reserve"];
+    PS_SUM -> LAMBDA [penwidth=3.0, color="#3d8b3d", label="J_supply"];
+    PS_DIET -> PP_ECF; PS_IV -> PP_ECF; PS_BONE -> PP_ECF;
+
+    /* -- the ratio drives the pool -- */
+    LAMBDA -> PP_ECF [penwidth=3.0, color="#b8860b", label="> 1 drains a\n14 mmol pool"];
+    PP_ECF -> PP_SER [penwidth=2.0, color="#7a4fb5"];
+    PP_SER -> O_HYPOP [penwidth=2.2, color="#7a4fb5"];
+
+    /* -- kidney -- */
+    KD_GFR -> KD_TMP; PP_SER -> KD_TMP; BN_PTH -> KD_TMP [label="lowers", color="#8a6d3b"];
+    BN_FGF -> KD_TMP [label="lowers", color="#8a6d3b"];
+    KD_TMP -> KD_PEX [penwidth=1.8];
+    K_SER -> KD_ROMK; KD_ALD -> KD_ROMK [color="#2f6fae"];
+    KD_KADP -> KD_ROMK [label="down-regulates", color="#2f6fae"];
+    K_ICF -> KD_KADP [color="#2f6fae"];
+    KD_ROMK -> KD_KEX; K_MGK -> KD_ROMK [color="#b03030", penwidth=1.6];
+    K_SER -> KD_ALD [label="K is the main\nsecretagogue", color="#2f6fae", penwidth=1.6];
+    MG_SER -> KD_TMMG; KD_TMMG -> KD_MGEX [penwidth=1.6];
+    RX_MGRATE -> KD_TMMG [label="a bolus overshoots\nthe threshold", color="#2e8b57", penwidth=1.8];
+    RX_MG -> RX_MGRATE [color="#2e8b57"]; RX_MGRATE -> MG_ECF [color="#2e8b57"];
+    KD_NARE -> CV_VOL [penwidth=1.8];
+    KD_PEX -> PP_ECF [style=dashed, label="loss"];
+    KD_KEX -> K_ECF [style=dashed]; KD_MGEX -> MG_ECF [style=dashed];
+
+    /* -- bone / PTH -- */
+    BN_CA -> BN_CASR [color="#8a6d3b"]; BN_CASR -> BN_PTH [color="#8a6d3b"];
+    MG_SER -> BN_MGPT [color="#7a5aa0", penwidth=1.8];
+    BN_MGPT -> BN_PTH [label="hypomagnesaemia\nSWITCHES PTH OFF", color="#b03030", penwidth=2.2];
+    BN_PTH -> BN_RES [color="#8a6d3b", penwidth=1.6]; BN_PTH -> BN_CTD [color="#8a6d3b"];
+    BN_RES -> BN_CA; BN_FORM -> PP_BONE; BN_CA -> BN_KSP; PP_SER -> BN_KSP;
+    BN_KSP -> BN_PREC [color="#b03030"]; BN_PREC -> BN_CA [label="consumes", color="#b03030"];
+    BN_PREC -> PP_ECF [label="consumes", color="#b03030"];
+    PP_SER -> BN_FGF [color="#8a6d3b"]; BN_CTD -> BN_FGF [color="#8a6d3b"];
+    RX_P -> BN_KSP [label="rate matters", color="#2e8b57"];
+    BN_CA -> CV_QTC [color="#2f6fae"];
+
+    /* -- potassium -- */
+    K_PUMP -> K_ICF [penwidth=2.0]; K_LEAK -> K_ECF; K_ICF -> K_LEAK;
+    K_ECF -> K_PUMP; K_ECF -> K_SER [penwidth=1.6]; C_FFM -> K_NEW; K_NEW -> K_ICF;
+    MG_SER -> K_MGK [color="#7a5aa0"]; RX_K -> K_ECF [color="#2e8b57", penwidth=1.8];
+    K_SER -> CV_QTC [color="#2f6fae", penwidth=1.6];
+
+    /* -- magnesium -- */
+    MG_PMP -> MG_ICF; MG_ECF -> MG_PMP; MG_ECF -> MG_SER [penwidth=1.6];
+    MG_SER -> CV_QTC [color="#2f6fae"];
+
+    /* -- thiamine -- */
+    TH_P -> TH_CARR; TH_P -> TH_PASS; TH_CARR -> TH_T; TH_PASS -> TH_T [penwidth=1.8];
+    RX_THIV -> TH_P [color="#2e8b57", penwidth=2.0,
+                     label="the vein reaches the\nPASSIVE route in hours"];
+    RX_THPO -> G_TH [color="#2e8b57"];
+    TH_T -> TH_TPK; TH_TPK -> TH_TPP; TH_TPP -> TH_PDH [penwidth=1.8];
+    TH_TPP -> TH_KGDH; TH_TPP -> TH_TK;
+    GL_U -> TH_CHO [color="#b03030"]; TH_CHO -> TH_T [label="depletes faster", color="#b03030"];
+    GL_U -> TH_PDH [label="pyruvate load"];
+    TH_PDH -> TH_LAC [label="blocked gate\n-> lactate", color="#b03030", penwidth=2.0];
+    TH_KGDH -> EN_OXP; TH_TPP -> EN_OXP [penwidth=1.6];
+    TH_LAC -> O_LAC [color="#7a4fb5"]; TH_TK -> O_WE [style=dashed, color="#7a4fb5"];
+    TH_T -> O_WE [label="store exhausted", color="#b03030", penwidth=2.0];
+    O_WE -> O_SEIZ [color="#7a4fb5"];
+    RX_TIME -> RX_THIV [color="#2e8b57"]; RX_TIME -> RX_P [color="#2e8b57"];
+
+    /* -- energetics -- */
+    PP_SER -> EN_OXP [penwidth=2.0]; PP_SER -> EN_GAPD [penwidth=1.8];
+    EN_GAPD -> GL_U [label="NEGATIVE FEEDBACK:\nthe demand extinguishes\nitself", color="#2f6fae", penwidth=2.0, style=bold];
+    EN_OXP -> EN_ATPM [penwidth=1.6]; EN_ATPM -> EN_PCRM; PP_SER -> EN_PCRM;
+    PP_SER -> EN_DPG [penwidth=1.6]; EN_DPG -> EN_P50 [penwidth=1.6];
+    EN_P50 -> TH_LAC [label="tissue hypoxia", color="#b03030"];
+    EN_OXP -> EN_ATPD [penwidth=1.6]; PP_SER -> EN_RHAB [color="#b03030"];
+
+    /* -- cardiorespiratory -- */
+    EN_ATPM -> CV_CONT [penwidth=1.6]; EN_PCRM -> CV_CONT;
+    CV_VOL -> CV_OED; CV_VOL -> CV_CONG [penwidth=1.8];
+    C_LVM -> CV_CONG [label="a SMALL heart\ncannot take the load", color="#b03030", penwidth=1.8];
+    CV_CONT -> CV_CONG; CV_CONG -> O_CF [penwidth=2.0, color="#7a4fb5"];
+    CV_QTC -> O_ARR [penwidth=2.0, color="#7a4fb5"]; EN_ATPM -> O_ARR [color="#7a4fb5"];
+    RS_RQ -> RS_VCO2 [penwidth=1.6]; GL_U -> RS_RQ [penwidth=1.6];
+    RS_VCO2 -> RS_CO2; EN_ATPD -> RS_VA [penwidth=1.8];
+    RS_VA -> RS_CO2 [label="the pump, not the load,\nis the limiting term",
+                     color="#b03030", penwidth=1.8];
+    RS_CO2 -> O_RF [penwidth=2.0, color="#7a4fb5"];
+
+    /* -- outcomes -- */
+    O_ARR -> O_DEATH [penwidth=2.0, color="#7a4fb5"];
+    O_CF  -> O_DEATH [penwidth=2.0, color="#7a4fb5"];
+    O_RF  -> O_DEATH [penwidth=2.0, color="#7a4fb5"];
+    O_HYPOP -> EN_OXP [style=dashed, color="#7a4fb5"];
+    O_LAC -> O_DEATH [style=dashed, color="#7a4fb5"];
+    E_INTAKE -> O_KCAL [color="#7a4fb5"]; C_FFM -> O_LEAN [color="#7a4fb5"];
+    RX_RESC -> PS_IV [label="reactive: repairs the\nLABORATORY promptly and\nthe PATIENT slowly",
+                      color="#2e8b57", style=dashed];
+
+    /* -- the two-clock annotation -- */
+    NOTE_CLOCK [shape=note, fillcolor="#fffbe6", color="#b8860b",
+        label="THE TWO CLOCKS\l\lBoth pools take ~3 weeks to empty, but they REFILL on\lclocks two orders of magnitude apart:\l\l  thiamine  a passive-diffusion route opens at supra-\l            physiological plasma levels, so the store is\l            restored in HOURS\l  phosphate must be pumped into 40 kg of cells against\l            a saturable transporter, so it takes DAYS\l\lHence: give both on DAY ZERO, but only one of them can\lbe rescued after the fact.\l"];
+    NOTE_CLOCK -> RX_TIME [style=invis];
+
+    NOTE_SCALE [shape=note, fillcolor="#fff0f0", color="#b03030",
+        label="WHY THE BLOOD TEST CANNOT WARN YOU\l\l  ECF phosphate      14 mmol   <- measured\l  intracellular P  3 200 mmol\l  bone P          19 550 mmol\l  ---------------------------------\l  total           22 780 mmol\l\lThe measured compartment is 0.06 % of the pool.  During\lstarvation, catabolic release from shrinking cells and\lmaximal renal conservation hold the SERUM normal while\lthe stores empty.  A normal admission phosphate is not\lreassurance; it is the expected finding.\l"];
+    NOTE_SCALE -> PP_ECF [style=invis];
+}
