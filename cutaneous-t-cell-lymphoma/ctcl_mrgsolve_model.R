@@ -76,15 +76,45 @@
 ##           infection hazard and disease hazard.
 ##
 ##  ---------------------------------------------------------------------------
-##  CALIBRATION ANCHORS (see ctcl_references.md)
+##  CALIBRATION: WHAT WAS FITTED AND WHAT WAS NOT
 ##  ---------------------------------------------------------------------------
-##    MAVORIC     mogamulizumab vs vorinostat, previously treated MF/SS
-##    ALCANZA     brentuximab vedotin vs physician's choice, CD30 >= 10%
-##    Olsen 2007  vorinostat single-arm (skin-weighted criteria)
-##    Whittaker 2010 romidepsin single-arm
-##    Hughes 2015 time to next treatment by therapy class
-##    Agar 2010   survival by TNMB stage
-##    Hoppe 2015  low-dose (12 Gy) total skin electron beam
+##  Exactly THREE potency parameters were fitted, each to one published response
+##  rate, in a 90-patient virtual population of previously treated MF/SS
+##  simulated for 78 weeks and scored by the Olsen conjunction:
+##
+##      EVOR    = 0.0394  <- vorinostat skin ORR          (MAVORIC, 15.8%)
+##      KADCC   = 0.0482  <- mogamulizumab BLOOD ORR       (MAVORIC, 67.7%;
+##                           the model returns 64.7%)
+##      KBVKILL = 0.5178  <- brentuximab skin ORR, CD30>=10% (ALCANZA, 56.3%;
+##                           the model returns 56.9%)
+##
+##  Every other potency term (bexarotene, romidepsin, methotrexate, gemcitabine,
+##  interferon, ECP, alemtuzumab, phototherapy, TSEB, chlormethine) is an
+##  order-of-magnitude estimate that was NOT fitted, and the response rates
+##  those arms produce are predictions, not calibrations.  In particular the
+##  mogamulizumab SKIN response is a prediction: only the blood arm was fitted.
+##
+##  KNOWN DEFECT, STATED RATHER THAN HIDDEN.  The blood-compartment response
+##  rule is not yet trustworthy over long horizons.  Patients whose baseline
+##  Sezary count sits between 250 and 1000 /uL (B1) can drift below half of
+##  baseline through the slow skin<->blood re-partitioning alone, so an
+##  UNTREATED arm run to 78 weeks returns a nominal blood response in roughly
+##  half of B1 patients.  Blood response rates from this model should therefore
+##  be read only for B2 (>=1000 /uL) patients and only against a concurrent
+##  untreated arm.  Skin, node and global scoring do not show this behaviour.
+##  No population response table is reported here for that reason.
+##
+##  Other anchors consulted but not fitted to: Olsen 2007 (vorinostat
+##  single-arm), Whittaker 2010 (romidepsin), Hughes 2015 (time to next
+##  treatment by therapy class), Agar 2010 (survival by TNMB stage),
+##  Hoppe 2015 (low-dose 12 Gy total skin electron beam).
+##
+##  NOT EXECUTED HERE.  This container has no R installation, so this file has
+##  never been run.  All 67 ODEs were developed, calibrated and checked in an
+##  independent Python/scipy implementation and transcribed here; the file was
+##  then statically checked (every parameter, compartment and captured name
+##  resolves; every compartment has a derivative).  Treat the first execution
+##  as a porting test, not as a validated run.
 ##
 ##  DISCLAIMER.  Educational / research model.  Not validated for clinical or
 ##  regulatory use.  Parameters are illustrative approximations.
@@ -192,11 +222,11 @@ KNKD   :  0.25   : NK turnover (1/day)
 KTREGP :  0.030  : Treg production (1/day)
 KTREGD :  0.030  : Treg turnover (1/day)
 // -------------------------------------------------------------- drug effect
-KADCC  :  0.130  : Maximum ADCC kill rate at full occupancy (1/day)
+KADCC  :  0.0482 : Maximum ADCC kill rate at full occupancy (1/day)
 KADCA  :  0.200  : Maximum alemtuzumab kill rate (1/day)
 ETSAT  :  3.0    : Effector-to-target saturation constant
 KINT   :  0.55   : ADC internalisation efficiency
-KBVKILL:  0.500  : ADC payload kill rate constant (1/day)
+KBVKILL:  0.5178 : ADC payload kill rate constant (1/day)
 KBYST  :  0.020  : MMAE bystander kill rate constant (1/day)
 KMMAE50:  0.0020 : MMAE K50 (ug/mL)
 EROM   :  0.550  : Romidepsin maximum kill rate (1/day)
