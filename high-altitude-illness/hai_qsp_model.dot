@@ -1,0 +1,659 @@
+/* =========================================================================
+   HIGH-ALTITUDE ILLNESS (AMS / HACE / HAPE) -- QSP MECHANISTIC MAP
+   =========================================================================
+   Acute mountain sickness, high-altitude cerebral oedema and high-altitude
+   pulmonary oedema, drawn as ONE exogenous variable (inspired PO2) acting
+   through three defences with three different time constants.
+
+   Reading the map
+   ---------------
+     * the single red root node at the top left is the only thing altitude does
+     * SOLID black arrows  = mass / pressure / flux
+     * BLUE arrows         = stimulatory signalling
+     * RED arrows          = inhibitory signalling
+     * GREEN arrows        = drug action
+     * ORANGE dashed       = positive feedback loop (the two that make HAPE
+                             and HACE self-sustaining)
+     * PURPLE dashed       = negative feedback / defence
+
+   168 nodes, 16 clusters, 270 edges.
+   Render:  dot -Tsvg hai_qsp_model.dot -o hai_qsp_model.svg
+            dot -Tpng -Gdpi=150 hai_qsp_model.dot -o hai_qsp_model.png
+   ========================================================================= */
+
+digraph HAI_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = false;
+  clusterrank = local;
+  splines = spline;
+  concentrate = false;
+  nodesep = 0.30;
+  ranksep = 0.60;
+  fontname = "Helvetica";
+  bgcolor = "white";
+  labelloc = "t";
+  label = <<FONT POINT-SIZE="30"><B>High-Altitude Illness — Quantitative Systems Pharmacology Map</B></FONT><BR/>
+           <FONT POINT-SIZE="17">AMS · HACE · HAPE — one inspired PO₂, three defences, three time constants</FONT><BR/>
+           <FONT POINT-SIZE="13">ventilation (minutes→days, limited by acid-base) · hypoxic pulmonary vasoconstriction (seconds, uneven) · cerebral vasodilation (seconds, paid from the craniospinal volume buffer)</FONT>>;
+
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+        margin="0.10,0.055", penwidth=1.1, color="#5b6570"];
+  edge [fontname="Helvetica", fontsize=9, color="#333333", penwidth=1.0,
+        arrowsize=0.7];
+
+  /* ---------- palette ------------------------------------------------- */
+  /* environment  #ffe0b2 | ventilation #c8e6c9 | acid-base #b3e5fc
+     gas exchange #d1c4e9 | blood O2 #ffcdd2 | erythro #f8bbd0
+     pulm vasc    #b2dfdb | oedema #ffe0b2 | cerebral #d7ccc8
+     symptoms     #f0f4c3 | cardio #cfd8dc | fluid #b2ebf2
+     sleep        #e1bee7 | drugs #c5e1a5 | endpoints #ffcc80
+     genetics     #e0e0e0                                                */
+
+  /* ===================================================================== */
+  subgraph cluster_env {
+    label = "① ENVIRONMENT — the only exogenous variable";
+    style = "rounded,filled"; fillcolor = "#fff8e1"; color = "#ef6c00";
+    fontsize = 15; penwidth = 2.0;
+
+    ALT      [label="Altitude h (m)\nascent profile, ascent rate", fillcolor="#ffcc80", penwidth=2.2];
+    PB       [label="Barometric pressure P_B\nWest: exp(6.63268 − 0.1112h − 0.00149h²)\n760 → 253 mmHg at 8848 m", fillcolor="#ffe0b2", penwidth=2.0];
+    FIO2     [label="F_IO₂ = 0.2094\nINVARIANT with altitude", fillcolor="#ffe0b2"];
+    PH2O     [label="P_H₂O = 47 mmHg\n(37 °C, saturated)\nfixed cost, fraction rises with h", fillcolor="#ffe0b2"];
+    PIO2     [label="P_IO₂ = F_IO₂·(P_B − 47)\n149 → 43 mmHg", fillcolor="#ff8a65", fontcolor="white", penwidth=2.6];
+    LAT      [label="Latitude / season\ntropopause height\n(ICAO underestimates summit by 17 mmHg)", fillcolor="#fff3e0", fontsize=10];
+    COLD     [label="Cold, wind, UV\ndehydration, exertion", fillcolor="#fff3e0", fontsize=10];
+    EXER     [label="Exertion  (V̇O₂ ×1–4)\nthe controllable bifurcation parameter", fillcolor="#ffab91", penwidth=2.0];
+    SLEEPST  [label="Sleep state (NREM)\nwakefulness drive withdrawn", fillcolor="#fff3e0", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_gas {
+    label = "④ PULMONARY GAS EXCHANGE";
+    style = "rounded,filled"; fillcolor = "#ede7f6"; color = "#5e35b1";
+    fontsize = 15; penwidth = 2.0;
+
+    ALVGAS   [label="ALVEOLAR GAS EQUATION\nP_AO₂ = P_IO₂ − P_aCO₂·[F_IO₂+(1−F_IO₂)/R]", fillcolor="#b39ddb", penwidth=2.4];
+    PAO2     [label="P_AO₂  alveolar PO₂", fillcolor="#d1c4e9", penwidth=1.8];
+    RQ       [label="R (respiratory exchange ratio)\n0.85 → 1.0 on high-carbohydrate diet", fillcolor="#ede7f6", fontsize=10];
+    VDVT     [label="Dead-space fraction V_D/V_T\n0.30 rest → 0.18 exercise", fillcolor="#ede7f6", fontsize=10];
+    VA       [label="Alveolar ventilation V̇_A\n= V̇_E·(1 − V_D/V_T)", fillcolor="#d1c4e9"];
+    VQMIS    [label="V̇_A/Q̇ mismatch\nlog SD widens with HPV & oedema", fillcolor="#ede7f6"];
+    SHUNT    [label="Shunt fraction Q̇_s/Q̇_t\n0.035 → 0.6 with alveolar flooding", fillcolor="#ede7f6"];
+    DIFF     [label="DIFFUSION LIMITATION (Piiper–Scheid)\nincomplete equilibration = exp(−D_L/βQ̇)\nβ = slope of the O₂ content curve", fillcolor="#b39ddb", penwidth=1.8];
+    DLO2     [label="D_LO₂  37 → 78 mL/min/mmHg\n(recruitment with exercise)", fillcolor="#ede7f6", fontsize=10];
+    AADO2    [label="A–a gradient\n9 mmHg at sea level → 3 mmHg on the summit\n(the gradient NARROWS as the driving pressure falls)", fillcolor="#ede7f6", fontsize=10];
+    PAO2ART  [label="P_aO₂  arterial PO₂\n95 → 25 mmHg", fillcolor="#9575cd", fontcolor="white", penwidth=2.4];
+    PACO2    [label="P_aCO₂ = 863·V̇CO₂/V̇_A\n40 → 13 mmHg", fillcolor="#d1c4e9", penwidth=2.0];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_vent {
+    label = "② VENTILATORY CONTROL — defence 1 (minutes → days)";
+    style = "rounded,filled"; fillcolor = "#e8f5e9"; color = "#2e7d32";
+    fontsize = 15; penwidth = 2.0;
+
+    CBODY    [label="CAROTID BODY (glomus type I cell)\nK⁺ channel inhibition → Ca²⁺ influx →\ndopamine / ATP release", fillcolor="#a5d6a7", penwidth=1.8];
+    O2SENS   [label="O₂ sensing: mitochondrial complex IV,\nHIF-2α, AMPK, TASK-1/3, BK_Ca", fillcolor="#c8e6c9", fontsize=10];
+    CSN      [label="Carotid sinus nerve → NTS", fillcolor="#c8e6c9", fontsize=10];
+    CENTRALC [label="CENTRAL CHEMORECEPTOR\n(retrotrapezoid nucleus, GPR4/TASK-2)\nsenses CSF [H⁺], NOT PaCO₂", fillcolor="#a5d6a7", penwidth=1.8];
+    CSFHCO3  [label="CSF [HCO₃⁻]  22 → 13 mEq/L\nchoroid-plexus carbonic anhydrase", fillcolor="#c8e6c9", penwidth=1.8];
+    BC       [label="CENTRAL APNOEIC THRESHOLD\nB_c = [HCO₃⁻]_CSF / (0.03·10^(pH*−6.1))\n36 → 24 mmHg", fillcolor="#81c784", penwidth=2.2];
+    BP       [label="PERIPHERAL THRESHOLD B_p\nset by ARTERIAL [HCO₃⁻]", fillcolor="#c8e6c9"];
+    DHYP     [label="Hypoxic drive D = (0.98 − S_aO₂)\nlinear in DESATURATION, not in PO₂", fillcolor="#c8e6c9", penwidth=1.6];
+    O2CO2    [label="O₂ × CO₂ INTERACTION\ndrive = G_p·D·Φ(P_aCO₂ − B_p)\nMULTIPLICATIVE, not additive", fillcolor="#a5d6a7", penwidth=1.8];
+    HVR      [label="HVR — individual hypoxic ventilatory response\n3-fold between-subject range,\nheritable, blunted in HAPE-susceptibles", fillcolor="#c8e6c9", penwidth=1.6];
+    VAH      [label="VENTILATORY ACCLIMATISATION (VAH)\ncarotid-body plasticity, ×1 → ×2.1 over 3–7 d", fillcolor="#c8e6c9"];
+    HVD      [label="Hypoxic ventilatory DECLINE (roll-off)\n−28 % over 20–30 min (GABA, adenosine)", fillcolor="#c8e6c9", fontsize=10];
+    VE       [label="V̇_E  minute ventilation\n6.5 → 40+ L/min", fillcolor="#81c784", penwidth=2.0];
+    RESPALK  [label="RESPIRATORY ALKALOSIS\npH 7.41 → 7.60\n★ THE BRAKE ON DEFENCE 1 ★", fillcolor="#66bb6a", penwidth=2.4];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_acid {
+    label = "③ ACID-BASE — the rate-limiting step of acclimatisation";
+    style = "rounded,filled"; fillcolor = "#e1f5fe"; color = "#0277bd";
+    fontsize = 15; penwidth = 2.0;
+
+    PCT      [label="Proximal tubule\nNa⁺/H⁺ exchanger NHE3 + CA II / CA IV", fillcolor="#b3e5fc"];
+    RENHCO3  [label="Renal HCO₃⁻ excretion\nτ ≈ 34 h — THE SLOW STEP", fillcolor="#81d4fa", penwidth=2.0];
+    HCO3A    [label="Arterial [HCO₃⁻]\n24 → 15 mEq/L", fillcolor="#b3e5fc", penwidth=1.8];
+    BE       [label="Base excess (Siggaard-Andersen)\nBE = 0.93[HCO₃⁻ − 24.4 + 14.8(pH−7.4)]", fillcolor="#e1f5fe", fontsize=10];
+    NONBIC   [label="Non-bicarbonate buffers (Hb, protein, bone)\nacute ΔHCO₃/ΔPaCO₂ ≈ −0.2\nchronic ≈ −0.5", fillcolor="#e1f5fe", fontsize=10];
+    PHA      [label="Arterial pH", fillcolor="#b3e5fc", penwidth=1.6];
+    CHOROID  [label="Choroid plexus CA\nactive CSF pH regulation, τ ≈ 8 h", fillcolor="#b3e5fc"];
+    KEXC     [label="Kaliuresis, hypokalaemia\nparaesthesiae", fillcolor="#e1f5fe", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_blood {
+    label = "⑤ BLOOD OXYGEN TRANSPORT";
+    style = "rounded,filled"; fillcolor = "#ffebee"; color = "#c62828";
+    fontsize = 15; penwidth = 2.0;
+
+    ODC      [label="O₂–Hb DISSOCIATION CURVE\nS = 1/(23400/(P³+150P) + 1)", fillcolor="#ef9a9a", penwidth=2.0];
+    P50      [label="P₅₀  26.8 mmHg (standard)", fillcolor="#ffcdd2", penwidth=1.8];
+    BOHR     [label="Bohr shift  Δlog P₅₀ = −0.48·ΔpH\nalkalosis LEFT-shifts → helps LOADING", fillcolor="#ffcdd2"];
+    DPG      [label="2,3-DPG  5.0 → 6.0 mmol/L\nRIGHT-shifts → helps UNLOADING", fillcolor="#ffcdd2"];
+    P50NET   [label="★ NET P₅₀ IS NON-MONOTONIC IN ALTITUDE ★\nDPG saturates, alkalosis does not:\ncurve re-crosses and ends LEFT of normal\non the summit — positioned for the LUNG", fillcolor="#e57373", penwidth=2.2, fontsize=10];
+    SAO2     [label="S_aO₂  arterial saturation\n97.5 → 54 %\nSTEEP part of the curve below 60 mmHg", fillcolor="#ef5350", fontcolor="white", penwidth=2.4];
+    HB       [label="[Hb]  15 → 18–20 g/dL", fillcolor="#ffcdd2"];
+    CAO2     [label="C_aO₂ = 1.34·Hb·S_aO₂ + 0.003·P_aO₂", fillcolor="#ffcdd2", penwidth=1.8];
+    DO2      [label="Ḋ_O₂ = Q̇ · C_aO₂\nsystemic oxygen delivery", fillcolor="#ef9a9a", penwidth=1.8];
+    PVO2     [label="P_v̄O₂ mixed venous PO₂\n40 → 15 mmHg\n(drives HPV and diffusion)", fillcolor="#ffcdd2"];
+    TISSPO2  [label="Tissue PO₂ / capillary recruitment", fillcolor="#ffebee", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_ery {
+    label = "⑥ ERYTHROPOIETIC & VOLUME ACCLIMATISATION (hours → months)";
+    style = "rounded,filled"; fillcolor = "#fce4ec"; color = "#ad1457";
+    fontsize = 15; penwidth = 2.0;
+
+    PHD      [label="Prolyl hydroxylase PHD2 (EGLN1)\nO₂-dependent HIF-α degradation", fillcolor="#f8bbd0"];
+    HIF2     [label="HIF-2α (EPAS1) stabilisation\nrenal peritubular fibroblasts", fillcolor="#f48fb1", penwidth=1.8];
+    EPO      [label="Serum EPO\n×3–5 by 24–48 h, then falls", fillcolor="#f8bbd0", penwidth=1.8];
+    MARROW   [label="Erythroid progenitors (BFU-E/CFU-E)\niron-dependent, τ_transit ≈ 3.5 d", fillcolor="#fce4ec"];
+    RETIC    [label="Reticulocytosis (day 3–5)", fillcolor="#fce4ec", fontsize=10];
+    HBMASS   [label="Haemoglobin MASS  +1 %/week\n(the slow, real adaptation)", fillcolor="#f8bbd0", penwidth=1.6];
+    PLASMA   [label="PLASMA VOLUME CONTRACTION −20 %\nτ ≈ 40 h — the FAST, fake adaptation\n★ week-1 Hct rise is water, not red cells ★", fillcolor="#f48fb1", penwidth=2.2, fontsize=10];
+    HCT      [label="Haematocrit 43 → 48 % (wk 1) → 55 % (mo)", fillcolor="#fce4ec"];
+    VISC     [label="Blood viscosity  μ ∝ exp(2.31·Hct)", fillcolor="#fce4ec"];
+    HCTOPT   [label="★ OPTIMAL Hct = 1/(2.31·γ) = 43 % ★\nS_aO₂ CANCELS — the optimum does NOT\nmove with altitude", fillcolor="#f06292", penwidth=2.2, fontsize=10];
+    IRON     [label="Iron availability, hepcidin ↓\nferritin depletion limits the response", fillcolor="#fce4ec", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_pulm {
+    label = "⑦ HYPOXIC PULMONARY VASOCONSTRICTION — defence 2 (seconds), and it is UNEVEN";
+    style = "rounded,filled"; fillcolor = "#e0f2f1"; color = "#00695c";
+    fontsize = 15; penwidth = 2.0;
+
+    PASMC    [label="Pulmonary arterial smooth muscle cell\nmitochondrial ROS → K_v1.5 / K_v2.1 inhibition\n→ depolarisation → Ca_v1.2 → Ca²⁺", fillcolor="#80cbc4", penwidth=1.8];
+    RHOK     [label="RhoA / Rho-kinase\nCa²⁺-sensitisation (the sustained phase)", fillcolor="#b2dfdb"];
+    ET1      [label="Endothelin-1 ↑ (ET_A)", fillcolor="#b2dfdb"];
+    NOPATH   [label="eNOS → NO → sGC → cGMP\nreduced in HAPE-susceptibles\n(low exhaled NO)", fillcolor="#b2dfdb"];
+    PDE5     [label="PDE5 degrades cGMP", fillcolor="#b2dfdb"];
+    HPV      [label="HPV constriction factor λ\nλ = 1 + λ_max/(1+(P_AO₂/45)³)\nλ_max 4 (normal) → 7.5 (HAPE-susceptible)", fillcolor="#4db6ac", penwidth=2.2];
+    HETERO   [label="★ SPATIAL HETEROGENEITY a ★\nfraction of the bed that CAN constrict\n(regional Kv expression, dysmorphic vessels,\nprevious inflammation)", fillcolor="#26a69a", fontcolor="white", penwidth=2.6];
+    TWOBED   [label="TWO-BED PARTITION\nG = G₀[a/λ + (1−a)/μ]\nQ̇_open = Q̇·[(1−a)/μ] / [a/λ + (1−a)/μ]", fillcolor="#80cbc4", penwidth=2.0, fontsize=10];
+    PVR      [label="Pulmonary vascular resistance", fillcolor="#b2dfdb"];
+    MPAP     [label="mPAP  14 → 25 (normal) → 45+ mmHg\n(HAPE-susceptible on exertion)", fillcolor="#4db6ac", penwidth=2.0];
+    PCAP     [label="★ P_cap,open = P_LA + Q̇·(r_v/μ)/[a/λ+(1−a)/μ] ★\n(1−a) CANCELS from the numerator\namplification ceiling = 1/[1 − a(1−κ)]\n(= 1/(1−a) only if the other bed never constricts)\nHETEROGENEITY sets the ceiling,\nHPV strength only sets the speed", fillcolor="#009688", fontcolor="white", penwidth=2.8, fontsize=10];
+    PLA      [label="Left atrial pressure P_LA\nrises with cardiac output", fillcolor="#e0f2f1", fontsize=10];
+    RVAFT    [label="RV afterload → RV strain\nBNP ↑, TAPSE ↓, syncope", fillcolor="#e0f2f1"];
+    REMOD    [label="Chronic remodelling: medial hypertrophy,\ndistal muscularisation (weeks–years)", fillcolor="#e0f2f1", fontsize=10];
+    PFO      [label="Patent foramen ovale (4× in HAPE)\nR→L shunt amplifies desaturation", fillcolor="#e0f2f1", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_oedema {
+    label = "⑧ CAPILLARY STRESS FAILURE & ALVEOLAR FLOODING (HAPE)";
+    style = "rounded,filled"; fillcolor = "#fff3e0"; color = "#e65100";
+    fontsize = 15; penwidth = 2.0;
+
+    STARLING [label="Starling flux\nJ = K_f·[(P_cap−P_int) − σ(π_pl−π_int)]", fillcolor="#ffe0b2"];
+    STRESSF  [label="★ CAPILLARY STRESS FAILURE ★\nP_cap > ≈17.5 mmHg → mechanical\ndisruption of the blood–gas barrier\nJ ∝ (P_cap − P_crit)^1.5", fillcolor="#ff8a65", fontcolor="white", penwidth=2.6, fontsize=10];
+    PROTLEAK [label="HIGH-PROTEIN, RBC-containing oedema\n(BAL protein ↑↑, non-inflammatory AT ONSET)", fillcolor="#ffe0b2", penwidth=1.6];
+    ENAC     [label="Alveolar epithelial ENaC + Na⁺/K⁺-ATPase\n→ ALVEOLAR FLUID CLEARANCE", fillcolor="#ffe0b2", penwidth=1.8];
+    AFCHYP   [label="★ HYPOXIA ITSELF INHIBITS CLEARANCE ★\nENaC/Na-K-ATPase down-regulated\n(second positive feedback)", fillcolor="#ffab91", penwidth=2.2, fontsize=10];
+    EVLW     [label="Extravascular lung water\n+0 → +1000 mL", fillcolor="#ffe0b2", penwidth=1.8];
+    FLOODING [label="Alveolar flooding fraction\n→ intrapulmonary SHUNT", fillcolor="#ffcc80", penwidth=2.0];
+    INFLAM   [label="SECONDARY inflammation\n(IL-6, IL-1RA, CRP, neutrophils)\n— consequence, not cause", fillcolor="#fff3e0", fontsize=10];
+    PERM     [label="Capillary permeability ↑\n(inflammation, VEGF, ROS)", fillcolor="#fff3e0"];
+    SURF     [label="Surfactant dysfunction\nalveolar collapse, ↑ surface tension", fillcolor="#fff3e0", fontsize=10];
+    RALES    [label="Crackles, pink frothy sputum,\npatchy peripheral infiltrates (CXR/US B-lines)", fillcolor="#fff3e0", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_brain {
+    label = "⑨ CEREBRAL CIRCULATION, OEDEMA & INTRACRANIAL PRESSURE (AMS / HACE)";
+    style = "rounded,filled"; fillcolor = "#efebe9"; color = "#4e342e";
+    fontsize = 15; penwidth = 2.0;
+
+    CBF      [label="Cerebral blood flow\n+20 % acutely, back to baseline by day 5", fillcolor="#bcaaa4", penwidth=1.8];
+    CO2REAC  [label="CO₂ reactivity (SIGMOID, saturating)\nlinear extrapolation would abolish CBF\nat a summit P_aCO₂ of 13 mmHg", fillcolor="#d7ccc8", fontsize=10];
+    O2VASO   [label="Hypoxic vasodilation\n(adenosine, K_ATP, NO, prostanoids)", fillcolor="#d7ccc8"];
+    AUTOREG  [label="Cerebral autoregulation\nimpaired by hypoxia", fillcolor="#d7ccc8", fontsize=10];
+    CBV      [label="Cerebral blood VOLUME ↑\nthe first thing that fills the skull", fillcolor="#d7ccc8", penwidth=1.6];
+    CAPPRESS [label="Cerebral capillary hydrostatic pressure ↑\n(arteriolar dilation transmits pressure)", fillcolor="#d7ccc8"];
+    VEGFB    [label="VEGF-A (HIF-1α driven)", fillcolor="#d7ccc8"];
+    TJ       [label="Tight junctions: claudin-5, occludin, ZO-1\nMMP-9, ROS, bradykinin", fillcolor="#efebe9", fontsize=10];
+    BBB      [label="BLOOD–BRAIN BARRIER permeability ↑", fillcolor="#bcaaa4", penwidth=1.8];
+    AQP4     [label="Aquaporin-4 (perivascular astrocyte end-feet)", fillcolor="#efebe9", fontsize=10];
+    VASOG    [label="VASOGENIC oedema (mild, reversible)\nsplenium of the corpus callosum on DWI", fillcolor="#d7ccc8", penwidth=1.6];
+    CYTOT    [label="CYTOTOXIC oedema\nNa⁺/K⁺-ATPase failure below S_aO₂ ≈ 0.70", fillcolor="#d7ccc8"];
+    MICROH   [label="Cerebral microhaemorrhages\n(SWI, persist for years after HACE)", fillcolor="#efebe9", fontsize=10];
+    MONRO    [label="MONRO–KELLIE\nICP = ICP₀·10^(ΔV/PVI)", fillcolor="#a1887f", fontcolor="white", penwidth=2.2];
+    PVIN     [label="★ TIGHT-FIT HYPOTHESIS ★\ncraniospinal compliance PVI 16–30 mL\nsame ΔV, different ICP — the whole\nbetween-subject variance of AMS", fillcolor="#8d6e63", fontcolor="white", penwidth=2.4, fontsize=10];
+    ICP      [label="ICP  10 → 20 (AMS) → 35+ mmHg (HACE)", fillcolor="#bcaaa4", penwidth=2.0];
+    CPP      [label="Cerebral perfusion pressure = MAP − ICP", fillcolor="#efebe9", fontsize=10];
+    HERN     [label="Uncal / tonsillar herniation → death", fillcolor="#efebe9", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_sx {
+    label = "⑩ SYMPTOM GENERATION (Lake Louise 2018)";
+    style = "rounded,filled"; fillcolor = "#f9fbe7"; color = "#827717";
+    fontsize = 15; penwidth = 2.0;
+
+    TRIGEM   [label="Trigeminovascular activation\nCGRP, substance P, dural nociceptors", fillcolor="#f0f4c3"];
+    AREAP    [label="Area postrema / vestibular nuclei", fillcolor="#f0f4c3", fontsize=10];
+    HEADACHE [label="Headache (0–3)  ← required for AMS", fillcolor="#e6ee9c", penwidth=1.8];
+    GISX     [label="GI symptoms (0–3): anorexia, nausea, vomiting", fillcolor="#e6ee9c"];
+    FATIGUE  [label="Fatigue / weakness (0–3)", fillcolor="#e6ee9c"];
+    DIZZY    [label="Dizziness / light-headedness (0–3)", fillcolor="#e6ee9c"];
+    LLS      [label="LAKE LOUISE SCORE (0–12)\nAMS = headache ≥1 AND total ≥3", fillcolor="#dce775", penwidth=2.4];
+    ATAXIA   [label="Truncal ataxia — the HACE sign\n(tandem gait; the one exam that matters)", fillcolor="#f0f4c3", penwidth=1.6];
+    CONSC    [label="Altered consciousness → coma", fillcolor="#f0f4c3", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_cardio {
+    label = "⑪ SYMPATHOADRENAL & SYSTEMIC CARDIOVASCULAR";
+    style = "rounded,filled"; fillcolor = "#eceff1"; color = "#37474f";
+    fontsize = 15; penwidth = 2.0;
+
+    SYMP     [label="Sympathetic activation\n(carotid body → RVLM), MSNA ↑", fillcolor="#cfd8dc", penwidth=1.6];
+    CATECH   [label="Noradrenaline / adrenaline ↑", fillcolor="#eceff1", fontsize=10];
+    HR       [label="Heart rate 65 → 95 bpm", fillcolor="#cfd8dc"];
+    CO       [label="Cardiac output Q̇\n↑ acutely, falls with plasma volume", fillcolor="#cfd8dc", penwidth=1.8];
+    SBP      [label="Systemic BP ↑, vasoconstriction", fillcolor="#eceff1", fontsize=10];
+    CORVAS   [label="Coronary / muscle vasodilation\ncompeting demand", fillcolor="#eceff1", fontsize=10];
+    LACT     [label="Lactate; 'lactate paradox' at extreme altitude", fillcolor="#eceff1", fontsize=10];
+    VO2MAX   [label="V̇O₂max falls ≈10 % per 1000 m above 1500 m", fillcolor="#eceff1"];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_fluid {
+    label = "⑫ FLUID & NEUROHUMORAL — the AMS/anti-AMS switch";
+    style = "rounded,filled"; fillcolor = "#e0f7fa"; color = "#006064";
+    fontsize = 15; penwidth = 2.0;
+
+    ADH      [label="AVP / ADH ↑ (nausea-driven)\nANTIDIURESIS = the AMS phenotype", fillcolor="#b2ebf2", penwidth=1.6];
+    ALDOST   [label="Aldosterone / RAAS", fillcolor="#b2ebf2", fontsize=10];
+    ANP      [label="ANP / BNP ↑ (volume + RV strain)", fillcolor="#b2ebf2", fontsize=10];
+    NATRI    [label="HYPOXIC DIURESIS = the healthy phenotype\n(good acclimatisers pee)", fillcolor="#80deea", penwidth=1.8];
+    FLUIDRET [label="Fluid retention, peripheral / facial / periorbital oedema", fillcolor="#e0f7fa", fontsize=10];
+    HAEMOCONC[label="Haemoconcentration (see ⑥)", fillcolor="#e0f7fa", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_sleep {
+    label = "⑬ SLEEP-DISORDERED BREATHING AT ALTITUDE";
+    style = "rounded,filled"; fillcolor = "#f3e5f5"; color = "#6a1b9a";
+    fontsize = 15; penwidth = 2.0;
+
+    CO2RES   [label="★ CO₂ RESERVE = P_aCO₂ − B_c ★\n4.1 mmHg (sea level) → 1.5 mmHg (5300 m)\nand NEGATIVE on the first night", fillcolor="#ce93d8", penwidth=2.4, fontsize=10];
+    LOOPG    [label="Loop gain = controller × plant × delay\ncontroller gain rises with HVR and VAH", fillcolor="#e1bee7"];
+    PLANTG   [label="Plant gain = P_aCO₂/V̇_A\nFALLS at altitude (the one stabiliser)", fillcolor="#e1bee7", fontsize=10];
+    PERIODIC [label="PERIODIC BREATHING / central apnoea\ncycle 15–25 s; AHI 2 → 40 → 90", fillcolor="#ce93d8", penwidth=2.0];
+    DESATN   [label="Nocturnal desaturation, SpO₂ nadirs", fillcolor="#e1bee7"];
+    AROUSAL  [label="Arousals, fragmented sleep,\nnon-restorative sleep", fillcolor="#f3e5f5", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_drug {
+    label = "⑭ PHARMACOLOGY & PHYSICAL INTERVENTIONS";
+    style = "rounded,filled"; fillcolor = "#f1f8e9"; color = "#33691e";
+    fontsize = 15; penwidth = 2.0;
+
+    ACZ      [label="ACETAZOLAMIDE 125–250 mg bid\nF 0.95, V 15 L, CL 2.1 L/h, deep RBC pool", fillcolor="#aed581", penwidth=2.0];
+    ACZPD1   [label="Renal CA II/IV inhibition\n→ HCO₃⁻ diuresis, BE −5 to −7 mEq/L", fillcolor="#c5e1a5"];
+    ACZPD2   [label="Choroid-plexus CA inhibition\n→ CSF [HCO₃⁻] ↓ → B_c ↓", fillcolor="#c5e1a5"];
+    ACZPD3   [label="RBC CA inhibition (minor)\nslows CO₂ transport, widens a–A gradient", fillcolor="#dcedc8", fontsize=10];
+    ACZMECH  [label="★ THE MECHANISM ★\nIt does not stimulate breathing —\nit MOVES THE FLOOR DOWN faster than\nit moves the operating point down", fillcolor="#9ccc65", penwidth=2.4, fontsize=10];
+    DEX      [label="DEXAMETHASONE 4 mg q6–12 h\n(8 mg then 4 mg q6h for HACE)", fillcolor="#aed581", penwidth=2.0];
+    DEXPD    [label="↓VEGF, ↓BBB permeability, ↑ENaC/Na-K-ATPase,\nmodest ↓HPV, direct symptomatic effect", fillcolor="#c5e1a5"];
+    DEXWARN  [label="★ ZERO METRES OF DESCENT EQUIVALENT ★\nit does not touch ANY term in the\ngas-exchange chain — it breaks the gauge", fillcolor="#e57373", fontcolor="white", penwidth=2.4, fontsize=10];
+    NIF      [label="NIFEDIPINE SR 30 mg bid\nL-type Ca²⁺ channel block → λ ↓ 45 %", fillcolor="#aed581"];
+    TAD      [label="TADALAFIL 10 mg bid / SILDENAFIL 50 mg tid\nPDE5 inhibition → cGMP ↑ → λ ↓ 50 %", fillcolor="#aed581"];
+    SAL      [label="SALMETEROL 125 µg bid (inhaled)\nβ₂ → cAMP → ENaC/Na-K-ATPase ↑\nCLEARANCE only, no effect on P_cap", fillcolor="#aed581"];
+    IBU      [label="IBUPROFEN 600 mg tid\nCOX inhibition → headache only", fillcolor="#dcedc8"];
+    O2SUP    [label="SUPPLEMENTAL O₂  F_IO₂ 0.28–0.45\nacts on the ROOT variable", fillcolor="#8bc34a", penwidth=2.0];
+    GAMOW    [label="PORTABLE HYPERBARIC (Gamow) BAG\n+105 mmHg at 2 psi = a simulated descent", fillcolor="#8bc34a", penwidth=2.0];
+    DESCENT  [label="★ DESCENT ★\nthe only intervention that removes the cause;\n300–1000 m is usually enough", fillcolor="#558b2f", fontcolor="white", penwidth=3.0];
+    PRECOND  [label="Pre-acclimatisation: staged ascent,\nnormobaric hypoxic tents, prior exposure", fillcolor="#dcedc8", fontsize=10];
+    AVOIDA   [label="Avoid alcohol / sedatives\n(they blunt the hypoxic drive at night)", fillcolor="#dcedc8", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_gen {
+    label = "⑮ GENETIC & POPULATION ADAPTATION";
+    style = "rounded,filled"; fillcolor = "#eeeeee"; color = "#424242";
+    fontsize = 15; penwidth = 2.0;
+
+    EPAS1    [label="EPAS1 (HIF-2α) Denisovan haplotype — Tibetan\nBLUNTED erythropoiesis, normal Hb at 4000 m", fillcolor="#e0e0e0", penwidth=1.6];
+    EGLN1G   [label="EGLN1 (PHD2) Tibetan variant", fillcolor="#eeeeee", fontsize=10];
+    ANDEAN   [label="Andean pattern: high Hb, high SaO₂,\nsusceptible to chronic mountain sickness", fillcolor="#e0e0e0"];
+    ETHIOP   [label="Ethiopian (Amhara) pattern:\nnormal Hb AND normal SaO₂ — mechanism unknown", fillcolor="#eeeeee", fontsize=10];
+    CMS      [label="CHRONIC MOUNTAIN SICKNESS (Monge)\nHb ≥21 g/dL (M) / ≥19 (F) + symptoms\nQinghai score ≥6", fillcolor="#bdbdbd", penwidth=1.8];
+    MUSCADPT [label="Muscle: capillary density ↑, mitochondrial\nvolume ↓, mass loss at extreme altitude", fillcolor="#eeeeee", fontsize=10];
+  }
+
+  /* ===================================================================== */
+  subgraph cluster_end {
+    label = "⑯ CLINICAL ENDPOINTS";
+    style = "rounded,filled"; fillcolor = "#fff8e1"; color = "#ff6f00";
+    fontsize = 15; penwidth = 2.0;
+
+    AMSDX    [label="AMS incidence\n25 % at 3500 m · 50–60 % at 4559 m rapid", fillcolor="#ffcc80", penwidth=2.0];
+    HACEDX   [label="HACE  0.1–2 %  (mortality up to 40 % untreated)", fillcolor="#ffb74d", penwidth=2.0];
+    HAPEDX   [label="HAPE  0.2–6 % general · 60–70 % in\nsusceptibles on rapid ascent with exertion", fillcolor="#ffb74d", penwidth=2.0];
+    SUMMIT   [label="Summit success / turn-around", fillcolor="#ffe0b2", fontsize=10];
+    DEATH    [label="Death (HAPE + HACE remain the\ncommonest medical causes of altitude death)", fillcolor="#ff8a65", penwidth=1.8];
+    QOL      [label="Sleep quality, work capacity, cognition", fillcolor="#ffe0b2", fontsize=10];
+    HAPEREC  [label="Recovery: complete within 48 h of descent\n(recurrence risk 60 % on re-ascent)", fillcolor="#ffe0b2", fontsize=10];
+  }
+
+  /* ===================================================================================
+     EDGES
+     =================================================================================== */
+
+  /* --- environment ---------------------------------------------------- */
+  ALT   -> PB      [penwidth=2.4, color="#e65100"];
+  LAT   -> PB      [style=dashed, color="#8d6e63"];
+  PB    -> PIO2    [penwidth=2.4, color="#e65100"];
+  FIO2  -> PIO2    [penwidth=1.8];
+  PH2O  -> PIO2    [color="#c62828", penwidth=1.6, label="subtractive"];
+  PIO2  -> ALVGAS  [penwidth=2.6, color="#e65100"];
+  COLD  -> EXER    [style=dotted];
+  EXER  -> RQ      [style=dotted];
+  ALT   -> COLD    [style=dotted];
+
+  /* --- gas exchange --------------------------------------------------- */
+  ALVGAS  -> PAO2     [penwidth=2.2];
+  PACO2   -> ALVGAS   [color="#c62828", penwidth=2.0, label="−1.18 mmHg per mmHg"];
+  RQ      -> ALVGAS   [style=dotted];
+  VE      -> VA       [penwidth=2.0];
+  VDVT    -> VA       [color="#c62828"];
+  EXER    -> VDVT     [color="#c62828", label="falls"];
+  VA      -> PACO2    [color="#c62828", penwidth=2.2, label="P_aCO₂ = 863·V̇CO₂/V̇_A"];
+  EXER    -> PACO2    [style=dotted, label="V̇CO₂ ↑"];
+  PAO2    -> DIFF     [penwidth=1.6];
+  DLO2    -> DIFF     [];
+  EXER    -> DLO2     [color="#1565c0", label="recruitment"];
+  PVO2    -> DIFF     [];
+  ODC     -> DIFF     [style=dashed, label="β = content slope"];
+  DIFF    -> AADO2    [penwidth=1.6];
+  SHUNT   -> AADO2    [penwidth=1.6];
+  VQMIS   -> AADO2    [];
+  PAO2    -> PAO2ART  [penwidth=2.4];
+  AADO2   -> PAO2ART  [color="#c62828", penwidth=1.8];
+  PAO2ART -> SAO2     [penwidth=2.6];
+  ODC     -> SAO2     [penwidth=2.0];
+  HPV     -> VQMIS    [color="#1565c0"];
+
+  /* --- ventilatory control -------------------------------------------- */
+  PAO2ART -> O2SENS  [color="#c62828", penwidth=1.8];
+  SAO2    -> DHYP    [color="#c62828", penwidth=2.2, label="desaturation IS the signal"];
+  O2SENS  -> CBODY   [color="#1565c0", penwidth=1.8];
+  CBODY   -> CSN     [color="#1565c0"];
+  CSN     -> O2CO2   [color="#1565c0", penwidth=1.6];
+  DHYP    -> O2CO2   [color="#1565c0", penwidth=2.2];
+  HVR     -> O2CO2   [color="#1565c0", penwidth=1.8, label="×0.4 to ×2.5 between subjects"];
+  VAH     -> O2CO2   [color="#1565c0", penwidth=1.6];
+  HVD     -> O2CO2   [color="#c62828", penwidth=1.4];
+  DHYP    -> VAH     [color="#1565c0", style=dashed, label="τ ≈ 60 h"];
+  DHYP    -> HVD     [color="#1565c0", style=dashed, label="τ ≈ 0.4 h"];
+  BP      -> O2CO2   [color="#c62828", penwidth=1.6, label="threshold"];
+  CSFHCO3 -> BC      [penwidth=2.4, color="#2e7d32"];
+  BC      -> CENTRALC[color="#c62828", penwidth=2.0, label="threshold"];
+  PACO2   -> CENTRALC[color="#1565c0", penwidth=1.8];
+  PACO2   -> CSFHCO3 [style=dashed, color="#0277bd", label="choroid plexus"];
+  CENTRALC-> VE      [color="#1565c0", penwidth=2.0];
+  O2CO2   -> VE      [color="#1565c0", penwidth=2.4];
+  SLEEPST -> VE      [color="#c62828", label="−28 % peripheral gain"];
+  VE      -> RESPALK [penwidth=2.0];
+  PACO2   -> RESPALK [color="#c62828", penwidth=2.0];
+  RESPALK -> PHA     [penwidth=2.0];
+  VE      -> VO2MAX  [style=dotted];
+
+  /* --- acid-base ------------------------------------------------------- */
+  PHA     -> PCT      [color="#1565c0", penwidth=1.8, label="alkalosis → excrete base"];
+  PCT     -> RENHCO3  [penwidth=2.0];
+  RENHCO3 -> HCO3A    [color="#c62828", penwidth=2.2];
+  RENHCO3 -> KEXC     [];
+  HCO3A   -> BE       [penwidth=1.6];
+  NONBIC  -> BE       [style=dashed];
+  BE      -> PHA      [penwidth=1.6];
+  HCO3A   -> BP       [penwidth=2.0, color="#2e7d32"];
+  HCO3A   -> CHOROID  [penwidth=1.4];
+  CHOROID -> CSFHCO3  [penwidth=2.2, color="#0277bd"];
+  HCO3A   -> PHA      [penwidth=1.6];
+
+  /* the central negative-feedback loop of acclimatisation */
+  RESPALK -> RENHCO3  [color="#6a1b9a", style=dashed, penwidth=2.4, label="τ ≈ 34 h — THE DELAY"];
+  BC      -> VE       [color="#6a1b9a", style=dashed, penwidth=2.0, label="lower floor → more ventilation"];
+
+  /* --- blood O2 -------------------------------------------------------- */
+  P50     -> ODC      [penwidth=1.8];
+  BOHR    -> P50      [color="#1565c0", penwidth=1.8];
+  DPG     -> P50      [color="#1565c0", penwidth=1.8];
+  PHA     -> BOHR     [penwidth=1.8];
+  DHYP    -> DPG      [color="#1565c0", style=dashed, label="τ ≈ 30 h"];
+  BOHR    -> P50NET   [];
+  DPG     -> P50NET   [];
+  P50NET  -> SAO2     [penwidth=1.8, label="+8.6 saturation points on the summit"];
+  SAO2    -> CAO2     [penwidth=2.2];
+  HB      -> CAO2     [penwidth=2.0];
+  CAO2    -> DO2      [penwidth=2.2];
+  CO      -> DO2      [penwidth=2.0];
+  DO2     -> TISSPO2  [penwidth=1.6];
+  CAO2    -> PVO2     [penwidth=1.6];
+  CO      -> PVO2     [];
+  TISSPO2 -> LACT     [color="#c62828"];
+
+  /* --- erythropoiesis -------------------------------------------------- */
+  TISSPO2 -> PHD     [color="#c62828", penwidth=1.8];
+  PHD     -> HIF2    [color="#c62828", penwidth=2.0];
+  HIF2    -> EPO     [color="#1565c0", penwidth=2.2];
+  EPO     -> MARROW  [color="#1565c0", penwidth=1.8];
+  IRON    -> MARROW  [color="#1565c0"];
+  MARROW  -> RETIC   [penwidth=1.6];
+  RETIC   -> HBMASS  [penwidth=1.8];
+  HBMASS  -> HB      [penwidth=2.0];
+  PLASMA  -> HB      [penwidth=2.4, color="#ad1457", label="week 1 is ALL water"];
+  PLASMA  -> HCT     [penwidth=2.0];
+  HBMASS  -> HCT     [penwidth=1.6];
+  HCT     -> VISC    [penwidth=1.8];
+  VISC    -> CO      [color="#c62828", penwidth=1.8];
+  HCT     -> HCTOPT  [style=dashed];
+  VISC    -> HCTOPT  [style=dashed];
+  HCTOPT  -> DO2     [style=dashed, color="#6a1b9a", penwidth=1.8, label="Hct* = 1/(2.31γ) = 43 %"];
+  HB      -> EPO     [color="#c62828", style=dashed, label="negative feedback"];
+  DHYP    -> PLASMA  [color="#1565c0", penwidth=1.8];
+  HCT     -> CMS     [color="#1565c0", penwidth=1.6];
+
+  /* --- HPV -------------------------------------------------------------- */
+  PAO2    -> PASMC   [color="#c62828", penwidth=2.2, label="ALVEOLAR PO₂ is the stimulus"];
+  PVO2    -> PASMC   [color="#c62828", penwidth=1.4];
+  PASMC   -> HPV     [color="#1565c0", penwidth=2.2];
+  RHOK    -> HPV     [color="#1565c0", penwidth=1.6];
+  ET1     -> HPV     [color="#1565c0", penwidth=1.6];
+  NOPATH  -> HPV     [color="#c62828", penwidth=1.8];
+  PDE5    -> NOPATH  [color="#c62828", penwidth=1.6];
+  PASMC   -> RHOK    [color="#1565c0"];
+  HPV     -> TWOBED  [penwidth=2.2];
+  HETERO  -> TWOBED  [penwidth=2.6, color="#00695c"];
+  TWOBED  -> PVR     [penwidth=2.0];
+  TWOBED  -> PCAP    [penwidth=2.6, color="#00695c"];
+  PVR     -> MPAP    [penwidth=2.2];
+  CO      -> MPAP    [penwidth=1.8];
+  CO      -> PCAP    [penwidth=2.4, color="#00695c", label="LINEAR in Q̇ — exercise"];
+  PLA     -> PCAP    [penwidth=1.8];
+  CO      -> PLA     [];
+  MPAP    -> RVAFT   [penwidth=1.8];
+  MPAP    -> REMOD   [style=dashed, label="weeks"];
+  REMOD   -> PVR     [color="#1565c0", style=dashed];
+  RVAFT   -> PFO     [style=dotted, label="R→L shunt opens"];
+  PFO     -> SHUNT   [color="#1565c0", penwidth=1.4];
+  DHYP    -> HETERO  [style=dotted];
+
+  /* --- oedema ----------------------------------------------------------- */
+  PCAP     -> STARLING [penwidth=2.2];
+  STARLING -> STRESSF  [penwidth=2.2];
+  PERM     -> STARLING [color="#1565c0", penwidth=1.6];
+  STRESSF  -> PROTLEAK [penwidth=2.2];
+  PROTLEAK -> EVLW     [penwidth=2.2];
+  ENAC     -> EVLW     [color="#c62828", penwidth=2.0, label="clearance"];
+  AFCHYP   -> ENAC     [color="#c62828", penwidth=2.2];
+  SAO2     -> AFCHYP   [color="#c62828", penwidth=2.0];
+  EVLW     -> FLOODING [penwidth=2.2];
+  FLOODING -> SHUNT    [color="#1565c0", penwidth=2.4];
+  PROTLEAK -> INFLAM   [style=dashed, label="secondary"];
+  INFLAM   -> PERM     [color="#1565c0", penwidth=1.8];
+  EVLW     -> SURF     [];
+  SURF     -> VQMIS    [color="#1565c0"];
+  EVLW     -> RALES    [];
+  VEGFB    -> PERM     [color="#1565c0", style=dashed];
+
+  /* ★ POSITIVE FEEDBACK LOOP 1 — the HAPE engine ★ */
+  SHUNT   -> PAO2ART [color="#c62828", penwidth=2.0];
+  PAO2ART -> PASMC   [style=dashed, color="#ff6f00", penwidth=3.0, label="  LOOP 1: flooding → shunt → hypoxaemia → more HPV → more overperfusion  "];
+  SAO2    -> AFCHYP  [style=dashed, color="#ff6f00", penwidth=2.2, label="LOOP 2: hypoxia stops the drain"];
+
+  /* --- cerebral ---------------------------------------------------------- */
+  SAO2     -> O2VASO   [color="#c62828", penwidth=2.0];
+  PACO2    -> CO2REAC  [penwidth=2.0];
+  O2VASO   -> CBF      [color="#1565c0", penwidth=2.0];
+  CO2REAC  -> CBF      [penwidth=2.0, label="hypocapnia OPPOSES the hypoxic dilation"];
+  AUTOREG  -> CBF      [style=dotted];
+  SAO2     -> AUTOREG  [color="#c62828"];
+  CBF      -> CBV      [penwidth=2.0];
+  CBF      -> CAPPRESS [penwidth=1.8];
+  SAO2     -> VEGFB    [color="#c62828", penwidth=1.8];
+  VEGFB    -> TJ       [color="#c62828", penwidth=1.6];
+  TJ       -> BBB      [color="#c62828", penwidth=2.0];
+  BBB      -> VASOG    [penwidth=2.0];
+  CAPPRESS -> VASOG    [penwidth=2.0];
+  AQP4     -> VASOG    [];
+  SAO2     -> CYTOT    [color="#c62828", penwidth=1.8, label="below S_aO₂ ≈ 0.70"];
+  CBV      -> MONRO    [penwidth=2.2];
+  VASOG    -> MONRO    [penwidth=2.0];
+  CYTOT    -> MONRO    [penwidth=2.0];
+  PVIN     -> MONRO    [penwidth=2.4, color="#4e342e"];
+  MONRO    -> ICP      [penwidth=2.4];
+  ICP      -> CPP      [color="#c62828"];
+  CPP      -> CBF      [style=dashed, color="#c62828"];
+  ICP      -> HERN     [];
+  VASOG    -> MICROH   [style=dotted];
+
+  /* --- symptoms ---------------------------------------------------------- */
+  ICP      -> TRIGEM   [color="#1565c0", penwidth=2.0];
+  DHYP     -> TRIGEM   [color="#1565c0", penwidth=1.8];
+  TRIGEM   -> HEADACHE [penwidth=2.4];
+  ICP      -> AREAP    [color="#1565c0", penwidth=1.6];
+  DHYP     -> AREAP    [color="#1565c0"];
+  AREAP    -> GISX     [penwidth=2.0];
+  DHYP     -> FATIGUE  [color="#1565c0", penwidth=1.8];
+  DHYP     -> DIZZY    [color="#1565c0", penwidth=1.8];
+  AROUSAL  -> FATIGUE  [color="#1565c0", penwidth=1.4];
+  HEADACHE -> LLS      [penwidth=2.2];
+  GISX     -> LLS      [penwidth=2.0];
+  FATIGUE  -> LLS      [penwidth=2.0];
+  DIZZY    -> LLS      [penwidth=2.0];
+  LLS      -> AMSDX    [penwidth=2.4];
+  ICP      -> ATAXIA   [color="#1565c0", penwidth=2.0];
+  ATAXIA   -> HACEDX   [penwidth=2.4];
+  ICP      -> CONSC    [color="#1565c0"];
+  CONSC    -> HACEDX   [penwidth=1.8];
+  GISX     -> ADH      [color="#1565c0", penwidth=1.8, label="nausea → AVP"];
+
+  /* --- cardio / fluid ----------------------------------------------------- */
+  CBODY    -> SYMP     [color="#1565c0", penwidth=2.0];
+  SYMP     -> CATECH   [color="#1565c0"];
+  CATECH   -> HR       [color="#1565c0", penwidth=1.8];
+  HR       -> CO       [penwidth=2.0];
+  SYMP     -> SBP      [color="#1565c0"];
+  SYMP     -> CORVAS   [];
+  EXER     -> CO       [penwidth=2.4, color="#e65100"];
+  PLASMA   -> CO       [color="#c62828", penwidth=1.6];
+  DHYP     -> ALDOST   [color="#1565c0"];
+  DHYP     -> NATRI    [color="#1565c0", penwidth=1.8];
+  ADH      -> FLUIDRET [color="#1565c0", penwidth=1.8];
+  ALDOST   -> FLUIDRET [color="#1565c0"];
+  NATRI    -> FLUIDRET [color="#c62828", penwidth=2.0];
+  ANP      -> NATRI    [color="#1565c0"];
+  RVAFT    -> ANP      [color="#1565c0"];
+  FLUIDRET -> PLASMA   [color="#c62828", penwidth=1.6];
+  FLUIDRET -> AMSDX    [color="#1565c0", style=dashed];
+  PLASMA   -> HAEMOCONC[];
+  SAO2     -> VO2MAX   [penwidth=1.8];
+  CAO2     -> VO2MAX   [penwidth=1.6];
+
+  /* --- sleep --------------------------------------------------------------- */
+  PACO2    -> CO2RES   [penwidth=2.2];
+  BC       -> CO2RES   [color="#c62828", penwidth=2.4];
+  CO2RES   -> PERIODIC [color="#c62828", penwidth=2.6, label="narrow reserve → apnoea"];
+  LOOPG    -> PERIODIC [color="#1565c0", penwidth=1.8];
+  PLANTG   -> LOOPG    [penwidth=1.4];
+  HVR      -> LOOPG    [color="#1565c0", penwidth=1.6];
+  VAH      -> LOOPG    [color="#1565c0", penwidth=1.4];
+  PERIODIC -> DESATN   [penwidth=2.0];
+  PERIODIC -> AROUSAL  [penwidth=1.8];
+  DESATN   -> DHYP     [color="#1565c0", style=dotted];
+  SLEEPST  -> PERIODIC [color="#1565c0"];
+  AROUSAL  -> QOL      [color="#c62828"];
+
+  /* --- drugs ---------------------------------------------------------------- */
+  ACZ -> ACZPD1 [color="#2e7d32", penwidth=2.2];
+  ACZ -> ACZPD2 [color="#2e7d32", penwidth=2.0];
+  ACZ -> ACZPD3 [color="#2e7d32", penwidth=1.2];
+  ACZPD1 -> RENHCO3 [color="#2e7d32", penwidth=2.4, label="bypasses the 34 h delay"];
+  ACZPD2 -> CSFHCO3 [color="#2e7d32", penwidth=2.2];
+  ACZPD3 -> AADO2   [color="#2e7d32", style=dotted];
+  ACZPD1 -> ACZMECH [color="#2e7d32"];
+  ACZPD2 -> ACZMECH [color="#2e7d32"];
+  ACZMECH -> CO2RES [color="#2e7d32", penwidth=2.4, label="reserve WIDENS 1.97 → 3.2 mmHg"];
+  ACZMECH -> SAO2   [color="#2e7d32", penwidth=2.0, label="+3.5 points acutely"];
+  ACZ -> KEXC       [color="#2e7d32", style=dotted];
+
+  DEX -> DEXPD    [color="#2e7d32", penwidth=2.2];
+  DEXPD -> VEGFB  [color="#2e7d32", penwidth=2.0];
+  DEXPD -> BBB    [color="#2e7d32", penwidth=2.0];
+  DEXPD -> ENAC   [color="#2e7d32", penwidth=1.8];
+  DEXPD -> HPV    [color="#2e7d32", penwidth=1.4];
+  DEXPD -> HEADACHE [color="#2e7d32", penwidth=2.0, style=dashed, label="direct symptomatic"];
+  DEX -> DEXWARN  [color="#c62828", penwidth=2.0];
+  DEXWARN -> LLS  [color="#c62828", style=dashed, penwidth=2.0, label="score falls, P_aO₂ does not"];
+
+  NIF -> HPV [color="#2e7d32", penwidth=2.2, label="λ_max ×0.55"];
+  TAD -> PDE5 [color="#2e7d32", penwidth=2.2];
+  SAL -> ENAC [color="#2e7d32", penwidth=2.2];
+  IBU -> TRIGEM [color="#2e7d32", penwidth=1.8];
+  O2SUP -> FIO2 [color="#2e7d32", penwidth=2.4];
+  GAMOW -> PB   [color="#2e7d32", penwidth=2.4, label="+105 mmHg = descent of ~1900 m"];
+  DESCENT -> ALT [color="#2e7d32", penwidth=3.0];
+  PRECOND -> VAH [color="#2e7d32", penwidth=1.8];
+  PRECOND -> CSFHCO3 [color="#2e7d32", style=dashed];
+  AVOIDA -> HVR [color="#2e7d32", style=dotted];
+
+  /* --- genetics ------------------------------------------------------------- */
+  EPAS1  -> HIF2    [color="#c62828", penwidth=1.8, label="blunts"];
+  EGLN1G -> PHD     [color="#1565c0"];
+  EPAS1  -> HBMASS  [color="#c62828", style=dashed];
+  ANDEAN -> HCT     [color="#1565c0", penwidth=1.6];
+  ANDEAN -> CMS     [color="#1565c0"];
+  ETHIOP -> SAO2    [color="#1565c0", style=dotted];
+  CMS    -> VISC    [color="#1565c0", penwidth=1.6];
+  DHYP   -> MUSCADPT[color="#1565c0", style=dashed];
+  MUSCADPT -> TISSPO2 [color="#1565c0", style=dashed];
+  HVR    -> AMSDX   [color="#c62828", style=dashed, label="low HVR → more AMS"];
+
+  /* --- endpoints ------------------------------------------------------------- */
+  FLOODING -> HAPEDX [penwidth=2.6];
+  EVLW     -> HAPEDX [penwidth=2.0];
+  HAPEDX   -> DEATH  [penwidth=2.0];
+  HACEDX   -> DEATH  [penwidth=2.0];
+  HERN     -> DEATH  [penwidth=1.8];
+  AMSDX    -> SUMMIT [color="#c62828", penwidth=1.8];
+  HAPEDX   -> SUMMIT [color="#c62828"];
+  DESATN   -> QOL    [color="#c62828"];
+  VO2MAX   -> SUMMIT [penwidth=1.6];
+  DESCENT  -> HAPEREC[color="#2e7d32", penwidth=2.4];
+  HAPEDX   -> HAPEREC[];
+  CMS      -> QOL    [color="#c62828"];
+  ALT      -> AMSDX  [style=invis];
+
+}
