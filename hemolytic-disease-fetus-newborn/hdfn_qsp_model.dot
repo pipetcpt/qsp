@@ -1,0 +1,602 @@
+/* ===========================================================================
+   Hemolytic Disease of the Fetus and Newborn (HDFN)
+   Quantitative Systems Pharmacology map
+   ---------------------------------------------------------------------------
+   The organising idea of this map is that the rate at which fetal red cells
+   are destroyed is a PRODUCT of three factors, and that every therapy in this
+   disease owns exactly one of them:
+
+        destruction  =  A(t)        x    f_ag(t)      x     M(t)
+
+        A       the anti-erythrocyte IgG that has actually been DELIVERED to
+                the fetus.  Not the maternal titre -- the maternal titre times
+                a placental conveyor whose capacity grows e^0.268 per week --
+                a factor of about 210 between 16 and 36 weeks.  Diluted into a
+                fetus that is itself growing, that leaves the fetal:maternal
+                antibody RATIO about 17-fold higher at term than at 19.5 weeks,
+                which is the quantity the fetus actually experiences.
+                OWNED BY: nipocalimab (FcRn blockade), plasmapheresis
+                (removes the stock), high-dose IVIG (competes for FcRn),
+                and -- upstream of all of them -- anti-D prophylaxis, which
+                prevents A from ever existing.
+
+        f_ag    the FRACTION of the circulating red-cell mass that carries the
+                antigen.  This is the factor nobody names, and it is the one
+                that intrauterine transfusion moves: donor cells are
+                antigen-NEGATIVE, so a transfusion does not merely add
+                haemoglobin, it dilutes the substrate.  f_ag falls from 1.00
+                to about a third at the first transfusion and halves again at
+                each subsequent one, which is why the post-transfusion
+                haemoglobin decline gets flatter with every procedure
+                (0.29 -> 0.18 -> 0.17 g/dL/day in this model, averaged over
+                ten surveillance seeds; 0.40 (SD 0.25) reported between the
+                first two).
+                OWNED BY: intrauterine transfusion, exchange transfusion.
+
+        M       the reticuloendothelial clearance capacity that actually eats
+                the opsonised cells -- splenic and hepatic macrophages, their
+                FcgammaR, and their saturation.
+                OWNED BY: high-dose IVIG (FcgammaR blockade), splenic mass.
+
+   Two clocks then decide what the disease LOOKS like rather than how severe it
+   is:
+
+     * the conveyor clock (placental FcRn capacity, e^0.268/wk).  Early-onset
+       severe disease is not a different disease; it is a titre high enough to
+       be dangerous while the conveyor is still inefficient.
+
+     * the CLEARANCE clock, which changes discontinuously at birth.  In utero
+       bilirubin is cleared by the placenta -- i.e. by the mother's liver --
+       with a half-life of about an hour, so a fetus losing 8 g/dL of
+       haemoglobin is anaemic and not jaundiced.  At delivery that route is
+       amputated and replaced by a liver with ~6% of adult UGT1A1 activity.
+       Identical haemolysis, two different diseases, because one number in the
+       denominator changed.
+
+   Three quantities in this map are DERIVED rather than assumed, and the
+   derivations are executed in hdfn_python_reference.py:
+
+     (1) MCA-PSV 1.5 MoM is the arithmetic image of Hb 0.65 MoM.  If cerebral
+         oxygen delivery is defended, velocity x haemoglobin is constant, so
+         PSV MoM = 1/HbMoM and 1.5 inverts to 0.667.  The 12% false-positive
+         rate then follows from a 10% measurement CV, with no ROC fitting.
+
+     (2) the hydrops threshold.  With oxygen delivery defended and a maximal
+         cardiac-output reserve of 2.2, the fetus loses the ability to defend
+         delivery at Hb MoM = 1/2.2 = 0.45, i.e. ~5.5 g/dL -- which is where
+         hydrops is observed.
+
+     (3) the 72-hour window for anti-D prophylaxis.  An UNCOATED fetal red
+         cell in the maternal circulation is just a red cell and survives for
+         months, so a three-day delay leaks only a few per cent of the antigen
+         exposure integral.  The window is days because red cells live for
+         weeks; it is not an immunological time constant at all.
+
+   Node shapes:  box = state variable (an ODE in the mrgsolve model)
+                 ellipse = mediator / flux / algebraic readout
+                 hexagon = drug or procedure
+                 diamond = measured clinical end point
+                 octagon = derived threshold or arithmetic identity
+   Edge style:   solid arrow = activation / flux
+                 dashed arrow = inhibition / blockade
+                 dotted arrow = measurement or read-out
+   =========================================================================== */
+
+digraph HDFN {
+    graph [rankdir=TB, splines=polyline, nodesep=0.28, ranksep=0.55,
+           fontname="Helvetica", fontsize=11, compound=true,
+           label="Hemolytic Disease of the Fetus and Newborn — QSP map\ndestruction = A(antibody delivered) × f_ag(antigen-positive fraction) × M(clearance capacity)\n201 nodes · 18 clusters · every parameter appears in hdfn_mrgsolve_model.R",
+           labelloc="t", fontsize=20];
+    node  [fontname="Helvetica", fontsize=10, style="filled", penwidth=1.1];
+    edge  [fontname="Helvetica", fontsize=8, color="#4a4a4a", arrowsize=0.65];
+
+    /* ==================== 1. MATERNAL ALLOIMMUNISATION ==================== */
+    subgraph cluster_allo {
+        label="1 · Maternal alloimmunisation — how A comes to exist at all";
+        style=filled; color="#fdf0f0"; fontsize=13; fontcolor="#8b1a1a";
+        node [fillcolor="#f8d7d7", color="#c46b6b"];
+
+        RHD_GENO   [label="RhD-negative mother\nRHD deletion / variant\n(15% Europeans, 5% Africans,\n0.3% East Asians)", shape=box];
+        FETAL_D    [label="RhD-POSITIVE fetus\npaternal RHD inherited", shape=box];
+        FMH_EVENT  [label="fetomaternal haemorrhage\nlog-normal: median 0.2 mL,\nGSD e^1.82 → 1.6% >10 mL", shape=box];
+        FMH_TRIG   [label="triggers: delivery, ECV, CVS,\namniocentesis, abruption,\ntermination, trauma, IUT itself", shape=ellipse];
+        MFREE      [label="Mfree\nUNCOATED fetal D+ RBC\nin maternal blood (mL)", shape=box];
+        MCOAT      [label="Mcoat\nanti-D-COATED fetal RBC\n(mL)", shape=box];
+        RBC_SEN_M  [label="k_sen_free = 0.0099/d\nan uncoated fetal cell is\njust a red cell: it lives\n~70 days", shape=ellipse, fillcolor="#ffe9c7"];
+        APC        [label="splenic marginal-zone APC\nantigen presentation", shape=ellipse];
+        TFH        [label="CD4 T follicular helper\n(HLA-DRB1*15 restricted)", shape=ellipse];
+        GC         [label="germinal-centre reaction", shape=ellipse];
+        MBM        [label="Mbm\nmemory B cells", shape=box];
+        MPC        [label="Mpc\nLONG-LIVED marrow\nplasma cells\n(set-point titre)", shape=box];
+        MA1        [label="Ma1\nmaternal anti-D IgG1 (IU)", shape=box, fillcolor="#f5b7b7"];
+        MA3        [label="Ma3\nmaternal anti-D IgG3 (IU)", shape=box, fillcolor="#f5b7b7"];
+        SENS       [label="Sens\ncumulative priming signal\nP = 1 − e^(−Sens)", shape=box];
+        HIRESP     [label="'high responder' phenotype\n(previous IUT or fetal loss)", shape=ellipse];
+        ABO_PROT   [label="ABO incompatibility\nprotects: fetal cells cleared\nbefore they can prime", shape=ellipse, fillcolor="#d7f8d7"];
+        OTHER_AB   [label="non-D antigens:\nc, E, C, e, K, k, Fya, Jka,\nM, S, U, Dia", shape=box];
+
+        RHD_GENO -> FMH_EVENT [style=invis];
+        FETAL_D -> FMH_EVENT;
+        FMH_TRIG -> FMH_EVENT;
+        FMH_EVENT -> MFREE;
+        MFREE -> RBC_SEN_M [style=dotted];
+        MFREE -> APC [label="exposure\nINTEGRAL"];
+        MCOAT -> APC [style=dashed, label="deviated\n(dev = 0.98)"];
+        APC -> TFH -> GC;
+        GC -> MBM; GC -> MPC;
+        MBM -> MPC [label="boost on re-exposure"];
+        MPC -> MA1 [label="secretion"];
+        MPC -> MA3;
+        APC -> SENS;
+        HIRESP -> MPC [label="set-point"];
+        ABO_PROT -> APC [style=dashed];
+        OTHER_AB -> MPC;
+        RHD_GENO -> APC [label="no self-tolerance to D"];
+    }
+
+    /* ==================== 2. ANTI-D PROPHYLAXIS =========================== */
+    subgraph cluster_prophy {
+        label="2 · Anti-D immunoprophylaxis — a stoichiometric race, not a drug effect";
+        style=filled; color="#eef7ee"; fontsize=13; fontcolor="#1a6b1a";
+        node [fillcolor="#d9f0d9", color="#5aa05a"];
+
+        RHIG       [label="anti-D immunoglobulin\n300 µg = 1500 IU\n(1 µg = 5 IU)", shape=hexagon, fillcolor="#b6e3b6"];
+        RHIG_DEP   [label="Mdep\nintramuscular depot\nk_a = 0.35/d", shape=box];
+        RHIG_C     [label="Mrhig\npassive anti-D (IU)\nshares IgG catabolism", shape=box];
+        STOICH     [label="STOICHIOMETRY\n20 µg per mL fetal RBC\n= 100 IU/mL\n→ 300 µg covers 15 mL RBC\n= 30 mL fetal whole blood", shape=octagon, fillcolor="#fff2b2"];
+        COATF      [label="coating fraction\ncoat_f = avail/(avail+need)", shape=ellipse];
+        SPLEEN_M   [label="maternal splenic clearance\nof coated cells\nk = 6/d", shape=ellipse];
+        WINDOW     [label="THE 72-HOUR WINDOW\nDERIVED: uncoated cells persist\n(t½ 70 d), so 3 d leaks ~4%\nof the exposure integral", shape=octagon, fillcolor="#fff2b2"];
+        KB_TEST    [label="Kleihauer–Betke /\nflow cytometry\nquantifies FMH volume", shape=ellipse];
+        DOSE_ESC   [label="dose escalation for\nlarge FMH (600–1500 µg)", shape=hexagon, fillcolor="#b6e3b6"];
+        CFFDNA     [label="cell-free fetal DNA\nRHD genotyping\n→ targeted prophylaxis", shape=ellipse];
+        ANTE_28    [label="routine antenatal dose\n28 wk (protects ~9 wk\nat 300 µg, 6 wk at 200)", shape=hexagon, fillcolor="#b6e3b6"];
+        SILENT     [label="third-trimester SILENT FMH\nfitted at 0.068 mL — the whole\nreason postpartum-only\nprophylaxis leaves 1.6%", shape=box, fillcolor="#ffd9d9"];
+        RESID      [label="residual sensitisation\n16% → 1.6% → 0.1–0.4%\n(the last step PREDICTED)", shape=diamond, fillcolor="#ffe6b3"];
+
+        RHIG -> RHIG_DEP -> RHIG_C;
+        RHIG_C -> COATF; STOICH -> COATF;
+        COATF -> MCOAT [label="coats"];
+        MCOAT -> SPLEEN_M;
+        KB_TEST -> DOSE_ESC -> RHIG;
+        CFFDNA -> RHIG [style=dashed, label="withhold if\nfetus RHD-negative"];
+        ANTE_28 -> RHIG_DEP;
+        SILENT -> MFREE;
+        WINDOW -> COATF [style=dotted];
+        COATF -> RESID [style=dotted];
+        SENS -> RESID [style=dotted];
+        STOICH -> RESID [style=dotted, label="tail of the FMH\ndistribution sets\nthe residual"];
+    }
+
+    /* ==================== 3. MATERNAL IgG HOMEOSTASIS & FcRn ============== */
+    subgraph cluster_fcrn {
+        label="3 · Maternal IgG homeostasis — the FcRn that both recycles and delivers";
+        style=filled; color="#eef1f9"; fontsize=13; fontcolor="#26408b";
+        node [fillcolor="#dbe3f6", color="#6d82c4"];
+
+        MIG        [label="Mig\nmaternal total IgG (g)\n~10 g/L at 12 wk", shape=box];
+        PINO       [label="endothelial pinocytosis\nk_int = 0.12/d", shape=ellipse];
+        FCRN_E     [label="endothelial FcRn\nrescue φ = 0.967 when free\n→ IgG t½ 21 d", shape=ellipse, fillcolor="#c3d0ef"];
+        LYSO       [label="lysosomal degradation\nof unrescued IgG", shape=ellipse];
+        FU_M       [label="free FcRn fraction\nfu = 1/(1+IgG/30+Nip/8)", shape=ellipse, fillcolor="#c3d0ef"];
+        VM         [label="maternal plasma volume\n2.5 → 3.6 L (+45%)", shape=box];
+        DILUTE     [label="dilution: the whole reason\nmaternal IgG falls to 60–70%\nby term", shape=ellipse];
+        MIV        [label="Miv\nIVIG-derived IgG (g)", shape=box];
+        PPHERESIS  [label="plasmapheresis\n60% of the plasma pool\nper session", shape=hexagon, fillcolor="#b6c8ef"];
+        REBOUND    [label="post-pheresis rebound\n(plasma cells untouched)", shape=ellipse, fillcolor="#ffd9d9"];
+
+        MIG -> PINO -> FCRN_E;
+        FCRN_E -> MIG [label="recycled"];
+        FCRN_E -> LYSO [style=dashed];
+        MIG -> FU_M [style=dashed, label="self-competition"];
+        MIV -> FU_M [style=dashed];
+        VM -> DILUTE -> MIG [style=dashed];
+        PPHERESIS -> MIG [style=dashed];
+        PPHERESIS -> MA1 [style=dashed, label="removes the STOCK\nnot the SOURCE"];
+        MPC -> REBOUND -> MA1;
+        FU_M -> FCRN_E [style=dotted];
+    }
+
+    /* ==================== 4. DRUGS ON FACTOR A ============================ */
+    subgraph cluster_drugA {
+        label="4 · Drugs that own factor A (what reaches the fetus)";
+        style=filled; color="#f4eefc"; fontsize=13; fontcolor="#5b2a86";
+        node [fillcolor="#e5d7f7", color="#9a72c7"];
+
+        NIPO       [label="NIPOCALIMAB\nanti-FcRn (aglycosylated IgG1)\n30–45 mg/kg IV weekly,\n14–35 wk", shape=hexagon, fillcolor="#cbb0ee"];
+        NIP_C      [label="Nc\ncentral (V1 = 3 L)", shape=box];
+        NIP_P      [label="Np\nperipheral (V2 = 4 L)", shape=box];
+        NIP_CL     [label="CL = 0.85 L/d + saturable\nFcRn route.  An FcRn blocker\ncannot be rescued by the\nreceptor it blocks", shape=ellipse];
+        NIP_OCC    [label="systemic FcRn occupancy\nK_nip = 8 mg/L\n→ >95% at trough", shape=ellipse];
+        NIP_PEN    [label="PLACENTAL PENETRATION 15%\nthe syncytiotrophoblast sees a\nseventh of the plasma level —\nwhich is why 6/13 UNITY\npregnancies still needed IUT", shape=octagon, fillcolor="#fff2b2"];
+        IVIG       [label="maternal IVIG\n1–2 g/kg/week", shape=hexagon, fillcolor="#cbb0ee"];
+        IVIG_FCRN  [label="FcRn competition\n(worth less than expected:\nconveyor only half-saturated\nat 30 g/L)", shape=ellipse];
+        IVIG_FCGR  [label="fetal FcgammaR blockade\nE_max 0.55, K = 6 g/L\n→ acts on factor M", shape=ellipse];
+        IVIG_FEED  [label="feedback inhibition of\nmaternal antibody synthesis\n(not modelled: no data)", shape=ellipse, fillcolor="#e8e8e8"];
+        STEROID    [label="corticosteroids\n(no established role)", shape=hexagon, fillcolor="#e8e8e8"];
+        FUTURE     [label="candidate mechanisms:\nefgartigimod, rozanolixizumab,\nanti-CD38, imlifidase (IdeS),\ntolerogenic RBC vaccines", shape=hexagon, fillcolor="#e8e8e8"];
+
+        NIPO -> NIP_C; NIP_C -> NIP_P [dir=both]; NIP_C -> NIP_CL;
+        NIP_C -> NIP_OCC -> FU_M [style=dashed, label="blocks recycling\n→ IgG t½ 21 d → 6 d"];
+        NIP_C -> NIP_PEN;
+        IVIG -> MIV; IVIG -> IVIG_FCRN; IVIG -> IVIG_FCGR; IVIG -> IVIG_FEED;
+        IVIG_FCRN -> FU_M [style=dashed];
+        STEROID -> MPC [style=dashed];
+        FUTURE -> MA1 [style=dashed];
+    }
+
+    /* ==================== 5. THE PLACENTAL CONVEYOR ======================= */
+    subgraph cluster_conveyor {
+        label="5 · The placental conveyor — factor A is a TRANSPORT problem";
+        style=filled; color="#fff8e8"; fontsize=13; fontcolor="#8a6100";
+        node [fillcolor="#ffeec2", color="#c9a227"];
+
+        SYNCYT     [label="syncytiotrophoblast\nsurface area × FcRn density", shape=box];
+        CAP_GROW   [label="conveyor capacity\ncap = v0·e^(0.268·(GA−20))\n~210-fold from 16 → 36 wk;\nF/M ratio 17-fold 19.5 → 39 wk", shape=ellipse, fillcolor="#ffe08a"];
+        TRANSCYT   [label="FcRn-mediated transcytosis\nacidified endosome → basal\nmembrane release", shape=ellipse];
+        SUBCLASS   [label="subclass selectivity\nIgG1 > IgG4 > IgG3 > IgG2\n(IgG3 transfer 0.60 of IgG1)", shape=ellipse];
+        FU_PL      [label="free placental FcRn\nfu_pl = 1/(1+IgG/30\n+0.15·Nip/8)", shape=ellipse, fillcolor="#ffe08a"];
+        FM_RATIO   [label="fetal:maternal IgG ratio\n0.075 at 19.5 wk\n1.25 at 39 wk  (CALIBRATED)", shape=octagon, fillcolor="#fff2b2"];
+        EARLY_DEF  [label="'EARLY-ONSET' HDFN is not a\ndifferent disease: it is a titre\nhigh enough to matter while\nthe conveyor is still weak", shape=octagon, fillcolor="#fff2b2"];
+        FIG        [label="Fig\nfetal total IgG (g)", shape=box];
+        FA1        [label="Fa1\nfetal anti-D IgG1 (IU)", shape=box, fillcolor="#ffd08a"];
+        FA3        [label="Fa3\nfetal anti-D IgG3 (IU)", shape=box, fillcolor="#ffd08a"];
+        FNIP       [label="Fnip\nfetal nipocalimab\n(self-limiting transfer)", shape=box];
+        FCRN_F     [label="fetal FcRn\nprotects transferred IgG\n(t½ ~3 wk after birth)", shape=ellipse];
+        AEFF       [label="A = Fa1 + 1.7·Fa3\n(IgG3 is 1.7× as potent\nper IU in ADCC)", shape=octagon, fillcolor="#ffcf6e"];
+
+        SYNCYT -> TRANSCYT; CAP_GROW -> TRANSCYT; FU_PL -> TRANSCYT;
+        MIG -> TRANSCYT; MA1 -> TRANSCYT; MA3 -> TRANSCYT; RHIG_C -> TRANSCYT;
+        NIP_PEN -> FU_PL [style=dashed];
+        MIV -> FU_PL [style=dashed];
+        TRANSCYT -> FIG; TRANSCYT -> FA1; TRANSCYT -> FA3; TRANSCYT -> FNIP;
+        SUBCLASS -> FA3 [style=dashed];
+        FIG -> FM_RATIO [style=dotted];
+        CAP_GROW -> EARLY_DEF [style=dotted];
+        FCRN_F -> FA1 [label="protects"];
+        FA1 -> AEFF; FA3 -> AEFF;
+        FNIP -> FCRN_F [style=dashed];
+    }
+
+    /* ==================== 6. RED CELL ANTIGEN & f_ag ====================== */
+    subgraph cluster_antigen {
+        label="6 · Factor f_ag — the antigen-positive FRACTION, and what dilutes it";
+        style=filled; color="#eefafa"; fontsize=13; fontcolor="#0f6b6b";
+        node [fillcolor="#d3f0f0", color="#4fa5a5"];
+
+        RO         [label="Ro\nOWN antigen-POSITIVE\nred-cell Hb mass (g)", shape=box, fillcolor="#a9e5e5"];
+        RR         [label="Rr\nown reticulocytes (g Hb)", shape=box];
+        RD         [label="Rd\nDONOR antigen-NEGATIVE\nred-cell Hb mass (g)\nt½ 70 d", shape=box, fillcolor="#c7eec7"];
+        FAG        [label="f_ag = (Ro+Rr)/(Ro+Rr+Rd)\n1.00 → 0.33 → 0.17 → 0.12\nacross successive transfusions", shape=octagon, fillcolor="#fff2b2"];
+        SITES_D    [label="D antigen sites/cell\nR1r ~10 000, R2R2 ~30 000\n(site_D scales potency)", shape=ellipse];
+        SITES_K    [label="K antigen ~3 500 sites\n→ weak haemolysis of\nMATURE cells", shape=ellipse];
+        SITES_ABO  [label="A/B antigens: 10^6 sites but\nfewer on fetal cells AND a\nsoluble-antigen sink in plasma\nand tissues", shape=ellipse];
+        ABO_MILD   [label="why ABO HDFN is a NEONATAL\njaundice and not a fetal anaemia", shape=octagon, fillcolor="#fff2b2"];
+        BOUND      [label="IgG molecules bound per cell\n(flow cytometry)", shape=ellipse];
+        C3         [label="complement C3b/C4b\n(minor in HDFN: IgG1/IgG3\nspaced too far to fix C1q\nefficiently)", shape=ellipse];
+        DAT        [label="direct antiglobulin test\n(neonatal DAT positive)", shape=ellipse];
+
+        RO -> FAG; RR -> FAG; RD -> FAG [style=dashed, label="DILUTES"];
+        SITES_D -> BOUND; SITES_K -> BOUND; SITES_ABO -> BOUND;
+        AEFF -> BOUND;
+        SITES_ABO -> ABO_MILD [style=dotted];
+        BOUND -> C3;
+        BOUND -> DAT [style=dotted];
+        RR -> RO [label="maturation\n0.5/d"];
+    }
+
+    /* ==================== 7. DESTRUCTION & FACTOR M ======================= */
+    subgraph cluster_destroy {
+        label="7 · Factor M — reticuloendothelial destruction and its saturation";
+        style=filled; color="#fdeeee"; fontsize=13; fontcolor="#8b1a1a";
+        node [fillcolor="#f8d7d7", color="#c46b6b"];
+
+        OPS        [label="opsonisation flux\nops = kops·A·(Ro+Rr)", shape=ellipse, fillcolor="#f5b7b7"];
+        ROP        [label="Rop\nopsonised cells awaiting\nclearance (g Hb)", shape=box];
+        MACRO      [label="splenic & hepatic macrophages\nFcgammaRI / IIA / IIIA", shape=box];
+        RES        [label="Res\nRES capacity (×normal)\nexpands to 4× under load", shape=box];
+        CLR        [label="clearance = V_max·Res·Rop/(K_res+Rop)\nSATURABLE — which is why\nhaemolysis is sublinear in titre", shape=ellipse, fillcolor="#f5b7b7"];
+        ADCC       [label="ADCC assay\n(predicts HDFN in 88.6%\nvs 79.5% for quantitation)", shape=ellipse];
+        MMA        [label="monocyte monolayer assay\n(tracks IgG3)", shape=ellipse];
+        SPLENO     [label="splenomegaly", shape=box];
+        HAEM_FLUX  [label="haem released\n34 mg bilirubin per g Hb", shape=ellipse];
+        MEFF       [label="M = Res·(1 − FcgammaR blockade)", shape=octagon, fillcolor="#ffcf6e"];
+
+        OPS -> ROP -> CLR;
+        MACRO -> CLR; RES -> MEFF -> CLR;
+        AEFF -> OPS; FAG -> OPS;
+        IVIG_FCGR -> MEFF [style=dashed];
+        ROP -> RES [label="expands"];
+        RES -> SPLENO;
+        CLR -> HAEM_FLUX;
+        AEFF -> ADCC [style=dotted]; FA3 -> MMA [style=dotted];
+        CLR -> RO [style=dashed, label="destroys"];
+    }
+
+    /* ==================== 8. FETAL ERYTHROPOIESIS ========================= */
+    subgraph cluster_ery {
+        label="8 · Fetal erythropoiesis — the compensation, and how a transfusion switches it off";
+        style=filled; color="#f0f7ee"; fontsize=13; fontcolor="#2b6b1a";
+        node [fillcolor="#dcefd6", color="#6aa85a"];
+
+        EPO        [label="Epo\nfetal erythropoietin (mU/mL)\nEPO ∝ (1/HbMoM)^5.1\nBIDIRECTIONAL", shape=box, fillcolor="#c3e5b8"];
+        EPO_LIVER  [label="fetal EPO from LIVER\n(not kidney) before ~30 wk", shape=ellipse];
+        PROG       [label="Prog\nerythroid progenitors\nBFU-E / CFU-E (×normal,\nmax 5×)", shape=box];
+        MARROW     [label="fetal marrow", shape=box];
+        EMH        [label="EMH\nhepatic extramedullary\nerythropoiesis\n(recruited above 4× Prog)", shape=box, fillcolor="#c3e5b8"];
+        NRBC       [label="Nrbc\ncirculating nucleated RBC\n'erythroblastosis fetalis'", shape=box];
+        PROD       [label="production = k_prod·(Prog+0.6·EMH)\n× REQUIREMENT\n(senescence + blood-volume growth)", shape=ellipse];
+        IRON       [label="iron supply / transferrin\n(placental transfer)", shape=ellipse];
+        KELL_KILL  [label="anti-K kills PROGENITORS\n(kell_kill) — anaemia with\nno haem released", shape=ellipse, fillcolor="#f8d7d7"];
+        SUPPRESS   [label="post-transfusion suppression:\nEPO falls because Hb ROSE.\nEmergent, not a parameter", shape=octagon, fillcolor="#fff2b2"];
+        HYPOREG    [label="hyporegenerative late anaemia\nnadir at ~5–6 weeks postnatal", shape=diamond, fillcolor="#ffe6b3"];
+
+        EPO_LIVER -> EPO; EPO -> PROG; MARROW -> PROG; IRON -> PROD;
+        PROG -> PROD -> RR;
+        PROG -> EMH -> PROD;
+        PROG -> NRBC;
+        KELL_KILL -> PROG [style=dashed];
+        AEFF -> KELL_KILL;
+        RD -> SUPPRESS [style=dotted]; SUPPRESS -> EPO [style=dashed];
+        SUPPRESS -> HYPOREG [style=dotted];
+    }
+
+    /* ==================== 9. THE CIRCULATION ============================== */
+    subgraph cluster_circ {
+        label="9 · The circulation — plasma volume PLUS cell volume, not a fixed blood volume";
+        style=filled; color="#eef1f9"; fontsize=13; fontcolor="#26408b";
+        node [fillcolor="#dbe3f6", color="#6d82c4"];
+
+        EFW        [label="EFW\nestimated fetal weight (g)\nHadlock median, log-cubic", shape=box];
+        VPL        [label="Vpl\nfetal PLASMA volume (mL)\nregulated to kbv·EFW·(1−Hct_ref),\nexpands as Hct falls", shape=box];
+        VRBC       [label="V_rbc = Hb mass / MCHC\n(MCHC 32.8 g/dL)", shape=ellipse];
+        VB         [label="blood volume = Vpl + V_rbc\n≈ 0.105 mL per g EFW", shape=ellipse];
+        HB         [label="Hb = 100·mass/(Vpl+V_rbc)\ng/dL", shape=octagon, fillcolor="#ffcf6e"];
+        HCT        [label="Hct = V_rbc/(Vpl+V_rbc)", shape=ellipse];
+        HBREF      [label="reference Hb(GA)\n10.9 g/dL at 17 wk →\n14.5 at 40 (Nicolaides)", shape=ellipse];
+        HBMOM      [label="Hb MoM\nmild <0.84, moderate <0.65,\nsevere <0.55", shape=octagon, fillcolor="#ffcf6e"];
+        GROWTH_DIL [label="growth dilution: a fetus that\nquadruples in mass dilutes its\nown haemoglobin", shape=ellipse];
+
+        EFW -> VPL; EFW -> VB; VPL -> VB; VRBC -> VB;
+        RO -> VRBC; RD -> VRBC; RR -> VRBC;
+        VB -> HB -> HBMOM; HBREF -> HBMOM; VB -> HCT;
+        EFW -> GROWTH_DIL -> HB [style=dashed];
+        HCT -> VPL [style=dashed, label="plasma expands\nwhen Hct falls"];
+    }
+
+    /* ==================== 10. OXYGEN & THE DOPPLER ======================== */
+    subgraph cluster_o2 {
+        label="10 · Oxygen delivery — and the derivation of the 1.5 MoM threshold";
+        style=filled; color="#fff8e8"; fontsize=13; fontcolor="#8a6100";
+        node [fillcolor="#ffeec2", color="#c9a227"];
+
+        DO2        [label="oxygen delivery\nDO2 = CO × Hb × 1.34 × SaO2", shape=ellipse];
+        DEFEND     [label="CEREBRAL DELIVERY IS DEFENDED\nflow ∝ 1/Hb  (do2_alpha = 1)", shape=octagon, fillcolor="#ffe08a"];
+        CO         [label="combined cardiac output\n450 mL/min/kg, reserve 2.2×", shape=box];
+        PSV        [label="MCA peak systolic velocity\nmedian e^(2.31+0.046·GA) cm/s", shape=ellipse];
+        PSV_MOM    [label="PSV MoM = 1/Hb MoM\n→ 1.50 MoM ⟺ Hb 0.667 MoM\nDERIVED, NOT FITTED", shape=octagon, fillcolor="#fff2b2"];
+        PSV_CV     [label="10% measurement CV\n→ 12% false positives,\n100% sensitivity\n(Mari 2000 exactly)", shape=octagon, fillcolor="#fff2b2"];
+        VISC       [label="blood viscosity\nDELIBERATELY NOT ADDED:\nthe flow rise viscosity causes\nIS the delivery defence", shape=ellipse, fillcolor="#e8e8e8"];
+        BRAIN_SP   [label="brain sparing / redistribution", shape=ellipse];
+        LAC        [label="Lac\nlactate (mmol/L)\nrises when DO2 < 0.55", shape=box];
+        PH         [label="fetal pH = 7.35 − 0.035·Lac", shape=ellipse];
+        CARD       [label="Card\ncardiac decompensation index\n(demand > reserve)", shape=box, fillcolor="#f8d7d7"];
+
+        HB -> DO2; CO -> DO2; DEFEND -> CO; HBMOM -> DEFEND;
+        DEFEND -> PSV -> PSV_MOM -> PSV_CV;
+        BRAIN_SP -> PSV; VISC -> PSV [style=dotted];
+        DO2 -> LAC -> PH;
+        DEFEND -> CARD [label="demand/reserve > 1"];
+    }
+
+    /* ==================== 11. HYDROPS ==================================== */
+    subgraph cluster_hydrops {
+        label="11 · Hydrops fetalis — a Starling balance whose lymphatic capacity is DEFINED as baseline filtration";
+        style=filled; color="#fdeeee"; fontsize=13; fontcolor="#8b1a1a";
+        node [fillcolor="#f8d7d7", color="#c46b6b"];
+
+        HEPATO     [label="hepatomegaly from EMH\n→ sinusoidal compression", shape=box];
+        PORTAL     [label="portal / umbilical venous\npressure  UVP = 4.5 + 0.8·EMH\n+ 6·Card", shape=ellipse];
+        ALB        [label="Alb\nfetal albumin (g/dL)\n1.9 at 20 wk → 3.3 term\nsuppressed 40% by EMH", shape=box];
+        ONCOTIC    [label="plasma oncotic pressure\nπ = 4.5 × albumin", shape=ellipse];
+        PERM       [label="capillary permeability\n↑ with hypoxia (k_perm)", shape=ellipse];
+        JV         [label="filtration J_v = L_p·S·[(P_c−P_i)\n− σ(π_p − π_i)]", shape=ellipse];
+        LYMPH      [label="lymphatic return\nDEFINED as baseline J_v,\nsuppressed e^(−0.16·ΔUVP)", shape=ellipse];
+        ASC        [label="Asc\nascites + oedema (mL)\ntissue compliance 150 mL/mmHg", shape=box, fillcolor="#f5b7b7"];
+        HYDROPS    [label="HYDROPS FETALIS\novert at ~25 mL/900 g;\nappears at Hb ≈ 5–6 g/dL\n= 1/co_max MoM  DERIVED", shape=diamond, fillcolor="#ffb3b3"];
+        PERIC      [label="pericardial effusion,\nskin oedema, polyhydramnios", shape=ellipse];
+        UVP_NONMON [label="UVP rises with anaemia then\nFALLS in the most extreme\ncases (Ville 1994)", shape=octagon, fillcolor="#fff2b2"];
+
+        EMH -> HEPATO -> PORTAL; CARD -> PORTAL;
+        EMH -> ALB [style=dashed]; ALB -> ONCOTIC;
+        PORTAL -> JV; ONCOTIC -> JV [style=dashed]; PERM -> JV;
+        LAC -> PERM;
+        JV -> ASC; LYMPH -> ASC [style=dashed]; PORTAL -> LYMPH [style=dashed];
+        ASC -> HYDROPS -> PERIC;
+        PORTAL -> UVP_NONMON [style=dotted];
+        ASC -> JV [style=dashed, label="interstitial pressure\nrises: the safety factor"];
+    }
+
+    /* ==================== 12. DIAGNOSTICS ================================= */
+    subgraph cluster_dx {
+        label="12 · Surveillance — four generations of test, and what each actually measures";
+        style=filled; color="#f2f2f2"; fontsize=13; fontcolor="#333333";
+        node [fillcolor="#e2e2e2", color="#888888"];
+
+        TITRE      [label="indirect antiglobulin titre\ncritical 1:16 (some 1:8)", shape=ellipse];
+        QUANT      [label="anti-D quantitation (IU/mL)\n<4 low, 4–15 moderate,\n>15 high risk", shape=ellipse];
+        AMNIO      [label="amniotic ΔOD450\n(Liley / Queenan zones)\nMEASURES BILIRUBIN,\nnot haemoglobin", shape=ellipse];
+        AMN        [label="Amn\namniotic bilirubin (mg)", shape=box];
+        MCA_DX     [label="MCA-PSV MoM ≥ 1.5\nweekly from 18 wk", shape=ellipse, fillcolor="#cfe8cf"];
+        CORD       [label="cordocentesis\nthe only direct Hb —\nand itself a 1–2% risk", shape=ellipse];
+        USS        [label="ultrasound: ascites, cardiac\nsize, placental thickness", shape=ellipse];
+        RHD_CFF    [label="fetal RHD genotype from\nmaternal plasma", shape=ellipse];
+        PATERNAL   [label="paternal / partner phenotype\nand zygosity", shape=ellipse];
+        KELL_WARN  [label="IN KELL DISEASE ΔOD450\nUNDER-STATES THE ANAEMIA\n(no haem is released)", shape=octagon, fillcolor="#fff2b2"];
+
+        MA1 -> TITRE [style=dotted]; MA1 -> QUANT [style=dotted];
+        AMN -> AMNIO [style=dotted]; HB -> CORD [style=dotted];
+        PSV_MOM -> MCA_DX [style=dotted]; ASC -> USS [style=dotted];
+        FETAL_D -> RHD_CFF [style=dotted]; PATERNAL -> RHD_CFF;
+        KELL_KILL -> KELL_WARN [style=dotted]; KELL_WARN -> AMNIO [style=dashed];
+    }
+
+    /* ==================== 13. INTRAUTERINE TRANSFUSION ==================== */
+    subgraph cluster_iut {
+        label="13 · Intrauterine transfusion — mass balance, not a nomogram";
+        style=filled; color="#eefaee"; fontsize=13; fontcolor="#1a6b1a";
+        node [fillcolor="#d9f0d9", color="#5aa05a"];
+
+        IUT        [label="IUT\nintravascular, umbilical vein\nor intrahepatic", shape=hexagon, fillcolor="#b6e3b6"];
+        DONOR      [label="donor unit: O, D-negative,\nantigen-negative, CMV-safe,\nirradiated, Hct 0.75–0.85,\nfresh (<5 d)", shape=box];
+        VOL_CALC   [label="V = (Hct_t·V_b − V_rbc)/(Hct_don − Hct_t)\nmass balance — the volume that\nreaches Hct 0.45", shape=octagon, fillcolor="#fff2b2"];
+        VOL_EXP    [label="fetoplacental volume expansion\n~51% at the first procedure\n(Nishie 2012)", shape=ellipse];
+        PARALYSIS  [label="fetal paralysis (vecuronium),\nintrahepatic route, avoid\narterial puncture", shape=ellipse];
+        IUT_RISK   [label="procedure-related loss\n1.2% per procedure,\n1.8% per fetus (Zwiers 2017)", shape=diamond, fillcolor="#ffe6b3"];
+        IUT_FMH    [label="every IUT is itself an FMH\n→ boosts the maternal titre", shape=ellipse, fillcolor="#ffd9d9"];
+        INTERVAL   [label="interval: 2 wk after the first,\nthen 3 wk — set by the\nPREDICTED decline, not by\nMCA-PSV (unreliable once\ndonor cells circulate)", shape=ellipse];
+        DECLINE    [label="post-IUT decline\n0.29 → 0.18 → 0.17 g/dL/d\n(reported 0.40, SD 0.25)\nflattening PREDICTED by f_ag;\nlevel under-predicted by a third", shape=octagon, fillcolor="#fff2b2"];
+        IRON_LOAD  [label="Fer\ntransfusional iron\n1.08 mg Fe per mL RBC", shape=box];
+
+        IUT -> DONOR -> RD; IUT -> VOL_CALC -> VOL_EXP;
+        VOL_CALC -> RD; VOL_CALC -> VPL [label="only 20% of the\nvolume is plasma"];
+        PARALYSIS -> IUT_RISK [style=dashed]; IUT -> IUT_RISK;
+        IUT -> IUT_FMH -> MFREE;
+        IUT -> INTERVAL; FAG -> DECLINE; RD -> DECLINE;
+        IUT -> IRON_LOAD;
+        MCA_DX -> IUT [label="first procedure"];
+        CORD -> IUT [label="confirms"];
+    }
+
+    /* ==================== 14. NEONATAL BILIRUBIN ========================== */
+    subgraph cluster_bili {
+        label="14 · Bilirubin — the clock that changes discontinuously at birth";
+        style=filled; color="#fff8e8"; fontsize=13; fontcolor="#8a6100";
+        node [fillcolor="#ffeec2", color="#c9a227"];
+
+        BIL_F      [label="Bil\nplasma bilirubin (mg)", shape=box];
+        BIL_PLAC   [label="PLACENTAL clearance\nk = 14/d — the mother's liver\ndoes the work", shape=ellipse, fillcolor="#ffe08a"];
+        BIRTH      [label="DELIVERY\nthe placental route is amputated", shape=octagon, fillcolor="#ffcf6e"];
+        UGT        [label="Ugt\nUGT1A1 activity\n6% of adult at birth,\nhalf-mature at 20 d", shape=box];
+        CONJ       [label="conjugation\nV_max·wt·Ugt·TSB/(TSB+8)", shape=ellipse];
+        BEX        [label="Bex\nextravascular tissue\nbilirubin (mg)", shape=box];
+        VD_BIL     [label="bilirubin V_d = 0.20 L/kg\n(ALBUMIN-BOUND, not total\nbody water) — which is why a\ndouble-volume exchange removes\n85% of plasma but 45% of body", shape=octagon, fillcolor="#fff2b2"];
+        BGUT       [label="Bgut\nintestinal bilirubin", shape=box];
+        EHC        [label="enterohepatic recirculation\n(β-glucuronidase, poor feeding)", shape=ellipse];
+        PHOTO      [label="PHOTOTHERAPY\nstructural + configurational\nphotoisomers, 30 µW/cm²/nm", shape=hexagon, fillcolor="#b6e3b6"];
+        BISO       [label="Biso\nphotoisomer pool\n(reverts: hence rebound)", shape=box];
+        EXCH       [label="EXCHANGE TRANSFUSION\ndouble volume: removes\nbilirubin, antibody AND\nantigen-positive cells", shape=hexagon, fillcolor="#b6e3b6"];
+        IVIG_N     [label="neonatal IVIG 0.5–1 g/kg\n(FcgammaR blockade)", shape=hexagon, fillcolor="#b6e3b6"];
+        ALB_N      [label="albumin binding\nreserve capacity", shape=ellipse];
+        BFREE      [label="UNBOUND bilirubin\nB/A molar ratio", shape=ellipse, fillcolor="#f8d7d7"];
+        BBB        [label="blood–brain barrier", shape=ellipse];
+        BIND       [label="Bind\ncumulative neurotoxic exposure\n(BIND / kernicterus)", shape=box, fillcolor="#f5b7b7"];
+        LOW_BILI   [label="PREDICTED: a heavily transfused\nfetus is born with LOW bilirubin\nfor its disease — the same f_ag\nthat flattened the decline\nflattens the jaundice", shape=octagon, fillcolor="#fff2b2"];
+
+        HAEM_FLUX -> BIL_F; BIL_F -> BIL_PLAC;
+        BIRTH -> BIL_PLAC [style=dashed, label="OFF"];
+        BIRTH -> UGT -> CONJ; BIL_F -> CONJ -> BGUT -> EHC -> BIL_F;
+        BIL_F -> BEX [dir=both]; VD_BIL -> BEX [style=dotted];
+        PHOTO -> BISO; BISO -> BIL_F [style=dashed, label="reverts"];
+        BIL_F -> PHOTO [style=dotted];
+        EXCH -> BIL_F [style=dashed]; EXCH -> FA1 [style=dashed]; EXCH -> RO [style=dashed];
+        IVIG_N -> MEFF [style=dashed];
+        BIL_F -> ALB_N -> BFREE -> BBB -> BIND;
+        FAG -> LOW_BILI [style=dotted];
+        BIL_F -> AMN;
+    }
+
+    /* ==================== 15. NEONATAL HAEMATOLOGY ======================== */
+    subgraph cluster_neo {
+        label="15 · The newborn — and the anaemia that arrives six weeks later";
+        style=filled; color="#f0f7ee"; fontsize=13; fontcolor="#2b6b1a";
+        node [fillcolor="#dcefd6", color="#6aa85a"];
+
+        CORD_HB    [label="cord Hb\n14% above the intrauterine\nvenous value", shape=ellipse];
+        RESID_AB   [label="residual maternal anti-D\nin the newborn\nt½ ~3 weeks", shape=box, fillcolor="#f8d7d7"];
+        ONGOING    [label="ongoing haemolysis\nfor 4–8 weeks", shape=ellipse];
+        MARROW_SUP [label="marrow suppressed by months\nof transfusion:\nno reticulocyte reserve", shape=ellipse];
+        TOPUP      [label="top-up transfusions\n(~75% of IUT-treated infants)", shape=hexagon, fillcolor="#b6e3b6"];
+        DARBE      [label="erythropoietin / darbepoetin\n(reduces top-ups; does not\nabolish them)", shape=hexagon, fillcolor="#b6e3b6"];
+        FOLATE     [label="folate, iron caution\n(already iron-loaded)", shape=ellipse];
+        NADIR      [label="Hb nadir at 5–6 weeks\npostnatal, NOT in week 1", shape=diamond, fillcolor="#ffe6b3"];
+        CHELATE    [label="iron overload after multiple\ntransfusions (ferritin)", shape=ellipse];
+        NEUTRO     [label="neutropenia, thrombocytopenia\nafter IUT", shape=ellipse];
+        HYPOGLY    [label="hyperinsulinaemic\nhypoglycaemia (islet\nhyperplasia)", shape=ellipse];
+
+        BIRTH -> CORD_HB; FA1 -> RESID_AB -> ONGOING;
+        SUPPRESS -> MARROW_SUP; MARROW_SUP -> NADIR; ONGOING -> NADIR;
+        NADIR -> TOPUP; DARBE -> PROG; FOLATE -> PROG;
+        IRON_LOAD -> CHELATE; IUT -> NEUTRO; IUT -> HYPOGLY;
+        HYPOREG -> NADIR;
+    }
+
+    /* ==================== 16. CLINICAL END POINTS ========================= */
+    subgraph cluster_end {
+        label="16 · Clinical end points";
+        style=filled; color="#fdf6e3"; fontsize=13; fontcolor="#6b4a00";
+        node [shape=diamond, fillcolor="#ffe6b3", color="#c9a227"];
+
+        EP_IUTFREE [label="live birth ≥ 32 wk WITHOUT\nintrauterine transfusion\n(UNITY primary end point;\n7/13 = 54%)"];
+        EP_HYDROPS [label="hydrops fetalis"];
+        EP_LOSS    [label="perinatal loss\n(97% survival with IUT\nin experienced hands)"];
+        EP_GA      [label="gestational age at delivery"];
+        EP_IUTN    [label="number of IUTs\n(median 4, range 3–8 in\nimmunomodulated cohorts)"];
+        EP_EXCH    [label="exchange transfusion rate"];
+        EP_PHOTO   [label="hours of phototherapy"];
+        EP_TOPUP   [label="top-up transfusions in the\nfirst 3 months"];
+        EP_KERN    [label="kernicterus / BIND"];
+        EP_NDI     [label="neurodevelopmental impairment\n4.8% overall; hydrops OR 11.2\n(LOTUS study)"];
+        EP_SENS    [label="maternal sensitisation rate\n(the end point prophylaxis\nis measured on)"];
+        EP_TITRE   [label="titre trajectory\n(rises after every IUT)"];
+
+        HYDROPS -> EP_HYDROPS; HYDROPS -> EP_NDI [label="OR 11.2"];
+        IUT_RISK -> EP_LOSS; IUT -> EP_IUTN; IUT -> EP_IUTFREE [style=dashed];
+        NIP_PEN -> EP_IUTFREE [style=dotted];
+        BIND -> EP_KERN; PHOTO -> EP_PHOTO; EXCH -> EP_EXCH;
+        TOPUP -> EP_TOPUP; RESID -> EP_SENS; IUT_FMH -> EP_TITRE;
+        CARD -> EP_LOSS; PH -> EP_LOSS; EP_GA -> EP_NDI;
+    }
+
+    /* ==================== 17. THE ARITHMETIC PANEL ======================== */
+    subgraph cluster_eq {
+        label="17 · The arithmetic, in one place";
+        style=filled; color="#eaeaf5"; fontsize=13; fontcolor="#2a2a6b";
+        node [shape=note, fillcolor="#f4f4fb", color="#8888bb", fontsize=10];
+
+        EQ1 [label="destruction  =  k_ops · A · f_ag · (Ro+Rr)\ncleared at  V_max·M·Rop/(K_res+Rop)"];
+        EQ2 [label="A  =  (Fa1 + 1.7·Fa3) · site_density\nFa  =  ∫ cap(GA) · fu_pl · C_maternal dt  −  catabolism"];
+        EQ3 [label="cap(GA) = v0·e^(0.268·(GA−20))\nfu_pl = 1/(1 + IgG/K_IgG + 0.15·Nip/K_nip)"];
+        EQ4 [label="f_ag = (Ro+Rr)/(Ro+Rr+Rd)\nIUT: V = (Hct_t·V_b − V_rbc)/(Hct_don − Hct_t)"];
+        EQ5 [label="PSV MoM = (1/HbMoM)^α,  α = 1\n⟹ 1.50 MoM ⟺ Hb 0.667 MoM"];
+        EQ6 [label="hydrops when demand > reserve:\nHbMoM < 1/co_max = 1/2.2 = 0.45"];
+        EQ7 [label="prophylaxis: need = 100 IU per mL fetal RBC\ncoat_f = avail/(avail+need)\nP(sensitised) = 1 − e^(−k_sens·∫free dt)"];
+        EQ8 [label="fetal bilirubin: dBil/dt = 34·destruction − 14·Bil\nnewborn:        dBil/dt = 34·destruction − V_max·Ugt·f(TSB)"];
+
+        EQ1 -> EQ2 -> EQ3 [style=invis];
+        EQ4 -> EQ5 -> EQ6 [style=invis];
+        EQ7 -> EQ8 [style=invis];
+    }
+
+    /* ==================== 18. TWO CLOCKS ================================== */
+    subgraph cluster_clock {
+        label="18 · Two clocks, and what each one explains";
+        style=filled; color="#f7f0f7"; fontsize=13; fontcolor="#6b1a6b";
+        node [shape=note, fillcolor="#fbf2fb", color="#bb88bb", fontsize=10];
+
+        CL1 [label="CONVEYOR CLOCK  e^0.268/wk (capacity ×210, F/M ratio ×17)\nexplains: why HDFN is a third-trimester\ndisease; why 'early-onset' means high titre\nrather than different biology; why an FcRn\nblocker must start at 14–16 wk"];
+        CL2 [label="CLEARANCE CLOCK  step at birth\nexplains: why a fetus with 8 g/dL of\nhaemolysis is anaemic and not jaundiced;\nwhy the same baby is at risk of kernicterus\n12 hours later; why anti-K disease is\ninvisible to ΔOD450"];
+        CL3 [label="AND ONE SLOW STATE\nmaternal IgG t½ 21 d in the newborn:\nthe haemolysis outlives the delivery by\nsix weeks, which is when the marrow —\nsuppressed by transfusion — is least able\nto answer it"];
+        CL1 -> CL2 -> CL3 [style=invis];
+    }
+
+    /* ==================== cross-cluster wiring ============================ */
+    MA1 -> MIG [style=invis];
+    CLR -> HB [style=dashed, label="the disease"];
+    FAG -> HB [style=dotted];
+    HBMOM -> EPO;
+    HB -> HBMOM;
+    CARD -> EFW [style=dashed, label="growth restriction"];
+    RESID_AB -> RO [style=dashed];
+    EP_IUTFREE -> EP_GA [style=invis];
+}
