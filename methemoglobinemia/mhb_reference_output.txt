@@ -1,0 +1,422 @@
+METHAEMOGLOBINAEMIA QSP MODEL — independent verification run
+44 ODE states, 139 parameters
+
+==============================================================================
+1.  STEADY STATE — the model must first be able to do nothing
+==============================================================================
+  60-day integration of an untreated healthy adult.
+    total Hb             14.985 g/dL   (start 15.000)
+    MetHb                 0.829 %      (start 0.800)
+    PvO2                 38.769 mmHg
+    SpO2                 99.571 %
+    max|dy/dt|         2.194e-05
+    cumulative hypoxic dose 0.000e+00 mmHg.h  (must be 0)
+  [PASS] baseline MetHb                                            0.829 %        (target 0.4-1.6) Normal <1.5%
+  [PASS] baseline PvO2                                            38.769 mmHg     (target 35-42) Normal 38-42
+  [PASS] baseline SpO2                                            99.571 %        (target 96-100) 
+  [PASS] baseline Hb drift over 60 d                               0.015 g/dL     (target 0-0.3) must not drift
+  [PASS] baseline hypoxic dose                                     0.000 mmHg.h   (target 0-1e-06) must be 0
+
+==============================================================================
+2.  THE HEADLINE RESULT — what a percentage of methaemoglobin costs
+==============================================================================
+  A patient is told "your methaemoglobin is 30%".  The arithmetic that
+  is done at the bedside is 15 x 0.70 = 10.5 g/dL of working haemoglobin.
+  That arithmetic is wrong, and the model says by how much, because ferric
+  subunits do two things to the subunits beside them: they remove the
+  cooperativity (n -> 1) and they left-shift the curve (Darling & Roughton).
+  Oxygen that is still carried is no longer released.
+
+  EQUIV Hb = the haemoglobin a patient with NORMAL haemoglobin would need in
+  order to sit at the same tissue PO2, at the same VO2 and cardiac output.
+
+   MetHb%    naive    EQUIV     lost  % of residual     PvO2   P50eff   n_eff    SpO2
+        0    15.00    15.00     0.00           0.0%     39.0     26.8    2.70   100.0
+        5    14.25    13.75     0.50           3.5%     37.5     26.1    2.62    94.8
+       10    13.50    12.55     0.95           7.0%     35.9     25.5    2.53    91.7
+       15    12.75    11.41     1.34          10.5%     34.3     24.8    2.45    90.0
+       20    12.00    10.32     1.68          14.0%     32.5     24.1    2.36    88.8
+       25    11.25     9.28     1.97          17.5%     30.6     23.4    2.28    88.0
+       30    10.50     8.31     2.19          20.8%     28.6     22.8    2.19    87.4
+       40     9.00     6.57     2.43          27.0%     24.3     21.4    2.02    86.6
+       50     7.50     5.17     2.33          31.1%     19.1     20.1    1.85    86.1
+       60     6.00     4.17     1.83          30.4%     13.0     18.8    1.68    85.7
+       70     4.50     3.68     0.82          18.1%      5.4     17.4    1.51    85.4
+
+  Read the fifth column.  At 15% MetHb the left shift sterilises 10% of the
+  haemoglobin that is still ferrous; at 30% it sterilises 21%; at 50% it
+  sterilises 31%.  The clinical rule that "30% MetHb is roughly a haemoglobin
+  of 10.5" is out by more than two grams, and the error GROWS with severity --
+  it is largest exactly where the decision matters.
+
+  [PASS] EQUIV Hb at MetHb 30% (naive says 10.50)                  8.311 g/dL     (target 8-8.8) 
+  [PASS] residual capacity sterilised at MetHb 30%                20.846 %        (target 17-25) 
+  [PASS] residual capacity sterilised at MetHb 50%                31.110 %        (target 26-36) 
+  [PASS] PvO2 at MetHb 50% (untreated, uncompensated)             19.139 mmHg     (target 16-22) below the 20 mmHg anaerobic threshold
+
+==============================================================================
+3.  THE SAME PERCENTAGE IS NOT THE SAME DISEASE
+==============================================================================
+  %MetHb is a RATIO.  Tissue oxygen delivery is a PRODUCT.  A model that
+  carries both makes the anaemic patient's vulnerability arithmetic rather
+  than a warning in a textbook.
+
+      Hb  MetHb%  functional     PvO2    SpO2  lactate?
+    17.0      20       13.60     34.8    88.8        no
+    17.0      30       11.90     31.0    87.4        no
+    15.0      20       12.00     32.5    88.8        no
+    15.0      30       10.50     28.6    87.4        no
+    12.0      20        9.60     28.4    88.8        no
+    12.0      30        8.40     24.5    87.4        no
+     9.0      20        7.20     23.1    88.8        no
+     9.0      30        6.30     18.9    87.4       YES
+     7.0      20        5.60     18.0    88.8       YES
+     7.0      30        4.90     13.5    87.4       YES
+
+  The pulse oximeter reads essentially the SAME number down every column --
+  it is a function of the ratio alone.  The tissue PO2 is not.  A haemoglobin
+  of 7 crosses the anaerobic threshold at a methaemoglobin fraction that a
+  haemoglobin of 17 tolerates with 14 mmHg to spare, and no measurement made
+  at the bedside distinguishes them.
+
+  [PASS] SpO2 difference between Hb 7 and Hb 17 at MetHb 20%       0.000 %        (target 0-0.6) the oximeter cannot tell them apart
+  [PASS] PvO2 difference between the same two patients            16.780 mmHg     (target 8-20) but the tissue can
+
+==============================================================================
+4.  THE INSTRUMENT — where the 85% floor actually comes from
+==============================================================================
+  The oximeter forms R = A660/A940 over the pulsatile signal and reads SpO2
+  off a straight calibration line.  Methaemoglobin absorbs strongly and almost
+  equally at both wavelengths, so as its fraction rises R is dragged towards 1
+  -- and the calibration line evaluated at R = 1 is 110 - 25 = 85.
+
+  The 85% floor is therefore a property of the DEVICE, not of the blood.  The
+  model predicts, rather than assumes, both the floor and the shape of the
+  approach to it, and it predicts the saturation gap as the difference between
+  two things it computes independently.
+
+   MetHb%       R    SpO2  co-ox SaO2      gap  dSpO2/d%  cyanotic?
+        0   0.346   100.0        96.8      3.2                   no
+        5   0.608    94.8        91.9      2.9    -1.041         no
+       10   0.730    91.7        86.9      4.9    -0.609        YES
+       15   0.800    90.0        81.9      8.1    -0.352        YES
+       20   0.846    88.8        77.0     11.9    -0.229        YES
+       30   0.902    87.4        67.1     20.4    -0.140        YES
+       40   0.935    86.6        57.2     29.5    -0.082        YES
+       50   0.956    86.1        47.3     38.8    -0.054        YES
+       60   0.971    85.7        37.5     48.2    -0.037        YES
+       70   0.982    85.4        27.8     57.6    -0.027        YES
+       85   0.993    85.2        13.6     71.6    -0.019        YES
+
+  The last-but-one column is the model's sharpest statement about monitoring:
+  the sensitivity of the oximeter to the disease COLLAPSES as the disease gets
+  worse.  Between 0 and 5% MetHb the reading moves ~0.9 points per percent;
+  between 60 and 85% it moves ~0.02.  The instrument stops responding exactly
+  where the patient is dying, and it does so smoothly, without alarming.
+
+  [PASS] SpO2 at MetHb 30%                                        87.448 %        (target 84-90) Barker & Tremper 1989: ~85%
+  [PASS] SpO2 floor at MetHb 85%                                  85.166 %        (target 84-86.5) plateau ~85%
+  [PASS] MetHb fraction at which cyanosis becomes visible          9.066 %        (target 7-13) clinical teaching: 10-15%
+
+==============================================================================
+5.  BENZOCAINE — an acute exposure, and what happens if nobody treats
+==============================================================================
+  20% benzocaine spray, ~250 mg absorbed across the mucosa.
+    peak MetHb          30.66 %  at t = 1.66 h
+    SpO2 at peak        87.35 %
+    co-oximetry SaO2    66.35 %
+    PvO2 at peak        32.79 mmHg
+    spontaneous MetHb half-life once the oxidant has cleared: 8.39 h
+  [PASS] peak MetHb after a benzocaine spray                      30.658 %        (target 14-42) case series 15-40%
+  [PASS] time to peak                                              1.661 h        (target 0.2-2.5) 20 min - 2 h
+  [PASS] untreated MetHb half-life (normal CYB5R)                  8.388 h        (target 2.5-12) endogenous ~15%/h, prolonged while oxidant remains
+
+==============================================================================
+6.  METHYLENE BLUE — one molecule, two directions
+==============================================================================
+  Same exposure, methylene blue 1 mg/kg at 45 min:
+    MetHb at t=2 h, untreated  30.41 %
+    MetHb at t=2 h, treated     5.13 %
+    fall in the first hour after the dose: 14.11 percentage points
+  [PASS] MetHb 1 h after methylene blue 1 mg/kg                    8.650 %        (target 0.5-12) clinical: substantial fall within 30-60 min
+
+  Now the dose-response.  Nothing in this model contains a maximum dose, a
+  ceiling, or a rule.  It contains one branch point: leucomethylene blue can
+  give its two electrons to methaemoglobin, or it can give them to oxygen.
+  The first branch is proportional to MHB/(Km+MHB).  The second is not.
+
+   MB mg/kg  MetHb@2h   nadir   Hb@48h   Heinz   ROS-AUC   net effect
+        0.5      9.82    0.86    14.98   0.002     168.3      reduces
+        1.0      5.05    0.88    14.94   0.011     308.4      reduces
+        1.5      3.48    0.89    14.84   0.030     437.3      reduces
+        2.0      2.86    0.91    14.68   0.060     558.6      reduces
+        3.0      2.50    0.93    14.30   0.133     783.4      reduces
+        4.0      2.55    0.94    13.90   0.207     988.4 reduces/haemolyses
+        5.0      2.75    0.95    13.53   0.276    1177.3 reduces/haemolyses
+        7.0      3.44    0.98    12.91   0.392    1515.7 reduces/haemolyses
+       10.0      4.84    1.00    12.25   0.511    1947.3 reduces/haemolyses
+
+  The methaemoglobin column bottoms out and then stops improving, while the
+  haemoglobin and Heinz columns keep getting worse.  That is the whole reason
+  the clinical limit on methylene blue is a CUMULATIVE dose (7 mg/kg) rather
+  than a per-dose one: the harm is the time-integral of a futile branch that
+  runs whenever drug is present, and the benefit shuts off as soon as the
+  substrate is gone.  Best methaemoglobin at 2 h was at 3.0 mg/kg.
+
+  [PASS] Hb at 48 h after methylene blue 1 mg/kg                  14.937 g/dL     (target 14.2-15.2) no meaningful haemolysis
+  [PASS] Hb at 48 h after methylene blue 7 mg/kg                  12.908 g/dL     (target 9-14) haemolysis at the cumulative ceiling
+  [PASS] ROS exposure ratio, 7 mg/kg vs 1 mg/kg                    4.915 x        (target 1.8-12) 
+
+==============================================================================
+7.  G6PD — why the antidote fails, and why it then does harm
+==============================================================================
+  There is no rule in this model that says "do not give methylene blue in
+  G6PD deficiency".  There is one shared, capped NADPH supply with two
+  consumers: the flavin reductase that makes leucomethylene blue, and the
+  glutathione reductase that keeps the membrane intact.  Lower the cap and
+  both consumers lose -- and the one that loses second is the membrane.
+
+    G6PD  MetHb@2h   nadir  GSH nadir   Heinz   Hb@72h                verdict
+    1.00      2.85    0.82     1897.2   0.060    14.65                  works
+    0.60      8.67    0.82     1605.5   0.025    14.84                  works
+    0.40     16.00    0.82      570.1   0.026    14.83                  works
+    0.25     22.37    0.82      119.5   0.230    13.83          works, slower
+    0.15     22.82    0.82       50.2   0.442    12.86                  fails
+    0.08     18.26    0.81       22.0   0.625    12.06   FAILS and haemolyses
+    0.02     12.85    0.81        4.8   0.834    11.10   FAILS and haemolyses
+
+  The model reproduces the clinical gradient rather than a binary rule: class
+  III deficiency (A-, ~15% activity) gets a slower but real response, while
+  class II/I (Mediterranean, ~2%) gets essentially none and pays the
+  haemolytic price anyway.  The reason is visible in the GSH column -- at low
+  G6PD, the methylene blue is not merely ineffective, it is COMPETING with
+  glutathione for the electrons that were holding the cell together.
+
+  [PASS] MetHb 2 h after MB 2 mg/kg, normal G6PD                   2.854 %        (target 0-4) antidote works
+  [PASS] MetHb 2 h after MB 2 mg/kg, G6PD 2%                      12.849 %        (target 8-40) antidote failure
+  [PASS] MetHb 2 h after MB 2 mg/kg, G6PD 15% (A-)                22.816 %        (target 1-25) intermediate, as observed
+  [PASS] Hb at 72 h, G6PD 2% given methylene blue                 11.097 g/dL     (target 6.5-13) haemolysis instead of reduction
+  [PASS] G6PD 2% haemolyses MORE than normal G6PD                  3.548 g/dL     (target 0.3-9) 
+
+==============================================================================
+8.  DAPSONE — a formation-side disease, and the rebound it must cause
+==============================================================================
+  dapsone    50 mg/d  ->  steady-state MetHb   3.07 %   Hb 14.99 g/dL   Cdap  0.83 mg/L
+  dapsone   100 mg/d  ->  steady-state MetHb   5.69 %   Hb 14.99 g/dL   Cdap  1.66 mg/L
+  dapsone   200 mg/d  ->  steady-state MetHb  12.39 %   Hb 15.01 g/dL   Cdap  3.32 mg/L
+  dapsone   300 mg/d  ->  steady-state MetHb  21.61 %   Hb 15.06 g/dL   Cdap  4.98 mg/L
+
+  cimetidine 400 mg tid added to dapsone 100 mg/d:
+    MetHb 5.69% -> 3.57% (37% reduction)
+  [PASS] steady-state MetHb on dapsone 100 mg/d                    5.689 %        (target 3-12) reported 5-12%
+  [PASS] cimetidine reduction in steady-state MetHb               37.261 %        (target 15-45) Coleman: ~25-30%
+
+  Now the overdose (2 g).  Dapsone's half-life is ~30 h and it recirculates through
+  the bile; methylene blue's effect on the blood is over in about an hour.  The
+  model was not told that dapsone poisoning rebounds.  It rebounds because two
+  clocks are running at different speeds.
+
+    untreated peak MetHb             58.74 % at 26.8 h
+    untreated: hours above 20% MetHb   80.0 h
+    single MB 2 mg/kg at 6 h: 27.2% -> 2.7% at 7.9 h, then REBOUND to 25.8% at 52.2 h
+  [PASS] dapsone 2 g overdose, untreated peak MetHb               58.741 %        (target 30-75) reported 30-70%
+  [PASS] rebound after a single methylene blue dose               25.800 %        (target 8-60) well documented; requires repeat dosing
+  [PASS] time to rebound peak                                     44.307 h        (target 1-96) 
+
+    5 doses of methylene blue (7 mg/kg cumulative, i.e. the ceiling):
+        MetHb AUC   1051.8 %.h,
+        Hb at 144 h 12.64 g/dL, Heinz peak 0.309
+    2 doses of methylene blue + cimetidine (4 mg/kg cumulative):
+        MetHb AUC    912.6 %.h,
+        Hb at 144 h 13.64 g/dL, Heinz peak 0.248
+
+  This is the model's therapeutic argument, and it is an argument about WHICH
+  TERM you attack.  Methylene blue acts on the clearance term and is spent
+  within the hour; cimetidine acts on the formation term and keeps acting.  In
+  a poisoning whose source term lasts days, the drug with the short action has
+  to be re-given until the cumulative ceiling is reached, whereas turning down
+  the source is free of that constraint.
+
+
+==============================================================================
+9.  NITRITE — the autocatalytic one
+==============================================================================
+  Nitrite oxidation of oxyhaemoglobin is autocatalytic: the product
+  accelerates the reaction.  The model contains that one extra term -- and the
+  result below is NOT the one it was put there to produce.
+
+  sodium nitrite   2.0 g  ->  peak MetHb  23.87% at  2.48 h;  5%->30% in   nan h;  PvO2 nadir  34.4 mmHg
+  sodium nitrite   5.0 g  ->  peak MetHb  62.07% at  2.86 h;  5%->30% in  0.41 h;  PvO2 nadir  22.7 mmHg
+  sodium nitrite  10.0 g  ->  peak MetHb  99.96% at  2.61 h;  5%->30% in  0.17 h;  PvO2 nadir   0.0 mmHg
+
+  A REFUTED HYPOTHESIS, LEFT IN RATHER THAN REMOVED
+  -------------------------------------------------
+  The autocatalytic term was put into this model on the expectation that it
+  would generate the clinical lag-then-wall.  It does not.  Switching it off
+  entirely moves the 5 g peak from 62.1% to 61.6% and leaves the
+  5%-to-30% rise time at 0.41 h vs 0.41 h -- no meaningful difference.
+
+  The reason is worth stating because it is itself a result: at poisoning
+  doses the reaction is not rate-limited by its own chemistry.  It is limited
+  by ABSORPTION on the way up and by STOICHIOMETRY at the top -- 5 g of sodium
+  nitrite is 72.5 mmol against roughly 186 mmol of haem, and unlike the
+  arylhydroxylamines nitrite is consumed as it goes.  That is why the peak
+  scales with dose almost linearly while the timing barely moves, and it is
+  why "how much did they take" predicts a nitrite patient far better than it
+  predicts a dapsone one.
+
+  The autocatalysis is real chemistry; it is simply not the rate-limiting step
+  in vivo.  The term is left in the model, and this paragraph is left in the
+  output, because deleting a hypothesis that failed is how a model stops being
+  checkable.
+
+  [PASS] nitrite 5 g peak MetHb                                   62.069 %        (target 45-90) 
+
+==============================================================================
+10.  CONGENITAL DISEASE — why chronic 25% is well and acute 25% is not
+==============================================================================
+  Congenital CYB5R3 deficiency produces patients who are visibly blue,
+  have methaemoglobin fractions of 15-30%, and are entirely well.  The model
+  was not given a "chronic" switch.  It has 2,3-BPG and a marrow, and both
+  respond to tissue hypoxia -- and 2,3-BPG's effect on P50 is the exact
+  opposite allosteric move to the one methaemoglobin makes.
+
+  chronic (250 d at CYB5R in-vivo flux fraction 0.035):
+    MetHb 22.5%   2,3-BPG 1.09x   P50eff 25.0 mmHg   Hb 15.08
+    PvO2 35.5 mmHg    SpO2 88.3%   cyanosis index 2.38
+  the SAME methaemoglobin fraction, arrived at acutely:
+    P50eff 23.8 mmHg    PvO2 31.6 mmHg   SpO2 88.4%
+
+  Same percentage, same oximeter reading, 4.0 mmHg of difference at the
+  tissue.  The compensation is not tolerance and it is not adaptation of the
+  brain: it is a measurable right-shift that cancels part of a measurable
+  left-shift.  This is also why methylene blue in congenital methaemoglobinaemia
+  is a COSMETIC intervention -- the model shows the colour changing while the
+  tissue PO2 barely moves.
+
+    methylene blue 1 mg/kg: MetHb 22.5% -> 2.0%,  PvO2 35.5 -> 40.2 mmHg,  SpO2 88.3 -> 97.0%
+  [PASS] chronic CYB5R deficiency steady-state MetHb              22.479 %        (target 10-35) congenital type I: 10-35%
+  [PASS] chronic CYB5R deficiency PvO2 (near normal despite the colour)     35.538 mmHg     (target 33-41) 
+  [PASS] PvO2 advantage of chronic over acute at the same MetHb      3.954 mmHg     (target 3-15) 
+
+  HbM variant (methaemoglobin that cannot be reduced at all):
+    MetHb before MB 25.7% -> after 26.1%   (no response, correctly)
+  [PASS] HbM: MetHb change after methylene blue                    0.345 %        (target 0-2) HbM does not respond to MB
+
+==============================================================================
+11.  BYPASSING HAEMOGLOBIN ALTOGETHER
+==============================================================================
+  Three therapeutic classes act on three different terms:
+    (1) stop the oxidant / block bioactivation  -> the FORMATION term
+    (2) methylene blue, ascorbate               -> the CLEARANCE term
+    (3) hyperbaric oxygen, exchange transfusion -> the DELIVERY term itself
+  Only the third works when the first two cannot.
+
+  MetHb 70%, room air                dissolved O2  0.29 mL/dL   CaO2  5.88   PvO2    5.4 mmHg   ANAEROBIC
+  MetHb 70%, 100% O2 at 1 ATA        dissolved O2  1.92 mL/dL   CaO2  7.92   PvO2   16.7 mmHg   ANAEROBIC
+  MetHb 70%, 100% O2 at 2.8 ATA      dissolved O2  5.40 mL/dL   CaO2 11.42   PvO2  131.5 mmHg   aerobic
+  MetHb 95%, 100% O2 at 2.8 ATA      dissolved O2  5.40 mL/dL   CaO2  6.40   PvO2  131.6 mmHg   aerobic
+
+  The arithmetic is Boerema's: resting extraction is VO2/(CO x 10) = 5.0 mL of
+  oxygen per decilitre, and 2.8 ATA of oxygen dissolves 5.4 mL/dL in plasma.
+  Hyperbaric oxygen therefore covers resting metabolism with no functional
+  haemoglobin at all -- which is why it is the correct answer in exactly the
+  case where methylene blue has no substrate to work on.
+
+  [PASS] PvO2 at MetHb 95% on HBO 2.8 ATA                        131.609 mmHg     (target 20-400) above the anaerobic threshold with essentially no functional Hb
+  [PASS] PvO2 at MetHb 95% on room air                             0.000 mmHg     (target 0-6) 
+  Exchange transfusion (replace 8 g/dL worth of the patient's blood):
+    MetHb at 3 h  untreated  43.50%  vs exchanged  20.04%
+    PvO2  at 3 h  untreated  29.61   vs exchanged  35.39 mmHg
+
+==============================================================================
+12.  THE ALTERNATIVES, AND THE ANTIDOTE'S OWN PHARMACOLOGY
+==============================================================================
+  ascorbic acid 10 g IV vs methylene blue 1 mg/kg vs nothing:
+    nothing          MetHb@2h  30.40%   @6h  22.44%   AUC   344.8 %.h
+    ascorbate 10 g   MetHb@2h  28.65%   @6h  16.70%   AUC   258.3 %.h
+    methylene blue   MetHb@2h   5.08%   @6h   1.46%   AUC    57.6 %.h
+
+  Ascorbate is not a slow version of methylene blue; it is a different order of
+  magnitude.  Its rate constant is a non-enzymatic bimolecular one, and no dose
+  that a kidney will tolerate makes it competitive.  It belongs where methylene
+  blue is contraindicated, not where methylene blue is merely unavailable.
+
+  [PASS] ascorbate 10 g is slower than MB at 2 h                  23.571 %        (target 2-40) ascorbate must NOT match MB
+
+  Methylene blue is also a potent MAO-A inhibitor:
+    MB alone     peak serotonin index  1.29 x normal
+    SSRI alone   peak serotonin index  1.72 x normal
+    MB + SSRI    peak serotonin index  2.62 x normal
+  [PASS] serotonin index, MB alone                                 1.292 x        (target 1.1-2.2) 
+  [PASS] serotonin index, MB on top of an SSRI                     2.618 x        (target 2.5-12) the reported interaction
+
+==============================================================================
+14.  SULFHAEMOGLOBIN — the differential the oximeter cannot make
+==============================================================================
+         pigment   g/dL    SpO2  cyanotic?  responds to MB?
+  methaemoglobin   1.50    91.7        YES              yes
+  methaemoglobin   3.00    88.8        YES              yes
+  sulfhaemoglobin   0.50    89.3        YES NO (irreversible)
+  sulfhaemoglobin   1.50    69.8        YES NO (irreversible)
+
+  Half a gram of sulfhaemoglobin is visibly cyanotic; it takes three times as
+  much methaemoglobin and ten times as much deoxyhaemoglobin.  The model gets
+  this from three thresholds in one summed index, and it gets the crucial
+  clinical difference -- non-response to methylene blue -- from the fact that
+  sulfhaemoglobin never enters the reduction equations at all.
+
+
+==============================================================================
+13.  VIRTUAL COHORT — who actually decompensates
+==============================================================================
+  n = 240 exposures to a benzocaine spray of variable size.
+    median peak MetHb          31.0%  (IQR 25.8-35.7)
+    crossed the anaerobic threshold: 0 (0.0%)
+/usr/local/lib/python3.11/dist-packages/numpy/_core/fromnumeric.py:3824: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/usr/local/lib/python3.11/dist-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+    of those, median peak MetHb nan% and median Hb nan g/dL
+    of the rest, median peak MetHb 31.0% and median Hb 13.9 g/dL
+    if you triage on %MetHb alone at the matched cut-off (52.3%), you identify 0/0 of them.
+    if you triage on the PRODUCT Hb x (1-f) instead, you identify 0/0.
+  [PASS] product beats percentage as a triage variable             0.000 patients (target 0-100) 
+
+==============================================================================
+15.  SENSITIVITY — which parameters the conclusions actually rest on
+==============================================================================
+  base case: peak MetHb 22.76%, nadir after MB 1.29%, PvO2 nadir 33.8 mmHg
+
+  parameter                          x0.5                         x2
+                      peak / nadir / PvO2        peak / nadir / PvO2
+  ALPHAM         22.76/  1.29/  35.0      22.76/  1.29/  31.2   
+  VMXB5          23.12/  1.48/  33.7      22.07/  1.02/  34.0   
+  KO2            22.76/  0.67/  33.8      23.46/  2.80/  33.8   
+  VPPP           24.66/  1.31/  33.9      22.77/  1.27/  33.8   
+  KMBR           23.42/  2.42/  33.8      22.76/  0.66/  33.8   
+  KTOL           14.26/  1.28/  35.9      35.21/  1.30/  31.0   
+  KMBOXH         22.76/  1.28/  33.8      22.76/  1.32/  33.8   
+  NHILL          22.76/  1.29/  32.4      22.76/  1.29/  30.9   
+  GCO            22.76/  1.29/  32.9      22.76/  1.29/  35.0   
+  KROSOX         22.14/  0.66/  34.0      24.38/  2.89/  33.5   
+
+  ALPHAM -- the size of the Darling-Roughton left shift -- is the parameter the
+  headline result rests on, and it is the one with the weakest quantitative
+  literature.  It is stated here rather than buried: if the true left shift is
+  half of what is assumed, the 30% equivalence moves from 8.3 to about 9.4 g/dL
+  and the argument weakens but does not reverse; if it is zero, the argument
+  disappears entirely and %MetHb becomes an adequate bedside variable.  That is
+  a falsifiable prediction, and the experiment is a co-oximeter and a blood-gas
+  P50 measured on the same sample.
+
+    ALPHAM no left shift  P50eff  26.8  PvO2  32.6  EQUIV Hb at 30% MetHb 10.39 g/dL
+    ALPHAM half           P50eff  24.8  PvO2  30.7  EQUIV Hb at 30% MetHb  9.31 g/dL
+    ALPHAM as modelled    P50eff  22.8  PvO2  28.6  EQUIV Hb at 30% MetHb  8.31 g/dL
+    ALPHAM 1.5x           P50eff  20.8  PvO2  26.5  EQUIV Hb at 30% MetHb  7.40 g/dL
+
+==============================================================================
+ANCHOR SUMMARY
+==============================================================================
+
+  42/42 anchors pass.
