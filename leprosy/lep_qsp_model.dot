@@ -1,0 +1,409 @@
+/* =====================================================================
+   Leprosy (Hansen's disease) — QSP mechanistic map
+   ---------------------------------------------------------------------
+   Organising idea of this map (and of lep_mrgsolve_model.R):
+
+   Leprosy is managed on ONE measured number, the Bacterial Index (BI),
+   and the BI is governed by a rate that no drug touches.
+
+        BI  = log10( LIVE + DEAD acid-fast bacilli per gram )
+        MI  = 100 * LIVE / (LIVE + DEAD)          ("morphological index")
+
+   Drugs set d(LIVE)/dt.  The BI is dominated by DEAD bacilli, which are
+   removed only by macrophage degradation with a half-life of ~4-5 months.
+   Hence BI falls ~0.6-1.0 log/year on ANY effective regimen, while MI
+   collapses in 2-3 weeks on rifampicin and in ~5 months on dapsone.
+   BI is a CLEARANCE clock; MI is the KILL clock.
+
+   The second consequence is the clinically important one.  Type-2
+   reaction (erythema nodosum leprosum, ENL) is driven by the RATE at
+   which bacillary antigen is liberated, i.e. by d(LIVE)/dt, not by the
+   standing burden.  The therapeutic act and the complication are the
+   same derivative with opposite signs.  Cumulative antigen is fixed by
+   the initial burden B0; only its distribution in time is drug-modifiable.
+
+   Node colouring
+     - pale red      : bacillus, antigen, immune-complex
+     - pale orange   : pro-inflammatory mediators / reactions
+     - pale blue     : drugs & PK
+     - pale green    : protective / regulatory / host defence
+     - pale yellow   : measured clinical & laboratory endpoints
+     - grey          : anatomy / compartments
+   ===================================================================== */
+
+digraph leprosy_qsp {
+  graph [rankdir=TB, newrank=true, splines=polyline, nodesep=0.30, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", pad=0.4,
+         label=<<B>Leprosy (Hansen's disease) — Quantitative Systems Pharmacology map</B><BR/>
+                <FONT POINT-SIZE="11">Bacterial index = clearance clock · Morphological index = kill clock · ENL hazard ∝ d(antigen)/dt</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=1.0, margin="0.08,0.05"];
+  edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.7];
+
+  /* ---------- 1. Exposure, transmission, entry ---------------------- */
+  subgraph cluster_entry {
+    label="1 · Transmission and entry";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    SRC      [label="Untreated MB index case\nnasal shedding 10⁷ bacilli/day", fillcolor="#fbdcdc"];
+    ARMAD    [label="Zoonotic reservoir\n(nine-banded armadillo,\nred squirrel; M. lepromatosis)", fillcolor="#efefef"];
+    AEROSOL  [label="Nasal droplet aerosol\n(dominant route)", fillcolor="#efefef"];
+    NASMUC   [label="Nasal mucosa\n(portal of entry)", fillcolor="#efefef"];
+    SKINBR   [label="Broken skin / prolonged\nhousehold contact", fillcolor="#efefef"];
+    MLEP     [label="Mycobacterium leprae\ngen. time 12.5 d, obligate\nintracellular, uncultivable", fillcolor="#fbdcdc"];
+    INCUB    [label="Incubation 2–10 y\n(range 6 mo – 30 y)", fillcolor="#efefef"];
+  }
+
+  /* ---------- 2. Host genetics and innate sensing ------------------- */
+  subgraph cluster_genes {
+    label="2 · Host susceptibility and innate sensing";
+    style="rounded,filled"; fillcolor="#f0f7f0"; color="#8fbf8f"; fontsize=12;
+
+    NOD2     [label="NOD2 / RIPK2\n(muramyl dipeptide sensing)", fillcolor="#dff0df"];
+    PARK2    [label="PARK2 / PACRG\n(mitophagy, xenophagy)", fillcolor="#dff0df"];
+    LRRK2    [label="LRRK2\n(phagosome maturation)", fillcolor="#dff0df"];
+    TLR21    [label="TLR2/TLR1 heterodimer\n(19 kDa lipoprotein)", fillcolor="#dff0df"];
+    VDRN     [label="VDR + CYP27B1\n1,25(OH)₂D → cathelicidin", fillcolor="#dff0df"];
+    HLADR    [label="HLA-DRB1*15/*16\n(spectrum determination)", fillcolor="#dff0df"];
+    IL23R    [label="IL23R / TNFSF15\n(reaction susceptibility)", fillcolor="#dff0df"];
+    AUTOPH   [label="Autophagy / LC3-II flux", fillcolor="#dff0df"];
+    ROSNO    [label="Phagosomal ROS / iNOS-NO", fillcolor="#dff0df"];
+  }
+
+  /* ---------- 3. Intracellular niche -------------------------------- */
+  subgraph cluster_niche {
+    label="3 · Intracellular niche and bacterial metabolism";
+    style="rounded,filled"; fillcolor="#fdf3f3"; color="#d09090"; fontsize=12;
+
+    MPHAGE   [label="Dermal macrophage\n(foamy / Virchow cell)", fillcolor="#efefef"];
+    SCHWANN  [label="Schwann cell\n(peripheral nerve)", fillcolor="#efefef"];
+    PGL1     [label="Phenolic glycolipid-1 (PGL-1)\nunique trisaccharide", fillcolor="#fbdcdc"];
+    LAM      [label="Lipoarabinomannan (LAM)", fillcolor="#fbdcdc"];
+    LBP      [label="Laminin-binding protein 21\n→ α2-laminin / dystroglycan", fillcolor="#fbdcdc"];
+    ERBB2    [label="ErbB2 / MEK-ERK1-2 activation\n(Schwann-cell demyelination)", fillcolor="#fbdcdc"];
+    REPROG   [label="Schwann-cell reprogramming\nto progenitor-like state", fillcolor="#fbdcdc"];
+    LIPID    [label="Host lipid droplet recruitment\n(ADRP/PLIN2, cholesterol)", fillcolor="#fbdcdc"];
+    GENDECAY [label="Reductive genome decay\n(1,116 pseudogenes, 3.27 Mb)\n→ obligate host dependence", fillcolor="#fbdcdc"];
+  }
+
+  /* ---------- 4. Bacterial population dynamics (model core) --------- */
+  subgraph cluster_bact {
+    label="4 · Bacterial population dynamics  [ODE core]";
+    style="rounded,filled"; fillcolor="#fdeaea"; color="#c06060"; fontsize=12;
+
+    BG       [label="B_growing\nmetabolically active, µ = ln2/12.5 d", fillcolor="#f8c8c8"];
+    BP       [label="B_persister\nnon-replicating, drug-tolerant\nf ≈ 10⁻⁵ of population", fillcolor="#f8c8c8"];
+    BR       [label="B_resistant\nrpoB / folP1 / gyrA mutants\npre-existing 10⁻⁷ – 10⁻⁶", fillcolor="#f8c8c8"];
+    BD       [label="B_dead (still acid-fast)\nCLEARED ONLY BY MACROPHAGE\nDEGRADATION t½ ≈ 135 d", fillcolor="#f8c8c8"];
+    KILL     [label="Σ kill rate\nk_RIF + k_DAP + k_CLO + k_ROM", fillcolor="#dbe9f7"];
+    SWITCH   [label="growing ⇄ persister\nswitching (k_gp, k_pg)", fillcolor="#f8c8c8"];
+    RELAPSE  [label="Relapse\n(persister regrowth after MDT stop)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 5. Antigen liberation --------------------------------- */
+  subgraph cluster_antigen {
+    label="5 · Antigen liberation — the derivative that drives reactions";
+    style="rounded,filled"; fillcolor="#fdeaea"; color="#c06060"; fontsize=12;
+
+    AGBURST  [label="Fragmentation burst on KILLING\nrelease ∝ k_kill · B_live", fillcolor="#f8c8c8"];
+    AGSLOW   [label="Slow release on DEGRADATION\nrelease ∝ k_clr · B_dead", fillcolor="#f8c8c8"];
+    AGPOOL   [label="Free antigen pool (Ag)\nPGL-1, LAM, 35 kDa, LID-1", fillcolor="#f8c8c8"];
+    AGCONS   [label="CONSERVATION LAW\n∫release dt ≈ B₀ — drugs move the\nPEAK in time, not the AREA", fillcolor="#fff3c4"];
+    ABIGM    [label="Anti-PGL-1 IgM\n(titre ∝ bacterial load)", fillcolor="#f8c8c8"];
+    ICPLX    [label="Immune complexes (Ag·Ab)\ncomplement C3/C5 fixation", fillcolor="#f8c8c8"];
+  }
+
+  /* ---------- 6. Immunological spectrum ----------------------------- */
+  subgraph cluster_spectrum {
+    label="6 · Ridley–Jopling immunological spectrum";
+    style="rounded,filled"; fillcolor="#f0f7f0"; color="#8fbf8f"; fontsize=12;
+
+    TH1      [label="Th1 / Th17 arm\nIFN-γ, IL-2, IL-12, IL-17A", fillcolor="#dff0df"];
+    TH2      [label="Th2 / Treg arm\nIL-4, IL-10, TGF-β, FoxP3", fillcolor="#fbdcdc"];
+    CMI      [label="Cell-mediated immunity index\n(lepromin / Mitsuda reactivity)", fillcolor="#dff0df"];
+    GRAN     [label="Epithelioid granuloma\n(bacillary containment)", fillcolor="#dff0df"];
+    M1M2     [label="Macrophage polarisation\nM1 (bactericidal) ⇄ M2 (permissive)", fillcolor="#efefef"];
+    TT       [label="TT — tuberculoid\nBI 0, few lesions, nerve damage early", fillcolor="#efefef"];
+    BB       [label="BB / BT / BL — borderline\nUNSTABLE, reaction-prone", fillcolor="#efefef"];
+    LL       [label="LL — lepromatous\nBI 4–6, 10¹¹ bacilli, anergic", fillcolor="#efefef"];
+    PBMB     [label="Operational class\nPB (≤5 lesions) vs MB (>5 / BI+)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 7. Type 1 (reversal) reaction ------------------------- */
+  subgraph cluster_t1r {
+    label="7 · Type 1 reaction (reversal reaction) — delayed hypersensitivity upswing";
+    style="rounded,filled"; fillcolor="#fdf0e4"; color="#d09a5a"; fontsize=12;
+
+    IMMRES   [label="Immune restoration on MDT\n(antigen load falls → anergy lifts)", fillcolor="#fbe0c0"];
+    T1RACT   [label="T1R activity\n= CMI × antigen in nerve/skin", fillcolor="#fbe0c0"];
+    IFNG     [label="IFN-γ / CXCL10", fillcolor="#fbe0c0"];
+    MMP      [label="MMP-2 / MMP-9\n(perineurial breakdown)", fillcolor="#fbe0c0"];
+    OEDEMA   [label="Intraneural oedema\n+ conduction block", fillcolor="#fbe0c0"];
+    T1RSKIN  [label="Lesion erythema and swelling\n(no systemic upset)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 8. Type 2 reaction (ENL) ------------------------------ */
+  subgraph cluster_enl {
+    label="8 · Type 2 reaction (erythema nodosum leprosum) — driven by d(Ag)/dt";
+    style="rounded,filled"; fillcolor="#fdf0e4"; color="#d09a5a"; fontsize=12;
+
+    ICDEP    [label="Immune-complex deposition\n(skin venules, synovium, testis,\nglomerulus, nerve)", fillcolor="#fbe0c0"];
+    C5A      [label="C5a generation", fillcolor="#fbe0c0"];
+    NEUT     [label="Neutrophil influx\n(defining ENL histology)", fillcolor="#fbe0c0"];
+    TNFA     [label="TNF-α  ←  the drug target", fillcolor="#fbe0c0"];
+    IL6      [label="IL-6 / IL-1β\nacute-phase response", fillcolor="#fbe0c0"];
+    NETS     [label="Neutrophil extracellular traps", fillcolor="#fbe0c0"];
+    ENLSCORE [label="ENLIST severity score\ncrops of tender nodules, fever,\niridocyclitis, orchitis, neuritis", fillcolor="#fff3c4"];
+    CHRONENL [label="Chronic / recurrent ENL\n(steroid dependence)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 9. Nerve injury and disability ------------------------ */
+  subgraph cluster_nerve {
+    label="9 · Nerve injury — a reversible pool with an irreversible sink";
+    style="rounded,filled"; fillcolor="#eef0fa"; color="#8a8fc0"; fontsize=12;
+
+    NFIREV   [label="REVERSIBLE impairment\n(oedema, demyelination,\nconduction block) — steroid-responsive", fillcolor="#dfe3f7"];
+    KFIX     [label="k_fix = 1/180 d⁻¹\nfixation to axonal loss", fillcolor="#dfe3f7"];
+    NFIPERM  [label="IRREVERSIBLE impairment\n(axonal loss, fibrosis)\nNO drug reverses this", fillcolor="#dfe3f7"];
+    NERVES   [label="Ulnar, median, common peroneal,\nposterior tibial, facial, great auricular", fillcolor="#efefef"];
+    STMT     [label="Sensory (ST) and motor (MT)\ntesting → EHF score /12", fillcolor="#fff3c4"];
+    WHOGR    [label="WHO disability grade 0/1/2\n(grade 2 = visible deformity)", fillcolor="#fff3c4"];
+    ULCER    [label="Anaesthetic foot → plantar ulcer,\nclaw hand, lagophthalmos", fillcolor="#fff3c4"];
+    WINDOW   [label="THERAPEUTIC WINDOW\nP(recovery) ≈ exp(−t_delay / 180 d)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 10. Rifampicin ---------------------------------------- */
+  subgraph cluster_rif {
+    label="10 · Rifampicin — the kill clock";
+    style="rounded,filled"; fillcolor="#eaf1fa"; color="#7095c0"; fontsize=12;
+
+    RIFDOSE  [label="Rifampicin 600 mg\nONCE MONTHLY, supervised", fillcolor="#dbe9f7"];
+    RIFGUT   [label="Gut / absorption (ka 1.5 h⁻¹)", fillcolor="#dbe9f7"];
+    RIFC     [label="Plasma rifampicin\nV 60 L, t½ 3–4 h", fillcolor="#dbe9f7"];
+    RPOB     [label="RNA polymerase β subunit (rpoB)\n→ transcription arrest", fillcolor="#dbe9f7"];
+    RIFKILL  [label="99.9% viable kill from ONE dose\n(mouse foot-pad, Shepard/Levy)", fillcolor="#dbe9f7"];
+    PXR      [label="PXR/CAR → CYP3A4, CYP2C9,\nUGT, P-gp autoinduction", fillcolor="#dbe9f7"];
+    RIFTOX   [label="Orange urine, flu-like syndrome,\nhepatitis, thrombocytopenia", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 11. Dapsone ------------------------------------------- */
+  subgraph cluster_dap {
+    label="11 · Dapsone — folate synthesis and an oxidative price";
+    style="rounded,filled"; fillcolor="#eaf1fa"; color="#7095c0"; fontsize=12;
+
+    DAPDOSE  [label="Dapsone 100 mg DAILY\n(self-administered)", fillcolor="#dbe9f7"];
+    DAPC     [label="Plasma dapsone\nV ≈ 75 L, t½ 24–30 h", fillcolor="#dbe9f7"];
+    DHPS     [label="Dihydropteroate synthase (folP1)\n→ folate synthesis block", fillcolor="#dbe9f7"];
+    NAT2     [label="NAT2 acetylation\n(monoacetyl-dapsone)", fillcolor="#dbe9f7"];
+    NOHDDS   [label="CYP2C9/2E1 → dapsone\nhydroxylamine (DDS-NOH)", fillcolor="#dbe9f7"];
+    METHB    [label="Methaemoglobin 5–12%", fillcolor="#fff3c4"];
+    HAEM     [label="Oxidative haemolysis\n(dose-dependent; severe in G6PD def.)", fillcolor="#fff3c4"];
+    DHS      [label="Dapsone hypersensitivity syndrome\nHLA-B*13:01, 0.5–3%", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 12. Clofazimine --------------------------------------- */
+  subgraph cluster_clo {
+    label="12 · Clofazimine — a 70-day half-life used as an anti-inflammatory";
+    style="rounded,filled"; fillcolor="#eaf1fa"; color="#7095c0"; fontsize=12;
+
+    CLODOSE  [label="Clofazimine 50 mg daily\n+ 300 mg monthly", fillcolor="#dbe9f7"];
+    CLOC     [label="Plasma clofazimine\nCss ≈ 0.5–0.9 µg/mL", fillcolor="#dbe9f7"];
+    CLOT     [label="TISSUE / MACROPHAGE depot\n100–1000× plasma, t½ ≈ 70 d\n→ 4–6 MONTHS to steady state", fillcolor="#dbe9f7"];
+    CLORED   [label="Redox cycling on NDH-2\n→ ROS (weak mycobactericidal)", fillcolor="#dbe9f7"];
+    CLOKV    [label="Kv1.3 blockade + PLA₂ inhibition\n→ T-cell and TNF suppression", fillcolor="#dbe9f7"];
+    CLOTIME  [label="TIMING COROLLARY\ncannot treat today's ENL;\nprevents next quarter's", fillcolor="#fff3c4"];
+    CLOPIG   [label="Red-brown skin pigmentation,\nichthyosis, crystal enteropathy", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 13. Anti-inflammatory and second-line drugs ----------- */
+  subgraph cluster_antiinf {
+    label="13 · Reaction pharmacotherapy and second-line antibacterials";
+    style="rounded,filled"; fillcolor="#eaf1fa"; color="#7095c0"; fontsize=12;
+
+    PDN      [label="Prednisolone 40–60 mg taper\n(t½ 3 h, GR-mediated)", fillcolor="#dbe9f7"];
+    GR       [label="Glucocorticoid receptor\n→ NF-κB transrepression", fillcolor="#dbe9f7"];
+    THAL     [label="Thalidomide 100–400 mg\n(t½ 6–7 h)", fillcolor="#dbe9f7"];
+    CRBN     [label="Cereblon (CRBN) E3 ligase\n→ TNF mRNA destabilisation\n+ IKZF1/3 degradation", fillcolor="#dbe9f7"];
+    TERAT    [label="Teratogenicity — absolute bar\nin women of childbearing potential", fillcolor="#fff3c4"];
+    HPAX     [label="HPA-axis suppression,\nhyperglycaemia, osteoporosis,\nstrongyloides hyperinfection", fillcolor="#fff3c4"];
+    ROM      [label="Second line: ofloxacin/moxifloxacin\n+ minocycline (± clarithromycin)", fillcolor="#dbe9f7"];
+    GYRA     [label="DNA gyrase A (gyrA)\n/ ribosome 30S (minocycline)", fillcolor="#dbe9f7"];
+    MTXAZA   [label="Steroid-sparing: methotrexate,\nazathioprine, ciclosporin,\nanti-TNF (case series)", fillcolor="#dbe9f7"];
+  }
+
+  /* ---------- 14. Measured endpoints -------------------------------- */
+  subgraph cluster_endpoints {
+    label="14 · Measured endpoints — note which clock each one reads";
+    style="rounded,filled"; fillcolor="#fdfae4"; color="#c0b060"; fontsize=12;
+
+    BI       [label="BACTERIAL INDEX (BI 0–6+)\nlog10(live + dead)\n→ reads the CLEARANCE clock\nfalls 0.6–1.0 log/year on ANY regimen", fillcolor="#fff3c4"];
+    MI       [label="MORPHOLOGICAL INDEX (MI %)\n100 × live/(live+dead)\n→ reads the KILL clock\n0% in 2–3 wk (RIF) vs ~5 mo (DDS)", fillcolor="#fff3c4"];
+    SKINSC   [label="Skin lesion count / area", fillcolor="#fff3c4"];
+    PCRVIA   [label="RLEP qPCR, 16S rRNA RT-PCR\n(viability readout)", fillcolor="#fff3c4"];
+    ANTIPGL  [label="Anti-PGL-1 serology", fillcolor="#fff3c4"];
+    CURE     [label="Treatment completion\n(PB 6 mo, MB 12 mo)", fillcolor="#fff3c4"];
+    RELRATE  [label="Relapse 0.7–3% at 10 y\n(higher if BI > 4 at diagnosis)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 15. Public-health layer ------------------------------- */
+  subgraph cluster_pubh {
+    label="15 · Programme layer";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    SDRPEP   [label="Single-dose rifampicin PEP\n(contacts; ~57% risk reduction at 2 y)", fillcolor="#dbe9f7"];
+    BCG      [label="BCG vaccination\n(~50% protection)", fillcolor="#dff0df"];
+    LEPVAX   [label="LepVax (LEP-F1 + GLA-SE)\nphase 1", fillcolor="#dff0df"];
+    ACTIVE   [label="Active case finding\n+ contact tracing", fillcolor="#efefef"];
+    DRUGRES  [label="Sentinel drug-resistance\nsurveillance (rpoB/folP1/gyrA)", fillcolor="#efefef"];
+    STIGMA   [label="Stigma, participation restriction\n(SALSA / P-scale)", fillcolor="#fff3c4"];
+  }
+
+  /* ---------- 16. The two clocks, stated -------------------------- */
+  subgraph cluster_thesis {
+    label="16 · The two clocks";
+    style="rounded,filled"; fillcolor="#fdfae4"; color="#c0b060"; fontsize=12;
+
+    CLOCK1   [label="CLOCK 1 — kill\nd(live)/dt, drug-set,\nhours to weeks", fillcolor="#fff3c4"];
+    CLOCK2   [label="CLOCK 2 — clearance\nd(dead)/dt, host-set,\nt½ 135 d, drug-INVARIANT", fillcolor="#fff3c4"];
+    MISREAD  [label="MISREADING: slow BI fall\ninterpreted as drug failure\n→ needless regimen extension", fillcolor="#fff3c4"];
+    TRADEOFF [label="THE TRADE-OFF\nfaster clock 1 ⇒ higher ENL peak\nat identical BI trajectory", fillcolor="#fff3c4"];
+  }
+
+  /* ===================== EDGES ===================================== */
+
+  /* entry */
+  SRC -> AEROSOL; ARMAD -> MLEP [style=dashed, label="zoonotic"];
+  AEROSOL -> NASMUC; SKINBR -> MLEP; NASMUC -> MLEP;
+  MLEP -> INCUB -> MPHAGE; MLEP -> SCHWANN;
+  MLEP -> GENDECAY; GENDECAY -> LIPID [label="obligate\nlipid theft"];
+
+  /* innate control */
+  TLR21 -> ROSNO; NOD2 -> AUTOPH; PARK2 -> AUTOPH; LRRK2 -> AUTOPH;
+  VDRN -> ROSNO; AUTOPH -> BG [color="#2e8b57", label="clearance"];
+  ROSNO -> BG [color="#2e8b57", label="kill"];
+  HLADR -> TH1; HLADR -> TH2; IL23R -> T1RACT; IL23R -> ENLSCORE;
+
+  /* niche */
+  MPHAGE -> BG; SCHWANN -> BG;
+  MLEP -> PGL1; MLEP -> LAM; MLEP -> LBP;
+  PGL1 -> ROSNO [color="#b22222", arrowhead=tee, label="scavenges"];
+  PGL1 -> TH2 [color="#b22222"];
+  LAM -> M1M2 [label="→ M2"];
+  LBP -> ERBB2 -> REPROG; REPROG -> NFIREV;
+  LIPID -> MPHAGE [label="foamy change"];
+
+  /* bacterial dynamics */
+  BG -> BG [label="µ = ln2/12.5 d"];
+  BG -> SWITCH -> BP; BP -> BG [label="k_pg"];
+  BG -> BR [label="pre-existing mutants"];
+  KILL -> BG [arrowhead=tee, color="#1f6fb2", penwidth=1.6];
+  KILL -> BP [arrowhead=tee, color="#1f6fb2", style=dashed, label="×0.01\ntolerance"];
+  BG -> BD [label="killed"]; BP -> BD; BR -> BD;
+  BD -> BI [penwidth=2.0, color="#b22222", label="DOMINATES\nthe measured BI"];
+  BG -> BI; BG -> MI [penwidth=1.6, color="#1f6fb2"]; BD -> MI [arrowhead=tee];
+  BP -> RELAPSE [label="after MDT stop"]; BR -> RELAPSE;
+  BD -> CLOCK2 [style=dashed]; KILL -> CLOCK1 [style=dashed];
+  CLOCK2 -> BI [style=dashed]; CLOCK1 -> MI [style=dashed];
+  CLOCK2 -> MISREAD [style=dashed]; MISREAD -> CURE [style=dashed, arrowhead=tee];
+
+  /* antigen */
+  KILL -> AGBURST [penwidth=1.6, color="#b22222"];
+  BG -> AGBURST; BD -> AGSLOW [label="k_clr"];
+  AGBURST -> AGPOOL [penwidth=1.6]; AGSLOW -> AGPOOL;
+  AGPOOL -> AGCONS [style=dashed]; AGCONS -> TRADEOFF [style=dashed];
+  AGPOOL -> ABIGM [label="B-cell drive"];
+  ABIGM -> ICPLX; AGPOOL -> ICPLX;
+  ICPLX -> ICDEP -> C5A -> NEUT;
+  AGPOOL -> ANTIPGL [style=dashed];
+
+  /* spectrum */
+  TH1 -> CMI -> GRAN; GRAN -> BG [arrowhead=tee, color="#2e8b57", label="containment"];
+  TH1 -> M1M2 [label="→ M1"]; TH2 -> M1M2 [label="→ M2"];
+  TH2 -> CMI [arrowhead=tee]; TH2 -> ABIGM [label="B-cell help"];
+  CMI -> TT [label="high"]; CMI -> BB [label="intermediate"]; CMI -> LL [label="absent"];
+  LL -> BG [label="10¹¹ bacilli"]; TT -> BI [label="BI 0"];
+  BI -> PBMB; SKINSC -> PBMB;
+  M1M2 -> KILL [style=dashed, label="host arm"];
+
+  /* T1R */
+  AGPOOL -> IMMRES [arrowhead=tee, label="falling Ag\nlifts anergy"];
+  IMMRES -> CMI [penwidth=1.4, color="#d2691e"];
+  CMI -> T1RACT; AGPOOL -> T1RACT [penwidth=1.4];
+  BB -> T1RACT [label="most\nreaction-prone"];
+  T1RACT -> IFNG -> MMP -> OEDEMA -> NFIREV [penwidth=1.6, color="#d2691e"];
+  T1RACT -> T1RSKIN; T1RACT -> TNFA;
+
+  /* ENL */
+  NEUT -> TNFA [penwidth=1.4]; TNFA -> NEUT [label="feed-forward"];
+  TNFA -> IL6; NEUT -> NETS -> TNFA;
+  TNFA -> ENLSCORE [penwidth=1.6, color="#d2691e"];
+  IL6 -> ENLSCORE; NEUT -> ENLSCORE;
+  LL -> ENLSCORE [label="BI ≥ 4 → ~50% risk"];
+  ENLSCORE -> NFIREV [label="neuritis"];
+  ENLSCORE -> CHRONENL; TNFA -> CHRONENL;
+  AGBURST -> ENLSCORE [penwidth=2.0, color="#b22222", label="ENL hazard ∝ d(Ag)/dt"];
+  TRADEOFF -> ENLSCORE [style=dashed];
+
+  /* nerve */
+  NERVES -> NFIREV; NFIREV -> KFIX -> NFIPERM [penwidth=1.6];
+  NFIREV -> STMT; NFIPERM -> STMT -> WHOGR -> ULCER;
+  NFIPERM -> WINDOW [style=dashed]; WINDOW -> PDN [style=dashed, dir=back];
+  NFIREV -> NFIREV [label="spontaneous\nrecovery k_rec"];
+  ULCER -> STIGMA;
+
+  /* rifampicin */
+  RIFDOSE -> RIFGUT -> RIFC -> RPOB -> RIFKILL -> KILL [penwidth=1.8, color="#1f6fb2"];
+  RIFC -> PXR -> RIFC [arrowhead=tee, label="autoinduction\n(monthly ⇒ minimal)"];
+  PXR -> DAPC [arrowhead=tee, label="↑ dapsone CL ~30%"];
+  RIFC -> RIFTOX; RIFDOSE -> SDRPEP [style=dashed];
+  BR -> RPOB [arrowhead=tee, label="rpoB S456L\nabolishes binding"];
+
+  /* dapsone */
+  DAPDOSE -> DAPC -> DHPS -> KILL [color="#1f6fb2"];
+  DAPC -> NAT2; DAPC -> NOHDDS -> METHB; NOHDDS -> HAEM;
+  DAPC -> DHS; BR -> DHPS [arrowhead=tee, label="folP1 P55L"];
+
+  /* clofazimine */
+  CLODOSE -> CLOC -> CLOT [penwidth=1.6, label="deep\ndistribution"];
+  CLOT -> CLORED -> KILL [color="#1f6fb2"];
+  CLOT -> CLOKV -> TNFA [arrowhead=tee, penwidth=1.6, color="#1f6fb2"];
+  CLOT -> CLOPIG; CLOT -> CLOTIME [style=dashed];
+  CLOTIME -> ENLSCORE [style=dashed, arrowhead=tee];
+
+  /* anti-inflammatory */
+  PDN -> GR -> TNFA [arrowhead=tee, penwidth=1.6, color="#1f6fb2"];
+  GR -> IFNG [arrowhead=tee]; GR -> OEDEMA [arrowhead=tee];
+  PDN -> NFIREV [arrowhead=tee, penwidth=1.6, color="#1f6fb2", label="acts ONLY on\nthe reversible pool"];
+  PDN -> HPAX;
+  THAL -> CRBN -> TNFA [arrowhead=tee, penwidth=1.6, color="#1f6fb2"];
+  THAL -> TERAT;
+  MTXAZA -> TNFA [arrowhead=tee, style=dashed];
+  ROM -> GYRA -> KILL [color="#1f6fb2", style=dashed];
+  BR -> GYRA [arrowhead=tee, label="gyrA A91V"];
+
+  /* endpoints */
+  BG -> PCRVIA; BD -> PCRVIA [arrowhead=tee, label="RNA absent"];
+  CURE -> RELRATE; RELAPSE -> RELRATE;
+  BI -> CURE [style=dashed, label="NOT a stopping rule"];
+  MI -> CLOCK1 [style=dashed];
+
+  /* programme */
+  SDRPEP -> ACTIVE; BCG -> CMI [color="#2e8b57"]; LEPVAX -> CMI [color="#2e8b57"];
+  ACTIVE -> SRC [arrowhead=tee, label="interrupt\ntransmission"];
+  DRUGRES -> BR [style=dashed];
+  WHOGR -> STIGMA;
+
+  /* ---------- legend ---------- */
+  subgraph cluster_legend {
+    label="Legend";
+    style="rounded,filled"; fillcolor="#ffffff"; color="#bbbbbb"; fontsize=11;
+    L1 [label="bacillus / antigen", fillcolor="#f8c8c8", fontsize=9];
+    L2 [label="inflammation / reaction", fillcolor="#fbe0c0", fontsize=9];
+    L3 [label="drug / PK / target", fillcolor="#dbe9f7", fontsize=9];
+    L4 [label="host protective arm", fillcolor="#dff0df", fontsize=9];
+    L5 [label="measured endpoint", fillcolor="#fff3c4", fontsize=9];
+    L6 [label="—▶ activation      —⊣ inhibition", shape=plaintext, fillcolor="#ffffff", fontsize=9];
+    L1 -> L2 -> L3 -> L4 -> L5 -> L6 [style=invis];
+  }
+}
