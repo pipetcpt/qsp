@@ -1,0 +1,551 @@
+/*
+ * cpvt_qsp_model.dot — Catecholaminergic Polymorphic Ventricular Tachycardia
+ * (CPVT) Quantitative Systems Pharmacology map
+ *
+ * 카테콜아민성 다형성 심실빈맥 (CPVT) QSP 기계론적 지도
+ *
+ * ORGANISING IDEA
+ * ---------------
+ * A triggered beat in CPVT is not one event with one cause. It is the PRODUCT
+ * of two crossings that are set independently, and every therapy in the
+ * disease moves exactly one of them. The map is laid out so both are visible
+ * as separate vertical paths that meet only at the end.
+ *
+ *   CROSSING 1 — LOAD vs THRESHOLD  (does a Ca wave happen at all?)
+ *       X = [Ca]JSR,free / Cth
+ *       The numerator is raised by catecholamines (PKA-P of phospholamban
+ *       disinhibits SERCA; PKA-P of the L-type channel raises Ca entry; a
+ *       faster rate leaves NCX less diastolic time to extrude).
+ *       The denominator is LOWERED by the mutation itself (RyR2 gain of
+ *       function, or loss of the luminal CASQ2 brake) and lowered further by
+ *       PKA/CaMKII phosphorylation of RyR2.
+ *       Below X = 1 there is no propagating wave and the heart is silent —
+ *       which is precisely why the resting ECG and the echocardiogram in CPVT
+ *       are NORMAL. The disease is a threshold that sits inside the
+ *       physiological range of exertion instead of above it.
+ *
+ *   CROSSING 2 — DAD vs WHAT THE CELL NEEDS TO FIRE  (does the wave capture?)
+ *       P(trigger) = f( V_DAD / V_required ),  V_required = V0 / (Na avail)^p
+ *       The wave's Ca is converted to inward current by electrogenic NCX
+ *       (3 Na in : 1 Ca out) and opposed by the I_K1 sink. Whether the
+ *       resulting delayed afterdepolarisation actually captures depends on
+ *       how much Na current is available to it.
+ *
+ * WHAT FALLS OUT ARITHMETICALLY RATHER THAN BEING ASSERTED
+ * --------------------------------------------------------
+ *   (1) NADOLOL vs METOPROLOL IS A PK RESULT, NOT A PHARMACOLOGY RESULT.
+ *       Both are competitive at the same receptor and the model gives them no
+ *       difference in intrinsic potency. What differs is the TROUGH. At
+ *       steady state the computed competitive shift factor (1 + C/EC50) is
+ *         nadolol 80 mg qd .......... 8.73 at peak -> 3.32 at 24 h
+ *         metoprolol 100 mg bid ..... 2.14 at peak -> 1.12 at 12 h
+ *         metoprolol 200 mg bid ..... 3.28 at peak -> 1.25 at 12 h
+ *       Metoprolol at DOUBLE dose reaches, at its peak, only what nadolol
+ *       still has left at its trough. Because CPVT events are triggered by
+ *       unscheduled exertion, it is the trough hour that is on trial, and a
+ *       t1/2 of 3.5 h with CYP2D6 clearance cannot hold one.
+ *
+ *   (2) ONE MISSED DOSE IS A DIFFERENT DRUG. 48 h after a nadolol dose the
+ *       shift factor is still 2.02; 24 h after a metoprolol dose it is 1.04 —
+ *       i.e. nothing. Adherence and half-life are the same axis.
+ *
+ *   (3) FLECAINIDE ADDS ON TOP OF MAXIMAL BETA-BLOCKADE BECAUSE THE TWO
+ *       CROSSINGS MULTIPLY. Nothing in the model grants flecainide an
+ *       additive term; it acts on crossing 2 while beta-blockade acts on
+ *       crossing 1, so the product falls even when crossing 1 is already as
+ *       low as a beta-blocker can push it.
+ *
+ *   (4) A NORMAL HEART IS SILENT FOR A STRUCTURAL REASON. At peak exercise
+ *       the wild-type model reaches X = 0.90 — a 10% margin — and produces
+ *       exactly zero triggered beats, because below threshold the wave rate
+ *       is identically zero rather than merely small.
+ *
+ * Layers: genotype and molecular lesion · triggers · central and cardiac
+ * sympathetic outflow · beta1-Gs-cAMP-PKA cascade with PP1/I-1 · L-type,
+ * SERCA/PLB, NCX, mitochondrial Ca fluxes · calsequestrin-triadin-junctin
+ * luminal complex · RyR2 gating, SOICR threshold and refractoriness ·
+ * Ca wave -> NCX -> DAD -> triggered beat · repolarisation reserve ·
+ * tissue-level bidirectional and polymorphic VT -> VF · beta-blocker,
+ * flecainide, verapamil PK/PD · LCSD, ICD, exercise restriction, gene
+ * therapy · adverse effects · diagnostics · clinical endpoints ·
+ * model state-variable legend.
+ */
+
+digraph CPVT_QSP {
+  rankdir = TB;
+  compound = true;
+  newrank = true;
+  splines = spline;
+  fontname = "Helvetica";
+  labelloc = "t";
+  fontsize = 30;
+  label = "카테콜아민성 다형성 심실빈맥 (Catecholaminergic Polymorphic Ventricular Tachycardia, CPVT) — QSP 기계론적 지도\nTwo independent crossings that multiply: SR Ca load vs SOICR threshold, and DAD amplitude vs the depolarisation the cell needs to fire";
+  bgcolor = "white";
+  nodesep = 0.30;
+  ranksep = 0.55;
+
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11,
+        color="#5A5A5A", penwidth=1.1, margin="0.10,0.06"];
+  edge [fontname="Helvetica", fontsize=9, color="#707070", penwidth=1.0,
+        arrowsize=0.7];
+
+  /* ================================================================
+   * 1. GENOTYPE / MOLECULAR LESION
+   * ================================================================ */
+  subgraph cluster_gene {
+    label = "① 유전적 병변 (Genotype & molecular lesion) — 문턱값을 내리는 쪽";
+    style = "rounded,filled"; fillcolor = "#F4F7FB"; color = "#7F9DB9";
+    fontsize = 15; fontcolor = "#284A66";
+
+    G_RYR2   [label="RYR2 (1q43) 기능획득 변이\nCPVT1 · 상염색체 우성 · ~55-65%\n>300 변이 (N-말단·중앙·C-말단 hot spot)", fillcolor="#F6BFBF", shape=box3d];
+    G_CASQ2  [label="CASQ2 (1p13.1) 기능소실\nCPVT2 · 주로 열성 · ~3-5%\n루미날 Ca 완충 + RyR2 억제 소실", fillcolor="#F6BFBF", shape=box3d];
+    G_TRDN   [label="TRDN (triadin) 결손\n열성 · 소아 발병 · T파 역전 동반", fillcolor="#E3EDF7"];
+    G_CALM   [label="CALM1/2/3 (칼모듈린증)\nCa 의존 불활성화 소실 · 중증", fillcolor="#E3EDF7"];
+    G_TECRL  [label="TECRL 결손\nCPVT + QT 연장 중복 표현형", fillcolor="#E3EDF7"];
+    G_KCNJ2  [label="KCNJ2 (Andersen-Tawil, ATS1)\nI_K1 소실 → 이중형태 VT 표현형 모방", fillcolor="#E3EDF7"];
+    G_ANK2   [label="ANK2 · SCN5A 다형성\n수식 유전자 (modifier)", fillcolor="#EAF1F8"];
+    G_NEG    [label="유전자 음성 CPVT (~30-40%)\n임상 진단은 여전히 유효", fillcolor="#EAF1F8", shape=note];
+
+    G_FKBP   [label="FKBP12.6 해리\n도메인 지퍼 풀림 (domain unzipping)", fillcolor="#E3EDF7"];
+    G_LUM    [label="루미날 Ca 감지 결함\n(CASQ2-triadin-junctin 복합체)", fillcolor="#E3EDF7"];
+    G_PEN    [label="침투도 ~ 0.5-0.8 · 성별·운동량 의존\n산발적 de novo 존재", fillcolor="#EAF1F8", shape=note];
+
+    G_RYR2 -> G_FKBP;
+    G_CASQ2 -> G_LUM;  G_TRDN -> G_LUM;
+    G_CALM -> G_RYR2 [style=dashed, label="CDI 소실"];
+    G_TECRL -> G_LUM [style=dashed];
+    G_ANK2 -> G_PEN [style=dashed];
+    G_RYR2 -> G_PEN [style=dashed];
+  }
+
+  /* ================================================================
+   * 2. TRIGGERS
+   * ================================================================ */
+  subgraph cluster_trig {
+    label = "② 촉발 요인 (Triggers) — 부하를 올리는 쪽의 입력";
+    style = "rounded,filled"; fillcolor = "#FDF3E7"; color = "#D9A441";
+    fontsize = 15; fontcolor = "#7A5410";
+
+    T_EXER   [label="운동 (Exercise)\n최다 촉발 · 트레드밀에서 재현 가능", fillcolor="#FBE6C8", shape=box3d];
+    T_EMOT   [label="정서적 스트레스 · 놀람 반응\n(startle · 알람 · 공포)", fillcolor="#FBE6C8", shape=box3d];
+    T_SWIM   [label="수영 · 냉수 노출\n(잠수 반사 + 교감 활성)", fillcolor="#FBE6C8"];
+    T_FEVER  [label="발열 · 감염", fillcolor="#FBE6C8"];
+    T_PREG   [label="임신 · 분만 (혈역학 부하)", fillcolor="#FBE6C8"];
+    T_DRUG   [label="교감신경 흥분제\n(살부타몰·ADHD 자극제·카페인)", fillcolor="#FBE6C8"];
+    T_ANES   [label="전신마취 유도·발관\n(케타민·에페드린 금기)", fillcolor="#FBE6C8"];
+
+    T_EXER -> SNS_HYP; T_EMOT -> SNS_HYP; T_SWIM -> SNS_HYP;
+    T_FEVER -> SNS_HYP; T_PREG -> SNS_HYP; T_ANES -> SNS_HYP;
+    T_DRUG -> B1_REC [lhead=cluster_beta, style=dashed];
+  }
+
+  /* ================================================================
+   * 3. SYMPATHETIC OUTFLOW
+   * ================================================================ */
+  subgraph cluster_sns {
+    label = "③ 교감신경 유출 (Central & cardiac sympathetic outflow)";
+    style = "rounded,filled"; fillcolor = "#F3F1F8"; color = "#9B8EC4";
+    fontsize = 15; fontcolor = "#4A3D75";
+
+    SNS_HYP  [label="시상하부 · 뇌간 (RVLM)\n교감 유출 SNS(t)", fillcolor="#E7E3F3"];
+    SNS_STEL [label="좌·우 성상 신경절\nStellate ganglion", fillcolor="#E7E3F3"];
+    SNS_LEFT [label="좌측 심장 교감신경\n(후벽·심실 대부분 분포)", fillcolor="#D9CFEE"];
+    SNS_RIGHT[label="우측 심장 교감신경\n(주로 동방결절 · 심박수)", fillcolor="#D9CFEE"];
+    SNS_NE   [label="시냅스 간극 NE 방출\n심근 간질 [NE] — 모델 상태변수 NEJ", fillcolor="#C9BBE6", shape=box3d];
+    SNS_NET  [label="NET (uptake-1) 재흡수\n· COMT/MAO 대사", fillcolor="#E7E3F3"];
+    SNS_VAG  [label="부교감 (미주) 긴장 철회\nVagal withdrawal", fillcolor="#E7E3F3"];
+    SNS_ADR  [label="부신 수질 → 순환 epinephrine\n모델 상태변수 EPI", fillcolor="#C9BBE6", shape=box3d];
+    SNS_HET  [label="교감신경 분포 불균질\n→ 재분극 이질성", fillcolor="#E7E3F3", shape=note];
+
+    SNS_HYP -> SNS_STEL; SNS_STEL -> SNS_LEFT; SNS_STEL -> SNS_RIGHT;
+    SNS_LEFT -> SNS_NE; SNS_RIGHT -> SNS_NE;
+    SNS_NE -> SNS_NET [dir=both, label="제거"];
+    SNS_HYP -> SNS_ADR; SNS_HYP -> SNS_VAG;
+    SNS_LEFT -> SNS_HET [style=dashed];
+    SNS_RIGHT -> HR_NODE [style=dashed];
+  }
+
+  /* ================================================================
+   * 4. BETA1 -> Gs -> cAMP -> PKA CASCADE
+   * ================================================================ */
+  subgraph cluster_beta {
+    label = "④ β1-Gs-cAMP-PKA 신호 전달 (경쟁적 차단이 작용하는 지점)";
+    style = "rounded,filled"; fillcolor = "#EAF6F0"; color = "#5FA37E";
+    fontsize = 15; fontcolor = "#1F5C3C";
+
+    B1_REC   [label="β1 아드레날린 수용체\n경쟁적 점유 = AGON / (1 + ΣC/EC50)", fillcolor="#CDE9DA", shape=box3d];
+    B2_REC   [label="β2 수용체 (심근 소수·혈관)\n비선택적 차단제만 함께 차단", fillcolor="#DDF0E6"];
+    B1_GS    [label="Gs 단백질 · AC5/6 활성화", fillcolor="#DDF0E6"];
+    B1_CAMP  [label="cAMP 상승 (모델 CAMP)", fillcolor="#CDE9DA"];
+    B1_PDE   [label="PDE3 / PDE4 분해\n(국소 cAMP 구획화)", fillcolor="#DDF0E6"];
+    B1_PKA   [label="PKA 활성화 (모델 PKA)", fillcolor="#CDE9DA", shape=box3d];
+    B1_I1    [label="Inhibitor-1 인산화 (모델 PI1)\n→ PP1 억제 (탈인산화 브레이크 해제)", fillcolor="#DDF0E6"];
+    B1_PP1   [label="PP1 / PP2A 포스파타아제\n= 되돌리는 힘", fillcolor="#DDF0E6"];
+    B1_PPLB  [label="P-Phospholamban Ser16 (모델 PPLB)\n→ SERCA2a 탈억제", fillcolor="#A8DCC0", shape=box3d];
+    B1_PRYR  [label="P-RyR2 Ser2808 (PKA) / Ser2814 (CaMKII)\n(모델 PRYR) → SOICR 문턱 ↓", fillcolor="#A8DCC0", shape=box3d];
+    B1_PICA  [label="P-Cav1.2 (모델 PICA)\n→ L형 Ca 전류 ↑", fillcolor="#A8DCC0", shape=box3d];
+    B1_PTNI  [label="P-Troponin I · P-Titin\n→ 이완 촉진 (수축 기능)", fillcolor="#DDF0E6"];
+    B1_CAMK  [label="CaMKII 활성화 (모델 CAMK)\nCa 과부하 → 양성 되먹임", fillcolor="#F6BFBF", shape=box3d];
+
+    SNS_NE -> B1_REC [ltail=cluster_sns, color="#C0392B", penwidth=2.0, label="NE"];
+    SNS_ADR -> B1_REC [label="epinephrine\n(dyad 접근도 F_epi < 1)", style=dashed];
+    B1_REC -> B1_GS -> B1_CAMP -> B1_PKA;
+    B1_CAMP -> B1_PDE [dir=both];
+    B1_REC -> B2_REC [style=invis];
+    B1_PKA -> B1_I1 -> B1_PP1 [arrowhead=tee, label="억제"];
+    B1_PP1 -> B1_PPLB [arrowhead=tee]; B1_PP1 -> B1_PRYR [arrowhead=tee];
+    B1_PKA -> B1_PPLB; B1_PKA -> B1_PRYR; B1_PKA -> B1_PICA; B1_PKA -> B1_PTNI;
+    B1_CAMK -> B1_PRYR [color="#C0392B", label="Ser2814"];
+  }
+
+  /* ================================================================
+   * 5. Ca CYCLING FLUXES
+   * ================================================================ */
+  subgraph cluster_ca {
+    label = "⑤ 근세포 Ca 순환 (Excitation-contraction coupling fluxes) — 부하를 만드는 쪽";
+    style = "rounded,filled"; fillcolor = "#FFF6E9"; color = "#E0A96D";
+    fontsize = 15; fontcolor = "#7A4A12";
+
+    CA_LTCC  [label="L형 Ca 통로 Cav1.2\n박동당 Ca 유입 J_CaL = g_CaL · f_ICa · HR", fillcolor="#FBE0C0", shape=box3d];
+    CA_NCX   [label="NCX1 (3Na⁺ : 1Ca²⁺, 전기발생성)\n확장기 제한 → J_NCX ∝ HR^0.55", fillcolor="#FBE0C0", shape=box3d];
+    CA_SERCA [label="SERCA2a 재흡수 (모델 J_UP)\nPLB 인산화로 탈억제 (×1.8 최대)", fillcolor="#FBE0C0", shape=box3d];
+    CA_PLB   [label="Phospholamban (미인산화형)\nSERCA 억제", fillcolor="#FDEBD3"];
+    CA_NSR   [label="네트워크 SR [Ca] (모델 CANSR)", fillcolor="#F5C98A"];
+    CA_JSRT  [label="접합부 SR 총 Ca (모델 CAJSRT)", fillcolor="#F5C98A", shape=box3d];
+    CA_JSRF  [label="접합부 SR 유리 [Ca] (CAJSRF)\n= 문턱과 비교되는 실제 변수", fillcolor="#EFA94A", shape=box3d];
+    CA_CSQ   [label="Calsequestrin-2 완충\nB_max 14 mM · K_d 630 µM", fillcolor="#FDEBD3"];
+    CA_TRD   [label="Triadin / Junctin\nCASQ2를 RyR2에 결박", fillcolor="#FDEBD3"];
+    CA_CYT   [label="세포질 [Ca] (박동 평균, 모델 CAI)\n완충계수 β_i ≈ 0.045", fillcolor="#F5C98A"];
+    CA_MITO  [label="미토콘드리아 MCU / NCLX\nCa 완충 저장고 (모델 CAMT)", fillcolor="#FDEBD3"];
+    CA_TR    [label="NSR → JSR 확산 (J_tr)", fillcolor="#FDEBD3"];
+    CA_LEAK  [label="비-스파크 누출 (J_leak)\n분당 과정 — 박동수와 무관", fillcolor="#FDEBD3"];
+    CA_STAIR [label="양성 계단 현상 (positive staircase)\n심박수 ↑ → 확장기 ↓ → NCX 배출 시간 ↓\n→ Ca 축적 → SR 부하 ↑", fillcolor="#F6BFBF", shape=note];
+
+    B1_PICA -> CA_LTCC [ltail=cluster_beta, color="#C0392B", penwidth=1.8];
+    B1_PPLB -> CA_PLB [arrowhead=tee, color="#C0392B", penwidth=1.8];
+    CA_PLB -> CA_SERCA [arrowhead=tee];
+    CA_LTCC -> CA_CYT; CA_CYT -> CA_SERCA -> CA_NSR -> CA_TR -> CA_JSRT;
+    CA_JSRT -> CA_CSQ [dir=both, label="완충 평형"];
+    CA_CSQ -> CA_JSRF [label="유리 Ca 결정"];
+    CA_JSRT -> CA_JSRF;
+    CA_TRD -> CA_CSQ;
+    CA_CYT -> CA_NCX; CA_CYT -> CA_MITO [dir=both];
+    CA_JSRT -> CA_LEAK;
+    CA_NCX -> CA_STAIR [style=dashed]; CA_STAIR -> CA_JSRF [color="#C0392B", style=dashed];
+    G_CASQ2 -> CA_CSQ [ltail=cluster_gene, color="#C0392B", penwidth=2.0, label="완충 용량 ↓"];
+    G_TRDN -> CA_TRD [color="#C0392B"];
+  }
+
+  /* ================================================================
+   * 6. RyR2 GATING AND THE SOICR THRESHOLD  (CROSSING 1)
+   * ================================================================ */
+  subgraph cluster_ryr {
+    label = "⑥ RyR2 게이팅과 SOICR 문턱 — ★ 교차 1 : 부하 대 문턱 (X = CAJSRF / Cth)";
+    style = "rounded,filled"; fillcolor = "#FBEDED"; color = "#C0392B";
+    fontsize = 16; fontcolor = "#7B1E1E";
+
+    RY_CLOSE [label="RyR2 닫힘 (Closed)", fillcolor="#FADBD8"];
+    RY_OPEN  [label="RyR2 열림 (Open)\n개방 확률 P_o · 개방 시간", fillcolor="#F6BFBF"];
+    RY_REF   [label="RyR2 불응 상태 (모델 RREF)\n회복 시상수 τ_rec (CPVT에서 단축)", fillcolor="#FADBD8"];
+    RY_SOICR [label="SOICR 문턱 Cth (모델)\nCth = Cth0 ·(1-G_RyR)·(1-G_CSQ)·(1+flecainide)\n        ÷ (1 + b·ΔP-RyR2 + c·CaMKII)", fillcolor="#E74C3C", fontcolor="white", shape=box3d];
+    RY_X     [label="★ X = CAJSRF / Cth\nX ≤ 1 → 전파성 파동 없음 (완전 침묵)\nX > 1 → 파동 발생률 W(X)", fillcolor="#E74C3C", fontcolor="white", shape=doubleoctagon];
+    RY_WAVE  [label="자발적 Ca 파동 (Ca wave)\n발생률 W = W_max·(X-1)²/(K_w²+(X-1)²)\n상한 = 1/τ_rec (불응성 천장)", fillcolor="#F6BFBF", shape=box3d];
+    RY_SPARK [label="문턱 아래 Ca 스파크\n(존재하지만 전파하지 않음 → 무증상)", fillcolor="#FADBD8", shape=note];
+    RY_QREL  [label="파동당 방출량 Q_rel\n= f_rel · CAJSRT · V_JSR\nCASQ2 소실 시 분율 방출 ↑", fillcolor="#F6BFBF"];
+    RY_OXID  [label="산화 스트레스 · CaMKII\n→ 개방 확률 추가 상승", fillcolor="#FADBD8"];
+
+    RY_CLOSE -> RY_OPEN [label="루미날 Ca 감지"];
+    RY_OPEN -> RY_REF -> RY_CLOSE [label="회복 τ_rec"];
+    CA_JSRF -> RY_X [ltail=cluster_ca, color="#C0392B", penwidth=2.4, label="부하 (분자)"];
+    G_RYR2 -> RY_SOICR [ltail=cluster_gene, color="#C0392B", penwidth=2.4, label="문턱 ↓ 20-30%"];
+    G_LUM -> RY_SOICR [color="#C0392B", penwidth=1.8, label="RyR2 억제 소실"];
+    B1_PRYR -> RY_SOICR [ltail=cluster_beta, color="#C0392B", penwidth=2.0, label="문턱 추가 ↓ 18%"];
+    RY_OXID -> RY_SOICR; G_FKBP -> RY_OPEN [style=dashed];
+    RY_SOICR -> RY_X [label="문턱 (분모)", penwidth=2.0];
+    RY_X -> RY_WAVE [penwidth=2.4]; RY_X -> RY_SPARK [style=dashed, label="X ≤ 1"];
+    RY_WAVE -> RY_QREL; CA_JSRT -> RY_QREL [style=dashed];
+    RY_REF -> RY_WAVE [arrowhead=tee, label="재발 상한"];
+  }
+
+  /* ================================================================
+   * 7. DAD -> TRIGGERED BEAT  (CROSSING 2)
+   * ================================================================ */
+  subgraph cluster_dad {
+    label = "⑦ 지연 후전위(DAD) → 촉발 박동 — ★ 교차 2 : DAD 진폭 대 필요 탈분극량";
+    style = "rounded,filled"; fillcolor = "#EDF1FB"; color = "#3F51B5";
+    fontsize = 16; fontcolor = "#1A237E";
+
+    DAD_NCX  [label="전방향 NCX (Ca 배출·Na 유입)\n= 전기발생성 내향 전류 I_ti", fillcolor="#C5CAE9", shape=box3d];
+    DAD_IK1  [label="I_K1 재분극 예비력 (sink)\n∝ √([K⁺]o / 5.4)", fillcolor="#D6DAF0"];
+    DAD_AMP  [label="DAD 진폭 V_DAD (모델 VDAD)\n= G · Q_rel / sink", fillcolor="#9FA8DA", shape=box3d];
+    DAD_NAV  [label="Na 통로 가용도 (모델 NAAV)\n사용의존적 차단 (박동수 의존)", fillcolor="#C5CAE9", shape=box3d];
+    DAD_VREQ [label="필요 탈분극량 V_req = V0 / NAAV^p\nNa 가용도 ↓ → 요구량 ↑", fillcolor="#7986CB", fontcolor="white", shape=box3d];
+    DAD_PTRIG[label="★ P(촉발) = V_DAD^m / (V_DAD^m + V_req^m)", fillcolor="#3F51B5", fontcolor="white", shape=doubleoctagon];
+    DAD_PVC  [label="촉발 박동 발생률 (모델 PVCR)\n= W(X) × P(촉발)  ← 두 교차의 곱", fillcolor="#5C6BC0", fontcolor="white", shape=box3d];
+    DAD_APD  [label="APD · 재분극 이질성\n(교감신경 불균질 분포)", fillcolor="#D6DAF0"];
+    DAD_PURK [label="푸르키녜 섬유\n촉발 박동의 주 기원지", fillcolor="#D6DAF0"];
+
+    RY_QREL -> DAD_NCX [ltail=cluster_ryr, color="#C0392B", penwidth=2.4];
+    DAD_NCX -> DAD_AMP [penwidth=2.0]; DAD_IK1 -> DAD_AMP [arrowhead=tee, label="완충"];
+    DAD_NAV -> DAD_VREQ [arrowhead=tee, penwidth=2.0];
+    DAD_AMP -> DAD_PTRIG [penwidth=2.4]; DAD_VREQ -> DAD_PTRIG [penwidth=2.0];
+    DAD_PTRIG -> DAD_PVC [penwidth=2.4];
+    RY_WAVE -> DAD_PVC [label="파동 발생률 W", penwidth=2.0, style=bold];
+    SNS_HET -> DAD_APD [style=dashed]; DAD_APD -> DAD_PURK;
+    DAD_PURK -> DAD_PVC [style=dashed];
+  }
+
+  /* ================================================================
+   * 8. TISSUE-LEVEL ARRHYTHMIA
+   * ================================================================ */
+  subgraph cluster_tissue {
+    label = "⑧ 조직 수준 부정맥 진행 (Tissue-level arrhythmia cascade)";
+    style = "rounded,filled"; fillcolor = "#FDEEF4"; color = "#C2185B";
+    fontsize = 15; fontcolor = "#7B1140";
+
+    TI_PVC   [label="단일 심실 조기수축 (PVC)\n운동 부하 심박수 ~110-130에서 출현", fillcolor="#F8D3E0"];
+    TI_BIG   [label="이단맥 (bigeminy) · 다형 PVC", fillcolor="#F8D3E0"];
+    TI_COUP  [label="쌍 (couplet) · 삼중 (triplet)", fillcolor="#F4B6CC"];
+    TI_BIDIR [label="이중방향 심실빈맥 (bidirectional VT)\nQRS 축 180° 교대 — CPVT의 지문", fillcolor="#EC7BA4", shape=box3d];
+    TI_POLY  [label="다형성 심실빈맥 (polymorphic VT)", fillcolor="#EC7BA4", shape=box3d];
+    TI_VF    [label="심실세동 (VF)", fillcolor="#C2185B", fontcolor="white", shape=box3d];
+    TI_ATR   [label="심방 부정맥 (AF · SVT · 동정지)\n심방 근육도 동일 기전", fillcolor="#F8D3E0"];
+    TI_VE    [label="운동부하 심실부정맥 점수 (VE score 0-4)\n= 임상시험의 1차 대리 지표", fillcolor="#F4B6CC", shape=note];
+
+    DAD_PVC -> TI_PVC [ltail=cluster_dad, color="#C0392B", penwidth=2.4];
+    TI_PVC -> TI_BIG -> TI_COUP -> TI_BIDIR -> TI_POLY -> TI_VF [penwidth=1.6];
+    DAD_PVC -> TI_ATR [style=dashed];
+    TI_COUP -> TI_VE [style=dashed]; TI_BIDIR -> TI_VE [style=dashed];
+  }
+
+  /* ================================================================
+   * 9. HAEMODYNAMICS AND CLINICAL ENDPOINTS
+   * ================================================================ */
+  subgraph cluster_end {
+    label = "⑨ 임상 결과 (Clinical endpoints)";
+    style = "rounded,filled"; fillcolor = "#F1F8E9"; color = "#7CB342";
+    fontsize = 15; fontcolor = "#33691E";
+
+    EN_CO    [label="심박출량 급감 · 뇌 관류 소실", fillcolor="#DCEDC8"];
+    EN_SYNC  [label="운동/정서 유발 실신 (syncope)\n간질로 오진되는 경우 흔함", fillcolor="#C5E1A5", shape=box3d];
+    EN_ACA   [label="심정지 생존 (aborted cardiac arrest)", fillcolor="#AED581", shape=box3d];
+    EN_SCD   [label="심장성 급사 (SCD)\n무치료 시 40세까지 사망률 30-50%", fillcolor="#7CB342", fontcolor="white", shape=box3d];
+    EN_AGE   [label="첫 증상 연령 중위 7-12세\n남성·조기 발현이 위험 인자", fillcolor="#DCEDC8", shape=note];
+    EN_HZ    [label="누적 부정맥 위험 (모델 HZRD)\n= ∫ k · VT 부담 dt", fillcolor="#C5E1A5", shape=note];
+    EN_QOL   [label="운동 제한 · 삶의 질 · 학교/직업 제약", fillcolor="#DCEDC8"];
+
+    TI_VF -> EN_CO [ltail=cluster_tissue, color="#C0392B", penwidth=2.0];
+    TI_BIDIR -> EN_CO [style=dashed];
+    EN_CO -> EN_SYNC -> EN_ACA -> EN_SCD;
+    EN_SYNC -> EN_HZ [style=dashed]; TI_VE -> EN_HZ [style=dashed];
+    EN_SCD -> EN_AGE [style=invis];
+  }
+
+  /* ================================================================
+   * 10. BETA-BLOCKER PK  — WHERE THE NADOLOL/METOPROLOL SPLIT LIVES
+   * ================================================================ */
+  subgraph cluster_bbpk {
+    label = "⑩ β차단제 PK — 나돌롤 vs 메토프롤롤의 차이는 여기서 전부 발생한다 (최저 농도)";
+    style = "rounded,filled"; fillcolor = "#E8F4FD"; color = "#1976D2";
+    fontsize = 16; fontcolor = "#0D3C61";
+
+    PK_NAD   [label="나돌롤 (Nadolol)\nF 0.30 · t½ ~18-24 h · 신배설·CYP 무관\n친수성 → CNS 침투 적음\n1-2 mg/kg/일 1회", fillcolor="#BBDEFB", shape=box3d];
+    PK_NADC  [label="나돌롤 정상상태 (80 mg qd)\n최고 155 → 최저 46 ng/mL\n경쟁 이동계수 8.73 → 3.32", fillcolor="#90CAF9", shape=note];
+    PK_MET   [label="메토프롤롤 (Metoprolol)\nF 0.40 · t½ 3.5 h · CYP2D6 대사\n선택적 β1 · 지용성", fillcolor="#BBDEFB", shape=box3d];
+    PK_METC  [label="메토프롤롤 정상상태 (100 mg bid)\n최고 51 → 최저 5.6 ng/mL\n경쟁 이동계수 2.14 → 1.12", fillcolor="#F6BFBF", shape=note];
+    PK_MET2  [label="메토프롤롤 200 mg bid (배용량)\n최고 이동계수 3.28 = 나돌롤의 최저치\n최저 이동계수 1.25 (여전히 무방비)", fillcolor="#F6BFBF", shape=note];
+    PK_BIS   [label="비소프롤롤 (Bisoprolol)\nF 0.90 · t½ 11 h · 선택적 β1\n최고 41.6 → 최저 11.8 ng/mL", fillcolor="#BBDEFB"];
+    PK_PROP  [label="프로프라놀롤 (Propranolol)\n비선택적 · t½ 4 h · CYP2D6/1A2\n하루 3-4회 필요", fillcolor="#BBDEFB"];
+    PK_2D6   [label="CYP2D6 표현형\nUM → 최저 0.8 ng/mL (이동계수 1.02)\nPM → 최저 44.6 ng/mL", fillcolor="#F6BFBF", shape=note];
+    PK_MISS  [label="복약 1회 누락\n나돌롤 48 h: 이동계수 2.02 (유지)\n메토프롤롤 24 h: 1.04 (소실)", fillcolor="#F6BFBF", shape=note];
+    PK_ADH   [label="복약 순응도\n청소년 · 무증상기에 최저", fillcolor="#D6EAFB"];
+
+    PK_NAD -> PK_NADC; PK_MET -> PK_METC; PK_MET -> PK_MET2;
+    PK_2D6 -> PK_MET [dir=back, style=dashed]; PK_2D6 -> PK_PROP [dir=back, style=dashed];
+    PK_ADH -> PK_MISS;
+    PK_NADC -> PD_B1BLK [lhead=cluster_pd, penwidth=2.0];
+    PK_METC -> PD_B1BLK [lhead=cluster_pd, penwidth=2.0];
+    PK_BIS -> PD_B1BLK [lhead=cluster_pd];
+    PK_PROP -> PD_B1BLK [lhead=cluster_pd];
+  }
+
+  /* ================================================================
+   * 11. ANTIARRHYTHMIC PK
+   * ================================================================ */
+  subgraph cluster_aapk {
+    label = "⑪ 항부정맥제 · Ca 차단제 PK";
+    style = "rounded,filled"; fillcolor = "#F1EDFB"; color = "#7E57C2";
+    fontsize = 15; fontcolor = "#4527A0";
+
+    PK_FLE   [label="플레카이니드 (Flecainide)\nF 0.90 · t½ ~13 h · CYP2D6 + 신배설\n단백결합 40% (f_u 0.60)\n100-150 mg bid", fillcolor="#D1C4E9", shape=box3d];
+    PK_FLEC  [label="플레카이니드 정상상태\n100 bid: 141-292 ng/mL\n150 bid: 211-439 ng/mL (치료역 200-1000)", fillcolor="#B39DDB", shape=note];
+    PK_FLEF  [label="유리 세포내 농도 (µM)\n= C · f_u / MW → RyR2 작용부위", fillcolor="#D1C4E9"];
+    PK_VER   [label="베라파밀 (Verapamil)\nF 0.22 (초회통과 큼) · t½ 3-7 h\nCYP3A4 · 240 mg/일", fillcolor="#D1C4E9"];
+    PK_PROPA [label="프로파페논 (대안 Class Ic)\n· 카르베딜롤 (RyR2 직접 작용 보고)", fillcolor="#E5DDF5"];
+    PK_DANT  [label="단트롤렌 (Dantrolene)\nRyR2 안정화 · N-말단 변이에 선택적", fillcolor="#E5DDF5"];
+
+    PK_FLE -> PK_FLEC -> PK_FLEF;
+    PK_FLEF -> PD_RYRBLK [lhead=cluster_pd, penwidth=1.8];
+    PK_FLEC -> PD_NABLK [lhead=cluster_pd, penwidth=2.2];
+    PK_VER -> PD_LTCCBLK [lhead=cluster_pd];
+    PK_DANT -> PD_RYRBLK [lhead=cluster_pd, style=dashed];
+    PK_PROPA -> PD_NABLK [lhead=cluster_pd, style=dashed];
+  }
+
+  /* ================================================================
+   * 12. DRUG PD MECHANISMS — EACH TOUCHES EXACTLY ONE CROSSING
+   * ================================================================ */
+  subgraph cluster_pd {
+    label = "⑫ 약력학 기전 — 각 약물이 두 교차 중 어느 쪽을 움직이는가";
+    style = "rounded,filled"; fillcolor = "#FFFDE7"; color = "#F9A825";
+    fontsize = 16; fontcolor = "#795500";
+
+    PD_B1BLK [label="β1 경쟁적 차단\nAGON / (1 + ΣC/EC50)\n→ 교차 1 (부하·문턱 양쪽)", fillcolor="#FFF59D", shape=box3d];
+    PD_NABLK [label="Na 통로 사용의존적 차단\nNAAV = k_off/(k_off + k_on·C·HR/60)\n→ 교차 2 (필요 탈분극량 ↑)", fillcolor="#FFF59D", shape=box3d];
+    PD_RYRBLK[label="RyR2 개방시간 단축\nCth × (1 + E·C/(C+IC50))\n→ 교차 1 (문턱 ↑) — 임상 농도에서 작음", fillcolor="#FFF9C4", shape=box3d];
+    PD_LTCCBLK[label="L형 Ca 통로 차단 (베라파밀)\n→ 교차 1 (Ca 유입 ↓)", fillcolor="#FFF9C4"];
+    PD_RATE  [label="심박수 감소 (연쇄 효과)\n확장기 연장 → NCX 배출 시간 ↑\n→ SR 부하 ↓", fillcolor="#FFF9C4"];
+    PD_MULT  [label="★ 두 교차는 곱이다\nP(촉발 박동) = W(교차1) × P(교차2)\n→ 플레카이니드의 추가 효과는\n   가정이 아니라 산수의 결과", fillcolor="#F9A825", fontcolor="white", shape=doubleoctagon];
+    PD_UD    [label="사용의존성: 심박수가 높을수록\nNa 차단 강화 → 운동 시 보호 강화", fillcolor="#FFF9C4", shape=note];
+
+    PD_B1BLK -> B1_REC [lhead=cluster_beta, arrowhead=tee, color="#1976D2", penwidth=2.4];
+    PD_B1BLK -> PD_RATE; PD_RATE -> CA_STAIR [lhead=cluster_ca, arrowhead=tee, style=dashed];
+    PD_RYRBLK -> RY_SOICR [lhead=cluster_ryr, arrowhead=tee, color="#7E57C2", penwidth=1.8];
+    PD_LTCCBLK -> CA_LTCC [lhead=cluster_ca, arrowhead=tee];
+    PD_NABLK -> DAD_NAV [lhead=cluster_dad, arrowhead=tee, color="#7E57C2", penwidth=2.4];
+    PD_NABLK -> PD_UD;
+    PD_B1BLK -> PD_MULT; PD_NABLK -> PD_MULT; PD_RYRBLK -> PD_MULT;
+  }
+
+  /* ================================================================
+   * 13. NON-PHARMACOLOGICAL THERAPY
+   * ================================================================ */
+  subgraph cluster_nonph {
+    label = "⑬ 비약물 치료 (Device, surgical & genetic therapy)";
+    style = "rounded,filled"; fillcolor = "#E0F7FA"; color = "#00838F";
+    fontsize = 15; fontcolor = "#004D52";
+
+    NP_LCSD  [label="좌심장 교감신경 절제술 (LCSD)\n흉강경 T2-T4 · NE 유출 ~60% 감소\n복약 순응도와 무관하게 지속", fillcolor="#B2EBF2", shape=box3d];
+    NP_ICD   [label="삽입형 제세동기 (ICD)\n기전은 전혀 건드리지 않음", fillcolor="#B2EBF2", shape=box3d];
+    NP_STORM [label="전기적 폭풍 (electrical storm)\n쇼크 → 통증·공포 → 카테콜아민 급증\n→ 부하 ↑ → VT 재발 → 재쇼크 (양성 되먹임)", fillcolor="#EF9A9A", shape=box3d];
+    NP_EXER  [label="운동 제한 · 경쟁 스포츠 회피\n부하 입력 자체를 줄임", fillcolor="#B2EBF2"];
+    NP_ABL   [label="촉발 국소 카테터 절제\n(푸르키녜 기원 · 보조적)", fillcolor="#CCF0F4"];
+    NP_GENE  [label="AAV9 유전자 치료 · CRISPR\n· 안티센스 대립유전자 침묵 (전임상)", fillcolor="#CCF0F4"];
+    NP_AED   [label="가족 교육 · 자동제세동기 접근성\n· 학교 응급 계획", fillcolor="#CCF0F4"];
+
+    NP_LCSD -> SNS_NE [lhead=cluster_sns, arrowhead=tee, color="#00838F", penwidth=2.2, label="NE 유출 ↓"];
+    NP_EXER -> T_EXER [lhead=cluster_trig, arrowhead=tee, color="#00838F", penwidth=1.8];
+    TI_VF -> NP_ICD [ltail=cluster_tissue, style=dashed, label="검출"];
+    NP_ICD -> NP_STORM [color="#C0392B", penwidth=2.0];
+    NP_STORM -> SNS_ADR [lhead=cluster_sns, color="#C0392B", penwidth=2.2, label="epinephrine 급증"];
+    NP_ABL -> DAD_PURK [lhead=cluster_dad, arrowhead=tee, style=dashed];
+    NP_GENE -> G_RYR2 [lhead=cluster_gene, arrowhead=tee, style=dashed];
+  }
+
+  /* ================================================================
+   * 14. ADVERSE EFFECTS / SAFETY
+   * ================================================================ */
+  subgraph cluster_adv {
+    label = "⑭ 이상반응 · 안전성 (Adverse effects — 왜 최대 용량을 쓰지 못하는가)";
+    style = "rounded,filled"; fillcolor = "#F5F5F5"; color = "#757575";
+    fontsize = 15; fontcolor = "#424242";
+
+    AD_FAT   [label="β차단제: 피로 · 운동능력 저하\n(모델 FATG — 심박수 예비력 상실)", fillcolor="#E0E0E0"];
+    AD_BRAD  [label="서맥 · 저혈압 · 어지럼", fillcolor="#E0E0E0"];
+    AD_BRON  [label="기관지 수축 (비선택적 β차단)\n천식 동반 시 문제", fillcolor="#E0E0E0"];
+    AD_MOOD  [label="우울 · 악몽 · 학업 집중 저하\n(지용성 약물에서 더 흔함)", fillcolor="#E0E0E0"];
+    AD_QRS   [label="플레카이니드: QRS 폭 증가\n(모델 QRSD) — 용량 조절 지표", fillcolor="#E0E0E0", shape=note];
+    AD_PROAR [label="플레카이니드 최유발성\n(구조적 심질환·허혈 시 금기 — CAST)", fillcolor="#EF9A9A"];
+    AD_INOT  [label="음성 수축력 (Class Ic · 베라파밀)", fillcolor="#E0E0E0"];
+    AD_ICDC  [label="ICD: 부적절 쇼크 · 리드 파손\n· 소아 성장 문제 · 심리적 부담", fillcolor="#EF9A9A"];
+    AD_HORN  [label="LCSD: 호너 증후군 · 안검하수\n· 편측 무발한증", fillcolor="#E0E0E0"];
+
+    PD_B1BLK -> AD_FAT [ltail=cluster_pd, style=dashed];
+    PD_B1BLK -> AD_BRAD [style=dashed]; PK_PROP -> AD_BRON [style=dashed];
+    PK_PROP -> AD_MOOD [style=dashed];
+    PD_NABLK -> AD_QRS [style=dashed]; PD_NABLK -> AD_PROAR [style=dashed];
+    PD_NABLK -> AD_INOT [style=dashed]; PD_LTCCBLK -> AD_INOT [style=dashed];
+    NP_ICD -> AD_ICDC [ltail=cluster_nonph, style=dashed];
+    NP_LCSD -> AD_HORN [style=dashed];
+    AD_FAT -> PK_ADH [lhead=cluster_bbpk, style=dashed, label="순응도 저하"];
+  }
+
+  /* ================================================================
+   * 15. DIAGNOSTICS
+   * ================================================================ */
+  subgraph cluster_dx {
+    label = "⑮ 진단 (Diagnostics) — 안정 시 모든 검사가 정상인 이유는 X ≤ 1 이기 때문";
+    style = "rounded,filled"; fillcolor = "#FFF3E0"; color = "#EF6C00";
+    fontsize = 15; fontcolor = "#8A4500";
+
+    DX_ECG   [label="안정 시 심전도: 정상\n(경도 서맥 · 뚜렷한 U파 정도)", fillcolor="#FFE0B2", shape=note];
+    DX_ECHO  [label="심초음파 · MRI: 구조적 정상\n→ ARVC · HCM 과 구별", fillcolor="#FFE0B2", shape=note];
+    DX_EXER  [label="운동부하 검사 (트레드밀)\n최고 민감도 · 재현성 높음\nPVC 출현 심박수 = 중증도 지표", fillcolor="#FFCC80", shape=box3d];
+    DX_EPI   [label="에피네프린 부하 검사\n0.05→0.3 µg/kg/min 단계 주입\n민감도 낮음 (dyad 접근도 F_epi < 1)", fillcolor="#FFCC80"];
+    DX_HOLT  [label="24-48 h 홀터 · 운동 중 기록\n· 삽입형 사건 기록기", fillcolor="#FFE0B2"];
+    DX_GEN   [label="유전자 패널 (RYR2·CASQ2·TRDN·CALM)\n가족 캐스케이드 검사", fillcolor="#FFE0B2"];
+    DX_DDX   [label="감별진단: 장QT (특히 LQT1)\n· ARVC · Andersen-Tawil · 간질", fillcolor="#FFE0B2", shape=note];
+
+    DX_EXER -> TI_VE [lhead=cluster_tissue, penwidth=1.8];
+    DX_EPI -> TI_VE [lhead=cluster_tissue, style=dashed];
+    RY_X -> DX_ECG [ltail=cluster_ryr, style=dashed, label="X ≤ 1 → 정상"];
+    DX_GEN -> G_RYR2 [lhead=cluster_gene, style=dashed];
+    DX_EXER -> DX_DDX [style=invis];
+  }
+
+  /* ================================================================
+   * 16. MODIFIERS
+   * ================================================================ */
+  subgraph cluster_mod {
+    label = "⑯ 조절 인자 (Modifiers) — 같은 유전형에서 표현형을 흔드는 것들";
+    style = "rounded,filled"; fillcolor = "#EFEBE9"; color = "#8D6E63";
+    fontsize = 15; fontcolor = "#4E342E";
+
+    MD_K     [label="저칼륨혈증 [K⁺]o ↓\nI_K1 sink ↓ → 같은 파동이 더 큰 DAD", fillcolor="#D7CCC8", shape=box3d];
+    MD_MG    [label="저마그네슘혈증", fillcolor="#D7CCC8"];
+    MD_CAMK  [label="CaMKII 만성 활성화 (모델 CAMK)\nCa 과부하 → 문턱 추가 하강 (양성 되먹임)", fillcolor="#EF9A9A", shape=box3d];
+    MD_FIB   [label="경도 간질 섬유화 · 지방 침착\n(장기 경과에서 일부 보고)", fillcolor="#D7CCC8"];
+    MD_AGE   [label="연령 · 성별 (남성 조기 발현)", fillcolor="#D7CCC8"];
+    MD_TRAIN[label="지속적 운동 훈련\n= 반복적 부하 노출", fillcolor="#D7CCC8"];
+    MD_THY   [label="갑상선 기능 · 빈혈 · 발열\n(심박수·교감 긴장 상승)", fillcolor="#D7CCC8"];
+
+    MD_K -> DAD_IK1 [lhead=cluster_dad, arrowhead=tee, color="#C0392B", penwidth=2.0];
+    MD_MG -> RY_OPEN [lhead=cluster_ryr, style=dashed];
+    MD_CAMK -> RY_SOICR [lhead=cluster_ryr, color="#C0392B", penwidth=1.8];
+    CA_CYT -> MD_CAMK [ltail=cluster_ca, color="#C0392B", style=dashed, label="Ca 과부하"];
+    MD_TRAIN -> MD_CAMK [style=dashed]; MD_FIB -> DAD_APD [lhead=cluster_dad, style=dashed];
+    MD_THY -> HR_NODE [style=dashed]; MD_AGE -> G_PEN [lhead=cluster_gene, style=dashed];
+  }
+
+  /* ================================================================
+   * 17. HEART RATE (shared node) AND MODEL LEGEND
+   * ================================================================ */
+  subgraph cluster_hr {
+    label = "⑰ 심박수 — 두 교차를 잇는 공유 변수";
+    style = "rounded,filled"; fillcolor = "#E8EAF6"; color = "#5C6BC0";
+    fontsize = 14; fontcolor = "#283593";
+
+    HR_NODE  [label="심박수 HR (모델 HR)\n= 미주 긴장 철회 + β1 구동", fillcolor="#C5CAE9", shape=box3d];
+    HR_DIAS  [label="확장기 지속시간 ∝ 1/HR\n→ NCX 배출 시간 · RyR2 회복 시간", fillcolor="#D6DAF0"];
+    HR_UD    [label="사용의존적 Na 차단 강화\n(플레카이니드는 빠를 때 더 잘 듣는다)", fillcolor="#D6DAF0"];
+
+    B1_REC -> HR_NODE [ltail=cluster_beta, penwidth=1.6];
+    HR_NODE -> HR_DIAS; HR_DIAS -> CA_NCX [lhead=cluster_ca, arrowhead=tee, penwidth=1.8];
+    HR_NODE -> HR_UD; HR_UD -> DAD_NAV [lhead=cluster_dad, arrowhead=tee, penwidth=1.6];
+  }
+
+  subgraph cluster_legend {
+    label = "⑱ 모델 상태변수 범례 (mrgsolve 44-ODE 대응)";
+    style = "rounded,filled"; fillcolor = "#FAFAFA"; color = "#9E9E9E";
+    fontsize = 14; fontcolor = "#616161";
+
+    LG_1 [label="교감·심박수: NEJ · EPI · HR\ncAMP 연쇄: CAMP · PKA · PI1 · PPLB · PRYR · PICA", fillcolor="#F5F5F5", shape=note];
+    LG_2 [label="Ca 순환: CAI · CANSR · CAJSRT · CAMT · CSQ · RREF\n교차 1 = CAJSRF / Cth", fillcolor="#F5F5F5", shape=note];
+    LG_3 [label="전기생리: VDAD · NAAV · QRSD\n교차 2 = VDAD / VREQ", fillcolor="#F5F5F5", shape=note];
+    LG_4 [label="부정맥·결과: PVCR · VTB · NPVC · NVT · HZRD · SYNCH · NSHOCK\n만성: CAMK · CAINT · FIBR · FATG · EXPO", fillcolor="#F5F5F5", shape=note];
+    LG_5 [label="PK: NADD/NADC/NADP · METD/METC/METP · BISD/BISC\nFLED/FLEC/FLEP · VERD/VERC · SHKD", fillcolor="#F5F5F5", shape=note];
+    LG_6 [label="핵심 방정식\nPVCR = W(CAJSRF/Cth) × P(VDAD/VREQ)\n곱이기 때문에 서로 다른 교차를 겨냥한 두 약은\n가정 없이 상승 작용한다", fillcolor="#FFF59D", shape=note];
+
+    LG_1 -> LG_2 -> LG_3 -> LG_4 -> LG_5 -> LG_6 [style=invis];
+  }
+}
