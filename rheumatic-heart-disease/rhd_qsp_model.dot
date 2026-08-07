@@ -1,0 +1,516 @@
+/* =====================================================================
+   Rheumatic heart disease (acute rheumatic fever -> rheumatic mitral
+   stenosis) — QSP mechanistic map
+   ---------------------------------------------------------------------
+   Organising idea of this map (and of rhd_mrgsolve_model.R):
+
+   RHD is managed on two numbers that are not the numbers that matter.
+
+   (1) SECONDARY PROPHYLAXIS is audited as ADHERENCE — doses received
+       divided by doses due.  What actually protects is TIME ABOVE
+       0.02 ug/mL of penicillin G.  Benzathine penicillin G is a depot
+       with flip-flop kinetics, so the concentration falls exponentially
+       with a half-life of ~9 d from an amplitude that is inversely
+       proportional to body size.  A single 1.2 MU injection covers
+       ~18 d in a 70 kg adult.  Adherence and protection therefore rank
+       patients differently, and can rank them in OPPOSITE ORDERS.
+
+   (2) VALVE DISEASE is audited as valve area.  Valve area is destroyed
+       by TWO arms with different owners:
+
+         immune arm      d(area) ~ -2 sqrt(pi A) . KFI . valvulitis
+         autonomous arm  d(area) ~ -2 sqrt(pi A) . KFS . (MVG / 4)
+
+       The immune arm is what penicillin prevents.  The autonomous arm
+       is shear: the mean transvalvular velocity squared, which by the
+       simplified Bernoulli relation IS the mean gradient over four.
+       Because the gradient rises as the square of flow over area, the
+       autonomous arm is self-accelerating, and above a crossover area
+       (2.75 cm2 in this parameterisation, computed not assumed) it
+       already exceeds the
+       expected immune loss of a completely unprotected patient.
+       Prophylaxis therefore buys most of its valve benefit BEFORE
+       stenosis is measurable — which is the latent-RHD window that
+       echocardiographic screening finds and that the GOAL trial
+       randomised.
+
+   (3) The Gorlin block below is the reason a patient decompensates
+       without the valve changing.  Mean gradient = (Q / (37.7 . A . DFP))^2.
+       Pregnancy raises Q; atrial fibrillation shortens DFP and removes
+       the atrial contribution.  Both multiply the gradient several-fold
+       at a FIXED orifice.  Read backwards, the same equation sets an
+       OPTIMAL heart rate that falls as the valve narrows, because total
+       diastolic time per minute rises as the rate falls while stroke
+       volume is capped by the ventricle.
+
+   Node colouring
+     - pale red      : streptococcus, antigen, autoantibody
+     - pale orange   : inflammation / valvulitis / mediators
+     - pale blue     : drugs and their PK
+     - pale green    : protective, regulatory, host defence
+     - pale yellow   : measured clinical and laboratory endpoints
+     - pale purple   : haemodynamic algebra (the Gorlin block)
+     - grey          : anatomy, compartments, epidemiology
+   ===================================================================== */
+
+digraph rheumatic_heart_disease_qsp {
+  graph [rankdir=TB, newrank=true, splines=polyline, nodesep=0.30, ranksep=0.55,
+         fontname="Helvetica", fontsize=11, compound=true,
+         labelloc="t", pad=0.4,
+         label=<<B>Rheumatic heart disease — Quantitative Systems Pharmacology map</B><BR/>
+                <FONT POINT-SIZE="11">Adherence is not time-above-threshold · valve loss has an immune arm and an autonomous shear arm · the Gorlin block decompensates a valve that has not changed</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10,
+         color="#555555", penwidth=1.0, margin="0.08,0.05"];
+  edge  [fontname="Helvetica", fontsize=8, color="#666666", arrowsize=0.7];
+
+  /* ---------- 1. Exposure and the streptococcal front end ----------- */
+  subgraph cluster_expo {
+    label="1 · Exposure, transmission, pharyngitis";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    CROWD   [label="Household crowding, poverty,\nlimited primary care\n(the population-level driver)", fillcolor="#efefef"];
+    INDEX   [label="Index case with GAS pharyngitis\nor asymptomatic carriage", fillcolor="#fbdcdc"];
+    DROP    [label="Respiratory droplet /\ndirect contact spread", fillcolor="#efefef"];
+    PHARYNX [label="Pharyngeal epithelium\n(portal; skin route implicated\nfor ARF in some settings)", fillcolor="#efefef"];
+    GAS     [label="GAS  Streptococcus pyogenes\npharyngeal burden\ndoubling time ~8 h", fillcolor="#fbdcdc"];
+    RHEUMO  [label="Rheumatogenic emm types\nM1 M3 M5 M6 M18 M24\n(not all GAS strains)", fillcolor="#fbdcdc"];
+    CARRIER [label="Chronic carriage\n(antigen without invasion —\ndoes not drive ARF)", fillcolor="#e8f2e8"];
+    MIMM    [label="Mucosal / type-specific\nimmunity (anti-M antibody)\nt½ ≈ 14 d rise, slow decay", fillcolor="#e8f2e8"];
+    LATENT  [label="Latent period 10–35 d\n(median ~19 d)\npharyngitis → ARF", fillcolor="#efefef"];
+  }
+
+  /* ---------- 2. Host susceptibility --------------------------------- */
+  subgraph cluster_host {
+    label="2 · Host susceptibility";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    HLA     [label="HLA class II\nDR7 · DR53 · DQA1*0501\n(antigen presentation bias)", fillcolor="#efefef"];
+    TNFAP   [label="TNFA −308A / −238A\npromoter polymorphism", fillcolor="#efefef"];
+    IL1RN   [label="IL1RN VNTR · TGFB1 · MBL2\n(modifier loci)", fillcolor="#efefef"];
+    D817    [label="D8/17 B-cell alloantigen\n(susceptibility marker)", fillcolor="#efefef"];
+    SUSC    [label="SUSC — composite host\nsusceptibility multiplier", fillcolor="#efefef"];
+    AGEW    [label="Age window 5–15 y\n(first attacks; rare <3 y)", fillcolor="#efefef"];
+    PRIOR   [label="Prior ARF = the strongest\nsingle risk factor for the next", fillcolor="#fbdcdc"];
+  }
+
+  /* ---------- 3. Molecular mimicry ----------------------------------- */
+  subgraph cluster_mimic {
+    label="3 · Molecular mimicry and the cross-reactive response";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    MPROT   [label="M protein\ncoiled-coil α-helix\nhomologous to cardiac myosin", fillcolor="#fbdcdc"];
+    GLCNAC  [label="Group A carbohydrate\nN-acetyl-glucosamine\n(dominant epitope)", fillcolor="#fbdcdc"];
+    AG      [label="AG — systemic antigen load\n(the model's drive variable)", fillcolor="#fbdcdc"];
+    APC     [label="Antigen-presenting cell\n(HLA-II restricted)", fillcolor="#efefef"];
+    BCELL   [label="B-cell activation,\ngerminal-centre response", fillcolor="#fbdcdc"];
+    XAB     [label="XAB — cross-reactive antibody\nanti-myosin · anti-laminin\nanti-tropomyosin · anti-collagen IV\nt½ ≈ 60 d", fillcolor="#fbdcdc"];
+    ASO     [label="ASO / anti-DNase B titre\npeak 3–5 wk, t½ ≈ 45 d\n(EVIDENCE of infection,\nNOT of pathogenicity)", fillcolor="#ffe9b8"];
+    MEM     [label="MEM — memory B/T pool\nt½ ≈ 5 y\n(why recurrences are worse)", fillcolor="#fbdcdc"];
+    EPISPR  [label="Epitope spreading\nGAS → myosin → valve collagen", fillcolor="#fbdcdc"];
+    TH17    [label="Th17 / Th1 skew\nIL-17A · IFN-γ · IL-6 · TNF-α", fillcolor="#ffd9b3"];
+    TREG    [label="Treg / IL-10\n(restrains the response)", fillcolor="#e8f2e8"];
+  }
+
+  /* ---------- 4. Acute rheumatic fever ------------------------------- */
+  subgraph cluster_arf {
+    label="4 · Acute rheumatic fever — the Jones syndrome";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    ARF     [label="Acute rheumatic fever\n(Jones criteria, 2015 revision;\nrisk-stratified by population)", fillcolor="#ffd9b3"];
+    CARDIT  [label="Carditis — the only\nmanifestation that scars\n(50–70% of first attacks)", fillcolor="#ffd9b3"];
+    ARTHR   [label="Migratory polyarthritis\n(large joints; aspirin-responsive)", fillcolor="#ffd9b3"];
+    CHOREA  [label="Sydenham chorea\n(anti-basal-ganglia antibody,\nlatency up to 6 months)", fillcolor="#ffd9b3"];
+    EMARG   [label="Erythema marginatum", fillcolor="#ffd9b3"];
+    NODUL   [label="Subcutaneous nodules", fillcolor="#ffd9b3"];
+    ASCHOFF [label="Aschoff body\n(Anitschkow cells, granuloma —\nthe histological signature)", fillcolor="#ffd9b3"];
+    CRP     [label="CRP · ESR\nacute-phase response", fillcolor="#ffe9b8"];
+    PR      [label="Prolonged PR interval\n(minor criterion)", fillcolor="#ffe9b8"];
+    PERI    [label="Pericarditis / pancarditis\n(friction rub, effusion)", fillcolor="#ffd9b3"];
+    HAZARF  [label="HAZARF — recurrence hazard\n= λexp × P(GAS) × P(rheumatogenic)\n× SUSC × (1 − Epen) × (1 + memory)\nA PRODUCT: no single term abolishes it", fillcolor="#ffd9b3"];
+  }
+
+  /* ---------- 5. Valvulitis ------------------------------------------ */
+  subgraph cluster_valvitis {
+    label="5 · Valvulitis — the valve endothelium";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    VENDO   [label="Valve surface endothelium\n(antibody binds via laminin /\ncollagen IV of the basement membrane)", fillcolor="#efefef"];
+    VCAM    [label="VCAM-1 / ICAM-1\nupregulation", fillcolor="#ffd9b3"];
+    TINF    [label="CD4+ T-cell infiltration\nalong neovascular channels", fillcolor="#ffd9b3"];
+    VIT     [label="VIT — valvulitis activity\n(the state that scars)\nt½ ≈ 30 d", fillcolor="#ffd9b3"];
+    NEOVAS  [label="Valvular neovascularisation\n(gives antibody and T cells\npermanent access — a positive feedback)", fillcolor="#ffd9b3"];
+    EDEM    [label="EDEM — acute leaflet oedema\n(narrows the orifice REVERSIBLY;\nresolves with t½ ≈ 21 d)", fillcolor="#ffd9b3"];
+    VERRUC  [label="Verrucae along\nthe line of closure", fillcolor="#ffd9b3"];
+    MMP     [label="MMP-2 / MMP-9 · TIMP\nmatrix turnover", fillcolor="#ffd9b3"];
+    TGFB    [label="TGF-β1 → myofibroblast\ntransition of valve\ninterstitial cells", fillcolor="#ffd9b3"];
+  }
+
+  /* ---------- 6. The valve ratchet ----------------------------------- */
+  subgraph cluster_ratchet {
+    label="6 · Valve remodelling — the ratchet (two arms, one orifice)";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    FIBV    [label="Leaflet and commissural\nfibrous thickening  (dH/dt)", fillcolor="#ffd9b3"];
+    ARMIMM  [label="IMMUNE ARM\nKFI × VIT\n(preventable by penicillin)", fillcolor="#ffd9b3"];
+    ARMSHR  [label="AUTONOMOUS ARM\nKFS × (MVG / 4)\n= KFS × (mean velocity)²\n(NOT preventable by penicillin)", fillcolor="#d9c9ec"];
+    GEOM    [label="Geometry: dA = −2√(πA)·dH\n(a fixed deposition rate narrows\na small orifice more slowly)", fillcolor="#d9c9ec"];
+    MVA     [label="MVA — mitral valve area\nnormal 4–6 → mild 1.5–2.5\n→ moderate 1.0–1.5 → severe <1.0", fillcolor="#ffe9b8"];
+    COMM    [label="Commissural fusion\n(the lesion balloon valvotomy splits)", fillcolor="#ffd9b3"];
+    CHORD   [label="Chordal shortening,\nfusion, subvalvular disease", fillcolor="#ffd9b3"];
+    CALC    [label="CALC — leaflet calcification\n(irreversible; ages the valve\nand blocks balloon therapy)", fillcolor="#ffd9b3"];
+    SCARF   [label="SCARF = 1 − MVA/MVAnorm\nan already-scarred valve is MORE\nsusceptible (BSCAR amplifier)", fillcolor="#fbdcdc"];
+    CROSS   [label="CROSSOVER = 2.75 cm²\nbelow this the shear arm exceeds\nthe immune arm of an UNPROTECTED\npatient — prophylaxis buys its valve\nbenefit above it", fillcolor="#d9c9ec"];
+    MRA     [label="MRA — acute mitral regurgitation\n(annular dilatation, chordal\nelongation; partly reversible)", fillcolor="#ffe9b8"];
+    MRC     [label="MRC — chronic MR\n(leaflet retraction; fixed)", fillcolor="#ffe9b8"];
+    AOI     [label="Aortic valve involvement\n(AR ± AS; second most common)", fillcolor="#ffe9b8"];
+    TRIC    [label="Tricuspid involvement\n(organic, or functional from RV\ndilatation — usually the latter)", fillcolor="#ffe9b8"];
+    WILK    [label="Wilkins score 4–16\nmobility · thickening ·\ncalcification · subvalvular", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 7. The Gorlin block ------------------------------------ */
+  subgraph cluster_gorlin {
+    label="7 · The Gorlin block — orifice to gradient (the algebra that decompensates a fixed valve)";
+    style="rounded,filled"; fillcolor="#efe8f7"; color="#8d7bb0"; fontsize=12;
+
+    HR      [label="HR — heart rate", fillcolor="#d9c9ec"];
+    RRINT   [label="RR = 60 / HR", fillcolor="#d9c9ec"];
+    SYSP    [label="Systolic period ≈ 0.36 √RR\n(shortens only as the square root)", fillcolor="#d9c9ec"];
+    DFPB    [label="DFP per beat = RR − systole", fillcolor="#d9c9ec"];
+    DFPM    [label="DFP per minute = HR × DFPbeat\n= 60 − 0.36√(60·HR)\nFALLS monotonically with rate", fillcolor="#d9c9ec"];
+    MVAEFF  [label="Effective orifice\n= (MVA − 0.15·EDEM) × (1 − 0.12·AF)", fillcolor="#d9c9ec"];
+    CODEM   [label="CO demand\nrest 5 · pregnancy 7.5 ·\nexercise 10 · fever, anaemia,\nthyrotoxicosis, sepsis", fillcolor="#d9c9ec"];
+    COVALV  [label="CO the valve permits\n= 37.7·A·√(LAPmax − LVEDP)·DFPmin", fillcolor="#d9c9ec"];
+    COSV    [label="CO the ventricle permits\n= SVmax × HR\n(the OTHER constraint — this is\nwhy bradycardia stops helping)", fillcolor="#d9c9ec"];
+    COACH   [label="CO achieved = min of the three", fillcolor="#d9c9ec"];
+    MVF     [label="Mitral flow = CO / DFPmin", fillcolor="#d9c9ec"];
+    MVG     [label="MEAN GRADIENT\n= (MVF / (37.7·A))²\nSCALES AS FLOW SQUARED", fillcolor="#ffe9b8"];
+    HROPT   [label="OPTIMAL HR falls as the valve\nnarrows: ~80 bpm at 1.5 cm²,\n~60 bpm at 1.0 cm²\n(derived, not assumed)", fillcolor="#d9c9ec"];
+    BERN    [label="Simplified Bernoulli\nMVG = 4v²  ⇒  v² = MVG/4\nthe gradient IS the shear driver", fillcolor="#d9c9ec"];
+    PHT     [label="Pressure half-time\n(the echo surrogate: MVA = 220/PHT;\nunreliable straight after valvotomy)", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 8. Left atrium, rhythm, thrombus ------------------------ */
+  subgraph cluster_la {
+    label="8 · Left atrium, rhythm and thrombus";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    LAP     [label="LAP — left atrial pressure\n= LVEDP + mean gradient", fillcolor="#ffe9b8"];
+    LAV     [label="LAV — LA volume / diameter\n(remodels above LAP ≈ 12 mmHg)", fillcolor="#ffe9b8"];
+    LAFIB   [label="Atrial myocardial fibrosis,\nconduction slowing,\nanisotropy", fillcolor="#ffd9b3"];
+    AFB     [label="AFB — atrial fibrillation burden\nhazard rises with (LAV − LAV₀)²", fillcolor="#ffe9b8"];
+    AKICK   [label="Loss of atrial contribution\nto ventricular filling", fillcolor="#ffd9b3"];
+    RVR     [label="Rapid ventricular response\n→ DFP collapses → gradient jumps", fillcolor="#ffd9b3"];
+    STASIS  [label="LA appendage stasis\n(spontaneous echo contrast)", fillcolor="#ffd9b3"];
+    THROMB  [label="LA appendage thrombus", fillcolor="#fbdcdc"];
+    EMBOL   [label="Systemic embolism / stroke\n7–15%/yr in MS with AF\nuntreated", fillcolor="#ffe9b8"];
+    LVDIS   [label="LV underfilling\n(small, underloaded ventricle —\nEF is preserved but stroke volume is not)", fillcolor="#ffd9b3"];
+    ORTNER  [label="Ortner syndrome — recurrent\nlaryngeal nerve compression\nby the dilated LA/PA", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 9. Pulmonary vascular and right heart ------------------- */
+  subgraph cluster_pulm {
+    label="9 · Pulmonary vascular bed and the right heart";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    PVENOUS [label="Pulmonary venous hypertension\n(passive, obligatory)", fillcolor="#ffd9b3"];
+    REACT   [label="Reactive arteriolar\nvasoconstriction + medial\nhypertrophy (the 'second stenosis')", fillcolor="#ffd9b3"];
+    PVR     [label="PVR — pulmonary vascular\nresistance, 1.4 → 12 Wood units\nPARTLY reversible after relief", fillcolor="#ffe9b8"];
+    PAPM    [label="Mean PA pressure\n= LAP + PVR × CO", fillcolor="#ffe9b8"];
+    RVAFT   [label="RV afterload", fillcolor="#ffd9b3"];
+    RVF     [label="RVF — RV function index\n(1 = normal)", fillcolor="#ffe9b8"];
+    FTR     [label="Functional tricuspid\nregurgitation from annular dilatation", fillcolor="#ffe9b8"];
+    HEPCON  [label="Hepatic congestion, ascites,\nperipheral oedema", fillcolor="#ffe9b8"];
+    HEMOPT  [label="Haemoptysis\n(bronchial vein rupture,\n'pulmonary apoplexy')", fillcolor="#ffe9b8"];
+    CONG    [label="CONG — pulmonary congestion\n(rises above LAP ≈ 18 mmHg)", fillcolor="#ffe9b8"];
+    ALVEO   [label="Alveolar–capillary membrane\nthickening; lymphatic recruitment\n(why chronic MS tolerates\npressures that would drown an acute one)", fillcolor="#efefef"];
+  }
+
+  /* ---------- 10. Systemic haemodynamics and symptoms ----------------- */
+  subgraph cluster_sys {
+    label="10 · Systemic haemodynamics and symptoms";
+    style="rounded,filled"; fillcolor="#f4f4f4"; color="#999999"; fontsize=12;
+
+    SNS     [label="Sympathetic activation\n(raises rate — which in MS\nMAKES THE GRADIENT WORSE)", fillcolor="#ffd9b3"];
+    RAAS    [label="RAAS activation,\nsalt and water retention", fillcolor="#ffd9b3"];
+    VOL     [label="VOL — preload/volume state\n→ LVEDP", fillcolor="#ffe9b8"];
+    DYSP    [label="Exertional dyspnoea,\northopnoea, PND", fillcolor="#ffe9b8"];
+    NYHA    [label="NYHA class I–IV\n(computed from congestion\nand the cardiac-output deficit)", fillcolor="#ffe9b8"];
+    PREG    [label="PREGNANCY\nCO +40–50%, HR +20%,\nplasma volume +45%\n— demand, not valve, changes", fillcolor="#d9c9ec"];
+    EXERC   [label="Exercise, fever, anaemia,\nthyrotoxicosis, sepsis\n(all raise CO demand)", fillcolor="#d9c9ec"];
+    MURMUR  [label="Loud S1 · opening snap ·\nrumbling diastolic murmur\n(S2–OS interval shortens as\nLA pressure rises)", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 11. Benzathine penicillin G depot ----------------------- */
+  subgraph cluster_bpg {
+    label="11 · Benzathine penicillin G — the depot (secondary prophylaxis)";
+    style="rounded,filled"; fillcolor="#e8eef7"; color="#7a90b8"; fontsize=12;
+
+    BPGINJ  [label="BPG 1.2 MU IM deep gluteal\n(600 000 U if <27 kg)\n≈ 720 mg penicillin-G equivalent", fillcolor="#cfe0f5"];
+    BPGF    [label="BPGF — fast depot fraction 0.30\nrelease t½ ≈ 2 d", fillcolor="#cfe0f5"];
+    BPGS    [label="BPGS — slow depot fraction 0.70\nrelease t½ ≈ 9 d\nRATE-LIMITING (flip-flop)", fillcolor="#cfe0f5"];
+    HYDROL  [label="Slow hydrolysis of the\nbenzathine salt at the injection site", fillcolor="#cfe0f5"];
+    PENC    [label="PENC — penicillin G, plasma\nelimination t½ ≈ 30 min\n(so plasma tracks RELEASE, not clearance)", fillcolor="#cfe0f5"];
+    VPEN    [label="V/F ∝ body weight\nCL ∝ WT^0.75 × CrCl\n(the size effect that decides\nwho a 4-weekly interval fails)", fillcolor="#cfe0f5"];
+    MICTH   [label="Protective threshold\n0.02 ug/mL (~10× MIC of\nS. pyogenes; NO documented\npenicillin resistance)", fillcolor="#cfe0f5"];
+    TPROT   [label="TPROT — cumulative days\nabove threshold\nTHE QUANTITY THAT PROTECTS", fillcolor="#ffe9b8"];
+    EPEN    [label="Epen = C³/(C³ + 0.02³)\nsteep, threshold-like", fillcolor="#cfe0f5"];
+    INTERV  [label="Interval: 4-weekly (standard) ·\n3-weekly (high-risk) · 2-weekly", fillcolor="#cfe0f5"];
+    SCIP    [label="Subcutaneous high-dose\ninfusion (SCIP) — extends the\ninterval by raising the depot,\nnot the release rate", fillcolor="#cfe0f5"];
+    PAINJ   [label="Injection pain, anxiety,\nlipohypertrophy\n→ the real cause of\nprogramme attrition", fillcolor="#efefef"];
+    ADH     [label="ADHERENCE = doses received /\ndoses due — THE AUDITED NUMBER,\nwhich is not TPROT", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 12. Oral penicillin / primary prophylaxis --------------- */
+  subgraph cluster_oral {
+    label="12 · Treating the pharyngitis — primary prophylaxis";
+    style="rounded,filled"; fillcolor="#e8eef7"; color="#7a90b8"; fontsize=12;
+
+    PENV    [label="Penicillin V 500 mg bd × 10 d\n(amoxicillin 1 g od non-inferior)", fillcolor="#cfe0f5"];
+    PVA     [label="Oral absorption depot\nF ≈ 0.5, ka fast", fillcolor="#cfe0f5"];
+    MACRO   [label="Macrolide / 1st-gen cephalosporin\nif penicillin-allergic\n(macrolide resistance is regional)", fillcolor="#cfe0f5"];
+    WIN9    [label="THE NINE-DAY WINDOW\ntreatment started within 9 d of\nonset still prevents ARF —\nthe drug lowers CUMULATIVE ANTIGEN,\nit does not have to shorten symptoms", fillcolor="#cfe0f5"];
+    RADT    [label="Rapid antigen test / culture\nCentor–McIsaac scoring\n(the diagnostic bottleneck)", fillcolor="#efefef"];
+    VACC    [label="GAS vaccine candidates\n(M-protein multivalent, non-M\nconserved antigens) — not licensed;\nmimicry is the safety question", fillcolor="#e8f2e8"];
+  }
+
+  /* ---------- 13. Anti-inflammatory therapy --------------------------- */
+  subgraph cluster_antiinf {
+    label="13 · Anti-inflammatory therapy in the acute attack";
+    style="rounded,filled"; fillcolor="#e8eef7"; color="#7a90b8"; fontsize=12;
+
+    ASA     [label="Aspirin 80–100 mg/kg/d\n(or naproxen)\nserum salicylate 150–300 mg/L", fillcolor="#cfe0f5"];
+    EASA    [label="Emax 0.55 on valvulitis\nproduction — good for arthritis,\nweak on the valve", fillcolor="#cfe0f5"];
+    PRED    [label="Prednisolone 1–2 mg/kg/d\n(severe carditis, heart failure)", fillcolor="#cfe0f5"];
+    EPRED   [label="Emax 3.0 — strong, but only\nWHILE IT IS BEING GIVEN", fillcolor="#cfe0f5"];
+    TIMEMIS [label="TIME-CONSTANT MISMATCH\nantibody t½ 60 d vs a 6-week course:\n6 weeks covers only ~39% of the\nantibody-time integral, so the\nsuppressed valvulitis simply resumes", fillcolor="#d9c9ec"];
+    COCH    [label="Cochrane: no clear effect of\nsteroids on cardiac outcome at 1 y\n— the model reproduces this and\nsays WHY, and what would fix it", fillcolor="#ffe9b8"];
+    IVIG    [label="IVIG — tried, no benefit\nin ARF carditis", fillcolor="#cfe0f5"];
+  }
+
+  /* ---------- 14. Rate control and decongestion ----------------------- */
+  subgraph cluster_rate {
+    label="14 · Rate control, decongestion, rhythm";
+    style="rounded,filled"; fillcolor="#e8eef7"; color="#7a90b8"; fontsize=12;
+
+    BB      [label="β-blocker (metoprolol, atenolol)\nEmax 0.35 on heart rate", fillcolor="#cfe0f5"];
+    IVAB    [label="Ivabradine (If inhibitor)\nrate control in sinus rhythm\nwithout negative inotropy", fillcolor="#cfe0f5"];
+    DIG     [label="Digoxin — rate control in AF\nonly; no benefit in sinus MS", fillcolor="#cfe0f5"];
+    CCB     [label="Non-dihydropyridine CCB\n(diltiazem, verapamil)", fillcolor="#cfe0f5"];
+    DIUR    [label="Loop diuretic\n→ lowers LVEDP and LAP\n(symptom relief; does not\ntouch the orifice)", fillcolor="#cfe0f5"];
+    MECHRC  [label="MECHANISM: rate control works\nby BUYING DIASTOLE, not by unloading\n— DFPmin enters the Gorlin\ndenominator", fillcolor="#d9c9ec"];
+    CARDIOV [label="Cardioversion / ablation\n(low durability once the LA\nis large and fibrotic)", fillcolor="#cfe0f5"];
+  }
+
+  /* ---------- 15. Anticoagulation ------------------------------------- */
+  subgraph cluster_ac {
+    label="15 · Anticoagulation";
+    style="rounded,filled"; fillcolor="#e8eef7"; color="#7a90b8"; fontsize=12;
+
+    WARF    [label="Warfarin (vitamin K antagonist)\nt½ ≈ 40 h", fillcolor="#cfe0f5"];
+    PCF     [label="Prothrombin complex activity\nII · VII · IX · X\nturnover t½ ≈ 48 h", fillcolor="#cfe0f5"];
+    INR     [label="INR = (1/PCF)^0.85\ntarget 2.0–3.0", fillcolor="#ffe9b8"];
+    EANTI   [label="~62% reduction in embolic\nhazard at INR 2.5", fillcolor="#cfe0f5"];
+    DOAC    [label="DOACs — INVICTUS (2022) found\nrivaroxaban INFERIOR to a VKA in\nrheumatic AF. Encoded empirically;\nthe model does NOT explain it", fillcolor="#fbdcdc"];
+    TTR     [label="Time in therapeutic range —\nthe practical limit on VKA benefit\nwhere monitoring is scarce", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 16. Mechanical intervention ----------------------------- */
+  subgraph cluster_interv {
+    label="16 · Mechanical relief of the obstruction";
+    style="rounded,filled"; fillcolor="#e8eef7"; color="#7a90b8"; fontsize=12;
+
+    PMBV    [label="Percutaneous mitral balloon\nvalvotomy (Inoue) — splits the\nFUSED COMMISSURE\n1.0 → ~2.0 cm²", fillcolor="#cfe0f5"];
+    WILKSEL [label="Selection: Wilkins ≤ 8,\nno LA thrombus, MR ≤ 2+\n(TOE mandatory first)", fillcolor="#cfe0f5"];
+    RESTEN  [label="Restenosis ~40% at 10 y\n— the shear arm resumes at a\nHIGHER coefficient on a\nsplit valve", fillcolor="#d9c9ec"];
+    SURGCOM [label="Surgical commissurotomy\n(open or closed)", fillcolor="#cfe0f5"];
+    MVR     [label="Mitral valve replacement\nmechanical (lifelong VKA) or\nbioprosthetic (limited durability\nin the young)", fillcolor="#cfe0f5"];
+    TIMING  [label="Timing: intervene on symptoms,\nor on PASP > 50, new AF,\nor before a planned pregnancy", fillcolor="#ffe9b8"];
+  }
+
+  /* ---------- 17. Endpoints and programme metrics --------------------- */
+  subgraph cluster_end {
+    label="17 · Endpoints, registers and programme metrics";
+    style="rounded,filled"; fillcolor="#fdf6e3"; color="#c9b458"; fontsize=12;
+
+    CUMARF  [label="Cumulative recurrent ARF\n(the endpoint prophylaxis\nunquestionably moves)", fillcolor="#ffe9b8"];
+    MVATRAJ [label="MVA trajectory\n(the endpoint it moves\nmuch less, once stenosis exists)", fillcolor="#ffe9b8"];
+    STROKE  [label="Stroke / systemic embolism", fillcolor="#ffe9b8"];
+    HFADM   [label="Heart-failure admission", fillcolor="#ffe9b8"];
+    MATDEATH[label="Maternal and fetal death\n(MS is a leading cardiac cause\nof maternal mortality)", fillcolor="#ffe9b8"];
+    IE      [label="Infective endocarditis\n(on the damaged valve)", fillcolor="#ffe9b8"];
+    DEATH   [label="Premature death\n~300 000/yr worldwide", fillcolor="#ffe9b8"];
+    REGIST  [label="RHD register + active recall\n(the intervention with the best\nevidence at programme level)", fillcolor="#e8f2e8"];
+    ECHOSCR [label="Echocardiographic screening\nfor LATENT RHD\n(the crossover argument says\nthis is where the valve benefit is)", fillcolor="#e8f2e8"];
+    GOAL    [label="GOAL trial (2022): BPG in latent\nRHD reduced echocardiographic\nprogression at 2 y", fillcolor="#e8f2e8"];
+  }
+
+  /* =================================================================
+     EDGES
+     ================================================================= */
+
+  /* --- 1 exposure --------------------------------------------------- */
+  CROWD -> INDEX; CROWD -> RADT [label="access ↓", style=dashed];
+  INDEX -> DROP -> PHARYNX -> GAS;
+  RHEUMO -> GAS [label="strain"]; GAS -> CARRIER [style=dashed];
+  GAS -> MIMM [label="primes"]; MIMM -> GAS [label="clears", color="#2e7d32"];
+  GAS -> LATENT -> ARF;
+  AGEW -> ARF; CROWD -> CROWD [style=invis];
+
+  /* --- 2 host ------------------------------------------------------- */
+  HLA -> SUSC; TNFAP -> SUSC; IL1RN -> SUSC; D817 -> SUSC;
+  SUSC -> XAB [label="gates the\ncross-reactive arm"];
+  SUSC -> HAZARF;
+  PRIOR -> HAZARF [label="×(1+2·MEM)"];
+  MEM -> PRIOR;
+
+  /* --- 3 mimicry ---------------------------------------------------- */
+  GAS -> MPROT; GAS -> GLCNAC;
+  MPROT -> AG; GLCNAC -> AG;
+  AG -> APC -> BCELL; HLA -> APC;
+  BCELL -> XAB; BCELL -> ASO;
+  AG -> ASO [label="titre rises\n3–5 wk"];
+  AG -> MEM; MEM -> XAB [label="×(1+1.5·MEM)\namplifies"];
+  XAB -> EPISPR -> XAB;
+  APC -> TH17; TH17 -> VIT; TREG -> TH17 [color="#2e7d32", arrowhead=tee];
+  MPROT -> EPISPR [label="myosin homology"];
+  GLCNAC -> EPISPR [label="laminin cross-reaction"];
+
+  /* --- 4 ARF -------------------------------------------------------- */
+  XAB -> ARF; TH17 -> ARF;
+  ARF -> CARDIT; ARF -> ARTHR; ARF -> CHOREA; ARF -> EMARG; ARF -> NODUL;
+  ARF -> PERI; CARDIT -> ASCHOFF; TH17 -> CRP; CARDIT -> PR;
+  HAZARF -> ARF [label="expected\nepisodes/yr"];
+  HAZARF -> CUMARF;
+  CARDIT -> VIT;
+
+  /* --- 5 valvulitis ------------------------------------------------- */
+  XAB -> VENDO [label="binds laminin /\ncollagen IV"];
+  VENDO -> VCAM -> TINF -> VIT;
+  VIT -> NEOVAS -> TINF [label="positive feedback", color="#b71c1c"];
+  VIT -> EDEM; VIT -> VERRUC; VIT -> MMP; VIT -> TGFB;
+  TGFB -> FIBV; MMP -> FIBV;
+  VIT -> CRP;
+
+  /* --- 6 ratchet ---------------------------------------------------- */
+  VIT -> ARMIMM [label="KFI × VIT"];
+  MVG -> BERN -> ARMSHR [label="v² = MVG/4"];
+  ARMIMM -> FIBV; ARMSHR -> FIBV;
+  FIBV -> GEOM -> MVA [label="dA = −2√(πA)·dH", color="#b71c1c"];
+  FIBV -> COMM -> MVA; FIBV -> CHORD -> MVA;
+  FIBV -> CALC -> WILK; CHORD -> WILK; COMM -> WILK;
+  MVA -> SCARF -> VIT [label="BSCAR: a scarred valve\nis more susceptible", color="#b71c1c"];
+  MVA -> CROSS; ARMSHR -> CROSS; ARMIMM -> CROSS;
+  VIT -> MRA; VIT -> MRC; VIT -> AOI;
+  EDEM -> MVAEFF; MVA -> MVAEFF;
+  MVA -> MVATRAJ;
+  RVF -> TRIC [label="functional"]; VIT -> TRIC [label="organic", style=dashed];
+
+  /* --- 7 Gorlin block ------------------------------------------------ */
+  HR -> RRINT -> SYSP -> DFPB -> DFPM; HR -> DFPM;
+  CODEM -> COACH; COVALV -> COACH; COSV -> COACH;
+  MVAEFF -> COVALV; DFPM -> COVALV; VOL -> COVALV [label="LVEDP"];
+  HR -> COSV;
+  COACH -> MVF; DFPM -> MVF;
+  MVF -> MVG; MVAEFF -> MVG;
+  MVG -> LAP; VOL -> LAP [label="+LVEDP"];
+  DFPM -> HROPT; COSV -> HROPT; MVA -> HROPT;
+  HROPT -> MECHRC;
+  MVA -> PHT [label="220/PHT surrogate"];
+  PREG -> CODEM [label="CO +40–50%", color="#b71c1c"];
+  EXERC -> CODEM; PREG -> HR;
+  AFB -> MVAEFF [label="−12% (atrial kick)"];
+
+  /* --- 8 LA / rhythm -------------------------------------------------- */
+  LAP -> LAV [label="remodels above 12 mmHg"];
+  LAV -> LAFIB -> AFB; LAV -> AFB [label="hazard ∝ (LAV−LAV₀)²"];
+  AFB -> AKICK -> MVAEFF; AFB -> RVR -> HR;
+  LAV -> STASIS -> THROMB -> EMBOL;
+  AFB -> STASIS; MVA -> STASIS [label="low velocity"];
+  LAV -> ORTNER;
+  MVAEFF -> LVDIS -> COACH;
+  EMBOL -> STROKE;
+
+  /* --- 9 pulmonary ---------------------------------------------------- */
+  LAP -> PVENOUS -> REACT -> PVR;
+  LAP -> PVR [label="above ~20 mmHg"];
+  PVR -> PAPM; LAP -> PAPM; COACH -> PAPM;
+  PAPM -> RVAFT -> RVF; RVF -> FTR -> HEPCON;
+  PVENOUS -> HEMOPT; LAP -> CONG [label="above ~18 mmHg"];
+  CONG -> DYSP; ALVEO -> CONG [arrowhead=tee, color="#2e7d32",
+                               label="chronic adaptation\nblunts oedema"];
+  PVR -> COVALV [style=dashed, label="limits\nforward flow"];
+  RVF -> COACH [style=dashed];
+
+  /* --- 10 systemic ----------------------------------------------------- */
+  CONG -> SNS -> HR [label="raises rate —\nWORSENS the gradient", color="#b71c1c"];
+  CONG -> RAAS -> VOL; VOL -> LAP;
+  CONG -> NYHA; COACH -> NYHA [label="output deficit"];
+  DYSP -> NYHA; NYHA -> HFADM;
+  MVG -> MURMUR; LAP -> MURMUR [label="S2–OS interval"];
+  PREG -> MATDEATH; NYHA -> MATDEATH;
+  MVA -> IE; MRC -> IE;
+  NYHA -> DEATH; STROKE -> DEATH; RVF -> DEATH; MATDEATH -> DEATH;
+
+  /* --- 11 BPG ---------------------------------------------------------- */
+  BPGINJ -> BPGF [label="F = 0.30"]; BPGINJ -> BPGS [label="F = 0.70"];
+  HYDROL -> BPGF; HYDROL -> BPGS;
+  BPGF -> PENC [label="ka 0.35/d"]; BPGS -> PENC [label="ka 0.075/d\nRATE-LIMITING"];
+  VPEN -> PENC [label="V/F ∝ WT"];
+  PENC -> MICTH; MICTH -> TPROT; PENC -> TPROT;
+  PENC -> EPEN -> GAS [label="kills", arrowhead=tee, color="#2e7d32"];
+  EPEN -> HAZARF [label="×(1 − Epen)", arrowhead=tee, color="#2e7d32"];
+  INTERV -> BPGINJ; SCIP -> BPGS [label="raises the depot,\nnot the rate"];
+  PAINJ -> ADH [arrowhead=tee]; ADH -> BPGINJ;
+  ADH -> TPROT [label="NOT the same quantity", style=dashed, color="#b71c1c"];
+  VPEN -> TPROT [label="a heavier patient loses\ndays, not doses", color="#b71c1c"];
+  REGIST -> ADH [color="#2e7d32"];
+  TPROT -> CUMARF [arrowhead=tee, color="#2e7d32"];
+
+  /* --- 12 oral --------------------------------------------------------- */
+  RADT -> PENV; PENV -> PVA -> PENC; MACRO -> GAS [arrowhead=tee];
+  PENV -> WIN9; WIN9 -> AG [arrowhead=tee, color="#2e7d32",
+                            label="cuts CUMULATIVE antigen"];
+  VACC -> GAS [arrowhead=tee, style=dashed, color="#2e7d32"];
+
+  /* --- 13 anti-inflammatory --------------------------------------------- */
+  ASA -> EASA -> VIT [arrowhead=tee]; ASA -> ARTHR [arrowhead=tee, color="#2e7d32"];
+  PRED -> EPRED -> VIT [arrowhead=tee];
+  XAB -> TIMEMIS; EPRED -> TIMEMIS;
+  TIMEMIS -> COCH [color="#b71c1c"];
+  IVIG -> VIT [arrowhead=tee, style=dashed];
+  COCH -> MVATRAJ [style=dashed];
+
+  /* --- 14 rate control --------------------------------------------------- */
+  BB -> HR [arrowhead=tee]; IVAB -> HR [arrowhead=tee];
+  DIG -> HR [arrowhead=tee, label="AF only"]; CCB -> HR [arrowhead=tee];
+  BB -> MECHRC; MECHRC -> DFPM [color="#2e7d32", label="buys diastole"];
+  DIUR -> VOL [arrowhead=tee]; DIUR -> CONG [arrowhead=tee, color="#2e7d32"];
+  CARDIOV -> AFB [arrowhead=tee]; LAFIB -> CARDIOV [arrowhead=tee,
+                                                    label="limits durability"];
+
+  /* --- 15 anticoagulation ------------------------------------------------- */
+  WARF -> PCF [arrowhead=tee]; PCF -> INR; INR -> EANTI;
+  EANTI -> EMBOL [arrowhead=tee, color="#2e7d32"];
+  DOAC -> EMBOL [style=dashed, label="INFERIOR to VKA\n(INVICTUS)", color="#b71c1c"];
+  TTR -> EANTI; AFB -> WARF [label="indication"]; THROMB -> WARF;
+
+  /* --- 16 intervention ----------------------------------------------------- */
+  WILK -> WILKSEL -> PMBV; THROMB -> PMBV [arrowhead=tee, label="contraindicates"];
+  MRC -> PMBV [arrowhead=tee]; PMBV -> COMM [arrowhead=tee, label="splits"];
+  PMBV -> MVA [label="+~1.0 cm²", color="#2e7d32"];
+  PMBV -> RESTEN -> ARMSHR [label="×1.6 on the shear arm", color="#b71c1c"];
+  PMBV -> MRA [label="tear risk", style=dashed];
+  SURGCOM -> MVA [color="#2e7d32"]; MVR -> MVA [color="#2e7d32"];
+  MVR -> WARF [label="mechanical → lifelong"];
+  NYHA -> TIMING; PAPM -> TIMING; AFB -> TIMING; PREG -> TIMING;
+  TIMING -> PMBV; TIMING -> MVR;
+  PMBV -> PVR [arrowhead=tee, color="#2e7d32", label="partly reversible"];
+
+  /* --- 17 endpoints --------------------------------------------------------- */
+  ECHOSCR -> GOAL; GOAL -> BPGINJ [color="#2e7d32"];
+  CROSS -> ECHOSCR [label="the valve benefit lives\nABOVE the crossover",
+                    color="#b71c1c"];
+  REGIST -> ECHOSCR; CUMARF -> MVATRAJ [label="each recurrence\nadds a step"];
+  MVATRAJ -> NYHA; MVATRAJ -> TIMING;
+  IE -> DEATH;
+}
