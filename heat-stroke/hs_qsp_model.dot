@@ -1,0 +1,542 @@
+/*
+ * hs_qsp_model.dot -- Heat Stroke (exertional and classic) QSP mechanistic map
+ *
+ * Organising thesis, rendered as the left-to-right spine of the graph:
+ *
+ *   Heat stroke is what happens when the heat-balance equation loses its
+ *   FIXED POINT.  Everything after that is a CLOCK and a DOSE.
+ *
+ *     regime 1  COMPENSABLE    a steady state exists; the core plateaus
+ *     regime 2  UNCOMPENSABLE  no steady state; a clock runs at a rate the
+ *                              heat-balance equation computes exactly
+ *     regime 3  COMMITTED      the thermal dose has latched a bistable
+ *                              inflammatory switch; cooling restores the
+ *                              temperature but not the patient
+ *
+ * Every intervention in this map acts on exactly one of the three regimes,
+ * and that is why so few of them work.
+ *
+ * Render:
+ *   dot -Tsvg hs_qsp_model.dot -o hs_qsp_model.svg
+ *   dot -Tpng -Gdpi=150 hs_qsp_model.dot -o hs_qsp_model.png
+ */
+
+digraph HeatStroke {
+    rankdir = LR;
+    compound = true;
+    newrank = true;
+    splines = spline;
+    nodesep = 0.22;
+    ranksep = 1.05;
+    fontname = "Helvetica";
+    labelloc = "t";
+    fontsize = 30;
+    label = <<B>Heat Stroke &mdash; Quantitative Systems Pharmacology map</B><BR/>
+             <FONT POINT-SIZE="17">exertional (EHS) and classic / non-exertional (NEHS) heat stroke as one heat-balance equation read in three regimes<BR/>
+             regime 1 COMPENSABLE (a fixed point exists) &#8594; regime 2 UNCOMPENSABLE (no fixed point: a clock) &#8594; regime 3 COMMITTED (a latched bistable switch)</FONT>>;
+    bgcolor = "white";
+
+    node [shape=box, style="rounded,filled", fontname="Helvetica",
+          fontsize=11, margin="0.09,0.055", penwidth=1.1];
+    edge [fontname="Helvetica", fontsize=9, penwidth=1.0, color="#5A5A5A",
+          arrowsize=0.7];
+
+    /* ===================================================================
+       1. ENVIRONMENT AND HEAT LOAD -- the numerator of the clock
+       =================================================================== */
+    subgraph cluster_env {
+        label = <<B>1. Environmental heat load and metabolic heat production</B><BR/>
+                 <FONT POINT-SIZE="10">the numerator: everything that puts joules into the body</FONT>>;
+        style = "filled"; fillcolor = "#FFF6E5"; color = "#E0A93B"; penwidth = 2;
+        fontsize = 14; fontcolor = "#8A6212";
+        node [fillcolor="#FDE9C4", color="#C99436"];
+
+        Ta      [label="Air temperature\nT_a (°C)"];
+        Tr      [label="Mean radiant temp\nT_r (°C)"];
+        RH      [label="Relative humidity\nRH → P_a (kPa)"];
+        Vair    [label="Air velocity\nv (m/s)"];
+        Icl     [label="Clothing insulation\nI_cl (clo), f_cl, i_cl"];
+        Qsol    [label="Solar / radiant gain\nQ_sol (W)"];
+        WBGT    [label="WBGT / wet-bulb T_w\n(index, not a mechanism)",
+                 fillcolor="#F7DFAE", shape=note];
+        MEX     [label="Exercise metabolic rate\nM_ex (W)  •  running, marching,\nAmerican football"];
+        ETA     [label="Mechanical efficiency\nη ≈ 0.20 → 80% becomes heat"];
+        MREST   [label="Resting metabolism\nM_rest ≈ 1.2 W/kg"];
+        Q10     [label="van 't Hoff Q₁₀ ≈ 2.3\nM_rest × Q₁₀^((T_c−37)/10)\nAUTOCATALYTIC",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        SHIV    [label="Shivering thermogenesis\nup to ~350 W\n(only during over-cooling)"];
+        HPROD   [label="TOTAL HEAT PRODUCTION\nH_prod (W)", fillcolor="#F3B96B",
+                 penwidth=2];
+
+        RH -> WBGT; Ta -> WBGT;
+        MEX -> ETA -> HPROD;
+        MREST -> Q10 -> HPROD;
+        SHIV -> HPROD;
+    }
+
+    /* ===================================================================
+       2. HEAT LOSS AND THE THERMOREGULATORY EFFECTORS
+       =================================================================== */
+    subgraph cluster_eff {
+        label = <<B>2. Heat loss pathways and the thermoregulatory effectors</B><BR/>
+                 <FONT POINT-SIZE="10">the denominator: everything that takes joules out — and its ceiling</FONT>>;
+        style = "filled"; fillcolor = "#EAF4FB"; color = "#3E86B5"; penwidth = 2;
+        fontsize = 14; fontcolor = "#255A7E";
+        node [fillcolor="#D3E7F5", color="#3E86B5"];
+
+        TSET    [label="Hypothalamic set-point\nT_set = 37.0 °C\nNORMAL in heat stroke",
+                 fillcolor="#BBD9EE", penwidth=2];
+        POA     [label="Preoptic area / anterior\nhypothalamus  •  warm-sensitive\nneurons, TRPV1/TRPM2"];
+        SKBF    [label="Skin blood flow\nSkBF 0.3 → 7.5 L/min\nactive cholinergic vasodilation"];
+        SWEAT   [label="Eccrine sweat rate\nm_sw ≤ 1.2 L/h (unacclim.)\n≤ 2.2 L/h (acclimatised)"];
+        HIDRO   [label="Hidromeiosis /\ngland fatigue (−30%)"];
+        QDRY    [label="Dry exchange C + R\nQ_dry = A(T_sk−T_o)/(R_cl+1/f_cl h)\nNEGATIVE when T_a > T_sk",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        EMAX    [label="MAXIMAL EVAPORATIVE\nCAPACITY of the air\nE_max = A(P_sk−P_a)/(R_e,cl+1/f_cl h_e)",
+                 fillcolor="#9FC8E4", penwidth=2];
+        EACT    [label="Actual evaporation\nE = min(E_sweat, E_max, E_req)"];
+        DRIP    [label="DRIPPED SWEAT\nlost water, no cooling",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        QRES    [label="Respiratory loss\nC_res + E_res (small)"];
+        WETT    [label="Skin wettedness\nw = E_req/E_max ≤ 0.85"];
+        HSI     [label="HEAT STRESS INDEX\nHSI = E_req/E_max × 100%\nHSI ≥ 100% ⇒ no fixed point",
+                 fillcolor="#F3B96B", color="#C0392B", penwidth=2, shape=octagon];
+
+        TSET -> POA; POA -> SKBF; POA -> SWEAT;
+        SWEAT -> HIDRO [style=dashed, label="prolonged\nwettedness"];
+        HIDRO -> SWEAT [style=dashed, color="#C0392B", arrowhead=tee];
+        SWEAT -> EACT; EMAX -> EACT; EACT -> WETT; WETT -> HSI; EMAX -> HSI;
+        SWEAT -> DRIP [label="when E_sweat > E_max"];
+    }
+
+    /* ===================================================================
+       3. THE THERMAL NODES AND THE BIFURCATION
+       =================================================================== */
+    subgraph cluster_therm {
+        label = <<B>3. Thermal compartments and the loss of the fixed point</B><BR/>
+                 <FONT POINT-SIZE="10">three nodes, one bifurcation: this is where heat stroke actually begins</FONT>>;
+        style = "filled"; fillcolor = "#FDEDED"; color = "#C0392B"; penwidth = 2.5;
+        fontsize = 14; fontcolor = "#8E2A20";
+        node [fillcolor="#F8D5D2", color="#C0392B"];
+
+        TCR     [label="CORE  T_cr\nC = 0.5·BW·3470 J/K\nviscera, brain, blood",
+                 penwidth=2.4, fillcolor="#F2B4AE"];
+        TMU     [label="MUSCLE  T_mu\n0.40·BW  •  runs 1–2 °C above\ncore during exercise"];
+        TSK     [label="SKIN / SHELL  T_sk\n0.10·BW  •  the exchange surface"];
+        KCS     [label="Core↔skin conductance\nK_cs = K_cs0 + 1.13·SkBF·60\n10 → 520 W/K"];
+        KCM     [label="Core↔muscle conductance\nK_cm = K_cm0 + 1.13·Q_mu·60"];
+
+        REG1    [label="REGIME 1  COMPENSABLE\na steady state EXISTS\nT_c plateaus  •  this is heat STRAIN",
+                 shape=octagon, fillcolor="#CDEBCD", color="#2E7D32", penwidth=2.4,
+                 fontcolor="#1B5E20"];
+        REG2    [label="REGIME 2  UNCOMPENSABLE\nNO steady state exists\ndT_c/dt = (H_prod−Q_loss)/C > 0\nA CLOCK STARTS",
+                 shape=octagon, fillcolor="#F5B7B1", color="#922B21", penwidth=2.8,
+                 fontcolor="#7B241C"];
+        TCRIT   [label="Critical environment\nT_w,crit ≈ 35.7 °C at rest\n≈ 21 °C at 900 W\n(computed, not assumed)",
+                 shape=note, fillcolor="#FADBD8"];
+        CLOCK   [label="TIME TO 42 °C\n= (42 − T_c0)·C / imbalance\nEHS ≈ 25–45 min\nNEHS ≈ 10–30 h",
+                 shape=note, fillcolor="#FADBD8", penwidth=2];
+
+        TCR -> TMU [dir=both, label="K_cm"]; TCR -> TSK [dir=both, label="K_cs"];
+        KCS -> TSK [style=dotted]; KCM -> TMU [style=dotted];
+        REG2 -> CLOCK; TCRIT -> REG2 [style=dashed];
+    }
+
+    /* ===================================================================
+       4. THERMAL DOSE AND CYTOPROTECTION
+       =================================================================== */
+    subgraph cluster_dose {
+        label = <<B>4. Thermal dose — the variable the patient actually pays</B><BR/>
+                 <FONT POINT-SIZE="10">Sapareto–Dewey CEM43: temperature and time are NOT exchangeable 1:1</FONT>>;
+        style = "filled"; fillcolor = "#F5EDFB"; color = "#7D3C98"; penwidth = 2.5;
+        fontsize = 14; fontcolor = "#5B2C6F";
+        node [fillcolor="#E4D2F0", color="#7D3C98"];
+
+        CEM43   [label="CEM43  cumulative equivalent\nminutes at 43 °C\ndD/dt = R^(43−T_c)\nR = 0.25 (<43), 0.50 (≥43)",
+                 penwidth=2.6, fillcolor="#D2B4DE", shape=octagon];
+        DRATE   [label="Dose rate ladder\n40 °C: 0.016/min\n41 °C: 0.062  •  42 °C: 0.250\n43 °C: 1.00  •  44 °C: 2.00",
+                 shape=note, fillcolor="#EBDEF0"];
+        HSF1    [label="HSF1 trimerisation\nthreshold ≈ 39.6 °C"];
+        HSP70   [label="HSP70 / HSP90 / HSP27\ncytoprotective chaperones"];
+        THERMO  [label="Acquired thermotolerance\nD_eff = D / (1 + (HSP−1)/HSP₅₀)"];
+        ACCLIM  [label="Heat acclimatisation 10–14 d\nplasma volume +11%, sweat onset\n−0.35 °C, SW_max ×1.85, HSP↑",
+                 fillcolor="#CDEBCD", color="#2E7D32"];
+        PROTDEN [label="Protein denaturation,\nmembrane fluidisation,\nmitochondrial uncoupling"];
+        DIRECT  [label="Direct thermal cytotoxicity\nenterocyte, hepatocyte,\nmyocyte, Purkinje cell"];
+
+        CEM43 -> DRATE [style=invis];
+        HSF1 -> HSP70 -> THERMO -> CEM43 [arrowhead=tee, color="#2E7D32",
+                 label="protects"];
+        ACCLIM -> HSP70;
+        CEM43 -> PROTDEN -> DIRECT;
+    }
+
+    /* ===================================================================
+       5. CARDIOVASCULAR STRAIN AND THE SPLANCHNIC STEAL
+       =================================================================== */
+    subgraph cluster_cv {
+        label = <<B>5. Cardiovascular strain and the splanchnic steal</B><BR/>
+                 <FONT POINT-SIZE="10">the same vasodilation that sheds heat starves the gut</FONT>>;
+        style = "filled"; fillcolor = "#EAF7F3"; color = "#138D75"; penwidth = 2;
+        fontsize = 14; fontcolor = "#0B5345";
+        node [fillcolor="#CFEDE4", color="#138D75"];
+
+        SWLOSS  [label="Sweat water loss\n0.5–2.5 L/h"];
+        HYPO    [label="Hypohydration\n% body-mass deficit"];
+        PV      [label="Plasma volume ↓\nhaemoconcentration"];
+        SV      [label="Stroke volume ↓"];
+        HR      [label="Heart rate ↑\ncardiovascular drift"];
+        CO      [label="Cardiac output\n5 → 24 L/min"];
+        TPR     [label="Total peripheral\nresistance ↓"];
+        MAP     [label="Mean arterial pressure ↓\nbaroreflex withdrawal of SkBF",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        QSPL    [label="SPLANCHNIC BLOOD FLOW\n1.5 → 0.3 L/min (−60 to −80%)",
+                 penwidth=2.4, fillcolor="#A9DFD0"];
+        ISCH    [label="Mesenteric ischaemia\n+ reperfusion (xanthine oxidase,\nROS burst on cooling)",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        LAC     [label="Lactate ↑\nanaerobic threshold"];
+
+        SWLOSS -> HYPO -> PV -> SV -> CO;
+        HR -> CO; CO -> MAP; TPR -> MAP;
+        MAP -> QSPL; QSPL -> ISCH; ISCH -> LAC;
+    }
+
+    /* ===================================================================
+       6. GUT BARRIER FAILURE AND ENDOTOXAEMIA
+       =================================================================== */
+    subgraph cluster_gut {
+        label = <<B>6. Gut barrier failure and endotoxaemia</B><BR/>
+                 <FONT POINT-SIZE="10">the same event opens the door and closes the exit</FONT>>;
+        style = "filled"; fillcolor = "#FEF9E7"; color = "#B7950B"; penwidth = 2;
+        fontsize = 14; fontcolor = "#7D6608";
+        node [fillcolor="#FCF3CF", color="#B7950B"];
+
+        ENTERO  [label="Enterocyte injury\nI-FABP ↑ (villus tip first)"];
+        TJ      [label="Tight junction disassembly\noccludin, ZO-1, claudin-1 ↓\nMLCK activation"];
+        PERM    [label="Paracellular permeability ↑\nlactulose/rhamnose ratio"];
+        LPS     [label="Portal endotoxin (LPS)\ntranslocation",
+                 penwidth=2.2, fillcolor="#F9E79F"];
+        KUPFFER [label="Kupffer-cell LPS clearance\nfalls with hepatic injury\nAND with low splanchnic flow",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        SYSLPS  [label="Systemic endotoxaemia\nEU/mL ↑"];
+        LBP     [label="LBP / sCD14 / anti-LPS IgG\n(host buffering capacity)"];
+        TLR4    [label="TLR4–MD2–CD14 ligation\non monocytes and\nKupffer cells"];
+
+        ENTERO -> TJ -> PERM -> LPS -> SYSLPS -> TLR4;
+        KUPFFER -> LPS [arrowhead=tee, label="clears"];
+        LBP -> TLR4;
+    }
+
+    /* ===================================================================
+       7. INNATE IMMUNITY AND THE COMMITMENT SWITCH
+       =================================================================== */
+    subgraph cluster_immune {
+        label = <<B>7. Innate immune cascade and the HMGB1 COMMITMENT SWITCH</B><BR/>
+                 <FONT POINT-SIZE="10">a saddle-node bistability: OFF = 0, unstable = 10.9, ON = 50.3 ng/mL</FONT>>;
+        style = "filled"; fillcolor = "#FDEBF5"; color = "#A93226"; penwidth = 2.5;
+        fontsize = 14; fontcolor = "#78281F";
+        node [fillcolor="#F9D6E5", color="#A93226"];
+
+        NFKB    [label="NF-κB / MyD88\ntranslocation"];
+        TNF     [label="TNF-α\npeak 1–3 h"];
+        IL1B    [label="IL-1β\nNLRP3 inflammasome"];
+        IL6     [label="IL-6\npeak 3–8 h, tracks severity"];
+        IL10    [label="IL-10\ncounter-regulation (CARS)",
+                 fillcolor="#CDEBCD", color="#2E7D32"];
+        IFNG    [label="IFN-γ"];
+        NETS    [label="NETosis / cell-free DNA\nMPO, citrullinated H3"];
+        NEC     [label="Necrosis\n(thermal + ischaemic +\nHMGB1-driven)"];
+        HMGB1   [label="HMGB1  — THE COMMITMENT\nVARIABLE\ndH/dt = drive + A·H³/(H³+K³) − c·H",
+                 shape=doubleoctagon, penwidth=3, fillcolor="#E6789F",
+                 fontcolor="white", fontsize=12];
+        RAGE    [label="RAGE / TLR4 / TLR2\nHMGB1 receptors"];
+        BISTAB  [label="BISTABLE SWITCH\nOFF 0 → unstable 10.9 → ON 50.3 ng/mL\nlatches at ≈ 10–15 CEM43\nsaddle-node at c_eff = 0.00498/min",
+                 shape=note, fillcolor="#FADBD8", penwidth=2.4, fontsize=11];
+        CARS    [label="Immunoparalysis\nmHLA-DR ↓, secondary infection"];
+
+        TLR4 -> NFKB [ltail=cluster_gut];
+        NFKB -> TNF; NFKB -> IL1B; NFKB -> IL6; NFKB -> IFNG;
+        TNF -> IL6; IL6 -> IL10; IL10 -> IL6 [arrowhead=tee, color="#2E7D32"];
+        IL1B -> NETS;
+        NEC -> HMGB1 [penwidth=2];
+        HMGB1 -> RAGE -> NEC [color="#A93226", penwidth=2.2,
+                 label="autocatalysis"];
+        HMGB1 -> NFKB [color="#A93226"];
+        HMGB1 -> BISTAB [style=invis];
+        IL10 -> CARS;
+    }
+
+    /* ===================================================================
+       8. ENDOTHELIUM, GLYCOCALYX AND DIC
+       =================================================================== */
+    subgraph cluster_coag {
+        label = <<B>8. Endothelial injury, glycocalyx shedding and DIC</B><BR/>
+                 <FONT POINT-SIZE="10">heat stroke coagulopathy is consumption, and it is scored as an output</FONT>>;
+        style = "filled"; fillcolor = "#EFEFF8"; color = "#4A4AA0"; penwidth = 2;
+        fontsize = 14; fontcolor = "#2E2E6B";
+        node [fillcolor="#DADAF0", color="#4A4AA0"];
+
+        ENDO    [label="Endothelial activation\nand direct thermal injury"];
+        SDC1    [label="Glycocalyx shedding\nsyndecan-1, heparan sulfate ↑"];
+        VWF     [label="vWF release ↑ /\nADAMTS-13 ↓"];
+        TF      [label="Tissue factor expression\nmonocyte + endothelial"];
+        THR     [label="Thrombin generation\nTAT complexes ↑"];
+        FIB     [label="Fibrinogen\nconsumption vs acute-phase\nsynthesis (two signs)"];
+        PLT     [label="Platelet consumption\nnadir day 2–3"];
+        PC      [label="Protein C / antithrombin\nconsumption"];
+        DDIM    [label="D-dimer / FDP ↑"];
+        MICROT  [label="Microvascular thrombosis\norgan hypoperfusion"];
+        ISTHS   [label="ISTH overt-DIC score\nCOMPUTED AS AN OUTPUT,\nnever as a state",
+                 shape=note, fillcolor="#E8E8F5"];
+
+        ENDO -> SDC1; ENDO -> VWF; ENDO -> TF -> THR;
+        THR -> FIB [arrowhead=tee]; THR -> PLT [arrowhead=tee];
+        THR -> PC [arrowhead=tee]; THR -> DDIM; THR -> MICROT;
+        PLT -> ISTHS; FIB -> ISTHS; DDIM -> ISTHS;
+        PC -> THR [arrowhead=tee, color="#2E7D32", label="APC brake"];
+    }
+
+    /* ===================================================================
+       9. ORGAN INJURY
+       =================================================================== */
+    subgraph cluster_organ {
+        label = <<B>9. Organ injury — the phenotype that outlives the fever</B><BR/>
+                 <FONT POINT-SIZE="10">liver and kidney peak on days 2–4, long after the temperature is normal</FONT>>;
+        style = "filled"; fillcolor = "#F0F7EC"; color = "#5B8C3A"; penwidth = 2;
+        fontsize = 14; fontcolor = "#3B5E24";
+        node [fillcolor="#DCEBD0", color="#5B8C3A"];
+
+        LIVER   [label="Hepatocellular injury\nAST/ALT peak 48–72 h\ncentrilobular necrosis"];
+        LIVF    [label="Functional liver mass ↓\nsynthetic failure, jaundice"];
+        RHABDO  [label="Rhabdomyolysis\nCK peak 24–48 h,\nmyoglobin t½ ≈ 90 min"];
+        MYOG    [label="Myoglobin cast nephropathy\n+ direct tubular toxicity"];
+        AKI     [label="Acute kidney injury\nGFR ↓ (hypovolaemia + casts\n+ microthrombi + NSAID)"];
+        KPOT    [label="Hyperkalaemia,\nhyperphosphataemia,\nhypocalcaemia"];
+        CNS     [label="Encephalopathy\ncerebellar Purkinje cells are\nthe most heat-sensitive neurons"];
+        NSE     [label="NSE / S100B ↑\nblood–brain barrier opening"];
+        ARDS    [label="ARDS / pulmonary oedema"];
+        MYOCARD [label="Myocardial injury\ntroponin ↑, demand ischaemia"];
+
+        LIVER -> LIVF; RHABDO -> MYOG -> AKI; AKI -> KPOT;
+        RHABDO -> KPOT; CNS -> NSE;
+    }
+
+    /* ===================================================================
+       10. COOLING -- the only intervention with a large effect size
+       =================================================================== */
+    subgraph cluster_cool {
+        label = <<B>10. Cooling: modality is a POTENCY, delay is an EXPOSURE TIME</B><BR/>
+                 <FONT POINT-SIZE="10">each modality is one lumped conductance UA (W/K) fitted to its published cooling rate</FONT>>;
+        style = "filled"; fillcolor = "#E8F6FD"; color = "#2471A3"; penwidth = 2.5;
+        fontsize = 14; fontcolor = "#154360";
+        node [fillcolor="#CDE7F7", color="#2471A3"];
+
+        CWI     [label="Ice-water immersion 2 °C\nUA = 23.5 W/K  →  0.22 °C/min\nTHE REFERENCE STANDARD",
+                 penwidth=2.6, fillcolor="#A9D5F0"];
+        CWI14   [label="Cold-water immersion 14 °C\nUA = 27.7 W/K  →  0.17 °C/min"];
+        TACO    [label="Tarp-assisted cooling 10 °C\nUA = 20.1 W/K  →  0.14 °C/min"];
+        SHOWER  [label="Cold shower / dousing 20 °C\nUA = 15.9 W/K  →  0.10 °C/min"];
+        EVAP    [label="Evaporative + convective\nUA = 16.2 W/K  →  0.08 °C/min"];
+        ENDOV   [label="Endovascular catheter\nUA = 4.6 W/K  →  0.06 °C/min"];
+        PACKS   [label="Ice packs neck/axilla/groin\nUA = 1.6 W/K  →  0.032 °C/min"];
+        PASSIVE [label="Passive shade\n→ 0.016 °C/min",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        IVCOLD  [label="Cold IV saline 4 °C\nONE-SHOT enthalpy sink\n2 L ≈ 1.3–1.7 °C, then nothing"];
+        DELAY   [label="TIME TO COOLING\nthe dominant variable\n1 min at 42 °C = 0.25 CEM43",
+                 shape=octagon, penwidth=2.8, fillcolor="#F5B7B1", color="#922B21"];
+        STOPR   [label="Stop rule T_c = 38.6 °C\n(overshoot / afterdrop)"];
+        SHIVC   [label="Shivering during cooling\n(benzodiazepine)"];
+        GOLDEN  [label="EXCHANGE RATE\nupgrading evaporative → ice-water\nis worth 4.6–6.0 MINUTES of delay,\nnearly independent of peak T_c",
+                 shape=note, fillcolor="#D6EAF8", penwidth=2.2];
+
+        CWI -> STOPR; CWI -> SHIVC [style=dashed];
+        DELAY -> GOLDEN [style=invis];
+    }
+
+    /* ===================================================================
+       11. PHARMACOLOGY -- and why nearly all of it fails
+       =================================================================== */
+    subgraph cluster_drug {
+        label = <<B>11. Pharmacology — each agent acts on exactly one regime</B><BR/>
+                 <FONT POINT-SIZE="10">antipyretics act on a set-point that is not the binding constraint; only rTM touches the switch</FONT>>;
+        style = "filled"; fillcolor = "#FBF0E7"; color = "#B9601B"; penwidth = 2.5;
+        fontsize = 14; fontcolor = "#7E3F0C";
+        node [fillcolor="#F7DCC6", color="#B9601B"];
+
+        PARA    [label="Paracetamol 1 g IV\n2-cmt, CL 21 L/h\nlowers T_set by ≤ 0.4 °C"];
+        NAPQI   [label="NAPQI  •  CYP2E1 induced by\nheat and fasting  •  GSH depletion",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        IBU     [label="Ibuprofen 800 mg\nCOX-1/2 → PGE₂ in POA ↓"];
+        RENALPG [label="Renal prostaglandin blockade\nGFR ↓ in a hypovolaemic patient",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        PLTFN   [label="Platelet COX-1 blockade\nbleeding on top of DIC",
+                 fillcolor="#F6C9C9", color="#C0392B"];
+        DANT    [label="Dantrolene 2.5 mg/kg\nRyR1 Ca²⁺ release blocker\n(the MH mechanism, not this one)"];
+        HCORT   [label="Hydrocortisone 200 mg\ncytokine suppression"];
+        RTM     [label="Thrombomodulin alfa (ART-123)\n380 U/kg/d  •  thrombin→APC\nAND lectin domain degrades HMGB1",
+                 penwidth=2.6, fillcolor="#F0C08A"];
+        FLUIDS  [label="Crystalloid resuscitation\nplasma volume, MAP, GFR"];
+        SETPT   [label="SET-POINT vs LOAD\nfever moves T_set and the body defends it;\nheat stroke leaves T_set at 37 with the\neffectors already saturated",
+                 shape=note, fillcolor="#FDEBD0", penwidth=2.2];
+
+        PARA -> NAPQI; IBU -> RENALPG; IBU -> PLTFN;
+        PARA -> SETPT [style=dashed]; IBU -> SETPT [style=dashed];
+    }
+
+    /* ===================================================================
+       12. CLINICAL ENDPOINTS
+       =================================================================== */
+    subgraph cluster_end {
+        label = <<B>12. Clinical endpoints and scores (all computed as OUTPUTS)</B>>;
+        style = "filled"; fillcolor = "#F2F2F2"; color = "#555555"; penwidth = 2;
+        fontsize = 14; fontcolor = "#333333";
+        node [fillcolor="#E2E2E2", color="#666666", shape=box];
+
+        GCS     [label="GCS / encephalopathy\nthe defining criterion"];
+        SOFA    [label="SOFA / organ-failure count"];
+        MORT    [label="Mortality\nEHS cooled < 30 min ≈ 0%\nNEHS 30–60%", penwidth=2.2,
+                 fillcolor="#F5B7B1", color="#922B21"];
+        NEURO   [label="Persistent neurological\ndeficit (cerebellar ataxia)"];
+        LOS     [label="ICU length of stay,\ndialysis dependence"];
+        HEATTOL [label="Heat tolerance test\nreturn-to-duty / return-to-play"];
+        DEFN    [label="Diagnostic criterion\nT_c > 40 °C + CNS dysfunction\nTWO thresholds on ONE dose axis",
+                 shape=note, fillcolor="#EAEAEA"];
+    }
+
+    /* ===================================================================
+       cross-cluster wiring: the spine of the argument
+       =================================================================== */
+
+    /* environment and production feed the balance */
+    Ta -> QDRY [lhead=cluster_eff];
+    Tr -> QDRY; RH -> EMAX; Vair -> EMAX; Vair -> QDRY;
+    Icl -> QDRY [label="insulation"]; Icl -> EMAX [arrowhead=tee, label="vapour\nresistance"];
+    Qsol -> TSK [color="#E67E22", penwidth=1.6, label="radiant gain"];
+    HPROD -> TCR [penwidth=2.2, color="#C0392B", label="H_cr"];
+    HPROD -> TMU [penwidth=2.2, color="#C0392B", label="H_mu (85% during exercise)"];
+    HPROD -> HSI;
+
+    /* the balance sets the regime */
+    QDRY -> TSK [dir=back, label="loss"];
+    EACT -> TSK [dir=back, label="latent loss"];
+    QRES -> TCR [dir=back];
+    HSI -> REG1 [label="< 100%", color="#2E7D32", penwidth=1.8];
+    HSI -> REG2 [label="≥ 100%", color="#C0392B", penwidth=2.4];
+    TCR -> TCRIT [style=invis];
+
+    /* feedback: core temperature drives the effectors */
+    TCR -> POA [color="#2471A3", label="afferent"];
+    TSK -> POA [color="#2471A3", style=dashed];
+    TCR -> Q10 [color="#C0392B", penwidth=1.8, label="POSITIVE FEEDBACK"];
+    SKBF -> KCS [penwidth=1.6];
+    SKBF -> TPR [color="#138D75"];
+    SWEAT -> SWLOSS;
+
+    /* regime 2 -> dose */
+    REG2 -> CEM43 [penwidth=2.8, color="#7D3C98", label="the clock integrates\ninto a dose"];
+    TCR -> CEM43 [penwidth=2.2, color="#7D3C98"];
+    TMU -> RHABDO [color="#5B8C3A", label="muscle runs hotter\nthan the probe reads"];
+
+    /* the cardiovascular / splanchnic axis */
+    SKBF -> QSPL [color="#C0392B", penwidth=2.0, label="CUTANEOUS STEAL"];
+    MEX -> QSPL [color="#C0392B", label="exercise steal"];
+    HYPO -> SWEAT [arrowhead=tee, color="#C0392B", label="−5.5%/% BW"];
+    HYPO -> SKBF [arrowhead=tee, color="#C0392B"];
+    DRIP -> SWLOSS [color="#C0392B"];
+    MAP -> SKBF [arrowhead=tee, color="#C0392B", style=dashed,
+                 label="baroreflex\nwithdrawal"];
+
+    /* gut */
+    ISCH -> ENTERO [penwidth=2.2, color="#B7950B"];
+    DIRECT -> ENTERO [penwidth=2.0, color="#7D3C98", label="direct thermal"];
+    LIVF -> KUPFFER [arrowhead=tee, color="#C0392B"];
+    QSPL -> KUPFFER [color="#B7950B", label="perfusion-dependent"];
+
+    /* immune -> everything downstream */
+    TNF -> ENDO [color="#A93226"]; IL1B -> TF [color="#A93226"];
+    SYSLPS -> TF [color="#A93226"];
+    DIRECT -> NEC [penwidth=2.4, color="#7D3C98", label="thermal necrosis\ndrives the switch"];
+    ISCH -> NEC [color="#138D75"];
+    HMGB1 -> ENDO [penwidth=2.2, color="#A93226"];
+    HMGB1 -> LIVER [penwidth=2.0, color="#A93226"];
+    HMGB1 -> CNS [penwidth=2.0, color="#A93226"];
+    HMGB1 -> AKI [color="#A93226"];
+    NETS -> MICROT [color="#A93226"];
+
+    /* coagulation and organ injury -> endpoints */
+    MICROT -> AKI [color="#4A4AA0"]; MICROT -> LIVER [color="#4A4AA0"];
+    DIRECT -> LIVER [color="#7D3C98"]; DIRECT -> CNS [color="#7D3C98"];
+    CEM43 -> CNS [penwidth=2.0, color="#7D3C98"];
+    CNS -> GCS [penwidth=2.0]; CNS -> NEURO;
+    AKI -> SOFA; LIVF -> SOFA; ISTHS -> SOFA; GCS -> SOFA;
+    SOFA -> MORT [penwidth=2.2]; HMGB1 -> MORT [penwidth=2.4, color="#A93226"];
+    CEM43 -> MORT [penwidth=2.0, color="#7D3C98"];
+    AKI -> LOS; NEURO -> HEATTOL;
+    CEM43 -> DEFN [style=dashed]; GCS -> DEFN [style=dashed];
+
+    /* cooling acts on the clock and therefore on the dose */
+    CWI -> TSK [penwidth=2.8, color="#2471A3", label="UA·(T_sk − T_water)"];
+    EVAP -> TSK [color="#2471A3"];
+    PACKS -> TSK [color="#2471A3"];
+    IVCOLD -> TCR [penwidth=2.0, color="#2471A3",
+                   label="perfusion-weighted\nenthalpy sink"];
+    DELAY -> CEM43 [penwidth=3.0, color="#922B21",
+                    label="THE DOMINANT TERM"];
+    CWI -> CEM43 [arrowhead=tee, color="#2E7D32", penwidth=2.4,
+                  label="cuts the dose"];
+    CEM43 -> BISTAB [penwidth=2.6, color="#7D3C98",
+                     label="latches at ≈ 10–15 CEM43"];
+    ACCLIM -> REG2 [arrowhead=tee, style=dashed, color="#7D7D7D",
+                    label="does NOT move\nthe boundary"];
+    ACCLIM -> CLOCK [color="#2E7D32", label="acts on the\nTRANSIENT"];
+
+    /* pharmacology, and where each agent lands */
+    PARA -> TSET [arrowhead=tee, color="#B9601B",
+                  label="lowers a threshold that is\nnot the binding constraint"];
+    IBU -> TSET [arrowhead=tee, color="#B9601B"];
+    NAPQI -> LIVER [color="#C0392B", penwidth=2.0, label="ADDS injury"];
+    RENALPG -> AKI [color="#C0392B", penwidth=2.0];
+    PLTFN -> ISTHS [color="#C0392B"];
+    DANT -> HPROD [arrowhead=tee, color="#B9601B",
+                   label="≤12% of muscle heat\n(null in the RCT)"];
+    HCORT -> TNF [arrowhead=tee, color="#B9601B"];
+    HCORT -> IL6 [arrowhead=tee, color="#B9601B"];
+    RTM -> HMGB1 [arrowhead=tee, penwidth=3.0, color="#1E8449",
+                  label="lectin domain: +0.0024/min of clearance\nABOLISHES the ON state"];
+    RTM -> PC [color="#1E8449", penwidth=2.0, label="APC generation ×1.6"];
+    FLUIDS -> PV [color="#1E8449", penwidth=1.8];
+    FLUIDS -> AKI [arrowhead=tee, color="#1E8449"];
+
+    /* the two heat strokes, drawn as the two ends of one clock */
+    subgraph cluster_two {
+        label = <<B>The two heat strokes are one equation with two numerators</B>>;
+        style = "filled"; fillcolor = "#FCF3F3"; color = "#922B21"; penwidth = 2;
+        fontsize = 13; fontcolor = "#7B241C";
+        node [shape=note, fillcolor="#FADBD8", color="#922B21", fontsize=10];
+
+        EHS  [label="EXERTIONAL (EHS)\nyoung, M_ex 900–1400 W, sweating intact,\nimbalance ≈ 400–800 W\ndT_c/dt ≈ 0.10–0.25 °C/min\n40 → 42 °C in 8–20 min\nsurvival with immediate CWI ≈ 100%"];
+        NEHS [label="CLASSIC / NON-EXERTIONAL (NEHS)\nelderly, M ≈ 85 W, anhidrotic,\nanticholinergic burden, no air conditioning,\nimbalance ≈ 5–30 W\ndT_c/dt ≈ 0.005–0.008 °C/min\n40 → 42 °C in 4–6 HOURS\nmortality 30–60%"];
+        SAME [label="Same threshold (40 °C), same dose law,\ntwo clocks differing ~19-fold.\nThe warning a thermometer gives you\nis inversely proportional to the imbalance."];
+    }
+    EHS -> SAME [style=invis]; NEHS -> SAME [style=invis];
+    REG2 -> EHS [style=dashed, color="#922B21"];
+    REG2 -> NEHS [style=dashed, color="#922B21"];
+    CLOCK -> SAME [style=dashed, color="#922B21"];
+
+    /* legend */
+    subgraph cluster_legend {
+        label = <<B>Legend</B>>;
+        style = "filled"; fillcolor = "#FAFAFA"; color = "#999999";
+        fontsize = 12;
+        node [shape=plaintext, fillcolor="#FAFAFA", fontsize=10];
+        LEG [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+          <TR><TD ALIGN="LEFT"><B>&#8594;</B></TD><TD ALIGN="LEFT">activation / flux</TD></TR>
+          <TR><TD ALIGN="LEFT"><B>&#8867;</B></TD><TD ALIGN="LEFT">inhibition / removal</TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT COLOR="#C0392B"><B>red</B></FONT></TD><TD ALIGN="LEFT">makes the patient worse</TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT COLOR="#2E7D32"><B>green</B></FONT></TD><TD ALIGN="LEFT">protective / therapeutic</TD></TR>
+          <TR><TD ALIGN="LEFT"><FONT COLOR="#7D3C98"><B>purple</B></FONT></TD><TD ALIGN="LEFT">thermal-dose pathway</TD></TR>
+          <TR><TD ALIGN="LEFT">octagon</TD><TD ALIGN="LEFT">regime boundary / decision variable</TD></TR>
+          <TR><TD ALIGN="LEFT">note</TD><TD ALIGN="LEFT">computed result, not a state variable</TD></TR>
+        </TABLE>>];
+    }
+}
