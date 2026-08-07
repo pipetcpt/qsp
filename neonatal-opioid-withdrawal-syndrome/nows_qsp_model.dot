@@ -1,0 +1,508 @@
+/* =====================================================================
+   Neonatal opioid withdrawal syndrome (NOWS / neonatal abstinence
+   syndrome) — QSP mechanistic map
+   ---------------------------------------------------------------------
+   Organising idea of this map (and of nows_mrgsolve_model.R):
+
+   NOWS is a NORADRENERGIC disease that is treated by titrating a
+   MU-OPIOID and scored with an instrument that measures neither.
+
+   (1) THE GAP.  The quantity that produces signs is not receptor
+       occupancy and not its rate of fall.  It is the DIFFERENCE
+
+           GAP = A - ITONE
+
+       between the neuroadaptive set-point A that months of continuous
+       in-utero exposure have written into the locus coeruleus, and the
+       instantaneous inhibitory tone ITONE that is currently sitting on
+       the LC GIRK channel.  Positive GAP -> LC disinhibition -> NE
+       efflux -> the signs.  NEGATIVE gap is not "extra safety": it is
+       over-sedation, and it is scored by nothing on the Finnegan sheet
+       while it suppresses feeding.
+
+   (2) TWO WAYS TO FILL THE GAP.  ITONE is a union, not a sum:
+
+           ITONE = EMU + EA2 - EMU . EA2
+
+       because mu-opioid receptors and alpha-2 adrenoceptors on the LC
+       neuron hyperpolarise it through THE SAME GIRK conductance.  This
+       is why clonidine substitutes for morphine at all, why the two are
+       sub-additive when either one is already high, and why the
+       clonidine benefit shows up at the END of a wean rather than at the
+       start.  Phenobarbital is drawn OUTSIDE this union on purpose: it
+       acts on GABA-A, downstream of the LC, and it therefore lowers the
+       SCORE without lowering the GAP.
+
+   (3) TWO ADAPTATION POOLS.  A = AD + AT.
+         AD (durable)      set in utero, decays with t1/2 ~ 12 d, and
+                           CANNOT be re-induced after birth.  This pool
+                           is the floor under treatment duration.
+         AT (re-inducible) the classical adenylyl-cyclase superactivation
+                           pool, tau ~ 60 h, driven by whatever opioid is
+                           on board — INCLUDING the treatment opioid.
+       The second pool is why treatment is partly self-perpetuating and
+       why "suppress the score harder" is not free.
+
+   (4) BUPRENORPHINE IS DRAWN TWICE.  Its partial agonism enters the
+       occupancy block as a reduced Emax, and its poor beta-arrestin /
+       internalisation signalling enters the ADAPTATION block as a
+       separately reduced efficacy (BADRV).  A lower A0 in
+       buprenorphine-exposed infants therefore falls out of receptor
+       pharmacology; it is not a fitted severity constant.
+
+   (5) THE MEASUREMENT IS A SEPARATE ORGAN.  The Finnegan sheet, the
+       ESC assessment and the care environment are drawn as their own
+       clusters feeding the SAME clinical decision, because the model's
+       central claim about Eat-Sleep-Console is that most of its effect
+       is a change in what is measured, not in what the infant has.
+
+   (6) MATURATION IS A HIDDEN TAPER.  Weight-based dosing meets a
+       clearance that is a steep function of post-menstrual age, and a
+       tolerance-shifted EC50 that FALLS as A decays.  A "fixed"
+       mg/kg/day dose is therefore never fixed in effect.
+
+   Node colouring
+     - pale red     : opioid exposure, in-utero drug, cord concentrations
+     - pale blue    : drug pharmacokinetics and treatment agents
+     - pale orange  : neuroadaptation, noradrenergic drive, withdrawal signs
+     - pale green   : protective / regulatory / non-pharmacologic care
+     - pale yellow  : measured clinical and laboratory endpoints
+     - pale purple  : derived algebra (occupancy, tone, the gap)
+     - grey         : anatomy, compartments, maturation, protocol logic
+   ===================================================================== */
+
+digraph nows_qsp {
+  graph [rankdir=TB, newrank=true, splines=polyline, nodesep=0.28, ranksep=0.52,
+         fontname="Helvetica", fontsize=11, compound=true, labelloc="t", pad=0.4,
+         label=<<B>Neonatal opioid withdrawal syndrome — Quantitative Systems Pharmacology map</B><BR/>
+                <FONT POINT-SIZE="11">GAP = A &#8722; ITONE &#183; a noradrenergic disease treated with a &#956;-agonist and scored with an instrument that measures neither</FONT>>];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=9,
+         margin="0.07,0.045", penwidth=0.8];
+  edge  [fontname="Helvetica", fontsize=8, arrowsize=0.6, penwidth=0.85, color="#555555"];
+
+  /* ---------- colour shorthands ---------- */
+  /* red #fde0e0 | blue #dbeafe | orange #ffe8cc | green #dcfce7
+     yellow #fef9c3 | purple #ede9fe | grey #ececec */
+
+  /* ================================================================
+     1. MATERNAL PHARMACOLOGY AND THE PLACENTA
+     ================================================================ */
+  subgraph cluster_mat {
+    label="1 · Maternal treatment and placental transfer";
+    style="rounded,filled"; fillcolor="#fff5f5"; color="#dd9999"; fontsize=11;
+    MOUD    [label="Maternal OUD treatment\n(methadone / buprenorphine)", fillcolor="#fde0e0"];
+    MDOSE   [label="Maternal daily dose\n(methadone 20–200 mg/d ·\nbuprenorphine 2–32 mg/d)", fillcolor="#fde0e0"];
+    MPK     [label="Maternal plasma conc.\n(methadone ≈3.6 ng/mL per mg/d;\ntrough–peak swing over 24 h)", fillcolor="#fde0e0"];
+    MCYP    [label="Maternal CYP3A4 / 2B6 induction\nin pregnancy → falling trough,\nsplit dosing in 3rd trimester", fillcolor="#ececec"];
+    PLAC    [label="Placental transfer\n(passive diffusion, ionisation,\nprotein binding)", fillcolor="#ececec"];
+    PGP     [label="Placental P-glycoprotein (ABCB1)\nefflux back to maternal side", fillcolor="#dcfce7"];
+    CORD    [label="Cord / maternal plasma ratio\nmethadone ≈0.5 · buprenorphine ≈0.65", fillcolor="#fde0e0"];
+    FETC    [label="Fetal steady-state opioid\nconcentration (continuous,\nnot intermittent)", fillcolor="#fde0e0"];
+    DURATN  [label="Duration of 3rd-trimester exposure\n(weeks of continuous occupancy)", fillcolor="#fde0e0"];
+    ILLICIT [label="Non-prescribed co-use\n(heroin / fentanyl / oxycodone)", fillcolor="#fde0e0"];
+    FENT    [label="Fentanyl: high lipophilicity,\nlarge fetal fat depot,\nprolonged neonatal release", fillcolor="#fde0e0"];
+  }
+
+  /* ================================================================
+     2. NEONATAL PHARMACOKINETICS OF THE IN-UTERO OPIOID
+     ================================================================ */
+  subgraph cluster_neopk {
+    label="2 · Neonatal disposition of the in-utero opioid (the washout that opens the gap)";
+    style="rounded,filled"; fillcolor="#f2f8ff"; color="#9999bb"; fontsize=11;
+    NMTD    [label="Neonatal methadone\ncentral compartment", fillcolor="#dbeafe"];
+    NMTD_T  [label="Neonatal methadone t½ ≈16–25 h\n(adult 24–36 h but CL/kg ≈1/6)", fillcolor="#dbeafe"];
+    NBUP    [label="Neonatal buprenorphine\ncentral compartment", fillcolor="#dbeafe"];
+    NNBUP   [label="Norbuprenorphine\n(active metabolite, slower t½)", fillcolor="#dbeafe"];
+    NSHORT  [label="Short-acting opioid residue\n(heroin/6-MAM/morphine, oxycodone)", fillcolor="#dbeafe"];
+    ONSET   [label="ONSET TIME of withdrawal\n= washout time, NOT maternal dose\nshort-acting <24 h · methadone 48–72 h\n· buprenorphine 36–60 h", fillcolor="#fef9c3"];
+    EHC     [label="Enterohepatic recirculation\n+ meconium reservoir", fillcolor="#ececec"];
+  }
+
+  /* ================================================================
+     3. MATURATION OF ELIMINATION
+     ================================================================ */
+  subgraph cluster_matur {
+    label="3 · Maturation — why a fixed mg/kg/day dose is never fixed in effect";
+    style="rounded,filled"; fillcolor="#f6f6f6"; color="#aaaaaa"; fontsize=11;
+    PMA     [label="Post-menstrual age (PMA)\nPMA = GA + postnatal age", fillcolor="#ececec"];
+    SIZE    [label="Allometric size\nCL ∝ (WT/3.4)^0.75", fillcolor="#ececec"];
+    UGT     [label="UGT2B7 glucuronidation\nsigmoid PMA50 ≈54.2 wk, Hill 3.92\n(23% of adult capacity at 40 wk)", fillcolor="#ececec"];
+    CYPMAT  [label="CYP3A4 / CYP2B6 maturation\n+ postnatal induction over ~10 d", fillcolor="#ececec"];
+    GFRMAT  [label="Glomerular filtration maturation\n(clears M6G, clonidine)", fillcolor="#ececec"];
+    HIDTAP  [label="HIDDEN TAPER #1\nclearance rises 31%/4 wk at term,\n44%/4 wk in a 34-wk preterm →\nfixed mg/kg/day exposure FALLS", fillcolor="#ede9fe"];
+    PRETERM [label="Preterm paradox: lower CL per kg →\nHIGHER exposure on the same mg/kg,\nAND a lower adaptation set-point", fillcolor="#ede9fe"];
+  }
+
+  /* ================================================================
+     4. TREATMENT PHARMACOKINETICS
+     ================================================================ */
+  subgraph cluster_trtpk {
+    label="4 · Treatment pharmacokinetics";
+    style="rounded,filled"; fillcolor="#f2f8ff"; color="#9999bb"; fontsize=11;
+    ORMOR   [label="Oral morphine solution\n0.24–1.0 mg/kg/day, divided q3–4h", fillcolor="#dbeafe"];
+    MORF    [label="Oral bioavailability ≈0.30\n(high first-pass glucuronidation)", fillcolor="#dbeafe"];
+    MORPK   [label="Morphine 2-compartment PK\nCL ≈0.28 L/h/kg, Vss ≈2.6 L/kg,\nt½ ≈6–9 h at term", fillcolor="#dbeafe"];
+    M6G     [label="Morphine-6-glucuronide\nactive, renally cleared, t½ ≈12 h", fillcolor="#dbeafe"];
+    M3G     [label="Morphine-3-glucuronide\ninactive at µ, possibly excitatory", fillcolor="#dbeafe"];
+    M6GBBB  [label="M6G brain penetration poor\n→ effective potency ≈3.5% of morphine\nbut it is the last signal to leave", fillcolor="#ede9fe"];
+    TRMTD   [label="Oral methadone as treatment\n(long t½ → fewer troughs,\nharder to titrate)", fillcolor="#dbeafe"];
+    TRBUP   [label="Sublingual buprenorphine\n15.9 → 60 µg/kg/day\n(30% ethanol vehicle)", fillcolor="#dbeafe"];
+    CLON    [label="Clonidine\n1 µg/kg q4h (6–12 µg/kg/day)\nt½ ≈8–12 h in the neonate", fillcolor="#dbeafe"];
+    PHENO   [label="Phenobarbital\nload 20 mg/kg, maint. 5 mg/kg/day\nt½ ≈100 h (45–500 h)", fillcolor="#dbeafe"];
+    EFFSITE [label="Effect-site compartments\n(ke0: morphine 0.45/h,\nmethadone 0.30/h, clonidine 0.60/h)", fillcolor="#ececec"];
+  }
+
+  /* ================================================================
+     5. MU-OPIOID RECEPTOR AND COMPETITIVE OCCUPANCY
+     ================================================================ */
+  subgraph cluster_mu {
+    label="5 · µ-opioid receptor — competitive occupancy, partial agonism, tolerance";
+    style="rounded,filled"; fillcolor="#faf5ff"; color="#aa99cc"; fontsize=11;
+    UF      [label="Full-agonist µ-equivalent conc.\nUF = morphine + 3.0·methadone\n+ 0.30·norbup + 0.035·M6G", fillcolor="#ede9fe"];
+    UB      [label="Buprenorphine effect-site conc.\n(high affinity, slow koff)", fillcolor="#ede9fe"];
+    THETA   [label="Competitive occupancy\nθf = xf/(1+xf+xb) · θb = xb/(1+xf+xb)\nxf = UF/EC50, xb = UB/EC50b", fillcolor="#ede9fe"];
+    EMAXF   [label="Full agonist intrinsic activity\nEmax = 1.0", fillcolor="#ede9fe"];
+    EMAXB   [label="Buprenorphine intrinsic activity\nEmax ≈0.60 (ceiling)", fillcolor="#ede9fe"];
+    BLOCK   [label="Buprenorphine BLOCKS as it treats:\noccupying receptor lowers θf for any\nfull agonist given on top", fillcolor="#ede9fe"];
+    EMU     [label="µ effect  EMU = RMU·(1.0·θf + 0.60·θb)", fillcolor="#ede9fe"];
+    RMU     [label="Receptor availability RMU\ndown-regulation kdown·EMU,\nrecovery t½ ≈5 d", fillcolor="#ffe8cc"];
+    ARREST  [label="β-arrestin-2 recruitment / GRK\nphosphorylation → internalisation", fillcolor="#ffe8cc"];
+    BIAS    [label="Buprenorphine recruits β-arrestin poorly\n→ ADAPTATION efficacy BADRV ≈0.55\nseparately from analgesic Emax", fillcolor="#ffe8cc"];
+    TOLSH   [label="Tolerance shift\nEC50_eff = EC50·(1 + 3.0·A)\n→ HIDDEN TAPER #2, in the helpful\ndirection: EC50 falls as A decays", fillcolor="#ede9fe"];
+    GIRK    [label="Gi/o → GIRK (Kir3) opening\n→ LC hyperpolarisation", fillcolor="#dcfce7"];
+  }
+
+  /* ================================================================
+     6. NEUROADAPTATION — THE TWO POOLS
+     ================================================================ */
+  subgraph cluster_adapt {
+    label="6 · Neuroadaptation — the set-point A, written in two pools";
+    style="rounded,filled"; fillcolor="#fff8f0"; color="#dd9955"; fontsize=11;
+    AC      [label="Adenylyl cyclase superactivation\n(AC1 / AC8 isoforms)", fillcolor="#ffe8cc"];
+    CAMP    [label="cAMP rebound on agonist removal", fillcolor="#ffe8cc"];
+    PKA     [label="PKA → CREB phosphorylation", fillcolor="#ffe8cc"];
+    TH      [label="Tyrosine hydroxylase upregulation\nin locus coeruleus", fillcolor="#ffe8cc"];
+    HCN     [label="HCN / Ih current upregulation\n→ intrinsic LC pacemaking rises", fillcolor="#ffe8cc"];
+    AD      [label="AD — DURABLE pool\nset in utero, t½ ≈12 d,\nNOT re-inducible postnatally", fillcolor="#ffe8cc"];
+    AT      [label="AT — RE-INDUCIBLE pool\nceiling 0.18, τ ≈60 h,\ndriven by ANY µ agonist on board", fillcolor="#ffe8cc"];
+    ATOT    [label="A = AD + AT   (set-point)", fillcolor="#ede9fe"];
+    SATA    [label="A0 SATURATES in occupancy:\nA0 = 1.12·FGA·EAD/(0.16+EAD)\n→ 40 vs 160 mg/d methadone differ by 1%", fillcolor="#ede9fe"];
+    FGA     [label="Gestational maturity factor FGA\nsigmoid in GA (GA50 33.5 wk, Hill 8)\n→ preterm brains adapt less", fillcolor="#ececec"];
+    SELFP   [label="SELF-PERPETUATION:\nthe treatment opioid re-drives AT,\nso suppressing the score harder\nlengthens the wean", fillcolor="#ede9fe"];
+    EPIG    [label="Epigenetic / developmental changes\n(OPRM1 methylation, synaptogenesis\nduring the exposure window)", fillcolor="#ffe8cc"];
+  }
+
+  /* ================================================================
+     7. LOCUS COERULEUS AND THE GAP
+     ================================================================ */
+  subgraph cluster_lc {
+    label="7 · Locus coeruleus — where the gap becomes a symptom";
+    style="rounded,filled"; fillcolor="#fff8f0"; color="#dd9955"; fontsize=11;
+    ITONE   [label="INHIBITORY TONE (GIRK union)\nITONE = EMU + EA2 − EMU·EA2", fillcolor="#ede9fe"];
+    GAP     [label="THE GAP = A − ITONE\npositive → withdrawal\nnegative → over-sedation", fillcolor="#ede9fe"];
+    LCFIRE  [label="LC firing rate\nLCbase·(1+0.55·(1−CARE)) + 11.9·GAP⁺", fillcolor="#ffe8cc"];
+    NE      [label="Brain noradrenaline efflux\n(τ ≈1 h)", fillcolor="#ffe8cc"];
+    A2AUTO  [label="α2A autoreceptor on LC soma\n(the clonidine target)", fillcolor="#dcfce7"];
+    EA2     [label="α2 effect  EA2 = 0.34·Cclon/(1.6·(1+1.2·TACH)+Cclon)", fillcolor="#ede9fe"];
+    TACH    [label="α2 tachyphylaxis / rebound\nhypertension on abrupt stop", fillcolor="#ffe8cc"];
+    CRF     [label="CRF / HPA activation\n(cortisol, stress reactivity)", fillcolor="#ffe8cc"];
+    OSED    [label="OVER-SEDATION (GAP < 0)\nscored by NOTHING on the Finnegan sheet", fillcolor="#ede9fe"];
+    SEROT   [label="5-HT and dopaminergic\ncontributions to arousal", fillcolor="#ffe8cc"];
+  }
+
+  /* ================================================================
+     8. WHERE THE OTHER DRUGS ACT
+     ================================================================ */
+  subgraph cluster_other {
+    label="8 · The other agents — same channel, different channel, or downstream";
+    style="rounded,filled"; fillcolor="#f4fff4"; color="#88bb88"; fontsize=11;
+    A2PATH  [label="Clonidine → α2A → SAME GIRK\n→ fills the gap WITHOUT re-driving AT", fillcolor="#dcfce7"];
+    SUBADD  [label="Sub-additivity: adding clonidine to a\nheavily µ-suppressed infant adds little;\nadding it at the END of a wean adds most", fillcolor="#ede9fe"];
+    GABAA   [label="Phenobarbital → GABA-A\nDOWNSTREAM of the LC", fillcolor="#dcfce7"];
+    PHBSCORE[label="Phenobarbital lowers the SCORE\nwithout lowering the GAP\n→ shorter course on paper,\nunchanged residual drive at discharge", fillcolor="#fef9c3"];
+    PHBFEED [label="Phenobarbital sedation → poorer feeding\n→ less weight gain (a real cost)", fillcolor="#fef9c3"];
+    PHBIND  [label="Phenobarbital induces CYP/UGT\n→ raises clearance of the co-given opioid", fillcolor="#ececec"];
+    ONDAN   [label="Ondansetron (5-HT3) — prophylaxis trials\nnegative for NOWS incidence", fillcolor="#dcfce7"];
+  }
+
+  /* ================================================================
+     9. NON-OPIOID CO-EXPOSURES
+     ================================================================ */
+  subgraph cluster_poly {
+    label="9 · Polysubstance exposure — score components morphine cannot reach";
+    style="rounded,filled"; fillcolor="#fff5f5"; color="#dd9999"; fontsize=11;
+    BZDX    [label="Maternal benzodiazepine\n(nordiazepam neonatal t½ ~100 h)", fillcolor="#fde0e0"];
+    BZDW    [label="GABAergic withdrawal drive\n(late onset, days 5–14)", fillcolor="#ffe8cc"];
+    NICX    [label="Nicotine / cotinine exposure", fillcolor="#fde0e0"];
+    NICW    [label="Nicotine withdrawal component\n(raises scores, worsens NOWS severity)", fillcolor="#ffe8cc"];
+    SSRIX   [label="SSRI / SNRI exposure\n(neonatal adaptation syndrome —\nphenotypically overlapping)", fillcolor="#fde0e0"];
+    GABAPX  [label="Gabapentin / pregabalin\nco-exposure", fillcolor="#fde0e0"];
+    STIMX   [label="Methamphetamine / cocaine\n(vasoconstriction, IUGR)", fillcolor="#fde0e0"];
+    CHASE   [label="ESCALATING MORPHINE CHASES A SCORE\nCOMPONENT MORPHINE CANNOT REACH\n→ over-treatment of polysubstance infants", fillcolor="#ede9fe"];
+  }
+
+  /* ================================================================
+     10. CNS SIGN DOMAIN
+     ================================================================ */
+  subgraph cluster_cns {
+    label="10 · CNS sign domain";
+    style="rounded,filled"; fillcolor="#fff8f0"; color="#dd9955"; fontsize=11;
+    CRY     [label="High-pitched / excessive cry", fillcolor="#ffe8cc"];
+    SLEEPD  [label="Sleep fragmentation\n(<1–3 h after feeding)", fillcolor="#ffe8cc"];
+    MORO    [label="Hyperactive Moro reflex", fillcolor="#ffe8cc"];
+    TREMOR  [label="Tremor — disturbed and undisturbed", fillcolor="#ffe8cc"];
+    TONE    [label="Increased muscle tone", fillcolor="#ffe8cc"];
+    EXCOR   [label="Excoriation (nose, knees, toes)", fillcolor="#ffe8cc"];
+    MYOCL   [label="Myoclonic jerks", fillcolor="#ffe8cc"];
+    SEIZ    [label="Generalised seizure\n(≈2–4% of treated infants)", fillcolor="#fef9c3"];
+    EEGX    [label="EEG discontinuity / abnormal\nsleep architecture", fillcolor="#fef9c3"];
+  }
+
+  /* ================================================================
+     11. AUTONOMIC / VASOMOTOR / RESPIRATORY DOMAIN
+     ================================================================ */
+  subgraph cluster_ans {
+    label="11 · Autonomic, vasomotor and respiratory domain";
+    style="rounded,filled"; fillcolor="#fff8f0"; color="#dd9955"; fontsize=11;
+    SWEAT   [label="Sweating", fillcolor="#ffe8cc"];
+    FEVER   [label="Hyperthermia 37.2–38.3 °C", fillcolor="#ffe8cc"];
+    YAWN    [label="Frequent yawning", fillcolor="#ffe8cc"];
+    MOTTLE  [label="Mottling", fillcolor="#ffe8cc"];
+    STUFF   [label="Nasal stuffiness / sneezing", fillcolor="#ffe8cc"];
+    FLARE   [label="Nasal flaring", fillcolor="#ffe8cc"];
+    TACHYP  [label="Tachypnoea >60/min ± retractions", fillcolor="#ffe8cc"];
+    HRV     [label="Reduced heart-rate variability\n(an objective correlate of the gap)", fillcolor="#fef9c3"];
+    NONSPEC [label="NON-SPECIFIC: also produced by\nenvironmental arousal, hunger,\nhandling and cold stress", fillcolor="#ede9fe"];
+  }
+
+  /* ================================================================
+     12. GASTROINTESTINAL AND FEEDING DOMAIN
+     ================================================================ */
+  subgraph cluster_gi {
+    label="12 · Gastrointestinal and feeding domain";
+    style="rounded,filled"; fillcolor="#fff8f0"; color="#dd9955"; fontsize=11;
+    SUCK    [label="Excessive / uncoordinated sucking", fillcolor="#ffe8cc"];
+    FEEDP   [label="Poor feeding, small volumes,\nprolonged feeds", fillcolor="#ffe8cc"];
+    REGURG  [label="Regurgitation / projectile vomiting", fillcolor="#ffe8cc"];
+    STOOLS  [label="Loose or watery stools", fillcolor="#ffe8cc"];
+    DEHYD   [label="Dehydration, electrolyte loss,\nperineal breakdown", fillcolor="#fef9c3"];
+    GIMOT   [label="µ-receptor withdrawal in the myenteric\nplexus → transit acceleration", fillcolor="#ffe8cc"];
+  }
+
+  /* ================================================================
+     13. THE MEASUREMENT INSTRUMENTS
+     ================================================================ */
+  subgraph cluster_meas {
+    label="13 · The measurement — three instruments, one decision";
+    style="rounded,filled"; fillcolor="#fffdf0"; color="#ccbb66"; fontsize=11;
+    FNAS    [label="Finnegan Neonatal Abstinence\nScoring System — 21 weighted items,\nq3–4 h, summed", fillcolor="#fef9c3"];
+    FNASTHR [label="Treat if 3 consecutive ≥8\nor 2 consecutive ≥12", fillcolor="#fef9c3"];
+    MOTHNAS [label="MOTHER NAS Scale (28 items)\nand Lipsitz tool — different\nthresholds, different trials", fillcolor="#fef9c3"];
+    ESC     [label="Eat · Sleep · Console\n≥1 oz or breastfed well ·\n≥1 h uninterrupted sleep ·\nconsoled within 10 min", fillcolor="#fef9c3"];
+    ESCTHR  [label="Treat only if a function FAILS\ndespite maximal non-pharmacologic care", fillcolor="#fef9c3"];
+    IRR     [label="Inter-rater variance\n(the threshold is itself a random variable,\nSD ≈1 point)", fillcolor="#ede9fe"];
+    SMOOTH  [label="q3–4 h scoring = a low-pass filter\n(τ ≈3 h) on a fast signal", fillcolor="#ede9fe"];
+    DECOMP  [label="ESC DECOMPOSITION\nmeasurement change vs care change\nvs breast-milk opioid — separable\nin the model, not in the trial", fillcolor="#ede9fe"];
+  }
+
+  /* ================================================================
+     14. CARE ENVIRONMENT
+     ================================================================ */
+  subgraph cluster_care {
+    label="14 · Non-pharmacologic care — the first-line treatment";
+    style="rounded,filled"; fillcolor="#f4fff4"; color="#88bb88"; fontsize=11;
+    ROOM    [label="Rooming-in with the parent\n(not NICU admission)", fillcolor="#dcfce7"];
+    SKIN    [label="Skin-to-skin contact", fillcolor="#dcfce7"];
+    SWADDLE [label="Swaddling, low light, low noise,\nclustered care", fillcolor="#dcfce7"];
+    PARENT  [label="Parental presence and\ncontingent responsiveness", fillcolor="#dcfce7"];
+    BFEED   [label="Breastfeeding\n(methadone RID ≈2.5%, bup ≈0.5%)", fillcolor="#dcfce7"];
+    BFOP    [label="Breast milk delivers a REAL, small\nµ dose — 2–9 ng/mL methadone —\nexactly while the gap is opening", fillcolor="#ede9fe"];
+    STIGMA  [label="Stigma, custody concerns,\nmaternal-child separation", fillcolor="#fde0e0"];
+    CAREB   [label="CARE bundle index (0–1)\nlowers LCbase AND the gap→arousal gain", fillcolor="#dcfce7"];
+    LACTCI  [label="Contraindications: HIV, ongoing\nnon-prescribed use, some regimens", fillcolor="#fde0e0"];
+  }
+
+  /* ================================================================
+     15. GROWTH AND ENERGY BALANCE
+     ================================================================ */
+  subgraph cluster_growth {
+    label="15 · Growth — the endpoint that reads the gap from the other side";
+    style="rounded,filled"; fillcolor="#fffdf0"; color="#ccbb66"; fontsize=11;
+    INTAKE  [label="Energy intake = 115 kcal/kg/d × EAT", fillcolor="#fef9c3"];
+    EXPEND  [label="Expenditure = 58 + 6·NE kcal/kg/d\n(tremor and hyperactivity cost calories)", fillcolor="#fef9c3"];
+    WTGAIN  [label="Weight trajectory\n(target ≈25–30 g/day)", fillcolor="#fef9c3"];
+    FAILGRW [label="Failure to gain weight —\na treatment trigger in most protocols", fillcolor="#fef9c3"];
+    FEEDSIG [label="FEEDING IS THE OVER-TREATMENT SIGNAL:\nthe score cannot see a negative gap,\nbut the feed volume can", fillcolor="#ede9fe"];
+  }
+
+  /* ================================================================
+     16. TREATMENT PROTOCOL / CONTROLLER
+     ================================================================ */
+  subgraph cluster_proto {
+    label="16 · The protocol, drawn as the feedback controller it is";
+    style="rounded,filled"; fillcolor="#f6f6f6"; color="#aaaaaa"; fontsize=11;
+    INIT    [label="Initiation: latch on when the\nsignal crosses the threshold", fillcolor="#ececec"];
+    DINIT   [label="Starting dose 0.24–0.40 mg/kg/day\nmorphine equivalent", fillcolor="#ececec"];
+    ESCAL   [label="Escalation while signal > target\n(rate-limited)", fillcolor="#ececec"];
+    STABIL  [label="Stabilisation dose\n(latched maximum)", fillcolor="#ececec"];
+    WAIT48  [label="48 h of stability before weaning", fillcolor="#ececec"];
+    TAP0    [label="Wean rule A: −10%/day of the\nCURRENT dose (exponential)", fillcolor="#ececec"];
+    TAP1    [label="Wean rule B: −10%/day of the\nSTABILISATION dose", fillcolor="#ececec"];
+    TAP2    [label="Wean rule C: −10%/day of a\nSTANDARD dose (absolute step)", fillcolor="#ececec"];
+    TAP3    [label="Wean rule D: track A itself\n(needs an unmeasurable state)", fillcolor="#ede9fe"];
+    FRONT   [label="ALL FOUR SIT ON ONE TRADE-OFF CURVE:\ndays bought per unit of withdrawal\nburden avoided ≈0.39 d per unit", fillcolor="#ede9fe"];
+    PROTHET [label="Protocol — not biology — explains the\n3-fold spread in published treatment\nduration (4–28 days)", fillcolor="#ede9fe"];
+    RESCUE  [label="Rescue doses / re-escalation\n(resets the stability clock)", fillcolor="#ececec"];
+  }
+
+  /* ================================================================
+     17. CLINICAL ENDPOINTS
+     ================================================================ */
+  subgraph cluster_end {
+    label="17 · Clinical endpoints";
+    style="rounded,filled"; fillcolor="#fffdf0"; color="#ccbb66"; fontsize=11;
+    PCTTRT  [label="Proportion pharmacologically treated\n(ESC-NOW: 52.0% → 19.5%)", fillcolor="#fef9c3"];
+    TRTDAYS [label="Days of opioid treatment", fillcolor="#fef9c3"];
+    CUMOP   [label="Cumulative opioid exposure (mg/kg)", fillcolor="#fef9c3"];
+    READY   [label="Time to medically ready for discharge\n(ESC-NOW: 14.9 → 8.2 days)", fillcolor="#fef9c3"];
+    LOS     [label="Length of hospital stay", fillcolor="#fef9c3"];
+    AUCG    [label="∫GAP⁺dt — cumulative withdrawal burden\n(the thing nobody measures)", fillcolor="#ede9fe"];
+    AUCS    [label="∫GAP⁻dt — cumulative over-sedation", fillcolor="#ede9fe"];
+    SUBAC   [label="Subacute withdrawal after discharge\n(weeks–months of irritability,\nfeeding difficulty)", fillcolor="#fef9c3"];
+    NDEV    [label="Neurodevelopment at 2 years\n(confounded by social environment;\nno causal claim made here)", fillcolor="#fef9c3"];
+    READMIT [label="Readmission / emergency visits", fillcolor="#fef9c3"];
+  }
+
+  /* ================================================================
+     EDGES — maternal → fetal
+     ================================================================ */
+  MOUD -> MDOSE -> MPK;
+  MCYP -> MPK [label="↓trough", fontsize=7];
+  MPK -> PLAC;  PLAC -> CORD;  PGP -> PLAC [label="−", fontsize=7];
+  CORD -> FETC;  DURATN -> FETC;
+  ILLICIT -> PLAC;  ILLICIT -> FENT;  FENT -> NSHORT;
+  FETC -> NMTD;  FETC -> NBUP;  FETC -> NSHORT;
+  NBUP -> NNBUP;  EHC -> NMTD;  EHC -> NSHORT;
+  NMTD -> NMTD_T;
+  NMTD_T -> ONSET;  NNBUP -> ONSET;  NSHORT -> ONSET;
+
+  /* maturation → clearance */
+  PMA -> UGT;  PMA -> CYPMAT;  PMA -> GFRMAT;  SIZE -> UGT;  SIZE -> CYPMAT;
+  UGT -> MORPK;  UGT -> M6G;  CYPMAT -> NMTD;  CYPMAT -> NBUP;  CYPMAT -> TRMTD;
+  GFRMAT -> M6G;  GFRMAT -> CLON;  GFRMAT -> NNBUP;
+  UGT -> HIDTAP;  CYPMAT -> HIDTAP;  SIZE -> PRETERM;  UGT -> PRETERM;
+  HIDTAP -> ORMOR [style=dashed, label="effect fades\nat fixed mg/kg", fontsize=7];
+
+  /* treatment PK */
+  ORMOR -> MORF -> MORPK;  MORPK -> M6G;  MORPK -> M3G;  M6G -> M6GBBB;
+  MORPK -> EFFSITE;  TRMTD -> EFFSITE;  TRBUP -> EFFSITE;  CLON -> EFFSITE;
+  M6GBBB -> UF;  EFFSITE -> UF;  EFFSITE -> UB;
+  NMTD -> UF;  NNBUP -> UF;  NSHORT -> UF;  NBUP -> UB;  TRBUP -> UB;
+
+  /* occupancy */
+  UF -> THETA;  UB -> THETA;  THETA -> EMU;  EMAXF -> EMU;  EMAXB -> EMU;
+  UB -> BLOCK;  BLOCK -> THETA [label="competition", fontsize=7];
+  RMU -> EMU;  EMU -> ARREST -> RMU [label="−", fontsize=7];
+  ARREST -> BIAS;  EMAXB -> BIAS;
+  TOLSH -> THETA [label="right shift", fontsize=7];
+  ATOT -> TOLSH;
+  EMU -> GIRK;
+
+  /* adaptation */
+  EMU -> AC [label="chronic", fontsize=7];
+  BIAS -> AC [label="reduced drive\nfor buprenorphine", fontsize=7];
+  AC -> CAMP -> PKA -> TH;  PKA -> HCN;  PKA -> EPIG;
+  AC -> AT;  EPIG -> AD;  FETC -> AD;  DURATN -> AD;  FGA -> AD;
+  AC -> SATA;  SATA -> AD;
+  AD -> ATOT;  AT -> ATOT;
+  EMU -> AT [label="treatment\nre-drives", fontsize=7];
+  AT -> SELFP;  SELFP -> TRTDAYS;
+  TH -> LCFIRE;  HCN -> LCFIRE;
+
+  /* the gap */
+  GIRK -> ITONE;  EA2 -> ITONE;  A2AUTO -> EA2;  CLON -> A2AUTO;
+  TACH -> EA2 [label="−", fontsize=7];  CLON -> TACH;
+  ATOT -> GAP;  ITONE -> GAP [label="−", fontsize=7];
+  GAP -> LCFIRE;  GAP -> OSED [label="if negative", fontsize=7];
+  LCFIRE -> NE;  CRF -> LCFIRE;  NE -> CRF;  SEROT -> LCFIRE;
+  CAREB -> LCFIRE [label="− base and gain", fontsize=7];
+
+  /* other agents */
+  CLON -> A2PATH -> ITONE;  A2PATH -> SUBADD;  EMU -> SUBADD;
+  A2PATH -> AT [style=dashed, label="does NOT\nre-drive", fontsize=7, color="#22aa77"];
+  PHENO -> GABAA;  GABAA -> CRY [label="−", fontsize=7];
+  GABAA -> TREMOR [label="−", fontsize=7];  GABAA -> PHBSCORE;
+  PHBSCORE -> FNAS [label="−", fontsize=7];  GABAA -> PHBFEED -> FEEDP;
+  PHENO -> PHBIND -> MORPK;  GABAA -> BZDW [label="−", fontsize=7];
+  ONDAN -> PCTTRT [style=dashed, label="null", fontsize=7];
+
+  /* polysubstance */
+  BZDX -> BZDW;  NICX -> NICW;  SSRIX -> CRY;  GABAPX -> BZDW;  STIMX -> NICW;
+  BZDW -> CRY;  BZDW -> TREMOR;  NICW -> STUFF;  NICW -> YAWN;
+  BZDW -> CHASE;  NICW -> CHASE;  CHASE -> CUMOP;  CHASE -> ESCAL;
+
+  /* signs */
+  NE -> CRY;  NE -> SLEEPD;  NE -> MORO;  NE -> TREMOR;  NE -> TONE;
+  TREMOR -> EXCOR;  NE -> MYOCL -> SEIZ;  GAP -> SEIZ [label="threshold", fontsize=7];
+  SEIZ -> EEGX;  NE -> EEGX;
+  NE -> SWEAT;  NE -> FEVER;  NE -> YAWN;  NE -> MOTTLE;  NE -> STUFF;
+  NE -> FLARE;  NE -> TACHYP;  NE -> HRV;
+  SWEAT -> NONSPEC;  YAWN -> NONSPEC;  MOTTLE -> NONSPEC;  STUFF -> NONSPEC;
+  NE -> GIMOT;  GIMOT -> STOOLS;  NE -> SUCK;  NE -> FEEDP;  NE -> REGURG;
+  STOOLS -> DEHYD;  REGURG -> DEHYD;
+  OSED -> FEEDP [label="the other\ndirection", fontsize=7];
+
+  /* measurement */
+  CRY -> FNAS;  SLEEPD -> FNAS;  MORO -> FNAS;  TREMOR -> FNAS;  TONE -> FNAS;
+  EXCOR -> FNAS;  MYOCL -> FNAS;  SEIZ -> FNAS;  SWEAT -> FNAS;  FEVER -> FNAS;
+  YAWN -> FNAS;  MOTTLE -> FNAS;  STUFF -> FNAS;  FLARE -> FNAS;  TACHYP -> FNAS;
+  SUCK -> FNAS;  FEEDP -> FNAS;  REGURG -> FNAS;  STOOLS -> FNAS;
+  NONSPEC -> FNAS [label="score inflation\nfrom environment", fontsize=7];
+  FNAS -> FNASTHR;  MOTHNAS -> FNASTHR;  IRR -> FNASTHR;  SMOOTH -> FNAS;
+  FEEDP -> ESC;  SLEEPD -> ESC;  CRY -> ESC;  ESC -> ESCTHR;
+  CAREB -> ESCTHR [label="maximal care\nfirst", fontsize=7];
+  ESC -> DECOMP;  CAREB -> DECOMP;  BFOP -> DECOMP;
+  FEEDP -> FEEDSIG;  OSED -> FEEDSIG;
+
+  /* care */
+  ROOM -> CAREB;  SKIN -> CAREB;  SWADDLE -> CAREB;  PARENT -> CAREB;
+  BFEED -> CAREB;  BFEED -> BFOP -> UF;  STIGMA -> ROOM [label="−", fontsize=7];
+  LACTCI -> BFEED [label="−", fontsize=7];  ROOM -> PARENT;
+  CAREB -> NONSPEC [label="−", fontsize=7];
+
+  /* growth */
+  FEEDP -> INTAKE [label="−", fontsize=7];  NE -> EXPEND;
+  INTAKE -> WTGAIN;  EXPEND -> WTGAIN [label="−", fontsize=7];
+  WTGAIN -> FAILGRW;  FAILGRW -> INIT;  FEEDSIG -> WAIT48;
+
+  /* protocol */
+  FNASTHR -> INIT;  ESCTHR -> INIT;  INIT -> DINIT -> ESCAL -> STABIL;
+  STABIL -> WAIT48;  WAIT48 -> TAP0;  WAIT48 -> TAP1;  WAIT48 -> TAP2;
+  WAIT48 -> TAP3;  ATOT -> TAP3 [style=dashed, label="unmeasurable", fontsize=7];
+  TAP0 -> FRONT;  TAP1 -> FRONT;  TAP2 -> FRONT;  TAP3 -> FRONT;
+  FRONT -> PROTHET;  RESCUE -> WAIT48 [label="resets", fontsize=7];
+  ESCAL -> ORMOR;  ESCAL -> TRMTD;  ESCAL -> TRBUP;  ESCAL -> RESCUE;
+
+  /* endpoints */
+  INIT -> PCTTRT;  TAP1 -> TRTDAYS;  ESCAL -> CUMOP;
+  TRTDAYS -> READY -> LOS;  PCTTRT -> LOS;  WTGAIN -> READY;
+  GAP -> AUCG;  OSED -> AUCS;  AUCG -> SUBAC;  AD -> SUBAC;
+  SUBAC -> READMIT;  AUCS -> NDEV [style=dashed];  AUCG -> NDEV [style=dashed];
+  CAREB -> NDEV [style=dashed];  PROTHET -> TRTDAYS;
+  DECOMP -> PCTTRT;  PRETERM -> TRTDAYS;
+  PHBSCORE -> TRTDAYS [label="shorter on paper", fontsize=7];
+  PHBSCORE -> SUBAC [label="unchanged drive\nat discharge", fontsize=7];
+
+  /* ---------- legend ---------- */
+  subgraph cluster_legend {
+    label="Legend"; style="rounded,filled"; fillcolor="#ffffff"; color="#999999"; fontsize=10;
+    L1 [label="opioid exposure / in-utero drug", fillcolor="#fde0e0"];
+    L2 [label="pharmacokinetics / treatment agent", fillcolor="#dbeafe"];
+    L3 [label="adaptation, noradrenergic drive, signs", fillcolor="#ffe8cc"];
+    L4 [label="protective / care / regulatory", fillcolor="#dcfce7"];
+    L5 [label="measured clinical endpoint", fillcolor="#fef9c3"];
+    L6 [label="derived algebra (occupancy, tone, gap)", fillcolor="#ede9fe"];
+    L7 [label="anatomy / maturation / protocol logic", fillcolor="#ececec"];
+    L1 -> L2 -> L3 -> L4 -> L5 -> L6 -> L7 [style=invis];
+  }
+}
