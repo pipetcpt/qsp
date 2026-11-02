@@ -1,14 +1,21 @@
 # Systems-Based Quantitative Modeling for Clinical Safety Assessment
-### Five QSP/PBPK studies for the KSOT/KEMS 2026 talk — *Mechanistic Insights and Quantitative Approaches for Drug Development and Safety Assessment*
+### Five QSP/PBPK studies for the KSOT 2026 talk — *Mechanistic Insights and Quantitative Approaches for Drug Development and Safety Assessment*
 
 Sungpil Han, MD PhD · Dept. of Pharmacology, College of Medicine, The Catholic University of Korea
 
 This folder holds the five studies built for the talk. Each study is a
-self-contained, re-runnable Python program under `studies/` that implements a
-QSP/PBPK model, calibrates it to published clinical data, and writes its
-figures to `figures/` and its headline numbers to `data/`. All figures share
-one visual system (`figstyle.py`, Inter typeface, navy/teal/gold palette) so
-they drop cleanly onto the talk's slide master.
+self-contained, re-runnable R script under `R/` that implements a QSP/PBPK
+model, calibrates it to published clinical data, draws its figures with
+ggplot2 into `figures/`, and writes its headline numbers to `data/`. All
+figures share one visual system (`R/theme_tox.R`: S-Core Dream typeface to
+match the slide body font, navy/teal/gold palette, English-only figure text),
+and `build_deck.py` reads the numbers from `data/*.json` so the slide text and
+the figures cannot drift apart.
+
+Deck language rule: cover, titles, technical terms, tables and figures in
+English; body text in Korean-English mix. Every paragraph is written with
+`latinLnBrk="0"` (the template's "allow Latin words to break" is switched off)
+so English words never split mid-word.
 
 The organizing thesis is the abstract's: **QSP turns an efficacy–safety
 trade-off into a tunable optimization problem**, and does so at the scale of a
@@ -17,7 +24,7 @@ oncologic, metabolic, and geriatric disease, plus the library itself.
 
 | # | Study | Disease area | The optimization | Key figures |
 |---|-------|--------------|------------------|-------------|
-| 1 | QSP library safety atlas | all (416 models) | coverage of a drug-safety axis across the therapeutic map | `s1_growth`, `s1_areas`, `s1_quality`, `s1_atlas` |
+| 1 | QSP library safety atlas | all (416 models) | coverage of a drug-safety axis across the therapeutic map | `s1_areas`, `s1_quality`, `s1_atlas` |
 | 2 | Multiple sclerosis DMT benefit–risk | autoimmune / neurology | natalizumab dosing interval vs PML risk (EID) | `s2_saturation`, `s2_pml_table`, `s2_benefit_risk`, `s2_dmt_map` |
 | 3 | Checkpoint-inhibitor efficacy vs irAE | oncology | nivolumab/ipilimumab dose ratio vs grade 3–4 irAE | `s3_pareto`, `s3_timecourse`, `s3_organ_timing` |
 | 4 | Incretin titration | obesity / metabolic + aging | target dose & escalation vs GI AE & lean-mass loss | `s4_titration`, `s4_frontier`, `s4_composition`, `s4_aging` |
@@ -32,14 +39,17 @@ oncologic, metabolic, and geriatric disease, plus the library itself.
 of the disease map does a modern, LLM-built QSP library already cover, and how
 much of it already encodes a drug-toxicity / adverse-event axis?
 
-**Method.** `studies/s1_mine_library.py` walks every disease directory in the
+**Method.** `R/s1_library.R` walks every disease directory in the
 repository, counts ODE compartments (`dxdt_` assignments) in each mrgsolve
 model, nodes/clusters in each Graphviz map, and PubMed references in each
 reference file; classifies each model into a therapeutic area from the README
 gallery table; and scores each model for safety/toxicology relevance by a
-30-term safety lexicon (toxicity, adverse, hepatotoxicity, nephrotoxicity, QT,
-cytokine release, irAE, bleeding, PML, …). A model is counted as carrying a
-"safety axis" when its code or references contain ≥3 distinct lexicon hits.
+~50-term toxicology lexicon (toxic, adverse, hepatotox, nephrotox, QT,
+cytokine release, irAE, bleeding, PML, DILI, …). Terms are word-bounded and
+acronyms are matched case-sensitively (an earlier substring version counted
+e.g. "making" as AKI and inflated the share to ~74 %). A model is counted as
+carrying a "safety axis" when its model code, mechanistic map, directory
+README and references together contain ≥3 distinct lexicon terms.
 
 **Results (mined live from the repository).**
 
@@ -47,16 +57,16 @@ cytokine release, irAE, bleeding, PML, …). A model is counted as carrying a
 |---|---|
 | Disease QSP models | **416** |
 | Therapeutic areas | 22 |
-| Models carrying an explicit safety/toxicity axis | **~74 %** |
+| Models carrying an explicit safety/toxicity axis | **71 %** (293 / 415 mined) |
 | Total ODE compartments across the library | ~13,400 (median 25/model, range 14–82) |
 | Total mechanistic-map nodes | median 165/model |
 | Total PubMed references | ~31,800 (median 59/model; 96 % clear the ≥30 gate) |
 
-**Message.** The library is not a collection of efficacy toys — three-quarters
+**Message.** The library is not a collection of efficacy toys — about 70 %
 of 416 models already carry a toxicity/adverse-event axis, and every model
 clears hard size and grounding gates. The safety infrastructure for
 NAM-translation already exists, at scale, and grows by one model per day
-(documented milestone trajectory: KSMB 191 → KBCS 258 → now 416).
+(The talk deliberately shows no count-over-time chart.)
 
 ---
 
@@ -67,7 +77,7 @@ relapse suppressors in MS but lifts CNS immune surveillance, risking
 progressive multifocal leukoencephalopathy (PML) from JC-virus reactivation.
 Can QSP convert this into a dosing optimization?
 
-**Method.** `studies/s2_ms.py` couples (i) a receptor-saturation model of
+**Method.** `R/s2_ms.R` couples (i) a receptor-saturation model of
 natalizumab over the dosing interval (monoexponential drug decline, t½ ≈ 11 d,
 Emax occupancy), (ii) relapse-rate suppression as a function of time-averaged
 α4 saturation, and (iii) a PML-hazard model built from the Ho (2017)
@@ -103,7 +113,7 @@ melanoma regimen. The two antibodies are different handles — can a model show
 why lowering ipilimumab (CheckMate 511) preserves efficacy while cutting
 toxicity?
 
-**Method.** `studies/s3_ici.py` maps receptor occupancy (PD-1, CTLA-4) to two
+**Method.** `R/s3_ici.R` maps receptor occupancy (PD-1, CTLA-4) to two
 effector pools — anti-tumor and self-reactive — with Bliss-type synergy, then
 to ORR (Emax/Hill) and grade 3–4 irAE rate. The central biology: ipilimumab's
 contribution to anti-tumor **priming saturates at a low dose**, while its
@@ -129,7 +139,7 @@ Anchors: Larkin NEJM 2015/2019 (CM067); Lebbé JCO 2019 (CM511); Weber JCO 2017.
 schedule trade weight loss against GI tolerability and against lean-mass loss —
 the last of which is a safety concern in older adults.
 
-**Method.** `studies/s4_obesity.py` is an energy-balance ODE: exposure
+**Method.** `R/s4_obesity.R` is an energy-balance ODE: exposure
 accumulates toward the steady state for the current dose; appetite suppression
 = Hill(exposure) → caloric intake; body weight changes are partitioned into fat
 and fat-free mass by a Forbes-type rule that is age-sensitive (anabolic
@@ -160,7 +170,7 @@ volunteers; the patients who take DOACs are old and renally impaired. Can a
 PBPK/PD workflow predict exposure and individualize dosing for patients never
 studied?
 
-**Method.** `studies/s5_doac.py` links age → creatinine clearance (population
+**Method.** `R/s5_doac.R` links age → creatinine clearance (population
 decline) → DOAC exposure (Rowland renal-impairment scaling from each drug's
 renal-clearance fraction) → bleeding and stroke risk (exposure–response), and
 compares fixed vs label-based dose reduction in a 4000-patient virtual elderly
@@ -190,15 +200,18 @@ Cockcroft-Gault; Rowland–Tozer renal-impairment adjustment.
 
 ## Flagship — Merigolix (the abstract's named example)
 
-`studies/s6_merigolix.py`: GnRH-receptor antagonist for endometriosis. Dose
-sets estradiol suppression; benefit (pain, lesion size) and risk (BMD loss, hot
-flashes) move in opposite directions and cross inside a target E2 window
-(~20–40 pg/mL). QSP makes the estrogen-threshold hypothesis a quantitative
-optimization — the exact framing the abstract uses.
+`R/s6_merigolix.R`: GnRH-receptor antagonist for endometriosis. The figure
+uses the outputs of the merigolix QSP model (24 states: 2-compartment PK +
+HPG-axis indirect-response PD + menstrual cycle, lesion and BMD; virtual
+population at week 12; github.com/pipetcpt/merigolix-qsp), built on the Phase 1
+SAD/MAD PK/PD model (n = 51). Week-12 E2 by dose, the share of patients inside
+the 20–40 pg/mL estrogen-threshold window versus below 20 pg/mL (full
+suppression → BMD / vasomotor risk), and the composite therapeutic index, which
+peaks at 160 mg QD (78.3).
 
 ---
 
-## The NAMs bridge (reflected from the KBCS / KSMB decks)
+## The NAMs bridge
 
 The talk closes by connecting the library to new approach methodologies: the
 gut–liver–kidney microphysiological system coupled to whole-body PBPK that
@@ -208,8 +221,9 @@ distinguish gut- from hepatic-driven exposure change. Study 5's DOAC validation
 is deliberately built in the same honest, mechanism-based-correction style, so
 the five new studies and the MPS/NAM work read as one program.
 
-See `docs/kbcs2026/` and `docs/ksmb2026/` for the full NAM/MPS material reused
-in the deck.
+`R/s7_diagrams.R` draws the per-drug AUC GMFE figure from the validation
+summary table (6 drugs × 4 observations; overall 1.85×; uniform vs selective
+scaling rule 9.7× vs 1.85×) and the daily-build architecture diagram.
 
 ---
 
@@ -217,11 +231,9 @@ in the deck.
 
 ```bash
 cd presentation/2026-tox
-python3 studies/s1_mine_library.py && python3 studies/s1_figures.py
-python3 studies/s2_ms.py
-python3 studies/s3_ici.py
-python3 studies/s4_obesity.py
-python3 studies/s5_doac.py
-python3 studies/s6_merigolix.py
-python3 build_deck.py        # assembles 2026-tox.pptx on the uploaded template
+Rscript R/run_all.R          # all studies: data/*.json + figures/*.png (ggplot2)
+python3 build_deck.py        # assembles ../2026-tox.pptx on the uploaded template
 ```
+
+R packages: ggplot2, dplyr, tidyr, purrr, readr, jsonlite, scales, patchwork,
+ggrepel, deSolve, systemfonts, ragg. Deck assembly: python-pptx, Pillow, lxml.

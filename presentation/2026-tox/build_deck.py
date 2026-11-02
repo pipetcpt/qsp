@@ -1,650 +1,791 @@
 #!/usr/bin/env python3
-"""Assemble presentation/2026-tox.pptx on the uploaded KSOT template.
+"""Assemble presentation/2026-tox.pptx on the uploaded template.
 
-Keeps the template's title slide (slide 0) and builds all content slides on the
-template's own layouts, so every slide inherits the master chrome: the QR code
-(top-right) and the PIPET / PIPET MPS logos (bottom-left). Content is composed
-slide-by-slide in the house palette (navy/teal/gold) matching the figure style.
+Language rule for this deck
+  * cover, slide titles, technical terms, tables and figures: English only
+  * body text: Korean-English mix (technical terms stay in English)
+
+Line-break rule
+  The template ships with latinLnBrk="1" ("allow Latin text to wrap in the
+  middle of a word" / 영어 단어 잘림 허용). Every paragraph is written with
+  latinLnBrk="0" and every remaining latinLnBrk="1" in the package (master,
+  layouts, presentation defaults) is rewritten to "0" after saving, so English
+  words always wrap at word boundaries.
+
+Figures are produced by the R/ggplot2 scripts in R/ (Rscript R/run_all.R);
+headline numbers are read from data/*.json so text and figures stay in sync.
 """
-import copy
+import json
+import re
+import shutil
+import tempfile
+import zipfile
 from pathlib import Path
+
 from PIL import Image
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
+from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
 from pptx.oxml.ns import qn
+from pptx.util import Emu, Inches, Pt
+from lxml import etree
 
-ROOT = Path("/home/user/qsp/presentation/2026-tox")
+ROOT = Path(__file__).resolve().parent
 FIG = ROOT / "figures"
-TEMPLATE = ROOT.parent / "2026-tox-template.pptx"   # pristine uploaded template
-OUT = ROOT.parent / "2026-tox.pptx"                 # built deck
+DATA = ROOT / "data"
+TEMPLATE = ROOT.parent / "2026-tox-template.pptx"
+OUT = ROOT.parent / "2026-tox.pptx"
 
-# ---- palette --------------------------------------------------------------
+LIB = json.loads((DATA / "library_summary.json").read_text())
+S2 = json.loads((DATA / "s2_results.json").read_text())
+S3 = json.loads((DATA / "s3_results.json").read_text())
+S4 = json.loads((DATA / "s4_results.json").read_text())
+S5 = json.loads((DATA / "s5_results.json").read_text())
+S6 = json.loads((DATA / "s6_results.json").read_text())
+N_MODELS = LIB["n_gallery"]
+PCT_SAFE = LIB["pct_safety"]
+
+# ---- palette ----------------------------------------------------------------
 NAVY = RGBColor(0x16, 0x3A, 0x5F)
 TEAL = RGBColor(0x1F, 0x8A, 0x8C)
 GOLD = RGBColor(0xC8, 0x92, 0x2A)
-RED  = RGBColor(0xC0, 0x39, 0x2B)
-GREEN= RGBColor(0x2E, 0x8B, 0x6F)
+RED = RGBColor(0xC0, 0x39, 0x2B)
+GREEN = RGBColor(0x2E, 0x8B, 0x6F)
 BLUE = RGBColor(0x2B, 0x6C, 0xB0)
-INK  = RGBColor(0x1A, 0x22, 0x2C)
+INK = RGBColor(0x1A, 0x22, 0x2C)
 GREY = RGBColor(0x5F, 0x6B, 0x76)
-LGREY= RGBColor(0xD7, 0xDE, 0xE5)
+LGREY = RGBColor(0xD7, 0xDE, 0xE5)
 PALE = RGBColor(0xEE, 0xF3, 0xF8)
 PALETEAL = RGBColor(0xE4, 0xF1, 0xEB)
-WHITE= RGBColor(0xFF, 0xFF, 0xFF)
-BODY = "Calibri"      # safe, ships with Office; true-width in QA
+WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
-SW, SH = Inches(13.333), Inches(7.5)
+# ---- typefaces (S-Core Dream: the template's own family; Hangul + Latin) ----
+F_REG = "S-Core Dream 4 Regular"
+F_MED = "S-Core Dream 5 Medium"
+F_BOLD = "S-Core Dream 6 Bold"
+F_MATH = "Cambria Math"
+
+HANGUL = re.compile(r"[가-힣]")
 
 prs = Presentation(str(TEMPLATE))
-
-# ---- layouts by name ------------------------------------------------------
-LAY = {}
-for L in prs.slide_layouts:
-    LAY[L.name] = L
+LAY = {L.name: L for L in prs.slide_layouts}
 TITLE_ONLY = LAY.get("제목만") or LAY.get("Title Only")
-SECTION    = LAY.get("구역 머리글") or TITLE_ONLY
-BLANK      = LAY.get("빈 화면") or TITLE_ONLY
+BLANK = LAY.get("빈 화면") or TITLE_ONLY
 
-# ---- delete the template's placeholder content slide (slide index 1) ------
-# Proper deletion: drop the relationship (so the part is not re-serialized)
-# AND remove the sldId entry, otherwise the orphaned part collides on save.
-xml_slides = prs.slides._sldIdLst
-slide_ids = list(xml_slides)
-if len(slide_ids) > 1:
-    sldId = slide_ids[1]
-    rId = sldId.get(qn("r:id"))
-    prs.part.drop_rel(rId)
-    xml_slides.remove(sldId)
+# ---- drop the template's placeholder content slide (index 1) -----------------
+sld_ids = list(prs.slides._sldIdLst)
+if len(sld_ids) > 1:
+    prs.part.drop_rel(sld_ids[1].get(qn("r:id")))
+    prs.slides._sldIdLst.remove(sld_ids[1])
 
-# ========================================================================
-# helpers
-# ========================================================================
-def _set_runs(tf, text, size, color, bold=False, font=BODY, align=None, italic=False):
+
+# =============================================================================
+# low-level text helpers
+# =============================================================================
+def set_font(run, family, size=None, color=None, italic=False):
+    f = run.font
+    if size is not None:
+        f.size = Pt(size)
+    f.bold = False            # weight comes from the family, never faux-bold
+    f.italic = italic
+    if color is not None:
+        f.color.rgb = color
+    f.name = family           # <a:latin>
+    rPr = run._r.get_or_add_rPr()
+    for tag in ("a:ea", "a:cs"):
+        for el in rPr.findall(qn(tag)):
+            rPr.remove(el)
+    latin = rPr.find(qn("a:latin"))
+    ea = etree.SubElement(rPr, qn("a:ea")); ea.set("typeface", family)
+    cs = etree.SubElement(rPr, qn("a:cs")); cs.set("typeface", family)
+    latin.addnext(ea); ea.addnext(cs)
+    has_ko = bool(HANGUL.search(run.text or ""))
+    rPr.set("lang", "ko-KR" if has_ko else "en-US")
+    rPr.set("altLang", "en-US" if has_ko else "ko-KR")
+
+
+def no_word_break(p):
+    """latinLnBrk=0 on this paragraph: never split an English word."""
+    pPr = p._p.get_or_add_pPr()
+    pPr.set("latinLnBrk", "0")
+    pPr.set("eaLnBrk", "1")
+    pPr.set("hangingPunct", "1")
+
+
+def add_run(p, text, family=F_REG, size=17, color=INK, italic=False):
+    r = p.add_run()
+    r.text = text
+    set_font(r, family, size, color, italic)
+    return r
+
+
+def _frame(tb, anchor=MSO_ANCHOR.TOP, margins=0.0):
+    tf = tb.text_frame
     tf.word_wrap = True
-    p = tf.paragraphs[0]
-    if align is not None: p.alignment = align
-    r = p.add_run(); r.text = text
-    f = r.font; f.size = Pt(size); f.bold = bold; f.italic = italic
-    f.name = font; f.color.rgb = color
-    return p
-
-def add_slide(layout, title=None, title_color=NAVY, title_size=None):
-    s = prs.slides.add_slide(layout)
-    if title is not None:
-        ph = None
-        for p in s.placeholders:
-            if p.placeholder_format.idx == 0:
-                ph = p; break
-        if ph is not None:
-            ph.text = title
-            for para in ph.text_frame.paragraphs:
-                for r in para.runs:
-                    r.font.color.rgb = title_color
-                    if title_size: r.font.size = Pt(title_size)
-                    r.font.bold = True
-    return s
-
-def textbox(s, text, x, y, w, h, size=16, color=INK, bold=False, font=BODY,
-            align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP, italic=False, line_spacing=1.04):
-    tb = s.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
-    tf = tb.text_frame; tf.word_wrap = True
     tf.vertical_anchor = anchor
-    for m in ("margin_left","margin_right","margin_top","margin_bottom"):
-        setattr(tf, m, 0)
-    first = True
-    for line in (text if isinstance(text, list) else [text]):
-        p = tf.paragraphs[0] if first else tf.add_paragraph()
-        first = False
-        p.alignment = align; p.line_spacing = line_spacing
-        if isinstance(line, tuple):
-            txt, opts = line
-        else:
-            txt, opts = line, {}
-        r = p.add_run(); r.text = txt
-        f = r.font
-        f.size = Pt(opts.get("size", size)); f.bold = opts.get("bold", bold)
-        f.italic = opts.get("italic", italic); f.name = opts.get("font", font)
-        f.color.rgb = opts.get("color", color)
-    return tb
+    for m in ("margin_left", "margin_right", "margin_top", "margin_bottom"):
+        setattr(tf, m, Inches(margins))
+    return tf
 
-def bullets(s, items, x, y, w, h, size=17, color=INK, gap=8, bold_lead=True):
+
+def textbox(s, lines, x, y, w, h, size=17, color=INK, family=F_REG, align=PP_ALIGN.LEFT,
+            anchor=MSO_ANCHOR.TOP, italic=False, spacing=1.15, gap=0):
+    """lines: str | list of (str | [(text, {opts}), ...] | (text, {opts}))."""
     tb = s.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
-    tf = tb.text_frame; tf.word_wrap = True
-    for m in ("margin_left","margin_right","margin_top","margin_bottom"):
-        setattr(tf, m, 0)
-    first = True
-    for it in items:
-        p = tf.paragraphs[0] if first else tf.add_paragraph()
-        first = False
-        p.space_after = Pt(gap); p.line_spacing = 1.03
-        # bullet glyph
-        lead, rest = (it if isinstance(it, tuple) else (None, it))
-        r0 = p.add_run(); r0.text = "•  "
-        r0.font.size = Pt(size); r0.font.color.rgb = TEAL; r0.font.bold = True; r0.font.name = BODY
-        if lead:
-            rl = p.add_run(); rl.text = lead + "  "
-            rl.font.size = Pt(size); rl.font.bold = True; rl.font.color.rgb = NAVY; rl.font.name = BODY
-        rr = p.add_run(); rr.text = rest
-        rr.font.size = Pt(size); rr.font.color.rgb = color; rr.font.name = BODY
+    tf = _frame(tb, anchor)
+    if not isinstance(lines, list):
+        lines = [lines]
+    for i, line in enumerate(lines):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.alignment = align
+        p.line_spacing = spacing
+        if gap:
+            p.space_after = Pt(gap)
+        no_word_break(p)
+        segs = line if isinstance(line, list) else [line]
+        for seg in segs:
+            txt, o = (seg if isinstance(seg, tuple) else (seg, {}))
+            add_run(p, txt, o.get("family", family), o.get("size", size),
+                    o.get("color", color), o.get("italic", italic))
     return tb
 
-def eyebrow(s, text, x=0.73, y=1.35, color=GOLD):
-    return textbox(s, text.upper(), x, y, 11.0, 0.35, size=13, color=color, bold=True)
 
-def img_box(path, box_x, box_y, box_w, box_h):
-    """return (x,y,w,h) in inches to fit image into box, centered, aspect kept."""
-    im = Image.open(path); iw, ih = im.size; ar = iw/ih
-    bw, bh = box_w, box_h
-    if bw/bh > ar:
-        h = bh; w = bh*ar
-    else:
-        w = bw; h = bw/ar
-    x = box_x + (bw-w)/2; y = box_y + (bh-h)/2
-    return x, y, w, h
+def bullets(s, items, x, y, w, h, size=17, gap=10, lead_color=NAVY, spacing=1.12):
+    """items: (lead, body) or plain str. Real hanging-indent bullets."""
+    tb = s.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
+    tf = _frame(tb)
+    for i, it in enumerate(items):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.line_spacing = spacing
+        p.space_after = Pt(gap)
+        no_word_break(p)
+        pPr = p._p.get_or_add_pPr()
+        ind = Emu(Inches(0.28))
+        pPr.set("marL", str(ind)); pPr.set("indent", str(-ind))
+        buClr = etree.SubElement(pPr, qn("a:buClr"))
+        etree.SubElement(buClr, qn("a:srgbClr")).set("val", "1F8A8C")
+        etree.SubElement(pPr, qn("a:buFont")).set("typeface", "Arial")
+        etree.SubElement(pPr, qn("a:buChar")).set("char", "•")
+        lead, body = it if isinstance(it, tuple) else (None, it)
+        if lead:
+            add_run(p, lead + "  ", F_BOLD, size, lead_color)
+        add_run(p, body, F_REG, size, INK)
+    return tb
 
-def add_image(s, path, box_x, box_y, box_w, box_h, shadow=False):
-    x,y,w,h = img_box(str(path), box_x, box_y, box_w, box_h)
-    pic = s.shapes.add_picture(str(path), Inches(x), Inches(y), Inches(w), Inches(h))
-    return pic
 
-def rrect(s, x, y, w, h, fill, line=None, line_w=1.0, radius=0.08):
-    sp = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(y), Inches(w), Inches(h))
+def rrect(s, x, y, w, h, fill, line=None, radius=0.08, shape=MSO_SHAPE.ROUNDED_RECTANGLE):
+    sp = s.shapes.add_shape(shape, Inches(x), Inches(y), Inches(w), Inches(h))
     sp.fill.solid(); sp.fill.fore_color.rgb = fill
     if line is None:
         sp.line.fill.background()
     else:
-        sp.line.color.rgb = line; sp.line.width = Pt(line_w)
+        sp.line.color.rgb = line; sp.line.width = Pt(1.2)
     sp.shadow.inherit = False
-    try:
+    if shape == MSO_SHAPE.ROUNDED_RECTANGLE:
         sp.adjustments[0] = radius
-    except Exception:
-        pass
+    if sp.has_text_frame:
+        for p in sp.text_frame.paragraphs:
+            no_word_break(p)
     return sp
 
-def source(s, text, y=7.04):
-    textbox(s, text, 3.1, y, 8.4, 0.3, size=9.5, color=GREY, align=PP_ALIGN.RIGHT, italic=True)
 
-def stat_row(s, stats, y=2.2, x0=0.9, total_w=11.5, h=2.0, num_size=46, lab_size=14):
-    n = len(stats); gap = 0.25
-    cw = (total_w - gap*(n-1))/n
-    for i,(num, lab, col) in enumerate(stats):
-        cx = x0 + i*(cw+gap)
-        card = rrect(s, cx, y, cw, h, PALE, radius=0.07)
-        textbox(s, num, cx+0.1, y+0.28, cw-0.2, 0.95, size=num_size, color=col, bold=True,
-                align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-        textbox(s, lab, cx+0.12, y+h-0.72, cw-0.24, 0.6, size=lab_size, color=INK,
-                align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP, line_spacing=1.0)
+def add_image(s, path, bx, by, bw, bh, align="center"):
+    iw, ih = Image.open(path).size
+    ar = iw / ih
+    if bw / bh > ar:
+        h = bh; w = bh * ar
+    else:
+        w = bw; h = bw / ar
+    x = bx + (bw - w) / 2 if align == "center" else bx
+    y = by + (bh - h) / 2
+    s.shapes.add_picture(str(path), Inches(x), Inches(y), Inches(w), Inches(h))
+    return x, y, w, h
 
-def table(s, rows, x, y, w, col_w=None, header=True, font_size=13, row_h=0.42,
-          header_fill=NAVY, zebra=PALE):
-    nr = len(rows); nc = len(rows[0])
-    gf = s.shapes.add_table(nr, nc, Inches(x), Inches(y), Inches(w), Inches(row_h*nr))
+
+def source(s, text):
+    textbox(s, text, 4.9, 7.02, 7.75, 0.3, size=9.5, color=GREY, align=PP_ALIGN.RIGHT, italic=True,
+            spacing=1.0)
+
+
+def eyebrow(s, text, y=1.3):
+    textbox(s, text.upper(), 0.75, y, 11.5, 0.32, size=12, color=GOLD, family=F_BOLD, spacing=1.0)
+
+
+def new_slide(title, eyebrow_txt=None, size=26):
+    s = prs.slides.add_slide(TITLE_ONLY)
+    ph = next(p for p in s.placeholders if p.placeholder_format.idx == 0)
+    tf = ph.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.LEFT
+    no_word_break(p)
+    add_run(p, title, F_MED, size, NAVY)
+    if eyebrow_txt:
+        eyebrow(s, eyebrow_txt)
+    return s
+
+
+def callout(s, text, x=0.75, y=5.55, w=11.85, h=0.95, fill=PALETEAL, color=NAVY, size=17):
+    rrect(s, x, y, w, h, fill, radius=0.1)
+    textbox(s, text, x + 0.3, y, w - 0.6, h, size=size, color=color, family=F_MED,
+            anchor=MSO_ANCHOR.MIDDLE, spacing=1.15)
+
+
+def caption(s, text, y=6.15, size=15):
+    textbox(s, text, 0.75, y, 11.85, 0.5, size=size, color=NAVY, family=F_MED,
+            align=PP_ALIGN.CENTER, spacing=1.1)
+
+
+def table(s, rows, x, y, w, col_w, row_h=0.5, size=14, header_fill=NAVY, first_col_bold=True):
+    nr, nc = len(rows), len(rows[0])
+    gf = s.shapes.add_table(nr, nc, Inches(x), Inches(y), Inches(w), Inches(row_h * nr))
     tbl = gf.table
-    # disable default banding style -> we control fills
-    tbl.first_row = header; tbl.horz_banding = False
-    if col_w:
-        tot = sum(col_w)
-        for j,cw in enumerate(col_w):
-            tbl.columns[j].width = Inches(w*cw/tot)
-    for i,row in enumerate(rows):
+    tbl.first_row = True; tbl.horz_banding = False
+    tot = sum(col_w)
+    for j, cw in enumerate(col_w):
+        tbl.columns[j].width = Inches(w * cw / tot)
+    for i, row in enumerate(rows):
         tbl.rows[i].height = Inches(row_h)
-        for j,val in enumerate(row):
-            c = tbl.cell(i,j)
-            c.margin_left = Inches(0.08); c.margin_right = Inches(0.06)
-            c.margin_top = Inches(0.02); c.margin_bottom = Inches(0.02)
+        for j, val in enumerate(row):
+            c = tbl.cell(i, j)
+            c.margin_left = Inches(0.12); c.margin_right = Inches(0.1)
+            c.margin_top = Inches(0.03); c.margin_bottom = Inches(0.03)
             c.vertical_anchor = MSO_ANCHOR.MIDDLE
-            if header and i==0:
-                c.fill.solid(); c.fill.fore_color.rgb = header_fill
-                col, bold, sz = WHITE, True, font_size
+            c.fill.solid()
+            if i == 0:
+                c.fill.fore_color.rgb = header_fill
+                fam, col = F_BOLD, WHITE
             else:
-                c.fill.solid(); c.fill.fore_color.rgb = WHITE if (i%2==1) else zebra
-                col, bold, sz = INK, False, font_size
+                c.fill.fore_color.rgb = WHITE if i % 2 else PALE
+                fam = F_BOLD if (j == 0 and first_col_bold) else F_REG
+                col = NAVY if (j == 0 and first_col_bold) else INK
             tf = c.text_frame; tf.word_wrap = True
-            p = tf.paragraphs[0]; p.alignment = PP_ALIGN.LEFT if j==0 else PP_ALIGN.CENTER
-            r = p.add_run(); r.text = str(val)
-            r.font.size = Pt(sz); r.font.bold = bold; r.font.color.rgb = col; r.font.name = BODY
+            p = tf.paragraphs[0]; p.alignment = PP_ALIGN.LEFT
+            no_word_break(p)
+            add_run(p, str(val), fam, size, col)
     return gf
 
-def divider(title, num, subtitle):
-    s = add_slide(SECTION, None)
-    # big navy band feel via text only (no stripes per design guidance)
-    textbox(s, f"PART {num}", 0.9, 2.35, 6, 0.5, size=18, color=GOLD, bold=True)
-    textbox(s, title, 0.9, 2.9, 11.2, 1.8, size=40, color=NAVY, bold=True, line_spacing=1.02)
-    textbox(s, subtitle, 0.92, 4.75, 10.8, 1.0, size=18, color=GREY, line_spacing=1.1)
+
+def stat_cards(s, stats, x0=0.75, y=1.85, total_w=11.85, h=1.85, num_size=40, lab_size=14.5):
+    n = len(stats); gap = 0.3
+    cw = (total_w - gap * (n - 1)) / n
+    for i, (num, lab, col) in enumerate(stats):
+        cx = x0 + i * (cw + gap)
+        rrect(s, cx, y, cw, h, PALE, radius=0.08)
+        textbox(s, num, cx + 0.15, y + 0.18, cw - 0.3, 0.85, size=num_size, color=col, family=F_BOLD,
+                align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+        textbox(s, lab, cx + 0.2, y + 1.08, cw - 0.4, h - 1.15, size=lab_size, color=INK,
+                align=PP_ALIGN.CENTER, spacing=1.12)
+
+
+def cards(s, items, cols=2, x0=0.75, y0=1.85, total_w=11.85, h=1.75, gap=0.3, body_size=15.5,
+          numbered=False):
+    cw = (total_w - gap * (cols - 1)) / cols
+    for i, (head, body, col) in enumerate(items):
+        cx = x0 + (i % cols) * (cw + gap)
+        cy = y0 + (i // cols) * (h + gap)
+        rrect(s, cx, cy, cw, h, PALE, radius=0.07)
+        tx = cx + 0.3
+        if numbered:
+            textbox(s, str(i + 1), cx + 0.28, cy + 0.2, 0.6, 0.7, size=32, color=col, family=F_BOLD,
+                    spacing=1.0)
+            tx = cx + 1.0
+        textbox(s, head, tx, cy + 0.24, cw - (tx - cx) - 0.25, 0.5, size=18, color=col,
+                family=F_BOLD, spacing=1.0)
+        textbox(s, body, tx, cy + 0.8, cw - (tx - cx) - 0.25, h - 0.9, size=body_size, color=INK,
+                spacing=1.15)
+
+
+def divider(num, title, subtitle):
+    s = prs.slides.add_slide(BLANK)
+    rrect(s, 0, 2.05, 13.333, 2.55, NAVY, shape=MSO_SHAPE.RECTANGLE)
+    textbox(s, f"PART {num}", 0.95, 2.35, 6.0, 0.45, size=16, color=GOLD, family=F_BOLD, spacing=1.0)
+    textbox(s, title, 0.95, 2.85, 11.4, 1.5, size=36, color=WHITE, family=F_MED, spacing=1.05,
+            anchor=MSO_ANCHOR.TOP)
+    textbox(s, subtitle, 0.97, 4.9, 11.4, 1.0, size=18, color=GREY, spacing=1.2)
     return s
 
-CONTENT_TOP = 1.48   # below title
-def big_fig_slide(title, fig, caption=None, eyebrow_txt=None, src=None, figbox=None):
-    s = add_slide(TITLE_ONLY, title, title_size=26)
-    if eyebrow_txt: eyebrow(s, eyebrow_txt)
-    bx = figbox or (0.9, CONTENT_TOP+0.25, 11.55, 5.05)
-    add_image(s, fig, *bx)
-    if caption:
-        textbox(s, caption, 0.95, 6.62, 11.4, 0.5, size=14, color=NAVY, bold=True,
-                align=PP_ALIGN.CENTER)
-    if src: source(s)
+
+def fig_slide(title, fig, eyebrow_txt=None, cap=None, box=(0.75, 1.75, 11.85, 4.3), src=None):
+    s = new_slide(title, eyebrow_txt)
+    add_image(s, fig, *box)
+    if cap:
+        caption(s, cap)
+    if src:
+        source(s, src)
     return s
 
-# ========================================================================
-# SLIDE SEQUENCE
-# ========================================================================
 
-# ---- Slide 0 is the kept template title slide --------------------------
+def intro_slide(title, eyebrow_txt, items, layer, src):
+    s = new_slide(title, eyebrow_txt)
+    bullets(s, items, 0.75, 1.95, 11.85, 2.5, size=18, gap=12)
+    rrect(s, 0.75, 4.1, 11.85, 1.6, PALETEAL, radius=0.08)
+    textbox(s, [[("QSP layer   ", {"family": F_BOLD, "color": TEAL}), (layer, {})]],
+            1.05, 4.1, 11.25, 1.6, size=17, color=NAVY, anchor=MSO_ANCHOR.MIDDLE, spacing=1.2)
+    source(s, src)
+    return s
 
-# ---------------- PART 1: the safety problem & regulatory shift ----------
-s = add_slide(TITLE_ONLY, "The problem: 90% of trial drugs fail, and toxicity leads", title_size=25)
-eyebrow(s, "Why we are here")
-stat_row(s, [("~90%", "candidates entering trials never reach patients", RED),
-             ("10–15 yr", "per approved drug", NAVY),
-             ("$1–2.6 B", "cost per approved drug", NAVY)], y=2.0, h=1.95, num_size=40)
+
+# =============================================================================
+# COVER (template slide 0) -- English only
+# =============================================================================
+cover = prs.slides[0]
+for sh in cover.shapes:
+    if not sh.has_text_frame:
+        continue
+    tf = sh.text_frame
+    if "한국독성학회" in tf.text:
+        # paragraph 0 = society line <br> session line <br> title line 1:
+        # replace only the runs before the first line break
+        p0 = tf.paragraphs[0]._p
+        society = []
+        for ch in list(p0):
+            if ch.tag == qn("a:br"):
+                break
+            if ch.tag == qn("a:r"):
+                society.append(ch)
+        society[0].find(qn("a:t")).text = "Korean Society of Toxicology (KSOT) · 2026 Fall Meeting (42nd)"
+        society[0].find(qn("a:rPr")).set("lang", "en-US")
+        for r in society[1:]:
+            p0.remove(r)
+    if tf.text.strip() == "발표자료 다운로드":
+        r = tf.paragraphs[0].runs
+        r[0].text = "Download slides"
+        for extra in r[1:]:
+            extra._r.getparent().remove(extra._r)
+        r[0]._r.get_or_add_rPr().set("lang", "en-US")
+# layout 1 carries the same Korean caption under its QR code
+for L in prs.slide_layouts:
+    for sh in L.shapes:
+        if sh.has_text_frame and sh.text_frame.text.strip() == "발표자료 다운로드":
+            rs = sh.text_frame.paragraphs[0].runs
+            rs[0].text = "Download slides"
+            for extra in rs[1:]:
+                extra._r.getparent().remove(extra._r)
+
+# =============================================================================
+# PART 1 -- the safety problem and the regulatory shift
+# =============================================================================
+s = new_slide("Drug development fails late, and toxicity leads", "Why we are here")
+stat_cards(s, [("~90%", "임상시험에 진입한 후보물질 중 승인에 실패하는 비율", RED),
+               ("10–15 yr", "신약 하나당 개발 기간", NAVY),
+               ("$1–2.6 B", "신약 하나당 개발 비용", NAVY)])
 bullets(s, [
-    ("Unexpected toxicity", "a leading cause of late-stage attrition — and of post-marketing withdrawal"),
-    ("Healthy-volunteer Phase 1", "characterises exposure in the young and fit, not in the patients who take the drug"),
-    ("The costliest failures", "are the safety signals that appear only in real, vulnerable patients"),
-], 0.95, 4.3, 11.5, 2.3, size=18)
+    ("Unexpected toxicity", "late-stage attrition과 post-marketing withdrawal의 주요 원인"),
+    ("Healthy-volunteer Phase 1", "젊고 건강한 사람의 exposure만 확인 — 실제 약을 복용할 환자와 다름"),
+    ("The costliest failures", "취약한 실제 환자에서 뒤늦게 드러나는 safety signal"),
+], 0.75, 4.15, 11.85, 2.4, size=18, gap=12)
 source(s, "DiMasi J Health Econ 2016 · Kola & Landis Nat Rev Drug Discov 2004")
 
-s = add_slide(TITLE_ONLY, "Conventional safety assessment misses the patients who matter", title_size=23)
-eyebrow(s, "The translation gap")
-cards = [
-    ("2D cell cultures", "No tissue architecture, no organ-level function", GREY),
-    ("Animal models", "Persistent interspecies differences in drug disposition and response", GOLD),
-    ("Phase 1 trials", "Healthy volunteers only — exclude hepatic & renal impairment, pregnancy, the elderly, rare disease", RED),
-]
-cw = 3.72; x0 = 0.95; y0 = 2.05; ch = 2.5
-for i,(h,b,c) in enumerate(cards):
-    cx = x0 + i*(cw+0.2)
-    rrect(s, cx, y0, cw, ch, PALE, radius=0.06)
-    textbox(s, h, cx+0.25, y0+0.25, cw-0.5, 0.7, size=18, color=c, bold=True)
-    textbox(s, b, cx+0.25, y0+1.05, cw-0.5, ch-1.2, size=14.5, color=INK, line_spacing=1.08)
-textbox(s, "The result: in-vitro signals and animal data rarely translate into human exposure and response for the people actually at risk.",
-        0.95, 4.95, 11.5, 1.0, size=18, color=NAVY, bold=True, line_spacing=1.12)
+s = new_slide("Conventional safety assessment misses vulnerable patients", "The translation gap", size=25)
+cw = (11.85 - 0.6) / 3
+for i, (h, b, c) in enumerate([
+        ("2D cell culture", "Tissue architecture와 organ-level function이 없음", GREY),
+        ("Animal models", "Drug disposition과 response의 interspecies difference가 지속됨", GOLD),
+        ("Phase 1 trials", "Healthy volunteer 위주 — hepatic/renal impairment, pregnancy, elderly, rare disease 환자는 제외", RED)]):
+    cx = 0.75 + i * (cw + 0.3)
+    rrect(s, cx, 1.85, cw, 2.75, PALE, radius=0.07)
+    textbox(s, h, cx + 0.3, 2.1, cw - 0.6, 0.5, size=19, color=c, family=F_BOLD, spacing=1.0)
+    textbox(s, b, cx + 0.3, 2.75, cw - 0.6, 1.8, size=16, spacing=1.2)
+callout(s, "결과적으로 in vitro signal과 animal data가 실제 위험 환자의 human exposure·response로 잘 translate되지 않음",
+        y=5.0, h=1.05)
 source(s, "Van Norman, JACC Basic Transl Sci 2019")
 
-s = add_slide(TITLE_ONLY, "The regulatory shift: from an animal mandate to NAMs", title_size=24)
-eyebrow(s, "What changed")
-bullets(s, [
-    ("1938 → 2022", "U.S. law required animal testing before human use for 80+ years"),
-    ("FDA Modernization Act 2.0 (2022)", "replaced “animal tests” with “nonclinical tests” — explicitly opening the door to in vitro / in silico methods"),
-    ("FDA Roadmap to Reducing Animal Testing (2025)", "a phased rollout beginning with monoclonal antibodies; goal: animal testing becomes the exception"),
-    ("New approach methodologies (NAMs)", "microphysiological systems (MPS / organ-chips), organoids, and in silico models"),
-], 0.95, 2.0, 11.6, 3.2, size=18, gap=11)
-textbox(s, "But an in-vitro signal becomes decision-grade evidence only when a mechanistic model translates it into human exposure and response.",
-        0.95, 5.5, 11.5, 1.0, size=18, color=NAVY, bold=True, line_spacing=1.12)
-source(s, "FDA Modernization Act 2022, Pub. L. 117-328 · FDA Roadmap 2025")
+s = new_slide("The regulatory shift: from animal mandate to NAMs", "What changed")
+table(s, [
+    ["Year", "Milestone", "What it means"],
+    ["1938", "Federal Food, Drug, and Cosmetic Act", "Animal testing de facto required before human use"],
+    ["2022", "FDA Modernization Act 2.0", "“Animal tests” replaced by “nonclinical tests”: in vitro and in silico allowed"],
+    ["2025", "FDA Roadmap to Reducing Animal Testing", "Phased rollout, starting with monoclonal antibodies"],
+    ["Now", "New approach methodologies (NAMs)", "MPS / organ-chips, organoids, in silico models"],
+], 0.75, 1.85, 11.85, col_w=[1.0, 4.0, 6.0], row_h=0.62, size=14.5)
+callout(s, "다만 in vitro signal이 decision-grade evidence가 되려면, mechanistic model이 이를 human exposure와 response로 translate해야 함",
+        y=5.25, h=1.05)
+source(s, "FDA Modernization Act 2.0, Pub. L. 117-328 (2022) · FDA Roadmap (2025)")
 
-big_fig_slide("NAMs need a translational bridge — and clinical pharmacology is it",
-              FIG/"ext/nam_loop.png",
-              caption="PBPK and QSP are the qualification & translation step that pattern-matching alone cannot supply",
-              eyebrow_txt="The NAM translation loop",
-              figbox=(1.3, 1.95, 10.7, 4.3))
-source(prs.slides[-1], "Cao Y, Clin Pharmacol Ther 2025")
+s = fig_slide("NAMs need a translational bridge", FIG / "ext/nam_loop.png", "The NAM translation loop",
+              cap="PBPK와 QSP가 NAM data를 qualify하고 human으로 translate하는 핵심 단계 — pattern-matching만으로는 대체 불가",
+              box=(1.4, 1.85, 10.55, 4.2), src="Cao Y, Clin Pharmacol Ther 2025")
 
-# ---------------- PART 2: what QSP / PBPK is -----------------------------
-divider("QSP & PBPK — the mechanistic bridge", "2",
-        "Linking drug exposure to target, pathway, organ, and patient outcomes — mathematically")
+# =============================================================================
+# PART 2 -- what QSP / PBPK is
+# =============================================================================
+divider(2, "QSP & PBPK: the mechanistic bridge",
+        "Drug exposure를 target, pathway, organ, patient outcome까지 수학적으로 연결")
 
-s = add_slide(TITLE_ONLY, "QSP and PBPK describe the causal chain, mathematically", title_size=23)
-eyebrow(s, "What it is")
-rrect(s, 1.4, 2.0, 10.5, 0.95, NAVY, radius=0.12)
-textbox(s, "drug  →  target  →  pathway  →  disease  →  patient", 1.5, 2.0, 10.3, 0.95,
-        size=26, color=WHITE, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-twocol = [
-    ("PBPK", "Where does the drug go, and at what concentration, in a whole human body?", BLUE),
-    ("QSP", "Given that concentration, what happens to the disease — and to safety?", TEAL),
-]
-for i,(h,b,c) in enumerate(twocol):
-    cx = 1.4 + i*5.35
-    rrect(s, cx, 3.35, 5.1, 1.7, PALE, radius=0.07)
-    textbox(s, h, cx+0.3, 3.55, 4.5, 0.6, size=22, color=c, bold=True)
-    textbox(s, b, cx+0.3, 4.2, 4.5, 0.8, size=15.5, color=INK, line_spacing=1.1)
-textbox(s, "Together: first-in-human dose, safety margins, DDI risk, special-population response, and IVIVE of chip-derived parameters.",
-        1.4, 5.35, 10.5, 0.9, size=17, color=NAVY, bold=True, line_spacing=1.12)
+s = new_slide("QSP and PBPK describe the causal chain", "What it is")
+rrect(s, 0.75, 1.85, 11.85, 0.95, NAVY, radius=0.14)
+textbox(s, "Drug  →  Target  →  Pathway  →  Disease  →  Patient", 0.75, 1.85, 11.85, 0.95,
+        size=26, color=WHITE, family=F_MED, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+for i, (h, b, c) in enumerate([
+        ("PBPK", "약물이 human body의 어디에, 어떤 concentration으로 분포하는가?", BLUE),
+        ("QSP", "그 concentration에서 disease와 safety는 어떻게 변하는가?", TEAL)]):
+    cx = 0.75 + i * 6.075
+    rrect(s, cx, 3.15, 5.775, 1.75, PALE, radius=0.07)
+    textbox(s, h, cx + 0.35, 3.35, 5.0, 0.55, size=22, color=c, family=F_BOLD, spacing=1.0)
+    textbox(s, b, cx + 0.35, 4.0, 5.1, 0.8, size=16.5, spacing=1.15)
+callout(s, "둘을 결합하면 first-in-human dose, safety margin, DDI risk, special population response, chip-derived parameter의 IVIVE까지 예측 가능",
+        y=5.25, h=1.05)
 
-s = add_slide(TITLE_ONLY, "Anatomy of a QSP model: a coupled nonlinear system", title_size=23)
-eyebrow(s, "Under the hood")
-rrect(s, 2.6, 1.95, 8.1, 0.95, PALETEAL, radius=0.12)
-textbox(s, "dx/dt  =  f ( x(t),  θ,  u(t) ),      x(0) = x₀", 2.6, 1.95, 8.1, 0.95,
-        size=24, color=NAVY, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, font="Cambria")
-rows = [
-    ("States  x", "concentrations · receptor occupancy · signalling species · cell populations · biomarkers · endpoints"),
-    ("Parameters  θ", "rate constants · EC₅₀ / Emax · Hill n · clearances · binding affinities"),
-    ("Inputs  u(t)", "the dosing regimen — the one controllable handle of therapy"),
-]
-y = 3.25
-for lead, body in rows:
-    textbox(s, lead, 1.0, y, 3.2, 0.6, size=18, color=TEAL, bold=True)
-    textbox(s, body, 4.2, y, 8.1, 0.7, size=16, color=INK, line_spacing=1.05)
-    y += 0.95
-textbox(s, "Our library's models: 14–82 coupled ODEs and 70–150+ parameters per disease.",
-        1.0, 6.1, 11.3, 0.6, size=17, color=NAVY, bold=True)
+s = new_slide("Anatomy of a QSP model: a coupled nonlinear system", "Under the hood", size=25)
+rrect(s, 2.4, 1.85, 8.55, 0.95, PALETEAL, radius=0.14)
+textbox(s, "dx/dt = f( x(t), θ, u(t) ),     x(0) = x₀", 2.4, 1.85, 8.55, 0.95, size=24, color=NAVY,
+        family=F_MATH, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+for y, (lead, body) in zip([3.05, 3.95, 4.55], [
+        ("States  x", "drug concentration · receptor occupancy · signaling species · cell population · biomarker · clinical endpoint"),
+        ("Parameters  θ", "rate constant · EC₅₀ / Emax · Hill coefficient · clearance · binding affinity"),
+        ("Inputs  u(t)", "dosing regimen — 치료에서 우리가 조절할 수 있는 유일한 handle")]):
+    textbox(s, lead, 0.95, y, 2.9, 0.6, size=19, color=TEAL, family=F_BOLD, spacing=1.0)
+    textbox(s, body, 3.9, y, 8.6, 0.8, size=16.5, spacing=1.15)
+callout(s, f"Library의 각 질환 모델은 {LIB['min_odes']}–{LIB['max_odes']}개의 coupled ODE (median {LIB['median_odes']})와 수십–수백 개 parameter로 구성",
+        y=5.35, h=0.7, size=16)
 
-s = add_slide(TITLE_ONLY, "The same nonlinear motifs recur across every disease", title_size=23)
-eyebrow(s, "A shared grammar")
+s = new_slide("The same nonlinear motifs recur across diseases", "A shared grammar")
 table(s, [
     ["Motif", "Governing idea", "Typical use"],
-    ["Hill / Emax", "E(C) = Emax·Cⁿ / (EC₅₀ⁿ + Cⁿ)", "any drug dose–response"],
-    ["Indirect response", "dR/dt = k_in·f(·) − k_out·R", "biomarker turnover"],
-    ["Mass-action / TMDD", "drug–target binding, target-mediated clearance", "mAbs, saturating drugs"],
-    ["Logistic growth", "dN/dt = rN(1−N/K) − kill(C)·N", "tumour burden under therapy"],
-    ["Power-law feedback", "e.g. EPO ∝ (Hb₀/Hb)^γ", "homeostatic loops"],
-], 0.95, 2.0, 11.5, col_w=[2.0,3.6,2.4], row_h=0.62, font_size=14.5)
-textbox(s, "One grammar across 416 models — and across every chip-to-human bridge.",
-        0.95, 6.1, 11.4, 0.5, size=16, color=NAVY, bold=True)
+    ["Hill / Emax", "E(C) = Emax·Cⁿ / (EC₅₀ⁿ + Cⁿ)", "Any drug dose–response"],
+    ["Indirect response", "dR/dt = k_in·f(·) − k_out·R", "Biomarker turnover"],
+    ["Mass action / TMDD", "Drug–target binding, target-mediated clearance", "mAbs, saturable drugs"],
+    ["Logistic growth", "dN/dt = rN(1 − N/K) − kill(C)·N", "Tumor burden under therapy"],
+    ["Power-law feedback", "e.g. EPO ∝ (Hb₀/Hb)^γ", "Homeostatic loops"],
+], 0.75, 1.85, 11.85, col_w=[2.3, 4.6, 3.0], row_h=0.56, size=15)
+callout(s, f"{N_MODELS}개 모델 전체, 그리고 모든 chip-to-human bridge가 같은 grammar를 공유", y=5.6, h=0.8)
 
-s = add_slide(TITLE_ONLY, "Why it matters: Model-Informed Drug Development", title_size=23)
-eyebrow(s, "MIDD — endorsed by FDA / EMA")
+s = new_slide("Why it matters: model-informed drug development", "MIDD, endorsed by FDA and EMA")
 table(s, [
-    ["Stage", "What QSP/PBPK contributes", "Safety payoff"],
-    ["Target validation", "does modulation reach the phenotype?", "kills implausible targets early"],
-    ["First-in-human dose", "exposure–response & safety margins from mechanism", "safer, leaner Phase 1"],
-    ["Trial design", "virtual patients → enrichment, endpoints", "fewer patients exposed to risk"],
-    ["Special populations", "hepatic/renal impairment, age, pregnancy", "dose the excluded patient"],
-    ["Combinations", "synergy / antagonism in silico", "rational, safer polypharmacy"],
-], 0.95, 2.0, 11.5, col_w=[2.3,4.2,3.0], row_h=0.66, font_size=14)
-textbox(s, "QSP turns efficacy–safety trade-offs into tunable optimization problems — the thread through today's case studies.",
-        0.95, 6.35, 11.4, 0.6, size=16, color=NAVY, bold=True, line_spacing=1.1)
+    ["Stage", "What QSP / PBPK contributes", "Safety payoff"],
+    ["Target validation", "Does target modulation reach the phenotype?", "Drops implausible targets early"],
+    ["First-in-human dose", "Exposure–response and safety margins from mechanism", "Safer, leaner Phase 1"],
+    ["Trial design", "Virtual patients for enrichment and endpoints", "Fewer patients exposed to risk"],
+    ["Special populations", "Hepatic / renal impairment, age, pregnancy", "Doses the excluded patient"],
+    ["Combinations", "Synergy and antagonism in silico", "Rational, safer polypharmacy"],
+], 0.75, 1.85, 11.85, col_w=[2.4, 4.6, 3.2], row_h=0.56, size=14.5)
+callout(s, "QSP는 efficacy–safety trade-off를 tunable optimization problem으로 바꿈 — 오늘 case study를 관통하는 주제",
+        y=5.6, h=0.8)
 
-# ---------------- PART 3: the QSP library (engine) ----------------------
-divider("A living QSP model library", "3",
-        "An LLM-augmented workflow that builds one literature-grounded, quality-gated disease model per day")
+# =============================================================================
+# PART 3 -- the living QSP library
+# =============================================================================
+divider(3, "A living QSP model library",
+        "LLM-augmented workflow가 literature-grounded, quality-gated disease model을 하루 하나씩 구축")
 
-s = add_slide(TITLE_ONLY, "The bottleneck: one QSP model takes expert-months to years", title_size=22)
-eyebrow(s, "Why there were so few")
+s = new_slide("The bottleneck: one model takes expert-months", "Why there were so few")
 bullets(s, [
-    ("Deep synthesis", "across pathophysiology and pharmacology for a single disease"),
+    ("Deep synthesis", "한 질환의 pathophysiology와 pharmacology를 깊이 통합해야 함"),
     ("Careful formulation", "ODE structure, parameterization, implementation, calibration"),
-    ("The cost", "expert-months to years per disease — so only a handful ever get a model"),
-    ("The consequence", "models are siloed, rarely open, rarely reproducible; the long tail is never modelled"),
-], 0.95, 2.1, 11.5, 2.8, size=18, gap=12)
-rrect(s, 0.95, 5.2, 11.5, 1.0, PALE, radius=0.08)
-textbox(s, "One disease ≈ one expert-year.    Scarce · slow · closed.", 1.1, 5.2, 11.2, 1.0,
-        size=22, color=NAVY, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+    ("The cost", "질환당 expert-months to years — 소수의 질환만 QSP model을 가짐"),
+    ("The consequence", "모델이 silo화·비공개·재현 불가; long-tail disease는 모델링되지 않음"),
+], 0.75, 2.1, 11.85, 2.7, size=19, gap=14)
+rrect(s, 0.75, 4.9, 11.85, 1.0, NAVY, radius=0.1)
+textbox(s, "One disease ≈ one expert-year   ·   scarce, slow, closed", 0.75, 4.9, 11.85, 1.0, size=21,
+        color=WHITE, family=F_MED, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
 
-s = add_slide(TITLE_ONLY, "Thesis: an autonomous LLM agent builds the models", title_size=23)
-eyebrow(s, "The engine")
-textbox(s, "An autonomous LLM coding agent builds complete, quality-gated, referenced QSP models — one disease per day — every artifact under version control.",
-        0.95, 1.95, 11.5, 1.0, size=18, color=INK, line_spacing=1.15)
-arts = [("🗺️  Mechanistic map", "Graphviz network ≥100 nodes", TEAL),
-        ("⚙️  mrgsolve ODE model", "PK ⊕ disease PD, ≥15 compartments", NAVY),
-        ("📊  Shiny dashboard", "≥6 interactive tabs", GOLD),
-        ("📚  Curated references", "≥30 PubMed, calibration memos", GREEN)]
-for i,(h,b,c) in enumerate(arts):
-    cx = 0.95 + (i%2)*5.85; cy = 3.15 + (i//2)*1.55
-    rrect(s, cx, cy, 5.6, 1.35, PALE, radius=0.07)
-    textbox(s, h, cx+0.3, cy+0.2, 5.1, 0.6, size=18, color=c, bold=True)
-    textbox(s, b, cx+0.3, cy+0.78, 5.1, 0.5, size=14.5, color=INK)
-source(s, "github.com/pipetcpt/qsp — fully open")
+s = new_slide("An autonomous LLM agent builds the models", "The engine")
+textbox(s, "Autonomous LLM coding agent가 quality-gated, referenced QSP model을 하루 한 질환씩 완성 — 모든 산출물은 version control로 관리",
+        0.75, 1.8, 11.85, 0.85, size=17, spacing=1.2)
+for i, (h, b, c) in enumerate([("Mechanistic map", "Graphviz network, ≥100 nodes", TEAL),
+                               ("mrgsolve ODE model", "PK ⊕ disease PD, ≥15 states", NAVY),
+                               ("Shiny dashboard", "≥6 interactive tabs", GOLD),
+                               ("Curated references", "≥30 PubMed, calibration notes", GREEN)]):
+    cx = 0.75 + (i % 2) * 3.2
+    cy = 2.95 + (i // 2) * 1.7
+    rrect(s, cx, cy, 3.0, 1.5, PALE, radius=0.08)
+    textbox(s, h, cx + 0.25, cy + 0.22, 2.6, 0.5, size=16.5, color=c, family=F_BOLD, spacing=1.0)
+    textbox(s, b, cx + 0.25, cy + 0.75, 2.6, 0.7, size=14, spacing=1.12)
+ix, iy, iw, ih = add_image(s, FIG / "ext/map_igan.png", 7.25, 2.95, 5.35, 3.2)
+textbox(s, "Example: IgA nephropathy mechanistic map", ix, iy + ih + 0.08, iw, 0.3, size=11.5,
+        color=GREY, align=PP_ALIGN.CENTER, italic=True, spacing=1.0)
+source(s, "github.com/pipetcpt/qsp (fully open)")
 
-big_fig_slide("The Claude Code Routine: an autonomous daily loop",
-              FIG/"ext/architecture.png",
-              caption="Select → research (~50 PubMed) → map → ODE model → dashboard → ground → commit, under a git stop-hook",
-              eyebrow_txt="One disease, end-to-end, every run",
-              figbox=(1.5, 2.0, 10.3, 4.1))
+fig_slide("The daily build loop", FIG / "architecture.png", "One disease, end-to-end, every run",
+          cap="Select → research → map → ODE model → dashboard → references → quality gate → commit (git stop-hook로 강제)",
+          box=(0.9, 1.75, 11.55, 4.3))
 
-s = add_slide(TITLE_ONLY, "Guardrails: why you can trust code an LLM wrote", title_size=23)
-eyebrow(s, "Structure + grounding + verification")
-cards = [
-    ("Quality gates", "map ≥100 nodes / ≥8 clusters · ODE ≥15 compartments / ≥5 scenarios · ≥30 references", TEAL),
-    ("Structural templates", "reusable motifs (Hill, turnover, TMDD) shrink the failure space", NAVY),
-    ("Literature grounding", "every parameter set cites a calibration trial — the main anti-hallucination mechanism", GOLD),
-    ("Reproducibility", "diffable, auditable, re-runnable code in git; human review before use", GREEN),
-]
-for i,(h,b,c) in enumerate(cards):
-    cx = 0.95 + (i%2)*5.85; cy = 2.1 + (i//2)*2.0
-    rrect(s, cx, cy, 5.6, 1.8, PALE, radius=0.07)
-    textbox(s, h, cx+0.3, cy+0.22, 5.0, 0.6, size=18, color=c, bold=True)
-    textbox(s, b, cx+0.3, cy+0.85, 5.0, 0.9, size=14.5, color=INK, line_spacing=1.1)
+s = new_slide("Guardrails for LLM-written models", "Structure + grounding + verification")
+cards(s, [
+    ("Quality gates", "Map ≥100 nodes / ≥8 clusters · ODE ≥15 compartments / ≥5 scenarios · ≥30 references", TEAL),
+    ("Structural templates", "Hill, turnover, TMDD 같은 reusable motif로 failure space를 줄임", NAVY),
+    ("Literature grounding", "모든 parameter set에 calibration trial을 인용 — 핵심 anti-hallucination 장치", GOLD),
+    ("Reproducibility", "Diffable·auditable·re-runnable code in git; 사용 전 human review", GREEN),
+], h=1.95)
 
-# S1 figures
-big_fig_slide("416 models and counting — a library that compounds",
-              FIG/"s1_growth.png", eyebrow_txt="Scale",
-              caption="Documented milestone trajectory: KSMB 191 → KBCS 258 → KSOT 416 models",
-              figbox=(1.8, 2.0, 9.7, 4.2))
-big_fig_slide("22 therapeutic areas — three-quarters carry a safety axis",
-              FIG/"s1_areas.png", eyebrow_txt="Coverage · the safety atlas",
-              caption="74% of 416 models encode an explicit toxicity / adverse-event axis",
-              figbox=(1.3, 1.95, 10.7, 4.5))
-big_fig_slide("Every model clears hard quality gates",
-              FIG/"s1_quality.png", eyebrow_txt="Size & grounding",
-              figbox=(1.3, 2.1, 10.7, 4.1))
-big_fig_slide("416 models, one consistent schema — the atlas",
-              FIG/"s1_atlas.png", eyebrow_txt="One framework",
-              caption="Each point is a model: ODE size × map size, marker area ∝ references",
-              figbox=(1.7, 2.0, 9.9, 4.3))
+s = new_slide(f"Coverage: {LIB['n_areas']} therapeutic areas, one safety atlas", "The library as a safety atlas")
+for i, (num, lab, col) in enumerate([
+        (str(N_MODELS), "disease QSP models", NAVY),
+        (str(LIB["n_areas"]), "therapeutic areas", NAVY),
+        (f"{PCT_SAFE}%", "explicit safety / toxicity axis", TEAL)]):
+    cy = 1.85 + i * 1.47
+    rrect(s, 0.75, cy, 3.1, 1.3, PALE, radius=0.08)
+    textbox(s, num, 0.75, cy + 0.1, 3.1, 0.7, size=34, color=col, family=F_BOLD, align=PP_ALIGN.CENTER,
+            anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+    textbox(s, lab, 0.9, cy + 0.82, 2.8, 0.4, size=13, color=INK, align=PP_ALIGN.CENTER, spacing=1.0)
+add_image(s, FIG / "s1_areas.png", 4.15, 1.8, 8.45, 4.3)
+caption(s, "Safety axis: model code·map·README·references에 서로 다른 toxicology term(toxicity, QT, DILI, PML 등)이 3개 이상 명시된 모델",
+        y=6.22, size=13)
 
-# ---------------- PART 4: five case studies -----------------------------
-divider("Five safety case studies", "4",
-        "Autoimmune · oncology · obesity · aging — each an efficacy–safety trade-off turned into optimization")
+fig_slide("Quality gates hold across the library", FIG / "s1_quality.png", "Size & grounding",
+          cap=f"{LIB['n_odes_gate']}/{LIB['n_mined']} 모델이 ≥15 ODE gate (median {LIB['median_odes']}), {LIB['n_refs_gate']}/{LIB['n_mined']}가 ≥30 reference gate 통과 (median {LIB['median_refs']})",
+          box=(0.9, 1.75, 11.55, 4.3))
 
-# --- Study overview table
-s = add_slide(TITLE_ONLY, "Five studies, one pattern", title_size=25)
-eyebrow(s, "Roadmap")
+fig_slide("One consistent schema across the library", FIG / "s1_atlas.png", "One framework",
+          cap="모든 모델이 같은 4-artifact schema — ODE 수 × map 크기 × reference 수로 한눈에 비교 가능",
+          box=(1.4, 1.75, 10.55, 4.3))
+
+# =============================================================================
+# PART 4 -- five case studies
+# =============================================================================
+divider(4, "Five safety case studies",
+        "Autoimmune · oncology · obesity · aging · gynecology — efficacy–safety trade-off를 optimization으로")
+
+s = new_slide("Five case studies, one pattern", "Roadmap")
 table(s, [
-    ["Study", "Disease area", "The tunable handle", "Safety axis"],
-    ["① Multiple sclerosis", "autoimmune / neuro", "natalizumab dosing interval", "PML risk"],
-    ["② Checkpoint inhibitors", "oncology (melanoma)", "nivolumab : ipilimumab ratio", "grade 3–4 irAE"],
-    ["③ Incretin therapy", "obesity + aging", "target dose & escalation", "GI AE · lean-mass loss"],
-    ["④ DOAC in the elderly", "aging / organ function", "age- & renal-based dose", "bleeding"],
-    ["★ Merigolix", "gynaecologic", "GnRH-antagonist dose", "bone loss · hot flashes"],
-], 0.9, 2.0, 11.6, col_w=[2.6,2.5,3.4,2.4], row_h=0.66, font_size=13.5)
-textbox(s, "Plus Study ⓪ — the library itself as a safety atlas across all 416 models.",
-        0.95, 6.35, 11.4, 0.5, size=15.5, color=NAVY, bold=True)
+    ["Study", "Disease area", "Tunable handle", "Safety axis"],
+    ["① Multiple sclerosis", "Autoimmune / neuro", "Natalizumab dosing interval", "PML risk"],
+    ["② Checkpoint inhibitors", "Oncology (melanoma)", "Nivolumab : ipilimumab ratio", "Grade 3–4 irAE"],
+    ["③ Incretin therapy", "Obesity + aging", "Target dose and escalation", "GI AE · lean-mass loss"],
+    ["④ DOACs in the elderly", "Aging / organ function", "Age- and renal-based dose", "Bleeding"],
+    ["★ Merigolix", "Gynecology", "GnRH antagonist dose", "Bone loss · hot flashes"],
+], 0.75, 1.85, 11.85, col_w=[2.9, 2.6, 3.4, 2.6], row_h=0.56, size=14.5)
+callout(s, "공통 질문: dose·schedule이라는 handle을 어떻게 조절해야 efficacy를 지키면서 safety risk를 줄일 수 있는가?",
+        y=5.6, h=0.8)
 
-# ===== Study 1 (MS) =====
-s = add_slide(TITLE_ONLY, "Study ① — Multiple sclerosis: the sharpest trade-off in neurology", title_size=21)
-eyebrow(s, "Autoimmune / neurologic")
+# ---- Study 1: MS -------------------------------------------------------------
+intro_slide("Study ①  Multiple sclerosis: natalizumab vs PML", "Autoimmune / neurology", [
+    ("Natalizumab (anti-α4-integrin)", "relapse 억제 효과가 가장 강력한 DMT 중 하나 — 그러나 CNS immune surveillance를 낮춤"),
+    ("The risk", "JC virus reactivation에 의한 progressive multifocal leukoencephalopathy (PML)"),
+    ("The question", "dosing interval 조절로 efficacy는 유지하고 PML risk만 줄일 수 있는가?"),
+], "dosing interval 동안의 α4 receptor saturation → relapse-rate suppression, 그리고 stratified PML hazard (anti-JCV index · prior immunosuppressant · duration)에 extended-interval hazard ratio 적용",
+    "Polman NEJM 2006 · Ho Lancet Neurol 2017 · Foley Lancet Neurol 2022 · Ryerson Neurology 2019")
+
+fig_slide("The dosing interval is the controllable handle", FIG / "s2_saturation.png", "Study ① · MS",
+          cap=f"q6w extended-interval dosing (EID)에서도 relapse reduction {S2['red_q6w_pct']:.0f}% 유지 (q4w {S2['red_q4w_pct']:.0f}%)")
+fig_slide("PML risk is stratified, and steep", FIG / "s2_pml_table.png", "Study ① · MS",
+          cap="anti-JCV index, prior immunosuppressant, 치료 기간에 따라 PML risk가 급격히 증가",
+          box=(1.4, 1.75, 10.55, 4.3), src="Ho PR et al., Lancet Neurol 2017")
+fig_slide(f"Extended-interval dosing cuts PML risk by {S2['pml_drop_pct']}%", FIG / "s2_benefit_risk.png",
+          "Study ① · the optimization",
+          cap=f"6년간 relapse {S2['relapse_cost_6y']:.1f}회 증가를 대가로 high-risk stratum PML {S2['pml_6y_highrisk_sid']:.1f} → {S2['pml_6y_highrisk_eid']:.1f} /1000",
+          box=(1.3, 1.75, 10.75, 4.3))
+fig_slide("Where natalizumab q6w sits among MS therapies", FIG / "s2_dmt_map.png", "Study ① · MS",
+          cap="EID는 natalizumab을 ocrelizumab에 가까운 efficacy로, 훨씬 낮은 risk 쪽으로 이동 (safety index는 illustrative)",
+          box=(1.3, 1.75, 10.75, 4.3),
+          src="Polman NEJM 2006 · Kappos NEJM 2010 · Hauser NEJM 2017 · Ryerson Neurology 2019")
+
+# ---- Study 2: ICI ------------------------------------------------------------
+intro_slide("Study ②  Checkpoint inhibitors: two antibodies", "Oncology · metastatic melanoma", [
+    ("Nivolumab + ipilimumab", "melanoma에서 가장 효과적이면서 가장 독성이 큰 regimen"),
+    ("Key biology", "ipilimumab의 anti-tumor priming 효과는 low dose에서 포화되지만, toxicity는 dose와 함께 계속 증가"),
+    ("The question", "왜 ipilimumab을 낮추면 (CheckMate 511) efficacy는 유지되고 toxicity는 줄어드는가?"),
+], "PD-1·CTLA-4 occupancy → anti-tumor / self-reactive effector pool (Bliss synergy) → ORR과 grade 3–4 irAE — 같은 CTLA-4 occupancy를 서로 다른 두 curve로 읽음",
+    "Larkin NEJM 2015, 2019 (CheckMate 067) · Lebbé JCO 2019 (CheckMate 511) · Weber JCO 2017")
+
+r13 = S3["regimens"]["NIVO1 / IPI3"]; r31 = S3["regimens"]["NIVO3 / IPI1"]
+fig_slide("The efficacy–safety frontier of combination dosing", FIG / "s3_pareto.png",
+          "Study ② · the optimization",
+          cap=f"NIVO1/IPI3 → NIVO3/IPI1: grade 3–4 irAE 약 {S3['cm511_tox_drop_pts']:.0f}%p 감소, ORR은 유지 ({r13['orr']:.0f}% → {r31['orr']:.0f}%)",
+          box=(1.1, 1.75, 11.15, 4.3))
+s = new_slide("Response and toxicity run on two clocks", "Study ② · oncology")
+add_image(s, FIG / "s3_timecourse.png", 0.75, 1.8, 5.75, 4.25)
+add_image(s, FIG / "s3_organ_timing.png", 6.8, 1.8, 5.8, 4.25)
+caption(s, "Tumor response가 먼저, irAE는 뒤이어 organ별로 다른 시점에 발생 — safety monitoring을 위한 kinetic signature")
+source(s, "Weber JS et al., J Clin Oncol 2017")
+
+# ---- Study 3: obesity --------------------------------------------------------
+intro_slide("Study ③  Incretin therapy: a three-way optimization", "Obesity / metabolic · aging subgroup", [
+    ("Semaglutide & tirzepatide", "조절 가능한 handle은 target dose와 escalation schedule"),
+    ("Three competing outcomes", "weight loss (benefit) vs GI adverse event (tolerability) vs lean-mass loss (safety)"),
+    ("The aging angle", "고령자에서 lean-mass loss는 sarcopenia·frailty risk로 직결"),
+], "exposure → appetite suppression → energy-balance ODE; 체중 변화를 fat / fat-free mass로 분배 (age-sensitive Forbes rule); GI AE = escalation이 유발하고 tolerance가 완화하는 nausea state",
+    "Wilding NEJM 2021 (STEP 1) · Jastreboff NEJM 2022 (SURMOUNT-1)")
+
+fig_slide("Titration is the handle: fast escalation buys nausea", FIG / "s4_titration.png", "Study ③ · obesity",
+          cap="2-weekly escalation은 weight loss 이득 없이 초기 nausea peak만 키움")
+fig_slide("More weight loss costs more GI burden", FIG / "s4_frontier.png", "Study ③ · the optimization",
+          cap=f"72주 weight loss: semaglutide 2.4 mg {S4['sema24_pct']}% (STEP 1: 14.9%), tirzepatide 15 mg {S4['tirze15_pct']}% (SURMOUNT-1: 20.9%)",
+          box=(1.2, 1.75, 10.95, 4.3))
+s = new_slide("The aging safety axis: lean-mass loss", "Study ③ · obesity + aging")
+add_image(s, FIG / "s4_composition.png", 0.75, 1.8, 5.8, 4.25)
+add_image(s, FIG / "s4_aging.png", 6.8, 1.8, 5.8, 4.25)
+caption(s, f"Weight loss 중 lean mass 비율이 45세 {S4['lean_frac_young']}% → 70세 {S4['lean_frac_old']}%로 증가 — 고령자 dose 조절 signal")
+
+# ---- Study 4: DOAC -----------------------------------------------------------
+intro_slide("Study ④  DOACs in the elderly: dosing the excluded", "Aging / renal and hepatic impairment", [
+    ("The gap", "Phase 1은 젊고 renal function이 정상인 volunteer에서 DOAC exposure를 확인"),
+    ("The reality", "실제 DOAC 복용 환자는 고령·renal impairment — 바로 임상시험에서 제외된 집단"),
+    ("The question", "PBPK로 연구되지 않은 환자의 exposure를 예측하고 dose를 individualize할 수 있는가?"),
+], f"age → creatinine clearance → DOAC exposure (renal-fraction scaling) → bleeding·stroke risk; {S5['n_cohort']:,}명 virtual elderly cohort에서 fixed vs individualized dosing 비교",
+    "US product labels (dabigatran, apixaban, rivaroxaban, edoxaban) · Rowland & Tozer")
+
+fig_slide("Age is a renal-function covariate", FIG / "s5_age_crcl.png", "Study ④ · aging",
+          cap=f"Population mean CrCl은 {S5['age_cross_crcl50']}세에 dose-reduction threshold (50 mL/min) 아래로 — 측정 전에 exposure는 이미 상승",
+          box=(1.2, 1.75, 10.95, 4.3))
+
+s = new_slide("Validating exposure, and finding the missing mechanism", "Study ④ · aging", size=25)
+add_image(s, FIG / "s5_validation.png", 0.6, 1.8, 7.0, 4.55)
 bullets(s, [
-    ("Natalizumab (anti-α4-integrin)", "among the most effective relapse suppressors — but it lifts CNS immune surveillance"),
-    ("The risk", "progressive multifocal leukoencephalopathy (PML) from JC-virus reactivation"),
-    ("The question", "can the dosing interval be tuned to keep efficacy while cutting PML risk?"),
-], 0.95, 2.0, 11.5, 2.0, size=18, gap=11)
-rrect(s, 0.95, 4.4, 11.5, 1.75, PALETEAL, radius=0.07)
-textbox(s, "QSP layer:  α4 receptor saturation over the dosing interval  →  relapse-rate suppression  +  a PML-hazard multiplier on a stratified base risk (anti-JCV index · prior immunosuppressant · duration).",
-        1.2, 4.6, 11.0, 1.4, size=16.5, color=NAVY, line_spacing=1.15, anchor=MSO_ANCHOR.MIDDLE)
-source(s, "Polman NEJM 2006 · Ho Lancet Neurol 2017 · Foley Lancet Neurol 2022")
+    ("Renal scaling alone", f"label의 renal-impairment PK를 GMFE {S5['gmfe_renal_only']:.2f}×로 예측"),
+    ("Dabigatran under-predicted", f"moderate RI에서 observed {S5['dabi_moderate_obs']}× vs predicted {S5['dabi_moderate_pred_renal']:.1f}× — GFR만으로 설명 불가"),
+    ("Mechanism, not curve-fitting", f"P-gp / absorption term 추가 → GMFE {S5['gmfe_corrected']:.2f}×"),
+], 7.85, 2.4, 4.75, 3.8, size=16, gap=14)
+source(s, "US product labels: dabigatran, apixaban, rivaroxaban, edoxaban (renal-impairment PK)")
 
-big_fig_slide("The dosing interval is the controllable handle",
-              FIG/"s2_saturation.png", eyebrow_txt="Study ① · MS",
-              caption="q6w extended-interval dosing retains ~62% relapse reduction vs 68% at q4w",
-              figbox=(1.1, 2.0, 11.1, 4.3))
-big_fig_slide("PML risk is stratified — and steep",
-              FIG/"s2_pml_table.png", eyebrow_txt="Study ① · MS",
-              caption="Risk rises with anti-JCV index, prior immunosuppression, and time on drug",
-              figbox=(1.9, 2.0, 9.5, 4.3))
-big_fig_slide("Extended-interval dosing: −76% PML risk for 0.3 relapse / 6 yr",
-              FIG/"s2_benefit_risk.png", eyebrow_txt="Study ① · MS · the optimization",
-              figbox=(1.5, 2.0, 10.3, 4.4))
-big_fig_slide("Where natalizumab-q6w sits among MS therapies",
-              FIG/"s2_dmt_map.png", eyebrow_txt="Study ① · MS",
-              caption="EID moves natalizumab toward the efficacy of ocrelizumab at a fraction of the risk index",
-              figbox=(1.6, 2.0, 10.1, 4.3))
+s = new_slide("Two risks oppose; individualized dosing wins", "Study ④ · the optimization")
+add_image(s, FIG / "s5_exposure_response.png", 0.75, 1.8, 5.75, 4.25)
+add_image(s, FIG / "s5_individualization.png", 6.8, 1.8, 5.8, 4.25)
+caption(s, f"Model-informed dose reduction: over-exposure {S5['overexposed_fixed_pct']}% → {S5['overexposed_adj_pct']}%, modeled major bleeding {S5['bleed_fixed']} → {S5['bleed_adj']} /100 PY")
 
-# ===== Study 2 (ICI) =====
-s = add_slide(TITLE_ONLY, "Study ② — Checkpoint inhibitors: two antibodies, one frontier", title_size=21)
-eyebrow(s, "Oncology — metastatic melanoma")
+# =============================================================================
+# PART 5 -- flagship + NAMs bridge
+# =============================================================================
+divider(5, "From optimization to the clinic, and to NAMs",
+        "Flagship merigolix case, 그리고 gut–liver–kidney MPS + PBPK bridge")
+
+s = new_slide("Flagship: merigolix and the estrogen-threshold window", "Gynecology · GnRH antagonist", size=25)
 bullets(s, [
-    ("Nivolumab + ipilimumab", "the most effective and most toxic melanoma regimen"),
-    ("The key biology", "ipilimumab's anti-tumour priming saturates at low dose, but its toxicity keeps climbing with dose"),
-    ("The question", "why does lowering ipilimumab (CheckMate 511) preserve efficacy while halving toxicity?"),
-], 0.95, 2.0, 11.5, 2.0, size=18, gap=11)
-rrect(s, 0.95, 4.4, 11.5, 1.75, PALETEAL, radius=0.07)
-textbox(s, "QSP layer:  PD-1 & CTLA-4 occupancy  →  anti-tumour and self-reactive effector pools (Bliss synergy)  →  ORR and grade 3–4 irAE, read through two different CTLA-4 occupancy curves.",
-        1.2, 4.6, 11.0, 1.4, size=16.5, color=NAVY, line_spacing=1.15, anchor=MSO_ANCHOR.MIDDLE)
-source(s, "Larkin NEJM 2015/2019 (CM067) · Lebbé JCO 2019 (CM511) · Weber JCO 2017")
+    ("Mechanism", "oral GnRH receptor antagonist → LH/FSH ↓ → estradiol ↓ → lesion·pain 감소"),
+    ("The trade-off", "E2 suppression이 부족하면 효과가 없고, 과하면 BMD loss와 hot flash"),
+    ("The target", "partial E2 window (20–40 pg/mL) — estrogen threshold hypothesis"),
+], 0.75, 1.9, 5.9, 3.0, size=16.5, gap=12)
+rrect(s, 0.75, 4.75, 5.9, 1.55, PALETEAL, radius=0.08)
+textbox(s, "Phase 1 PK/PD model (SAD/MAD, n = 51) 위에 HPG axis·menstrual cycle·lesion·BMD를 결합한 24-state QSP model",
+        1.0, 4.75, 5.4, 1.55, size=15.5, color=NAVY, family=F_MED, anchor=MSO_ANCHOR.MIDDLE, spacing=1.2)
+ix, iy, iw, ih = add_image(s, FIG / "ext/merigolix_app.png", 6.95, 1.95, 5.65, 4.0)
+textbox(s, "Interactive QSP dashboard · pipetqsp.shinyapps.io/merigolix", ix, iy + ih + 0.1, iw, 0.3,
+        size=11.5, color=GREY, align=PP_ALIGN.CENTER, italic=True, spacing=1.0)
+source(s, "Bae, Kang et al., Clin Pharmacokinet (in revision) · github.com/pipetcpt/merigolix-qsp")
 
-big_fig_slide("Dosing checkpoint inhibitors: the efficacy–safety frontier",
-              FIG/"s3_pareto.png", eyebrow_txt="Study ② · oncology · the optimization",
-              caption="Shifting ipilimumab down drops grade 3–4 irAE ~12 points at held efficacy",
-              figbox=(1.6, 2.0, 10.1, 4.3))
-s = big_fig_slide("Response and toxicity run on two different clocks",
-              FIG/"s3_timecourse.png", eyebrow_txt="Study ② · oncology",
-              figbox=(1.2, 2.0, 7.0, 4.4))
-add_image(s, FIG/"s3_organ_timing.png", 7.9, 2.2, 5.3, 3.9)
-textbox(s, "irAEs arrive organ by organ — a kinetic signature for safety monitoring",
-        0.95, 6.5, 11.4, 0.4, size=13.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+fig_slide("Merigolix: the trade-off becomes dose optimization", FIG / "s6_merigolix.png",
+          "Flagship · the named example",
+          cap=f"{S6['best_dose']} mg QD에서 composite therapeutic index 최고 ({S6['best_ti']}) — 120 mg은 tolerability 우선 대안",
+          box=(0.75, 1.75, 11.85, 4.3), src="Merigolix QSP model, virtual population at week 12 (github.com/pipetcpt/merigolix-qsp)")
 
-# ===== Study 3 (obesity) =====
-s = add_slide(TITLE_ONLY, "Study ③ — Incretin therapy: a three-way optimization", title_size=22)
-eyebrow(s, "Obesity / metabolic — with an aging subgroup")
+s = new_slide("Connecting to NAMs: gut–liver–kidney MPS + PBPK", "NAMs bridge", size=25)
+for i, (num, lab) in enumerate([("6", "drugs"), ("24", "clinical observations"),
+                                 ("0", "clinical PK used to fit"), ("24/24", "within 4-fold")]):
+    cx = 0.75 + i * 3.0
+    textbox(s, [[(num + "  ", {"family": F_BOLD, "size": 24, "color": TEAL}),
+                 (lab, {"size": 14.5, "color": INK})]], cx, 1.78, 2.9, 0.5, spacing=1.0)
+add_image(s, FIG / "glk_validation.png", 0.75, 2.3, 11.85, 3.75)
+caption(s, "Chip-fitted parameter만으로 human AUC 예측 (GMFE 1.85×) — industry PBPK benchmark (2–5×) 범위",
+        y=6.15, size=14.5)
+source(s, "hiEC–HepaRG–RPTEC gut–liver–kidney MPS + whole-body PBPK (PIPET MPS)")
+
+s = new_slide("Disease-state chips: gut- vs liver-driven change", "NAMs bridge")
+for i, (drug, chip, num, where, detail, col) in enumerate([
+        ("Gefitinib", "DSS colitis chip", "0.49×", "gut-localized", "Fg 변화, Fa / Fh 불변", TEAL),
+        ("Simvastatin", "Cisplatin-injury chip", "2.19×", "hepatic-localized", "Kp,uu,liver 절반, OATP1B1 억제", RED)]):
+    cx = 0.75 + i * 6.075
+    rrect(s, cx, 1.85, 5.775, 2.3, PALE, radius=0.07)
+    textbox(s, f"{drug} · {chip}", cx + 0.35, 2.05, 5.1, 0.45, size=17, color=NAVY, family=F_BOLD, spacing=1.0)
+    textbox(s, [[(num, {"family": F_BOLD, "size": 40, "color": col}),
+                 ("  AUC, " + where, {"size": 16, "color": INK})]], cx + 0.35, 2.6, 5.2, 0.8,
+            anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+    textbox(s, detail, cx + 0.35, 3.5, 5.1, 0.45, size=15, color=GREY, spacing=1.0)
 bullets(s, [
-    ("Semaglutide & tirzepatide", "the levers are target dose and escalation schedule"),
-    ("Three competing outcomes", "weight loss (benefit) vs GI adverse events (tolerability) vs lean-mass loss (safety)"),
-    ("The aging angle", "lean-mass loss is a sarcopenia/frailty risk in older adults"),
-], 0.95, 2.0, 11.5, 2.0, size=18, gap=11)
-rrect(s, 0.95, 4.4, 11.5, 1.75, PALETEAL, radius=0.07)
-textbox(s, "QSP layer:  exposure → appetite suppression → energy-balance ODE; weight change partitioned into fat and fat-free mass (age-sensitive Forbes rule); GI AE = nausea driven by escalation, blunted by tolerance.",
-        1.2, 4.6, 11.0, 1.4, size=16.5, color=NAVY, line_spacing=1.15, anchor=MSO_ANCHOR.MIDDLE)
-source(s, "Wilding NEJM 2021 (STEP 1) · Jastreboff NEJM 2022 (SURMOUNT-1)")
+    ("Same pipeline", "disease chip으로 re-fit하되 영향받지 않는 organ의 parameter는 고정"),
+    ("The payoff", "Phase 1에서 제외되는 IBD·AKI 환자를 위한 testable hypothesis — Study ④와 같은 문제의식"),
+], 0.75, 4.5, 11.85, 1.3, size=17, gap=10)
+callout(s, "새 case study와 MPS/NAM 연구는 하나의 program: mechanism이 in vitro·virtual signal을 human safety decision으로 translate",
+        y=5.6, h=0.8, size=16)
 
-big_fig_slide("Titration is the handle: faster escalation buys only nausea",
-              FIG/"s4_titration.png", eyebrow_txt="Study ③ · obesity",
-              figbox=(1.2, 2.0, 11.0, 4.3))
-big_fig_slide("More weight loss costs more GI burden — the frontier bends",
-              FIG/"s4_frontier.png", eyebrow_txt="Study ③ · obesity · the optimization",
-              caption="Tirzepatide dominates — more weight loss per unit of GI burden",
-              figbox=(1.9, 2.0, 9.5, 4.3))
-s = big_fig_slide("The aging safety axis: lean-mass loss",
-              FIG/"s4_composition.png", eyebrow_txt="Study ③ · obesity + aging",
-              figbox=(1.1, 2.0, 6.6, 4.4))
-add_image(s, FIG/"s4_aging.png", 7.7, 2.1, 5.5, 4.0)
-textbox(s, "Lean fraction of weight lost rises 36% → 47% from age 45 to 70 — a dose-reduction signal",
-        0.95, 6.55, 11.4, 0.4, size=13, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+s = new_slide("Prerequisites for trusting a chip-derived number", "Discipline for regulatory acceptance", size=25)
+cards(s, [
+    ("Chip-specific behavior", "plastic·membrane adsorption 보정", TEAL),
+    ("Dimensional scaling", "organ별 cell·fluidic scaling factor를 정확히", NAVY),
+    ("Held-out clinical validation", "fitting에 쓰지 않은 clinical data로 검증", GOLD),
+    ("Falsifiable correction rules", "curve-fitting이 아닌 mechanism-based rule", RED),
+], h=1.5, numbered=True, body_size=15.5)
+callout(s, "Study ④의 DOAC validation도 같은 원칙 — fitted fudge factor가 아닌 mechanistic (P-gp) correction",
+        y=5.6, h=0.8, size=16)
 
-# ===== Study 4 (DOAC) =====
-s = add_slide(TITLE_ONLY, "Study ④ — DOACs in the elderly: dosing the excluded patient", title_size=21)
-eyebrow(s, "Aging / renal–hepatic impairment")
+# =============================================================================
+# PART 6 -- regulatory acceptance, people, conclusion
+# =============================================================================
+divider(6, "Prerequisites, people, and the path forward",
+        "Context of use, clinical data 기반 validation — 그리고 이를 translate할 전문 인력")
+
+s = new_slide("What regulatory acceptance will require", "Context of use")
+table(s, [
+    ["Principle", "What it asks for"],
+    ["Context of use", "The precise question each model or chip is qualified to answer"],
+    ["Biological relevance", "The human mechanism the NAM reproduces"],
+    ["Technical characterization", "Reproducibility, dynamic range, failure modes"],
+    ["Fit-for-purpose validation", "Agreement with held-out clinical data (the step QSP / PBPK supplies)"],
+], 0.75, 1.85, 11.85, col_w=[3.3, 8.5], row_h=0.62, size=15)
+callout(s, "QSP/PBPK는 이미 확립된 MIDD pathway — NAM/MPS data를 여기에 통합하는 것이 decision-grade safety evidence로 가는 가장 현실적인 길",
+        y=5.25, h=1.05)
+
+s = new_slide("The real bottleneck is people, not technology", "Unmet needs in our own field")
 bullets(s, [
-    ("The gap", "Phase 1 characterises DOAC exposure in young, normal-renal volunteers"),
-    ("The reality", "the patients who take DOACs are old and renally impaired — exactly those excluded"),
-    ("The question", "can PBPK predict exposure and individualize dosing for patients never studied?"),
-], 0.95, 2.0, 11.5, 2.0, size=18, gap=11)
-rrect(s, 0.95, 4.4, 11.5, 1.75, PALETEAL, radius=0.07)
-textbox(s, "PBPK/PD layer:  age → creatinine clearance → DOAC exposure (renal-fraction scaling) → bleeding & stroke risk; fixed vs individualized dosing in a 4,000-patient virtual elderly cohort.",
-        1.2, 4.6, 11.0, 1.4, size=16.5, color=NAVY, line_spacing=1.15, anchor=MSO_ANCHOR.MIDDLE)
-source(s, "US product labels (dabigatran, apixaban, rivaroxaban, edoxaban) · Rowland–Tozer")
+    ("Workforce shortage", "NAM signal을 PBPK/QSP로 해석할 clinical pharmacologist 부족"),
+    ("No standard workflow", "FDA의 네 가지 NAM validation principle을 위한 표준 workflow 부재"),
+    ("Few head-to-head validations", "chip·organoid model을 human clinical data와 직접 비교한 연구가 드묾"),
+], 0.75, 2.1, 11.85, 2.3, size=19, gap=14)
+rrect(s, 0.75, 4.75, 11.85, 1.1, NAVY, radius=0.1)
+textbox(s, "Not a data problem, not a technology problem: a workforce problem.", 0.75, 4.75, 11.85, 1.1,
+        size=21, color=WHITE, family=F_MED, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
 
-big_fig_slide("Age is a renal-function covariate — exposure rises silently",
-              FIG/"s5_age_crcl.png", eyebrow_txt="Study ④ · aging",
-              figbox=(1.5, 2.0, 10.3, 4.4))
-big_fig_slide("Validating exposure — and finding where mechanism is needed",
-              FIG/"s5_validation.png", eyebrow_txt="Study ④ · aging",
-              caption="Renal scaling GMFE 1.18×; dabigatran under-predicted → P-gp term → 1.14× (mechanism, not curve-fitting)",
-              figbox=(3.2, 1.78, 6.9, 4.85))
-s = big_fig_slide("Two risks oppose; individualized dosing dominates",
-              FIG/"s5_exposure_response.png", eyebrow_txt="Study ④ · aging · the optimization",
-              figbox=(1.1, 2.0, 6.7, 4.3))
-add_image(s, FIG/"s5_individualization.png", 7.7, 2.3, 5.5, 3.6)
-textbox(s, "Model-informed dose reduction: over-exposure 68% → 24%, modelled bleeding 6.3 → 4.1 / 100 PY",
-        0.95, 6.5, 11.4, 0.4, size=12.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+s = new_slide("Conclusion", "What to take away")
+for i, (lead, body, col) in enumerate([
+        ("QSP + PBPK are the bridge", "in vitro·virtual signal을 human exposure, safety margin, benefit–risk로 translate", NAVY),
+        ("Trade-offs become optimizations", "MS dosing interval · ICI dose ratio · incretin titration · DOAC individualization · merigolix window", TEAL),
+        ("At scale", f"LLM이 구축한 {N_MODELS}개 open QSP model library — {PCT_SAFE}%가 이미 explicit safety axis 보유", BLUE),
+        ("Validated honestly", "gut–liver–kidney MPS가 clinical PK 없이 human AUC를 4-fold 이내로 예측 — fudge factor가 아닌 mechanism", GOLD),
+        ("The gap is people", "NAM-derived signal을 clinical safety decision으로 연결할 전문 인력이 필요", RED)]):
+    cy = 1.8 + i * 0.93
+    circ = s.shapes.add_shape(MSO_SHAPE.OVAL, Inches(0.8), Inches(cy + 0.1), Inches(0.58), Inches(0.58))
+    circ.fill.solid(); circ.fill.fore_color.rgb = col; circ.line.fill.background(); circ.shadow.inherit = False
+    textbox(s, str(i + 1), 0.8, cy + 0.1, 0.58, 0.58, size=18, color=WHITE, family=F_BOLD,
+            align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, spacing=1.0)
+    textbox(s, lead, 1.65, cy + 0.02, 10.9, 0.4, size=18, color=col, family=F_BOLD, spacing=1.0)
+    textbox(s, body, 1.65, cy + 0.42, 10.9, 0.45, size=15.5, color=INK, spacing=1.05)
 
-# ---------------- PART 5: flagship + NAMs bridge ------------------------
-divider("From optimization to the clinic — and to NAMs", "5",
-        "The flagship Merigolix case, then the gut–liver–kidney MPS + PBPK bridge")
-
-s = add_slide(TITLE_ONLY, "Flagship — Merigolix: the estrogen-threshold window", title_size=22)
-eyebrow(s, "Gynaecologic · GnRH antagonist for endometriosis")
-bullets(s, [
-    ("Mechanism", "oral GnRH-receptor antagonist → ↓LH/FSH → ↓estradiol → lesion & pain regression"),
-    ("The trade-off", "too little E2 suppression → no relief; too much → bone loss and hot flashes"),
-    ("The target", "a partial E2 band (~20–40 pg/mL) — benefit and risk cross inside it"),
-], 0.95, 2.0, 11.5, 2.0, size=18, gap=11)
-rrect(s, 0.95, 4.45, 11.5, 1.5, PALETEAL, radius=0.07)
-textbox(s, "A 2-compartment PK + HPG-axis PD model (E2/LH/FSH turnover, Hill inhibition) makes the estrogen-threshold hypothesis a quantitative optimization — live at pipetqsp.shinyapps.io/merigolix.",
-        1.2, 4.6, 11.0, 1.2, size=16.5, color=NAVY, line_spacing=1.15, anchor=MSO_ANCHOR.MIDDLE)
-
-big_fig_slide("Merigolix: the trade-off becomes a tunable optimization",
-              FIG/"s6_merigolix.png", eyebrow_txt="Flagship · the named example",
-              caption="Dose sets E2 suppression; benefit (pain, lesion) and risk (BMD, flashes) cross in the target band",
-              figbox=(1.1, 2.0, 11.1, 4.3))
-
-big_fig_slide("Where this connects to NAMs: the gut–liver–kidney MPS",
-              FIG/"ext/glk_validation.png", eyebrow_txt="NAMs bridge · KBCS 2026",
-              caption="MPS-fitted parameters → whole-body PBPK predicted human AUC within 4-fold (GMFE 1.85×), no clinical PK input",
-              figbox=(1.5, 2.0, 10.3, 4.2))
-source(prs.slides[-1], "Han et al., KBCS 2026 — gut–liver–kidney MPS + whole-body PBPK")
-
-s = add_slide(TITLE_ONLY, "Disease-state chips: distinguishing gut- from liver-driven change", title_size=21)
-eyebrow(s, "NAMs bridge · KBCS 2026")
-bullets(s, [
-    ("Same pipeline, disease chips", "DSS colitis and cisplatin-induced kidney injury, unaffected-organ parameters locked"),
-    ("Gefitinib on a colitis chip", "AUC 0.49× — gut-localised change (Fg shifts, Fa/Fh unchanged)"),
-    ("Simvastatin on a cisplatin-injury chip", "AUC 2.19× — hepatic-localised (Kp,uu halved, OATP1B1 suppression)"),
-    ("The payoff", "hypotheses for IBD / AKI patients usually excluded from Phase 1 — the same patients as Study ④"),
-], 0.95, 2.05, 11.5, 3.2, size=17.5, gap=12)
-rrect(s, 0.95, 5.4, 11.5, 1.0, PALETEAL, radius=0.08)
-textbox(s, "The five new studies and the MPS/NAM work are one program: mechanism translates an in-vitro or virtual signal into a human safety decision.",
-        1.2, 5.4, 11.0, 1.0, size=16.5, color=NAVY, bold=True, anchor=MSO_ANCHOR.MIDDLE, line_spacing=1.12)
-
-s = add_slide(TITLE_ONLY, "Prerequisites for trusting a chip-derived number", title_size=22)
-eyebrow(s, "Discipline for regulatory acceptance")
-cards = [
-    ("Chip-specific behaviour", "adsorption to plastics / membranes", TEAL),
-    ("Dimensional scaling", "correct per-organ cell & fluidic factors", NAVY),
-    ("Held-out clinical validation", "verify against data not used to fit", GOLD),
-    ("Falsifiable correction rules", "mechanism-based, not curve-fitting", RED),
-]
-for i,(h,b,c) in enumerate(cards):
-    cx = 0.95 + (i%2)*5.85; cy = 2.1 + (i//2)*2.0
-    rrect(s, cx, cy, 5.6, 1.8, PALE, radius=0.07)
-    textbox(s, f"{i+1}", cx+0.3, cy+0.25, 0.8, 0.8, size=30, color=c, bold=True)
-    textbox(s, h, cx+1.15, cy+0.3, 4.2, 0.6, size=17, color=c, bold=True)
-    textbox(s, b, cx+1.15, cy+1.0, 4.2, 0.7, size=14, color=INK, line_spacing=1.08)
-textbox(s, "Study ④'s DOAC validation was built in exactly this style — a mechanistic (P-gp) correction, not a fitted fudge factor.",
-        0.95, 6.3, 11.4, 0.6, size=15.5, color=NAVY, bold=True, line_spacing=1.1)
-
-# ---------------- PART 6: regulatory & conclusion ----------------------
-divider("Prerequisites, people, and the path forward", "6",
-        "Context of use, validation against clinical data — and the workforce to translate it")
-
-s = add_slide(TITLE_ONLY, "What regulatory acceptance will require", title_size=23)
-eyebrow(s, "Context of use")
-bullets(s, [
-    ("Context of use", "a precise statement of the question each model/chip is qualified to answer"),
-    ("Biological relevance", "the human mechanism the NAM reproduces"),
-    ("Technical characterization", "reproducibility, dynamic range, failure modes"),
-    ("Fit-for-purpose validation", "against held-out clinical data — the step QSP/PBPK supplies"),
-], 0.95, 2.1, 11.5, 3.0, size=18, gap=13)
-textbox(s, "QSP/PBPK is already an established MIDD pathway — folding NAM/MPS data into it is the credible route to decision-grade safety evidence.",
-        0.95, 5.5, 11.5, 0.9, size=17, color=NAVY, bold=True, line_spacing=1.12)
-
-s = add_slide(TITLE_ONLY, "The real bottleneck is people, not technology", title_size=23)
-eyebrow(s, "Conclusion 1 — unmet needs in our own field")
-bullets(s, [
-    ("A shortage", "of clinical pharmacologists trained to read NAM signal through PBPK/QSP"),
-    ("No standard workflow", "yet for the four NAM validation principles"),
-    ("Few head-to-head validations", "of chip/organoid models against human clinical data"),
-], 0.95, 2.1, 11.5, 2.2, size=18, gap=12)
-rrect(s, 0.95, 4.7, 11.5, 1.1, NAVY, radius=0.08)
-textbox(s, "Not a data problem, not a technology problem — a workforce problem.",
-        1.1, 4.7, 11.2, 1.1, size=21, color=WHITE, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-
-s = add_slide(TITLE_ONLY, "Conclusion", title_size=26)
-eyebrow(s, "What to take away")
-bullets(s, [
-    ("QSP + PBPK are the bridge", "they turn in-vitro and virtual signals into human exposure, safety margins, and benefit–risk"),
-    ("Trade-offs become optimizations", "MS dosing interval · ICI dose ratio · incretin titration · DOAC individualization · merigolix window"),
-    ("At scale", "an LLM-built, open library of 416 models — 74% already carrying a safety axis — one more each day"),
-    ("Validated honestly", "the gut–liver–kidney MPS predicts human AUC within 4-fold with no clinical PK; mechanism, not fudge factors"),
-    ("The gap is people", "scientists who can translate NAM-derived signals into clinical safety decisions"),
-], 0.95, 2.0, 11.6, 3.9, size=17, gap=11)
-
-# ---- Thank-you / contact
-s = add_slide(TITLE_ONLY, None)
-textbox(s, "Thank you", 0.95, 2.1, 11.0, 1.1, size=44, color=NAVY, bold=True)
-textbox(s, "Questions & collaborators welcome", 0.98, 3.25, 11.0, 0.6, size=20, color=TEAL, bold=True)
+s = prs.slides.add_slide(BLANK)
+textbox(s, "Thank you", 0.95, 1.7, 8.0, 1.0, size=44, color=NAVY, family=F_BOLD, spacing=1.0)
+textbox(s, "Questions and collaboration welcome", 0.98, 2.8, 8.0, 0.5, size=20, color=TEAL, family=F_MED,
+        spacing=1.0)
 textbox(s, [
-    ("Sungpil Han, MD PhD", {"size":18,"bold":True,"color":INK}),
-    ("Dept. of Pharmacology, College of Medicine, The Catholic University of Korea", {"size":14,"color":GREY}),
-    ("Dept. of Clinical Pharmacology & Therapeutics, Seoul St. Mary's Hospital · PIPET", {"size":14,"color":GREY}),
-    ("shan@catholic.ac.kr", {"size":15,"bold":True,"color":NAVY}),
-], 0.98, 4.2, 11.0, 1.7, line_spacing=1.25)
-rrect(s, 7.2, 4.35, 5.2, 0.72, PALE, radius=0.12)
-textbox(s, "Fully open:  github.com/pipetcpt/qsp", 7.4, 4.35, 5.0, 0.72, size=16, color=NAVY, bold=True, anchor=MSO_ANCHOR.MIDDLE)
+    [("Sungpil Han, MD, PhD", {"family": F_BOLD, "size": 18})],
+    [("Dept of Pharmacology, College of Medicine, The Catholic Univ. of Korea", {"size": 14, "color": GREY})],
+    [("Dept of Clinical Pharmacology & Therapeutics, Seoul St. Mary’s Hospital", {"size": 14, "color": GREY})],
+    [("shan@catholic.ac.kr", {"family": F_BOLD, "size": 15, "color": NAVY})],
+], 0.98, 3.75, 7.6, 1.9, spacing=1.35)
+rrect(s, 8.65, 3.8, 3.95, 1.35, PALE, radius=0.1)
+textbox(s, [[("Fully open", {"family": F_BOLD, "size": 14, "color": GOLD})],
+            [("github.com/pipetcpt/qsp", {"family": F_MED, "size": 16, "color": NAVY})]],
+        8.9, 3.8, 3.6, 1.35, anchor=MSO_ANCHOR.MIDDLE, spacing=1.3)
+
+# =============================================================================
+# enforce latinLnBrk="0" on every paragraph we did not write ourselves
+# =============================================================================
+for sl in prs.slides:
+    for p in sl._element.iter(qn("a:p")):
+        pPr = p.find(qn("a:pPr"))
+        if pPr is None:
+            pPr = etree.Element(qn("a:pPr"))
+            p.insert(0, pPr)
+        pPr.set("latinLnBrk", "0")
 
 prs.save(str(OUT))
-print("saved", OUT, "with", len(prs.slides.__iter__.__self__._sldIdLst), "slides")
-print("slides:", len(list(prs.slides._sldIdLst)))
+
+
+def rewrite_line_breaks(path):
+    """Second pass over every XML part: no latinLnBrk="1" may survive."""
+    tmp = Path(tempfile.mkstemp(suffix=".pptx")[1])
+    n_fixed = 0
+    with zipfile.ZipFile(path) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            if item.filename.endswith(".xml"):
+                txt = data.decode("utf-8")
+                n_fixed += txt.count('latinLnBrk="1"')
+                data = txt.replace('latinLnBrk="1"', 'latinLnBrk="0"').encode("utf-8")
+            zout.writestr(item, data)
+    shutil.move(str(tmp), str(path))
+    Path(path).chmod(0o644)
+    return n_fixed
+
+
+fixed = rewrite_line_breaks(OUT)
+print(f"saved {OUT.name}: {len(prs.slides._sldIdLst)} slides; rewrote {fixed} inherited latinLnBrk=\"1\"")
